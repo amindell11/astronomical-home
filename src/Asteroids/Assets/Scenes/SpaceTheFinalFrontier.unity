@@ -514,6 +514,77 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   thrustForce: 5
   rotationSpeed: 120
+--- !u!1 &1390059697
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1390059699}
+  - component: {fileID: 1390059698}
+  m_Layer: 0
+  m_Name: AsteroidController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1390059698
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1390059697}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59d7ff34b571cbb40a06d3d670e58627, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  asteroidPrefab: {fileID: 4019077209037647485, guid: 18f17435b7c616840b8429b21faa63c1, type: 3}
+  spawnDistance: 30
+  cullDistance: 40
+  maxAsteroids: 50
+  asteroidSprites:
+  - {fileID: -5164546812292469190, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  - {fileID: 156675587, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  - {fileID: 1725706783, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  - {fileID: -1836045189, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  - {fileID: 555228349, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  - {fileID: -558614460, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  - {fileID: 1551950353, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  - {fileID: 1017670178, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  - {fileID: -719819745, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  - {fileID: -915106731, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  - {fileID: 1360173023, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  - {fileID: 1837228862, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  - {fileID: 372026831, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  - {fileID: 626985636, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  - {fileID: -1532923414, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  - {fileID: 782970550, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  targetDensity: 0.1
+  densityCheckRadius: 20
+  minSpawnDistance: 15
+  sizeRange: {x: 0.5, y: 2}
+  velocityRange: {x: 0.5, y: 2}
+  spinRange: {x: -30, y: 30}
+--- !u!4 &1390059699
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1390059697}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.95411175, y: 1.5355971, z: -0.022939824}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1998852044
 GameObject:
   m_ObjectHideFlags: 0
@@ -658,3 +729,4 @@ SceneRoots:
   - {fileID: 1128967405}
   - {fileID: 196431351}
   - {fileID: 458441630}
+  - {fileID: 1390059699}
