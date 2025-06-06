@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 8284056887747387042}
   - component: {fileID: 149694986580767192}
   - component: {fileID: 5408995189547049293}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: LaserProjectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -100,8 +100,8 @@ Rigidbody2D:
   m_BodyType: 0
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
-  m_UseAutoMass: 1
-  m_Mass: 0.047000002
+  m_UseAutoMass: 0
+  m_Mass: 0.01
   m_LinearDrag: 0
   m_AngularDrag: 0.05
   m_GravityScale: 0
@@ -114,7 +114,7 @@ Rigidbody2D:
     m_Bits: 0
   m_Interpolate: 0
   m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
   m_Constraints: 0
 --- !u!61 &149694986580767192
 BoxCollider2D:
@@ -146,7 +146,7 @@ BoxCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
@@ -177,3 +177,4 @@ MonoBehaviour:
   damage: 10
   maxDistance: 50
   hitEffect: {fileID: 0}
+  mass: 0.001

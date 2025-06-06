@@ -13,9 +13,10 @@ GameObject:
   - component: {fileID: 2383463695949755070}
   - component: {fileID: 6559259232337681067}
   - component: {fileID: 4472195961810012638}
-  m_Layer: 6
+  - component: {fileID: 4710732912445416977}
+  m_Layer: 3
   m_Name: Asteroid
-  m_TagString: Untagged
+  m_TagString: Asteroid
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -129,7 +130,7 @@ CircleCollider2D:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 128
+    m_Bits: 64
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -165,10 +166,10 @@ CircleCollider2D:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 136
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 128
+    m_Bits: 64
   m_LayerOverridePriority: 0
   m_ForceSendLayers:
     serializedVersion: 2
@@ -188,3 +189,47 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 1.4
+--- !u!114 &4710732912445416977
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4019077209037647485}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3684faaa1bc334d4b9a2b5944c659a60, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  minMass: 0.2
+  fragmentMassRatio: 0.5
+  minFragments: 2
+  maxFragments: 4
+  fragmentSpeed: 5
+  explosionPrefab: {fileID: 0}
+  massRange: {x: 0.5, y: 3}
+  velocityRange: {x: 0.5, y: 2}
+  spinRange: {x: -30, y: 30}
+  separationBias: 2
+  baseSeparationSpeed: 0.5
+  spinVariation: 30
+  explosiveLossFactor: 0.5
+  asteroidSprites:
+  - {fileID: -5164546812292469190, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  - {fileID: 156675587, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  - {fileID: 1725706783, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  - {fileID: -1836045189, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  - {fileID: 555228349, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  - {fileID: -558614460, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  - {fileID: 1551950353, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  - {fileID: 1017670178, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  - {fileID: -719819745, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  - {fileID: -915106731, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  - {fileID: 1360173023, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  - {fileID: 1837228862, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  - {fileID: 372026831, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  - {fileID: 626985636, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  - {fileID: -1532923414, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  - {fileID: 782970550, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
+  maxVelocity: 15
+  maxAngularVelocity: 180

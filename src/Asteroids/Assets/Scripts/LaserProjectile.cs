@@ -6,12 +6,15 @@ public class LaserProjectile : MonoBehaviour
     [SerializeField] private float damage = 10f;
     [SerializeField] private float maxDistance = 50f;
     [SerializeField] private GameObject hitEffect;
+    [SerializeField] private float mass = 0.1f;  // Mass of the laser projectile
 
     private Vector2 startPosition;
+    private Rigidbody2D rb;
 
     private void Start()
     {
         startPosition = transform.position;
+        rb = GetComponent<Rigidbody2D>();
     }
 
     private void Update()
@@ -26,23 +29,28 @@ public class LaserProjectile : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        /*// Check if we hit an asteroid
+        // Check if we hit an asteroid
         if (other.CompareTag("Asteroid"))
         {
-            // Apply damage to the asteroid
             Asteroid asteroid = other.GetComponent<Asteroid>();
             if (asteroid != null)
             {
-                asteroid.TakeDamage(damage);
+                asteroid.TakeDamage(damage, rb.mass, rb.velocity);
             }
-
+            Destroy(gameObject);
             // Spawn hit effect if we have one
             if (hitEffect != null)
             {
                 Instantiate(hitEffect, transform.position, Quaternion.identity);
             }
-*/
-            // Destroy the laser
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.CompareTag("Boundary"))
+        {
             Destroy(gameObject);
+        }
     }
 } 
