@@ -11,6 +11,7 @@ Shader "Custom/StarField"
         _CullDistance ("Cull Distance", Float) = 50
         _GridDensity ("Grid Density", Range(0.01, 1)) = 0.2
         _ParallaxStrength ("Parallax Strength", Range(0, 1)) = 0.5
+        _StartingOffset ("Starting Offset", Vector) = (0.2,0.2,0,0)
     }
     
     SubShader
@@ -50,6 +51,7 @@ Shader "Custom/StarField"
             float _CullDistance;
             float _GridDensity;
             float _ParallaxStrength;
+            float4 _StartingOffset;
 
             // Improved hash function for better distribution
             float hash(float2 p)
@@ -99,11 +101,12 @@ Shader "Custom/StarField"
                 
                 // Calculate parallax offset based on star size
                 float parallaxFactor = 1.0 - (finalStarSize / (_StarSize * (1.0 + _SizeVariation))); // Smaller stars move slower
-                float2 cameraOffset = _WorldSpaceCameraPos.xy * _ParallaxStrength * parallaxFactor;
+                float2 cameraOffset = (_WorldSpaceCameraPos.xy + _StartingOffset.xy) * _ParallaxStrength * parallaxFactor;
                 
-                // Apply parallax to grid position
-                grid = floor((worldPos + cameraOffset) * _GridDensity);
-                gridUV = frac((worldPos + cameraOffset) * _GridDensity);
+                // Apply parallax and starting offset to grid position
+                float2 finalPos = worldPos + cameraOffset;
+                grid = floor(finalPos * _GridDensity);
+                gridUV = frac(finalPos * _GridDensity);
                 
                 // Only create stars where random value is below density threshold
                 float star = step(random, _StarDensity);

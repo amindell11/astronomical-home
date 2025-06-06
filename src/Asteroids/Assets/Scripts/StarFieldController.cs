@@ -21,6 +21,7 @@ public class StarFieldController : MonoBehaviour
     public float gridDensity = 0.2f;
     [Range(0, 1f)]
     public float parallaxStrength = 0.5f;
+    public Vector2 startingOffset = new Vector2(0.2f, 0.2f);
 
     private void Start()
     {
@@ -60,6 +61,7 @@ public class StarFieldController : MonoBehaviour
             starFieldMaterial.SetFloat("_CullDistance", cullDistance);
             starFieldMaterial.SetFloat("_GridDensity", gridDensity);
             starFieldMaterial.SetFloat("_ParallaxStrength", parallaxStrength);
+            starFieldMaterial.SetVector("_StartingOffset", new Vector4(startingOffset.x, startingOffset.y, 0, 0));
         }
     }
 } 
