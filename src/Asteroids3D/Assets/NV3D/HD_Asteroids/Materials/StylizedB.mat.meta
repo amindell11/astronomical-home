@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 7adf5442db2177a448f13ae308245757
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 144868
+  packageName: Asteroids HD
+  packageVersion: 2.0
+  assetPath: Assets/NV3D/HD_Asteroids/Materials/StylizedB.mat
+  uploadId: 663966
