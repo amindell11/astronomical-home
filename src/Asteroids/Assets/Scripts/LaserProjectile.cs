@@ -29,6 +29,7 @@ public class LaserProjectile : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        Debug.Log($"OnTriggerEnter2D: {other.gameObject.name}");
         // Check if we hit an asteroid
         if (other.CompareTag("Asteroid"))
         {

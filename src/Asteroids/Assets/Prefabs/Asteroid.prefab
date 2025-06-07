@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 2383463695949755070}
   - component: {fileID: 6559259232337681067}
   - component: {fileID: 4472195961810012638}
-  - component: {fileID: 4710732912445416977}
+  - component: {fileID: 7546459245403105509}
   m_Layer: 3
   m_Name: Asteroid
   m_TagString: Asteroid
@@ -102,11 +102,11 @@ Rigidbody2D:
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
-  m_Mass: 1
+  m_Mass: 5
   m_LinearDrag: 0
   m_AngularDrag: 0.05
   m_GravityScale: 0
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: befa80dd0c03cae4dae4b76b82372e8d, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -133,7 +133,7 @@ CircleCollider2D:
     m_Bits: 64
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 128
   m_LayerOverridePriority: 0
   m_ForceSendLayers:
     serializedVersion: 2
@@ -163,7 +163,7 @@ CircleCollider2D:
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: befa80dd0c03cae4dae4b76b82372e8d, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 136
@@ -189,7 +189,7 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 1.4
---- !u!114 &4710732912445416977
+--- !u!114 &7546459245403105509
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -202,18 +202,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   minMass: 0.2
-  fragmentMassRatio: 0.5
   minFragments: 2
   maxFragments: 4
-  fragmentSpeed: 5
   explosionPrefab: {fileID: 0}
-  massRange: {x: 0.5, y: 3}
+  massRange: {x: 0.5, y: 2}
   velocityRange: {x: 0.5, y: 2}
   spinRange: {x: -30, y: 30}
-  separationBias: 2
-  baseSeparationSpeed: 0.5
+  separationBias: 0.5
+  baseSeparationSpeed: 0.1
   spinVariation: 30
   explosiveLossFactor: 0.5
+  outwardBias: 0.7
+  bulletBias: 1
+  randomBias: 0.3
   asteroidSprites:
   - {fileID: -5164546812292469190, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
   - {fileID: 156675587, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
@@ -231,5 +232,3 @@ MonoBehaviour:
   - {fileID: 626985636, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
   - {fileID: -1532923414, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
   - {fileID: 782970550, guid: 5b507d6036dd3aa45af2eb9fac250e96, type: 3}
-  maxVelocity: 15
-  maxAngularVelocity: 180

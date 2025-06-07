@@ -14,6 +14,9 @@ public class AsteroidController : MonoBehaviour
     [Tooltip("Minimum distance from player where asteroids can spawn")]
     [SerializeField] private float minSpawnDistance = 15f;
     [Tooltip("Maximum distance from player where asteroids can spawn")]
+
+    [SerializeField] private float initMinSpawnDistance = 10f;
+    [Tooltip("Maximum distance from player where asteroids can spawn at game start")]
     [SerializeField] private float maxSpawnDistance = 30f;
     [Tooltip("Distance at which asteroids are destroyed when too far from player")]
 
@@ -24,7 +27,7 @@ public class AsteroidController : MonoBehaviour
     private Transform playerTransform;
     private List<GameObject> activeAsteroids = new List<GameObject>();
     private Asteroid asteroidTemplate;
-
+    public List<GameObject> ActiveAsteroids => activeAsteroids;
     private void Awake()
     {
         // Singleton pattern implementation
@@ -45,6 +48,7 @@ public class AsteroidController : MonoBehaviour
     private void Start()
     {
         playerTransform = Camera.main.transform;
+        CheckAndSpawnAsteroids(initMinSpawnDistance, maxSpawnDistance);
     }
 
     private void Update()
@@ -56,7 +60,7 @@ public class AsteroidController : MonoBehaviour
         }
 
         // Check current density and spawn if needed
-        CheckAndSpawnAsteroids();
+        CheckAndSpawnAsteroids(minSpawnDistance, maxSpawnDistance);
     }
 
     private float GetAsteroidDensity(out float area)
@@ -79,7 +83,7 @@ public class AsteroidController : MonoBehaviour
         return asteroidsInRange / area;
     }
 
-    private void CheckAndSpawnAsteroids()
+    private void CheckAndSpawnAsteroids(float minSpawnDistance, float maxSpawnDistance)
     {
         if (activeAsteroids.Count >= maxAsteroids) return;
 
@@ -113,7 +117,7 @@ public class AsteroidController : MonoBehaviour
         }
     }
     public GameObject SpawnAsteroid(Vector3 position, float? mass = null, Vector2? velocity = null, float? rotation = null, float? angularVelocity = null)
-    {
+    {   
         GameObject asteroid = Instantiate(asteroidPrefab, position, Quaternion.Euler(0, 0, 0), transform);
         Asteroid asteroidComponent = asteroid.GetComponent<Asteroid>();
         if (asteroidComponent != null)
@@ -123,9 +127,4 @@ public class AsteroidController : MonoBehaviour
         activeAsteroids.Add(asteroid);
         return asteroid;
     }
-    // Public method to remove an asteroid from the active list
-    public void RemoveAsteroid(GameObject asteroid)
-    {
-        activeAsteroids.Remove(asteroid);
-    }
-} 
+}
