@@ -26,7 +26,7 @@ public class LaserGun : MonoBehaviour
     private void Update()
     {
         // Check for fire input (space bar or left mouse button)
-        if ((Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0)) && Time.time >= nextFireTime)
+        if (Input.GetButtonDown("Fire1") && Time.time >= nextFireTime)
         {
             FireLaser();
             nextFireTime = Time.time + fireRate;

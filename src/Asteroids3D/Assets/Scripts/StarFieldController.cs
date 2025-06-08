@@ -42,7 +42,6 @@ public class StarFieldController : MonoBehaviour
         
         // Initialize the material properties
         UpdateMaterialProperties();
-        transform.position = startingOffset;
     }
 
     private void Update()
