@@ -39,7 +39,7 @@ public class AsteroidSpawner : MonoBehaviour
             return null;
         }
 
-        GameObject asteroidGO = Instantiate(asteroidPrefab, pose.position, pose.rotation);
+        GameObject asteroidGO = Instantiate(asteroidPrefab, pose.position, pose.rotation, transform.parent);
         Asteroid asteroid = asteroidGO.GetComponent<Asteroid>();
 
         if (asteroid == null)

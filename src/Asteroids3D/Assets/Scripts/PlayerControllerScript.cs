@@ -11,12 +11,16 @@ public class PlayerController : MonoBehaviour
     public float rotationThrustForce = 200.0f;  // Force applied for rotation
     public float maxRotationSpeed = 180.0f;     // Maximum rotation speed (degrees per second)
     public float rotationDrag = 0.95f;          // How quickly rotation slows down (0-1)
+    [Tooltip("The angle in degrees inside which the ship will not try to yaw towards the mouse.")]
+    public float yawDeadzoneAngle = 2.0f;       // Deadzone angle to prevent jitter
 
     [Header("Banking Settings")]
     public float maxBankAngle = 45f;           // Maximum banking angle in degrees
     public float bankingSpeed = 5f;            // How quickly the ship banks
     public float maxStrafeForce = 3f;          // Maximum strafe force when stationary
     public float minStrafeForce = 0.5f;        // Minimum strafe force at max speed
+
+    [SerializeField] private ParticleSystem thrustParticles;
 
     private Rigidbody rb;                // Reference to player's Rigidbody
     private float currentRotationSpeed;    // Current rotation speed
@@ -81,8 +85,13 @@ public class PlayerController : MonoBehaviour
             float currentAngle = transform.rotation.eulerAngles.z;
             float angleDifference = Mathf.DeltaAngle(currentAngle, targetAngle);
             
-            // Apply rotation thrust towards target angle
-            currentRotationSpeed += Mathf.Sign(angleDifference) * rotationThrustForce * Time.fixedDeltaTime;
+            // Apply rotation thrust towards target angle if outside of the deadzone
+            if (Mathf.Abs(angleDifference) > yawDeadzoneAngle)
+            {
+                float angleRatio = Mathf.Abs(angleDifference) / 180f; // Normalize angle difference to 0-1 range
+                float thrustMultiplier = Mathf.Pow(angleRatio+.01f, 1/6f); // Power of 4 gives more thrust when far, but not as extreme dropoff
+                currentRotationSpeed += Mathf.Sign(angleDifference) * rotationThrustForce * thrustMultiplier * Time.fixedDeltaTime;
+            }
         }
         
         // Apply rotation drag

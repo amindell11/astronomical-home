@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 891494348914436743}
   - component: {fileID: 8547678706290888870}
-  - component: {fileID: 2000222965602790877}
   m_Layer: 0
   m_Name: StarField
   m_TagString: Untagged
@@ -28,7 +27,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -0.47153336, y: 0.5772197, z: 0.04443172}
-  m_LocalScale: {x: 10000, y: 10000, z: 1}
+  m_LocalScale: {x: 20, y: 14, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -76,36 +75,14 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
+  m_Sprite: {fileID: 21300000, guid: d4900558371d4ea47811d5c53caa9e31, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1000, y: 1000}
+  m_Size: {x: 2.56, y: 2.56}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &2000222965602790877
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7643126730413467205}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ca6eb964b374eb046b084d57bf8b99db, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  starFieldMaterial: {fileID: 2100000, guid: b18f177bd928aa8469f8f3364cfa1cf0, type: 2}
-  starDensity: 0
-  starSize: 0.0441
-  sizeVariation: 0.329
-  twinkleSpeed: 0.34
-  starColor: {r: 1, g: 1, b: 1, a: 1}
-  cullDistance: 50
-  gridDensity: 1
-  parallaxStrength: 0.708
-  startingOffset: {x: 0.2, y: 0.2}

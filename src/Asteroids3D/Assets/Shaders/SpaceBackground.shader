@@ -10,6 +10,8 @@ Shader "Custom/SpaceBackground"
         _NoiseStrength ("Noise Strength", Range(0, 5)) = 0.8
         _ScrollSpeed ("Scroll Speed", Range(0, 5)) = 0.15
         _Distortion ("Distortion", Range(0, 5)) = 0.3
+        [Toggle] _EmissionEnabled ("Enable Emission", Float) = 1
+        _EmissionStrength ("Emission Strength", Range(0, 200)) = 1.0
     }
     
     SubShader
@@ -48,6 +50,8 @@ Shader "Custom/SpaceBackground"
             float _NoiseStrength;
             float _ScrollSpeed;
             float _Distortion;
+            float _EmissionStrength;
+            float _EmissionEnabled;
 
             // Improved hash function for better distribution
             float2 hash2(float2 p)
@@ -107,6 +111,19 @@ Shader "Custom/SpaceBackground"
                 return p + offset;
             }
 
+            // Function to calculate weighted average color
+            float3 calculateAverageColor(float noise1, float noise2, float noise3, float3 color1, float3 color2, float3 color3)
+            {
+                // Calculate weights based on noise values
+                float total = noise1 + noise2 + noise3;
+                float w1 = noise1 / total;
+                float w2 = noise2 / total;
+                float w3 = noise3 / total;
+                
+                // Weighted average of colors
+                return (color1 * w1 + color2 * w2 + color3 * w3);
+            }
+
             v2f vert (appdata v)
             {
                 v2f o;
@@ -147,8 +164,104 @@ Shader "Custom/SpaceBackground"
                 // Add subtle color variation based on position
                 float2 colorVar = sin(basePos * 0.1 + time * 0.2) * 0.1;
                 color += float3(colorVar.x, colorVar.y, colorVar.x * colorVar.y) * 0.1;
+
+                // Calculate average color for emission only if enabled
+                if (_EmissionEnabled > 0.5) {
+                    float3 avgColor = calculateAverageColor(
+                        max(0.1, noise1), 
+                        max(0.1, noise2), 
+                        max(0.1, noise3), 
+                        _Color1.rgb, 
+                        _Color2.rgb, 
+                        _Color3.rgb
+                    );
+                    
+                    // Calculate emission using the average color
+                    float3 emission = color * _EmissionStrength * avgColor;
+                    
+                    // Add emission to final color
+                    color += emission;
+                }
                 
                 return fixed4(color, 1.0);
+            }
+            ENDCG
+        }
+
+        // Add emission pass - only if emission is enabled
+        Pass
+        {
+            Tags {"LightMode"="ForwardAdd"}
+            Blend One One
+            ZWrite Off
+            
+            CGPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            #include "UnityCG.cginc"
+
+            struct appdata
+            {
+                float4 vertex : POSITION;
+                float2 uv : TEXCOORD0;
+            };
+
+            struct v2f
+            {
+                float2 uv : TEXCOORD0;
+                float4 vertex : SV_POSITION;
+                float4 worldPos : TEXCOORD1;
+            };
+
+            sampler2D _MainTex;
+            float4 _MainTex_ST;
+            float4 _Color1;
+            float4 _Color2;
+            float4 _Color3;
+            float _EmissionStrength;
+            float _EmissionEnabled;
+            float _NoiseScale;
+            float _ScrollSpeed;
+
+            float3 calculateAverageColor(float noise1, float noise2, float noise3, float3 color1, float3 color2, float3 color3)
+            {
+                float total = noise1 + noise2 + noise3;
+                float w1 = noise1 / total;
+                float w2 = noise2 / total;
+                float w3 = noise3 / total;
+                return (color1 * w1 + color2 * w2 + color3 * w3);
+            }
+
+            v2f vert (appdata v)
+            {
+                v2f o;
+                o.vertex = UnityObjectToClipPos(v.vertex);
+                o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+                o.worldPos = mul(unity_ObjectToWorld, v.vertex);
+                return o;
+            }
+
+            fixed4 frag (v2f i) : SV_Target
+            {
+                // Only calculate emission if enabled
+                if (_EmissionEnabled <= 0.5) {
+                    return fixed4(0, 0, 0, 0);
+                }
+                
+                float2 basePos = i.worldPos.xy * _NoiseScale;
+                float time = _Time.y * _ScrollSpeed;
+                
+                float3 avgColor = calculateAverageColor(
+                    0.4, // weight for Color1
+                    0.3, // weight for Color2
+                    0.3, // weight for Color3
+                    _Color1.rgb,
+                    _Color2.rgb,
+                    _Color3.rgb
+                );
+                
+                float3 emission = avgColor * _EmissionStrength * 0.5;
+                return fixed4(emission, 1.0);
             }
             ENDCG
         }

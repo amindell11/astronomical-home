@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 9063340333665154454}
   - component: {fileID: 4239287853621810014}
-  - component: {fileID: 4154382544917791398}
   m_Layer: 0
   m_Name: SpaceBackground
   m_TagString: Untagged
@@ -87,23 +86,3 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &4154382544917791398
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9023428019995493958}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5f227db5596815446b1b020dd6d4e45d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  backgroundMaterial: {fileID: 2100000, guid: caa12b2b25931bc4ba49a1b405301c52, type: 2}
-  color1: {r: 0.04, g: 0.05, b: 0.1, a: 1}
-  color2: {r: 0.1, g: 0.13, b: 0.22, a: 1}
-  color3: {r: 0.12, g: 0.09, b: 0.16, a: 1}
-  noiseScale: 0.1
-  noiseStrength: 3.62
-  scrollSpeed: 0.2
-  distortion: 0.1
