@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: fcf903e06fd4524468af90a6d8e58312
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 277702
+  packageName: Volumetric Fog (URP)
+  packageVersion: 1.0
+  assetPath: Assets/Mirza Beig/Volumetric Fog (Lite)/Scenes/Demo/Global Volume Profile
+    - Tonemapping.asset
+  uploadId: 666516

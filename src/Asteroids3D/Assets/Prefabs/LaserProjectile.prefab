@@ -106,6 +106,8 @@ MonoBehaviour:
   maxDistance: 50
   hitEffect: {fileID: 0}
   mass: 0.001
+  laserSound: {fileID: 8300000, guid: d54f219e0c3bffe499e781b446873247, type: 3}
+  laserVolume: 0.75
 --- !u!54 &3791456385073129076
 Rigidbody:
   m_ObjectHideFlags: 0

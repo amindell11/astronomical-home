@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: cb206bf794601354883d87d072f1d386
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 277702
+  packageName: Volumetric Fog (URP)
+  packageVersion: 1.0
+  assetPath: Assets/Mirza Beig/Volumetric Fog (Lite)/Materials/Demo/Text/LiberationSans
+    SDF.mat
+  uploadId: 666516

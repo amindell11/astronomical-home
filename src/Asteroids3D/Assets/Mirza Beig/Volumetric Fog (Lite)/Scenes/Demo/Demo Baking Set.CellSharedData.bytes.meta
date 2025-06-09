@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 58eb026dc71e8524a8bee09696057b4f
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 277702
+  packageName: Volumetric Fog (URP)
+  packageVersion: 1.0
+  assetPath: Assets/Mirza Beig/Volumetric Fog (Lite)/Scenes/Demo/Demo Baking Set.CellSharedData.bytes
+  uploadId: 666516

@@ -4,7 +4,8 @@ public class Asteroid : MonoBehaviour
 {
 
     [SerializeField] private GameObject explosionPrefab;
-
+    [SerializeField] private AudioClip explosionSound;
+    [SerializeField] private float explosionVolume = 0.7f;
     private Rigidbody rb;
     private MeshFilter meshFilter;
 
@@ -59,6 +60,10 @@ public class Asteroid : MonoBehaviour
         {
             Instantiate(explosionPrefab, transform.position, Quaternion.identity);
         }
+        if (explosionSound != null)
+        {
+            AudioSource.PlayClipAtPoint(explosionSound, transform.position, explosionVolume);
+        }
     }
 
     private void CleanupAsteroid()
@@ -72,6 +77,7 @@ public class Asteroid : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
+        Debug.Log("OnTriggerExit" + other.name);
         if (other.CompareTag("AsteroidCullingBoundary"))
         {
             CleanupAsteroid();

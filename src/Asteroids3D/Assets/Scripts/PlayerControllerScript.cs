@@ -20,7 +20,7 @@ public class PlayerController : MonoBehaviour
     public float maxStrafeForce = 3f;          // Maximum strafe force when stationary
     public float minStrafeForce = 0.5f;        // Minimum strafe force at max speed
 
-    [SerializeField] private ParticleSystem thrustParticles;
+    [SerializeField] private ParticleSystem[] thrustParticles;
 
     private Rigidbody rb;                // Reference to player's Rigidbody
     private float currentRotationSpeed;    // Current rotation speed
@@ -47,7 +47,18 @@ public class PlayerController : MonoBehaviour
         float thrust = Input.GetAxis("Vertical");
         Vector3 thrustDirection = transform.up * thrust * thrustForce;
         rb.AddForce(thrustDirection);
-
+        if(thrust > 0)
+        {
+            foreach(ParticleSystem particle in thrustParticles)
+            {
+                particle.Play();
+            }
+        }else{
+            foreach(ParticleSystem particle in thrustParticles)
+            {
+                particle.Stop();
+            }
+        }
         // Limit maximum speed
         if (rb.velocity.magnitude > maxSpeed)
         {

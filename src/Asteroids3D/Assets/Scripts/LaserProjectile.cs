@@ -7,6 +7,8 @@ public class LaserProjectile : MonoBehaviour
     [SerializeField] private float maxDistance = 50f;
     [SerializeField] private GameObject hitEffect;
     [SerializeField] private float mass = 0.1f;  // Mass of the laser projectile
+    [SerializeField] private AudioClip laserSound;
+    [SerializeField] private float laserVolume = 0.5f;
 
     private Vector3 startPosition;
     private Rigidbody rb;
@@ -15,7 +17,8 @@ public class LaserProjectile : MonoBehaviour
     {
         startPosition = transform.position;
         rb = GetComponent<Rigidbody>();
-        rb.useGravity = false;
+        rb.useGravity = false;  
+        AudioSource.PlayClipAtPoint(laserSound, transform.position, laserVolume);
     }
 
     private void Update()

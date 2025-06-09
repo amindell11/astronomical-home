@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 386634f9d3877e54caa412a277908c66
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 277702
+  packageName: Volumetric Fog (URP)
+  packageVersion: 1.0
+  assetPath: Assets/Mirza Beig/Volumetric Fog (Lite)/Materials/Demo/Quad.mat
+  uploadId: 666516
