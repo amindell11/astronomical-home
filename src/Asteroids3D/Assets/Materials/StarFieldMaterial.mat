@@ -49,16 +49,16 @@ Material:
     - _EnableExternalAlpha: 0
     - _GridDensity: 1
     - _GridSize: 50
-    - _ParallaxStrength: 0.339
+    - _ParallaxStrength: 0.84
     - _SizeVariation: 0.329
     - _StarDensity: 0
-    - _StarSize: 0.0441
+    - _StarSize: 0.0557
     - _StarSpriteCount: 4
     - _TwinkleSpeed: 0.34
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
     - _StarColor: {r: 1, g: 1, b: 1, a: 1}
-    - _StartingOffset: {r: 0.2, g: 0.2, b: 0, a: 0}
+    - _StartingOffset: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
