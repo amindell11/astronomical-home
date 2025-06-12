@@ -21,9 +21,9 @@ public class AsteroidFieldManager : MonoBehaviour
     [SerializeField] private int maxSpawnsPerFrame = 10;
 
     private Transform playerTransform;
-
+    [SerializeField] private List<GameObject> cullableAsteroids = new List<GameObject>();
     public List<GameObject> ActiveAsteroids => activeAsteroids;
-
+    public List<GameObject> CullableAsteroids => cullableAsteroids;
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -68,14 +68,30 @@ public class AsteroidFieldManager : MonoBehaviour
             int safetyBreak = maxSpawnsPerFrame; // Prevent potential infinite loops
 
             // Keep spawning until we've added enough mass, without exceeding total count.
-            while (massSpawned < massToSpawn && activeAsteroids.Count < maxAsteroids && safetyBreak > 0)
+            while (massSpawned < massToSpawn && activeAsteroids.Count < maxAsteroids && (safetyBreak > 0 || cullableAsteroids.Count > 0))
             {
                 Vector3 spawnPosition = playerTransform.position + (Vector3)(Random.insideUnitCircle.normalized * Random.Range(minSpawn, maxSpawn));
-                Pose spawnPose = new Pose(spawnPosition, Random.rotationUniform);
-                GameObject newAsteroidGO = AsteroidSpawner.Instance.SpawnAsteroid(spawnPose);
-                if (newAsteroidGO == null) break;
-                massSpawned += newAsteroidGO.GetComponent<Asteroid>().CurrentMass;
-                safetyBreak--;
+                if(cullableAsteroids.Count > 0)
+                {
+                    Debug.Log("Spawning from cullable asteroids");
+                    GameObject newAsteroidGO = cullableAsteroids[0];
+                    cullableAsteroids.RemoveAt(0);
+                    activeAsteroids.Add(newAsteroidGO);
+                    newAsteroidGO.transform.position = spawnPosition;
+                    newAsteroidGO.GetComponent<Asteroid>().ResetAsteroid();
+                    newAsteroidGO.SetActive(true);
+                    massSpawned += newAsteroidGO.GetComponent<Asteroid>().CurrentMass;
+                }
+                else
+                {
+                    Debug.Log("Spawning new asteroid");
+                    Pose spawnPose = new Pose(spawnPosition, Random.rotationUniform);
+                    GameObject newAsteroidGO = AsteroidSpawner.Instance.SpawnAsteroid(spawnPose);
+                    if (newAsteroidGO == null) break;
+                    massSpawned += newAsteroidGO.GetComponent<Asteroid>().CurrentMass;
+                    safetyBreak--;
+                }
+
             }
         }
     }

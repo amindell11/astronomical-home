@@ -8,6 +8,8 @@ public class Asteroid : MonoBehaviour
     [SerializeField] private float explosionVolume = 0.7f;
     private Rigidbody rb;
     private MeshFilter meshFilter;
+    private Vector3 initialVelocity;
+    private Vector3 initialAngularVelocity;
 
     public float CurrentMass => rb.mass;
     public Rigidbody Rb => rb;
@@ -38,6 +40,11 @@ public class Asteroid : MonoBehaviour
         UpdateMeshCollider();
     }
 
+    public void ResetAsteroid()
+    {
+        rb.velocity = initialVelocity;
+        rb.angularVelocity = initialAngularVelocity;
+    }
     private void UpdateMeshCollider()
     {
         MeshCollider meshCollider = GetComponent<MeshCollider>();
@@ -70,7 +77,7 @@ public class Asteroid : MonoBehaviour
     {
         if (AsteroidFieldManager.Instance != null)
         {
-            AsteroidFieldManager.Instance.RemoveAsteroid(gameObject);
+            AsteroidFieldManager.Instance.RemoveAsteroid(gameObject);   
         }
         Destroy(gameObject);
     }
@@ -80,7 +87,17 @@ public class Asteroid : MonoBehaviour
         Debug.Log("OnTriggerExit" + other.name);
         if (other.CompareTag("AsteroidCullingBoundary"))
         {
-            CleanupAsteroid();
+            AsteroidFieldManager.Instance.CullableAsteroids.Add(gameObject);
+            AsteroidFieldManager.Instance.ActiveAsteroids.Remove(gameObject);
+            gameObject.SetActive(false);
+        }
+    }   
+    private void OnTriggerEnter(Collider other)
+    {
+        Debug.Log("OnTriggerEnter" + other.name);
+        if (other.CompareTag("AsteroidCullingBoundary"))
+        {
+            AsteroidFieldManager.Instance.CullableAsteroids.Remove(gameObject);
         }
     }
 
