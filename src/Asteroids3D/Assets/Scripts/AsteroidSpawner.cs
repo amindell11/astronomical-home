@@ -8,8 +8,7 @@ public class AsteroidSpawner : MonoBehaviour
     [Header("Asteroid Prefab")]
     [SerializeField] private GameObject asteroidPrefab;
 
-    [Header("Asteroid Base Properties")]
-    [SerializeField] private float density = 1f;
+    [Header("Mesh Assets")]
     [SerializeField] private Mesh[] asteroidMeshes;
 
     [Header("Randomization Ranges")]
@@ -66,7 +65,7 @@ public class AsteroidSpawner : MonoBehaviour
 
         // --- Determine final properties before initialization ---
         Mesh randomMesh = GetRandomMesh();
-        var (finalMass, finalScale) = CalculateMassAndScale(randomMesh, mass);
+        var (finalMass, finalScale) = CalculateMassAndScale(asteroid, randomMesh, mass);
 
         // Calculate velocity and spin
         float velocityScale = (finalMass > 0) ? 1f / Mathf.Pow(finalMass, 1f/3f) : 1f;
@@ -128,23 +127,25 @@ public class AsteroidSpawner : MonoBehaviour
         Destroy(asteroidGO);
     }
     
-    // we are either passing in a mass and we want to scale the mesh to that mass
-    // or we pass in nothing and we want to pick a random scale, scale the mesh to that scale, and then calculate the mass
-    private (float finalMass, float finalScale) CalculateMassAndScale(Mesh mesh, float? mass)
+    // Calculate mass and scale using the asteroid's density property
+    private (float finalMass, float finalScale) CalculateMassAndScale(Asteroid asteroid, Mesh mesh, float? mass)
     {
-        float baseMass = CalculateMeshMass(mesh);
-        float massScaleFactor = mass.HasValue ? mass.Value / baseMass : Random.Range(massScaleRange.x, massScaleRange.y);
-        float finalMass = baseMass * massScaleFactor;
-        float finalScale = Mathf.Pow(massScaleFactor, 1/3f);
-        return (finalMass, finalScale);
-    }
-
-    private float CalculateMeshMass(Mesh mesh)
-    {
-        if (mesh == null) return 1f;
-        var bounds = mesh.bounds;
-        float volume = bounds.size.x * bounds.size.y * bounds.size.z;
-        return volume * density;
+        if (mass.HasValue)
+        {
+            // We have a target mass, calculate the scale needed to achieve it
+            float baseMass = Asteroid.CalculateMassFromMesh(mesh, asteroid.Density, 1f);
+            float massScaleFactor = mass.Value / baseMass;
+            float finalScale = Mathf.Pow(massScaleFactor, 1f/3f);
+            return (mass.Value, finalScale);
+        }
+        else
+        {
+            // Random scale, calculate mass from that scale
+            float randomScaleFactor = Random.Range(massScaleRange.x, massScaleRange.y);
+            float finalScale = Mathf.Pow(randomScaleFactor, 1f/3f);
+            float finalMass = Asteroid.CalculateMassFromMesh(mesh, asteroid.Density, finalScale);
+            return (finalMass, finalScale);
+        }
     }
 
     private Mesh GetRandomMesh()

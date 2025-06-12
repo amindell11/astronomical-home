@@ -14,9 +14,9 @@ public class AsteroidFieldManager : MonoBehaviour
     [SerializeField] private float maxSpawnDistance = 30f;
     [SerializeField] private float initMinSpawnDistance = 10f;
 
-    [Header("Density Control")]
-    [Tooltip("Target mass per square meter for the asteroid field.")]
-    [SerializeField] private float targetDensity = 0.1f;
+    [Header("Volume Density Control")]
+    [Tooltip("Target volume per square meter for the asteroid field (volume-based, not mass-based).")]
+    [SerializeField] private float targetVolumeDensity = 0.1f;
     [SerializeField] private float densityCheckRadius = 30f;
     [SerializeField] private int maxSpawnsPerFrame = 10;
 
@@ -58,45 +58,52 @@ public class AsteroidFieldManager : MonoBehaviour
     {
         if (activeAsteroids.Count >= maxAsteroids) return;
 
-        float currentDensity = GetFieldDensity(out float area);
-        Debug.Log($"Current density: {currentDensity}, Target density: {targetDensity}, Area: {area}");
-        if (currentDensity < targetDensity)
+        float currentVolumeDensity = GetFieldVolumeDensity(out float area);
+        Debug.Log($"Current volume density: {currentVolumeDensity}, Target volume density: {targetVolumeDensity}, Area: {area}");
+        
+        if (currentVolumeDensity < targetVolumeDensity)
         {
-            float massToSpawn = (targetDensity - currentDensity) * area;
-            float massSpawned = 0f;
+            float volumeToSpawn = (targetVolumeDensity - currentVolumeDensity) * area;
+            float volumeSpawned = 0f;
             int safetyBreak = maxSpawnsPerFrame; // Prevent potential infinite loops
 
-            // Keep spawning until we've added enough mass, without exceeding total count.
-            while (massSpawned < massToSpawn && activeAsteroids.Count < maxAsteroids && safetyBreak > 0)
+            // Keep spawning until we've added enough volume, without exceeding total count.
+            while (volumeSpawned < volumeToSpawn && activeAsteroids.Count < maxAsteroids && safetyBreak > 0)
             {
                 Vector3 spawnPosition = playerTransform.position + (Vector3)(Random.insideUnitCircle.normalized * Random.Range(minSpawn, maxSpawn));
                 Pose spawnPose = new Pose(spawnPosition, Random.rotationUniform);
                 GameObject newAsteroidGO = AsteroidSpawner.Instance.SpawnAsteroid(spawnPose);
                 if (newAsteroidGO == null) break;
-                massSpawned += newAsteroidGO.GetComponent<Asteroid>().CurrentMass;
+                
+                Asteroid asteroid = newAsteroidGO.GetComponent<Asteroid>();
+                if (asteroid != null)
+                {
+                    volumeSpawned += asteroid.CurrentVolume;
+                }
                 safetyBreak--;
             }
         }
     }
 
-    private float GetFieldDensity(out float area)
+    private float GetFieldVolumeDensity(out float area)
     {
         Vector2 checkCenter = (playerTransform != null) ? new Vector2(playerTransform.position.x, playerTransform.position.y) : new Vector2(transform.position.x, transform.position.y);
         int mask = 1 << LayerMask.NameToLayer("Asteroid");
         Collider[] results = Physics.OverlapSphere(checkCenter, densityCheckRadius, mask);
-        float totalMassInRange = 0f;
+        float totalVolumeInRange = 0f;
+        
         Debug.Log($"Found {results.Length} asteroids in range");
         foreach (Collider col in results)
         {
             Asteroid asteroid = col.GetComponent<Asteroid>();
             if (asteroid != null)
             {
-                totalMassInRange += asteroid.CurrentMass;
+                totalVolumeInRange += asteroid.CurrentVolume;
             }
         }
         
         area = Mathf.PI * Mathf.Pow(densityCheckRadius, 2);
-        return area > 0 ? totalMassInRange / area : 0f;
+        return area > 0 ? totalVolumeInRange / area : 0f;
     }
 
     public void AddAsteroid(GameObject asteroid)

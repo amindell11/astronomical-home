@@ -12,6 +12,7 @@ public class Asteroid : MonoBehaviour
     private Vector3 initialAngularVelocity;
 
     public float CurrentMass => rb.mass;
+    public float Volume 
     public Rigidbody Rb => rb;
 
     private void Awake()
