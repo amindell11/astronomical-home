@@ -107,7 +107,7 @@ GameObject:
   - component: {fileID: 6931530314876729959}
   - component: {fileID: 4617316425390576190}
   m_Layer: 0
-  m_Name: Fragnetics
+  m_Name: AsteroidFragnetics
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

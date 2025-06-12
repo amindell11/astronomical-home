@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 
-public class Fragnetics : MonoBehaviour
+public class AsteroidFragnetics : MonoBehaviour
 {
-    public static Fragnetics Instance { get; private set; }
+    public static AsteroidFragnetics Instance { get; private set; }
 
     [Header("Fragmentation Settings")]
     [SerializeField]
@@ -52,6 +52,10 @@ public class Fragnetics : MonoBehaviour
     [Tooltip("Amount of random variation added to fragment directions")]
     private float randomBias = 0.3f;
 
+    [SerializeField, Range(0f, 1f)]
+    [Tooltip("Fraction of asteroid mass preserved in fragments (e.g., 0.8 = 80% mass retained, 0.2 lost)")]
+    private float massLossFactor = 1.0f;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -72,7 +76,7 @@ public class Fragnetics : MonoBehaviour
     {
         var (totalLinearMomentum, totalAngularMomentum) = CalculateInitialMomentum(asteroid, projectileMass, projectileVelocity, hitPoint);
         
-        float[] fragmentMasses = GenerateFragmentMasses(asteroid.CurrentMass);
+        float[] fragmentMasses = GenerateFragmentMasses(asteroid.CurrentMass * massLossFactor);
         int fragmentCount = fragmentMasses.Length;
         if (fragmentCount <= 0) return;
 

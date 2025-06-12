@@ -2,17 +2,26 @@ using UnityEngine;
 
 public class Asteroid : MonoBehaviour
 {
-
+    [Header("Physical Properties")]
+    [SerializeField] private float density = 1f;
+    
+    [Header("Visual/Audio Effects")]
     [SerializeField] private GameObject explosionPrefab;
     [SerializeField] private AudioClip explosionSound;
     [SerializeField] private float explosionVolume = 0.7f;
+    
     private Rigidbody rb;
     private MeshFilter meshFilter;
     private Vector3 initialVelocity;
     private Vector3 initialAngularVelocity;
+    private float currentVolume;
 
+    // Public properties for other systems to access
     public float CurrentMass => rb.mass;
+    public float CurrentVolume => currentVolume;
+    public float Density => density;
     public Rigidbody Rb => rb;
+    public Mesh CurrentMesh => meshFilter.sharedMesh;
 
     private void Awake()
     {
@@ -30,6 +39,18 @@ public class Asteroid : MonoBehaviour
     )
     {
         this.meshFilter.mesh = mesh;
+        
+        // Calculate volume from mesh bounds and scale
+        if (mesh != null)
+        {
+            var bounds = mesh.bounds;
+            float meshVolume = bounds.size.x * bounds.size.y * bounds.size.z;
+            currentVolume = meshVolume * (scale * scale * scale); // scale^3 for volume
+        }
+        else
+        {
+            currentVolume = 1f;
+        }
         
         this.rb.mass = mass;
         transform.localScale = Vector3.one * scale;
@@ -49,6 +70,27 @@ public class Asteroid : MonoBehaviour
         rb.velocity = initialVelocity;
         rb.angularVelocity = initialAngularVelocity;
     }
+    
+    /// <summary>
+    /// Calculate mass from volume and density - useful for fragments
+    /// </summary>
+    public float CalculateMassFromVolume(float volume)
+    {
+        return volume * density;
+    }
+    
+    /// <summary>
+    /// Calculate mass from mesh bounds - useful during spawning
+    /// </summary>
+    public static float CalculateMassFromMesh(Mesh mesh, float density, float scale = 1f)
+    {
+        if (mesh == null) return density; // fallback to unit volume
+        var bounds = mesh.bounds;
+        float volume = bounds.size.x * bounds.size.y * bounds.size.z;
+        float scaledVolume = volume * (scale * scale * scale);
+        return scaledVolume * density;
+    }
+
     private void UpdateMeshCollider()
     {
         MeshCollider meshCollider = GetComponent<MeshCollider>();
@@ -60,7 +102,7 @@ public class Asteroid : MonoBehaviour
 
     public void TakeDamage(float damage, float projectileMass, Vector3 projectileVelocity, Vector3 hitPoint)
     {       
-        Fragnetics.Instance.CreateFragments(this, projectileMass, projectileVelocity, hitPoint);
+        AsteroidFragnetics.Instance.CreateFragments(this, projectileMass, projectileVelocity, hitPoint);
         Explode();
         CleanupAsteroid();
     }
