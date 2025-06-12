@@ -270,7 +270,7 @@ PrefabInstance:
     - target: {fileID: 3186877873094202636, guid: a4a07ada72adcc44ba51f616ad29384b,
         type: 3}
       propertyPath: maxSpawnsPerFrame
-      value: 5
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 3186877873094202636, guid: a4a07ada72adcc44ba51f616ad29384b,
         type: 3}
@@ -759,11 +759,11 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 697850222}
   - {fileID: 330585546}
-  - {fileID: 832982748}
+  - {fileID: 697850222}
   - {fileID: 1967091197}
   - {fileID: 107688356}
+  - {fileID: 832982748}
   - {fileID: 2030985035}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

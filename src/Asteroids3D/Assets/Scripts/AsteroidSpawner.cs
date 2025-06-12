@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Pool;
 
 public class AsteroidSpawner : MonoBehaviour
 {
@@ -19,6 +20,12 @@ public class AsteroidSpawner : MonoBehaviour
     [Tooltip("The base spin range, which gets scaled by mass.")]
     [SerializeField] public Vector2 spinRange = new Vector2(-30f, 30f);
     
+    [Header("Asteroid Pool Settings")]
+    [SerializeField] private int defaultPoolCapacity = 20;
+    [SerializeField] private int maxPoolSize = 100;
+
+    private ObjectPool<GameObject> asteroidPool;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -29,23 +36,31 @@ public class AsteroidSpawner : MonoBehaviour
         {
             Instance = this;
         }
+
+        // Initialize the asteroid object pool
+        asteroidPool = new ObjectPool<GameObject>(
+            CreatePooledAsteroid,
+            OnAsteroidRetrieved,
+            OnAsteroidReleased,
+            OnAsteroidDestroyed,
+            collectionCheck: false,
+            defaultCapacity: defaultPoolCapacity,
+            maxSize: maxPoolSize
+        );
     }
 
     public GameObject SpawnAsteroid(Pose pose, float? mass = null, Vector3? velocity = null, Vector3? angularVelocity = null)
     {
-        if (asteroidPrefab == null)
-        {
-            Debug.LogError("Asteroid Prefab is not assigned in AsteroidSpawner.");
-            return null;
-        }
+        // Retrieve (or create) an asteroid from the pool
+        GameObject asteroidGO = asteroidPool.Get();
+        asteroidGO.transform.SetParent(transform.parent); // ensure correct hierarchy
+        asteroidGO.transform.SetPositionAndRotation(pose.position, pose.rotation);
 
-        GameObject asteroidGO = Instantiate(asteroidPrefab, pose.position, pose.rotation, transform.parent);
         Asteroid asteroid = asteroidGO.GetComponent<Asteroid>();
-
         if (asteroid == null)
         {
-            Debug.LogError("Spawned object is missing Asteroid component.");
-            Destroy(asteroidGO);
+            Debug.LogError("Pooled object is missing Asteroid component.");
+            asteroidPool.Release(asteroidGO);
             return null;
         }
 
@@ -76,6 +91,41 @@ public class AsteroidSpawner : MonoBehaviour
         
         AsteroidFieldManager.Instance.AddAsteroid(asteroidGO);
         return asteroidGO;
+    }
+
+    public void ReleaseAsteroid(GameObject asteroidGO)
+    {
+        if (asteroidGO == null) return;
+        AsteroidFieldManager.Instance?.RemoveAsteroid(asteroidGO);
+        asteroidPool.Release(asteroidGO);
+    }
+
+    // --------- ObjectPool Callbacks ---------
+    private GameObject CreatePooledAsteroid()
+    {
+        Debug.Log("[Pool] Creating new pooled asteroid");
+        return Instantiate(asteroidPrefab, Vector3.zero, Quaternion.identity, transform.parent);
+    }
+
+    private void OnAsteroidRetrieved(GameObject asteroidGO)
+    {
+        asteroidGO.SetActive(true);
+    }
+
+    private void OnAsteroidReleased(GameObject asteroidGO)
+    {
+        asteroidGO.SetActive(false);
+        Rigidbody rb = asteroidGO.GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
+    }
+
+    private void OnAsteroidDestroyed(GameObject asteroidGO)
+    {
+        Destroy(asteroidGO);
     }
     
     // we are either passing in a mass and we want to scale the mesh to that mass

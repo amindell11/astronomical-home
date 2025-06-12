@@ -38,6 +38,10 @@ public class Asteroid : MonoBehaviour
         rb.angularVelocity = angularVelocity;
         
         UpdateMeshCollider();
+
+        // Store initial velocities for potential resets when reusing from the pool
+        this.initialVelocity = velocity;
+        this.initialAngularVelocity = angularVelocity;
     }
 
     public void ResetAsteroid()
@@ -75,11 +79,7 @@ public class Asteroid : MonoBehaviour
 
     private void CleanupAsteroid()
     {
-        if (AsteroidFieldManager.Instance != null)
-        {
-            AsteroidFieldManager.Instance.RemoveAsteroid(gameObject);   
-        }
-        Destroy(gameObject);
+        AsteroidSpawner.Instance?.ReleaseAsteroid(gameObject);
     }
 
     private void OnTriggerExit(Collider other)
@@ -87,9 +87,7 @@ public class Asteroid : MonoBehaviour
         Debug.Log("OnTriggerExit" + other.name);
         if (other.CompareTag("AsteroidCullingBoundary"))
         {
-            AsteroidFieldManager.Instance.CullableAsteroids.Add(gameObject);
-            AsteroidFieldManager.Instance.ActiveAsteroids.Remove(gameObject);
-            gameObject.SetActive(false);
+            AsteroidSpawner.Instance.ReleaseAsteroid(gameObject);
         }
     }   
     private void OnTriggerEnter(Collider other)
@@ -97,7 +95,7 @@ public class Asteroid : MonoBehaviour
         Debug.Log("OnTriggerEnter" + other.name);
         if (other.CompareTag("AsteroidCullingBoundary"))
         {
-            AsteroidFieldManager.Instance.CullableAsteroids.Remove(gameObject);
+            // Nothing to do when re-entering boundary; asteroid will be respawned via pool
         }
     }
 
