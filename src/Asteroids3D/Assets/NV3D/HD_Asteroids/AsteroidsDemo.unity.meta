@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 042b6d087a777754f86c4c97431ee67c
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 144868
+  packageName: Asteroids HD
+  packageVersion: 2.0
+  assetPath: Assets/NV3D/HD_Asteroids/AsteroidsDemo.unity
+  uploadId: 663966

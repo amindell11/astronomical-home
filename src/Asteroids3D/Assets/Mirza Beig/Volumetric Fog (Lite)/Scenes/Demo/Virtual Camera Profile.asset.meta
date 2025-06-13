@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 2c6cfd38a31515446ae574afb62b2ad4
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 277702
+  packageName: Volumetric Fog (URP)
+  packageVersion: 1.0
+  assetPath: Assets/Mirza Beig/Volumetric Fog (Lite)/Scenes/Demo/Virtual Camera Profile.asset
+  uploadId: 666516
