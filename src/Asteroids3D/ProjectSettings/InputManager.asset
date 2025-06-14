@@ -6,7 +6,7 @@ InputManager:
   serializedVersion: 2
   m_Axes:
   - serializedVersion: 3
-    m_Name: Yaw2
+    m_Name: Rotation
     descriptiveName: 
     descriptiveNegativeName: 
     negativeButton: mouse 0
@@ -33,7 +33,7 @@ InputManager:
     dead: 0.001
     sensitivity: 3
     snap: 1
-    invert: 1
+    invert: 0
     type: 0
     axis: 0
     joyNum: 0

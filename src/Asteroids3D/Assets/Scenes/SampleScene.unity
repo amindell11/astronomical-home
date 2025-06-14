@@ -513,7 +513,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -20}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -759,12 +759,6 @@ MonoBehaviour:
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
   m_SoftShadowQuality: 2
---- !u!1 &496489009 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5751994664935112815, guid: 863d7f06ed268934b867589f7bb45cf7,
-    type: 3}
-  m_PrefabInstance: {fileID: 1649383845}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &685417415
 GameObject:
   m_ObjectHideFlags: 0
@@ -919,43 +913,6 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1649383845}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1044565526
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 496489009}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 316e0e7d4c7d6c442a0d98464c84ceb4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &1044565527
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 496489009}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cd162f809fbe92a44a3fb3930e2432b4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  thrustForce: 1200
-  maxSpeed: 15
-  rotationThrustForce: 480
-  maxRotationSpeed: 180
-  rotationDrag: 0.95
-  yawDeadzoneAngle: 4
-  maxBankAngle: 45
-  bankingSpeed: 5
-  maxStrafeForce: 800
-  minStrafeForce: 750
-  showGizmos: 1
-  gizmoScale: 2
-  thrustParticles: []
 --- !u!1001 &1578065925
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1166,36 +1123,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 1585119828244071429, guid: 863d7f06ed268934b867589f7bb45cf7,
-        type: 3}
-      propertyPath: maxSpeed
-      value: 15
-      objectReference: {fileID: 0}
-    - target: {fileID: 1585119828244071429, guid: 863d7f06ed268934b867589f7bb45cf7,
-        type: 3}
-      propertyPath: m_Enabled
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1585119828244071429, guid: 863d7f06ed268934b867589f7bb45cf7,
-        type: 3}
-      propertyPath: yawDeadzoneAngle
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 2835194265766263765, guid: 863d7f06ed268934b867589f7bb45cf7,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3192377716824603070, guid: 863d7f06ed268934b867589f7bb45cf7,
-        type: 3}
-      propertyPath: m_Drag
-      value: 0.015
-      objectReference: {fileID: 0}
-    - target: {fileID: 3192377716824603070, guid: 863d7f06ed268934b867589f7bb45cf7,
-        type: 3}
-      propertyPath: m_Mass
-      value: 215
-      objectReference: {fileID: 0}
     - target: {fileID: 4942946884795112149, guid: 863d7f06ed268934b867589f7bb45cf7,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1246,33 +1173,15 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 4942946884795112149, guid: 863d7f06ed268934b867589f7bb45cf7,
-        type: 3}
-      propertyPath: m_ConstrainProportionsScale
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 5751994664935112815, guid: 863d7f06ed268934b867589f7bb45cf7,
         type: 3}
       propertyPath: m_Name
       value: Ship3D
       objectReference: {fileID: 0}
-    - target: {fileID: 8259677837040934876, guid: 863d7f06ed268934b867589f7bb45cf7,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 5751994664935112815, guid: 863d7f06ed268934b867589f7bb45cf7,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1044565527}
-    - targetCorrespondingSourceObject: {fileID: 5751994664935112815, guid: 863d7f06ed268934b867589f7bb45cf7,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1044565526}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 863d7f06ed268934b867589f7bb45cf7, type: 3}
 --- !u!1 &1757308939
 GameObject:
@@ -1536,6 +1445,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: EnemyShip
+      objectReference: {fileID: 0}
+    - target: {fileID: 4783064862572481547, guid: c50063739f5083a4b9ffc64a77603374,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5272321575846762161, guid: c50063739f5083a4b9ffc64a77603374,
         type: 3}

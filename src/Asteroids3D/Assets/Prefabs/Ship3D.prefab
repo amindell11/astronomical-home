@@ -24736,6 +24736,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Spot Light 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7151890215021340714, guid: 6fa834a7c54cad0429e1a3cc92df930f,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -24911,7 +24916,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: f04a30281d8747644becb5008ab81a2c,
         type: 3}
       propertyPath: m_ConstrainProportionsScale
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -7635826562936255635, guid: f04a30281d8747644becb5008ab81a2c,
         type: 3}
@@ -24980,15 +24985,19 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f04a30281d8747644becb5008ab81a2c,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1585119828244071429}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f04a30281d8747644becb5008ab81a2c,
-        type: 3}
-      insertIndex: -1
       addedObject: {fileID: 7956778047704428312}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f04a30281d8747644becb5008ab81a2c,
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 3192377716824603070}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f04a30281d8747644becb5008ab81a2c,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 795205235446562001}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f04a30281d8747644becb5008ab81a2c,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 38530433099722599}
   m_SourcePrefab: {fileID: 100100000, guid: f04a30281d8747644becb5008ab81a2c, type: 3}
 --- !u!4 &4942946884795112149 stripped
 Transform:
@@ -25002,31 +25011,6 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 4833023746839903550}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1585119828244071429
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5751994664935112815}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 25770efd4adb0d645a76236e0e560dbe, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  thrustForce: 1200
-  maxSpeed: 12
-  rotationThrustForce: 480
-  maxRotationSpeed: 180
-  rotationDrag: 0.95
-  yawDeadzoneAngle: 2
-  maxBankAngle: 45
-  bankingSpeed: 5
-  maxStrafeForce: 800
-  minStrafeForce: 750
-  thrustParticles:
-  - {fileID: 5569101478130398410}
-  - {fileID: 8160475135001807841}
 --- !u!64 &7956778047704428312
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -25057,8 +25041,8 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5751994664935112815}
   serializedVersion: 4
-  m_Mass: 250
-  m_Drag: 0
+  m_Mass: 215
+  m_Drag: 0.015
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
@@ -25076,6 +25060,46 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &795205235446562001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5751994664935112815}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2cf215fae8e50c0448a02874f31a4d66, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  referencePlane: {fileID: 0}
+  thrustForce: 1200
+  maxSpeed: 15
+  rotationThrustForce: 480
+  maxRotationSpeed: 180
+  rotationDrag: 0.95
+  yawDeadzoneAngle: 4
+  maxBankAngle: 45
+  bankingSpeed: 5
+  maxStrafeForce: 800
+  minStrafeForce: 750
+  enableDebugLogs: 0
+  thrustParticles: []
+--- !u!114 &38530433099722599
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5751994664935112815}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a43dc76e88e2654e9627fca7c6a75f6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  useMouseDirection: 1
+  showMouseGizmos: 1
+  mouseGizmoScale: 3
 --- !u!1001 &4906738227815683071
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -25138,6 +25162,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Spot Light 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7151890215021340714, guid: 6fa834a7c54cad0429e1a3cc92df930f,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

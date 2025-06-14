@@ -32,12 +32,11 @@ public class Ship : MonoBehaviour
     private float thrustInput;
     private float strafeInput;
     private bool rotateToTarget;
-    private Vector3 targetPosition;
-    
+    private float targetAngle;
+
     // Gizmo visualization data
     private Vector3 currentThrustVector;
     private Vector3 currentStrafeVector;
-    private Vector3 targetDirection;
     private bool showTargetDirection;
 
     private void Awake()
@@ -55,10 +54,10 @@ public class Ship : MonoBehaviour
         strafeInput = strafe;
     }
 
-    public void SetRotationTarget(bool shouldRotate, Vector3 target)
+    public void SetRotationTargetAngle(bool shouldRotate, float eulerAngle)
     {
         rotateToTarget = shouldRotate;
-        targetPosition = target;
+        targetAngle = eulerAngle;
     }
 
     private void FixedUpdate()
@@ -108,9 +107,7 @@ public class Ship : MonoBehaviour
     private void ApplyStrafeAndBank()
     {
         bool isBanking = Mathf.Abs(strafeInput) > 0.1f;
-        float targetBankAngle = isBanking ? strafeInput * maxBankAngle : 0f;
-
-        rotation = Quaternion.RotateTowards(rotation, Quaternion.AngleAxis(targetBankAngle, transform.up), bankingSpeed * Time.fixedDeltaTime);
+        rotation *= Quaternion.AngleAxis(Mathf.Sign(strafeInput) * Time.fixedDeltaTime * bankingSpeed, transform.up);
 
         float speedRatio = rb.velocity.magnitude / maxSpeed;
         float strafeForce = Mathf.Lerp(maxStrafeForce, minStrafeForce, speedRatio);
@@ -128,20 +125,11 @@ public class Ship : MonoBehaviour
         
         if (rotateToTarget)
         {
-            // Store target direction for gizmo display
-            targetDirection = (targetPosition - transform.position).normalized;
-            
-            // Convert target position to local space
-            Vector3 localTarget = transform.InverseTransformPoint(targetPosition);
-            float targetAngle = Mathf.Atan2(localTarget.x, localTarget.y) * Mathf.Rad2Deg-90f;
-            float currentAngle = 0f; // In local space, the ship's forward is always 0
-            float angleDifference = Mathf.DeltaAngle(currentAngle, targetAngle);
-
-            if (Mathf.Abs(angleDifference) > yawDeadzoneAngle)
+            if (Mathf.Abs(targetAngle) > yawDeadzoneAngle)
             {
-                float angleRatio = Mathf.Abs(angleDifference) / 180f;
+                float angleRatio = Mathf.Abs(targetAngle) / 180f;
                 float thrustMultiplier = Mathf.Pow(angleRatio + 0.01f, 1 / 6f);
-                currentRotationSpeed += Mathf.Sign(angleDifference) * rotationThrustForce * thrustMultiplier * Time.fixedDeltaTime;
+                currentRotationSpeed += Mathf.Sign(targetAngle) * rotationThrustForce * thrustMultiplier * Time.fixedDeltaTime;
             }
         }
 
@@ -158,13 +146,13 @@ public class Ship : MonoBehaviour
         
         // Draw roll axis (local forward - blue line with sphere)
         Gizmos.color = Color.blue;
-        Vector3 rollAxis = transform.TransformDirection(Vector3.forward) * gizmoScale;
+        Vector3 rollAxis = transform.up * gizmoScale;
         Gizmos.DrawRay(position, rollAxis);
         Gizmos.DrawWireSphere(position + rollAxis, 0.1f * gizmoScale);
         
         // Draw yaw axis (local up - green line with cube)
         Gizmos.color = Color.green;
-        Vector3 yawAxis = transform.TransformDirection(Vector3.up) * gizmoScale;
+        Vector3 yawAxis = transform.forward * gizmoScale;
         Gizmos.DrawRay(position, yawAxis);
         Gizmos.DrawWireCube(position + yawAxis, Vector3.one * 0.15f * gizmoScale);
         
@@ -192,21 +180,9 @@ public class Ship : MonoBehaviour
         if (showTargetDirection)
         {
             Gizmos.color = Color.yellow;
-            Vector3 targetVector = targetDirection * gizmoScale * 2f;
+            Vector3 targetVector = Quaternion.AngleAxis(targetAngle, transform.forward) * transform.up * gizmoScale * 2f;
             Gizmos.DrawRay(position, targetVector);
             Gizmos.DrawWireSphere(position + targetVector, 0.15f * gizmoScale);
-            
-            // Draw deadzone cone
-            Gizmos.color = new Color(1f, 1f, 0f, 0.3f);
-            Vector3 forward = transform.TransformDirection(Vector3.up);
-            float deadzoneRadius = Mathf.Tan(yawDeadzoneAngle * Mathf.Deg2Rad) * gizmoScale;
-            // Simple deadzone representation with circles
-            for (int i = 0; i < 8; i++)
-            {
-                float angle = i * 45f;
-                Vector3 offset = Quaternion.AngleAxis(angle, forward) * transform.TransformDirection(Vector3.right) * deadzoneRadius;
-                Gizmos.DrawWireSphere(position + forward * gizmoScale + offset, 0.05f * gizmoScale);
-            }
         }
         
         // Draw velocity vector (magenta - current movement)

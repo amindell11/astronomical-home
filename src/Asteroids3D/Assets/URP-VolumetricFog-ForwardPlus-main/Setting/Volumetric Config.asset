@@ -41,7 +41,7 @@ MonoBehaviour:
   localScatteringIntensity: 50
   anisotropy: -0.313
   depthExtent: 100
-  screenResolutionPercentage: 50
+  screenResolutionPercentage: 32.7
   volumeSliceCount: 256
   denoiseMode: 3
   sampleOffsetWeight: 1
