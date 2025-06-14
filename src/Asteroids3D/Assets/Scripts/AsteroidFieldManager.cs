@@ -69,8 +69,9 @@ public class AsteroidFieldManager : MonoBehaviour
 
             // Keep spawning until we've added enough volume, without exceeding total count.
             while (volumeSpawned < volumeToSpawn && activeAsteroids.Count < maxAsteroids && safetyBreak > 0)
-            {
-                Vector3 spawnPosition = playerTransform.position + (Vector3)(Random.insideUnitCircle.normalized * Random.Range(minSpawn, maxSpawn));
+            { 
+                Vector2 randomOffset = (Random.insideUnitCircle.normalized * Random.Range(minSpawn, maxSpawn));
+                Vector3 spawnPosition = playerTransform.position + new Vector3(randomOffset.x, 0, randomOffset.y);
                 Pose spawnPose = new Pose(spawnPosition, Random.rotationUniform);
                 GameObject newAsteroidGO = AsteroidSpawner.Instance.SpawnAsteroid(spawnPose);
                 if (newAsteroidGO == null) break;

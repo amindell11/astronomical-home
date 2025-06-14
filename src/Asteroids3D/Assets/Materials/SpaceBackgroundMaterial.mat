@@ -45,7 +45,7 @@ Material:
     m_Floats:
     - _Distortion: 0.48
     - _EmissionEnabled: 1
-    - _EmissionStrength: 7
+    - _EmissionStrength: 3
     - _EnableExternalAlpha: 0
     - _NoiseScale: 0.1
     - _NoiseStrength: 3.62

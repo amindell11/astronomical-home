@@ -73,15 +73,15 @@ Shader "Custom/StarField"
             fixed4 frag (v2f i) : SV_Target
             {
                 // Early exit if pixel is outside screen
-                float2 screenUV = i.screenPos.xy / i.screenPos.w;
+                float2 screenUV = i.screenPos.xz / i.screenPos.w;
                 if (screenUV.x < 0 || screenUV.x > 1 || screenUV.y < 0 || screenUV.y > 1)
                     return fixed4(0,0,0,0);
 
                 // Use world position for star placement
-                float2 worldPos = i.worldPos.xy;
+                float2 worldPos = i.worldPos.xz;
                 
                 // Early exit if too far from camera
-                float distFromCamera = length(worldPos - _WorldSpaceCameraPos.xy);
+                float distFromCamera = length(worldPos - _WorldSpaceCameraPos.xz);
                 if (distFromCamera > _CullDistance)
                     return fixed4(0,0,0,0);
                 
@@ -101,7 +101,7 @@ Shader "Custom/StarField"
                 
                 // Calculate parallax offset based on star size
                 float parallaxFactor = 1.0 - (finalStarSize / (_StarSize * (1.0 + _SizeVariation))); // Smaller stars move slower
-                float2 cameraOffset = (_WorldSpaceCameraPos.xy + _StartingOffset.xy) * _ParallaxStrength * parallaxFactor;
+                float2 cameraOffset = (_WorldSpaceCameraPos.xz + _StartingOffset.xy) * _ParallaxStrength * parallaxFactor;
                 
                 // Apply parallax and starting offset to grid position
                 float2 finalPos = worldPos + cameraOffset;

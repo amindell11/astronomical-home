@@ -1,207 +1,237 @@
 using UnityEngine;
 
+// The main MonoBehaviour class for the ship. It handles all interaction with the
+// Unity 3D environment (Rigidbody, Transforms, etc.). It wraps a pure-logic Ship2D
+// class that performs all the 2D calculations.
 [RequireComponent(typeof(Rigidbody))]
 public class Ship : MonoBehaviour
 {
+    // The inner class that handles all the 2D ship logic. It knows nothing
+    // about 3D space, GameObjects, or Unity's physics engine.
+    public class Ship2D
+    {
+        private Ship ship; // Reference to the outer class for parameters
+
+        // 2D State
+        public Vector2 Position { get; internal set; }
+        public Vector2 Velocity { get; internal set; }
+        public Vector2 ForceVector { get; private set; }
+        public float Angle { get; internal set; } // In degrees
+        public float AngularVelocity { get; internal set; }
+
+        // Input State
+        public float ThrustInput { get; internal set; }
+        public float StrafeInput { get; internal set; }
+        public bool RotateToTarget { get; internal set; }
+        public float TargetAngle { get; internal set; }
+
+        public Ship2D(Ship owner)
+        {
+            ship = owner;
+        }
+
+        public void SetControls(float thrust, float strafe)
+        {
+            ThrustInput = thrust;
+            StrafeInput = strafe;
+        }
+
+        public void SetRotationTarget(bool shouldRotate, float targetAngle)
+        {
+            RotateToTarget = shouldRotate;
+            TargetAngle = targetAngle;
+            Debug.Log("SetRotationTarget: " + shouldRotate + " " + targetAngle);
+        }
+
+        public void Update(float deltaTime)
+        {
+            ApplyYawRotation(deltaTime);
+            ApplyThrust(deltaTime);
+        }
+
+        private void ApplyYawRotation(float deltaTime)
+        {
+            if (RotateToTarget)
+            {
+                float angleDifference = Mathf.DeltaAngle(Angle, TargetAngle);
+                Debug.Log("angleDifference: " + angleDifference);
+                if (Mathf.Abs(angleDifference) > ship.yawDeadzoneAngle)
+                {
+                    float angleRatio = Mathf.Abs(angleDifference) / 180f;
+                    float thrustMultiplier = Mathf.Pow(angleRatio + 0.01f, 1f / 6f);
+                    AngularVelocity += Mathf.Sign(angleDifference) * ship.rotationThrustForce * thrustMultiplier * deltaTime;
+                }
+            }
+            
+            AngularVelocity *= ship.rotationDrag;
+            AngularVelocity = Mathf.Clamp(AngularVelocity, -ship.maxRotationSpeed, ship.maxRotationSpeed);
+
+            Angle += AngularVelocity * deltaTime;
+            if (Angle > 360) Angle -= 360;
+            if (Angle < 0) Angle += 360;
+        }
+
+        private void ApplyThrust(float deltaTime)
+        {
+            float angleRad = Angle * Mathf.Deg2Rad;
+            // The forward direction in a 2D plane, where the angle is measured counter-clockwise from the positive Y axis,
+            // is (-sin(angle), cos(angle)).
+            Vector2 forwardDirection = new Vector2(-Mathf.Sin(angleRad), Mathf.Cos(angleRad));
+            
+            Vector2 thrustVector = forwardDirection * ThrustInput * ship.thrustForce;
+            
+            float speedRatio = Velocity.magnitude / ship.maxSpeed;
+            float strafeForce = Mathf.Lerp(ship.maxStrafeForce, ship.minStrafeForce, speedRatio);
+            Vector2 rightDirection = new Vector2(forwardDirection.y, -forwardDirection.x);
+            Vector2 strafeVector = rightDirection * StrafeInput * strafeForce;
+            
+            ForceVector = thrustVector + strafeVector;
+        }
+    }
+
+    [Header("Reference Plane")]
+    [Tooltip("Transform that defines the plane the ship operates in. If null, uses world XY plane.")]
+    public Transform referencePlane;
+    
     [Header("Thrust Settings")]
-    public float thrustForce = 5.0f;
-    public float maxSpeed = 10.0f;
+    public float thrustForce = 1200.0f;
+    public float maxSpeed = 15.0f;
 
     [Header("Rotation Settings")]
-    public float rotationThrustForce = 200.0f;
+    public float rotationThrustForce = 480.0f;
     public float maxRotationSpeed = 180.0f;
     public float rotationDrag = 0.95f;
-    [Tooltip("The angle in degrees inside which the ship will not try to yaw towards the mouse.")]
-    public float yawDeadzoneAngle = 2.0f;
+    [Tooltip("The angle in degrees inside which the ship will not try to yaw towards the target.")]
+    public float yawDeadzoneAngle = 4.0f;
 
     [Header("Banking Settings")]
     public float maxBankAngle = 45f;
     public float bankingSpeed = 5f;
-    public float maxStrafeForce = 3f;
-    public float minStrafeForce = 0.5f;
+    public float maxStrafeForce = 800f;
+    public float minStrafeForce = 750f;
     
-    [Header("Gizmo Settings")]
-    public bool showGizmos = true;             // Toggle gizmo display
-    public float gizmoScale = 2f;              // Scale of gizmo arrows
+    [Header("Debug")]
+    public bool enableDebugLogs = false;
 
     [SerializeField] private ParticleSystem[] thrustParticles;
 
     private Rigidbody rb;
-    private float currentRotationSpeed;
-    private Quaternion rotation;
-    private float thrustInput;
-    private float strafeInput;
-    private bool rotateToTarget;
-    private float targetAngle;
-
-    // Gizmo visualization data
-    private Vector3 currentThrustVector;
-    private Vector3 currentStrafeVector;
-    private bool showTargetDirection;
+    private Quaternion q_bank = Quaternion.identity;
+    private Quaternion q_yaw = Quaternion.identity;
+    public Ship2D Controller { get; private set; }
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        rb.drag = 0.1f;
+        rb.drag = 0.2f;
+        rb.angularDrag = 0f;
         rb.useGravity = false;
-        currentRotationSpeed = 0f;
-        rotation = transform.rotation;
-    }
-
-    public void SetControls(float thrust, float strafe)
-    {
-        thrustInput = thrust;
-        strafeInput = strafe;
-    }
-
-    public void SetRotationTargetAngle(bool shouldRotate, float eulerAngle)
-    {
-        rotateToTarget = shouldRotate;
-        targetAngle = eulerAngle;
+        Controller = new Ship2D(this);
+        SyncAngleFrom3D(); // Sync only once on startup
     }
 
     private void FixedUpdate()
     {
-        ApplyThrust();
-        ApplyStrafeAndBank();
-        ApplyRotation();
+        // Sync necessary state from 3D world to 2D controller
+        SyncStateFrom3D();
 
-        // Final updates
-        Vector3 localVelocity = transform.InverseTransformDirection(rb.velocity);
-        localVelocity.z = 0; // Zero out forward movement in local space
-        rb.velocity = transform.TransformDirection(localVelocity);
-        
-        // Apply the final rotation
-        transform.rotation = rotation;
+        // Update the 2D controller logic
+        Controller.Update(Time.fixedDeltaTime);
+
+        // Apply results from controller to the 3D Rigidbody
+        ApplyForces();
+        ApplyRotation();
+        ClampSpeed();
+        ConstrainToPlane();
+    }
+    
+    private void SyncStateFrom3D()
+    {
+        Vector3 planeNormal = GetPlaneNormal();
+
+        // Position
+        Vector3 planePos3D = Vector3.ProjectOnPlane(transform.position - GetPlaneOrigin(), planeNormal);
+        Controller.Position = WorldToPlane(planePos3D);
+
+        // Velocity
+        Controller.Velocity = WorldToPlane(rb.velocity);
+    }
+    
+    private void SyncAngleFrom3D()
+    {
+        Vector3 planeNormal = GetPlaneNormal();
+        Vector3 projectedForward = Vector3.ProjectOnPlane(transform.up, planeNormal).normalized;
+        if (projectedForward.sqrMagnitude > 0.01f)
+        {
+            float angle = Vector3.SignedAngle(GetPlaneForward(), projectedForward, planeNormal);
+            Controller.Angle = angle < 0 ? angle + 360f : angle;
+        }
+    }
+    
+    private void ApplyForces()
+    {
+        Vector3 force = PlaneToWorld(Controller.ForceVector);
+        rb.AddForce(force);
     }
 
-    private void ApplyThrust()
+    private void ApplyRotation()
     {
-        Vector3 thrustDirection = transform.up * thrustInput * thrustForce;
-        rb.AddForce(thrustDirection);
+        // Yaw should be calculated around the local 'up' axis of the plane, which corresponds to Vector3.forward.
+        q_yaw = Quaternion.AngleAxis(Controller.Angle, Vector3.forward);
         
-        // Store for gizmo display
-        currentThrustVector = thrustDirection;
+        // Banking (visual only) is a roll around the ship's local forward axis (Vector3.up in the plane's space).
+        float targetBankAngle = -Controller.StrafeInput * maxBankAngle;
+        Quaternion targetBankRotation = Quaternion.AngleAxis(targetBankAngle, Vector3.up);
+        q_bank = Quaternion.Lerp(q_bank, targetBankRotation, bankingSpeed * Time.fixedDeltaTime);
+        
+        // Combine the rotations: start with the plane's orientation, then apply the local yaw and bank.
+        transform.rotation = (referencePlane != null ? referencePlane.rotation : Quaternion.identity) * q_yaw * q_bank;
+    }
 
-        if (thrustInput > 0.01f)
-        {
-            foreach (ParticleSystem particle in thrustParticles)
-            {
-                if (!particle.isPlaying) particle.Play();
-            }
-        }
-        else
-        {
-            foreach (ParticleSystem particle in thrustParticles)
-            {
-                if (particle.isPlaying) particle.Stop();
-            }
-        }
-
+    private void ClampSpeed()
+    {
         if (rb.velocity.magnitude > maxSpeed)
         {
             rb.velocity = rb.velocity.normalized * maxSpeed;
         }
     }
 
-    private void ApplyStrafeAndBank()
+    private void ConstrainToPlane()
     {
-        bool isBanking = Mathf.Abs(strafeInput) > 0.1f;
-        rotation *= Quaternion.AngleAxis(Mathf.Sign(strafeInput) * Time.fixedDeltaTime * bankingSpeed, transform.up);
+        Vector3 planeNormal = GetPlaneNormal();
 
-        float speedRatio = rb.velocity.magnitude / maxSpeed;
-        float strafeForce = Mathf.Lerp(maxStrafeForce, minStrafeForce, speedRatio);
+        // Lock position to plane
+        Vector3 pointOnPlane = GetPlaneOrigin();
+        Vector3 vectorFromPlane = transform.position - pointOnPlane;
+        float distance = Vector3.Dot(vectorFromPlane, planeNormal);
+        transform.position -= planeNormal * distance;
 
-        Vector3 strafeDirection = transform.right * strafeInput * strafeForce;
-        rb.AddForce(strafeDirection, ForceMode.Force);
-        
-        // Store for gizmo display
-        currentStrafeVector = strafeDirection;
+        // Zero out velocity component perpendicular to plane
+        rb.velocity = Vector3.ProjectOnPlane(rb.velocity, planeNormal);
     }
 
-    private void ApplyRotation()
-    {
-        showTargetDirection = rotateToTarget;
-        
-        if (rotateToTarget)
-        {
-            if (Mathf.Abs(targetAngle) > yawDeadzoneAngle)
-            {
-                float angleRatio = Mathf.Abs(targetAngle) / 180f;
-                float thrustMultiplier = Mathf.Pow(angleRatio + 0.01f, 1 / 6f);
-                currentRotationSpeed += Mathf.Sign(targetAngle) * rotationThrustForce * thrustMultiplier * Time.fixedDeltaTime;
-            }
-        }
+    #region Coordinate System Helpers
 
-        currentRotationSpeed *= rotationDrag;
-        currentRotationSpeed = Mathf.Clamp(currentRotationSpeed, -maxRotationSpeed, maxRotationSpeed);
-        rotation *= Quaternion.AngleAxis(currentRotationSpeed * Time.fixedDeltaTime, transform.forward);
+    public Vector3 GetPlaneOrigin() => referencePlane != null ? referencePlane.position : Vector3.zero;
+    public Vector3 GetPlaneForward() => referencePlane != null ? referencePlane.up : Vector3.up;
+    public Vector3 GetPlaneRight() => referencePlane != null ? referencePlane.right : Vector3.right;
+    public Vector3 GetPlaneNormal() => referencePlane != null ? referencePlane.forward : Vector3.forward;
+
+    public Vector2 WorldToPlane(Vector3 worldVector)
+    {
+        Vector3 planeForward = GetPlaneForward();
+        Vector3 planeRight = GetPlaneRight();
+        float y = Vector3.Dot(worldVector, planeForward);
+        float x = Vector3.Dot(worldVector, planeRight);
+        return new Vector2(x, y);
+    }
+    
+    public Vector3 PlaneToWorld(Vector2 planeVector)
+    {
+        Vector3 planeForward = GetPlaneForward();
+        Vector3 planeRight = GetPlaneRight();
+        return planeRight * planeVector.x + planeForward * planeVector.y;
     }
 
-        private void OnDrawGizmos()
-    {
-        if (!showGizmos || !Application.isPlaying) return;
-        
-        Vector3 position = transform.position;
-        
-        // Draw roll axis (local forward - blue line with sphere)
-        Gizmos.color = Color.blue;
-        Vector3 rollAxis = transform.up * gizmoScale;
-        Gizmos.DrawRay(position, rollAxis);
-        Gizmos.DrawWireSphere(position + rollAxis, 0.1f * gizmoScale);
-        
-        // Draw yaw axis (local up - green line with cube)
-        Gizmos.color = Color.green;
-        Vector3 yawAxis = transform.forward * gizmoScale;
-        Gizmos.DrawRay(position, yawAxis);
-        Gizmos.DrawWireCube(position + yawAxis, Vector3.one * 0.15f * gizmoScale);
-        
-        // Draw current thrust vector (red - thick line)
-        if (Mathf.Abs(thrustInput) > 0.01f)
-        {
-            Gizmos.color = Color.red;
-            Vector3 thrustVector = currentThrustVector.normalized * gizmoScale * 1.5f;
-            Gizmos.DrawRay(position, thrustVector);
-            // Draw thrust intensity with wire cube size
-            float intensity = Mathf.Abs(thrustInput);
-            Gizmos.DrawWireCube(position + thrustVector, Vector3.one * (0.2f + intensity * 0.3f) * gizmoScale);
-        }
-        
-        // Draw strafe vector (cyan - side thrust)
-        if (Mathf.Abs(strafeInput) > 0.01f)
-        {
-            Gizmos.color = Color.cyan;
-            Vector3 strafeVector = currentStrafeVector.normalized * gizmoScale;
-            Gizmos.DrawRay(position, strafeVector);
-            Gizmos.DrawWireCube(position + strafeVector, Vector3.one * 0.1f * gizmoScale);
-        }
-        
-        // Draw turning target direction (yellow - target line)
-        if (showTargetDirection)
-        {
-            Gizmos.color = Color.yellow;
-            Vector3 targetVector = Quaternion.AngleAxis(targetAngle, transform.forward) * transform.up * gizmoScale * 2f;
-            Gizmos.DrawRay(position, targetVector);
-            Gizmos.DrawWireSphere(position + targetVector, 0.15f * gizmoScale);
-        }
-        
-        // Draw velocity vector (magenta - current movement)
-        if (rb != null && rb.velocity.magnitude > 0.1f)
-        {
-            Gizmos.color = Color.magenta;
-            Vector3 velocityVector = rb.velocity.normalized * gizmoScale * 1.2f;
-            Gizmos.DrawRay(position, velocityVector);
-            Gizmos.DrawWireCube(position + velocityVector, Vector3.one * 0.08f * gizmoScale);
-        }
-        
-        // Draw rotation speed indicator (white - spinning cube)
-        if (Mathf.Abs(currentRotationSpeed) > 1f)
-        {
-            Gizmos.color = Color.white;
-            float rotationIntensity = Mathf.Abs(currentRotationSpeed) / maxRotationSpeed;
-            Vector3 rotCenter = position + Vector3.back * 0.5f * gizmoScale;
-            Gizmos.DrawWireCube(rotCenter, Vector3.one * (0.1f + rotationIntensity * 0.2f) * gizmoScale);
-        }
-    }
-
+    #endregion
 } 

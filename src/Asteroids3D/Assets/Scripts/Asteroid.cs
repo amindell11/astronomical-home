@@ -143,7 +143,7 @@ public class Asteroid : MonoBehaviour
 
     private void LateUpdate()
     {
-        transform.position = new Vector3(transform.position.x, transform.position.y, 0);
+        transform.position = new Vector3(transform.position.x, 0, transform.position.z);
     }
 
     private void OnDrawGizmos()

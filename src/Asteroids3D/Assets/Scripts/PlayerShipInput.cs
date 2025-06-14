@@ -5,6 +5,7 @@ using UnityEngine;
 public class PlayerShipInput : MonoBehaviour
 {
     private Ship ship;
+    private Ship.Ship2D shipController;
     private Camera mainCamera;
 
     [Tooltip("If checked, the ship will rotate towards the mouse position. If unchecked, the ship will rotate using the rotation input axis.")]
@@ -22,6 +23,7 @@ public class PlayerShipInput : MonoBehaviour
     private void Start()
     {
         ship = GetComponent<Ship>();
+        shipController = ship.Controller;
         mainCamera = Camera.main;
     }
 
@@ -30,59 +32,72 @@ public class PlayerShipInput : MonoBehaviour
         // Read movement inputs
         float thrustInput = Input.GetAxis("Vertical");
         float strafeInput = Input.GetAxis("Horizontal");
-        ship.SetControls(thrustInput, strafeInput);
+        shipController.SetControls(thrustInput, strafeInput);
         HandleRotationInput();
     }
 
     public void HandleRotationInput()
     {
-        if(useMouseDirection){
-            // Read rotation input
+        if (useMouseDirection)
+        {
             bool wantsToRotate = Input.GetButton("Direction");
-            Debug.Log($"Mouse rotation - Wants to rotate: {wantsToRotate}");
             
-            Vector3 mousePos = Vector3.zero;
             if (wantsToRotate)
             {
-                Vector3 screenMousePos = Input.mousePosition;
+                Vector3 mouseWorldPos = GetMouseWorldPosition();
+                directionToMouse = (mouseWorldPos - ship.transform.position).normalized;
                 
-                if (mainCamera.orthographic)
-                {
-                    // For orthographic cameras, project mouse onto the ship's plane
-                    screenMousePos.z = mainCamera.WorldToScreenPoint(ship.transform.position).z;
-                }
-                else
-                {
-                    // For perspective cameras, use distance from camera to ship
-                    screenMousePos.z = Vector3.Distance(mainCamera.transform.position, ship.transform.position);
-                }
+                // Calculate angle relative to the ship's reference plane
+                float targetYaw = CalculateYawAngle(directionToMouse);
                 
-                mousePos = mainCamera.ScreenToWorldPoint(screenMousePos);
-                Debug.Log($"Camera orthographic: {mainCamera.orthographic}, Screen mouse pos: {screenMousePos}, World mouse pos: {mousePos}");
-                
-                directionToMouse = (mousePos - ship.transform.position).normalized;
-                Debug.Log($"Direction to mouse: {directionToMouse}");
-                Debug.Log($"Ship forward (up): {ship.transform.up}");
-                
-                // Calculate angle in the ship's local yaw plane (around forward axis)
-                projectedDirection = Vector3.ProjectOnPlane(directionToMouse, ship.transform.forward);
-                float angle = Vector3.SignedAngle(ship.transform.up, projectedDirection, ship.transform.forward);
-                Debug.Log($"Projected direction: {projectedDirection}, Calculated angle: {angle}");
-                
-                ship.SetRotationTargetAngle(wantsToRotate, angle);
+                shipController.SetRotationTarget(true, targetYaw);
                 isMouseActive = true;
             }
             else
             {
-                ship.SetRotationTargetAngle(false, 0f);
+                shipController.SetRotationTarget(false, 0f);
                 isMouseActive = false;
             }
-        }else{
+        }
+        else
+        {
+            // Direct rotation input
             float rotationInput = Input.GetAxis("Rotation");
-            Debug.Log($"Direct rotation input: {rotationInput}");
-            ship.SetRotationTargetAngle(Mathf.Abs(rotationInput)>.2f, rotationInput * 90f);
+            bool shouldRotate = Mathf.Abs(rotationInput) > 0.2f;
+            float targetYaw = shipController.Angle + (rotationInput * 90f);
+            
+            shipController.SetRotationTarget(shouldRotate, targetYaw);
             isMouseActive = false;
         }
+    }
+    
+    private Vector3 GetMouseWorldPosition()
+    {
+        Vector3 screenMousePos = Input.mousePosition;
+        
+        if (mainCamera.orthographic)
+        {
+            screenMousePos.z = mainCamera.WorldToScreenPoint(ship.transform.position).z;
+        }
+        else
+        {
+            screenMousePos.z = Vector3.Distance(mainCamera.transform.position, ship.transform.position);
+        }
+        
+        return mainCamera.ScreenToWorldPoint(screenMousePos);
+    }
+    
+    private float CalculateYawAngle(Vector3 direction)
+    {
+        Vector3 planeNormal = ship.GetPlaneNormal();
+        
+        projectedDirection = Vector3.ProjectOnPlane(direction, planeNormal).normalized;
+        
+        float angle = Vector3.SignedAngle(ship.GetPlaneForward(), projectedDirection, planeNormal);
+        
+        if (angle < 0) angle += 360f;
+        
+        return angle;
     }
     
     private void OnDrawGizmos()
@@ -100,7 +115,7 @@ public class PlayerShipInput : MonoBehaviour
             Gizmos.DrawWireSphere(position + mouseVector, 0.1f * mouseGizmoScale);
         }
         
-        // Draw projected direction (orange - projected onto yaw plane)
+        // Draw projected direction (orange - projected onto plane)
         if (projectedDirection != Vector3.zero)
         {
             Gizmos.color = new Color(1f, 0.5f, 0f); // Orange
@@ -109,10 +124,16 @@ public class PlayerShipInput : MonoBehaviour
             Gizmos.DrawWireCube(position + projectedVector, Vector3.one * 0.08f * mouseGizmoScale);
         }
         
-        // Draw ship's forward direction for reference (blue)
+        // Draw plane normal for reference (blue)
         Gizmos.color = Color.blue;
-        Vector3 forwardVector = transform.forward * mouseGizmoScale * 0.6f;
+        Vector3 normalVector = ship.GetPlaneNormal() * mouseGizmoScale * 0.6f;
+        Gizmos.DrawRay(position, normalVector);
+        Gizmos.DrawWireCube(position + normalVector, Vector3.one * 0.05f * mouseGizmoScale);
+        
+        // Draw plane forward direction (green)
+        Gizmos.color = Color.green;
+        Vector3 forwardVector = ship.GetPlaneForward() * mouseGizmoScale * 0.7f;
         Gizmos.DrawRay(position, forwardVector);
-        Gizmos.DrawWireCube(position + forwardVector, Vector3.one * 0.05f * mouseGizmoScale);
+        Gizmos.DrawWireCube(position + forwardVector, Vector3.one * 0.06f * mouseGizmoScale);
     }
-}
+} 

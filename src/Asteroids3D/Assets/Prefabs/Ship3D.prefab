@@ -24876,32 +24876,32 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: f04a30281d8747644becb5008ab81a2c,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -2
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f04a30281d8747644becb5008ab81a2c,
         type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: 0.7071068
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f04a30281d8747644becb5008ab81a2c,
         type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0
+      value: 0.7071068
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f04a30281d8747644becb5008ab81a2c,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f04a30281d8747644becb5008ab81a2c,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f04a30281d8747644becb5008ab81a2c,
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
+      value: 90
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f04a30281d8747644becb5008ab81a2c,
         type: 3}
@@ -24993,11 +24993,11 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f04a30281d8747644becb5008ab81a2c,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 795205235446562001}
+      addedObject: {fileID: 5553067545204112984}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f04a30281d8747644becb5008ab81a2c,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 38530433099722599}
+      addedObject: {fileID: 4137057303941003202}
   m_SourcePrefab: {fileID: 100100000, guid: f04a30281d8747644becb5008ab81a2c, type: 3}
 --- !u!4 &4942946884795112149 stripped
 Transform:
@@ -25060,7 +25060,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &795205235446562001
+--- !u!114 &5553067545204112984
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -25069,7 +25069,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 5751994664935112815}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2cf215fae8e50c0448a02874f31a4d66, type: 3}
+  m_Script: {fileID: 11500000, guid: cd162f809fbe92a44a3fb3930e2432b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   referencePlane: {fileID: 0}
@@ -25085,7 +25085,7 @@ MonoBehaviour:
   minStrafeForce: 750
   enableDebugLogs: 0
   thrustParticles: []
---- !u!114 &38530433099722599
+--- !u!114 &4137057303941003202
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -25094,7 +25094,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 5751994664935112815}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2a43dc76e88e2654e9627fca7c6a75f6, type: 3}
+  m_Script: {fileID: 11500000, guid: 316e0e7d4c7d6c442a0d98464c84ceb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   useMouseDirection: 1

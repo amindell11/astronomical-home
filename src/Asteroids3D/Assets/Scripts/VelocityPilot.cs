@@ -1,101 +1,105 @@
 using UnityEngine;
 
-/// <summary>
-/// Utility that converts “where I want to go” into control-surface commands.
-/// • thrustCmd  ∈ [-1, 1]  (-1 = full reverse, +1 = full forward)  
-/// • strafeCmd  ∈ [-1, 1]  (-1 = push left,     +1 = push right)  
-/// • rotTarget° angle in world space for optional gun/heading control
-/// </summary>
 public static class VelocityPilot
 {
-    // --- Tunables (expose in inspector or AI profile) ------------------------
-    public const float ACCEL_FWD     = 1200f/215f;      // forward m/s²
-    public const float ACCEL_REV     = 1200f/215f;      // reverse m/s²
-    public const float ACCEL_STRAFE  = 800f/215f;      // lateral m/s²
-    public const float MAX_SPEED     = 15f;      // hard cap
-    public const float DEAD_ZONE     = 0.25f;    // ignore tiny errors
+    // --- Tunable Parameters ---
+    [Header("Tuning")]
+    [Tooltip("Maximum forward acceleration in m/s^2.")]
+    public static float ForwardAcceleration = 8.0f;
 
-    /// <param name="waypoint">world-space target position</param>
-    /// <param name="pos">current world position</param>
-    /// <param name="vel">current world velocity</param>
-    /// <param name="fwd">ship nose direction (Transform.right for 2-D)</param>
-    /// <param name="enableDebug">whether to output debug logs</param>
+    [Tooltip("Maximum reverse acceleration in m/s^2.")]
+    public static float ReverseAcceleration = 4.0f;
+
+    [Tooltip("Maximum strafe acceleration in m/s^2.")]
+    public static float StrafeAcceleration = 6.0f;
+
+    [Tooltip("The dead zone for velocity errors, below which no thrust is applied.")]
+    public static float VelocityDeadZone = 0.1f;
+    
+    // Note: MaxSpeed is read from the Ship component itself.
+
+    /// <summary>
+    /// Computes thrust, strafe, and rotation commands to guide a ship to a waypoint.
+    /// </summary>
+    /// <param name="waypoint">Target position in 2D plane space.</param>
+    /// <param name="currentPosition">Current ship position in 2D plane space.</param>
+    /// <param name="currentVelocity">Current ship velocity in 2D plane space.</param>
+    /// <param name="currentForward">Current ship forward direction (normalized) in 2D plane space.</param>
+    /// <param name="maxSpeed">The maximum speed the ship can travel.</param>
+    /// <param name="thrustCmd">Normalized forward/reverse thrust command [-1, 1].</param>
+    /// <param name="strafeCmd">Normalized strafe command [-1, 1].</param>
+    /// <param name="rotTargetDeg">The desired heading in degrees [0, 360].</param>
     public static void ComputeInputs(
-        Vector2 waypoint,
-        Vector2 pos,
-        Vector2 vel,
-        Vector2 fwd,
-        Vector2 right,
-        out float thrustCmd,
-        out float strafeCmd,
-        out float rotTargetDeg,
-        bool enableDebug = true)
+        Vector2 waypoint, Vector2 currentPosition, Vector2 currentVelocity, Vector2 currentForward, float maxSpeed,
+        out float thrustCmd, out float strafeCmd, out float rotTargetDeg)
     {
-        /* ---------- 1. Desired velocity ----------------------------------- */
-        Vector2 toWp = waypoint - pos;
-        float dist   = toWp.magnitude;
-        Vector2 dir  = toWp / Mathf.Max(dist, 0.001f);        // unit
+        // 1. Compute Desired Velocity
+        Vector2 vectorToWaypoint = waypoint - currentPosition;
+        float distanceToWaypoint = vectorToWaypoint.magnitude;
+        Vector2 directionToWaypoint = (distanceToWaypoint > 0.01f) ? vectorToWaypoint.normalized : Vector2.zero;
 
-        // “Brake-safe” target speed: v ≤ √(2 · a · d)
-        float tgtSpeed = Mathf.Min(MAX_SPEED, Mathf.Sqrt(2f * ACCEL_FWD * dist));
-        Vector2 vDesired = dir * tgtSpeed;
+        // Calculate the maximum speed we can have to be able to stop at the waypoint.
+        // v_final^2 = v_initial^2 + 2ad => v_initial = sqrt(-2ad) -- but d is negative
+        // More simply: E_k = W_done_by_braking => 0.5*m*v^2 = F*d => v = sqrt(2*a*d)
+        float maxSpeedToStop = Mathf.Sqrt(2 * ForwardAcceleration * distanceToWaypoint);
+        float desiredSpeed = Mathf.Min(maxSpeed, maxSpeedToStop);
+        Vector2 desiredVelocity = directionToWaypoint * desiredSpeed;
+
+        // 2. Find Velocity Error
+        Vector2 velocityError = desiredVelocity - currentVelocity;
+
+        // 3. Project Error onto Ship's Axes
+        Vector2 shipRight = new Vector2(currentForward.y, -currentForward.x);
+        float forwardError = Vector2.Dot(velocityError, currentForward);
+        float strafeError = Vector2.Dot(velocityError, shipRight);
         
-        if (enableDebug)
+        // 4. Map Errors to Commands
+        if (forwardError > 0)
         {
-            Debug.Log($"VelocityPilot Step 1 - Desired Velocity:");
-            Debug.Log($"  Waypoint: {waypoint}, Current Pos: {pos}");
-            Debug.Log($"  Distance: {dist:F2}m, Direction: {dir}");
-            Debug.Log($"  Target Speed: {tgtSpeed:F2}m/s (max: {MAX_SPEED}), Desired Velocity: {vDesired}");
+            // Need to accelerate forward
+            thrustCmd = forwardError / ForwardAcceleration;
+        }
+        else
+        {
+            // Need to brake or reverse
+            thrustCmd = forwardError / ReverseAcceleration; // forwardError is negative
         }
 
-        /* ---------- 2. Velocity error ------------------------------------- */
-        Vector2 dv = vDesired - vel;
-        
-        if (enableDebug)
+        strafeCmd = strafeError / StrafeAcceleration;
+
+        // 5. Apply Dead Zone and Clamp
+        if (velocityError.magnitude < VelocityDeadZone)
         {
-            Debug.Log($"VelocityPilot Step 2 - Velocity Error:");
-            Debug.Log($"  Current Velocity: {vel}, Desired Velocity: {vDesired}");
-            Debug.Log($"  Velocity Error (dv): {dv}, Magnitude: {dv.magnitude:F2}m/s");
+            thrustCmd = 0f;
+            strafeCmd = 0f;
+        }
+        else
+        {
+            thrustCmd = Mathf.Clamp(thrustCmd, -1f, 1f);
+            strafeCmd = Mathf.Clamp(strafeCmd, -1f, 1f);
         }
 
-        /* ---------- 3. Project error onto body axes ----------------------- */
-        Vector2 right = new Vector2(-fwd.y, fwd.x);           // starboard
-        float eLong   = Vector2.Dot(dv, fwd);                 // along nose
-        float eLat    = Vector2.Dot(dv, right);               // sideways
+        // --- Rotation ---
+        // We want to point the ship towards the desired velocity vector.
+        Vector2 targetDirection = desiredVelocity.normalized;
         
-        if (enableDebug)
+        // If we are very close to the desired velocity, just point towards the waypoint.
+        if (desiredVelocity.magnitude < 0.5f)
         {
-            Debug.Log($"VelocityPilot Step 3 - Body Axis Projection:");
-            Debug.Log($"  Ship Forward: {fwd}, Ship Right: {right}");
-            Debug.Log($"  Longitudinal Error (eLong): {eLong:F2}m/s");
-            Debug.Log($"  Lateral Error (eLat): {eLat:F2}m/s");
+            targetDirection = directionToWaypoint;
         }
 
-        /* ---------- 4. Map to control commands --------------------------- */
-        // Longitudinal (forward/reverse); scale to ±1
-        if (Mathf.Abs(eLong) < DEAD_ZONE)          thrustCmd = 0f;
-        else if (eLong > 0f)                       thrustCmd =  Mathf.Clamp01(eLong / ACCEL_FWD);
-        else                                       thrustCmd = -Mathf.Clamp01(-eLong / ACCEL_REV);
-
-        // Lateral (strafe)
-        if (Mathf.Abs(eLat) < DEAD_ZONE)           strafeCmd = 0f;
-        else                                       strafeCmd = Mathf.Clamp(eLat / ACCEL_STRAFE, -1f, 1f);
-        
-        if (enableDebug)
+        if (targetDirection.sqrMagnitude > 0.01f)
         {
-            Debug.Log($"VelocityPilot Step 4 - Control Commands:");
-            Debug.Log($"  Thrust Command: {thrustCmd:F3} (eLong: {eLong:F2}, deadzone: {DEAD_ZONE})");
-            Debug.Log($"  Strafe Command: {strafeCmd:F3} (eLat: {eLat:F2}, deadzone: {DEAD_ZONE})");
+            // The ship's angle is measured counter-clockwise from Vector2.up.
+            rotTargetDeg = Vector2.SignedAngle(Vector2.up, targetDirection);
+            if (rotTargetDeg < 0) rotTargetDeg += 360f;
         }
-
-        /* ---------- 5. Optional rotation target -------------------------- */
-        rotTargetDeg = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-        
-        if (enableDebug)
+        else
         {
-            Debug.Log($"VelocityPilot Step 5 - Rotation Target:");
-            Debug.Log($"  Target Direction: {dir}, Rotation Target: {rotTargetDeg:F1}°");
-            Debug.Log($"VelocityPilot FINAL OUTPUT: Thrust={thrustCmd:F3}, Strafe={strafeCmd:F3}, Rotation={rotTargetDeg:F1}°");
+            // If there's no direction, maintain current heading.
+            rotTargetDeg = Vector2.SignedAngle(Vector2.up, currentForward);
+            if (rotTargetDeg < 0) rotTargetDeg += 360f;
         }
     }
 }

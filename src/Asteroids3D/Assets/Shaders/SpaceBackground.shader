@@ -6,7 +6,7 @@ Shader "Custom/SpaceBackground"
         _Color1 ("Color 1", Color) = (0.2, 0.1, 0.4, 1)
         _Color2 ("Color 2", Color) = (0.1, 0.3, 0.5, 1)
         _Color3 ("Color 3", Color) = (0.3, 0.1, 0.5, 1)
-        _NoiseScale ("Noise Scale", Range(0.1, 10)) = 2.5
+        _NoiseScale ("Noise Scale", Range(0.01, 10)) = 2.5
         _NoiseStrength ("Noise Strength", Range(0, 5)) = 0.8
         _ScrollSpeed ("Scroll Speed", Range(0, 5)) = 0.15
         _Distortion ("Distortion", Range(0, 5)) = 0.3
@@ -123,7 +123,7 @@ Shader "Custom/SpaceBackground"
             fixed4 frag (v2f i) : SV_Target
             {
                 // Keep world position for movement
-                half2 basePos = i.worldPos.xy * _NoiseScale;
+                half2 basePos = i.worldPos.xz * _NoiseScale;
                 half time = _Time.y * _ScrollSpeed;
 
                 // Create swirling effect
@@ -220,7 +220,7 @@ Shader "Custom/SpaceBackground"
                     return fixed4(0, 0, 0, 0);
                 }
                 
-                float2 basePos = i.worldPos.xy * _NoiseScale;
+                float2 basePos = i.worldPos.xz * _NoiseScale;
                 float time = _Time.y * _ScrollSpeed;
                 
                 float3 avgColor = calculateAverageColor(

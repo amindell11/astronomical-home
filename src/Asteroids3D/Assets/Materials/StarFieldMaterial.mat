@@ -47,14 +47,14 @@ Material:
     m_Floats:
     - _CullDistance: 50
     - _EnableExternalAlpha: 0
-    - _GridDensity: 1
+    - _GridDensity: 0.775
     - _GridSize: 50
     - _ParallaxStrength: 1
     - _SizeVariation: 0.329
-    - _StarDensity: 0
-    - _StarSize: 0.0557
+    - _StarDensity: 0.061
+    - _StarSize: 0.0309
     - _StarSpriteCount: 4
-    - _TwinkleSpeed: 0.34
+    - _TwinkleSpeed: 0.44
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _RendererColor: {r: 1, g: 1, b: 1, a: 1}

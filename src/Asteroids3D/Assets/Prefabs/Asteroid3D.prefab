@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 1444230777461953402}
   - component: {fileID: 6900563035713500292}
   - component: {fileID: 6685439425489970429}
+  - component: {fileID: 3992125373639954538}
   m_Layer: 8
   m_Name: Asteroid3D
   m_TagString: Asteroid
@@ -154,3 +155,19 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: -7509105331590809498, guid: ebf1104f43b4e3648b610d6b2401b58b, type: 3}
+--- !u!208 &3992125373639954538
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1706132292860893391}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 1.8780001, y: 2.2700002, z: 2.0640001}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 0
+  m_Center: {x: 0.113000005, y: 0.068, z: 0.055000003}
+  m_TimeToStationary: 0.5
