@@ -4,6 +4,7 @@ using UnityEngine;
 public class PooledVFX : MonoBehaviour
 {
     private ParticleSystem[] systems;
+    private float cachedMaxDuration = -1f;
 
     private void Awake()  => systems = GetComponentsInChildren<ParticleSystem>(true);
 
@@ -11,12 +12,25 @@ public class PooledVFX : MonoBehaviour
     {
         // restart all systems when the object is fetched from the pool
         foreach (var ps in systems) ps.Play(true);
+        
+        // Cache duration calculation to avoid recalculating every time
+        if (cachedMaxDuration < 0f)
+        {
+            CalculateMaxDuration();
+        }
+        
+        Invoke(nameof(ReturnToPool), cachedMaxDuration);
+    }
+    
+    private void CalculateMaxDuration()
+    {
         // schedule release when the longest system finishes
-        float maxDuration = 0f;
+        cachedMaxDuration = 0f;
         foreach (var ps in systems)
-            maxDuration = Mathf.Max(maxDuration,
-                                    ps.main.duration + ps.main.startLifetime.constantMax);
-        Invoke(nameof(ReturnToPool), maxDuration);
+        {
+            cachedMaxDuration = Mathf.Max(cachedMaxDuration,
+                                        ps.main.duration + ps.main.startLifetime.constantMax);
+        }
     }
 
     private void ReturnToPool() => SimplePool<PooledVFX>.Release(this);

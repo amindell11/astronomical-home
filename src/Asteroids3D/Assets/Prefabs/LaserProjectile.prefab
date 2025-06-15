@@ -102,7 +102,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e9079096d778c1c4ea55baed875aef0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 100
+  damage: 40
   maxDistance: 50
   hitEffect: {fileID: 0}
   mass: 0.001

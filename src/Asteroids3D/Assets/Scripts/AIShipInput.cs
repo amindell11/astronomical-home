@@ -10,17 +10,35 @@ public class AIShipInput : MonoBehaviour
     public Transform target;
     [Tooltip("The distance to a waypoint to consider it 'reached'.")]
     public float waypointDistance = 2.0f;
+    [Tooltip("How often to check for destination updates (in seconds).")]
+    public float destinationUpdateInterval = 0.3f;
+    [Tooltip("Grid cell size for tracking target movement.")]
+    public float gridCellSize = 1.0f;
 
     [Header("Combat Settings")]
     [SerializeField] private float fireAngleTolerance = 5.0f;
     [SerializeField] private float fireDistance = 20.0f;
     [SerializeField] private LayerMask lineOfSightMask;
+    
+    [Header("Line of Sight Optimization")]
+    [SerializeField] private int lineOfSightCacheFrames = 5;
+    [SerializeField] private float angleToleranceBeforeRaycast = 15.0f;
 
     private Ship ship;
     private NavMeshAgent agent;
     private LaserGun laserGun;
     private int currentWaypointIndex;
     private Camera mainCamera;
+    
+    // Destination update optimization
+    private float lastDestinationUpdateTime;
+    private Vector3 lastTargetGridCell;
+    
+    // Line of sight caching
+    private bool lastLineOfSightResult;
+    private int lastLineOfSightFrame = -1;
+    private Vector3 lastRaycastPosition;
+    private Vector3 lastTargetPosition;
 
     private void Start()
     {
@@ -34,6 +52,9 @@ public class AIShipInput : MonoBehaviour
         agent.updatePosition = false;
         agent.updateRotation = false;
         agent.updateUpAxis = false;
+        
+        // Disable auto-braking to prevent internal path optimizer from recalculating at path end
+        agent.autoBraking = false;
 
         // Make sure the agent's settings match the ship's capabilities
         agent.speed = ship.maxSpeed;
@@ -42,6 +63,8 @@ public class AIShipInput : MonoBehaviour
         if (target != null)
         {
             agent.SetDestination(target.position);
+            lastTargetGridCell = GetGridCell(target.position);
+            lastDestinationUpdateTime = Time.time;
         }
     }
 
@@ -58,12 +81,8 @@ public class AIShipInput : MonoBehaviour
         // This is crucial because we disabled automatic updates.
         agent.nextPosition = transform.position;
 
-        // Update destination if target moved significantly.
-        if (Vector3.Distance(agent.destination, target.position) > 1.0f)
-        {
-            agent.SetDestination(target.position);
-            currentWaypointIndex = 0; // Reset waypoint tracking.
-        }
+        // Optimized destination update - check less frequently
+        UpdateDestinationIfNeeded();
 
         if (!agent.hasPath || agent.path.corners.Length == 0)
         {
@@ -74,6 +93,39 @@ public class AIShipInput : MonoBehaviour
 
         NavigatePath();
         HandleShooting();
+    }
+    
+    private void UpdateDestinationIfNeeded()
+    {
+        float currentTime = Time.time;
+        Vector3 currentTargetGridCell = GetGridCell(target.position);
+        
+        // Check if enough time has passed OR if target has moved to a different grid cell
+        bool shouldUpdate = (currentTime - lastDestinationUpdateTime >= destinationUpdateInterval) ||
+                           (currentTargetGridCell != lastTargetGridCell);
+        
+        if (shouldUpdate)
+        {
+            // Only update if the target has actually moved significantly
+            if (Vector3.Distance(agent.destination, target.position) > gridCellSize)
+            {
+                agent.SetDestination(target.position);
+                currentWaypointIndex = 0; // Reset waypoint tracking.
+            }
+            
+            lastDestinationUpdateTime = currentTime;
+            lastTargetGridCell = currentTargetGridCell;
+        }
+    }
+    
+    private Vector3 GetGridCell(Vector3 worldPosition)
+    {
+        // Convert world position to grid cell coordinates
+        float cellX = Mathf.Floor(worldPosition.x / gridCellSize) * gridCellSize;
+        float cellY = Mathf.Floor(worldPosition.y / gridCellSize) * gridCellSize;
+        float cellZ = Mathf.Floor(worldPosition.z / gridCellSize) * gridCellSize;
+        
+        return new Vector3(cellX, cellY, cellZ);
     }
 
     private void NavigatePath()
@@ -162,21 +214,71 @@ public class AIShipInput : MonoBehaviour
             return;
         }
 
-        // Check 3: Is there a clear line of sight?
-        if (Physics.Raycast(firePointPosition, directionToTarget.normalized, out RaycastHit hit, distanceToTarget, lineOfSightMask))
+        // Optimized Check 3: Line of sight with caching
+        bool hasLineOfSight = GetCachedLineOfSight(firePointPosition, directionToTarget, distanceToTarget, angleToTarget);
+        if (!hasLineOfSight)
         {
-            if (hit.transform.root != target.root)
-            {
-                // Obstacle detected
-                Debug.Log($"HandleShooting: Aborted. Line of sight blocked by {hit.transform.name}.");
-                return;
-            }
+            Debug.Log($"HandleShooting: Aborted. Line of sight blocked.");
+            return;
         }
         
         // All checks passed, fire the weapon.
         Debug.Log("HandleShooting: All checks passed. FIRING!");
         laserGun.Fire();
     }
+    
+    private bool GetCachedLineOfSight(Vector3 firePointPosition, Vector3 directionToTarget, float distanceToTarget, float angleToTarget)
+    {
+        // Only perform expensive raycast if:
+        // 1. We haven't cached recently (based on frame count)
+        // 2. The angle is within tolerance to even consider firing
+        // 3. Position or target has changed significantly
+        
+        int currentFrame = Time.frameCount;
+        bool shouldUpdateCache = false;
+        
+        // Check if cache is stale
+        if (lastLineOfSightFrame < 0 || currentFrame - lastLineOfSightFrame >= lineOfSightCacheFrames)
+        {
+            shouldUpdateCache = true;
+        }
+        
+        // Check if positions have changed significantly
+        if (Vector3.Distance(firePointPosition, lastRaycastPosition) > 1f || 
+            Vector3.Distance(target.position, lastTargetPosition) > 1f)
+        {
+            shouldUpdateCache = true;
+        }
+        
+        // Only raycast if we're reasonably close to target angle - saves performance
+        if (angleToTarget > angleToleranceBeforeRaycast)
+        {
+            // Too far from target angle to bother with expensive raycast
+            return false;
+        }
+        
+        if (shouldUpdateCache)
+        {
+            // Perform the actual raycast
+            if (Physics.Raycast(firePointPosition, directionToTarget.normalized, out RaycastHit hit, distanceToTarget, lineOfSightMask))
+            {
+                lastLineOfSightResult = hit.transform.root == target.root;
+            }
+            else
+            {
+                lastLineOfSightResult = true; // No obstruction found
+            }
+            
+            // Update cache info
+            lastLineOfSightFrame = currentFrame;
+            lastRaycastPosition = firePointPosition;
+            lastTargetPosition = target.position;
+        }
+        
+        return lastLineOfSightResult;
+    }
+
+
 
     private void OnDrawGizmos()
     {

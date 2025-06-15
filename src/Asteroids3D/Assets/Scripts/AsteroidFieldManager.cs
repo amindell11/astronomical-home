@@ -18,8 +18,18 @@ public class AsteroidFieldManager : MonoBehaviour
     [SerializeField] private float targetVolumeDensity = 0.1f;
     [SerializeField] private float densityCheckRadius = 30f;
     [SerializeField] private int maxSpawnsPerFrame = 10;
+    
+    [Header("Performance Optimization")]
+    [SerializeField] private float densityCheckInterval = 0.25f;
+    [SerializeField] private int maxOverlapResults = 50;
 
     private Transform playerTransform;
+    private float cachedVolumeDensity;
+    private float cachedArea;
+    private Camera mainCamera;
+    
+    // Pre-allocated buffer for Physics.OverlapSphereNonAlloc
+    private static Collider[] overlapBuffer;
 
     private void Awake()
     {
@@ -31,25 +41,39 @@ public class AsteroidFieldManager : MonoBehaviour
         {
             Instance = this;
         }
+        
+        // Initialize static buffer if not already done
+        if (overlapBuffer == null)
+        {
+            overlapBuffer = new Collider[maxOverlapResults];
+        }
+        mainCamera = Camera.main;
     }
 
     private void Start()
     {
-        playerTransform = Camera.main.transform;
+        playerTransform = mainCamera.transform;
         if (playerTransform != null)
         {
+            // Update cached density before initial spawn so volume calculations are correct
+            UpdateCachedDensity();
             CheckAndSpawnAsteroids(initMinSpawnDistance, maxSpawnDistance, maxAsteroids);
         }
         Debug.Log("========================initial asteroid field spawned");
+        
+        // Start the repeating asteroid field management
+        InvokeRepeating(nameof(ManageAsteroidField), densityCheckInterval, densityCheckInterval);
     }
 
-    private void Update()
+    private void ManageAsteroidField()
     {
         if (playerTransform == null)
         {
-            playerTransform = Camera.main.transform;
+            playerTransform = mainCamera.transform;
             if (playerTransform == null) return;
         }
+        
+        UpdateCachedDensity();
         CheckAndSpawnAsteroids(minSpawnDistance, maxSpawnDistance, maxSpawnsPerFrame);
     }
 
@@ -57,12 +81,11 @@ public class AsteroidFieldManager : MonoBehaviour
     {
         if (AsteroidSpawner.Instance.ActiveAsteroidCount >= maxAsteroids) return;
 
-        float currentVolumeDensity = GetFieldVolumeDensity(out float area);
-        Debug.Log($"Current volume density: {currentVolumeDensity}, Target volume density: {targetVolumeDensity}, Area: {area}");
+        Debug.Log($"Current volume density: {cachedVolumeDensity}, Target volume density: {targetVolumeDensity}, Area: {cachedArea}");
         
-        if (currentVolumeDensity < targetVolumeDensity)
+        if (cachedVolumeDensity < targetVolumeDensity)
         {
-            float volumeToSpawn = (targetVolumeDensity - currentVolumeDensity) * area;
+            float volumeToSpawn = (targetVolumeDensity - cachedVolumeDensity) * cachedArea;
             float volumeSpawned = 0f;
             int safetyBreak = maxSpawnsPerFrame; // Prevent potential infinite loops
 
@@ -90,25 +113,27 @@ public class AsteroidFieldManager : MonoBehaviour
         }
     }
 
-    private float GetFieldVolumeDensity(out float area)
+    private void UpdateCachedDensity()
     {
-        Vector2 checkCenter = (playerTransform != null) ? new Vector2(playerTransform.position.x, playerTransform.position.y) : new Vector2(transform.position.x, transform.position.y);
+        Vector3 checkCenter = (playerTransform != null) ? playerTransform.position : transform.position;
         int mask = 1 << LayerMask.NameToLayer("Asteroid");
-        Collider[] results = Physics.OverlapSphere(checkCenter, densityCheckRadius, mask);
+        
+        // Use non-allocating overlap sphere with pre-allocated buffer
+        int numResults = Physics.OverlapSphereNonAlloc(checkCenter, densityCheckRadius, overlapBuffer, mask);
         float totalVolumeInRange = 0f;
         
-        Debug.Log($"Found {results.Length} asteroids in range");
-        foreach (Collider col in results)
+        Debug.Log($"Found {numResults} asteroids in range");
+        for (int i = 0; i < numResults; i++)
         {
-            Asteroid asteroid = col.GetComponent<Asteroid>();
+            Asteroid asteroid = overlapBuffer[i].GetComponent<Asteroid>();
             if (asteroid != null)
             {
                 totalVolumeInRange += asteroid.CurrentVolume;
             }
         }
         
-        area = Mathf.PI * Mathf.Pow(densityCheckRadius, 2);
-        return area > 0 ? totalVolumeInRange / area : 0f;
+        cachedArea = Mathf.PI * Mathf.Pow(densityCheckRadius, 2);
+        cachedVolumeDensity = cachedArea > 0 ? totalVolumeInRange / cachedArea : 0f;
     }
 
     private void OnDrawGizmosSelected()

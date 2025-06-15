@@ -117,6 +117,15 @@ public class Ship : MonoBehaviour, IDamageable
     private Quaternion q_bank = Quaternion.identity;
     private Quaternion q_yaw = Quaternion.identity;
     public Ship2D Controller { get; private set; }
+    
+    // Cached plane info for performance optimization (set once at startup)
+    private Vector3 cachedPlaneOrigin;
+    private Vector3 cachedPlaneNormal;
+    private Vector3 cachedPlaneForward;
+    private Vector3 cachedPlaneRight;
+    
+    // Cached speed values for performance optimization
+    private float maxSpeedSquared;
 
     private void Awake()
     {
@@ -125,6 +134,13 @@ public class Ship : MonoBehaviour, IDamageable
         rb.angularDrag = 0f;
         rb.useGravity = false;
         Controller = new Ship2D(this);
+        
+        // Cache speed squared for performance
+        maxSpeedSquared = maxSpeed * maxSpeed;
+        
+        // Cache plane info once at startup since reference plane is static
+        CachePlaneInfo();
+        
         SyncAngleFrom3D(); // Sync only once on startup
     }
 
@@ -145,10 +161,10 @@ public class Ship : MonoBehaviour, IDamageable
     
     private void SyncStateFrom3D()
     {
-        Vector3 planeNormal = GetPlaneNormal();
+        Vector3 planeNormal = cachedPlaneNormal;
 
         // Position
-        Vector3 planePos3D = Vector3.ProjectOnPlane(transform.position - GetPlaneOrigin(), planeNormal);
+        Vector3 planePos3D = Vector3.ProjectOnPlane(transform.position - cachedPlaneOrigin, planeNormal);
         Controller.Position = WorldToPlane(planePos3D);
 
         // Velocity
@@ -157,11 +173,11 @@ public class Ship : MonoBehaviour, IDamageable
     
     private void SyncAngleFrom3D()
     {
-        Vector3 planeNormal = GetPlaneNormal();
+        Vector3 planeNormal = cachedPlaneNormal;
         Vector3 projectedForward = Vector3.ProjectOnPlane(transform.up, planeNormal).normalized;
         if (projectedForward.sqrMagnitude > 0.01f)
         {
-            float angle = Vector3.SignedAngle(GetPlaneForward(), projectedForward, planeNormal);
+            float angle = Vector3.SignedAngle(cachedPlaneForward, projectedForward, planeNormal);
             Controller.Angle = angle < 0 ? angle + 360f : angle;
         }
     }
@@ -188,18 +204,22 @@ public class Ship : MonoBehaviour, IDamageable
 
     private void ClampSpeed()
     {
-        if (rb.velocity.magnitude > maxSpeed)
-        {
-            rb.velocity = rb.velocity.normalized * maxSpeed;
-        }
+            // Use sqrMagnitude to avoid expensive square root calculation
+            float velocitySqrMagnitude = rb.velocity.sqrMagnitude;
+            if (velocitySqrMagnitude > maxSpeedSquared)
+            {
+                // Only perform square root when we actually need to normalize
+                rb.velocity = rb.velocity.normalized * maxSpeed;
+            }
     }
 
     private void ConstrainToPlane()
     {
-        Vector3 planeNormal = GetPlaneNormal();
+        // Use cached plane info to avoid repeated calculations
+        Vector3 planeNormal = cachedPlaneNormal;
 
         // Lock position to plane
-        Vector3 pointOnPlane = GetPlaneOrigin();
+        Vector3 pointOnPlane = cachedPlaneOrigin;
         Vector3 vectorFromPlane = transform.position - pointOnPlane;
         float distance = Vector3.Dot(vectorFromPlane, planeNormal);
         transform.position -= planeNormal * distance;
@@ -217,8 +237,8 @@ public class Ship : MonoBehaviour, IDamageable
 
     public Vector2 WorldToPlane(Vector3 worldVector)
     {
-        Vector3 planeForward = GetPlaneForward();
-        Vector3 planeRight = GetPlaneRight();
+        Vector3 planeForward = cachedPlaneForward;
+        Vector3 planeRight = cachedPlaneRight;
         float y = Vector3.Dot(worldVector, planeForward);
         float x = Vector3.Dot(worldVector, planeRight);
         return new Vector2(x, y);
@@ -226,9 +246,21 @@ public class Ship : MonoBehaviour, IDamageable
     
     public Vector3 PlaneToWorld(Vector2 planeVector)
     {
-        Vector3 planeForward = GetPlaneForward();
-        Vector3 planeRight = GetPlaneRight();
+        Vector3 planeForward = cachedPlaneForward;
+        Vector3 planeRight = cachedPlaneRight;
         return planeRight * planeVector.x + planeForward * planeVector.y;
+    }
+    
+    /// <summary>
+    /// Caches plane information once at startup for performance optimization.
+    /// Since reference plane is static, this only needs to be called once.
+    /// </summary>
+    private void CachePlaneInfo()
+    {
+        cachedPlaneOrigin = GetPlaneOrigin();
+        cachedPlaneNormal = GetPlaneNormal();
+        cachedPlaneForward = GetPlaneForward();
+        cachedPlaneRight = GetPlaneRight();
     }
 
     #endregion
@@ -264,7 +296,18 @@ public class Ship : MonoBehaviour, IDamageable
             DestroyShip();
         }
     }
+    
+    public void ResetHealth()
+    {
+        currentHealth = maxHealth;
+    }
 
+    public void ResetShip()
+    {
+        rb.velocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+        Controller.Velocity = Vector2.zero;
+    }
     private void DestroyShip()
     {
         // Spawn explosion effect
@@ -281,7 +324,7 @@ public class Ship : MonoBehaviour, IDamageable
                 Instantiate(explosionPrefab, transform.position, Quaternion.identity);
             }
         }
-        
+        Debug.Log("Ship destroyed");
         // Play explosion sound
         if (explosionSound != null)
         {
@@ -291,11 +334,11 @@ public class Ship : MonoBehaviour, IDamageable
         if (isPlayerShip)
         {
             // Inform GameManager of player death
-            GameManager.Instance?.HandlePlayerDeath();
+            GameManager.Instance?.HandlePlayerDeath(this);
         }
         else
         {
-            // Additional AI death behavior could go here (e.g., spawn loot)
+            GameManager.Instance?.HandleEnemyDeath(this);
         }
         
         // Disable the ship object
