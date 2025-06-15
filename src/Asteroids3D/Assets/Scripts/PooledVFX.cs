@@ -1,4 +1,4 @@
-/*using UnityEngine;
+using UnityEngine;
 
 [RequireComponent(typeof(ParticleSystem))]
 public class PooledVFX : MonoBehaviour
@@ -20,4 +20,4 @@ public class PooledVFX : MonoBehaviour
     }
 
     private void ReturnToPool() => SimplePool<PooledVFX>.Release(this);
-}   */
+}   

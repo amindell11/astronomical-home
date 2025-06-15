@@ -31,7 +31,7 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         currentState = GameState.Playing;
-        Shader.WarmupAllShaders();
+        //Shader.WarmupAllShaders();
     }
 
     /// <summary>

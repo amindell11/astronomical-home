@@ -3,11 +3,10 @@ using UnityEngine;
 public class LaserGun : MonoBehaviour
 {
     [Header("Laser Settings")]
-    [SerializeField] private GameObject laserPrefab;
+    [SerializeField] private LaserProjectile laserPrefab;
     [SerializeField] public Transform firePoint;
     [SerializeField] private float laserSpeed = 20f;
     [SerializeField] private float fireRate = 0.2f;
-    [SerializeField] private float laserLifetime = 2f;
     [SerializeField] private AudioClip shootSound;
 
     private float nextFireTime;
@@ -20,7 +19,6 @@ public class LaserGun : MonoBehaviour
         {
             audioSource = gameObject.AddComponent<AudioSource>();
         }
-
     }
 
     public void Fire()
@@ -38,18 +36,14 @@ public class LaserGun : MonoBehaviour
         
         nextFireTime = Time.time + fireRate;
 
-        // Instantiate the laser at the fire point
-        GameObject laserGO = Instantiate(laserPrefab, firePoint.position, firePoint.rotation);
-        LaserProjectile laser = laserGO.GetComponent<LaserProjectile>();
+        // Get laser from pool instead of instantiating
+        LaserProjectile laser = SimplePool<LaserProjectile>.Get(laserPrefab, firePoint.position, firePoint.rotation);
 
         // Assign the shooter to the laser so it can ignore collisions with itself
-        if (laser != null)
-        {
-            laser.Shooter = transform.root.gameObject;
-        }
+        laser.Shooter = transform.root.gameObject;
         
         // Set up the laser's velocity
-        Rigidbody rb = laserGO.GetComponent<Rigidbody>();
+        Rigidbody rb = laser.GetComponent<Rigidbody>();
         if (rb != null)
         {
             rb.velocity = firePoint.up * laserSpeed;
@@ -61,7 +55,6 @@ public class LaserGun : MonoBehaviour
             audioSource.PlayOneShot(shootSound);
         }
 
-        // Destroy the laser after its lifetime
-        Destroy(laserGO, laserLifetime);
+        // No need to destroy - laser handles its own lifecycle now
     }
 } 

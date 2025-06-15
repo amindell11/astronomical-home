@@ -14,12 +14,21 @@ public class LaserProjectile : MonoBehaviour
     private Rigidbody rb;
     public GameObject Shooter { get; set; }
 
-    private void Start()
+    private void OnEnable()
     {
+        // Reset state when retrieved from pool
         startPosition = transform.position;
         rb = GetComponent<Rigidbody>();
-        rb.useGravity = false;  
-        AudioSource.PlayClipAtPoint(laserSound, transform.position, laserVolume);
+        if (rb != null)
+        {
+            rb.useGravity = false;
+        }
+        
+        // Play laser sound (only if we have the clip)
+        if (laserSound != null)
+        {
+            AudioSource.PlayClipAtPoint(laserSound, transform.position, laserVolume);
+        }
     }
 
     private void FixedUpdate()
@@ -28,7 +37,7 @@ public class LaserProjectile : MonoBehaviour
         float distanceTraveled = Vector3.Distance(startPosition, transform.position);
         if (distanceTraveled > maxDistance)
         {
-            Destroy(gameObject);
+            ReturnToPool();
         }
     }
 
@@ -40,7 +49,9 @@ public class LaserProjectile : MonoBehaviour
             return;
         }
 
+        #if UNITY_EDITOR
         Debug.Log($"OnTriggerEnter: {other.gameObject.name}");
+        #endif
         
         // Check if the object can take damage
         IDamageable damageable = other.GetComponentInParent<IDamageable>();
@@ -51,10 +62,19 @@ public class LaserProjectile : MonoBehaviour
             // Spawn hit effect if we have one
             if (hitEffect != null)
             {
-                Instantiate(hitEffect, transform.position, Quaternion.identity);
+                // Try to get PooledVFX component first, fallback to regular instantiate
+                PooledVFX pooledVFX = hitEffect.GetComponent<PooledVFX>();
+                if (pooledVFX != null)
+                {
+                    SimplePool<PooledVFX>.Get(pooledVFX, transform.position, Quaternion.identity);
+                }
+                else
+                {
+                    Instantiate(hitEffect, transform.position, Quaternion.identity);
+                }
             }
             
-            Destroy(gameObject);
+            ReturnToPool();
         }
     }
 
@@ -62,7 +82,26 @@ public class LaserProjectile : MonoBehaviour
     {
         if (other.CompareTag("Boundary"))
         {
-            Destroy(gameObject);
+            ReturnToPool();
         }
+    }
+    
+    /// <summary>
+    /// Return this laser to the pool instead of destroying it
+    /// </summary>
+    private void ReturnToPool()
+    {
+        // Reset shooter reference
+        Shooter = null;
+        
+        // Stop any physics
+        if (rb != null)
+        {
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
+        
+        // Return to pool
+        SimplePool<LaserProjectile>.Release(this);
     }
 } 

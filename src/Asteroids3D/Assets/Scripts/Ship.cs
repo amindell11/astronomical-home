@@ -270,7 +270,16 @@ public class Ship : MonoBehaviour, IDamageable
         // Spawn explosion effect
         if (explosionPrefab != null)
         {
-            Instantiate(explosionPrefab, transform.position, Quaternion.identity);
+            // Try to get PooledVFX component first, fallback to regular instantiate
+            PooledVFX pooledVFX = explosionPrefab.GetComponent<PooledVFX>();
+            if (pooledVFX != null)
+            {
+                SimplePool<PooledVFX>.Get(pooledVFX, transform.position, Quaternion.identity);
+            }
+            else
+            {
+                Instantiate(explosionPrefab, transform.position, Quaternion.identity);
+            }
         }
         
         // Play explosion sound
