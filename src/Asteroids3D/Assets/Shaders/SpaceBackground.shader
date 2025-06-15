@@ -26,6 +26,10 @@ Shader "Custom/SpaceBackground"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
+            #pragma multi_compile_instancing
+            #pragma instancing_options assumeuniformscaling
+            #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2 LIGHTMAP_ON DIRLIGHTMAP_COMBINED DIRLIGHTMAP_SEPARATE DYNAMICLIGHTMAP_ON SHADOWS_SHADOWMASK
+            #pragma target 3.0
             #include "UnityCG.cginc"
 
             struct appdata
@@ -170,6 +174,10 @@ Shader "Custom/SpaceBackground"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
+            #pragma multi_compile_instancing
+            #pragma instancing_options assumeuniformscaling
+            #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2 LIGHTMAP_ON DIRLIGHTMAP_COMBINED DIRLIGHTMAP_SEPARATE DYNAMICLIGHTMAP_ON SHADOWS_SHADOWMASK
+            #pragma target 3.0
             #include "UnityCG.cginc"
 
             struct appdata
@@ -215,10 +223,9 @@ Shader "Custom/SpaceBackground"
 
             fixed4 frag (v2f i) : SV_Target
             {
-                // Only calculate emission if enabled
-                if (_EmissionEnabled <= 0.5) {
-                    return fixed4(0, 0, 0, 0);
-                }
+                // Early discard of the whole fragment when emission is disabled – avoids
+                // unnecessary ALU work and saves a full pass when _EmissionEnabled is 0.
+                clip(_EmissionEnabled - 0.5);
                 
                 float2 basePos = i.worldPos.xz * _NoiseScale;
                 float time = _Time.y * _ScrollSpeed;

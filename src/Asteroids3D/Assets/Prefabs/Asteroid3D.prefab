@@ -50,7 +50,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   density: 5
-  explosionPrefab: {fileID: 5308289854503103054, guid: b87929575dffb6c49b64ff8ec3faa5d7,
+  explosionPrefab: {fileID: 3624727767247666335, guid: b87929575dffb6c49b64ff8ec3faa5d7,
     type: 3}
   explosionSound: {fileID: 8300000, guid: 14e1c94ce80f1fc45bd483c188a57c1c, type: 3}
   explosionVolume: 0.85
@@ -164,10 +164,10 @@ NavMeshObstacle:
   m_GameObject: {fileID: 1706132292860893391}
   m_Enabled: 1
   serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 1.8780001, y: 2.2700002, z: 2.0640001}
+  m_Shape: 0
+  m_Extents: {x: 2.0640001, y: 2.2700002, z: 2.0640001}
   m_MoveThreshold: 0.1
-  m_Carve: 1
+  m_Carve: 0
   m_CarveOnlyStationary: 0
   m_Center: {x: 0.113000005, y: 0.068, z: 0.055000003}
   m_TimeToStationary: 0.5

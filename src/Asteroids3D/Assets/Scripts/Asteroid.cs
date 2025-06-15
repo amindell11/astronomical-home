@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Asteroid : MonoBehaviour
+public class Asteroid : MonoBehaviour, IDamageable
 {
     [Header("Physical Properties")]
     [SerializeField] private float density = 1f;
@@ -126,20 +126,11 @@ public class Asteroid : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        Debug.Log("OnTriggerExit" + other.name);
         if (other.CompareTag("AsteroidCullingBoundary"))
         {
             AsteroidSpawner.Instance.ReleaseAsteroid(gameObject);
         }
     }   
-    private void OnTriggerEnter(Collider other)
-    {
-        Debug.Log("OnTriggerEnter" + other.name);
-        if (other.CompareTag("AsteroidCullingBoundary"))
-        {
-            // Nothing to do when re-entering boundary; asteroid will be respawned via pool
-        }
-    }
 
     private void LateUpdate()
     {

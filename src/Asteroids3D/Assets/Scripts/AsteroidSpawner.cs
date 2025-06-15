@@ -24,6 +24,7 @@ public class AsteroidSpawner : MonoBehaviour
     [SerializeField] private int maxPoolSize = 100;
 
     private ObjectPool<GameObject> asteroidPool;
+    public int ActiveAsteroidCount => asteroidPool.CountActive;
 
     private void Awake()
     {
@@ -88,14 +89,12 @@ public class AsteroidSpawner : MonoBehaviour
             finalAngularVelocity
         );
         
-        AsteroidFieldManager.Instance.AddAsteroid(asteroidGO);
         return asteroidGO;
     }
 
     public void ReleaseAsteroid(GameObject asteroidGO)
     {
         if (asteroidGO == null) return;
-        AsteroidFieldManager.Instance?.RemoveAsteroid(asteroidGO);
         asteroidPool.Release(asteroidGO);
     }
 

@@ -7,6 +7,7 @@ public class PlayerShipInput : MonoBehaviour
     private Ship ship;
     private Ship.Ship2D shipController;
     private Camera mainCamera;
+    private LaserGun laserGun;
 
     [Tooltip("If checked, the ship will rotate towards the mouse position. If unchecked, the ship will rotate using the rotation input axis.")]
     public bool useMouseDirection = false;
@@ -25,6 +26,7 @@ public class PlayerShipInput : MonoBehaviour
         ship = GetComponent<Ship>();
         shipController = ship.Controller;
         mainCamera = Camera.main;
+        laserGun = GetComponentInChildren<LaserGun>();
     }
 
     private void Update()
@@ -34,6 +36,12 @@ public class PlayerShipInput : MonoBehaviour
         float strafeInput = Input.GetAxis("Horizontal");
         shipController.SetControls(thrustInput, strafeInput);
         HandleRotationInput();
+
+        // Handle shooting input
+        if (Input.GetButton("Fire1"))
+        {
+            laserGun?.Fire();
+        }
     }
 
     public void HandleRotationInput()

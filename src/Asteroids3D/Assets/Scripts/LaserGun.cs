@@ -4,7 +4,7 @@ public class LaserGun : MonoBehaviour
 {
     [Header("Laser Settings")]
     [SerializeField] private GameObject laserPrefab;
-    [SerializeField] private Transform firePoint;
+    [SerializeField] public Transform firePoint;
     [SerializeField] private float laserSpeed = 20f;
     [SerializeField] private float fireRate = 0.2f;
     [SerializeField] private float laserLifetime = 2f;
@@ -23,29 +23,33 @@ public class LaserGun : MonoBehaviour
 
     }
 
-    private void Update()
+    public void Fire()
     {
-        // Check for fire input (space bar or left mouse button)
-        if (Input.GetButtonDown("Fire1") && Time.time >= nextFireTime)
+        if (Time.time < nextFireTime)
         {
-            FireLaser();
-            nextFireTime = Time.time + fireRate;
+            return;
         }
-    }
-
-    private void FireLaser()
-    {
+        
         if(firePoint == null)
         {
             firePoint = transform;
         }
-        if (laserPrefab == null || firePoint == null) return;
+        if (laserPrefab == null) return;
+        
+        nextFireTime = Time.time + fireRate;
 
         // Instantiate the laser at the fire point
-        GameObject laser = Instantiate(laserPrefab, firePoint.position, firePoint.rotation);
+        GameObject laserGO = Instantiate(laserPrefab, firePoint.position, firePoint.rotation);
+        LaserProjectile laser = laserGO.GetComponent<LaserProjectile>();
+
+        // Assign the shooter to the laser so it can ignore collisions with itself
+        if (laser != null)
+        {
+            laser.Shooter = transform.root.gameObject;
+        }
         
         // Set up the laser's velocity
-        Rigidbody rb = laser.GetComponent<Rigidbody>();
+        Rigidbody rb = laserGO.GetComponent<Rigidbody>();
         if (rb != null)
         {
             rb.velocity = firePoint.up * laserSpeed;
@@ -58,6 +62,6 @@ public class LaserGun : MonoBehaviour
         }
 
         // Destroy the laser after its lifetime
-        Destroy(laser, laserLifetime);
+        Destroy(laserGO, laserLifetime);
     }
 } 

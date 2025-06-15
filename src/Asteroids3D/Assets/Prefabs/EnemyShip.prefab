@@ -15092,11 +15092,11 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5272321575846762161}
-  - component: {fileID: 1750939966240049249}
   - component: {fileID: 7196694965309875068}
   - component: {fileID: 2449525076381185498}
   - component: {fileID: 6392841580981940528}
-  - component: {fileID: 7097593743257912594}
+  - component: {fileID: 9133554301100222037}
+  - component: {fileID: 275278401887241383}
   m_Layer: 7
   m_Name: EnemyShip
   m_TagString: Untagged
@@ -15125,31 +15125,6 @@ Transform:
   - {fileID: 4709420201416091625}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1750939966240049249
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4783064862572481547}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 25770efd4adb0d645a76236e0e560dbe, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  thrustForce: 1200
-  maxSpeed: 15
-  rotationThrustForce: 480
-  maxRotationSpeed: 180
-  rotationDrag: 0.95
-  yawDeadzoneAngle: 4
-  maxBankAngle: 45
-  bankingSpeed: 5
-  maxStrafeForce: 800
-  minStrafeForce: 750
-  thrustParticles:
-  - {fileID: 4682196337817548974}
-  - {fileID: 8974610196133283717}
 --- !u!64 &7196694965309875068
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -15206,13 +15181,14 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4783064862572481547}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cd162f809fbe92a44a3fb3930e2432b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  referencePlane: {fileID: 0}
   thrustForce: 1200
-  maxSpeed: 15
+  maxSpeed: 20
   rotationThrustForce: 480
   maxRotationSpeed: 180
   rotationDrag: 0.95
@@ -15221,21 +15197,55 @@ MonoBehaviour:
   bankingSpeed: 5
   maxStrafeForce: 800
   minStrafeForce: 750
-  showGizmos: 1
-  gizmoScale: 2
+  enableDebugLogs: 0
   thrustParticles: []
---- !u!114 &7097593743257912594
+  maxHealth: 100
+  explosionPrefab: {fileID: 5016715549320389236, guid: b977f12349064ed42900bb5ea0948be5,
+    type: 3}
+  explosionSound: {fileID: 0}
+  explosionVolume: 0.7
+  isPlayerShip: 0
+--- !u!195 &9133554301100222037
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4783064862572481547}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 0.1
+  m_Speed: 3.5
+  m_Acceleration: 8
+  avoidancePriority: 50
+  m_AngularSpeed: 120
+  m_StoppingDistance: 0
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 2
+  m_BaseOffset: 0
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 4
+--- !u!114 &275278401887241383
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4783064862572481547}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 316e0e7d4c7d6c442a0d98464c84ceb4, type: 3}
+  m_Script: {fileID: 11500000, guid: 4fbc5314633641247b1e90fd0651a150, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  target: {fileID: 0}
+  waypointDistance: 2
+  fireAngleTolerance: 5
+  fireDistance: 20
+  lineOfSightMask:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!1 &5873743341559668623
 GameObject:
   m_ObjectHideFlags: 0

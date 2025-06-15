@@ -15,8 +15,12 @@ Shader "Custom/ShipShader"
         LOD 200
 
         CGPROGRAM
+        // Enable GPU instancing & strip unneeded variants to reduce CPU overhead
         #pragma surface surf Standard fullforwardshadows noambient
         #pragma target 3.0
+        #pragma multi_compile_instancing
+        #pragma instancing_options assumeuniformscaling
+        #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2 DYNAMICLIGHTMAP_ON DIRLIGHTMAP_COMBINED DIRLIGHTMAP_SEPARATE LIGHTMAP_ON SHADOWS_SHADOWMASK
 
         sampler2D _MainTex;
 

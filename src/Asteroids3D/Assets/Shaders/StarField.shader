@@ -89,10 +89,13 @@ Shader "Custom/StarField"
                 float2 grid = floor(worldPos * _GridDensity);
                 float2 gridUV = frac(worldPos * _GridDensity);
                 
-                // Generate multiple random values for each grid cell
-                float random1 = hash(grid);
-                float random2 = hash(grid + 1.0);
-                float random = lerp(random1, random2, smoothstep(0.0, 1.0, gridUV.x));
+                // Generate a single random value for the current grid cell
+                half random = hash(grid);
+
+                // Early discard for pixels that won't contain a star – this avoids
+                // running the rest of the fragment logic for the vast majority of
+                // fragments and significantly reduces ALU/VGPR usage.
+                clip(_StarDensity - random);
                 
                 // Generate size variation
                 float sizeRandom = hash(grid + float2(0.5, 0.5)); // Different seed for size
@@ -108,9 +111,6 @@ Shader "Custom/StarField"
                 grid = floor(finalPos * _GridDensity);
                 gridUV = frac(finalPos * _GridDensity);
                 
-                // Only create stars where random value is below density threshold
-                float star = step(random, _StarDensity);
-                
                 // Create star shape with soft edges
                 float2 center = float2(0.5, 0.5);
                 float dist = length(gridUV - center);
@@ -119,8 +119,8 @@ Shader "Custom/StarField"
                 // Add twinkling effect
                 float twinkle = sin(_Time.y * _TwinkleSpeed + random * 10) * 0.5 + 0.5;
                 
-                // Combine everything
-                float finalStar = star * starShape * twinkle;
+                // Combine everything (the presence check is already handled by the clip above)
+                float finalStar = starShape * twinkle;
                 
                 return float4(_StarColor.rgb, finalStar * _StarColor.a);
             }

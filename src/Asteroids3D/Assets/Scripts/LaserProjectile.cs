@@ -12,6 +12,7 @@ public class LaserProjectile : MonoBehaviour
 
     private Vector3 startPosition;
     private Rigidbody rb;
+    public GameObject Shooter { get; set; }
 
     private void Start()
     {
@@ -21,7 +22,7 @@ public class LaserProjectile : MonoBehaviour
         AudioSource.PlayClipAtPoint(laserSound, transform.position, laserVolume);
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         // Check if laser has traveled too far
         float distanceTraveled = Vector3.Distance(startPosition, transform.position);
@@ -33,21 +34,27 @@ public class LaserProjectile : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log($"OnTriggerEnter: {other.gameObject.name}");
-        // Check if we hit an asteroid
-        if (other.CompareTag("Asteroid"))
+        // Ignore collision with the object that fired the laser
+        if (Shooter != null && other.transform.root.gameObject == Shooter)
         {
-            Asteroid asteroid = other.GetComponent<Asteroid>();
-            if (asteroid != null)
-            {
-                asteroid.TakeDamage(damage, rb.mass, rb.velocity, transform.position);
-            }
-            Destroy(gameObject);
+            return;
+        }
+
+        Debug.Log($"OnTriggerEnter: {other.gameObject.name}");
+        
+        // Check if the object can take damage
+        IDamageable damageable = other.GetComponentInParent<IDamageable>();
+        if (damageable != null)
+        {
+            damageable.TakeDamage(damage, rb.mass, rb.velocity, transform.position);
+            
             // Spawn hit effect if we have one
             if (hitEffect != null)
             {
                 Instantiate(hitEffect, transform.position, Quaternion.identity);
             }
+            
+            Destroy(gameObject);
         }
     }
 

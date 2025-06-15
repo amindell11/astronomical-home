@@ -4,7 +4,7 @@ using UnityEngine;
 // Unity 3D environment (Rigidbody, Transforms, etc.). It wraps a pure-logic Ship2D
 // class that performs all the 2D calculations.
 [RequireComponent(typeof(Rigidbody))]
-public class Ship : MonoBehaviour
+public class Ship : MonoBehaviour, IDamageable
 {
     // The inner class that handles all the 2D ship logic. It knows nothing
     // about 3D space, GameObjects, or Unity's physics engine.
@@ -40,7 +40,6 @@ public class Ship : MonoBehaviour
         {
             RotateToTarget = shouldRotate;
             TargetAngle = targetAngle;
-            Debug.Log("SetRotationTarget: " + shouldRotate + " " + targetAngle);
         }
 
         public void Update(float deltaTime)
@@ -54,7 +53,6 @@ public class Ship : MonoBehaviour
             if (RotateToTarget)
             {
                 float angleDifference = Mathf.DeltaAngle(Angle, TargetAngle);
-                Debug.Log("angleDifference: " + angleDifference);
                 if (Mathf.Abs(angleDifference) > ship.yawDeadzoneAngle)
                 {
                     float angleRatio = Mathf.Abs(angleDifference) / 180f;
@@ -231,6 +229,68 @@ public class Ship : MonoBehaviour
         Vector3 planeForward = GetPlaneForward();
         Vector3 planeRight = GetPlaneRight();
         return planeRight * planeVector.x + planeForward * planeVector.y;
+    }
+
+    #endregion
+
+    #region IDamageable Implementation
+
+    [Header("Damage Settings")]
+    [SerializeField] private float maxHealth = 100f;
+    [SerializeField] private GameObject explosionPrefab;
+    [SerializeField] private AudioClip explosionSound;
+    [SerializeField] private float explosionVolume = 0.7f;
+    [SerializeField] private bool isPlayerShip = false;
+    
+    private float currentHealth;
+
+    private void Start()
+    {
+        currentHealth = maxHealth;
+    }
+
+    public void TakeDamage(float damage, float projectileMass, Vector3 projectileVelocity, Vector3 hitPoint)
+    {
+        currentHealth -= damage;
+        
+        // Apply physics impact
+        Vector3 impactForce = projectileVelocity.normalized * (projectileMass * projectileVelocity.magnitude * 0.1f);
+        rb.AddForceAtPosition(impactForce, hitPoint, ForceMode.Impulse);
+        
+        Debug.Log($"Ship took {damage} damage. Health: {currentHealth}/{maxHealth}");
+        
+        if (currentHealth <= 0)
+        {
+            DestroyShip();
+        }
+    }
+
+    private void DestroyShip()
+    {
+        // Spawn explosion effect
+        if (explosionPrefab != null)
+        {
+            Instantiate(explosionPrefab, transform.position, Quaternion.identity);
+        }
+        
+        // Play explosion sound
+        if (explosionSound != null)
+        {
+            AudioSource.PlayClipAtPoint(explosionSound, transform.position, explosionVolume);
+        }
+        
+        if (isPlayerShip)
+        {
+            // Inform GameManager of player death
+            GameManager.Instance?.HandlePlayerDeath();
+        }
+        else
+        {
+            // Additional AI death behavior could go here (e.g., spawn loot)
+        }
+        
+        // Disable the ship object
+        gameObject.SetActive(false);
     }
 
     #endregion

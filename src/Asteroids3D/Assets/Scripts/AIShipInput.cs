@@ -11,14 +11,23 @@ public class AIShipInput : MonoBehaviour
     [Tooltip("The distance to a waypoint to consider it 'reached'.")]
     public float waypointDistance = 2.0f;
 
+    [Header("Combat Settings")]
+    [SerializeField] private float fireAngleTolerance = 5.0f;
+    [SerializeField] private float fireDistance = 20.0f;
+    [SerializeField] private LayerMask lineOfSightMask;
+
     private Ship ship;
     private NavMeshAgent agent;
+    private LaserGun laserGun;
     private int currentWaypointIndex;
+    private Camera mainCamera;
 
     private void Start()
     {
         ship = GetComponent<Ship>();
         agent = GetComponent<NavMeshAgent>();
+        laserGun =  GetComponentInChildren<LaserGun>();
+        mainCamera = Camera.main;
         
         // Disable NavMeshAgent's automatic movement and rotation.
         // We are using it for pathfinding only.
@@ -64,6 +73,7 @@ public class AIShipInput : MonoBehaviour
         }
 
         NavigatePath();
+        HandleShooting();
     }
 
     private void NavigatePath()
@@ -113,6 +123,61 @@ public class AIShipInput : MonoBehaviour
         ship.Controller.SetRotationTarget(true, rotTargetDeg);
     }
     
+    private void HandleShooting()
+    {
+        if (laserGun == null || target == null || mainCamera == null)
+        {
+            Debug.Log("HandleShooting: Aborted. LaserGun, Target, or Camera is null.");
+            return;
+        }
+
+        // Check if the AI ship is visible on screen
+        Vector3 viewportPoint = mainCamera.WorldToViewportPoint(transform.position);
+        bool isVisible = viewportPoint.z > 0 && // In front of camera
+                        viewportPoint.x >= 0 && viewportPoint.x <= 1 && // Within horizontal bounds
+                        viewportPoint.y >= 0 && viewportPoint.y <= 1;   // Within vertical bounds
+
+        if (!isVisible)
+        {
+            Debug.Log("HandleShooting: Aborted. AI ship is not visible on screen.");
+            return;
+        }
+        
+        Vector3 firePointPosition = laserGun.firePoint != null ? laserGun.firePoint.position : transform.position;
+        Vector3 directionToTarget = target.position - firePointPosition;
+        float distanceToTarget = directionToTarget.magnitude;
+
+        // Check 1: Is the target within firing distance?
+        if (distanceToTarget > fireDistance)
+        {
+            Debug.Log($"HandleShooting: Aborted. Target is too far. Distance: {distanceToTarget}, Max: {fireDistance}");
+            return;
+        }
+
+        // Check 2: Is the ship pointing towards the target?
+        float angleToTarget = Vector3.Angle(transform.up, directionToTarget);
+        if (angleToTarget > fireAngleTolerance)
+        {
+            Debug.Log($"HandleShooting: Aborted. Not aiming at target. Angle: {angleToTarget}, Tolerance: {fireAngleTolerance}");
+            return;
+        }
+
+        // Check 3: Is there a clear line of sight?
+        if (Physics.Raycast(firePointPosition, directionToTarget.normalized, out RaycastHit hit, distanceToTarget, lineOfSightMask))
+        {
+            if (hit.transform.root != target.root)
+            {
+                // Obstacle detected
+                Debug.Log($"HandleShooting: Aborted. Line of sight blocked by {hit.transform.name}.");
+                return;
+            }
+        }
+        
+        // All checks passed, fire the weapon.
+        Debug.Log("HandleShooting: All checks passed. FIRING!");
+        laserGun.Fire();
+    }
+
     private void OnDrawGizmos()
     {
         if (agent != null && agent.hasPath)

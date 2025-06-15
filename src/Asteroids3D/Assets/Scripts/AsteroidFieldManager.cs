@@ -7,7 +7,6 @@ public class AsteroidFieldManager : MonoBehaviour
 
     [Header("Asteroid Population")]
     [SerializeField] private int maxAsteroids = 50;
-    private List<GameObject> activeAsteroids = new List<GameObject>();
 
     [Header("Spawn Zone")]
     [SerializeField] private float minSpawnDistance = 15f;
@@ -21,7 +20,6 @@ public class AsteroidFieldManager : MonoBehaviour
     [SerializeField] private int maxSpawnsPerFrame = 10;
 
     private Transform playerTransform;
-    public List<GameObject> ActiveAsteroids => activeAsteroids;
 
     private void Awake()
     {
@@ -40,8 +38,9 @@ public class AsteroidFieldManager : MonoBehaviour
         playerTransform = Camera.main.transform;
         if (playerTransform != null)
         {
-            CheckAndSpawnAsteroids(initMinSpawnDistance, maxSpawnDistance);
+            CheckAndSpawnAsteroids(initMinSpawnDistance, maxSpawnDistance, maxAsteroids);
         }
+        Debug.Log("========================initial asteroid field spawned");
     }
 
     private void Update()
@@ -51,12 +50,12 @@ public class AsteroidFieldManager : MonoBehaviour
             playerTransform = Camera.main.transform;
             if (playerTransform == null) return;
         }
-        CheckAndSpawnAsteroids(minSpawnDistance, maxSpawnDistance);
+        CheckAndSpawnAsteroids(minSpawnDistance, maxSpawnDistance, maxSpawnsPerFrame);
     }
 
-    private void CheckAndSpawnAsteroids(float minSpawn, float maxSpawn)
+    private void CheckAndSpawnAsteroids(float minSpawn, float maxSpawn, int maxSpawnsPerFrame)
     {
-        if (activeAsteroids.Count >= maxAsteroids) return;
+        if (AsteroidSpawner.Instance.ActiveAsteroidCount >= maxAsteroids) return;
 
         float currentVolumeDensity = GetFieldVolumeDensity(out float area);
         Debug.Log($"Current volume density: {currentVolumeDensity}, Target volume density: {targetVolumeDensity}, Area: {area}");
@@ -68,10 +67,15 @@ public class AsteroidFieldManager : MonoBehaviour
             int safetyBreak = maxSpawnsPerFrame; // Prevent potential infinite loops
 
             // Keep spawning until we've added enough volume, without exceeding total count.
-            while (volumeSpawned < volumeToSpawn && activeAsteroids.Count < maxAsteroids && safetyBreak > 0)
+            while (volumeSpawned < volumeToSpawn && AsteroidSpawner.Instance.ActiveAsteroidCount < maxAsteroids && safetyBreak > 0)
             { 
-                Vector2 randomOffset = (Random.insideUnitCircle.normalized * Random.Range(minSpawn, maxSpawn));
-                Vector3 spawnPosition = playerTransform.position + new Vector3(randomOffset.x, 0, randomOffset.y);
+                // 1. pick a point with area-uniform probability in a unit disk
+                Vector2 r = Random.insideUnitCircle;
+
+                // 2. move it from 0–1 range to the desired annulus [min,max]
+                float radius = Mathf.Lerp(minSpawn, maxSpawn, r.magnitude);
+                Vector3 spawnOffset = new Vector3(r.x, 0f, r.y).normalized * radius;
+                Vector3 spawnPosition = playerTransform.position + spawnOffset;
                 Pose spawnPose = new Pose(spawnPosition, Random.rotationUniform);
                 GameObject newAsteroidGO = AsteroidSpawner.Instance.SpawnAsteroid(spawnPose);
                 if (newAsteroidGO == null) break;
@@ -105,16 +109,6 @@ public class AsteroidFieldManager : MonoBehaviour
         
         area = Mathf.PI * Mathf.Pow(densityCheckRadius, 2);
         return area > 0 ? totalVolumeInRange / area : 0f;
-    }
-
-    public void AddAsteroid(GameObject asteroid)
-    {
-        activeAsteroids.Add(asteroid);
-    }
-
-    public void RemoveAsteroid(GameObject asteroid)
-    {
-        activeAsteroids.Remove(asteroid);
     }
 
     private void OnDrawGizmosSelected()
