@@ -24,7 +24,6 @@ public class GameManager : MonoBehaviour
     public GameState CurrentState => currentState;
     
     // Track enemy ships for respawning
-    private List<GameObject> enemyShips = new List<GameObject>();
     private Camera mainCamera;
 
     private void Awake()
@@ -35,35 +34,14 @@ public class GameManager : MonoBehaviour
             return;
         }
         Instance = this;
+        mainCamera = Camera.main;
         DontDestroyOnLoad(gameObject);
     }
 
     private void Start()
     {
-        currentState = GameState.Playing;
-        mainCamera = Camera.main;
-        
-        // Find all enemy ships in the scene
-        FindEnemyShips();
-        
+        currentState = GameState.Playing;        
         //Shader.WarmupAllShaders();
-    }
-    
-    private void FindEnemyShips()
-    {
-        Ship[] allShips = FindObjectsOfType<Ship>();
-        enemyShips.Clear();
-        
-        foreach (Ship ship in allShips)
-        {
-            // Check if this is an enemy ship (has AIShipInput component and is not player ship)
-            if (ship.GetComponent<AIShipInput>() != null)
-            {
-                enemyShips.Add(ship.gameObject);
-            }
-        }
-        
-        Debug.Log($"Found {enemyShips.Count} enemy ships to manage");
     }
 
     /// <summary>
@@ -111,6 +89,16 @@ public class GameManager : MonoBehaviour
     
     private Vector3 GetRandomOffscreenPosition()
     {
+        // Ensure we have a valid mainCamera reference (it may have been destroyed during a scene reload)
+        if (mainCamera == null)
+        {
+            mainCamera = Camera.main;
+            if (mainCamera == null)
+            {
+                Debug.LogWarning("GameManager: No main camera found. Returning Vector3.zero for offscreen position.");
+                return Vector3.zero;
+            }
+        }
         Vector3 pos = Random.insideUnitSphere.normalized * offscreenDistance + mainCamera.transform.position;
         pos.y = 0;
         return pos;
@@ -125,5 +113,23 @@ public class GameManager : MonoBehaviour
         Scene currentScene = SceneManager.GetActiveScene();
         SceneManager.LoadScene(currentScene.buildIndex);
         currentState = GameState.Playing;
+    }
+
+    private void OnEnable()
+    {
+        // Subscribe to scene loaded callback to refresh references after a scene reload
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        // Unsubscribe when this object is disabled/destroyed
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // Refresh the main camera reference because the old one was destroyed during scene load
+        mainCamera = Camera.main;
     }
 } 

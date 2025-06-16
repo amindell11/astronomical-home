@@ -59,7 +59,7 @@ public class AsteroidFieldManager : MonoBehaviour
             UpdateCachedDensity();
             CheckAndSpawnAsteroids(initMinSpawnDistance, maxSpawnDistance, maxAsteroids);
         }
-        Debug.Log("========================initial asteroid field spawned");
+       // Debug.Log("========================initial asteroid field spawned");
         
         // Start the repeating asteroid field management
         InvokeRepeating(nameof(ManageAsteroidField), densityCheckInterval, densityCheckInterval);
@@ -81,7 +81,7 @@ public class AsteroidFieldManager : MonoBehaviour
     {
         if (AsteroidSpawner.Instance.ActiveAsteroidCount >= maxAsteroids) return;
 
-        Debug.Log($"Current volume density: {cachedVolumeDensity}, Target volume density: {targetVolumeDensity}, Area: {cachedArea}");
+        //Debug.Log($"Current volume density: {cachedVolumeDensity}, Target volume density: {targetVolumeDensity}, Area: {cachedArea}");
         
         if (cachedVolumeDensity < targetVolumeDensity)
         {
@@ -116,13 +116,14 @@ public class AsteroidFieldManager : MonoBehaviour
     private void UpdateCachedDensity()
     {
         Vector3 checkCenter = (playerTransform != null) ? playerTransform.position : transform.position;
+        checkCenter.y = 0f;
         int mask = 1 << LayerMask.NameToLayer("Asteroid");
         
         // Use non-allocating overlap sphere with pre-allocated buffer
         int numResults = Physics.OverlapSphereNonAlloc(checkCenter, densityCheckRadius, overlapBuffer, mask);
         float totalVolumeInRange = 0f;
         
-        Debug.Log($"Found {numResults} asteroids in range");
+        //Debug.Log($"Found {numResults} asteroids in range");
         for (int i = 0; i < numResults; i++)
         {
             Asteroid asteroid = overlapBuffer[i].GetComponent<Asteroid>();
@@ -139,6 +140,7 @@ public class AsteroidFieldManager : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         Vector3 center = (playerTransform != null) ? playerTransform.position : transform.position;
+        center.y = 0f;
 
         Gizmos.color = Color.cyan;
         // Draw a circle on the XY plane

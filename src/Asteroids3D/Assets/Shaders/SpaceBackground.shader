@@ -12,11 +12,12 @@ Shader "Custom/SpaceBackground"
         _Distortion ("Distortion", Range(0, 5)) = 0.3
         [Toggle] _EmissionEnabled ("Enable Emission", Float) = 1
         _EmissionStrength ("Emission Strength", Range(0, 200)) = 1.0
+        _NoiseTex ("Noise Texture", 2D) = "white" {}
     }
     
     SubShader
     {
-        Tags { "RenderType"="Transparent" "Queue"="Transparent" }
+        Tags { "RenderType"="Background" "Queue"="Background" }
         LOD 100
         Blend SrcAlpha OneMinusSrcAlpha
         ZWrite Off
@@ -56,6 +57,8 @@ Shader "Custom/SpaceBackground"
             float _Distortion;
             float _EmissionStrength;
             float _EmissionEnabled;
+            sampler2D _NoiseTex;
+            float4 _NoiseTex_ST;
 
             // Improved hash function for better distribution
             half2 hash2(half2 p)
@@ -133,9 +136,11 @@ Shader "Custom/SpaceBackground"
                 // Create swirling effect
                 half2 swirledPos = swirl(basePos, time);
 
-                // Only two fbm calls
-                half noise1 = fbm(swirledPos);
-                half noise2 = fbm(swirledPos * 0.5 - time * 0.3);
+                // Sample pre-baked noise texture instead of generating fbm
+                float2 noiseUV1 = swirledPos;
+                float2 noiseUV2 = swirledPos * 0.5 - time * 0.3;
+                half noise1 = tex2D(_NoiseTex, noiseUV1).r;
+                half noise2 = tex2D(_NoiseTex, noiseUV2).g; // use different channel for variation
 
                 // Combine noise layers
                 half combinedNoise = lerp(noise1, noise2, 0.5) * _NoiseStrength;
