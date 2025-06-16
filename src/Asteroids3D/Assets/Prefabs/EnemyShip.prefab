@@ -9935,6 +9935,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1410605775153671267}
   - component: {fileID: 5076554157445543771}
+  - component: {fileID: 6417388840847110729}
   m_Layer: 7
   m_Name: LaserGun
   m_TagString: Player
@@ -9970,13 +9971,109 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f2479b5d99738054b8921cc00b232a28, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  laserPrefab: {fileID: 2028383931407238149, guid: d4f6577bb30c48945a17243a523023ff,
+  laserPrefab: {fileID: 5408995189547049293, guid: d4f6577bb30c48945a17243a523023ff,
     type: 3}
   firePoint: {fileID: 0}
   laserSpeed: 50
-  fireRate: 0.2
-  laserLifetime: 2
-  shootSound: {fileID: 0}
+  fireRate: 1
+  shootSound: {fileID: 8300000, guid: d54f219e0c3bffe499e781b446873247, type: 3}
+--- !u!82 &6417388840847110729
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4042490491247399961}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 0.72
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &4068952644767419297
 GameObject:
   m_ObjectHideFlags: 0
@@ -15009,6 +15106,7 @@ GameObject:
   - component: {fileID: 4709420201416091625}
   - component: {fileID: 7605480142505664163}
   - component: {fileID: 6388828612165204535}
+  - component: {fileID: 4571489098170695151}
   m_Layer: 7
   m_Name: default
   m_TagString: Untagged
@@ -15083,6 +15181,28 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!64 &4571489098170695151
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4606364136776561874}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -2432090755550338912, guid: 02e80c05dec5e874bbe26d58190f681b, type: 3}
 --- !u!1 &4783064862572481547
 GameObject:
   m_ObjectHideFlags: 0
@@ -15092,11 +15212,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5272321575846762161}
-  - component: {fileID: 7196694965309875068}
   - component: {fileID: 2449525076381185498}
-  - component: {fileID: 6392841580981940528}
-  - component: {fileID: 9133554301100222037}
-  - component: {fileID: 275278401887241383}
+  - component: {fileID: 4233573832496391704}
+  - component: {fileID: 6017110960840135358}
+  - component: {fileID: 3673348846688214759}
   m_Layer: 7
   m_Name: EnemyShip
   m_TagString: Untagged
@@ -15125,28 +15244,6 @@ Transform:
   - {fileID: 4709420201416091625}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!64 &7196694965309875068
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4783064862572481547}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 1
-  m_CookingOptions: 30
-  m_Mesh: {fileID: -2432090755550338912, guid: f04a30281d8747644becb5008ab81a2c, type: 3}
 --- !u!54 &2449525076381185498
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -15174,7 +15271,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &6392841580981940528
+--- !u!114 &4233573832496391704
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -15183,14 +15280,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 4783064862572481547}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cd162f809fbe92a44a3fb3930e2432b4, type: 3}
+  m_Script: {fileID: 11500000, guid: 89e447451c442f443abdbc78d400bca6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   referencePlane: {fileID: 0}
   thrustForce: 1200
   maxSpeed: 20
   rotationThrustForce: 480
-  maxRotationSpeed: 180
+  maxRotationSpeed: 170
   rotationDrag: 0.95
   yawDeadzoneAngle: 4
   maxBankAngle: 45
@@ -15198,36 +15295,7 @@ MonoBehaviour:
   maxStrafeForce: 800
   minStrafeForce: 750
   enableDebugLogs: 0
-  thrustParticles: []
-  maxHealth: 100
-  explosionPrefab: {fileID: 5016715549320389236, guid: b977f12349064ed42900bb5ea0948be5,
-    type: 3}
-  explosionSound: {fileID: 0}
-  explosionVolume: 0.7
-  isPlayerShip: 0
---- !u!195 &9133554301100222037
-NavMeshAgent:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4783064862572481547}
-  m_Enabled: 1
-  m_AgentTypeID: 0
-  m_Radius: 0.1
-  m_Speed: 3.5
-  m_Acceleration: 8
-  avoidancePriority: 50
-  m_AngularSpeed: 120
-  m_StoppingDistance: 0
-  m_AutoTraverseOffMeshLink: 1
-  m_AutoBraking: 1
-  m_AutoRepath: 1
-  m_Height: 2
-  m_BaseOffset: 0
-  m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 4
---- !u!114 &275278401887241383
+--- !u!114 &6017110960840135358
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -15236,16 +15304,47 @@ MonoBehaviour:
   m_GameObject: {fileID: 4783064862572481547}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4fbc5314633641247b1e90fd0651a150, type: 3}
+  m_Script: {fileID: 11500000, guid: 4b8ea6c63245a6e4197204a7a6f71112, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 0}
-  waypointDistance: 2
+  arriveRadius: 20
+  asteroidMask:
+    serializedVersion: 2
+    m_Bits: 256
+  lookAheadTime: 2
+  safeMargin: 3
+  avoidRadius: 0.5
+  enableAvoidance: 1
+  proportionalGain: 5
   fireAngleTolerance: 5
   fireDistance: 20
   lineOfSightMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 4294967295
+  lineOfSightCacheFrames: 5
+  angleToleranceBeforeRay: 15
+--- !u!114 &3673348846688214759
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4783064862572481547}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d94f107fb6361f4188cb9c98c0f3e1a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 100
+  explosionPrefab: {fileID: 3624727767247666335, guid: b87929575dffb6c49b64ff8ec3faa5d7,
+    type: 3}
+  explosionSound: {fileID: 8300000, guid: 14e1c94ce80f1fc45bd483c188a57c1c, type: 3}
+  explosionVolume: 0.7
+  isPlayerShip: 1
+  flashColor: {r: 0.73333335, g: 0, b: 0, a: 1}
+  flashDuration: 0.1
+  flashIntensity: 1
 --- !u!1 &5873743341559668623
 GameObject:
   m_ObjectHideFlags: 0
@@ -20252,7 +20351,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e9079096d778c1c4ea55baed875aef0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 10
+  damage: 40
   maxDistance: 50
   hitEffect: {fileID: 0}
   mass: 0.001
@@ -20323,7 +20422,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &3691127035901284697
 Transform:
   m_ObjectHideFlags: 0

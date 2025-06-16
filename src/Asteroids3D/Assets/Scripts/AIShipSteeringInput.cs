@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-[RequireComponent(typeof(Ship))]
+[RequireComponent(typeof(ShipMovement))]
 public class AIShipSteeringInput : MonoBehaviour
 {
     /* ── Navigation tunables ─────────────────────────────────── */
@@ -30,7 +30,7 @@ public class AIShipSteeringInput : MonoBehaviour
     [SerializeField] float angleToleranceBeforeRay  = 15f;
 
     /* ── internals ───────────────────────────────────────────── */
-    Ship      ship;
+    ShipMovement      ship;
     LaserGun  gun;
     Camera    mainCam;
 
@@ -55,7 +55,7 @@ public class AIShipSteeringInput : MonoBehaviour
 
     void Awake()
     {
-        ship    = GetComponent<Ship>();
+        ship    = GetComponent<ShipMovement>();
         gun     = GetComponentInChildren<LaserGun>();
         mainCam = Camera.main;
     }

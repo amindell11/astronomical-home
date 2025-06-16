@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.AI;
 
 // Uses a NavMeshAgent to pilot a Ship component.
-[RequireComponent(typeof(Ship))]
+[RequireComponent(typeof(ShipMovement))]
 [RequireComponent(typeof(NavMeshAgent))]
 public class AIShipInput : MonoBehaviour
 {
@@ -24,7 +24,7 @@ public class AIShipInput : MonoBehaviour
     [SerializeField] private int lineOfSightCacheFrames = 5;
     [SerializeField] private float angleToleranceBeforeRaycast = 15.0f;
 
-    private Ship ship;
+    private ShipMovement ship;
     private NavMeshAgent agent;
     private LaserGun laserGun;
     private int currentWaypointIndex;
@@ -42,7 +42,7 @@ public class AIShipInput : MonoBehaviour
 
     private void Start()
     {
-        ship = GetComponent<Ship>();
+        ship = GetComponent<ShipMovement>();
         agent = GetComponent<NavMeshAgent>();
         laserGun =  GetComponentInChildren<LaserGun>();
         mainCamera = Camera.main;

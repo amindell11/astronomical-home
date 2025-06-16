@@ -1,11 +1,11 @@
 using UnityEngine;
 
 // Translates player input into commands for the Ship component.
-[RequireComponent(typeof(Ship))]
+[RequireComponent(typeof(ShipMovement))]
 public class PlayerShipInput : MonoBehaviour
 {
-    private Ship ship;
-    private Ship.Ship2D shipController;
+    private ShipMovement ship;
+    private ShipMovement.ShipMovement2D shipController;
     private Camera mainCamera;
     private LaserGun laserGun;
 
@@ -23,7 +23,7 @@ public class PlayerShipInput : MonoBehaviour
     
     private void Start()
     {
-        ship = GetComponent<Ship>();
+        ship = GetComponent<ShipMovement>();
         shipController = ship.Controller;
         mainCamera = Camera.main;
         laserGun = GetComponentInChildren<LaserGun>();

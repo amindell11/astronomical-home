@@ -47,7 +47,7 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// Call this when the player's ship has been destroyed.
     /// </summary>
-    public void HandlePlayerDeath(Ship playerShip)
+    public void HandlePlayerDeath(ShipMovement playerShip)
     {
         if (currentState == GameState.GameOver) return;
 
@@ -59,7 +59,7 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// Call this when an enemy ship has been destroyed.
     /// </summary>
-    public void HandleEnemyDeath(Ship respawnShip)
+    public void HandleEnemyDeath(ShipMovement respawnShip)
     {
         if (currentState != GameState.Playing) return;
         
@@ -68,16 +68,16 @@ public class GameManager : MonoBehaviour
         StartCoroutine(respawnRoutine);
     }
     
-    private IEnumerator WaitAndRespawn(float delay, Ship respawnShip)
+    private IEnumerator WaitAndRespawn(float delay, ShipMovement respawnShip)
     {
         yield return new WaitForSeconds(delay);
         RespawnRandomEnemy(respawnShip);
     }
     
-    private void RespawnRandomEnemy(Ship respawnShip)
+    private void RespawnRandomEnemy(ShipMovement respawnShip)
     {
         respawnShip.ResetShip();
-        respawnShip.ResetHealth();
+        respawnShip.GetComponent<ShipHealth>()?.ResetHealth();
         // Find a random offscreen position
         Vector3 respawnPosition = GetRandomOffscreenPosition();
         respawnShip.transform.position = respawnPosition;
