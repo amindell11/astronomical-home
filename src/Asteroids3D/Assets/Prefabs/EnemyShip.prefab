@@ -15215,7 +15215,6 @@ GameObject:
   - component: {fileID: 2449525076381185498}
   - component: {fileID: 4233573832496391704}
   - component: {fileID: 6017110960840135358}
-  - component: {fileID: 3673348846688214759}
   m_Layer: 7
   m_Name: EnemyShip
   m_TagString: Untagged
@@ -15295,6 +15294,7 @@ MonoBehaviour:
   maxStrafeForce: 800
   minStrafeForce: 750
   enableDebugLogs: 0
+  thrustParticles: []
 --- !u!114 &6017110960840135358
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15324,27 +15324,6 @@ MonoBehaviour:
     m_Bits: 4294967295
   lineOfSightCacheFrames: 5
   angleToleranceBeforeRay: 15
---- !u!114 &3673348846688214759
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4783064862572481547}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9d94f107fb6361f4188cb9c98c0f3e1a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxHealth: 100
-  explosionPrefab: {fileID: 3624727767247666335, guid: b87929575dffb6c49b64ff8ec3faa5d7,
-    type: 3}
-  explosionSound: {fileID: 8300000, guid: 14e1c94ce80f1fc45bd483c188a57c1c, type: 3}
-  explosionVolume: 0.7
-  isPlayerShip: 1
-  flashColor: {r: 0.73333335, g: 0, b: 0, a: 1}
-  flashDuration: 0.1
-  flashIntensity: 1
 --- !u!1 &5873743341559668623
 GameObject:
   m_ObjectHideFlags: 0

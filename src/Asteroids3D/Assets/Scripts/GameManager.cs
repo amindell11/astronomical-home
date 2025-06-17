@@ -77,7 +77,7 @@ public class GameManager : MonoBehaviour
     private void RespawnRandomEnemy(ShipMovement respawnShip)
     {
         respawnShip.ResetShip();
-        respawnShip.GetComponent<ShipHealth>()?.ResetHealth();
+        respawnShip.GetComponent<ShipDamageHandler>()?.ResetAll();
         // Find a random offscreen position
         Vector3 respawnPosition = GetRandomOffscreenPosition();
         respawnShip.transform.position = respawnPosition;

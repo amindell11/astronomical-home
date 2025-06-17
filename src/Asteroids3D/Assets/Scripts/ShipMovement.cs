@@ -237,5 +237,4 @@ public class ShipMovement : MonoBehaviour
         Controller.Velocity = Vector2.zero;
     }
 
-    public void TriggerDamageFlash() { /* Flash handled by ShipHealth.*/ }
 } 

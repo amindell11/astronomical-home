@@ -44,6 +44,7 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
+    - _DetailAlbedoMapScale: 0
     - _Smoothness: 0.407
     m_Colors:
     - _EmissionColor: {r: 33.896763, g: 33.896763, b: 33.896763, a: 1}
