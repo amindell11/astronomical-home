@@ -82,8 +82,7 @@ public class ShieldUI : MonoBehaviour
 
     void LateUpdate()
     {
-        transform.rotation = Quaternion.LookRotation(
-            transform.position - Camera.main.transform.position);
+        transform.rotation = Quaternion.Euler(90, 0, 0);
     }
 
 }

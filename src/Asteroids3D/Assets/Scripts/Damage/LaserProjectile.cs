@@ -9,6 +9,7 @@ public class LaserProjectile : MonoBehaviour
     [SerializeField] private float mass = 0.1f;  // Mass of the laser projectile
     [SerializeField] private AudioClip laserSound;
     [SerializeField] private float laserVolume = 0.5f;
+    [SerializeField] private Vector3 referencePlaneNormal;
 
     private Vector3 startPosition;
     private Rigidbody rb;
@@ -16,6 +17,7 @@ public class LaserProjectile : MonoBehaviour
 
     private void OnEnable()
     {
+        referencePlaneNormal = GameObject.FindGameObjectWithTag("ReferencePlane").transform.forward;
         // Reset state when retrieved from pool
         startPosition = transform.position;
         rb = GetComponent<Rigidbody>();
@@ -35,6 +37,7 @@ public class LaserProjectile : MonoBehaviour
     {
         // Check if laser has traveled too far
         float distanceTraveled = Vector3.Distance(startPosition, transform.position);
+        transform.position = Vector3.ProjectOnPlane(transform.position, referencePlaneNormal);
         if (distanceTraveled > maxDistance)
         {
             ReturnToPool();
