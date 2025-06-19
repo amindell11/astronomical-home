@@ -25,8 +25,17 @@ public class HealthDamageVisuals : MonoBehaviour
         block = new MaterialPropertyBlock();
         if (hull)
         {
+            // Try to read an override value that might already exist on the renderer.
             hull.GetPropertyBlock(block);
-            baseColor = block.GetColor(_Color);
+            if (!block.HasVector(_Color))
+            {
+                // If no per-renderer override is present, fall back to the material's base colour.
+                baseColor = hull.sharedMaterial.GetColor(_Color);
+            }
+            else
+            {
+                baseColor = block.GetColor(_Color);
+            }
         }
     }
 
@@ -57,7 +66,7 @@ public class HealthDamageVisuals : MonoBehaviour
         if (hull)
         {
             hull.GetPropertyBlock(block);
-            float scale = Mathf.Lerp(0f, 1f, pctLost);  // grime intensity
+            float scale = Mathf.Lerp(0f, 2f, pctLost);  // grime intensity
             block.SetFloat(_DetailScale, scale);
             hull.SetPropertyBlock(block);
         }

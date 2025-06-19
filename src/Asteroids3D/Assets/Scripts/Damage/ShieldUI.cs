@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -6,78 +7,95 @@ using UnityEngine.UI;
 public class ShieldUI : MonoBehaviour
 {
     [Header("Timing (seconds)")]
-    [SerializeField] float fadeIn  = 0.06f;
-    [SerializeField] float fadeOut = 0.40f;
+    [SerializeField] float fadeIn  = 0.06f;      // quick pop-in for hit flash
+    [SerializeField] float linger  = 0.30f;      // visible while it "shimmers"
+    [SerializeField] float fadeOut = 0.40f;      // dissolve back to invisible
+
+    [Header("Shimmer")]
+    [SerializeField] float shimmerFreq = 20f;    // Hz of scale flicker
+    [SerializeField] float shimmerAmp  = 0.08f;  // 8 % size wobble
+
+    [Header("Regen Fade")]
+    [SerializeField] float regenFadeIn = 0.3f;   // fade-in when shield starts regenerating from 0
 
     [Header("Fill & Color")]
-    [Tooltip("Color of the shield")]
+    [Tooltip("Optional gradient to tint ring based on remaining shield")] 
+    [SerializeField] Gradient shieldColors;
 
-    [SerializeField] ShipDamageHandler source;
+    [SerializeField] ShipDamageHandler source;    // assign the ship whose shield flashes
 
-    Image ring;
-    Color baseColor;
+    Image   ring;
+    Color   baseColor;       // original tint without alpha
     Coroutine animCo;
     float prevShield = -1f;
 
     void Awake()
     {
-        ring      = GetComponent<Image>();
-        baseColor = ring.color;
-        ring.canvasRenderer.SetAlpha(0f);                // start fully transparent
+        ring       = GetComponent<Image>();
+        baseColor  = ring.color;
+        // start fully transparent until first event
+        ring.canvasRenderer.SetAlpha(1f);
     }
 
     void OnEnable()
     {
         if (source == null) source = GetComponentInParent<ShipDamageHandler>();
-        if (source != null)
-        {
+        if (source != null) {
             source.OnShieldChanged += OnShieldChanged;
+            source.OnShieldDamaged += TriggerFlash;
         }
     }
 
     void OnDisable()
     {
-        if (source != null)
-        {
+        if (source != null) {
             source.OnShieldChanged -= OnShieldChanged;
+            source.OnShieldDamaged -= TriggerFlash;
         }
     }
 
     void OnShieldChanged(float current, float max)
     {
-        Debug.Log("OnShieldChanged: " + current );
-        float t = current / max;
+        // Update radial fill
+        ring.fillAmount = current / max;
 
-        // radial fill
-        ring.fillAmount = t;
-
-        // first call just seeds
-        if (prevShield < 0f) { prevShield = current; return; }
-
-        ring.canvasRenderer.SetAlpha(1f);
-        Debug.Log("FadeImage: " + ring.canvasRenderer.GetAlpha());
-        prevShield = current;
-        StartFade(0f, fadeOut);
     }
 
-    IEnumerator FadeAlpha(float target, float duration)
+    IEnumerator FlashRoutine()
     {
-        float start = ring.color.a;
-        float t = 0f;
-        while (t < duration)
+        // ---------- 1  fade in ----------
+        //yield return Fade(0, 1, fadeIn);
+
+        // ---------- 2  shimmer while fully visible ----------
+        float t = 0;
+        Vector3 baseScale = Vector3.one;
+        while (t < linger)
         {
             t += Time.unscaledDeltaTime;
-            float a = Mathf.Lerp(start, target, t / duration);
-            ring.color = new Color(baseColor.r, baseColor.g, baseColor.b, a);
+            float wobble = 1f + Mathf.Sin(t * shimmerFreq * Mathf.PI * 2) * shimmerAmp;
+            transform.localScale = baseScale * wobble;
             yield return null;
         }
-        ring.color = new Color(baseColor.r, baseColor.g, baseColor.b, target);
+        transform.localScale = baseScale;
+
+        // ---------- 3  fade out ----------
+        //yield return Fade(1, 0, fadeOut);
     }
 
-    void StartFade(float targetAlpha, float duration)
+    IEnumerator Fade(float aFrom, float aTo, float dur)
     {
-        if (animCo != null) StopCoroutine(animCo);  // cancel regen/full fades if needed
-        animCo = StartCoroutine(FadeAlpha(targetAlpha, duration));
+        float elapsed = 0f;
+        Color c = ring.color;
+        while (elapsed < dur)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float k = Mathf.Clamp01(elapsed / dur);
+            c.a = Mathf.Lerp(aFrom, aTo, k);
+            ring.color = c;
+            yield return null;
+        }
+        c.a = aTo;
+        ring.color = c;
     }
 
     void LateUpdate()
@@ -85,4 +103,12 @@ public class ShieldUI : MonoBehaviour
         transform.rotation = Quaternion.Euler(90, 0, 0);
     }
 
+    void TriggerFlash(float dmg, Vector3 hitPt)
+    {
+        // damage to shield triggers ring flash and sparks at hit point
+        if (animCo != null) StopCoroutine(animCo);
+        animCo = StartCoroutine(FlashRoutine());
+    }
 }
+
+

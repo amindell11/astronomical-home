@@ -434,7 +434,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 38e2583dda8537e49b0fc34ac70f3cf0, type: 3}
   m_Name: 
@@ -449,7 +449,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 26131f6f015e9c64d86f2baaff303456, type: 3}
   m_Name: 
@@ -680,8 +680,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c466fa202bdfe914ba60d5dee3d96d31, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetPlaneY: 0
-  cam: {fileID: 0}
 --- !u!135 &533960029
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -1457,6 +1455,26 @@ PrefabInstance:
       propertyPath: m_TagString
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 2507411063808777910, guid: 373b2199343256f4692fdb93e05f7524,
+        type: 3}
+      propertyPath: flashColor.b
+      value: 0.07011029
+      objectReference: {fileID: 0}
+    - target: {fileID: 2507411063808777910, guid: 373b2199343256f4692fdb93e05f7524,
+        type: 3}
+      propertyPath: flashColor.g
+      value: 0.07011029
+      objectReference: {fileID: 0}
+    - target: {fileID: 2507411063808777910, guid: 373b2199343256f4692fdb93e05f7524,
+        type: 3}
+      propertyPath: flashColor.r
+      value: 0.86415094
+      objectReference: {fileID: 0}
+    - target: {fileID: 3572660128926400636, guid: 373b2199343256f4692fdb93e05f7524,
+        type: 3}
+      propertyPath: fadeOutTime
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 4992310187223865330, guid: 373b2199343256f4692fdb93e05f7524,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1512,6 +1530,11 @@ PrefabInstance:
       propertyPath: referencePlane
       value: 
       objectReference: {fileID: 2008396451}
+    - target: {fileID: 8639156124582338840, guid: 373b2199343256f4692fdb93e05f7524,
+        type: 3}
+      propertyPath: m_AngularDrag
+      value: 0.015
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1538,7 +1561,7 @@ PrefabInstance:
     - target: {fileID: 1576724491614118492, guid: cade7246a6fb1b64e82fbb5aac398631,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 20
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1576724491614118492, guid: cade7246a6fb1b64e82fbb5aac398631,
         type: 3}
@@ -1585,11 +1608,31 @@ PrefabInstance:
       propertyPath: m_Name
       value: EnemyShip
       objectReference: {fileID: 0}
+    - target: {fileID: 5100611748941008240, guid: cade7246a6fb1b64e82fbb5aac398631,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7767409415942007610, guid: cade7246a6fb1b64e82fbb5aac398631,
         type: 3}
       propertyPath: target
       value: 
       objectReference: {fileID: 3184134033314824117}
+    - target: {fileID: 8243140017173523224, guid: cade7246a6fb1b64e82fbb5aac398631,
+        type: 3}
+      propertyPath: flashColor.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8243140017173523224, guid: cade7246a6fb1b64e82fbb5aac398631,
+        type: 3}
+      propertyPath: flashColor.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8243140017173523224, guid: cade7246a6fb1b64e82fbb5aac398631,
+        type: 3}
+      propertyPath: flashColor.r
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

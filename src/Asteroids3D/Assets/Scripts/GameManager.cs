@@ -76,14 +76,16 @@ public class GameManager : MonoBehaviour
     
     private void RespawnRandomEnemy(ShipMovement respawnShip)
     {
+        respawnShip.gameObject.SetActive(true);
+
+        // After the object (and its components) are enabled, reset physics & damage
         respawnShip.ResetShip();
         respawnShip.GetComponent<ShipDamageHandler>()?.ResetAll();
+
         // Find a random offscreen position
         Vector3 respawnPosition = GetRandomOffscreenPosition();
         respawnShip.transform.position = respawnPosition;
-        // Reactivate the ship
-        respawnShip.gameObject.SetActive(true);
-        
+
         Debug.Log($"Enemy ship respawned at position: {respawnPosition}");
     }
     

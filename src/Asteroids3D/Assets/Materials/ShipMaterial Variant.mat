@@ -41,10 +41,14 @@ Material:
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
-    m_TexEnvs: []
+    m_TexEnvs:
+    - _DetailMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _DetailAlbedoMapScale: 0
+    - _DetailAlbedoMapScale: 1.12
     - _Smoothness: 0.407
     m_Colors:
     - _EmissionColor: {r: 33.896763, g: 33.896763, b: 33.896763, a: 1}
