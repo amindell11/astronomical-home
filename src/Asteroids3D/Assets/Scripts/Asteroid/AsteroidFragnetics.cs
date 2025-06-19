@@ -41,10 +41,6 @@ public class AsteroidFragnetics : MonoBehaviour
     private float highCountBias = 0.5f;
     
     [SerializeField]
-    [Tooltip("How strongly fragments move away from the impact point")]
-    private float separationBias = 0.5f;
-    
-    [SerializeField]
     [Tooltip("Base velocity for fragment separation")]
     private float baseSeparationSpeed = 5f;
     
@@ -76,10 +72,6 @@ public class AsteroidFragnetics : MonoBehaviour
     [SerializeField]
     [Tooltip("Use coroutine version to spread physics calculations across frames")]
     private bool useCoroutineVersion = true;
-
-    [SerializeField]
-    [Tooltip("Fast coroutine mode: only yield once to minimize delay")]
-    private bool fastCoroutineMode = false;
 
     [Header("Visual Smoothing")]
     [SerializeField]

@@ -131,7 +131,7 @@ public class CameraFollow : MonoBehaviour
 
         // Efficiently gather all root Transforms, then filter by layer.
         // Using FindObjectsOfType<Transform> is acceptable at small scale and with refreshInterval.
-        Transform[] allTransforms = FindObjectsOfType<Transform>(false);
+        Transform[] allTransforms = FindObjectsByType<Transform>(FindObjectsSortMode.None);
         int layerMask = shipLayer.value;
         foreach (Transform t in allTransforms)
         {

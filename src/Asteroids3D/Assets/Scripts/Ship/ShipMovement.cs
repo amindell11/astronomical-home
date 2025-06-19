@@ -3,6 +3,7 @@
 
 using UnityEngine;
 using System.Collections;
+using UnityEngine.Serialization;
 
 [RequireComponent(typeof(Rigidbody))]
 public class ShipMovement : MonoBehaviour
@@ -67,7 +68,8 @@ public class ShipMovement : MonoBehaviour
         {
             float   angRad   = Angle * Mathf.Deg2Rad;
             Vector2 forward  = new Vector2(-Mathf.Sin(angRad), Mathf.Cos(angRad));
-            Vector2 thrustV  = forward * ThrustInput * ship.thrustForce;
+            float thrustForce = ThrustInput >= 0 ? ship.forwardThrustForce : ship.reverseThrustForce;
+            Vector2 thrustV  = forward * ThrustInput * thrustForce;
 
             float speedRatio = Velocity.magnitude / ship.maxSpeed;
             float strafeF    = Mathf.Lerp(ship.maxStrafeForce, ship.minStrafeForce, speedRatio);
@@ -84,7 +86,8 @@ public class ShipMovement : MonoBehaviour
     public Transform referencePlane;
 
     [Header("Thrust Settings")]
-    public float thrustForce = 1200f;
+    [FormerlySerializedAs("thrustForce")] public float forwardThrustForce = 1200f;
+    public float reverseThrustForce = 600f;
     public float maxSpeed    = 15f;
 
     [Header("Rotation Settings")]
@@ -103,8 +106,9 @@ public class ShipMovement : MonoBehaviour
     [Header("Debug")]
     public bool enableDebugLogs = false;
 
-    [Header("Effects")]
-    [SerializeField] ParticleSystem[] thrustParticles;
+    [Header("Movement Gizmos")]
+    public bool showMovementGizmos = true;
+    public float movementGizmoScale = 3f;
 
     // ------------- Runtime cached fields -------------
     Rigidbody  rb;
@@ -146,7 +150,6 @@ public class ShipMovement : MonoBehaviour
         ApplyRotation();
         ClampSpeed();
         ConstrainToPlane();
-        UpdateThrustParticles();
     }
 
     // ----- Movement helpers (Sync, Apply, etc.) --------------------------
@@ -188,24 +191,6 @@ public class ShipMovement : MonoBehaviour
         rb.velocity = Vector3.ProjectOnPlane(rb.velocity, n);
     }
 
-    void UpdateThrustParticles()
-    {
-        if (thrustParticles == null || thrustParticles.Length == 0) return;
-        bool shouldPlay = Controller.ThrustInput > 0.05f;
-        foreach (var ps in thrustParticles)
-        {
-            if (!ps) continue;
-            if (shouldPlay)
-            {
-                if (!ps.isPlaying) ps.Play(true);
-            }
-            else
-            {
-                if (ps.isPlaying) ps.Stop(true, ParticleSystemStopBehavior.StopEmitting);
-            }
-        }
-    }
-
     // ----- Coordinate helpers -------------------------------------------
     public Vector3 GetPlaneOrigin()  => referencePlane ? referencePlane.position : Vector3.zero;
     public Vector3 GetPlaneForward() => referencePlane ? referencePlane.up       : Vector3.up;
@@ -236,5 +221,28 @@ public class ShipMovement : MonoBehaviour
         rb.angularVelocity = Vector3.zero;
         Controller.Velocity = Vector2.zero;
     }
+
+#if UNITY_EDITOR
+    void OnDrawGizmos()
+    {
+        if (!Application.isPlaying || !showMovementGizmos || Controller == null) return;
+
+        Vector3 pos   = transform.position;
+        float   scale = movementGizmoScale;
+
+        // Single color for all raw movement gizmos
+        Gizmos.color = Color.yellow;
+
+        // Thrust vector (sphere head)
+        Vector3 thrustVec = transform.up * Controller.ThrustInput * scale;
+        Gizmos.DrawLine(pos, pos + thrustVec);
+        Gizmos.DrawSphere(pos + thrustVec, 0.15f);
+
+        // Strafe vector (cube head)
+        Vector3 strafeVec = transform.right * Controller.StrafeInput * scale;
+        Gizmos.DrawLine(pos, pos + strafeVec);
+        Gizmos.DrawCube(pos + strafeVec, Vector3.one * 0.25f);
+    }
+#endif
 
 } 

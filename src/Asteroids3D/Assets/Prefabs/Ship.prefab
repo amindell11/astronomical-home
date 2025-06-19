@@ -103,7 +103,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   referencePlane: {fileID: 0}
-  thrustForce: 1200
+  forwardThrustForce: 1200
+  reverseThrustForce: 600
   maxSpeed: 20
   rotationThrustForce: 480
   maxRotationSpeed: 180
@@ -114,7 +115,6 @@ MonoBehaviour:
   maxStrafeForce: 800
   minStrafeForce: 750
   enableDebugLogs: 0
-  thrustParticles: []
 --- !u!114 &8323755265108850685
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -286,6 +286,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6789276593053200670}
+  - component: {fileID: 6096710645051560555}
   m_Layer: 7
   m_Name: Thruster
   m_TagString: Untagged
@@ -314,6 +315,21 @@ Transform:
   - {fileID: 729968143781624225}
   m_Father: {fileID: 6567524228965887451}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6096710645051560555
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3849108126043262516}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8ca3d20e8ff2f4408ea8810b4a2d9c4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  thrustParticles:
+  - {fileID: 2552239784097213118}
+  - {fileID: 7901270817641457110}
 --- !u!1 &4144346170191044602
 GameObject:
   m_ObjectHideFlags: 0
@@ -10210,12 +10226,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e84d7a88834970479b268e0e57da5aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fadeIn: 0.06
   linger: 0.3
-  fadeOut: 0.4
   shimmerFreq: 20
   shimmerAmp: 0.08
-  regenFadeIn: 0.3
   shieldColors:
     serializedVersion: 2
     key0: {r: 1, g: 1, b: 1, a: 1}

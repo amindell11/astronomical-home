@@ -7,16 +7,16 @@ using UnityEngine.UI;
 public class ShieldUI : MonoBehaviour
 {
     [Header("Timing (seconds)")]
-    [SerializeField] float fadeIn  = 0.06f;      // quick pop-in for hit flash
+    //[SerializeField] float fadeIn  = 0.06f;      // quick pop-in for hit flash
     [SerializeField] float linger  = 0.30f;      // visible while it "shimmers"
-    [SerializeField] float fadeOut = 0.40f;      // dissolve back to invisible
+    //[SerializeField] float fadeOut = 0.40f;      // dissolve back to invisible
 
     [Header("Shimmer")]
     [SerializeField] float shimmerFreq = 20f;    // Hz of scale flicker
     [SerializeField] float shimmerAmp  = 0.08f;  // 8 % size wobble
 
-    [Header("Regen Fade")]
-    [SerializeField] float regenFadeIn = 0.3f;   // fade-in when shield starts regenerating from 0
+    //[Header("Regen Fade")]
+    //[SerializeField] float regenFadeIn = 0.3f;   // fade-in when shield starts regenerating from 0
 
     [Header("Fill & Color")]
     [Tooltip("Optional gradient to tint ring based on remaining shield")] 
@@ -27,7 +27,6 @@ public class ShieldUI : MonoBehaviour
     Image   ring;
     Color   baseColor;       // original tint without alpha
     Coroutine animCo;
-    float prevShield = -1f;
 
     void Awake()
     {

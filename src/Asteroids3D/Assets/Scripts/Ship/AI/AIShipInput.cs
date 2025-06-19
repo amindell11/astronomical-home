@@ -244,22 +244,12 @@ public class AIShipSteeringInput : MonoBehaviour
         Gizmos.color = Color.red;
         Gizmos.DrawLine(transform.position, transform.position + dbgInfo.avoid);
 
-        // Resulting acceleration vector
-        Gizmos.color = Color.white;
+        // Resulting acceleration vector (magenta)
+        Gizmos.color = new Color(1f, 0f, 1f); // magenta
         Gizmos.DrawLine(transform.position, transform.position + dbgInfo.accel);
 
-        // Thrust (forward/back) vector
-        Gizmos.color = Color.blue;
-        Vector3 thrVec = transform.up * dbgThrust * 3f; // scale for visibility
-        Gizmos.DrawLine(transform.position, transform.position + thrVec);
-
-        // Strafe (left/right) vector
-        Gizmos.color = Color.magenta;
-        Vector3 strVec = transform.right * dbgStrafe * 3f;
-        Gizmos.DrawLine(transform.position, transform.position + strVec);
-
-        // Steering waypoint
-        Gizmos.color = Color.cyan;
+        // Waypoint marker (distinct yellow)
+        Gizmos.color = Color.yellow;
         Gizmos.DrawLine(transform.position, dbgWaypoint);
         Gizmos.DrawSphere(dbgWaypoint, 0.4f);
 
@@ -273,7 +263,7 @@ public class AIShipSteeringInput : MonoBehaviour
             Gizmos.DrawLine(transform.position, transform.position + dbgRayVel);
 
             // Draw forward ray
-            Gizmos.color = Color.white;
+            Gizmos.color = new Color(1f, 0.75f, 0f); // orange-ish
             Gizmos.DrawLine(transform.position, transform.position + dbgRayFwd);
 
             // Draw detected asteroids prior to filtering logic
