@@ -18,6 +18,8 @@ public partial class FireWeaponAction : Action
         {
             Weapon.Value.Fire();
             return Status.Success;
+        }else{
+            this.GameObject.GetComponent<AIShipInput>().TryFire();
         }
         return Status.Failure;
     }

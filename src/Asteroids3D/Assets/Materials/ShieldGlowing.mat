@@ -113,7 +113,7 @@ Material:
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
-    - _GlowIntensity: 0.24
+    - _GlowIntensity: 1.1
     - _GlowPower: 3.39
     - _Metallic: 0
     - _OcclusionStrength: 1

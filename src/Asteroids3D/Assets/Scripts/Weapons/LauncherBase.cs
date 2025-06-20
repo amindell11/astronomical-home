@@ -15,7 +15,7 @@ public abstract class LauncherBase<TProj> : WeaponComponent where TProj : Projec
     [SerializeField] public    Transform firePoint;   // exposed for AI scripts
     [SerializeField] protected float     fireRate = 0.2f;
 
-    float nextFireTime;
+    protected float nextFireTime;
 
     /// <summary>Attempts to fire a projectile if the fire-rate cooldown has elapsed.</summary>
     public override void Fire()

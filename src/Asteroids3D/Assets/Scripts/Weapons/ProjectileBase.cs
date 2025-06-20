@@ -50,7 +50,7 @@ public abstract class ProjectileBase : MonoBehaviour
             ReturnToPool();
         }
     }
-
+    protected abstract void OnHit(IDamageable other);
     protected virtual void OnTriggerEnter(Collider other)
     {
         // Ignore our own ship
@@ -65,6 +65,7 @@ public abstract class ProjectileBase : MonoBehaviour
         {
             Vector3 impactVelocity = rb ? rb.linearVelocity : Vector3.zero;
             dmg.TakeDamage(damage, mass, impactVelocity, transform.position);
+            OnHit(dmg);
             SpawnHitVFX();
             ReturnToPool();
         }

@@ -30,9 +30,14 @@ public class AIShipInput : MonoBehaviour
     [SerializeField] float angleToleranceBeforeRay  = 15f;
     [SerializeField] bool updateControl = true;
 
+    [Header("Missile Combat")]
+    [SerializeField] float missileRange             = 40f;
+    [SerializeField] float missileAngleTolerance    = 15f;
+
     /* ── internals ───────────────────────────────────────────── */
     ShipMovement      ship;
     LaserGun  gun;
+    MissileLauncher missileLauncher;
     Camera    mainCam;
 
     // LOS cache
@@ -67,6 +72,7 @@ public class AIShipInput : MonoBehaviour
     {
         ship    = GetComponent<ShipMovement>();
         gun     = GetComponentInChildren<LaserGun>();
+        missileLauncher = GetComponentInChildren<MissileLauncher>();
         mainCam = Camera.main;
 
         // Pre-create reusable nav-point transform for point-based navigation
@@ -103,25 +109,58 @@ public class AIShipInput : MonoBehaviour
         HandleShooting();
     }
 
-    /* ── Laser logic (straight copy of old AIShipInput) ─────── */
+    /* ── Enhanced weapon logic (laser + missile) ─────── */
     public void HandleShooting()
     {
-        if (!gun || !target || !mainCam) return;
+        if (!target || !mainCam) return;
 
         Vector3 vp = mainCam.WorldToViewportPoint(transform.position);
         if (!(vp.z > 0 && vp.x is >= 0 and <= 1 && vp.y is >= 0 and <= 1)) return;
 
-        Vector3 firePos = gun.firePoint ? gun.firePoint.position : transform.position;
+        Vector3 firePos = transform.position;
         Vector3 dir     = target.position - firePos;
         float   dist    = dir.magnitude;
-        if (dist > fireDistance) return;
+        float   angle   = Vector3.Angle(transform.up, dir);
 
-        float angle = Vector3.Angle(transform.up, dir);
-        if (angle > fireAngleTolerance) return;
+        // Try missile first if we have one and target is in missile range
+        if (missileLauncher && TryFireMissile(dist, angle, dir)) return;
 
-        if (!LineOfSightOK(firePos, dir, dist, angle)) return;
+        // Fall back to laser if available and in range
+        if (gun) TryFireLaser(dist, angle, dir);
+    }
+
+    bool TryFireMissile(float dist, float angle, Vector3 dir)
+    {
+        if (dist > missileRange) return false;
+        if (angle > missileAngleTolerance) return false;
+
+        // For missiles, we need to check if target is ITargetable
+        ITargetable targetable = target.GetComponentInParent<ITargetable>();
+        if (targetable == null) return false;
+
+        // Try to start lock or fire if already locking/locked
+        if (!missileLauncher.IsLocked)
+        {
+            // Begin or continue locking process (cooldown gate inside TryStartLock)
+            missileLauncher.TryStartLock(targetable);
+            return false; // not ready to shoot yet
+        }
+
+        // Already locked – go ahead and fire (this will also reset the lock)
+        missileLauncher.Fire();
+        return true;
+    }
+
+    bool TryFireLaser(float dist, float angle, Vector3 dir)
+    {
+        if (dist > fireDistance) return false;
+        if (angle > fireAngleTolerance) return false;
+
+        Vector3 firePos = gun.firePoint ? gun.firePoint.position : transform.position;
+        if (!LineOfSightOK(firePos, dir, dist, angle)) return false;
 
         gun.Fire();
+        return true;
     }
 
     public bool hasLOS(Transform tgt)
@@ -181,10 +220,22 @@ public class AIShipInput : MonoBehaviour
         enableAvoidance = avoid;
     }
 
-    /// <summary>Convenience wrapper so BT leaf nodes can fire the laser once.</summary>
+    /// <summary>Convenience wrapper so BT leaf nodes can fire weapons once.</summary>
     public void TryFire()
     {
         HandleShooting();
+    }
+
+    /// <summary>Convenience wrapper for BT nodes that specifically want to fire missiles.</summary>
+    public void TryFireMissile()
+    {
+        if (!missileLauncher || !target) return;
+        
+        Vector3 dir = target.position - transform.position;
+        float dist = dir.magnitude;
+        float angle = Vector3.Angle(transform.up, dir);
+        
+        TryFireMissile(dist, angle, dir);
     }
 
     /// <summary>Returns true if an unobstructed line of sight exists to <paramref name="tgt"/>.</summary>

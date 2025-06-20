@@ -3,7 +3,7 @@ using ShipControl;
 
 [RequireComponent(typeof(ShipMovement))]
 [RequireComponent(typeof(ShipDamageHandler))]
-public class Ship : MonoBehaviour
+public class Ship : MonoBehaviour, ITargetable
 {
     /* ─────────── Tunable Parameters ─────────── */
     [Header("Settings Asset")]
@@ -15,6 +15,11 @@ public class Ship : MonoBehaviour
     public LaserGun      laserGun{get; private set;}
     public ShipDamageHandler damageHandler{get; private set;}
     public IShipCommandSource[] commandSources{get; private set;}
+
+    /* ─────────── ITargetable Implementation ─────────── */
+    public Transform TargetPoint => transform;
+
+    public LockOnIndicator Indicator { get; private set; }
 
     /* ────────────────────────────────────────── */
     void Awake()
@@ -33,6 +38,8 @@ public class Ship : MonoBehaviour
         // Apply settings to movement & damage subsystems
         movement?.ApplySettings(settings);
         damageHandler?.ApplySettings(settings);
+
+        Indicator = GetComponentInChildren<LockOnIndicator>(true);
     }
 
     void FixedUpdate()

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Asteroid : MonoBehaviour, IDamageable
+public class Asteroid : MonoBehaviour, IDamageable, ITargetable
 {
     [Header("Physical Properties")]
     [SerializeField] private float density = 1f;
@@ -9,6 +9,11 @@ public class Asteroid : MonoBehaviour, IDamageable
     [SerializeField] private GameObject explosionPrefab;
     [SerializeField] private AudioClip explosionSound;
     [SerializeField] private float explosionVolume = 0.7f;
+    
+    [Header("Damage Tuning")]
+    [SerializeField]
+    [Tooltip("Multiplier that converts collision energy (J) to gameplay damage.")]
+    private float energyToDamageScale = 0.01f;
     
     private Rigidbody rb;
     private MeshFilter meshFilter;
@@ -23,11 +28,19 @@ public class Asteroid : MonoBehaviour, IDamageable
     public Rigidbody Rb => rb;
     public Mesh CurrentMesh => meshFilter.sharedMesh;
 
+    // ITargetable Implementation
+    public Transform TargetPoint => transform;
+
+    public LockOnIndicator Indicator { get; private set; }
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
         meshFilter = GetComponent<MeshFilter>();
         rb.useGravity = false;
+
+        // Find indicator in children (may be inactive)
+        Indicator = GetComponentInChildren<LockOnIndicator>(true);
     }
 
     public void Initialize(
@@ -139,7 +152,40 @@ public class Asteroid : MonoBehaviour, IDamageable
         {
             AsteroidSpawner.Instance.ReleaseAsteroid(gameObject);
         }
-    }   
+    }
+    /*
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.layer == LayerMask.NameToLayer("Ship"))
+        {
+            Debug.Log("Asteroid hit ship (trigger) – consider switching collider to non-trigger for energy-based damage.");
+            // Legacy fixed damage path removed.
+        }
+    }
+    */
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        // Only handle collisions with objects on the Ship layer
+        if (collision.gameObject.layer != LayerMask.NameToLayer("Ship")) return;
+
+        Rigidbody otherRb = collision.rigidbody;
+        if (otherRb == null) return;
+
+        IDamageable damageable = otherRb.GetComponent<IDamageable>();
+        if (damageable == null) return;
+
+        float shipMass = otherRb.mass;
+        Vector3 shipVel = otherRb.linearVelocity;
+        Vector3 impactPoint = collision.GetContact(0).point;
+
+        float dmg = CollisionDamageUtility.ComputeDamage(
+            CurrentMass, rb.linearVelocity,
+            shipMass,     shipVel,
+            energyToDamageScale);
+
+        damageable.TakeDamage(dmg, CurrentMass, rb.linearVelocity, impactPoint);
+    }
 
     private void LateUpdate()
     {

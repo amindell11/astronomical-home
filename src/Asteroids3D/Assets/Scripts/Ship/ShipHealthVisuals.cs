@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 
-public class HealthDamageVisuals : MonoBehaviour
+public class ShipHealthVisuals : MonoBehaviour
 {
     [SerializeField] Renderer hull;           // ship mesh or sprite renderer
     [SerializeField] ParticleSystem smoke;    // looping smoke prefab

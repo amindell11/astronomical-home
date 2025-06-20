@@ -60,19 +60,43 @@ public partial class PatrolRandomAction : Action
 
     private void ChooseNewPatrolPoint()
     {
-        // Generate a random point within the patrol radius around the current position
-        Vector3 currentPos = GameObject.transform.position;
+        // Try to pick a point that is visible on the player's screen so the AI stays within view.
+        Camera cam = Camera.main;
 
-        float randomDistance = UnityEngine.Random.Range(patrolRadius * 0.3f, patrolRadius);
-        Vector3 randomOffset = GamePlane.ProjectOntoPlane(UnityEngine.Random.insideUnitSphere).normalized*randomDistance;
-        
-        currentTarget = currentPos + randomOffset;
+        if (cam != null)
+        {
+            // Pick a random viewport coordinate with 10% padding so we do not hug the edges
+            const float pad = 0.1f;
+            Vector3 viewport = new Vector3(
+                UnityEngine.Random.Range(pad, 1f - pad),
+                UnityEngine.Random.Range(pad, 1f - pad),
+                0f);
+
+            // Re-use ship depth so projection lands roughly in the game plane
+            Vector3 shipScreen   = cam.WorldToScreenPoint(GameObject.transform.position);
+            viewport.z          = shipScreen.z;
+
+            // Convert to world space and project onto the GamePlane to ensure we stay flat
+            Vector3 worldPoint  = cam.ViewportToWorldPoint(viewport);
+            Vector3 planePoint  = GamePlane.Origin + GamePlane.ProjectOntoPlane(worldPoint);
+
+            currentTarget = planePoint;
+            Debug.Log($"PatrolRandomAction: New SCREEN patrol target set at {currentTarget}");
+        }
+        else
+        {
+            // Fallback: pick a random point within patrolRadius around current position
+            Vector3 currentPos      = GameObject.transform.position;
+            float randomDistance    = UnityEngine.Random.Range(patrolRadius * 0.3f, patrolRadius);
+            Vector3 randomOffset    = GamePlane.ProjectOntoPlane(UnityEngine.Random.insideUnitSphere).normalized * randomDistance;
+            currentTarget           = currentPos + randomOffset;
+            Debug.Log($"PatrolRandomAction: New RADIAL patrol target set at {currentTarget} (distance: {randomDistance:F1})");
+        }
+
         hasTarget = true;
-        
+
         // Set the navigation target using the AI input
         aiInput.SetNavigationPoint(currentTarget, enableAvoidance);
-        
-        Debug.Log($"PatrolRandomAction: New patrol target set at {currentTarget} (distance: {randomDistance:F1})");
     }
 }
 

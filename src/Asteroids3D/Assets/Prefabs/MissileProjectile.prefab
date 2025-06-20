@@ -31,8 +31,43 @@ PrefabInstance:
         type: 3}
     - target: {fileID: 2153935510595730682, guid: d4f6577bb30c48945a17243a523023ff,
         type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2153935510595730682, guid: d4f6577bb30c48945a17243a523023ff,
+        type: 3}
       propertyPath: m_WasSpriteAssigned
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3623802022773714673, guid: d4f6577bb30c48945a17243a523023ff,
+        type: 3}
+      propertyPath: m_Height
+      value: 1.19
+      objectReference: {fileID: 0}
+    - target: {fileID: 3623802022773714673, guid: d4f6577bb30c48945a17243a523023ff,
+        type: 3}
+      propertyPath: m_Radius
+      value: 0.16
+      objectReference: {fileID: 0}
+    - target: {fileID: 3623802022773714673, guid: d4f6577bb30c48945a17243a523023ff,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3623802022773714673, guid: d4f6577bb30c48945a17243a523023ff,
+        type: 3}
+      propertyPath: m_Direction
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3623802022773714673, guid: d4f6577bb30c48945a17243a523023ff,
+        type: 3}
+      propertyPath: m_IncludeLayers.m_Bits
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3791456385073129076, guid: d4f6577bb30c48945a17243a523023ff,
+        type: 3}
+      propertyPath: m_Constraints
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 3815271880710915890, guid: d4f6577bb30c48945a17243a523023ff,
         type: 3}
@@ -84,8 +119,42 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 5408995189547049293, guid: d4f6577bb30c48945a17243a523023ff, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2028383931407238149, guid: d4f6577bb30c48945a17243a523023ff,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -6854199025283548723}
   m_SourcePrefab: {fileID: 100100000, guid: d4f6577bb30c48945a17243a523023ff, type: 3}
+--- !u!1 &3744751405240154114 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2028383931407238149, guid: d4f6577bb30c48945a17243a523023ff,
+    type: 3}
+  m_PrefabInstance: {fileID: 3449268995354033159}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &-6854199025283548723
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3744751405240154114}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83bad26d27386f94f8db625f8ee84ea2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damage: 10
+  maxDistance: 1000
+  hitEffect: {fileID: 0}
+  mass: 0.1
+  homingSpeed: 20
+  homingTurnRate: 90
+  explosionRadius: 3
+  explosionDamage: 60
+  explosionPrefab: {fileID: 0}
+  initialSpeed: 15
+  acceleration: 40

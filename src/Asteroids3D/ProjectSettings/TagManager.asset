@@ -15,7 +15,7 @@ TagManager:
   - Boundary
   - Water
   - UI
-  - Laser
+  - Projectile
   - Ship
   - Asteroid
   - 
@@ -45,11 +45,14 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: UI
+    uniqueID: 1289029719
+    locked: 0
   - name: Ship
     uniqueID: 77968243
     locked: 0
-  - name: UI
-    uniqueID: 1289029719
+  - name: Environment
+    uniqueID: 3181671211
     locked: 0
   - name: Background
     uniqueID: 2984955391

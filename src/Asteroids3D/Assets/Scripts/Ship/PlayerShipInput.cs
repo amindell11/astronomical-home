@@ -9,6 +9,7 @@ public class PlayerShipInput : MonoBehaviour, IShipCommandSource
     private ShipMovement.ShipMovement2D shipController;
     private Camera mainCamera;
     private LaserGun laserGun;
+    private MissileLauncher missileLauncher;
 
     [Tooltip("If checked, the ship will rotate towards the mouse position. If unchecked, the ship will rotate using the rotation input axis.")]
     public bool useMouseDirection = false;
@@ -30,18 +31,25 @@ public class PlayerShipInput : MonoBehaviour, IShipCommandSource
         shipController = ship.Controller;
         mainCamera = Camera.main;
         laserGun = GetComponentInChildren<LaserGun>();
+        missileLauncher = GetComponentInChildren<MissileLauncher>();
     }
 
     private void Update()
     {
         // Read movement inputs
         _cmd.Thrust = Input.GetAxis("Vertical");
-        _cmd.Strafe = Input.GetAxis("Horizontal");
+        _cmd.Strafe = Input.GetAxis("Horizontal"
 
         HandleRotationInput();
 
         // Shooting
         _cmd.Fire = Input.GetButton("Fire1");
+
+        // Missile lock / fire (single press behaviour)
+        if (Input.GetButtonDown("Fire2") && missileLauncher)
+        {
+            missileLauncher.Fire();
+        }
     }
 
     public void HandleRotationInput()
@@ -149,5 +157,17 @@ public class PlayerShipInput : MonoBehaviour, IShipCommandSource
         cmd = _cmd;
         // Always provide command; central Ship may decide to ignore if zeroed
         return true;
+    }
+
+    /* ───────────────────────── Missile Target Helper ───────────────────────── */
+    ITargetable PickTarget()
+    {
+        Vector3 origin = missileLauncher && missileLauncher.firePoint ? missileLauncher.firePoint.position : transform.position;
+        Vector3 dir    = transform.up; // ship forward in top-down view
+        if (Physics.Raycast(origin, dir, out RaycastHit hit, 100f))
+        {
+            return hit.collider.GetComponentInParent<ITargetable>();
+        }
+        return null;
     }
 } 
