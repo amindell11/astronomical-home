@@ -1,10 +1,14 @@
 using UnityEngine;
-
+// One abstract, non-generic root that Unity can serialize
+public abstract class WeaponComponent : MonoBehaviour, IWeapon
+{
+    public abstract void Fire();
+}
 /// <summary>
 /// Generic weapon/launcher base – spawns pooled projectiles of type <typeparamref name="TProj"/>.
 /// </summary>
 /// <typeparam name="TProj">Projectile component the launcher fires.</typeparam>
-public abstract class LauncherBase<TProj> : MonoBehaviour where TProj : ProjectileBase
+public abstract class LauncherBase<TProj> : WeaponComponent where TProj : ProjectileBase
 {
     [Header("Launcher Settings")]
     [SerializeField] protected TProj     projectilePrefab;
@@ -14,11 +18,11 @@ public abstract class LauncherBase<TProj> : MonoBehaviour where TProj : Projecti
     float nextFireTime;
 
     /// <summary>Attempts to fire a projectile if the fire-rate cooldown has elapsed.</summary>
-    public virtual void Fire()
+    public override void Fire()
     {
         if (Time.time < nextFireTime) return;
         if (!projectilePrefab)       return;
-
+    
         if (!firePoint) firePoint = transform;
 
         nextFireTime = Time.time + fireRate;

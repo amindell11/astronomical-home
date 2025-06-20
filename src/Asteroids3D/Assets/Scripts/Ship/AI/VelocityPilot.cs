@@ -18,6 +18,67 @@ public static class VelocityPilot
     
     // Note: MaxSpeed is read from the Ship component itself.
 
+    // --- New typed IO structs for modular pipeline ---------------------------
+    public readonly struct Input
+    {
+        public readonly ShipKinematics kin;
+        public readonly Vector2 waypoint;   // desired point in plane space
+        public readonly Vector2 desiredVel; // OR you can pass desiredVel directly
+        public readonly Vector2 waypointVel; // desired velocity at waypoint (for velocity matching)
+        public readonly float   maxSpeed;
+
+        public Input(ShipKinematics k, Vector2 wp, Vector2 desiredVelocity, Vector2 wpVelocity, float max)
+        {
+            kin = k;
+            waypoint = wp;
+            desiredVel = desiredVelocity;
+            waypointVel = wpVelocity;
+            maxSpeed = max;
+        }
+    }
+
+    public readonly struct Output
+    {
+        public readonly float thrust;
+        public readonly float strafe;
+        public readonly float rotTargetDeg;
+
+        public Output(float t, float s, float r)
+        {
+            thrust = t; strafe = s; rotTargetDeg = r;
+        }
+    }
+
+    /// <summary>
+    /// New modular Compute entry point that maps desired velocity to control commands.
+    /// Internally reuses the legacy ComputeInputs for now so existing behaviour remains.
+    /// </summary>
+    public static Output Compute(Input i)
+    {
+        // Use legacy API but build necessary parameters
+        // If desiredVel is zero, fall back to waypoint logic like old ComputeInputs.
+
+        Vector2 desired = i.desiredVel;
+        Vector2 curPos  = i.kin.pos;
+        Vector2 curVel  = i.kin.vel;
+        Vector2 forward = i.kin.forward;
+
+        float thrust, strafe, rot;
+
+        if (desired != Vector2.zero)
+        {
+            // Convert desired velocity into an implicit waypoint step ahead.
+            Vector2 wp = curPos + desired * 0.2f; // 0.2 s lead – arbitrary, tweak later
+            ComputeInputs(wp, curPos, curVel, forward, i.maxSpeed, i.waypointVel, out thrust, out strafe, out rot);
+        }
+        else
+        {
+            ComputeInputs(i.waypoint, curPos, curVel, forward, i.maxSpeed, i.waypointVel, out thrust, out strafe, out rot);
+        }
+
+        return new Output(thrust, strafe, rot);
+    }
+
     /// <summary>
     /// Computes thrust, strafe, and rotation commands to guide a ship to a waypoint.
     /// </summary>
@@ -26,24 +87,31 @@ public static class VelocityPilot
     /// <param name="currentVelocity">Current ship velocity in 2D plane space.</param>
     /// <param name="currentForward">Current ship forward direction (normalized) in 2D plane space.</param>
     /// <param name="maxSpeed">The maximum speed the ship can travel.</param>
+    /// <param name="waypointVel">Desired velocity at waypoint (for velocity matching).</param>
     /// <param name="thrustCmd">Normalized forward/reverse thrust command [-1, 1].</param>
     /// <param name="strafeCmd">Normalized strafe command [-1, 1].</param>
     /// <param name="rotTargetDeg">The desired heading in degrees [0, 360].</param>
     public static void ComputeInputs(
-        Vector2 waypoint, Vector2 currentPosition, Vector2 currentVelocity, Vector2 currentForward, float maxSpeed,
+        Vector2 waypoint, Vector2 currentPosition, Vector2 currentVelocity, Vector2 currentForward, float maxSpeed, Vector2 waypointVel,
         out float thrustCmd, out float strafeCmd, out float rotTargetDeg)
     {
-        // 1. Compute Desired Velocity
+        // 1. Compute Desired Velocity taking waypoint velocity into account
         Vector2 vectorToWaypoint = waypoint - currentPosition;
-        float distanceToWaypoint = vectorToWaypoint.magnitude;
-        Vector2 directionToWaypoint = (distanceToWaypoint > 0.01f) ? vectorToWaypoint.normalized : Vector2.zero;
+        float   distanceToWaypoint = vectorToWaypoint.magnitude;
+        Vector2 directionToWaypoint = distanceToWaypoint > 0.01f ? vectorToWaypoint.normalized : Vector2.zero;
 
-        // Calculate the maximum speed we can have to be able to stop at the waypoint.
-        // v_final^2 = v_initial^2 + 2ad => v_initial = sqrt(-2ad) -- but d is negative
-        // More simply: E_k = W_done_by_braking => 0.5*m*v^2 = F*d => v = sqrt(2*a*d)
-        float maxSpeedToStop = Mathf.Sqrt(2 * ForwardAcceleration * distanceToWaypoint);
-        float desiredSpeed = Mathf.Min(maxSpeed, maxSpeedToStop);
-        Vector2 desiredVelocity = directionToWaypoint * desiredSpeed;
+        // Maximum relative speed we can still lose over remaining distance with max decel
+        float maxRelativeSpeed = Mathf.Sqrt(2f * ForwardAcceleration * distanceToWaypoint);
+
+        // Desired relative speed (clamped to ship max)
+        float desiredRelSpeed = Mathf.Min(maxRelativeSpeed, maxSpeed);
+
+        // Desired world velocity is waypoint velocity plus allowed relative component along path
+        Vector2 desiredVelocity = waypointVel + directionToWaypoint * desiredRelSpeed;
+
+        // Ensure we do not exceed absolute max speed
+        if (desiredVelocity.sqrMagnitude > maxSpeed * maxSpeed)
+            desiredVelocity = desiredVelocity.normalized * maxSpeed;
 
         // 2. Find Velocity Error
         Vector2 velocityError = desiredVelocity - currentVelocity;

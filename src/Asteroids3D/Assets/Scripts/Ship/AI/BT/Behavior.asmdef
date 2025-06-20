@@ -1,0 +1,19 @@
+{
+    "name": "Game.AI",
+    "rootNamespace": "",
+    "references": [
+        "Game.Core",
+        "Unity.Behavior.Runtime",
+        "Unity.Behavior",
+        "Unity.Behavior.Authoring"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

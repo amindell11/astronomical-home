@@ -1,53 +1,69 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-/// Stateless utility that turns a goal + local obstacles into
-///   (thrust, strafe, rotationTargetDeg) commands.
-///
-/// * NO references to Ship / Rigidbody / MonoBehaviour.
-/// * Call every FixedUpdate from any AI script.
+/// <summary>
+/// 2-D version of the original PathPlanner.  Only operates in the XY plane and
+///  consumes the compact <see cref="ShipKinematics"/> record.  The algorithm is
+///  the same seek / arrive / predictive-avoidance strategy, but expressed with
+///  Vector2 math so it can be unit-tested and stays detached from Unity's
+///  transforms and physics.
+/// </summary>
 public static class PathPlanner
 {
-    public struct Input
+    #region IO structs
+    public readonly struct Input
     {
-        public Vector3 position;           // world
-        public Vector3 velocity;           // world
-        public float   radius;             // ship collider radius
-        public Vector3 forward;            // world-space forward (+Y in 2-D plane)
-        public Transform goal;             // waypoint / target
-        public float   maxSpeed;
-        public float   arriveRadius;
+        public readonly ShipKinematics kin;
+        public readonly Vector2 goal;            // waypoint in plane space
+        public readonly float   arriveRadius;
+        public readonly float   maxSpeed;
+        public readonly float   avoidradius;
+        public readonly float   lookAheadTime;
+        public readonly float   safeMargin;
+        public readonly IReadOnlyList<Collider> nearbyAsteroids;
 
-        // avoidance
-        public float lookAheadTime;
-        public float safeMargin;
-        public IReadOnlyList<Collider> nearbyAsteroids;   // already filtered
+        public Input(ShipKinematics k, Vector2 g, float avoid, float arrive, float max, float lookAhead,
+                     float margin, IReadOnlyList<Collider> rocks)
+        {
+            kin   = k;
+            goal  = g;
+            avoidradius = avoid;
+            arriveRadius = arrive;
+            maxSpeed     = max;
+            lookAheadTime= lookAhead;
+            safeMargin   = margin;
+            nearbyAsteroids = rocks;
+        }
     }
 
-    public struct Output
+    public readonly struct Output
     {
-        public float thrust;          // −1..+1 (forward / reverse)
-        public float strafe;          // −1..+1 (left / right)
-        public float rotTargetDeg;    // absolute plane-angle to face
+        public readonly Vector2 desiredVelocity;
+        public readonly DebugInfo dbg;
+
+        public Output(Vector2 dv, DebugInfo d)
+        {
+            desiredVelocity = dv;
+            dbg             = d;
+        }
     }
 
-    /// <summary>
-    /// Optional debug data that can be requested from <see cref="Compute(PathPlanner.Input, out DebugInfo)"/>.
-    /// </summary>
-    public struct DebugInfo
+    public readonly struct DebugInfo
     {
-        public Vector3 future;           // predicted future position of the ship
-        public Vector3 desired;          // desired velocity towards goal (seek/arrive)
-        public Vector3 avoid;            // avoidance velocity contribution
-        public Vector3 accel;            // resulting acceleration vector (desired+avoid - current vel)
+        public readonly Vector2 future;
+        public readonly Vector2 desired;
+        public readonly Vector2 avoid;
+        public readonly Vector2 accel;
+        public readonly List<Vector2> rockFutures;
 
-        /// <summary>
-        /// Future positions of asteroids that were considered colliding (within combined radius).
-        /// </summary>
-        public List<Vector3> rockFutures;
+        public DebugInfo(Vector2 f, Vector2 d, Vector2 a, Vector2 ac, List<Vector2> rf)
+        {
+            future = f; desired = d; avoid = a; accel = ac; rockFutures = rf;
+        }
     }
+    #endregion
 
-    /* ── Tuning parameters (same defaults as VelocityPilot) ─────────────── */
+    // Tunables (kept identical to original PathPlanner for behaviour parity)
     public static float ForwardAcceleration = 8f;
     public static float ReverseAcceleration = 4f;
     public static float StrafeAcceleration  = 6f;
@@ -55,178 +71,64 @@ public static class PathPlanner
 
     public static Output Compute(Input io)
     {
-        return Compute(io, out _); // discard debug
-    }
-
-    /// <summary>
-    /// Core path-planning routine. When called with <paramref name="dbg"/>, the method also fills
-    /// out useful intermediate data that can be visualised via gizmos for debugging and teaching.
-    /// </summary>
-    public static Output Compute(Input io, out DebugInfo dbg)
-    {
         /* -------- seek / arrive --------------------------------- */
-        Vector3 toGoal   = (io.goal.position - io.position);
-        float   dist     = toGoal.magnitude;
+        Vector2 toGoal = io.goal - io.kin.pos;
+        float   dist   = toGoal.magnitude;
         float   tgtSpeed = dist > io.arriveRadius
                            ? io.maxSpeed
                            : Mathf.Lerp(0, io.maxSpeed, dist / io.arriveRadius);
-        Vector3 desired  = toGoal.normalized * tgtSpeed;
+        Vector2 desired = toGoal.normalized * tgtSpeed;
 
         /* -------- predictive avoidance --------------------------- */
-        Vector3 future   = io.position + io.velocity * io.lookAheadTime;
-        Vector3 push     = Vector3.zero;
-        float   weightT  = 0f;
+        Vector2 future = io.kin.pos + io.kin.vel * io.lookAheadTime;
+        Vector2 push   = Vector2.zero;
+        float   weight = 0f;
+        List<Vector2> collidingFutures = null;
 
-        List<Vector3> collidingFutures = null;
-
-        Vector3 segStart = io.position;
-        Vector3 segEnd   = future;
-        Vector3 segDir   = segEnd - segStart;
+        Vector2 segStart = io.kin.pos;
+        Vector2 segEnd   = future;
+        Vector2 segDir   = segEnd - segStart;
         float   segLenSq = segDir.sqrMagnitude;
 
         foreach (var rock in io.nearbyAsteroids)
         {
-            Vector3 rockPos = rock.transform.position;
-            Vector3 rockVel = rock.attachedRigidbody ? rock.attachedRigidbody.velocity : Vector3.zero;
-            Vector3 rockFut = rockPos + rockVel * io.lookAheadTime;
+            Vector3 rp3 = rock.transform.position;
+            Vector2 rockPos = GamePlane.WorldToPlane(rp3);
+            Vector3 rv3 = rock.attachedRigidbody ? rock.attachedRigidbody.linearVelocity : Vector3.zero;
+            Vector2 rockVel = GamePlane.WorldToPlane(rv3);
+            Vector2 rockFut = rockPos + rockVel * io.lookAheadTime;
 
-            float rockRad = rock.bounds.extents.x;
-            float combined = io.radius + rockRad + io.safeMargin;
+            float rockRad = rock.bounds.extents.x; // assumes roughly spherical
+            float combined = io.avoidradius + rockRad + io.safeMargin;
 
-            // Closest point on ship segment to rockFut
+            // closest point on ship segment to rockFut
             float t = 0f;
-            Vector3 offset = rockFut - segStart;
+            Vector2 offset = rockFut - segStart;
             if (segLenSq > 0.0001f)
-            {
-                t = Mathf.Clamp(Vector3.Dot(offset, segDir) / segLenSq, 0f, 1f);
-            }
-            Vector3 closest = segStart + segDir * t;
-            Vector3 sep     = closest - rockFut;
-            float sq = sep.sqrMagnitude;
+                t = Mathf.Clamp(Vector2.Dot(offset, segDir) / segLenSq, 0f, 1f);
+            Vector2 closest = segStart + segDir * t;
+            Vector2 sep     = closest - rockFut;
+            float   sq      = sep.sqrMagnitude;
 
             if (sq < combined * combined)
             {
                 float w = 1f / Mathf.Max(sq, 0.01f);
-                push    += sep.normalized * w;
-                weightT += w;
+                push   += sep.normalized * w;
+                weight += w;
 
-                collidingFutures ??= new List<Vector3>();
+                collidingFutures ??= new List<Vector2>();
                 collidingFutures.Add(rockFut);
             }
         }
-        Vector3 avoid = (weightT > 0) ? push / weightT * io.maxSpeed : Vector3.zero;
 
-        /* -------- velocity-error steering ----------------------- */
-        Vector3 desiredVel = desired + avoid;
-        Vector3 velError   = desiredVel - io.velocity;
+        Vector2 avoid = (weight > 0f) ? push / weight * io.maxSpeed : Vector2.zero;
 
-        Vector3 localErr   = Quaternion.Inverse(Quaternion.LookRotation(Vector3.forward, io.forward))
-                            * velError; // ship plane: x=right, y=forward
+        /* -------- final desired velocity ------------------------- */
+        Vector2 desiredVel = desired + avoid;
 
-        // Proportional mapping
-        float thrustCmd;
-        if (localErr.y > 0)
-            thrustCmd = localErr.y / ForwardAcceleration;
-        else
-            thrustCmd = localErr.y / ReverseAcceleration;
+        Vector2 accel = desiredVel - io.kin.vel;
 
-        float strafeCmd = localErr.x / StrafeAcceleration;
-
-        if (velError.magnitude < VelocityDeadZone)
-        {
-            thrustCmd = 0f;
-            strafeCmd = 0f;
-        }
-
-        Output o;
-        o.thrust = Mathf.Clamp(thrustCmd, -1f, 1f);
-        o.strafe = Mathf.Clamp(strafeCmd, -1f, 1f);
-
-        // Aim heading toward desired velocity (or toGoal if too slow)
-        Vector3 heading = desiredVel.sqrMagnitude > 0.5f ? desiredVel : toGoal;
-        o.rotTargetDeg  = Mathf.Atan2(-heading.x, heading.z) * Mathf.Rad2Deg;
-
-        dbg.future      = future;
-        dbg.desired     = desired;
-        dbg.avoid       = avoid;
-        dbg.accel       = velError; // renamed but keep field
-        dbg.rockFutures = collidingFutures ?? new List<Vector3>();
-
-        return o;
+        var dbg = new DebugInfo(future, desired, avoid, accel, collidingFutures ?? new List<Vector2>());
+        return new Output(desiredVel, dbg);
     }
-
-    /// <summary>
-    /// Returns an intermediate steer target (world position) that guides the ship around
-    /// obstacles while progressing toward the goal. This is intended for use with
-    /// VelocityPilot-style controllers that convert waypoints into thrust/strafe commands.
-    /// The debug info is filled the same way as in Compute.
-    /// </summary>
-    public static Vector3 SteerTarget(Input io, out DebugInfo dbg)
-    {
-        /* --- reuse seek/avoid logic from Compute up to avoid vector --- */
-        Vector3 toGoal   = (io.goal.position - io.position);
-        float   dist     = toGoal.magnitude;
-        float   tgtSpeed = dist > io.arriveRadius
-                           ? io.maxSpeed
-                           : Mathf.Lerp(0, io.maxSpeed, dist / io.arriveRadius);
-        Vector3 desired  = toGoal.normalized * tgtSpeed;
-
-        Vector3 future   = io.position + io.velocity * io.lookAheadTime;
-        Vector3 push     = Vector3.zero;
-        float   weightT  = 0f;
-        List<Vector3> collidingFutures = null;
-
-        Vector3 segStart = io.position;
-        Vector3 segEnd   = future;
-        Vector3 segDir   = segEnd - segStart;
-        float   segLenSq = segDir.sqrMagnitude;
-
-        foreach (var rock in io.nearbyAsteroids)
-        {
-            Vector3 rockPos = rock.transform.position;
-            Vector3 rockVel = rock.attachedRigidbody ? rock.attachedRigidbody.velocity : Vector3.zero;
-            Vector3 rockFut = rockPos + rockVel * io.lookAheadTime;
-
-            float rockRad = rock.bounds.extents.x;
-            float combined = io.radius + rockRad + io.safeMargin;
-
-            // Closest point on ship segment to rockFut
-            float t = 0f;
-            Vector3 offset = rockFut - segStart;
-            if (segLenSq > 0.0001f)
-            {
-                t = Mathf.Clamp(Vector3.Dot(offset, segDir) / segLenSq, 0f, 1f);
-            }
-            Vector3 closest = segStart + segDir * t;
-            Vector3 sep     = closest - rockFut;
-            float sq = sep.sqrMagnitude;
-
-            if (sq < combined * combined)
-            {
-                float w = 1f / Mathf.Max(sq, 0.01f);
-                push    += sep.normalized * w;
-                weightT += w;
-
-                collidingFutures ??= new List<Vector3>();
-                collidingFutures.Add(rockFut);
-            }
-        }
-        Vector3 avoid = (weightT > 0) ? push / weightT * io.maxSpeed : Vector3.zero;
-
-        // ---- choose steer target ----
-        Vector3 heading = desired + avoid;
-        if (heading.sqrMagnitude < 0.01f) heading = toGoal; // fallback
-
-        // distance ahead along heading to place the steer target
-        float step = Mathf.Clamp(io.maxSpeed * io.lookAheadTime * 0.5f, 2f, 20f);
-        Vector3 waypoint = io.position + heading.normalized * step;
-
-        dbg.future      = future;
-        dbg.desired     = desired;
-        dbg.avoid       = avoid;
-        dbg.accel       = (desired + avoid) - io.velocity;
-        dbg.rockFutures = collidingFutures ?? new List<Vector3>();
-
-        return waypoint;
-    }
-}
+} 

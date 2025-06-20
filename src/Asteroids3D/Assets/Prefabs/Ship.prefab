@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 6567524228965887451}
   - component: {fileID: 1747598916537340081}
   - component: {fileID: 7604545048589130545}
+  - component: {fileID: 7184882482910536223}
   - component: {fileID: 8752571619316856911}
   - component: {fileID: 8323755265108850685}
   - component: {fileID: 4368679400082138271}
@@ -70,10 +71,10 @@ Rigidbody:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 579888702181409527}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Mass: 215
-  m_Drag: 0.0015
-  m_AngularDrag: 0.01
+  m_LinearDamping: 0.0015
+  m_AngularDamping: 0.01
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -90,6 +91,19 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 4
   m_CollisionDetection: 0
+--- !u!114 &7184882482910536223
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 579888702181409527}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67188210c0b7f614089a327a9a1ca7a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  settings: {fileID: 11400000, guid: c2eae258625507d43948e555302ee7ee, type: 2}
 --- !u!114 &8752571619316856911
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -115,6 +129,8 @@ MonoBehaviour:
   maxStrafeForce: 800
   minStrafeForce: 750
   enableDebugLogs: 0
+  showMovementGizmos: 1
+  movementGizmoScale: 3
 --- !u!114 &8323755265108850685
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -136,7 +152,6 @@ MonoBehaviour:
     type: 3}
   explosionSound: {fileID: 8300000, guid: 14e1c94ce80f1fc45bd483c188a57c1c, type: 3}
   explosionVolume: 0.7
-  isPlayerShip: 0
 --- !u!114 &4368679400082138271
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -218,6 +233,7 @@ MeshRenderer:
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -5178,6 +5194,7 @@ ParticleSystemRenderer:
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -10082,6 +10099,7 @@ ParticleSystemRenderer:
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -15108,6 +15126,7 @@ ParticleSystemRenderer:
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -20114,6 +20133,7 @@ ParticleSystemRenderer:
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -20262,8 +20282,12 @@ Light:
   m_BoundingSphereOverride: {x: 3.855e-41, y: 2.524355e-29, z: 0, w: -0.00000011590606}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
+  m_ForceVisible: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
+  m_LightUnit: 1
+  m_LuxAtDistance: 1
+  m_EnableSpotReflector: 1
 --- !u!114 &6171641636850745658
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -25135,6 +25159,7 @@ ParticleSystemRenderer:
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:

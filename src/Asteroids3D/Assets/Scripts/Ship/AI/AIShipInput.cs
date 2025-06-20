@@ -2,11 +2,11 @@ using UnityEngine;
 using System.Collections.Generic;
 
 [RequireComponent(typeof(ShipMovement))]
-public class AIShipSteeringInput : MonoBehaviour
+public class AIShipInput : MonoBehaviour
 {
     /* ── Navigation tunables ─────────────────────────────────── */
     [Header("Navigation")]
-    public Transform target;
+    private Transform target;
     public float arriveRadius  = 10f;
 
     [Header("Avoidance")]
@@ -28,6 +28,7 @@ public class AIShipSteeringInput : MonoBehaviour
     [SerializeField] LayerMask lineOfSightMask      = ~0;
     [SerializeField] int lineOfSightCacheFrames     = 5;
     [SerializeField] float angleToleranceBeforeRay  = 15f;
+    [SerializeField] bool updateControl = true;
 
     /* ── internals ───────────────────────────────────────────── */
     ShipMovement      ship;
@@ -45,19 +46,36 @@ public class AIShipSteeringInput : MonoBehaviour
     int dbgHitCount;
     Vector3 dbgRayVel, dbgRayFwd;
 
-    // Path-planning debug information (updated every physics step)
-    PathPlanner.DebugInfo dbgInfo;
-    float dbgThrust, dbgStrafe;
-    Vector3 dbgWaypoint;
+    // Path-planning & pilot debug info (updated every physics step)
+    PathPlanner.DebugInfo dbgPath;
+    VelocityPilot.Output dbgPilot;
+    Vector2 dbgGoal2D;
 
     // Smoothed control state
     float smoothThrust, smoothStrafe;
+
+    // Per-instance hidden Transform reused for point-goal navigation
+    Transform navPoint;
+    ShipMovement targetShip;
+    Vector2 navPointVelocity;
+
+    float dbgThrust, dbgStrafe;
+
+    // Optional reference when the navigation target is another ship (for velocity matching)
 
     void Awake()
     {
         ship    = GetComponent<ShipMovement>();
         gun     = GetComponentInChildren<LaserGun>();
         mainCam = Camera.main;
+
+        // Pre-create reusable nav-point transform for point-based navigation
+        if (navPoint == null)
+        {
+            var go = new GameObject($"{name}_NavPoint");
+            go.hideFlags = HideFlags.HideAndDontSave;
+            navPoint = go.transform;
+        }
     }
 
     /* ────────────────────────────────────────────────────────── */
@@ -70,112 +88,23 @@ public class AIShipSteeringInput : MonoBehaviour
             return;
         }
 
-        /* 1.  Gather planner input */ 
+        ShipKinematics kin = ship.Kinematics;
+
         float currentMaxSpeed = ship.maxSpeed;
-        int n = 0;
-        if (enableAvoidance)
-        {
-            float maxDist = currentMaxSpeed * lookAheadTime + safeMargin;
 
-            // First ray: current velocity direction
-            Vector3 vel = ship.Controller.Velocity;
-            Vector3 velDir = vel.sqrMagnitude > 0.1f ? vel.normalized : Vector3.zero;
-            dbgRayVel = velDir * maxDist;
+        int obstacleCount = ScanObstacles(kin, currentMaxSpeed);
 
-            if (velDir != Vector3.zero)
-            {
-                int cnt = Physics.RaycastNonAlloc(transform.position, velDir, rayHits, maxDist, asteroidMask, QueryTriggerInteraction.Ignore);
-                for (int i = 0; i < cnt && n < MaxColliders; i++)
-                {
-                    Collider col = rayHits[i].collider;
-                    if (col && System.Array.IndexOf(hits, col, 0, n) < 0)
-                    {
-                        hits[n++] = col;
-                    }
-                }
-            }
+        VelocityPilot.Output vpOut = ComputeNavigation(kin, currentMaxSpeed, obstacleCount);
 
-            // Second ray: ship forward/thrust direction
-            Vector3 fwdDir = transform.up;
-            dbgRayFwd = fwdDir * maxDist;
-            int cntF = Physics.RaycastNonAlloc(transform.position, fwdDir, rayHits, maxDist, asteroidMask, QueryTriggerInteraction.Ignore);
-            for (int i = 0; i < cntF && n < MaxColliders; i++)
-            {
-                Collider col = rayHits[i].collider;
-                if (col && System.Array.IndexOf(hits, col, 0, n) < 0)
-                {
-                    hits[n++] = col;
-                }
-            }
-        }
+        ApplyControls(vpOut);
 
-        dbgHitCount = n; // for gizmos visualization
+        if (!updateControl) return;
 
-        if (enableAvoidance && n == MaxColliders)
-        {
-            Debug.LogWarning($"AIShipSteeringInput: Collider buffer full ({MaxColliders}). Some asteroids may be ignored – consider increasing MaxColliders.");
-        }
-
-        var plannerIn = new PathPlanner.Input
-        {
-            position         = transform.position,
-            velocity         = ship.Controller.Velocity,
-            radius           = avoidRadius,
-            forward          = transform.up,
-            goal             = target,
-            maxSpeed         = currentMaxSpeed,
-            arriveRadius     = arriveRadius,
-            lookAheadTime    = lookAheadTime,
-            safeMargin       = safeMargin,
-            nearbyAsteroids  = new System.ArraySegment<Collider>(hits, 0, n)
-        };
-
-        /* 2.  Compute steering */
-        Vector3 steerTarget3D = PathPlanner.SteerTarget(plannerIn, out dbgInfo);
-        dbgWaypoint = steerTarget3D;
-
-        // Convert waypoint to ship plane space (2-D) relative to plane origin
-        Vector2 waypoint2D = ship.WorldToPlane(steerTarget3D - ship.GetPlaneOrigin());
-
-        // Get current ship 2-D state
-        Vector2 curPos   = ship.Controller.Position;
-        Vector2 curVel   = ship.Controller.Velocity;
-        float   angRad   = ship.Controller.Angle * Mathf.Deg2Rad;
-        Vector2 forward2 = new Vector2(-Mathf.Sin(angRad), Mathf.Cos(angRad));
-
-        // Use VelocityPilot to compute inputs
-        VelocityPilot.ComputeInputs(waypoint2D, curPos, curVel, forward2,
-                                    currentMaxSpeed,
-                                    out float rawThrust, out float rawStrafe, out float rotTargetDeg);
-
-        // Proportional smoothing (P-only PID)
-        float k = proportionalGain;
-        if (k > 0f)
-        {
-            float dt = Time.fixedDeltaTime;
-            smoothThrust += (rawThrust  - smoothThrust) * k * dt;
-            smoothStrafe += (rawStrafe - smoothStrafe) * k * dt;
-        }
-        else
-        {
-            smoothThrust = rawThrust;
-            smoothStrafe = rawStrafe;
-        }
-
-        // cache for gizmos
-        dbgThrust = smoothThrust;
-        dbgStrafe = smoothStrafe;
-
-        // Apply to ship
-        ship.Controller.SetControls(smoothThrust, smoothStrafe);
-        ship.Controller.SetRotationTarget(true, rotTargetDeg);
-
-        /* 3.  Handle combat after motion planning */
         HandleShooting();
     }
 
     /* ── Laser logic (straight copy of old AIShipInput) ─────── */
-    void HandleShooting()
+    public void HandleShooting()
     {
         if (!gun || !target || !mainCam) return;
 
@@ -193,6 +122,11 @@ public class AIShipSteeringInput : MonoBehaviour
         if (!LineOfSightOK(firePos, dir, dist, angle)) return;
 
         gun.Fire();
+    }
+
+    public bool hasLOS(Transform tgt)
+    {
+        return LineOfSightOK(transform.position, tgt.position - transform.position, Vector3.Distance(transform.position, tgt.position), Vector3.Angle(transform.up, tgt.position - transform.position));
     }
 
     bool LineOfSightOK(Vector3 firePos, Vector3 dir, float dist, float angle)
@@ -219,7 +153,141 @@ public class AIShipSteeringInput : MonoBehaviour
         return cachedLOS;
     }
 
-#if UNITY_EDITOR
+    /* ────────────────── Public helper API for BehaviourTree ────────────────── */
+
+    /// <summary>Sets a Transform target for navigation and optionally toggles avoidance.</summary>
+    public void SetNavigationTarget(Transform tgt, bool avoid)
+    {
+        target = tgt;
+        enableAvoidance = avoid;
+        targetShip = tgt ? tgt.GetComponent<ShipMovement>() : null; // track if target is a ship
+    }
+
+    /// <summary>Sets an arbitrary world-space point as the navigation goal.</summary>
+    /// <remarks>Creates a hidden Transform once per ship and reuses it.</remarks>
+    public void SetNavigationPoint(Vector3 point, bool avoid=false, Vector3? velocity=null)
+    {
+        if (navPoint == null)
+        {
+            var go = new GameObject($"{name}_NavPoint");
+            go.hideFlags = HideFlags.HideAndDontSave;
+            navPoint = go.transform;
+        }
+
+        navPoint.position = point;
+        navPointVelocity = velocity ?? Vector2.zero;
+        target = navPoint;
+        targetShip = null;
+        enableAvoidance = avoid;
+    }
+
+    /// <summary>Convenience wrapper so BT leaf nodes can fire the laser once.</summary>
+    public void TryFire()
+    {
+        HandleShooting();
+    }
+
+    /// <summary>Returns true if an unobstructed line of sight exists to <paramref name="tgt"/>.</summary>
+    public bool HasLineOfSight(Transform tgt)
+    {
+        if (!gun || !tgt) return false;
+
+        Vector3 firePos = gun.firePoint ? gun.firePoint.position : transform.position;
+        Vector3 dir     = tgt.position - firePos;
+        float   dist    = dir.magnitude;
+        float   angle   = Vector3.Angle(transform.up, dir);
+
+        return LineOfSightOK(firePos, dir, dist, angle);
+    }
+
+    /// <summary>Sets a ship as the navigation/pursuit target and optionally enables avoidance.</summary>
+    public void SetShipTarget(ShipMovement tgtShip, bool avoid)
+    {
+        targetShip = tgtShip;
+        target     = tgtShip ? tgtShip.transform : null;
+        enableAvoidance = avoid;
+    }
+
+    // --------------------------------------------------------------
+    int ScanObstacles(ShipKinematics kin, float currentMaxSpeed)
+    {
+        int n = 0;
+        if (!enableAvoidance) return 0;
+
+        float maxDist = currentMaxSpeed * lookAheadTime + safeMargin;
+
+        Vector2 velDir = kin.vel.sqrMagnitude > 0.1f ? kin.vel.normalized : Vector2.zero;
+        Vector3 velDirWorld = GamePlane.PlaneVectorToWorld(velDir).normalized;
+        dbgRayVel = velDirWorld * maxDist;
+
+        if (velDir != Vector2.zero)
+            n = CastRayAndCollect(velDirWorld, maxDist, n);
+
+        Vector3 fwdWorld = GamePlane.PlaneVectorToWorld(kin.forward).normalized;
+        dbgRayFwd = fwdWorld * maxDist;
+        n = CastRayAndCollect(fwdWorld, maxDist, n);
+
+        dbgHitCount = n;
+        return n;
+    }
+
+    int CastRayAndCollect(Vector3 dir, float maxDist, int start)
+    {
+        int n = start;
+        int cnt = Physics.RaycastNonAlloc(transform.position, dir, rayHits, maxDist, asteroidMask, QueryTriggerInteraction.Ignore);
+        for (int i = 0; i < cnt && n < MaxColliders; i++)
+        {
+            Collider col = rayHits[i].collider;
+            if (col && System.Array.IndexOf(hits, col, 0, n) < 0) hits[n++] = col;
+        }
+        return n;
+    }
+
+    VelocityPilot.Output ComputeNavigation(ShipKinematics kin, float currentMaxSpeed, int obstacleCount)
+    {
+        Vector2 goal2D = GamePlane.WorldToPlane(target.position);
+        dbgGoal2D = goal2D;
+
+        var ppIn = new PathPlanner.Input(kin, goal2D, avoidRadius, arriveRadius, currentMaxSpeed,
+                                           lookAheadTime, safeMargin,
+                                           new System.ArraySegment<Collider>(hits, 0, obstacleCount));
+
+        var ppOut = PathPlanner.Compute(ppIn);
+        dbgPath = ppOut.dbg;
+
+        // Velocity of the waypoint (if it's a ship)
+        Vector2 wpVel = targetShip ? targetShip.Velocity2D : GamePlane.WorldToPlane(navPointVelocity);
+
+        // Provide PathPlanner's desired velocity so we still benefit from avoidance, but include waypoint velocity for braking.
+        var vpIn = new VelocityPilot.Input(kin, goal2D, ppOut.desiredVelocity, wpVel, currentMaxSpeed);
+        var vpOut = VelocityPilot.Compute(vpIn);
+        dbgPilot = vpOut;
+        return vpOut;
+    }
+
+    void ApplyControls(VelocityPilot.Output vpOut)
+    {
+        // Proportional smoothing
+        float k = proportionalGain;
+        float dt = Time.fixedDeltaTime;
+        if (k > 0f)
+        {
+            smoothThrust += (vpOut.thrust  - smoothThrust) * k * dt;
+            smoothStrafe += (vpOut.strafe - smoothStrafe) * k * dt;
+        }
+        else
+        {
+            smoothThrust = vpOut.thrust;
+            smoothStrafe = vpOut.strafe;
+        }
+
+        dbgThrust = smoothThrust;
+        dbgStrafe = smoothStrafe;
+
+        ship.Controller.SetControls(smoothThrust, smoothStrafe);
+        ship.Controller.SetRotationTarget(true, vpOut.rotTargetDeg);
+    }
+    #if UNITY_EDITOR
     void OnDrawGizmos()
     {
         if (target)
@@ -233,25 +301,30 @@ public class AIShipSteeringInput : MonoBehaviour
 
         // Ship future position
         Gizmos.color = new Color(0f, 1f, 1f, 0.5f); // cyan
-        Gizmos.DrawLine(transform.position, dbgInfo.future);
-        Gizmos.DrawSphere(dbgInfo.future, 0.3f);
+        Vector3 fut3 = GamePlane.PlaneToWorld(dbgPath.future);
+        Gizmos.DrawLine(transform.position, fut3);
+        Gizmos.DrawSphere(fut3, 0.3f);
 
         // Desired velocity vector
         Gizmos.color = Color.green;
-        Gizmos.DrawLine(transform.position, transform.position + dbgInfo.desired);
+        Vector3 dvec = GamePlane.PlaneVectorToWorld(dbgPath.desired);
+        Gizmos.DrawLine(transform.position, transform.position + dvec);
 
         // Avoidance vector
         Gizmos.color = Color.red;
-        Gizmos.DrawLine(transform.position, transform.position + dbgInfo.avoid);
+        Vector3 av = GamePlane.PlaneVectorToWorld(dbgPath.avoid);
+        Gizmos.DrawLine(transform.position, transform.position + av);
 
         // Resulting acceleration vector (magenta)
-        Gizmos.color = new Color(1f, 0f, 1f); // magenta
-        Gizmos.DrawLine(transform.position, transform.position + dbgInfo.accel);
+        Gizmos.color = new Color(1f, 0f, 1f);
+        Vector3 ac = GamePlane.PlaneVectorToWorld(dbgPath.accel);
+        Gizmos.DrawLine(transform.position, transform.position + ac);
 
         // Waypoint marker (distinct yellow)
         Gizmos.color = Color.yellow;
-        Gizmos.DrawLine(transform.position, dbgWaypoint);
-        Gizmos.DrawSphere(dbgWaypoint, 0.4f);
+        Vector3 goal3 = GamePlane.PlaneToWorld(dbgGoal2D);
+        Gizmos.DrawLine(transform.position, goal3);
+        Gizmos.DrawSphere(goal3, 0.4f);
 
         // Detection/avoidance sphere radius visualization
         if (enableAvoidance)

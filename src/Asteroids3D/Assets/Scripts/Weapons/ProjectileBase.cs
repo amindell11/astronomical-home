@@ -63,7 +63,7 @@ public abstract class ProjectileBase : MonoBehaviour
         IDamageable dmg = other.GetComponentInParent<IDamageable>();
         if (dmg != null)
         {
-            Vector3 impactVelocity = rb ? rb.velocity : Vector3.zero;
+            Vector3 impactVelocity = rb ? rb.linearVelocity : Vector3.zero;
             dmg.TakeDamage(damage, mass, impactVelocity, transform.position);
             SpawnHitVFX();
             ReturnToPool();

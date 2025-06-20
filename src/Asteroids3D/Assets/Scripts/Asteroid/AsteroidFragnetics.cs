@@ -238,7 +238,7 @@ public class AsteroidFragnetics : MonoBehaviour
 
         /* ───────── pass #1 : build raw velocities & gather sums ───────── */
         Vector3 center = asteroid.transform.position;
-        Vector3 vAst = asteroid.Rb.velocity;
+        Vector3 vAst = asteroid.Rb.linearVelocity;
         Vector3 bulletDir = (vBullet - vAst).normalized;
         float relSpeed = (vBullet - vAst).magnitude;
 
@@ -334,7 +334,7 @@ public class AsteroidFragnetics : MonoBehaviour
 
         /* ───────── pass #1 : build raw velocities & gather sums ───────── */
         Vector3 center = asteroid.transform.position;
-        Vector3 vAst = asteroid.Rb.velocity;
+        Vector3 vAst = asteroid.Rb.linearVelocity;
         Vector3 bulletDir = (vBullet - vAst).normalized;
         float relSpeed = (vBullet - vAst).magnitude;
 
@@ -437,7 +437,7 @@ public class AsteroidFragnetics : MonoBehaviour
 
     private (Vector3 linear, Vector3 angular) CalculateInitialMomentum(Asteroid asteroid, float projectileMass, Vector3 projectileVelocity, Vector3 hitPoint)
     {
-        Vector3 asteroidMomentum = asteroid.CurrentMass * asteroid.Rb.velocity;
+        Vector3 asteroidMomentum = asteroid.CurrentMass * asteroid.Rb.linearVelocity;
         Vector3 projectileMomentum = projectileMass * projectileVelocity;
         Vector3 totalLinearMomentum = asteroidMomentum + projectileMomentum;
         
@@ -543,7 +543,7 @@ public class AsteroidFragnetics : MonoBehaviour
     )
     {
         GameObject[] fragments = new GameObject[fragmentCount];
-        Vector3 baseVelocity = parentAsteroid.Rb.velocity;
+        Vector3 baseVelocity = parentAsteroid.Rb.linearVelocity;
         Vector3 impactDirection = (projectileVelocity - baseVelocity).normalized;
 
         for (int i = 0; i < fragmentCount; i++)
@@ -592,7 +592,7 @@ public class AsteroidFragnetics : MonoBehaviour
                 Rigidbody rb = fragments[i].GetComponent<Rigidbody>();
                 if (rb != null)
                 {
-                    rb.velocity = velocities[i];
+                    rb.linearVelocity = velocities[i];
                     rb.angularVelocity = spins[i];
                 }
             }

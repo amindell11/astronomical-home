@@ -9,7 +9,7 @@ public class CameraFollow : MonoBehaviour
     [SerializeField] private LayerMask shipLayer;
 
     [Header("Movement")]
-    [SerializeField] private Vector3 offset = new Vector3(0, 0, -10f); // Keep camera back on Z axis
+    [SerializeField] private Vector3 offset = new Vector3(0, 0, -10f); // Offset expressed in GamePlane basis (x=Right, y=Forward, z=Normal)
     [SerializeField] [Min(0f)] private float smoothSpeed = 5f;         // Higher is snappier
 
     [Header("Zoom (Orthographic Size)")]
@@ -65,55 +65,73 @@ public class CameraFollow : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (_targets.Count == 0)
-        {
-            return;
-        }
+        if (_targets.Count == 0) return;
 
-        // --- Position & Zoom ---
-        Bounds bounds = GetTargetsBounds();
+        // -----------------------------------------------------------------
+        // 1. Compute bounds in GamePlane space (Right = X, Forward = Y)
+        GetPlaneBounds(out Vector2 min2D, out Vector2 max2D);
 
-        // Calculate the target orthographic size needed to fit all ships (before clamping)
-        float preferredSize = Mathf.Max(bounds.size.y * 0.5f, bounds.size.x * 0.5f / _cam.aspect) + padding;
-        float clampedSize = Mathf.Clamp(preferredSize, minZoom, maxZoom);
+        Vector2 center2D = (min2D + max2D) * 0.5f;
+        float   width    = max2D.x - min2D.x;
+        float   height   = max2D.y - min2D.y;
 
-        // Smooth zoom towards clamped target size
-        float newSize = Mathf.Lerp(_cam.orthographicSize, clampedSize, smoothSpeed * Time.unscaledDeltaTime);
+        // 2. Determine required orthographic size
+        float preferredSize = Mathf.Max(height * 0.5f, width * 0.5f / _cam.aspect) + padding;
+        float clampedSize   = Mathf.Clamp(preferredSize, minZoom, maxZoom);
+        float newSize       = Mathf.Lerp(_cam.orthographicSize, clampedSize, smoothSpeed * Time.unscaledDeltaTime);
 
-        // Start with centering on all ships
-        Vector3 desiredPosition = bounds.center + offset;
+        // 3. Desired camera position (center of targets + offset expressed in plane basis)
+        Vector3 worldCenter  = GamePlane.PlaneToWorld(center2D);
+        Vector3 worldOffset  = GamePlane.Right * offset.x + GamePlane.Forward * offset.y + GamePlane.Normal * offset.z;
+        Vector3 desiredPos   = worldCenter + worldOffset;
 
-        // Ensure player remains within view if present
+        // 4. Keep player within view (operate in plane space)
         if (_player != null)
         {
             float horizontalExtent = newSize * _cam.aspect;
-            float verticalExtent = newSize;
+            float verticalExtent   = newSize;
 
-            Vector3 toPlayer = _player.position - desiredPosition;
+            Vector3 toPlayerWorld  = _player.position - desiredPos;
+            Vector2 toPlayer2D     = new Vector2(Vector3.Dot(toPlayerWorld, GamePlane.Right),
+                                                 Vector3.Dot(toPlayerWorld, GamePlane.Forward));
 
-            // Shift along X if needed
-            if (Mathf.Abs(toPlayer.x) > horizontalExtent - padding)
+            if (Mathf.Abs(toPlayer2D.x) > horizontalExtent - padding)
             {
-                float shiftX = Mathf.Abs(toPlayer.x) - (horizontalExtent - padding);
-                desiredPosition.x += Mathf.Sign(toPlayer.x) * shiftX;
+                float shiftX = Mathf.Abs(toPlayer2D.x) - (horizontalExtent - padding);
+                desiredPos += GamePlane.Right * Mathf.Sign(toPlayer2D.x) * shiftX;
             }
 
-            // Shift along Y if needed
-            if (Mathf.Abs(toPlayer.y) > verticalExtent - padding)
+            if (Mathf.Abs(toPlayer2D.y) > verticalExtent - padding)
             {
-                float shiftY = Mathf.Abs(toPlayer.y) - (verticalExtent - padding);
-                desiredPosition.y += Mathf.Sign(toPlayer.y) * shiftY;
+                float shiftY = Mathf.Abs(toPlayer2D.y) - (verticalExtent - padding);
+                desiredPos += GamePlane.Forward * Mathf.Sign(toPlayer2D.y) * shiftY;
             }
         }
 
-        // Smoothly move camera towards the final desired position
-        transform.position = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed * Time.unscaledDeltaTime);
+        // 5. Smooth movement & zoom
+        transform.position      = Vector3.Lerp(transform.position, desiredPos, smoothSpeed * Time.unscaledDeltaTime);
+        _cam.orthographicSize   = newSize;
 
-        // Apply the new zoom
-        _cam.orthographicSize = newSize;
+        // 6. Ensure camera orientation follows the plane
+        transform.rotation = Quaternion.LookRotation(GamePlane.Normal, GamePlane.Forward);
     }
 
-    // Calculates an encapsulating bounds around all target transforms (in X/Y plane)
+    // ---------------------------------------------------------------------
+    // Helper: compute min/max bounds in plane coordinates
+    void GetPlaneBounds(out Vector2 min, out Vector2 max)
+    {
+        min = new Vector2(float.PositiveInfinity, float.PositiveInfinity);
+        max = new Vector2(float.NegativeInfinity, float.NegativeInfinity);
+
+        foreach (var t in _targets)
+        {
+            Vector2 p = GamePlane.WorldToPlane(t.position);
+            min = Vector2.Min(min, p);
+            max = Vector2.Max(max, p);
+        }
+    }
+
+    // Fallback world-space bounds (XY) used only for editor gizmos
     private Bounds GetTargetsBounds()
     {
         Bounds bounds = new Bounds(_targets[0].position, Vector3.zero);

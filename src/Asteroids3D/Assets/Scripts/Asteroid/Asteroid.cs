@@ -55,7 +55,7 @@ public class Asteroid : MonoBehaviour, IDamageable
         this.rb.mass = mass;
         transform.localScale = Vector3.one * scale;
 
-        rb.velocity = velocity;
+        rb.linearVelocity = velocity;
         rb.angularVelocity = angularVelocity;
         
         UpdateMeshCollider();
@@ -67,7 +67,7 @@ public class Asteroid : MonoBehaviour, IDamageable
 
     public void ResetAsteroid()
     {
-        rb.velocity = initialVelocity;
+        rb.linearVelocity = initialVelocity;
         rb.angularVelocity = initialAngularVelocity;
     }
     
@@ -151,7 +151,7 @@ public class Asteroid : MonoBehaviour, IDamageable
         if (rb != null)
         {
             Gizmos.color = Color.yellow;
-            Vector3 velocity = rb.velocity;
+            Vector3 velocity = rb.linearVelocity;
             Vector3 start = transform.position;
             Vector3 end = start + velocity.normalized * 2f;
             Gizmos.DrawLine(start, end);

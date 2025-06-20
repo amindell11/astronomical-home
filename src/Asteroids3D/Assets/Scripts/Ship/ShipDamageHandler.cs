@@ -12,23 +12,14 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
     public event Action<float, Vector3> OnDamaged;      // dmg, hitPoint
     public event Action<float, Vector3> OnShieldDamaged; // dmg, hitPoint when shield absorbs
 
-    // ------ Inspector ------
-    [Header("Health & Shield")]
-    [SerializeField] private float maxHealth  = 100f;
-    [SerializeField] private float maxShield  = 50f;
-    [SerializeField] private int   startingLives = 3;
-
-    [Header("Shield Regen")]
-    [Tooltip("Seconds after last damage before shield starts to regenerate")]
-    [SerializeField] private float shieldRegenDelay = 3f;
-    [Tooltip("Shield points regained per second")]
-    [SerializeField] private float shieldRegenRate  = 10f;
-
-    [Header("Death Visuals")]    
-    [SerializeField] private GameObject explosionPrefab;
-    [SerializeField] private AudioClip  explosionSound;
-    [SerializeField] private float      explosionVolume = 0.7f;
-    [SerializeField] private bool       isPlayerShip = false;
+    public float maxHealth;
+    public float maxShield;
+    public int   startingLives;
+    public float shieldRegenDelay;
+    public float shieldRegenRate;
+    public GameObject explosionPrefab;
+    public AudioClip  explosionSound;
+    public float explosionVolume;
 
     // ------ State ------
     private float currentHealth;
@@ -39,6 +30,9 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
     private ShipMovement shipMovement;
     private Rigidbody     rb;
 
+    public float CurrentHealth => currentHealth;
+    public float CurrentShield => currentShield;
+    public int   Lives => lives;
     // -----------------------------------------------------------
     void Awake()
     {
@@ -146,11 +140,28 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
             AudioSource.PlayClipAtPoint(explosionSound, transform.position, explosionVolume);
 
         // Notify game manager
-        if (isPlayerShip)
+       /* if (gameObject.CompareTag("Player"))
             GameManager.Instance?.HandlePlayerDeath(shipMovement);
-        else
+        else*/
             GameManager.Instance?.HandleEnemyDeath(shipMovement);
 
         gameObject.SetActive(false);
+    }
+
+    // Expose a config method for central Ship to push settings
+    public void ApplySettings(ShipSettings s)
+    {
+        if (s == null) return;
+
+        maxHealth       = s.maxHealth;
+        maxShield       = s.maxShield;
+        startingLives   = s.startingLives;
+        shieldRegenDelay= s.shieldRegenDelay;
+        shieldRegenRate = s.shieldRegenRate;
+        explosionPrefab = s.explosionPrefab;
+        explosionSound  = s.explosionSound;
+        explosionVolume = s.explosionVolume;
+
+        ResetAll();
     }
 } 

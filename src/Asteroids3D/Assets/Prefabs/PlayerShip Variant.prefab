@@ -84,6 +84,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 6050276188816482649}
+    - targetCorrespondingSourceObject: {fileID: 579888702181409527, guid: c3c15225cb3a8fd42a87c756c1d2d884,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8315805169928707279}
   m_SourcePrefab: {fileID: 100100000, guid: c3c15225cb3a8fd42a87c756c1d2d884, type: 3}
 --- !u!1 &1612458423059462366 stripped
 GameObject:
@@ -106,6 +110,14 @@ MonoBehaviour:
   useMouseDirection: 1
   showMouseGizmos: 1
   mouseGizmoScale: 3
+--- !u!81 &8315805169928707279
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1612458423059462366}
+  m_Enabled: 1
 --- !u!4 &4992310187223865330 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6567524228965887451, guid: c3c15225cb3a8fd42a87c756c1d2d884,

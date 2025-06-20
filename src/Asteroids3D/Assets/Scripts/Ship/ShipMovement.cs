@@ -79,29 +79,18 @@ public class ShipMovement : MonoBehaviour
             ForceVector = thrustV + strafeV;
         }
     }
-
-    // ------------- Inspector fields -------------
-    [Header("Reference Plane")]
-    [Tooltip("Transform that defines the plane the ship operates in. If null, uses world XY plane.")]
+    public float maxSpeed{get; private set;}
+    public float maxRotationSpeed;
+    public float forwardThrustForce;
+    public float reverseThrustForce;
+    public float maxStrafeForce;
+    public float minStrafeForce;
+    public float rotationThrustForce;
+    public float rotationDrag;
+    public float yawDeadzoneAngle;
+    public float maxBankAngle;
+    public float bankingSpeed;
     public Transform referencePlane;
-
-    [Header("Thrust Settings")]
-    [FormerlySerializedAs("thrustForce")] public float forwardThrustForce = 1200f;
-    public float reverseThrustForce = 600f;
-    public float maxSpeed    = 15f;
-
-    [Header("Rotation Settings")]
-    public float rotationThrustForce = 480f;
-    public float maxRotationSpeed    = 180f;
-    public float rotationDrag        = 0.95f;
-    [Tooltip("The angle in degrees inside which the ship will not try to yaw towards the target.")]
-    public float yawDeadzoneAngle    = 4f;
-
-    [Header("Banking Settings")]
-    public float maxBankAngle  = 45f;
-    public float bankingSpeed  = 5f;
-    public float maxStrafeForce= 800f;
-    public float minStrafeForce= 750f;
 
     [Header("Debug")]
     public bool enableDebugLogs = false;
@@ -117,12 +106,10 @@ public class ShipMovement : MonoBehaviour
 
     public ShipMovement2D Controller { get; private set; }
 
-    Vector3 cachedPlaneOrigin;
-    Vector3 cachedPlaneNormal;
-    Vector3 cachedPlaneForward;
-    Vector3 cachedPlaneRight;
 
-    float maxSpeedSquared;
+    // Latest kinematics snapshot
+    ShipKinematics _kin;
+    public ShipKinematics Kinematics => _kin;
 
     // Damage flash has moved to ShipHealth
 
@@ -130,16 +117,18 @@ public class ShipMovement : MonoBehaviour
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        rb.drag        = 0.2f;
-        rb.angularDrag = 0f;
+        rb.linearDamping        = 0.2f;
+        rb.angularDamping = 0f;
         rb.useGravity  = false;
 
         Controller = new ShipMovement2D(this);
-
-        maxSpeedSquared = maxSpeed * maxSpeed;
-
-        CachePlaneInfo();
+        referencePlane = GamePlane.Plane;
         SyncAngleFrom3D();
+    }
+
+    void Start()
+    {
+        rb.maxLinearVelocity = maxSpeed;
     }
 
     void FixedUpdate()
@@ -148,29 +137,29 @@ public class ShipMovement : MonoBehaviour
         Controller.Update(Time.fixedDeltaTime);
         ApplyForces();
         ApplyRotation();
-        ClampSpeed();
         ConstrainToPlane();
+
+        // Refresh kinematics snapshot for external consumers
+        _kin = new ShipKinematics(Controller.Position, Controller.Velocity, Controller.Angle);
     }
 
     // ----- Movement helpers (Sync, Apply, etc.) --------------------------
     void SyncStateFrom3D()
     {
-        Vector3 planeNormal = cachedPlaneNormal;
-        Vector3 planePos3D  = Vector3.ProjectOnPlane(transform.position - cachedPlaneOrigin, planeNormal);
-        Controller.Position = WorldToPlane(planePos3D);
-        Controller.Velocity = WorldToPlane(rb.velocity);
+        Controller.Position = GamePlane.WorldToPlane(transform.position);
+        Controller.Velocity = GamePlane.WorldToPlane(rb.linearVelocity);
     }
     void SyncAngleFrom3D()
     {
-        Vector3 planeNormal      = cachedPlaneNormal;
+        Vector3 planeNormal      = GamePlane.Normal;
         Vector3 projectedForward = Vector3.ProjectOnPlane(transform.up, planeNormal).normalized;
         if (projectedForward.sqrMagnitude > 0.01f)
         {
-            float ang = Vector3.SignedAngle(cachedPlaneForward, projectedForward, planeNormal);
+            float ang = Vector3.SignedAngle(GamePlane.Forward, projectedForward, planeNormal);
             Controller.Angle = ang < 0 ? ang + 360f : ang;
         }
     }
-    void ApplyForces()   => rb.AddForce(PlaneToWorld(Controller.ForceVector));
+    void ApplyForces()   => rb.AddForce(GamePlane.PlaneVectorToWorld(Controller.ForceVector));
     void ApplyRotation()
     {
         q_yaw  = Quaternion.AngleAxis(Controller.Angle, Vector3.forward);
@@ -179,45 +168,17 @@ public class ShipMovement : MonoBehaviour
         q_bank = Quaternion.Lerp(q_bank, q_targetBank, bankingSpeed * Time.fixedDeltaTime);
         transform.rotation = (referencePlane ? referencePlane.rotation : Quaternion.identity) * q_yaw * q_bank;
     }
-    void ClampSpeed()
-    {
-        if (rb.velocity.sqrMagnitude > maxSpeedSquared) rb.velocity = rb.velocity.normalized * maxSpeed;
-    }
     void ConstrainToPlane()
     {
-        Vector3 n = cachedPlaneNormal;
-        float d   = Vector3.Dot(transform.position - cachedPlaneOrigin, n);
+        Vector3 n = GamePlane.Normal;
+        float d   = Vector3.Dot(transform.position - GamePlane.Origin, n);
         transform.position -= n * d;
-        rb.velocity = Vector3.ProjectOnPlane(rb.velocity, n);
+        rb.linearVelocity = Vector3.ProjectOnPlane(rb.linearVelocity, n);
     }
-
-    // ----- Coordinate helpers -------------------------------------------
-    public Vector3 GetPlaneOrigin()  => referencePlane ? referencePlane.position : Vector3.zero;
-    public Vector3 GetPlaneForward() => referencePlane ? referencePlane.up       : Vector3.up;
-    public Vector3 GetPlaneRight()   => referencePlane ? referencePlane.right    : Vector3.right;
-    public Vector3 GetPlaneNormal()  => referencePlane ? referencePlane.forward  : Vector3.forward;
-
-    public Vector2 WorldToPlane(Vector3 w)
-    {
-        return new Vector2(Vector3.Dot(w, cachedPlaneRight), Vector3.Dot(w, cachedPlaneForward));
-    }
-    public Vector3 PlaneToWorld(Vector2 p)
-    {
-        return cachedPlaneRight * p.x + cachedPlaneForward * p.y;
-    }
-
-    void CachePlaneInfo()
-    {
-        cachedPlaneOrigin  = GetPlaneOrigin();
-        cachedPlaneNormal  = GetPlaneNormal();
-        cachedPlaneForward = GetPlaneForward();
-        cachedPlaneRight   = GetPlaneRight();
-    }
-
     // ---------- Utility API ----------
     public void ResetShip()
     {
-        rb.velocity        = Vector3.zero;
+        rb.linearVelocity        = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
         Controller.Velocity = Vector2.zero;
     }
@@ -245,4 +206,37 @@ public class ShipMovement : MonoBehaviour
     }
 #endif
 
+    // ---------------- 2-D Kinematics helpers (guidance pipeline) ----------------
+    public Vector2 Position2D => Controller != null ? Controller.Position : Vector2.zero;
+    public Vector2 Velocity2D => Controller != null ? Controller.Velocity : Vector2.zero;
+    public Vector2 Forward2D
+    {
+        get
+        {
+            float a = Controller != null ? Controller.Angle * Mathf.Deg2Rad : 0f;
+            return new Vector2(-Mathf.Sin(a), Mathf.Cos(a));
+        }
+    }
+
+    // ---------------- Settings API ----------------
+    /// <summary>
+    /// Updates this movement component's tunable parameters from a ShipSettings asset.
+    /// Call once at startup or whenever the asset changes.
+    /// </summary>
+    public void ApplySettings(ShipSettings s)
+    {
+        if (s == null) return;
+
+        forwardThrustForce   = s.forwardAcceleration;
+        reverseThrustForce   = s.reverseAcceleration;
+        maxSpeed             = s.maxSpeed;
+        maxRotationSpeed     = s.maxRotationSpeed;
+        rotationThrustForce  = s.rotationThrustForce;
+        rotationDrag         = s.rotationDrag;
+        yawDeadzoneAngle     = s.yawDeadzoneAngle;
+        maxBankAngle         = s.maxBankAngle;
+        bankingSpeed         = s.bankingSpeed;
+        minStrafeForce       = s.minStrafeForce;
+        maxStrafeForce       = s.maxStrafeForce;
+    }
 } 

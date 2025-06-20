@@ -1,8 +1,9 @@
 using UnityEngine;
+using ShipControl;
 
 // Translates player input into commands for the Ship component.
 [RequireComponent(typeof(ShipMovement))]
-public class PlayerShipInput : MonoBehaviour
+public class PlayerShipInput : MonoBehaviour, IShipCommandSource
 {
     private ShipMovement ship;
     private ShipMovement.ShipMovement2D shipController;
@@ -21,6 +22,8 @@ public class PlayerShipInput : MonoBehaviour
     private Vector3 projectedDirection;
     private bool isMouseActive;
     
+    private ShipCommand _cmd;
+
     private void Start()
     {
         ship = GetComponent<ShipMovement>();
@@ -32,16 +35,13 @@ public class PlayerShipInput : MonoBehaviour
     private void Update()
     {
         // Read movement inputs
-        float thrustInput = Input.GetAxis("Vertical");
-        float strafeInput = Input.GetAxis("Horizontal");
-        shipController.SetControls(thrustInput, strafeInput);
+        _cmd.Thrust = Input.GetAxis("Vertical");
+        _cmd.Strafe = Input.GetAxis("Horizontal");
+
         HandleRotationInput();
 
-        // Handle shooting input
-        if (Input.GetButton("Fire1"))
-        {
-            laserGun?.Fire();
-        }
+        // Shooting
+        _cmd.Fire = Input.GetButton("Fire1");
     }
 
     public void HandleRotationInput()
@@ -49,32 +49,29 @@ public class PlayerShipInput : MonoBehaviour
         if (useMouseDirection)
         {
             bool wantsToRotate = Input.GetButton("Direction");
-            
+            _cmd.RotateToTarget = wantsToRotate;
+
             if (wantsToRotate)
             {
                 Vector3 mouseWorldPos = GetMouseWorldPosition();
                 directionToMouse = (mouseWorldPos - ship.transform.position).normalized;
-                
-                // Calculate angle relative to the ship's reference plane
                 float targetYaw = CalculateYawAngle(directionToMouse);
-                
-                shipController.SetRotationTarget(true, targetYaw);
+                _cmd.TargetAngle = targetYaw;
                 isMouseActive = true;
             }
             else
             {
-                shipController.SetRotationTarget(false, 0f);
+                _cmd.TargetAngle = 0f;
                 isMouseActive = false;
             }
         }
         else
         {
-            // Direct rotation input
             float rotationInput = Input.GetAxis("Rotation");
             bool shouldRotate = Mathf.Abs(rotationInput) > 0.2f;
-            float targetYaw = shipController.Angle + (rotationInput * 90f);
-            
-            shipController.SetRotationTarget(shouldRotate, targetYaw);
+            _cmd.RotateToTarget = shouldRotate;
+            float currentYaw = shipController.Angle;
+            _cmd.TargetAngle = currentYaw + (rotationInput * 90f);
             isMouseActive = false;
         }
     }
@@ -97,11 +94,11 @@ public class PlayerShipInput : MonoBehaviour
     
     private float CalculateYawAngle(Vector3 direction)
     {
-        Vector3 planeNormal = ship.GetPlaneNormal();
-        
+        Vector3 planeNormal = GamePlane.Normal;
+
         projectedDirection = Vector3.ProjectOnPlane(direction, planeNormal).normalized;
         
-        float angle = Vector3.SignedAngle(ship.GetPlaneForward(), projectedDirection, planeNormal);
+        float angle = Vector3.SignedAngle(GamePlane.Forward, projectedDirection, planeNormal);
         
         if (angle < 0) angle += 360f;
         
@@ -134,14 +131,23 @@ public class PlayerShipInput : MonoBehaviour
         
         // Draw plane normal for reference (blue)
         Gizmos.color = Color.blue;
-        Vector3 normalVector = ship.GetPlaneNormal() * mouseGizmoScale * 0.6f;
+        Vector3 normalVector = GamePlane.Normal * mouseGizmoScale * 0.6f;
         Gizmos.DrawRay(position, normalVector);
         Gizmos.DrawWireCube(position + normalVector, Vector3.one * 0.05f * mouseGizmoScale);
         
         // Draw plane forward direction (green)
         Gizmos.color = Color.green;
-        Vector3 forwardVector = ship.GetPlaneForward() * mouseGizmoScale * 0.7f;
+        Vector3 forwardVector = GamePlane.Forward * mouseGizmoScale * 0.7f;
         Gizmos.DrawRay(position, forwardVector);
         Gizmos.DrawWireCube(position + forwardVector, Vector3.one * 0.06f * mouseGizmoScale);
+    }
+
+    public int Priority => 100; // Player input overrides most others
+
+    public bool TryGetCommand(out ShipCommand cmd)
+    {
+        cmd = _cmd;
+        // Always provide command; central Ship may decide to ignore if zeroed
+        return true;
     }
 } 

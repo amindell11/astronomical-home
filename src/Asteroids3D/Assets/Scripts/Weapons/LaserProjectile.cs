@@ -12,7 +12,7 @@ public class LaserProjectile : ProjectileBase
     {
         base.OnEnable();
 
-        if (rb) rb.velocity = transform.up * laserSpeed;
+        if (rb) rb.linearVelocity = transform.up * laserSpeed;
 
         if (laserSound)
         {
@@ -27,7 +27,7 @@ public class LaserProjectile : ProjectileBase
         Shooter = null;
         if (rb)
         {
-            rb.velocity        = Vector3.zero;
+            rb.linearVelocity        = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
         }
         SimplePool<LaserProjectile>.Release(this);
