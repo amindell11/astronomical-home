@@ -184,7 +184,7 @@ GameObject:
   - component: {fileID: 8357437974923976824}
   - component: {fileID: 1820339427924761457}
   - component: {fileID: 247553500522101613}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Mesh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -303,7 +303,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6789276593053200670}
   - component: {fileID: 6096710645051560555}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Thruster
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -357,7 +357,7 @@ GameObject:
   - component: {fileID: 7908070308521351556}
   - component: {fileID: 6555796425484749239}
   - component: {fileID: 9007586153311571836}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: ThrustSmall (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5262,7 +5262,7 @@ GameObject:
   - component: {fileID: 3353870800793152205}
   - component: {fileID: 7901270817641457110}
   - component: {fileID: 6048132013872841335}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: ThrustMain (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10168,7 +10168,7 @@ GameObject:
   - component: {fileID: 8268499170915412722}
   - component: {fileID: 1362924336975463083}
   - component: {fileID: 3456535400437168725}
-  m_Layer: 7
+  m_Layer: 5
   m_Name: ShieldRing
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10289,7 +10289,7 @@ GameObject:
   - component: {fileID: 2190703294584699733}
   - component: {fileID: 2552239784097213118}
   - component: {fileID: 1836539570398008939}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: ThrustMain
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -15195,7 +15195,7 @@ GameObject:
   - component: {fileID: 7628366985414171717}
   - component: {fileID: 628628324230272385}
   - component: {fileID: 6565058905238873752}
-  m_Layer: 7
+  m_Layer: 5
   m_Name: Shield
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -15296,7 +15296,7 @@ GameObject:
   - component: {fileID: 4802554730789362827}
   - component: {fileID: 4499417962538899150}
   - component: {fileID: 4260505636151996070}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: ThrustSmall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -20201,7 +20201,7 @@ GameObject:
   - component: {fileID: 729968143781624225}
   - component: {fileID: 5361409938330929094}
   - component: {fileID: 6171641636850745658}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: ThrustLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -20322,7 +20322,7 @@ GameObject:
   - component: {fileID: 1868016729440535283}
   - component: {fileID: 7640066412663793303}
   - component: {fileID: 1629232893415602005}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Reactor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -25228,6 +25228,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: LaserGun
+      objectReference: {fileID: 0}
+    - target: {fileID: 833844591557823207, guid: 6b9f7584524aea1439de28cef97b66d0,
+        type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 833844591557823207, guid: 6b9f7584524aea1439de28cef97b66d0,
         type: 3}

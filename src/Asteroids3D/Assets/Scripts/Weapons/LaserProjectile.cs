@@ -32,8 +32,4 @@ public class LaserProjectile : ProjectileBase
         }
         SimplePool<LaserProjectile>.Release(this);
     }
-    protected override void OnHit(IDamageable other)
-    {
-        RLog.Log("Laser hit "+other+" Shooter="+Shooter);
-    }
 } 

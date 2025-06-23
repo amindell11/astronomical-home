@@ -147,14 +147,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83bad26d27386f94f8db625f8ee84ea2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 5
+  damage: 35
   maxDistance: 1000
   hitEffect: {fileID: 0}
   mass: 0.1
   homingSpeed: 20
-  homingTurnRate: 90
+  homingTurnRate: 120
   explosionRadius: 3
-  explosionDamage: 60
+  splashDamage: 15
   explosionPrefab: {fileID: 0}
+  damageLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
   initialSpeed: 15
   acceleration: 40
+  impactForceMultiplier: 200

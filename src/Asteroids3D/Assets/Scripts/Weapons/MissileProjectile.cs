@@ -12,8 +12,9 @@ public class MissileProjectile : ProjectileBase
 
     [Header("Explosion")]    
     [SerializeField] private float   explosionRadius  = 3f;
-    [SerializeField] private float   explosionDamage  = 60f;
+    [SerializeField] private float splashDamage = 5f;
     [SerializeField] private GameObject explosionPrefab;
+    [SerializeField] private LayerMask damageLayerMask = -1; // Default to all layers, configured in inspector
 
     [Header("Motion")]
     [Tooltip("Initial launch speed in units/sec.")]
@@ -22,12 +23,24 @@ public class MissileProjectile : ProjectileBase
     [Tooltip("Continuous forward acceleration in units/sec^2 applied every FixedUpdate.")]
     [SerializeField] private float acceleration  = 40f;
 
+    [Tooltip("Force multiplier applied to the target on impact.")]
+    [SerializeField] private float impactForceMultiplier = 10f;
+
     // Assigned by launcher
     private Transform target;
     public void SetTarget(Transform tgt) => target = tgt;
 
     // Pre-allocated buffer for explosion overlap queries (Optimization #3)
     private static readonly Collider[] explosionHitBuffer = new Collider[64];
+
+    private void Awake()
+    {
+        // Initialize damage layer mask to target ships and asteroids
+        if (damageLayerMask == -1) // If not configured in inspector, set default
+        {
+            damageLayerMask = (1 << LayerMask.NameToLayer("Ship")) | (1 << LayerMask.NameToLayer("Asteroid"));
+        }
+    }
 
     /* ───────────────────────── Unity callbacks ───────────────────────── */
     protected override void OnEnable()
@@ -81,11 +94,26 @@ public class MissileProjectile : ProjectileBase
 
     protected override void OnHit(IDamageable other)
     {
-        Explode();
+        base.OnHit(other);
+        
+     /*   // Apply impact force to the other object's rigidbody
+        if (rb && other?.gameObject)
+        {
+            Rigidbody otherRb = other.gameObject.GetComponent<Rigidbody>();
+            if (otherRb)
+            {
+                Vector3 forceDirection = rb.linearVelocity.normalized;
+                float forceMagnitude = rb.linearVelocity.magnitude * impactForceMultiplier;
+                otherRb.AddForce(forceDirection * forceMagnitude, ForceMode.Impulse);
+                RLog.Log($"Applied impact force to {other.gameObject.name}: {forceDirection * forceMagnitude}");
+            }
+        }*/
+        
+        Explode(other);
     }
 
     /* ───────────────────────── internal ───────────────────────── */
-    void Explode()
+    void Explode(IDamageable other)
     {
         // Spawn explosion VFX
         if (explosionPrefab)
@@ -98,16 +126,18 @@ public class MissileProjectile : ProjectileBase
         }
 
         // AoE damage using non-allocating overlap sphere (Optimization #3)
-        int hitCount = Physics.OverlapSphereNonAlloc(transform.position, explosionRadius, explosionHitBuffer);
+        int hitCount = Physics.OverlapSphereNonAlloc(transform.position, explosionRadius, explosionHitBuffer, damageLayerMask);
         for (int i = 0; i < hitCount; i++)
         {
             var hit = explosionHitBuffer[i];
             if (Shooter && hit.transform.root.gameObject == Shooter) continue;
-
+            if (hit.transform.gameObject == other.gameObject) continue;
+            
+            RLog.Log($"Splash Hit {hit.name}");
             IDamageable dmg = hit.GetComponentInParent<IDamageable>();
             if (dmg != null)
             {
-                dmg.TakeDamage(explosionDamage, mass, rb ? rb.linearVelocity : Vector3.zero, hit.ClosestPoint(transform.position));
+                dmg.TakeDamage(splashDamage, mass, rb ? rb.linearVelocity : Vector3.zero, hit.ClosestPoint(transform.position), gameObject);
             }
         }
 

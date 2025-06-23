@@ -252,7 +252,8 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
 
         // State label (would use Handles.Label if available)
         UnityEditor.Handles.color = stateColor;
-        UnityEditor.Handles.Label(origin + Vector3.up * 3f, $"Missile: {state}\nTimer: {lockTimer:F1}s");
+        float cooldownRemaining = Mathf.Max(0, nextFireTime - Time.time);
+        UnityEditor.Handles.Label(origin + Vector3.up * 3f, $"Missile: {state}\nTimer: {lockTimer:F1}s\nCooldown: {cooldownRemaining:F1}s");
     }
 #endif
 } 

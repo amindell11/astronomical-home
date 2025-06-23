@@ -75,6 +75,11 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: -0.15
       objectReference: {fileID: 0}
+    - target: {fileID: 2915261707296390090, guid: c3c15225cb3a8fd42a87c756c1d2d884,
+        type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3353870800793152205, guid: c3c15225cb3a8fd42a87c756c1d2d884,
         type: 3}
       propertyPath: m_LocalScale.x
@@ -94,6 +99,21 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalPosition.z
       value: -0.15
+      objectReference: {fileID: 0}
+    - target: {fileID: 3849108126043262516, guid: c3c15225cb3a8fd42a87c756c1d2d884,
+        type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4144346170191044602, guid: c3c15225cb3a8fd42a87c756c1d2d884,
+        type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4436865096917129818, guid: c3c15225cb3a8fd42a87c756c1d2d884,
+        type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4436865096917129818, guid: c3c15225cb3a8fd42a87c756c1d2d884,
         type: 3}
@@ -187,13 +207,28 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6618929899978573201, guid: c3c15225cb3a8fd42a87c756c1d2d884,
         type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6618929899978573201, guid: c3c15225cb3a8fd42a87c756c1d2d884,
+        type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7029871231819599707, guid: c3c15225cb3a8fd42a87c756c1d2d884,
+        type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7184882482910536223, guid: c3c15225cb3a8fd42a87c756c1d2d884,
         type: 3}
       propertyPath: m_Enabled
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7740648545466160441, guid: c3c15225cb3a8fd42a87c756c1d2d884,
+        type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7908070308521351556, guid: c3c15225cb3a8fd42a87c756c1d2d884,
         type: 3}
@@ -224,6 +259,11 @@ PrefabInstance:
         type: 3}
       propertyPath: maxRotationSpeed
       value: 170
+      objectReference: {fileID: 0}
+    - target: {fileID: 8754281217174574103, guid: c3c15225cb3a8fd42a87c756c1d2d884,
+        type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -269,3 +309,5 @@ MonoBehaviour:
   lineOfSightCacheFrames: 5
   angleToleranceBeforeRay: 15
   updateControl: 1
+  missileRange: 40
+  missileAngleTolerance: 15

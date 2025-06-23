@@ -115,7 +115,7 @@ public class Asteroid : MonoBehaviour, IDamageable, ITargetable
         }
     }
 
-    public void TakeDamage(float damage, float projectileMass, Vector3 projectileVelocity, Vector3 hitPoint)
+    public void TakeDamage(float damage, float projectileMass, Vector3 projectileVelocity, Vector3 hitPoint, GameObject damageSource)
     {       
         AsteroidFragnetics.Instance.CreateFragments(this, projectileMass, projectileVelocity, hitPoint);
         Explode();
@@ -186,7 +186,7 @@ public class Asteroid : MonoBehaviour, IDamageable, ITargetable
             shipMass,     shipVel,
             energyToDamageScale);
 
-        damageable.TakeDamage(dmg, CurrentMass, rb.linearVelocity, impactPoint);
+        damageable.TakeDamage(dmg, CurrentMass, rb.linearVelocity, impactPoint, gameObject);
     }
 
     private void LateUpdate()

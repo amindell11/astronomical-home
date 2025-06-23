@@ -61,8 +61,9 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
     }
 
     // -----------------------------------------------------------
-    public void TakeDamage(float damage, float projectileMass, Vector3 projectileVelocity, Vector3 hitPoint)
+    public void TakeDamage(float damage, float projectileMass, Vector3 projectileVelocity, Vector3 hitPoint, GameObject damageSource)
     {
+        RLog.Log($"Ship taking {damage} damage from {(damageSource ? damageSource.name : "unknown source")}");
         if (damage <= 0) return;
 
         lastDamageTime = Time.time;

@@ -24,7 +24,7 @@ public static class CollisionDamageUtility
     /// <param name="mass">Combined or impacting mass in kilograms.</param>
     /// <param name="relativeVelocity">Relative velocity between the two colliders.</param>
     /// <param name="energyToDamageScale">Experimental tuneable factor – e.g. 0.01f.</param>
-    /// <returns>Damage amount to feed into <see cref="IDamageable.TakeDamage(float, float, Vector3, Vector3)"/>.</returns>
+    /// <returns>Damage amount to feed into <see cref="IDamageable.TakeDamage(float, float, Vector3, Vector3, GameObject)"/>.</returns>
     public static float ComputeDamage(float mass, Vector3 relativeVelocity, float energyToDamageScale)
     {
         float energy = KineticEnergy(mass, relativeVelocity);

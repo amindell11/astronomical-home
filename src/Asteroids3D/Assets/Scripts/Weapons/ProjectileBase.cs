@@ -62,7 +62,14 @@ public abstract class ProjectileBase : MonoBehaviour
             ReturnToPool();
         }
     }
-    protected abstract void OnHit(IDamageable other);
+    protected virtual void OnHit(IDamageable other){
+        RLog.Log($"applying {damage} damage to {other.gameObject.name}");
+        
+        Vector3 impactVelocity = rb ? rb.linearVelocity : Vector3.zero;
+        other.TakeDamage(damage, mass, impactVelocity, transform.position, gameObject);
+        SpawnHitVFX();
+        ReturnToPool();
+    }
     protected virtual void OnTriggerEnter(Collider other)
     {
         // Ignore our own ship
@@ -73,12 +80,7 @@ public abstract class ProjectileBase : MonoBehaviour
         IDamageable dmg = other.GetComponentInParent<IDamageable>();
         if (dmg != null)
         {
-            RLog.Log($"applying {damage} damage to {other.gameObject.name}");
-            Vector3 impactVelocity = rb ? rb.linearVelocity : Vector3.zero;
-            dmg.TakeDamage(damage, mass, impactVelocity, transform.position);
             OnHit(dmg);
-            SpawnHitVFX();
-            ReturnToPool();
         }
     }
 
