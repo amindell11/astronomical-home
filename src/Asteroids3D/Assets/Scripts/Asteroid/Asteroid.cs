@@ -27,6 +27,7 @@ public class Asteroid : MonoBehaviour, IDamageable, ITargetable
     public float Density => density;
     public Rigidbody Rb => rb;
     public Mesh CurrentMesh => meshFilter.sharedMesh;
+    public AsteroidSpawner parentSpawner;
 
     // ITargetable Implementation
     public Transform TargetPoint => transform;
@@ -37,6 +38,7 @@ public class Asteroid : MonoBehaviour, IDamageable, ITargetable
     {
         rb = GetComponent<Rigidbody>();
         meshFilter = GetComponent<MeshFilter>();
+        RLog.Log("Asteroid Spawner for "+gameObject+":"+parentSpawner);
         rb.useGravity = false;
 
         // Find indicator in children (may be inactive)
@@ -52,7 +54,7 @@ public class Asteroid : MonoBehaviour, IDamageable, ITargetable
     )
     {
         this.meshFilter.mesh = mesh;
-        
+        parentSpawner = GetComponentInParent<AsteroidSpawner>();
         // Calculate volume from mesh bounds and scale
         if (mesh != null)
         {
@@ -143,14 +145,14 @@ public class Asteroid : MonoBehaviour, IDamageable, ITargetable
 
     private void CleanupAsteroid()
     {
-        AsteroidSpawner.Instance?.ReleaseAsteroid(gameObject);
+        parentSpawner.ReleaseAsteroid(gameObject);
     }
 
     private void OnTriggerExit(Collider other)
     {
         if (other.CompareTag("AsteroidCullingBoundary"))
         {
-            AsteroidSpawner.Instance.ReleaseAsteroid(gameObject);
+            parentSpawner.ReleaseAsteroid(gameObject);
         }
     }
     /*

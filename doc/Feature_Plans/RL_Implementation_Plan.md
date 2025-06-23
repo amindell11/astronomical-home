@@ -100,8 +100,8 @@ Start each tier once mean reward ≥ 0.3 for 100 % baseline tier-1 moving averag
 
 | # | Task | Owner | Notes |
 |---|------|-------|-------|
-| U-1 | Create `RLArbiter.cs` MonoBehaviour | — | Implements ML-Agents Agent; writes selected state to `BTStateBridge`. |
-| U-2 | Ensure `AIShipBehaviorStates` enum is public & serializable | — | Required for RL action mapping and blackboard writes. |
+| U-1 | Create `RLArbiter.cs` MonoBehaviour | ✅ **COMPLETE (Jun 22)** | Implements ML-Agents Agent; writes selected state to `BTStateBridge`. |
+| U-2 | Ensure `AIShipBehaviorStates` enum is public & serializable | ✅ **COMPLETE (Jun 22)** | Required for RL action mapping and blackboard writes. |
 | U-3 | Hook `AsteroidFieldManager` to EnvParams (`AsteroidDensity`) | — | `Academy.Instance.EnvironmentParameters`. |
 | U-4 | Implement training/eval scene (`RLTrainingArena.unity`) | — | Head-less, time-scaled ×10. |
 | U-5 | Build evaluation dashboard (Editor Window) | — | Plots win-rate vs checkpoint. |

@@ -65,7 +65,7 @@ Reward Shaping   = +0.01 * (desired micro-objective) per state
 ```
 
 ## 6. Milestones
-1. **M1 – New BT skeleton & selector (Day 2)**
+1. **M1 – New BT skeleton & selector ✅ COMPLETE (Jun 22)**
 2. **M2 – Patrol & Investigate functional (Day 4)**
 3. **M3 – Pursue, Strafe, Kite (Day 6)**
 4. **M4 – Defensive suite (Evade, Hide, Reposition) (Day 8)**

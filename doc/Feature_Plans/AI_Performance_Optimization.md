@@ -36,12 +36,12 @@ Use `NativeList` / pre-sized `NativeArray`s pooled centrally.
 
 ---
 
-## 3. Remove per-frame managed allocations (COMPLETE)
+## 3. Remove per-frame managed allocations ✅ **COMPLETE (Jun 22)**
 
-☑ Swap to `Physics.OverlapSphereNonAlloc` with pooled collider arrays.  
-☑ Replace string tag compares with layer masks or small enums.  
-☑ Turn the `navPoint` GameObject into a pure struct waypoint.  
-☑ Wrap `collidingFutures` (debug list) with `#if UNITY_EDITOR`.
+✅ Swap to `Physics.OverlapSphereNonAlloc` with pooled collider arrays.  
+✅ Replace string tag compares with layer masks or small enums.  
+✅ Turn the `navPoint` GameObject into a pure struct waypoint.  
+✅ Wrap `collidingFutures` (debug list) with `#if UNITY_EDITOR`.
 
 ---
 

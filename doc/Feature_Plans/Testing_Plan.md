@@ -27,12 +27,12 @@
 
 ## 3  Automated Test Matrix
 
-### 3.1  EditMode Suites  
+### 3.1  EditMode Suites ✅ **COMPLETE (Jun 22)**
 `Assets/Tests/EditMode/`
 
 | Target Class | Assertions |
 |--------------|-----------|
-| `CollisionDamageUtility` | • `KineticEnergy` closed-form vs analytical.<br/>• Symmetry of `RelativeKineticEnergy`.
+| ✅ `CollisionDamageUtility` | • `KineticEnergy` closed-form vs analytical.<br/>• Symmetry of `RelativeKineticEnergy`.
 | `PathPlanner` | • Returns zero desired-velocity when already at goal.<br/>• Avoidance vector pushes away from asteroids inside safety radius.
 | `VelocityPilot` | • Forward vs strafe command signs under opposing errors.<br/>• Rotation target within 0–360°.
 | `MissileLauncher` | • FSM transitions: Idle→Locking→Locked and cancel paths.<br/>• Cool-down enforcement of `fireRate`.

@@ -4,13 +4,13 @@ All tasks below distill and re-prioritise the individual Feature Plans so that t
 
 ---
 
-## **Sun 22 Jun – Foundations & Quick Wins**
-• Apply *General Optimizations* § 1-4 to remove compile errors, debug spam, and allocation spikes.  (Ref: [General_Optimizations](Feature_Plans/General_Optimizations.md))
-• Land *AI Performance* § 3 "Remove per-frame managed allocations" (string tags → layer masks, pooled arrays).  (Ref: [AI_Performance_Optimization](Feature_Plans/AI_Performance_Optimization.md))
-• Begin *Asteroid Environment* anchor decoupling (**C-1, C-2**): add `spawnAnchor`, editor-gate gizmos.  (Ref: [Asteroid_Environment_Update](Feature_Plans/Asteroid_Environment_Update.md))
-• Import ML-Agents 3.x & create stub `RLArbiter.cs` (**RL Plan U-1/U-2**).
-• Start *Behavior Upgrades* **M1**: migrate current Attack/Evade/Patrol sub-trees under temporary `FallbackSelector`.  (Ref: [Behavior_Upgrades](Feature_Plans/Behavior_Upgrades.md))
-• Kick-off *Testing Plan* § 3.1: scaffold EditMode test assembly & add first utility test (`CollisionDamageUtilityTests`).
+## **Sun 22 Jun – Foundations & Quick Wins** ✅ **COMPLETE**
+• ✅ Apply *General Optimizations* § 1-4 to remove compile errors, debug spam, and allocation spikes.  (Ref: [General_Optimizations](Feature_Plans/General_Optimizations.md))
+• ✅ Land *AI Performance* § 3 "Remove per-frame managed allocations" (string tags → layer masks, pooled arrays).  (Ref: [AI_Performance_Optimization](Feature_Plans/AI_Performance_Optimization.md))
+• ✅ Begin *Asteroid Environment* anchor decoupling (**C-1, C-2**): add `spawnAnchor`, editor-gate gizmos.  (Ref: [Asteroid_Environment_Update](Feature_Plans/Asteroid_Environment_Update.md))
+• ✅ Import ML-Agents 3.x & create stub `RLArbiter.cs` (**RL Plan U-1/U-2**).
+• ✅ Start *Behavior Upgrades* **M1**: migrate current Attack/Evade/Patrol sub-trees under temporary `FallbackSelector`.  (Ref: [Behavior_Upgrades](Feature_Plans/Behavior_Upgrades.md))
+• ✅ Kick-off *Testing Plan* § 3.1: scaffold EditMode test assembly & add first utility test (`CollisionDamageUtilityTests`).
 
 ## **Mon 23 Jun – Performance & Arena Infrastructure**
 • Implement *AI Performance* § 1 "Physics & Visibility Queries": prototype batched `RaycastCommand` for ships. 

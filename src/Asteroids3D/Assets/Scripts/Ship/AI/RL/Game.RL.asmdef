@@ -1,0 +1,29 @@
+{
+    "name": "Game.RL",
+    "rootNamespace": "",
+    "references": [
+        "Game.Core",
+        "Game.AI",
+        "Unity.ML-Agents",
+        "Unity.Behavior.Runtime",
+        "Unity.Behavior",
+        "Unity.Behavior.Authoring",
+        "Unity.Behavior.GraphFramework",
+        "SerializableGUID"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.ml-agents",
+            "expression": "1.0.0",
+            "define": "UNITY_ML_AGENTS"
+        }
+    ],
+    "noEngineReferences": false
+}

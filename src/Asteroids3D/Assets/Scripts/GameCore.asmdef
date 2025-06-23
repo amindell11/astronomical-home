@@ -1,6 +1,9 @@
 {
     "name": "Game.Core",
-    "references": [],
+    "rootNamespace": "",
+    "references": [
+        ""
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
@@ -10,4 +13,4 @@
     "defineConstraints": [],
     "versionDefines": [],
     "noEngineReferences": false
-} 
+}

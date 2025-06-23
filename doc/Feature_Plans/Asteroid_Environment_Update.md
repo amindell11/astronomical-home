@@ -25,8 +25,8 @@
 ## 3  Change List
 | ID | Area | File(s) | Change |
 |----|------|---------|--------|
-| C-1 | **Anchor decoupling** | `AsteroidFieldManager.cs` | Add serialized `spawnAnchor` + `SetAnchor()`. Replace `Camera.main` / `playerTransform` with `AnchorPos`. |
-| C-2 | **Editor safety** | same | Guard `Gizmos` & `Debug.Log` with `#if UNITY_EDITOR`. |
+| C-1 | **Anchor decoupling & Fixed-Arena Manager** ✅ **COMPLETE (Jun 22)** | `BaseFieldManager.cs` (new), `AsteroidFieldManager.cs`, `SectorFieldManager.cs` (new) | Extract common spawn/update logic into **BaseFieldManager**. New **SectorFieldManager** (training) spawns the entire asteroid sector on `Awake()`, uses a serialized `spawnAnchor`, and provides `SetAnchor(Transform)`. Existing **AsteroidFieldManager** now derives from the base class and keeps camera-driven spawning for open-world play. |
+| C-2 | **Editor safety** ✅ **COMPLETE (Jun 22)** | same | Guard `Gizmos` & `Debug.Log` with `#if UNITY_EDITOR`. |
 | C-3 | **Arena prefab** | `Assets/Prefabs/RLTrainingArena.prefab` | Contains AgentShip, EnemyShip, AsteroidFieldManager, Boundaries. All children local-space. |
 | C-4 | **Arena reset** | `ArenaReset.cs` (new) | Handles episode reset: clears asteroids, respawns ships, signals ML-Agents. |
 | C-5 | **Multi-arena spawner** | `ArenaSpawner.cs` (new) | Grid-instantiates N prefabs when `Application.isBatchMode`. |
@@ -118,7 +118,6 @@
 
 ### 8.2  Impact on Existing Change List
 
-* **C-1** gains an extra requirement: `SectorSpawner` must call `AsteroidFieldManager.SetAnchor()` with its player transform.
 * **C-3** arena prefab becomes the template for a sector – we'll duplicate it via `SectorSpawner` instead of `ArenaSpawner`.
 * **C-4** reset script must now handle sector wall penalties and curriculum parameters.
 
