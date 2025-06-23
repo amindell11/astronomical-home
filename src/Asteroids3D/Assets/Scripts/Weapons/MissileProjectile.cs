@@ -4,7 +4,7 @@ using System.Collections.Generic;
 /// <summary>
 /// Homing missile projectile that steers towards a target and explodes with AoE damage on impact.
 /// </summary>
-public class MissileProjectile : ProjectileBase
+public class MissileProjectile : ProjectileBase, IDamageable
 {
     [Header("Missile Homing")]
     [SerializeField] private float homingSpeed      = 15f;
@@ -112,6 +112,10 @@ public class MissileProjectile : ProjectileBase
         Explode(other);
     }
 
+    public void TakeDamage(float damage, float projectileMass, Vector3 projectileVelocity, Vector3 hitPoint, GameObject damageSource){
+        Explode(null);
+    }
+
     /* ───────────────────────── internal ───────────────────────── */
     void Explode(IDamageable other)
     {
@@ -131,7 +135,7 @@ public class MissileProjectile : ProjectileBase
         {
             var hit = explosionHitBuffer[i];
             if (Shooter && hit.transform.root.gameObject == Shooter) continue;
-            if (hit.transform.gameObject == other.gameObject) continue;
+            if (other!=null && hit.transform.gameObject == other.gameObject) continue;
             
             RLog.Log($"Splash Hit {hit.name}");
             IDamageable dmg = hit.GetComponentInParent<IDamageable>();

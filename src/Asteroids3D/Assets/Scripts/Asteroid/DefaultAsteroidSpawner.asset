@@ -12,7 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b17379bf45ec2bc40b100cb7238e20ba, type: 3}
   m_Name: DefaultAsteroidSpawner
   m_EditorClassIdentifier: 
-  asteroidMeshes: []
+  asteroidMeshes:
+  - {fileID: 4300002, guid: b9abf17990865d84d957cad76e0ef253, type: 3}
+  - {fileID: 4300002, guid: d4c53db4e0fa7574780103191e68af14, type: 3}
+  - {fileID: 4300002, guid: 127d9b96ff58d1b4b9065c4c5dd61bf7, type: 3}
+  - {fileID: 4300002, guid: ef9b76a518ed31849a8df7d663a884d7, type: 3}
+  - {fileID: 4300002, guid: 51285045b24057840b42c198e5646608, type: 3}
+  - {fileID: 3411358422082959462, guid: 75b67b4cd87807048a98c76e5f38195f, type: 3}
+  - {fileID: 7119021798599043449, guid: ebf1104f43b4e3648b610d6b2401b58b, type: 3}
+  - {fileID: 3092230747750993970, guid: 836cfe485691a78478ee794eb9674e97, type: 3}
+  - {fileID: -2966159164897359132, guid: ebc43c11b646d06489156d9f564899e8, type: 3}
+  - {fileID: 8798366265156884017, guid: fa76ef86a0c8e6e4f817ec7f96dcb131, type: 3}
   massScaleRange: {x: 0.5, y: 2}
   velocityRange: {x: 0.5, y: 1.5}
   spinRange: {x: -0.4, y: 0.4}

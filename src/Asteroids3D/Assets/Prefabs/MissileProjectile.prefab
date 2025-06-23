@@ -155,7 +155,8 @@ MonoBehaviour:
   homingTurnRate: 120
   explosionRadius: 3
   splashDamage: 15
-  explosionPrefab: {fileID: 0}
+  explosionPrefab: {fileID: 1828176872806910, guid: f2996a623a527754b92cee330859cd26,
+    type: 3}
   damageLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
