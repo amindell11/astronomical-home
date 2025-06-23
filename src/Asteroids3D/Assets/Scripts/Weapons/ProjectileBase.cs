@@ -63,6 +63,7 @@ public abstract class ProjectileBase : MonoBehaviour
         IDamageable dmg = other.GetComponentInParent<IDamageable>();
         if (dmg != null)
         {
+            Debug.Log($"applying {damage} damage to {other.gameObject.name}")
             Vector3 impactVelocity = rb ? rb.linearVelocity : Vector3.zero;
             dmg.TakeDamage(damage, mass, impactVelocity, transform.position);
             OnHit(dmg);

@@ -250,7 +250,7 @@ PrefabInstance:
     - target: {fileID: 5100611748941008240, guid: cade7246a6fb1b64e82fbb5aac398631,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7767409415942007610, guid: cade7246a6fb1b64e82fbb5aac398631,
         type: 3}
@@ -589,8 +589,9 @@ MonoBehaviour:
   offset: {x: 0, y: 0, z: -10}
   smoothSpeed: 5
   minZoom: 10
-  maxZoom: 15
+  maxZoom: 20
   padding: 5
+  playerPadding: 10
   refreshInterval: 0.5
 --- !u!1001 &348615634
 PrefabInstance:
@@ -1061,7 +1062,7 @@ PrefabInstance:
     - target: {fileID: 5100611748941008240, guid: cade7246a6fb1b64e82fbb5aac398631,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7767409415942007610, guid: cade7246a6fb1b64e82fbb5aac398631,
         type: 3}
@@ -2038,6 +2039,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Layer
       value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 8319585903989700153, guid: cade7246a6fb1b64e82fbb5aac398631,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:

@@ -143,7 +143,7 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
             AudioSource.PlayClipAtPoint(explosionSound, transform.position, explosionVolume);
 
         // Notify game manager
-       /* if (gameObject.CompareTag("Player"))
+        /*if (gameObject.CompareTag("Player"))
             GameManager.Instance?.HandlePlayerDeath(shipMovement);
         else*/
             GameManager.Instance?.HandleEnemyDeath(shipMovement);

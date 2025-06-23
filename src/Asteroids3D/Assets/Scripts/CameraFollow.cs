@@ -16,6 +16,8 @@ public class CameraFollow : MonoBehaviour
     [SerializeField] private float minZoom = 5f;
     [SerializeField] private float maxZoom = 50f;
     [SerializeField] private float padding = 2f; // Extra space around ships
+    [SerializeField] private float playerPadding = 5f; // Extra space around ships
+
 
     [Header("Performance")]
     [Tooltip("How often (seconds) to refresh the list of ship targets. 0 = every frame.")]
@@ -76,7 +78,7 @@ public class CameraFollow : MonoBehaviour
         float   height   = max2D.y - min2D.y;
 
         // 2. Determine required orthographic size
-        float preferredSize = Mathf.Max(height * 0.5f, width * 0.5f / _cam.aspect) + padding;
+        float preferredSize = Mathf.Max(height * 0.5f, width * 0.5f / _cam.aspect) + playerPadding;
         float clampedSize   = Mathf.Clamp(preferredSize, minZoom, maxZoom);
         float newSize       = Mathf.Lerp(_cam.orthographicSize, clampedSize, smoothSpeed * Time.unscaledDeltaTime);
 
@@ -95,15 +97,15 @@ public class CameraFollow : MonoBehaviour
             Vector2 toPlayer2D     = new Vector2(Vector3.Dot(toPlayerWorld, GamePlane.Right),
                                                  Vector3.Dot(toPlayerWorld, GamePlane.Forward));
 
-            if (Mathf.Abs(toPlayer2D.x) > horizontalExtent - padding)
+            if (Mathf.Abs(toPlayer2D.x) > horizontalExtent - playerPadding)
             {
-                float shiftX = Mathf.Abs(toPlayer2D.x) - (horizontalExtent - padding);
+                float shiftX = Mathf.Abs(toPlayer2D.x) - (horizontalExtent - playerPadding);
                 desiredPos += GamePlane.Right * Mathf.Sign(toPlayer2D.x) * shiftX;
             }
 
-            if (Mathf.Abs(toPlayer2D.y) > verticalExtent - padding)
+            if (Mathf.Abs(toPlayer2D.y) > verticalExtent - playerPadding)
             {
-                float shiftY = Mathf.Abs(toPlayer2D.y) - (verticalExtent - padding);
+                float shiftY = Mathf.Abs(toPlayer2D.y) - (verticalExtent - playerPadding);
                 desiredPos += GamePlane.Forward * Mathf.Sign(toPlayer2D.y) * shiftY;
             }
         }
@@ -135,6 +137,7 @@ public class CameraFollow : MonoBehaviour
     private Bounds GetTargetsBounds()
     {
         Bounds bounds = new Bounds(_targets[0].position, Vector3.zero);
+        Debug.Log("Camera Bounds targets:" +_targets.Count);
         for (int i = 1; i < _targets.Count; i++)
         {
             bounds.Encapsulate(_targets[i].position);

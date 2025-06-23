@@ -38,7 +38,7 @@ public class PlayerShipInput : MonoBehaviour, IShipCommandSource
     {
         // Read movement inputs
         _cmd.Thrust = Input.GetAxis("Vertical");
-        _cmd.Strafe = Input.GetAxis("Horizontal"
+        _cmd.Strafe = Input.GetAxis("Horizontal");
 
         HandleRotationInput();
 

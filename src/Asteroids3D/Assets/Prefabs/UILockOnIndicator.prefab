@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 409987167227143456}
   - component: {fileID: 1909242830012041073}
   - component: {fileID: 102649936865229178}
-  m_Layer: 7
+  m_Layer: 5
   m_Name: UILockOnIndicator
   m_TagString: Untagged
   m_Icon: {fileID: 0}
