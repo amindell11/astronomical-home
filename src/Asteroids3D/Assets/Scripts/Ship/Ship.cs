@@ -13,6 +13,10 @@ public class Ship : MonoBehaviour, ITargetable
     [Tooltip("ShipSettings asset that holds all tunable parameters.")]
     public ShipSettings settings;
 
+    [Header("Team Settings")]
+    [Tooltip("Team number for this ship. Ships with the same team number are considered friendly.")]
+    public int teamNumber = 0;
+
     /* ─────────── Cached Components ─────────── */
     public ShipMovement  movement{get; private set;}
     public LaserGun      laserGun{get; private set;}
@@ -23,6 +27,19 @@ public class Ship : MonoBehaviour, ITargetable
     public Transform TargetPoint => transform;
 
     public LockOnIndicator Indicator { get; private set; }
+
+    /* ─────────── Team System ─────────── */
+    /// <summary>
+    /// Determines if another ship is friendly to this ship.
+    /// Ships are considered friendly if they have the same team number.
+    /// </summary>
+    /// <param name="otherShip">The other ship to check</param>
+    /// <returns>True if the ships are on the same team, false otherwise</returns>
+    public bool IsFriendly(Ship otherShip)
+    {
+        if (otherShip == null) return false;
+        return this.teamNumber == otherShip.teamNumber;
+    }
 
     /* ────────────────────────────────────────── */
     void Awake()
