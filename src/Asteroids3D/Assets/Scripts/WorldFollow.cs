@@ -18,7 +18,7 @@ public class WorldFollow : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning("No target assigned to CameraFollow and no Player found!");
+                RLog.LogWarning("No target assigned to CameraFollow and no Player found!");
             }
         }
 

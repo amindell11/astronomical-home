@@ -1,10 +1,13 @@
 using UnityEngine;
 using ShipControl;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(ShipMovement))]
 [RequireComponent(typeof(ShipDamageHandler))]
 public class Ship : MonoBehaviour, ITargetable
 {
+    public static readonly List<Transform> ActiveShips = new();
+
     /* ─────────── Tunable Parameters ─────────── */
     [Header("Settings Asset")]
     [Tooltip("ShipSettings asset that holds all tunable parameters.")]
@@ -31,7 +34,7 @@ public class Ship : MonoBehaviour, ITargetable
 
         if (!settings)
         {
-            Debug.LogError($"{name}: ShipSettings asset reference missing – using runtime default values.");
+            RLog.LogError($"{name}: ShipSettings asset reference missing – using runtime default values.");
             settings = ScriptableObject.CreateInstance<ShipSettings>();
         }
 
@@ -40,6 +43,22 @@ public class Ship : MonoBehaviour, ITargetable
         damageHandler?.ApplySettings(settings);
 
         Indicator = GetComponentInChildren<LockOnIndicator>(true);
+    }
+
+    void OnEnable()
+    {
+        if (!ActiveShips.Contains(transform))
+            ActiveShips.Add(transform);
+    }
+
+    void OnDisable()
+    {
+        ActiveShips.Remove(transform);
+    }
+
+    void OnDestroy()
+    {
+        ActiveShips.Remove(transform);
     }
 
     void FixedUpdate()

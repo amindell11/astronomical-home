@@ -83,7 +83,9 @@ public static class PathPlanner
         Vector2 future = io.kin.pos + io.kin.vel * io.lookAheadTime;
         Vector2 push   = Vector2.zero;
         float   weight = 0f;
+#if UNITY_EDITOR
         List<Vector2> collidingFutures = null;
+#endif
 
         Vector2 segStart = io.kin.pos;
         Vector2 segEnd   = future;
@@ -116,8 +118,10 @@ public static class PathPlanner
                 push   += sep.normalized * w;
                 weight += w;
 
+#if UNITY_EDITOR
                 collidingFutures ??= new List<Vector2>();
                 collidingFutures.Add(rockFut);
+#endif
             }
         }
 
@@ -128,7 +132,11 @@ public static class PathPlanner
 
         Vector2 accel = desiredVel - io.kin.vel;
 
+#if UNITY_EDITOR
         var dbg = new DebugInfo(future, desired, avoid, accel, collidingFutures ?? new List<Vector2>());
+#else
+        var dbg = new DebugInfo(future, desired, avoid, accel, new List<Vector2>());
+#endif
         return new Output(desiredVel, dbg);
     }
 } 

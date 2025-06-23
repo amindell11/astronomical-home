@@ -26,21 +26,24 @@ public class MissileProjectile : ProjectileBase
     private Transform target;
     public void SetTarget(Transform tgt) => target = tgt;
 
+    // Pre-allocated buffer for explosion overlap queries (Optimization #3)
+    private static readonly Collider[] explosionHitBuffer = new Collider[64];
+
     /* ───────────────────────── Unity callbacks ───────────────────────── */
     protected override void OnEnable()
     {
-        Debug.Log($"MissileProjectile OnEnable at position: {transform.position}, rotation: {transform.rotation}");
+        RLog.Log($"MissileProjectile OnEnable at position: {transform.position}, rotation: {transform.rotation}");
         base.OnEnable();
         // Initial straight velocity
         if (rb) 
         {
             rb.linearVelocity = transform.up * initialSpeed;
-            Debug.Log($"Missile initial velocity set to: {rb.linearVelocity}, speed: {initialSpeed}");
+            RLog.Log($"Missile initial velocity set to: {rb.linearVelocity}, speed: {initialSpeed}");
             rb.maxLinearVelocity = homingSpeed;
         }
         else
         {
-            Debug.LogError("MissileProjectile: No Rigidbody found!");
+            RLog.LogError("MissileProjectile: No Rigidbody found!");
         }
     }
     
@@ -51,7 +54,7 @@ public class MissileProjectile : ProjectileBase
         float distanceTraveled = Vector3.Distance(startPosition, transform.position);
         if (distanceTraveled > maxDistance * 0.9f) // Warn when getting close to limit
         {
-            Debug.LogWarning($"Missile approaching max distance: {distanceTraveled}/{maxDistance}");
+            RLog.LogWarning($"Missile approaching max distance: {distanceTraveled}/{maxDistance}");
         }
         
         base.FixedUpdate();
@@ -94,10 +97,11 @@ public class MissileProjectile : ProjectileBase
                 Instantiate(explosionPrefab, transform.position, Quaternion.identity);
         }
 
-        // AoE damage
-        Collider[] hits = Physics.OverlapSphere(transform.position, explosionRadius);
-        foreach (var hit in hits)
+        // AoE damage using non-allocating overlap sphere (Optimization #3)
+        int hitCount = Physics.OverlapSphereNonAlloc(transform.position, explosionRadius, explosionHitBuffer);
+        for (int i = 0; i < hitCount; i++)
         {
+            var hit = explosionHitBuffer[i];
             if (Shooter && hit.transform.root.gameObject == Shooter) continue;
 
             IDamageable dmg = hit.GetComponentInParent<IDamageable>();
@@ -113,7 +117,7 @@ public class MissileProjectile : ProjectileBase
     /* ───────────────────────── pooling ───────────────────────── */
     protected override void ReturnToPool()
     {
-        Debug.Log($"MissileProjectile returning to pool at position: {transform.position}");
+        RLog.Log($"MissileProjectile returning to pool at position: {transform.position}");
         target = null;
         Shooter = null;
 

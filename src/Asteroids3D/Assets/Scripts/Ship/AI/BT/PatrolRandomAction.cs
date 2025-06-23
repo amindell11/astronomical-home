@@ -22,7 +22,7 @@ public partial class PatrolRandomAction : Action
         aiInput = GameObject.GetComponent<AIShipInput>();
         if (aiInput == null)
         {
-            Debug.LogError($"PatrolRandomAction: No AIShipInput component found on {GameObject.name}");
+            RLog.LogError($"PatrolRandomAction: No AIShipInput component found on {GameObject.name}");
             return Status.Failure;
         }
 
@@ -81,7 +81,7 @@ public partial class PatrolRandomAction : Action
             Vector3 planePoint  = GamePlane.Origin + GamePlane.ProjectOntoPlane(worldPoint);
 
             currentTarget = planePoint;
-            Debug.Log($"PatrolRandomAction: New SCREEN patrol target set at {currentTarget}");
+            RLog.Log($"PatrolRandomAction: New SCREEN patrol target set at {currentTarget}");
         }
         else
         {
@@ -90,7 +90,7 @@ public partial class PatrolRandomAction : Action
             float randomDistance    = UnityEngine.Random.Range(patrolRadius * 0.3f, patrolRadius);
             Vector3 randomOffset    = GamePlane.ProjectOntoPlane(UnityEngine.Random.insideUnitSphere).normalized * randomDistance;
             currentTarget           = currentPos + randomOffset;
-            Debug.Log($"PatrolRandomAction: New RADIAL patrol target set at {currentTarget} (distance: {randomDistance:F1})");
+            RLog.Log($"PatrolRandomAction: New RADIAL patrol target set at {currentTarget} (distance: {randomDistance:F1})");
         }
 
         hasTarget = true;

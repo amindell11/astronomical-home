@@ -59,10 +59,24 @@ public class AIShipInput : MonoBehaviour
     // Smoothed control state
     float smoothThrust, smoothStrafe;
 
-    // Per-instance hidden Transform reused for point-goal navigation
-    Transform navPoint;
-    ShipMovement targetShip;
-    Vector2 navPointVelocity;
+    // Navigation target system - completely refactored to use waypoint struct (Optimization #3)
+    private enum TargetType
+    {
+        None,
+        Transform,
+        Waypoint
+    }
+    private TargetType targetType = TargetType.None;
+    private Transform targetTransform;
+
+    // Pure struct waypoint to replace GameObject (Optimization #3)
+    private struct Waypoint
+    {
+        public Vector3 position;
+        public Vector2 velocity;
+        public bool isValid;
+    }
+    private Waypoint navWaypoint;
 
     float dbgThrust, dbgStrafe;
 
@@ -75,19 +89,14 @@ public class AIShipInput : MonoBehaviour
         missileLauncher = GetComponentInChildren<MissileLauncher>();
         mainCam = Camera.main;
 
-        // Pre-create reusable nav-point transform for point-based navigation
-        if (navPoint == null)
-        {
-            var go = new GameObject($"{name}_NavPoint");
-            go.hideFlags = HideFlags.HideAndDontSave;
-            navPoint = go.transform;
-        }
+        // Initialize waypoint struct (Optimization #3)
+        navWaypoint = new Waypoint { isValid = false };
     }
 
     /* ────────────────────────────────────────────────────────── */
     void FixedUpdate()
     {
-        if (!target)
+        if (targetType == TargetType.None)
         {
             ship.Controller.SetControls(0, 0);
             ship.Controller.SetRotationTarget(false, ship.Controller.Angle);
@@ -112,13 +121,14 @@ public class AIShipInput : MonoBehaviour
     /* ── Enhanced weapon logic (laser + missile) ─────── */
     public void HandleShooting()
     {
-        if (!target || !mainCam) return;
+        if (targetType == TargetType.None || !mainCam) return;
 
+        Vector3 targetPos = GetTargetPosition();
         Vector3 vp = mainCam.WorldToViewportPoint(transform.position);
         if (!(vp.z > 0 && vp.x is >= 0 and <= 1 && vp.y is >= 0 and <= 1)) return;
 
         Vector3 firePos = transform.position;
-        Vector3 dir     = target.position - firePos;
+        Vector3 dir     = targetPos - firePos;
         float   dist    = dir.magnitude;
         float   angle   = Vector3.Angle(transform.up, dir);
 
@@ -135,7 +145,7 @@ public class AIShipInput : MonoBehaviour
         if (angle > missileAngleTolerance) return false;
 
         // For missiles, we need to check if target is ITargetable
-        ITargetable targetable = target.GetComponentInParent<ITargetable>();
+        ITargetable targetable = GetTargetTransform()?.GetComponentInParent<ITargetable>();
         if (targetable == null) return false;
 
         // Try to start lock or fire if already locking/locked
@@ -171,9 +181,10 @@ public class AIShipInput : MonoBehaviour
     bool LineOfSightOK(Vector3 firePos, Vector3 dir, float dist, float angle)
     {
         int f = Time.frameCount;
+        Vector3 targetPos = GetTargetPosition();
         bool need = (losFrame < 0 || f - losFrame >= lineOfSightCacheFrames)
                     || Vector3.Distance(firePos, lastRayPos) > 1f
-                    || Vector3.Distance(target.position, lastTgtPos) > 1f;
+                    || Vector3.Distance(targetPos, lastTgtPos) > 1f;
 
         if (angle > angleToleranceBeforeRay) return false;
 
@@ -183,11 +194,11 @@ public class AIShipInput : MonoBehaviour
                                          dist, lineOfSightMask)
                          || Physics.Raycast(firePos, dir.normalized,
                                             out var hit, dist, lineOfSightMask)
-                            && hit.transform.root == target.root;
+                            && hit.transform.root == GetTargetTransform()?.root;
 
             losFrame   = f;
             lastRayPos = firePos;
-            lastTgtPos = target.position;
+            lastTgtPos = targetPos;
         }
         return cachedLOS;
     }
@@ -197,26 +208,22 @@ public class AIShipInput : MonoBehaviour
     /// <summary>Sets a Transform target for navigation and optionally toggles avoidance.</summary>
     public void SetNavigationTarget(Transform tgt, bool avoid)
     {
-        target = tgt;
+        targetTransform = tgt;
+        targetType = tgt != null ? TargetType.Transform : TargetType.None;
         enableAvoidance = avoid;
-        targetShip = tgt ? tgt.GetComponent<ShipMovement>() : null; // track if target is a ship
     }
 
     /// <summary>Sets an arbitrary world-space point as the navigation goal.</summary>
-    /// <remarks>Creates a hidden Transform once per ship and reuses it.</remarks>
+    /// <remarks>Uses pure struct waypoint instead of GameObject (Optimization #3).</remarks>
     public void SetNavigationPoint(Vector3 point, bool avoid=false, Vector3? velocity=null)
     {
-        if (navPoint == null)
-        {
-            var go = new GameObject($"{name}_NavPoint");
-            go.hideFlags = HideFlags.HideAndDontSave;
-            navPoint = go.transform;
-        }
-
-        navPoint.position = point;
-        navPointVelocity = velocity ?? Vector2.zero;
-        target = navPoint;
-        targetShip = null;
+        // Update waypoint struct instead of creating GameObject (Optimization #3)
+        navWaypoint.position = point;
+        navWaypoint.velocity = velocity ?? Vector2.zero;
+        navWaypoint.isValid = true;
+        
+        targetType = TargetType.Waypoint;
+        targetTransform = null;
         enableAvoidance = avoid;
     }
 
@@ -229,9 +236,10 @@ public class AIShipInput : MonoBehaviour
     /// <summary>Convenience wrapper for BT nodes that specifically want to fire missiles.</summary>
     public void TryFireMissile()
     {
-        if (!missileLauncher || !target) return;
+        if (!missileLauncher || targetType == TargetType.None) return;
         
-        Vector3 dir = target.position - transform.position;
+        Vector3 targetPos = GetTargetPosition();
+        Vector3 dir = targetPos - transform.position;
         float dist = dir.magnitude;
         float angle = Vector3.Angle(transform.up, dir);
         
@@ -254,9 +262,43 @@ public class AIShipInput : MonoBehaviour
     /// <summary>Sets a ship as the navigation/pursuit target and optionally enables avoidance.</summary>
     public void SetShipTarget(ShipMovement tgtShip, bool avoid)
     {
-        targetShip = tgtShip;
-        target     = tgtShip ? tgtShip.transform : null;
+        targetTransform = tgtShip ? tgtShip.transform : null;
+        targetType = tgtShip != null ? TargetType.Transform : TargetType.None;
         enableAvoidance = avoid;
+    }
+
+    // Helper methods to get target information
+    private Vector3 GetTargetPosition()
+    {
+        switch (targetType)
+        {
+            case TargetType.Transform:
+                return targetTransform != null ? targetTransform.position : transform.position;
+            case TargetType.Waypoint:
+                return navWaypoint.isValid ? navWaypoint.position : transform.position;
+            default:
+                return transform.position;
+        }
+    }
+
+    private Transform GetTargetTransform()
+    {
+        return targetType == TargetType.Transform ? targetTransform : null;
+    }
+
+    private Vector2 GetTargetVelocity()
+    {
+        switch (targetType)
+        {
+            case TargetType.Transform:
+                // Get ShipMovement component directly from targetTransform (eliminates targetShip field)
+                var targetShipMovement = targetTransform?.GetComponent<ShipMovement>();
+                return targetShipMovement ? targetShipMovement.Velocity2D : Vector2.zero;
+            case TargetType.Waypoint:
+                return navWaypoint.isValid ? navWaypoint.velocity : Vector2.zero;
+            default:
+                return Vector2.zero;
+        }
     }
 
     // --------------------------------------------------------------
@@ -296,7 +338,7 @@ public class AIShipInput : MonoBehaviour
 
     VelocityPilot.Output ComputeNavigation(ShipKinematics kin, float currentMaxSpeed, int obstacleCount)
     {
-        Vector2 goal2D = GamePlane.WorldToPlane(target.position);
+        Vector2 goal2D = GamePlane.WorldToPlane(GetTargetPosition());
         dbgGoal2D = goal2D;
 
         var ppIn = new PathPlanner.Input(kin, goal2D, avoidRadius, arriveRadius, currentMaxSpeed,
@@ -306,8 +348,8 @@ public class AIShipInput : MonoBehaviour
         var ppOut = PathPlanner.Compute(ppIn);
         dbgPath = ppOut.dbg;
 
-        // Velocity of the waypoint (if it's a ship)
-        Vector2 wpVel = targetShip ? targetShip.Velocity2D : GamePlane.WorldToPlane(navPointVelocity);
+        // Velocity of the waypoint (if it's a ship or waypoint)
+        Vector2 wpVel = GetTargetVelocity();
 
         // Provide PathPlanner's desired velocity so we still benefit from avoidance, but include waypoint velocity for braking.
         var vpIn = new VelocityPilot.Input(kin, goal2D, ppOut.desiredVelocity, wpVel, currentMaxSpeed);
@@ -341,10 +383,10 @@ public class AIShipInput : MonoBehaviour
     #if UNITY_EDITOR
     void OnDrawGizmos()
     {
-        if (target)
+        if (targetType != TargetType.None)
         {
             Gizmos.color = Color.yellow;
-            Gizmos.DrawLine(transform.position, target.position);
+            Gizmos.DrawLine(transform.position, GetTargetPosition());
         }
 
         // Visualise planner internals when selected in the editor

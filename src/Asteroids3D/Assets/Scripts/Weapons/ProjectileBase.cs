@@ -16,6 +16,10 @@ public abstract class ProjectileBase : MonoBehaviour
     protected Vector3   startPosition;
     protected Vector3   referencePlaneNormal;
 
+    // Cache ReferencePlane info once to avoid per-projectile lookups (Optimization #3)
+    private static Transform s_cachedPlaneTransform;
+    private static Vector3   s_cachedPlaneNormal;
+
     /// <summary>The GameObject that spawned/fired this projectile.  Used to ignore self-hits.</summary>
     public GameObject Shooter { get; set; }
 
@@ -23,8 +27,16 @@ public abstract class ProjectileBase : MonoBehaviour
     protected virtual void OnEnable()
     {
         // Cache plane normal (assumes there is exactly one tagged object)
-        var refPlane = GameObject.FindGameObjectWithTag("ReferencePlane");
-        if (refPlane) referencePlaneNormal = refPlane.transform.forward;
+        if (s_cachedPlaneTransform == null)
+        {
+            var refPlane = GameObject.FindGameObjectWithTag("ReferencePlane");
+            if (refPlane)
+            {
+                s_cachedPlaneTransform = refPlane.transform;
+                s_cachedPlaneNormal    = s_cachedPlaneTransform.forward;
+            }
+        }
+        referencePlaneNormal = s_cachedPlaneNormal;
 
         startPosition = transform.position;
         rb            = GetComponent<Rigidbody>();
@@ -56,14 +68,12 @@ public abstract class ProjectileBase : MonoBehaviour
         // Ignore our own ship
         if (Shooter && other.transform.root.gameObject == Shooter) return;
 
-#if UNITY_EDITOR
-        Debug.Log($"Projectile hit: {other.gameObject.name}");
-#endif
+        RLog.Log($"Projectile hit: {other.gameObject.name}");
         // Apply damage if possible
         IDamageable dmg = other.GetComponentInParent<IDamageable>();
         if (dmg != null)
         {
-            Debug.Log($"applying {damage} damage to {other.gameObject.name}")
+            RLog.Log($"applying {damage} damage to {other.gameObject.name}");
             Vector3 impactVelocity = rb ? rb.linearVelocity : Vector3.zero;
             dmg.TakeDamage(damage, mass, impactVelocity, transform.position);
             OnHit(dmg);

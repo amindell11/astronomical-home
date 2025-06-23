@@ -591,7 +591,6 @@ MonoBehaviour:
   minZoom: 10
   maxZoom: 20
   padding: 5
-  playerPadding: 10
   refreshInterval: 0.5
 --- !u!1001 &348615634
 PrefabInstance:
@@ -1062,7 +1061,7 @@ PrefabInstance:
     - target: {fileID: 5100611748941008240, guid: cade7246a6fb1b64e82fbb5aac398631,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7767409415942007610, guid: cade7246a6fb1b64e82fbb5aac398631,
         type: 3}
@@ -2003,7 +2002,7 @@ PrefabInstance:
     - target: {fileID: 5100611748941008240, guid: cade7246a6fb1b64e82fbb5aac398631,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7767409415942007610, guid: cade7246a6fb1b64e82fbb5aac398631,
         type: 3}

@@ -34,6 +34,6 @@ public class LaserProjectile : ProjectileBase
     }
     protected override void OnHit(IDamageable other)
     {
-        Debug.Log("Laser hit "+other+" Shooter="+Shooter);
+        RLog.Log("Laser hit "+other+" Shooter="+Shooter);
     }
 } 

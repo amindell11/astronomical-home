@@ -59,7 +59,7 @@ public class AsteroidSpawner : MonoBehaviour
         Asteroid asteroid = asteroidGO.GetComponent<Asteroid>();
         if (asteroid == null)
         {
-            Debug.LogError("Pooled object is missing Asteroid component.");
+            RLog.LogError("Pooled object is missing Asteroid component.");
             asteroidPool.Release(asteroidGO);
             return null;
         }
@@ -101,7 +101,7 @@ public class AsteroidSpawner : MonoBehaviour
     // --------- ObjectPool Callbacks ---------
     private GameObject CreatePooledAsteroid()
     {
-        Debug.Log("[Pool] Creating new pooled asteroid");
+        RLog.Log("[Pool] Creating new pooled asteroid");
         return Instantiate(asteroidPrefab, Vector3.zero, Quaternion.identity, transform.parent);
     }
 

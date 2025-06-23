@@ -52,7 +52,7 @@ public class GameManager : MonoBehaviour
         if (currentState == GameState.GameOver) return;
 
         currentState = GameState.GameOver;
-        Debug.Log("Player ship destroyed. Game Over!");
+        RLog.Log("Player ship destroyed. Game Over!");
         Invoke(nameof(RestartGame), restartDelay);
     }
     
@@ -63,7 +63,7 @@ public class GameManager : MonoBehaviour
     {
         if (currentState != GameState.Playing) return;
         
-        Debug.Log("Enemy ship destroyed. Scheduling respawn...");
+        RLog.Log("Enemy ship destroyed. Scheduling respawn...");
         IEnumerator respawnRoutine = WaitAndRespawn(enemyRespawnDelay, respawnShip);
         StartCoroutine(respawnRoutine);
     }
@@ -86,7 +86,7 @@ public class GameManager : MonoBehaviour
         Vector3 respawnPosition = GetRandomOffscreenPosition();
         respawnShip.transform.position = respawnPosition;
 
-        Debug.Log($"Enemy ship respawned at position: {respawnPosition}");
+        RLog.Log($"Enemy ship respawned at position: {respawnPosition}");
     }
     
     private Vector3 GetRandomOffscreenPosition()
@@ -97,7 +97,7 @@ public class GameManager : MonoBehaviour
             mainCamera = Camera.main;
             if (mainCamera == null)
             {
-                Debug.LogWarning("GameManager: No main camera found. Returning Vector3.zero for offscreen position.");
+                RLog.LogWarning("GameManager: No main camera found. Returning Vector3.zero for offscreen position.");
                 return Vector3.zero;
             }
         }
@@ -111,7 +111,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void RestartGame()
     {
-        Debug.Log("Restarting game...");
+        RLog.Log("Restarting game...");
         Scene currentScene = SceneManager.GetActiveScene();
         SceneManager.LoadScene(currentScene.buildIndex);
         currentState = GameState.Playing;

@@ -36,7 +36,7 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
         // Prevent initiating a new lock while the launcher is on cooldown so that
         // AI behaviour is consistent with player input (which is gated via Fire()).
         if (Time.time < nextFireTime) return false;
-        Debug.Log("TryStartLock: " + candidate);
+        RLog.Log("TryStartLock: " + candidate);
         if (candidate == null) return false;
         if (state != LockState.Idle) return false;
 
@@ -49,7 +49,7 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
     /// <summary>Abort any ongoing or acquired lock.</summary>
     public void CancelLock()
     {
-        Debug.Log("CancelLock");
+        RLog.Log("CancelLock");
         // Hide indicator on previous target (if any)
         if (currentTarget?.Indicator != null)
         {
@@ -108,7 +108,7 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
         lockTimer += Time.deltaTime;
         if (lockTimer >= lockOnTime)
         {
-            Debug.Log("Locking: " + currentTarget);
+            RLog.Log("Locking: " + currentTarget);
             state            = LockState.Locked;
             lockAcquiredTime = Time.time;
 
@@ -126,12 +126,12 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
         float dist = Vector3.Distance(currentTarget.TargetPoint.position, transform.position);
         if (dist > maxLockDistance)
         {
-            Debug.Log("Out of range");
+            RLog.Log("Out of range");
             CancelLock();
         }
         if (Time.time - lockAcquiredTime > lockExpiry)
         {
-            Debug.Log("Lock expired");
+            RLog.Log("Lock expired");
             CancelLock();
         }
     }
@@ -163,7 +163,7 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
             }
             case LockState.Locked:
             {
-                Debug.Log("Firing locked missile");
+                RLog.Log("Firing locked missile");
                 MissileProjectile proj = SimplePool<MissileProjectile>.Get(projectilePrefab, firePoint.position, firePoint.rotation);
                 proj.Shooter = transform.root.gameObject;
                 if (currentTarget != null) proj.SetTarget(currentTarget.TargetPoint);

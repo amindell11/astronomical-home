@@ -2,16 +2,16 @@
 
 > Quick, low-risk improvements that give immediate performance or maintenance benefits without changing gameplay mechanics.
 
-1. **ProjectileBase compile fix**  
+1. **ProjectileBase compile fix** ✅ COMPLETE  
    Missing semicolon after a `Debug.Log` call at line ~63.
 
-2. **Editor-gate verbose logging**  
+2. **Editor-gate verbose logging** ✅ COMPLETE  
    Wrap every runtime `Debug.Log*/Handles.*` call in `#if UNITY_EDITOR` (or remove).  Main offenders: `MissileLauncher`, `MissileProjectile`, `AsteroidSpawner`, `AsteroidFragnetics`, `ProjectileBase`, `LaserProjectile`, several BT nodes, `CameraFollow`, etc.
 
-3. **Cache ReferencePlane once**  
+3. **Cache ReferencePlane once** ✅ COMPLETE  
    `ProjectileBase.OnEnable` does `FindGameObjectWithTag` per projectile.  Cache the `Transform` statically.
 
-4. **CameraFollow – avoid full-scene scans**  
+4. **CameraFollow – avoid full-scene scans** ✅ COMPLETE  
    Replace `FindObjectsByType<Transform>` with a static list of ships that register in `OnEnable/OnDisable` (or tag lookup).
 
 5. **Audio one-shot pooling**  
