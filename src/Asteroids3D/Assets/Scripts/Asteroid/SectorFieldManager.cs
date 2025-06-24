@@ -28,4 +28,11 @@ public class SectorFieldManager : BaseFieldManager
         base.Awake();
         // Nothing else for now – base handles spawn logic once Start() is called.
     }
+    public void RespawnAsteroids()
+    {
+        RLog.Log($"SectorFieldManager: Respawning asteroids {Spawner.gameObject.name}");
+        if (Spawner == null) return;
+        Spawner.ReleaseAllAsteroids();
+        ManageAsteroidField();
+    }
 } 

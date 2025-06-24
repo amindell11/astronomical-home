@@ -36,6 +36,9 @@ public class GameManager : MonoBehaviour
         Instance = this;
         mainCamera = Camera.main;
         DontDestroyOnLoad(gameObject);
+
+        // Register for OnDeath events on all current ships (objects in the "Ship" layer)
+        RegisterAllShipHandlers();
     }
 
     private void Start()
@@ -127,11 +130,69 @@ public class GameManager : MonoBehaviour
     {
         // Unsubscribe when this object is disabled/destroyed
         SceneManager.sceneLoaded -= OnSceneLoaded;
+
+        // Unsubscribe from ship events we previously registered
+        foreach (var ship in subscribedShips)
+        {
+            if (ship == null) continue;
+            var dh = ship.GetComponent<ShipDamageHandler>();
+            if (dh != null)
+            {
+                dh.OnDeath -= OnShipDeath;
+            }
+        }
+        subscribedShips.Clear();
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         // Refresh the main camera reference because the old one was destroyed during scene load
         mainCamera = Camera.main;
+
+        // Scene reload likely created new ship objects – register again
+        RegisterAllShipHandlers();
+    }
+
+    // -----------------------------------------------------------------
+    private readonly List<Ship> subscribedShips = new();
+
+    private void RegisterAllShipHandlers()
+    {
+        // Clear old list (do NOT unsubscribe here; that happens in OnDisable)
+        subscribedShips.RemoveAll(s => s == null);
+
+        // Find all ShipDamageHandlers in the scene, optionally filtering by layer named "Ship" if it exists
+        Ship[] ships = FindObjectsOfType<Ship>();
+        int shipLayer = LayerMask.NameToLayer("Ship");
+
+        foreach (var ship in ships)
+        {
+            if (ship == null) continue;
+
+            // If a specific "Ship" layer exists (> -1) and object is not on it, skip
+            if (shipLayer != -1 && ship.gameObject.layer != shipLayer)
+                continue;
+
+            if (!subscribedShips.Contains(ship))
+            {
+                ship.damageHandler.OnDeath += OnShipDeath;
+                subscribedShips.Add(ship);
+            }
+        }
+    }
+
+    private void OnShipDeath(Ship deadShip)
+    {
+        if (deadShip == null) return;
+
+        // Determine if this is the player by tag or team.
+        if (deadShip.CompareTag("Player"))
+        {
+            HandlePlayerDeath(deadShip.movement);
+        }
+        else
+        {
+            HandleEnemyDeath(deadShip.movement);
+        }
     }
 } 

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Pool;
+using System.Collections.Generic;
 
 public class AsteroidSpawner : MonoBehaviour
 {
@@ -18,8 +19,8 @@ public class AsteroidSpawner : MonoBehaviour
     [SerializeField] private int maxPoolSize = 100;
 
     private ObjectPool<GameObject> asteroidPool;
-    private int myAsteroidCount;
-    public int ActiveAsteroidCount => myAsteroidCount;
+    private readonly HashSet<GameObject> activeAsteroids = new HashSet<GameObject>();
+    public int ActiveAsteroidCount => activeAsteroids.Count;
     public float TotalActiveVolume { get; private set; }
 
     private void Awake()
@@ -88,7 +89,7 @@ public class AsteroidSpawner : MonoBehaviour
             finalVelocity,
             finalAngularVelocity
         );
-        myAsteroidCount++;
+        activeAsteroids.Add(asteroidGO);
         TotalActiveVolume += asteroid.CurrentVolume;
         return asteroidGO;
     }
@@ -103,8 +104,24 @@ public class AsteroidSpawner : MonoBehaviour
             TotalActiveVolume -= asteroid.CurrentVolume;
         }
 
-        myAsteroidCount--;
+        activeAsteroids.Remove(asteroidGO);
         asteroidPool.Release(asteroidGO);
+    }
+
+    public void ReleaseAllAsteroids()
+    {
+        // Remove asteroids one by one without allocating a snapshot list.
+        while (activeAsteroids.Count > 0)
+        {
+            var enumerator = activeAsteroids.GetEnumerator();
+            if (!enumerator.MoveNext())
+            {
+                break; // Safety – should not happen.
+            }
+
+            ReleaseAsteroid(enumerator.Current);
+            // ReleaseAsteroid will remove it from activeAsteroids.
+        }
     }
 
     // --------- ObjectPool Callbacks ---------

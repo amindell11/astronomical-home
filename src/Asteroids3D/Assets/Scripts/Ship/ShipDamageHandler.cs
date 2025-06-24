@@ -14,6 +14,7 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
     public event Action<int>         OnLivesChanged;    // remaining lives
     public event Action<float, Vector3> OnDamaged;      // dmg, hitPoint
     public event Action<float, Vector3> OnShieldDamaged; // dmg, hitPoint when shield absorbs
+    public event Action<Ship> OnDeath; // Passes the Ship component of the destroyed ship
 
     public float maxHealth;
     public float maxShield;
@@ -36,6 +37,8 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
     public float CurrentHealth => currentHealth;
     public float CurrentShield => currentShield;
     public int   Lives => lives;
+
+    // Global death event so game systems (e.g., GameManager) can react without tight coupling.
     // -----------------------------------------------------------
     void Awake()
     {
@@ -143,11 +146,10 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
         if (explosionSound)
             AudioSource.PlayClipAtPoint(explosionSound, transform.position, explosionVolume);
 
-        // Notify game manager
-        /*if (gameObject.CompareTag("Player"))
-            GameManager.Instance?.HandlePlayerDeath(shipMovement);
-        else*/
-            GameManager.Instance?.HandleEnemyDeath(shipMovement);
+        // Global death event so game systems (e.g., GameManager) can react without tight coupling.
+        Ship ship = GetComponent<Ship>();
+        if (ship != null)
+            OnDeath?.Invoke(ship);
 
         gameObject.SetActive(false);
     }

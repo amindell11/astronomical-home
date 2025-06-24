@@ -1,58 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &1244824985203373342
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1339294182080709764}
-  - component: {fileID: 5892134354568291545}
-  m_Layer: 0
-  m_Name: Boundary
-  m_TagString: Boundary
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1339294182080709764
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1244824985203373342}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2, y: 1, z: 2}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2524941988800668645}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!135 &5892134354568291545
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1244824985203373342}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 255
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 35
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &3274159920676685244
 GameObject:
   m_ObjectHideFlags: 0
@@ -62,6 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2524941988800668645}
+  - component: {fileID: 6424697628924248423}
+  - component: {fileID: 880162904397767766}
   m_Layer: 0
   m_Name: Arena
   m_TagString: Untagged
@@ -85,9 +34,46 @@ Transform:
   - {fileID: 8266510706026473525}
   - {fileID: 2819437801492202525}
   - {fileID: 8623970675790524101}
-  - {fileID: 1339294182080709764}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &6424697628924248423
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3274159920676685244}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 192
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 70
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &880162904397767766
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3274159920676685244}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99084f7cc9bcad54ab16a9052d226b8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enableArenaReset: 1
+  resetDelay: 1
+  managedShips: []
+  enableDebugLogs: 1
+  resetOnShipExit: 1
 --- !u!1001 &112359901211743526
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -96,6 +82,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2524941988800668645}
     m_Modifications:
+    - target: {fileID: 3850010059119266285, guid: 4a5a9d8cd884e904c9b9e9736b4d9258,
+        type: 3}
+      propertyPath: maxPoolSize
+      value: 500
+      objectReference: {fileID: 0}
     - target: {fileID: 3850010059119266285, guid: 4a5a9d8cd884e904c9b9e9736b4d9258,
         type: 3}
       propertyPath: spawnSettings
@@ -107,6 +98,16 @@ PrefabInstance:
       propertyPath: maxAsteroids
       value: 100
       objectReference: {fileID: 0}
+    - target: {fileID: 5213993470690648641, guid: 4a5a9d8cd884e904c9b9e9736b4d9258,
+        type: 3}
+      propertyPath: anchorTransform
+      value: 
+      objectReference: {fileID: 2524941988800668645}
+    - target: {fileID: 5213993470690648641, guid: 4a5a9d8cd884e904c9b9e9736b4d9258,
+        type: 3}
+      propertyPath: spawnerOverride
+      value: 
+      objectReference: {fileID: 3810842964297866443}
     - target: {fileID: 5213993470690648641, guid: 4a5a9d8cd884e904c9b9e9736b4d9258,
         type: 3}
       propertyPath: minSpawnDistance
@@ -187,6 +188,18 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4a5a9d8cd884e904c9b9e9736b4d9258, type: 3}
+--- !u!114 &3810842964297866443 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3850010059119266285, guid: 4a5a9d8cd884e904c9b9e9736b4d9258,
+    type: 3}
+  m_PrefabInstance: {fileID: 112359901211743526}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fd180f1995b12041beb2918914c5740, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &8623970675790524101 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8512173965724646371, guid: 4a5a9d8cd884e904c9b9e9736b4d9258,
