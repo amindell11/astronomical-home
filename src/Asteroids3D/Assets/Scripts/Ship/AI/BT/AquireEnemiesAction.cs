@@ -14,6 +14,19 @@ public partial class AquireEnemiesAction : Action
     // Pre-allocated buffer for overlap queries (Optimization #3)
     private static readonly Collider[] enemyHitBuffer = new Collider[32];
     
+    // Cached LayerMask to avoid string processing allocations (Critical optimization!)
+    // Use lazy initialization to avoid calling LayerMask.GetMask during serialization
+    private static int? _shipLayerMask;
+    private static int shipLayerMask 
+    {
+        get
+        {
+            if (!_shipLayerMask.HasValue)
+                _shipLayerMask = LayerMask.NameToLayer("Ship");
+            return _shipLayerMask.Value;
+        }
+    }
+    
     // Cached reference to avoid GetComponent calls every frame
     private Ship selfShip;
 
