@@ -371,13 +371,19 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 1130593315460497037, guid: a4a07ada72adcc44ba51f616ad29384b, type: 3}
+    - {fileID: 9208909619402548018, guid: a4a07ada72adcc44ba51f616ad29384b, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 12408950691479031, guid: a4a07ada72adcc44ba51f616ad29384b,
+    - targetCorrespondingSourceObject: {fileID: 4716065267346143482, guid: a4a07ada72adcc44ba51f616ad29384b,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2123745891}
+      addedObject: {fileID: 1769969988}
+    - targetCorrespondingSourceObject: {fileID: 4716065267346143482, guid: a4a07ada72adcc44ba51f616ad29384b,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1769969987}
   m_SourcePrefab: {fileID: 100100000, guid: a4a07ada72adcc44ba51f616ad29384b, type: 3}
 --- !u!1 &216806976
 GameObject:
@@ -1412,6 +1418,66 @@ Transform:
   - {fileID: 410087041}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1769969985 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4716065267346143482, guid: a4a07ada72adcc44ba51f616ad29384b,
+    type: 3}
+  m_PrefabInstance: {fileID: 213141664}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1769969987
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1769969985}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01d44c1147a3de14fb19a3f5007c71ae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxAsteroids: 50
+  maxSpawnDistance: 27
+  minSpawnDistance: 7.5
+  targetVolumeDensity: 1
+  densityCheckRadius: 27
+  maxSpawnsPerFrame: 5
+  maxOverlapResults: 50
+  spawnerOverride: {fileID: 0}
+  updateMinSpawnDistance: 22
+  updateMaxSpawnDistance: 27
+  densityCheckInterval: 0.25
+--- !u!114 &1769969988
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1769969985}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fd180f1995b12041beb2918914c5740, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  asteroidPrefab: {fileID: 1706132292860893391, guid: f0cce3a0c284df24db1283dd96c8c4b0,
+    type: 3}
+  spawnSettings: {fileID: 11400000, guid: 31325b171e42d6d4980a0132e0d6ba36, type: 2}
+  asteroidMeshes:
+  - {fileID: 4300002, guid: b9abf17990865d84d957cad76e0ef253, type: 3}
+  - {fileID: 4300002, guid: d4c53db4e0fa7574780103191e68af14, type: 3}
+  - {fileID: 4300002, guid: 127d9b96ff58d1b4b9065c4c5dd61bf7, type: 3}
+  - {fileID: 4300002, guid: ef9b76a518ed31849a8df7d663a884d7, type: 3}
+  - {fileID: 4300002, guid: 51285045b24057840b42c198e5646608, type: 3}
+  - {fileID: 3411358422082959462, guid: 75b67b4cd87807048a98c76e5f38195f, type: 3}
+  - {fileID: 7119021798599043449, guid: ebf1104f43b4e3648b610d6b2401b58b, type: 3}
+  - {fileID: 3092230747750993970, guid: 836cfe485691a78478ee794eb9674e97, type: 3}
+  - {fileID: -2966159164897359132, guid: ebc43c11b646d06489156d9f564899e8, type: 3}
+  - {fileID: 8798366265156884017, guid: fa76ef86a0c8e6e4f817ec7f96dcb131, type: 3}
+  massScaleRange: {x: 0.5, y: 2}
+  velocityRange: {x: 0.5, y: 1.5}
+  spinRange: {x: -0.4, y: 0.4}
+  defaultPoolCapacity: 50
+  maxPoolSize: 100
 --- !u!1 &1803324464 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5100611748941008240, guid: cade7246a6fb1b64e82fbb5aac398631,
@@ -1694,24 +1760,6 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 348615634}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &2123745884 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 12408950691479031, guid: a4a07ada72adcc44ba51f616ad29384b,
-    type: 3}
-  m_PrefabInstance: {fileID: 213141664}
-  m_PrefabAsset: {fileID: 0}
---- !u!210 &2123745891
-SortingGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2123745884}
-  m_Enabled: 1
-  m_SortingLayerID: -1113296085
-  m_SortingLayer: 3
-  m_SortingOrder: 0
-  m_SortAtRoot: 0
 --- !u!1 &2131475321
 GameObject:
   m_ObjectHideFlags: 0

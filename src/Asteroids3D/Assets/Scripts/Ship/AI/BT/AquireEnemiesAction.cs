@@ -31,9 +31,7 @@ public partial class AquireEnemiesAction : Action
     private Ship selfShip;
 
     protected override Status OnStart()
-    {
-        RLog.Log($"Searching for enemies within "+Radius.Value);
-        
+    {        
         // Cache the selfShip reference
         GameObject self = this.GameObject;
         if (!self)

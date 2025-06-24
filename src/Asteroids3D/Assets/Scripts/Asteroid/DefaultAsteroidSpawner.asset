@@ -27,5 +27,5 @@ MonoBehaviour:
   velocityRange: {x: 0.5, y: 1.5}
   spinRange: {x: -0.4, y: 0.4}
   defaultPoolCapacity: 50
-  maxPoolSize: 100
+  maxPoolSize: 500
   defaultDensity: 1000

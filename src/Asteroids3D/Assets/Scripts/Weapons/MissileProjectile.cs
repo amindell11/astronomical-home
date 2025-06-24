@@ -134,15 +134,20 @@ public class MissileProjectile : ProjectileBase, IDamageable
         for (int i = 0; i < hitCount; i++)
         {
             var hit = explosionHitBuffer[i];
-            if (Shooter && hit.transform.root.gameObject == Shooter) continue;
-            if (other!=null && hit.transform.gameObject == other.gameObject) continue;
-            
-            RLog.Log($"Splash Hit {hit.name}");
+
             IDamageable dmg = hit.GetComponentInParent<IDamageable>();
-            if (dmg != null)
-            {
-                dmg.TakeDamage(splashDamage, mass, rb ? rb.linearVelocity : Vector3.zero, hit.ClosestPoint(transform.position), gameObject);
-            }
+
+            // Skip if the collider doesn't belong to something damageable
+            if (dmg == null) continue;
+
+            // Ignore the shooter itself
+            if (ShooterDamageable != null && dmg == ShooterDamageable) continue;
+
+            // Ignore the primary impact target (already handled in OnHit)
+            if (other != null && dmg == other) continue;
+
+            RLog.Log($"Splash Hit {hit.name}");
+            dmg.TakeDamage(splashDamage, mass, rb ? rb.linearVelocity : Vector3.zero, hit.ClosestPoint(transform.position), gameObject);
         }
 
         ReturnToPool();
@@ -154,6 +159,7 @@ public class MissileProjectile : ProjectileBase, IDamageable
         RLog.Log($"MissileProjectile returning to pool at position: {transform.position}");
         target = null;
         Shooter = null;
+        ShooterDamageable = null;
 
         if (rb)
         {

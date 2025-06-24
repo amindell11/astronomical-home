@@ -81,7 +81,6 @@ public partial class PatrolRandomAction : Action
             Vector3 planePoint  = GamePlane.Origin + GamePlane.ProjectOntoPlane(worldPoint);
 
             currentTarget = planePoint;
-            RLog.Log($"PatrolRandomAction: New SCREEN patrol target set at {currentTarget}");
         }
         else
         {
@@ -90,7 +89,6 @@ public partial class PatrolRandomAction : Action
             float randomDistance    = UnityEngine.Random.Range(patrolRadius * 0.3f, patrolRadius);
             Vector3 randomOffset    = GamePlane.ProjectOntoPlane(UnityEngine.Random.insideUnitSphere).normalized * randomDistance;
             currentTarget           = currentPos + randomOffset;
-            RLog.Log($"PatrolRandomAction: New RADIAL patrol target set at {currentTarget} (distance: {randomDistance:F1})");
         }
 
         hasTarget = true;

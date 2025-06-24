@@ -23,6 +23,10 @@ public abstract class ProjectileBase : MonoBehaviour
     /// <summary>The GameObject that spawned/fired this projectile.  Used to ignore self-hits.</summary>
     public GameObject Shooter { get; set; }
 
+    /// <summary>The <see cref="IDamageable"/> component that represents the shooter. This is more reliable than relying on
+    /// transform.root when the shooter is nested under an arbitrary parent (e.g., an "Arena" container).</summary>
+    public IDamageable ShooterDamageable { get; set; }
+
     /* ───────────────────────── Unity callbacks ───────────────────────── */
     protected virtual void OnEnable()
     {
@@ -72,16 +76,18 @@ public abstract class ProjectileBase : MonoBehaviour
     }
     protected virtual void OnTriggerEnter(Collider other)
     {
-        // Ignore our own ship
-        if (Shooter && other.transform.root.gameObject == Shooter) return;
+        // Resolve the IDamageable (if any) that was hit
+        IDamageable dmg = other.GetComponentInParent<IDamageable>();
+
+        // Early-out if we didn't hit something that can take damage
+        if (dmg == null) return;
+
+        // Ignore self-hits – compare directly against the shooter's IDamageable component instead of relying on
+        // transform.root, which may be an unrelated parent such as an "Arena" container.
+        if (ShooterDamageable != null && dmg == ShooterDamageable) return;
 
         RLog.Log($"Projectile hit: {other.gameObject.name}");
-        // Apply damage if possible
-        IDamageable dmg = other.GetComponentInParent<IDamageable>();
-        if (dmg != null)
-        {
-            OnHit(dmg);
-        }
+        OnHit(dmg);
     }
 
     protected virtual void OnTriggerExit(Collider other)

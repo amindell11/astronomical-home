@@ -20,6 +20,7 @@ public class AsteroidSpawner : MonoBehaviour
     private ObjectPool<GameObject> asteroidPool;
     private int myAsteroidCount;
     public int ActiveAsteroidCount => myAsteroidCount;
+    public float TotalActiveVolume { get; private set; }
 
     private void Awake()
     {
@@ -28,6 +29,8 @@ public class AsteroidSpawner : MonoBehaviour
             // First spawner becomes the global fallback for legacy code. Others can coexist.
             Instance = this;
         }
+
+        TotalActiveVolume = 0f;
 
         // Validate spawn settings
         if (spawnSettings != null)
@@ -38,7 +41,6 @@ public class AsteroidSpawner : MonoBehaviour
         // Initialize the asteroid object pool
         int poolCapacity = spawnSettings != null ? spawnSettings.defaultPoolCapacity : defaultPoolCapacity;
         int poolMaxSize = spawnSettings != null ? spawnSettings.maxPoolSize : maxPoolSize;
-        
         asteroidPool = new ObjectPool<GameObject>(
             CreatePooledAsteroid,
             OnAsteroidRetrieved,
@@ -87,12 +89,20 @@ public class AsteroidSpawner : MonoBehaviour
             finalAngularVelocity
         );
         myAsteroidCount++;
+        TotalActiveVolume += asteroid.CurrentVolume;
         return asteroidGO;
     }
 
     public void ReleaseAsteroid(GameObject asteroidGO)
     {
         if (asteroidGO == null) return;
+
+        Asteroid asteroid = asteroidGO.GetComponent<Asteroid>();
+        if (asteroid != null)
+        {
+            TotalActiveVolume -= asteroid.CurrentVolume;
+        }
+
         myAsteroidCount--;
         asteroidPool.Release(asteroidGO);
     }
@@ -100,7 +110,6 @@ public class AsteroidSpawner : MonoBehaviour
     // --------- ObjectPool Callbacks ---------
     private GameObject CreatePooledAsteroid()
     {
-        RLog.Log("[Pool] Creating new pooled asteroid");
         return Instantiate(asteroidPrefab, Vector3.zero, Quaternion.identity, transform.parent);
     }
 

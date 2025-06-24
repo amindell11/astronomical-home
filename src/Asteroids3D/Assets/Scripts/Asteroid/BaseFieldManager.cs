@@ -26,15 +26,9 @@ public abstract class BaseFieldManager : MonoBehaviour
     [SerializeField] protected float densityCheckRadius = 30f;
     [SerializeField] protected int maxSpawnsPerFrame = 10;
 
-    [Header("Performance Optimization")]
-    [SerializeField] protected int maxOverlapResults = 50;
-
     // Runtime-computed cached values
     protected float cachedVolumeDensity;
     protected float cachedArea;
-
-    // Buffer reused by OverlapSphereNonAlloc to avoid allocations each frame.
-    private static Collider[] overlapBuffer;
 
     // The transform that represents the local origin of this asteroid field.
     protected Transform spawnAnchor;
@@ -48,12 +42,6 @@ public abstract class BaseFieldManager : MonoBehaviour
     /* ───────────────────────────── Unity Lifecycle ───────────────────────────── */
     protected virtual void Awake()
     {
-        // Allocate a shared buffer once for all managers to reduce memory churn.
-        if (overlapBuffer == null)
-        {
-            overlapBuffer = new Collider[maxOverlapResults];
-        }
-
         // Early spawner resolution in case subclasses need it before Start()
         Spawner = spawnerOverride != null ? spawnerOverride : GetComponent<AsteroidSpawner>();
     }
@@ -102,13 +90,11 @@ public abstract class BaseFieldManager : MonoBehaviour
     {
         if (Spawner == null) return;
         if (Spawner.ActiveAsteroidCount >= maxAsteroids) return;
-
         if (cachedVolumeDensity < targetVolumeDensity)
         {
             float volumeToSpawn = (targetVolumeDensity - cachedVolumeDensity) * cachedArea;
             float volumeSpawned = 0f;
             int safetyBreak = spawnsPerFrame;
-
             while (volumeSpawned < volumeToSpawn &&
                    Spawner.ActiveAsteroidCount < maxAsteroids &&
                    safetyBreak > 0)
@@ -120,7 +106,6 @@ public abstract class BaseFieldManager : MonoBehaviour
                 Vector3 spawnOffset = new Vector3(r.x, 0f, r.y).normalized * radius;
                 Vector3 spawnPosition = spawnAnchor.position + spawnOffset;
                 Pose spawnPose = new Pose(spawnPosition, Random.rotationUniform);
-
                 GameObject astGO = Spawner.SpawnAsteroid(spawnPose);
                 if (astGO == null) break;
 
@@ -136,23 +121,15 @@ public abstract class BaseFieldManager : MonoBehaviour
 
     protected void UpdateCachedDensity()
     {
-        Vector3 checkCenter = spawnAnchor != null ? spawnAnchor.position : transform.position;
-        checkCenter.y = 0f;
-        int mask = 1 << LayerMask.NameToLayer("Asteroid");
-
-        int numResults = Physics.OverlapSphereNonAlloc(checkCenter, densityCheckRadius, overlapBuffer, mask);
-        float totalVolumeInRange = 0f;
-        for (int i = 0; i < numResults; i++)
+        if (Spawner == null)
         {
-            Asteroid asteroid = overlapBuffer[i].GetComponent<Asteroid>();
-            if (asteroid != null)
-            {
-                totalVolumeInRange += asteroid.CurrentVolume;
-            }
+            cachedVolumeDensity = 0;
+            cachedArea = 0;
+            return;
         }
 
         cachedArea = Mathf.PI * densityCheckRadius * densityCheckRadius;
-        cachedVolumeDensity = cachedArea > 0 ? totalVolumeInRange / cachedArea : 0f;
+        cachedVolumeDensity = cachedArea > 0 ? Spawner.TotalActiveVolume / cachedArea : 0f;
     }
 
 #if UNITY_EDITOR

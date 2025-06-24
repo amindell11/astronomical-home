@@ -29,6 +29,14 @@ public abstract class LauncherBase<TProj> : WeaponComponent where TProj : Projec
 
         // Grab instance from pool and stamp shooter reference
         TProj proj = SimplePool<TProj>.Get(projectilePrefab, firePoint.position, firePoint.rotation);
-        proj.Shooter = transform.root.gameObject;
+
+        // Capture the IDamageable belonging to the shooter (if any). This allows projectiles to reliably ignore
+        // self-collisions even when the shooter is nested under additional parents (e.g., an "Arena" GameObject).
+        IDamageable shooterDmg = GetComponentInParent<IDamageable>();
+        RLog.Log($"ShooterDmg: {shooterDmg}");
+
+        // Fall back to root GameObject reference if no IDamageable could be found (e.g., scenery weapons).
+        proj.Shooter            = shooterDmg != null ? shooterDmg.gameObject : transform.root.gameObject;
+        proj.ShooterDamageable  = shooterDmg;
     }
 } 

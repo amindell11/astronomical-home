@@ -156,7 +156,12 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
             {
                 // Dumb-fire
                 MissileProjectile proj = SimplePool<MissileProjectile>.Get(projectilePrefab, firePoint.position, firePoint.rotation);
-                proj.Shooter = transform.root.gameObject;
+
+                // Capture the IDamageable belonging to the shooter so the projectile can ignore self-collisions.
+                IDamageable shooterDmg = GetComponentInParent<IDamageable>();
+
+                proj.Shooter           = shooterDmg != null ? (shooterDmg as Component).gameObject : transform.root.gameObject;
+                proj.ShooterDamageable = shooterDmg;
                 CancelLock();
                 nextFireTime = Time.time + fireRate; // apply cooldown only after actual shot
                 break;
@@ -165,7 +170,12 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
             {
                 RLog.Log("Firing locked missile");
                 MissileProjectile proj = SimplePool<MissileProjectile>.Get(projectilePrefab, firePoint.position, firePoint.rotation);
-                proj.Shooter = transform.root.gameObject;
+
+                // Capture the IDamageable belonging to the shooter so the projectile can ignore self-collisions.
+                IDamageable shooterDmg = GetComponentInParent<IDamageable>();
+
+                proj.Shooter           = shooterDmg != null ? (shooterDmg as Component).gameObject : transform.root.gameObject;
+                proj.ShooterDamageable = shooterDmg;
                 if (currentTarget != null) proj.SetTarget(currentTarget.TargetPoint);
                 CancelLock();
                 nextFireTime = Time.time + fireRate;

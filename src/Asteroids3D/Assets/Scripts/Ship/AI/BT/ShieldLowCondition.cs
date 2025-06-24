@@ -22,7 +22,6 @@ public partial class ShieldStateCondition : Condition
         bool isLow  = State != null && State.Value;
         float thr   = Threshold != null ? Threshold.Value : 0.25f;
         var val =  isLow ? pct <= thr : pct >= thr;
-        RLog.Log($"ShieldStateCondition: pct={pct}, thr={thr}, isLow={isLow}, val={val}");
         return val;
     }
 

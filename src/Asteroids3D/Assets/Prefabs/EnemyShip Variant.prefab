@@ -273,7 +273,23 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 7767409415942007610}
+    - targetCorrespondingSourceObject: {fileID: 579888702181409527, guid: c3c15225cb3a8fd42a87c756c1d2d884,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8267024228170733342}
   m_SourcePrefab: {fileID: 100100000, guid: c3c15225cb3a8fd42a87c756c1d2d884, type: 3}
+--- !u!114 &945579999795598715 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4889344662027819772, guid: c3c15225cb3a8fd42a87c756c1d2d884,
+    type: 3}
+  m_PrefabInstance: {fileID: 5675994510712704903}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2479b5d99738054b8921cc00b232a28, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &5100611748941008240 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 579888702181409527, guid: c3c15225cb3a8fd42a87c756c1d2d884,
@@ -311,3 +327,53 @@ MonoBehaviour:
   updateControl: 1
   missileRange: 40
   missileAngleTolerance: 15
+--- !u!114 &8267024228170733342
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5100611748941008240}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0038c16c34866b4f9e25c9c0dc0f7e6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Graph: {fileID: -8548647000404242947, guid: 30c943b7357165f44bac5e5f18907209,
+    type: 2}
+  m_BlackboardVariableOverridesList:
+  - rid: 1544536209021468745
+  - rid: 1544536209021468746
+  - rid: 1544536209021468750
+  m_IsInitialised: 0
+  m_IsStarted: 0
+  references:
+    version: 2
+    RefIds:
+    - rid: 1544536209021468745
+      type: {class: 'BlackboardVariable`1[[UnityEngine.GameObject, UnityEngine.CoreModule]]',
+        ns: Unity.Behavior, asm: Unity.Behavior}
+      data:
+        GUID:
+          m_Value0: 1
+          m_Value1: 0
+        Name: Self
+        m_Value: {fileID: 5100611748941008240}
+    - rid: 1544536209021468746
+      type: {class: 'BlackboardVariable`1[[WeaponComponent, Game.Core]]', ns: Unity.Behavior,
+        asm: Unity.Behavior}
+      data:
+        GUID:
+          m_Value0: 14853163405240067368
+          m_Value1: 10236169843236501120
+        Name: Gun
+        m_Value: {fileID: 945579999795598715}
+    - rid: 1544536209021468750
+      type: {class: 'BlackboardVariable`1[[AIShipBehaviorStates, Game.AI]]', ns: Unity.Behavior,
+        asm: Unity.Behavior}
+      data:
+        GUID:
+          m_Value0: 8465853203463756410
+          m_Value1: 15439274212858005133
+        Name: State
+        m_Value: 0
