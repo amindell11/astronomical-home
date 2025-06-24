@@ -5,6 +5,7 @@
     "com.unity.burst": "1.8.21",
     "com.unity.cinemachine": "2.10.3",
     "com.unity.collab-proxy": "2.8.2",
+    "com.unity.dedicated-server": "1.5.0",
     "com.unity.ext.nunit": "2.0.5",
     "com.unity.ide.rider": "3.0.36",
     "com.unity.ide.visualstudio": "2.0.23",

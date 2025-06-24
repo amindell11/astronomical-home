@@ -5,7 +5,7 @@ using UnityEngine;
 // Calls are kept in the editor or development builds and are a complete no-op elsewhere.
 public static class RLog
 {
-    [Conditional("UNITY_EDITOR"), Conditional("DEVELOPMENT_BUILD")]
+    [Conditional("UNITY_EDITOR")]
     public static void Log(object message, Object context = null)
     {
         if (context == null)
@@ -14,7 +14,7 @@ public static class RLog
             UnityEngine.Debug.Log(message, context);
     }
 
-    [Conditional("UNITY_EDITOR"), Conditional("DEVELOPMENT_BUILD")]
+    [Conditional("UNITY_EDITOR")]
     public static void LogWarning(object message, Object context = null)
     {
         if (context == null)
@@ -23,7 +23,7 @@ public static class RLog
             UnityEngine.Debug.LogWarning(message, context);
     }
 
-    [Conditional("UNITY_EDITOR"), Conditional("DEVELOPMENT_BUILD")]
+    [Conditional("UNITY_EDITOR")]
     public static void LogError(object message, Object context = null)
     {
         if (context == null)

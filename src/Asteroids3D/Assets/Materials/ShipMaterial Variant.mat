@@ -28,6 +28,7 @@ Material:
   - _DETAIL_SCALED
   - _EMISSION
   - _METALLICSPECGLOSSMAP
+  - _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
   - _SPECULAR_SETUP
   m_InvalidKeywords: []
   m_LightmapFlags: 4
@@ -48,8 +49,9 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _DetailAlbedoMapScale: 1.12
-    - _Smoothness: 0.407
+    - _DetailAlbedoMapScale: 0.33
+    - _Smoothness: 0.619
+    - _SmoothnessTextureChannel: 1
     m_Colors:
     - _EmissionColor: {r: 33.896763, g: 33.896763, b: 33.896763, a: 1}
   m_BuildTextureStacks: []
