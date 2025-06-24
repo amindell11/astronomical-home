@@ -8,6 +8,7 @@
 /[Oo]bj/
 /[Bb]uild/
 /[Bb]uilds/
+/TrainingBuild/
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
 *.log
