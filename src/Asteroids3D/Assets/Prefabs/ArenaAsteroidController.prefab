@@ -100,14 +100,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxAsteroids: 50
-  minSpawnDistance: 22
   maxSpawnDistance: 70
-  initMinSpawnDistance: 7.5
+  minSpawnDistance: 22
   targetVolumeDensity: 1
   densityCheckRadius: 70
   maxSpawnsPerFrame: 100
-  densityCheckInterval: 0.25
-  maxOverlapResults: 50
   spawnerOverride: {fileID: 0}
   anchorTransform: {fileID: 8512173965724646371}
 --- !u!114 &3850010059119266285
@@ -124,6 +121,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   asteroidPrefab: {fileID: 1706132292860893391, guid: f0cce3a0c284df24db1283dd96c8c4b0,
     type: 3}
+  spawnSettings: {fileID: 0}
   asteroidMeshes:
   - {fileID: 4300002, guid: b9abf17990865d84d957cad76e0ef253, type: 3}
   - {fileID: 4300002, guid: d4c53db4e0fa7574780103191e68af14, type: 3}

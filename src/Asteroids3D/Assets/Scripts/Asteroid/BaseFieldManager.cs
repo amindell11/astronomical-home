@@ -36,6 +36,9 @@ public abstract class BaseFieldManager : MonoBehaviour
     [Header("References")]
     [Tooltip("AsteroidSpawner used by this field. If null, will search parent hierarchy, then fall back to AsteroidSpawner.Instance.")]
     [SerializeField] private AsteroidSpawner spawnerOverride;
+    
+    [Tooltip("Collider that defines the culling boundary for the asteroid field. If null, will search in children.")]
+    [SerializeField] private SphereCollider cullingBoundaryCollider;
 
     protected AsteroidSpawner Spawner { get; private set; }
 
@@ -44,6 +47,12 @@ public abstract class BaseFieldManager : MonoBehaviour
     {
         // Early spawner resolution in case subclasses need it before Start()
         Spawner = spawnerOverride != null ? spawnerOverride : GetComponent<AsteroidSpawner>();
+        
+        // Initialize culling boundary collider if not set
+        if (cullingBoundaryCollider == null)
+        {
+            cullingBoundaryCollider = GetComponentInChildren<SphereCollider>();
+        }
     }
 
     protected virtual void Start()
@@ -130,6 +139,26 @@ public abstract class BaseFieldManager : MonoBehaviour
 
         cachedArea = Mathf.PI * densityCheckRadius * densityCheckRadius;
         cachedVolumeDensity = cachedArea > 0 ? Spawner.TotalActiveVolume / cachedArea : 0f;
+    }
+
+    /// <summary>
+    /// Sets the field size and updates the culling boundary collider accordingly.
+    /// </summary>
+    /// <param name="radius">The radius for the asteroid field</param>
+    public virtual void SetFieldSize(float radius)
+    {
+        if (Spawner == null) return;
+        
+        densityCheckRadius = radius;
+        maxSpawnDistance = radius;
+        
+        // Update culling boundary collider with a small margin
+        if (cullingBoundaryCollider != null)
+        {
+            float marginMultiplier = 1.1f; // 10% margin
+            float cullingRadius = maxSpawnDistance * marginMultiplier;
+            cullingBoundaryCollider.radius = cullingRadius;
+        }
     }
 
 #if UNITY_EDITOR

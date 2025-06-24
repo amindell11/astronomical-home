@@ -28,6 +28,9 @@ public class ArenaManager : MonoBehaviour
 
     [Tooltip("Explicit grid dimensions.  Leave zero to auto-compute a square grid.")]
     [SerializeField] private Vector2Int gridSize = Vector2Int.zero;
+    
+    [Tooltip("Global arena size (radius) applied to all spawned arenas. 0 = use individual arena settings.")]
+    [SerializeField] private float globalArenaSize = 0f;
 
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = true;
@@ -113,6 +116,7 @@ public class ArenaManager : MonoBehaviour
 
                 // Forward reset events so external listeners can hook one place
                 instance.OnArenaReset += OnChildArenaReset;
+                instance.OnArenaReset += (a) => a.SetArenaSize(globalArenaSize);
 
                 // Additional per-arena configuration helpful for ML training
                 ConfigureArenaForTraining(instance, spawned);
@@ -132,6 +136,12 @@ public class ArenaManager : MonoBehaviour
 
     private void ConfigureArenaForTraining(ArenaInstance instance, int arenaIndex)
     {
+        // Apply global arena size if specified
+        if (globalArenaSize > 0f)
+        {
+            instance.SetArenaSize(globalArenaSize);
+        }
+        
         // Anchor already set in ArenaInstance.Awake(); ensure it's correct.
         if (instance.fieldManager != null)
             instance.fieldManager.SetAnchor(instance.transform);
@@ -164,6 +174,21 @@ public class ArenaManager : MonoBehaviour
         foreach (var a in arenaInstances)
             a?.ResetArena();
     }
+    
+    /// <summary>
+    /// Set the size of all managed arenas.
+    /// </summary>
+    public void SetAllArenaSizes(float size)
+    {
+        globalArenaSize = size;
+        foreach (var arena in arenaInstances)
+        {
+            arena?.SetArenaSize(size);
+        }
+        
+        if (enableDebugLogs)
+            RLog.Log($"ArenaManager: Set all arena sizes to {size}");
+    }
 
     private void OnChildArenaReset(ArenaInstance inst) => OnArenaReset?.Invoke(inst);
 
@@ -173,6 +198,7 @@ public class ArenaManager : MonoBehaviour
 
     public bool IsMultiArenaMode => isMultiArenaMode;
     public int  ArenaCount      => arenaInstances.Count;
+    public float GlobalArenaSize => globalArenaSize;
 
     void OnDestroy()
     {

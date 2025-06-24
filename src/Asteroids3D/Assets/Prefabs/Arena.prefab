@@ -73,6 +73,9 @@ MonoBehaviour:
   resetDelay: 1
   managedShips: []
   enableDebugLogs: 1
+  showGizmos: 1
+  gizmoSize: 160
+  arenaSize: 100
   resetOnShipExit: 1
 --- !u!1001 &112359901211743526
 PrefabInstance:

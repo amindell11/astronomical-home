@@ -40,6 +40,10 @@ public class ArenaInstance : MonoBehaviour
     [Tooltip("Size of the arena boundary gizmo")]
     [SerializeField] private float gizmoSize = 160f;
 
+    [Header("Arena Size")]
+    [Tooltip("Radius of the arena in world units")]
+    [SerializeField] private float arenaSize = 100f;
+    
     [Header("Boundary Reset Settings")]
     [Tooltip("Reset the arena if a Ship exits the arena's trigger collider")]
     [SerializeField] private bool resetOnShipExit = true;
@@ -47,6 +51,7 @@ public class ArenaInstance : MonoBehaviour
     // --------------------------- Cached references ---------------------------
     [System.NonSerialized] public Ship[] ships; // exposed for convenience (read-only)
     [System.NonSerialized] public SectorFieldManager fieldManager;
+    [System.NonSerialized] private SphereCollider boundaryCollider;
 #if UNITY_ML_AGENTS
     [System.NonSerialized] public Agent[] mlAgents;
 #endif
@@ -65,9 +70,17 @@ public class ArenaInstance : MonoBehaviour
         // Cache key components in children (or supplied via inspector).
         ships        = (managedShips != null && managedShips.Length > 0) ? managedShips : GetComponentsInChildren<Ship>(true);
         fieldManager = GetComponentInChildren<SectorFieldManager>(true);
+        boundaryCollider = GetComponent<SphereCollider>();
 #if UNITY_ML_AGENTS
         mlAgents     = GetComponentsInChildren<Agent>(true);
 #endif
+        
+        // Create boundary collider if it doesn't exist
+        if (boundaryCollider == null)
+        {
+            boundaryCollider = gameObject.AddComponent<SphereCollider>();
+            boundaryCollider.isTrigger = true;
+        }
 
         if (enableDebugLogs)
         {
@@ -77,6 +90,9 @@ public class ArenaInstance : MonoBehaviour
 
     void Start()
     {
+        // Apply arena size settings
+        ApplyArenaSize();
+        
         // Ensure field manager anchor points at this arena root so density checks use local centre.
         if (fieldManager != null)
         {
@@ -140,6 +156,7 @@ public class ArenaInstance : MonoBehaviour
         // Increment episode count and trigger flash effect
         episodeCount++;
         flashTimer = flashDuration;
+        OnArenaReset?.Invoke(this);
         
         if (enableDebugLogs)
         {
@@ -148,7 +165,7 @@ public class ArenaInstance : MonoBehaviour
 
         if (resetDelay > 0f)
             yield return new WaitForSeconds(resetDelay);
-
+        ApplyArenaSize();
         // 1. Respawn / clear asteroids through the field manager.
         if (fieldManager != null)
         {
@@ -167,7 +184,6 @@ public class ArenaInstance : MonoBehaviour
             RLog.Log("ArenaInstance: Reset complete.");
         }
 
-        OnArenaReset?.Invoke(this);
     }
 
     // ---------------------- Helper implementation ---------------------------
@@ -221,6 +237,42 @@ public class ArenaInstance : MonoBehaviour
     /// Current episode count for this arena.
     /// </summary>
     public int EpisodeCount => episodeCount;
+    
+    /// <summary>
+    /// Current arena size (radius).
+    /// </summary>
+    public float ArenaSize => arenaSize;
+    
+    /// <summary>
+    /// Set the arena size and apply it to boundary collider and field manager.
+    /// </summary>
+    public void SetArenaSize(float newSize)
+    {
+        arenaSize = newSize;
+    }
+    
+    private void ApplyArenaSize()
+    {
+        // Set boundary collider radius
+        if (boundaryCollider != null)
+        {
+            boundaryCollider.radius = arenaSize;
+        }
+        
+        // Set field manager size
+        if (fieldManager != null)
+        {
+            fieldManager.SetFieldSize(arenaSize);
+        }
+        
+        // Update gizmo size to match arena size
+        gizmoSize = arenaSize * 2f;
+        
+        if (enableDebugLogs)
+        {
+            RLog.Log($"ArenaInstance: Applied arena size {arenaSize} (boundary radius: {arenaSize}, field size: {arenaSize})");
+        }
+    }
 
     // -----------------------------------------------------------------------
     // Trigger callbacks ------------------------------------------------------

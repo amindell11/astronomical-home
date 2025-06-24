@@ -35,4 +35,6 @@ public class SectorFieldManager : BaseFieldManager
         Spawner.ReleaseAllAsteroids();
         ManageAsteroidField();
     }
+
+
 } 
