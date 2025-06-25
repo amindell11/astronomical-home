@@ -93,6 +93,11 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
         navWaypoint = new Waypoint { isValid = false };
     }
 
+    public void InitializeCommander(Ship ship)
+    {
+        // This commander doesn't need any specific initialization logic from the ship.
+    }
+
     public int Priority => 10;
 
     public bool TryGetCommand(ShipState state, out ShipCommand cmd)
@@ -104,7 +109,7 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
             cmd.Thrust = 0;
             cmd.Strafe = 0;
             cmd.RotateToTarget = false;
-            cmd.TargetAngle = state.Kinematics.angleDeg;
+            cmd.TargetAngle = state.Kinematics.AngleDeg;
             return true;
         }
 
@@ -173,9 +178,10 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
             }
         }
 
+        cmd.SecondaryFire = wantsToFireMissile;
 
         
-        if (gun && dist <= fireDistance && angle <= fireAngleTolerance)
+        if (gun && dist <= fireDistance && angle <= fireAngleTolerance && !wantsToFireMissile)
         {
             Vector3 laserFirePos = gun.firePoint ? gun.firePoint.position : transform.position;
             if (LineOfSightOK(laserFirePos, dir, dist, angle))
@@ -311,14 +317,14 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
 
         float maxDist = currentMaxSpeed * lookAheadTime + safeMargin;
 
-        Vector2 velDir = kin.vel.sqrMagnitude > 0.1f ? kin.vel.normalized : Vector2.zero;
+        Vector2 velDir = kin.Vel.sqrMagnitude > 0.1f ? kin.Vel.normalized : Vector2.zero;
         Vector3 velDirWorld = GamePlane.PlaneVectorToWorld(velDir).normalized;
         dbgRayVel = velDirWorld * maxDist;
 
         if (velDir != Vector2.zero)
             n = CastRayAndCollect(velDirWorld, maxDist, n);
 
-        Vector3 fwdWorld = GamePlane.PlaneVectorToWorld(kin.forward).normalized;
+        Vector3 fwdWorld = GamePlane.PlaneVectorToWorld(kin.Forward).normalized;
         dbgRayFwd = fwdWorld * maxDist;
         n = CastRayAndCollect(fwdWorld, maxDist, n);
 

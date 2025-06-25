@@ -9,8 +9,8 @@ using UnityEditor;
 public class ShipDamageHandler : MonoBehaviour, IDamageable
 {
     // ------ Events ------
-    public event Action<float,float> OnShieldChanged;   // current, max
-    public event Action<float,float> OnHealthChanged;   // current, max
+    public event Action<float,float, float> OnShieldChanged;   // current, previous, max
+    public event Action<float,float, float> OnHealthChanged;   // current, previous, max
     public event Action<int>         OnLivesChanged;    // remaining lives
     public event Action<float, Vector3> OnDamaged;      // dmg, hitPoint
     public event Action<float, Vector3> OnShieldDamaged; // dmg, hitPoint when shield absorbs
@@ -21,30 +21,25 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
     public int   startingLives;
     public float shieldRegenDelay;
     public float shieldRegenRate;
-    public GameObject explosionPrefab;
-    public AudioClip  explosionSound;
-    public float explosionVolume;
 
     // ------ State ------
     private float currentHealth;
     private float currentShield;
     private int   lives;
     private float lastDamageTime;
+    private Ship  lastAttacker;
 
-    private ShipMovement shipMovement;
-    private Rigidbody     rb;
 
     public float CurrentHealth => currentHealth;
     public float CurrentShield => currentShield;
     public int   Lives => lives;
+    public float HealthPct => currentHealth / maxHealth;
+    public float ShieldPct => currentShield / maxShield;
 
     // Global death event so game systems (e.g., GameManager) can react without tight coupling.
     // -----------------------------------------------------------
     void Awake()
     {
-        shipMovement  = GetComponent<ShipMovement>();
-        rb            = GetComponent<Rigidbody>();
-
         currentHealth = maxHealth;
         currentShield = maxShield;
         lives         = startingLives;
@@ -58,14 +53,24 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
         if (currentShield < maxShield && Time.time - lastDamageTime >= shieldRegenDelay)
         {
             float regen = shieldRegenRate * Time.deltaTime;
+            var oldShield = currentShield;
             currentShield = Mathf.Min(currentShield + regen, maxShield);
-            OnShieldChanged?.Invoke(currentShield, maxShield);
+            if(currentShield != oldShield)
+                OnShieldChanged?.Invoke(currentShield, oldShield, maxShield);
         }
     }
 
     // -----------------------------------------------------------
     public void TakeDamage(float damage, float projectileMass, Vector3 projectileVelocity, Vector3 hitPoint, GameObject damageSource)
     {
+        if (damageSource != null)
+        {
+            lastAttacker = damageSource.GetComponentInParent<Ship>();
+            var proj = damageSource.GetComponent<ProjectileBase>();
+            if (proj && proj.Shooter != null)
+                lastAttacker = proj.Shooter.GetComponentInParent<Ship>();
+        }
+        
         RLog.Log($"Ship taking {damage} damage from {(damageSource ? damageSource.name : "unknown source")}");
         if (damage <= 0) return;
 
@@ -75,8 +80,9 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
         if (currentShield > 0f)
         {
             float absorbed = Mathf.Min(damage, currentShield);
+            var oldShield = currentShield;
             currentShield -= absorbed;
-            OnShieldChanged?.Invoke(currentShield, maxShield);
+            OnShieldChanged?.Invoke(currentShield, oldShield, maxShield);
             OnShieldDamaged?.Invoke(absorbed, hitPoint);
             // shipMovement?.TriggerDamageFlash();
 
@@ -85,8 +91,9 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
         }
 
         // 2. No shields – apply to health
+        var oldHealth = currentHealth;
         currentHealth = Mathf.Max(currentHealth - damage, 0f);
-        OnHealthChanged?.Invoke(currentHealth, maxHealth);
+        OnHealthChanged?.Invoke(currentHealth, oldHealth, maxHealth);
         OnDamaged?.Invoke(damage, hitPoint);
 
         // shipMovement?.TriggerDamageFlash();
@@ -105,9 +112,13 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
         if (lives > 0)
         {
             // Restore armour
+            var oldHealth = currentHealth;
+            var oldShield = currentShield;
             currentHealth = maxHealth;
             currentShield = maxShield;
-            BroadcastState();
+            
+            OnHealthChanged?.Invoke(currentHealth, oldHealth, maxHealth);
+            OnShieldChanged?.Invoke(currentShield, oldShield, maxShield);
         }
         else
         {
@@ -117,14 +128,16 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
 
     void BroadcastState()
     {
-        OnShieldChanged?.Invoke(currentShield, maxShield);
-        OnHealthChanged?.Invoke(currentHealth, maxHealth);
+        OnShieldChanged?.Invoke(currentShield, currentShield, maxShield);
+        OnHealthChanged?.Invoke(currentHealth, currentHealth, maxHealth);
         OnLivesChanged?.Invoke(lives);
     }
 
     // -----------------------------------------------------------
     public void ResetAll()
     {
+        var oldHealth = currentHealth;
+        var oldShield = currentShield;
         currentHealth = maxHealth;
         currentShield = maxShield;
         lives         = startingLives;
@@ -134,22 +147,13 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
     // -----------------------------------------------------------
     void DestroyShip()
     {
-        // Explosion VFX
-        if (explosionPrefab)
-        {
-            PooledVFX pooled = explosionPrefab.GetComponent<PooledVFX>();
-            if (pooled)
-                SimplePool<PooledVFX>.Get(pooled, transform.position, Quaternion.identity);
-            else
-                Instantiate(explosionPrefab, transform.position, Quaternion.identity);
-        }
-        if (explosionSound)
-            AudioSource.PlayClipAtPoint(explosionSound, transform.position, explosionVolume);
-
         // Global death event so game systems (e.g., GameManager) can react without tight coupling.
         Ship ship = GetComponent<Ship>();
         if (ship != null)
+        {
             OnDeath?.Invoke(ship);
+            Ship.BroadcastShipDestroyed(ship, lastAttacker);
+        }
 
         gameObject.SetActive(false);
     }
@@ -164,9 +168,6 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
         startingLives   = s.startingLives;
         shieldRegenDelay= s.shieldRegenDelay;
         shieldRegenRate = s.shieldRegenRate;
-        explosionPrefab = s.explosionPrefab;
-        explosionSound  = s.explosionSound;
-        explosionVolume = s.explosionVolume;
 
         ResetAll();
     }

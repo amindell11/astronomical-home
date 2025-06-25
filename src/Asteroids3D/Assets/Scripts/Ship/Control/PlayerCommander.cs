@@ -23,8 +23,6 @@ public class PlayerShipInput : MonoBehaviour, IShipCommandSource
     private Vector3 projectedDirection;
     private bool isMouseActive;
     
-    private ShipCommand _cmd;
-
     private void Start()
     {
         ship = GetComponent<ShipMovement>();
@@ -34,39 +32,24 @@ public class PlayerShipInput : MonoBehaviour, IShipCommandSource
         missileLauncher = GetComponentInChildren<MissileLauncher>();
     }
 
-    private void Update()
-    {
-        // Read movement inputs
-        _cmd.Thrust = Input.GetAxis("Vertical");
-        _cmd.Strafe = Input.GetAxis("Horizontal");
-
-        HandleRotationInput();
-
-        // Shooting
-        _cmd.PrimaryFire = Input.GetButton("Fire1");
-
-        // Missile lock / fire (single press behaviour)
-        _cmd.SecondaryFire = Input.GetButtonDown("Fire2");
-    }
-
-    public void HandleRotationInput()
+    public void HandleRotationInput(ref ShipCommand cmd)
     {
         if (useMouseDirection)
         {
             bool wantsToRotate = Input.GetButton("Direction");
-            _cmd.RotateToTarget = wantsToRotate;
+            cmd.RotateToTarget = wantsToRotate;
 
             if (wantsToRotate)
             {
                 Vector3 mouseWorldPos = GetMouseWorldPosition();
                 directionToMouse = (mouseWorldPos - ship.transform.position).normalized;
                 float targetYaw = CalculateYawAngle(directionToMouse);
-                _cmd.TargetAngle = targetYaw;
+                cmd.TargetAngle = targetYaw;
                 isMouseActive = true;
             }
             else
             {
-                _cmd.TargetAngle = 0f;
+                cmd.TargetAngle = 0f;
                 isMouseActive = false;
             }
         }
@@ -74,9 +57,9 @@ public class PlayerShipInput : MonoBehaviour, IShipCommandSource
         {
             float rotationInput = Input.GetAxis("Rotation");
             bool shouldRotate = Mathf.Abs(rotationInput) > 0.2f;
-            _cmd.RotateToTarget = shouldRotate;
+            cmd.RotateToTarget = shouldRotate;
             float currentYaw = shipController.Angle;
-            _cmd.TargetAngle = currentYaw + (rotationInput * 90f);
+            cmd.TargetAngle = currentYaw + (rotationInput * 90f);
             isMouseActive = false;
         }
     }
@@ -151,9 +134,26 @@ public class PlayerShipInput : MonoBehaviour, IShipCommandSource
 
     public bool TryGetCommand(ShipState state, out ShipCommand cmd)
     {
-        cmd = _cmd;
+        cmd = new ShipCommand();
+        // Read movement inputs
+        cmd.Thrust = Input.GetAxis("Vertical");
+        cmd.Strafe = Input.GetAxis("Horizontal");
+
+        HandleRotationInput(ref cmd);
+
+        // Shooting
+        cmd.PrimaryFire = Input.GetButton("Fire1");
+
+        // Missile lock / fire (single press behaviour)
+        cmd.SecondaryFire = Input.GetButtonDown("Fire2");
+        
         // Always provide command; central Ship may decide to ignore if zeroed
         return true;
+    }
+
+    public void InitializeCommander(Ship ship)
+    {
+        // This commander doesn't need any specific initialization from the ship.
     }
 
     /* ───────────────────────── Missile Target Helper ───────────────────────── */

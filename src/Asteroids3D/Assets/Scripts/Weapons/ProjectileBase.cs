@@ -70,7 +70,7 @@ public abstract class ProjectileBase : MonoBehaviour
         RLog.Log($"applying {damage} damage to {other.gameObject.name}");
         
         Vector3 impactVelocity = rb ? rb.linearVelocity : Vector3.zero;
-        other.TakeDamage(damage, mass, impactVelocity, transform.position, gameObject);
+        other.TakeDamage(damage, mass, impactVelocity, transform.position, Shooter ?? gameObject);
         SpawnHitVFX();
         ReturnToPool();
     }

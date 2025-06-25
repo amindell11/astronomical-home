@@ -7,17 +7,20 @@ using UnityEngine;
 /// </summary>
 public readonly struct ShipKinematics
 {
-    public readonly Vector2 pos;     // plane-space position
-    public readonly Vector2 vel;     // plane-space velocity
-    public readonly Vector2 forward; // plane-space forward (unit)
-    public readonly float   angleDeg;// yaw in degrees
-
-    public ShipKinematics(Vector2 pos, Vector2 vel, float angleDeg)
+    public readonly Vector2 Pos;     // plane-space position
+    public readonly Vector2 Vel;     // plane-space velocity
+    public readonly float   AngleDeg;// yaw in degrees
+    public readonly float   YawRate; // yaw rate in degrees per second
+    
+    public float Speed => Vel.magnitude;
+    public float LocalVel => Vector2.Dot(Vel, Forward);
+    public Vector2 Forward => new Vector2(-Mathf.Sin(AngleDeg * Mathf.Deg2Rad), Mathf.Cos(AngleDeg * Mathf.Deg2Rad));
+    
+    public ShipKinematics(Vector2 pos, Vector2 vel, float angleDeg, float yawRate)
     {
-        this.pos      = pos;
-        this.vel      = vel;
-        this.angleDeg = angleDeg;
-        float a  = angleDeg * Mathf.Deg2Rad;
-        forward  = new Vector2(-Mathf.Sin(a), Mathf.Cos(a));
+        this.Pos      = pos;
+        this.Vel      = vel;
+        this.AngleDeg = angleDeg;
+        this.YawRate = yawRate;
     }
-} 
+}

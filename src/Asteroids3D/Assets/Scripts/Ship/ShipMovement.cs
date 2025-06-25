@@ -140,7 +140,7 @@ public class ShipMovement : MonoBehaviour
         ConstrainToPlane();
 
         // Refresh kinematics snapshot for external consumers
-        _kin = new ShipKinematics(Controller.Position, Controller.Velocity, Controller.Angle);
+        _kin = new ShipKinematics(Controller.Position, Controller.Velocity, Controller.Angle, Controller.AngularVelocity);
     }
 
     // ----- Movement helpers (Sync, Apply, etc.) --------------------------

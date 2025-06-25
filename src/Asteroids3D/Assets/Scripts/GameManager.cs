@@ -88,7 +88,6 @@ public class GameManager : MonoBehaviour
         // Find a random offscreen position
         Vector3 respawnPosition = GetRandomOffscreenPosition();
         respawnShip.transform.position = respawnPosition;
-
         RLog.Log($"Enemy ship respawned at position: {respawnPosition}");
     }
     
@@ -162,7 +161,7 @@ public class GameManager : MonoBehaviour
         subscribedShips.RemoveAll(s => s == null);
 
         // Find all ShipDamageHandlers in the scene, optionally filtering by layer named "Ship" if it exists
-        Ship[] ships = FindObjectsOfType<Ship>();
+        Ship[] ships = FindObjectsByType<Ship>(FindObjectsSortMode.None);
         int shipLayer = LayerMask.NameToLayer("Ship");
 
         foreach (var ship in ships)

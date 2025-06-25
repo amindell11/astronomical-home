@@ -8,6 +8,12 @@ using System.Collections.Generic;
 public class Ship : MonoBehaviour, ITargetable
 {
     public static readonly List<Transform> ActiveShips = new();
+    public static event System.Action<Ship, Ship> OnShipDestroyed; // victim, killer
+
+    /* ─────────── Events ─────────── */
+    public event System.Action<float, float, float> OnHealthChanged; // current, previous, max
+    public event System.Action<float, float, float> OnShieldChanged; // current, previous, max
+    public event System.Action<Ship> OnDeath;
 
     /* ─────────── Tunable Parameters ─────────── */
     [Header("Settings Asset")]
@@ -23,6 +29,7 @@ public class Ship : MonoBehaviour, ITargetable
     public LaserGun      laserGun{get; private set;}
     public MissileLauncher missileLauncher{get; private set;}
     public ShipDamageHandler damageHandler{get; private set;}
+    public ShipHealthVisuals healthVisuals{get; private set;}
     public IShipCommandSource[] commandSources{get; private set;}
 
     /* ─────────── ITargetable Implementation ─────────── */
@@ -50,8 +57,20 @@ public class Ship : MonoBehaviour, ITargetable
         laserGun       = GetComponentInChildren<LaserGun>();
         missileLauncher = GetComponentInChildren<MissileLauncher>();
         damageHandler  = GetComponent<ShipDamageHandler>();
+        healthVisuals  = GetComponentInChildren<ShipHealthVisuals>();
         commandSources = GetComponents<IShipCommandSource>();
 
+        // Let command sources initialize themselves and subscribe to events
+        foreach (var source in commandSources)
+        {
+            source.InitializeCommander(this);
+        }
+
+        // Relay events from damage handler
+        damageHandler.OnHealthChanged += (cur, prev, max) => OnHealthChanged?.Invoke(cur, prev, max);
+        damageHandler.OnShieldChanged += (cur, prev, max) => OnShieldChanged?.Invoke(cur, prev, max);
+        damageHandler.OnDeath += (ship) => OnDeath?.Invoke(ship);
+        
         if (!settings)
         {
             RLog.LogError($"{name}: ShipSettings asset reference missing – using runtime default values.");
@@ -61,6 +80,7 @@ public class Ship : MonoBehaviour, ITargetable
         // Apply settings to movement & damage subsystems
         movement?.ApplySettings(settings);
         damageHandler?.ApplySettings(settings);
+        healthVisuals?.ApplySettings(settings);
 
         Indicator = GetComponentInChildren<LockOnIndicator>(true);
     }
@@ -81,6 +101,11 @@ public class Ship : MonoBehaviour, ITargetable
         ActiveShips.Remove(transform);
     }
 
+    internal static void BroadcastShipDestroyed(Ship victim, Ship killer)
+    {
+        OnShipDestroyed?.Invoke(victim, killer);
+    }
+
     void FixedUpdate()
     {
         // Aggregate the highest-priority command for this frame.
@@ -93,6 +118,8 @@ public class Ship : MonoBehaviour, ITargetable
             Kinematics = movement.Kinematics,
             IsLaserReady = laserGun?.IsReady() ?? false,
             MissileState = missileLauncher?.State ?? MissileLauncher.LockState.Idle,
+            HealthPct = damageHandler.HealthPct,
+            ShieldPct = damageHandler.ShieldPct,
         };
 
         foreach (var src in commandSources)

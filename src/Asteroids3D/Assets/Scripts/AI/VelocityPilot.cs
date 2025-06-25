@@ -59,9 +59,9 @@ public static class VelocityPilot
         // If desiredVel is zero, fall back to waypoint logic like old ComputeInputs.
 
         Vector2 desired = i.desiredVel;
-        Vector2 curPos  = i.kin.pos;
-        Vector2 curVel  = i.kin.vel;
-        Vector2 forward = i.kin.forward;
+        Vector2 curPos  = i.kin.Pos;
+        Vector2 curVel  = i.kin.Vel;
+        Vector2 forward = i.kin.Forward;
 
         float thrust, strafe, rot;
 

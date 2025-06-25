@@ -53,7 +53,7 @@ public class ShieldUI : MonoBehaviour
         }
     }
 
-    void OnShieldChanged(float current, float max)
+    void OnShieldChanged(float current, float previous, float max)
     {
         // Update radial fill
         ring.fillAmount = current / max;

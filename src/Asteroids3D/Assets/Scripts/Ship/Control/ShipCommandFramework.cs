@@ -9,6 +9,13 @@ namespace ShipControl
     public interface IShipCommandSource
     {
         /// <summary>
+        /// Initializes the command source with a reference to the ship it controls.
+        /// Called once by the ship during its Awake phase.
+        /// </summary>
+        /// <param name="ship">The ship this source will be controlling.</param>
+        void InitializeCommander(Ship ship);
+
+        /// <summary>
         /// Attempt to obtain a control command for this frame.
         /// </summary>
         /// <param name="state">Current state of the ship (kinematics, weapons)</param>
@@ -54,7 +61,7 @@ namespace ShipControl
 
         public bool IsLaserReady;
         public MissileLauncher.LockState MissileState;
-        
-        public ITargetable CurrentMissileTarget;
+        public float HealthPct;
+        public float ShieldPct;
     }
 } 

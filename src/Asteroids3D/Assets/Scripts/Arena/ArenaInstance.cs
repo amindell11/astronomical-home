@@ -102,12 +102,7 @@ public class ArenaInstance : MonoBehaviour
         // Subscribe to each ship death so we can reset the arena once any ship is destroyed.
         foreach (var ship in ships)
         {
-            if (ship == null) continue;
-            var damageHandler = ship.damageHandler;
-            if (damageHandler != null)
-            {
-                damageHandler.OnDeath += OnShipDeath;
-            }
+            ship.OnDeath += OnShipDeath;
         }
     }
 
@@ -116,12 +111,7 @@ public class ArenaInstance : MonoBehaviour
         // Unsubscribe – good hygiene.
         foreach (var ship in ships)
         {
-            if (ship == null) continue;
-            var damageHandler = ship.damageHandler;
-            if (damageHandler != null)
-            {
-                damageHandler.OnDeath -= OnShipDeath;
-            }
+            ship.OnDeath -= OnShipDeath;
         }
     }
 

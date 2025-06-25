@@ -12,6 +12,10 @@ public class ShipHealthVisuals : MonoBehaviour
     [SerializeField] Color flashColor = Color.white;
     [SerializeField] float flashTime = 0.15f; // total duration (fade in + out)
 
+    GameObject explosionPrefab;
+    AudioClip  explosionSound;
+    float      explosionVolume;
+
     MaterialPropertyBlock block;
     static readonly int _Color = Shader.PropertyToID("_BaseColor"); // URP Lit shader
     static readonly int _DetailScale = Shader.PropertyToID("_DetailAlbedoMapScale");
@@ -46,6 +50,7 @@ public class ShipHealthVisuals : MonoBehaviour
             source.OnHealthChanged += OnHealthChanged;
             source.OnDamaged      += SpawnSparks;
             source.OnDamaged      += TriggerFlash;
+            source.OnDeath        += OnDeath;
         }
     }
     void OnDisable()
@@ -54,10 +59,26 @@ public class ShipHealthVisuals : MonoBehaviour
             source.OnHealthChanged -= OnHealthChanged;
             source.OnDamaged      -= SpawnSparks;
             source.OnDamaged      -= TriggerFlash;
+            source.OnDeath        -= OnDeath;
         }
     }
 
-    void OnHealthChanged(float current, float max)
+    void OnDeath(Ship ship)
+    {
+        // Explosion VFX
+        if (explosionPrefab)
+        {
+            PooledVFX pooled = explosionPrefab.GetComponent<PooledVFX>();
+            if (pooled)
+                SimplePool<PooledVFX>.Get(pooled, transform.position, Quaternion.identity);
+            else
+                Instantiate(explosionPrefab, transform.position, Quaternion.identity);
+        }
+        if (explosionSound)
+            AudioSource.PlayClipAtPoint(explosionSound, transform.position, explosionVolume);
+    }
+
+    void OnHealthChanged(float current, float previous, float max)
     {
         if (prevHealth < 0f) prevHealth = current; // initialise first time
 
@@ -91,6 +112,14 @@ public class ShipHealthVisuals : MonoBehaviour
         if (dmg <= 0f || hull == null) return;
         if (flashCo != null) StopCoroutine(flashCo);
         flashCo = StartCoroutine(FlashRoutine());
+    }
+
+    public void ApplySettings(ShipSettings s)
+    {
+        if (s == null) return;
+        explosionPrefab = s.explosionPrefab;
+        explosionSound  = s.explosionSound;
+        explosionVolume = s.explosionVolume;
     }
 
     IEnumerator FlashRoutine()

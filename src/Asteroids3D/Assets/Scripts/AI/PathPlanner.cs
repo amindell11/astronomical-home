@@ -72,7 +72,7 @@ public static class PathPlanner
     public static Output Compute(Input io)
     {
         /* -------- seek / arrive --------------------------------- */
-        Vector2 toGoal = io.goal - io.kin.pos;
+        Vector2 toGoal = io.goal - io.kin.Pos;
         float   dist   = toGoal.magnitude;
         float   tgtSpeed = dist > io.arriveRadius
                            ? io.maxSpeed
@@ -80,14 +80,14 @@ public static class PathPlanner
         Vector2 desired = toGoal.normalized * tgtSpeed;
 
         /* -------- predictive avoidance --------------------------- */
-        Vector2 future = io.kin.pos + io.kin.vel * io.lookAheadTime;
+        Vector2 future = io.kin.Pos + io.kin.Vel * io.lookAheadTime;
         Vector2 push   = Vector2.zero;
         float   weight = 0f;
 #if UNITY_EDITOR
         List<Vector2> collidingFutures = null;
 #endif
 
-        Vector2 segStart = io.kin.pos;
+        Vector2 segStart = io.kin.Pos;
         Vector2 segEnd   = future;
         Vector2 segDir   = segEnd - segStart;
         float   segLenSq = segDir.sqrMagnitude;
@@ -130,7 +130,7 @@ public static class PathPlanner
         /* -------- final desired velocity ------------------------- */
         Vector2 desiredVel = desired + avoid;
 
-        Vector2 accel = desiredVel - io.kin.vel;
+        Vector2 accel = desiredVel - io.kin.Vel;
 
 #if UNITY_EDITOR
         var dbg = new DebugInfo(future, desired, avoid, accel, collidingFutures ?? new List<Vector2>());
