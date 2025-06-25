@@ -124,7 +124,7 @@ public class Asteroid : MonoBehaviour, IDamageable, ITargetable
 
     private void Explode()
     {
-        if (explosionPrefab != null)
+        if (GameSettings.VfxEnabled && explosionPrefab != null)
         {
             // Try to get PooledVFX component first, fallback to regular instantiate
             PooledVFX pooledVFX = explosionPrefab.GetComponent<PooledVFX>();

@@ -29,6 +29,32 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
     private float lastDamageTime;
     private Ship  lastAttacker;
 
+    // --- Spawn Invulnerability --------------------------------------
+    private bool  isInvulnerable = false;
+    private float invulnerableUntil = 0f;
+
+    /// <summary>
+    /// Indicates whether the ship is currently invulnerable (takes no damage).
+    /// </summary>
+    public bool IsInvulnerable => isInvulnerable;
+
+    /// <summary>
+    /// Grant temporary invulnerability for the given duration (seconds).
+    /// </summary>
+    /// <param name="duration">Duration in seconds. Pass 0 or negative to clear immediately.</param>
+    public void SetInvulnerability(float duration)
+    {
+        if (duration <= 0f)
+        {
+            isInvulnerable = false;
+            invulnerableUntil = 0f;
+        }
+        else
+        {
+            isInvulnerable = true;
+            invulnerableUntil = Time.time + duration;
+        }
+    }
 
     public float CurrentHealth => currentHealth;
     public float CurrentShield => currentShield;
@@ -49,6 +75,12 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
 
     void Update()
     {
+        // Handle expiry of temporary invulnerability
+        if (isInvulnerable && Time.time >= invulnerableUntil)
+        {
+            isInvulnerable = false;
+        }
+
         // Shield regeneration after delay
         if (currentShield < maxShield && Time.time - lastDamageTime >= shieldRegenDelay)
         {
@@ -75,6 +107,12 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
         if (damage <= 0) return;
 
         lastDamageTime = Time.time;
+
+        if (isInvulnerable)
+        {
+            // Ignore damage while invulnerable
+            return;
+        }
 
         // 1. Apply to shields first if any remain
         if (currentShield > 0f)
@@ -155,6 +193,10 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
         currentShield = maxShield;
         lives         = startingLives;
         BroadcastState();
+
+        // Clear any active invulnerability when fully resetting.
+        isInvulnerable = false;
+        invulnerableUntil = 0f;
     }
 
     // -----------------------------------------------------------

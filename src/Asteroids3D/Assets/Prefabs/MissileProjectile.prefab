@@ -13,6 +13,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: MissileProjectile
       objectReference: {fileID: 0}
+    - target: {fileID: 2028383931407238149, guid: d4f6577bb30c48945a17243a523023ff,
+        type: 3}
+      propertyPath: m_TagString
+      value: Missile
+      objectReference: {fileID: 0}
     - target: {fileID: 2153935510595730682, guid: d4f6577bb30c48945a17243a523023ff,
         type: 3}
       propertyPath: m_Size.x

@@ -66,7 +66,7 @@ public class ShipHealthVisuals : MonoBehaviour
     void OnDeath(Ship ship)
     {
         // Explosion VFX
-        if (explosionPrefab)
+        if (GameSettings.VfxEnabled && explosionPrefab)
         {
             PooledVFX pooled = explosionPrefab.GetComponent<PooledVFX>();
             if (pooled)
@@ -81,6 +81,8 @@ public class ShipHealthVisuals : MonoBehaviour
     void OnHealthChanged(float current, float previous, float max)
     {
         if (prevHealth < 0f) prevHealth = current; // initialise first time
+
+        if (!GameSettings.VfxEnabled) return;
 
         // --- visual tint & smoke based on % health lost ---
         float pctLost = 1f - current / max;          // 0->1
@@ -103,13 +105,13 @@ public class ShipHealthVisuals : MonoBehaviour
 
     void SpawnSparks(float dmg, Vector3 hitPt)
     {
-        if (!sparksPrefab || dmg <= 0f) return;
+        if (!sparksPrefab || dmg <= 0f || !GameSettings.VfxEnabled) return;
         Instantiate(sparksPrefab, hitPt, Quaternion.identity);
     }
 
     void TriggerFlash(float dmg, Vector3 _)
     {
-        if (dmg <= 0f || hull == null) return;
+        if (dmg <= 0f || hull == null || !GameSettings.VfxEnabled) return;
         if (flashCo != null) StopCoroutine(flashCo);
         flashCo = StartCoroutine(FlashRoutine());
     }

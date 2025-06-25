@@ -13,7 +13,10 @@ public class Thruster : MonoBehaviour
     void Update()
     {
         if (thrustParticles == null || thrustParticles.Length == 0) return;
-        bool shouldPlay = Controller.ThrustInput > 0.05f;
+
+        // Also check global VFX setting
+        bool shouldPlay = Controller.ThrustInput > 0.05f && GameSettings.VfxEnabled;
+        
         foreach (var ps in thrustParticles)
         {
             if (!ps) continue;

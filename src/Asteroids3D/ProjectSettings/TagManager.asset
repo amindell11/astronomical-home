@@ -8,6 +8,8 @@ TagManager:
   - AsteroidCullingBoundary
   - Boundary
   - ReferencePlane
+  - Ship
+  - Missile
   layers:
   - Default
   - TransparentFX

@@ -98,7 +98,7 @@ public abstract class ProjectileBase : MonoBehaviour
     /* ───────────────────────── helpers ───────────────────────── */
     void SpawnHitVFX()
     {
-        if (!hitEffect) return;
+        if (!hitEffect || !GameSettings.VfxEnabled) return;
 
         var pooled = hitEffect.GetComponent<PooledVFX>();
         if (pooled)

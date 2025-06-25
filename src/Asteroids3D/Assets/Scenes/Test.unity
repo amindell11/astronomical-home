@@ -882,6 +882,11 @@ PrefabInstance:
       propertyPath: maxPoolSize
       value: 500
       objectReference: {fileID: 0}
+    - target: {fileID: 4586498110356292650, guid: e970d9f79be710b4e8b8b13c7bf4ac8e,
+        type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4646412512822767967, guid: e970d9f79be710b4e8b8b13c7bf4ac8e,
         type: 3}
       propertyPath: m_Enabled
@@ -915,6 +920,11 @@ PrefabInstance:
     - target: {fileID: 6424697628924248423, guid: e970d9f79be710b4e8b8b13c7bf4ac8e,
         type: 3}
       propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7655749609609897986, guid: e970d9f79be710b4e8b8b13c7bf4ac8e,
+        type: 3}
+      propertyPath: m_LocalScale.x
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7724177657525233609, guid: e970d9f79be710b4e8b8b13c7bf4ac8e,

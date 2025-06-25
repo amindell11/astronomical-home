@@ -17,7 +17,7 @@ GameObject:
   - component: {fileID: 4368679400082138271}
   m_Layer: 7
   m_Name: Ship
-  m_TagString: Untagged
+  m_TagString: Ship
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -105,6 +105,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   settings: {fileID: 11400000, guid: c2eae258625507d43948e555302ee7ee, type: 2}
+  teamNumber: 0
 --- !u!114 &8752571619316856911
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -148,10 +149,6 @@ MonoBehaviour:
   startingLives: 1
   shieldRegenDelay: 5
   shieldRegenRate: 20
-  explosionPrefab: {fileID: 3624727767247666335, guid: b87929575dffb6c49b64ff8ec3faa5d7,
-    type: 3}
-  explosionSound: {fileID: 8300000, guid: 14e1c94ce80f1fc45bd483c188a57c1c, type: 3}
-  explosionVolume: 0.7
 --- !u!114 &4368679400082138271
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -1,328 +1,226 @@
-using ShipControl;
-using System.Collections;
-using System.Collections.Generic;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
+using ShipControl;
 
-/// <summary>
-/// A reinforcement-learning agent for piloting a player ship.
-/// It learns to avoid asteroids and defeat enemy ships based on the plan in RLAgentPlan.md.
-/// </summary>
 public class RLCommanderAgent : Agent, IShipCommandSource
 {
-    [Header("Agent Configuration")]
-    [SerializeField]
-    private int commanderPriority = 100;
+    // Static tracking for debug purposes
+    public static int GlobalStepCount { get; private set; } = 0;
+    
+    [Header("Agent Settings")]
+    [Tooltip("Priority for this commander's inputs. Lower values can be overridden.")]
+    [SerializeField] private int commanderPriority = 0; // Default to low priority
 
-    [Header("Observations")]
-    [SerializeField]
-    private float maxSpeed = 15f;
-    [SerializeField]
-    private float maxYawRate = 180f;
-    [SerializeField]
-    private float sensingRange = 100f;
+    [Header("Observation Settings")]
+    public float sensingRange = 100f;
+    public float maxSpeed = 20f;
+    public float maxYawRate = 180f;
 
+    // Non-allocating buffer for physics queries, accessed by RLObserver
+    internal readonly Collider[] overlapColliders = new Collider[64];
+
+    // --- Internal State ---
+    public Ship ship { get; private set; }
+    public ArenaInstance arenaInstance { get; private set; }
     private ShipCommand lastCommand;
-    private ShipState currentState;
-    private Ship ship;
-    private ArenaInstance arenaInstance;
-    private bool hasNewCommand = false;
-    private float heuristicTargetAngle;
-    private PlayerShipInput playerCommander;
-
-    /// <summary>
-    /// When paused, the agent will not process actions or rewards.
-    /// </summary>
+    private RLObserver observer;
+    private bool hasNewCommand;
+    private IShipCommandSource fallbackCommander;
+    
+    // Debug toggle so we can render the observation overlay without changing build symbols
+    [Header("Debug UI")]
+    public bool ShowObservationUI = false;
+    
+    // Expose observer for external debug components
+    public RLObserver Observer => observer;
+    
+    // --- IShipCommandSource properties ---
+    public int Priority => commanderPriority;
     public bool IsPaused { get; set; } = false;
 
-    #region IShipCommandSource
-
-    public int Priority => commanderPriority;
-
-    public void InitializeCommander(Ship controlledShip)
+    public void InitializeCommander(Ship s)
     {
-        this.ship = controlledShip;
-        ship.OnHealthChanged += OnHealthChanged;
-        ship.OnShieldChanged += OnShieldChanged;
-        ship.damageHandler.OnDeath += OnDeath;
+        this.ship = s;
+        s.OnHealthChanged += OnHealthChanged;
+        s.OnShieldChanged += OnShieldChanged;
+        s.damageHandler.OnDeath += OnDeath;
     }
 
-    public bool TryGetCommand(ShipState state, out ShipCommand cmd)
-    {   
-        currentState = state;
-        if (hasNewCommand)
-        {
-            cmd = this.lastCommand;
-            hasNewCommand = false;
-            return true;
-        }
-
-        cmd = default;
-        return false;
+    public bool TryGetCommand(ShipState state, out ShipCommand command)
+    {
+        command = lastCommand;
+        bool hadCmd = hasNewCommand;
+        hasNewCommand = false; // Reset flag after command is read
+        return hadCmd;
     }
 
-    #endregion
-
-    #region Agent Lifecycle
-
+    // --- Agent Lifecycle ---
     public override void Initialize()
     {
         base.Initialize();
-        playerCommander = GetComponent<PlayerShipInput>();
+        ship = GetComponent<Ship>();
         arenaInstance = GetComponentInParent<ArenaInstance>();
-        if (arenaInstance == null)
-        {
-            RLog.LogError("RLCommanderAgent requires a parent ArenaInstance component.", this);
-        }
+        observer = new RLObserver(this);
+
+        if (ship == null) RLog.LogError("Agent is not attached to a Ship object.", this);
+        if (arenaInstance == null) RLog.LogError("RLCommanderAgent requires a parent ArenaInstance component.", this);
+
+        // Subscribe to global events
         Ship.OnGlobalShipDestroyed += HandleShipDestroyed;
         Ship.OnGlobalShipDamaged += HandleShipDamaged;
+
+        // Detect if another IShipCommandSource (e.g., PlayerCommander) is attached for heuristic fallback
+        foreach (var src in GetComponents<IShipCommandSource>())
+        {
+            if (src != this)
+            {
+                fallbackCommander = src;
+                break;
+            }
+        }
     }
 
-    private void OnDestroy()
+    public override void OnEpisodeBegin()
+    {
+        lastCommand = default;
+        hasNewCommand = false;
+        IsPaused = false; // Ensure agent is unpaused for new episode
+    }
+
+    public override void CollectObservations(VectorSensor sensor)
+    {
+        observer.CollectObservations(sensor);
+    }
+
+    public override void OnActionReceived(ActionBuffers actions)
+    {
+        GlobalStepCount++;
+        
+        if (IsPaused)
+        {
+            lastCommand = default;
+            hasNewCommand = true;
+            return;
+        }
+
+        var continuousActions = actions.ContinuousActions;
+        lastCommand.Thrust = continuousActions[0];
+        lastCommand.Strafe = continuousActions[1];
+        lastCommand.RotateToTarget = continuousActions[2] > 0f;
+        lastCommand.TargetAngle = continuousActions[2] * 180f;
+
+        var discreteActions = actions.DiscreteActions;
+        lastCommand.PrimaryFire = discreteActions[0] > 0;
+        lastCommand.SecondaryFire = discreteActions[1] > 0;
+
+        hasNewCommand = true;
+    }
+
+    public override void Heuristic(in ActionBuffers actionsOut)
+    {
+        var continuousActions = actionsOut.ContinuousActions;
+        var discreteActions   = actionsOut.DiscreteActions;
+
+        if (fallbackCommander != null && fallbackCommander.TryGetCommand(ship.CurrentState, out ShipCommand cmd))
+        {
+            // Map ShipCommand to action buffers
+            continuousActions[0] = cmd.Thrust;
+            continuousActions[1] = cmd.Strafe;
+            continuousActions[2] = cmd.RotateToTarget ? cmd.TargetAngle / 180f : 0f;
+
+            discreteActions[0] = cmd.PrimaryFire ? 1 : 0;
+            discreteActions[1] = cmd.SecondaryFire ? 1 : 0;
+        }
+        else
+        {
+            // Manual fallback using raw input for quick testing
+            continuousActions[0] = Input.GetAxis("Vertical");
+            continuousActions[1] = Input.GetAxis("Horizontal"); 
+            continuousActions[2] = 0f;
+            discreteActions[0] = 0;
+            discreteActions[1] = 0;
+        }
+    }
+
+    void OnDestroy()
     {
         Ship.OnGlobalShipDestroyed -= HandleShipDestroyed;
         Ship.OnGlobalShipDamaged -= HandleShipDamaged;
     }
 
-#if UNITY_EDITOR
-    public int OnEpisodeBeginCount { get; private set; }
-#endif
+    #region Reward Logic
 
-    public override void OnEpisodeBegin()
+    private float prevHealth;
+    private float prevShield;
+
+    private void OnHealthChanged(float current, float previous, float max)
     {
-#if UNITY_EDITOR
-        OnEpisodeBeginCount++;
-#endif
-        RLog.Log($"RLCommanderAgent {name}: OnEpisodeBegin. IsPaused: {IsPaused}");
-        // The agent is un-paused at the beginning of each new episode.
-        IsPaused = false;
-    }
-
-    public override void CollectObservations(VectorSensor sensor)
-    {
-        if (IsPaused) return;
-        // Kinematics
-        sensor.AddObservation(currentState.Kinematics.Speed / maxSpeed);
-        sensor.AddObservation(currentState.Kinematics.YawRate / maxYawRate);
-
-        // TODO: Get real ship health/shield state
-        sensor.AddObservation(currentState.HealthPct); // HealthPct
-        sensor.AddObservation(currentState.ShieldPct); // ShieldPct
-
-        // Environmental awareness
-        // NOTE: The RLAgentPlan.md has a discrepancy, listing 8 total observations
-        // but the items sum to 12. I'm implementing all specified observations.
-        var closestEnemy = FindClosestTarget("Enemy");
-        var closestAsteroid = FindClosestTarget("Asteroid");
-
-        AddTargetObservations(sensor, closestEnemy);
-        AddTargetObservations(sensor, closestAsteroid);
-    }
-
-    public override void OnActionReceived(ActionBuffers actions)
-    {
-        // Do not process actions or apply rewards if the agent is paused.
-        if (IsPaused) { return; }
-
-        // Translate actions into a ship command
-        var continuousActions = actions.ContinuousActions;
-        lastCommand.Thrust = continuousActions[0];
-        lastCommand.Strafe = continuousActions[1];
-        
-        // The plan specifies a continuous yaw RATE, but ShipCommand takes a target ANGLE.
-        // We are interpreting action[2] from [-1, 1] as a target angle in [0, 360].
-        lastCommand.RotateToTarget = true;
-        lastCommand.TargetAngle = (continuousActions[2] + 1f) * 180f;
-
-        var discreteActions = actions.DiscreteActions;
-        lastCommand.PrimaryFire = discreteActions[0] == 1;
-        lastCommand.SecondaryFire = discreteActions[1] == 1;
-
-        hasNewCommand = true;
-        
-        // Small penalty for existing to encourage finishing the episode.
-        AddReward(-0.0001f);
-    }
-
-    public override void Heuristic(in ActionBuffers actionsOut)
-    {
-        if (IsPaused) return;
-        if (playerCommander == null)
-        {
-            RLog.LogError("PlayerCommander (PlayerShipInput) component not found. Heuristics will not work.", this);
-            return;
-        }
-
-        // Request command from the player input source
-        playerCommander.TryGetCommand(currentState, out ShipCommand playerCommand);
-        
-        // Convert player command to agent actions
-        var continuousActions = actionsOut.ContinuousActions;
-        continuousActions[0] = playerCommand.Thrust;
-        continuousActions[1] = playerCommand.Strafe;
-
-        // The agent action space for rotation is a continuous value [-1, 1] mapped to a target angle [0, 360].
-        // We need to convert the player's target angle back into this action space.
-        if (playerCommand.RotateToTarget)
-        {
-            // Map angle [0, 360] to action [-1, 1]
-            continuousActions[2] = (playerCommand.TargetAngle / 180f) - 1f;
-        }
-        else
-        {
-            // If not actively rotating, hold the current angle.
-            float currentAngle = currentState.Kinematics.AngleDeg;
-            continuousActions[2] = (currentAngle / 180f) - 1f;
-        }
-
-        var discreteActions = actionsOut.DiscreteActions;
-        discreteActions[0] = playerCommand.PrimaryFire ? 1 : 0;
-        discreteActions[1] = playerCommand.SecondaryFire ? 1 : 0;
-    }
-    
-    #endregion
-
-    #region Helper Methods
-
-    private void AddTargetObservations(VectorSensor sensor, Transform target)
-    {
-        if (target != null)
-        {
-            var vectorToTarget = target.position - transform.position;
-            var localDirToTarget = transform.InverseTransformDirection(vectorToTarget.normalized);
-            sensor.AddObservation(localDirToTarget);
-            sensor.AddObservation(vectorToTarget.magnitude / sensingRange);
-        }
-        else
-        {
-            // Add zero observations if no target is found
-            sensor.AddObservation(Vector3.zero); // local direction
-            sensor.AddObservation(0f);           // distance
-        }
-    }
-
-    private Transform FindClosestTarget(string tag)
-    {
-        // TODO: Implement actual logic to find the closest game object with the given tag.
-        return null;
-    }
-    public void OnHealthChanged(float current, float previous, float maxHealth)
-    {
-        if (IsPaused) return;
         float healthDelta = current - previous;
-        if (healthDelta < 0)
-        {
-            // Punish for taking damage
-            AddReward(healthDelta / maxHealth);
-        }
-    }
-    public void OnShieldChanged(float current, float previous, float maxShield)
-    {
-        if (IsPaused) return;
-        float shieldDelta = current - previous;
-        // Reward shield changes at a lower rate than health changes
-        AddReward(shieldDelta / maxShield * 0.5f);
-    }
-    public void OnDeath(Ship ship)
-    {
-        if (IsPaused) return;
-        AddReward(-1f);
-        arenaInstance?.RequestEpisodeEnd();
+        AddReward(healthDelta / max); // Small reward/penalty for health changes
+        prevHealth = current;
     }
 
-    private void HandleShipDestroyed(Ship victim, Ship killer)
+    private void OnShieldChanged(float current, float previous, float max)
     {
-        if (IsPaused) return;
-        if (killer == ship)
-        {
-            if(ship.IsFriendly(victim))
-            {
-                AddReward(-0.75f);
-            }
-            else
-            {
-                AddReward(5.0f);
-                CheckForWinCondition();
-            }
-        }
+        float shieldDelta = current - previous;
+        // Shield damage is less critical than hull damage, so smaller reward factor
+        AddReward(shieldDelta / max * 0.5f); 
+        prevShield = current;
     }
 
     private void HandleShipDamaged(Ship victim, Ship attacker, float damage)
     {
-        if (IsPaused) return;
-        if (attacker == ship)
+        if (attacker == this.ship && victim != this.ship && !victim.IsFriendly(this.ship))
         {
-            if (ship.IsFriendly(victim))
-            {
-                // Penalize friendly fire damage
-                AddReward(-damage / (victim.damageHandler.maxHealth + victim.damageHandler.maxShield) * 0.1f);
-            }
-            else
-            {
-                // Reward enemy damage - scale by max health to normalize across different ship types
-                AddReward(damage / (victim.damageHandler.maxHealth + victim.damageHandler.maxShield) * 0.5f);
-            }
+            // Reward for damaging a non-friendly ship
+            AddReward(damage / victim.settings.maxHealth * 0.2f); 
         }
     }
 
-    private void CheckForWinCondition()
+    private void HandleShipDestroyed(Ship victim, Ship killer)
     {
-        if (IsPaused) return;
-        if (arenaInstance == null) return;
-
-        bool enemiesRemain = false;
-        foreach (var otherShip in arenaInstance.ships)
+        if (victim == this.ship)
         {
-            if (otherShip == null || otherShip == this.ship || !otherShip.gameObject.activeInHierarchy)
+            // Penalty for being destroyed
+            SetReward(-1.0f);
+            EndEpisode();
+        }
+        else if (killer == this.ship)
+        {
+            // Reward for destroying a non-friendly ship
+            if (!victim.IsFriendly(this.ship))
             {
-                continue; // Ignore self, destroyed, or inactive ships
+                SetReward(1.0f);
+                EndEpisode();
             }
-
-            if (!ship.IsFriendly(otherShip))
+            else // Penalty for friendly fire
             {
-                enemiesRemain = true;
-                break; // Found an active enemy, no need to check further
+                SetReward(-1.0f);
+                EndEpisode();
             }
         }
-
-        if (!enemiesRemain)
+        else if (victim.IsFriendly(this.ship) && !killer.IsFriendly(this.ship))
         {
-            // Victory condition: all enemies are destroyed
-            arenaInstance.RequestEpisodeEnd();
+                // Penalty for letting a teammate be destroyed
+                AddReward(-0.5f);
         }
     }
+
+    // Called by ArenaInstance when ship exits bounds
+    public void OnOutOfBounds()
+    {
+        SetReward(-0.75f); // Penalty for going out of bounds
+        // Trigger arena-wide reset, not just agent episode end
+        arenaInstance?.RequestEpisodeEnd();
+    }
+    
+    private void OnDeath(Ship ship)
+    {
+        // This is a backup to the Global event, in case it's needed.
+        // The global handler is preferred as it contains killer info.
+    }
+
     #endregion
-
-#if UNITY_EDITOR
-    private void OnDrawGizmos()
-    {
-        if (!Application.isPlaying) return;
-
-        GUIStyle style = new GUIStyle();
-        float reward = GetCumulativeReward();
-
-        // Color goes from red -> white -> green
-        if (reward >= 0)
-        {
-            // Assuming +5 is a good reward for full green
-            style.normal.textColor = Color.Lerp(Color.white, Color.green, Mathf.Clamp01(reward / 5f));
-        }
-        else
-        {
-            // Assuming -1 is a bad reward for full red
-            style.normal.textColor = Color.Lerp(Color.white, Color.red, Mathf.Clamp01(-reward));
-        }
-        
-        style.fontSize = 14;
-        style.fontStyle = FontStyle.Bold;
-        style.alignment = TextAnchor.UpperCenter;
-
-        Handles.Label(transform.position + Vector3.up * 2.5f, $"Reward: {reward:F2}", style);
-    }
-#endif
-} 
+}

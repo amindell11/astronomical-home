@@ -50,15 +50,8 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
     public void CancelLock()
     {
         RLog.Log("CancelLock");
-        // Hide indicator on previous target (if any)
-        if (currentTarget?.Indicator != null)
-        {
-            currentTarget.Indicator.Hide();
-        }
-
+        ResetLock();
         state         = LockState.Idle;
-        currentTarget = null;
-        lockTimer     = 0f;
     }
 
     /* ───────────────────────── MonoBehaviour ───────────────────────── */
@@ -71,6 +64,12 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
                 break;
             case LockState.Locked:
                 HandleLocked();
+                break;
+            case LockState.Cooldown:
+                if (Time.time >= nextFireTime)
+                {
+                    state = LockState.Idle;
+                }
                 break;
         }
     }
@@ -136,6 +135,19 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
         }
     }
 
+    /// <summary>Resets all locking-related state variables without changing the main FSM state.</summary>
+    void ResetLock()
+    {
+        // Hide indicator on previous target (if any)
+        if (currentTarget?.Indicator != null)
+        {
+            currentTarget.Indicator.Hide();
+        }
+
+        currentTarget = null;
+        lockTimer     = 0f;
+    }
+
     bool ValidateTarget(ITargetable tgt) => tgt != null && tgt.TargetPoint != null;
 
     /* ───────────────────────── Fire override ───────────────────────── */
@@ -162,7 +174,8 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
 
                 proj.Shooter           = shooterDmg != null ? (shooterDmg as Component).gameObject : transform.root.gameObject;
                 proj.ShooterDamageable = shooterDmg;
-                CancelLock();
+                ResetLock();
+                state = LockState.Cooldown;
                 nextFireTime = Time.time + fireRate; // apply cooldown only after actual shot
                 break;
             }
@@ -177,7 +190,8 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
                 proj.Shooter           = shooterDmg != null ? (shooterDmg as Component).gameObject : transform.root.gameObject;
                 proj.ShooterDamageable = shooterDmg;
                 if (currentTarget != null) proj.SetTarget(currentTarget.TargetPoint);
-                CancelLock();
+                ResetLock();
+                state = LockState.Cooldown;
                 nextFireTime = Time.time + fireRate;
                 break;
             }
@@ -211,6 +225,7 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
             LockState.Idle => Color.white,
             LockState.Locking => Color.yellow,
             LockState.Locked => Color.green,
+            LockState.Cooldown => Color.gray,
             _ => Color.gray
         };
 

@@ -155,6 +155,7 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
                     {
                         if(LineOfSightOK(firePos, dir, dist, angle)){
                             var targetable = GetTargetTransform()?.GetComponentInParent<ITargetable>();
+                            wantsToFireMissile = targetable != null;
                         }       
                     }
                     break;

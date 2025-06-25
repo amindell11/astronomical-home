@@ -6,17 +6,8 @@ using UnityEngine;
 /// </summary>
 public sealed class Billboard : MonoBehaviour
 {
-    private Camera mainCam;
-
-    void Awake()
-    {
-        mainCam = Camera.main;
-    }
-
     void LateUpdate()
     {
-        if (mainCam == null) return;
-        // Make forward vector match camera's forward so the canvas looks head-on
-        transform.forward = mainCam.transform.forward;
+        transform.up = -GamePlane.Normal;
     }
 } 

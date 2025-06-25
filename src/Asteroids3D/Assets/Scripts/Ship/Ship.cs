@@ -33,6 +33,9 @@ public class Ship : MonoBehaviour, ITargetable
     public ShipHealthVisuals healthVisuals{get; private set;}
     public IShipCommandSource[] commandSources{get; private set;}
 
+    /* ─────────── Current State ─────────── */
+    public ShipState CurrentState { get; private set; }
+
     /* ─────────── ITargetable Implementation ─────────── */
     public Transform TargetPoint => transform;
 
@@ -127,6 +130,7 @@ public class Ship : MonoBehaviour, ITargetable
             HealthPct = damageHandler.HealthPct,
             ShieldPct = damageHandler.ShieldPct,
         };
+        CurrentState = state;
 
         foreach (var src in commandSources)
         {

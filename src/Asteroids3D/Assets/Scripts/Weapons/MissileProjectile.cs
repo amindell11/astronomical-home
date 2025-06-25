@@ -120,7 +120,7 @@ public class MissileProjectile : ProjectileBase, IDamageable
     void Explode(IDamageable other)
     {
         // Spawn explosion VFX
-        if (explosionPrefab)
+        if (GameSettings.VfxEnabled && explosionPrefab)
         {
             var pooled = explosionPrefab.GetComponent<PooledVFX>();
             if (pooled)

@@ -26,6 +26,8 @@ public abstract class BaseFieldManager : MonoBehaviour
     [SerializeField] protected float densityCheckRadius = 30f;
     [SerializeField] protected int maxSpawnsPerFrame = 10;
 
+    public float TargetDensity { get => targetVolumeDensity; set => targetVolumeDensity = value; }
+
     // Runtime-computed cached values
     protected float cachedVolumeDensity;
     protected float cachedArea;

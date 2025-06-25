@@ -1,9 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-#if UNITY_ML_AGENTS
 using Unity.MLAgents;
-#endif
 
 /// <summary>
 /// Stand-alone component that encapsulates all logic for a single training / gameplay arena.
@@ -48,13 +46,15 @@ public class ArenaInstance : MonoBehaviour
     [Tooltip("Reset the arena if a Ship exits the arena's trigger collider")]
     [SerializeField] private bool resetOnShipExit = true;
 
+    [Header("Spawn Protection")]
+    [Tooltip("Duration (seconds) of temporary invulnerability applied to ships right after spawning/reset")] 
+    [SerializeField] private float spawnInvulnerabilityDuration = 2f;
+
     // --------------------------- Cached references ---------------------------
     [System.NonSerialized] public Ship[] ships; // exposed for convenience (read-only)
     [System.NonSerialized] public SectorFieldManager fieldManager;
     [System.NonSerialized] private SphereCollider boundaryCollider;
-#if UNITY_ML_AGENTS
     [System.NonSerialized] public Agent[] mlAgents;
-#endif
 
     // --- Private State ---
     private bool _episodeActive = true; // Gate to prevent double-ending an episode.
@@ -74,9 +74,7 @@ public class ArenaInstance : MonoBehaviour
         ships        = (managedShips != null && managedShips.Length > 0) ? managedShips : GetComponentsInChildren<Ship>(true);
         fieldManager = GetComponentInChildren<SectorFieldManager>(true);
         boundaryCollider = GetComponent<SphereCollider>();
-#if UNITY_ML_AGENTS
         mlAgents     = GetComponentsInChildren<Agent>(true);
-#endif
         
         // Create boundary collider if it doesn't exist
         if (boundaryCollider == null)
@@ -95,6 +93,7 @@ public class ArenaInstance : MonoBehaviour
     {
         // Apply arena size settings
         ApplyArenaSize();
+        ApplyEnvParameters();
         
         // Ensure field manager anchor points at this arena root so density checks use local centre.
         if (fieldManager != null)
@@ -124,6 +123,28 @@ public class ArenaInstance : MonoBehaviour
         if (flashTimer > 0f)
         {
             flashTimer -= Time.deltaTime;
+        }
+    }
+
+    private void ApplyEnvParameters()
+    {
+        if (Academy.IsInitialized)
+        {
+            var envParams = Academy.Instance.EnvironmentParameters;
+
+            // Arena Size
+            float newArenaSize = envParams.GetWithDefault("arena_size", this.arenaSize);
+            if (!Mathf.Approximately(newArenaSize, this.arenaSize))
+            {
+                SetArenaSize(newArenaSize);
+            }
+
+            // Asteroid Density
+            if (fieldManager != null)
+            {
+                float newDensity = envParams.GetWithDefault("asteroid_density", fieldManager.TargetDensity);
+                fieldManager.TargetDensity = Mathf.Max(0f, newDensity);
+            }
         }
     }
 
@@ -170,6 +191,9 @@ public class ArenaInstance : MonoBehaviour
         flashTimer = flashDuration;
         OnArenaReset?.Invoke(this);
         
+        // Apply new environment parameters for the upcoming episode.
+        ApplyEnvParameters();
+
         if (enableDebugLogs)
         {
             RLog.Log($"ArenaInstance: Starting reset after {resetDelay}s delay. Episode: {episodeCount}");
@@ -177,7 +201,7 @@ public class ArenaInstance : MonoBehaviour
 
         if (resetDelay > 0f)
             yield return new WaitForSeconds(resetDelay);
-        ApplyArenaSize();
+
         // 1. Respawn / clear asteroids through the field manager.
         if (fieldManager != null)
         {
@@ -207,15 +231,19 @@ public class ArenaInstance : MonoBehaviour
         foreach (var ship in ships)
         {
             if (ship == null) continue;
-
+            // Reactivate in case it was disabled on death.
+            ship.gameObject.SetActive(true);
+            
             var movement      = ship.GetComponent<ShipMovement>();
             var damageHandler = ship.GetComponent<ShipDamageHandler>();
 
             movement?.ResetShip();
             damageHandler?.ResetAll();
 
-            // Reactivate in case it was disabled on death.
-            ship.gameObject.SetActive(true);
+            // Apply temporary spawn invulnerability so immediate asteroid collisions do not damage the ship.
+            damageHandler?.SetInvulnerability(spawnInvulnerabilityDuration);
+
+
 
             // Place ship in a random position near the arena centre.
             Vector3 randomOffset = Random.insideUnitCircle.normalized * 20f;
@@ -228,7 +256,6 @@ public class ArenaInstance : MonoBehaviour
 
     void SignalAgentsEpisodeEnd()
     {       
-    #if UNITY_ML_AGENTS
         if(enableDebugLogs)
         {
             RLog.Log($"ArenaInstance: Signalling agents episode end. {mlAgents.Length} agents found.");
@@ -238,12 +265,10 @@ public class ArenaInstance : MonoBehaviour
         {
             agent?.EndEpisode();
         }
-#endif
     }
 
     void SetAgentsPaused(bool paused)
     {
-#if UNITY_ML_AGENTS
         if (mlAgents == null) return;
         foreach (var agent in mlAgents)
         {
@@ -252,7 +277,6 @@ public class ArenaInstance : MonoBehaviour
                 commander.IsPaused = paused;
             }
         }
-#endif
     }
 
     // ----------------------------- Public API --------------------------------
@@ -282,6 +306,7 @@ public class ArenaInstance : MonoBehaviour
     public void SetArenaSize(float newSize)
     {
         arenaSize = newSize;
+        ApplyArenaSize();
     }
     
     private void ApplyArenaSize()
@@ -322,7 +347,17 @@ public class ArenaInstance : MonoBehaviour
             RLog.Log($"ArenaInstance: Ship '{ship.name}' exited arena bounds – triggering reset.");
         }
 
-        RequestEpisodeEnd();
+        var agent = ship.GetComponent<RLCommanderAgent>();
+        if (agent != null)
+        {
+            // The agent is responsible for applying penalty and ending the episode.
+            agent.OnOutOfBounds();
+        }
+        else
+        {
+            // No agent on the ship, so the arena ends the episode directly.
+            RequestEpisodeEnd();
+        }
     }
 
 #if UNITY_EDITOR
@@ -352,7 +387,7 @@ public class ArenaInstance : MonoBehaviour
 
         // Draw episode count text
         UnityEditor.Handles.color = Color.white;
-        UnityEditor.Handles.Label(center + Vector3.up * 10f, $"Episode: {episodeCount}");
+        UnityEditor.Handles.Label(center + Vector3.up * 10f, $"Episode: {episodeCount}\nGlobal Steps: {RLCommanderAgent.GlobalStepCount}");
     }
 #endif
 } 

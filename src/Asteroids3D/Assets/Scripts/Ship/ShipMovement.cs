@@ -178,7 +178,7 @@ public class ShipMovement : MonoBehaviour
     // ---------- Utility API ----------
     public void ResetShip()
     {
-        rb.linearVelocity        = Vector3.zero;
+        rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
         Controller.Velocity = Vector2.zero;
     }
