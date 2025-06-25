@@ -8,7 +8,8 @@ using System.Collections.Generic;
 public class Ship : MonoBehaviour, ITargetable
 {
     public static readonly List<Transform> ActiveShips = new();
-    public static event System.Action<Ship, Ship> OnShipDestroyed; // victim, killer
+    public static event System.Action<Ship, Ship> OnGlobalShipDestroyed; // victim, killer
+    public static event System.Action<Ship, Ship, float> OnGlobalShipDamaged; // victim, attacker, damage
 
     /* ─────────── Events ─────────── */
     public event System.Action<float, float, float> OnHealthChanged; // current, previous, max
@@ -103,7 +104,12 @@ public class Ship : MonoBehaviour, ITargetable
 
     internal static void BroadcastShipDestroyed(Ship victim, Ship killer)
     {
-        OnShipDestroyed?.Invoke(victim, killer);
+        OnGlobalShipDestroyed?.Invoke(victim, killer);
+    }
+
+    internal static void BroadcastShipDamaged(Ship victim, Ship attacker, float damage)
+    {
+        OnGlobalShipDamaged?.Invoke(victim, attacker, damage);
     }
 
     void FixedUpdate()

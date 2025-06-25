@@ -1,0 +1,33 @@
+{
+    "name": "Tests.PlayMode",
+    "rootNamespace": "",
+    "references": [
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "GameCore",
+        "Behavior",
+        "Game.RL",
+        "Unity.ML-Agents",
+        "Unity.ML-Agents.Extensions",
+        "Game.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.ml-agents",
+            "expression": "3.0.0",
+            "define": "UNITY_ML_AGENTS"
+        }
+    ],
+    "noEngineReferences": false
+}

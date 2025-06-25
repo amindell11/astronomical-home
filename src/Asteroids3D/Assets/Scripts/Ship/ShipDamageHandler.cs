@@ -86,6 +86,12 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
             OnShieldDamaged?.Invoke(absorbed, hitPoint);
             // shipMovement?.TriggerDamageFlash();
 
+            // Broadcast damage event for shield hits
+            if (lastAttacker != null && absorbed > 0)
+            {
+                Ship.BroadcastShipDamaged(GetComponent<Ship>(), lastAttacker, absorbed);
+            }
+
             // A single hit never spills into health
             return;
         }
@@ -93,8 +99,15 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
         // 2. No shields – apply to health
         var oldHealth = currentHealth;
         currentHealth = Mathf.Max(currentHealth - damage, 0f);
+        float actualHealthDamage = oldHealth - currentHealth;
         OnHealthChanged?.Invoke(currentHealth, oldHealth, maxHealth);
-        OnDamaged?.Invoke(damage, hitPoint);
+        OnDamaged?.Invoke(actualHealthDamage, hitPoint);
+
+        // Broadcast damage event for health hits
+        if (lastAttacker != null && actualHealthDamage > 0)
+        {
+            Ship.BroadcastShipDamaged(GetComponent<Ship>(), lastAttacker, actualHealthDamage);
+        }
 
         // shipMovement?.TriggerDamageFlash();
 

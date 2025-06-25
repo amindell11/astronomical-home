@@ -56,6 +56,9 @@ public class ArenaInstance : MonoBehaviour
     [System.NonSerialized] public Agent[] mlAgents;
 #endif
 
+    // --- Private State ---
+    private bool _episodeActive = true; // Gate to prevent double-ending an episode.
+
     // Events so external systems can respond to lifecycle changes.
     public System.Action<ArenaInstance> OnArenaReset;
     
@@ -129,15 +132,34 @@ public class ArenaInstance : MonoBehaviour
     {
         // Any ship death triggers an arena reset.  Override this logic if
         // different termination conditions are needed.
-        ResetArena();
+        RequestEpisodeEnd();
     }
 
     /// <summary>
     /// Public entry-point to reset this arena.
+    /// This is the safe, gated way to end the current episode and start a new one.
     /// </summary>
     public void ResetArena()
     {
-        if (!enableArenaReset) return;
+        RequestEpisodeEnd();
+    }
+
+    /// <summary>
+    /// Public entry-point for any agent or system to request the end of the current episode.
+    /// Ensures the episode is only ended once per cycle.
+    /// </summary>
+    public void RequestEpisodeEnd()
+    {
+        if(enableDebugLogs)
+        {
+            RLog.Log($"ArenaInstance: Requesting episode end. Episode active: {_episodeActive}, enableArenaReset: {enableArenaReset}");
+        }
+        if (!_episodeActive || !enableArenaReset) return;
+        _episodeActive = false; // Close the gate until the next episode begins.
+
+        // Immediately pause agents to stop them from accumulating rewards on stale data.
+        SetAgentsPaused(true);
+
         StartCoroutine(ResetArenaCoroutine());
     }
 
@@ -166,14 +188,17 @@ public class ArenaInstance : MonoBehaviour
         // 2. Reset ships (physics, health, position, rotation).
         ResetShips();
 
-        // 3. Inform ML Agents (if present) that a new episode has begun.
-        SignalMLAgents();
+        // 3. Inform ML Agents that a new episode has begun.
+        // Their OnEpisodeBegin() will un-pause them.
+        SignalAgentsEpisodeEnd();
+
+        // 4. Re-arm the gate, allowing the new episode to be terminated.
+        _episodeActive = true;
 
         if (enableDebugLogs)
         {
             RLog.Log("ArenaInstance: Reset complete.");
         }
-
     }
 
     // ---------------------- Helper implementation ---------------------------
@@ -201,13 +226,31 @@ public class ArenaInstance : MonoBehaviour
         }
     }
 
-    void SignalMLAgents()
-    {
-#if UNITY_ML_AGENTS
+    void SignalAgentsEpisodeEnd()
+    {       
+    #if UNITY_ML_AGENTS
+        if(enableDebugLogs)
+        {
+            RLog.Log($"ArenaInstance: Signalling agents episode end. {mlAgents.Length} agents found.");
+        }
         if (mlAgents == null || mlAgents.Length == 0) return;
         foreach (var agent in mlAgents)
         {
             agent?.EndEpisode();
+        }
+#endif
+    }
+
+    void SetAgentsPaused(bool paused)
+    {
+#if UNITY_ML_AGENTS
+        if (mlAgents == null) return;
+        foreach (var agent in mlAgents)
+        {
+            if (agent is RLCommanderAgent commander)
+            {
+                commander.IsPaused = paused;
+            }
         }
 #endif
     }
@@ -279,7 +322,7 @@ public class ArenaInstance : MonoBehaviour
             RLog.Log($"ArenaInstance: Ship '{ship.name}' exited arena bounds – triggering reset.");
         }
 
-        ResetArena();
+        RequestEpisodeEnd();
     }
 
 #if UNITY_EDITOR
@@ -306,10 +349,6 @@ public class ArenaInstance : MonoBehaviour
         // Draw arena boundary
         Gizmos.color = gizmoColor;
         Gizmos.DrawWireCube(center, Vector3.one * gizmoSize);
-
-        // Draw center marker
-        Gizmos.color = flashTimer > 0f ? Color.white : Color.yellow;
-        Gizmos.DrawSphere(center, 2f);
 
         // Draw episode count text
         UnityEditor.Handles.color = Color.white;

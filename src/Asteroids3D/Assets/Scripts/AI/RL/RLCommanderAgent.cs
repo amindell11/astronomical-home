@@ -30,9 +30,15 @@ public class RLCommanderAgent : Agent, IShipCommandSource
     private ShipCommand lastCommand;
     private ShipState currentState;
     private Ship ship;
+    private ArenaInstance arenaInstance;
     private bool hasNewCommand = false;
     private float heuristicTargetAngle;
     private PlayerShipInput playerCommander;
+
+    /// <summary>
+    /// When paused, the agent will not process actions or rewards.
+    /// </summary>
+    public bool IsPaused { get; set; } = false;
 
     #region IShipCommandSource
 
@@ -68,20 +74,38 @@ public class RLCommanderAgent : Agent, IShipCommandSource
     {
         base.Initialize();
         playerCommander = GetComponent<PlayerShipInput>();
-        Ship.OnShipDestroyed += HandleShipDestroyed;
+        arenaInstance = GetComponentInParent<ArenaInstance>();
+        if (arenaInstance == null)
+        {
+            RLog.LogError("RLCommanderAgent requires a parent ArenaInstance component.", this);
+        }
+        Ship.OnGlobalShipDestroyed += HandleShipDestroyed;
+        Ship.OnGlobalShipDamaged += HandleShipDamaged;
     }
 
     private void OnDestroy()
     {
-        Ship.OnShipDestroyed -= HandleShipDestroyed;
+        Ship.OnGlobalShipDestroyed -= HandleShipDestroyed;
+        Ship.OnGlobalShipDamaged -= HandleShipDamaged;
     }
+
+#if UNITY_EDITOR
+    public int OnEpisodeBeginCount { get; private set; }
+#endif
 
     public override void OnEpisodeBegin()
     {
+#if UNITY_EDITOR
+        OnEpisodeBeginCount++;
+#endif
+        RLog.Log($"RLCommanderAgent {name}: OnEpisodeBegin. IsPaused: {IsPaused}");
+        // The agent is un-paused at the beginning of each new episode.
+        IsPaused = false;
     }
 
     public override void CollectObservations(VectorSensor sensor)
     {
+        if (IsPaused) return;
         // Kinematics
         sensor.AddObservation(currentState.Kinematics.Speed / maxSpeed);
         sensor.AddObservation(currentState.Kinematics.YawRate / maxYawRate);
@@ -99,9 +123,12 @@ public class RLCommanderAgent : Agent, IShipCommandSource
         AddTargetObservations(sensor, closestEnemy);
         AddTargetObservations(sensor, closestAsteroid);
     }
-    
+
     public override void OnActionReceived(ActionBuffers actions)
     {
+        // Do not process actions or apply rewards if the agent is paused.
+        if (IsPaused) { return; }
+
         // Translate actions into a ship command
         var continuousActions = actions.ContinuousActions;
         lastCommand.Thrust = continuousActions[0];
@@ -117,11 +144,14 @@ public class RLCommanderAgent : Agent, IShipCommandSource
         lastCommand.SecondaryFire = discreteActions[1] == 1;
 
         hasNewCommand = true;
-        // TODO: Add rewards based on game events (damage, kills, etc.)
+        
+        // Small penalty for existing to encourage finishing the episode.
+        AddReward(-0.0001f);
     }
 
     public override void Heuristic(in ActionBuffers actionsOut)
     {
+        if (IsPaused) return;
         if (playerCommander == null)
         {
             RLog.LogError("PlayerCommander (PlayerShipInput) component not found. Heuristics will not work.", this);
@@ -183,6 +213,7 @@ public class RLCommanderAgent : Agent, IShipCommandSource
     }
     public void OnHealthChanged(float current, float previous, float maxHealth)
     {
+        if (IsPaused) return;
         float healthDelta = current - previous;
         if (healthDelta < 0)
         {
@@ -192,23 +223,77 @@ public class RLCommanderAgent : Agent, IShipCommandSource
     }
     public void OnShieldChanged(float current, float previous, float maxShield)
     {
+        if (IsPaused) return;
         float shieldDelta = current - previous;
         // Reward shield changes at a lower rate than health changes
         AddReward(shieldDelta / maxShield * 0.5f);
     }
     public void OnDeath(Ship ship)
     {
+        if (IsPaused) return;
         AddReward(-1f);
+        arenaInstance?.RequestEpisodeEnd();
     }
 
     private void HandleShipDestroyed(Ship victim, Ship killer)
     {
+        if (IsPaused) return;
         if (killer == ship)
         {
             if(ship.IsFriendly(victim))
+            {
                 AddReward(-0.75f);
+            }
             else
+            {
                 AddReward(5.0f);
+                CheckForWinCondition();
+            }
+        }
+    }
+
+    private void HandleShipDamaged(Ship victim, Ship attacker, float damage)
+    {
+        if (IsPaused) return;
+        if (attacker == ship)
+        {
+            if (ship.IsFriendly(victim))
+            {
+                // Penalize friendly fire damage
+                AddReward(-damage / (victim.damageHandler.maxHealth + victim.damageHandler.maxShield) * 0.1f);
+            }
+            else
+            {
+                // Reward enemy damage - scale by max health to normalize across different ship types
+                AddReward(damage / (victim.damageHandler.maxHealth + victim.damageHandler.maxShield) * 0.5f);
+            }
+        }
+    }
+
+    private void CheckForWinCondition()
+    {
+        if (IsPaused) return;
+        if (arenaInstance == null) return;
+
+        bool enemiesRemain = false;
+        foreach (var otherShip in arenaInstance.ships)
+        {
+            if (otherShip == null || otherShip == this.ship || !otherShip.gameObject.activeInHierarchy)
+            {
+                continue; // Ignore self, destroyed, or inactive ships
+            }
+
+            if (!ship.IsFriendly(otherShip))
+            {
+                enemiesRemain = true;
+                break; // Found an active enemy, no need to check further
+            }
+        }
+
+        if (!enemiesRemain)
+        {
+            // Victory condition: all enemies are destroyed
+            arenaInstance.RequestEpisodeEnd();
         }
     }
     #endregion
