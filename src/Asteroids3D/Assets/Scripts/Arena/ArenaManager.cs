@@ -39,7 +39,7 @@ public class ArenaManager : MonoBehaviour
     private readonly List<GameObject>   spawnedArenas  = new();
     private readonly List<ArenaInstance> arenaInstances = new();
 
-    private bool isMultiArenaMode;
+    public bool isMultiArenaMode{get; private set;}
 
     // Optional singleton for easy access
     public static ArenaManager Instance { get; private set; }
@@ -47,6 +47,7 @@ public class ArenaManager : MonoBehaviour
     // Events – forwarded from individual ArenaInstance components
     public System.Action<ArenaInstance> OnArenaSpawned;
     public System.Action<ArenaInstance> OnArenaReset;
+    public System.Action OnArenasSpawned;
 
     // ---------------------------------------------------------------------
     void Awake()
@@ -132,6 +133,8 @@ public class ArenaManager : MonoBehaviour
 
         if (enableDebugLogs)
             RLog.Log($"ArenaManager: Finished spawning – {spawned} arena(s) in a {actualGrid.x}×{actualGrid.y} grid");
+        
+        OnArenasSpawned?.Invoke();
     }
 
     private void ConfigureArenaForTraining(ArenaInstance instance, int arenaIndex)

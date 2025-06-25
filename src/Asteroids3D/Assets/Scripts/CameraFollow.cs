@@ -22,20 +22,27 @@ public class CameraFollow : MonoBehaviour
     [Tooltip("How often (seconds) to refresh the list of ship targets. 0 = every frame.")]
     [SerializeField] private float refreshInterval = 0.5f;
 
-    private readonly List<Transform> _targets = new();
-    private Camera _cam;
-    private float _refreshTimer;
-    private Transform _player;
+    [Header("Behavior")]
+    [Tooltip("If true, camera will adjust to keep the player (tagged 'Player') within the view frustum.")]
+    [SerializeField] protected bool keepPlayerInView = true;
 
-    private void Awake()
+    protected readonly List<Transform> _targets = new();
+    protected Camera _cam;
+    private float _refreshTimer;
+    protected Transform _player;
+
+    protected virtual void Awake()
     {
         _cam = GetComponent<Camera>();
 
-        // Cache player transform for quick access (may be null if not found)
-        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-        if (playerObj != null)
+        if (keepPlayerInView)
         {
-            _player = playerObj.transform;
+            // Cache player transform for quick access (may be null if not found)
+            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+            if (playerObj != null)
+            {
+                _player = playerObj.transform;
+            }
         }
 
         if (!_cam.orthographic)
@@ -47,7 +54,7 @@ public class CameraFollow : MonoBehaviour
         RefreshTargets();
     }
 
-    private void Update()
+    protected virtual void Update()
     {
         if (refreshInterval > 0f)
         {
@@ -87,7 +94,7 @@ public class CameraFollow : MonoBehaviour
         Vector3 desiredPos   = worldCenter + worldOffset;
 
         // 4. Keep player within view (operate in plane space)
-        if (_player != null)
+        if (keepPlayerInView && _player != null)
         {
             float horizontalExtent = newSize * _cam.aspect;
             float verticalExtent   = newSize;
@@ -145,7 +152,7 @@ public class CameraFollow : MonoBehaviour
     }
 
     // Refresh the list of ship targets using the configured LayerMask
-    private void RefreshTargets()
+    protected virtual void RefreshTargets()
     {
         _targets.Clear();
 
