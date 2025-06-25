@@ -46,24 +46,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6bb6b867a41448888c1cd4f99643ad71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_SensorName: RayPerceptionSensor
+  m_SensorName: LongRangeSensor
   m_DetectableTags:
   - Ship
   - Asteroid
-  - Missile
-  m_RaysPerDirection: 5
-  m_MaxRayDegrees: 180
-  m_SphereCastRadius: 1.62
-  m_RayLength: 20
+  m_RaysPerDirection: 3
+  m_MaxRayDegrees: 50
+  m_SphereCastRadius: 0.85
+  m_RayLength: 161
   m_RayLayerMask:
     serializedVersion: 2
-    m_Bits: 4294966720
-  m_ObservationStacks: 3
+    m_Bits: 4294966656
+  m_ObservationStacks: 2
   m_AlternatingRayOrder: 1
   m_UseBatchedRaycasts: 1
   rayHitColor: {r: 1, g: 0, b: 0, a: 1}
   rayMissColor: {r: 1, g: 1, b: 1, a: 1}
-  m_StartVerticalOffset: 0
+  m_StartVerticalOffset: 0.31
   m_EndVerticalOffset: 0
 --- !u!114 &6804231553034738962
 MonoBehaviour:
@@ -77,14 +76,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6bb6b867a41448888c1cd4f99643ad71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_SensorName: RayPerceptionSensor
-  m_DetectableTags:
-  - Asteroid
-  - Player
-  m_RaysPerDirection: 1
-  m_MaxRayDegrees: 3.1
-  m_SphereCastRadius: 0.46
-  m_RayLength: 48
+  m_SensorName: CollisionAvoidanceSensor
+  m_DetectableTags: []
+  m_RaysPerDirection: 6
+  m_MaxRayDegrees: 180
+  m_SphereCastRadius: 0.67
+  m_RayLength: 15
   m_RayLayerMask:
     serializedVersion: 2
     m_Bits: 4294966656
@@ -204,7 +201,7 @@ PrefabInstance:
     - target: {fileID: 3274392229469629848, guid: cade7246a6fb1b64e82fbb5aac398631,
         type: 3}
       propertyPath: teamNumber
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5100611748941008240, guid: cade7246a6fb1b64e82fbb5aac398631,
         type: 3}
@@ -349,7 +346,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 15
+    VectorObservationSize: 20
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 3
@@ -360,7 +357,7 @@ MonoBehaviour:
     hasUpgradedBrainParametersWithActionSpec: 1
   m_Model: {fileID: 0}
   m_InferenceDevice: 0
-  m_BehaviorType: 0
+  m_BehaviorType: 1
   m_BehaviorName: RLPilot
   TeamId: 0
   m_UseChildSensors: 1
@@ -384,7 +381,7 @@ MonoBehaviour:
   hasUpgradedFromAgentParameters: 1
   MaxStep: 0
   commanderPriority: 100
-  sensingRange: 100
+  sensingRange: 30
   maxSpeed: 20
   maxYawRate: 180
   ShowObservationUI: 1

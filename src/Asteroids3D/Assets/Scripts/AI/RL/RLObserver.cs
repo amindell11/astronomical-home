@@ -1,6 +1,7 @@
 using UnityEngine;
 using Unity.MLAgents.Sensors;
 using System.Runtime.CompilerServices;
+using System.Collections.Generic;
 
 /// <summary>
 /// A utility class responsible for collecting all observations for an RLCommanderAgent.
@@ -18,28 +19,42 @@ public class RLObserver
     public static readonly string[] ObservationLabels =
     {
         // --- Self state ---
-        "self_speed_norm",          // 0
-        "self_yawrate_norm",        // 1
-        "self_health_pct",          // 2
-        "self_shield_pct",          // 3
-        "dist_to_center_norm",      // 4
+        "self_vel_fwd_norm",        // 0
+        "self_vel_right_norm",      // 1
+        "self_yawrate_norm",        // 2
+        "self_health_pct",          // 3
+        "self_shield_pct",          // 4
+
+        // --- Missile system status (one-hot) ---
+        "missile_idle",             // 5
+        "missile_locking",          // 6
+        "missile_locked",           // 7
+        "missile_cooldown",         // 8
+
+        "dist_to_center_norm",      // 9
 
         // --- Closest enemy ---
-        "enemy_bearing",            // 5
-        "enemy_dist_norm",          // 6
-        "enemy_heading",            // 7
-        "enemy_rel_vel_fwd_norm",   // 8
-        "enemy_rel_vel_right_norm", // 9
+        "enemy_bearing",            // 10
+        "enemy_dist_norm",          // 11
+        "enemy_heading",            // 12
+        "enemy_rel_vel_fwd_norm",   // 13
+        "enemy_rel_vel_right_norm", // 14
 
         // --- Closest asteroid ---
-        "asteroid_bearing",         // 10
-        "asteroid_dist_norm",       // 11
+        "asteroid_bearing",         // 15
+        "asteroid_dist_norm",       // 16
 
         // --- Closest hostile projectile ---
-        "proj_bearing",             // 12
-        "proj_dist_norm",           // 13
-        "proj_closing_speed_norm"   // 14
+        "proj_bearing",             // 17
+        "proj_dist_norm",           // 18
+        "proj_closing_speed_norm"   // 19
     };
+
+    /// <summary>
+    /// A list that gets populated with the latest observation values each time
+    /// <see cref="CollectObservations"/> is called. Used by debug tools.
+    /// </summary>
+    public readonly List<float> LastObservations;
 
     private readonly RLCommanderAgent agent;
     private readonly Ship ship;
@@ -62,20 +77,66 @@ public class RLObserver
         this.maxSpeed = agent.maxSpeed;
         this.maxYawRate = agent.maxYawRate;
         this.overlapColliders = agent.overlapColliders;
+        this.LastObservations = new List<float>(ObservationLabels.Length);
+    }
+
+    /// <summary>
+    /// Helper method to add an observation to the sensor while also caching it
+    /// in <see cref="LastObservations"/> for debugging purposes.
+    /// </summary>
+    private void AddObservation(VectorSensor sensor, float value)
+    {
+        sensor.AddObservation(value);
+        LastObservations.Add(value);
     }
 
     public void CollectObservations(VectorSensor sensor)
     {
-        if (agent.IsPaused) return;
+        // When paused, the agent's actions are ignored, but the sensor still expects a full
+        // vector of observations. We don't want to collect new (potentially invalid) data,
+        // so we'll just feed it the last known values and prevent the debug list from clearing.
+        if (agent.IsPaused)
+        {
+            // If we have previous observations, send them again.
+            if (LastObservations.Count == ObservationLabels.Length)
+            {
+                foreach (var obs in LastObservations) { sensor.AddObservation(obs); }
+            }
+            else // Otherwise, send zeros as a fallback.
+            {
+                for (int i = 0; i < ObservationLabels.Length; i++) { sensor.AddObservation(0f); }
+            }
+            return;
+        }
 
+        LastObservations.Clear();
+        
         var currentState = ship.CurrentState;
         var arenaInstance = agent.arenaInstance;
 
-        // --- Self State --- (5 floats)
-        sensor.AddObservation(currentState.Kinematics.Speed / maxSpeed);
-        sensor.AddObservation(currentState.Kinematics.YawRate / maxYawRate);
-        sensor.AddObservation(currentState.HealthPct);
-        sensor.AddObservation(currentState.ShieldPct);
+        // --- Self State --- (10 floats)
+
+        // Deconstruct velocity into local forward and strafe components
+        Vector2 agentVel2D = currentState.Kinematics.Vel;
+        Vector2 agentFwd2D = currentState.Kinematics.Forward;
+        Vector2 agentRight2D = new Vector2(agentFwd2D.y, -agentFwd2D.x);
+
+        float localVelFwd = Vector2.Dot(agentVel2D, agentFwd2D);
+        float localVelRight = Vector2.Dot(agentVel2D, agentRight2D);
+
+        AddObservation(sensor, Mathf.Clamp(localVelFwd / maxSpeed, -1f, 1f));
+        AddObservation(sensor, Mathf.Clamp(localVelRight / maxSpeed, -1f, 1f));
+
+        AddObservation(sensor, currentState.Kinematics.YawRate / maxYawRate);
+        AddObservation(sensor, currentState.HealthPct);
+        AddObservation(sensor, currentState.ShieldPct);
+
+        // One-hot encode missile launcher state
+        var mState = currentState.MissileState;
+        AddObservation(sensor, mState == MissileLauncher.LockState.Idle      ? 1f : 0f);
+        AddObservation(sensor, mState == MissileLauncher.LockState.Locking   ? 1f : 0f);
+        AddObservation(sensor, mState == MissileLauncher.LockState.Locked    ? 1f : 0f);
+        AddObservation(sensor, mState == MissileLauncher.LockState.Cooldown  ? 1f : 0f);
 
         float normDistToCenter = 0f;
         if (arenaInstance != null && arenaInstance.ArenaSize > 0f)
@@ -83,7 +144,7 @@ public class RLObserver
             normDistToCenter = Vector3.Distance(transform.position, arenaInstance.CenterPosition) / arenaInstance.ArenaSize;
             normDistToCenter = Mathf.Clamp01(normDistToCenter);
         }
-        sensor.AddObservation(normDistToCenter);
+        AddObservation(sensor, normDistToCenter);
 
         // --- Environmental Awareness ---
         var closestEnemy      = FindClosestEnemy();
@@ -98,15 +159,15 @@ public class RLObserver
             if (enemyShip != null)
             {
                 // Heading (+1 float)
-                Vector2 toAgent2D   = GamePlane.WorldToPlane((transform.position - closestEnemy.position)).normalized;
+                Vector2 toAgent2D   = (transform.position - closestEnemy.position).normalized;
                 Vector2 enemyFwd2D  = enemyShip.CurrentState.Kinematics.Forward;
                 float enemyHeading  = Vector2.Dot(enemyFwd2D, toAgent2D);
-                sensor.AddObservation(enemyHeading);
+                AddObservation(sensor, enemyHeading);
 
                 // Relative velocity in agent's local frame (+2 floats)
-                Vector3 agentVel = this.ship.CurrentState.Kinematics.Vel;
-                Vector3 enemyVel = enemyShip.CurrentState.Kinematics.Vel;
-                Vector2 relVel2D = GamePlane.WorldToPlane(enemyVel - agentVel);
+                Vector2 agentVel = this.ship.CurrentState.Kinematics.Vel;
+                Vector2 enemyVel = enemyShip.CurrentState.Kinematics.Vel;
+                Vector2 relVel2D = enemyVel - agentVel;
 
                 Vector2 agentFwd = this.ship.CurrentState.Kinematics.Forward;
                 Vector2 agentRight = new Vector2(agentFwd.y, -agentFwd.x);
@@ -114,23 +175,23 @@ public class RLObserver
                 float localRelVelFwd = Vector2.Dot(relVel2D, agentFwd);
                 float localRelVelRight = Vector2.Dot(relVel2D, agentRight);
 
-                sensor.AddObservation(Mathf.Clamp(localRelVelFwd / maxSpeed, -1f, 1f));
-                sensor.AddObservation(Mathf.Clamp(localRelVelRight / maxSpeed, -1f, 1f));
+                AddObservation(sensor, Mathf.Clamp(localRelVelFwd / maxSpeed, -1f, 1f));
+                AddObservation(sensor, Mathf.Clamp(localRelVelRight / maxSpeed, -1f, 1f));
             }
             else
             {
                 // Pad heading and rel vel
-                sensor.AddObservation(0f);
-                sensor.AddObservation(0f);
-                sensor.AddObservation(0f);
+                AddObservation(sensor, 0f);
+                AddObservation(sensor, 0f);
+                AddObservation(sensor, 0f);
             }
         }
         else
         {
             // Pad heading and rel vel
-            sensor.AddObservation(0f);
-            sensor.AddObservation(0f);
-            sensor.AddObservation(0f);
+            AddObservation(sensor, 0f);
+            AddObservation(sensor, 0f);
+            AddObservation(sensor, 0f);
         }
 
         // Asteroid: Bearing, Dist (+2 floats)
@@ -147,16 +208,16 @@ public class RLObserver
                 Vector3 relVel   = projRb.linearVelocity;
                 float   closing  = Vector3.Dot(relVel, toShip.normalized);
                 const float MaxProjectileSpeed = 40f; // tune to your missile speed cap
-                sensor.AddObservation(Mathf.Clamp(closing / MaxProjectileSpeed, -1f, 1f));
+                AddObservation(sensor, Mathf.Clamp(closing / MaxProjectileSpeed, -1f, 1f));
             }
             else
             {
-                sensor.AddObservation(0f);
+                AddObservation(sensor, 0f);
             }
         }
         else
         {
-            sensor.AddObservation(0f); // no projectile
+            AddObservation(sensor, 0f); // no projectile
         }
     }
 
@@ -177,14 +238,14 @@ public class RLObserver
             float bearing = Vector2.SignedAngle(agentFwd, toTargetDir);
 
             // Normalize and add observations
-            sensor.AddObservation(bearing / 180f);          // Bearing: [-1, 1]
-            sensor.AddObservation(distance / sensingRange); // Distance: [0, ~1]
+            AddObservation(sensor, bearing / 180f);          // Bearing: [-1, 1]
+            AddObservation(sensor, distance / sensingRange); // Distance: [0, ~1]
         }
         else
         {
             // Pad with zeros if no target found
-            sensor.AddObservation(0f); // bearing
-            sensor.AddObservation(0f); // distance
+            AddObservation(sensor, 0f); // bearing
+            AddObservation(sensor, 0f); // distance
         }
     }
 

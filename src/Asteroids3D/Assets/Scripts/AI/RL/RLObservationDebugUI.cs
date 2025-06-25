@@ -1,118 +1,118 @@
-using System.Collections.Generic;
 using UnityEngine;
-using Unity.MLAgents.Sensors;
+using System.Collections.Generic;
 
 /// <summary>
-/// Simple on-screen overlay that visualises the observation vector being fed
-/// to an <see cref="RLCommanderAgent"/>.  When the agent's <c>ShowObservationUI</c>
-/// toggle is enabled this component draws each float in a scrollable box so
-/// you can debug live while piloting via the heuristic.
+/// Renders an IMGUI window to display the real-time observations of an
+/// <see cref="RLCommanderAgent"/> for debugging purposes.
+/// Attach this component to the same GameObject as the <see cref="RLCommanderAgent"/>.
 /// </summary>
 [RequireComponent(typeof(RLCommanderAgent))]
 public class RLObservationDebugUI : MonoBehaviour
 {
-    [Tooltip("How many Academy steps to wait between UI refreshes (0=every frame)")]
-    [SerializeField] private int refreshInterval = 0;
+    private RLCommanderAgent agent;
+    private RLObserver observer;
 
-    private RLCommanderAgent _agent;
-    private readonly List<float> _obsBuffer = new List<float>(64);
-    private int _lastRenderedStep = -1;
+    // --- GUI Style ---
+    private GUIStyle labelStyle;
+    private GUIStyle backgroundStyle;
+    private const int windowWidth = 280;
+    private const int windowHeight = 380;
+    private Rect windowRect;
 
-    // Pre-allocated rects for IMGUI; tweak width/height as needed.
-    private readonly Rect _panelRect = new Rect(10, 10, 300, 400);
-    private Vector2 _scrollPos;
-
-    // Wrapper that captures observations to our buffer
-    private class DebugSensorWrapper : VectorSensor
+    void Start()
     {
-        private readonly List<float> _buffer;
-        private readonly VectorSensor _wrappedSensor;
-
-        public DebugSensorWrapper(List<float> buffer) : base(64)
-        {
-            _buffer = buffer;
-            _wrappedSensor = new VectorSensor(64);
-        }
-
-        public new void AddObservation(float observation)
-        {
-            _buffer.Add(observation);
-            _wrappedSensor.AddObservation(observation);
-        }
-
-        public new void AddObservation(int observation)
-        {
-            _buffer.Add(observation);
-            _wrappedSensor.AddObservation(observation);
-        }
-
-        public new void AddObservation(bool observation)
-        {
-            _buffer.Add(observation ? 1f : 0f);
-            _wrappedSensor.AddObservation(observation);
-        }
-
-        public new void AddObservation(Vector2 observation)
-        {
-            _buffer.Add(observation.x);
-            _buffer.Add(observation.y);
-            _wrappedSensor.AddObservation(observation);
-        }
-
-        public new void AddObservation(Vector3 observation)
-        {
-            _buffer.Add(observation.x);
-            _buffer.Add(observation.y);
-            _buffer.Add(observation.z);
-            _wrappedSensor.AddObservation(observation);
-        }
-
-        public new void AddObservation(Quaternion observation)
-        {
-            _buffer.Add(observation.x);
-            _buffer.Add(observation.y);
-            _buffer.Add(observation.z);
-            _buffer.Add(observation.w);
-            _wrappedSensor.AddObservation(observation);
-        }
-    }
-
-    private DebugSensorWrapper _debugSensor;
-
-    void Awake()
-    {
-        _agent = GetComponent<RLCommanderAgent>();
-        _debugSensor = new DebugSensorWrapper(_obsBuffer);
-    }
-
-    void Update()
-    {
-        if (_agent == null || !_agent.ShowObservationUI) return;
-
-        if (refreshInterval > 0 && (_agent.StepCount - _lastRenderedStep) < refreshInterval)
-            return;
-
-        _lastRenderedStep = _agent.StepCount;
-
-        // Clear buffer and collect fresh observations
-        _obsBuffer.Clear();
-        _agent.Observer.CollectObservations(_debugSensor);
+        agent = GetComponent<RLCommanderAgent>();
+        
+        // Initial position of the debug window
+        windowRect = new Rect(10, 10, windowWidth, windowHeight);
     }
 
     void OnGUI()
     {
-        if (_agent == null || !_agent.ShowObservationUI) return;
-
-        GUI.Box(_panelRect, "Observations");
-        var contentRect = new Rect(_panelRect.x + 5, _panelRect.y + 20, _panelRect.width - 10, _panelRect.height - 25);
-        _scrollPos = GUI.BeginScrollView(_panelRect, _scrollPos, new Rect(0, 0, contentRect.width - 20, (_obsBuffer.Count + 1) * 18));
-
-        for (int i = 0; i < _obsBuffer.Count; i++)
+        // Only render if the agent exists and the debug flag is enabled
+        if (agent == null || !agent.ShowObservationUI)
         {
-            string label = (i < RLObserver.ObservationLabels.Length) ? RLObserver.ObservationLabels[i] : $"obs_{i:00}";
-            GUI.Label(new Rect(5, i * 18, contentRect.width, 18), $"{i:00} {label}: {_obsBuffer[i]:0.00}");
+            return;
         }
 
-        GUI.EndScrollView();
+        // Get fresh observer reference each frame in case it was recreated during episode reset
+        observer = agent.Observer;
+        if (observer == null)
+        {
+            return;
+        }
+
+        // Lazy-initialize GUI styles
+        if (labelStyle == null)
+        {
+            InitializeStyles();
+        }
+
+        // Draw the window
+        windowRect = GUILayout.Window(GetInstanceID(), windowRect, DrawDebugWindow, "Agent Observations", backgroundStyle);
     }
-}   
+    
+    private void InitializeStyles()
+    {
+        labelStyle = new GUIStyle(GUI.skin.label)
+        {
+            fontSize = 12,
+            fontStyle = FontStyle.Normal,
+            alignment = TextAnchor.MiddleLeft,
+            wordWrap = false
+        };
+        labelStyle.normal.textColor = Color.white;
+
+        backgroundStyle = new GUIStyle(GUI.skin.box);
+        Texture2D bgTexture = new Texture2D(1, 1);
+        // A dark, semi-transparent background color
+        bgTexture.SetPixel(0, 0, new Color(0.1f, 0.1f, 0.2f, 0.8f));
+        bgTexture.Apply();
+        backgroundStyle.normal.background = bgTexture;
+    }
+
+    /// <summary>
+    /// Renders the content of the debug window.
+    /// </summary>
+    private void DrawDebugWindow(int windowID)
+    {
+        List<float> lastObservations = observer.LastObservations;
+        
+        if (lastObservations == null || lastObservations.Count == 0)
+        {
+            GUILayout.Label("No observations available yet.", labelStyle);
+            return;
+        }
+
+        // Sanity check to ensure labels and data match
+        if (lastObservations.Count != RLObserver.ObservationLabels.Length)
+        {
+            GUILayout.Label(
+                $"Error: Mismatch!\nObs count ({lastObservations.Count}) != Labels count ({RLObserver.ObservationLabels.Length})", 
+                labelStyle);
+            return;
+        }
+
+        // --- Render each observation's Label, Value, and a Visual Bar ---
+        for (int i = 0; i < RLObserver.ObservationLabels.Length; i++)
+        {
+            GUILayout.BeginHorizontal();
+            
+            // 1. Label
+            GUILayout.Label($"{RLObserver.ObservationLabels[i]}:", labelStyle, GUILayout.Width(150));
+            
+            // 2. Value
+            float value = lastObservations[i];
+            GUILayout.Label(value.ToString("F2"), labelStyle, GUILayout.Width(40));
+            
+            // 3. Visualization Bar
+            // Use a slider for a simple visual representation of the value in the [-1, 1] range
+            GUILayout.HorizontalSlider(value, -1f, 1f, GUILayout.ExpandWidth(true));
+            
+            GUILayout.EndHorizontal();
+        }
+        
+        // Allow the user to drag the window around the screen
+        GUI.DragWindow();
+    }
+} 

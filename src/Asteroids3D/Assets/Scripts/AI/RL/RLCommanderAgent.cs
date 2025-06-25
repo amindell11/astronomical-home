@@ -1,6 +1,7 @@
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
+using Unity.MLAgents.Policies;
 using UnityEngine;
 using ShipControl;
 
@@ -79,6 +80,13 @@ public class RLCommanderAgent : Agent, IShipCommandSource
                 fallbackCommander = src;
                 break;
             }
+        }
+
+        // Ensure ML-Agents team ID matches the Ship's team number so both systems agree on alliances.
+        var bp = GetComponent<BehaviorParameters>();
+        if (bp != null && ship != null)
+        {
+            bp.TeamId = ship.teamNumber;
         }
     }
 
@@ -190,7 +198,7 @@ public class RLCommanderAgent : Agent, IShipCommandSource
         else if (killer == this.ship)
         {
             // Reward for destroying a non-friendly ship
-            if (!victim.IsFriendly(this.ship))
+            if (victim != null && !victim.IsFriendly(this.ship))
             {
                 SetReward(1.0f);
                 EndEpisode();
@@ -201,7 +209,7 @@ public class RLCommanderAgent : Agent, IShipCommandSource
                 EndEpisode();
             }
         }
-        else if (victim.IsFriendly(this.ship) && !killer.IsFriendly(this.ship))
+        else if (victim != null && victim.IsFriendly(this.ship) && killer != null && !killer.IsFriendly(this.ship))
         {
                 // Penalty for letting a teammate be destroyed
                 AddReward(-0.5f);

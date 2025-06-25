@@ -11,6 +11,8 @@ public class RaycastStabilizer : MonoBehaviour
 {
     private Transform parentTransform;
     private bool gamePlaneAvailable;
+    // Local-space rotation captured at startup so that any design-time tweaks are preserved.
+    private Quaternion initialLocalRotation;
 
     void Awake()
     {
@@ -23,6 +25,10 @@ public class RaycastStabilizer : MonoBehaviour
             return;
         }
         
+        // Remember the initial rotation relative to the parent so that we can re-apply it
+        // after constraining the up-vector to the GamePlane normal each frame.
+        initialLocalRotation = transform.localRotation;
+
         gamePlaneAvailable = GamePlane.Plane != null;
         if (!gamePlaneAvailable)
         {
@@ -37,31 +43,27 @@ public class RaycastStabilizer : MonoBehaviour
         // Match the parent's position exactly.
         transform.position = parentTransform.position;
 
-        if (gamePlaneAvailable)
-        {
-            // Get the normal of the game plane, which will be our 'up' vector.
-            Vector3 planeNormal = GamePlane.Normal;
+        // Step 1 — Determine which "up" vector to use (GamePlane normal or world-up fallback).
+        Vector3 planeNormal = gamePlaneAvailable ? GamePlane.Normal : Vector3.up;
 
-            // Project the parent's forward vector onto the game plane.
-            // This effectively removes any rotation component not aligned with the plane normal (e.g., pitch/roll relative to the plane).
-            Vector3 projectedForward = Vector3.ProjectOnPlane(parentTransform.forward, planeNormal);
-            
-            // We can only create a valid rotation if the projected forward vector is not zero.
-            // This would happen if the parent's forward is parallel to the plane normal.
-            if (projectedForward.sqrMagnitude > 1e-6f)
-            {
-                // Create a new rotation that looks along the projected forward direction,
-                // with 'up' aligned to the plane's normal.
-                transform.rotation = Quaternion.LookRotation(projectedForward, planeNormal);
-            }
-            // else: Edge case where parent is looking along the plane normal. We don't update
-            // the rotation to prevent unpredictable spinning.
-        }
-        else
+        // Step 2 — Start from the parent's current rotation plus whatever local offset the
+        // designer put on this object in the editor.
+        Quaternion rawRotation = parentTransform.rotation * initialLocalRotation;
+
+        // Step 3 — Constrain the object so that its local Y-axis aligns with the plane normal.
+        // We achieve this by projecting the desired forward vector onto the plane and then
+        // building a rotation that uses the plane normal as the up direction.
+        Vector3 desiredForward = rawRotation * Vector3.forward;
+        Vector3 projectedForward = Vector3.ProjectOnPlane(desiredForward, planeNormal);
+
+        // If the forward vector is (nearly) parallel to the normal, fall back to the right axis
+        // to avoid zero-length vectors that would produce NaNs.
+        if (projectedForward.sqrMagnitude < 1e-6f)
         {
-            // Fallback to original behavior if GamePlane is not set up, assuming world's XZ plane.
-            float parentYaw = parentTransform.eulerAngles.y;
-            transform.rotation = Quaternion.Euler(0, parentYaw, 0);
+            projectedForward = Vector3.ProjectOnPlane(rawRotation * Vector3.right, planeNormal);
         }
+
+        // Final stabilized rotation.
+        transform.rotation = Quaternion.LookRotation(projectedForward, planeNormal);
     }
 } 
