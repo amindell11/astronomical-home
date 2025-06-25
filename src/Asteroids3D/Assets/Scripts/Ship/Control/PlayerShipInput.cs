@@ -43,13 +43,10 @@ public class PlayerShipInput : MonoBehaviour, IShipCommandSource
         HandleRotationInput();
 
         // Shooting
-        _cmd.Fire = Input.GetButton("Fire1");
+        _cmd.PrimaryFire = Input.GetButton("Fire1");
 
         // Missile lock / fire (single press behaviour)
-        if (Input.GetButtonDown("Fire2") && missileLauncher)
-        {
-            missileLauncher.Fire();
-        }
+        _cmd.SecondaryFire = Input.GetButtonDown("Fire2");
     }
 
     public void HandleRotationInput()
@@ -152,7 +149,7 @@ public class PlayerShipInput : MonoBehaviour, IShipCommandSource
 
     public int Priority => 100; // Player input overrides most others
 
-    public bool TryGetCommand(out ShipCommand cmd)
+    public bool TryGetCommand(ShipState state, out ShipCommand cmd)
     {
         cmd = _cmd;
         // Always provide command; central Ship may decide to ignore if zeroed

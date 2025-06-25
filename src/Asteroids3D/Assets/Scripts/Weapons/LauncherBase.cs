@@ -17,6 +17,11 @@ public abstract class LauncherBase<TProj> : WeaponComponent where TProj : Projec
 
     protected float nextFireTime;
 
+    public bool IsReady()
+    {
+        return Time.time >= nextFireTime;
+    }
+
     /// <summary>Attempts to fire a projectile if the fire-rate cooldown has elapsed.</summary>
     public override void Fire()
     {

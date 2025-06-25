@@ -1,8 +1,9 @@
 using UnityEngine;
 using System.Collections.Generic;
+using ShipControl;
 
 [RequireComponent(typeof(ShipMovement))]
-public class AIShipInput : MonoBehaviour
+public class AIShipInput : MonoBehaviour, IShipCommandSource
 {
     /* ── Navigation tunables ─────────────────────────────────── */
     [Header("Navigation")]
@@ -28,14 +29,13 @@ public class AIShipInput : MonoBehaviour
     [SerializeField] LayerMask lineOfSightMask      = ~0;
     [SerializeField] int lineOfSightCacheFrames     = 5;
     [SerializeField] float angleToleranceBeforeRay  = 15f;
-    [SerializeField] bool updateControl = true;
 
     [Header("Missile Combat")]
     [SerializeField] float missileRange             = 40f;
     [SerializeField] float missileAngleTolerance    = 15f;
 
     /* ── internals ───────────────────────────────────────────── */
-    ShipMovement      ship;
+    ShipMovement ship;
     LaserGun  gun;
     MissileLauncher missileLauncher;
     Camera    mainCam;
@@ -93,17 +93,22 @@ public class AIShipInput : MonoBehaviour
         navWaypoint = new Waypoint { isValid = false };
     }
 
-    /* ────────────────────────────────────────────────────────── */
-    void FixedUpdate()
+    public int Priority => 10;
+
+    public bool TryGetCommand(ShipState state, out ShipCommand cmd)
     {
+        cmd = new ShipCommand();
+        
         if (targetType == TargetType.None)
-        {
-            ship.Controller.SetControls(0, 0);
-            ship.Controller.SetRotationTarget(false, ship.Controller.Angle);
-            return;
+        {   
+            cmd.Thrust = 0;
+            cmd.Strafe = 0;
+            cmd.RotateToTarget = false;
+            cmd.TargetAngle = state.Kinematics.angleDeg;
+            return true;
         }
 
-        ShipKinematics kin = ship.Kinematics;
+        ShipKinematics kin = state.Kinematics;
 
         float currentMaxSpeed = ship.maxSpeed;
 
@@ -111,71 +116,73 @@ public class AIShipInput : MonoBehaviour
 
         VelocityPilot.Output vpOut = ComputeNavigation(kin, currentMaxSpeed, obstacleCount);
 
-        ApplyControls(vpOut);
+        ApplyControls(vpOut, ref cmd);
 
-        if (!updateControl) return;
-
-        HandleShooting();
+        HandleShooting(ref cmd, state);
+        
+        return true;
     }
 
-    /* ── Enhanced weapon logic (laser + missile) ─────── */
-    public void HandleShooting()
+    void HandleShooting(ref ShipCommand cmd, ShipState state)
     {
-        if (targetType == TargetType.None || !mainCam) return;
+        cmd.PrimaryFire = false;
+        cmd.SecondaryFire = false;
+        
+        if (targetType == TargetType.None) return;
 
         Vector3 targetPos = GetTargetPosition();
-        Vector3 vp = mainCam.WorldToViewportPoint(transform.position);
-        if (!(vp.z > 0 && vp.x is >= 0 and <= 1 && vp.y is >= 0 and <= 1)) return;
-
+        
         Vector3 firePos = transform.position;
         Vector3 dir     = targetPos - firePos;
         float   dist    = dir.magnitude;
         float   angle   = Vector3.Angle(transform.up, dir);
-
-        // Try missile first if we have one and target is in missile range
-        if (missileLauncher && TryFireMissile(dist, angle, dir)) return;
-
-        // Fall back to laser if available and in range
-        if (gun) TryFireLaser(dist, angle, dir);
-    }
-
-    bool TryFireMissile(float dist, float angle, Vector3 dir)
-    {
-        if (dist > missileRange) return false;
-        if (angle > missileAngleTolerance) return false;
-
-        // For missiles, we need to check if target is ITargetable
-        ITargetable targetable = GetTargetTransform()?.GetComponentInParent<ITargetable>();
-        if (targetable == null) return false;
-
-        // Try to start lock or fire if already locking/locked
-        if (!missileLauncher.IsLocked)
+        
+        bool wantsToFireMissile = false;
+        const float dummyMissileRange = 10f; // Close range for dumb-fire during locking
+        
+        if (missileLauncher)
         {
-            // Begin or continue locking process (cooldown gate inside TryStartLock)
-            missileLauncher.TryStartLock(targetable);
-            return false; // not ready to shoot yet
+            switch (state.MissileState)
+            {
+                case MissileLauncher.LockState.Idle:
+                    // If target in range and in LOS, start lock-on
+                    if (dist <= missileRange && angle <= missileAngleTolerance)
+                    {
+                        if(LineOfSightOK(firePos, dir, dist, angle)){
+                            var targetable = GetTargetTransform()?.GetComponentInParent<ITargetable>();
+                        }       
+                    }
+                    break;
+                    
+                case MissileLauncher.LockState.Locking:
+                    // Fire dummy missile if target is very close
+                    if (dist <= dummyMissileRange)
+                    {
+                        wantsToFireMissile = true;
+                    }
+                    break;
+                    
+                case MissileLauncher.LockState.Locked:
+                    // Fire locked missile and don't fire laser
+                    wantsToFireMissile = true;
+                    break;
+                    
+                case MissileLauncher.LockState.Cooldown:
+                    // Do nothing during cooldown
+                    break;
+            }
         }
 
-        // Already locked – go ahead and fire (this will also reset the lock)
-        missileLauncher.Fire();
-        return true;
-    }
 
-    bool TryFireLaser(float dist, float angle, Vector3 dir)
-    {
-        if (dist > fireDistance) return false;
-        if (angle > fireAngleTolerance) return false;
-
-        Vector3 firePos = gun.firePoint ? gun.firePoint.position : transform.position;
-        if (!LineOfSightOK(firePos, dir, dist, angle)) return false;
-
-        gun.Fire();
-        return true;
-    }
-
-    public bool hasLOS(Transform tgt)
-    {
-        return LineOfSightOK(transform.position, tgt.position - transform.position, Vector3.Distance(transform.position, tgt.position), Vector3.Angle(transform.up, tgt.position - transform.position));
+        
+        if (gun && dist <= fireDistance && angle <= fireAngleTolerance)
+        {
+            Vector3 laserFirePos = gun.firePoint ? gun.firePoint.position : transform.position;
+            if (LineOfSightOK(laserFirePos, dir, dist, angle))
+            {
+                cmd.PrimaryFire = true;
+            }
+        }
     }
 
     bool LineOfSightOK(Vector3 firePos, Vector3 dir, float dist, float angle)
@@ -230,20 +237,15 @@ public class AIShipInput : MonoBehaviour
     /// <summary>Convenience wrapper so BT leaf nodes can fire weapons once.</summary>
     public void TryFire()
     {
-        HandleShooting();
+        // This is used by BTs. It can't directly fire anymore.
+        // It could set a flag that TryGetCommand reads, but that's messy.
+        // For now, this is a no-op. The BT should be updated to use commands.
     }
 
     /// <summary>Convenience wrapper for BT nodes that specifically want to fire missiles.</summary>
     public void TryFireMissile()
     {
-        if (!missileLauncher || targetType == TargetType.None) return;
-        
-        Vector3 targetPos = GetTargetPosition();
-        Vector3 dir = targetPos - transform.position;
-        float dist = dir.magnitude;
-        float angle = Vector3.Angle(transform.up, dir);
-        
-        TryFireMissile(dist, angle, dir);
+        // Also a no-op for now.
     }
 
     /// <summary>Returns true if an unobstructed line of sight exists to <paramref name="tgt"/>.</summary>
@@ -358,7 +360,7 @@ public class AIShipInput : MonoBehaviour
         return vpOut;
     }
 
-    void ApplyControls(VelocityPilot.Output vpOut)
+    void ApplyControls(VelocityPilot.Output vpOut, ref ShipCommand cmd)
     {
         // Proportional smoothing
         float k = proportionalGain;
@@ -374,11 +376,13 @@ public class AIShipInput : MonoBehaviour
             smoothStrafe = vpOut.strafe;
         }
 
+        cmd.Thrust = smoothThrust;
+        cmd.Strafe = smoothStrafe;
+        cmd.RotateToTarget = true;
+        cmd.TargetAngle = vpOut.rotTargetDeg;
+
         dbgThrust = smoothThrust;
         dbgStrafe = smoothStrafe;
-
-        ship.Controller.SetControls(smoothThrust, smoothStrafe);
-        ship.Controller.SetRotationTarget(true, vpOut.rotTargetDeg);
     }
     #if UNITY_EDITOR
     void OnDrawGizmos()

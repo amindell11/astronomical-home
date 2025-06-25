@@ -9,15 +9,16 @@ using Unity.Properties;
 public partial class SeekTargetAction : Action
 {
     [SerializeReference] public BlackboardVariable<Transform> Target;
-    protected override Status OnStart()
-    {
-        return Status.Running;
-    }
-
+    
     protected override Status OnUpdate()
     {
-        this.GameObject.GetComponent<AIShipInput>().SetNavigationTarget(Target.Value,true);
-        return Status.Success;
+        var ai = this.GameObject.GetComponent<AIShipInput>();
+        if (ai != null && Target?.Value != null)
+        {
+            ai.SetNavigationTarget(Target.Value, true);
+            return Status.Success;
+        }
+        return Status.Failure;
     }
 
     protected override void OnEnd()

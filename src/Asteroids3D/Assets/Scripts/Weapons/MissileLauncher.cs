@@ -7,7 +7,7 @@ using UnityEngine;
 /// </summary>
 public class MissileLauncher : LauncherBase<MissileProjectile>
 {
-    public enum LockState { Idle, Locking, Locked }
+    public enum LockState { Idle, Locking, Locked, Cooldown }
 
     [Header("Lock-On Settings")]
     [SerializeField] private float lockOnTime     = 0.6f;

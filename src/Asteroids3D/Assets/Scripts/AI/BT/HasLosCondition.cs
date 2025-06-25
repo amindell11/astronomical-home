@@ -10,7 +10,7 @@ public partial class HasLosCondition : Condition
 
     public override bool IsTrue()
     {
-        return this.GameObject.GetComponent<AIShipInput>().hasLOS(Target.Value);
+        return this.GameObject.GetComponent<AIShipInput>().HasLineOfSight(Target.Value);
     }
 
     public override void OnStart()

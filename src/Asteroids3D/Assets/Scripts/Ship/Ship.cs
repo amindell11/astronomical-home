@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 [RequireComponent(typeof(ShipMovement))]
 [RequireComponent(typeof(ShipDamageHandler))]
+[RequireComponent(typeof(IShipCommandSource))]
 public class Ship : MonoBehaviour, ITargetable
 {
     public static readonly List<Transform> ActiveShips = new();
@@ -20,6 +21,7 @@ public class Ship : MonoBehaviour, ITargetable
     /* ─────────── Cached Components ─────────── */
     public ShipMovement  movement{get; private set;}
     public LaserGun      laserGun{get; private set;}
+    public MissileLauncher missileLauncher{get; private set;}
     public ShipDamageHandler damageHandler{get; private set;}
     public IShipCommandSource[] commandSources{get; private set;}
 
@@ -46,6 +48,7 @@ public class Ship : MonoBehaviour, ITargetable
     {
         movement       = GetComponent<ShipMovement>();
         laserGun       = GetComponentInChildren<LaserGun>();
+        missileLauncher = GetComponentInChildren<MissileLauncher>();
         damageHandler  = GetComponent<ShipDamageHandler>();
         commandSources = GetComponents<IShipCommandSource>();
 
@@ -84,10 +87,18 @@ public class Ship : MonoBehaviour, ITargetable
         ShipCommand cmd = default;
         bool hasCmd = false;
         int highest = int.MinValue;
+
+        var state = new ShipState
+        {
+            Kinematics = movement.Kinematics,
+            IsLaserReady = laserGun?.IsReady() ?? false,
+            MissileState = missileLauncher?.State ?? MissileLauncher.LockState.Idle,
+        };
+
         foreach (var src in commandSources)
         {
             if (src == null) continue;
-            if (src.TryGetCommand(out ShipCommand c))
+            if (src.TryGetCommand(state, out ShipCommand c))
             {
                 int p = src.Priority;
                 if (!hasCmd || p > highest)
@@ -106,8 +117,10 @@ public class Ship : MonoBehaviour, ITargetable
             movement.Controller.SetRotationTarget(cmd.RotateToTarget, cmd.TargetAngle);
 
             // Weapons
-            if (cmd.Fire && laserGun)
+            if (cmd.PrimaryFire && laserGun)
                 laserGun.Fire();
+            if (cmd.SecondaryFire && missileLauncher)
+                missileLauncher.Fire();
         }
     }
 }
