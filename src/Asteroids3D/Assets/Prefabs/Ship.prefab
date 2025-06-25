@@ -9,7 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6567524228965887451}
-  - component: {fileID: 1747598916537340081}
   - component: {fileID: 7604545048589130545}
   - component: {fileID: 7184882482910536223}
   - component: {fileID: 8752571619316856911}
@@ -43,28 +42,6 @@ Transform:
   - {fileID: 6337206537699911622}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
---- !u!64 &1747598916537340081
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 579888702181409527}
-  m_Material: {fileID: 13400000, guid: ca2dde0d806bdd14eb3025b806b4c63a, type: 2}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 1
-  m_CookingOptions: 30
-  m_Mesh: {fileID: -2432090755550338912, guid: f04a30281d8747644becb5008ab81a2c, type: 3}
 --- !u!54 &7604545048589130545
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -149,6 +126,7 @@ MonoBehaviour:
   startingLives: 1
   shieldRegenDelay: 5
   shieldRegenRate: 20
+  lastAttacker: {fileID: 0}
 --- !u!114 &4368679400082138271
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -181,9 +159,9 @@ GameObject:
   - component: {fileID: 8357437974923976824}
   - component: {fileID: 1820339427924761457}
   - component: {fileID: 247553500522101613}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Mesh
-  m_TagString: Untagged
+  m_TagString: Ship
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -263,7 +241,7 @@ MeshCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2915261707296390090}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: ca2dde0d806bdd14eb3025b806b4c63a, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0

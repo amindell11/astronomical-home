@@ -8,13 +8,12 @@ using System.Collections.Generic;
 public class Ship : MonoBehaviour, ITargetable
 {
     public static readonly List<Transform> ActiveShips = new();
-    public static event System.Action<Ship, Ship> OnGlobalShipDestroyed; // victim, killer
     public static event System.Action<Ship, Ship, float> OnGlobalShipDamaged; // victim, attacker, damage
 
     /* ─────────── Events ─────────── */
     public event System.Action<float, float, float> OnHealthChanged; // current, previous, max
     public event System.Action<float, float, float> OnShieldChanged; // current, previous, max
-    public event System.Action<Ship> OnDeath;
+    public event System.Action<Ship, Ship> OnDeath; // victim, killer
 
     /* ─────────── Tunable Parameters ─────────── */
     [Header("Settings Asset")]
@@ -73,7 +72,7 @@ public class Ship : MonoBehaviour, ITargetable
         // Relay events from damage handler
         damageHandler.OnHealthChanged += (cur, prev, max) => OnHealthChanged?.Invoke(cur, prev, max);
         damageHandler.OnShieldChanged += (cur, prev, max) => OnShieldChanged?.Invoke(cur, prev, max);
-        damageHandler.OnDeath += (ship) => OnDeath?.Invoke(ship);
+        damageHandler.OnDeath += (victim, killer) => OnDeath?.Invoke(victim, killer);
         
         if (!settings)
         {
@@ -103,11 +102,6 @@ public class Ship : MonoBehaviour, ITargetable
     void OnDestroy()
     {
         ActiveShips.Remove(transform);
-    }
-
-    internal static void BroadcastShipDestroyed(Ship victim, Ship killer)
-    {
-        OnGlobalShipDestroyed?.Invoke(victim, killer);
     }
 
     internal static void BroadcastShipDamaged(Ship victim, Ship attacker, float damage)

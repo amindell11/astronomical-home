@@ -62,7 +62,10 @@ public partial class AquireEnemiesAction : Action
         {
             var col = enemyHitBuffer[i];
             if (!col) continue;
-            Ship other = col.GetComponentInParent<Ship>();
+
+            // More robust way to get the Ship component, assuming it's on the same GameObject as the Rigidbody
+            Ship other = col.attachedRigidbody ? col.attachedRigidbody.GetComponent<Ship>() : col.GetComponentInParent<Ship>();
+            
             if (other && other.gameObject != self)
             {
                 // Check if the other ship is an enemy (not friendly)
@@ -142,7 +145,8 @@ public partial class AquireEnemiesAction : Action
                 var col = enemyHitBuffer[i];
                 if (!col) continue;
                 
-                Ship other = col.GetComponentInParent<Ship>();
+                Ship other = col.attachedRigidbody ? col.attachedRigidbody.GetComponent<Ship>() : col.GetComponentInParent<Ship>();
+
                 if (other && other.gameObject != self)
                 {
                     Vector3 otherPos = other.transform.position;

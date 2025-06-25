@@ -14,7 +14,7 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
     public event Action<int>         OnLivesChanged;    // remaining lives
     public event Action<float, Vector3> OnDamaged;      // dmg, hitPoint
     public event Action<float, Vector3> OnShieldDamaged; // dmg, hitPoint when shield absorbs
-    public event Action<Ship> OnDeath; // Passes the Ship component of the destroyed ship
+    public event Action<Ship, Ship> OnDeath; // Passes the victim and killer Ship components
 
     public float maxHealth;
     public float maxShield;
@@ -27,7 +27,7 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
     private float currentShield;
     private int   lives;
     private float lastDamageTime;
-    private Ship  lastAttacker;
+    [SerializeField] public Ship  lastAttacker;
 
     // --- Spawn Invulnerability --------------------------------------
     private bool  isInvulnerable = false;
@@ -97,10 +97,11 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
     {
         if (damageSource != null)
         {
-            lastAttacker = damageSource.GetComponentInParent<Ship>();
+            var attacker = damageSource.GetComponentInParent<Ship>();
             var proj = damageSource.GetComponent<ProjectileBase>();
             if (proj && proj.Shooter != null)
-                lastAttacker = proj.Shooter.GetComponentInParent<Ship>();
+                attacker = proj.Shooter.GetComponentInParent<Ship>();
+            lastAttacker = attacker ?? lastAttacker;
         }
         
         RLog.Log($"Ship taking {damage} damage from {(damageSource ? damageSource.name : "unknown source")}");
@@ -206,8 +207,7 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
         Ship ship = GetComponent<Ship>();
         if (ship != null)
         {
-            OnDeath?.Invoke(ship);
-            Ship.BroadcastShipDestroyed(ship, lastAttacker);
+            OnDeath?.Invoke(ship, lastAttacker);
         }
 
         gameObject.SetActive(false);

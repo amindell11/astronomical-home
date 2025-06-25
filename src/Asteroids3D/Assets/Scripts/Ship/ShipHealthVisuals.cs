@@ -63,7 +63,7 @@ public class ShipHealthVisuals : MonoBehaviour
         }
     }
 
-    void OnDeath(Ship ship)
+    void OnDeath(Ship victim, Ship killer)
     {
         // Explosion VFX
         if (GameSettings.VfxEnabled && explosionPrefab)

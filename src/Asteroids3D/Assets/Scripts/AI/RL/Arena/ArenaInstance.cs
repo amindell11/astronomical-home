@@ -4,6 +4,21 @@ using System.Collections.Generic;
 using Unity.MLAgents;
 
 /// <summary>
+/// Serializable struct to hold all environment-specific settings for an arena.
+/// These values act as defaults and can be overridden by ML-Agents environmental parameters.
+/// </summary>
+[System.Serializable]
+public struct ArenaEnvironmentSettings
+{
+    [Tooltip("Radius of the arena in world units")]
+    public float arenaSize;
+    [Tooltip("Target density of asteroids in the field")]
+    public float asteroidDensity;
+    [Tooltip("Difficulty of the curriculum bot (if present)")]
+    public float botDifficulty;
+}
+
+/// <summary>
 /// Stand-alone component that encapsulates all logic for a single training / gameplay arena.
 ///
 /// Attach this to the root GameObject of an <b>Arena</b> prefab.  In normal gameplay you can
@@ -29,6 +44,15 @@ public class ArenaInstance : MonoBehaviour
     [Tooltip("If empty, ships are discovered automatically in children at runtime.")]
     [SerializeField] private Ship[] managedShips;
 
+    [Header("Environment Settings")]
+    [Tooltip("Default environment parameters. These can be overridden by ML-Agents curriculum settings at runtime.")]
+    [SerializeField] private ArenaEnvironmentSettings environmentSettings = new ArenaEnvironmentSettings { arenaSize = 100f, asteroidDensity = 0.05f, botDifficulty = 1f };
+
+    [Header("Curriculum Bot")]
+    [Tooltip("The non-RL agent ship to be enabled/disabled by the curriculum.")]
+    [SerializeField] private Ship botShip;
+    private AIShipInput botController;
+
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = true;
     
@@ -38,10 +62,6 @@ public class ArenaInstance : MonoBehaviour
     [Tooltip("Size of the arena boundary gizmo")]
     [SerializeField] private float gizmoSize = 160f;
 
-    [Header("Arena Size")]
-    [Tooltip("Radius of the arena in world units")]
-    [SerializeField] private float arenaSize = 100f;
-    
     [Header("Boundary Reset Settings")]
     [Tooltip("Reset the arena if a Ship exits the arena's trigger collider")]
     [SerializeField] private bool resetOnShipExit = true;
@@ -76,6 +96,11 @@ public class ArenaInstance : MonoBehaviour
         boundaryCollider = GetComponent<SphereCollider>();
         mlAgents     = GetComponentsInChildren<Agent>(true);
         
+        if (botShip != null)
+        {
+            botController = botShip.GetComponent<AIShipInput>();
+        }
+        
         // Create boundary collider if it doesn't exist
         if (boundaryCollider == null)
         {
@@ -92,9 +117,8 @@ public class ArenaInstance : MonoBehaviour
     void Start()
     {
         // Apply arena size settings
-        ApplyArenaSize();
-        ApplyEnvParameters();
-        
+        ApplyEnvironmentSettings();
+
         // Ensure field manager anchor points at this arena root so density checks use local centre.
         if (fieldManager != null)
         {
@@ -126,34 +150,87 @@ public class ArenaInstance : MonoBehaviour
         }
     }
 
-    private void ApplyEnvParameters()
+    private void OnShipDeath(Ship victim, Ship killer)
     {
+        if (enableDebugLogs)
+        {
+            RLog.Log($"Ep.{episodeCount} ArenaInstance: Ship death. Victim: {victim?.name}, Killer: {killer?.name} applying rewards {1.0f} to killer and {-1.0f} to victim");
+        }
+        // Apply rewards
+        if (killer != null)
+        {
+            var killerAgent = killer.GetComponent<RLCommanderAgent>();
+            if (killerAgent != null)
+            {
+                if (enableDebugLogs)
+                {
+                    RLog.Log($"Killer agent cumulative reward before SetReward: {killerAgent.GetCumulativeReward()}");
+                }
+                killerAgent.SetReward(1.0f);
+                if (enableDebugLogs)
+                {
+                    RLog.Log($"Killer agent cumulative reward after SetReward: {killerAgent.GetCumulativeReward()}");
+                }
+            }
+        }
+
+        if (victim != null)
+        {
+            var victimAgent = victim.GetComponent<RLCommanderAgent>();
+            if (victimAgent != null)
+            {
+                if (enableDebugLogs)
+                {
+                    RLog.Log($"Victim agent cumulative reward before SetReward: {victimAgent.GetCumulativeReward()}");
+                }
+                victimAgent.SetReward(-1.0f);
+                if (enableDebugLogs)
+                {
+                    RLog.Log($"Victim agent cumulative reward after SetReward: {victimAgent.GetCumulativeReward()}");
+                }
+            }
+        }
+        RequestEpisodeEnd();
+    }
+
+    private void ApplyEnvironmentSettings()
+    {
+        // Start with serialized defaults
+        var settings = this.environmentSettings;
+
         if (Academy.IsInitialized)
         {
             var envParams = Academy.Instance.EnvironmentParameters;
-
-            // Arena Size
-            float newArenaSize = envParams.GetWithDefault("arena_size", this.arenaSize);
-            if (!Mathf.Approximately(newArenaSize, this.arenaSize))
-            {
-                SetArenaSize(newArenaSize);
-            }
-
-            // Asteroid Density
-            if (fieldManager != null)
-            {
-                float newDensity = envParams.GetWithDefault("asteroid_density", fieldManager.TargetDensity);
-                fieldManager.TargetDensity = Mathf.Max(0f, newDensity);
-            }
+            settings.arenaSize = envParams.GetWithDefault("arena_size", settings.arenaSize);
+            settings.asteroidDensity = envParams.GetWithDefault("asteroid_density", settings.asteroidDensity);
+            settings.botDifficulty = envParams.GetWithDefault("bot_difficulty", settings.botDifficulty);
         }
-    }
+        
+        // --- Apply all settings ---
+        
+        // Arena Size
+       
+        if (boundaryCollider != null)
+        {
+            boundaryCollider.radius = settings.arenaSize;
+        }
+        if (fieldManager != null)
+        {
+            fieldManager.SetFieldSize(settings.arenaSize);
+            fieldManager.TargetDensity = Mathf.Max(0f, settings.asteroidDensity);
+        }
 
-    // -----------------------------------------------------------------------
-    private void OnShipDeath(Ship deadShip)
-    {
-        // Any ship death triggers an arena reset.  Override this logic if
-        // different termination conditions are needed.
-        RequestEpisodeEnd();
+        gizmoSize = settings.arenaSize * 2f;
+        
+        if (botController != null)
+        {
+            botController.difficulty = settings.botDifficulty;
+        }
+        
+        if (enableDebugLogs)
+        {
+            RLog.Log($"ArenaInstance: Applied Environment Settings. Arena Size: {settings.arenaSize}, Asteroid Density: {settings.asteroidDensity}, Bot Difficulty: {settings.botDifficulty}");
+        }
     }
 
     /// <summary>
@@ -192,7 +269,7 @@ public class ArenaInstance : MonoBehaviour
         OnArenaReset?.Invoke(this);
         
         // Apply new environment parameters for the upcoming episode.
-        ApplyEnvParameters();
+        ApplyEnvironmentSettings();
 
         if (enableDebugLogs)
         {
@@ -242,8 +319,6 @@ public class ArenaInstance : MonoBehaviour
 
             // Apply temporary spawn invulnerability so immediate asteroid collisions do not damage the ship.
             damageHandler?.SetInvulnerability(spawnInvulnerabilityDuration);
-
-
 
             // Place ship in a random position near the arena centre.
             Vector3 randomOffset = Random.insideUnitCircle.normalized * 20f;
@@ -298,38 +373,21 @@ public class ArenaInstance : MonoBehaviour
     /// <summary>
     /// Current arena size (radius).
     /// </summary>
-    public float ArenaSize => arenaSize;
+    public float ArenaSize => environmentSettings.arenaSize;
     
     /// <summary>
     /// Set the arena size and apply it to boundary collider and field manager.
     /// </summary>
     public void SetArenaSize(float newSize)
     {
-        arenaSize = newSize;
-        ApplyArenaSize();
+        environmentSettings.arenaSize = newSize;
+        ApplyEnvironmentSettings();
     }
-    
-    private void ApplyArenaSize()
+
+    public void HandleOutOfBounds(RLCommanderAgent agent)
     {
-        // Set boundary collider radius
-        if (boundaryCollider != null)
-        {
-            boundaryCollider.radius = arenaSize;
-        }
-        
-        // Set field manager size
-        if (fieldManager != null)
-        {
-            fieldManager.SetFieldSize(arenaSize);
-        }
-        
-        // Update gizmo size to match arena size
-        gizmoSize = arenaSize * 2f;
-        
-        if (enableDebugLogs)
-        {
-            RLog.Log($"ArenaInstance: Applied arena size {arenaSize} (boundary radius: {arenaSize}, field size: {arenaSize})");
-        }
+        agent.SetReward(-1.0f);
+        RequestEpisodeEnd();
     }
 
     // -----------------------------------------------------------------------
@@ -351,7 +409,7 @@ public class ArenaInstance : MonoBehaviour
         if (agent != null)
         {
             // The agent is responsible for applying penalty and ending the episode.
-            agent.OnOutOfBounds();
+            HandleOutOfBounds(agent);
         }
         else
         {

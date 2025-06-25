@@ -72,10 +72,14 @@ MonoBehaviour:
   enableArenaReset: 1
   resetDelay: 1
   managedShips: []
-  enableDebugLogs: 1
-  showGizmos: 1
+  environmentSettings:
+    arenaSize: 70
+    asteroidDensity: 0.5
+    botDifficulty: 1
+  botShip: {fileID: 2283882800421997529}
+  enableDebugLogs: 0
+  showGizmos: 0
   gizmoSize: 160
-  arenaSize: 30
   resetOnShipExit: 1
   spawnInvulnerabilityDuration: 0.5
 --- !u!1001 &112359901211743526
@@ -248,6 +252,11 @@ PrefabInstance:
       propertyPath: referencePlane
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 7454198466331922017, guid: 0eb758afa4960924b8d42b0c1af98079,
+        type: 3}
+      propertyPath: DecisionPeriod
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 8427085315940503719, guid: 0eb758afa4960924b8d42b0c1af98079,
         type: 3}
       propertyPath: m_LocalScale.x
@@ -334,7 +343,17 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1446981783954417844, guid: 0eb758afa4960924b8d42b0c1af98079,
         type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1446981783954417844, guid: 0eb758afa4960924b8d42b0c1af98079,
+        type: 3}
       propertyPath: m_BehaviorType
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2570616522532730176, guid: 0eb758afa4960924b8d42b0c1af98079,
+        type: 3}
+      propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2570616522532730176, guid: 0eb758afa4960924b8d42b0c1af98079,
@@ -345,7 +364,12 @@ PrefabInstance:
     - target: {fileID: 2872065919025823627, guid: 0eb758afa4960924b8d42b0c1af98079,
         type: 3}
       propertyPath: m_Name
-      value: RLShip
+      value: Bot
+      objectReference: {fileID: 0}
+    - target: {fileID: 7454198466331922017, guid: 0eb758afa4960924b8d42b0c1af98079,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8427085315940503719, guid: 0eb758afa4960924b8d42b0c1af98079,
         type: 3}
@@ -400,11 +424,108 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2872065919025823627, guid: 0eb758afa4960924b8d42b0c1af98079,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4326057368556437373}
+    - targetCorrespondingSourceObject: {fileID: 2872065919025823627, guid: 0eb758afa4960924b8d42b0c1af98079,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5864469152937901061}
   m_SourcePrefab: {fileID: 100100000, guid: 0eb758afa4960924b8d42b0c1af98079, type: 3}
+--- !u!114 &2283882800421997529 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5504060111075417955, guid: 0eb758afa4960924b8d42b0c1af98079,
+    type: 3}
+  m_PrefabInstance: {fileID: 6040350523042501818}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8360935391087373105}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67188210c0b7f614089a327a9a1ca7a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &2819437801492202525 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8427085315940503719, guid: 0eb758afa4960924b8d42b0c1af98079,
     type: 3}
   m_PrefabInstance: {fileID: 6040350523042501818}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &8360935391087373105 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2872065919025823627, guid: 0eb758afa4960924b8d42b0c1af98079,
+    type: 3}
+  m_PrefabInstance: {fileID: 6040350523042501818}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &4326057368556437373
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8360935391087373105}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0038c16c34866b4f9e25c9c0dc0f7e6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Graph: {fileID: -8548647000404242947, guid: 30c943b7357165f44bac5e5f18907209,
+    type: 2}
+  m_BlackboardVariableOverridesList:
+  - rid: 1544536244447084694
+  - rid: 1544536244447084695
+  m_IsInitialised: 0
+  m_IsStarted: 0
+  references:
+    version: 2
+    RefIds:
+    - rid: 1544536244447084694
+      type: {class: 'BlackboardVariable`1[[UnityEngine.GameObject, UnityEngine.CoreModule]]',
+        ns: Unity.Behavior, asm: Unity.Behavior}
+      data:
+        GUID:
+          m_Value0: 1
+          m_Value1: 0
+        Name: Self
+        m_Value: {fileID: 8360935391087373105}
+    - rid: 1544536244447084695
+      type: {class: 'BlackboardVariable`1[[AIShipBehaviorStates, Game.AI]]', ns: Unity.Behavior,
+        asm: Unity.Behavior}
+      data:
+        GUID:
+          m_Value0: 8465853203463756410
+          m_Value1: 15439274212858005133
+        Name: State
+        m_Value: 0
+--- !u!114 &5864469152937901061
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8360935391087373105}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b8ea6c63245a6e4197204a7a6f71112, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  difficulty: 1
+  arriveRadius: 10
+  asteroidMask:
+    serializedVersion: 2
+    m_Bits: 256
+  lookAheadTime: 1
+  safeMargin: 2
+  avoidRadius: 0.5
+  enableAvoidance: 1
+  proportionalGain: 5
+  fireAngleTolerance: 5
+  fireDistance: 20
+  lineOfSightMask:
+    serializedVersion: 2
+    m_Bits: 384
+  lineOfSightCacheFrames: 5
+  angleToleranceBeforeRay: 15
+  missileRange: 40
+  missileAngleTolerance: 15

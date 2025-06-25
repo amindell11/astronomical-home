@@ -180,7 +180,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void OnShipDeath(Ship deadShip)
+    private void OnShipDeath(Ship deadShip, Ship killer)
     {
         if (deadShip == null) return;
 

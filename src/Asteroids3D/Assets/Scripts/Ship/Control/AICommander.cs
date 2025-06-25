@@ -5,6 +5,11 @@ using ShipControl;
 [RequireComponent(typeof(ShipMovement))]
 public class AIShipInput : MonoBehaviour, IShipCommandSource
 {
+    /* ── Difficulty Setting ─────────────────────────────────── */
+    [Header("Difficulty")]
+    [Tooltip("Bot skill level, typically set by curriculum (0.0 to 1.0)")]
+    [Range(0f, 1f)] public float difficulty = 1.0f;
+    
     /* ── Navigation tunables ─────────────────────────────────── */
     [Header("Navigation")]
     private Transform target;
@@ -104,6 +109,17 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
     {
         cmd = new ShipCommand();
         
+        // Difficulty Level 1 (< 0.25): Stationary, no actions.
+        if (difficulty < 0.25f)
+        {
+            cmd.Thrust = 0;
+            cmd.Strafe = 0;
+            cmd.RotateToTarget = false;
+            cmd.PrimaryFire = false;
+            cmd.SecondaryFire = false;
+            return true;
+        }
+
         if (targetType == TargetType.None)
         {   
             cmd.Thrust = 0;
@@ -133,6 +149,12 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
         cmd.PrimaryFire = false;
         cmd.SecondaryFire = false;
         
+        // Difficulty Level 2 (< 0.5): Movement only, no weapons.
+        if (difficulty < 0.5f)
+        {
+            return;
+        }
+
         if (targetType == TargetType.None) return;
 
         Vector3 targetPos = GetTargetPosition();
@@ -177,6 +199,12 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
                     // Do nothing during cooldown
                     break;
             }
+        }
+
+        // Difficulty Level 3 (< 0.75): Lasers only, no missiles.
+        if (difficulty < 0.75f)
+        {
+            wantsToFireMissile = false;
         }
 
         cmd.SecondaryFire = wantsToFireMissile;

@@ -78,7 +78,7 @@ PrefabInstance:
     - target: {fileID: 2915261707296390090, guid: c3c15225cb3a8fd42a87c756c1d2d884,
         type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 3353870800793152205, guid: c3c15225cb3a8fd42a87c756c1d2d884,
         type: 3}
@@ -308,6 +308,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4b8ea6c63245a6e4197204a7a6f71112, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  difficulty: 1
   arriveRadius: 10
   asteroidMask:
     serializedVersion: 2
@@ -324,7 +325,6 @@ MonoBehaviour:
     m_Bits: 256
   lineOfSightCacheFrames: 5
   angleToleranceBeforeRay: 15
-  updateControl: 1
   missileRange: 40
   missileAngleTolerance: 15
 --- !u!114 &8267024228170733342
