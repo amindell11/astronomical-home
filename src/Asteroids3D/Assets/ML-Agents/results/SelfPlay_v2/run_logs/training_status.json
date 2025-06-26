@@ -1,0 +1,54 @@
+{
+    "arena_size": {
+        "lesson_num": 0
+    },
+    "asteroid_density": {
+        "lesson_num": 0
+    },
+    "RLPilot": {
+        "checkpoints": [
+            {
+                "steps": 499753,
+                "file_path": "results\\SelfPlay_v2\\RLPilot\\RLPilot-499753.onnx",
+                "reward": -0.727389531476157,
+                "creation_time": 1750944226.8930454,
+                "auxillary_file_paths": [
+                    "results\\SelfPlay_v2\\RLPilot\\RLPilot-499753.pt"
+                ]
+            },
+            {
+                "steps": 922237,
+                "file_path": "results\\SelfPlay_v2\\RLPilot\\RLPilot-922237.onnx",
+                "reward": -0.09746819734573364,
+                "creation_time": 1750948164.6567411,
+                "auxillary_file_paths": [
+                    "results\\SelfPlay_v2\\RLPilot\\RLPilot-922237.pt"
+                ]
+            },
+            {
+                "steps": 943839,
+                "file_path": "results\\SelfPlay_v2\\RLPilot\\RLPilot-943839.onnx",
+                "reward": null,
+                "creation_time": 1750948527.2509637,
+                "auxillary_file_paths": [
+                    "results\\SelfPlay_v2\\RLPilot\\RLPilot-943839.pt"
+                ]
+            }
+        ],
+        "elo": 915.8210438827682,
+        "final_checkpoint": {
+            "steps": 943839,
+            "file_path": "results\\SelfPlay_v2\\RLPilot.onnx",
+            "reward": null,
+            "creation_time": 1750948527.2509637,
+            "auxillary_file_paths": [
+                "results\\SelfPlay_v2\\RLPilot\\RLPilot-943839.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "1.1.0",
+        "torch_version": "2.7.1+cpu"
+    }
+}

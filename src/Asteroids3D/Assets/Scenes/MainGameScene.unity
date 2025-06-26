@@ -1630,8 +1630,13 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Model
       value: 
-      objectReference: {fileID: 5022602860645237092, guid: 295c995df69927c40b7bcd4c5092e70a,
+      objectReference: {fileID: 5022602860645237092, guid: 2f479db1f28763a4088eba101c83c417,
         type: 3}
+    - target: {fileID: 1446981783954417844, guid: 0eb758afa4960924b8d42b0c1af98079,
+        type: 3}
+      propertyPath: m_BehaviorType
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 2872065919025823627, guid: 0eb758afa4960924b8d42b0c1af98079,
         type: 3}
       propertyPath: m_Name
@@ -2052,6 +2057,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6752803253380735189, guid: 373b2199343256f4692fdb93e05f7524,
+        type: 3}
+      propertyPath: fireRate
+      value: 0.7
       objectReference: {fileID: 0}
     - target: {fileID: 8624904063163524716, guid: 373b2199343256f4692fdb93e05f7524,
         type: 3}

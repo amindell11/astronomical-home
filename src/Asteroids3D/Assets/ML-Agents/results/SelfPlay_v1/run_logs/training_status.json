@@ -1,0 +1,72 @@
+{
+    "arena_size": {
+        "lesson_num": 0
+    },
+    "asteroid_density": {
+        "lesson_num": 0
+    },
+    "RLPilot": {
+        "elo": 722.227339491649,
+        "checkpoints": [
+            {
+                "steps": 255867,
+                "file_path": "results\\SelfPlay_v1\\RLPilot\\RLPilot-255867.onnx",
+                "reward": 3.7545213941133246,
+                "creation_time": 1750931920.8905718,
+                "auxillary_file_paths": [
+                    "results\\SelfPlay_v1\\RLPilot\\RLPilot-255867.pt"
+                ]
+            },
+            {
+                "steps": 373053,
+                "file_path": "results\\SelfPlay_v1\\RLPilot\\RLPilot-373053.onnx",
+                "reward": null,
+                "creation_time": 1750933538.1821733,
+                "auxillary_file_paths": [
+                    "results\\SelfPlay_v1\\RLPilot\\RLPilot-373053.pt"
+                ]
+            },
+            {
+                "steps": 499925,
+                "file_path": "results\\SelfPlay_v1\\RLPilot\\RLPilot-499925.onnx",
+                "reward": 4.363029976685842,
+                "creation_time": 1750935539.2967021,
+                "auxillary_file_paths": [
+                    "results\\SelfPlay_v1\\RLPilot\\RLPilot-499925.pt"
+                ]
+            },
+            {
+                "steps": 548227,
+                "file_path": "results\\SelfPlay_v1\\RLPilot\\RLPilot-548227.onnx",
+                "reward": 5.137740383409474,
+                "creation_time": 1750935971.4350913,
+                "auxillary_file_paths": [
+                    "results\\SelfPlay_v1\\RLPilot\\RLPilot-548227.pt"
+                ]
+            },
+            {
+                "steps": 718638,
+                "file_path": "results\\SelfPlay_v1\\RLPilot\\RLPilot-718638.onnx",
+                "reward": 5.004666400184347,
+                "creation_time": 1750937355.4167695,
+                "auxillary_file_paths": [
+                    "results\\SelfPlay_v1\\RLPilot\\RLPilot-718638.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 718638,
+            "file_path": "results\\SelfPlay_v1\\RLPilot.onnx",
+            "reward": 5.004666400184347,
+            "creation_time": 1750937355.4167695,
+            "auxillary_file_paths": [
+                "results\\SelfPlay_v1\\RLPilot\\RLPilot-718638.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "1.1.0",
+        "torch_version": "2.7.1+cpu"
+    }
+}
