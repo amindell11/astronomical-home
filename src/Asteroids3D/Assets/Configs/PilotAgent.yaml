@@ -35,30 +35,30 @@ environment_parameters:
     curriculum:
       - name: Lesson-0
         completion_criteria:
-          measure: progress
+          measure: reward
           behavior: RLCommander
           min_lesson_length: 150000
-          threshold: 0.15
+          threshold: 0.6
         value: 80
       - name: Lesson-1
         completion_criteria:
-          measure: progress
+          measure: reward
           behavior: RLCommander
           min_lesson_length: 200000
-          threshold: 0.25
+          threshold: 0.6
         value: 60
       - name: Lesson-2
         completion_criteria:
-          measure: progress
+          measure: reward
           behavior: RLCommander
-          threshold: 0.5
+          threshold: 0.6
           min_lesson_length: 200000
         value: 50
       - name: Lesson-3
         completion_criteria:
-          measure: progress
+          measure: reward
           behavior: RLCommander
-          threshold: 0.7
+          threshold: 0.6
           min_lesson_length: 200000
         value: 40
         
@@ -66,30 +66,30 @@ environment_parameters:
     curriculum:
       - name: Lesson-0
         completion_criteria:
-          measure: progress
+          measure: reward
           behavior: RLCommander
           min_lesson_length: 150000
-          threshold: 0.15
+          threshold: 0.6
         value: 0.2
       - name: Lesson-1
         completion_criteria:
-          measure: progress
+          measure: reward
           behavior: RLCommander
           min_lesson_length: 200000
-          threshold: 0.25
+          threshold: 0.6
         value: 0.4
       - name: Lesson-2
         completion_criteria:
-          measure: progress
+          measure: reward
           behavior: RLCommander
-          threshold: 0.5
+          threshold: 0.6
           min_lesson_length: 200000
         value: 0.6
       - name: Lesson-3
         completion_criteria:
-          measure: progress
+          measure: reward
           behavior: RLCommander
-          threshold: 0.7
+          threshold: 0.6
           min_lesson_length: 200000
         value: 0.8
         
@@ -97,29 +97,29 @@ environment_parameters:
     curriculum:
       - name: Lesson-0
         completion_criteria:
-          measure: progress
+          measure: reward
           behavior: RLCommander
           min_lesson_length: 150000
-          threshold: 0.15
+          threshold: 0.6
         value: 0.2
       - name: Lesson-1
         completion_criteria:
-          measure: progress
+          measure: reward
           behavior: RLCommander
           min_lesson_length: 200000
-          threshold: 0.25
+          threshold: 0.6
         value: 0.4
       - name: Lesson-2
         completion_criteria:
-          measure: progress
+          measure: reward
           behavior: RLCommander
-          threshold: 0.5
+          threshold: 0.6
           min_lesson_length: 200000
         value: 0.7
       - name: Lesson-3
         completion_criteria:
-          measure: progress
+          measure: reward
           behavior: RLCommander
-          threshold: 0.7
+          threshold: 0.6
           min_lesson_length: 200000
         value: 1.0
