@@ -98,6 +98,9 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
 
         // Initialize waypoint struct (Optimization #3)
         navWaypoint = new Waypoint { isValid = false };
+
+        // Ensure LOS raycasts only consider asteroids as potential blockers
+        lineOfSightMask = LayerMask.GetMask("Asteroid");
     }
 
     public void InitializeCommander(Ship ship)
@@ -157,7 +160,10 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
             return;
         }
 
-        if (targetType == TargetType.None) return;
+        if (targetType == TargetType.None) 
+        {
+            return;
+        }
 
         Vector3 targetPos = GetTargetPosition();
         
@@ -180,7 +186,7 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
                         if(LineOfSightOK(firePos, dir, dist, angle)){
                             var targetable = GetTargetTransform()?.GetComponentInParent<ITargetable>();
                             wantsToFireMissile = targetable != null;
-                        }       
+                        }
                     }
                     break;
                     
@@ -211,11 +217,15 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
 
         cmd.SecondaryFire = wantsToFireMissile;
 
+        // Only block laser when we have a locked missile ready to fire
+        bool blockLaserForMissile = wantsToFireMissile && state.MissileState == MissileLauncher.LockState.Locked;
         
-        if (gun && dist <= fireDistance && angle <= fireAngleTolerance && !wantsToFireMissile)
+        if (gun && dist <= fireDistance && angle <= fireAngleTolerance && !blockLaserForMissile)
         {
             Vector3 laserFirePos = gun.firePoint ? gun.firePoint.position : transform.position;
-            if (LineOfSightOK(laserFirePos, dir, dist, angle))
+            bool losOK = LineOfSightOK(laserFirePos, dir, dist, angle);
+            
+            if (losOK)
             {
                 cmd.PrimaryFire = true;
             }
@@ -230,7 +240,10 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
                     || Vector3.Distance(firePos, lastRayPos) > 1f
                     || Vector3.Distance(targetPos, lastTgtPos) > 1f;
 
-        if (angle > angleToleranceBeforeRay) return false;
+        if (angle > angleToleranceBeforeRay) 
+        {
+            return false;
+        }
 
         if (need)
         {

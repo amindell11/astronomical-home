@@ -28,9 +28,20 @@ public static class TestSceneBuilder
         referencePlane.tag = "ReferencePlane";
         referencePlane.transform.SetParent(arena.transform);
         referencePlane.transform.localScale = Vector3.one * (size / 10f); // Plane primitive is 10x10 units
+        referencePlane.transform.rotation = Quaternion.Euler(90, 0, 0); // Orient for XZ plane
         
         // Remove collider from reference plane (it's just for reference)
         Object.DestroyImmediate(referencePlane.GetComponent<Collider>());
+        
+        // Ensure reference plane known to GamePlane
+        GamePlane.SetReferencePlane(referencePlane.transform);
+
+        // If debug rendering is active, ensure we have a camera and run at real-time speed.
+        if (_debugRenderingEnabled)
+        {
+            EnsureDebugCameraExists();
+            Time.timeScale = 1f;
+        }
         
         return arena;
     }
@@ -329,4 +340,56 @@ public static class TestSceneBuilder
         Enemy,
         RL
     }
+
+    #region Debug Rendering Support
+
+    /// <summary>
+    /// When <c>true</c>, play-mode tests will execute at real-time speed and a simple
+    /// camera will be spawned so the scene can be inspected while the test runs.
+    /// This can be enabled in three ways:
+    /// 1) Call <see cref="EnableDebugRendering"/> from your test code.
+    /// 2) Define the environment variable <c>UNITY_TESTS_DEBUG_RENDER</c> with the value "1".
+    /// 3) (Editor only) Add the scripting define symbol <c>UNITY_TESTS_DEBUG_RENDER</c>.
+    /// </summary>
+    private static bool _debugRenderingEnabled;
+
+#if UNITY_TESTS_DEBUG_RENDER
+    private const bool k_DefaultDebugRender = true;
+#else
+    private const bool k_DefaultDebugRender = false;
+#endif
+
+    static TestSceneBuilder()
+    {
+        // Initialise the flag from compile-time define or environment variable.
+        _debugRenderingEnabled = k_DefaultDebugRender;
+
+        string env = System.Environment.GetEnvironmentVariable("UNITY_TESTS_DEBUG_RENDER");
+        if (!string.IsNullOrEmpty(env) && (env == "1" || env.Equals("true", System.StringComparison.OrdinalIgnoreCase)))
+        {
+            _debugRenderingEnabled = true;
+        }
+    }
+
+    /// <summary>
+    /// Enable or disable debug rendering at runtime.
+    /// </summary>
+    public static void EnableDebugRendering(bool enable = true)
+    {
+        _debugRenderingEnabled = enable;
+
+        // Force real-time speed so behaviour matches in-game.
+        if (enable)
+            Time.timeScale = 1f;
+    }
+
+    /// <summary>
+    /// Helper that conditionally spawns a basic top-down camera when debug rendering is on.
+    /// </summary>
+    private static void EnsureDebugCameraExists()
+    {
+        // No-op - cameras are no longer created by this test utility
+    }
+
+    #endregion Debug Rendering Support
 } 

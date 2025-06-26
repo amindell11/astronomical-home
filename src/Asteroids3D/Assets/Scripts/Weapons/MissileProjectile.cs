@@ -75,18 +75,58 @@ public class MissileProjectile : ProjectileBase, IDamageable
         if (rb)
         {
             // 1. Compute the desired heading (toward target if any, otherwise keep current).
-            Vector3 desiredDir = target ? (target.position - transform.position).normalized : transform.up;
+            Vector3 desiredDir = transform.up; // Default to current heading
+            
+            if (target != null)
+            {
+                Vector3 toTarget = target.position - transform.position;
+                if (toTarget.sqrMagnitude > 0.01f) // Avoid division by zero
+                {
+                    desiredDir = toTarget.normalized;
+                    
+                    // Debug logging
+                    if (Time.frameCount % 30 == 0) // Log every 30 frames
+                    {
+                        RLog.Log($"Missile homing: pos={transform.position}, target={target.position}, toTarget={toTarget}, desiredDir={desiredDir}");
+                    }
+                }
+            }
 
-            // 2. Determine signed angle (degrees) from current heading to desired direction in game-plane.
-            float signedAngle = Vector3.SignedAngle(transform.up, desiredDir, GamePlane.Normal);
+            // 2. Get the proper up vector for rotation (should be Y axis for top-down)
+            Vector3 rotationAxis = GamePlane.Normal; // Use world up for top-down games
+            
+            // If GamePlane is initialized and has a valid normal, use it
+            if (GamePlane.Plane != null)
+            {
+                rotationAxis = GamePlane.Normal;
+                // Ensure the normal is pointing up (not down)
+                if (Vector3.Dot(rotationAxis, GamePlane.Normal) < 0)
+                {
+                    rotationAxis = -rotationAxis;
+                }
+            }
 
-            // 3. Clamp the turn by homingTurnRate per physics-step and rotate.
+            // 3. Calculate rotation needed
+            float signedAngle = Vector3.SignedAngle(transform.up, desiredDir, rotationAxis);
+
+            // 4. Clamp the turn by homingTurnRate per physics-step and rotate.
             float maxTurnThisStep = homingTurnRate * Time.fixedDeltaTime; // °/frame
             rotationCorrectionDeg = Mathf.Clamp(signedAngle, -maxTurnThisStep, maxTurnThisStep);
-            transform.rotation = Quaternion.AngleAxis(rotationCorrectionDeg, GamePlane.Normal) * transform.rotation;
+            
+            // Apply rotation if significant
+            if (Mathf.Abs(rotationCorrectionDeg) > 0.01f)
+            {
+                transform.rotation = Quaternion.AngleAxis(rotationCorrectionDeg, rotationAxis) * transform.rotation;
+            }
 
-            // 3. Apply engine thrust along the missile's current forward (transform.up).
+            // 5. Apply engine thrust along the missile's current forward (transform.up).
             rb.AddForce(transform.up * acceleration, ForceMode.Acceleration);
+            
+            // 6. Clamp velocity to max speed
+            if (rb.linearVelocity.magnitude > homingSpeed)
+            {
+                rb.linearVelocity = rb.linearVelocity.normalized * homingSpeed;
+            }
         }
     }
     // Debug – the angle actually applied this physics-step (degrees)
