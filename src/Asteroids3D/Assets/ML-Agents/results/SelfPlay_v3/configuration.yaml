@@ -35,7 +35,7 @@ behaviors:
           memory: null
           goal_conditioning_type: hyper
           deterministic: false
-    init_path: results\SelfPlay_v2\RLPilot\checkpoint.pt
+    init_path: null
     keep_checkpoints: 5
     even_checkpoints: false
     max_steps: 10000000
@@ -76,7 +76,7 @@ environment_parameters:
     - value:
         sampler_type: uniform
         sampler_parameters:
-          seed: 518
+          seed: 9564
           min_value: 40.0
           max_value: 80.0
       name: arena_size
@@ -86,16 +86,16 @@ environment_parameters:
     - value:
         sampler_type: uniform
         sampler_parameters:
-          seed: 519
+          seed: 9565
           min_value: 0.4
           max_value: 0.8
       name: asteroid_density
       completion_criteria: null
 checkpoint_settings:
   run_id: SelfPlay_v3
-  initialize_from: SelfPlay_v2
+  initialize_from: null
   load_model: false
-  resume: false
+  resume: true
   force: false
   train_model: false
   inference: false

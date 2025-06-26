@@ -808,7 +808,7 @@ public class ArenaInstance : MonoBehaviour, IGameContext
 
         // Draw arena boundary (original arena size)
         Gizmos.color = gizmoColor;
-        //Gizmos.DrawWireCube(center, Vector3.one * gizmoSize);
+        Gizmos.DrawWireCube(center, Vector3.one * gizmoSize);
         
         // Draw soft boundary circle
         Gizmos.color = Color.yellow;
