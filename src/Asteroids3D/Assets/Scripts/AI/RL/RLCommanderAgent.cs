@@ -11,7 +11,8 @@ using UnityEditor; // Required for OnDrawGizmos
 
 /// <summary>
 /// A reinforcement-learning agent for piloting a player ship.
-/// It learns to avoid asteroids and defeat enemy ships.
+/// Handles action processing and observation collection.
+/// Training rewards and episode management are handled by ArenaInstance.
 /// </summary>
 public class RLCommanderAgent : Agent, IShipCommandSource
 {
@@ -45,9 +46,10 @@ public class RLCommanderAgent : Agent, IShipCommandSource
     public RLObserver Observer => observer;
 
     /// <summary>
-    /// When paused, the agent will not process actions or rewards.
+    /// Helper property to check if the episode is active in the parent arena.
+    /// When the episode is not active, the agent will not process actions or observations.
     /// </summary>
-    public bool IsPaused { get; set; } = false;
+    private bool IsEpisodeActive => arenaInstance == null || arenaInstance.IsEpisodeActive;
 
     // --- IShipCommandSource properties ---
     public int Priority => commanderPriority;
@@ -57,8 +59,6 @@ public class RLCommanderAgent : Agent, IShipCommandSource
     public void InitializeCommander(Ship s)
     {
         this.ship = s;
-        s.OnHealthChanged += OnHealthChanged;
-        s.OnShieldChanged += OnShieldChanged;
     }
 
     public bool TryGetCommand(ShipState state, out ShipCommand command)
@@ -78,10 +78,8 @@ public class RLCommanderAgent : Agent, IShipCommandSource
         observer = new RLObserver(this);
 
         if (ship == null) RLog.LogError("Agent is not attached to a Ship object.", this);
-        if (arenaInstance == null) RLog.LogError("RLCommanderAgent requires a parent ArenaInstance component.", this);
+        //if (arenaInstance == null) RLog.LogError("RLCommanderAgent requires a parent ArenaInstance component.", this);
 
-        // Subscribe to global events
-        Ship.OnGlobalShipDamaged += HandleShipDamaged;
         // Detect if another IShipCommandSource (e.g., PlayerCommander) is attached for heuristic fallback
         foreach (var src in GetComponents<IShipCommandSource>())
         {
@@ -106,19 +104,14 @@ public class RLCommanderAgent : Agent, IShipCommandSource
         OnEpisodeBeginCount++;
         lastCommand = default;
         hasNewCommand = false;
-        IsPaused = false; // Ensure agent is unpaused for new episode
-
         hasNewCommand = true;
-
-        // Small penalty for existing to encourage finishing the episode quickly.
-        float reward = -0.0001f;
-        AddReward(reward);
-        RLog.Log($"[Ep.{OnEpisodeBeginCount}] Agent {name}: Existence Penalty: {reward:F4}");
+        
+        RLog.Log($"[Ep.{OnEpisodeBeginCount}] Agent {name}: Episode Begin");
     }
 
     public override void CollectObservations(VectorSensor sensor)
     {
-        if (IsPaused) return;
+        if (!IsEpisodeActive) return;
         observer.CollectObservations(sensor);
     }
 
@@ -126,7 +119,7 @@ public class RLCommanderAgent : Agent, IShipCommandSource
     {
         GlobalStepCount++;
 
-        if (IsPaused)
+        if (!IsEpisodeActive)
         {
             lastCommand = default;
             hasNewCommand = true;
@@ -145,14 +138,11 @@ public class RLCommanderAgent : Agent, IShipCommandSource
         lastCommand.SecondaryFire = discreteActions[1] > 0;
 
         hasNewCommand = true;
-
-        // Small penalty for existing to encourage finishing the episode quickly.
-        AddReward(-0.0001f);
     }
 
     public override void Heuristic(in ActionBuffers actionsOut)
     {
-        if (IsPaused) return;
+        if (!IsEpisodeActive) return;
 
         var continuousActions = actionsOut.ContinuousActions;
         var discreteActions = actionsOut.DiscreteActions;
@@ -186,56 +176,12 @@ public class RLCommanderAgent : Agent, IShipCommandSource
         }
     }
 
-    void OnDestroy()
-    {
-        Ship.OnGlobalShipDamaged -= HandleShipDamaged;
-    }
-
-    #region Reward Logic
-
-    public void OnHealthChanged(float current, float previous, float maxHealth)
-    {
-        if (IsPaused) return;
-        float healthDelta = current - previous;
-        if (healthDelta != 0)
-        {
-            float reward = 0.2f * healthDelta / maxHealth;
-            AddReward(reward);
-            RLog.Log($"[Ep.{OnEpisodeBeginCount}] Agent {name}: Health Change Reward: {reward:F3} (delta: {healthDelta:F1})");
-        }
-    }
-
-    public void OnShieldChanged(float current, float previous, float maxShield)
-    {
-        if (IsPaused) return;
-        float shieldDelta = current - previous;
-        if (shieldDelta != 0)
-        {
-            float reward = 0.1f * shieldDelta / maxShield ;
-            AddReward(reward);
-            RLog.Log($"[Ep.{OnEpisodeBeginCount}] Agent {name}: Shield Change Reward: {reward:F3} (delta: {shieldDelta:F1})");
-        }
-    }
-
-    private void HandleShipDamaged(Ship victim, Ship attacker, float damage)
-    {   
-        if (IsPaused) return;
-        RLog.Log($"[Ep.{OnEpisodeBeginCount}] Agent {name}: Ship damaged. Victim: {victim?.name}, Attacker: {attacker?.name}, Damage: {damage}");
-        if (attacker == this.ship && victim != this.ship && !victim.IsFriendly(this.ship))
-        {
-            // Reward for damaging a non-friendly ship
-            AddReward(0.7f * damage / (victim.settings.maxHealth + victim.settings.maxShield)); 
-        }
-    }
-
-    #endregion
-
 #if UNITY_EDITOR
     private void OnDrawGizmos()
     {
         if (!Application.isPlaying || !ShowObservationUI) return;
 
-        if (IsPaused)
+        if (!IsEpisodeActive)
         {
             var initialColor = Handles.color;
             Handles.color = Color.cyan;

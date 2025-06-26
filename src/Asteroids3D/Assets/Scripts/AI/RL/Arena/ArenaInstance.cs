@@ -13,8 +13,9 @@ using Unity.MLAgents;
 ///
 /// Responsibilities
 /// 1. Track and cache important child components (Ships, SectorFieldManager, ML Agents).
-/// 2. Subscribe to <see cref="ShipDamageHandler.OnDeath"/> to trigger an episode reset.
-/// 3. Provide public <see cref="ResetArena"/> API so external systems (e.g., ArenaManager) can
+/// 2. Subscribe to ship events and manage all training rewards.
+/// 3. Handle episode lifecycle and reset logic.
+/// 4. Provide public <see cref="ResetArena"/> API so external systems (e.g., ArenaManager) can
 ///    reset or iterate over arenas.
 /// </summary>
 public class ArenaInstance : MonoBehaviour
@@ -44,6 +45,14 @@ public class ArenaInstance : MonoBehaviour
     [SerializeField] private Ship botShip;
     private AIShipInput botController;
 
+    [Header("Reward Settings")]
+    [Tooltip("Small penalty applied each step to encourage finishing episodes quickly")]
+    [SerializeField] private float existencePenalty = -0.0001f;
+    [Tooltip("Reward/penalty multiplier for health damage (applied as: ±multiplier * damage / maxHealth)")]
+    [SerializeField] private float healthRewardMultiplier = 0.2f;
+    [Tooltip("Reward/penalty multiplier for shield damage (applied as: ±multiplier * damage / maxShield)")]
+    [SerializeField] private float shieldRewardMultiplier = 0.1f;
+
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = true;
     
@@ -69,6 +78,11 @@ public class ArenaInstance : MonoBehaviour
 
     // --- Private State ---
     private bool _episodeActive = true; // Gate to prevent double-ending an episode.
+    
+    /// <summary>
+    /// Indicates whether the current episode is active. When false, agents should not process actions or accumulate rewards.
+    /// </summary>
+    public bool IsEpisodeActive => _episodeActive;
 
     // Events so external systems can respond to lifecycle changes.
     public System.Action<ArenaInstance> OnArenaReset;
@@ -116,11 +130,15 @@ public class ArenaInstance : MonoBehaviour
             fieldManager.SetAnchor(transform);
         }
 
-        // Subscribe to each ship death so we can reset the arena once any ship is destroyed.
+        // Subscribe to ship events for reward administration
         foreach (var ship in ships)
         {
             ship.OnDeath += OnShipDeath;
+            // Note: Health/Shield change rewards are now handled in HandleShipDamaged for symmetrical damage rewards
         }
+
+        // Subscribe to global ship damage events for combat rewards
+        Ship.OnGlobalShipDamaged += HandleShipDamaged;
     }
 
     void OnDestroy()
@@ -130,6 +148,7 @@ public class ArenaInstance : MonoBehaviour
         {
             ship.OnDeath -= OnShipDeath;
         }
+        Ship.OnGlobalShipDamaged -= HandleShipDamaged;
     }
 
     void Update()
@@ -139,7 +158,98 @@ public class ArenaInstance : MonoBehaviour
         {
             flashTimer -= Time.deltaTime;
         }
+
+        // Apply existence penalties to active agents each step
+        if (_episodeActive)
+        {
+            ApplyExistencePenalties();
+        }
     }
+
+    #region Reward Administration
+
+    private void ApplyExistencePenalties()
+    {
+        if (mlAgents == null) return;
+        
+        foreach (var agent in mlAgents)
+        {
+            if (agent is RLCommanderAgent commander)
+            {
+                commander.AddReward(existencePenalty);
+            }
+        }
+    }
+
+
+
+    private void HandleShipDamaged(Ship victim, Ship attacker, float damage)
+    {   
+        if (!_episodeActive || victim == null) return;
+        
+        if (enableDebugLogs)
+        {
+            RLog.Log($"[Ep.{episodeCount}] ArenaInstance: Ship damaged. Victim: {victim.name}, Attacker: {attacker?.name}, Damage: {damage}");
+        }
+        
+        var damageInfo = GetDamageInfo(victim, damage);
+        
+        // Apply penalty to victim (negative damage = penalty)
+        ApplyDamageReward(victim, -damage, damageInfo, "Penalty");
+        
+        // Apply reward to attacker (positive damage = reward) if they're enemies
+        if (attacker != null && !victim.IsFriendly(attacker))
+        {
+            ApplyDamageReward(attacker, damage, damageInfo, "Reward");
+        }
+    }
+
+    private DamageInfo GetDamageInfo(Ship victim, float damage)
+    {
+        // Determine if damage hit shields or health based on victim's current shield level
+        bool hitShields = victim.damageHandler.CurrentShield > 0f || 
+                         victim.damageHandler.CurrentShield + damage > victim.damageHandler.maxShield;
+        
+        return new DamageInfo
+        {
+            HitShields = hitShields,
+            MaxCapacity = hitShields ? victim.settings.maxShield : victim.settings.maxHealth,
+            RewardMultiplier = hitShields ? shieldRewardMultiplier : healthRewardMultiplier,
+            DamageType = hitShields ? "Shield" : "Health"
+        };
+    }
+
+    private void ApplyDamageReward(Ship ship, float damageAmount, DamageInfo damageInfo, string rewardType)
+    {
+        var agent = GetActiveAgent(ship);
+        if (agent == null) return;
+        
+        float reward = damageInfo.RewardMultiplier * damageAmount / damageInfo.MaxCapacity;
+        agent.AddReward(reward);
+        
+        if (enableDebugLogs)
+        {
+            RLog.Log($"[Ep.{episodeCount}] Agent {agent.name}: {damageInfo.DamageType} Damage {rewardType}: {reward:F3} (damage: {Mathf.Abs(damageAmount):F1})");
+        }
+    }
+
+    private RLCommanderAgent GetActiveAgent(Ship ship)
+    {
+        if (ship == null) return null;
+        
+        var agent = ship.GetComponent<RLCommanderAgent>();
+        return agent; // Episode activity is now controlled at the arena level
+    }
+
+    private struct DamageInfo
+    {
+        public bool HitShields;
+        public float MaxCapacity;
+        public float RewardMultiplier;
+        public string DamageType;
+    }
+
+    #endregion
 
     private void OnShipDeath(Ship victim, Ship killer)
     {
@@ -251,8 +361,7 @@ public class ArenaInstance : MonoBehaviour
         if (!_episodeActive || !enableArenaReset) return;
         _episodeActive = false; // Close the gate until the next episode begins.
 
-        // Immediately pause agents to stop them from accumulating rewards on stale data.
-        SetAgentsPaused(true);
+        // Agents will automatically stop processing when _episodeActive becomes false
 
         StartCoroutine(ResetArenaCoroutine());
     }
@@ -345,17 +454,7 @@ public class ArenaInstance : MonoBehaviour
         }
     }
 
-    void SetAgentsPaused(bool paused)
-    {
-        if (mlAgents == null) return;
-        foreach (var agent in mlAgents)
-        {
-            if (agent is RLCommanderAgent commander)
-            {
-                commander.IsPaused = paused;
-            }
-        }
-    }
+
 
     // ----------------------------- Public API --------------------------------
     /// <summary>

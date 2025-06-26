@@ -92,10 +92,11 @@ public class RLObserver
 
     public void CollectObservations(VectorSensor sensor)
     {
-        // When paused, the agent's actions are ignored, but the sensor still expects a full
+        // When the episode is not active, the agent's actions are ignored, but the sensor still expects a full
         // vector of observations. We don't want to collect new (potentially invalid) data,
         // so we'll just feed it the last known values and prevent the debug list from clearing.
-        if (agent.IsPaused)
+        bool isEpisodeActive = agent.arenaInstance?.IsEpisodeActive ?? false;
+        if (!isEpisodeActive)
         {
             // If we have previous observations, send them again.
             if (LastObservations.Count == ObservationLabels.Length)
