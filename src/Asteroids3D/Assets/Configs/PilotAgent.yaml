@@ -1,5 +1,5 @@
 behaviors:
-  RLCommander:
+  RLPilot:
     trainer_type: ppo
     
     hyperparameters:
@@ -26,7 +26,7 @@ behaviors:
         strength: 1.0
 
     behavioral_cloning:
-      demo_path: src/Asteroids3D/Demonstrations/PilotingDemo.demo
+      demo_path: src/Asteroids3D/Demonstrations/Updated
       strength: 0.5
       steps: 300000
       

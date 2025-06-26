@@ -52,8 +52,10 @@ MonoBehaviour:
   density: 5
   explosionPrefab: {fileID: 3624727767247666335, guid: b87929575dffb6c49b64ff8ec3faa5d7,
     type: 3}
-  explosionSound: {fileID: 8300000, guid: 14e1c94ce80f1fc45bd483c188a57c1c, type: 3}
+  explosionSound: {fileID: 0}
   explosionVolume: 0.85
+  energyToDamageScale: 0.01
+  parentSpawner: {fileID: 0}
 --- !u!33 &503848992582056525
 MeshFilter:
   m_ObjectHideFlags: 0
