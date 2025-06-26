@@ -45,7 +45,7 @@ behaviors:
     self_play: null
     behavioral_cloning: null
 env_settings:
-  env_path: null
+  env_path: src/Asteroids3D/TrainingBuild/LightingTest.exe
   env_args: null
   base_port: 5005
   num_envs: 32
@@ -56,10 +56,10 @@ env_settings:
   restarts_rate_limit_n: 1
   restarts_rate_limit_period_s: 60
 engine_settings:
-  width: 84
-  height: 84
-  quality_level: 0
-  time_scale: 25
+  width: 720
+  height: 480
+  quality_level: 5
+  time_scale: 1.0
   target_frame_rate: -1
   capture_frame_rate: 60
   no_graphics: true
@@ -70,162 +70,123 @@ environment_parameters:
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 9068
-          value: 80
-      name: Lesson-0
-      completion_criteria:
-        behavior: RLCommander
-        measure: progress
-        min_lesson_length: 150000
-        signal_smoothing: true
-        threshold: 0.15
-        require_reset: false
-    - value:
-        sampler_type: constant
-        sampler_parameters:
-          seed: 9069
+          seed: 3133
           value: 60
       name: Lesson-1
       completion_criteria:
         behavior: RLCommander
-        measure: progress
-        min_lesson_length: 200000
+        measure: reward
+        min_lesson_length: 50
         signal_smoothing: true
-        threshold: 0.25
+        threshold: 0.6
         require_reset: false
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 9070
+          seed: 3134
           value: 50
       name: Lesson-2
       completion_criteria:
         behavior: RLCommander
-        measure: progress
-        min_lesson_length: 200000
+        measure: reward
+        min_lesson_length: 50
         signal_smoothing: true
-        threshold: 0.5
+        threshold: 0.6
         require_reset: false
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 9071
+          seed: 3135
           value: 40
       name: Lesson-3
       completion_criteria:
         behavior: RLCommander
-        measure: progress
-        min_lesson_length: 200000
+        measure: reward
+        min_lesson_length: 50
         signal_smoothing: true
-        threshold: 0.7
+        threshold: 0.6
         require_reset: false
   asteroid_density:
     curriculum:
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 9072
-          value: 0.2
-      name: Lesson-0
-      completion_criteria:
-        behavior: RLCommander
-        measure: progress
-        min_lesson_length: 150000
-        signal_smoothing: true
-        threshold: 0.15
-        require_reset: false
-    - value:
-        sampler_type: constant
-        sampler_parameters:
-          seed: 9073
+          seed: 3136
           value: 0.4
       name: Lesson-1
       completion_criteria:
         behavior: RLCommander
-        measure: progress
-        min_lesson_length: 200000
+        measure: reward
+        min_lesson_length: 50
         signal_smoothing: true
-        threshold: 0.25
+        threshold: 0.6
         require_reset: false
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 9074
+          seed: 3137
           value: 0.6
       name: Lesson-2
       completion_criteria:
         behavior: RLCommander
-        measure: progress
-        min_lesson_length: 200000
+        measure: reward
+        min_lesson_length: 50
         signal_smoothing: true
-        threshold: 0.5
+        threshold: 0.6
         require_reset: false
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 9075
+          seed: 3138
           value: 0.8
       name: Lesson-3
       completion_criteria:
         behavior: RLCommander
-        measure: progress
-        min_lesson_length: 200000
+        measure: reward
+        min_lesson_length: 50
         signal_smoothing: true
-        threshold: 0.7
+        threshold: 0.6
         require_reset: false
   bot_difficulty:
     curriculum:
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 9076
-          value: 0.2
-      name: Lesson-0
-      completion_criteria:
-        behavior: RLCommander
-        measure: progress
-        min_lesson_length: 150000
-        signal_smoothing: true
-        threshold: 0.15
-        require_reset: false
-    - value:
-        sampler_type: constant
-        sampler_parameters:
-          seed: 9077
+          seed: 3139
           value: 0.4
       name: Lesson-1
       completion_criteria:
         behavior: RLCommander
-        measure: progress
-        min_lesson_length: 200000
+        measure: reward
+        min_lesson_length: 50
         signal_smoothing: true
-        threshold: 0.25
+        threshold: 0.6
         require_reset: false
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 9078
+          seed: 3140
           value: 0.7
       name: Lesson-2
       completion_criteria:
         behavior: RLCommander
-        measure: progress
-        min_lesson_length: 200000
+        measure: reward
+        min_lesson_length: 50
         signal_smoothing: true
-        threshold: 0.5
+        threshold: 0.6
         require_reset: false
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 9079
+          seed: 3141
           value: 1.0
       name: Lesson-3
       completion_criteria:
         behavior: RLCommander
-        measure: progress
-        min_lesson_length: 200000
+        measure: reward
+        min_lesson_length: 50
         signal_smoothing: true
-        threshold: 0.7
+        threshold: 0.6
         require_reset: false
 checkpoint_settings:
   run_id: CommanderCurriculum_v2
