@@ -48,7 +48,7 @@ env_settings:
   env_path: null
   env_args: null
   base_port: 5005
-  num_envs: 1
+  num_envs: 32
   num_areas: 1
   timeout_wait: 60
   seed: -1
@@ -58,11 +58,11 @@ env_settings:
 engine_settings:
   width: 84
   height: 84
-  quality_level: 5
-  time_scale: 20
+  quality_level: 0
+  time_scale: 25
   target_frame_rate: -1
   capture_frame_rate: 60
-  no_graphics: false
+  no_graphics: true
   no_graphics_monitor: false
 environment_parameters:
   arena_size:

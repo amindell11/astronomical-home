@@ -26,10 +26,11 @@ public abstract class ProjectileBase : MonoBehaviour
     /// <summary>The <see cref="IDamageable"/> component that represents the shooter. This is more reliable than relying on
     /// transform.root when the shooter is nested under an arbitrary parent (e.g., an "Arena" container).</summary>
     public IDamageable ShooterDamageable { get; set; }
-
+    public float Damage => damage;
+    
     /* ───────────────────────── Unity callbacks ───────────────────────── */
     protected virtual void OnEnable()
-    {
+    {   
         // Cache plane normal (assumes there is exactly one tagged object)
         if (s_cachedPlaneTransform == null)
         {
