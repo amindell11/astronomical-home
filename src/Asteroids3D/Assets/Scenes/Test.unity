@@ -182,7 +182,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   arenaPrefab: {fileID: 3274159920676685244, guid: e970d9f79be710b4e8b8b13c7bf4ac8e,
     type: 3}
-  forceMultiArenaMode: 0
+  forceMultiArenaMode: 1
   arenaCount: 8
   arenaSpacing: 200
   gridSize: {x: 0, y: 0}
@@ -672,16 +672,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 880162904397767766, guid: e970d9f79be710b4e8b8b13c7bf4ac8e,
-        type: 3}
-      propertyPath: showGizmos
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 880162904397767766, guid: e970d9f79be710b4e8b8b13c7bf4ac8e,
-        type: 3}
-      propertyPath: enableDebugLogs
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 2524941988800668645, guid: e970d9f79be710b4e8b8b13c7bf4ac8e,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -737,26 +727,21 @@ PrefabInstance:
       propertyPath: m_Name
       value: Arena
       objectReference: {fileID: 0}
+    - target: {fileID: 3274159920676685244, guid: e970d9f79be710b4e8b8b13c7bf4ac8e,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4075688272753106162, guid: e970d9f79be710b4e8b8b13c7bf4ac8e,
         type: 3}
       propertyPath: referencePlane
       value: 
       objectReference: {fileID: 2008396451}
-    - target: {fileID: 5329039100826510922, guid: e970d9f79be710b4e8b8b13c7bf4ac8e,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 5683125627237290677, guid: e970d9f79be710b4e8b8b13c7bf4ac8e,
         type: 3}
       propertyPath: referencePlane
       value: 
       objectReference: {fileID: 2008396451}
-    - target: {fileID: 7011988963757232349, guid: e970d9f79be710b4e8b8b13c7bf4ac8e,
-        type: 3}
-      propertyPath: teamNumber
-      value: 2
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
