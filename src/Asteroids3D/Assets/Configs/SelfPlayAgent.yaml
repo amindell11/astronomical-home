@@ -1,0 +1,63 @@
+behaviors:
+  RLPilot:
+    trainer_type: ppo
+
+    # --- PPO Hyper-parameters (kept identical to curriculum run) ---
+    hyperparameters:
+      batch_size: 1024
+      buffer_size: 10240
+      learning_rate: 3.0e-4
+      learning_rate_schedule: linear
+      beta: 2.0e-3
+      beta_schedule: constant
+      epsilon: 0.2
+      epsilon_schedule: linear
+      lambd: 0.95
+      num_epoch: 3
+
+    # Network definition (same as before)
+    network_settings:
+      normalize: false
+      hidden_units: 256
+      num_layers: 2
+      vis_encode_type: simple
+
+    # Extrinsic reward only – curriculum shaping handled by env-params
+    reward_signals:
+      extrinsic:
+        gamma: 0.99
+        strength: 1.0
+
+    # ---------------- Self-Play block ----------------
+    # Two agents with opposite TeamIds will be spawned in the scene.
+    # The trainer keeps snapshots of past policies and schedules matches
+    # between current & historical versions to stabilise learning.
+    self_play:
+      window: 10                       # rolling history size
+      play_against_latest_model_ratio: 0.5  # probability of facing current policy
+      save_steps: 50000               # how often to snapshot
+      swap_steps: 10000               # swap opponent every N ghost steps
+      team_change: 500000             # switch learning team every N trainer steps
+
+    # Resume training from the best curriculum checkpoint
+    # Update the path if you use a different run-id / checkpoint name.
+    init_path: ../../../../results/CommanderCurriculum_v2/RLPilot/RLPilot.onnx
+
+    # General trainer settings -------------------------------------------------
+    max_steps: 10000000
+    time_horizon: 1024
+    summary_freq: 20000
+    keep_checkpoints: 5
+    checkpoint_interval: 500000
+
+# The arena now starts at the hardest curriculum settings (no curriculum).
+# Adjust these if you want to continue using a curriculum during self-play.
+environment_parameters:
+  arena_size:
+    value: 40
+  asteroid_density:
+    value: 0.8
+  bot_difficulty:
+    value: 1.0
+
+# Engine & environment settings inherit ML-Agents defaults; override in CLI if needed. 

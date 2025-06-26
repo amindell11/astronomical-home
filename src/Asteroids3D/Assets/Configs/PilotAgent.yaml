@@ -37,14 +37,14 @@ environment_parameters:
         completion_criteria:
           measure: reward
           behavior: RLCommander
-          min_lesson_length: 150000
+          min_lesson_length: 50
           threshold: 0.6
         value: 80
       - name: Lesson-1
         completion_criteria:
           measure: reward
           behavior: RLCommander
-          min_lesson_length: 200000
+          min_lesson_length: 50
           threshold: 0.6
         value: 60
       - name: Lesson-2
@@ -52,14 +52,14 @@ environment_parameters:
           measure: reward
           behavior: RLCommander
           threshold: 0.6
-          min_lesson_length: 200000
+          min_lesson_length: 50
         value: 50
       - name: Lesson-3
         completion_criteria:
           measure: reward
           behavior: RLCommander
           threshold: 0.6
-          min_lesson_length: 200000
+          min_lesson_length: 50
         value: 40
         
   asteroid_density:
@@ -68,14 +68,14 @@ environment_parameters:
         completion_criteria:
           measure: reward
           behavior: RLCommander
-          min_lesson_length: 150000
+          min_lesson_length: 50
           threshold: 0.6
         value: 0.2
       - name: Lesson-1
         completion_criteria:
           measure: reward
           behavior: RLCommander
-          min_lesson_length: 200000
+          min_lesson_length: 50
           threshold: 0.6
         value: 0.4
       - name: Lesson-2
@@ -83,14 +83,14 @@ environment_parameters:
           measure: reward
           behavior: RLCommander
           threshold: 0.6
-          min_lesson_length: 200000
+          min_lesson_length: 50
         value: 0.6
       - name: Lesson-3
         completion_criteria:
           measure: reward
           behavior: RLCommander
           threshold: 0.6
-          min_lesson_length: 200000
+          min_lesson_length: 50
         value: 0.8
         
   bot_difficulty:
@@ -99,14 +99,14 @@ environment_parameters:
         completion_criteria:
           measure: reward
           behavior: RLCommander
-          min_lesson_length: 150000
+          min_lesson_length: 50
           threshold: 0.6
         value: 0.2
       - name: Lesson-1
         completion_criteria:
           measure: reward
           behavior: RLCommander
-          min_lesson_length: 200000
+          min_lesson_length: 50
           threshold: 0.6
         value: 0.4
       - name: Lesson-2
@@ -114,12 +114,12 @@ environment_parameters:
           measure: reward
           behavior: RLCommander
           threshold: 0.6
-          min_lesson_length: 200000
+          min_lesson_length: 50
         value: 0.7
       - name: Lesson-3
         completion_criteria:
           measure: reward
           behavior: RLCommander
           threshold: 0.6
-          min_lesson_length: 200000
+          min_lesson_length: 50
         value: 1.0
