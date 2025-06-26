@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.MLAgents;
 
 /// <summary>
@@ -18,7 +19,7 @@ using Unity.MLAgents;
 /// 4. Provide public <see cref="ResetArena"/> API so external systems (e.g., ArenaManager) can
 ///    reset or iterate over arenas.
 /// </summary>
-public class ArenaInstance : MonoBehaviour
+public class ArenaInstance : MonoBehaviour, IGameContext
 {
     [Header("Arena Reset Settings")]
     [Tooltip("Enable automatic arena reset functionality")]           
@@ -66,9 +67,21 @@ public class ArenaInstance : MonoBehaviour
     [Tooltip("Reset the arena if a Ship exits the arena's trigger collider")]
     [SerializeField] private bool resetOnShipExit = true;
 
+    [Header("Hybrid Boundary System")]
+    [Tooltip("Multiplier for soft boundary radius (R_soft = multiplier × arena_size)")]
+    [SerializeField] private float softBoundaryMultiplier = 0.75f;
+    [Tooltip("Multiplier for hard boundary radius (R_hard = multiplier × arena_size)")]
+    [SerializeField] private float hardBoundaryMultiplier = 1.20f;
+    [Tooltip("Coefficient for quadratic boundary penalty (tune 0.001-0.005)")]
+    [SerializeField] private float boundaryPenaltyCoefficient = 0.002f;
+
     [Header("Spawn Protection")]
     [Tooltip("Duration (seconds) of temporary invulnerability applied to ships right after spawning/reset")] 
     [SerializeField] private float spawnInvulnerabilityDuration = 2f;
+
+    [Header("Metrics Tracking")]
+    [Tooltip("Enable TensorBoard metrics tracking")]
+    [SerializeField] private bool enableMetricsTracking = true;
 
     // --------------------------- Cached references ---------------------------
     [System.NonSerialized] public Ship[] ships; // exposed for convenience (read-only)
@@ -78,6 +91,18 @@ public class ArenaInstance : MonoBehaviour
 
     // --- Private State ---
     private bool _episodeActive = true; // Gate to prevent double-ending an episode.
+    
+    // Hybrid boundary system calculated radii
+    private float _softBoundaryRadius;
+    private float _hardBoundaryRadius;
+    
+    // --- Metrics Tracking ---
+    private Dictionary<RLCommanderAgent, float> _damageDealtThisEpisode = new Dictionary<RLCommanderAgent, float>();
+    private Dictionary<RLCommanderAgent, float> _damageTakenThisEpisode = new Dictionary<RLCommanderAgent, float>();
+    private List<float> _distanceSamples = new List<float>();
+    private int _episodesEndedInKills = 0;
+    private int _totalEpisodesCompleted = 0;
+    private bool _episodeEndedInKill = false;
     
     /// <summary>
     /// Indicates whether the current episode is active. When false, agents should not process actions or accumulate rewards.
@@ -159,10 +184,17 @@ public class ArenaInstance : MonoBehaviour
             flashTimer -= Time.deltaTime;
         }
 
-        // Apply existence penalties to active agents each step
+        // Apply existence penalties and boundary checks to active agents each step
         if (_episodeActive)
         {
             ApplyExistencePenalties();
+            CheckAgentBoundaries();
+            
+            // Track distance metrics every 10 frames to avoid performance impact
+            if (enableMetricsTracking && Time.frameCount % 10 == 0)
+            {
+                TrackDistanceMetrics();
+            }
         }
     }
 
@@ -181,6 +213,71 @@ public class ArenaInstance : MonoBehaviour
         }
     }
 
+    private void CheckAgentBoundaries()
+    {
+        if (mlAgents == null) return;
+        
+        Vector3 arenaCenter = transform.position;
+        
+        foreach (var agent in mlAgents)
+        {
+            if (agent is RLCommanderAgent commander && commander.ship != null)
+            {
+                float distanceFromCenter = Vector3.Distance(commander.ship.transform.position, arenaCenter);
+                
+                // Check if agent is beyond hard boundary - immediate episode end
+                if (distanceFromCenter >= _hardBoundaryRadius)
+                {
+                    if (enableDebugLogs)
+                    {
+                        RLog.Log($"[Ep.{episodeCount}] Agent {commander.name} exceeded hard boundary at distance {distanceFromCenter:F1} (limit: {_hardBoundaryRadius:F1})");
+                    }
+                    
+                    // Apply -1 penalty to violating agent
+                    commander.SetReward(-1.0f);
+                    
+                    // Apply +1 reward to opponent (zero-sum)
+                    ApplyOpponentReward(commander, 1.0f);
+                    
+                    // End episode
+                    RequestEpisodeEnd();
+                    return; // Exit early since episode is ending
+                }
+                
+                // Check if agent is beyond soft boundary - apply quadratic penalty
+                if (distanceFromCenter >= _softBoundaryRadius)
+                {
+                    float frac = (distanceFromCenter - _softBoundaryRadius) / (_hardBoundaryRadius - _softBoundaryRadius);
+                    float penalty = -boundaryPenaltyCoefficient * frac * frac;
+                    commander.AddReward(penalty);
+                    
+                    if (enableDebugLogs)
+                    {
+                        RLog.Log($"[Ep.{episodeCount}] Agent {commander.name}: Boundary penalty {penalty:F4} at distance {distanceFromCenter:F1} (soft: {_softBoundaryRadius:F1}, frac: {frac:F2})");
+                    }
+                }
+            }
+        }
+    }
+
+    private void ApplyOpponentReward(RLCommanderAgent violatingAgent, float reward)
+    {
+        if (mlAgents == null) return;
+        
+        foreach (var agent in mlAgents)
+        {
+            if (agent is RLCommanderAgent opponent && opponent != violatingAgent)
+            {
+                opponent.AddReward(reward);
+                if (enableDebugLogs)
+                {
+                    RLog.Log($"[Ep.{episodeCount}] Opponent agent {opponent.name} received reward {reward:F1} due to boundary violation");
+                }
+                break; // Assuming 2-agent setup, reward the first opponent found
+            }
+        }
+    }
+
 
 
     private void HandleShipDamaged(Ship victim, Ship attacker, float damage)
@@ -193,6 +290,12 @@ public class ArenaInstance : MonoBehaviour
         }
         
         var damageInfo = GetDamageInfo(victim, damage);
+        
+        // Track damage metrics for TensorBoard
+        if (enableMetricsTracking)
+        {
+            TrackDamageMetrics(victim, attacker, damage);
+        }
         
         // Apply penalty to victim (negative damage = penalty)
         ApplyDamageReward(victim, -damage, damageInfo, "Penalty");
@@ -257,6 +360,13 @@ public class ArenaInstance : MonoBehaviour
         {
             RLog.Log($"Ep.{episodeCount} ArenaInstance: Ship death. Victim: {victim?.name}, Killer: {killer?.name} applying rewards {1.0f} to killer and {-1.0f} to victim");
         }
+        
+        // Track kill metrics for TensorBoard
+        if (enableMetricsTracking && killer != null)
+        {
+            _episodeEndedInKill = true;
+        }
+        
         // Apply rewards
         if (killer != null)
         {
@@ -316,9 +426,15 @@ public class ArenaInstance : MonoBehaviour
         }
         
         // --- Apply all settings ---
+        
+        // Calculate hybrid boundary system radii
+        _softBoundaryRadius = EffectiveSettings.arenaSize * softBoundaryMultiplier;
+        _hardBoundaryRadius = EffectiveSettings.arenaSize * hardBoundaryMultiplier;
+        
         if (boundaryCollider != null)
         {
-            boundaryCollider.radius = EffectiveSettings.arenaSize;
+            // Set the trigger collider to the hard boundary radius
+            boundaryCollider.radius = _hardBoundaryRadius;
         }
         if (fieldManager != null)
         {
@@ -335,7 +451,7 @@ public class ArenaInstance : MonoBehaviour
         
         if (enableDebugLogs)
         {
-            RLog.Log($"ArenaInstance: Applied Environment Settings. Arena Size: {EffectiveSettings.arenaSize}, Asteroid Density: {EffectiveSettings.asteroidDensity}, Bot Difficulty: {EffectiveSettings.botDifficulty}");
+            RLog.Log($"ArenaInstance: Applied Environment Settings. Arena Size: {EffectiveSettings.arenaSize}, Asteroid Density: {EffectiveSettings.asteroidDensity}, Bot Difficulty: {EffectiveSettings.botDifficulty}, Soft Boundary: {_softBoundaryRadius:F1}, Hard Boundary: {_hardBoundaryRadius:F1}");
         }
     }
 
@@ -368,6 +484,12 @@ public class ArenaInstance : MonoBehaviour
 
     private IEnumerator ResetArenaCoroutine()
     {
+        // Report episode metrics to TensorBoard before reset
+        if (enableMetricsTracking)
+        {
+            ReportEpisodeMetrics();
+        }
+        
         // Increment episode count and trigger flash effect
         episodeCount++;
         flashTimer = flashDuration;
@@ -398,7 +520,13 @@ public class ArenaInstance : MonoBehaviour
         // Their OnEpisodeBegin() will un-pause them.
         SignalAgentsEpisodeEnd();
 
-        // 4. Re-arm the gate, allowing the new episode to be terminated.
+        // 4. Reset metrics for the new episode
+        if (enableMetricsTracking)
+        {
+            ResetEpisodeMetrics();
+        }
+
+        // 5. Re-arm the gate, allowing the new episode to be terminated.
         _episodeActive = true;
 
         if (enableDebugLogs)
@@ -476,6 +604,23 @@ public class ArenaInstance : MonoBehaviour
     /// Current arena size (radius).
     /// </summary>
     public float ArenaSize => EffectiveSettings != null ? EffectiveSettings.arenaSize : 0f;
+
+    // --- IGameContext implementation ---
+    
+    /// <summary>
+    /// IGameContext: The size/radius of the play area for normalization.
+    /// </summary>
+    float IGameContext.AreaSize => ArenaSize;
+    
+    /// <summary>
+    /// IGameContext: All active ships in the current game context.
+    /// </summary>
+    IReadOnlyList<Ship> IGameContext.ActiveShips => ships ?? System.Array.Empty<Ship>();
+    
+    /// <summary>
+    /// IGameContext: Whether the current episode/game session is active.
+    /// </summary>
+    bool IGameContext.IsActive => IsEpisodeActive;
     
     /// <summary>
     /// Sets the override settings for this arena, typically called by ArenaManager.
@@ -485,36 +630,157 @@ public class ArenaInstance : MonoBehaviour
         _overrideSettings = settings;
     }
 
-    public void HandleOutOfBounds(RLCommanderAgent agent)
+    // -----------------------------------------------------------------------
+    // Metrics Tracking Methods -----------------------------------------------
+    
+    private void TrackDistanceMetrics()
     {
-        agent.SetReward(-1.0f);
-        RequestEpisodeEnd();
+        if (mlAgents == null || ArenaSize <= 0f) return;
+        
+        Vector3 arenaCenter = transform.position;
+        
+        foreach (var agent in mlAgents)
+        {
+            if (agent is RLCommanderAgent commander && commander.ship != null)
+            {
+                float distance = Vector3.Distance(commander.ship.transform.position, arenaCenter);
+                float normalizedDistance = distance / ArenaSize; // Normalize by arena size
+                _distanceSamples.Add(normalizedDistance);
+            }
+        }
+    }
+    
+    private void TrackDamageMetrics(Ship victim, Ship attacker, float damage)
+    {
+        // Track damage taken by victim
+        var victimAgent = victim?.GetComponent<RLCommanderAgent>();
+        if (victimAgent != null)
+        {
+            if (!_damageTakenThisEpisode.ContainsKey(victimAgent))
+                _damageTakenThisEpisode[victimAgent] = 0f;
+            _damageTakenThisEpisode[victimAgent] += damage;
+        }
+        
+        // Track damage dealt by attacker (only if they're enemies)
+        if (attacker != null && victim != null && !victim.IsFriendly(attacker))
+        {
+            var attackerAgent = attacker.GetComponent<RLCommanderAgent>();
+            if (attackerAgent != null)
+            {
+                if (!_damageDealtThisEpisode.ContainsKey(attackerAgent))
+                    _damageDealtThisEpisode[attackerAgent] = 0f;
+                _damageDealtThisEpisode[attackerAgent] += damage;
+            }
+        }
+    }
+    
+    private void ReportEpisodeMetrics()
+    {
+        if (!Academy.IsInitialized) return;
+        
+        var statsRecorder = Academy.Instance.StatsRecorder;
+        
+        // Track total episodes completed and kills
+        _totalEpisodesCompleted++;
+        if (_episodeEndedInKill)
+        {
+            _episodesEndedInKills++;
+        }
+        
+        // Report kill rate (rolling average)
+        float killRate = _totalEpisodesCompleted > 0 ? (float)_episodesEndedInKills / _totalEpisodesCompleted : 0f;
+        statsRecorder.Add("Arena/KillRate", killRate);
+        
+        // Report average normalized distance from center
+        if (_distanceSamples.Count > 0)
+        {
+            float averageDistance = 0f;
+            foreach (float distance in _distanceSamples)
+            {
+                averageDistance += distance;
+            }
+            averageDistance /= _distanceSamples.Count;
+            statsRecorder.Add("Arena/AvgNormalizedDistance", averageDistance);
+        }
+        
+        // Report damage metrics per agent
+        foreach (var kvp in _damageDealtThisEpisode)
+        {
+            var agent = kvp.Key;
+            var damage = kvp.Value;
+            if (agent != null)
+            {
+                statsRecorder.Add($"Arena/DamageDealt_{agent.name}", damage);
+            }
+        }
+        
+        foreach (var kvp in _damageTakenThisEpisode)
+        {
+            var agent = kvp.Key;
+            var damage = kvp.Value;
+            if (agent != null)
+            {
+                statsRecorder.Add($"Arena/DamageTaken_{agent.name}", damage);
+            }
+        }
+        
+        // Report aggregate damage metrics
+        float totalDamageDealt = 0f;
+        float totalDamageTaken = 0f;
+        
+        foreach (var damage in _damageDealtThisEpisode.Values)
+            totalDamageDealt += damage;
+        foreach (var damage in _damageTakenThisEpisode.Values)
+            totalDamageTaken += damage;
+            
+        if (_damageDealtThisEpisode.Count > 0)
+            statsRecorder.Add("Arena/AvgDamageDealt", totalDamageDealt / _damageDealtThisEpisode.Count);
+        if (_damageTakenThisEpisode.Count > 0)
+            statsRecorder.Add("Arena/AvgDamageTaken", totalDamageTaken / _damageTakenThisEpisode.Count);
+            
+        if (enableDebugLogs)
+        {
+            RLog.Log($"[Ep.{episodeCount}] Metrics: KillRate={killRate:F3}, AvgDist={(_distanceSamples.Count > 0 ? _distanceSamples.Average() : 0):F3}, DamageDealt={totalDamageDealt:F1}, DamageTaken={totalDamageTaken:F1}");
+        }
+    }
+    
+    private void ResetEpisodeMetrics()
+    {
+        _damageDealtThisEpisode.Clear();
+        _damageTakenThisEpisode.Clear();
+        _distanceSamples.Clear();
+        _episodeEndedInKill = false;
     }
 
     // -----------------------------------------------------------------------
     // Trigger callbacks ------------------------------------------------------
     private void OnTriggerExit(Collider other)
     {
+        // Boundary violations are now handled by the hybrid boundary system in CheckAgentBoundaries()
+        // This trigger is kept as a safety net for non-agent ships or edge cases
         if (!resetOnShipExit) return;
 
         // Find a Ship component on the collider or its parents (handles multiple collider setups)
         Ship ship = other.GetComponent<Ship>() ?? other.GetComponentInParent<Ship>();
         if (ship == null) return;
 
-        if (enableDebugLogs)
-        {
-            RLog.Log($"ArenaInstance: Ship '{ship.name}' exited arena bounds – triggering reset.");
-        }
-
         var agent = ship.GetComponent<RLCommanderAgent>();
         if (agent != null)
         {
-            // The agent is responsible for applying penalty and ending the episode.
-            HandleOutOfBounds(agent);
+            // For RL agents, boundary handling is done in CheckAgentBoundaries() to avoid double penalties
+            if (enableDebugLogs)
+            {
+                RLog.Log($"ArenaInstance: RL Agent '{ship.name}' trigger exit detected but handled by hybrid boundary system.");
+            }
+            return;
         }
         else
         {
-            // No agent on the ship, so the arena ends the episode directly.
+            // For non-RL ships (like AI bots), still handle trigger exit normally
+            if (enableDebugLogs)
+            {
+                RLog.Log($"ArenaInstance: Non-agent ship '{ship.name}' exited arena bounds – triggering reset.");
+            }
             RequestEpisodeEnd();
         }
     }
@@ -540,13 +806,21 @@ public class ArenaInstance : MonoBehaviour
             gizmoColor = Color.cyan;
         }
 
-        // Draw arena boundary
+        // Draw arena boundary (original arena size)
         Gizmos.color = gizmoColor;
-        Gizmos.DrawWireCube(center, Vector3.one * gizmoSize);
+        //Gizmos.DrawWireCube(center, Vector3.one * gizmoSize);
+        
+        // Draw soft boundary circle
+        Gizmos.color = Color.yellow;
+        //Gizmos.DrawWireSphere(center, _softBoundaryRadius);
+        
+        // Draw hard boundary circle
+        Gizmos.color = Color.red;
+        //Gizmos.DrawWireSphere(center, _hardBoundaryRadius);
 
         // Draw episode count text
         UnityEditor.Handles.color = Color.white;
-        UnityEditor.Handles.Label(center + Vector3.up * 10f, $"Episode: {episodeCount}\nGlobal Steps: {RLCommanderAgent.GlobalStepCount}");
+        UnityEditor.Handles.Label(center + Vector3.up * 10f, $"Episode: {episodeCount}\nGlobal Steps: {RLCommanderAgent.GlobalStepCount}\nSoft: {_softBoundaryRadius:F1} | Hard: {_hardBoundaryRadius:F1}");
     }
 #endif
 } 

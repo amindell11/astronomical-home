@@ -32,7 +32,7 @@ public class RLCommanderAgent : Agent, IShipCommandSource
 
     // --- Internal State ---
     public Ship ship { get; private set; }
-    public ArenaInstance arenaInstance { get; private set; }
+    public IGameContext gameContext { get; private set; }
     private ShipCommand lastCommand;
     private RLObserver observer;
     private bool hasNewCommand;
@@ -46,10 +46,10 @@ public class RLCommanderAgent : Agent, IShipCommandSource
     public RLObserver Observer => observer;
 
     /// <summary>
-    /// Helper property to check if the episode is active in the parent arena.
+    /// Helper property to check if the episode is active in the current game context.
     /// When the episode is not active, the agent will not process actions or observations.
     /// </summary>
-    private bool IsEpisodeActive => arenaInstance == null || arenaInstance.IsEpisodeActive;
+    private bool IsEpisodeActive => gameContext == null || gameContext.IsActive;
 
     // --- IShipCommandSource properties ---
     public int Priority => commanderPriority;
@@ -74,11 +74,11 @@ public class RLCommanderAgent : Agent, IShipCommandSource
     {
         base.Initialize();
         ship = GetComponent<Ship>();
-        arenaInstance = GetComponentInParent<ArenaInstance>();
+        gameContext = GetComponentInParent<IGameContext>();
         observer = new RLObserver(this);
 
         if (ship == null) RLog.LogError("Agent is not attached to a Ship object.", this);
-        //if (arenaInstance == null) RLog.LogError("RLCommanderAgent requires a parent ArenaInstance component.", this);
+        //if (gameContext == null) RLog.LogError("RLCommanderAgent requires a parent IGameContext component.", this);
 
         // Detect if another IShipCommandSource (e.g., PlayerCommander) is attached for heuristic fallback
         foreach (var src in GetComponents<IShipCommandSource>())

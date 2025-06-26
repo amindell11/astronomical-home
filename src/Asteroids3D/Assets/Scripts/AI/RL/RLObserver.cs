@@ -95,7 +95,7 @@ public class RLObserver
         // When the episode is not active, the agent's actions are ignored, but the sensor still expects a full
         // vector of observations. We don't want to collect new (potentially invalid) data,
         // so we'll just feed it the last known values and prevent the debug list from clearing.
-        bool isEpisodeActive = agent.arenaInstance?.IsEpisodeActive ?? false;
+        bool isEpisodeActive = agent.gameContext?.IsActive ?? false;
         if (!isEpisodeActive)
         {
             // If we have previous observations, send them again.
@@ -113,7 +113,7 @@ public class RLObserver
         LastObservations.Clear();
         
         var currentState = ship.CurrentState;
-        var arenaInstance = agent.arenaInstance;
+        var gameContext = agent.gameContext;
 
         // --- Self State --- (10 floats)
 
@@ -140,9 +140,9 @@ public class RLObserver
         AddObservation(sensor, mState == MissileLauncher.LockState.Cooldown  ? 1f : 0f);
 
         float normDistToCenter = 0f;
-        if (arenaInstance != null && arenaInstance.ArenaSize > 0f)
+        if (gameContext != null && gameContext.AreaSize > 0f)
         {
-            normDistToCenter = Vector3.Distance(transform.position, arenaInstance.CenterPosition) / arenaInstance.ArenaSize;
+            normDistToCenter = Vector3.Distance(transform.position, gameContext.CenterPosition) / gameContext.AreaSize;
             normDistToCenter = Mathf.Clamp01(normDistToCenter);
         }
         AddObservation(sensor, normDistToCenter);
@@ -264,13 +264,13 @@ public class RLObserver
 
     private Transform FindClosestEnemy()
     {
-        if (agent.arenaInstance == null) return null;
+        if (agent.gameContext == null) return null;
 
         float bestSqrDist = sensingRange * sensingRange;
         Transform closest = null;
         Vector3 origin = transform.position;
         
-        foreach (var otherShip in agent.arenaInstance.ships)
+        foreach (var otherShip in agent.gameContext.ActiveShips)
         {
             if (otherShip == null || otherShip == ship || !otherShip.gameObject.activeInHierarchy || ship.IsFriendly(otherShip))
             {

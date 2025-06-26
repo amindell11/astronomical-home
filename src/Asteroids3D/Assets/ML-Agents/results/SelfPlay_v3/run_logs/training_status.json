@@ -1,0 +1,36 @@
+{
+    "arena_size": {
+        "lesson_num": 0
+    },
+    "asteroid_density": {
+        "lesson_num": 0
+    },
+    "RLPilot": {
+        "elo": 1134.9171994976523,
+        "checkpoints": [
+            {
+                "steps": 123476,
+                "file_path": "results\\SelfPlay_v3\\RLPilot\\RLPilot-123476.onnx",
+                "reward": -0.5293335430324078,
+                "creation_time": 1750957366.3880565,
+                "auxillary_file_paths": [
+                    "results\\SelfPlay_v3\\RLPilot\\RLPilot-123476.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 123476,
+            "file_path": "results\\SelfPlay_v3\\RLPilot.onnx",
+            "reward": -0.5293335430324078,
+            "creation_time": 1750957366.3880565,
+            "auxillary_file_paths": [
+                "results\\SelfPlay_v3\\RLPilot\\RLPilot-123476.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "1.1.0",
+        "torch_version": "2.7.1+cpu"
+    }
+}
