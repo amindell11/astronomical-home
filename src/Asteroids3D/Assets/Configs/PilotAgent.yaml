@@ -33,13 +33,6 @@ behaviors:
 environment_parameters:
   arena_size:
     curriculum:
-      - name: Lesson-0
-        completion_criteria:
-          measure: reward
-          behavior: RLCommander
-          min_lesson_length: 50
-          threshold: 0.6
-        value: 80
       - name: Lesson-1
         completion_criteria:
           measure: reward
@@ -64,13 +57,6 @@ environment_parameters:
         
   asteroid_density:
     curriculum:
-      - name: Lesson-0
-        completion_criteria:
-          measure: reward
-          behavior: RLCommander
-          min_lesson_length: 50
-          threshold: 0.6
-        value: 0.2
       - name: Lesson-1
         completion_criteria:
           measure: reward
@@ -95,13 +81,6 @@ environment_parameters:
         
   bot_difficulty:
     curriculum:
-      - name: Lesson-0
-        completion_criteria:
-          measure: reward
-          behavior: RLCommander
-          min_lesson_length: 50
-          threshold: 0.6
-        value: 0.2
       - name: Lesson-1
         completion_criteria:
           measure: reward
