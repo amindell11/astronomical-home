@@ -49,17 +49,15 @@ public class PlayerShipInput : MonoBehaviour, IShipCommandSource
             }
             else
             {
-                cmd.TargetAngle = 0f;
+                cmd.YawRate = 0f;
                 isMouseActive = false;
             }
         }
         else
         {
             float rotationInput = Input.GetAxis("Rotation");
-            bool shouldRotate = Mathf.Abs(rotationInput) > 0.2f;
-            cmd.RotateToTarget = shouldRotate;
-            float currentYaw = shipController.Angle;
-            cmd.TargetAngle = currentYaw + (rotationInput * 90f);
+            cmd.YawRate = rotationInput;
+            cmd.RotateToTarget = false;
             isMouseActive = false;
         }
     }

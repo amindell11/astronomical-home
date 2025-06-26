@@ -3,19 +3,19 @@ using UnityEngine;
 public class Thruster : MonoBehaviour
 {
     public ParticleSystem[] thrustParticles;
-    public  ShipMovement.ShipMovement2D Controller;
+    private Ship ship;
 
     void Start()    
     {
-        Controller = GetComponentInParent<ShipMovement>().Controller;
+        ship = GetComponentInParent<Ship>();
     }
 
     void Update()
     {
-        if (thrustParticles == null || thrustParticles.Length == 0) return;
+        if (thrustParticles == null || thrustParticles.Length == 0 || ship == null) return;
 
         // Also check global VFX setting
-        bool shouldPlay = Controller.ThrustInput > 0.05f && GameSettings.VfxEnabled;
+        bool shouldPlay = ship.CurrentCommand.Thrust > 0.05f && GameSettings.VfxEnabled;
         
         foreach (var ps in thrustParticles)
         {

@@ -45,6 +45,8 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
     MissileLauncher missileLauncher;
     Camera    mainCam;
 
+    Ship myShip;
+
     // LOS cache
     bool   cachedLOS;
     int    losFrame = -1;
@@ -100,7 +102,7 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
 
     public void InitializeCommander(Ship ship)
     {
-        // This commander doesn't need any specific initialization logic from the ship.
+        myShip = ship;
     }
 
     public int Priority => 10;
@@ -131,7 +133,7 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
 
         ShipKinematics kin = state.Kinematics;
 
-        float currentMaxSpeed = ship.maxSpeed;
+        float currentMaxSpeed = myShip.settings.maxSpeed;
 
         int obstacleCount = ScanObstacles(kin, currentMaxSpeed);
 
@@ -461,7 +463,7 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
         // Detection/avoidance sphere radius visualization
         if (enableAvoidance)
         {
-            float maxDist = ship.maxSpeed * lookAheadTime + safeMargin;
+            float maxDist = myShip.settings.maxSpeed * lookAheadTime + safeMargin;
 
             // Draw velocity ray
             Gizmos.color = Color.gray;

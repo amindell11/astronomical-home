@@ -136,8 +136,9 @@ public class RLCommanderAgent : Agent, IShipCommandSource
         var continuousActions = actions.ContinuousActions;
         lastCommand.Thrust = continuousActions[0];
         lastCommand.Strafe = continuousActions[1];
-        lastCommand.RotateToTarget = continuousActions[2] > 0f;
-        lastCommand.TargetAngle = continuousActions[2] * 180f;
+        lastCommand.RotateToTarget = false;
+        lastCommand.TargetAngle = 0;
+        lastCommand.YawRate = continuousActions[2];
 
         var discreteActions = actions.DiscreteActions;
         lastCommand.PrimaryFire = discreteActions[0] > 0;
@@ -161,7 +162,15 @@ public class RLCommanderAgent : Agent, IShipCommandSource
             // Map ShipCommand to action buffers
             continuousActions[0] = cmd.Thrust;
             continuousActions[1] = cmd.Strafe;
-            continuousActions[2] = cmd.RotateToTarget ? cmd.TargetAngle / 180f : 0f;
+
+            if (cmd.YawRate != 0f)
+            {
+                continuousActions[2] = cmd.YawRate;
+            }
+            else
+            {
+                continuousActions[2] = cmd.RotateToTarget ? cmd.TargetAngle / 180f : 0f;
+            }
 
             discreteActions[0] = cmd.PrimaryFire ? 1 : 0;
             discreteActions[1] = cmd.SecondaryFire ? 1 : 0;

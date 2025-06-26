@@ -34,6 +34,7 @@ public class Ship : MonoBehaviour, ITargetable
 
     /* ─────────── Current State ─────────── */
     public ShipState CurrentState { get; private set; }
+    public ShipCommand CurrentCommand { get; private set; }
 
     /* ─────────── ITargetable Implementation ─────────── */
     public Transform TargetPoint => transform;
@@ -140,12 +141,11 @@ public class Ship : MonoBehaviour, ITargetable
                 }
             }
         }
+        CurrentCommand = cmd;
 
-        if (hasCmd && movement != null && movement.Controller != null)
+        if (hasCmd && movement != null)
         {
-            // ShipMovement expects inputs in its 2-D controller.
-            movement.Controller.SetControls(cmd.Thrust, cmd.Strafe);
-            movement.Controller.SetRotationTarget(cmd.RotateToTarget, cmd.TargetAngle);
+            movement.SetCommand(cmd);
 
             // Weapons
             if (cmd.PrimaryFire && laserGun)

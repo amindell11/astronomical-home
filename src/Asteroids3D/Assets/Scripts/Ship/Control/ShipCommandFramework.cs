@@ -48,6 +48,9 @@ namespace ShipControl
         /// <summary>Target yaw angle in degrees (0-360, CCW from +Y) if <see cref="RotateToTarget"/> is true.</summary>
         public float TargetAngle;
 
+        /// <summary>Desired yaw rate input in the range [-1, 1]. Overrides RotateToTarget if non-zero.</summary>
+        public float YawRate;
+
         /// <summary>When true the ship should attempt to fire its primary weapon this step.</summary>
         public bool  PrimaryFire;
 

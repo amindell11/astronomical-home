@@ -25,6 +25,11 @@ behaviors:
         gamma: 0.99
         strength: 1.0
 
+    behavioral_cloning:
+      demo_path: src/Asteroids3D/Demonstrations/Updated
+      strength: 0.5
+      steps: 300000
+      
     max_steps: 5000000
     summary_freq: 20000
     time_horizon: 1024
