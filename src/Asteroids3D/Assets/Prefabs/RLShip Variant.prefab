@@ -331,6 +331,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 7454198466331922017}
+    - targetCorrespondingSourceObject: {fileID: 5100611748941008240, guid: cade7246a6fb1b64e82fbb5aac398631,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2538085301186043528}
   m_SourcePrefab: {fileID: 100100000, guid: cade7246a6fb1b64e82fbb5aac398631, type: 3}
 --- !u!1 &2872065919025823627 stripped
 GameObject:
@@ -389,7 +393,7 @@ MonoBehaviour:
   sensingRange: 30
   maxSpeed: 20
   maxYawRate: 180
-  ShowObservationUI: 1
+  ShowObservationUI: 0
 --- !u!114 &7454198466331922017
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -405,6 +409,18 @@ MonoBehaviour:
   DecisionPeriod: 5
   DecisionStep: 0
   TakeActionsBetweenDecisions: 1
+--- !u!114 &2538085301186043528
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2872065919025823627}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7f7fc63a46a67a40848d0a9ecdb7449, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &8427085315940503719 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1576724491614118492, guid: cade7246a6fb1b64e82fbb5aac398631,

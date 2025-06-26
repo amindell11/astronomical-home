@@ -68,7 +68,7 @@ engine_settings:
   time_scale: 20
   target_frame_rate: -1
   capture_frame_rate: 60
-  no_graphics: false
+  no_graphics: true
   no_graphics_monitor: false
 environment_parameters:
   arena_size:
@@ -76,7 +76,7 @@ environment_parameters:
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 548
+          seed: 5615
           value: 80
       name: Lesson-0
       completion_criteria:
@@ -89,7 +89,7 @@ environment_parameters:
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 549
+          seed: 5616
           value: 60
       name: Lesson-1
       completion_criteria:
@@ -102,7 +102,7 @@ environment_parameters:
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 550
+          seed: 5617
           value: 50
       name: Lesson-2
       completion_criteria:
@@ -115,7 +115,7 @@ environment_parameters:
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 551
+          seed: 5618
           value: 40
       name: Lesson-3
       completion_criteria:
@@ -130,7 +130,7 @@ environment_parameters:
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 552
+          seed: 5619
           value: 0.2
       name: Lesson-0
       completion_criteria:
@@ -143,7 +143,7 @@ environment_parameters:
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 553
+          seed: 5620
           value: 0.4
       name: Lesson-1
       completion_criteria:
@@ -156,7 +156,7 @@ environment_parameters:
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 554
+          seed: 5621
           value: 0.6
       name: Lesson-2
       completion_criteria:
@@ -169,7 +169,7 @@ environment_parameters:
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 555
+          seed: 5622
           value: 0.8
       name: Lesson-3
       completion_criteria:
@@ -184,7 +184,7 @@ environment_parameters:
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 556
+          seed: 5623
           value: 0.2
       name: Lesson-0
       completion_criteria:
@@ -197,7 +197,7 @@ environment_parameters:
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 557
+          seed: 5624
           value: 0.4
       name: Lesson-1
       completion_criteria:
@@ -210,7 +210,7 @@ environment_parameters:
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 558
+          seed: 5625
           value: 0.7
       name: Lesson-2
       completion_criteria:
@@ -223,7 +223,7 @@ environment_parameters:
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 559
+          seed: 5626
           value: 1.0
       name: Lesson-3
       completion_criteria:

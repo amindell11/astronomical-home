@@ -11,15 +11,6 @@
     "RLPilot": {
         "checkpoints": [
             {
-                "steps": 6180,
-                "file_path": "results\\CommanderCurriculum_v1\\RLPilot\\RLPilot-6180.onnx",
-                "reward": -1.3377222485012479,
-                "creation_time": 1750898948.9258318,
-                "auxillary_file_paths": [
-                    "results\\CommanderCurriculum_v1\\RLPilot\\RLPilot-6180.pt"
-                ]
-            },
-            {
                 "steps": 177890,
                 "file_path": "results\\CommanderCurriculum_v1\\RLPilot\\RLPilot-177890.onnx",
                 "reward": -1.0830819034576415,
@@ -36,15 +27,42 @@
                 "auxillary_file_paths": [
                     "results\\CommanderCurriculum_v1\\RLPilot\\RLPilot-183385.pt"
                 ]
+            },
+            {
+                "steps": 264764,
+                "file_path": "results\\CommanderCurriculum_v1\\RLPilot\\RLPilot-264764.onnx",
+                "reward": -1.029440048493837,
+                "creation_time": 1750903795.1651392,
+                "auxillary_file_paths": [
+                    "results\\CommanderCurriculum_v1\\RLPilot\\RLPilot-264764.pt"
+                ]
+            },
+            {
+                "steps": 302520,
+                "file_path": "results\\CommanderCurriculum_v1\\RLPilot\\RLPilot-302520.onnx",
+                "reward": -0.9993502582822528,
+                "creation_time": 1750904298.7976863,
+                "auxillary_file_paths": [
+                    "results\\CommanderCurriculum_v1\\RLPilot\\RLPilot-302520.pt"
+                ]
+            },
+            {
+                "steps": 323906,
+                "file_path": "results\\CommanderCurriculum_v1\\RLPilot\\RLPilot-323906.onnx",
+                "reward": -1.0924678780138493,
+                "creation_time": 1750906315.9273424,
+                "auxillary_file_paths": [
+                    "results\\CommanderCurriculum_v1\\RLPilot\\RLPilot-323906.pt"
+                ]
             }
         ],
         "final_checkpoint": {
-            "steps": 183385,
+            "steps": 323906,
             "file_path": "results\\CommanderCurriculum_v1\\RLPilot.onnx",
-            "reward": -1.1240472853183747,
-            "creation_time": 1750902420.993865,
+            "reward": -1.0924678780138493,
+            "creation_time": 1750906315.9273424,
             "auxillary_file_paths": [
-                "results\\CommanderCurriculum_v1\\RLPilot\\RLPilot-183385.pt"
+                "results\\CommanderCurriculum_v1\\RLPilot\\RLPilot-323906.pt"
             ]
         }
     },

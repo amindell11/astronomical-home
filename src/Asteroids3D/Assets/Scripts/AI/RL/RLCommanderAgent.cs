@@ -21,7 +21,6 @@ public class RLCommanderAgent : Agent, IShipCommandSource
     [Header("Agent Settings")]
     [Tooltip("Priority for this commander's inputs. Lower values can be overridden.")]
     [SerializeField] private int commanderPriority = 100;
-
     [Header("Observation Settings")]
     public float sensingRange = 100f;
     public float maxSpeed = 20f;
@@ -83,7 +82,6 @@ public class RLCommanderAgent : Agent, IShipCommandSource
 
         // Subscribe to global events
         Ship.OnGlobalShipDamaged += HandleShipDamaged;
-
         // Detect if another IShipCommandSource (e.g., PlayerCommander) is attached for heuristic fallback
         foreach (var src in GetComponents<IShipCommandSource>())
         {
@@ -93,6 +91,7 @@ public class RLCommanderAgent : Agent, IShipCommandSource
                 break;
             }
         }
+        RLog.Log($"RLCommanderAgent: Initializing agent {name} with fallback commander {fallbackCommander}");
 
         // Ensure ML-Agents team ID matches the Ship's team number so both systems agree on alliances.
         var bp = GetComponent<BehaviorParameters>();
@@ -156,7 +155,7 @@ public class RLCommanderAgent : Agent, IShipCommandSource
 
         var continuousActions = actionsOut.ContinuousActions;
         var discreteActions = actionsOut.DiscreteActions;
-
+        RLog.Log($"RLCommanderAgent: Heuristic called for agent {name} with fallback commander {fallbackCommander}");
         if (fallbackCommander != null && fallbackCommander.TryGetCommand(ship.CurrentState, out ShipCommand cmd))
         {
             // Map ShipCommand to action buffers

@@ -334,11 +334,14 @@ public class ArenaInstance : MonoBehaviour
         if (mlAgents == null || mlAgents.Length == 0) return;
         foreach (var agent in mlAgents)
         {
-            if (enableDebugLogs)
+            if (agent != null && agent.gameObject.activeInHierarchy)
             {
-                RLog.Log($"ArenaInstance: Signalling agent {agent.name} episode end.");
+                if (enableDebugLogs)
+                {
+                    RLog.Log($"ArenaInstance: Signalling agent {agent.name} episode end.");
+                }
+                agent.EndEpisode();
             }
-            agent?.EndEpisode();
         }
     }
 
