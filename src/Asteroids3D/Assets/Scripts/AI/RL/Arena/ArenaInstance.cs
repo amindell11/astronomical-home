@@ -4,21 +4,6 @@ using System.Collections.Generic;
 using Unity.MLAgents;
 
 /// <summary>
-/// Serializable struct to hold all environment-specific settings for an arena.
-/// These values act as defaults and can be overridden by ML-Agents environmental parameters.
-/// </summary>
-[System.Serializable]
-public struct ArenaEnvironmentSettings
-{
-    [Tooltip("Radius of the arena in world units")]
-    public float arenaSize;
-    [Tooltip("Target density of asteroids in the field")]
-    public float asteroidDensity;
-    [Tooltip("Difficulty of the curriculum bot (if present)")]
-    public float botDifficulty;
-}
-
-/// <summary>
 /// Stand-alone component that encapsulates all logic for a single training / gameplay arena.
 ///
 /// Attach this to the root GameObject of an <b>Arena</b> prefab.  In normal gameplay you can
@@ -45,8 +30,14 @@ public class ArenaInstance : MonoBehaviour
     [SerializeField] private Ship[] managedShips;
 
     [Header("Environment Settings")]
-    [Tooltip("Default environment parameters. These can be overridden by ML-Agents curriculum settings at runtime.")]
-    [SerializeField] private ArenaEnvironmentSettings environmentSettings = new ArenaEnvironmentSettings { arenaSize = 100f, asteroidDensity = 0.05f, botDifficulty = 1f };
+    [Tooltip("Default environment parameters. Can be overriden by ArenaManager or ML-Agents.")]
+    [SerializeField] private ArenaSettings defaultEnvironmentSettings;
+    
+    // The settings resolved and used for the current episode.
+    public ArenaSettings EffectiveSettings { get; private set; }
+    
+    // Manager can provide an override settings asset.
+    private ArenaSettings _overrideSettings = null;
 
     [Header("Curriculum Bot")]
     [Tooltip("The non-RL agent ship to be enabled/disabled by the curriculum.")]
@@ -94,7 +85,7 @@ public class ArenaInstance : MonoBehaviour
         ships        = (managedShips != null && managedShips.Length > 0) ? managedShips : GetComponentsInChildren<Ship>(true);
         fieldManager = GetComponentInChildren<SectorFieldManager>(true);
         boundaryCollider = GetComponent<SphereCollider>();
-        mlAgents     = GetComponentsInChildren<Agent>(true);
+        mlAgents     = GetComponentsInChildren<Agent>();
         
         if (botShip != null)
         {
@@ -117,7 +108,7 @@ public class ArenaInstance : MonoBehaviour
     void Start()
     {
         // Apply arena size settings
-        ApplyEnvironmentSettings();
+        ResolveAndApplySettings();
 
         // Ensure field manager anchor points at this arena root so density checks use local centre.
         if (fieldManager != null)
@@ -193,43 +184,48 @@ public class ArenaInstance : MonoBehaviour
         RequestEpisodeEnd();
     }
 
-    private void ApplyEnvironmentSettings()
+    private void ResolveAndApplySettings()
     {
-        // Start with serialized defaults
-        var settings = this.environmentSettings;
+        // Create a temporary, modifiable instance of settings for this episode.
+        // This prevents runtime changes from saving to the ScriptableObject assets.
+        EffectiveSettings = Instantiate(defaultEnvironmentSettings);
 
+        // If manager has provided an override, copy its values.
+        if (_overrideSettings != null)
+        {
+            JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(_overrideSettings), EffectiveSettings);
+        }
+
+        // Allow ML-Agents to override any parameter.
         if (Academy.IsInitialized)
         {
             var envParams = Academy.Instance.EnvironmentParameters;
-            settings.arenaSize = envParams.GetWithDefault("arena_size", settings.arenaSize);
-            settings.asteroidDensity = envParams.GetWithDefault("asteroid_density", settings.asteroidDensity);
-            settings.botDifficulty = envParams.GetWithDefault("bot_difficulty", settings.botDifficulty);
+            EffectiveSettings.arenaSize = envParams.GetWithDefault("arena_size", EffectiveSettings.arenaSize);
+            EffectiveSettings.asteroidDensity = envParams.GetWithDefault("asteroid_density", EffectiveSettings.asteroidDensity);
+            EffectiveSettings.botDifficulty = envParams.GetWithDefault("bot_difficulty", EffectiveSettings.botDifficulty);
         }
         
         // --- Apply all settings ---
-        
-        // Arena Size
-       
         if (boundaryCollider != null)
         {
-            boundaryCollider.radius = settings.arenaSize;
+            boundaryCollider.radius = EffectiveSettings.arenaSize;
         }
         if (fieldManager != null)
         {
-            fieldManager.SetFieldSize(settings.arenaSize);
-            fieldManager.TargetDensity = Mathf.Max(0f, settings.asteroidDensity);
+            fieldManager.SetFieldSize(EffectiveSettings.arenaSize);
+            fieldManager.TargetDensity = Mathf.Max(0f, EffectiveSettings.asteroidDensity);
         }
 
-        gizmoSize = settings.arenaSize * 2f;
+        gizmoSize = EffectiveSettings.arenaSize * 2f;
         
         if (botController != null)
         {
-            botController.difficulty = settings.botDifficulty;
+            botController.difficulty = EffectiveSettings.botDifficulty;
         }
         
         if (enableDebugLogs)
         {
-            RLog.Log($"ArenaInstance: Applied Environment Settings. Arena Size: {settings.arenaSize}, Asteroid Density: {settings.asteroidDensity}, Bot Difficulty: {settings.botDifficulty}");
+            RLog.Log($"ArenaInstance: Applied Environment Settings. Arena Size: {EffectiveSettings.arenaSize}, Asteroid Density: {EffectiveSettings.asteroidDensity}, Bot Difficulty: {EffectiveSettings.botDifficulty}");
         }
     }
 
@@ -269,7 +265,7 @@ public class ArenaInstance : MonoBehaviour
         OnArenaReset?.Invoke(this);
         
         // Apply new environment parameters for the upcoming episode.
-        ApplyEnvironmentSettings();
+        ResolveAndApplySettings();
 
         if (enableDebugLogs)
         {
@@ -338,6 +334,10 @@ public class ArenaInstance : MonoBehaviour
         if (mlAgents == null || mlAgents.Length == 0) return;
         foreach (var agent in mlAgents)
         {
+            if (enableDebugLogs)
+            {
+                RLog.Log($"ArenaInstance: Signalling agent {agent.name} episode end.");
+            }
             agent?.EndEpisode();
         }
     }
@@ -373,15 +373,14 @@ public class ArenaInstance : MonoBehaviour
     /// <summary>
     /// Current arena size (radius).
     /// </summary>
-    public float ArenaSize => environmentSettings.arenaSize;
+    public float ArenaSize => EffectiveSettings != null ? EffectiveSettings.arenaSize : 0f;
     
     /// <summary>
-    /// Set the arena size and apply it to boundary collider and field manager.
+    /// Sets the override settings for this arena, typically called by ArenaManager.
     /// </summary>
-    public void SetArenaSize(float newSize)
+    public void SetOverrideSettings(ArenaSettings settings)
     {
-        environmentSettings.arenaSize = newSize;
-        ApplyEnvironmentSettings();
+        _overrideSettings = settings;
     }
 
     public void HandleOutOfBounds(RLCommanderAgent agent)
