@@ -114,9 +114,12 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
     {
         cmd = new ShipCommand();
         
+        RLog.Log($"[AI-{name}] TryGetCommand called - difficulty={difficulty:F2}, targetType={targetType}");
+        
         // Difficulty Level 1 (< 0.25): Stationary, no actions.
         if (difficulty < 0.25f)
         {
+            RLog.Log($"[AI-{name}] Difficulty < 0.25, returning idle command");
             cmd.Thrust = 0;
             cmd.Strafe = 0;
             cmd.RotateToTarget = false;
@@ -127,6 +130,7 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
 
         if (targetType == TargetType.None)
         {   
+            RLog.Log($"[AI-{name}] No target, returning idle command");
             cmd.Thrust = 0;
             cmd.Strafe = 0;
             cmd.RotateToTarget = false;
@@ -139,13 +143,16 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
         float currentMaxSpeed = myShip.settings.maxSpeed;
 
         int obstacleCount = ScanObstacles(kin, currentMaxSpeed);
+        RLog.Log($"[AI-{name}] Scanned {obstacleCount} obstacles");
 
         VelocityPilot.Output vpOut = ComputeNavigation(kin, currentMaxSpeed, obstacleCount);
 
         ApplyControls(vpOut, ref cmd);
+        RLog.Log($"[AI-{name}] Applied controls - Thrust={cmd.Thrust:F2}, Strafe={cmd.Strafe:F2}");
 
         HandleShooting(ref cmd, state);
         
+        RLog.Log($"[AI-{name}] Final command - PrimaryFire={cmd.PrimaryFire}, SecondaryFire={cmd.SecondaryFire}");
         return true;
     }
 
@@ -157,11 +164,13 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
         // Difficulty Level 2 (< 0.5): Movement only, no weapons.
         if (difficulty < 0.5f)
         {
+            RLog.Log($"[AI-{name}] HandleShooting: Difficulty {difficulty:F2} < 0.5, weapons disabled");
             return;
         }
 
         if (targetType == TargetType.None) 
         {
+            RLog.Log($"[AI-{name}] HandleShooting: No target set, weapons disabled");
             return;
         }
 
@@ -171,6 +180,8 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
         Vector3 dir     = targetPos - firePos;
         float   dist    = dir.magnitude;
         float   angle   = Vector3.Angle(transform.up, dir);
+        
+        RLog.Log($"[AI-{name}] HandleShooting: Target at dist={dist:F1}, angle={angle:F1}°, fireDistance={fireDistance:F1}, fireAngleTolerance={fireAngleTolerance:F1}°");
         
         bool wantsToFireMissile = false;
         const float dummyMissileRange = 10f; // Close range for dumb-fire during locking
@@ -186,7 +197,16 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
                         if(LineOfSightOK(firePos, dir, dist, angle)){
                             var targetable = GetTargetTransform()?.GetComponentInParent<ITargetable>();
                             wantsToFireMissile = targetable != null;
+                            RLog.Log($"[AI-{name}] Missile: Idle state, in range, LOS OK, targetable={targetable != null}");
                         }
+                        else
+                        {
+                            RLog.Log($"[AI-{name}] Missile: Idle state, in range but NO LOS");
+                        }
+                    }
+                    else
+                    {
+                        RLog.Log($"[AI-{name}] Missile: Idle state, out of range/angle (dist={dist:F1} > {missileRange:F1} OR angle={angle:F1}° > {missileAngleTolerance:F1}°)");
                     }
                     break;
                     
@@ -195,16 +215,19 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
                     if (dist <= dummyMissileRange)
                     {
                         wantsToFireMissile = true;
+                        RLog.Log($"[AI-{name}] Missile: Locking state, close enough for dumb-fire");
                     }
                     break;
                     
                 case MissileLauncher.LockState.Locked:
                     // Fire locked missile and don't fire laser
                     wantsToFireMissile = true;
+                    RLog.Log($"[AI-{name}] Missile: Locked state, will fire");
                     break;
                     
                 case MissileLauncher.LockState.Cooldown:
                     // Do nothing during cooldown
+                    RLog.Log($"[AI-{name}] Missile: Cooldown state");
                     break;
             }
         }
@@ -213,6 +236,7 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
         if (difficulty < 0.75f)
         {
             wantsToFireMissile = false;
+            RLog.Log($"[AI-{name}] Difficulty {difficulty:F2} < 0.75, missiles disabled");
         }
 
         cmd.SecondaryFire = wantsToFireMissile;
@@ -225,10 +249,17 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
             Vector3 laserFirePos = gun.firePoint ? gun.firePoint.position : transform.position;
             bool losOK = LineOfSightOK(laserFirePos, dir, dist, angle);
             
+            RLog.Log($"[AI-{name}] Laser check: gun={gun != null}, inRange={dist <= fireDistance}, inAngle={angle <= fireAngleTolerance}, noMissile={!blockLaserForMissile}, LOS={losOK}");
+            
             if (losOK)
             {
                 cmd.PrimaryFire = true;
+                RLog.Log($"[AI-{name}] FIRING LASER!");
             }
+        }
+        else
+        {
+            RLog.Log($"[AI-{name}] Laser conditions failed: gun={gun != null}, dist={dist:F1}<={fireDistance:F1}={dist <= fireDistance}, angle={angle:F1}<={fireAngleTolerance:F1}={angle <= fireAngleTolerance}, blockLaser={blockLaserForMissile}");
         }
     }
 
@@ -242,20 +273,33 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
 
         if (angle > angleToleranceBeforeRay) 
         {
+            RLog.Log($"[AI-{name}] LOS: Angle {angle:F1}° > {angleToleranceBeforeRay:F1}°, skipping raycast");
             return false;
         }
 
         if (need)
         {
+            RLog.Log($"[AI-{name}] LOS: Performing raycast (frame={f}, lastFrame={losFrame}, cache={lineOfSightCacheFrames})");
+            
             cachedLOS = !Physics.Raycast(firePos, dir.normalized,
                                          dist, lineOfSightMask)
                          || Physics.Raycast(firePos, dir.normalized,
                                             out var hit, dist, lineOfSightMask)
                             && hit.transform.root == GetTargetTransform()?.root;
 
+            RLog.Log($"[AI-{name}] LOS: Raycast result = {cachedLOS}, mask={lineOfSightMask.value} (should be Asteroid layer only)");
+            if (Physics.Raycast(firePos, dir.normalized, out var debugHit, dist, lineOfSightMask))
+            {
+                RLog.Log($"[AI-{name}] LOS: Hit object '{debugHit.collider.name}' at distance {debugHit.distance:F1}, layer={LayerMask.LayerToName(debugHit.collider.gameObject.layer)}");
+            }
+
             losFrame   = f;
             lastRayPos = firePos;
             lastTgtPos = targetPos;
+        }
+        else
+        {
+            RLog.Log($"[AI-{name}] LOS: Using cached result = {cachedLOS} (frame={f}, lastFrame={losFrame})");
         }
         return cachedLOS;
     }

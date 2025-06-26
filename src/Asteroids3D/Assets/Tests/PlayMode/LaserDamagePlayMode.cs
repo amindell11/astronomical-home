@@ -18,6 +18,8 @@ public class LaserDamagePlayMode
     [SetUp]
     public void SetUp()
     {
+        TestSceneBuilder.EnableDebugRendering();
+
         // TODO: Setup test scene with shooter and target ships
         // - Create empty plane/arena
         // - Instantiate shooter ship with LaserGun

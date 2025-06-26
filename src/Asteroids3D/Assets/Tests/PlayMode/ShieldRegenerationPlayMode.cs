@@ -23,6 +23,8 @@ public class ShieldRegenerationPlayMode
     [SetUp]
     public void SetUp()
     {
+        TestSceneBuilder.EnableDebugRendering();
+
         LogAssert.ignoreFailingMessages = true;
 
         // --- Minimal reference plane so GamePlane utilities work correctly ---

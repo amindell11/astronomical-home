@@ -25,7 +25,7 @@ public class DummyAIAimPlayMode
     {
         LogAssert.ignoreFailingMessages = true;
 
-        // ------------------------------------------------------------------
+      TestSceneBuilder.EnableDebugRendering();      // --------------    ----------------------------------------------------
         // 1. Minimal 2-D arena & reference plane so GamePlane logic works
         // ------------------------------------------------------------------
         referencePlane = GameObject.CreatePrimitive(PrimitiveType.Plane);
@@ -266,14 +266,50 @@ public class DummyAIAimPlayMode
         // Create an obstacle between shooter and target
         GameObject wall = GameObject.CreatePrimitive(PrimitiveType.Cube);
         wall.transform.position    = new Vector3(0f, 5f, 0f); // midway on the Y axis
-        wall.transform.localScale  = new Vector3(3f, 1f, 3f);
-        //wall.layer = LayerMask.NameToLayer("Asteroid");
+        wall.transform.localScale  = new Vector3(10f, 1f, 10f);
+        wall.layer = LayerMask.NameToLayer("Asteroid");
 
         yield return null;
 
-        var state = BuildDefaultState(shooterShip);
-        aiCommander.TryGetCommand(state, out ShipCommand cmd);
+        Debug.Log($"[TEST] Starting DummyAI_NoLineOfSight_DoesNotFire");
+        Debug.Log($"[TEST] Shooter position: {shooterShip.transform.position}, Target position: {targetShip.transform.position}");
+        Debug.Log($"[TEST] Obstacle position: {wall.transform.position}, Layer: {LayerMask.LayerToName(wall.layer)}");
+        
+        Vector3 toTarget = targetShip.transform.position - shooterShip.transform.position;
+        float actualDistance = toTarget.magnitude;
+        float actualAngle = Vector3.Angle(shooterShip.transform.up, toTarget);
+        Debug.Log($"[TEST] Pre-check: Distance to target: {actualDistance:F1}, Angle: {actualAngle:F1}°");
 
+        // Use reflection to check the line of sight mask
+        var aiType = typeof(AIShipInput);
+        var lineOfSightMaskField = aiType.GetField("lineOfSightMask", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        
+        // --- FIX: Correctly set the mask using proper LayerMask (not just layer number) ---
+        LayerMask correctMask = LayerMask.GetMask("Asteroid");
+        lineOfSightMaskField?.SetValue(aiCommander, correctMask);
+        Debug.Log($"[TEST] Set correct lineOfSightMask to: {correctMask.value} (was incorrectly {LayerMask.NameToLayer("Asteroid")})");
+        
+        // --- CLEAR LOS CACHE: Force fresh raycast by resetting cache frame ---
+        var losFrameField = aiType.GetField("losFrame", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        losFrameField?.SetValue(aiCommander, -1);
+        Debug.Log($"[TEST] Cleared LOS cache to force fresh raycast");
+        // ---------------------------------------------------------------------------------
+
+        LayerMask lineOfSightMask = lineOfSightMaskField != null ? (LayerMask)lineOfSightMaskField.GetValue(aiCommander) : -1;
+        Debug.Log($"[TEST] AI lineOfSightMask value: {lineOfSightMask.value} (Layers: {LayerMask.LayerToName(0)}, {LayerMask.LayerToName(1)}, ...)");
+        Debug.Log($"[TEST] Wall layer: {LayerMask.LayerToName(wall.layer)} ({wall.layer}), Shooter layer: {LayerMask.LayerToName(shooterShip.gameObject.layer)} ({shooterShip.gameObject.layer})");
+        Debug.Log($"[TEST] Line of sight mask includes Wall layer: {(lineOfSightMask.value & (1 << wall.layer)) != 0}");
+
+        // Manual raycast for sanity check
+        bool isBlocked = Physics.Raycast(shooterShip.transform.position, toTarget.normalized, actualDistance, lineOfSightMask);
+        Debug.Log($"[TEST] Manual raycast check for block: {isBlocked}");
+        Assert.IsTrue(isBlocked, "Manual raycast should confirm that the wall is blocking line of sight.");
+
+        var state = BuildDefaultState(shooterShip);
+        bool success = aiCommander.TryGetCommand(state, out ShipCommand cmd);
+
+        Debug.Log($"[TEST] TryGetCommand result: success={success}");
+        Debug.Log($"[TEST] Command - PrimaryFire={cmd.PrimaryFire}");
         Assert.IsFalse(cmd.PrimaryFire, "AI should not fire when LOS is blocked by an obstacle.");
 
         Object.DestroyImmediate(wall);
