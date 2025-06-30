@@ -57,7 +57,7 @@ MonoBehaviour:
   m_RayLayerMask:
     serializedVersion: 2
     m_Bits: 4294966656
-  m_ObservationStacks: 2
+  m_ObservationStacks: 3
   m_AlternatingRayOrder: 1
   m_UseBatchedRaycasts: 1
   rayHitColor: {r: 1, g: 0, b: 0, a: 1}
@@ -116,7 +116,7 @@ PrefabInstance:
         type: 3}
       propertyPath: projectilePrefab
       value: 
-      objectReference: {fileID: 5408995189547049293, guid: d4f6577bb30c48945a17243a523023ff,
+      objectReference: {fileID: 8830362489371991520, guid: 6a6e76c0262795041a1c40fba16775ad,
         type: 3}
     - target: {fileID: 1380564974009214320, guid: cade7246a6fb1b64e82fbb5aac398631,
         type: 3}
@@ -188,6 +188,12 @@ PrefabInstance:
       propertyPath: maxLockDistance
       value: 35
       objectReference: {fileID: 0}
+    - target: {fileID: 2293338868528727330, guid: cade7246a6fb1b64e82fbb5aac398631,
+        type: 3}
+      propertyPath: projectilePrefab
+      value: 
+      objectReference: {fileID: 6983410834358250931, guid: 2f78434c2e3436041a833edeceb3bf93,
+        type: 3}
     - target: {fileID: 2832178680330278070, guid: cade7246a6fb1b64e82fbb5aac398631,
         type: 3}
       propertyPath: m_Constraints
@@ -200,9 +206,20 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3274392229469629848, guid: cade7246a6fb1b64e82fbb5aac398631,
         type: 3}
+      propertyPath: settings
+      value: 
+      objectReference: {fileID: 11400000, guid: 159348d145312cd42a02a329249327d8,
+        type: 2}
+    - target: {fileID: 3274392229469629848, guid: cade7246a6fb1b64e82fbb5aac398631,
+        type: 3}
       propertyPath: teamNumber
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 4413170713136803839, guid: cade7246a6fb1b64e82fbb5aac398631,
+        type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: e057a73e488333d49949ce20ef52be04, type: 2}
     - target: {fileID: 5100611748941008240, guid: cade7246a6fb1b64e82fbb5aac398631,
         type: 3}
       propertyPath: m_Name
@@ -356,7 +373,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_BrainParameters:
     VectorObservationSize: 20
-    NumStackedVectorObservations: 1
+    NumStackedVectorObservations: 3
     m_ActionSpec:
       m_NumContinuousActions: 3
       BranchSizes: 0200000002000000
@@ -390,7 +407,7 @@ MonoBehaviour:
   hasUpgradedFromAgentParameters: 1
   MaxStep: 0
   commanderPriority: 100
-  sensingRange: 30
+  sensingRange: 100
   maxSpeed: 20
   maxYawRate: 180
   ShowObservationUI: 0

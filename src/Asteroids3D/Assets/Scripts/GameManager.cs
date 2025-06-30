@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 public enum GameState
 {
@@ -9,7 +10,7 @@ public enum GameState
     GameOver
 }
 
-public class GameManager : MonoBehaviour
+public class GameManager : MonoBehaviour, IGameContext
 {
     public static GameManager Instance { get; private set; }
 
@@ -194,4 +195,29 @@ public class GameManager : MonoBehaviour
             HandleEnemyDeath(deadShip.movement);
         }
     }
+
+    // -----------------------------------------------------------------
+    // IGameContext implementation
+
+    /// <summary>
+    /// The logical center of the current play area. For a typical single-scene game this is the world origin.
+    /// </summary>
+    public Vector3 CenterPosition => Vector3.zero;
+
+    /// <summary>
+    /// Approximate radius of the active play area. Uses <see cref="offscreenDistance"/> which is also the spawn radius.
+    /// </summary>
+    public float AreaSize => offscreenDistance;
+
+    /// <summary>
+    /// All ships that are currently considered alive/active in the scene.
+    /// </summary>
+    public IReadOnlyList<Ship> ActiveShips => subscribedShips
+        .Where(s => s != null && s.gameObject.activeInHierarchy)
+        .ToList();
+
+    /// <summary>
+    /// Returns true while the game is in a playing state.
+    /// </summary>
+    public bool IsActive => currentState == GameState.Playing;
 } 

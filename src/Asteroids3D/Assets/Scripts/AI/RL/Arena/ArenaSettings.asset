@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: ArenaSettings
   m_EditorClassIdentifier: 
   arenaSize: 70
-  asteroidDensity: 0.1
+  asteroidDensity: 0.5
   botDifficulty: 1

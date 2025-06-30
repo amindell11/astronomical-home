@@ -76,7 +76,7 @@ public class RLCommanderAgent : Agent, IShipCommandSource
         ship = GetComponent<Ship>();
         gameContext = GetComponentInParent<IGameContext>();
         observer = new RLObserver(this);
-
+        if (gameContext == null) RLog.LogError("RLCommanderAgent requires a parent IGameContext component.", this);
         if (ship == null) RLog.LogError("Agent is not attached to a Ship object.", this);
         //if (gameContext == null) RLog.LogError("RLCommanderAgent requires a parent IGameContext component.", this);
 

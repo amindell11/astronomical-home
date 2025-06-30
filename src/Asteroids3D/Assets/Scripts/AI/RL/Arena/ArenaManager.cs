@@ -17,6 +17,16 @@ public class ArenaManager : MonoBehaviour
     [Tooltip("Prefab that contains an ArenaInstance component")]
     [SerializeField] private GameObject arenaPrefab;
 
+    // NEW: Optional list of prefab variants selectable via ML-Agents env-parameter "arena_variant"
+    [System.Serializable]
+    private class ArenaPrefabVariant
+    {
+        [Tooltip("Integer ID provided by EnvironmentParameters (key: 'arena_variant') to select this prefab")] public int variantId = 0;
+        [Tooltip("Prefab that contains an ArenaInstance component for this variant")] public GameObject prefab;
+    }
+    [Tooltip("List of arena prefab variants addressable via env-param 'arena_variant'")]
+    [SerializeField] private List<ArenaPrefabVariant> prefabVariants = new();
+
     [Tooltip("Force multi-arena mode in editor for testing (always enabled in batch mode)")]
     [SerializeField] private bool forceMultiArenaMode = false;
 
@@ -52,6 +62,11 @@ public class ArenaManager : MonoBehaviour
     // ---------------------------------------------------------------------
     void Awake()
     {
+        // Resolve prefab variant BEFORE we decide on multi-arena mode so we always have a valid prefab reference.
+        GameObject resolvedPrefab = ResolveArenaPrefabFromEnvironment();
+        if (resolvedPrefab != null)
+            arenaPrefab = resolvedPrefab;
+
         // Basic singleton guard (not essential but convenient)
         if (Instance != null && Instance != this)
         {
@@ -223,5 +238,34 @@ public class ArenaManager : MonoBehaviour
             }
         }
     }
+#endif
+
+    // ---------------------------------------------------------------------
+    // NEW: Select arena prefab variant based on ML-Agents Environment Parameters --------------------
+#if UNITY_ML_AGENTS
+    private GameObject ResolveArenaPrefabFromEnvironment()
+    {
+        if (!Academy.IsInitialized || prefabVariants == null || prefabVariants.Count == 0)
+            return null;
+
+        // 'arena_variant' expected as integer value (encoded as float)
+        int variantId = Mathf.RoundToInt(Academy.Instance.EnvironmentParameters.GetWithDefault("arena_variant", -1f));
+        if (variantId < 0) return null;
+
+        foreach (var variant in prefabVariants)
+        {
+            if (variant != null && variant.variantId == variantId && variant.prefab != null)
+            {
+                if (enableDebugLogs)
+                    RLog.Log($"ArenaManager: Resolved prefab variant {variantId} -> {variant.prefab.name}");
+                return variant.prefab;
+            }
+        }
+        if (enableDebugLogs)
+            RLog.LogWarning($"ArenaManager: Environment requested arena_variant {variantId} but no matching prefab found. Using default.");
+        return null;
+    }
+#else
+    private GameObject ResolveArenaPrefabFromEnvironment() => null;
 #endif
 } 

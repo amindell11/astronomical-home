@@ -121,7 +121,16 @@ public class ArenaInstance : MonoBehaviour, IGameContext
     void Awake()
     {
         // Cache key components in children (or supplied via inspector).
-        ships        = (managedShips != null && managedShips.Length > 0) ? managedShips : GetComponentsInChildren<Ship>(true);
+        ships = (managedShips != null && managedShips.Length > 0) ? managedShips : GetComponentsInChildren<Ship>(true);
+        
+        // Ensure ships array is never null - initialize as empty array if needed
+        if (ships == null)
+        {
+            ships = new Ship[0];
+            if (enableDebugLogs)
+                RLog.LogWarning($"ArenaInstance: No ships found in {gameObject.name}. Initialized empty ships array.");
+        }
+        
         fieldManager = GetComponentInChildren<SectorFieldManager>(true);
         boundaryCollider = GetComponent<SphereCollider>();
         mlAgents     = GetComponentsInChildren<Agent>();
@@ -234,10 +243,10 @@ public class ArenaInstance : MonoBehaviour, IGameContext
                     }
                     
                     // Apply -1 penalty to violating agent
-                    commander.SetReward(-1.0f);
+                    commander.AddReward(-1.0f - commander.GetCumulativeReward());
                     
                     // Apply +1 reward to opponent (zero-sum)
-                    ApplyOpponentReward(commander, 1.0f);
+                    ApplyOpponentReward(commander, 1.0f - commander.GetCumulativeReward());
                     
                     // End episode
                     RequestEpisodeEnd();
@@ -377,7 +386,7 @@ public class ArenaInstance : MonoBehaviour, IGameContext
                 {
                     RLog.Log($"Killer agent cumulative reward before SetReward: {killerAgent.GetCumulativeReward()}");
                 }
-                killerAgent.SetReward(1.0f);
+                killerAgent.AddReward(1.0f  - killerAgent.GetCumulativeReward());
                 if (enableDebugLogs)
                 {
                     RLog.Log($"Killer agent cumulative reward after SetReward: {killerAgent.GetCumulativeReward()}");
@@ -394,7 +403,7 @@ public class ArenaInstance : MonoBehaviour, IGameContext
                 {
                     RLog.Log($"Victim agent cumulative reward before SetReward: {victimAgent.GetCumulativeReward()}");
                 }
-                victimAgent.SetReward(-1.0f);
+                victimAgent.AddReward(-1.0f - victimAgent.GetCumulativeReward());
                 if (enableDebugLogs)
                 {
                     RLog.Log($"Victim agent cumulative reward after SetReward: {victimAgent.GetCumulativeReward()}");
@@ -476,7 +485,13 @@ public class ArenaInstance : MonoBehaviour, IGameContext
         }
         if (!_episodeActive || !enableArenaReset) return;
         _episodeActive = false; // Close the gate until the next episode begins.
-
+        foreach (var agent in mlAgents)
+        {
+            if (agent is RLCommanderAgent commander)
+            {
+                RLog.Log($"Episode end: Agent {agent.name} cumulative reward: {agent.GetCumulativeReward()}");
+            }
+        }
         // Agents will automatically stop processing when _episodeActive becomes false
 
         StartCoroutine(ResetArenaCoroutine());

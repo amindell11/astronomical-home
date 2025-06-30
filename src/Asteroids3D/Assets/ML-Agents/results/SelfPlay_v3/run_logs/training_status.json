@@ -6,44 +6,8 @@
         "lesson_num": 0
     },
     "RLPilot": {
-        "elo": 980.4785262177079,
+        "elo": 651.7116609954064,
         "checkpoints": [
-            {
-                "steps": 123476,
-                "file_path": "results\\SelfPlay_v3\\RLPilot\\RLPilot-123476.onnx",
-                "reward": -0.5293335430324078,
-                "creation_time": 1750957366.3880565,
-                "auxillary_file_paths": [
-                    "results\\SelfPlay_v3\\RLPilot\\RLPilot-123476.pt"
-                ]
-            },
-            {
-                "steps": 499045,
-                "file_path": "results\\SelfPlay_v3\\RLPilot\\RLPilot-499045.onnx",
-                "reward": -0.3747262018067496,
-                "creation_time": 1750959218.240117,
-                "auxillary_file_paths": [
-                    "results\\SelfPlay_v3\\RLPilot\\RLPilot-499045.pt"
-                ]
-            },
-            {
-                "steps": 544551,
-                "file_path": "results\\SelfPlay_v3\\RLPilot\\RLPilot-544551.onnx",
-                "reward": -0.5355474948883057,
-                "creation_time": 1750959866.16607,
-                "auxillary_file_paths": [
-                    "results\\SelfPlay_v3\\RLPilot\\RLPilot-544551.pt"
-                ]
-            },
-            {
-                "steps": 999766,
-                "file_path": "results\\SelfPlay_v3\\RLPilot\\RLPilot-999766.onnx",
-                "reward": -0.7953097820281982,
-                "creation_time": 1750962779.5838346,
-                "auxillary_file_paths": [
-                    "results\\SelfPlay_v3\\RLPilot\\RLPilot-999766.pt"
-                ]
-            },
             {
                 "steps": 1160725,
                 "file_path": "results\\SelfPlay_v3\\RLPilot\\RLPilot-1160725.onnx",
@@ -52,15 +16,51 @@
                 "auxillary_file_paths": [
                     "results\\SelfPlay_v3\\RLPilot\\RLPilot-1160725.pt"
                 ]
+            },
+            {
+                "steps": 1499959,
+                "file_path": "results\\SelfPlay_v3\\RLPilot\\RLPilot-1499959.onnx",
+                "reward": -0.000669850544496016,
+                "creation_time": 1751105756.7907345,
+                "auxillary_file_paths": [
+                    "results\\SelfPlay_v3\\RLPilot\\RLPilot-1499959.pt"
+                ]
+            },
+            {
+                "steps": 1587211,
+                "file_path": "results\\SelfPlay_v3\\RLPilot\\RLPilot-1587211.onnx",
+                "reward": 0.38744550003953604,
+                "creation_time": 1751147262.4358003,
+                "auxillary_file_paths": [
+                    "results\\SelfPlay_v3\\RLPilot\\RLPilot-1587211.pt"
+                ]
+            },
+            {
+                "steps": 1999150,
+                "file_path": "results\\SelfPlay_v3\\RLPilot\\RLPilot-1999150.onnx",
+                "reward": -0.12494589015841484,
+                "creation_time": 1751155542.139773,
+                "auxillary_file_paths": [
+                    "results\\SelfPlay_v3\\RLPilot\\RLPilot-1999150.pt"
+                ]
+            },
+            {
+                "steps": 2453339,
+                "file_path": "results\\SelfPlay_v3\\RLPilot\\RLPilot-2453339.onnx",
+                "reward": 0.08616133711554787,
+                "creation_time": 1751252302.7962742,
+                "auxillary_file_paths": [
+                    "results\\SelfPlay_v3\\RLPilot\\RLPilot-2453339.pt"
+                ]
             }
         ],
         "final_checkpoint": {
-            "steps": 1160725,
+            "steps": 2453339,
             "file_path": "results\\SelfPlay_v3\\RLPilot.onnx",
-            "reward": -1.2168578863143922,
-            "creation_time": 1750964129.3361914,
+            "reward": 0.08616133711554787,
+            "creation_time": 1751252302.7962742,
             "auxillary_file_paths": [
-                "results\\SelfPlay_v3\\RLPilot\\RLPilot-1160725.pt"
+                "results\\SelfPlay_v3\\RLPilot\\RLPilot-2453339.pt"
             ]
         }
     },

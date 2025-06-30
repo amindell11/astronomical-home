@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3208e94f16e301643b270a7505a83d3f, type: 3}
+  m_Name: ArenaShipSettings
+  m_EditorClassIdentifier: 
+  maxSpeed: 20
+  maxRotationSpeed: 180
+  forwardAcceleration: 1200
+  reverseAcceleration: 600
+  rotationThrustForce: 480
+  rotationDrag: 0.95
+  yawDeadzoneAngle: 4
+  maxBankAngle: 45
+  bankingSpeed: 5
+  minStrafeForce: 750
+  maxStrafeForce: 800
+  maxHealth: 100
+  maxShield: 50
+  startingLives: 1
+  shieldRegenDelay: 4
+  shieldRegenRate: 10
+  explosionPrefab: {fileID: 0}
+  explosionSound: {fileID: 0}
+  explosionVolume: 0.7
