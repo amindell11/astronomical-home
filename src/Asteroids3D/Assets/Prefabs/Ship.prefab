@@ -95,16 +95,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 89e447451c442f443abdbc78d400bca6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxRotationSpeed: 180
-  forwardThrustForce: 1200
-  reverseThrustForce: 600
-  maxStrafeForce: 800
-  minStrafeForce: 750
-  rotationThrustForce: 480
-  rotationDrag: 0.95
-  yawDeadzoneAngle: 4
-  maxBankAngle: 45
-  bankingSpeed: 5
   referencePlane: {fileID: 0}
   enableDebugLogs: 0
   showMovementGizmos: 1
@@ -25276,6 +25266,16 @@ PrefabInstance:
       objectReference: {fileID: 8300000, guid: d54f219e0c3bffe499e781b446873247, type: 3}
     - target: {fileID: 8500594393069103525, guid: 6b9f7584524aea1439de28cef97b66d0,
         type: 3}
+      propertyPath: coolingRate
+      value: 25
+      objectReference: {fileID: 0}
+    - target: {fileID: 8500594393069103525, guid: 6b9f7584524aea1439de28cef97b66d0,
+        type: 3}
+      propertyPath: heatPerShot
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 8500594393069103525, guid: 6b9f7584524aea1439de28cef97b66d0,
+        type: 3}
       propertyPath: laserPrefab
       value: 
       objectReference: {fileID: 5408995189547049293, guid: d4f6577bb30c48945a17243a523023ff,
@@ -25286,6 +25286,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 5408995189547049293, guid: d4f6577bb30c48945a17243a523023ff,
         type: 3}
+    - target: {fileID: 8500594393069103525, guid: 6b9f7584524aea1439de28cef97b66d0,
+        type: 3}
+      propertyPath: overheatPenaltyTime
+      value: 1.5
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -25326,6 +25331,7 @@ MonoBehaviour:
   lockOnTime: 0.6
   lockExpiry: 3
   maxLockDistance: 20
+  maxAmmo: 2
 --- !u!1001 &6527216232684025975
 PrefabInstance:
   m_ObjectHideFlags: 0

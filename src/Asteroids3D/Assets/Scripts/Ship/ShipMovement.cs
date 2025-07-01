@@ -176,7 +176,7 @@ public class ShipMovement : MonoBehaviour
         rb.linearVelocity = Vector3.ProjectOnPlane(rb.linearVelocity, n);
     }
     // ---------- Utility API ----------
-    public void ResetShip()
+    public void ResetMovement()
     {
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;

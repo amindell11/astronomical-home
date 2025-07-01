@@ -557,19 +557,14 @@ public class ArenaInstance : MonoBehaviour, IGameContext
         {
             if (ship == null) continue;
             // Reactivate in case it was disabled on death.
+            ship.ResetShip();
             ship.gameObject.SetActive(true);
-            
-            var movement      = ship.GetComponent<ShipMovement>();
-            var damageHandler = ship.GetComponent<ShipDamageHandler>();
-
-            movement?.ResetShip();
-            damageHandler?.ResetAll();
 
             // Apply temporary spawn invulnerability so immediate asteroid collisions do not damage the ship.
-            damageHandler?.SetInvulnerability(spawnInvulnerabilityDuration);
+            ship.damageHandler.SetInvulnerability(spawnInvulnerabilityDuration);    
 
             // Place ship in a random position near the arena centre.
-            Vector3 randomOffset = Random.insideUnitCircle.normalized * 20f;
+            Vector3 randomOffset = Random.insideUnitCircle.normalized * ArenaSize *.7f; // 70% of arena size
             randomOffset.z = randomOffset.y;
             randomOffset.y = 0f;
             ship.transform.position = transform.position + randomOffset;

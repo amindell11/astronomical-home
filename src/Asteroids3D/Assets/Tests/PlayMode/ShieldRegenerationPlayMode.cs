@@ -58,7 +58,7 @@ public class ShieldRegenerationPlayMode
         handler.shieldRegenRate  = RegenRate;
 
         // Reset internal state with the configured numbers.
-        handler.ResetAll();
+        handler.ResetDamageState();
 
         testShip      = shipGO.GetComponent<Ship>(); // may be null – not required for these tests
         damageHandler = handler;
@@ -104,7 +104,7 @@ public class ShieldRegenerationPlayMode
     public IEnumerator ShieldDamage_ExceedsShield_OnlyShieldTakesDamage()
     {
         // Arrange – reset shields to full
-        damageHandler.ResetAll();
+        damageHandler.ResetDamageState();
         float initialHealth = damageHandler.CurrentHealth;
         float dmg = MaxShield + 20f; // greater than full shield
 
@@ -121,7 +121,7 @@ public class ShieldRegenerationPlayMode
     public IEnumerator ShieldRegeneration_AfterDelay_RestoresShields()
     {
         // Arrange – partial shield damage
-        damageHandler.ResetAll();
+        damageHandler.ResetDamageState();
         float dmg = 40f;
         damageHandler.TakeDamage(dmg, 1f, Vector3.zero, Vector3.zero, null);
         float damagedShield = damageHandler.CurrentShield; // should be MaxShield - dmg
@@ -141,7 +141,7 @@ public class ShieldRegenerationPlayMode
     public IEnumerator ShieldRegeneration_InterruptedByDamage_RestartsDelay()
     {
         // Arrange – initial damage
-        damageHandler.ResetAll();
+        damageHandler.ResetDamageState();
         float firstHit = 30f;
         damageHandler.TakeDamage(firstHit, 1f, Vector3.zero, Vector3.zero, null);
         float shieldAfterFirst = damageHandler.CurrentShield;
@@ -168,7 +168,7 @@ public class ShieldRegenerationPlayMode
     public IEnumerator ShieldRegeneration_FullyDepleted_RegeneratesCompletely()
     {
         // Arrange – deplete shields fully
-        damageHandler.ResetAll();
+        damageHandler.ResetDamageState();
         damageHandler.TakeDamage(MaxShield, 1f, Vector3.zero, Vector3.zero, null);
         Assert.AreEqual(0f, damageHandler.CurrentShield, 0.01f);
 

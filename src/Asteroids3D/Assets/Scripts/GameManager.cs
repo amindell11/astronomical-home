@@ -51,7 +51,7 @@ public class GameManager : MonoBehaviour, IGameContext
     /// <summary>
     /// Call this when the player's ship has been destroyed.
     /// </summary>
-    public void HandlePlayerDeath(ShipMovement playerShip)
+    public void HandlePlayerDeath(Ship playerShip)
     {
         if (currentState == GameState.GameOver) return;
 
@@ -63,7 +63,7 @@ public class GameManager : MonoBehaviour, IGameContext
     /// <summary>
     /// Call this when an enemy ship has been destroyed.
     /// </summary>
-    public void HandleEnemyDeath(ShipMovement respawnShip)
+    public void HandleEnemyDeath(Ship respawnShip)
     {
         if (currentState != GameState.Playing) return;
         
@@ -72,19 +72,18 @@ public class GameManager : MonoBehaviour, IGameContext
         StartCoroutine(respawnRoutine);
     }
     
-    private IEnumerator WaitAndRespawn(float delay, ShipMovement respawnShip)
+    private IEnumerator WaitAndRespawn(float delay, Ship respawnShip)
     {
         yield return new WaitForSeconds(delay);
         RespawnRandomEnemy(respawnShip);
     }
     
-    private void RespawnRandomEnemy(ShipMovement respawnShip)
+    private void RespawnRandomEnemy(Ship respawnShip)
     {
         respawnShip.gameObject.SetActive(true);
 
         // After the object (and its components) are enabled, reset physics & damage
         respawnShip.ResetShip();
-        respawnShip.GetComponent<ShipDamageHandler>()?.ResetAll();
 
         // Find a random offscreen position
         Vector3 respawnPosition = GetRandomOffscreenPosition();
@@ -188,11 +187,11 @@ public class GameManager : MonoBehaviour, IGameContext
         // Determine if this is the player by tag or team.
         if (deadShip.CompareTag("Player"))
         {
-            HandlePlayerDeath(deadShip.movement);
+            HandlePlayerDeath(deadShip);
         }
         else
         {
-            HandleEnemyDeath(deadShip.movement);
+            HandleEnemyDeath(deadShip);
         }
     }
 

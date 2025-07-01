@@ -2,7 +2,8 @@ using UnityEngine;
 // One abstract, non-generic root that Unity can serialize
 public abstract class WeaponComponent : MonoBehaviour, IWeapon
 {
-    public abstract void Fire();
+    public abstract bool Fire();
+    public abstract bool CanFire();
 }
 /// <summary>
 /// Generic weapon/launcher base – spawns pooled projectiles of type <typeparamref name="TProj"/>.
@@ -17,16 +18,18 @@ public abstract class LauncherBase<TProj> : WeaponComponent where TProj : Projec
 
     protected float nextFireTime;
 
-    public bool IsReady()
+    // `CanFire` now checks the fire-rate cooldown. Subclasses should call base.CanFire().
+    public override bool CanFire()
     {
         return Time.time >= nextFireTime;
     }
 
     /// <summary>Attempts to fire a projectile if the fire-rate cooldown has elapsed.</summary>
-    public override void Fire()
+    /// <returns>True if a projectile was spawned, false otherwise.</returns>
+    public override bool Fire()
     {
-        if (Time.time < nextFireTime) return;
-        if (!projectilePrefab)       return;
+        if (!CanFire()) return false;
+        if (!projectilePrefab)       return false;
     
         if (!firePoint) firePoint = transform;
 
@@ -43,5 +46,7 @@ public abstract class LauncherBase<TProj> : WeaponComponent where TProj : Projec
         // Fall back to root GameObject reference if no IDamageable could be found (e.g., scenery weapons).
         proj.Shooter            = shooterDmg != null ? shooterDmg.gameObject : transform.root.gameObject;
         proj.ShooterDamageable  = shooterDmg;
+
+        return true;
     }
 } 

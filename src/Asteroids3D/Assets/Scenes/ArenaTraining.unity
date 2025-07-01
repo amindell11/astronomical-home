@@ -183,7 +183,7 @@ MonoBehaviour:
   arenaPrefab: {fileID: 6284756938957430898, guid: e9b48799d3805d140876144df5f2c9f3,
     type: 3}
   prefabVariants: []
-  forceMultiArenaMode: 1
+  forceMultiArenaMode: 0
   arenaCount: 9
   arenaSpacing: 200
   gridSize: {x: 0, y: 0}
@@ -327,7 +327,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a44e6d3d69053c543a47887f5911f78c, type: 3}
   m_Name: 
@@ -352,7 +352,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 26131f6f015e9c64d86f2baaff303456, type: 3}
   m_Name: 
@@ -554,7 +554,7 @@ PrefabInstance:
     - target: {fileID: 3274159920676685244, guid: e970d9f79be710b4e8b8b13c7bf4ac8e,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4762759689563645655, guid: e970d9f79be710b4e8b8b13c7bf4ac8e,
         type: 3}

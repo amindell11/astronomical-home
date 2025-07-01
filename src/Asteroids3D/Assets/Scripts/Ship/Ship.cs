@@ -110,6 +110,17 @@ public class Ship : MonoBehaviour, ITargetable
         OnGlobalShipDamaged?.Invoke(victim, attacker, damage);
     }
 
+    /// <summary>
+    /// Resets the ship to its initial state.
+    /// </summary>
+    public void ResetShip()
+    {
+        movement.ResetMovement();
+        laserGun.ResetHeat();
+        missileLauncher.ReplenishAmmo();
+        damageHandler.ResetDamageState();
+    }
+
     void FixedUpdate()
     {
         // Aggregate the highest-priority command for this frame.
@@ -120,8 +131,10 @@ public class Ship : MonoBehaviour, ITargetable
         var state = new ShipState
         {
             Kinematics = movement.Kinematics,
-            IsLaserReady = laserGun?.IsReady() ?? false,
+            IsLaserReady = laserGun?.CanFire() ?? false,
+            LaserHeatPct = laserGun?.HeatPct ?? 0f,
             MissileState = missileLauncher?.State ?? MissileLauncher.LockState.Idle,
+            MissileAmmo = missileLauncher?.AmmoCount ?? 0,
             HealthPct = damageHandler.HealthPct,
             ShieldPct = damageHandler.ShieldPct,
         };

@@ -135,11 +135,6 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: -0.15
       objectReference: {fileID: 0}
-    - target: {fileID: 4889344662027819772, guid: c3c15225cb3a8fd42a87c756c1d2d884,
-        type: 3}
-      propertyPath: fireRate
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 6567524228965887451, guid: c3c15225cb3a8fd42a87c756c1d2d884,
         type: 3}
       propertyPath: m_LocalScale.x
@@ -220,11 +215,6 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7184882482910536223, guid: c3c15225cb3a8fd42a87c756c1d2d884,
-        type: 3}
-      propertyPath: m_Enabled
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 7740648545466160441, guid: c3c15225cb3a8fd42a87c756c1d2d884,
         type: 3}
       propertyPath: m_Layer
@@ -250,16 +240,6 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: e057a73e488333d49949ce20ef52be04, type: 2}
-    - target: {fileID: 8752571619316856911, guid: c3c15225cb3a8fd42a87c756c1d2d884,
-        type: 3}
-      propertyPath: m_Enabled
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8752571619316856911, guid: c3c15225cb3a8fd42a87c756c1d2d884,
-        type: 3}
-      propertyPath: maxRotationSpeed
-      value: 170
-      objectReference: {fileID: 0}
     - target: {fileID: 8754281217174574103, guid: c3c15225cb3a8fd42a87c756c1d2d884,
         type: 3}
       propertyPath: m_Layer

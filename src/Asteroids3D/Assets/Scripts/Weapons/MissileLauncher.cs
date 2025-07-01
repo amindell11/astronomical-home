@@ -14,6 +14,13 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
     [SerializeField] private float lockExpiry     = 3f;
     [SerializeField] private float maxLockDistance= 100f;
 
+    [Header("Ammo System")]
+    [SerializeField] private int maxAmmo = 4;
+    private int currentAmmo;
+
+    public int AmmoCount => currentAmmo;
+    public int MaxAmmo => maxAmmo;
+
     // Runtime state
     LockState state = LockState.Idle;
     ITargetable currentTarget;
@@ -29,6 +36,12 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
 
     /// <summary>Lock progress from 0-1 during locking phase.</summary>
     public float LockProgress => (state == LockState.Locking && lockOnTime > 0f) ? Mathf.Clamp01(lockTimer / lockOnTime) : 0f;
+
+    /// <summary>Resets ammo count to maximum.</summary>
+    public void ReplenishAmmo()
+    {
+        currentAmmo = maxAmmo;
+    }
 
     /// <summary>Begin lock-on sequence towards the given target (if valid).</summary>
     public bool TryStartLock(ITargetable candidate)
@@ -55,6 +68,11 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
     }
 
     /* ───────────────────────── MonoBehaviour ───────────────────────── */
+    void Start()
+    {
+        ReplenishAmmo();
+    }
+
     void FixedUpdate()
     {
         switch (state)
@@ -151,23 +169,34 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
     bool ValidateTarget(ITargetable tgt) => tgt != null && tgt.TargetPoint != null;
 
     /* ───────────────────────── Fire override ───────────────────────── */
-    public override void Fire()
+    public override bool CanFire()
     {
-        if (Time.time < nextFireTime) return;
-        if (!projectilePrefab) return;
+        // To fire in any capacity (locking or launching), we need ammo and the weapon must be off cooldown.
+        return base.CanFire() && currentAmmo > 0;
+    }
+
+    public override bool Fire()
+    {
+        // CanFire now handles all readiness checks (cooldown, ammo) for all states.
+        if (!CanFire())
+        {
+            return false;
+        }
+
+        if (!projectilePrefab) return false;
         if (!firePoint) firePoint = transform;
         
         switch (state)
         {
             case LockState.Idle:
-                // Do not consume fire cooldown if merely starting lock
-                TryStartLock(PickTarget());
-                break;
+                // TryStartLock is only called if CanFire() passed, which means we have ammo.
+                return TryStartLock(PickTarget());
 
             case LockState.Locking:
             {
                 // Dumb-fire
                 MissileProjectile proj = SimplePool<MissileProjectile>.Get(projectilePrefab, firePoint.position, firePoint.rotation);
+                currentAmmo--;
 
                 // Capture the IDamageable belonging to the shooter so the projectile can ignore self-collisions.
                 IDamageable shooterDmg = GetComponentInParent<IDamageable>();
@@ -177,12 +206,14 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
                 ResetLock();
                 state = LockState.Cooldown;
                 nextFireTime = Time.time + fireRate; // apply cooldown only after actual shot
-                break;
+                return true;
             }
             case LockState.Locked:
             {
+                // The check at the top of the method handles all conditions.
                 RLog.Log("Firing locked missile");
                 MissileProjectile proj = SimplePool<MissileProjectile>.Get(projectilePrefab, firePoint.position, firePoint.rotation);
+                currentAmmo--;
 
                 // Capture the IDamageable belonging to the shooter so the projectile can ignore self-collisions.
                 IDamageable shooterDmg = GetComponentInParent<IDamageable>();
@@ -193,9 +224,10 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
                 ResetLock();
                 state = LockState.Cooldown;
                 nextFireTime = Time.time + fireRate;
-                break;
+                return true;
             }
         }
+        return false;
     }
 
     /* ───────────────────────── Helpers ───────────────────────── */
@@ -278,7 +310,8 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
         // State label (would use Handles.Label if available)
         UnityEditor.Handles.color = stateColor;
         float cooldownRemaining = Mathf.Max(0, nextFireTime - Time.time);
-        UnityEditor.Handles.Label(origin + Vector3.up * 3f, $"Missile: {state}\nTimer: {lockTimer:F1}s\nCooldown: {cooldownRemaining:F1}s");
+        string ammoText = $"Ammo: {currentAmmo}/{maxAmmo}";
+        UnityEditor.Handles.Label(origin + Vector3.up * 3f, $"Missile: {state}\n{ammoText}\nTimer: {lockTimer:F1}s\nCooldown: {cooldownRemaining:F1}s");
     }
 #endif
 } 

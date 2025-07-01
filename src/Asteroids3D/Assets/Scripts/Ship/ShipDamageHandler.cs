@@ -186,7 +186,7 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
     }
 
     // -----------------------------------------------------------
-    public void ResetAll()
+    public void ResetDamageState()
     {
         var oldHealth = currentHealth;
         var oldShield = currentShield;
@@ -224,7 +224,7 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
         shieldRegenDelay= s.shieldRegenDelay;
         shieldRegenRate = s.shieldRegenRate;
 
-        ResetAll();
+        ResetDamageState();
     }
 
 #if UNITY_EDITOR

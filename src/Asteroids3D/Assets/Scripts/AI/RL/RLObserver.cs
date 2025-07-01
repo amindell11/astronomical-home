@@ -24,30 +24,32 @@ public class RLObserver
         "self_yawrate_norm",        // 2
         "self_health_pct",          // 3
         "self_shield_pct",          // 4
+        "self_laser_heat_pct",      // 5
+        "self_missile_ammo_pct",    // 6
 
         // --- Missile system status (one-hot) ---
-        "missile_idle",             // 5
-        "missile_locking",          // 6
-        "missile_locked",           // 7
-        "missile_cooldown",         // 8
+        "missile_idle",             // 7
+        "missile_locking",          // 8
+        "missile_locked",           // 9
+        "missile_cooldown",         // 10
 
-        "dist_to_center_norm",      // 9
+        "dist_to_center_norm",      // 11
 
         // --- Closest enemy ---
-        "enemy_bearing",            // 10
-        "enemy_dist_norm",          // 11
-        "enemy_heading",            // 12
-        "enemy_rel_vel_fwd_norm",   // 13
-        "enemy_rel_vel_right_norm", // 14
+        "enemy_bearing",            // 12
+        "enemy_dist_norm",          // 13
+        "enemy_heading",            // 14
+        "enemy_rel_vel_fwd_norm",   // 15
+        "enemy_rel_vel_right_norm", // 16
 
         // --- Closest asteroid ---
-        "asteroid_bearing",         // 15
-        "asteroid_dist_norm",       // 16
+        "asteroid_bearing",         // 17
+        "asteroid_dist_norm",       // 18
 
         // --- Closest hostile projectile ---
-        "proj_bearing",             // 17
-        "proj_dist_norm",           // 18
-        "proj_closing_speed_norm"   // 19
+        "proj_bearing",             // 19
+        "proj_dist_norm",           // 20
+        "proj_closing_speed_norm"   // 21
     };
 
     /// <summary>
@@ -131,6 +133,14 @@ public class RLObserver
         AddObservation(sensor, currentState.Kinematics.YawRate / maxYawRate);
         AddObservation(sensor, currentState.HealthPct);
         AddObservation(sensor, currentState.ShieldPct);
+        AddObservation(sensor, currentState.LaserHeatPct);
+
+        float missileAmmoPct = 0f;
+        if (ship.missileLauncher != null && ship.missileLauncher.MaxAmmo > 0)
+        {
+            missileAmmoPct = (float)currentState.MissileAmmo / ship.missileLauncher.MaxAmmo;
+        }
+        AddObservation(sensor, missileAmmoPct);
 
         // One-hot encode missile launcher state
         var mState = currentState.MissileState;
