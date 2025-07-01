@@ -191,31 +191,16 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
             switch (state.MissileState)
             {
                 case MissileLauncher.LockState.Idle:
-                    // If target in range and in LOS, start lock-on
-                    if (dist <= missileRange && angle <= missileAngleTolerance)
+                case MissileLauncher.LockState.Locking:
+                    // Dumb-fire if target is very close, since locking is automatic or in progress.
+                    if (dist <= dummyMissileRange && angle <= missileAngleTolerance)
                     {
-                        if(LineOfSightOK(firePos, dir, dist, angle)){
-                            var targetable = GetTargetTransform()?.GetComponentInParent<ITargetable>();
-                            wantsToFireMissile = targetable != null;
-                            RLog.Log($"[AI-{name}] Missile: Idle state, in range, LOS OK, targetable={targetable != null}");
-                        }
-                        else
-                        {
-                            RLog.Log($"[AI-{name}] Missile: Idle state, in range but NO LOS");
-                        }
+                        wantsToFireMissile = true;
+                        RLog.Log($"[AI-{name}] Missile: Idle/Locking, close enough for dumb-fire");
                     }
                     else
                     {
-                        RLog.Log($"[AI-{name}] Missile: Idle state, out of range/angle (dist={dist:F1} > {missileRange:F1} OR angle={angle:F1}° > {missileAngleTolerance:F1}°)");
-                    }
-                    break;
-                    
-                case MissileLauncher.LockState.Locking:
-                    // Fire dummy missile if target is very close
-                    if (dist <= dummyMissileRange)
-                    {
-                        wantsToFireMissile = true;
-                        RLog.Log($"[AI-{name}] Missile: Locking state, close enough for dumb-fire");
+                        RLog.Log($"[AI-{name}] Missile: Idle/Locking, waiting for auto-lock.");
                     }
                     break;
                     

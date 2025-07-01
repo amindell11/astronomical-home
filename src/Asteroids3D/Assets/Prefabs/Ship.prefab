@@ -25328,9 +25328,10 @@ MonoBehaviour:
     type: 3}
   firePoint: {fileID: 1601733862368084420}
   fireRate: 5
+  lockOnConeAngle: 30
   lockOnTime: 0.6
   lockExpiry: 3
-  maxLockDistance: 20
+  maxLockDistance: 30
   maxAmmo: 2
 --- !u!1001 &6527216232684025975
 PrefabInstance:

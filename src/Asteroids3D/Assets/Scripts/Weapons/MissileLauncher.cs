@@ -10,6 +10,7 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
     public enum LockState { Idle, Locking, Locked, Cooldown }
 
     [Header("Lock-On Settings")]
+    [SerializeField] private float lockOnConeAngle = 30f;
     [SerializeField] private float lockOnTime     = 0.6f;
     [SerializeField] private float lockExpiry     = 3f;
     [SerializeField] private float maxLockDistance= 100f;
@@ -49,7 +50,7 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
         // Prevent initiating a new lock while the launcher is on cooldown so that
         // AI behaviour is consistent with player input (which is gated via Fire()).
         if (Time.time < nextFireTime) return false;
-        RLog.Log("TryStartLock: " + candidate);
+        Debug.Log("TryStartLock: " + candidate);
         if (candidate == null) return false;
         if (state != LockState.Idle) return false;
 
@@ -62,7 +63,7 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
     /// <summary>Abort any ongoing or acquired lock.</summary>
     public void CancelLock()
     {
-        RLog.Log("CancelLock");
+        Debug.Log("CancelLock: Resetting lock.");
         ResetLock();
         state         = LockState.Idle;
     }
@@ -77,6 +78,13 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
     {
         switch (state)
         {
+            case LockState.Idle:
+                // Auto-scan for targets if not on cooldown.
+                if (Time.time >= nextFireTime)
+                {
+                    ScanForTarget();
+                }
+                break;
             case LockState.Locking:
                 HandleLocking();
                 break;
@@ -94,7 +102,11 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
 
     void HandleLocking()
     {
-        if (!ValidateTarget(currentTarget)) { CancelLock(); return; }
+        if (!ValidateTarget(currentTarget))
+        {
+            Debug.Log("HandleLocking: Target became invalid. Cancelling lock.");
+            CancelLock(); return;
+        }
 
         // Update indicator position & progress
         if (currentTarget.Indicator != null)
@@ -108,6 +120,7 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
         float dist = dir.magnitude;
         if (dist > maxLockDistance)
         {
+            Debug.Log($"HandleLocking: Target out of range ({dist}m > {maxLockDistance}m). Cancelling lock.");
             CancelLock();
             return;
         }
@@ -116,16 +129,21 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
             ITargetable hitTgt = hit.collider.GetComponentInParent<ITargetable>();
             if (hitTgt != currentTarget)
             {
+                Debug.Log($"HandleLocking: Line of sight to target lost. Hit '{hit.collider.name}' instead of '{currentTarget}'. Cancelling lock.");
                 CancelLock();
                 return;
             }
         }
-        else { CancelLock(); return; }
+        else
+        {
+            Debug.Log("HandleLocking: Raycast towards target did not hit anything. Cancelling lock.");
+            CancelLock(); return;
+        }
 
         lockTimer += Time.deltaTime;
         if (lockTimer >= lockOnTime)
         {
-            RLog.Log("Locking: " + currentTarget);
+            Debug.Log("Locking complete: " + currentTarget);
             state            = LockState.Locked;
             lockAcquiredTime = Time.time;
 
@@ -143,12 +161,12 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
         float dist = Vector3.Distance(currentTarget.TargetPoint.position, transform.position);
         if (dist > maxLockDistance)
         {
-            RLog.Log("Out of range");
+            Debug.Log("Out of range");
             CancelLock();
         }
         if (Time.time - lockAcquiredTime > lockExpiry)
         {
-            RLog.Log("Lock expired");
+            Debug.Log("Lock expired");
             CancelLock();
         }
     }
@@ -177,70 +195,131 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
 
     public override bool Fire()
     {
-        // CanFire now handles all readiness checks (cooldown, ammo) for all states.
-        if (!CanFire())
-        {
-            return false;
-        }
-
+        if (!CanFire()) return false;
         if (!projectilePrefab) return false;
         if (!firePoint) firePoint = transform;
+
+        bool isHoming = state == LockState.Locked && currentTarget != null;
+
+        // Spawn and configure projectile
+        MissileProjectile proj = SimplePool<MissileProjectile>.Get(projectilePrefab, firePoint.position, firePoint.rotation);
+        currentAmmo--;
+
+        IDamageable shooterDmg = GetComponentInParent<IDamageable>();
+        proj.Shooter = shooterDmg != null ? (shooterDmg as Component).gameObject : transform.root.gameObject;
+        proj.ShooterDamageable = shooterDmg;
         
-        switch (state)
+        if (isHoming)
         {
-            case LockState.Idle:
-                // TryStartLock is only called if CanFire() passed, which means we have ammo.
-                return TryStartLock(PickTarget());
-
-            case LockState.Locking:
-            {
-                // Dumb-fire
-                MissileProjectile proj = SimplePool<MissileProjectile>.Get(projectilePrefab, firePoint.position, firePoint.rotation);
-                currentAmmo--;
-
-                // Capture the IDamageable belonging to the shooter so the projectile can ignore self-collisions.
-                IDamageable shooterDmg = GetComponentInParent<IDamageable>();
-
-                proj.Shooter           = shooterDmg != null ? (shooterDmg as Component).gameObject : transform.root.gameObject;
-                proj.ShooterDamageable = shooterDmg;
-                ResetLock();
-                state = LockState.Cooldown;
-                nextFireTime = Time.time + fireRate; // apply cooldown only after actual shot
-                return true;
-            }
-            case LockState.Locked:
-            {
-                // The check at the top of the method handles all conditions.
-                RLog.Log("Firing locked missile");
-                MissileProjectile proj = SimplePool<MissileProjectile>.Get(projectilePrefab, firePoint.position, firePoint.rotation);
-                currentAmmo--;
-
-                // Capture the IDamageable belonging to the shooter so the projectile can ignore self-collisions.
-                IDamageable shooterDmg = GetComponentInParent<IDamageable>();
-
-                proj.Shooter           = shooterDmg != null ? (shooterDmg as Component).gameObject : transform.root.gameObject;
-                proj.ShooterDamageable = shooterDmg;
-                if (currentTarget != null) proj.SetTarget(currentTarget.TargetPoint);
-                ResetLock();
-                state = LockState.Cooldown;
-                nextFireTime = Time.time + fireRate;
-                return true;
-            }
+            Debug.Log("Firing locked missile");
+            proj.SetTarget(currentTarget.TargetPoint);
         }
-        return false;
+        else
+        {
+            Debug.Log("Dumb-firing missile");
+        }
+
+        // Reset state and start cooldown
+        ResetLock();
+        state = LockState.Cooldown;
+        nextFireTime = Time.time + fireRate;
+        return true;
     }
 
     /* ───────────────────────── Helpers ───────────────────────── */
-    /// <summary>Simple forward raycast to pick first <see cref="ITargetable"/> object in LOS.</summary>
-    ITargetable PickTarget()
+    
+    /// <summary>Finds the best target in the lock-on cone and starts the locking process.</summary>
+    void ScanForTarget()
     {
-        if (!firePoint) firePoint = transform;
-        Vector3 dir = firePoint.up; // ship forward (top-down uses up)
-        if (Physics.Raycast(firePoint.position, dir, out RaycastHit hit, maxLockDistance))
+        ITargetable bestTarget = FindBestTargetInCone();
+        if (bestTarget != null)
         {
-            return hit.collider.GetComponentInParent<ITargetable>();
+            StartLock(bestTarget);
         }
-        return null;
+    }
+    
+    /// <summary>Starts the lock-on process for a given target.</summary>
+    private bool StartLock(ITargetable candidate)
+    {
+        if (candidate == null || state != LockState.Idle) return false;
+
+        Debug.Log("StartLock: " + candidate);
+        currentTarget = candidate;
+        lockTimer = 0f;
+        state = LockState.Locking;
+        return true;
+    }
+    
+    /// <summary>Simple forward raycast to pick first <see cref="ITargetable"/> object in LOS.</summary>
+    ITargetable FindBestTargetInCone()
+    {
+        Debug.Log("FindBestTargetInCone: Scanning for targets.");
+        if (!firePoint) firePoint = transform;
+        var shipMask = LayerMask.GetMask("Ship");
+        var colliders = Physics.OverlapSphere(firePoint.position, maxLockDistance, shipMask);
+        Debug.Log($"FindBestTargetInCone: Found {colliders.Length} colliders on 'Ship' layer.");
+        
+        ITargetable bestCandidate = null;
+        float smallestAngle = lockOnConeAngle / 2f;
+        Ship selfShip = GetComponentInParent<Ship>();
+
+        foreach (var col in colliders)
+        {
+            var targetable = col.GetComponentInParent<ITargetable>();
+            
+            // Basic validation
+            if (targetable == null || !ValidateTarget(targetable)) 
+            {
+                Debug.Log($"FindBestTargetInCone: Collider {col.name} is not a valid target.");
+                continue;
+            }
+            
+            // Ensure we don't target ourselves
+            if ((targetable as Ship) == selfShip)
+            {
+                Debug.Log($"FindBestTargetInCone: Collider {col.name} is self, skipping.");
+                continue;
+            }
+
+            Vector3 dirToTarget = (targetable.TargetPoint.position - firePoint.position);
+            float angle = Vector3.Angle(firePoint.up, dirToTarget.normalized);
+
+            if (angle < smallestAngle)
+            {
+                // Line of sight check
+                if (Physics.Raycast(firePoint.position, dirToTarget.normalized, out RaycastHit hit, dirToTarget.magnitude))
+                {
+                    if (hit.collider.GetComponentInParent<ITargetable>() == targetable)
+                    {
+                        smallestAngle = angle;
+                        bestCandidate = targetable;
+                        Debug.Log($"FindBestTargetInCone: Found candidate {bestCandidate} at angle {angle}.");
+                    }
+                    else
+                    {
+                        Debug.Log($"FindBestTargetInCone: Candidate {col.name} blocked by {hit.collider.name}.");
+                    }
+                }
+                else
+                {
+                    Debug.Log($"FindBestTargetInCone: Raycast to {col.name} did not hit anything (but should have).");
+                }
+            }
+            else
+            {
+                Debug.Log($"FindBestTargetInCone: Candidate {col.name} is outside lock-on cone (angle: {angle}).");
+            }
+        }
+        
+        if (bestCandidate != null)
+        {
+            Debug.Log($"FindBestTargetInCone: Best target found: {bestCandidate}.");
+        }
+        else
+        {
+            Debug.Log("FindBestTargetInCone: No suitable target found.");
+        }
+        return bestCandidate;
     }
 
 #if UNITY_EDITOR

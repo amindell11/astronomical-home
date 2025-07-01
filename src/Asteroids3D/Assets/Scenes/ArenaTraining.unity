@@ -496,6 +496,16 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 880162904397767766, guid: e970d9f79be710b4e8b8b13c7bf4ac8e,
+        type: 3}
+      propertyPath: 'managedShips.Array.data[0]'
+      value: 
+      objectReference: {fileID: 600251441}
+    - target: {fileID: 880162904397767766, guid: e970d9f79be710b4e8b8b13c7bf4ac8e,
+        type: 3}
+      propertyPath: 'managedShips.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2062778799}
     - target: {fileID: 2524941988800668645, guid: e970d9f79be710b4e8b8b13c7bf4ac8e,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -571,6 +581,21 @@ PrefabInstance:
       propertyPath: difficulty
       value: 0.2
       objectReference: {fileID: 0}
+    - target: {fileID: 5320156146118539111, guid: e970d9f79be710b4e8b8b13c7bf4ac8e,
+        type: 3}
+      propertyPath: targetVolumeDensity
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5329039100826510922, guid: e970d9f79be710b4e8b8b13c7bf4ac8e,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7724177657525233609, guid: e970d9f79be710b4e8b8b13c7bf4ac8e,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8445685067433922795, guid: e970d9f79be710b4e8b8b13c7bf4ac8e,
         type: 3}
       propertyPath: m_BehaviorType
@@ -606,6 +631,18 @@ MonoBehaviour:
   useMouseDirection: 0
   showMouseGizmos: 1
   mouseGizmoScale: 3
+--- !u!114 &600251441 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3261721121361504060, guid: e970d9f79be710b4e8b8b13c7bf4ac8e,
+    type: 3}
+  m_PrefabInstance: {fileID: 600251438}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 600251439}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67188210c0b7f614089a327a9a1ca7a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &913822937
 GameObject:
   m_ObjectHideFlags: 0
@@ -783,6 +820,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+--- !u!114 &2062778799 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2471761432118052514, guid: e970d9f79be710b4e8b8b13c7bf4ac8e,
+    type: 3}
+  m_PrefabInstance: {fileID: 600251438}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67188210c0b7f614089a327a9a1ca7a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1293853764160693263
 PrefabInstance:
   m_ObjectHideFlags: 0

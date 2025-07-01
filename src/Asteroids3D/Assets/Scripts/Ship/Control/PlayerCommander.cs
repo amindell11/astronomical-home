@@ -153,16 +153,4 @@ public class PlayerShipInput : MonoBehaviour, IShipCommandSource
     {
         // This commander doesn't need any specific initialization from the ship.
     }
-
-    /* ───────────────────────── Missile Target Helper ───────────────────────── */
-    ITargetable PickTarget()
-    {
-        Vector3 origin = missileLauncher && missileLauncher.firePoint ? missileLauncher.firePoint.position : transform.position;
-        Vector3 dir    = transform.up; // ship forward in top-down view
-        if (Physics.Raycast(origin, dir, out RaycastHit hit, 100f))
-        {
-            return hit.collider.GetComponentInParent<ITargetable>();
-        }
-        return null;
-    }
 } 
