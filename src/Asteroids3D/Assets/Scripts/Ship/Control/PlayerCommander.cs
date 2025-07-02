@@ -23,6 +23,9 @@ public class PlayerShipInput : MonoBehaviour, IShipCommandSource
     private Vector3 projectedDirection;
     private bool isMouseActive;
     
+    // Cached command that will be built every Update and served to the Ship in FixedUpdate.
+    private ShipCommand cachedCommand;
+
     private void Start()
     {
         ship = GetComponent<ShipMovement>();
@@ -130,22 +133,31 @@ public class PlayerShipInput : MonoBehaviour, IShipCommandSource
 
     public int Priority => 100; // Player input overrides most others
 
-    public bool TryGetCommand(ShipState state, out ShipCommand cmd)
+    // Unity standard frame update – poll input here for maximum responsiveness.
+    void Update()
     {
-        cmd = new ShipCommand();
-        // Read movement inputs
+        // Build a new command from the latest input state each rendered frame.
+        ShipCommand cmd = new ShipCommand();
+
+        // Movement inputs
         cmd.Thrust = Input.GetAxis("Vertical");
         cmd.Strafe = Input.GetAxis("Horizontal");
 
+        // Rotation handling (mouse or axis driven)
         HandleRotationInput(ref cmd);
 
-        // Shooting
-        cmd.PrimaryFire = Input.GetButton("Fire1");
-
-        // Missile lock / fire (single press behaviour)
+        // Shooting inputs
+        cmd.PrimaryFire   = Input.GetButton("Fire1");
         cmd.SecondaryFire = Input.GetButtonDown("Fire2");
-        
-        // Always provide command; central Ship may decide to ignore if zeroed
+
+        // Cache for retrieval during the next physics step.
+        cachedCommand = cmd;
+    }
+
+    public bool TryGetCommand(ShipState state, out ShipCommand cmd)
+    {
+        // Simply return the most recently cached command prepared in Update().
+        cmd = cachedCommand;
         return true;
     }
 

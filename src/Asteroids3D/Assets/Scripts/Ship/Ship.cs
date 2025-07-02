@@ -35,6 +35,7 @@ public class Ship : MonoBehaviour, ITargetable
     /* ─────────── Current State ─────────── */
     public ShipState CurrentState { get; private set; }
     public ShipCommand CurrentCommand { get; private set; }
+    private bool hasValidCommand = false;
 
     /* ─────────── ITargetable Implementation ─────────── */
     public Transform TargetPoint => transform;
@@ -123,7 +124,21 @@ public class Ship : MonoBehaviour, ITargetable
 
     void FixedUpdate()
     {
-        // Aggregate the highest-priority command for this frame.
+        if (hasValidCommand)
+        {
+            if (movement != null)
+                movement.SetCommand(CurrentCommand);
+            if (CurrentCommand.PrimaryFire && laserGun)
+                laserGun.Fire();
+            if (CurrentCommand.SecondaryFire && missileLauncher)
+                missileLauncher.Fire();
+        }
+        hasValidCommand = false;
+    }
+
+    // With command polling now in Update(), FixedUpdate simply exists so that other
+    // components (e.g., ShipMovement) can continue to rely on physics-step timing.
+    void Update() { 
         ShipCommand cmd = default;
         bool hasCmd = false;
         int highest = int.MinValue;
@@ -155,16 +170,6 @@ public class Ship : MonoBehaviour, ITargetable
             }
         }
         CurrentCommand = cmd;
-
-        if (hasCmd && movement != null)
-        {
-            movement.SetCommand(cmd);
-
-            // Weapons
-            if (cmd.PrimaryFire && laserGun)
-                laserGun.Fire();
-            if (cmd.SecondaryFire && missileLauncher)
-                missileLauncher.Fire();
-        }
+        hasValidCommand = hasCmd;
     }
 }

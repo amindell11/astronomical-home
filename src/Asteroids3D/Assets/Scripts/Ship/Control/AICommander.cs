@@ -89,6 +89,9 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
 
     // Optional reference when the navigation target is another ship (for velocity matching)
 
+
+    private ShipCommand cachedCommand;
+
     void Awake()
     {
         ship    = GetComponent<ShipMovement>();
@@ -112,48 +115,49 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
 
     public bool TryGetCommand(ShipState state, out ShipCommand cmd)
     {
-        cmd = new ShipCommand();
-        
-        RLog.Log($"[AI-{name}] TryGetCommand called - difficulty={difficulty:F2}, targetType={targetType}");
-        
-        // Difficulty Level 1 (< 0.25): Stationary, no actions.
+        // Simply return the command generated in the most recent FixedUpdate().
+        cmd = cachedCommand;
+        return true;
+    }
+
+    // ------------------------------------------------------------------
+    // Physics-step computation – runs exactly once per FixedUpdate.
+    // ------------------------------------------------------------------
+    void FixedUpdate()
+    {
+        if (myShip == null) return;
+        cachedCommand = GenerateCommand(myShip.CurrentState);
+    }
+
+    // Core decision-making logic extracted from the old TryGetCommand().
+    // This is called from FixedUpdate() to produce the next ship command.
+    ShipCommand GenerateCommand(ShipState state)
+    {
+        ShipCommand cmd = new ShipCommand();
+
+        // --- Difficulty Level 1 (< 0.25): Stationary, no actions. ---
         if (difficulty < 0.25f)
         {
-            RLog.Log($"[AI-{name}] Difficulty < 0.25, returning idle command");
-            cmd.Thrust = 0;
-            cmd.Strafe = 0;
-            cmd.RotateToTarget = false;
-            cmd.PrimaryFire = false;
-            cmd.SecondaryFire = false;
-            return true;
+            return cmd; // cmd defaults to zeros/false.
         }
 
+        // --- No navigation target – remain idle but keep facing current heading. ---
         if (targetType == TargetType.None)
-        {   
-            RLog.Log($"[AI-{name}] No target, returning idle command");
-            cmd.Thrust = 0;
-            cmd.Strafe = 0;
-            cmd.RotateToTarget = false;
+        {
             cmd.TargetAngle = state.Kinematics.AngleDeg;
-            return true;
+            return cmd;
         }
 
         ShipKinematics kin = state.Kinematics;
-
         float currentMaxSpeed = myShip.settings.maxSpeed;
 
         int obstacleCount = ScanObstacles(kin, currentMaxSpeed);
-        RLog.Log($"[AI-{name}] Scanned {obstacleCount} obstacles");
-
         VelocityPilot.Output vpOut = ComputeNavigation(kin, currentMaxSpeed, obstacleCount);
 
         ApplyControls(vpOut, ref cmd);
-        RLog.Log($"[AI-{name}] Applied controls - Thrust={cmd.Thrust:F2}, Strafe={cmd.Strafe:F2}");
-
         HandleShooting(ref cmd, state);
-        
-        RLog.Log($"[AI-{name}] Final command - PrimaryFire={cmd.PrimaryFire}, SecondaryFire={cmd.SecondaryFire}");
-        return true;
+
+        return cmd;
     }
 
     void HandleShooting(ref ShipCommand cmd, ShipState state)

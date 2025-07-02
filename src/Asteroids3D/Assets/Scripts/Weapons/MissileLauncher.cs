@@ -50,6 +50,14 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
         // Prevent initiating a new lock while the launcher is on cooldown so that
         // AI behaviour is consistent with player input (which is gated via Fire()).
         if (Time.time < nextFireTime) return false;
+        
+        // Don't start locking if we have no ammo
+        if (currentAmmo <= 0)
+        {
+            Debug.Log("TryStartLock: No ammo available, cannot start lock.");
+            return false;
+        }
+        
         Debug.Log("TryStartLock: " + candidate);
         if (candidate == null) return false;
         if (state != LockState.Idle) return false;
@@ -79,16 +87,30 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
         switch (state)
         {
             case LockState.Idle:
-                // Auto-scan for targets if not on cooldown.
-                if (Time.time >= nextFireTime)
+                // Auto-scan for targets if not on cooldown and we have ammo.
+                if (Time.time >= nextFireTime && currentAmmo > 0)
                 {
                     ScanForTarget();
                 }
                 break;
             case LockState.Locking:
+                // Check if we still have ammo during locking
+                if (currentAmmo <= 0)
+                {
+                    Debug.Log("HandleLocking: Ran out of ammo during lock sequence. Cancelling lock.");
+                    CancelLock();
+                    break;
+                }
                 HandleLocking();
                 break;
             case LockState.Locked:
+                // Check if we still have ammo while locked
+                if (currentAmmo <= 0)
+                {
+                    Debug.Log("HandleLocked: Ran out of ammo while locked. Cancelling lock.");
+                    CancelLock();
+                    break;
+                }
                 HandleLocked();
                 break;
             case LockState.Cooldown:
