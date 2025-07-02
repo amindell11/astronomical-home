@@ -12,17 +12,17 @@ public partial class PatrolRandomAction : Action
     [SerializeField] private float arriveThreshold = 5f;
     [SerializeField] private bool enableAvoidance = true;
     
-    private AIShipInput aiInput;
+    private AICommander aiInput;
     private Vector3 currentTarget;
     private bool hasTarget = false;
 
     protected override Status OnStart()
     {
         // Get the AI input component
-        aiInput = GameObject.GetComponent<AIShipInput>();
+        aiInput = GameObject.GetComponent<AICommander>();
         if (aiInput == null)
         {
-            RLog.AIError($"PatrolRandomAction: No AIShipInput component found on {GameObject.name}");
+            RLog.AIError($"PatrolRandomAction: No AICommander component found on {GameObject.name}");
             return Status.Failure;
         }
 

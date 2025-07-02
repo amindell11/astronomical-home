@@ -11,7 +11,7 @@ public partial class EvadeAction : Action
     [SerializeReference] public BlackboardVariable<Ship> Enemy;
 
     // Cached runtime data
-    AIShipInput _ai;
+    AICommander _ai;
     Vector3     _evadePoint;
     Vector3     _evadeVelocity;
     const float DefaultFleeDistance = 30f; // World units to flee if no AI param available
@@ -19,7 +19,7 @@ public partial class EvadeAction : Action
     protected override Status OnStart()
     {
         // Validate inputs and cache references
-        _ai = this.GameObject.GetComponent<AIShipInput>();
+        _ai = this.GameObject.GetComponent<AICommander>();
         if (_ai == null) return Status.Failure;
 
         Ship enemyShip = Enemy != null ? Enemy.Value : null;

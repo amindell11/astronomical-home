@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using ShipControl;
 
 [RequireComponent(typeof(ShipMovement))]
-public class AIShipInput : MonoBehaviour, IShipCommandSource
+public class AICommander : MonoBehaviour, IShipCommandSource
 {
     /* ── Difficulty Setting ─────────────────────────────────── */
     [Header("Difficulty")]

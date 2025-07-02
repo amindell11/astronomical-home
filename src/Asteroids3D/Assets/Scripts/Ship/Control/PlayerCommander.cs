@@ -3,7 +3,7 @@ using ShipControl;
 
 // Translates player input into commands for the Ship component.
 [RequireComponent(typeof(ShipMovement))]
-public class PlayerShipInput : MonoBehaviour, IShipCommandSource
+public class PlayerCommander : MonoBehaviour, IShipCommandSource
 {
     private ShipMovement ship;
     private ShipMovement.ShipMovement2D shipController;

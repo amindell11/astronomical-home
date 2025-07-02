@@ -44,7 +44,7 @@ public class ArenaInstance : MonoBehaviour, IGameContext
     [Header("Curriculum Bot")]
     [Tooltip("The non-RL agent ship to be enabled/disabled by the curriculum.")]
     [SerializeField] private Ship botShip;
-    private AIShipInput botController;
+    private AICommander botController;
 
     [Header("Reward Settings")]
     [Tooltip("Small penalty applied each step to encourage finishing episodes quickly")]
@@ -137,7 +137,7 @@ public class ArenaInstance : MonoBehaviour, IGameContext
         
         if (botShip != null)
         {
-            botController = botShip.GetComponent<AIShipInput>();
+            botController = botShip.GetComponent<AICommander>();
         }
         
         // Create boundary collider if it doesn't exist

@@ -12,7 +12,7 @@ public class DummyAIAimPlayMode
 {
     private Ship shooterShip;
     private Ship targetShip;
-    private AIShipInput aiCommander;
+    private AICommander aiCommander;
     private LaserGun aiLaserGun;
     private GameObject referencePlane;
     private GameObject arenaRoot;
@@ -46,9 +46,9 @@ public class DummyAIAimPlayMode
         shooterShip.transform.SetParent(arenaRoot.transform);
 
         // Ensure we have an AI commander – add one if the prefab lacks it
-        aiCommander = shooterShip.GetComponent<AIShipInput>();
+        aiCommander = shooterShip.GetComponent<AICommander>();
         if (aiCommander == null)
-            aiCommander = shooterShip.gameObject.AddComponent<AIShipInput>();
+            aiCommander = shooterShip.gameObject.AddComponent<AICommander>();
 
         aiLaserGun  = shooterShip.GetComponentInChildren<LaserGun>();
         aiCommander.difficulty = 1f; // max skill for most tests
@@ -122,7 +122,7 @@ public class DummyAIAimPlayMode
 
         if (isAI)
         {
-            go.AddComponent<AIShipInput>();
+            go.AddComponent<AICommander>();
         }
 
         var ship = go.AddComponent<Ship>();
@@ -200,7 +200,7 @@ public class DummyAIAimPlayMode
         Debug.Log($"[TEST] AI difficulty: {aiCommander.difficulty}");
         
         // Use reflection to access private fields for debugging
-        var aiType = typeof(AIShipInput);
+        var aiType = typeof(AICommander);
         var fireDistanceField = aiType.GetField("fireDistance", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         var fireAngleToleranceField = aiType.GetField("fireAngleTolerance", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         var gunField = aiType.GetField("gun", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
@@ -281,7 +281,7 @@ public class DummyAIAimPlayMode
         Debug.Log($"[TEST] Pre-check: Distance to target: {actualDistance:F1}, Angle: {actualAngle:F1}°");
 
         // Use reflection to check the line of sight mask
-        var aiType = typeof(AIShipInput);
+        var aiType = typeof(AICommander);
         var lineOfSightMaskField = aiType.GetField("lineOfSightMask", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         
         // --- FIX: Correctly set the mask using proper LayerMask (not just layer number) ---

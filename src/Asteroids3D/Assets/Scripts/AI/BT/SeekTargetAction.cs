@@ -12,7 +12,7 @@ public partial class SeekTargetAction : Action
     
     protected override Status OnUpdate()
     {
-        var ai = this.GameObject.GetComponent<AIShipInput>();
+        var ai = this.GameObject.GetComponent<AICommander>();
         if (ai != null && Target?.Value != null)
         {
             ai.SetNavigationTarget(Target.Value, true);
