@@ -93,18 +93,14 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
     }
 
     // -----------------------------------------------------------
-    public void TakeDamage(float damage, float projectileMass, Vector3 projectileVelocity, Vector3 hitPoint, GameObject damageSource)
+    public void TakeDamage(float damage, float projectileMass, Vector3 projectileVelocity, Vector3 hitPoint, GameObject attacker)
     {
-        if (damageSource != null)
+        if (attacker != null)
         {
-            var attacker = damageSource.GetComponentInParent<Ship>();
-            var proj = damageSource.GetComponent<ProjectileBase>();
-            if (proj && proj.Shooter != null)
-                attacker = proj.Shooter.GetComponentInParent<Ship>();
-            lastAttacker = attacker ?? lastAttacker;
+            lastAttacker = attacker.GetComponentInParent<Ship>() ?? lastAttacker;
         }
         
-        RLog.Log($"Ship taking {damage} damage from {(damageSource ? damageSource.name : "unknown source")}");
+        RLog.Log($"Ship taking {damage} damage from {(attacker ? attacker.name : "unknown source")}");
         if (damage <= 0) return;
 
         lastDamageTime = Time.time;

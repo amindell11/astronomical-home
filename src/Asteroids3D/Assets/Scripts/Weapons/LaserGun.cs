@@ -46,17 +46,17 @@ public class LaserGun : LauncherBase<LaserProjectile>
         return base.CanFire() && currentHeat < maxHeat;
     }
 
-    public override bool Fire()
+    public override ProjectileBase Fire()
     {
         // base.Fire() now calls our overridden CanFire(), so all checks are handled.
-        bool fired = base.Fire();
-        if (fired)
+        ProjectileBase proj = base.Fire();
+        if (proj != null)
         {
             currentHeat += heatPerShot;
             lastShotTime = Time.time;
             currentHeat = Mathf.Min(currentHeat, maxHeat); // Clamp heat to max
         }
-        return fired;
+        return proj;
     }
 
     public void ResetHeat()

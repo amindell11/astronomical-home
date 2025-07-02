@@ -115,7 +115,7 @@ public class Asteroid : MonoBehaviour, IDamageable, ITargetable
         }
     }
 
-    public void TakeDamage(float damage, float projectileMass, Vector3 projectileVelocity, Vector3 hitPoint, GameObject damageSource)
+    public void TakeDamage(float damage, float projectileMass, Vector3 projectileVelocity, Vector3 hitPoint, GameObject attacker)
     {       
         AsteroidFragnetics.Instance.CreateFragments(this, projectileMass, projectileVelocity, hitPoint);
         Explode();

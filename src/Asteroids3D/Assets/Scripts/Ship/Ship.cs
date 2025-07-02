@@ -5,7 +5,7 @@ using System.Collections.Generic;
 [RequireComponent(typeof(ShipMovement))]
 [RequireComponent(typeof(ShipDamageHandler))]
 [RequireComponent(typeof(IShipCommandSource))]
-public class Ship : MonoBehaviour, ITargetable
+public class Ship : MonoBehaviour, ITargetable, IShooter
 {
     public static readonly List<Transform> ActiveShips = new();
     public static event System.Action<Ship, Ship, float> OnGlobalShipDamaged; // victim, attacker, damage
@@ -41,6 +41,9 @@ public class Ship : MonoBehaviour, ITargetable
     public Transform TargetPoint => transform;
 
     public LockOnIndicator Indicator { get; private set; }
+
+    /* ─────────── IShooter Implementation ─────────── */
+    public Vector3 Velocity => movement != null ? movement.Kinematics.WorldVel : Vector3.zero;
 
     /* ─────────── Team System ─────────── */
     /// <summary>

@@ -20,12 +20,12 @@ public abstract class ProjectileBase : MonoBehaviour
     private static Transform s_cachedPlaneTransform;
     private static Vector3   s_cachedPlaneNormal;
 
-    /// <summary>The GameObject that spawned/fired this projectile.  Used to ignore self-hits.</summary>
-    public GameObject Shooter { get; set; }
+    /// <summary>
+    /// The entity that fired this projectile. Used for velocity inheritance,
+    /// self-hit checks, and attributing damage.
+    /// </summary>
+    public IShooter Shooter { get; set; }
 
-    /// <summary>The <see cref="IDamageable"/> component that represents the shooter. This is more reliable than relying on
-    /// transform.root when the shooter is nested under an arbitrary parent (e.g., an "Arena" container).</summary>
-    public IDamageable ShooterDamageable { get; set; }
     public float Damage => damage;
     
     /* ───────────────────────── Unity callbacks ───────────────────────── */
@@ -71,7 +71,7 @@ public abstract class ProjectileBase : MonoBehaviour
         RLog.Log($"applying {damage} damage to {other.gameObject.name}");
         
         Vector3 impactVelocity = rb ? rb.linearVelocity : Vector3.zero;
-        other.TakeDamage(damage, mass, impactVelocity, transform.position, Shooter ?? gameObject);
+        other.TakeDamage(damage, mass, impactVelocity, transform.position, Shooter?.gameObject);
         SpawnHitVFX();
         ReturnToPool();
     }
@@ -83,9 +83,10 @@ public abstract class ProjectileBase : MonoBehaviour
         // Early-out if we didn't hit something that can take damage
         if (dmg == null) return;
 
-        // Ignore self-hits – compare directly against the shooter's IDamageable component instead of relying on
-        // transform.root, which may be an unrelated parent such as an "Arena" container.
-        if (ShooterDamageable != null && dmg == ShooterDamageable) return;
+        // Ignore self-hits by checking if the other collider belongs to the shooter.
+        // This is more robust than a direct GameObject comparison because colliders
+        // may be on child objects.
+        if (Shooter != null && other.GetComponentInParent<IShooter>() == Shooter) return;
 
         RLog.Log($"Projectile hit: {other.gameObject.name}");
         OnHit(dmg);

@@ -6,8 +6,8 @@ using UnityEngine;
 public interface IWeapon
 {
     /// <summary>Attempt to fire the weapon (may internally honour cooldown).</summary>
-    /// <returns>True if a shot was fired, false otherwise.</returns>
-    bool Fire();
+    /// <returns>The projectile instance that was fired, or null if no shot was fired.</returns>
+    ProjectileBase Fire();
 
     /// <summary>
     /// Checks if the weapon can be fired, considering ammo, heat, etc.

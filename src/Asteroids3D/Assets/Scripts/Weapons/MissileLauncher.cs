@@ -215,23 +215,22 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
         return base.CanFire() && currentAmmo > 0;
     }
 
-    public override bool Fire()
+    public override ProjectileBase Fire()
     {
-        if (!CanFire()) return false;
-        if (!projectilePrefab) return false;
-        if (!firePoint) firePoint = transform;
+        bool wasLocked = state == LockState.Locked && currentTarget != null;
 
-        bool isHoming = state == LockState.Locked && currentTarget != null;
+        // Use the new FireProjectile method to get the instance
+        MissileProjectile proj = base.Fire() as MissileProjectile;
 
-        // Spawn and configure projectile
-        MissileProjectile proj = SimplePool<MissileProjectile>.Get(projectilePrefab, firePoint.position, firePoint.rotation);
+        if (proj == null)
+        {
+            // The base class decided not to fire (e.g., on cooldown)
+            return null;
+        }
+        
         currentAmmo--;
 
-        IDamageable shooterDmg = GetComponentInParent<IDamageable>();
-        proj.Shooter = shooterDmg != null ? (shooterDmg as Component).gameObject : transform.root.gameObject;
-        proj.ShooterDamageable = shooterDmg;
-        
-        if (isHoming)
+        if (wasLocked)
         {
             Debug.Log("Firing locked missile");
             proj.SetTarget(currentTarget.TargetPoint);
@@ -241,11 +240,11 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
             Debug.Log("Dumb-firing missile");
         }
 
-        // Reset state and start cooldown
+        // Reset state and enter cooldown
         ResetLock();
         state = LockState.Cooldown;
-        nextFireTime = Time.time + fireRate;
-        return true;
+        
+        return proj;
     }
 
     /* ───────────────────────── Helpers ───────────────────────── */

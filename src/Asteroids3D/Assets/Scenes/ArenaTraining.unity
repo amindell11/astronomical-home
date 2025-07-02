@@ -584,7 +584,7 @@ PrefabInstance:
     - target: {fileID: 5320156146118539111, guid: e970d9f79be710b4e8b8b13c7bf4ac8e,
         type: 3}
       propertyPath: targetVolumeDensity
-      value: 0.1
+      value: 0.01
       objectReference: {fileID: 0}
     - target: {fileID: 5329039100826510922, guid: e970d9f79be710b4e8b8b13c7bf4ac8e,
         type: 3}

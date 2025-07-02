@@ -12,10 +12,12 @@ public readonly struct ShipKinematics
     public readonly float   AngleDeg;// yaw in degrees
     public readonly float   YawRate; // yaw rate in degrees per second
     
+
     public float Speed => Vel.magnitude;
     public float LocalVel => Vector2.Dot(Vel, Forward);
     public Vector2 Forward => new Vector2(-Mathf.Sin(AngleDeg * Mathf.Deg2Rad), Mathf.Cos(AngleDeg * Mathf.Deg2Rad));
-    
+    public Vector3 WorldVel => GamePlane.PlaneToWorld(Vel);
+
     public ShipKinematics(Vector2 pos, Vector2 vel, float angleDeg, float yawRate)
     {
         this.Pos      = pos;

@@ -50,7 +50,8 @@ public class MissileProjectile : ProjectileBase, IDamageable
         // Initial straight velocity
         if (rb) 
         {
-            rb.linearVelocity = transform.up * initialSpeed;
+            Vector3 shooterVelocity = (Shooter != null) ? Shooter.Velocity : Vector3.zero;
+            rb.linearVelocity = transform.up * initialSpeed + shooterVelocity;
             RLog.Log($"Missile initial velocity set to: {rb.linearVelocity}, speed: {initialSpeed}");
             rb.maxLinearVelocity = homingSpeed;
         }
@@ -152,7 +153,7 @@ public class MissileProjectile : ProjectileBase, IDamageable
         Explode(other);
     }
 
-    public void TakeDamage(float damage, float projectileMass, Vector3 projectileVelocity, Vector3 hitPoint, GameObject damageSource){
+    public void TakeDamage(float damage, float projectileMass, Vector3 projectileVelocity, Vector3 hitPoint, GameObject attacker){
         Explode(null);
     }
 
@@ -181,13 +182,13 @@ public class MissileProjectile : ProjectileBase, IDamageable
             if (dmg == null) continue;
 
             // Ignore the shooter itself
-            if (ShooterDamageable != null && dmg == ShooterDamageable) continue;
+            if (Shooter != null && dmg.gameObject == Shooter.gameObject) continue;
 
             // Ignore the primary impact target (already handled in OnHit)
             if (other != null && dmg == other) continue;
 
             RLog.Log($"Splash Hit {hit.name}");
-            dmg.TakeDamage(splashDamage, mass, rb ? rb.linearVelocity : Vector3.zero, hit.ClosestPoint(transform.position), gameObject);
+            dmg.TakeDamage(splashDamage, mass, rb ? rb.linearVelocity : Vector3.zero, hit.ClosestPoint(transform.position), Shooter?.gameObject);
         }
 
         ReturnToPool();
@@ -199,7 +200,6 @@ public class MissileProjectile : ProjectileBase, IDamageable
         RLog.Log($"MissileProjectile returning to pool at position: {transform.position}");
         target = null;
         Shooter = null;
-        ShooterDamageable = null;
 
         if (rb)
         {

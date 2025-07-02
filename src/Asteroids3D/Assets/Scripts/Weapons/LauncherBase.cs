@@ -2,7 +2,7 @@ using UnityEngine;
 // One abstract, non-generic root that Unity can serialize
 public abstract class WeaponComponent : MonoBehaviour, IWeapon
 {
-    public abstract bool Fire();
+    public abstract ProjectileBase Fire();
     public abstract bool CanFire();
 }
 /// <summary>
@@ -17,6 +17,13 @@ public abstract class LauncherBase<TProj> : WeaponComponent where TProj : Projec
     [SerializeField] protected float     fireRate = 0.2f;
 
     protected float nextFireTime;
+    protected IShooter shooter;
+
+    protected virtual void Awake()
+    {
+        shooter = GetComponentInParent<IShooter>();
+
+    }
 
     // `CanFire` now checks the fire-rate cooldown. Subclasses should call base.CanFire().
     public override bool CanFire()
@@ -25,11 +32,11 @@ public abstract class LauncherBase<TProj> : WeaponComponent where TProj : Projec
     }
 
     /// <summary>Attempts to fire a projectile if the fire-rate cooldown has elapsed.</summary>
-    /// <returns>True if a projectile was spawned, false otherwise.</returns>
-    public override bool Fire()
+    /// <returns>The fired projectile instance, or null if a shot was not fired.</returns>
+    public override ProjectileBase Fire()
     {
-        if (!CanFire()) return false;
-        if (!projectilePrefab)       return false;
+        if (!CanFire()) return null;
+        if (!projectilePrefab) return null;
     
         if (!firePoint) firePoint = transform;
 
@@ -38,15 +45,9 @@ public abstract class LauncherBase<TProj> : WeaponComponent where TProj : Projec
         // Grab instance from pool and stamp shooter reference
         TProj proj = SimplePool<TProj>.Get(projectilePrefab, firePoint.position, firePoint.rotation);
 
-        // Capture the IDamageable belonging to the shooter (if any). This allows projectiles to reliably ignore
-        // self-collisions even when the shooter is nested under additional parents (e.g., an "Arena" GameObject).
-        IDamageable shooterDmg = GetComponentInParent<IDamageable>();
-        RLog.Log($"ShooterDmg: {shooterDmg}");
+        // Assign our cached IShooter reference to the projectile.
+        proj.Shooter = shooter;
 
-        // Fall back to root GameObject reference if no IDamageable could be found (e.g., scenery weapons).
-        proj.Shooter            = shooterDmg != null ? shooterDmg.gameObject : transform.root.gameObject;
-        proj.ShooterDamageable  = shooterDmg;
-
-        return true;
+        return proj;
     }
 } 

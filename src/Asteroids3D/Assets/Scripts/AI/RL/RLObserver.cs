@@ -327,7 +327,7 @@ public class RLObserver
             if (!col.CompareTag("Missile")) continue;
 
             var proj = col.GetComponent<ProjectileBase>();
-            if (proj != null && proj.Shooter != null && ship.IsFriendly(proj.Shooter.GetComponent<Ship>()))
+            if (proj != null && proj.Shooter != null && ship.IsFriendly(proj.Shooter.gameObject.GetComponent<Ship>()))
             {
                 continue; 
             }
