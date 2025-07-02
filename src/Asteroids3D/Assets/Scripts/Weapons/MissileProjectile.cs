@@ -137,7 +137,7 @@ public class MissileProjectile : ProjectileBase, IDamageable
     {
         base.OnHit(other);
         
-        // Apply impact force to the other object's rigidbody
+     /*   // Apply impact force to the other object's rigidbody
         if (rb && other?.gameObject)
         {
             Rigidbody otherRb = other.gameObject.GetComponent<Rigidbody>();
@@ -149,7 +149,7 @@ public class MissileProjectile : ProjectileBase, IDamageable
                 RLog.Weapon($"Applied impact force to {other.gameObject.name}: {forceDirection * forceMagnitude}");
             }
         }
-        
+        */
         Explode(other);
     }
 
