@@ -467,7 +467,7 @@ public class AsteroidFragnetics : MonoBehaviour
     {
         for (int i = 0; i < fragmentCount; i++)
         {
-            RLog.Log("Spawning fragment " + i);
+            RLog.Asteroid("Spawning fragment " + i);
             if (AsteroidSpawner.Instance != null)
             {
                 Pose spawnPose = new Pose(positions[i], UnityEngine.Random.rotationUniform);

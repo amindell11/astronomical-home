@@ -31,4 +31,55 @@ public static class RLog
         else
             UnityEngine.Debug.LogError(message, context);
     }
+
+    /* ───────────────────────── Channels ───────────────────────── */
+
+    [Conditional("LOG_WEAPON")]
+    public static void Weapon(object message, Object context = null) => Log(message, context);
+    [Conditional("LOG_WEAPON")]
+    public static void WeaponWarning(object message, Object context = null) => LogWarning(message, context);
+    [Conditional("LOG_WEAPON")]
+    public static void WeaponError(object message, Object context = null) => LogError(message, context);
+
+    [Conditional("LOG_RL")]
+    public static void RL(object message, Object context = null) => Log(message, context);
+    [Conditional("LOG_RL")]
+    public static void RLWarning(object message, Object context = null) => LogWarning(message, context);
+    [Conditional("LOG_RL")]
+    public static void RLError(object message, Object context = null) => LogError(message, context);
+    
+    [Conditional("LOG_AI")]
+    public static void AI(object message, Object context = null) => Log(message, context);
+    [Conditional("LOG_AI")]
+    public static void AIWarning(object message, Object context = null) => LogWarning(message, context);
+    [Conditional("LOG_AI")]
+    public static void AIError(object message, Object context = null) => LogError(message, context);
+
+    [Conditional("LOG_DAMAGE")]
+    public static void Damage(object message, Object context = null) => Log(message, context);
+    [Conditional("LOG_DAMAGE")]
+    public static void DamageWarning(object message, Object context = null) => LogWarning(message, context);
+    [Conditional("LOG_DAMAGE")]
+    public static void DamageError(object message, Object context = null) => LogError(message, context);
+    
+    [Conditional("LOG_ASTEROID")]
+    public static void Asteroid(object message, Object context = null) => Log(message, context);
+    [Conditional("LOG_ASTEROID")]
+    public static void AsteroidWarning(object message, Object context = null) => LogWarning(message, context);
+    [Conditional("LOG_ASTEROID")]
+    public static void AsteroidError(object message, Object context = null) => LogError(message, context);
+
+    [Conditional("LOG_SHIP")]
+    public static void Ship(object message, Object context = null) => Log(message, context);
+    [Conditional("LOG_SHIP")]
+    public static void ShipWarning(object message, Object context = null) => LogWarning(message, context);
+    [Conditional("LOG_SHIP")]
+    public static void ShipError(object message, Object context = null) => LogError(message, context);
+
+    [Conditional("LOG_CORE")]
+    public static void Core(object message, Object context = null) => Log(message, context);
+    [Conditional("LOG_CORE")]
+    public static void CoreWarning(object message, Object context = null) => LogWarning(message, context);
+    [Conditional("LOG_CORE")]
+    public static void CoreError(object message, Object context = null) => LogError(message, context);
 } 

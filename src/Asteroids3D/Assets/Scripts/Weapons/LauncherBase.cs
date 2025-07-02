@@ -22,7 +22,7 @@ public abstract class LauncherBase<TProj> : WeaponComponent where TProj : Projec
     protected virtual void Awake()
     {
         shooter = GetComponentInParent<IShooter>();
-
+        if (!firePoint) firePoint = transform;
     }
 
     // `CanFire` now checks the fire-rate cooldown. Subclasses should call base.CanFire().
@@ -37,8 +37,6 @@ public abstract class LauncherBase<TProj> : WeaponComponent where TProj : Projec
     {
         if (!CanFire()) return null;
         if (!projectilePrefab) return null;
-    
-        if (!firePoint) firePoint = transform;
 
         nextFireTime = Time.time + fireRate;
 

@@ -63,7 +63,7 @@ public class AsteroidSpawner : MonoBehaviour
         Asteroid asteroid = asteroidGO.GetComponent<Asteroid>();
         if (asteroid == null)
         {
-            RLog.LogError("Pooled object is missing Asteroid component.");
+            RLog.AsteroidError("Pooled object is missing Asteroid component.");
             asteroidPool.Release(asteroidGO);
             return null;
         }
@@ -139,15 +139,29 @@ public class AsteroidSpawner : MonoBehaviour
     {
         asteroidGO.SetActive(false);
         Rigidbody rb = asteroidGO.GetComponent<Rigidbody>();
-        if (rb != null)
+        if (rb == null) RLog.AsteroidError("Released asteroid has no rigidbody!");
+        else rb.isKinematic = true;
+
+        if (activeAsteroids.Remove(asteroidGO))
         {
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
+            TotalActiveVolume -= asteroidGO.GetComponent<Asteroid>().CurrentVolume;
+        }
+        else
+        {
+            RLog.AsteroidWarning("Released an asteroid that was not in the active set.");
         }
     }
 
     private void OnAsteroidDestroyed(GameObject asteroidGO)
     {
+        var asteroid = asteroidGO.GetComponent<Asteroid>();
+        if (asteroid == null)
+        {
+            RLog.AsteroidError("Pooled object is missing Asteroid component.");
+            return;
+        }
+        TotalActiveVolume -= asteroid.CurrentVolume;
+        activeAsteroids.Remove(asteroidGO);
         Destroy(asteroidGO);
     }
     

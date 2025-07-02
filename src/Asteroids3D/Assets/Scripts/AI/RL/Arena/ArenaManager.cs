@@ -79,7 +79,7 @@ public class ArenaManager : MonoBehaviour
         isMultiArenaMode = (Application.isBatchMode || forceMultiArenaMode) && arenaPrefab != null;
 
         if (enableDebugLogs)
-            RLog.Log($"ArenaManager: Awake – multi-arena mode = {isMultiArenaMode}");
+            RLog.RL($"ArenaManager: Awake – multi-arena mode = {isMultiArenaMode}");
     }
 
     void Start()
@@ -93,7 +93,7 @@ public class ArenaManager : MonoBehaviour
     {
         if (arenaPrefab == null)
         {
-            RLog.LogError("ArenaManager: No arena prefab assigned!");
+            RLog.RLError("ArenaManager: No arena prefab assigned!");
             return;
         }
 
@@ -121,7 +121,7 @@ public class ArenaManager : MonoBehaviour
                 ArenaInstance instance = arenaGO.GetComponent<ArenaInstance>();
                 if (instance == null)
                 {
-                    RLog.LogError("ArenaManager: The arena prefab does not contain an ArenaInstance component!");
+                    RLog.RLError("ArenaManager: The arena prefab does not contain an ArenaInstance component!");
                     Destroy(arenaGO);
                     continue;
                 }
@@ -139,14 +139,14 @@ public class ArenaManager : MonoBehaviour
                 spawned++;
 
                 if (enableDebugLogs)
-                    RLog.Log($"ArenaManager: Spawned arena #{spawned} at {position}");
+                    RLog.RL($"ArenaManager: Spawned arena #{spawned} at {position}");
 
                 OnArenaSpawned?.Invoke(instance);
             }
         }
 
         if (enableDebugLogs)
-            RLog.Log($"ArenaManager: Finished spawning – {spawned} arena(s) in a {actualGrid.x}×{actualGrid.y} grid");
+            RLog.RL($"ArenaManager: Finished spawning – {spawned} arena(s) in a {actualGrid.x}×{actualGrid.y} grid");
         
         OnArenasSpawned?.Invoke();
     }
@@ -257,12 +257,12 @@ public class ArenaManager : MonoBehaviour
             if (variant != null && variant.variantId == variantId && variant.prefab != null)
             {
                 if (enableDebugLogs)
-                    RLog.Log($"ArenaManager: Resolved prefab variant {variantId} -> {variant.prefab.name}");
+                    RLog.RL($"ArenaManager: Resolved prefab variant {variantId} -> {variant.prefab.name}");
                 return variant.prefab;
             }
         }
         if (enableDebugLogs)
-            RLog.LogWarning($"ArenaManager: Environment requested arena_variant {variantId} but no matching prefab found. Using default.");
+            RLog.RLWarning($"ArenaManager: Environment requested arena_variant {variantId} but no matching prefab found. Using default.");
         return null;
     }
 #else

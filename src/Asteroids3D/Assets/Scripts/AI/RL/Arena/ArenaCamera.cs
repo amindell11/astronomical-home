@@ -35,7 +35,7 @@ public class ArenaCamera : CameraFollow
         arenaManager = ArenaManager.Instance;
         if (arenaManager == null || !arenaManager.IsMultiArenaMode)
         {
-            RLog.Log("ArenaCamera: ArenaManager not found or not in multi-arena mode. Disabling component.");
+            RLog.RL("ArenaCamera: ArenaManager not found or not in multi-arena mode. Disabling component.");
             enabled = false;
             return;
         }
@@ -78,7 +78,7 @@ public class ArenaCamera : CameraFollow
         }
         else
         {
-            RLog.Log("ArenaCamera: Waiting for arenas to be spawned by ArenaManager...");
+            RLog.RL("ArenaCamera: Waiting for arenas to be spawned by ArenaManager...");
         }
     }
 
@@ -87,7 +87,7 @@ public class ArenaCamera : CameraFollow
         if (arenas == null || index < 0 || index >= arenas.Count) return;
         currentArenaIndex = index;
         RefreshTargets(); // Immediately refresh targets on switch
-        RLog.Log($"ArenaCamera: Switched to view Arena {currentArenaIndex}");
+        RLog.RL($"ArenaCamera: Switched to view Arena {currentArenaIndex}");
     }
 
     protected override void RefreshTargets()

@@ -68,7 +68,7 @@ public abstract class ProjectileBase : MonoBehaviour
         }
     }
     protected virtual void OnHit(IDamageable other){
-        RLog.Log($"applying {damage} damage to {other.gameObject.name}");
+        RLog.Weapon($"applying {damage} damage to {other.gameObject.name}");
         
         Vector3 impactVelocity = rb ? rb.linearVelocity : Vector3.zero;
         other.TakeDamage(damage, mass, impactVelocity, transform.position, Shooter?.gameObject);
@@ -88,7 +88,7 @@ public abstract class ProjectileBase : MonoBehaviour
         // may be on child objects.
         if (Shooter != null && other.GetComponentInParent<IShooter>() == Shooter) return;
 
-        RLog.Log($"Projectile hit: {other.gameObject.name}");
+        RLog.Weapon($"Projectile hit: {other.gameObject.name}");
         OnHit(dmg);
     }
 

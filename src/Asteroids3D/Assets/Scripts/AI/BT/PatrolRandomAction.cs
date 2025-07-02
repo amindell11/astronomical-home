@@ -22,7 +22,7 @@ public partial class PatrolRandomAction : Action
         aiInput = GameObject.GetComponent<AIShipInput>();
         if (aiInput == null)
         {
-            RLog.LogError($"PatrolRandomAction: No AIShipInput component found on {GameObject.name}");
+            RLog.AIError($"PatrolRandomAction: No AIShipInput component found on {GameObject.name}");
             return Status.Failure;
         }
 

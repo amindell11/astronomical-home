@@ -35,7 +35,7 @@ public class RLArbiter : MonoBehaviour
         if (!behaviorAgent) behaviorAgent = GetComponent<BehaviorGraphAgent>();
         
         #if !UNITY_ML_AGENTS
-        Debug.LogWarning("RLArbiter: ML-Agents package not detected. Running in fallback mode.");
+        RLog.RLWarning("RLArbiter: ML-Agents package not detected. Running in fallback mode.");
         #endif
     }
 
@@ -104,7 +104,7 @@ public static class BTStateBridge
         }
         catch (System.Exception e)
         {
-            Debug.LogWarning($"BTStateBridge: Failed to set 'State' variable on {agent.name}: {e.Message}");
+            RLog.AIWarning($"BTStateBridge: Failed to set 'State' variable on {agent.name}: {e.Message}");
         }
     }
     
@@ -125,7 +125,7 @@ public static class BTStateBridge
         }
         catch (System.Exception e)
         {
-            Debug.LogWarning($"BTStateBridge: Failed to get 'State' variable from {agent.name}: {e.Message}");
+            RLog.AIWarning($"BTStateBridge: Failed to get 'State' variable from {agent.name}: {e.Message}");
         }
         
         return AIShipBehaviorStates.Idle;

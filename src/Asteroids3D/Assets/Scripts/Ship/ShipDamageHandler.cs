@@ -100,7 +100,7 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
             lastAttacker = attacker.GetComponentInParent<Ship>() ?? lastAttacker;
         }
         
-        RLog.Log($"Ship taking {damage} damage from {(attacker ? attacker.name : "unknown source")}");
+        RLog.Damage($"Ship taking {damage} damage from {(attacker ? attacker.name : "unknown source")}");
         if (damage <= 0) return;
 
         lastDamageTime = Time.time;

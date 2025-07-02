@@ -81,7 +81,7 @@ public class Ship : MonoBehaviour, ITargetable, IShooter
         
         if (!settings)
         {
-            RLog.LogError($"{name}: ShipSettings asset reference missing – using runtime default values.");
+            RLog.ShipError($"{name}: ShipSettings asset reference missing – using runtime default values.");
             settings = ScriptableObject.CreateInstance<ShipSettings>();
         }
 

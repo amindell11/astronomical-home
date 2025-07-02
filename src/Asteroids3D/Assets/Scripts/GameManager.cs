@@ -56,7 +56,7 @@ public class GameManager : MonoBehaviour, IGameContext
         if (currentState == GameState.GameOver) return;
 
         currentState = GameState.GameOver;
-        RLog.Log("Player ship destroyed. Game Over!");
+        RLog.Core("Player ship destroyed. Game Over!");
         Invoke(nameof(RestartGame), restartDelay);
     }
     
@@ -67,7 +67,7 @@ public class GameManager : MonoBehaviour, IGameContext
     {
         if (currentState != GameState.Playing) return;
         
-        RLog.Log("Enemy ship destroyed. Scheduling respawn...");
+        RLog.Core("Enemy ship destroyed. Scheduling respawn...");
         IEnumerator respawnRoutine = WaitAndRespawn(enemyRespawnDelay, respawnShip);
         StartCoroutine(respawnRoutine);
     }
@@ -88,7 +88,7 @@ public class GameManager : MonoBehaviour, IGameContext
         // Find a random offscreen position
         Vector3 respawnPosition = GetRandomOffscreenPosition();
         respawnShip.transform.position = respawnPosition;
-        RLog.Log($"Enemy ship respawned at position: {respawnPosition}");
+        RLog.Core($"Enemy ship respawned at position: {respawnPosition}");
     }
     
     private Vector3 GetRandomOffscreenPosition()
@@ -99,7 +99,7 @@ public class GameManager : MonoBehaviour, IGameContext
             mainCamera = Camera.main;
             if (mainCamera == null)
             {
-                RLog.LogWarning("GameManager: No main camera found. Returning Vector3.zero for offscreen position.");
+                RLog.CoreWarning("GameManager: No main camera found. Returning Vector3.zero for offscreen position.");
                 return Vector3.zero;
             }
         }
@@ -113,7 +113,7 @@ public class GameManager : MonoBehaviour, IGameContext
     /// </summary>
     public void RestartGame()
     {
-        RLog.Log("Restarting game...");
+        RLog.Core("Restarting game...");
         Scene currentScene = SceneManager.GetActiveScene();
         SceneManager.LoadScene(currentScene.buildIndex);
         currentState = GameState.Playing;

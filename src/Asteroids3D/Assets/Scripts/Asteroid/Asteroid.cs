@@ -38,7 +38,7 @@ public class Asteroid : MonoBehaviour, IDamageable, ITargetable
     {
         rb = GetComponent<Rigidbody>();
         meshFilter = GetComponent<MeshFilter>();
-        RLog.Log("Asteroid Spawner for "+gameObject+":"+parentSpawner);
+        RLog.Asteroid("Asteroid Spawner for "+gameObject+":"+parentSpawner);
         rb.useGravity = false;
 
         // Find indicator in children (may be inactive)

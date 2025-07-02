@@ -54,11 +54,11 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
         // Don't start locking if we have no ammo
         if (currentAmmo <= 0)
         {
-            Debug.Log("TryStartLock: No ammo available, cannot start lock.");
+            RLog.Weapon("TryStartLock: No ammo available, cannot start lock.");
             return false;
         }
         
-        Debug.Log("TryStartLock: " + candidate);
+        RLog.Weapon("TryStartLock: " + candidate);
         if (candidate == null) return false;
         if (state != LockState.Idle) return false;
 
@@ -71,7 +71,7 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
     /// <summary>Abort any ongoing or acquired lock.</summary>
     public void CancelLock()
     {
-        Debug.Log("CancelLock: Resetting lock.");
+        RLog.Weapon("CancelLock: Resetting lock.");
         ResetLock();
         state         = LockState.Idle;
     }
@@ -97,7 +97,7 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
                 // Check if we still have ammo during locking
                 if (currentAmmo <= 0)
                 {
-                    Debug.Log("HandleLocking: Ran out of ammo during lock sequence. Cancelling lock.");
+                    RLog.Weapon("HandleLocking: Ran out of ammo during lock sequence. Cancelling lock.");
                     CancelLock();
                     break;
                 }
@@ -107,7 +107,7 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
                 // Check if we still have ammo while locked
                 if (currentAmmo <= 0)
                 {
-                    Debug.Log("HandleLocked: Ran out of ammo while locked. Cancelling lock.");
+                    RLog.Weapon("HandleLocked: Ran out of ammo while locked. Cancelling lock.");
                     CancelLock();
                     break;
                 }
@@ -126,7 +126,7 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
     {
         if (!ValidateTarget(currentTarget))
         {
-            Debug.Log("HandleLocking: Target became invalid. Cancelling lock.");
+            RLog.Weapon("HandleLocking: Target became invalid. Cancelling lock.");
             CancelLock(); return;
         }
 
@@ -137,12 +137,11 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
         }
 
         // Check continuous LOS via raycast
-        if (!firePoint) firePoint = transform;
         Vector3 dir = currentTarget.TargetPoint.position - firePoint.position;
         float dist = dir.magnitude;
         if (dist > maxLockDistance)
         {
-            Debug.Log($"HandleLocking: Target out of range ({dist}m > {maxLockDistance}m). Cancelling lock.");
+            RLog.Weapon($"HandleLocking: Target out of range ({dist}m > {maxLockDistance}m). Cancelling lock.");
             CancelLock();
             return;
         }
@@ -151,21 +150,21 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
             ITargetable hitTgt = hit.collider.GetComponentInParent<ITargetable>();
             if (hitTgt != currentTarget)
             {
-                Debug.Log($"HandleLocking: Line of sight to target lost. Hit '{hit.collider.name}' instead of '{currentTarget}'. Cancelling lock.");
+                RLog.Weapon($"HandleLocking: Line of sight to target lost. Hit '{hit.collider.name}' instead of '{currentTarget}'. Cancelling lock.");
                 CancelLock();
                 return;
             }
         }
         else
         {
-            Debug.Log("HandleLocking: Raycast towards target did not hit anything. Cancelling lock.");
+            RLog.Weapon("HandleLocking: Raycast towards target did not hit anything. Cancelling lock.");
             CancelLock(); return;
         }
 
         lockTimer += Time.deltaTime;
         if (lockTimer >= lockOnTime)
         {
-            Debug.Log("Locking complete: " + currentTarget);
+            RLog.Weapon("Locking complete: " + currentTarget);
             state            = LockState.Locked;
             lockAcquiredTime = Time.time;
 
@@ -183,12 +182,12 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
         float dist = Vector3.Distance(currentTarget.TargetPoint.position, transform.position);
         if (dist > maxLockDistance)
         {
-            Debug.Log("Out of range");
+            RLog.Weapon("Out of range");
             CancelLock();
         }
         if (Time.time - lockAcquiredTime > lockExpiry)
         {
-            Debug.Log("Lock expired");
+            RLog.Weapon("Lock expired");
             CancelLock();
         }
     }
@@ -232,12 +231,12 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
 
         if (wasLocked)
         {
-            Debug.Log("Firing locked missile");
+            RLog.Weapon("Firing locked missile");
             proj.SetTarget(currentTarget.TargetPoint);
         }
         else
         {
-            Debug.Log("Dumb-firing missile");
+            RLog.Weapon("Dumb-firing missile");
         }
 
         // Reset state and enter cooldown
@@ -264,7 +263,7 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
     {
         if (candidate == null || state != LockState.Idle) return false;
 
-        Debug.Log("StartLock: " + candidate);
+        RLog.Weapon("StartLock: " + candidate);
         currentTarget = candidate;
         lockTimer = 0f;
         state = LockState.Locking;
@@ -274,11 +273,10 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
     /// <summary>Simple forward raycast to pick first <see cref="ITargetable"/> object in LOS.</summary>
     ITargetable FindBestTargetInCone()
     {
-        Debug.Log("FindBestTargetInCone: Scanning for targets.");
-        if (!firePoint) firePoint = transform;
+        RLog.Weapon("FindBestTargetInCone: Scanning for targets.");
         var shipMask = LayerMask.GetMask("Ship");
         var colliders = Physics.OverlapSphere(firePoint.position, maxLockDistance, shipMask);
-        Debug.Log($"FindBestTargetInCone: Found {colliders.Length} colliders on 'Ship' layer.");
+        RLog.Weapon($"FindBestTargetInCone: Found {colliders.Length} colliders on 'Ship' layer.");
         
         ITargetable bestCandidate = null;
         float smallestAngle = lockOnConeAngle / 2f;
@@ -291,14 +289,14 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
             // Basic validation
             if (targetable == null || !ValidateTarget(targetable)) 
             {
-                Debug.Log($"FindBestTargetInCone: Collider {col.name} is not a valid target.");
+                RLog.Weapon($"FindBestTargetInCone: Collider {col.name} is not a valid target.");
                 continue;
             }
             
             // Ensure we don't target ourselves
             if ((targetable as Ship) == selfShip)
             {
-                Debug.Log($"FindBestTargetInCone: Collider {col.name} is self, skipping.");
+                RLog.Weapon($"FindBestTargetInCone: Collider {col.name} is self, skipping.");
                 continue;
             }
 
@@ -314,31 +312,31 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
                     {
                         smallestAngle = angle;
                         bestCandidate = targetable;
-                        Debug.Log($"FindBestTargetInCone: Found candidate {bestCandidate} at angle {angle}.");
+                        RLog.Weapon($"FindBestTargetInCone: Found candidate {bestCandidate} at angle {angle}.");
                     }
                     else
                     {
-                        Debug.Log($"FindBestTargetInCone: Candidate {col.name} blocked by {hit.collider.name}.");
+                        RLog.Weapon($"FindBestTargetInCone: Candidate {col.name} blocked by {hit.collider.name}.");
                     }
                 }
                 else
                 {
-                    Debug.Log($"FindBestTargetInCone: Raycast to {col.name} did not hit anything (but should have).");
+                    RLog.Weapon($"FindBestTargetInCone: Raycast to {col.name} did not hit anything (but should have).");
                 }
             }
             else
             {
-                Debug.Log($"FindBestTargetInCone: Candidate {col.name} is outside lock-on cone (angle: {angle}).");
+                RLog.Weapon($"FindBestTargetInCone: Candidate {col.name} is outside lock-on cone (angle: {angle}).");
             }
         }
         
         if (bestCandidate != null)
         {
-            Debug.Log($"FindBestTargetInCone: Best target found: {bestCandidate}.");
+            RLog.Weapon($"FindBestTargetInCone: Best target found: {bestCandidate}.");
         }
         else
         {
-            Debug.Log("FindBestTargetInCone: No suitable target found.");
+            RLog.Weapon("FindBestTargetInCone: No suitable target found.");
         }
         return bestCandidate;
     }
@@ -347,7 +345,6 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
     /* ───────────────────────── Debug Gizmos ───────────────────────── */
     void OnDrawGizmos()
     {
-        if (!firePoint) firePoint = transform;
         Vector3 origin = firePoint.position;
         Vector3 forward = firePoint.up; // ship forward direction
 

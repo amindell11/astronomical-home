@@ -30,8 +30,8 @@ public class SectorFieldManager : BaseFieldManager
     }
     public void RespawnAsteroids()
     {
-        RLog.Log($"SectorFieldManager: Respawning asteroids {Spawner.gameObject.name}");
         if (Spawner == null) return;
+        RLog.Asteroid($"SectorFieldManager: Respawning asteroids {Spawner.gameObject.name}");
         Spawner.ReleaseAllAsteroids();
         ManageAsteroidField();
     }

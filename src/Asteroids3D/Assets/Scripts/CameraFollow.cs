@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 [RequireComponent(typeof(Camera))]
 public class CameraFollow : MonoBehaviour
@@ -47,7 +48,7 @@ public class CameraFollow : MonoBehaviour
 
         if (!_cam.orthographic)
         {
-            RLog.LogWarning("CameraFollow works best with an orthographic Camera. Switching camera to orthographic mode.");
+            RLog.CoreWarning("CameraFollow works best with an orthographic Camera. Switching camera to orthographic mode.");
             _cam.orthographic = true;
         }
 
@@ -143,7 +144,7 @@ public class CameraFollow : MonoBehaviour
     private Bounds GetTargetsBounds()
     {
         Bounds bounds = new Bounds(_targets[0].position, Vector3.zero);
-        RLog.Log("Camera Bounds targets:" +_targets.Count);
+        RLog.Core("Camera Bounds targets:" +_targets.Count);
         for (int i = 1; i < _targets.Count; i++)
         {
             bounds.Encapsulate(_targets[i].position);

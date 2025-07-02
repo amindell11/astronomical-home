@@ -11,14 +11,14 @@ public class WorldFollow : MonoBehaviour
         // If no target is assigned, try to find the player
         if (target == null)
         {
-            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            var player = GameObject.FindGameObjectWithTag("Player");
             if (player != null)
             {
                 target = player.transform;
             }
             else
             {
-                RLog.LogWarning("No target assigned to CameraFollow and no Player found!");
+                RLog.CoreWarning("No target assigned to CameraFollow and no Player found!");
             }
         }
 

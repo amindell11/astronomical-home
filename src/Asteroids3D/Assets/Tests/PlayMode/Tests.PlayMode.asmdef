@@ -4,30 +4,25 @@
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "GameCore",
         "Behavior",
         "Game.RL",
         "Unity.ML-Agents",
         "Unity.ML-Agents.Extensions",
         "Game.Core"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
         "nunit.framework.dll"
     ],
-    "autoReferenced": true,
+    "autoReferenced": false,
     "defineConstraints": [
         "UNITY_INCLUDE_TESTS"
     ],
-    "versionDefines": [
-        {
-            "name": "com.unity.ml-agents",
-            "expression": "3.0.0",
-            "define": "UNITY_ML_AGENTS"
-        }
-    ],
+    "versionDefines": [],
     "noEngineReferences": false
 }

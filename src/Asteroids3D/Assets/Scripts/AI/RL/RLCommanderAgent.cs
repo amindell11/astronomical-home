@@ -76,8 +76,8 @@ public class RLCommanderAgent : Agent, IShipCommandSource
         ship = GetComponent<Ship>();
         gameContext = GetComponentInParent<IGameContext>();
         observer = new RLObserver(this);
-        if (gameContext == null) RLog.LogError("RLCommanderAgent requires a parent IGameContext component.", this);
-        if (ship == null) RLog.LogError("Agent is not attached to a Ship object.", this);
+        if (gameContext == null) RLog.RLError("RLCommanderAgent requires a parent IGameContext component.", this);
+        if (ship == null) RLog.RLError("Agent is not attached to a Ship object.", this);
         //if (gameContext == null) RLog.LogError("RLCommanderAgent requires a parent IGameContext component.", this);
 
         // Detect if another IShipCommandSource (e.g., PlayerCommander) is attached for heuristic fallback
@@ -89,7 +89,7 @@ public class RLCommanderAgent : Agent, IShipCommandSource
                 break;
             }
         }
-        RLog.Log($"RLCommanderAgent: Initializing agent {name} with fallback commander {fallbackCommander}");
+        RLog.RL($"RLCommanderAgent: Initializing agent {name} with fallback commander {fallbackCommander}");
 
         // Ensure ML-Agents team ID matches the Ship's team number so both systems agree on alliances.
         var bp = GetComponent<BehaviorParameters>();
@@ -106,7 +106,7 @@ public class RLCommanderAgent : Agent, IShipCommandSource
         hasNewCommand = false;
         hasNewCommand = true;
         
-        RLog.Log($"[Ep.{OnEpisodeBeginCount}] Agent {name}: Episode Begin");
+        RLog.RL($"[Ep.{OnEpisodeBeginCount}] Agent {name}: Episode Begin");
     }
 
     public override void CollectObservations(VectorSensor sensor)
@@ -146,7 +146,7 @@ public class RLCommanderAgent : Agent, IShipCommandSource
 
         var continuousActions = actionsOut.ContinuousActions;
         var discreteActions = actionsOut.DiscreteActions;
-        RLog.Log($"RLCommanderAgent: Heuristic called for agent {name} with fallback commander {fallbackCommander}");
+        RLog.RL($"RLCommanderAgent: Heuristic called for agent {name} with fallback commander {fallbackCommander}");
         if (fallbackCommander != null && fallbackCommander.TryGetCommand(ship.CurrentState, out ShipCommand cmd))
         {
             // Map ShipCommand to action buffers

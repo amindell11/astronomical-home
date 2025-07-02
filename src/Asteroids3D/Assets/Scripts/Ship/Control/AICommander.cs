@@ -162,133 +162,112 @@ public class AIShipInput : MonoBehaviour, IShipCommandSource
 
     void HandleShooting(ref ShipCommand cmd, ShipState state)
     {
-        cmd.PrimaryFire = false;
-        cmd.SecondaryFire = false;
-        
-        // Difficulty Level 2 (< 0.5): Movement only, no weapons.
-        if (difficulty < 0.5f)
+        // Difficulty scaling for combat
+        if (difficulty < 0.5f) 
         {
-            RLog.Log($"[AI-{name}] HandleShooting: Difficulty {difficulty:F2} < 0.5, weapons disabled");
+            RLog.AI($"[AI-{name}] HandleShooting: Difficulty {difficulty:F2} < 0.5, weapons disabled");
+            return;
+        }
+        
+        // Ensure we have a target
+        Transform currentTarget = GetTargetTransform();
+        if (currentTarget == null)
+        {
+            RLog.AI($"[AI-{name}] HandleShooting: No target set, weapons disabled");
             return;
         }
 
-        if (targetType == TargetType.None) 
-        {
-            RLog.Log($"[AI-{name}] HandleShooting: No target set, weapons disabled");
-            return;
-        }
+        // --- Basic geometry checks ---
+        Vector3 firePos = gun != null ? gun.firePoint.position : transform.position;
+        Vector3 toTarget = currentTarget.position - firePos;
+        float dist = toTarget.magnitude;
+        Vector3 dir = (dist > 0.001f) ? toTarget / dist : transform.forward;
+        float angle = Vector3.Angle(transform.forward, dir);
 
-        Vector3 targetPos = GetTargetPosition();
-        
-        Vector3 firePos = transform.position;
-        Vector3 dir     = targetPos - firePos;
-        float   dist    = dir.magnitude;
-        float   angle   = Vector3.Angle(transform.up, dir);
-        
-        RLog.Log($"[AI-{name}] HandleShooting: Target at dist={dist:F1}, angle={angle:F1}°, fireDistance={fireDistance:F1}, fireAngleTolerance={fireAngleTolerance:F1}°");
-        
-        bool wantsToFireMissile = false;
-        const float dummyMissileRange = 10f; // Close range for dumb-fire during locking
-        
-        if (missileLauncher)
+        RLog.AI($"[AI-{name}] HandleShooting: Target at dist={dist:F1}, angle={angle:F1}°, fireDistance={fireDistance:F1}, fireAngleTolerance={fireAngleTolerance:F1}°");
+
+        // --- Missile Logic ---
+        bool blockLaserForMissile = false;
+        if (missileLauncher != null && difficulty >= 0.75f)
         {
-            switch (state.MissileState)
+            switch (missileLauncher.State)
             {
                 case MissileLauncher.LockState.Idle:
                 case MissileLauncher.LockState.Locking:
-                    // Dumb-fire if target is very close, since locking is automatic or in progress.
-                    if (dist <= dummyMissileRange && angle <= missileAngleTolerance)
+                    if (dist <= fireDistance * 0.7f && angle <= missileAngleTolerance)
                     {
-                        wantsToFireMissile = true;
-                        RLog.Log($"[AI-{name}] Missile: Idle/Locking, close enough for dumb-fire");
-                    }
-                    else
-                    {
-                        RLog.Log($"[AI-{name}] Missile: Idle/Locking, waiting for auto-lock.");
+                        RLog.AI($"[AI-{name}] Missile: Idle/Locking, close enough for dumb-fire");
+                        missileLauncher.Fire(); // Dumb-fire
+                    } else if (angle <= missileAngleTolerance * 2f) {
+                        RLog.AI($"[AI-{name}] Missile: Idle/Locking, waiting for auto-lock.");
+                        blockLaserForMissile = true;
                     }
                     break;
-                    
+
                 case MissileLauncher.LockState.Locked:
-                    // Fire locked missile and don't fire laser
-                    wantsToFireMissile = true;
-                    RLog.Log($"[AI-{name}] Missile: Locked state, will fire");
+                    RLog.AI($"[AI-{name}] Missile: Locked state, will fire");
+                    missileLauncher.Fire(); // Fire locked missile
                     break;
-                    
+                
                 case MissileLauncher.LockState.Cooldown:
-                    // Do nothing during cooldown
-                    RLog.Log($"[AI-{name}] Missile: Cooldown state");
+                    RLog.AI($"[AI-{name}] Missile: Cooldown state");
                     break;
             }
         }
-
-        // Difficulty Level 3 (< 0.75): Lasers only, no missiles.
-        if (difficulty < 0.75f)
+        else if (missileLauncher != null)
         {
-            wantsToFireMissile = false;
-            RLog.Log($"[AI-{name}] Difficulty {difficulty:F2} < 0.75, missiles disabled");
+            RLog.AI($"[AI-{name}] Difficulty {difficulty:F2} < 0.75, missiles disabled");
         }
 
-        cmd.SecondaryFire = wantsToFireMissile;
+        // --- Laser Logic ---
+        bool losOK = LineOfSightOK(firePos, dir, dist, angle);
 
-        // Only block laser when we have a locked missile ready to fire
-        bool blockLaserForMissile = wantsToFireMissile && state.MissileState == MissileLauncher.LockState.Locked;
-        
-        if (gun && dist <= fireDistance && angle <= fireAngleTolerance && !blockLaserForMissile)
+        if (gun != null && 
+            dist <= fireDistance && 
+            angle <= fireAngleTolerance && 
+            !blockLaserForMissile &&
+            losOK)
         {
-            Vector3 laserFirePos = gun.firePoint ? gun.firePoint.position : transform.position;
-            bool losOK = LineOfSightOK(laserFirePos, dir, dist, angle);
-            
-            RLog.Log($"[AI-{name}] Laser check: gun={gun != null}, inRange={dist <= fireDistance}, inAngle={angle <= fireAngleTolerance}, noMissile={!blockLaserForMissile}, LOS={losOK}");
-            
-            if (losOK)
-            {
-                cmd.PrimaryFire = true;
-                RLog.Log($"[AI-{name}] FIRING LASER!");
-            }
+            RLog.AI($"[AI-{name}] FIRING LASER!");
+            cmd.PrimaryFire = true;
         }
-        else
+        else if (gun != null)
         {
-            RLog.Log($"[AI-{name}] Laser conditions failed: gun={gun != null}, dist={dist:F1}<={fireDistance:F1}={dist <= fireDistance}, angle={angle:F1}<={fireAngleTolerance:F1}={angle <= fireAngleTolerance}, blockLaser={blockLaserForMissile}");
+            RLog.AI($"[AI-{name}] Laser conditions failed: gun={gun != null}, dist={dist:F1}<={fireDistance:F1}={dist <= fireDistance}, angle={angle:F1}<={fireAngleTolerance:F1}={angle <= fireAngleTolerance}, blockLaser={blockLaserForMissile}, LOS={losOK}");
         }
     }
 
     bool LineOfSightOK(Vector3 firePos, Vector3 dir, float dist, float angle)
     {
         int f = Time.frameCount;
-        Vector3 targetPos = GetTargetPosition();
-        bool need = (losFrame < 0 || f - losFrame >= lineOfSightCacheFrames)
-                    || Vector3.Distance(firePos, lastRayPos) > 1f
-                    || Vector3.Distance(targetPos, lastTgtPos) > 1f;
 
-        if (angle > angleToleranceBeforeRay) 
+        // Cache expensive raycasts for a few frames
+        if (f > losFrame + lineOfSightCacheFrames)
         {
-            RLog.Log($"[AI-{name}] LOS: Angle {angle:F1}° > {angleToleranceBeforeRay:F1}°, skipping raycast");
-            return false;
-        }
-
-        if (need)
-        {
-            RLog.Log($"[AI-{name}] LOS: Performing raycast (frame={f}, lastFrame={losFrame}, cache={lineOfSightCacheFrames})");
-            
-            cachedLOS = !Physics.Raycast(firePos, dir.normalized,
-                                         dist, lineOfSightMask)
-                         || Physics.Raycast(firePos, dir.normalized,
-                                            out var hit, dist, lineOfSightMask)
-                            && hit.transform.root == GetTargetTransform()?.root;
-
-            RLog.Log($"[AI-{name}] LOS: Raycast result = {cachedLOS}, mask={lineOfSightMask.value} (should be Asteroid layer only)");
-            if (Physics.Raycast(firePos, dir.normalized, out var debugHit, dist, lineOfSightMask))
+            losFrame = f;
+            if (angle > angleToleranceBeforeRay)
             {
-                RLog.Log($"[AI-{name}] LOS: Hit object '{debugHit.collider.name}' at distance {debugHit.distance:F1}, layer={LayerMask.LayerToName(debugHit.collider.gameObject.layer)}");
+                RLog.AI($"[AI-{name}] LOS: Angle {angle:F1}° > {angleToleranceBeforeRay:F1}°, skipping raycast");
+                cachedLOS = false;
             }
-
-            losFrame   = f;
-            lastRayPos = firePos;
-            lastTgtPos = targetPos;
+            else
+            {
+                RLog.AI($"[AI-{name}] LOS: Performing raycast (frame={f}, lastFrame={losFrame}, cache={lineOfSightCacheFrames})");
+                int hits = Physics.RaycastNonAlloc(firePos, dir, rayHits, dist, lineOfSightMask);
+                cachedLOS = hits == 0;
+#if UNITY_EDITOR
+                var debugHit = (hits > 0) ? rayHits[0] : default;
+                RLog.AI($"[AI-{name}] LOS: Raycast result = {cachedLOS}, mask={lineOfSightMask.value} (should be Asteroid layer only)");
+                if (hits > 0)
+                {
+                    RLog.AI($"[AI-{name}] LOS: Hit object '{debugHit.collider.name}' at distance {debugHit.distance:F1}, layer={LayerMask.LayerToName(debugHit.collider.gameObject.layer)}");
+                }
+#endif
+            }
         }
         else
         {
-            RLog.Log($"[AI-{name}] LOS: Using cached result = {cachedLOS} (frame={f}, lastFrame={losFrame})");
+            RLog.AI($"[AI-{name}] LOS: Using cached result = {cachedLOS} (frame={f}, lastFrame={losFrame})");
         }
         return cachedLOS;
     }

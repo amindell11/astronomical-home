@@ -128,7 +128,7 @@ public class ArenaInstance : MonoBehaviour, IGameContext
         {
             ships = new Ship[0];
             if (enableDebugLogs)
-                RLog.LogWarning($"ArenaInstance: No ships found in {gameObject.name}. Initialized empty ships array.");
+                RLog.RLWarning($"ArenaInstance: No ships found in {gameObject.name}. Initialized empty ships array.");
         }
         
         fieldManager = GetComponentInChildren<SectorFieldManager>(true);
@@ -149,7 +149,7 @@ public class ArenaInstance : MonoBehaviour, IGameContext
 
         if (enableDebugLogs)
         {
-            RLog.Log($"ArenaInstance: Awake – cached {ships.Length} ship(s) and field manager {(fieldManager ? fieldManager.gameObject.name : "<none>")}.\n");
+            RLog.RL($"ArenaInstance: Awake – cached {ships.Length} ship(s) and field manager {(fieldManager ? fieldManager.gameObject.name : "<none>")}.\n");
         }
     }
 
@@ -239,7 +239,7 @@ public class ArenaInstance : MonoBehaviour, IGameContext
                 {
                     if (enableDebugLogs)
                     {
-                        RLog.Log($"[Ep.{episodeCount}] Agent {commander.name} exceeded hard boundary at distance {distanceFromCenter:F1} (limit: {_hardBoundaryRadius:F1})");
+                        RLog.RL($"[Ep.{episodeCount}] Agent {commander.name} exceeded hard boundary at distance {distanceFromCenter:F1} (limit: {_hardBoundaryRadius:F1})");
                     }
                     
                     // Apply -1 penalty to violating agent
@@ -262,7 +262,7 @@ public class ArenaInstance : MonoBehaviour, IGameContext
                     
                     if (enableDebugLogs)
                     {
-                        RLog.Log($"[Ep.{episodeCount}] Agent {commander.name}: Boundary penalty {penalty:F4} at distance {distanceFromCenter:F1} (soft: {_softBoundaryRadius:F1}, frac: {frac:F2})");
+                        RLog.RL($"[Ep.{episodeCount}] Agent {commander.name}: Boundary penalty {penalty:F4} at distance {distanceFromCenter:F1} (soft: {_softBoundaryRadius:F1}, frac: {frac:F2})");
                     }
                 }
             }
@@ -280,7 +280,7 @@ public class ArenaInstance : MonoBehaviour, IGameContext
                 opponent.AddReward(reward);
                 if (enableDebugLogs)
                 {
-                    RLog.Log($"[Ep.{episodeCount}] Opponent agent {opponent.name} received reward {reward:F1} due to boundary violation");
+                    RLog.RL($"[Ep.{episodeCount}] Opponent agent {opponent.name} received reward {reward:F1} due to boundary violation");
                 }
                 break; // Assuming 2-agent setup, reward the first opponent found
             }
@@ -295,7 +295,7 @@ public class ArenaInstance : MonoBehaviour, IGameContext
         
         if (enableDebugLogs)
         {
-            RLog.Log($"[Ep.{episodeCount}] ArenaInstance: Ship damaged. Victim: {victim.name}, Attacker: {attacker?.name}, Damage: {damage}");
+            RLog.RL($"[Ep.{episodeCount}] ArenaInstance: Ship damaged. Victim: {victim.name}, Attacker: {attacker?.name}, Damage: {damage}");
         }
         
         var damageInfo = GetDamageInfo(victim, damage);
@@ -341,7 +341,7 @@ public class ArenaInstance : MonoBehaviour, IGameContext
         
         if (enableDebugLogs)
         {
-            RLog.Log($"[Ep.{episodeCount}] Agent {agent.name}: {damageInfo.DamageType} Damage {rewardType}: {reward:F3} (damage: {Mathf.Abs(damageAmount):F1})");
+            RLog.RL($"[Ep.{episodeCount}] Agent {agent.name}: {damageInfo.DamageType} Damage {rewardType}: {reward:F3} (damage: {Mathf.Abs(damageAmount):F1})");
         }
     }
 
@@ -367,7 +367,7 @@ public class ArenaInstance : MonoBehaviour, IGameContext
     {
         if (enableDebugLogs)
         {
-            RLog.Log($"Ep.{episodeCount} ArenaInstance: Ship death. Victim: {victim?.name}, Killer: {killer?.name} applying rewards {1.0f} to killer and {-1.0f} to victim");
+            RLog.RL($"Ep.{episodeCount} ArenaInstance: Ship death. Victim: {victim?.name}, Killer: {killer?.name} applying rewards {1.0f} to killer and {-1.0f} to victim");
         }
         
         // Track kill metrics for TensorBoard
@@ -384,12 +384,12 @@ public class ArenaInstance : MonoBehaviour, IGameContext
             {
                 if (enableDebugLogs)
                 {
-                    RLog.Log($"Killer agent cumulative reward before SetReward: {killerAgent.GetCumulativeReward()}");
+                    RLog.RL($"Killer agent cumulative reward before SetReward: {killerAgent.GetCumulativeReward()}");
                 }
                 killerAgent.AddReward(1.0f  - killerAgent.GetCumulativeReward());
                 if (enableDebugLogs)
                 {
-                    RLog.Log($"Killer agent cumulative reward after SetReward: {killerAgent.GetCumulativeReward()}");
+                    RLog.RL($"Killer agent cumulative reward after SetReward: {killerAgent.GetCumulativeReward()}");
                 }
             }
         }
@@ -401,12 +401,12 @@ public class ArenaInstance : MonoBehaviour, IGameContext
             {
                 if (enableDebugLogs)
                 {
-                    RLog.Log($"Victim agent cumulative reward before SetReward: {victimAgent.GetCumulativeReward()}");
+                    RLog.RL($"Victim agent cumulative reward before SetReward: {victimAgent.GetCumulativeReward()}");
                 }
                 victimAgent.AddReward(-1.0f - victimAgent.GetCumulativeReward());
                 if (enableDebugLogs)
                 {
-                    RLog.Log($"Victim agent cumulative reward after SetReward: {victimAgent.GetCumulativeReward()}");
+                    RLog.RL($"Victim agent cumulative reward after SetReward: {victimAgent.GetCumulativeReward()}");
                 }
             }
         }
@@ -460,7 +460,7 @@ public class ArenaInstance : MonoBehaviour, IGameContext
         
         if (enableDebugLogs)
         {
-            RLog.Log($"ArenaInstance: Applied Environment Settings. Arena Size: {EffectiveSettings.arenaSize}, Asteroid Density: {EffectiveSettings.asteroidDensity}, Bot Difficulty: {EffectiveSettings.botDifficulty}, Soft Boundary: {_softBoundaryRadius:F1}, Hard Boundary: {_hardBoundaryRadius:F1}");
+            RLog.RL($"ArenaInstance: Applied Environment Settings. Arena Size: {EffectiveSettings.arenaSize}, Asteroid Density: {EffectiveSettings.asteroidDensity}, Bot Difficulty: {EffectiveSettings.botDifficulty}, Soft Boundary: {_softBoundaryRadius:F1}, Hard Boundary: {_hardBoundaryRadius:F1}");
         }
     }
 
@@ -481,7 +481,7 @@ public class ArenaInstance : MonoBehaviour, IGameContext
     {
         if(enableDebugLogs)
         {
-            RLog.Log($"ArenaInstance: Requesting episode end. Episode active: {_episodeActive}, enableArenaReset: {enableArenaReset}");
+            RLog.RL($"ArenaInstance: Requesting episode end. Episode active: {_episodeActive}, enableArenaReset: {enableArenaReset}");
         }
         if (!_episodeActive || !enableArenaReset) return;
         _episodeActive = false; // Close the gate until the next episode begins.
@@ -489,7 +489,7 @@ public class ArenaInstance : MonoBehaviour, IGameContext
         {
             if (agent is RLCommanderAgent commander)
             {
-                RLog.Log($"Episode end: Agent {agent.name} cumulative reward: {agent.GetCumulativeReward()}");
+                RLog.RL($"Episode end: Agent {agent.name} cumulative reward: {agent.GetCumulativeReward()}");
             }
         }
         // Agents will automatically stop processing when _episodeActive becomes false
@@ -515,7 +515,7 @@ public class ArenaInstance : MonoBehaviour, IGameContext
 
         if (enableDebugLogs)
         {
-            RLog.Log($"ArenaInstance: Starting reset after {resetDelay}s delay. Episode: {episodeCount}");
+            RLog.RL($"ArenaInstance: Starting reset after {resetDelay}s delay. Episode: {episodeCount}");
         }
 
         if (resetDelay > 0f)
@@ -546,7 +546,7 @@ public class ArenaInstance : MonoBehaviour, IGameContext
 
         if (enableDebugLogs)
         {
-            RLog.Log("ArenaInstance: Reset complete.");
+            RLog.RL("ArenaInstance: Reset complete.");
         }
     }
 
@@ -576,7 +576,7 @@ public class ArenaInstance : MonoBehaviour, IGameContext
     {       
         if(enableDebugLogs)
         {
-            RLog.Log($"ArenaInstance: Signalling agents episode end. {mlAgents.Length} agents found.");
+            RLog.RL($"ArenaInstance: Signalling agents episode end. {mlAgents.Length} agents found.");
         }
         if (mlAgents == null || mlAgents.Length == 0) return;
         foreach (var agent in mlAgents)
@@ -585,7 +585,7 @@ public class ArenaInstance : MonoBehaviour, IGameContext
             {
                 if (enableDebugLogs)
                 {
-                    RLog.Log($"ArenaInstance: Signalling agent {agent.name} episode end.");
+                    RLog.RL($"ArenaInstance: Signalling agent {agent.name} episode end.");
                 }
                 agent.EndEpisode();
             }
@@ -750,7 +750,7 @@ public class ArenaInstance : MonoBehaviour, IGameContext
             
         if (enableDebugLogs)
         {
-            RLog.Log($"[Ep.{episodeCount}] Metrics: KillRate={killRate:F3}, AvgDist={(_distanceSamples.Count > 0 ? _distanceSamples.Average() : 0):F3}, DamageDealt={totalDamageDealt:F1}, DamageTaken={totalDamageTaken:F1}");
+            RLog.RL($"[Ep.{episodeCount}] Metrics: KillRate={killRate:F3}, AvgDist={(_distanceSamples.Count > 0 ? _distanceSamples.Average() : 0):F3}, DamageDealt={totalDamageDealt:F1}, DamageTaken={totalDamageTaken:F1}");
         }
     }
     
@@ -780,7 +780,7 @@ public class ArenaInstance : MonoBehaviour, IGameContext
             // For RL agents, boundary handling is done in CheckAgentBoundaries() to avoid double penalties
             if (enableDebugLogs)
             {
-                RLog.Log($"ArenaInstance: RL Agent '{ship.name}' trigger exit detected but handled by hybrid boundary system.");
+                RLog.RL($"ArenaInstance: RL Agent '{ship.name}' trigger exit detected but handled by hybrid boundary system.");
             }
             return;
         }
@@ -789,7 +789,7 @@ public class ArenaInstance : MonoBehaviour, IGameContext
             // For non-RL ships (like AI bots), still handle trigger exit normally
             if (enableDebugLogs)
             {
-                RLog.Log($"ArenaInstance: Non-agent ship '{ship.name}' exited arena bounds – triggering reset.");
+                RLog.RL($"ArenaInstance: Non-agent ship '{ship.name}' exited arena bounds – triggering reset.");
             }
             RequestEpisodeEnd();
         }

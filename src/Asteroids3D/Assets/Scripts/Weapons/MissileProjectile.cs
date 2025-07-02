@@ -45,19 +45,19 @@ public class MissileProjectile : ProjectileBase, IDamageable
     /* ───────────────────────── Unity callbacks ───────────────────────── */
     protected override void OnEnable()
     {
-        RLog.Log($"MissileProjectile OnEnable at position: {transform.position}, rotation: {transform.rotation}");
+        RLog.Weapon($"MissileProjectile OnEnable at position: {transform.position}, rotation: {transform.rotation}");
         base.OnEnable();
         // Initial straight velocity
         if (rb) 
         {
             Vector3 shooterVelocity = (Shooter != null) ? Shooter.Velocity : Vector3.zero;
             rb.linearVelocity = transform.up * initialSpeed + shooterVelocity;
-            RLog.Log($"Missile initial velocity set to: {rb.linearVelocity}, speed: {initialSpeed}");
+            RLog.Weapon($"Missile initial velocity set to: {rb.linearVelocity}, speed: {initialSpeed}");
             rb.maxLinearVelocity = homingSpeed;
         }
         else
         {
-            RLog.LogError("MissileProjectile: No Rigidbody found!");
+            RLog.WeaponError("MissileProjectile: No Rigidbody found!");
         }
     }
     
@@ -68,7 +68,7 @@ public class MissileProjectile : ProjectileBase, IDamageable
         float distanceTraveled = Vector3.Distance(startPosition, transform.position);
         if (distanceTraveled > maxDistance * 0.9f) // Warn when getting close to limit
         {
-            RLog.LogWarning($"Missile approaching max distance: {distanceTraveled}/{maxDistance}");
+            RLog.WeaponWarning($"Missile approaching max distance: {distanceTraveled}/{maxDistance}");
         }
         
         base.FixedUpdate();
@@ -88,7 +88,7 @@ public class MissileProjectile : ProjectileBase, IDamageable
                     // Debug logging
                     if (Time.frameCount % 30 == 0) // Log every 30 frames
                     {
-                        RLog.Log($"Missile homing: pos={transform.position}, target={target.position}, toTarget={toTarget}, desiredDir={desiredDir}");
+                        RLog.Weapon($"Missile homing: pos={transform.position}, target={target.position}, toTarget={toTarget}, desiredDir={desiredDir}");
                     }
                 }
             }
@@ -137,7 +137,7 @@ public class MissileProjectile : ProjectileBase, IDamageable
     {
         base.OnHit(other);
         
-     /*   // Apply impact force to the other object's rigidbody
+        // Apply impact force to the other object's rigidbody
         if (rb && other?.gameObject)
         {
             Rigidbody otherRb = other.gameObject.GetComponent<Rigidbody>();
@@ -146,9 +146,9 @@ public class MissileProjectile : ProjectileBase, IDamageable
                 Vector3 forceDirection = rb.linearVelocity.normalized;
                 float forceMagnitude = rb.linearVelocity.magnitude * impactForceMultiplier;
                 otherRb.AddForce(forceDirection * forceMagnitude, ForceMode.Impulse);
-                RLog.Log($"Applied impact force to {other.gameObject.name}: {forceDirection * forceMagnitude}");
+                RLog.Weapon($"Applied impact force to {other.gameObject.name}: {forceDirection * forceMagnitude}");
             }
-        }*/
+        }
         
         Explode(other);
     }
@@ -187,7 +187,7 @@ public class MissileProjectile : ProjectileBase, IDamageable
             // Ignore the primary impact target (already handled in OnHit)
             if (other != null && dmg == other) continue;
 
-            RLog.Log($"Splash Hit {hit.name}");
+            RLog.Weapon($"Splash Hit {hit.name}");
             dmg.TakeDamage(splashDamage, mass, rb ? rb.linearVelocity : Vector3.zero, hit.ClosestPoint(transform.position), Shooter?.gameObject);
         }
 
@@ -197,7 +197,7 @@ public class MissileProjectile : ProjectileBase, IDamageable
     /* ───────────────────────── pooling ───────────────────────── */
     protected override void ReturnToPool()
     {
-        RLog.Log($"MissileProjectile returning to pool at position: {transform.position}");
+        RLog.Weapon($"MissileProjectile returning to pool at position: {transform.position}");
         target = null;
         Shooter = null;
 
