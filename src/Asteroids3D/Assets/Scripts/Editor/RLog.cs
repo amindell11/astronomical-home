@@ -47,7 +47,7 @@ public static class RLog
     public static void RLWarning(object message, Object context = null) => LogWarning(message, context);
     [Conditional("LOG_RL")]
     public static void RLError(object message, Object context = null) => LogError(message, context);
-    
+
     [Conditional("LOG_AI")]
     public static void AI(object message, Object context = null) => Log(message, context);
     [Conditional("LOG_AI")]

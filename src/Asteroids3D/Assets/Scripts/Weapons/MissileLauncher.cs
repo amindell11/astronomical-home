@@ -54,11 +54,9 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
         // Don't start locking if we have no ammo
         if (currentAmmo <= 0)
         {
-            RLog.Weapon("TryStartLock: No ammo available, cannot start lock.");
             return false;
         }
         
-        RLog.Weapon("TryStartLock: " + candidate);
         if (candidate == null) return false;
         if (state != LockState.Idle) return false;
 
@@ -71,7 +69,6 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
     /// <summary>Abort any ongoing or acquired lock.</summary>
     public void CancelLock()
     {
-        RLog.Weapon("CancelLock: Resetting lock.");
         ResetLock();
         state         = LockState.Idle;
     }
@@ -86,48 +83,34 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
     {
         switch (state)
         {
-            case LockState.Idle:
-                // Auto-scan for targets if not on cooldown and we have ammo.
-                if (Time.time >= nextFireTime && currentAmmo > 0)
-                {
-                    ScanForTarget();
-                }
-                break;
-            case LockState.Locking:
-                // Check if we still have ammo during locking
-                if (currentAmmo <= 0)
-                {
-                    RLog.Weapon("HandleLocking: Ran out of ammo during lock sequence. Cancelling lock.");
-                    CancelLock();
-                    break;
-                }
-                HandleLocking();
-                break;
-            case LockState.Locked:
-                // Check if we still have ammo while locked
-                if (currentAmmo <= 0)
-                {
-                    RLog.Weapon("HandleLocked: Ran out of ammo while locked. Cancelling lock.");
-                    CancelLock();
-                    break;
-                }
-                HandleLocked();
-                break;
-            case LockState.Cooldown:
-                if (Time.time >= nextFireTime)
-                {
-                    state = LockState.Idle;
-                }
-                break;
+            case LockState.Idle:     UpdateIdleState();     break;
+            case LockState.Locking:  UpdateLockingState();  break;
+            case LockState.Locked:   UpdateLockedState();   break;
+            case LockState.Cooldown: UpdateCooldownState(); break;
         }
     }
 
-    void HandleLocking()
+    void UpdateIdleState()
     {
-        if (!ValidateTarget(currentTarget))
+        // Auto-scan for targets if not on cooldown and we have ammo.
+        if (Time.time >= nextFireTime && currentAmmo > 0)
         {
-            RLog.Weapon("HandleLocking: Target became invalid. Cancelling lock.");
-            CancelLock(); return;
+            ScanForTarget();
+        }
+    }
+
+    void UpdateLockingState()
+    {
+        if (currentAmmo <= 0)
+        {
+            CancelLock();
+            return;
+        }
+
+        if (!IsTargetStillValid())
+        {
+            CancelLock();
+            return;
         }
 
         // Update indicator position & progress
@@ -136,36 +119,10 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
             currentTarget.Indicator.UpdateProgress(LockProgress);
         }
 
-        // Check continuous LOS via raycast
-        Vector3 dir = currentTarget.TargetPoint.position - firePoint.position;
-        float dist = dir.magnitude;
-        if (dist > maxLockDistance)
-        {
-            RLog.Weapon($"HandleLocking: Target out of range ({dist}m > {maxLockDistance}m). Cancelling lock.");
-            CancelLock();
-            return;
-        }
-        if (Physics.Raycast(firePoint.position, dir.normalized, out RaycastHit hit, maxLockDistance))
-        {
-            ITargetable hitTgt = hit.collider.GetComponentInParent<ITargetable>();
-            if (hitTgt != currentTarget)
-            {
-                RLog.Weapon($"HandleLocking: Line of sight to target lost. Hit '{hit.collider.name}' instead of '{currentTarget}'. Cancelling lock.");
-                CancelLock();
-                return;
-            }
-        }
-        else
-        {
-            RLog.Weapon("HandleLocking: Raycast towards target did not hit anything. Cancelling lock.");
-            CancelLock(); return;
-        }
-
         lockTimer += Time.deltaTime;
         if (lockTimer >= lockOnTime)
         {
-            RLog.Weapon("Locking complete: " + currentTarget);
-            state            = LockState.Locked;
+            state = LockState.Locked;
             lockAcquiredTime = Time.time;
 
             // Notify indicator of complete lock
@@ -176,20 +133,70 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
         }
     }
 
-    void HandleLocked()
+    void UpdateLockedState()
     {
-        if (!ValidateTarget(currentTarget)) { CancelLock(); return; }
-        float dist = Vector3.Distance(currentTarget.TargetPoint.position, transform.position);
+        if (currentAmmo <= 0)
+        {
+            CancelLock();
+            return;
+        }
+        
+        bool lockExpired = Time.time - lockAcquiredTime > lockExpiry;
+        if (lockExpired || !IsTargetStillValid())
+        {
+            if (lockExpired) RLog.Weapon("Lock expired.");
+            CancelLock();
+        }
+    }
+    
+    void UpdateCooldownState()
+    {
+        if (Time.time >= nextFireTime)
+        {
+            state = LockState.Idle;
+        }
+    }
+    
+    /// <summary>Checks if the current target is still valid for locking.</summary>
+    bool IsTargetStillValid()
+    {
+        if (!ValidateTarget(currentTarget))
+        {
+            return false;
+        }
+
+        Vector3 dirToTarget = currentTarget.TargetPoint.position - firePoint.position;
+        float dist = dirToTarget.magnitude;
+
+        // Distance check
         if (dist > maxLockDistance)
         {
-            RLog.Weapon("Out of range");
-            CancelLock();
+            RLog.Weapon("Target out of max lock distance.");
+            return false;
         }
-        if (Time.time - lockAcquiredTime > lockExpiry)
+
+        // Angle check
+        float angle = Vector3.Angle(firePoint.up, dirToTarget.normalized);
+        if (angle > lockOnConeAngle / 2f)
         {
-            RLog.Weapon("Lock expired");
-            CancelLock();
+            RLog.Weapon("Target out of lock cone.");
+            return false;
         }
+
+        // Line of sight check
+        if (Physics.Raycast(firePoint.position, dirToTarget.normalized, out RaycastHit hit, dist))
+        {
+            // If we hit something, it must be our target.
+            ITargetable hitTgt = hit.collider.GetComponentInParent<ITargetable>();
+            if (hitTgt != currentTarget)
+            {
+                RLog.Weapon($"Target occluded by {hit.collider.name}.");
+                return false;
+            }
+        }
+        // If the raycast doesn't hit anything, it means clear line of sight up to the target's distance.
+
+        return true;
     }
 
     /// <summary>Resets all locking-related state variables without changing the main FSM state.</summary>
