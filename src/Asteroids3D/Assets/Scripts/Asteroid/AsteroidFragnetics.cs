@@ -316,7 +316,9 @@ public class AsteroidFragnetics : MonoBehaviour
     }
 
     /// <summary>
-    /// Original synchronous version of fragment physics calculation (for direct version)
+    /// Unified synchronous wrapper that executes the coroutine physics calculation to completion.
+    /// This removes duplicated logic while still preserving the multi-yield behaviour when run
+    /// as an actual coroutine.
     /// </summary>
     private (Vector3[] velocities, Vector3[] spins) CalculateFragmentPhysics(
         Asteroid asteroid,
@@ -328,70 +330,34 @@ public class AsteroidFragnetics : MonoBehaviour
         Vector3 vBullet
     )
     {
-        var velocities = new Vector3[fragmentCount];
-        var spins = new Vector3[fragmentCount];
-        var spinJitter = new Vector3[fragmentCount];
+        FragmentPhysicsResult result = null;
 
-        /* ───────── pass #1 : build raw velocities & gather sums ───────── */
-        Vector3 center = asteroid.transform.position;
-        Vector3 vAst = asteroid.Rb.linearVelocity;
-        Vector3 bulletDir = (vBullet - vAst).normalized;
-        float relSpeed = (vBullet - vAst).magnitude;
+        // Re-use the coroutine implementation but drive it to completion synchronously.
+        IEnumerator routine = CalculateFragmentPhysicsCoroutine(
+            asteroid,
+            fragmentCount,
+            masses,
+            positions,
+            P_total,
+            L_total,
+            vBullet,
+            r => result = r
+        );
 
-        float M_tot = 0f;
-        Vector3 P_frag = Vector3.zero;
-        Vector3 Mr_sum = Vector3.zero;
-        Vector3 L_orbit = Vector3.zero;
-        float I_tot = 0f;
-
-        for (int i = 0; i < fragmentCount; ++i)
+        // Manually iterate the coroutine until it finishes. This preserves the internal
+        // yield structure for the coroutine path while avoiding code duplication.
+        while (routine.MoveNext())
         {
-            /* ---- directional kick ---- */
-            Vector3 outward = (positions[i] - center).normalized;
-            Vector3 random = UnityEngine.Random.insideUnitSphere.normalized;
-
-            Vector3 dir = (outwardBias * outward +
-                           bulletBias * bulletDir +
-                           randomBias * random).normalized;
-
-            float speed = baseSeparationSpeed * relSpeed
-                        * UnityEngine.Random.Range(0.8f, 1.2f);
-
-            velocities[i] = vAst + dir * speed;
-
-            /* ---- accumulate for momentum bookkeeping ---- */
-            M_tot += masses[i];
-            P_frag += masses[i] * velocities[i];
-
-            Vector3 r = positions[i] - center;
-            Mr_sum += masses[i] * r;
-            L_orbit += Vector3.Cross(r, masses[i] * velocities[i]);
-
-            float radius = Mathf.Pow(masses[i], 1f / 3f);
-            I_tot += 0.4f * masses[i] * radius * radius;
-
-            /* ---- store per-piece spin noise ---- */
-            spinJitter[i] = UnityEngine.Random.insideUnitSphere * spinVariation;
+            // Intentionally empty – advances the iterator immediately in the same frame.
         }
 
-        /* ───────── momentum correction (single vector) ───────── */
-        Vector3 vCorr = (P_total - P_frag) * explosiveLossFactor / M_tot;
-
-        /* adjust orbital L by analytical Δ (mass-weighted COM offset × vCorr) */
-        L_orbit += Vector3.Cross(Mr_sum, vCorr);
-
-        /* ───────── compute common base spin ω_base ───────── */
-        Vector3 L_spin = (L_total - L_orbit) * explosiveLossFactor;
-        Vector3 ω_base = I_tot > 0f ? L_spin / I_tot : Vector3.zero;
-
-        /* ───────── pass #2 : apply correction & finalise spin ───────── */
-        for (int i = 0; i < fragmentCount; ++i)
+        // Fallback guard – should always be populated by the coroutine.
+        if (result == null)
         {
-            velocities[i] += vCorr;
-            spins[i] = ω_base + spinJitter[i];
+            return (new Vector3[fragmentCount], new Vector3[fragmentCount]);
         }
 
-        return (velocities, spins);
+        return (result.velocities, result.spins);
     }
     
     /// <summary>
