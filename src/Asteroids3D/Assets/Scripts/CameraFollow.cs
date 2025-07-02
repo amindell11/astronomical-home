@@ -11,7 +11,7 @@ public class CameraFollow : MonoBehaviour
 
     [Header("Movement")]
     [SerializeField] private Vector3 offset = new Vector3(0, 0, -10f); // Offset expressed in GamePlane basis (x=Right, y=Forward, z=Normal)
-    [SerializeField] [Min(0f)] private float smoothSpeed = 5f;         // Higher is snappier
+    [SerializeField] [Min(0f)] private float smoothTime = 0.15f;       // Approx. time to reach target. Smaller is snappier.
 
     [Header("Zoom (Orthographic Size)")]
     [SerializeField] private float minZoom = 5f;
@@ -31,6 +31,8 @@ public class CameraFollow : MonoBehaviour
     protected Camera _cam;
     private float _refreshTimer;
     protected Transform _player;
+    private Vector3 _dampVelocity;
+    private float _zoomVelocity;
 
     protected virtual void Awake()
     {
@@ -72,7 +74,7 @@ public class CameraFollow : MonoBehaviour
         }
     }
 
-    private void LateUpdate()
+    private void FixedUpdate()
     {
         if (_targets.Count == 0) return;
 
@@ -87,7 +89,6 @@ public class CameraFollow : MonoBehaviour
         // 2. Determine required orthographic size
         float preferredSize = Mathf.Max(height * 0.5f, width * 0.5f / _cam.aspect) + padding;
         float clampedSize   = Mathf.Clamp(preferredSize, minZoom, maxZoom);
-        float newSize       = Mathf.Lerp(_cam.orthographicSize, clampedSize, smoothSpeed * Time.unscaledDeltaTime);
 
         // 3. Desired camera position (center of targets + offset expressed in plane basis)
         Vector3 worldCenter  = GamePlane.PlaneToWorld(center2D);
@@ -97,8 +98,8 @@ public class CameraFollow : MonoBehaviour
         // 4. Keep player within view (operate in plane space)
         if (keepPlayerInView && _player != null)
         {
-            float horizontalExtent = newSize * _cam.aspect;
-            float verticalExtent   = newSize;
+            float horizontalExtent = clampedSize * _cam.aspect;
+            float verticalExtent   = clampedSize;
 
             Vector3 toPlayerWorld  = _player.position - desiredPos;
             Vector2 toPlayer2D     = new Vector2(Vector3.Dot(toPlayerWorld, GamePlane.Right),
@@ -118,8 +119,8 @@ public class CameraFollow : MonoBehaviour
         }
 
         // 5. Smooth movement & zoom
-        transform.position      = Vector3.Lerp(transform.position, desiredPos, smoothSpeed * Time.unscaledDeltaTime);
-        _cam.orthographicSize   = newSize;
+        transform.position      = Vector3.SmoothDamp(transform.position, desiredPos, ref _dampVelocity, smoothTime, float.PositiveInfinity, Time.unscaledDeltaTime);
+        _cam.orthographicSize   = Mathf.SmoothDamp(_cam.orthographicSize, clampedSize, ref _zoomVelocity, smoothTime, float.PositiveInfinity, Time.unscaledDeltaTime);
 
         // 6. Ensure camera orientation follows the plane
         transform.rotation = Quaternion.LookRotation(GamePlane.Normal, GamePlane.Forward);

@@ -27,6 +27,15 @@ public abstract class ProjectileBase : MonoBehaviour
     public IShooter Shooter { get; set; }
 
     public float Damage => damage;
+
+    /// <summary>
+    /// Initialize the projectile with its shooter. Override in subclasses for custom initialization.
+    /// </summary>
+    /// <param name="shooter">The entity that fired this projectile</param>
+    public virtual void Initialize(IShooter shooter)
+    {
+        Shooter = shooter;
+    }
     
     /* ───────────────────────── Unity callbacks ───────────────────────── */
     protected virtual void OnEnable()

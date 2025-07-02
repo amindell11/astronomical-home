@@ -47,9 +47,20 @@ public class MissileProjectile : ProjectileBase, IDamageable
     {
         RLog.Weapon($"MissileProjectile OnEnable at position: {transform.position}, rotation: {transform.rotation}");
         base.OnEnable();
-        // Initial straight velocity
+        // Note: Shooter-dependent initialization moved to Initialize() method
+    }
+
+    /// <summary>
+    /// Initialize the missile with its shooter and set initial velocity.
+    /// This must be called after OnEnable.
+    /// </summary>
+    public override void Initialize(IShooter shooter)
+    {
+        base.Initialize(shooter);
+        
         if (rb) 
         {
+            RLog.Weapon($"Shooter: "+Shooter);
             Vector3 shooterVelocity = (Shooter != null) ? Shooter.Velocity : Vector3.zero;
             rb.linearVelocity = transform.up * initialSpeed + shooterVelocity;
             RLog.Weapon($"Missile initial velocity set to: {rb.linearVelocity}, speed: {initialSpeed}");

@@ -23,15 +23,13 @@ Material:
   m_Name: ShipMaterial Variant
   m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
   m_Parent: {fileID: 2100000, guid: 441b9bcdbc762624fa1e2538e34004f4, type: 2}
-  m_ModifiedSerializedProperties: 0
+  m_ModifiedSerializedProperties: 2
   m_ValidKeywords:
   - _DETAIL_SCALED
   - _EMISSION
   - _METALLICSPECGLOSSMAP
-  - _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-  - _SPECULAR_SETUP
   m_InvalidKeywords: []
-  m_LightmapFlags: 4
+  m_LightmapFlags: 1
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
@@ -49,9 +47,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _DetailAlbedoMapScale: 0.33
-    - _Smoothness: 0.619
-    - _SmoothnessTextureChannel: 1
+    - _DetailAlbedoMapScale: 0.417
+    - _Smoothness: 0.934
+    - _SmoothnessTextureChannel: 0
+    - _WorkflowMode: 1
     m_Colors:
     - _EmissionColor: {r: 33.896763, g: 33.896763, b: 33.896763, a: 1}
   m_BuildTextureStacks: []

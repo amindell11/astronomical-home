@@ -22,6 +22,7 @@ public abstract class LauncherBase<TProj> : WeaponComponent where TProj : Projec
     protected virtual void Awake()
     {
         shooter = GetComponentInParent<IShooter>();
+        RLog.Weapon($"BaseWeapon Shooter: {shooter}");
         if (!firePoint) firePoint = transform;
     }
 
@@ -43,8 +44,8 @@ public abstract class LauncherBase<TProj> : WeaponComponent where TProj : Projec
         // Grab instance from pool and stamp shooter reference
         TProj proj = SimplePool<TProj>.Get(projectilePrefab, firePoint.position, firePoint.rotation);
 
-        // Assign our cached IShooter reference to the projectile.
-        proj.Shooter = shooter;
+        // Initialize projectile with shooter (all projectiles now have Initialize method)
+        proj.Initialize(shooter);
 
         return proj;
     }
