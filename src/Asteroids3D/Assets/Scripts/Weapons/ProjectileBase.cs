@@ -89,7 +89,7 @@ public abstract class ProjectileBase : MonoBehaviour
                 return;
             }
         }
-        other.TakeDamage(damage, mass, impactVelocity, transform.position, Shooter?.gameObject);
+        if(other!=null) other.TakeDamage(damage, mass, impactVelocity, transform.position, Shooter?.gameObject);
         SpawnHitVFX();
         ReturnToPool();
     }

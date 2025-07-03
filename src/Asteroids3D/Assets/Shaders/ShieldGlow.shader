@@ -7,6 +7,7 @@ Shader "UI/ShieldGlow"
         _Softness   ("Edge Soft",   Range(0,0.5)) = 0.05
         _GlowPower  ("Fresnel Pow", Range(1,8)) = 3
         _GlowIntensity ("Glow Intensity", Range(0,10)) = 2
+        [HDR]_EmissionColor ("Emission Color", Color) = (0,0,0,0)
     }
     SubShader
     {
@@ -25,6 +26,7 @@ Shader "UI/ShieldGlow"
 
             fixed4 _Color;
             float  _Thickness, _Softness, _GlowPower, _GlowIntensity;
+            fixed4 _EmissionColor;
 
             v2f vert (appdata v)
             {
@@ -40,7 +42,10 @@ Shader "UI/ShieldGlow"
                 float edge = 1 - smoothstep(_Thickness, _Thickness + _Softness, abs(r - 1 + _Thickness));
                 // Fresnel-ish: fade by view-angle modulated radius
                 float fres = pow(1 - saturate(r), _GlowPower);
-                return _Color * edge * fres * _GlowIntensity;
+                fixed4 shieldCol = _Color * edge * fres * _GlowIntensity;
+                // Add emission so bloom can pick up bright HDR values
+                shieldCol.rgb += _EmissionColor.rgb * edge * fres; // scale emission by same mask
+                return shieldCol;
             }
             ENDCG
         }

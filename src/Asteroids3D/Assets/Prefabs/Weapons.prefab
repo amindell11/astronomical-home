@@ -55,7 +55,7 @@ MonoBehaviour:
   heatPerShot: 20
   coolingRate: 25
   coolDownDelay: 0.5
-  overheatPenaltyTime: 1.5
+  overheatPenaltyTime: 1
 --- !u!114 &6163532337615410854
 MonoBehaviour:
   m_ObjectHideFlags: 0
