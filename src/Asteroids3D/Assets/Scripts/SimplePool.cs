@@ -70,4 +70,29 @@ public static class SimplePool<T> where T : MonoBehaviour
     /// Get current pool size for debugging
     /// </summary>
     public static int PoolSize => pool.Count;
+}
+
+/// <summary>
+/// Global pool management utilities
+/// </summary>
+public static class SimplePoolManager
+{
+    /// <summary>
+    /// Clear all pools of all types - useful for scene transitions
+    /// </summary>
+    public static void ClearAllPools()
+    {
+        // Use reflection to find all generic pool types and clear them
+        var poolTypes = new System.Type[]
+        {
+            typeof(SimplePool<>).MakeGenericType(typeof(PooledAudioSource)),
+            // Add other commonly used pooled types here as needed
+        };
+
+        foreach (var poolType in poolTypes)
+        {
+            var clearMethod = poolType.GetMethod("Clear", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            clearMethod?.Invoke(null, null);
+        }
+    }
 } 

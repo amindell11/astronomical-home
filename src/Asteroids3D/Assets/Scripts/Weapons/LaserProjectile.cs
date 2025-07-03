@@ -4,20 +4,8 @@ public class LaserProjectile : ProjectileBase
 {
     [Header("Laser Properties")]
     [SerializeField] private float laserSpeed = 20f;
-    [SerializeField] private AudioClip laserSound;
-    [SerializeField] private float laserVolume = 0.5f;
 
     /* ───────────────────────── Unity callbacks ───────────────────────── */
-    protected override void OnEnable()
-    {
-        base.OnEnable();
-
-        if (laserSound)
-        {
-            AudioSource.PlayClipAtPoint(laserSound, transform.position, laserVolume);
-        }
-    }
-
     /// <summary>
     /// Initialize the laser with its shooter and set velocity with relative motion.
     /// </summary>

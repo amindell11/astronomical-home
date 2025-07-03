@@ -139,7 +139,7 @@ public class Asteroid : MonoBehaviour, IDamageable, ITargetable
         }
         if (explosionSound != null)
         {
-            AudioSource.PlayClipAtPoint(explosionSound, transform.position, explosionVolume);
+            PooledAudioSource.PlayClipAtPoint(explosionSound, transform.position, explosionVolume);
         }
     }
 

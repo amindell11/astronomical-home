@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 8752571619316856911}
   - component: {fileID: 8323755265108850685}
   - component: {fileID: 4368679400082138271}
+  - component: {fileID: 5082111559182030622}
   m_Layer: 7
   m_Name: Ship
   m_TagString: Ship
@@ -136,6 +137,103 @@ MonoBehaviour:
   source: {fileID: 0}
   flashColor: {r: 1, g: 0, b: 0, a: 1}
   flashTime: 0.15
+--- !u!82 &5082111559182030622
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 579888702181409527}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &2915261707296390090
 GameObject:
   m_ObjectHideFlags: 0
@@ -25192,22 +25290,7 @@ PrefabInstance:
     - target: {fileID: 833844591557823207, guid: 6b9f7584524aea1439de28cef97b66d0,
         type: 3}
       propertyPath: m_Name
-      value: LaserGun
-      objectReference: {fileID: 0}
-    - target: {fileID: 833844591557823207, guid: 6b9f7584524aea1439de28cef97b66d0,
-        type: 3}
-      propertyPath: m_Layer
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 833844591557823207, guid: 6b9f7584524aea1439de28cef97b66d0,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 833844591557823207, guid: 6b9f7584524aea1439de28cef97b66d0,
-        type: 3}
-      propertyPath: m_TagString
-      value: Player
+      value: Weapons
       objectReference: {fileID: 0}
     - target: {fileID: 2312841303772852893, guid: 6b9f7584524aea1439de28cef97b66d0,
         type: 3}
@@ -25259,46 +25342,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 8500594393069103525, guid: 6b9f7584524aea1439de28cef97b66d0,
-        type: 3}
-      propertyPath: shootSound
-      value: 
-      objectReference: {fileID: 8300000, guid: d54f219e0c3bffe499e781b446873247, type: 3}
-    - target: {fileID: 8500594393069103525, guid: 6b9f7584524aea1439de28cef97b66d0,
-        type: 3}
-      propertyPath: coolingRate
-      value: 25
-      objectReference: {fileID: 0}
-    - target: {fileID: 8500594393069103525, guid: 6b9f7584524aea1439de28cef97b66d0,
-        type: 3}
-      propertyPath: heatPerShot
-      value: 20
-      objectReference: {fileID: 0}
-    - target: {fileID: 8500594393069103525, guid: 6b9f7584524aea1439de28cef97b66d0,
-        type: 3}
-      propertyPath: laserPrefab
-      value: 
-      objectReference: {fileID: 5408995189547049293, guid: d4f6577bb30c48945a17243a523023ff,
-        type: 3}
-    - target: {fileID: 8500594393069103525, guid: 6b9f7584524aea1439de28cef97b66d0,
-        type: 3}
-      propertyPath: projectilePrefab
-      value: 
-      objectReference: {fileID: 5408995189547049293, guid: d4f6577bb30c48945a17243a523023ff,
-        type: 3}
-    - target: {fileID: 8500594393069103525, guid: 6b9f7584524aea1439de28cef97b66d0,
-        type: 3}
-      propertyPath: overheatPenaltyTime
-      value: 1.5
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 833844591557823207, guid: 6b9f7584524aea1439de28cef97b66d0,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 5843065802384296613}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6b9f7584524aea1439de28cef97b66d0, type: 3}
 --- !u!4 &1601733862368084420 stripped
 Transform:
@@ -25306,33 +25353,6 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 3900782066535592793}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &4445111809560426942 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 833844591557823207, guid: 6b9f7584524aea1439de28cef97b66d0,
-    type: 3}
-  m_PrefabInstance: {fileID: 3900782066535592793}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &5843065802384296613
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4445111809560426942}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 32038f0f86ed0d4499ba9134de2c016e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  projectilePrefab: {fileID: -6854199025283548723, guid: 5615e4673e17c104384d4c8493c5d42b,
-    type: 3}
-  firePoint: {fileID: 1601733862368084420}
-  fireRate: 5
-  lockOnConeAngle: 30
-  lockOnTime: 0.6
-  lockExpiry: 3
-  maxLockDistance: 30
-  maxAmmo: 2
 --- !u!1001 &6527216232684025975
 PrefabInstance:
   m_ObjectHideFlags: 0

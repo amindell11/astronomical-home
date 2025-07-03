@@ -14,7 +14,7 @@
 4. **CameraFollow – avoid full-scene scans** ✅ COMPLETE  
    Replace `FindObjectsByType<Transform>` with a static list of ships that register in `OnEnable/OnDisable` (or tag lookup).
 
-5. **Audio one-shot pooling**  
+5. **Audio one-shot pooling** ✅ COMPLETE  
    Replace `AudioSource.PlayClipAtPoint` with a small pooled/hidden `AudioSource` to avoid per-shot GameObject churn.
 
 6. **MissileLauncher raycasts**  
@@ -26,13 +26,10 @@
 8. **Asteroid.UpdateMeshCollider**  
    Skip assignment if `sharedMesh` already correct.
 
-9. **Remove missile distance debug spam**  
-   Editor-gate or delete the warning inside `MissileProjectile.FixedUpdate`.
-
 10. **PlayerShipInput mouse work**  
     Early-out of `GetMouseWorldPosition` when `useMouseDirection` is false.
 
-11. **SimplePool memory ceiling**  
+11. **SimplePool memory ceiling** ✅ COMPLETE  
     Provide a `ClearAllPools()` call on scene unload to avoid stack growth over time.
 
 12. **Physics queries hit-triggers toggle**  

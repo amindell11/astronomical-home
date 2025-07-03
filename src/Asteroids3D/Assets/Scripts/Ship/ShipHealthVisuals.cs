@@ -75,7 +75,9 @@ public class ShipHealthVisuals : MonoBehaviour
                 Instantiate(explosionPrefab, transform.position, Quaternion.identity);
         }
         if (explosionSound)
-            AudioSource.PlayClipAtPoint(explosionSound, transform.position, explosionVolume);
+        {
+            PooledAudioSource.PlayClipAtPoint(explosionSound, transform.position, explosionVolume);
+        }
     }
 
     void OnHealthChanged(float current, float previous, float max)
