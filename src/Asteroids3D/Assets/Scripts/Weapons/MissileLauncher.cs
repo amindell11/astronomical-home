@@ -189,19 +189,16 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
             return false;
         }
 
-        // Line of sight check - optimized with RaycastNonAlloc
-        int hitCount = Physics.RaycastNonAlloc(firePoint.position, dirToTarget.normalized, raycastBuffer, dist);
-        if (hitCount > 0)
+        // Line of sight check – shared utility
+        bool losClear = LineOfSightUtility.HasLineOfSight(
+                            firePoint.position,
+                            currentTarget.TargetPoint.position,
+                            currentTarget.TargetPoint.root);
+        if (!losClear)
         {
-            // If we hit something, it must be our target.
-            ITargetable hitTgt = raycastBuffer[0].collider.GetComponentInParent<ITargetable>();
-            if (hitTgt != currentTarget)
-            {
-                RLog.Weapon($"Target occluded by {raycastBuffer[0].collider.name}.");
-                return false;
-            }
+            RLog.Weapon("Target occluded.");
+            return false;
         }
-        // If the raycast doesn't hit anything, it means clear line of sight up to the target's distance.
 
         return true;
     }

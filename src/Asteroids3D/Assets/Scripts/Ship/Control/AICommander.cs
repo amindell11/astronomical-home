@@ -270,17 +270,14 @@ public class AICommander : MonoBehaviour, IShipCommandSource
         {
             RLog.AI($"[AI-{name}] LOS: Performing raycast (frame={f}, lastFrame={losFrame}, cache={lineOfSightCacheFrames})");
             
-            cachedLOS = !Physics.Raycast(firePos, dir.normalized,
-                                         dist, lineOfSightMask)
-                         || Physics.Raycast(firePos, dir.normalized,
-                                            out var hit, dist, lineOfSightMask)
-                            && hit.transform.root == GetTargetTransform()?.root;
+            // Use shared utility for LOS calculation to avoid duplicate code.
+            cachedLOS = LineOfSightUtility.HasLineOfSight(
+                            firePos,
+                            targetPos,
+                            GetTargetTransform()?.root,
+                            lineOfSightMask);
 
-            RLog.AI($"[AI-{name}] LOS: Raycast result = {cachedLOS}, mask={lineOfSightMask.value} (should be Asteroid layer only)");
-            if (Physics.Raycast(firePos, dir.normalized, out var debugHit, dist, lineOfSightMask))
-            {
-                RLog.AI($"[AI-{name}] LOS: Hit object '{debugHit.collider.name}' at distance {debugHit.distance:F1}, layer={LayerMask.LayerToName(debugHit.collider.gameObject.layer)}");
-            }
+            RLog.AI($"[AI-{name}] LOS: Utility result = {cachedLOS}, mask={lineOfSightMask.value}");
 
             losFrame   = f;
             lastRayPos = firePos;
