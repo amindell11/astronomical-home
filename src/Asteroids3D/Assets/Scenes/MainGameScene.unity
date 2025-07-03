@@ -10603,6 +10603,12 @@ ParticleSystem:
         m_PostInfinity: 2
         m_RotationOrder: 4
     vectorLabel1_3: W
+--- !u!1 &482295583 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5100611748941008240, guid: cade7246a6fb1b64e82fbb5aac398631,
+    type: 3}
+  m_PrefabInstance: {fileID: 6496191551019495530}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &537070491
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10853,6 +10859,9 @@ MonoBehaviour:
   source: {fileID: 0}
   flashColor: {r: 1, g: 1, b: 1, a: 1}
   flashTime: 0.15
+  explosionPrefab: {fileID: 0}
+  explosionSound: {fileID: 0}
+  explosionVolume: 0
 --- !u!1 &570138350
 GameObject:
   m_ObjectHideFlags: 0
@@ -16721,22 +16730,6 @@ MonoBehaviour:
   asteroidPrefab: {fileID: 1706132292860893391, guid: f0cce3a0c284df24db1283dd96c8c4b0,
     type: 3}
   spawnSettings: {fileID: 11400000, guid: 31325b171e42d6d4980a0132e0d6ba36, type: 2}
-  asteroidMeshes:
-  - {fileID: 4300002, guid: b9abf17990865d84d957cad76e0ef253, type: 3}
-  - {fileID: 4300002, guid: d4c53db4e0fa7574780103191e68af14, type: 3}
-  - {fileID: 4300002, guid: 127d9b96ff58d1b4b9065c4c5dd61bf7, type: 3}
-  - {fileID: 4300002, guid: ef9b76a518ed31849a8df7d663a884d7, type: 3}
-  - {fileID: 4300002, guid: 51285045b24057840b42c198e5646608, type: 3}
-  - {fileID: 3411358422082959462, guid: 75b67b4cd87807048a98c76e5f38195f, type: 3}
-  - {fileID: 7119021798599043449, guid: ebf1104f43b4e3648b610d6b2401b58b, type: 3}
-  - {fileID: 3092230747750993970, guid: 836cfe485691a78478ee794eb9674e97, type: 3}
-  - {fileID: -2966159164897359132, guid: ebc43c11b646d06489156d9f564899e8, type: 3}
-  - {fileID: 8798366265156884017, guid: fa76ef86a0c8e6e4f817ec7f96dcb131, type: 3}
-  massScaleRange: {x: 0.5, y: 2}
-  velocityRange: {x: 0.5, y: 1.5}
-  spinRange: {x: -0.4, y: 0.4}
-  defaultPoolCapacity: 50
-  maxPoolSize: 100
 --- !u!1 &1803324464 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5100611748941008240, guid: cade7246a6fb1b64e82fbb5aac398631,
@@ -27468,6 +27461,79 @@ PrefabInstance:
         type: 3}
       propertyPath: flashColor.r
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8267024228170733342, guid: cade7246a6fb1b64e82fbb5aac398631,
+        type: 3}
+      propertyPath: m_Graph
+      value: 
+      objectReference: {fileID: -8548647000404242947, guid: 30c943b7357165f44bac5e5f18907209,
+        type: 2}
+    - target: {fileID: 8267024228170733342, guid: cade7246a6fb1b64e82fbb5aac398631,
+        type: 3}
+      propertyPath: 'managedReferences[7820444745128476838]'
+      value: 'Unity.Behavior Unity.Behavior.BlackboardVariable`1[[UnityEngine.GameObject,
+        UnityEngine.CoreModule]]'
+      objectReference: {fileID: 0}
+    - target: {fileID: 8267024228170733342, guid: cade7246a6fb1b64e82fbb5aac398631,
+        type: 3}
+      propertyPath: 'managedReferences[7820444745128476839]'
+      value: 'Unity.Behavior Unity.Behavior.BlackboardVariable`1[[AIShipBehaviorStates,
+        Game.AI]]'
+      objectReference: {fileID: 0}
+    - target: {fileID: 8267024228170733342, guid: cade7246a6fb1b64e82fbb5aac398631,
+        type: 3}
+      propertyPath: managedReferences[7820444745128476838].Name
+      value: Self
+      objectReference: {fileID: 0}
+    - target: {fileID: 8267024228170733342, guid: cade7246a6fb1b64e82fbb5aac398631,
+        type: 3}
+      propertyPath: managedReferences[7820444745128476839].Name
+      value: State
+      objectReference: {fileID: 0}
+    - target: {fileID: 8267024228170733342, guid: cade7246a6fb1b64e82fbb5aac398631,
+        type: 3}
+      propertyPath: m_BlackboardVariableOverridesList.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8267024228170733342, guid: cade7246a6fb1b64e82fbb5aac398631,
+        type: 3}
+      propertyPath: managedReferences[7820444745128476838].m_Value
+      value: 
+      objectReference: {fileID: 482295583}
+    - target: {fileID: 8267024228170733342, guid: cade7246a6fb1b64e82fbb5aac398631,
+        type: 3}
+      propertyPath: managedReferences[7820444745128476839].m_Value
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8267024228170733342, guid: cade7246a6fb1b64e82fbb5aac398631,
+        type: 3}
+      propertyPath: 'm_BlackboardVariableOverridesList.Array.data[0]'
+      value: 7820444745128476838
+      objectReference: {fileID: 0}
+    - target: {fileID: 8267024228170733342, guid: cade7246a6fb1b64e82fbb5aac398631,
+        type: 3}
+      propertyPath: 'm_BlackboardVariableOverridesList.Array.data[1]'
+      value: 7820444745128476839
+      objectReference: {fileID: 0}
+    - target: {fileID: 8267024228170733342, guid: cade7246a6fb1b64e82fbb5aac398631,
+        type: 3}
+      propertyPath: managedReferences[7820444745128476838].GUID.m_Value0
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8267024228170733342, guid: cade7246a6fb1b64e82fbb5aac398631,
+        type: 3}
+      propertyPath: managedReferences[7820444745128476838].GUID.m_Value1
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8267024228170733342, guid: cade7246a6fb1b64e82fbb5aac398631,
+        type: 3}
+      propertyPath: managedReferences[7820444745128476839].GUID.m_Value0
+      value: 8465853203463756410
+      objectReference: {fileID: 0}
+    - target: {fileID: 8267024228170733342, guid: cade7246a6fb1b64e82fbb5aac398631,
+        type: 3}
+      propertyPath: managedReferences[7820444745128476839].GUID.m_Value1
+      value: 15439274212858005133
       objectReference: {fileID: 0}
     - target: {fileID: 8319585903989700153, guid: cade7246a6fb1b64e82fbb5aac398631,
         type: 3}

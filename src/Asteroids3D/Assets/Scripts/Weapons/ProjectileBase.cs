@@ -80,6 +80,15 @@ public abstract class ProjectileBase : MonoBehaviour
         RLog.Weapon($"applying {damage} damage to {other.gameObject.name}");
         
         Vector3 impactVelocity = rb ? rb.linearVelocity : Vector3.zero;
+        // If the other is a projectile and has a shooter, check if it's the same as our shooter. If so, skip TakeDamage.
+        var otherProjectile = other as ProjectileBase;
+        if (otherProjectile != null && otherProjectile.Shooter != null)
+        {
+            if (otherProjectile.Shooter == Shooter)
+            {
+                return;
+            }
+        }
         other.TakeDamage(damage, mass, impactVelocity, transform.position, Shooter?.gameObject);
         SpawnHitVFX();
         ReturnToPool();

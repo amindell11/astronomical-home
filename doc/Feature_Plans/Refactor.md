@@ -3,12 +3,6 @@
 > 30 000-foot view of redundant patterns and quick simplifications identified across the codebase.  Nothing here changes gameplay yet—it is a shopping list of "easy wins" for a future cleanup sprint.
 
 ---
-
-
-
-6. **Scattered physics buffers**  
-   Dozens of scripts declare their own static `Collider[] hitBuffer = ...`.  Provide a tiny pooled helper (`PhysicsBuffers`) so buffer size & allocation policy live in one spot.
-
 3. **Boundary logic duplication**  
    `ArenaInstance.CheckAgentBoundaries()` and `OnTriggerExit()` both end episodes & assign rewards.  Consolidate into one `BoundaryService` to avoid double penalties and scattered rules.
 
