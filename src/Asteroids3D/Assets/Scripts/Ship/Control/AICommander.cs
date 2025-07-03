@@ -436,8 +436,19 @@ public class AICommander : MonoBehaviour, IShipCommandSource
         // Velocity of the waypoint (if it's a ship or waypoint)
         Vector2 wpVel = GetTargetVelocity();
 
-        // Provide PathPlanner's desired velocity so we still benefit from avoidance, but include waypoint velocity for braking.
-        var vpIn = new VelocityPilot.Input(kin, goal2D, ppOut.desiredVelocity, wpVel, currentMaxSpeed);
+        // Build per-ship steering tuning from the ShipSettings asset, so that
+        // heavier/slower ships automatically steer more gently while nimble
+        // fighters can react more aggressively.
+        float mass = myShip ? (myShip.GetComponent<Rigidbody>()?.mass ?? 1f) : 1f;
+        var settings = myShip?.settings;
+        SteeringTuning tuning = settings ?
+            new SteeringTuning(settings.forwardAcceleration / mass,
+                                settings.reverseAcceleration / mass,
+                                settings.maxStrafeForce   / mass,
+                                SteeringTuning.Default.DeadZone)
+            : SteeringTuning.Default;
+
+        var vpIn = new VelocityPilot.Input(kin, goal2D, ppOut.desiredVelocity, wpVel, currentMaxSpeed, tuning);
         var vpOut = VelocityPilot.Compute(vpIn);
         dbgPilot = vpOut;
         return vpOut;

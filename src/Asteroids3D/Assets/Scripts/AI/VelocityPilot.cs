@@ -3,38 +3,38 @@ using UnityEngine;
 public static class VelocityPilot
 {
     // --- Tunable Parameters ---
-    [Header("Tuning")]
-    [Tooltip("Maximum forward acceleration in m/s^2.")]
-    public static float ForwardAcceleration = 8.0f;
+    // ─────────────────────────────────────────────────────────────────────────────
+    // NOTE: Steering/acceleration tunables have been centralised in the new
+    //       SteeringConstants utility. Import the static class so we can use
+    //       ForwardAcceleration, ReverseAcceleration, etc. directly.
+    // ─────────────────────────────────────────────────────────────────────────────
 
-    [Tooltip("Maximum reverse acceleration in m/s^2.")]
-    public static float ReverseAcceleration = 4.0f;
-
-    [Tooltip("Maximum strafe acceleration in m/s^2.")]
-    public static float StrafeAcceleration = 6.0f;
-
-    [Tooltip("The dead zone for velocity errors, below which no thrust is applied.")]
-    public static float VelocityDeadZone = 0.1f;
-    
     // Note: MaxSpeed is read from the Ship component itself.
 
     // --- New typed IO structs for modular pipeline ---------------------------
     public readonly struct Input
     {
         public readonly ShipKinematics kin;
-        public readonly Vector2 waypoint;   // desired point in plane space
-        public readonly Vector2 desiredVel; // OR you can pass desiredVel directly
+        public readonly Vector2 waypoint;    // desired point in plane space
+        public readonly Vector2 desiredVel;  // OR you can pass desiredVel directly
         public readonly Vector2 waypointVel; // desired velocity at waypoint (for velocity matching)
         public readonly float   maxSpeed;
+        public readonly SteeringTuning tuning;
 
-        public Input(ShipKinematics k, Vector2 wp, Vector2 desiredVelocity, Vector2 wpVelocity, float max)
+        // Constructor that uses explicit tuning parameters (preferred)
+        public Input(ShipKinematics k, Vector2 wp, Vector2 desiredVelocity, Vector2 wpVelocity, float max, SteeringTuning tuning)
         {
             kin = k;
             waypoint = wp;
             desiredVel = desiredVelocity;
             waypointVel = wpVelocity;
             maxSpeed = max;
+            this.tuning = tuning;
         }
+
+        // Back-compat constructor – falls back to default tuning values.
+        public Input(ShipKinematics k, Vector2 wp, Vector2 desiredVelocity, Vector2 wpVelocity, float max)
+            : this(k, wp, desiredVelocity, wpVelocity, max, SteeringTuning.Default) {}
     }
 
     public readonly struct Output
@@ -65,15 +65,17 @@ public static class VelocityPilot
 
         float thrust, strafe, rot;
 
+        var tuning = i.tuning;
+
         if (desired != Vector2.zero)
         {
             // Convert desired velocity into an implicit waypoint step ahead.
             Vector2 wp = curPos + desired * 0.2f; // 0.2 s lead – arbitrary, tweak later
-            ComputeInputs(wp, curPos, curVel, forward, i.maxSpeed, i.waypointVel, out thrust, out strafe, out rot);
+            ComputeInputs(wp, curPos, curVel, forward, i.maxSpeed, i.waypointVel, tuning, out thrust, out strafe, out rot);
         }
         else
         {
-            ComputeInputs(i.waypoint, curPos, curVel, forward, i.maxSpeed, i.waypointVel, out thrust, out strafe, out rot);
+            ComputeInputs(i.waypoint, curPos, curVel, forward, i.maxSpeed, i.waypointVel, tuning, out thrust, out strafe, out rot);
         }
 
         return new Output(thrust, strafe, rot);
@@ -88,11 +90,13 @@ public static class VelocityPilot
     /// <param name="currentForward">Current ship forward direction (normalized) in 2D plane space.</param>
     /// <param name="maxSpeed">The maximum speed the ship can travel.</param>
     /// <param name="waypointVel">Desired velocity at waypoint (for velocity matching).</param>
+    /// <param name="tuning">Tuning parameters for the ship.</param>
     /// <param name="thrustCmd">Normalized forward/reverse thrust command [-1, 1].</param>
     /// <param name="strafeCmd">Normalized strafe command [-1, 1].</param>
     /// <param name="rotTargetDeg">The desired heading in degrees [0, 360].</param>
     public static void ComputeInputs(
         Vector2 waypoint, Vector2 currentPosition, Vector2 currentVelocity, Vector2 currentForward, float maxSpeed, Vector2 waypointVel,
+        SteeringTuning tuning,
         out float thrustCmd, out float strafeCmd, out float rotTargetDeg)
     {
         // 1. Compute Desired Velocity taking waypoint velocity into account
@@ -101,7 +105,7 @@ public static class VelocityPilot
         Vector2 directionToWaypoint = distanceToWaypoint > 0.01f ? vectorToWaypoint.normalized : Vector2.zero;
 
         // Maximum relative speed we can still lose over remaining distance with max decel
-        float maxRelativeSpeed = Mathf.Sqrt(2f * ForwardAcceleration * distanceToWaypoint);
+        float maxRelativeSpeed = Mathf.Sqrt(2f * tuning.ForwardAcc * distanceToWaypoint);
 
         // Desired relative speed (clamped to ship max)
         float desiredRelSpeed = Mathf.Min(maxRelativeSpeed, maxSpeed);
@@ -125,18 +129,18 @@ public static class VelocityPilot
         if (forwardError > 0)
         {
             // Need to accelerate forward
-            thrustCmd = forwardError / ForwardAcceleration;
+            thrustCmd = forwardError / tuning.ForwardAcc;
         }
         else
         {
             // Need to brake or reverse
-            thrustCmd = forwardError / ReverseAcceleration; // forwardError is negative
+            thrustCmd = forwardError / tuning.ReverseAcc; // forwardError is negative
         }
 
-        strafeCmd = strafeError / StrafeAcceleration;
+        strafeCmd = strafeError / tuning.StrafeAcc;
 
         // 5. Apply Dead Zone and Clamp
-        if (velocityError.magnitude < VelocityDeadZone)
+        if (velocityError.magnitude < tuning.DeadZone)
         {
             thrustCmd = 0f;
             strafeCmd = 0f;

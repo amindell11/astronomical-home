@@ -63,12 +63,6 @@ public static class PathPlanner
     }
     #endregion
 
-    // Tunables (kept identical to original PathPlanner for behaviour parity)
-    public static float ForwardAcceleration = 8f;
-    public static float ReverseAcceleration = 4f;
-    public static float StrafeAcceleration  = 6f;
-    public static float VelocityDeadZone    = 0.1f;
-
     public static Output Compute(Input io)
     {
         /* -------- seek / arrive --------------------------------- */

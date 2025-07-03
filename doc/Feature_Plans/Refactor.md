@@ -17,7 +17,7 @@
    `SimpleGameContext`, `ArenaInstance`, and `GameManager` each roll their own "active ship list & area size" code.  A shared base (e.g. `BaseGameContext`) would remove triplicate logic. ✅ COMPLETE
 
 5. **Steering maths cloned in three places**  
-   `PathPlanner`, `AICommander's avoidance code, and `VelocityPilot` duplicate constants (`ForwardAcceleration`, `VelocityDeadZone`, ...) and segment-avoid algorithms.  Pull into one steering module.
+   `PathPlanner`, `AICommander's avoidance code, and `VelocityPilot` duplicate constants (`ForwardAcceleration`, `VelocityDeadZone`, ...) and segment-avoid algorithms.  Pull into one steering module. ✅ COMPLETE
 
 6. **Scattered physics buffers**  
    Dozens of scripts declare their own static `Collider[] hitBuffer = ...`.  Provide a tiny pooled helper (`PhysicsBuffers`) so buffer size & allocation policy live in one spot.
