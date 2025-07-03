@@ -32,7 +32,7 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
     private static readonly RaycastHit[] raycastBuffer = new RaycastHit[1];
     
     // Optimization: Reuse overlap sphere buffer to avoid allocations
-    private static readonly Collider[] overlapBuffer = new Collider[32]; // Should be enough for most scenarios
+    // private static readonly Collider[] overlapBuffer = new Collider[32];
 
     /* ───────────────────────── Public API ───────────────────────── */
     /// <summary>True if a target is currently locked.</summary>
@@ -289,7 +289,7 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
     {
         RLog.Weapon("FindBestTargetInCone: Scanning for targets.");
         var shipMask = LayerMask.GetMask("Ship");
-        int colliderCount = Physics.OverlapSphereNonAlloc(firePoint.position, maxLockDistance, overlapBuffer, shipMask);
+        int colliderCount = Physics.OverlapSphereNonAlloc(firePoint.position, maxLockDistance, PhysicsBuffers.GetColliderBuffer(32), shipMask);
         RLog.Weapon($"FindBestTargetInCone: Found {colliderCount} colliders on 'Ship' layer.");
         
         ITargetable bestCandidate = null;
@@ -298,7 +298,7 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
 
         for (int i = 0; i < colliderCount; i++)
         {
-            var col = overlapBuffer[i];
+            var col = PhysicsBuffers.GetColliderBuffer(32)[i];
             var targetable = col.GetComponentInParent<ITargetable>();
             
             // Basic validation

@@ -31,7 +31,7 @@ public class MissileProjectile : ProjectileBase, IDamageable
     public void SetTarget(Transform tgt) => target = tgt;
 
     // Pre-allocated buffer for explosion overlap queries (Optimization #3)
-    private static readonly Collider[] explosionHitBuffer = new Collider[64];
+    // private static readonly Collider[] explosionHitBuffer = new Collider[64];
 
     private void Awake()
     {
@@ -182,10 +182,10 @@ public class MissileProjectile : ProjectileBase, IDamageable
         }
 
         // AoE damage using non-allocating overlap sphere (Optimization #3)
-        int hitCount = Physics.OverlapSphereNonAlloc(transform.position, explosionRadius, explosionHitBuffer, damageLayerMask);
+        int hitCount = Physics.OverlapSphereNonAlloc(transform.position, explosionRadius, PhysicsBuffers.GetColliderBuffer(64), damageLayerMask);
         for (int i = 0; i < hitCount; i++)
         {
-            var hit = explosionHitBuffer[i];
+            var hit = PhysicsBuffers.GetColliderBuffer(64)[i];
 
             IDamageable dmg = hit.GetComponentInParent<IDamageable>();
 
