@@ -99,6 +99,7 @@ public class ShieldUI : MonoBehaviour
 
     void LateUpdate()
     {
+        if (ring != null && ring.canvasRenderer.GetAlpha() <= 0f) return;
         transform.rotation = Quaternion.Euler(90, 0, 0);
     }
 

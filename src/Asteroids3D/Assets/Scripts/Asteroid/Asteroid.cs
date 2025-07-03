@@ -111,7 +111,11 @@ public class Asteroid : MonoBehaviour, IDamageable, ITargetable
         MeshCollider meshCollider = GetComponent<MeshCollider>();
         if (meshCollider != null)
         {
-            meshCollider.sharedMesh = meshFilter.sharedMesh;
+            // Optimization: Skip assignment if sharedMesh already correct
+            if (meshCollider.sharedMesh != meshFilter.sharedMesh)
+            {
+                meshCollider.sharedMesh = meshFilter.sharedMesh;
+            }
         }
     }
 

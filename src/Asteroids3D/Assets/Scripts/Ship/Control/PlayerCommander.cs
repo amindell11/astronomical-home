@@ -67,6 +67,14 @@ public class PlayerCommander : MonoBehaviour, IShipCommandSource
     
     private Vector3 GetMouseWorldPosition()
     {
+        // Optimization: Early-out if mouse direction is not being used
+        // This method should only be called when useMouseDirection is true,
+        // but this guard protects against misuse
+        if (!useMouseDirection)
+        {
+            return Vector3.zero;
+        }
+
         Vector3 screenMousePos = Input.mousePosition;
         
         if (mainCamera.orthographic)

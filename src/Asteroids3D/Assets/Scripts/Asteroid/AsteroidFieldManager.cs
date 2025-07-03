@@ -22,6 +22,7 @@ public class AsteroidFieldManager : BaseFieldManager
     public static AsteroidFieldManager Instance { get; private set; }
 
     private Camera mainCamera;
+    private float densityCheckTimer = 0f;
 
     protected override void Awake()
     {
@@ -41,8 +42,19 @@ public class AsteroidFieldManager : BaseFieldManager
     {
         // Call base.Start() to do initial spawn with base class parameters
         base.Start();
-        // Then start the repeating updates with our update parameters
-        InvokeRepeating(nameof(ManageAsteroidField), densityCheckInterval, densityCheckInterval);
+        // Initialize timer for density checks (replacing InvokeRepeating)
+        densityCheckTimer = densityCheckInterval;
+    }
+
+    private void Update()
+    {
+        // Accumulated-time pattern to replace InvokeRepeating
+        densityCheckTimer -= Time.deltaTime;
+        if (densityCheckTimer <= 0f)
+        {
+            ManageAsteroidField();
+            densityCheckTimer = densityCheckInterval;
+        }
     }
 
     /// <summary>

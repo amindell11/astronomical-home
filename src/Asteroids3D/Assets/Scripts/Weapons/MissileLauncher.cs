@@ -28,6 +28,12 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
     float lockTimer;
     float lockAcquiredTime;
 
+    // Optimization: Reuse raycast buffer to avoid allocations
+    private static readonly RaycastHit[] raycastBuffer = new RaycastHit[1];
+    
+    // Optimization: Reuse overlap sphere buffer to avoid allocations
+    private static readonly Collider[] overlapBuffer = new Collider[32]; // Should be enough for most scenarios
+
     /* ───────────────────────── Public API ───────────────────────── */
     /// <summary>True if a target is currently locked.</summary>
     public bool IsLocked => state == LockState.Locked;
@@ -183,14 +189,15 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
             return false;
         }
 
-        // Line of sight check
-        if (Physics.Raycast(firePoint.position, dirToTarget.normalized, out RaycastHit hit, dist))
+        // Line of sight check - optimized with RaycastNonAlloc
+        int hitCount = Physics.RaycastNonAlloc(firePoint.position, dirToTarget.normalized, raycastBuffer, dist);
+        if (hitCount > 0)
         {
             // If we hit something, it must be our target.
-            ITargetable hitTgt = hit.collider.GetComponentInParent<ITargetable>();
+            ITargetable hitTgt = raycastBuffer[0].collider.GetComponentInParent<ITargetable>();
             if (hitTgt != currentTarget)
             {
-                RLog.Weapon($"Target occluded by {hit.collider.name}.");
+                RLog.Weapon($"Target occluded by {raycastBuffer[0].collider.name}.");
                 return false;
             }
         }
@@ -282,15 +289,16 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
     {
         RLog.Weapon("FindBestTargetInCone: Scanning for targets.");
         var shipMask = LayerMask.GetMask("Ship");
-        var colliders = Physics.OverlapSphere(firePoint.position, maxLockDistance, shipMask);
-        RLog.Weapon($"FindBestTargetInCone: Found {colliders.Length} colliders on 'Ship' layer.");
+        int colliderCount = Physics.OverlapSphereNonAlloc(firePoint.position, maxLockDistance, overlapBuffer, shipMask);
+        RLog.Weapon($"FindBestTargetInCone: Found {colliderCount} colliders on 'Ship' layer.");
         
         ITargetable bestCandidate = null;
         float smallestAngle = lockOnConeAngle / 2f;
         Ship selfShip = GetComponentInParent<Ship>();
 
-        foreach (var col in colliders)
+        for (int i = 0; i < colliderCount; i++)
         {
+            var col = overlapBuffer[i];
             var targetable = col.GetComponentInParent<ITargetable>();
             
             // Basic validation
@@ -312,10 +320,11 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
 
             if (angle < smallestAngle)
             {
-                // Line of sight check
-                if (Physics.Raycast(firePoint.position, dirToTarget.normalized, out RaycastHit hit, dirToTarget.magnitude))
+                // Line of sight check - using optimized raycast
+                int hitCount = Physics.RaycastNonAlloc(firePoint.position, dirToTarget.normalized, raycastBuffer, dirToTarget.magnitude);
+                if (hitCount > 0)
                 {
-                    if (hit.collider.GetComponentInParent<ITargetable>() == targetable)
+                    if (raycastBuffer[0].collider.GetComponentInParent<ITargetable>() == targetable)
                     {
                         smallestAngle = angle;
                         bestCandidate = targetable;
@@ -323,7 +332,7 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
                     }
                     else
                     {
-                        RLog.Weapon($"FindBestTargetInCone: Candidate {col.name} blocked by {hit.collider.name}.");
+                        RLog.Weapon($"FindBestTargetInCone: Candidate {col.name} blocked by {raycastBuffer[0].collider.name}.");
                     }
                 }
                 else

@@ -8,13 +8,13 @@
    Every action/condition repeats identical _GetComponent / null-check / gizmo_ scaffolding.  Introduce small abstract bases (e.g. `ShipBTAction`, `ShipBTCondition`) that cache common references and unify gizmo drawing.
 
 2. **Dual sync *vs.* coroutine fragment code**  
-   `AsteroidFragnetics` maintains two near-identical physics pipelines plus placeholder-fragment logic.  Parameterise a single routine by `yieldFrequency`; callers decide whether to `StartCoroutine` or run inline.
+   `AsteroidFragnetics` maintains two near-identical physics pipelines plus placeholder-fragment logic.  Parameterise a single routine by `yieldFrequency`; callers decide whether to `StartCoroutine` or run inline. ✅ COMPLETE
 
 3. **Boundary logic duplication**  
    `ArenaInstance.CheckAgentBoundaries()` and `OnTriggerExit()` both end episodes & assign rewards.  Consolidate into one `BoundaryService` to avoid double penalties and scattered rules.
 
 4. **Multiple implementations of `IGameContext`**  
-   `SimpleGameContext`, `ArenaInstance`, and `GameManager` each roll their own "active ship list & area size" code.  A shared base (e.g. `BaseGameContext`) would remove triplicate logic.
+   `SimpleGameContext`, `ArenaInstance`, and `GameManager` each roll their own "active ship list & area size" code.  A shared base (e.g. `BaseGameContext`) would remove triplicate logic. ✅ COMPLETE
 
 5. **Steering maths cloned in three places**  
    `PathPlanner`, `AICommander's avoidance code, and `VelocityPilot` duplicate constants (`ForwardAcceleration`, `VelocityDeadZone`, ...) and segment-avoid algorithms.  Pull into one steering module.

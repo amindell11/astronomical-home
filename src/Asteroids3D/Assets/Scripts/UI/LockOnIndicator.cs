@@ -57,6 +57,7 @@ public sealed class LockOnIndicator : MonoBehaviour
     }
     void LateUpdate()
     {
+        if (canvasGroup != null && canvasGroup.alpha <= 0f) return;
         transform.rotation = Quaternion.Euler(90, 0, 0);
         transform.position = transform.parent.position + GamePlane.Normal * verticalOffset;
     }

@@ -27,6 +27,9 @@ public class GameManager : BaseGameContext
     // Track enemy ships for respawning
     private Camera mainCamera;
 
+    // Optimization: Cache WaitForSeconds to avoid allocations
+    private WaitForSeconds cachedEnemyRespawnWait;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -37,6 +40,9 @@ public class GameManager : BaseGameContext
         Instance = this;
         mainCamera = Camera.main;
         DontDestroyOnLoad(gameObject);
+
+        // Cache WaitForSeconds
+        cachedEnemyRespawnWait = new WaitForSeconds(enemyRespawnDelay);
 
         // Register for OnDeath events on all current ships (objects in the "Ship" layer)
         RegisterAllShipHandlers();
@@ -75,7 +81,10 @@ public class GameManager : BaseGameContext
     
     private IEnumerator WaitAndRespawn(float delay, Ship respawnShip)
     {
-        yield return new WaitForSeconds(delay);
+        // Use cached WaitForSeconds if delay matches, otherwise create new one
+        if (!Mathf.Approximately(delay, enemyRespawnDelay))
+            cachedEnemyRespawnWait = new WaitForSeconds(delay);
+        yield return cachedEnemyRespawnWait;
         RespawnRandomEnemy(respawnShip);
     }
     
