@@ -10,7 +10,7 @@ public enum GameState
     GameOver
 }
 
-public class GameManager : MonoBehaviour, IGameContext
+public class GameManager : BaseGameContext
 {
     public static GameManager Instance { get; private set; }
 
@@ -42,8 +42,9 @@ public class GameManager : MonoBehaviour, IGameContext
         RegisterAllShipHandlers();
     }
 
-    private void Start()
+    protected override void Start()
     {
+        base.Start();
         currentState = GameState.Playing;        
         //Shader.WarmupAllShaders();
     }
@@ -119,8 +120,9 @@ public class GameManager : MonoBehaviour, IGameContext
         currentState = GameState.Playing;
     }
 
-    private void OnEnable()
+    protected override void OnEnable()
     {
+        base.OnEnable();
         // Subscribe to scene loaded callback to refresh references after a scene reload
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
@@ -134,11 +136,7 @@ public class GameManager : MonoBehaviour, IGameContext
         foreach (var ship in subscribedShips)
         {
             if (ship == null) continue;
-            var dh = ship.GetComponent<ShipDamageHandler>();
-            if (dh != null)
-            {
-                dh.OnDeath -= OnShipDeath;
-            }
+            ship.OnDeath -= OnShipDeath;
         }
         subscribedShips.Clear();
     }
@@ -160,7 +158,7 @@ public class GameManager : MonoBehaviour, IGameContext
         // Clear old list (do NOT unsubscribe here; that happens in OnDisable)
         subscribedShips.RemoveAll(s => s == null);
 
-        // Find all ShipDamageHandlers in the scene, optionally filtering by layer named "Ship" if it exists
+        // Find all ships in the scene, optionally filtering by layer named "Ship" if it exists
         Ship[] ships = FindObjectsByType<Ship>(FindObjectsSortMode.None);
         int shipLayer = LayerMask.NameToLayer("Ship");
 
@@ -174,10 +172,13 @@ public class GameManager : MonoBehaviour, IGameContext
 
             if (!subscribedShips.Contains(ship))
             {
-                ship.damageHandler.OnDeath += OnShipDeath;
+                ship.OnDeath += OnShipDeath;
                 subscribedShips.Add(ship);
             }
         }
+
+        // Mark ships cache as dirty so BaseGameContext will refresh on next access
+        MarkShipsCacheDirty();
     }
 
     private void OnShipDeath(Ship deadShip, Ship killer)
@@ -196,27 +197,22 @@ public class GameManager : MonoBehaviour, IGameContext
     }
 
     // -----------------------------------------------------------------
-    // IGameContext implementation
+    // BaseGameContext implementation
 
     /// <summary>
     /// The logical center of the current play area. For a typical single-scene game this is the world origin.
     /// </summary>
-    public Vector3 CenterPosition => Vector3.zero;
+    public override Vector3 CenterPosition => Vector3.zero;
 
     /// <summary>
     /// Approximate radius of the active play area. Uses <see cref="offscreenDistance"/> which is also the spawn radius.
     /// </summary>
-    public float AreaSize => offscreenDistance;
-
-    /// <summary>
-    /// All ships that are currently considered alive/active in the scene.
-    /// </summary>
-    public IReadOnlyList<Ship> ActiveShips => subscribedShips
-        .Where(s => s != null && s.gameObject.activeInHierarchy)
-        .ToList();
+    public override float AreaSize => offscreenDistance;
 
     /// <summary>
     /// Returns true while the game is in a playing state.
     /// </summary>
-    public bool IsActive => currentState == GameState.Playing;
+    public override bool IsActive => currentState == GameState.Playing;
+
+    // Uses default implementation from BaseGameContext that finds all ships in scene
 } 

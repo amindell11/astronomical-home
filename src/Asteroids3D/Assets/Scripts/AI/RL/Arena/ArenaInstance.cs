@@ -19,7 +19,7 @@ using Unity.MLAgents;
 /// 4. Provide public <see cref="ResetArena"/> API so external systems (e.g., ArenaManager) can
 ///    reset or iterate over arenas.
 /// </summary>
-public class ArenaInstance : MonoBehaviour, IGameContext
+public class ArenaInstance : BaseGameContext
 {
     [Header("Arena Reset Settings")]
     [Tooltip("Enable automatic arena reset functionality")]           
@@ -29,7 +29,7 @@ public class ArenaInstance : MonoBehaviour, IGameContext
 
     [Header("Ship Collection (optional)")]
     [Tooltip("If empty, ships are discovered automatically in children at runtime.")]
-    [SerializeField] private Ship[] managedShips;
+    [SerializeField] private Ship[] managedShipsOverride;
 
     [Header("Environment Settings")]
     [Tooltip("Default environment parameters. Can be overriden by ArenaManager or ML-Agents.")]
@@ -121,7 +121,7 @@ public class ArenaInstance : MonoBehaviour, IGameContext
     void Awake()
     {
         // Cache key components in children (or supplied via inspector).
-        ships = (managedShips != null && managedShips.Length > 0) ? managedShips : GetComponentsInChildren<Ship>(true);
+        ships = (managedShipsOverride != null && managedShipsOverride.Length > 0) ? managedShipsOverride : GetComponentsInChildren<Ship>(true);
         
         // Ensure ships array is never null - initialize as empty array if needed
         if (ships == null)
@@ -130,6 +130,9 @@ public class ArenaInstance : MonoBehaviour, IGameContext
             if (enableDebugLogs)
                 RLog.RLWarning($"ArenaInstance: No ships found in {gameObject.name}. Initialized empty ships array.");
         }
+        
+        // Update the base class managed ships to match our local cache
+        base.managedShips = ships;
         
         fieldManager = GetComponentInChildren<SectorFieldManager>(true);
         boundaryCollider = GetComponent<SphereCollider>();
@@ -153,8 +156,9 @@ public class ArenaInstance : MonoBehaviour, IGameContext
         }
     }
 
-    void Start()
+    protected override void Start()
     {
+        base.Start();
         // Apply arena size settings
         ResolveAndApplySettings();
 
@@ -595,11 +599,7 @@ public class ArenaInstance : MonoBehaviour, IGameContext
 
 
     // ----------------------------- Public API --------------------------------
-    /// <summary>
-    /// Returns the centre point of the arena (same as transform.position).
-    /// </summary>
-    public Vector3 CenterPosition => transform.position;
-
+    
     /// <summary>
     /// Convenience property exposing the number of ships in this arena.
     /// </summary>
@@ -615,22 +615,18 @@ public class ArenaInstance : MonoBehaviour, IGameContext
     /// </summary>
     public float ArenaSize => EffectiveSettings != null ? EffectiveSettings.arenaSize : 0f;
 
-    // --- IGameContext implementation ---
+    // --- BaseGameContext implementation ---
     
-    /// <summary>
-    /// IGameContext: The size/radius of the play area for normalization.
-    /// </summary>
-    float IGameContext.AreaSize => ArenaSize;
+    public override Vector3 CenterPosition => transform.position;
     
-    /// <summary>
-    /// IGameContext: All active ships in the current game context.
-    /// </summary>
-    IReadOnlyList<Ship> IGameContext.ActiveShips => ships ?? System.Array.Empty<Ship>();
+    public override float AreaSize => ArenaSize;
     
-    /// <summary>
-    /// IGameContext: Whether the current episode/game session is active.
-    /// </summary>
-    bool IGameContext.IsActive => IsEpisodeActive;
+    public override bool IsActive => IsEpisodeActive;
+    
+    protected override Ship[] GetShipsForContext()
+    {
+        return ships ?? System.Array.Empty<Ship>();
+    }
     
     /// <summary>
     /// Sets the override settings for this arena, typically called by ArenaManager.

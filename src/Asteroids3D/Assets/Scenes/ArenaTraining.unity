@@ -183,7 +183,7 @@ MonoBehaviour:
   arenaPrefab: {fileID: 6284756938957430898, guid: e9b48799d3805d140876144df5f2c9f3,
     type: 3}
   prefabVariants: []
-  forceMultiArenaMode: 0
+  forceMultiArenaMode: 1
   arenaCount: 9
   arenaSpacing: 200
   gridSize: {x: 0, y: 0}
@@ -327,7 +327,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a44e6d3d69053c543a47887f5911f78c, type: 3}
   m_Name: 
@@ -336,7 +336,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 128
   offset: {x: 0, y: 0, z: -10}
-  smoothSpeed: 5
+  smoothTime: 0.15
   minZoom: 5
   maxZoom: 50
   padding: 7
@@ -352,7 +352,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 26131f6f015e9c64d86f2baaff303456, type: 3}
   m_Name: 
@@ -361,7 +361,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 128
   offset: {x: 0, y: 0, z: -10}
-  smoothSpeed: 5
+  smoothTime: 0.15
   minZoom: 10
   maxZoom: 20
   padding: 5

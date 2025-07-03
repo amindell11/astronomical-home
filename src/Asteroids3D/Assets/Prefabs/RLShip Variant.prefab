@@ -114,6 +114,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 945579999795598715, guid: cade7246a6fb1b64e82fbb5aac398631,
         type: 3}
+      propertyPath: fireSound
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 945579999795598715, guid: cade7246a6fb1b64e82fbb5aac398631,
+        type: 3}
       propertyPath: projectilePrefab
       value: 
       objectReference: {fileID: 8830362489371991520, guid: 6a6e76c0262795041a1c40fba16775ad,
