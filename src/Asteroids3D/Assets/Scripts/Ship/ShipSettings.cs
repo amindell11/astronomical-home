@@ -22,9 +22,4 @@ public class ShipSettings : ScriptableObject
     public int   startingLives = 3;
     public float shieldRegenDelay = 3f;
     public float shieldRegenRate  = 10f;
-
-    [Header("Death VFX")]    
-    public GameObject explosionPrefab;
-    public AudioClip  explosionSound;
-    [Range(0f,1f)] public float explosionVolume = 0.7f;
 }

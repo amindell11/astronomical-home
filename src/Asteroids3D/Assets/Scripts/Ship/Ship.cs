@@ -88,7 +88,6 @@ public class Ship : MonoBehaviour, ITargetable, IShooter
         // Apply settings to movement & damage subsystems
         movement?.ApplySettings(settings);
         damageHandler?.ApplySettings(settings);
-        healthVisuals?.ApplySettings(settings);
 
         Indicator = GetComponentInChildren<LockOnIndicator>(true);
     }

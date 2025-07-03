@@ -25,15 +25,9 @@
 7. **Gizmo / debug UI sprawl**  
    Repetitive `OnDrawGizmos*` blocks across AI nodes, camera, arena, missiles, etc.  Centralise with `DebugGizmos.DrawSphereLabel()` & consistent colour palette.
 
-8. **Inconsistent logging usage**  
-   `RLog` offers category helpers but many files still call `Debug.Log`.  Replace raw calls; consider source-generated extensions to remove boilerplate.
 
 9. **Legacy-vs-new settings paths**  
    `AsteroidSpawner` keeps old inspector arrays alongside `AsteroidSpawnSettings` ScriptableObject.  Choose one (prefer SO) and delete the other.
-
-10. **Dead / deprecated stubs**  
-    • `FireWeaponAction` is a no-op—mark `[Obsolete]` or remove once BT assets are migrated.  
-    • `RLArbiter` overlaps with `RLCommander`; decide to merge or delete until needed.
 
 11. **Assembly-definition overlap**  
     Both `Game.AI` and `Game.RL` include `Unity.Behavior.*`.  If keeping RL & non-RL AI separate, only one asmdef should reference those libs; the other can depend on the first.

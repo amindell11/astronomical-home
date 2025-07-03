@@ -10,14 +10,6 @@ public class AsteroidSpawner : MonoBehaviour
     [SerializeField] private GameObject asteroidPrefab;
     [SerializeField] private AsteroidSpawnSettings spawnSettings;
 
-    [Header("Legacy Settings (used if spawnSettings is null)")]
-    [SerializeField] private Mesh[] asteroidMeshes;
-    [SerializeField] public Vector2 massScaleRange = new Vector2(0.5f, 2f);
-    [SerializeField] public Vector2 velocityRange = new Vector2(0.5f, 2f);
-    [SerializeField] public Vector2 spinRange = new Vector2(-30f, 30f);
-    [SerializeField] private int defaultPoolCapacity = 20;
-    [SerializeField] private int maxPoolSize = 100;
-
     private ObjectPool<GameObject> asteroidPool;
     private readonly HashSet<GameObject> activeAsteroids = new HashSet<GameObject>();
     public int ActiveAsteroidCount => activeAsteroids.Count;
@@ -33,15 +25,20 @@ public class AsteroidSpawner : MonoBehaviour
 
         TotalActiveVolume = 0f;
 
-        // Validate spawn settings
-        if (spawnSettings != null)
+        // Ensure spawnSettings is assigned; this ScriptableObject now drives all spawn parameters.
+        if (spawnSettings == null)
         {
-            spawnSettings.ValidateSettings();
+            RLog.AsteroidError("AsteroidSpawner requires a reference to AsteroidSpawnSettings.");
+            enabled = false;
+            return;
         }
 
+        // Validate settings early so any issues surface before runtime spawning.
+        spawnSettings.ValidateSettings();
+
         // Initialize the asteroid object pool
-        int poolCapacity = spawnSettings != null ? spawnSettings.defaultPoolCapacity : defaultPoolCapacity;
-        int poolMaxSize = spawnSettings != null ? spawnSettings.maxPoolSize : maxPoolSize;
+        int poolCapacity = spawnSettings.defaultPoolCapacity;
+        int poolMaxSize = spawnSettings.maxPoolSize;
         asteroidPool = new ObjectPool<GameObject>(
             CreatePooledAsteroid,
             OnAsteroidRetrieved,
@@ -73,13 +70,9 @@ public class AsteroidSpawner : MonoBehaviour
         var (finalMass, finalScale) = CalculateMassAndScale(asteroid, randomMesh, mass);
 
         // Calculate velocity and spin using spawn settings if available
-        Vector3 finalVelocity = velocity ?? (spawnSettings != null ? 
-            spawnSettings.GetRandomVelocity(finalMass) : 
-            GetLegacyRandomVelocity(finalMass));
+        Vector3 finalVelocity = velocity ?? spawnSettings.GetRandomVelocity(finalMass);
 
-        Vector3 finalAngularVelocity = angularVelocity ?? (spawnSettings != null ? 
-            spawnSettings.GetRandomAngularVelocity(finalMass) : 
-            GetLegacyRandomAngularVelocity(finalMass));
+        Vector3 finalAngularVelocity = angularVelocity ?? spawnSettings.GetRandomAngularVelocity(finalMass);
 
         // Initialize the asteroid with the calculated properties
         asteroid.Initialize(
@@ -165,7 +158,7 @@ public class AsteroidSpawner : MonoBehaviour
         else
         {
             // Random scale, calculate mass from that scale
-            Vector2 currentMassScaleRange = spawnSettings != null ? spawnSettings.massScaleRange : massScaleRange;
+            Vector2 currentMassScaleRange = spawnSettings.massScaleRange;
             float randomScaleFactor = Random.Range(currentMassScaleRange.x, currentMassScaleRange.y);
             float finalScale = Mathf.Pow(randomScaleFactor, 1f/3f);
             float finalMass = Asteroid.CalculateMassFromMesh(mesh, asteroid.Density, finalScale);
@@ -175,32 +168,6 @@ public class AsteroidSpawner : MonoBehaviour
 
     private Mesh GetRandomMesh()
     {
-        return spawnSettings != null ? spawnSettings.GetRandomMesh() : GetLegacyRandomMesh();
-    }
-
-    private Mesh GetLegacyRandomMesh()
-    {
-        if (asteroidMeshes == null || asteroidMeshes.Length == 0)
-        {
-            return null;
-        }
-        return asteroidMeshes[Random.Range(0, asteroidMeshes.Length)];
-    }
-
-    private Vector3 GetLegacyRandomVelocity(float mass)
-    {
-        float velocityScale = (mass > 0) ? 1f / Mathf.Pow(mass, 1f/3f) : 1f;
-        return Random.insideUnitCircle.normalized * 
-               Random.Range(velocityRange.x, velocityRange.y) * velocityScale;
-    }
-
-    private Vector3 GetLegacyRandomAngularVelocity(float mass)
-    {
-        float velocityScale = (mass > 0) ? 1f / Mathf.Pow(mass, 1f/3f) : 1f;
-        return new Vector3(
-            Random.Range(spinRange.x, spinRange.y) * velocityScale,
-            Random.Range(spinRange.x, spinRange.y) * velocityScale,
-            Random.Range(spinRange.x, spinRange.y) * velocityScale
-        );
+        return spawnSettings.GetRandomMesh();
     }
 } 

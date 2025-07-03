@@ -14,18 +14,6 @@ public partial class AquireEnemiesAction : Action
     // Pre-allocated buffer for overlap queries (Optimization #3)
     private static readonly Collider[] enemyHitBuffer = new Collider[32];
     
-    // Cached LayerMask to avoid string processing allocations (Critical optimization!)
-    // Use lazy initialization to avoid calling LayerMask.GetMask during serialization
-    private static int? _shipLayerMask;
-    private static int shipLayerMask 
-    {
-        get
-        {
-            if (!_shipLayerMask.HasValue)
-                _shipLayerMask = LayerMask.NameToLayer("Ship");
-            return _shipLayerMask.Value;
-        }
-    }
     
     // Cached reference to avoid GetComponent calls every frame
     private Ship selfShip;
@@ -57,7 +45,7 @@ public partial class AquireEnemiesAction : Action
         }
 
         // Scan for any Ship components in range (excluding self) using non-allocating overlap sphere
-        int hitCount = Physics.OverlapSphereNonAlloc(self.transform.position, Radius.Value, enemyHitBuffer, LayerMask.GetMask("Ship"));
+        int hitCount = Physics.OverlapSphereNonAlloc(self.transform.position, Radius.Value, enemyHitBuffer, LayerIds.Mask(LayerIds.Ship));
         for (int i = 0; i < hitCount; i++)
         {
             var col = enemyHitBuffer[i];
@@ -138,7 +126,7 @@ public partial class AquireEnemiesAction : Action
         // Show all potential targets in range (not just the acquired one)
         if (Application.isPlaying && currentSelfShip)
         {
-            int hitCount = Physics.OverlapSphereNonAlloc(position, radius, enemyHitBuffer, LayerMask.GetMask("Ship"));
+            int hitCount = Physics.OverlapSphereNonAlloc(position, radius, enemyHitBuffer, LayerMask.GetMask(TagNames.Ship));
             
             for (int i = 0; i < hitCount; i++)
             {

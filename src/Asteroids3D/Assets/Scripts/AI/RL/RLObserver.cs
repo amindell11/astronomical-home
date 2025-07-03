@@ -296,16 +296,12 @@ public class RLObserver
         float bestSqrDist = sensingRange * sensingRange;
         Transform closest = null;
         Vector3 origin = transform.position;
-
-        int numFound = Physics.OverlapSphereNonAlloc(origin, sensingRange, overlapColliders);
+        int numFound = Physics.OverlapSphereNonAlloc(origin, sensingRange, overlapColliders, LayerIds.Mask(LayerIds.Asteroid));
 
         for (int i = 0; i < numFound; i++)
         {
             Collider col = overlapColliders[i];
-            if (col.CompareTag("Asteroid") || col.GetComponent<Asteroid>() != null)
-            {
-                ConsiderCandidate(col.transform, origin, ref closest, ref bestSqrDist);
-            }
+            ConsiderCandidate(col.transform, origin, ref closest, ref bestSqrDist);
         }
         return closest;
     }
@@ -316,7 +312,7 @@ public class RLObserver
         Transform closest = null;
         Vector3 origin = transform.position;
 
-        int projectileLayer = LayerMask.NameToLayer("Projectile");
+        int projectileLayer = LayerIds.Projectile;
         int layerMask = 1 << projectileLayer;
 
         int numFound = Physics.OverlapSphereNonAlloc(origin, sensingRange, overlapColliders, layerMask);
@@ -324,7 +320,7 @@ public class RLObserver
         for (int i = 0; i < numFound; i++)
         {
             Collider col = overlapColliders[i];
-            if (!col.CompareTag("Missile")) continue;
+            if (!col.CompareTag(TagNames.Missile)) continue;
 
             var proj = col.GetComponent<ProjectileBase>();
             if (proj != null && proj.Shooter != null && ship.IsFriendly(proj.Shooter.gameObject.GetComponent<Ship>()))

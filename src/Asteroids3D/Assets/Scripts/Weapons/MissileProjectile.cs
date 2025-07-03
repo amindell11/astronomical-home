@@ -38,7 +38,7 @@ public class MissileProjectile : ProjectileBase, IDamageable
         // Initialize damage layer mask to target ships and asteroids
         if (damageLayerMask == -1) // If not configured in inspector, set default
         {
-            damageLayerMask = (1 << LayerMask.NameToLayer("Ship")) | (1 << LayerMask.NameToLayer("Asteroid"));
+            damageLayerMask = LayerIds.Mask(LayerIds.Ship, LayerIds.Asteroid);
         }
     }
 

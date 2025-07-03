@@ -8,13 +8,16 @@ public class ShipHealthVisuals : MonoBehaviour
     [SerializeField] ParticleSystem smoke;    // looping smoke prefab
     [SerializeField] ParticleSystem sparksPrefab; // burst prefab
     [SerializeField] ShipDamageHandler source;   // link to ship damage handler
+    
     [Header("Damage Flash")]
     [SerializeField] Color flashColor = Color.white;
     [SerializeField] float flashTime = 0.15f; // total duration (fade in + out)
 
-    GameObject explosionPrefab;
-    AudioClip  explosionSound;
-    float      explosionVolume;
+    // ----- Explosion FX Config (now serialized) -----
+    [Header("Death VFX")]
+    [SerializeField] GameObject explosionPrefab;
+    [SerializeField] AudioClip explosionSound;
+    [Range(0f,1f)] [SerializeField] float explosionVolume = 0.7f;
 
     MaterialPropertyBlock block;
     static readonly int _Color = Shader.PropertyToID("_BaseColor"); // URP Lit shader
@@ -116,14 +119,6 @@ public class ShipHealthVisuals : MonoBehaviour
         if (dmg <= 0f || hull == null || !GameSettings.VfxEnabled) return;
         if (flashCo != null) StopCoroutine(flashCo);
         flashCo = StartCoroutine(FlashRoutine());
-    }
-
-    public void ApplySettings(ShipSettings s)
-    {
-        if (s == null) return;
-        explosionPrefab = s.explosionPrefab;
-        explosionSound  = s.explosionSound;
-        explosionVolume = s.explosionVolume;
     }
 
     IEnumerator FlashRoutine()

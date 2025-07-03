@@ -154,7 +154,7 @@ public class Asteroid : MonoBehaviour, IDamageable, ITargetable
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("AsteroidCullingBoundary"))
+        if (other.CompareTag(TagNames.AsteroidCullingBoundary))
         {
             parentSpawner.ReleaseAsteroid(gameObject);
         }
@@ -173,7 +173,7 @@ public class Asteroid : MonoBehaviour, IDamageable, ITargetable
     private void OnCollisionEnter(Collision collision)
     {
         // Only handle collisions with objects on the Ship layer
-        if (collision.gameObject.layer != LayerMask.NameToLayer("Ship")) return;
+        if (collision.gameObject.layer != LayerIds.Ship) return;
 
         Rigidbody otherRb = collision.rigidbody;
         if (otherRb == null) return;
