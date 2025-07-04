@@ -14,12 +14,19 @@ public class Asteroid : MonoBehaviour, IDamageable, ITargetable
     [SerializeField]
     [Tooltip("Multiplier that converts collision energy (J) to gameplay damage.")]
     private float energyToDamageScale = 0.01f;
+
+    [Header("Health")]
+    [SerializeField]
+    [Tooltip("Base health per unit volume. Total health = volume * this value.")]
+    private float healthPerUnitVolume = 10f;
     
     private Rigidbody rb;
     private MeshFilter meshFilter;
     private Vector3 initialVelocity;
     private Vector3 initialAngularVelocity;
     private float currentVolume;
+    private float maxHealth;
+    private float currentHealth;
 
     // Public properties for other systems to access
     public float CurrentMass => rb.mass;
@@ -28,6 +35,8 @@ public class Asteroid : MonoBehaviour, IDamageable, ITargetable
     public Rigidbody Rb => rb;
     public Mesh CurrentMesh => meshFilter.sharedMesh;
     public AsteroidSpawner parentSpawner;
+    public float CurrentHealth => currentHealth;
+    public float MaxHealth => maxHealth;
 
     // ITargetable Implementation
     public Transform TargetPoint => transform;
@@ -78,12 +87,16 @@ public class Asteroid : MonoBehaviour, IDamageable, ITargetable
         // Store initial velocities for potential resets when reusing from the pool
         this.initialVelocity = velocity;
         this.initialAngularVelocity = angularVelocity;
+
+        maxHealth = currentVolume * healthPerUnitVolume;
+        currentHealth = maxHealth;
     }
 
     public void ResetAsteroid()
     {
         rb.linearVelocity = initialVelocity;
         rb.angularVelocity = initialAngularVelocity;
+        currentHealth = maxHealth;
     }
     
     /// <summary>
@@ -120,10 +133,20 @@ public class Asteroid : MonoBehaviour, IDamageable, ITargetable
     }
 
     public void TakeDamage(float damage, float projectileMass, Vector3 projectileVelocity, Vector3 hitPoint, GameObject attacker)
-    {       
-        AsteroidFragnetics.Instance.CreateFragments(this, projectileMass, projectileVelocity, hitPoint);
-        Explode();
-        CleanupAsteroid();
+    {
+        currentHealth -= damage;
+
+        if (currentHealth <= 0f)
+        {
+            // Destroy asteroid – create fragments, VFX, and cleanup
+            AsteroidFragnetics.Instance.CreateFragments(this, projectileMass, projectileVelocity, hitPoint);
+            Explode();
+            CleanupAsteroid();
+        }
+        else
+        {
+            // Optional: small hit feedback could be added here (spark VFX, sound, etc.)
+        }
     }
 
     private void Explode()
@@ -212,6 +235,18 @@ public class Asteroid : MonoBehaviour, IDamageable, ITargetable
             Vector3 left = Quaternion.Euler(0, 0, -30) * -velocity.normalized * (2f * 0.2f);
             Gizmos.DrawLine(end, end + right);
             Gizmos.DrawLine(end, end + left);
+        }
+
+        if (Application.isPlaying && maxHealth > 0f)
+        {
+            float healthPercent = Mathf.Clamp01(currentHealth / maxHealth);
+            Gizmos.color = Color.Lerp(Color.red, Color.green, healthPercent);
+
+            // Bar dimensions relative to asteroid size
+            float barLength = transform.localScale.x;
+            Vector3 barSize = new Vector3(barLength * healthPercent, 0.05f * transform.localScale.x, 0.05f * transform.localScale.x);
+            Vector3 barPosition = transform.position + Vector3.up * (transform.localScale.x * 0.6f);
+            Gizmos.DrawCube(barPosition, barSize);
         }
     }
 }

@@ -180,7 +180,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3934d2be6bbe1e540a5f2bdaf5d34fa7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  arenaPrefab: {fileID: 6284756938957430898, guid: e9b48799d3805d140876144df5f2c9f3,
+  arenaPrefab: {fileID: 3274159920676685244, guid: e970d9f79be710b4e8b8b13c7bf4ac8e,
     type: 3}
   prefabVariants: []
   forceMultiArenaMode: 1

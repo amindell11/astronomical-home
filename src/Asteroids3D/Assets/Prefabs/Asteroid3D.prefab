@@ -56,6 +56,7 @@ MonoBehaviour:
   explosionSound: {fileID: 8300000, guid: 14e1c94ce80f1fc45bd483c188a57c1c, type: 3}
   explosionVolume: 0.85
   energyToDamageScale: 0.01
+  healthPerUnitVolume: 0.5
   parentSpawner: {fileID: 0}
 --- !u!33 &503848992582056525
 MeshFilter:
