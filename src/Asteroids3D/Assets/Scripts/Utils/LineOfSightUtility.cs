@@ -26,8 +26,8 @@ public static class LineOfSightUtility
     public static bool HasLineOfSight(
         Vector3 origin,
         Vector3 targetPos,
-        Transform targetRoot = null,
-        LayerMask occluderMask = Physics.DefaultRaycastLayers)
+        Transform targetRoot,
+        LayerMask occluderMask)
     {
         Vector3 dir  = targetPos - origin;
         float   dist = dir.magnitude;
@@ -56,15 +56,35 @@ public static class LineOfSightUtility
     }
 
     /// <summary>
+    /// Overload that assumes <see cref="Physics.DefaultRaycastLayers"/> as the occluder mask.
+    /// Matches the original 3-parameter call sites in the project.
+    /// </summary>
+    public static bool HasLineOfSight(
+        Vector3 origin,
+        Vector3 targetPos,
+        Transform targetRoot = null)
+    {
+        return HasLineOfSight(origin, targetPos, targetRoot, Physics.DefaultRaycastLayers);
+    }
+
+    /// <summary>
     /// Convenience overload that works directly with a <see cref="Transform"/>,
     /// calling the root-aware method internally.
     /// </summary>
     public static bool HasLineOfSight(
         Vector3 origin,
         Transform target,
-        LayerMask occluderMask = Physics.DefaultRaycastLayers)
+        LayerMask occluderMask)
     {
         if (target == null) return false;
         return HasLineOfSight(origin, target.position, target.root, occluderMask);
+    }
+
+    public static bool HasLineOfSight(
+        Vector3 origin,
+        Transform target)
+    {
+        if (target == null) return false;
+        return HasLineOfSight(origin, target.position, target.root, Physics.DefaultRaycastLayers);
     }
 } 

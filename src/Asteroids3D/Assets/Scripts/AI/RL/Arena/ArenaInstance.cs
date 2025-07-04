@@ -53,6 +53,8 @@ public class ArenaInstance : BaseGameContext
     [SerializeField] private float healthRewardMultiplier = 0.2f;
     [Tooltip("Reward/penalty multiplier for shield damage (applied as: ±multiplier * damage / maxShield)")]
     [SerializeField] private float shieldRewardMultiplier = 0.1f;
+    [Tooltip("Reward awarded each step when the agent fires while aligned and with clear LOS to an enemy")] 
+    [SerializeField] private float shootingAlignmentReward = 0.002f;
 
     [Header("Debug")]
     [SerializeField] private bool enableDebugLogs = true;
@@ -202,6 +204,7 @@ public class ArenaInstance : BaseGameContext
         {
             ApplyExistencePenalties();
             CheckAgentBoundaries();
+            ApplyShootingAlignmentRewards();
             
             // Track distance metrics every 10 frames to avoid performance impact
             if (enableMetricsTracking && Time.frameCount % 10 == 0)
@@ -291,8 +294,6 @@ public class ArenaInstance : BaseGameContext
         }
     }
 
-
-
     private void HandleShipDamaged(Ship victim, Ship attacker, float damage)
     {   
         if (!_episodeActive || victim == null) return;
@@ -363,6 +364,78 @@ public class ArenaInstance : BaseGameContext
         public float MaxCapacity;
         public float RewardMultiplier;
         public string DamageType;
+    }
+
+    private void ApplyShootingAlignmentRewards()
+    {
+        if (ships == null) return;
+
+        foreach (var ship in ships)
+        {
+            if (ship == null) continue;
+
+            // Only consider RL agents for this shaping reward
+            var agent = ship.GetComponent<RLCommanderAgent>();
+            if (agent == null) continue;
+            
+            // Require that the agent issued a fire command this frame
+            var cmd = ship.CurrentCommand;
+            if (!cmd.PrimaryFire && !cmd.SecondaryFire) continue;
+
+            if (enableDebugLogs)
+            {
+                RLog.RL($"[Ep.{episodeCount}] Agent {agent.name}: Fired – evaluating shooting alignment reward.");
+            }
+
+            // Use observer's cached closest enemy to avoid duplicate search logic
+            var closestEnemyTransform = agent.Observer?.ClosestEnemy;
+            if (closestEnemyTransform == null)
+            {
+                if (enableDebugLogs)
+                {
+                    RLog.RL($"[Ep.{episodeCount}] Agent {agent.name}: No enemy detected – no reward.");
+                }
+                continue;
+            }
+
+            Ship closestEnemy = closestEnemyTransform.GetComponent<Ship>();
+            if (closestEnemy == null || ship.IsFriendly(closestEnemy)) continue;
+
+            // Check line of sight (ignoring triggers)
+            bool hasLOS = LineOfSightUtility.HasLineOfSight(
+                ship.transform.position,
+                closestEnemy.transform.position,
+                closestEnemy.transform,
+                LayerIds.Mask(LayerIds.Asteroid));
+
+            if (!hasLOS)
+            {
+                if (enableDebugLogs)
+                {
+                    RLog.RL($"[Ep.{episodeCount}] Agent {agent.name}: No clear LOS to {closestEnemy.name} – no reward.");
+                }
+                continue;
+            }
+
+            // Check aiming alignment using observer's bearing (within ±10°)
+            float bearingDeg = Mathf.Abs(agent.Observer?.EnemyBearingDeg ?? 180f);
+            if (bearingDeg > 10f)
+            {
+                if (enableDebugLogs)
+                {
+                    RLog.RL($"[Ep.{episodeCount}] Agent {agent.name}: Bearing {bearingDeg:F1}° exceeds threshold – no reward.");
+                }
+                continue;
+            }
+
+            // All conditions satisfied – grant shaping reward
+            agent.AddReward(shootingAlignmentReward);
+
+            if (enableDebugLogs)
+            {
+                RLog.RL($"[Ep.{episodeCount}] Agent {agent.name}: Awarded shooting alignment reward {shootingAlignmentReward} (bearing {bearingDeg:F1}°). Cumulative: {agent.GetCumulativeReward():F3}");
+            }
+        }
     }
 
     #endregion

@@ -6,26 +6,8 @@
         "lesson_num": 0
     },
     "RLPilot": {
-        "elo": 651.7116609954064,
+        "elo": 611.3698479647556,
         "checkpoints": [
-            {
-                "steps": 1160725,
-                "file_path": "results\\SelfPlay_v3\\RLPilot\\RLPilot-1160725.onnx",
-                "reward": -1.2168578863143922,
-                "creation_time": 1750964129.3361914,
-                "auxillary_file_paths": [
-                    "results\\SelfPlay_v3\\RLPilot\\RLPilot-1160725.pt"
-                ]
-            },
-            {
-                "steps": 1499959,
-                "file_path": "results\\SelfPlay_v3\\RLPilot\\RLPilot-1499959.onnx",
-                "reward": -0.000669850544496016,
-                "creation_time": 1751105756.7907345,
-                "auxillary_file_paths": [
-                    "results\\SelfPlay_v3\\RLPilot\\RLPilot-1499959.pt"
-                ]
-            },
             {
                 "steps": 1587211,
                 "file_path": "results\\SelfPlay_v3\\RLPilot\\RLPilot-1587211.onnx",
@@ -52,15 +34,33 @@
                 "auxillary_file_paths": [
                     "results\\SelfPlay_v3\\RLPilot\\RLPilot-2453339.pt"
                 ]
+            },
+            {
+                "steps": 2499635,
+                "file_path": "results\\SelfPlay_v3\\RLPilot\\RLPilot-2499635.onnx",
+                "reward": 0.15344970929436386,
+                "creation_time": 1751614262.9103367,
+                "auxillary_file_paths": [
+                    "results\\SelfPlay_v3\\RLPilot\\RLPilot-2499635.pt"
+                ]
+            },
+            {
+                "steps": 2503831,
+                "file_path": "results\\SelfPlay_v3\\RLPilot\\RLPilot-2503831.onnx",
+                "reward": 0.20630855366055453,
+                "creation_time": 1751614283.6516032,
+                "auxillary_file_paths": [
+                    "results\\SelfPlay_v3\\RLPilot\\RLPilot-2503831.pt"
+                ]
             }
         ],
         "final_checkpoint": {
-            "steps": 2453339,
+            "steps": 2503831,
             "file_path": "results\\SelfPlay_v3\\RLPilot.onnx",
-            "reward": 0.08616133711554787,
-            "creation_time": 1751252302.7962742,
+            "reward": 0.20630855366055453,
+            "creation_time": 1751614283.6516032,
             "auxillary_file_paths": [
-                "results\\SelfPlay_v3\\RLPilot\\RLPilot-2453339.pt"
+                "results\\SelfPlay_v3\\RLPilot\\RLPilot-2503831.pt"
             ]
         }
     },

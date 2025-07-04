@@ -41,15 +41,17 @@ public class RLObserver
         "enemy_heading",            // 14
         "enemy_rel_vel_fwd_norm",   // 15
         "enemy_rel_vel_right_norm", // 16
+        "enemy_health_pct",         // 17
+        "enemy_shield_pct",         // 18
 
         // --- Closest asteroid ---
-        "asteroid_bearing",         // 17
-        "asteroid_dist_norm",       // 18
+        "asteroid_bearing",         // 19
+        "asteroid_dist_norm",       // 20
 
         // --- Closest hostile projectile ---
-        "proj_bearing",             // 19
-        "proj_dist_norm",           // 20
-        "proj_closing_speed_norm"   // 21
+        "proj_bearing",             // 21
+        "proj_dist_norm",           // 22
+        "proj_closing_speed_norm"   // 23
     };
 
     /// <summary>
@@ -67,6 +69,12 @@ public class RLObserver
     private readonly float maxSpeed;
     private readonly float maxYawRate;
     private Collider[] overlapColliders;
+
+    // Cached reference to the closest enemy found in the latest observation pass.
+    public Transform ClosestEnemy { get; private set; }
+
+    // Latest enemy bearing in degrees [-180,180]
+    public float EnemyBearingDeg { get; private set; }
 
     public RLObserver(RLCommanderAgent agent)
     {
@@ -159,11 +167,13 @@ public class RLObserver
 
         // --- Environmental Awareness ---
         var closestEnemy      = FindClosestEnemy();
+        ClosestEnemy = closestEnemy; // Cache for external systems (e.g., shaping rewards)
         var closestAsteroid   = FindClosestAsteroid();
         var closestProjectile = FindClosestProjectile();
 
         // Enemy: Bearing, Dist, Heading, RelVel (+5 floats)
-        AddTargetObservations2D(sensor, closestEnemy);
+        float enemyBearingDeg = AddTargetObservations2D(sensor, closestEnemy);
+        EnemyBearingDeg = enemyBearingDeg; // expose raw bearing for external use
         if (closestEnemy != null)
         {
             var enemyShip = closestEnemy.GetComponent<Ship>();
@@ -188,11 +198,18 @@ public class RLObserver
 
                 AddObservation(sensor, Mathf.Clamp(localRelVelFwd / maxSpeed, -1f, 1f));
                 AddObservation(sensor, Mathf.Clamp(localRelVelRight / maxSpeed, -1f, 1f));
+
+                // Enemy Health and Shield (+2 floats)
+                AddObservation(sensor, enemyShip.CurrentState.HealthPct);
+                AddObservation(sensor, enemyShip.CurrentState.ShieldPct);
             }
             else
             {
                 // Pad heading and rel vel
                 AddObservation(sensor, 0f);
+                AddObservation(sensor, 0f);
+                AddObservation(sensor, 0f);
+                // Pad enemy health and shield
                 AddObservation(sensor, 0f);
                 AddObservation(sensor, 0f);
             }
@@ -203,13 +220,16 @@ public class RLObserver
             AddObservation(sensor, 0f);
             AddObservation(sensor, 0f);
             AddObservation(sensor, 0f);
+            // Pad enemy health and shield
+            AddObservation(sensor, 0f);
+            AddObservation(sensor, 0f);
         }
 
         // Asteroid: Bearing, Dist (+2 floats)
-        AddTargetObservations2D(sensor, closestAsteroid);
+        _ = AddTargetObservations2D(sensor, closestAsteroid);
 
         // Projectile: Bearing, Dist, Closing Speed (+3 floats)
-        AddTargetObservations2D(sensor, closestProjectile);
+        _ = AddTargetObservations2D(sensor, closestProjectile);
         if (closestProjectile != null)
         {
             Rigidbody projRb = closestProjectile.GetComponent<Rigidbody>();
@@ -232,7 +252,13 @@ public class RLObserver
         }
     }
 
-    private void AddTargetObservations2D(VectorSensor sensor, Transform target)
+    /// <summary>
+    /// Adds bearing and distance observations for a target and returns the raw bearing in degrees.
+    /// </summary>
+    /// <param name="sensor">VectorSensor to write observations to</param>
+    /// <param name="target">Target transform or null</param>
+    /// <returns>Bearing in degrees [-180,180]. Returns 0 if target is null.</returns>
+    private float AddTargetObservations2D(VectorSensor sensor, Transform target)
     {
         if (target != null)
         {
@@ -246,17 +272,20 @@ public class RLObserver
 
             // Bearing: Angle between agent's forward and vector to target [-180, 180]
             Vector2 agentFwd = this.ship.CurrentState.Kinematics.Forward;
-            float bearing = Vector2.SignedAngle(agentFwd, toTargetDir);
+            float bearingDeg = Vector2.SignedAngle(agentFwd, toTargetDir);
 
             // Normalize and add observations
-            AddObservation(sensor, bearing / 180f);          // Bearing: [-1, 1]
-            AddObservation(sensor, distance / sensingRange); // Distance: [0, ~1]
+            AddObservation(sensor, bearingDeg / 180f);          // Bearing: [-1, 1]
+            AddObservation(sensor, distance / sensingRange);    // Distance: [0, ~1]
+
+            return bearingDeg;
         }
         else
         {
             // Pad with zeros if no target found
             AddObservation(sensor, 0f); // bearing
             AddObservation(sensor, 0f); // distance
+            return 0f;
         }
     }
 

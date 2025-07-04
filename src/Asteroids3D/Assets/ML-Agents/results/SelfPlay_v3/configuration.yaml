@@ -3,10 +3,10 @@ behaviors:
   RLPilot:
     trainer_type: ppo
     hyperparameters:
-      batch_size: 1024
+      batch_size: 640
       buffer_size: 10240
       learning_rate: 0.0002
-      beta: 0.002
+      beta: 0.004
       epsilon: 0.2
       lambd: 0.95
       num_epoch: 3
@@ -18,7 +18,7 @@ behaviors:
     network_settings:
       normalize: false
       hidden_units: 256
-      num_layers: 2
+      num_layers: 1
       vis_encode_type: simple
       memory: null
       goal_conditioning_type: hyper
@@ -76,7 +76,7 @@ environment_parameters:
     - value:
         sampler_type: uniform
         sampler_parameters:
-          seed: 4151
+          seed: 3130
           min_value: 40.0
           max_value: 80.0
       name: arena_size
@@ -86,9 +86,9 @@ environment_parameters:
     - value:
         sampler_type: uniform
         sampler_parameters:
-          seed: 4152
-          min_value: 0.4
-          max_value: 0.8
+          seed: 3131
+          min_value: 0.6
+          max_value: 1.2
       name: asteroid_density
       completion_criteria: null
 checkpoint_settings:
