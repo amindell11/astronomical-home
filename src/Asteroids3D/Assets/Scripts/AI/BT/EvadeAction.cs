@@ -39,7 +39,9 @@ public partial class EvadeAction : Action
 
         float distance = _ai != null ? Mathf.Max(_ai.arriveRadius * 3f, DefaultFleeDistance) : DefaultFleeDistance;
         _evadePoint = selfPos + dir * distance;
-        _evadeVelocity = dir * this.GameObject.GetComponent<Ship>().settings.maxSpeed;
+        var shipComponent = this.GameObject.GetComponentInParent<Ship>();
+        float maxSpeed = shipComponent ? shipComponent.settings.maxSpeed : DefaultFleeDistance;
+        _evadeVelocity = dir * maxSpeed;
 
         // Tell the AI pilot to navigate towards this point with avoidance enabled.
         _ai.SetNavigationPoint(_evadePoint, true);

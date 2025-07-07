@@ -73,7 +73,6 @@ public class RLCommanderAgent : Agent, IShipCommandSource
     public override void Initialize()
     {
         base.Initialize();
-        ship = GetComponent<Ship>();
         gameContext = GetComponentInParent<IGameContext>();
         observer = new RLObserver(this);
         if (gameContext == null) RLog.RLError("RLCommanderAgent requires a parent IGameContext component.", this);

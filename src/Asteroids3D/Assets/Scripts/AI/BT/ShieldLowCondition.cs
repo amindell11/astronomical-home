@@ -14,7 +14,9 @@ public partial class ShieldStateCondition : Condition
 
     public override bool IsTrue()
     {
-        var dmg = this.GameObject.GetComponent<Ship>().damageHandler;
+        var ship = this.GameObject.GetComponentInParent<Ship>();
+        if (ship == null) return false;
+        var dmg = ship.damageHandler;
         if (!dmg || dmg.maxShield <= 0f) return false;
 
         float pct = dmg.CurrentShield / dmg.maxShield;

@@ -21,7 +21,7 @@ public partial class AquireEnemiesAction : Action
         if (!self)
             return Status.Failure;
             
-        selfShip = self.GetComponent<Ship>();
+        selfShip = self.GetComponentInParent<Ship>();
         if (!selfShip)
             return Status.Failure;
         
@@ -107,7 +107,7 @@ public partial class AquireEnemiesAction : Action
         if (self == null || Radius == null) return;
 
         // Use cached selfShip or get it if not cached (for editor-only gizmos)
-        Ship currentSelfShip = selfShip ?? self.GetComponent<Ship>();
+        Ship currentSelfShip = selfShip ?? self.GetComponentInParent<Ship>();
         Vector3 position = self.transform.position;
         float radius = Radius.Value;
 

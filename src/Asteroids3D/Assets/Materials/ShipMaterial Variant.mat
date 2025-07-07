@@ -47,7 +47,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _DetailAlbedoMapScale: 2
+    - _DetailAlbedoMapScale: 0
     - _Smoothness: 0.7
     - _SmoothnessTextureChannel: 0
     - _WorkflowMode: 1

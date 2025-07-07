@@ -4,7 +4,6 @@ using System.Collections.Generic;
 
 [RequireComponent(typeof(ShipMovement))]
 [RequireComponent(typeof(ShipDamageHandler))]
-[RequireComponent(typeof(IShipCommandSource))]
 public class Ship : MonoBehaviour, ITargetable, IShooter
 {
     public static readonly List<Transform> ActiveShips = new();
@@ -33,7 +32,7 @@ public class Ship : MonoBehaviour, ITargetable, IShooter
     public IShipCommandSource[] commandSources{get; private set;}
 
     /* ─────────── Current State ─────────── */
-    public ShipState CurrentState { get; private set; }
+    public ShipState CurrentState { get; private set; } 
     public ShipCommand CurrentCommand { get; private set; }
     private bool hasValidCommand = false;
 
@@ -66,12 +65,13 @@ public class Ship : MonoBehaviour, ITargetable, IShooter
         missileLauncher = GetComponentInChildren<MissileLauncher>();
         damageHandler  = GetComponent<ShipDamageHandler>();
         healthVisuals  = GetComponentInChildren<ShipHealthVisuals>();
-        commandSources = GetComponents<IShipCommandSource>();
+        // Discover all command sources within the ship hierarchy (includeInactive=true allows pooled objects to register before activation)
+        commandSources = GetComponentsInChildren<IShipCommandSource>(true);
 
-        // Let command sources initialize themselves and subscribe to events
+        // Let each commander source know which ship it is controlling.
         foreach (var source in commandSources)
         {
-            source.InitializeCommander(this);
+            source?.InitializeCommander(this);
         }
 
         // Relay events from damage handler

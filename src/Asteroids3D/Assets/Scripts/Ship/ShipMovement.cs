@@ -102,7 +102,7 @@ public class ShipMovement : MonoBehaviour
     Quaternion q_yaw  = Quaternion.identity;
 
     public ShipMovement2D Controller { get; private set; }
-
+    public float Mass => rb.mass;
 
     // Latest kinematics snapshot
     public ShipKinematics Kinematics => Controller.Kinematics;

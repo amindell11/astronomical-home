@@ -1,0 +1,89 @@
+behaviors:
+  RLPilot:
+    trainer_type: sac
+    
+    # SAC hyperparameters (includes common and SAC-specific parameters)
+    hyperparameters:
+      # Common hyperparameters
+      batch_size: 640
+      buffer_size: 50000       # Larger replay buffer for SAC
+      learning_rate: 3.0e-4
+      learning_rate_schedule: constant
+
+      # SAC-specific hyperparameters
+      buffer_init_steps: 0       # Start learning immediately; increase if needed
+      tau: 0.005                # Target network update rate
+      steps_per_update: 10.0    # Model updates per environment step
+      save_replay_buffer: false # Set true to resume with buffer
+      init_entcoef: 0.5         # Initial entropy coefficient (temperature)
+      reward_signal_steps_per_update: 10.0
+
+    network_settings:
+      normalize: false
+      hidden_units: 256
+      num_layers: 1
+      vis_encode_type: simple
+
+    reward_signals:
+      extrinsic:
+        gamma: 0.99
+        strength: 1.0
+
+    # Trainer-level settings
+    max_steps: 5000000
+    summary_freq: 20000
+    time_horizon: 1280
+    keep_checkpoints: 5
+
+environment_parameters:
+  arena_size:
+    curriculum:
+      - name: L0_spatial
+        value: 80
+        completion_criteria: { measure: reward, behavior: RLPilot, threshold: 0.6, min_lesson_length: 5 }
+      - name: L1_spatial
+        value: 60
+        completion_criteria: { measure: reward, behavior: RLPilot, threshold: 0.6, min_lesson_length: 10 }
+      - name: L2_spatial
+        value: 50
+        completion_criteria: { measure: reward, behavior: RLPilot, threshold: 0.6, min_lesson_length: 15, require_reset: true }
+      - name: L3_randomised
+        value:
+          sampler_type: uniform
+          sampler_parameters: { min_value: 40, max_value: 80 }
+
+  asteroid_density:
+    curriculum:
+      - name: L0_density
+        value: 0.2
+        completion_criteria: { measure: reward, behavior: RLPilot, threshold: 0.6, min_lesson_length: 5 }
+      - name: L1_density
+        value: 0.4
+        completion_criteria: { measure: reward, behavior: RLPilot, threshold: 0.6, min_lesson_length: 10 }
+      - name: L2_density
+        value: 0.6
+        completion_criteria: { measure: reward, behavior: RLPilot, threshold: 0.6, min_lesson_length: 15, require_reset: true }
+      - name: L3_randomised
+        value:
+          sampler_type: uniform
+          sampler_parameters: { min_value: 0.4, max_value: 1.0 }
+
+  bot_difficulty:
+    curriculum:
+      - name: L0_static_bot
+        value: 0.2
+        completion_criteria: { measure: reward, behavior: RLPilot, threshold: 0.8, min_lesson_length: 20 }
+      - name: L1_mobile_bot
+        value: 0.4
+        completion_criteria: { measure: reward, behavior: RLPilot, threshold: 0.7, min_lesson_length: 25 }
+      - name: L2_guns_only
+        value: 0.6
+        completion_criteria: { measure: reward, behavior: RLPilot, threshold: 0.6, min_lesson_length: 30 }
+      - name: L3_full_arsenal
+        value: 1.0
+        completion_criteria: { measure: reward, behavior: RLPilot, threshold: 0.6, min_lesson_length: 30, require_reset: true }
+      - name: L4_randomised
+        value:
+          sampler_type: multirangeuniform
+          sampler_parameters:
+            intervals: [[0.8, 1.0]]   # mostly hard, occasional relief if you widen intervals 

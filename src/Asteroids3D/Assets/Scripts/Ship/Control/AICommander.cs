@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using ShipControl;
 
-[RequireComponent(typeof(ShipMovement))]
+// Commander modules are now standalone; ShipMovement lives on the parent Ship object.
 public class AICommander : MonoBehaviour, IShipCommandSource
 {
     /* ── Difficulty Setting ─────────────────────────────────── */
@@ -40,12 +40,7 @@ public class AICommander : MonoBehaviour, IShipCommandSource
     [SerializeField] float missileAngleTolerance    = 15f;
 
     /* ── internals ───────────────────────────────────────────── */
-    ShipMovement ship;
-    LaserGun  gun;
-    MissileLauncher missileLauncher;
-    Camera    mainCam;
-
-    Ship myShip;
+    private Ship ship;
 
     // LOS cache
     bool   cachedLOS;
@@ -94,11 +89,6 @@ public class AICommander : MonoBehaviour, IShipCommandSource
 
     void Awake()
     {
-        ship    = GetComponent<ShipMovement>();
-        gun     = GetComponentInChildren<LaserGun>();
-        missileLauncher = GetComponentInChildren<MissileLauncher>();
-        mainCam = Camera.main;
-
         // Initialize waypoint struct (Optimization #3)
         navWaypoint = new Waypoint { isValid = false };
 
@@ -108,7 +98,7 @@ public class AICommander : MonoBehaviour, IShipCommandSource
 
     public void InitializeCommander(Ship ship)
     {
-        myShip = ship;
+        this.ship = ship;
     }
 
     public int Priority => 10;
@@ -125,8 +115,8 @@ public class AICommander : MonoBehaviour, IShipCommandSource
     // ------------------------------------------------------------------
     void FixedUpdate()
     {
-        if (myShip == null) return;
-        cachedCommand = GenerateCommand(myShip.CurrentState);
+        if (ship == null) return;   
+        cachedCommand = GenerateCommand(ship.CurrentState);
     }
 
     // Core decision-making logic extracted from the old TryGetCommand().
@@ -149,7 +139,7 @@ public class AICommander : MonoBehaviour, IShipCommandSource
         }
 
         ShipKinematics kin = state.Kinematics;
-        float currentMaxSpeed = myShip.settings.maxSpeed;
+        float currentMaxSpeed = ship.settings.maxSpeed;
 
         int obstacleCount = ScanObstacles(kin, currentMaxSpeed);
         VelocityPilot.Output vpOut = ComputeNavigation(kin, currentMaxSpeed, obstacleCount);
@@ -190,7 +180,7 @@ public class AICommander : MonoBehaviour, IShipCommandSource
         bool wantsToFireMissile = false;
         const float dummyMissileRange = 10f; // Close range for dumb-fire during locking
         
-        if (missileLauncher)
+        if (ship.missileLauncher)
         {
             switch (state.MissileState)
             {
@@ -233,12 +223,12 @@ public class AICommander : MonoBehaviour, IShipCommandSource
         // Only block laser when we have a locked missile ready to fire
         bool blockLaserForMissile = wantsToFireMissile && state.MissileState == MissileLauncher.LockState.Locked;
         
-        if (gun && dist <= fireDistance && angle <= fireAngleTolerance && !blockLaserForMissile)
+        if (ship.laserGun && dist <= fireDistance && angle <= fireAngleTolerance && !blockLaserForMissile)
         {
-            Vector3 laserFirePos = gun.firePoint ? gun.firePoint.position : transform.position;
+            Vector3 laserFirePos = ship.laserGun.firePoint ? ship.laserGun.firePoint.position : transform.position;
             bool losOK = LineOfSightOK(laserFirePos, dir, dist, angle);
             
-            RLog.AI($"[AI-{name}] Laser check: gun={gun != null}, inRange={dist <= fireDistance}, inAngle={angle <= fireAngleTolerance}, noMissile={!blockLaserForMissile}, LOS={losOK}");
+            RLog.AI($"[AI-{name}] Laser check: gun={ship.laserGun != null}, inRange={dist <= fireDistance}, inAngle={angle <= fireAngleTolerance}, noMissile={!blockLaserForMissile}, LOS={losOK}");
             
             if (losOK)
             {
@@ -248,7 +238,7 @@ public class AICommander : MonoBehaviour, IShipCommandSource
         }
         else
         {
-            RLog.AI($"[AI-{name}] Laser conditions failed: gun={gun != null}, dist={dist:F1}<={fireDistance:F1}={dist <= fireDistance}, angle={angle:F1}<={fireAngleTolerance:F1}={angle <= fireAngleTolerance}, blockLaser={blockLaserForMissile}");
+            RLog.AI($"[AI-{name}] Laser conditions failed: gun={ship.laserGun != null}, dist={dist:F1}<={fireDistance:F1}={dist <= fireDistance}, angle={angle:F1}<={fireAngleTolerance:F1}={angle <= fireAngleTolerance}, blockLaser={blockLaserForMissile}");
         }
     }
 
@@ -331,9 +321,9 @@ public class AICommander : MonoBehaviour, IShipCommandSource
     /// <summary>Returns true if an unobstructed line of sight exists to <paramref name="tgt"/>.</summary>
     public bool HasLineOfSight(Transform tgt)
     {
-        if (!gun || !tgt) return false;
+        if (!ship.laserGun || !tgt) return false;
 
-        Vector3 firePos = gun.firePoint ? gun.firePoint.position : transform.position;
+        Vector3 firePos = ship.laserGun.firePoint ? ship.laserGun.firePoint.position : transform.position;
         Vector3 dir     = tgt.position - firePos;
         float   dist    = dir.magnitude;
         float   angle   = Vector3.Angle(transform.up, dir);
@@ -435,9 +425,9 @@ public class AICommander : MonoBehaviour, IShipCommandSource
 
         // Build per-ship steering tuning from the ShipSettings asset, so that
         // heavier/slower ships automatically steer more gently while nimble
-        // fighters can react more aggressively.
-        float mass = myShip ? (myShip.GetComponent<Rigidbody>()?.mass ?? 1f) : 1f;
-        var settings = myShip?.settings;
+        // fighters can react more aggressively.    
+        float mass = ship.movement.Mass;
+        var settings = ship.settings;
         SteeringTuning tuning = settings ?
             new SteeringTuning(settings.forwardAcceleration / mass,
                                 settings.reverseAcceleration / mass,
@@ -517,7 +507,7 @@ public class AICommander : MonoBehaviour, IShipCommandSource
         // Detection/avoidance sphere radius visualization
         if (enableAvoidance)
         {
-            float maxDist = myShip.settings.maxSpeed * lookAheadTime + safeMargin;
+            float maxDist = ship.settings.maxSpeed * lookAheadTime + safeMargin;
 
             // Draw velocity ray
             Gizmos.color = Color.gray;

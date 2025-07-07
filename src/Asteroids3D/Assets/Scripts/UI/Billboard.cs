@@ -8,6 +8,6 @@ public sealed class Billboard : MonoBehaviour
 {
     void LateUpdate()
     {
-        transform.up = -GamePlane.Normal;
+        transform.rotation = Quaternion.Euler(90, 0, 0);
     }
 } 

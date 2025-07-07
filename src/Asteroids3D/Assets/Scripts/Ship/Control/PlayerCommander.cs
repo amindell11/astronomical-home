@@ -2,14 +2,10 @@ using UnityEngine;
 using ShipControl;
 
 // Translates player input into commands for the Ship component.
-[RequireComponent(typeof(ShipMovement))]
 public class PlayerCommander : MonoBehaviour, IShipCommandSource
 {
-    private ShipMovement ship;
-    private ShipMovement.ShipMovement2D shipController;
+    private Ship ship;
     private Camera mainCamera;
-    private LaserGun laserGun;
-    private MissileLauncher missileLauncher;
 
     [Tooltip("If checked, the ship will rotate towards the mouse position. If unchecked, the ship will rotate using the rotation input axis.")]
     public bool useMouseDirection = false;
@@ -28,11 +24,7 @@ public class PlayerCommander : MonoBehaviour, IShipCommandSource
 
     private void Start()
     {
-        ship = GetComponent<ShipMovement>();
-        shipController = ship.Controller;
         mainCamera = Camera.main;
-        laserGun = GetComponentInChildren<LaserGun>();
-        missileLauncher = GetComponentInChildren<MissileLauncher>();
     }
 
     public void HandleRotationInput(ref ShipCommand cmd)
@@ -171,6 +163,6 @@ public class PlayerCommander : MonoBehaviour, IShipCommandSource
 
     public void InitializeCommander(Ship ship)
     {
-        // This commander doesn't need any specific initialization from the ship.
+        this.ship = ship;
     }
 } 
