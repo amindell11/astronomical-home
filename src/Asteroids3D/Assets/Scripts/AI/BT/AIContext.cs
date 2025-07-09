@@ -65,6 +65,9 @@ public struct AIContext
     [Tooltip("Frame count when this context was computed")]
     public int computeFrame;
 
+    [Tooltip("Current enemy ship")]
+    public Ship enemy;
+
     /// <summary>
     /// Creates an invalid/empty context for initialization
     /// </summary>

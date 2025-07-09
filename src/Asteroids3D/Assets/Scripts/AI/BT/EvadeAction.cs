@@ -51,20 +51,6 @@ public partial class EvadeAction : Action
 
     protected override Status OnUpdate()
     {
-        if (_ai == null) return Status.Failure;
-
-        // Success if we've reached the evade point or enemy is gone.
-        Ship enemyShip = Enemy != null ? Enemy.Value : null;
-        if (enemyShip == null || !enemyShip.gameObject.activeInHierarchy)
-            return Status.Success;
-
-        float arrive = _ai.Navigator != null ? _ai.Navigator.arriveRadius : 5f;
-        float distSq = (this.GameObject.transform.position - _evadePoint).sqrMagnitude;
-        if (distSq <= arrive * arrive)
-            return Status.Success;
-
-        // Keep navigating – update target in case the point was altered externally.
-        _ai.SetNavigationPoint(_evadePoint, true, _evadeVelocity);
         return Status.Success;
     }
 }

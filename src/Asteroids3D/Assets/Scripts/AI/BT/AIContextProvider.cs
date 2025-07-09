@@ -58,7 +58,7 @@ public class AIContextProvider : MonoBehaviour
     public float NearestThreatDistance => currentContext.nearestThreatDistance;
     public bool NearAsteroidCover => currentContext.nearAsteroidCover;
     public float SpeedPct => currentContext.speedPct;
-    
+    public Ship Enemy => currentContext.enemy;  
     void Awake()
     {
         behaviorAgent = GetComponent<BehaviorGraphAgent>();
@@ -84,12 +84,6 @@ public class AIContextProvider : MonoBehaviour
     {
         // Initialize with invalid context
         currentContext = AIContext.Invalid;
-        
-        // Set ourselves as the context provider on the blackboard
-        if (!behaviorAgent.SetVariableValue("ContextProvider", this))
-        {
-            RLog.AIError($"AIContextProvider on {name}: Failed to set 'ContextProvider' variable on behavior graph");
-        }
     }
     
     void Update()
@@ -146,6 +140,7 @@ public class AIContextProvider : MonoBehaviour
             enemyShip && enemyShip.gameObject.activeInHierarchy)
         {
             target = enemyShip;
+            context.enemy = enemyShip;
         }
         
         if (target)

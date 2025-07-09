@@ -11,17 +11,15 @@ public partial class UtilitySetStateAction : Action
     [SerializeReference] public BlackboardVariable<AIShipBehaviorStates> State;
     [SerializeReference] public BlackboardVariable<AIContextProvider> ContextProvider;
     
-    [Header("Utility Configuration")]
-    [Tooltip("Log utility calculations for debugging")]
-    public bool logUtilityScores = false;
+    [SerializeReference, Tooltip("Log utility calculations for debugging")]
+    public BlackboardVariable<bool> logUtilityScores;
     
-    [Tooltip("Minimum time in seconds before switching states (prevents thrashing)")]
-    [Range(0f, 2f)]
-    public float minTimeInState = 0.5f;
+    [SerializeReference, Tooltip("Minimum time in seconds before switching states (prevents thrashing)")]
+    public BlackboardVariable<float> minTimeInState;
 
     // Cached references
     private AIShipBehaviorStates lastState = AIShipBehaviorStates.Idle;
-    private float stateChangeTime = 0f;
+    private float stateChangeTime = -1f; // -1 indicates uninitialized
 
     protected override Status OnStart()
     {
@@ -31,7 +29,25 @@ public partial class UtilitySetStateAction : Action
             return Status.Failure;
         }
         
-        stateChangeTime = Time.time;
+        // Initialize default values if not set
+        if (logUtilityScores == null)
+        {
+            logUtilityScores = new BlackboardVariable<bool>();
+            logUtilityScores.Value = false;
+        }
+        
+        if (minTimeInState == null)
+        {
+            minTimeInState = new BlackboardVariable<float>();
+            minTimeInState.Value = 0.5f;
+        }
+        
+        // Only initialize stateChangeTime if this is the first time
+        if (stateChangeTime < 0f)
+        {
+            stateChangeTime = Time.time;
+        }
+        
         return Status.Running;
     }
 
@@ -49,19 +65,22 @@ public partial class UtilitySetStateAction : Action
         
         // Evaluate utilities for each state
         var bestState = EvaluateUtilities(provider);
-        
+        RLog.AI($"[{GameObject.name}] Best state: {bestState} Last state: {lastState}");
         // Apply hysteresis to prevent state thrashing
         if (bestState != lastState)
         {
             float timeSinceLastChange = Time.time - stateChangeTime;
-            if (timeSinceLastChange >= minTimeInState)
+            float minTime = minTimeInState?.Value ?? 0.5f;
+            RLog.AI($"[{GameObject.name}] Time since last change: {timeSinceLastChange} Min time: {minTime}");
+            if (timeSinceLastChange >= minTime)
             {
                 // Switch to new state
                 State.Value = bestState;
                 lastState = bestState;
                 stateChangeTime = Time.time;
                 
-                if (logUtilityScores)
+                bool shouldLog = logUtilityScores?.Value ?? false;
+                if (shouldLog)
                 {
                     RLog.AI($"[{GameObject.name}] State changed to {bestState} (provider: {provider.name})");
                 }
@@ -85,7 +104,8 @@ public partial class UtilitySetStateAction : Action
         float evadeScore = EvaluateEvadeUtility(provider);
         float attackScore = EvaluateAttackUtility(provider);
         
-        if (logUtilityScores)
+        bool shouldLog = logUtilityScores?.Value ?? false;
+        if (shouldLog)
         {
             RLog.AI($"[{GameObject.name}] Utility scores - Idle:{idleScore:F2} Patrol:{patrolScore:F2} Evade:{evadeScore:F2} Attack:{attackScore:F2}");
         }
@@ -151,7 +171,9 @@ public partial class UtilitySetStateAction : Action
         // Increase if good health/shield
         if (provider.HealthPct > 0.7f && provider.ShieldPct > 0.7f)
             score += 0.2f;
-            
+        if (provider.Enemy != null && provider.Enemy.gameObject.activeInHierarchy && provider.RelDistance < 0.5f)
+            score = 0;
+        RLog.AI($"[{GameObject.name}] Patrol score: {score} Enemy: {provider.Enemy?.name} Active: {provider.Enemy?.gameObject.activeInHierarchy} RelDistance: {provider.RelDistance}");
         return score;
     }
     
@@ -193,6 +215,8 @@ public partial class UtilitySetStateAction : Action
     /// </summary>
     private float EvaluateAttackUtility(AIContextProvider provider)
     {
+        if (provider.Enemy == null || !provider.Enemy.gameObject.activeInHierarchy)
+            return 0f;
         float score = 0f;
         
         // Base score if enemies are present
