@@ -5,7 +5,8 @@
         "Game.Core",
         "Unity.Behavior.Runtime",
         "Unity.Behavior",
-        "Unity.Behavior.Authoring"
+        "Unity.Behavior.Authoring",
+        "SerializableGUID"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
