@@ -402,7 +402,7 @@ public class ArenaInstance : BaseGameContext
             if (closestEnemy == null || ship.IsFriendly(closestEnemy)) continue;
 
             // Check line of sight (ignoring triggers)
-            bool hasLOS = LineOfSightUtility.HasLineOfSight(
+            bool hasLOS = LineOfSight.IsClear(
                 ship.transform.position,
                 closestEnemy.transform.position,
                 closestEnemy.transform,

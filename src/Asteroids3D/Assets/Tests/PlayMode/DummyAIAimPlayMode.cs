@@ -82,7 +82,7 @@ public class DummyAIAimPlayMode
         PositionForTest(shooterShip.transform, targetShip.transform, 10f, 0f);
 
         // Set navigation target so AIShipInput believes it has an enemy
-        aiCommander.SetNavigationTarget(targetShip.transform, false);
+        aiCommander.SetNavigationPoint(targetShip.transform.position, false);
     }
 
     [TearDown]
@@ -240,7 +240,7 @@ public class DummyAIAimPlayMode
         yield return null;
 
         var state = BuildDefaultState(shooterShip);
-        aiCommander.SetNavigationTarget(targetShip.transform, false);
+        aiCommander.SetNavigationPoint(targetShip.transform.position, false);
         aiCommander.TryGetCommand(state, out ShipCommand cmd);
 
         Assert.IsFalse(cmd.PrimaryFire, "AI should not fire when target is beyond fire distance.");
@@ -254,7 +254,7 @@ public class DummyAIAimPlayMode
         yield return null;
 
         var state = BuildDefaultState(shooterShip);
-        aiCommander.SetNavigationTarget(targetShip.transform, false);
+        aiCommander.SetNavigationPoint(targetShip.transform.position, false);
         aiCommander.TryGetCommand(state, out ShipCommand cmd);
 
         Assert.IsFalse(cmd.PrimaryFire, "AI should not fire when target bearing exceeds angle tolerance.");
@@ -332,7 +332,7 @@ public class DummyAIAimPlayMode
     {
         // Position target ahead but slightly offset to test tracking
         PositionForTest(shooterShip.transform, targetShip.transform, 15f, 3f); // Small initial offset angle
-        aiCommander.SetNavigationTarget(targetShip.transform, false);
+        aiCommander.SetNavigationPoint(targetShip.transform.position, false);
 
         // Enable the Ship component to process commands
         shooterShip.enabled = true;

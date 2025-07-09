@@ -37,7 +37,7 @@ public partial class EvadeAction : Action
         }
         dir = dir.normalized;
 
-        float distance = _ai != null ? Mathf.Max(_ai.arriveRadius * 3f, DefaultFleeDistance) : DefaultFleeDistance;
+        float distance = _ai.Navigator != null ? Mathf.Max(_ai.Navigator.arriveRadius * 3f, DefaultFleeDistance) : DefaultFleeDistance;
         _evadePoint = selfPos + dir * distance;
         var shipComponent = this.GameObject.GetComponentInParent<Ship>();
         float maxSpeed = shipComponent ? shipComponent.settings.maxSpeed : DefaultFleeDistance;
@@ -58,7 +58,7 @@ public partial class EvadeAction : Action
         if (enemyShip == null || !enemyShip.gameObject.activeInHierarchy)
             return Status.Success;
 
-        float arrive = _ai != null ? _ai.arriveRadius : 5f;
+        float arrive = _ai.Navigator != null ? _ai.Navigator.arriveRadius : 5f;
         float distSq = (this.GameObject.transform.position - _evadePoint).sqrMagnitude;
         if (distSq <= arrive * arrive)
             return Status.Success;

@@ -1,48 +1,42 @@
 using UnityEngine;
 
 /// <summary>
-/// Static helper methods for performing line-of-sight (LOS) checks that avoid
-/// per-call allocations and can be reused across gameplay systems.
+/// Lightweight helper that answers “is there a clear line-of-sight?” between two points
+/// using a single non-alloc raycast.
 /// </summary>
-public static class LineOfSightUtility
+public static class LineOfSight
 {
-    // Single-element buffer reused for non-allocating raycasts.
+    // Re-use a single-element buffer to avoid per-call allocations (Physics.RaycastNonAlloc).
     private static readonly RaycastHit[] RayBuffer = new RaycastHit[1];
 
     /// <summary>
-    /// Returns <c>true</c> if an unobstructed line of sight exists from
-    /// <paramref name="origin"/> to the <paramref name="targetPos"/>.
+    /// Returns true when nothing on <paramref name="occluderMask"/> blocks the ray from
+    /// <paramref name="origin"/> to <paramref name="targetPos"/>.
+    /// If <paramref name="targetRoot"/> is supplied, a hit on any of its child colliders
+    /// is treated as transparent so the target itself does not count as an occluder.
     /// </summary>
-    /// <param name="origin">World-space start point of the ray.</param>
-    /// <param name="targetPos">World-space end point (target position).</param>
-    /// <param name="targetRoot">
-    /// Optional root transform for the target. If supplied, a hit on any child
-    /// of this transform is considered a clear LOS.
-    /// </param>
-    /// <param name="occluderMask">
-    /// Layer mask defining which colliders can block the LOS. Defaults to
-    /// <see cref="Physics.DefaultRaycastLayers"/>.
-    /// </param>
-    public static bool HasLineOfSight(
+    public static bool IsClear(
         Vector3 origin,
         Vector3 targetPos,
-        Transform targetRoot,
-        LayerMask occluderMask)
+        Transform targetRoot = null,
+        LayerMask? occluderMask = null)
     {
         Vector3 dir  = targetPos - origin;
         float   dist = dir.magnitude;
 
-        // Degenerate case – zero length.
+        // Degenerate case – same point.
         if (dist <= 0f) return true;
 
-        dir /= dist; // Normalize.
+        dir /= dist; // Normalise direction.
+
+        LayerMask mask = occluderMask ?? Physics.DefaultRaycastLayers;
 
         int hitCount = Physics.RaycastNonAlloc(
             origin,
             dir,
             RayBuffer,
             dist,
-            occluderMask,
+            mask,
             QueryTriggerInteraction.Ignore);
 
         if (hitCount == 0)
@@ -51,40 +45,19 @@ public static class LineOfSightUtility
             return true;
         }
 
-        // If we did hit something, LOS is clear only if the first hit is the target.
+        // If we hit something, LOS is clear only if it belongs to the target root.
         return targetRoot != null && RayBuffer[0].collider.transform.IsChildOf(targetRoot);
     }
 
     /// <summary>
-    /// Overload that assumes <see cref="Physics.DefaultRaycastLayers"/> as the occluder mask.
-    /// Matches the original 3-parameter call sites in the project.
+    /// Overload for the common case where we don't care about "hitting the target" being
+    /// special – any hit means the LOS is blocked.
     /// </summary>
-    public static bool HasLineOfSight(
+    public static bool IsClear(
         Vector3 origin,
         Vector3 targetPos,
-        Transform targetRoot = null)
+        LayerMask? occluderMask = null)
     {
-        return HasLineOfSight(origin, targetPos, targetRoot, Physics.DefaultRaycastLayers);
-    }
-
-    /// <summary>
-    /// Convenience overload that works directly with a <see cref="Transform"/>,
-    /// calling the root-aware method internally.
-    /// </summary>
-    public static bool HasLineOfSight(
-        Vector3 origin,
-        Transform target,
-        LayerMask occluderMask)
-    {
-        if (target == null) return false;
-        return HasLineOfSight(origin, target.position, target.root, occluderMask);
-    }
-
-    public static bool HasLineOfSight(
-        Vector3 origin,
-        Transform target)
-    {
-        if (target == null) return false;
-        return HasLineOfSight(origin, target.position, target.root, Physics.DefaultRaycastLayers);
+        return IsClear(origin, targetPos, null, occluderMask);
     }
 } 

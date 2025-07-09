@@ -190,7 +190,7 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
         }
 
         // Line of sight check – shared utility
-        bool losClear = LineOfSightUtility.HasLineOfSight(
+        bool losClear = LineOfSight.IsClear(
                             firePoint.position,
                             currentTarget.TargetPoint.position,
                             currentTarget.TargetPoint.root);
@@ -285,7 +285,7 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
     ITargetable FindBestTargetInCone()
     {
         RLog.Weapon("FindBestTargetInCone: Scanning for targets.");
-        var shipMask = LayerMask.GetMask("Ship");
+        var shipMask = LayerIds.Mask(LayerIds.Ship);
         int colliderCount = Physics.OverlapSphereNonAlloc(firePoint.position, maxLockDistance, PhysicsBuffers.GetColliderBuffer(32), shipMask);
         RLog.Weapon($"FindBestTargetInCone: Found {colliderCount} colliders on 'Ship' layer.");
         

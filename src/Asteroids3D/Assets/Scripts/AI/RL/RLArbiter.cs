@@ -58,7 +58,8 @@ public class RLArbiter : MonoBehaviour
 
         // Get action and map to state
         int stateIndex = actionBuffers.DiscreteActions[0];
-        stateIndex = Mathf.Clamp(stateIndex, 0, 3);
+        int maxStateIndex = System.Enum.GetValues(typeof(AIShipBehaviorStates)).Length - 1;
+        stateIndex = Mathf.Clamp(stateIndex, 0, maxStateIndex);
         
         AIShipBehaviorStates selectedState = (AIShipBehaviorStates)stateIndex;
         

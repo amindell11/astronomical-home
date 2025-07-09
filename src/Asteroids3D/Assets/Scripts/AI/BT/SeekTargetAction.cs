@@ -15,7 +15,7 @@ public partial class SeekTargetAction : Action
         var ai = this.GameObject.GetComponent<AICommander>();
         if (ai != null && Target?.Value != null)
         {
-            ai.SetNavigationTarget(Target.Value, true);
+            ai.SetNavigationPoint(Target.Value.position, true);
             return Status.Success;
         }
         return Status.Failure;
