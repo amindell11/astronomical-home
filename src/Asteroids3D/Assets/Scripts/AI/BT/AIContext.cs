@@ -38,6 +38,21 @@ public struct AIContext
     [Tooltip("Angle to target in degrees (0 = directly ahead)")]
     public float targetAngle;
 
+    [Tooltip("Current enemy ship")]
+    public Ship enemy;
+
+    [Tooltip("Enemy's current health as percentage of maximum (0.0 to 1.0)")]
+    public float enemyHealthPct;
+    
+    [Tooltip("Enemy's current shield as percentage of maximum (0.0 to 1.0)")]
+    public float enemyShieldPct;
+
+    [Tooltip("Enemy's current laser heat as percentage of maximum (0.0 to 1.0)")]
+    public float enemyLaserHeatPct;
+
+    [Tooltip("Enemy's number of remaining missiles")]
+    public int enemyMissileAmmo;
+
     [Header("Threats")]
     [Tooltip("True if incoming missile detected")]
     public bool incomingMissile;
@@ -64,9 +79,6 @@ public struct AIContext
     
     [Tooltip("Frame count when this context was computed")]
     public int computeFrame;
-
-    [Tooltip("Current enemy ship")]
-    public Ship enemy;
 
     /// <summary>
     /// Creates an invalid/empty context for initialization

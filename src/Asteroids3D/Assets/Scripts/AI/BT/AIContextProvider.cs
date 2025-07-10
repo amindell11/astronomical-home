@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Unity.Behavior;
 
@@ -31,6 +33,10 @@ public class AIContextProvider : MonoBehaviour
     [Tooltip("Log context updates for debugging")]
     public bool logUpdates = false;
 
+    // To store utility scores for debugging
+    [NonSerialized]
+    public Dictionary<AIShipBehaviorStates, float> utilityScores = new Dictionary<AIShipBehaviorStates, float>();
+
     // Cached references
     private BehaviorGraphAgent behaviorAgent;
     private Ship ship;
@@ -59,6 +65,11 @@ public class AIContextProvider : MonoBehaviour
     public bool NearAsteroidCover => currentContext.nearAsteroidCover;
     public float SpeedPct => currentContext.speedPct;
     public Ship Enemy => currentContext.enemy;  
+    public float EnemyHealthPct => currentContext.enemyHealthPct;
+    public float EnemyShieldPct => currentContext.enemyShieldPct;
+    public float EnemyLaserHeatPct => currentContext.enemyLaserHeatPct;
+    public int EnemyMissileAmmo => currentContext.enemyMissileAmmo;
+    
     void Awake()
     {
         behaviorAgent = GetComponent<BehaviorGraphAgent>();
@@ -154,6 +165,10 @@ public class AIContextProvider : MonoBehaviour
             context.relSpeed = 0f;
             context.lineOfSight = false;
             context.targetAngle = 0f;
+            context.enemyHealthPct = 0f;
+            context.enemyShieldPct = 0f;
+            context.enemyLaserHeatPct = 0f;
+            context.enemyMissileAmmo = 0;
         }
         
         // Threat and tactical assessment
@@ -191,6 +206,12 @@ public class AIContextProvider : MonoBehaviour
             // Fallback LOS check
             context.lineOfSight = LineOfSight.IsClear(selfPos, targetPos, LayerIds.Mask(LayerIds.Asteroid));
         }
+
+        var targetState = target.CurrentState;
+        context.enemyHealthPct = targetState.HealthPct;
+        context.enemyShieldPct = targetState.ShieldPct;
+        context.enemyLaserHeatPct = targetState.LaserHeatPct;
+        context.enemyMissileAmmo = targetState.MissileAmmo;
     }
     
     private void ComputeThreatInfo(ref AIContext context)
@@ -264,15 +285,18 @@ public class AIContextProvider : MonoBehaviour
         Gizmos.color = new Color(0.5f, 0.5f, 1f, 0.2f);
         Gizmos.DrawWireSphere(pos, asteroidCoverRadius);
         
-        // Draw context info
-        if (currentContext.IsValid)
+        // Draw utility scores
+        if (utilityScores != null && utilityScores.Count > 0)
         {
             UnityEditor.Handles.color = Color.white;
-            string info = $"Context:\nShield: {currentContext.shieldPct:F2}\n" +
-                         $"Enemies: {currentContext.nearbyEnemyCount}\n" +
-                         $"Friends: {currentContext.nearbyFriendCount}\n" +
-                         $"LOS: {currentContext.lineOfSight}";
-            UnityEditor.Handles.Label(pos + Vector3.up * 3f, info);
+            var sortedScores = utilityScores
+                .OrderByDescending(kvp => kvp.Value)
+                .Take(4)
+                .Select(kvp => $"{kvp.Key.ToString()}: {kvp.Value:F2}");
+
+            var utilityText = "Top Utilities:\n" + string.Join("\n", sortedScores);
+
+            UnityEditor.Handles.Label(pos + Vector3.up * 3f, utilityText);
         }
     }
 #endif
