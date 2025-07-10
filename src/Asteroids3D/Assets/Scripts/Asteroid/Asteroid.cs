@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Asteroid : MonoBehaviour, IDamageable, ITargetable
+public class Asteroid : MonoBehaviour, IDamageable
 {
     [Header("Physical Properties")]
     [SerializeField] private float density = 1f;
@@ -22,11 +22,22 @@ public class Asteroid : MonoBehaviour, IDamageable, ITargetable
     
     private Rigidbody rb;
     private MeshFilter meshFilter;
+    private MeshCollider meshCollider;
+    private SphereCollider cheapCollider;
+    private Transform mainCameraTransform;
+
+
+    [Header("Performance Tuning")]
+    [Tooltip("Distance at which the detailed MeshCollider becomes active (units)")]
+    [SerializeField] private float detailedColliderEnableDistance = 75f;
+
     private Vector3 initialVelocity;
     private Vector3 initialAngularVelocity;
     private float currentVolume;
     private float maxHealth;
     private float currentHealth;
+    private AsteroidSpawner parentSpawner;
+
 
     // Public properties for other systems to access
     public float CurrentMass => rb.mass;
@@ -34,55 +45,61 @@ public class Asteroid : MonoBehaviour, IDamageable, ITargetable
     public float Density => density;
     public Rigidbody Rb => rb;
     public Mesh CurrentMesh => meshFilter.sharedMesh;
-    public AsteroidSpawner parentSpawner;
     public float CurrentHealth => currentHealth;
     public float MaxHealth => maxHealth;
 
-    // ITargetable Implementation
-    public Transform TargetPoint => transform;
-
-    public LockOnIndicator Indicator { get; private set; }
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
         meshFilter = GetComponent<MeshFilter>();
+        meshCollider = GetComponent<MeshCollider>();
+        cheapCollider = GetComponent<SphereCollider>();
+        if (cheapCollider == null)
+        {
+            cheapCollider = gameObject.AddComponent<SphereCollider>();
+            cheapCollider.isTrigger = true; // cheap far-field collider – physics ignores triggers for contacts
+        }
+
+        mainCameraTransform = Camera.main != null ? Camera.main.transform : null;
         RLog.Asteroid("Asteroid Spawner for "+gameObject+":"+parentSpawner);
         rb.useGravity = false;
 
-        // Find indicator in children (may be inactive)
-        Indicator = GetComponentInChildren<LockOnIndicator>(true);
     }
 
     public void Initialize(
-        Mesh mesh, 
+        AsteroidSpawnSettings.MeshInfo meshInfo,
         float mass,
         float scale,
         Vector3 velocity,
         Vector3 angularVelocity
     )
     {
-        this.meshFilter.mesh = mesh;
+        // Batch transform/rigid-body property writes to avoid repeated syncs
+        bool prevAutoSync = Physics.autoSyncTransforms;
+        Physics.autoSyncTransforms = false;
+
+        this.meshFilter.mesh = meshInfo.mesh;
         parentSpawner = GetComponentInParent<AsteroidSpawner>();
         // Calculate volume from mesh bounds and scale
-        if (mesh != null)
-        {
-            var bounds = mesh.bounds;
-            float meshVolume = bounds.size.x * bounds.size.y * bounds.size.z;
-            currentVolume = meshVolume * (scale * scale * scale); // scale^3 for volume
-        }
-        else
-        {
-            currentVolume = 1f;
-        }
+        currentVolume = meshInfo.cachedVolume * (scale * scale * scale);
         
         this.rb.mass = mass;
         transform.localScale = Vector3.one * scale;
 
         rb.linearVelocity = velocity;
         rb.angularVelocity = angularVelocity;
-        
-        UpdateMeshCollider();
+
+        UpdateMeshCollider(meshInfo);
+
+        // Update cheap collider radius for far-field trigger
+        if (cheapCollider != null)
+        {
+            // Radius equals half the largest axis of the scaled bounds
+            Vector3 size = meshInfo.mesh.bounds.size;
+            float radius = Mathf.Max(size.x, Mathf.Max(size.y, size.z)) * scale * 0.5f;
+            cheapCollider.radius = radius;
+        }
 
         // Store initial velocities for potential resets when reusing from the pool
         this.initialVelocity = velocity;
@@ -90,6 +107,10 @@ public class Asteroid : MonoBehaviour, IDamageable, ITargetable
 
         maxHealth = currentVolume * healthPerUnitVolume;
         currentHealth = maxHealth;
+
+        // Finalise batched property writes
+        Physics.SyncTransforms();
+        Physics.autoSyncTransforms = prevAutoSync;
     }
 
     public void ResetAsteroid()
@@ -98,37 +119,20 @@ public class Asteroid : MonoBehaviour, IDamageable, ITargetable
         rb.angularVelocity = initialAngularVelocity;
         currentHealth = maxHealth;
     }
-    
-    /// <summary>
-    /// Calculate mass from volume and density - useful for fragments
-    /// </summary>
-    public float CalculateMassFromVolume(float volume)
-    {
-        return volume * density;
-    }
-    
-    /// <summary>
-    /// Calculate mass from mesh bounds - useful during spawning
-    /// </summary>
-    public static float CalculateMassFromMesh(Mesh mesh, float density, float scale = 1f)
-    {
-        if (mesh == null) return density; // fallback to unit volume
-        var bounds = mesh.bounds;
-        float volume = bounds.size.x * bounds.size.y * bounds.size.z;
-        float scaledVolume = volume * (scale * scale * scale);
-        return scaledVolume * density;
-    }
 
-    private void UpdateMeshCollider()
+    private void UpdateMeshCollider(AsteroidSpawnSettings.MeshInfo meshInfo)
     {
-        MeshCollider meshCollider = GetComponent<MeshCollider>();
         if (meshCollider != null)
         {
-            // Optimization: Skip assignment if sharedMesh already correct
-            if (meshCollider.sharedMesh != meshFilter.sharedMesh)
+            Mesh targetColliderMesh = meshInfo.colliderMesh != null ? meshInfo.colliderMesh : meshInfo.mesh;
+
+            // Skip reassignment if already correct to avoid unnecessary cooking
+            if (meshCollider.sharedMesh != targetColliderMesh)
             {
-                meshCollider.sharedMesh = meshFilter.sharedMesh;
+                meshCollider.sharedMesh = targetColliderMesh;
             }
+            // Disable by default – enable when close to camera
+            meshCollider.enabled = false;
         }
     }
 
@@ -218,7 +222,26 @@ public class Asteroid : MonoBehaviour, IDamageable, ITargetable
 
     private void LateUpdate()
     {
-        transform.position = new Vector3(transform.position.x, 0, transform.position.z);
+        transform.position = GamePlane.ProjectOntoPlane(transform.position) + GamePlane.Origin;
+
+        // Enable/disable detailed collider based on distance to camera
+        if (meshCollider != null)
+        {
+            if (mainCameraTransform == null && Camera.main != null)
+            {
+                mainCameraTransform = Camera.main.transform;
+            }
+
+            if (mainCameraTransform != null)
+            {
+                float distSqr = (GamePlane.ProjectOntoPlane(mainCameraTransform.position) - GamePlane.ProjectOntoPlane(transform.position)).sqrMagnitude;
+                bool shouldEnable = distSqr < detailedColliderEnableDistance * detailedColliderEnableDistance;
+                if (meshCollider.enabled != shouldEnable)
+                {
+                    meshCollider.enabled = shouldEnable;
+                }
+            }
+        }
     }
 
     private void OnDrawGizmos()

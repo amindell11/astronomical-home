@@ -3,9 +3,24 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "New Asteroid Spawn Settings", menuName = "Asteroid/Spawn Settings")]
 public class AsteroidSpawnSettings : ScriptableObject
 {
+    [System.Serializable]
+    public struct MeshInfo
+    {
+        public Mesh mesh;
+
+        [Tooltip("Optional pre-cooked collider mesh. If null the mesh itself is used.")]
+        public Mesh colliderMesh;
+
+        public float cachedVolume;
+    }
+
     [Header("Mesh Assets")]
-    [Tooltip("Array of asteroid meshes to randomly select from when spawning")]
-    public Mesh[] asteroidMeshes;
+    [Tooltip("Array of asteroid meshes with optional collider overrides and pre-cached volume")]
+    public MeshInfo[] meshInfos;
+
+    // --- Back-compat: keep legacy array so older asset files don’t break outright ---
+    [SerializeField, HideInInspector]
+    private Mesh[] asteroidMeshes; // deprecated – migrate to meshInfos via OnValidate()
 
     [Header("Randomization Ranges")]
     [Tooltip("The range of random mass scaling applied to newly spawned asteroids")]
@@ -28,17 +43,22 @@ public class AsteroidSpawnSettings : ScriptableObject
     [Tooltip("Default density for asteroids (used for mass calculations)")]
     public float defaultDensity = 1000f;
 
-    /// <summary>
-    /// Get a random mesh from the available asteroid meshes
-    /// </summary>
-    /// <returns>A random asteroid mesh, or null if no meshes are available</returns>
-    public Mesh GetRandomMesh()
+    public MeshInfo GetRandomMeshInfo()
     {
-        if (asteroidMeshes == null || asteroidMeshes.Length == 0)
+        if (meshInfos != null && meshInfos.Length > 0)
         {
-            return null;
+            int idx = Random.Range(0, meshInfos.Length);
+            return meshInfos[idx];
         }
-        return asteroidMeshes[Random.Range(0, asteroidMeshes.Length)];
+
+        // Legacy fallback – wrap mesh into MeshInfo on the fly
+        if (asteroidMeshes != null && asteroidMeshes.Length > 0)
+        {
+            Mesh mesh = asteroidMeshes[Random.Range(0, asteroidMeshes.Length)];
+            return new MeshInfo { mesh = mesh, colliderMesh = null, cachedVolume = (mesh != null ? mesh.bounds.size.x * mesh.bounds.size.y * mesh.bounds.size.z : 1f) };
+        }
+
+        return default;
     }
 
     /// <summary>
@@ -83,7 +103,7 @@ public class AsteroidSpawnSettings : ScriptableObject
     /// </summary>
     public void ValidateSettings()
     {
-        if (asteroidMeshes == null || asteroidMeshes.Length == 0)
+        if ((meshInfos == null || meshInfos.Length == 0) && (asteroidMeshes == null || asteroidMeshes.Length == 0))
         {
             Debug.LogWarning($"AsteroidSpawnSettings '{name}': No asteroid meshes assigned!");
         }

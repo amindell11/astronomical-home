@@ -4948,7 +4948,7 @@ PrefabInstance:
     - target: {fileID: 3623802022773714673, guid: d4f6577bb30c48945a17243a523023ff,
         type: 3}
       propertyPath: m_Height
-      value: 1.19
+      value: 0.83
       objectReference: {fileID: 0}
     - target: {fileID: 3623802022773714673, guid: d4f6577bb30c48945a17243a523023ff,
         type: 3}
@@ -4969,6 +4969,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_IncludeLayers.m_Bits
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3791456385073129076, guid: d4f6577bb30c48945a17243a523023ff,
+        type: 3}
+      propertyPath: m_Mass
+      value: 15
       objectReference: {fileID: 0}
     - target: {fileID: 3791456385073129076, guid: d4f6577bb30c48945a17243a523023ff,
         type: 3}
@@ -5058,6 +5063,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: -6854199025283548723}
+    - targetCorrespondingSourceObject: {fileID: 2028383931407238149, guid: d4f6577bb30c48945a17243a523023ff,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4664427866684414092}
   m_SourcePrefab: {fileID: 100100000, guid: d4f6577bb30c48945a17243a523023ff, type: 3}
 --- !u!4 &1958171315967359797 stripped
 Transform:
@@ -5099,3 +5108,26 @@ MonoBehaviour:
   initialSpeed: 15
   acceleration: 40
   impactForceMultiplier: 200
+--- !u!136 &4664427866684414092
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3744751405240154114}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 0
+  serializedVersion: 2
+  m_Radius: 0.22
+  m_Height: 1.1
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}

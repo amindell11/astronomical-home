@@ -11,7 +11,7 @@ PrefabInstance:
     - target: {fileID: 1066014630051916606, guid: 5d39b99f95c4db04ebd565a759e5dc03,
         type: 3}
       propertyPath: m_Name
-      value: BTPilot Variant
+      value: UtilityPilot
       objectReference: {fileID: 0}
     - target: {fileID: 1848735604803868230, guid: 5d39b99f95c4db04ebd565a759e5dc03,
         type: 3}
@@ -78,8 +78,83 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6525159657316276413, guid: 5d39b99f95c4db04ebd565a759e5dc03,
+        type: 3}
+      propertyPath: asteroidMask.m_Bits
+      value: 256
+      objectReference: {fileID: 0}
+    - target: {fileID: 6704370947733346714, guid: 5d39b99f95c4db04ebd565a759e5dc03,
+        type: 3}
+      propertyPath: m_Graph
+      value: 
+      objectReference: {fileID: -8548647000404242947, guid: 2784a81211beaf1478bb491cc04e26ff,
+        type: 2}
+    - target: {fileID: 6704370947733346714, guid: 5d39b99f95c4db04ebd565a759e5dc03,
+        type: 3}
+      propertyPath: 'managedReferences[7820444837552325059]'
+      value: 'Unity.Behavior Unity.Behavior.BlackboardVariable`1[[AIContextProvider,
+        Game.AI]]'
+      objectReference: {fileID: 0}
+    - target: {fileID: 6704370947733346714, guid: 5d39b99f95c4db04ebd565a759e5dc03,
+        type: 3}
+      propertyPath: managedReferences[7820444837552325059].Name
+      value: AIContext
+      objectReference: {fileID: 0}
+    - target: {fileID: 6704370947733346714, guid: 5d39b99f95c4db04ebd565a759e5dc03,
+        type: 3}
+      propertyPath: m_BlackboardVariableOverridesList.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6704370947733346714, guid: 5d39b99f95c4db04ebd565a759e5dc03,
+        type: 3}
+      propertyPath: managedReferences[7820444837552325059].m_Value
+      value: 
+      objectReference: {fileID: 575601420414553167}
+    - target: {fileID: 6704370947733346714, guid: 5d39b99f95c4db04ebd565a759e5dc03,
+        type: 3}
+      propertyPath: 'm_BlackboardVariableOverridesList.Array.data[2]'
+      value: 7820444837552325059
+      objectReference: {fileID: 0}
+    - target: {fileID: 6704370947733346714, guid: 5d39b99f95c4db04ebd565a759e5dc03,
+        type: 3}
+      propertyPath: managedReferences[7820444837552325059].GUID.m_Value0
+      value: 5383641420332808174
+      objectReference: {fileID: 0}
+    - target: {fileID: 6704370947733346714, guid: 5d39b99f95c4db04ebd565a759e5dc03,
+        type: 3}
+      propertyPath: managedReferences[7820444837552325059].GUID.m_Value1
+      value: 9143759016588651180
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1066014630051916606, guid: 5d39b99f95c4db04ebd565a759e5dc03,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 575601420414553167}
   m_SourcePrefab: {fileID: 100100000, guid: 5d39b99f95c4db04ebd565a759e5dc03, type: 3}
+--- !u!1 &831951509617137536 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1066014630051916606, guid: 5d39b99f95c4db04ebd565a759e5dc03,
+    type: 3}
+  m_PrefabInstance: {fileID: 378462712923520190}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &575601420414553167
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 831951509617137536}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a440c100dea5cea489a7500d7b67120c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxContextAge: 0.1
+  nearbyShipRadius: 30
+  engagementRange: 20
+  asteroidCoverRadius: 15
+  showDebugGizmos: 1
+  logUpdates: 0
