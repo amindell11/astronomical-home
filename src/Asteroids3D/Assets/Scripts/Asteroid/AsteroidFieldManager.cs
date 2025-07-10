@@ -42,6 +42,7 @@ public class AsteroidFieldManager : BaseFieldManager
     {
         // Call base.Start() to do initial spawn with base class parameters
         base.Start();
+        RLog.AI($"AsteroidFieldManager: Start");
         // Initialize timer for density checks (replacing InvokeRepeating)
         densityCheckTimer = densityCheckInterval;
     }
@@ -52,17 +53,9 @@ public class AsteroidFieldManager : BaseFieldManager
         densityCheckTimer -= Time.deltaTime;
         if (densityCheckTimer <= 0f)
         {
-            ManageAsteroidField();
+            ManageAsteroidField(updateMinSpawnDistance, updateMaxSpawnDistance, maxSpawnsPerFrame);
             densityCheckTimer = densityCheckInterval;
         }
-    }
-
-    /// <summary>
-    /// Override to provide update-specific spawn parameters for ongoing field management.
-    /// </summary>
-    protected override (float minSpawn, float maxSpawn, int maxPerFrame) GetSpawnParameters()
-    {
-        return (updateMinSpawnDistance, updateMaxSpawnDistance, maxSpawnsPerFrame);
     }
 
     protected override Transform AcquireAnchor()

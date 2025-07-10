@@ -70,29 +70,19 @@ public abstract class BaseFieldManager : MonoBehaviour
     /// </summary>
     protected void ManageAsteroidField()
     {
-        var spawnParams = GetSpawnParameters();
-        ManageAsteroidField(spawnParams.minSpawn, spawnParams.maxSpawn, spawnParams.maxPerFrame);
+        ManageAsteroidField(minSpawnDistance, maxSpawnDistance, maxAsteroids);
     }
 
     /// <summary>
     /// Overloaded version that accepts explicit spawn parameters.
     /// </summary>
-    private void ManageAsteroidField(float minSpawn, float maxSpawn, int maxPerFrame)
+    protected void ManageAsteroidField(float minSpawn, float maxSpawn, int maxPerFrame)
     {
         spawnAnchor = AcquireAnchor();
         if (spawnAnchor == null) return;
 
         UpdateCachedDensity();
         CheckAndSpawnAsteroids(minSpawn, maxSpawn, maxPerFrame);
-    }
-
-    /// <summary>
-    /// Virtual method that subclasses can override to provide their own spawn parameters.
-    /// By default, uses the base class values.
-    /// </summary>
-    protected virtual (float minSpawn, float maxSpawn, int maxPerFrame) GetSpawnParameters()
-    {
-        return (minSpawnDistance, maxSpawnDistance, maxSpawnsPerFrame);
     }
 
     protected abstract Transform AcquireAnchor();
