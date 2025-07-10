@@ -15,26 +15,26 @@ public static class VelocityPilot
     public readonly struct Input
     {
         public readonly ShipKinematics kin;
-        public readonly Vector2 waypoint;    // desired point in plane space
-        public readonly Vector2 desiredVel;  // OR you can pass desiredVel directly
-        public readonly Vector2 waypointVel; // desired velocity at waypoint (for velocity matching)
+        public readonly Vector2 desiredVel;
+        public readonly Vector2 desiredAccel;
         public readonly float   maxSpeed;
         public readonly SteeringTuning tuning;
-
+        public readonly bool allowAccelBoost; // optional acceleration-boost feature
+        
         // Constructor that uses explicit tuning parameters (preferred)
-        public Input(ShipKinematics k, Vector2 wp, Vector2 desiredVelocity, Vector2 wpVelocity, float max, SteeringTuning tuning)
+        public Input(ShipKinematics k, Vector2 desiredVelocity, Vector2 desiredAcceleration, float max, SteeringTuning tuning, bool allowAccelBoost = false)
         {
             kin = k;
-            waypoint = wp;
             desiredVel = desiredVelocity;
-            waypointVel = wpVelocity;
+            desiredAccel = desiredAcceleration;    
             maxSpeed = max;
             this.tuning = tuning;
+            this.allowAccelBoost = allowAccelBoost;
         }
 
         // Back-compat constructor – falls back to default tuning values.
-        public Input(ShipKinematics k, Vector2 wp, Vector2 desiredVelocity, Vector2 wpVelocity, float max)
-            : this(k, wp, desiredVelocity, wpVelocity, max, SteeringTuning.Default) {}
+        public Input(ShipKinematics k, Vector2 desiredVelocity, Vector2 desiredAcceleration, float max)
+            : this(k, desiredVelocity, desiredAcceleration, max, SteeringTuning.Default, false) {}   
     }
 
     public readonly struct Output
@@ -55,123 +55,148 @@ public static class VelocityPilot
     /// </summary>
     public static Output Compute(Input i)
     {
-        // Use legacy API but build necessary parameters
-        // If desiredVel is zero, fall back to waypoint logic like old ComputeInputs.
-
-        Vector2 desired = i.desiredVel;
+        // Maps a desired world-space acceleration directly onto thrust/strafe axes.
         Vector2 curPos  = i.kin.Pos;
         Vector2 curVel  = i.kin.Vel;
         Vector2 forward = i.kin.Forward;
 
-        float thrust, strafe, rot;
+        float  thrust, strafe, rot;
+        var    tuning = i.tuning;
 
-        var tuning = i.tuning;
-
-        if (desired != Vector2.zero)
+        // ── Optional acceleration-boost --------------------------------------------------
+        if (i.allowAccelBoost && i.desiredVel != Vector2.zero)
         {
-            // Convert desired velocity into an implicit waypoint step ahead.
-            Vector2 wp = curPos + desired * 0.2f; // 0.2 s lead – arbitrary, tweak later
-            ComputeInputs(wp, curPos, curVel, forward, i.maxSpeed, i.waypointVel, tuning, out thrust, out strafe, out rot);
+            Vector2 desiredDir  = i.desiredVel.normalized;
+            float   currentSpeedAlong = Vector2.Dot(curVel, desiredDir);
+            float   targetSpeed       = Mathf.Min(i.desiredVel.magnitude, i.maxSpeed);
+            float   speedDeficit      = targetSpeed - currentSpeedAlong;
+
+            if (speedDeficit > tuning.DeadZone)
+            {
+                ComputeBoost(desiredDir, forward, tuning, out thrust, out strafe, out rot);
+                return new Output(thrust, strafe, rot);
+            }
+        }
+
+        /* ------------------------------------------------------------------------
+         * Translate desired acceleration → axis commands
+         * ---------------------------------------------------------------------*/
+        Vector2 desiredAcceleration = i.desiredAccel;
+
+        // Project desired acceleration onto ship axes
+        Vector2 shipRight   = new Vector2(forward.y, -forward.x);
+        float   forwardComponent  = Vector2.Dot(desiredAcceleration, forward);
+        float   strafeComponent   = Vector2.Dot(desiredAcceleration, shipRight);
+
+        // Map to normalised commands using per-axis accel limits
+        thrust = (forwardComponent >= 0f)
+                 ? forwardComponent / tuning.ForwardAcc
+                 : forwardComponent / tuning.ReverseAcc; // braking / reverse
+
+        strafe = strafeComponent / tuning.StrafeAcc;
+
+        // Dead-zone and clamp
+        if (desiredAcceleration.magnitude < tuning.DeadZone)
+        {
+            thrust = 0f;
+            strafe = 0f;
         }
         else
         {
-            ComputeInputs(i.waypoint, curPos, curVel, forward, i.maxSpeed, i.waypointVel, tuning, out thrust, out strafe, out rot);
+            thrust = Mathf.Clamp(thrust, -1f, 1f);
+            strafe = Mathf.Clamp(strafe, -1f, 1f);
         }
+
+        /* ------------------------------------------------------------------------
+         * Heading control – face the desired velocity (with intelligent tilt)
+         * ---------------------------------------------------------------------*/
+        Vector2 targetDir = forward; // Default to current heading
+        if (i.desiredVel.sqrMagnitude > 0.01f)
+        {
+            // Choose a heading that re-uses the boost geometry to balance strafe & thrust
+            targetDir = ComputeTiltedHeading(i.desiredVel, strafe, tuning);
+        }
+        
+        rot = Vector2.SignedAngle(Vector2.up, targetDir);
+        if (rot < 0f) rot += 360f;
 
         return new Output(thrust, strafe, rot);
     }
 
     /// <summary>
-    /// Computes thrust, strafe, and rotation commands to guide a ship to a waypoint.
+    /// Computes a heading direction that intentionally tilts the ship such that the
+    /// combination of available forward <paramref name="tuning.ForwardAcc"/> and strafe
+    /// <paramref name="tuning.StrafeAcc"/> accelerations better matches the desired
+    /// world-space velocity vector.  For small strafe commands the tilt is negligible;
+    /// as the strafe demand approaches ±1 the tilt angle approaches the optimal boost
+    /// angle <c>atan(StrafeAcc / ForwardAcc)</c>.
     /// </summary>
-    /// <param name="waypoint">Target position in 2D plane space.</param>
-    /// <param name="currentPosition">Current ship position in 2D plane space.</param>
-    /// <param name="currentVelocity">Current ship velocity in 2D plane space.</param>
-    /// <param name="currentForward">Current ship forward direction (normalized) in 2D plane space.</param>
-    /// <param name="maxSpeed">The maximum speed the ship can travel.</param>
-    /// <param name="waypointVel">Desired velocity at waypoint (for velocity matching).</param>
-    /// <param name="tuning">Tuning parameters for the ship.</param>
-    /// <param name="thrustCmd">Normalized forward/reverse thrust command [-1, 1].</param>
-    /// <param name="strafeCmd">Normalized strafe command [-1, 1].</param>
-    /// <param name="rotTargetDeg">The desired heading in degrees [0, 360].</param>
-    public static void ComputeInputs(
-        Vector2 waypoint, Vector2 currentPosition, Vector2 currentVelocity, Vector2 currentForward, float maxSpeed, Vector2 waypointVel,
-        SteeringTuning tuning,
-        out float thrustCmd, out float strafeCmd, out float rotTargetDeg)
+    static Vector2 ComputeTiltedHeading(Vector2 desiredVel, float strafeCmd, SteeringTuning tuning)
     {
-        // 1. Compute Desired Velocity taking waypoint velocity into account
-        Vector2 vectorToWaypoint = waypoint - currentPosition;
-        float   distanceToWaypoint = vectorToWaypoint.magnitude;
-        Vector2 directionToWaypoint = distanceToWaypoint > 0.01f ? vectorToWaypoint.normalized : Vector2.zero;
+        // If we barely need to strafe, default to facing the velocity vector.
+        float absStrafe = Mathf.Abs(strafeCmd);
+        if (absStrafe < 0.05f)
+            return desiredVel.normalized;
 
-        // Maximum relative speed we can still lose over remaining distance with max decel
-        float maxRelativeSpeed = Mathf.Sqrt(2f * tuning.ForwardAcc * distanceToWaypoint);
+        // Maximum useful tilt when using full boost geometry.
+        float maxTilt = Mathf.Atan2(tuning.StrafeAcc, tuning.ForwardAcc); // radians
 
-        // Desired relative speed (clamped to ship max)
-        float desiredRelSpeed = Mathf.Min(maxRelativeSpeed, maxSpeed);
+        // Scale tilt proportionally with how much strafe authority we are currently using.
+        float tilt = maxTilt * absStrafe; // 0 → face desiredVel, 1 → full boost tilt
 
-        // Desired world velocity is waypoint velocity plus allowed relative component along path
-        Vector2 desiredVelocity = waypointVel + directionToWaypoint * desiredRelSpeed;
+        // Direction of rotation depends on strafe sign (right strafe = +1 rotates +tilt).
+        float sign = (strafeCmd >= 0f) ? +1f : -1f;
 
-        // Ensure we do not exceed absolute max speed
-        if (desiredVelocity.sqrMagnitude > maxSpeed * maxSpeed)
-            desiredVelocity = desiredVelocity.normalized * maxSpeed;
+        return Rotate(desiredVel.normalized, sign * tilt).normalized;
+    }
 
-        // 2. Find Velocity Error
-        Vector2 velocityError = desiredVelocity - currentVelocity;
+    /// <summary>
+    /// Calculates control commands that exploit both forward and strafe axes to
+    /// maximise acceleration along <paramref name="desiredDir"/>. Assumes we
+    /// want full-throttle on both axes while the boost is active.
+    /// </summary>
+    static void ComputeBoost(Vector2 desiredDir, Vector2 currentForward, SteeringTuning tuning,
+                             out float thrustCmd, out float strafeCmd, out float rotTargetDeg)
+    {
+        // Magnitude of heading offset required to cancel lateral component when using full strafe
+        float phi = Mathf.Atan2(tuning.StrafeAcc, tuning.ForwardAcc);
 
-        // 3. Project Error onto Ship's Axes
-        Vector2 shipRight = new Vector2(currentForward.y, -currentForward.x);
-        float forwardError = Vector2.Dot(velocityError, currentForward);
-        float strafeError = Vector2.Dot(velocityError, shipRight);
-        
-        // 4. Map Errors to Commands
-        if (forwardError > 0)
+        // Two candidate headings: tilt right (+φ, strafe +1) or tilt left (-φ, strafe –1)
+        Vector2 dirRight = Rotate(desiredDir, +phi).normalized;
+        Vector2 dirLeft  = Rotate(desiredDir, -phi).normalized;
+
+        // Compute absolute angular difference from current heading for each candidate
+        float deltaRight = Mathf.Abs(Vector2.SignedAngle(currentForward, dirRight));
+        float deltaLeft  = Mathf.Abs(Vector2.SignedAngle(currentForward, dirLeft));
+
+        Vector2 chosenDir;
+        if (deltaRight <= deltaLeft)
         {
-            // Need to accelerate forward
-            thrustCmd = forwardError / tuning.ForwardAcc;
+            // Use right strafe
+            chosenDir  = dirRight;
+            strafeCmd  = 1f;
         }
         else
         {
-            // Need to brake or reverse
-            thrustCmd = forwardError / tuning.ReverseAcc; // forwardError is negative
+            // Use left strafe (negative command)
+            chosenDir  = dirLeft;
+            strafeCmd  = -1f;
         }
 
-        strafeCmd = strafeError / tuning.StrafeAcc;
+        // Full forward thrust during boost
+        thrustCmd = 1f;
 
-        // 5. Apply Dead Zone and Clamp
-        if (velocityError.magnitude < tuning.DeadZone)
-        {
-            thrustCmd = 0f;
-            strafeCmd = 0f;
-        }
-        else
-        {
-            thrustCmd = Mathf.Clamp(thrustCmd, -1f, 1f);
-            strafeCmd = Mathf.Clamp(strafeCmd, -1f, 1f);
-        }
+        // Desired heading angle in degrees (Unity convention: 0° = up, CCW positive)
+        rotTargetDeg = Vector2.SignedAngle(Vector2.up, chosenDir);
+        if (rotTargetDeg < 0f) rotTargetDeg += 360f;
+    }
 
-        // --- Rotation ---
-        // We want to point the ship towards the desired velocity vector.
-        Vector2 targetDirection = desiredVelocity.normalized;
-        
-        // If we are very close to the desired velocity, just point towards the waypoint.
-        if (desiredVelocity.magnitude < 0.5f)
-        {
-            targetDirection = directionToWaypoint;
-        }
-
-        if (targetDirection.sqrMagnitude > 0.01f)
-        {
-            // The ship's angle is measured counter-clockwise from Vector2.up.
-            rotTargetDeg = Vector2.SignedAngle(Vector2.up, targetDirection);
-            if (rotTargetDeg < 0) rotTargetDeg += 360f;
-        }
-        else
-        {
-            // If there's no direction, maintain current heading.
-            rotTargetDeg = Vector2.SignedAngle(Vector2.up, currentForward);
-            if (rotTargetDeg < 0) rotTargetDeg += 360f;
-        }
+    // Simple 2D vector rotation helper (radians, CCW positive)
+    static Vector2 Rotate(Vector2 v, float angleRad)
+    {
+        float c = Mathf.Cos(angleRad);
+        float s = Mathf.Sin(angleRad);
+        return new Vector2(c * v.x - s * v.y,
+                           s * v.x + c * v.y);
     }
 }

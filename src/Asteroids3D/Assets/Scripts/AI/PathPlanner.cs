@@ -15,35 +15,41 @@ public static class PathPlanner
     {
         public readonly ShipKinematics kin;
         public readonly Vector2 goal;            // waypoint in plane space
+        public readonly Vector2 waypointVel;     // velocity of the waypoint
         public readonly float   arriveRadius;
         public readonly float   maxSpeed;
         public readonly float   avoidradius;
         public readonly float   lookAheadTime;
         public readonly float   safeMargin;
         public readonly IReadOnlyList<Collider> nearbyAsteroids;
+        public readonly SteeringTuning tuning;
 
-        public Input(ShipKinematics k, Vector2 g, float avoid, float arrive, float max, float lookAhead,
-                     float margin, IReadOnlyList<Collider> rocks)
+        public Input(ShipKinematics k, Vector2 g, Vector2 wpVel, float avoid, float arrive, float max, float lookAhead,
+                     float margin, IReadOnlyList<Collider> rocks, SteeringTuning t)
         {
             kin   = k;
             goal  = g;
+            waypointVel = wpVel;
             avoidradius = avoid;
             arriveRadius = arrive;
             maxSpeed     = max;
             lookAheadTime= lookAhead;
             safeMargin   = margin;
             nearbyAsteroids = rocks;
+            tuning = t;
         }
     }
 
     public readonly struct Output
     {
         public readonly Vector2 desiredVelocity;
+        public readonly Vector2 desiredAccel;
         public readonly DebugInfo dbg;
 
-        public Output(Vector2 dv, DebugInfo d)
+        public Output(Vector2 dv, Vector2 da, DebugInfo d)
         {
             desiredVelocity = dv;
+            desiredAccel = da;
             dbg             = d;
         }
     }
@@ -67,11 +73,17 @@ public static class PathPlanner
     {
         /* -------- seek / arrive --------------------------------- */
         Vector2 toGoal = io.goal - io.kin.Pos;
-        float   dist   = toGoal.magnitude;
-        float   tgtSpeed = dist > io.arriveRadius
-                           ? io.maxSpeed
-                           : Mathf.Lerp(0, io.maxSpeed, dist / io.arriveRadius);
-        Vector2 desired = toGoal.normalized * tgtSpeed;
+        float dist = toGoal.magnitude;
+        Vector2 dirToGoal = dist > 0.01f ? toGoal / dist : Vector2.zero;
+
+        // Using ForwardAcc from a default SteeringTuning to calculate maxRelativeSpeed
+        float maxRelativeSpeed = Mathf.Sqrt(2f * io.tuning.ForwardAcc * dist);
+        float desiredRelSpeed = Mathf.Min(maxRelativeSpeed, io.maxSpeed);
+        
+        Vector2 desired = io.waypointVel + dirToGoal * desiredRelSpeed;
+        
+        if (desired.sqrMagnitude > io.maxSpeed * io.maxSpeed)
+            desired = desired.normalized * io.maxSpeed;
 
         /* -------- predictive avoidance --------------------------- */
         Vector2 future = io.kin.Pos + io.kin.Vel * io.lookAheadTime;
@@ -131,6 +143,6 @@ public static class PathPlanner
 #else
         var dbg = new DebugInfo(future, desired, avoid, accel, new List<Vector2>());
 #endif
-        return new Output(desiredVel, dbg);
+        return new Output(desiredVel, accel, dbg);
     }
 } 

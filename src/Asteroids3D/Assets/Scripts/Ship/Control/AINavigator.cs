@@ -1,5 +1,6 @@
 using UnityEngine;
 using ShipControl;
+using System.Collections.Generic;
 
 public class AINavigator : MonoBehaviour
 {
@@ -14,6 +15,15 @@ public class AINavigator : MonoBehaviour
     public float avoidRadius = .5f;
     [Tooltip("Toggle obstacle avoidance logic on/off")] public bool enableAvoidance = false;
 
+    [Header("Raycast Avoidance")]
+    [Tooltip("Number of rays to cast on each side of the ship")]
+    public int raysPerDirection = 5;
+    [Tooltip("Max angle in degrees to cast rays")]
+    public float maxRayDegrees = 90f;
+    [Tooltip("Radius of spherecast for obstacle detection. Set to 0 for raycasts.")]
+    public float sphereCastRadius = 0.5f;
+
+
     /* ── Smoothing ─────────────────────────────────────────── */
     [Header("Steering Smoothing")]
     [Tooltip("Higher values react faster; 0 disables smoothing. Units: 1/seconds (approx).")]
@@ -21,12 +31,13 @@ public class AINavigator : MonoBehaviour
 
     /* ── internals ───────────────────────────────────────────── */
     private Ship ship;
+    private SteeringTuning steeringTuning;
 
     const int MaxColliders = 256;
     readonly Collider[] hits = new Collider[MaxColliders];
     readonly RaycastHit[] rayHits = new RaycastHit[MaxColliders];
     int dbgHitCount;
-    Vector3 dbgRayVel, dbgRayFwd;
+    readonly List<Vector3> dbgRays = new List<Vector3>();
 
     // Path-planning & pilot debug info (updated every physics step)
     PathPlanner.DebugInfo dbgPath;
@@ -41,6 +52,14 @@ public class AINavigator : MonoBehaviour
     public void Initialize(Ship ship)
     {
         this.ship = ship;
+        float mass = ship.movement.Mass;
+        var settings = ship.settings;
+        steeringTuning = settings ?
+            new SteeringTuning(settings.forwardAcceleration / mass,
+                                settings.reverseAcceleration / mass,
+                                settings.maxStrafeForce / mass,
+                                SteeringTuning.Default.DeadZone)
+            : SteeringTuning.Default;
     }
 
     public void GenerateNavCommands(ShipState state, AICommander.Waypoint navWaypoint, ref ShipCommand cmd)
@@ -62,21 +81,43 @@ public class AINavigator : MonoBehaviour
 
     int ScanObstacles(ShipKinematics kin, float currentMaxSpeed)
     {
-        int n = 0;
-        if (!enableAvoidance) return 0;
+        if (!enableAvoidance)
+        {
+            dbgRays.Clear();
+            dbgHitCount = 0;
+            return 0;
+        }
 
+        int n = 0;
         float maxDist = currentMaxSpeed * lookAheadTime + safeMargin;
 
-        Vector2 velDir = kin.Vel.sqrMagnitude > 0.1f ? kin.Vel.normalized : Vector2.zero;
-        Vector3 velDirWorld = GamePlane.PlaneVectorToWorld(velDir).normalized;
-        dbgRayVel = velDirWorld * maxDist;
+        Vector2 centerDir2D = kin.Vel.sqrMagnitude > 0.1f ? kin.Vel.normalized : kin.Forward;
+        Vector3 centerDirWorld = GamePlane.PlaneVectorToWorld(centerDir2D).normalized;
 
-        if (velDir != Vector2.zero)
-            n = CastRayAndCollect(velDirWorld, maxDist, n);
+        dbgRays.Clear();
 
-        Vector3 fwdWorld = GamePlane.PlaneVectorToWorld(kin.Forward).normalized;
-        dbgRayFwd = fwdWorld * maxDist;
-        n = CastRayAndCollect(fwdWorld, maxDist, n);
+        // Cast forward ray
+        n = CastRayAndCollect(centerDirWorld, maxDist, n);
+        dbgRays.Add(centerDirWorld * maxDist);
+
+        if (raysPerDirection > 0)
+        {
+            float angleStep = maxRayDegrees / raysPerDirection;
+            for (int i = 1; i <= raysPerDirection; i++)
+            {
+                float currentAngle = i * angleStep;
+
+                // Cast left
+                var leftDir = Quaternion.Euler(0, -currentAngle, 0) * centerDirWorld;
+                n = CastRayAndCollect(leftDir, maxDist, n);
+                dbgRays.Add(leftDir * maxDist);
+
+                // Cast right
+                var rightDir = Quaternion.Euler(0, currentAngle, 0) * centerDirWorld;
+                n = CastRayAndCollect(rightDir, maxDist, n);
+                dbgRays.Add(rightDir * maxDist);
+            }
+        }
 
         dbgHitCount = n;
         return n;
@@ -85,8 +126,17 @@ public class AINavigator : MonoBehaviour
     int CastRayAndCollect(Vector3 dir, float maxDist, int start)
     {
         int n = start;
-        int cnt = Physics.RaycastNonAlloc(transform.position, dir, rayHits, maxDist, asteroidMask, QueryTriggerInteraction.Ignore);
-        for (int i = 0; i < cnt && n < MaxColliders; i++)
+        int cnt;
+        if (sphereCastRadius > 0f)
+        {
+            cnt = Physics.SphereCastNonAlloc(transform.position, sphereCastRadius, dir, rayHits, maxDist, asteroidMask, QueryTriggerInteraction.Ignore);
+        }
+        else
+        {
+            cnt = Physics.RaycastNonAlloc(transform.position, dir, rayHits, maxDist, asteroidMask, QueryTriggerInteraction.Ignore);
+        }
+
+        for (int i = 0; i < cnt && i < MaxColliders; i++)
         {
             Collider col = rayHits[i].collider;
             if (col && System.Array.IndexOf(hits, col, 0, n) < 0) hits[n++] = col;
@@ -99,29 +149,16 @@ public class AINavigator : MonoBehaviour
         Vector2 goal2D = navWaypoint.position;
         dbgGoal2D = goal2D;
 
-        var ppIn = new PathPlanner.Input(kin, goal2D, avoidRadius, arriveRadius, currentMaxSpeed,
-                                           lookAheadTime, safeMargin,
-                                           new System.ArraySegment<Collider>(hits, 0, obstacleCount));
-
-        var ppOut = PathPlanner.Compute(ppIn);
-        dbgPath = ppOut.dbg;
-
         // Velocity of the waypoint (if it's a ship or waypoint)
         Vector2 wpVel = navWaypoint.velocity;
 
-        // Build per-ship steering tuning from the ShipSettings asset, so that
-        // heavier/slower ships automatically steer more gently while nimble
-        // fighters can react more aggressively.    
-        float mass = ship.movement.Mass;
-        var settings = ship.settings;
-        SteeringTuning tuning = settings ?
-            new SteeringTuning(settings.forwardAcceleration / mass,
-                                settings.reverseAcceleration / mass,
-                                settings.maxStrafeForce / mass,
-                                SteeringTuning.Default.DeadZone)
-            : SteeringTuning.Default;
+        var ppIn = new PathPlanner.Input(kin, goal2D, wpVel, avoidRadius, arriveRadius, currentMaxSpeed,
+                                           lookAheadTime, safeMargin,
+                                           new System.ArraySegment<Collider>(hits, 0, obstacleCount), steeringTuning);
 
-        var vpIn = new VelocityPilot.Input(kin, goal2D, ppOut.desiredVelocity, wpVel, currentMaxSpeed, tuning);
+        var ppOut = PathPlanner.Compute(ppIn);
+        dbgPath = ppOut.dbg;
+        var vpIn = new VelocityPilot.Input(kin, ppOut.desiredVelocity, ppOut.desiredAccel, currentMaxSpeed, steeringTuning, false);
         var vpOut = VelocityPilot.Compute(vpIn);
         dbgPilot = vpOut;
         return vpOut;
@@ -164,7 +201,7 @@ public class AINavigator : MonoBehaviour
         Gizmos.DrawLine(transform.position, fut3);
         Gizmos.DrawSphere(fut3, 0.3f);
 
-        // Desired velocity vector
+        // Desired velocity vectorR
         Gizmos.color = Color.green;
         Vector3 dvec = GamePlane.PlaneVectorToWorld(dbgPath.desired);
         Gizmos.DrawLine(transform.position, transform.position + dvec);
@@ -188,15 +225,19 @@ public class AINavigator : MonoBehaviour
         // Detection/avoidance sphere radius visualization
         if (enableAvoidance)
         {
-            float maxDist = ship.settings.maxSpeed * lookAheadTime + safeMargin;
-
-            // Draw velocity ray
-            Gizmos.color = Color.gray;
-            Gizmos.DrawLine(transform.position, transform.position + dbgRayVel);
-
-            // Draw forward ray
-            Gizmos.color = new Color(1f, 0.75f, 0f); // orange-ish
-            Gizmos.DrawLine(transform.position, transform.position + dbgRayFwd);
+            // Draw raycast fan
+            Gizmos.color = new Color(1f, 0.75f, 0f, 0.5f); // orange-ish
+            if (dbgRays != null)
+            {
+                foreach (var ray in dbgRays)
+                {
+                    Gizmos.DrawLine(transform.position, transform.position + ray);
+                    if (sphereCastRadius > 0)
+                    {
+                        Gizmos.DrawWireSphere(transform.position + ray, sphereCastRadius);
+                    }
+                }
+            }
 
             // Draw detected asteroids prior to filtering logic
             Gizmos.color = new Color(0.7f, 0.7f, 0.7f, 0.6f); // greyish

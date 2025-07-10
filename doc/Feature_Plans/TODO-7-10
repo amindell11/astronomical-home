@@ -1,0 +1,4 @@
+asteroid field spawning more consistent (hardspawn radius, maybe procedural?)
+path plotting for dense asteroid situations
+control priority of boost vs. face-enemy by state.
+add more states!

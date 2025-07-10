@@ -1,0 +1,6 @@
+
+---
+description: >
+  This rule governs large-scale refactors within the codebase. When undertaking a significant refactor—such as modifying a core data structure, interface, or algorithm that is used in multiple places—developers must ensure that the change is applied comprehensively across all relevant files, classes, and modules. The process should avoid leaving behind legacy or bridge code that maintains compatibility with outdated implementations. Before proceeding, enumerate all affected locations and present this list to the user for confirmation. Once confirmed, execute the refactor in all identified areas, updating or removing legacy code as necessary, and provide the user with a unified, updated result.
+alwaysApply: false
+---

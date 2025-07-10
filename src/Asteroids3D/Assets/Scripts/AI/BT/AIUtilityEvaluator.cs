@@ -80,24 +80,17 @@ public static class AIUtilityEvaluator
     /// </summary>
     private static float EvaluatePatrolUtility(AIContextProvider provider)
     {
-        float score = 0.4f; // Default patrol score
+        bool enemyExists = provider.Enemy != null;
+        bool enemyActiveInHierarchy = enemyExists && provider.Enemy.gameObject.activeInHierarchy;
         
-        // Increase if no immediate enemies
-        if (provider.NearbyEnemyCount == 0)
-            score += 0.3f;
-            
-        // Utility is smoothly adjusted based on health and shields.
-        // Patrolling is a balanced activity, so we use average health.
-        // High health increases desire to patrol, low health decreases it.
-        float healthFactor = (provider.HealthPct + provider.ShieldPct) / 2.0f;
-        float healthBonus = Mathf.Lerp(-0.3f, 0.2f, AIUtilityCurves.DesireCurve(healthFactor, 1f));
-        score += healthBonus;
-
-        // Don't patrol if an enemy is right on top of us.
-        if (provider.Enemy != null && provider.Enemy.gameObject.activeInHierarchy && provider.RelDistance < 0.5f)
-            score = 0;
-
-        return score;
+        // If no enemy exists or enemy is inactive, patrol utility should be high
+        if (!enemyExists || !enemyActiveInHierarchy)
+        {
+            return 1f;
+        }
+        
+        // If enemy exists and is active, patrol utility should be low
+        return 0f;   
     }
     
     /// <summary>
@@ -137,7 +130,10 @@ public static class AIUtilityEvaluator
     private static float EvaluateAttackUtility(AIContextProvider provider)
     {
         if (provider.Enemy == null || !provider.Enemy.gameObject.activeInHierarchy)
+        {
             return 0f;
+        }
+        
         float score = 0f;
         
         // Base score if enemies are present
