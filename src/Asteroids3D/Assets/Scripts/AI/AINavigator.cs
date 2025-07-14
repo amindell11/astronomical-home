@@ -41,6 +41,8 @@ public class AINavigator : MonoBehaviour
     private Ship ship;
     private SteeringTuning steeringTuning;
     private Waypoint currentWaypoint;
+    private bool facingOverride;
+    private float facingAngle;
     const int MaxColliders = 256;
     readonly Collider[] hits = new Collider[MaxColliders];
     readonly RaycastHit[] rayHits = new RaycastHit[MaxColliders];
@@ -49,7 +51,7 @@ public class AINavigator : MonoBehaviour
 
     // Path-planning & pilot debug info (updated every physics step)
     PathPlanner.DebugInfo dbgPath;
-    VelocityPilot.Output dbgPilot;
+    AIPilot.Output dbgPilot;
     Vector2 dbgGoal2D;
 
     // Smoothed control state
@@ -82,10 +84,41 @@ public class AINavigator : MonoBehaviour
         enableAvoidance = avoid;
     }
 
+    /// <summary>
+    /// Sets navigation target from a world-space position, handling conversion to plane coordinates.
+    /// </summary>
+    public void SetNavigationPointWorld(Vector3 worldPos, bool avoid = true, Vector3? velocity = null)
+    {
+        Vector2 planePos = GamePlane.WorldToPlane(worldPos);
+        Vector2? planeVel = velocity.HasValue ? GamePlane.WorldToPlane(velocity.Value) : (Vector2?)null;
+        SetNavigationPoint(planePos, avoid, planeVel);
+    }
+
     /// <summary>Clears the navigation waypoint.</summary>
     public void ClearNavigationPoint()
     {
         currentWaypoint.isValid = false;
+    }
+
+    public void SetFacingOverride(float angle)
+    {
+        facingOverride = true;
+        facingAngle = angle;
+    }
+
+    public void SetFacingTarget(Vector2 direction)
+    {
+        if (direction.sqrMagnitude > 0.01f)
+        {
+            float angle = Vector2.SignedAngle(Vector2.up, direction);
+            if (angle < 0f) angle += 360f;
+            SetFacingOverride(angle);
+        }
+    }
+
+    public void ClearFacingOverride()
+    {
+        facingOverride = false;
     }
 
     public void GenerateNavCommands(ShipState state, ref ShipCommand cmd)
@@ -100,9 +133,14 @@ public class AINavigator : MonoBehaviour
         float currentMaxSpeed = ship.settings.maxSpeed;
 
         int obstacleCount = ScanObstacles(kin, currentMaxSpeed);
-        VelocityPilot.Output vpOut = ComputeNavigation(kin, currentMaxSpeed, obstacleCount);
+        AIPilot.Output vpOut = ComputeNavigation(kin, currentMaxSpeed, obstacleCount);
 
         ApplyControls(vpOut, ref cmd);
+
+        if (facingOverride)
+        {
+            cmd.TargetAngle = facingAngle;
+        }
     }
 
     int ScanObstacles(ShipKinematics kin, float currentMaxSpeed)
@@ -170,7 +208,7 @@ public class AINavigator : MonoBehaviour
         return n;
     }
 
-    VelocityPilot.Output ComputeNavigation(ShipKinematics kin, float currentMaxSpeed, int obstacleCount)
+    AIPilot.Output ComputeNavigation(ShipKinematics kin, float currentMaxSpeed, int obstacleCount)
     {
         Vector2 goal2D = currentWaypoint.position;
         dbgGoal2D = goal2D;
@@ -184,13 +222,13 @@ public class AINavigator : MonoBehaviour
 
         var ppOut = PathPlanner.Compute(ppIn);
         dbgPath = ppOut.dbg;
-        var vpIn = new VelocityPilot.Input(kin, ppOut.desiredVelocity, ppOut.desiredAccel, currentMaxSpeed, steeringTuning, false);
-        var vpOut = VelocityPilot.Compute(vpIn);
+        var vpIn = new AIPilot.Input(kin, ppOut.desiredVelocity, ppOut.desiredAccel, currentMaxSpeed, steeringTuning, facingOverride, true);
+        var vpOut = AIPilot.Compute(vpIn);
         dbgPilot = vpOut;
         return vpOut;
     }
 
-    void ApplyControls(VelocityPilot.Output vpOut, ref ShipCommand cmd)
+    void ApplyControls(AIPilot.Output vpOut, ref ShipCommand cmd)
     {
         // Proportional smoothing
         float k = proportionalGain;

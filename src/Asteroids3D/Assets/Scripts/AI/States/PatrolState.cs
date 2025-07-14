@@ -24,7 +24,7 @@ namespace ShipControl.AI
         {
             base.Enter(ctx);
             
-            SetGunnerTarget(null);
+            gunner.SetTarget(null);
             
             // Choose a new patrol point when entering the state
             ChooseNewPatrolPoint(ctx);
@@ -98,7 +98,7 @@ namespace ShipControl.AI
             hasTarget = true;
 
             // Set the navigation target
-            SetNavigationTarget(currentTarget, enableAvoidance);
+            navigator.SetNavigationPointWorld(currentTarget, enableAvoidance);
         }
     }
 } 

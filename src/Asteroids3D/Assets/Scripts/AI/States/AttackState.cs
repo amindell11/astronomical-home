@@ -26,25 +26,27 @@ namespace ShipControl.AI
         public override void Tick(AIContext context, float deltaTime)
         {
             // Continuously update nav point to track the enemy
-            if (context.Enemy != null)
-            {
-                gunner.TargetEnemy(context.Enemy);
-                navigator.SetNavigationPoint(
-                    context.EnemyPos,
-                    true, // enable avoidance
-                    context.EnemyVel);
+            if (context.Enemy == null) return;   
+            gunner.TargetEnemy(context.Enemy);
+            if(context.VectorToEnemy.magnitude < 6f || Vector3.Dot(context.EnemyRelVelocity, context.VectorToEnemy) < -1f){ // if enemy is close or we're closing fast enough, face it
+                navigator.SetFacingTarget(context.VectorToEnemy);
             }
             else
             {
-                // If enemy is lost, clear nav point
-                navigator.ClearNavigationPoint();
+                navigator.ClearFacingOverride();
             }
+            navigator.SetNavigationPoint(
+                context.EnemyPos,
+                true, // enable avoidance
+                context.EnemyVel);
+
         }
 
         public override void Exit()
         {
             RLog.AI("[AttackState] Exiting");
-            // Clear nav point but let gunner keep target for a bit
+            navigator.ClearNavigationPoint();
+            navigator.ClearFacingOverride();
         }
 
         public override float ComputeUtility(AIContext ctx)
@@ -65,33 +67,26 @@ namespace ShipControl.AI
             score += AIUtilityCurves.FearCurve(enemyHealthFactor, 0.3f);
             
             // Bonus for attacking a disarmed target
-            if (ctx.EnemyLaserHeatPct > 0.9f)
-                score += 0.2f;
-
-            if (ctx.EnemyMissileAmmo == 0)
-                score += 0.1f;
+            score += AIUtilityCurves.DesireCurve(ctx.EnemyLaserHeatPct, 0.2f);
+            score += AIUtilityCurves.DesireCurve(ctx.EnemyMissileAmmo, 0.1f);
 
             // Increase if target is in good range
             float distToEnemy = ctx.VectorToEnemy.magnitude;
             if (distToEnemy > 6f && distToEnemy < 40f)
                 score += 0.3f;
                 
-            // Major bonus if line of sight to target
             if (ctx.LineOfSightToEnemy)
-                score += 0.4f;
-                
-            // Bonus if weapons are ready
-            if (ctx.LaserHeatPct < 0.7f)
                 score += 0.1f;
                 
-            if (ctx.MissileAmmo > 0)
-                score += 0.1f;
+            // Bonus for having missiles
+            score += AIUtilityCurves.FearCurve(ctx.LaserHeatPct, 0.1f);
+            score += AIUtilityCurves.DesireCurve(ctx.MissileAmmo, 0.1f);
                 
             // Decrease if severely outnumbered
             int netThreat = ctx.NearbyEnemyCount - ctx.NearbyFriendCount;
             if (netThreat > 2)
                 score -= 0.3f;
-                
+            score/=2f;
             return Mathf.Max(0f, score);
         }
     }

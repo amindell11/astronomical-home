@@ -110,12 +110,12 @@ public class AIContext : MonoBehaviour
     /// <summary>
     /// Vector from ship to the nearest enemy
     /// </summary>
-    public Vector2 VectorToEnemy => SelfPosition - EnemyPos;
+    public Vector2 VectorToEnemy => EnemyPos - SelfPosition;
     
     /// <summary>
     /// Relative velocity between ship and nearest enemy
     /// </summary>
-    public Vector2 EnemyRelVelocity => SelfVelocity - EnemyVel;
+    public Vector2 EnemyRelVelocity => EnemyVel - SelfVelocity;
     
     
     /// <summary>

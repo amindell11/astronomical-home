@@ -24,7 +24,7 @@ namespace ShipControl.AI
         {
             base.Enter(ctx);
             
-            SetGunnerTarget(null);
+            gunner.SetTarget(null);
 
             // Calculate initial evade point
             CalculateEvadePoint(ctx);
@@ -41,7 +41,7 @@ namespace ShipControl.AI
             // Keep navigating to the evade point
             if (hasEvadePoint)
             {
-                SetNavigationTarget(evadePoint, true);
+                navigator.SetNavigationPointWorld(evadePoint, true);
             }
         }
 
@@ -68,9 +68,8 @@ namespace ShipControl.AI
             if (ctx.Enemy != null && ctx.LineOfSightToEnemy)
                 score += 0.2f;
 
-            // Increase score if weapons are hot or out of ammo
-            if (ctx.LaserHeatPct > 0.9f)
-                score += 0.1f;
+            // Increase score as laser heat increases, using a curve
+            score += AIUtilityCurves.DesireCurve(ctx.LaserHeatPct, 0.1f);
             if (ctx.MissileAmmo == 0 && ctx.EnemyMissileAmmo > 0)
                 score += 0.1f;
 
@@ -82,7 +81,7 @@ namespace ShipControl.AI
             if (ctx.Enemy != null)
             {
                 float distToEnemy = ctx.VectorToEnemy.magnitude;
-                if (distToEnemy < 10f && ctx.LineOfSightToEnemy)
+                if (distToEnemy < 7f && ctx.LineOfSightToEnemy)
                     score -= 0.2f;
             }
                 
@@ -134,7 +133,7 @@ namespace ShipControl.AI
             evadePointSetTime = Time.time;
             
             // Navigate to the evade point with avoidance enabled
-            SetNavigationTarget(evadePoint, true);
+            navigator.SetNavigationPointWorld(evadePoint, true);
         }
     }
 } 

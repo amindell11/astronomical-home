@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public static class VelocityPilot
+public static class AIPilot
 {
     // --- Tunable Parameters ---
     // ─────────────────────────────────────────────────────────────────────────────
@@ -19,22 +19,24 @@ public static class VelocityPilot
         public readonly Vector2 desiredAccel;
         public readonly float   maxSpeed;
         public readonly SteeringTuning tuning;
-        public readonly bool allowAccelBoost; // optional acceleration-boost feature
-        
+        public readonly bool lockRotation;    // if true, keep current ship heading (VelocityPilot will not command rotation)
+        public readonly bool useTiltedHeading; // if false, skip tilt logic and just face desired velocity
+
         // Constructor that uses explicit tuning parameters (preferred)
-        public Input(ShipKinematics k, Vector2 desiredVelocity, Vector2 desiredAcceleration, float max, SteeringTuning tuning, bool allowAccelBoost = false)
+        public Input(ShipKinematics k, Vector2 desiredVelocity, Vector2 desiredAcceleration, float max, SteeringTuning tuning, bool lockRotation = false, bool useTiltedHeading = true)
         {
             kin = k;
             desiredVel = desiredVelocity;
             desiredAccel = desiredAcceleration;    
             maxSpeed = max;
             this.tuning = tuning;
-            this.allowAccelBoost = allowAccelBoost;
+            this.lockRotation = lockRotation;
+            this.useTiltedHeading = useTiltedHeading;
         }
 
         // Back-compat constructor – falls back to default tuning values.
         public Input(ShipKinematics k, Vector2 desiredVelocity, Vector2 desiredAcceleration, float max)
-            : this(k, desiredVelocity, desiredAcceleration, max, SteeringTuning.Default, false) {}   
+            : this(k, desiredVelocity, desiredAcceleration, max, SteeringTuning.Default, false, true) {}   
     }
 
     public readonly struct Output
@@ -60,24 +62,9 @@ public static class VelocityPilot
         Vector2 curVel  = i.kin.Vel;
         Vector2 forward = i.kin.Forward;
 
-        float  thrust, strafe, rot;
+        float  thrust, strafe, rotTargetDeg;
         var    tuning = i.tuning;
-
-        // ── Optional acceleration-boost --------------------------------------------------
-        if (i.allowAccelBoost && i.desiredVel != Vector2.zero)
-        {
-            Vector2 desiredDir  = i.desiredVel.normalized;
-            float   currentSpeedAlong = Vector2.Dot(curVel, desiredDir);
-            float   targetSpeed       = Mathf.Min(i.desiredVel.magnitude, i.maxSpeed);
-            float   speedDeficit      = targetSpeed - currentSpeedAlong;
-
-            if (speedDeficit > tuning.DeadZone)
-            {
-                ComputeBoost(desiredDir, forward, tuning, out thrust, out strafe, out rot);
-                return new Output(thrust, strafe, rot);
-            }
-        }
-
+        
         /* ------------------------------------------------------------------------
          * Translate desired acceleration → axis commands
          * ---------------------------------------------------------------------*/
@@ -108,19 +95,26 @@ public static class VelocityPilot
         }
 
         /* ------------------------------------------------------------------------
-         * Heading control – face the desired velocity (with intelligent tilt)
+         * Heading control
          * ---------------------------------------------------------------------*/
-        Vector2 targetDir = forward; // Default to current heading
-        if (i.desiredVel.sqrMagnitude > 0.01f)
-        {
-            // Choose a heading that re-uses the boost geometry to balance strafe & thrust
-            targetDir = ComputeTiltedHeading(i.desiredVel, strafe, tuning);
-        }
-        
-        rot = Vector2.SignedAngle(Vector2.up, targetDir);
-        if (rot < 0f) rot += 360f;
+        rotTargetDeg = i.kin.AngleDeg;  // Default to current heading
 
-        return new Output(thrust, strafe, rot);
+        if (!i.lockRotation && i.desiredVel.sqrMagnitude > 0.01f)
+        {
+            Vector2 targetDir;
+            if (i.useTiltedHeading)
+            {
+                // Choose a heading that re-uses the boost geometry to balance strafe & thrust
+                targetDir = ComputeTiltedHeading(i.desiredVel, strafe, tuning);
+            }
+            else
+            {
+                targetDir = i.desiredVel.normalized;
+            }
+            rotTargetDeg = Vector2.SignedAngle(Vector2.up, targetDir);
+            if (rotTargetDeg < 0f) rotTargetDeg += 360f;
+        }
+        return new Output(thrust, strafe, rotTargetDeg);
     }
 
     /// <summary>

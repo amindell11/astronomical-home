@@ -17,8 +17,8 @@ namespace ShipControl.AI
             base.Enter(ctx);
             
             // Clear any existing navigation target
-            ClearNavigationTarget();
-            SetGunnerTarget(null);
+            navigator.ClearNavigationPoint();
+            gunner.SetTarget(null);
         }
 
         public override void Tick(AIContext ctx, float deltaTime)

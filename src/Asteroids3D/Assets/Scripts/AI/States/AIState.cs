@@ -45,44 +45,5 @@ namespace ShipControl.AI
         /// Higher values indicate this state is more desirable.
         /// </summary>
         public abstract float ComputeUtility(AIContext ctx);
-
-        #region Convenience Helpers
-        /// <summary>
-        /// Sets navigation target directly on the navigator
-        /// </summary>
-        protected void SetNavigationTarget(Vector2 planePos, bool avoid = true, Vector2? velocity = null)
-        {
-            navigator?.SetNavigationPoint(planePos, avoid, velocity);
-        }
-
-        /// <summary>
-        /// Sets navigation target from a world-space position, handling conversion to plane coordinates.
-        /// </summary>
-        protected void SetNavigationTarget(Vector3 worldPos, bool avoid = true, Vector3? velocity = null)
-        {
-            Vector2 planePos = GamePlane.WorldToPlane(worldPos);
-            Vector2? planeVel = velocity.HasValue ? GamePlane.WorldToPlane(velocity.Value) : (Vector2?)null;
-            navigator?.SetNavigationPoint(planePos, avoid, planeVel);
-        }
-
-        /// <summary>
-        /// Clears the navigation waypoint
-        /// </summary>
-        protected void ClearNavigationTarget()
-        {
-            navigator?.ClearNavigationPoint();
-        }
-
-        /// <summary>
-        /// Sets the gunner's target transform.
-        /// </summary>
-        protected void SetGunnerTarget(Transform target)
-        {
-            if (gunner != null)
-            {
-                gunner.Target = target;
-            }
-        }
-        #endregion
     }
 } 

@@ -36,6 +36,11 @@ public class AIGunner : MonoBehaviour
     /// </summary>
     public float AngleToTarget => GetAngleTo(VectorToTarget);
 
+    public void SetTarget(Transform target)
+    {
+        Target = target;
+    }
+
     public void TargetEnemy(Ship enemy)
     {
         Target = enemy ? enemy.transform : null;
