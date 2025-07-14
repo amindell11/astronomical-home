@@ -4,7 +4,15 @@ using System.Collections.Generic;
 
 public class AINavigator : MonoBehaviour
 {
-    /* ── Navigation tunables ─────────────────────────────────── */
+    /* ── Waypoint struct ─────────────────────────────────────── */
+    public struct Waypoint
+    {
+        public Vector2 position;
+        public Vector2 velocity;
+        public bool isValid;
+    }
+
+    /* ── Navigation tunables ─────────────────────────────────────── */
     [Header("Navigation")]
     public float arriveRadius = 10f;
 
@@ -32,7 +40,7 @@ public class AINavigator : MonoBehaviour
     /* ── internals ───────────────────────────────────────────── */
     private Ship ship;
     private SteeringTuning steeringTuning;
-
+    private Waypoint currentWaypoint;
     const int MaxColliders = 256;
     readonly Collider[] hits = new Collider[MaxColliders];
     readonly RaycastHit[] rayHits = new RaycastHit[MaxColliders];
@@ -49,9 +57,12 @@ public class AINavigator : MonoBehaviour
 
     float dbgThrust, dbgStrafe;
 
-    public void Initialize(Ship ship)
+    public Waypoint CurrentWaypoint => currentWaypoint;
+
+    public void Initialize(Ship ship)   
     {
         this.ship = ship;
+        currentWaypoint = new Waypoint { isValid = false };
         float mass = ship.movement.Mass;
         var settings = ship.settings;
         steeringTuning = settings ?
@@ -62,9 +73,24 @@ public class AINavigator : MonoBehaviour
             : SteeringTuning.Default;
     }
 
-    public void GenerateNavCommands(ShipState state, AICommander.Waypoint navWaypoint, ref ShipCommand cmd)
+    /// <summary>Sets an arbitrary 2D-plane point as the navigation goal.</summary>
+    public void SetNavigationPoint(Vector2 point, bool avoid = false, Vector2? velocity = null)
     {
-        if (ship == null || !navWaypoint.isValid)
+        currentWaypoint.position = point;
+        currentWaypoint.velocity = velocity ?? Vector2.zero;
+        currentWaypoint.isValid = true;
+        enableAvoidance = avoid;
+    }
+
+    /// <summary>Clears the navigation waypoint.</summary>
+    public void ClearNavigationPoint()
+    {
+        currentWaypoint.isValid = false;
+    }
+
+    public void GenerateNavCommands(ShipState state, ref ShipCommand cmd)
+    {
+        if (ship == null || !currentWaypoint.isValid)
         {
             cmd.TargetAngle = state.Kinematics.AngleDeg;
             return;
@@ -74,7 +100,7 @@ public class AINavigator : MonoBehaviour
         float currentMaxSpeed = ship.settings.maxSpeed;
 
         int obstacleCount = ScanObstacles(kin, currentMaxSpeed);
-        VelocityPilot.Output vpOut = ComputeNavigation(kin, currentMaxSpeed, obstacleCount, navWaypoint);
+        VelocityPilot.Output vpOut = ComputeNavigation(kin, currentMaxSpeed, obstacleCount);
 
         ApplyControls(vpOut, ref cmd);
     }
@@ -144,13 +170,13 @@ public class AINavigator : MonoBehaviour
         return n;
     }
 
-    VelocityPilot.Output ComputeNavigation(ShipKinematics kin, float currentMaxSpeed, int obstacleCount, AICommander.Waypoint navWaypoint)
+    VelocityPilot.Output ComputeNavigation(ShipKinematics kin, float currentMaxSpeed, int obstacleCount)
     {
-        Vector2 goal2D = navWaypoint.position;
+        Vector2 goal2D = currentWaypoint.position;
         dbgGoal2D = goal2D;
 
         // Velocity of the waypoint (if it's a ship or waypoint)
-        Vector2 wpVel = navWaypoint.velocity;
+        Vector2 wpVel = currentWaypoint.velocity;
 
         var ppIn = new PathPlanner.Input(kin, goal2D, wpVel, avoidRadius, arriveRadius, currentMaxSpeed,
                                            lookAheadTime, safeMargin,

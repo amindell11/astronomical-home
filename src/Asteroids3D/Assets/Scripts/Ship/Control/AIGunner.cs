@@ -17,11 +17,29 @@ public class AIGunner : MonoBehaviour
 
     /* ── internals ───────────────────────────────────────────── */
     private Ship ship;
+    public Transform Target { get; set; }       
 
     // LOS cache
     bool cachedLOS;
     int losFrame = -1;
     Vector3 lastRayPos, lastTgtPos;
+
+    // ===== Context Properties - Source of Truth for Target Info =====
+    
+    /// <summary>
+    /// Vector from ship to the gunner's current target
+    /// </summary>
+    public Vector2 VectorToTarget => Target != null ? GamePlane.WorldToPlane(Target.position) - ship.CurrentState.Kinematics.Pos : Vector2.zero;
+    
+    /// <summary>
+    /// Angle to the gunner's target in degrees
+    /// </summary>
+    public float AngleToTarget => GetAngleTo(VectorToTarget);
+
+    public void TargetEnemy(Ship enemy)
+    {
+        Target = enemy ? enemy.transform : null;
+    }
 
     public void Initialize(Ship ship)
     {
@@ -29,23 +47,19 @@ public class AIGunner : MonoBehaviour
         lineOfSightMask = LayerIds.Mask(LayerIds.Asteroid);
     }
 
-    public void GenerateGunnerCommands(ShipState state, AICommander.Waypoint navWaypoint, ref ShipCommand cmd)
+    public void GenerateGunnerCommands(ShipState state, ref ShipCommand cmd)
     {
         cmd.PrimaryFire = false;
         cmd.SecondaryFire = false;
 
-        if (!navWaypoint.isValid)
+        if (Target == null)
         {
             RLog.AI($"[AI-{name}] GenerateGunnerCommands: No target set, weapons disabled");
             return;
         }
 
-        Vector3 targetPos = GamePlane.PlaneToWorld(navWaypoint.position);
-
-        Vector3 firePos = transform.position;
-        Vector3 dir = targetPos - firePos;
-        float dist = dir.magnitude;
-        float angle = Vector3.Angle(transform.up, dir);
+        float dist = VectorToTarget.magnitude;
+        float angle = AngleToTarget;
         
         RLog.AI($"[AI-{name}] GenerateGunnerCommands: Target at dist={dist:F1}, angle={angle:F1}°, fireDistance={fireDistance:F1}, fireAngleTolerance={fireAngleTolerance:F1}°");
 
@@ -91,7 +105,9 @@ public class AIGunner : MonoBehaviour
         if (ship.laserGun && dist <= fireDistance && angle <= fireAngleTolerance && !blockLaserForMissile)
         {
             Vector3 laserFirePos = ship.laserGun.firePoint ? ship.laserGun.firePoint.position : transform.position;
-            bool losOK = HasLineOfSight(laserFirePos, dir, dist, angle, GamePlane.PlaneToWorld(navWaypoint.position));
+            Vector3 targetPos = Target.position;
+            Vector3 dir = targetPos - laserFirePos;
+            bool losOK = HasLineOfSight(laserFirePos, dir, dist, angle, targetPos);
             
             RLog.AI($"[AI-{name}] Laser check: gun={ship.laserGun != null}, inRange={dist <= fireDistance}, inAngle={angle <= fireAngleTolerance}, noMissile={!blockLaserForMissile}, LOS={losOK}");
 
@@ -150,5 +166,14 @@ public class AIGunner : MonoBehaviour
         float angle = Vector3.Angle(transform.up, dir);
 
         return HasLineOfSight(firePos, dir, dist, angle, tgt.position);
+    }
+    
+    /// <summary>
+    /// Gets angle to a target vector in degrees
+    /// </summary>
+    private float GetAngleTo(Vector2 targetVector)
+    {
+        if (targetVector.sqrMagnitude < 0.01f) return 0f;
+        return Vector2.Angle(ship?.CurrentState.Kinematics.Forward ?? Vector2.up, targetVector);
     }
 } 

@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using ShipControl;
+using ShipControl.AI;
 
 // Commander modules are now standalone; ShipMovement lives on the parent Ship object.
 [RequireComponent(typeof(AINavigator))]
@@ -12,37 +13,35 @@ public class AICommander : MonoBehaviour, IShipCommandSource
     [Tooltip("Bot skill level, typically set by curriculum (0.0 to 1.0)")]
     [Range(0f, 1f)] public float difficulty = 1.0f;
 
+    [Header("State Machine Settings")]
+    [Tooltip("Minimum time in seconds before switching states")]
+    [SerializeField] private float minTimeInState = 0.5f;
+    [Tooltip("Utility difference threshold for state changes")]
+    [SerializeField] private float utilityThreshold = 0.1f;
 
     /* ── internals ───────────────────────────────────────────── */
     private Ship ship;
     private AINavigator navigator;
     private AIGunner gunner;
+    private AIContext context;
+    private AIStateMachine stateMachine;
     private ShipState currentState;
-
-    
-    public struct Waypoint
-    {
-        public Vector2 position;
-        public Vector2 velocity;
-        public bool isValid;
-    }
-    private Waypoint navWaypoint;
-
 
     private ShipCommand cachedCommand;
 
     public ShipState CurrentState => currentState;
 
     public ShipCommand CachedCommand => cachedCommand;
-    public Waypoint CurrentWaypoint => navWaypoint;
     public AINavigator Navigator => navigator;
     public AIGunner Gunner => gunner;
+    public AIStateMachine StateMachine => stateMachine;
+    public string CurrentStateName => stateMachine?.CurrentStateName ?? "None";
 
     void Awake()
     {
-        navWaypoint = new Waypoint { isValid = false };
         navigator = GetComponent<AINavigator>();
-        gunner = GetComponent<AIGunner>();      
+        gunner = GetComponent<AIGunner>();
+        context = GetComponent<AIContext>();
     }
 
     public void InitializeCommander(Ship ship)
@@ -50,6 +49,16 @@ public class AICommander : MonoBehaviour, IShipCommandSource
         this.ship = ship;
         navigator.Initialize(ship);
         gunner.Initialize(ship);
+        context.Initialize(ship, this, navigator, gunner);
+        
+        // Initialize the state machine with all states
+        stateMachine = new AIStateMachine(minTimeInState, utilityThreshold);
+        stateMachine.Initialize(
+            new IdleState(navigator, gunner),
+            new PatrolState(navigator, gunner),
+            new EvadeState(navigator, gunner),
+            new AttackState(navigator, gunner)
+        );
     }
 
     public int Priority => 10;
@@ -63,8 +72,15 @@ public class AICommander : MonoBehaviour, IShipCommandSource
 
     void FixedUpdate()
     {
-        if (ship == null) return;   
+        if (ship == null || stateMachine == null) return;   
         currentState = ship.CurrentState;
+        
+        // Update state machine with context
+        if (context != null)
+        {
+            stateMachine.Update(context, Time.fixedDeltaTime);
+        }
+        
         cachedCommand = GenerateCommand(currentState);
     }
 
@@ -76,13 +92,13 @@ public class AICommander : MonoBehaviour, IShipCommandSource
         if (difficulty < 0.25f) return cmd; // cmd defaults to zeros/false.
     
 
-        navigator.GenerateNavCommands(state, navWaypoint, ref cmd);
+        navigator.GenerateNavCommands(state, ref cmd);
 
         // --- Difficulty governs weapon usage ---
         // Level 2 (< 0.5): Movement only, no weapons.
         if (difficulty < 0.5f) return cmd;
 
-        gunner.GenerateGunnerCommands(state, navWaypoint, ref cmd);
+        gunner.GenerateGunnerCommands(state, ref cmd);
 
         // Level 3 (< 0.75): Lasers only, no missiles.
         if (difficulty < 0.75f)
@@ -95,29 +111,14 @@ public class AICommander : MonoBehaviour, IShipCommandSource
         return cmd;
     }
 
-    /// <summary>Sets an arbitrary world-space point as the navigation goal.</summary>
-    public void SetNavigationPoint(Vector3 point, bool avoid=false, Vector3? velocity=null)
-    {
-        navWaypoint.position = GamePlane.WorldToPlane(point);
-        navWaypoint.velocity = velocity.HasValue ? (Vector2)velocity.Value : Vector2.zero;
-        navWaypoint.isValid  = true;
-
-        navigator.enableAvoidance = avoid;
-    }
-
-    /// <summary>Returns true if an unobstructed line of sight exists to <paramref name="tgt"/>.</summary>
-    public bool HasLineOfSight(Transform tgt)
-    {
-        return gunner.HasLineOfSight(tgt);
-    }
-
     #if UNITY_EDITOR
     void OnDrawGizmos()
     {
-        if (navWaypoint.isValid)
+        var waypoint = navigator?.CurrentWaypoint ?? new AINavigator.Waypoint { isValid = false };
+        if (waypoint.isValid)
         {
             Gizmos.color = Color.yellow;
-            Gizmos.DrawLine(transform.position, GamePlane.PlaneToWorld(navWaypoint.position));
+            Gizmos.DrawLine(transform.position, GamePlane.PlaneToWorld(waypoint.position));
         }
     }
     #endif

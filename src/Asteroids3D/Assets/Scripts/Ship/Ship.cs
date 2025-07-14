@@ -68,11 +68,6 @@ public class Ship : MonoBehaviour, ITargetable, IShooter
         // Discover all command sources within the ship hierarchy (includeInactive=true allows pooled objects to register before activation)
         commandSources = GetComponentsInChildren<IShipCommandSource>(true);
 
-        // Let each commander source know which ship it is controlling.
-        foreach (var source in commandSources)
-        {
-            source?.InitializeCommander(this);
-        }
 
         // Relay events from damage handler
         damageHandler.OnHealthChanged += (cur, prev, max) => OnHealthChanged?.Invoke(cur, prev, max);
@@ -91,7 +86,12 @@ public class Ship : MonoBehaviour, ITargetable, IShooter
 
         Indicator = GetComponentInChildren<LockOnIndicator>(true);
     }
-
+    void Start(){
+        foreach (var source in commandSources)
+        {
+            source?.InitializeCommander(this);
+        }
+    }
     void OnEnable()
     {
         if (!ActiveShips.Contains(transform))

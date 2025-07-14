@@ -1,4 +1,4 @@
-using UnityEngine;
+/*using UnityEngine;
 #if UNITY_ML_AGENTS
 using Unity.MLAgents;
 using Unity.MLAgents.Sensors;
@@ -25,7 +25,6 @@ public class RLArbiter : MonoBehaviour
     [SerializeField] private bool enableRL = true; // Toggle for debugging
     
     [Header("References")]
-    [SerializeField] private BehaviorGraphAgent behaviorAgent;
     [SerializeField] private Ship ship;
     
     private new void Awake()
@@ -131,3 +130,4 @@ public static class BTStateBridge
         return AIShipBehaviorStates.Idle;
     }
 }
+*/

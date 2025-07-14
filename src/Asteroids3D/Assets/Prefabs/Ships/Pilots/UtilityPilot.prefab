@@ -107,11 +107,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6704370947733346714, guid: 5d39b99f95c4db04ebd565a759e5dc03,
         type: 3}
-      propertyPath: managedReferences[7820444837552325059].m_Value
-      value: 
-      objectReference: {fileID: 575601420414553167}
-    - target: {fileID: 6704370947733346714, guid: 5d39b99f95c4db04ebd565a759e5dc03,
-        type: 3}
       propertyPath: 'm_BlackboardVariableOverridesList.Array.data[2]'
       value: 7820444837552325059
       objectReference: {fileID: 0}
@@ -125,14 +120,15 @@ PrefabInstance:
       propertyPath: managedReferences[7820444837552325059].GUID.m_Value1
       value: 9143759016588651180
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 6704370947733346714, guid: 5d39b99f95c4db04ebd565a759e5dc03, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 1066014630051916606, guid: 5d39b99f95c4db04ebd565a759e5dc03,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 575601420414553167}
+      addedObject: {fileID: 71241202595612231}
   m_SourcePrefab: {fileID: 100100000, guid: 5d39b99f95c4db04ebd565a759e5dc03, type: 3}
 --- !u!1 &831951509617137536 stripped
 GameObject:
@@ -140,7 +136,7 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 378462712923520190}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &575601420414553167
+--- !u!114 &71241202595612231
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -149,12 +145,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 831951509617137536}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a440c100dea5cea489a7500d7b67120c, type: 3}
+  m_Script: {fileID: 11500000, guid: 8804439a8ac7cf949a01409cf5c89a33, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxContextAge: 0.1
   nearbyShipRadius: 30
-  engagementRange: 20
   asteroidCoverRadius: 15
   showDebugGizmos: 1
-  logUpdates: 0
