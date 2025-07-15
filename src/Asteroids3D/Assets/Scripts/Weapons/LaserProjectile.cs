@@ -5,6 +5,8 @@ public class LaserProjectile : ProjectileBase
     [Header("Laser Properties")]
     [SerializeField] private float laserSpeed = 20f;
 
+    public float LaserSpeed => laserSpeed;
+    
     /* ───────────────────────── Unity callbacks ───────────────────────── */
     /// <summary>
     /// Initialize the laser with its shooter and set velocity with relative motion.

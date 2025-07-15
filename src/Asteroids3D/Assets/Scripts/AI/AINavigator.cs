@@ -253,6 +253,56 @@ public class AINavigator : MonoBehaviour
         dbgStrafe = smoothStrafe;
     }
 
+    /// <summary>
+    /// Computes the next waypoint for orbiting around a center point at given radius.
+    /// Must be called each tick by the state to track moving targets.
+    /// </summary>
+    /// <param name="center">Center point to orbit around (enemy position)</param>
+    /// <param name="selfPos">Current ship position</param>
+    /// <param name="selfVel">Current ship velocity (for smooth trajectory)</param>
+    /// <param name="clockwise">Orbit direction</param>
+    /// <param name="radius">Desired orbit radius</param>
+    /// <param name="leadTime">How far ahead to place waypoint for smooth steering</param>
+    /// <returns>Next waypoint to navigate to</returns>
+    public Vector2 ComputeOrbitPoint(Vector2 center, Vector2 selfPos, Vector2 selfVel, bool clockwise, float radius, float leadTime = 0.4f)
+    {
+        // Vector from center to current position
+        Vector2 radiusVector = selfPos - center;
+        float currentDistance = radiusVector.magnitude;
+        
+        // If we're too close to the center, move outward
+        if (currentDistance < 0.1f)
+        {
+            return center + Vector2.up * radius;
+        }
+        
+        // Normalize the radius vector
+        Vector2 radiusDir = radiusVector / currentDistance;
+        
+        // Compute tangent direction (perpendicular to radius)
+        Vector2 tangent = clockwise ? 
+            new Vector2(radiusDir.y, -radiusDir.x) :  // 90 degrees clockwise
+            new Vector2(-radiusDir.y, radiusDir.x);   // 90 degrees counter-clockwise
+        
+        // Desired position on the circle
+        Vector2 idealPos = center + radiusDir * radius;
+        
+        // Project forward along tangent based on current velocity and lead time
+        float speed = selfVel.magnitude;
+        Vector2 leadOffset = tangent * speed * leadTime;
+        
+        // If we're not at the desired radius, blend toward it
+        Vector2 radiusCorrection = Vector2.zero;
+        if (Mathf.Abs(currentDistance - radius) > 1f)
+        {
+            // Move toward or away from center to maintain radius
+            float radiusError = radius - currentDistance;
+            radiusCorrection = radiusDir * radiusError * 0.5f;
+        }
+        
+        return idealPos + leadOffset + radiusCorrection;
+    }
+
 #if UNITY_EDITOR
     void OnDrawGizmos()
     {

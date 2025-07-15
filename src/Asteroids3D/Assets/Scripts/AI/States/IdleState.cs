@@ -47,5 +47,20 @@ namespace ShipControl.AI
                 
             return score;
         }
+        
+        public override void OnDrawGizmos(AIContext ctx)
+        {
+            base.OnDrawGizmos(ctx);
+            
+            #if UNITY_EDITOR
+            if (ctx?.SelfTransform == null) return;
+            
+            Vector3 position = ctx.SelfTransform.position;
+            
+            // Draw idle indicator - a pulsing circle
+            Gizmos.color = new Color(0.5f, 0.5f, 1f, 0.3f + 0.2f * Mathf.Sin(Time.time * 2f));
+            Gizmos.DrawWireSphere(position, 2f);
+            #endif
+        }
     }
 } 

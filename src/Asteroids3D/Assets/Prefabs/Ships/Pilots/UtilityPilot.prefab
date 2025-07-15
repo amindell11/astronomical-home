@@ -13,6 +13,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: UtilityPilot
       objectReference: {fileID: 0}
+    - target: {fileID: 1610963645942494774, guid: 5d39b99f95c4db04ebd565a759e5dc03,
+        type: 3}
+      propertyPath: angleToleranceBeforeRay
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 1848735604803868230, guid: 5d39b99f95c4db04ebd565a759e5dc03,
         type: 3}
       propertyPath: m_LocalScale.x
@@ -77,6 +82,41 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
+        type: 3}
+      propertyPath: utilityThreshold
+      value: 0.01
+      objectReference: {fileID: 0}
+    - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
+        type: 3}
+      propertyPath: samplingTemperature
+      value: 0.05
+      objectReference: {fileID: 0}
+    - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
+        type: 3}
+      propertyPath: showCurrentStateGizmos
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
+        type: 3}
+      propertyPath: stateWeights.kiteWeight
+      value: 0.9
+      objectReference: {fileID: 0}
+    - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
+        type: 3}
+      propertyPath: stateWeights.evadeWeight
+      value: 0.7
+      objectReference: {fileID: 0}
+    - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
+        type: 3}
+      propertyPath: useProbabilisticSampling
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
+        type: 3}
+      propertyPath: stateWeights.attackWeight
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 6525159657316276413, guid: 5d39b99f95c4db04ebd565a759e5dc03,
         type: 3}
@@ -148,6 +188,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8804439a8ac7cf949a01409cf5c89a33, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  nearbyShipRadius: 30
+  nearbyShipRadius: 50
   asteroidCoverRadius: 15
   showDebugGizmos: 1

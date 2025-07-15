@@ -52,7 +52,7 @@ MonoBehaviour:
   maxDistance: 50
   hitEffect: {fileID: 0}
   mass: 0.001
-  laserSpeed: 25
+  laserSpeed: 50
 --- !u!54 &3791456385073129076
 Rigidbody:
   m_ObjectHideFlags: 0

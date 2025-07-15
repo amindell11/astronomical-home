@@ -6,18 +6,13 @@ using ShipControl.AI;
 // Commander modules are now standalone; ShipMovement lives on the parent Ship object.
 [RequireComponent(typeof(AINavigator))]
 [RequireComponent(typeof(AIGunner))]
+[RequireComponent(typeof(AIStateMachine))]
 public class AICommander : MonoBehaviour, IShipCommandSource
 {
     /* ── Difficulty Setting ─────────────────────────────────── */
     [Header("Difficulty")]
     [Tooltip("Bot skill level, typically set by curriculum (0.0 to 1.0)")]
     [Range(0f, 1f)] public float difficulty = 1.0f;
-
-    [Header("State Machine Settings")]
-    [Tooltip("Minimum time in seconds before switching states")]
-    [SerializeField] private float minTimeInState = 0.5f;
-    [Tooltip("Utility difference threshold for state changes")]
-    [SerializeField] private float utilityThreshold = 0.1f;
 
     /* ── internals ───────────────────────────────────────────── */
     private Ship ship;
@@ -42,6 +37,7 @@ public class AICommander : MonoBehaviour, IShipCommandSource
         navigator = GetComponent<AINavigator>();
         gunner = GetComponent<AIGunner>();
         context = GetComponent<AIContext>();
+        stateMachine = GetComponent<AIStateMachine>();
     }
 
     public void InitializeCommander(Ship ship)
@@ -52,12 +48,12 @@ public class AICommander : MonoBehaviour, IShipCommandSource
         context.Initialize(ship, this, navigator, gunner);
         
         // Initialize the state machine with all states
-        stateMachine = new AIStateMachine(minTimeInState, utilityThreshold);
         stateMachine.Initialize(
             new IdleState(navigator, gunner),
             new PatrolState(navigator, gunner),
             new EvadeState(navigator, gunner),
-            new AttackState(navigator, gunner)
+            new AttackState(navigator, gunner),
+            new KiteState(navigator, gunner)
         );
     }
 

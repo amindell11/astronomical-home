@@ -45,5 +45,12 @@ namespace ShipControl.AI
         /// Higher values indicate this state is more desirable.
         /// </summary>
         public abstract float ComputeUtility(AIContext ctx);
+
+        /// <summary>
+        /// Draw debug gizmos for this state. Override in derived classes for state-specific visualization.
+        /// </summary>
+        public virtual void OnDrawGizmos(AIContext ctx)
+        {
+        }
     }
 } 

@@ -20,7 +20,8 @@ public class LaserGun : LauncherBase<LaserProjectile>
     public float CurrentHeat => currentHeat;
     public float MaxHeat => maxHeat;
     public float HeatPct => currentHeat / maxHeat;
-
+    public float ProjectileSpeed => projectilePrefab.LaserSpeed;
+    
     void Start()
     {
         ResetHeat();

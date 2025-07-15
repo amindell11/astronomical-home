@@ -60,7 +60,12 @@ public class AIContext : MonoBehaviour
     /// Current 3D world position of the ship
     /// </summary>
     public Vector3 SelfPosition3D => transform.position;
-    
+
+    /// <summary>
+    /// Current 3D world position of the ship
+    /// </summary>
+    public Transform SelfTransform => transform;
+
     /// <summary>
     /// Current 2D plane velocity of the ship
     /// </summary>
@@ -117,6 +122,25 @@ public class AIContext : MonoBehaviour
     /// </summary>
     public Vector2 EnemyRelVelocity => EnemyVel - SelfVelocity;
     
+    // ===== Closing Speed =====
+    /// <summary>
+    /// Signed closing speed along the line-of-sight to the nearest enemy.<br/>
+    /// Positive values indicate the range is shrinking (closing).<br/>
+    /// Negative values indicate the range is growing (opening).
+    /// </summary>
+    public float ClosingSpeed
+    {
+        get
+        {
+            // If there is no meaningful separation vector, report zero
+            if (VectorToEnemy.sqrMagnitude < 0.0001f) return 0f;
+            
+            // Dot product of relative velocity onto line-of-sight, sign-flipped so that
+            // positive values mean closing (distance decreasing).
+            return -Vector2.Dot(VectorToEnemy.normalized, EnemyRelVelocity);
+        }
+    }
+    
     
     /// <summary>
     /// True if line of sight to the nearest enemy is clear
@@ -127,6 +151,23 @@ public class AIContext : MonoBehaviour
     /// Angle to the nearest enemy in degrees
     /// </summary>
     public float AngleToEnemy => GetAngleTo(VectorToEnemy);
+
+    /// <summary>
+    /// Angle from the enemy's forward direction to our ship (deg).<br/>
+    /// 0°  → enemy is pointing directly at us.<br/>
+    /// 180° → enemy is facing directly away.
+    /// </summary>
+    public float EnemyAngleToSelf
+    {
+        get
+        {
+            if (Enemy == null) return 180f;
+            Vector2 enemyForward = Enemy.CurrentState.Kinematics.Forward;
+            Vector2 toSelf = SelfPosition - EnemyPos;
+            if (toSelf.sqrMagnitude < 0.01f) return 0f;
+            return Vector2.Angle(enemyForward, toSelf);
+        }
+    }
     
     /// <summary>
     /// Enemy's current health as percentage of maximum (0.0 to 1.0)
@@ -158,7 +199,7 @@ public class AIContext : MonoBehaviour
     /// <summary>
     /// True if line of sight to the gunner's target is clear
     /// </summary>
-    public bool LineOfSightToTarget => aiGunner?.HasLineOfSight(aiGunner.Target) ?? false;
+    public bool LineOfSightToTarget => aiGunner?.HasLineOfSight() ?? false;
     
     /// <summary>
     /// Angle to the gunner's target in degrees
@@ -201,6 +242,7 @@ public class AIContext : MonoBehaviour
     /// </summary>
     public Vector2 VectorToWaypoint => aiNavigator?.CurrentWaypoint.isValid == true ? aiNavigator.CurrentWaypoint.position - SelfPosition : Vector2.zero;
     
+    public float LaserSpeed => ship?.laserGun?.ProjectileSpeed ?? 0f;
     // ===== Helper Methods =====
 
     /// <summary>
@@ -323,25 +365,6 @@ public class AIContext : MonoBehaviour
         // Asteroid cover radius
         Gizmos.color = new Color(0.5f, 0.5f, 1f, 0.2f);
         Gizmos.DrawWireSphere(pos, asteroidCoverRadius);
-        
-        // Draw utility scores from state machine
-        if (aiCommander != null && aiCommander.StateMachine != null)
-        {
-            var utilityScores = aiCommander.StateMachine.UtilityScores;
-            if (utilityScores != null && utilityScores.Count > 0)
-            {
-                UnityEditor.Handles.color = Color.white;
-                var sortedScores = utilityScores
-                    .OrderByDescending(kvp => kvp.Value)
-                    .Take(4)
-                    .Select(kvp => $"{kvp.Key}: {kvp.Value:F2}");
-
-                var utilityText = $"Current State: {aiCommander.CurrentStateName}\n" +
-                                 "Utilities:\n" + string.Join("\n", sortedScores);
-
-                UnityEditor.Handles.Label(pos + Vector3.up * 3f, utilityText);
-            }
-        }
     }
 #endif
 } 

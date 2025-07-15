@@ -8,13 +8,10 @@ namespace ShipControl.AI
     /// </summary>
     public class EvadeState : AIState
     {
-        private Vector3 evadePoint;
-        private bool hasEvadePoint = false;
-        private float evadePointSetTime;
+        private Vector2 evadePoint;
         
         // Configuration
         private const float DefaultFleeDistance = 30f;
-        private const float EvadePointRefreshTime = 2f; // Recalculate evade point periodically
 
         public EvadeState(AINavigator navigator, AIGunner gunner) : base(navigator, gunner)
         {
@@ -25,30 +22,18 @@ namespace ShipControl.AI
             base.Enter(ctx);
             
             gunner.SetTarget(null);
-
-            // Calculate initial evade point
-            CalculateEvadePoint(ctx);
         }
 
         public override void Tick(AIContext ctx, float deltaTime)
         {
-            // Recalculate evade point periodically or if we don't have one
-            if (!hasEvadePoint || (Time.time - evadePointSetTime) > EvadePointRefreshTime)
-            {
-                CalculateEvadePoint(ctx);
-            }
-            
-            // Keep navigating to the evade point
-            if (hasEvadePoint)
-            {
-                navigator.SetNavigationPointWorld(evadePoint, true);
-            }
+            evadePoint = CalculateEvadePoint(ctx);
+            navigator.SetNavigationPoint(evadePoint, true);
         }
 
         public override void Exit()
         {
             base.Exit();
-            hasEvadePoint = false;
+            navigator.ClearNavigationPoint();
         }
 
         public override float ComputeUtility(AIContext ctx)
@@ -68,10 +53,25 @@ namespace ShipControl.AI
             if (ctx.Enemy != null && ctx.LineOfSightToEnemy)
                 score += 0.2f;
 
+            // Adjust score based on closing speed: positive when enemy is closing on us, negative when opening distance
+            if (ctx.Enemy != null)
+            {
+                // Scale contribution to a reasonable range [-0.2, +0.2]
+                float closingContribution = Mathf.Clamp(ctx.ClosingSpeed * 0.02f, -0.2f, 0.2f);
+                score += closingContribution;
+            }
+
+            // Adjust score based on enemy facing: more likely to evade if enemy is pointing at us
+            if (ctx.Enemy != null)
+            {
+                float facingFactor = Mathf.Cos(ctx.EnemyAngleToSelf * Mathf.Deg2Rad); // 1 when enemy faces us, -1 when away
+                float facingContribution = facingFactor * 0.2f; // Map to [-0.2, +0.2]
+                score += facingContribution;
+            }
+
             // Increase score as laser heat increases, using a curve
             score += AIUtilityCurves.DesireCurve(ctx.LaserHeatPct, 0.1f);
-            if (ctx.MissileAmmo == 0 && ctx.EnemyMissileAmmo > 0)
-                score += 0.1f;
+            score += AIUtilityCurves.DesireCurve(ctx.EnemyMissileAmmo, 0.1f);
 
             // Major bonus if incoming missile detected
             if (ctx.IncomingMissile)
@@ -88,52 +88,88 @@ namespace ShipControl.AI
             return Mathf.Max(0f, score);
         }
 
-        private void CalculateEvadePoint(AIContext ctx)
+        private Vector2 CalculateEvadePoint(AIContext ctx)
         {
-            Vector3 selfPos = ctx.SelfPosition3D;
-            Vector3 fleeDirection = Vector3.zero;
-            int threatCount = 0;
+            Vector2 selfPos = ctx.SelfPosition;
+            Vector2 fleeDirection = Vector2.zero;
             
             // Primary threat: the current enemy
             if (ctx.Enemy != null && ctx.Enemy.gameObject.activeInHierarchy)
             {
-                Vector3 enemyPos = ctx.Enemy.transform.position;
-                Vector3 dirFromEnemy = (selfPos - enemyPos).normalized;
-                fleeDirection += dirFromEnemy;
-                threatCount++;
+                fleeDirection = -ctx.VectorToEnemy.normalized; // Flee AWAY from enemy
+            }else{
+                fleeDirection = Random.insideUnitCircle.normalized;
             }
             
-            // If we have information about nearest threat distance, use it
-            if (ctx.NearestThreatDistance < float.MaxValue && ctx.NearbyEnemyCount > 0)
+            // Calculate the evade point in 2D planespace
+            return selfPos + fleeDirection * DefaultFleeDistance;
+        }
+
+        public override void OnDrawGizmos(AIContext ctx)
+        {
+            base.OnDrawGizmos(ctx);
+            
+            #if UNITY_EDITOR
+            if (ctx?.SelfTransform == null) return;
+            
+            Vector3 selfPos = ctx.SelfTransform.position;
+
+            Vector3 evadePos3D = GamePlane.PlaneToWorld(evadePoint);
+                
+            Gizmos.color = Color.green;
+            Gizmos.DrawLine(selfPos, evadePos3D);
+            
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawWireSphere(evadePos3D, 1f);
+            
+            // Draw distance to evade point
+            float distToEvadePoint = Vector2.Distance(ctx.SelfPosition, evadePoint);
+            UnityEditor.Handles.color = Color.cyan;
+            UnityEditor.Handles.Label(evadePos3D + Vector3.up, $"Evade Point\n{distToEvadePoint:F1}m");
+
+            // Draw flee distance circle
+            Gizmos.color = new Color(0f, 1f, 0f, 0.2f);
+            Gizmos.DrawWireSphere(selfPos, DefaultFleeDistance);
+
+            // Draw threat indicators
+            if (ctx.Enemy != null)
             {
-                // We don't have exact positions of all threats, but we can add some randomness
-                // to avoid always fleeing in the same direction
-                Vector3 randomOffset = GamePlane.ProjectOntoPlane(Random.insideUnitSphere).normalized * 0.3f;
-                fleeDirection += randomOffset;
+                Vector3 enemyPos = new Vector3(ctx.EnemyPos.x, ctx.EnemyPos.y, selfPos.z);
+                
+                // Draw line to primary threat
+                Gizmos.color = ctx.LineOfSightToEnemy ? Color.red : new Color(1f, 0.5f, 0f);
+                Gizmos.DrawLine(selfPos, enemyPos);
+                
+                // Draw flee direction arrow
+                Vector2 fleeDir = ctx.Enemy.gameObject.activeInHierarchy ? 
+                    -ctx.VectorToEnemy.normalized : Random.insideUnitCircle.normalized;
+                Vector3 fleeDir3D = new Vector3(fleeDir.x, fleeDir.y, 0);
+                
+                Gizmos.color = Color.yellow;
+                Gizmos.DrawRay(selfPos, fleeDir3D * 5f);
+                
+                // Draw arrowhead for flee direction
+                Vector3 perpLeft = Vector3.Cross(fleeDir3D, Vector3.forward).normalized;
+                Vector3 arrowTip = selfPos + fleeDir3D * 5f;
+                Gizmos.DrawLine(arrowTip, arrowTip - fleeDir3D * 1f + perpLeft * 0.5f);
+                Gizmos.DrawLine(arrowTip, arrowTip - fleeDir3D * 1f - perpLeft * 0.5f);
             }
-            
-            // If no specific threats, pick a random direction
-            if (threatCount == 0 || fleeDirection.sqrMagnitude < 0.01f)
+
+            // Highlight if incoming missile
+            if (ctx.IncomingMissile)
             {
-                fleeDirection = GamePlane.ProjectOntoPlane(Random.insideUnitSphere).normalized;
+                Gizmos.color = Color.red;
+                Gizmos.DrawWireCube(selfPos, Vector3.one * 3f);
             }
-            else
-            {
-                fleeDirection = fleeDirection.normalized;
-            }
+
+            // Draw state info
+            UnityEditor.Handles.color = Color.white;
+            string threatInfo = $"EVADE\nHP: {ctx.HealthPct:P0} Shield: {ctx.ShieldPct:P0}";
+            if (ctx.IncomingMissile) threatInfo += "\n⚠ MISSILE!";
+            if (ctx.NearbyEnemyCount > ctx.NearbyFriendCount) threatInfo += $"\n⚠ Outnumbered {ctx.NearbyEnemyCount}v{ctx.NearbyFriendCount}";
             
-            // Calculate flee distance based on navigator's arrive radius or default
-            float fleeDistance = navigator != null ? 
-                Mathf.Max(navigator.arriveRadius * 3f, DefaultFleeDistance) : 
-                DefaultFleeDistance;
-            
-            // Set the evade point
-            evadePoint = selfPos + fleeDirection * fleeDistance;
-            hasEvadePoint = true;
-            evadePointSetTime = Time.time;
-            
-            // Navigate to the evade point with avoidance enabled
-            navigator.SetNavigationPointWorld(evadePoint, true);
+            UnityEditor.Handles.Label(selfPos + Vector3.up * 4f, threatInfo);
+            #endif
         }
     }
 } 

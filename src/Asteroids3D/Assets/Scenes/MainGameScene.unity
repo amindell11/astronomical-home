@@ -695,6 +695,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: UtilityPilot
       objectReference: {fileID: 0}
+    - target: {fileID: 1376935125781121672, guid: 08a3705197cc60842b107b8485d8ad25,
+        type: 3}
+      propertyPath: missileAngleTolerance
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 2083080758410013432, guid: 08a3705197cc60842b107b8485d8ad25,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1870,6 +1875,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: UtilityPilot
+      objectReference: {fileID: 0}
+    - target: {fileID: 1376935125781121672, guid: 08a3705197cc60842b107b8485d8ad25,
+        type: 3}
+      propertyPath: missileAngleTolerance
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 2083080758410013432, guid: 08a3705197cc60842b107b8485d8ad25,
         type: 3}

@@ -13,7 +13,10 @@ namespace ShipControl.AI
         // Configuration
         private const float TargetUpdateInterval = 0.5f; // How often to update navigation target
         private float lastTargetUpdate;
-
+        
+        private const float DefaultFacingDistance = 6f;
+        private const float DefaultFacingSpeed = -1f;
+        
         public AttackState(AINavigator navigator, AIGunner gunner) : base(navigator, gunner)
         {
         }
@@ -27,9 +30,24 @@ namespace ShipControl.AI
         {
             // Continuously update nav point to track the enemy
             if (context.Enemy == null) return;   
-            gunner.TargetEnemy(context.Enemy);
-            if(context.VectorToEnemy.magnitude < 6f || Vector3.Dot(context.EnemyRelVelocity, context.VectorToEnemy) < -1f){ // if enemy is close or we're closing fast enough, face it
-                navigator.SetFacingTarget(context.VectorToEnemy);
+            
+            // Calculate predicted intercept point for targeting
+            Vector2 predictedTarget = gunner.PredictIntercept(
+                context.SelfPosition,
+                context.SelfVelocity,
+                context.EnemyPos,
+                context.EnemyVel,
+                context.LaserSpeed
+            );
+            
+            // Set gunner target to predicted intercept point
+            gunner.SetTarget(predictedTarget);
+            
+            // Calculate vector to predicted target for facing
+            Vector2 vectorToPredictedTarget = predictedTarget - context.SelfPosition;
+            
+            if(context.VectorToEnemy.magnitude < DefaultFacingDistance || Vector3.Dot(context.EnemyRelVelocity, context.VectorToEnemy) < DefaultFacingSpeed){ // if enemy is close or we're closing fast enough, face it
+                navigator.SetFacingTarget(vectorToPredictedTarget);
             }
             else
             {
@@ -86,8 +104,66 @@ namespace ShipControl.AI
             int netThreat = ctx.NearbyEnemyCount - ctx.NearbyFriendCount;
             if (netThreat > 2)
                 score -= 0.3f;
-            score/=2f;
             return Mathf.Max(0f, score);
+        }
+        
+        public override void OnDrawGizmos(AIContext ctx)
+        {
+            base.OnDrawGizmos(ctx);
+            
+            #if UNITY_EDITOR
+            if (ctx?.SelfTransform == null) return;
+            
+            Vector3 position = ctx.SelfTransform.position;
+                    
+            Gizmos.color = new Color(1f, 0.5f, 0f, 0.2f);
+            Gizmos.DrawWireSphere(position, DefaultFacingDistance); // Close range
+            
+            // Draw target information if we have an enemy
+            if (ctx.Enemy != null)
+            {
+                Vector3 enemyPos = GamePlane.PlaneToWorld(ctx.EnemyPos);
+                float distToEnemy = ctx.VectorToEnemy.magnitude;
+                
+                // Line to enemy - color based on line of sight
+                Gizmos.color = ctx.LineOfSightToEnemy ? Color.red : new Color(1f, 0.5f, 0f, 0.7f);
+                Gizmos.DrawLine(position, enemyPos);
+                
+                // Enemy marker
+                Gizmos.color = Color.red;
+                Gizmos.DrawWireCube(enemyPos, Vector3.one * 2f);
+                
+                // Show targeting crosshair if close
+                if (distToEnemy < DefaultFacingDistance)
+                {
+                    Gizmos.color = Color.yellow;
+                    Gizmos.DrawWireSphere(enemyPos, 1f);
+                    
+                    // Draw crosshair
+                    Vector3 cross = Vector3.one * 0.5f;
+                    Gizmos.DrawLine(enemyPos - cross, enemyPos + cross);
+                    cross.x *= -1;
+                    Gizmos.DrawLine(enemyPos - cross, enemyPos + cross);
+                }
+                
+                // Enemy info label
+                UnityEditor.Handles.color = Color.red;
+                string enemyInfo = $"TARGET: {ctx.Enemy.name}\n{distToEnemy:F1}m";
+                if (ctx.LineOfSightToEnemy) enemyInfo += " (LOS)";
+                else enemyInfo += " (No LOS)";
+                enemyInfo += $"\nEnemy HP: {ctx.EnemyHealthPct:P0}";
+                UnityEditor.Handles.Label(enemyPos + Vector3.up, enemyInfo);
+            }
+            
+            // Show attack state info
+            UnityEditor.Handles.color = Color.white;
+            string info = $"ATTACK\nHP: {ctx.HealthPct:P0} Shield: {ctx.ShieldPct:P0}";
+            info += $"\nLaser Heat: {ctx.LaserHeatPct:P0}";
+            info += $"\nMissiles: {ctx.MissileAmmo}";
+            if (ctx.NearbyEnemyCount > ctx.NearbyFriendCount)
+                info += $"\n⚠ Outnumbered {ctx.NearbyEnemyCount}v{ctx.NearbyFriendCount}";
+            UnityEditor.Handles.Label(position + Vector3.up * 4f, info);
+            #endif
         }
     }
 } 

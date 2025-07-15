@@ -8,7 +8,7 @@ namespace ShipControl.AI
     /// </summary>
     public class PatrolState : AIState
     {
-        private Vector3 currentTarget;
+        private Vector2 currentTarget;
         private bool hasTarget = false;
         
         // Configuration
@@ -62,43 +62,60 @@ namespace ShipControl.AI
 
         private void ChooseNewPatrolPoint(AIContext ctx)
         {
-            if (navigator == null) return;
-            
-            // Try to pick a point that is visible on the player's screen so the AI stays within view
-            Camera cam = Camera.main;
-
-            if (cam != null)
-            {
-                // Pick a random viewport coordinate with 10% padding so we do not hug the edges
-                const float pad = 0.1f;
-                Vector3 viewport = new Vector3(
-                    Random.Range(pad, 1f - pad),
-                    Random.Range(pad, 1f - pad),
-                    0f);
-
-                // Re-use ship depth so projection lands roughly in the game plane
-                Vector3 shipScreen = cam.WorldToScreenPoint(ctx.SelfPosition3D);
-                viewport.z = shipScreen.z;
-
-                // Convert to world space and project onto the GamePlane to ensure we stay flat
-                Vector3 worldPoint = cam.ViewportToWorldPoint(viewport);
-                Vector3 planePoint = GamePlane.Origin + GamePlane.ProjectOntoPlane(worldPoint);
-
-                currentTarget = planePoint;
-            }
-            else
-            {
-                // Fallback: pick a random point within patrolRadius around current position
-                Vector3 currentPos = ctx.SelfPosition3D;
-                float randomDistance = Random.Range(patrolRadius * 0.3f, patrolRadius);
-                Vector3 randomOffset = GamePlane.ProjectOntoPlane(Random.insideUnitSphere).normalized * randomDistance;
-                currentTarget = currentPos + randomOffset;
-            }
+            // Pick a random point within patrolRadius around current position
+            Vector2 currentPos = ctx.SelfPosition;
+            float randomDistance = Random.Range(patrolRadius * 0.3f, patrolRadius);
+            Vector2 randomDirection = Random.insideUnitCircle.normalized;
+            currentTarget = currentPos + randomDirection * randomDistance;
 
             hasTarget = true;
 
-            // Set the navigation target
-            navigator.SetNavigationPointWorld(currentTarget, enableAvoidance);
+            // Set the navigation target using plane coordinates
+            navigator.SetNavigationPoint(currentTarget, enableAvoidance);
+        }
+        
+        public override void OnDrawGizmos(AIContext ctx)
+        {
+            base.OnDrawGizmos(ctx);
+            
+            #if UNITY_EDITOR
+            if (ctx?.SelfTransform == null) return;
+            
+            Vector3 position = ctx.SelfTransform.position;
+            
+            // Draw patrol radius
+            Gizmos.color = new Color(0f, 1f, 0f, 0.1f);
+            Gizmos.DrawWireSphere(position, patrolRadius);
+            
+            // Draw current patrol target if we have one
+            if (hasTarget)
+            {
+                // Convert plane coordinates to world coordinates for rendering
+                Vector3 currentTargetWorld = GamePlane.PlaneToWorld(currentTarget);
+                
+                // Line to target
+                Gizmos.color = Color.green;
+                Gizmos.DrawLine(position, currentTargetWorld);
+                
+                // Target marker
+                Gizmos.color = Color.yellow;
+                Gizmos.DrawWireSphere(currentTargetWorld, 1.5f);
+                Gizmos.DrawWireCube(currentTargetWorld, Vector3.one * 0.5f);
+                
+                float distToTarget = Vector2.Distance(ctx.SelfPosition, currentTarget);
+                UnityEditor.Handles.color = Color.green;
+                UnityEditor.Handles.Label(currentTargetWorld + Vector3.up, $"Patrol Target\n{distToTarget:F1}m");
+            }
+            
+            // Show patrol state info
+            UnityEditor.Handles.color = Color.white;
+            string info = $"PATROL\nRadius: {patrolRadius:F0}m";
+            if (hasTarget)
+                info += "\nMoving to waypoint";
+            else
+                info += "\nSearching for waypoint";
+            UnityEditor.Handles.Label(position + Vector3.up * 4f, info);
+            #endif
         }
     }
 } 
