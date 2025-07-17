@@ -28,6 +28,10 @@ namespace ShipControl.AI
             
             [Tooltip("Weight multiplier for Kite state utility")]
             [Range(0f, 2f)] public float kiteWeight = 1f;
+            [Tooltip("Weight multiplier for Orbit state utility")]
+            [Range(0f, 2f)] public float orbitWeight = 1f;
+            [Tooltip("Weight multiplier for JinkEvade state utility")]
+            [Range(0f, 2f)] public float jinkEvadeWeight = 1f;
         }
         
         [Header("State Configuration")]
@@ -55,6 +59,21 @@ namespace ShipControl.AI
         
         [Tooltip("Show current state debug gizmos in scene view")]
         public bool showCurrentStateGizmos = true;
+        
+        [Header("Utility Smoothing & Stickiness")]
+        [Tooltip("Additive bonus applied to the current state's utility to encourage stability (stickiness)")]
+        [Range(0f, 1f)]
+        [SerializeField] private float stickyBonus = 0.05f;
+
+        [Tooltip("Exponential smoothing factor for rolling average of utility scores. 0 = no smoothing, 1 = no history")]
+        [Range(0f, 1f)]
+        [SerializeField] private float utilitySmoothingFactor = 0.25f;
+
+        [Tooltip("Time in seconds for the sticky bonus to fade to zero (linear fade). 0 = no fade")] 
+        [SerializeField] private float stickyFadeTime = 2f;
+ 
+        // Rolling average cache
+        private readonly Dictionary<AIState, float> smoothedUtilities = new Dictionary<AIState, float>();
         
         private readonly List<AIState> states = new List<AIState>();
         private AIState currentState;
@@ -125,15 +144,39 @@ namespace ShipControl.AI
             
             foreach (var state in states)
             {
+                // Compute base utility and apply sticky bonus if this is the current state
                 float baseUtility = state.ComputeUtility(context);
-                float weightedUtility = ApplyStateWeight(state, baseUtility);
-                UtilityScores[state.GetType().Name] = weightedUtility;
-                
-                stateUtilities.Add((state, weightedUtility));
-                
-                if (weightedUtility > highestUtility)
+                if (state == currentState)
                 {
-                    highestUtility = weightedUtility;
+                    float bonus = stickyBonus;
+                    if (stickyFadeTime > 0f)
+                    {
+                        float timeSinceEntry = Time.time - stateChangeTime;
+                        bonus *= Mathf.Clamp01(1f - timeSinceEntry / stickyFadeTime);
+                    }
+                    baseUtility += bonus;
+                }
+
+                float weightedUtility = ApplyStateWeight(state, baseUtility);
+
+                // Apply rolling average smoothing
+                float smoothed = weightedUtility;
+                if (utilitySmoothingFactor > 0f)
+                {
+                    if (smoothedUtilities.TryGetValue(state, out float previous))
+                    {
+                        smoothed = Mathf.Lerp(previous, weightedUtility, utilitySmoothingFactor);
+                    }
+                    smoothedUtilities[state] = smoothed;
+                }
+
+                // Record for debugging and selection
+                UtilityScores[state.GetType().Name] = smoothed;
+                stateUtilities.Add((state, smoothed));
+
+                if (smoothed > highestUtility)
+                {
+                    highestUtility = smoothed;
                     bestState = state;
                 }
             }
@@ -153,8 +196,12 @@ namespace ShipControl.AI
             if (selectedState != null && selectedState != currentState)
             {
                 float timeSinceChange = Time.time - stateChangeTime;
-                float currentUtility = currentState?.ComputeUtility(context) ?? 0f;
-                float weightedCurrentUtility = ApplyStateWeight(currentState, currentUtility);
+                float weightedCurrentUtility;
+                if (!smoothedUtilities.TryGetValue(currentState, out weightedCurrentUtility))
+                {
+                    float currentUtility = currentState?.ComputeUtility(context) ?? 0f;
+                    weightedCurrentUtility = ApplyStateWeight(currentState, currentUtility);
+                }
                 
                 bool shouldSwitch;
                 if (useProbabilisticSampling)
@@ -164,11 +211,14 @@ namespace ShipControl.AI
                 }
                 else
                 {
-                    // For deterministic selection, use both time and utility threshold
-                    float selectedUtility = selectedState.ComputeUtility(context);
-                    float weightedSelectedUtility = ApplyStateWeight(selectedState, selectedUtility);
+                    // For deterministic selection, use smoothed utilities and utility threshold
+                    float selectedUtility;
+                    if (!smoothedUtilities.TryGetValue(selectedState, out selectedUtility))
+                    {
+                        selectedUtility = ApplyStateWeight(selectedState, selectedState.ComputeUtility(context));
+                    }
                     shouldSwitch = timeSinceChange >= minTimeInState && 
-                                   (weightedSelectedUtility - weightedCurrentUtility) > utilityThreshold;
+                                   (selectedUtility - weightedCurrentUtility) > utilityThreshold;
                 }
                 
                 if (shouldSwitch)
@@ -193,6 +243,8 @@ namespace ShipControl.AI
                 "AttackState" => baseUtility * stateWeights.attackWeight,
                 "EvadeState" => baseUtility * stateWeights.evadeWeight,
                 "KiteState" => baseUtility * stateWeights.kiteWeight,
+                "OrbitState" => baseUtility * stateWeights.orbitWeight,
+                "JinkEvadeState" => baseUtility * stateWeights.jinkEvadeWeight,
                 _ => baseUtility
             };
         }

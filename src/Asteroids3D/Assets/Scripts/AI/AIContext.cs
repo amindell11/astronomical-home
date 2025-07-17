@@ -27,7 +27,7 @@ public class AIContext : MonoBehaviour
     private AICommander aiCommander;
     private AINavigator aiNavigator;
     private AIGunner aiGunner;
-    
+    private Ship enemyShip;
     // Buffer for physics queries - using shared buffers for efficiency
     
     public void Initialize(Ship ship, AICommander commander, AINavigator navigator, AIGunner gunner)
@@ -36,7 +36,7 @@ public class AIContext : MonoBehaviour
         this.aiCommander = commander;
         this.aiNavigator = navigator;
         this.aiGunner = gunner;
-        
+        this.enemyShip = null;
         if (!ship)
         {
             RLog.AIError($"AIContext on {name}: No Ship provided during initialization");
@@ -108,9 +108,9 @@ public class AIContext : MonoBehaviour
     /// <summary>
     /// Current enemy ship
     /// </summary>
-    public Ship Enemy => FindNearestEnemy();
+    public Ship Enemy => enemyShip ??= FindNearestEnemy();
     public Vector2 EnemyPos => Enemy.CurrentState.Kinematics.Pos;
-    public Vector2 EnemyVel => Enemy != null ? Enemy.CurrentState.Kinematics.Vel : Vector2.zero;
+    public Vector2 EnemyVel => Enemy.CurrentState.Kinematics.Vel;
 
     /// <summary>
     /// Vector from ship to the nearest enemy

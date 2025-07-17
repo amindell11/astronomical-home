@@ -114,13 +114,13 @@ public class AIGunner : MonoBehaviour
         }
 
         cmd.SecondaryFire = wantsToFireMissile;
-
+        LaserGun laserGun = ship.laserGun;
         // Only block laser when we have a locked missile ready to fire
         bool blockLaserForMissile = wantsToFireMissile && state.MissileState == MissileLauncher.LockState.Locked;
 
-        if (ship.laserGun && dist <= fireDistance && angle <= fireAngleTolerance && !blockLaserForMissile)
+        if (laserGun && dist <= fireDistance && angle <= fireAngleTolerance && !blockLaserForMissile && laserGun.CurrentHeat < laserGun.MaxHeat - laserGun.HeatPerShot) // TODO: make this a tunable
         {
-            Vector3 laserFirePos = ship.laserGun.firePoint ? ship.laserGun.firePoint.position : transform.position;
+            Vector3 laserFirePos = laserGun.firePoint ? laserGun.firePoint.position : transform.position;
             Vector3 targetPos = GamePlane.PlaneToWorld(Target);
             Vector3 dir = targetPos - laserFirePos;
             bool losOK = HasLineOfSight(laserFirePos, dir, dist, angle, targetPos);

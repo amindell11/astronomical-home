@@ -16,7 +16,7 @@ PrefabInstance:
     - target: {fileID: 1610963645942494774, guid: 5d39b99f95c4db04ebd565a759e5dc03,
         type: 3}
       propertyPath: angleToleranceBeforeRay
-      value: 3
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 1848735604803868230, guid: 5d39b99f95c4db04ebd565a759e5dc03,
         type: 3}
@@ -85,13 +85,28 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
         type: 3}
+      propertyPath: stickyBonus
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
+        type: 3}
+      propertyPath: minTimeInState
+      value: 0.05
+      objectReference: {fileID: 0}
+    - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
+        type: 3}
+      propertyPath: stickyFadeTime
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
+        type: 3}
       propertyPath: utilityThreshold
-      value: 0.01
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
         type: 3}
       propertyPath: samplingTemperature
-      value: 0.05
+      value: 0.22
       objectReference: {fileID: 0}
     - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
         type: 3}
@@ -101,12 +116,17 @@ PrefabInstance:
     - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
         type: 3}
       propertyPath: stateWeights.kiteWeight
-      value: 0.9
+      value: 0.613
       objectReference: {fileID: 0}
     - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
         type: 3}
       propertyPath: stateWeights.evadeWeight
-      value: 0.7
+      value: 0.427
+      objectReference: {fileID: 0}
+    - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
+        type: 3}
+      propertyPath: stateWeights.orbitWeight
+      value: 0.605
       objectReference: {fileID: 0}
     - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
         type: 3}
@@ -116,7 +136,12 @@ PrefabInstance:
     - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
         type: 3}
       propertyPath: stateWeights.attackWeight
-      value: 0.5
+      value: 0.484
+      objectReference: {fileID: 0}
+    - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
+        type: 3}
+      propertyPath: stateWeights.jinkEvadeWeight
+      value: 0.548
       objectReference: {fileID: 0}
     - target: {fileID: 6525159657316276413, guid: 5d39b99f95c4db04ebd565a759e5dc03,
         type: 3}

@@ -49,7 +49,9 @@ public class AICommander : MonoBehaviour, IShipCommandSource
             new IdleState(navigator, gunner),
             new PatrolState(navigator, gunner),
             new EvadeState(navigator, gunner),
+            new JinkEvadeState(navigator, gunner),
             new AttackState(navigator, gunner),
+            new OrbitState(navigator, gunner),
             new KiteState(navigator, gunner)
         );
     }
