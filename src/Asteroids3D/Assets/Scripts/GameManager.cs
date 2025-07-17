@@ -16,7 +16,7 @@ public class GameManager : BaseGameContext
 
     [Header("Game Flow Settings")]
     [SerializeField] private float restartDelay = 3f; // seconds before restarting after player death
-    
+    [SerializeField] private bool restartOnPlayerDeath = true;
     [Header("Enemy Respawn Settings")]
     [SerializeField] private float enemyRespawnDelay = 3f;
     [SerializeField] private float offscreenDistance = 25f;
@@ -61,10 +61,15 @@ public class GameManager : BaseGameContext
     public void HandlePlayerDeath(Ship playerShip)
     {
         if (currentState == GameState.GameOver) return;
-
-        currentState = GameState.GameOver;
-        RLog.Core("Player ship destroyed. Game Over!");
-        Invoke(nameof(RestartGame), restartDelay);
+        if (restartOnPlayerDeath)
+        {
+            currentState = GameState.GameOver;
+            RLog.Core("Player ship destroyed. Game Over!");
+            Invoke(nameof(RestartGame), restartDelay);
+        } else {
+            IEnumerator respawnRoutine = WaitAndRespawn(enemyRespawnDelay, playerShip);
+            StartCoroutine(respawnRoutine);
+        }
     }
     
     /// <summary>
@@ -195,7 +200,7 @@ public class GameManager : BaseGameContext
         if (deadShip == null) return;
 
         // Determine if this is the player by tag or team.
-        if (deadShip.CompareTag("Player"))
+        if (deadShip.CompareTag(TagNames.Player))
         {
             HandlePlayerDeath(deadShip);
         }

@@ -12,7 +12,8 @@ GameObject:
   - component: {fileID: 7633139990813436656}
   - component: {fileID: 5986187686420404307}
   - component: {fileID: 4509103642676224625}
-  m_Layer: 5
+  - component: {fileID: 490224238293211736}
+  m_Layer: 10
   m_Name: MissileAmmoIcon
   m_TagString: MissileAmmoIcon
   m_Icon: {fileID: 0}
@@ -58,7 +59,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 2100000, guid: fbbdf94b058d9d945a7b261e4acaf3d1, type: 2}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
@@ -66,7 +67,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: a6619c9df32f0124a898714a24b50e05, type: 3}
+  m_Sprite: {fileID: 21300000, guid: b61ea553728798d468e0d087370cf258, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 0
@@ -96,3 +97,22 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &490224238293211736
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4081933725630072442}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 735aad0cefe7caa4eacb569c0d22a65b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  glowMaterial: {fileID: 0}
+  baseColor: {r: 1, g: 1, b: 1, a: 1}
+  emissionColor: {r: 0.47528592, g: 10.076063, b: 10.076063, a: 0.85490197}
+  emissionIntensity: 0.65
+  enablePulsing: 0
+  pulseSpeed: 1.38
+  pulseRange: {x: 0.5, y: 1.5}

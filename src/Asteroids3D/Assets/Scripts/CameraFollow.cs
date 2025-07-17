@@ -13,6 +13,10 @@ public class CameraFollow : MonoBehaviour
     [SerializeField] private Vector3 offset = new Vector3(0, 0, -10f); // Offset expressed in GamePlane basis (x=Right, y=Forward, z=Normal)
     [SerializeField] [Min(0f)] private float smoothTime = 0.15f;       // Approx. time to reach target. Smaller is snappier.
 
+    [SerializeField] private bool lockCameraToPlayer = false;
+    [SerializeField] private bool lockZoomToPlayer = false;
+    [SerializeField] private float lockZoomDistance = 10f;
+
     [Header("Zoom (Orthographic Size)")]
     [SerializeField] private float minZoom = 5f;
     [SerializeField] private float maxZoom = 50f;
@@ -34,19 +38,12 @@ public class CameraFollow : MonoBehaviour
     private Vector3 _dampVelocity;
     private float _zoomVelocity;
 
+    // Added property to expose current lock state
+    public bool LockCameraToPlayer => lockCameraToPlayer;
+
     protected virtual void Awake()
     {
         _cam = GetComponent<Camera>();
-
-        if (keepPlayerInView)
-        {
-            // Cache player transform for quick access (may be null if not found)
-            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-            if (playerObj != null)
-            {
-                _player = playerObj.transform;
-            }
-        }
 
         if (!_cam.orthographic)
         {
@@ -55,6 +52,11 @@ public class CameraFollow : MonoBehaviour
         }
 
         RefreshTargets();
+    }
+
+    protected virtual void Start()
+    {
+        _player = GameObject.FindGameObjectWithTag(TagNames.Player).transform;
     }
 
     protected virtual void Update()
@@ -77,53 +79,87 @@ public class CameraFollow : MonoBehaviour
     private void FixedUpdate()
     {
         if (_targets.Count == 0) return;
+        // Calculate the target camera position & size based on current settings.
+        ComputeDesiredCameraState(out Vector3 desiredPos, out float desiredSize);
+
+        // Smooth movement & zoom to the desired state
+        transform.position    = Vector3.SmoothDamp(transform.position, desiredPos, ref _dampVelocity, smoothTime, float.PositiveInfinity, Time.unscaledDeltaTime);
+        _cam.orthographicSize = Mathf.SmoothDamp(_cam.orthographicSize, desiredSize, ref _zoomVelocity, smoothTime, float.PositiveInfinity, Time.unscaledDeltaTime);
+
+        // Ensure camera orientation follows the game plane
+        transform.rotation = Quaternion.LookRotation(GamePlane.Normal, GamePlane.Forward);
+    }
+
+    // NEW: Centralized computation of desired camera position & zoom considering lock flags
+    private void ComputeDesiredCameraState(out Vector3 desiredPos, out float desiredSize)
+    {
+        // -----------------------------------------------------------------
+        // 1. Compute bounds in plane space for ALL targets (needed for zoom)
+        GetPlaneBounds(out Vector2 min2D, out Vector2 max2D);
+        Vector2 boundsCenter2D = (min2D + max2D) * 0.5f;
 
         // -----------------------------------------------------------------
-        // 1. Compute bounds in GamePlane space (Right = X, Forward = Y)
-        GetPlaneBounds(out Vector2 min2D, out Vector2 max2D);
-
-        Vector2 center2D = (min2D + max2D) * 0.5f;
-        float   width    = max2D.x - min2D.x;
-        float   height   = max2D.y - min2D.y;
-
-        // 2. Determine required orthographic size
-        float preferredSize = Mathf.Max(height * 0.5f, width * 0.5f / _cam.aspect) + padding;
-        float clampedSize   = Mathf.Clamp(preferredSize, minZoom, maxZoom);
-
-        // 3. Desired camera position (center of targets + offset expressed in plane basis)
-        Vector3 worldCenter  = GamePlane.PlaneToWorld(center2D);
-        Vector3 worldOffset  = GamePlane.Right * offset.x + GamePlane.Forward * offset.y + GamePlane.Normal * offset.z;
-        Vector3 desiredPos   = worldCenter + worldOffset;
-
-        // 4. Keep player within view (operate in plane space)
-        if (keepPlayerInView && _player != null)
+        // 2. Determine the 2-D center to focus on
+        Vector2 center2D;
+        if (lockCameraToPlayer && _player != null)
         {
-            float horizontalExtent = clampedSize * _cam.aspect;
-            float verticalExtent   = clampedSize;
+            // Focus exclusively on the player
+            center2D = GamePlane.WorldToPlane(_player.position);
+        }
+        else
+        {
+            // Use overall bounds center so all targets stay in view
+            center2D = boundsCenter2D;
+        }
 
-            Vector3 toPlayerWorld  = _player.position - desiredPos;
-            Vector2 toPlayer2D     = new Vector2(Vector3.Dot(toPlayerWorld, GamePlane.Right),
-                                                 Vector3.Dot(toPlayerWorld, GamePlane.Forward));
+        // -----------------------------------------------------------------
+        // 3. Compute desired orthographic size (zoom)
+        if (lockZoomToPlayer)
+        {
+            // Fixed size
+            desiredSize = Mathf.Clamp(lockZoomDistance, minZoom, maxZoom);
+        }
+        else
+        {
+            // Compute horizontal & vertical extents from the chosen center
+            float maxDX = Mathf.Max(center2D.x - min2D.x, max2D.x - center2D.x);
+            float maxDY = Mathf.Max(center2D.y - min2D.y, max2D.y - center2D.y);
+
+            float preferredSize = Mathf.Max(maxDY + padding, (maxDX + padding) / _cam.aspect);
+            desiredSize         = Mathf.Clamp(preferredSize, minZoom, maxZoom);
+        }
+
+        // -----------------------------------------------------------------
+        // 4. Optionally keep player fully inside view if camera is NOT locked to player
+        if (!lockCameraToPlayer && keepPlayerInView && _player != null)
+        {
+            float horizontalExtent = desiredSize * _cam.aspect;
+            float verticalExtent   = desiredSize;
+
+            Vector3 tempWorldCenter = GamePlane.PlaneToWorld(center2D);
+            Vector3 toPlayerWorld = _player.position - tempWorldCenter;
+            Vector2 toPlayer2D    = new Vector2(Vector3.Dot(toPlayerWorld, GamePlane.Right),
+                                                Vector3.Dot(toPlayerWorld, GamePlane.Forward));
 
             if (Mathf.Abs(toPlayer2D.x) > horizontalExtent - padding)
             {
                 float shiftX = Mathf.Abs(toPlayer2D.x) - (horizontalExtent - padding);
-                desiredPos += GamePlane.Right * Mathf.Sign(toPlayer2D.x) * shiftX;
+                center2D += new Vector2(Mathf.Sign(toPlayer2D.x) * shiftX, 0f);
             }
 
             if (Mathf.Abs(toPlayer2D.y) > verticalExtent - padding)
             {
                 float shiftY = Mathf.Abs(toPlayer2D.y) - (verticalExtent - padding);
-                desiredPos += GamePlane.Forward * Mathf.Sign(toPlayer2D.y) * shiftY;
+                center2D += new Vector2(0f, Mathf.Sign(toPlayer2D.y) * shiftY);
             }
         }
 
-        // 5. Smooth movement & zoom
-        transform.position      = Vector3.SmoothDamp(transform.position, desiredPos, ref _dampVelocity, smoothTime, float.PositiveInfinity, Time.unscaledDeltaTime);
-        _cam.orthographicSize   = Mathf.SmoothDamp(_cam.orthographicSize, clampedSize, ref _zoomVelocity, smoothTime, float.PositiveInfinity, Time.unscaledDeltaTime);
+        // -----------------------------------------------------------------
+        // 5. Convert center back to world space and apply the configured offset
+        Vector3 worldCenter = GamePlane.PlaneToWorld(center2D);
+        Vector3 worldOffset = GamePlane.Right * offset.x + GamePlane.Forward * offset.y + GamePlane.Normal * offset.z;
 
-        // 6. Ensure camera orientation follows the plane
-        transform.rotation = Quaternion.LookRotation(GamePlane.Normal, GamePlane.Forward);
+        desiredPos = worldCenter + worldOffset;
     }
 
     // ---------------------------------------------------------------------
@@ -168,6 +204,18 @@ public class CameraFollow : MonoBehaviour
             }
         }
     }
+
+    public void SetLockCameraToPlayer(bool value)
+    {
+        lockCameraToPlayer = value;
+    }
+
+    public void SetLockZoomToPlayer(bool value)
+    {
+        lockZoomToPlayer = value;
+    }
+    
+    
 
 #if UNITY_EDITOR
     // Draw a gizmo representing the bounding box for debugging

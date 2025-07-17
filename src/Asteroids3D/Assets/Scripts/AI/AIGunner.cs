@@ -224,8 +224,12 @@ public class AIGunner : MonoBehaviour
     // ==================== Helper Utilities =============================
     public Vector2 PredictIntercept(Vector2 shooterPos, Vector2 shooterVel, Vector2 targetPos, Vector2 targetVel, float projSpeed)
     {
+        // Restrict shooter velocity to its forward component so lateral drift does not skew the intercept calculation.
+        Vector2 forward = ship ? ship.CurrentState.Kinematics.Forward : (shooterVel.sqrMagnitude > 0f ? shooterVel.normalized : Vector2.up);
+        Vector2 forwardVel = Vector2.Dot(shooterVel, forward) * forward;
+
         Vector2 relPos = targetPos - shooterPos;
-        Vector2 relVel = targetVel - shooterVel;
+        Vector2 relVel = targetVel - forwardVel;
 
         float a = Vector2.Dot(relVel, relVel) - projSpeed * projSpeed;
         float b = 2f * Vector2.Dot(relVel, relPos);

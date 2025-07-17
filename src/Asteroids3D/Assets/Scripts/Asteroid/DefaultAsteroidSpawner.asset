@@ -1210,8 +1210,8 @@ MonoBehaviour:
   - {fileID: -2966159164897359132, guid: ebc43c11b646d06489156d9f564899e8, type: 3}
   - {fileID: 8798366265156884017, guid: fa76ef86a0c8e6e4f817ec7f96dcb131, type: 3}
   massScaleRange: {x: 0.5, y: 2}
-  velocityRange: {x: 0.5, y: 1.5}
-  spinRange: {x: -0.4, y: 0.4}
+  velocityRange: {x: 0.5, y: 1.7}
+  spinRange: {x: -3, y: 3}
   defaultPoolCapacity: 50
   maxPoolSize: 500
   defaultDensity: 1000

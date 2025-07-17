@@ -85,13 +85,12 @@ public class Ship : MonoBehaviour, ITargetable, IShooter
         damageHandler?.ApplySettings(settings);
 
         Indicator = GetComponentInChildren<LockOnIndicator>(true);
-    }
-    void Start(){
         foreach (var source in commandSources)
         {
             source?.InitializeCommander(this);
         }
     }
+
     void OnEnable()
     {
         if (!ActiveShips.Contains(transform))

@@ -164,5 +164,11 @@ public class PlayerCommander : MonoBehaviour, IShipCommandSource
     public void InitializeCommander(Ship ship)
     {
         this.ship = ship;
+
+        // Ensure the player ship is tagged correctly for game-wide lookups (e.g., GameManager death handling)
+        if (ship != null)
+        {
+            ship.gameObject.tag = TagNames.Player;
+        }
     }
 } 

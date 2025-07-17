@@ -131,10 +131,23 @@ public class MissileProjectile : ProjectileBase, IDamageable
                 transform.rotation = Quaternion.AngleAxis(rotationCorrectionDeg, rotationAxis) * transform.rotation;
             }
 
-            // 5. Apply engine thrust along the missile's current forward (transform.up).
-            rb.AddForce(transform.up * acceleration, ForceMode.Acceleration);
-            
-            // 6. Clamp velocity to max speed
+            // 5. Compute the desired velocity along the missile's forward direction.
+            Vector3 desiredVelocity = transform.up * homingSpeed;
+
+            // 6. Smoothly rotate the current velocity toward the desired velocity, limiting
+            //    both the angular change (maxTurnRad) and the linear acceleration (maxAccelThisStep)
+            //    in this physics step. This prevents the missile from overshooting and spiralling
+            //    around the target.
+            float maxTurnRad       = homingTurnRate * Mathf.Deg2Rad * Time.fixedDeltaTime;   // radians/frame
+            float maxAccelThisStep = acceleration   * Time.fixedDeltaTime;                  // units/sec per frame
+
+            rb.linearVelocity = Vector3.RotateTowards(
+                                    rb.linearVelocity,
+                                    desiredVelocity,
+                                    maxTurnRad,
+                                    maxAccelThisStep);
+
+            // 7. Ensure we never exceed the maximum homing speed.
             if (rb.linearVelocity.magnitude > homingSpeed)
             {
                 rb.linearVelocity = rb.linearVelocity.normalized * homingSpeed;

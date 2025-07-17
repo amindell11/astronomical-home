@@ -19,11 +19,40 @@ public sealed class LaserHeatUI : MonoBehaviour
     [Tooltip("Optional animator that has a bool parameter named 'overheated'.")] 
     [SerializeField] private Animator animator;
 
+    [Header("Glow Settings")]
+    [Tooltip("Optional glowing UI controller on the same object. If assigned, the emission color will turn red and pulse when overheated.")]
+    [SerializeField] private GlowingUIController glowController;
+
+    [Tooltip("Emission color under normal operation.")]
+    [SerializeField, ColorUsage(true, true)] private Color normalGlowColor = new Color(1f, 0.5f, 0.2f, 1f);
+
+    [Tooltip("Emission color while overheated.")]
+    [SerializeField, ColorUsage(true, true)] private Color overheatGlowColor = Color.red;
+
+    [Tooltip("Flash speed while overheated (higher = faster).")]
+    [SerializeField, Range(0.1f, 20f)] private float overheatFlashSpeed = 8f;
+
+    private bool wasOverheated;
+    private float defaultFlashSpeed = 4f;
+
     void Awake()
     {
-        // Attempt auto-wiring if not set.
-        if (!laserGun) laserGun = GetComponentInParent<LaserGun>();
         if (!fillImage) fillImage = GetComponentInChildren<Image>();
+        if (!glowController && fillImage)
+            glowController = fillImage.GetComponent<GlowingUIController>();
+        if (!glowController)
+            glowController = GetComponent<GlowingUIController>();
+    }
+    void Start()
+    {
+        if (!laserGun) laserGun = GameObject.FindGameObjectWithTag(TagNames.Player).GetComponentInChildren<LaserGun>();
+        if (glowController)
+        {
+            defaultFlashSpeed = glowController.FlashSpeed;
+            // Ensure starting color is the normal color
+            glowController.SetEmissionColor(normalGlowColor);
+            glowController.SetFlashing(false);
+        }
     }
 
     void Update()
@@ -37,6 +66,25 @@ public sealed class LaserHeatUI : MonoBehaviour
         {
             animator.SetBool("overheated", pct >= 1f);
             animator.SetFloat("heat", pct);
+        }
+
+        // Handle glow controller behaviour
+        if (glowController)
+        {
+            bool isOverheated = pct >= 1f;
+            if (isOverheated && !wasOverheated)
+            {
+                glowController.SetEmissionColor(overheatGlowColor);
+                glowController.SetFlashing(true);
+                glowController.FlashSpeed = overheatFlashSpeed;
+            }
+            else if (!isOverheated && wasOverheated)
+            {
+                glowController.SetFlashing(false);
+                glowController.SetEmissionColor(normalGlowColor);
+                glowController.FlashSpeed = defaultFlashSpeed;
+            }
+            wasOverheated = isOverheated;
         }
     }
 } 

@@ -32,16 +32,13 @@ public class AICommander : MonoBehaviour, IShipCommandSource
     public AIStateMachine StateMachine => stateMachine;
     public string CurrentStateName => stateMachine?.CurrentStateName ?? "None";
 
-    void Awake()
+    public void InitializeCommander(Ship ship)
     {
         navigator = GetComponent<AINavigator>();
         gunner = GetComponent<AIGunner>();
         context = GetComponent<AIContext>();
         stateMachine = GetComponent<AIStateMachine>();
-    }
 
-    public void InitializeCommander(Ship ship)
-    {
         this.ship = ship;
         navigator.Initialize(ship);
         gunner.Initialize(ship);
