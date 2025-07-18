@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Linq;
 using System.Collections.Generic;
 
 /// <summary>
@@ -7,7 +8,10 @@ using System.Collections.Generic;
 /// </summary>
 public static class SimplePool<T> where T : MonoBehaviour
 {
-    private static readonly Stack<T> pool = new Stack<T>();
+    // Pools are now tracked per prefab instance ID to avoid mixing different prefabs that
+    // share the same component type (e.g., sparks vs explosions both using PooledVFX).
+    private static readonly Dictionary<int, Stack<T>> pools = new(); // prefabID -> instances
+    private static readonly Dictionary<T, int> instanceToKey = new(); // instance -> prefabID
     private static Transform poolParent;
     
     /// <summary>
@@ -15,11 +19,19 @@ public static class SimplePool<T> where T : MonoBehaviour
     /// </summary>
     public static T Get(T prefab, Vector3 position, Quaternion rotation)
     {
-        T instance;
-        
-        if (pool.Count > 0)
+        int key = prefab.GetInstanceID();
+
+        if (!pools.TryGetValue(key, out var stack))
         {
-            instance = pool.Pop();
+            stack = new Stack<T>();
+            pools[key] = stack;
+        }
+
+        T instance;
+
+        if (stack.Count > 0)
+        {
+            instance = stack.Pop();
             instance.transform.position = position;
             instance.transform.rotation = rotation;
             instance.gameObject.SetActive(true);
@@ -27,7 +39,7 @@ public static class SimplePool<T> where T : MonoBehaviour
         else
         {
             instance = Object.Instantiate(prefab, position, rotation);
-            
+
             // Set up pool parent for organization
             if (poolParent == null)
             {
@@ -35,10 +47,12 @@ public static class SimplePool<T> where T : MonoBehaviour
                 poolParent = poolGO.transform;
                 Object.DontDestroyOnLoad(poolGO);
             }
-            
+
             instance.transform.SetParent(poolParent);
+            // Track which prefab pool this instance belongs to
+            instanceToKey[instance] = key;
         }
-        
+
         return instance;
     }
     
@@ -50,7 +64,20 @@ public static class SimplePool<T> where T : MonoBehaviour
         if (instance == null) return;
         
         instance.gameObject.SetActive(false);
-        pool.Push(instance);
+
+        if (!instanceToKey.TryGetValue(instance, out int key))
+        {
+            // Fallback: if mapping missing, push into a generic pool keyed by 0
+            key = 0;
+        }
+
+        if (!pools.TryGetValue(key, out var stack))
+        {
+            stack = new Stack<T>();
+            pools[key] = stack;
+        }
+
+        stack.Push(instance);
     }
     
     /// <summary>
@@ -58,18 +85,33 @@ public static class SimplePool<T> where T : MonoBehaviour
     /// </summary>
     public static void Clear()
     {
-        while (pool.Count > 0)
+        foreach (var kvp in pools)
         {
-            var instance = pool.Pop();
-            if (instance != null)
-                Object.Destroy(instance.gameObject);
+            var stack = kvp.Value;
+            while (stack.Count > 0)
+            {
+                var instance = stack.Pop();
+                if (instance != null)
+                    Object.Destroy(instance.gameObject);
+            }
         }
+        pools.Clear();
+        instanceToKey.Clear();
     }
     
     /// <summary>
     /// Get current pool size for debugging
     /// </summary>
-    public static int PoolSize => pool.Count;
+    public static int PoolSize
+    {
+        get
+        {
+            int total = 0;
+            foreach (var stack in pools.Values)
+                total += stack.Count;
+            return total;
+        }
+    }
 }
 
 /// <summary>

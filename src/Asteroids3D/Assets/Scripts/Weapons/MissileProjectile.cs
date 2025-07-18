@@ -13,7 +13,7 @@ public class MissileProjectile : ProjectileBase, IDamageable
     [Header("Explosion")]    
     [SerializeField] private float   explosionRadius  = 3f;
     [SerializeField] private float splashDamage = 5f;
-    [SerializeField] private GameObject explosionPrefab;
+    [SerializeField] private PooledVFX explosionPrefab; // pooled VFX prefab
     [SerializeField] private LayerMask damageLayerMask = -1; // Default to all layers, configured in inspector
 
     [Header("Motion")]
@@ -187,11 +187,8 @@ public class MissileProjectile : ProjectileBase, IDamageable
         // Spawn explosion VFX
         if (GameSettings.VfxEnabled && explosionPrefab)
         {
-            var pooled = explosionPrefab.GetComponent<PooledVFX>();
-            if (pooled)
-                SimplePool<PooledVFX>.Get(pooled, transform.position, Quaternion.identity);
-            else
-                Instantiate(explosionPrefab, transform.position, Quaternion.identity);
+            // Always use pooled VFX to avoid instantiation overhead
+            SimplePool<PooledVFX>.Get(explosionPrefab, transform.position, Quaternion.identity);
         }
 
         // AoE damage using non-allocating overlap sphere (Optimization #3)

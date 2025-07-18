@@ -6,7 +6,7 @@ public class ShipHealthVisuals : MonoBehaviour
 {
     [SerializeField] Renderer hull;           // ship mesh or sprite renderer
     [SerializeField] ParticleSystem smoke;    // looping smoke prefab
-    [SerializeField] ParticleSystem sparksPrefab; // burst prefab
+    [SerializeField] PooledVFX sparksPrefab; // burst prefab
     [SerializeField] ShipDamageHandler source;   // link to ship damage handler
     
     [Header("Damage Flash")]
@@ -111,7 +111,9 @@ public class ShipHealthVisuals : MonoBehaviour
     void SpawnSparks(float dmg, Vector3 hitPt)
     {
         if (!sparksPrefab || dmg <= 0f || !GameSettings.VfxEnabled) return;
-        Instantiate(sparksPrefab, hitPt, Quaternion.identity);
+
+        // Use pooled VFX to avoid instantiation overhead and hierarchy clutter
+        SimplePool<PooledVFX>.Get(sparksPrefab, hitPt, Quaternion.identity);
     }
 
     void TriggerFlash(float dmg, Vector3 _)

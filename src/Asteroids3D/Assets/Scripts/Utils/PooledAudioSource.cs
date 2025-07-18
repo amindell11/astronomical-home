@@ -9,18 +9,32 @@ using System.Collections;
 public class PooledAudioSource : MonoBehaviour
 {
     private AudioSource audioSource;
+
+    // Static prefab instance used by the pool – created once then reused
+    private static PooledAudioSource prefab;
     /// <summary>
     /// Play a clip at the specified position with volume, then return to pool
     /// </summary>
     public static void PlayClipAtPoint(AudioClip clip, Vector3 position, float volume = 1f)
     {
         if (clip == null) return;
-        
-        // Get a pooled AudioSource, creating new ones as needed
+
+        // Lazily create a single hidden prefab that will be cloned by the pool.
+        if (prefab == null)
+        {
+            prefab = CreateNewInstance();
+            prefab.gameObject.name = "PooledAudioSource_Prefab";
+
+            // Hide the prefab in hierarchy & keep across scenes
+            prefab.gameObject.SetActive(false);
+            Object.DontDestroyOnLoad(prefab.gameObject);
+        }
+
+        // Retrieve an instance from the pool (will instantiate the first time)
         PooledAudioSource pooledSource = SimplePool<PooledAudioSource>.Get(
-            CreateNewInstance(), position, Quaternion.identity);
-        
-        // Play the clip
+            prefab, position, Quaternion.identity);
+
+        // Play the requested clip
         pooledSource.PlayClip(clip, volume);
     }
     

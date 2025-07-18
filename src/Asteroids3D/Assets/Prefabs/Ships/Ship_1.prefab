@@ -132,7 +132,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   hull: {fileID: 8357437974923976824}
   smoke: {fileID: 1180387568437145565}
-  sparksPrefab: {fileID: 7311417397731671544, guid: 7f4473226fdfe5241a37d4e359857821,
+  sparksPrefab: {fileID: -532600014260631974, guid: 7f4473226fdfe5241a37d4e359857821,
     type: 3}
   source: {fileID: 0}
   flashColor: {r: 1, g: 0, b: 0, a: 1}
@@ -10235,7 +10235,7 @@ GameObject:
   - component: {fileID: 8268499170915412722}
   - component: {fileID: 1362924336975463083}
   - component: {fileID: 3456535400437168725}
-  m_Layer: 5
+  m_Layer: 10
   m_Name: ShieldRing
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -15262,7 +15262,7 @@ GameObject:
   - component: {fileID: 7628366985414171717}
   - component: {fileID: 628628324230272385}
   - component: {fileID: 6565058905238873752}
-  m_Layer: 5
+  m_Layer: 10
   m_Name: Shield
   m_TagString: Untagged
   m_Icon: {fileID: 0}
