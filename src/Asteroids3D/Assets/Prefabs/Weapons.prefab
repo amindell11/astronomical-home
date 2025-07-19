@@ -49,7 +49,7 @@ MonoBehaviour:
     type: 3}
   firePoint: {fileID: 0}
   fireRate: 0.2
-  fireSound: {fileID: 8300000, guid: d54f219e0c3bffe499e781b446873247, type: 3}
+  fireSound: {fileID: 8300000, guid: ce9ac23ec37ae644481ea0bec4d5fd6e, type: 3}
   fireVolume: 0.5
   maxHeat: 100
   heatPerShot: 20
@@ -72,7 +72,7 @@ MonoBehaviour:
     type: 3}
   firePoint: {fileID: 2312841303772852893}
   fireRate: 5
-  fireSound: {fileID: 8300000, guid: 1a1f06e02dfd772478ae4322312ed65b, type: 3}
+  fireSound: {fileID: 0}
   fireVolume: 1
   lockOnConeAngle: 30
   lockOnTime: 0.6

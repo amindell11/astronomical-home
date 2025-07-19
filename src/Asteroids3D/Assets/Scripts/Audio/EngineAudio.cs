@@ -2,68 +2,83 @@ using UnityEngine;
 using UnityEngine.Audio;
 
 /// <summary>
-/// Two-loop engine audio system that cross-fades between an IDLE and a FULL-THROTTLE clip.
-/// A child AudioSource is spawned for each loop so both can play simultaneously while
-/// volumes blend according to the ship's absolute thrust input (0-1).
+/// Engine audio system that plays separate loops for thrust and strafe movements.
+/// Thrust audio plays at reduced volume when in reverse.
+/// Audio only plays when the ship has valid commands and is actually moving.
+/// AudioSources should have their clips assigned directly in the Inspector.
 /// </summary>
 public sealed class EngineAudio : MonoBehaviour
 {
-    [Header("Loop Clips")]
-    [SerializeField] private AudioClip idleLoop;
-    [SerializeField] private AudioClip fullLoop;
+    [Header("Audio Sources")]
+    [SerializeField] private AudioSource thrustSource;
+    [SerializeField] private AudioSource strafeSource;
 
-    [Header("Cross-fade Mapping")]
-    [Tooltip("Curve mapping |thrust| (0–1) → weight of FULL loop (0-1). The IDLE loop weight is 1-fullWeight.")]
-    [SerializeField] private AnimationCurve thrustToFullWeight = AnimationCurve.Linear(0, 0, 1, 1);
+    [Header("Volume Settings")]
+    [SerializeField, Range(0f, 1f)] private float thrustVolume = 1f;
+    [SerializeField, Range(0f, 1f)] private float strafeVolume = 1f;
+    [SerializeField, Range(0f, 1f)] private float reverseVolumeMultiplier = 0.5f;
 
-    [Tooltip("Optional pitch modulation shared by both loops (0–1 → pitch)")]
-    [SerializeField] private AnimationCurve thrustToPitch = AnimationCurve.Linear(0, 1, 1, 1.3f);
-
-    [SerializeField, Range(0f, 1f)] private float masterVolume = 1f;
-
-    // Spawned sources
-    private AudioSource idleSource;
-    private AudioSource fullSource;
+    [Header("Pitch Modulation")]
+    [Tooltip("Optional pitch modulation based on input intensity (0–1 → pitch)")]
+    [SerializeField] private AnimationCurve inputToPitch = AnimationCurve.Linear(0, 1, 1, 1.3f);
 
     private Ship ship;
+    private bool audioInitialized = false;
 
     void Awake()
     {
         ship = GetComponentInParent<Ship>();
-        idleSource = CreateChildSource("IdleLoop", idleLoop);
-        fullSource = CreateChildSource("FullLoop", fullLoop);
     }
 
-    AudioSource CreateChildSource(string name, AudioClip clip)
+    void OnEnable()
     {
-        var go = new GameObject(name);
-        go.transform.SetParent(transform);
-        go.transform.localPosition = Vector3.zero;
-        var src = go.AddComponent<AudioSource>();
-        src.clip = clip;
-        src.loop = true;
-        src.playOnAwake = false;
-        src.spatialBlend = 1f; // 3-D positional
-        if (clip)
-            src.Play();
-        return src;
+        // Initialize audio sources but don't play yet
+        InitializeAudioSource(thrustSource);
+        InitializeAudioSource(strafeSource);
+        audioInitialized = true;
+    }
+
+    void InitializeAudioSource(AudioSource source)
+    {
+        if (source)
+        {
+            source.loop = true;
+            source.playOnAwake = false;
+            source.spatialBlend = 1f; // 3-D positional
+            source.volume = 0f; // Start silent
+            if (source.clip != null)
+                source.Play(); // Play but at zero volume
+        }
     }
 
     void Update()
     {
-        if (ship == null || idleSource == null || fullSource == null) return;
+        if (!audioInitialized || ship == null || thrustSource == null || strafeSource == null) 
+            return;
 
-        float thrust01 = Mathf.Abs(ship.CurrentCommand.Thrust); // 0-1 regardless of direction
-        float fullW = Mathf.Clamp01(thrustToFullWeight.Evaluate(thrust01));
-        float idleW = 1f - fullW;
+        float thrust = ship.CurrentCommand.Thrust;
+        float strafe = ship.CurrentCommand.Strafe;
 
-        // Volume cross-fade
-        idleSource.volume = idleW * masterVolume;
-        fullSource.volume = fullW * masterVolume;
+        // Calculate thrust volume (reduced for reverse)
+        float thrustIntensity = Mathf.Abs(thrust);
+        float finalThrustVolume = thrustIntensity * thrustVolume;
+        if (thrust < 0f) // Reverse thrust
+        {
+            finalThrustVolume *= reverseVolumeMultiplier;
+        }
 
-        // Optional pitch modulation (applied to BOTH loops so timbre stays consistent)
-        float pitch = Mathf.Clamp(thrustToPitch.Evaluate(thrust01), 0.1f, 3f);
-        idleSource.pitch = pitch;
-        fullSource.pitch = pitch;
+        // Calculate strafe volume
+        float strafeIntensity = Mathf.Abs(strafe);
+        float finalStrafeVolume = strafeIntensity * strafeVolume;
+
+        // Apply volumes
+        thrustSource.volume = finalThrustVolume;
+        strafeSource.volume = finalStrafeVolume;
+
+        // Apply pitch modulation based on combined movement intensity
+        float combinedIntensity = Mathf.Clamp01(thrustIntensity + strafeIntensity);
+        float pitch = Mathf.Clamp(inputToPitch.Evaluate(combinedIntensity), 0.1f, 3f);
+        thrustSource.pitch = pitch;
+        strafeSource.pitch = pitch;
     }
 } 

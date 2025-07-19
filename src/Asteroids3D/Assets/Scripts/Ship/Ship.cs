@@ -38,6 +38,7 @@ public class Ship : MonoBehaviour, ITargetable, IShooter
 
     /* ─────────── ITargetable Implementation ─────────── */
     public Transform TargetPoint => transform;
+    public bool HasValidCommand => hasValidCommand;
 
     /* ─────────── Lock-On Channel ─────────── */
     public LockChannel Lock { get; } = new LockChannel();
