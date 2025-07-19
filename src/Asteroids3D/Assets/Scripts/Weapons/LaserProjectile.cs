@@ -13,6 +13,12 @@ public class LaserProjectile : ProjectileBase
         new Keyframe(1f, 1f)       // Fully transparent at max distance
     );
 
+    [Header("Audio")]
+    [Tooltip("Randomized hit sounds played when the laser impacts a target")] 
+    [SerializeField] private AudioClip[] hitClips;
+    [Range(0f,1f)]
+    [SerializeField] private float hitVolume = 1f;
+
     private Renderer[] renderers;
     private Color[]    originalColors;
 
@@ -76,6 +82,22 @@ public class LaserProjectile : ProjectileBase
 
         // Now execute base logic (which may call ReturnToPool and reset colours)
         base.FixedUpdate();
+    }
+
+    protected override void OnHit(IDamageable other)
+    {
+        PlayHitSound();
+        base.OnHit(other);
+    }
+
+    void PlayHitSound()
+    {
+        if (hitClips == null || hitClips.Length == 0) return;
+
+        AudioClip clip = (hitClips.Length == 1) ? hitClips[0] : hitClips[Random.Range(0, hitClips.Length)];
+        if (!clip) return;
+
+        PooledAudioSource.PlayClipAtPoint(clip, transform.position, hitVolume);
     }
 
     /* ───────────────────────── pooling ───────────────────────── */

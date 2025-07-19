@@ -86,6 +86,15 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  hitClips:
+  - {fileID: 8300000, guid: 8a95be80cb8b23a49af698e854f34040, type: 3}
+  - {fileID: 8300000, guid: df6324045c168ba47b7e949b0558b755, type: 3}
+  - {fileID: 8300000, guid: e54810986cad9c04d9306be9ba86e0ea, type: 3}
+  - {fileID: 8300000, guid: 2e704dd44e7fd444492a8878a2fae6fe, type: 3}
+  - {fileID: 8300000, guid: 95d3b8c85913d26498542c1f93381680, type: 3}
+  - {fileID: 8300000, guid: 78276942be13656419eb567cea33c940, type: 3}
+  - {fileID: 8300000, guid: f49c7b540a035cb439932b895160f8d3, type: 3}
+  hitVolume: 0.916
 --- !u!54 &3791456385073129076
 Rigidbody:
   m_ObjectHideFlags: 0

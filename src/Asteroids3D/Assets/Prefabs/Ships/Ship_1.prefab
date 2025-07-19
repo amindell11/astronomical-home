@@ -41,7 +41,8 @@ AudioSource:
   m_GameObject: {fileID: 219075727536636779}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: 330411502340042520, guid: 4ed3698785d83114aa13f7dac441a859,
+    type: 2}
   m_audioClip: {fileID: 8300000, guid: 6a37cb3e567e4974bb50aaee326366d0, type: 3}
   m_Resource: {fileID: 8300000, guid: 6a37cb3e567e4974bb50aaee326366d0, type: 3}
   m_PlayOnAwake: 0
@@ -261,7 +262,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   hull: {fileID: 8357437974923976824}
   smoke: {fileID: 1180387568437145565}
-  sparksPrefab: {fileID: 7311417397731671544, guid: 7f4473226fdfe5241a37d4e359857821,
+  sparksPrefab: {fileID: -532600014260631974, guid: 7f4473226fdfe5241a37d4e359857821,
     type: 3}
   source: {fileID: 0}
   flashColor: {r: 1, g: 0, b: 0, a: 1}
@@ -559,8 +560,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   thrustSource: {fileID: 8797765293863491678}
   strafeSource: {fileID: 1367110173929591496}
-  thrustVolume: 1
-  strafeVolume: 1
+  thrustVolume: 0.648
+  strafeVolume: 0.534
   reverseVolumeMultiplier: 0.5
   inputToPitch:
     serializedVersion: 2
@@ -612,13 +613,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4144346170191044602}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0.7071068, w: 0.7071068}
-  m_LocalPosition: {x: -0.25, y: -0.339, z: 0.1}
+  m_LocalRotation: {x: 0, y: 0, z: -0.7071068, w: 0.7071068}
+  m_LocalPosition: {x: -0.25, y: -0.34199998, z: 0.1}
   m_LocalScale: {x: 0.56, y: 0.84, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6789276593053200670}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -90}
 --- !u!198 &6555796425484749239
 ParticleSystem:
   m_ObjectHideFlags: 0
@@ -1138,7 +1139,7 @@ ParticleSystem:
     startRotation:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 1.5707963
+      scalar: -1.5707963
       minScalar: 0
       maxCurve:
         serializedVersion: 2
@@ -10437,7 +10438,8 @@ AudioSource:
   m_GameObject: {fileID: 4839944568911364009}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: 330411502340042520, guid: 4ed3698785d83114aa13f7dac441a859,
+    type: 2}
   m_audioClip: {fileID: 8300000, guid: a6fa7cf75e4e01e428d7d71d4562e5c5, type: 3}
   m_Resource: {fileID: 8300000, guid: a6fa7cf75e4e01e428d7d71d4562e5c5, type: 3}
   m_PlayOnAwake: 0
@@ -15680,13 +15682,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7029871231819599707}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0.7071068, w: 0.7071068}
-  m_LocalPosition: {x: 0.25, y: -0.339, z: 0.1}
+  m_LocalRotation: {x: 0, y: 0, z: -0.7071068, w: 0.7071068}
+  m_LocalPosition: {x: 0.25, y: -0.342, z: 0.1}
   m_LocalScale: {x: 0.56, y: 0.84, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6789276593053200670}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -90}
 --- !u!198 &4499417962538899150
 ParticleSystem:
   m_ObjectHideFlags: 0
@@ -16206,7 +16208,7 @@ ParticleSystem:
     startRotation:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 1.5707963
+      scalar: -1.5707963
       minScalar: 0
       maxCurve:
         serializedVersion: 2
@@ -20648,7 +20650,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 3.855e-41, y: 2.524355e-29, z: 0, w: -0.00000011590606}
+  m_BoundingSphereOverride: {x: 9.754e-42, y: 2.524355e-29, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
