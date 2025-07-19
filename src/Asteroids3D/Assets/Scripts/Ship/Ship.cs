@@ -39,7 +39,8 @@ public class Ship : MonoBehaviour, ITargetable, IShooter
     /* ─────────── ITargetable Implementation ─────────── */
     public Transform TargetPoint => transform;
 
-    public LockOnIndicator Indicator { get; private set; }
+    /* ─────────── Lock-On Channel ─────────── */
+    public LockChannel Lock { get; } = new LockChannel();
 
     /* ─────────── IShooter Implementation ─────────── */
     public Vector3 Velocity => movement != null ? movement.Kinematics.WorldVel : Vector3.zero;
@@ -73,6 +74,7 @@ public class Ship : MonoBehaviour, ITargetable, IShooter
         damageHandler.OnHealthChanged += (cur, prev, max) => OnHealthChanged?.Invoke(cur, prev, max);
         damageHandler.OnShieldChanged += (cur, prev, max) => OnShieldChanged?.Invoke(cur, prev, max);
         damageHandler.OnDeath += (victim, killer) => OnDeath?.Invoke(victim, killer);
+        damageHandler.OnDeath += (victim, killer) => HandleShipDeath();
         
         if (!settings)
         {
@@ -84,7 +86,6 @@ public class Ship : MonoBehaviour, ITargetable, IShooter
         movement?.ApplySettings(settings);
         damageHandler?.ApplySettings(settings);
 
-        Indicator = GetComponentInChildren<LockOnIndicator>(true);
         foreach (var source in commandSources)
         {
             source?.InitializeCommander(this);
@@ -110,8 +111,12 @@ public class Ship : MonoBehaviour, ITargetable, IShooter
     internal static void BroadcastShipDamaged(Ship victim, Ship attacker, float damage)
     {
         OnGlobalShipDamaged?.Invoke(victim, attacker, damage);
+    }   
+    void HandleShipDeath()
+    {
+        Lock.Released?.Invoke();
+        missileLauncher.CancelLock();
     }
-
     /// <summary>
     /// Resets the ship to its initial state.
     /// </summary>

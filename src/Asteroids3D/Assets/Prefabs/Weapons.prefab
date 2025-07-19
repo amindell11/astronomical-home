@@ -73,7 +73,7 @@ MonoBehaviour:
   firePoint: {fileID: 2312841303772852893}
   fireRate: 5
   fireSound: {fileID: 8300000, guid: 1a1f06e02dfd772478ae4322312ed65b, type: 3}
-  fireVolume: 0.5
+  fireVolume: 1
   lockOnConeAngle: 30
   lockOnTime: 0.6
   lockExpiry: 3

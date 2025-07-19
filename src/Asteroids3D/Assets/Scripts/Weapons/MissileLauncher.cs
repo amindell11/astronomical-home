@@ -19,6 +19,11 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
     [SerializeField] private int maxAmmo = 4;
     private int currentAmmo;
 
+    /// <summary>
+    /// Raised whenever <see cref="AmmoCount"/> changes. Passes the new ammo value.
+    /// </summary>
+    public event System.Action<int> AmmoCountChanged;
+
     public int AmmoCount => currentAmmo;
     public int MaxAmmo => maxAmmo;
 
@@ -34,6 +39,9 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
     // Optimization: Reuse overlap sphere buffer to avoid allocations
     // private static readonly Collider[] overlapBuffer = new Collider[32];
 
+    // ───────────────────────── Lock-On Service ─────────────────────────
+    // Events are now routed through LockOnService.LockChannel per target.
+
     /* ───────────────────────── Public API ───────────────────────── */
     /// <summary>True if a target is currently locked.</summary>
     public bool IsLocked => state == LockState.Locked;
@@ -48,6 +56,9 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
     public void ReplenishAmmo()
     {
         currentAmmo = maxAmmo;
+
+        // Notify listeners that ammo has been replenished
+        AmmoCountChanged?.Invoke(currentAmmo);
     }
 
     /// <summary>Begin lock-on sequence towards the given target (if valid).</summary>
@@ -75,6 +86,7 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
     /// <summary>Abort any ongoing or acquired lock.</summary>
     public void CancelLock()
     {
+        RLog.Weapon("CancelLock");
         ResetLock();
         state         = LockState.Idle;
     }
@@ -120,10 +132,8 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
         }
 
         // Update indicator position & progress
-        if (currentTarget.Indicator != null)
-        {
-            currentTarget.Indicator.UpdateProgress(LockProgress);
-        }
+        // Notify listeners of lock progress via target notifier
+        currentTarget?.Lock.Progress?.Invoke(LockProgress);
 
         lockTimer += Time.deltaTime;
         if (lockTimer >= lockOnTime)
@@ -131,11 +141,8 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
             state = LockState.Locked;
             lockAcquiredTime = Time.time;
 
-            // Notify indicator of complete lock
-            if (currentTarget.Indicator != null)
-            {
-                currentTarget.Indicator.OnLockComplete();
-            }
+            // Notify listeners that lock is fully acquired
+            currentTarget?.Lock.Acquired?.Invoke();
         }
     }
 
@@ -206,11 +213,8 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
     /// <summary>Resets all locking-related state variables without changing the main FSM state.</summary>
     void ResetLock()
     {
-        // Hide indicator on previous target (if any)
-        if (currentTarget?.Indicator != null)
-        {
-            currentTarget.Indicator.Hide();
-        }
+        // Notify listeners that the lock has been released/cancelled
+        currentTarget?.Lock.Released?.Invoke();
 
         currentTarget = null;
         lockTimer     = 0f;
@@ -239,6 +243,9 @@ public class MissileLauncher : LauncherBase<MissileProjectile>
         }
         
         currentAmmo--;
+
+        // Notify listeners that ammo count changed after firing
+        AmmoCountChanged?.Invoke(currentAmmo);
 
         if (wasLocked)
         {
