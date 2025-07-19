@@ -19,6 +19,7 @@ public abstract class LauncherBase<TProj> : WeaponComponent where TProj : Projec
     [Header("Audio")]
     [SerializeField] private AudioClip fireSound;
     [SerializeField, Range(0f,1f)] private float fireVolume = 0.5f;
+    [SerializeField] protected AudioSource audioSource;
 
     protected float nextFireTime;
     protected IShooter shooter;
@@ -28,6 +29,9 @@ public abstract class LauncherBase<TProj> : WeaponComponent where TProj : Projec
         shooter = GetComponentInParent<IShooter>();
         RLog.Weapon($"BaseWeapon Shooter: {shooter}");
         if (!firePoint) firePoint = transform;
+        
+        // Get attached AudioSource if not assigned
+        if (!audioSource) audioSource = GetComponent<AudioSource>();
     }
 
     // `CanFire` now checks the fire-rate cooldown. Subclasses should call base.CanFire().
@@ -58,27 +62,12 @@ public abstract class LauncherBase<TProj> : WeaponComponent where TProj : Projec
     }
 
     /// <summary>
-    /// Plays the firing sound using the shooter's AudioSource if available,
-    /// otherwise falls back to a 3D clip at the fire point.
+    /// Plays the firing sound using the attached AudioSource component.
     /// </summary>
     protected virtual void PlayFireSound()
     {
-        if (!fireSound) return;
+        if (!fireSound || !audioSource) return;
 
-        AudioSource src = null;
-        if (shooter != null)
-        {
-            // Try to find an AudioSource on the shooter or its children
-            src = shooter.gameObject.GetComponentInChildren<AudioSource>();
-        }
-
-        if (src)
-        {
-            src.PlayOneShot(fireSound, fireVolume);
-        }
-        else
-        {
-            PooledAudioSource.PlayClipAtPoint(fireSound, firePoint.position, fireVolume);
-        }
+        audioSource.PlayOneShot(fireSound, fireVolume);
     }
 } 

@@ -93,8 +93,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 2e704dd44e7fd444492a8878a2fae6fe, type: 3}
   - {fileID: 8300000, guid: 95d3b8c85913d26498542c1f93381680, type: 3}
   - {fileID: 8300000, guid: 78276942be13656419eb567cea33c940, type: 3}
-  - {fileID: 8300000, guid: f49c7b540a035cb439932b895160f8d3, type: 3}
-  hitVolume: 0.916
+  hitVolume: 0.817
 --- !u!54 &3791456385073129076
 Rigidbody:
   m_ObjectHideFlags: 0

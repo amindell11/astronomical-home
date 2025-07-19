@@ -145,6 +145,7 @@ GameObject:
   - component: {fileID: 8323755265108850685}
   - component: {fileID: 4368679400082138271}
   - component: {fileID: 5082111559182030622}
+  - component: {fileID: 4924019626341795963}
   m_Layer: 7
   m_Name: Ship_1
   m_TagString: Ship
@@ -269,8 +270,6 @@ MonoBehaviour:
   flashTime: 0.15
   explosionPrefab: {fileID: 3624727767247666335, guid: b87929575dffb6c49b64ff8ec3faa5d7,
     type: 3}
-  explosionSound: {fileID: 8300000, guid: df2d261e3ab4dcb4ea63f13022237a7d, type: 3}
-  explosionVolume: 0.7
 --- !u!82 &5082111559182030622
 AudioSource:
   m_ObjectHideFlags: 0
@@ -368,6 +367,26 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &4924019626341795963
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 579888702181409527}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e629c0ee0feac32469009a6a0e7b62f9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shieldHitClip: {fileID: 8300000, guid: de5fee5ab6bd25a40bec6be190b31253, type: 3}
+  shieldDepletedClip: {fileID: 8300000, guid: 55612cbf39d2f044eb1d170e2f02b6fe, type: 3}
+  hullHitClip: {fileID: 0}
+  deathClip: {fileID: 8300000, guid: df2d261e3ab4dcb4ea63f13022237a7d, type: 3}
+  shieldVolume: 0.8
+  shieldDepletedVolume: 0.898
+  hullVolume: 1
+  deathVolume: 1
 --- !u!1 &2915261707296390090
 GameObject:
   m_ObjectHideFlags: 0

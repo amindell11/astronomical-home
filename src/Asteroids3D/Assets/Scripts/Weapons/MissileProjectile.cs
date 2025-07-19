@@ -71,6 +71,15 @@ public class MissileProjectile : ProjectileBase, IDamageable
     {
         RLog.Weapon($"MissileProjectile OnEnable at position: {transform.position}, rotation: {transform.rotation}");
         base.OnEnable();
+        
+        // Reset AudioSource state when retrieved from pool
+        if (audioSrc)
+        {
+            audioSrc.Stop();
+            audioSrc.clip = null;
+            audioSrc.loop = false;
+            audioSrc.volume = 1f;
+        }
         // Note: Shooter-dependent initialization moved to Initialize() method
     }
 
@@ -285,9 +294,18 @@ public class MissileProjectile : ProjectileBase, IDamageable
             rb.linearVelocity  = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
         }
-        SimplePool<MissileProjectile>.Release(this);
+        
+        // Clean up audio BEFORE deactivating the GameObject
         if (engineCo != null) { StopCoroutine(engineCo); engineCo = null; }
-        if (audioSrc) audioSrc.Stop();
+        if (audioSrc) 
+        {
+            audioSrc.Stop();
+            audioSrc.clip = null;  // Clear any clip reference
+            audioSrc.loop = false; // Reset loop state
+            audioSrc.volume = 1f;  // Reset volume
+        }
+        
+        SimplePool<MissileProjectile>.Release(this);
     }
 
 #if UNITY_EDITOR

@@ -16,8 +16,6 @@ public class ShipHealthVisuals : MonoBehaviour
     // ----- Explosion FX Config (now serialized) -----
     [Header("Death VFX")]
     [SerializeField] GameObject explosionPrefab;
-    [SerializeField] AudioClip explosionSound;
-    [Range(0f,1f)] [SerializeField] float explosionVolume = 0.7f;
 
     MaterialPropertyBlock block;
     static readonly int _Color = Shader.PropertyToID("_BaseColor"); // URP Lit shader
@@ -76,10 +74,6 @@ public class ShipHealthVisuals : MonoBehaviour
                 SimplePool<PooledVFX>.Get(pooled, transform.position, Quaternion.identity);
             else
                 Instantiate(explosionPrefab, transform.position, Quaternion.identity);
-        }
-        if (explosionSound)
-        {
-            PooledAudioSource.PlayClipAtPoint(explosionSound, transform.position, explosionVolume);
         }
     }
 

@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 
 /// <summary>
 /// Concrete weapon that fires pooled <see cref="LaserProjectile"/> instances.
@@ -17,6 +18,10 @@ public class LaserGun : LauncherBase<LaserProjectile>
     private float currentHeat = 0f;
     private float lastShotTime = -100f; // Initialize to allow immediate firing
 
+    // Events
+    public event Action OnOverheat;
+    public event Action OnCooldownStart;
+
     public float CurrentHeat => currentHeat;
     public float MaxHeat => maxHeat;
     public float HeatPerShot => heatPerShot;
@@ -32,13 +37,20 @@ public class LaserGun : LauncherBase<LaserProjectile>
     {
         if (currentHeat <= 0) return;
 
-        bool wasOverheated = currentHeat >= maxHeat;
-        float delay = wasOverheated ? overheatPenaltyTime : coolDownDelay;
+        bool wasOverheatedBefore = currentHeat >= maxHeat;
+        float delay = wasOverheatedBefore ? overheatPenaltyTime : coolDownDelay;
         
         if (Time.time > lastShotTime + delay)
         {
             currentHeat -= coolingRate * Time.deltaTime;
             currentHeat = Mathf.Max(0, currentHeat);
+            
+            // Check for cooldown start event (transitioning from overheated to cooling)
+            bool isOverheatedNow = currentHeat >= maxHeat;
+            if (wasOverheatedBefore && !isOverheatedNow)
+            {
+                OnCooldownStart?.Invoke();
+            }
         }
     }
 
@@ -54,9 +66,17 @@ public class LaserGun : LauncherBase<LaserProjectile>
         ProjectileBase proj = base.Fire();
         if (proj != null)
         {
+            bool wasOverheatedBefore = currentHeat >= maxHeat;
             currentHeat += heatPerShot;
             lastShotTime = Time.time;
             currentHeat = Mathf.Min(currentHeat, maxHeat); // Clamp heat to max
+            
+            // Check for overheat event (transitioning to overheated state)
+            bool isOverheatedNow = currentHeat >= maxHeat;
+            if (isOverheatedNow && !wasOverheatedBefore)
+            {
+                OnOverheat?.Invoke();
+            }
         }
         return proj;
     }

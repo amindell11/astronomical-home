@@ -2,13 +2,17 @@ using UnityEngine;
 
 /// Plays audio cues driven by MissileLauncher‘s LockChannel events.
 [RequireComponent(typeof(AudioSource))]
-public class LockOnAudioFeedback : MonoBehaviour
+public class UILockOnAudio : MonoBehaviour
 {
     [Header("Clips")]
     [Tooltip("Looping sound that plays while the launcher is locking on a target.")]
     [SerializeField] private AudioClip lockingLoopClip;
     [Tooltip("One-shot sound that plays when the launcher has fully locked on a target.")]
     [SerializeField] private AudioClip lockedClip;
+
+    [Header("Settings")]
+    [Tooltip("Volume for lock-on sound effects.")]
+    [SerializeField, Range(0f, 1f)] private float volume = 0.7f;
 
     private AudioSource source;
     private MissileLauncher launcher;
@@ -69,6 +73,7 @@ public class LockOnAudioFeedback : MonoBehaviour
 
         source.loop = true;
         source.clip = lockingLoopClip;
+        source.volume = volume;
         if (!source.isPlaying)
         {
             source.Play();
@@ -81,7 +86,7 @@ public class LockOnAudioFeedback : MonoBehaviour
         StopAudio();
         if (lockedClip != null)
         {
-            source.PlayOneShot(lockedClip);
+            source.PlayOneShot(lockedClip, volume);
         }
     }
 

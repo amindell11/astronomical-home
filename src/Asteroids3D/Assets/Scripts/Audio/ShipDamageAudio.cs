@@ -10,11 +10,13 @@ public sealed class ShipDamageAudio : MonoBehaviour
 {
     [Header("Clips")]
     [SerializeField] private AudioClip shieldHitClip;
+    [SerializeField] private AudioClip shieldDepletedClip;
     [SerializeField] private AudioClip hullHitClip;
     [SerializeField] private AudioClip deathClip;
 
     [Header("Volumes")]
     [SerializeField, Range(0f,1f)] private float shieldVolume = 0.8f;
+    [SerializeField, Range(0f,1f)] private float shieldDepletedVolume = 0.9f;
     [SerializeField, Range(0f,1f)] private float hullVolume   = 1f;
     [SerializeField, Range(0f,1f)] private float deathVolume  = 1f;
 
@@ -37,6 +39,7 @@ public sealed class ShipDamageAudio : MonoBehaviour
         if (damageHandler != null)
         {
             damageHandler.OnShieldDamaged += HandleShieldHit;
+            damageHandler.OnShieldChanged += HandleShieldChanged;
             damageHandler.OnDamaged       += HandleHullHit;
             damageHandler.OnDeath         += HandleDeath;
         }
@@ -47,6 +50,7 @@ public sealed class ShipDamageAudio : MonoBehaviour
         if (damageHandler != null)
         {
             damageHandler.OnShieldDamaged -= HandleShieldHit;
+            damageHandler.OnShieldChanged -= HandleShieldChanged;
             damageHandler.OnDamaged       -= HandleHullHit;
             damageHandler.OnDeath         -= HandleDeath;
         }
@@ -56,6 +60,16 @@ public sealed class ShipDamageAudio : MonoBehaviour
     {
         if (shieldHitClip)
             source.PlayOneShot(shieldHitClip, shieldVolume);
+    }
+
+    void HandleShieldChanged(float current, float previous, float max)
+    {
+        // Check if shields just got depleted (went from > 0 to 0)
+        if (previous > 0f && current <= 0f)
+        {
+            if (shieldDepletedClip)
+                source.PlayOneShot(shieldDepletedClip, shieldDepletedVolume);
+        }
     }
 
     void HandleHullHit(float dmg, Vector3 _)
