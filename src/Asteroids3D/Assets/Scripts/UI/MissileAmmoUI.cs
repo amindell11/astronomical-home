@@ -46,6 +46,9 @@ public sealed class MissileAmmoUI : MonoBehaviour
 
     private CanvasGroup canvasGroup;
 
+    // Cache delegate to avoid allocations
+    private System.Action<int> ammoChangedHandler;
+
     void Awake()
     {
         canvasGroup = GetComponent<CanvasGroup>();
@@ -53,7 +56,7 @@ public sealed class MissileAmmoUI : MonoBehaviour
 
         if (iconContainer == null) iconContainer = transform;
 
-        RebuildIcons();
+        // Initial rebuild will occur in Start once we have a launcher reference
     }
     void Start()
     {
@@ -62,22 +65,57 @@ public sealed class MissileAmmoUI : MonoBehaviour
             // Fallback: grab first launcher in scene (useful when dropped into HUD prefab).
             launcher = GameObject.FindGameObjectWithTag(TagNames.Player).GetComponentInChildren<MissileLauncher>();
         }
+
+        if (launcher != null)
+        {
+            // Build icons based on launcher's max ammo now that we have the reference
+            RebuildIcons();
+
+            // Prepare cached handler & subscribe
+            ammoChangedHandler = OnAmmoChanged;
+            launcher.AmmoCountChanged += ammoChangedHandler;
+
+            // Initialize UI with the starting ammo value
+            UpdateAmmoIcons(launcher.AmmoCount);
+        }
+    }
+
+    void OnDisable()
+    {
+        if (launcher != null && ammoChangedHandler != null)
+        {
+            launcher.AmmoCountChanged -= ammoChangedHandler;
+        }
     }
 
     void Update()
     {
-        if (launcher == null) return;
+        if (launcher == null || cooldownSpinner == null) return;
 
-        int ammo = launcher.AmmoCount;
-        int max  = launcher.MaxAmmo;
-
-        // Rebuild icons if max ammo changed (e.g., via upgrades)
-        if (icons.Count != launcher.MaxAmmo)
+        bool onCooldown = launcher.State == MissileLauncher.LockState.Cooldown;
+        cooldownSpinner.enabled = onCooldown;
+        if (onCooldown)
         {
-            RebuildIcons();
+            // Simple rotation animation
+            cooldownSpinner.transform.Rotate(0f, 0f, -360f * Time.unscaledDeltaTime);
         }
+    }
 
-        // Update missile icons
+    // ───────────────────────── Event Callbacks ─────────────────────────
+
+    void OnAmmoChanged(int newAmmo)
+    {
+        UpdateAmmoIcons(newAmmo);
+    }
+
+    // ───────────────────────── Helpers ─────────────────────────
+
+    void UpdateAmmoIcons(int ammo)
+    {
+        if (icons == null || icons.Count == 0) return;
+
+        int max = launcher.MaxAmmo;
+
         for (int i = 0; i < icons.Count; i++)
         {
             var img = icons[i];
@@ -99,18 +137,6 @@ public sealed class MissileAmmoUI : MonoBehaviour
             else
             {
                 img.color = hasAmmo ? filledColor : emptyColor;
-            }
-        }
-
-        // Cooldown spinner
-        if (cooldownSpinner)
-        {
-            bool onCooldown = launcher.State == MissileLauncher.LockState.Cooldown;
-            cooldownSpinner.enabled = onCooldown;
-            if (onCooldown)
-            {
-                // Simple rotation animation
-                cooldownSpinner.transform.Rotate(0f, 0f, -360f * Time.unscaledDeltaTime);
             }
         }
     }

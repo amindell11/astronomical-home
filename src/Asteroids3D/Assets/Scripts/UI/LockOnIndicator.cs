@@ -14,6 +14,7 @@ public sealed class LockOnIndicator : MonoBehaviour
     [SerializeField] private float verticalOffset = -5f;
 
     private CanvasGroup canvasGroup;
+    private ITargetable targetable;
 
     void Awake()
     {
@@ -23,6 +24,44 @@ public sealed class LockOnIndicator : MonoBehaviour
             animator = GetComponentInChildren<Animator>();
         }
         Hide(); // start invisible
+    }
+
+    void OnEnable()
+    {
+        targetable = GetComponentInParent<ITargetable>();
+
+        if (targetable != null)
+        {
+            targetable.Lock.Progress += HandleLockProgress;
+            targetable.Lock.Acquired += HandleLockAcquired;
+            targetable.Lock.Released += HandleLockReleased;
+        }
+    }
+
+    void OnDisable()
+    {
+        if (targetable != null)
+        {
+            targetable.Lock.Progress -= HandleLockProgress;
+            targetable.Lock.Acquired -= HandleLockAcquired;
+            targetable.Lock.Released -= HandleLockReleased;
+            targetable = null;
+        }
+    }
+
+    private void HandleLockProgress(float progress)
+    {
+        UpdateProgress(progress);
+    }
+
+    private void HandleLockAcquired()
+    {
+        OnLockComplete();
+    }
+
+    private void HandleLockReleased()
+    {
+        Hide();
     }
 
     /// <summary>Animate progress while lock is building (0 → 1).</summary>

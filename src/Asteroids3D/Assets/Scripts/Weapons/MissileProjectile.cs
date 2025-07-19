@@ -1,9 +1,11 @@
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 
 /// <summary>
 /// Homing missile projectile that steers towards a target and explodes with AoE damage on impact.
 /// </summary>
+[RequireComponent(typeof(AudioSource))]
 public class MissileProjectile : ProjectileBase, IDamageable
 {
     [Header("Missile Homing")]
@@ -26,6 +28,21 @@ public class MissileProjectile : ProjectileBase, IDamageable
     [Tooltip("Force multiplier applied to the target on impact.")]
     [SerializeField] private float impactForceMultiplier = 10f;
 
+    [Header("Audio")]
+    [SerializeField] private AudioClip launchClip;
+    [SerializeField] private AudioClip engineLoopClip;
+    [SerializeField] private AudioClip detonationClip;
+    [Tooltip("Delay before the engine loop starts playing (seconds)")]
+    [SerializeField] private float engineStartDelay = 0.15f;
+    [Tooltip("Duration for engine loop volume to fade in (seconds)")]
+    [SerializeField] private float engineFadeInTime = 0.25f;
+    [Range(0f,1f)] [SerializeField] private float launchVolume     = 1f;
+    [Range(0f,1f)] [SerializeField] private float engineVolume     = 0.7f;
+    [Range(0f,1f)] [SerializeField] private float detonationVolume = 1f;
+
+    private AudioSource audioSrc;
+    private Coroutine engineCo;
+
     // Assigned by launcher
     private Transform target;
     public void SetTarget(Transform tgt) => target = tgt;
@@ -39,6 +56,13 @@ public class MissileProjectile : ProjectileBase, IDamageable
         if (damageLayerMask == -1) // If not configured in inspector, set default
         {
             damageLayerMask = LayerIds.Mask(LayerIds.Ship, LayerIds.Asteroid);
+        }
+        audioSrc = GetComponent<AudioSource>();
+        if (audioSrc)
+        {
+            audioSrc.playOnAwake  = false;
+            audioSrc.loop         = false;
+            audioSrc.spatialBlend = 1f;
         }
     }
 
@@ -70,6 +94,36 @@ public class MissileProjectile : ProjectileBase, IDamageable
         {
             RLog.WeaponError("MissileProjectile: No Rigidbody found!");
         }
+        // ───── Audio: play launch one-shot and schedule engine loop ─────
+        if (audioSrc && launchClip)
+        {
+            audioSrc.Stop();
+            audioSrc.PlayOneShot(launchClip, launchVolume);
+        }
+        if (engineCo != null) StopCoroutine(engineCo);
+        engineCo = StartCoroutine(StartEngineLoop());
+    }
+
+    IEnumerator StartEngineLoop()
+    {
+        if (engineLoopClip == null || audioSrc == null) yield break;
+        yield return new WaitForSeconds(engineStartDelay);
+        audioSrc.clip   = engineLoopClip;
+        audioSrc.volume = 0f;
+        audioSrc.loop   = true;
+        audioSrc.Play();
+
+        // Fade volume up to target over engineFadeInTime seconds
+        if (engineFadeInTime > 0f)
+        {
+            for (float t = 0f; t < engineFadeInTime; t += Time.deltaTime)
+            {
+                float k = t / engineFadeInTime;
+                audioSrc.volume = Mathf.Lerp(0f, engineVolume, k);
+                yield return null;
+            }
+        }
+        audioSrc.volume = engineVolume;
     }
     
 
@@ -213,6 +267,10 @@ public class MissileProjectile : ProjectileBase, IDamageable
         }
 
         ReturnToPool();
+        // Audio – detonation one-shot at point of impact before returning to pool
+        if (detonationClip)
+            PooledAudioSource.PlayClipAtPoint(detonationClip, transform.position, detonationVolume);
+        if (audioSrc) audioSrc.Stop();
     }
 
     /* ───────────────────────── pooling ───────────────────────── */
@@ -228,6 +286,8 @@ public class MissileProjectile : ProjectileBase, IDamageable
             rb.angularVelocity = Vector3.zero;
         }
         SimplePool<MissileProjectile>.Release(this);
+        if (engineCo != null) { StopCoroutine(engineCo); engineCo = null; }
+        if (audioSrc) audioSrc.Stop();
     }
 
 #if UNITY_EDITOR
