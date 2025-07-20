@@ -34,18 +34,11 @@ namespace ShipControl.AI
 
         public override float ComputeUtility(AIContext ctx)
         {
-            float score = 0.1f; // Base minimal score
-            
-            // Increase if no enemies nearby
-            if (ctx.NearbyEnemyCount == 0)
-                score += 0.3f;
-                
-            // Increased desire to be idle at low health/shield (defensive posture).
-            // This is a "fear" response, so we use the weakest link (min health/shield).
-            float healthFactor = Mathf.Min(ctx.HealthPct, ctx.ShieldPct);
-            score += AIUtilityCurves.FearCurve(healthFactor, 0.3f); // Max bonus of 0.3 when health/shield is zero.
-                
-            return score;
+            if(ctx.InCombat)
+            {
+                return 0f;
+            }
+            return 1;
         }
         
         public override void OnDrawGizmos(AIContext ctx)

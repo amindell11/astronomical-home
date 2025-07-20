@@ -101,7 +101,7 @@ PrefabInstance:
     - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
         type: 3}
       propertyPath: utilityThreshold
-      value: 0.1
+      value: 0.3
       objectReference: {fileID: 0}
     - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
         type: 3}
@@ -112,6 +112,11 @@ PrefabInstance:
         type: 3}
       propertyPath: showCurrentStateGizmos
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
+        type: 3}
+      propertyPath: stateWeights.idleWeight
+      value: 0.478
       objectReference: {fileID: 0}
     - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
         type: 3}
@@ -136,12 +141,12 @@ PrefabInstance:
     - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
         type: 3}
       propertyPath: stateWeights.attackWeight
-      value: 0.484
+      value: 0.653
       objectReference: {fileID: 0}
     - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
         type: 3}
       propertyPath: stateWeights.jinkEvadeWeight
-      value: 0.548
+      value: 0.685
       objectReference: {fileID: 0}
     - target: {fileID: 6525159657316276413, guid: 5d39b99f95c4db04ebd565a759e5dc03,
         type: 3}

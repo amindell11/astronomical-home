@@ -76,6 +76,11 @@ public class AIContext : MonoBehaviour
     /// </summary>
     public float SpeedPct => ship?.CurrentState.Kinematics.Speed / (ship?.settings?.maxSpeed ?? 1f) ?? 0f;
     
+    /// <summary>
+    /// Current 2D forward direction of the ship
+    /// </summary>
+    public Vector2 SelfForward => ship?.CurrentState.Kinematics.Forward ?? Vector2.up;
+    
     // ===== Ship Status =====
     
     /// <summary>
@@ -104,7 +109,7 @@ public class AIContext : MonoBehaviour
     public MissileLauncher.LockState MissileState => ship?.CurrentState.MissileState ?? MissileLauncher.LockState.Idle;
     
     // ===== Enemy Information =====
-    
+    public bool InCombat => Enemy != null && Enemy.gameObject.activeInHierarchy;
     /// <summary>
     /// Current enemy ship
     /// </summary>
@@ -166,6 +171,22 @@ public class AIContext : MonoBehaviour
             Vector2 toSelf = SelfPosition - EnemyPos;
             if (toSelf.sqrMagnitude < 0.01f) return 0f;
             return Vector2.Angle(enemyForward, toSelf);
+        }
+    }
+    
+    /// <summary>
+    /// Angle from our forward direction to the enemy (deg).<br/>
+    /// 0°  → we are pointing directly at the enemy.<br/>
+    /// 180° → we are facing directly away from the enemy.
+    /// </summary>
+    public float SelfAngleToEnemy
+    {
+        get
+        {
+            if (Enemy == null) return 180f;
+            Vector2 toEnemy = VectorToEnemy;
+            if (toEnemy.sqrMagnitude < 0.01f) return 0f;
+            return Vector2.Angle(SelfForward, toEnemy);
         }
     }
     

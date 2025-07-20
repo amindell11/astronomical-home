@@ -183,7 +183,7 @@ Rigidbody:
   m_GameObject: {fileID: 579888702181409527}
   serializedVersion: 5
   m_Mass: 215
-  m_LinearDamping: 0.0015
+  m_LinearDamping: 0.015
   m_AngularDamping: 0.01
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
@@ -379,7 +379,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e629c0ee0feac32469009a6a0e7b62f9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  shieldHitClip: {fileID: 8300000, guid: de5fee5ab6bd25a40bec6be190b31253, type: 3}
+  shieldHitClip: {fileID: 0}
   shieldDepletedClip: {fileID: 8300000, guid: 55612cbf39d2f044eb1d170e2f02b6fe, type: 3}
   hullHitClip: {fileID: 0}
   deathClip: {fileID: 8300000, guid: df2d261e3ab4dcb4ea63f13022237a7d, type: 3}

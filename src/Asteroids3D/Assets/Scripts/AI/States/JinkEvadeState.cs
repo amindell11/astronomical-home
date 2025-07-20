@@ -12,7 +12,7 @@ namespace ShipControl.AI
         /* ── Tunables ─────────────────────────────────────────────── */
         private readonly float fleeDistance       = 40f;   // forward component away from enemy
         private readonly float sideStepDistance   = 12f;   // lateral jink amplitude
-        private readonly float jinkInterval       = 0.75f; // seconds between direction flips
+        private readonly float jinkInterval       = 1.2f; // seconds between direction flips
         private readonly float missileAmpFactor   = 1.5f;  // multiply amplitude when missile threat
 
         /* ── Internals ────────────────────────────────────────────── */
@@ -87,6 +87,23 @@ namespace ShipControl.AI
                 score += Mathf.Clamp(closing * 0.02f, 0f, 0.15f);
                 float facingFactor = Mathf.Cos(ctx.EnemyAngleToSelf * Mathf.Deg2Rad); // 1 when facing us
                 score += Mathf.Clamp01(facingFactor) * 0.1f;
+                
+                // Consider our heading relative to enemy
+                // If we're pointing away from enemy (>90°), increase priority for jinking
+                // If we're pointing at enemy (<90°), reduce priority (other behaviors better)
+                float ourAngleToEnemy = ctx.SelfAngleToEnemy;
+                if (ourAngleToEnemy > 90f)
+                {
+                    // Already pointing away - jinking is more valuable
+                    float awayFactor = (ourAngleToEnemy - 90f) / 90f; // 0 to 1 as angle goes from 90° to 180°
+                    score += awayFactor * 0.15f;
+                }
+                else
+                {
+                    // Pointing toward enemy - reduce jink priority
+                    float towardFactor = (90f - ourAngleToEnemy) / 90f; // 1 to 0 as angle goes from 0° to 90°
+                    score -= towardFactor * 0.1f;
+                }
             }
 
             // Penalise if no threat detected at all

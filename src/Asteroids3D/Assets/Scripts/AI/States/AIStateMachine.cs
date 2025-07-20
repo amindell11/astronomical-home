@@ -127,7 +127,7 @@ namespace ShipControl.AI
         /// <summary>
         /// Update the state machine, evaluating utilities and transitioning if needed
         /// </summary>
-        public void Update(AIContext context, float deltaTime)
+        public void Tick(AIContext context, float deltaTime)
         {
             this.aiContext = context;
             if (states.Count == 0) return;

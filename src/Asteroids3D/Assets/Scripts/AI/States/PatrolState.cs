@@ -47,11 +47,8 @@ namespace ShipControl.AI
 
         public override float ComputeUtility(AIContext ctx)
         {
-            bool enemyExists = ctx.Enemy != null;
-            bool enemyActiveInHierarchy = enemyExists && ctx.Enemy.gameObject.activeInHierarchy;
-            
             // If no enemy exists or enemy is inactive, patrol utility should be high
-            if (!enemyExists || !enemyActiveInHierarchy)
+            if (!ctx.InCombat)
             {
                 return 1f;
             }

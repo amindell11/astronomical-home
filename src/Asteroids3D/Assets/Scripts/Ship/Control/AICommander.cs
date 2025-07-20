@@ -73,7 +73,7 @@ public class AICommander : MonoBehaviour, IShipCommandSource
         // Update state machine with context
         if (context != null)
         {
-            stateMachine.Update(context, Time.fixedDeltaTime);
+            stateMachine.Tick(context, Time.fixedDeltaTime);
         }
         
         cachedCommand = GenerateCommand(currentState);
