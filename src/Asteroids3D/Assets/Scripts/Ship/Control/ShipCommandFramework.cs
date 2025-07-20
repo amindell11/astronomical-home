@@ -42,6 +42,9 @@ namespace ShipControl
         /// <summary>Normalized strafe input in the range [-1, 1]. Positive is ship-right.</summary>
         public float Strafe;
 
+        /// <summary>Triggers a boost impulse when positive. Represents normalized boost magnitude [0, 1]. Default 0.</summary>
+        public float Boost;
+
         /// <summary>When true the ship should yaw to <see cref="TargetAngle"/> this step.</summary>
         public bool  RotateToTarget;
 

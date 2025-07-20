@@ -22,10 +22,51 @@ public class PlayerCommander : MonoBehaviour, IShipCommandSource
     // Cached command that will be built every Update and served to the Ship in FixedUpdate.
     private ShipCommand cachedCommand;
 
+    public void InitializeCommander(Ship ship)
+    {
+        this.ship = ship;
+
+        // Ensure the player ship is tagged correctly for game-wide lookups (e.g., GameManager death handling)
+        if (ship != null)
+        {
+            ship.gameObject.tag = TagNames.Player;
+        }
+    }
+
     private void Start()
     {
         mainCamera = Camera.main;
     }
+
+    // Unity standard frame update – poll input here for maximum responsiveness.
+    void Update()
+    {
+        // Build a new command from the latest input state each rendered frame.
+        ShipCommand cmd = new ShipCommand();
+
+        // Movement inputs
+        cmd.Thrust = Input.GetAxis("Vertical");
+        cmd.Strafe = Input.GetAxis("Horizontal");
+        cmd.Boost = Input.GetButtonDown("Boost") && ship.movement.BoostAvailable == 0f ? 1f : 0f;
+
+        // Rotation handling (mouse or axis driven)
+        HandleRotationInput(ref cmd);
+
+        // Shooting inputs
+        cmd.PrimaryFire   = Input.GetButton("Fire1");
+        cmd.SecondaryFire = Input.GetButtonDown("Fire2");
+
+        // Cache for retrieval during the next physics step.
+        cachedCommand = cmd;
+    }
+    
+    public bool TryGetCommand(ShipState state, out ShipCommand cmd)
+    {
+        // Simply return the most recently cached command prepared in Update().
+        cmd = cachedCommand;
+        return true;
+    }
+
 
     public void HandleRotationInput(ref ShipCommand cmd)
     {
@@ -93,6 +134,10 @@ public class PlayerCommander : MonoBehaviour, IShipCommandSource
         
         return angle;
     }
+
+    public int Priority => 100; // Player input overrides most others
+
+
     
     private void OnDrawGizmos()
     {
@@ -129,46 +174,5 @@ public class PlayerCommander : MonoBehaviour, IShipCommandSource
         Vector3 forwardVector = GamePlane.Forward * mouseGizmoScale * 0.7f;
         Gizmos.DrawRay(position, forwardVector);
         Gizmos.DrawWireCube(position + forwardVector, Vector3.one * 0.06f * mouseGizmoScale);
-    }
-
-    public int Priority => 100; // Player input overrides most others
-
-    // Unity standard frame update – poll input here for maximum responsiveness.
-    void Update()
-    {
-        // Build a new command from the latest input state each rendered frame.
-        ShipCommand cmd = new ShipCommand();
-
-        // Movement inputs
-        cmd.Thrust = Input.GetAxis("Vertical");
-        cmd.Strafe = Input.GetAxis("Horizontal");
-
-        // Rotation handling (mouse or axis driven)
-        HandleRotationInput(ref cmd);
-
-        // Shooting inputs
-        cmd.PrimaryFire   = Input.GetButton("Fire1");
-        cmd.SecondaryFire = Input.GetButtonDown("Fire2");
-
-        // Cache for retrieval during the next physics step.
-        cachedCommand = cmd;
-    }
-
-    public bool TryGetCommand(ShipState state, out ShipCommand cmd)
-    {
-        // Simply return the most recently cached command prepared in Update().
-        cmd = cachedCommand;
-        return true;
-    }
-
-    public void InitializeCommander(Ship ship)
-    {
-        this.ship = ship;
-
-        // Ensure the player ship is tagged correctly for game-wide lookups (e.g., GameManager death handling)
-        if (ship != null)
-        {
-            ship.gameObject.tag = TagNames.Player;
-        }
     }
 } 

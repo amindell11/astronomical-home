@@ -103,6 +103,10 @@ public class ShipMovement : MonoBehaviour
 
     public ShipMovement2D Controller { get; private set; }
     public float Mass => rb.mass;
+    public float BoostAvailable => Mathf.Max(0f, nextBoostTime - Time.time);
+
+    // --- Boost cooldown tracking ---
+    private float nextBoostTime = 0f;
 
     // Latest kinematics snapshot
     public ShipKinematics Kinematics => Controller.Kinematics;
@@ -122,6 +126,8 @@ public class ShipMovement : MonoBehaviour
         Controller = new ShipMovement2D(ScriptableObject.CreateInstance<ShipSettings>());
         referencePlane = GamePlane.Plane;
         SyncAngleFrom3D();
+
+        nextBoostTime = 0f;
     }
 
     void Start()
@@ -159,7 +165,22 @@ public class ShipMovement : MonoBehaviour
             Controller.Kinematics = new ShipKinematics(Vector2.zero, Vector2.zero, ang < 0 ? ang + 360f : ang, 0);
         }
     }
-    void ApplyForces()   => rb.AddForce(GamePlane.PlaneVectorToWorld(Controller.ForceVector));
+    void ApplyForces()
+    {
+        // Apply continuous thrust/strafe forces from the 2-D controller.
+        rb.AddForce(GamePlane.PlaneVectorToWorld(Controller.ForceVector));
+
+        // Apply a one-shot boost impulse if requested by the current command.
+        if (CurrentCommand.Boost > 0f && settings != null && Time.time >= nextBoostTime)
+        {
+            // Forward2D is already normalized in plane space; convert to world and scale by boost impulse.
+            var boostDir = GamePlane.PlaneVectorToWorld(Forward2D).normalized;
+            rb.AddForce(boostDir * settings.boostImpulse * Mathf.Clamp01(CurrentCommand.Boost), ForceMode.Impulse);
+
+            // Set next allowed boost time
+            nextBoostTime = Time.time + settings.boostCooldown;
+        }
+    }
     void ApplyRotation()
     {
         q_yaw  = Quaternion.AngleAxis(Controller.Kinematics.AngleDeg, Vector3.forward);
