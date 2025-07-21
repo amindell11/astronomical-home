@@ -55,14 +55,7 @@ public class Asteroid : MonoBehaviour, IDamageable
         meshFilter = GetComponent<MeshFilter>();
         meshCollider = GetComponent<MeshCollider>();
         cheapCollider = GetComponent<SphereCollider>();
-        if (cheapCollider == null)
-        {
-            cheapCollider = gameObject.AddComponent<SphereCollider>();
-            cheapCollider.isTrigger = true; // cheap far-field collider – physics ignores triggers for contacts
-        }
-
         mainCameraTransform = Camera.main != null ? Camera.main.transform : null;
-        RLog.Asteroid("Asteroid Spawner for "+gameObject+":"+parentSpawner);
         rb.useGravity = false;
 
     }
@@ -81,6 +74,8 @@ public class Asteroid : MonoBehaviour, IDamageable
 
         this.meshFilter.mesh = meshInfo.mesh;
         parentSpawner = GetComponentInParent<AsteroidSpawner>();
+        RLog.Asteroid($"Asteroid {gameObject.name}: Initialize | ParentSpawner: {(parentSpawner != null ? parentSpawner.name : "NULL")} | Volume: {currentVolume:F2} | Mass: {mass:F2}");
+        
         // Calculate volume from mesh bounds and scale
         currentVolume = meshInfo.cachedVolume * (scale * scale * scale);
         
@@ -138,6 +133,7 @@ public class Asteroid : MonoBehaviour, IDamageable
 
     public void TakeDamage(float damage, float projectileMass, Vector3 projectileVelocity, Vector3 hitPoint, GameObject attacker)
     {
+        float previousHealth = currentHealth;
         currentHealth -= damage;
 
         if (currentHealth <= 0f)
@@ -176,14 +172,31 @@ public class Asteroid : MonoBehaviour, IDamageable
 
     private void CleanupAsteroid()
     {
-        parentSpawner.ReleaseAsteroid(gameObject);
+        RLog.Asteroid($"Asteroid {gameObject.name}: CleanupAsteroid | ParentSpawner: {(parentSpawner != null ? parentSpawner.name : "NULL")} | Volume: {currentVolume:F2}");
+        
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+        
+        if (parentSpawner == null)
+        {
+            parentSpawner = GetComponentInParent<AsteroidSpawner>();
+            if (parentSpawner == null)
+            {
+                parentSpawner = AsteroidSpawner.Instance;
+            }
+        }
+        
+        if (parentSpawner != null)
+        {
+            parentSpawner.ReleaseAsteroid(gameObject);
+        }
     }
 
     private void OnTriggerExit(Collider other)
     {
         if (other.CompareTag(TagNames.AsteroidCullingBoundary))
         {
-            parentSpawner.ReleaseAsteroid(gameObject);
+            CleanupAsteroid();
         }
     }
     /*

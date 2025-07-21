@@ -89,13 +89,25 @@ public abstract class BaseFieldManager : MonoBehaviour
 
     protected void CheckAndSpawnAsteroids(float minSpawn, float maxSpawn, int spawnsPerFrame)
     {
-        if (Spawner == null) return;
-        if (Spawner.ActiveAsteroidCount >= maxAsteroids) return;
+        if (Spawner == null) 
+        {
+            return;
+        }
+        
+        if (Spawner.ActiveAsteroidCount >= maxAsteroids) 
+        {
+            return;
+        }
+        
         if (cachedVolumeDensity < targetVolumeDensity)
         {
             float volumeToSpawn = (targetVolumeDensity - cachedVolumeDensity) * cachedArea;
+            RLog.Asteroid($"BaseFieldManager: SPAWNING NEEDED | Volume deficit: {volumeToSpawn:F2} | Will spawn up to {spawnsPerFrame} asteroids");
+            
             float volumeSpawned = 0f;
+            int actualSpawns = 0;
             int safetyBreak = spawnsPerFrame;
+            
             while (volumeSpawned < volumeToSpawn &&
                    Spawner.ActiveAsteroidCount < maxAsteroids &&
                    safetyBreak > 0)
@@ -107,16 +119,26 @@ public abstract class BaseFieldManager : MonoBehaviour
                 Vector3 spawnOffset = new Vector3(r.x, 0f, r.y).normalized * radius;
                 Vector3 spawnPosition = spawnAnchor.position + spawnOffset;
                 Pose spawnPose = new Pose(spawnPosition, Random.rotationUniform);
-                GameObject astGO = Spawner.SpawnAsteroid(spawnPose);
-                if (astGO == null) break;
+                GameObject astGO = Spawner.SpawnAsteroid(AsteroidSpawnRequest.Random(spawnPose));
+                if (astGO == null) 
+                {
+                    break;
+                }
 
                 Asteroid asteroid = astGO.GetComponent<Asteroid>();
                 if (asteroid != null)
                 {
                     volumeSpawned += asteroid.CurrentVolume;
+                    actualSpawns++;
                 }
                 safetyBreak--;
             }
+            
+            RLog.Asteroid($"BaseFieldManager: SPAWN COMPLETE | Spawned {actualSpawns} asteroids | Volume spawned: {volumeSpawned:F2} | Target was: {volumeToSpawn:F2} | Safety break remaining: {safetyBreak}");
+        }
+        else
+        {
+            RLog.Asteroid($"BaseFieldManager: Density sufficient ({cachedVolumeDensity:F4} >= {targetVolumeDensity:F4}) - no spawning needed");
         }
     }
 
@@ -131,6 +153,8 @@ public abstract class BaseFieldManager : MonoBehaviour
 
         cachedArea = Mathf.PI * densityCheckRadius * densityCheckRadius;
         cachedVolumeDensity = cachedArea > 0 ? Spawner.TotalActiveVolume / cachedArea : 0f;
+        
+        RLog.Asteroid($"BaseFieldManager: DENSITY UPDATE | Active Volume: {Spawner.TotalActiveVolume:F2} | Check Area: {cachedArea:F2} | Density: {cachedVolumeDensity:F4} | Target: {targetVolumeDensity:F4} | Active Count: {Spawner.ActiveAsteroidCount}");
     }
 
     /// <summary>

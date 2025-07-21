@@ -42,7 +42,6 @@ public class AsteroidFieldManager : BaseFieldManager
     {
         // Call base.Start() to do initial spawn with base class parameters
         base.Start();
-        RLog.AI($"AsteroidFieldManager: Start");
         // Initialize timer for density checks (replacing InvokeRepeating)
         densityCheckTimer = densityCheckInterval;
     }

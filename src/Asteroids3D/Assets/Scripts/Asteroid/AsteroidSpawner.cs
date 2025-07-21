@@ -57,54 +57,60 @@ public class AsteroidSpawner : MonoBehaviour
         }
     }
 
-    public GameObject SpawnAsteroid(Pose pose, float? mass = null, Vector3? velocity = null, Vector3? angularVelocity = null)
+    public GameObject SpawnAsteroid(AsteroidSpawnRequest request)
     {
-        // Retrieve (or create) an asteroid from the pool
-        GameObject asteroidGO = asteroidPool.Get();
-        asteroidGO.transform.SetParent(transform); // ensure correct hierarchy
-        asteroidGO.transform.SetPositionAndRotation(pose.position, pose.rotation);
+        GameObject go = asteroidPool.Get();
+        go.transform.SetParent(transform);
+        go.transform.SetPositionAndRotation(request.Pose.position, request.Pose.rotation);
 
-        Asteroid asteroid = asteroidGO.GetComponent<Asteroid>();
-        if (asteroid == null)
+        Asteroid a = go.GetComponent<Asteroid>();
+        if (a == null)
         {
             RLog.AsteroidError("Pooled object is missing Asteroid component.");
-            asteroidPool.Release(asteroidGO);
+            asteroidPool.Release(go);
             return null;
         }
 
-        // --- Determine final properties before initialization ---
-        AsteroidSpawnSettings.MeshInfo meshInfo = spawnSettings.GetRandomMeshInfo();
-        var (finalMass, finalScale) = CalculateMassAndScale(asteroid, meshInfo, mass);
+        // Branch **once** on the high-level reason,
+        // delegate the messy calculations to helpers.
+        switch (request.Kind)
+        {
+            case AsteroidSpawnRequest.SpawnKind.Random:
+                InitRandomAsteroid(a);
+                break;
 
-        // Calculate velocity and spin using spawn settings if available
-        Vector3 finalVelocity = velocity ?? spawnSettings.GetRandomVelocity(finalMass);
+            case AsteroidSpawnRequest.SpawnKind.Fragment:
+                InitFragmentAsteroid(
+                    a,
+                    request.Mass!.Value,
+                    request.Velocity!.Value,
+                    request.AngularVelocity!.Value);
+                break;
+        }
 
-        Vector3 finalAngularVelocity = angularVelocity ?? spawnSettings.GetRandomAngularVelocity(finalMass);
-
-        // Initialize the asteroid with the calculated properties
-        asteroid.Initialize(
-            meshInfo,
-            finalMass,
-            finalScale,
-            finalVelocity,
-            finalAngularVelocity
-        );
-        activeAsteroids.Add(asteroidGO);
-        TotalActiveVolume += asteroid.CurrentVolume;
-        return asteroidGO;
+        TrackActive(go, a.CurrentVolume);
+        return go;
     }
 
     public void ReleaseAsteroid(GameObject asteroidGO)
     {
-        if (asteroidGO == null) return;
+        if (asteroidGO == null) 
+        {
+            return;
+        }
+        // Attempt to remove from the active set first; only adjust counters if successful.
+        bool wasInActiveSet = activeAsteroids.Remove(asteroidGO);
 
         Asteroid asteroid = asteroidGO.GetComponent<Asteroid>();
-        if (asteroid != null)
+        float asteroidVolume = asteroid != null ? asteroid.CurrentVolume : 0f;
+
+        if (wasInActiveSet && asteroid != null)
         {
-            TotalActiveVolume -= asteroid.CurrentVolume;
+            float previousVolume = TotalActiveVolume;
+            TotalActiveVolume -= asteroidVolume;
+            RLog.Asteroid($"AsteroidSpawner: RELEASED asteroid {asteroidGO.name} | Volume: {asteroidVolume:F2} | Total Volume: {previousVolume:F2} -> {TotalActiveVolume:F2}");
         }
 
-        activeAsteroids.Remove(asteroidGO);
         asteroidPool.Release(asteroidGO);
     }
 
@@ -118,10 +124,44 @@ public class AsteroidSpawner : MonoBehaviour
             {
                 break; // Safety – should not happen.
             }
-
             ReleaseAsteroid(enumerator.Current);
             // ReleaseAsteroid will remove it from activeAsteroids.
         }
+    }
+
+    // ----------------- Helper initialisers -----------------
+    private void InitRandomAsteroid(Asteroid asteroid)
+    {
+        // Determine mesh and mass/scale entirely from settings
+        AsteroidSpawnSettings.MeshInfo meshInfo = spawnSettings.GetRandomMeshInfo();
+        var (mass, scale) = CalculateMassAndScale(asteroid, meshInfo, null);
+
+        Vector3 velocity = spawnSettings.GetRandomVelocity(mass);
+        Vector3 angularVelocity = spawnSettings.GetRandomAngularVelocity(mass);
+
+        asteroid.Initialize(meshInfo, mass, scale, velocity, angularVelocity);
+    }
+
+    private void InitFragmentAsteroid(
+        Asteroid asteroid,
+        float mass,
+        Vector3 velocity,
+        Vector3 angularVelocity)
+    {
+        // Use a random mesh but honour the supplied mass / kinematics
+        AsteroidSpawnSettings.MeshInfo meshInfo = spawnSettings.GetRandomMeshInfo();
+        var (finalMass, scale) = CalculateMassAndScale(asteroid, meshInfo, mass);
+
+        asteroid.Initialize(meshInfo, finalMass, scale, velocity, angularVelocity);
+    }
+
+    // ----------------- Book-keeping -----------------
+    private void TrackActive(GameObject go, float asteroidVolume)
+    {
+        activeAsteroids.Add(go);
+        float previousVolume = TotalActiveVolume;
+        TotalActiveVolume += asteroidVolume;
+        RLog.Asteroid($"AsteroidSpawner: SPAWNED asteroid {go.name} | Volume: {asteroidVolume:F2} | Total Volume: {previousVolume:F2} -> {TotalActiveVolume:F2} | Active Count: {activeAsteroids.Count}");
     }
 
     // --------- ObjectPool Callbacks ---------
@@ -138,12 +178,6 @@ public class AsteroidSpawner : MonoBehaviour
     private void OnAsteroidReleased(GameObject asteroidGO)
     {
         asteroidGO.SetActive(false);
-        Rigidbody rb = asteroidGO.GetComponent<Rigidbody>();
-        if (rb != null)
-        {
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
-        }
     }
 
     private void OnAsteroidDestroyed(GameObject asteroidGO)
@@ -172,4 +206,5 @@ public class AsteroidSpawner : MonoBehaviour
         float finalMassComputed = baseMass * randomScaleFactor;
         return (finalMassComputed, finalScaleComputed);
     }
+    
 } 

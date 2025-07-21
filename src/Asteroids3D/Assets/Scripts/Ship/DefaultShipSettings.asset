@@ -23,8 +23,8 @@ MonoBehaviour:
   bankingSpeed: 5
   minStrafeForce: 750
   maxStrafeForce: 800
-  boostImpulse: 5000
-  boostCooldown: 2
+  boostImpulse: 3000
+  boostCooldown: 4
   maxHealth: 100
   maxShield: 50
   startingLives: 1

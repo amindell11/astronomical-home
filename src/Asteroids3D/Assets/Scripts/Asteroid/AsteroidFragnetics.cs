@@ -118,104 +118,7 @@ public class AsteroidFragnetics : MonoBehaviour
         System.Action onExplosionReady
     )
     {
-        if (useCoroutineVersion)
-        {
-            if (usePlaceholderFragments)
-            {
-                StartCoroutine(CreateFragmentsWithPlaceholders(asteroid, projectileMass, projectileVelocity, hitPoint));
-                // Explosion happens immediately with placeholders
-                onExplosionReady?.Invoke();
-            }
-            else
-            {
-                StartCoroutine(CreateFragmentsCoroutine(asteroid, projectileMass, projectileVelocity, hitPoint, onExplosionReady));
-            }
-        }
-        else
-        {
-            CreateFragmentsDirect(asteroid, projectileMass, projectileVelocity, hitPoint);
-            // Explosion happens immediately with direct version
-            onExplosionReady?.Invoke();
-        }
-    }
-
-    /// <summary>
-    /// Coroutine version that spreads heavy calculations across multiple frames
-    /// </summary>
-    public IEnumerator CreateFragmentsCoroutine(
-        Asteroid asteroid,
-        float projectileMass,
-        Vector3 projectileVelocity,
-        Vector3 hitPoint,
-        System.Action onExplosionReady = null
-    )
-    {
-        var (totalLinearMomentum, totalAngularMomentum) = CalculateInitialMomentum(asteroid, projectileMass, projectileVelocity, hitPoint);
-        
-        float[] fragmentMasses = GenerateFragmentMasses(asteroid.CurrentMass * massLossFactor);
-        int fragmentCount = fragmentMasses.Length;
-        if (fragmentCount <= 0) 
-        {
-            onExplosionReady?.Invoke();
-            yield break;
-        }
-
-        Vector3[] fragmentPositions = CalculateFragmentPositions(asteroid.transform.position, fragmentCount);
-        
-        // Yield before heavy physics calculations
-        yield return null;
-        
-        // Use a coroutine wrapper to get the results
-        FragmentPhysicsResult result = null;
-        yield return StartCoroutine(CalculateFragmentPhysicsCoroutine(
-            asteroid,
-            fragmentCount, 
-            fragmentMasses, 
-            fragmentPositions, 
-            totalLinearMomentum, 
-            totalAngularMomentum,
-            projectileVelocity,
-            (r) => result = r
-        ));
-
-        if (result != null)
-        {
-            SpawnFragments(fragmentCount, fragmentPositions, fragmentMasses, result.velocities, result.spins);
-        }
-
-        // Trigger explosion after fragments are spawned
-        onExplosionReady?.Invoke();
-    }
-
-    /// <summary>
-    /// Direct (non-coroutine) version for backward compatibility or when frame spreading isn't needed
-    /// </summary>
-    private void CreateFragmentsDirect(
-        Asteroid asteroid,
-        float projectileMass,
-        Vector3 projectileVelocity,
-        Vector3 hitPoint
-    )
-    {
-        var (totalLinearMomentum, totalAngularMomentum) = CalculateInitialMomentum(asteroid, projectileMass, projectileVelocity, hitPoint);
-        
-        float[] fragmentMasses = GenerateFragmentMasses(asteroid.CurrentMass * massLossFactor);
-        int fragmentCount = fragmentMasses.Length;
-        if (fragmentCount <= 0) return;
-
-        Vector3[] fragmentPositions = CalculateFragmentPositions(asteroid.transform.position, fragmentCount);
-        
-        var (fragmentVelocities, fragmentSpins) = CalculateFragmentPhysics(
-            asteroid,
-            fragmentCount, 
-            fragmentMasses, 
-            fragmentPositions, 
-            totalLinearMomentum, 
-            totalAngularMomentum,
-            projectileVelocity
-        );
-
-        SpawnFragments(fragmentCount, fragmentPositions, fragmentMasses, fragmentVelocities, fragmentSpins);
+        StartCoroutine(CreateFragmentsWithPlaceholders(asteroid, projectileMass, projectileVelocity, hitPoint));
     }
 
     /// <summary>
@@ -316,51 +219,6 @@ public class AsteroidFragnetics : MonoBehaviour
     }
 
     /// <summary>
-    /// Unified synchronous wrapper that executes the coroutine physics calculation to completion.
-    /// This removes duplicated logic while still preserving the multi-yield behaviour when run
-    /// as an actual coroutine.
-    /// </summary>
-    private (Vector3[] velocities, Vector3[] spins) CalculateFragmentPhysics(
-        Asteroid asteroid,
-        int fragmentCount,
-        float[] masses,
-        Vector3[] positions,
-        Vector3 P_total,
-        Vector3 L_total,
-        Vector3 vBullet
-    )
-    {
-        FragmentPhysicsResult result = null;
-
-        // Re-use the coroutine implementation but drive it to completion synchronously.
-        IEnumerator routine = CalculateFragmentPhysicsCoroutine(
-            asteroid,
-            fragmentCount,
-            masses,
-            positions,
-            P_total,
-            L_total,
-            vBullet,
-            r => result = r
-        );
-
-        // Manually iterate the coroutine until it finishes. This preserves the internal
-        // yield structure for the coroutine path while avoiding code duplication.
-        while (routine.MoveNext())
-        {
-            // Intentionally empty – advances the iterator immediately in the same frame.
-        }
-
-        // Fallback guard – should always be populated by the coroutine.
-        if (result == null)
-        {
-            return (new Vector3[fragmentCount], new Vector3[fragmentCount]);
-        }
-
-        return (result.velocities, result.spins);
-    }
-    
-    /// <summary>
     /// Returns an array of fragment masses that:
     ///   - each ≥ minMass
     ///   - count is between minFragments and maxFragments
@@ -393,11 +251,15 @@ public class AsteroidFragnetics : MonoBehaviour
         if (sumOfWeights == 0)
         {
             float extraPerFragment = remainingMass / n;
-            return Enumerable.Repeat(minMass + extraPerFragment, n).ToArray();
+            var masses = Enumerable.Repeat(minMass + extraPerFragment, n).ToArray();
+            RLog.Asteroid($"[Fragnetics] GenerateFragmentMasses fallback | totalMass={totalMass:F2} | count={n}");
+            return masses;
         }
 
         // Distribute the remaining mass according to the weights
-        return weights.Select(w => minMass + (w / sumOfWeights) * remainingMass).ToArray();
+        var finalMasses = weights.Select(w => minMass + (w / sumOfWeights) * remainingMass).ToArray();
+        RLog.Asteroid($"[Fragnetics] GenerateFragmentMasses | totalMass={totalMass:F2} | count={n} | masses=[{string.Join(", ", finalMasses.Select(m => m.ToString("F1")))}]");
+        return finalMasses;
     }
 
 
@@ -427,24 +289,6 @@ public class AsteroidFragnetics : MonoBehaviour
             positions[i] = parentPosition + randomOffset;
         }
         return positions;
-    }
-
-    private void SpawnFragments(int fragmentCount, Vector3[] positions, float[] masses, Vector3[] velocities, Vector3[] spins)
-    {
-        for (int i = 0; i < fragmentCount; i++)
-        {
-            RLog.Asteroid("Spawning fragment " + i);
-            if (AsteroidSpawner.Instance != null)
-            {
-                Pose spawnPose = new Pose(positions[i], UnityEngine.Random.rotationUniform);
-                AsteroidSpawner.Instance.SpawnAsteroid(
-                    spawnPose,
-                    masses[i],
-                    velocities[i],
-                    spins[i]
-                );
-            }
-        }
     }
 
     /// <summary>
@@ -508,10 +352,12 @@ public class AsteroidFragnetics : MonoBehaviour
         Vector3 projectileVelocity
     )
     {
+        RLog.Asteroid($"[Fragnetics] SpawnPlaceholderFragments BEGIN | expectedCount={fragmentCount}");
         GameObject[] fragments = new GameObject[fragmentCount];
         Vector3 baseVelocity = parentAsteroid.Rb.linearVelocity;
         Vector3 impactDirection = (projectileVelocity - baseVelocity).normalized;
 
+        int spawned = 0;
         for (int i = 0; i < fragmentCount; i++)
         {
             if (AsteroidSpawner.Instance != null)
@@ -527,13 +373,17 @@ public class AsteroidFragnetics : MonoBehaviour
                 Vector3 roughSpin = UnityEngine.Random.insideUnitSphere * spinVariation * 0.5f;
 
                 GameObject fragment = AsteroidSpawner.Instance.SpawnAsteroid(
-                    spawnPose,
-                    masses[i],
-                    roughVelocity,
-                    roughSpin
+                    AsteroidSpawnRequest.Fragment(
+                        spawnPose,
+                        masses[i],
+                        roughVelocity,
+                        roughSpin)
                 );
 
                 fragments[i] = fragment;
+
+                RLog.Asteroid($"[Fragnetics]  → placeholder {i} | mass={masses[i]:F1} | spawned={(fragment != null)}");
+                if (fragment != null) spawned++;
 
                 // Make fragment initially semi-transparent if we have a fade-in time
                 if (fragmentFadeInTime > 0f && fragment != null)
@@ -541,8 +391,13 @@ public class AsteroidFragnetics : MonoBehaviour
                     StartCoroutine(FadeInFragment(fragment));
                 }
             }
+            else
+            {
+                RLog.Asteroid("[Fragnetics] AsteroidSpawner.Instance is null – cannot spawn placeholder fragment.");
+            }
         }
 
+        RLog.Asteroid($"[Fragnetics] SpawnPlaceholderFragments END   | requested={fragmentCount} | spawned={spawned}");
         return fragments;
     }
 
