@@ -196,7 +196,7 @@ PrefabInstance:
     - target: {fileID: 5100611748941008240, guid: cffc6e37abd758f4191aef193abb1274,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -542,11 +542,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 255442551212193346, guid: a4a07ada72adcc44ba51f616ad29384b,
-        type: 3}
-      propertyPath: m_Enabled
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 2199105733414487549, guid: a4a07ada72adcc44ba51f616ad29384b,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -597,45 +592,15 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 2371025873905775954, guid: a4a07ada72adcc44ba51f616ad29384b,
-        type: 3}
-      propertyPath: m_Enabled
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 4716065267346143482, guid: a4a07ada72adcc44ba51f616ad29384b,
         type: 3}
       propertyPath: m_Name
       value: AsteroidController
       objectReference: {fileID: 0}
-    - target: {fileID: 5424022958357299653, guid: a4a07ada72adcc44ba51f616ad29384b,
-        type: 3}
-      propertyPath: m_Enabled
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5492557017222973435, guid: a4a07ada72adcc44ba51f616ad29384b,
-        type: 3}
-      propertyPath: minMass
-      value: 120
-      objectReference: {fileID: 0}
-    - target: {fileID: 5492557017222973435, guid: a4a07ada72adcc44ba51f616ad29384b,
-        type: 3}
-      propertyPath: bulletBias
-      value: 0.41
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects:
-    - {fileID: 1130593315460497037, guid: a4a07ada72adcc44ba51f616ad29384b, type: 3}
-    - {fileID: 9208909619402548018, guid: a4a07ada72adcc44ba51f616ad29384b, type: 3}
+    m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 4716065267346143482, guid: a4a07ada72adcc44ba51f616ad29384b,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1769969988}
-    - targetCorrespondingSourceObject: {fileID: 4716065267346143482, guid: a4a07ada72adcc44ba51f616ad29384b,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1769969987}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a4a07ada72adcc44ba51f616ad29384b, type: 3}
 --- !u!1 &216806976
 GameObject:
@@ -2630,50 +2595,6 @@ Transform:
   - {fileID: 410087041}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1769969985 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4716065267346143482, guid: a4a07ada72adcc44ba51f616ad29384b,
-    type: 3}
-  m_PrefabInstance: {fileID: 213141664}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1769969987
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1769969985}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 01d44c1147a3de14fb19a3f5007c71ae, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxAsteroids: 70
-  maxSpawnDistance: 50
-  minSpawnDistance: 7.5
-  targetVolumeDensity: 0.25
-  densityCheckRadius: 50
-  maxSpawnsPerFrame: 10
-  spawnerOverride: {fileID: 0}
-  cullingBoundaryCollider: {fileID: 1284788440}
-  updateMinSpawnDistance: 35
-  updateMaxSpawnDistance: 50
-  densityCheckInterval: 0.25
---- !u!114 &1769969988
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1769969985}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5fd180f1995b12041beb2918914c5740, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  asteroidPrefab: {fileID: 1706132292860893391, guid: f0cce3a0c284df24db1283dd96c8c4b0,
-    type: 3}
-  spawnSettings: {fileID: 11400000, guid: 31325b171e42d6d4980a0132e0d6ba36, type: 2}
 --- !u!1001 &1802656072
 PrefabInstance:
   m_ObjectHideFlags: 0

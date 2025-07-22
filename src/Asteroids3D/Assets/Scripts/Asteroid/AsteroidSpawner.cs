@@ -11,19 +11,27 @@ public class AsteroidSpawner : MonoBehaviour
     [SerializeField] private AsteroidSpawnSettings spawnSettings;
 
     private ObjectPool<GameObject> asteroidPool;
-    private readonly HashSet<GameObject> activeAsteroids = new HashSet<GameObject>();
-    public int ActiveAsteroidCount => activeAsteroids.Count;
-    public float TotalActiveVolume { get; private set; }
+
+    // Book-keeping now lives in AsteroidRegistry.  These pass-through properties keep
+    // existing callers/tests working without modification.
+    public int ActiveAsteroidCount => AsteroidRegistry.Instance != null ? AsteroidRegistry.Instance.ActiveCount : 0;
+    public float TotalActiveVolume => AsteroidRegistry.Instance != null ? AsteroidRegistry.Instance.TotalVolume : 0f;
 
     private void Awake()
     {
-        if (Instance == null)
+        if (Instance != null && Instance != this)
         {
-            // First spawner becomes the global fallback for legacy code. Others can coexist.
-            Instance = this;
+            // Only one spawner should exist after refactor – destroy duplicates to avoid ambiguity.
+            Destroy(gameObject);
+            return;
         }
+        Instance = this;
 
-        TotalActiveVolume = 0f;
+        // Ensure a registry exists early so book-keeping works from the first spawn.
+        if (AsteroidRegistry.Instance == null)
+        {
+            gameObject.AddComponent<AsteroidRegistry>();
+        }
 
         // Ensure spawnSettings is assigned; this ScriptableObject now drives all spawn parameters.
         if (spawnSettings == null)
@@ -88,7 +96,8 @@ public class AsteroidSpawner : MonoBehaviour
                 break;
         }
 
-        TrackActive(go, a.CurrentVolume);
+        // Register with central registry (handles volume + active count).
+        AsteroidRegistry.Instance?.Register(a);
         return go;
     }
 
@@ -98,34 +107,26 @@ public class AsteroidSpawner : MonoBehaviour
         {
             return;
         }
-        // Attempt to remove from the active set first; only adjust counters if successful.
-        bool wasInActiveSet = activeAsteroids.Remove(asteroidGO);
-
-        Asteroid asteroid = asteroidGO.GetComponent<Asteroid>();
-        float asteroidVolume = asteroid != null ? asteroid.CurrentVolume : 0f;
-
-        if (wasInActiveSet && asteroid != null)
+        Asteroid asteroid = asteroidGO != null ? asteroidGO.GetComponent<Asteroid>() : null;
+        if (asteroid != null)
         {
-            float previousVolume = TotalActiveVolume;
-            TotalActiveVolume -= asteroidVolume;
-            RLog.Asteroid($"AsteroidSpawner: RELEASED asteroid {asteroidGO.name} | Volume: {asteroidVolume:F2} | Total Volume: {previousVolume:F2} -> {TotalActiveVolume:F2}");
+            AsteroidRegistry.Instance?.Unregister(asteroid);
         }
-
         asteroidPool.Release(asteroidGO);
     }
 
     public void ReleaseAllAsteroids()
     {
-        // Remove asteroids one by one without allocating a snapshot list.
-        while (activeAsteroids.Count > 0)
+        if (AsteroidRegistry.Instance == null) return;
+
+        // Snapshot to avoid modifying the collection while iterating.
+        var toRelease = new List<Asteroid>(AsteroidRegistry.Instance.ActiveAsteroids);
+        foreach (var ast in toRelease)
         {
-            var enumerator = activeAsteroids.GetEnumerator();
-            if (!enumerator.MoveNext())
+            if (ast != null)
             {
-                break; // Safety – should not happen.
+                ReleaseAsteroid(ast.gameObject);
             }
-            ReleaseAsteroid(enumerator.Current);
-            // ReleaseAsteroid will remove it from activeAsteroids.
         }
     }
 
@@ -156,13 +157,7 @@ public class AsteroidSpawner : MonoBehaviour
     }
 
     // ----------------- Book-keeping -----------------
-    private void TrackActive(GameObject go, float asteroidVolume)
-    {
-        activeAsteroids.Add(go);
-        float previousVolume = TotalActiveVolume;
-        TotalActiveVolume += asteroidVolume;
-        RLog.Asteroid($"AsteroidSpawner: SPAWNED asteroid {go.name} | Volume: {asteroidVolume:F2} | Total Volume: {previousVolume:F2} -> {TotalActiveVolume:F2} | Active Count: {activeAsteroids.Count}");
-    }
+    // Tracking now handled by AsteroidRegistry – no local implementation needed.
 
     // --------- ObjectPool Callbacks ---------
     private GameObject CreatePooledAsteroid()

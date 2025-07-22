@@ -68,16 +68,7 @@ public class AsteroidFragnetics : MonoBehaviour
     [Tooltip("Fraction of asteroid mass preserved in fragments (e.g., 0.8 = 80% mass retained, 0.2 lost)")]
     private float massLossFactor = 1.0f;
 
-    [Header("Performance Settings")]
-    [SerializeField]
-    [Tooltip("Use coroutine version to spread physics calculations across frames")]
-    private bool useCoroutineVersion = true;
-
     [Header("Visual Smoothing")]
-    [SerializeField]
-    [Tooltip("Spawn placeholder fragments immediately to mask coroutine delay")]
-    private bool usePlaceholderFragments = true;
-
     [SerializeField]
     [Tooltip("How long to fade in fragments after spawning (0 = instant)")]
     private float fragmentFadeInTime = 0.1f;
@@ -118,7 +109,7 @@ public class AsteroidFragnetics : MonoBehaviour
         System.Action onExplosionReady
     )
     {
-        StartCoroutine(CreateFragmentsWithPlaceholders(asteroid, projectileMass, projectileVelocity, hitPoint));
+        StartCoroutine(CreateFragmentsWithPlaceholders(asteroid, projectileMass, projectileVelocity, hitPoint, onExplosionReady));
     }
 
     /// <summary>
@@ -298,14 +289,20 @@ public class AsteroidFragnetics : MonoBehaviour
         Asteroid asteroid,
         float projectileMass,
         Vector3 projectileVelocity,
-        Vector3 hitPoint
+        Vector3 hitPoint,
+        System.Action onExplosionReady
     )
     {
         var (totalLinearMomentum, totalAngularMomentum) = CalculateInitialMomentum(asteroid, projectileMass, projectileVelocity, hitPoint);
         
         float[] fragmentMasses = GenerateFragmentMasses(asteroid.CurrentMass * massLossFactor);
         int fragmentCount = fragmentMasses.Length;
-        if (fragmentCount <= 0) yield break;
+        if (fragmentCount <= 0) 
+        {
+            // No fragments can be created - still need to cleanup the parent asteroid
+            onExplosionReady?.Invoke();
+            yield break;
+        }
 
         Vector3[] fragmentPositions = CalculateFragmentPositions(asteroid.transform.position, fragmentCount);
         
@@ -339,6 +336,8 @@ public class AsteroidFragnetics : MonoBehaviour
         {
             UpdatePlaceholderFragments(placeholderFragments, result.velocities, result.spins);
         }
+
+        onExplosionReady?.Invoke();
     }
 
     /// <summary>

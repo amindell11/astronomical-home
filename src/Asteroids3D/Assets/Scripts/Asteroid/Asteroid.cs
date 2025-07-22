@@ -37,6 +37,7 @@ public class Asteroid : MonoBehaviour, IDamageable
     private float maxHealth;
     private float currentHealth;
     private AsteroidSpawner parentSpawner;
+    private Renderer renderer;
 
 
     // Public properties for other systems to access
@@ -57,9 +58,16 @@ public class Asteroid : MonoBehaviour, IDamageable
         cheapCollider = GetComponent<SphereCollider>();
         mainCameraTransform = Camera.main != null ? Camera.main.transform : null;
         rb.useGravity = false;
-
+        renderer = GetComponent<Renderer>();
     }
 
+    private void OnEnable()
+    {
+        if (renderer != null)
+        {
+            renderer.enabled = true;
+        }
+    }
     public void Initialize(
         AsteroidSpawnSettings.MeshInfo meshInfo,
         float mass,
@@ -74,10 +82,12 @@ public class Asteroid : MonoBehaviour, IDamageable
 
         this.meshFilter.mesh = meshInfo.mesh;
         parentSpawner = GetComponentInParent<AsteroidSpawner>();
-        RLog.Asteroid($"Asteroid {gameObject.name}: Initialize | ParentSpawner: {(parentSpawner != null ? parentSpawner.name : "NULL")} | Volume: {currentVolume:F2} | Mass: {mass:F2}");
         
         // Calculate volume from mesh bounds and scale
         currentVolume = meshInfo.cachedVolume * (scale * scale * scale);
+        
+        // Log after volume is calculated
+        RLog.Asteroid($"Asteroid {gameObject.name}: Initialize | ParentSpawner: {(parentSpawner != null ? parentSpawner.name : "NULL")} | Volume: {currentVolume:F2} | Mass: {mass:F2}");
         
         this.rb.mass = mass;
         transform.localScale = Vector3.one * scale;
@@ -113,6 +123,10 @@ public class Asteroid : MonoBehaviour, IDamageable
         rb.linearVelocity = initialVelocity;
         rb.angularVelocity = initialAngularVelocity;
         currentHealth = maxHealth;
+        if (renderer != null)
+        {
+            renderer.enabled = true;
+        }
     }
 
     private void UpdateMeshCollider(AsteroidSpawnSettings.MeshInfo meshInfo)
@@ -139,9 +153,8 @@ public class Asteroid : MonoBehaviour, IDamageable
         if (currentHealth <= 0f)
         {
             // Destroy asteroid – create fragments, VFX, and cleanup
-            AsteroidFragnetics.Instance.CreateFragments(this, projectileMass, projectileVelocity, hitPoint);
+            AsteroidFragnetics.Instance.CreateFragments(this, projectileMass, projectileVelocity, hitPoint, CleanupAsteroid);
             Explode();
-            CleanupAsteroid();
         }
         else
         {
@@ -151,6 +164,11 @@ public class Asteroid : MonoBehaviour, IDamageable
 
     private void Explode()
     {
+        if (renderer != null)
+        {
+            renderer.enabled = false;
+        }
+
         if (GameSettings.VfxEnabled && explosionPrefab != null)
         {
             // Try to get PooledVFX component first, fallback to regular instantiate
