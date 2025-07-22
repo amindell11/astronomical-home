@@ -69,42 +69,30 @@ namespace ShipControl.AI
 
         public override float ComputeUtility(AIContext ctx)
         {
-            // Do not attack if no enemy
             if (ctx.Enemy == null)
                 return 0f;
 
-            // Base score: willingness to fight
-            float score = 0.5f;
+            // Start with the general-purpose attack utility
+            float score = AIUtility.ComputeAttackUtility(ctx);
 
-            // Bonus for having high health/shields
-            score += AIUtilityCurves.DesireCurve(ctx.HealthPct, 0.2f);
-            score += AIUtilityCurves.DesireCurve(ctx.ShieldPct, 0.2f);
-                
-            // Bonus for attacking a weak target. This is a "fear" curve for the enemy.
+            // Add a large, specific bonus for attacking a weakened enemy to encourage finishing them off.
+            // This makes the AttackState more "bloodthirsty" than other offensive states.
             float enemyHealthFactor = (ctx.EnemyHealthPct + ctx.EnemyShieldPct) / 2f;
-            score += AIUtilityCurves.FearCurve(enemyHealthFactor, 0.3f);
-            
-            // Bonus for attacking a disarmed target
-            score += AIUtilityCurves.DesireCurve(ctx.EnemyLaserHeatPct, 0.2f);
-            score += AIUtilityCurves.DesireCurve(ctx.EnemyMissileAmmo, 0.1f);
+            score += AIUtility.FearCurve(enemyHealthFactor, 0.3f);
 
-            // Increase if target is in good range
-            float distToEnemy = ctx.VectorToEnemy.magnitude;
-            if (distToEnemy > 6f && distToEnemy < 40f)
-                score += 0.3f;
-                
-            if (ctx.LineOfSightToEnemy)
-                score += 0.1f;
-                
-            // Bonus for having missiles
-            score += AIUtilityCurves.FearCurve(ctx.LaserHeatPct, 0.1f);
-            score += AIUtilityCurves.DesireCurve(ctx.MissileAmmo, 0.1f);
-                
-            // Decrease if severely outnumbered
-            int netThreat = ctx.NearbyEnemyCount - ctx.NearbyFriendCount;
-            if (netThreat > 2)
-                score -= 0.3f;
-            return Mathf.Max(0f, score);
+            float dist = ctx.VectorToEnemy.magnitude;
+            // Bonus for being far away, outside of typical orbit range
+            if (dist > 25f) // OrbitState's maxOrbitRadius is 25f
+            {
+                score += 0.2f;
+            }
+
+            // Per user instructions, an attack can become a favorable option
+            // if health is low, representing a desperate all-in maneuver
+            // as opposed to a prolonged engagement like Orbit.
+            score += AIUtility.FearCurve(ctx.HealthPct, 0.15f);
+
+            return score;
         }
         
         public override void OnDrawGizmos(AIContext ctx)

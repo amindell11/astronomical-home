@@ -185,7 +185,9 @@ namespace ShipControl.AI
             AIState selectedState;
             if (useProbabilisticSampling)
             {
-                selectedState = SampleStateFromDistribution(stateUtilities);
+                // For probabilistic sampling, only consider top 3 states
+                var topStates = stateUtilities.OrderByDescending(s => s.utility).Take(3).ToList();
+                selectedState = SampleStateFromDistribution(topStates);
             }
             else
             {
@@ -401,8 +403,9 @@ namespace ShipControl.AI
                             stateUtilities.Add((state, utility));
                         }
                     }
-                    
-                    var probabilities = ComputeSoftmaxProbabilities(stateUtilities);
+
+                    var topStates = stateUtilities.OrderByDescending(s => s.utility).Take(3).ToList();
+                    var probabilities = ComputeSoftmaxProbabilities(topStates);
                     scoreLines = probabilities
                         .OrderByDescending(p => p.probability)
                         .Take(5)

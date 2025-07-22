@@ -38,53 +38,30 @@ namespace ShipControl.AI
 
         public override float ComputeUtility(AIContext ctx)
         {
-            // Base score: always a baseline desire to evade if threatened
-            float score = 0.3f;
+            if (ctx.Enemy == null) return 0f;
 
-            // Strong incentive to evade if shields/health are low, using "fear" curves.
-            score += AIUtilityCurves.FearCurve(ctx.HealthPct, 0.4f);
-            score += AIUtilityCurves.FearCurve(ctx.ShieldPct, 0.3f);
-
-            // Increase score if outnumbered
-            if (ctx.NearbyEnemyCount > ctx.NearbyFriendCount + 1)
-                score += 0.2f;
-
-            // Increase score if an enemy has a clear shot
-            if (ctx.Enemy != null && ctx.LineOfSightToEnemy)
-                score += 0.2f;
-
-            // Adjust score based on closing speed: positive when enemy is closing on us, negative when opening distance
-            if (ctx.Enemy != null)
+            // Start with the general-purpose evade utility
+            float score = AIUtility.ComputeEvadeUtility(ctx);
+            
+            // Evade is a good choice for a "fighting retreat"
+            // where we have low health but high shields to absorb parting shots.
+            if (ctx.HealthPct < 0.5f && ctx.ShieldPct > 0.5f)
             {
-                // Scale contribution to a reasonable range [-0.2, +0.2]
-                float closingContribution = Mathf.Clamp(ctx.ClosingSpeed * 0.02f, -0.2f, 0.2f);
-                score += closingContribution;
+                score += 0.25f;
             }
 
-            // Adjust score based on enemy facing: more likely to evade if enemy is pointing at us
-            if (ctx.Enemy != null)
-            {
-                float facingFactor = Mathf.Cos(ctx.EnemyAngleToSelf * Mathf.Deg2Rad); // 1 when enemy faces us, -1 when away
-                float facingContribution = facingFactor * 0.2f; // Map to [-0.2, +0.2]
-                score += facingContribution;
-            }
-
-            // Increase score as laser heat increases, using a curve
-            score += AIUtilityCurves.DesireCurve(ctx.LaserHeatPct, 0.1f);
-            score += AIUtilityCurves.DesireCurve(ctx.EnemyMissileAmmo, 0.1f);
-
-            // Major bonus if incoming missile detected
+            // If a missile is incoming, Jink is almost always better.
+            // Penalize this state slightly to favor Jink.
             if (ctx.IncomingMissile)
-                score += 0.5f;
-                
-            // Decrease if very close to target (might need to fight through)
-            if (ctx.Enemy != null)
             {
-                float distToEnemy = ctx.VectorToEnemy.magnitude;
-                if (distToEnemy < 7f && ctx.LineOfSightToEnemy)
-                    score -= 0.2f;
+                score -= 0.2f;
             }
-                
+
+            // Penalty if facing towards the enemy while trying to evade.
+            // Full penalty if facing directly at the enemy (0 degrees), no penalty if facing away (180 degrees).
+            float anglePenalty = (180f - ctx.SelfAngleToEnemy) / 180f;
+            score -= anglePenalty * 0.3f;
+
             return Mathf.Max(0f, score);
         }
 

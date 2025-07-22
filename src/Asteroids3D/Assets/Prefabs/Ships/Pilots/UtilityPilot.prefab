@@ -106,7 +106,7 @@ PrefabInstance:
     - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
         type: 3}
       propertyPath: samplingTemperature
-      value: 0.22
+      value: 0.25
       objectReference: {fileID: 0}
     - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
         type: 3}
@@ -126,12 +126,12 @@ PrefabInstance:
     - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
         type: 3}
       propertyPath: stateWeights.evadeWeight
-      value: 0.427
+      value: 0.79
       objectReference: {fileID: 0}
     - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
         type: 3}
       propertyPath: stateWeights.orbitWeight
-      value: 0.605
+      value: 0.427
       objectReference: {fileID: 0}
     - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
         type: 3}
@@ -141,12 +141,12 @@ PrefabInstance:
     - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
         type: 3}
       propertyPath: stateWeights.attackWeight
-      value: 0.653
+      value: 0.508
       objectReference: {fileID: 0}
     - target: {fileID: 5573799250971464692, guid: 5d39b99f95c4db04ebd565a759e5dc03,
         type: 3}
       propertyPath: stateWeights.jinkEvadeWeight
-      value: 0.685
+      value: 0.935
       objectReference: {fileID: 0}
     - target: {fileID: 6525159657316276413, guid: 5d39b99f95c4db04ebd565a759e5dc03,
         type: 3}

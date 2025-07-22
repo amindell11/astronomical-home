@@ -68,28 +68,38 @@ namespace ShipControl.AI
         public override float ComputeUtility(AIContext ctx)
         {
             if (ctx.Enemy == null) return 0f;
-
-            float score = 0.4f;
-
-            // Prefer kiting with moderate/good health
-            float healthAvg = (ctx.HealthPct + ctx.ShieldPct) / 2f;
-            score += AIUtilityCurves.DesireCurve(healthAvg, 0.2f);
-
-            // Engagement envelope bonus
+            
+            // Kite is a mix of attack and evade. Start with the average of the two.
+            float attackDesire = AIUtility.ComputeAttackUtility(ctx);
+            float evadeDesire = AIUtility.ComputeEvadeUtility(ctx);
+            float score = (attackDesire + evadeDesire) / 2f;
+            
+            // Bonus for being too close, making kiting a priority to regain distance.
             float dist = ctx.VectorToEnemy.magnitude;
-            if (dist >= MinKiteDistance && dist <= MaxKiteDistance) score += 0.3f;
-            else if (dist < MinKiteDistance) score -= 0.2f;
+            if (dist < MinKiteDistance)
+            {
+                score += 0.3f;
+            }
+            
+            // Kiting is ideal when we need to evade but have strong weapons.
+            // This is a "fighting retreat."
+            bool hasGoodWeapons = ctx.MissileAmmo > 0 && ctx.LaserHeatPct < 0.5f;
+            if (evadeDesire > 0.5f && hasGoodWeapons)
+            {
+                score += 0.25f;
+            }
 
-            // Clear LOS bonus
-            if (ctx.LineOfSightToEnemy) score += 0.1f;
+            // Kiting is also a good option if we have low health but good shields
+            // allowing us to absorb some hits while creating distance.
+            if (ctx.HealthPct < 0.4f && ctx.ShieldPct > 0.6f)
+            {
+                score += 0.2f;
+            }
 
-            // Weapon readiness influence
-            score += AIUtilityCurves.FearCurve(ctx.LaserHeatPct, 0.1f);
-            score += AIUtilityCurves.DesireCurve(ctx.MissileAmmo, 0.1f);
-
-            // Threat balance
-            int netThreat = ctx.NearbyEnemyCount - ctx.NearbyFriendCount;
-            if (netThreat > 2) score -= 0.3f;
+            // Penalty if not facing the enemy while trying to kite.
+            // A small tolerance (e.g., 30 degrees) is allowed before applying a penalty.
+            float anglePenalty = Mathf.Clamp01((ctx.SelfAngleToEnemy - 30f) / 150f);
+            score -= anglePenalty * 0.3f;
 
             return Mathf.Max(0f, score);
         }

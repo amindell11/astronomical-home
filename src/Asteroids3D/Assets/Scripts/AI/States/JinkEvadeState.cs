@@ -66,51 +66,33 @@ namespace ShipControl.AI
 
         public override float ComputeUtility(AIContext ctx)
         {
-            float score = 0f;
+            if (ctx.Enemy == null && !ctx.IncomingMissile) return 0f;
+            
+            // Jinking is a desperation move. Start with base evade utility.
+            float score = AIUtility.ComputeEvadeUtility(ctx);
 
-            // Highest priority when missile threat present.
-            if (ctx.IncomingMissile) score += 0.7f;
-
-            // Low health/shield => strong urge to jink
-            score += AIUtilityCurves.FearCurve(ctx.HealthPct, 0.25f);
-            score += AIUtilityCurves.FearCurve(ctx.ShieldPct, 0.25f);
-
-            // Enemy very close OR has clear LOS increases urgency
-            if (ctx.Enemy != null)
+            // Highest priority when missile threat is present.
+            if (ctx.IncomingMissile)
             {
-                float dist = ctx.VectorToEnemy.magnitude;
-                if (dist < 10f) score += 0.2f;
-                if (ctx.LineOfSightToEnemy) score += 0.15f;
-
-                // Closing fast or enemy pointing at us
-                float closing = ctx.ClosingSpeed;
-                score += Mathf.Clamp(closing * 0.02f, 0f, 0.15f);
-                float facingFactor = Mathf.Cos(ctx.EnemyAngleToSelf * Mathf.Deg2Rad); // 1 when facing us
-                score += Mathf.Clamp01(facingFactor) * 0.1f;
-                
-                // Consider our heading relative to enemy
-                // If we're pointing away from enemy (>90°), increase priority for jinking
-                // If we're pointing at enemy (<90°), reduce priority (other behaviors better)
-                float ourAngleToEnemy = ctx.SelfAngleToEnemy;
-                if (ourAngleToEnemy > 90f)
-                {
-                    // Already pointing away - jinking is more valuable
-                    float awayFactor = (ourAngleToEnemy - 90f) / 90f; // 0 to 1 as angle goes from 90° to 180°
-                    score += awayFactor * 0.15f;
-                }
-                else
-                {
-                    // Pointing toward enemy - reduce jink priority
-                    float towardFactor = (90f - ourAngleToEnemy) / 90f; // 1 to 0 as angle goes from 0° to 90°
-                    score -= towardFactor * 0.1f;
-                }
+                score += 0.7f;
             }
 
-            // Penalise if no threat detected at all
-            if (ctx.Enemy == null && !ctx.IncomingMissile)
-                score *= 0.3f;
+            // Jinking is essential when health is critical and shields are down.
+            if (ctx.HealthPct < 0.3f && ctx.ShieldPct < 0.1f)
+            {
+                score += 0.4f;
+            }
 
-            // Ensure within [0,1]
+            // If we are pointing away from the enemy, jinking is more effective.
+            if (ctx.Enemy != null && ctx.SelfAngleToEnemy > 120f)
+            {
+                score += 0.2f;
+            }
+
+            // Penalty for facing the enemy while jinking.
+            float anglePenalty = (180f - ctx.SelfAngleToEnemy) / 180f;
+            score -= anglePenalty * 0.4f; // Heavier penalty as jinking is more desperate
+            
             return Mathf.Clamp01(score);
         }
 

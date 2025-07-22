@@ -78,21 +78,29 @@ namespace ShipControl.AI
         {
             if (ctx?.Enemy == null) return 0f;
 
-            float score = 0.4f;
-            float healthFactor = (ctx.HealthPct + ctx.ShieldPct) / 2f;
-            if (healthFactor > 0.3f && healthFactor < 0.9f) score += 0.2f;
-
+            // Start with a baseline attack utility since orbit is an offensive maneuver
+            float score = AIUtility.ComputeAttackUtility(ctx);
+            
+            // Strong bonus for being in the optimal orbit sweet spot
             float dist = ctx.VectorToEnemy.magnitude;
-            if (dist >= minOrbitRadius && dist <= maxOrbitRadius) score += 0.3f;
-            else if (dist > maxOrbitRadius * 1.5f) score -= 0.2f;
+            if (dist >= minOrbitRadius && dist <= maxOrbitRadius)
+            {
+                score += 0.4f;
+            }
+            
+            // Bonus for not having a direct line of sight - good for flanking
+            if (!ctx.LineOfSightToEnemy)
+            {
+                score += 0.3f;
+            }
 
-            if (ctx.LineOfSightToEnemy) score += 0.2f;
-            score += AIUtilityCurves.FearCurve(ctx.LaserHeatPct, 0.1f);
-            score += AIUtilityCurves.DesireCurve(ctx.MissileAmmo, 0.1f);
-
-            int netThreat = ctx.NearbyEnemyCount - ctx.NearbyFriendCount;
-            if (netThreat > 2) score -= 0.3f;
-            if (healthFactor < 0.25f) score -= 0.4f;
+            // Orbit is less desirable at very low health; Attack or Evade are better.
+            float healthFactor = (ctx.HealthPct + ctx.ShieldPct) / 2f;
+            if (healthFactor < 0.25f)
+            {
+                score -= 0.4f;
+            }
+            
             return Mathf.Max(0f, score);
         }
     }
