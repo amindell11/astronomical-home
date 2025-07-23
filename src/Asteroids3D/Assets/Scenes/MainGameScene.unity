@@ -196,7 +196,7 @@ PrefabInstance:
     - target: {fileID: 5100611748941008240, guid: cffc6e37abd758f4191aef193abb1274,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -596,6 +596,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: AsteroidController
+      objectReference: {fileID: 0}
+    - target: {fileID: 5492557017222973435, guid: a4a07ada72adcc44ba51f616ad29384b,
+        type: 3}
+      propertyPath: fragmentFadeInTime
+      value: 0.2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1869,11 +1874,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: UtilityPilot (1)
       objectReference: {fileID: 0}
-    - target: {fileID: 1376935125781121672, guid: 08a3705197cc60842b107b8485d8ad25,
-        type: 3}
-      propertyPath: missileAngleTolerance
-      value: 5
-      objectReference: {fileID: 0}
     - target: {fileID: 2083080758410013432, guid: 08a3705197cc60842b107b8485d8ad25,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1923,31 +1923,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5195620384266219338, guid: 08a3705197cc60842b107b8485d8ad25,
-        type: 3}
-      propertyPath: samplingTemperature
-      value: 0.1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5195620384266219338, guid: 08a3705197cc60842b107b8485d8ad25,
-        type: 3}
-      propertyPath: stateWeights.kiteWeight
-      value: 0.613
-      objectReference: {fileID: 0}
-    - target: {fileID: 5195620384266219338, guid: 08a3705197cc60842b107b8485d8ad25,
-        type: 3}
-      propertyPath: stateWeights.evadeWeight
-      value: 0.375
-      objectReference: {fileID: 0}
-    - target: {fileID: 5195620384266219338, guid: 08a3705197cc60842b107b8485d8ad25,
-        type: 3}
-      propertyPath: stateWeights.orbitWeight
-      value: 0.613
-      objectReference: {fileID: 0}
-    - target: {fileID: 5195620384266219338, guid: 08a3705197cc60842b107b8485d8ad25,
-        type: 3}
-      propertyPath: stateWeights.jinkEvadeWeight
-      value: 0.797
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2345,11 +2320,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: UtilityPilot
       objectReference: {fileID: 0}
-    - target: {fileID: 1376935125781121672, guid: 08a3705197cc60842b107b8485d8ad25,
-        type: 3}
-      propertyPath: missileAngleTolerance
-      value: 5
-      objectReference: {fileID: 0}
     - target: {fileID: 2083080758410013432, guid: 08a3705197cc60842b107b8485d8ad25,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -2399,21 +2369,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5195620384266219338, guid: 08a3705197cc60842b107b8485d8ad25,
-        type: 3}
-      propertyPath: samplingTemperature
-      value: 0.1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5195620384266219338, guid: 08a3705197cc60842b107b8485d8ad25,
-        type: 3}
-      propertyPath: stateWeights.kiteWeight
-      value: 0.613
-      objectReference: {fileID: 0}
-    - target: {fileID: 5195620384266219338, guid: 08a3705197cc60842b107b8485d8ad25,
-        type: 3}
-      propertyPath: stateWeights.orbitWeight
-      value: 0.613
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

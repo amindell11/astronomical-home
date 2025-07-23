@@ -63,7 +63,7 @@ public static class TestSceneBuilder
             return null;
         }
         
-        return CreateTestShipFromPrefab(shipPrefab, shipName);
+        return CreateTestShipFromPrefab(shipPrefab, shipName, shipType);
     }
 
     /// <summary>
@@ -72,7 +72,7 @@ public static class TestSceneBuilder
     /// <param name="shipPrefab">The ship prefab to instantiate</param>
     /// <param name="shipName">Name for the instantiated ship</param>
     /// <returns>The created Ship component</returns>
-    public static Ship CreateTestShipFromPrefab(GameObject shipPrefab, string shipName = "TestShip")
+    public static Ship CreateTestShipFromPrefab(GameObject shipPrefab, string shipName = "TestShip", ShipType shipType = ShipType.Basic)
     {
         if (shipPrefab == null)
         {
@@ -94,7 +94,7 @@ public static class TestSceneBuilder
         }
         
         // Configure for testing if needed
-        ConfigureShipForTesting(ship);
+        ConfigureShipForTesting(ship, shipType);
         
         return ship;
     }
@@ -133,12 +133,12 @@ public static class TestSceneBuilder
     {
         return shipType switch
         {
-            ShipType.Basic => "Prefabs/Ship",
-            ShipType.Player => "Prefabs/PlayerShip Variant", 
-            ShipType.AI => "Prefabs/ShipBot Variant",
-            ShipType.Enemy => "Prefabs/EnemyShip Variant",
-            ShipType.RL => "Prefabs/RLShip Variant",
-            _ => "Prefabs/Ship"
+            ShipType.Basic  => "Prefabs/Ships/Ship_1",
+            ShipType.Player => "Prefabs/Ships/Ship_1",
+            ShipType.AI     => "Prefabs/Ships/Ship_2",
+            ShipType.Enemy  => "Prefabs/Ships/Ship_3",
+            ShipType.RL     => "Prefabs/Ships/Ship_1",
+            _               => "Prefabs/Ships/Ship_1"
         };
     }
 
@@ -150,12 +150,12 @@ public static class TestSceneBuilder
     {
         return shipType switch
         {
-            ShipType.Basic => "Assets/Prefabs/Ship.prefab",
-            ShipType.Player => "Assets/Prefabs/PlayerShip Variant.prefab", 
-            ShipType.AI => "Assets/Prefabs/ShipBot Variant.prefab",
-            ShipType.Enemy => "Assets/Prefabs/EnemyShip Variant.prefab",
-            ShipType.RL => "Assets/Prefabs/RLShip Variant.prefab",
-            _ => "Assets/Prefabs/Ship.prefab"
+            ShipType.Basic  => "Assets/Prefabs/Ships/Ship_1.prefab",
+            ShipType.Player => "Assets/Prefabs/Ships/Ship_1.prefab",
+            ShipType.AI     => "Assets/Prefabs/Ships/Ship_2.prefab",
+            ShipType.Enemy  => "Assets/Prefabs/Ships/Ship_3.prefab",
+            ShipType.RL     => "Assets/Prefabs/Ships/Ship_1.prefab",
+            _               => "Assets/Prefabs/Ships/Ship_1.prefab"
         };
     }
 #endif
@@ -186,7 +186,7 @@ public static class TestSceneBuilder
     /// Configures a ship for testing purposes.
     /// </summary>
     /// <param name="ship">Ship to configure</param>
-    private static void ConfigureShipForTesting(Ship ship)
+    private static void ConfigureShipForTesting(Ship ship, ShipType shipType)
     {
         // Ensure ship has test-friendly settings
         if (ship.settings == null)
@@ -205,6 +205,39 @@ public static class TestSceneBuilder
             rb.isKinematic = false;
             rb.useGravity = false; // Game uses 2D physics
         }
+
+        // Attach pilot prefab when appropriate for tests
+        AttachPilotForShipType(ship, shipType);
+    }
+
+    /// <summary>
+    /// Instantiates and attaches a suitable pilot prefab for the specified ship type.
+    /// If the prefab cannot be found (or is unnecessary) the method safely does nothing.
+    /// </summary>
+    private static void AttachPilotForShipType(Ship ship, ShipType shipType)
+    {
+#if UNITY_EDITOR
+        // Determine pilot prefab name based on ship type
+        string pilotName = shipType switch
+        {
+            ShipType.Player => "PlayerPilot",
+            ShipType.RL     => "RLPilot",
+            _               => "UtilityPilot" // Basic / AI / Enemy can share UtilityPilot
+        };
+
+        string assetPath = $"Assets/Prefabs/Ships/Pilots/{pilotName}.prefab";
+        GameObject pilotPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
+        if (pilotPrefab == null) return; // Not found – tests may not require the pilot
+
+        GameObject pilotInstance = Object.Instantiate(pilotPrefab, ship.transform);
+        pilotInstance.name = pilotName;
+
+        // Ensure any newly added command sources are initialised
+        foreach (var src in pilotInstance.GetComponentsInChildren<IShipCommandSource>(true))
+        {
+            src.InitializeCommander(ship);
+        }
+#endif
     }
 
     /// <summary>

@@ -119,12 +119,12 @@ MonoBehaviour:
   minMass: 120
   minFragments: 2
   maxFragments: 5
-  highCountBias: 0.679
-  baseSeparationSpeed: 0.65
+  highCountBias: 0.359
+  baseSeparationSpeed: 0.3
   spinVariation: 1
   explosiveLossFactor: 0.5
   outwardBias: 0.7
   bulletBias: 0.41
   randomBias: 0.3
-  massLossFactor: 0.779
+  massLossFactor: 0.284
   fragmentFadeInTime: 0.1

@@ -51,7 +51,7 @@ MonoBehaviour:
   damage: 20
   maxDistance: 50
   hitEffect: {fileID: 0}
-  mass: 0.0005
+  mass: 0.01
   laserSpeed: 50
   fadeCurve:
     serializedVersion: 2

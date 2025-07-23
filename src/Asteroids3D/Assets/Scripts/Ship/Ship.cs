@@ -82,11 +82,15 @@ public class Ship : MonoBehaviour, ITargetable, IShooter
             RLog.ShipError($"{name}: ShipSettings asset reference missing – using runtime default values.");
             settings = ScriptableObject.CreateInstance<ShipSettings>();
         }
+    }
 
-        // Apply settings to movement & damage subsystems
+    void Start()
+    {
+        // Apply settings to movement & damage subsystems now that all Awakes are done.
         movement?.ApplySettings(settings);
         damageHandler?.ApplySettings(settings);
 
+        // Initialize commanders now that all components are cached and configured.
         foreach (var source in commandSources)
         {
             source?.InitializeCommander(this);

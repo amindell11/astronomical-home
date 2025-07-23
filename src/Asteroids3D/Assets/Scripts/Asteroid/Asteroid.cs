@@ -15,6 +15,20 @@ public class Asteroid : MonoBehaviour, IDamageable
     [Tooltip("Multiplier that converts collision energy (J) to gameplay damage.")]
     private float energyToDamageScale = 0.01f;
 
+    [Header("Damage Soft Cap")]
+    [SerializeField, Tooltip("Damage below this value is unaffected; excess is softened")] 
+    private float softCapThreshold = 50f;
+
+    [SerializeField, Range(0.1f, 1f), Tooltip("Exponent applied to damage above the soft-cap threshold (0.5 = sqrt, 1 = no cap)")]
+    private float softCapExponent = 0.5f;
+
+    private float ApplySoftCap(float damage)
+    {
+        if (damage <= softCapThreshold) return damage;
+        float excess = damage - softCapThreshold;
+        return softCapThreshold + Mathf.Pow(excess, softCapExponent);
+    }
+
     [Header("Health")]
     [SerializeField]
     [Tooltip("Base health per unit volume. Total health = volume * this value.")]
@@ -243,10 +257,18 @@ public class Asteroid : MonoBehaviour, IDamageable
         Vector3 shipVel = otherRb.linearVelocity;
         Vector3 impactPoint = collision.GetContact(0).point;
 
+        // --- NEW: Use only the velocity component along the collision normal ---
+        Vector3 normal = collision.GetContact(0).normal;
+        Vector3 asteroidVelNormal = Vector3.Project(rb.linearVelocity, normal);
+        Vector3 shipVelNormal     = Vector3.Project(shipVel, normal);
+
         float dmg = CollisionDamageUtility.ComputeDamage(
-            CurrentMass, rb.linearVelocity,
-            shipMass,     shipVel,
+            CurrentMass, asteroidVelNormal,
+            shipMass,     shipVelNormal,
             energyToDamageScale);
+
+        // Apply soft cap to prevent excessive one-hit damage
+        dmg = ApplySoftCap(dmg);
 
         damageable.TakeDamage(dmg, CurrentMass, rb.linearVelocity, impactPoint, gameObject);
     }

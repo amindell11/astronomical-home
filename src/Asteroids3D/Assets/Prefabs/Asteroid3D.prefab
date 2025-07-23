@@ -55,7 +55,9 @@ MonoBehaviour:
     type: 3}
   explosionSound: {fileID: 8300000, guid: 14e1c94ce80f1fc45bd483c188a57c1c, type: 3}
   explosionVolume: 0.85
-  energyToDamageScale: 0.01
+  energyToDamageScale: 0.02
+  softCapThreshold: 30
+  softCapExponent: 0.5
   healthPerUnitVolume: 0.5
   detailedColliderEnableDistance: 75
 --- !u!33 &503848992582056525

@@ -18,7 +18,7 @@ MonoBehaviour:
   reverseAcceleration: 600
   rotationThrustForce: 580
   rotationDrag: 0.95
-  yawDeadzoneAngle: 4
+  yawDeadzoneAngle: 2
   maxBankAngle: 45
   bankingSpeed: 5
   minStrafeForce: 750
