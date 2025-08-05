@@ -227,7 +227,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 89e447451c442f443abdbc78d400bca6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  referencePlane: {fileID: 0}
   enableDebugLogs: 0
   showMovementGizmos: 1
   movementGizmoScale: 3
@@ -248,7 +247,6 @@ MonoBehaviour:
   startingLives: 1
   shieldRegenDelay: 5
   shieldRegenRate: 20
-  lastAttacker: {fileID: 0}
 --- !u!114 &4368679400082138271
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -263,8 +261,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   hull: {fileID: 8357437974923976824}
   smoke: {fileID: 1180387568437145565}
-  sparksPrefab: {fileID: -532600014260631974, guid: 7f4473226fdfe5241a37d4e359857821,
-    type: 3}
+  sparksPrefab: {fileID: 0}
   source: {fileID: 0}
   flashColor: {r: 1, g: 0, b: 0, a: 1}
   flashTime: 0.15
