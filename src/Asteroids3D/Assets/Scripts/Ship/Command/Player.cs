@@ -2,7 +2,7 @@ using UnityEngine;
 using ShipControl;
 
 // Translates player input into commands for the Ship component.
-public class PlayerCommander : MonoBehaviour, IShipCommandSource
+public class Player : MonoBehaviour, ICommandSource
 {
     private Ship ship;
     private Camera mainCamera;
@@ -20,7 +20,7 @@ public class PlayerCommander : MonoBehaviour, IShipCommandSource
     private bool isMouseActive;
     
     // Cached command that will be built every Update and served to the Ship in FixedUpdate.
-    private ShipCommand cachedCommand;
+    private Command cachedCommand;
 
     public void InitializeCommander(Ship ship)
     {
@@ -42,12 +42,12 @@ public class PlayerCommander : MonoBehaviour, IShipCommandSource
     void Update()
     {
         // Build a new command from the latest input state each rendered frame.
-        ShipCommand cmd = new ShipCommand();
+        Command cmd = new Command();
 
         // Movement inputs
         cmd.Thrust = Input.GetAxis("Vertical");
         cmd.Strafe = Input.GetAxis("Horizontal");
-        cmd.Boost = Input.GetButtonDown("Boost") && ship.movement.BoostAvailable == 0f ? 1f : 0f;
+        cmd.Boost = Input.GetButtonDown("Boost") && ship.Movement.BoostAvailable? 1f : 0f;
 
         // Rotation handling (mouse or axis driven)
         HandleRotationInput(ref cmd);
@@ -60,7 +60,7 @@ public class PlayerCommander : MonoBehaviour, IShipCommandSource
         cachedCommand = cmd;
     }
     
-    public bool TryGetCommand(ShipState state, out ShipCommand cmd)
+    public bool TryGetCommand(State state, out Command cmd)
     {
         // Simply return the most recently cached command prepared in Update().
         cmd = cachedCommand;
@@ -68,7 +68,7 @@ public class PlayerCommander : MonoBehaviour, IShipCommandSource
     }
 
 
-    public void HandleRotationInput(ref ShipCommand cmd)
+    public void HandleRotationInput(ref Command cmd)
     {
         if (useMouseDirection)
         {
@@ -85,14 +85,14 @@ public class PlayerCommander : MonoBehaviour, IShipCommandSource
             }
             else
             {
-                cmd.YawRate = 0f;
+                cmd.YawTorque = 0f;
                 isMouseActive = false;
             }
         }
         else
         {
             float rotationInput = Input.GetAxis("Rotation");
-            cmd.YawRate = rotationInput;
+            cmd.YawTorque = rotationInput;
             cmd.RotateToTarget = false;
             isMouseActive = false;
         }

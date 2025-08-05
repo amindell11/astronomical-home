@@ -24,16 +24,16 @@ public class AIContext : MonoBehaviour
 
     // Cached references
     private Ship ship;
-    private AICommander aiCommander;
+    private AI ai;
     private AINavigator aiNavigator;
     private AIGunner aiGunner;
     private Ship enemyShip;
     // Buffer for physics queries - using shared buffers for efficiency
     
-    public void Initialize(Ship ship, AICommander commander, AINavigator navigator, AIGunner gunner)
+    public void Initialize(Ship ship, AI commander, AINavigator navigator, AIGunner gunner)
     {
         this.ship = ship;
-        this.aiCommander = commander;
+        this.ai = commander;
         this.aiNavigator = navigator;
         this.aiGunner = gunner;
         this.enemyShip = null;
@@ -263,7 +263,7 @@ public class AIContext : MonoBehaviour
     /// </summary>
     public Vector2 VectorToWaypoint => aiNavigator?.CurrentWaypoint.isValid == true ? aiNavigator.CurrentWaypoint.position - SelfPosition : Vector2.zero;
     
-    public float LaserSpeed => ship?.laserGun?.ProjectileSpeed ?? 0f;
+    public float LaserSpeed => ship?.LaserGun?.ProjectileSpeed ?? 0f;
     // ===== Helper Methods =====
 
     /// <summary>

@@ -22,7 +22,7 @@ public class ShieldUI : MonoBehaviour
     [Tooltip("Optional gradient to tint ring based on remaining shield")] 
     [SerializeField] Gradient shieldColors;
 
-    [SerializeField] ShipDamageHandler source;    // assign the ship whose shield flashes
+    [SerializeField] DamageHandler source;    // assign the ship whose shield flashes
 
     Image   ring;
     Color   baseColor;       // original tint without alpha
@@ -38,7 +38,7 @@ public class ShieldUI : MonoBehaviour
 
     void OnEnable()
     {
-        if (source == null) source = GetComponentInParent<ShipDamageHandler>();
+        if (source == null) source = GetComponentInParent<DamageHandler>();
         if (source != null) {
             source.OnShieldChanged += OnShieldChanged;
             source.OnShieldDamaged += TriggerFlash;

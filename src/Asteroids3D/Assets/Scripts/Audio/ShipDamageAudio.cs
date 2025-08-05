@@ -21,7 +21,7 @@ public sealed class ShipDamageAudio : MonoBehaviour
     [SerializeField, Range(0f,1f)] private float deathVolume  = 1f;
 
     private AudioSource source;
-    private ShipDamageHandler damageHandler;
+    private DamageHandler damageHandler;
 
     void Awake()
     {
@@ -34,7 +34,7 @@ public sealed class ShipDamageAudio : MonoBehaviour
     void OnEnable()
     {
         if (!damageHandler)
-            damageHandler = GetComponentInParent<ShipDamageHandler>();
+            damageHandler = GetComponentInParent<DamageHandler>();
 
         if (damageHandler != null)
         {

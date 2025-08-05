@@ -7,7 +7,7 @@ using ShipControl.AI;
 [RequireComponent(typeof(AINavigator))]
 [RequireComponent(typeof(AIGunner))]
 [RequireComponent(typeof(AIStateMachine))]
-public class AICommander : MonoBehaviour, IShipCommandSource
+public class AI : MonoBehaviour, ICommandSource
 {
     /* ── Difficulty Setting ─────────────────────────────────── */
     [Header("Difficulty")]
@@ -20,13 +20,13 @@ public class AICommander : MonoBehaviour, IShipCommandSource
     private AIGunner gunner;
     private AIContext context;
     private AIStateMachine stateMachine;
-    private ShipState currentState;
+    private State currentState;
 
-    private ShipCommand cachedCommand;
+    private Command cachedCommand;
 
-    public ShipState CurrentState => currentState;
+    public State CurrentState => currentState;
 
-    public ShipCommand CachedCommand => cachedCommand;
+    public Command CachedCommand => cachedCommand;
     public AINavigator Navigator => navigator;
     public AIGunner Gunner => gunner;
     public AIStateMachine StateMachine => stateMachine;
@@ -58,7 +58,7 @@ public class AICommander : MonoBehaviour, IShipCommandSource
 
     public int Priority => 10;
 
-    public bool TryGetCommand(ShipState state, out ShipCommand cmd)
+    public bool TryGetCommand(State state, out Command cmd)
     {   
         // Simply return the command generated in the most recent FixedUpdate().
         cmd = cachedCommand;
@@ -79,9 +79,9 @@ public class AICommander : MonoBehaviour, IShipCommandSource
         cachedCommand = GenerateCommand(currentState);
     }
 
-    ShipCommand GenerateCommand(ShipState state)
+    Command GenerateCommand(State state)
     {
-        ShipCommand cmd = new ShipCommand();
+        Command cmd = new Command();
 
         // --- Difficulty Level 1 (< 0.25): Stationary, no actions. ---
         if (difficulty < 0.25f) return cmd; // cmd defaults to zeros/false.

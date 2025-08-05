@@ -63,7 +63,7 @@ public class AIGunner : MonoBehaviour
         lineOfSightMask = LayerIds.Mask(LayerIds.Asteroid);
     }
 
-    public void GenerateGunnerCommands(ShipState state, ref ShipCommand cmd)
+    public void GenerateGunnerCommands(State state, ref Command cmd)
     {
         cmd.PrimaryFire = false;
         cmd.SecondaryFire = false;
@@ -82,7 +82,7 @@ public class AIGunner : MonoBehaviour
         bool wantsToFireMissile = false;
         const float dummyMissileRange = 10f; // Close range for dumb-fire during locking
 
-        if (ship.missileLauncher)
+        if (ship.MissileLauncher)
         {
             switch (state.MissileState)
             {
@@ -114,7 +114,7 @@ public class AIGunner : MonoBehaviour
         }
 
         cmd.SecondaryFire = wantsToFireMissile;
-        LaserGun laserGun = ship.laserGun;
+        LaserGun laserGun = ship.LaserGun;
         // Only block laser when we have a locked missile ready to fire
         bool blockLaserForMissile = wantsToFireMissile && state.MissileState == MissileLauncher.LockState.Locked;
 
@@ -125,7 +125,7 @@ public class AIGunner : MonoBehaviour
             Vector3 dir = targetPos - laserFirePos;
             bool losOK = HasLineOfSight(laserFirePos, dir, dist, angle, targetPos);
             
-            RLog.AI($"[AI-{name}] Laser check: gun={ship.laserGun != null}, inRange={dist <= fireDistance}, inAngle={angle <= fireAngleTolerance}, noMissile={!blockLaserForMissile}, LOS={losOK}");
+            RLog.AI($"[AI-{name}] Laser check: gun={ship.LaserGun != null}, inRange={dist <= fireDistance}, inAngle={angle <= fireAngleTolerance}, noMissile={!blockLaserForMissile}, LOS={losOK}");
 
             if (losOK)
             {
@@ -135,7 +135,7 @@ public class AIGunner : MonoBehaviour
         }
         else
         {
-            RLog.AI($"[AI-{name}] Laser conditions failed: gun={ship.laserGun != null}, dist={dist:F1}<={fireDistance:F1}={dist <= fireDistance}, angle={angle:F1}<={fireAngleTolerance:F1}={angle <= fireAngleTolerance}, blockLaser={blockLaserForMissile}");
+            RLog.AI($"[AI-{name}] Laser conditions failed: gun={ship.LaserGun != null}, dist={dist:F1}<={fireDistance:F1}={dist <= fireDistance}, angle={angle:F1}<={fireAngleTolerance:F1}={angle <= fireAngleTolerance}, blockLaser={blockLaserForMissile}");
         }
     }
 
@@ -174,9 +174,9 @@ public class AIGunner : MonoBehaviour
     /// <summary>Returns true if an unobstructed line of sight exists to the current target.</summary>
     public bool HasLineOfSight()
     {
-        if (!ship.laserGun || Target == Vector2.zero) return false;
+        if (!ship.LaserGun || Target == Vector2.zero) return false;
 
-        Vector3 firePos = ship.laserGun.firePoint ? ship.laserGun.firePoint.position : transform.position;
+        Vector3 firePos = ship.LaserGun.firePoint ? ship.LaserGun.firePoint.position : transform.position;
         Vector3 targetPos = GamePlane.PlaneToWorld(Target);
         Vector3 dir = targetPos - firePos;
         float dist = dir.magnitude;
@@ -188,9 +188,9 @@ public class AIGunner : MonoBehaviour
     /// <summary>Returns true if an unobstructed line of sight exists to <paramref name="tgt"/>.</summary>
     public bool HasLineOfSight(Transform tgt)
     {
-        if (!ship.laserGun || !tgt) return false;
+        if (!ship.LaserGun || !tgt) return false;
 
-        Vector3 firePos = ship.laserGun.firePoint ? ship.laserGun.firePoint.position : transform.position;
+        Vector3 firePos = ship.LaserGun.firePoint ? ship.LaserGun.firePoint.position : transform.position;
         Vector3 dir = tgt.position - firePos;
         float dist = dir.magnitude;
         float angle = Vector3.Angle(transform.up, dir);
@@ -361,9 +361,9 @@ public class AIGunner : MonoBehaviour
     
     void DrawLineOfSightGizmos()
     {
-        if (Target == Vector2.zero || !ship.laserGun) return;
+        if (Target == Vector2.zero || !ship.LaserGun) return;
         
-        Vector3 firePos = ship.laserGun.firePoint ? ship.laserGun.firePoint.position : transform.position;
+        Vector3 firePos = ship.LaserGun.firePoint ? ship.LaserGun.firePoint.position : transform.position;
         Vector3 targetPos = GamePlane.PlaneToWorld(Target);
         
         // Line of sight ray

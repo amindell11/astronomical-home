@@ -144,9 +144,9 @@ public class RLObserver
         AddObservation(sensor, currentState.LaserHeatPct);
 
         float missileAmmoPct = 0f;
-        if (ship.missileLauncher != null && ship.missileLauncher.MaxAmmo > 0)
+        if (ship.MissileLauncher != null && ship.MissileLauncher.MaxAmmo > 0)
         {
-            missileAmmoPct = (float)currentState.MissileAmmo / ship.missileLauncher.MaxAmmo;
+            missileAmmoPct = (float)currentState.MissileAmmo / ship.MissileLauncher.MaxAmmo;
         }
         AddObservation(sensor, missileAmmoPct);
 

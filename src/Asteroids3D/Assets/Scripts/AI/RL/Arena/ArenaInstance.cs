@@ -44,7 +44,7 @@ public class ArenaInstance : BaseGameContext
     [Header("Curriculum Bot")]
     [Tooltip("The non-RL agent ship to be enabled/disabled by the curriculum.")]
     [SerializeField] private Ship botShip;
-    private AICommander botController;
+    private AI botController;
 
     [Header("Reward Settings")]
     [Tooltip("Small penalty applied each step to encourage finishing episodes quickly")]
@@ -142,7 +142,7 @@ public class ArenaInstance : BaseGameContext
         
         if (botShip != null)
         {
-            botController = botShip.GetComponent<AICommander>();
+            botController = botShip.GetComponent<AI>();
         }
         
         // Create boundary collider if it doesn't exist
@@ -324,8 +324,8 @@ public class ArenaInstance : BaseGameContext
     private DamageInfo GetDamageInfo(Ship victim, float damage)
     {
         // Determine if damage hit shields or health based on victim's current shield level
-        bool hitShields = victim.damageHandler.CurrentShield > 0f || 
-                         victim.damageHandler.CurrentShield + damage > victim.damageHandler.maxShield;
+        bool hitShields = victim.DamageHandler.CurrentShield > 0f || 
+                         victim.DamageHandler.CurrentShield + damage > victim.DamageHandler.maxShield;
         
         return new DamageInfo
         {
@@ -638,7 +638,7 @@ public class ArenaInstance : BaseGameContext
             ship.gameObject.SetActive(true);
 
             // Apply temporary spawn invulnerability so immediate asteroid collisions do not damage the ship.
-            ship.damageHandler.SetInvulnerability(spawnInvulnerabilityDuration);    
+            ship.DamageHandler.SetInvulnerability(spawnInvulnerabilityDuration);    
 
             // Place ship in a random position near the arena centre.
             Vector3 randomOffset = Random.insideUnitCircle.normalized * ArenaSize *.7f; // 70% of arena size

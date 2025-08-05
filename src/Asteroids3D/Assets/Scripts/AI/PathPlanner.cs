@@ -3,7 +3,7 @@ using UnityEngine;
 
 /// <summary>
 /// 2-D version of the original PathPlanner.  Only operates in the XY plane and
-///  consumes the compact <see cref="ShipKinematics"/> record.  The algorithm is
+///  consumes the compact <see cref="Kinematics"/> record.  The algorithm is
 ///  the same seek / arrive / predictive-avoidance strategy, but expressed with
 ///  Vector2 math so it can be unit-tested and stays detached from Unity's
 ///  transforms and physics.
@@ -13,7 +13,7 @@ public static class PathPlanner
     #region IO structs
     public readonly struct Input
     {
-        public readonly ShipKinematics kin;
+        public readonly Kinematics kin;
         public readonly Vector2 goal;            // waypoint in plane space
         public readonly Vector2 waypointVel;     // velocity of the waypoint
         public readonly float   arriveRadius;
@@ -24,7 +24,7 @@ public static class PathPlanner
         public readonly IReadOnlyList<Collider> nearbyAsteroids;
         public readonly SteeringTuning tuning;
 
-        public Input(ShipKinematics k, Vector2 g, Vector2 wpVel, float avoid, float arrive, float max, float lookAhead,
+        public Input(Kinematics k, Vector2 g, Vector2 wpVel, float avoid, float arrive, float max, float lookAhead,
                      float margin, IReadOnlyList<Collider> rocks, SteeringTuning t)
         {
             kin   = k;

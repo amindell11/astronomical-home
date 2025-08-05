@@ -192,7 +192,7 @@ public static class TestSceneBuilder
         if (ship.settings == null)
         {
             // Create default settings if none exist
-            ship.settings = ScriptableObject.CreateInstance<ShipSettings>();
+            ship.settings = ScriptableObject.CreateInstance<Settings>();
         }
         
         // Disable any problematic components for testing
@@ -233,7 +233,7 @@ public static class TestSceneBuilder
         pilotInstance.name = pilotName;
 
         // Ensure any newly added command sources are initialised
-        foreach (var src in pilotInstance.GetComponentsInChildren<IShipCommandSource>(true))
+        foreach (var src in pilotInstance.GetComponentsInChildren<ICommandSource>(true))
         {
             src.InitializeCommander(ship);
         }
@@ -345,9 +345,9 @@ public static class TestSceneBuilder
         // - Apply damage through proper damage system
         // - Use realistic damage parameters
         
-        if (ship?.damageHandler != null)
+        if (ship?.DamageHandler != null)
         {
-            ship.damageHandler.TakeDamage(
+            ship.DamageHandler.TakeDamage(
                 damage, 
                 1f, // projectile mass
                 Vector3.zero, // projectile velocity

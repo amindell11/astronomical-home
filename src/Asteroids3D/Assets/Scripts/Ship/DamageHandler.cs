@@ -5,8 +5,8 @@ using System.Collections;
 using UnityEditor;
 #endif
 
-[RequireComponent(typeof(ShipMovement))]
-public class ShipDamageHandler : MonoBehaviour, IDamageable
+[RequireComponent(typeof(Movement))]
+public class DamageHandler : MonoBehaviour, IDamageable
 {
     // ------ Events ------
     public event Action<float,float, float> OnShieldChanged;   // current, previous, max
@@ -23,20 +23,16 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
     public float shieldRegenRate;
 
     // ------ State ------
-    private float currentHealth;
-    private float currentShield;
-    private int   lives;
     private float lastDamageTime;
     [SerializeField] public Ship  lastAttacker;
 
     // --- Spawn Invulnerability --------------------------------------
-    private bool  isInvulnerable = false;
     private float invulnerableUntil = 0f;
 
     /// <summary>
     /// Indicates whether the ship is currently invulnerable (takes no damage).
     /// </summary>
-    public bool IsInvulnerable => isInvulnerable;
+    public bool IsInvulnerable { get; private set; } = false;
 
     /// <summary>
     /// Grant temporary invulnerability for the given duration (seconds).
@@ -46,29 +42,32 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
     {
         if (duration <= 0f)
         {
-            isInvulnerable = false;
+            IsInvulnerable = false;
             invulnerableUntil = 0f;
         }
         else
         {
-            isInvulnerable = true;
+            IsInvulnerable = true;
             invulnerableUntil = Time.time + duration;
         }
     }
 
-    public float CurrentHealth => currentHealth;
-    public float CurrentShield => currentShield;
-    public int   Lives => lives;
-    public float HealthPct => currentHealth / maxHealth;
-    public float ShieldPct => currentShield / maxShield;
+    public float CurrentHealth { get; private set; }
+
+    public float CurrentShield { get; private set; }
+
+    public int   Lives { get; private set; }
+
+    public float HealthPct => CurrentHealth / maxHealth;
+    public float ShieldPct => CurrentShield / maxShield;
 
     // Global death event so game systems (e.g., GameManager) can react without tight coupling.
     // -----------------------------------------------------------
     void Awake()
     {
-        currentHealth = maxHealth;
-        currentShield = maxShield;
-        lives         = startingLives;
+        CurrentHealth = maxHealth;
+        CurrentShield = maxShield;
+        Lives         = startingLives;
 
         BroadcastState();
     }
@@ -76,19 +75,19 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
     void Update()
     {
         // Handle expiry of temporary invulnerability
-        if (isInvulnerable && Time.time >= invulnerableUntil)
+        if (IsInvulnerable && Time.time >= invulnerableUntil)
         {
-            isInvulnerable = false;
+            IsInvulnerable = false;
         }
 
         // Shield regeneration after delay
-        if (currentShield < maxShield && Time.time - lastDamageTime >= shieldRegenDelay)
+        if (CurrentShield < maxShield && Time.time - lastDamageTime >= shieldRegenDelay)
         {
             float regen = shieldRegenRate * Time.deltaTime;
-            var oldShield = currentShield;
-            currentShield = Mathf.Min(currentShield + regen, maxShield);
-            if(currentShield != oldShield)
-                OnShieldChanged?.Invoke(currentShield, oldShield, maxShield);
+            var oldShield = CurrentShield;
+            CurrentShield = Mathf.Min(CurrentShield + regen, maxShield);
+            if(!Mathf.Approximately(CurrentShield, oldShield))
+                OnShieldChanged?.Invoke(CurrentShield, oldShield, maxShield);
         }
     }
 
@@ -105,19 +104,19 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
 
         lastDamageTime = Time.time;
 
-        if (isInvulnerable)
+        if (IsInvulnerable)
         {
             // Ignore damage while invulnerable
             return;
         }
 
         // 1. Apply to shields first if any remain
-        if (currentShield > 0f)
+        if (CurrentShield > 0f)
         {
-            float absorbed = Mathf.Min(damage, currentShield);
-            var oldShield = currentShield;
-            currentShield -= absorbed;
-            OnShieldChanged?.Invoke(currentShield, oldShield, maxShield);
+            float absorbed = Mathf.Min(damage, CurrentShield);
+            var oldShield = CurrentShield;
+            CurrentShield -= absorbed;
+            OnShieldChanged?.Invoke(CurrentShield, oldShield, maxShield);
             OnShieldDamaged?.Invoke(absorbed, hitPoint);
             // shipMovement?.TriggerDamageFlash();
 
@@ -132,10 +131,10 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
         }
 
         // 2. No shields – apply to health
-        var oldHealth = currentHealth;
-        currentHealth = Mathf.Max(currentHealth - damage, 0f);
-        float actualHealthDamage = oldHealth - currentHealth;
-        OnHealthChanged?.Invoke(currentHealth, oldHealth, maxHealth);
+        var oldHealth = CurrentHealth;
+        CurrentHealth = Mathf.Max(CurrentHealth - damage, 0f);
+        float actualHealthDamage = oldHealth - CurrentHealth;
+        OnHealthChanged?.Invoke(CurrentHealth, oldHealth, maxHealth);
         OnDamaged?.Invoke(actualHealthDamage, hitPoint);
 
         // Broadcast damage event for health hits
@@ -146,7 +145,7 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
 
         // shipMovement?.TriggerDamageFlash();
 
-        if (currentHealth <= 0f)
+        if (CurrentHealth <= 0f)
         {
             LoseLife();
         }
@@ -154,19 +153,19 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
 
     void LoseLife()
     {
-        lives = Mathf.Max(lives - 1, 0);
-        OnLivesChanged?.Invoke(lives);
+        Lives = Mathf.Max(Lives - 1, 0);
+        OnLivesChanged?.Invoke(Lives);
 
-        if (lives > 0)
+        if (Lives > 0)
         {
             // Restore armour
-            var oldHealth = currentHealth;
-            var oldShield = currentShield;
-            currentHealth = maxHealth;
-            currentShield = maxShield;
+            var oldHealth = CurrentHealth;
+            var oldShield = CurrentShield;
+            CurrentHealth = maxHealth;
+            CurrentShield = maxShield;
             
-            OnHealthChanged?.Invoke(currentHealth, oldHealth, maxHealth);
-            OnShieldChanged?.Invoke(currentShield, oldShield, maxShield);
+            OnHealthChanged?.Invoke(CurrentHealth, oldHealth, maxHealth);
+            OnShieldChanged?.Invoke(CurrentShield, oldShield, maxShield);
         }
         else
         {
@@ -176,23 +175,21 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
 
     void BroadcastState()
     {
-        OnShieldChanged?.Invoke(currentShield, currentShield, maxShield);
-        OnHealthChanged?.Invoke(currentHealth, currentHealth, maxHealth);
-        OnLivesChanged?.Invoke(lives);
+        OnShieldChanged?.Invoke(CurrentShield, CurrentShield, maxShield);
+        OnHealthChanged?.Invoke(CurrentHealth, CurrentHealth, maxHealth);
+        OnLivesChanged?.Invoke(Lives);
     }
 
     // -----------------------------------------------------------
     public void ResetDamageState()
     {
-        var oldHealth = currentHealth;
-        var oldShield = currentShield;
-        currentHealth = maxHealth;
-        currentShield = maxShield;
-        lives         = startingLives;
+        CurrentHealth = maxHealth;
+        CurrentShield = maxShield;
+        Lives         = startingLives;
         BroadcastState();
 
         // Clear any active invulnerability when fully resetting.
-        isInvulnerable = false;
+        IsInvulnerable = false;
         invulnerableUntil = 0f;
     }
 
@@ -210,7 +207,7 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
     }
 
     // Expose a config method for central Ship to push settings
-    public void ApplySettings(ShipSettings s)
+    public void PopulateSettings(Settings s)
     {
         if (s == null) return;
 
@@ -249,7 +246,7 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
         Gizmos.DrawCube(shieldBarPos, barSize);
         if (maxShield > 0)
         {
-            float shieldPercent = currentShield / maxShield;
+            float shieldPercent = CurrentShield / maxShield;
             Gizmos.color = Color.cyan; // fill
             Vector3 fillPos  = shieldBarPos - GamePlane.Right * (barWidth * (1f - shieldPercent) * 0.5f);
             Vector3 fillSize = GamePlane.Right * (barWidth * shieldPercent) + GamePlane.Forward * barHeight + GamePlane.Normal * barDepth;
@@ -261,7 +258,7 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
         Gizmos.DrawCube(healthBarPos, barSize);
         if (maxHealth > 0)
         {
-            float healthPercent = currentHealth / maxHealth;
+            float healthPercent = CurrentHealth / maxHealth;
             Gizmos.color = Color.green; // fill
             Vector3 fillPos  = healthBarPos - GamePlane.Right * (barWidth * (1f - healthPercent) * 0.5f);
             Vector3 fillSize = GamePlane.Right * (barWidth * healthPercent) + GamePlane.Forward * barHeight + GamePlane.Normal * barDepth;
@@ -269,8 +266,8 @@ public class ShipDamageHandler : MonoBehaviour, IDamageable
         }
 
         /* ------------------- Draw Text ------------------------------ */
-        string shieldText = $"Shield: {currentShield:F1}/{maxShield:F1}";
-        string healthText = $"Health: {currentHealth:F1}/{maxHealth:F1}";
+        string shieldText = $"Shield: {CurrentShield:F1}/{maxShield:F1}";
+        string healthText = $"Health: {CurrentHealth:F1}/{maxHealth:F1}";
 
         GUIStyle style = new GUIStyle();
         style.normal.textColor = Color.white;

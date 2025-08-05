@@ -11,8 +11,8 @@ public class ShieldRegenerationPlayMode
 {
     private GameObject testScene;
     private Ship testShip;
-    private ShipDamageHandler damageHandler;
-    private ShipSettings shipSettings;
+    private DamageHandler damageHandler;
+    private Settings settings;
     private GameObject referencePlane;
 
     private const float RegenDelay = 0.2f;      // seconds
@@ -45,10 +45,10 @@ public class ShieldRegenerationPlayMode
         shipGO.AddComponent<Rigidbody>();
 
         // Required components due to attributes
-        var movement = shipGO.AddComponent<ShipMovement>();
-        movement.ApplySettings(ScriptableObject.CreateInstance<ShipSettings>());
+        var movement = shipGO.AddComponent<Movement>();
+        movement.PopulateSettings(ScriptableObject.CreateInstance<Settings>());
         movement.enabled = false; // not needed for shield regen tests
-        var handler  = shipGO.AddComponent<ShipDamageHandler>();
+        var handler  = shipGO.AddComponent<DamageHandler>();
 
         // Set tunable values on the handler directly.
         handler.maxHealth        = MaxHealth;

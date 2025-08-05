@@ -14,7 +14,7 @@ public static class AIPilot
     // --- New typed IO structs for modular pipeline ---------------------------
     public readonly struct Input
     {
-        public readonly ShipKinematics kin;
+        public readonly Kinematics kin;
         public readonly Vector2 desiredVel;
         public readonly Vector2 desiredAccel;
         public readonly float   maxSpeed;
@@ -23,7 +23,7 @@ public static class AIPilot
         public readonly bool useTiltedHeading; // if false, skip tilt logic and just face desired velocity
 
         // Constructor that uses explicit tuning parameters (preferred)
-        public Input(ShipKinematics k, Vector2 desiredVelocity, Vector2 desiredAcceleration, float max, SteeringTuning tuning, bool lockRotation = false, bool useTiltedHeading = true)
+        public Input(Kinematics k, Vector2 desiredVelocity, Vector2 desiredAcceleration, float max, SteeringTuning tuning, bool lockRotation = false, bool useTiltedHeading = true)
         {
             kin = k;
             desiredVel = desiredVelocity;
@@ -35,7 +35,7 @@ public static class AIPilot
         }
 
         // Back-compat constructor – falls back to default tuning values.
-        public Input(ShipKinematics k, Vector2 desiredVelocity, Vector2 desiredAcceleration, float max)
+        public Input(Kinematics k, Vector2 desiredVelocity, Vector2 desiredAcceleration, float max)
             : this(k, desiredVelocity, desiredAcceleration, max, SteeringTuning.Default, false, true) {}   
     }
 
@@ -97,7 +97,7 @@ public static class AIPilot
         /* ------------------------------------------------------------------------
          * Heading control
          * ---------------------------------------------------------------------*/
-        rotTargetDeg = i.kin.AngleDeg;  // Default to current heading
+        rotTargetDeg = i.kin.Yaw;  // Default to current heading
 
         if (!i.lockRotation && i.desiredVel.sqrMagnitude > 0.01f)
         {

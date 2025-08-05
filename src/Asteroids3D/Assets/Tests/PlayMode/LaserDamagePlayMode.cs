@@ -38,12 +38,12 @@ public class LaserDamagePlayMode
         targetShip = TestSceneBuilder.CreateTestShip("TargetShip", TestSceneBuilder.ShipType.Enemy);
         
         // Disable shields on target for laser damage testing
-        if (targetShip?.damageHandler != null)
+        if (targetShip?.DamageHandler != null)
         {
             // Set shields to 0 for direct health damage testing
-            targetShip.damageHandler.ApplySettings(targetShip.settings);
+            targetShip.DamageHandler.PopulateSettings(targetShip.settings);
             // Force shields to 0 by dealing shield damage
-            float currentShields = targetShip.damageHandler.CurrentShield;
+            float currentShields = targetShip.DamageHandler.CurrentShield;
             if (currentShields > 0)
             {
                 TestSceneBuilder.ApplyTestDamage(targetShip, currentShields);
@@ -94,13 +94,13 @@ public class LaserDamagePlayMode
         Assert.NotNull(targetShip,  "Target ship was not created in SetUp");
 
         // Disable target shields for this test
-        var tgtSettings = ScriptableObject.CreateInstance<ShipSettings>();
+        var tgtSettings = ScriptableObject.CreateInstance<Settings>();
         tgtSettings.maxHealth = targetShip.settings.maxHealth; // keep same health
         tgtSettings.maxShield = 0f;                            // no shields
         tgtSettings.shieldRegenDelay = 999f;                   // disable regen
-        targetShip.damageHandler.ApplySettings(tgtSettings);
+        targetShip.DamageHandler.PopulateSettings(tgtSettings);
 
-        float initialHealth = targetShip.damageHandler.CurrentHealth;
+        float initialHealth = targetShip.DamageHandler.CurrentHealth;
 
         // Determine expected damage – read from the projectile prefab via reflection
         float projectileDamage = 10f; // fallback default
@@ -123,8 +123,8 @@ public class LaserDamagePlayMode
 
         // Assert – health reduced exactly by projectile damage, shields remain zero
         float expectedHealth = initialHealth - projectileDamage;
-        Assert.AreEqual(expectedHealth, targetShip.damageHandler.CurrentHealth, 0.001f, "Target health did not decrease by expected amount");
-        Assert.AreEqual(0f, targetShip.damageHandler.CurrentShield, 0.001f, "Target shields should be zero for this test");
+        Assert.AreEqual(expectedHealth, targetShip.DamageHandler.CurrentHealth, 0.001f, "Target health did not decrease by expected amount");
+        Assert.AreEqual(0f, targetShip.DamageHandler.CurrentShield, 0.001f, "Target shields should be zero for this test");
     }
 
     [UnityTest]
@@ -136,12 +136,12 @@ public class LaserDamagePlayMode
         Assert.NotNull(laserGun);
 
         // Disable shields
-        var tgtSettings = ScriptableObject.CreateInstance<ShipSettings>();
+        var tgtSettings = ScriptableObject.CreateInstance<Settings>();
         tgtSettings.maxHealth = targetShip.settings.maxHealth;
         tgtSettings.maxShield = 0f;
-        targetShip.damageHandler.ApplySettings(tgtSettings);
+        targetShip.DamageHandler.PopulateSettings(tgtSettings);
 
-        float initialHealth = targetShip.damageHandler.CurrentHealth;
+        float initialHealth = targetShip.DamageHandler.CurrentHealth;
 
         // Retrieve projectile damage via reflection (same as previous test)
         float projectileDamage = 10f;
@@ -160,7 +160,7 @@ public class LaserDamagePlayMode
 
         // Assert cumulative damage applied
         float expectedHealth = initialHealth - projectileDamage * shots;
-        Assert.AreEqual(expectedHealth, targetShip.damageHandler.CurrentHealth, 0.001f, "Cumulative health damage does not match expected after multiple laser hits");
+        Assert.AreEqual(expectedHealth, targetShip.DamageHandler.CurrentHealth, 0.001f, "Cumulative health damage does not match expected after multiple laser hits");
     }
 
     [UnityTest]
@@ -171,8 +171,8 @@ public class LaserDamagePlayMode
         Assert.NotNull(targetShip);
         Assert.NotNull(laserGun);
 
-        float initialHealth = targetShip.damageHandler.CurrentHealth;
-        float initialShield = targetShip.damageHandler.CurrentShield;
+        float initialHealth = targetShip.DamageHandler.CurrentHealth;
+        float initialShield = targetShip.DamageHandler.CurrentShield;
 
         // Position target 10 units to the right (90°) so projectile fired forward misses
         TestSceneBuilder.PositionForTest(shooterShip.transform, targetShip.transform, 10f, 90f);
@@ -183,8 +183,8 @@ public class LaserDamagePlayMode
         yield return new WaitForSeconds(0.25f);
 
         // Assert – target health & shield unchanged
-        Assert.AreEqual(initialHealth, targetShip.damageHandler.CurrentHealth, 0.001f, "Target health should remain unchanged for missed shot");
-        Assert.AreEqual(initialShield, targetShip.damageHandler.CurrentShield, 0.001f, "Target shields should remain unchanged for missed shot");
+        Assert.AreEqual(initialHealth, targetShip.DamageHandler.CurrentHealth, 0.001f, "Target health should remain unchanged for missed shot");
+        Assert.AreEqual(initialShield, targetShip.DamageHandler.CurrentShield, 0.001f, "Target shields should remain unchanged for missed shot");
     }
 
     // TODO: Helper methods for test scene setup

@@ -2,12 +2,12 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 
-public class ShipHealthVisuals : MonoBehaviour
+public class Hull : MonoBehaviour
 {
     [SerializeField] Renderer hull;           // ship mesh or sprite renderer
     [SerializeField] ParticleSystem smoke;    // looping smoke prefab
     [SerializeField] PooledVFX sparksPrefab; // burst prefab
-    [SerializeField] ShipDamageHandler source;   // link to ship damage handler
+    [SerializeField] DamageHandler source;   // link to ship damage handler
     
     [Header("Damage Flash")]
     [SerializeField] Color flashColor = Color.white;
@@ -46,7 +46,7 @@ public class ShipHealthVisuals : MonoBehaviour
 
     void OnEnable()
     {
-        if (source == null) source = GetComponentInParent<ShipDamageHandler>();
+        if (source == null) source = GetComponentInParent<DamageHandler>();
         if (source != null) {
             source.OnHealthChanged += OnHealthChanged;
             source.OnDamaged      += SpawnSparks;

@@ -63,20 +63,18 @@ public class LaserGun : LauncherBase<LaserProjectile>
     public override ProjectileBase Fire()
     {
         // base.Fire() now calls our overridden CanFire(), so all checks are handled.
-        ProjectileBase proj = base.Fire();
-        if (proj != null)
-        {
-            bool wasOverheatedBefore = currentHeat >= maxHeat;
-            currentHeat += heatPerShot;
-            lastShotTime = Time.time;
-            currentHeat = Mathf.Min(currentHeat, maxHeat); // Clamp heat to max
+        var proj = base.Fire();
+        if (!proj) return proj;
+        bool wasOverheatedBefore = currentHeat >= maxHeat;
+        currentHeat += heatPerShot;
+        lastShotTime = Time.time;
+        currentHeat = Mathf.Min(currentHeat, maxHeat); // Clamp heat to max
             
-            // Check for overheat event (transitioning to overheated state)
-            bool isOverheatedNow = currentHeat >= maxHeat;
-            if (isOverheatedNow && !wasOverheatedBefore)
-            {
-                OnOverheat?.Invoke();
-            }
+        // Check for overheat event (transitioning to overheated state)
+        bool isOverheatedNow = currentHeat >= maxHeat;
+        if (isOverheatedNow && !wasOverheatedBefore)
+        {
+            OnOverheat?.Invoke();
         }
         return proj;
     }

@@ -129,12 +129,12 @@ public class UIHealthAudio : MonoBehaviour
                 playerShip.OnDeath += OnPlayerDeath;
                 
                 // Initialize current values
-                if (playerShip.damageHandler != null)
+                if (playerShip.DamageHandler != null)
                 {
-                    currentHealthPercentage = playerShip.damageHandler.maxHealth > 0f ? 
-                        playerShip.damageHandler.CurrentHealth / playerShip.damageHandler.maxHealth : 0f;
-                    currentShieldPercentage = playerShip.damageHandler.maxShield > 0f ? 
-                        playerShip.damageHandler.CurrentShield / playerShip.damageHandler.maxShield : 0f;
+                    currentHealthPercentage = playerShip.DamageHandler.maxHealth > 0f ? 
+                        playerShip.DamageHandler.CurrentHealth / playerShip.DamageHandler.maxHealth : 0f;
+                    currentShieldPercentage = playerShip.DamageHandler.maxShield > 0f ? 
+                        playerShip.DamageHandler.CurrentShield / playerShip.DamageHandler.maxShield : 0f;
                 }
             }
         }

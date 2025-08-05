@@ -8,23 +8,20 @@ using UnityEngine;
 /// </summary>
 public static class GamePlane
 {
-    static Transform _plane;
+    private static Transform _plane;
 
     /// <summary>Assigns the reference plane explicitly (e.g., from a bootstrap script).</summary>
     public static void SetReferencePlane(Transform t) => _plane = t;
 
     /// <summary>Returns the cached plane or attempts to find a GameObject tagged "ReferencePlane".</summary>
-    public static Transform Plane
+    public static Transform Plane => _plane ?? CachePlane();
+
+    private static Transform CachePlane()
     {
-        get
-        {
-            if (_plane == null)
-            {
-                var go = GameObject.FindGameObjectWithTag("ReferencePlane");
-                if (go) _plane = go.transform;
-            }
+        if (_plane) return _plane;
+        var go = GameObject.FindGameObjectWithTag("ReferencePlane");
+            if (go) SetReferencePlane(go.transform);
             return _plane;
-        }
     }
 
     public static Vector3 Origin  => Plane ? Plane.position : Vector3.zero;

@@ -14,7 +14,7 @@ using UnityEditor; // Required for OnDrawGizmos
 /// Handles action processing and observation collection.
 /// Training rewards and episode management are handled by ArenaInstance.
 /// </summary>
-public class RLCommanderAgent : Agent, IShipCommandSource
+public class RLCommanderAgent : Agent, ICommandSource
 {
     // Static tracking for debug purposes
     public static int GlobalStepCount { get; private set; } = 0;
@@ -33,10 +33,10 @@ public class RLCommanderAgent : Agent, IShipCommandSource
     // --- Internal State ---
     public Ship ship { get; private set; }
     public IGameContext gameContext { get; private set; }
-    private ShipCommand lastCommand;
+    private Command lastCommand;
     private RLObserver observer;
     private bool hasNewCommand;
-    private IShipCommandSource fallbackCommander;
+    private ICommandSource fallbackCommander;
 
     // Debug toggle so we can render the observation overlay without changing build symbols
     [Header("Debug UI")]
@@ -61,7 +61,7 @@ public class RLCommanderAgent : Agent, IShipCommandSource
         this.ship = s;
     }
 
-    public bool TryGetCommand(ShipState state, out ShipCommand command)
+    public bool TryGetCommand(State state, out Command command)
     {
         command = lastCommand;
         bool hadCmd = hasNewCommand;
@@ -80,7 +80,7 @@ public class RLCommanderAgent : Agent, IShipCommandSource
         //if (gameContext == null) RLog.LogError("RLCommanderAgent requires a parent IGameContext component.", this);
 
         // Detect if another IShipCommandSource (e.g., PlayerCommander) is attached for heuristic fallback
-        foreach (var src in GetComponents<IShipCommandSource>())
+        foreach (var src in GetComponents<ICommandSource>())
         {
             if (src as Agent != this)
             {
@@ -130,7 +130,7 @@ public class RLCommanderAgent : Agent, IShipCommandSource
         lastCommand.Strafe = continuousActions[1];
         lastCommand.RotateToTarget = false;
         lastCommand.TargetAngle = 0;
-        lastCommand.YawRate = continuousActions[2];
+        lastCommand.YawTorque = continuousActions[2];
 
         var discreteActions = actions.DiscreteActions;
         lastCommand.PrimaryFire = discreteActions[0] > 0;
@@ -146,15 +146,15 @@ public class RLCommanderAgent : Agent, IShipCommandSource
         var continuousActions = actionsOut.ContinuousActions;
         var discreteActions = actionsOut.DiscreteActions;
         RLog.RL($"RLCommanderAgent: Heuristic called for agent {name} with fallback commander {fallbackCommander}");
-        if (fallbackCommander != null && fallbackCommander.TryGetCommand(ship.CurrentState, out ShipCommand cmd))
+        if (fallbackCommander != null && fallbackCommander.TryGetCommand(ship.CurrentState, out Command cmd))
         {
             // Map ShipCommand to action buffers
             continuousActions[0] = cmd.Thrust;
             continuousActions[1] = cmd.Strafe;
 
-            if (cmd.YawRate != 0f)
+            if (cmd.YawTorque != 0f)
             {
-                continuousActions[2] = cmd.YawRate;
+                continuousActions[2] = cmd.YawTorque;
             }
             else
             {

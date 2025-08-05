@@ -1,9 +1,10 @@
 using UnityEngine;
 using ShipControl;
 using System.Collections.Generic;
+using System.Linq;
 
-[RequireComponent(typeof(ShipMovement))]
-[RequireComponent(typeof(ShipDamageHandler))]
+[RequireComponent(typeof(Movement))]
+[RequireComponent(typeof(DamageHandler))]
 public class Ship : MonoBehaviour, ITargetable, IShooter
 {
     public static readonly List<Transform> ActiveShips = new();
@@ -17,34 +18,33 @@ public class Ship : MonoBehaviour, ITargetable, IShooter
     /* ─────────── Tunable Parameters ─────────── */
     [Header("Settings Asset")]
     [Tooltip("ShipSettings asset that holds all tunable parameters.")]
-    public ShipSettings settings;
+    public Settings settings;
 
     [Header("Team Settings")]
     [Tooltip("Team number for this ship. Ships with the same team number are considered friendly.")]
     public int teamNumber = 0;
 
     /* ─────────── Cached Components ─────────── */
-    public ShipMovement  movement{get; private set;}
-    public LaserGun      laserGun{get; private set;}
-    public MissileLauncher missileLauncher{get; private set;}
-    public ShipDamageHandler damageHandler{get; private set;}
-    public ShipHealthVisuals healthVisuals{get; private set;}
-    public IShipCommandSource[] commandSources{get; private set;}
+    public Movement Movement { get; private set; }
+    public LaserGun LaserGun { get; private set; }
+    public MissileLauncher MissileLauncher { get; private set; }
+    public DamageHandler DamageHandler { get; private set; }
+    public Hull Hull { get; private set; }
+    public ICommandSource[] CommandSources { get; private set; }
 
     /* ─────────── Current State ─────────── */
-    public ShipState CurrentState { get; private set; } 
-    public ShipCommand CurrentCommand { get; private set; }
-    private bool hasValidCommand = false;
+    public State CurrentState { get; private set; }
+    public Command CurrentCommand { get; internal set; }
+    public bool HasValidCommand { get; private set; } = false;
 
     /* ─────────── ITargetable Implementation ─────────── */
     public Transform TargetPoint => transform;
-    public bool HasValidCommand => hasValidCommand;
 
     /* ─────────── Lock-On Channel ─────────── */
     public LockChannel Lock { get; } = new LockChannel();
 
     /* ─────────── IShooter Implementation ─────────── */
-    public Vector3 Velocity => movement != null ? movement.Kinematics.WorldVel : Vector3.zero;
+    public Vector3 Velocity => Movement != null ? Movement.Kinematics.WorldVel : Vector3.zero;
 
     /* ─────────── Team System ─────────── */
     /// <summary>
@@ -55,60 +55,62 @@ public class Ship : MonoBehaviour, ITargetable, IShooter
     /// <returns>True if the ships are on the same team, false otherwise</returns>
     public bool IsFriendly(Ship otherShip)
     {
-        if (otherShip == null) return false;
+        if (!otherShip) return false;
         return this.teamNumber == otherShip.teamNumber;
     }
 
     /* ────────────────────────────────────────── */
-    void Awake()
+    private void Awake()
     {
-        movement       = GetComponent<ShipMovement>();
-        laserGun       = GetComponentInChildren<LaserGun>();
-        missileLauncher = GetComponentInChildren<MissileLauncher>();
-        damageHandler  = GetComponent<ShipDamageHandler>();
-        healthVisuals  = GetComponentInChildren<ShipHealthVisuals>();
+        Movement       = GetComponent<Movement>();
+        LaserGun       = GetComponentInChildren<LaserGun>();
+        MissileLauncher = GetComponentInChildren<MissileLauncher>();
+        DamageHandler  = GetComponent<DamageHandler>();
+        Hull  = GetComponentInChildren<Hull>();
         // Discover all command sources within the ship hierarchy (includeInactive=true allows pooled objects to register before activation)
-        commandSources = GetComponentsInChildren<IShipCommandSource>(true);
-
+        CommandSources = GetComponentsInChildren<ICommandSource>(true)
+            .OrderByDescending(cs => cs.Priority)
+            .ToArray();
 
         // Relay events from damage handler
-        damageHandler.OnHealthChanged += (cur, prev, max) => OnHealthChanged?.Invoke(cur, prev, max);
-        damageHandler.OnShieldChanged += (cur, prev, max) => OnShieldChanged?.Invoke(cur, prev, max);
-        damageHandler.OnDeath += (victim, killer) => OnDeath?.Invoke(victim, killer);
-        damageHandler.OnDeath += (victim, killer) => HandleShipDeath();
-        
+        DamageHandler.OnHealthChanged += (cur, prev, max) => OnHealthChanged?.Invoke(cur, prev, max);
+        DamageHandler.OnShieldChanged += (cur, prev, max) => OnShieldChanged?.Invoke(cur, prev, max);
+        DamageHandler.OnDeath += (victim, killer) => OnDeath?.Invoke(victim, killer);
+        DamageHandler.OnDeath += (victim, killer) => HandleShipDeath();
+
         if (!settings)
-        {
-            RLog.ShipError($"{name}: ShipSettings asset reference missing – using runtime default values.");
-            settings = ScriptableObject.CreateInstance<ShipSettings>();
-        }
+            settings = ScriptableObject.CreateInstance<Settings>();
     }
 
-    void Start()
+    private void Start()
     {
         // Apply settings to movement & damage subsystems now that all Awakes are done.
-        movement?.ApplySettings(settings);
-        damageHandler?.ApplySettings(settings);
+        Movement?.PopulateSettings(settings);
+        DamageHandler?.PopulateSettings(settings);
 
         // Initialize commanders now that all components are cached and configured.
-        foreach (var source in commandSources)
+        foreach (var source in CommandSources)
         {
             source?.InitializeCommander(this);
         }
     }
 
-    void OnEnable()
+    private void OnEnable()
     {
+        // Apply settings to movement & damage subsystems now that all Awakes are done.
+        Movement?.PopulateSettings(settings);
+        DamageHandler?.PopulateSettings(settings);
+
         if (!ActiveShips.Contains(transform))
             ActiveShips.Add(transform);
     }
 
-    void OnDisable()
+    private void OnDisable()
     {
         ActiveShips.Remove(transform);
     }
 
-    void OnDestroy()
+    private void OnDestroy()
     {
         ActiveShips.Remove(transform);
     }
@@ -117,70 +119,69 @@ public class Ship : MonoBehaviour, ITargetable, IShooter
     {
         OnGlobalShipDamaged?.Invoke(victim, attacker, damage);
     }   
-    void HandleShipDeath()
+    
+    private void HandleShipDeath()
     {
         Lock.Released?.Invoke();
-        missileLauncher.CancelLock();
+        MissileLauncher.CancelLock();
     }
     /// <summary>
     /// Resets the ship to its initial state.
     /// </summary>
     public void ResetShip()
     {
-        movement.ResetMovement();
-        laserGun.ResetHeat();
-        missileLauncher.ReplenishAmmo();
-        damageHandler.ResetDamageState();
+        Movement.ResetMovement();
+        LaserGun.ResetHeat();
+        MissileLauncher.ReplenishAmmo();
+        DamageHandler.ResetDamageState();
     }
 
-    void FixedUpdate()
+    private void FixedUpdate()
     {
-        if (hasValidCommand)
+        if (HasValidCommand)
         {
-            if (movement != null)
-                movement.SetCommand(CurrentCommand);
-            if (CurrentCommand.PrimaryFire && laserGun)
-                laserGun.Fire();
-            if (CurrentCommand.SecondaryFire && missileLauncher)
-                missileLauncher.Fire();
+            if (Movement)
+                Movement.SetCommand(CurrentCommand);
+            if (CurrentCommand.PrimaryFire && LaserGun)
+                LaserGun.Fire();
+            if (CurrentCommand.SecondaryFire && MissileLauncher)
+                MissileLauncher.Fire();
         }
-        hasValidCommand = false;
+        HasValidCommand = false;
     }
 
     // With command polling now in Update(), FixedUpdate simply exists so that other
     // components (e.g., ShipMovement) can continue to rely on physics-step timing.
-    void Update() { 
-        ShipCommand cmd = default;
-        bool hasCmd = false;
-        int highest = int.MinValue;
+    private void Update()
+    {
+        UpdateState();
+        HasValidCommand = TryGetCommand(CurrentState, out var cmd);
+        if (HasValidCommand)
+            CurrentCommand = cmd;
+    }
 
-        var state = new ShipState
+    private void UpdateState()
+    {
+        CurrentState = new State
         {
-            Kinematics = movement.Kinematics,
-            IsLaserReady = laserGun?.CanFire() ?? false,
-            LaserHeatPct = laserGun?.HeatPct ?? 0f,
-            MissileState = missileLauncher?.State ?? MissileLauncher.LockState.Idle,
-            MissileAmmo = missileLauncher?.AmmoCount ?? 0,
-            HealthPct = damageHandler.HealthPct,
-            ShieldPct = damageHandler.ShieldPct,
+            Kinematics = Movement.Kinematics,
+            IsLaserReady = LaserGun?.CanFire() ?? false,
+            LaserHeatPct = LaserGun?.HeatPct ?? 0f,
+            MissileState = MissileLauncher?.State ?? MissileLauncher.LockState.Idle,
+            MissileAmmo = MissileLauncher?.AmmoCount ?? 0,
+            HealthPct = DamageHandler.HealthPct,
+            ShieldPct = DamageHandler.ShieldPct,
         };
-        CurrentState = state;
-
-        foreach (var src in commandSources)
-        {
-            if (src == null) continue;
-            if (src.TryGetCommand(state, out ShipCommand c))
-            {
-                int p = src.Priority;
-                if (!hasCmd || p > highest)
-                {
-                    cmd = c;
-                    highest = p;
-                    hasCmd  = true;
-                }
-            }
+        
+    }
+    private bool TryGetCommand(State state,out Command cmd)
+    {
+        foreach (var src in CommandSources) {
+            if (src is null || !src.TryGetCommand(state, out var c))continue;
+            cmd = c;
+            return true;
         }
-        CurrentCommand = cmd;
-        hasValidCommand = hasCmd;
+        cmd = default;
+        return false;
     }
 }
