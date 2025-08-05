@@ -109,13 +109,13 @@ public class AIContext : MonoBehaviour
     public MissileLauncher.LockState MissileState => ship?.CurrentState.MissileState ?? MissileLauncher.LockState.Idle;
     
     // ===== Enemy Information =====
-    public bool InCombat => Enemy != null && Enemy.gameObject.activeInHierarchy;
+    public bool InCombat => enemyShip != null && enemyShip.gameObject.activeInHierarchy;
     /// <summary>
     /// Current enemy ship
     /// </summary>
-    public Ship Enemy => enemyShip ??= FindNearestEnemy();
-    public Vector2 EnemyPos => Enemy.CurrentState.Kinematics.Pos;
-    public Vector2 EnemyVel => Enemy.CurrentState.Kinematics.Vel;
+    public Ship Enemy => InCombat ? enemyShip : (enemyShip = FindNearestEnemy());
+    public Vector2 EnemyPos => Enemy?.CurrentState.Kinematics.Pos ?? Vector2.zero;
+    public Vector2 EnemyVel => Enemy?.CurrentState.Kinematics.Vel ?? Vector2.zero;
 
     /// <summary>
     /// Vector from ship to the nearest enemy
