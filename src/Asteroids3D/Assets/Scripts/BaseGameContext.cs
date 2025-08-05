@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using ShipMain;
 
 /// <summary>
 /// Abstract base class that provides common IGameContext implementation.

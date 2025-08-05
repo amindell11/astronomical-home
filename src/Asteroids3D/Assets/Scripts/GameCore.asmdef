@@ -2,7 +2,7 @@
     "name": "Game.Core",
     "rootNamespace": "",
     "references": [
-        ""
+        "GUID:584d57d225904db990c8670b71908128"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

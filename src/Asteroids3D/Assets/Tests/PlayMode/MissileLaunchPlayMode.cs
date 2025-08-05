@@ -3,6 +3,8 @@ using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
+using Weapons;
+using ShipMain;
 
 public class MissileLaunchPlayMode
 {

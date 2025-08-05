@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using ShipMain;
 
 /// <summary>
 /// Interface that provides game context information needed by RL agents.

@@ -3,6 +3,9 @@ using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Editor;
+using Utils;
+using ShipMain;
 
 public enum GameState
 {
@@ -150,7 +153,7 @@ public class GameManager : BaseGameContext
         foreach (var ship in subscribedShips)
         {
             if (ship == null) continue;
-            ship.OnDeath -= OnShipDeath;
+            ship.DamageHandler.OnDeath -= OnShipDeath;
         }
         subscribedShips.Clear();
     }
@@ -186,7 +189,7 @@ public class GameManager : BaseGameContext
 
             if (!subscribedShips.Contains(ship))
             {
-                ship.OnDeath += OnShipDeath;
+                ship.DamageHandler.OnDeath += OnShipDeath;
                 subscribedShips.Add(ship);
             }
         }

@@ -1,5 +1,6 @@
 using UnityEngine;
-using ShipControl;
+using ShipMain.Control;
+using ShipMain;
 
 /// <summary>
 /// Helper utility for programmatic scene composition to keep tests deterministic.

@@ -2,6 +2,8 @@ using System.Collections;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
+using Weapons;
+using ShipMain;
 
 /// <summary>
 /// PlayMode test for missile homing validation.

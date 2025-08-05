@@ -2,7 +2,9 @@ using System.Collections;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
-using ShipControl;
+using Weapons;
+using ShipMain;
+using ShipMain.Control;
 
 /// <summary>
 /// PlayMode test for laser damage validation.

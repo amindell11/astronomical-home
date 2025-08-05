@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using Editor;
+using Utils;
+using ShipMain;
 
 [RequireComponent(typeof(Camera))]
 public class CameraFollow : MonoBehaviour
