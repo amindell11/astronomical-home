@@ -24,8 +24,7 @@ public class GameManager : BaseGameContext
     [SerializeField] private float enemyRespawnDelay = 3f;
     [SerializeField] private float offscreenDistance = 25f;
 
-    private GameState currentState = GameState.Playing;
-    public GameState CurrentState => currentState;
+    public GameState CurrentState { get; private set; } = GameState.Playing;
     
     // Track enemy ships for respawning
     private Camera mainCamera;
@@ -35,7 +34,7 @@ public class GameManager : BaseGameContext
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
+        if (Instance && Instance != this)
         {
             Destroy(gameObject);
             return;
@@ -54,23 +53,23 @@ public class GameManager : BaseGameContext
     protected override void Start()
     {
         base.Start();
-        currentState = GameState.Playing;        
+        CurrentState = GameState.Playing;        
         //Shader.WarmupAllShaders();
     }
 
     /// <summary>
     /// Call this when the player's ship has been destroyed.
     /// </summary>
-    public void HandlePlayerDeath(Ship playerShip)
+    private void HandlePlayerDeath(Ship playerShip)
     {
-        if (currentState == GameState.GameOver) return;
+        if (CurrentState == GameState.GameOver) return;
+        var respawnRoutine = WaitAndRespawn(enemyRespawnDelay, playerShip);
         if (restartOnPlayerDeath)
         {
-            currentState = GameState.GameOver;
+            CurrentState = GameState.GameOver;
             RLog.Core("Player ship destroyed. Game Over!");
             Invoke(nameof(RestartGame), restartDelay);
         } else {
-            IEnumerator respawnRoutine = WaitAndRespawn(enemyRespawnDelay, playerShip);
             StartCoroutine(respawnRoutine);
         }
     }
@@ -78,12 +77,12 @@ public class GameManager : BaseGameContext
     /// <summary>
     /// Call this when an enemy ship has been destroyed.
     /// </summary>
-    public void HandleEnemyDeath(Ship respawnShip)
+    private void HandleEnemyDeath(Ship respawnShip)
     {
-        if (currentState != GameState.Playing) return;
+        if (CurrentState != GameState.Playing) return;
         
         RLog.Core("Enemy ship destroyed. Scheduling respawn...");
-        IEnumerator respawnRoutine = WaitAndRespawn(enemyRespawnDelay, respawnShip);
+        var respawnRoutine = WaitAndRespawn(enemyRespawnDelay, respawnShip);
         StartCoroutine(respawnRoutine);
     }
     
@@ -104,7 +103,7 @@ public class GameManager : BaseGameContext
         respawnShip.ResetShip();
 
         // Find a random offscreen position
-        Vector3 respawnPosition = GetRandomOffscreenPosition();
+        var respawnPosition = GetRandomOffscreenPosition();
         respawnShip.transform.position = respawnPosition;
         RLog.Core($"Enemy ship respawned at position: {respawnPosition}");
     }
@@ -121,7 +120,7 @@ public class GameManager : BaseGameContext
                 return Vector3.zero;
             }
         }
-        Vector3 pos = Random.insideUnitSphere.normalized * offscreenDistance + mainCamera.transform.position;
+        var pos = Random.insideUnitSphere.normalized * offscreenDistance + mainCamera.transform.position;
         pos.y = 0;
         return pos;
     }
@@ -132,9 +131,9 @@ public class GameManager : BaseGameContext
     public void RestartGame()
     {
         RLog.Core("Restarting game...");
-        Scene currentScene = SceneManager.GetActiveScene();
+        var currentScene = SceneManager.GetActiveScene();
         SceneManager.LoadScene(currentScene.buildIndex);
-        currentState = GameState.Playing;
+        CurrentState = GameState.Playing;
     }
 
     protected override void OnEnable()
@@ -150,9 +149,8 @@ public class GameManager : BaseGameContext
         SceneManager.sceneLoaded -= OnSceneLoaded;
 
         // Unsubscribe from ship events we previously registered
-        foreach (var ship in subscribedShips)
+        foreach (var ship in subscribedShips.Where(ship => ship))
         {
-            if (ship == null) continue;
             ship.DamageHandler.OnDeath -= OnShipDeath;
         }
         subscribedShips.Clear();
@@ -173,25 +171,23 @@ public class GameManager : BaseGameContext
     private void RegisterAllShipHandlers()
     {
         // Clear old list (do NOT unsubscribe here; that happens in OnDisable)
-        subscribedShips.RemoveAll(s => s == null);
+        subscribedShips.RemoveAll(s => !s);
 
         // Find all ships in the scene, optionally filtering by layer named "Ship" if it exists
-        Ship[] ships = FindObjectsByType<Ship>(FindObjectsSortMode.None);
-        int shipLayer = LayerMask.NameToLayer("Ship");
+        var ships = FindObjectsByType<Ship>(FindObjectsSortMode.None);
+        int shipLayer = LayerIds.Ship;
 
         foreach (var ship in ships)
         {
-            if (ship == null) continue;
+            if (!ship) continue;
 
             // If a specific "Ship" layer exists (> -1) and object is not on it, skip
             if (shipLayer != -1 && ship.gameObject.layer != shipLayer)
                 continue;
 
-            if (!subscribedShips.Contains(ship))
-            {
-                ship.DamageHandler.OnDeath += OnShipDeath;
-                subscribedShips.Add(ship);
-            }
+            if (subscribedShips.Contains(ship)) continue;
+            ship.DamageHandler.OnDeath += OnShipDeath;
+            subscribedShips.Add(ship);
         }
 
         // Mark ships cache as dirty so BaseGameContext will refresh on next access
@@ -200,7 +196,7 @@ public class GameManager : BaseGameContext
 
     private void OnShipDeath(Ship deadShip, Ship killer)
     {
-        if (deadShip == null) return;
+        if (!deadShip) return;
 
         // Determine if this is the player by tag or team.
         if (deadShip.CompareTag(TagNames.Player))
@@ -229,7 +225,7 @@ public class GameManager : BaseGameContext
     /// <summary>
     /// Returns true while the game is in a playing state.
     /// </summary>
-    public override bool IsActive => currentState == GameState.Playing;
+    public override bool IsActive => CurrentState == GameState.Playing;
 
     // Uses default implementation from BaseGameContext that finds all ships in scene
 } 

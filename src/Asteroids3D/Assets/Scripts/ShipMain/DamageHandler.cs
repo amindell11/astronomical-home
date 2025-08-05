@@ -53,7 +53,7 @@ namespace ShipMain
             CurrentHealth = maxHealth;
             CurrentShield = maxShield;
             Lives         = startingLives;
-
+            myShip = GetComponent<Ship>();
             BroadcastState();
         }
 
@@ -77,7 +77,9 @@ namespace ShipMain
         {
             if (damage <= 0 || IsInvulnerable) return;
             lastDamageTime = Time.time;
-
+            var attackShip = attacker.GetComponentInParent<Ship>();
+            if (attackShip)
+                LastAttacker = attackShip;
             if (CurrentShield > 0f)
             {
                 var absorbed = ApplyShieldDamage(damage, hitPoint);
@@ -174,7 +176,7 @@ namespace ShipMain
         }
 
 #if UNITY_EDITOR
-        void OnDrawGizmosSelected()
+        private void OnDrawGizmosSelected()
         {
             /* ------------------- Configurable offsets ------------------- */
             const float baseOffset   = 2f;   // distance from ship to first element (shield bar)

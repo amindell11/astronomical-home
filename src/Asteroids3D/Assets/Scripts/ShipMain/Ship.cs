@@ -120,6 +120,7 @@ namespace ShipMain
         {
             Lock.Released?.Invoke();
             MissileLauncher.CancelLock();
+            gameObject.SetActive(false);
         }
         /// <summary>
         /// Resets the ship to its initial state.
