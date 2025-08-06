@@ -131,6 +131,7 @@ namespace ShipMain
             LaserGun.ResetHeat();
             MissileLauncher.ReplenishAmmo();
             DamageHandler.ResetDamageState();
+            gameObject.SetActive(true);
         }
 
         private void FixedUpdate()
