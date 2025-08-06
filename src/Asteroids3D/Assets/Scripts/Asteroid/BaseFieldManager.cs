@@ -1,4 +1,5 @@
 using Editor;
+using Game;
 using UnityEngine;
 
 namespace Asteroid
@@ -101,7 +102,6 @@ namespace Asteroid
             {
                 float volumeToSpawn = (targetVolumeDensity - cachedVolumeDensity) * cachedArea;
                 RLog.Asteroid($"BaseFieldManager: SPAWNING NEEDED | Volume deficit: {volumeToSpawn:F2} | Will spawn up to {spawnsPerFrame} asteroids");
-            
                 float volumeSpawned = 0f;
                 int actualSpawns = 0;
                 int safetyBreak = spawnsPerFrame;
@@ -110,28 +110,20 @@ namespace Asteroid
                        Spawner.ActiveAsteroidCount < maxAsteroids &&
                        safetyBreak > 0)
                 {
-                    // 1. Pick uniform-area point in a disk.
-                    Vector2 r = Random.insideUnitCircle;
-                    // 2. Map to desired annulus radius.
-                    float radius = Mathf.Lerp(minSpawn, maxSpawn, r.magnitude);
-                    Vector3 spawnOffset = new Vector3(r.x, 0f, r.y).normalized * radius;
-                    Vector3 spawnPosition = spawnAnchor.position + spawnOffset;
-                    Pose spawnPose = new Pose(spawnPosition, Random.rotationUniform);
-                    GameObject astGO = Spawner.SpawnAsteroid(AsteroidSpawnRequest.Random(spawnPose));
-                    if (astGO == null) 
-                    {
-                        break;
-                    }
-
-                    Asteroid asteroid = astGO.GetComponent<Asteroid>();
-                    if (asteroid != null)
+                    float r = Mathf.Lerp(minSpawn, maxSpawn, Random.insideUnitCircle.magnitude);
+                    var offset = GamePlane.ProjectOntoPlane(Random.insideUnitSphere.normalized) * r;
+                    var pos = spawnAnchor.position + offset;
+                    var fullPose = new Pose(pos, Random.rotationUniform);
+                    var ast = Spawner.SpawnAsteroid(AsteroidSpawnRequest.Random(fullPose));
+                    if (!ast) break;
+                    var asteroid = ast.GetComponent<Asteroid>();
+                    if (asteroid)
                     {
                         volumeSpawned += asteroid.CurrentVolume;
                         actualSpawns++;
                     }
                     safetyBreak--;
                 }
-            
                 RLog.Asteroid($"BaseFieldManager: SPAWN COMPLETE | Spawned {actualSpawns} asteroids | Volume spawned: {volumeSpawned:F2} | Target was: {volumeToSpawn:F2} | Safety break remaining: {safetyBreak}");
             }
             else

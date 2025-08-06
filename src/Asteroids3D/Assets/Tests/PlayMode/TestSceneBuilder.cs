@@ -1,3 +1,4 @@
+using Game;
 using UnityEngine;
 using ShipMain.Control;
 using ShipMain;
@@ -189,13 +190,6 @@ public static class TestSceneBuilder
     /// <param name="ship">Ship to configure</param>
     private static void ConfigureShipForTesting(Ship ship, ShipType shipType)
     {
-        // Ensure ship has test-friendly settings
-        if (ship.settings == null)
-        {
-            // Create default settings if none exist
-            ship.settings = ScriptableObject.CreateInstance<Settings>();
-        }
-        
         // Disable any problematic components for testing
         // (e.g., audio, effects that might interfere with test determinism)
         

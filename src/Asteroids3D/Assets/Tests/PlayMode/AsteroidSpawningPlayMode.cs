@@ -8,6 +8,7 @@ using UnityEditor;
 using System.Collections.Generic;
 using System.Linq;
 using Asteroid;
+using Game;
 
 /// <summary>
 /// PlayMode tests that exercise the asteroid spawning pipeline – initial population,

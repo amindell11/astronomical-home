@@ -909,10 +909,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1234567890abcdef1234567890abcdef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  restartDelay: 3
-  restartOnPlayerDeath: 0
-  enemyRespawnDelay: 3
-  offscreenDistance: 30
 --- !u!4 &216806978
 Transform:
   m_ObjectHideFlags: 0
@@ -1349,6 +1345,7 @@ Transform:
   - {fileID: 107688356}
   - {fileID: 832982748}
   - {fileID: 2030985035}
+  - {fileID: 740512523}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &685417417
@@ -1446,14 +1443,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 740512522}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.79828316, y: -6.377958, z: 2.7060761}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0.39914158, y: -6.377958, z: 1.3530381}
+  m_LocalScale: {x: 0.5, y: 1, z: 0.5}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2131475323}
   - {fileID: 1585865382}
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 685417416}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &796842201 stripped
 Transform:
@@ -4597,7 +4594,6 @@ SceneRoots:
   - {fileID: 994636789}
   - {fileID: 2008396451}
   - {fileID: 216806978}
-  - {fileID: 740512523}
   - {fileID: 2769559261144554944}
   - {fileID: 1757308940}
   - {fileID: 685417416}

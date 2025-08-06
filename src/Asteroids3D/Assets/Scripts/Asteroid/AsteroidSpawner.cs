@@ -17,26 +17,23 @@ namespace Asteroid
 
         // Book-keeping now lives in AsteroidRegistry.  These pass-through properties keep
         // existing callers/tests working without modification.
-        public int ActiveAsteroidCount => AsteroidRegistry.Instance != null ? AsteroidRegistry.Instance.ActiveCount : 0;
-        public float TotalActiveVolume => AsteroidRegistry.Instance != null ? AsteroidRegistry.Instance.TotalVolume : 0f;
+        public int ActiveAsteroidCount => AsteroidRegistry.Instance ? AsteroidRegistry.Instance.ActiveCount : 0;
+        public float TotalActiveVolume => AsteroidRegistry.Instance ? AsteroidRegistry.Instance.TotalVolume : 0f;
 
         private void Awake()
         {
             if (Instance != null && Instance != this)
             {
-                // Only one spawner should exist after refactor – destroy duplicates to avoid ambiguity.
                 Destroy(gameObject);
                 return;
             }
             Instance = this;
 
-            // Ensure a registry exists early so book-keeping works from the first spawn.
             if (AsteroidRegistry.Instance == null)
             {
                 gameObject.AddComponent<AsteroidRegistry>();
             }
 
-            // Ensure spawnSettings is assigned; this ScriptableObject now drives all spawn parameters.
             if (spawnSettings == null)
             {
                 RLog.AsteroidError("AsteroidSpawner requires a reference to AsteroidSpawnSettings.");
@@ -44,10 +41,8 @@ namespace Asteroid
                 return;
             }
 
-            // Validate settings early so any issues surface before runtime spawning.
             spawnSettings.ValidateSettings();
 
-            // Initialize the asteroid object pool
             int poolCapacity = spawnSettings.defaultPoolCapacity;
             int poolMaxSize = spawnSettings.maxPoolSize;
             asteroidPool = new ObjectPool<GameObject>(

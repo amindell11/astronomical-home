@@ -1,5 +1,6 @@
 using EnemyAI;
 using EnemyAI.States;
+using Game;
 using UnityEngine;
 
 // Commander modules are now standalone; ShipMovement lives on the parent Ship object.

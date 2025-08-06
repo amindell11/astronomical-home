@@ -79,7 +79,7 @@ namespace EnemyAI
         /// <summary>
         /// Current speed as percentage of maximum
         /// </summary>
-        public float SpeedPct => ship?.CurrentState.Kinematics.Speed / (ship?.settings?.maxSpeed ?? 1f) ?? 0f;
+        public float SpeedPct => ship?.CurrentState.Kinematics.Speed / (ship?.settings.maxSpeed ?? 1f) ?? 0f;
     
         /// <summary>
         /// Current 2D forward direction of the ship

@@ -1,6 +1,7 @@
 // This file contains movement and plane logic for ships.
 // Damage and health are now handled by ShipHealth.
 
+using Game;
 using UnityEngine;
 
 namespace ShipMain
@@ -36,6 +37,7 @@ namespace ShipMain
 
         private void Start()
         {
+            AlignRotationToPlane();
             ResetMovement();
             SyncStateFrom3D();
             if (!settings) return;
@@ -44,12 +46,15 @@ namespace ShipMain
 
         private void ApplySettings()
         {
+            if (!rb) return;
             rb.maxLinearVelocity = settings.maxSpeed;
             rb.maxAngularVelocity = settings.maxRotationSpeed;
             rb.linearDamping = settings.linearDrag;
             rb.angularDamping = settings.rotationDrag;
             rb.mass = settings.mass;
         }
+   
+
         public void ResetMovement()
         {
             nextBoostTime = 0f;
@@ -96,7 +101,14 @@ namespace ShipMain
             transform.position -= n * d;
             rb.linearVelocity = Vector3.ProjectOnPlane(rb.linearVelocity, n);
         }
-    
+
+        private void AlignRotationToPlane()
+        {
+            var projectedUp = Vector3.ProjectOnPlane(transform.up, GamePlane.Normal).normalized;
+            if (projectedUp.sqrMagnitude < 1e-6f) return;
+            var toPlane = Quaternion.FromToRotation(transform.up, projectedUp);
+            transform.rotation = toPlane * transform.rotation;
+        }
         private Vector2 CalculateBoost(Kinematics kin, Command command)
         {
             if (!(command.Boost > 0f) || !settings || !BoostAvailable) return Vector2.zero;

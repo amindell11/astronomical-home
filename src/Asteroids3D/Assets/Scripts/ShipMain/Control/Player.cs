@@ -1,3 +1,4 @@
+using Game;
 using UnityEngine;
 using Utils;
 
@@ -7,7 +8,6 @@ namespace ShipMain.Control
     public class Player : MonoBehaviour, ICommandSource
     {
         private Ship ship;
-        private Camera mainCamera;
 
         [Tooltip("If checked, the ship will rotate towards the mouse position. If unchecked, the ship will rotate using the rotation input axis.")]
         public bool useMouseDirection = false;
@@ -27,106 +27,69 @@ namespace ShipMain.Control
         public void InitializeCommander(Ship ship)
         {
             this.ship = ship;
-
-            // Ensure the player ship is tagged correctly for game-wide lookups (e.g., GameManager death handling)
-            if (ship != null)
-            {
+            if (ship)
                 ship.gameObject.tag = TagNames.Player;
-            }
-        }
-
-        private void Start()
-        {
-            mainCamera = Camera.main;
         }
 
         // Unity standard frame update – poll input here for maximum responsiveness.
-        void Update()
+        private void Update()
         {
-            // Build a new command from the latest input state each rendered frame.
-            Command cmd = new Command();
-
-            // Movement inputs
-            cmd.Thrust = Input.GetAxis("Vertical");
-            cmd.Strafe = Input.GetAxis("Horizontal");
-            cmd.Boost = Input.GetButtonDown("Boost") && ship.Movement.BoostAvailable? 1f : 0f;
-
-            // Rotation handling (mouse or axis driven)
-            HandleRotationInput(ref cmd);
-
-            // Shooting inputs
-            cmd.PrimaryFire   = Input.GetButton("Fire1");
-            cmd.SecondaryFire = Input.GetButtonDown("Fire2");
-
-            // Cache for retrieval during the next physics step.
+            var (y, t, r) = HandleRotationInput();
+            var cmd = new Command
+            {
+                Thrust = Input.GetAxis("Vertical"),
+                Strafe = Input.GetAxis("Horizontal"),
+                Boost = Input.GetButtonDown("Boost") && ship.Movement.BoostAvailable? 1f : 0f,
+                PrimaryFire   = Input.GetButton("Fire1"),
+                SecondaryFire = Input.GetButtonDown("Fire2"),
+                YawTorque = y,
+                TargetAngle = t,
+                RotateToTarget = r
+            };
             cachedCommand = cmd;
         }
     
         public bool TryGetCommand(State state, out Command cmd)
         {
-            // Simply return the most recently cached command prepared in Update().
             cmd = cachedCommand;
             return true;
         }
 
 
-        public void HandleRotationInput(ref Command cmd)
+        private (float, float, bool) HandleRotationInput()
         {
+            float yawTorque =0 , targetRot = 0;
+            bool isRot;
             if (useMouseDirection)
             {
                 bool wantsToRotate = Input.GetButton("Direction");
-                cmd.RotateToTarget = wantsToRotate;
+                isRot = wantsToRotate;
 
                 if (wantsToRotate)
                 {
-                    Vector3 mouseWorldPos = GetMouseWorldPosition();
+                    var mouseWorldPos = MouseInput.Singleton.GetMouseWorldPosition();
                     directionToMouse = (mouseWorldPos - ship.transform.position).normalized;
-                    float targetYaw = CalculateYawAngle(directionToMouse);
-                    cmd.TargetAngle = targetYaw;
+                    targetRot = CalculateYawAngle(directionToMouse);
                     isMouseActive = true;
                 }
                 else
                 {
-                    cmd.YawTorque = 0f;
                     isMouseActive = false;
                 }
             }
             else
             {
                 float rotationInput = Input.GetAxis("Rotation");
-                cmd.YawTorque = rotationInput;
-                cmd.RotateToTarget = false;
+                yawTorque = rotationInput;
+                isRot = false;
                 isMouseActive = false;
             }
-        }
-    
-        private Vector3 GetMouseWorldPosition()
-        {
-            // Optimization: Early-out if mouse direction is not being used
-            // This method should only be called when useMouseDirection is true,
-            // but this guard protects against misuse
-            if (!useMouseDirection)
-            {
-                return Vector3.zero;
-            }
-
-            Vector3 screenMousePos = Input.mousePosition;
-        
-            if (mainCamera.orthographic)
-            {
-                screenMousePos.z = mainCamera.WorldToScreenPoint(ship.transform.position).z;
-            }
-            else
-            {
-                screenMousePos.z = Vector3.Distance(mainCamera.transform.position, ship.transform.position);
-            }
-        
-            return mainCamera.ScreenToWorldPoint(screenMousePos);
+            return (yawTorque,  targetRot, isRot);
         }
     
         private float CalculateYawAngle(Vector3 direction)
         {
-            Vector3 planeNormal = GamePlane.Normal;
+            var planeNormal = GamePlane.Normal;
 
             projectedDirection = Vector3.ProjectOnPlane(direction, planeNormal).normalized;
         
@@ -140,7 +103,7 @@ namespace ShipMain.Control
         public int Priority => 100; // Player input overrides most others
 
 
-    
+    /*TODO
         private void OnDrawGizmos()
         {
             if (!showMouseGizmos || !Application.isPlaying || !useMouseDirection || !isMouseActive) return;
@@ -176,6 +139,6 @@ namespace ShipMain.Control
             Vector3 forwardVector = GamePlane.Forward * mouseGizmoScale * 0.7f;
             Gizmos.DrawRay(position, forwardVector);
             Gizmos.DrawWireCube(position + forwardVector, Vector3.one * 0.06f * mouseGizmoScale);
-        }
+        }*/
     }
 } 

@@ -3,6 +3,7 @@ using System.Linq;
 using ShipMain.Control;
 using ShipMain.Visuals;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Weapons;
 
 namespace ShipMain
@@ -14,7 +15,6 @@ namespace ShipMain
         public static readonly List<Transform> ActiveShips = new();
         public static event System.Action<Ship, GameObject, float> OnGlobalShipDamaged; // victim, attacker, damage
     
-        /* ─────────── Tunable Parameters ─────────── */
         [Header("Settings Asset")]
         [Tooltip("ShipSettings asset that holds all tunable parameters.")]
         public Settings settings;
@@ -23,80 +23,49 @@ namespace ShipMain
         [Tooltip("Team number for this ship. Ships with the same team number are considered friendly.")]
         public int teamNumber = 0;
 
-        /* ─────────── Cached Components ─────────── */
-        public Movement Movement { get; private set; }
-        public LaserGun LaserGun { get; private set; }
-        public MissileLauncher MissileLauncher { get; private set; }
-        public DamageHandler DamageHandler { get; private set; }
-        public Hull Hull { get; private set; }
-        public ICommandSource[] CommandSources { get; private set; }
+        public Movement Movement { get; internal set; }
+        public LaserGun LaserGun { get; internal set; }
+        public MissileLauncher MissileLauncher { get; internal set; }
+        public DamageHandler DamageHandler { get; internal set; }
+        public Hull Hull { get; internal set; }
+        
+        public ICommandSource Commander { get; internal set; }  
 
-        /* ─────────── Current State ─────────── */
+        private bool isInitialized = false;
+
         public State CurrentState { get; private set; }
         public Command CurrentCommand { get; internal set; }
         private bool HasValidCommand { get; set; } = false;
 
-        /* ─────────── ITargetable Implementation ─────────── */
         public Transform TargetPoint => transform;
-
-        /* ─────────── Lock-On Channel ─────────── */
         public LockChannel Lock { get; } = new LockChannel();
-
-        /* ─────────── IShooter Implementation ─────────── */
         public Vector3 Velocity => Movement ? Movement.Kinematics.WorldVel : Vector3.zero;
-
-        /* ─────────── Team System ─────────── */
-        /// <summary>
-        /// Determines if another ship is friendly to this ship.
-        /// Ships are considered friendly if they have the same team number.
-        /// </summary>
-        /// <param name="otherShip">The other ship to check</param>
-        /// <returns>True if the ships are on the same team, false otherwise</returns>
-        public bool IsFriendly(Ship otherShip)
-        {
-            if (!otherShip) return false;
-            return this.teamNumber == otherShip.teamNumber;
-        }
-
-        /* ────────────────────────────────────────── */
-        private void Awake()
-        {
-            Movement       = GetComponent<Movement>();
-            LaserGun       = GetComponentInChildren<LaserGun>();
-            MissileLauncher = GetComponentInChildren<MissileLauncher>();
-            DamageHandler  = GetComponent<DamageHandler>();
-            Hull  = GetComponentInChildren<Hull>();
-            // Discover all command sources within the ship hierarchy (includeInactive=true allows pooled objects to register before activation)
-            CommandSources = GetComponentsInChildren<ICommandSource>(true)
-                .OrderByDescending(cs => cs.Priority)
-                .ToArray();
-
-            // Relay events from damage handler
-            DamageHandler.OnDeath += (victim, killer) => HandleShipDeath();
-
-            if (!settings)
-                settings = ScriptableObject.CreateInstance<Settings>();
-        }
-
+        
         private void Start()
         {
-            // Apply settings to movement & damage subsystems now that all Awakes are done.
-            Movement?.PopulateSettings(settings);
-            DamageHandler?.PopulateSettings(settings);
+            if (isInitialized) return;
+            Initialize(settings, teamNumber);
+        }
+        
+        public void Initialize(Settings shipSettings, int team)
+        {
+            if (isInitialized) return;
 
-            // Initialize commanders now that all components are cached and configured.
-            foreach (var source in CommandSources)
-            {
-                source?.InitializeCommander(this);
-            }
+            settings = shipSettings;
+            teamNumber = team;
+            Commander.InitializeCommander(this);
+
+            PopulateSettings();
+
+            if (DamageHandler)
+                DamageHandler.OnDeath += (victim, killer) => HandleShipDeath();
+
+            isInitialized = true;
         }
 
         private void OnEnable()
         {
-            // Apply settings to movement & damage subsystems now that all Awakes are done.
-            Movement?.PopulateSettings(settings);
-            DamageHandler?.PopulateSettings(settings);
-
+            PopulateSettings();
             if (!ActiveShips.Contains(transform))
                 ActiveShips.Add(transform);
         }
@@ -111,6 +80,12 @@ namespace ShipMain
             ActiveShips.Remove(transform);
         }
 
+        private void PopulateSettings()
+        {
+            Movement?.PopulateSettings(settings);
+            DamageHandler?.PopulateSettings(settings);
+        }
+
         internal static void BroadcastShipDamaged(Ship victim, GameObject attacker, float damage)
         {
             OnGlobalShipDamaged?.Invoke(victim, attacker, damage);
@@ -122,9 +97,7 @@ namespace ShipMain
             MissileLauncher.CancelLock();
             gameObject.SetActive(false);
         }
-        /// <summary>
-        /// Resets the ship to its initial state.
-        /// </summary>
+
         public void ResetShip()
         {
             Movement.ResetMovement();
@@ -147,15 +120,12 @@ namespace ShipMain
             }
             HasValidCommand = false;
         }
-
-        // With command polling now in Update(), FixedUpdate simply exists so that other
-        // components (e.g., ShipMovement) can continue to rely on physics-step timing.
         private void Update()
         {
             UpdateState();
-            HasValidCommand = TryGetCommand(CurrentState, out var cmd);
-            if (HasValidCommand)
-                CurrentCommand = cmd;
+            var cmd = CurrentCommand;
+            HasValidCommand = Commander?.TryGetCommand(CurrentState, out cmd) ?? false;
+            CurrentCommand = cmd;
         }
 
         private void UpdateState()
@@ -172,15 +142,11 @@ namespace ShipMain
             };
         
         }
-        private bool TryGetCommand(State state,out Command cmd)
+
+        public bool IsFriendly(Ship otherShip)
         {
-            foreach (var src in CommandSources) {
-                if (src is null || !src.TryGetCommand(state, out var c))continue;
-                cmd = c;
-                return true;
-            }
-            cmd = default;
-            return false;
+            if (!otherShip) return false;
+            return this.teamNumber == otherShip.teamNumber;
         }
     }
 }

@@ -8,5 +8,6 @@ namespace Utils
         public const string Projectile = "Projectile";
         public const string Missile = "Missile";
         public const string AsteroidCullingBoundary = "AsteroidCullingBoundary";
+        public const string ReferencePlane = "ReferencePlane";
     }
 } 
