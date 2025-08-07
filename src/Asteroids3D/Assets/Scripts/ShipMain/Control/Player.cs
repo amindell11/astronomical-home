@@ -5,7 +5,7 @@ using Utils;
 // Translates player input into commands for the Ship component.
 namespace ShipMain.Control
 {
-    public class Player : MonoBehaviour, ICommandSource
+    public class Player : Commander
     {
         private Ship ship;
 
@@ -20,11 +20,8 @@ namespace ShipMain.Control
         private Vector3 directionToMouse;
         private Vector3 projectedDirection;
         private bool isMouseActive;
-    
-        // Cached command that will be built every Update and served to the Ship in FixedUpdate.
-        private Command cachedCommand;
-
-        public void InitializeCommander(Ship ship)
+        
+        public override void InitializeCommander(Ship ship)
         {
             this.ship = ship;
             if (ship)
@@ -46,15 +43,8 @@ namespace ShipMain.Control
                 TargetAngle = t,
                 RotateToTarget = r
             };
-            cachedCommand = cmd;
+            CachedCommand = cmd;
         }
-    
-        public bool TryGetCommand(State state, out Command cmd)
-        {
-            cmd = cachedCommand;
-            return true;
-        }
-
 
         private (float, float, bool) HandleRotationInput()
         {
@@ -99,46 +89,25 @@ namespace ShipMain.Control
         
             return angle;
         }
-
-        public int Priority => 100; // Player input overrides most others
-
-
-    /*TODO
+        
         private void OnDrawGizmos()
         {
             if (!showMouseGizmos || !Application.isPlaying || !useMouseDirection || !isMouseActive) return;
         
-            Vector3 position = transform.position;
+            var position = transform.position;
+            var scale = mouseGizmoScale;
+
+            SuperGizmos.DrawArrow(position, directionToMouse, 
+                SuperGizmos.HeadType.Sphere, 0.1f * scale, Color.red, scale);
         
-            // Draw direction to mouse (red - raw direction)
-            if (directionToMouse != Vector3.zero)
-            {
-                Gizmos.color = Color.red;
-                Vector3 mouseVector = directionToMouse * mouseGizmoScale;
-                Gizmos.DrawRay(position, mouseVector);
-                Gizmos.DrawWireSphere(position + mouseVector, 0.1f * mouseGizmoScale);
-            }
+            SuperGizmos.DrawArrow(position, projectedDirection, 
+                SuperGizmos.HeadType.Cube, 0.08f * scale, Color.orange, scale);
         
-            // Draw projected direction (orange - projected onto plane)
-            if (projectedDirection != Vector3.zero)
-            {
-                Gizmos.color = new Color(1f, 0.5f, 0f); // Orange
-                Vector3 projectedVector = projectedDirection * mouseGizmoScale * 0.8f;
-                Gizmos.DrawRay(position, projectedVector);
-                Gizmos.DrawWireCube(position + projectedVector, Vector3.one * 0.08f * mouseGizmoScale);
-            }
+            SuperGizmos.DrawArrow(position, GamePlane.Normal, 
+                SuperGizmos.HeadType.Cube, 0.05f * scale, Color.blue, scale);
         
-            // Draw plane normal for reference (blue)
-            Gizmos.color = Color.blue;
-            Vector3 normalVector = GamePlane.Normal * mouseGizmoScale * 0.6f;
-            Gizmos.DrawRay(position, normalVector);
-            Gizmos.DrawWireCube(position + normalVector, Vector3.one * 0.05f * mouseGizmoScale);
-        
-            // Draw plane forward direction (green)
-            Gizmos.color = Color.green;
-            Vector3 forwardVector = GamePlane.Forward * mouseGizmoScale * 0.7f;
-            Gizmos.DrawRay(position, forwardVector);
-            Gizmos.DrawWireCube(position + forwardVector, Vector3.one * 0.06f * mouseGizmoScale);
-        }*/
+            SuperGizmos.DrawArrow(position, GamePlane.Forward, 
+                SuperGizmos.HeadType.Cube, 0.06f * scale, Color.green, scale);
+        }
     }
 } 

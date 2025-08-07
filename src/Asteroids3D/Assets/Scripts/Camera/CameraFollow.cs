@@ -108,7 +108,7 @@ public class CameraFollow : MonoBehaviour
         if (lockCameraToPlayer && _player != null)
         {
             // Focus exclusively on the player
-            center2D = GamePlane.WorldToPlane(_player.position);
+            center2D = GamePlane.WorldPointToPlane(_player.position);
         }
         else
         {
@@ -140,7 +140,7 @@ public class CameraFollow : MonoBehaviour
             float horizontalExtent = desiredSize * _cam.aspect;
             float verticalExtent   = desiredSize;
 
-            Vector3 tempWorldCenter = GamePlane.PlaneToWorld(center2D);
+            Vector3 tempWorldCenter = GamePlane.PlanePointToWorld(center2D);
             Vector3 toPlayerWorld = _player.position - tempWorldCenter;
             Vector2 toPlayer2D    = new Vector2(Vector3.Dot(toPlayerWorld, GamePlane.Right),
                                                 Vector3.Dot(toPlayerWorld, GamePlane.Forward));
@@ -160,7 +160,7 @@ public class CameraFollow : MonoBehaviour
 
         // -----------------------------------------------------------------
         // 5. Convert center back to world space and apply the configured offset
-        Vector3 worldCenter = GamePlane.PlaneToWorld(center2D);
+        Vector3 worldCenter = GamePlane.PlanePointToWorld(center2D);
         Vector3 worldOffset = GamePlane.Right * offset.x + GamePlane.Forward * offset.y + GamePlane.Normal * offset.z;
 
         desiredPos = worldCenter + worldOffset;
@@ -175,7 +175,7 @@ public class CameraFollow : MonoBehaviour
 
         foreach (var t in _targets)
         {
-            Vector2 p = GamePlane.WorldToPlane(t.position);
+            Vector2 p = GamePlane.WorldPointToPlane(t.position);
             min = Vector2.Min(min, p);
             max = Vector2.Max(max, p);
         }

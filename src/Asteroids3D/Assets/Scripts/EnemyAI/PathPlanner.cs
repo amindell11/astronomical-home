@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Game;
-using ShipMain;
 using UnityEngine;
+using ShipMain.Movement;
 
 namespace EnemyAI
 {
@@ -105,9 +105,9 @@ namespace EnemyAI
             foreach (var rock in io.nearbyAsteroids)
             {
                 Vector3 rp3 = rock.transform.position;
-                Vector2 rockPos = GamePlane.WorldToPlane(rp3);
+                Vector2 rockPos = GamePlane.WorldPointToPlane(rp3);
                 Vector3 rv3 = rock.attachedRigidbody ? rock.attachedRigidbody.linearVelocity : Vector3.zero;
-                Vector2 rockVel = GamePlane.WorldToPlane(rv3);
+                Vector2 rockVel = GamePlane.WorldPointToPlane(rv3);
                 Vector2 rockFut = rockPos + rockVel * io.lookAheadTime;
 
                 float rockRad = rock.bounds.extents.x; // assumes roughly spherical

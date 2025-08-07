@@ -2,6 +2,7 @@ using System.Collections;
 using Game;
 using NUnit.Framework;
 using ShipMain;
+using ShipMain.Movement;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -47,7 +48,7 @@ public class ShieldRegenerationPlayMode
         shipGO.AddComponent<Rigidbody>();
 
         // Required components due to attributes
-        var movement = shipGO.AddComponent<Movement>();
+        var movement = shipGO.AddComponent<Controller>();
         movement.PopulateSettings(ScriptableObject.CreateInstance<Settings>());
         movement.enabled = false; // not needed for shield regen tests
         var handler  = shipGO.AddComponent<DamageHandler>();

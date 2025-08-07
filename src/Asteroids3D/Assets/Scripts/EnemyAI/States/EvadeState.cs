@@ -92,7 +92,7 @@ namespace EnemyAI.States
             
             Vector3 selfPos = ctx.SelfTransform.position;
 
-            Vector3 evadePos3D = GamePlane.PlaneToWorld(evadePoint);
+            Vector3 evadePos3D = GamePlane.PlanePointToWorld(evadePoint);
                 
             Gizmos.color = Color.green;
             Gizmos.DrawLine(selfPos, evadePos3D);

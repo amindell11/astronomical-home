@@ -1,12 +1,12 @@
 using System;
 using Damage;
 using Game;
+using ShipMain.Movement;
 using UnityEditor;
 using UnityEngine;
 
 namespace ShipMain
 {
-    [RequireComponent(typeof(Movement))]
     public class DamageHandler : MonoBehaviour, IDamageable
     {
         // ------ Events ------

@@ -104,7 +104,7 @@ namespace EnemyAI.States
             if (ctx?.SelfTransform == null) return;
 
             Vector3 selfPos = ctx.SelfTransform.position;
-            Vector3 tgtPos  = GamePlane.PlaneToWorld(currentTarget);
+            Vector3 tgtPos  = GamePlane.PlanePointToWorld(currentTarget);
 
             // Draw path line
             Gizmos.color = Color.magenta;
@@ -114,7 +114,7 @@ namespace EnemyAI.States
             // Draw flee + jink vectors
             if (ctx.Enemy != null)
             {
-                Vector3 enemyPos = GamePlane.PlaneToWorld(ctx.EnemyPos);
+                Vector3 enemyPos = GamePlane.PlanePointToWorld(ctx.EnemyPos);
                 Gizmos.color = Color.red;
                 Gizmos.DrawLine(selfPos, enemyPos);
             }

@@ -32,25 +32,21 @@ namespace Game
             go.tag = TagNames.ReferencePlane;
             return go.transform;
         }
-        public static Vector3 Origin  => Plane ? Plane.position : Vector3.zero;
-        public static Vector3 Normal  => Plane ? Plane.forward : Vector3.forward;
-        public static Vector3 Forward => Plane ? Plane.up       : Vector3.up;
-        public static Vector3 Right   => Plane ? Plane.right    : Vector3.right;
+        public static Vector3 Origin  => Plane.position;
+        public static Vector3 Normal  => Plane.forward;
+        public static Vector3 Forward => Plane.up;
+        public static Vector3 Right   => Plane.right;
 
-        /// <summary>Projects a world-space vector onto the plane basis and returns XY components.</summary>
-        public static Vector2 WorldToPlane(Vector3 world)
-        {
-            var offset = world - Origin;
-            return new Vector2(Vector3.Dot(offset, Right), Vector3.Dot(offset, Forward));
-        }
+        public static Vector3 ProjectOntoPlane(Vector3 world) => 
+            Vector3.ProjectOnPlane(world - Origin, Normal);
 
-        /// <summary>Converts plane-space coordinates back to world-space.</summary>
-        public static Vector3 PlaneToWorld(Vector2 plane) => Origin + Right * plane.x + Forward * plane.y;
-
-        /// <summary>Returns the component of <paramref name="world"/> lying in the plane (world-space coords).</summary>
-        public static Vector3 ProjectOntoPlane(Vector3 world) => Vector3.ProjectOnPlane(world - Origin, Normal);
-
-        /// <summary>Converts a plane-space vector into a world-space direction.</summary>
-        public static Vector3 PlaneVectorToWorld(Vector2 v) => Right * v.x + Forward * v.y;
+        public static Vector2 WorldPointToPlane(Vector3 worldPt) => 
+            (Vector2)Plane.InverseTransformPoint(worldPt);
+        public static Vector2 WorldDirToPlane(Vector3 worldDir) => 
+            (Vector2)Plane.InverseTransformDirection(worldDir);
+        public static Vector3 PlanePointToWorld(Vector2 planePt) => 
+            Plane.TransformPoint(new Vector3(planePt.x, planePt.y, 0f));
+        public static Vector3 PlaneDirToWorld(Vector2 planeDir) => 
+            Plane.TransformDirection(new Vector3(planeDir.x, planeDir.y, 0f));
     }
 } 

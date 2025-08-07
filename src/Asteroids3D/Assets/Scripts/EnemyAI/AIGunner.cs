@@ -55,12 +55,12 @@ namespace EnemyAI
 
         public void SetTarget(Transform target)
         {
-            Target = target ? GamePlane.WorldToPlane(target.position) : Vector2.zero;
+            Target = target ? GamePlane.WorldPointToPlane(target.position) : Vector2.zero;
         }
 
         public void TargetEnemy(Ship enemy)
         {
-            Target = enemy ? GamePlane.WorldToPlane(enemy.transform.position) : Vector2.zero;
+            Target = enemy ? GamePlane.WorldPointToPlane(enemy.transform.position) : Vector2.zero;
         }
 
         public void Initialize(Ship ship)
@@ -127,7 +127,7 @@ namespace EnemyAI
             if (laserGun && dist <= fireDistance && angle <= fireAngleTolerance && !blockLaserForMissile && laserGun.CurrentHeat < laserGun.MaxHeat - laserGun.HeatPerShot) // TODO: make this a tunable
             {
                 Vector3 laserFirePos = laserGun.firePoint ? laserGun.firePoint.position : transform.position;
-                Vector3 targetPos = GamePlane.PlaneToWorld(Target);
+                Vector3 targetPos = GamePlane.PlanePointToWorld(Target);
                 Vector3 dir = targetPos - laserFirePos;
                 bool losOK = HasLineOfSight(laserFirePos, dir, dist, angle, targetPos);
             
@@ -183,7 +183,7 @@ namespace EnemyAI
             if (!ship.LaserGun || Target == Vector2.zero) return false;
 
             Vector3 firePos = ship.LaserGun.firePoint ? ship.LaserGun.firePoint.position : transform.position;
-            Vector3 targetPos = GamePlane.PlaneToWorld(Target);
+            Vector3 targetPos = GamePlane.PlanePointToWorld(Target);
             Vector3 dir = targetPos - firePos;
             float dist = dir.magnitude;
             float angle = Vector3.Angle(transform.up, dir);
@@ -324,7 +324,7 @@ namespace EnemyAI
             if (Target == Vector2.zero) return;
         
             Vector3 pos = transform.position;
-            Vector3 targetPos = GamePlane.PlaneToWorld(Target);
+            Vector3 targetPos = GamePlane.PlanePointToWorld(Target);
             Vector3 forward = ship?.CurrentState.Kinematics.Forward ?? Vector2.up;
             forward = new Vector3(forward.x, forward.y, 0f);
         
@@ -370,7 +370,7 @@ namespace EnemyAI
             if (Target == Vector2.zero || !ship.LaserGun) return;
         
             Vector3 firePos = ship.LaserGun.firePoint ? ship.LaserGun.firePoint.position : transform.position;
-            Vector3 targetPos = GamePlane.PlaneToWorld(Target);
+            Vector3 targetPos = GamePlane.PlanePointToWorld(Target);
         
             // Line of sight ray
             bool hasLOS = HasLineOfSight();

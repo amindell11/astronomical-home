@@ -118,7 +118,7 @@ namespace EnemyAI.States
             Gizmos.color = new Color(0f, 0.8f, 1f, 0.3f); // Cyan
             if (ctx.Enemy != null)
             {
-                Vector3 enemyPos = GamePlane.PlaneToWorld(ctx.EnemyPos);
+                Vector3 enemyPos = GamePlane.PlanePointToWorld(ctx.EnemyPos);
                 Gizmos.DrawWireSphere(enemyPos, DesiredKiteDistance);
                 
                 // Draw min/max kite range
@@ -133,7 +133,7 @@ namespace EnemyAI.States
                 Vector2 retreatDir = (dirAway + dirOppVel).normalized;
                 if (retreatDir.sqrMagnitude < 0.01f) retreatDir = dirAway; // fallback
 
-                Vector3 retreatDir3D = GamePlane.PlaneVectorToWorld(retreatDir);
+                Vector3 retreatDir3D = GamePlane.PlaneDirToWorld(retreatDir);
                 Gizmos.color = Color.cyan;
                 Gizmos.DrawRay(selfPos, retreatDir3D * 5f);
                 

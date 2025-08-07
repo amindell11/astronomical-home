@@ -1,14 +1,13 @@
 using System.Collections.Generic;
-using System.Linq;
 using ShipMain.Control;
+using MoveController = ShipMain.Movement.Controller;
 using ShipMain.Visuals;
 using UnityEngine;
-using UnityEngine.Serialization;
 using Weapons;
 
 namespace ShipMain
 {
-    [RequireComponent(typeof(Movement))]
+    [RequireComponent(typeof(MoveController))]
     [RequireComponent(typeof(DamageHandler))]
     public class Ship : MonoBehaviour, ITargetable, IShooter
     {
@@ -23,7 +22,7 @@ namespace ShipMain
         [Tooltip("Team number for this ship. Ships with the same team number are considered friendly.")]
         public int teamNumber = 0;
 
-        public Movement Movement { get; internal set; }
+        public MoveController Movement { get; internal set; }
         public LaserGun LaserGun { get; internal set; }
         public MissileLauncher MissileLauncher { get; internal set; }
         public DamageHandler DamageHandler { get; internal set; }
@@ -43,18 +42,17 @@ namespace ShipMain
         
         private void Start()
         {
-            if (isInitialized) return;
             Initialize(settings, teamNumber);
         }
         
         public void Initialize(Settings shipSettings, int team)
         {
             if (isInitialized) return;
-
+            FindComponents();
             settings = shipSettings;
             teamNumber = team;
-            Commander.InitializeCommander(this);
-
+            
+            Commander?.InitializeCommander(this);
             PopulateSettings();
 
             if (DamageHandler)
@@ -62,7 +60,13 @@ namespace ShipMain
 
             isInitialized = true;
         }
-
+        private void FindComponents(){            
+            Movement        = GetComponent<MoveController>();
+            LaserGun        = GetComponentInChildren<LaserGun>();
+            MissileLauncher = GetComponentInChildren<MissileLauncher>();
+            DamageHandler   = GetComponent<DamageHandler>();
+            Hull            = GetComponent<Hull>();
+            Commander     =  GetComponentInChildren<Commander>();}
         private void OnEnable()
         {
             PopulateSettings();
@@ -112,7 +116,7 @@ namespace ShipMain
             if (HasValidCommand)
             {
                 if (Movement)
-                    Movement.SetCommand(CurrentCommand);
+                    Movement.CurrentCommand = CurrentCommand;
                 if (CurrentCommand.PrimaryFire && LaserGun)
                     LaserGun.Fire();
                 if (CurrentCommand.SecondaryFire && MissileLauncher)

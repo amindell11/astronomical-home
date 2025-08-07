@@ -4,7 +4,7 @@ namespace ShipMain
 {
     public struct State
     {
-            public Kinematics Kinematics;
+            public Movement.Kinematics Kinematics;
 
             public bool IsLaserReady;
             public float LaserHeatPct;

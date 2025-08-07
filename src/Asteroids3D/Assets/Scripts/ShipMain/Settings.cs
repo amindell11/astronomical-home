@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace ShipMain
 {
@@ -9,11 +10,11 @@ namespace ShipMain
         public float mass = 215;
         public float maxSpeed = 15f;
         public float maxRotationSpeed = 180f;
-        public float forwardAcceleration = 1200f;
-        public float reverseAcceleration = 600f;
-        public float rotationThrustForce = 480f;
+        [FormerlySerializedAs("forwardAcceleration")] public float forwardAccel = 1200f;
+        [FormerlySerializedAs("reverseAcceleration")] public float reverseAccel = 600f;
+        [FormerlySerializedAs("rotationThrustForce")] public float rotationThrust = 480f;
         public float rotationDrag        = 0.95f;
-        public float yawDeadzoneAngle    = 4f;
+        [FormerlySerializedAs("yawDeadzoneAngle")] public float yawDeadZone    = 4f;
         public float maxBankAngle        = 45f;
         public float bankingSpeed        = 5f;
         public float minStrafeForce      = 750f;

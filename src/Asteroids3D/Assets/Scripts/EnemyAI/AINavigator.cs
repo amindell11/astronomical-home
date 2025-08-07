@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Game;
 using ShipMain;
+using ShipMain.Movement;
 using UnityEngine;
 
 namespace EnemyAI
@@ -71,8 +72,8 @@ namespace EnemyAI
             float mass = ship.Movement.Mass;
             var settings = ship.settings;
             steeringTuning = settings ?
-                new SteeringTuning(settings.forwardAcceleration / mass,
-                    settings.reverseAcceleration / mass,
+                new SteeringTuning(settings.forwardAccel / mass,
+                    settings.reverseAccel / mass,
                     settings.maxStrafeForce / mass,
                     SteeringTuning.Default.DeadZone)
                 : SteeringTuning.Default;
@@ -92,8 +93,8 @@ namespace EnemyAI
         /// </summary>
         public void SetNavigationPointWorld(Vector3 worldPos, bool avoid = true, Vector3? velocity = null)
         {
-            Vector2 planePos = GamePlane.WorldToPlane(worldPos);
-            Vector2? planeVel = velocity.HasValue ? GamePlane.WorldToPlane(velocity.Value) : (Vector2?)null;
+            Vector2 planePos = GamePlane.WorldPointToPlane(worldPos);
+            Vector2? planeVel = velocity.HasValue ? GamePlane.WorldPointToPlane(velocity.Value) : (Vector2?)null;
             SetNavigationPoint(planePos, avoid, planeVel);
         }
 
@@ -159,7 +160,7 @@ namespace EnemyAI
             float maxDist = currentMaxSpeed * lookAheadTime + safeMargin;
 
             Vector2 centerDir2D = kin.Vel.sqrMagnitude > 0.1f ? kin.Vel.normalized : kin.Forward;
-            Vector3 centerDirWorld = GamePlane.PlaneVectorToWorld(centerDir2D).normalized;
+            Vector3 centerDirWorld = GamePlane.PlaneDirToWorld(centerDir2D).normalized;
 
             dbgRays.Clear();
 
@@ -314,28 +315,28 @@ namespace EnemyAI
 
             // Ship future position
             Gizmos.color = new Color(0f, 1f, 1f, 0.5f); // cyan
-            Vector3 fut3 = GamePlane.PlaneToWorld(dbgPath.future);
+            Vector3 fut3 = GamePlane.PlanePointToWorld(dbgPath.future);
             Gizmos.DrawLine(transform.position, fut3);
             Gizmos.DrawSphere(fut3, 0.3f);
 
             // Desired velocity vectorR
             Gizmos.color = Color.green;
-            Vector3 dvec = GamePlane.PlaneVectorToWorld(dbgPath.desired);
+            Vector3 dvec = GamePlane.PlaneDirToWorld(dbgPath.desired);
             Gizmos.DrawLine(transform.position, transform.position + dvec);
 
             // Avoidance vector
             Gizmos.color = Color.red;
-            Vector3 av = GamePlane.PlaneVectorToWorld(dbgPath.avoid);
+            Vector3 av = GamePlane.PlaneDirToWorld(dbgPath.avoid);
             Gizmos.DrawLine(transform.position, transform.position + av);
 
             // Resulting acceleration vector (magenta)
             Gizmos.color = new Color(1f, 0f, 1f);
-            Vector3 ac = GamePlane.PlaneVectorToWorld(dbgPath.accel);
+            Vector3 ac = GamePlane.PlaneDirToWorld(dbgPath.accel);
             Gizmos.DrawLine(transform.position, transform.position + ac);
 
             // Waypoint marker (distinct yellow)
             Gizmos.color = Color.yellow;
-            Vector3 goal3 = GamePlane.PlaneToWorld(dbgGoal2D);
+            Vector3 goal3 = GamePlane.PlanePointToWorld(dbgGoal2D);
             Gizmos.DrawLine(transform.position, goal3);
             Gizmos.DrawSphere(goal3, 0.4f);
 

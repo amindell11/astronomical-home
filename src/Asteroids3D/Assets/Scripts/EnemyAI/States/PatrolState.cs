@@ -89,7 +89,7 @@ namespace EnemyAI.States
             if (hasTarget)
             {
                 // Convert plane coordinates to world coordinates for rendering
-                Vector3 currentTargetWorld = GamePlane.PlaneToWorld(currentTarget);
+                Vector3 currentTargetWorld = GamePlane.PlanePointToWorld(currentTarget);
                 
                 // Line to target
                 Gizmos.color = Color.green;

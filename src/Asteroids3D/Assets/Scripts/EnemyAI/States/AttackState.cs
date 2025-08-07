@@ -112,7 +112,7 @@ namespace EnemyAI.States
             // Draw target information if we have an enemy
             if (ctx.Enemy != null)
             {
-                Vector3 enemyPos = GamePlane.PlaneToWorld(ctx.EnemyPos);
+                Vector3 enemyPos = GamePlane.PlanePointToWorld(ctx.EnemyPos);
                 float distToEnemy = ctx.VectorToEnemy.magnitude;
                 
                 // Line to enemy - color based on line of sight

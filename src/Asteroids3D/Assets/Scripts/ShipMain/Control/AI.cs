@@ -9,7 +9,7 @@ namespace ShipMain.Control
     [RequireComponent(typeof(AINavigator))]
     [RequireComponent(typeof(AIGunner))]
     [RequireComponent(typeof(AIStateMachine))]
-    public class AI : MonoBehaviour, ICommandSource
+    public class AI : Commander
     {
         /* ── Difficulty Setting ─────────────────────────────────── */
         [Header("Difficulty")]
@@ -23,18 +23,13 @@ namespace ShipMain.Control
         private AIContext context;
         private AIStateMachine stateMachine;
         private State currentState;
-
-        private Command cachedCommand;
-
         public State CurrentState => currentState;
-
-        public Command CachedCommand => cachedCommand;
         public AINavigator Navigator => navigator;
         public AIGunner Gunner => gunner;
         public AIStateMachine StateMachine => stateMachine;
         public string CurrentStateName => stateMachine?.CurrentStateName ?? "None";
 
-        public void InitializeCommander(Ship ship)
+        public override void InitializeCommander(Ship ship)
         {
             navigator = GetComponent<AINavigator>();
             gunner = GetComponent<AIGunner>();
@@ -58,16 +53,7 @@ namespace ShipMain.Control
             );
         }
 
-        public int Priority => 10;
-
-        public bool TryGetCommand(State state, out Command cmd)
-        {   
-            // Simply return the command generated in the most recent FixedUpdate().
-            cmd = cachedCommand;
-            return true;
-        }
-
-        void FixedUpdate()
+        private void FixedUpdate()
         {
             if (ship == null || stateMachine == null) return;   
             currentState = ship.CurrentState;
@@ -78,7 +64,7 @@ namespace ShipMain.Control
                 stateMachine.Tick(context, Time.fixedDeltaTime);
             }
         
-            cachedCommand = GenerateCommand(currentState);
+            CachedCommand = GenerateCommand(currentState);
         }
 
         Command GenerateCommand(State state)
@@ -115,7 +101,7 @@ namespace ShipMain.Control
             if (waypoint.isValid)
             {
                 Gizmos.color = Color.yellow;
-                Gizmos.DrawLine(transform.position, GamePlane.PlaneToWorld(waypoint.position));
+                Gizmos.DrawLine(transform.position, GamePlane.PlanePointToWorld(waypoint.position));
             }
         }
 #endif
