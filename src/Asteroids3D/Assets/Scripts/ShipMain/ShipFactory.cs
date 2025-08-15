@@ -1,4 +1,5 @@
 using UnityEngine;
+using ShipMain;
 using ShipMain.Control;
 using ShipMain.Movement;
 using Weapons;
@@ -34,7 +35,7 @@ namespace ShipMain
              Vector3 position,
              Quaternion rotation)
         {
-            Ship ship = Object.Instantiate(prefab, position, rotation);
+            var ship = Object.Instantiate(prefab, position, rotation);
             var cmdr = Object.Instantiate(commander, ship.transform);
             ship.Initialize(shipSettings, team);
             return ship;

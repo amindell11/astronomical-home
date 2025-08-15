@@ -1,7 +1,6 @@
 using System;
 using Editor;
 using ShipMain;
-using ShipMain.Control;
 using Unity.Properties;
 using UnityEngine;
 using Utils;
@@ -29,7 +28,7 @@ namespace EnemyAI
 
         // Cached references
         private Ship ship;
-        private ShipMain.Control.AI ai;
+        private ShipMain.AI ai;
         private AINavigator aiNavigator;
         private AIGunner aiGunner;
         private Ship enemyShip;

@@ -4,6 +4,7 @@ namespace ShipMain.Movement
 {
     public static class Calculator
     {
+
         internal static Vector2 Boost(Kinematics kin, float input, float strength)
         {
             if (!(input > 0f)) return Vector2.zero;

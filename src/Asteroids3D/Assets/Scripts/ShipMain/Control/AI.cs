@@ -1,10 +1,11 @@
 using EnemyAI;
 using EnemyAI.States;
 using Game;
+using ShipMain.Control;
 using UnityEngine;
 
 // Commander modules are now standalone; ShipMovement lives on the parent Ship object.
-namespace ShipMain.Control
+namespace ShipMain
 {
     [RequireComponent(typeof(AINavigator))]
     [RequireComponent(typeof(AIGunner))]

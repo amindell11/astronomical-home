@@ -1,4 +1,4 @@
-namespace ShipMain.Control
+namespace ShipMain
 {
     /// <summary>
     /// A component that can supply high-level control commands for a <see cref="Ship"/>.
@@ -12,7 +12,7 @@ namespace ShipMain.Control
         /// </summary>
         /// <param name="ship">The ship this source will be controlling.</param>
         void InitializeCommander(Ship ship);
-
+        
         /// <summary>
         /// Attempt to obtain a control command for this frame.
         /// </summary>

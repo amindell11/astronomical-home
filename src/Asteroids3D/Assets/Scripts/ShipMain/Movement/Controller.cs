@@ -2,6 +2,7 @@
 // Damage and health are now handled by ShipHealth.
 
 using Game;
+using ShipMain;
 using UnityEngine;
 using Utils;
 
@@ -20,20 +21,17 @@ namespace ShipMain.Movement
 
         private Ship ship;
         private Rigidbody  rb;
-        private Settings settings;
-        internal Command CurrentCommand;
-        public Kinematics Kinematics { get; private set; }
-
-        private Mover phys;
+        private Actuator actuator;
+        internal Command CurrentCommand { get => actuator.CurrentCommand; set => actuator.SetCommand(value); }
+        public Kinematics Kinematics => actuator.Kinematics;
+        public bool BoostAvailable => actuator is { BoostAvailable: false };
         public float Mass => rb.mass;
-        public bool BoostAvailable => phys.BoostAvailable;
 
         private void Awake()
         {
             ship = GetComponent<Ship>();
             rb = GetComponent<Rigidbody>();
-            rb.useGravity  = false;
-            phys = new Mover();
+            actuator = new Actuator();
         }
 
         private void Start()
@@ -41,11 +39,15 @@ namespace ShipMain.Movement
             AlignRotationToPlane();
             ResetMovement();
             GetStateFrom3D();
-            if (!settings) return;
-            ApplySettings();
         }
 
-        private void ApplySettings()
+        public void PopulateSettings(Settings s)
+        {
+            ApplySettings(s);
+            actuator?.SetSettings(s);
+        }
+        
+        private void ApplySettings(Settings settings)
         {
             if (!rb) return;
             rb.maxLinearVelocity = settings.maxSpeed;
@@ -53,25 +55,22 @@ namespace ShipMain.Movement
             rb.linearDamping = settings.linearDrag;
             rb.angularDamping = settings.rotationDrag;
             rb.mass = settings.mass;
+            rb.useGravity  = false;
         }
-   
 
         public void ResetMovement()
         {
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
-            Kinematics = new Kinematics(Vector2.zero, Vector2.zero, 0, 0, 0);
+            actuator.SetKinematics(new Kinematics(Vector2.zero, Vector2.zero, 0, 0, 0));
         }
 
         private void FixedUpdate()
         {
-            Kinematics = GetStateFrom3D();
-
-            var (thrust, strafe, boost, yawTorque, bank) = phys.CalculateInputs(Kinematics, CurrentCommand, settings);
-            
-            ApplyForces(thrust, strafe, boost, yawTorque);
-            ApplyRotation(Kinematics.Yaw, bank);
-            
+            var state = GetStateFrom3D();
+            var outs = actuator.GetOutputs(state);
+            ApplyForces(outs.Thrust, outs.Strafe, outs.Boost, outs.YawTorque);
+            ApplyRotation(state.Yaw, outs.Bank);
             ConstrainToPlane();
         }
     
@@ -114,11 +113,6 @@ namespace ShipMain.Movement
             transform.rotation = toPlane * transform.rotation;
         }
 
-        public void PopulateSettings(Settings s)
-        {
-            settings = s;
-            ApplySettings();
-        }
     
 #if UNITY_EDITOR
         private void OnDrawGizmos()
@@ -128,10 +122,10 @@ namespace ShipMain.Movement
             var pos = transform.position;
             float scale = movementGizmoScale;
 
-            SuperGizmos.DrawArrow(pos, transform.up * CurrentCommand.Thrust, 
+            SuperGizmos.DrawArrow(pos, GamePlane.PlaneDirToWorld(actuator.Outputs.Thrust), 
                 SuperGizmos.HeadType.Sphere, 0.15f, Color.yellow, scale);
 
-            SuperGizmos.DrawArrow(pos, transform.right * CurrentCommand.Strafe, 
+            SuperGizmos.DrawArrow(pos, GamePlane.PlaneDirToWorld(actuator.Outputs.Strafe), 
                 SuperGizmos.HeadType.Cube, 0.25f, Color.yellow, scale);
         }
 #endif

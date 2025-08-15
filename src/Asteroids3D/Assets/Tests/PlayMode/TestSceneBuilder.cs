@@ -1,6 +1,5 @@
 using Game;
 using UnityEngine;
-using ShipMain.Control;
 using ShipMain;
 
 /// <summary>

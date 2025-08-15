@@ -4,37 +4,39 @@ using Game;
 using Utils;
 namespace ShipMain
 {
-public class GlobalSpawner : MonoBehaviour
+public class GlobalSpawner
 {
-    private readonly MainGameContext mainGameContext = MainGameContext.Singleton;
-
     [Header("Game Flow Settings")]
     [SerializeField] private float restartDelay = 3f;
 
-    [SerializeField] private bool restartOnPlayerDeath = true;
+    [SerializeField] private bool restartOnPlayerDeath = false;
 
     [Header("Enemy Respawn Settings")]
     [SerializeField] private float enemyRespawnDelay = 3f;
 
     [SerializeField] private float offscreenDistance = 25f;
     private Camera cacheMainCamera;
-    private SubscribedSet<Ship> subscribedShips;
+    public SubscribedSet<Ship> SubscribedShips { get; private set; }
     private Camera LazyCacheCamera => cacheMainCamera ??= Camera.main;
-    private void Awake()
+
+    public GlobalSpawner(params Ship[] ships)
     {
-        subscribedShips = new SubscribedSet<Ship>(
+        SubscribedShips = new SubscribedSet<Ship>(
             onAdd: ship => ship.DamageHandler.OnDeath += OnShipDeath,
             onRemove: ship => ship.DamageHandler.OnDeath -= OnShipDeath
         );
+        SubscribedShips.AddAll(ships);
     }
+    
     private void OnShipDeath(Ship deadShip, Ship killer)
     {
-        if (!deadShip || mainGameContext.CurrentState == GameState.GameOver) return;
-        bool isPlayer = deadShip.CompareTag(TagNames.Player);
+        var game = MainGameContext.Singleton;
+        if (game.CurrentState is GameState.GameOver) return;
+        bool isPlayer =  deadShip && deadShip.CompareTag(TagNames.Player);
         if (isPlayer && restartOnPlayerDeath)
-            mainGameContext.RestartGame();
+            game.RestartGame();
         else 
-            mainGameContext.StartCoroutine(WaitAndRespawnShip(enemyRespawnDelay, deadShip));
+            game.StartCoroutine(WaitAndRespawnShip(enemyRespawnDelay, deadShip));
         
     }
 

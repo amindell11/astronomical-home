@@ -8,13 +8,13 @@ namespace ShipMain
     {
         [Header("Movement")] 
         public float mass = 215;
-        public float maxSpeed = 15f;
+        public float maxSpeed = 20f;
         public float maxRotationSpeed = 180f;
-        [FormerlySerializedAs("forwardAcceleration")] public float forwardAccel = 1200f;
-        [FormerlySerializedAs("reverseAcceleration")] public float reverseAccel = 600f;
-        [FormerlySerializedAs("rotationThrustForce")] public float rotationThrust = 480f;
-        public float rotationDrag        = 0.95f;
-        [FormerlySerializedAs("yawDeadzoneAngle")] public float yawDeadZone    = 4f;
+        public float forwardAccel = 1200f;
+        public float reverseAccel = 600f;
+        public float rotationThrust = 580;
+        public float rotationDrag        = 1.2f;
+        public float yawDeadZone    = 2f;
         public float maxBankAngle        = 45f;
         public float bankingSpeed        = 5f;
         public float minStrafeForce      = 750f;
@@ -23,7 +23,7 @@ namespace ShipMain
 
         [Header("Boost")]
         [Tooltip("Impulse applied when the ship boosts (units of force).")]
-        public float boostImpulse = 4000f;
+        public float boostImpulse = 5000f;
         [Tooltip("Cooldown time between boost activations (seconds)")]
         public float boostCooldown = 3f;
 
@@ -31,7 +31,7 @@ namespace ShipMain
         public float maxHealth     = 100f;
         public float maxShield     = 50f;
         public int   startingLives = 1;
-        public float shieldRegenDelay = 3f;
+        public float shieldRegenDelay = 4f;
         public float shieldRegenRate  = 10f;
     }
 }

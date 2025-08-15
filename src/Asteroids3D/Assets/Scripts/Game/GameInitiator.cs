@@ -4,8 +4,7 @@ using Game;
 using ShipMain;
 using ShipMain.Control;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.Serialization;
+using Random = UnityEngine.Random;
 
 namespace GameManagement
 {
@@ -19,8 +18,8 @@ namespace GameManagement
         [SerializeField] private ShipMain.Settings shipSettings;
         [SerializeField] private Commander playerCommander;
         [SerializeField] private Commander enemyCommander;
-        private Ship _player;
-        private Ship _enemy;
+
+        private GlobalSpawner spawner;
 
 
         private void Awake()
@@ -29,8 +28,10 @@ namespace GameManagement
             //Instantiate(asteroidController);
             //Instantiate(ui);
             Instantiate(mainCamera);
-            _player = ShipFactory.CreateShip(player, playerCommander, shipSettings, 0, Vector3.zero, Quaternion.identity);
-           // _enemy = ShipFactory.CreateShip(enemy, enemyCommander, shipSettings, 1, Vector3.zero, Quaternion.identity);
+            var _player = ShipFactory.CreateShip(player, playerCommander, shipSettings, 0, Vector3.zero, Quaternion.identity);
+            var _enemy = ShipFactory.CreateShip(enemy, enemyCommander, shipSettings, 1,
+                GamePlane.PlanePointToWorld(Random.insideUnitCircle) * 5, Quaternion.identity);
+            spawner = new GlobalSpawner(_player, _enemy);
         }
     }
 }
