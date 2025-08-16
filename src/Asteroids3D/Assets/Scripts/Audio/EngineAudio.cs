@@ -48,7 +48,7 @@ namespace Audio
                 source.playOnAwake = false;
                 source.spatialBlend = 1f; // 3-D positional
                 source.volume = 0f; // Start silent
-                if (source.clip != null)
+                if (source.clip)
                     source.Play(); // Play but at zero volume
             }
         }

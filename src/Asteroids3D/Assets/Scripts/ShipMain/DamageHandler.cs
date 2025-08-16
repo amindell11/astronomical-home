@@ -1,4 +1,5 @@
 using System;
+using Codice.CM.Common;
 using Damage;
 using Game;
 using ShipMain.Movement;
@@ -9,12 +10,10 @@ namespace ShipMain
 {
     public class DamageHandler : MonoBehaviour, IDamageable
     {
-        // ------ Events ------
         public event Action<float,float, float> OnShieldChanged;   // current, previous, max
         public event Action<float,float, float> OnHealthChanged;   // current, previous, max
         public event Action<int>         OnLivesChanged;    // remaining lives
         public event Action<float, Vector3> OnDamaged;      // dmg, hitPoint
-        public event Action<float, Vector3> OnShieldDamaged; // dmg, hitPoint when shield absorbs
         public event Action<Ship, Ship> OnDeath; // Passes the victim and killer Ship components
 
         public float maxHealth;
@@ -23,17 +22,11 @@ namespace ShipMain
         public float shieldRegenDelay;
         public float shieldRegenRate;
 
-        // ------ State ------
         private float lastDamageTime;
         public Ship  LastAttacker {get; private set;}
         private Ship myShip;
 
-        // --- Spawn Invulnerability --------------------------------------
         private float invulnerableUntil = 0f;
-
-        /// <summary>
-        /// Indicates whether the ship is currently invulnerable (takes no damage).
-        /// </summary>
         public bool IsInvulnerable { get; private set; } = false;
 
         public float CurrentHealth { get; private set; }
@@ -46,16 +39,14 @@ namespace ShipMain
         public float ShieldPct => CurrentShield / maxShield;
         public float RegenWait => Time.time - lastDamageTime - shieldRegenDelay;
         public bool RegenUp => RegenWait >= 0;
-
         public float InvulTimeLeft => invulnerableUntil - Time.time;
 
         private void Awake()
         {
-            CurrentHealth = maxHealth;
-            CurrentShield = maxShield;
-            Lives         = startingLives;
             myShip = GetComponent<Ship>();
-            BroadcastState();
+            UpdateHealth(maxHealth);
+            UpdateShield(maxShield);
+            UpdateLives(startingLives);
         }
 
         private void Update()
@@ -68,63 +59,90 @@ namespace ShipMain
         private void RegenShield()
         {
             float regen = shieldRegenRate * Time.deltaTime;
-            var oldShield = CurrentShield;
-            CurrentShield = Mathf.Min(CurrentShield + regen, maxShield);
-            if(!Mathf.Approximately(CurrentShield, oldShield))
-                OnShieldChanged?.Invoke(CurrentShield, oldShield, maxShield);
+            float newShield = Mathf.Min(CurrentShield + regen, maxShield);
+            UpdateShield(newShield);
         }
 
         public void TakeDamage(float damage, float projectileMass, Vector3 projectileVelocity, Vector3 hitPoint, GameObject attacker)
+        { if (damage <= 0 || IsInvulnerable) return; 
+            UpdateAttacker(attacker);
+            float netDamage = ApplyDamage(damage);
+            if (netDamage <= 0) return;
+             lastDamageTime = Time.time;
+             OnDamaged?.Invoke(netDamage, hitPoint);
+             if (CurrentHealth <= 0f) 
+                 LoseLife();
+        }
+
+        private void UpdateAttacker(GameObject attacker)
         {
-            if (damage <= 0 || IsInvulnerable) return;
-            lastDamageTime = Time.time;
+            if (!attacker) return;
             var attackShip = attacker.GetComponentInParent<Ship>();
-            if (attackShip)
-                LastAttacker = attackShip;
-            if (CurrentShield > 0f)
-            {
-                var absorbed = ApplyShieldDamage(damage, hitPoint);
-                Ship.BroadcastShipDamaged(myShip, attacker, absorbed);
-                return;
-            }
+            if (attackShip) LastAttacker = attackShip;
+        }
 
-            var healthDmg = ApplyHealthDamage(damage, hitPoint);
-            Ship.BroadcastShipDamaged(myShip, attacker, healthDmg);
         
-            if (CurrentHealth <= 0f)
-            {
-                LoseLife();
-            }
-        }
-
-        private float ApplyHealthDamage(float damage, Vector3 hitPoint)
-        {
-            var oldHealth = CurrentHealth;
-            CurrentHealth = Mathf.Max(CurrentHealth - damage, 0f);
-            float actualHealthDamage = oldHealth - CurrentHealth;
-            OnHealthChanged?.Invoke(CurrentHealth, oldHealth, maxHealth);
-            OnDamaged?.Invoke(actualHealthDamage, hitPoint);
-            return actualHealthDamage;
-        }
-
-        private float ApplyShieldDamage(float damage, Vector3 hitPoint)
-        {
-            float absorbed = Mathf.Min(damage, CurrentShield);
-            var oldShield = CurrentShield;
-            CurrentShield -= absorbed;
-            OnShieldChanged?.Invoke(CurrentShield, oldShield, maxShield);
-            OnShieldDamaged?.Invoke(absorbed, hitPoint);
-            return absorbed;
-        }
 
         private void LoseLife()
         {
-            Lives = Mathf.Max(Lives - 1, 0);
-            OnLivesChanged?.Invoke(Lives);
+            UpdateLives(Lives - 1);
             if (Lives > 0)
                 ResetDamageState();
             else
                 BroadcastDeath();
+        }
+        private float ApplyDamage(float damage)
+        {
+            if (CurrentShield > 0f)
+                return ApplyShieldDamage(damage);
+            if (CurrentHealth > 0f)
+                return ApplyHealthDamage(damage);
+            return 0;
+        }
+        private float ApplyHealthDamage(float damage)
+        {
+            if (CurrentHealth <= 0) return 0;
+            float appliedDamage = Mathf.Min(damage, CurrentHealth);
+            UpdateHealth(CurrentHealth - appliedDamage);
+            return appliedDamage;
+        }
+
+        private float ApplyShieldDamage(float damage)
+        {
+            if (CurrentShield <= 0) return 0;
+            float appliedDamage = Mathf.Min(damage, CurrentShield);
+            UpdateShield(CurrentShield - appliedDamage);
+            return appliedDamage;
+        }
+        
+        private float UpdateHealth(float val)
+        {
+            float clamped = Mathf.Clamp(val, 0f, maxHealth);
+            float prev = CurrentHealth;
+            if (Mathf.Approximately(clamped, prev)) return clamped;
+            CurrentHealth = clamped;
+            OnHealthChanged?.Invoke(clamped, prev, maxHealth);
+            return clamped;
+        }
+
+        private float UpdateShield(float val)
+        {
+            float clamped = Mathf.Clamp(val, 0f, maxShield);
+            float prev = CurrentHealth;
+            if (Mathf.Approximately(clamped, prev)) return clamped;
+            CurrentShield = clamped;
+            OnShieldChanged?.Invoke(clamped, prev, maxShield);
+            return clamped;
+        }
+
+        private int UpdateLives(int val)
+        {
+            int clamped = Mathf.Max(0, val);
+            int prev = Lives;
+            if (clamped == prev) return clamped;
+            Lives = clamped;
+            OnLivesChanged?.Invoke(Lives);
+            return clamped;
         }
     
         /// <summary>
@@ -133,32 +151,19 @@ namespace ShipMain
         /// <param name="duration">Duration in seconds. Pass 0 or negative to clear immediately.</param>
         public void SetInvulnerability(float duration)
         {
-            if (duration <= 0f)
-            {
-                IsInvulnerable = false;
-                invulnerableUntil = 0f;
-            }
-            else
-            {
-                IsInvulnerable = true;
-                invulnerableUntil = Time.time + duration;
-            }
+            float clamped = Mathf.Max(duration, 0f);
+            invulnerableUntil = Time.time + clamped;
+            IsInvulnerable = clamped > 0f;
         }
     
         public void ResetDamageState()
         {
-            CurrentHealth = maxHealth;
-            CurrentShield = maxShield;
-            Lives         = startingLives;
-            BroadcastState();
+            UpdateHealth(maxHealth);
+            UpdateShield(maxShield);
+            UpdateLives(startingLives);
             SetInvulnerability(0f);
         }
-        private void BroadcastState()
-        {
-            OnShieldChanged?.Invoke(CurrentShield, CurrentShield, maxShield);
-            OnHealthChanged?.Invoke(CurrentHealth, CurrentHealth, maxHealth);
-            OnLivesChanged?.Invoke(Lives);
-        }
+        
         private void BroadcastDeath()
         {
             OnDeath?.Invoke(myShip, LastAttacker);

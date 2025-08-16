@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
@@ -9,53 +10,51 @@ using ShipMain;
 [RequireComponent(typeof(Camera))]
 public class CameraFollow : MonoBehaviour
 {
-    [Header("Targets & Layers")]
-    [Tooltip("Layer that all controllable ships are assigned to.")]
-    [SerializeField] private LayerMask shipLayer;
+    [Header("Movement")] [SerializeField]
+    private Vector3
+        offset = new Vector3(0, 0, -10f); // Offset expressed in GamePlane basis (x=Right, y=Forward, z=Normal)
 
-    [Header("Movement")]
-    [SerializeField] private Vector3 offset = new Vector3(0, 0, -10f); // Offset expressed in GamePlane basis (x=Right, y=Forward, z=Normal)
-    [SerializeField] [Min(0f)] private float smoothTime = 0.15f;       // Approx. time to reach target. Smaller is snappier.
+    [SerializeField] [Min(0f)] private float smoothTime = 0.15f; // Approx. time to reach target. Smaller is snappier.
 
     [SerializeField] private bool lockCameraToPlayer = false;
     [SerializeField] private bool lockZoomToPlayer = false;
     [SerializeField] private float lockZoomDistance = 10f;
 
-    [Header("Zoom (Orthographic Size)")]
-    [SerializeField] private float minZoom = 5f;
+    [Header("Zoom (Orthographic Size)")] [SerializeField]
+    private float minZoom = 5f;
+
     [SerializeField] private float maxZoom = 50f;
     [SerializeField] private float padding = 2f; // Extra space around ships
-
-
-    [Header("Performance")]
-    [Tooltip("How often (seconds) to refresh the list of ship targets. 0 = every frame.")]
-    [SerializeField] private float refreshInterval = 0.5f;
-
+    
     [Header("Behavior")]
     [Tooltip("If true, camera will adjust to keep the player (tagged 'Player') within the view frustum.")]
-    [SerializeField] protected bool keepPlayerInView = true;
+    [SerializeField]
+    protected bool keepPlayerInView = true;
 
-    protected readonly List<Transform> _targets = new();
-    protected Camera _cam;
-    private float _refreshTimer;
-    protected Transform _player;
+    private HashSet<Transform> _targets;
+    private Camera _cam;
+    private Transform _player;
     private Vector3 _dampVelocity;
     private float _zoomVelocity;
 
-    // Added property to expose current lock state
+    public void SetTargetSource<T>(SubscribedSet<T> set) where T : MonoBehaviour
+    {
+        _targets = set.Select(s => s.transform).ToHashSet();
+        set.OnAdd += t => _targets.Add(t.transform);
+        set.OnRemove += t => _targets.Remove(t.transform);
+    }
+
+    public void SetPlayer<T>(T player) where T : MonoBehaviour
+    {
+        _player = player.transform;
+    }
+
     public bool LockCameraToPlayer => lockCameraToPlayer;
 
     protected virtual void Awake()
     {
         _cam = GetComponent<Camera>();
-
-        if (!_cam.orthographic)
-        {
-            RLog.CoreWarning("CameraFollow works best with an orthographic Camera. Switching camera to orthographic mode.");
-            _cam.orthographic = true;
-        }
-
-        RefreshTargets();
+        _cam.orthographic = true;
     }
 
     protected virtual void Start()
@@ -63,49 +62,39 @@ public class CameraFollow : MonoBehaviour
         _player = GameObject.FindGameObjectWithTag(TagNames.Player).transform;
     }
 
-    protected virtual void Update()
-    {
-        if (refreshInterval > 0f)
-        {
-            _refreshTimer += Time.unscaledDeltaTime;
-            if (_refreshTimer >= refreshInterval)
-            {
-                _refreshTimer = 0f;
-                RefreshTargets();
-            }
-        }
-        else
-        {
-            RefreshTargets();
-        }
-    }
-
     private void FixedUpdate()
     {
-        if (_targets.Count == 0) return;
+        if (_targets == null || _targets.Count == 0) return;
         // Calculate the target camera position & size based on current settings.
-        ComputeDesiredCameraState(out Vector3 desiredPos, out float desiredSize);
+        ComputeDesiredCameraState(out var desiredPos, out float desiredSize);
 
         // Smooth movement & zoom to the desired state
-        transform.position    = Vector3.SmoothDamp(transform.position, desiredPos, ref _dampVelocity, smoothTime, float.PositiveInfinity, Time.unscaledDeltaTime);
-        _cam.orthographicSize = Mathf.SmoothDamp(_cam.orthographicSize, desiredSize, ref _zoomVelocity, smoothTime, float.PositiveInfinity, Time.unscaledDeltaTime);
+        transform.position = Vector3.SmoothDamp(transform.position, desiredPos, ref _dampVelocity, smoothTime,
+            float.PositiveInfinity, Time.unscaledDeltaTime);
+        _cam.orthographicSize = Mathf.SmoothDamp(_cam.orthographicSize, desiredSize, ref _zoomVelocity, smoothTime,
+            float.PositiveInfinity, Time.unscaledDeltaTime);
 
         // Ensure camera orientation follows the game plane
         transform.rotation = Quaternion.LookRotation(GamePlane.Normal, GamePlane.Forward);
     }
 
-    // NEW: Centralized computation of desired camera position & zoom considering lock flags
     private void ComputeDesiredCameraState(out Vector3 desiredPos, out float desiredSize)
     {
         // -----------------------------------------------------------------
         // 1. Compute bounds in plane space for ALL targets (needed for zoom)
-        GetPlaneBounds(out Vector2 min2D, out Vector2 max2D);
-        Vector2 boundsCenter2D = (min2D + max2D) * 0.5f;
+        if (!TryGetPlaneBounds(out var min2D, out var max2D))
+        {
+            // No active targets found; keep current camera state
+            desiredPos = transform.position;
+            desiredSize = Mathf.Clamp(_cam.orthographicSize, minZoom, maxZoom);
+            return;
+        }
+        var boundsCenter2D = (min2D + max2D) * 0.5f;
 
         // -----------------------------------------------------------------
         // 2. Determine the 2-D center to focus on
         Vector2 center2D;
-        if (lockCameraToPlayer && _player != null)
+        if (lockCameraToPlayer && _player)
         {
             // Focus exclusively on the player
             center2D = GamePlane.WorldPointToPlane(_player.position);
@@ -126,11 +115,11 @@ public class CameraFollow : MonoBehaviour
         else
         {
             // Compute horizontal & vertical extents from the chosen center
-            float maxDX = Mathf.Max(center2D.x - min2D.x, max2D.x - center2D.x);
-            float maxDY = Mathf.Max(center2D.y - min2D.y, max2D.y - center2D.y);
+            float maxDx = Mathf.Max(center2D.x - min2D.x, max2D.x - center2D.x);
+            float maxDy = Mathf.Max(center2D.y - min2D.y, max2D.y - center2D.y);
 
-            float preferredSize = Mathf.Max(maxDY + padding, (maxDX + padding) / _cam.aspect);
-            desiredSize         = Mathf.Clamp(preferredSize, minZoom, maxZoom);
+            float preferredSize = Mathf.Max(maxDy + padding, (maxDx + padding) / _cam.aspect);
+            desiredSize = Mathf.Clamp(preferredSize, minZoom, maxZoom);
         }
 
         // -----------------------------------------------------------------
@@ -138,12 +127,12 @@ public class CameraFollow : MonoBehaviour
         if (!lockCameraToPlayer && keepPlayerInView && _player != null)
         {
             float horizontalExtent = desiredSize * _cam.aspect;
-            float verticalExtent   = desiredSize;
+            float verticalExtent = desiredSize;
 
-            Vector3 tempWorldCenter = GamePlane.PlanePointToWorld(center2D);
-            Vector3 toPlayerWorld = _player.position - tempWorldCenter;
-            Vector2 toPlayer2D    = new Vector2(Vector3.Dot(toPlayerWorld, GamePlane.Right),
-                                                Vector3.Dot(toPlayerWorld, GamePlane.Forward));
+            var tempWorldCenter = GamePlane.PlanePointToWorld(center2D);
+            var toPlayerWorld = _player.position - tempWorldCenter;
+            var toPlayer2D = new Vector2(Vector3.Dot(toPlayerWorld, GamePlane.Right),
+                Vector3.Dot(toPlayerWorld, GamePlane.Forward));
 
             if (Mathf.Abs(toPlayer2D.x) > horizontalExtent - padding)
             {
@@ -160,53 +149,30 @@ public class CameraFollow : MonoBehaviour
 
         // -----------------------------------------------------------------
         // 5. Convert center back to world space and apply the configured offset
-        Vector3 worldCenter = GamePlane.PlanePointToWorld(center2D);
-        Vector3 worldOffset = GamePlane.Right * offset.x + GamePlane.Forward * offset.y + GamePlane.Normal * offset.z;
+        var worldCenter = GamePlane.PlanePointToWorld(center2D);
+        var worldOffset = GamePlane.Right * offset.x + GamePlane.Forward * offset.y + GamePlane.Normal * offset.z;
 
         desiredPos = worldCenter + worldOffset;
     }
 
-    // ---------------------------------------------------------------------
-    // Helper: compute min/max bounds in plane coordinates
-    void GetPlaneBounds(out Vector2 min, out Vector2 max)
+    private bool TryGetPlaneBounds(out Vector2 min, out Vector2 max)
     {
         min = new Vector2(float.PositiveInfinity, float.PositiveInfinity);
         max = new Vector2(float.NegativeInfinity, float.NegativeInfinity);
-
+        bool foundAny = false;
         foreach (var t in _targets)
         {
-            Vector2 p = GamePlane.WorldPointToPlane(t.position);
+            var go = t.gameObject;
+            if (!go || !go.activeInHierarchy) continue;
+            var p = GamePlane.WorldPointToPlane(t.position);
             min = Vector2.Min(min, p);
             max = Vector2.Max(max, p);
+            foundAny = true;
         }
-    }
-
-    // Fallback world-space bounds (XY) used only for editor gizmos
-    private Bounds GetTargetsBounds()
-    {
-        Bounds bounds = new Bounds(_targets[0].position, Vector3.zero);
-        RLog.Core("Camera Bounds targets:" +_targets.Count);
-        for (int i = 1; i < _targets.Count; i++)
-        {
-            bounds.Encapsulate(_targets[i].position);
-        }
-        return bounds;
-    }
-
-    // Refresh the list of ship targets using the configured LayerMask
-    protected virtual void RefreshTargets()
-    {
-        _targets.Clear();
-
-        int layerMask = shipLayer.value;
-        foreach (Transform t in Ship.ActiveShips)
-        {
-            if (t == null) continue;
-            if (((1 << t.gameObject.layer) & layerMask) != 0)
-            {
-                _targets.Add(t);
-            }
-        }
+        if (foundAny) return true;
+        min = Vector2.zero;
+        max = Vector2.zero;
+        return false;
     }
 
     public void SetLockCameraToPlayer(bool value)
@@ -218,17 +184,25 @@ public class CameraFollow : MonoBehaviour
     {
         lockZoomToPlayer = value;
     }
-    
-    
+
+
 
 #if UNITY_EDITOR
-    // Draw a gizmo representing the bounding box for debugging
     private void OnDrawGizmosSelected()
     {
-        if (!Application.isPlaying || _targets.Count == 0) return;
+        if (!Application.isPlaying || _targets == null || _targets.Count == 0) return;
+        if (!TryGetPlaneBounds(out var min2D, out var max2D)) return;
+
+        var p00 = GamePlane.PlanePointToWorld(new Vector2(min2D.x, min2D.y));
+        var p01 = GamePlane.PlanePointToWorld(new Vector2(min2D.x, max2D.y));
+        var p11 = GamePlane.PlanePointToWorld(new Vector2(max2D.x, max2D.y));
+        var p10 = GamePlane.PlanePointToWorld(new Vector2(max2D.x, min2D.y));
+
         Gizmos.color = Color.yellow;
-        Bounds b = GetTargetsBounds();
-        Gizmos.DrawWireCube(b.center, b.size);
+        Gizmos.DrawLine(p00, p01);
+        Gizmos.DrawLine(p01, p11);
+        Gizmos.DrawLine(p11, p10);
+        Gizmos.DrawLine(p10, p00);
     }
 #endif
 }

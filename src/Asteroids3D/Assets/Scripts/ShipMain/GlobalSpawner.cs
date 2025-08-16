@@ -22,8 +22,8 @@ public class GlobalSpawner
     public GlobalSpawner(params Ship[] ships)
     {
         SubscribedShips = new SubscribedSet<Ship>(
-            onAdd: ship => ship.DamageHandler.OnDeath += OnShipDeath,
-            onRemove: ship => ship.DamageHandler.OnDeath -= OnShipDeath
+            add: ship => ship.DamageHandler.OnDeath += OnShipDeath,
+            remove: ship => ship.DamageHandler.OnDeath -= OnShipDeath
         );
         SubscribedShips.AddAll(ships);
     }

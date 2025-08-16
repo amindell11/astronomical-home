@@ -13,7 +13,7 @@ namespace ShipMain.Movement
         {
             if (!BoostAvailable || boost == 0) return Vector2.zero;
             nextBoostTime = Time.time + cooldown;
-            return Calculator.Boost(kin,  boost, boostStrength);
+            return Calculator.Boost(kin, boost, boostStrength);
         }
     }
 }

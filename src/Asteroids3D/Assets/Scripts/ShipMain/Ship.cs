@@ -12,9 +12,6 @@ namespace ShipMain
     [RequireComponent(typeof(DamageHandler))]
     public class Ship : MonoBehaviour, ITargetable, IShooter
     {
-        public static readonly List<Transform> ActiveShips = new();
-        public static event System.Action<Ship, GameObject, float> OnGlobalShipDamaged; // victim, attacker, damage
-    
         [Header("Settings Asset")]
         [Tooltip("ShipSettings asset that holds all tunable parameters.")]
         public Settings settings;
@@ -71,30 +68,14 @@ namespace ShipMain
         private void OnEnable()
         {
             PopulateSettings();
-            if (!ActiveShips.Contains(transform))
-                ActiveShips.Add(transform);
         }
 
-        private void OnDisable()
-        {
-            ActiveShips.Remove(transform);
-        }
-
-        private void OnDestroy()
-        {
-            ActiveShips.Remove(transform);
-        }
 
         private void PopulateSettings()
         {
             Movement?.PopulateSettings(settings);
             DamageHandler?.PopulateSettings(settings);
         }
-
-        internal static void BroadcastShipDamaged(Ship victim, GameObject attacker, float damage)
-        {
-            OnGlobalShipDamaged?.Invoke(victim, attacker, damage);
-        }   
     
         private void HandleShipDeath()
         {
@@ -145,7 +126,6 @@ namespace ShipMain
                 HealthPct = DamageHandler.HealthPct,
                 ShieldPct = DamageHandler.ShieldPct,
             };
-        
         }
 
         public bool IsFriendly(Ship otherShip)

@@ -19,17 +19,15 @@ namespace ShipMain.Movement
         public bool showMovementGizmos = true;
         public float movementGizmoScale = 3f;
 
-        private Ship ship;
         private Rigidbody  rb;
         private Actuator actuator;
         internal Command CurrentCommand { get => actuator.CurrentCommand; set => actuator.SetCommand(value); }
         public Kinematics Kinematics => actuator.Kinematics;
-        public bool BoostAvailable => actuator is { BoostAvailable: false };
+        public bool BoostAvailable => actuator.BoostAvailable;
         public float Mass => rb.mass;
 
         private void Awake()
         {
-            ship = GetComponent<Ship>();
             rb = GetComponent<Rigidbody>();
             actuator = new Actuator();
         }
@@ -117,7 +115,7 @@ namespace ShipMain.Movement
 #if UNITY_EDITOR
         private void OnDrawGizmos()
         {
-            if (!Application.isPlaying || !showMovementGizmos || !ship) return;
+            if (!Application.isPlaying || !showMovementGizmos) return;
 
             var pos = transform.position;
             float scale = movementGizmoScale;

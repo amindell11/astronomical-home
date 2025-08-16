@@ -38,30 +38,39 @@ namespace UI
             ring.canvasRenderer.SetAlpha(1f);
         }
 
-        void OnEnable()
+        private void OnEnable()
         {
-            if (source == null) source = GetComponentInParent<DamageHandler>();
-            if (source != null) {
-                source.OnShieldChanged += OnShieldChanged;
-                source.OnShieldDamaged += TriggerFlash;
-            }
+            if (!source) source = GetComponentInParent<DamageHandler>();
+            source.OnShieldChanged += OnShieldChanged;
+            
         }
 
         void OnDisable()
         {
             if (source != null) {
                 source.OnShieldChanged -= OnShieldChanged;
-                source.OnShieldDamaged -= TriggerFlash;
             }
         }
+
+        void LateUpdate()
+        {
+            if (ring && ring.canvasRenderer.GetAlpha() <= 0f) return;
+            transform.rotation = Quaternion.Euler(90, 0, 0);
+        }
+
 
         void OnShieldChanged(float current, float previous, float max)
         {
             // Update radial fill
             ring.fillAmount = current / max;
+            if(current<previous) TriggerFlash();
 
         }
-
+        void TriggerFlash()
+        {
+            if (animCo != null) StopCoroutine(animCo);
+            animCo = StartCoroutine(FlashRoutine());
+        }
         IEnumerator FlashRoutine()
         {
             // ---------- 1  fade in ----------
@@ -99,18 +108,6 @@ namespace UI
             ring.color = c;
         }
 
-        void LateUpdate()
-        {
-            if (ring != null && ring.canvasRenderer.GetAlpha() <= 0f) return;
-            transform.rotation = Quaternion.Euler(90, 0, 0);
-        }
-
-        void TriggerFlash(float dmg, Vector3 hitPt)
-        {
-            // damage to shield triggers ring flash and sparks at hit point
-            if (animCo != null) StopCoroutine(animCo);
-            animCo = StartCoroutine(FlashRoutine());
-        }
     }
 }
 
