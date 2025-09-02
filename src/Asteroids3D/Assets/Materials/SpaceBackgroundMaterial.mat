@@ -29,8 +29,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 4424212447713119022, guid: 0d4272175a2d03f498ae0348ef396746,
-          type: 3}
+        m_Texture: {fileID: 2800000, guid: 571d59d05a134224cb6f8538d83fef2d, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MaskTex:
@@ -49,7 +48,7 @@ Material:
     m_Floats:
     - _Distortion: 0.48
     - _EmissionEnabled: 1
-    - _EmissionStrength: 3
+    - _EmissionStrength: 27.7
     - _EnableExternalAlpha: 0
     - _NoiseScale: 0.01
     - _NoiseStrength: 2.62

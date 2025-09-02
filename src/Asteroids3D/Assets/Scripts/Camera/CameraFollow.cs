@@ -62,7 +62,7 @@ public class CameraFollow : MonoBehaviour
         _player = GameObject.FindGameObjectWithTag(TagNames.Player).transform;
     }
 
-    private void FixedUpdate()
+    private void Update()
     {
         if (_targets == null || _targets.Count == 0) return;
         // Calculate the target camera position & size based on current settings.

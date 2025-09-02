@@ -24,8 +24,6 @@ namespace ShipMain.Control
         public override void InitializeCommander(Ship ship)
         {
             this.ship = ship;
-            if (ship)
-                ship.gameObject.tag = TagNames.Player;
         }
 
         // Unity standard frame update – poll input here for maximum responsiveness.

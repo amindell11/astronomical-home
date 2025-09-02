@@ -7,12 +7,9 @@ namespace ShipMain.Movement
     {
         private Settings settings;
         private Command currentCommand;
-
         private readonly Booster booster = new Booster();
-
         public bool BoostAvailable => booster.BoostAvailable;
         public Outputs Outputs { get; private set; } = Movement.Outputs.Zero;
-
         public Command CurrentCommand => currentCommand;
         public Kinematics Kinematics { get; private set; }
 
@@ -40,7 +37,7 @@ namespace ShipMain.Movement
             Outputs = new Outputs(thrust, strafe, boost, yawTorque, bank);
         }
         
-        public void SetSettings(Settings newSettings)
+        public void PopulateSettings(Settings newSettings)
         {
             settings = newSettings;
         }

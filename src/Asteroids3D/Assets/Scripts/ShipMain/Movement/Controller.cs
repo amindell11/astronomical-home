@@ -41,19 +41,19 @@ namespace ShipMain.Movement
 
         public void PopulateSettings(Settings s)
         {
+            s.OnSettingsChanged.AddListener(()=>ApplySettings(s));
             ApplySettings(s);
-            actuator?.SetSettings(s);
+            actuator?.PopulateSettings(s);
         }
         
-        private void ApplySettings(Settings settings)
+        private void ApplySettings(Settings s)
         {
             if (!rb) return;
-            rb.maxLinearVelocity = settings.maxSpeed;
-            rb.maxAngularVelocity = settings.maxRotationSpeed;
-            rb.linearDamping = settings.linearDrag;
-            rb.angularDamping = settings.rotationDrag;
-            rb.mass = settings.mass;
-            rb.useGravity  = false;
+            rb.maxLinearVelocity = s.maxSpeed;
+            rb.maxAngularVelocity = s.maxRotationSpeed;
+            rb.linearDamping = s.linearDrag;
+            rb.angularDamping = s.rotationDrag;
+            rb.mass = s.mass;
         }
 
         public void ResetMovement()
@@ -93,7 +93,7 @@ namespace ShipMain.Movement
         {
             var qYaw = Quaternion.AngleAxis(yaw, Vector3.forward);
             var qBank = Quaternion.AngleAxis(bank, Vector3.up);
-            transform.rotation = (GamePlane.Plane.rotation) * qYaw * qBank;
+            rb.MoveRotation((GamePlane.Plane.rotation) * qYaw * qBank);
         }
 
         private void ConstrainToPlane()

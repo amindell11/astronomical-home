@@ -28,15 +28,20 @@ namespace ShipMain.Movement
             return strafeV;
         }
 
-        internal static float YawTorque(Kinematics kin, float yawTorque, bool rotateToTarget, float targetAngle, float yawDeadZone, float rotationThrust)
+        internal static float YawTorque(Kinematics kin, float input, bool rotateToTarget, float targetAngle, float yawDeadZone, float rotationThrust)
         {
             float mag = 0;
-            if (yawTorque != 0.0f)
-                mag = yawTorque;
+            if (input != 0.0f)
+                mag = input;
             else if (rotateToTarget)
                 mag = RotationalThrustToTarget(targetAngle, kin.Yaw, yawDeadZone);
             
             return mag * rotationThrust;
+        }
+
+        internal static float Yaw(Kinematics kin, float yawTorque, float rotationDrag)
+        {
+            return kin.Yaw + yawTorque * Time.fixedDeltaTime;
         }
     
         internal static float Bank(Kinematics kin, float input, float maxBankAngle, float bankSpeed)

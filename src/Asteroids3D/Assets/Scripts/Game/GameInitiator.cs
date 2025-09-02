@@ -5,6 +5,7 @@ using Game;
 using ShipMain;
 using ShipMain.Control;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Utils;
 using Random = UnityEngine.Random;
 
@@ -26,11 +27,13 @@ namespace GameManagement
 
         private void Awake()
         {
-            //SceneManager.LoadScene("BasicWorld", LoadSceneMode.Additive);
-            //Instantiate(asteroidController);
-            //Instantiate(ui);
+            SceneManager.LoadScene("BasicWorld", LoadSceneMode.Additive);
+            Instantiate(asteroidController);
+            Instantiate(ui);
+            GamePlane.Plane.Rotate(Vector3.right, 90);
             var cam = Instantiate(mainCamera).GetComponent<CameraFollow>();
             var _player = ShipFactory.CreateShip(player, playerCommander, shipSettings, 0, Vector3.zero, Quaternion.identity);
+            _player.tag = TagNames.Player;
             var _enemy = ShipFactory.CreateShip(enemy, enemyCommander, shipSettings, 1,
                 GamePlane.PlanePointToWorld(Random.insideUnitCircle) * 5, Quaternion.identity);
             activeShips.Add(_player);

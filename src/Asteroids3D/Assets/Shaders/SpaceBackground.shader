@@ -21,9 +21,13 @@ Shader "Custom/SpaceBackground"
         LOD 100
         Blend SrcAlpha OneMinusSrcAlpha
         ZWrite Off
+        Cull Off
+        ZTest Always
         
         Pass
         {
+            Cull Off
+            ZTest Always
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
@@ -175,6 +179,8 @@ Shader "Custom/SpaceBackground"
             Tags {"LightMode"="ForwardAdd"}
             Blend One One
             ZWrite Off
+            Cull Off
+            ZTest Always
             
             CGPROGRAM
             #pragma vertex vert

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.Serialization;
 
 namespace ShipMain
@@ -33,5 +34,13 @@ namespace ShipMain
         public int   startingLives = 1;
         public float shieldRegenDelay = 4f;
         public float shieldRegenRate  = 10f;
+
+        [System.NonSerialized]
+        public readonly UnityEvent OnSettingsChanged = new UnityEvent();
+
+        private void OnValidate()
+        {
+            OnSettingsChanged?.Invoke();
+        }
     }
 }
