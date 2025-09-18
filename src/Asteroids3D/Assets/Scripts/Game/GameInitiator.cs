@@ -1,46 +1,46 @@
 using System;
-using System.Collections.Generic;
-using Asteroid;
-using Game;
-using ShipMain;
-using ShipMain.Control;
+using Asteroids;
+using Ships;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Utils;
 using Random = UnityEngine.Random;
+using Spawner = Ships.Spawner;
 
-namespace GameManagement
+namespace Game
 {
-    public class GameInitiator : MonoBehaviour
+    public class GameInitiator : MonoSingleton<GameInitiator>
     {
-        [SerializeField] private Ship player;
-        [SerializeField] private Ship enemy;
-        [SerializeField] private BaseFieldManager asteroidController;
-        [SerializeField] private GameObject ui;
-        [SerializeField] private Camera mainCamera;
-        [SerializeField] private ShipMain.Settings shipSettings;
-        [SerializeField] private Commander playerCommander;
-        [SerializeField] private Commander enemyCommander;
+        [SerializeField] private GameInitiatorConfig config;
+        private Ship player, enemy;
+        private Asteroids.UpdatingField field;
+        private Camera camera;
+        private Ships.Spawner shipSpawner;
+        private readonly SubscribedSet<Ship> activeShips = new();
 
-        private GlobalSpawner spawner;
-        private readonly SubscribedSet<Ship> activeShips = new(); 
-
-        private void Awake()
+        protected override void Awake()
         {
             SceneManager.LoadScene("BasicWorld", LoadSceneMode.Additive);
-            Instantiate(asteroidController);
-            Instantiate(ui);
+            Instantiate(config.UI);
             GamePlane.Plane.Rotate(Vector3.right, 90);
-            var cam = Instantiate(mainCamera).GetComponent<CameraFollow>();
-            var _player = ShipFactory.CreateShip(player, playerCommander, shipSettings, 0, Vector3.zero, Quaternion.identity);
-            _player.tag = TagNames.Player;
-            var _enemy = ShipFactory.CreateShip(enemy, enemyCommander, shipSettings, 1,
+            camera = Instantiate(config.CameraTemplate);
+            field = (UpdatingField)Instantiate(config.AsteroidController);
+            field.CurrentAnchorPos = () => GamePlane.ProjectOntoPlane(camera.transform.position);
+            
+            var player = Factory.CreateShip(config.PlayerTemplate, config.PlayerCommander, config.ShipSettings, 0, Vector3.zero, Quaternion.identity);
+            player.tag = TagNames.Player;
+            var enemy = Factory.CreateShip(config.EnemyTemplate, config.EnemyCommander, config.ShipSettings, 1,
                 GamePlane.PlanePointToWorld(Random.insideUnitCircle) * 5, Quaternion.identity);
-            activeShips.Add(_player);
-            activeShips.Add(_enemy);
+            activeShips.Add(player);
+            activeShips.Add(enemy);
+            var cam = camera.GetComponent<CameraFollow>();
             cam.SetTargetSource(activeShips);
-            cam.SetPlayer(_player);
-            spawner = new GlobalSpawner(_player, _enemy);
+            cam.SetPlayer(player);
+            shipSpawner = new Spawner(player, enemy);
+        }
+
+        private void Update()
+        {
         }
     }
 }

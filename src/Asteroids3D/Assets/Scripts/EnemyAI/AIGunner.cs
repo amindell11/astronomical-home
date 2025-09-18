@@ -1,6 +1,6 @@
-using Editor;
+﻿using Editor;
 using Game;
-using ShipMain;
+using Ships;
 using UnityEngine;
 using Utils;
 using Weapons;
@@ -9,7 +9,7 @@ namespace EnemyAI
 {
     public class AIGunner : MonoBehaviour
     {
-        /* ── Combat tunables (identical to old script) ───────────── */
+        /* â”€â”€ Combat tunables (identical to old script) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         [Header("Combat")]
         [SerializeField] float fireAngleTolerance = 5f;
         [SerializeField] float fireDistance = 20f;
@@ -27,8 +27,8 @@ namespace EnemyAI
         [SerializeField] bool showTargeting = true;
         [SerializeField] bool showLineOfSight = true;
 
-        /* ── internals ───────────────────────────────────────────── */
-        private Ship ship;
+        /* â”€â”€ internals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+        private Ships.Ship ship;
         public Vector2 Target { get; set; }       
 
         // LOS cache
@@ -58,12 +58,12 @@ namespace EnemyAI
             Target = target ? GamePlane.WorldPointToPlane(target.position) : Vector2.zero;
         }
 
-        public void TargetEnemy(Ship enemy)
+        public void TargetEnemy(Ships.Ship enemy)
         {
             Target = enemy ? GamePlane.WorldPointToPlane(enemy.transform.position) : Vector2.zero;
         }
 
-        public void Initialize(Ship ship)
+        public void Initialize(Ships.Ship ship)
         {
             this.ship = ship;
             lineOfSightMask = LayerIds.Mask(LayerIds.Asteroid);
@@ -83,7 +83,7 @@ namespace EnemyAI
             float dist = VectorToTarget.magnitude;
             float angle = AngleToTarget;
         
-            RLog.AI($"[AI-{name}] GenerateGunnerCommands: Target at dist={dist:F1}, angle={angle:F1}°, fireDistance={fireDistance:F1}, fireAngleTolerance={fireAngleTolerance:F1}°");
+            RLog.AI($"[AI-{name}] GenerateGunnerCommands: Target at dist={dist:F1}, angle={angle:F1}Â°, fireDistance={fireDistance:F1}, fireAngleTolerance={fireAngleTolerance:F1}Â°");
 
             bool wantsToFireMissile = false;
             const float dummyMissileRange = 10f; // Close range for dumb-fire during locking
@@ -154,7 +154,7 @@ namespace EnemyAI
 
             if (angle > angleToleranceBeforeRay)
             {
-                RLog.AI($"[AI-{name}] LOS: Angle {angle:F1}° > {angleToleranceBeforeRay:F1}°, skipping raycast");
+                RLog.AI($"[AI-{name}] LOS: Angle {angle:F1}Â° > {angleToleranceBeforeRay:F1}Â°, skipping raycast");
                 return false;
             }
 

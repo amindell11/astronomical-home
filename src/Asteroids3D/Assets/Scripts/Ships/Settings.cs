@@ -1,0 +1,46 @@
+using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.Serialization;
+
+namespace Ships
+{
+    [CreateAssetMenu(fileName = "ShipSettings", menuName = "Ship/ShipSettings")]
+    public class Settings : ScriptableObject
+    {
+        [Header("Movement")] 
+        public float mass = 215;
+        public float maxSpeed = 20f;
+        [FormerlySerializedAs("maxRotationSpeed")] public float maxYawRate = 180f;
+        public float forwardAccel = 1200f;
+        public float reverseAccel = 600f;
+        public float rotationThrust = 580;
+        public float rotationDrag        = 1.2f;
+        public float yawDeadZone    = 2f;
+        public float maxBankAngle        = 45f;
+        public float bankingSpeed        = 5f;
+        public float minStrafeForce      = 750f;
+        public float maxStrafeForce      = 800f;
+        public float linearDrag = .2f;
+
+        [Header("Boost")]
+        [Tooltip("Impulse applied when the ship boosts (units of force).")]
+        public float boostImpulse = 5000f;
+        [Tooltip("Cooldown time between boost activations (seconds)")]
+        public float boostCooldown = 3f;
+
+        [Header("Damage & Health")]
+        public float maxHealth     = 100f;
+        public float maxShield     = 50f;
+        public int   startingLives = 1;
+        public float shieldRegenDelay = 4f;
+        public float shieldRegenRate  = 10f;
+
+        [System.NonSerialized]
+        public readonly UnityEvent OnSettingsChanged = new UnityEvent();
+
+        private void OnValidate()
+        {
+            OnSettingsChanged?.Invoke();
+        }
+    }
+}

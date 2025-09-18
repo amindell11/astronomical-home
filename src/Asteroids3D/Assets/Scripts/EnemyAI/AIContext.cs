@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using Editor;
-using ShipMain;
+using Ships;
+using Ships.Control;
 using Unity.Properties;
 using UnityEngine;
 using Utils;
@@ -27,14 +28,14 @@ namespace EnemyAI
         public bool showDebugGizmos = true;
 
         // Cached references
-        private Ship ship;
-        private ShipMain.AI ai;
+        private Ships.Ship ship;
+        private AI ai;
         private AINavigator aiNavigator;
         private AIGunner aiGunner;
-        private Ship enemyShip;
+        private Ships.Ship enemyShip;
         // Buffer for physics queries - using shared buffers for efficiency
     
-        public void Initialize(Ship ship, AI commander, AINavigator navigator, AIGunner gunner)
+        public void Initialize(Ships.Ship ship, AI commander, AINavigator navigator, AIGunner gunner)
         {
             this.ship = ship;
             this.ai = commander;
@@ -117,7 +118,7 @@ namespace EnemyAI
         /// <summary>
         /// Current enemy ship
         /// </summary>
-        public Ship Enemy => InCombat ? enemyShip : (enemyShip = FindNearestEnemy());
+        public Ships.Ship Enemy => InCombat ? enemyShip : (enemyShip = FindNearestEnemy());
         public Vector2 EnemyPos => Enemy?.CurrentState.Kinematics.Pos ?? Vector2.zero;
         public Vector2 EnemyVel => Enemy?.CurrentState.Kinematics.Vel ?? Vector2.zero;
 
@@ -163,8 +164,8 @@ namespace EnemyAI
 
         /// <summary>
         /// Angle from the enemy's forward direction to our ship (deg).<br/>
-        /// 0°  → enemy is pointing directly at us.<br/>
-        /// 180° → enemy is facing directly away.
+        /// 0Â°  â†’ enemy is pointing directly at us.<br/>
+        /// 180Â° â†’ enemy is facing directly away.
         /// </summary>
         public float EnemyAngleToSelf
         {
@@ -180,8 +181,8 @@ namespace EnemyAI
     
         /// <summary>
         /// Angle from our forward direction to the enemy (deg).<br/>
-        /// 0°  → we are pointing directly at the enemy.<br/>
-        /// 180° → we are facing directly away from the enemy.
+        /// 0Â°  â†’ we are pointing directly at the enemy.<br/>
+        /// 180Â° â†’ we are facing directly away from the enemy.
         /// </summary>
         public float SelfAngleToEnemy
         {
@@ -299,7 +300,7 @@ namespace EnemyAI
                 var col = colliders[i];
                 if (!col) continue;
             
-                var otherShip = col.attachedRigidbody?.GetComponent<Ship>();
+                var otherShip = col.attachedRigidbody?.GetComponent<Ships.Ship>();
                 if (!otherShip || otherShip == ship) continue;
             
                 float distance = Vector3.Distance(selfPos, otherShip.transform.position);
@@ -333,12 +334,12 @@ namespace EnemyAI
         /// <summary>
         /// Finds the nearest enemy ship
         /// </summary>
-        private Ship FindNearestEnemy()
+        private Ships.Ship FindNearestEnemy()
         {
             if (!ship) return null;
         
             Vector3 selfPos = SelfPosition3D;
-            Ship nearestEnemy = null;
+            Ships.Ship nearestEnemy = null;
             float nearestDistance = float.MaxValue;
         
             var colliders = PhysicsBuffers.GetColliderBuffer();
@@ -349,7 +350,7 @@ namespace EnemyAI
                 var col = colliders[i];
                 if (!col) continue;
             
-                var otherShip = col.attachedRigidbody?.GetComponent<Ship>();
+                var otherShip = col.attachedRigidbody?.GetComponent<Ships.Ship>();
                 if (!otherShip || otherShip == ship) continue;
             
                 if (!ship.IsFriendly(otherShip))

@@ -1,6 +1,6 @@
+﻿using Ships;
 using UnityEngine;
 using Utils;
-using ShipMain;
 
 namespace Audio
 {
@@ -25,7 +25,7 @@ namespace Audio
         [SerializeField, Range(0f, 1f)] private float deathVolume = 1f;
 
         private AudioSource source;
-        private DamageHandler damageHandler;
+        private Ships.Damage damage;
 
         private void Awake()
         {
@@ -37,20 +37,20 @@ namespace Audio
 
         private void OnEnable()
         {
-            if (!damageHandler)
-                damageHandler = GetComponentInParent<DamageHandler>();
-            if (!damageHandler) return;
-            damageHandler.OnShieldChanged += HandleShieldChanged;
-            damageHandler.OnHealthChanged += HandleHealthChanged;
-            damageHandler.OnDeath += HandleDeath;
+            if (!damage)
+                damage = GetComponentInParent<Ships.Damage>();
+            if (!damage) return;
+            damage.OnShieldChanged += HandleShieldChanged;
+            damage.OnHealthChanged += HandleHealthChanged;
+            damage.OnDeath += HandleDeath;
         }
 
         private void OnDisable()
         {
-            if (!damageHandler) return;
-            damageHandler.OnShieldChanged -= HandleShieldChanged;
-            damageHandler.OnHealthChanged -= HandleHealthChanged;
-            damageHandler.OnDeath -= HandleDeath;
+            if (!damage) return;
+            damage.OnShieldChanged -= HandleShieldChanged;
+            damage.OnHealthChanged -= HandleHealthChanged;
+            damage.OnDeath -= HandleDeath;
         }
 
         private void HandleShieldChanged(float current, float previous, float max)
@@ -64,7 +64,7 @@ namespace Audio
             if (current < previous) PlayHullHit();
         }
 
-        private void HandleDeath(Ship victim, Ship _)
+        private void HandleDeath(Ships.Ship victim, Ships.Ship _)
         {
             if (deathClip)
                 PooledAudioSource.PlayClipAtPoint(deathClip, transform.position, deathVolume);

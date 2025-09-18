@@ -1,6 +1,6 @@
+﻿using Ships;
 using UnityEngine;
 using Utils;
-using ShipMain;
 
 namespace Audio
 {
@@ -21,7 +21,7 @@ namespace Audio
         [SerializeField, Range(0f, 1f)] private float volume = 0.6f;
 
         private AudioSource source;
-        private Ship playerShip;
+        private Ships.Ship playerShip;
         private bool isAlarmPlaying = false;
     
         // Cache current values to avoid redundant calculations
@@ -66,7 +66,7 @@ namespace Audio
             CheckAlarmCondition();
         }
 
-        void OnPlayerDeath(Ship victim, Ship killer)
+        void OnPlayerDeath(Ships.Ship victim, Ships.Ship killer)
         {
             // Stop alarm when player dies
             StopAlarm();
@@ -119,7 +119,7 @@ namespace Audio
             var playerObj = GameObject.FindGameObjectWithTag(TagNames.Player);
             if (playerObj != null)
             {
-                var newPlayerShip = playerObj.GetComponent<Ship>();
+                var newPlayerShip = playerObj.GetComponent<Ships.Ship>();
                 if (newPlayerShip != null && newPlayerShip != playerShip)
                 {
                     // Unsubscribe from old ship if it exists
@@ -128,17 +128,17 @@ namespace Audio
                     playerShip = newPlayerShip;
                 
                     // Subscribe to new ship events
-                    playerShip.DamageHandler.OnHealthChanged += OnHealthChanged;
-                    playerShip.DamageHandler.OnShieldChanged += OnShieldChanged;
-                    playerShip.DamageHandler.OnDeath += OnPlayerDeath;
+                    playerShip.Damage.OnHealthChanged += OnHealthChanged;
+                    playerShip.Damage.OnShieldChanged += OnShieldChanged;
+                    playerShip.Damage.OnDeath += OnPlayerDeath;
                 
                     // Initialize current values
-                    if (playerShip.DamageHandler != null)
+                    if (playerShip.Damage != null)
                     {
-                        currentHealthPercentage = playerShip.DamageHandler.maxHealth > 0f ? 
-                            playerShip.DamageHandler.CurrentHealth / playerShip.DamageHandler.maxHealth : 0f;
-                        currentShieldPercentage = playerShip.DamageHandler.maxShield > 0f ? 
-                            playerShip.DamageHandler.CurrentShield / playerShip.DamageHandler.maxShield : 0f;
+                        currentHealthPercentage = playerShip.Damage.maxHealth > 0f ? 
+                            playerShip.Damage.CurrentHealth / playerShip.Damage.maxHealth : 0f;
+                        currentShieldPercentage = playerShip.Damage.maxShield > 0f ? 
+                            playerShip.Damage.CurrentShield / playerShip.Damage.maxShield : 0f;
                     }
                 }
             }
@@ -148,9 +148,9 @@ namespace Audio
         {
             if (playerShip != null)
             {
-                playerShip.DamageHandler.OnHealthChanged -= OnHealthChanged;
-                playerShip.DamageHandler.OnShieldChanged -= OnShieldChanged;
-                playerShip.DamageHandler.OnDeath -= OnPlayerDeath;
+                playerShip.Damage.OnHealthChanged -= OnHealthChanged;
+                playerShip.Damage.OnShieldChanged -= OnShieldChanged;
+                playerShip.Damage.OnDeath -= OnPlayerDeath;
             }
         }
     }

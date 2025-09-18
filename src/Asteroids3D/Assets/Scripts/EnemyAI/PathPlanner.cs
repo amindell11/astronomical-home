@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Game;
+using Ships.Movement;
 using UnityEngine;
-using ShipMain.Movement;
 
 namespace EnemyAI
 {

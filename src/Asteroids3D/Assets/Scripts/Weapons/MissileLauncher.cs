@@ -1,7 +1,7 @@
-using Editor;
+﻿using Editor;
+using Ships;
 using UnityEngine;
 using Utils;
-using ShipMain;
 
 namespace Weapons
 {
@@ -44,10 +44,10 @@ namespace Weapons
         // Optimization: Reuse overlap sphere buffer to avoid allocations
         // private static readonly Collider[] overlapBuffer = new Collider[32];
 
-        // ───────────────────────── Lock-On Service ─────────────────────────
+        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Lock-On Service â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         // Events are now routed through LockOnService.LockChannel per target.
 
-        /* ───────────────────────── Public API ───────────────────────── */
+        /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         /// <summary>True if a target is currently locked.</summary>
         public bool IsLocked => state == LockState.Locked;
 
@@ -96,7 +96,7 @@ namespace Weapons
             state         = LockState.Idle;
         }
 
-        /* ───────────────────────── MonoBehaviour ───────────────────────── */
+        /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ MonoBehaviour â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         void Start()
         {
             ReplenishAmmo();
@@ -201,7 +201,7 @@ namespace Weapons
                 return false;
             }
 
-            // Line of sight check – shared utility
+            // Line of sight check â€“ shared utility
             bool losClear = LineOfSight.IsClear(
                 firePoint.position,
                 currentTarget.TargetPoint.position,
@@ -227,7 +227,7 @@ namespace Weapons
 
         bool ValidateTarget(ITargetable tgt) => tgt != null && tgt.TargetPoint != null;
 
-        /* ───────────────────────── Fire override ───────────────────────── */
+        /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Fire override â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         public override bool CanFire()
         {
             // To fire in any capacity (locking or launching), we need ammo and the weapon must be off cooldown.
@@ -269,7 +269,7 @@ namespace Weapons
             return proj;
         }
 
-        /* ───────────────────────── Helpers ───────────────────────── */
+        /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     
         /// <summary>Finds the best target in the lock-on cone and starts the locking process.</summary>
         void ScanForTarget()
@@ -303,7 +303,7 @@ namespace Weapons
         
             ITargetable bestCandidate = null;
             float smallestAngle = lockOnConeAngle / 2f;
-            Ship selfShip = GetComponentInParent<Ship>();
+            Ships.Ship selfShip = GetComponentInParent<Ships.Ship>();
 
             for (int i = 0; i < colliderCount; i++)
             {
@@ -318,7 +318,7 @@ namespace Weapons
                 }
             
                 // Ensure we don't target ourselves
-                if ((targetable as Ship) == selfShip)
+                if ((targetable as Ships.Ship) == selfShip)
                 {
                     RLog.Weapon($"FindBestTargetInCone: Collider {col.name} is self, skipping.");
                     continue;
@@ -367,7 +367,7 @@ namespace Weapons
         }
 
 #if UNITY_EDITOR
-        /* ───────────────────────── Debug Gizmos ───────────────────────── */
+        /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Debug Gizmos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         void OnDrawGizmos()
         {
             Vector3 origin = firePoint.position;

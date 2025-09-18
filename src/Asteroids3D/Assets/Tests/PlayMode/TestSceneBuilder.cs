@@ -1,6 +1,7 @@
 using Game;
+using Ships;
+using Ships.Control;
 using UnityEngine;
-using ShipMain;
 
 /// <summary>
 /// Helper utility for programmatic scene composition to keep tests deterministic.
@@ -339,9 +340,9 @@ public static class TestSceneBuilder
         // - Apply damage through proper damage system
         // - Use realistic damage parameters
         
-        if (ship?.DamageHandler != null)
+        if (ship?.Damage != null)
         {
-            ship.DamageHandler.TakeDamage(
+            ship.Damage.TakeDamage(
                 damage, 
                 1f, // projectile mass
                 Vector3.zero, // projectile velocity

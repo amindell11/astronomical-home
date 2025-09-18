@@ -1,9 +1,9 @@
 using System.Collections;
 using NUnit.Framework;
+using Ships;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Weapons;
-using ShipMain;
 
 /// <summary>
 /// PlayMode test for missile homing validation.
@@ -12,8 +12,8 @@ using ShipMain;
 public class MissileHomingPlayMode
 {
     private GameObject testScene;
-    private Ship shooterShip;
-    private Ship targetShip;
+    private Ships.Ship shooterShip;
+    private Ships.Ship targetShip;
     private MissileLauncher launcher;
 
     [SetUp]

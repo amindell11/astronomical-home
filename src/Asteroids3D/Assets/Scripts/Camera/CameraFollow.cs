@@ -5,7 +5,6 @@ using System.Linq;
 using Editor;
 using Game;
 using Utils;
-using ShipMain;
 
 [RequireComponent(typeof(Camera))]
 public class CameraFollow : MonoBehaviour

@@ -1,6 +1,5 @@
-using ShipMain;
+using Ships.Movement;
 using UnityEngine;
-using ShipMain.Movement;
 
 namespace EnemyAI
 {

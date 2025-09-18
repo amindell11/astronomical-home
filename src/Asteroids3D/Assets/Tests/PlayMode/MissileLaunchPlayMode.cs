@@ -1,16 +1,16 @@
 using System.Collections;
 using System.Linq;
 using NUnit.Framework;
+using Ships;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Weapons;
-using ShipMain;
 
 public class MissileLaunchPlayMode
 {
     private GameObject testScene;
-    private Ship shooterShip;
-    private Ship targetShip;
+    private Ships.Ship shooterShip;
+    private Ships.Ship targetShip;
     private MissileLauncher launcher;
     private Rigidbody shooterRb;
 

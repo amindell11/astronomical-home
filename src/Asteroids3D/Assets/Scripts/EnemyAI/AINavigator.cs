@@ -1,14 +1,14 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Game;
-using ShipMain;
-using ShipMain.Movement;
+using Ships;
+using Ships.Movement;
 using UnityEngine;
 
 namespace EnemyAI
 {
     public class AINavigator : MonoBehaviour
     {
-        /* ── Waypoint struct ─────────────────────────────────────── */
+        /* â”€â”€ Waypoint struct â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         public struct Waypoint
         {
             public Vector2 position;
@@ -16,7 +16,7 @@ namespace EnemyAI
             public bool isValid;
         }
 
-        /* ── Navigation tunables ─────────────────────────────────────── */
+        /* â”€â”€ Navigation tunables â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         [Header("Navigation")]
         public float arriveRadius = 10f;
 
@@ -36,13 +36,13 @@ namespace EnemyAI
         public float sphereCastRadius = 0.5f;
 
 
-        /* ── Smoothing ─────────────────────────────────────────── */
+        /* â”€â”€ Smoothing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         [Header("Steering Smoothing")]
         [Tooltip("Higher values react faster; 0 disables smoothing. Units: 1/seconds (approx).")]
         [Range(0, 20)] public float proportionalGain = 5f;
 
-        /* ── internals ───────────────────────────────────────────── */
-        private Ship ship;
+        /* â”€â”€ internals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+        private Ships.Ship ship;
         private SteeringTuning steeringTuning;
         private Waypoint currentWaypoint;
         private bool facingOverride;
@@ -65,7 +65,7 @@ namespace EnemyAI
 
         public Waypoint CurrentWaypoint => currentWaypoint;
 
-        public void Initialize(Ship ship)   
+        public void Initialize(Ships.Ship ship)   
         {
             this.ship = ship;
             currentWaypoint = new Waypoint { isValid = false };

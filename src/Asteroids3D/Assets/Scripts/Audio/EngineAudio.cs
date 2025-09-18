@@ -1,4 +1,4 @@
-using ShipMain;
+﻿using Ships;
 using UnityEngine;
 
 namespace Audio
@@ -21,15 +21,15 @@ namespace Audio
         [SerializeField, Range(0f, 1f)] private float reverseVolumeMultiplier = 0.5f;
 
         [Header("Pitch Modulation")]
-        [Tooltip("Optional pitch modulation based on input intensity (0–1 → pitch)")]
+        [Tooltip("Optional pitch modulation based on input intensity (0â€“1 â†’ pitch)")]
         [SerializeField] private AnimationCurve inputToPitch = AnimationCurve.Linear(0, 1, 1, 1.3f);
 
-        private Ship ship;
+        private Ships.Ship ship;
         private bool audioInitialized = false;
 
         void Awake()
         {
-            ship = GetComponentInParent<Ship>();
+            ship = GetComponentInParent<Ships.Ship>();
         }
 
         void OnEnable()
