@@ -119,15 +119,15 @@ namespace Asteroids
             var spinJitter = new Vector3[fragmentCount];
 
             /* ───────── pass #1 : build raw velocities & gather sums ───────── */
-            Vector3 center = asteroid.transform.position;
-            Vector3 vAst = asteroid.Rb.linearVelocity;
-            Vector3 bulletDir = (vBullet - vAst).normalized;
+            var center = asteroid.transform.position;
+            var vAst = asteroid.Rb.linearVelocity;
+            var bulletDir = (vBullet - vAst).normalized;
             float relSpeed = (vBullet - vAst).magnitude;
 
             float M_tot = 0f;
-            Vector3 P_frag = Vector3.zero;
-            Vector3 Mr_sum = Vector3.zero;
-            Vector3 L_orbit = Vector3.zero;
+            var P_frag = Vector3.zero;
+            var Mr_sum = Vector3.zero;
+            var L_orbit = Vector3.zero;
             float I_tot = 0f;
 
             // Heavy computation pass #1 - process fragments in chunks to avoid hitches
@@ -139,10 +139,10 @@ namespace Asteroids
                 for (int i = chunkStart; i < chunkEnd; ++i)
                 {
                     /* ---- directional kick ---- */
-                    Vector3 outward = (positions[i] - center).normalized;
-                    Vector3 random = UnityEngine.Random.insideUnitSphere.normalized;
+                    var outward = (positions[i] - center).normalized;
+                    var random = UnityEngine.Random.insideUnitSphere.normalized;
 
-                    Vector3 dir = (outwardBias * outward +
+                    var dir = (outwardBias * outward +
                                    bulletBias * bulletDir +
                                    randomBias * random).normalized;
 
@@ -174,14 +174,14 @@ namespace Asteroids
             }
 
             /* ───────── momentum correction (single vector) ───────── */
-            Vector3 vCorr = (P_total - P_frag) * explosiveLossFactor / M_tot;
+            var vCorr = (P_total - P_frag) * explosiveLossFactor / M_tot;
 
             /* adjust orbital L by analytical Δ (mass-weighted COM offset × vCorr) */
             L_orbit += Vector3.Cross(Mr_sum, vCorr);
 
             /* ───────── compute common base spin ω_base ───────── */
-            Vector3 L_spin = (L_total - L_orbit) * explosiveLossFactor;
-            Vector3 ω_base = I_tot > 0f ? L_spin / I_tot : Vector3.zero;
+            var L_spin = (L_total - L_orbit) * explosiveLossFactor;
+            var ω_base = I_tot > 0f ? L_spin / I_tot : Vector3.zero;
 
             // Yield before second pass
             yield return null;
@@ -197,71 +197,29 @@ namespace Asteroids
             onComplete?.Invoke(new FragmentPhysicsResult(velocities, spins));
         }
 
-        /// <summary>
-        /// Returns an array of fragment masses that:
-        ///   - each ≥ minMass
-        ///   - count is between minFragments and maxFragments
-        ///   - total = totalMass
-        ///   - biased toward using more fragments when possible
-        /// Returns an empty array if not enough mass to create minFragments.
-        /// </summary>
-        private float[] GenerateFragmentMasses(float totalMass)
-        {
-            // Determine the feasible number of fragments
-            if (totalMass <= 0 || minMass <= 0) return Array.Empty<float>();
-            int feasibleMax = Mathf.Min(maxFragments, Mathf.FloorToInt(totalMass / minMass));
-            if (feasibleMax < minFragments) return Array.Empty<float>();
-
-            // Choose a fragment count, biased toward the high end
-            float randomBiased = Mathf.Pow(UnityEngine.Random.value, highCountBias);
-            int n = minFragments + Mathf.FloorToInt(randomBiased * (feasibleMax - minFragments + 1));
-
-            // Slice totalMass into n parts using a Dirichlet distribution
-            float remainingMass = totalMass - n * minMass;
-            if (remainingMass < 0) remainingMass = 0;
-
-            // Generate n random weights
-            var weights = Enumerable.Range(0, n)
-                .Select(_ => UnityEngine.Random.value)
-                .ToArray();
-            float sumOfWeights = weights.Sum();
-
-            // If the sum of weights is zero (highly unlikely), distribute the remaining mass equally
-            if (sumOfWeights == 0)
-            {
-                float extraPerFragment = remainingMass / n;
-                var masses = Enumerable.Repeat(minMass + extraPerFragment, n).ToArray();
-                RLog.Asteroid($"[Fragnetics] GenerateFragmentMasses fallback | totalMass={totalMass:F2} | count={n}");
-                return masses;
-            }
-
-            // Distribute the remaining mass according to the weights
-            var finalMasses = weights.Select(w => minMass + (w / sumOfWeights) * remainingMass).ToArray();
-            RLog.Asteroid($"[Fragnetics] GenerateFragmentMasses | totalMass={totalMass:F2} | count={n} | masses=[{string.Join(", ", finalMasses.Select(m => m.ToString("F1")))}]");
-            return finalMasses;
-        }
-
-
-        private (Vector3 linear, Vector3 angular) CalculateInitialMomentum(Asteroid asteroid, float projectileMass, Vector3 projectileVelocity, Vector3 hitPoint)
-        {
-            Vector3 asteroidMomentum = asteroid.Mass * asteroid.Rb.linearVelocity;
-            Vector3 projectileMomentum = projectileMass * projectileVelocity;
-            Vector3 totalLinearMomentum = asteroidMomentum + projectileMomentum;
         
-            Vector3 localAngularVelocity = Quaternion.Inverse(asteroid.transform.rotation) * asteroid.Rb.angularVelocity;
-            Vector3 localAngularMomentum = Vector3.Scale(asteroid.Rb.inertiaTensor, localAngularVelocity);
-            Vector3 asteroidAngularMomentum = asteroid.transform.rotation * localAngularMomentum;
 
-            Vector3 r = hitPoint - asteroid.transform.position;
-            Vector3 projectileAngularMomentum = Vector3.Cross(r, projectileMomentum);
-            Vector3 totalAngularMomentum = asteroidAngularMomentum + projectileAngularMomentum;
+
+        private static (Vector3 linear, Vector3 angular) CalculateInitialMomentum(Asteroid asteroid, float projectileMass, Vector3 projectileVelocity, Vector3 hitPoint)
+        {
+            var asteroidMomentum = asteroid.Mass * asteroid.Rb.linearVelocity;
+            var projectileMomentum = projectileMass * projectileVelocity;
+            var totalLinearMomentum = asteroidMomentum + projectileMomentum;
+        
+            var localAngularVelocity = Quaternion.Inverse(asteroid.transform.rotation) * asteroid.Rb.angularVelocity;
+            var localAngularMomentum = Vector3.Scale(asteroid.Rb.inertiaTensor, localAngularVelocity);
+            var asteroidAngularMomentum = asteroid.transform.rotation * localAngularMomentum;
+
+            var r = hitPoint - asteroid.transform.position;
+            var projectileAngularMomentum = Vector3.Cross(r, projectileMomentum);
+            var totalAngularMomentum = asteroidAngularMomentum + projectileAngularMomentum;
 
             return (totalLinearMomentum, totalAngularMomentum);
         }
 
-        private Vector3[] CalculateFragmentPositions(Vector3 parentPosition, int fragmentCount)
+        private static Vector3[] CalculateFragmentPositions(Vector3 parentPosition, int fragmentCount)
         {
-            Vector3[] positions = new Vector3[fragmentCount];
+            var positions = new Vector3[fragmentCount];
             for (int i = 0; i < fragmentCount; i++)
             {
                 Vector3 randomOffset = UnityEngine.Random.insideUnitCircle.normalized * 0.5f;
@@ -292,7 +250,7 @@ namespace Asteroids
                 yield break;
             }
 
-            Vector3[] fragmentPositions = CalculateFragmentPositions(asteroid.transform.position, fragmentCount);
+            var fragmentPositions = CalculateFragmentPositions(asteroid.transform.position, fragmentCount);
         
             // Spawn placeholder fragments immediately with rough physics
             var placeholderFragments = SpawnPlaceholderFragments(
@@ -354,7 +312,7 @@ namespace Asteroids
                 
                 var roughSpin = UnityEngine.Random.insideUnitSphere * (spinVariation * 0.5f);
 
-                var fragment = Spawner.Instance.SpawnAsteroid(
+                var fragment = parentAsteroid.Spawner.SpawnAsteroid(
                     SpawnRequest.Fragment(
                         spawnPose,
                         masses[i],
