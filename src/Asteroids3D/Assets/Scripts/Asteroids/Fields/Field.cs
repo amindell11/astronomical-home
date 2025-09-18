@@ -30,6 +30,11 @@ namespace Asteroids.Fields
         protected virtual void Awake()
         {
             cullingBoundaryCollider = GetComponentInChildren<SphereCollider>();
+            if (!Spawner)
+            {
+                Spawner = GetComponentInChildren<Spawner>();
+            }
+            SpawnCenter = transform.position;
         }
 
         protected virtual void Start()

@@ -164,7 +164,7 @@ namespace Asteroids
             var hit = new HitData(hitMass, hitVelocity, hitPoint);
             if (Health <= 0f)
             {
-                Fragger.Instance.CreateFragments(this, hit, _=>CleanupAsteroid());
+                Fragger.Singleton.CreateFragments(this, hit, _=>CleanupAsteroid());
                 Explode();
             }
         }

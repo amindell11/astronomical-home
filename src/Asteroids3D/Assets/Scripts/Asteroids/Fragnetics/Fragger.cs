@@ -6,14 +6,14 @@ using Utils;
 namespace Asteroids.Fragnetics
 {
 
-    public class Fragger : MonoBehaviour
+    public class Fragger : MonoSingleton<Fragger>
     {
         [SerializeField] private Settings fragSettings;
         private Calculator calc;
-        public static Fragger Instance { get; private set; }
 
-        protected void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             calc = new Calculator(fragSettings);
         }
 
