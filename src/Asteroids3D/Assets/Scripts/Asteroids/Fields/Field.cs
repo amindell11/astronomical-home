@@ -1,8 +1,7 @@
-using Editor;
 using Game;
 using UnityEngine;
 
-namespace Asteroids
+namespace Asteroids.Fields
 {
     public class Field : MonoBehaviour
     {

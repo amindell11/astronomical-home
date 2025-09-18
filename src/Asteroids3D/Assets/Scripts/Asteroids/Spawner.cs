@@ -16,17 +16,9 @@ namespace Asteroids
         [SerializeField] private SpawnSettings spawnSettings;
 
         private ObjectPool<Asteroid> asteroidPool;
-        public static Spawner Instance { get; private set; }
         
         private void Awake()
         {
-            if (Instance && Instance != this)
-            {
-                Destroy(gameObject);
-                return;
-            }
-
-            Instance = this;
 
             if (!Registry.Instance) gameObject.AddComponent<Registry>();
 

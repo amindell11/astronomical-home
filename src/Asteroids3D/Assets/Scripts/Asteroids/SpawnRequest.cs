@@ -1,3 +1,4 @@
+using Asteroids.Fragnetics;
 using UnityEngine;
 
 namespace Asteroids
@@ -31,11 +32,7 @@ namespace Asteroids
             new SpawnRequest(SpawnKind.Random, pose, null, null, null);
 
         // Factory for fragment-driven spawn (all physics pre-computed by fragmenter)
-        public static SpawnRequest Fragment(
-            Pose pose,
-            float mass,
-            Vector3 velocity,
-            Vector3 angularVelocity) =>
-            new SpawnRequest(SpawnKind.Fragment, pose, mass, velocity, angularVelocity);
+        public static SpawnRequest Fragment(Frag frag) =>
+            new SpawnRequest(SpawnKind.Fragment, new Pose(frag.Position, frag.Rotation), frag.Mass, frag.Velocity, frag.Spin);
     }
 } 

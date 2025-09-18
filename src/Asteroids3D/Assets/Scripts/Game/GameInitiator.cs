@@ -5,7 +5,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Utils;
 using Random = UnityEngine.Random;
-using Spawner = Ships.Spawner;
+using ShipSpawner = Ships.Spawner;
+using AsteroidField = Asteroids.Fields.UpdatingField;
 
 namespace Game
 {
@@ -13,9 +14,9 @@ namespace Game
     {
         [SerializeField] private GameInitiatorConfig config;
         private Ship player, enemy;
-        private Asteroids.UpdatingField field;
+        private  AsteroidField field;
         private Camera camera;
-        private Spawner shipSpawner;
+        private ShipSpawner shipSpawner;
         private readonly SubscribedSet<Ship> activeShips = new();
 
         protected override void Awake()
@@ -24,7 +25,7 @@ namespace Game
             Instantiate(config.UI);
             GamePlane.Plane.Rotate(Vector3.right, 90);
             camera = Instantiate(config.CameraTemplate);
-            field = (UpdatingField)Instantiate(config.AsteroidController);
+            field = (AsteroidField)Instantiate(config.AsteroidController);
             field.CurrentAnchorPos = () => GamePlane.ProjectOntoPlane(camera.transform.position);
             
             var player = Factory.CreateShip(config.PlayerTemplate, config.PlayerCommander, config.ShipSettings, 0, Vector3.zero, Quaternion.identity);
@@ -36,7 +37,7 @@ namespace Game
             var cam = camera.GetComponent<CameraFollow>();
             cam.SetTargetSource(activeShips);
             cam.SetPlayer(player);
-            shipSpawner = new Spawner(player, enemy);
+            shipSpawner = new ShipSpawner(player, enemy);
         }
 
         private void Update()

@@ -1,3 +1,4 @@
+using Asteroids.Fragnetics;
 using Damage;
 using Editor;
 using Game;
@@ -52,7 +53,7 @@ namespace Asteroids
 
         private Vector3 initialVelocity;
         private Vector3 initialAngularVelocity;
-        private Spawner spawner;
+        public Spawner Spawner { get; private set; }
         public float Mass => Rb.mass;
         public float Volume { get; private set; }
         public float Density => density;
@@ -94,8 +95,8 @@ namespace Asteroids
             bool prevAutoSync = Physics.autoSyncTransforms;
             Physics.autoSyncTransforms = false;
 
-            this.meshFilter.mesh = meshInfo.mesh;
-            this.spawner = spawner;
+            meshFilter.mesh = meshInfo.mesh;
+            Spawner = spawner;
         
             // Calculate volume from mesh bounds and scale
             Volume = meshInfo.cachedVolume * (scale * scale * scale);
@@ -156,14 +157,14 @@ namespace Asteroids
             meshCollider.enabled = false;
         }
 
-        public void TakeDamage(float damage, float projectileMass, Vector3 projectileVelocity, Vector3 hitPoint, GameObject attacker)
+        public void TakeDamage(float damage, float hitMass, Vector3 hitVelocity, Vector3 hitPoint, GameObject attacker)
         {
             float previousHealth = Health;
             Health -= damage;
-
+            var hit = new HitData(hitMass, hitVelocity, hitPoint);
             if (Health <= 0f)
             {
-                Fragnetics.Instance.CreateFragments(this, projectileMass, projectileVelocity, hitPoint, CleanupAsteroid);
+                Fragger.Instance.CreateFragments(this, hit, _=>CleanupAsteroid());
                 Explode();
             }
         }
@@ -198,7 +199,7 @@ namespace Asteroids
         {
             Rb.linearVelocity = Vector3.zero;
             Rb.angularVelocity = Vector3.zero;
-            spawner?.ReleaseAsteroid(this);
+            Spawner?.ReleaseAsteroid(this);
         }
 
         private void OnTriggerExit(Collider other)

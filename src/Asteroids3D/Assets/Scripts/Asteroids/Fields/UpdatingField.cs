@@ -2,7 +2,7 @@ using System;
 using UnityEditor;
 using UnityEngine;
 
-namespace Asteroids
+namespace Asteroids.Fields
 {
     /// <summary>
     /// Open-world asteroid field manager that centres spawning logic on the main
@@ -33,6 +33,7 @@ namespace Asteroids
             // Accumulated-time pattern to replace InvokeRepeating
             densityCheckTimer -= Time.deltaTime;
             if (!(densityCheckTimer <= 0f)) return;
+            if(CurrentAnchorPos == null) CurrentAnchorPos = () => transform.position;
             SpawnCenter = CurrentAnchorPos();
             ManageField(updateMinSpawnDistance, updateMaxSpawnDistance, maxSpawnsPerFrame);
             densityCheckTimer = densityCheckInterval;

@@ -2,41 +2,63 @@ using UnityEngine;
 
 namespace Asteroids.Fragnetics
 {
-    public struct Result
+    public struct Frag
     {
-        public readonly Vector3[] Velocities;
-        public readonly Vector3[] Spins;
-        public Result(Vector3[] velocities, Vector3[] spins)
+        public float Mass;
+        public Vector3 Position;
+        public Quaternion Rotation;
+        public Vector3 Velocity;
+        public Vector3 Spin;
+
+        public Frag(float mass, Vector3 position, Quaternion rotation)
         {
-            Velocities = velocities;
-            Spins = spins;
+            Mass = mass;
+            Position = position;
+            Rotation = rotation;
+            Velocity = Vector3.zero;
+            Spin = Vector3.zero;
         }
     }
         
-    public readonly struct FragmentSpecification
+    public struct FragSum
     {
-        public readonly float[] Masses;
-        public readonly Vector3[] Positions;
-        public int Count => Masses?.Length ?? 0;
+        public float totalMass;
+        public Vector3 pFrag;
+        public Vector3 mrSum;
+        public Vector3 lOrbit;
+        public float iTotal;
+    }
+    
+    public readonly struct HitData
+    {
+        public readonly float Mass;
+        public readonly Vector3 Velocity;
+        public readonly Vector3 HitPoint;
 
-        public FragmentSpecification(float[] masses, Vector3[] positions)
+        public HitData(float projectileMass, Vector3 projectileVelocity, Vector3 hitPoint)
         {
-            Masses = masses;
-            Positions = positions;
+            HitPoint = hitPoint;
+            Mass = projectileMass;
+            Velocity = projectileVelocity;
         }
     }
 
-    public readonly struct ProjectileData
+    public readonly struct AsteroidData
     {
-        public readonly float ProjectileMass;
-        public readonly Vector3 ProjectileVelocity;
-        public readonly Vector3 HitPoint;
-
-        public ProjectileData(float projectileMass, Vector3 projectileVelocity, Vector3 hitPoint)
+        public AsteroidData(Asteroid ast)
         {
-            HitPoint = hitPoint;
-            ProjectileMass = projectileMass;
-            ProjectileVelocity = projectileVelocity;
+            Mass = ast.Mass;
+            Rotation = ast.transform.rotation;
+            AngularVelocity = ast.Rb.angularVelocity;
+            Velocity = ast.Rb.linearVelocity;
+            Position = ast.transform.position;
+            InertiaTensor = ast.Rb.inertiaTensor;
         }
+        public readonly float Mass;
+        public readonly Quaternion Rotation;
+        public readonly Vector3 AngularVelocity;
+        public readonly Vector3 InertiaTensor;
+        public readonly Vector3 Position;
+        public readonly Vector3 Velocity;
     }
 }

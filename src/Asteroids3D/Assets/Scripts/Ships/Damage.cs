@@ -61,7 +61,7 @@ namespace Ships
             UpdateShield(newShield);
         }
 
-        public void TakeDamage(float damage, float projectileMass, Vector3 projectileVelocity, Vector3 hitPoint, GameObject attacker)
+        public void TakeDamage(float damage, float hitMass, Vector3 hitVelocity, Vector3 hitPoint, GameObject attacker)
         { if (damage <= 0 || IsInvulnerable) return; 
             UpdateAttacker(attacker);
             float netDamage = ApplyDamage(damage);

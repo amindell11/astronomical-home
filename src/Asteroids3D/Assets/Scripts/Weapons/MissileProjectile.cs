@@ -245,7 +245,7 @@ namespace Weapons
             Explode(other);
         }
 
-        public void TakeDamage(float damage, float projectileMass, Vector3 projectileVelocity, Vector3 hitPoint, GameObject attacker){
+        public void TakeDamage(float damage, float hitMass, Vector3 hitVelocity, Vector3 hitPoint, GameObject attacker){
             Explode(null);
         }
 

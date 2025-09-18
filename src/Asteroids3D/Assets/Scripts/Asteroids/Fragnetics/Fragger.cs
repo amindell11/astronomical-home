@@ -1,340 +1,81 @@
 using System;
 using System.Collections;
-using System.Linq;
-using Editor;
 using UnityEngine;
+using Utils;
 
-namespace Asteroids
+namespace Asteroids.Fragnetics
 {
-    /// <summary>
-    /// Helper class to store fragment physics calculation results
-    /// </summary>
-    public class FragmentPhysicsResult
+
+    public class Fragger : MonoBehaviour
     {
-        public readonly Vector3[] Velocities;
-        public readonly Vector3[] Spins;
-    
-        public FragmentPhysicsResult(Vector3[] velocities, Vector3[] spins)
+        [SerializeField] private Settings fragSettings;
+        private Calculator calc;
+        public static Fragger Instance { get; private set; }
+
+        protected void Awake()
         {
-            this.Velocities = velocities;
-            this.Spins = spins;
-        }
-    }
-
-    public class Fragnetics : MonoBehaviour
-    {
-        public static Fragnetics Instance { get; private set; }
-
-        [Header("Fragmentation Settings")]
-        [SerializeField]
-        [Tooltip("Minimum mass threshold before an asteroid stops fragmenting")]
-        private float minMass = 30f;
-    
-        [SerializeField] 
-        [Tooltip("Minimum number of fragments created when an asteroid breaks")]
-        private int minFragments = 2;
-    
-        [SerializeField]
-        [Tooltip("Maximum number of fragments created when an asteroid breaks")] 
-        private int maxFragments = 4;
-    
-        [SerializeField, Range(0.01f, 0.99f)]
-        [Tooltip("Controls bias toward maximum fragments (0 = minimum, 1 = maximum)")]
-        private float highCountBias = 0.5f;
-    
-        [SerializeField]
-        [Tooltip("Base velocity for fragment separation")]
-        private float baseSeparationSpeed = 5f;
-    
-        [SerializeField]
-        [Tooltip("Maximum random rotation speed added to fragments in degrees/sec")]
-        private float spinVariation = 30f;
-    
-        [SerializeField]
-        [Tooltip("Fraction of momentum preserved in the explosion (1 = perfect conservation)")]
-        private float explosiveLossFactor = 0.5f;
-    
-        [SerializeField]
-        [Tooltip("How strongly fragments move away from the asteroid's center")]
-        private float outwardBias = 0.7f;
-    
-        [SerializeField]
-        [Tooltip("How strongly fragments follow the direction of the impacting projectile")]
-        private float bulletBias = 1.0f;
-    
-        [SerializeField]
-        [Tooltip("Amount of random variation added to fragment directions")]
-        private float randomBias = 0.3f;
-
-        [SerializeField, Range(0f, 1f)]
-        [Tooltip("Fraction of asteroid mass preserved in fragments (e.g., 0.8 = 80% mass retained, 0.2 lost)")]
-        private float massLossFactor = 1.0f;
-
-        [Header("Visual Smoothing")]
-        [SerializeField]
-        [Tooltip("How long to fade in fragments after spawning (0 = instant)")]
-        private float fragmentFadeInTime = 0.1f;
-
-        private void Awake()
-        {
-            if (Instance && Instance != this)
-            {
-                Destroy(gameObject);
-            }
-            else
-            {
-                Instance = this;
-            }
+            calc = new Calculator(fragSettings);
         }
 
         /// <summary>
         /// Public entry point with explosion callback for delayed explosion option
         /// </summary>
-        public void CreateFragments(
-            Asteroid asteroid,
-            float projectileMass,
-            Vector3 projectileVelocity,
-            Vector3 hitPoint,
-            System.Action onExplosionReady = null)
-        {
-            StartCoroutine(CreateFragmentsWithPlaceholders(asteroid, projectileMass, projectileVelocity, hitPoint, onExplosionReady));
+        public void CreateFragments(Asteroid asteroid, HitData hit, System.Action<Frag[]> onFragment = null)
+        {            
+            var ast = new AsteroidData(asteroid);
+            var frags = calc.GenerateFragments(ast);
+            var initialMomentum = calc.CalculateInitialMomentum(ast, hit);
+            if (frags.Length <= 0) {
+                onFragment?.Invoke(frags);
+            }
+            StartCoroutine(CreateFragmentsWithPlaceholders(ast, hit, frags, initialMomentum, asteroid.Spawner, onFragment));
         }
 
         /// <summary>
-        /// Coroutine version of fragment physics calculation that yields between heavy computation passes
+        /// spawns placeholder fragments immediately, then updates them with proper physics
         /// </summary>
-        private IEnumerator CalculateFragmentPhysicsCoroutine(
-            Asteroid asteroid,
-            int fragmentCount,
-            float[] masses,
-            Vector3[] positions,
-            Vector3 P_total,
-            Vector3 L_total,
-            Vector3 vBullet,
-            System.Action<FragmentPhysicsResult> onComplete
-        )
+        private IEnumerator CreateFragmentsWithPlaceholders(AsteroidData ast, HitData hit, Frag[] frags, (Vector3 linear, Vector3 angular) momentum, Spawner spawn, System.Action<Frag[]> onFragment = null)
         {
-            var velocities = new Vector3[fragmentCount];
-            var spins = new Vector3[fragmentCount];
-            var spinJitter = new Vector3[fragmentCount];
 
-            /* ───────── pass #1 : build raw velocities & gather sums ───────── */
-            var center = asteroid.transform.position;
-            var vAst = asteroid.Rb.linearVelocity;
-            var bulletDir = (vBullet - vAst).normalized;
-            float relSpeed = (vBullet - vAst).magnitude;
-
-            float M_tot = 0f;
-            var P_frag = Vector3.zero;
-            var Mr_sum = Vector3.zero;
-            var L_orbit = Vector3.zero;
-            float I_tot = 0f;
-
-            // Heavy computation pass #1 - process fragments in chunks to avoid hitches
-            int chunkSize = Mathf.Max(1, fragmentCount / 2); // Process in 2 chunks max
-            for (int chunkStart = 0; chunkStart < fragmentCount; chunkStart += chunkSize)
-            {
-                int chunkEnd = Mathf.Min(chunkStart + chunkSize, fragmentCount);
-            
-                for (int i = chunkStart; i < chunkEnd; ++i)
-                {
-                    /* ---- directional kick ---- */
-                    var outward = (positions[i] - center).normalized;
-                    var random = UnityEngine.Random.insideUnitSphere.normalized;
-
-                    var dir = (outwardBias * outward +
-                                   bulletBias * bulletDir +
-                                   randomBias * random).normalized;
-
-                    float speed = baseSeparationSpeed * relSpeed
-                                                      * UnityEngine.Random.Range(0.8f, 1.2f);
-
-                    velocities[i] = vAst + dir * speed;
-
-                    /* ---- accumulate for momentum bookkeeping ---- */
-                    M_tot += masses[i];
-                    P_frag += masses[i] * velocities[i];
-
-                    Vector3 r = positions[i] - center;
-                    Mr_sum += masses[i] * r;
-                    L_orbit += Vector3.Cross(r, masses[i] * velocities[i]);
-
-                    float radius = Mathf.Pow(masses[i], 1f / 3f);
-                    I_tot += 0.4f * masses[i] * radius * radius;
-
-                    /* ---- store per-piece spin noise ---- */
-                    spinJitter[i] = UnityEngine.Random.insideUnitSphere * spinVariation;
-                }
-            
-                // Yield after processing each chunk to spread work across frames
-                if (chunkEnd < fragmentCount)
-                {
-                    yield return null;
-                }
-            }
-
-            /* ───────── momentum correction (single vector) ───────── */
-            var vCorr = (P_total - P_frag) * explosiveLossFactor / M_tot;
-
-            /* adjust orbital L by analytical Δ (mass-weighted COM offset × vCorr) */
-            L_orbit += Vector3.Cross(Mr_sum, vCorr);
-
-            /* ───────── compute common base spin ω_base ───────── */
-            var L_spin = (L_total - L_orbit) * explosiveLossFactor;
-            var ω_base = I_tot > 0f ? L_spin / I_tot : Vector3.zero;
-
-            // Yield before second pass
+            calc.CalculatePlaceholderPhysics(ast, hit, frags);
+            var placeholderFragments = SpawnPlaceholderFragments(ast, hit, frags, spawn);
+            onFragment += OnFrag;
             yield return null;
-
-            /* ───────── pass #2 : apply correction & finalise spin ───────── */
-            for (int i = 0; i < fragmentCount; ++i)
-            {
-                velocities[i] += vCorr;
-                spins[i] = ω_base + spinJitter[i];
-            }
-
-            // Return results through callback
-            onComplete?.Invoke(new FragmentPhysicsResult(velocities, spins));
-        }
-
-        
-
-
-        private static (Vector3 linear, Vector3 angular) CalculateInitialMomentum(Asteroid asteroid, float projectileMass, Vector3 projectileVelocity, Vector3 hitPoint)
-        {
-            var asteroidMomentum = asteroid.Mass * asteroid.Rb.linearVelocity;
-            var projectileMomentum = projectileMass * projectileVelocity;
-            var totalLinearMomentum = asteroidMomentum + projectileMomentum;
-        
-            var localAngularVelocity = Quaternion.Inverse(asteroid.transform.rotation) * asteroid.Rb.angularVelocity;
-            var localAngularMomentum = Vector3.Scale(asteroid.Rb.inertiaTensor, localAngularVelocity);
-            var asteroidAngularMomentum = asteroid.transform.rotation * localAngularMomentum;
-
-            var r = hitPoint - asteroid.transform.position;
-            var projectileAngularMomentum = Vector3.Cross(r, projectileMomentum);
-            var totalAngularMomentum = asteroidAngularMomentum + projectileAngularMomentum;
-
-            return (totalLinearMomentum, totalAngularMomentum);
-        }
-
-        private static Vector3[] CalculateFragmentPositions(Vector3 parentPosition, int fragmentCount)
-        {
-            var positions = new Vector3[fragmentCount];
-            for (int i = 0; i < fragmentCount; i++)
-            {
-                Vector3 randomOffset = UnityEngine.Random.insideUnitCircle.normalized * 0.5f;
-                positions[i] = parentPosition + randomOffset;
-            }
-            return positions;
-        }
-
-        /// <summary>
-        /// Coroutine version that spawns placeholder fragments immediately, then updates them with proper physics
-        /// </summary>
-        private IEnumerator CreateFragmentsWithPlaceholders(
-            Asteroid asteroid,
-            float projectileMass,
-            Vector3 projectileVelocity,
-            Vector3 hitPoint,
-            System.Action onExplosionReady
-        )
-        {
-            var (totalLinearMomentum, totalAngularMomentum) = CalculateInitialMomentum(asteroid, projectileMass, projectileVelocity, hitPoint);
-        
-            float[] fragmentMasses = GenerateFragmentMasses(asteroid.Mass * massLossFactor);
-            int fragmentCount = fragmentMasses.Length;
-            if (fragmentCount <= 0) 
-            {
-                // No fragments can be created - still need to cleanup the parent asteroid
-                onExplosionReady?.Invoke();
-                yield break;
-            }
-
-            var fragmentPositions = CalculateFragmentPositions(asteroid.transform.position, fragmentCount);
-        
-            // Spawn placeholder fragments immediately with rough physics
-            var placeholderFragments = SpawnPlaceholderFragments(
-                fragmentCount, 
-                fragmentPositions, 
-                fragmentMasses, 
-                asteroid, 
-                projectileVelocity
-            );
-        
-            // Yield before heavy physics calculations
-            yield return null;
-        
-            // Calculate proper physics
-            FragmentPhysicsResult result = null;
-            yield return StartCoroutine(CalculateFragmentPhysicsCoroutine(
-                asteroid,
-                fragmentCount, 
-                fragmentMasses, 
-                fragmentPositions, 
-                totalLinearMomentum, 
-                totalAngularMomentum,
-                projectileVelocity,
-                (r) => result = r
+            yield return StartCoroutine(calc.CoCalculateFragmentPhysics(
+                ast,
+                hit,
+                frags,
+                momentum, 
+                onFragment
             ));
-
-            // Update placeholder fragments with proper physics
-            if (result != null && placeholderFragments != null)
-            {
-                UpdatePlaceholderFragments(placeholderFragments, result.Velocities, result.Spins);
-            }
-
-            onExplosionReady?.Invoke();
+            yield break;
+            void OnFrag(Frag[] f) => UpdatePlaceholderFragments(placeholderFragments, f);
         }
 
         /// <summary>
         /// Spawn fragments immediately with rough physics for visual continuity
         /// </summary>
-        private Asteroid[] SpawnPlaceholderFragments(
-            int fragmentCount, 
-            Vector3[] positions, 
-            float[] masses, 
-            Asteroid parentAsteroid, 
-            Vector3 projectileVelocity
-        )
+        private Asteroid[] SpawnPlaceholderFragments(AsteroidData ast, HitData hit, Frag[] frags, Spawner spawn)
         {
-            var fragments = new Asteroid[fragmentCount];
-            var baseVelocity = parentAsteroid.Rb.linearVelocity;
-            var impactDirection = (projectileVelocity - baseVelocity).normalized;
-
-            for (int i = 0; i < fragmentCount; i++)
+            var fragments = new Asteroid[frags.Length];
+            calc.CalculatePlaceholderPhysics(ast, hit, frags);
+            for (int i = 0; i < frags.Length; i++)
             {
-                var spawnPose = new Pose(positions[i], UnityEngine.Random.rotationUniform);
-                
-                var roughDirection = (positions[i] - parentAsteroid.transform.position).normalized;
-                var roughVelocity = baseVelocity + 
-                                        (roughDirection * (baseSeparationSpeed * 0.5f)) + 
-                                        (impactDirection * (baseSeparationSpeed * 0.3f));
-                
-                var roughSpin = UnityEngine.Random.insideUnitSphere * (spinVariation * 0.5f);
-
-                var fragment = parentAsteroid.Spawner.SpawnAsteroid(
-                    SpawnRequest.Fragment(
-                        spawnPose,
-                        masses[i],
-                        roughVelocity,
-                        roughSpin)
-                );
-                fragments[i] = fragment;
-                if (fragmentFadeInTime > 0f)
-                    StartCoroutine(FadeInFragment(fragment));
+                fragments[i] = spawn.SpawnAsteroid(SpawnRequest.Fragment(frags[i]));
+                if (fragSettings.fragmentFadeInTime > 0f)
+                    StartCoroutine(FadeInFragment(fragments[i]));
             }
-
             return fragments;
         }
 
         /// <summary>
         /// Update placeholder fragments with proper physics calculations
         /// </summary>
-        private static void UpdatePlaceholderFragments(Asteroid[] fragments, Vector3[] velocities, Vector3[] spins)
+        private static void UpdatePlaceholderFragments(Asteroid[] fragments, Frag[] frags)
         {
             for (int i = 0; i < fragments.Length; i++)
             {
-                fragments[i]?.UpdateKinematics(velocities[i], spins[i]);
+                fragments[i]?.UpdateKinematics(frags[i].Velocity, frags[i].Spin);
             }
         }
 
@@ -343,7 +84,7 @@ namespace Asteroids
         /// </summary>
         private IEnumerator FadeInFragment(Asteroid fragment)
         {
-            if (!fragment || fragmentFadeInTime <= 0f) yield break;
+            if (!fragment || fragSettings.fragmentFadeInTime <= 0f) yield break;
 
             var re = fragment.Renderer;
             if (!re) yield break;
@@ -355,10 +96,10 @@ namespace Asteroids
             material.color = transparentColor;
 
             float elapsed = 0f;
-            while (elapsed < fragmentFadeInTime)
+            while (elapsed < fragSettings.fragmentFadeInTime)
             {
                 elapsed += Time.deltaTime;
-                float alpha = Mathf.Lerp(0f, originalColor.a, elapsed / fragmentFadeInTime);
+                float alpha = Mathf.Lerp(0f, originalColor.a, elapsed / fragSettings.fragmentFadeInTime);
                 material.color = new Color(originalColor.r, originalColor.g, originalColor.b, alpha);
                 yield return null;
             }
