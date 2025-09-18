@@ -84,10 +84,10 @@ namespace ShipMain.Movement
 
         private void ApplyForces(Vector2 thrust, Vector2 strafe, Vector2 boost, float yawTorque)
         {   
-            rb.AddForce(GamePlane.PlaneDirToWorld(thrust), ForceMode.Force);
-            rb.AddForce(GamePlane.PlaneDirToWorld(strafe), ForceMode.Force);
-            rb.AddForce(GamePlane.PlaneDirToWorld(boost), ForceMode.Impulse);
-            rb.AddTorque(GamePlane.Normal * yawTorque);
+            rb.AddForce(GamePlane.PlaneDirToWorld(thrust)* rb.mass, ForceMode.Force);
+            rb.AddForce(GamePlane.PlaneDirToWorld(strafe) * rb.mass, ForceMode.Force);
+            rb.AddForce(GamePlane.PlaneDirToWorld(boost) * rb.mass, ForceMode.Impulse);
+            rb.AddTorque(GamePlane.Normal * (yawTorque * rb.mass));
         }
         private void ApplyRotation(float yaw, float bank)
         {

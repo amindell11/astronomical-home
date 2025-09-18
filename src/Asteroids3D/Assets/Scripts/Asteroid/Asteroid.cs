@@ -237,33 +237,21 @@ namespace Asteroid
                 CleanupAsteroid();
             }
         }
-        /*
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.gameObject.layer == LayerMask.NameToLayer("Ship"))
-        {
-            Debug.Log("Asteroid hit ship (trigger) – consider switching collider to non-trigger for energy-based damage.");
-            // Legacy fixed damage path removed.
-        }
-    }
-    */
 
         private void OnCollisionEnter(Collision collision)
         {
-            // Only handle collisions with objects on the Ship layer
             if (collision.gameObject.layer != LayerIds.Ship) return;
 
-            Rigidbody otherRb = collision.rigidbody;
-            if (otherRb == null) return;
+            var otherRb = collision.rigidbody;
+            if (!otherRb) return;
 
-            IDamageable damageable = otherRb.GetComponent<IDamageable>();
+            var damageable = otherRb.GetComponent<IDamageable>();
             if (damageable == null) return;
 
             float shipMass = otherRb.mass;
-            Vector3 shipVel = otherRb.linearVelocity;
-            Vector3 impactPoint = collision.GetContact(0).point;
+            var shipVel = otherRb.linearVelocity;
+            var impactPoint = collision.GetContact(0).point;
 
-            // --- NEW: Use only the velocity component along the collision normal ---
             Vector3 normal = collision.GetContact(0).normal;
             Vector3 asteroidVelNormal = Vector3.Project(rb.linearVelocity, normal);
             Vector3 shipVelNormal     = Vector3.Project(shipVel, normal);
