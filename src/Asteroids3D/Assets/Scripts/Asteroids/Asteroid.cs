@@ -39,8 +39,7 @@ namespace Asteroids
         [SerializeField]
         [Tooltip("Base health per unit volume. Total health = volume * this value.")]
         private float healthPerUnitVolume = 10f;
-    
-        private Rigidbody rb;
+
         private MeshFilter meshFilter;
         private MeshCollider meshCollider;
         private SphereCollider cheapCollider;
@@ -53,42 +52,37 @@ namespace Asteroids
 
         private Vector3 initialVelocity;
         private Vector3 initialAngularVelocity;
-        private float currentVolume;
-        private float maxHealth;
-        private float currentHealth;
-        private Spawner parentSpawner;
-        private Renderer renderer;
-
-
-        // Public properties for other systems to access
-        public float CurrentMass => rb.mass;
-        public float CurrentVolume => currentVolume;
+        private Spawner spawner;
+        public float Mass => Rb.mass;
+        public float Volume { get; private set; }
         public float Density => density;
-        public Rigidbody Rb => rb;
+        public Rigidbody Rb { get; private set; }
+        public float Health { get; private set; }
+        public float MaxHealth { get; private set; }
+        public Renderer Renderer { get; private set; }
         public Mesh CurrentMesh => meshFilter.sharedMesh;
-        public float CurrentHealth => currentHealth;
-        public float MaxHealth => maxHealth;
 
 
         private void Awake()
         {
-            rb = GetComponent<Rigidbody>();
+            Rb = GetComponent<Rigidbody>();
             meshFilter = GetComponent<MeshFilter>();
             meshCollider = GetComponent<MeshCollider>();
             cheapCollider = GetComponent<SphereCollider>();
-            mainCameraTransform = Camera.main != null ? Camera.main.transform : null;
-            rb.useGravity = false;
-            renderer = GetComponent<Renderer>();
+            mainCameraTransform = Camera.main ? Camera.main.transform : null;
+            Rb.useGravity = false;
+            Renderer = GetComponent<Renderer>();
         }
 
         private void OnEnable()
         {
-            if (renderer != null)
+            if (Renderer != null)
             {
-                renderer.enabled = true;
+                Renderer.enabled = true;
             }
         }
         public void Initialize(
+            Spawner spawner,
             SpawnSettings.MeshInfo meshInfo,
             float mass,
             float scale,
@@ -101,27 +95,24 @@ namespace Asteroids
             Physics.autoSyncTransforms = false;
 
             this.meshFilter.mesh = meshInfo.mesh;
-            parentSpawner = GetComponentInParent<Spawner>();
+            this.spawner = spawner;
         
             // Calculate volume from mesh bounds and scale
-            currentVolume = meshInfo.cachedVolume * (scale * scale * scale);
-        
-            // Log after volume is calculated
-            RLog.Asteroid($"Asteroid {gameObject.name}: Initialize | ParentSpawner: {(parentSpawner != null ? parentSpawner.name : "NULL")} | Volume: {currentVolume:F2} | Mass: {mass:F2}");
-        
-            this.rb.mass = mass;
+            Volume = meshInfo.cachedVolume * (scale * scale * scale);
+            
+            this.Rb.mass = mass;
             transform.localScale = Vector3.one * scale;
 
-            rb.linearVelocity = velocity;
-            rb.angularVelocity = angularVelocity;
+            Rb.linearVelocity = velocity;
+            Rb.angularVelocity = angularVelocity;
 
             UpdateMeshCollider(meshInfo);
 
             // Update cheap collider radius for far-field trigger
-            if (cheapCollider != null)
+            if (cheapCollider)
             {
                 // Radius equals half the largest axis of the scaled bounds
-                Vector3 size = meshInfo.mesh.bounds.size;
+                var size = meshInfo.mesh.bounds.size;
                 float radius = Mathf.Max(size.x, Mathf.Max(size.y, size.z)) * scale * 0.5f;
                 cheapCollider.radius = radius;
             }
@@ -130,8 +121,8 @@ namespace Asteroids
             this.initialVelocity = velocity;
             this.initialAngularVelocity = angularVelocity;
 
-            maxHealth = currentVolume * healthPerUnitVolume;
-            currentHealth = maxHealth;
+            MaxHealth = Volume * healthPerUnitVolume;
+            Health = MaxHealth;
 
             // Finalise batched property writes
             Physics.SyncTransforms();
@@ -140,60 +131,55 @@ namespace Asteroids
 
         public void ResetAsteroid()
         {
-            rb.linearVelocity = initialVelocity;
-            rb.angularVelocity = initialAngularVelocity;
-            currentHealth = maxHealth;
-            if (renderer != null)
+            UpdateKinematics(initialVelocity, initialAngularVelocity);
+            Health = MaxHealth;
+            if (Renderer)
             {
-                renderer.enabled = true;
+                Renderer.enabled = true;
             }
+        }
+
+        public void UpdateKinematics(Vector3 vel, Vector3 spin)
+        {
+            Rb.linearVelocity = vel;
+            Rb.angularVelocity = spin;
         }
 
         private void UpdateMeshCollider(SpawnSettings.MeshInfo meshInfo)
         {
-            if (meshCollider != null)
+            if (!meshCollider) return;
+            var targetColliderMesh = meshInfo.colliderMesh ? meshInfo.colliderMesh : meshInfo.mesh;
+            if (meshCollider.sharedMesh != targetColliderMesh)
             {
-                Mesh targetColliderMesh = meshInfo.colliderMesh != null ? meshInfo.colliderMesh : meshInfo.mesh;
-
-                // Skip reassignment if already correct to avoid unnecessary cooking
-                if (meshCollider.sharedMesh != targetColliderMesh)
-                {
-                    meshCollider.sharedMesh = targetColliderMesh;
-                }
-                // Disable by default – enable when close to camera
-                meshCollider.enabled = false;
+                meshCollider.sharedMesh = targetColliderMesh;
             }
+            meshCollider.enabled = false;
         }
 
         public void TakeDamage(float damage, float projectileMass, Vector3 projectileVelocity, Vector3 hitPoint, GameObject attacker)
         {
-            float previousHealth = currentHealth;
-            currentHealth -= damage;
+            float previousHealth = Health;
+            Health -= damage;
 
-            if (currentHealth <= 0f)
+            if (Health <= 0f)
             {
-                // Destroy asteroid – create fragments, VFX, and cleanup
                 Fragnetics.Instance.CreateFragments(this, projectileMass, projectileVelocity, hitPoint, CleanupAsteroid);
                 Explode();
-            }
-            else
-            {
-                // Optional: small hit feedback could be added here (spark VFX, sound, etc.)
             }
         }
 
         private void Explode()
         {
-            if (renderer != null)
+            if (Renderer)
             {
-                renderer.enabled = false;
+                Renderer.enabled = false;
             }
 
             if (GameSettings.VfxEnabled && explosionPrefab != null)
             {
                 // Try to get PooledVFX component first, fallback to regular instantiate
-                PooledVFX pooledVFX = explosionPrefab.GetComponent<PooledVFX>();
-                if (pooledVFX != null)
+                var pooledVFX = explosionPrefab.GetComponent<PooledVFX>();
+                if (pooledVFX)
                 {
                     SimplePool<PooledVFX>.Get(pooledVFX, transform.position, Quaternion.identity);
                 }
@@ -202,7 +188,7 @@ namespace Asteroids
                     Instantiate(explosionPrefab, transform.position, Quaternion.identity);
                 }
             }
-            if (explosionSound != null)
+            if (explosionSound)
             {
                 PooledAudioSource.PlayClipAtPoint(explosionSound, transform.position, explosionVolume);
             }
@@ -210,24 +196,9 @@ namespace Asteroids
 
         private void CleanupAsteroid()
         {
-            RLog.Asteroid($"Asteroid {gameObject.name}: CleanupAsteroid | ParentSpawner: {(parentSpawner != null ? parentSpawner.name : "NULL")} | Volume: {currentVolume:F2}");
-        
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
-        
-            if (parentSpawner == null)
-            {
-                parentSpawner = GetComponentInParent<Spawner>();
-                if (parentSpawner == null)
-                {
-                    parentSpawner = Spawner.Instance;
-                }
-            }
-        
-            if (parentSpawner != null)
-            {
-                parentSpawner.ReleaseAsteroid(gameObject);
-            }
+            Rb.linearVelocity = Vector3.zero;
+            Rb.angularVelocity = Vector3.zero;
+            spawner?.ReleaseAsteroid(this);
         }
 
         private void OnTriggerExit(Collider other)
@@ -253,18 +224,18 @@ namespace Asteroids
             var impactPoint = collision.GetContact(0).point;
 
             Vector3 normal = collision.GetContact(0).normal;
-            Vector3 asteroidVelNormal = Vector3.Project(rb.linearVelocity, normal);
+            Vector3 asteroidVelNormal = Vector3.Project(Rb.linearVelocity, normal);
             Vector3 shipVelNormal     = Vector3.Project(shipVel, normal);
 
             float dmg = CollisionDamageUtility.ComputeDamage(
-                CurrentMass, asteroidVelNormal,
+                Mass, asteroidVelNormal,
                 shipMass,     shipVelNormal,
                 energyToDamageScale);
 
             // Apply soft cap to prevent excessive one-hit damage
             dmg = ApplySoftCap(dmg);
 
-            damageable.TakeDamage(dmg, CurrentMass, rb.linearVelocity, impactPoint, gameObject);
+            damageable.TakeDamage(dmg, Mass, Rb.linearVelocity, impactPoint, gameObject);
         }
 
         private void LateUpdate()
@@ -293,10 +264,10 @@ namespace Asteroids
 
         private void OnDrawGizmos()
         {
-            if (rb != null)
+            if (Rb != null)
             {
                 Gizmos.color = Color.yellow;
-                Vector3 velocity = rb.linearVelocity;
+                Vector3 velocity = Rb.linearVelocity;
                 Vector3 start = transform.position;
                 Vector3 end = start + velocity.normalized * 2f;
                 Gizmos.DrawLine(start, end);
@@ -307,9 +278,9 @@ namespace Asteroids
                 Gizmos.DrawLine(end, end + left);
             }
 
-            if (Application.isPlaying && maxHealth > 0f)
+            if (Application.isPlaying && MaxHealth > 0f)
             {
-                float healthPercent = Mathf.Clamp01(currentHealth / maxHealth);
+                float healthPercent = Mathf.Clamp01(Health / MaxHealth);
                 Gizmos.color = Color.Lerp(Color.red, Color.green, healthPercent);
 
                 // Bar dimensions relative to asteroid size

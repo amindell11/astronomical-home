@@ -4,14 +4,6 @@ using UnityEngine;
 
 namespace Asteroids
 {
-    /// <summary>
-    /// Shared asteroid field logic that can operate relative to any anchor transform.
-    /// Derive concrete managers (e.g. AsteroidFieldManager, SectorFieldManager) from this class
-    /// and implement <see cref="AcquireAnchor"/> to provide the reference point that
-    /// controls spawning and density calculations.
-    /// </summary>
-    ///
-    [RequireComponent(typeof(SphereCollider))]
     public class Field : MonoBehaviour
     {
         [Header("Asteroid Population")]
@@ -29,22 +21,15 @@ namespace Asteroids
 
         public float TargetDensity { get => targetVolumeDensity; set => targetVolumeDensity = value; }
 
-        // Runtime-computed cached values
         private float cachedVolumeDensity;
         private float cachedArea;
 
-        // The transform that represents the local origin of this asteroid field.
         private SphereCollider cullingBoundaryCollider;
-        [Header("References")]
-        [Tooltip("AsteroidSpawner used by this field. If null, will search parent hierarchy, then fall back to AsteroidSpawner.Instance.")]
-        [SerializeField] private Spawner spawnerOverride;
-        
 
         protected Spawner Spawner { get; private set; }
         protected Vector3 SpawnCenter;
         protected virtual void Awake()
         {
-            Spawner = spawnerOverride ? spawnerOverride : GetComponent<Spawner>();
             cullingBoundaryCollider = GetComponentInChildren<SphereCollider>();
         }
 
@@ -73,17 +58,16 @@ namespace Asteroids
 
         protected void CheckAndSpawnAsteroids(float minSpawn, float maxSpawn, int spawnsPerFrame)
         {
-            if (!Spawner || Spawner.ActiveAsteroidCount >= maxAsteroids) return;
+            if (!Spawner || Registry.Instance.ActiveCount >= maxAsteroids) return;
             if (cachedVolumeDensity < targetVolumeDensity)
             {            
                 float volumeToSpawn = (targetVolumeDensity - cachedVolumeDensity) * cachedArea;
-                RLog.Asteroid($"BaseFieldManager: SPAWNING NEEDED | Volume deficit: {volumeToSpawn:F2} | Will spawn up to {spawnsPerFrame} asteroids");
                 float volumeSpawned = 0f;
                 int spawns = 0;
                 int safetyBreak = spawnsPerFrame;
                 
                 while (volumeSpawned < volumeToSpawn &&
-                       Spawner.ActiveAsteroidCount < maxAsteroids &&
+                       Registry.Instance.ActiveCount < maxAsteroids &&
                        safetyBreak > 0)
                 {
                     float r = Mathf.Lerp(minSpawn, maxSpawn, Random.insideUnitCircle.magnitude);
@@ -91,36 +75,20 @@ namespace Asteroids
                     var pos = SpawnCenter + offset;
                     var fullPose = new Pose(pos, Random.rotationUniform);
                     var ast = Spawner.SpawnAsteroid(SpawnRequest.Random(fullPose));
-                    if (!ast) break;
-                    var asteroid = ast.GetComponent<Asteroid>();
-                    if (asteroid)
+                    if (ast)
                     {
-                        volumeSpawned += asteroid.CurrentVolume;
+                        volumeSpawned += ast.Volume;
                         spawns++;
                     }
                     safetyBreak--;
                 }
-                RLog.Asteroid($"BaseFieldManager: SPAWN COMPLETE | Spawned {spawns} asteroids | Volume spawned: {volumeSpawned:F2} | Target was: {volumeToSpawn:F2} | Safety break remaining: {safetyBreak}");
-            }
-            else
-            {
-                RLog.Asteroid($"BaseFieldManager: Density sufficient ({cachedVolumeDensity:F4} >= {targetVolumeDensity:F4}) - no spawning needed");
             }
         }
 
-        protected void UpdateCachedDensity()
+        private void UpdateCachedDensity()
         {
-            if (!Spawner)
-            {
-                cachedVolumeDensity = 0;
-                cachedArea = 0;
-                return;
-            }
-
             cachedArea = Mathf.PI * densityCheckRadius * densityCheckRadius;
-            cachedVolumeDensity = cachedArea > 0 ? Spawner.TotalActiveVolume / cachedArea : 0f;
-        
-            RLog.Asteroid($"BaseFieldManager: DENSITY UPDATE | Active Volume: {Spawner.TotalActiveVolume:F2} | Check Area: {cachedArea:F2} | Density: {cachedVolumeDensity:F4} | Target: {targetVolumeDensity:F4} | Active Count: {Spawner.ActiveAsteroidCount}");
+            cachedVolumeDensity = cachedArea > 0 ? Registry.Instance.TotalVolume / cachedArea : 0f;
         }
 
         /// <summary>

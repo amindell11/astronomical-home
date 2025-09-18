@@ -21,7 +21,7 @@ namespace Asteroids
 
         private void Awake()
         {
-            if (Instance != null && Instance != this)
+            if (Instance && Instance != this)
             {
                 Destroy(gameObject);
                 return;
@@ -40,7 +40,7 @@ namespace Asteroids
 
             if (activeAsteroids.Add(asteroid))
             {
-                float v = asteroid.CurrentVolume;
+                float v = asteroid.Volume;
                 trackedVolumes[asteroid] = v;
                 TotalVolume += v;
             }
@@ -48,7 +48,7 @@ namespace Asteroids
             {
                 // Already present – adjust volume if its scale/mesh changed.
                 float oldV = trackedVolumes.GetValueOrDefault(asteroid, 0f);
-                float newV = asteroid.CurrentVolume;
+                float newV = asteroid.Volume;
                 if (Mathf.Approximately(oldV, newV)) return;
                 trackedVolumes[asteroid] = newV;
                 TotalVolume += (newV - oldV);
@@ -61,7 +61,7 @@ namespace Asteroids
         public void Unregister(Asteroid asteroid)
         {
             if (!asteroid || !activeAsteroids.Remove(asteroid)) return;
-            float v = trackedVolumes.TryGetValue(asteroid, out float stored) ? stored : asteroid.CurrentVolume;
+            float v = trackedVolumes.TryGetValue(asteroid, out float stored) ? stored : asteroid.Volume;
             trackedVolumes.Remove(asteroid);
             TotalVolume -= v;
         }

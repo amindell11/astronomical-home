@@ -11,13 +11,13 @@ namespace Asteroids
     /// </summary>
     public class FragmentPhysicsResult
     {
-        public Vector3[] velocities;
-        public Vector3[] spins;
+        public readonly Vector3[] Velocities;
+        public readonly Vector3[] Spins;
     
         public FragmentPhysicsResult(Vector3[] velocities, Vector3[] spins)
         {
-            this.velocities = velocities;
-            this.spins = spins;
+            this.Velocities = velocities;
+            this.Spins = spins;
         }
     }
 
@@ -77,7 +77,7 @@ namespace Asteroids
 
         private void Awake()
         {
-            if (Instance != null && Instance != this)
+            if (Instance && Instance != this)
             {
                 Destroy(gameObject);
             }
@@ -88,19 +88,6 @@ namespace Asteroids
         }
 
         /// <summary>
-        /// Public entry point for fragment creation - automatically chooses coroutine or direct version
-        /// </summary>
-        public void CreateFragments(
-            Asteroid asteroid,
-            float projectileMass,
-            Vector3 projectileVelocity,
-            Vector3 hitPoint
-        )
-        {
-            CreateFragments(asteroid, projectileMass, projectileVelocity, hitPoint, null);
-        }
-
-        /// <summary>
         /// Public entry point with explosion callback for delayed explosion option
         /// </summary>
         public void CreateFragments(
@@ -108,8 +95,7 @@ namespace Asteroids
             float projectileMass,
             Vector3 projectileVelocity,
             Vector3 hitPoint,
-            System.Action onExplosionReady
-        )
+            System.Action onExplosionReady = null)
         {
             StartCoroutine(CreateFragmentsWithPlaceholders(asteroid, projectileMass, projectileVelocity, hitPoint, onExplosionReady));
         }
@@ -258,7 +244,7 @@ namespace Asteroids
 
         private (Vector3 linear, Vector3 angular) CalculateInitialMomentum(Asteroid asteroid, float projectileMass, Vector3 projectileVelocity, Vector3 hitPoint)
         {
-            Vector3 asteroidMomentum = asteroid.CurrentMass * asteroid.Rb.linearVelocity;
+            Vector3 asteroidMomentum = asteroid.Mass * asteroid.Rb.linearVelocity;
             Vector3 projectileMomentum = projectileMass * projectileVelocity;
             Vector3 totalLinearMomentum = asteroidMomentum + projectileMomentum;
         
@@ -297,7 +283,7 @@ namespace Asteroids
         {
             var (totalLinearMomentum, totalAngularMomentum) = CalculateInitialMomentum(asteroid, projectileMass, projectileVelocity, hitPoint);
         
-            float[] fragmentMasses = GenerateFragmentMasses(asteroid.CurrentMass * massLossFactor);
+            float[] fragmentMasses = GenerateFragmentMasses(asteroid.Mass * massLossFactor);
             int fragmentCount = fragmentMasses.Length;
             if (fragmentCount <= 0) 
             {
@@ -309,7 +295,7 @@ namespace Asteroids
             Vector3[] fragmentPositions = CalculateFragmentPositions(asteroid.transform.position, fragmentCount);
         
             // Spawn placeholder fragments immediately with rough physics
-            GameObject[] placeholderFragments = SpawnPlaceholderFragments(
+            var placeholderFragments = SpawnPlaceholderFragments(
                 fragmentCount, 
                 fragmentPositions, 
                 fragmentMasses, 
@@ -336,7 +322,7 @@ namespace Asteroids
             // Update placeholder fragments with proper physics
             if (result != null && placeholderFragments != null)
             {
-                UpdatePlaceholderFragments(placeholderFragments, result.velocities, result.spins);
+                UpdatePlaceholderFragments(placeholderFragments, result.Velocities, result.Spins);
             }
 
             onExplosionReady?.Invoke();
@@ -345,7 +331,7 @@ namespace Asteroids
         /// <summary>
         /// Spawn fragments immediately with rough physics for visual continuity
         /// </summary>
-        private GameObject[] SpawnPlaceholderFragments(
+        private Asteroid[] SpawnPlaceholderFragments(
             int fragmentCount, 
             Vector3[] positions, 
             float[] masses, 
@@ -353,87 +339,60 @@ namespace Asteroids
             Vector3 projectileVelocity
         )
         {
-            RLog.Asteroid($"[Fragnetics] SpawnPlaceholderFragments BEGIN | expectedCount={fragmentCount}");
-            GameObject[] fragments = new GameObject[fragmentCount];
-            Vector3 baseVelocity = parentAsteroid.Rb.linearVelocity;
-            Vector3 impactDirection = (projectileVelocity - baseVelocity).normalized;
+            var fragments = new Asteroid[fragmentCount];
+            var baseVelocity = parentAsteroid.Rb.linearVelocity;
+            var impactDirection = (projectileVelocity - baseVelocity).normalized;
 
-            int spawned = 0;
             for (int i = 0; i < fragmentCount; i++)
             {
-                if (Spawner.Instance != null)
-                {
-                    Pose spawnPose = new Pose(positions[i], UnityEngine.Random.rotationUniform);
+                var spawnPose = new Pose(positions[i], UnityEngine.Random.rotationUniform);
                 
-                    // Create rough velocity for immediate visual feedback
-                    Vector3 roughDirection = (positions[i] - parentAsteroid.transform.position).normalized;
-                    Vector3 roughVelocity = baseVelocity + 
-                                            (roughDirection * baseSeparationSpeed * 0.5f) + 
-                                            (impactDirection * baseSeparationSpeed * 0.3f);
+                var roughDirection = (positions[i] - parentAsteroid.transform.position).normalized;
+                var roughVelocity = baseVelocity + 
+                                        (roughDirection * (baseSeparationSpeed * 0.5f)) + 
+                                        (impactDirection * (baseSeparationSpeed * 0.3f));
                 
-                    Vector3 roughSpin = UnityEngine.Random.insideUnitSphere * spinVariation * 0.5f;
+                var roughSpin = UnityEngine.Random.insideUnitSphere * (spinVariation * 0.5f);
 
-                    GameObject fragment = Spawner.Instance.SpawnAsteroid(
-                        SpawnRequest.Fragment(
-                            spawnPose,
-                            masses[i],
-                            roughVelocity,
-                            roughSpin)
-                    );
-
-                    fragments[i] = fragment;
-
-                    RLog.Asteroid($"[Fragnetics]  → placeholder {i} | mass={masses[i]:F1} | spawned={(fragment != null)}");
-                    if (fragment != null) spawned++;
-
-                    // Make fragment initially semi-transparent if we have a fade-in time
-                    if (fragmentFadeInTime > 0f && fragment != null)
-                    {
-                        StartCoroutine(FadeInFragment(fragment));
-                    }
-                }
-                else
-                {
-                    RLog.Asteroid("[Fragnetics] AsteroidSpawner.Instance is null – cannot spawn placeholder fragment.");
-                }
+                var fragment = Spawner.Instance.SpawnAsteroid(
+                    SpawnRequest.Fragment(
+                        spawnPose,
+                        masses[i],
+                        roughVelocity,
+                        roughSpin)
+                );
+                fragments[i] = fragment;
+                if (fragmentFadeInTime > 0f)
+                    StartCoroutine(FadeInFragment(fragment));
             }
 
-            RLog.Asteroid($"[Fragnetics] SpawnPlaceholderFragments END   | requested={fragmentCount} | spawned={spawned}");
             return fragments;
         }
 
         /// <summary>
         /// Update placeholder fragments with proper physics calculations
         /// </summary>
-        private void UpdatePlaceholderFragments(GameObject[] fragments, Vector3[] velocities, Vector3[] spins)
+        private static void UpdatePlaceholderFragments(Asteroid[] fragments, Vector3[] velocities, Vector3[] spins)
         {
             for (int i = 0; i < fragments.Length; i++)
             {
-                if (fragments[i] != null)
-                {
-                    Rigidbody rb = fragments[i].GetComponent<Rigidbody>();
-                    if (rb != null)
-                    {
-                        rb.linearVelocity = velocities[i];
-                        rb.angularVelocity = spins[i];
-                    }
-                }
+                fragments[i]?.UpdateKinematics(velocities[i], spins[i]);
             }
         }
 
         /// <summary>
         /// Fade in a fragment over time for smoother visual transition
         /// </summary>
-        private IEnumerator FadeInFragment(GameObject fragment)
+        private IEnumerator FadeInFragment(Asteroid fragment)
         {
-            if (fragment == null || fragmentFadeInTime <= 0f) yield break;
+            if (!fragment || fragmentFadeInTime <= 0f) yield break;
 
-            Renderer renderer = fragment.GetComponent<Renderer>();
-            if (renderer == null) yield break;
+            var re = fragment.Renderer;
+            if (!re) yield break;
 
-            Material material = renderer.material;
-            Color originalColor = material.color;
-            Color transparentColor = new Color(originalColor.r, originalColor.g, originalColor.b, 0f);
+            var material = re.material;
+            var originalColor = material.color;
+            var transparentColor = new Color(originalColor.r, originalColor.g, originalColor.b, 0f);
         
             material.color = transparentColor;
 

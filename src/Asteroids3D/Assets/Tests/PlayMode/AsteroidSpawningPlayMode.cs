@@ -84,7 +84,7 @@ public class AsteroidSpawningPlayMode
         yield return null;
 
         // After Start(), the field manager should have populated the field.
-        Assert.Greater(spawner.ActiveAsteroidCount, 0, "Field manager failed to spawn any asteroids on Start().");
+        Assert.Greater(Spawner.ActiveAsteroidCount, 0, "Field manager failed to spawn any asteroids on Start().");
 
         // Validate that all asteroids are within the configured annulus (minSpawnDistance .. maxSpawnDistance)
         float minSpawn = GetPrivateField<float>(typeof(Field), updatingField, "minSpawnDistance");
@@ -109,7 +109,7 @@ public class AsteroidSpawningPlayMode
         Asteroid target = Object.FindObjectOfType<Asteroid>();
         Assert.IsNotNull(target, "No asteroid available to test fragmentation.");
 
-        int countBefore = spawner.ActiveAsteroidCount;
+        int countBefore = Spawner.ActiveAsteroidCount;
 
         // Apply lethal damage – more than the asteroid's current health so that it fractures.
         float overkill = target.MaxHealth * 2f;
@@ -119,7 +119,7 @@ public class AsteroidSpawningPlayMode
         yield return null; // first frame – placeholder spawn
         yield return null; // second frame – physics correction pass
 
-        int countAfter = spawner.ActiveAsteroidCount;
+        int countAfter = Spawner.ActiveAsteroidCount;
         Assert.Greater(countAfter, countBefore, "Fragmentation did not increase active asteroid count as expected.");
     }
 
@@ -134,14 +134,14 @@ public class AsteroidSpawningPlayMode
 
         // 1. Clear the field entirely.
         spawner.ReleaseAllAsteroids();
-        Assert.AreEqual(0, spawner.ActiveAsteroidCount, "ReleaseAllAsteroids() did not clear active set.");
+        Assert.AreEqual(0, Spawner.ActiveAsteroidCount, "ReleaseAllAsteroids() did not clear active set.");
 
         // 2. Wait long enough for at least one density check tick (AsteroidFieldManager uses densityCheckInterval).
         float checkInterval = GetPrivateField<float>(typeof(UpdatingField), updatingField, "densityCheckInterval");
         yield return new WaitForSeconds(checkInterval * 1.2f);
 
         // 3. Verify that some asteroids have been respawned.
-        Assert.Greater(spawner.ActiveAsteroidCount, 0, "Density control logic failed to respawn asteroids when below target density.");
+        Assert.Greater(Spawner.ActiveAsteroidCount, 0, "Density control logic failed to respawn asteroids when below target density.");
     }
 
     // --------------------------------------------------------------------------------------------
@@ -159,7 +159,7 @@ public class AsteroidSpawningPlayMode
             foreach (Asteroid a in Object.FindObjectsOfType<Asteroid>())
             {
                 if (a != null && a.gameObject.activeInHierarchy)
-                    v += a.CurrentVolume;
+                    v += a.Volume;
             }
             return v;
         }
@@ -226,7 +226,7 @@ public class AsteroidSpawningPlayMode
         Assert.IsNotNull(registry, "AsteroidRegistry instance not present.");
 
         // 1. Count consistency
-        Assert.AreEqual(spawner.ActiveAsteroidCount, registry.ActiveCount, "ActiveAsteroidCount does not match registry count.");
+        Assert.AreEqual(Spawner.ActiveAsteroidCount, registry.ActiveCount, "ActiveAsteroidCount does not match registry count.");
 
         // 2. Every entry valid & enabled, gather volume
         float sum = 0f;
@@ -234,7 +234,7 @@ public class AsteroidSpawningPlayMode
         {
             Assert.IsNotNull(a, "Null Asteroid reference in registry.");
             Assert.IsTrue(a.gameObject.activeInHierarchy, $"Asteroid {a.name} registered but inactive in hierarchy.");
-            sum += a.CurrentVolume;
+            sum += a.Volume;
         }
 
         // 3. Compare summed volume vs spawner counter
@@ -260,9 +260,9 @@ public class AsteroidSpawningPlayMode
         // Grab a sizeable asteroid (choose largest by volume) to fragment
         Asteroid[] asts = Object.FindObjectsOfType<Asteroid>();
         Assert.IsNotEmpty(asts);
-        Asteroid target = asts.OrderByDescending(a => a.CurrentVolume).First();
+        Asteroid target = asts.OrderByDescending(a => a.Volume).First();
 
-        float parentVol = target.CurrentVolume;
+        float parentVol = target.Volume;
         float spawnerVolBefore = spawner.TotalActiveVolume;
 
         // Fragment the asteroid hard
@@ -381,7 +381,7 @@ public class AsteroidSpawningPlayMode
                 float deltaVol = currentVol - lastCheckVol;
                 if (Mathf.Abs(deltaVol) > 0.1f)
                 {
-                    Debug.Log($"[VolumeDrift] Time: {Time.time - startTime:F2}s | Volume: {currentVol:F2} | Delta: {deltaVol:+0.00;-0.00} | Asteroids: {spawner.ActiveAsteroidCount}");
+                    Debug.Log($"[VolumeDrift] Time: {Time.time - startTime:F2}s | Volume: {currentVol:F2} | Delta: {deltaVol:+0.00;-0.00} | Asteroids: {Spawner.ActiveAsteroidCount}");
                 }
                 ValidateSpawnerIntegrity();
                 lastCheckVol = currentVol;
@@ -395,7 +395,7 @@ public class AsteroidSpawningPlayMode
                 if (astArray.Length > 0)
                 {
                     Asteroid pick = astArray[rnd.Next(astArray.Length)];
-                    Debug.Log($"[VolumeDrift] Fragmenting asteroid with volume {pick.CurrentVolume:F2}");
+                    Debug.Log($"[VolumeDrift] Fragmenting asteroid with volume {pick.Volume:F2}");
                     pick.TakeDamage(pick.MaxHealth * 2f, 5f, Vector3.right * 3f, pick.transform.position, null);
                 }
             }

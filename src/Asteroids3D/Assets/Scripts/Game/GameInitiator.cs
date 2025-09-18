@@ -15,7 +15,7 @@ namespace Game
         private Ship player, enemy;
         private Asteroids.UpdatingField field;
         private Camera camera;
-        private Ships.Spawner shipSpawner;
+        private Spawner shipSpawner;
         private readonly SubscribedSet<Ship> activeShips = new();
 
         protected override void Awake()
