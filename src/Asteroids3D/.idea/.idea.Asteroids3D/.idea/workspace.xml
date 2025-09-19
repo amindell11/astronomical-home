@@ -4,19 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e23c1508-3e15-491e-908f-fb153c5059e0" name="Changes" comment="asteroids frags issues (commit before writing test code)">
+    <list default="true" id="e23c1508-3e15-491e-908f-fb153c5059e0" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../Asteroid3D/Assets/Scripts/Asteroids/Fragnetics/Calculator.cs" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Asteroids3D/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Asteroids3D/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefabs/GameContext/AsteroidController.prefab.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Prefabs/GameContext/AsteroidController.prefab.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefabs/GameContext/FragSettings.asset.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Prefabs/GameContext/FragSettings.asset.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefabs/GameContext/Main Camera.prefab.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Prefabs/GameContext/Main Camera.prefab.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefabs/MiscObjects/Asteroid3D.prefab.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Prefabs/MiscObjects/Asteroid3D.prefab.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefabs/MiscObjects/SpaceBackground.prefab.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Prefabs/MiscObjects/SpaceBackground.prefab.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefabs/MiscObjects/StarField.prefab.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Prefabs/MiscObjects/StarField.prefab.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefabs/Ships/DefaultShipSettings.asset" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefabs/Ships/DefaultShipSettings.asset.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Game/GameInitiatorConfig.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Game/GameInitiatorConfig.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Game/MainGameContext.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Game/MainGameContext.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Asteroids/Fragnetics/Calculator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Asteroids/Fragnetics/Calculator.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Asteroids/Fragnetics/Settings.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Asteroids/Fragnetics/Settings.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Asteroids/Fragnetics/Structs.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Asteroids/Fragnetics/Structs.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Damage/CollisionDamageUtility.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Damage/CollisionDamageUtility.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../README_THEN_DELETE.md" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -47,7 +43,6 @@
   }
 }</component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file://$PROJECT_DIR$/../Asteroid3D/Assets/Scripts/Asteroids/Fragnetics/Calculator.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="vcs://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Scripts/Asteroids/Fragnetics.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Game/MainGameContext.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.unity.render-pipelines.universal@a19b2562c494/Runtime/UniversalRenderPipeline.cs" root0="SKIP_HIGHLIGHTING" />
@@ -166,7 +161,7 @@
       <workItem from="1757565207840" duration="203000" />
       <workItem from="1758172357580" duration="33324000" />
       <workItem from="1758258631286" duration="718000" />
-      <workItem from="1758259500457" duration="1583000" />
+      <workItem from="1758259500457" duration="5504000" />
     </task>
     <task id="LOCAL-00001" summary="Ship Settings can be changed at runtime (and refactor ship package a bunch)">
       <option name="closed" value="true" />
@@ -280,7 +275,15 @@
       <option name="project" value="LOCAL" />
       <updated>1758207304398</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="asteroids frags issues (commit before writing test code)">
+      <option name="closed" value="true" />
+      <created>1758261131726</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1758261131726</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

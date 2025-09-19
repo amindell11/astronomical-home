@@ -136,9 +136,15 @@ namespace Asteroids.Fragnetics
 			var center = ast.Position;
 			var (hitDir, hitRelVel) = HitDirAndRelVel(ast, hit);
 
+			// Momentum-per-mass scale (m/s): p / M, with coupling
+			float totalFragMass = 0f;
+			for (int i = 0; i < frags.Length; ++i) totalFragMass += frags[i].Mass;
+			float projectileMomentumMag = hit.Mass * hitRelVel * s.momentumCoupling;
+			float momentumPerMass = projectileMomentumMag / Mathf.Max(totalFragMass, 1e-6f);
+
 			for (int i = 0; i < frags.Length; ++i)
 			{
-				frags[i].Velocity = ast.Velocity + FragmentationVelocity(frags[i].Position, center, hitDir, hitRelVel, s);
+				frags[i].Velocity = ast.Velocity + FragmentationVelocity(frags[i].Position, center, hitDir, momentumPerMass, s);
 				spinJitter[i] = UnityEngine.Random.insideUnitSphere * s.spinVariation;
 
 				var r = frags[i].Position - center;
@@ -147,7 +153,7 @@ namespace Asteroids.Fragnetics
 				yield return null;
 			}
 			
-			var (vCorr, omegaBase) = MomentumCorrection(momentum, acc, s.explosiveLossFactor);
+			var (vCorr, omegaBase) = MomentumCorrection(momentum, acc);
 			ApplyCorrections(frags, spinJitter, vCorr, omegaBase);
 
 			onFrag?.Invoke(frags);
@@ -160,12 +166,12 @@ namespace Asteroids.Fragnetics
         }
         
         private static Vector3 FragmentationVelocity
-	        (Vector3 pos, Vector3 center, Vector3 bulletDir, float relSpeed, Settings s)
+	        (Vector3 pos, Vector3 center, Vector3 bulletDir, float momentumPerMass, Settings s)
         {
 	        var outward = (pos - center).normalized;
 	        var random = UnityEngine.Random.insideUnitSphere.normalized;
-	        var dir = s.outwardBias * outward + s.bulletBias * bulletDir + s.randomBias * random;
-	        var speed = s.baseSeparationSpeed * relSpeed * UnityEngine.Random.Range(0.8f, 1.2f);
+	        var dir = (s.outwardBias * outward + s.bulletBias * bulletDir + s.randomBias * random).normalized;
+            var speed = s.baseSeparationSpeed * momentumPerMass * UnityEngine.Random.Range(0.8f, 1.2f);
 	        return dir * speed;
         }
         
@@ -181,11 +187,11 @@ namespace Asteroids.Fragnetics
 		}
 
 		private static (Vector3 vCorr, Vector3 omegaBase) MomentumCorrection
-			((Vector3 linear, Vector3 angular) mom, FragSum acc, float lossFactor)
+			((Vector3 linear, Vector3 angular) mom, FragSum acc)
 		{
-			var vCorr = (mom.linear - acc.pFrag) * lossFactor / acc.totalMass;
+			var vCorr = (mom.linear - acc.pFrag) / Mathf.Max(acc.totalMass, 1e-6f);
 			var lOrbit = acc.lOrbit + Vector3.Cross(acc.mrSum, vCorr);
-			var lSpin = (mom.angular - acc.lOrbit) * lossFactor;
+			var lSpin = (mom.angular - lOrbit);
 			var omegaBase = acc.iTotal > 0 ? lSpin / acc.iTotal : Vector3.zero;
 			return (vCorr, omegaBase);
 		}

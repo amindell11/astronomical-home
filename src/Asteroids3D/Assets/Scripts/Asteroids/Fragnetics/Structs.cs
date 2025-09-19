@@ -45,15 +45,20 @@ namespace Asteroids.Fragnetics
 
     public readonly struct AsteroidData
     {
-        public AsteroidData(Asteroid ast)
+        public AsteroidData(float mass, Quaternion rotation, Vector3 angularVelocity, Vector3 velocity,
+            Vector3 position, Vector3 inertiaTensor)
         {
-            Mass = ast.Mass;
-            Rotation = ast.transform.rotation;
-            AngularVelocity = ast.Rb.angularVelocity;
-            Velocity = ast.Rb.linearVelocity;
-            Position = ast.transform.position;
-            InertiaTensor = ast.Rb.inertiaTensor;
+            Mass = mass;
+            Rotation = rotation;
+            AngularVelocity = angularVelocity;
+            Velocity = velocity;
+            Position = position;
+            InertiaTensor = inertiaTensor;
         }
+        public AsteroidData(Asteroid ast) : 
+            this(ast.Mass, ast.transform.rotation, ast.Rb.angularVelocity, 
+                ast.Rb.linearVelocity, ast.transform.position, ast.Rb.inertiaTensor) {}
+        
         public readonly float Mass;
         public readonly Quaternion Rotation;
         public readonly Vector3 AngularVelocity;

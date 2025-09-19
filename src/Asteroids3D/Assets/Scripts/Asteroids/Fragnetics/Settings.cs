@@ -30,10 +30,10 @@ namespace Asteroids.Fragnetics
         [SerializeField]
         [Tooltip("Maximum random rotation speed added to fragments in degrees/sec")]
         public float spinVariation = 30f;
-    
+        
         [SerializeField]
-        [Tooltip("Fraction of momentum preserved in the explosion (1 = perfect conservation)")]
-        public float explosiveLossFactor = 0.5f;
+        [Tooltip("How efficiently projectile momentum couples into fragment separation (1 = direct)")]
+        public float momentumCoupling = 1.0f;
     
         [SerializeField]
         [Tooltip("How strongly fragments move away from the asteroid's center")]

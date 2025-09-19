@@ -12,15 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ba8b0c9db4245038e739a634b0ae9fc, type: 3}
   m_Name: FragSettings
   m_EditorClassIdentifier: 
-  minMass: 30
+  minMass: 90
   minFragments: 2
-  maxFragments: 4
-  highCountBias: 0.5
-  baseSeparationSpeed: 5
-  spinVariation: 30
-  explosiveLossFactor: 0.5
+  maxFragments: 5
+  highCountBias: 0.679
+  baseSeparationSpeed: 0.65
+  spinVariation: 1
+  momentumCoupling: 0.63
   outwardBias: 0.7
   bulletBias: 1
   randomBias: 0.3
-  massLossFactor: 1
+  massLossFactor: 0.779
   fragmentFadeInTime: 0.1
