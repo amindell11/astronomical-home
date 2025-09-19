@@ -1,5 +1,10 @@
 fileFormatVersion: 2
+<<<<<<<< Updated upstream:src/Asteroids3D/Assets/Art/Sounds/173175__zimbot__missilelaunch.wav.asd.meta
 guid: 514f79b238b444b4dab35a3db34844dd
+========
+guid: 885f764e968106a4fbafdcfa70654de7
+folderAsset: yes
+>>>>>>>> Stashed changes:src/Asteroids3D/Assets/Scripts/ShipMain/Visuals.meta
 DefaultImporter:
   externalObjects: {}
   userData: 

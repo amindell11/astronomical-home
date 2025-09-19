@@ -1,5 +1,10 @@
 fileFormatVersion: 2
+<<<<<<<< Updated upstream:src/Asteroids3D/Assets/Art/Sounds/157439__nengisuls__misslie-1.wav.asd.meta
 guid: c91269fad8de3fb45946061d4f84567d
+========
+guid: 38c00a8b355df1248a43198bc83255d2
+folderAsset: yes
+>>>>>>>> Stashed changes:src/Asteroids3D/Assets/Scripts/Ships.meta
 DefaultImporter:
   externalObjects: {}
   userData: 

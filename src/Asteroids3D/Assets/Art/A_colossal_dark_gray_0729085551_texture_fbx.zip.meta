@@ -1,5 +1,10 @@
 fileFormatVersion: 2
+<<<<<<<< Updated upstream:src/Asteroids3D/Assets/Art/A_colossal_dark_gray_0729085551_texture_fbx.zip.meta
 guid: d532a23d82003bd4f86fcbe7cc926af7
+========
+guid: 5ffb680259cd644409310ddb7af1f77c
+folderAsset: yes
+>>>>>>>> Stashed changes:src/Asteroids3D/Assets/Scripts/ShipMain.meta
 DefaultImporter:
   externalObjects: {}
   userData: 

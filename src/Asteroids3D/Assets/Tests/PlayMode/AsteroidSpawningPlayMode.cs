@@ -281,7 +281,7 @@ public class AsteroidSpawningPlayMode
 
         float spawnerVolAfter = Registry.Instance.TotalVolume;
         // Extract massLossFactor from AsteroidFragnetics
-        float mLoss = GetPrivateField<float>(typeof(Fragger), Fragger.Instance, "massLossFactor");
+        float mLoss = GetPrivateField<float>(typeof(Fragger), Fragger.Singleton, "massLossFactor");
         // Expected new spawner volume = original total - parentVol + parentVol * mLoss
         float expected = spawnerVolBefore - parentVol + parentVol * mLoss;
         float relTol = 0.05f;

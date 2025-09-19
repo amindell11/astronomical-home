@@ -1,0 +1,388 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="e23c1508-3e15-491e-908f-fb153c5059e0" name="Changes" comment="is this the stuff?">
+      <change afterPath="$PROJECT_DIR$/../Asteroid3D/Assets/Scripts/Asteroids/Fragnetics/Calculator.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.Asteroids3D/.idea/dictionaries/project.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.Asteroids3D/.idea/indexLayout.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.Asteroids3D/.idea/projectSettingsUpdater.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.Asteroids3D/.idea/shelf/Uncommitted_changes_before_Checkout_at_8_5_2025_2_48_PM_[Changes]/shelved.patch" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.Asteroids3D/.idea/shelf/Uncommitted_changes_before_Checkout_at_8_5_2025_2_48_PM_[Changes]1/shelved.patch" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.Asteroids3D/.idea/shelf/Uncommitted_changes_before_Checkout_at_8_5_2025_2_48_PM__Changes_.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.Asteroids3D/.idea/shelf/Uncommitted_changes_before_Checkout_at_9_18_2025_7_55_AM_[Changes]/nebula n0.hdr" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.Asteroids3D/.idea/shelf/Uncommitted_changes_before_Checkout_at_9_18_2025_7_55_AM_[Changes]/nebula n01.hdr" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.Asteroids3D/.idea/shelf/Uncommitted_changes_before_Checkout_at_9_18_2025_7_55_AM_[Changes]/shelved.patch" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.Asteroids3D/.idea/shelf/Uncommitted_changes_before_Checkout_at_9_18_2025_7_55_AM_[Changes]1/nebula n0.hdr" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.Asteroids3D/.idea/shelf/Uncommitted_changes_before_Checkout_at_9_18_2025_7_55_AM_[Changes]1/shelved.patch" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.Asteroids3D/.idea/shelf/Uncommitted_changes_before_Checkout_at_9_18_2025_7_55_AM__Changes_.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.Asteroids3D/.idea/shelf/Uncommitted_changes_before_Checkout_at_9_18_2025_7_55_AM__Changes_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.Asteroids3D/.idea/shelf/Uncommitted_changes_before_Checkout_at_9_18_2025_7_58_AM_[Changes]/nebula n0.hdr" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.Asteroids3D/.idea/shelf/Uncommitted_changes_before_Checkout_at_9_18_2025_7_58_AM_[Changes]/nebula n01.hdr" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.Asteroids3D/.idea/shelf/Uncommitted_changes_before_Checkout_at_9_18_2025_7_58_AM_[Changes]1/nebula n0.hdr" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.Asteroids3D/.idea/shelf/Uncommitted_changes_before_Checkout_at_9_18_2025_7_58_AM_[Changes]1/shelved.patch" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.Asteroids3D/.idea/shelf/Uncommitted_changes_before_Checkout_at_9_18_2025_7_58_AM__Changes_.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.Asteroids3D/.idea/shelf/Uncommitted_changes_before_Checkout_at_9_18_2025_7_58_AM__Changes_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.Asteroids3D/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Art/A_colossal_dark_gray_0729085551_texture_fbx.zip.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Art/A_colossal_dark_gray_0729085551_texture_fbx.zip.meta" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Art/Sounds/157439__nengisuls__misslie-1.wav.asd.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Art/Sounds/157439__nengisuls__misslie-1.wav.asd.meta" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Art/Sounds/173175__zimbot__missilelaunch.wav.asd.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Art/Sounds/173175__zimbot__missilelaunch.wav.asd.meta" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/ML-Agents/results/CommanderCurriculum_v1/run_logs/Player-0.log.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/ML-Agents/results/CommanderCurriculum_v1/run_logs/Player-0.log.meta" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/ML-Agents/results/CommanderCurriculum_v1/run_logs/Player-1.log.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/ML-Agents/results/CommanderCurriculum_v1/run_logs/Player-1.log.meta" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/ML-Agents/results/CommanderCurriculum_v1/run_logs/Player-2.log.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/ML-Agents/results/CommanderCurriculum_v1/run_logs/Player-2.log.meta" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/ShipMain/Visuals.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/ShipMain/Visuals.meta" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Tests/PlayMode/AsteroidSpawningPlayMode.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Tests/PlayMode/AsteroidSpawningPlayMode.cs" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="DpaMonitoringSettings">
+    <option name="firstShow" value="false" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$/../.." value="1d8d8bec1554c42a71d64b37dede09fefd05b4cd" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;amindell11&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/amindell11/astronomical-home.git&quot;,
+    &quot;accountId&quot;: &quot;ff6fed03-ccdd-4d39-b69c-08fae7dd0522&quot;
+  }
+}</component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/../Asteroid3D/Assets/Scripts/Asteroids/Fragnetics/Calculator.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="vcs://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Scripts/Asteroids/Asteroid.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="vcs://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Scripts/Asteroids/Fragnetics/Calculator.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="vcs://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Scripts/Asteroids/Fragnetics/Fragger.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/Game/MainGameContext.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Tests/PlayMode/AsteroidSpawningPlayMode.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Tests/PlayMode/AsteroidSpawningPlayMode.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Tests/PlayMode/AsteroidSpawningPlayMode.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Tests/PlayMode/AsteroidSpawningPlayMode.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Tests/PlayMode/AsteroidSpawningPlayMode.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Tests/PlayMode/AsteroidSpawningPlayMode.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Tests/PlayMode/AsteroidSpawningPlayMode.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Tests/PlayMode/AsteroidSpawningPlayMode.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.unity.render-pipelines.universal@a19b2562c494/Runtime/UniversalRenderPipeline.cs" root0="SKIP_HIGHLIGHTING" />
+  </component>
+  <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 3
+}</component>
+  <component name="ProjectId" id="30rMDtlQs2EL1tarC7XMhLvIvEh" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Attach to Unity Editor.Attach to Unity Editor.executor&quot;: &quot;Debug&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;XThreadsFramesViewSplitterKey&quot;: &quot;0.4223684&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;Shelf.Project.Settings&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="RunManager" selected="Standalone Player.Unit Tests (batch mode)">
+    <configuration name="Standalone Player" type="RunUnityExe" factoryName="Unity Executable">
+      <option name="EXE_PATH" value="$PROJECT_DIR$/Build\Astronomical.exe" />
+      <option name="PROGRAM_PARAMETERS" value="" />
+      <option name="WORKING_DIRECTORY" value="C:\Users\desir\github-classroom\lmu-cmsi5998-summer2025-final-astronomical\src\Asteroids3D\Build" />
+      <option name="PASS_PARENT_ENVS" value="1" />
+      <option name="USE_EXTERNAL_CONSOLE" value="0" />
+      <option name="ENV_FILE_PATHS" value="" />
+      <option name="REDIRECT_INPUT_PATH" value="" />
+      <option name="PTY_MODE" value="Auto" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Start Unity" type="RunUnityExe" factoryName="Unity Executable">
+      <option name="EXE_PATH" value="C:\Program Files\Unity\Hub\Editor\6000.1.8f1\Editor\Unity.exe" />
+      <option name="PROGRAM_PARAMETERS" value="-projectPath C:\Users\desir\github-classroom\lmu-cmsi5998-summer2025-final-astronomical\src\Asteroids3D -debugCodeOptimization" />
+      <option name="WORKING_DIRECTORY" value="C:\Users\desir\github-classroom\lmu-cmsi5998-summer2025-final-astronomical\src\Asteroids3D" />
+      <option name="PASS_PARENT_ENVS" value="1" />
+      <option name="USE_EXTERNAL_CONSOLE" value="0" />
+      <option name="ENV_FILE_PATHS" value="" />
+      <option name="REDIRECT_INPUT_PATH" value="" />
+      <option name="PTY_MODE" value="Auto" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Unit Tests (batch mode)" type="RunUnityExe" factoryName="Unity Executable">
+      <option name="EXE_PATH" value="C:\Program Files\Unity\Hub\Editor\6000.1.8f1\Editor\Unity.exe" />
+      <option name="PROGRAM_PARAMETERS" value="-runTests -batchmode -projectPath C:\Users\desir\github-classroom\lmu-cmsi5998-summer2025-final-astronomical\src\Asteroids3D -testResults Logs/results.xml -logFile Logs/Editor.log -testPlatform EditMode -debugCodeOptimization" />
+      <option name="WORKING_DIRECTORY" value="C:\Users\desir\github-classroom\lmu-cmsi5998-summer2025-final-astronomical\src\Asteroids3D" />
+      <option name="PASS_PARENT_ENVS" value="1" />
+      <option name="USE_EXTERNAL_CONSOLE" value="0" />
+      <option name="ENV_FILE_PATHS" value="" />
+      <option name="REDIRECT_INPUT_PATH" value="" />
+      <option name="PTY_MODE" value="Auto" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Attach to Unity Editor &amp; Play" type="UNITY_DEBUG_RUN_CONFIGURATION" factoryName="UNITY_ATTACH_AND_PLAY" show_console_on_std_err="false" show_console_on_std_out="false" port="50000" address="localhost">
+      <option name="allowRunningInParallel" value="false" />
+      <option name="listenPortForConnections" value="false" />
+      <option name="pid" />
+      <option name="projectPathOnTarget" />
+      <option name="runtimes">
+        <list />
+      </option>
+      <option name="selectedOptions">
+        <list />
+      </option>
+      <option name="useMixedMode" value="false" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Attach to Unity Editor" type="UNITY_DEBUG_RUN_CONFIGURATION" factoryName="Unity Debug" show_console_on_std_err="false" show_console_on_std_out="false" port="50000" address="localhost">
+      <option name="allowRunningInParallel" value="false" />
+      <option name="listenPortForConnections" value="false" />
+      <option name="pid" />
+      <option name="projectPathOnTarget" />
+      <option name="runtimes">
+        <list />
+      </option>
+      <option name="selectedOptions">
+        <list />
+      </option>
+      <option name="useMixedMode" value="false" />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="ShelveChangesManager" show_recycled="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="e23c1508-3e15-491e-908f-fb153c5059e0" name="Changes" comment="" />
+      <created>1754381123855</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1754381123855</updated>
+      <workItem from="1754381127041" duration="24753000" />
+      <workItem from="1754428791188" duration="552000" />
+      <workItem from="1754429654484" duration="24221000" />
+      <workItem from="1754516562151" duration="34277000" />
+      <workItem from="1755294127239" duration="17869000" />
+      <workItem from="1756822058269" duration="7675000" />
+      <workItem from="1757565207840" duration="203000" />
+      <workItem from="1758172357580" duration="33324000" />
+      <workItem from="1758258631286" duration="718000" />
+    </task>
+    <task id="LOCAL-00001" summary="Ship Settings can be changed at runtime (and refactor ship package a bunch)">
+      <option name="closed" value="true" />
+      <created>1754400985990</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1754400985990</updated>
+    </task>
+    <task id="LOCAL-00002" summary="organizing namespaces touched basically everything in the project... ehhesh">
+      <option name="closed" value="true" />
+      <created>1754406363398</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1754406363398</updated>
+    </task>
+    <task id="LOCAL-00003" summary="organize file structure">
+      <option name="closed" value="true" />
+      <created>1754430333070</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1754430333070</updated>
+    </task>
+    <task id="LOCAL-00004" summary="fixed bug with ship not dying after refactor">
+      <option name="closed" value="true" />
+      <created>1754432536823</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1754432536823</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Refactor: Seperate mainGameContext from Spawner logic">
+      <option name="closed" value="true" />
+      <created>1754440460734</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1754440460734</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Player ship working in factory. still need to fix AI and other...">
+      <option name="closed" value="true" />
+      <created>1754459322393</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1754459322393</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Major Ship Refactor, Reorganized movement code and cleaned up. Also GamePlane implementation now works more consistently">
+      <option name="closed" value="true" />
+      <created>1754563646062</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1754563646063</updated>
+    </task>
+    <task id="LOCAL-00008" summary="wired up respwaner. Only works with new GameInitiator because awake/start management is becoming complicated">
+      <option name="closed" value="true" />
+      <created>1755297918148</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1755297918148</updated>
+    </task>
+    <task id="LOCAL-00009" summary="fixed some bugs, still some more to do... smoke feedback doesnt update properly, and CameraFollow.cs may have some weirdness still">
+      <option name="closed" value="true" />
+      <created>1755311770028</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1755311770029</updated>
+    </task>
+    <task id="LOCAL-00010" summary="adjusted ship params">
+      <option name="closed" value="true" />
+      <created>1758176371986</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1758176371986</updated>
+    </task>
+    <task id="LOCAL-00011" summary="added better handling for ships, also worked on asteroid fields a bit but not done yet">
+      <option name="closed" value="true" />
+      <created>1758188335858</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1758188335858</updated>
+    </task>
+    <task id="LOCAL-00012" summary="Asteroids package Cleanup and refactor but no significant changes">
+      <option name="closed" value="true" />
+      <created>1758191024646</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1758191024646</updated>
+    </task>
+    <task id="LOCAL-00013" summary="more stuff">
+      <option name="closed" value="true" />
+      <created>1758206362129</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1758206362129</updated>
+    </task>
+    <task id="LOCAL-00014" summary="fixed tha bug">
+      <option name="closed" value="true" />
+      <created>1758207304398</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1758207304398</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="UnityCheckinConfiguration" checkUnsavedScenes="true" />
+  <component name="UnityProjectConfiguration" hasMinimizedUI="true" />
+  <component name="UnityProjectDiscoverer">
+    <option name="hasUnityReference" value="true" />
+    <option name="unityProject" value="true" />
+    <option name="unityProjectFolder" value="true" />
+  </component>
+  <component name="UnityUnitTestConfiguration" currentTestLauncher="Both" />
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="main" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
+    <MESSAGE value="Ship Settings can be changed at runtime (and refactor ship package a bunch)" />
+    <MESSAGE value="organizing namespaces touched basically everything in the project... ehhesh" />
+    <MESSAGE value="organize file structure" />
+    <MESSAGE value="fixed bug with ship not dying after refactor" />
+    <MESSAGE value="Refactor: Seperate mainGameContext from Spawner logic" />
+    <MESSAGE value="Player ship working in factory. still need to fix AI and other..." />
+    <MESSAGE value="Major Ship Refactor, Reorganized movement code and cleaned up. Also GamePlane implementation now works more consistently" />
+    <MESSAGE value="wired up respwaner. Only works with new GameInitiator because awake/start management is becoming complicated" />
+    <MESSAGE value="fixed some bugs, still some more to do... smoke feedback doesnt update properly, and CameraFollow.cs may have some weirdness still" />
+    <MESSAGE value="fixed some bugs and got the game into working build again" />
+    <MESSAGE value="adjusted ship params" />
+    <MESSAGE value="added better handling for ships, also worked on asteroid fields a bit but not done yet" />
+    <MESSAGE value="Asteroids package Cleanup and refactor but no significant changes" />
+    <MESSAGE value="more stuff" />
+    <MESSAGE value="fixed tha bug" />
+    <MESSAGE value="is this the stuff?" />
+    <option name="LAST_COMMIT_MESSAGE" value="is this the stuff?" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <breakpoint enabled="true" type="DotNet_Exception_Breakpoints">
+          <properties exception="System.OperationCanceledException" breakIfHandledByOtherCode="false" displayValue="System.OperationCanceledException" />
+          <option name="timeStamp" value="1" />
+        </breakpoint>
+        <breakpoint enabled="true" type="DotNet_Exception_Breakpoints">
+          <properties exception="System.Threading.Tasks.TaskCanceledException" breakIfHandledByOtherCode="false" displayValue="System.Threading.Tasks.TaskCanceledException" />
+          <option name="timeStamp" value="2" />
+        </breakpoint>
+        <breakpoint enabled="true" type="DotNet_Exception_Breakpoints">
+          <properties exception="System.Threading.ThreadAbortException" breakIfHandledByOtherCode="false" displayValue="System.Threading.ThreadAbortException" />
+          <option name="timeStamp" value="3" />
+        </breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+</project>
