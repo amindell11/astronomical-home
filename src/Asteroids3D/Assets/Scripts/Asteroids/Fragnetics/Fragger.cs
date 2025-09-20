@@ -61,7 +61,7 @@ namespace Asteroids.Fragnetics
             calc.CalculatePlaceholderPhysics(ast, hit, frags);
             for (int i = 0; i < frags.Length; i++)
             {
-                fragments[i] = spawn.SpawnAsteroid(SpawnRequest.Fragment(frags[i]));
+                fragments[i] = spawn.SpawnFragment(frags[i]);
                 if (fragSettings.fragmentFadeInTime > 0f)
                     StartCoroutine(FadeInFragment(fragments[i]));
             }

@@ -4,16 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e23c1508-3e15-491e-908f-fb153c5059e0" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../Asteroid3D/Assets/Scripts/Asteroids/Fragnetics/Calculator.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Asteroids3D/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Asteroids3D/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Asteroids/Fragnetics/Calculator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Asteroids/Fragnetics/Calculator.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Asteroids/Fragnetics/Settings.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Asteroids/Fragnetics/Settings.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Asteroids/Fragnetics/Structs.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Asteroids/Fragnetics/Structs.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Damage/CollisionDamageUtility.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Damage/CollisionDamageUtility.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../README_THEN_DELETE.md" beforeDir="false" />
-    </list>
+    <list default="true" id="e23c1508-3e15-491e-908f-fb153c5059e0" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -43,6 +34,7 @@
   }
 }</component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="mock://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Prefabs/GameContext/FragSettings.asset" root0="SKIP_HIGHLIGHTING" />
     <setting file="vcs://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Scripts/Asteroids/Fragnetics.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Game/MainGameContext.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.unity.render-pipelines.universal@a19b2562c494/Runtime/UniversalRenderPipeline.cs" root0="SKIP_HIGHLIGHTING" />
@@ -161,7 +153,7 @@
       <workItem from="1757565207840" duration="203000" />
       <workItem from="1758172357580" duration="33324000" />
       <workItem from="1758258631286" duration="718000" />
-      <workItem from="1758259500457" duration="5504000" />
+      <workItem from="1758259500457" duration="5787000" />
     </task>
     <task id="LOCAL-00001" summary="Ship Settings can be changed at runtime (and refactor ship package a bunch)">
       <option name="closed" value="true" />
@@ -283,7 +275,23 @@
       <option name="project" value="LOCAL" />
       <updated>1758261131726</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="Added momentum-per-mass computation to asteroid fragment physics, making more realistic fragments with fast, low mass projectiles. Removed explosive loss setting and added momentum coupling setting.">
+      <option name="closed" value="true" />
+      <created>1758265216387</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1758265216387</updated>
+    </task>
+    <task id="LOCAL-00017" summary="Added momentum-per-mass computation to asteroid fragment physics, making more realistic fragments with fast, low mass projectiles. Removed explosive loss setting and added momentum coupling setting.&#10;also added frag calculation test suite">
+      <option name="closed" value="true" />
+      <created>1758265238498</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1758265238498</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -340,7 +348,9 @@
     <MESSAGE value="is this the stuff?" />
     <MESSAGE value="back to where we were" />
     <MESSAGE value="asteroids frags issues (commit before writing test code)" />
-    <option name="LAST_COMMIT_MESSAGE" value="asteroids frags issues (commit before writing test code)" />
+    <MESSAGE value="Added momentum-per-mass computation to asteroid fragment physics, making more realistic fragments with fast, low mass projectiles. Removed explosive loss setting and added momentum coupling setting." />
+    <MESSAGE value="Added momentum-per-mass computation to asteroid fragment physics, making more realistic fragments with fast, low mass projectiles. Removed explosive loss setting and added momentum coupling setting.&#10;also added frag calculation test suite" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added momentum-per-mass computation to asteroid fragment physics, making more realistic fragments with fast, low mass projectiles. Removed explosive loss setting and added momentum coupling setting.&#10;also added frag calculation test suite" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

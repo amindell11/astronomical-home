@@ -33,7 +33,7 @@ namespace Asteroids.Fields
             // Accumulated-time pattern to replace InvokeRepeating
             densityCheckTimer -= Time.deltaTime;
             if (!(densityCheckTimer <= 0f)) return;
-            if(CurrentAnchorPos == null) CurrentAnchorPos = () => transform.position;
+            CurrentAnchorPos ??= () => transform.position;
             SpawnCenter = CurrentAnchorPos();
             ManageField(updateMinSpawnDistance, updateMaxSpawnDistance, maxSpawnsPerFrame);
             densityCheckTimer = densityCheckInterval;

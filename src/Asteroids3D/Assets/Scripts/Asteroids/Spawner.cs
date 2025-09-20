@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Editor;
+using Asteroids.Fragnetics;
 using UnityEngine;
 using UnityEngine.Pool;
 using Random = UnityEngine.Random;
@@ -16,21 +17,18 @@ namespace Asteroids
         [SerializeField] private SpawnSettings spawnSettings;
 
         private ObjectPool<Asteroid> asteroidPool;
-        
+        public Registry Registry {get;  private set;}
         private void Awake()
         {
-
-            if (!Registry.Instance) gameObject.AddComponent<Registry>();
-
             if (!spawnSettings)
             {
                 RLog.AsteroidError("AsteroidSpawner requires a reference to AsteroidSpawnSettings.");
                 enabled = false;
                 return;
             }
-
+    
             spawnSettings.ValidateSettings();
-
+            Registry = new Registry();
             var poolCapacity = spawnSettings.defaultPoolCapacity;
             var poolMaxSize = spawnSettings.maxPoolSize;
             asteroidPool = new ObjectPool<Asteroid>(
@@ -42,8 +40,7 @@ namespace Asteroids
                 poolCapacity,
                 poolMaxSize
             );
-
-            // -------- Pre-warm the pool --------
+            
             for (var i = 0; i < poolCapacity; ++i)
             {
                 var obj = asteroidPool.Get();
@@ -51,45 +48,40 @@ namespace Asteroids
             }
         }
 
-        public Asteroid SpawnAsteroid(SpawnRequest request)
+        public Asteroid SpawnRandom(Pose pose)
+        {
+            var ast = SpawnAtPose(pose);
+            InitRandomAsteroid(ast);
+            Registry.Register(ast);
+            return ast;
+        }
+
+        public Asteroid SpawnFragment(Frag frag)
+        {
+            var pose = new Pose(frag.Position, frag.Rotation);
+            var ast = SpawnAtPose(pose);
+            InitFragmentAsteroid(ast, frag.Mass, frag.Velocity, frag.Spin);
+            Registry.Register(ast);
+            return ast;
+        }
+
+        private Asteroid SpawnAtPose(Pose pose)
         {
             var ast = asteroidPool.Get();
             ast.transform.SetParent(transform);
-            ast.transform.SetPositionAndRotation(request.Pose.position, request.Pose.rotation);
-
-            switch (request.Kind)
-            {
-                case SpawnRequest.SpawnKind.Random:
-                    InitRandomAsteroid(ast);
-                    break;
-
-                case SpawnRequest.SpawnKind.Fragment:
-                    InitFragmentAsteroid(
-                        ast,
-                        request.Mass!.Value,
-                        request.Velocity!.Value,
-                        request.AngularVelocity!.Value);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            // Register with central registry (handles volume + active count).
-            Registry.Instance?.Register(ast);
+            ast.transform.SetPositionAndRotation(pose.position, pose.rotation);
             return ast;
         }
 
         public void ReleaseAsteroid(Asteroid ast)
         {
-            if (ast) Registry.Instance?.Unregister(ast);
+            if (ast) Registry.Unregister(ast);
             asteroidPool.Release(ast);
         }
 
         public void ReleaseAllAsteroids()
         {
-            if (!Registry.Instance) return;
-
-            var toRelease = new List<Asteroid>(Registry.Instance.ActiveAsteroids);
+            var toRelease = new List<Asteroid>(Registry.ActiveAsteroids);
             foreach (var ast in toRelease.Where(ast => ast))
                 ReleaseAsteroid(ast);
         }
@@ -111,17 +103,10 @@ namespace Asteroids
             Vector3 velocity,
             Vector3 angularVelocity)
         {
-            // Use a random mesh but honour the supplied mass / kinematics
             var meshInfo = spawnSettings.GetRandomMeshInfo();
             var (finalMass, scale) = CalculateMassAndScale(asteroid, meshInfo, mass);
-
             asteroid.Initialize(this, meshInfo, finalMass, scale, velocity, angularVelocity);
         }
-
-        // ----------------- Book-keeping -----------------
-        // Tracking now handled by AsteroidRegistry – no local implementation needed.
-
-        // --------- ObjectPool Callbacks ---------
         private Asteroid CreatePooledAsteroid()
         {
             return (Asteroid)Instantiate(asteroidPrefab, Vector3.zero, Quaternion.identity, transform.parent);

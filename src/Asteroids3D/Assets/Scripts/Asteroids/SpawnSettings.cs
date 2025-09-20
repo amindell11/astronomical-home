@@ -20,7 +20,6 @@ namespace Asteroids
         [Tooltip("Array of asteroid meshes with optional collider overrides and pre-cached volume")]
         public MeshInfo[] meshInfos;
 
-        // --- Back-compat: keep legacy array so older asset files don’t break outright ---
         [SerializeField, HideInInspector]
         private Mesh[] asteroidMeshes; // deprecated – migrate to meshInfos via OnValidate()
 
@@ -57,39 +56,21 @@ namespace Asteroids
             if (asteroidMeshes != null && asteroidMeshes.Length > 0)
             {
                 Mesh mesh = asteroidMeshes[Random.Range(0, asteroidMeshes.Length)];
-                return new MeshInfo { mesh = mesh, colliderMesh = null, cachedVolume = (mesh != null ? mesh.bounds.size.x * mesh.bounds.size.y * mesh.bounds.size.z : 1f) };
+                return new MeshInfo { mesh = mesh, colliderMesh = null, cachedVolume = (mesh ? mesh.bounds.size.x * mesh.bounds.size.y * mesh.bounds.size.z : 1f) };
             }
 
             return default;
         }
 
-        /// <summary>
-        /// Calculate velocity scale factor based on mass
-        /// </summary>
-        /// <param name="mass">The mass of the asteroid</param>
-        /// <returns>Velocity scale factor (smaller for heavier asteroids)</returns>
-        public float GetVelocityScale(float mass)
+        public static float GetVelocityScale(float mass)
         {
             return (mass > 0) ? 1f / Mathf.Pow(mass, 1f/3f) : 1f;
         }
-
-        /// <summary>
-        /// Generate random velocity within the configured range, scaled by mass
-        /// </summary>
-        /// <param name="mass">The mass of the asteroid</param>
-        /// <returns>Random velocity vector</returns>
         public Vector3 GetRandomVelocity(float mass)
         {
             float velocityScale = GetVelocityScale(mass);
-            return Random.insideUnitCircle.normalized * 
-                   Random.Range(velocityRange.x, velocityRange.y) * velocityScale;
+            return Random.insideUnitCircle.normalized * (Random.Range(velocityRange.x, velocityRange.y) * velocityScale);
         }
-
-        /// <summary>
-        /// Generate random angular velocity within the configured range, scaled by mass
-        /// </summary>
-        /// <param name="mass">The mass of the asteroid</param>
-        /// <returns>Random angular velocity vector</returns>
         public Vector3 GetRandomAngularVelocity(float mass)
         {
             float velocityScale = GetVelocityScale(mass);
@@ -99,10 +80,6 @@ namespace Asteroids
                 Random.Range(spinRange.x, spinRange.y) * velocityScale
             );
         }
-
-        /// <summary>
-        /// Validate the settings and log warnings for any issues
-        /// </summary>
         public void ValidateSettings()
         {
             if ((meshInfos == null || meshInfos.Length == 0) && (asteroidMeshes == null || asteroidMeshes.Length == 0))

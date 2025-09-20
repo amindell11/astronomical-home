@@ -17,16 +17,12 @@ namespace Asteroids.Fields
         [SerializeField] protected float targetVolumeDensity = 0.1f;
         [SerializeField] protected float densityCheckRadius = 30f;
         [SerializeField] protected int maxSpawnsPerFrame = 10;
-
-        public float TargetDensity { get => targetVolumeDensity; set => targetVolumeDensity = value; }
-
-        private float cachedVolumeDensity;
-        private float cachedArea;
-
+        
         private SphereCollider cullingBoundaryCollider;
 
         protected Spawner Spawner { get; private set; }
         protected Vector3 SpawnCenter;
+        protected float TargetVolume;
         protected virtual void Awake()
         {
             cullingBoundaryCollider = GetComponentInChildren<SphereCollider>();
@@ -39,72 +35,49 @@ namespace Asteroids.Fields
 
         protected virtual void Start()
         {
+            RecalculateTargetVolume();
             ManageField();
         }
-
-    
-        /// <summary>
-        /// Main asteroid field management method. Uses default spawn parameters unless overridden.
-        /// </summary>
         protected void ManageField()
         {
             ManageField(minSpawnDistance, maxSpawnDistance, maxAsteroids);
         }
-
-        /// <summary>
-        /// Overloaded version that accepts explicit spawn parameters.
-        /// </summary>
         protected void ManageField(float minSpawn, float maxSpawn, int maxPerFrame)
         {
-            UpdateCachedDensity();
-            CheckAndSpawnAsteroids(minSpawn, maxSpawn, maxPerFrame);
+            CheckAndSpawnAsteroids(minSpawn, maxSpawn, maxPerFrame, Spawner.Registry);
         }
-
-        protected void CheckAndSpawnAsteroids(float minSpawn, float maxSpawn, int spawnsPerFrame)
+        private void CheckAndSpawnAsteroids(float minSpawn, float maxSpawn, int spawnsPerFrame, Registry reg)
         {
-            if (!Spawner || Registry.Instance.ActiveCount >= maxAsteroids) return;
-            if (cachedVolumeDensity < targetVolumeDensity)
-            {            
-                float volumeToSpawn = (targetVolumeDensity - cachedVolumeDensity) * cachedArea;
-                float volumeSpawned = 0f;
-                int spawns = 0;
-                int safetyBreak = spawnsPerFrame;
-                
-                while (volumeSpawned < volumeToSpawn &&
-                       Registry.Instance.ActiveCount < maxAsteroids &&
-                       safetyBreak > 0)
-                {
-                    float r = Mathf.Lerp(minSpawn, maxSpawn, Random.insideUnitCircle.magnitude);
-                    var offset = GamePlane.ProjectOntoPlane(Random.insideUnitSphere.normalized) * r;
-                    var pos = SpawnCenter + offset;
-                    var fullPose = new Pose(pos, Random.rotationUniform);
-                    var ast = Spawner.SpawnAsteroid(SpawnRequest.Random(fullPose));
-                    if (ast)
-                    {
-                        volumeSpawned += ast.Volume;
-                        spawns++;
-                    }
-                    safetyBreak--;
-                }
+            if (!Spawner) return;
+            int safetyBreak = spawnsPerFrame;
+            while (reg.TotalVolume < TargetVolume &&
+                   reg.ActiveCount < maxAsteroids &&
+                   safetyBreak > 0)
+            {
+                var pos = GetRandomFieldPos(minSpawn, maxSpawn);
+                Spawner.SpawnRandom(new Pose(pos, Random.rotationUniform));
+                safetyBreak--;
             }
         }
 
-        private void UpdateCachedDensity()
+        private Vector3 GetRandomFieldPos(float minSpawn, float maxSpawn)
         {
-            cachedArea = Mathf.PI * densityCheckRadius * densityCheckRadius;
-            cachedVolumeDensity = cachedArea > 0 ? Registry.Instance.TotalVolume / cachedArea : 0f;
+            var dir = GamePlane.PlaneDirToWorld(Random.insideUnitCircle.normalized);
+            float r = Mathf.Sqrt(Mathf.Lerp(minSpawn * minSpawn, maxSpawn * maxSpawn, Random.value));
+            return SpawnCenter + dir * r;
         }
-
-        /// <summary>
-        /// Sets the field size and updates the culling boundary collider accordingly.
-        /// </summary>
-        /// <param name="radius">The radius for the asteroid field</param>
+        
+        private void RecalculateTargetVolume()
+        {
+            TargetVolume = targetVolumeDensity * Mathf.PI * densityCheckRadius * densityCheckRadius;
+        }
+        
         public virtual void SetFieldSize(float radius)
         {
             densityCheckRadius = radius;
             maxSpawnDistance = radius;
             if (!cullingBoundaryCollider) return;
-            const float marginMultiplier = 1.1f; // 10% margin
+            const float marginMultiplier = 1.1f;
             float cullingRadius = maxSpawnDistance * marginMultiplier;
             cullingBoundaryCollider.radius = cullingRadius;
         }
