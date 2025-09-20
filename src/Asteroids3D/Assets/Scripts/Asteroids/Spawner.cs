@@ -88,11 +88,11 @@ namespace Asteroids
 
         private void InitRandomAsteroid(Asteroid asteroid)
         {
-            var meshInfo = spawnSettings.GetRandomMeshInfo();
+            var meshInfo = GetRandomMeshInfo(settings.meshInfos);
             var (mass, scale) = CalculateMassAndScale(asteroid, meshInfo, null);
 
-            var velocity = spawnSettings.GetRandomVelocity(mass);
-            var angularVelocity = spawnSettings.GetRandomAngularVelocity(mass);
+            var velocity = GetRandomVelocity(mass, settings.velocityRange);
+            var angularVelocity = GetRandomAngularVelocity(mass, settings.spinRange);
 
             asteroid.Initialize(this, meshInfo, mass, scale, velocity, angularVelocity);
         }
@@ -103,15 +103,41 @@ namespace Asteroids
             Vector3 velocity,
             Vector3 angularVelocity)
         {
-            var meshInfo = spawnSettings.GetRandomMeshInfo();
+            var meshInfo = GetRandomMeshInfo(settings.meshInfos);
             var (finalMass, scale) = CalculateMassAndScale(asteroid, meshInfo, mass);
             asteroid.Initialize(this, meshInfo, finalMass, scale, velocity, angularVelocity);
         }
         private Asteroid CreatePooledAsteroid()
         {
-            return (Asteroid)Instantiate(asteroidPrefab, Vector3.zero, Quaternion.identity, transform.parent);
+            return (Asteroid)Instantiate(settings.asteroidPrefab, Vector3.zero, Quaternion.identity, transform.parent);
         }
 
+        private static SpawnSettings.MeshInfo GetRandomMeshInfo(SpawnSettings.MeshInfo[] meshInfos)
+        {
+            if (meshInfos is not { Length: > 0 }) return default;
+            int idx = Random.Range(0, meshInfos.Length);
+            return meshInfos[idx];
+        }
+
+        private static float GetVelocityScale(float mass)
+        {
+            return (mass > 0) ? 1f / Mathf.Pow(mass, 1f/3f) : 1f;
+        }
+        public Vector3 GetRandomVelocity(float mass, Vector2 velocityRange)
+        {
+            float velocityScale = GetVelocityScale(mass);
+            return Random.insideUnitCircle.normalized * (Random.Range(velocityRange.x, velocityRange.y) * velocityScale);
+        }
+        public Vector3 GetRandomAngularVelocity(float mass, Vector2 spinRange)
+        {
+            float velocityScale = GetVelocityScale(mass);
+            return new Vector3(
+                Random.Range(spinRange.x, spinRange.y) * velocityScale,
+                Random.Range(spinRange.x, spinRange.y) * velocityScale,
+                Random.Range(spinRange.x, spinRange.y) * velocityScale
+            );
+        }
+        
         private static void OnAsteroidRetrieved(Asteroid ast)
         {
             ast.gameObject.SetActive(true);
@@ -147,7 +173,7 @@ namespace Asteroids
                 return (mass.Value, finalScale);
             }
 
-            var currentMassScaleRange = spawnSettings.massScaleRange;
+            var currentMassScaleRange = settings.massScaleRange;
             var randomScaleFactor = Random.Range(currentMassScaleRange.x, currentMassScaleRange.y);
             var finalScaleComputed = Mathf.Pow(randomScaleFactor, 1f / 3f);
             var finalMassComputed = baseMass * randomScaleFactor;
