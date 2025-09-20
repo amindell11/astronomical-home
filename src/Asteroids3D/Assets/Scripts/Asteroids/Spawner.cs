@@ -14,23 +14,23 @@ namespace Asteroids
         [Header("Asteroid Configuration")] [SerializeField]
         private Asteroid asteroidPrefab;
 
-        [SerializeField] private SpawnSettings spawnSettings;
+        [SerializeField] private SpawnSettings settings;
 
         private ObjectPool<Asteroid> asteroidPool;
         public Registry Registry {get;  private set;}
         private void Awake()
         {
-            if (!spawnSettings)
+            if (!settings)
             {
                 RLog.AsteroidError("AsteroidSpawner requires a reference to AsteroidSpawnSettings.");
                 enabled = false;
                 return;
             }
     
-            spawnSettings.ValidateSettings();
+            settings.ValidateSettings();
             Registry = new Registry();
-            var poolCapacity = spawnSettings.defaultPoolCapacity;
-            var poolMaxSize = spawnSettings.maxPoolSize;
+            var poolCapacity = settings.defaultPoolCapacity;
+            var poolMaxSize = settings.maxPoolSize;
             asteroidPool = new ObjectPool<Asteroid>(
                 CreatePooledAsteroid,
                 OnAsteroidRetrieved,
