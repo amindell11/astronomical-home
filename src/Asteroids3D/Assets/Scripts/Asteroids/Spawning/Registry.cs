@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Asteroids
+namespace Asteroids.Spawning
 {
 
     public class Registry
     {
-        private readonly HashSet<Asteroid> activeAsteroids = new HashSet<Asteroid>();
-        private readonly Dictionary<Asteroid, float> trackedVolumes = new Dictionary<Asteroid, float>();
+        private readonly HashSet<Asteroid> activeAsteroids = new();
+        private readonly Dictionary<Asteroid, float> trackedVolumes = new();
         public IReadOnlyCollection<Asteroid> ActiveAsteroids => activeAsteroids;
         public int ActiveCount => activeAsteroids.Count;
         public float TotalVolume { get; private set; }

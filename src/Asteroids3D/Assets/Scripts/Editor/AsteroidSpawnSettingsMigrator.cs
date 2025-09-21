@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System.Collections.Generic;
 using Asteroids;
+using Asteroids.Spawning;
 using UnityEditor;
 using UnityEngine;
 

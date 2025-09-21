@@ -10,6 +10,7 @@ using System.Linq;
 using Asteroids;
 using Asteroids.Fields;
 using Asteroids.Fragnetics;
+using Asteroids.Spawning;
 using Game;
 
 /// <summary>
@@ -133,7 +134,7 @@ public class AsteroidSpawningPlayMode
     {
 
         // 1. Clear the field entirely.
-        spawner.ReleaseAllAsteroids();
+        spawner.DespawnAll();
         Assert.AreEqual(0, spawner.Registry.ActiveCount, "ReleaseAllAsteroids() did not clear active set.");
 
         // 2. Wait long enough for at least one density check tick (AsteroidFieldManager uses densityCheckInterval).
@@ -185,7 +186,7 @@ public class AsteroidSpawningPlayMode
             "TotalActiveVolume mismatch after fragmentation.");
 
         // ---------- Phase C: cull / manually release all asteroids ----------
-        spawner.ReleaseAllAsteroids();
+        spawner.DespawnAll();
         yield return null;
 
         float afterCullSpawnerVol = spawner.Registry.TotalVolume;
@@ -310,7 +311,7 @@ public class AsteroidSpawningPlayMode
             ValidateSpawnerIntegrity();
 
             // --- Cull everything
-            spawner.ReleaseAllAsteroids();
+            spawner.DespawnAll();
             yield return null;
             ValidateSpawnerIntegrity(); // should be empty (vol=0)
 
@@ -404,7 +405,7 @@ public class AsteroidSpawningPlayMode
             if (rnd.NextDouble() < 0.05)
             {
                 Debug.Log($"[VolumeDrift] Clearing field, current volume: {spawner.Registry.TotalVolume:F2}");
-                spawner.ReleaseAllAsteroids();
+                spawner.DespawnAll();
             }
 
             yield return null;

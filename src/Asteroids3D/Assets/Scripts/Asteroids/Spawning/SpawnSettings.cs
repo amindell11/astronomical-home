@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Asteroids
+namespace Asteroids.Spawning
 {
     [CreateAssetMenu(fileName = "New Asteroid Spawn Settings", menuName = "Asteroid/Spawn Settings")]
     public class SpawnSettings : ScriptableObject
@@ -16,8 +16,8 @@ namespace Asteroids
             public float cachedVolume;
         }
         
-        [Header("Asteroid Configuration")] [SerializeField]
-        public Asteroid asteroidPrefab;
+        [Header("Physical Properties")]
+        [SerializeField] public float density = 1f;
 
         [Header("Mesh Assets")]
         [Tooltip("Array of asteroid meshes with optional collider overrides and pre-cached volume")]
@@ -32,31 +32,28 @@ namespace Asteroids
     
         [Tooltip("The base spin range, which gets scaled by mass")]
         public Vector2 spinRange = new Vector2(-30f, 30f);
-    
-        [Header("Pool Settings")]
-        [Tooltip("Initial capacity of the asteroid object pool")]
-        public int defaultPoolCapacity = 20;
-    
-        [Tooltip("Maximum size the asteroid object pool can grow to")]
-        public int maxPoolSize = 100;
 
         [Header("Physical Properties")]
         [Tooltip("Default density for asteroids (used for mass calculations)")]
         public float defaultDensity = 1000f;
-
+        
+        [Header("Asteroid Configuration")] [SerializeField]
+        public Asteroid asteroidPrefab;
+        
+        [Header("Pool Settings")]
+        [Tooltip("Initial capacity of the asteroid object pool")]
+        public int poolCapacity = 20;
+    
+        [Tooltip("Maximum size the asteroid object pool can grow to")]
+        public int maxPoolSize = 100;
         public void ValidateSettings()
         {
             if (meshInfos == null || meshInfos.Length == 0)
                 Debug.LogWarning($"AsteroidSpawnSettings '{name}': No asteroid meshes assigned!");
             if (massScaleRange.x <= 0 || massScaleRange.y <= 0)
                 Debug.LogWarning($"AsteroidSpawnSettings '{name}': Mass scale range contains non-positive values!");
-            if (defaultPoolCapacity <= 0)
-                Debug.LogWarning($"AsteroidSpawnSettings '{name}': Default pool capacity should be greater than 0!");
-            if (maxPoolSize < defaultPoolCapacity)
-                Debug.LogWarning($"AsteroidSpawnSettings '{name}': Max pool size should be >= default pool capacity!");
             if (defaultDensity <= 0)
                 Debug.LogWarning($"AsteroidSpawnSettings '{name}': Default density should be greater than 0!");
-            
         }
 
         private void OnValidate()

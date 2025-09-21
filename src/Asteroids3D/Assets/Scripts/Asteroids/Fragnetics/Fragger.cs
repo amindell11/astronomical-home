@@ -1,5 +1,7 @@
 using System;
 using System.Collections;
+using Asteroids.Spawning;
+using JetBrains.Annotations;
 using UnityEngine;
 using Utils;
 
@@ -20,21 +22,18 @@ namespace Asteroids.Fragnetics
         /// <summary>
         /// Public entry point with explosion callback for delayed explosion option
         /// </summary>
-        public void CreateFragments(Asteroid asteroid, HitData hit, System.Action<Frag[]> onFragment = null)
+        public void CreateFragments(Asteroid asteroid, HitData hit, Action<Frag[]> onFragment = null)
         {            
             var ast = new AsteroidData(asteroid);
             var frags = calc.GenerateFragments(ast);
             var initialMomentum = calc.CalculateInitialMomentum(ast, hit);
-            if (frags.Length <= 0) {
-                onFragment?.Invoke(frags);
-            }
             StartCoroutine(CreateFragmentsWithPlaceholders(ast, hit, frags, initialMomentum, asteroid.Spawner, onFragment));
         }
 
         /// <summary>
         /// spawns placeholder fragments immediately, then updates them with proper physics
         /// </summary>
-        private IEnumerator CreateFragmentsWithPlaceholders(AsteroidData ast, HitData hit, Frag[] frags, (Vector3 linear, Vector3 angular) momentum, Spawner spawn, System.Action<Frag[]> onFragment = null)
+        private IEnumerator CreateFragmentsWithPlaceholders(AsteroidData ast, HitData hit, Frag[] frags, (Vector3 linear, Vector3 angular) momentum, Spawner spawn, [CanBeNull] Action<Frag[]> onFragment = null)
         {
 
             calc.CalculatePlaceholderPhysics(ast, hit, frags);

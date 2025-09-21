@@ -1,4 +1,7 @@
 using Game;
+using Asteroids.Fragnetics;
+using Asteroids.Spawning;
+using UnityEngine.Pool;
 using UnityEngine;
 
 namespace Asteroids.Fields
@@ -18,14 +21,11 @@ namespace Asteroids.Fields
         [SerializeField] protected float densityCheckRadius = 30f;
         [SerializeField] protected int maxSpawnsPerFrame = 10;
         
-        private SphereCollider cullingBoundaryCollider;
-
         protected Spawner Spawner { get; private set; }
         protected Vector3 SpawnCenter;
         protected float TargetVolume;
         protected virtual void Awake()
         {
-            cullingBoundaryCollider = GetComponentInChildren<SphereCollider>();
             if (!Spawner)
             {
                 Spawner = GetComponentInChildren<Spawner>();
@@ -44,14 +44,14 @@ namespace Asteroids.Fields
         }
         protected void ManageField(float minSpawn, float maxSpawn, int maxPerFrame)
         {
-            CheckAndSpawnAsteroids(minSpawn, maxSpawn, maxPerFrame, Spawner.Registry);
+            CheckAndSpawnAsteroids(minSpawn, maxSpawn, maxPerFrame);
         }
-        private void CheckAndSpawnAsteroids(float minSpawn, float maxSpawn, int spawnsPerFrame, Registry reg)
+        private void CheckAndSpawnAsteroids(float minSpawn, float maxSpawn, int spawnsPerFrame)
         {
             if (!Spawner) return;
             int safetyBreak = spawnsPerFrame;
-            while (reg.TotalVolume < TargetVolume &&
-                   reg.ActiveCount < maxAsteroids &&
+            while (Spawner.Registry.TotalVolume < TargetVolume &&
+                   Spawner.Registry.ActiveCount < maxAsteroids &&
                    safetyBreak > 0)
             {
                 var pos = GetRandomFieldPos(minSpawn, maxSpawn);
@@ -70,16 +70,6 @@ namespace Asteroids.Fields
         private void RecalculateTargetVolume()
         {
             TargetVolume = targetVolumeDensity * Mathf.PI * densityCheckRadius * densityCheckRadius;
-        }
-        
-        public virtual void SetFieldSize(float radius)
-        {
-            densityCheckRadius = radius;
-            maxSpawnDistance = radius;
-            if (!cullingBoundaryCollider) return;
-            const float marginMultiplier = 1.1f;
-            float cullingRadius = maxSpawnDistance * marginMultiplier;
-            cullingBoundaryCollider.radius = cullingRadius;
         }
 
 #if UNITY_EDITOR

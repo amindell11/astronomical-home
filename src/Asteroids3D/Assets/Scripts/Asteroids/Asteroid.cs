@@ -1,4 +1,6 @@
+using System;
 using Asteroids.Fragnetics;
+using Asteroids.Spawning;
 using Damage;
 using Editor;
 using Game;
@@ -9,9 +11,6 @@ namespace Asteroids
 {
     public class Asteroid : MonoBehaviour, IDamageable
     {
-        [Header("Physical Properties")]
-        [SerializeField] private float density = 1f;
-    
         [Header("Visual/Audio Effects")]
         [SerializeField] private GameObject explosionPrefab;
         [SerializeField] private AudioClip explosionSound;
@@ -53,11 +52,10 @@ namespace Asteroids
 
         private Vector3 initialVelocity;
         private Vector3 initialAngularVelocity;
-        public Spawner Spawner { get; private set; }
         public float Mass => Rb.mass;
         public float Volume { get; private set; }
-        public float Density => density;
         public Rigidbody Rb { get; private set; }
+        public Spawner Spawner { get; private set; }
         public float Health { get; private set; }
         public float MaxHealth { get; private set; }
         public Renderer Renderer { get; private set; }
@@ -70,18 +68,16 @@ namespace Asteroids
             meshFilter = GetComponent<MeshFilter>();
             meshCollider = GetComponent<MeshCollider>();
             cheapCollider = GetComponent<SphereCollider>();
+            Renderer = GetComponent<Renderer>();
             mainCameraTransform = Camera.main ? Camera.main.transform : null;
             Rb.useGravity = false;
-            Renderer = GetComponent<Renderer>();
         }
 
         private void OnEnable()
         {
-            if (Renderer != null)
-            {
-                Renderer.enabled = true;
-            }
+            if (Renderer)Renderer.enabled = true;
         }
+        
         public void Initialize(
             Spawner spawner,
             SpawnSettings.MeshInfo meshInfo,
@@ -101,7 +97,7 @@ namespace Asteroids
             // Calculate volume from mesh bounds and scale
             Volume = meshInfo.cachedVolume * (scale * scale * scale);
             
-            this.Rb.mass = mass;
+            Rb.mass = mass;
             transform.localScale = Vector3.one * scale;
 
             Rb.linearVelocity = velocity;
@@ -134,10 +130,7 @@ namespace Asteroids
         {
             UpdateKinematics(initialVelocity, initialAngularVelocity);
             Health = MaxHealth;
-            if (Renderer)
-            {
-                Renderer.enabled = true;
-            }
+            if (Renderer)Renderer.enabled = true;
         }
 
         public void UpdateKinematics(Vector3 vel, Vector3 spin)
@@ -171,72 +164,57 @@ namespace Asteroids
 
         private void Explode()
         {
-            if (Renderer)
+            if (Renderer) Renderer.enabled = false;
+            
+            if (GameSettings.VfxEnabled && explosionPrefab)
             {
-                Renderer.enabled = false;
-            }
-
-            if (GameSettings.VfxEnabled && explosionPrefab != null)
-            {
-                // Try to get PooledVFX component first, fallback to regular instantiate
                 var pooledVFX = explosionPrefab.GetComponent<PooledVFX>();
                 if (pooledVFX)
-                {
                     SimplePool<PooledVFX>.Get(pooledVFX, transform.position, Quaternion.identity);
-                }
                 else
-                {
                     Instantiate(explosionPrefab, transform.position, Quaternion.identity);
-                }
             }
+            
             if (explosionSound)
-            {
                 PooledAudioSource.PlayClipAtPoint(explosionSound, transform.position, explosionVolume);
-            }
         }
 
         private void CleanupAsteroid()
         {
             Rb.linearVelocity = Vector3.zero;
             Rb.angularVelocity = Vector3.zero;
-            Spawner?.ReleaseAsteroid(this);
+            Spawner.Despawn(this);
         }
 
         private void OnTriggerExit(Collider other)
         {
             if (other.CompareTag(TagNames.AsteroidCullingBoundary))
-            {
                 CleanupAsteroid();
-            }
         }
 
         private void OnCollisionEnter(Collision collision)
         {
             if (collision.gameObject.layer != LayerIds.Ship) return;
-
+            
             var otherRb = collision.rigidbody;
-            if (!otherRb) return;
+            var impact = collision.GetContact(0);
+            var dmg = CalcDamage(otherRb.mass, otherRb.linearVelocity, impact);
+            
+            var damageable = collision.gameObject.GetComponent<IDamageable>();
+            damageable.TakeDamage(dmg, Mass, Rb.linearVelocity, impact.point, gameObject);
+        }
 
-            var damageable = otherRb.GetComponent<IDamageable>();
-            if (damageable == null) return;
+        private float CalcDamage(float shipMass, Vector3 shipVel, ContactPoint impact)
+        {
 
-            float shipMass = otherRb.mass;
-            var shipVel = otherRb.linearVelocity;
-            var impactPoint = collision.GetContact(0).point;
-
-            Vector3 normal = collision.GetContact(0).normal;
-            Vector3 asteroidVelNormal = Vector3.Project(Rb.linearVelocity, normal);
-            Vector3 shipVelNormal     = Vector3.Project(shipVel, normal);
+            var astNormalVel = Vector3.Project(Rb.linearVelocity, impact.normal);
+            var shipNormalVel     = Vector3.Project(shipVel, impact.normal);
 
             float dmg = CollisionDamageUtility.ComputeDamage(
-                Mass, asteroidVelNormal,
-                shipMass,     shipVelNormal,
-                energyToDamageScale);
+                Mass,astNormalVel, shipMass,shipNormalVel, energyToDamageScale);
 
-            // Apply soft cap to prevent excessive one-hit damage
             dmg = ApplySoftCap(dmg);
-
-            damageable.TakeDamage(dmg, Mass, Rb.linearVelocity, impactPoint, gameObject);
+            return dmg;
         }
 
         private void LateUpdate()
@@ -244,22 +222,18 @@ namespace Asteroids
             transform.position = GamePlane.ProjectOntoPlane(transform.position) + GamePlane.Origin;
 
             // Enable/disable detailed collider based on distance to camera
-            if (meshCollider != null)
+            if (!meshCollider) return;
+            if (!mainCameraTransform && Camera.main)
             {
-                if (mainCameraTransform == null && Camera.main != null)
-                {
-                    mainCameraTransform = Camera.main.transform;
-                }
+                mainCameraTransform = Camera.main.transform;
+            }
 
-                if (mainCameraTransform != null)
-                {
-                    float distSqr = (GamePlane.ProjectOntoPlane(mainCameraTransform.position) - GamePlane.ProjectOntoPlane(transform.position)).sqrMagnitude;
-                    bool shouldEnable = distSqr < detailedColliderEnableDistance * detailedColliderEnableDistance;
-                    if (meshCollider.enabled != shouldEnable)
-                    {
-                        meshCollider.enabled = shouldEnable;
-                    }
-                }
+            if (!mainCameraTransform) return;
+            float distSqr = (GamePlane.ProjectOntoPlane(mainCameraTransform.position) - GamePlane.ProjectOntoPlane(transform.position)).sqrMagnitude;
+            bool shouldEnable = distSqr < detailedColliderEnableDistance * detailedColliderEnableDistance;
+            if (meshCollider.enabled != shouldEnable)
+            {
+                meshCollider.enabled = shouldEnable;
             }
         }
 

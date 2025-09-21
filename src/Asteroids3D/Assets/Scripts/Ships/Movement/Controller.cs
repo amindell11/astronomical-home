@@ -29,11 +29,11 @@ namespace Ships.Movement
         {
             rb = GetComponent<Rigidbody>();
             flightComputer = new FlightComputer();
+            AlignRotationToPlane();
         }
 
         private void Start()
         {
-            AlignRotationToPlane();
             ResetMovement();
             GetStateFrom3D();
         }
