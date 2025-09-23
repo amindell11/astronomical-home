@@ -5,13 +5,15 @@ TagManager:
   serializedVersion: 3
   tags:
   - Asteroid
-  - AsteroidCullingBoundary
   - Boundary
   - ReferencePlane
   - Ship
   - Missile
   - MissileAmmoIcon
   - UICam
+  - AsteroidField
+  - AsteroidCullingBoundary
+  - World
   layers:
   - Default
   - TransparentFX

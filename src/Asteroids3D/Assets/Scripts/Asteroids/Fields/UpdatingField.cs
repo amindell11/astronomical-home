@@ -6,7 +6,7 @@ namespace Asteroids.Fields
 {
     /// <summary>
     /// Open-world asteroid field manager that centres spawning logic on the main
-    /// player camera. All heavy logic lives in <see cref="BaseFieldManager"/>.
+    /// player camera. All heavy logic lives in <see cref="Field"/>.
     /// </summary>
     public class UpdatingField : Field
     {
@@ -26,18 +26,18 @@ namespace Asteroids.Fields
         {
             base.Start();
             densityCheckTimer = densityCheckInterval;
+            CullingBoundary.radius = updateMaxSpawnDistance * BoundaryMargin;
+            CurrentAnchorPos ??= () => transform.position;
         }
 
         private void Update()
         {
             densityCheckTimer -= Time.deltaTime;
-            if (!(densityCheckTimer <= 0f)) return;
-            
-            CurrentAnchorPos ??= () => transform.position;
-            SpawnCenter = CurrentAnchorPos();
-            ManageField(updateMinSpawnDistance, updateMaxSpawnDistance, maxSpawnsPerFrame);
-            
-            densityCheckTimer = densityCheckInterval;
+            if (densityCheckTimer < 0f) {
+                SpawnCenter = CurrentAnchorPos();
+                ManageField(updateMinSpawnDistance, updateMaxSpawnDistance, maxSpawnsPerFrame);
+                densityCheckTimer = densityCheckInterval;
+            }
         }
 
 #if UNITY_EDITOR

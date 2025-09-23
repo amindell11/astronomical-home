@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 2199105733414487549}
   - component: {fileID: 3689010743690873866}
   - component: {fileID: 7997124830668444265}
+  - component: {fileID: 2821821133351634998}
   m_Layer: 0
   m_Name: AsteroidController
   m_TagString: Untagged
@@ -30,8 +31,7 @@ Transform:
   m_LocalPosition: {x: -3.356533, y: 3.9110146, z: -0.44011852}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 6931530314876729959}
+  m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &3689010743690873866
@@ -59,54 +59,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01d44c1147a3de14fb19a3f5007c71ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxAsteroids: 70
-  maxSpawnDistance: 50
+  maxAsteroids: 200
+  maxSpawnDistance: 80
   minSpawnDistance: 7.5
   targetVolumeDensity: 0.25
-  densityCheckRadius: 50
+  densityCheckRadius: 80
   maxSpawnsPerFrame: 10
-  updateMinSpawnDistance: 45
-  updateMaxSpawnDistance: 60
-  densityCheckInterval: 0.25
---- !u!1 &7391477241155375964
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 6931530314876729959}
-  - component: {fileID: 5492557017222973435}
-  m_Layer: 0
-  m_Name: AsteroidFragnetics
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 2147483647
-  m_IsActive: 1
---- !u!4 &6931530314876729959
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7391477241155375964}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2199105733414487549}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5492557017222973435
+  updateMinSpawnDistance: 50
+  updateMaxSpawnDistance: 80
+  densityCheckInterval: 0.15
+--- !u!114 &2821821133351634998
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7391477241155375964}
+  m_GameObject: {fileID: 4716065267346143482}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dfd940a710d276e4a8462d8ea44d954f, type: 3}

@@ -73,9 +73,8 @@ namespace Asteroids.Fragnetics
         private static void UpdatePlaceholderFragments(Asteroid[] fragments, Frag[] frags)
         {
             for (int i = 0; i < fragments.Length; i++)
-            {
                 fragments[i]?.UpdateKinematics(frags[i].Velocity, frags[i].Spin);
-            }
+            
         }
 
         /// <summary>

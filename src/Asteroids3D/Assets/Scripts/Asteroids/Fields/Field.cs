@@ -1,13 +1,17 @@
 using Game;
 using Asteroids.Fragnetics;
 using Asteroids.Spawning;
+using UnityEditor.SceneManagement;
 using UnityEngine.Pool;
 using UnityEngine;
+using Utils;
 
 namespace Asteroids.Fields
 {
     public class Field : MonoBehaviour
     {
+        protected const float BoundaryMargin = 1.1f;
+        
         [Header("Asteroid Population")]
         [SerializeField] protected int maxAsteroids = 50;
 
@@ -20,17 +24,18 @@ namespace Asteroids.Fields
         [SerializeField] protected float targetVolumeDensity = 0.1f;
         [SerializeField] protected float densityCheckRadius = 30f;
         [SerializeField] protected int maxSpawnsPerFrame = 10;
-        
+
         protected Spawner Spawner { get; private set; }
         protected Vector3 SpawnCenter;
         protected float TargetVolume;
+        protected SphereCollider CullingBoundary;
         protected virtual void Awake()
         {
-            if (!Spawner)
-            {
-                Spawner = GetComponentInChildren<Spawner>();
-            }
+            gameObject.tag = TagNames.AsteroidField;
+            CullingBoundary = GameObject.FindGameObjectWithTag(TagNames.AsteroidCullingBoundary).GetComponent<SphereCollider>();
+            Spawner = GetComponent<Spawner>() ?? gameObject.AddComponent<Spawner>();
             SpawnCenter = transform.position;
+            CullingBoundary.radius = maxSpawnDistance * BoundaryMargin;
         }
 
         protected virtual void Start()
@@ -55,7 +60,8 @@ namespace Asteroids.Fields
                    safetyBreak > 0)
             {
                 var pos = GetRandomFieldPos(minSpawn, maxSpawn);
-                Spawner.SpawnRandom(new Pose(pos, Random.rotationUniform));
+                var rot = Random.rotationUniform;
+                Spawner.SpawnRandom(new Pose(pos,rot));
                 safetyBreak--;
             }
         }

@@ -185,7 +185,7 @@ namespace Asteroids
             Rb.angularVelocity = Vector3.zero;
             Spawner.Despawn(this);
         }
-
+        
         private void OnTriggerExit(Collider other)
         {
             if (other.CompareTag(TagNames.AsteroidCullingBoundary))

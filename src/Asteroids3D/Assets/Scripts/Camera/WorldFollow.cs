@@ -1,12 +1,13 @@
 using Editor;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class WorldFollow : MonoBehaviour
 {
-    [SerializeField] private Transform target;        // The player to follow
+    [FormerlySerializedAs("Target")] [SerializeField] public Transform target;        // The player to follow
     [SerializeField] private Vector3 offset;         // Offset from the target
     [SerializeField] private float smoothSpeed = 5f; // How smoothly the camera follows
-
+    
     private void Start()
     {
         // If no target is assigned, try to find the player

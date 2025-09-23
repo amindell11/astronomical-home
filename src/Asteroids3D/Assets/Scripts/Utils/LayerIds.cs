@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 
 namespace Utils
@@ -15,12 +16,7 @@ namespace Utils
         /// </summary>
         public static int Mask(params int[] layers)
         {
-            int mask = 0;
-            foreach (var l in layers)
-            {
-                mask |= 1 << l;
-            }
-            return mask;
+            return layers.Aggregate(0, (current, l) => current | 1 << l);
         }
     }
 } 

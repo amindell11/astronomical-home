@@ -18,7 +18,7 @@ MonoBehaviour:
   highCountBias: 0.679
   baseSeparationSpeed: 0.65
   spinVariation: 1
-  momentumCoupling: 0.63
+  momentumCoupling: 0.47
   outwardBias: 0.7
   bulletBias: 1
   randomBias: 0.3

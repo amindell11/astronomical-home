@@ -32,10 +32,6 @@ namespace Asteroids.Spawning
     
         [Tooltip("The base spin range, which gets scaled by mass")]
         public Vector2 spinRange = new Vector2(-30f, 30f);
-
-        [Header("Physical Properties")]
-        [Tooltip("Default density for asteroids (used for mass calculations)")]
-        public float defaultDensity = 1000f;
         
         [Header("Asteroid Configuration")] [SerializeField]
         public Asteroid asteroidPrefab;
@@ -52,7 +48,7 @@ namespace Asteroids.Spawning
                 Debug.LogWarning($"AsteroidSpawnSettings '{name}': No asteroid meshes assigned!");
             if (massScaleRange.x <= 0 || massScaleRange.y <= 0)
                 Debug.LogWarning($"AsteroidSpawnSettings '{name}': Mass scale range contains non-positive values!");
-            if (defaultDensity <= 0)
+            if (density <= 0)
                 Debug.LogWarning($"AsteroidSpawnSettings '{name}': Default density should be greater than 0!");
         }
 
