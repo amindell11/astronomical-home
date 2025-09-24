@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Linq;
 using Asteroids;
 using Ships;
 using UnityEngine;
@@ -17,6 +18,7 @@ namespace Game
         private Ship player, enemy;
         private AsteroidField field;
         private Camera camera;
+        private GameObject ui;
         private GameObject world;
         private ShipSpawner shipSpawner;
         private readonly SubscribedSet<Ship> activeShips = new();
@@ -36,9 +38,12 @@ namespace Game
             world = GameObject.FindGameObjectWithTag(TagNames.World);
             if (!world)
                 yield break;
-            Instantiate(config.UI);
             GamePlane.Plane.Rotate(Vector3.right, 90);
             camera = Instantiate(config.CameraTemplate);
+            ui = Instantiate(config.UI);
+            ui.GetComponent<Canvas>().worldCamera = camera.GetComponentsInChildren<Camera>()
+                .FirstOrDefault(t => t.CompareTag(TagNames.UICam));
+            
             field = (AsteroidField)Instantiate(config.AsteroidController);
             field.CurrentAnchorPos = () => GamePlane.ProjectOntoPlane(camera.transform.position);
 

@@ -11,5 +11,7 @@ namespace Utils
         public const string Missile = "Missile";
         public const string AsteroidCullingBoundary = "AsteroidCullingBoundary";
         public const string ReferencePlane = "ReferencePlane";
+        public const string UICam = "UICam";
+
     }
 } 

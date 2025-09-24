@@ -1199,13 +1199,12 @@ MonoBehaviour:
   - mesh: {fileID: 8798366265156884017, guid: fa76ef86a0c8e6e4f817ec7f96dcb131, type: 3}
     colliderMesh: {fileID: -4733977459129364450}
     cachedVolume: 31.718653
-  massScaleRange: {x: 0.5, y: 2}
+  massScaleRange: {x: 0.5, y: 2.5}
   velocityRange: {x: 0.5, y: 1.7}
   spinRange: {x: -3, y: 3}
-  defaultDensity: 1000
   asteroidPrefab: {fileID: 1174038986206541605, guid: f0cce3a0c284df24db1283dd96c8c4b0,
     type: 3}
-  poolCapacity: 20
+  poolCapacity: 200
   maxPoolSize: 500
 --- !u!43 &3923130597504912780
 Mesh:
