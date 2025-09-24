@@ -12,52 +12,73 @@ using AsteroidField = Asteroids.Fields.UpdatingField;
 
 namespace Game
 {
-    public class GameInitiator : MonoSingleton<GameInitiator>
+    public class GameInitiator : MonoBehaviour
     {
-        [SerializeField] private GameInitiatorConfig config;
         private Ship player, enemy;
         private AsteroidField field;
         private Camera camera;
-        private GameObject ui;
-        private GameObject world;
+        private UI.Overlay ui;
+        private WorldRoot world;
         private ShipSpawner shipSpawner;
         private readonly SubscribedSet<Ship> activeShips = new();
 
-        protected override void Awake()
+        public IEnumerator Initialize(GameInitiatorConfig config)
         {
-            StartCoroutine(InitializeAfterWorldLoads());
+            yield return StartCoroutine(LoadWorldScene());
+            
+            InitializeCoreSystems(config);
+            InitializeField(config);
+            InitializeShips(config);
+            InitializeFollowers();
         }
 
-
-        private IEnumerator InitializeAfterWorldLoads()
+        private IEnumerator LoadWorldScene()
         {
             var loadOp = SceneManager.LoadSceneAsync("BasicWorld", LoadSceneMode.Additive);
             while (loadOp is not { isDone: true })
                 yield return null;
-            
-            world = GameObject.FindGameObjectWithTag(TagNames.World);
-            if (!world)
-                yield break;
-            GamePlane.Plane.Rotate(Vector3.right, 90);
-            camera = Instantiate(config.CameraTemplate);
-            ui = Instantiate(config.UI);
-            ui.GetComponent<Canvas>().worldCamera = camera.GetComponentsInChildren<Camera>()
-                .FirstOrDefault(t => t.CompareTag(TagNames.UICam));
-            
-            field = (AsteroidField)Instantiate(config.AsteroidController);
-            field.CurrentAnchorPos = () => GamePlane.ProjectOntoPlane(camera.transform.position);
 
-            var player = Factory.CreateShip(config.PlayerTemplate, config.PlayerCommander, config.ShipSettings, 0, Vector3.zero, Quaternion.identity);
+            world = ServiceLocator.Get<WorldRoot>();
+            GamePlane.Plane.Rotate(Vector3.right, 90);
+        }
+
+        private void InitializeCoreSystems(GameInitiatorConfig config)
+        {
+            camera = Instantiate(config.CameraTemplate);
+            ServiceLocator.Register(camera);
+            
+            ui = Instantiate(config.UI);
+            ServiceLocator.Register(ui);
+        }
+
+        private void InitializeField(GameInitiatorConfig config)
+        {
+            field = Instantiate(config.AsteroidField);
+            field.CurrentAnchorPos = () => GamePlane.ProjectOntoPlane(camera.transform.position);
+            ServiceLocator.Register(field);
+        }
+
+        private void InitializeShips(GameInitiatorConfig config)
+        {
+            player = Factory.CreateShip(config.PlayerTemplate, config.PlayerCommander, config.ShipSettings, 0, Vector3.zero, Quaternion.identity);
             player.tag = TagNames.Player;
-            var enemy = Factory.CreateShip(config.EnemyTemplate, config.EnemyCommander, config.ShipSettings, 1,
+            
+            enemy = Factory.CreateShip(config.EnemyTemplate, config.EnemyCommander, config.ShipSettings, 1,
                 GamePlane.PlanePointToWorld(Random.insideUnitCircle) * 5, Quaternion.identity);
+            
             activeShips.Add(player);
             activeShips.Add(enemy);
-            world.GetComponent<WorldFollow>().target = player.transform;
-            var cam = camera.GetComponent<CameraFollow>();
-            cam.SetTargetSource(activeShips);
-            cam.SetPlayer(player);
+            
+            var gameServices = new GameServices(player, enemy, activeShips);
+            ServiceLocator.Register(gameServices);
+            
             shipSpawner = new ShipSpawner(player, enemy);
+            ServiceLocator.Register(shipSpawner);
+        }
+
+        private void InitializeFollowers()
+        {
+            world.Follow.target = player.transform;
         }
     }
 }

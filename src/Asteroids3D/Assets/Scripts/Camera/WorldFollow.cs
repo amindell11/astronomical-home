@@ -1,4 +1,5 @@
 using Editor;
+using Game;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -8,29 +9,6 @@ public class WorldFollow : MonoBehaviour
     [SerializeField] private Vector3 offset;         // Offset from the target
     [SerializeField] private float smoothSpeed = 5f; // How smoothly the camera follows
     
-    private void Start()
-    {
-        // If no target is assigned, try to find the player
-        if (target == null)
-        {
-            var player = GameObject.FindGameObjectWithTag("Player");
-            if (player != null)
-            {
-                target = player.transform;
-            }
-            else
-            {
-                RLog.CoreWarning("No target assigned to CameraFollow and no Player found!");
-            }
-        }
-
-        // If no offset is set, use the current position difference
-        if (offset == Vector3.zero && target != null)
-        {
-            offset = transform.position - target.position;
-        }
-    }
-
     private void FixedUpdate()
     {
         if (target == null) return;

@@ -266,6 +266,7 @@ GameObject:
   m_Component:
   - component: {fileID: 685417416}
   - component: {fileID: 685417417}
+  - component: {fileID: 685417418}
   m_Layer: 0
   m_Name: World
   m_TagString: World
@@ -308,6 +309,18 @@ MonoBehaviour:
   target: {fileID: 0}
   offset: {x: 0, y: -10, z: 0}
   smoothSpeed: 10
+--- !u!114 &685417418
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 685417415}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c22a32778a84da448dc3f4395326f56, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &697850221
 GameObject:
   m_ObjectHideFlags: 0

@@ -15,11 +15,11 @@ MonoBehaviour:
   minMass: 90
   minFragments: 2
   maxFragments: 5
-  highCountBias: 0.679
+  highCountBias: 0.52
   baseSeparationSpeed: 0.65
   spinVariation: 1
-  momentumCoupling: 0.47
-  outwardBias: 0.7
+  momentumCoupling: 0.32
+  outwardBias: 0.76
   bulletBias: 1
   randomBias: 0.3
   massLossFactor: 0.43

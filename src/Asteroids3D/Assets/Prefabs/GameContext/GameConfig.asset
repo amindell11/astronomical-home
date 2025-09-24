@@ -16,9 +16,9 @@ MonoBehaviour:
     type: 3}
   enemyTemplate: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
     type: 3}
-  asteroidController: {fileID: 7997124830668444265, guid: a4a07ada72adcc44ba51f616ad29384b,
+  asteroidField: {fileID: 7997124830668444265, guid: a4a07ada72adcc44ba51f616ad29384b,
     type: 3}
-  ui: {fileID: 4313318530453800378, guid: 87f4b42386fd2af44b25b722572d1fcd, type: 3}
+  ui: {fileID: 6902055608550465894, guid: 87f4b42386fd2af44b25b722572d1fcd, type: 3}
   cameraTemplate: {fileID: 3813143680370247574, guid: dfd1ae625419872458577af010d4bb9d,
     type: 3}
   shipSettings: {fileID: 11400000, guid: c2eae258625507d43948e555302ee7ee, type: 2}

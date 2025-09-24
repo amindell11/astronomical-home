@@ -36,18 +36,6 @@ public class CameraFollow : MonoBehaviour
     private Vector3 _dampVelocity;
     private float _zoomVelocity;
 
-    public void SetTargetSource<T>(SubscribedSet<T> set) where T : MonoBehaviour
-    {
-        _targets = set.Select(s => s.transform).ToHashSet();
-        set.OnAdd += t => _targets.Add(t.transform);
-        set.OnRemove += t => _targets.Remove(t.transform);
-    }
-
-    public void SetPlayer<T>(T player) where T : MonoBehaviour
-    {
-        _player = player.transform;
-    }
-
     public bool LockCameraToPlayer => lockCameraToPlayer;
 
     protected virtual void Awake()
@@ -58,7 +46,13 @@ public class CameraFollow : MonoBehaviour
 
     protected virtual void Start()
     {
-        _player = GameObject.FindGameObjectWithTag(TagNames.Player).transform;
+        var gameServices = ServiceLocator.Get<GameServices>();
+        var activeShips = gameServices.ActiveShips;
+        _targets = activeShips.Select(s => s.transform).ToHashSet();
+        activeShips.OnAdd += t => _targets.Add(t.transform);
+        activeShips.OnRemove += t => _targets.Remove(t.transform);
+        
+        _player = gameServices.Player.transform;
     }
 
     private void Update()
