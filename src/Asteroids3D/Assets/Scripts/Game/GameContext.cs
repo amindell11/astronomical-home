@@ -10,19 +10,28 @@ namespace Game
         GameOver
     }
 
-    public class MainGameContext : MonoSingleton<MainGameContext>
-    {   
+    public class GameContext : MonoSingleton<GameContext>
+    {
+        [SerializeField] private GameInitiatorConfig config;
+        private GameInitiator initiator;
+        
         public GameState CurrentState { get; private set; } = GameState.Playing;
-    
+
+        protected override void Awake()
+        {
+            base.Awake();
+            ServiceLocator.Register(config);
+            
+            initiator = gameObject.AddComponent<GameInitiator>();
+            StartCoroutine(initiator.Initialize(config));
+        }
+        
         public void RestartGame()
         {
-            //var currentScene = SceneManager.GetActiveScene();
-            //SceneManager.sceneLoaded += OnSceneLoaded;
-            //SceneManager.LoadScene(currentScene.buildIndex);
         }
+        
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
-           // SceneManager.sceneLoaded -= OnSceneLoaded;
             PlayGame();
         }
         private void PlayGame()

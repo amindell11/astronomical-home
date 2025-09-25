@@ -4,7 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e23c1508-3e15-491e-908f-fb153c5059e0" name="Changes" comment="" />
+    <list default="true" id="e23c1508-3e15-491e-908f-fb153c5059e0" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.Asteroids3D/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Asteroids3D/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Game/GameInitiator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Game/GameInitiator.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Game/MainGameContext.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Game/MainGameContext.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ships/Factory.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ships/Factory.cs.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ships/Spawner.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Ships/Spawner.cs" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -34,9 +42,19 @@
   }
 }</component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="mock://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Prefabs/GameContext/FragSettings.asset" root0="SKIP_HIGHLIGHTING" />
-    <setting file="vcs://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Scripts/Asteroids/Fragnetics.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/ec96bf438c444e598403ed31eec8eeb818c00/9a/b000f355/AudioClip.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Scripts/Asteroids/Asteroid.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Scripts/Asteroids/Asteroid.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Scripts/Asteroids/Fields/Field.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Scripts/Asteroids/SpawnSettings.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Scripts/Asteroids/Spawner.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Scripts/Asteroids/Spawner.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/Asteroids/Spawning/Registry.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/Asteroids/Spawning/SpawnPool.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Game/MainGameContext.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Tests/PlayMode/AsteroidSpawningPlayMode.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.unity.render-pipelines.universal@a19b2562c494/Runtime/UniversalRenderPipeline.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
@@ -154,6 +172,8 @@
       <workItem from="1758172357580" duration="33324000" />
       <workItem from="1758258631286" duration="718000" />
       <workItem from="1758259500457" duration="5787000" />
+      <workItem from="1758354466231" duration="36817000" />
+      <workItem from="1758772866637" duration="2929000" />
     </task>
     <task id="LOCAL-00001" summary="Ship Settings can be changed at runtime (and refactor ship package a bunch)">
       <option name="closed" value="true" />
@@ -291,7 +311,63 @@
       <option name="project" value="LOCAL" />
       <updated>1758265238498</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="fixed asteroid field spawn distance bug">
+      <option name="closed" value="true" />
+      <created>1758359113752</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1758359113752</updated>
+    </task>
+    <task id="LOCAL-00019" summary="settings SO cleanup">
+      <option name="closed" value="true" />
+      <created>1758361572427</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1758361572427</updated>
+    </task>
+    <task id="LOCAL-00020" summary="reorganize prefabs, asteroids still disappear randomly">
+      <option name="closed" value="true" />
+      <created>1758362271028</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1758362271028</updated>
+    </task>
+    <task id="LOCAL-00021" summary="some changes to asteroid organization. still some bugs">
+      <option name="closed" value="true" />
+      <created>1758451523211</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1758451523211</updated>
+    </task>
+    <task id="LOCAL-00022" summary="fixed some bugs with the asteroid culling...&#10;culling boundary now automatically sizes to fit field size&#10; increased pool size (more prewarmed asteroids) and spawn radius. &#10; field still feels sparse if player flies fast in one direction (can beat the spawn speed) and our current method still drops the framerate significantly when you try to go fast.">
+      <option name="closed" value="true" />
+      <created>1758614731244</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1758614731244</updated>
+    </task>
+    <task id="LOCAL-00023" summary="UI volume working in game initiator (adds bloom and blue glow back to ui)&#10;adjust asteroid spawn settings. there maybe a bug with momentum?">
+      <option name="closed" value="true" />
+      <created>1758694337513</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1758694337513</updated>
+    </task>
+    <task id="LOCAL-00024" summary="clean up bootstrapper code and made it more deterministic (got rid of lots of GetComponent and FindGameObject calls using ServiceLocator pattern)">
+      <option name="closed" value="true" />
+      <created>1758697655121</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1758697655121</updated>
+    </task>
+    <option name="localTasksCounter" value="25" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -322,6 +398,12 @@
                   </entry>
                 </map>
               </option>
+              <option name="GRAPH_OPTIONS">
+                <list>
+                  <option value="Base" />
+                  <option value="Standard" />
+                </list>
+              </option>
             </State>
           </value>
         </entry>
@@ -330,8 +412,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
-    <MESSAGE value="Ship Settings can be changed at runtime (and refactor ship package a bunch)" />
-    <MESSAGE value="organizing namespaces touched basically everything in the project... ehhesh" />
     <MESSAGE value="organize file structure" />
     <MESSAGE value="fixed bug with ship not dying after refactor" />
     <MESSAGE value="Refactor: Seperate mainGameContext from Spawner logic" />
@@ -350,7 +430,14 @@
     <MESSAGE value="asteroids frags issues (commit before writing test code)" />
     <MESSAGE value="Added momentum-per-mass computation to asteroid fragment physics, making more realistic fragments with fast, low mass projectiles. Removed explosive loss setting and added momentum coupling setting." />
     <MESSAGE value="Added momentum-per-mass computation to asteroid fragment physics, making more realistic fragments with fast, low mass projectiles. Removed explosive loss setting and added momentum coupling setting.&#10;also added frag calculation test suite" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added momentum-per-mass computation to asteroid fragment physics, making more realistic fragments with fast, low mass projectiles. Removed explosive loss setting and added momentum coupling setting.&#10;also added frag calculation test suite" />
+    <MESSAGE value="fixed asteroid field spawn distance bug" />
+    <MESSAGE value="settings SO cleanup" />
+    <MESSAGE value="reorganize prefabs, asteroids still disappear randomly" />
+    <MESSAGE value="some changes to asteroid organization. still some bugs" />
+    <MESSAGE value="fixed some bugs with the asteroid culling...&#10;culling boundary now automatically sizes to fit field size&#10; increased pool size (more prewarmed asteroids) and spawn radius. &#10; field still feels sparse if player flies fast in one direction (can beat the spawn speed) and our current method still drops the framerate significantly when you try to go fast." />
+    <MESSAGE value="UI volume working in game initiator (adds bloom and blue glow back to ui)&#10;adjust asteroid spawn settings. there maybe a bug with momentum?" />
+    <MESSAGE value="clean up bootstrapper code and made it more deterministic (got rid of lots of GetComponent and FindGameObject calls using ServiceLocator pattern)" />
+    <option name="LAST_COMMIT_MESSAGE" value="clean up bootstrapper code and made it more deterministic (got rid of lots of GetComponent and FindGameObject calls using ServiceLocator pattern)" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

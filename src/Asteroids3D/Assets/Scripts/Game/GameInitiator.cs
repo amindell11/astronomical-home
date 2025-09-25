@@ -14,13 +14,11 @@ namespace Game
 {
     public class GameInitiator : MonoBehaviour
     {
-        private Ship player, enemy;
+        private GameServices gameServices;
         private AsteroidField field;
-        private Camera camera;
+        private Camera mainCamera;
         private UI.Overlay ui;
         private WorldRoot world;
-        private ShipSpawner shipSpawner;
-        private readonly SubscribedSet<Ship> activeShips = new();
 
         public IEnumerator Initialize(GameInitiatorConfig config)
         {
@@ -29,7 +27,7 @@ namespace Game
             InitializeCoreSystems(config);
             InitializeField(config);
             InitializeShips(config);
-            InitializeFollowers();
+            SetWorldFollowTarget();
         }
 
         private IEnumerator LoadWorldScene()
@@ -44,8 +42,8 @@ namespace Game
 
         private void InitializeCoreSystems(GameInitiatorConfig config)
         {
-            camera = Instantiate(config.CameraTemplate);
-            ServiceLocator.Register(camera);
+            mainCamera = Instantiate(config.CameraTemplate);
+            ServiceLocator.Register(mainCamera);
             
             ui = Instantiate(config.UI);
             ServiceLocator.Register(ui);
@@ -54,31 +52,19 @@ namespace Game
         private void InitializeField(GameInitiatorConfig config)
         {
             field = Instantiate(config.AsteroidField);
-            field.CurrentAnchorPos = () => GamePlane.ProjectOntoPlane(camera.transform.position);
+            field.CurrentAnchorPos = () => GamePlane.ProjectOntoPlane(mainCamera.transform.position);
             ServiceLocator.Register(field);
         }
 
         private void InitializeShips(GameInitiatorConfig config)
         {
-            player = Factory.CreateShip(config.PlayerTemplate, config.PlayerCommander, config.ShipSettings, 0, Vector3.zero, Quaternion.identity);
-            player.tag = TagNames.Player;
-            
-            enemy = Factory.CreateShip(config.EnemyTemplate, config.EnemyCommander, config.ShipSettings, 1,
-                GamePlane.PlanePointToWorld(Random.insideUnitCircle) * 5, Quaternion.identity);
-            
-            activeShips.Add(player);
-            activeShips.Add(enemy);
-            
-            var gameServices = new GameServices(player, enemy, activeShips);
+            gameServices = new GameServices(config);
             ServiceLocator.Register(gameServices);
-            
-            shipSpawner = new ShipSpawner(player, enemy);
-            ServiceLocator.Register(shipSpawner);
         }
 
-        private void InitializeFollowers()
+        private void SetWorldFollowTarget()
         {
-            world.Follow.target = player.transform;
+            world.Follow.target = gameServices.Player.transform;
         }
     }
 }
