@@ -41,14 +41,14 @@ namespace UI
         private void OnEnable()
         {
             if (!source) source = GetComponentInParent<Ships.Damage>();
-            source.OnShieldChanged += OnShieldChanged;
+            source.Shield.OnValueChanged += OnShieldChanged;
             
         }
 
         void OnDisable()
         {
             if (source != null) {
-                source.OnShieldChanged -= OnShieldChanged;
+                source.Shield.OnValueChanged -= OnShieldChanged;
             }
         }
 

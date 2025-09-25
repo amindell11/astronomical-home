@@ -117,30 +117,26 @@ namespace Audio
         void TryAssignPlayerShip()
         {
             var playerObj = GameObject.FindGameObjectWithTag(TagNames.Player);
-            if (playerObj != null)
+            if (!playerObj) return;
+            var newPlayerShip = playerObj.GetComponent<Ships.Ship>();
+            if (newPlayerShip != null && newPlayerShip != playerShip)
             {
-                var newPlayerShip = playerObj.GetComponent<Ships.Ship>();
-                if (newPlayerShip != null && newPlayerShip != playerShip)
-                {
-                    // Unsubscribe from old ship if it exists
-                    UnsubscribeFromEvents();
+                // Unsubscribe from old ship if it exists
+                UnsubscribeFromEvents();
                 
-                    playerShip = newPlayerShip;
+                playerShip = newPlayerShip;
                 
-                    // Subscribe to new ship events
-                    playerShip.Damage.OnHealthChanged += OnHealthChanged;
-                    playerShip.Damage.OnShieldChanged += OnShieldChanged;
-                    playerShip.Damage.OnDeath += OnPlayerDeath;
+                // Subscribe to new ship events
+                playerShip.Damage.Health.OnValueChanged += OnHealthChanged;
+                playerShip.Damage.Shield.OnValueChanged += OnShieldChanged;
+                playerShip.Damage.OnDeath += OnPlayerDeath;
                 
-                    // Initialize current values
-                    if (playerShip.Damage != null)
-                    {
-                        currentHealthPercentage = playerShip.Damage.maxHealth > 0f ? 
-                            playerShip.Damage.CurrentHealth / playerShip.Damage.maxHealth : 0f;
-                        currentShieldPercentage = playerShip.Damage.maxShield > 0f ? 
-                            playerShip.Damage.CurrentShield / playerShip.Damage.maxShield : 0f;
-                    }
-                }
+                // Initialize current values
+                if (!playerShip.Damage) return;
+                currentHealthPercentage = playerShip.Damage.Health.MaxValue > 0f ? 
+                    playerShip.Damage.Health.CurrentValue / playerShip.Damage.Health.MaxValue : 0f;
+                currentShieldPercentage = playerShip.Damage.Shield.MaxValue > 0f ? 
+                    playerShip.Damage.Shield.CurrentValue / playerShip.Damage.Shield.MaxValue : 0f;
             }
         }
 
@@ -148,8 +144,8 @@ namespace Audio
         {
             if (playerShip != null)
             {
-                playerShip.Damage.OnHealthChanged -= OnHealthChanged;
-                playerShip.Damage.OnShieldChanged -= OnShieldChanged;
+                playerShip.Damage.Health.OnValueChanged -= OnHealthChanged;
+                playerShip.Damage.Shield.OnValueChanged -= OnShieldChanged;
                 playerShip.Damage.OnDeath -= OnPlayerDeath;
             }
         }

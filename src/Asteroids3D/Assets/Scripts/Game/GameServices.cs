@@ -2,6 +2,7 @@ using Ships;
 using Ships.Control;
 using UnityEngine;
 using Utils;
+using ShipFactory  = Ships.Factory;
 using ShipSpawner = Ships.Spawner;
 
 namespace Game
@@ -15,11 +16,11 @@ namespace Game
 
         public GameServices(GameInitiatorConfig config)
         {
-            Player = Factory.CreateShip(config.PlayerTemplate, config.PlayerCommander, config.ShipSettings, 0,
+            Player = ShipFactory.CreateShip(config.PlayerTemplate, config.PlayerCommander, config.ShipSettings, 0,
                 Vector3.zero, Quaternion.identity);
             Player.tag = TagNames.Player;
 
-            Enemy = Factory.CreateShip(config.EnemyTemplate, config.EnemyCommander, config.ShipSettings, 1,
+            Enemy = ShipFactory.CreateShip(config.EnemyTemplate, config.EnemyCommander, config.ShipSettings, 1,
                 GamePlane.PlanePointToWorld(Random.insideUnitCircle) * 5, Quaternion.identity);
             
             ActiveShips.Add(Player);

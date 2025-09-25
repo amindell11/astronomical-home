@@ -44,7 +44,7 @@ public class LaserDamagePlayMode
             // Set shields to 0 for direct health damage testing
             targetShip.Damage.PopulateSettings(targetShip.settings);
             // Force shields to 0 by dealing shield damage
-            float currentShields = targetShip.Damage.CurrentShield;
+            float currentShields = targetShip.Damage.Shield.CurrentValue;
             if (currentShields > 0)
             {
                 TestSceneBuilder.ApplyTestDamage(targetShip, currentShields);
@@ -101,7 +101,7 @@ public class LaserDamagePlayMode
         tgtSettings.shieldRegenDelay = 999f;                   // disable regen
         targetShip.Damage.PopulateSettings(tgtSettings);
 
-        float initialHealth = targetShip.Damage.CurrentHealth;
+        float initialHealth = targetShip.Damage.Health.CurrentValue;
 
         // Determine expected damage – read from the projectile prefab via reflection
         float projectileDamage = 10f; // fallback default
@@ -124,8 +124,8 @@ public class LaserDamagePlayMode
 
         // Assert – health reduced exactly by projectile damage, shields remain zero
         float expectedHealth = initialHealth - projectileDamage;
-        Assert.AreEqual(expectedHealth, (double)targetShip.Damage.CurrentHealth, 0.001f, "Target health did not decrease by expected amount");
-        Assert.AreEqual(0f, (double)targetShip.Damage.CurrentShield, 0.001f, "Target shields should be zero for this test");
+        Assert.AreEqual(expectedHealth, (double)targetShip.Damage.Health.CurrentValue, 0.001f, "Target health did not decrease by expected amount");
+        Assert.AreEqual(0f, (double)targetShip.Damage.Shield.CurrentValue, 0.001f, "Target shields should be zero for this test");
     }
 
     [UnityTest]
@@ -142,7 +142,7 @@ public class LaserDamagePlayMode
         tgtSettings.maxShield = 0f;
         targetShip.Damage.PopulateSettings(tgtSettings);
 
-        float initialHealth = targetShip.Damage.CurrentHealth;
+        float initialHealth = targetShip.Damage.Health.CurrentValue;
 
         // Retrieve projectile damage via reflection (same as previous test)
         float projectileDamage = 10f;
@@ -161,7 +161,7 @@ public class LaserDamagePlayMode
 
         // Assert cumulative damage applied
         float expectedHealth = initialHealth - projectileDamage * shots;
-        Assert.AreEqual(expectedHealth, (double)targetShip.Damage.CurrentHealth, 0.001f, "Cumulative health damage does not match expected after multiple laser hits");
+        Assert.AreEqual(expectedHealth, (double)targetShip.Damage.Health.CurrentValue, 0.001f, "Cumulative health damage does not match expected after multiple laser hits");
     }
 
     [UnityTest]
@@ -172,8 +172,8 @@ public class LaserDamagePlayMode
         Assert.NotNull(targetShip);
         Assert.NotNull(laserGun);
 
-        float initialHealth = targetShip.Damage.CurrentHealth;
-        float initialShield = targetShip.Damage.CurrentShield;
+        float initialHealth = targetShip.Damage.Health.CurrentValue;
+        float initialShield = targetShip.Damage.Shield.CurrentValue;
 
         // Position target 10 units to the right (90°) so projectile fired forward misses
         TestSceneBuilder.PositionForTest(shooterShip.transform, targetShip.transform, 10f, 90f);
@@ -184,8 +184,8 @@ public class LaserDamagePlayMode
         yield return new WaitForSeconds(0.25f);
 
         // Assert – target health & shield unchanged
-        Assert.AreEqual(initialHealth, (double)targetShip.Damage.CurrentHealth, 0.001f, "Target health should remain unchanged for missed shot");
-        Assert.AreEqual(initialShield, (double)targetShip.Damage.CurrentShield, 0.001f, "Target shields should remain unchanged for missed shot");
+        Assert.AreEqual(initialHealth, (double)targetShip.Damage.Health.CurrentValue, 0.001f, "Target health should remain unchanged for missed shot");
+        Assert.AreEqual(initialShield, (double)targetShip.Damage.Shield.CurrentValue, 0.001f, "Target shields should remain unchanged for missed shot");
     }
 
     // TODO: Helper methods for test scene setup

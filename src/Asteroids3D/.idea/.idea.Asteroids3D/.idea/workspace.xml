@@ -6,12 +6,15 @@
   <component name="ChangeListManager">
     <list default="true" id="e23c1508-3e15-491e-908f-fb153c5059e0" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Asteroids3D/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Asteroids3D/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Game/GameInitiator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Game/GameInitiator.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Game/MainGameContext.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Game/MainGameContext.cs.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ships/Factory.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ships/Factory.cs.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ships/Spawner.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Ships/Spawner.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Audio/ShipDamageAudio.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Audio/ShipDamageAudio.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Audio/UIHealthAudio.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Audio/UIHealthAudio.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Game/GameServices.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Game/GameServices.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ships/Damage.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Ships/Damage.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ships/Ship.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Ships/Ship.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ships/Visuals/Hull.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Ships/Visuals/Hull.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/UI/ShieldUI.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/UI/ShieldUI.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Tests/PlayMode/LaserDamagePlayMode.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Tests/PlayMode/LaserDamagePlayMode.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Tests/PlayMode/ShieldRegenerationPlayMode.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Tests/PlayMode/ShieldRegenerationPlayMode.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,19 +45,10 @@
   }
 }</component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock:///Dummy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/5a41d6b7189842eca409fd0b1c3e3dcf17bf78/0b/5c3c8101/Action`3.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/ec96bf438c444e598403ed31eec8eeb818c00/9a/b000f355/AudioClip.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Scripts/Asteroids/Asteroid.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Scripts/Asteroids/Asteroid.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Scripts/Asteroids/Fields/Field.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Scripts/Asteroids/SpawnSettings.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Scripts/Asteroids/Spawner.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Scripts/Asteroids/Spawner.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Asteroids/Spawning/Registry.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Asteroids/Spawning/SpawnPool.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/Assets/Scripts/Game/MainGameContext.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Tests/PlayMode/AsteroidSpawningPlayMode.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.unity.render-pipelines.universal@a19b2562c494/Runtime/UniversalRenderPipeline.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
@@ -173,7 +167,7 @@
       <workItem from="1758258631286" duration="718000" />
       <workItem from="1758259500457" duration="5787000" />
       <workItem from="1758354466231" duration="36817000" />
-      <workItem from="1758772866637" duration="2929000" />
+      <workItem from="1758772866637" duration="5927000" />
     </task>
     <task id="LOCAL-00001" summary="Ship Settings can be changed at runtime (and refactor ship package a bunch)">
       <option name="closed" value="true" />
@@ -367,7 +361,23 @@
       <option name="project" value="LOCAL" />
       <updated>1758697655121</updated>
     </task>
-    <option name="localTasksCounter" value="25" />
+    <task id="LOCAL-00025" summary="more gameInitiator reorganization">
+      <option name="closed" value="true" />
+      <created>1758776705605</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1758776705605</updated>
+    </task>
+    <task id="LOCAL-00026" summary="more gameInitiator reorganization">
+      <option name="closed" value="true" />
+      <created>1758776931190</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1758776931190</updated>
+    </task>
+    <option name="localTasksCounter" value="27" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -412,8 +422,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
-    <MESSAGE value="organize file structure" />
-    <MESSAGE value="fixed bug with ship not dying after refactor" />
     <MESSAGE value="Refactor: Seperate mainGameContext from Spawner logic" />
     <MESSAGE value="Player ship working in factory. still need to fix AI and other..." />
     <MESSAGE value="Major Ship Refactor, Reorganized movement code and cleaned up. Also GamePlane implementation now works more consistently" />
@@ -437,7 +445,9 @@
     <MESSAGE value="fixed some bugs with the asteroid culling...&#10;culling boundary now automatically sizes to fit field size&#10; increased pool size (more prewarmed asteroids) and spawn radius. &#10; field still feels sparse if player flies fast in one direction (can beat the spawn speed) and our current method still drops the framerate significantly when you try to go fast." />
     <MESSAGE value="UI volume working in game initiator (adds bloom and blue glow back to ui)&#10;adjust asteroid spawn settings. there maybe a bug with momentum?" />
     <MESSAGE value="clean up bootstrapper code and made it more deterministic (got rid of lots of GetComponent and FindGameObject calls using ServiceLocator pattern)" />
-    <option name="LAST_COMMIT_MESSAGE" value="clean up bootstrapper code and made it more deterministic (got rid of lots of GetComponent and FindGameObject calls using ServiceLocator pattern)" />
+    <MESSAGE value="track unversioned" />
+    <MESSAGE value="more gameInitiator reorganization" />
+    <option name="LAST_COMMIT_MESSAGE" value="more gameInitiator reorganization" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

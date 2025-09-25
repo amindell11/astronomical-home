@@ -16,6 +16,7 @@ public class Spawner
     [SerializeField] private float enemyRespawnDelay = 3f;
 
     [SerializeField] private float offscreenDistance = 25f;
+    
     private Camera cacheMainCamera;
     public SubscribedSet<Ships.Ship> SubscribedShips { get; private set; }
     private Camera LazyCacheCamera => cacheMainCamera ??= Camera.main;

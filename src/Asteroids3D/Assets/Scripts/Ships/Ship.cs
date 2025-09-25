@@ -22,8 +22,6 @@ namespace Ships
         public LaserGun LaserGun { get; internal set; }
         public MissileLauncher MissileLauncher { get; internal set; }
         public Damage Damage { get; internal set; }
-        public Hull Hull { get; internal set; }
-        
         public ICommandSource Commander { get; internal set; }  
 
         private bool isInitialized = false;
@@ -35,42 +33,44 @@ namespace Ships
         public Transform TargetPoint => transform;
         public LockChannel Lock { get; } = new LockChannel();
         public Vector3 Velocity => Movement ? Movement.Kinematics.WorldVel : Vector3.zero;
+
+        private void Awake()
+        {
+            Movement        = GetComponent<MoveController>();
+            LaserGun        = GetComponentInChildren<LaserGun>();
+            MissileLauncher = GetComponentInChildren<MissileLauncher>();
+            Damage   = GetComponent<Damage>();
+            Commander     =  GetComponentInChildren<Commander>();
+        }
+        
+        private void OnEnable()
+        {
+            PopulateSettings(settings);
+        }
         
         private void Start()
         {
             Initialize(settings, teamNumber);
         }
         
-        public void Initialize(Settings shipSettings, int team)
+        public void Initialize(Settings shipSettings, int team = 0)
         {
             if (isInitialized) return;
-            FindComponents();
-            settings = shipSettings;
             teamNumber = team;
-            
+            PopulateSettings(shipSettings);
+
             Commander?.InitializeCommander(this);
-            PopulateSettings();
 
             if (Damage)
                 Damage.OnDeath += (victim, killer) => HandleShipDeath();
 
             isInitialized = true;
         }
-        private void FindComponents(){            
-            Movement        = GetComponent<MoveController>();
-            LaserGun        = GetComponentInChildren<LaserGun>();
-            MissileLauncher = GetComponentInChildren<MissileLauncher>();
-            Damage   = GetComponent<Damage>();
-            Hull            = GetComponent<Hull>();
-            Commander     =  GetComponentInChildren<Commander>();}
-        private void OnEnable()
-        {
-            PopulateSettings();
-        }
 
-
-        private void PopulateSettings()
-        {
+        
+        private void PopulateSettings(Settings s)
+        {            
+            settings = s;
             Movement?.PopulateSettings(settings);
             Damage?.PopulateSettings(settings);
         }
@@ -121,8 +121,8 @@ namespace Ships
                 LaserHeatPct = LaserGun?.HeatPct ?? 0f,
                 MissileState = MissileLauncher?.State ?? MissileLauncher.LockState.Idle,
                 MissileAmmo = MissileLauncher?.AmmoCount ?? 0,
-                HealthPct = Damage.HealthPct,
-                ShieldPct = Damage.ShieldPct,
+                HealthPct = Damage.Health.Pct,
+                ShieldPct = Damage.Shield.Pct,
             };
         }
 

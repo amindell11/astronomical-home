@@ -16,7 +16,7 @@ namespace Audio
         [SerializeField] private AudioClip shieldDepletedClip;
         [SerializeField] private AudioClip hullHitClip;
         [SerializeField] private AudioClip deathClip;
-
+        
         [Header("Volumes")] [SerializeField, Range(0f, 1f)]
         private float shieldVolume = 0.8f;
 
@@ -24,7 +24,7 @@ namespace Audio
         [SerializeField, Range(0f, 1f)] private float hullVolume = 1f;
         [SerializeField, Range(0f, 1f)] private float deathVolume = 1f;
 
-        private AudioSource source;
+        private AudioSource source; 
         private Ships.Damage damage;
 
         private void Awake()
@@ -40,16 +40,16 @@ namespace Audio
             if (!damage)
                 damage = GetComponentInParent<Ships.Damage>();
             if (!damage) return;
-            damage.OnShieldChanged += HandleShieldChanged;
-            damage.OnHealthChanged += HandleHealthChanged;
+            damage.Shield.OnValueChanged += HandleShieldChanged;
+            damage.Health.OnValueChanged += HandleHealthChanged;
             damage.OnDeath += HandleDeath;
         }
 
         private void OnDisable()
         {
             if (!damage) return;
-            damage.OnShieldChanged -= HandleShieldChanged;
-            damage.OnHealthChanged -= HandleHealthChanged;
+            damage.Shield.OnValueChanged -= HandleShieldChanged;
+            damage.Health.OnValueChanged -= HandleHealthChanged;
             damage.OnDeath -= HandleDeath;
         }
 

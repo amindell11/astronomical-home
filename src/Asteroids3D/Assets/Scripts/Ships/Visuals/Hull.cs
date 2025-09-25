@@ -38,7 +38,7 @@ namespace Ships.Visuals
         {
             if (!source) source = GetComponentInParent<Damage>();
             if (!source) return;
-            source.OnHealthChanged += OnHealthChanged;
+            source.Health.OnValueChanged += OnHealthChanged;
             source.OnDamaged      += SpawnSparks;
             source.OnDamaged      += TriggerFlash;
             source.OnDeath        += OnDeath;
@@ -47,7 +47,7 @@ namespace Ships.Visuals
         private void OnDisable()
         {
             if (!source) return;
-            source.OnHealthChanged -= OnHealthChanged;
+            source.Health.OnValueChanged -= OnHealthChanged;
             source.OnDamaged      -= SpawnSparks;
             source.OnDamaged      -= TriggerFlash;
             source.OnDeath        -= OnDeath;
@@ -70,13 +70,13 @@ namespace Ships.Visuals
             if (hull)
             {
                 hull.GetPropertyBlock(block);
-                float scale = Mathf.Lerp(2f, 0f, source.HealthPct);  
+                float scale = Mathf.Lerp(2f, 0f, source.Health.Pct);  
                 block.SetFloat(DetailScale, scale);
                 hull.SetPropertyBlock(block);
             }
 
             if (!smoke) return;
-            bool showSmoke = source.HealthPct < 0.5f;
+            bool showSmoke = source.Health.Pct < 0.5f;
             Debug.Log(gameObject+" " +showSmoke);
             if (smoke.gameObject.activeSelf != showSmoke)
                 smoke.gameObject.SetActive(showSmoke);

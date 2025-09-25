@@ -56,7 +56,6 @@ public class ShieldRegenerationPlayMode
         // Set tunable values on the handler directly.
         handler.maxHealth        = MaxHealth;
         handler.maxShield        = MaxShield;
-        handler.startingLives    = 1;
         handler.shieldRegenDelay = RegenDelay;
         handler.shieldRegenRate  = RegenRate;
 
@@ -90,8 +89,8 @@ public class ShieldRegenerationPlayMode
     public IEnumerator ShieldDamage_HealthUntouched_UntilShieldsDepleted()
     {
         // Arrange
-        float initialHealth = damage.CurrentHealth;
-        float initialShield = damage.CurrentShield;
+        float initialHealth = damage.Health.CurrentValue;
+        float initialShield = damage.Shield.CurrentValue;
         float dmg = 30f; // less than shield
 
         // Act
@@ -99,8 +98,8 @@ public class ShieldRegenerationPlayMode
         yield return null; // wait a frame so events process
 
         // Assert
-        Assert.AreEqual(initialHealth, damage.CurrentHealth, 0.01f, "Health should remain unchanged while shields absorb damage.");
-        Assert.AreEqual(initialShield - dmg, damage.CurrentShield, 0.01f, "Shield should decrease exactly by damage amount.");
+        Assert.AreEqual(initialHealth, damage.Health.CurrentValue, 0.01f, "Health should remain unchanged while shields absorb damage.");
+        Assert.AreEqual(initialShield - dmg, damage.Shield.CurrentValue, 0.01f, "Shield should decrease exactly by damage amount.");
     }
 
     [UnityTest]
@@ -108,7 +107,7 @@ public class ShieldRegenerationPlayMode
     {
         // Arrange – reset shields to full
         damage.ResetDamageState();
-        float initialHealth = damage.CurrentHealth;
+        float initialHealth = damage.Health.CurrentValue;
         float dmg = MaxShield + 20f; // greater than full shield
 
         // Act
@@ -116,8 +115,8 @@ public class ShieldRegenerationPlayMode
         yield return null;
 
         // Assert – single-hit rule: excess does NOT spill to health
-        Assert.AreEqual(0f, damage.CurrentShield, 0.01f, "Shield should be depleted to zero.");
-        Assert.AreEqual(initialHealth, damage.CurrentHealth, 0.01f, "Health should stay intact when single hit depletes shields.");
+        Assert.AreEqual(0f, damage.Shield.CurrentValue, 0.01f, "Shield should be depleted to zero.");
+        Assert.AreEqual(initialHealth, damage.Health.CurrentValue, 0.01f, "Health should stay intact when single hit depletes shields.");
     }
 
     [UnityTest]
@@ -127,17 +126,17 @@ public class ShieldRegenerationPlayMode
         damage.ResetDamageState();
         float dmg = 40f;
         damage.TakeDamage(dmg, 1f, Vector3.zero, Vector3.zero, null);
-        float damagedShield = damage.CurrentShield; // should be MaxShield - dmg
+        float damagedShield = damage.Shield.CurrentValue; // should be MaxShield - dmg
 
         // Act – wait half of regen delay and confirm no regen yet
         yield return new WaitForSeconds(RegenDelay * 0.5f);
-        Assert.AreEqual(damagedShield, damage.CurrentShield, 0.01f, "Shield should not regenerate before regenDelay elapses.");
+        Assert.AreEqual(damagedShield, damage.Shield.CurrentValue, 0.01f, "Shield should not regenerate before regenDelay elapses.");
 
         // Wait past the regen delay so regen starts
         yield return new WaitForSeconds(RegenDelay * 0.75f);
 
         // Assert – some regeneration occurred
-        Assert.Greater(damage.CurrentShield, damagedShield + 0.1f, "Shield should begin regenerating after regenDelay.");
+        Assert.Greater(damage.Shield.CurrentValue, damagedShield + 0.1f, "Shield should begin regenerating after regenDelay.");
     }
 
     [UnityTest]
@@ -147,7 +146,7 @@ public class ShieldRegenerationPlayMode
         damage.ResetDamageState();
         float firstHit = 30f;
         damage.TakeDamage(firstHit, 1f, Vector3.zero, Vector3.zero, null);
-        float shieldAfterFirst = damage.CurrentShield;
+        float shieldAfterFirst = damage.Shield.CurrentValue;
 
         // Wait half the delay
         yield return new WaitForSeconds(RegenDelay * 0.5f);
@@ -155,16 +154,16 @@ public class ShieldRegenerationPlayMode
         // Apply second hit – this should reset the timer
         float secondHit = 10f;
         damage.TakeDamage(secondHit, 1f, Vector3.zero, Vector3.zero, null);
-        float shieldAfterSecond = damage.CurrentShield;
+        float shieldAfterSecond = damage.Shield.CurrentValue;
         Assert.AreEqual(shieldAfterFirst - secondHit, shieldAfterSecond, 0.01f, "Shield should reflect second damage application.");
 
         // Wait just under full delay – regen should NOT have started yet
         yield return new WaitForSeconds(RegenDelay * 0.8f);
-        Assert.AreEqual(shieldAfterSecond, damage.CurrentShield, 0.01f, "Shield regen should have been postponed by the second hit.");
+                Assert.AreEqual(shieldAfterSecond, damage.Shield.CurrentValue, 0.01f, "Shield regen should have been postponed by the second hit.");
 
         // Wait beyond delay to allow regen
         yield return new WaitForSeconds(RegenDelay * 0.4f);
-        Assert.Greater(damage.CurrentShield, shieldAfterSecond + 0.1f, "Shield should regenerate after updated regenDelay.");
+        Assert.Greater(damage.Shield.CurrentValue, shieldAfterSecond + 0.1f, "Shield should regenerate after updated regenDelay.");
     }
 
     [UnityTest]
@@ -173,14 +172,14 @@ public class ShieldRegenerationPlayMode
         // Arrange – deplete shields fully
         damage.ResetDamageState();
         damage.TakeDamage(MaxShield, 1f, Vector3.zero, Vector3.zero, null);
-        Assert.AreEqual(0f, damage.CurrentShield, 0.01f);
+        Assert.AreEqual(0f, damage.Shield.CurrentValue, 0.01f);
 
         // Calculate time needed to fully regen
         float timeToFull = RegenDelay + MaxShield / RegenRate + 0.1f; // extra padding
         yield return new WaitForSeconds(timeToFull);
 
         // Assert – back to full
-        Assert.AreEqual(MaxShield, damage.CurrentShield, 1f, "Shield should fully regenerate to max value.");
+        Assert.AreEqual(MaxShield, damage.Shield.CurrentValue, 1f, "Shield should fully regenerate to max value.");
     }
 
     // TODO: Helper methods
