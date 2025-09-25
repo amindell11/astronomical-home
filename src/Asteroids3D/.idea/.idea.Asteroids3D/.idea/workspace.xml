@@ -6,15 +6,12 @@
   <component name="ChangeListManager">
     <list default="true" id="e23c1508-3e15-491e-908f-fb153c5059e0" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Asteroids3D/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Asteroids3D/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Audio/ShipDamageAudio.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Audio/ShipDamageAudio.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Audio/UIHealthAudio.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Audio/UIHealthAudio.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Game/GameServices.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Game/GameServices.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ships/Damage.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Ships/Damage.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Prefabs/Ships/Ship_1.prefab" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Prefabs/Ships/Ship_1.prefab" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/EnemyAI/AIContext.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/EnemyAI/AIContext.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/EnemyAI/AIGunner.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/EnemyAI/AIGunner.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ships/Control/Player.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Ships/Control/Player.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ships/Damage/Damage.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Ships/Damage/Damage.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ships/Ship.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Ships/Ship.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Ships/Visuals/Hull.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Ships/Visuals/Hull.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/UI/ShieldUI.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/UI/ShieldUI.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Tests/PlayMode/LaserDamagePlayMode.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Tests/PlayMode/LaserDamagePlayMode.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Tests/PlayMode/ShieldRegenerationPlayMode.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Tests/PlayMode/ShieldRegenerationPlayMode.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -49,6 +46,7 @@
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/ec96bf438c444e598403ed31eec8eeb818c00/9a/b000f355/AudioClip.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Asteroids/Spawning/Registry.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Assets/Scripts/Asteroids/Spawning/SpawnPool.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="vcs://C:/Users/desir/github-classroom/lmu-cmsi5998-summer2025-final-astronomical/src/Asteroids3D/Assets/Scripts/Ships/Ship.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Library/PackageCache/com.unity.render-pipelines.universal@a19b2562c494/Runtime/UniversalRenderPipeline.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
@@ -167,7 +165,7 @@
       <workItem from="1758258631286" duration="718000" />
       <workItem from="1758259500457" duration="5787000" />
       <workItem from="1758354466231" duration="36817000" />
-      <workItem from="1758772866637" duration="5927000" />
+      <workItem from="1758772866637" duration="10150000" />
     </task>
     <task id="LOCAL-00001" summary="Ship Settings can be changed at runtime (and refactor ship package a bunch)">
       <option name="closed" value="true" />
@@ -377,7 +375,15 @@
       <option name="project" value="LOCAL" />
       <updated>1758776931190</updated>
     </task>
-    <option name="localTasksCounter" value="27" />
+    <task id="LOCAL-00027" summary="refactor Damage class to include subClasses for Health and Shield (cleaner decoupling)">
+      <option name="closed" value="true" />
+      <created>1758781950113</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1758781950113</updated>
+    </task>
+    <option name="localTasksCounter" value="28" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -422,7 +428,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
-    <MESSAGE value="Refactor: Seperate mainGameContext from Spawner logic" />
     <MESSAGE value="Player ship working in factory. still need to fix AI and other..." />
     <MESSAGE value="Major Ship Refactor, Reorganized movement code and cleaned up. Also GamePlane implementation now works more consistently" />
     <MESSAGE value="wired up respwaner. Only works with new GameInitiator because awake/start management is becoming complicated" />
@@ -447,7 +452,8 @@
     <MESSAGE value="clean up bootstrapper code and made it more deterministic (got rid of lots of GetComponent and FindGameObject calls using ServiceLocator pattern)" />
     <MESSAGE value="track unversioned" />
     <MESSAGE value="more gameInitiator reorganization" />
-    <option name="LAST_COMMIT_MESSAGE" value="more gameInitiator reorganization" />
+    <MESSAGE value="refactor Damage class to include subClasses for Health and Shield (cleaner decoupling)" />
+    <option name="LAST_COMMIT_MESSAGE" value="refactor Damage class to include subClasses for Health and Shield (cleaner decoupling)" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

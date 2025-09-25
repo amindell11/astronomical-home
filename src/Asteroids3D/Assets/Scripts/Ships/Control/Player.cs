@@ -29,6 +29,7 @@ namespace Ships.Control
         // Unity standard frame update – poll input here for maximum responsiveness.
         private void Update()
         {
+            if (!ship) return;
             var (y, t, r) = HandleRotationInput();
             var cmd = new Command
             {

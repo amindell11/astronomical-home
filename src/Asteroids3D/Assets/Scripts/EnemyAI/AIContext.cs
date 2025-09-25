@@ -268,7 +268,7 @@ namespace EnemyAI
         /// </summary>
         public Vector2 VectorToWaypoint => aiNavigator?.CurrentWaypoint.isValid == true ? aiNavigator.CurrentWaypoint.position - SelfPosition : Vector2.zero;
     
-        public float LaserSpeed => ship?.LaserGun?.ProjectileSpeed ?? 0f;
+        public float LaserSpeed => ship?.Weapons.LaserGun?.ProjectileSpeed ?? 0f;
         // ===== Helper Methods =====
 
         /// <summary>

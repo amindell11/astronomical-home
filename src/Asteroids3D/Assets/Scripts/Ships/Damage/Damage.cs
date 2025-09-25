@@ -100,6 +100,9 @@ namespace Ships
         {
             if (!s) return;
             
+            Health ??= new DamageResource(maxHealth);
+            Shield ??= new RegeneratingDamageResource(maxShield, shieldRegenRate, shieldRegenDelay);
+
             maxHealth       = s.maxHealth;
             maxShield       = s.maxShield;
             shieldRegenDelay= s.shieldRegenDelay;
