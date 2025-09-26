@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 2880276688847921505}
   - component: {fileID: 6509293990055726484}
   m_Layer: 6
-  m_Name: LaserProjectile
+  m_Name: Laser
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -167,7 +167,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: f6b595a033998144e9ff02861c3e78b0, type: 2}
+  - {fileID: 2100000, guid: 86527d7144d68be49b0d5d4577c3512a, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

@@ -1,14 +1,14 @@
 using UnityEngine;
 
-namespace Ships
+namespace Ships.Damage
 {
-    public class RegeneratingDamageResource : DamageResource
+    public class RegenResource : Resource
     {
         private float regenRate;
         private float regenDelay;
         private float lastDamageTime;
 
-        public RegeneratingDamageResource(float maxValue, float regenRate, float regenDelay) : base(maxValue)
+        public RegenResource(float maxValue, float regenRate, float regenDelay) : base(maxValue)
         {
             this.regenRate = regenRate;
             this.regenDelay = regenDelay;

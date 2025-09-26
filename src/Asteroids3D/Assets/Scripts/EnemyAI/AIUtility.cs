@@ -60,9 +60,6 @@ namespace EnemyAI
             float enemyHealthFactor = (ctx.EnemyHealthPct + ctx.EnemyShieldPct) / 2f;
             score += FearCurve(enemyHealthFactor, 0.3f);
         
-            // Bonus for attacking a disarmed target
-            score += DesireCurve(ctx.EnemyLaserHeatPct, 0.2f);
-            score += DesireCurve(ctx.EnemyMissileAmmo, 0.1f);
 
             // Increase if target is in good range
             float distToEnemy = ctx.VectorToEnemy.magnitude;
@@ -71,10 +68,6 @@ namespace EnemyAI
             
             if (ctx.LineOfSightToEnemy)
                 score += 0.1f;
-            
-            // Bonus for having ammo and low heat
-            score += FearCurve(ctx.LaserHeatPct, 0.1f);
-            score += DesireCurve(ctx.MissileAmmo, 0.1f);
             
             // Decrease if severely outnumbered
             int netThreat = ctx.NearbyEnemyCount - ctx.NearbyFriendCount;
@@ -118,9 +111,6 @@ namespace EnemyAI
                 float facingContribution = facingFactor * 0.2f;
                 score += facingContribution;
             }
-
-            // Increase score as our laser heat increases (need to cool down)
-            score += DesireCurve(ctx.LaserHeatPct, 0.1f);
 
             // Major bonus if incoming missile detected
             if (ctx.IncomingMissile)

@@ -148,8 +148,6 @@ namespace EnemyAI.States
             // Show attack state info
             UnityEditor.Handles.color = Color.white;
             string info = $"ATTACK\nHP: {ctx.HealthPct:P0} Shield: {ctx.ShieldPct:P0}";
-            info += $"\nLaser Heat: {ctx.LaserHeatPct:P0}";
-            info += $"\nMissiles: {ctx.MissileAmmo}";
             if (ctx.NearbyEnemyCount > ctx.NearbyFriendCount)
                 info += $"\n⚠ Outnumbered {ctx.NearbyEnemyCount}v{ctx.NearbyFriendCount}";
             UnityEditor.Handles.Label(position + Vector3.up * 4f, info);

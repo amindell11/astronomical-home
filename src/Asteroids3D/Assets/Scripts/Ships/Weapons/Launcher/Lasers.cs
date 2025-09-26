@@ -32,59 +32,54 @@ namespace Weapons
     
         void Start()
         {
-            ResetHeat();
+            Reset();
         }
-    
-        void Update()
+
+        private void Update()
         {
             if (currentHeat <= 0) return;
 
             bool wasOverheatedBefore = currentHeat >= maxHeat;
             float delay = wasOverheatedBefore ? overheatPenaltyTime : coolDownDelay;
-        
-            if (Time.time > lastShotTime + delay)
-            {
-                currentHeat -= coolingRate * Time.deltaTime;
-                currentHeat = Mathf.Max(0, currentHeat);
+
+            if (!(Time.time > lastShotTime + delay)) return;
+            currentHeat -= coolingRate * Time.deltaTime;
+            currentHeat = Mathf.Max(0, currentHeat);
             
-                // Check for cooldown start event (transitioning from overheated to cooling)
-                bool isOverheatedNow = currentHeat >= maxHeat;
-                if (wasOverheatedBefore && !isOverheatedNow)
-                {
-                    OnCooldownStart?.Invoke();
-                }
+            // Check for cooldown start event (transitioning from overheated to cooling)
+            bool isOverheatedNow = currentHeat >= maxHeat;
+            if (wasOverheatedBefore && !isOverheatedNow)
+            {
+                OnCooldownStart?.Invoke();
             }
         }
 
         public override bool CanFire()
         {
             // Check base for cooldown, then check for heat.
-            return base.CanFire() && currentHeat < maxHeat;
+            return base.CanFire() && !Overheated();
         }
 
         public override ProjectileBase Fire()
         {
-            // base.Fire() now calls our overridden CanFire(), so all checks are handled.
             var proj = base.Fire();
-            if (!proj) return proj;
-            bool wasOverheatedBefore = currentHeat >= maxHeat;
+            if (!proj) return null;
+            
             currentHeat += heatPerShot;
             lastShotTime = Time.time;
-            currentHeat = Mathf.Min(currentHeat, maxHeat); // Clamp heat to max
+            currentHeat = Mathf.Min(currentHeat, maxHeat);
             
-            // Check for overheat event (transitioning to overheated state)
-            bool isOverheatedNow = currentHeat >= maxHeat;
-            if (isOverheatedNow && !wasOverheatedBefore)
-            {
+            if (Overheated())
                 OnOverheat?.Invoke();
-            }
+            
             return proj;
         }
 
-        public void ResetHeat()
+        public override void Reset()
         {
             currentHeat = 0f;
         }
+        public bool Overheated() => CurrentHeat >= maxHeat;
 
 #if UNITY_EDITOR
         void OnDrawGizmosSelected()

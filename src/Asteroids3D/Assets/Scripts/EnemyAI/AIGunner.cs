@@ -10,7 +10,6 @@ namespace EnemyAI
 {
     public class AIGunner : MonoBehaviour
     {
-        /* â”€â”€ Combat tunables (identical to old script) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         [Header("Combat")]
         [SerializeField] float fireAngleTolerance = 5f;
         [SerializeField] float fireDistance = 20f;
@@ -28,9 +27,11 @@ namespace EnemyAI
         [SerializeField] bool showTargeting = true;
         [SerializeField] bool showLineOfSight = true;
 
-        /* â”€â”€ internals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         private Ships.Ship ship;
         public Vector2 Target { get; set; }       
+
+        private IWeaponAIStrategy primaryAI;
+        private IWeaponAIStrategy secondaryAI;
 
         // LOS cache
         bool cachedLOS;
@@ -68,78 +69,34 @@ namespace EnemyAI
         {
             this.ship = ship;
             lineOfSightMask = LayerIds.Mask(LayerIds.Asteroid);
+
+            if (ship.Weapons.primary)
+                primaryAI = ship.Weapons.primary.GetComponent<IWeaponAIStrategy>();
+            if (ship.Weapons.secondary)
+                secondaryAI = ship.Weapons.secondary.GetComponent<IWeaponAIStrategy>();
         }
 
         public void GenerateGunnerCommands(State state, ref Command cmd)
         {
-            cmd.PrimaryFire = false;
-            cmd.SecondaryFire = false;
 
-            if (Target == Vector2.zero)
-            {
-                RLog.AI($"[AI-{name}] GenerateGunnerCommands: No target set, weapons disabled");
-                return;
-            }
-
-            float dist = VectorToTarget.magnitude;
-            float angle = AngleToTarget;
-        
-            RLog.AI($"[AI-{name}] GenerateGunnerCommands: Target at dist={dist:F1}, angle={angle:F1}Â°, fireDistance={fireDistance:F1}, fireAngleTolerance={fireAngleTolerance:F1}Â°");
-
-            bool wantsToFireMissile = false;
-            const float dummyMissileRange = 10f; // Close range for dumb-fire during locking
-
-            if (ship.Weapons.MissileLauncher)
-            {
-                switch (state.MissileState)
-                {
-                    case MissileLauncher.LockState.Idle:
-                    case MissileLauncher.LockState.Locking:
-                        // Dumb-fire if target is very close, since locking is automatic or in progress.
-                        if (dist <= dummyMissileRange && angle <= missileAngleTolerance)
-                        {
-                            wantsToFireMissile = true;
-                            RLog.AI($"[AI-{name}] Missile: Idle/Locking, close enough for dumb-fire");
-                        }
-                        else
-                        {
-                            RLog.AI($"[AI-{name}] Missile: Idle/Locking, waiting for auto-lock.");
-                        }
-                        break;
-
-                    case MissileLauncher.LockState.Locked:
-                        // Fire locked missile and don't fire laser
-                        wantsToFireMissile = true;
-                        RLog.AI($"[AI-{name}] Missile: Locked state, will fire");
-                        break;
-
-                    case MissileLauncher.LockState.Cooldown:
-                        // Do nothing during cooldown
-                        RLog.AI($"[AI-{name}] Missile: Cooldown state");
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            }
-
-            cmd.SecondaryFire = wantsToFireMissile;
-            LaserGun laserGun = ship.Weapons.LaserGun;
-            // Only block laser when we have a locked missile ready to fire
-            bool blockLaserForMissile = wantsToFireMissile && state.MissileState == MissileLauncher.LockState.Locked;
-
-            if (laserGun && dist <= fireDistance && angle <= fireAngleTolerance && !blockLaserForMissile && laserGun.CurrentHeat < laserGun.MaxHeat - laserGun.HeatPerShot) // TODO: make this a tunable
-            {
-                Vector3 laserFirePos = laserGun.firePoint ? laserGun.firePoint.position : transform.position;
-                Vector3 targetPos = GamePlane.PlanePointToWorld(Target);
-                Vector3 dir = targetPos - laserFirePos;
-                bool losOK = HasLineOfSight(laserFirePos, dir, dist, angle, targetPos);
+            if (Target == Vector2.zero) return;
             
 
-                if (losOK)
-                
-                    cmd.PrimaryFire = true;
-                
-            }
+            // 1. Create the shared context for all weapons
+            var context = new IWeaponAIStrategy.TargetingContext
+            {
+                TargetPosition = Target,
+                DistanceToTarget = VectorToTarget.magnitude,
+                AngleToTarget = AngleToTarget,
+                HasLineOfSight = HasLineOfSight()
+            };
+
+            // 2. Poll the strategies
+            bool primaryWantsFire = primaryAI?.ShouldFire(context) ?? false;
+            bool secondaryWantsFire = secondaryAI?.ShouldFire(context) ?? false;
+
+            cmd.PrimaryFire = primaryWantsFire;
+            cmd.SecondaryFire = secondaryWantsFire;
         }
 
         public bool HasLineOfSight(Vector3 firePos, Vector3 dir, float dist, float angle, Vector3 targetPos)
@@ -170,9 +127,9 @@ namespace EnemyAI
         /// <summary>Returns true if an unobstructed line of sight exists to the current target.</summary>
         public bool HasLineOfSight()
         {
-            if (!ship.Weapons.LaserGun || Target == Vector2.zero) return false;
+            if (!ship.Weapons.primary || Target == Vector2.zero) return false;
 
-            var firePos = ship.Weapons.LaserGun.firePoint ? ship.Weapons.LaserGun.firePoint.position : transform.position;
+            var firePos = ship.Weapons.primary.firePoint ? ship.Weapons.primary.firePoint.position : transform.position;
             var targetPos = GamePlane.PlanePointToWorld(Target);
             var dir = targetPos - firePos;
             float dist = dir.magnitude;
@@ -184,9 +141,9 @@ namespace EnemyAI
         /// <summary>Returns true if an unobstructed line of sight exists to <paramref name="tgt"/>.</summary>
         public bool HasLineOfSight(Transform tgt)
         {
-            if (!ship.Weapons.LaserGun || !tgt) return false;
+            if (!ship.Weapons.primary || !tgt) return false;
 
-            var firePos = ship.Weapons.LaserGun.firePoint ? ship.Weapons.LaserGun.firePoint.position : transform.position;
+            var firePos = ship.Weapons.primary.firePoint ? ship.Weapons.primary.firePoint.position : transform.position;
             var dir = tgt.position - firePos;
             float dist = dir.magnitude;
             float angle = Vector3.Angle(transform.up, dir);
@@ -356,9 +313,9 @@ namespace EnemyAI
     
         void DrawLineOfSightGizmos()
         {
-            if (Target == Vector2.zero || !ship.Weapons.LaserGun) return;
+            if (Target == Vector2.zero || !ship.Weapons.primary) return;
         
-            Vector3 firePos = ship.Weapons.LaserGun.firePoint ? ship.Weapons.LaserGun.firePoint.position : transform.position;
+            Vector3 firePos = ship.Weapons.primary.firePoint ? ship.Weapons.primary.firePoint.position : transform.position;
             Vector3 targetPos = GamePlane.PlanePointToWorld(Target);
         
             // Line of sight ray

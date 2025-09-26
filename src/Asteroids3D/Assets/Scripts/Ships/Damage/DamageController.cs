@@ -4,9 +4,9 @@ using Game;
 using UnityEditor;
 using UnityEngine;
 
-namespace Ships
+namespace Ships.Damage
 {
-    public class Damage : MonoBehaviour, IDamageable
+    public class DamageController : MonoBehaviour, IDamageable
     {
         public event Action<float, Vector3> OnDamaged; // dmg, hitPoint
         public event Action<Ship, Ship> OnDeath; // Passes the victim and killer Ship components
@@ -16,8 +16,8 @@ namespace Ships
         public float shieldRegenDelay = 3f;
         public float shieldRegenRate = 25f;
 
-        public DamageResource Health { get; private set; }
-        public RegeneratingDamageResource Shield { get; private set; }
+        public Resource Health { get; private set; }
+        public RegenResource Shield { get; private set; }
         
         public Ship LastAttacker {get; private set;}
         private Ship myShip;
@@ -30,8 +30,8 @@ namespace Ships
         private void Awake()
         {
             myShip = GetComponent<Ship>();
-            Health = new DamageResource(maxHealth);
-            Shield = new RegeneratingDamageResource(maxShield, shieldRegenRate, shieldRegenDelay);
+            Health = new Resource(maxHealth);
+            Shield = new RegenResource(maxShield, shieldRegenRate, shieldRegenDelay);
         }
 
         private void Update()
@@ -100,8 +100,8 @@ namespace Ships
         {
             if (!s) return;
             
-            Health ??= new DamageResource(maxHealth);
-            Shield ??= new RegeneratingDamageResource(maxShield, shieldRegenRate, shieldRegenDelay);
+            Health ??= new Resource(maxHealth);
+            Shield ??= new RegenResource(maxShield, shieldRegenRate, shieldRegenDelay);
 
             maxHealth       = s.maxHealth;
             maxShield       = s.maxShield;

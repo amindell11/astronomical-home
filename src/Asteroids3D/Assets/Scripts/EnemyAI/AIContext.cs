@@ -98,21 +98,6 @@ namespace EnemyAI
         /// </summary>
         public float HealthPct => ship?.CurrentState.HealthPct ?? 0f;
     
-        /// <summary>
-        /// Current laser heat as percentage of maximum (0.0 to 1.0)
-        /// </summary>
-        public float LaserHeatPct => ship?.CurrentState.LaserHeatPct ?? 0f;
-    
-        /// <summary>
-        /// Number of remaining missiles
-        /// </summary>
-        public int MissileAmmo => ship?.CurrentState.MissileAmmo ?? 0;
-    
-        /// <summary>
-        /// Current missile launcher state
-        /// </summary>
-        public MissileLauncher.LockState MissileState => ship?.CurrentState.MissileState ?? MissileLauncher.LockState.Idle;
-    
         // ===== Enemy Information =====
         public bool InCombat => enemyShip != null && enemyShip.gameObject.activeInHierarchy;
         /// <summary>
@@ -205,16 +190,6 @@ namespace EnemyAI
         /// </summary>
         public float EnemyShieldPct => Enemy?.CurrentState.ShieldPct ?? 0f;
     
-        /// <summary>
-        /// Enemy's current laser heat as percentage of maximum (0.0 to 1.0)
-        /// </summary>
-        public float EnemyLaserHeatPct => Enemy?.CurrentState.LaserHeatPct ?? 0f;
-    
-        /// <summary>
-        /// Enemy's number of remaining missiles
-        /// </summary>
-        public int EnemyMissileAmmo => Enemy?.CurrentState.MissileAmmo ?? 0;
-    
         // ===== Target Information =====
     
         /// <summary>
@@ -268,7 +243,7 @@ namespace EnemyAI
         /// </summary>
         public Vector2 VectorToWaypoint => aiNavigator?.CurrentWaypoint.isValid == true ? aiNavigator.CurrentWaypoint.position - SelfPosition : Vector2.zero;
     
-        public float LaserSpeed => ship?.Weapons.LaserGun?.ProjectileSpeed ?? 0f;
+        public float LaserSpeed =>  0f;
         // ===== Helper Methods =====
 
         /// <summary>

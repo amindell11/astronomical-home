@@ -1,5 +1,6 @@
 using System.Collections;
 using Ships;
+using Ships.Damage;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -24,7 +25,7 @@ namespace UI
         [Tooltip("Optional gradient to tint ring based on remaining shield")] 
         [SerializeField] Gradient shieldColors;
 
-        [SerializeField] Ships.Damage source;    // assign the ship whose shield flashes
+        [SerializeField] DamageController source;    // assign the ship whose shield flashes
 
         Image   ring;
         Color   baseColor;       // original tint without alpha
@@ -40,7 +41,7 @@ namespace UI
 
         private void OnEnable()
         {
-            if (!source) source = GetComponentInParent<Ships.Damage>();
+            if (!source) source = GetComponentInParent<DamageController>();
             source.Shield.OnValueChanged += OnShieldChanged;
             
         }

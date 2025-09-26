@@ -1,9 +1,9 @@
 using System;
 using UnityEngine;
 
-namespace Ships
+namespace Ships.Damage
 {
-    public class DamageResource
+    public class Resource
     {
         public event Action<float, float, float> OnValueChanged; // current, previous, max
         
@@ -12,7 +12,7 @@ namespace Ships
         
         public float Pct => MaxValue > 0 ? CurrentValue / MaxValue : 0f;
 
-        public DamageResource(float maxValue)
+        public Resource(float maxValue)
         {
             MaxValue = maxValue;
             CurrentValue = MaxValue;

@@ -1,14 +1,15 @@
 using Ships.Control;
+using Ships.Damage;
+using Ships.Movement;
 using Ships.Visuals;
 using UnityEngine;
 using Weapons;
-using MoveController = Ships.Movement.Controller;
 using Ships.Weapons;
 
 namespace Ships
 {
-    [RequireComponent(typeof(MoveController))]
-    [RequireComponent(typeof(Damage))]
+    [RequireComponent(typeof(MovementController))]
+    [RequireComponent(typeof(DamageController))]
     public class Ship : MonoBehaviour, ITargetable, IShooter
     {
         [Header("Settings Asset")]
@@ -19,9 +20,9 @@ namespace Ships
         [Tooltip("Team number for this ship. Ships with the same team number are considered friendly.")]
         public int teamNumber = 0;
 
-        public MoveController Movement { get; internal set; }
-        public WeaponSystem Weapons { get; internal set; }
-        public Damage Damage { get; internal set; }
+        public MovementController Movement { get; internal set; }
+        public WeaponController Weapons { get; internal set; }
+        public DamageController Damage { get; internal set; }
         public ICommandSource Commander { get; internal set; }  
 
         private bool isInitialized = false;
@@ -66,9 +67,9 @@ namespace Ships
             isInitialized = true;
         }
         private void FindComponents(){            
-            Movement        = GetComponent<MoveController>();
-            Weapons    = GetComponentInChildren<WeaponSystem>();
-            Damage   = GetComponent<Damage>();
+            Movement        = GetComponent<MovementController>();
+            Weapons    = GetComponentInChildren<WeaponController>();
+            Damage   = GetComponent<DamageController>();
             Commander     =  GetComponentInChildren<Commander>();
         }
      
@@ -113,10 +114,8 @@ namespace Ships
             CurrentState = new State
             {
                 Kinematics = Movement.Kinematics,
-                IsLaserReady = Weapons?.LaserGun?.CanFire() ?? false,
-                LaserHeatPct = Weapons?.LaserGun?.HeatPct ?? 0f,
-                MissileState = Weapons?.MissileLauncher?.State ?? MissileLauncher.LockState.Idle,
-                MissileAmmo = Weapons?.MissileLauncher?.AmmoCount ?? 0,
+                IsPrimaryReady = Weapons?.primary?.CanFire() ?? false,
+                IsSecondaryReady = Weapons?.secondary?.CanFire() ?? false,
                 HealthPct = Damage.Health.Pct,
                 ShieldPct = Damage.Shield.Pct,
             };

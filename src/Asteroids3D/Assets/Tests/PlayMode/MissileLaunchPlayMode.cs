@@ -30,7 +30,7 @@ public class MissileLaunchPlayMode
         Assert.IsNotNull(shooterRb, "Shooter ship must have a Rigidbody");
 
         // Ensure ammo is full
-        launcher.ReplenishAmmo();
+        launcher.Reset();
     }
 
     [TearDown]

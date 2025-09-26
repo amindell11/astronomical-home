@@ -81,14 +81,6 @@ namespace EnemyAI.States
             {
                 score += 0.3f;
             }
-            
-            // Kiting is ideal when we need to evade but have strong weapons.
-            // This is a "fighting retreat."
-            bool hasGoodWeapons = ctx.MissileAmmo > 0 && ctx.LaserHeatPct < 0.5f;
-            if (evadeDesire > 0.5f && hasGoodWeapons)
-            {
-                score += 0.25f;
-            }
 
             // Kiting is also a good option if we have low health but good shields
             // allowing us to absorb some hits while creating distance.

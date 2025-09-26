@@ -28,7 +28,7 @@ public class MissileHomingPlayMode
         launcher = shooterShip.GetComponentInChildren<MissileLauncher>();
         Assert.IsNotNull(launcher, "Shooter ship must have a MissileLauncher");
 
-        launcher.ReplenishAmmo();
+        launcher.Reset();
     }
 
     [TearDown]
