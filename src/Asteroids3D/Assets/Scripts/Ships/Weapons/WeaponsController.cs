@@ -10,8 +10,6 @@ namespace Ships.Weapons
 
         private void Awake()
         {
-            primary = GetComponentInChildren<LaserGun>();
-            secondary = GetComponentInChildren<MissileLauncher>();
         }
 
         public void FirePrimary()

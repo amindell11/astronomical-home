@@ -17,18 +17,20 @@ namespace Weapons
         [SerializeField] private float coolDownDelay = 0.5f; // seconds before cooling starts after a normal shot
         [SerializeField] private float overheatPenaltyTime = 1.5f; // seconds before cooling starts after overheating
 
-        private float currentHeat = 0f;
         private float lastShotTime = -100f; // Initialize to allow immediate firing
 
         // Events
         public event Action OnOverheat;
         public event Action OnCooldownStart;
 
-        public float CurrentHeat => currentHeat;
+        public float CurrentHeat { get; private set; } = 0f;
+
         public float MaxHeat => maxHeat;
         public float HeatPerShot => heatPerShot;
-        public float HeatPct => currentHeat / maxHeat;
+        public float HeatPct => CurrentHeat / maxHeat;
         public float ProjectileSpeed => projectilePrefab.LaserSpeed;
+        public bool Overheated => CurrentHeat >= maxHeat;
+
     
         void Start()
         {
@@ -37,17 +39,16 @@ namespace Weapons
 
         private void Update()
         {
-            if (currentHeat <= 0) return;
+            if (CurrentHeat <= 0) return;
 
-            bool wasOverheatedBefore = currentHeat >= maxHeat;
+            bool wasOverheatedBefore = Overheated;
             float delay = wasOverheatedBefore ? overheatPenaltyTime : coolDownDelay;
 
             if (!(Time.time > lastShotTime + delay)) return;
-            currentHeat -= coolingRate * Time.deltaTime;
-            currentHeat = Mathf.Max(0, currentHeat);
+            CurrentHeat -= coolingRate * Time.deltaTime;
+            CurrentHeat = Mathf.Max(0, CurrentHeat);
             
-            // Check for cooldown start event (transitioning from overheated to cooling)
-            bool isOverheatedNow = currentHeat >= maxHeat;
+            bool isOverheatedNow = Overheated;
             if (wasOverheatedBefore && !isOverheatedNow)
             {
                 OnCooldownStart?.Invoke();
@@ -57,7 +58,7 @@ namespace Weapons
         public override bool CanFire()
         {
             // Check base for cooldown, then check for heat.
-            return base.CanFire() && !Overheated();
+            return base.CanFire() && !Overheated;
         }
 
         public override ProjectileBase Fire()
@@ -65,11 +66,11 @@ namespace Weapons
             var proj = base.Fire();
             if (!proj) return null;
             
-            currentHeat += heatPerShot;
+            CurrentHeat += heatPerShot;
             lastShotTime = Time.time;
-            currentHeat = Mathf.Min(currentHeat, maxHeat);
+            CurrentHeat = Mathf.Min(CurrentHeat, maxHeat);
             
-            if (Overheated())
+            if (Overheated)
                 OnOverheat?.Invoke();
             
             return proj;
@@ -77,9 +78,8 @@ namespace Weapons
 
         public override void Reset()
         {
-            currentHeat = 0f;
+            CurrentHeat = 0f;
         }
-        public bool Overheated() => CurrentHeat >= maxHeat;
 
 #if UNITY_EDITOR
         void OnDrawGizmosSelected()
@@ -88,9 +88,9 @@ namespace Weapons
             if (Application.isPlaying && transform.parent)
             {
                 Vector3 position = transform.parent.position + transform.parent.right * 1.5f;
-                float heatRatio = currentHeat / maxHeat;
+                float heatRatio = CurrentHeat / maxHeat;
             
-                UnityEditor.Handles.Label(position + Vector3.up * 1.2f, $"Heat: {currentHeat:F0}/{maxHeat:F0}");
+                UnityEditor.Handles.Label(position + Vector3.up * 1.2f, $"Heat: {CurrentHeat:F0}/{maxHeat:F0}");
 
                 Vector3 barStart = position;
                 Vector3 barEnd = position + Vector3.up * 1.0f;
