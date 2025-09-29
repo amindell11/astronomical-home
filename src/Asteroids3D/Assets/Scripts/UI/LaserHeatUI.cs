@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Utils;
 using Weapons;
+using Ships.Weapons.Conditions;
 
 namespace UI
 {
@@ -38,6 +39,7 @@ namespace UI
 
         private bool wasOverheated;
         private float defaultFlashSpeed = 4f;
+        private Heat heat;
 
         void Awake()
         {
@@ -50,6 +52,7 @@ namespace UI
         void Start()
         {
             if (!laserGun) laserGun = GameObject.FindGameObjectWithTag(TagNames.Player).GetComponentInChildren<LaserGun>();
+            heat = laserGun ? laserGun.GetComponent<Heat>() : null;
             if (glowController)
             {
                 defaultFlashSpeed = glowController.FlashSpeed;
@@ -61,9 +64,9 @@ namespace UI
 
         void Update()
         {
-            if (laserGun == null || fillImage == null) return;
+            if (heat == null || fillImage == null) return;
 
-            float pct = laserGun.HeatPct;      // 0 – 1
+            float pct = heat.HeatPct;      // 0 – 1
             fillImage.fillAmount = pct;
 
             if (animator)

@@ -14,7 +14,7 @@ public class MissileHomingPlayMode
     private GameObject testScene;
     private Ships.Ship shooterShip;
     private Ships.Ship targetShip;
-    private MissileLauncher launcher;
+    private Missiles launcher;
 
     [SetUp]
     public void SetUp()
@@ -25,7 +25,7 @@ public class MissileHomingPlayMode
         shooterShip = TestSceneBuilder.CreateTestShip("Shooter", TestSceneBuilder.ShipType.Player);
         targetShip = TestSceneBuilder.CreateTestShip("Target", TestSceneBuilder.ShipType.Enemy);
 
-        launcher = shooterShip.GetComponentInChildren<MissileLauncher>();
+        launcher = shooterShip.GetComponentInChildren<Missiles>();
         Assert.IsNotNull(launcher, "Shooter ship must have a MissileLauncher");
 
         launcher.Reset();
@@ -45,12 +45,12 @@ public class MissileHomingPlayMode
         float lockStartTime = Time.time;
         float lockDuration = 2.0f; // Match the expected lock time
         
-        while (Time.time - lockStartTime < lockDuration && launcher.State != MissileLauncher.LockState.Locked)
+        while (Time.time - lockStartTime < lockDuration && launcher.Targeting.State != LockState.Locked)
         {
             shooterShip.transform.up = (targetShip.transform.position - shooterShip.transform.position).normalized;
             yield return new WaitForFixedUpdate();
         }
-        Assert.AreEqual(MissileLauncher.LockState.Locked, launcher.State, "Launcher did not lock on target.");
+        Assert.AreEqual(LockState.Locked, launcher.Targeting.State, "Launcher did not lock on target.");
 
         // Fire
         launcher.Fire();
@@ -65,7 +65,7 @@ public class MissileHomingPlayMode
 
         yield return FireLockedMissile();
 
-        var missile = Object.FindObjectOfType<MissileProjectile>();
+        var missile = Object.FindObjectOfType<Missile>();
         Assert.IsNotNull(missile, "Missile was not fired.");
 
         float previous = Vector3.Distance(missile.transform.position, targetShip.transform.position);
@@ -104,7 +104,7 @@ public class MissileHomingPlayMode
 
         yield return FireLockedMissile();
 
-        var missile = Object.FindObjectOfType<MissileProjectile>();
+        var missile = Object.FindObjectOfType<Missile>();
         Assert.IsNotNull(missile, "Missile was not fired.");
 
         float prevDist = Vector3.Distance(missile.transform.position, targetShip.transform.position);
@@ -151,7 +151,7 @@ public class MissileHomingPlayMode
         launcher.Fire(); // Dumb fire
         yield return new WaitForFixedUpdate();
         
-        var missile = Object.FindObjectOfType<MissileProjectile>();
+        var missile = Object.FindObjectOfType<Missile>();
         Assert.IsNotNull(missile, "Missile was not fired.");
 
         Vector3 startForward = missile.transform.up;
@@ -173,7 +173,7 @@ public class MissileHomingPlayMode
 
         yield return FireLockedMissile();
 
-        var missile = Object.FindObjectOfType<MissileProjectile>();
+        var missile = Object.FindObjectOfType<Missile>();
         Assert.IsNotNull(missile, "Missile was not fired.");
 
         yield return new WaitForSeconds(0.25f); // Let missile home for a bit

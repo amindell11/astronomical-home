@@ -1,20 +1,53 @@
 using Editor;
 using UnityEngine;
 using System;
+using System.Linq;
+using Ships.Weapons.Conditions;
 
 namespace Weapons
 {
     // One abstract, non-generic root that Unity can serialize
     public abstract class WeaponComponent : MonoBehaviour
     {
-        [SerializeField] public    Transform firePoint;
-        [SerializeField] protected float     fireRate = 0.2f;
+        [SerializeField] public Transform firePoint;
 
+        protected WeaponCondition[] _conditions;
+        
         public event Action OnFire;
-        public abstract ProjectileBase Fire();
-        public abstract bool CanFire();
 
-        public abstract void Reset();
+        protected virtual void Awake()
+        {
+            _conditions = GetComponents<WeaponCondition>();
+            foreach (var condition in _conditions)
+            {
+                condition.Initialize(this);
+            }
+        }
+
+        public abstract ProjectileBase Fire();
+
+        public virtual bool CanFire()
+        {
+            return _conditions.All(c => c.CanFire());
+        }
+
+        public virtual void Reset()
+        {
+            foreach (var condition in _conditions)
+            {
+                condition.Reset();
+            }
+        }
+
+        public TCondition GetCondition<TCondition>() where TCondition : WeaponCondition
+        {
+            if (_conditions == null) return null;
+            foreach (var t in _conditions)
+            {
+                if (t is TCondition typed) return typed;
+            }
+            return null;
+        }
         protected void InvokeOnFire()
         {
             OnFire?.Invoke();
@@ -27,27 +60,31 @@ namespace Weapons
     public abstract class LauncherBase<TProj> : WeaponComponent where TProj : ProjectileBase
     {
         [Header("Launcher Settings")]
-        [SerializeField] internal TProj     projectilePrefab;
+        [SerializeField] internal TProj projectilePrefab;
 
-        protected float NextFireTime;
         protected IShooter Shooter;
 
-        protected virtual void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             Shooter = GetComponentInParent<IShooter>();
             if (!firePoint) firePoint = transform;
         }
 
         public override bool CanFire()
         {
-            return projectilePrefab && Time.time >= NextFireTime;
+            return projectilePrefab && base.CanFire();
         }
 
         public override ProjectileBase Fire()
         {
             if (!CanFire()) return null;
+            
+            foreach (var condition in _conditions)
+            {
+                condition.ProcessFire();
+            }
 
-            NextFireTime = Time.time + fireRate;
             var proj = SimplePool<TProj>.Get(projectilePrefab, firePoint.position, firePoint.rotation);
             proj.Initialize(Shooter);
             InvokeOnFire();

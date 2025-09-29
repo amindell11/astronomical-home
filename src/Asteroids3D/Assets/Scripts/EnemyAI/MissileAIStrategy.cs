@@ -1,32 +1,35 @@
 using UnityEngine;
 using Weapons;
+using Ships.Weapons.Conditions;
 
 namespace EnemyAI
 {
-    [RequireComponent(typeof(MissileLauncher))]
+    [RequireComponent(typeof(Missiles))]
     public class MissileAIStrategy : MonoBehaviour, IWeaponAIStrategy
     {
-        private MissileLauncher _missileLauncher;
+        private Missiles missiles;
+        private Rounds rounds;
 
         public int Priority => 10; // High priority for locked missiles
 
         private void Awake()
         {
-            _missileLauncher = GetComponent<MissileLauncher>();
+            missiles = GetComponent<Missiles>();
+            rounds = GetComponent<Rounds>();
         }
 
         public bool ShouldFire(IWeaponAIStrategy.TargetingContext context)
         {
-            if (!_missileLauncher) return false;
+            if (!missiles || rounds == null) return false;
             
-            if (_missileLauncher.AmmoCount <= 0) return false;
+            if (rounds.AmmoCount <= 0) return false;
 
-            switch (_missileLauncher.State)
+            switch (missiles.Targeting.State)
             {
-                case MissileLauncher.LockState.Locked:
+                case LockState.Locked:
                     return true;
-                case MissileLauncher.LockState.Idle:
-                case MissileLauncher.LockState.Locking:
+                case LockState.Idle:
+                case LockState.Locking:
                     // Dumb-fire at very close targets, mimicking original AIGunner logic
                     const float dummyMissileRange = 10f;
                     const float missileAngleTolerance = 15f;

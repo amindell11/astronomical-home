@@ -11,7 +11,7 @@ namespace Weapons
     /// Homing missile projectile that steers towards a target and explodes with AoE damage on impact.
     /// </summary>
     [RequireComponent(typeof(AudioSource))]
-    public class MissileProjectile : ProjectileBase, IDamageable
+    public class Missile : ProjectileBase, IDamageable
     {
         [Header("Missile Homing")]
         [SerializeField] private float homingSpeed      = 15f;
@@ -227,6 +227,17 @@ namespace Weapons
 
         protected override void OnHit(IDamageable other)
         {
+            // Ignore collisions with our own projectiles (or uninitialized projectiles)
+            var otherProjectile = other as ProjectileBase;
+            if (otherProjectile != null)
+            {
+                // If the other projectile has no shooter yet (freshly spawned) or shares our shooter, do nothing
+                if (otherProjectile.Shooter == null || otherProjectile.Shooter == Shooter)
+                {
+                    return;
+                }
+            }
+
             base.OnHit(other);
         
             /*   // Apply impact force to the other object's rigidbody
@@ -310,7 +321,7 @@ namespace Weapons
                 audioSrc.volume = 1f;  // Reset volume
             }
         
-            SimplePool<MissileProjectile>.Release(this);
+            SimplePool<Missile>.Release(this);
         }
 
 #if UNITY_EDITOR

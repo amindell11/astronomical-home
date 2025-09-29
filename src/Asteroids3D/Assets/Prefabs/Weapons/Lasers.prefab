@@ -10,7 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 5541346734587440895}
   - component: {fileID: 6921260461533254185}
+  - component: {fileID: 8105349543242701031}
   - component: {fileID: 450251164351334703}
+  - component: {fileID: 6448982411033854647}
   m_Layer: 0
   m_Name: Lasers
   m_TagString: Untagged
@@ -46,14 +48,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   firePoint: {fileID: 0}
-  fireRate: 0.2
   projectilePrefab: {fileID: 5408995189547049293, guid: d4f6577bb30c48945a17243a523023ff,
     type: 3}
-  maxHeat: 100
-  heatPerShot: 20
-  coolingRate: 40
-  coolDownDelay: 0.5
-  overheatPenaltyTime: 1
+--- !u!114 &8105349543242701031
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 345203746417710078}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: edf82047f2d64a919057c88845dba2f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fireRate: 0.2
 --- !u!114 &450251164351334703
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -66,3 +75,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4628af363ab225643b57d79ee3446d72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &6448982411033854647
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 345203746417710078}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bb066e6ed352974db1a6cc46bbc258c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHeat: 100
+  heatPerShot: 25
+  coolingRate: 30
+  coolDownDelay: 0.5
+  overheatPenaltyTime: 1.5

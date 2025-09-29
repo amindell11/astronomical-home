@@ -10,8 +10,11 @@ GameObject:
   m_Component:
   - component: {fileID: 8383258865359498199}
   - component: {fileID: 2094418735087310904}
+  - component: {fileID: 8865327791154650922}
+  - component: {fileID: 7892887138566842922}
   - component: {fileID: 4171465111245218266}
   - component: {fileID: 1402530483026532237}
+  - component: {fileID: 941428023342471022}
   m_Layer: 0
   m_Name: Missiles
   m_TagString: Untagged
@@ -47,14 +50,35 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   firePoint: {fileID: 0}
-  fireRate: 0.2
   projectilePrefab: {fileID: -6854199025283548723, guid: 5615e4673e17c104384d4c8493c5d42b,
     type: 3}
-  lockOnConeAngle: 30
-  lockOnTime: 0.6
-  lockExpiry: 3
-  maxLockDistance: 100
-  maxAmmo: 4
+  targetingComputer: {fileID: 941428023342471022}
+--- !u!114 &8865327791154650922
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 268376620940872671}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb3d9ab589c328c4da4b908bdc0ea750, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxAmmo: 2
+--- !u!114 &7892887138566842922
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 268376620940872671}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: edf82047f2d64a919057c88845dba2f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fireRate: 1
 --- !u!82 &4171465111245218266
 AudioSource:
   m_ObjectHideFlags: 0
@@ -164,3 +188,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96697b9c4edbe39499ed10341b816386, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &941428023342471022
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 268376620940872671}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69ec2a4d961f4001bbb368ca926f1d7c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lockOnConeAngle: 30
+  lockOnTime: 0.6
+  lockExpiry: 3
+  maxLockDistance: 100
+  firePoint: {fileID: 8383258865359498199}
+  launcher: {fileID: 2094418735087310904}

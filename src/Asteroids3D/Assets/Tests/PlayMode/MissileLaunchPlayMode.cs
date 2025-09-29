@@ -11,7 +11,7 @@ public class MissileLaunchPlayMode
     private GameObject testScene;
     private Ships.Ship shooterShip;
     private Ships.Ship targetShip;
-    private MissileLauncher launcher;
+    private Missiles launcher;
     private Rigidbody shooterRb;
 
     [SetUp]
@@ -23,7 +23,7 @@ public class MissileLaunchPlayMode
         shooterShip = TestSceneBuilder.CreateTestShip("Shooter", TestSceneBuilder.ShipType.Player);
         targetShip = TestSceneBuilder.CreateTestShip("Target", TestSceneBuilder.ShipType.Enemy);
         
-        launcher = shooterShip.GetComponentInChildren<MissileLauncher>();
+        launcher = shooterShip.GetComponentInChildren<Missiles>();
         shooterRb = shooterShip.GetComponent<Rigidbody>();
         
         Assert.IsNotNull(launcher, "Shooter ship must have a MissileLauncher");
@@ -53,13 +53,13 @@ public class MissileLaunchPlayMode
 
         // 2. Fire sequence
         yield return new WaitForSeconds(2.0f); // Wait for auto-lock
-        Assert.AreEqual(MissileLauncher.LockState.Locked, launcher.State, "Launcher did not lock on target.");
+        Assert.AreEqual(LockState.Locked, launcher.Targeting.State, "Launcher did not lock on target.");
         
         launcher.Fire(); // Fire missile
         yield return new WaitForFixedUpdate();
 
         // 3. Find the missile and check its state
-        var missile = Object.FindObjectOfType<MissileProjectile>();
+        var missile = Object.FindObjectOfType<Missile>();
         Assert.IsNotNull(missile, "Missile was not fired.");
         
         var missileRb = missile.GetComponent<Rigidbody>();
@@ -94,14 +94,14 @@ public class MissileLaunchPlayMode
 
         // 2. Fire sequence
         yield return new WaitForSeconds(2.0f); // Wait for auto-lock
-        Assert.AreEqual(MissileLauncher.LockState.Locked, launcher.State, "Launcher did not lock on target.");
+        Assert.AreEqual(LockState.Locked, launcher.Targeting.State, "Launcher did not lock on target.");
         
         launcher.Fire();
         yield return new WaitForFixedUpdate();
         yield return new WaitForSeconds(2.0f);
 
         // 3. Find the missile and check its velocity
-        var missile = Object.FindObjectOfType<MissileProjectile>();
+        var missile = Object.FindObjectOfType<Missile>();
         Assert.IsNotNull(missile, "Missile was not fired.");
 
         var missileRb = missile.GetComponent<Rigidbody>();

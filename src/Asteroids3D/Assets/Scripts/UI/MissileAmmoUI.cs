@@ -4,11 +4,12 @@ using UnityEngine;
 using UnityEngine.UI;
 using Utils;
 using Weapons;
+using Ships.Weapons.Conditions;
 
 namespace UI
 {
     /// <summary>
-    /// Displays the current ammo count and cooldown status for a <see cref="MissileLauncher"/>.
+    /// Displays the current ammo count and cooldown status for a <see cref="Missiles"/>.
     /// Attach this to a world- or screen-space canvas that contains a horizontal layout
     /// of missile icons (Images). Optionally assign a spinner Image that becomes
     /// visible during launcher cooldown.
@@ -17,7 +18,7 @@ namespace UI
     public sealed class MissileAmmoUI : MonoBehaviour
     {
         [Tooltip("Missile launcher whose ammo we want to display.")]
-        [SerializeField] private MissileLauncher launcher;
+        [SerializeField] private Missiles launcher;
 
         [Header("Dynamic Icon Generation")]
         [Tooltip("Prefab used to instantiate each missile icon.")]
@@ -52,6 +53,7 @@ namespace UI
 
         // Cache delegate to avoid allocations
         private System.Action<int> ammoChangedHandler;
+        private Rounds rounds;
 
         void Awake()
         {
@@ -67,28 +69,29 @@ namespace UI
             if (launcher == null)
             {
                 // Fallback: grab first launcher in scene (useful when dropped into HUD prefab).
-                launcher = GameObject.FindGameObjectWithTag(TagNames.Player).GetComponentInChildren<MissileLauncher>();
+                launcher = GameObject.FindGameObjectWithTag(TagNames.Player).GetComponentInChildren<Missiles>();
             }
 
             if (launcher != null)
             {
-                // Build icons based on launcher's max ammo now that we have the reference
+                rounds = launcher.GetComponent<Rounds>();
+                // Build icons based on round's max ammo now that we have the reference
                 RebuildIcons();
 
                 // Prepare cached handler & subscribe
                 ammoChangedHandler = OnAmmoChanged;
-                launcher.AmmoCountChanged += ammoChangedHandler;
+                if (rounds != null) rounds.OnAmmoCountChanged += ammoChangedHandler;
 
                 // Initialize UI with the starting ammo value
-                UpdateAmmoIcons(launcher.AmmoCount);
+                UpdateAmmoIcons(rounds != null ? rounds.AmmoCount : 0);
             }
         }
 
         void OnDisable()
         {
-            if (launcher != null && ammoChangedHandler != null)
+            if (rounds != null && ammoChangedHandler != null)
             {
-                launcher.AmmoCountChanged -= ammoChangedHandler;
+                rounds.OnAmmoCountChanged -= ammoChangedHandler;
             }
         }
 
@@ -96,7 +99,7 @@ namespace UI
         {
             if (launcher == null || cooldownSpinner == null) return;
 
-            bool onCooldown = launcher.State == MissileLauncher.LockState.Cooldown;
+            bool onCooldown = launcher.Targeting.State == LockState.Cooldown;
             cooldownSpinner.enabled = onCooldown;
             if (onCooldown)
             {
@@ -118,7 +121,7 @@ namespace UI
         {
             if (icons == null || icons.Count == 0) return;
 
-            int max = launcher.MaxAmmo;
+            int max = rounds != null ? rounds.MaxAmmo : 0;
 
             for (int i = 0; i < icons.Count; i++)
             {
@@ -168,10 +171,10 @@ namespace UI
                 }
             }
 
-            // 2. Ensure we have exactly launcher.MaxAmmo icons by adding more if necessary
-            if (iconPrefab != null && launcher != null)
+            // 2. Ensure we have exactly rounds.MaxAmmo icons by adding more if necessary
+            if (iconPrefab != null && rounds != null)
             {
-                int max = launcher.MaxAmmo;
+                int max = rounds.MaxAmmo;
 
                 // Remove excess icons if there are too many (e.g., max ammo decreased)
                 if (icons.Count > max)

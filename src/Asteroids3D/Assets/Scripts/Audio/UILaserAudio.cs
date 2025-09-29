@@ -1,12 +1,13 @@
 using UnityEngine;
 using Utils;
 using Weapons;
+using Ships.Weapons.Conditions;
 
 namespace Audio
 {
     /// <summary>
-    /// Plays audio cues driven by LaserGun overheat events.
-    /// Subscribes to the LaserGun's OnOverheat and OnCooldownStart events.
+    /// Plays audio cues driven by Heat condition overheat events.
+    /// Subscribes to the Heat's OnOverheat and OnCooldownStart events.
     /// </summary>
     [RequireComponent(typeof(AudioSource))]
     public class UILaserAudio : MonoBehaviour
@@ -23,6 +24,7 @@ namespace Audio
 
         private AudioSource audioSource;
         private LaserGun laserGun;
+        private Heat heat;
 
         void Awake()
         {
@@ -46,10 +48,10 @@ namespace Audio
         void OnDestroy()
         {
             // Unsubscribe from events to prevent memory leaks
-            if (laserGun != null)
+            if (heat != null)
             {
-                laserGun.OnOverheat -= PlayOverheatSound;
-                laserGun.OnCooldownStart -= PlayCooldownSound;
+                heat.OnOverheat -= PlayOverheatSound;
+                heat.OnCooldownStart -= PlayCooldownSound;
             }
         }
 
@@ -75,12 +77,13 @@ namespace Audio
             if (playerObj != null)
             {
                 laserGun = playerObj.GetComponentInChildren<LaserGun>();
-            
+                heat = laserGun ? laserGun.GetComponent<Heat>() : null;
+                
                 // Subscribe to events
-                if (laserGun != null)
+                if (heat != null)
                 {
-                    laserGun.OnOverheat += PlayOverheatSound;
-                    laserGun.OnCooldownStart += PlayCooldownSound;
+                    heat.OnOverheat += PlayOverheatSound;
+                    heat.OnCooldownStart += PlayCooldownSound;
                 }
             }
         }

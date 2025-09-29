@@ -19,8 +19,8 @@ namespace Audio
         [SerializeField, Range(0f, 1f)] private float volume = 0.7f;
 
         private AudioSource source;
-        private MissileLauncher launcher;
-        private MissileLauncher.LockState lastState = MissileLauncher.LockState.Idle;
+        private Missiles launcher;
+        private LockState lastState = LockState.Idle;
 
         void Awake()
         {
@@ -46,23 +46,21 @@ namespace Audio
                 if (launcher == null) return; // Still not found – wait until next frame.
             }
 
-            var currentState = launcher.State;
-            if (currentState != lastState)
-            {
-                HandleStateChange(currentState);
-                lastState = currentState;
-            }
+            var currentState = launcher.Targeting.State;
+            if (currentState == lastState) return;
+            HandleStateChange(currentState);
+            lastState = currentState;
         }
 
         /* ----------------- State-driven audio ----------------- */
-        void HandleStateChange(MissileLauncher.LockState newState)
+        void HandleStateChange(LockState newState)
         {
             switch (newState)
             {
-                case MissileLauncher.LockState.Locking:
+                case LockState.Locking:
                     PlayLockingLoop();
                     break;
-                case MissileLauncher.LockState.Locked:
+                case LockState.Locked:
                     PlayLockedClip();
                     break;
                 default: // Idle, Cooldown, etc.
@@ -107,12 +105,12 @@ namespace Audio
             var playerObj = GameObject.FindGameObjectWithTag(TagNames.Player);
             if (playerObj != null)
             {
-                launcher = playerObj.GetComponentInChildren<MissileLauncher>();
+                launcher = playerObj.GetComponentInChildren<Missiles>();
 
                 // Sync state immediately to avoid false triggers
                 if (launcher != null)
                 {
-                    lastState = launcher.State;
+                    lastState = launcher.Targeting.State;
                 }
             }
         }
