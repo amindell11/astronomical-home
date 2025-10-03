@@ -70,10 +70,10 @@ namespace EnemyAI
             this.ship = ship;
             lineOfSightMask = LayerIds.Mask(LayerIds.Asteroid);
 
-            if (ship.Weapons.primary)
-                primaryAI = ship.Weapons.primary.GetComponent<IWeaponAIStrategy>();
-            if (ship.Weapons.secondary)
-                secondaryAI = ship.Weapons.secondary.GetComponent<IWeaponAIStrategy>();
+            if (ship.Weapons.Primary)
+                primaryAI = ship.Weapons.Primary.GetComponent<IWeaponAIStrategy>();
+            if (ship.Weapons.Secondary)
+                secondaryAI = ship.Weapons.Secondary.GetComponent<IWeaponAIStrategy>();
         }
 
         public void GenerateGunnerCommands(State state, ref Command cmd)
@@ -127,9 +127,9 @@ namespace EnemyAI
         /// <summary>Returns true if an unobstructed line of sight exists to the current target.</summary>
         public bool HasLineOfSight()
         {
-            if (!ship.Weapons.primary || Target == Vector2.zero) return false;
+            if (!ship.Weapons.Primary || Target == Vector2.zero) return false;
 
-            var firePos = ship.Weapons.primary.firePoint ? ship.Weapons.primary.firePoint.position : transform.position;
+            var firePos = ship.Weapons.Primary.firePoint ? ship.Weapons.Primary.firePoint.position : transform.position;
             var targetPos = GamePlane.PlanePointToWorld(Target);
             var dir = targetPos - firePos;
             float dist = dir.magnitude;
@@ -141,9 +141,9 @@ namespace EnemyAI
         /// <summary>Returns true if an unobstructed line of sight exists to <paramref name="tgt"/>.</summary>
         public bool HasLineOfSight(Transform tgt)
         {
-            if (!ship.Weapons.primary || !tgt) return false;
+            if (!ship.Weapons.Primary || !tgt) return false;
 
-            var firePos = ship.Weapons.primary.firePoint ? ship.Weapons.primary.firePoint.position : transform.position;
+            var firePos = ship.Weapons.Primary.firePoint ? ship.Weapons.Primary.firePoint.position : transform.position;
             var dir = tgt.position - firePos;
             float dist = dir.magnitude;
             float angle = Vector3.Angle(transform.up, dir);
@@ -313,9 +313,9 @@ namespace EnemyAI
     
         void DrawLineOfSightGizmos()
         {
-            if (Target == Vector2.zero || !ship.Weapons.primary) return;
+            if (Target == Vector2.zero || !ship.Weapons.Primary) return;
         
-            Vector3 firePos = ship.Weapons.primary.firePoint ? ship.Weapons.primary.firePoint.position : transform.position;
+            Vector3 firePos = ship.Weapons.Primary.firePoint ? ship.Weapons.Primary.firePoint.position : transform.position;
             Vector3 targetPos = GamePlane.PlanePointToWorld(Target);
         
             // Line of sight ray

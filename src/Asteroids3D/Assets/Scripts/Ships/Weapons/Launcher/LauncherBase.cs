@@ -38,16 +38,6 @@ namespace Weapons
                 condition.Reset();
             }
         }
-
-        public TCondition GetCondition<TCondition>() where TCondition : WeaponCondition
-        {
-            if (_conditions == null) return null;
-            foreach (var t in _conditions)
-            {
-                if (t is TCondition typed) return typed;
-            }
-            return null;
-        }
         protected void InvokeOnFire()
         {
             OnFire?.Invoke();

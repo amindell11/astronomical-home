@@ -5,33 +5,36 @@ namespace Ships.Weapons
 {
     public class WeaponController : MonoBehaviour
     {
-        [SerializeField] public WeaponComponent primary;
-        [SerializeField] public WeaponComponent secondary;
-
+        [SerializeField] private WeaponComponent primaryMount;
+        [SerializeField] private WeaponComponent secondaryMount;
+        public WeaponComponent Primary { get; private set; }
+        public WeaponComponent Secondary { get; private set; }
+        
         private void Awake()
         {
-            primary = GetComponentInChildren<LaserGun>();
-            secondary = GetComponentInChildren<Missiles>();
+            Primary = Instantiate(primaryMount, transform);
+            Secondary = Instantiate(secondaryMount, transform);
         }
 
         public void FirePrimary()
         {
-            if (primary) primary.Fire();
+            if (Primary) Primary.Fire();
         }
 
         public void FireSecondary()
         {
-            if (secondary) secondary.Fire();
+            if (Secondary) Secondary.Fire();
         }
 
         public void ResetSystem()
         {
-            primary?.Reset();
-            secondary?.Reset();
+            Primary?.Reset();
+            Secondary?.Reset();
         }
 
         public void OnShipDeath()
         {
+            ResetSystem();
         }
     }
 }

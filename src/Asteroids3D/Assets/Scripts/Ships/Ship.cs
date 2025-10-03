@@ -114,8 +114,8 @@ namespace Ships
             CurrentState = new State
             {
                 Kinematics = Movement.Kinematics,
-                IsPrimaryReady = Weapons?.primary?.CanFire() ?? false,
-                IsSecondaryReady = Weapons?.secondary?.CanFire() ?? false,
+                IsPrimaryReady = Weapons?.Primary?.CanFire() ?? false,
+                IsSecondaryReady = Weapons?.Secondary?.CanFire() ?? false,
                 HealthPct = Damage.Health.Pct,
                 ShieldPct = Damage.Shield.Pct,
             };

@@ -58,17 +58,13 @@ namespace UI
         void Awake()
         {
             canvasGroup = GetComponent<CanvasGroup>();
-
-
             if (iconContainer == null) iconContainer = transform;
-
-            // Initial rebuild will occur in Start once we have a launcher reference
         }
-        void Start()
+
+        private void Start()
         {
-            if (launcher == null)
+            if (!launcher)
             {
-                // Fallback: grab first launcher in scene (useful when dropped into HUD prefab).
                 launcher = GameObject.FindGameObjectWithTag(TagNames.Player).GetComponentInChildren<Missiles>();
             }
 
