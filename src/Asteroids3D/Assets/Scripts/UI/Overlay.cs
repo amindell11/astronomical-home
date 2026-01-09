@@ -15,7 +15,7 @@ namespace UI
             var uiCamera = mainCamera.GetComponentsInChildren<Camera>()
                 .FirstOrDefault(t => t.CompareTag(TagNames.UICam));
             
-            if (uiCamera != null)
+            if (uiCamera)
             {
                 canvas.worldCamera = uiCamera;
             }

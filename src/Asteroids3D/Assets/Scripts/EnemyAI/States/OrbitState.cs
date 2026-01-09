@@ -25,7 +25,7 @@ namespace EnemyAI.States
             base.Enter(ctx);
             stateEntryTime = Time.time;
 
-            if (ctx?.Enemy != null)
+            if (ctx?.Enemy)
             {
                 Vector2 relativeVel = ctx.EnemyRelVelocity;
                 Vector2 toEnemy = ctx.VectorToEnemy;
@@ -36,7 +36,7 @@ namespace EnemyAI.States
 
         public override void Tick(AIContext ctx, float deltaTime)
         {
-            if (ctx?.Enemy == null) return;
+            if (!ctx?.Enemy) return;
 
             // Predict intercept point for aiming
             Vector2 predicted = gunner.PredictIntercept(
@@ -76,7 +76,7 @@ namespace EnemyAI.States
 
         public override float ComputeUtility(AIContext ctx)
         {
-            if (ctx?.Enemy == null) return 0f;
+            if (!ctx?.Enemy) return 0f;
 
             // Start with a baseline attack utility since orbit is an offensive maneuver
             float score = AIUtility.ComputeAttackUtility(ctx);

@@ -9,7 +9,7 @@ namespace Ships.Control
     [RequireComponent(typeof(AINavigator))]
     [RequireComponent(typeof(AIGunner))]
     [RequireComponent(typeof(AIStateMachine))]
-    public class AI : Commander
+    public partial class AI : Commander
     {
         [Header("Difficulty")]
         [Tooltip("Bot skill level, typically set by curriculum (0.0 to 1.0)")]
@@ -53,11 +53,11 @@ namespace Ships.Control
 
         private void FixedUpdate()
         {
-            if (ship == null || stateMachine == null) return;   
+            if (!ship || !stateMachine) return;   
             currentState = ship.CurrentState;
         
             // Update state machine with context
-            if (context != null)
+            if (context)
             {
                 stateMachine.Tick(context, Time.fixedDeltaTime);
             }
@@ -91,17 +91,5 @@ namespace Ships.Control
             }
             return cmd;
         }
-
-#if UNITY_EDITOR
-        void OnDrawGizmos()
-        {
-            var waypoint = navigator?.CurrentWaypoint ?? new AINavigator.Waypoint { isValid = false };
-            if (waypoint.isValid)
-            {
-                Gizmos.color = Color.yellow;
-                Gizmos.DrawLine(transform.position, GamePlane.PlanePointToWorld(waypoint.position));
-            }
-        }
-#endif
     }
 }

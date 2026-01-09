@@ -11,7 +11,7 @@ namespace Weapons
     /// Homing missile projectile that steers towards a target and explodes with AoE damage on impact.
     /// </summary>
     [RequireComponent(typeof(AudioSource))]
-    public class Missile : ProjectileBase, IDamageable
+    public partial class Missile : ProjectileBase, IDamageable
     {
         [Header("Missile Homing")]
         [SerializeField] private float homingSpeed      = 15f;
@@ -157,7 +157,7 @@ namespace Weapons
                 // 1. Compute the desired heading (toward target if any, otherwise keep current).
                 Vector3 desiredDir = transform.up; // Default to current heading
             
-                if (target != null)
+                if (target)
                 {
                     Vector3 toTarget = target.position - transform.position;
                     if (toTarget.sqrMagnitude > 0.01f) // Avoid division by zero
@@ -176,7 +176,7 @@ namespace Weapons
                 Vector3 rotationAxis = GamePlane.Normal; // Use world up for top-down games
             
                 // If GamePlane is initialized and has a valid normal, use it
-                if (GamePlane.Plane != null)
+                if (GamePlane.Plane)
                 {
                     rotationAxis = GamePlane.Normal;
                     // Ensure the normal is pointing up (not down)
@@ -229,7 +229,7 @@ namespace Weapons
         {
             // Ignore collisions with our own projectiles (or uninitialized projectiles)
             var otherProjectile = other as ProjectileBase;
-            if (otherProjectile != null)
+            if (otherProjectile)
             {
                 // If the other projectile has no shooter yet (freshly spawned) or shares our shooter, do nothing
                 if (otherProjectile.Shooter == null || otherProjectile.Shooter == Shooter)
@@ -323,57 +323,5 @@ namespace Weapons
         
             SimplePool<Missile>.Release(this);
         }
-
-#if UNITY_EDITOR
-        /* ───────────────────────── Debug Gizmos ───────────────────────── */
-        void OnDrawGizmos()
-        {   
-            // Draw game-plane normal (for orientation reference)
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawRay(transform.position, GamePlane.Normal * 2f);
-
-            // Draw missile position
-            Gizmos.color = target ? Color.red : Color.yellow;
-            Gizmos.DrawWireSphere(transform.position, 0.5f);
-        
-            // Draw velocity vector
-            if (rb && rb.linearVelocity.magnitude > 0.1f)
-            {
-                Gizmos.color = Color.cyan;
-                Gizmos.DrawRay(transform.position, rb.linearVelocity.normalized * 2f);
-            }
-        
-            // Draw line to target
-            if (target)
-            {
-                Gizmos.color = Color.green;
-                Gizmos.DrawLine(transform.position, target.position);
-            }
-        
-            // Draw explosion radius
-            Gizmos.color = new Color(1f, 0f, 0f, 0.3f);
-            Gizmos.DrawWireSphere(transform.position, explosionRadius);
-        
-            // Draw travel distance
-            if (Application.isPlaying)
-            {
-                UnityEditor.Handles.color = Color.white;
-                float traveled = Vector3.Distance(startPosition, transform.position);
-                UnityEditor.Handles.Label(transform.position + Vector3.up, $"Missile\nDist: {traveled:F1}/{maxDistance:F1}");
-            }
-
-            // Draw rotation correction arc (only when a target exists and we applied a turn)
-            if (target && Mathf.Abs(rotationCorrectionDeg) > 0.1f)
-            {
-                UnityEditor.Handles.color = Color.magenta;
-                UnityEditor.Handles.DrawWireArc(
-                    transform.position,               // centre
-                    GamePlane.Normal,                  // plane normal
-                    transform.up,                      // start direction
-                    rotationCorrectionDeg,             // sweep angle (deg)
-                    2f);                               // radius
-            }
-        }
-#endif
     }
 } 

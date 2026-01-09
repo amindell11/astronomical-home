@@ -25,7 +25,7 @@ namespace Game
             yield return StartCoroutine(LoadWorldScene());
             
             InitializeCoreSystems(config);
-            InitializeField(config);
+            InitializeAsteroidField(config);
             InitializeShips(config);
             SetWorldFollowTarget();
         }
@@ -49,7 +49,7 @@ namespace Game
             ServiceLocator.Register(ui);
         }
 
-        private void InitializeField(GameInitiatorConfig config)
+        private void InitializeAsteroidField(GameInitiatorConfig config)
         {
             field = Instantiate(config.AsteroidField);
             field.CurrentAnchorPos = () => GamePlane.ProjectOntoPlane(mainCamera.transform.position);

@@ -65,11 +65,11 @@ namespace UI
 
         void Update()
         {
-            if (enableFlashing && materialInstance != null)
+            if (enableFlashing && materialInstance)
             {
                 UpdateFlashing();
             }
-            else if (enablePulsing && materialInstance != null)
+            else if (enablePulsing && materialInstance)
             {
                 UpdatePulsing();
             }
@@ -78,7 +78,7 @@ namespace UI
         void OnDestroy()
         {
             // Clean up material instance to prevent memory leaks
-            if (materialInstance != null)
+            if (materialInstance)
             {
                 DestroyImmediate(materialInstance);
             }
@@ -89,13 +89,13 @@ namespace UI
         /// </summary>
         private void SetupMaterial()
         {
-            if (glowMaterial != null)
+            if (glowMaterial)
             {
                 // Create a material instance to avoid affecting other UI elements
                 materialInstance = new Material(glowMaterial);
                 image.material = materialInstance;
             }
-            else if (image.material != null && image.material.shader.name == "UI/GlowFill")
+            else if (image.material && image.material.shader.name == "UI/GlowFill")
             {
                 // Use existing material but create instance for safe property changes
                 materialInstance = new Material(image.material);
@@ -112,7 +112,7 @@ namespace UI
         /// </summary>
         private void UpdateMaterialProperties()
         {
-            if (materialInstance == null) return;
+            if (!materialInstance) return;
 
             materialInstance.SetColor(ColorProperty, baseColor);
             materialInstance.SetColor(EmissionColorProperty, emissionColor);
@@ -148,7 +148,7 @@ namespace UI
         public void SetBaseColor(Color color)
         {
             baseColor = color;
-            if (materialInstance != null)
+            if (materialInstance)
             {
                 materialInstance.SetColor(ColorProperty, baseColor);
             }
@@ -161,7 +161,7 @@ namespace UI
         public void SetEmissionColor(Color color)
         {
             emissionColor = color;
-            if (materialInstance != null)
+            if (materialInstance)
             {
                 materialInstance.SetColor(EmissionColorProperty, emissionColor);
             }
@@ -175,7 +175,7 @@ namespace UI
         {
             emissionIntensity = intensity;
             basePulseIntensity = intensity;
-            if (materialInstance != null && !enablePulsing)
+            if (materialInstance && !enablePulsing)
             {
                 materialInstance.SetFloat(EmissionIntensityProperty, emissionIntensity);
             }
@@ -192,7 +192,7 @@ namespace UI
             {
                 enableFlashing = false; // ensure only one animation mode is active
             }
-            if (!enabled && materialInstance != null)
+            if (!enabled && materialInstance)
             {
                 // Reset to base intensity when disabling pulsing
                 materialInstance.SetFloat(EmissionIntensityProperty, emissionIntensity);
@@ -209,7 +209,7 @@ namespace UI
             {
                 enablePulsing = false; // ensure only one animation mode is active
             }
-            if (!enabled && materialInstance != null)
+            if (!enabled && materialInstance)
             {
                 // Reset to base intensity when disabling flashing
                 materialInstance.SetFloat(EmissionIntensityProperty, emissionIntensity);
@@ -257,7 +257,7 @@ namespace UI
         // Editor-only method for updating properties in the inspector
         void OnValidate()
         {
-            if (Application.isPlaying && materialInstance != null)
+            if (Application.isPlaying && materialInstance)
             {
                 basePulseIntensity = emissionIntensity;
                 UpdateMaterialProperties();

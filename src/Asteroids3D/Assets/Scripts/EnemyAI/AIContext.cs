@@ -14,7 +14,7 @@ namespace EnemyAI
     /// Should be attached to the same GameObject as the AICommander.
     /// </summary>
     [Serializable, GeneratePropertyBag]
-    public class AIContext : MonoBehaviour
+    public partial class AIContext : MonoBehaviour
     {
         [Header("Configuration")]
         [Tooltip("Maximum distance to consider nearby ships")]
@@ -99,7 +99,7 @@ namespace EnemyAI
         public float HealthPct => ship?.CurrentState.HealthPct ?? 0f;
     
         // ===== Enemy Information =====
-        public bool InCombat => enemyShip != null && enemyShip.gameObject.activeInHierarchy;
+        public bool InCombat => enemyShip && enemyShip.gameObject.activeInHierarchy;
         /// <summary>
         /// Current enemy ship
         /// </summary>
@@ -140,7 +140,7 @@ namespace EnemyAI
         /// <summary>
         /// True if line of sight to the nearest enemy is clear
         /// </summary>
-        public bool LineOfSightToEnemy => Enemy != null && LineOfSight.IsClear(SelfPosition3D, Enemy.transform.position, LayerIds.Mask(LayerIds.Asteroid));
+        public bool LineOfSightToEnemy => Enemy && LineOfSight.IsClear(SelfPosition3D, Enemy.transform.position, LayerIds.Mask(LayerIds.Asteroid));
     
         /// <summary>
         /// Angle to the nearest enemy in degrees
@@ -351,22 +351,5 @@ namespace EnemyAI
                    $"EnemyDist:{VectorToEnemy.magnitude:F1} LOS:{LineOfSightToEnemy} " +
                    $"Enemies:{NearbyEnemyCount} Friends:{NearbyFriendCount}]";
         }
-    
-#if UNITY_EDITOR
-        void OnDrawGizmos()
-        {
-            if (!showDebugGizmos || !Application.isPlaying) return;
-        
-            Vector3 pos = transform.position;
-        
-            // Nearby ship radius
-            Gizmos.color = new Color(1f, 1f, 0f, 0.2f);
-            Gizmos.DrawWireSphere(pos, nearbyShipRadius);
-        
-            // Asteroid cover radius
-            Gizmos.color = new Color(0.5f, 0.5f, 1f, 0.2f);
-            Gizmos.DrawWireSphere(pos, asteroidCoverRadius);
-        }
-#endif
     }
 } 

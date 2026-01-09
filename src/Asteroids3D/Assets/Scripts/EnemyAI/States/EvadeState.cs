@@ -39,7 +39,7 @@ namespace EnemyAI.States
 
         public override float ComputeUtility(AIContext ctx)
         {
-            if (ctx.Enemy == null) return 0f;
+            if (!ctx.Enemy) return 0f;
 
             // Start with the general-purpose evade utility
             float score = AIUtility.ComputeEvadeUtility(ctx);
@@ -72,7 +72,7 @@ namespace EnemyAI.States
             Vector2 fleeDirection = Vector2.zero;
             
             // Primary threat: the current enemy
-            if (ctx.Enemy != null && ctx.Enemy.gameObject.activeInHierarchy)
+            if (ctx.Enemy && ctx.Enemy.gameObject.activeInHierarchy)
             {
                 fleeDirection = -ctx.VectorToEnemy.normalized; // Flee AWAY from enemy
             }else{
@@ -88,7 +88,7 @@ namespace EnemyAI.States
             base.OnDrawGizmos(ctx);
             
             #if UNITY_EDITOR
-            if (ctx?.SelfTransform == null) return;
+            if (!ctx?.SelfTransform) return;
             
             Vector3 selfPos = ctx.SelfTransform.position;
 
@@ -110,7 +110,7 @@ namespace EnemyAI.States
             Gizmos.DrawWireSphere(selfPos, DefaultFleeDistance);
 
             // Draw threat indicators
-            if (ctx.Enemy != null)
+            if (ctx.Enemy)
             {
                 Vector3 enemyPos = new Vector3(ctx.EnemyPos.x, ctx.EnemyPos.y, selfPos.z);
                 

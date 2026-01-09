@@ -64,7 +64,7 @@ namespace UI
 
         void Update()
         {
-            if (heat == null || fillImage == null) return;
+            if (!heat || !fillImage) return;
 
             float pct = heat.HeatPct;      // 0 – 1
             fillImage.fillAmount = pct;

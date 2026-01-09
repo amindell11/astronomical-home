@@ -7,7 +7,7 @@ using Utils;
 
 namespace Weapons
 {
-    public class Missiles : LauncherBase<Missile>
+    public partial class Missiles : LauncherBase<Missile>
     {
         [Header("Targeting")]
         [SerializeField] private TargetingComputer targetingComputer;
@@ -34,14 +34,5 @@ namespace Weapons
         
             return proj;
         }
-        
-#if UNITY_EDITOR
-        void OnDrawGizmos()
-        {
-            if (!firePoint || _rounds == null) return;
-            string ammoText = $"Ammo: {_rounds.AmmoCount}/{_rounds.MaxAmmo}";
-            UnityEditor.Handles.Label(firePoint.position + Vector3.up * 2f, $"Missiles\n{ammoText}");
-        }
-#endif
     }
 } 

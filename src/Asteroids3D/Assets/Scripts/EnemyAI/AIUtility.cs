@@ -46,7 +46,7 @@ namespace EnemyAI
         /// </summary>
         public static float ComputeAttackUtility(AIContext ctx)
         {
-            if (ctx.Enemy == null)
+            if (!ctx.Enemy)
                 return 0f;
 
             // Base score: willingness to fight
@@ -94,18 +94,18 @@ namespace EnemyAI
                 score += 0.2f;
 
             // Increase score if an enemy has a clear shot
-            if (ctx.Enemy != null && ctx.LineOfSightToEnemy)
+            if (ctx.Enemy && ctx.LineOfSightToEnemy)
                 score += 0.2f;
 
             // Adjust score based on closing speed
-            if (ctx.Enemy != null)
+            if (ctx.Enemy)
             {
                 float closingContribution = Mathf.Clamp(ctx.ClosingSpeed * 0.02f, -0.2f, 0.2f);
                 score += closingContribution;
             }
 
             // Adjust score based on enemy facing
-            if (ctx.Enemy != null)
+            if (ctx.Enemy)
             {
                 float facingFactor = Mathf.Cos(ctx.EnemyAngleToSelf * Mathf.Deg2Rad); // 1 when enemy faces us
                 float facingContribution = facingFactor * 0.2f;
@@ -117,7 +117,7 @@ namespace EnemyAI
                 score += 0.5f;
             
             // Decrease if very close to target (might need to fight through)
-            if (ctx.Enemy != null)
+            if (ctx.Enemy)
             {
                 float distToEnemy = ctx.VectorToEnemy.magnitude;
                 if (distToEnemy < 7f && ctx.LineOfSightToEnemy)

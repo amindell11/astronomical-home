@@ -39,7 +39,7 @@ namespace Audio
         void Start()
         {
             // Try again in Start in case player wasn't ready in Awake
-            if (laserGun == null)
+            if (!laserGun)
             {
                 TryAssignLaserGun();
             }
@@ -48,7 +48,7 @@ namespace Audio
         void OnDestroy()
         {
             // Unsubscribe from events to prevent memory leaks
-            if (heat != null)
+            if (heat)
             {
                 heat.OnOverheat -= PlayOverheatSound;
                 heat.OnCooldownStart -= PlayCooldownSound;
@@ -57,7 +57,7 @@ namespace Audio
 
         void PlayOverheatSound()
         {
-            if (overheatClip != null && audioSource != null)
+            if (overheatClip && audioSource)
             {
                 audioSource.PlayOneShot(overheatClip, volume);
             }
@@ -65,7 +65,7 @@ namespace Audio
 
         void PlayCooldownSound()
         {
-            if (cooldownClip != null && audioSource != null)
+            if (cooldownClip && audioSource)
             {
                 audioSource.PlayOneShot(cooldownClip, volume);
             }
@@ -74,13 +74,13 @@ namespace Audio
         void TryAssignLaserGun()
         {
             var playerObj = GameObject.FindGameObjectWithTag(TagNames.Player);
-            if (playerObj != null)
+            if (playerObj)
             {
                 laserGun = playerObj.GetComponentInChildren<LaserGun>();
                 heat = laserGun ? laserGun.GetComponent<Heat>() : null;
                 
                 // Subscribe to events
-                if (heat != null)
+                if (heat)
                 {
                     heat.OnOverheat += PlayOverheatSound;
                     heat.OnCooldownStart += PlayCooldownSound;

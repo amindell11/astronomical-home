@@ -23,7 +23,7 @@ namespace UI
         void Awake()
         {
             canvasGroup = GetComponent<CanvasGroup>();
-            if (animator == null)
+            if (!animator)
             {
                 animator = GetComponentInChildren<Animator>();
             }
@@ -71,9 +71,9 @@ namespace UI
         /// <summary>Animate progress while lock is building (0 → 1).</summary>
         public void UpdateProgress(float progress)
         {
-            if (canvasGroup == null) return;
+            if (!canvasGroup) return;
             canvasGroup.alpha = 1f;
-            if (animator != null)
+            if (animator)
             {
                 animator.SetFloat("lockProgress", progress);
             }
@@ -82,9 +82,9 @@ namespace UI
         /// <summary>Call once when the lock is fully acquired to play flash animation.</summary>
         public void OnLockComplete()
         {
-            if (canvasGroup == null) return;
+            if (!canvasGroup) return;
             canvasGroup.alpha = 1f;
-            if (animator != null)
+            if (animator)
             {
                 animator.SetTrigger("LockComplete");
             }
@@ -93,14 +93,14 @@ namespace UI
         /// <summary>Immediately hides the indicator (no animation).</summary>
         public void Hide()
         {
-            if (canvasGroup != null)
+            if (canvasGroup)
             {
                 canvasGroup.alpha = 0f;
             }
         }
         void LateUpdate()
         {
-            if (canvasGroup != null && canvasGroup.alpha <= 0f) return;
+            if (canvasGroup && canvasGroup.alpha <= 0f) return;
             transform.rotation = Quaternion.Euler(90, 0, 0);
             transform.position = transform.parent.position + GamePlane.Normal * verticalOffset;
         }

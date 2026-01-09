@@ -8,7 +8,7 @@ using Utils;
 namespace Ships.Movement
 {
     [RequireComponent(typeof(Rigidbody))]
-    public class MovementController : MonoBehaviour
+    public partial class MovementController : MonoBehaviour
     {
 
         [Header("Debug")]
@@ -109,22 +109,5 @@ namespace Ships.Movement
             var toPlane = Quaternion.FromToRotation(transform.up, projectedUp);
             transform.rotation = toPlane * transform.rotation;
         }
-
-    
-#if UNITY_EDITOR
-        private void OnDrawGizmos()
-        {
-            if (!Application.isPlaying || !showMovementGizmos) return;
-
-            var pos = transform.position;
-            float scale = movementGizmoScale;
-
-            SuperGizmos.DrawArrow(pos, GamePlane.PlaneDirToWorld(flightComputer.Outputs.Thrust), 
-                SuperGizmos.HeadType.Sphere, 0.15f, Color.yellow, scale);
-
-            SuperGizmos.DrawArrow(pos, GamePlane.PlaneDirToWorld(flightComputer.Outputs.Strafe), 
-                SuperGizmos.HeadType.Cube, 0.25f, Color.yellow, scale);
-        }
-#endif
     }
 } 

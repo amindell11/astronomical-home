@@ -40,11 +40,6 @@ namespace Ships
             PopulateSettings();
         }
         
-        private void Start()
-        {
-            Initialize(settings, teamNumber);
-        }
-        
         private void PopulateSettings()
         {            
             Movement?.PopulateSettings(settings);

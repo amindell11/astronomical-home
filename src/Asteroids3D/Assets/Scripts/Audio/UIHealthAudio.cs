@@ -47,7 +47,7 @@ namespace Audio
         void Update()
         {
             // Ensure we have a reference to the player Ship.
-            if (playerShip == null)
+            if (!playerShip)
             {
                 TryAssignPlayerShip();
             }
@@ -119,7 +119,7 @@ namespace Audio
             var playerObj = GameObject.FindGameObjectWithTag(TagNames.Player);
             if (!playerObj) return;
             var newPlayerShip = playerObj.GetComponent<Ships.Ship>();
-            if (newPlayerShip != null && newPlayerShip != playerShip)
+            if (newPlayerShip && newPlayerShip != playerShip)
             {
                 // Unsubscribe from old ship if it exists
                 UnsubscribeFromEvents();
@@ -142,7 +142,7 @@ namespace Audio
 
         void UnsubscribeFromEvents()
         {
-            if (playerShip != null)
+            if (playerShip)
             {
                 playerShip.Damage.Health.OnValueChanged -= OnHealthChanged;
                 playerShip.Damage.Shield.OnValueChanged -= OnShieldChanged;

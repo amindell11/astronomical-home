@@ -77,7 +77,7 @@ namespace EnemyAI.States
             base.OnDrawGizmos(ctx);
             
             #if UNITY_EDITOR
-            if (ctx?.SelfTransform == null) return;
+            if (!ctx?.SelfTransform) return;
             
             Vector3 position = ctx.SelfTransform.position;
             

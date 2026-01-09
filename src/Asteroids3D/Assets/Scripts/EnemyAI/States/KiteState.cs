@@ -21,7 +21,7 @@ namespace EnemyAI.States
 
         public override void Tick(AIContext ctx, float deltaTime)
         {
-            if (ctx.Enemy == null) return;
+            if (!ctx.Enemy) return;
 
             // Predict intercept for aiming
             Vector2 predictedTarget = gunner.PredictIntercept(
@@ -68,7 +68,7 @@ namespace EnemyAI.States
 
         public override float ComputeUtility(AIContext ctx)
         {
-            if (ctx.Enemy == null) return 0f;
+            if (!ctx.Enemy) return 0f;
             
             // Kite is a mix of attack and evade. Start with the average of the two.
             float attackDesire = AIUtility.ComputeAttackUtility(ctx);
@@ -102,13 +102,13 @@ namespace EnemyAI.States
             base.OnDrawGizmos(ctx);
             
             #if UNITY_EDITOR
-            if (ctx?.SelfTransform == null) return;
+            if (!ctx?.SelfTransform) return;
             
             Vector3 selfPos = ctx.SelfTransform.position;
             
             // Draw kite radius circle
             Gizmos.color = new Color(0f, 0.8f, 1f, 0.3f); // Cyan
-            if (ctx.Enemy != null)
+            if (ctx.Enemy)
             {
                 Vector3 enemyPos = GamePlane.PlanePointToWorld(ctx.EnemyPos);
                 Gizmos.DrawWireSphere(enemyPos, DesiredKiteDistance);

@@ -41,7 +41,7 @@ namespace EnemyAI.States
             }
 
             // Determine principal flee direction
-            Vector2 fleeDir = ctx.Enemy != null ? -ctx.VectorToEnemy.normalized : Random.insideUnitCircle.normalized;
+            Vector2 fleeDir = ctx.Enemy ? -ctx.VectorToEnemy.normalized : Random.insideUnitCircle.normalized;
 
             // Perpendicular side-step direction (right-hand rule)
             Vector2 sideDir = jinkLeft ? new Vector2(fleeDir.y, -fleeDir.x)  // 90° CW
@@ -67,7 +67,7 @@ namespace EnemyAI.States
 
         public override float ComputeUtility(AIContext ctx)
         {
-            if (ctx.Enemy == null && !ctx.IncomingMissile) return 0f;
+            if (!ctx.Enemy && !ctx.IncomingMissile) return 0f;
             
             // Jinking is a desperation move. Start with base evade utility.
             float score = AIUtility.ComputeEvadeUtility(ctx);
@@ -85,7 +85,7 @@ namespace EnemyAI.States
             }
 
             // If we are pointing away from the enemy, jinking is more effective.
-            if (ctx.Enemy != null && ctx.SelfAngleToEnemy > 120f)
+            if (ctx.Enemy && ctx.SelfAngleToEnemy > 120f)
             {
                 score += 0.2f;
             }
@@ -101,7 +101,7 @@ namespace EnemyAI.States
         public override void OnDrawGizmos(AIContext ctx)
         {
             base.OnDrawGizmos(ctx);
-            if (ctx?.SelfTransform == null) return;
+            if (!ctx?.SelfTransform) return;
 
             Vector3 selfPos = ctx.SelfTransform.position;
             Vector3 tgtPos  = GamePlane.PlanePointToWorld(currentTarget);
@@ -112,7 +112,7 @@ namespace EnemyAI.States
             Gizmos.DrawWireSphere(tgtPos, 1.2f);
 
             // Draw flee + jink vectors
-            if (ctx.Enemy != null)
+            if (ctx.Enemy)
             {
                 Vector3 enemyPos = GamePlane.PlanePointToWorld(ctx.EnemyPos);
                 Gizmos.color = Color.red;

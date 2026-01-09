@@ -48,7 +48,7 @@ namespace UI
 
         void OnDisable()
         {
-            if (source != null) {
+            if (source) {
                 source.Shield.OnValueChanged -= OnShieldChanged;
             }
         }

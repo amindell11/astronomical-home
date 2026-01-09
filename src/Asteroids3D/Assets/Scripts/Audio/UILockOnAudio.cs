@@ -40,10 +40,10 @@ namespace Audio
         void Update()
         {
             // Ensure we have a reference to the player's MissileLauncher.
-            if (launcher == null)
+            if (!launcher)
             {
                 TryAssignLauncher();
-                if (launcher == null) return; // Still not found – wait until next frame.
+                if (!launcher) return; // Still not found – wait until next frame.
             }
 
             var currentState = launcher.Targeting.State;
@@ -86,7 +86,7 @@ namespace Audio
         {
             // Ensure any looping clip is halted first
             StopAudio();
-            if (lockedClip != null)
+            if (lockedClip)
             {
                 source.PlayOneShot(lockedClip, volume);
             }
@@ -103,12 +103,12 @@ namespace Audio
         void TryAssignLauncher()
         {
             var playerObj = GameObject.FindGameObjectWithTag(TagNames.Player);
-            if (playerObj != null)
+            if (playerObj)
             {
                 launcher = playerObj.GetComponentInChildren<Missiles>();
 
                 // Sync state immediately to avoid false triggers
-                if (launcher != null)
+                if (launcher)
                 {
                     lastState = launcher.Targeting.State;
                 }

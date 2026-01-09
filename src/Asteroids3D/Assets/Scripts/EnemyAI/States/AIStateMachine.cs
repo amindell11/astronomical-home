@@ -9,7 +9,7 @@ namespace EnemyAI.States
     /// State machine component that manages AI states based on utility scores.
     /// Handles state transitions with hysteresis to prevent thrashing.
     /// </summary>
-    public class AIStateMachine : MonoBehaviour
+    public partial class AIStateMachine : MonoBehaviour
     {
         [System.Serializable]
         public class StateWeights
@@ -368,70 +368,5 @@ namespace EnemyAI.States
             // Fallback to last state if floating point errors occur
             return probabilities[probabilities.Count - 1].state;
         }
-        
-#if UNITY_EDITOR
-        void OnDrawGizmos()
-        {
-            if (!showCurrentStateGizmos && !showStateSelectionGizmos) return;
-            
-            Vector3 pos = transform.position;
-            
-            // Draw current state gizmos
-            if (showCurrentStateGizmos && currentState != null && aiContext != null)
-            {
-                currentState.OnDrawGizmos(aiContext);
-            }
-            
-            // Draw utility/probability scores
-            if (showStateSelectionGizmos && UtilityScores != null && UtilityScores.Count > 0)
-            {
-                UnityEditor.Handles.color = Color.white;
-                
-                string headerText;
-                List<string> scoreLines;
-                
-                if (useProbabilisticSampling)
-                {
-                    // Show probabilities when probabilistic sampling is enabled
-                    headerText = $"Current State: {CurrentStateName} (Probabilistic, T={samplingTemperature:F1})";
-                    
-                    // Compute probabilities for display
-                    var stateUtilities = new List<(AIState state, float utility)>();
-                    foreach (var state in states)
-                    {
-                        if (UtilityScores.TryGetValue(state.GetType().Name, out float utility))
-                        {
-                            stateUtilities.Add((state, utility));
-                        }
-                    }
-
-                    var topStates = stateUtilities.OrderByDescending(s => s.utility).Take(3).ToList();
-                    var probabilities = ComputeSoftmaxProbabilities(topStates);
-                    scoreLines = probabilities
-                        .OrderByDescending(p => p.probability)
-                        .Take(5)
-                        .Select(p => $"{p.state.GetType().Name}: {p.probability:P1}")
-                        .ToList();
-                    
-                    headerText += "\nProbabilities:";
-                }
-                else
-                {
-                    // Show utilities when deterministic
-                    headerText = $"Current State: {CurrentStateName} (Deterministic)";
-                    scoreLines = UtilityScores
-                        .OrderByDescending(kvp => kvp.Value)
-                        .Take(5)
-                        .Select(kvp => $"{kvp.Key}: {kvp.Value:F2}")
-                        .ToList();
-                    
-                    headerText += "\nWeighted Utilities:";
-                }
-
-                var displayText = headerText + "\n" + string.Join("\n", scoreLines);
-                UnityEditor.Handles.Label(pos + Vector3.up * 3f, displayText);
-            }
-        }
-#endif
     }
 } 

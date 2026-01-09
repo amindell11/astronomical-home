@@ -31,7 +31,7 @@ namespace EnemyAI.States
         public override void Tick(AIContext context, float deltaTime)
         {
             // Continuously update nav point to track the enemy
-            if (context.Enemy == null) return;   
+            if (!context.Enemy) return;   
             
             // Calculate predicted intercept point for targeting
             Vector2 predictedTarget = gunner.PredictIntercept(
@@ -71,7 +71,7 @@ namespace EnemyAI.States
 
         public override float ComputeUtility(AIContext ctx)
         {
-            if (ctx.Enemy == null)
+            if (!ctx.Enemy)
                 return 0f;
 
             // Start with the general-purpose attack utility
@@ -102,7 +102,7 @@ namespace EnemyAI.States
             base.OnDrawGizmos(ctx);
             
             #if UNITY_EDITOR
-            if (ctx?.SelfTransform == null) return;
+            if (!ctx?.SelfTransform) return;
             
             Vector3 position = ctx.SelfTransform.position;
                     
@@ -110,7 +110,7 @@ namespace EnemyAI.States
             Gizmos.DrawWireSphere(position, DefaultFacingDistance); // Close range
             
             // Draw target information if we have an enemy
-            if (ctx.Enemy != null)
+            if (ctx.Enemy)
             {
                 Vector3 enemyPos = GamePlane.PlanePointToWorld(ctx.EnemyPos);
                 float distToEnemy = ctx.VectorToEnemy.magnitude;

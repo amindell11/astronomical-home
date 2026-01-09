@@ -58,7 +58,7 @@ namespace UI
         void Awake()
         {
             canvasGroup = GetComponent<CanvasGroup>();
-            if (iconContainer == null) iconContainer = transform;
+            if (!iconContainer) iconContainer = transform;
         }
 
         private void Start()
@@ -68,7 +68,7 @@ namespace UI
                 launcher = GameObject.FindGameObjectWithTag(TagNames.Player).GetComponentInChildren<Missiles>();
             }
 
-            if (launcher != null)
+            if (launcher)
             {
                 rounds = launcher.GetComponent<Rounds>();
                 // Build icons based on round's max ammo now that we have the reference
@@ -76,16 +76,16 @@ namespace UI
 
                 // Prepare cached handler & subscribe
                 ammoChangedHandler = OnAmmoChanged;
-                if (rounds != null) rounds.OnAmmoCountChanged += ammoChangedHandler;
+                if (rounds) rounds.OnAmmoCountChanged += ammoChangedHandler;
 
                 // Initialize UI with the starting ammo value
-                UpdateAmmoIcons(rounds != null ? rounds.AmmoCount : 0);
+                UpdateAmmoIcons(rounds ? rounds.AmmoCount : 0);
             }
         }
 
         void OnDisable()
         {
-            if (rounds != null && ammoChangedHandler != null)
+            if (rounds && ammoChangedHandler != null)
             {
                 rounds.OnAmmoCountChanged -= ammoChangedHandler;
             }
@@ -93,7 +93,7 @@ namespace UI
 
         void Update()
         {
-            if (launcher == null || cooldownSpinner == null) return;
+            if (!launcher || !cooldownSpinner) return;
 
             bool onCooldown = launcher.Targeting.State == LockState.Cooldown;
             cooldownSpinner.enabled = onCooldown;
@@ -117,7 +117,7 @@ namespace UI
         {
             if (icons == null || icons.Count == 0) return;
 
-            int max = rounds != null ? rounds.MaxAmmo : 0;
+            int max = rounds ? rounds.MaxAmmo : 0;
 
             for (int i = 0; i < icons.Count; i++)
             {
@@ -168,7 +168,7 @@ namespace UI
             }
 
             // 2. Ensure we have exactly rounds.MaxAmmo icons by adding more if necessary
-            if (iconPrefab != null && rounds != null)
+            if (iconPrefab && rounds)
             {
                 int max = rounds.MaxAmmo;
 
@@ -194,7 +194,7 @@ namespace UI
 
                     // Ensure each instantiated icon has a glow controller
                     GlowingUIController glow = newIcon.GetComponent<GlowingUIController>();
-                    if (glow == null)
+                    if (!glow)
                     {
                         glow = newIcon.gameObject.AddComponent<GlowingUIController>();
                         glow.ApplyMissileAmmoPreset(); // Sensible defaults

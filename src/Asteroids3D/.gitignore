@@ -29,6 +29,15 @@
 # Visual Studio cache directory
 .vs/
 
+# Visual Studio upgrade logs
+UpgradeLog*.htm
+UpgradeLog*.XML
+Backup/
+_UpgradeReport_Files/
+
+# JetBrains Rider/IntelliJ IDEA
+.idea/
+
 # Gradle cache directory
 .gradle/
 
