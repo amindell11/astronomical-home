@@ -1,8 +1,7 @@
-using System;
 using Ships.Weapons.Conditions;
-using UnityEngine;
+using Weapons;
 
-namespace Weapons
+namespace Ships.Weapons.Launcher
 {
     /// <summary>
     /// Concrete weapon that fires pooled <see cref="LaserProjectile"/> instances.
@@ -13,12 +12,12 @@ namespace Weapons
     {
         public float ProjectileSpeed => projectilePrefab.LaserSpeed;
 
-        private Heat _heat;
+        private Heat heat;
 
         protected override void Awake()
         {
             base.Awake();
-            _heat = GetComponent<Heat>();
+            heat = GetComponent<Heat>();
         }
     }
 } 

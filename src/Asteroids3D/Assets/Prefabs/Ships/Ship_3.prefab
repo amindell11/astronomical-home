@@ -165,13 +165,13 @@ PrefabInstance:
         type: 3}
       propertyPath: primaryMount
       value: 
-      objectReference: {fileID: 6952116847363419616, guid: b0f5486eb29ea024da3b9a9978de5236,
+      objectReference: {fileID: 918213022752191143, guid: b0f5486eb29ea024da3b9a9978de5236,
         type: 3}
     - target: {fileID: 3463944397451626889, guid: c3c15225cb3a8fd42a87c756c1d2d884,
         type: 3}
       propertyPath: secondaryMount
       value: 
-      objectReference: {fileID: 6921260461533254185, guid: a17b4473baa216a4eba58800a76acfc3,
+      objectReference: {fileID: 2094418735087310904, guid: 175e0fad8ede2484082130e20c00cc0a,
         type: 3}
     - target: {fileID: 3849108126043262516, guid: c3c15225cb3a8fd42a87c756c1d2d884,
         type: 3}

@@ -32,9 +32,9 @@ public class Spawner
     
     private void OnShipDeath(Ships.Ship deadShip, Ships.Ship killer)
     {
-        var game = GameContext.Singleton;
+        var game = Context.Singleton;
         if (game.CurrentState is GameState.GameOver) return;
-        bool isPlayer =  deadShip && deadShip.CompareTag(TagNames.Player);
+        var isPlayer =  deadShip && deadShip.CompareTag(TagNames.Player);
         if (isPlayer && restartOnPlayerDeath)
             game.RestartGame();
         else 

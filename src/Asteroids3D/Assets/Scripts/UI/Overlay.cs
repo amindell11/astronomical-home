@@ -8,21 +8,15 @@ namespace UI
     [RequireComponent(typeof(Canvas))]
     public class Overlay : MonoBehaviour
     {
-        private void Start()
+        private Canvas canvas;
+        private void Awake()
         {
-            var canvas = GetComponent<Canvas>();
-            var mainCamera = ServiceLocator.Get<Camera>();
-            var uiCamera = mainCamera.GetComponentsInChildren<Camera>()
-                .FirstOrDefault(t => t.CompareTag(TagNames.UICam));
-            
-            if (uiCamera)
-            {
-                canvas.worldCamera = uiCamera;
-            }
-            else
-            {
-                Debug.LogWarning("UI Camera not found. Canvas may not function correctly.");
-            }
+            canvas = GetComponent<Canvas>();
+        }
+
+        public void SetCanvasWorldCamera(Camera uicam)
+        {
+            canvas.worldCamera = uicam;
         }
     }
 }

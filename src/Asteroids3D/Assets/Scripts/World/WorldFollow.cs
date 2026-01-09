@@ -11,13 +11,13 @@ public class WorldFollow : MonoBehaviour
     
     private void FixedUpdate()
     {
-        if (target == null) return;
+        if (!target) return;
 
         // Calculate the desired position
-        Vector3 desiredPosition = target.position + offset;
+        var desiredPosition = target.position + offset;
         
         // Smoothly move the camera using fixedDeltaTime
-        Vector3 smoothedPosition = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed * Time.fixedDeltaTime);
+        var smoothedPosition = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed * Time.fixedDeltaTime);
         transform.position = smoothedPosition;
     }
 

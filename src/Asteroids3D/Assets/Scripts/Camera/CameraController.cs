@@ -11,12 +11,11 @@ public class CameraController : MonoBehaviour
 
     private void Awake()
     {
-        if (cameraFollow == null)
+        if (!cameraFollow)
         {
             cameraFollow = GetComponent<CameraFollow>();
         }
-
-        if (cameraFollow == null)
+        if (!cameraFollow)
         {
             Debug.LogWarning("CameraController could not find a CameraFollow component to control.");
         }
@@ -24,13 +23,8 @@ public class CameraController : MonoBehaviour
 
     private void Update()
     {
-        if (cameraFollow == null) return;
-
-        // Toggle lock when the key is pressed
-        if (Input.GetKeyDown(toggleLockKey))
-        {
-            bool newState = !cameraFollow.LockCameraToPlayer;
-            cameraFollow.SetLockCameraToPlayer(newState);
-        }
+        if (!cameraFollow) return;
+        if (!Input.GetKeyDown(toggleLockKey)) return;
+        cameraFollow.SetLockCameraToSubject(!cameraFollow.LockCameraToSubject);
     }
 } 

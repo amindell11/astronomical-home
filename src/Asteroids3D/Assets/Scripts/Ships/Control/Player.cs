@@ -42,7 +42,7 @@ namespace Ships.Control
                 TargetAngle = t,
                 RotateToTarget = r
             };
-            CachedCommand = cmd;
+            cachedCommand = cmd;
         }
 
         private (float, float, bool) HandleRotationInput()

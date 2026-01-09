@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using Utils;
 using Weapons;
 using Ships.Weapons.Conditions;
+using LaserGun = Ships.Weapons.Launcher.LaserGun;
 
 namespace UI
 {

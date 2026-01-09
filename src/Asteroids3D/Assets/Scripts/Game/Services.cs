@@ -7,14 +7,14 @@ using ShipSpawner = Ships.Spawner;
 
 namespace Game
 {
-    public class GameServices
+    public class Services
     {
         public Ship Player { get; }
         public Ship Enemy { get; }
         public SubscribedSet<Ship> ActiveShips { get; } = new();
         public ShipSpawner Spawner { get; }
 
-        public GameServices(GameInitiatorConfig config)
+        public Services(Config config)
         {
             Player = ShipFactory.CreateShip(config.PlayerTemplate, config.PlayerCommander, config.ShipSettings, 0,
                 Vector3.zero, Quaternion.identity);
@@ -27,7 +27,19 @@ namespace Game
             ActiveShips.Add(Enemy);
             
             Spawner = new ShipSpawner(Player, Enemy);
-            ServiceLocator.Register(Spawner);
+        }
+
+        public void Dispose()
+        {
+            // Unsubscribe spawner callbacks (death events etc.) first.
+            Spawner?.SubscribedShips?.Clear();
+
+            ActiveShips.Clear();
+
+            if (Player != null)
+                Object.Destroy(Player.gameObject);
+            if (Enemy != null)
+                Object.Destroy(Enemy.gameObject);
         }
     }
 }

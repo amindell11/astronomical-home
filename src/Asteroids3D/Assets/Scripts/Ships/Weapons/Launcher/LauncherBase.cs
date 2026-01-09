@@ -11,14 +11,14 @@ namespace Weapons
     {
         [SerializeField] public Transform firePoint;
 
-        protected WeaponCondition[] _conditions;
+        protected WeaponCondition[] conditions;
         
         public event Action OnFire;
 
         protected virtual void Awake()
         {
-            _conditions = GetComponents<WeaponCondition>();
-            foreach (var condition in _conditions)
+            conditions = GetComponents<WeaponCondition>();
+            foreach (var condition in conditions)
             {
                 condition.Initialize(this);
             }
@@ -28,12 +28,12 @@ namespace Weapons
 
         public virtual bool CanFire()
         {
-            return _conditions.All(c => c.CanFire());
+            return conditions.All(c => c.CanFire());
         }
 
         public virtual void Reset()
         {
-            foreach (var condition in _conditions)
+            foreach (var condition in conditions)
             {
                 condition.Reset();
             }
@@ -70,7 +70,7 @@ namespace Weapons
         {
             if (!CanFire()) return null;
             
-            foreach (var condition in _conditions)
+            foreach (var condition in conditions)
             {
                 condition.ProcessFire();
             }

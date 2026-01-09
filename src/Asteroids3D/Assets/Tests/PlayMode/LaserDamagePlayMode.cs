@@ -4,6 +4,7 @@ using Ships;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Weapons;
+using LaserGun = Ships.Weapons.Launcher.LaserGun;
 
 /// <summary>
 /// PlayMode test for laser damage validation.

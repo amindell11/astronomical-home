@@ -6,7 +6,7 @@ public partial class CameraFollow
 {
     private void OnDrawGizmosSelected()
     {
-        if (!Application.isPlaying || _targets == null || _targets.Count == 0) return;
+        if (!Application.isPlaying || secondarySubjects == null || secondarySubjects.Count == 0) return;
         if (!TryGetPlaneBounds(out var min2D, out var max2D)) return;
 
         var p00 = GamePlane.PlanePointToWorld(new Vector2(min2D.x, min2D.y));

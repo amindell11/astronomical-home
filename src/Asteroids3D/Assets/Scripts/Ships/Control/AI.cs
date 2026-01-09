@@ -27,12 +27,16 @@ namespace Ships.Control
         public AIStateMachine StateMachine => stateMachine;
         public string CurrentStateName => stateMachine?.CurrentStateName ?? "None";
 
-        public override void InitializeCommander(Ship ship)
+        public void Awake()
         {
             navigator = GetComponent<AINavigator>();
             gunner = GetComponent<AIGunner>();
             context = GetComponent<AIContext>();
             stateMachine = GetComponent<AIStateMachine>();
+        }
+        
+        public override void InitializeCommander(Ship ship)
+        {
 
             this.ship = ship;
             navigator.Initialize(ship);
@@ -62,7 +66,7 @@ namespace Ships.Control
                 stateMachine.Tick(context, Time.fixedDeltaTime);
             }
         
-            CachedCommand = GenerateCommand(currentState);
+            cachedCommand = GenerateCommand(currentState);
         }
 
         Command GenerateCommand(State state)

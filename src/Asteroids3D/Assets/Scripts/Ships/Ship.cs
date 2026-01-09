@@ -1,3 +1,4 @@
+using System;
 using Ships.Control;
 using Ships.Damage;
 using Ships.Movement;
@@ -21,9 +22,9 @@ namespace Ships
         public int teamNumber = 0;
 
         public MovementController Movement { get; internal set; }
-        public WeaponController Weapons { get; internal set; }
+        public WeaponController Weapons { get; private set; }
         public DamageController Damage { get; internal set; }
-        public ICommandSource Commander { get; internal set; }  
+        public ICommandSource Commander { get; private set; }  
 
         private bool isInitialized = false;
 
@@ -34,11 +35,9 @@ namespace Ships
         public Transform TargetPoint => transform;
         public LockChannel Lock { get; } = new LockChannel();
         public Vector3 Velocity => Movement ? Movement.Kinematics.WorldVel : Vector3.zero;
-        
-        private void OnEnable()
-        {
-            PopulateSettings();
-        }
+
+        private void Awake() => FindComponents(); 
+        private void OnEnable() => PopulateSettings();
         
         private void PopulateSettings()
         {            
@@ -49,10 +48,8 @@ namespace Ships
         public void Initialize(Settings shipSettings, int team)
         {
             if (isInitialized) return;
-            FindComponents();
             settings = shipSettings;
             teamNumber = team;
-            
             Commander?.InitializeCommander(this);
             PopulateSettings();
 
@@ -62,11 +59,27 @@ namespace Ships
             isInitialized = true;
         }
         private void FindComponents(){            
-            Movement        = GetComponent<MovementController>();
-            Weapons    = GetComponentInChildren<WeaponController>();
+            Movement = GetComponent<MovementController>();
             Damage   = GetComponent<DamageController>();
-            Commander     =  GetComponentInChildren<Commander>();
+            Weapons = GetComponent<WeaponController>();
         }
+
+        private void SetCommander(ICommandSource commander)
+        {
+            Commander = commander;
+            if (isInitialized && Commander !=null)
+                Commander.InitializeCommander(this);
+        }
+
+        public Commander AddCommander(Commander commanderPrefab)
+        {
+            if (!commanderPrefab) return null;
+            if (Commander !=null ) throw new Exception("Commander already set");
+            var instance = Instantiate(commanderPrefab, transform);
+            SetCommander(instance);
+            return instance;
+        }
+
      
         private void HandleShipDeath()
         {

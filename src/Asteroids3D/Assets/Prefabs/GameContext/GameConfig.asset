@@ -19,7 +19,7 @@ MonoBehaviour:
   asteroidField: {fileID: 7997124830668444265, guid: a4a07ada72adcc44ba51f616ad29384b,
     type: 3}
   ui: {fileID: 6902055608550465894, guid: 87f4b42386fd2af44b25b722572d1fcd, type: 3}
-  cameraTemplate: {fileID: 3813143680370247574, guid: dfd1ae625419872458577af010d4bb9d,
+  cameraRig: {fileID: 5821845304837366738, guid: dfd1ae625419872458577af010d4bb9d,
     type: 3}
   shipSettings: {fileID: 11400000, guid: c2eae258625507d43948e555302ee7ee, type: 2}
   playerCommander: {fileID: 6378580657550141484, guid: ed986bef16a6fa9488e6052de65aa9dd,

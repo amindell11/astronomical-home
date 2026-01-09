@@ -32,7 +32,7 @@ namespace Ships
              Quaternion rotation)
         {
             var ship = Object.Instantiate(prefab, position, rotation);
-            var cmdr = Object.Instantiate(commander, ship.transform);
+            ship.AddCommander(commander);
             ship.Initialize(shipSettings, team);
             return ship;
         }

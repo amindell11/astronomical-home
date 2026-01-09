@@ -9,11 +9,11 @@ namespace Ships.Weapons
         [SerializeField] private WeaponComponent secondaryMount;
         public WeaponComponent Primary { get; private set; }
         public WeaponComponent Secondary { get; private set; }
-        
+
         private void Awake()
         {
-            Primary = Instantiate(primaryMount, transform);
-            Secondary = Instantiate(secondaryMount, transform);
+            if (primaryMount) Primary = Instantiate(primaryMount, transform);
+            if (secondaryMount) Secondary = Instantiate(secondaryMount, transform);
         }
 
         public void FirePrimary()

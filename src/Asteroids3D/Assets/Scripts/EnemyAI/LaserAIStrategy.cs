@@ -1,6 +1,7 @@
 using UnityEngine;
 using Weapons;
 using Ships.Weapons.Conditions;
+using LaserGun = Ships.Weapons.Launcher.LaserGun;
 
 namespace EnemyAI
 {
