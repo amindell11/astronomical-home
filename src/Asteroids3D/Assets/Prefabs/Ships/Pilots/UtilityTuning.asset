@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8d5b172cd551804ba5d57977e7abe95, type: 3}
+  m_Name: UtilityTuning
+  m_EditorClassIdentifier: 
+  attackTargetUpdateInterval: 0.5
+  attackFacingDistance: 6
+  attackFacingSpeed: -1
+  attackOuterDistanceThreshold: 25
+  attackOuterDistanceBonus: 0.2
+  attackLowHealthFearMultiplier: 0.15
+  attackEnemyHealthThreshold: 0.3
+  orbitRadius: 15
+  orbitMinRadius: 10
+  orbitMaxRadius: 25
+  orbitLeadTime: 2
+  orbitRangeBonus: 0.4
+  orbitNoLosBonus: 0.3
+  orbitLowHealthThreshold: 0.25
+  orbitLowHealthPenalty: 0.4
+  orbitFlipMinTime: 3
+  orbitFlipChancePerSecond: 0.1
+  jinkFleeDistance: 40
+  jinkSideStepDistance: 12
+  jinkInterval: 1.2
+  jinkMissileAmplitudeFactor: 1.5
+  jinkMissileThreatBonus: 0.7
+  jinkCriticalHealthThreshold: 0.3
+  jinkCriticalShieldThreshold: 0.1
+  jinkCriticalStateBonus: 0.4
+  jinkFacingAwayAngle: 120
+  jinkFacingAwayBonus: 0.2
+  jinkAnglePenaltyMultiplier: 0.4
+  evadeFleeDistance: 30
+  evadeMissilePenalty: 0.2
+  evadeFightingRetreatHealthThreshold: 0.5
+  evadeFightingRetreatShieldThreshold: 0.5
+  evadeFightingRetreatBonus: 0.25
+  evadeAnglePenaltyMultiplier: 0.3
+  kiteDesiredDistance: 10
+  kiteMinDistance: 5
+  kiteMaxDistance: 25
+  kitePushAwayDistance: 5
+  kiteReturnDistanceFactor: 0.5
+  kiteTooCloseBonus: 0.3
+  kiteLowHealthThreshold: 0.4
+  kiteHighShieldThreshold: 0.6
+  kiteLowHealthBonus: 0.2
+  kiteAngleTolerance: 30
+  kiteAnglePenaltyMultiplier: 0.3
+  patrolRadius: 50
+  patrolMinDistanceFactor: 0.3

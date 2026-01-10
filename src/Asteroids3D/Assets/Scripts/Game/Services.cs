@@ -26,7 +26,7 @@ namespace Game
             ActiveShips.Add(Player);
             ActiveShips.Add(Enemy);
             
-            Spawner = new ShipSpawner(Player, Enemy);
+            Spawner = new ShipSpawner(config.SpawnerSettings, Player, Enemy);
         }
 
         public void Dispose()

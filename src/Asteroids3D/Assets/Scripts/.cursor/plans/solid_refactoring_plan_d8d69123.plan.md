@@ -4,25 +4,25 @@ overview: A prioritized onboarding guide to address architectural issues identif
 todos:
   - id: fix-spawner-serialization
     content: Create SpawnerSettings ScriptableObject and fix serialization bug in Spawner.cs
-    status: pending
+    status: completed
   - id: fix-ship-double-init
     content: Remove Start() self-initialization from Ship.cs, enforce factory-only creation
     status: completed
   - id: replace-string-state-matching
     content: Add StateType enum and virtual property to AIState, update AIStateMachine switch
-    status: pending
+    status: completed
   - id: replace-service-locator
     content: Migrate from ServiceLocator to explicit constructor injection throughout codebase
-    status: pending
+    status: completed
   - id: split-ai-context
     content: Extract AIContext into focused provider classes (Kinematics, Combat, Navigation)
-    status: pending
+    status: completed
   - id: multi-ship-support
     content: Refactor GameServices to support multiple enemies via collections
-    status: pending
+    status: completed
   - id: centralize-ai-tuning
     content: Create AITuning ScriptableObject to replace magic numbers in AI states
-    status: pending
+    status: completed
   - id: extract-editor-gizmos
     content: Move OnDrawGizmos code to partial classes in affected files
     status: completed

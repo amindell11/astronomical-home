@@ -1,5 +1,6 @@
 using Asteroids;
 using Asteroids.Fields;
+using World;
 using Ships;
 using Ships.Control;
 using UnityEngine;
@@ -20,17 +21,19 @@ namespace Game
         [SerializeField] private Settings shipSettings;
         [SerializeField] private Commander playerCommander;
         [SerializeField] private Commander enemyCommander;
-        [SerializeField] private WorldFollow worldFollow;
+        [SerializeField] private WorldRoot world;
+        [SerializeField] private SpawnerSettings spawnerSettings;
 
         public Ship PlayerTemplate => playerTemplate;
         public Ship EnemyTemplate => enemyTemplate;
-        public UpdatingField AsteroidField => asteroidField;
+        public AsteroidField AsteroidField => asteroidField;
         public UI.Overlay UI => ui;
         public CameraRig CameraRig => cameraRig;
         public Settings ShipSettings => shipSettings;
         public Ships.Control.Commander PlayerCommander => playerCommander;
         public Ships.Control.Commander EnemyCommander => enemyCommander;
-        public WorldFollow World => worldFollow;
+        public WorldRoot World => world;
+        public SpawnerSettings SpawnerSettings => spawnerSettings;
     }
 }
 

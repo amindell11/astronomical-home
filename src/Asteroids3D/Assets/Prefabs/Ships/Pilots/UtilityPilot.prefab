@@ -49,6 +49,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4b8ea6c63245a6e4197204a7a6f71112, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  utilityTuning: {fileID: 11400000, guid: e4c52ba5b796d2642b7fa9e69870137b, type: 2}
   difficulty: 1
 --- !u!114 &-1070365238870678526
 MonoBehaviour:
@@ -101,17 +102,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 672451d8ba1d1c24b95ea05b1fea1e71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fireAngleTolerance: 5
-  fireDistance: 20
-  lineOfSightMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  lineOfSightCacheFrames: 5
-  angleToleranceBeforeRay: 15
-  missileRange: 40
-  missileAngleTolerance: 15
   showGizmos: 1
-  showRanges: 1
   showTargeting: 1
   showLineOfSight: 1
 --- !u!114 &4713944334268074824
@@ -126,23 +117,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e65c9c022eb2de3498de597ac8fcb100, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  stateWeights:
-    idleWeight: 1
-    patrolWeight: 1
-    attackWeight: 1
-    evadeWeight: 1
-    kiteWeight: 1
-    orbitWeight: 1
-    jinkEvadeWeight: 1
-  minTimeInState: 0.5
-  utilityThreshold: 0.1
-  useProbabilisticSampling: 0
-  samplingTemperature: 1
-  showStateSelectionGizmos: 1
-  showCurrentStateGizmos: 1
-  stickyBonus: 0.05
-  utilitySmoothingFactor: 0.25
-  stickyFadeTime: 2
+  config: {fileID: 11400000, guid: 2953629aea9c0114d9f56764e09bca98, type: 2}
+  instanceUtilityWeights: {fileID: 0}
 --- !u!114 &9147953976092396285
 MonoBehaviour:
   m_ObjectHideFlags: 0

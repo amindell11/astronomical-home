@@ -10,7 +10,7 @@ namespace Ships
         [Header("Movement")] 
         public float mass = 215;
         public float maxSpeed = 20f;
-        [FormerlySerializedAs("maxRotationSpeed")] public float maxYawRate = 180f;
+        public float maxYawRate = 180f;
         public float forwardAccel = 1200f;
         public float reverseAccel = 600f;
         public float rotationThrust = 580;
@@ -36,11 +36,11 @@ namespace Ships
         public float shieldRegenRate  = 10f;
 
         [System.NonSerialized]
-        public readonly UnityEvent OnSettingsChanged = new UnityEvent();
+        public readonly UnityEvent onSettingsChanged = new UnityEvent();
 
         private void OnValidate()
         {
-            OnSettingsChanged?.Invoke();
+            onSettingsChanged?.Invoke();
         }
     }
 }

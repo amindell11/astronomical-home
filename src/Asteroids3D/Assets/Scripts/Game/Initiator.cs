@@ -4,6 +4,7 @@ using System.Linq;
 using Asteroids;
 using Ships;
 using UnityEngine;
+using World;
 using UnityEngine.SceneManagement;
 using Utils;
 using Random = UnityEngine.Random;
@@ -16,7 +17,7 @@ namespace Game
         private AsteroidField field;
         private CameraRig cameraRig;
         private UI.Overlay ui;
-        private WorldFollow world;
+        private WorldRoot world;
         private bool isInitialized;
 
         public Services Services { get; private set; }
@@ -32,11 +33,11 @@ namespace Game
 
             yield return StartCoroutine(LoadWorldScene());
             
+            InitializeWorld(config);
+            InitializeAsteroidField(config);
             InitializeShips(config);
             InitializeCamera(config);
             InitializeUI(config);
-            InitializeAsteroidField(config);
-            InitializeWorld(config);
         }
 
         private IEnumerator LoadWorldScene()
@@ -64,7 +65,7 @@ namespace Game
         private void InitializeCamera(Config config)
         {
             cameraRig = Instantiate(config.CameraRig);
-            var cameraFollow = cameraRig.GetComponent<CameraFollow>();
+            var cameraFollow = cameraRig.CameraFollow;
             cameraFollow.SetSubject(Services.Player.transform);
             cameraFollow.AddSecondarySubjects(Services.ActiveShips.Where(s => s != Services.Player).Select(s => s.transform));
             Services.ActiveShips.OnAdd += s => cameraFollow.AddSecondarySubject(s.transform);
@@ -73,24 +74,22 @@ namespace Game
 
         private void InitializeAsteroidField(Config config)
         {
+            var cullingBoundary = world.AsteroidCullingBoundary;
             field = Instantiate(config.AsteroidField);
+            field.Initialize(cullingBoundary);
             field.CurrentAnchorPos = () => GamePlane.ProjectOntoPlane(cameraRig.transform.position);
         }
 
         private void InitializeShips(Config config)
         {
             Services = new Services(config);
+            world.Follower.SetTarget(Services.Player.transform);
         }
 
         private void InitializeWorld(Config config)
         {
-            // Composition root / final wiring hook.
-            // Intentionally minimal for now; keep game state transitions and teardown in GameContext.
-            if (config.World)
-            {
-                world = Instantiate(config.World);
-                world.SetTarget(Services.Player.transform);
-            }
+            if (!config.World) return;
+            world = Instantiate(config.World);
         }
 
         public void Shutdown()

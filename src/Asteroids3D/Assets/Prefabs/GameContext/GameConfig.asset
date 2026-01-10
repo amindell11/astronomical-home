@@ -26,3 +26,5 @@ MonoBehaviour:
     type: 3}
   enemyCommander: {fileID: 1772957474756936600, guid: 08a3705197cc60842b107b8485d8ad25,
     type: 3}
+  world: {fileID: 4478678954348364341, guid: 85b078d06b0ea6c40acdfd2fe59a9556, type: 3}
+  spawnerSettings: {fileID: 11400000, guid: d5df05273fc201d41b456a239f5fa628, type: 2}

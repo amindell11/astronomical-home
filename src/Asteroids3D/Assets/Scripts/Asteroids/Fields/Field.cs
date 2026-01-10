@@ -28,12 +28,17 @@ namespace Asteroids.Fields
         protected Vector3 SpawnCenter;
         protected float TargetVolume;
         protected SphereCollider CullingBoundary;
+        
         protected virtual void Awake()
         {
             gameObject.tag = TagNames.AsteroidField;
-            CullingBoundary = GameObject.FindGameObjectWithTag(TagNames.AsteroidCullingBoundary).GetComponent<SphereCollider>();
             Spawner = GetComponent<Spawner>() ?? gameObject.AddComponent<Spawner>();
             SpawnCenter = transform.position;
+        }
+
+        public void Initialize(SphereCollider cullingBoundary)
+        {
+            CullingBoundary = cullingBoundary;
             CullingBoundary.radius = maxSpawnDistance * BoundaryMargin;
         }
 

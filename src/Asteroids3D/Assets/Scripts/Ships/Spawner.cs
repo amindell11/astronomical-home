@@ -7,22 +7,15 @@ namespace Ships
 {
 public class Spawner
 {
-    [Header("Game Flow Settings")]
-    [SerializeField] private float restartDelay = 3f;
-
-    [SerializeField] private bool restartOnPlayerDeath = false;
-
-    [Header("Enemy Respawn Settings")]
-    [SerializeField] private float enemyRespawnDelay = 3f;
-
-    [SerializeField] private float offscreenDistance = 25f;
+    private readonly SpawnerSettings settings;
     
     private Camera cacheMainCamera;
     public SubscribedSet<Ships.Ship> SubscribedShips { get; private set; }
     private Camera LazyCacheCamera => cacheMainCamera ??= Camera.main;
 
-    public Spawner(params Ships.Ship[] ships)
+    public Spawner(SpawnerSettings settings, params Ships.Ship[] ships)
     {
+        this.settings = settings;
         SubscribedShips = new SubscribedSet<Ships.Ship>(
             add: ship => ship.Damage.OnDeath += OnShipDeath,
             remove: ship => ship.Damage.OnDeath -= OnShipDeath
@@ -35,10 +28,11 @@ public class Spawner
         var game = Context.Singleton;
         if (game.CurrentState is GameState.GameOver) return;
         var isPlayer =  deadShip && deadShip.CompareTag(TagNames.Player);
-        if (isPlayer && restartOnPlayerDeath)
+        if(!settings) return;
+        if (isPlayer && settings.restartOnPlayerDeath)
             game.RestartGame();
         else 
-            game.StartCoroutine(WaitAndRespawnShip(enemyRespawnDelay, deadShip));
+            game.StartCoroutine(WaitAndRespawnShip(settings.enemyRespawnDelay, deadShip));
         
     }
 
@@ -56,7 +50,7 @@ public class Spawner
 
     private Vector3 GetRandomOffscreenPosition()
     {
-        var pos = Random.insideUnitSphere.normalized * offscreenDistance + LazyCacheCamera.transform.position;
+        var pos = Random.insideUnitSphere.normalized * settings.offscreenDistance + LazyCacheCamera.transform.position;
         return GamePlane.ProjectOntoPlane(pos);
     }
 }

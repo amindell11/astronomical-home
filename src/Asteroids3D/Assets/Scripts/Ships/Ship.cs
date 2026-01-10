@@ -3,14 +3,15 @@ using Ships.Control;
 using Ships.Damage;
 using Ships.Movement;
 using Ships.Visuals;
-using UnityEngine;
 using Weapons;
+using UnityEngine;
 using Ships.Weapons;
-
 namespace Ships
 {
-    [RequireComponent(typeof(MovementController))]
-    [RequireComponent(typeof(DamageController))]
+    [RequireComponent(typeof(Movement.Controller))]
+    [RequireComponent(typeof(Damage.Controller))]
+    [RequireComponent(typeof(Weapons.Controller))]
+
     public class Ship : MonoBehaviour, ITargetable, IShooter
     {
         [Header("Settings Asset")]
@@ -20,11 +21,11 @@ namespace Ships
         [Header("Team Settings")]
         [Tooltip("Team number for this ship. Ships with the same team number are considered friendly.")]
         public int teamNumber = 0;
-
-        public MovementController Movement { get; internal set; }
-        public WeaponController Weapons { get; private set; }
-        public DamageController Damage { get; internal set; }
+        
         public ICommandSource Commander { get; private set; }  
+        public Movement.Controller Movement { get; internal set; }
+        public Weapons.Controller Weapons { get; private set; }
+        public Damage.Controller Damage { get; internal set; }
 
         private bool isInitialized = false;
 
@@ -59,9 +60,9 @@ namespace Ships
             isInitialized = true;
         }
         private void FindComponents(){            
-            Movement = GetComponent<MovementController>();
-            Damage   = GetComponent<DamageController>();
-            Weapons = GetComponent<WeaponController>();
+            Movement = GetComponent<Movement.Controller>();
+            Damage   = GetComponent<Damage.Controller>();
+            Weapons = GetComponent<Weapons.Controller>();
         }
 
         private void SetCommander(ICommandSource commander)
