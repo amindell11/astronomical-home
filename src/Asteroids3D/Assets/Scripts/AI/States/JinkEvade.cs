@@ -59,28 +59,27 @@ namespace AI.States
         public override float ComputeUtility(Info ctx)
         {
             if (!ctx.Enemy && !ctx.IncomingMissile) return 0f;
+
+            var criticalState = ctx.HealthPct < utilityTuning.jinkCriticalHealthThreshold 
+                && ctx.ShieldPct < utilityTuning.jinkCriticalShieldThreshold;
             
-            var score = Utility.Utility.ComputeEvadeUtility(ctx);
+            var angleScore = ctx.SelfAngleToEnemy / 180f;
+            var closingScore = Mathf.Clamp01(ctx.ClosingSpeed * 0.05f + 0.5f);
+            var facingScore = ctx.Enemy ? (Mathf.Cos(ctx.EnemyAngleToSelf * Mathf.Deg2Rad) + 1f) / 2f : 0.5f;
+            var dist = ctx.Enemy ? ctx.VectorToEnemy.magnitude : 100f;
 
-            if (ctx.IncomingMissile)
-            {
-                score += utilityTuning.jinkMissileThreatBonus;
-            }
-
-            if (ctx.HealthPct < utilityTuning.jinkCriticalHealthThreshold && ctx.ShieldPct < utilityTuning.jinkCriticalShieldThreshold)
-            {
-                score += utilityTuning.jinkCriticalStateBonus;
-            }
-
-            if (ctx.Enemy && ctx.SelfAngleToEnemy > utilityTuning.jinkFacingAwayAngle)
-            {
-                score += utilityTuning.jinkFacingAwayBonus;
-            }
-
-            var anglePenalty = (180f - ctx.SelfAngleToEnemy) / 180f;
-            score -= anglePenalty * utilityTuning.jinkAnglePenaltyMultiplier;
-            
-            return Mathf.Clamp01(score);
+            return new UtilityBuilder()
+                .Factor("selfHealth", ctx.HealthPct, utilityTuning.evadeHealthFactor)
+                .Factor("selfShield", ctx.ShieldPct, utilityTuning.evadeShieldFactor)
+                .FactorBinary(ctx.NearbyEnemyCount > ctx.NearbyFriendCount + 1, "outnumbered", utilityTuning.evadeOutnumberedFactor)
+                .FactorBinary(ctx.Enemy && ctx.LineOfSightToEnemy, "enemyLOS", utilityTuning.evadeEnemyLOSFactor)
+                .Factor("closing", closingScore, utilityTuning.evadeClosingSpeedFactor)
+                .Factor("enemyFacing", facingScore, utilityTuning.evadeEnemyFacingFactor)
+                .FactorIf(ctx.IncomingMissile, "missileThreat", utilityTuning.jinkMissileThreatFactor)
+                .FactorIf(criticalState, "criticalState", utilityTuning.jinkCriticalStateFactor)
+                .FactorIf(ctx.Enemy && ctx.SelfAngleToEnemy > utilityTuning.jinkFacingAwayAngle, "facingAway", utilityTuning.jinkFacingAwayFactor)
+                .Factor("angle", angleScore, utilityTuning.jinkAngleFactor)
+                .Build();
         }
     }
 } 

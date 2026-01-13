@@ -38,22 +38,27 @@ namespace AI.States
         {
             if (!ctx.Enemy) return 0f;
 
-            var score = Utility.Utility.ComputeEvadeUtility(ctx);
+            var fightingRetreat = ctx.HealthPct < utilityTuning.evadeFightingRetreatHealthThreshold 
+                && ctx.ShieldPct > utilityTuning.evadeFightingRetreatShieldThreshold;
             
-            if (ctx.HealthPct < utilityTuning.evadeFightingRetreatHealthThreshold && ctx.ShieldPct > utilityTuning.evadeFightingRetreatShieldThreshold)
-            {
-                score += utilityTuning.evadeFightingRetreatBonus;
-            }
+            var angleScore = ctx.SelfAngleToEnemy / 180f;
+            var closingScore = Mathf.Clamp01(ctx.ClosingSpeed * 0.05f + 0.5f);
+            var facingScore = ctx.Enemy ? (Mathf.Cos(ctx.EnemyAngleToSelf * Mathf.Deg2Rad) + 1f) / 2f : 0.5f;
+            var dist = ctx.VectorToEnemy.magnitude;
 
-            if (ctx.IncomingMissile)
-            {
-                score -= utilityTuning.evadeMissilePenalty;
-            }
-
-            var anglePenalty = (180f - ctx.SelfAngleToEnemy) / 180f;
-            score -= anglePenalty * utilityTuning.evadeAnglePenaltyMultiplier;
-
-            return Mathf.Max(0f, score);
+            return new UtilityBuilder()
+                .Factor("selfHealth", ctx.HealthPct, utilityTuning.evadeHealthFactor)
+                .Factor("selfShield", ctx.ShieldPct, utilityTuning.evadeShieldFactor)
+                .FactorBinary(ctx.NearbyEnemyCount > ctx.NearbyFriendCount + 1, "outnumbered", utilityTuning.evadeOutnumberedFactor)
+                .FactorBinary(ctx.Enemy && ctx.LineOfSightToEnemy, "enemyLOS", utilityTuning.evadeEnemyLOSFactor)
+                .Factor("closing", closingScore, utilityTuning.evadeClosingSpeedFactor)
+                .Factor("enemyFacing", facingScore, utilityTuning.evadeEnemyFacingFactor)
+                .FactorIf(ctx.IncomingMissile, "missile", utilityTuning.evadeMissileFactor)
+                .FactorIf(dist < utilityTuning.evadeUtilityTooCloseDistance && ctx.LineOfSightToEnemy, "tooClose", utilityTuning.evadeTooCloseFactor)
+                .FactorIf(fightingRetreat, "fightingRetreat", utilityTuning.evadeFightingRetreatFactor)
+                .FactorIf(ctx.IncomingMissile, "missilePenalty", utilityTuning.evadeMissilePenaltyFactor)
+                .Factor("angle", angleScore, utilityTuning.evadeAngleFactor)
+                .Build();
         }
 
         private Vector2 CalculateEvadePoint(Info ctx)

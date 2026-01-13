@@ -62,20 +62,22 @@ namespace AI.States
             if (!ctx.Enemy)
                 return 0f;
 
-            var score = Utility.Utility.ComputeAttackUtility(ctx);
-
-            var enemyHealthFactor = (ctx.EnemyHealthPct + ctx.EnemyShieldPct) / 2f;
-            score += Utility.Utility.FearCurve(enemyHealthFactor, utilityTuning.attackEnemyHealthThreshold);
-
             var dist = ctx.VectorToEnemy.magnitude;
-            if (dist > utilityTuning.attackOuterDistanceThreshold)
-            {
-                score += utilityTuning.attackOuterDistanceBonus;
-            }
+            var enemyHealth = (ctx.EnemyHealthPct + ctx.EnemyShieldPct) / 2f;
+            var netThreat = Mathf.Clamp01((ctx.NearbyEnemyCount - ctx.NearbyFriendCount) / 3f);
+            var inRange = dist >= utilityTuning.attackUtilityOptimalRangeMin && dist <= utilityTuning.attackUtilityOptimalRangeMax;
+            var rangeScore = inRange ? 1f : Mathf.Clamp01(1f - Mathf.Abs(dist - 20f) / 30f);
 
-            score += Utility.Utility.FearCurve(ctx.HealthPct, utilityTuning.attackLowHealthFearMultiplier);
-
-            return score;
+            return new UtilityBuilder()
+                .Factor("selfHealth", ctx.HealthPct, utilityTuning.attackHealthFactor)
+                .Factor("selfShield", ctx.ShieldPct, utilityTuning.attackShieldFactor)
+                .Factor("enemyWeak", enemyHealth, utilityTuning.attackEnemyWeakFactor)
+                .Factor("range", rangeScore, utilityTuning.attackRangeFactor)
+                .FactorBinary(ctx.LineOfSightToEnemy, "LOS", utilityTuning.attackLOSFactor)
+                .Factor("threat", netThreat, utilityTuning.attackThreatFactor)
+                .FactorIf(dist > utilityTuning.attackOuterDistanceThreshold, "outerRange", utilityTuning.attackOuterRangeFactor)
+                .Factor("desperation", ctx.HealthPct, utilityTuning.attackDesperationFactor)
+                .Build();
         }
     }
 } 

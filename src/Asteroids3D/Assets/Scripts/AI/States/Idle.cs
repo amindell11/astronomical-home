@@ -36,7 +36,7 @@ namespace AI.States
             {
                 return 0f;
             }
-            return 1;
+            return 0;
         }
     }
 } 

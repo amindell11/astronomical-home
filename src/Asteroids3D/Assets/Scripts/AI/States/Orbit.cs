@@ -65,26 +65,24 @@ namespace AI.States
         {
             if (!ctx?.Enemy) return 0f;
 
-            var score = Utility.Utility.ComputeAttackUtility(ctx);
-            
             var dist = ctx.VectorToEnemy.magnitude;
-            if (dist >= utilityTuning.orbitMinRadius && dist <= utilityTuning.orbitMaxRadius)
-            {
-                score += utilityTuning.orbitRangeBonus;
-            }
-            
-            if (!ctx.LineOfSightToEnemy)
-            {
-                score += utilityTuning.orbitNoLosBonus;
-            }
-
+            var enemyHealth = (ctx.EnemyHealthPct + ctx.EnemyShieldPct) / 2f;
             var healthFactor = (ctx.HealthPct + ctx.ShieldPct) / 2f;
-            if (healthFactor < utilityTuning.orbitLowHealthThreshold)
-            {
-                score -= utilityTuning.orbitLowHealthPenalty;
-            }
-            
-            return Mathf.Max(0f, score);
+            var netThreat = Mathf.Clamp01((ctx.NearbyEnemyCount - ctx.NearbyFriendCount) / 3f);
+            var inRange = dist >= utilityTuning.orbitMinRadius && dist <= utilityTuning.orbitMaxRadius;
+            var rangeScore = inRange ? 1f : Mathf.Clamp01(1f - Mathf.Abs(dist - utilityTuning.orbitRadius) / 20f);
+
+            return new UtilityBuilder()
+                .Factor("selfHealth", ctx.HealthPct, utilityTuning.attackHealthFactor)
+                .Factor("selfShield", ctx.ShieldPct, utilityTuning.attackShieldFactor)
+                .Factor("enemyWeak", enemyHealth, utilityTuning.attackEnemyWeakFactor)
+                .Factor("range", rangeScore, utilityTuning.attackRangeFactor)
+                .FactorBinary(ctx.LineOfSightToEnemy, "LOS", utilityTuning.attackLOSFactor)
+                .Factor("threat", netThreat, utilityTuning.attackThreatFactor)
+                .FactorBinary(inRange, "orbitRange", utilityTuning.orbitInRangeFactor)
+                .FactorIf(!ctx.LineOfSightToEnemy, "flanking", utilityTuning.orbitFlankingFactor)
+                .FactorIf(healthFactor < utilityTuning.orbitLowHealthThreshold, "lowHealth", utilityTuning.orbitLowHealthFactor)
+                .Build();
         }
     }
 } 

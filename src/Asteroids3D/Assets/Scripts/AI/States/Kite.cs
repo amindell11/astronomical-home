@@ -66,26 +66,21 @@ namespace AI.States
         public override float ComputeUtility(Info ctx)
         {
             if (!ctx.Enemy) return 0f;
-            
-            var attackDesire = Utility.Utility.ComputeAttackUtility(ctx);
-            var evadeDesire = Utility.Utility.ComputeEvadeUtility(ctx);
-            var score = (attackDesire + evadeDesire) / 2f;
-            
+
             var dist = ctx.VectorToEnemy.magnitude;
-            if (dist < utilityTuning.kiteMinDistance)
-            {
-                score += utilityTuning.kiteTooCloseBonus;
-            }
-
-            if (ctx.HealthPct < utilityTuning.kiteLowHealthThreshold && ctx.ShieldPct > utilityTuning.kiteHighShieldThreshold)
-            {
-                score += utilityTuning.kiteLowHealthBonus;
-            }
-
-            var anglePenalty = Mathf.Clamp01((ctx.SelfAngleToEnemy - utilityTuning.kiteAngleTolerance) / 150f);
-            score -= anglePenalty * utilityTuning.kiteAnglePenaltyMultiplier;
-
-            return Mathf.Max(0f, score);
+            var enemyHealth = (ctx.EnemyHealthPct + ctx.EnemyShieldPct) / 2f;
+            var netThreat = Mathf.Clamp01((ctx.NearbyEnemyCount - ctx.NearbyFriendCount) / 3f);
+            var angleOffset = Mathf.Max(0f, ctx.SelfAngleToEnemy - utilityTuning.kiteAngleTolerance) / 150f;
+            
+            return new UtilityBuilder()
+                .Factor("selfHealth", ctx.HealthPct, utilityTuning.evadeHealthFactor)
+                .Factor("selfShield", ctx.ShieldPct, utilityTuning.evadeShieldFactor)
+                .FactorBinary(ctx.NearbyEnemyCount > ctx.NearbyFriendCount + 1, "outnumbered", utilityTuning.evadeOutnumberedFactor)            
+                .FactorIf(dist < utilityTuning.kiteMinDistance, "tooClose", utilityTuning.kiteTooCloseFactor)
+                .FactorIf(ctx.HealthPct < utilityTuning.kiteLowHealthThreshold && ctx.ShieldPct > utilityTuning.kiteHighShieldThreshold, 
+                    "lowHealthHighShield", utilityTuning.kiteLowHealthHighShieldFactor)
+                .Factor("angle", angleOffset, utilityTuning.kiteAngleFactor.Inverted)
+                .Build();
         }
     }
 }

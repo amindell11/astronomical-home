@@ -79,7 +79,6 @@ namespace Ships.Control
             if (!ship || !utilitySelector) return;   
             currentState = ship.CurrentState;
         
-            // Update state machine with context
             if (context)
             {
                 utilitySelector.Tick(context, Time.fixedDeltaTime);
@@ -88,9 +87,9 @@ namespace Ships.Control
             cachedCommand = GenerateCommand(currentState);
         }
 
-        Command GenerateCommand(State state)
+        private Command GenerateCommand(State state)
         {
-            Command cmd = new Command();
+            var cmd = new Command();
 
             // --- Difficulty Level 1 (< 0.25): Stationary, no actions. ---
             if (difficulty < 0.25f) return cmd; // cmd defaults to zeros/false.
@@ -98,19 +97,15 @@ namespace Ships.Control
 
             navigator.GenerateNavCommands(state, ref cmd);
 
-            // --- Difficulty governs weapon usage ---
-            // Level 2 (< 0.5): Movement only, no weapons.
             if (difficulty < 0.5f) return cmd;
 
             gunner.GenerateGunnerCommands(state, ref cmd);
 
             // Level 3 (< 0.75): Lasers only, no missiles.
-            if (difficulty < 0.75f)
+            if (!(difficulty < 0.75f)) return cmd;
+            if (cmd.SecondaryFire) // Only log if we are actually disabling it
             {
-                if (cmd.SecondaryFire) // Only log if we are actually disabling it
-                {
-                    cmd.SecondaryFire = false;
-                }
+                cmd.SecondaryFire = false;
             }
             return cmd;
         }

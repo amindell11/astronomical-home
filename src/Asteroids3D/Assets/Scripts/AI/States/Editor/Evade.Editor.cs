@@ -66,7 +66,7 @@ namespace AI.States
             UnityEditor.Handles.color = Color.white;
             string threatInfo = $"EVADE\nHP: {ctx.HealthPct:P0} Shield: {ctx.ShieldPct:P0}";
             if (ctx.IncomingMissile) threatInfo += "\n⚠ MISSILE!";
-            if (ctx.NearbyEnemyCount > ctx.NearbyFriendCount) threatInfo += $"\n⚠ Outnumbered {ctx.NearbyEnemyCount}v{ctx.NearbyFriendCount}";
+            if (ctx.NearbyEnemyCount > ctx.NearbyFriendCount) threatInfo += $"\n⚠ Outnumbered {ctx.NearbyEnemyCount}v{ctx.NearbyFriendCount+1}";
             
             UnityEditor.Handles.Label(selfPos + Vector3.up * 4f, threatInfo);
         }

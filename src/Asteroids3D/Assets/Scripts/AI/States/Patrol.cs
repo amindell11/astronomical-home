@@ -43,7 +43,7 @@ namespace AI.States
         {
             if (!ctx.InCombat)
             {
-                return 1f;
+                return 2f;
             }
             
             return 0f;

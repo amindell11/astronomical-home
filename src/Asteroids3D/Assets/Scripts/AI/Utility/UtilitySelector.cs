@@ -64,7 +64,6 @@ namespace AI.Utility
         {
             if (selectedState == null || selectedState == CurrentState) return false;
             if (timeSinceChange < config.minTimeInState) return false;
-
             if (config.useProbabilisticSampling) return true;
 
             var selectedUtility = sampler.GetSmoothedUtility(selectedState);

@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c413e533550377443b307708374ce83c, type: 3}
   m_Name: UtilitySelectorSettings
   m_EditorClassIdentifier: 
-  minTimeInState: 0.5
+  minTimeInState: 0.64
   utilityThreshold: 0.1
   useProbabilisticSampling: 0
-  samplingTemperature: 1
+  samplingTemperature: 1.16
   showStateSelectionGizmos: 1
   showCurrentStateGizmos: 1
-  stickyBonus: 0.05
-  utilitySmoothingFactor: 0.25
-  stickyFadeTime: 2
+  stickyBonus: 1
+  utilitySmoothingFactor: 0.613
+  stickyFadeTime: 21.56

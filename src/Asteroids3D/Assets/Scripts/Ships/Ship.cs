@@ -115,7 +115,7 @@ namespace Ships
             UpdateState();
             var cmd = CurrentCommand;
             HasValidCommand = Commander?.TryGetCommand(CurrentState, out cmd) ?? false;
-            CurrentCommand = cmd;
+            if(HasValidCommand) CurrentCommand = cmd;
         }
 
         private void UpdateState()

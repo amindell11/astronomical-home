@@ -105,8 +105,7 @@ namespace AI
 
         public void GenerateNavCommands(State state, ref Command cmd)
         {
-            if (!ship || !currentWaypoint.isValid)
-            {
+            if (!ship || !currentWaypoint.isValid) {
                 cmd.TargetAngle = state.Kinematics.Yaw;
                 return;
             }

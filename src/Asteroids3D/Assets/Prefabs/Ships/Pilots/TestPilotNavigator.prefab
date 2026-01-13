@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 4713944334268074824}
   - component: {fileID: 9147953976092396285}
   m_Layer: 7
-  m_Name: UtilityPilot
+  m_Name: TestPilotNavigator
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -50,7 +50,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   utilityTuning: {fileID: 11400000, guid: e4c52ba5b796d2642b7fa9e69870137b, type: 2}
-  difficulty: 1
+  difficulty: 0.513
 --- !u!114 &-1070365238870678526
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -78,18 +78,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66115a06650c065419cbc6b5a01364e2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  arriveRadius: 3.32
+  arriveRadius: 0.01
   asteroidMask:
     serializedVersion: 2
-    m_Bits: 0
-  lookAheadTime: 0.67
-  safeMargin: 2
-  avoidRadius: 0.5
+    m_Bits: 384
+  lookAheadTime: 0.8
+  safeMargin: 0.03
+  avoidRadius: 0.29
   enableAvoidance: 1
-  raysPerDirection: 1
-  maxRayDegrees: 90
-  sphereCastRadius: 0.32
-  proportionalGain: 4.23
+  raysPerDirection: 2
+  maxRayDegrees: 59.7
+  sphereCastRadius: 0.52
+  proportionalGain: 2.65
 --- !u!114 &2056539076943524747
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -118,7 +118,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   config: {fileID: 11400000, guid: 2953629aea9c0114d9f56764e09bca98, type: 2}
-  instanceUtilityWeights: {fileID: 0}
+  instanceUtilityWeights: {fileID: 11400000, guid: 4233613ec995bd04a9f992816a5afe04,
+    type: 2}
 --- !u!114 &9147953976092396285
 MonoBehaviour:
   m_ObjectHideFlags: 0
