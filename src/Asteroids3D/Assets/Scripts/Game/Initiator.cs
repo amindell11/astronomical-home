@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Linq;
 using Asteroids;
+using Cameras;
 using Ships;
 using UnityEngine;
 using World;
@@ -65,7 +66,7 @@ namespace Game
         private void InitializeCamera(Config config)
         {
             cameraRig = Instantiate(config.CameraRig);
-            var cameraFollow = cameraRig.CameraFollow;
+            var cameraFollow = cameraRig.ObserverCam;
             cameraFollow.SetSubject(Services.Player.transform);
             cameraFollow.AddSecondarySubjects(Services.ActiveShips.Where(s => s != Services.Player).Select(s => s.transform));
             Services.ActiveShips.OnAdd += s => cameraFollow.AddSecondarySubject(s.transform);
