@@ -1,0 +1,57 @@
+using Game;
+using UnityEngine;
+
+/// <summary>
+/// Minimal utilities for programmatic test scene composition.
+/// For ship creation, use <see cref="TestServices"/> or <see cref="Ships.Factory"/> directly.
+/// </summary>
+public static class TestSceneBuilder
+{
+    /// <summary>
+    /// Creates a test arena with a properly configured reference plane.
+    /// </summary>
+    public static GameObject CreateTestArena()
+    {
+        var arena = new GameObject("TestArena");
+
+        var plane = new GameObject("ReferencePlane");
+        plane.tag = "ReferencePlane";
+        plane.transform.SetParent(arena.transform);
+        plane.transform.SetPositionAndRotation(Vector3.zero, Quaternion.Euler(90f, 0f, 0f));
+
+        GamePlane.SetReferencePlane(plane.transform);
+
+        return arena;
+    }
+
+    /// <summary>
+    /// Positions two transforms for testing with specified distance and angle.
+    /// </summary>
+    /// <param name="shooter">The shooting object (placed at origin)</param>
+    /// <param name="target">The target object</param>
+    /// <param name="distance">Distance between objects</param>
+    /// <param name="angle">Angle in degrees (0 = target directly ahead on plane Y axis)</param>
+    public static void PositionForTest(Transform shooter, Transform target, float distance, float angle = 0f)
+    {
+        if (!shooter || !target) return;
+
+        shooter.position = Vector3.zero;
+        shooter.rotation = Quaternion.identity;
+
+        float rad = angle * Mathf.Deg2Rad;
+        Vector2 offset2D = new Vector2(Mathf.Sin(rad), Mathf.Cos(rad)) * distance;
+        target.position = GamePlane.PlanePointToWorld(offset2D);
+    }
+
+    /// <summary>
+    /// Creates an obstacle for line-of-sight testing.
+    /// </summary>
+    public static GameObject CreateObstacle(Vector3 position, Vector3 size)
+    {
+        var obstacle = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        obstacle.name = "TestObstacle";
+        obstacle.transform.position = position;
+        obstacle.transform.localScale = size;
+        return obstacle;
+    }
+}

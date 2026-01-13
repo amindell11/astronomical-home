@@ -45,13 +45,17 @@ namespace Ships.Damage
             
             UpdateAttacker(attacker);
             
-            float damageRemaining = Shield.ApplyDamage(damage);
-            float appliedDamage = damage - damageRemaining;
+            float appliedDamage;
             
-            if (damageRemaining > 0)
+            // If shields are already depleted, damage goes directly to health
+            if (Shield.CurrentValue <= 0)
             {
-                float healthDamage = Health.ApplyDamage(damageRemaining);
-                appliedDamage += healthDamage;
+                appliedDamage = Health.ApplyDamage(damage);
+            }
+            else
+            {
+                // Shields absorb damage; excess from a single hit is discarded (single-hit rule)
+                appliedDamage = Shield.ApplyDamage(damage);
             }
 
             if (appliedDamage > 0)

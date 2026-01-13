@@ -17,10 +17,10 @@ namespace Ships.Damage
 
         public override float ApplyDamage(float amount)
         {
-            float appliedDamage = base.ApplyDamage(amount);
-            if (appliedDamage > 0)
+            var damageAbsorbed = base.ApplyDamage(amount);
+            if (damageAbsorbed > 0)
                 lastDamageTime = Time.time;
-            return appliedDamage;
+            return damageAbsorbed;
         }
         
         public void Update(float deltaTime)
@@ -31,7 +31,7 @@ namespace Ships.Damage
         
         private void Regenerate(float deltaTime)
         {
-            float regenAmount = regenRate * deltaTime;
+            var regenAmount = regenRate * deltaTime;
             Set(CurrentValue+regenAmount);
         }
         

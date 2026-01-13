@@ -18,22 +18,25 @@ namespace Ships.Damage
             CurrentValue = MaxValue;
         }
 
+        /// <summary>
+        /// Applies damage to this resource and returns the amount absorbed.
+        /// </summary>
+        /// <returns>Amount of damage absorbed by this resource.</returns>
         public virtual float ApplyDamage(float amount)
         {
             if (amount <= 0 || CurrentValue <= 0) return 0;
 
-            float prev = CurrentValue;
-            float damageToApply = Mathf.Min(amount, CurrentValue);
-            CurrentValue -= damageToApply;
+            var prev = CurrentValue;
+            var damageAbsorbed = Mathf.Min(amount, CurrentValue);
+            CurrentValue -= damageAbsorbed;
             
             OnValueChanged?.Invoke(CurrentValue, prev, MaxValue);
-            return damageToApply;
+            return damageAbsorbed;
         }
 
-        // ReSharper disable Unity.PerformanceAnalysis
         public void Reset()
         {
-            float prev = CurrentValue;
+            var prev = CurrentValue;
             CurrentValue = MaxValue;
             OnValueChanged?.Invoke(CurrentValue, prev, MaxValue);
         }
@@ -44,7 +47,6 @@ namespace Ships.Damage
             Reset();
         }
 
-        // ReSharper disable Unity.PerformanceAnalysis
         protected void Set(float val)
         {
             var prev = CurrentValue;
