@@ -98,7 +98,7 @@ namespace AI.Steering
                 var rp3 = rock.transform.position;
                 var rockPos = GamePlane.WorldPointToPlane(rp3);
                 var rv3 = rock.attachedRigidbody ? rock.attachedRigidbody.linearVelocity : Vector3.zero;
-                var rockVel = GamePlane.WorldPointToPlane(rv3);
+                var rockVel = GamePlane.WorldDirToPlane(rv3);
                 var rockFut = rockPos + rockVel * io.lookAheadTime;
 
                 var rockRad = rock.bounds.extents.x;

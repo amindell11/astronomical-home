@@ -46,7 +46,7 @@ public class GamePlanePlayMode
         planeGO.tag = "ReferencePlane";
         var planeTransform = planeGO.transform;
         planeTransform.position = new Vector3(10, 0, 5);
-        planeTransform.rotation = Quaternion.Euler(0, 0, 0); // Up = Y, Forward = Z
+        planeTransform.rotation = Quaternion.Euler(90f, 0f, 0f); // Horizontal plane: local XY maps to world XZ
 
         GamePlane.SetReferencePlane(planeTransform);
 

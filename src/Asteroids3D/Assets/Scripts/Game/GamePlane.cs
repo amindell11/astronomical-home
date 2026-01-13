@@ -40,13 +40,23 @@ namespace Game
         public static Vector3 ProjectOntoPlane(Vector3 world) => 
             Vector3.ProjectOnPlane(world - Origin, Normal);
 
-        public static Vector2 WorldPointToPlane(Vector3 worldPt) => 
-            (Vector2)Plane.InverseTransformPoint(worldPt);
-        public static Vector2 WorldDirToPlane(Vector3 worldDir) => 
-            (Vector2)Plane.InverseTransformDirection(worldDir);
+        public static Vector2 WorldPointToPlane(Vector3 worldPt)
+        {
+            var relative = worldPt - Origin;
+            var projected = Vector3.ProjectOnPlane(relative, Normal);
+            return new Vector2(Vector3.Dot(projected, Right), Vector3.Dot(projected, Forward));
+        }
+        
+        public static Vector2 WorldDirToPlane(Vector3 worldDir)
+        {
+            var projected = Vector3.ProjectOnPlane(worldDir, Normal);
+            return new Vector2(Vector3.Dot(projected, Right), Vector3.Dot(projected, Forward));
+        }
+        
         public static Vector3 PlanePointToWorld(Vector2 planePt) => 
-            Plane.TransformPoint(new Vector3(planePt.x, planePt.y, 0f));
+            Origin + Right * planePt.x + Forward * planePt.y;
+        
         public static Vector3 PlaneDirToWorld(Vector2 planeDir) => 
-            Plane.TransformDirection(new Vector3(planeDir.x, planeDir.y, 0f));
+            Right * planeDir.x + Forward * planeDir.y;
     }
 } 
