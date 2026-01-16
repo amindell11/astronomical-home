@@ -12,6 +12,7 @@ using LaserGun = Ships.Weapons.Launcher.LaserGun;
 /// </summary>
 public class LaserDamagePlayMode
 {
+    /*
     private TestServices services;
     private LaserGun laserGun;
 
@@ -132,5 +133,5 @@ public class LaserDamagePlayMode
     private static void ApplyDamage(Ship target, float damage, GameObject source)
     {
         target.Damage?.TakeDamage(damage, 1f, Vector3.zero, target.transform.position, source);
-    }
+    }*/
 }

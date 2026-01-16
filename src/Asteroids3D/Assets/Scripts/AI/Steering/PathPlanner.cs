@@ -22,8 +22,8 @@ namespace AI.Steering
             public readonly IReadOnlyList<Collider> nearbyAsteroids;
             public readonly SteeringTuning tuning;
 
-            public Input(Kinematics k, Vector2 g, Vector2 wpVel, float avoid, float arrive, float max, float lookAhead,
-                float margin, IReadOnlyList<Collider> rocks, SteeringTuning t)
+            public Input(Kinematics k, Vector2 g, Vector2 wpVel, float avoid, float arrive, 
+                float max, float lookAhead, float margin, IReadOnlyList<Collider> rocks, SteeringTuning t)
             {
                 kin   = k;
                 goal  = g;
@@ -69,52 +69,77 @@ namespace AI.Steering
 
         public static Output Compute(Input io)
         {
-            var toGoal = io.goal - io.kin.Pos;
+            var desired = ComputeSeekVelocity(io.goal, io.kin.Pos, io.arriveRadius, io.maxSpeed, io.tuning.ForwardAcc);
+            var avoid = ComputeAvoidanceForce(io, out var future, out var collidingFutures);
+            var desiredVel = desired + avoid + io.waypointVel;
+            
+            if (desiredVel.sqrMagnitude > io.maxSpeed * io.maxSpeed)
+                desiredVel = desiredVel.normalized * io.maxSpeed;
+            
+            var accel = desiredVel - io.kin.Vel;
+            
+            var dbg = new DebugInfo(future, desired, avoid, accel, collidingFutures);
+            return new Output(desiredVel, accel, dbg);
+        }
+
+        private static Vector2 ComputeSeekVelocity(Vector2 goal, Vector2 pos, float arriveRadius, float maxSpeed, float deceleration)
+        {
+            var toGoal = goal - pos;
             var dist = toGoal.magnitude;
-            var dirToGoal = dist > 0.01f ? toGoal / dist : Vector2.zero;
+            
+            if (dist < arriveRadius)
+                return Vector2.zero;
+            
+            var slowdownDist = StoppingDistance(maxSpeed, deceleration);
+            var speed = (dist > slowdownDist) 
+                ? maxSpeed 
+                : MaxSpeedForStoppingDistance(dist, deceleration);
+            
+            return toGoal.normalized * speed;
+        }
 
-            var maxRelativeSpeed = Mathf.Sqrt(2f * io.tuning.ForwardAcc * dist);
-            var desiredRelSpeed = Mathf.Min(maxRelativeSpeed, io.maxSpeed);
-        
-            var desired = io.waypointVel + dirToGoal * desiredRelSpeed;
-        
-            if (desired.sqrMagnitude > io.maxSpeed * io.maxSpeed)
-                desired = desired.normalized * io.maxSpeed;
+        private static float StoppingDistance(float speed, float deceleration)
+        {
+            return (speed * speed) / (2f * deceleration);
+        }
 
-            var future = io.kin.Pos + io.kin.Vel * io.lookAheadTime;
-            var push   = Vector2.zero;
+        private static float MaxSpeedForStoppingDistance(float distance, float deceleration)
+        {
+            return Mathf.Sqrt(2f * deceleration * distance);
+        }
+
+        private static Vector2 ComputeAvoidanceForce(Input io, out Vector2 future, out List<Vector2> collidingFutures)
+        {
+            future = io.kin.Pos + io.kin.Vel * io.lookAheadTime;
+            
+            var push = Vector2.zero;
             var weight = 0f;
+            
 #if UNITY_EDITOR
-            List<Vector2> collidingFutures = null;
+            collidingFutures = null;
+#else
+            collidingFutures = new List<Vector2>();
 #endif
 
             var segStart = io.kin.Pos;
-            var segEnd   = future;
-            var segDir   = segEnd - segStart;
+            var segEnd = future;
+            var segDir = segEnd - segStart;
             var segLenSq = segDir.sqrMagnitude;
 
             foreach (var rock in io.nearbyAsteroids)
             {
-                var rp3 = rock.transform.position;
-                var rockPos = GamePlane.WorldPointToPlane(rp3);
-                var rv3 = rock.attachedRigidbody ? rock.attachedRigidbody.linearVelocity : Vector3.zero;
-                var rockVel = GamePlane.WorldDirToPlane(rv3);
-                var rockFut = rockPos + rockVel * io.lookAheadTime;
-
+                var rockFut = PredictRockPosition(rock, io.lookAheadTime);
                 var rockRad = rock.bounds.extents.x;
                 var combined = io.avoidRadius + rockRad + io.safeMargin;
 
-                var t = 0f;
-                var offset = rockFut - segStart;
-                if (segLenSq > 0.0001f)
-                    t = Mathf.Clamp(Vector2.Dot(offset, segDir) / segLenSq, 0f, 1f);
-                var closest = segStart + segDir * t;
-                var sep     = closest - rockFut;
-                var sq      = sep.sqrMagnitude;
+                var closest = ClosestPointOnSegment(segStart, segDir, segLenSq, rockFut);
+                var sep = closest - rockFut;
+                var sq = sep.sqrMagnitude;
 
                 if (!(sq < combined * combined)) continue;
+                
                 var w = 1f / Mathf.Max(sq, 0.01f);
-                push   += sep.normalized * w;
+                push += sep.normalized * w;
                 weight += w;
 
 #if UNITY_EDITOR
@@ -123,18 +148,25 @@ namespace AI.Steering
 #endif
             }
 
-            var avoid = (weight > 0f) ? push / weight * io.maxSpeed : Vector2.zero;
+            return weight > 0f ? push / weight * io.maxSpeed : Vector2.zero;
+        }
 
-            var desiredVel = desired + avoid;
+        private static Vector2 PredictRockPosition(Collider rock, float lookAheadTime)
+        {
+            var rockPos = GamePlane.WorldPointToPlane(rock.transform.position);
+            var rockVel = rock.attachedRigidbody 
+                ? GamePlane.WorldDirToPlane(rock.attachedRigidbody.linearVelocity) 
+                : Vector2.zero;
+            return rockPos + rockVel * lookAheadTime;
+        }
 
-            var accel = desiredVel - io.kin.Vel;
-
-#if UNITY_EDITOR
-            var dbg = new DebugInfo(future, desired, avoid, accel, collidingFutures ?? new List<Vector2>());
-#else
-        var dbg = new DebugInfo(future, desired, avoid, accel, new List<Vector2>());
-#endif
-            return new Output(desiredVel, accel, dbg);
+        private static Vector2 ClosestPointOnSegment(Vector2 segStart, Vector2 segDir, float segLenSq, Vector2 point)
+        {
+            var t = 0f;
+            if (!(segLenSq > 0.0001f)) return segStart + segDir * t;
+            var offset = point - segStart;
+            t = Mathf.Clamp(Vector2.Dot(offset, segDir) / segLenSq, 0f, 1f);
+            return segStart + segDir * t;
         }
     }
 } 

@@ -74,8 +74,7 @@ namespace AI
                     Gizmos.DrawWireSphere(transform.position + ray, sphereCastRadius);
             }
 
-            // Draw detected obstacles
-            Gizmos.color = new Color(0.7f, 0.7f, 0.7f, 0.6f);
+            if (dbgObstacleScan.hitCount <= 0) return;
             foreach (var col in dbgObstacleScan.Obstacles)
             {
                 if (!col) continue;

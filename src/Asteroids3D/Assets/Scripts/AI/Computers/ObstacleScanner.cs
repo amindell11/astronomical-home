@@ -58,7 +58,7 @@ namespace AI.Computers
                 ? Physics.SphereCastNonAlloc(pos, config.sphereCastRadius, dir, rayHits, maxDist, config.asteroidMask, QueryTriggerInteraction.Ignore)
                 : Physics.RaycastNonAlloc(pos, dir, rayHits, maxDist, config.asteroidMask, QueryTriggerInteraction.Ignore);
 
-            for (int i = 0; i < cnt && n < MaxColliders; i++)
+            for (var i = 0; i < cnt && n < MaxColliders; i++)
             {
                 var col = rayHits[i].collider;
                 if (col && Array.IndexOf(hits, col, 0, n) < 0) hits[n++] = col;
@@ -85,8 +85,11 @@ namespace AI.Computers
         public struct ScanResult
         {
             public int hitCount;
-            public ArraySegment<Collider> Obstacles => new ArraySegment<Collider>(colliders, 0, hitCount);
-
+            public ArraySegment<Collider> Obstacles => 
+                colliders != null 
+                    ? new ArraySegment<Collider>(colliders, 0, hitCount) 
+                    : new ArraySegment<Collider>();
+            
             private readonly Collider[] colliders;
 
             public ScanResult(Collider[] buffer)

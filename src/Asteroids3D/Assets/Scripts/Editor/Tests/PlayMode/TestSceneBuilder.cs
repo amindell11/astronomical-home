@@ -38,8 +38,8 @@ public static class TestSceneBuilder
         shooter.position = Vector3.zero;
         shooter.rotation = Quaternion.identity;
 
-        float rad = angle * Mathf.Deg2Rad;
-        Vector2 offset2D = new Vector2(Mathf.Sin(rad), Mathf.Cos(rad)) * distance;
+        var rad = angle * Mathf.Deg2Rad;
+        var offset2D = new Vector2(Mathf.Sin(rad), Mathf.Cos(rad)) * distance;
         target.position = GamePlane.PlanePointToWorld(offset2D);
     }
 

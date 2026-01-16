@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace AI.Steering
 {
-    public static class Pilot
+    public class Pilot
     {
         public readonly struct Input
         {
@@ -12,23 +12,18 @@ namespace AI.Steering
             public readonly Vector2 desiredVel;
             public readonly Vector2 desiredAccel;
             public readonly float   maxSpeed;
-            public readonly SteeringTuning tuning;
-            public readonly bool lockRotation;
+            public readonly float?  facingTargetDeg;
             public readonly bool useTiltedHeading;
 
-            public Input(Kinematics k, Vector2 desiredVelocity, Vector2 desiredAcceleration, float max, SteeringTuning tuning, bool lockRotation = false, bool useTiltedHeading = true)
+            public Input(Kinematics k, Vector2 desiredVelocity, Vector2 desiredAcceleration, float max, float? facingTarget = null, bool useTiltedHeading = true)
             {
                 kin = k;
                 desiredVel = desiredVelocity;
                 desiredAccel = desiredAcceleration;    
                 maxSpeed = max;
-                this.tuning = tuning;
-                this.lockRotation = lockRotation;
+                this.facingTargetDeg = facingTarget;
                 this.useTiltedHeading = useTiltedHeading;
             }
-
-            public Input(Kinematics k, Vector2 desiredVelocity, Vector2 desiredAcceleration, float max)
-                : this(k, desiredVelocity, desiredAcceleration, max, SteeringTuning.Default, false, true) {}
         }
 
         public readonly struct Output
@@ -43,27 +38,41 @@ namespace AI.Steering
             }
         }
 
-        public static Output Compute(Input i)
+        private readonly SteeringTuning tuning;
+        private readonly float proportionalGain;
+        private float smoothThrust;
+        private float smoothStrafe;
+
+        public Pilot(SteeringTuning tuning, float proportionalGain)
         {
-            var curPos  = i.kin.Pos;
-            var curVel  = i.kin.Vel;
-            var forward = i.kin.Forward;
+            this.tuning = tuning;
+            this.proportionalGain = proportionalGain;
+            this.smoothThrust = 0f;
+            this.smoothStrafe = 0f;
+        }
 
-            var tuning = i.tuning;
-        
-            var desiredAcceleration = i.desiredAccel;
+        public Output Compute(Input i)
+        {
+            ComputeRawControls(i.kin.Forward, i.desiredAccel, out var rawThrust, out var rawStrafe);
+            ApplySmoothing(rawThrust, rawStrafe);
+            var rotTargetDeg = ComputeRotationTarget(i);
+            
+            return new Output(smoothThrust, smoothStrafe, rotTargetDeg);
+        }
 
-            var shipRight   = new Vector2(forward.y, -forward.x);
-            var forwardComponent  = Vector2.Dot(desiredAcceleration, forward);
-            var strafeComponent   = Vector2.Dot(desiredAcceleration, shipRight);
+        private void ComputeRawControls(Vector2 forward, Vector2 desiredAccel, out float thrust, out float strafe)
+        {
+            var shipRight = new Vector2(forward.y, -forward.x);
+            var forwardComponent = Vector2.Dot(desiredAccel, forward);
+            var strafeComponent = Vector2.Dot(desiredAccel, shipRight);
 
-            var thrust = (forwardComponent >= 0f)
+            thrust = (forwardComponent >= 0f)
                 ? forwardComponent / tuning.ForwardAcc
                 : forwardComponent / tuning.ReverseAcc;
 
-            var strafe = strafeComponent / tuning.StrafeAcc;
+            strafe = strafeComponent / tuning.StrafeAcc;
 
-            if (desiredAcceleration.magnitude < tuning.DeadZone)
+            if (desiredAccel.magnitude < tuning.DeadZone)
             {
                 thrust = 0f;
                 strafe = 0f;
@@ -73,14 +82,29 @@ namespace AI.Steering
                 thrust = Mathf.Clamp(thrust, -1f, 1f);
                 strafe = Mathf.Clamp(strafe, -1f, 1f);
             }
+        }
 
-            var rotTargetDeg = i.kin.Yaw;
+        private void ApplySmoothing(float rawThrust, float rawStrafe)
+        {
+            var a = 1f - Mathf.Exp(-proportionalGain * Time.fixedDeltaTime);
+            smoothThrust = Mathf.Lerp(smoothThrust, rawThrust, a);
+            smoothStrafe = Mathf.Lerp(smoothStrafe, rawStrafe, a);
+        }
 
-            if (i.lockRotation || !(i.desiredVel.sqrMagnitude > 0.01f)) return new Output(thrust, strafe, rotTargetDeg);
-            var targetDir = i.useTiltedHeading ? ComputeTiltedHeading(i.desiredVel, strafe, tuning) : i.desiredVel.normalized;
-            rotTargetDeg = Vector2.SignedAngle(Vector2.up, targetDir);
-            if (rotTargetDeg < 0f) rotTargetDeg += 360f;
-            return new Output(thrust, strafe, rotTargetDeg);
+        private float ComputeRotationTarget(Input i)
+        {
+            if (i.facingTargetDeg.HasValue)
+                return i.facingTargetDeg.Value;
+
+            if (!(i.desiredVel.sqrMagnitude > 0.01f))
+                return i.kin.Yaw;
+
+            var targetDir = i.useTiltedHeading 
+                ? ComputeTiltedHeading(i.desiredVel, smoothStrafe, tuning) 
+                : i.desiredVel.normalized;
+            
+            var angle = Vector2.SignedAngle(Vector2.up, targetDir);
+            return angle < 0f ? angle + 360f : angle;
         }
 
         private static Vector2 ComputeTiltedHeading(Vector2 desiredVel, float strafeCmd, SteeringTuning tuning)
@@ -90,49 +114,17 @@ namespace AI.Steering
                 return desiredVel.normalized;
 
             var maxTilt = Mathf.Atan2(tuning.StrafeAcc, tuning.ForwardAcc);
-
             var tilt = maxTilt * absStrafe;
-
             var sign = (strafeCmd >= 0f) ? +1f : -1f;
 
             return Rotate(desiredVel.normalized, sign * tilt).normalized;
-        }
-
-        private static void ComputeBoost(Vector2 desiredDir, Vector2 currentForward, SteeringTuning tuning,
-            out float thrustCmd, out float strafeCmd, out float rotTargetDeg)
-        {
-            var phi = Mathf.Atan2(tuning.StrafeAcc, tuning.ForwardAcc);
-
-            var dirRight = Rotate(desiredDir, +phi).normalized;
-            var dirLeft  = Rotate(desiredDir, -phi).normalized;
-
-            var deltaRight = Mathf.Abs(Vector2.SignedAngle(currentForward, dirRight));
-            var deltaLeft  = Mathf.Abs(Vector2.SignedAngle(currentForward, dirLeft));
-
-            Vector2 chosenDir;
-            if (deltaRight <= deltaLeft)
-            {
-                chosenDir  = dirRight;
-                strafeCmd  = 1f;
-            }
-            else
-            {
-                chosenDir  = dirLeft;
-                strafeCmd  = -1f;
-            }
-
-            thrustCmd = 1f;
-
-            rotTargetDeg = Vector2.SignedAngle(Vector2.up, chosenDir);
-            if (rotTargetDeg < 0f) rotTargetDeg += 360f;
         }
 
         private static Vector2 Rotate(Vector2 v, float angleRad)
         {
             var c = Mathf.Cos(angleRad);
             var s = Mathf.Sin(angleRad);
-            return new Vector2(c * v.x - s * v.y,
-                s * v.x + c * v.y);
+            return new Vector2(c * v.x - s * v.y, s * v.x + c * v.y);
         }
     }
 }

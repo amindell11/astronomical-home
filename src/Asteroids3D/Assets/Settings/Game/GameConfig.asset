@@ -24,7 +24,7 @@ MonoBehaviour:
   shipSettings: {fileID: 11400000, guid: c2eae258625507d43948e555302ee7ee, type: 2}
   playerCommander: {fileID: 6378580657550141484, guid: ed986bef16a6fa9488e6052de65aa9dd,
     type: 3}
-  enemyCommander: {fileID: 1772957474756936600, guid: 08a3705197cc60842b107b8485d8ad25,
+  enemyCommander: {fileID: 1772957474756936600, guid: a69800e9bff3c4844ba74cc99c3dc9c0,
     type: 3}
   world: {fileID: 4478678954348364341, guid: 85b078d06b0ea6c40acdfd2fe59a9556, type: 3}
   spawnerSettings: {fileID: 11400000, guid: d5df05273fc201d41b456a239f5fa628, type: 2}

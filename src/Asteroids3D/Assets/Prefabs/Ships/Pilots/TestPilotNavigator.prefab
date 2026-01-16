@@ -78,7 +78,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66115a06650c065419cbc6b5a01364e2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  arriveRadius: 0.01
+  arriveRadius: 0.5
   asteroidMask:
     serializedVersion: 2
     m_Bits: 384
@@ -89,7 +89,8 @@ MonoBehaviour:
   raysPerDirection: 2
   maxRayDegrees: 59.7
   sphereCastRadius: 0.52
-  proportionalGain: 2.65
+  proportionalGain: 7.73
+  useTiltedHeading: 0
 --- !u!114 &2056539076943524747
 MonoBehaviour:
   m_ObjectHideFlags: 0

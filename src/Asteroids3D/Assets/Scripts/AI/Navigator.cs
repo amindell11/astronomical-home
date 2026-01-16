@@ -1,4 +1,5 @@
-﻿using AI.Computers;
+using System.IO;
+using AI.Computers;
 using AI.Context;
 using AI.Steering;
 using Game;
@@ -18,7 +19,7 @@ namespace AI
         }
 
         [Header("Navigation")]
-        public float arriveRadius = 10f;
+        public float arriveRadius = 2f;
 
         [Header("Avoidance")]
         public LayerMask asteroidMask;
@@ -35,17 +36,19 @@ namespace AI
         [Tooltip("Radius of spherecast for obstacle detection. Set to 0 for raycasts.")]
         public float sphereCastRadius = 0.5f;
 
-        [Header("Steering Smoothing")]
+        [Header("Steering")]
         [Tooltip("Higher values react faster; 0 disables smoothing. Units: 1/seconds (approx).")]
         [Range(0, 20)] public float proportionalGain = 5f;
+        [Tooltip("Use tilted heading when strafing for more natural flight")]
+        [SerializeField] private bool useTiltedHeading = true;
 
-        private Ship ship;
+        private Ship ship; //TODO remove ship reference
         private Sensors sensors;
         private SteeringTuning tuning;
+        private Pilot pilot;
         private Waypoint currentWaypoint;
         private bool facingOverride;
         private float facingAngle;
-        private float smoothThrust, smoothStrafe;
 
         public Waypoint CurrentWaypoint => currentWaypoint;
 
@@ -62,8 +65,75 @@ namespace AI
                     settings.maxStrafeForce / mass,
                     SteeringTuning.Default.DeadZone)
                 : SteeringTuning.Default;
+            
+            pilot = new Pilot(tuning, proportionalGain);
         }
 
+        public void GenerateNavCommands(State state, ref Command cmd)
+        {
+            if (!ship || !currentWaypoint.isValid) {
+                cmd.TargetAngle = state.Kinematics.Yaw; //TODO can remove?
+                return;
+            }
+
+            var kin = state.Kinematics;
+            
+            var obstacleScan = ScanObstacles(kin);
+            var pathOutput = PlanPath(kin, obstacleScan);
+            var pilotOutput = GetPilotOutput(kin, pathOutput);
+            
+            cmd.Thrust = pilotOutput.thrust;
+            cmd.Strafe = pilotOutput.strafe;
+            cmd.TargetAngle = pilotOutput.rotTargetDeg;
+            cmd.RotateToTarget = true;
+
+            StoreDebugState(obstacleScan);
+            StoreDebugState(currentWaypoint.position, pathOutput.dbg, pilotOutput);
+            StoreDebugState(pilotOutput.thrust, pilotOutput.strafe);
+        }
+
+        private ObstacleScanner.ScanResult ScanObstacles(Kinematics kin)
+        {
+            var scanConfig = new ObstacleScanner.Config
+            {
+                enabled = enableAvoidance,
+                asteroidMask = asteroidMask,
+                lookAheadTime = lookAheadTime,
+                safeMargin = safeMargin,
+                maxSpeed = ship.settings.maxSpeed,
+                raysPerDirection = raysPerDirection,
+                maxRayDegrees = maxRayDegrees,
+                sphereCastRadius = sphereCastRadius
+            };
+            
+            return sensors.Obstacles.Scan(scanConfig, kin);
+        }
+
+        private PathPlanner.Output PlanPath(Kinematics kin, ObstacleScanner.ScanResult obstacleScan)
+        {
+            var pathInput = new PathPlanner.Input(
+                kin, 
+                currentWaypoint.position, 
+                currentWaypoint.velocity, 
+                avoidRadius, 
+                arriveRadius,
+                ship.settings.maxSpeed,
+                lookAheadTime, 
+                safeMargin, 
+                obstacleScan.Obstacles, 
+                tuning);
+
+            return PathPlanner.Compute(pathInput);
+        }
+
+        private Pilot.Output GetPilotOutput(Kinematics kin, PathPlanner.Output pathOutput)
+        {
+            float? facingTarget = facingOverride ? facingAngle : null;
+            var pilotInput = new Pilot.Input(kin, pathOutput.desiredVelocity, pathOutput.desiredAccel, 
+                ship.settings.maxSpeed, facingTarget, useTiltedHeading); 
+            return pilot.Compute(pilotInput);
+        }
+        
         public void SetNavigationPoint(Vector2 point, bool avoid = false, Vector2? velocity = null)
         {
             currentWaypoint.position = point;
@@ -75,7 +145,7 @@ namespace AI
         public void SetNavigationPointWorld(Vector3 worldPos, bool avoid = true, Vector3? velocity = null)
         {
             var planePos = GamePlane.WorldPointToPlane(worldPos);
-            var planeVel = velocity.HasValue ? GamePlane.WorldPointToPlane(velocity.Value) : (Vector2?)null;
+            var planeVel = velocity.HasValue ? GamePlane.WorldDirToPlane(velocity.Value) : (Vector2?)null;
             SetNavigationPoint(planePos, avoid, planeVel);
         }
 
@@ -102,81 +172,6 @@ namespace AI
         {
             facingOverride = false;
         }
-
-        public void GenerateNavCommands(State state, ref Command cmd)
-        {
-            if (!ship || !currentWaypoint.isValid) {
-                cmd.TargetAngle = state.Kinematics.Yaw;
-                return;
-            }
-
-            var kin = state.Kinematics;
-            var maxSpeed = ship.settings.maxSpeed;
-
-            var scanConfig = new ObstacleScanner.Config
-            {
-                enabled = enableAvoidance,
-                asteroidMask = asteroidMask,
-                lookAheadTime = lookAheadTime,
-                safeMargin = safeMargin,
-                maxSpeed = maxSpeed,
-                raysPerDirection = raysPerDirection,
-                maxRayDegrees = maxRayDegrees,
-                sphereCastRadius = sphereCastRadius
-            };
-
-            var obstacleScan = sensors.Obstacles.Scan(scanConfig, kin);
-            var vpOut = ComputeNavigation(kin, maxSpeed, obstacleScan);
-
-            ApplyControls(vpOut, ref cmd);
-            StoreDebugState(obstacleScan);
-
-            if (facingOverride)
-            {
-                cmd.TargetAngle = facingAngle;
-            }
-        }
-
-        private Pilot.Output ComputeNavigation(Kinematics kin, float maxSpeed, ObstacleScanner.ScanResult obstacleScan)
-        {
-            var goal2D = currentWaypoint.position;
-            var wpVel = currentWaypoint.velocity;
-
-            var ppIn = new PathPlanner.Input(kin, goal2D, wpVel, avoidRadius, arriveRadius, maxSpeed,
-                lookAheadTime, safeMargin, obstacleScan.Obstacles, tuning);
-
-            var ppOut = PathPlanner.Compute(ppIn);
-            var vpIn = new Pilot.Input(kin, ppOut.desiredVelocity, ppOut.desiredAccel, maxSpeed, tuning, facingOverride, true);
-            var vpOut = Pilot.Compute(vpIn);
-
-            StoreDebugState(goal2D, ppOut.dbg, vpOut);
-            return vpOut;
-        }
-
-        private void ApplyControls(Pilot.Output vpOut, ref Command cmd)
-        {
-            var k = proportionalGain;
-            var dt = Time.fixedDeltaTime;
-            if (k > 0f)
-            {
-                smoothThrust += (vpOut.thrust - smoothThrust) * k * dt;
-                smoothStrafe += (vpOut.strafe - smoothStrafe) * k * dt;
-            }
-            else
-            {
-                smoothThrust = vpOut.thrust;
-                smoothStrafe = vpOut.strafe;
-            }
-
-            cmd.Thrust = smoothThrust;
-            cmd.Strafe = smoothStrafe;
-            cmd.RotateToTarget = true;
-            cmd.TargetAngle = vpOut.rotTargetDeg;
-
-            StoreDebugState(smoothThrust, smoothStrafe);
-        }
-
-        // Partial methods for editor debug - removed entirely in production
         partial void StoreDebugState(ObstacleScanner.ScanResult scan);
         partial void StoreDebugState(Vector2 goal, PathPlanner.DebugInfo path, Pilot.Output pilot);
         partial void StoreDebugState(float thrust, float strafe);
