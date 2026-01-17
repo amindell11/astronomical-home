@@ -106,11 +106,9 @@ namespace AI.Steering
                 }
 
                 var cost = EvaluateTrajectory(initialState, candidate, goalPos, cfg);
-                if (cost < bestCost)
-                {
-                    bestCost = cost;
-                    System.Array.Copy(candidate, resultBuffer, horizon);
-                }
+                if (bestCost > cost) continue;
+                bestCost = cost;
+                System.Array.Copy(candidate, resultBuffer, horizon);
             }
 
             return bestCost;

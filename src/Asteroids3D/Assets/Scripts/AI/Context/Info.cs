@@ -34,7 +34,7 @@ namespace AI.Context
         // Computers (heavy calculations)
         public Targeting Targeting { get; private set; }
         public Sensors Sensors { get; private set; }
-        public Maneuvering Maneuvers { get; private set; }
+        public Maneuvers Maneuvers { get; private set; }
 
         public void Initialize(Ships.Ship ship, AICommander commander, Navigator navigator, Gunner gunner)
         {
@@ -49,7 +49,7 @@ namespace AI.Context
             Ship = new ShipInfo(ship);
             Targeting = new Targeting(ship, Ship);
             Sensors = new Sensors(ship, Ship, nearbyShipRadius, asteroidCoverRadius);
-            Maneuvers = new Maneuvering(Ship);
+            Maneuvers = new Maneuvers(Ship);
             Combat = new Combat(Sensors, gunner, Targeting);
             Nav = new Navigation(Ship, Sensors, navigator);
         }

@@ -23,7 +23,7 @@ namespace AI
         protected bool facingOverride;
         protected float facingAngle;
 
-        public float arriveRadius = 5f;
+        public float arriveRadius = 2f;
 
         public Waypoint CurrentWaypoint => currentWaypoint;
 

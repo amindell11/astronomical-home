@@ -3,11 +3,11 @@ using UnityEngine;
 
 namespace AI.Computers
 {
-    public class Maneuvering
+    public class Maneuvers
     {
         private readonly ShipInfo shipInfo;
 
-        public Maneuvering(ShipInfo shipInfo)
+        public Maneuvers(ShipInfo shipInfo)
         {
             this.shipInfo = shipInfo;
         }

@@ -19,7 +19,6 @@ namespace AI.Computers
 
         public Sensors(Ship ship, ShipInfo shipInfo, float scanRadius, float coverRadius)
         {
-            this.ship = ship;
             this.shipInfo = shipInfo;
             this.scanRadius = scanRadius;
             this.coverRadius = coverRadius;
