@@ -10,7 +10,7 @@ namespace AI.States
         public override void OnDrawGizmos(Info ctx)
         {
             base.OnDrawGizmos(ctx);
-            if (!ctx) return;
+            if (ctx==null) return;
 
             Vector3 selfPos = ctx.SelfPosition3D;
             Vector3 tgtPos  = GamePlane.PlanePointToWorld(currentTarget);

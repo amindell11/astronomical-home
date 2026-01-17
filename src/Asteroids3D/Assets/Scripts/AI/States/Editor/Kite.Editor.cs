@@ -11,7 +11,7 @@ namespace AI.States
         {
             base.OnDrawGizmos(ctx);
             
-            if (!ctx) return;
+            if (ctx==null) return;
             
             Vector3 selfPos = ctx.SelfPosition3D;
             

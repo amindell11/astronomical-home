@@ -10,6 +10,7 @@ using Kite = AI.States.Kite;
 using Orbit = AI.States.Orbit;
 using Patrol = AI.States.Patrol;
 using AI;
+using AI.Computers;
 using AI.Utility;
 using UtilitySelector = AI.Utility.UtilitySelector;
 
@@ -18,6 +19,7 @@ namespace Ships.Control
 {
     [RequireComponent(typeof(Navigator))]
     [RequireComponent(typeof(Gunner))]
+    [RequireComponent(typeof(Sensors))]
     [RequireComponent(typeof(UtilitySelector))]
     public partial class AICommander : Commander
     {
@@ -30,61 +32,62 @@ namespace Ships.Control
         [Range(0f, 1f)] public float difficulty = 1.0f;
 
         private Ship ship;
-        private Navigator navigator;
-        private Gunner gunner;
         private Info context;
-        private UtilitySelector utilitySelector;
-        private State currentState;
-        public State CurrentState => currentState;
-        public Navigator Navigator => navigator;
-        public Gunner Gunner => gunner;
-        public UtilitySelector UtilitySelector => utilitySelector;
-        public string CurrentStateName => utilitySelector?.CurrentStateName ?? "None";
+        public  Sensors Sensors { get; private set; }
+        public State CurrentState { get; private set; }
+        public Navigator Navigator { get; private set; }
+        public Gunner Gunner { get; private set; }
+        public UtilitySelector UtilitySelector { get; private set; }
+        public string CurrentStateName => UtilitySelector?.CurrentStateName ?? "None";
 
         public void Awake()
         {
-            navigator = GetComponent<Navigator>();
-            gunner = GetComponent<Gunner>();
-            context = GetComponent<Info>();
-            utilitySelector = GetComponent<UtilitySelector>();
+            Navigator = GetComponent<Navigator>();
+            Gunner = GetComponent<Gunner>();
+            Sensors = GetComponent<Sensors>();
+            UtilitySelector = GetComponent<UtilitySelector>();
         }
         
         public override void InitializeCommander(Ship ship)
         {
             this.ship = ship;
-            context.Initialize(ship, this, navigator, gunner);
-            navigator.Initialize(ship, context.Sensors);
-            gunner.Initialize(ship, context.Targeting);
+            
+            // Create context dependencies
+            var shipInfo = new AI.Context.ShipInfo(ship);
+            var targeting = new AI.Computers.Targeting(ship, shipInfo);
+            var maneuvers = new AI.Computers.Maneuvers(shipInfo);
+            
+            // Initialize components
+            Sensors.Initialize(ship, shipInfo);
+            Navigator.Initialize(ship, Sensors);
+            Gunner.Initialize(ship, targeting);
+            
+            // Create Info with all dependencies
+            context = new Info(ship, Navigator, Gunner, Sensors, targeting, maneuvers);
         
             if (!utilityTuning)
             {
-                Debug.LogWarning($"[AI] No AITuning assigned to {gameObject.name}. Using default values.", this);
                 utilityTuning = ScriptableObject.CreateInstance<UtilityTuning>();
             }
         
             // Initialize the state machine with all states
-            utilitySelector.Initialize(
-                new Idle(navigator, gunner, utilityTuning),
-                new Patrol(navigator, gunner, utilityTuning),
-                new Evade(navigator, gunner, utilityTuning),
-                new JinkEvade(navigator, gunner, utilityTuning),
-                new Attack(navigator, gunner, utilityTuning),
-                new Orbit(navigator, gunner, utilityTuning),
-                new Kite(navigator, gunner, utilityTuning)
+            UtilitySelector.Initialize(
+                new Idle(Navigator, Gunner, utilityTuning),
+                new Patrol(Navigator, Gunner, utilityTuning),
+                new Evade(Navigator, Gunner, utilityTuning),
+                new JinkEvade(Navigator, Gunner, utilityTuning),
+                new Attack(Navigator, Gunner, utilityTuning),
+                new Orbit(Navigator, Gunner, utilityTuning),
+                new Kite(Navigator, Gunner, utilityTuning)
             );
         }
 
         private void FixedUpdate()
         {
-            if (!ship || !utilitySelector) return;   
-            currentState = ship.CurrentState;
-        
-            if (context)
-            {
-                utilitySelector.Tick(context, Time.fixedDeltaTime);
-            }
-        
-            cachedCommand = GenerateCommand(currentState);
+            if (!ship || !UtilitySelector) return;   
+            CurrentState = ship.CurrentState;
+            UtilitySelector.Tick(context, Time.fixedDeltaTime);
+            cachedCommand = GenerateCommand(CurrentState);
         }
 
         private Command GenerateCommand(State state)
@@ -95,11 +98,11 @@ namespace Ships.Control
             if (difficulty < 0.25f) return cmd; // cmd defaults to zeros/false.
     
 
-            navigator.GenerateNavCommands(state, ref cmd);
+            Navigator.GenerateNavCommands(state, ref cmd);
 
             if (difficulty < 0.5f) return cmd;
 
-            gunner.GenerateGunnerCommands(state, ref cmd);
+            Gunner.GenerateGunnerCommands(state, ref cmd);
 
             // Level 3 (< 0.75): Lasers only, no missiles.
             if (!(difficulty < 0.75f)) return cmd;

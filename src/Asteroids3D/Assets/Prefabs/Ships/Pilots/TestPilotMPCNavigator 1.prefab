@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 1536262577255795878}
   - component: {fileID: 2056539076943524747}
   - component: {fileID: 4713944334268074824}
-  - component: {fileID: 9147953976092396285}
+  - component: {fileID: 6881252686300490990}
   m_Layer: 7
   m_Name: TestPilotMPCNavigator 1
   m_TagString: Untagged
@@ -120,7 +120,7 @@ MonoBehaviour:
   config: {fileID: 11400000, guid: 2953629aea9c0114d9f56764e09bca98, type: 2}
   instanceUtilityWeights: {fileID: 11400000, guid: 4233613ec995bd04a9f992816a5afe04,
     type: 2}
---- !u!114 &9147953976092396285
+--- !u!114 &6881252686300490990
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -129,9 +129,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 1066014630051916606}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8804439a8ac7cf949a01409cf5c89a33, type: 3}
+  m_Script: {fileID: 11500000, guid: 18c541959612d704792657a50ed3af9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  nearbyShipRadius: 50
-  asteroidCoverRadius: 15
   showDebugGizmos: 1
+  nearbyShipRadius: 30
+  asteroidCoverRadius: 15
+  asteroidMask:
+    serializedVersion: 2
+    m_Bits: 0
+  lookAheadTime: 1
+  safeMargin: 2
+  raysPerDirection: 5
+  maxRayDegrees: 90
+  sphereCastRadius: 0.5

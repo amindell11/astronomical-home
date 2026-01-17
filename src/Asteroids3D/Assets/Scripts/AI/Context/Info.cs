@@ -7,23 +7,12 @@ using Ships.Control;
 namespace AI.Context
 {
     /// <summary>
-    /// Component that provides on-demand AI context data for AI state machine consumption.
+    /// Provides on-demand AI context data for AI state machine consumption.
     /// Composes ShipInfo, CombatInfo, and Navigation providers for focused responsibilities.
     /// </summary>
     [Serializable, GeneratePropertyBag]
-    public partial class Info : MonoBehaviour
+    public partial class Info
     {
-        [Header("Configuration")]
-        [Tooltip("Maximum distance to consider nearby ships")]
-        public float nearbyShipRadius = 30f;
-
-        [Tooltip("Radius to scan for asteroid cover")]
-        public float asteroidCoverRadius = 15f;
-
-        [Header("Debug")]
-        [Tooltip("Show debug gizmos in scene view")]
-        public bool showDebugGizmos = true;
-
         private Ships.Ship ship;
 
         // Data providers
@@ -36,28 +25,27 @@ namespace AI.Context
         public Sensors Sensors { get; private set; }
         public Maneuvers Maneuvers { get; private set; }
 
-        public void Initialize(Ships.Ship ship, AICommander commander, Navigator navigator, Gunner gunner)
+        public Info(Ships.Ship ship, Navigator navigator, Gunner gunner, Sensors sensors, Targeting targeting, Maneuvers maneuvers)
         {
             this.ship = ship;
             if (!ship)
             {
-                RLog.AIError($"AIContext on {name}: No Ship provided during initialization");
-                enabled = false;
+                RLog.AIError($"AIContext: No Ship provided during initialization");
                 return;
             }
 
             Ship = new ShipInfo(ship);
-            Targeting = new Targeting(ship, Ship);
-            Sensors = new Sensors(ship, Ship, nearbyShipRadius, asteroidCoverRadius);
-            Maneuvers = new Maneuvers(Ship);
+            Targeting = targeting;
+            Sensors = sensors;
+            Maneuvers = maneuvers;
             Combat = new Combat(Sensors, gunner, Targeting);
             Nav = new Navigation(Ship, Sensors, navigator);
         }
 
         // Ship state
         public Vector2 SelfPosition => Ship?.Pos ?? Vector2.zero;
-        public Vector3 SelfPosition3D => Ship?.Pos3D ?? transform.position;
-        public Transform SelfTransform => transform;
+        public Vector3 SelfPosition3D => Ship?.Pos3D ?? (ship ? ship.transform.position : Vector3.zero);
+        public Transform SelfTransform => ship ? ship.transform : null;
         public Vector2 SelfVelocity => Ship?.Vel ?? Vector2.zero;
         public float SpeedPct => Ship?.SpeedPct ?? 0f;
         public Vector2 SelfForward => Ship?.Forward ?? Vector2.up;

@@ -3,7 +3,7 @@ using Game;
 using Ships.Movement;
 using UnityEngine;
 
-namespace AI.Computers
+namespace AI.Scanning
 {
     public partial class ObstacleScanner
     {
@@ -11,6 +11,19 @@ namespace AI.Computers
         private readonly Collider[] hits = new Collider[MaxColliders];
         private readonly RaycastHit[] rayHits = new RaycastHit[MaxColliders];
         private readonly Transform origin;
+
+        private ScanResult cachedResult;
+        private int lastScanFrame = -1;
+
+        public ScanResult LastScanResult
+        {
+            get
+            {
+                if (Time.frameCount == lastScanFrame)
+                    return cachedResult;
+                return default;
+            }
+        }
 
         public ObstacleScanner(Transform origin)
         {
@@ -22,7 +35,12 @@ namespace AI.Computers
             var result = new ScanResult(hits);
             ClearDebugRays();
 
-            if (!config.enabled) return result;
+            if (!config.enabled)
+            {
+                cachedResult = result;
+                lastScanFrame = Time.frameCount;
+                return result;
+            }
 
             var maxDist = config.maxSpeed * config.lookAheadTime + config.safeMargin;
             var centerDir2D = kin.Vel.sqrMagnitude > 0.1f ? kin.Vel.normalized : kin.Forward;
@@ -32,7 +50,12 @@ namespace AI.Computers
             result.hitCount = CastAndCollect(pos, centerDirWorld, maxDist, config, 0);
             AddDebugRay(centerDirWorld * maxDist);
 
-            if (config.raysPerDirection <= 0) return result;
+            if (config.raysPerDirection <= 0)
+            {
+                cachedResult = result;
+                lastScanFrame = Time.frameCount;
+                return result;
+            }
 
             var angleStep = config.maxRayDegrees / config.raysPerDirection;
             for (var i = 1; i <= config.raysPerDirection; i++)
@@ -48,6 +71,8 @@ namespace AI.Computers
                 AddDebugRay(rightDir * maxDist);
             }
 
+            cachedResult = result;
+            lastScanFrame = Time.frameCount;
             return result;
         }
 
@@ -69,6 +94,16 @@ namespace AI.Computers
         // Partial methods - removed entirely in production when not implemented
         partial void ClearDebugRays();
         partial void AddDebugRay(Vector3 ray);
+
+        public bool HasNearbyCover(Vector3 position, float coverRadius)
+        {
+            return Physics.OverlapSphereNonAlloc(
+                position,
+                coverRadius,
+                hits,
+                LayerMask.GetMask("Asteroid"),
+                QueryTriggerInteraction.Ignore) > 0;
+        }
 
         public struct Config
         {

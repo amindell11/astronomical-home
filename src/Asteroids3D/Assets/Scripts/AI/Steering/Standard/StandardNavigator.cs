@@ -5,25 +5,15 @@ using Game;
 using Ships;
 using Ships.Movement;
 using UnityEngine;
+using ObstacleScanner = AI.Scanning.ObstacleScanner;
 
 namespace AI
 {
     public partial class StandardNavigator : Navigator
     {
         [Header("Avoidance")]
-        public LayerMask asteroidMask;
-        public float lookAheadTime = 1f;
-        public float safeMargin = 2f;
         public float avoidRadius = .5f;
         [Tooltip("Toggle obstacle avoidance logic on/off")] public bool enableAvoidance = false;
-
-        [Header("Raycast Avoidance")]
-        [Tooltip("Number of rays to cast on each side of the ship")]
-        public int raysPerDirection = 5;
-        [Tooltip("Max angle in degrees to cast rays")]
-        public float maxRayDegrees = 90f;
-        [Tooltip("Radius of spherecast for obstacle detection. Set to 0 for raycasts.")]
-        public float sphereCastRadius = 0.5f;
 
         [Header("Steering")]
         [Tooltip("Higher values react faster; 0 disables smoothing. Units: 1/seconds (approx).")]
@@ -67,7 +57,6 @@ namespace AI
             cmd.TargetAngle = pilotOutput.rotTargetDeg;
             cmd.RotateToTarget = true;
 
-            StoreDebugState(obstacleScan);
             StoreDebugState(currentWaypoint.position, pathOutput.dbg, pilotOutput);
             StoreDebugState(pilotOutput.thrust, pilotOutput.strafe);
         }
@@ -79,19 +68,7 @@ namespace AI
 
         private ObstacleScanner.ScanResult ScanObstacles(Kinematics kin)
         {
-            var scanConfig = new ObstacleScanner.Config
-            {
-                enabled = enableAvoidance,
-                asteroidMask = asteroidMask,
-                lookAheadTime = lookAheadTime,
-                safeMargin = safeMargin,
-                maxSpeed = ship.settings.maxSpeed,
-                raysPerDirection = raysPerDirection,
-                maxRayDegrees = maxRayDegrees,
-                sphereCastRadius = sphereCastRadius
-            };
-            
-            return sensors.Obstacles.Scan(scanConfig, kin);
+            return sensors.ScanObstacles(kin, ship.settings.maxSpeed, enableAvoidance);
         }
 
         private PathPlanner.Output PlanPath(Kinematics kin, ObstacleScanner.ScanResult obstacleScan)
@@ -103,8 +80,8 @@ namespace AI
                 avoidRadius, 
                 arriveRadius,
                 ship.settings.maxSpeed,
-                lookAheadTime, 
-                safeMargin, 
+                sensors.lookAheadTime, 
+                sensors.safeMargin, 
                 obstacleScan.Obstacles, 
                 tuning);
 
@@ -119,7 +96,6 @@ namespace AI
             return pilot.Compute(pilotInput);
         }
 
-        partial void StoreDebugState(ObstacleScanner.ScanResult scan);
         partial void StoreDebugState(Vector2 goal, PathPlanner.DebugInfo path, Pilot.Output pilot);
         partial void StoreDebugState(float thrust, float strafe);
     }

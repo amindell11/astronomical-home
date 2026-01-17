@@ -20,6 +20,6 @@ namespace AI.Context
             ? navigator.CurrentWaypoint.position - shipInfo.Pos
             : Vector2.zero;
 
-        public bool NearAsteroidCover => sensors.HasNearbyCover();
+        public bool NearAsteroidCover => sensors.HasNearbyCover(shipInfo.Pos3D);
     }
 }

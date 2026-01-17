@@ -1,107 +1,66 @@
+using AI.Computers;
 using AI.Context;
 using Ships;
+using Ships.Movement;
 using UnityEngine;
-using Utils;
+using ObstacleScanner = AI.Scanning.ObstacleScanner;
 
-namespace AI.Computers
+namespace AI
 {
-    public class Sensors
+    public partial class Sensors : MonoBehaviour
     {
-        private readonly Ship ship;
-        private readonly ShipInfo shipInfo;
-        private readonly float scanRadius;
-        private readonly float coverRadius;
+        [Header("Ship Scanning")]
+        [Tooltip("Maximum distance to consider nearby ships")]
+        public float nearbyShipRadius = 30f;
+        [Tooltip("Radius to scan for asteroid cover")]
+        public float asteroidCoverRadius = 15f;
 
-        private ScanResult cachedScan;
-        private int scanFrame = -1;
+        [Header("Obstacle Detection")]
+        public LayerMask asteroidMask;
+        public float lookAheadTime = 1f;
+        public float safeMargin = 2f;
 
-        public ObstacleScanner Obstacles { get; }
+        [Header("Raycast Avoidance")]
+        [Tooltip("Number of rays to cast on each side of the ship")]
+        public int raysPerDirection = 5;
+        [Tooltip("Max angle in degrees to cast rays")]
+        public float maxRayDegrees = 90f;
+        [Tooltip("Radius of spherecast for obstacle detection. Set to 0 for raycasts.")]
+        public float sphereCastRadius = 0.5f;
 
-        public Sensors(Ship ship, ShipInfo shipInfo, float scanRadius, float coverRadius)
+        private ShipScanner ShipScanner;
+
+        public ObstacleScanner ObstacleScanner { get; private set; }
+
+        public void Initialize(Ship ship, ShipInfo shipInfo)
         {
-            this.shipInfo = shipInfo;
-            this.scanRadius = scanRadius;
-            this.coverRadius = coverRadius;
-            Obstacles = new ObstacleScanner(ship.transform);
+            ShipScanner = new ShipScanner(ship, shipInfo, nearbyShipRadius);
+            ObstacleScanner = new ObstacleScanner(ship.transform);
         }
 
-        public ScanResult LastScan => GetCachedScan();
-
-        private ScanResult GetCachedScan()
+        public ObstacleScanner.ScanResult ScanObstacles(Kinematics kin, float maxSpeed, bool enabled)
         {
-            var frame = Time.frameCount;
-            if (scanFrame == frame) return cachedScan;
-            cachedScan = ScanNearby();
-            scanFrame = frame;
-            return cachedScan;
-        }
-
-        public ScanResult ScanNearby(Ship excludeFromThreat = null)
-        {
-            var result = new ScanResult { nearestThreatDistance = float.MaxValue };
-            if (!ship) return result;
-
-            var selfPos = shipInfo.Pos3D;
-            var colliders = PhysicsBuffers.GetColliderBuffer();
-            var hitCount = Physics.OverlapSphereNonAlloc(selfPos, scanRadius, colliders, LayerIds.Mask(LayerIds.Ship));
-
-            var nearestDistance = float.MaxValue;
-
-            for (var i = 0; i < hitCount; i++)
+            var scanConfig = new ObstacleScanner.Config
             {
-                var col = colliders[i];
-                if (!col) continue;
+                enabled = enabled,
+                asteroidMask = asteroidMask,
+                lookAheadTime = lookAheadTime,
+                safeMargin = safeMargin,
+                maxSpeed = maxSpeed,
+                raysPerDirection = raysPerDirection,
+                maxRayDegrees = maxRayDegrees,
+                sphereCastRadius = sphereCastRadius
+            };
 
-                var otherShip = col.attachedRigidbody?.GetComponent<Ship>();
-                if (!otherShip || otherShip == ship) continue;
-
-                var distance = Vector3.Distance(selfPos, otherShip.transform.position);
-
-                if (ship.IsFriendly(otherShip))
-                    result.friendCount++;
-                else
-                {
-                    result.enemyCount++;
-
-                    if (distance < nearestDistance)
-                    {
-                        nearestDistance = distance;
-                        result.nearestEnemy = otherShip;
-                    }
-
-                    if (otherShip != excludeFromThreat && distance < result.nearestThreatDistance)
-                        result.nearestThreatDistance = distance;
-                }
-            }
-
-            if (!excludeFromThreat || result.nearestEnemy != excludeFromThreat) return result;
-            var enemyDist = Vector3.Distance(selfPos, excludeFromThreat.transform.position);
-            if (enemyDist < result.nearestThreatDistance)
-                result.nearestThreatDistance = enemyDist;
-
-            return result;
+            return ObstacleScanner.Scan(scanConfig, kin);
         }
 
-        public Ship FindNearestEnemy()
-        {
-            return ScanNearby().nearestEnemy;
-        }
-
-        public bool HasNearbyCover()
-        {
-            return Physics.OverlapSphereNonAlloc(
-                shipInfo.Pos3D,
-                coverRadius,
-                PhysicsBuffers.GetColliderBuffer(),
-                LayerIds.Mask(LayerIds.Asteroid)) > 0;
-        }
-
-        public struct ScanResult
-        {
-            public int enemyCount;
-            public int friendCount;
-            public float nearestThreatDistance;
-            public Ship nearestEnemy;
-        }
+        // Delegate ship scanning to ShipScanner
+        public ShipScanner.ScanResult LastScan => ShipScanner?.LastScan ?? default;
+        public ShipScanner.ScanResult ScanNearby(Ship excludeFromThreat = null) => ShipScanner?.ScanNearby(excludeFromThreat) ?? default;
+        public Ship FindNearestEnemy() => ShipScanner?.FindNearestEnemy();
+        
+        // Delegate cover detection to ObstacleScanner
+        public bool HasNearbyCover(Vector3 position) => ObstacleScanner?.HasNearbyCover(position, asteroidCoverRadius) ?? false;
     }
 }

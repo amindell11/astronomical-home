@@ -8,13 +8,11 @@ namespace AI
 {
     public partial class StandardNavigator
     {
-        private ObstacleScanner.ScanResult dbgObstacleScan;
         private PathPlanner.DebugInfo dbgPath;
         private Pilot.Output dbgPilot;
         private Vector2 dbgGoal2D;
         private float dbgThrust, dbgStrafe;
 
-        partial void StoreDebugState(ObstacleScanner.ScanResult scan) => dbgObstacleScan = scan;
         partial void StoreDebugState(Vector2 goal, PathPlanner.DebugInfo path, Pilot.Output pilot)
         {
             dbgGoal2D = goal;
@@ -57,31 +55,6 @@ namespace AI
             var goal3 = GamePlane.PlanePointToWorld(dbgGoal2D);
             Gizmos.DrawLine(transform.position, goal3);
             Gizmos.DrawSphere(goal3, 0.4f);
-
-            DrawObstacleGizmos();
-        }
-
-        private void DrawObstacleGizmos()
-        {
-            if (!enableAvoidance) return;
-
-            // Draw raycast fan from scanner's debug rays
-            Gizmos.color = new Color(1f, 0.75f, 0f, 0.5f);
-            foreach (var ray in sensors.Obstacles.DebugRays)
-            {
-                Gizmos.DrawLine(transform.position, transform.position + ray);
-                if (sphereCastRadius > 0)
-                    Gizmos.DrawWireSphere(transform.position + ray, sphereCastRadius);
-            }
-
-            if (dbgObstacleScan.hitCount <= 0) return;
-            foreach (var col in dbgObstacleScan.Obstacles)
-            {
-                if (!col) continue;
-                var p = col.transform.position;
-                var rad = col.bounds.extents.x;
-                Gizmos.DrawWireSphere(p, rad);
-            }
         }
     }
 }

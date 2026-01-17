@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace AI.Computers
+namespace AI.Scanning
 {
     public partial class ObstacleScanner
     {
