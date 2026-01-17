@@ -67,7 +67,7 @@ public class TestConfig : ScriptableObject
 
 #if UNITY_EDITOR
         _cached = UnityEditor.AssetDatabase.LoadAssetAtPath<TestConfig>(
-            "Assets/Tests/PlayMode/TestConfig.asset");
+            "Assets/Settings/Tests/TestConfig.asset");
 #endif
         return _cached;
     }
