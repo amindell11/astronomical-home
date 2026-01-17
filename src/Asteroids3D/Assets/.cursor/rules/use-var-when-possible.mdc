@@ -1,0 +1,8 @@
+---
+name: use-var-when-possible
+description: use this when implementing local variables in member functions
+---
+
+# Overview
+
+Use 

@@ -11,12 +11,12 @@ GameObject:
   - component: {fileID: 1848735604803868230}
   - component: {fileID: 1772957474756936600}
   - component: {fileID: -1070365238870678526}
+  - component: {fileID: 1536262577255795878}
   - component: {fileID: 2056539076943524747}
   - component: {fileID: 4713944334268074824}
   - component: {fileID: 9147953976092396285}
-  - component: {fileID: 7245536977545478260}
   m_Layer: 7
-  m_Name: TestPilotNavigator
+  m_Name: TestPilotMPCNavigator 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -66,6 +66,30 @@ MonoBehaviour:
   lockedLocalPosition: {x: 0, y: 0, z: 0}
   lockRotation: 1
   lockScale: 1
+--- !u!114 &1536262577255795878
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1066014630051916606}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0f9ac3a41558b64f9a98d4dd5dbddb2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  arriveRadius: 5
+  horizonSeconds: 1.5
+  rolloutDt: 0.1
+  samples: 128
+  noiseStd: 0.25
+  wPos: 1
+  wVel: 0.5
+  wYaw: 0.5
+  wYawRate: 0.1
+  wEffort: 0.05
+  wSmoothness: 0.1
+  terminalMultiplier: 10
 --- !u!114 &2056539076943524747
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -111,16 +135,3 @@ MonoBehaviour:
   nearbyShipRadius: 50
   asteroidCoverRadius: 15
   showDebugGizmos: 1
---- !u!114 &7245536977545478260
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1066014630051916606}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 48cf637267cc44639efc701d563b251b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  arriveRadius: 5

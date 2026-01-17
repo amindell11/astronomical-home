@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace AI
 {
-    public partial class Navigator
+    public partial class StandardNavigator
     {
         private ObstacleScanner.ScanResult dbgObstacleScan;
         private PathPlanner.DebugInfo dbgPath;
