@@ -23,11 +23,17 @@ namespace AI
         public float wYawRate = 0.1f;
         public float wEffort = 0.05f;
         public float wSmoothness = 0.1f;
+        public float wObstacle = 10.0f;
         public float terminalMultiplier = 10f;
+
+        [Header("Obstacle Avoidance")]
+        public bool enableObstacleAvoidance = true;
+        public float obstacleThreshold = 5.0f;  // Additional safety margin beyond obstacle radius
 
         private Steering.MpcControl[] bestSequence;
         private Steering.MpcState[] predictedStates;
         private Steering.MpcController.Config mpcConfig;
+        private Steering.ObstacleData obstacleData;
         private float lastBestCost;
 
         public override void Initialize(Ship ship, Sensors sensors)
@@ -59,8 +65,13 @@ namespace AI
                 wYawRate = wYawRate,
                 wEffort = wEffort,
                 wSmoothness = wSmoothness,
-                terminalMultiplier = terminalMultiplier
+                wObstacle = wObstacle,
+                terminalMultiplier = terminalMultiplier,
+                obstacleThreshold = obstacleThreshold
             };
+
+            // Initialize obstacle data
+            obstacleData = new Steering.ObstacleData(capacity: 64);
         }
 
         public override void GenerateNavCommands(State state, ref Command cmd)
@@ -78,7 +89,9 @@ namespace AI
             mpcConfig.wYawRate = wYawRate;
             mpcConfig.wEffort = wEffort;
             mpcConfig.wSmoothness = wSmoothness;
+            mpcConfig.wObstacle = wObstacle;
             mpcConfig.terminalMultiplier = terminalMultiplier;
+            mpcConfig.obstacleThreshold = obstacleThreshold;
 
             // 1. Arrive check
             var toGoal = currentWaypoint.position - state.Kinematics.Pos;
@@ -100,14 +113,22 @@ namespace AI
                 yawRate = state.Kinematics.YawRate * Mathf.Deg2Rad
             };
 
-            // 3. Warm start: shift the best sequence
+            // 3. Scan for obstacles
+            obstacleData.Clear();
+            if (enableObstacleAvoidance && sensors != null)
+            {
+                var obstacleScan = sensors.ScanObstacles(state.Kinematics, mpcConfig.maxSpeed, true);
+                ConvertScanToObstacleData(obstacleScan, obstacleData);
+            }
+
+            // 4. Warm start: shift the best sequence
             System.Array.Copy(bestSequence, 1, bestSequence, 0, bestSequence.Length - 1);
             // bestSequence[bestSequence.Length - 1] remains same as previous frame's last command
 
-            // 4. Solve
-            lastBestCost = Steering.MpcController.Solve(mpcState, bestSequence, currentWaypoint.position, mpcConfig, samples, noiseStd, bestSequence);
+            // 5. Solve
+            lastBestCost = Steering.MpcController.Solve(mpcState, bestSequence, currentWaypoint.position, obstacleData, mpcConfig, samples, noiseStd, bestSequence);
 
-            // 5. Update predicted states for visualization
+            // 6. Update predicted states for visualization
             var current = mpcState;
             for (var i = 0; i < predictedStates.Length; i++)
             {
@@ -115,12 +136,33 @@ namespace AI
                 predictedStates[i] = current;
             }
 
-            // 6. Apply first control
+            // 7. Apply first control
             var u0 = bestSequence[0];
             cmd.Thrust = u0.thrust;
             cmd.Strafe = u0.strafe;
             cmd.YawTorque = u0.yawTorque;
             cmd.RotateToTarget = false;
+        }
+
+        private void ConvertScanToObstacleData(Scanning.ObstacleScanner.ScanResult scanResult, Steering.ObstacleData obstacleData)
+        {
+            if (scanResult.hitCount == 0) return;
+
+            var obstacles = scanResult.Obstacles;
+            for (var i = 0; i < obstacles.Count; i++)
+            {
+                var collider = obstacles.Array[obstacles.Offset + i];
+                if (collider == null) continue;
+
+                // Get obstacle position in 2D plane
+                var obstaclePos = Game.GamePlane.WorldPointToPlane(collider.transform.position);
+
+                // Estimate radius from collider bounds
+                var bounds = collider.bounds;
+                var radius = Mathf.Max(bounds.extents.x, bounds.extents.z);
+
+                obstacleData.Add(obstaclePos, radius);
+            }
         }
 
         private void OnDrawGizmos()

@@ -15,15 +15,7 @@ namespace AI.Scanning
         private ScanResult cachedResult;
         private int lastScanFrame = -1;
 
-        public ScanResult LastScanResult
-        {
-            get
-            {
-                if (Time.frameCount == lastScanFrame)
-                    return cachedResult;
-                return default;
-            }
-        }
+        public ScanResult LastScanResult => Time.frameCount == lastScanFrame ? cachedResult : default;
 
         public ObstacleScanner(Transform origin)
         {

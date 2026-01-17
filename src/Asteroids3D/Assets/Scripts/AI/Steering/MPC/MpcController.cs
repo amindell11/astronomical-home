@@ -39,10 +39,14 @@ namespace AI.Steering
             public float wYawRate;
             public float wEffort;
             public float wSmoothness;
+            public float wObstacle;
             public float terminalMultiplier;
+            
+            // Obstacle avoidance
+            public float obstacleThreshold;  // Distance threshold for applying penalty
         }
 
-        public static float EvaluateStepCost(MpcState s, MpcControl u, MpcControl prevU, Vector2 goalPos, Config cfg, bool isTerminal)
+        public static float EvaluateStepCost(MpcState s, MpcControl u, MpcControl prevU, Vector2 goalPos, ObstacleData obstacles, Config cfg, bool isTerminal)
         {
             // 1. Position cost
             var posCost = (s.pos - goalPos).sqrMagnitude;
@@ -73,22 +77,50 @@ namespace AI.Steering
             var duY = u.yawTorque - prevU.yawTorque;
             var smoothnessCost = (duT * duT) + (duS * duS) + (duY * duY);
 
+            // 7. Obstacle cost
+            var obstacleCost = EvaluateObstacleCost(s.pos, obstacles, cfg);
+
             var total = (posCost * cfg.wPos) +
                         (velCost * cfg.wVel) +
                         (headingCost * cfg.wYaw) +
                         (yawRateCost * cfg.wYawRate) +
                         (effortCost * cfg.wEffort) +
-                        (smoothnessCost * cfg.wSmoothness);
+                        (smoothnessCost * cfg.wSmoothness) +
+                        (obstacleCost * cfg.wObstacle);
 
             if (isTerminal) total *= cfg.terminalMultiplier;
 
             return total;
         }
 
-        public static float Solve(MpcState initialState, MpcControl[] warmStart, Vector2 goalPos, Config cfg, int samples, float noiseStd, MpcControl[] resultBuffer)
+        private static float EvaluateObstacleCost(Vector2 pos, ObstacleData obstacles, Config cfg)
+        {
+            if (obstacles == null || obstacles.count == 0) return 0f;
+
+            var cost = 0f;
+
+            for (var i = 0; i < obstacles.count; i++)
+            {
+                var obstacle = obstacles.obstacles[i];
+                var dist = Vector2.Distance(pos, obstacle.position);
+                var threshold = obstacle.radius + cfg.obstacleThreshold;
+
+                // Apply penalty only within threshold distance
+                if (dist < threshold)
+                {
+                    // Exponential penalty: increases rapidly as distance decreases
+                    var normalizedDist = dist / threshold;
+                    cost += Mathf.Exp(-normalizedDist * 5f);
+                }
+            }
+
+            return cost;
+        }
+
+        public static float Solve(MpcState initialState, MpcControl[] warmStart, Vector2 goalPos, ObstacleData obstacles, Config cfg, int samples, float noiseStd, MpcControl[] resultBuffer)
         {
             var horizon = cfg.horizon;
-            var bestCost = EvaluateTrajectory(initialState, warmStart, goalPos, cfg);
+            var bestCost = EvaluateTrajectory(initialState, warmStart, goalPos, obstacles, cfg);
             System.Array.Copy(warmStart, resultBuffer, horizon);
 
             var candidate = new MpcControl[horizon];
@@ -105,8 +137,8 @@ namespace AI.Steering
                     };
                 }
 
-                var cost = EvaluateTrajectory(initialState, candidate, goalPos, cfg);
-                if (cost >= bestCost) continue;
+                var cost = EvaluateTrajectory(initialState, candidate, goalPos, obstacles, cfg);
+                if (bestCost > cost) continue;
                 bestCost = cost;
                 System.Array.Copy(candidate, resultBuffer, horizon);
             }
@@ -114,7 +146,7 @@ namespace AI.Steering
             return bestCost;
         }
 
-        private static float EvaluateTrajectory(MpcState state, MpcControl[] sequence, Vector2 goalPos, Config cfg)
+        private static float EvaluateTrajectory(MpcState state, MpcControl[] sequence, Vector2 goalPos, ObstacleData obstacles, Config cfg)
         {
             var totalCost = 0f;
             var current = state;
@@ -124,7 +156,7 @@ namespace AI.Steering
             {
                 var u = sequence[i];
                 var isTerminal = (i == cfg.horizon - 1);
-                totalCost += EvaluateStepCost(current, u, prevU, goalPos, cfg, isTerminal);
+                totalCost += EvaluateStepCost(current, u, prevU, goalPos, obstacles, cfg, isTerminal);
                 current = Step(current, u, cfg);
                 prevU = u;
             }

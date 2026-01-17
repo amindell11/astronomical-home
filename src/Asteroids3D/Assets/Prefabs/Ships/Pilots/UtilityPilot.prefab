@@ -136,7 +136,10 @@ MonoBehaviour:
   wYawRate: 0.1
   wEffort: 0.05
   wSmoothness: 0.1
+  wObstacle: 10
   terminalMultiplier: 10
+  enableObstacleAvoidance: 1
+  obstacleThreshold: 5
 --- !u!114 &6881252686300490990
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -154,9 +157,9 @@ MonoBehaviour:
   asteroidCoverRadius: 15
   asteroidMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 384
   lookAheadTime: 1
   safeMargin: 2
-  raysPerDirection: 5
-  maxRayDegrees: 90
-  sphereCastRadius: 0.5
+  raysPerDirection: 8
+  maxRayDegrees: 180
+  sphereCastRadius: 0.78
