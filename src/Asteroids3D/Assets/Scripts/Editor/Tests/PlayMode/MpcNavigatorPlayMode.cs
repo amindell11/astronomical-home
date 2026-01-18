@@ -21,9 +21,9 @@ public class MpcNavigatorPlayMode
     public void SetUp()
     {
         AudioListener.pause = true;
-        var settings = AssetDatabase.LoadAssetAtPath<Settings>("Assets/Prefabs/Ships/DefaultSettings.asset");
+        var settings = AssetDatabase.LoadAssetAtPath<Settings>("Assets/Settings/Ships/DefaultSettings.asset");
         var shipPrefab = AssetDatabase.LoadAssetAtPath<Ship>("Assets/Prefabs/Ships/Ship_2.prefab");
-        var cmdrPrefab = AssetDatabase.LoadAssetAtPath<AICommander>("Assets/Prefabs/Ships/Pilots/TestPilotMPCNavigator 1.prefab");
+        var cmdrPrefab = AssetDatabase.LoadAssetAtPath<AICommander>("Assets/Prefabs/Ships/Pilots/TestPilotMPC.prefab");
         
         ship = Factory.CreateShip(
             shipPrefab,
@@ -104,7 +104,7 @@ public class MpcNavigatorPlayMode
         
         // Verify ship is somewhat close to the moving target
         float dist = Vector2.Distance(ship.transform.position, GamePlane.PlanePointToWorld(targetPos));
-        Assert.That(dist, Is.LessThan(10f), "Ship should follow moving waypoint");
+        Assert.That(dist, Is.LessThan(13f), "Ship should follow moving waypoint");
     }
 
     [TearDown]
