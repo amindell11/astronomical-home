@@ -106,12 +106,17 @@ namespace AI.Steering
                 var threshold = obstacle.radius + cfg.obstacleThreshold;
 
                 // Apply penalty only within threshold distance
-                if (dist < threshold)
-                {
-                    // Exponential penalty: increases rapidly as distance decreases
-                    var normalizedDist = dist / threshold;
-                    cost += Mathf.Exp(-normalizedDist * 5f);
-                }
+                if (!(dist < threshold)) continue;
+                
+                var normalizedDist = dist / threshold;
+                
+                // Inverse square penalty: cost increases as 1/distance^2
+                // Add small epsilon to prevent division by zero at obstacle center
+                var epsilon = 0.01f;
+                cost += 1f / ((normalizedDist + epsilon) * (normalizedDist + epsilon));
+                
+                // Exponential penalty (alternative - commented out)
+                // cost += Mathf.Exp(-normalizedDist * 5f);
             }
 
             return cost;

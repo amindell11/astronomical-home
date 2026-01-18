@@ -125,8 +125,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f0f9ac3a41558b64f9a98d4dd5dbddb2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  arriveRadius: 5
-  horizonSeconds: 1.5
+  arriveRadius: 2.66
+  showDebugGizmos: 1
+  showObstacleCosts: 1
+  showTrajectoryCosts: 1
+  horizonSeconds: 2.02
   rolloutDt: 0.1
   samples: 128
   noiseStd: 0.25
@@ -136,10 +139,10 @@ MonoBehaviour:
   wYawRate: 0.1
   wEffort: 0.05
   wSmoothness: 0.1
-  wObstacle: 10
+  wObstacle: 16.13
   terminalMultiplier: 10
   enableObstacleAvoidance: 1
-  obstacleThreshold: 5
+  obstacleThreshold: 10
 --- !u!114 &6881252686300490990
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -157,9 +160,9 @@ MonoBehaviour:
   asteroidCoverRadius: 15
   asteroidMask:
     serializedVersion: 2
-    m_Bits: 384
+    m_Bits: 256
   lookAheadTime: 1
   safeMargin: 2
-  raysPerDirection: 8
-  maxRayDegrees: 180
-  sphereCastRadius: 0.78
+  raysPerDirection: 5
+  maxRayDegrees: 70
+  sphereCastRadius: 3.77

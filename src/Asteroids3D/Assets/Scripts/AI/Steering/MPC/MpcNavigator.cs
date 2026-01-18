@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace AI
 {
-    public class MpcNavigator : Navigator
+    public partial class MpcNavigator : Navigator
     {
         [Header("MPC Settings")]
         public float horizonSeconds = 1.5f;
@@ -120,6 +120,7 @@ namespace AI
                 var obstacleScan = sensors.ScanObstacles(state.Kinematics, mpcConfig.maxSpeed, true);
                 ConvertScanToObstacleData(obstacleScan, obstacleData);
             }
+            StoreDebugObstacles(obstacleData);
 
             // 4. Warm start: shift the best sequence
             System.Array.Copy(bestSequence, 1, bestSequence, 0, bestSequence.Length - 1);
@@ -165,26 +166,12 @@ namespace AI
             }
         }
 
-        private void OnDrawGizmos()
+        protected override void OnSetNavigationPoint(bool avoid)
         {
-            if (predictedStates == null || predictedStates.Length == 0) return;
-
-            Gizmos.color = Color.cyan;
-            var prevPos = GamePlane.PlanePointToWorld(predictedStates[0].pos);
-            for (var i = 1; i < predictedStates.Length; i++)
-            {
-                var pos = GamePlane.PlanePointToWorld(predictedStates[i].pos);
-                Gizmos.DrawLine(prevPos, pos);
-                Gizmos.DrawSphere(pos, 0.1f);
-                prevPos = pos;
-            }
-            
-            // Draw goal
-            if (currentWaypoint.isValid)
-            {
-                Gizmos.color = Color.green;
-                Gizmos.DrawWireSphere(GamePlane.PlanePointToWorld(currentWaypoint.position), arriveRadius);
-            }
+            // MPC always uses avoidance based on enableObstacleAvoidance flag
         }
+
+        // Debug hooks - implemented in MpcNavigator.Editor.cs
+        partial void StoreDebugObstacles(Steering.ObstacleData obstacles);
     }
 }

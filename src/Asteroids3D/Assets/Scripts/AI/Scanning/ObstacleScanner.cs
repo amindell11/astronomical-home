@@ -50,15 +50,16 @@ namespace AI.Scanning
             }
 
             var angleStep = config.maxRayDegrees / config.raysPerDirection;
+            var planeNormal = GamePlane.Normal;
             for (var i = 1; i <= config.raysPerDirection; i++)
             {
                 var angle = i * angleStep;
 
-                var leftDir = Quaternion.Euler(0, -angle, 0) * centerDirWorld;
+                var leftDir = Quaternion.AngleAxis(-angle, planeNormal) * centerDirWorld;
                 result.hitCount = CastAndCollect(pos, leftDir, maxDist, config, result.hitCount);
                 AddDebugRay(leftDir * maxDist);
 
-                var rightDir = Quaternion.Euler(0, angle, 0) * centerDirWorld;
+                var rightDir = Quaternion.AngleAxis(angle, planeNormal) * centerDirWorld;
                 result.hitCount = CastAndCollect(pos, rightDir, maxDist, config, result.hitCount);
                 AddDebugRay(rightDir * maxDist);
             }

@@ -115,13 +115,13 @@ public class MpcNavigatorPlayMode
         mpc.wObstacle = 10.0f;
         
         // Place obstacle between ship (at origin) and target
-        var obstacle = TestSceneBuilder.CreateObstacle(new Vector3(5, 5, 0), new Vector3(2, 2, 2));
-        var targetPos = new Vector2(10, 10);
+        var obstacle = TestSceneBuilder.CreateObstacle(new Vector3(10, 10, 0), new Vector3(2, 2, 2));
+        var targetPos = new Vector2(20, 20);
         mpc.SetNavigationPoint(targetPos);
         
         float startTime = Time.time;
         float minDistToObstacle = float.MaxValue;
-        var obstaclePos2D = new Vector2(5, 5);
+        var obstaclePos2D = new Vector2(10, 10);
         
         // Track minimum distance to obstacle while navigating
         while (Time.time - startTime < 10f)
