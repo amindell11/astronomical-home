@@ -11,29 +11,43 @@ namespace Asteroids.Fields
     {
         protected const float BoundaryMargin = 1.1f;
         
-        [Header("Asteroid Population")]
-        [SerializeField] protected int maxAsteroids = 50;
-
-        [Header("Initial Spawn Zone")]
-        [SerializeField] protected float maxSpawnDistance = 15f;
-        [SerializeField] protected float minSpawnDistance = 10f;
-
-        [Header("Volume Density Control")]
-        [Tooltip("Target volume per square meter for the asteroid field (volume-based, not mass-based).")]
-        [SerializeField] protected float targetVolumeDensity = 0.1f;
-        [SerializeField] protected float densityCheckRadius = 30f;
-        [SerializeField] protected int maxSpawnsPerFrame = 10;
+        [SerializeField] protected AsteroidFieldSettings settings;
 
         protected AsteroidSpawner AsteroidSpawner { get; private set; }
         protected Vector3 SpawnCenter;
         protected float TargetVolume;
         protected SphereCollider CullingBoundary;
         
+        // Cached settings for quick access
+        protected int maxAsteroids;
+        protected float minSpawnDistance;
+        protected float maxSpawnDistance;
+        protected float targetVolumeDensity;
+        protected float densityCheckRadius;
+        protected int maxSpawnsPerFrame;
+        
         protected virtual void Awake()
         {
             gameObject.tag = TagNames.AsteroidField;
             AsteroidSpawner = GetComponent<AsteroidSpawner>() ?? gameObject.AddComponent<AsteroidSpawner>();
             SpawnCenter = transform.position;
+            CacheSettings();
+        }
+        
+        protected virtual void CacheSettings()
+        {
+            if (!settings)
+            {
+                Debug.LogWarning($"AsteroidField '{name}' has no settings assigned. Using defaults.");
+                return;
+            }
+            
+            maxAsteroids = settings.maxAsteroids;
+            minSpawnDistance = settings.initialMinSpawnDistance;
+            maxSpawnDistance = settings.initialMaxSpawnDistance;
+            targetVolumeDensity = settings.targetVolumeDensity;
+            densityCheckRadius = settings.densityCheckRadius;
+            maxSpawnsPerFrame = settings.maxSpawnsPerFrame;
         }
 
         public void Initialize(SphereCollider cullingBoundary)

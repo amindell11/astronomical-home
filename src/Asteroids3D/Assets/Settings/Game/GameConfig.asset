@@ -16,7 +16,7 @@ MonoBehaviour:
     type: 3}
   enemyTemplate: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
     type: 3}
-  asteroidField: {fileID: 7997124830668444265, guid: a4a07ada72adcc44ba51f616ad29384b,
+  asteroidAsteroidField: {fileID: 7997124830668444265, guid: a4a07ada72adcc44ba51f616ad29384b,
     type: 3}
   ui: {fileID: 6902055608550465894, guid: 87f4b42386fd2af44b25b722572d1fcd, type: 3}
   cameraRig: {fileID: 5821845304837366738, guid: dfd1ae625419872458577af010d4bb9d,
@@ -27,4 +27,5 @@ MonoBehaviour:
   enemyCommander: {fileID: 1772957474756936600, guid: 08a3705197cc60842b107b8485d8ad25,
     type: 3}
   world: {fileID: 4478678954348364341, guid: 85b078d06b0ea6c40acdfd2fe59a9556, type: 3}
-  spawnerSettings: {fileID: 11400000, guid: d5df05273fc201d41b456a239f5fa628, type: 2}
+  shipSpawnerSettings: {fileID: 11400000, guid: d5df05273fc201d41b456a239f5fa628,
+    type: 2}

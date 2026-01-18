@@ -59,15 +59,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01d44c1147a3de14fb19a3f5007c71ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxAsteroids: 200
-  maxSpawnDistance: 80
-  minSpawnDistance: 7.5
-  targetVolumeDensity: 0.25
-  densityCheckRadius: 80
-  maxSpawnsPerFrame: 10
-  updateMinSpawnDistance: 50
-  updateMaxSpawnDistance: 80
-  densityCheckInterval: 0.15
+  settings: {fileID: 11400000, guid: 1006e8e03ee83644ba298d82906c5bcb, type: 2}
 --- !u!114 &2821821133351634998
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -80,4 +72,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dfd940a710d276e4a8462d8ea44d954f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fragSettings: {fileID: 11400000, guid: 8baace25097f38847916b17e62b62f43, type: 2}
+  asteroidFragAsteroidFragSettings: {fileID: 11400000, guid: 8baace25097f38847916b17e62b62f43,
+    type: 2}

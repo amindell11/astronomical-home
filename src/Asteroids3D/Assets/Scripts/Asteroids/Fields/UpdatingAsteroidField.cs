@@ -10,17 +10,25 @@ namespace Asteroids.Fields
     /// </summary>
     public class UpdatingAsteroidField : AsteroidField
     {
-        [Header("Update Spawn Zone")]
-        [Tooltip("Min spawn distance used during ongoing updates (InvokeRepeating calls)")]
-        [SerializeField] protected float updateMinSpawnDistance = 30f;
-        [Tooltip("Max spawn distance used during ongoing updates (InvokeRepeating calls)")]
-        [SerializeField] protected float updateMaxSpawnDistance = 50f;
-    
-        [Header("Update Timing")]
-        [SerializeField] protected float densityCheckInterval = 0.25f;
-
         public Func<Vector3> CurrentAnchorPos { private get; set; }
+        
         private float densityCheckTimer = 0f;
+        
+        // Cached settings for update behavior
+        private float updateMinSpawnDistance;
+        private float updateMaxSpawnDistance;
+        private float densityCheckInterval;
+        
+        protected override void CacheSettings()
+        {
+            base.CacheSettings();
+            
+            if (!settings) return;
+            
+            updateMinSpawnDistance = settings.updateMinSpawnDistance;
+            updateMaxSpawnDistance = settings.updateMaxSpawnDistance;
+            densityCheckInterval = settings.densityCheckInterval;
+        }
         
         protected override void Start()
         {
