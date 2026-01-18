@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Ships.Damage
 {
-    public partial class Controller : MonoBehaviour, IDamageable
+    public partial class DamageController : MonoBehaviour, IDamageable
     {
         public event Action<float, Vector3> OnDamaged; // dmg, hitPoint
         public event Action<Ship, Ship> OnDeath; // Passes the victim and killer Ship components

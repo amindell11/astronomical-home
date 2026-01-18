@@ -9,16 +9,16 @@ namespace Asteroids.Fragnetics
     {
 
         
-        private readonly Settings settings;
+        private readonly AsteroidFragSettings asteroidFragSettings;
 
-        public Calculator(Settings s)
+        public Calculator(AsteroidFragSettings s)
         {
-            settings = s;
+            asteroidFragSettings = s;
         }
         
         public Frag[] GenerateFragments(AsteroidData ast)
         {
-            var masses = GenerateFragmentMasses(ast.Mass * settings.massLossFactor, settings);
+            var masses = GenerateFragmentMasses(ast.Mass * asteroidFragSettings.massLossFactor, asteroidFragSettings);
             if (masses.Length == 0)
             {
                 return Array.Empty<Frag>();
@@ -56,10 +56,10 @@ namespace Asteroids.Fragnetics
 	        {
 		        var roughDirection = (frags[i].Position - ast.Position).normalized;
 		        frags[i].Velocity = ast.Velocity + 
-		                        (roughDirection * (settings.baseSeparationSpeed * 0.5f)) + 
-		                        (impactDirection * (settings.baseSeparationSpeed * 0.3f));
+		                        (roughDirection * (asteroidFragSettings.baseSeparationSpeed * 0.5f)) + 
+		                        (impactDirection * (asteroidFragSettings.baseSeparationSpeed * 0.3f));
                 
-		        frags[i].Spin = UnityEngine.Random.insideUnitSphere * (settings.spinVariation * 0.5f);
+		        frags[i].Spin = UnityEngine.Random.insideUnitSphere * (asteroidFragSettings.spinVariation * 0.5f);
 	        }
         }
 
@@ -69,7 +69,7 @@ namespace Asteroids.Fragnetics
 	        (Vector3 linear, Vector3 angular) momentum,
 	        Action<Frag[]> onFrag)
         {
-	        return CoCalculateFragmentPhysics(ast, hit, frags, momentum, onFrag, settings);
+	        return CoCalculateFragmentPhysics(ast, hit, frags, momentum, onFrag, asteroidFragSettings);
         }
         
         /// <summary>
@@ -80,7 +80,7 @@ namespace Asteroids.Fragnetics
         ///   - biased toward using more fragments when possible
         /// Returns an empty array if not enough mass to create minFragments.
         /// </summary>
-        private static float[] GenerateFragmentMasses(float totalMass, Settings s)
+        private static float[] GenerateFragmentMasses(float totalMass, AsteroidFragSettings s)
         {
             // Determine the feasible number of fragments
             if (totalMass <= 0 || s.minMass <= 0) return Array.Empty<float>();
@@ -129,7 +129,7 @@ namespace Asteroids.Fragnetics
         private static IEnumerator CoCalculateFragmentPhysics(
 	        AsteroidData ast, HitData hit, Frag[] frags,  
 	        (Vector3 linear, Vector3 angular) momentum,
-            Action<Frag[]> onFrag, Settings s)
+            Action<Frag[]> onFrag, AsteroidFragSettings s)
         {
 			var spinJitter = new Vector3[frags.Length];
 			var acc = new FragSum();
@@ -169,7 +169,7 @@ namespace Asteroids.Fragnetics
         }
         
         private static Vector3 FragmentationVelocity
-	        (Vector3 pos, Vector3 center, Vector3 bulletDir, float momentumPerMass, Settings s)
+	        (Vector3 pos, Vector3 center, Vector3 bulletDir, float momentumPerMass, AsteroidFragSettings s)
         {
 	        var outward = (pos - center).normalized;
 	        var random = UnityEngine.Random.insideUnitSphere.normalized;

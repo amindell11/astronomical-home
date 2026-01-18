@@ -5,9 +5,9 @@ using Random = UnityEngine.Random;
 
 namespace Asteroids.Spawning
 {
-    public class Spawner : MonoBehaviour
+    public class AsteroidSpawner : MonoBehaviour
     {
-        [SerializeField] private SpawnSettings settings;
+        [SerializeField] private AsteroidSpawnSettings settings;
         public Registry Registry { get; private set; }
         private SpawnPool pool;
         
@@ -82,7 +82,7 @@ namespace Asteroids.Spawning
             asteroid.Initialize(this, meshInfo, finalMass, scale, velocity, angularVelocity);
         }
 
-        private static SpawnSettings.MeshInfo GetRandomMeshInfo(SpawnSettings.MeshInfo[] meshInfos)
+        private static AsteroidSpawnSettings.MeshInfo GetRandomMeshInfo(AsteroidSpawnSettings.MeshInfo[] meshInfos)
         {
             if (meshInfos is not { Length: > 0 }) return default;
             var idx = Random.Range(0, meshInfos.Length);
@@ -112,7 +112,7 @@ namespace Asteroids.Spawning
         }
         
         private (float finalMass, float finalScale) CalculateMassAndScale(
-            SpawnSettings.MeshInfo meshInfo, float? mass=null)
+            AsteroidSpawnSettings.MeshInfo meshInfo, float? mass=null)
         {
             var baseVolume = meshInfo.cachedVolume;
             var baseMass = baseVolume * settings.density;

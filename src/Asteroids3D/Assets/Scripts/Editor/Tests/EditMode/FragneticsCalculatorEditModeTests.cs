@@ -8,24 +8,24 @@ namespace Tests.EditMode
 {
     public class FragneticsCalculatorEditModeTests
     {
-        private Settings settings;
+        private AsteroidFragSettings asteroidFragSettings;
 
         [SetUp]
         public void SetUp()
         {
-            settings = ScriptableObject.CreateInstance<Settings>();
+            asteroidFragSettings = ScriptableObject.CreateInstance<AsteroidFragSettings>();
             // Deterministic settings for tests
-            settings.minMass = 5f;
-            settings.minFragments = 2;
-            settings.maxFragments = 6;
-            settings.highCountBias = 0.9f;
-            settings.baseSeparationSpeed = 5f;
-            settings.spinVariation = 0f; // disable jitter for strict assertions
-            settings.momentumCoupling = 1f; // full coupling; conservation is always enforced in code
-            settings.outwardBias = 0.7f;
-            settings.bulletBias = 1.0f;
-            settings.randomBias = 0.0f; // remove randomness from directions for predictability
-            settings.massLossFactor = 0.8f;
+            asteroidFragSettings.minMass = 5f;
+            asteroidFragSettings.minFragments = 2;
+            asteroidFragSettings.maxFragments = 6;
+            asteroidFragSettings.highCountBias = 0.9f;
+            asteroidFragSettings.baseSeparationSpeed = 5f;
+            asteroidFragSettings.spinVariation = 0f; // disable jitter for strict assertions
+            asteroidFragSettings.momentumCoupling = 1f; // full coupling; conservation is always enforced in code
+            asteroidFragSettings.outwardBias = 0.7f;
+            asteroidFragSettings.bulletBias = 1.0f;
+            asteroidFragSettings.randomBias = 0.0f; // remove randomness from directions for predictability
+            asteroidFragSettings.massLossFactor = 0.8f;
 
             Random.InitState(123456); // make Random deterministic per test run
         }
@@ -33,16 +33,16 @@ namespace Tests.EditMode
         [TearDown]
         public void TearDown()
         {
-            if (settings)
+            if (asteroidFragSettings)
             {
-                Object.DestroyImmediate(settings);
+                Object.DestroyImmediate(asteroidFragSettings);
             }
         }
 
         [Test]
         public void GenerateFragments_RespectsMassConservationAndBounds()
         {
-            var calc = new Calculator(settings);
+            var calc = new Calculator(asteroidFragSettings);
             var astData = new AsteroidData(
                 mass: 100f,
                 rotation: Quaternion.identity,
@@ -53,16 +53,16 @@ namespace Tests.EditMode
 
             var frags = calc.GenerateFragments(astData);
 
-            Assert.That(frags.Length, Is.GreaterThanOrEqualTo(settings.minFragments));
-            Assert.That(frags.Length, Is.LessThanOrEqualTo(settings.maxFragments));
+            Assert.That(frags.Length, Is.GreaterThanOrEqualTo(asteroidFragSettings.minFragments));
+            Assert.That(frags.Length, Is.LessThanOrEqualTo(asteroidFragSettings.maxFragments));
 
             float sumMass = frags.Sum(f => f.Mass);
-            float expectedTotal = astData.Mass * settings.massLossFactor;
+            float expectedTotal = astData.Mass * asteroidFragSettings.massLossFactor;
 
-            Debug.Log($"[GenerateFragments] count={frags.Length}, massSum={sumMass:F3}, expected={expectedTotal:F3}, minMass={settings.minMass}");
+            Debug.Log($"[GenerateFragments] count={frags.Length}, massSum={sumMass:F3}, expected={expectedTotal:F3}, minMass={asteroidFragSettings.minMass}");
 
             Assert.That(sumMass, Is.EqualTo(expectedTotal).Within(1e-3f));
-            Assert.That(frags.Min(f => f.Mass), Is.GreaterThanOrEqualTo(settings.minMass));
+            Assert.That(frags.Min(f => f.Mass), Is.GreaterThanOrEqualTo(asteroidFragSettings.minMass));
 
             // Positions should be near parent position (offset <= ~0.5)
             foreach (var f in frags)
@@ -75,7 +75,7 @@ namespace Tests.EditMode
         [Test]
         public void CalculateInitialMomentum_ComputesLinearAndAngularCorrectly()
         {
-            var calc = new Calculator(settings);
+            var calc = new Calculator(asteroidFragSettings);
 
             // Identity rotation to simplify; custom inertia tensor and angular velocity
             var astData = new AsteroidData(
@@ -109,7 +109,7 @@ namespace Tests.EditMode
         [Test]
         public void PlaceholderPhysics_ProducesReasonableSpeeds_NoExplosions()
         {
-            var calc = new Calculator(settings);
+            var calc = new Calculator(asteroidFragSettings);
             var astData = new AsteroidData(
                 mass: 40f,
                 rotation: Quaternion.identity,
@@ -126,17 +126,17 @@ namespace Tests.EditMode
             // delta v should be on the order of baseSeparationSpeed
             float avgDelta = frags.Select(f => (f.Velocity - astData.Velocity).magnitude).Average();
 
-            Debug.Log($"[PlaceholderPhysics] avgDelta={avgDelta:F3} (baseSeparationSpeed={settings.baseSeparationSpeed})");
+            Debug.Log($"[PlaceholderPhysics] avgDelta={avgDelta:F3} (baseSeparationSpeed={asteroidFragSettings.baseSeparationSpeed})");
 
             Assert.That(avgDelta, Is.GreaterThan(0f));
-            Assert.That(avgDelta, Is.LessThanOrEqualTo(settings.baseSeparationSpeed * 2f));
+            Assert.That(avgDelta, Is.LessThanOrEqualTo(asteroidFragSettings.baseSeparationSpeed * 2f));
         }
 
         [Test]
         public void CoroutinePhysics_ConservesLinearAndAngularMomentum_WhenNoLossNoSpin()
         {
             // spinVariation = 0 already set in SetUp; momentum is strictly conserved in implementation
-            var calc = new Calculator(settings);
+            var calc = new Calculator(asteroidFragSettings);
             var astData = new AsteroidData(
                 mass: 60f,
                 rotation: Quaternion.identity,
@@ -184,13 +184,13 @@ namespace Tests.EditMode
         {
             // This test is diagnostic to uncover potential refactor-induced speed inflation.
             // It demonstrates that fragment dispersion speeds scale with the relative projectile speed.
-            settings.randomBias = 0.0f;
-            settings.outwardBias = 0.7f;
-            settings.bulletBias = 1.0f;
-            settings.baseSeparationSpeed = 4f;
-            settings.spinVariation = 0f;
+            asteroidFragSettings.randomBias = 0.0f;
+            asteroidFragSettings.outwardBias = 0.7f;
+            asteroidFragSettings.bulletBias = 1.0f;
+            asteroidFragSettings.baseSeparationSpeed = 4f;
+            asteroidFragSettings.spinVariation = 0f;
 
-            var calc = new Calculator(settings);
+            var calc = new Calculator(asteroidFragSettings);
             var astData = new AsteroidData(
                 mass: 80f,
                 rotation: Quaternion.identity,

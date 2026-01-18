@@ -3,7 +3,7 @@ using Weapons;
 
 namespace Ships.Weapons
 {
-    public class Controller : MonoBehaviour
+    public class WeaponsController : MonoBehaviour
     {
         [SerializeField] private WeaponComponent primaryMount;
         [SerializeField] private WeaponComponent secondaryMount;

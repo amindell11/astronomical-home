@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Linq;
 using Asteroids;
+using Asteroids.Fields;
 using Cameras;
 using Ships;
 using UnityEngine;
@@ -10,12 +11,12 @@ using UnityEngine.SceneManagement;
 using Utils;
 using Random = UnityEngine.Random;
 using ShipSpawner = Ships.Spawner;
-using AsteroidField = Asteroids.Fields.UpdatingField;
+
 namespace Game
 {
-    public class Initiator : MonoBehaviour
+    public class GameInitiator : MonoBehaviour
     {
-        private AsteroidField field;
+        private UpdatingAsteroidField asteroidField;
         private CameraRig cameraRig;
         private UI.Overlay ui;
         private WorldRoot world;
@@ -23,22 +24,22 @@ namespace Game
 
         public Services Services { get; private set; }
 
-        public IEnumerator Initialize(Config config)
+        public IEnumerator Initialize(GameConfig gameConfig)
         {
             if (isInitialized)
                 yield break;
-            if (!config)
-                throw new ArgumentNullException(nameof(config));
+            if (!gameConfig)
+                throw new ArgumentNullException(nameof(gameConfig));
 
             isInitialized = true;
 
             yield return StartCoroutine(LoadWorldScene());
             
-            InitializeWorld(config);
-            InitializeAsteroidField(config);
-            InitializeShips(config);
-            InitializeCamera(config);
-            InitializeUI(config);
+            InitializeWorld(gameConfig);
+            InitializeAsteroidField(gameConfig);
+            InitializeShips(gameConfig);
+            InitializeCamera(gameConfig);
+            InitializeUI(gameConfig);
         }
 
         private IEnumerator LoadWorldScene()
@@ -57,15 +58,15 @@ namespace Game
             GamePlane.Plane.SetPositionAndRotation(Vector3.zero, Quaternion.Euler(90f, 0f, 0f));
         }
 
-        private void InitializeUI(Config config)
+        private void InitializeUI(GameConfig gameConfig)
         {
-            ui = Instantiate(config.UI);
+            ui = Instantiate(gameConfig.UI);
             ui.SetCanvasWorldCamera(cameraRig.UICamera);
         }
 
-        private void InitializeCamera(Config config)
+        private void InitializeCamera(GameConfig gameConfig)
         {
-            cameraRig = Instantiate(config.CameraRig);
+            cameraRig = Instantiate(gameConfig.CameraRig);
             var cameraFollow = cameraRig.ObserverCam;
             cameraFollow.SetSubject(Services.Player.transform);
             cameraFollow.AddSecondarySubjects(Services.ActiveShips.Where(s => s != Services.Player).Select(s => s.transform));
@@ -73,24 +74,24 @@ namespace Game
             Services.ActiveShips.OnRemove += s => cameraFollow.RemoveSecondarySubject(s.transform);
         }
 
-        private void InitializeAsteroidField(Config config)
+        private void InitializeAsteroidField(GameConfig gameConfig)
         {
             var cullingBoundary = world.AsteroidCullingBoundary;
-            field = Instantiate(config.AsteroidField);
-            field.Initialize(cullingBoundary);
-            field.CurrentAnchorPos = () => GamePlane.ProjectOntoPlane(cameraRig.transform.position);
+            asteroidField = Instantiate(gameConfig.AsteroidAsteroidField);
+            asteroidField.Initialize(cullingBoundary);
+            asteroidField.CurrentAnchorPos = () => GamePlane.ProjectOntoPlane(cameraRig.transform.position);
         }
 
-        private void InitializeShips(Config config)
+        private void InitializeShips(GameConfig gameConfig)
         {
-            Services = new Services(config);
+            Services = new Services(gameConfig);
             world.Follower.SetTarget(Services.Player.transform);
         }
 
-        private void InitializeWorld(Config config)
+        private void InitializeWorld(GameConfig gameConfig)
         {
-            if (!config.World) return;
-            world = Instantiate(config.World);
+            if (!gameConfig.World) return;
+            world = Instantiate(gameConfig.World);
         }
 
         public void Shutdown()
@@ -99,8 +100,8 @@ namespace Game
                 Destroy(ui.gameObject);
             if (cameraRig)
                 Destroy(cameraRig.gameObject);
-            if (field)
-                Destroy(field.gameObject);
+            if (asteroidField)
+                Destroy(asteroidField.gameObject);
             if (world)
                 Destroy(world.gameObject);
 
@@ -108,7 +109,7 @@ namespace Game
 
             ui = null;
             cameraRig = null;
-            field = null;
+            asteroidField = null;
             world = null;
             Services = null;
             isInitialized = false;

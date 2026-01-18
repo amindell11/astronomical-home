@@ -8,7 +8,7 @@ using UnityEngine;
 namespace Editor
 {
     /// <summary>
-    /// One-shot utility to migrate legacy <see cref="SpawnSettings"> assets that still use the
+    /// One-shot utility to migrate legacy <see cref="AsteroidSpawnSettings"> assets that still use the
     /// deprecated 'asteroidMeshes' array into the new 'meshInfos' structure.
     /// Run via the Unity menu:  Tools ▸ Asteroid ▸ Migrate Spawn Settings.
     /// </summary>
@@ -32,7 +32,7 @@ namespace Editor
         [MenuItem(MigrateSelectedMenu, validate = true, priority = 2001)]
         private static bool ValidateMenu() => true; // Always enabled
 
-        private static bool NeedsMigration(SpawnSettings settings)
+        private static bool NeedsMigration(AsteroidSpawnSettings settings)
         {
             var so = new SerializedObject(settings);
             var meshInfosProp = so.FindProperty("meshInfos");
@@ -41,7 +41,7 @@ namespace Editor
                    legacyMeshesProp != null && legacyMeshesProp.arraySize > 0;
         }
 
-        private static void PerformMigration(SpawnSettings settings)
+        private static void PerformMigration(AsteroidSpawnSettings settings)
         {
             var so = new SerializedObject(settings);
             var meshInfosProp = so.FindProperty("meshInfos");
@@ -82,7 +82,7 @@ namespace Editor
         /*──────────────────────────────────────────────────────────────────────────*/
         /* Core processing --------------------------------------------------------*/
 
-        private static void ProcessSettings(IEnumerable<SpawnSettings> settingsCollection, bool doMigration)
+        private static void ProcessSettings(IEnumerable<AsteroidSpawnSettings> settingsCollection, bool doMigration)
         {
             var updated = 0;
 
@@ -143,20 +143,20 @@ namespace Editor
         /*──────────────────────────────────────────────────────────────────────────*/
         /* Utility ----------------------------------------------------------------*/
 
-        private static IEnumerable<SpawnSettings> FindAllSettings()
+        private static IEnumerable<AsteroidSpawnSettings> FindAllSettings()
         {
             foreach (var guid in AssetDatabase.FindAssets("t:AsteroidSpawnSettings"))
             {
                 var path = AssetDatabase.GUIDToAssetPath(guid);
-                var settings = AssetDatabase.LoadAssetAtPath<SpawnSettings>(path);
+                var settings = AssetDatabase.LoadAssetAtPath<AsteroidSpawnSettings>(path);
                 if (settings != null) yield return settings;
             }
         }
 
-        private static IEnumerable<SpawnSettings> GetSelectedSettings() =>
-            Selection.GetFiltered<SpawnSettings>(SelectionMode.Assets);
+        private static IEnumerable<AsteroidSpawnSettings> GetSelectedSettings() =>
+            Selection.GetFiltered<AsteroidSpawnSettings>(SelectionMode.Assets);
 
-        private static Mesh GenerateOptimizedColliderMesh(Mesh sourceMesh, SpawnSettings owner)
+        private static Mesh GenerateOptimizedColliderMesh(Mesh sourceMesh, AsteroidSpawnSettings owner)
         {
             if (sourceMesh == null) return null;
 

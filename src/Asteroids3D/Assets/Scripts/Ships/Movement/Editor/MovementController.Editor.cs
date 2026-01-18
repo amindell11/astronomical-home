@@ -5,7 +5,7 @@ using Utils;
 
 namespace Ships.Movement
 {
-    public partial class Controller
+    public partial class MovementController
     {
         private void OnDrawGizmos()
         {

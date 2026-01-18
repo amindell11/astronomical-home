@@ -8,9 +8,9 @@ using UnityEngine;
 using Ships.Weapons;
 namespace Ships
 {
-    [RequireComponent(typeof(Movement.Controller))]
-    [RequireComponent(typeof(Damage.Controller))]
-    [RequireComponent(typeof(Weapons.Controller))]
+    [RequireComponent(typeof(Movement.MovementController))]
+    [RequireComponent(typeof(Damage.DamageController))]
+    [RequireComponent(typeof(Weapons.WeaponsController))]
 
     public class Ship : MonoBehaviour, ITargetable, IShooter
     {
@@ -23,9 +23,9 @@ namespace Ships
         public int teamNumber = 0;
         
         public ICommandSource Commander { get; private set; }  
-        public Movement.Controller Movement { get; internal set; }
-        public Weapons.Controller Weapons { get; private set; }
-        public Damage.Controller Damage { get; internal set; }
+        public Movement.MovementController Movement { get; internal set; }
+        public Weapons.WeaponsController Weapons { get; private set; }
+        public Damage.DamageController Damage { get; internal set; }
 
         private bool isInitialized = false;
 
@@ -60,9 +60,9 @@ namespace Ships
             isInitialized = true;
         }
         private void FindComponents(){            
-            Movement = GetComponent<Movement.Controller>();
-            Damage   = GetComponent<Damage.Controller>();
-            Weapons = GetComponent<Weapons.Controller>();
+            Movement = GetComponent<Movement.MovementController>();
+            Damage   = GetComponent<Damage.DamageController>();
+            Weapons = GetComponent<Weapons.WeaponsController>();
         }
 
         private void SetCommander(ICommandSource commander)

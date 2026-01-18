@@ -26,7 +26,7 @@ namespace Audio
         [SerializeField, Range(0f, 1f)] private float deathVolume = 1f;
 
         private AudioSource source; 
-        private Controller damage;
+        private DamageController damage;
 
         private void Awake()
         {
@@ -39,7 +39,7 @@ namespace Audio
         private void OnEnable()
         {
             if (!damage)
-                damage = GetComponentInParent<Controller>();
+                damage = GetComponentInParent<DamageController>();
             if (!damage) return;
             damage.Shield.OnValueChanged += HandleShieldChanged;
             damage.Health.OnValueChanged += HandleHealthChanged;

@@ -6,7 +6,6 @@ using Ships.Damage;
 using Ships.Movement;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Controller = Ships.Damage.Controller;
 
 /// <summary>
 /// PlayMode test for shield regeneration validation.
@@ -16,7 +15,7 @@ public class ShieldRegenerationPlayMode
 {
     private GameObject testScene;
     private Ships.Ship testShip;
-    private Controller damage;
+    private DamageController damage;
     private Settings settings;
     private GameObject referencePlane;
 
@@ -47,10 +46,10 @@ public class ShieldRegenerationPlayMode
         shipGO.AddComponent<Rigidbody>();
 
         // Required components due to attributes
-        var movement = shipGO.AddComponent<Ships.Movement.Controller>();
+        var movement = shipGO.AddComponent<Ships.Movement.MovementController>();
         movement.PopulateSettings(ScriptableObject.CreateInstance<Settings>());
         movement.enabled = false; // not needed for shield regen tests
-        var handler  = shipGO.AddComponent<Controller>();
+        var handler  = shipGO.AddComponent<DamageController>();
 
         // Set tunable values on the handler directly.
         handler.maxHealth        = MaxHealth;

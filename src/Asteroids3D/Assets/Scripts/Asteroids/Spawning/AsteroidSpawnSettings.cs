@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Asteroids.Spawning
 {
     [CreateAssetMenu(fileName = "New Asteroid Spawn Settings", menuName = "Asteroid/Spawn Settings")]
-    public class SpawnSettings : ScriptableObject
+    public class AsteroidSpawnSettings : ScriptableObject
     {
         [System.Serializable]
         public struct MeshInfo

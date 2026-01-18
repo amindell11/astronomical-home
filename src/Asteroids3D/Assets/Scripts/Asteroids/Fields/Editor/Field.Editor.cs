@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Asteroids.Fields
 {
-    public partial class Field
+    public partial class AsteroidField
     {
         protected virtual void OnDrawGizmosSelected()
         {

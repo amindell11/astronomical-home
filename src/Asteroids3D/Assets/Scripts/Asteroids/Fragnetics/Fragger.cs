@@ -10,13 +10,13 @@ namespace Asteroids.Fragnetics
 
     public class Fragger : MonoSingleton<Fragger>
     {
-        [SerializeField] private Settings fragSettings;
+        [SerializeField] private AsteroidFragSettings asteroidFragAsteroidFragSettings;
         private Calculator calc;
 
         protected override void Awake()
         {
             base.Awake();
-            calc = new Calculator(fragSettings);
+            calc = new Calculator(asteroidFragAsteroidFragSettings);
         }
 
         /// <summary>
@@ -27,13 +27,13 @@ namespace Asteroids.Fragnetics
             var ast = new AsteroidData(asteroid);
             var frags = calc.GenerateFragments(ast);
             var initialMomentum = calc.CalculateInitialMomentum(ast, hit);
-            StartCoroutine(CreateFragmentsWithPlaceholders(ast, hit, frags, initialMomentum, asteroid.Spawner, onFragment));
+            StartCoroutine(CreateFragmentsWithPlaceholders(ast, hit, frags, initialMomentum, asteroid.AsteroidSpawner, onFragment));
         }
 
         /// <summary>
         /// spawns placeholder fragments immediately, then updates them with proper physics
         /// </summary>
-        private IEnumerator CreateFragmentsWithPlaceholders(AsteroidData ast, HitData hit, Frag[] frags, (Vector3 linear, Vector3 angular) momentum, Spawner spawn, [CanBeNull] Action<Frag[]> onFragment = null)
+        private IEnumerator CreateFragmentsWithPlaceholders(AsteroidData ast, HitData hit, Frag[] frags, (Vector3 linear, Vector3 angular) momentum, AsteroidSpawner spawn, [CanBeNull] Action<Frag[]> onFragment = null)
         {
 
             calc.CalculatePlaceholderPhysics(ast, hit, frags);
@@ -54,14 +54,14 @@ namespace Asteroids.Fragnetics
         /// <summary>
         /// Spawn fragments immediately with rough physics for visual continuity
         /// </summary>
-        private Asteroid[] SpawnPlaceholderFragments(AsteroidData ast, HitData hit, Frag[] frags, Spawner spawn)
+        private Asteroid[] SpawnPlaceholderFragments(AsteroidData ast, HitData hit, Frag[] frags, AsteroidSpawner spawn)
         {
             var fragments = new Asteroid[frags.Length];
             calc.CalculatePlaceholderPhysics(ast, hit, frags);
             for (var i = 0; i < frags.Length; i++)
             {
                 fragments[i] = spawn.SpawnFragment(frags[i]);
-                if (fragSettings.fragmentFadeInTime > 0f)
+                if (asteroidFragAsteroidFragSettings.fragmentFadeInTime > 0f)
                     StartCoroutine(FadeInFragment(fragments[i]));
             }
             return fragments;
@@ -82,7 +82,7 @@ namespace Asteroids.Fragnetics
         /// </summary>
         private IEnumerator FadeInFragment(Asteroid fragment)
         {
-            if (!fragment || fragSettings.fragmentFadeInTime <= 0f) yield break;
+            if (!fragment || asteroidFragAsteroidFragSettings.fragmentFadeInTime <= 0f) yield break;
 
             var re = fragment.Renderer;
             if (!re) yield break;
@@ -94,10 +94,10 @@ namespace Asteroids.Fragnetics
             material.color = transparentColor;
 
             var elapsed = 0f;
-            while (elapsed < fragSettings.fragmentFadeInTime)
+            while (elapsed < asteroidFragAsteroidFragSettings.fragmentFadeInTime)
             {
                 elapsed += Time.deltaTime;
-                var alpha = Mathf.Lerp(0f, originalColor.a, elapsed / fragSettings.fragmentFadeInTime);
+                var alpha = Mathf.Lerp(0f, originalColor.a, elapsed / asteroidFragAsteroidFragSettings.fragmentFadeInTime);
                 material.color = new Color(originalColor.r, originalColor.g, originalColor.b, alpha);
                 yield return null;
             }

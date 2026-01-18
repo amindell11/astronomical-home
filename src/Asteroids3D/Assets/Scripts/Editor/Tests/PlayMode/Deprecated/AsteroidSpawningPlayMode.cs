@@ -16,8 +16,8 @@ using Game;
 /// <summary>
 /// PlayMode tests that exercise the asteroid spawning pipeline – initial population,
 /// run-time fragmentation, and volume-based density control. These tests rely on the
-/// <c>AsteroidController</c> prefab which bundles an <see cref="Spawner"/>,
-/// <see cref="UpdatingField"/> (open-world variant) and <see cref="Fragger"/>.
+/// <c>AsteroidController</c> prefab which bundles an <see cref="AsteroidSpawner"/>,
+/// <see cref="UpdatingAsteroidField"/> (open-world variant) and <see cref="Fragger"/>.
 ///
 /// The goal is to surface regression bugs in the interplay between these systems so
 /// that crashes or silent failures in production can be reproduced and diagnosed in CI.
@@ -27,8 +27,8 @@ using Game;
 public class AsteroidSpawningPlayMode
 {
     private GameObject testScene;
-    private Spawner spawner;
-    private UpdatingField updatingField;
+    private AsteroidSpawner asteroidSpawner;
+    private UpdatingAsteroidField updatingAsteroidField;
 
     // We spawn our own camera so that AsteroidFieldManager has a valid anchor.
     private Camera mainCamera;
@@ -57,11 +57,11 @@ public class AsteroidSpawningPlayMode
         GameObject controllerInstance = Object.Instantiate(controllerPrefab, testScene.transform);
         Assert.Fail("AsteroidSpawningPlayMode requires AssetDatabase which is only available in the editor.");
         // Grab references to the baked-in components for convenience
-        spawner = Object.FindObjectOfType<Spawner>();
-        updatingField = Object.FindObjectOfType<UpdatingField>();
+        asteroidSpawner = Object.FindObjectOfType<AsteroidSpawner>();
+        updatingAsteroidField = Object.FindObjectOfType<UpdatingAsteroidField>();
 
-        Assert.IsNotNull(spawner, "AsteroidSpawner component not found after prefab instantiation.");
-        Assert.IsNotNull(updatingField, "AsteroidFieldManager component not found after prefab instantiation.");
+        Assert.IsNotNull(asteroidSpawner, "AsteroidSpawner component not found after prefab instantiation.");
+        Assert.IsNotNull(updatingAsteroidField, "AsteroidFieldManager component not found after prefab instantiation.");
     }
 
     [TearDown]
@@ -71,8 +71,8 @@ public class AsteroidSpawningPlayMode
         {
             Object.DestroyImmediate(testScene);
         }
-        spawner = null;
-        updatingField = null;
+        asteroidSpawner = null;
+        updatingAsteroidField = null;
         mainCamera = null;
     }
 
@@ -219,18 +219,18 @@ public class AsteroidSpawningPlayMode
     }
 
     /// <summary>
-    /// Cross-checks internal book-keeping of <see cref="Spawner"/> against the actual
+    /// Cross-checks internal book-keeping of <see cref="AsteroidSpawner"/> against the actual
     /// scene state.  Also verifies that every entry in the private <c>activeAsteroids</c>
     /// set maps to a live, enabled <see cref="Asteroid"/> component and that summed
     /// volumes match <c>TotalActiveVolume</c>.
     /// </summary>
     private void ValidateSpawnerIntegrity(float relTol = 0.02f, float absTol = 0.02f)
     {
-        var registry = spawner.Registry;
+        var registry = asteroidSpawner.Registry;
         Assert.IsNotNull(registry, "AsteroidRegistry instance not present.");
 
         // 1. Count consistency
-        Assert.AreEqual(spawner.Registry.TotalVolume, registry.ActiveCount, "ActiveAsteroidCount does not match registry count.");
+        Assert.AreEqual(asteroidSpawner.Registry.TotalVolume, registry.ActiveCount, "ActiveAsteroidCount does not match registry count.");
 
         // 2. Every entry valid & enabled, gather volume
         float sum = 0f;
@@ -243,8 +243,8 @@ public class AsteroidSpawningPlayMode
 
         // 3. Compare summed volume vs spawner counter
         float allowed = Mathf.Max(absTol, sum * relTol);
-        Assert.AreEqual(sum, spawner.Registry.TotalVolume, allowed,
-            $"TotalActiveVolume mismatch: summed={sum:F3} tracker={spawner.Registry.TotalVolume:F3}");
+        Assert.AreEqual(sum, asteroidSpawner.Registry.TotalVolume, allowed,
+            $"TotalActiveVolume mismatch: summed={sum:F3} tracker={asteroidSpawner.Registry.TotalVolume:F3}");
 
         // 4. Scene cross-check – ensure no stray asteroids excluded from registry
         var sceneAsteroids = Object.FindObjectsOfType<Asteroid>();

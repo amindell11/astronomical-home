@@ -7,13 +7,13 @@ namespace Ships
 {
 public class Spawner
 {
-    private readonly SpawnerSettings settings;
+    private readonly ShipSpawnerSettings settings;
     
     private Camera cacheMainCamera;
     public SubscribedSet<Ships.Ship> SubscribedShips { get; private set; }
     private Camera LazyCacheCamera => cacheMainCamera ??= Camera.main;
 
-    public Spawner(SpawnerSettings settings, params Ships.Ship[] ships)
+    public Spawner(ShipSpawnerSettings settings, params Ships.Ship[] ships)
     {
         this.settings = settings;
         SubscribedShips = new SubscribedSet<Ships.Ship>(
@@ -25,7 +25,7 @@ public class Spawner
     
     private void OnShipDeath(Ships.Ship deadShip, Ships.Ship killer)
     {
-        var game = Context.Singleton;
+        var game = GameContext.Singleton;
         if (game.CurrentState is GameState.GameOver) return;
         var isPlayer =  deadShip && deadShip.CompareTag(TagNames.Player);
         if(!settings) return;

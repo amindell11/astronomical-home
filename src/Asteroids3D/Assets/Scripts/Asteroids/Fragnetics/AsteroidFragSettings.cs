@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Asteroids.Fragnetics
 {
     [CreateAssetMenu(fileName = "FragSettings", menuName = "Asteroid/Fragmentation Settings", order = 0)]
-    public class Settings : ScriptableObject
+    public class AsteroidFragSettings : ScriptableObject
     {
         
         [Header("Fragmentation Settings")]

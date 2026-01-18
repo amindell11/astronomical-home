@@ -55,7 +55,7 @@ namespace Asteroids
         public float Mass => Rb.mass;
         public float Volume { get; private set; }
         public Rigidbody Rb { get; private set; }
-        public Spawner Spawner { get; private set; }
+        public AsteroidSpawner AsteroidSpawner { get; private set; }
         public float Health { get; private set; }
         public float MaxHealth { get; private set; }
         public Renderer Renderer { get; private set; }
@@ -79,8 +79,8 @@ namespace Asteroids
         }
         
         public void Initialize(
-            Spawner spawner,
-            SpawnSettings.MeshInfo meshInfo,
+            AsteroidSpawner asteroidSpawner,
+            AsteroidSpawnSettings.MeshInfo meshInfo,
             float mass,
             float scale,
             Vector3 velocity,
@@ -92,7 +92,7 @@ namespace Asteroids
             Physics.autoSyncTransforms = false;
 
             meshFilter.mesh = meshInfo.mesh;
-            Spawner = spawner;
+            AsteroidSpawner = asteroidSpawner;
         
             // Calculate volume from mesh bounds and scale
             Volume = meshInfo.cachedVolume * (scale * scale * scale);
@@ -139,7 +139,7 @@ namespace Asteroids
             Rb.angularVelocity = spin;
         }
 
-        private void UpdateMeshCollider(SpawnSettings.MeshInfo meshInfo)
+        private void UpdateMeshCollider(AsteroidSpawnSettings.MeshInfo meshInfo)
         {
             if (!meshCollider) return;
             var targetColliderMesh = meshInfo.colliderMesh ? meshInfo.colliderMesh : meshInfo.mesh;
@@ -183,7 +183,7 @@ namespace Asteroids
         {
             Rb.linearVelocity = Vector3.zero;
             Rb.angularVelocity = Vector3.zero;
-            Spawner.Despawn(this);
+            AsteroidSpawner.Despawn(this);
         }
         
         private void OnTriggerExit(Collider other)

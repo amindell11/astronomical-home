@@ -6,9 +6,9 @@ namespace Asteroids.Fields
 {
     /// <summary>
     /// Open-world asteroid field manager that centres spawning logic on the main
-    /// player camera. All heavy logic lives in <see cref="Field"/>.
+    /// player camera. All heavy logic lives in <see cref="AsteroidField"/>.
     /// </summary>
-    public class UpdatingField : Field
+    public class UpdatingAsteroidField : AsteroidField
     {
         [Header("Update Spawn Zone")]
         [Tooltip("Min spawn distance used during ongoing updates (InvokeRepeating calls)")]

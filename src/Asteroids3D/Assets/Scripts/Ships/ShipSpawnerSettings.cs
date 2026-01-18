@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Ships
 {
     [CreateAssetMenu(fileName = "SpawnerSettings", menuName = "Ship/SpawnerSettings")]
-    public class SpawnerSettings : ScriptableObject
+    public class ShipSpawnerSettings : ScriptableObject
     {
         [Header("Game Flow Settings")]
         [Tooltip("Delay before restarting the game after player death")]

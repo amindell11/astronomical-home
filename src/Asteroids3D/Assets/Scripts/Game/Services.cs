@@ -14,19 +14,19 @@ namespace Game
         public SubscribedSet<Ship> ActiveShips { get; } = new();
         public ShipSpawner Spawner { get; }
 
-        public Services(Config config)
+        public Services(GameConfig gameConfig)
         {
-            Player = ShipFactory.CreateShip(config.PlayerTemplate, config.PlayerCommander, config.ShipSettings, 0,
+            Player = ShipFactory.CreateShip(gameConfig.PlayerTemplate, gameConfig.PlayerCommander, gameConfig.ShipSettings, 0,
                 Vector3.zero, Quaternion.identity);
             Player.tag = TagNames.Player;
 
-            Enemy = ShipFactory.CreateShip(config.EnemyTemplate, config.EnemyCommander, config.ShipSettings, 1,
+            Enemy = ShipFactory.CreateShip(gameConfig.EnemyTemplate, gameConfig.EnemyCommander, gameConfig.ShipSettings, 1,
                 GamePlane.PlanePointToWorld(Random.insideUnitCircle) * 5, Quaternion.identity);
             
             ActiveShips.Add(Player);
             ActiveShips.Add(Enemy);
             
-            Spawner = new ShipSpawner(config.SpawnerSettings, Player, Enemy);
+            Spawner = new ShipSpawner(gameConfig.ShipSpawnerSettings, Player, Enemy);
         }
 
         public void Dispose()

@@ -7,7 +7,7 @@ using Utils;
 
 namespace Asteroids.Fields
 {
-    public partial class Field : MonoBehaviour
+    public partial class AsteroidField : MonoBehaviour
     {
         protected const float BoundaryMargin = 1.1f;
         
@@ -24,7 +24,7 @@ namespace Asteroids.Fields
         [SerializeField] protected float densityCheckRadius = 30f;
         [SerializeField] protected int maxSpawnsPerFrame = 10;
 
-        protected Spawner Spawner { get; private set; }
+        protected AsteroidSpawner AsteroidSpawner { get; private set; }
         protected Vector3 SpawnCenter;
         protected float TargetVolume;
         protected SphereCollider CullingBoundary;
@@ -32,7 +32,7 @@ namespace Asteroids.Fields
         protected virtual void Awake()
         {
             gameObject.tag = TagNames.AsteroidField;
-            Spawner = GetComponent<Spawner>() ?? gameObject.AddComponent<Spawner>();
+            AsteroidSpawner = GetComponent<AsteroidSpawner>() ?? gameObject.AddComponent<AsteroidSpawner>();
             SpawnCenter = transform.position;
         }
 
@@ -57,15 +57,15 @@ namespace Asteroids.Fields
         }
         private void CheckAndSpawnAsteroids(float minSpawn, float maxSpawn, int spawnsPerFrame)
         {
-            if (!Spawner) return;
+            if (!AsteroidSpawner) return;
             var safetyBreak = spawnsPerFrame;
-            while (Spawner.Registry.TotalVolume < TargetVolume &&
-                   Spawner.Registry.ActiveCount < maxAsteroids &&
+            while (AsteroidSpawner.Registry.TotalVolume < TargetVolume &&
+                   AsteroidSpawner.Registry.ActiveCount < maxAsteroids &&
                    safetyBreak > 0)
             {
                 var pos = GetRandomFieldPos(minSpawn, maxSpawn);
                 var rot = Random.rotationUniform;
-                Spawner.SpawnRandom(new Pose(pos,rot));
+                AsteroidSpawner.SpawnRandom(new Pose(pos,rot));
                 safetyBreak--;
             }
         }

@@ -8,7 +8,7 @@ using Utils;
 namespace Ships.Movement
 {
     [RequireComponent(typeof(Rigidbody))]
-    public partial class Controller : MonoBehaviour
+    public partial class MovementController : MonoBehaviour
     {
 
         [Header("Debug")]

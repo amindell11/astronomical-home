@@ -9,7 +9,7 @@ namespace Asteroids.Spawning
         private readonly ObjectPool<Asteroid> pool;
         private readonly Transform parent;
         
-        public SpawnPool(SpawnSettings settings, Transform parentTransform){
+        public SpawnPool(AsteroidSpawnSettings settings, Transform parentTransform){
             prefab = settings.asteroidPrefab;
             parent = parentTransform;
             pool = new ObjectPool<Asteroid>(

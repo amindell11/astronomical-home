@@ -10,7 +10,7 @@ namespace Ships.Visuals
         [SerializeField] private Renderer hull;
         [SerializeField] private ParticleSystem smoke;
         [SerializeField] private PooledVFX sparksPrefab;
-        [SerializeField] private Controller source;
+        [SerializeField] private DamageController source;
         
         [Header("Damage Flash")]
         [SerializeField] private Color flashColor = UnityEngine.Color.white;
@@ -37,7 +37,7 @@ namespace Ships.Visuals
 
         private void OnEnable()
         {
-            if (!source) source = GetComponentInParent<Controller>();
+            if (!source) source = GetComponentInParent<DamageController>();
             if (!source) return;
             source.Health.OnValueChanged += OnHealthChanged;
             source.OnDamaged      += SpawnSparks;

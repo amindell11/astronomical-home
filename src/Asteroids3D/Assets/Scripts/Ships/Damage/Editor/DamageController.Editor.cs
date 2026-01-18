@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Ships.Damage
 {
-    public partial class Controller
+    public partial class DamageController
     {
         private void OnDrawGizmosSelected()
         {
