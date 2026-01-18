@@ -50,6 +50,7 @@ public static class TestSceneBuilder
     {
         var obstacle = GameObject.CreatePrimitive(PrimitiveType.Cube);
         obstacle.name = "TestObstacle";
+        obstacle.layer = LayerMask.NameToLayer("Asteroid");
         obstacle.transform.position = position;
         obstacle.transform.localScale = size;
         return obstacle;

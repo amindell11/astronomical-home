@@ -107,9 +107,56 @@ public class MpcNavigatorPlayMode
         Assert.That(dist, Is.LessThan(13f), "Ship should follow moving waypoint");
     }
 
+    [UnityTest]
+    public IEnumerator TestMpcObstacleAvoidance()
+    {
+        // Enable obstacle avoidance
+        mpc.enableObstacleAvoidance = true;
+        mpc.wObstacle = 10.0f;
+        
+        // Place obstacle between ship (at origin) and target
+        var obstacle = TestSceneBuilder.CreateObstacle(new Vector3(5, 5, 0), new Vector3(2, 2, 2));
+        var targetPos = new Vector2(10, 10);
+        mpc.SetNavigationPoint(targetPos);
+        
+        float startTime = Time.time;
+        float minDistToObstacle = float.MaxValue;
+        var obstaclePos2D = new Vector2(5, 5);
+        
+        // Track minimum distance to obstacle while navigating
+        while (Time.time - startTime < 10f)
+        {
+            var shipPos2D = new Vector2(ship.transform.position.x, ship.transform.position.y);
+            var distToObstacle = Vector2.Distance(shipPos2D, obstaclePos2D);
+            minDistToObstacle = Mathf.Min(minDistToObstacle, distToObstacle);
+            
+            var distToTarget = Vector2.Distance(ship.transform.position, GamePlane.PlanePointToWorld(targetPos));
+            if (distToTarget < mpc.arriveRadius)
+            {
+                break;
+            }
+            
+            yield return new WaitForFixedUpdate();
+        }
+        
+        var finalDistToTarget = Vector2.Distance(ship.transform.position, GamePlane.PlanePointToWorld(targetPos));
+        
+        // Ship should reach target
+        Assert.That(finalDistToTarget, Is.LessThan(mpc.arriveRadius + 1f), "MPC should reach waypoint while avoiding obstacle");
+        
+        // Ship should have maintained some distance from obstacle (not collide with it)
+        // Obstacle radius is 1 (half of size 2), so ship should stay at least 1 unit away
+        Assert.That(minDistToObstacle, Is.GreaterThan(1.5f), "MPC should avoid obstacle");
+        
+        Object.Destroy(obstacle);
+        yield return null;
+    }
+
     [TearDown]
     public void TearDown()
     {
         AudioListener.pause = false;
+        if (ship != null)
+            Object.Destroy(ship.gameObject);
     }
 }
