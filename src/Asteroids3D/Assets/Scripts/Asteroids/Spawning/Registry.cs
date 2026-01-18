@@ -18,14 +18,14 @@ namespace Asteroids.Spawning
 
             if (activeAsteroids.Add(asteroid))
             {
-                float v = asteroid.Volume;
+                var v = asteroid.Volume;
                 trackedVolumes[asteroid] = v;
                 TotalVolume += v;
             }
             else
             {
-                float oldV = trackedVolumes.GetValueOrDefault(asteroid, 0f);
-                float newV = asteroid.Volume;
+                var oldV = trackedVolumes.GetValueOrDefault(asteroid, 0f);
+                var newV = asteroid.Volume;
                 if (Mathf.Approximately(oldV, newV)) return;
                 trackedVolumes[asteroid] = newV;
                 TotalVolume += (newV - oldV);
@@ -34,7 +34,7 @@ namespace Asteroids.Spawning
         public void Unregister(Asteroid asteroid)
         {
             if (!asteroid || !activeAsteroids.Remove(asteroid)) return;
-            float v = trackedVolumes.TryGetValue(asteroid, out float stored) ? stored : asteroid.Volume;
+            var v = trackedVolumes.TryGetValue(asteroid, out var stored) ? stored : asteroid.Volume;
             trackedVolumes.Remove(asteroid);
             TotalVolume -= v;
         }

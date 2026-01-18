@@ -13,7 +13,7 @@ namespace AI.States
             
             if (ctx == null) return;
             
-            Vector3 position = ctx.SelfPosition3D;
+            var position = ctx.SelfPosition3D;
             
             // Draw patrol radius
             Gizmos.color = new Color(0f, 1f, 0f, 0.1f);
@@ -23,7 +23,7 @@ namespace AI.States
             if (hasTarget)
             {
                 // Convert plane coordinates to world coordinates for rendering
-                Vector3 currentTargetWorld = GamePlane.PlanePointToWorld(currentTarget);
+                var currentTargetWorld = GamePlane.PlanePointToWorld(currentTarget);
                 
                 // Line to target
                 Gizmos.color = Color.green;
@@ -34,14 +34,14 @@ namespace AI.States
                 Gizmos.DrawWireSphere(currentTargetWorld, 1.5f);
                 Gizmos.DrawWireCube(currentTargetWorld, Vector3.one * 0.5f);
                 
-                float distToTarget = Vector2.Distance(ctx.SelfPosition, currentTarget);
+                var distToTarget = Vector2.Distance(ctx.SelfPosition, currentTarget);
                 UnityEditor.Handles.color = Color.green;
                 UnityEditor.Handles.Label(currentTargetWorld + Vector3.up, $"Patrol Target\n{distToTarget:F1}m");
             }
             
             // Show patrol state info
             UnityEditor.Handles.color = Color.white;
-            string info = $"PATROL\nRadius: {utilityTuning.patrolRadius:F0}m";
+            var info = $"PATROL\nRadius: {utilityTuning.patrolRadius:F0}m";
             if (hasTarget)
                 info += "\nMoving to waypoint";
             else

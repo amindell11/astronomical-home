@@ -35,14 +35,14 @@ namespace AI.States
                 nextJinkTime = Time.time + utilityTuning.jinkInterval;
             }
 
-            Vector2 fleeDir = ctx.Enemy ? -ctx.VectorToEnemy.normalized : Random.insideUnitCircle.normalized;
+            var fleeDir = ctx.Enemy ? -ctx.VectorToEnemy.normalized : Random.insideUnitCircle.normalized;
 
-            Vector2 sideDir = jinkLeft ? new Vector2(fleeDir.y, -fleeDir.x)  // 90° CW
+            var sideDir = jinkLeft ? new Vector2(fleeDir.y, -fleeDir.x)  // 90° CW
                                         : new Vector2(-fleeDir.y, fleeDir.x); // 90° CCW
 
-            float amp = ctx.IncomingMissile ? utilityTuning.jinkSideStepDistance * utilityTuning.jinkMissileAmplitudeFactor : utilityTuning.jinkSideStepDistance;
+            var amp = ctx.IncomingMissile ? utilityTuning.jinkSideStepDistance * utilityTuning.jinkMissileAmplitudeFactor : utilityTuning.jinkSideStepDistance;
 
-            Vector2 offset = fleeDir * utilityTuning.jinkFleeDistance + sideDir * amp;
+            var offset = fleeDir * utilityTuning.jinkFleeDistance + sideDir * amp;
             currentTarget  = ctx.SelfPosition + offset;
 
             navigator.SetNavigationPoint(currentTarget, avoid: true);

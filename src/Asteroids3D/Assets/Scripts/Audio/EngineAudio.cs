@@ -58,28 +58,28 @@ namespace Audio
             if (!audioInitialized || ship == null || thrustSource == null || strafeSource == null) 
                 return;
 
-            float thrust = ship.CurrentCommand.Thrust;
-            float strafe = ship.CurrentCommand.Strafe;
+            var thrust = ship.CurrentCommand.Thrust;
+            var strafe = ship.CurrentCommand.Strafe;
 
             // Calculate thrust volume (reduced for reverse)
-            float thrustIntensity = Mathf.Abs(thrust);
-            float finalThrustVolume = thrustIntensity * thrustVolume;
+            var thrustIntensity = Mathf.Abs(thrust);
+            var finalThrustVolume = thrustIntensity * thrustVolume;
             if (thrust < 0f) // Reverse thrust
             {
                 finalThrustVolume *= reverseVolumeMultiplier;
             }
 
             // Calculate strafe volume
-            float strafeIntensity = Mathf.Abs(strafe);
-            float finalStrafeVolume = strafeIntensity * strafeVolume;
+            var strafeIntensity = Mathf.Abs(strafe);
+            var finalStrafeVolume = strafeIntensity * strafeVolume;
 
             // Apply volumes
             thrustSource.volume = finalThrustVolume;
             strafeSource.volume = finalStrafeVolume;
 
             // Apply pitch modulation based on combined movement intensity
-            float combinedIntensity = Mathf.Clamp01(thrustIntensity + strafeIntensity);
-            float pitch = Mathf.Clamp(inputToPitch.Evaluate(combinedIntensity), 0.1f, 3f);
+            var combinedIntensity = Mathf.Clamp01(thrustIntensity + strafeIntensity);
+            var pitch = Mathf.Clamp(inputToPitch.Evaluate(combinedIntensity), 0.1f, 3f);
             thrustSource.pitch = pitch;
             strafeSource.pitch = pitch;
         }

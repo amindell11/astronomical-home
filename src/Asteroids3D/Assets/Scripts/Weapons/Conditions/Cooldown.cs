@@ -18,7 +18,7 @@ namespace Ships.Weapons.Conditions
 
         private void Update()
         {
-            bool isOnCooldown = !CanFire();
+            var isOnCooldown = !CanFire();
             if (_wasOnCooldown && !isOnCooldown)
             {
                 OnCooldownReady?.Invoke();

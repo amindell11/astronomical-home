@@ -87,7 +87,7 @@ namespace Ships.Damage
         /// <param name="duration">Duration in seconds. Pass 0 or negative to clear immediately.</param>
         public void SetInvulnerability(float duration)
         {
-            float clamped = Mathf.Max(duration, 0f);
+            var clamped = Mathf.Max(duration, 0f);
             invulnerableUntil = Time.time + clamped;
             IsInvulnerable = clamped > 0f;
         }

@@ -39,7 +39,7 @@ namespace Weapons
             if (Application.isPlaying)
             {
                 Handles.color = Color.white;
-                float traveled = Vector3.Distance(startPosition, transform.position);
+                var traveled = Vector3.Distance(startPosition, transform.position);
                 Handles.Label(transform.position + Vector3.up, $"Missile\nDist: {traveled:F1}/{maxDistance:F1}");
             }
 

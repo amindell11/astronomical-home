@@ -10,7 +10,7 @@ namespace AI.States
         {
             base.OnDrawGizmos(ctx);
             
-            Vector3 position = ctx.SelfPosition3D;
+            var position = ctx.SelfPosition3D;
             
             // Draw idle indicator - a pulsing circle
             Gizmos.color = new Color(0.5f, 0.5f, 1f, 0.3f + 0.2f * Mathf.Sin(Time.time * 2f));

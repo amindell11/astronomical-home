@@ -71,13 +71,13 @@ namespace Ships.Visuals
             if (hull)
             {
                 hull.GetPropertyBlock(block);
-                float scale = Mathf.Lerp(2f, 0f, source.Health.Pct);  
+                var scale = Mathf.Lerp(2f, 0f, source.Health.Pct);  
                 block.SetFloat(DetailScale, scale);
                 hull.SetPropertyBlock(block);
             }
 
             if (!smoke) return;
-            bool showSmoke = source.Health.Pct < 0.5f;
+            var showSmoke = source.Health.Pct < 0.5f;
             Debug.Log(gameObject+" " +showSmoke);
             if (smoke.gameObject.activeSelf != showSmoke)
                 smoke.gameObject.SetActive(showSmoke);
@@ -102,7 +102,7 @@ namespace Ships.Visuals
             if (!hull) yield break;
 
             var pb = block;
-            float half = flashTime * 0.5f;
+            var half = flashTime * 0.5f;
             // Cache base color once
             if (baseColor == default)
             {
@@ -113,8 +113,8 @@ namespace Ships.Visuals
             // Fade in
             for (float t = 0; t < half; t += Time.unscaledDeltaTime)
             {
-                float k = t / half;
-                Color c = UnityEngine.Color.Lerp(baseColor, flashColor, k);
+                var k = t / half;
+                var c = UnityEngine.Color.Lerp(baseColor, flashColor, k);
                 pb.SetColor(Color, c);
                 hull.SetPropertyBlock(pb);
                 yield return null;
@@ -122,7 +122,7 @@ namespace Ships.Visuals
             // Fade out
             for (float t = 0; t < half; t += Time.unscaledDeltaTime)
             {
-                float k = t / half;
+                var k = t / half;
                 var c = UnityEngine.Color.Lerp(flashColor, baseColor, k);
                 pb.SetColor(Color, c);
                 hull.SetPropertyBlock(pb);

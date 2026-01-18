@@ -35,8 +35,8 @@ namespace Editor
         private static bool NeedsMigration(SpawnSettings settings)
         {
             var so = new SerializedObject(settings);
-            SerializedProperty meshInfosProp = so.FindProperty("meshInfos");
-            SerializedProperty legacyMeshesProp = so.FindProperty("asteroidMeshes");
+            var meshInfosProp = so.FindProperty("meshInfos");
+            var legacyMeshesProp = so.FindProperty("asteroidMeshes");
             return (meshInfosProp == null || meshInfosProp.arraySize == 0) &&
                    legacyMeshesProp != null && legacyMeshesProp.arraySize > 0;
         }
@@ -47,21 +47,21 @@ namespace Editor
             var meshInfosProp = so.FindProperty("meshInfos");
             var legacyMeshesProp = so.FindProperty("asteroidMeshes");
 
-            int count = legacyMeshesProp != null ? legacyMeshesProp.arraySize : 0;
+            var count = legacyMeshesProp != null ? legacyMeshesProp.arraySize : 0;
             if (count == 0) return;
 
             // Resize meshInfos array
             meshInfosProp.arraySize = count;
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 var mesh = legacyMeshesProp.GetArrayElementAtIndex(i).objectReferenceValue as Mesh;
                 var meshInfoElem = meshInfosProp.GetArrayElementAtIndex(i);
                 meshInfoElem.FindPropertyRelative("mesh").objectReferenceValue = mesh;
                 // Populate collider mesh – duplicate & optimise
-                Mesh colliderMesh = GenerateOptimizedColliderMesh(mesh, settings);
+                var colliderMesh = GenerateOptimizedColliderMesh(mesh, settings);
                 meshInfoElem.FindPropertyRelative("colliderMesh").objectReferenceValue = colliderMesh;
 
-                float cachedVol = ComputeMeshVolume(mesh);
+                var cachedVol = ComputeMeshVolume(mesh);
                 meshInfoElem.FindPropertyRelative("cachedVolume").floatValue = cachedVol;
             }
 
@@ -84,13 +84,13 @@ namespace Editor
 
         private static void ProcessSettings(IEnumerable<SpawnSettings> settingsCollection, bool doMigration)
         {
-            int updated = 0;
+            var updated = 0;
 
             foreach (var settings in settingsCollection)
             {
                 if (settings == null) continue;
 
-                bool changed = false;
+                var changed = false;
 
                 if (doMigration && NeedsMigration(settings))
                 {
@@ -100,12 +100,12 @@ namespace Editor
 
                 if (settings.meshInfos != null)
                 {
-                    for (int i = 0; i < settings.meshInfos.Length; i++)
+                    for (var i = 0; i < settings.meshInfos.Length; i++)
                     {
                         var info = settings.meshInfos[i];
                         if (info.mesh == null) continue;
 
-                        float vol = ComputeMeshVolume(info.mesh);
+                        var vol = ComputeMeshVolume(info.mesh);
                         if (!Mathf.Approximately(vol, info.cachedVolume))
                         {
                             info.cachedVolume = vol;
@@ -145,9 +145,9 @@ namespace Editor
 
         private static IEnumerable<SpawnSettings> FindAllSettings()
         {
-            foreach (string guid in AssetDatabase.FindAssets("t:AsteroidSpawnSettings"))
+            foreach (var guid in AssetDatabase.FindAssets("t:AsteroidSpawnSettings"))
             {
-                string path = AssetDatabase.GUIDToAssetPath(guid);
+                var path = AssetDatabase.GUIDToAssetPath(guid);
                 var settings = AssetDatabase.LoadAssetAtPath<SpawnSettings>(path);
                 if (settings != null) yield return settings;
             }
@@ -163,7 +163,7 @@ namespace Editor
             // If the source mesh is already marked readable/optimised we can reuse it.
             // Otherwise duplicate and optimise.
 
-            Mesh collider = Object.Instantiate(sourceMesh);
+            var collider = Object.Instantiate(sourceMesh);
             collider.name = sourceMesh.name + "_collider";
 
             // Basic optimisation pass (Unity will remove duplicate verts, etc.)
@@ -179,15 +179,15 @@ namespace Editor
         {
             if (mesh == null) return 1f;
 
-            Vector3[] verts = mesh.vertices;
-            int[] tris = mesh.triangles;
+            var verts = mesh.vertices;
+            var tris = mesh.triangles;
 
-            double volume = 0.0;
-            for (int i = 0; i < tris.Length; i += 3)
+            var volume = 0.0;
+            for (var i = 0; i < tris.Length; i += 3)
             {
-                Vector3 v0 = verts[tris[i]];
-                Vector3 v1 = verts[tris[i + 1]];
-                Vector3 v2 = verts[tris[i + 2]];
+                var v0 = verts[tris[i]];
+                var v1 = verts[tris[i + 1]];
+                var v2 = verts[tris[i + 2]];
 
                 volume += Vector3.Dot(v0, Vector3.Cross(v1, v2));
             }

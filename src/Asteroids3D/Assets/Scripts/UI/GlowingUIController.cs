@@ -124,10 +124,10 @@ namespace UI
         /// </summary>
         private void UpdatePulsing()
         {
-            float pulse = Mathf.Lerp(pulseRange.x, pulseRange.y, 
+            var pulse = Mathf.Lerp(pulseRange.x, pulseRange.y, 
                 (Mathf.Sin(Time.time * pulseSpeed) + 1f) * 0.5f);
         
-            float currentIntensity = basePulseIntensity * pulse;
+            var currentIntensity = basePulseIntensity * pulse;
             materialInstance.SetFloat(EmissionIntensityProperty, currentIntensity);
         }
 
@@ -136,8 +136,8 @@ namespace UI
         /// </summary>
         private void UpdateFlashing()
         {
-            bool onState = Mathf.FloorToInt(Time.time * flashSpeed) % 2 == 0;
-            float currentIntensity = onState ? basePulseIntensity : 0f;
+            var onState = Mathf.FloorToInt(Time.time * flashSpeed) % 2 == 0;
+            var currentIntensity = onState ? basePulseIntensity : 0f;
             materialInstance.SetFloat(EmissionIntensityProperty, currentIntensity);
         }
 

@@ -79,11 +79,11 @@ namespace UI
 
             // ---------- 2  shimmer while fully visible ----------
             float t = 0;
-            Vector3 baseScale = Vector3.one;
+            var baseScale = Vector3.one;
             while (t < linger)
             {
                 t += Time.unscaledDeltaTime;
-                float wobble = 1f + Mathf.Sin(t * shimmerFreq * Mathf.PI * 2) * shimmerAmp;
+                var wobble = 1f + Mathf.Sin(t * shimmerFreq * Mathf.PI * 2) * shimmerAmp;
                 transform.localScale = baseScale * wobble;
                 yield return null;
             }
@@ -95,12 +95,12 @@ namespace UI
 
         IEnumerator Fade(float aFrom, float aTo, float dur)
         {
-            float elapsed = 0f;
-            Color c = ring.color;
+            var elapsed = 0f;
+            var c = ring.color;
             while (elapsed < dur)
             {
                 elapsed += Time.unscaledDeltaTime;
-                float k = Mathf.Clamp01(elapsed / dur);
+                var k = Mathf.Clamp01(elapsed / dur);
                 c.a = Mathf.Lerp(aFrom, aTo, k);
                 ring.color = c;
                 yield return null;

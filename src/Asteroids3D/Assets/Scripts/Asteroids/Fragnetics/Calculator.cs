@@ -25,7 +25,7 @@ namespace Asteroids.Fragnetics
             }
             var positions = CalculateFragmentPositions(ast.Position, masses.Length);
             var fragments = new Frag[masses.Length];
-            for (int i = 0; i < masses.Length; i++)
+            for (var i = 0; i < masses.Length; i++)
             {
                 fragments[i] = new Frag(masses[i], positions[i], UnityEngine.Random.rotationUniform);
             }
@@ -52,7 +52,7 @@ namespace Asteroids.Fragnetics
         {
 	        var impactDirection = (hit.Velocity - ast.Velocity).normalized;
 
-	        for (int i = 0; i < frags.Length; i++)
+	        for (var i = 0; i < frags.Length; i++)
 	        {
 		        var roughDirection = (frags[i].Position - ast.Position).normalized;
 		        frags[i].Velocity = ast.Velocity + 
@@ -84,27 +84,27 @@ namespace Asteroids.Fragnetics
         {
             // Determine the feasible number of fragments
             if (totalMass <= 0 || s.minMass <= 0) return Array.Empty<float>();
-            int feasibleMax = Mathf.Min(s.maxFragments, Mathf.FloorToInt(totalMass / s.minMass));
+            var feasibleMax = Mathf.Min(s.maxFragments, Mathf.FloorToInt(totalMass / s.minMass));
             if (feasibleMax < s.minFragments) return Array.Empty<float>();
 
             // Choose a fragment count, biased toward the high end
-            float randomBiased = Mathf.Pow(UnityEngine.Random.value, s.highCountBias);
-            int n = s.minFragments + Mathf.FloorToInt(randomBiased * (feasibleMax - s.minFragments + 1));
+            var randomBiased = Mathf.Pow(UnityEngine.Random.value, s.highCountBias);
+            var n = s.minFragments + Mathf.FloorToInt(randomBiased * (feasibleMax - s.minFragments + 1));
 
             // Slice totalMass into n parts using a Dirichlet distribution
-            float remainingMass = totalMass - n * s.minMass;
+            var remainingMass = totalMass - n * s.minMass;
             if (remainingMass < 0) remainingMass = 0;
 
             // Generate n random weights
             var weights = Enumerable.Range(0, n)
                 .Select(_ => UnityEngine.Random.value)
                 .ToArray();
-            float sumOfWeights = weights.Sum();
+            var sumOfWeights = weights.Sum();
 
             // If the sum of weights is zero (highly unlikely), distribute the remaining mass equally
             if (sumOfWeights == 0)
             {
-                float extraPerFragment = remainingMass / n;
+                var extraPerFragment = remainingMass / n;
                 var masses = Enumerable.Repeat(s.minMass + extraPerFragment, n).ToArray();
                 return masses;
             }
@@ -117,7 +117,7 @@ namespace Asteroids.Fragnetics
         private static Vector3[] CalculateFragmentPositions(Vector3 parentPosition, int fragmentCount)
         {
 	        var positions = new Vector3[fragmentCount];
-	        for (int i = 0; i < fragmentCount; i++)
+	        for (var i = 0; i < fragmentCount; i++)
 	        {
 		        Vector3 randomOffset = UnityEngine.Random.insideUnitCircle.normalized * 0.5f;
 		        positions[i] = parentPosition + randomOffset;
@@ -138,12 +138,12 @@ namespace Asteroids.Fragnetics
 			var (hitDir, hitRelVel) = HitDirAndRelVel(ast, hit);
 
 			// Momentum-per-mass scale (m/s): p / M, with coupling
-			float totalFragMass = 0f;
-			for (int i = 0; i < frags.Length; ++i) totalFragMass += frags[i].Mass;
-			float projectileMomentumMag = hit.Mass * hitRelVel * s.momentumCoupling;
-			float momentumPerMass = projectileMomentumMag / Mathf.Max(totalFragMass, 1e-6f);
+			var totalFragMass = 0f;
+			for (var i = 0; i < frags.Length; ++i) totalFragMass += frags[i].Mass;
+			var projectileMomentumMag = hit.Mass * hitRelVel * s.momentumCoupling;
+			var momentumPerMass = projectileMomentumMag / Mathf.Max(totalFragMass, 1e-6f);
 
-			for (int i = 0; i < frags.Length; ++i)
+			for (var i = 0; i < frags.Length; ++i)
 			{
 				// Build velocities in asteroid frame (no drift)
 				frags[i].Velocity = FragmentationVelocity(frags[i].Position, center, hitDir, momentumPerMass, s);
@@ -185,7 +185,7 @@ namespace Asteroids.Fragnetics
 			acc.pFrag += mass * velocity;
 			acc.mrSum += mass * r;
 			acc.lOrbit += Vector3.Cross(r, mass * velocity);
-			float radius = Mathf.Pow(mass, 1f / 3f);
+			var radius = Mathf.Pow(mass, 1f / 3f);
 			acc.iTotal += 0.4f * mass * radius * radius;
 		}
 
@@ -203,7 +203,7 @@ namespace Asteroids.Fragnetics
 			(Frag[] frags, Vector3[] spinJitter, 
 				Vector3 vCorr, Vector3 omegaBase, Vector3 astBaseVelocity)
 		{
-			for (int i = 0; i < frags.Length; ++i)
+			for (var i = 0; i < frags.Length; ++i)
 			{
 				frags[i].Velocity += vCorr;
 				frags[i].Spin = omegaBase + spinJitter[i];

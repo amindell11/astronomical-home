@@ -76,9 +76,9 @@ namespace Audio
         void CheckAlarmCondition()
         {
             // Alarm triggers when BOTH health AND shield are below their critical thresholds
-            bool healthCritical = currentHealthPercentage <= criticalHealthThreshold && currentHealthPercentage > 0f;
-            bool shieldCritical = currentShieldPercentage <= criticalShieldThreshold;
-            bool shouldPlayAlarm = healthCritical && shieldCritical;
+            var healthCritical = currentHealthPercentage <= criticalHealthThreshold && currentHealthPercentage > 0f;
+            var shieldCritical = currentShieldPercentage <= criticalShieldThreshold;
+            var shouldPlayAlarm = healthCritical && shieldCritical;
 
             if (shouldPlayAlarm && !isAlarmPlaying)
             {

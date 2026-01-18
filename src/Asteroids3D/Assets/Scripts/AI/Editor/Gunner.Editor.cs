@@ -35,13 +35,13 @@ namespace AI
         {
             if (!HasTarget) return;
         
-            Vector3 pos = transform.position;
-            Vector3 targetPos = Target;
+            var pos = transform.position;
+            var targetPos = Target;
             Vector3 forward = ship?.CurrentState.Kinematics.Forward ?? Vector2.up;
             forward = new Vector3(forward.x, forward.y, 0f);
         
             // Line to target
-            float distance = Vector3.Distance(pos, targetPos);
+            var distance = Vector3.Distance(pos, targetPos);
             Gizmos.color = Color.gray;
             
             Gizmos.DrawLine(pos, targetPos);
@@ -51,11 +51,11 @@ namespace AI
             Gizmos.DrawWireCube(targetPos, Vector3.one * 2f);
         
             // Angle to target display
-            float angleToTarget = AngleToTarget;
+            var angleToTarget = AngleToTarget;
         
             // Draw angle indicator
             Gizmos.color =  Color.red;
-            Vector3 dirToTarget = (targetPos - pos).normalized;
+            var dirToTarget = (targetPos - pos).normalized;
             Gizmos.DrawRay(pos, dirToTarget * 5f);
         }
     
@@ -63,11 +63,11 @@ namespace AI
         {
             if (!HasTarget || !ship.Weapons.Primary) return;
 
-            Vector3 firePos = FirePoint;
-            Vector3 targetPos = Target;
+            var firePos = FirePoint;
+            var targetPos = Target;
         
             // Line of sight ray
-            bool hasLOS = targeting.HasLineOfSight(firePos, targetPos, AngleToTarget);
+            var hasLOS = targeting.HasLineOfSight(firePos, targetPos, AngleToTarget);
             Gizmos.color = hasLOS ? Color.green : Color.red;
             Gizmos.DrawLine(firePos, targetPos);
         
@@ -79,33 +79,33 @@ namespace AI
     
         void DrawAngleCone(Vector3 origin, Vector3 forward, float angleInDegrees, float range)
         {
-            float halfAngle = angleInDegrees * 0.5f;
+            var halfAngle = angleInDegrees * 0.5f;
         
             // Convert to 3D space (assuming 2D game on XY plane)
-            Vector3 forward3D = forward.normalized;
+            var forward3D = forward.normalized;
         
             // Create left and right boundaries of the cone
-            Quaternion leftRotation = Quaternion.AngleAxis(-halfAngle, Vector3.forward);
-            Quaternion rightRotation = Quaternion.AngleAxis(halfAngle, Vector3.forward);
+            var leftRotation = Quaternion.AngleAxis(-halfAngle, Vector3.forward);
+            var rightRotation = Quaternion.AngleAxis(halfAngle, Vector3.forward);
         
-            Vector3 leftDirection = leftRotation * forward3D;
-            Vector3 rightDirection = rightRotation * forward3D;
+            var leftDirection = leftRotation * forward3D;
+            var rightDirection = rightRotation * forward3D;
         
             // Draw cone edges
             Gizmos.DrawRay(origin, leftDirection * range);
             Gizmos.DrawRay(origin, rightDirection * range);
         
             // Draw arc at the end
-            int segments = Mathf.Max(3, Mathf.RoundToInt(angleInDegrees / 5f));
-            Vector3 prevPoint = origin + leftDirection * range;
+            var segments = Mathf.Max(3, Mathf.RoundToInt(angleInDegrees / 5f));
+            var prevPoint = origin + leftDirection * range;
         
-            for (int i = 1; i <= segments; i++)
+            for (var i = 1; i <= segments; i++)
             {
-                float t = (float)i / segments;
-                float currentAngle = Mathf.Lerp(-halfAngle, halfAngle, t);
-                Quaternion rotation = Quaternion.AngleAxis(currentAngle, Vector3.forward);
-                Vector3 direction = rotation * forward3D;
-                Vector3 point = origin + direction * range;
+                var t = (float)i / segments;
+                var currentAngle = Mathf.Lerp(-halfAngle, halfAngle, t);
+                var rotation = Quaternion.AngleAxis(currentAngle, Vector3.forward);
+                var direction = rotation * forward3D;
+                var point = origin + direction * range;
             
                 Gizmos.DrawLine(prevPoint, point);
                 prevPoint = point;

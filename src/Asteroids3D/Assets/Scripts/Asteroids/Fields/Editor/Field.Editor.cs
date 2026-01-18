@@ -12,9 +12,9 @@ namespace Asteroids.Fields
 
             Gizmos.color = Color.cyan;
             const int segments = 32;
-            float angle = 0f;
+            var angle = 0f;
             var lastPoint = center + new Vector3(Mathf.Cos(angle) * densityCheckRadius, 0, Mathf.Sin(angle) * densityCheckRadius);
-            for (int i = 1; i <= segments; i++)
+            for (var i = 1; i <= segments; i++)
             {
                 angle = (i / (float)segments) * Mathf.PI * 2f;
                 var nextPoint = center + new Vector3(Mathf.Cos(angle) * densityCheckRadius, 0, Mathf.Sin(angle) * densityCheckRadius);

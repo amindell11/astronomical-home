@@ -11,13 +11,13 @@ namespace Ships.Weapons.Launcher
             // Draw heat bar
             if (Application.isPlaying && transform.parent != null && heat != null)
             {
-                Vector3 position = transform.parent.position + transform.parent.right * 1.5f;
-                float heatRatio = heat.HeatPct;
+                var position = transform.parent.position + transform.parent.right * 1.5f;
+                var heatRatio = heat.HeatPct;
             
                 Handles.Label(position + Vector3.up * 1.2f, $"Heat: {heat.CurrentHeat:F0}/{heat.MaxHeat:F0}");
 
-                Vector3 barStart = position;
-                Vector3 barEnd = position + Vector3.up * 1.0f;
+                var barStart = position;
+                var barEnd = position + Vector3.up * 1.0f;
             
                 // Background
                 Handles.color = new Color(0.5f, 0.5f, 0.5f, 0.5f);

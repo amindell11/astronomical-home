@@ -76,8 +76,8 @@ namespace Ships.Movement
             var pos = GamePlane.WorldPointToPlane(transform.position);
             var vel = GamePlane.WorldPointToPlane(rb.linearVelocity);
             var yaw = Vector3.SignedAngle(GamePlane.Forward, transform.up, GamePlane.Normal);
-            float yawRate = Vector3.Dot(rb.angularVelocity, GamePlane.Normal) * Mathf.Rad2Deg;
-            float bank = Vector3.SignedAngle(GamePlane.Normal, transform.forward, transform.up);
+            var yawRate = Vector3.Dot(rb.angularVelocity, GamePlane.Normal) * Mathf.Rad2Deg;
+            var bank = Vector3.SignedAngle(GamePlane.Normal, transform.forward, transform.up);
             return new Kinematics(pos, vel, yaw, yawRate, bank);
         }   
 

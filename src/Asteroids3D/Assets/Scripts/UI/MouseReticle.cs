@@ -43,12 +43,12 @@ namespace UI
                 }
 
                 // Build a ray from the camera through the mouse position.
-                Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+                var ray = cam.ScreenPointToRay(Input.mousePosition);
 
                 // Define the plane using cached GamePlane data.
-                Plane plane = new Plane(GamePlane.Normal, GamePlane.Origin + GamePlane.Normal * worldSpaceOffset);
+                var plane = new Plane(GamePlane.Normal, GamePlane.Origin + GamePlane.Normal * worldSpaceOffset);
 
-                if (plane.Raycast(ray, out float enter))
+                if (plane.Raycast(ray, out var enter))
                 {
                     // Position reticle at intersection point.
                     transform.position = ray.GetPoint(enter);

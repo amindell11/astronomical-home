@@ -83,7 +83,7 @@ namespace Weapons
 
         private void UpdateLockedState()
         {
-            bool lockExpired = Time.time - lockAcquiredTime > lockExpiry;
+            var lockExpired = Time.time - lockAcquiredTime > lockExpiry;
             if (lockExpired || !IsAcquired(CurrentTarget))
             {
                 CancelLock();
@@ -141,13 +141,13 @@ namespace Weapons
         private ITargetable FindBestTargetInCone()
         {
             var shipMask = LayerIds.Mask(LayerIds.Ship);
-            int colliderCount = Physics.OverlapSphereNonAlloc(firePoint.position, maxLockDistance, PhysicsBuffers.GetColliderBuffer(32), shipMask);
+            var colliderCount = Physics.OverlapSphereNonAlloc(firePoint.position, maxLockDistance, PhysicsBuffers.GetColliderBuffer(32), shipMask);
         
             ITargetable bestCandidate = null;
-            float smallestAngle = lockOnConeAngle / 2f;
+            var smallestAngle = lockOnConeAngle / 2f;
             var selfShip = GetComponentInParent<Ships.Ship>();
 
-            for (int i = 0; i < colliderCount; i++)
+            for (var i = 0; i < colliderCount; i++)
             {
                 var col = PhysicsBuffers.GetColliderBuffer(32)[i];
                 var targetable = col.GetComponentInParent<ITargetable>();
@@ -162,12 +162,12 @@ namespace Weapons
                     continue;
                 }
 
-                Vector3 dirToTarget = (targetable.TargetPoint.position - firePoint.position);
-                float angle = Vector3.Angle(firePoint.up, dirToTarget.normalized);
+                var dirToTarget = (targetable.TargetPoint.position - firePoint.position);
+                var angle = Vector3.Angle(firePoint.up, dirToTarget.normalized);
 
                 if (angle < smallestAngle)
                 {
-                    int hitCount = Physics.RaycastNonAlloc(firePoint.position, dirToTarget.normalized, RaycastBuffer, dirToTarget.magnitude);
+                    var hitCount = Physics.RaycastNonAlloc(firePoint.position, dirToTarget.normalized, RaycastBuffer, dirToTarget.magnitude);
                     if (hitCount > 0)
                     {
                         if (RaycastBuffer[0].collider.GetComponentInParent<ITargetable>() == targetable)

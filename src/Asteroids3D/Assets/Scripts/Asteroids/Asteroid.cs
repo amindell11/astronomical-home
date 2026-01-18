@@ -31,7 +31,7 @@ namespace Asteroids
         private float ApplySoftCap(float damage)
         {
             if (damage <= softCapThreshold) return damage;
-            float excess = damage - softCapThreshold;
+            var excess = damage - softCapThreshold;
             return softCapThreshold + Mathf.Pow(excess, softCapExponent);
         }
 
@@ -88,7 +88,7 @@ namespace Asteroids
         )
         {
             // Batch transform/rigid-body property writes to avoid repeated syncs
-            bool prevAutoSync = Physics.autoSyncTransforms;
+            var prevAutoSync = Physics.autoSyncTransforms;
             Physics.autoSyncTransforms = false;
 
             meshFilter.mesh = meshInfo.mesh;
@@ -110,7 +110,7 @@ namespace Asteroids
             {
                 // Radius equals half the largest axis of the scaled bounds
                 var size = meshInfo.mesh.bounds.size;
-                float radius = Mathf.Max(size.x, Mathf.Max(size.y, size.z)) * scale * 0.5f;
+                var radius = Mathf.Max(size.x, Mathf.Max(size.y, size.z)) * scale * 0.5f;
                 cheapCollider.radius = radius;
             }
 
@@ -152,7 +152,7 @@ namespace Asteroids
 
         public void TakeDamage(float damage, float hitMass, Vector3 hitVelocity, Vector3 hitPoint, GameObject attacker)
         {
-            float previousHealth = Health;
+            var previousHealth = Health;
             Health -= damage;
             var hit = new HitData(hitMass, hitVelocity, hitPoint);
             if (Health <= 0f)
@@ -210,7 +210,7 @@ namespace Asteroids
             var astNormalVel = Vector3.Project(Rb.linearVelocity, impact.normal);
             var shipNormalVel     = Vector3.Project(shipVel, impact.normal);
 
-            float dmg = CollisionDamageUtility.ComputeDamage(
+            var dmg = CollisionDamageUtility.ComputeDamage(
                 Mass,astNormalVel, shipMass,shipNormalVel, energyToDamageScale);
 
             dmg = ApplySoftCap(dmg);
@@ -229,8 +229,8 @@ namespace Asteroids
             }
 
             if (!mainCameraTransform) return;
-            float distSqr = (GamePlane.ProjectOntoPlane(mainCameraTransform.position) - GamePlane.ProjectOntoPlane(transform.position)).sqrMagnitude;
-            bool shouldEnable = distSqr < detailedColliderEnableDistance * detailedColliderEnableDistance;
+            var distSqr = (GamePlane.ProjectOntoPlane(mainCameraTransform.position) - GamePlane.ProjectOntoPlane(transform.position)).sqrMagnitude;
+            var shouldEnable = distSqr < detailedColliderEnableDistance * detailedColliderEnableDistance;
             if (meshCollider.enabled != shouldEnable)
             {
                 meshCollider.enabled = shouldEnable;
@@ -242,26 +242,26 @@ namespace Asteroids
             if (Rb != null)
             {
                 Gizmos.color = Color.yellow;
-                Vector3 velocity = Rb.linearVelocity;
-                Vector3 start = transform.position;
-                Vector3 end = start + velocity.normalized * 2f;
+                var velocity = Rb.linearVelocity;
+                var start = transform.position;
+                var end = start + velocity.normalized * 2f;
                 Gizmos.DrawLine(start, end);
             
-                Vector3 right = Quaternion.Euler(0, 0, 30) * -velocity.normalized * (2f * 0.2f);
-                Vector3 left = Quaternion.Euler(0, 0, -30) * -velocity.normalized * (2f * 0.2f);
+                var right = Quaternion.Euler(0, 0, 30) * -velocity.normalized * (2f * 0.2f);
+                var left = Quaternion.Euler(0, 0, -30) * -velocity.normalized * (2f * 0.2f);
                 Gizmos.DrawLine(end, end + right);
                 Gizmos.DrawLine(end, end + left);
             }
 
             if (Application.isPlaying && MaxHealth > 0f)
             {
-                float healthPercent = Mathf.Clamp01(Health / MaxHealth);
+                var healthPercent = Mathf.Clamp01(Health / MaxHealth);
                 Gizmos.color = Color.Lerp(Color.red, Color.green, healthPercent);
 
                 // Bar dimensions relative to asteroid size
-                float barLength = transform.localScale.x;
-                Vector3 barSize = new Vector3(barLength * healthPercent, 0.05f * transform.localScale.x, 0.05f * transform.localScale.x);
-                Vector3 barPosition = transform.position + Vector3.up * (transform.localScale.x * 0.6f);
+                var barLength = transform.localScale.x;
+                var barSize = new Vector3(barLength * healthPercent, 0.05f * transform.localScale.x, 0.05f * transform.localScale.x);
+                var barPosition = transform.position + Vector3.up * (transform.localScale.x * 0.6f);
                 Gizmos.DrawCube(barPosition, barSize);
             }
         }

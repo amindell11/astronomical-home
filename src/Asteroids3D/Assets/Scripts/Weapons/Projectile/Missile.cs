@@ -99,7 +99,7 @@ namespace Weapons
             if (rb) 
             {
                 RLog.Weapon($"Shooter: "+Shooter);
-                Vector3 shooterVelocity = (Shooter != null) ? Shooter.Velocity : Vector3.zero;
+                var shooterVelocity = (Shooter != null) ? Shooter.Velocity : Vector3.zero;
                 rb.linearVelocity = transform.up * initialSpeed + shooterVelocity;
                 RLog.Weapon($"Missile initial velocity set to: {rb.linearVelocity}, speed: {initialSpeed}");
                 rb.maxLinearVelocity = homingSpeed;
@@ -130,9 +130,9 @@ namespace Weapons
             // Fade volume up to target over engineFadeInTime seconds
             if (engineFadeInTime > 0f)
             {
-                for (float t = 0f; t < engineFadeInTime; t += Time.deltaTime)
+                for (var t = 0f; t < engineFadeInTime; t += Time.deltaTime)
                 {
-                    float k = t / engineFadeInTime;
+                    var k = t / engineFadeInTime;
                     audioSrc.volume = Mathf.Lerp(0f, engineVolume, k);
                     yield return null;
                 }
@@ -144,7 +144,7 @@ namespace Weapons
         protected override void FixedUpdate()
         {
             // Debug before base call
-            float distanceTraveled = Vector3.Distance(startPosition, transform.position);
+            var distanceTraveled = Vector3.Distance(startPosition, transform.position);
             if (distanceTraveled > maxDistance * 0.9f) // Warn when getting close to limit
             {
                 RLog.WeaponWarning($"Missile approaching max distance: {distanceTraveled}/{maxDistance}");
@@ -155,11 +155,11 @@ namespace Weapons
             if (rb)
             {
                 // 1. Compute the desired heading (toward target if any, otherwise keep current).
-                Vector3 desiredDir = transform.up; // Default to current heading
+                var desiredDir = transform.up; // Default to current heading
             
                 if (target)
                 {
-                    Vector3 toTarget = target.position - transform.position;
+                    var toTarget = target.position - transform.position;
                     if (toTarget.sqrMagnitude > 0.01f) // Avoid division by zero
                     {
                         desiredDir = toTarget.normalized;
@@ -173,7 +173,7 @@ namespace Weapons
                 }
 
                 // 2. Get the proper up vector for rotation (should be Y axis for top-down)
-                Vector3 rotationAxis = GamePlane.Normal; // Use world up for top-down games
+                var rotationAxis = GamePlane.Normal; // Use world up for top-down games
             
                 // If GamePlane is initialized and has a valid normal, use it
                 if (GamePlane.Plane)
@@ -187,10 +187,10 @@ namespace Weapons
                 }
 
                 // 3. Calculate rotation needed
-                float signedAngle = Vector3.SignedAngle(transform.up, desiredDir, rotationAxis);
+                var signedAngle = Vector3.SignedAngle(transform.up, desiredDir, rotationAxis);
 
                 // 4. Clamp the turn by homingTurnRate per physics-step and rotate.
-                float maxTurnThisStep = homingTurnRate * Time.fixedDeltaTime; // °/frame
+                var maxTurnThisStep = homingTurnRate * Time.fixedDeltaTime; // °/frame
                 rotationCorrectionDeg = Mathf.Clamp(signedAngle, -maxTurnThisStep, maxTurnThisStep);
             
                 // Apply rotation if significant
@@ -200,14 +200,14 @@ namespace Weapons
                 }
 
                 // 5. Compute the desired velocity along the missile's forward direction.
-                Vector3 desiredVelocity = transform.up * homingSpeed;
+                var desiredVelocity = transform.up * homingSpeed;
 
                 // 6. Smoothly rotate the current velocity toward the desired velocity, limiting
                 //    both the angular change (maxTurnRad) and the linear acceleration (maxAccelThisStep)
                 //    in this physics step. This prevents the missile from overshooting and spiralling
                 //    around the target.
-                float maxTurnRad       = homingTurnRate * Mathf.Deg2Rad * Time.fixedDeltaTime;   // radians/frame
-                float maxAccelThisStep = acceleration   * Time.fixedDeltaTime;                  // units/sec per frame
+                var maxTurnRad       = homingTurnRate * Mathf.Deg2Rad * Time.fixedDeltaTime;   // radians/frame
+                var maxAccelThisStep = acceleration   * Time.fixedDeltaTime;                  // units/sec per frame
 
                 rb.linearVelocity = Vector3.RotateTowards(
                     rb.linearVelocity,
@@ -271,12 +271,12 @@ namespace Weapons
             }
 
             // AoE damage using non-allocating overlap sphere (Optimization #3)
-            int hitCount = Physics.OverlapSphereNonAlloc(transform.position, explosionRadius, PhysicsBuffers.GetColliderBuffer(64), damageLayerMask);
-            for (int i = 0; i < hitCount; i++)
+            var hitCount = Physics.OverlapSphereNonAlloc(transform.position, explosionRadius, PhysicsBuffers.GetColliderBuffer(64), damageLayerMask);
+            for (var i = 0; i < hitCount; i++)
             {
                 var hit = PhysicsBuffers.GetColliderBuffer(64)[i];
 
-                IDamageable dmg = hit.GetComponentInParent<IDamageable>();
+                var dmg = hit.GetComponentInParent<IDamageable>();
 
                 // Skip if the collider doesn't belong to something damageable
                 if (dmg == null) continue;

@@ -67,7 +67,7 @@ namespace UI
         {
             if (!heat || !fillImage) return;
 
-            float pct = heat.HeatPct;      // 0 – 1
+            var pct = heat.HeatPct;      // 0 – 1
             fillImage.fillAmount = pct;
 
             if (animator)
@@ -79,7 +79,7 @@ namespace UI
             // Handle glow controller behaviour
             if (glowController)
             {
-                bool isOverheated = pct >= 1f;
+                var isOverheated = pct >= 1f;
                 if (isOverheated && !wasOverheated)
                 {
                     glowController.SetEmissionColor(overheatGlowColor);

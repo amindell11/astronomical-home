@@ -20,7 +20,7 @@ public static class SimplePool<T> where T : MonoBehaviour
     /// </summary>
     public static T Get(T prefab, Vector3 position, Quaternion rotation)
     {
-        int key = prefab.GetInstanceID();
+        var key = prefab.GetInstanceID();
 
         if (!pools.TryGetValue(key, out var stack))
         {
@@ -66,7 +66,7 @@ public static class SimplePool<T> where T : MonoBehaviour
         
         instance.gameObject.SetActive(false);
 
-        if (!instanceToKey.TryGetValue(instance, out int key))
+        if (!instanceToKey.TryGetValue(instance, out var key))
         {
             // Fallback: if mapping missing, push into a generic pool keyed by 0
             key = 0;
@@ -107,7 +107,7 @@ public static class SimplePool<T> where T : MonoBehaviour
     {
         get
         {
-            int total = 0;
+            var total = 0;
             foreach (var stack in pools.Values)
                 total += stack.Count;
             return total;

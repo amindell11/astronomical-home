@@ -95,7 +95,7 @@ namespace UI
         {
             if (!launcher || !cooldownSpinner) return;
 
-            bool onCooldown = launcher.Targeting.State == LockState.Cooldown;
+            var onCooldown = launcher.Targeting.State == LockState.Cooldown;
             cooldownSpinner.enabled = onCooldown;
             if (onCooldown)
             {
@@ -117,21 +117,21 @@ namespace UI
         {
             if (icons == null || icons.Count == 0) return;
 
-            int max = rounds ? rounds.MaxAmmo : 0;
+            var max = rounds ? rounds.MaxAmmo : 0;
 
-            for (int i = 0; i < icons.Count; i++)
+            for (var i = 0; i < icons.Count; i++)
             {
                 var img = icons[i];
                 if (!img) continue;
 
-                bool slotActive = i < max;
+                var slotActive = i < max;
                 img.enabled = slotActive;
                 if (!slotActive) continue;
 
-                bool hasAmmo = i < ammo;
+                var hasAmmo = i < ammo;
 
                 // Use glow controller if present, otherwise fall back to Image.color
-                GlowingUIController glow = (i < glowControllers.Count) ? glowControllers[i] : img.GetComponent<GlowingUIController>();
+                var glow = (i < glowControllers.Count) ? glowControllers[i] : img.GetComponent<GlowingUIController>();
                 if (glow)
                 {
                     glow.SetBaseColor(hasAmmo ? filledColor : emptyColor);
@@ -170,12 +170,12 @@ namespace UI
             // 2. Ensure we have exactly rounds.MaxAmmo icons by adding more if necessary
             if (iconPrefab && rounds)
             {
-                int max = rounds.MaxAmmo;
+                var max = rounds.MaxAmmo;
 
                 // Remove excess icons if there are too many (e.g., max ammo decreased)
                 if (icons.Count > max)
                 {
-                    for (int i = icons.Count - 1; i >= max; i--)
+                    for (var i = icons.Count - 1; i >= max; i--)
                     {
                         if (icons[i])
                         {
@@ -186,14 +186,14 @@ namespace UI
                 }
 
                 // Instantiate additional icons if needed
-                for (int i = icons.Count; i < max; i++)
+                for (var i = icons.Count; i < max; i++)
                 {
-                    Image newIcon = Instantiate(iconPrefab, iconContainer);
+                    var newIcon = Instantiate(iconPrefab, iconContainer);
                     newIcon.tag = IconTag; // Mark so we can find it next time
                     icons.Add(newIcon);
 
                     // Ensure each instantiated icon has a glow controller
-                    GlowingUIController glow = newIcon.GetComponent<GlowingUIController>();
+                    var glow = newIcon.GetComponent<GlowingUIController>();
                     if (!glow)
                     {
                         glow = newIcon.gameObject.AddComponent<GlowingUIController>();

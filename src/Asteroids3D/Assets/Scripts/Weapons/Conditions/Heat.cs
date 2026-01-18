@@ -27,15 +27,15 @@ namespace Ships.Weapons.Conditions
         {
             if (CurrentHeat <= 0) return;
 
-            bool wasOverheatedBefore = Overheated;
-            float delay = wasOverheatedBefore ? overheatPenaltyTime : coolDownDelay;
+            var wasOverheatedBefore = Overheated;
+            var delay = wasOverheatedBefore ? overheatPenaltyTime : coolDownDelay;
 
             if (!(Time.time > _lastShotTime + delay)) return;
             
             CurrentHeat -= coolingRate * Time.deltaTime;
             CurrentHeat = Mathf.Max(0, CurrentHeat);
             
-            bool isOverheatedNow = Overheated;
+            var isOverheatedNow = Overheated;
             if (wasOverheatedBefore && !isOverheatedNow)
             {
                 OnCooldownStart?.Invoke();

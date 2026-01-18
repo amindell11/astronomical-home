@@ -51,7 +51,7 @@ namespace Ships.Control
             bool isRot;
             if (useMouseDirection)
             {
-                bool wantsToRotate = Input.GetButton("Direction");
+                var wantsToRotate = Input.GetButton("Direction");
                 isRot = wantsToRotate;
 
                 if (wantsToRotate)
@@ -68,7 +68,7 @@ namespace Ships.Control
             }
             else
             {
-                float rotationInput = Input.GetAxis("Rotation");
+                var rotationInput = Input.GetAxis("Rotation");
                 yawTorque = rotationInput;
                 isRot = false;
                 isMouseActive = false;
@@ -82,7 +82,7 @@ namespace Ships.Control
 
             projectedDirection = Vector3.ProjectOnPlane(direction, planeNormal).normalized;
         
-            float angle = Vector3.SignedAngle(GamePlane.Forward, projectedDirection, planeNormal);
+            var angle = Vector3.SignedAngle(GamePlane.Forward, projectedDirection, planeNormal);
         
             if (angle < 0) angle += 360f;
         

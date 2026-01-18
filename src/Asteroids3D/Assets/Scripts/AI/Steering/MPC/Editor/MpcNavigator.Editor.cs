@@ -25,7 +25,7 @@ namespace AI
                 dbgObstacles = new ObstacleData(obstacles.obstacles.Length);
             }
             dbgObstacles.Clear();
-            for (int i = 0; i < obstacles.count; i++)
+            for (var i = 0; i < obstacles.count; i++)
             {
                 dbgObstacles.Add(obstacles.obstacles[i].position, obstacles.obstacles[i].radius);
             }
@@ -80,7 +80,7 @@ namespace AI
         {
             if (!showObstacleCosts || dbgObstacles == null || dbgObstacles.count == 0) return;
 
-            for (int i = 0; i < dbgObstacles.count; i++)
+            for (var i = 0; i < dbgObstacles.count; i++)
             {
                 var obs = dbgObstacles.obstacles[i];
                 var obsWorldPos = GamePlane.PlanePointToWorld(obs.position);
@@ -104,7 +104,7 @@ namespace AI
             var obsWorldPos = GamePlane.PlanePointToWorld(obstacle.position);
             var rings = 5;
             
-            for (int i = 1; i <= rings; i++)
+            for (var i = 1; i <= rings; i++)
             {
                 var radius = obstacle.radius + (threshold - obstacle.radius) * (i / (float)rings);
                 var normalizedDist = radius / threshold;

@@ -12,7 +12,7 @@ namespace Ships.Movement
             if (!Application.isPlaying || !showMovementGizmos) return;
 
             var pos = transform.position;
-            float scale = movementGizmoScale;
+            var scale = movementGizmoScale;
 
             SuperGizmos.DrawArrow(pos, GamePlane.PlaneDirToWorld(flightComputer.Outputs.Thrust), 
                 SuperGizmos.HeadType.Sphere, 0.15f, Color.yellow, scale);

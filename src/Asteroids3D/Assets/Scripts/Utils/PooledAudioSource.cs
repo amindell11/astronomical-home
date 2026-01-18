@@ -32,7 +32,7 @@ namespace Utils
             }
 
             // Retrieve an instance from the pool (will instantiate the first time)
-            PooledAudioSource pooledSource = SimplePool<PooledAudioSource>.Get(
+            var pooledSource = SimplePool<PooledAudioSource>.Get(
                 prefab, position, Quaternion.identity);
 
             // Play the requested clip
@@ -68,10 +68,10 @@ namespace Utils
         private static PooledAudioSource CreateNewInstance()
         {
             // Create a new instance directly (no prefab needed)
-            GameObject go = new GameObject("PooledAudioSource");
+            var go = new GameObject("PooledAudioSource");
         
             // Add AudioSource component and configure it
-            AudioSource audioSrc = go.AddComponent<AudioSource>();
+            var audioSrc = go.AddComponent<AudioSource>();
             audioSrc.playOnAwake = false;
             audioSrc.spatialBlend = 1f; // 3D spatial audio
         

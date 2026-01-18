@@ -19,23 +19,23 @@ namespace Ships.Damage
 
             /* ------------------- Position chain ------------------------- */
             // Start just "above" the ship along the forward axis
-            Vector3 shieldBarPos  = transform.position + GamePlane.Forward * baseOffset;
-            Vector3 healthBarPos  = shieldBarPos   + GamePlane.Forward * barSpacing;
-            Vector3 shieldTextPos = healthBarPos   + GamePlane.Forward * (barSpacing*2+textSpacing*2);
-            Vector3 healthTextPos = shieldTextPos  + GamePlane.Forward * textSpacing;
+            var shieldBarPos  = transform.position + GamePlane.Forward * baseOffset;
+            var healthBarPos  = shieldBarPos   + GamePlane.Forward * barSpacing;
+            var shieldTextPos = healthBarPos   + GamePlane.Forward * (barSpacing*2+textSpacing*2);
+            var healthTextPos = shieldTextPos  + GamePlane.Forward * textSpacing;
 
             /* ------------------- Draw Bars ------------------------------ */
-            Vector3 barSize = GamePlane.Right * barWidth + GamePlane.Forward * barHeight + GamePlane.Normal * barDepth;
+            var barSize = GamePlane.Right * barWidth + GamePlane.Forward * barHeight + GamePlane.Normal * barDepth;
 
             // Shield Bar (background + fill)
             Gizmos.color = Color.gray; // background
             Gizmos.DrawCube(shieldBarPos, barSize);
             if (maxShield > 0)
             {
-                float shieldPercent = Shield.Pct;
+                var shieldPercent = Shield.Pct;
                 Gizmos.color = Color.cyan; // fill
-                Vector3 fillPos  = shieldBarPos - GamePlane.Right * (barWidth * (1f - shieldPercent) * 0.5f);
-                Vector3 fillSize = GamePlane.Right * (barWidth * shieldPercent) + GamePlane.Forward * barHeight + GamePlane.Normal * barDepth;
+                var fillPos  = shieldBarPos - GamePlane.Right * (barWidth * (1f - shieldPercent) * 0.5f);
+                var fillSize = GamePlane.Right * (barWidth * shieldPercent) + GamePlane.Forward * barHeight + GamePlane.Normal * barDepth;
                 Gizmos.DrawCube(fillPos, fillSize);
             }
 
@@ -44,18 +44,18 @@ namespace Ships.Damage
             Gizmos.DrawCube(healthBarPos, barSize);
             if (maxHealth > 0)
             {
-                float healthPercent = Health.Pct;
+                var healthPercent = Health.Pct;
                 Gizmos.color = Color.green; // fill
-                Vector3 fillPos  = healthBarPos - GamePlane.Right * (barWidth * (1f - healthPercent) * 0.5f);
-                Vector3 fillSize = GamePlane.Right * (barWidth * healthPercent) + GamePlane.Forward * barHeight + GamePlane.Normal * barDepth;
+                var fillPos  = healthBarPos - GamePlane.Right * (barWidth * (1f - healthPercent) * 0.5f);
+                var fillSize = GamePlane.Right * (barWidth * healthPercent) + GamePlane.Forward * barHeight + GamePlane.Normal * barDepth;
                 Gizmos.DrawCube(fillPos, fillSize);
             }
 
             /* ------------------- Draw Text ------------------------------ */
-            string shieldText = $"Shield: {Shield.CurrentValue:F1}/{maxShield:F1}";
-            string healthText = $"Health: {Health.CurrentValue:F1}/{maxHealth:F1}";
+            var shieldText = $"Shield: {Shield.CurrentValue:F1}/{maxShield:F1}";
+            var healthText = $"Health: {Health.CurrentValue:F1}/{maxHealth:F1}";
 
-            GUIStyle style = new GUIStyle();
+            var style = new GUIStyle();
             style.normal.textColor = Color.white;
             style.fontSize = 12;
             style.alignment = TextAnchor.MiddleCenter;

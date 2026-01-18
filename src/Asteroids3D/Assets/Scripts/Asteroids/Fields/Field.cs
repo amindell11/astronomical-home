@@ -58,7 +58,7 @@ namespace Asteroids.Fields
         private void CheckAndSpawnAsteroids(float minSpawn, float maxSpawn, int spawnsPerFrame)
         {
             if (!Spawner) return;
-            int safetyBreak = spawnsPerFrame;
+            var safetyBreak = spawnsPerFrame;
             while (Spawner.Registry.TotalVolume < TargetVolume &&
                    Spawner.Registry.ActiveCount < maxAsteroids &&
                    safetyBreak > 0)
@@ -73,7 +73,7 @@ namespace Asteroids.Fields
         private Vector3 GetRandomFieldPos(float minSpawn, float maxSpawn)
         {
             var dir = GamePlane.PlaneDirToWorld(Random.insideUnitCircle.normalized);
-            float r = Mathf.Sqrt(Mathf.Lerp(minSpawn * minSpawn, maxSpawn * maxSpawn, Random.value));
+            var r = Mathf.Sqrt(Mathf.Lerp(minSpawn * minSpawn, maxSpawn * maxSpawn, Random.value));
             return SpawnCenter + dir * r;
         }
         

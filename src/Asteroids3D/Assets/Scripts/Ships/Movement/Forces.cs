@@ -39,9 +39,9 @@ namespace Ships.Movement
     
         internal static float Bank(Kinematics kin, float input, float maxBankAngle, float bankSpeed)
         {
-            float targetBank = -input * maxBankAngle;
-            float currentBank = kin.Bank;
-            float bank = Mathf.Lerp(currentBank, targetBank, bankSpeed * Time.fixedDeltaTime);
+            var targetBank = -input * maxBankAngle;
+            var currentBank = kin.Bank;
+            var bank = Mathf.Lerp(currentBank, targetBank, bankSpeed * Time.fixedDeltaTime);
             return bank;
         }
 

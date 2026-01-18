@@ -85,7 +85,7 @@ namespace Asteroids.Spawning
         private static SpawnSettings.MeshInfo GetRandomMeshInfo(SpawnSettings.MeshInfo[] meshInfos)
         {
             if (meshInfos is not { Length: > 0 }) return default;
-            int idx = Random.Range(0, meshInfos.Length);
+            var idx = Random.Range(0, meshInfos.Length);
             return meshInfos[idx];
         }
 
@@ -97,13 +97,13 @@ namespace Asteroids.Spawning
 
         private static Vector3 RandomVelocity(float mass, Vector2 velocityRange)
         {
-            float velocityScale = VelocityScale(mass);
+            var velocityScale = VelocityScale(mass);
             return Random.insideUnitCircle.normalized * (Random.Range(velocityRange.x, velocityRange.y) * velocityScale);
         }
 
         private static Vector3 RandomAngularVelocity(float mass, Vector2 spinRange)
         {
-            float velocityScale = VelocityScale(mass);
+            var velocityScale = VelocityScale(mass);
             return new Vector3(
                 Random.Range(spinRange.x, spinRange.y) * velocityScale,
                 Random.Range(spinRange.x, spinRange.y) * velocityScale,

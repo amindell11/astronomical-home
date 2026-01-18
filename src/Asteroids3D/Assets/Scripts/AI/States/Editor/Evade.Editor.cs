@@ -12,9 +12,9 @@ namespace AI.States
             base.OnDrawGizmos(ctx);
             
             
-            Vector3 selfPos = ctx.SelfPosition3D;
+            var selfPos = ctx.SelfPosition3D;
 
-            Vector3 evadePos3D = GamePlane.PlanePointToWorld(evadePoint);
+            var evadePos3D = GamePlane.PlanePointToWorld(evadePoint);
                 
             Gizmos.color = Color.green;
             Gizmos.DrawLine(selfPos, evadePos3D);
@@ -23,7 +23,7 @@ namespace AI.States
             Gizmos.DrawWireSphere(evadePos3D, 1f);
             
             // Draw distance to evade point
-            float distToEvadePoint = Vector2.Distance(ctx.SelfPosition, evadePoint);
+            var distToEvadePoint = Vector2.Distance(ctx.SelfPosition, evadePoint);
             UnityEditor.Handles.color = Color.cyan;
             UnityEditor.Handles.Label(evadePos3D + Vector3.up, $"Evade Point\n{distToEvadePoint:F1}m");
 
@@ -34,23 +34,23 @@ namespace AI.States
             // Draw threat indicators
             if (ctx.Enemy)
             {
-                Vector3 enemyPos = new Vector3(ctx.EnemyPos.x, ctx.EnemyPos.y, selfPos.z);
+                var enemyPos = new Vector3(ctx.EnemyPos.x, ctx.EnemyPos.y, selfPos.z);
                 
                 // Draw line to primary threat
                 Gizmos.color = ctx.LineOfSightToEnemy ? Color.red : new Color(1f, 0.5f, 0f);
                 Gizmos.DrawLine(selfPos, enemyPos);
                 
                 // Draw flee direction arrow
-                Vector2 fleeDir = ctx.Enemy.gameObject.activeInHierarchy ? 
+                var fleeDir = ctx.Enemy.gameObject.activeInHierarchy ? 
                     -ctx.VectorToEnemy.normalized : Random.insideUnitCircle.normalized;
-                Vector3 fleeDir3D = new Vector3(fleeDir.x, fleeDir.y, 0);
+                var fleeDir3D = new Vector3(fleeDir.x, fleeDir.y, 0);
                 
                 Gizmos.color = Color.yellow;
                 Gizmos.DrawRay(selfPos, fleeDir3D * 5f);
                 
                 // Draw arrowhead for flee direction
-                Vector3 perpLeft = Vector3.Cross(fleeDir3D, Vector3.forward).normalized;
-                Vector3 arrowTip = selfPos + fleeDir3D * 5f;
+                var perpLeft = Vector3.Cross(fleeDir3D, Vector3.forward).normalized;
+                var arrowTip = selfPos + fleeDir3D * 5f;
                 Gizmos.DrawLine(arrowTip, arrowTip - fleeDir3D * 1f + perpLeft * 0.5f);
                 Gizmos.DrawLine(arrowTip, arrowTip - fleeDir3D * 1f - perpLeft * 0.5f);
             }
@@ -64,7 +64,7 @@ namespace AI.States
 
             // Draw state info
             UnityEditor.Handles.color = Color.white;
-            string threatInfo = $"EVADE\nHP: {ctx.HealthPct:P0} Shield: {ctx.ShieldPct:P0}";
+            var threatInfo = $"EVADE\nHP: {ctx.HealthPct:P0} Shield: {ctx.ShieldPct:P0}";
             if (ctx.IncomingMissile) threatInfo += "\n⚠ MISSILE!";
             if (ctx.NearbyEnemyCount > ctx.NearbyFriendCount) threatInfo += $"\n⚠ Outnumbered {ctx.NearbyEnemyCount}v{ctx.NearbyFriendCount+1}";
             

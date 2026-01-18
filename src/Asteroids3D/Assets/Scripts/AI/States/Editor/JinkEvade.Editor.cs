@@ -12,8 +12,8 @@ namespace AI.States
             base.OnDrawGizmos(ctx);
             if (ctx==null) return;
 
-            Vector3 selfPos = ctx.SelfPosition3D;
-            Vector3 tgtPos  = GamePlane.PlanePointToWorld(currentTarget);
+            var selfPos = ctx.SelfPosition3D;
+            var tgtPos  = GamePlane.PlanePointToWorld(currentTarget);
 
             // Draw path line
             Gizmos.color = Color.magenta;
@@ -23,7 +23,7 @@ namespace AI.States
             // Draw flee + jink vectors
             if (ctx.Enemy)
             {
-                Vector3 enemyPos = GamePlane.PlanePointToWorld(ctx.EnemyPos);
+                var enemyPos = GamePlane.PlanePointToWorld(ctx.EnemyPos);
                 Gizmos.color = Color.red;
                 Gizmos.DrawLine(selfPos, enemyPos);
             }

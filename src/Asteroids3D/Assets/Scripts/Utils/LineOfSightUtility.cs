@@ -23,17 +23,17 @@ namespace Utils
             Transform targetRoot = null,
             LayerMask? occluderMask = null)
         {
-            Vector3 dir  = targetPos - origin;
-            float   dist = dir.magnitude;
+            var dir  = targetPos - origin;
+            var   dist = dir.magnitude;
 
             // Degenerate case – same point.
             if (dist <= 0f) return true;
 
             dir /= dist; // Normalise direction.
 
-            LayerMask mask = occluderMask ?? Physics.DefaultRaycastLayers;
+            var mask = occluderMask ?? Physics.DefaultRaycastLayers;
 
-            int hitCount = Physics.RaycastNonAlloc(
+            var hitCount = Physics.RaycastNonAlloc(
                 origin,
                 dir,
                 RayBuffer,

@@ -84,7 +84,7 @@ namespace Weapons
         protected virtual void OnHit(IDamageable other){
             RLog.Weapon($"applying {damage} damage to {other.gameObject.name}");
         
-            Vector3 impactVelocity = rb ? rb.linearVelocity : Vector3.zero;
+            var impactVelocity = rb ? rb.linearVelocity : Vector3.zero;
             // If the other is a projectile and has a shooter, check if it's the same as our shooter. If so, skip TakeDamage.
             var otherProjectile = other as ProjectileBase;
             if (otherProjectile && otherProjectile.Shooter != null)
@@ -101,7 +101,7 @@ namespace Weapons
         protected virtual void OnTriggerEnter(Collider other)
         {
             // Resolve the IDamageable (if any) that was hit
-            IDamageable dmg = other.GetComponentInParent<IDamageable>();
+            var dmg = other.GetComponentInParent<IDamageable>();
 
             // Early-out if we didn't hit something that can take damage
             if (dmg == null) return;

@@ -58,7 +58,7 @@ namespace Asteroids.Fragnetics
         {
             var fragments = new Asteroid[frags.Length];
             calc.CalculatePlaceholderPhysics(ast, hit, frags);
-            for (int i = 0; i < frags.Length; i++)
+            for (var i = 0; i < frags.Length; i++)
             {
                 fragments[i] = spawn.SpawnFragment(frags[i]);
                 if (fragSettings.fragmentFadeInTime > 0f)
@@ -72,7 +72,7 @@ namespace Asteroids.Fragnetics
         /// </summary>
         private static void UpdatePlaceholderFragments(Asteroid[] fragments, Frag[] frags)
         {
-            for (int i = 0; i < fragments.Length; i++)
+            for (var i = 0; i < fragments.Length; i++)
                 fragments[i]?.UpdateKinematics(frags[i].Velocity, frags[i].Spin);
             
         }
@@ -93,11 +93,11 @@ namespace Asteroids.Fragnetics
         
             material.color = transparentColor;
 
-            float elapsed = 0f;
+            var elapsed = 0f;
             while (elapsed < fragSettings.fragmentFadeInTime)
             {
                 elapsed += Time.deltaTime;
-                float alpha = Mathf.Lerp(0f, originalColor.a, elapsed / fragSettings.fragmentFadeInTime);
+                var alpha = Mathf.Lerp(0f, originalColor.a, elapsed / fragSettings.fragmentFadeInTime);
                 material.color = new Color(originalColor.r, originalColor.g, originalColor.b, alpha);
                 yield return null;
             }

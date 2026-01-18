@@ -10,10 +10,10 @@ namespace Weapons
         void OnDrawGizmos()
         {
             if (firePoint == null) return;
-            Vector3 origin = firePoint.position;
-            Vector3 forward = firePoint.up;
+            var origin = firePoint.position;
+            var forward = firePoint.up;
 
-            Color stateColor = State switch
+            var stateColor = State switch
             {
                 LockState.Idle => Color.white,
                 LockState.Locking => Color.yellow,
@@ -30,7 +30,7 @@ namespace Weapons
 
             if (CurrentTarget != null && CurrentTarget.TargetPoint != null)
             {
-                Vector3 targetPos = CurrentTarget.TargetPoint.position;
+                var targetPos = CurrentTarget.TargetPoint.position;
             
                 Gizmos.color = stateColor;
                 Gizmos.DrawLine(origin, targetPos);
@@ -41,24 +41,24 @@ namespace Weapons
 
             if (State == LockState.Locking && lockOnTime > 0f)
             {
-                float progress = Mathf.Clamp01(lockTimer / lockOnTime);
+                var progress = Mathf.Clamp01(lockTimer / lockOnTime);
                 Gizmos.color = Color.Lerp(Color.red, Color.green, progress);
             
-                int segments = 16;
-                float radius = 2f;
-                for (int i = 0; i < segments * progress; i++)
+                var segments = 16;
+                var radius = 2f;
+                for (var i = 0; i < segments * progress; i++)
                 {
-                    float angle1 = (i / (float)segments) * 360f * Mathf.Deg2Rad;
-                    float angle2 = ((i + 1) / (float)segments) * 360f * Mathf.Deg2Rad;
+                    var angle1 = (i / (float)segments) * 360f * Mathf.Deg2Rad;
+                    var angle2 = ((i + 1) / (float)segments) * 360f * Mathf.Deg2Rad;
                 
-                    Vector3 p1 = origin + new Vector3(Mathf.Cos(angle1), 0, Mathf.Sin(angle1)) * radius;
-                    Vector3 p2 = origin + new Vector3(Mathf.Cos(angle2), 0, Mathf.Sin(angle2)) * radius;
+                    var p1 = origin + new Vector3(Mathf.Cos(angle1), 0, Mathf.Sin(angle1)) * radius;
+                    var p2 = origin + new Vector3(Mathf.Cos(angle2), 0, Mathf.Sin(angle2)) * radius;
                 
                     Gizmos.DrawLine(p1, p2);
                 }
             }
             
-            float cooldownRemaining = 0f;
+            var cooldownRemaining = 0f;
             if (launcher != null)
             {
                 var cooldown = launcher.GetComponent<Cooldown>();
