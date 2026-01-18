@@ -14,16 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   weights:
   - type: 0
-    weight: 1
+    weight: 0
   - type: 1
-    weight: 1
+    weight: 0.169
   - type: 2
-    weight: 1
+    weight: 2
   - type: 3
-    weight: 1
+    weight: 0
   - type: 4
-    weight: 1
+    weight: 0
   - type: 5
-    weight: 1
+    weight: 0
   - type: 6
-    weight: 1
+    weight: 0

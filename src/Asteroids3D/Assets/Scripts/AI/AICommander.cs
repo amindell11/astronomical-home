@@ -1,5 +1,6 @@
-﻿using AI.Steering;
-using Game;
+﻿using AI.Utility;
+using Ships;
+using Ships.Control;
 using UnityEngine;
 using Attack = AI.States.Attack;
 using Info = AI.Context.Info;
@@ -9,13 +10,9 @@ using JinkEvade = AI.States.JinkEvade;
 using Kite = AI.States.Kite;
 using Orbit = AI.States.Orbit;
 using Patrol = AI.States.Patrol;
-using AI;
-using AI.Computers;
-using AI.Utility;
 using UtilitySelector = AI.Utility.UtilitySelector;
 
-// Commander modules are now standalone; ShipMovement lives on the parent Ship object.
-namespace Ships.Control
+namespace AI
 {
     [RequireComponent(typeof(Navigator))]
     [RequireComponent(typeof(Gunner))]
@@ -52,25 +49,19 @@ namespace Ships.Control
         {
             this.ship = ship;
             
-            // Create context dependencies
             var shipInfo = new AI.Context.ShipInfo(ship);
             var targeting = new AI.Computers.Targeting(ship, shipInfo);
             var maneuvers = new AI.Computers.Maneuvers(shipInfo);
             
-            // Initialize components
             Sensors.Initialize(ship, shipInfo);
             Navigator.Initialize(ship, Sensors);
             Gunner.Initialize(ship, targeting);
             
-            // Create Info with all dependencies
             context = new Info(ship, Navigator, Gunner, Sensors, targeting, maneuvers);
         
             if (!utilityTuning)
-            {
                 utilityTuning = ScriptableObject.CreateInstance<UtilityTuning>();
-            }
         
-            // Initialize the state machine with all states
             UtilitySelector.Initialize(
                 new Idle(Navigator, Gunner, utilityTuning),
                 new Patrol(Navigator, Gunner, utilityTuning),

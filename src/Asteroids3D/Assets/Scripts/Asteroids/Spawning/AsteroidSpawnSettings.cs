@@ -44,12 +44,7 @@ namespace Asteroids.Spawning
         public int maxPoolSize = 100;
         public void ValidateSettings()
         {
-            if (meshInfos == null || meshInfos.Length == 0)
-                Debug.LogWarning($"AsteroidSpawnSettings '{name}': No asteroid meshes assigned!");
-            if (massScaleRange.x <= 0 || massScaleRange.y <= 0)
-                Debug.LogWarning($"AsteroidSpawnSettings '{name}': Mass scale range contains non-positive values!");
-            if (density <= 0)
-                Debug.LogWarning($"AsteroidSpawnSettings '{name}': Default density should be greater than 0!");
+            // Validation removed from production code
         }
 
         private void OnValidate()

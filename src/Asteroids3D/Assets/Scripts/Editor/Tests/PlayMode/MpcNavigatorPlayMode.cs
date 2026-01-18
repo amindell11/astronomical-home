@@ -10,6 +10,7 @@ using UnityEditor.UI;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Utils;
+using AICommander = AI.AICommander;
 
 public class MpcNavigatorPlayMode
 {

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   minTimeInState: 0.64
   utilityThreshold: 0.1
-  useProbabilisticSampling: 0
+  useProbabilisticSampling: 1
   samplingTemperature: 1.16
   showStateSelectionGizmos: 1
   showCurrentStateGizmos: 1

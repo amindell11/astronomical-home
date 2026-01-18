@@ -19,7 +19,6 @@ namespace AI.States
 
         public override void Enter(Info context)
         {
-            RLog.AI($"[AttackState] Entering. Target: {context.Enemy?.name ?? "None"}");
         }
 
         public override void Tick(Info context, float deltaTime)
@@ -52,7 +51,6 @@ namespace AI.States
 
         public override void Exit()
         {
-            RLog.AI("[AttackState] Exiting");
             navigator.ClearNavigationPoint();
             navigator.ClearFacingOverride();
         }

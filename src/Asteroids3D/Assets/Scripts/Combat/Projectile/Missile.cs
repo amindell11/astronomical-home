@@ -74,7 +74,6 @@ namespace Combat.Projectile
         /* ───────────────────────── Unity callbacks ───────────────────────── */
         protected override void OnEnable()
         {
-            RLog.Weapon($"MissileProjectile OnEnable at position: {transform.position}, rotation: {transform.rotation}");
             base.OnEnable();
         
             // Reset AudioSource state when retrieved from pool
@@ -98,15 +97,13 @@ namespace Combat.Projectile
         
             if (rb) 
             {
-                RLog.Weapon($"Shooter: "+Shooter);
                 var shooterVelocity = (Shooter != null) ? Shooter.Velocity : Vector3.zero;
                 rb.linearVelocity = transform.up * initialSpeed + shooterVelocity;
-                RLog.Weapon($"Missile initial velocity set to: {rb.linearVelocity}, speed: {initialSpeed}");
                 rb.maxLinearVelocity = homingSpeed;
             }
             else
             {
-                RLog.WeaponError("MissileProjectile: No Rigidbody found!");
+                // No Rigidbody found
             }
             // ───── Audio: play launch one-shot and schedule engine loop ─────
             if (audioSrc && launchClip)
@@ -143,12 +140,7 @@ namespace Combat.Projectile
 
         protected override void FixedUpdate()
         {
-            // Debug before base call
             var distanceTraveled = Vector3.Distance(startPosition, transform.position);
-            if (distanceTraveled > maxDistance * 0.9f) // Warn when getting close to limit
-            {
-                RLog.WeaponWarning($"Missile approaching max distance: {distanceTraveled}/{maxDistance}");
-            }
         
             base.FixedUpdate();
 
@@ -163,12 +155,6 @@ namespace Combat.Projectile
                     if (toTarget.sqrMagnitude > 0.01f) // Avoid division by zero
                     {
                         desiredDir = toTarget.normalized;
-                    
-                        // Debug logging
-                        if (Time.frameCount % 30 == 0) // Log every 30 frames
-                        {
-                            RLog.Weapon($"Missile homing: pos={transform.position}, target={target.position}, toTarget={toTarget}, desiredDir={desiredDir}");
-                        }
                     }
                 }
 
@@ -249,7 +235,6 @@ namespace Combat.Projectile
                 Vector3 forceDirection = rb.linearVelocity.normalized;
                 float forceMagnitude = rb.linearVelocity.magnitude * impactForceMultiplier;
                 otherRb.AddForce(forceDirection * forceMagnitude, ForceMode.Impulse);
-                RLog.Weapon($"Applied impact force to {other.gameObject.name}: {forceDirection * forceMagnitude}");
             }
         }
         */
@@ -287,7 +272,6 @@ namespace Combat.Projectile
                 // Ignore the primary impact target (already handled in OnHit)
                 if (other != null && dmg == other) continue;
 
-                RLog.Weapon($"Splash Hit {hit.name}");
                 dmg.TakeDamage(splashDamage, mass, rb ? rb.linearVelocity : Vector3.zero, hit.ClosestPoint(transform.position), Shooter?.gameObject);
             }
 
@@ -301,7 +285,6 @@ namespace Combat.Projectile
         /* ───────────────────────── pooling ───────────────────────── */
         protected override void ReturnToPool()
         {
-            RLog.Weapon($"MissileProjectile returning to pool at position: {transform.position}");
             target = null;
             Shooter = null;
 

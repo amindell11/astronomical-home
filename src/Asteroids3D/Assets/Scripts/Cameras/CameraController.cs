@@ -17,10 +17,6 @@ namespace Cameras
             {
                 observerCam = GetComponent<ObserverCam>();
             }
-            if (!observerCam)
-            {
-                Debug.LogWarning("CameraController could not find a CameraFollow component to control.");
-            }
         }
 
         private void Update()

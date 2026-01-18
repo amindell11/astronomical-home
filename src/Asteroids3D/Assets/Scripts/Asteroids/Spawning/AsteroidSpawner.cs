@@ -15,7 +15,6 @@ namespace Asteroids.Spawning
         {
             if (!settings)
             {
-                RLog.AsteroidError("AsteroidSpawner requires a reference to AsteroidSpawnSettings.");
                 enabled = false;
                 return;
             }

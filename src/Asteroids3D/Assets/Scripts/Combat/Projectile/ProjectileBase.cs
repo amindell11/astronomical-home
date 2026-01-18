@@ -82,7 +82,7 @@ namespace Combat.Projectile
             }
         }
         protected virtual void OnHit(IDamageable other){
-            RLog.Weapon($"applying {damage} damage to {other.gameObject.name}");
+        
         
             var impactVelocity = rb ? rb.linearVelocity : Vector3.zero;
             // If the other is a projectile and has a shooter, check if it's the same as our shooter. If so, skip TakeDamage.
@@ -111,7 +111,6 @@ namespace Combat.Projectile
             // may be on child objects.
             if (Shooter != null && other.GetComponentInParent<IShooter>() == Shooter) return;
 
-            RLog.Weapon($"Projectile hit: {other.gameObject.name}");
             OnHit(dmg);
         }
 

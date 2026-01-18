@@ -103,7 +103,7 @@ namespace UI
             }
             else
             {
-                Debug.LogWarning($"GlowingUIController on {name}: No glowing material assigned and current material doesn't use UI/GlowFill shader.");
+                // No glowing material assigned and current material doesn't use UI/GlowFill shader
             }
         }
 

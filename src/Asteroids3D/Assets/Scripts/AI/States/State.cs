@@ -37,14 +37,12 @@ namespace AI.States
 
         public virtual void Enter(Info ctx)
         {
-            RLog.AI($"[{stateName}] Enter");
         }
 
         public abstract void Tick(Info ctx, float deltaTime);
 
         public virtual void Exit()
         {
-            RLog.AI($"[{stateName}] Exit");
         }
 
         public abstract float ComputeUtility(Info ctx);

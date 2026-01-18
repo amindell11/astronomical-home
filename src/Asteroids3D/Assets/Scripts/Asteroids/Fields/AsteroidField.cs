@@ -38,7 +38,6 @@ namespace Asteroids.Fields
         {
             if (!settings)
             {
-                Debug.LogWarning($"AsteroidField '{name}' has no settings assigned. Using defaults.");
                 return;
             }
             

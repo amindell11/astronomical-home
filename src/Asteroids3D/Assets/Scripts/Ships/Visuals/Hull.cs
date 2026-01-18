@@ -78,7 +78,6 @@ namespace Ships.Visuals
 
             if (!smoke) return;
             var showSmoke = source.Health.Pct < 0.5f;
-            Debug.Log(gameObject+" " +showSmoke);
             if (smoke.gameObject.activeSelf != showSmoke)
                 smoke.gameObject.SetActive(showSmoke);
         }

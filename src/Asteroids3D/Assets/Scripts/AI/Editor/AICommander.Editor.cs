@@ -3,7 +3,7 @@ using AI.Steering;
 using Game;
 using UnityEngine;
 using AI;
-namespace Ships.Control
+namespace AI
 
 {
     public partial class AICommander

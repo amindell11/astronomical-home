@@ -61,7 +61,6 @@ namespace Combat.Projectile
                 var forward      = transform.up;
                 var inheritAlong = Vector3.Project(shooterVelocity, forward);
                 rb.linearVelocity    = forward * laserSpeed + inheritAlong;
-                RLog.Weapon($"Laser velocity set to: {rb.linearVelocity}, base speed: {laserSpeed}");
             }
         }
 

@@ -30,7 +30,6 @@ namespace AI.Context
             this.ship = ship;
             if (!ship)
             {
-                RLog.AIError($"AIContext: No Ship provided during initialization");
                 return;
             }
 
