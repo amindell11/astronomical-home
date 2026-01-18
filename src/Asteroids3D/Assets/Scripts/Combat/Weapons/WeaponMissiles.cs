@@ -33,5 +33,27 @@ namespace Combat.Weapons
         
             return proj;
         }
+
+        /// <summary>
+        /// Determines if missiles should fire based on the given targeting context.
+        /// Used by AI to make firing decisions.
+        /// </summary>
+        public override bool ShouldFire(TargetingContext context)
+        {
+            if (!rounds || rounds.AmmoCount <= 0) return false;
+
+            switch (targetingComputer.State)
+            {
+                case LockState.Locked:
+                    return true;
+                case LockState.Idle:
+                case LockState.Locking:
+                    const float missileRange = 10f;
+                    const float missileAngleTolerance = 15f;
+                    return context.DistanceToTarget <= missileRange && context.AngleToTarget <= missileAngleTolerance;
+                default:
+                    return false;
+            }
+        }
     }
 } 

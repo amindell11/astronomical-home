@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 8865327791154650922}
   - component: {fileID: 7892887138566842922}
   - component: {fileID: 4171465111245218266}
-  - component: {fileID: 1402530483026532237}
   - component: {fileID: 941428023342471022}
   m_Layer: 0
   m_Name: Missiles
@@ -176,18 +175,6 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &1402530483026532237
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 268376620940872671}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 96697b9c4edbe39499ed10341b816386, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &941428023342471022
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -205,4 +192,4 @@ MonoBehaviour:
   lockExpiry: 3
   maxLockDistance: 100
   firePoint: {fileID: 8383258865359498199}
-  launcher: {fileID: 2094418735087310904}
+  weapon: {fileID: 0}

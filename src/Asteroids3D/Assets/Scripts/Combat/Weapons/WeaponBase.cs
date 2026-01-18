@@ -28,6 +28,15 @@ namespace Combat.Weapons
             return conditions.All(c => c.CanFire());
         }
 
+        /// <summary>
+        /// Determines if this weapon should fire based on the given targeting context.
+        /// Override in derived classes to provide weapon-specific AI firing logic.
+        /// </summary>
+        public virtual bool ShouldFire(TargetingContext context)
+        {
+            return false; // Default: don't fire
+        }
+
         public virtual void Reset()
         {
             foreach (var condition in conditions)

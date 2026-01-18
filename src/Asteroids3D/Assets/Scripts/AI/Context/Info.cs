@@ -71,7 +71,7 @@ namespace AI.Context
 
         // Gunner target accessors
         public Vector2 VectorToTarget => Combat?.VectorToTarget ?? Vector2.zero;
-        public bool HasTargetLOS => Combat?.HasTargetLOS ?? false;
+        public bool HasTargetLos => Combat?.HasTargetLos ?? false;
         public float AngleToTarget => Combat?.AngleToTarget ?? 0f;
         public bool IncomingMissile => Combat?.IncomingMissile ?? false;
         public float LaserSpeed => Combat?.LaserSpeed ?? 0f;

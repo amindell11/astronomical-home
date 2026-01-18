@@ -26,12 +26,11 @@ namespace AI.Context
         public float EnemyHealthPct => Enemy?.CurrentState.HealthPct ?? 0f;
         public float EnemyShieldPct => Enemy?.CurrentState.ShieldPct ?? 0f;
         
-        // Gunner target accessors
         public Vector2 VectorToTarget => gunner?.VectorToTarget ?? Vector2.zero;
-        public bool HasTargetLOS => gunner?.HasTargetLOS ?? false;
+        public bool HasTargetLos => gunner?.HasTargetLos ?? false;
         public float AngleToTarget => gunner?.AngleToTarget ?? 0f;
 
-        public bool IncomingMissile => false;
-        public float LaserSpeed => 0f;
+        public bool IncomingMissile => false; //TODO
+        public float LaserSpeed => 0f; //TODO
     }
 }

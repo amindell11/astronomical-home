@@ -100,7 +100,8 @@ PrefabInstance:
       propertyPath: fireRate
       value: 0.075
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 450251164351334703, guid: a17b4473baa216a4eba58800a76acfc3, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []

@@ -1,6 +1,7 @@
-﻿using AI.Combat;
-using AI.Computers;
+﻿using AI.Computers;
 using AI.Context;
+using Combat;
+using Combat.Weapons;
 using Game;
 using Ships;
 using UnityEngine;
@@ -11,8 +12,6 @@ namespace AI
     {
         private Ship ship;
         private Targeting targeting;
-        private IWeaponStrategy primary;
-        private IWeaponStrategy secondary;
 
         public Vector3 Target { get; private set; }
         public bool HasTarget => Target != Vector3.zero;
@@ -25,7 +24,7 @@ namespace AI
         public Vector2 VectorToTarget => HasTarget ? targeting.VectorTo(TargetPlane) : Vector2.zero;
         public float AngleToTarget => HasTarget ? targeting.AngleTo(TargetPlane) : 0f;
 
-        public bool HasTargetLOS => HasTarget && targeting.HasLineOfSight(FirePoint, Target, AngleToTarget);
+        public bool HasTargetLos => HasTarget && targeting.HasLineOfSight(FirePoint, Target, AngleToTarget);
 
         public void SetTarget(Vector3 worldPos) => Target = worldPos;
         public void SetTarget(Vector2 planePos) => Target = GamePlane.PlanePointToWorld(planePos);
@@ -37,27 +36,22 @@ namespace AI
         {
             this.ship = ship;
             this.targeting = targeting;
-
-            if (ship.Weapons.Primary)
-                primary = ship.Weapons.Primary.GetComponent<IWeaponStrategy>();
-            if (ship.Weapons.Secondary)
-                secondary = ship.Weapons.Secondary.GetComponent<IWeaponStrategy>();
         }
 
         public void GenerateGunnerCommands(State state, ref Command cmd)
         {
             if (!HasTarget) return;
 
-            var context = new IWeaponStrategy.TargetingContext
+            var context = new TargetingContext
             {
                 TargetPosition = TargetPlane,
                 DistanceToTarget = targeting.DistanceTo(TargetPlane),
                 AngleToTarget = AngleToTarget,
-                HasLineOfSight = HasTargetLOS
+                HasLineOfSight = HasTargetLos
             };
 
-            cmd.PrimaryFire = primary?.ShouldFire(context) ?? false;
-            cmd.SecondaryFire = secondary?.ShouldFire(context) ?? false;
+            cmd.PrimaryFire = ship.Weapons.Primary?.ShouldFire(context) ?? false;
+            cmd.SecondaryFire = ship.Weapons.Secondary?.ShouldFire(context) ?? false;
         }
     }
 }
