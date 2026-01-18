@@ -3,7 +3,7 @@ using Editor;
 using UnityEngine;
 using Utils;
 
-namespace Weapons
+namespace Combat.Projectile
 {
     public class LaserProjectile : ProjectileBase
     {

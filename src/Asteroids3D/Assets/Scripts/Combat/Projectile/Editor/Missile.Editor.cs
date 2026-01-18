@@ -3,7 +3,7 @@ using Game;
 using UnityEditor;
 using UnityEngine;
 
-namespace Weapons
+namespace Combat.Projectile
 {
     public partial class Missile
     {
@@ -44,7 +44,7 @@ namespace Weapons
             }
 
             // Draw rotation correction arc (only when a target exists and we applied a turn)
-            if (target != null && Mathf.Abs(rotationCorrectionDeg) > 0.1f)
+            if (target != null && Mathf.Abs((float)rotationCorrectionDeg) > 0.1f)
             {
                 Handles.color = Color.magenta;
                 Handles.DrawWireArc(

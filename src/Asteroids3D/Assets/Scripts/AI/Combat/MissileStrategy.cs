@@ -1,20 +1,22 @@
-using Ships.Weapons.Conditions;
+using Combat.Conditions;
+using Combat.Targeting;
+using Combat.Weapons;
 using UnityEngine;
 using Weapons;
 
 namespace AI.Combat
 {
-    [RequireComponent(typeof(Missiles))]
+    [RequireComponent(typeof(WeaponMissiles))]
     public class MissileStrategy : MonoBehaviour, IWeaponStrategy
     {
-        private Missiles missiles;
+        private WeaponMissiles missiles;
         private Rounds rounds;
 
         public int Priority => 10;
 
         private void Awake()
         {
-            missiles = GetComponent<Missiles>();
+            missiles = GetComponent<WeaponMissiles>();
             rounds = GetComponent<Rounds>();
         }
 

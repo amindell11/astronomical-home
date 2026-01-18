@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Weapons
+namespace Combat
 {
     /// <summary>
     /// Represents an entity that can fire projectiles.

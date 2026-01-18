@@ -2,14 +2,14 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Weapons
+namespace Combat.Weapons
 {
-    public partial class Missiles
+    public partial class WeaponMissiles
     {
         void OnDrawGizmos()
         {
-            if (firePoint == null || _rounds == null) return;
-            var ammoText = $"Ammo: {_rounds.AmmoCount}/{_rounds.MaxAmmo}";
+            if (firePoint == null || rounds == null) return;
+            var ammoText = $"Ammo: {rounds.AmmoCount}/{rounds.MaxAmmo}";
             Handles.Label(firePoint.position + Vector3.up * 2f, $"Missiles\n{ammoText}");
         }
     }

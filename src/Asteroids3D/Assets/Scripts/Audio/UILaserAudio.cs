@@ -1,8 +1,8 @@
+using Combat.Conditions;
+using Combat.Weapons;
 using UnityEngine;
 using Utils;
 using Weapons;
-using Ships.Weapons.Conditions;
-using LaserGun = Ships.Weapons.Launcher.LaserGun;
 
 namespace Audio
 {
@@ -24,7 +24,7 @@ namespace Audio
         [SerializeField, Range(0f, 1f)] private float volume = 0.7f;
 
         private AudioSource audioSource;
-        private LaserGun laserGun;
+        private WeaponLaser laserGun;
         private Heat heat;
 
         void Awake()
@@ -77,7 +77,7 @@ namespace Audio
             var playerObj = GameObject.FindGameObjectWithTag(TagNames.Player);
             if (playerObj)
             {
-                laserGun = playerObj.GetComponentInChildren<LaserGun>();
+                laserGun = playerObj.GetComponentInChildren<WeaponLaser>();
                 heat = laserGun ? laserGun.GetComponent<Heat>() : null;
                 
                 // Subscribe to events

@@ -1,15 +1,17 @@
 using System.Collections.Generic;
 using System.Linq;
+using Combat.Conditions;
+using Combat.Targeting;
+using Combat.Weapons;
 using UnityEngine;
 using UnityEngine.UI;
 using Utils;
 using Weapons;
-using Ships.Weapons.Conditions;
 
 namespace UI
 {
     /// <summary>
-    /// Displays the current ammo count and cooldown status for a <see cref="Missiles"/>.
+    /// Displays the current ammo count and cooldown status for a <see cref="WeaponMissiles"/>.
     /// Attach this to a world- or screen-space canvas that contains a horizontal layout
     /// of missile icons (Images). Optionally assign a spinner Image that becomes
     /// visible during launcher cooldown.
@@ -18,7 +20,7 @@ namespace UI
     public sealed class MissileAmmoUI : MonoBehaviour
     {
         [Tooltip("Missile launcher whose ammo we want to display.")]
-        [SerializeField] private Missiles launcher;
+        [SerializeField] private WeaponMissiles launcher;
 
         [Header("Dynamic Icon Generation")]
         [Tooltip("Prefab used to instantiate each missile icon.")]
@@ -65,7 +67,7 @@ namespace UI
         {
             if (!launcher)
             {
-                launcher = GameObject.FindGameObjectWithTag(TagNames.Player).GetComponentInChildren<Missiles>();
+                launcher = GameObject.FindGameObjectWithTag(TagNames.Player).GetComponentInChildren<WeaponMissiles>();
             }
 
             if (launcher)

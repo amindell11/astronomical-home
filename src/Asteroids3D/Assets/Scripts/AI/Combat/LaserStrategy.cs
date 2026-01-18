@@ -1,26 +1,26 @@
-using Ships.Weapons.Conditions;
+using Combat.Conditions;
+using Combat.Weapons;
 using UnityEngine;
-using LaserGun = Ships.Weapons.Launcher.LaserGun;
 
 namespace AI.Combat
 {
-    [RequireComponent(typeof(LaserGun))]
+    [RequireComponent(typeof(WeaponLaser))]
     public class LaserStrategy : MonoBehaviour, IWeaponStrategy
     {
-        private LaserGun _laserGun;
+        private WeaponLaser laserGun;
         private Heat _heat;
     
         public int Priority => 5;
 
         private void Awake()
         {
-            _laserGun = GetComponent<LaserGun>();
+            laserGun = GetComponent<WeaponLaser>();
             _heat = GetComponent<Heat>();
         }
 
         public bool ShouldFire(IWeaponStrategy.TargetingContext context)
         {
-            if (!_laserGun || !_heat || !context.HasLineOfSight) return false;
+            if (!laserGun || !_heat || !context.HasLineOfSight) return false;
 
             var isReadyToFire = !_heat.WouldOverheatOnNextShot();
             if (!isReadyToFire) return false;

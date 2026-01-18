@@ -5,7 +5,7 @@ using Game;
 using UnityEngine;
 using Utils;
 
-namespace Weapons
+namespace Combat.Projectile
 {
     /// <summary>
     /// Homing missile projectile that steers towards a target and explodes with AoE damage on impact.

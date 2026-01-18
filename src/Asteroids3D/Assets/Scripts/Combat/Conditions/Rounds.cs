@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Ships.Weapons.Conditions
+namespace Combat.Conditions
 {
     public class Rounds : WeaponCondition
     {

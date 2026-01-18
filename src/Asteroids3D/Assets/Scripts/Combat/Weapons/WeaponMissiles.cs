@@ -1,25 +1,24 @@
-﻿using System;
-using Editor;
-using Ships;
-using Ships.Weapons.Conditions;
+﻿using Combat.Conditions;
+using Combat.Projectile;
+using Combat.Targeting;
 using UnityEngine;
-using Utils;
+using Missile = Combat.Projectile.Missile;
 
-namespace Weapons
+namespace Combat.Weapons
 {
-    public partial class Missiles : LauncherBase<Missile>
+    public partial class WeaponMissiles : WeaponBase<Missile>
     {
         [Header("Targeting")]
         [SerializeField] private TargetingComputer targetingComputer;
 
         public TargetingComputer Targeting => targetingComputer;
 
-        private Rounds _rounds;
+        private Rounds rounds;
 
         protected override void Awake()
         {
             base.Awake();
-            _rounds = GetComponent<Rounds>();
+            rounds = GetComponent<Rounds>();
         }
 
         public override ProjectileBase Fire()

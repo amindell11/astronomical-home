@@ -2,9 +2,9 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Ships.Weapons.Launcher
+namespace Combat.Weapons
 {
-    public partial class LaserGun
+    public partial class WeaponLaser
     {
         private void OnDrawGizmosSelected()
         {

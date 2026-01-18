@@ -3,7 +3,7 @@ using Editor;
 using UnityEngine;
 using Utils;
 
-namespace Weapons
+namespace Combat.Projectile
 {
     /// <summary>
     /// Base behaviour for all projectile types – handles lifespan, damage application and hit VFX.

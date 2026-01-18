@@ -1,3 +1,5 @@
+using Combat.Targeting;
+using Combat.Weapons;
 using UnityEngine;
 using Utils;
 using Weapons;
@@ -19,7 +21,7 @@ namespace Audio
         [SerializeField, Range(0f, 1f)] private float volume = 0.7f;
 
         private AudioSource source;
-        private Missiles launcher;
+        private WeaponMissiles launcher;
         private LockState lastState = LockState.Idle;
 
         void Awake()
@@ -105,7 +107,7 @@ namespace Audio
             var playerObj = GameObject.FindGameObjectWithTag(TagNames.Player);
             if (playerObj)
             {
-                launcher = playerObj.GetComponentInChildren<Missiles>();
+                launcher = playerObj.GetComponentInChildren<WeaponMissiles>();
 
                 // Sync state immediately to avoid false triggers
                 if (launcher)

@@ -1,12 +1,10 @@
 using System;
-using Editor;
-using Ships;
+using Combat.Projectile;
+using Combat.Weapons;
 using UnityEngine;
 using Utils;
-using Weapons;
-using Ships.Weapons.Conditions;
 
-namespace Weapons
+namespace Combat.Targeting
 {
     public partial class TargetingComputer : MonoBehaviour
     {
@@ -18,7 +16,7 @@ namespace Weapons
         [SerializeField] private float maxLockDistance= 100f;
         
         [SerializeField] private Transform firePoint;
-        [SerializeField] private LauncherBase<Missile> launcher;
+        [SerializeField] private WeaponBase<Missile> weapon;
 
         public LockState State { get; private set; } = LockState.Idle;
         
@@ -38,9 +36,9 @@ namespace Weapons
         
         private void Start()
         {
-            if (!launcher)
+            if (!weapon)
             {
-                launcher = GetComponent<LauncherBase<Missile>>();
+                weapon = GetComponent<WeaponBase<Missile>>();
             }
         }
         
@@ -59,7 +57,7 @@ namespace Weapons
         
         private void UpdateIdleState()
         {
-            if (launcher.CanFire())
+            if (weapon.CanFire())
                 ScanForTarget();
         }
 
@@ -92,7 +90,7 @@ namespace Weapons
 
         private void UpdateCooldownState()
         {
-            if (launcher.CanFire())
+            if (weapon.CanFire())
             {
                 State = LockState.Idle;
             }

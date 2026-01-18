@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Weapons
+namespace Combat.Targeting
 {
     /// <summary>
     /// Marker interface for anything a missile can chase.

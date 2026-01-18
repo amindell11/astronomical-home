@@ -1,9 +1,9 @@
 #if UNITY_EDITOR
-using Ships.Weapons.Conditions;
+using Combat.Conditions;
 using UnityEditor;
 using UnityEngine;
 
-namespace Weapons
+namespace Combat.Targeting
 {
     public partial class TargetingComputer
     {
@@ -59,9 +59,9 @@ namespace Weapons
             }
             
             var cooldownRemaining = 0f;
-            if (launcher != null)
+            if (weapon != null)
             {
-                var cooldown = launcher.GetComponent<Cooldown>();
+                var cooldown = weapon.GetComponent<Cooldown>();
                 if (cooldown != null)
                 {
                     cooldownRemaining = cooldown.CooldownRemaining;

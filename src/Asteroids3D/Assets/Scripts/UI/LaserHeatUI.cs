@@ -1,9 +1,9 @@
+using Combat.Conditions;
+using Combat.Weapons;
 using UnityEngine;
 using UnityEngine.UI;
 using Utils;
 using Weapons;
-using Ships.Weapons.Conditions;
-using LaserGun = Ships.Weapons.Launcher.LaserGun;
 
 namespace UI
 {
@@ -16,7 +16,7 @@ namespace UI
     {
         [Header("References")]
         [Tooltip("LaserGun whose heat we visualise.")]
-        [SerializeField] private LaserGun laserGun;
+        [SerializeField] private WeaponLaser laserGun;
 
         [Tooltip("Image component whose FillAmount represents heat (0-1). Should use a Vertical fill method.")]
         [SerializeField] private Image fillImage;
@@ -52,7 +52,7 @@ namespace UI
         }
         void Start()
         {
-            if (!laserGun) laserGun = GameObject.FindGameObjectWithTag(TagNames.Player).GetComponentInChildren<LaserGun>();
+            if (!laserGun) laserGun = GameObject.FindGameObjectWithTag(TagNames.Player).GetComponentInChildren<WeaponLaser>();
             heat = laserGun ? laserGun.GetComponent<Heat>() : null;
             if (glowController)
             {

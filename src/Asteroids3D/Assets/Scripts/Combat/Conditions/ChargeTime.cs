@@ -1,4 +1,4 @@
-namespace Ships.Weapons.Ammo
+namespace Combat.Conditions
 {
     public class ChargeTime
     {

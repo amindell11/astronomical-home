@@ -1,12 +1,11 @@
-using Editor;
-using UnityEngine;
 using System;
 using System.Linq;
-using Ships.Weapons.Conditions;
+using Combat.Conditions;
+using Combat.Projectile;
+using UnityEngine;
 
-namespace Weapons
+namespace Combat.Weapons
 {
-    // One abstract, non-generic root that Unity can serialize
     public abstract class WeaponComponent : MonoBehaviour
     {
         [SerializeField] public Transform firePoint;
@@ -19,9 +18,7 @@ namespace Weapons
         {
             conditions = GetComponents<WeaponCondition>();
             foreach (var condition in conditions)
-            {
                 condition.Initialize(this);
-            }
         }
 
         public abstract ProjectileBase Fire();
@@ -34,30 +31,25 @@ namespace Weapons
         public virtual void Reset()
         {
             foreach (var condition in conditions)
-            {
                 condition.Reset();
-            }
         }
         protected void InvokeOnFire()
         {
             OnFire?.Invoke();
         }
     }
-    /// <summary>
-    /// Generic weapon/launcher base – spawns pooled projectiles of type <typeparamref name="TProj"/>.
-    /// </summary>
-    /// <typeparam name="TProj">Projectile component the launcher fires.</typeparam>
-    public abstract class LauncherBase<TProj> : WeaponComponent where TProj : ProjectileBase
+
+    public abstract class WeaponBase<TProj> : WeaponComponent where TProj : ProjectileBase
     {
         [Header("Launcher Settings")]
         [SerializeField] internal TProj projectilePrefab;
 
-        protected IShooter Shooter;
+        protected IShooter shooter;
 
         protected override void Awake()
         {
             base.Awake();
-            Shooter = GetComponentInParent<IShooter>();
+            shooter = GetComponentInParent<IShooter>();
             if (!firePoint) firePoint = transform;
         }
 
@@ -71,12 +63,10 @@ namespace Weapons
             if (!CanFire()) return null;
             
             foreach (var condition in conditions)
-            {
                 condition.ProcessFire();
-            }
-
+            
             var proj = SimplePool<TProj>.Get(projectilePrefab, firePoint.position, firePoint.rotation);
-            proj.Initialize(Shooter);
+            proj.Initialize(shooter);
             InvokeOnFire();
 
             return proj;
