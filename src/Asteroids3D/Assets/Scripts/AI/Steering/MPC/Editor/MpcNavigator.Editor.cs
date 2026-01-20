@@ -31,9 +31,9 @@ namespace AI
             }
         }
 
-        void OnDrawGizmos()
+        private void OnDrawGizmos()
         {
-            if (!showDebugGizmos || !Application.isPlaying) return;
+            if (!showDebugGizmos) return;
 
             DrawPredictedTrajectory();
             DrawGoal();
@@ -50,7 +50,6 @@ namespace AI
                 var state = predictedStates[i];
                 var pos = GamePlane.PlanePointToWorld(state.pos);
 
-                // Color based on obstacle cost if enabled
                 if (showTrajectoryCosts && dbgObstacles != null)
                 {
                     var obstacleCost = EvaluateObstacleCostForState(state.pos);
