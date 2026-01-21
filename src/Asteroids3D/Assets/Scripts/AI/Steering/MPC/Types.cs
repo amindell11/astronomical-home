@@ -40,7 +40,11 @@ namespace AI.Steering.MPC
         public float wEffort;
         public float wSmoothness;
         public float wObstacle;
+        public float wFacing;
         public float terminalMultiplier;
         public float obstacleThreshold;
+        
+        // Facing override (radians, NaN if disabled)
+        public float facingTarget;
     }
 }

@@ -19,6 +19,7 @@ namespace AI.Steering.MPC
         public float wEffort = 0.05f;
         public float wSmoothness = 0.1f;
         public float wObstacle = 10.0f;
+        public float wFacing = 1.0f;
         public float terminalMultiplier = 10f;
 
         [Header("Obstacle Avoidance")]

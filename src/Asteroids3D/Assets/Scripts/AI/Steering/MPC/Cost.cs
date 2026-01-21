@@ -10,15 +10,25 @@ namespace AI.Steering.MPC
         public static float Evaluate(State s, Control u, Control prevU, Vector2 goalPos, 
             Scanning.DetectedObstacle[] obstacles, int obstacleCount, Config cfg, bool isTerminal)
         {
-            var total = PositionCost(s.pos, goalPos) * cfg.wPos
-                      + VelocityCost(s.vel) * cfg.wVel
-                      + HeadingCost(s.pos, s.yaw, goalPos) * cfg.wYaw
-                      + YawRateCost(s.yawRate) * cfg.wYawRate
-                      + EffortCost(u) * cfg.wEffort
-                      + SmoothnessCost(u, prevU) * cfg.wSmoothness
-                      + ObstacleCost(s.pos, obstacles, obstacleCount, cfg.obstacleThreshold) * cfg.wObstacle;
+            var posCost = PositionCost(s.pos, goalPos) * cfg.wPos;
+            var velCost = VelocityCost(s.vel) * cfg.wVel;
+            var headingCost = HeadingCost(s.pos, s.yaw, goalPos) * cfg.wYaw;
+            var facingCost = FacingCost(s.yaw, cfg.facingTarget) * cfg.wFacing;
+            var yawRateCost = YawRateCost(s.yawRate) * cfg.wYawRate;
+            var obstacleCost = ObstacleCost(s.pos, obstacles, obstacleCount, cfg.obstacleThreshold) * cfg.wObstacle;
 
-            return isTerminal ? total * cfg.terminalMultiplier : total;
+            var stateCost = posCost + velCost + headingCost + facingCost + yawRateCost + obstacleCost;
+
+            var effortCost = EffortCost(u) * cfg.wEffort;
+            var smoothnessCost = SmoothnessCost(u, prevU, cfg.dt) * cfg.wSmoothness;
+            var controlCost = effortCost + smoothnessCost;
+
+            var total = stateCost + controlCost;
+
+            if (isTerminal)
+                total += cfg.terminalMultiplier * stateCost;
+
+            return total;
         }
 
         private static float PositionCost(Vector2 pos, Vector2 goal) => (pos - goal).sqrMagnitude;
@@ -44,17 +54,29 @@ namespace AI.Steering.MPC
             return headingCost;
         }
 
+        private static float FacingCost(float yaw, float targetYaw)
+        {
+            if (float.IsNaN(targetYaw)) return 0f;
+            
+            var err = yaw - targetYaw;
+            while (err > Mathf.PI) err -= 2f * Mathf.PI;
+            while (err < -Mathf.PI) err += 2f * Mathf.PI;
+            return err * err;
+        }
+
         private static float YawRateCost(float yawRate) => yawRate * yawRate;
 
         private static float EffortCost(Control u) =>
             u.thrust * u.thrust + u.strafe * u.strafe + u.yawTorque * u.yawTorque;
 
-        private static float SmoothnessCost(Control u, Control prev)
+        private static float SmoothnessCost(Control u, Control prev, float dt)
         {
-            var dt = u.thrust - prev.thrust;
-            var ds = u.strafe - prev.strafe;
-            var dy = u.yawTorque - prev.yawTorque;
-            return dt * dt + ds * ds + dy * dy;
+            // Rate of change (divide by dt), scaled down by 100 to compensate
+            var scale = 1f / (dt * 100f);
+            var duT = (u.thrust - prev.thrust) * scale;
+            var duS = (u.strafe - prev.strafe) * scale;
+            var duY = (u.yawTorque - prev.yawTorque) * scale;
+            return duT * duT + duS * duS + duY * duY;
         }
 
         private static float ObstacleCost(Vector2 pos, Scanning.DetectedObstacle[] obstacles, int count, float threshold)

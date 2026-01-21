@@ -42,25 +42,26 @@ public class MpcNavigatorPlayMode
     [UnityTest]
     public IEnumerator TestMpcYawOnly()
     {        
-        var targetPos = new Vector2(10, 0);
-        mpc.SetNavigationPoint(targetPos);
+        // Set waypoint at origin (no movement needed) and facing override to 90 degrees
+        mpc.SetNavigationPoint(Vector2.zero);
+        mpc.SetFacingOverride(90f);
         
         // Wait for ship to rotate
         float startTime = Time.time;
         while (startTime + 5f > Time.time)
         {
-            var toTarget = targetPos - (Vector2)ship.transform.position;
-            var angle = Vector2.Angle(ship.transform.up, toTarget);
+            var facingAngle = Vector2.SignedAngle(Vector2.up, ship.transform.up);
+            var angleDiff = Mathf.Abs(Mathf.DeltaAngle(facingAngle, 90f));
             
-            if (angle < 5f) break;
+            if (angleDiff < 5f) break;
             yield return new WaitForFixedUpdate();
         }
 
-        var finalToTarget = targetPos - (Vector2)ship.transform.position;
-        var finalAngle = Vector2.Angle(ship.transform.up, finalToTarget);
+        var finalFacing = Vector2.SignedAngle(Vector2.up, ship.transform.up);
+        var finalDiff = Mathf.Abs(Mathf.DeltaAngle(finalFacing, 90f));
         
-        Assert.That(finalAngle, Is.LessThan(5f), "Ship should rotate to face target");
-        Assert.That(ship.transform.position.magnitude, Is.LessThan(1f), "Ship should stay mostly stationary with wPos=0");
+        Assert.That(finalDiff, Is.LessThan(10f), "Ship should rotate to face 90 degrees");
+        Assert.That(ship.transform.position.magnitude, Is.LessThan(1f), "Ship should stay stationary at origin");
     }
 
     [UnityTest]

@@ -54,8 +54,10 @@ namespace AI.Steering.MPC
                 wEffort = settings.wEffort,
                 wSmoothness = settings.wSmoothness,
                 wObstacle = settings.wObstacle,
+                wFacing = settings.wFacing,
                 terminalMultiplier = settings.terminalMultiplier,
-                obstacleThreshold = settings.obstacleThreshold
+                obstacleThreshold = settings.obstacleThreshold,
+                facingTarget = float.NaN
             };
         }
 
@@ -90,23 +92,20 @@ namespace AI.Steering.MPC
             ApplyControl(ref cmd, bestSequence[0]);
         }
 
-        private void RefreshWeights()
-        {
-            config.wPos = settings.wPos;
-            config.wVel = settings.wVel;
-            config.wYaw = settings.wYaw;
-            config.wYawRate = settings.wYawRate;
-            config.wEffort = settings.wEffort;
-            config.wSmoothness = settings.wSmoothness;
-            config.wObstacle = settings.wObstacle;
-            config.terminalMultiplier = settings.terminalMultiplier;
-            config.obstacleThreshold = settings.obstacleThreshold;
-        }
+
 
         private bool HasArrived(Kinematics kin)
         {
             var toGoal = currentWaypoint.position - kin.Pos;
-            return toGoal.sqrMagnitude < arriveRadius * arriveRadius && kin.Vel.sqrMagnitude < 0.1f;
+            var posArrived = toGoal.sqrMagnitude < arriveRadius * arriveRadius;
+            var velStopped = kin.Vel.sqrMagnitude < 0.1f;
+            
+            if (!posArrived || !velStopped) return false;
+            
+            // If facing override active, also check yaw
+            if (!facingOverride) return true;
+            var yawErr = Mathf.DeltaAngle(kin.Yaw, facingAngle);
+            return !(Mathf.Abs(yawErr) > 5f);
         }
 
         private static MPC.State ToMpcState(Kinematics kin) => new()
@@ -148,5 +147,6 @@ namespace AI.Steering.MPC
         protected override void OnSetNavigationPoint(bool avoid) { }
 
         partial void StoreDebugObstacles(DetectedObstacle[] obstacles, int count);
+        partial void RefreshWeights();
     }
 }

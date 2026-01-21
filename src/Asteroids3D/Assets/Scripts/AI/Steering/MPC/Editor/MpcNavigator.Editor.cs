@@ -158,6 +158,28 @@ namespace AI.Steering.MPC
             else
                 return Color.red;
         }
+        partial void RefreshWeights()
+        {
+            config.dt = settings.rolloutDt;
+            var newHorizon = settings.Horizon;
+            if (config.horizon != newHorizon)
+            {
+                bestSequence = new Control[newHorizon];
+                predictedStates = new State[newHorizon];
+                config.horizon = newHorizon;
+            }
+            config.wPos = settings.wPos;
+            config.wVel = settings.wVel;
+            config.wYaw = settings.wYaw;
+            config.wYawRate = settings.wYawRate;
+            config.wEffort = settings.wEffort;
+            config.wSmoothness = settings.wSmoothness;
+            config.wObstacle = settings.wObstacle;
+            config.wFacing = settings.wFacing;
+            config.terminalMultiplier = settings.terminalMultiplier;
+            config.obstacleThreshold = settings.obstacleThreshold;
+            config.facingTarget = facingOverride ? facingAngle * Mathf.Deg2Rad : float.NaN;
+        }
     }
 }
 #endif
