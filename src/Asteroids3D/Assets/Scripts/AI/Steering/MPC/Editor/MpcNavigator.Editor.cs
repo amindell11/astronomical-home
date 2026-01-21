@@ -3,7 +3,7 @@ using AI.Steering;
 using Game;
 using UnityEngine;
 
-namespace AI
+namespace AI.Steering.MPC
 {
     public partial class MpcNavigator
     {
@@ -91,7 +91,7 @@ namespace AI
                 Gizmos.DrawWireSphere(obsWorldPos, obs.Radius);
                 
                 // Draw cost threshold radius (yellow)
-                var threshold = obs.Radius + obstacleThreshold;
+                var threshold = obs.Radius + settings.obstacleThreshold;
                 Gizmos.color = new Color(1f, 1f, 0f, 0.3f);
                 Gizmos.DrawWireSphere(obsWorldPos, threshold);
                 
@@ -132,7 +132,7 @@ namespace AI
             {
                 var obstacle = dbgObstacles[i];
                 var dist = Vector2.Distance(pos, obstacle.Position);
-                var threshold = obstacle.Radius + obstacleThreshold;
+                var threshold = obstacle.Radius + settings.obstacleThreshold;
 
                 if (dist < threshold)
                 {

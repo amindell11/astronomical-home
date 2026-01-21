@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59f7f77675d38994397e19301aaef807, type: 3}
+  m_Name: MpcSettings
+  m_EditorClassIdentifier: 
+  horizonSeconds: 1.5
+  rolloutDt: 0.1
+  samples: 128
+  noiseStd: 0.25
+  wPos: 1
+  wVel: 0.5
+  wYaw: 0.5
+  wYawRate: 0.1
+  wEffort: 0.05
+  wSmoothness: 0.1
+  wObstacle: 10
+  terminalMultiplier: 10
+  obstacleThreshold: 7

@@ -82,20 +82,8 @@ MonoBehaviour:
   showDebugGizmos: 1
   showObstacleCosts: 1
   showTrajectoryCosts: 1
-  horizonSeconds: 2.02
-  rolloutDt: 0.1
-  samples: 128
-  noiseStd: 0.25
-  wPos: 1
-  wVel: 0.5
-  wYaw: 0.5
-  wYawRate: 0.1
-  wEffort: 0.05
-  wSmoothness: 0.1
-  wObstacle: 16.13
-  terminalMultiplier: 10
+  settings: {fileID: 11400000, guid: 9d049f5482896884799106aff602155b, type: 2}
   enableObstacleAvoidance: 1
-  obstacleThreshold: 10
 --- !u!114 &2056539076943524747
 MonoBehaviour:
   m_ObjectHideFlags: 0

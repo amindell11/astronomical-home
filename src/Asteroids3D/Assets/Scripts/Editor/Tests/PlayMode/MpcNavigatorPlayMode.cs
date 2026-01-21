@@ -1,6 +1,7 @@
 using System.Collections;
 using AI;
 using AI.Context;
+using AI.Steering.MPC;
 using Game;
 using NUnit.Framework;
 using Ships;
@@ -11,6 +12,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Utils;
 using AICommander = AI.AICommander;
+using Settings = Ships.Settings;
 
 public class MpcNavigatorPlayMode
 {
@@ -39,14 +41,7 @@ public class MpcNavigatorPlayMode
 
     [UnityTest]
     public IEnumerator TestMpcYawOnly()
-    {
-        // Set weights to only care about yaw, but penalize movement to stay stationary.
-        // If we leave wVel at 0, the optimizer might drift since movement is "free".
-        mpc.wPos = 0;
-        mpc.wVel = 1.0f; 
-        mpc.wYaw = 1.0f;
-        mpc.wEffort = 0.1f;
-        
+    {        
         var targetPos = new Vector2(10, 0);
         mpc.SetNavigationPoint(targetPos);
         
@@ -113,7 +108,6 @@ public class MpcNavigatorPlayMode
     {
         // Enable obstacle avoidance
         mpc.enableObstacleAvoidance = true;
-        mpc.wObstacle = 10.0f;
         
         // Place obstacle between ship (at origin) and target
         var obstacle = TestSceneBuilder.CreateObstacle(new Vector3(10, 10, 0), new Vector3(2, 2, 2));
