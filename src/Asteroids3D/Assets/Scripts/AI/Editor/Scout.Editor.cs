@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace AI
 {
-    public partial class Sensors
+    public partial class Scout
     {
         [Header("Debug")]
         [Tooltip("Show debug gizmos in scene view")]
@@ -11,7 +11,7 @@ namespace AI
 
         void OnDrawGizmos()
         {
-            if (!showDebugGizmos || !Application.isPlaying || ShipScanner == null) return;
+            if (!showDebugGizmos || !Application.isPlaying || obstacleScanner == null) return;
 
             var pos = transform.position;
 
@@ -28,11 +28,11 @@ namespace AI
         
         private void DrawObstacleGizmos()
         {
-            if (ObstacleScanner == null) return;
+            if (obstacleScanner == null) return;
             
             // Draw raycast fan from scanner's debug rays (orange)
             Gizmos.color = new Color(1f, 0.75f, 0f, 0.5f);
-            foreach (var ray in ObstacleScanner.DebugRays)
+            foreach (var ray in obstacleScanner.DebugRays)
             {
                 Gizmos.DrawLine(transform.position, transform.position + ray);
                 if (sphereCastRadius > 0)
@@ -40,12 +40,13 @@ namespace AI
             }
 
             // Draw white circles around detected obstacles
-            var scan = ObstacleScanner.LastScanResult;
+            var scan = obstacleScanner.LastResult;
             if (scan.hitCount <= 0) return;
             
             Gizmos.color = Color.white;
-            foreach (var col in scan.Obstacles)
+            for (var i = 0; i < scan.hitCount; i++)
             {
+                var col = scan.Obstacles[i];
                 if (!col) continue;
                 var p = col.transform.position;
                 var rad = Mathf.Max(col.bounds.extents.x, col.bounds.extents.z);

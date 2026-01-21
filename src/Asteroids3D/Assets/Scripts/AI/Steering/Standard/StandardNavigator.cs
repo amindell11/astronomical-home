@@ -1,11 +1,11 @@
 using AI.Computers;
 using AI.Context;
+using AI.Scanning;
 using AI.Steering;
 using Game;
 using Ships;
 using Ships.Movement;
 using UnityEngine;
-using ObstacleScanner = AI.Scanning.ObstacleScanner;
 
 namespace AI
 {
@@ -24,9 +24,9 @@ namespace AI
         private SteeringTuning tuning;
         private Pilot pilot;
 
-        public override void Initialize(Ship ship, Sensors sensors)
+        public override void Initialize(Ship ship, Scout scout)
         {
-            base.Initialize(ship, sensors);
+            base.Initialize(ship, scout);
             var mass = ship.Movement.Mass;
             var settings = ship.settings;
             tuning = settings
@@ -66,12 +66,12 @@ namespace AI
             enableAvoidance = avoid;
         }
 
-        private ObstacleScanner.ScanResult ScanObstacles(Kinematics kin)
+        private ObstacleScanResult ScanObstacles(Kinematics kin)
         {
-            return sensors.ScanObstacles(kin, ship.settings.maxSpeed, enableAvoidance);
+            return scout.ScanObstacles();
         }
 
-        private PathPlanner.Output PlanPath(Kinematics kin, ObstacleScanner.ScanResult obstacleScan)
+        private PathPlanner.Output PlanPath(Kinematics kin, ObstacleScanResult obstacleScan)
         {
             var pathInput = new PathPlanner.Input(
                 kin, 
@@ -80,9 +80,10 @@ namespace AI
                 avoidRadius, 
                 arriveRadius,
                 ship.settings.maxSpeed,
-                sensors.lookAheadTime, 
-                sensors.safeMargin, 
+                scout.lookAheadDist/ship.settings.maxSpeed, 
+                scout.safeMargin, 
                 obstacleScan.Obstacles, 
+                obstacleScan.hitCount,
                 tuning);
 
             return PathPlanner.Compute(pathInput);

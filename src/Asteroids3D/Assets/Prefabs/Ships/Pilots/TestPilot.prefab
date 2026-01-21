@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 2056539076943524747}
   - component: {fileID: 4713944334268074824}
   - component: {fileID: 7245536977545478260}
-  - component: {fileID: 6881252686300490990}
+  - component: {fileID: 606810096680689649}
   m_Layer: 7
   m_Name: TestPilot
   m_TagString: Untagged
@@ -113,7 +113,7 @@ MonoBehaviour:
   enableAvoidance: 0
   proportionalGain: 5
   useTiltedHeading: 1
---- !u!114 &6881252686300490990
+--- !u!114 &606810096680689649
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -122,17 +122,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 1066014630051916606}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 18c541959612d704792657a50ed3af9d, type: 3}
+  m_Script: {fileID: 11500000, guid: 3358d33db4de47449a05f34455161639, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  showDebugGizmos: 1
   nearbyShipRadius: 30
   asteroidCoverRadius: 15
   asteroidMask:
     serializedVersion: 2
-    m_Bits: 0
-  lookAheadTime: 1
-  safeMargin: 2
+    m_Bits: 256
+  lookAheadDist: 15
+  safeMargin: 1
   raysPerDirection: 5
   maxRayDegrees: 90
   sphereCastRadius: 0.5

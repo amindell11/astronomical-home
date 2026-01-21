@@ -27,7 +27,7 @@ namespace AI
 
         void OnDrawGizmos()
         {
-            if (!Application.isPlaying || sensors==null) return;
+            if (!Application.isPlaying || !scout) return;
 
             // Ship future position
             Gizmos.color = new Color(0f, 1f, 1f, 0.5f);

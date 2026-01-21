@@ -16,7 +16,7 @@ namespace AI
 {
     [RequireComponent(typeof(Navigator))]
     [RequireComponent(typeof(Gunner))]
-    [RequireComponent(typeof(Sensors))]
+    [RequireComponent(typeof(Scout))]
     [RequireComponent(typeof(UtilitySelector))]
     public partial class AICommander : Commander
     {
@@ -30,7 +30,7 @@ namespace AI
 
         private Ship ship;
         private Info context;
-        public  Sensors Sensors { get; private set; }
+        public  Scout Scout { get; private set; }
         public State CurrentState { get; private set; }
         public Navigator Navigator { get; private set; }
         public Gunner Gunner { get; private set; }
@@ -41,7 +41,7 @@ namespace AI
         {
             Navigator = GetComponent<Navigator>();
             Gunner = GetComponent<Gunner>();
-            Sensors = GetComponent<Sensors>();
+            Scout = GetComponent<Scout>();
             UtilitySelector = GetComponent<UtilitySelector>();
         }
         
@@ -53,11 +53,11 @@ namespace AI
             var targeting = new AI.Computers.Targeting(ship, shipInfo);
             var maneuvers = new AI.Computers.Maneuvers(shipInfo);
             
-            Sensors.Initialize(ship, shipInfo);
-            Navigator.Initialize(ship, Sensors);
+            Scout.Initialize(ship);
+            Navigator.Initialize(ship, Scout);
             Gunner.Initialize(ship, targeting);
             
-            context = new Info(ship, Navigator, Gunner, Sensors, targeting, maneuvers);
+            context = new Info(ship, Navigator, Gunner, Scout, targeting, maneuvers);
         
             if (!utilityTuning)
                 utilityTuning = ScriptableObject.CreateInstance<UtilityTuning>();

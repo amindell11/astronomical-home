@@ -1,130 +1,98 @@
-using System;
+using System.Collections.Generic;
+using System.Linq;
+using AI.Scanning.Sensors;
 using Game;
-using Ships.Movement;
 using UnityEngine;
 
 namespace AI.Scanning
 {
+    public readonly struct DetectedObstacle
+    {
+        public readonly Vector2 Position;
+        public readonly float Radius;
+        public readonly Collider Collider;
+
+        public DetectedObstacle(Collider collider)
+        {
+            Collider = collider;
+            Position = GamePlane.WorldPointToPlane(collider.transform.position);
+            Radius = Mathf.Max(collider.bounds.extents.x, collider.bounds.extents.z);
+        }
+    }
+
+    public readonly struct ObstacleScanResult
+    {
+        public readonly int hitCount;
+        public readonly Collider[] Obstacles;
+
+        public ObstacleScanResult(Collider[] buffer, int count)
+        {
+            Obstacles = buffer;
+            hitCount = count;
+        }
+    }
+
     public partial class ObstacleScanner
     {
-        private const int MaxColliders = 256;
-        private readonly Collider[] hits = new Collider[MaxColliders];
-        private readonly RaycastHit[] rayHits = new RaycastHit[MaxColliders];
-        private readonly Transform origin;
+        private readonly RayFanSensor sensor;
+        private readonly float scanDistance;
+        private readonly DetectedObstacle[] detectedBuffer;
+        private int detectedCount;
+        private ObstacleScanResult lastResult;
 
-        private ScanResult cachedResult;
-        private int lastScanFrame = -1;
+        public ObstacleScanResult LastResult => lastResult;
+        public DetectedObstacle[] DetectedBuffer => detectedBuffer;
+        public int DetectedCount => detectedCount;
 
-        public ScanResult LastScanResult => Time.frameCount == lastScanFrame ? cachedResult : default;
-
-        public ObstacleScanner(Transform origin)
+        public ObstacleScanner(Transform origin, float distance, LayerMask obstacleMask, int raysPerSide = 5, float spreadAngle = 90f, float sphereRadius = 0.5f, int bufferSize = 64)
         {
-            this.origin = origin;
+            scanDistance = distance;
+            sensor = new RayFanSensor(origin, distance, obstacleMask, raysPerSide, spreadAngle, sphereRadius, bufferSize);
+            detectedBuffer = new DetectedObstacle[bufferSize];
+            detectedCount = 0;
+            lastResult = new ObstacleScanResult(sensor.Buffer, 0);
         }
 
-        public ScanResult Scan(Config config, Kinematics kin)
+        public ObstacleScanResult Scan(Vector2 scanDir)
         {
-            var result = new ScanResult(hits);
             ClearDebugRays();
-
-            if (!config.enabled)
+            
+            var direction = GamePlane.PlaneDirToWorld(scanDir).normalized;
+            var count = sensor.Detect(direction);
+            
+            for (var i = 0; i < sensor.DirectionCount; i++)
             {
-                cachedResult = result;
-                lastScanFrame = Time.frameCount;
-                return result;
+                AddDebugRay(sensor.Directions[i] * scanDistance);
             }
-
-            var maxDist = config.maxSpeed * config.lookAheadTime + config.safeMargin;
-            var centerDir2D = kin.Vel.sqrMagnitude > 0.1f ? kin.Vel.normalized : kin.Forward;
-            var centerDirWorld = GamePlane.PlaneDirToWorld(centerDir2D).normalized;
-            var pos = origin.position;
-
-            result.hitCount = CastAndCollect(pos, centerDirWorld, maxDist, config, 0);
-            AddDebugRay(centerDirWorld * maxDist);
-
-            if (config.raysPerDirection <= 0)
+            
+            lastResult = new ObstacleScanResult(sensor.Buffer, count);
+            
+            // Populate detected buffer for consumers (zero allocation)
+            detectedCount = 0;
+            for (var i = 0; i < count && i < detectedBuffer.Length; i++)
             {
-                cachedResult = result;
-                lastScanFrame = Time.frameCount;
-                return result;
+                var col = sensor.Buffer[i];
+                if (col) detectedBuffer[detectedCount++] = new DetectedObstacle(col);
             }
-
-            var angleStep = config.maxRayDegrees / config.raysPerDirection;
-            var planeNormal = GamePlane.Normal;
-            for (var i = 1; i <= config.raysPerDirection; i++)
-            {
-                var angle = i * angleStep;
-
-                var leftDir = Quaternion.AngleAxis(-angle, planeNormal) * centerDirWorld;
-                result.hitCount = CastAndCollect(pos, leftDir, maxDist, config, result.hitCount);
-                AddDebugRay(leftDir * maxDist);
-
-                var rightDir = Quaternion.AngleAxis(angle, planeNormal) * centerDirWorld;
-                result.hitCount = CastAndCollect(pos, rightDir, maxDist, config, result.hitCount);
-                AddDebugRay(rightDir * maxDist);
-            }
-
-            cachedResult = result;
-            lastScanFrame = Time.frameCount;
-            return result;
+            
+            return lastResult;
         }
 
-        private int CastAndCollect(Vector3 pos, Vector3 dir, float maxDist, Config config, int start)
-        {
-            var n = start;
-            var cnt = config.sphereCastRadius > 0f
-                ? Physics.SphereCastNonAlloc(pos, config.sphereCastRadius, dir, rayHits, maxDist, config.asteroidMask, QueryTriggerInteraction.Ignore)
-                : Physics.RaycastNonAlloc(pos, dir, rayHits, maxDist, config.asteroidMask, QueryTriggerInteraction.Ignore);
+        // ─────────────────────────────────────────────────────────────
+        // Analysis helpers - operate on LastResult
+        // ─────────────────────────────────────────────────────────────
 
-            for (var i = 0; i < cnt && n < MaxColliders; i++)
-            {
-                var col = rayHits[i].collider;
-                if (col && Array.IndexOf(hits, col, 0, n) < 0) hits[n++] = col;
-            }
-            return n;
-        }
+        /// <summary>
+        /// All detected obstacles with position and radius.
+        /// </summary>
+        public IEnumerable<DetectedObstacle> Detected => detectedBuffer.Take(detectedCount);
 
-        // Partial methods - removed entirely in production when not implemented
+        /// <summary>
+        /// Number of obstacles detected.
+        /// </summary>
+        public int Count => detectedCount;
+
         partial void ClearDebugRays();
         partial void AddDebugRay(Vector3 ray);
-
-        public bool HasNearbyCover(Vector3 position, float coverRadius)
-        {
-            return Physics.OverlapSphereNonAlloc(
-                position,
-                coverRadius,
-                hits,
-                LayerMask.GetMask("Asteroid"),
-                QueryTriggerInteraction.Ignore) > 0;
-        }
-
-        public struct Config
-        {
-            public bool enabled;
-            public LayerMask asteroidMask;
-            public float lookAheadTime;
-            public float safeMargin;
-            public float maxSpeed;
-            public int raysPerDirection;
-            public float maxRayDegrees;
-            public float sphereCastRadius;
-        }
-
-        public struct ScanResult
-        {
-            public int hitCount;
-            public ArraySegment<Collider> Obstacles => 
-                colliders != null 
-                    ? new ArraySegment<Collider>(colliders, 0, hitCount) 
-                    : new ArraySegment<Collider>();
-            
-            private readonly Collider[] colliders;
-
-            public ScanResult(Collider[] buffer)
-            {
-                colliders = buffer;
-                hitCount = 0;
-            }
-        }
     }
 }

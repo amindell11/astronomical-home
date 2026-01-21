@@ -6,13 +6,13 @@ namespace AI.Context
     public class Navigation
     {
         private readonly ShipInfo shipInfo;
-        private readonly Sensors sensors;
+        private readonly Scout scout;
         private readonly Navigator navigator;
 
-        public Navigation(ShipInfo shipInfo, Sensors sensors, Navigator navigator)
+        public Navigation(ShipInfo shipInfo, Scout scout, Navigator navigator)
         {
             this.shipInfo = shipInfo;
-            this.sensors = sensors;
+            this.scout = scout;
             this.navigator = navigator;
         }
 
@@ -20,6 +20,6 @@ namespace AI.Context
             ? navigator.CurrentWaypoint.position - shipInfo.Pos
             : Vector2.zero;
 
-        public bool NearAsteroidCover => sensors.HasNearbyCover(shipInfo.Pos3D);
+        public bool NearAsteroidCover => scout.HasNearbyCover;
     }
 }

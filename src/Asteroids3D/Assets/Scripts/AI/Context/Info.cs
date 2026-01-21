@@ -22,10 +22,10 @@ namespace AI.Context
 
         // Computers (heavy calculations)
         public Targeting Targeting { get; private set; }
-        public Sensors Sensors { get; private set; }
+        public Scout Scout { get; private set; }
         public Maneuvers Maneuvers { get; private set; }
 
-        public Info(Ships.Ship ship, Navigator navigator, Gunner gunner, Sensors sensors, Targeting targeting, Maneuvers maneuvers)
+        public Info(Ships.Ship ship, Navigator navigator, Gunner gunner, Scout scout, Targeting targeting, Maneuvers maneuvers)
         {
             this.ship = ship;
             if (!ship)
@@ -35,10 +35,10 @@ namespace AI.Context
 
             Ship = new ShipInfo(ship);
             Targeting = targeting;
-            Sensors = sensors;
+            Scout = scout;
             Maneuvers = maneuvers;
-            Combat = new Combat(Sensors, gunner, Targeting);
-            Nav = new Navigation(Ship, Sensors, navigator);
+            Combat = new Combat(Scout, gunner, Targeting);
+            Nav = new Navigation(Ship, Scout, navigator);
         }
 
         // Ship state
@@ -75,10 +75,10 @@ namespace AI.Context
         public bool IncomingMissile => Combat?.IncomingMissile ?? false;
         public float LaserSpeed => Combat?.LaserSpeed ?? 0f;
 
-        // Sensor scan results
-        public int NearbyEnemyCount => Sensors?.LastScan.enemyCount ?? 0;
-        public float NearestThreatDistance => Sensors?.LastScan.nearestThreatDistance ?? float.MaxValue;
-        public int NearbyFriendCount => Sensors?.LastScan.friendCount ?? 0;
+        // Scout analysis results
+        public int NearbyEnemyCount => Scout?.Ships?.EnemyCount ?? 0;
+        public float NearestThreatDistance => Scout?.Ships?.NearestThreatDistance() ?? float.MaxValue;
+        public int NearbyFriendCount => Scout?.Ships?.FriendCount ?? 0;
 
         // Backward-compatible accessors delegating to Navigation
         public Vector2 VectorToWaypoint => Nav?.VectorToWaypoint ?? Vector2.zero;

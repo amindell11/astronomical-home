@@ -15,19 +15,21 @@ namespace AI
         [Tooltip("Show predicted trajectory with cost colors")]
         public bool showTrajectoryCosts = true;
 
-        private ObstacleData dbgObstacles;
+        private Scanning.DetectedObstacle[] dbgObstacles;
+        private int dbgObstacleCount;
 
-        partial void StoreDebugObstacles(ObstacleData obstacles)
+        partial void StoreDebugObstacles(Scanning.DetectedObstacle[] obstacles, int count)
         {
             // Deep copy obstacle data for visualization
-            if (dbgObstacles == null || dbgObstacles.obstacles.Length < obstacles.count)
+            if (dbgObstacles == null || dbgObstacles.Length < count)
             {
-                dbgObstacles = new ObstacleData(obstacles.obstacles.Length);
+                dbgObstacles = new Scanning.DetectedObstacle[Mathf.Max(count, 32)];
             }
-            dbgObstacles.Clear();
-            for (var i = 0; i < obstacles.count; i++)
+            
+            dbgObstacleCount = count;
+            for (var i = 0; i < count; i++)
             {
-                dbgObstacles.Add(obstacles.obstacles[i].position, obstacles.obstacles[i].radius);
+                dbgObstacles[i] = obstacles[i];
             }
         }
 
@@ -77,19 +79,19 @@ namespace AI
 
         private void DrawObstacleDebugInfo()
         {
-            if (!showObstacleCosts || dbgObstacles == null || dbgObstacles.count == 0) return;
+            if (!showObstacleCosts || dbgObstacles == null || dbgObstacleCount == 0) return;
 
-            for (var i = 0; i < dbgObstacles.count; i++)
+            for (var i = 0; i < dbgObstacleCount; i++)
             {
-                var obs = dbgObstacles.obstacles[i];
-                var obsWorldPos = GamePlane.PlanePointToWorld(obs.position);
+                var obs = dbgObstacles[i];
+                var obsWorldPos = GamePlane.PlanePointToWorld(obs.Position);
                 
                 // Draw obstacle itself (white)
                 Gizmos.color = Color.white;
-                Gizmos.DrawWireSphere(obsWorldPos, obs.radius);
+                Gizmos.DrawWireSphere(obsWorldPos, obs.Radius);
                 
                 // Draw cost threshold radius (yellow)
-                var threshold = obs.radius + obstacleThreshold;
+                var threshold = obs.Radius + obstacleThreshold;
                 Gizmos.color = new Color(1f, 1f, 0f, 0.3f);
                 Gizmos.DrawWireSphere(obsWorldPos, threshold);
                 
@@ -98,14 +100,14 @@ namespace AI
             }
         }
 
-        private void DrawObstacleCostField(ObstacleInfo obstacle, float threshold)
+        private void DrawObstacleCostField(Scanning.DetectedObstacle obstacle, float threshold)
         {
-            var obsWorldPos = GamePlane.PlanePointToWorld(obstacle.position);
+            var obsWorldPos = GamePlane.PlanePointToWorld(obstacle.Position);
             var rings = 5;
             
             for (var i = 1; i <= rings; i++)
             {
-                var radius = obstacle.radius + (threshold - obstacle.radius) * (i / (float)rings);
+                var radius = obstacle.Radius + (threshold - obstacle.Radius) * (i / (float)rings);
                 var normalizedDist = radius / threshold;
                 
                 // Inverse square cost (matches MpcController)
@@ -123,14 +125,14 @@ namespace AI
 
         private float EvaluateObstacleCostForState(Vector2 pos)
         {
-            if (dbgObstacles == null || dbgObstacles.count == 0) return 0f;
+            if (dbgObstacles == null || dbgObstacleCount == 0) return 0f;
 
             var cost = 0f;
-            for (var i = 0; i < dbgObstacles.count; i++)
+            for (var i = 0; i < dbgObstacleCount; i++)
             {
-                var obstacle = dbgObstacles.obstacles[i];
-                var dist = Vector2.Distance(pos, obstacle.position);
-                var threshold = obstacle.radius + obstacleThreshold;
+                var obstacle = dbgObstacles[i];
+                var dist = Vector2.Distance(pos, obstacle.Position);
+                var threshold = obstacle.Radius + obstacleThreshold;
 
                 if (dist < threshold)
                 {

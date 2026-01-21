@@ -1,94 +1,59 @@
-using AI.Context;
+using System.Collections.Generic;
+using System.Linq;
+using AI.Scanning.Sensors;
 using Ships;
 using UnityEngine;
 using Utils;
 
-namespace AI.Computers
+namespace AI.Scanning
 {
-    public class ShipScanner
+    public struct ShipScanResult
     {
-        private readonly Ship ship;
-        private readonly ShipInfo shipInfo;
-        private readonly float scanRadius;
+        public Ship[] ships;
+        public int count;
+        public static ShipScanResult Empty => new() { ships = System.Array.Empty<Ship>(), count = 0 };
+    }
 
-        private ScanResult cachedScan;
-        private int scanFrame = -1;
+    public class ShipScanner : IScanner<ShipScanResult>
+    {
+        private readonly Ship self;
+        private readonly Transform origin;
+        private readonly SphereSensor sensor;
+        private readonly Ship[] shipBuffer;
+        private ShipScanResult lastResult;
 
-        public ShipScanner(Ship ship, ShipInfo shipInfo, float scanRadius)
+        public ShipScanResult LastResult => lastResult;
+
+        public ShipScanner(Ship ship, float scanRadius, int bufferSize = 32)
         {
-            this.ship = ship;
-            this.shipInfo = shipInfo;
-            this.scanRadius = scanRadius;
+            self = ship;
+            origin = ship.transform;
+            sensor = new SphereSensor(origin, scanRadius, LayerIds.Mask(LayerIds.Ship), bufferSize);
+            shipBuffer = new Ship[bufferSize];
+            lastResult = new ShipScanResult { ships = shipBuffer, count = 0 };
         }
 
-        public ScanResult LastScan => GetCachedScan();
-
-        private ScanResult GetCachedScan()
+        public ShipScanResult Scan()
         {
-            var frame = Time.frameCount;
-            if (scanFrame == frame) return cachedScan;
-            cachedScan = ScanNearby();
-            scanFrame = frame;
-            return cachedScan;
-        }
-
-        public ScanResult ScanNearby(Ship excludeFromThreat = null)
-        {
-            var result = new ScanResult { nearestThreatDistance = float.MaxValue };
-            if (!ship) return result;
-
-            var selfPos = shipInfo.Pos3D;
-            var colliders = PhysicsBuffers.GetColliderBuffer();
-            var hitCount = Physics.OverlapSphereNonAlloc(selfPos, scanRadius, colliders, LayerIds.Mask(LayerIds.Ship));
-
-            var nearestDistance = float.MaxValue;
-
-            for (var i = 0; i < hitCount; i++)
+            if (!self) { lastResult = ShipScanResult.Empty; return lastResult; }
+            var hitCount = sensor.Detect();
+            var shipCount = 0;
+            for (var i = 0; i < hitCount && shipCount < shipBuffer.Length; i++)
             {
-                var col = colliders[i];
-                if (!col) continue;
-
-                var otherShip = col.attachedRigidbody?.GetComponent<Ship>();
-                if (!otherShip || otherShip == ship) continue;
-
-                var distance = Vector3.Distance(selfPos, otherShip.transform.position);
-
-                if (ship.IsFriendly(otherShip))
-                    result.friendCount++;
-                else
-                {
-                    result.enemyCount++;
-
-                    if (distance < nearestDistance)
-                    {
-                        nearestDistance = distance;
-                        result.nearestEnemy = otherShip;
-                    }
-
-                    if (otherShip != excludeFromThreat && distance < result.nearestThreatDistance)
-                        result.nearestThreatDistance = distance;
-                }
+                var col = sensor.Buffer[i];
+                var ship = col ? col.attachedRigidbody?.GetComponent<Ship>() : null;
+                if (ship && ship != self) shipBuffer[shipCount++] = ship;
             }
-
-            if (!excludeFromThreat || result.nearestEnemy != excludeFromThreat) return result;
-            var enemyDist = Vector3.Distance(selfPos, excludeFromThreat.transform.position);
-            if (enemyDist < result.nearestThreatDistance)
-                result.nearestThreatDistance = enemyDist;
-
-            return result;
+            lastResult = new ShipScanResult { ships = shipBuffer, count = shipCount };
+            return lastResult;
         }
 
-        public Ship FindNearestEnemy()
-        {
-            return ScanNearby().nearestEnemy;
-        }
-
-        public struct ScanResult
-        {
-            public int enemyCount;
-            public int friendCount;
-            public float nearestThreatDistance;
-            public Ship nearestEnemy;
-        }
+        public IEnumerable<Ship> Ships => lastResult.ships.Take(lastResult.count);
+        public IEnumerable<Ship> Friends => Ships.Where(s => self.IsFriendly(s));
+        public IEnumerable<Ship> Enemies => Ships.Where(s => !self.IsFriendly(s));
+        public int FriendCount => Friends.Count();
+        public int EnemyCount => Enemies.Count();
+        public Ship NearestEnemy => Enemies.OrderBy(e => Vector3.Distance(origin.position, e.transform.position)).FirstOrDefault();
+        public float NearestThreatDistance(Ship exclude = null) => Enemies.Where(e => e != exclude).Select(e => Vector3.Distance(origin.position, e.transform.position)).DefaultIfEmpty(float.MaxValue).Min();
     }
 }

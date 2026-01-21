@@ -46,7 +46,7 @@ namespace AI.Steering
             public float obstacleThreshold;  // Distance threshold for applying penalty
         }
 
-        public static float EvaluateStepCost(MpcState s, MpcControl u, MpcControl prevU, Vector2 goalPos, ObstacleData obstacles, Config cfg, bool isTerminal)
+        public static float EvaluateStepCost(MpcState s, MpcControl u, MpcControl prevU, Vector2 goalPos, Scanning.DetectedObstacle[] obstacles, int obstacleCount, Config cfg, bool isTerminal)
         {
             // 1. Position cost
             var posCost = (s.pos - goalPos).sqrMagnitude;
@@ -78,7 +78,7 @@ namespace AI.Steering
             var smoothnessCost = (duT * duT) + (duS * duS) + (duY * duY);
 
             // 7. Obstacle cost
-            var obstacleCost = EvaluateObstacleCost(s.pos, obstacles, cfg);
+            var obstacleCost = EvaluateObstacleCost(s.pos, obstacles, obstacleCount, cfg);
 
             var total = (posCost * cfg.wPos) +
                         (velCost * cfg.wVel) +
@@ -93,17 +93,17 @@ namespace AI.Steering
             return total;
         }
 
-        private static float EvaluateObstacleCost(Vector2 pos, ObstacleData obstacles, Config cfg)
+        private static float EvaluateObstacleCost(Vector2 pos, Scanning.DetectedObstacle[] obstacles, int count, Config cfg)
         {
-            if (obstacles == null || obstacles.count == 0) return 0f;
+            if (obstacles == null || count == 0) return 0f;
 
             var cost = 0f;
 
-            for (var i = 0; i < obstacles.count; i++)
+            for (var i = 0; i < count; i++)
             {
-                var obstacle = obstacles.obstacles[i];
-                var dist = Vector2.Distance(pos, obstacle.position);
-                var threshold = obstacle.radius + cfg.obstacleThreshold;
+                var obstacle = obstacles[i];
+                var dist = Vector2.Distance(pos, obstacle.Position);
+                var threshold = obstacle.Radius + cfg.obstacleThreshold;
 
                 // Apply penalty only within threshold distance
                 if (!(dist < threshold)) continue;
@@ -122,10 +122,10 @@ namespace AI.Steering
             return cost;
         }
 
-        public static float Solve(MpcState initialState, MpcControl[] warmStart, Vector2 goalPos, ObstacleData obstacles, Config cfg, int samples, float noiseStd, MpcControl[] resultBuffer)
+        public static float Solve(MpcState initialState, MpcControl[] warmStart, Vector2 goalPos, Scanning.DetectedObstacle[] obstacles, int obstacleCount, Config cfg, int samples, float noiseStd, MpcControl[] resultBuffer)
         {
             var horizon = cfg.horizon;
-            var bestCost = EvaluateTrajectory(initialState, warmStart, goalPos, obstacles, cfg);
+            var bestCost = EvaluateTrajectory(initialState, warmStart, goalPos, obstacles, obstacleCount, cfg);
             System.Array.Copy(warmStart, resultBuffer, horizon);
 
             var candidate = new MpcControl[horizon];
@@ -142,7 +142,7 @@ namespace AI.Steering
                     };
                 }
 
-                var cost = EvaluateTrajectory(initialState, candidate, goalPos, obstacles, cfg);
+                var cost = EvaluateTrajectory(initialState, candidate, goalPos, obstacles, obstacleCount, cfg);
                 if (cost >= bestCost) continue;
                 bestCost = cost;
                 System.Array.Copy(candidate, resultBuffer, horizon);
@@ -151,7 +151,7 @@ namespace AI.Steering
             return bestCost;
         }
 
-        private static float EvaluateTrajectory(MpcState state, MpcControl[] sequence, Vector2 goalPos, ObstacleData obstacles, Config cfg)
+        private static float EvaluateTrajectory(MpcState state, MpcControl[] sequence, Vector2 goalPos, Scanning.DetectedObstacle[] obstacles, int obstacleCount, Config cfg)
         {
             var totalCost = 0f;
             var current = state;
@@ -161,7 +161,7 @@ namespace AI.Steering
             {
                 var u = sequence[i];
                 var isTerminal = (i == cfg.horizon - 1);
-                totalCost += EvaluateStepCost(current, u, prevU, goalPos, obstacles, cfg, isTerminal);
+                totalCost += EvaluateStepCost(current, u, prevU, goalPos, obstacles, obstacleCount, cfg, isTerminal);
                 current = Step(current, u, cfg);
                 prevU = u;
             }

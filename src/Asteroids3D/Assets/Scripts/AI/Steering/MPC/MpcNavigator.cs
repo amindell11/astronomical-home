@@ -1,5 +1,6 @@
 using AI.Computers;
 using AI.Context;
+using AI.Scanning;
 using Game;
 using Ships;
 using Ships.Control;
@@ -33,12 +34,11 @@ namespace AI
         private Steering.MpcControl[] bestSequence;
         private Steering.MpcState[] predictedStates;
         private Steering.MpcController.Config mpcConfig;
-        private Steering.ObstacleData obstacleData;
         private float lastBestCost;
 
-        public override void Initialize(Ship ship, Sensors sensors)
+        public override void Initialize(Ship ship, Scout scout)
         {
-            base.Initialize(ship, sensors);
+            base.Initialize(ship, scout);
             
             var horizon = Mathf.CeilToInt(horizonSeconds / rolloutDt);
             bestSequence = new Steering.MpcControl[horizon];
@@ -56,8 +56,8 @@ namespace AI
                 forwardAcc = settings.forwardAccel / mass,
                 reverseAcc = settings.reverseAccel / mass,
                 strafeAcc = settings.maxStrafeForce / mass,
-                alphaMax = 10f, // Estimated yaw acceleration
-                damping = 2f,   // Estimated yaw damping
+                alphaMax = settings.rotationThrust * Mathf.Deg2Rad,
+                damping = settings.rotationDrag,
                 
                 wPos = wPos,
                 wVel = wVel,
@@ -69,9 +69,6 @@ namespace AI
                 terminalMultiplier = terminalMultiplier,
                 obstacleThreshold = obstacleThreshold
             };
-
-            // Initialize obstacle data
-            obstacleData = new Steering.ObstacleData(capacity: 64);
         }
 
         public override void GenerateNavCommands(State state, ref Command cmd)
@@ -113,21 +110,16 @@ namespace AI
                 yawRate = state.Kinematics.YawRate * Mathf.Deg2Rad
             };
 
-            // 3. Scan for obstacles
-            obstacleData.Clear();
-            if (enableObstacleAvoidance && sensors != null)
-            {
-                var obstacleScan = sensors.ScanObstacles(state.Kinematics, mpcConfig.maxSpeed, true);
-                ConvertScanToObstacleData(obstacleScan, obstacleData);
-            }
-            StoreDebugObstacles(obstacleData);
+            // 3. Prepare obstacle data from cached scan
+            var obstacles = scout ? scout.Obstacles.DetectedBuffer : null;
+            var obstacleCount = (enableObstacleAvoidance && scout) ? scout.Obstacles.DetectedCount : 0;
+            StoreDebugObstacles(obstacles, obstacleCount);
 
             // 4. Warm start: shift the best sequence
             System.Array.Copy(bestSequence, 1, bestSequence, 0, bestSequence.Length - 1);
-            // bestSequence[bestSequence.Length - 1] remains same as previous frame's last command
 
             // 5. Solve
-            lastBestCost = Steering.MpcController.Solve(mpcState, bestSequence, currentWaypoint.position, obstacleData, mpcConfig, samples, noiseStd, bestSequence);
+            lastBestCost = Steering.MpcController.Solve(mpcState, bestSequence, currentWaypoint.position, obstacles, obstacleCount, mpcConfig, samples, noiseStd, bestSequence);
 
             // 6. Update predicted states for visualization
             var current = mpcState;
@@ -145,33 +137,12 @@ namespace AI
             cmd.RotateToTarget = false;
         }
 
-        private void ConvertScanToObstacleData(Scanning.ObstacleScanner.ScanResult scanResult, Steering.ObstacleData obstacleData)
-        {
-            if (scanResult.hitCount == 0) return;
-
-            var obstacles = scanResult.Obstacles;
-            for (var i = 0; i < obstacles.Count; i++)
-            {
-                var collider = obstacles.Array[obstacles.Offset + i];
-                if (collider == null) continue;
-
-                // Get obstacle position in 2D plane
-                var obstaclePos = Game.GamePlane.WorldPointToPlane(collider.transform.position);
-
-                // Estimate radius from collider bounds
-                var bounds = collider.bounds;
-                var radius = Mathf.Max(bounds.extents.x, bounds.extents.z);
-
-                obstacleData.Add(obstaclePos, radius);
-            }
-        }
-
         protected override void OnSetNavigationPoint(bool avoid)
         {
             // MPC always uses avoidance based on enableObstacleAvoidance flag
         }
 
         // Debug hooks - implemented in MpcNavigator.Editor.cs
-        partial void StoreDebugObstacles(Steering.ObstacleData obstacles);
+        partial void StoreDebugObstacles(Scanning.DetectedObstacle[] obstacles, int count);
     }
 }

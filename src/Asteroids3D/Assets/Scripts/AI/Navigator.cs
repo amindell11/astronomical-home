@@ -18,7 +18,7 @@ namespace AI
         }
 
         protected Ship ship;
-        protected Sensors sensors;
+        protected Scout scout;
         protected Waypoint currentWaypoint;
         protected bool facingOverride;
         protected float facingAngle;
@@ -27,10 +27,10 @@ namespace AI
 
         public Waypoint CurrentWaypoint => currentWaypoint;
 
-        public virtual void Initialize(Ship ship, Sensors sensors)
+        public virtual void Initialize(Ship ship, Scout scout)
         {
             this.ship = ship;
-            this.sensors = sensors;
+            this.scout = scout;
             currentWaypoint = new Waypoint { isValid = false };
         }
 

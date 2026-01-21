@@ -19,11 +19,12 @@ namespace AI.Steering
             public readonly float   avoidRadius;
             public readonly float   lookAheadTime;
             public readonly float   safeMargin;
+            public readonly int   obstacleCount;
             public readonly IReadOnlyList<Collider> nearbyAsteroids;
             public readonly SteeringTuning tuning;
 
             public Input(Kinematics k, Vector2 g, Vector2 wpVel, float avoid, float arrive, 
-                float max, float lookAhead, float margin, IReadOnlyList<Collider> rocks, SteeringTuning t)
+                float max, float lookAhead, float margin, IReadOnlyList<Collider> rocks, int count, SteeringTuning t)
             {
                 kin   = k;
                 goal  = g;
@@ -34,6 +35,7 @@ namespace AI.Steering
                 lookAheadTime= lookAhead;
                 safeMargin   = margin;
                 nearbyAsteroids = rocks;
+                obstacleCount = count;
                 tuning = t;
             }
         }
@@ -126,8 +128,11 @@ namespace AI.Steering
             var segDir = segEnd - segStart;
             var segLenSq = segDir.sqrMagnitude;
 
-            foreach (var rock in io.nearbyAsteroids)
+            for (var i = 0; i < io.obstacleCount; i++)
             {
+                var rock = io.nearbyAsteroids[i];
+                if (rock == null) continue;
+                
                 var rockFut = PredictRockPosition(rock, io.lookAheadTime);
                 var rockRad = rock.bounds.extents.x;
                 var combined = io.avoidRadius + rockRad + io.safeMargin;
@@ -153,6 +158,7 @@ namespace AI.Steering
 
         private static Vector2 PredictRockPosition(Collider rock, float lookAheadTime)
         {
+            if (rock == null) return Vector2.zero;
             var rockPos = GamePlane.WorldPointToPlane(rock.transform.position);
             var rockVel = rock.attachedRigidbody 
                 ? GamePlane.WorldDirToPlane(rock.attachedRigidbody.linearVelocity) 
