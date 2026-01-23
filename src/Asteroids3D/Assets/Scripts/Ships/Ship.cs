@@ -132,10 +132,8 @@ namespace Ships
             };
         }
 
-        public bool IsFriendly(Ship otherShip)
-        {
-            if (!otherShip) return false;
-            return this.teamNumber == otherShip.teamNumber;
-        }
+        public bool IsFriendly(Ship otherShip) => otherShip && otherShip.teamNumber == teamNumber;
+        public bool IsHostile(Ship otherShip) => !IsFriendly(otherShip);
+
     }
 }

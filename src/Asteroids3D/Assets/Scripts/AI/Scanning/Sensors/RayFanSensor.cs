@@ -4,79 +4,51 @@ using UnityEngine;
 
 namespace AI.Scanning.Sensors
 {
-    public class RayFanSensor : IDirectionalSensor
+    public static class RayFanSensor
     {
-        private readonly Collider[] buffer;
-        private readonly RaycastHit[] rayHits;
-        private readonly Transform origin;
-        private readonly LayerMask layerMask;
-        private readonly float distance;
-        private readonly int raysPerSide;
-        private readonly float spreadAngle;
-        private readonly float sphereRadius;
+        private static readonly RaycastHit[] RayHits = new RaycastHit[128];
 
-        private readonly Vector3[] directions;
-        private int directionCount;
-
-        public Collider[] Buffer => buffer;
-        public Vector3[] Directions => directions;
-        public int DirectionCount => directionCount;
-
-        public RayFanSensor(Transform origin, float distance, LayerMask layerMask, int raysPerSide = 5, float spreadAngle = 90f, float sphereRadius = 0f, int bufferSize = 64)
-        {
-            this.origin = origin;
-            this.distance = distance;
-            this.layerMask = layerMask;
-            this.raysPerSide = raysPerSide;
-            this.spreadAngle = spreadAngle;
-            this.sphereRadius = sphereRadius;
-            buffer = new Collider[bufferSize];
-            rayHits = new RaycastHit[bufferSize];
-            directions = new Vector3[1 + raysPerSide * 2];
-        }
-
-        public int Detect() => Detect(origin.forward);
-
-        public int Detect(Vector3 direction)
+        public static int Detect(
+            Transform origin, 
+            Vector3 direction, 
+            float dist, 
+            float spreadAngle, 
+            float degreesBetweenRays, 
+            float sphereRadius, 
+            LayerMask layerMask,
+            Collider[] colliderBuffer)
         {
             var pos = origin.position;
-            directionCount = 0;
-            
-            // Central ray
-            directions[directionCount++] = direction;
-            var hitCount = CastRay(pos, direction, 0);
+            var hitCount = CastRay(pos, direction, 0, dist, sphereRadius, layerMask, colliderBuffer);
 
-            if (raysPerSide <= 0) return hitCount;
+            if (degreesBetweenRays <= 0) return hitCount;
 
-            var angleStep = spreadAngle / raysPerSide;
+            var raysPerSide = Mathf.FloorToInt(spreadAngle / degreesBetweenRays);
             var planeNormal = GamePlane.Normal;
 
             for (var i = 1; i <= raysPerSide; i++)
             {
-                var angle = i * angleStep;
+                var angle = i * degreesBetweenRays;
                 var leftDir = Quaternion.AngleAxis(-angle, planeNormal) * direction;
                 var rightDir = Quaternion.AngleAxis(angle, planeNormal) * direction;
 
-                directions[directionCount++] = leftDir;
-                directions[directionCount++] = rightDir;
-
-                hitCount = CastRay(pos, leftDir, hitCount);
-                hitCount = CastRay(pos, rightDir, hitCount);
+                hitCount = CastRay(pos, leftDir, hitCount, dist, sphereRadius, layerMask, colliderBuffer);
+                hitCount = CastRay(pos, rightDir, hitCount, dist, sphereRadius, layerMask, colliderBuffer);
             }
 
             return hitCount;
         }
 
-        private int CastRay(Vector3 pos, Vector3 dir, int startIndex)
+        private static int CastRay(Vector3 pos, Vector3 dir, int startIndex, float dist, float radius, LayerMask layerMask, Collider[] buffer)
         {
-            var count = sphereRadius > 0f
-                ? Physics.SphereCastNonAlloc(pos, sphereRadius, dir, rayHits, distance, layerMask, QueryTriggerInteraction.Ignore)
-                : Physics.RaycastNonAlloc(pos, dir, rayHits, distance, layerMask, QueryTriggerInteraction.Ignore);
+            var count = radius > 0f
+                ? Physics.SphereCastNonAlloc(pos, radius, dir, RayHits, dist, layerMask, QueryTriggerInteraction.Ignore)
+                : Physics.RaycastNonAlloc(pos, dir, RayHits, dist, layerMask, QueryTriggerInteraction.Ignore);
 
             var n = startIndex;
             for (var i = 0; i < count && n < buffer.Length; i++)
             {
-                var col = rayHits[i].collider;
+                var col = RayHits[i].collider;
                 if (col && Array.IndexOf(buffer, col, 0, n) < 0)
                     buffer[n++] = col;
             }

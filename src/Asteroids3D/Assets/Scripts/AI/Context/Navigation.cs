@@ -6,10 +6,10 @@ namespace AI.Context
     public class Navigation
     {
         private readonly ShipInfo shipInfo;
-        private readonly Scout scout;
+        private readonly Scanning.Scout scout;
         private readonly Navigator navigator;
 
-        public Navigation(ShipInfo shipInfo, Scout scout, Navigator navigator)
+        public Navigation(ShipInfo shipInfo, Scanning.Scout scout, Navigator navigator)
         {
             this.shipInfo = shipInfo;
             this.scout = scout;

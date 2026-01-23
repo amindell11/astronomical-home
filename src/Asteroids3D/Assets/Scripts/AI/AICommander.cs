@@ -17,7 +17,7 @@ namespace AI
 {
     [RequireComponent(typeof(Navigator))]
     [RequireComponent(typeof(Gunner))]
-    [RequireComponent(typeof(Scout))]
+    [RequireComponent(typeof(Scanning.Scout))]
     [RequireComponent(typeof(UtilitySelector))]
     public partial class AICommander : Commander
     {
@@ -31,7 +31,7 @@ namespace AI
 
         private Ship ship;
         private Info context;
-        public  Scout Scout { get; private set; }
+        public  Scanning.Scout Scout { get; private set; }
         public Navigator Navigator { get; private set; }
         public Gunner Gunner { get; private set; }
         public UtilitySelector UtilitySelector { get; private set; }
@@ -41,7 +41,7 @@ namespace AI
         {
             Navigator = GetComponent<Navigator>();
             Gunner = GetComponent<Gunner>();
-            Scout = GetComponent<Scout>();
+            Scout = GetComponent<Scanning.Scout>();
             UtilitySelector = GetComponent<UtilitySelector>();
         }
         
@@ -55,7 +55,7 @@ namespace AI
 
             System.Func<State> stateProvider = () => ship.CurrentState;
             
-            Scout.Initialize(ship);
+            Scout.Initialize(ship.transform);
             Navigator.Initialize(stateProvider, ship.settings.Dynamics, Scout);
             Gunner.Initialize(ship.Weapons.Primary, ship.Weapons.Secondary, targeting, stateProvider);
             

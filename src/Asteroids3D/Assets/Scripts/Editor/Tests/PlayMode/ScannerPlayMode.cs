@@ -40,6 +40,6 @@ public class ScannerPlayMode
     {
         var obstacle = TestSceneBuilder.CreateObstacle(new Vector3(0, 5, 0), new Vector3(5, 5, 1));
         yield return new WaitForSeconds(1);
-        Assert.IsTrue(cmdr.Scout.Obstacles.Count > 0);
+        Assert.IsTrue(cmdr.Scout.ObstacleScan.count > 0);
     }
 }

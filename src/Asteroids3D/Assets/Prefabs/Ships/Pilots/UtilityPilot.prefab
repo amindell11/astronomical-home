@@ -108,7 +108,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   arriveRadius: 0.5
-  showDebugGizmos: 1
+  showDebugGizmos: 0
   showObstacleCosts: 1
   showTrajectoryCosts: 1
   settings: {fileID: 11400000, guid: 9d049f5482896884799106aff602155b, type: 2}
@@ -131,8 +131,8 @@ MonoBehaviour:
   asteroidMask:
     serializedVersion: 2
     m_Bits: 256
-  lookAheadDist: 15
+  lookAheadDist: 7
   safeMargin: 1
-  raysPerDirection: 3
-  maxRayDegrees: 80
-  sphereCastRadius: 2
+  degreesBetweenRays: 20
+  maxRayDegrees: 25
+  sphereCastRadius: 0.75

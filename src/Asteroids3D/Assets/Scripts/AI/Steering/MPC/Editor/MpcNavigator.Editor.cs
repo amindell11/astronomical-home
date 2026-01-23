@@ -18,18 +18,18 @@ namespace AI.Steering.MPC
         private Scanning.DetectedObstacle[] dbgObstacles;
         private int dbgObstacleCount;
 
-        partial void StoreDebugObstacles(Scanning.DetectedObstacle[] obstacles, int count)
+        partial void StoreDebugObstacles(Scanning.ObstacleScan scan)
         {
             // Deep copy obstacle data for visualization
-            if (dbgObstacles == null || dbgObstacles.Length < count)
+            if (dbgObstacles == null || dbgObstacles.Length < scan.count)
             {
-                dbgObstacles = new Scanning.DetectedObstacle[Mathf.Max(count, 32)];
+                dbgObstacles = new Scanning.DetectedObstacle[Mathf.Max(scan.count, 32)];
             }
             
-            dbgObstacleCount = count;
-            for (var i = 0; i < count; i++)
+            dbgObstacleCount = scan.count;
+            for (var i = 0; i < scan.count; i++)
             {
-                dbgObstacles[i] = obstacles[i];
+                dbgObstacles[i] = scan.buffer[i];
             }
         }
 
@@ -84,14 +84,14 @@ namespace AI.Steering.MPC
             for (var i = 0; i < dbgObstacleCount; i++)
             {
                 var obs = dbgObstacles[i];
-                var obsWorldPos = GamePlane.PlanePointToWorld(obs.Position);
+                var obsWorldPos = GamePlane.PlanePointToWorld(obs.position);
                 
                 // Draw obstacle itself (white)
                 Gizmos.color = Color.white;
-                Gizmos.DrawWireSphere(obsWorldPos, obs.Radius);
+                Gizmos.DrawWireSphere(obsWorldPos, obs.radius);
                 
                 // Draw cost threshold radius (yellow)
-                var threshold = obs.Radius + settings.obstacleThreshold;
+                var threshold = obs.radius + settings.obstacleThreshold;
                 Gizmos.color = new Color(1f, 1f, 0f, 0.3f);
                 Gizmos.DrawWireSphere(obsWorldPos, threshold);
                 
@@ -102,12 +102,12 @@ namespace AI.Steering.MPC
 
         private void DrawObstacleCostField(Scanning.DetectedObstacle obstacle, float threshold)
         {
-            var obsWorldPos = GamePlane.PlanePointToWorld(obstacle.Position);
+            var obsWorldPos = GamePlane.PlanePointToWorld(obstacle.position);
             var rings = 5;
             
             for (var i = 1; i <= rings; i++)
             {
-                var radius = obstacle.Radius + (threshold - obstacle.Radius) * (i / (float)rings);
+                var radius = obstacle.radius + (threshold - obstacle.radius) * (i / (float)rings);
                 var normalizedDist = radius / threshold;
                 
                 // Inverse square cost (matches MpcController)
@@ -131,8 +131,8 @@ namespace AI.Steering.MPC
             for (var i = 0; i < dbgObstacleCount; i++)
             {
                 var obstacle = dbgObstacles[i];
-                var dist = Vector2.Distance(pos, obstacle.Position);
-                var threshold = obstacle.Radius + settings.obstacleThreshold;
+                var dist = Vector2.Distance(pos, obstacle.position);
+                var threshold = obstacle.radius + settings.obstacleThreshold;
 
                 if (dist < threshold)
                 {

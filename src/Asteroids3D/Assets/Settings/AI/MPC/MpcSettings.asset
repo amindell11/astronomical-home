@@ -21,8 +21,8 @@ MonoBehaviour:
   wYaw: 0.5
   wYawRate: 0.1
   wEffort: 0.05
-  wSmoothness: 0.1
+  wSmoothness: 1
   wObstacle: 12
-  wFacing: 1
+  wFacing: 10
   terminalMultiplier: 10
-  obstacleThreshold: 7
+  obstacleThreshold: 20

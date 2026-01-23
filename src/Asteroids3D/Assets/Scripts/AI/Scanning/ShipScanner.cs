@@ -12,30 +12,33 @@ namespace AI.Scanning
         public Ship[] ships;
         public int count;
         public static ShipScanResult Empty => new() { ships = System.Array.Empty<Ship>(), count = 0 };
+        
+        public IEnumerable<Ship> Ships => ships.Take(count);
+        public IEnumerable<Ship> Friends(Ship self) => Ships.Where(self.IsFriendly);
+        public IEnumerable<Ship> Enemies(Ship self) => Ships.Where(self.IsHostile);
+        public int FriendCount(Ship self) => Friends(self).Count();
+        public int EnemyCount(Ship self) => Enemies(self).Count();
+        public Ship NearestEnemy(Ship self, Vector3 pos) => Enemies(self).OrderBy(e => Vector3.Distance(pos, e.transform.position)).FirstOrDefault();
     }
 
     public class ShipScanner : IScanner<ShipScanResult>
     {
         private readonly Ship self;
-        private readonly Transform origin;
         private readonly SphereSensor sensor;
         private readonly Ship[] shipBuffer;
-        private ShipScanResult lastResult;
 
-        public ShipScanResult LastResult => lastResult;
+        public ShipScanResult LastResult { get; private set; }
 
-        public ShipScanner(Ship ship, float scanRadius, int bufferSize = 32)
+        public ShipScanner(Transform origin, float scanRadius, int bufferSize = 32)
         {
-            self = ship;
-            origin = ship.transform;
             sensor = new SphereSensor(origin, scanRadius, LayerIds.Mask(LayerIds.Ship), bufferSize);
             shipBuffer = new Ship[bufferSize];
-            lastResult = new ShipScanResult { ships = shipBuffer, count = 0 };
+            LastResult = new ShipScanResult { ships = shipBuffer, count = 0 };
         }
 
         public ShipScanResult Scan()
         {
-            if (!self) { lastResult = ShipScanResult.Empty; return lastResult; }
+            if (!self) { LastResult = ShipScanResult.Empty; return LastResult; }
             var hitCount = sensor.Detect();
             var shipCount = 0;
             for (var i = 0; i < hitCount && shipCount < shipBuffer.Length; i++)
@@ -44,16 +47,8 @@ namespace AI.Scanning
                 var ship = col ? col.attachedRigidbody?.GetComponent<Ship>() : null;
                 if (ship && ship != self) shipBuffer[shipCount++] = ship;
             }
-            lastResult = new ShipScanResult { ships = shipBuffer, count = shipCount };
-            return lastResult;
+            LastResult = new ShipScanResult { ships = shipBuffer, count = shipCount };
+            return LastResult;
         }
-
-        public IEnumerable<Ship> Ships => lastResult.ships.Take(lastResult.count);
-        public IEnumerable<Ship> Friends => Ships.Where(s => self.IsFriendly(s));
-        public IEnumerable<Ship> Enemies => Ships.Where(s => !self.IsFriendly(s));
-        public int FriendCount => Friends.Count();
-        public int EnemyCount => Enemies.Count();
-        public Ship NearestEnemy => Enemies.OrderBy(e => Vector3.Distance(origin.position, e.transform.position)).FirstOrDefault();
-        public float NearestThreatDistance(Ship exclude = null) => Enemies.Where(e => e != exclude).Select(e => Vector3.Distance(origin.position, e.transform.position)).DefaultIfEmpty(float.MaxValue).Min();
     }
 }

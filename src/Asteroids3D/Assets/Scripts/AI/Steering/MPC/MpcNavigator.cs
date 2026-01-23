@@ -19,7 +19,7 @@ namespace AI.Steering.MPC
         private Config config;
         private float lastBestCost;
 
-        public override void Initialize(Func<Ships.State> stateProvider, Dynamics dynamics, Scout scout)
+        public override void Initialize(Func<Ships.State> stateProvider, Dynamics dynamics, Scanning.Scout scout)
         {
             base.Initialize(stateProvider, dynamics, scout);
             
@@ -71,12 +71,12 @@ namespace AI.Steering.MPC
             }
 
             var mpcState = ToMpcState(state.Kinematics);
-            var (obstacles, count) = GetObstacles();
-            StoreDebugObstacles(obstacles, count);
+            var scan = scout.ObstacleScan;
+            StoreDebugObstacles(scan);
 
             ShiftWarmStart();
             lastBestCost = Sampler.Solve(mpcState, bestSequence, currentWaypoint.position, 
-                obstacles, count, config, dynamics, settings.samples, settings.noiseStd, bestSequence);
+                scan, config, dynamics, settings.samples, settings.noiseStd, bestSequence);
 
             UpdatePredictedStates(mpcState);
             ApplyControl(ref cmd, bestSequence[0]);
@@ -106,13 +106,6 @@ namespace AI.Steering.MPC
             yawRate = kin.YawRate * Mathf.Deg2Rad
         };
 
-        private (DetectedObstacle[] obstacles, int count) GetObstacles()
-        {
-            var obstacles = scout ? scout.Obstacles.DetectedBuffer : null;
-            var count = enableObstacleAvoidance && scout ? scout.Obstacles.DetectedCount : 0;
-            return (obstacles, count);
-        }
-
         private void ShiftWarmStart() =>
             System.Array.Copy(bestSequence, 1, bestSequence, 0, bestSequence.Length - 1);
 
@@ -136,7 +129,7 @@ namespace AI.Steering.MPC
 
         protected override void OnSetNavigationPoint(bool avoid) { }
 
-        partial void StoreDebugObstacles(DetectedObstacle[] obstacles, int count);
+        partial void StoreDebugObstacles(ObstacleScan scan);
         partial void RefreshWeights();
     }
 }

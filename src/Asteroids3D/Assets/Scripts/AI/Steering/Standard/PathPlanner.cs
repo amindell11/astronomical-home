@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using AI.Scanning;
 using Game;
 using Ships.Movement;
 using UnityEngine;
@@ -18,12 +19,11 @@ namespace AI.Steering.Standard
             public readonly float   avoidRadius;
             public readonly float   lookAheadTime;
             public readonly float   safeMargin;
-            public readonly int   obstacleCount;
-            public readonly IReadOnlyList<Collider> nearbyAsteroids;
+            public readonly ObstacleScan scan;
             public readonly Dynamics tuning;
 
             public Input(Kinematics k, Vector2 g, Vector2 wpVel, float avoid, float arrive, 
-                float max, float lookAhead, float margin, IReadOnlyList<Collider> rocks, int count, Dynamics t)
+                float max, float lookAhead, float margin, ObstacleScan s, Dynamics t)
             {
                 kin   = k;
                 goal  = g;
@@ -33,8 +33,7 @@ namespace AI.Steering.Standard
                 maxSpeed     = max;
                 lookAheadTime= lookAhead;
                 safeMargin   = margin;
-                nearbyAsteroids = rocks;
-                obstacleCount = count;
+                scan = s;
                 tuning = t;
             }
         }
@@ -127,14 +126,12 @@ namespace AI.Steering.Standard
             var segDir = segEnd - segStart;
             var segLenSq = segDir.sqrMagnitude;
 
-            for (var i = 0; i < io.obstacleCount; i++)
+            for (var i = 0; i < io.scan.count; i++)
             {
-                var rock = io.nearbyAsteroids[i];
-                if (rock == null) continue;
+                var obstacle = io.scan.buffer[i];
                 
-                var rockFut = PredictRockPosition(rock, io.lookAheadTime);
-                var rockRad = rock.bounds.extents.x;
-                var combined = io.avoidRadius + rockRad + io.safeMargin;
+                var rockFut = PredictObstaclePosition(obstacle, io.lookAheadTime);
+                var combined = io.avoidRadius + obstacle.radius + io.safeMargin;
 
                 var closest = ClosestPointOnSegment(segStart, segDir, segLenSq, rockFut);
                 var sep = closest - rockFut;
@@ -155,14 +152,12 @@ namespace AI.Steering.Standard
             return weight > 0f ? push / weight * io.maxSpeed : Vector2.zero;
         }
 
-        private static Vector2 PredictRockPosition(Collider rock, float lookAheadTime)
+        private static Vector2 PredictObstaclePosition(DetectedObstacle obstacle, float lookAheadTime)
         {
-            if (rock == null) return Vector2.zero;
-            var rockPos = GamePlane.WorldPointToPlane(rock.transform.position);
-            var rockVel = rock.attachedRigidbody 
-                ? GamePlane.WorldDirToPlane(rock.attachedRigidbody.linearVelocity) 
+            var rockVel = obstacle.collider.attachedRigidbody 
+                ? GamePlane.WorldDirToPlane(obstacle.collider.attachedRigidbody.linearVelocity) 
                 : Vector2.zero;
-            return rockPos + rockVel * lookAheadTime;
+            return obstacle.position + rockVel * lookAheadTime;
         }
 
         private static Vector2 ClosestPointOnSegment(Vector2 segStart, Vector2 segDir, float segLenSq, Vector2 point)

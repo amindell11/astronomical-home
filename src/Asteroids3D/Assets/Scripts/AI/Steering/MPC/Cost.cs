@@ -1,3 +1,4 @@
+using AI.Scanning;
 using UnityEngine;
 
 namespace AI.Steering.MPC
@@ -8,14 +9,14 @@ namespace AI.Steering.MPC
     public static class Cost
     {
         public static float Evaluate(State s, Control u, Control prevU, Vector2 goalPos, 
-            Scanning.DetectedObstacle[] obstacles, int obstacleCount, Config cfg, bool isTerminal)
+            ObstacleScan scan, Config cfg, bool isTerminal)
         {
             var posCost = PositionCost(s.pos, goalPos) * cfg.wPos;
             var velCost = VelocityCost(s.vel) * cfg.wVel;
             var headingCost = HeadingCost(s.pos, s.yaw, goalPos) * cfg.wYaw;
             var facingCost = FacingCost(s.yaw, cfg.facingTarget) * cfg.wFacing;
             var yawRateCost = YawRateCost(s.yawRate) * cfg.wYawRate;
-            var obstacleCost = ObstacleCost(s.pos, obstacles, obstacleCount, cfg.obstacleThreshold) * cfg.wObstacle;
+            var obstacleCost = ObstacleCost(s.pos, scan, cfg.obstacleThreshold) * cfg.wObstacle;
 
             var stateCost = posCost + velCost + headingCost + facingCost + yawRateCost + obstacleCost;
 
@@ -79,16 +80,14 @@ namespace AI.Steering.MPC
             return duT * duT + duS * duS + duY * duY;
         }
 
-        private static float ObstacleCost(Vector2 pos, Scanning.DetectedObstacle[] obstacles, int count, float threshold)
+        private static float ObstacleCost(Vector2 pos, ObstacleScan scan, float threshold)
         {
-            if (obstacles == null || count == 0) return 0f;
-
             var cost = 0f;
-            for (var i = 0; i < count; i++)
+            for (var i = 0; i < scan.count; i++)
             {
-                var obs = obstacles[i];
-                var dist = Vector2.Distance(pos, obs.Position);
-                var range = obs.Radius + threshold;
+                var obs = scan.buffer[i];
+                var dist = Vector2.Distance(pos, obs.position);
+                var range = obs.radius + threshold;
 
                 if (dist >= range) continue;
                 

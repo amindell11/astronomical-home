@@ -19,7 +19,7 @@ namespace AI
             public bool isValid;
         }
 
-        protected Scout scout;
+        protected Scanning.Scout scout;
         protected Waypoint currentWaypoint;
         protected bool facingOverride;
         protected float facingAngle;
@@ -33,7 +33,7 @@ namespace AI
 
         public Waypoint CurrentWaypoint => currentWaypoint;
 
-        public virtual void Initialize(Func<State> stateProvider, Dynamics dynamics, Scout scout)
+        public virtual void Initialize(Func<State> stateProvider, Dynamics dynamics, Scanning.Scout scout)
         {
             this.getState = stateProvider;
             this.dynamics = dynamics;

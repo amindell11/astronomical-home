@@ -20,7 +20,7 @@ namespace AI.Steering.Standard
 
         private Pilot pilot;
 
-        public override void Initialize(Func<State> stateProvider, Dynamics dynamics, Scout scout)
+        public override void Initialize(Func<State> stateProvider, Dynamics dynamics, Scanning.Scout scout)
         {
             base.Initialize(stateProvider, dynamics, scout);
             
@@ -54,12 +54,12 @@ namespace AI.Steering.Standard
             enableAvoidance = avoid;
         }
 
-        private ObstacleScanResult ScanObstacles(Kinematics kin)
+        private ObstacleScan ScanObstacles(Kinematics kin)
         {
-            return scout.ScanObstacles();
+            return scout.ObstacleScan;
         }
 
-        private PathPlanner.Output PlanPath(Kinematics kin, ObstacleScanResult obstacleScan)
+        private PathPlanner.Output PlanPath(Kinematics kin, ObstacleScan obstacles)
         {
             var pathInput = new PathPlanner.Input(
                 kin, 
@@ -70,8 +70,7 @@ namespace AI.Steering.Standard
                 dynamics.maxSpeed,
                 scout.lookAheadDist/dynamics.maxSpeed, 
                 scout.safeMargin, 
-                obstacleScan.Obstacles, 
-                obstacleScan.hitCount,
+                obstacles,
                 dynamics);
 
             return PathPlanner.Compute(pathInput);

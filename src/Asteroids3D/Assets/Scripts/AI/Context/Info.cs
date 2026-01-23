@@ -17,16 +17,16 @@ namespace AI.Context
         private Ships.Ship ship;
 
         // Data providers
-        public ShipInfo Ship { get; private set; }
+        public ShipInfo ShipInfo { get; private set; }
         public Combat Combat { get; private set; }
         public Navigation Nav { get; private set; }
 
         // Computers (heavy calculations)
         public Targeting Targeting { get; private set; }
-        public Scout Scout { get; private set; }
+        public Scanning.Scout Scout { get; private set; }
         public Maneuvers Maneuvers { get; private set; }
 
-        public Info(Ships.Ship ship, Navigator navigator, Gunner gunner, Scout scout, Targeting targeting, Maneuvers maneuvers)
+        public Info(Ships.Ship ship, Navigator navigator, Gunner gunner, Scanning.Scout scout, Targeting targeting, Maneuvers maneuvers)
         {
             this.ship = ship;
             if (!ship)
@@ -34,23 +34,23 @@ namespace AI.Context
                 return;
             }
 
-            Ship = new ShipInfo(ship);
+            ShipInfo = new ShipInfo(ship);
             Targeting = targeting;
             Scout = scout;
             Maneuvers = maneuvers;
-            Combat = new Combat(Scout, gunner, Targeting);
-            Nav = new Navigation(Ship, Scout, navigator);
+            Combat = new Combat(ship, Scout, gunner, Targeting);
+            Nav = new Navigation(ShipInfo, Scout, navigator);
         }
 
         // Ship state
-        public Vector2 SelfPosition => Ship?.Pos ?? Vector2.zero;
-        public Vector3 SelfPosition3D => Ship?.Pos3D ?? (ship ? ship.transform.position : Vector3.zero);
+        public Vector2 SelfPosition => ShipInfo?.Pos ?? Vector2.zero;
+        public Vector3 SelfPosition3D => ShipInfo?.Pos3D ?? (ship ? ship.transform.position : Vector3.zero);
         public Transform SelfTransform => ship ? ship.transform : null;
-        public Vector2 SelfVelocity => Ship?.Vel ?? Vector2.zero;
-        public float SpeedPct => Ship?.SpeedPct ?? 0f;
-        public Vector2 SelfForward => Ship?.Forward ?? Vector2.up;
-        public float ShieldPct => Ship?.ShieldPct ?? 0f;
-        public float HealthPct => Ship?.HealthPct ?? 0f;
+        public Vector2 SelfVelocity => ShipInfo?.Vel ?? Vector2.zero;
+        public float SpeedPct => ShipInfo?.SpeedPct ?? 0f;
+        public Vector2 SelfForward => ShipInfo?.Forward ?? Vector2.up;
+        public float ShieldPct => ShipInfo?.ShieldPct ?? 0f;
+        public float HealthPct => ShipInfo?.HealthPct ?? 0f;
 
         // Enemy state (from Combat)
         public bool InCombat => Combat?.InCombat ?? false;
@@ -77,9 +77,8 @@ namespace AI.Context
         public float LaserSpeed => Combat?.LaserSpeed ?? 0f;
 
         // Scout analysis results
-        public int NearbyEnemyCount => Scout?.Ships?.EnemyCount ?? 0;
-        public float NearestThreatDistance => Scout?.Ships?.NearestThreatDistance() ?? float.MaxValue;
-        public int NearbyFriendCount => Scout?.Ships?.FriendCount ?? 0;
+        public int NearbyEnemyCount => Scout?.ShipScan?.EnemyCount(ship) ?? 0;
+        public int NearbyFriendCount => Scout?.ShipScan?.FriendCount(ship) ?? 0;
 
         // Backward-compatible accessors delegating to Navigation
         public Vector2 VectorToWaypoint => Nav?.VectorToWaypoint ?? Vector2.zero;

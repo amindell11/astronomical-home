@@ -8,91 +8,78 @@ namespace AI.Scanning
 {
     public readonly struct DetectedObstacle
     {
-        public readonly Vector2 Position;
-        public readonly float Radius;
-        public readonly Collider Collider;
+        public readonly Vector2 position;
+        public readonly float radius;
+        public readonly Collider collider;
 
         public DetectedObstacle(Collider collider)
         {
-            Collider = collider;
-            Position = GamePlane.WorldPointToPlane(collider.transform.position);
-            Radius = Mathf.Max(collider.bounds.extents.x, collider.bounds.extents.z);
+            this.collider = collider;
+            position = GamePlane.WorldPointToPlane(collider.transform.position);
+            radius = Mathf.Max(collider.bounds.extents.x, collider.bounds.extents.z);
         }
     }
 
-    public readonly struct ObstacleScanResult
+    public readonly struct ObstacleScan
     {
-        public readonly int hitCount;
-        public readonly Collider[] Obstacles;
+        public readonly DetectedObstacle[] buffer;
+        public readonly int count;
 
-        public ObstacleScanResult(Collider[] buffer, int count)
+        public ObstacleScan(DetectedObstacle[] buffer, int count)
         {
-            Obstacles = buffer;
-            hitCount = count;
+            this.buffer = buffer;
+            this.count = count;
         }
+
+        public static implicit operator (DetectedObstacle[] buffer, int count)(ObstacleScan scan) => (scan.buffer, scan.count);
+        public static implicit operator ObstacleScan((DetectedObstacle[] buffer, int count) tuple) => new ObstacleScan(tuple.buffer, tuple.count);
     }
 
     public partial class ObstacleScanner
     {
-        private readonly RayFanSensor sensor;
-        private readonly float scanDistance;
-        private readonly DetectedObstacle[] detectedBuffer;
-        private int detectedCount;
-        private ObstacleScanResult lastResult;
+        private static readonly Collider[] ScratchBuffer = new Collider[128];
+        
+        protected readonly Transform origin;
+        protected readonly LayerMask obstacleMask;
 
-        public ObstacleScanResult LastResult => lastResult;
-        public DetectedObstacle[] DetectedBuffer => detectedBuffer;
-        public int DetectedCount => detectedCount;
+        public DetectedObstacle[] DetectedBuffer { get; }
+        public int DetectedCount { get; private set; }
+        public IEnumerable<DetectedObstacle> Detected => DetectedBuffer.Take(DetectedCount);
 
-        public ObstacleScanner(Transform origin, float distance, LayerMask obstacleMask, int raysPerSide = 5, float spreadAngle = 90f, float sphereRadius = 0.5f, int bufferSize = 64)
+        protected ObstacleScanner(Transform origin, LayerMask obstacleMask, int bufferSize = 64)
         {
-            scanDistance = distance;
-            sensor = new RayFanSensor(origin, distance, obstacleMask, raysPerSide, spreadAngle, sphereRadius, bufferSize);
-            detectedBuffer = new DetectedObstacle[bufferSize];
-            detectedCount = 0;
-            lastResult = new ObstacleScanResult(sensor.Buffer, 0);
+            this.origin = origin;
+            this.obstacleMask = obstacleMask;
+            DetectedBuffer = new DetectedObstacle[bufferSize];
+            DetectedCount = 0;
         }
 
-        public ObstacleScanResult Scan(Vector2 scanDir)
+        protected void Scan(Vector2 scanDir, float dist, float spreadAngle, float degreesBetweenRays, float sphereRadius)
         {
-            ClearDebugRays();
+            System.Array.Clear(ScratchBuffer, 0, ScratchBuffer.Length);
             
             var direction = GamePlane.PlaneDirToWorld(scanDir).normalized;
-            var count = sensor.Detect(direction);
+            RecordDebugParams(direction, dist, spreadAngle, degreesBetweenRays, sphereRadius);
             
-            for (var i = 0; i < sensor.DirectionCount; i++)
+            var count = RayFanSensor.Detect(
+                origin, 
+                direction, 
+                dist, 
+                spreadAngle, 
+                degreesBetweenRays, 
+                sphereRadius, 
+                obstacleMask, 
+                ScratchBuffer);
+            
+            DetectedCount = 0;
+            for (var i = 0; i < count && DetectedCount < DetectedBuffer.Length; i++)
             {
-                AddDebugRay(sensor.Directions[i] * scanDistance);
+                var col = ScratchBuffer[i];
+                if (col) DetectedBuffer[DetectedCount++] = new DetectedObstacle(col);
             }
-            
-            lastResult = new ObstacleScanResult(sensor.Buffer, count);
-            
-            // Populate detected buffer for consumers (zero allocation)
-            detectedCount = 0;
-            for (var i = 0; i < count && i < detectedBuffer.Length; i++)
-            {
-                var col = sensor.Buffer[i];
-                if (col) detectedBuffer[detectedCount++] = new DetectedObstacle(col);
-            }
-            
-            return lastResult;
         }
-
-        // ─────────────────────────────────────────────────────────────
-        // Analysis helpers - operate on LastResult
-        // ─────────────────────────────────────────────────────────────
-
-        /// <summary>
-        /// All detected obstacles with position and radius.
-        /// </summary>
-        public IEnumerable<DetectedObstacle> Detected => detectedBuffer.Take(detectedCount);
-
-        /// <summary>
-        /// Number of obstacles detected.
-        /// </summary>
-        public int Count => detectedCount;
-
-        partial void ClearDebugRays();
-        partial void AddDebugRay(Vector3 ray);
+        
+        partial void RecordDebugParams(Vector3 direction, float dist, float spreadAngle, float degreesBetweenRays, float sphereRadius);
     }
 }
+
