@@ -1,8 +1,7 @@
-using AI.Steering;
 using Ships.Movement;
 using UnityEngine;
 
-namespace AI.Steering
+namespace AI.Steering.Standard
 {
     public class Pilot
     {
@@ -11,7 +10,6 @@ namespace AI.Steering
             public readonly Kinematics kin;
             public readonly Vector2 desiredVel;
             public readonly Vector2 desiredAccel;
-            public readonly float   maxSpeed;
             public readonly float?  facingTargetDeg;
             public readonly bool useTiltedHeading;
 
@@ -20,7 +18,6 @@ namespace AI.Steering
                 kin = k;
                 desiredVel = desiredVelocity;
                 desiredAccel = desiredAcceleration;    
-                maxSpeed = max;
                 this.facingTargetDeg = facingTarget;
                 this.useTiltedHeading = useTiltedHeading;
             }
@@ -38,12 +35,12 @@ namespace AI.Steering
             }
         }
 
-        private readonly SteeringTuning tuning;
+        private readonly Dynamics tuning;
         private readonly float proportionalGain;
         private float smoothThrust;
         private float smoothStrafe;
 
-        public Pilot(SteeringTuning tuning, float proportionalGain)
+        public Pilot(Dynamics tuning, float proportionalGain)
         {
             this.tuning = tuning;
             this.proportionalGain = proportionalGain;
@@ -67,12 +64,12 @@ namespace AI.Steering
             var strafeComponent = Vector2.Dot(desiredAccel, shipRight);
 
             thrust = (forwardComponent >= 0f)
-                ? forwardComponent / tuning.ForwardAcc
-                : forwardComponent / tuning.ReverseAcc;
+                ? forwardComponent / tuning.forwardAcc
+                : forwardComponent / tuning.reverseAcc;
 
-            strafe = strafeComponent / tuning.StrafeAcc;
+            strafe = strafeComponent / tuning.maxStrafeAcc;
 
-            if (desiredAccel.magnitude < tuning.DeadZone)
+            if (desiredAccel.magnitude < 0.1f) //TODO add this to some config thing
             {
                 thrust = 0f;
                 strafe = 0f;
@@ -107,13 +104,13 @@ namespace AI.Steering
             return angle < 0f ? angle + 360f : angle;
         }
 
-        private static Vector2 ComputeTiltedHeading(Vector2 desiredVel, float strafeCmd, SteeringTuning tuning)
+        private static Vector2 ComputeTiltedHeading(Vector2 desiredVel, float strafeCmd, Dynamics tuning)
         {
             var absStrafe = Mathf.Abs(strafeCmd);
             if (absStrafe < 0.05f)
                 return desiredVel.normalized;
 
-            var maxTilt = Mathf.Atan2(tuning.StrafeAcc, tuning.ForwardAcc);
+            var maxTilt = Mathf.Atan2(tuning.maxStrafeAcc, tuning.forwardAcc);
             var tilt = maxTilt * absStrafe;
             var sign = (strafeCmd >= 0f) ? +1f : -1f;
 

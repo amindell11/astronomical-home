@@ -15,8 +15,7 @@ namespace Tests.EditMode
             s.maxStrafeForce = 800f;
             s.minStrafeForce = 400f;
             s.maxSpeed = 20f;
-            s.rotationThrust = 300f;
-            s.yawDeadZone = 0f;
+            s.yawTorque = 300f;
             s.maxBankAngle = 45f;
             s.bankingSpeed = 5f;
             s.boostImpulse = 2000f;

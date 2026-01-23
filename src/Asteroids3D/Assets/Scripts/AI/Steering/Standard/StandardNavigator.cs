@@ -1,13 +1,10 @@
-using AI.Computers;
-using AI.Context;
+using System;
 using AI.Scanning;
-using AI.Steering;
-using Game;
 using Ships;
 using Ships.Movement;
 using UnityEngine;
 
-namespace AI
+namespace AI.Steering.Standard
 {
     public partial class StandardNavigator : Navigator
     {
@@ -21,28 +18,19 @@ namespace AI
         [Tooltip("Use tilted heading when strafing for more natural flight")]
         [SerializeField] private bool useTiltedHeading = true;
 
-        private SteeringTuning tuning;
         private Pilot pilot;
 
-        public override void Initialize(Ship ship, Scout scout)
+        public override void Initialize(Func<State> stateProvider, Dynamics dynamics, Scout scout)
         {
-            base.Initialize(ship, scout);
-            var mass = ship.Movement.Mass;
-            var settings = ship.settings;
-            tuning = settings
-                ? new SteeringTuning(settings.forwardAccel / mass,
-                    settings.reverseAccel / mass,
-                    settings.maxStrafeForce / mass,
-                    SteeringTuning.Default.DeadZone)
-                : SteeringTuning.Default;
+            base.Initialize(stateProvider, dynamics, scout);
             
-            pilot = new Pilot(tuning, proportionalGain);
+            pilot = new Pilot(dynamics, proportionalGain);
         }
 
         public override void GenerateNavCommands(State state, ref Command cmd)
         {
-            if (!ship || !currentWaypoint.isValid) {
-                cmd.TargetAngle = state.Kinematics.Yaw; //TODO can remove?
+            if (!currentWaypoint.isValid) {
+                cmd.TargetAngle = state.Kinematics.Yaw;
                 return;
             }
 
@@ -79,12 +67,12 @@ namespace AI
                 currentWaypoint.velocity, 
                 avoidRadius, 
                 arriveRadius,
-                ship.settings.maxSpeed,
-                scout.lookAheadDist/ship.settings.maxSpeed, 
+                dynamics.maxSpeed,
+                scout.lookAheadDist/dynamics.maxSpeed, 
                 scout.safeMargin, 
                 obstacleScan.Obstacles, 
                 obstacleScan.hitCount,
-                tuning);
+                dynamics);
 
             return PathPlanner.Compute(pathInput);
         }
@@ -93,7 +81,7 @@ namespace AI
         {
             float? facingTarget = facingOverride ? facingAngle : null;
             var pilotInput = new Pilot.Input(kin, pathOutput.desiredVelocity, pathOutput.desiredAccel, 
-                ship.settings.maxSpeed, facingTarget, useTiltedHeading); 
+                dynamics.maxSpeed, facingTarget, useTiltedHeading); 
             return pilot.Compute(pilotInput);
         }
 

@@ -1,4 +1,5 @@
-﻿using AI.Utility;
+﻿using AI.Steering;
+using AI.Utility;
 using Ships;
 using Ships.Control;
 using UnityEngine;
@@ -31,7 +32,6 @@ namespace AI
         private Ship ship;
         private Info context;
         public  Scout Scout { get; private set; }
-        public State CurrentState { get; private set; }
         public Navigator Navigator { get; private set; }
         public Gunner Gunner { get; private set; }
         public UtilitySelector UtilitySelector { get; private set; }
@@ -51,11 +51,13 @@ namespace AI
             
             var shipInfo = new AI.Context.ShipInfo(ship);
             var targeting = new AI.Computers.Targeting(ship, shipInfo);
-            var maneuvers = new AI.Computers.Maneuvers(shipInfo);
+            var maneuvers = new Maneuvers(shipInfo);
+
+            System.Func<State> stateProvider = () => ship.CurrentState;
             
             Scout.Initialize(ship);
-            Navigator.Initialize(ship, Scout);
-            Gunner.Initialize(ship, targeting);
+            Navigator.Initialize(stateProvider, ship.settings.Dynamics, Scout);
+            Gunner.Initialize(ship.Weapons.Primary, ship.Weapons.Secondary, targeting, stateProvider);
             
             context = new Info(ship, Navigator, Gunner, Scout, targeting, maneuvers);
         
@@ -76,32 +78,17 @@ namespace AI
         private void FixedUpdate()
         {
             if (!ship || !UtilitySelector) return;   
-            CurrentState = ship.CurrentState;
             UtilitySelector.Tick(context, Time.fixedDeltaTime);
-            cachedCommand = GenerateCommand(CurrentState);
+            GetSubCommands(ref cachedCommand);
         }
 
-        private Command GenerateCommand(State state)
+        private void GetSubCommands(ref Command command)
         {
-            var cmd = new Command();
-
-            // --- Difficulty Level 1 (< 0.25): Stationary, no actions. ---
-            if (difficulty < 0.25f) return cmd; // cmd defaults to zeros/false.
-    
-
-            Navigator.GenerateNavCommands(state, ref cmd);
-
-            if (difficulty < 0.5f) return cmd;
-
-            Gunner.GenerateGunnerCommands(state, ref cmd);
-
-            // Level 3 (< 0.75): Lasers only, no missiles.
-            if (!(difficulty < 0.75f)) return cmd;
-            if (cmd.SecondaryFire) // Only log if we are actually disabling it
-            {
-                cmd.SecondaryFire = false;
-            }
-            return cmd;
+            cachedCommand = Navigator.CurrentCommand;
+            
+            var gunCmd = Gunner.CurrentCommand;
+            cachedCommand.PrimaryFire = gunCmd.PrimaryFire; 
+            cachedCommand.SecondaryFire = gunCmd.SecondaryFire;
         }
     }
 }

@@ -17,8 +17,7 @@ namespace Tests.PlayMode
             s.maxStrafeForce = 0f;
             s.minStrafeForce = 0f;
             s.maxSpeed = 20f;
-            s.rotationThrust = 0f;
-            s.yawDeadZone = 0f;
+            s.yawTorque = 0f;
             s.maxBankAngle = 0f;
             s.bankingSpeed = 0f;
             s.boostImpulse = 10f;

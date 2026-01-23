@@ -17,13 +17,13 @@ namespace Ships.Movement
             CurrentCommand = cmd;
             Settings = sets;
             
-            var yawInput = cmd.RotateToTarget ? handling.RotationPD(cmd.TargetAngle, kin.Yaw, kin.YawRate, sets.maxYawRate, sets.yawDeadZone) : cmd.YawTorque;
+            var yawInput = cmd.RotateToTarget ? handling.RotationPD(cmd.TargetAngle, kin.Yaw, kin.YawRate, sets.maxYawRate, 2) : cmd.YawTorque; //TODO when we move the PD to player side we can dump this magic number
             var boostInput = booster.ProcessBoost(cmd.Boost, sets.boostCooldown);
             
             var thrust = Forces.Thrust(kin, cmd.Thrust, sets.forwardAccel, sets.reverseAccel);
             var strafe = Forces.Strafe(kin, cmd.Strafe, sets.maxStrafeForce, sets.minStrafeForce, sets.maxSpeed);
             var boost  = Forces.Boost(kin, boostInput, sets.boostImpulse);
-            var yawTorque = Forces.YawTorque(kin,yawInput,sets.rotationThrust);
+            var yawTorque = Forces.YawTorque(kin,yawInput,sets.yawTorque);
             var bank      = Forces.Bank(kin, cmd.Strafe, sets.maxBankAngle, sets.bankingSpeed);
 
             return new Outputs(thrust, strafe, boost, yawTorque, bank);

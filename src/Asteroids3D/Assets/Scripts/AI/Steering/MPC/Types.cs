@@ -24,13 +24,6 @@ namespace AI.Steering.MPC
     {
         public float dt;
         public int horizon;
-        public float maxSpeed;
-        public float maxYawRate;
-        public float forwardAcc;
-        public float reverseAcc;
-        public float strafeAcc;
-        public float alphaMax;
-        public float damping;
 
         // Weights
         public float wPos;

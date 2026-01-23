@@ -8,11 +8,11 @@ namespace AI.Steering.MPC
     public static class Sampler
     {
         public static float Solve(State initialState, Control[] warmStart, Vector2 goalPos,
-            Scanning.DetectedObstacle[] obstacles, int obstacleCount, Config cfg, 
+            Scanning.DetectedObstacle[] obstacles, int obstacleCount, Config cfg, Dynamics shp,
             int samples, float noiseStd, Control[] resultBuffer)
         {
             var horizon = cfg.horizon;
-            var bestCost = EvaluateTrajectory(initialState, warmStart, goalPos, obstacles, obstacleCount, cfg);
+            var bestCost = EvaluateTrajectory(initialState, warmStart, goalPos, obstacles, obstacleCount, cfg, shp);
             System.Array.Copy(warmStart, resultBuffer, horizon);
 
             var candidate = new Control[horizon];
@@ -20,7 +20,7 @@ namespace AI.Steering.MPC
             for (var i = 0; i < samples - 1; i++)
             {
                 GenerateCandidate(warmStart, candidate, horizon, noiseStd);
-                var cost = EvaluateTrajectory(initialState, candidate, goalPos, obstacles, obstacleCount, cfg);
+                var cost = EvaluateTrajectory(initialState, candidate, goalPos, obstacles, obstacleCount, cfg, shp);
                 
                 if (cost >= bestCost) continue;
                 bestCost = cost;
@@ -44,7 +44,7 @@ namespace AI.Steering.MPC
         }
 
         private static float EvaluateTrajectory(State state, Control[] sequence, Vector2 goalPos,
-            Scanning.DetectedObstacle[] obstacles, int obstacleCount, Config cfg)
+            Scanning.DetectedObstacle[] obstacles, int obstacleCount, Config cfg, Dynamics shp)
         {
             var totalCost = 0f;
             var current = state;
@@ -55,7 +55,7 @@ namespace AI.Steering.MPC
                 var u = sequence[i];
                 var isTerminal = i == cfg.horizon - 1;
                 totalCost += Cost.Evaluate(current, u, prevU, goalPos, obstacles, obstacleCount, cfg, isTerminal);
-                current = Model.Step(current, u, cfg);
+                current = Model.Step(current, u, cfg, shp);
                 prevU = u;
             }
 

@@ -1,3 +1,4 @@
+using AI.Steering;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
@@ -13,11 +14,12 @@ namespace Ships
         public float maxYawRate = 180f;
         public float forwardAccel = 1200f;
         public float reverseAccel = 600f;
-        public float rotationThrust = 580;
-        public float rotationDrag        = 1.2f;
-        public float yawDeadZone    = 2f;
-        public float maxBankAngle        = 45f;
-        public float bankingSpeed        = 5f;
+        [FormerlySerializedAs("rotationThrust")] [FormerlySerializedAs("alpha")]
+        public float yawTorque = 580;
+        [FormerlySerializedAs("rotationDrag")]
+        public float angularDrag        = 1.2f;
+        public float maxBankAngle        = 45f; //visual only
+        public float bankingSpeed        = 5f; //visual only
         public float minStrafeForce      = 750f;
         public float maxStrafeForce      = 800f;
         public float linearDrag = .2f;
@@ -42,5 +44,20 @@ namespace Ships
         {
             onSettingsChanged?.Invoke();
         }
+
+        public Dynamics Dynamics => new Dynamics
+        (
+            mass : mass,
+            forwardAcc : forwardAccel,
+            reverseAcc : reverseAccel,
+            maxStrafeAcc : maxStrafeForce,
+            minStrafeAcc : minStrafeForce,
+            maxSpeed : maxSpeed,
+            maxYawRate : maxYawRate * Mathf.Deg2Rad,
+            yawTorque : yawTorque * Mathf.Deg2Rad,  
+            angularDrag : angularDrag,
+            linearDrag: linearDrag
+        );
+
     }
 }

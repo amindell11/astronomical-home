@@ -1,10 +1,9 @@
 using System.Collections.Generic;
-using AI.Steering;
 using Game;
 using Ships.Movement;
 using UnityEngine;
 
-namespace AI.Steering
+namespace AI.Steering.Standard
 {
     public static class PathPlanner
     {
@@ -21,10 +20,10 @@ namespace AI.Steering
             public readonly float   safeMargin;
             public readonly int   obstacleCount;
             public readonly IReadOnlyList<Collider> nearbyAsteroids;
-            public readonly SteeringTuning tuning;
+            public readonly Dynamics tuning;
 
             public Input(Kinematics k, Vector2 g, Vector2 wpVel, float avoid, float arrive, 
-                float max, float lookAhead, float margin, IReadOnlyList<Collider> rocks, int count, SteeringTuning t)
+                float max, float lookAhead, float margin, IReadOnlyList<Collider> rocks, int count, Dynamics t)
             {
                 kin   = k;
                 goal  = g;
@@ -71,7 +70,7 @@ namespace AI.Steering
 
         public static Output Compute(Input io)
         {
-            var desired = ComputeSeekVelocity(io.goal, io.kin.Pos, io.arriveRadius, io.maxSpeed, io.tuning.ForwardAcc);
+            var desired = ComputeSeekVelocity(io.goal, io.kin.Pos, io.arriveRadius, io.maxSpeed, io.tuning.forwardAcc);
             var avoid = ComputeAvoidanceForce(io, out var future, out var collidingFutures);
             var desiredVel = desired + avoid + io.waypointVel;
             

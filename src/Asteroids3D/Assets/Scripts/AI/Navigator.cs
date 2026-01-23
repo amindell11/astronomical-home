@@ -1,5 +1,7 @@
+using System;
 using AI.Computers;
 using AI.Context;
+using AI.Steering;
 using Game;
 using Ships;
 using Ships.Control;
@@ -17,23 +19,35 @@ namespace AI
             public bool isValid;
         }
 
-        protected Ship ship;
         protected Scout scout;
         protected Waypoint currentWaypoint;
         protected bool facingOverride;
         protected float facingAngle;
+        protected Dynamics dynamics;
 
+        protected Command currentCommand;
+        public Command CurrentCommand => currentCommand;
+        
+        protected System.Func<State> getState;
         public float arriveRadius = 2f;
 
         public Waypoint CurrentWaypoint => currentWaypoint;
 
-        public virtual void Initialize(Ship ship, Scout scout)
+        public virtual void Initialize(Func<State> stateProvider, Dynamics dynamics, Scout scout)
         {
-            this.ship = ship;
+            this.getState = stateProvider;
+            this.dynamics = dynamics;
             this.scout = scout;
             currentWaypoint = new Waypoint { isValid = false };
         }
 
+        private void FixedUpdate(){
+            if(getState !=null) {
+                currentCommand = default;
+                GenerateNavCommands(getState(), ref currentCommand);
+            }
+        }
+        
         public abstract void GenerateNavCommands(State state, ref Command cmd);
 
         public void SetNavigationPoint(Vector2 point, bool avoid = false, Vector2? velocity = null)

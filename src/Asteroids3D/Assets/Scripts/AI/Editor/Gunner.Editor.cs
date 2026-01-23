@@ -14,12 +14,12 @@ namespace AI
 
         private void OnDrawGizmos()
         {
-            if (!showGizmos || !ship) return;
+            if (!showGizmos) return;
         }
 
         private void OnDrawGizmosSelected()
         {
-            if (!showGizmos || !ship) return;
+            if (!showGizmos) return;
         
             if (showTargeting)
             {
@@ -37,7 +37,7 @@ namespace AI
         
             var pos = transform.position;
             var targetPos = Target;
-            Vector3 forward = ship?.CurrentState.Kinematics.Forward ?? Vector2.up;
+            Vector3 forward = getState!=null? getState().Kinematics.Forward: Vector2.up;
             forward = new Vector3(forward.x, forward.y, 0f);
         
             // Line to target
@@ -61,7 +61,7 @@ namespace AI
     
         void DrawLineOfSightGizmos()
         {
-            if (!HasTarget || !ship.Weapons.Primary) return;
+            if (!HasTarget || !primaryWeapon) return;
 
             var firePos = FirePoint;
             var targetPos = Target;

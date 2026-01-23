@@ -1,15 +1,15 @@
+using System;
 using AI.Scanning;
 using AI.Steering.MPC;
 using Ships;
 using Ships.Movement;
 using UnityEngine;
-
 namespace AI.Steering.MPC
 {
     public partial class MpcNavigator : Navigator
     {
         [Header("Settings")]
-        public Steering.MPC.Settings settings;
+        public MPC.Settings settings;
 
         [Header("Obstacle Avoidance")]
         public bool enableObstacleAvoidance = true;
@@ -19,33 +19,23 @@ namespace AI.Steering.MPC
         private Config config;
         private float lastBestCost;
 
-        public override void Initialize(Ship ship, Scout scout)
+        public override void Initialize(Func<Ships.State> stateProvider, Dynamics dynamics, Scout scout)
         {
-            base.Initialize(ship, scout);
+            base.Initialize(stateProvider, dynamics, scout);
             
             var horizon = settings.Horizon;
             bestSequence = new Control[horizon];
             predictedStates = new State[horizon];
             
-            config = BuildConfig(ship);
+            config = BuildConfig();
         }
 
-        private Config BuildConfig(Ship ship)
+        private Config BuildConfig()
         {
-            var mass = ship.Movement.Mass;
-            var shipSettings = ship.settings;
-            
             return new Config
             {
                 dt = settings.rolloutDt,
                 horizon = settings.Horizon,
-                maxSpeed = shipSettings.maxSpeed,
-                maxYawRate = shipSettings.maxYawRate * Mathf.Deg2Rad,
-                forwardAcc = shipSettings.forwardAccel / mass,
-                reverseAcc = shipSettings.reverseAccel / mass,
-                strafeAcc = shipSettings.maxStrafeForce / mass,
-                alphaMax = shipSettings.rotationThrust * Mathf.Deg2Rad,
-                damping = shipSettings.rotationDrag,
                 
                 wPos = settings.wPos,
                 wVel = settings.wVel,
@@ -61,9 +51,9 @@ namespace AI.Steering.MPC
             };
         }
 
-        public override void GenerateNavCommands(Ships.State state, ref Ships.Command cmd)
+        public override void GenerateNavCommands(Ships.State state, ref Command cmd)
         {
-            if (!ship || !currentWaypoint.isValid)
+            if (!currentWaypoint.isValid)
             {
                 cmd.TargetAngle = state.Kinematics.Yaw;
                 return;
@@ -86,7 +76,7 @@ namespace AI.Steering.MPC
 
             ShiftWarmStart();
             lastBestCost = Sampler.Solve(mpcState, bestSequence, currentWaypoint.position, 
-                obstacles, count, config, settings.samples, settings.noiseStd, bestSequence);
+                obstacles, count, config, dynamics, settings.samples, settings.noiseStd, bestSequence);
 
             UpdatePredictedStates(mpcState);
             ApplyControl(ref cmd, bestSequence[0]);
@@ -131,7 +121,7 @@ namespace AI.Steering.MPC
             var current = initial;
             for (var i = 0; i < predictedStates.Length; i++)
             {
-                current = Model.Step(current, bestSequence[i], config);
+                current = Model.Step(current, bestSequence[i], config, dynamics);
                 predictedStates[i] = current;
             }
         }

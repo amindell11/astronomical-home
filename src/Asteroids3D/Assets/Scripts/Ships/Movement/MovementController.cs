@@ -51,7 +51,7 @@ namespace Ships.Movement
             rb.maxLinearVelocity = s.maxSpeed;
             rb.maxAngularVelocity = s.maxYawRate;
             rb.linearDamping = s.linearDrag;
-            rb.angularDamping = s.rotationDrag;
+            rb.angularDamping = s.angularDrag;
             rb.mass = s.mass;
         }
 
