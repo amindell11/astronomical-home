@@ -2,7 +2,6 @@ using System.Collections;
 using Game;
 using NUnit.Framework;
 using Ships;
-using Ships.Control;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;

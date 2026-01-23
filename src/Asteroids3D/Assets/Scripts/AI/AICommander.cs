@@ -2,7 +2,6 @@
 using AI.Utility;
 using Ships;
 using Ships.Command;
-using Ships.Control;
 using UnityEngine;
 using Attack = AI.States.Attack;
 using Info = AI.Context.Info;

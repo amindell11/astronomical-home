@@ -19,7 +19,19 @@ namespace Ships.Movement
             }
 
             var ratio = Mathf.Abs(diff) / 180f;
-            var pCmd = Mathf.Sign(diff) * Mathf.Pow(ratio + 0.01f, 1f / 6f);
+            
+            // Smooth approach: linear ramp near deadzone, power curve for large errors.
+            // This prevents the 46% torque spike caused by (ratio + 0.01)^(1/6).
+            float pCmd;
+            const float rampRange = 0.05f; // 9 degrees
+            if (ratio < rampRange)
+            {
+                pCmd = Mathf.Sign(diff) * (ratio / rampRange) * Mathf.Pow(rampRange, 1f / 6f);
+            }
+            else
+            {
+                pCmd = Mathf.Sign(diff) * Mathf.Pow(ratio, 1f / 6f);
+            }
 
             var dCmd = -(yawRate / maxYawRate) * dGain;
 

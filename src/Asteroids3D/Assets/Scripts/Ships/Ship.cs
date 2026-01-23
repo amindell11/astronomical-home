@@ -2,11 +2,9 @@ using System;
 using Combat;
 using Combat.Targeting;
 using Ships.Command;
-using Ships.Control;
 using Ships.Damage;
 using Ships.Movement;
-using Ships.Visuals;
-using Weapons;
+
 using UnityEngine;
 using Ships.Weapons;
 namespace Ships
@@ -102,6 +100,7 @@ namespace Ships
 
         private void FixedUpdate()
         {
+            UpdateState();
             if (HasValidCommand)
             {
                 if (Movement)
@@ -115,7 +114,6 @@ namespace Ships
         }
         private void Update()
         {
-            UpdateState();
             var cmd = CurrentCommand;
             HasValidCommand = Commander?.TryGetCommand(CurrentState, out cmd) ?? false;
             if(HasValidCommand) CurrentCommand = cmd;

@@ -4,7 +4,7 @@ using Cameras;
 using World;
 using Ships;
 using Ships.Command;
-using Ships.Control;
+using Player;
 using UnityEngine;
 using ShipSpawner = Ships.Spawner;
 

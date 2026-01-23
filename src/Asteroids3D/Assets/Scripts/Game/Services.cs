@@ -1,5 +1,5 @@
 using Ships;
-using Ships.Control;
+using Player;
 using UnityEngine;
 using Utils;
 using ShipFactory  = Ships.Factory;

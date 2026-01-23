@@ -5,12 +5,9 @@ using AI.Steering.MPC;
 using Game;
 using NUnit.Framework;
 using Ships;
-using Ships.Control;
 using UnityEditor;
-using UnityEditor.UI;
 using UnityEngine;
 using UnityEngine.TestTools;
-using UnityEngine.TestTools.Utils;
 using AICommander = AI.AICommander;
 using Settings = Ships.Settings;
 
