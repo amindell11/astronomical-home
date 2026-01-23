@@ -19,6 +19,7 @@ namespace AI
     [RequireComponent(typeof(Gunner))]
     [RequireComponent(typeof(Scanning.Scout))]
     [RequireComponent(typeof(UtilitySelector))]
+    
     public partial class AICommander : Commander
     {
         [Header("AI Configuration")]

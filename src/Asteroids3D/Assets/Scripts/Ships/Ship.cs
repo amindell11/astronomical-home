@@ -12,7 +12,7 @@ namespace Ships
     [RequireComponent(typeof(Movement.MovementController))]
     [RequireComponent(typeof(Damage.DamageController))]
     [RequireComponent(typeof(Weapons.WeaponsController))]
-
+    [DefaultExecutionOrder(0)]
     public class Ship : MonoBehaviour, ITargetable, IShooter
     {
         [Header("Settings Asset")]
@@ -23,6 +23,7 @@ namespace Ships
         [Tooltip("Team number for this ship. Ships with the same team number are considered friendly.")]
         public int teamNumber = 0;
         
+        public StatePoller StatePoller { get; private set; }
         public ICommandSource Commander { get; private set; }
         public MovementController Movement { get; private set; }
         public WeaponsController Weapons { get; private set; }
@@ -40,6 +41,7 @@ namespace Ships
 
         private void Awake()
         { 
+            StatePoller = GetComponent<StatePoller>();
             Movement = GetComponent<MovementController>();
             Damage   = GetComponent<DamageController>();
             Weapons = GetComponent<WeaponsController>();
@@ -59,7 +61,8 @@ namespace Ships
             settings = shipSettings;
             teamNumber = team;
             Commander?.InitializeCommander(this);
-            PopulateSettings();
+            Movement.Initialize(settings, ()=>StatePoller.Kinematics);
+            Damage?.PopulateSettings(settings);
 
             if (Damage)
                 Damage.OnDeath += (victim, killer) => HandleShipDeath();

@@ -1,6 +1,7 @@
 // This file contains movement and plane logic for ships.
 // Damage and health are now handled by ShipHealth.
 
+using System;
 using Game;
 using UnityEngine;
 using Utils;
@@ -22,14 +23,12 @@ namespace Ships.Movement
         private Booster booster;
         private Settings settings;
         private Command.Command currentCommand;
-        private Kinematics kinematics;
-        
+        public Kinematics Kinematics => getKinematics();
+        private Func<Kinematics> getKinematics;
         internal Command.Command CurrentCommand {
             set => currentCommand = value; }
-        public Kinematics Kinematics => kinematics;
         public bool BoostAvailable => booster.BoostAvailable;
-        public float Mass => rb.mass;
-
+        
         private void Awake()
         {
             rb = GetComponent<Rigidbody>();
@@ -40,9 +39,13 @@ namespace Ships.Movement
         private void Start()
         {
             ResetMovement();
-            GetStateFrom3D();
         }
 
+        public void Initialize(Settings s, Func<Kinematics> getKinematics)
+        {
+            this.settings = s;
+            this.getKinematics = getKinematics;
+        }
         public void PopulateSettings(Settings s)
         {
             s.onSettingsChanged.AddListener(()=>ApplySettings(s));
@@ -64,28 +67,17 @@ namespace Ships.Movement
         {
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
-            kinematics = new Kinematics(Vector2.zero, Vector2.zero, 0, 0, 0);
         }
 
         private void FixedUpdate()
         {
-            kinematics = GetStateFrom3D();
             currentCommand.boost = booster.ProcessBoost(currentCommand.boost, settings.boostCooldown);
-            var outs = Forces.ComputeOutputs(kinematics, currentCommand, settings);
+            var outs = Forces.ComputeOutputs(Kinematics, currentCommand, settings);
             ApplyForces(outs.thrust, outs.strafe, outs.boost, outs.yawTorque);
-            ApplyRotation(kinematics.yaw, outs.bank);
+            ApplyRotation(Kinematics.yaw, outs.bank);
             ConstrainToPlane();
         }
-    
-        private Kinematics GetStateFrom3D()
-        {
-            var pos = GamePlane.WorldPointToPlane(transform.position);
-            var vel = GamePlane.WorldPointToPlane(rb.linearVelocity);
-            var yaw = Vector3.SignedAngle(GamePlane.Forward, transform.up, GamePlane.Normal);
-            var yawRate = Vector3.Dot(rb.angularVelocity, GamePlane.Normal) * Mathf.Rad2Deg;
-            var bank = Vector3.SignedAngle(GamePlane.Normal, transform.forward, transform.up);
-            return new Kinematics(pos, vel, yaw, yawRate, bank);
-        }   
+
 
         private void ApplyForces(Vector2 thrust, Vector2 strafe, Vector2 boost, float yawTorque)
         {   

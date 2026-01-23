@@ -31,6 +31,7 @@ namespace AI.Scanning
 
         public ShipScanner(Transform origin, float scanRadius, int bufferSize = 32)
         {
+            self = origin.GetComponent<Ship>();
             sensor = new SphereSensor(origin, scanRadius, LayerIds.Mask(LayerIds.Ship), bufferSize);
             shipBuffer = new Ship[bufferSize];
             LastResult = new ShipScanResult { ships = shipBuffer, count = 0 };

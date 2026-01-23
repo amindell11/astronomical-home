@@ -30,7 +30,7 @@ namespace AI.Scanning
         
         public void Initialize(Transform origin)
         {
-            
+            ship = origin.GetComponent<Ship>();
             shipScanner = new ShipScanner(origin, nearbyShipRadius);
             coverScanner = new CoverScanner(origin, asteroidCoverRadius, asteroidMask);
             obstacleScanner = new DynamicObstacleScanner(origin, asteroidMask, lookAheadDist, degreesBetweenRays, maxRayDegrees, sphereCastRadius);
