@@ -10,6 +10,7 @@ namespace AI.Utility
     /// Orchestrates AI state lifecycle and transitions.
     /// Delegates utility evaluation and selection to UtilitySampler.
     /// </summary>
+    [DefaultExecutionOrder(-70)]
     public partial class UtilitySelector : MonoBehaviour
     {
         [SerializeField] private UtilitySelectorSettings config;

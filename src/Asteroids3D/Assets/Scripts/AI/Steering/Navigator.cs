@@ -10,6 +10,7 @@ using UnityEngine;
 
 namespace AI
 {
+    [DefaultExecutionOrder(-60)]
     public abstract class Navigator : MonoBehaviour
     {
         public struct Waypoint

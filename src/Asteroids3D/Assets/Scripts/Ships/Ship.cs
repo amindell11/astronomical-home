@@ -12,7 +12,7 @@ namespace Ships
     [RequireComponent(typeof(Movement.MovementController))]
     [RequireComponent(typeof(Damage.DamageController))]
     [RequireComponent(typeof(Weapons.WeaponsController))]
-    [DefaultExecutionOrder(0)]
+    [DefaultExecutionOrder(-90)]
     public class Ship : MonoBehaviour, ITargetable, IShooter
     {
         [Header("Settings Asset")]

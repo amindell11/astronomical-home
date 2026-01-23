@@ -7,6 +7,7 @@ using UnityEngine;
 
 namespace AI.Steering.Standard
 {
+    [DefaultExecutionOrder(-60)]
     public partial class StandardNavigator : Navigator
     {
         [Header("Avoidance")]

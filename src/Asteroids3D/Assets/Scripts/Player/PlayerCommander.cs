@@ -9,6 +9,7 @@ namespace Player
     /// <summary>
     /// Translates player input into commands for the Ship component.
     /// </summary>
+    [DefaultExecutionOrder(-30)]
     public partial class PlayerCommander : Commander
     {
         [Header("Settings")]

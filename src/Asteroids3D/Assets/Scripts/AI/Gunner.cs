@@ -9,6 +9,7 @@ using UnityEngine;
 
 namespace AI
 {
+    [DefaultExecutionOrder(-50)]
     public partial class Gunner : MonoBehaviour
     {
         private System.Func<State> getState;

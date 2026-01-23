@@ -20,6 +20,7 @@ namespace AI
     [RequireComponent(typeof(Scanning.Scout))]
     [RequireComponent(typeof(UtilitySelector))]
     
+    [DefaultExecutionOrder(-40)]
     public partial class AICommander : Commander
     {
         [Header("AI Configuration")]

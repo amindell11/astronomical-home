@@ -7,6 +7,7 @@ using Ships.Movement;
 using UnityEngine;
 namespace AI.Steering.MPC
 {
+    [DefaultExecutionOrder(-60)]
     public partial class MpcNavigator : Navigator
     {
         [Header("Settings")]

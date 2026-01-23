@@ -7,6 +7,7 @@ namespace AI.Scanning
     /// Orchestrates all scanning subsystems.
     /// Performs scans each frame and provides cached results to consumers.
     /// </summary>
+    [DefaultExecutionOrder(-80)]
     public partial class Scout : MonoBehaviour
     {
         [Header("Ship Scanning")]

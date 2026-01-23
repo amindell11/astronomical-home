@@ -9,6 +9,7 @@ using Utils;
 namespace Ships.Movement
 {
     [RequireComponent(typeof(Rigidbody))]
+    [DefaultExecutionOrder(50)]
     public partial class MovementController : MonoBehaviour
     {
 
