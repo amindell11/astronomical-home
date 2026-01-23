@@ -1,4 +1,5 @@
 using Game;
+using Ships.Command;
 using UnityEngine;
 using Utils;
 
@@ -30,35 +31,35 @@ namespace Ships.Control
         private void Update()
         {
             if (!ship) return;
-            var (y, t, r) = HandleRotationInput();
-            var cmd = new Command
+            var yawTorque = HandleRotationInput();
+            var cmd = new Command.Command
             {
-                Thrust = Input.GetAxis("Vertical"),
-                Strafe = Input.GetAxis("Horizontal"),
-                Boost = Input.GetButtonDown("Boost") && ship.Movement.BoostAvailable? 1f : 0f,
-                PrimaryFire   = Input.GetButton("Fire1"),
-                SecondaryFire = Input.GetButtonDown("Fire2"),
-                YawTorque = y,
-                TargetAngle = t,
-                RotateToTarget = r
+                thrust = Input.GetAxis("Vertical"),
+                strafe = Input.GetAxis("Horizontal"),
+                boost = Input.GetButtonDown("Boost") && ship.Movement.BoostAvailable? 1f : 0f,
+                primaryFire   = Input.GetButton("Fire1"),
+                secondaryFire = Input.GetButtonDown("Fire2"),
+                yawTorque = yawTorque,
             };
             cachedCommand = cmd;
         }
 
-        private (float, float, bool) HandleRotationInput()
+        private float HandleRotationInput()
         {
-            float yawTorque =0 , targetRot = 0;
-            bool isRot;
+            float yawTorque = 0;
             if (useMouseDirection)
             {
                 var wantsToRotate = Input.GetButton("Direction");
-                isRot = wantsToRotate;
 
                 if (wantsToRotate)
                 {
                     var mouseWorldPos = MouseInput.Singleton.GetMouseWorldPosition();
                     directionToMouse = (mouseWorldPos - ship.transform.position).normalized;
-                    targetRot = CalculateYawAngle(directionToMouse);
+                    var targetRot = CalculateYawAngle(directionToMouse);
+                    
+                    var kin = ship.Movement.Kinematics;
+                    yawTorque = Movement.ControlUtils.RotationPd(targetRot, kin.yaw, kin.yawRate, ship.settings.maxYawRate, 2f);
+                    
                     isMouseActive = true;
                 }
                 else
@@ -68,12 +69,10 @@ namespace Ships.Control
             }
             else
             {
-                var rotationInput = Input.GetAxis("Rotation");
-                yawTorque = rotationInput;
-                isRot = false;
+                yawTorque = Input.GetAxis("Rotation");
                 isMouseActive = false;
             }
-            return (yawTorque,  targetRot, isRot);
+            return yawTorque;
         }
     
         private float CalculateYawAngle(Vector3 direction)

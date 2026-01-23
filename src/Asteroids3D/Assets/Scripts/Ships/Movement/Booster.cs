@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Ships.Movement
 {
-    internal class Booster
+    public class Booster
     {        
         private float nextBoostTime = 0f;
 

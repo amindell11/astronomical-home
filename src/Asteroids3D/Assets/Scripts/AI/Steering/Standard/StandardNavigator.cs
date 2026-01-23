@@ -1,6 +1,7 @@
 using System;
 using AI.Scanning;
 using Ships;
+using Ships.Command;
 using Ships.Movement;
 using UnityEngine;
 
@@ -29,21 +30,18 @@ namespace AI.Steering.Standard
 
         public override void GenerateNavCommands(State state, ref Command cmd)
         {
-            if (!currentWaypoint.isValid) {
-                cmd.TargetAngle = state.Kinematics.Yaw;
-                return;
-            }
+            if (!currentWaypoint.isValid) return;
+            
 
-            var kin = state.Kinematics;
+            var kin = state.kinematics;
             
             var obstacleScan = ScanObstacles(kin);
             var pathOutput = PlanPath(kin, obstacleScan);
             var pilotOutput = GetPilotOutput(kin, pathOutput);
             
-            cmd.Thrust = pilotOutput.thrust;
-            cmd.Strafe = pilotOutput.strafe;
-            cmd.TargetAngle = pilotOutput.rotTargetDeg;
-            cmd.RotateToTarget = true;
+            cmd.thrust = pilotOutput.thrust;
+            cmd.strafe = pilotOutput.strafe;
+            cmd.yawTorque = ControlUtils.RotationPd(pilotOutput.rotTargetDeg, kin.yaw, kin.yawRate, dynamics.maxYawRate, 2f);
 
             StoreDebugState(currentWaypoint.position, pathOutput.dbg, pilotOutput);
             StoreDebugState(pilotOutput.thrust, pilotOutput.strafe);

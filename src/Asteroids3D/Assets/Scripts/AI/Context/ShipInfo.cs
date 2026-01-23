@@ -1,4 +1,5 @@
 using Ships;
+using Ships.Command;
 using Ships.Control;
 using Ships.Movement;
 using UnityEngine;
@@ -15,13 +16,13 @@ namespace AI.Context
         }
         public Vector3 Pos3D => ship.transform.position;
         public State State => ship?.CurrentState ?? default(State);
-        public Kinematics Kin => State.Kinematics;
-        public Vector2 Pos => Kin.Pos;
-        public Vector2 Vel => Kin.Vel;
+        public Kinematics Kin => State.kinematics;
+        public Vector2 Pos => Kin.pos;
+        public Vector2 Vel => Kin.vel;
         public Vector2 Forward => Kin.Forward;
-        public float Yaw => Kin.Yaw;
+        public float Yaw => Kin.yaw;
         public float SpeedPct => Kin.Speed / (ship?.settings.maxSpeed ?? 1f);
-        public float ShieldPct => State.ShieldPct;
-        public float HealthPct => State.HealthPct;
+        public float ShieldPct => State.shieldPct;
+        public float HealthPct => State.healthPct;
     }
 }

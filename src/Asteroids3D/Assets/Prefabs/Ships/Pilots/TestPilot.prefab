@@ -110,7 +110,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   arriveRadius: 5
   avoidRadius: 0.5
-  enableAvoidance: 0
+  enableAvoidance: 1
   proportionalGain: 5
   useTiltedHeading: 1
 --- !u!114 &606810096680689649
@@ -125,13 +125,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3358d33db4de47449a05f34455161639, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  showDebugGizmos: 1
   nearbyShipRadius: 30
   asteroidCoverRadius: 15
   asteroidMask:
     serializedVersion: 2
     m_Bits: 256
-  lookAheadDist: 15
+  lookAheadDist: 6
   safeMargin: 1
-  raysPerDirection: 5
-  maxRayDegrees: 90
-  sphereCastRadius: 0.5
+  degreesBetweenRays: 25
+  maxRayDegrees: 20
+  sphereCastRadius: 0.7

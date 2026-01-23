@@ -1,5 +1,5 @@
 ﻿
-namespace Ships.Control
+namespace Ships.Command
 {
     /// <summary>
     /// A component that can supply high-level control commands for a <see cref="Ship"/>.

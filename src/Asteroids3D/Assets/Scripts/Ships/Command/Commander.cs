@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Ships.Control
+namespace Ships.Command
 {
     public abstract class Commander : MonoBehaviour, ICommandSource
     {

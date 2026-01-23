@@ -4,6 +4,7 @@ using Combat;
 using Combat.Weapons;
 using Game;
 using Ships;
+using Ships.Command;
 using UnityEngine;
 
 namespace AI
@@ -62,8 +63,8 @@ namespace AI
                 HasLineOfSight = HasTargetLos
             };
 
-            cmd.PrimaryFire = primaryWeapon?.ShouldFire(context) ?? false;
-            cmd.SecondaryFire = secondaryWeapon?.ShouldFire(context) ?? false;
+            cmd.primaryFire = primaryWeapon?.ShouldFire(context) ?? false;
+            cmd.secondaryFire = secondaryWeapon?.ShouldFire(context) ?? false;
         }
     }
 }

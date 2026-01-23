@@ -1,11 +1,12 @@
 using NUnit.Framework;
 using Ships;
+using Ships.Command;
 using Ships.Movement;
 using UnityEngine;
 
 namespace Tests.EditMode
 {
-    public class ActuatorEditModeTests
+    public class ForcesEditModeTests
     {
         private Settings CreateTestSettings()
         {
@@ -27,18 +28,14 @@ namespace Tests.EditMode
             float thrust = 0f,
             float strafe = 0f,
             float boost = 0f,
-            float yawTorque = 0f,
-            float targetAngle = 0f,
-            bool rotateToTarget = false)
+            float yawTorque = 0f)
         {
             return new Command
             {
-                Thrust = thrust,
-                Strafe = strafe,
-                Boost = boost,
-                YawTorque = yawTorque,
-                TargetAngle = targetAngle,
-                RotateToTarget = rotateToTarget,
+                thrust = thrust,
+                strafe = strafe,
+                boost = boost,
+                yawTorque = yawTorque
             };
         }
 
@@ -48,53 +45,32 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void Outputs_AreZero_WhenSettingsNotProvided()
+        public void ComputeOutputs_ReturnsZero_WhenSettingsNotProvided()
         {
-            var actuator = new FlightComputer();
             var kin = CreateKinematics(Vector2.zero, Vector2.zero, 0f);
-            actuator.SetCommand(CreateCommand(thrust: 1f));
+            var cmd = CreateCommand(thrust: 1f);
 
-            var outs = actuator.Process(kin);
-            Assert.AreEqual(Outputs.Zero.Thrust, outs.Thrust);
-            Assert.AreEqual(Outputs.Zero.Strafe, outs.Strafe);
-            Assert.AreEqual(Outputs.Zero.Boost, outs.Boost);
-            Assert.AreEqual(Outputs.Zero.YawTorque, outs.YawTorque);
-            Assert.AreEqual(Outputs.Zero.Bank, outs.Bank);
+            var outs = Forces.ComputeOutputs(kin, cmd, null);
+            Assert.AreEqual(Outputs.Zero.thrust, outs.thrust);
+            Assert.AreEqual(Outputs.Zero.strafe, outs.strafe);
+            Assert.AreEqual(Outputs.Zero.boost, outs.boost);
+            Assert.AreEqual(Outputs.Zero.yawTorque, outs.yawTorque);
+            Assert.AreEqual(Outputs.Zero.bank, outs.bank);
         }
 
         [Test]
-        public void State_IsStored_WhenSettersAreCalled()
+        public void ComputeOutputs_ComputesForces_FromCommandAndKinematics()
         {
-            var actuator = new FlightComputer();
             var settings = CreateTestSettings();
-            actuator.PopulateSettings(settings);
-
-            var cmd = CreateCommand(thrust: 0.75f, strafe: 0.5f, yawTorque: 0.25f);
-            actuator.SetCommand(cmd);
             var kin = CreateKinematics(Vector2.zero, Vector2.zero, 0f);
-            actuator.SetKinematics(kin);
+            var cmd = CreateCommand(thrust: 1f, strafe: 1f, yawTorque: 0.5f);
 
-            Assert.AreEqual(cmd, actuator.CurrentCommand);
-            Assert.AreEqual(kin, actuator.Kinematics);
-        }
+            var outs = Forces.ComputeOutputs(kin, cmd, settings);
 
-        [Test]
-        public void GetOutputs_Computes_Forces_From_Command_And_Kinematics()
-        {
-            var actuator = new FlightComputer();
-            var settings = CreateTestSettings();
-            actuator.PopulateSettings(settings);
-
-            var kin = CreateKinematics(Vector2.zero, Vector2.zero, 0f); // Forward = (0,1)
-            actuator.SetCommand(CreateCommand(thrust: 1f, strafe: 1f, yawTorque: 0.5f));
-
-            var outs = actuator.Process(kin);
-
-            Assert.Greater(outs.Thrust.magnitude, 0f);
-            Assert.Greater(outs.Strafe.magnitude, 0f);
-            Assert.AreEqual(0f, outs.Boost.magnitude); // boost not requested in this test
-            Assert.Greater(outs.YawTorque, 0f);
+            Assert.Greater(outs.thrust.magnitude, 0f);
+            Assert.Greater(outs.strafe.magnitude, 0f);
+            Assert.AreEqual(0f, outs.boost.magnitude);
+            Assert.Greater(outs.yawTorque, 0f);
         }
     }
 }
-

@@ -1,4 +1,4 @@
-namespace Ships
+namespace Ships.Command
 {
     /// <summary>
     /// Per-frame control command issued by an <see cref="ICommandSource"/>.
@@ -8,27 +8,21 @@ namespace Ships
     {   
     
         /// <summary>Normalized forward (+) / reverse (–) thrust input in the range [-1, 1].</summary>
-        public float Thrust;
+        public float thrust;
 
         /// <summary>Normalized strafe input in the range [-1, 1]. Positive is ship-right.</summary>
-        public float Strafe;
+        public float strafe;
 
         /// <summary>Triggers a boost impulse when positive. Represents normalized boost magnitude [0, 1]. Default 0.</summary>
-        public float Boost;
+        public float boost;
 
-        /// <summary>When true the ship should yaw to <see cref="TargetAngle"/> this step.</summary>
-        public bool  RotateToTarget;
-
-        /// <summary>Target yaw angle in degrees (0-360, CCW from +Y) if <see cref="RotateToTarget"/> is true.</summary>
-        public float TargetAngle;
-
-        /// <summary>Desired yaw rate input in the range [-1, 1]. Overrides RotateToTarget if non-zero.</summary>
-        public float YawTorque;
+        /// <summary>Desired yaw rate input in the range [-1, 1].</summary>
+        public float yawTorque;
 
         /// <summary>When true the ship should attempt to fire its primary weapon this step.</summary>
-        public bool  PrimaryFire;
+        public bool  primaryFire;
 
         /// <summary>When true the ship should attempt to fire its secondary weapon this step.</summary>
-        public bool  SecondaryFire;
+        public bool  secondaryFire;
     }
 }

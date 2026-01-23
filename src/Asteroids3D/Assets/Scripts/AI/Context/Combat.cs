@@ -23,11 +23,11 @@ namespace AI.Context
 
         public bool InCombat => enemyShip && enemyShip.gameObject.activeInHierarchy;
         public Ships.Ship Enemy => InCombat ? enemyShip : (enemyShip = scout.ShipScan?.NearestEnemy(ship,ship.transform.position));
-        public Vector2 EnemyPos => Enemy?.CurrentState.Kinematics.Pos ?? Vector2.zero;
-        public Vector2 EnemyVel => Enemy?.CurrentState.Kinematics.Vel ?? Vector2.zero;
-        public Vector2 EnemyForward => Enemy?.CurrentState.Kinematics.Forward ?? Vector2.up;
-        public float EnemyHealthPct => Enemy?.CurrentState.HealthPct ?? 0f;
-        public float EnemyShieldPct => Enemy?.CurrentState.ShieldPct ?? 0f;
+        public Vector2 EnemyPos => Enemy?.CurrentState.kinematics.pos ?? Vector2.zero;
+        public Vector2 EnemyVel => Enemy?.CurrentState.kinematics.vel ?? Vector2.zero;
+        public Vector2 EnemyForward => Enemy?.CurrentState.kinematics.Forward ?? Vector2.up;
+        public float EnemyHealthPct => Enemy?.CurrentState.healthPct ?? 0f;
+        public float EnemyShieldPct => Enemy?.CurrentState.shieldPct ?? 0f;
         
         public Vector2 VectorToTarget => gunner?.VectorToTarget ?? Vector2.zero;
         public bool HasTargetLos => gunner?.HasTargetLos ?? false;

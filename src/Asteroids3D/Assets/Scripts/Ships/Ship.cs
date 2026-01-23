@@ -1,6 +1,7 @@
 using System;
 using Combat;
 using Combat.Targeting;
+using Ships.Command;
 using Ships.Control;
 using Ships.Damage;
 using Ships.Movement;
@@ -24,22 +25,28 @@ namespace Ships
         [Tooltip("Team number for this ship. Ships with the same team number are considered friendly.")]
         public int teamNumber = 0;
         
-        public ICommandSource Commander { get; private set; }  
-        public Movement.MovementController Movement { get; internal set; }
-        public Weapons.WeaponsController Weapons { get; private set; }
-        public Damage.DamageController Damage { get; internal set; }
+        public ICommandSource Commander { get; private set; }
+        public MovementController Movement { get; private set; }
+        public WeaponsController Weapons { get; private set; }
+        public DamageController Damage { get; private set; }
 
         private bool isInitialized = false;
 
         public State CurrentState { get; private set; }
-        public Command CurrentCommand { get; internal set; }
+        public Command.Command CurrentCommand { get; private set; }
         private bool HasValidCommand { get; set; } = false;
 
         public Transform TargetPoint => transform;
         public LockChannel Lock { get; } = new LockChannel();
         public Vector3 Velocity => Movement ? Movement.Kinematics.WorldVel : Vector3.zero;
 
-        private void Awake() => FindComponents(); 
+        private void Awake()
+        { 
+            Movement = GetComponent<MovementController>();
+            Damage   = GetComponent<DamageController>();
+            Weapons = GetComponent<WeaponsController>();
+        }
+        
         private void OnEnable() => PopulateSettings();
         
         private void PopulateSettings()
@@ -61,11 +68,6 @@ namespace Ships
 
             isInitialized = true;
         }
-        private void FindComponents(){            
-            Movement = GetComponent<Movement.MovementController>();
-            Damage   = GetComponent<Damage.DamageController>();
-            Weapons = GetComponent<Weapons.WeaponsController>();
-        }
 
         private void SetCommander(ICommandSource commander)
         {
@@ -74,13 +76,12 @@ namespace Ships
                 Commander.InitializeCommander(this);
         }
 
-        public Commander AddCommander(Commander commanderPrefab)
+        public void AddCommander(Commander commanderPrefab)
         {
-            if (!commanderPrefab) return null;
+            if (!commanderPrefab) return;
             if (Commander !=null ) throw new Exception("Commander already set");
             var instance = Instantiate(commanderPrefab, transform);
             SetCommander(instance);
-            return instance;
         }
 
      
@@ -105,9 +106,9 @@ namespace Ships
             {
                 if (Movement)
                     Movement.CurrentCommand = CurrentCommand;
-                if (CurrentCommand.PrimaryFire && Weapons)
+                if (CurrentCommand.primaryFire && Weapons)
                     Weapons.FirePrimary();
-                if (CurrentCommand.SecondaryFire && Weapons)
+                if (CurrentCommand.secondaryFire && Weapons)
                     Weapons.FireSecondary();
             }
             HasValidCommand = false;
@@ -124,11 +125,11 @@ namespace Ships
         {
             CurrentState = new State
             {
-                Kinematics = Movement.Kinematics,
-                IsPrimaryReady = Weapons?.Primary?.CanFire() ?? false,
-                IsSecondaryReady = Weapons?.Secondary?.CanFire() ?? false,
-                HealthPct = Damage.Health.Pct,
-                ShieldPct = Damage.Shield.Pct,
+                kinematics = Movement.Kinematics,
+                isPrimaryReady = Weapons?.Primary?.CanFire() ?? false,
+                isSecondaryReady = Weapons?.Secondary?.CanFire() ?? false,
+                healthPct = Damage.Health.Pct,
+                shieldPct = Damage.Shield.Pct,
             };
         }
 

@@ -1,6 +1,7 @@
 ﻿using AI.Steering;
 using AI.Utility;
 using Ships;
+using Ships.Command;
 using Ships.Control;
 using UnityEngine;
 using Attack = AI.States.Attack;
@@ -87,8 +88,8 @@ namespace AI
             cachedCommand = Navigator.CurrentCommand;
             
             var gunCmd = Gunner.CurrentCommand;
-            cachedCommand.PrimaryFire = gunCmd.PrimaryFire; 
-            cachedCommand.SecondaryFire = gunCmd.SecondaryFire;
+            cachedCommand.primaryFire = gunCmd.primaryFire; 
+            cachedCommand.secondaryFire = gunCmd.secondaryFire;
         }
     }
 }

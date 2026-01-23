@@ -37,7 +37,7 @@ namespace AI
         
             var pos = transform.position;
             var targetPos = Target;
-            Vector3 forward = getState!=null? getState().Kinematics.Forward: Vector2.up;
+            Vector3 forward = getState!=null? getState().kinematics.Forward: Vector2.up;
             forward = new Vector3(forward.x, forward.y, 0f);
         
             // Line to target

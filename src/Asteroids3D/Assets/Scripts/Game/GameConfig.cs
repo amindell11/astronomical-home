@@ -3,6 +3,7 @@ using Asteroids.Fields;
 using Cameras;
 using World;
 using Ships;
+using Ships.Command;
 using Ships.Control;
 using UnityEngine;
 using ShipSpawner = Ships.Spawner;
@@ -30,8 +31,8 @@ namespace Game
         public UI.Overlay UI => ui;
         public CameraRig CameraRig => cameraRig;
         public Settings ShipSettings => shipSettings;
-        public Ships.Control.Commander PlayerCommander => playerCommander;
-        public Ships.Control.Commander EnemyCommander => enemyCommander;
+        public Commander PlayerCommander => playerCommander;
+        public Commander EnemyCommander => enemyCommander;
         public WorldRoot World => world;
         public ShipSpawnerSettings ShipSpawnerSettings => shipSpawnerSettings;
     }

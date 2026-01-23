@@ -42,7 +42,7 @@ namespace AI.Scanning
             
             shipScanner?.Scan();
             coverScanner?.Scan();
-            obstacleScanner?.Scan(ship.Movement.Kinematics.Vel, ship.settings.maxSpeed);
+            obstacleScanner?.Scan(ship.Movement.Kinematics.vel, ship.settings.maxSpeed);
         }
 
         public ObstacleScan ObstacleScan => new(obstacleScanner?.DetectedBuffer, obstacleScanner?.DetectedCount ?? 0);

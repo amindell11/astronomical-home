@@ -19,16 +19,21 @@ namespace Ships.Movement
         public float movementGizmoScale = 3f;
 
         private Rigidbody  rb;
-        private FlightComputer flightComputer;
-        internal Command CurrentCommand { get => flightComputer.CurrentCommand; set => flightComputer.SetCommand(value); }
-        public Kinematics Kinematics => flightComputer.Kinematics;
-        public bool BoostAvailable => flightComputer.BoostAvailable;
+        private Booster booster;
+        private Settings settings;
+        private Command.Command currentCommand;
+        private Kinematics kinematics;
+        
+        internal Command.Command CurrentCommand {
+            set => currentCommand = value; }
+        public Kinematics Kinematics => kinematics;
+        public bool BoostAvailable => booster.BoostAvailable;
         public float Mass => rb.mass;
 
         private void Awake()
         {
             rb = GetComponent<Rigidbody>();
-            flightComputer = new FlightComputer();
+            booster = new Booster();
             AlignRotationToPlane();
         }
 
@@ -42,7 +47,7 @@ namespace Ships.Movement
         {
             s.onSettingsChanged.AddListener(()=>ApplySettings(s));
             ApplySettings(s);
-            flightComputer?.PopulateSettings(s);
+            settings = s;
         }
         
         private void ApplySettings(Settings s)
@@ -59,15 +64,16 @@ namespace Ships.Movement
         {
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
-            flightComputer.SetKinematics(new Kinematics(Vector2.zero, Vector2.zero, 0, 0, 0));
+            kinematics = new Kinematics(Vector2.zero, Vector2.zero, 0, 0, 0);
         }
 
         private void FixedUpdate()
         {
-            var state = GetStateFrom3D();
-            var outs = flightComputer.Process(state);
-            ApplyForces(outs.Thrust, outs.Strafe, outs.Boost, outs.YawTorque);
-            ApplyRotation(state.Yaw, outs.Bank);
+            kinematics = GetStateFrom3D();
+            currentCommand.boost = booster.ProcessBoost(currentCommand.boost, settings.boostCooldown);
+            var outs = Forces.ComputeOutputs(kinematics, currentCommand, settings);
+            ApplyForces(outs.thrust, outs.strafe, outs.boost, outs.yawTorque);
+            ApplyRotation(kinematics.yaw, outs.bank);
             ConstrainToPlane();
         }
     
@@ -87,6 +93,7 @@ namespace Ships.Movement
             rb.AddForce(GamePlane.PlaneDirToWorld(strafe) * rb.mass, ForceMode.Force);
             rb.AddForce(GamePlane.PlaneDirToWorld(boost) * rb.mass, ForceMode.Impulse);
             rb.AddTorque(GamePlane.Normal * (yawTorque * rb.mass));
+            DebugForces(thrust,strafe,boost,yawTorque);
         }
         private void ApplyRotation(float yaw, float bank)
         {
@@ -109,5 +116,7 @@ namespace Ships.Movement
             var toPlane = Quaternion.FromToRotation(transform.up, projectedUp);
             transform.rotation = toPlane * transform.rotation;
         }
+
+        partial void DebugForces(Vector2 thrust, Vector2 strafe, Vector2 boost, float yaw);
     }
 } 

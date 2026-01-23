@@ -18,7 +18,7 @@ namespace Ships.Visuals
             if (thrustParticles == null || thrustParticles.Length == 0 || !ship) return;
 
             // Also check global VFX setting
-            var shouldPlay = ship.CurrentCommand.Thrust > 0.05f && GameSettings.VfxEnabled;
+            var shouldPlay = ship.CurrentCommand.thrust > 0.05f && GameSettings.VfxEnabled;
             UpdateThrustAnimations(shouldPlay);
         }
 

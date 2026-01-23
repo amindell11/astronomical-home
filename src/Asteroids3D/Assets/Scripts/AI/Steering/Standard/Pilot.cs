@@ -94,7 +94,7 @@ namespace AI.Steering.Standard
                 return i.facingTargetDeg.Value;
 
             if (!(i.desiredVel.sqrMagnitude > 0.01f))
-                return i.kin.Yaw;
+                return i.kin.yaw;
 
             var targetDir = i.useTiltedHeading 
                 ? ComputeTiltedHeading(i.desiredVel, smoothStrafe, tuning) 

@@ -69,14 +69,14 @@ namespace AI.Steering.Standard
 
         public static Output Compute(Input io)
         {
-            var desired = ComputeSeekVelocity(io.goal, io.kin.Pos, io.arriveRadius, io.maxSpeed, io.tuning.forwardAcc);
+            var desired = ComputeSeekVelocity(io.goal, io.kin.pos, io.arriveRadius, io.maxSpeed, io.tuning.forwardAcc);
             var avoid = ComputeAvoidanceForce(io, out var future, out var collidingFutures);
             var desiredVel = desired + avoid + io.waypointVel;
             
             if (desiredVel.sqrMagnitude > io.maxSpeed * io.maxSpeed)
                 desiredVel = desiredVel.normalized * io.maxSpeed;
             
-            var accel = desiredVel - io.kin.Vel;
+            var accel = desiredVel - io.kin.vel;
             
             var dbg = new DebugInfo(future, desired, avoid, accel, collidingFutures);
             return new Output(desiredVel, accel, dbg);
@@ -110,7 +110,7 @@ namespace AI.Steering.Standard
 
         private static Vector2 ComputeAvoidanceForce(Input io, out Vector2 future, out List<Vector2> collidingFutures)
         {
-            future = io.kin.Pos + io.kin.Vel * io.lookAheadTime;
+            future = io.kin.pos + io.kin.vel * io.lookAheadTime;
             
             var push = Vector2.zero;
             var weight = 0f;
@@ -121,7 +121,7 @@ namespace AI.Steering.Standard
             collidingFutures = new List<Vector2>();
 #endif
 
-            var segStart = io.kin.Pos;
+            var segStart = io.kin.pos;
             var segEnd = future;
             var segDir = segEnd - segStart;
             var segLenSq = segDir.sqrMagnitude;

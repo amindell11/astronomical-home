@@ -58,8 +58,8 @@ namespace Audio
             if (!audioInitialized || ship == null || thrustSource == null || strafeSource == null) 
                 return;
 
-            var thrust = ship.CurrentCommand.Thrust;
-            var strafe = ship.CurrentCommand.Strafe;
+            var thrust = ship.CurrentCommand.thrust;
+            var strafe = ship.CurrentCommand.strafe;
 
             // Calculate thrust volume (reduced for reverse)
             var thrustIntensity = Mathf.Abs(thrust);

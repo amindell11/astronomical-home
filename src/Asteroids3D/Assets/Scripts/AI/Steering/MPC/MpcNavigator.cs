@@ -2,6 +2,7 @@ using System;
 using AI.Scanning;
 using AI.Steering.MPC;
 using Ships;
+using Ships.Command;
 using Ships.Movement;
 using UnityEngine;
 namespace AI.Steering.MPC
@@ -19,7 +20,7 @@ namespace AI.Steering.MPC
         private Config config;
         private float lastBestCost;
 
-        public override void Initialize(Func<Ships.State> stateProvider, Dynamics dynamics, Scanning.Scout scout)
+        public override void Initialize(Func<Ships.Command.State> stateProvider, Dynamics dynamics, Scanning.Scout scout)
         {
             base.Initialize(stateProvider, dynamics, scout);
             
@@ -51,26 +52,13 @@ namespace AI.Steering.MPC
             };
         }
 
-        public override void GenerateNavCommands(Ships.State state, ref Command cmd)
+        public override void GenerateNavCommands(Ships.Command.State state, ref Command cmd)
         {
-            if (!currentWaypoint.isValid)
-            {
-                cmd.TargetAngle = state.Kinematics.Yaw;
-                return;
-            }
+            if (!currentWaypoint.isValid || HasArrived(state.kinematics)) return;
 
             RefreshWeights();
 
-            if (HasArrived(state.Kinematics))
-            {
-                cmd.Thrust = 0;
-                cmd.Strafe = 0;
-                cmd.YawTorque = 0;
-                cmd.RotateToTarget = false;
-                return;
-            }
-
-            var mpcState = ToMpcState(state.Kinematics);
+            var mpcState = ToMpcState(state.kinematics);
             var scan = scout.ObstacleScan;
             StoreDebugObstacles(scan);
 
@@ -86,24 +74,24 @@ namespace AI.Steering.MPC
 
         private bool HasArrived(Kinematics kin)
         {
-            var toGoal = currentWaypoint.position - kin.Pos;
+            var toGoal = currentWaypoint.position - kin.pos;
             var posArrived = toGoal.sqrMagnitude < arriveRadius * arriveRadius;
-            var velStopped = kin.Vel.sqrMagnitude < 0.1f;
+            var velStopped = kin.vel.sqrMagnitude < 0.1f;
             
             if (!posArrived || !velStopped) return false;
             
             // If facing override active, also check yaw
             if (!facingOverride) return true;
-            var yawErr = Mathf.DeltaAngle(kin.Yaw, facingAngle);
+            var yawErr = Mathf.DeltaAngle(kin.yaw, facingAngle);
             return !(Mathf.Abs(yawErr) > 5f);
         }
 
         private static MPC.State ToMpcState(Kinematics kin) => new()
         {
-            pos = kin.Pos,
-            vel = kin.Vel,
-            yaw = kin.Yaw * Mathf.Deg2Rad,
-            yawRate = kin.YawRate * Mathf.Deg2Rad
+            pos = kin.pos,
+            vel = kin.vel,
+            yaw = kin.yaw * Mathf.Deg2Rad,
+            yawRate = kin.yawRate * Mathf.Deg2Rad
         };
 
         private void ShiftWarmStart() =>
@@ -119,12 +107,11 @@ namespace AI.Steering.MPC
             }
         }
 
-        private static void ApplyControl(ref Ships.Command cmd, Control u)
+        private static void ApplyControl(ref Command cmd, Control u)
         {
-            cmd.Thrust = u.thrust;
-            cmd.Strafe = u.strafe;
-            cmd.YawTorque = u.yawTorque;
-            cmd.RotateToTarget = false;
+            cmd.thrust = u.thrust;
+            cmd.strafe = u.strafe;
+            cmd.yawTorque = u.yawTorque;
         }
 
         protected override void OnSetNavigationPoint(bool avoid) { }
