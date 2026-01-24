@@ -12,17 +12,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 59f7f77675d38994397e19301aaef807, type: 3}
   m_Name: MpcSettings
   m_EditorClassIdentifier: 
-  horizonSeconds: 2
-  rolloutDt: 0.2
+  horizonSeconds: 1.7
+  rolloutDt: 0.1
   samples: 128
   noiseStd: 0.25
   wPos: 1
   wVel: 0.5
   wYaw: 0.5
   wYawRate: 0.1
-  wEffort: 0.05
-  wSmoothness: 1
-  wObstacle: 12
-  wFacing: 10
+  wEffort: 20
+  wSmoothnessThrust: 0.05
+  wSmoothnessStrafe: 0.5
+  wSmoothnessYaw: 0.02
+  wObstacle: 10
+  wFacing: 100
   terminalMultiplier: 10
-  obstacleThreshold: 20
+  obstacleThreshold: 15
+  arrivalDistance: 4
+  arrivalVelScale: 5
+  arrivalYawScale: 0.1

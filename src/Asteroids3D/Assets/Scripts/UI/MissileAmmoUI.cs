@@ -10,12 +10,7 @@ using Weapons;
 
 namespace UI
 {
-    /// <summary>
-    /// Displays the current ammo count and cooldown status for a <see cref="WeaponMissiles"/>.
-    /// Attach this to a world- or screen-space canvas that contains a horizontal layout
-    /// of missile icons (Images). Optionally assign a spinner Image that becomes
-    /// visible during launcher cooldown.
-    /// </summary>
+
     [RequireComponent(typeof(CanvasGroup))]
     public sealed class MissileAmmoUI : MonoBehaviour
     {
@@ -57,7 +52,7 @@ namespace UI
         private System.Action<int> ammoChangedHandler;
         private Rounds rounds;
 
-        void Awake()
+        private void Awake()
         {
             canvasGroup = GetComponent<CanvasGroup>();
             if (!iconContainer) iconContainer = transform;
@@ -70,22 +65,17 @@ namespace UI
                 launcher = GameObject.FindGameObjectWithTag(TagNames.Player).GetComponentInChildren<WeaponMissiles>();
             }
 
-            if (launcher)
-            {
-                rounds = launcher.GetComponent<Rounds>();
-                // Build icons based on round's max ammo now that we have the reference
-                RebuildIcons();
+            if (!launcher) return;
+            rounds = launcher.GetComponent<Rounds>();
+            RebuildIcons();
 
-                // Prepare cached handler & subscribe
-                ammoChangedHandler = OnAmmoChanged;
-                if (rounds) rounds.OnAmmoCountChanged += ammoChangedHandler;
+            ammoChangedHandler = OnAmmoChanged;
+            if (rounds) rounds.OnAmmoCountChanged += ammoChangedHandler;
 
-                // Initialize UI with the starting ammo value
-                UpdateAmmoIcons(rounds ? rounds.AmmoCount : 0);
-            }
+            UpdateAmmoIcons(rounds ? rounds.AmmoCount : 0);
         }
 
-        void OnDisable()
+        private void OnDisable()
         {
             if (rounds && ammoChangedHandler != null)
             {
@@ -93,7 +83,7 @@ namespace UI
             }
         }
 
-        void Update()
+        private void Update()
         {
             if (!launcher || !cooldownSpinner) return;
 
@@ -108,14 +98,14 @@ namespace UI
 
         // ───────────────────────── Event Callbacks ─────────────────────────
 
-        void OnAmmoChanged(int newAmmo)
+        private void OnAmmoChanged(int newAmmo)
         {
             UpdateAmmoIcons(newAmmo);
         }
 
         // ───────────────────────── Helpers ─────────────────────────
 
-        void UpdateAmmoIcons(int ammo)
+        private void UpdateAmmoIcons(int ammo)
         {
             if (icons == null || icons.Count == 0) return;
 
@@ -132,8 +122,7 @@ namespace UI
 
                 var hasAmmo = i < ammo;
 
-                // Use glow controller if present, otherwise fall back to Image.color
-                var glow = (i < glowControllers.Count) ? glowControllers[i] : img.GetComponent<GlowingUIController>();
+                var glow = (i < glowControllers.Count) ? glowControllers[i] : null;
                 if (glow)
                 {
                     glow.SetBaseColor(hasAmmo ? filledColor : emptyColor);
@@ -144,9 +133,10 @@ namespace UI
                     img.color = hasAmmo ? filledColor : emptyColor;
                 }
             }
+
         }
 
-        void RebuildIcons()
+        private void RebuildIcons()
         {
             // Refresh the icon list by first collecting any existing images that have the
             // designated tag, then creating additional ones as needed.
@@ -160,7 +150,6 @@ namespace UI
                 var existing = iconContainer.GetComponentsInChildren<Image>(includeInactive: true)
                     .Where(img => img.CompareTag(IconTag));
                 icons.AddRange(existing);
-                // populate glowControllers for existing icons
                 foreach (var img in existing)
                 {
                     if (!img) { glowControllers.Add(null); continue; }
@@ -170,7 +159,7 @@ namespace UI
             }
 
             // 2. Ensure we have exactly rounds.MaxAmmo icons by adding more if necessary
-            if (iconPrefab && rounds)
+            if (!iconPrefab || !rounds) return;
             {
                 var max = rounds.MaxAmmo;
 

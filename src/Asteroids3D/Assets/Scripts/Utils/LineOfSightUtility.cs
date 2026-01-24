@@ -48,7 +48,7 @@ namespace Utils
             }
 
             // If we hit something, LOS is clear only if it belongs to the target root.
-            return targetRoot != null && RayBuffer[0].collider.transform.IsChildOf(targetRoot);
+            return targetRoot && RayBuffer[0].collider.transform.IsChildOf(targetRoot);
         }
 
         /// <summary>

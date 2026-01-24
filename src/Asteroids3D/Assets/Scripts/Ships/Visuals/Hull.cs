@@ -54,7 +54,7 @@ namespace Ships.Visuals
             source.OnDeath        -= OnDeath;
         }
 
-        private void OnDeath(Ships.Ship victim, Ships.Ship killer)
+        private void OnDeath(Ship victim, Ship killer)
         {
             if (!GameSettings.VfxEnabled || !explosionPrefab) return;
             var pooled = explosionPrefab.GetComponent<PooledVFX>();

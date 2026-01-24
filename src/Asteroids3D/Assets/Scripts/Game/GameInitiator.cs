@@ -1,16 +1,11 @@
 using System;
 using System.Collections;
 using System.Linq;
-using Asteroids;
 using Asteroids.Fields;
 using Cameras;
-using Ships;
 using UnityEngine;
 using World;
 using UnityEngine.SceneManagement;
-using Utils;
-using Random = UnityEngine.Random;
-using ShipSpawner = Ships.Spawner;
 
 namespace Game
 {
@@ -42,7 +37,7 @@ namespace Game
             InitializeUI(gameConfig);
         }
 
-        private IEnumerator LoadWorldScene()
+        private static IEnumerator LoadWorldScene()
         {
             const string worldSceneName = "BasicWorld";
 
@@ -53,9 +48,7 @@ namespace Game
                     yield return null;
             }
 
-            // Ensure a deterministic reference plane orientation.
-            // (Use +90° X rotation so the GamePlane's local XY maps to world XZ.)
-            GamePlane.Plane.SetPositionAndRotation(Vector3.zero, Quaternion.Euler(90f, 0f, 0f));
+            GamePlane.Plane.SetPositionAndRotation(Vector3.zero, Quaternion.Euler(0f, 0f, 0f));
         }
 
         private void InitializeUI(GameConfig gameConfig)

@@ -10,7 +10,7 @@ namespace Ships
         public float restartDelay = 3f;
         
         [Tooltip("Whether to restart the entire game when the player dies")]
-        public bool restartOnPlayerDeath = false;
+        public bool restartOnPlayerDeath;
 
         [Header("Enemy Respawn Settings")]
         [Tooltip("Delay before respawning an enemy ship after death")]

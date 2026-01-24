@@ -27,12 +27,12 @@ namespace Audio
         private Ships.Ship ship;
         private bool audioInitialized = false;
 
-        void Awake()
+        private void Awake()
         {
             ship = GetComponentInParent<Ships.Ship>();
         }
 
-        void OnEnable()
+        private void OnEnable()
         {
             // Initialize audio sources but don't play yet
             InitializeAudioSource(thrustSource);
@@ -40,22 +40,20 @@ namespace Audio
             audioInitialized = true;
         }
 
-        void InitializeAudioSource(AudioSource source)
+        private void InitializeAudioSource(AudioSource source)
         {
-            if (source)
-            {
-                source.loop = true;
-                source.playOnAwake = false;
-                source.spatialBlend = 1f; // 3-D positional
-                source.volume = 0f; // Start silent
-                if (source.clip)
-                    source.Play(); // Play but at zero volume
-            }
+            if (!source) return;
+            source.loop = true;
+            source.playOnAwake = false;
+            source.spatialBlend = 1f; // 3-D positional
+            source.volume = 0f; // Start silent
+            if (source.clip)
+                source.Play(); // Play but at zero volume
         }
 
-        void Update()
+        private void Update()
         {
-            if (!audioInitialized || ship == null || thrustSource == null || strafeSource == null) 
+            if (!audioInitialized || !ship || !thrustSource || !strafeSource) 
                 return;
 
             var thrust = ship.CurrentCommand.thrust;

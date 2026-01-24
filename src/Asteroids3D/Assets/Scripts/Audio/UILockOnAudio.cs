@@ -73,7 +73,7 @@ namespace Audio
 
         void PlayLockingLoop()
         {
-            if (lockingLoopClip == null) return;
+            if (!lockingLoopClip) return;
 
             source.loop = true;
             source.clip = lockingLoopClip;
@@ -105,15 +105,13 @@ namespace Audio
         void TryAssignLauncher()
         {
             var playerObj = GameObject.FindGameObjectWithTag(TagNames.Player);
-            if (playerObj)
-            {
-                launcher = playerObj.GetComponentInChildren<WeaponMissiles>();
+            if (!playerObj) return;
+            launcher = playerObj.GetComponentInChildren<WeaponMissiles>();
 
-                // Sync state immediately to avoid false triggers
-                if (launcher)
-                {
-                    lastState = launcher.Targeting.State;
-                }
+            // Sync state immediately to avoid false triggers
+            if (launcher)
+            {
+                lastState = launcher.Targeting.State;
             }
         }
     }

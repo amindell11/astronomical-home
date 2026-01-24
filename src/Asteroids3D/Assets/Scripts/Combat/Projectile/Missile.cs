@@ -63,12 +63,10 @@ namespace Combat.Projectile
                 damageLayerMask = LayerIds.Mask(LayerIds.Ship, LayerIds.Asteroid);
             }
             audioSrc = GetComponent<AudioSource>();
-            if (audioSrc)
-            {
-                audioSrc.playOnAwake  = false;
-                audioSrc.loop         = false;
-                audioSrc.spatialBlend = 1f;
-            }
+            if (!audioSrc) return;
+            audioSrc.playOnAwake  = false;
+            audioSrc.loop         = false;
+            audioSrc.spatialBlend = 1f;
         }
 
         /* ───────────────────────── Unity callbacks ───────────────────────── */
@@ -77,13 +75,11 @@ namespace Combat.Projectile
             base.OnEnable();
         
             // Reset AudioSource state when retrieved from pool
-            if (audioSrc)
-            {
-                audioSrc.Stop();
-                audioSrc.clip = null;
-                audioSrc.loop = false;
-                audioSrc.volume = 1f;
-            }
+            if (!audioSrc) return;
+            audioSrc.Stop();
+            audioSrc.clip = null;
+            audioSrc.loop = false;
+            audioSrc.volume = 1f;
             // Note: Shooter-dependent initialization moved to Initialize() method
         }
 
@@ -97,7 +93,7 @@ namespace Combat.Projectile
         
             if (rb) 
             {
-                var shooterVelocity = (Shooter != null) ? Shooter.Velocity : Vector3.zero;
+                var shooterVelocity = Shooter?.Velocity ?? Vector3.zero;
                 rb.linearVelocity = transform.up * initialSpeed + shooterVelocity;
                 rb.maxLinearVelocity = homingSpeed;
             }
@@ -115,9 +111,9 @@ namespace Combat.Projectile
             engineCo = StartCoroutine(StartEngineLoop());
         }
 
-        IEnumerator StartEngineLoop()
+        private IEnumerator StartEngineLoop()
         {
-            if (engineLoopClip == null || audioSrc == null) yield break;
+            if (!engineLoopClip || !audioSrc) yield break;
             yield return new WaitForSeconds(engineStartDelay);
             audioSrc.clip   = engineLoopClip;
             audioSrc.volume = 0f;
@@ -144,72 +140,70 @@ namespace Combat.Projectile
         
             base.FixedUpdate();
 
-            if (rb)
+            if (!rb) return;
+            // 1. Compute the desired heading (toward target if any, otherwise keep current).
+            var desiredDir = transform.up; // Default to current heading
+            
+            if (target)
             {
-                // 1. Compute the desired heading (toward target if any, otherwise keep current).
-                var desiredDir = transform.up; // Default to current heading
+                var toTarget = target.position - transform.position;
+                if (toTarget.sqrMagnitude > 0.01f) // Avoid division by zero
+                {
+                    desiredDir = toTarget.normalized;
+                }
+            }
+
+            // 2. Get the proper up vector for rotation (should be Y axis for top-down)
+            var rotationAxis = GamePlane.Normal; // Use world up for top-down games
             
-                if (target)
+            // If GamePlane is initialized and has a valid normal, use it
+            if (GamePlane.Plane)
+            {
+                rotationAxis = GamePlane.Normal;
+                // Ensure the normal is pointing up (not down)
+                if (Vector3.Dot(rotationAxis, GamePlane.Normal) < 0)
                 {
-                    var toTarget = target.position - transform.position;
-                    if (toTarget.sqrMagnitude > 0.01f) // Avoid division by zero
-                    {
-                        desiredDir = toTarget.normalized;
-                    }
+                    rotationAxis = -rotationAxis;
                 }
+            }
 
-                // 2. Get the proper up vector for rotation (should be Y axis for top-down)
-                var rotationAxis = GamePlane.Normal; // Use world up for top-down games
+            // 3. Calculate rotation needed
+            var signedAngle = Vector3.SignedAngle(transform.up, desiredDir, rotationAxis);
+
+            // 4. Clamp the turn by homingTurnRate per physics-step and rotate.
+            var maxTurnThisStep = homingTurnRate * Time.fixedDeltaTime; // °/frame
+            rotationCorrectionDeg = Mathf.Clamp(signedAngle, -maxTurnThisStep, maxTurnThisStep);
             
-                // If GamePlane is initialized and has a valid normal, use it
-                if (GamePlane.Plane)
-                {
-                    rotationAxis = GamePlane.Normal;
-                    // Ensure the normal is pointing up (not down)
-                    if (Vector3.Dot(rotationAxis, GamePlane.Normal) < 0)
-                    {
-                        rotationAxis = -rotationAxis;
-                    }
-                }
+            // Apply rotation if significant
+            if (Mathf.Abs(rotationCorrectionDeg) > 0.01f)
+            {
+                transform.rotation = Quaternion.AngleAxis(rotationCorrectionDeg, rotationAxis) * transform.rotation;
+            }
 
-                // 3. Calculate rotation needed
-                var signedAngle = Vector3.SignedAngle(transform.up, desiredDir, rotationAxis);
+            // 5. Compute the desired velocity along the missile's forward direction.
+            var desiredVelocity = transform.up * homingSpeed;
 
-                // 4. Clamp the turn by homingTurnRate per physics-step and rotate.
-                var maxTurnThisStep = homingTurnRate * Time.fixedDeltaTime; // °/frame
-                rotationCorrectionDeg = Mathf.Clamp(signedAngle, -maxTurnThisStep, maxTurnThisStep);
-            
-                // Apply rotation if significant
-                if (Mathf.Abs(rotationCorrectionDeg) > 0.01f)
-                {
-                    transform.rotation = Quaternion.AngleAxis(rotationCorrectionDeg, rotationAxis) * transform.rotation;
-                }
+            // 6. Smoothly rotate the current velocity toward the desired velocity, limiting
+            //    both the angular change (maxTurnRad) and the linear acceleration (maxAccelThisStep)
+            //    in this physics step. This prevents the missile from overshooting and spiralling
+            //    around the target.
+            var maxTurnRad       = homingTurnRate * Mathf.Deg2Rad * Time.fixedDeltaTime;   // radians/frame
+            var maxAccelThisStep = acceleration   * Time.fixedDeltaTime;                  // units/sec per frame
 
-                // 5. Compute the desired velocity along the missile's forward direction.
-                var desiredVelocity = transform.up * homingSpeed;
+            rb.linearVelocity = Vector3.RotateTowards(
+                rb.linearVelocity,
+                desiredVelocity,
+                maxTurnRad,
+                maxAccelThisStep);
 
-                // 6. Smoothly rotate the current velocity toward the desired velocity, limiting
-                //    both the angular change (maxTurnRad) and the linear acceleration (maxAccelThisStep)
-                //    in this physics step. This prevents the missile from overshooting and spiralling
-                //    around the target.
-                var maxTurnRad       = homingTurnRate * Mathf.Deg2Rad * Time.fixedDeltaTime;   // radians/frame
-                var maxAccelThisStep = acceleration   * Time.fixedDeltaTime;                  // units/sec per frame
-
-                rb.linearVelocity = Vector3.RotateTowards(
-                    rb.linearVelocity,
-                    desiredVelocity,
-                    maxTurnRad,
-                    maxAccelThisStep);
-
-                // 7. Ensure we never exceed the maximum homing speed.
-                if (rb.linearVelocity.magnitude > homingSpeed)
-                {
-                    rb.linearVelocity = rb.linearVelocity.normalized * homingSpeed;
-                }
+            // 7. Ensure we never exceed the maximum homing speed.
+            if (rb.linearVelocity.magnitude > homingSpeed)
+            {
+                rb.linearVelocity = rb.linearVelocity.normalized * homingSpeed;
             }
         }
         // Debug – the angle actually applied this physics-step (degrees)
-        float rotationCorrectionDeg = 0f;
+        private float rotationCorrectionDeg = 0f;
 
         protected override void OnHit(IDamageable other)
         {
@@ -246,7 +240,7 @@ namespace Combat.Projectile
         }
 
         /* ───────────────────────── internal ───────────────────────── */
-        void Explode(IDamageable other)
+        private void Explode(IDamageable other)
         {
             // Spawn explosion VFX
             if (GameSettings.VfxEnabled && explosionPrefab)

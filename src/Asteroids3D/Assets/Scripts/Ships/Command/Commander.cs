@@ -6,7 +6,7 @@ namespace Ships.Command
     {
         protected Command cachedCommand = default;
 
-        public abstract void InitializeCommander(Ships.Ship ship);
+        public abstract void InitializeCommander(Ship ship);
 
         public bool TryGetCommand(State state, out Command cmd)
         {

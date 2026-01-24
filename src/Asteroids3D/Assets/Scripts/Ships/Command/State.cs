@@ -1,8 +1,10 @@
+using Ships.Movement;
+
 namespace Ships.Command
 {
     public struct State
     {
-            public Movement.Kinematics kinematics;
+            public Kinematics kinematics;
 
             public bool isPrimaryReady;
             public bool isSecondaryReady;

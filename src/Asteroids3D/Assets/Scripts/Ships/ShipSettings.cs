@@ -1,7 +1,7 @@
+using System;
 using AI.Steering;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Serialization;
 
 namespace Ships
 {
@@ -33,7 +33,7 @@ namespace Ships
         public float shieldRegenDelay = 4f;
         public float shieldRegenRate = 10f;
 
-        [System.NonSerialized]
+        [NonSerialized]
         public readonly UnityEvent onSettingsChanged = new UnityEvent();
 
         private void OnValidate()

@@ -4,14 +4,14 @@ using Combat.Targeting;
 using Ships.Command;
 using Ships.Damage;
 using Ships.Movement;
-
-using UnityEngine;
 using Ships.Weapons;
+using UnityEngine;
+
 namespace Ships
 {
-    [RequireComponent(typeof(Movement.MovementController))]
-    [RequireComponent(typeof(Damage.DamageController))]
-    [RequireComponent(typeof(Weapons.WeaponsController))]
+    [RequireComponent(typeof(MovementController))]
+    [RequireComponent(typeof(DamageController))]
+    [RequireComponent(typeof(WeaponsController))]
     [DefaultExecutionOrder(-90)]
     public class Ship : MonoBehaviour, ITargetable, IShooter
     {
@@ -21,7 +21,7 @@ namespace Ships
 
         [Header("Team Settings")]
         [Tooltip("Team number for this ship. Ships with the same team number are considered friendly.")]
-        public int teamNumber = 0;
+        public int teamNumber;
         
         public StatePoller StatePoller { get; private set; }
         public ICommandSource Commander { get; private set; }
@@ -29,7 +29,7 @@ namespace Ships
         public WeaponsController Weapons { get; private set; }
         public DamageController Damage { get; private set; }
 
-        private bool isInitialized = false;
+        private bool isInitialized;
 
         public State CurrentState { get; private set; }
         public Command.Command CurrentCommand { get; private set; }

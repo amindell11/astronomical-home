@@ -10,20 +10,20 @@ public class Spawner
     private readonly ShipSpawnerSettings settings;
     
     private Camera cacheMainCamera;
-    public SubscribedSet<Ships.Ship> SubscribedShips { get; private set; }
+    public SubscribedSet<Ship> SubscribedShips { get; private set; }
     private Camera LazyCacheCamera => cacheMainCamera ??= Camera.main;
 
-    public Spawner(ShipSpawnerSettings settings, params Ships.Ship[] ships)
+    public Spawner(ShipSpawnerSettings settings, params Ship[] ships)
     {
         this.settings = settings;
-        SubscribedShips = new SubscribedSet<Ships.Ship>(
+        SubscribedShips = new SubscribedSet<Ship>(
             add: ship => ship.Damage.OnDeath += OnShipDeath,
             remove: ship => ship.Damage.OnDeath -= OnShipDeath
         );
         SubscribedShips.AddAll(ships);
     }
     
-    private void OnShipDeath(Ships.Ship deadShip, Ships.Ship killer)
+    private void OnShipDeath(Ship deadShip, Ship killer)
     {
         var game = GameContext.Singleton;
         if (game.CurrentState is GameState.GameOver) return;
@@ -36,13 +36,13 @@ public class Spawner
         
     }
 
-    private IEnumerator WaitAndRespawnShip(float delay, Ships.Ship respawnShip)
+    private IEnumerator WaitAndRespawnShip(float delay, Ship respawnShip)
     {
         yield return new WaitForSeconds(delay);
         RespawnShipAtRandomPos(respawnShip);
     }
 
-    private void RespawnShipAtRandomPos(Ships.Ship respawnShip)
+    private void RespawnShipAtRandomPos(Ship respawnShip)
     {
         respawnShip.transform.position = GetRandomOffscreenPosition();
         respawnShip.ResetShip();

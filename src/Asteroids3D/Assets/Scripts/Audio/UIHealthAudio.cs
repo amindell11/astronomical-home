@@ -93,7 +93,7 @@ namespace Audio
         /* ----------------- Audio Control ----------------- */
         void PlayLowHealthAlarm()
         {
-            if (lowHealthAlarmClip == null) return;
+            if (!lowHealthAlarmClip) return;
 
             source.loop = true;
             source.clip = lowHealthAlarmClip;

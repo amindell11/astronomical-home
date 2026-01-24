@@ -1,4 +1,5 @@
 using UnityEngine;
+using Utils;
 
 [RequireComponent(typeof(ParticleSystem))]
 public class PooledVFX : MonoBehaviour

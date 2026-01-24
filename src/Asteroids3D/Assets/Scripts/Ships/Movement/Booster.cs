@@ -4,7 +4,7 @@ namespace Ships.Movement
 {
     public class Booster
     {        
-        private float nextBoostTime = 0f;
+        private float nextBoostTime;
 
         public bool BoostAvailable => Time.time > nextBoostTime;
         

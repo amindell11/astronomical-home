@@ -12,7 +12,7 @@ namespace Ships.Command
         /// Called once by the ship during its Awake phase.
         /// </summary>
         /// <param name="ship">The ship this source will be controlling.</param>
-        void InitializeCommander(Ships.Ship ship);
+        void InitializeCommander(Ship ship);
         
         /// <summary>
         /// Attempt to obtain a control command for this frame.

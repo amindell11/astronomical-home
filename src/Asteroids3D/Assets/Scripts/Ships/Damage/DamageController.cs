@@ -1,6 +1,5 @@
 ﻿using System;
 using Damage;
-using Game;
 using UnityEngine;
 
 namespace Ships.Damage
@@ -21,8 +20,8 @@ namespace Ships.Damage
         public Ship LastAttacker {get; private set;}
         private Ship myShip;
 
-        private float invulnerableUntil = 0f;
-        public bool IsInvulnerable { get; private set; } = false;
+        private float invulnerableUntil;
+        public bool IsInvulnerable { get; private set; }
         
         public float InvulTimeLeft => invulnerableUntil - Time.time;
 

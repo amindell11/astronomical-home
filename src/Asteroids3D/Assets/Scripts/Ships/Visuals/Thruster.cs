@@ -6,11 +6,11 @@ namespace Ships.Visuals
     public class Thruster : MonoBehaviour
     {
         public ParticleSystem[] thrustParticles;
-        private Ships.Ship ship;
+        private Ship ship;
 
         private void Start()    
         {
-            ship = GetComponentInParent<Ships.Ship>();
+            ship = GetComponentInParent<Ship>();
         }
 
         private void Update()

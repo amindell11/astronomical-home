@@ -1,6 +1,5 @@
 using Combat.Weapons;
 using UnityEngine;
-using Weapons;
 
 namespace Ships.Weapons
 {

@@ -4,7 +4,6 @@
 using System;
 using Game;
 using UnityEngine;
-using Utils;
 
 namespace Ships.Movement
 {

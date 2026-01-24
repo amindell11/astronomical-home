@@ -42,7 +42,7 @@ namespace AI.States
             {
                 // Too far - close in a bit
                 var toEnemy = (ctx.EnemyPos - ctx.SelfPosition).normalized;
-                waypoint = ctx.EnemyPos - toEnemy * utilityTuning.kiteDesiredDistance * utilityTuning.kiteReturnDistanceFactor;
+                waypoint = ctx.EnemyPos - toEnemy * (utilityTuning.kiteDesiredDistance * utilityTuning.kiteReturnDistanceFactor);
             }
             else
             {
