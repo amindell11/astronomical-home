@@ -19,8 +19,12 @@ namespace AI.Steering.MPC
         private Control[] bestSequence;
         private State[] predictedStates;
         private Config config;
+#if UNITY_EDITOR
+        public float lastBestCost;
+#else
         private float lastBestCost;
-
+#endif
+        
         public override void Initialize(Func<Ships.Command.State> stateProvider, Dynamics dynamics, Scanning.Scout scout)
         {
             base.Initialize(stateProvider, dynamics, scout);
@@ -64,8 +68,19 @@ namespace AI.Steering.MPC
             StoreDebugObstacles(scan);
 
             ShiftWarmStart();
+            
+#if UNITY_EDITOR
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+#endif
             lastBestCost = Sampler.Solve(mpcState, bestSequence, currentWaypoint.position, 
                 scan, config, dynamics, settings.samples, settings.noiseStd, bestSequence);
+#if UNITY_EDITOR
+            sw.Stop();
+            
+            lastSolveTimeMs = (float)sw.Elapsed.TotalMilliseconds;
+            lastCostBreakdown = Sampler.EvaluateTrajectoryBreakdown(mpcState, bestSequence, 
+                currentWaypoint.position, scan, config, dynamics);
+#endif
 
             UpdatePredictedStates(mpcState);
             ApplyControl(ref cmd, bestSequence[0]);
@@ -115,9 +130,29 @@ namespace AI.Steering.MPC
             cmd.yawTorque = u.yawTorque;
         }
 
-        protected override void OnSetNavigationPoint(bool avoid) { }
+        private void RefreshWeights()
+        {
+            config.dt = settings.rolloutDt;
+            var newHorizon = settings.Horizon;
+            if (config.horizon != newHorizon)
+            {
+                bestSequence = new Control[newHorizon];
+                predictedStates = new State[newHorizon];
+                config.horizon = newHorizon;
+            }
+            config.wPos = settings.wPos;
+            config.wVel = settings.wVel;
+            config.wYaw = settings.wYaw;
+            config.wYawRate = settings.wYawRate * 2f; // Boost damping to prevent tailspins
+            config.wEffort = settings.wEffort;
+            config.wSmoothness = settings.wSmoothness;
+            config.wObstacle = settings.wObstacle;
+            config.wFacing = settings.wFacing;
+            config.terminalMultiplier = settings.terminalMultiplier;
+            config.obstacleThreshold = settings.obstacleThreshold;
+            config.facingTarget = facingOverride ? facingAngle * Mathf.Deg2Rad : float.NaN;
+        }
 
         partial void StoreDebugObstacles(ObstacleScan scan);
-        partial void RefreshWeights();
     }
 }

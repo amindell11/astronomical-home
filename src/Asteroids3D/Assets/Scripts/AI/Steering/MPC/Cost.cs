@@ -6,7 +6,7 @@ namespace AI.Steering.MPC
     /// <summary>
     /// Cost evaluation for MPC trajectory optimization.
     /// </summary>
-    public static class Cost
+    public static partial class Cost
     {
         public static float Evaluate(State s, Control u, Control prevU, Vector2 goalPos, 
             ObstacleScan scan, Config cfg, bool isTerminal)
@@ -31,6 +31,7 @@ namespace AI.Steering.MPC
 
             return total;
         }
+
 
         private static float PositionCost(Vector2 pos, Vector2 goal) => (pos - goal).sqrMagnitude;
 

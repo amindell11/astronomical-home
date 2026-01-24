@@ -5,7 +5,7 @@ namespace AI.Steering.MPC
     /// <summary>
     /// Random sampling solver for MPC.
     /// </summary>
-    public static class Sampler
+    public static partial class Sampler
     {
         public static float Solve(State initialState, Control[] warmStart, Vector2 goalPos,
             Scanning.ObstacleScan scan, Config cfg, Dynamics shp,
@@ -61,6 +61,7 @@ namespace AI.Steering.MPC
 
             return totalCost;
         }
+
 
         private static float RandomGaussian()
         {

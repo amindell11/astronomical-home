@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using AI.Steering;
 using Game;
+using UnityEditor;
 using UnityEngine;
 
 namespace AI.Steering.MPC
@@ -8,15 +9,26 @@ namespace AI.Steering.MPC
     public partial class MpcNavigator
     {
         [Header("Debug Visualization")]
-        [Tooltip("Show debug gizmos in scene view")]
-        public bool showDebugGizmos = true;
-        [Tooltip("Show obstacle cost field visualization")]
-        public bool showObstacleCosts = true;
-        [Tooltip("Show predicted trajectory with cost colors")]
-        public bool showTrajectoryCosts = true;
+        [Tooltip("Horizontal prediction step for labels")]
+        public int labelStep = 5;
+        [Tooltip("Show cost breakdown in Inspector")]
+        public bool showCostBreakdown = true;
+        [Tooltip("Log solver performance once per second")]
+        public bool logSolverPerformance = false;
+
+        private float nextLogTime;
 
         private Scanning.DetectedObstacle[] dbgObstacles;
         private int dbgObstacleCount;
+
+        // Debug info
+        public CostBreakdown lastCostBreakdown;
+        public float lastSolveTimeMs;
+        
+        [Header("Debug Visualization")]
+        public bool showDebugGizmos = true;
+        public bool showObstacleCosts = true;
+        public bool showTrajectoryCosts = true;
 
         partial void StoreDebugObstacles(Scanning.ObstacleScan scan)
         {
@@ -46,25 +58,39 @@ namespace AI.Steering.MPC
         {
             if (predictedStates == null || predictedStates.Length == 0) return;
 
+            if (logSolverPerformance && Time.time > nextLogTime)
+            {
+                Debug.Log($"[MPC] {gameObject.name} | Solve: {lastSolveTimeMs:F2}ms | Cost: {lastBestCost:F1}");
+                nextLogTime = Time.time + 1f;
+            }
+
             var prevPos = GamePlane.PlanePointToWorld(predictedStates[0].pos);
+            var prevU = new Control();
+
             for (var i = 1; i < predictedStates.Length; i++)
             {
                 var state = predictedStates[i];
+                var u = bestSequence[i];
                 var pos = GamePlane.PlanePointToWorld(state.pos);
 
-                if (showTrajectoryCosts && dbgObstacles != null)
-                {
-                    var obstacleCost = EvaluateObstacleCostForState(state.pos);
-                    Gizmos.color = GetCostColor(obstacleCost);
-                }
-                else
-                {
-                    Gizmos.color = Color.cyan;
-                }
+                var isTerminal = i == predictedStates.Length - 1;
+                var stepBreakdown = Cost.EvaluateBreakdown(state, u, prevU, currentWaypoint.position, 
+                    new Scanning.ObstacleScan(dbgObstacles, dbgObstacleCount), config, isTerminal);
+
+                Gizmos.color = showTrajectoryCosts ? GetCostColor(stepBreakdown.obstacle / config.wObstacle) : Color.cyan;
 
                 Gizmos.DrawLine(prevPos, pos);
                 Gizmos.DrawSphere(pos, 0.15f);
+
+                if (i % labelStep == 0)
+                {
+                    UnityEditor.Handles.Label(pos + Vector3.up * 0.2f, 
+                        $"Cost: {stepBreakdown.total:F1}\n(P:{stepBreakdown.pos:F1} O:{stepBreakdown.obstacle:F1})", 
+                        new GUIStyle { normal = { textColor = Color.white }, fontSize = 10 });
+                }
+
                 prevPos = pos;
+                prevU = u;
             }
         }
 
@@ -158,27 +184,55 @@ namespace AI.Steering.MPC
             else
                 return Color.red;
         }
-        partial void RefreshWeights()
+    }
+
+    [UnityEditor.CustomEditor(typeof(MpcNavigator))]
+    public class MpcNavigatorEditor : UnityEditor.Editor
+    {
+        public override void OnInspectorGUI()
         {
-            config.dt = settings.rolloutDt;
-            var newHorizon = settings.Horizon;
-            if (config.horizon != newHorizon)
-            {
-                bestSequence = new Control[newHorizon];
-                predictedStates = new State[newHorizon];
-                config.horizon = newHorizon;
-            }
-            config.wPos = settings.wPos;
-            config.wVel = settings.wVel;
-            config.wYaw = settings.wYaw;
-            config.wYawRate = settings.wYawRate;
-            config.wEffort = settings.wEffort;
-            config.wSmoothness = settings.wSmoothness;
-            config.wObstacle = settings.wObstacle;
-            config.wFacing = settings.wFacing;
-            config.terminalMultiplier = settings.terminalMultiplier;
-            config.obstacleThreshold = settings.obstacleThreshold;
-            config.facingTarget = facingOverride ? facingAngle * Mathf.Deg2Rad : float.NaN;
+            base.OnInspectorGUI();
+
+            var nav = (MpcNavigator)target;
+            if (!nav.showCostBreakdown || !Application.isPlaying) return;
+
+            UnityEditor.EditorGUILayout.Space();
+            UnityEditor.EditorGUILayout.LabelField("MPC Debug Scaffolding", UnityEditor.EditorStyles.boldLabel);
+            
+            var solveTimeColor = nav.lastSolveTimeMs > 2.0f ? "red" : "lime";
+            UnityEditor.EditorGUILayout.LabelField($"Solve Time: <color={solveTimeColor}>{nav.lastSolveTimeMs:F2} ms</color>", 
+                new GUIStyle(UnityEditor.EditorStyles.label) { richText = true });
+            
+            UnityEditor.EditorGUILayout.LabelField($"Total Cost: {nav.lastBestCost:F2}");
+
+            var breakdown = nav.lastCostBreakdown;
+            DrawCostBar("Position", breakdown.pos, nav.lastBestCost, Color.green);
+            DrawCostBar("Heading", breakdown.heading, nav.lastBestCost, Color.yellow);
+            DrawCostBar("Facing", breakdown.facing, nav.lastBestCost, Color.cyan);
+            DrawCostBar("Velocity", breakdown.vel, nav.lastBestCost, Color.blue);
+            DrawCostBar("Yaw Rate", breakdown.yawRate, nav.lastBestCost, Color.magenta);
+            DrawCostBar("Obstacle", breakdown.obstacle, nav.lastBestCost, Color.red);
+            DrawCostBar("Effort", breakdown.effort, nav.lastBestCost, Color.gray);
+            DrawCostBar("Smoothness", breakdown.smoothness, nav.lastBestCost, Color.white);
+
+            Repaint();
+        }
+
+        private void DrawCostBar(string label, float value, float total, Color color)
+        {
+            var pct = total > 0 ? value / total : 0;
+            var rect = UnityEditor.EditorGUILayout.GetControlRect(false, 18);
+            
+            // Background
+            EditorGUI.DrawRect(rect, new Color(0.1f, 0.1f, 0.1f, 1f));
+            
+            // Bar
+            var barRect = new Rect(rect.x, rect.y, rect.width * pct, rect.height);
+            EditorGUI.DrawRect(barRect, color * 0.7f);
+            
+            // Text
+            var style = new GUIStyle(UnityEditor.EditorStyles.miniLabel) { alignment = TextAnchor.MiddleLeft };
+            EditorGUI.LabelField(rect, $" {label}: {value:F1} ({pct*100:F0}%)", style);
         }
     }
 }
