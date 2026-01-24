@@ -17,13 +17,23 @@ namespace AI.Steering.MPC
         public float wYaw = 0.5f;
         public float wYawRate = 0.1f;
         public float wEffort = 0.05f;
-        public float wSmoothness = 0.1f;
+        
+        [Header("Smoothness Weights")]
+        public float wSmoothnessThrust = 0.5f;
+        public float wSmoothnessStrafe = 5.0f; 
+        public float wSmoothnessYaw = 0.2f;
+
         public float wObstacle = 10.0f;
         public float wFacing = 1.0f;
         public float terminalMultiplier = 10f;
 
         [Header("Obstacle Avoidance")]
         public float obstacleThreshold = 5.0f;
+
+        [Header("Arrival Stabilization")]
+        public float arrivalDistance = 3.0f;
+        public float arrivalVelScale = 5.0f;
+        public float arrivalYawScale = 0.1f;
 
         public int Horizon => Mathf.CeilToInt(horizonSeconds / rolloutDt);
     }

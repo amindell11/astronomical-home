@@ -31,11 +31,18 @@ namespace AI.Steering.MPC
         public float wYaw;
         public float wYawRate;
         public float wEffort;
-        public float wSmoothness;
+        public float wSmoothnessThrust;
+        public float wSmoothnessStrafe;
+        public float wSmoothnessYaw;
         public float wObstacle;
         public float wFacing;
         public float terminalMultiplier;
         public float obstacleThreshold;
+        
+        // Arrival Stabilization
+        public float arrivalDistance;
+        public float arrivalVelScale;
+        public float arrivalYawScale;
         
         // Facing override (radians, NaN if disabled)
         public float facingTarget;

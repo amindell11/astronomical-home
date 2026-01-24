@@ -65,7 +65,7 @@ namespace AI.Steering.MPC
             }
 
             var prevPos = GamePlane.PlanePointToWorld(predictedStates[0].pos);
-            var prevU = new Control();
+            var prevU = bestSequence[0];
 
             for (var i = 1; i < predictedStates.Length; i++)
             {

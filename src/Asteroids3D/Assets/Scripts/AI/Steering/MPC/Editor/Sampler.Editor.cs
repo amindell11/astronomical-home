@@ -6,11 +6,11 @@ namespace AI.Steering.MPC
     public static partial class Sampler
     {
         public static CostBreakdown EvaluateTrajectoryBreakdown(State state, Control[] sequence, Vector2 goalPos,
-            Scanning.ObstacleScan scan, Config cfg, Dynamics shp)
+            Scanning.ObstacleScan scan, Config cfg, Dynamics shp, Control lastControl)
         {
             var totalBreakdown = new CostBreakdown();
             var current = state;
-            var prevU = new Control();
+            var prevU = lastControl;
 
             for (var i = 0; i < cfg.horizon; i++)
             {

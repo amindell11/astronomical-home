@@ -11,9 +11,22 @@ namespace AI.Steering.MPC
         public static float Evaluate(State s, Control u, Control prevU, Vector2 goalPos, 
             ObstacleScan scan, Config cfg, bool isTerminal)
         {
+            var distToGoal = Vector2.Distance(s.pos, goalPos);
+            
+            // Arrival stabilization
+            var wVel = cfg.wVel;
+            var wYaw = cfg.wYaw;
+            
+            if (distToGoal < cfg.arrivalDistance)
+            {
+                var t = 1f - (distToGoal / cfg.arrivalDistance); // 0 at arrivalDist, 1 at goal
+                wVel = Mathf.Lerp(cfg.wVel, cfg.wVel * cfg.arrivalVelScale, t);
+                wYaw = Mathf.Lerp(cfg.wYaw, cfg.wYaw * cfg.arrivalYawScale, t);
+            }
+
             var posCost = PositionCost(s.pos, goalPos) * cfg.wPos;
-            var velCost = VelocityCost(s.vel) * cfg.wVel;
-            var headingCost = HeadingCost(s.pos, s.yaw, goalPos) * cfg.wYaw;
+            var velCost = VelocityCost(s.vel) * wVel;
+            var headingCost = HeadingCost(s.pos, s.yaw, goalPos) * wYaw;
             var facingCost = FacingCost(s.yaw, cfg.facingTarget) * cfg.wFacing;
             var yawRateCost = YawRateCost(s.yawRate) * cfg.wYawRate;
             var obstacleCost = ObstacleCost(s.pos, scan, cfg.obstacleThreshold) * cfg.wObstacle;
@@ -21,7 +34,7 @@ namespace AI.Steering.MPC
             var stateCost = posCost + velCost + headingCost + facingCost + yawRateCost + obstacleCost;
 
             var effortCost = EffortCost(u) * cfg.wEffort;
-            var smoothnessCost = SmoothnessCost(u, prevU, cfg.dt) * cfg.wSmoothness;
+            var smoothnessCost = SmoothnessCost(u, prevU, cfg);
             var controlCost = effortCost + smoothnessCost;
 
             var total = stateCost + controlCost;
@@ -71,14 +84,15 @@ namespace AI.Steering.MPC
         private static float EffortCost(Control u) =>
             u.thrust * u.thrust + u.strafe * u.strafe + u.yawTorque * u.yawTorque;
 
-        private static float SmoothnessCost(Control u, Control prev, float dt)
+        private static float SmoothnessCost(Control u, Control prev, Config cfg)
         {
-            // Rate of change (divide by dt), scaled down by 100 to compensate
-            var scale = 1f / (dt * 100f);
-            var duT = (u.thrust - prev.thrust) * scale;
-            var duS = (u.strafe - prev.strafe) * scale;
-            var duY = (u.yawTorque - prev.yawTorque) * scale;
-            return duT * duT + duS * duS + duY * duY;
+            var duT = (u.thrust - prev.thrust) / cfg.dt;
+            var duS = (u.strafe - prev.strafe) / cfg.dt;
+            var duY = (u.yawTorque - prev.yawTorque) / cfg.dt;
+            
+            return (duT * duT) * cfg.wSmoothnessThrust + 
+                   (duS * duS) * cfg.wSmoothnessStrafe + 
+                   (duY * duY) * cfg.wSmoothnessYaw;
         }
 
         private static float ObstacleCost(Vector2 pos, ObstacleScan scan, float threshold)

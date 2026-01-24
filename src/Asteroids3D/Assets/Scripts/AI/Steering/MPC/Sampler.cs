@@ -9,10 +9,10 @@ namespace AI.Steering.MPC
     {
         public static float Solve(State initialState, Control[] warmStart, Vector2 goalPos,
             Scanning.ObstacleScan scan, Config cfg, Dynamics shp,
-            int samples, float noiseStd, Control[] resultBuffer)
+            int samples, float noiseStd, Control[] resultBuffer, Control lastControl)
         {
             var horizon = cfg.horizon;
-            var bestCost = EvaluateTrajectory(initialState, warmStart, goalPos, scan, cfg, shp);
+            var bestCost = EvaluateTrajectory(initialState, warmStart, goalPos, scan, cfg, shp, lastControl);
             System.Array.Copy(warmStart, resultBuffer, horizon);
 
             var candidate = new Control[horizon];
@@ -20,7 +20,7 @@ namespace AI.Steering.MPC
             for (var i = 0; i < samples - 1; i++)
             {
                 GenerateCandidate(warmStart, candidate, horizon, noiseStd);
-                var cost = EvaluateTrajectory(initialState, candidate, goalPos, scan, cfg, shp);
+                var cost = EvaluateTrajectory(initialState, candidate, goalPos, scan, cfg, shp, lastControl);
                 
                 if (cost >= bestCost) continue;
                 bestCost = cost;
@@ -44,11 +44,11 @@ namespace AI.Steering.MPC
         }
 
         private static float EvaluateTrajectory(State state, Control[] sequence, Vector2 goalPos,
-            Scanning.ObstacleScan scan, Config cfg, Dynamics shp)
+            Scanning.ObstacleScan scan, Config cfg, Dynamics shp, Control lastControl)
         {
             var totalCost = 0f;
             var current = state;
-            var prevU = new Control();
+            var prevU = lastControl;
 
             for (var i = 0; i < cfg.horizon; i++)
             {

@@ -12,7 +12,7 @@ namespace AI.Steering.MPC
     {
         [Header("Settings")]
         public MPC.Settings settings;
-
+ 
         [Header("Obstacle Avoidance")]
         public bool enableObstacleAvoidance = true;
 
@@ -24,6 +24,7 @@ namespace AI.Steering.MPC
 #else
         private float lastBestCost;
 #endif
+        private Control lastControl;
         
         public override void Initialize(Func<Ships.Command.State> stateProvider, Dynamics dynamics, Scanning.Scout scout)
         {
@@ -48,11 +49,16 @@ namespace AI.Steering.MPC
                 wYaw = settings.wYaw,
                 wYawRate = settings.wYawRate,
                 wEffort = settings.wEffort,
-                wSmoothness = settings.wSmoothness,
+                wSmoothnessThrust = settings.wSmoothnessThrust,
+                wSmoothnessStrafe = settings.wSmoothnessStrafe,
+                wSmoothnessYaw = settings.wSmoothnessYaw,
                 wObstacle = settings.wObstacle,
                 wFacing = settings.wFacing,
                 terminalMultiplier = settings.terminalMultiplier,
                 obstacleThreshold = settings.obstacleThreshold,
+                arrivalDistance = settings.arrivalDistance,
+                arrivalVelScale = settings.arrivalVelScale,
+                arrivalYawScale = settings.arrivalYawScale,
                 facingTarget = float.NaN
             };
         }
@@ -73,16 +79,17 @@ namespace AI.Steering.MPC
             var sw = System.Diagnostics.Stopwatch.StartNew();
 #endif
             lastBestCost = Sampler.Solve(mpcState, bestSequence, currentWaypoint.position, 
-                scan, config, dynamics, settings.samples, settings.noiseStd, bestSequence);
+                scan, config, dynamics, settings.samples, settings.noiseStd, bestSequence, lastControl);
 #if UNITY_EDITOR
             sw.Stop();
             
             lastSolveTimeMs = (float)sw.Elapsed.TotalMilliseconds;
             lastCostBreakdown = Sampler.EvaluateTrajectoryBreakdown(mpcState, bestSequence, 
-                currentWaypoint.position, scan, config, dynamics);
+                currentWaypoint.position, scan, config, dynamics, lastControl);
 #endif
 
             UpdatePredictedStates(mpcState);
+            lastControl = bestSequence[0];
             ApplyControl(ref cmd, bestSequence[0]);
         }
 
@@ -143,13 +150,18 @@ namespace AI.Steering.MPC
             config.wPos = settings.wPos;
             config.wVel = settings.wVel;
             config.wYaw = settings.wYaw;
-            config.wYawRate = settings.wYawRate * 2f; // Boost damping to prevent tailspins
+            config.wYawRate = settings.wYawRate; // Boost damping to prevent tailspins
             config.wEffort = settings.wEffort;
-            config.wSmoothness = settings.wSmoothness;
+            config.wSmoothnessThrust = settings.wSmoothnessThrust;
+            config.wSmoothnessStrafe = settings.wSmoothnessStrafe;
+            config.wSmoothnessYaw = settings.wSmoothnessYaw;
             config.wObstacle = settings.wObstacle;
             config.wFacing = settings.wFacing;
             config.terminalMultiplier = settings.terminalMultiplier;
             config.obstacleThreshold = settings.obstacleThreshold;
+            config.arrivalDistance = settings.arrivalDistance;
+            config.arrivalVelScale = settings.arrivalVelScale;
+            config.arrivalYawScale = settings.arrivalYawScale;
             config.facingTarget = facingOverride ? facingAngle * Mathf.Deg2Rad : float.NaN;
         }
 

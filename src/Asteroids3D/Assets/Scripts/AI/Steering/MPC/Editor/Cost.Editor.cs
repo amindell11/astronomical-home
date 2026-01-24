@@ -20,7 +20,7 @@ namespace AI.Steering.MPC
             var stateCost = breakdown.pos + breakdown.vel + breakdown.heading + breakdown.facing + breakdown.yawRate + breakdown.obstacle;
 
             breakdown.effort = EffortCost(u) * cfg.wEffort;
-            breakdown.smoothness = SmoothnessCost(u, prevU, cfg.dt) * cfg.wSmoothness;
+            breakdown.smoothness = SmoothnessCost(u, prevU, cfg);
             var controlCost = breakdown.effort + breakdown.smoothness;
 
             var total = stateCost + controlCost;
