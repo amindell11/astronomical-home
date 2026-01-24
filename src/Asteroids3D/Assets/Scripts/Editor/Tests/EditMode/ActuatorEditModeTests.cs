@@ -11,8 +11,8 @@ namespace Tests.EditMode
         private Settings CreateTestSettings()
         {
             var s = ScriptableObject.CreateInstance<Settings>();
-            s.forwardAccel = 1000f;
-            s.reverseAccel = 500f;
+            s.forwardForce = 1000f;
+            s.reverseForce = 500f;
             s.maxStrafeForce = 800f;
             s.minStrafeForce = 400f;
             s.maxSpeed = 20f;

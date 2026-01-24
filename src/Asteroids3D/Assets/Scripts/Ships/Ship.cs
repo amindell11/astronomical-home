@@ -33,7 +33,6 @@ namespace Ships
 
         public State CurrentState { get; private set; }
         public Command.Command CurrentCommand { get; private set; }
-        private bool HasValidCommand { get; set; } = false;
 
         public Transform TargetPoint => transform;
         public LockChannel Lock { get; } = new LockChannel();
@@ -104,22 +103,21 @@ namespace Ships
         private void FixedUpdate()
         {
             UpdateState();
-            if (HasValidCommand)
+            // Refresh command just before MovementController pulls it at Order 50
+            var cmd = CurrentCommand;
+            if (Commander != null && Commander.TryGetCommand(CurrentState, out cmd))
             {
-                if (Movement)
-                    Movement.CurrentCommand = CurrentCommand;
-                if (CurrentCommand.primaryFire && Weapons)
-                    Weapons.FirePrimary();
-                if (CurrentCommand.secondaryFire && Weapons)
-                    Weapons.FireSecondary();
+                CurrentCommand = cmd;
             }
-            HasValidCommand = false;
         }
+
         private void Update()
         {
             var cmd = CurrentCommand;
-            HasValidCommand = Commander?.TryGetCommand(CurrentState, out cmd) ?? false;
-            if(HasValidCommand) CurrentCommand = cmd;
+            if (Commander != null && Commander.TryGetCommand(CurrentState, out cmd))
+            {
+                CurrentCommand = cmd;
+            }
         }
 
         private void UpdateState()

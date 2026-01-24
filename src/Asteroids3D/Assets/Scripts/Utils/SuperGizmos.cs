@@ -35,14 +35,30 @@ namespace Utils
         {
             if (Mathf.Abs(angle) < 0.01f) return;
             
-            var fromDir = from.normalized;
-            var binormal = Vector3.Cross(normal, fromDir);
+            var n = normal.normalized;
+            var f = from.normalized;
             
-            var prevPoint = center + fromDir * radius;
+            var binormal = Vector3.Cross(n, f);
+            
+            if (binormal.sqrMagnitude < 0.0001f)
+            {
+                // 'from' is parallel to 'normal'. Use an arbitrary perpendicular vector.
+                var fallback = Mathf.Abs(Vector3.Dot(n, Vector3.up)) < 0.9f ? Vector3.up : Vector3.forward;
+                binormal = Vector3.Cross(n, fallback).normalized;
+            }
+            else
+            {
+                binormal.Normalize();
+            }
+
+            // Recalculate 'from' to be perfectly perpendicular to 'normal'
+            var realFrom = Vector3.Cross(binormal, n).normalized;
+            
+            var prevPoint = center + realFrom * radius;
             for (var i = 1; i <= segments; i++)
             {
                 var t = (i / (float)segments) * angle * Mathf.Deg2Rad;
-                var point = center + (fromDir * Mathf.Cos(t) + binormal * Mathf.Sin(t)) * radius;
+                var point = center + (realFrom * Mathf.Cos(t) + binormal * Mathf.Sin(t)) * radius;
                 Gizmos.DrawLine(prevPoint, point);
                 prevPoint = point;
             }

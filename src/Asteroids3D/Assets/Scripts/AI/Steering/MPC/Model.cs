@@ -26,11 +26,11 @@ namespace AI.Steering.MPC
 
         private static Vector2 ComputeAcceleration(Control u, Vector2 fwd, Vector2 right, Config cfg, Dynamics shp, Vector2 vel)
         {
-            var accF = (u.thrust >= 0 ? shp.forwardAcc : shp.reverseAcc) * u.thrust;
+            var accF = ((u.thrust >= 0 ? shp.forwardAcc : shp.reverseAcc) * u.thrust) / shp.mass;
             
             var speedPct = Mathf.Clamp01(vel.magnitude / shp.maxSpeed);
             var strafeMag = Mathf.Lerp(shp.maxStrafeAcc, shp.minStrafeAcc, speedPct);
-            var accS = strafeMag * u.strafe;
+            var accS = (strafeMag * u.strafe) / shp.mass;
             
             return fwd * accF + right * accS;
         }

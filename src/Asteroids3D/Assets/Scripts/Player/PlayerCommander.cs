@@ -31,32 +31,50 @@ namespace Player
             this.ship = ship;
         }
 
+        private float thrustInput;
+        private float strafeInput;
+        private float rotationInput;
+        private bool primaryInput;
+        private bool secondaryInput;
+        private bool boostInput;
+        private bool wantsRotate;
+
         private void Update()
         {
             if (!ship) return;
             
-            // Poll non-physics inputs
-            cachedCommand.thrust = PlayerInputReader.Thrust;
-            cachedCommand.strafe = PlayerInputReader.Strafe;
-            cachedCommand.boost = (PlayerInputReader.BoostDown && ship.Movement.BoostAvailable) ? 1f : 0f;
-            cachedCommand.primaryFire   = PlayerInputReader.PrimaryFire;
-            cachedCommand.secondaryFire = PlayerInputReader.SecondaryFireDown;
+            // Poll ALL inputs in Update for stability
+            thrustInput = PlayerInputReader.Thrust;
+            strafeInput = PlayerInputReader.Strafe;
+            rotationInput = PlayerInputReader.Rotation;
+            boostInput = PlayerInputReader.BoostDown;
+            primaryInput = PlayerInputReader.PrimaryFire;
+            secondaryInput = PlayerInputReader.SecondaryFireDown;
+            wantsRotate = PlayerInputReader.WantsToRotate;
 
-            if (useMouseDirection && PlayerInputReader.WantsToRotate)
+            if (useMouseDirection && wantsRotate)
             {
                 var mouseWorldPos = PlayerInputReader.GetMouseWorldPosition();
                 directionToMouse = (mouseWorldPos - ship.transform.position).normalized;
                 targetAngle = CalculateYawAngle(directionToMouse);
             }
+
+            // Sync non-physics commands
+            cachedCommand.thrust = thrustInput;
+            cachedCommand.strafe = strafeInput;
+            cachedCommand.boost = (boostInput && ship.Movement.BoostAvailable) ? 1f : 0f;
+            cachedCommand.primaryFire = primaryInput;
+            cachedCommand.secondaryFire = secondaryInput;
         }
 
         private void FixedUpdate()
         {
             if (!ship) return;
 
+            // Calculate torque using stable FixedUpdate rate but with fresh Update axis data
             cachedCommand.yawTorque = useMouseDirection 
-                ? (PlayerInputReader.WantsToRotate ? GetMouseRotationTorque() : 0)
-                : PlayerInputReader.Rotation;
+                ? (wantsRotate ? GetMouseRotationTorque() : 0)
+                : rotationInput;
         }
 
         private float GetMouseRotationTorque()

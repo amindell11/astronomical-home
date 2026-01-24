@@ -43,7 +43,7 @@ namespace Ships.Movement
         public static Outputs ComputeOutputs(Kinematics kin, Command.Command cmd, Settings sets)
         {
             return new Outputs(
-                Thrust(kin, cmd.thrust, sets.forwardAccel, sets.reverseAccel),
+                Thrust(kin, cmd.thrust, sets.forwardForce, sets.reverseForce),
                 Strafe(kin, cmd.strafe, sets.maxStrafeForce, sets.minStrafeForce, sets.maxSpeed),
                 Boost(kin, cmd.boost, sets.boostImpulse),
                 YawTorque(kin, cmd.yawTorque, sets.yawTorque),

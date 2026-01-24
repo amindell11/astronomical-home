@@ -12,8 +12,8 @@ namespace Tests.PlayMode
         private Settings CreateTestSettings()
         {
             var s = ScriptableObject.CreateInstance<Settings>();
-            s.forwardAccel = 0f;
-            s.reverseAccel = 0f;
+            s.forwardForce = 0f;
+            s.reverseForce = 0f;
             s.maxStrafeForce = 0f;
             s.minStrafeForce = 0f;
             s.maxSpeed = 20f;
