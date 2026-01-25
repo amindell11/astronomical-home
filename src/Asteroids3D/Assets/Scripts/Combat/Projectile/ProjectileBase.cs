@@ -16,11 +16,12 @@ namespace Combat.Projectile
         protected Rigidbody rb;
         protected Vector3 startPosition;
 
-        public IShooter Shooter { get; protected set; }
+        public IShooter Shooter { get; private set; }
         public float Damage => damage;
         public float MaxDistance => maxDistance;
         public float DistanceTraveled => Vector3.Distance(startPosition, transform.position);
 
+        public event Action Launched;
         public event Action<Vector3, IDamageable> Hit;
         public event Action ReturnedToPool;
 
@@ -36,43 +37,46 @@ namespace Combat.Projectile
 
         protected virtual void OnEnable()
         {
-            startPosition = transform.position;
-
             if (!rb) return;
             rb.useGravity = false;
             rb.mass = mass;
         }
 
+        public virtual void Launch(Vector3 direction)
+        {
+            startPosition = GamePlane.ProjectOntoPlane(transform.position);
+            RaiseLaunched();
+        }
+
+        protected virtual void Dispose()
+        {
+            ReturnToPool();
+        }
+
         protected virtual void FixedUpdate()
         {
             transform.position = GamePlane.ProjectOntoPlane(transform.position);
-
-            if (DistanceTraveled > maxDistance)
-                ReturnToPool();
+            if (DistanceTraveled > maxDistance) Dispose();
         }
 
         protected virtual void OnHit(IDamageable other)
         {
-            Hit?.Invoke(transform.position, other);
-
-            if (other is ProjectileBase { Shooter: not null } otherProj && otherProj.Shooter == Shooter)
-                return;
-
-            var impactVelocity = rb ? rb.linearVelocity : Vector3.zero;
-            other?.TakeDamage(damage, mass, impactVelocity, transform.position, Shooter?.gameObject);
-            ReturnToPool();
+            RaiseHit(other);
+            ApplyDirectDamage(other);
+            Dispose();
         }
 
-        protected virtual void OnTriggerEnter(Collider other)
+        protected void OnTriggerEnter(Collider other)
         {
             var dmg = other.GetComponentInParent<IDamageable>();
-            if (dmg == null) return;
-            if (Shooter != null && other.GetComponentInParent<IShooter>() == Shooter) return;
-
+            if (dmg == null || Shooter == null) return;
+            if (other.transform.root == Shooter.transform.root) return;
+            if (IsFriendly(dmg)) return;
+            
             OnHit(dmg);
         }
 
-        protected virtual void OnTriggerExit(Collider other)
+        protected void OnTriggerExit(Collider other)
         {
             if (other.CompareTag(TagNames.Boundary)) ReturnToPool();
         }
@@ -85,18 +89,37 @@ namespace Combat.Projectile
             rb.angularVelocity = Vector3.zero;
         }
 
+        private void ApplyDirectDamage(IDamageable other)
+        {
+            var impactVelocity = rb ? rb.linearVelocity : Vector3.zero;
+            other?.TakeDamage(damage, mass, impactVelocity, transform.position, Shooter?.gameObject);
+        }
+
+        protected bool IsFriendly(IDamageable other)
+        {
+            if (other == null) return false;
+            if (other.gameObject == Shooter?.gameObject) return true;
+            return other is ProjectileBase { Shooter: not null } p && p.Shooter == Shooter;
+        }
+
         protected abstract void ReturnToPool();
 
         protected void RaiseReturnedToPool()
         {
             ReturnedToPool?.Invoke();
         }
-    }
 
-    /// <summary>
-    /// Generic projectile base that handles object pooling automatically.
-    /// Derived classes only need to override OnReturnToPool for type-specific cleanup.
-    /// </summary>
+        protected void RaiseHit(IDamageable other)
+        {
+            Hit?.Invoke(transform.position, other);
+        }
+
+        private void RaiseLaunched()
+        {
+            Launched?.Invoke();
+        }
+    }
+    
     public abstract class Projectile<TSelf> : ProjectileBase where TSelf : Projectile<TSelf>
     {
         protected sealed override void ReturnToPool()

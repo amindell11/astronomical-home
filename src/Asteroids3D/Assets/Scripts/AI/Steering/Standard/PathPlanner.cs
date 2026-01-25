@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using AI.Scanning;
 using Game;
-using Ships.Movement;
+using Movement;
 using UnityEngine;
 
 namespace AI.Steering.Standard

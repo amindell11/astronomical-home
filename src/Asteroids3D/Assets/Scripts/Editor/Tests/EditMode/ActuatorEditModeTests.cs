@@ -2,6 +2,7 @@ using NUnit.Framework;
 using Ships;
 using Ships.Command;
 using Ships.Movement;
+using Movement;
 using UnityEngine;
 
 namespace Tests.EditMode

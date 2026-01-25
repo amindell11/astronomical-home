@@ -3,7 +3,7 @@ using Game;
 using NUnit.Framework;
 using Ships;
 using Ships.Damage;
-using Ships.Movement;
+using Movement;
 using UnityEngine;
 using UnityEngine.TestTools;
 

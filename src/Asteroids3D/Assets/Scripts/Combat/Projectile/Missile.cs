@@ -1,11 +1,14 @@
 using System;
 using Damage;
 using Game;
+using Movement;
+using Ships.Movement;
 using UnityEngine;
 using Utils;
 
 namespace Combat.Projectile
 {
+    [RequireComponent(typeof(StatePoller))]
     public partial class Missile : Projectile<Missile>, IDamageable
     {
         [Header("Homing")]
@@ -22,18 +25,20 @@ namespace Combat.Projectile
         [SerializeField] private float acceleration = 40f;
 
         private Transform target;
+        private StatePoller statePoller;
 
         public void SetTarget(Transform tgt) => target = tgt;
         public float NormalizedSpeed => rb && homingSpeed > 0f
             ? Mathf.Clamp01(rb.linearVelocity.magnitude / homingSpeed)
             : 0f;
 
-        public event Action OnLaunched;
         public event Action<Vector3> OnDetonated;
 
         protected override void Awake()
         {
             base.Awake();
+            statePoller = GetComponent<StatePoller>();
+            if (!statePoller) statePoller = gameObject.AddComponent<StatePoller>();
             if (damageLayerMask == -1)
                 damageLayerMask = LayerIds.Mask(LayerIds.Ship, LayerIds.Asteroid);
         }
@@ -41,50 +46,49 @@ namespace Combat.Projectile
         public override void Initialize(IShooter shooter)
         {
             base.Initialize(shooter);
+            if (!rb) return;
+            rb.maxLinearVelocity = homingSpeed;
+        }
 
-            if (rb)
-            {
-                var shooterVelocity = Shooter?.Velocity ?? Vector3.zero;
-                rb.linearVelocity = transform.up * initialSpeed + shooterVelocity;
-                rb.maxLinearVelocity = homingSpeed;
-            }
-            OnLaunched?.Invoke();
+        public override void Launch(Vector3 direction)
+        {            
+            var shooterVelocity = GamePlane.WorldDirToPlane(Shooter?.Velocity ?? Vector3.zero);
+            var launchVelocity = GamePlane.WorldDirToPlane(direction) * initialSpeed + shooterVelocity;
+            rb.linearVelocity = GamePlane.PlaneDirToWorld(launchVelocity);
+            base.Launch(direction);
         }
 
         protected override void FixedUpdate()
         {
             base.FixedUpdate();
-            if (!rb) return;
+            var kin = statePoller.Kinematics;
+            var desiredDir = GetDesiredDirection(kin);
 
-            var normal = GamePlane.Normal;
-            var currentDir = transform.up;
-            var desiredDir = CalculateDesiredDirection(normal, currentDir);
-
-            RotateTowardDirection(normal, currentDir, desiredDir);
-            SteerVelocity(desiredDir);
+            ApplyTurn(kin.Forward, desiredDir);
+            ApplyVelocitySteering(desiredDir);
         }
-        
-        private Vector3 CalculateDesiredDirection(Vector3 normal, Vector3 currentDir)
+
+
+        private Vector2 GetDesiredDirection(Kinematics kin)
         {
-            if (!target) return currentDir;
-
-            var toTarget = Vector3.ProjectOnPlane(target.position - transform.position, normal);
-            return toTarget.sqrMagnitude > 0.01f ? toTarget.normalized : currentDir;
+            if (!target) return kin.Forward;
+            var toTarget = GamePlane.WorldDirToPlane(target.position - transform.position);
+            return toTarget.sqrMagnitude > 0.01f ? toTarget.normalized : kin.Forward;
         }
 
-        private void RotateTowardDirection(Vector3 normal, Vector3 currentDir, Vector3 desiredDir)
+        private void ApplyTurn(Vector2 currentDir, Vector2 desiredDir)
         {
             var maxTurnThisStep = homingTurnRate * Time.fixedDeltaTime;
-            var signedAngle = Vector3.SignedAngle(currentDir, desiredDir, normal);
+            var signedAngle = Vector2.SignedAngle(currentDir, desiredDir);
             var clampedTurn = Mathf.Clamp(signedAngle, -maxTurnThisStep, maxTurnThisStep);
 
             if (Mathf.Abs(clampedTurn) > 0.01f)
-                transform.rotation = Quaternion.AngleAxis(clampedTurn, normal) * transform.rotation;
+                transform.rotation = Quaternion.AngleAxis(clampedTurn, GamePlane.Normal) * transform.rotation;
         }
 
-        private void SteerVelocity(Vector3 desiredDir)
+        private void ApplyVelocitySteering(Vector2 desiredDir)
         {
-            var desiredVelocity = desiredDir * homingSpeed;
+            var desiredVelocity = GamePlane.PlaneDirToWorld(desiredDir * homingSpeed);
             var maxTurnRad = homingTurnRate * Mathf.Deg2Rad * Time.fixedDeltaTime;
             var maxAccelThisStep = acceleration * Time.fixedDeltaTime;
 
@@ -96,36 +100,34 @@ namespace Combat.Projectile
 
         protected override void OnHit(IDamageable other)
         {
-            if (other is ProjectileBase otherProj && (otherProj.Shooter == null || otherProj.Shooter == Shooter))
-                return;
-
-            base.OnHit(other);
             Explode(other);
+            base.OnHit(other);
         }
 
         public void TakeDamage(float damage, float hitMass, Vector3 hitVelocity, Vector3 hitPoint, GameObject attacker)
         {
             Explode(null);
+            Dispose();
+        }
+
+        private void ApplySplashDamage(Vector3 pos, float radius, int layerMask, IDamageable directHitTarget)
+        {
+            var buffer = PhysicsBuffers.GetColliderBuffer(64);
+            var hitCount = Physics.OverlapSphereNonAlloc(pos, radius, buffer, layerMask);
+            var velocity = rb ? rb.linearVelocity : Vector3.zero;
+            for (var i = 0; i < hitCount; i++)
+            {
+                var obj = buffer[i].GetComponentInParent<IDamageable>();
+                if (obj == null || obj == directHitTarget || IsFriendly(obj)) continue;
+
+                obj.TakeDamage(splashDamage, mass, velocity, buffer[i].ClosestPoint(transform.position), Shooter?.gameObject);
+            }
         }
 
         private void Explode(IDamageable directHitTarget)
         {
-            var buffer = PhysicsBuffers.GetColliderBuffer(64);
-            var hitCount = Physics.OverlapSphereNonAlloc(transform.position, explosionRadius, buffer, damageLayerMask);
-            var velocity = rb ? rb.linearVelocity : Vector3.zero;
-
-            for (var i = 0; i < hitCount; i++)
-            {
-                var dmg = buffer[i].GetComponentInParent<IDamageable>();
-                if (dmg == null) continue;
-                if (Shooter != null && dmg.gameObject == Shooter.gameObject) continue;
-                if (directHitTarget != null && dmg == directHitTarget) continue;
-
-                dmg.TakeDamage(splashDamage, mass, velocity, buffer[i].ClosestPoint(transform.position), Shooter?.gameObject);
-            }
-
+            ApplySplashDamage(transform.position, explosionRadius, damageLayerMask, directHitTarget);
             OnDetonated?.Invoke(transform.position);
-            ReturnToPool();
         }
 
         protected override void OnReturnToPool() => target = null;

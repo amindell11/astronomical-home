@@ -1,7 +1,7 @@
 using System.Collections;
 using NUnit.Framework;
 using Ships;
-using Ships.Movement;
+using Movement;
 using UnityEngine;
 using UnityEngine.TestTools;
 

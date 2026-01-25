@@ -1,7 +1,7 @@
 using Game;
 using UnityEngine;
 
-namespace Ships.Movement
+namespace Movement
 {
     /// <summary>Ship motion state snapshot.</summary>
     public readonly struct Kinematics

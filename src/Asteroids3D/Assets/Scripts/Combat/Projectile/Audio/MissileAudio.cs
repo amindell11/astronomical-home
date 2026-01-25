@@ -37,7 +37,7 @@ namespace Combat.Projectile.Audio
         {
             if (missile)
             {
-                missile.OnLaunched += HandleLaunched;
+                missile.Launched += HandleLaunched;
                 missile.OnDetonated += HandleDetonated;
             }
             ResetAudio();
@@ -47,7 +47,7 @@ namespace Combat.Projectile.Audio
         {
             if (missile)
             {
-                missile.OnLaunched -= HandleLaunched;
+                missile.Launched -= HandleLaunched;
                 missile.OnDetonated -= HandleDetonated;
             }
             StopEngine();

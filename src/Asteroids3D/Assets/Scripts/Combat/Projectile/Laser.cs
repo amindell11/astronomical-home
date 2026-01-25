@@ -9,15 +9,12 @@ namespace Combat.Projectile
 
         public float LaserSpeed => laserSpeed;
 
-        public override void Initialize(IShooter shooter)
+        public override void Launch(Vector3 direction)
         {
-            base.Initialize(shooter);
-
-            if (!rb) return;
             var shooterVelocity = Shooter?.Velocity ?? Vector3.zero;
-            var forward = transform.up;
-            var inheritAlong = Vector3.Project(shooterVelocity, forward);
-            rb.linearVelocity = forward * laserSpeed + inheritAlong;
+            var inheritAlong = Vector3.Project(shooterVelocity, direction);
+            rb.linearVelocity = direction * laserSpeed + inheritAlong;
+            base.Launch(direction);
         }
     }
 }

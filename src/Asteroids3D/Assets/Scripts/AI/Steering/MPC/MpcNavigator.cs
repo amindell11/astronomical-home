@@ -3,7 +3,7 @@ using AI.Scanning;
 using AI.Steering.MPC;
 using Ships;
 using Ships.Command;
-using Ships.Movement;
+using Movement;
 using UnityEngine;
 namespace AI.Steering.MPC
 {

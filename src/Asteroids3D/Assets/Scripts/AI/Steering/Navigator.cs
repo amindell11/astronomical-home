@@ -5,7 +5,7 @@ using AI.Steering;
 using Game;
 using Ships;
 using Ships.Command;
-using Ships.Movement;
+using Movement;
 using UnityEngine;
 
 namespace AI

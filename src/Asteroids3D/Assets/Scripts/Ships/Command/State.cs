@@ -1,4 +1,4 @@
-using Ships.Movement;
+using Movement;
 
 namespace Ships.Command
 {

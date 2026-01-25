@@ -10,14 +10,16 @@ namespace Combat.Weapons
     public abstract class WeaponComponent : MonoBehaviour
     {
         [SerializeField] public Transform firePoint;
-
+        protected IShooter shooter;
         protected WeaponCondition[] conditions;
         
         public event Action OnFire;
 
         protected virtual void Awake()
-        {
+        {            
+            shooter = GetComponentInParent<IShooter>();
             conditions = GetComponents<WeaponCondition>();
+            if (!firePoint) firePoint = transform;
             foreach (var condition in conditions)
                 condition.Initialize(this);
         }
@@ -53,30 +55,19 @@ namespace Combat.Weapons
     {
         [Header("Launcher Settings")]
         [SerializeField] internal TProj projectilePrefab;
-
-        protected IShooter shooter;
-
-        protected override void Awake()
-        {
-            base.Awake();
-            shooter = GetComponentInParent<IShooter>();
-            if (!firePoint) firePoint = transform;
-        }
-
-        public override bool CanFire()
-        {
-            return projectilePrefab && base.CanFire();
-        }
-
+        
+        public override bool CanFire() => projectilePrefab && base.CanFire();
+        
         public override ProjectileBase Fire()
         {
             if (!CanFire()) return null;
-            
+
             foreach (var condition in conditions)
                 condition.ProcessFire();
-            
+
             var proj = SimplePool<TProj>.Get(projectilePrefab, firePoint.position, firePoint.rotation);
             proj.Initialize(shooter);
+            proj.Launch(firePoint.up);
             InvokeOnFire();
 
             return proj;
