@@ -58,6 +58,21 @@ namespace Game
             return idToShip.TryGetValue(id, out ship) && ship;
         }
 
+        public bool TryGetShip(Collider collider, out Ship ship, ShipId? excludeId = null)
+        {
+            if (TryGetShipId(collider, out var id))
+            {
+                if (excludeId.HasValue && id == excludeId.Value)
+                {
+                    ship = null;
+                    return false;
+                }
+                return TryGetShip(id, out ship);
+            }
+            ship = null;
+            return false;
+        }
+
         public bool IsFriendly(ShipId a, ShipId b)
         {
             return GetTeam(a) == GetTeam(b);

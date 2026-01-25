@@ -2,14 +2,14 @@ using System;
 using Game;
 using UnityEngine;
 
-namespace AI.Scanning.Sensors
+namespace Sensors
 {
     public static class RayFanSensor
     {
         private static readonly RaycastHit[] RayHits = new RaycastHit[128];
 
         public static int Detect(
-            Transform origin, 
+            Vector3 position, 
             Vector3 direction, 
             float dist, 
             float spreadAngle, 
@@ -18,8 +18,7 @@ namespace AI.Scanning.Sensors
             LayerMask layerMask,
             Collider[] colliderBuffer)
         {
-            var pos = origin.position;
-            var hitCount = CastRay(pos, direction, 0, dist, sphereRadius, layerMask, colliderBuffer);
+            var hitCount = CastRay(position, direction, 0, dist, sphereRadius, layerMask, colliderBuffer);
 
             if (degreesBetweenRays <= 0) return hitCount;
 
@@ -32,8 +31,8 @@ namespace AI.Scanning.Sensors
                 var leftDir = Quaternion.AngleAxis(-angle, planeNormal) * direction;
                 var rightDir = Quaternion.AngleAxis(angle, planeNormal) * direction;
 
-                hitCount = CastRay(pos, leftDir, hitCount, dist, sphereRadius, layerMask, colliderBuffer);
-                hitCount = CastRay(pos, rightDir, hitCount, dist, sphereRadius, layerMask, colliderBuffer);
+                hitCount = CastRay(position, leftDir, hitCount, dist, sphereRadius, layerMask, colliderBuffer);
+                hitCount = CastRay(position, rightDir, hitCount, dist, sphereRadius, layerMask, colliderBuffer);
             }
 
             return hitCount;

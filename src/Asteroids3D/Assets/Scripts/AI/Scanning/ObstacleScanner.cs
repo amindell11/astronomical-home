@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using AI.Scanning.Sensors;
 using Game;
+using Sensors;
 using UnityEngine;
 
 namespace AI.Scanning
@@ -61,8 +61,7 @@ namespace AI.Scanning
             var direction = GamePlane.PlaneDirToWorld(scanDir).normalized;
             RecordDebugParams(direction, dist, spreadAngle, degreesBetweenRays, sphereRadius);
             
-            var count = RayFanSensor.Detect(
-                origin, 
+            var count = RayFanSensor.Detect(origin.position, 
                 direction, 
                 dist, 
                 spreadAngle, 

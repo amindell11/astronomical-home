@@ -1,0 +1,119 @@
+using System;
+
+namespace Combat.Targeting
+{
+    public class LockController
+    {
+        private readonly float lockOnTime;
+        private readonly float lockExpiry;
+        private readonly Func<bool> canFireCheck;
+
+        private float lockTimer;
+        private float lockDuration;
+
+        public LockState State { get; private set; } = LockState.Idle;
+        public ITargetable CurrentTarget { get; private set; }
+        public float LockProgress => (State == LockState.Locking && lockOnTime > 0f) ? UnityEngine.Mathf.Clamp01(lockTimer / lockOnTime) : 0f;
+        public bool IsLocked => State == LockState.Locked;
+
+        public LockController(float lockOnTime, float lockExpiry, Func<bool> canFireCheck)
+        {
+            this.lockOnTime = lockOnTime;
+            this.lockExpiry = lockExpiry;
+            this.canFireCheck = canFireCheck;
+        }
+
+        public bool CanStartNewLock() => State == LockState.Idle && canFireCheck();
+
+        public void Update(float deltaTime, bool isAcquired)
+        {
+            switch (State)
+            {
+                case LockState.Idle:
+                    break;
+                case LockState.Locking:
+                    UpdateLockingState(deltaTime, isAcquired);
+                    break;
+                case LockState.Locked:
+                    UpdateLockedState(deltaTime, isAcquired);
+                    break;
+                case LockState.Cooldown:
+                    UpdateCooldownState();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        public bool TryStartLock(ITargetable candidate)
+        {
+            if (candidate == null || State != LockState.Idle) return false;
+
+            CurrentTarget = candidate;
+            lockTimer = 0f;
+            State = LockState.Locking;
+            return true;
+        }
+
+        public ITargetable ConsumeLock()
+        {
+            if (!IsLocked) return null;
+
+            var lockedTarget = CurrentTarget;
+            ResetLock();
+            State = LockState.Cooldown;
+            return lockedTarget;
+        }
+
+        private void UpdateLockingState(float deltaTime, bool isAcquired)
+        {
+            if (!isAcquired)
+            {
+                CancelLock();
+                return;
+            }
+
+            CurrentTarget?.Lock.Progress?.Invoke(LockProgress);
+
+            lockTimer += deltaTime;
+            if (lockTimer < lockOnTime) return;
+
+            State = LockState.Locked;
+            lockDuration = 0f;
+            CurrentTarget?.Lock.Acquired?.Invoke();
+        }
+
+        private void UpdateLockedState(float deltaTime, bool isAcquired)
+        {
+            lockDuration += deltaTime;
+            var lockExpired = lockDuration > lockExpiry;
+
+            if (lockExpired || !isAcquired)
+            {
+                CancelLock();
+            }
+        }
+
+        private void UpdateCooldownState()
+        {
+            if (canFireCheck())
+            {
+                State = LockState.Idle;
+            }
+        }
+
+        private void CancelLock()
+        {
+            ResetLock();
+            State = LockState.Idle;
+        }
+
+        private void ResetLock()
+        {
+            CurrentTarget?.Lock.Released?.Invoke();
+            CurrentTarget = null;
+            lockTimer = 0f;
+            lockDuration = 0f;
+        }
+    }
+}
