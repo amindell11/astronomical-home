@@ -15,9 +15,11 @@ namespace Game
         [SerializeField] private GameConfig gameConfig;
         private GameInitiator gameInitiator;
         private Coroutine restartRoutine;
-        
+
+        public static GameContext Instance => Singleton;
+
         public GameState CurrentState { get; private set; } = GameState.Playing;
-        public Services Services { get; private set; }
+        public ShipRegistry ShipRegistry { get; private set; }
         
         protected override void Awake()
         {
@@ -29,8 +31,12 @@ namespace Game
         private IEnumerator InitializeRoutine()
         {
             yield return gameInitiator.Initialize(gameConfig);
-            Services = gameInitiator.Services;
             PlayGame();
+        }
+
+        public void SetRegistry(ShipRegistry registry)
+        {
+            ShipRegistry = registry;
         }
         
         public void RestartGame()

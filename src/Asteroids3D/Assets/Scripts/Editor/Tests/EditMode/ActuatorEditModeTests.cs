@@ -8,9 +8,9 @@ namespace Tests.EditMode
 {
     public class ForcesEditModeTests
     {
-        private Settings CreateTestSettings()
+        private ShipSettings CreateTestSettings()
         {
-            var s = ScriptableObject.CreateInstance<Settings>();
+            var s = ScriptableObject.CreateInstance<ShipSettings>();
             s.forwardForce = 1000f;
             s.reverseForce = 500f;
             s.maxStrafeForce = 800f;

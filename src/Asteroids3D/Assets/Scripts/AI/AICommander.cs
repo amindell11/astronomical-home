@@ -1,5 +1,6 @@
 ﻿using AI.Steering;
 using AI.Utility;
+using Game;
 using Ships;
 using Ships.Command;
 using UnityEngine;
@@ -19,14 +20,14 @@ namespace AI
     [RequireComponent(typeof(Gunner))]
     [RequireComponent(typeof(Scanning.Scout))]
     [RequireComponent(typeof(UtilitySelector))]
-    
+
     [DefaultExecutionOrder(-40)]
     public partial class AICommander : Commander
     {
         [Header("AI Configuration")]
         [Tooltip("AI tuning parameters (distances, bonuses, thresholds, etc.)")]
         [SerializeField] private UtilityTuning utilityTuning;
-        
+
         [Header("Difficulty")]
         [Tooltip("Bot skill level, typically set by curriculum (0.0 to 1.0)")]
         [Range(0f, 1f)] public float difficulty = 1.0f;
@@ -46,18 +47,20 @@ namespace AI
             Scout = GetComponent<Scanning.Scout>();
             UtilitySelector = GetComponent<UtilitySelector>();
         }
-        
+
         public override void InitializeCommander(Ship ship)
         {
             this.ship = ship;
-            
+
+            IShipRegistry registry = GameContext.Instance?.ShipRegistry;
+
             var shipInfo = new AI.Context.ShipInfo(ship);
             var targeting = new AI.Computers.Targeting(ship, shipInfo);
             var maneuvers = new Maneuvers(shipInfo);
 
             System.Func<State> stateProvider = () => ship.CurrentState;
-            
-            Scout.Initialize(ship.transform);
+
+            Scout.Initialize(ship.transform, ship.Id, ship.settings.Dynamics,  stateProvider, registry);
             Navigator.Initialize(stateProvider, ship.settings.Dynamics, Scout);
             Gunner.Initialize(ship.Weapons.Primary, ship.Weapons.Secondary, targeting, stateProvider);
             

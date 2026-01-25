@@ -17,7 +17,7 @@ namespace Ships
     {
         [Header("Settings Asset")]
         [Tooltip("ShipSettings asset that holds all tunable parameters.")]
-        public Settings settings;
+        public ShipSettings settings;
 
         [Header("Team Settings")]
         [Tooltip("Team number for this ship. Ships with the same team number are considered friendly.")]
@@ -28,7 +28,8 @@ namespace Ships
         public MovementController Movement { get; private set; }
         public WeaponsController Weapons { get; private set; }
         public DamageController Damage { get; private set; }
-
+        public ShipId Id { get; private set; }
+        public Collider[] Colliders {get; private set;}
         private bool isInitialized;
 
         public State CurrentState { get; private set; }
@@ -40,10 +41,12 @@ namespace Ships
 
         private void Awake()
         { 
+            Id = new ShipId(GetInstanceID());
             StatePoller = GetComponent<StatePoller>();
             Movement = GetComponent<MovementController>();
             Damage   = GetComponent<DamageController>();
             Weapons = GetComponent<WeaponsController>();
+            Colliders = GetComponentsInChildren<Collider>();
         }
         
         private void OnEnable() => PopulateSettings();
@@ -54,7 +57,7 @@ namespace Ships
             Damage?.PopulateSettings(settings);
         }
         
-        public void Initialize(Settings shipSettings, int team)
+        public void Initialize(ShipSettings shipSettings, int team)
         {
             if (isInitialized) return;
             settings = shipSettings;
@@ -103,21 +106,18 @@ namespace Ships
         private void FixedUpdate()
         {
             UpdateState();
-            // Refresh command just before MovementController pulls it at Order 50
-            var cmd = CurrentCommand;
-            if (Commander != null && Commander.TryGetCommand(CurrentState, out cmd))
-            {
-                CurrentCommand = cmd;
-            }
+            TryGetCommand();
         }
 
         private void Update()
         {
-            var cmd = CurrentCommand;
-            if (Commander != null && Commander.TryGetCommand(CurrentState, out cmd))
-            {
+            TryGetCommand();
+        }
+
+        private void TryGetCommand()
+        {
+            if (Commander != null && Commander.TryGetCommand(CurrentState, out var cmd))
                 CurrentCommand = cmd;
-            }
         }
 
         private void UpdateState()

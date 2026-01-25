@@ -2,6 +2,7 @@
 using AI.Computers;
 using AI.Steering;
 using Editor;
+using Ships;
 using Unity.Properties;
 using UnityEngine;
 namespace AI.Context
@@ -14,6 +15,8 @@ namespace AI.Context
     public partial class Info
     {
         private Ships.Ship ship;
+        private ShipId shipId;
+        private IShipRegistry registry;
 
         // Data providers
         public ShipInfo ShipInfo { get; private set; }
@@ -33,11 +36,14 @@ namespace AI.Context
                 return;
             }
 
+            this.shipId = scout.ShipId;
+            this.registry = scout.Registry;
+
             ShipInfo = new ShipInfo(ship);
             Targeting = targeting;
             Scout = scout;
             Maneuvers = maneuvers;
-            Combat = new Combat(ship, Scout, gunner, Targeting);
+            Combat = new Combat(Scout, gunner, Targeting);
             Nav = new Navigation(ShipInfo, Scout, navigator);
         }
 
@@ -76,8 +82,8 @@ namespace AI.Context
         public float LaserSpeed => Combat?.LaserSpeed ?? 0f;
 
         // Scout analysis results
-        public int NearbyEnemyCount => Scout?.ShipScan?.EnemyCount(ship) ?? 0;
-        public int NearbyFriendCount => Scout?.ShipScan?.FriendCount(ship) ?? 0;
+        public int NearbyEnemyCount => Scout?.ShipScan?.EnemyCount(shipId, registry) ?? 0;
+        public int NearbyFriendCount => Scout?.ShipScan?.FriendCount(shipId, registry) ?? 0;
 
         // Backward-compatible accessors delegating to Navigation
         public Vector2 VectorToWaypoint => Nav?.VectorToWaypoint ?? Vector2.zero;

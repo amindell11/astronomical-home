@@ -9,9 +9,9 @@ namespace Tests.PlayMode
 {
     public class ActuatorPlayModeTests
     {
-        private Settings CreateTestSettings()
+        private ShipSettings CreateTestSettings()
         {
-            var s = ScriptableObject.CreateInstance<Settings>();
+            var s = ScriptableObject.CreateInstance<ShipSettings>();
             s.forwardForce = 0f;
             s.reverseForce = 0f;
             s.maxStrafeForce = 0f;

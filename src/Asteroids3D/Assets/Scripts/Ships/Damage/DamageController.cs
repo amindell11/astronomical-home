@@ -98,7 +98,7 @@ namespace Ships.Damage
             SetInvulnerability(0f);
         }
         
-        public void PopulateSettings(Settings s)
+        public void PopulateSettings(ShipSettings s)
         {
             if (!s) return;
             

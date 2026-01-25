@@ -40,7 +40,7 @@ namespace Ships.Movement
             return bank;
         }
 
-        public static Outputs ComputeOutputs(Kinematics kin, Command.Command cmd, Settings sets)
+        public static Outputs ComputeOutputs(Kinematics kin, Command.Command cmd, ShipSettings sets)
         {
             return new Outputs(
                 Thrust(kin, cmd.thrust, sets.forwardForce, sets.reverseForce),

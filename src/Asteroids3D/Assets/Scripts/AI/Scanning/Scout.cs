@@ -1,4 +1,7 @@
+using System;
+using AI.Steering;
 using Ships;
+using Ships.Command;
 using UnityEngine;
 
 namespace AI.Scanning
@@ -27,23 +30,29 @@ namespace AI.Scanning
         private ShipScanner shipScanner;
         private CoverScanner coverScanner;
         private DynamicObstacleScanner obstacleScanner;
-        private Ship ship;
-        
-        public void Initialize(Transform origin)
+        private ShipId shipId;
+        public ShipId ShipId => shipId;
+        public IShipRegistry Registry { get; private set; }
+        private Dynamics shipDynamics;
+        private Func<State> getState;
+        public void Initialize(Transform origin, ShipId shipId, Dynamics shipDynamics, Func<State> stateProvider, IShipRegistry registry)
         {
-            ship = origin.GetComponent<Ship>();
-            shipScanner = new ShipScanner(origin, nearbyShipRadius);
+            this.shipId = shipId;
+            this.shipDynamics = shipDynamics;
+            Registry = registry;
+            getState = stateProvider;
+            shipScanner = new ShipScanner(origin, nearbyShipRadius, shipId, registry);
             coverScanner = new CoverScanner(origin, asteroidCoverRadius, asteroidMask);
             obstacleScanner = new DynamicObstacleScanner(origin, asteroidMask, lookAheadDist, degreesBetweenRays, maxRayDegrees, sphereCastRadius);
         }
 
         private void Update()
         {
-            if (!ship) return;
-            
+            if (!shipId.IsValid) return;
+
             shipScanner?.Scan();
             coverScanner?.Scan();
-            obstacleScanner?.Scan(ship.Movement.Kinematics.vel, ship.settings.maxSpeed);
+            obstacleScanner?.Scan(getState().kinematics.vel, shipDynamics.maxSpeed);
         }
 
         public ObstacleScan ObstacleScan => new(obstacleScanner?.DetectedBuffer, obstacleScanner?.DetectedCount ?? 0);

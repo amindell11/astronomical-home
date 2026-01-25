@@ -9,46 +9,69 @@ namespace AI.Scanning
 {
     public struct ShipScanResult
     {
-        public Ship[] ships;
+        public ShipId[] shipIds;
         public int count;
-        public static ShipScanResult Empty => new() { ships = System.Array.Empty<Ship>(), count = 0 };
-        
-        public IEnumerable<Ship> Ships => ships.Take(count);
-        public IEnumerable<Ship> Friends(Ship self) => Ships.Where(self.IsFriendly);
-        public IEnumerable<Ship> Enemies(Ship self) => Ships.Where(self.IsHostile);
-        public int FriendCount(Ship self) => Friends(self).Count();
-        public int EnemyCount(Ship self) => Enemies(self).Count();
-        public Ship NearestEnemy(Ship self, Vector3 pos) => Enemies(self).OrderBy(e => Vector3.Distance(pos, e.transform.position)).FirstOrDefault();
+        public static ShipScanResult Empty => new() { shipIds = System.Array.Empty<ShipId>(), count = 0 };
+
+        public IEnumerable<ShipId> ShipIds => shipIds.Take(count);
+
+        public IEnumerable<ShipId> Friends(ShipId self, IShipRegistry registry) =>
+            registry == null ? Enumerable.Empty<ShipId>() : ShipIds.Where(id => registry.IsFriendly(self, id));
+
+        public IEnumerable<ShipId> Enemies(ShipId self, IShipRegistry registry) =>
+            registry == null ? Enumerable.Empty<ShipId>() : ShipIds.Where(id => registry.IsHostile(self, id));
+
+        public int FriendCount(ShipId self, IShipRegistry registry) => registry == null ? 0 : Friends(self, registry).Count();
+        public int EnemyCount(ShipId self, IShipRegistry registry) => registry == null ? 0 : Enemies(self, registry).Count();
+
+        public ShipId NearestEnemy(ShipId self, Vector3 pos, IShipRegistry registry)
+        {
+            if (registry == null) return ShipId.Invalid;
+            var nearestId = ShipId.Invalid;
+            var nearestDist = float.MaxValue;
+            foreach (var id in Enemies(self, registry))
+            {
+                if (!registry.TryGetShip(id, out var ship)) continue;
+                var dist = Vector3.Distance(pos, ship.transform.position);
+                if (!(dist < nearestDist)) continue;
+                nearestDist = dist;
+                nearestId = id;
+            }
+            return nearestId;
+        }
     }
 
     public class ShipScanner : IScanner<ShipScanResult>
     {
-        private readonly Ship self;
+        private readonly ShipId selfId;
+        private readonly IShipRegistry registry;
         private readonly SphereSensor sensor;
-        private readonly Ship[] shipBuffer;
+        private readonly ShipId[] shipIdBuffer;
 
         public ShipScanResult LastResult { get; private set; }
 
-        public ShipScanner(Transform origin, float scanRadius, int bufferSize = 32)
+        public ShipScanner(Transform origin, float scanRadius, ShipId selfId, IShipRegistry registry, int bufferSize = 32)
         {
-            self = origin.GetComponent<Ship>();
+            this.selfId = selfId;
+            this.registry = registry;
             sensor = new SphereSensor(origin, scanRadius, LayerIds.Mask(LayerIds.Ship), bufferSize);
-            shipBuffer = new Ship[bufferSize];
-            LastResult = new ShipScanResult { ships = shipBuffer, count = 0 };
+            shipIdBuffer = new ShipId[bufferSize];
+            LastResult = new ShipScanResult { shipIds = shipIdBuffer, count = 0 };
         }
 
         public ShipScanResult Scan()
         {
-            if (!self) { LastResult = ShipScanResult.Empty; return LastResult; }
+            if (!selfId.IsValid || registry == null) { LastResult = ShipScanResult.Empty; return LastResult; }
             var hitCount = sensor.Detect();
             var shipCount = 0;
-            for (var i = 0; i < hitCount && shipCount < shipBuffer.Length; i++)
+            for (var i = 0; i < hitCount && shipCount < shipIdBuffer.Length; i++)
             {
                 var col = sensor.Buffer[i];
-                var ship = col ? col.attachedRigidbody?.GetComponent<Ship>() : null;
-                if (ship && ship != self) shipBuffer[shipCount++] = ship;
+                if (!col) continue;
+                if (!registry.TryGetShipId(col, out var id)) continue;
+                if (id != selfId) shipIdBuffer[shipCount++] = id;
             }
-            LastResult = new ShipScanResult { ships = shipBuffer, count = shipCount };
+            LastResult = new ShipScanResult { shipIds = shipIdBuffer, count = shipCount };
             return LastResult;
         }
     }

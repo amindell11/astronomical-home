@@ -6,7 +6,7 @@ using UnityEngine.Events;
 namespace Ships
 {
     [CreateAssetMenu(fileName = "ShipSettings", menuName = "Ship/ShipSettings")]
-    public class Settings : ScriptableObject
+    public class ShipSettings : ScriptableObject
     {
         [Header("Movement")] 
         public float mass = 1000;

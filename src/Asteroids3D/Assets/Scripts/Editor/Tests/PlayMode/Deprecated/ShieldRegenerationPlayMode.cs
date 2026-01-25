@@ -16,7 +16,7 @@ public class ShieldRegenerationPlayMode
     private GameObject testScene;
     private Ships.Ship testShip;
     private DamageController damage;
-    private Settings settings;
+    private ShipSettings settings;
     private GameObject referencePlane;
 
     private const float RegenDelay = 0.2f;      // seconds
@@ -47,7 +47,7 @@ public class ShieldRegenerationPlayMode
 
         // Required components due to attributes
         var movement = shipGO.AddComponent<Ships.Movement.MovementController>();
-        movement.PopulateSettings(ScriptableObject.CreateInstance<Settings>());
+        movement.PopulateSettings(ScriptableObject.CreateInstance<ShipSettings>());
         movement.enabled = false; // not needed for shield regen tests
         var handler  = shipGO.AddComponent<DamageController>();
 

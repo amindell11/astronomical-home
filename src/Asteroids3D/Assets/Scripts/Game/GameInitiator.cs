@@ -3,9 +3,14 @@ using System.Collections;
 using System.Linq;
 using Asteroids.Fields;
 using Cameras;
+using Ships;
 using UnityEngine;
 using World;
 using UnityEngine.SceneManagement;
+using Utils;
+using Random = UnityEngine.Random;
+using ShipFactory  = Ships.Factory;
+using ShipSpawner = Ships.Spawner;
 
 namespace Game
 {
@@ -15,9 +20,11 @@ namespace Game
         private CameraRig cameraRig;
         private UI.Overlay ui;
         private WorldRoot world;
+        private Ship player, enemy;
+        private ShipSpawner spawner;
         private bool isInitialized;
 
-        public Services Services { get; private set; }
+        public ShipRegistry ShipRegistry { get; private set; }
 
         public IEnumerator Initialize(GameConfig gameConfig)
         {
@@ -48,7 +55,7 @@ namespace Game
                     yield return null;
             }
 
-            GamePlane.Plane.SetPositionAndRotation(Vector3.zero, Quaternion.Euler(0f, 0f, 0f));
+            GamePlane.Plane.SetPositionAndRotation(Vector3.zero, Quaternion.Euler(90f, 0f, 0f));
         }
 
         private void InitializeUI(GameConfig gameConfig)
@@ -61,10 +68,10 @@ namespace Game
         {
             cameraRig = Instantiate(gameConfig.CameraRig);
             var cameraFollow = cameraRig.ObserverCam;
-            cameraFollow.SetSubject(Services.Player.transform);
-            cameraFollow.AddSecondarySubjects(Services.ActiveShips.Where(s => s != Services.Player).Select(s => s.transform));
-            Services.ActiveShips.OnAdd += s => cameraFollow.AddSecondarySubject(s.transform);
-            Services.ActiveShips.OnRemove += s => cameraFollow.RemoveSecondarySubject(s.transform);
+            cameraFollow.SetSubject(player.transform);
+            cameraFollow.AddSecondarySubjects(ShipRegistry.ActiveShips.Where(s => s != player).Select(s => s.transform));
+            ShipRegistry.ActiveShips.OnAdd += s => cameraFollow.AddSecondarySubject(s.transform);
+            ShipRegistry.ActiveShips.OnRemove += s => cameraFollow.RemoveSecondarySubject(s.transform);
         }
 
         private void InitializeAsteroidField(GameConfig gameConfig)
@@ -77,8 +84,21 @@ namespace Game
 
         private void InitializeShips(GameConfig gameConfig)
         {
-            Services = new Services(gameConfig);
-            world.Follower.SetTarget(Services.Player.transform);
+            ShipRegistry = new ShipRegistry(gameConfig);
+            GameContext.Instance.SetRegistry(ShipRegistry);
+            spawner = new ShipSpawner(gameConfig.ShipSpawnerSettings, ShipRegistry.ActiveShips);
+
+            player = ShipFactory.CreateShip(gameConfig.PlayerTemplate, gameConfig.PlayerCommander, gameConfig.ShipSettings, 0,
+                Vector3.zero, Quaternion.identity);
+            player.tag = TagNames.Player;
+
+            enemy = ShipFactory.CreateShip(gameConfig.EnemyTemplate, gameConfig.EnemyCommander, gameConfig.ShipSettings, 1,
+                GamePlane.PlanePointToWorld(Random.insideUnitCircle) * 5, Quaternion.identity);
+
+            ShipRegistry.ActiveShips.Add(player);
+            ShipRegistry.ActiveShips.Add(enemy);
+
+            world.Follower.SetTarget(player.transform);
         }
 
         private void InitializeWorld(GameConfig gameConfig)
@@ -97,14 +117,18 @@ namespace Game
                 Destroy(asteroidField.gameObject);
             if (world)
                 Destroy(world.gameObject);
+            if (player) 
+                Destroy(player.gameObject);
+            if (enemy) 
+                Destroy(enemy.gameObject);
 
-            Services?.Dispose();
+            ShipRegistry?.Dispose();
 
             ui = null;
             cameraRig = null;
             asteroidField = null;
             world = null;
-            Services = null;
+            ShipRegistry = null;
             isInitialized = false;
         }
     }

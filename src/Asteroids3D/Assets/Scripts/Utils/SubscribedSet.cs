@@ -21,15 +21,12 @@ namespace Utils
             return true;
         }
 
-        public new bool Remove(T item)
+        private new bool Remove(T item)
         {
             if (item == null) return false;
-            if (base.Remove(item))
-            {
-                OnRemove?.Invoke(item);
-                return true;
-            }
-            return false;
+            if (!base.Remove(item)) return false;
+            OnRemove?.Invoke(item);
+            return true;
         }
 
         public new void Clear()

@@ -13,7 +13,7 @@ namespace Ships
         public static Ship CreateShip(
              Ship prefab,
              Commander commander,
-             Settings shipSettings,
+             ShipSettings shipSettings,
              int team,
              Vector3 position,
              Quaternion rotation)
