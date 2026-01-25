@@ -62,6 +62,7 @@ namespace Game
         {
             ui = Instantiate(gameConfig.UI);
             ui.SetCanvasWorldCamera(cameraRig.UICamera);
+            ui.Initialize(player);
         }
 
         private void InitializeCamera(GameConfig gameConfig)

@@ -93,8 +93,39 @@ Apply SOLID principles and Unity-specific best practices to all code in this pro
 #### Component Design
 - Keep MonoBehaviours lightweight; use them as orchestrators
 - Avoid large Update() methods; split into focused update loops or event-driven logic
-- Use GetComponent sparingly; cache references in Awake() or Start()
 - Prefer composition over deep inheritance hierarchies
+
+#### Expensive Unity Operations (STRICT)
+
+**All expensive Unity operations must be called in `Awake()` only.** This includes:
+- `GetComponent<T>()`, `GetComponentInChildren<T>()`, `GetComponentInParent<T>()`
+- `GameObject.Find()`, `FindObjectOfType<T>()`, `FindGameObjectWithTag()`
+- `Camera.main` (uses FindGameObjectWithTag internally)
+
+These calls are **forbidden** in:
+- `Start()`, `OnEnable()`, `Initialize()` methods
+- `Update()`, `FixedUpdate()`, `LateUpdate()`
+- Any method called at runtime
+
+**Correct pattern:**
+```csharp
+private Rigidbody rb;
+private AudioSource audioSource;
+
+void Awake()
+{
+    rb = GetComponent<Rigidbody>();
+    audioSource = GetComponentInChildren<AudioSource>();
+}
+
+public void Initialize(SomeDependency dep)
+{
+    // Only assign injected references, no GetComponent calls
+    this.dependency = dep;
+}
+```
+
+**For cross-object dependencies:** Use dependency injection from the composition root (GameInitiator), not runtime lookups.
 
 #### Performance
 - Use object pooling for frequently instantiated/destroyed objects

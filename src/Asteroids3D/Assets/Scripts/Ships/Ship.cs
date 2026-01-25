@@ -28,6 +28,7 @@ namespace Ships
         public MovementController Movement { get; private set; }
         public WeaponsController Weapons { get; private set; }
         public DamageController Damage { get; private set; }
+        public TargetingComputer Targeting { get; private set; }
         public ShipId Id { get; private set; }
         public Collider[] Colliders {get; private set;}
         private bool isInitialized;
@@ -40,12 +41,13 @@ namespace Ships
         public Vector3 Velocity => Movement ? Movement.Kinematics.WorldVel : Vector3.zero;
 
         private void Awake()
-        { 
+        {
             Id = new ShipId(GetInstanceID());
             StatePoller = GetComponent<StatePoller>();
             Movement = GetComponent<MovementController>();
             Damage   = GetComponent<DamageController>();
             Weapons = GetComponent<WeaponsController>();
+            Targeting = GetComponentInChildren<TargetingComputer>();
             Colliders = GetComponentsInChildren<Collider>();
         }
         
@@ -131,9 +133,5 @@ namespace Ships
                 shieldPct = Damage.Shield.Pct,
             };
         }
-
-        public bool IsFriendly(Ship otherShip) => otherShip && otherShip.teamNumber == teamNumber;
-        public bool IsHostile(Ship otherShip) => !IsFriendly(otherShip);
-
     }
 }

@@ -1,12 +1,9 @@
 using Combat.Targeting;
-using Combat.Weapons;
 using UnityEngine;
-using Utils;
-using Weapons;
 
 namespace Audio
 {
-    /// Plays audio cues driven by MissileLauncher‘s LockChannel events.
+    /// Plays audio cues driven by TargetingComputer state changes.
     [RequireComponent(typeof(AudioSource))]
     public class UILockOnAudio : MonoBehaviour
     {
@@ -21,41 +18,38 @@ namespace Audio
         [SerializeField, Range(0f, 1f)] private float volume = 0.7f;
 
         private AudioSource source;
-        private WeaponMissiles launcher;
+        private TargetingComputer targeting;
         private LockState lastState = LockState.Idle;
 
-        void Awake()
+        private void Awake()
         {
             source = GetComponent<AudioSource>();
             source.playOnAwake = false;
             source.loop        = false;
-
-            // Attempt to find the player's launcher at startup (may be null if player not spawned yet).
-            TryAssignLauncher();
         }
 
-        void OnDisable()
+        public void Initialize(TargetingComputer targetingComputer)
+        {
+            targeting = targetingComputer;
+            lastState = targeting.State;
+        }
+
+        private void OnDisable()
         {
             StopAudio();
         }
 
-        void Update()
+        private void Update()
         {
-            // Ensure we have a reference to the player's MissileLauncher.
-            if (!launcher)
-            {
-                TryAssignLauncher();
-                if (!launcher) return; // Still not found – wait until next frame.
-            }
+            if (!targeting) return;
 
-            var currentState = launcher.Targeting.State;
+            var currentState = targeting.State;
             if (currentState == lastState) return;
             HandleStateChange(currentState);
             lastState = currentState;
         }
 
-        /* ----------------- State-driven audio ----------------- */
-        void HandleStateChange(LockState newState)
+        private void HandleStateChange(LockState newState)
         {
             switch (newState)
             {
@@ -65,13 +59,15 @@ namespace Audio
                 case LockState.Locked:
                     PlayLockedClip();
                     break;
+                case LockState.Idle:
+                case LockState.Cooldown:
                 default: // Idle, Cooldown, etc.
                     StopAudio();
                     break;
             }
         }
 
-        void PlayLockingLoop()
+        private void PlayLockingLoop()
         {
             if (!lockingLoopClip) return;
 
@@ -84,7 +80,7 @@ namespace Audio
             }
         }
 
-        void PlayLockedClip()
+        private void PlayLockedClip()
         {
             // Ensure any looping clip is halted first
             StopAudio();
@@ -94,25 +90,12 @@ namespace Audio
             }
         }
 
-        void StopAudio()
+        private void StopAudio()
         {
             source.loop = false;
             source.Stop();
             source.clip = null;
         }
 
-        /* ----------------- Helper ----------------- */
-        void TryAssignLauncher()
-        {
-            var playerObj = GameObject.FindGameObjectWithTag(TagNames.Player);
-            if (!playerObj) return;
-            launcher = playerObj.GetComponentInChildren<WeaponMissiles>();
-
-            // Sync state immediately to avoid false triggers
-            if (launcher)
-            {
-                lastState = launcher.Targeting.State;
-            }
-        }
     }
 }

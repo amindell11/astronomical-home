@@ -1,10 +1,9 @@
-﻿using Ships;
+﻿using Ships.Damage;
 using UnityEngine;
-using Utils;
 
 namespace Audio
 {
-    /// Plays audio cues driven by the player Ship's OnHealthChanged events.
+    /// Plays audio cues driven by DamageController health/shield events.
     [RequireComponent(typeof(AudioSource))]
     public class UIHealthAudio : MonoBehaviour
     {
@@ -21,9 +20,9 @@ namespace Audio
         [SerializeField, Range(0f, 1f)] private float volume = 0.6f;
 
         private AudioSource source;
-        private Ships.Ship playerShip;
-        private bool isAlarmPlaying = false;
-    
+        private DamageController damage;
+        private bool isAlarmPlaying;
+
         // Cache current values to avoid redundant calculations
         private float currentHealthPercentage = 1.0f;
         private float currentShieldPercentage = 1.0f;
@@ -33,47 +32,60 @@ namespace Audio
             source = GetComponent<AudioSource>();
             source.playOnAwake = false;
             source.loop        = false;
-
-            // Attempt to find the player ship at startup (may be null if player not spawned yet).
-            TryAssignPlayerShip();
         }
 
-        void OnDisable()
+        public void Initialize(DamageController damageController)
+        {
+            damage = damageController;
+            SubscribeToEvents();
+            InitializeCurrentValues();
+        }
+
+        private void OnDisable()
         {
             StopAlarm();
             UnsubscribeFromEvents();
         }
 
-        void Update()
-        {
-            // Ensure we have a reference to the player Ship.
-            if (!playerShip)
-            {
-                TryAssignPlayerShip();
-            }
-        }
-
         /* ----------------- Event Handlers ----------------- */
-        void OnHealthChanged(float current, float previous, float max)
+        private void OnHealthChanged(float current, float previous, float max)
         {
             currentHealthPercentage = max > 0f ? current / max : 0f;
             CheckAlarmCondition();
         }
 
-        void OnShieldChanged(float current, float previous, float max)
+        private void OnShieldChanged(float current, float previous, float max)
         {
             currentShieldPercentage = max > 0f ? current / max : 0f;
             CheckAlarmCondition();
         }
 
-        void OnPlayerDeath(Ships.Ship victim, Ships.Ship killer)
+        private void OnPlayerDeath(Ships.Ship victim, Ships.Ship killer)
         {
-            // Stop alarm when player dies
             StopAlarm();
         }
 
+        private void SubscribeToEvents()
+        {
+            if (!damage) return;
+            damage.Health.OnValueChanged += OnHealthChanged;
+            damage.Shield.OnValueChanged += OnShieldChanged;
+            damage.OnDeath += OnPlayerDeath;
+        }
+
+        private void InitializeCurrentValues()
+        {
+            if (!damage) return;
+            currentHealthPercentage = damage.Health.MaxValue > 0f
+                ? damage.Health.CurrentValue / damage.Health.MaxValue
+                : 0f;
+            currentShieldPercentage = damage.Shield.MaxValue > 0f
+                ? damage.Shield.CurrentValue / damage.Shield.MaxValue
+                : 0f;
+        }
+
         /* ----------------- Alarm Logic ----------------- */
-        void CheckAlarmCondition()
+        private void CheckAlarmCondition()
         {
             // Alarm triggers when BOTH health AND shield are below their critical thresholds
             var healthCritical = currentHealthPercentage <= criticalHealthThreshold && currentHealthPercentage > 0f;
@@ -91,7 +103,7 @@ namespace Audio
         }
 
         /* ----------------- Audio Control ----------------- */
-        void PlayLowHealthAlarm()
+        private void PlayLowHealthAlarm()
         {
             if (!lowHealthAlarmClip) return;
 
@@ -105,7 +117,7 @@ namespace Audio
             isAlarmPlaying = true;
         }
 
-        void StopAlarm()
+        private void StopAlarm()
         {
             source.loop = false;
             source.Stop();
@@ -113,41 +125,12 @@ namespace Audio
             isAlarmPlaying = false;
         }
 
-        /* ----------------- Helper Methods ----------------- */
-        void TryAssignPlayerShip()
+        private void UnsubscribeFromEvents()
         {
-            var playerObj = GameObject.FindGameObjectWithTag(TagNames.Player);
-            if (!playerObj) return;
-            var newPlayerShip = playerObj.GetComponent<Ships.Ship>();
-            if (newPlayerShip && newPlayerShip != playerShip)
-            {
-                // Unsubscribe from old ship if it exists
-                UnsubscribeFromEvents();
-                
-                playerShip = newPlayerShip;
-                
-                // Subscribe to new ship events
-                playerShip.Damage.Health.OnValueChanged += OnHealthChanged;
-                playerShip.Damage.Shield.OnValueChanged += OnShieldChanged;
-                playerShip.Damage.OnDeath += OnPlayerDeath;
-                
-                // Initialize current values
-                if (!playerShip.Damage) return;
-                currentHealthPercentage = playerShip.Damage.Health.MaxValue > 0f ? 
-                    playerShip.Damage.Health.CurrentValue / playerShip.Damage.Health.MaxValue : 0f;
-                currentShieldPercentage = playerShip.Damage.Shield.MaxValue > 0f ? 
-                    playerShip.Damage.Shield.CurrentValue / playerShip.Damage.Shield.MaxValue : 0f;
-            }
-        }
-
-        void UnsubscribeFromEvents()
-        {
-            if (playerShip)
-            {
-                playerShip.Damage.Health.OnValueChanged -= OnHealthChanged;
-                playerShip.Damage.Shield.OnValueChanged -= OnShieldChanged;
-                playerShip.Damage.OnDeath -= OnPlayerDeath;
-            }
+            if (!damage) return;
+            damage.Health.OnValueChanged -= OnHealthChanged;
+            damage.Shield.OnValueChanged -= OnShieldChanged;
+            damage.OnDeath -= OnPlayerDeath;
         }
     }
 } 

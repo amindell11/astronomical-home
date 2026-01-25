@@ -14,6 +14,9 @@ namespace UI
     [RequireComponent(typeof(CanvasGroup))]
     public sealed class LockOnIndicator : MonoBehaviour
     {
+        private static readonly int LockProgress = Animator.StringToHash("lockProgress");
+        private static readonly int LockComplete = Animator.StringToHash("LockComplete");
+
         [Tooltip("Animator driving reticle scale / flash. Will default to first child Animator if left unassigned.")]
         [SerializeField] private Animator animator;
         [SerializeField] private float verticalOffset = -5f;
@@ -21,37 +24,33 @@ namespace UI
         private CanvasGroup canvasGroup;
         private ITargetable targetable;
 
-        void Awake()
-        {
-            canvasGroup = GetComponent<CanvasGroup>();
-            if (!animator)
-            {
-                animator = GetComponentInChildren<Animator>();
-            }
-            Hide(); // start invisible
-        }
-
-        void OnEnable()
+        private void Awake()
         {
             targetable = GetComponentInParent<ITargetable>();
-
-            if (targetable != null)
-            {
-                targetable.Lock.Progress += HandleLockProgress;
-                targetable.Lock.Acquired += HandleLockAcquired;
-                targetable.Lock.Released += HandleLockReleased;
-            }
+            canvasGroup = GetComponent<CanvasGroup>();
+            if (!animator) animator = GetComponentInChildren<Animator>();
         }
 
-        void OnDisable()
+        private void Start()
         {
-            if (targetable != null)
-            {
-                targetable.Lock.Progress -= HandleLockProgress;
-                targetable.Lock.Acquired -= HandleLockAcquired;
-                targetable.Lock.Released -= HandleLockReleased;
-                targetable = null;
-            }
+            Hide();
+        }
+        private void OnEnable()
+        {
+            if (targetable == null) return;
+            targetable.Lock.Progress += HandleLockProgress;
+            targetable.Lock.Acquired += HandleLockAcquired;
+            targetable.Lock.Released += HandleLockReleased;
+        }
+
+        private void OnDisable()
+        {
+            if (targetable == null) return;
+            targetable.Lock.Progress -= HandleLockProgress;
+            targetable.Lock.Acquired -= HandleLockAcquired;
+            targetable.Lock.Released -= HandleLockReleased;
+            targetable = null;
+            Hide();
         }
 
         private void HandleLockProgress(float progress)
@@ -69,37 +68,26 @@ namespace UI
             Hide();
         }
 
-        /// <summary>Animate progress while lock is building (0 → 1).</summary>
-        public void UpdateProgress(float progress)
+        private void UpdateProgress(float progress)
         {
             if (!canvasGroup) return;
             canvasGroup.alpha = 1f;
-            if (animator)
-            {
-                animator.SetFloat("lockProgress", progress);
-            }
+            if (animator) animator.SetFloat(LockProgress, progress);
         }
 
-        /// <summary>Call once when the lock is fully acquired to play flash animation.</summary>
-        public void OnLockComplete()
+        private void OnLockComplete()
         {
             if (!canvasGroup) return;
             canvasGroup.alpha = 1f;
-            if (animator)
-            {
-                animator.SetTrigger("LockComplete");
-            }
+            if (animator) animator.SetTrigger(LockComplete);
         }
 
-        /// <summary>Immediately hides the indicator (no animation).</summary>
-        public void Hide()
+        private void Hide()
         {
-            if (canvasGroup)
-            {
-                canvasGroup.alpha = 0f;
-            }
+            if (canvasGroup) canvasGroup.alpha = 0f;
         }
-        void LateUpdate()
+
+        private void LateUpdate()
         {
             if (canvasGroup && canvasGroup.alpha <= 0f) return;
             transform.rotation = Quaternion.Euler(90, 0, 0);

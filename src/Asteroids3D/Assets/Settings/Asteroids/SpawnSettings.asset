@@ -1167,7 +1167,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b17379bf45ec2bc40b100cb7238e20ba, type: 3}
   m_Name: SpawnSettings
   m_EditorClassIdentifier: 
-  density: 35
+  density: 170
   meshInfos:
   - mesh: {fileID: 4300002, guid: b9abf17990865d84d957cad76e0ef253, type: 3}
     colliderMesh: {fileID: 8058860850470389519}
