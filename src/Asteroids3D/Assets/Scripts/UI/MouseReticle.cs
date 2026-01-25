@@ -23,24 +23,20 @@ namespace UI
         [Tooltip("Offset along the GamePlane normal when in world-space mode.")]
         [SerializeField] private float worldSpaceOffset = 0.1f;
 
-        Camera cam;
-        RectTransform rect;
+        private Camera cam;
+        private RectTransform rect;
 
-        void Awake()
+        private void Awake()
         {
             cam  = Camera.main;
             rect = GetComponent<RectTransform>();
         }
 
-        void Update()
+        private void Update()
         {
             if (useWorldSpace)
             {
-                if (cam == null)
-                {
-                    cam = Camera.main;
-                    if (cam == null) return; // cannot compute without a camera
-                }
+                if (!cam) return;
 
                 // Build a ray from the camera through the mouse position.
                 var ray = cam.ScreenPointToRay(Input.mousePosition);

@@ -1,3 +1,4 @@
+using System;
 using Game;
 using UnityEngine;
 
@@ -13,21 +14,23 @@ namespace Player
         private const string Fire2Button = "Fire2";
         private const string DirectionButton = "Direction";
 
-        public static float Thrust => Input.GetAxis(VerticalAxis);
-        public static float Strafe => Input.GetAxis(HorizontalAxis);
-        public static float Rotation => Input.GetAxis(RotationAxis);
-        public static bool BoostDown => Input.GetButtonDown(BoostButton);
-        public static bool PrimaryFire => Input.GetButton(Fire1Button);
-        public static bool SecondaryFireDown => Input.GetButtonDown(Fire2Button);
-        public static bool WantsToRotate => Input.GetButton(DirectionButton);
+        public float Thrust => Input.GetAxis(VerticalAxis);
+        public float Strafe => Input.GetAxis(HorizontalAxis);
+        public float Rotation => Input.GetAxis(RotationAxis);
+        public bool BoostDown => Input.GetButtonDown(BoostButton);
+        public bool PrimaryFire => Input.GetButton(Fire1Button);
+        public bool SecondaryFireDown => Input.GetButtonDown(Fire2Button);
+        public bool WantsToRotate => Input.GetButton(DirectionButton);
 
-        public static Vector3 GetMouseWorldPosition()
+        public PlayerInputReader(Func<Vector3,Vector3> screenToGamePlane)
         {
-            var mainCamera = Camera.main;
-            if (!mainCamera) return Vector3.zero;
-            
-            return GamePlane.ProjectOntoPlane(
-                mainCamera.ScreenToWorldPoint(Input.mousePosition));
+            this.screenToGamePlane = screenToGamePlane;
+        }
+
+        private readonly Func<Vector3, Vector3> screenToGamePlane;
+        public Vector3 GetMouseWorldPosition()
+        {
+            return screenToGamePlane?.Invoke(Input.mousePosition) ?? Vector3.zero;
         }
     }
 }

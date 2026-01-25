@@ -8,9 +8,7 @@ namespace Ships
 public class Spawner
 {
     private readonly ShipSpawnerSettings settings;
-    
-    private Camera cacheMainCamera;
-    private Camera LazyCacheCamera => cacheMainCamera ??= Camera.main;
+    private Transform worldCenter;
 
     public Spawner(ShipSpawnerSettings settings, SubscribedSet<Ship> activeShips)
     {
@@ -38,8 +36,10 @@ public class Spawner
 
     private Vector3 GetRandomOffscreenPosition()
     {
-        var pos = Random.insideUnitSphere.normalized * settings.offscreenDistance + LazyCacheCamera.transform.position;
-        return GamePlane.ProjectOntoPlane(pos);
+        worldCenter ??= GameContext.Instance.WorldFollow?.transform;
+        var centerPos = worldCenter ? worldCenter.position : Vector3.zero;
+        var pos = Random.insideUnitSphere.normalized * settings.offscreenDistance + centerPos;
+        return GamePlane.WorldPointToPlane(pos);
     }
 }
 }

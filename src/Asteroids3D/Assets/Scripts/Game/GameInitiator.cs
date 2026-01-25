@@ -67,6 +67,8 @@ namespace Game
         private void InitializeCamera(GameConfig gameConfig)
         {
             cameraRig = Instantiate(gameConfig.CameraRig);
+            GameContext.Instance.SetMainCamera(cameraRig.MainCamera);
+
             var cameraFollow = cameraRig.ObserverCam;
             cameraFollow.SetSubject(player.transform);
             cameraFollow.AddSecondarySubjects(ShipRegistry.ActiveShips.Where(s => s != player).Select(s => s.transform));
@@ -105,6 +107,7 @@ namespace Game
         {
             if (!gameConfig.World) return;
             world = Instantiate(gameConfig.World);
+            GameContext.Instance.SetWorldFollow(world.Follower);
         }
 
         public void Shutdown()

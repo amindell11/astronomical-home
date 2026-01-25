@@ -20,6 +20,8 @@ namespace Game
 
         public GameState CurrentState { get; private set; } = GameState.Playing;
         public ShipRegistry ShipRegistry { get; private set; }
+        public WorldFollow WorldFollow { get; private set; }
+        public Camera MainCamera { get; private set; }
         
         protected override void Awake()
         {
@@ -38,7 +40,17 @@ namespace Game
         {
             ShipRegistry = registry;
         }
-        
+
+        public void SetWorldFollow(WorldFollow worldFollow)
+        {
+            WorldFollow = worldFollow;
+        }
+
+        public void SetMainCamera(Camera camera)
+        {
+            MainCamera = camera;
+        }
+
         public void RestartGame()
         {
             PlayGame();

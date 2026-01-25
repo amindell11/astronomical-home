@@ -43,7 +43,7 @@ namespace Asteroids
         private MeshFilter meshFilter;
         private MeshCollider meshCollider;
         private SphereCollider cheapCollider;
-        private Transform mainCameraTransform;
+        private Transform worldFollowTransform;
 
 
         [Header("Performance Tuning")]
@@ -69,7 +69,7 @@ namespace Asteroids
             meshCollider = GetComponent<MeshCollider>();
             cheapCollider = GetComponent<SphereCollider>();
             Renderer = GetComponent<Renderer>();
-            mainCameraTransform = Camera.main ? Camera.main.transform : null;
+            worldFollowTransform = GameContext.Instance.WorldFollow ? GameContext.Instance.WorldFollow.transform : null;
             Rb.useGravity = false;
         }
 
@@ -221,15 +221,10 @@ namespace Asteroids
         {
             transform.position = GamePlane.ProjectOntoPlane(transform.position) + GamePlane.Origin;
 
-            // Enable/disable detailed collider based on distance to camera
+            // Enable/disable detailed collider based on distance to world center
             if (!meshCollider) return;
-            if (!mainCameraTransform && Camera.main)
-            {
-                mainCameraTransform = Camera.main.transform;
-            }
-
-            if (!mainCameraTransform) return;
-            var distSqr = (GamePlane.ProjectOntoPlane(mainCameraTransform.position) - GamePlane.ProjectOntoPlane(transform.position)).sqrMagnitude;
+            if (!worldFollowTransform) return;
+            var distSqr = (GamePlane.ProjectOntoPlane(worldFollowTransform.position) - GamePlane.ProjectOntoPlane(transform.position)).sqrMagnitude;
             var shouldEnable = distSqr < detailedColliderEnableDistance * detailedColliderEnableDistance;
             if (meshCollider.enabled != shouldEnable)
             {

@@ -10,13 +10,13 @@ namespace UI
 
         private Camera self;
 
-        void Awake()
+        private void Awake()
         {
             self   = GetComponent<Camera>();
             source = source ? source : Camera.main;
         }
 
-        void LateUpdate()                        // after any zoom logic has run
+        private void LateUpdate()                        // after any zoom logic has run
         {
             if (source && self.orthographic != source.orthographic)
                 self.orthographic = source.orthographic;

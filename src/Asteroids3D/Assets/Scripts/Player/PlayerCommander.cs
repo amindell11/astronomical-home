@@ -21,11 +21,16 @@ namespace Player
         [SerializeField] private float mouseGizmoScale = 3f;
     
         private Ship ship;
+        private PlayerInputReader playerInput;
 
         private Vector3 directionToMouse;
         private Vector3 projectedDirection;
         private float targetAngle;
-        
+        private void Awake()
+        {
+            playerInput = new PlayerInputReader(pos => 
+                GamePlane.ProjectOntoPlane(GameContext.Instance.MainCamera.ScreenToWorldPoint(pos)));
+        }
         public override void InitializeCommander(Ship ship)
         {
             this.ship = ship;
@@ -44,17 +49,17 @@ namespace Player
             if (!ship) return;
             
             // Poll ALL inputs in Update for stability
-            thrustInput = PlayerInputReader.Thrust;
-            strafeInput = PlayerInputReader.Strafe;
-            rotationInput = PlayerInputReader.Rotation;
-            boostInput = PlayerInputReader.BoostDown;
-            primaryInput = PlayerInputReader.PrimaryFire;
-            secondaryInput = PlayerInputReader.SecondaryFireDown;
-            wantsRotate = PlayerInputReader.WantsToRotate;
+            thrustInput = playerInput.Thrust;
+            strafeInput = playerInput.Strafe;
+            rotationInput = playerInput.Rotation;
+            boostInput = playerInput.BoostDown;
+            primaryInput = playerInput.PrimaryFire;
+            secondaryInput = playerInput.SecondaryFireDown;
+            wantsRotate = playerInput.WantsToRotate;
 
             if (useMouseDirection && wantsRotate)
             {
-                var mouseWorldPos = PlayerInputReader.GetMouseWorldPosition();
+                var mouseWorldPos = playerInput.GetMouseWorldPosition();
                 directionToMouse = (mouseWorldPos - ship.transform.position).normalized;
                 targetAngle = CalculateYawAngle(directionToMouse);
             }

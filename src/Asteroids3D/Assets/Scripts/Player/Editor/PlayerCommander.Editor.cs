@@ -8,7 +8,7 @@ namespace Player
     {
         private void OnDrawGizmos()
         {
-            if (!showMouseGizmos || !Application.isPlaying || !useMouseDirection || ! PlayerInputReader.WantsToRotate) return;
+            if (!showMouseGizmos || !Application.isPlaying || !useMouseDirection || ! playerInput.WantsToRotate) return;
         
             var position = transform.position;
             var scale = mouseGizmoScale;

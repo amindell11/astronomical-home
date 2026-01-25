@@ -28,7 +28,7 @@ namespace Audio
         private float currentHealthPercentage = 1.0f;
         private float currentShieldPercentage = 1.0f;
 
-        void Awake()
+        private void Awake()
         {
             source = GetComponent<AudioSource>();
             source.playOnAwake = false;
