@@ -46,7 +46,6 @@ namespace UI
                 glowController = fillImage.GetComponent<GlowingUIController>();
             if (!glowController)
                 glowController = GetComponent<GlowingUIController>();
-            if (laserGun) heat = laserGun.Heat;
             if (glowController)
             {
                 defaultFlashSpeed = glowController.FlashSpeed;
@@ -58,6 +57,8 @@ namespace UI
         public void Initialize(Heat heat)
         {
             this.heat = heat;
+            // Also update the laserGun reference for backwards compatibility
+            if (heat) laserGun = heat.GetComponentInParent<WeaponLaser>();
         }
 
         void Update()

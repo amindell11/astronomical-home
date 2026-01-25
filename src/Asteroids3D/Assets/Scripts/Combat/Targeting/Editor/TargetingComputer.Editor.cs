@@ -7,9 +7,9 @@ namespace Combat.Targeting
 {
     public partial class TargetingComputer
     {
-        void OnDrawGizmos()
+        private void OnDrawGizmos()
         {
-            if (firePoint == null) return;
+            if (!firePoint) return;
             var origin = firePoint.position;
             var forward = firePoint.up;
 
@@ -46,8 +46,8 @@ namespace Combat.Targeting
                 var progress = LockProgress;
                 Gizmos.color = Color.Lerp(Color.red, Color.green, progress);
 
-                var segments = 16;
-                var radius = 2f;
+                const int segments = 16;
+                const float radius = 2f;
                 for (var i = 0; i < segments * progress; i++)
                 {
                     var angle1 = (i / (float)segments) * 360f * Mathf.Deg2Rad;
@@ -61,10 +61,10 @@ namespace Combat.Targeting
             }
             
             var cooldownRemaining = 0f;
-            if (weapon != null)
+            if (weapon)
             {
                 var cooldown = weapon.GetComponent<Cooldown>();
-                if (cooldown != null)
+                if (cooldown)
                 {
                     cooldownRemaining = cooldown.CooldownRemaining;
                 }
@@ -74,7 +74,7 @@ namespace Combat.Targeting
             Handles.Label(origin + Vector3.up * 3f, $"Targeting: {State}\nLock: {LockProgress:P0}\nCooldown: {cooldownRemaining:F1}s");
         }
 
-        void DrawSensorCone(Vector3 origin, Vector3 forward, Color color)
+        private void DrawSensorCone(Vector3 origin, Vector3 forward, Color color)
         {
             var halfAngle = lockOnConeAngle / 2f;
             var planeNormal = Game.GamePlane.Normal;
@@ -87,7 +87,7 @@ namespace Combat.Targeting
             Gizmos.DrawRay(origin, leftDir * maxLockDistance);
             Gizmos.DrawRay(origin, rightDir * maxLockDistance);
 
-            var degreesBetweenRays = 5f;
+            const float degreesBetweenRays = 5f;
             var raysPerSide = Mathf.FloorToInt(halfAngle / degreesBetweenRays);
 
             for (var i = 1; i <= raysPerSide; i++)

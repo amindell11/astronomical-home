@@ -1,305 +1,133 @@
-using System.Collections;
-using Audio;
+using System;
 using Damage;
-using Editor;
 using Game;
 using UnityEngine;
 using Utils;
 
 namespace Combat.Projectile
 {
-    /// <summary>
-    /// Homing missile projectile that steers towards a target and explodes with AoE damage on impact.
-    /// </summary>
-    [RequireComponent(typeof(AudioSource))]
-    public partial class Missile : ProjectileBase, IDamageable
+    public partial class Missile : Projectile<Missile>, IDamageable
     {
-        [Header("Missile Homing")]
-        [SerializeField] private float homingSpeed      = 15f;
-        [SerializeField] private float homingTurnRate   = 90f; // degrees per second
+        [Header("Homing")]
+        [SerializeField] private float homingSpeed    = 15f;
+        [SerializeField] private float homingTurnRate = 90f;
 
-        [Header("Explosion")]    
-        [SerializeField] private float   explosionRadius  = 3f;
-        [SerializeField] private float splashDamage = 5f;
-        [SerializeField] private PooledVFX explosionPrefab; // pooled VFX prefab
-        [SerializeField] private LayerMask damageLayerMask = -1; // Default to all layers, configured in inspector
+        [Header("Explosion")]
+        [SerializeField] private float explosionRadius = 3f;
+        [SerializeField] private float splashDamage    = 5f;
+        [SerializeField] private LayerMask damageLayerMask = -1;
 
         [Header("Motion")]
-        [Tooltip("Initial launch speed in units/sec.")]
         [SerializeField] private float initialSpeed = 15f;
+        [SerializeField] private float acceleration = 40f;
 
-        [Tooltip("Continuous forward acceleration in units/sec^2 applied every FixedUpdate.")]
-        [SerializeField] private float acceleration  = 40f;
-
-        [Tooltip("Force multiplier applied to the target on impact.")]
-        [SerializeField] private float impactForceMultiplier = 10f;
-
-        [Header("Audio")]
-        [SerializeField] private AudioClip launchClip;
-        [SerializeField] private AudioClip engineLoopClip;
-        [SerializeField] private AudioClip detonationClip;
-        [Tooltip("Delay before the engine loop starts playing (seconds)")]
-        [SerializeField] private float engineStartDelay = 0.15f;
-        [Tooltip("Duration for engine loop volume to fade in (seconds)")]
-        [SerializeField] private float engineFadeInTime = 0.25f;
-        [Range(0f,1f)] [SerializeField] private float launchVolume     = 1f;
-        [Range(0f,1f)] [SerializeField] private float engineVolume     = 0.7f;
-        [Range(0f,1f)] [SerializeField] private float detonationVolume = 1f;
-
-        private AudioSource audioSrc;
-        private Coroutine engineCo;
-
-        // Assigned by launcher
         private Transform target;
+
         public void SetTarget(Transform tgt) => target = tgt;
+        public float NormalizedSpeed => rb && homingSpeed > 0f
+            ? Mathf.Clamp01(rb.linearVelocity.magnitude / homingSpeed)
+            : 0f;
 
-        // Pre-allocated buffer for explosion overlap queries (Optimization #3)
-        // private static readonly Collider[] explosionHitBuffer = new Collider[64];
+        public event Action OnLaunched;
+        public event Action<Vector3> OnDetonated;
 
-        private void Awake()
+        protected override void Awake()
         {
-            // Initialize damage layer mask to target ships and asteroids
-            if (damageLayerMask == -1) // If not configured in inspector, set default
-            {
+            base.Awake();
+            if (damageLayerMask == -1)
                 damageLayerMask = LayerIds.Mask(LayerIds.Ship, LayerIds.Asteroid);
-            }
-            audioSrc = GetComponent<AudioSource>();
-            if (!audioSrc) return;
-            audioSrc.playOnAwake  = false;
-            audioSrc.loop         = false;
-            audioSrc.spatialBlend = 1f;
         }
 
-        /* ───────────────────────── Unity callbacks ───────────────────────── */
-        protected override void OnEnable()
-        {
-            base.OnEnable();
-        
-            // Reset AudioSource state when retrieved from pool
-            if (!audioSrc) return;
-            audioSrc.Stop();
-            audioSrc.clip = null;
-            audioSrc.loop = false;
-            audioSrc.volume = 1f;
-            // Note: Shooter-dependent initialization moved to Initialize() method
-        }
-
-        /// <summary>
-        /// Initialize the missile with its shooter and set initial velocity.
-        /// This must be called after OnEnable.
-        /// </summary>
         public override void Initialize(IShooter shooter)
         {
             base.Initialize(shooter);
-        
-            if (rb) 
+
+            if (rb)
             {
                 var shooterVelocity = Shooter?.Velocity ?? Vector3.zero;
                 rb.linearVelocity = transform.up * initialSpeed + shooterVelocity;
                 rb.maxLinearVelocity = homingSpeed;
             }
-            else
-            {
-                // No Rigidbody found
-            }
-            // ───── Audio: play launch one-shot and schedule engine loop ─────
-            if (audioSrc && launchClip)
-            {
-                audioSrc.Stop();
-                audioSrc.PlayOneShot(launchClip, launchVolume);
-            }
-            if (engineCo != null) StopCoroutine(engineCo);
-            engineCo = StartCoroutine(StartEngineLoop());
+            OnLaunched?.Invoke();
         }
-
-        private IEnumerator StartEngineLoop()
-        {
-            if (!engineLoopClip || !audioSrc) yield break;
-            yield return new WaitForSeconds(engineStartDelay);
-            audioSrc.clip   = engineLoopClip;
-            audioSrc.volume = 0f;
-            audioSrc.loop   = true;
-            audioSrc.Play();
-
-            // Fade volume up to target over engineFadeInTime seconds
-            if (engineFadeInTime > 0f)
-            {
-                for (var t = 0f; t < engineFadeInTime; t += Time.deltaTime)
-                {
-                    var k = t / engineFadeInTime;
-                    audioSrc.volume = Mathf.Lerp(0f, engineVolume, k);
-                    yield return null;
-                }
-            }
-            audioSrc.volume = engineVolume;
-        }
-    
 
         protected override void FixedUpdate()
         {
-            var distanceTraveled = Vector3.Distance(startPosition, transform.position);
-        
             base.FixedUpdate();
-
             if (!rb) return;
-            // 1. Compute the desired heading (toward target if any, otherwise keep current).
-            var desiredDir = transform.up; // Default to current heading
-            
-            if (target)
-            {
-                var toTarget = target.position - transform.position;
-                if (toTarget.sqrMagnitude > 0.01f) // Avoid division by zero
-                {
-                    desiredDir = toTarget.normalized;
-                }
-            }
 
-            // 2. Get the proper up vector for rotation (should be Y axis for top-down)
-            var rotationAxis = GamePlane.Normal; // Use world up for top-down games
-            
-            // If GamePlane is initialized and has a valid normal, use it
-            if (GamePlane.Plane)
-            {
-                rotationAxis = GamePlane.Normal;
-                // Ensure the normal is pointing up (not down)
-                if (Vector3.Dot(rotationAxis, GamePlane.Normal) < 0)
-                {
-                    rotationAxis = -rotationAxis;
-                }
-            }
+            var normal = GamePlane.Normal;
+            var currentDir = transform.up;
+            var desiredDir = CalculateDesiredDirection(normal, currentDir);
 
-            // 3. Calculate rotation needed
-            var signedAngle = Vector3.SignedAngle(transform.up, desiredDir, rotationAxis);
-
-            // 4. Clamp the turn by homingTurnRate per physics-step and rotate.
-            var maxTurnThisStep = homingTurnRate * Time.fixedDeltaTime; // °/frame
-            rotationCorrectionDeg = Mathf.Clamp(signedAngle, -maxTurnThisStep, maxTurnThisStep);
-            
-            // Apply rotation if significant
-            if (Mathf.Abs(rotationCorrectionDeg) > 0.01f)
-            {
-                transform.rotation = Quaternion.AngleAxis(rotationCorrectionDeg, rotationAxis) * transform.rotation;
-            }
-
-            // 5. Compute the desired velocity along the missile's forward direction.
-            var desiredVelocity = transform.up * homingSpeed;
-
-            // 6. Smoothly rotate the current velocity toward the desired velocity, limiting
-            //    both the angular change (maxTurnRad) and the linear acceleration (maxAccelThisStep)
-            //    in this physics step. This prevents the missile from overshooting and spiralling
-            //    around the target.
-            var maxTurnRad       = homingTurnRate * Mathf.Deg2Rad * Time.fixedDeltaTime;   // radians/frame
-            var maxAccelThisStep = acceleration   * Time.fixedDeltaTime;                  // units/sec per frame
-
-            rb.linearVelocity = Vector3.RotateTowards(
-                rb.linearVelocity,
-                desiredVelocity,
-                maxTurnRad,
-                maxAccelThisStep);
-
-            // 7. Ensure we never exceed the maximum homing speed.
-            if (rb.linearVelocity.magnitude > homingSpeed)
-            {
-                rb.linearVelocity = rb.linearVelocity.normalized * homingSpeed;
-            }
+            RotateTowardDirection(normal, currentDir, desiredDir);
+            SteerVelocity(desiredDir);
         }
-        // Debug – the angle actually applied this physics-step (degrees)
-        private float rotationCorrectionDeg = 0f;
+        
+        private Vector3 CalculateDesiredDirection(Vector3 normal, Vector3 currentDir)
+        {
+            if (!target) return currentDir;
+
+            var toTarget = Vector3.ProjectOnPlane(target.position - transform.position, normal);
+            return toTarget.sqrMagnitude > 0.01f ? toTarget.normalized : currentDir;
+        }
+
+        private void RotateTowardDirection(Vector3 normal, Vector3 currentDir, Vector3 desiredDir)
+        {
+            var maxTurnThisStep = homingTurnRate * Time.fixedDeltaTime;
+            var signedAngle = Vector3.SignedAngle(currentDir, desiredDir, normal);
+            var clampedTurn = Mathf.Clamp(signedAngle, -maxTurnThisStep, maxTurnThisStep);
+
+            if (Mathf.Abs(clampedTurn) > 0.01f)
+                transform.rotation = Quaternion.AngleAxis(clampedTurn, normal) * transform.rotation;
+        }
+
+        private void SteerVelocity(Vector3 desiredDir)
+        {
+            var desiredVelocity = desiredDir * homingSpeed;
+            var maxTurnRad = homingTurnRate * Mathf.Deg2Rad * Time.fixedDeltaTime;
+            var maxAccelThisStep = acceleration * Time.fixedDeltaTime;
+
+            rb.linearVelocity = Vector3.RotateTowards(rb.linearVelocity, desiredVelocity, maxTurnRad, maxAccelThisStep);
+
+            if (rb.linearVelocity.magnitude > homingSpeed)
+                rb.linearVelocity = rb.linearVelocity.normalized * homingSpeed;
+        }
 
         protected override void OnHit(IDamageable other)
         {
-            // Ignore collisions with our own projectiles (or uninitialized projectiles)
-            var otherProjectile = other as ProjectileBase;
-            if (otherProjectile)
-            {
-                // If the other projectile has no shooter yet (freshly spawned) or shares our shooter, do nothing
-                if (otherProjectile.Shooter == null || otherProjectile.Shooter == Shooter)
-                {
-                    return;
-                }
-            }
+            if (other is ProjectileBase otherProj && (otherProj.Shooter == null || otherProj.Shooter == Shooter))
+                return;
 
             base.OnHit(other);
-        
-            /*   // Apply impact force to the other object's rigidbody
-        if (rb && other?.gameObject)
-        {
-            Rigidbody otherRb = other.gameObject.GetComponent<Rigidbody>();
-            if (otherRb)
-            {
-                Vector3 forceDirection = rb.linearVelocity.normalized;
-                float forceMagnitude = rb.linearVelocity.magnitude * impactForceMultiplier;
-                otherRb.AddForce(forceDirection * forceMagnitude, ForceMode.Impulse);
-            }
-        }
-        */
             Explode(other);
         }
 
-        public void TakeDamage(float damage, float hitMass, Vector3 hitVelocity, Vector3 hitPoint, GameObject attacker){
+        public void TakeDamage(float damage, float hitMass, Vector3 hitVelocity, Vector3 hitPoint, GameObject attacker)
+        {
             Explode(null);
         }
 
-        /* ───────────────────────── internal ───────────────────────── */
-        private void Explode(IDamageable other)
+        private void Explode(IDamageable directHitTarget)
         {
-            // Spawn explosion VFX
-            if (GameSettings.VfxEnabled && explosionPrefab)
-            {
-                // Always use pooled VFX to avoid instantiation overhead
-                SimplePool<PooledVFX>.Get(explosionPrefab, transform.position, Quaternion.identity);
-            }
+            var buffer = PhysicsBuffers.GetColliderBuffer(64);
+            var hitCount = Physics.OverlapSphereNonAlloc(transform.position, explosionRadius, buffer, damageLayerMask);
+            var velocity = rb ? rb.linearVelocity : Vector3.zero;
 
-            // AoE damage using non-allocating overlap sphere (Optimization #3)
-            var hitCount = Physics.OverlapSphereNonAlloc(transform.position, explosionRadius, PhysicsBuffers.GetColliderBuffer(64), damageLayerMask);
             for (var i = 0; i < hitCount; i++)
             {
-                var hit = PhysicsBuffers.GetColliderBuffer(64)[i];
-
-                var dmg = hit.GetComponentInParent<IDamageable>();
-
-                // Skip if the collider doesn't belong to something damageable
+                var dmg = buffer[i].GetComponentInParent<IDamageable>();
                 if (dmg == null) continue;
-
-                // Ignore the shooter itself
                 if (Shooter != null && dmg.gameObject == Shooter.gameObject) continue;
+                if (directHitTarget != null && dmg == directHitTarget) continue;
 
-                // Ignore the primary impact target (already handled in OnHit)
-                if (other != null && dmg == other) continue;
-
-                dmg.TakeDamage(splashDamage, mass, rb ? rb.linearVelocity : Vector3.zero, hit.ClosestPoint(transform.position), Shooter?.gameObject);
+                dmg.TakeDamage(splashDamage, mass, velocity, buffer[i].ClosestPoint(transform.position), Shooter?.gameObject);
             }
 
+            OnDetonated?.Invoke(transform.position);
             ReturnToPool();
-            // Audio – detonation one-shot at point of impact before returning to pool
-            if (detonationClip)
-                PooledAudioSource.PlayClipAtPoint(detonationClip, transform.position, detonationVolume);
-            if (audioSrc) audioSrc.Stop();
         }
 
-        /* ───────────────────────── pooling ───────────────────────── */
-        protected override void ReturnToPool()
-        {
-            target = null;
-            Shooter = null;
-
-            if (rb)
-            {
-                rb.linearVelocity  = Vector3.zero;
-                rb.angularVelocity = Vector3.zero;
-            }
-        
-            // Clean up audio BEFORE deactivating the GameObject
-            if (engineCo != null) { StopCoroutine(engineCo); engineCo = null; }
-            if (audioSrc) 
-            {
-                audioSrc.Stop();
-                audioSrc.clip = null;  // Clear any clip reference
-                audioSrc.loop = false; // Reset loop state
-                audioSrc.volume = 1f;  // Reset volume
-            }
-        
-            SimplePool<Missile>.Release(this);
-        }
+        protected override void OnReturnToPool() => target = null;
     }
 } 

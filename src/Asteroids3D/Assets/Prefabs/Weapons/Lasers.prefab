@@ -12,6 +12,9 @@ GameObject:
   - component: {fileID: 8105349543242701031}
   - component: {fileID: 6448982411033854647}
   - component: {fileID: -8301958025146036882}
+  - component: {fileID: -6627104931922718690}
+  - component: {fileID: -6979088078318255999}
+  - component: {fileID: -6033614214535129879}
   m_Layer: 0
   m_Name: Lasers
   m_TagString: Untagged
@@ -79,3 +82,78 @@ MonoBehaviour:
   firePoint: {fileID: 0}
   projectilePrefab: {fileID: 5408995189547049293, guid: d4f6577bb30c48945a17243a523023ff,
     type: 3}
+--- !u!114 &-6627104931922718690
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 345203746417710078}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9079096d778c1c4ea55baed875aef0a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damage: 10
+  maxDistance: 50
+  mass: 0.1
+  laserSpeed: 20
+--- !u!114 &-6979088078318255999
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 345203746417710078}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a5b5fd1366a4c79a889e7f4307f39a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hitClips: []
+  hitVolume: 1
+--- !u!114 &-6033614214535129879
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 345203746417710078}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ea810c24c5f4006bd53c94820e7c933, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fadeCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.7
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4

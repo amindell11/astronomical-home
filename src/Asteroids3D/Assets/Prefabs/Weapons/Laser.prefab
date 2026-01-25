@@ -10,6 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 3815271880710915890}
   - component: {fileID: 5408995189547049293}
+  - component: {fileID: 1111111111111111111}
+  - component: {fileID: 2222222222222222222}
+  - component: {fileID: 3333333333333333333}
   - component: {fileID: 3791456385073129076}
   - component: {fileID: 3623802022773714673}
   - component: {fileID: 2880276688847921505}
@@ -50,9 +53,40 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   damage: 20
   maxDistance: 50
-  hitEffect: {fileID: 0}
   mass: 0.01
   laserSpeed: 50
+--- !u!114 &1111111111111111111
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2028383931407238149}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a5b5fd1366a4c79a889e7f4307f39a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hitClips:
+  - {fileID: 8300000, guid: 8a95be80cb8b23a49af698e854f34040, type: 3}
+  - {fileID: 8300000, guid: df6324045c168ba47b7e949b0558b755, type: 3}
+  - {fileID: 8300000, guid: e54810986cad9c04d9306be9ba86e0ea, type: 3}
+  - {fileID: 8300000, guid: 2e704dd44e7fd444492a8878a2fae6fe, type: 3}
+  - {fileID: 8300000, guid: 95d3b8c85913d26498542c1f93381680, type: 3}
+  - {fileID: 8300000, guid: 78276942be13656419eb567cea33c940, type: 3}
+  hitVolume: 0.817
+--- !u!114 &2222222222222222222
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2028383931407238149}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ea810c24c5f4006bd53c94820e7c933, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
   fadeCurve:
     serializedVersion: 2
     m_Curve:
@@ -86,14 +120,19 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  hitClips:
-  - {fileID: 8300000, guid: 8a95be80cb8b23a49af698e854f34040, type: 3}
-  - {fileID: 8300000, guid: df6324045c168ba47b7e949b0558b755, type: 3}
-  - {fileID: 8300000, guid: e54810986cad9c04d9306be9ba86e0ea, type: 3}
-  - {fileID: 8300000, guid: 2e704dd44e7fd444492a8878a2fae6fe, type: 3}
-  - {fileID: 8300000, guid: 95d3b8c85913d26498542c1f93381680, type: 3}
-  - {fileID: 8300000, guid: 78276942be13656419eb567cea33c940, type: 3}
-  hitVolume: 0.817
+--- !u!114 &3333333333333333333
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2028383931407238149}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d1737f425ac4e978c6e8ab4432c69cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hitEffect: {fileID: 0}
 --- !u!54 &3791456385073129076
 Rigidbody:
   m_ObjectHideFlags: 0

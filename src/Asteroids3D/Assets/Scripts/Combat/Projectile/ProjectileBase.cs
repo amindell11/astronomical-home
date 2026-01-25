@@ -1,114 +1,72 @@
+using System;
 using Damage;
-using Editor;
+using Game;
 using UnityEngine;
 using Utils;
 
 namespace Combat.Projectile
 {
-    /// <summary>
-    /// Base behaviour for all projectile types – handles lifespan, damage application and hit VFX.
-    /// Concrete subclasses must implement ReturnToPool() to return themselves to the correct SimplePool stack.
-    /// </summary>
     public abstract class ProjectileBase : MonoBehaviour
     {
         [Header("Base Projectile Settings")]
-        [SerializeField] protected float damage        = 10f;
-        [SerializeField] protected float maxDistance   = 50f;
-        [SerializeField] protected GameObject hitEffect;
-        [SerializeField] protected float mass          = 0.1f;
+        [SerializeField] protected float damage      = 10f;
+        [SerializeField] protected float maxDistance = 50f;
+        [SerializeField] protected float mass        = 0.1f;
 
         protected Rigidbody rb;
-        protected Vector3   startPosition;
-        protected Vector3   referencePlaneNormal;
+        protected Vector3 startPosition;
 
-        // Cache ReferencePlane info once to avoid per-projectile lookups (Optimization #3)
-        private static Transform s_cachedPlaneTransform;
-        private static Vector3   s_cachedPlaneNormal;
-
-        /// <summary>
-        /// The entity that fired this projectile. Used for velocity inheritance,
-        /// self-hit checks, and attributing damage.
-        /// </summary>
-        public IShooter Shooter { get; set; }
-
+        public IShooter Shooter { get; protected set; }
         public float Damage => damage;
+        public float MaxDistance => maxDistance;
+        public float DistanceTraveled => Vector3.Distance(startPosition, transform.position);
 
-        /// <summary>
-        /// Initialize the projectile with its shooter. Override in subclasses for custom initialization.
-        /// </summary>
-        /// <param name="shooter">The entity that fired this projectile</param>
+        public event Action<Vector3, IDamageable> Hit;
+        public event Action ReturnedToPool;
+
         public virtual void Initialize(IShooter shooter)
         {
             Shooter = shooter;
         }
-    
-        /* ───────────────────────── Unity callbacks ───────────────────────── */
+
+        protected virtual void Awake()
+        {
+            rb = GetComponent<Rigidbody>();
+        }
+
         protected virtual void OnEnable()
-        {   
-            // Cache plane normal (assumes there is exactly one tagged object)
-            if (s_cachedPlaneTransform == null)
-            {
-                var refPlane = GameObject.FindGameObjectWithTag("ReferencePlane");
-                if (refPlane)
-                {
-                    s_cachedPlaneTransform = refPlane.transform;
-                    s_cachedPlaneNormal    = s_cachedPlaneTransform.forward;
-                }
-            }
-            referencePlaneNormal = s_cachedPlaneNormal;
-
+        {
             startPosition = transform.position;
-            rb            = GetComponent<Rigidbody>();
 
-            if (rb)
-            {
-                rb.useGravity = false;
-                rb.mass       = mass;
-            }
+            if (!rb) return;
+            rb.useGravity = false;
+            rb.mass = mass;
         }
 
         protected virtual void FixedUpdate()
         {
-            // Keep projectile constrained to the game plane (top-down gameplay)
-            if (referencePlaneNormal != Vector3.zero)
-            {
-                transform.position = Vector3.ProjectOnPlane(transform.position, referencePlaneNormal);
-            }
+            transform.position = GamePlane.ProjectOntoPlane(transform.position);
 
-            // Lifetime based on travel distance
-            if (Vector3.Distance(startPosition, transform.position) > maxDistance)
-            {
+            if (DistanceTraveled > maxDistance)
                 ReturnToPool();
-            }
         }
-        protected virtual void OnHit(IDamageable other){
-        
-        
+
+        protected virtual void OnHit(IDamageable other)
+        {
+            Hit?.Invoke(transform.position, other);
+
+            if (other is ProjectileBase { Shooter: not null } otherProj && otherProj.Shooter == Shooter)
+                return;
+
             var impactVelocity = rb ? rb.linearVelocity : Vector3.zero;
-            // If the other is a projectile and has a shooter, check if it's the same as our shooter. If so, skip TakeDamage.
-            var otherProjectile = other as ProjectileBase;
-            if (otherProjectile && otherProjectile.Shooter != null)
-            {
-                if (otherProjectile.Shooter == Shooter)
-                {
-                    return;
-                }
-            }
-            if(other != null) other.TakeDamage(damage, mass, impactVelocity, transform.position, Shooter?.gameObject);
-            SpawnHitVFX();
+            other?.TakeDamage(damage, mass, impactVelocity, transform.position, Shooter?.gameObject);
             ReturnToPool();
         }
+
         protected virtual void OnTriggerEnter(Collider other)
         {
-            // Resolve the IDamageable (if any) that was hit
             var dmg = other.GetComponentInParent<IDamageable>();
-
-            // Early-out if we didn't hit something that can take damage
             if (dmg == null) return;
-
-            // Ignore self-hits by checking if the other collider belongs to the shooter.
-            // This is more robust than a direct GameObject comparison because colliders
-            // may be on child objects.
             if (Shooter != null && other.GetComponentInParent<IShooter>() == Shooter) return;
 
             OnHit(dmg);
@@ -116,26 +74,39 @@ namespace Combat.Projectile
 
         protected virtual void OnTriggerExit(Collider other)
         {
-            if (other.CompareTag("Boundary")) ReturnToPool();
+            if (other.CompareTag(TagNames.Boundary)) ReturnToPool();
         }
 
-        /* ───────────────────────── helpers ───────────────────────── */
-        void SpawnHitVFX()
+        protected virtual void ResetState()
         {
-            if (!hitEffect || !GameSettings.VfxEnabled) return;
-
-            var pooled = hitEffect.GetComponent<PooledVFX>();
-            if (pooled)
-            {
-                SimplePool<PooledVFX>.Get(pooled, transform.position, Quaternion.identity);
-            }
-            else
-            {
-                Instantiate(hitEffect, transform.position, Quaternion.identity);
-            }
+            Shooter = null;
+            if (!rb) return;
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
         }
 
-        /// <summary>Return this projectile instance to its pool. Implemented by subclass.</summary>
         protected abstract void ReturnToPool();
+
+        protected void RaiseReturnedToPool()
+        {
+            ReturnedToPool?.Invoke();
+        }
+    }
+
+    /// <summary>
+    /// Generic projectile base that handles object pooling automatically.
+    /// Derived classes only need to override OnReturnToPool for type-specific cleanup.
+    /// </summary>
+    public abstract class Projectile<TSelf> : ProjectileBase where TSelf : Projectile<TSelf>
+    {
+        protected sealed override void ReturnToPool()
+        {
+            OnReturnToPool();
+            ResetState();
+            RaiseReturnedToPool();
+            SimplePool<TSelf>.Release((TSelf)this);
+        }
+
+        protected virtual void OnReturnToPool() { }
     }
 }

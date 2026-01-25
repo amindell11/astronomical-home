@@ -78,8 +78,7 @@ namespace AI.Steering.Standard
         private Pilot.Output GetPilotOutput(Kinematics kin, PathPlanner.Output pathOutput)
         {
             float? facingTarget = facingOverride ? facingAngle : null;
-            var pilotInput = new Pilot.Input(kin, pathOutput.desiredVelocity, pathOutput.desiredAccel, 
-                dynamics.maxSpeed, facingTarget, useTiltedHeading); 
+            var pilotInput = new Pilot.Input(kin, pathOutput.desiredVelocity, pathOutput.desiredAccel, facingTarget, useTiltedHeading); 
             return pilot.Compute(pilotInput);
         }
 

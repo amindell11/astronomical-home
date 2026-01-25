@@ -13,12 +13,12 @@ namespace AI.Steering.Standard
             public readonly float?  facingTargetDeg;
             public readonly bool useTiltedHeading;
 
-            public Input(Kinematics k, Vector2 desiredVelocity, Vector2 desiredAcceleration, float max, float? facingTarget = null, bool useTiltedHeading = true)
+            public Input(Kinematics k, Vector2 desiredVelocity, Vector2 desiredAcceleration, float? facingTarget = null, bool useTiltedHeading = true)
             {
                 kin = k;
                 desiredVel = desiredVelocity;
                 desiredAccel = desiredAcceleration;    
-                this.facingTargetDeg = facingTarget;
+                facingTargetDeg = facingTarget;
                 this.useTiltedHeading = useTiltedHeading;
             }
         }
