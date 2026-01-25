@@ -234,7 +234,7 @@ public class AsteroidSpawningPlayMode
 
         // 2. Every entry valid & enabled, gather volume
         float sum = 0f;
-        foreach (Asteroid a in registry.ActiveAsteroids)
+        foreach (AsteroidController a in registry.ActiveAsteroids)
         {
             Assert.IsNotNull(a, "Null Asteroid reference in registry.");
             Assert.IsTrue(a.gameObject.activeInHierarchy, $"Asteroid {a.name} registered but inactive in hierarchy.");
@@ -247,7 +247,7 @@ public class AsteroidSpawningPlayMode
             $"TotalActiveVolume mismatch: summed={sum:F3} tracker={asteroidSpawner.Registry.TotalVolume:F3}");
 
         // 4. Scene cross-check – ensure no stray asteroids excluded from registry
-        var sceneAsteroids = Object.FindObjectsOfType<Asteroid>();
+        var sceneAsteroids = Object.FindObjectsOfType<AsteroidController>();
         Assert.AreEqual(sceneAsteroids.Length, registry.ActiveCount, "Number of Asteroid components in scene differs from registry active set.");
     }
 

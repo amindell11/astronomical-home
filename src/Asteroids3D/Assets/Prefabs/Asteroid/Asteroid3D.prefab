@@ -10,6 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 6746074205824862647}
   - component: {fileID: 1174038986206541605}
+  - component: {fileID: 765432109876543210}
+  - component: {fileID: 765432109876543211}
+  - component: {fileID: 765432109876543212}
   - component: {fileID: 503848992582056525}
   - component: {fileID: 1444230777461953402}
   - component: {fileID: 6900563035713500292}
@@ -50,16 +53,51 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3684faaa1bc334d4b9a2b5944c659a60, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  density: 35
-  explosionPrefab: {fileID: 3624727767247666335, guid: b87929575dffb6c49b64ff8ec3faa5d7,
-    type: 3}
-  explosionSound: {fileID: 8300000, guid: 14e1c94ce80f1fc45bd483c188a57c1c, type: 3}
-  explosionVolume: 0.85
+  detailedColliderEnableDistance: 75
+--- !u!114 &765432109876543212
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1706132292860893391}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e58c68fc82d477b854680a18f917fa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
   energyToDamageScale: 0.02
   softCapThreshold: 30
   softCapExponent: 0.5
   healthPerUnitVolume: 0.5
-  detailedColliderEnableDistance: 75
+--- !u!114 &765432109876543210
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1706132292860893391}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab78b67ee6f4465eafbc023696aba60c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  explosionPrefab: {fileID: 3624727767247666335, guid: b87929575dffb6c49b64ff8ec3faa5d7,
+    type: 3}
+--- !u!114 &765432109876543211
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1706132292860893391}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ffbcec4609a48f1a488eeea9889f585, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  explosionSound: {fileID: 8300000, guid: 14e1c94ce80f1fc45bd483c188a57c1c, type: 3}
+  explosionVolume: 0.85
 --- !u!33 &503848992582056525
 MeshFilter:
   m_ObjectHideFlags: 0

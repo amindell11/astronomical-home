@@ -55,7 +55,7 @@ namespace Asteroids.Fragnetics
             Position = position;
             InertiaTensor = inertiaTensor;
         }
-        public AsteroidData(Asteroid ast) : 
+        public AsteroidData(AsteroidController ast) : 
             this(ast.Mass, ast.transform.rotation, ast.Rb.angularVelocity, 
                 ast.Rb.linearVelocity, ast.transform.position, ast.Rb.inertiaTensor) {}
         

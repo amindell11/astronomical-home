@@ -34,7 +34,7 @@ namespace Asteroids.Spawning
         public Vector2 spinRange = new Vector2(-30f, 30f);
         
         [Header("Asteroid Configuration")] [SerializeField]
-        public Asteroid asteroidPrefab;
+        public AsteroidController asteroidPrefab;
         
         [Header("Pool Settings")]
         [Tooltip("Initial capacity of the asteroid object pool")]

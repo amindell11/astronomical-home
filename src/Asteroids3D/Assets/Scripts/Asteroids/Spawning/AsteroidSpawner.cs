@@ -28,13 +28,13 @@ namespace Asteroids.Spawning
             foreach(var a in Registry.ActiveAsteroids) Despawn(a);
         }
         
-        public void Despawn(Asteroid ast)
+        public void Despawn(AsteroidController ast)
         {
             Registry.Unregister(ast);
             pool.ReleaseAsteroid(ast);
         }
         
-        public Asteroid SpawnRandom(Pose pose)
+        public AsteroidController SpawnRandom(Pose pose)
         {
             var ast = SpawnAtPose(pose);
             InitRandomAsteroid(ast);
@@ -42,7 +42,7 @@ namespace Asteroids.Spawning
             return ast;
         }
         
-        public Asteroid SpawnFragment(Frag frag)
+        public AsteroidController SpawnFragment(Frag frag)
         {
             var pose = new Pose(frag.Position, frag.Rotation);
             var ast = SpawnAtPose(pose);
@@ -51,7 +51,7 @@ namespace Asteroids.Spawning
             return ast;
         }
 
-        private Asteroid SpawnAtPose(Pose pose)
+        private AsteroidController SpawnAtPose(Pose pose)
         {
             var ast = pool.Get();
             ast.transform.SetParent(transform);
@@ -59,7 +59,7 @@ namespace Asteroids.Spawning
             return ast;
         }
 
-        private void InitRandomAsteroid(Asteroid asteroid)
+        private void InitRandomAsteroid(AsteroidController asteroid)
         {
             var meshInfo = GetRandomMeshInfo(settings.meshInfos);
             var (mass, scale) = CalculateMassAndScale(meshInfo);
@@ -71,7 +71,7 @@ namespace Asteroids.Spawning
         }
 
         private void InitFragmentAsteroid(
-            Asteroid asteroid,
+            AsteroidController asteroid,
             float mass,
             Vector3 velocity,
             Vector3 angularVelocity)

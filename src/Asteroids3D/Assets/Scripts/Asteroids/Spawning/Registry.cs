@@ -6,13 +6,13 @@ namespace Asteroids.Spawning
 
     public class Registry
     {
-        private readonly HashSet<Asteroid> activeAsteroids = new();
-        private readonly Dictionary<Asteroid, float> trackedVolumes = new();
-        public IReadOnlyCollection<Asteroid> ActiveAsteroids => activeAsteroids;
+        private readonly HashSet<AsteroidController> activeAsteroids = new();
+        private readonly Dictionary<AsteroidController, float> trackedVolumes = new();
+        public IReadOnlyCollection<AsteroidController> ActiveAsteroids => activeAsteroids;
         public int ActiveCount => activeAsteroids.Count;
         public float TotalVolume { get; private set; }
 
-        public void Register(Asteroid asteroid)
+        public void Register(AsteroidController asteroid)
         {
             if (!asteroid) return;
 
@@ -31,7 +31,7 @@ namespace Asteroids.Spawning
                 TotalVolume += (newV - oldV);
             }
         }
-        public void Unregister(Asteroid asteroid)
+        public void Unregister(AsteroidController asteroid)
         {
             if (!asteroid || !activeAsteroids.Remove(asteroid)) return;
             var v = trackedVolumes.TryGetValue(asteroid, out var stored) ? stored : asteroid.Volume;

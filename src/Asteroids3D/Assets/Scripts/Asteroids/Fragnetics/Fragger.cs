@@ -22,7 +22,7 @@ namespace Asteroids.Fragnetics
         /// <summary>
         /// Public entry point with explosion callback for delayed explosion option
         /// </summary>
-        public void CreateFragments(Asteroid asteroid, HitData hit, Action<Frag[]> onFragment = null)
+        public void CreateFragments(AsteroidController asteroid, HitData hit, Action<Frag[]> onFragment = null)
         {            
             var ast = new AsteroidData(asteroid);
             var frags = calc.GenerateFragments(ast);
@@ -54,9 +54,9 @@ namespace Asteroids.Fragnetics
         /// <summary>
         /// Spawn fragments immediately with rough physics for visual continuity
         /// </summary>
-        private Asteroid[] SpawnPlaceholderFragments(AsteroidData ast, HitData hit, Frag[] frags, AsteroidSpawner spawn)
+        private AsteroidController[] SpawnPlaceholderFragments(AsteroidData ast, HitData hit, Frag[] frags, AsteroidSpawner spawn)
         {
-            var fragments = new Asteroid[frags.Length];
+            var fragments = new AsteroidController[frags.Length];
             calc.CalculatePlaceholderPhysics(ast, hit, frags);
             for (var i = 0; i < frags.Length; i++)
             {
@@ -70,7 +70,7 @@ namespace Asteroids.Fragnetics
         /// <summary>
         /// Update placeholder fragments with proper physics calculations
         /// </summary>
-        private static void UpdatePlaceholderFragments(Asteroid[] fragments, Frag[] frags)
+        private static void UpdatePlaceholderFragments(AsteroidController[] fragments, Frag[] frags)
         {
             for (var i = 0; i < fragments.Length; i++)
                 fragments[i]?.UpdateKinematics(frags[i].Velocity, frags[i].Spin);
@@ -80,7 +80,7 @@ namespace Asteroids.Fragnetics
         /// <summary>
         /// Fade in a fragment over time for smoother visual transition
         /// </summary>
-        private IEnumerator FadeInFragment(Asteroid fragment)
+        private IEnumerator FadeInFragment(AsteroidController fragment)
         {
             if (!fragment || asteroidFragAsteroidFragSettings.fragmentFadeInTime <= 0f) yield break;
 
