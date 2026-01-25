@@ -1,7 +1,7 @@
 using Combat.Weapons;
 using UnityEngine;
 
-namespace Weapons
+namespace Combat.Weapons.Audio
 {
     [RequireComponent(typeof(AudioSource), typeof(WeaponComponent))]
     public class LauncherAudio : MonoBehaviour

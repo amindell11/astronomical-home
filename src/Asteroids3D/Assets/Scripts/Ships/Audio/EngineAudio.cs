@@ -1,7 +1,7 @@
 ﻿using Ships;
 using UnityEngine;
 
-namespace Audio
+namespace Ships.Audio
 {
     /// <summary>
     /// Engine audio system that plays separate loops for thrust and strafe movements.
@@ -24,12 +24,12 @@ namespace Audio
         [Tooltip("Optional pitch modulation based on input intensity (0â€“1 â†’ pitch)")]
         [SerializeField] private AnimationCurve inputToPitch = AnimationCurve.Linear(0, 1, 1, 1.3f);
 
-        private Ships.Ship ship;
-        private bool audioInitialized = false;
+        private Ship ship;
+        private bool audioInitialized;
 
         private void Awake()
         {
-            ship = GetComponentInParent<Ships.Ship>();
+            ship = GetComponentInParent<Ship>();
         }
 
         private void OnEnable()

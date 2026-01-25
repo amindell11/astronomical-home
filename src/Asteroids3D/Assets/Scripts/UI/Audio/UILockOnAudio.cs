@@ -1,7 +1,7 @@
 using Combat.Targeting;
 using UnityEngine;
 
-namespace Audio
+namespace UI.Audio
 {
     /// Plays audio cues driven by TargetingComputer state changes.
     [RequireComponent(typeof(AudioSource))]

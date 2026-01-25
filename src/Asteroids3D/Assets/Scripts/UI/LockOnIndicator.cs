@@ -1,7 +1,6 @@
 using Combat.Targeting;
 using Game;
 using UnityEngine;
-using Weapons;
 
 namespace UI
 {

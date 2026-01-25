@@ -6,10 +6,10 @@ namespace Combat.Weapons
 {
     public partial class WeaponMissiles
     {
-        void OnDrawGizmos()
+        private void OnDrawGizmos()
         {
-            if (firePoint == null || rounds == null) return;
-            var ammoText = $"Ammo: {rounds.AmmoCount}/{rounds.MaxAmmo}";
+            if (!firePoint || !Rounds) return;
+            var ammoText = $"Ammo: {Rounds.AmmoCount}/{Rounds.MaxAmmo}";
             Handles.Label(firePoint.position + Vector3.up * 2f, $"Missiles\n{ammoText}");
         }
     }

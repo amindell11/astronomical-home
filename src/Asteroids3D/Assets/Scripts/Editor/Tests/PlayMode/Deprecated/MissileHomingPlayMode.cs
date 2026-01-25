@@ -3,7 +3,6 @@ using NUnit.Framework;
 using Ships;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Weapons;
 
 /// <summary>
 /// PlayMode tests for missile homing behavior.

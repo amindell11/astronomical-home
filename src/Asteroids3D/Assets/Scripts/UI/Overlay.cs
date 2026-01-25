@@ -1,8 +1,8 @@
-using Audio;
 using Combat.Conditions;
 using Combat.Weapons;
 using Ships;
 using UnityEngine;
+using UI.Audio;
 
 namespace UI
 {

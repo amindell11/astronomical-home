@@ -49,7 +49,7 @@ namespace Combat.Targeting
                 maxLockDistance,
                 lockOnConeAngle,
                 5f,
-                0.5f,
+                2f,
                 LayerIds.Mask(LayerIds.Ship)
             );
         }

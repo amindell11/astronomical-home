@@ -51,6 +51,7 @@ namespace Utils
                 }
 
                 instance.transform.SetParent(_poolParent);
+                instance.gameObject.SetActive(true);
                 // Track which prefab pool this instance belongs to
                 InstanceToKey[instance] = key;
             }
@@ -128,7 +129,7 @@ namespace Utils
             // Use reflection to find all generic pool types and clear them
             var poolTypes = new System.Type[]
             {
-                typeof(SimplePool<>).MakeGenericType(typeof(PooledAudioSource)),
+                typeof(SimplePool<>).MakeGenericType(typeof(global::Audio.PooledAudioSource)),
                 // Add other commonly used pooled types here as needed
             };
 

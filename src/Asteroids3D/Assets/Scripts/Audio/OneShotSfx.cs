@@ -17,7 +17,7 @@ namespace Audio
         public void PlayAt(Vector3 position)
         {
             if (!clip) return;
-            Utils.PooledAudioSource.PlayClipAtPoint(clip, position, volume);
+            PooledAudioSource.PlayClipAtPoint(clip, position, volume);
         }
     }
 }

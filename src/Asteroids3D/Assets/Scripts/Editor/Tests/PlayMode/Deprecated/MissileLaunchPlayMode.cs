@@ -2,7 +2,6 @@ using System.Collections;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Weapons;
 
 /// <summary>
 /// PlayMode tests for missile launch behavior.

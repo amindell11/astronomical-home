@@ -1,9 +1,8 @@
 ﻿using Ships;
 using Ships.Damage;
 using UnityEngine;
-using Utils;
 
-namespace Audio
+namespace Ships.Audio
 {
     /// <summary>
     /// Centralises damage-related SFX for a ship (shield hits, hull hits, death explosion).
@@ -31,6 +30,7 @@ namespace Audio
         private void Awake()
         {
             source = GetComponent<AudioSource>();
+            damage = GetComponentInParent<DamageController>();
             source.loop = false;
             source.playOnAwake = false;
             source.spatialBlend = 1f; // fully 3-D positional
@@ -38,8 +38,6 @@ namespace Audio
 
         private void OnEnable()
         {
-            if (!damage)
-                damage = GetComponentInParent<DamageController>();
             if (!damage) return;
             damage.Shield.OnValueChanged += HandleShieldChanged;
             damage.Health.OnValueChanged += HandleHealthChanged;
@@ -68,7 +66,7 @@ namespace Audio
         private void HandleDeath(Ships.Ship victim, Ships.Ship _)
         {
             if (deathClip)
-                PooledAudioSource.PlayClipAtPoint(deathClip, transform.position, deathVolume);
+                global::Audio.PooledAudioSource.PlayClipAtPoint(deathClip, transform.position, deathVolume);
         }
 
         private void PlayShieldDepleted()

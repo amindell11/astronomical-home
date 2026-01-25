@@ -1,7 +1,7 @@
 ﻿using Ships.Damage;
 using UnityEngine;
 
-namespace Audio
+namespace UI.Audio
 {
     /// Plays audio cues driven by DamageController health/shield events.
     [RequireComponent(typeof(AudioSource))]

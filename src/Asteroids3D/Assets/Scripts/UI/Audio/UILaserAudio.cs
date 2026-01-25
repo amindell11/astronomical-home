@@ -1,7 +1,7 @@
 using Combat.Conditions;
 using UnityEngine;
 
-namespace Audio
+namespace UI.Audio
 {
     /// <summary>
     /// Plays audio cues driven by Heat condition overheat events.
