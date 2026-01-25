@@ -2,9 +2,6 @@ using Combat.Conditions;
 using Combat.Weapons;
 using UnityEngine;
 using UnityEngine.UI;
-using Utils;
-using Weapons;
-
 namespace UI
 {
     /// <summary>
@@ -49,18 +46,18 @@ namespace UI
                 glowController = fillImage.GetComponent<GlowingUIController>();
             if (!glowController)
                 glowController = GetComponent<GlowingUIController>();
-        }
-        void Start()
-        {
-            if (!laserGun) laserGun = GameObject.FindGameObjectWithTag(TagNames.Player).GetComponentInChildren<WeaponLaser>();
-            heat = laserGun ? laserGun.GetComponent<Heat>() : null;
+            if (laserGun) heat = laserGun.Heat;
             if (glowController)
             {
                 defaultFlashSpeed = glowController.FlashSpeed;
-                // Ensure starting color is the normal color
                 glowController.SetEmissionColor(normalGlowColor);
                 glowController.SetFlashing(false);
             }
+        }
+
+        public void Initialize(Heat heat)
+        {
+            this.heat = heat;
         }
 
         void Update()

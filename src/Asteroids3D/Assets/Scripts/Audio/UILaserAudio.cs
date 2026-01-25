@@ -1,8 +1,5 @@
 using Combat.Conditions;
-using Combat.Weapons;
 using UnityEngine;
-using Utils;
-using Weapons;
 
 namespace Audio
 {
@@ -24,7 +21,6 @@ namespace Audio
         [SerializeField, Range(0f, 1f)] private float volume = 0.7f;
 
         private AudioSource audioSource;
-        private WeaponLaser laserGun;
         private Heat heat;
 
         void Awake()
@@ -32,28 +28,30 @@ namespace Audio
             audioSource = GetComponent<AudioSource>();
             audioSource.playOnAwake = false;
             audioSource.loop = false;
-
-            // Attempt to find the player's laser gun at startup
-            TryAssignLaserGun();
-        }
-
-        void Start()
-        {
-            // Try again in Start in case player wasn't ready in Awake
-            if (!laserGun)
-            {
-                TryAssignLaserGun();
-            }
         }
 
         void OnDestroy()
         {
-            // Unsubscribe from events to prevent memory leaks
             if (heat)
             {
                 heat.OnOverheat -= PlayOverheatSound;
                 heat.OnCooldownStart -= PlayCooldownSound;
             }
+        }
+
+        public void Initialize(Heat heat)
+        {
+            if (this.heat)
+            {
+                this.heat.OnOverheat -= PlayOverheatSound;
+                this.heat.OnCooldownStart -= PlayCooldownSound;
+            }
+
+            this.heat = heat;
+            if (!this.heat) return;
+
+            this.heat.OnOverheat += PlayOverheatSound;
+            this.heat.OnCooldownStart += PlayCooldownSound;
         }
 
         void PlayOverheatSound()
@@ -69,23 +67,6 @@ namespace Audio
             if (cooldownClip && audioSource)
             {
                 audioSource.PlayOneShot(cooldownClip, volume);
-            }
-        }
-
-        void TryAssignLaserGun()
-        {
-            var playerObj = GameObject.FindGameObjectWithTag(TagNames.Player);
-            if (playerObj)
-            {
-                laserGun = playerObj.GetComponentInChildren<WeaponLaser>();
-                heat = laserGun ? laserGun.GetComponent<Heat>() : null;
-                
-                // Subscribe to events
-                if (heat)
-                {
-                    heat.OnOverheat += PlayOverheatSound;
-                    heat.OnCooldownStart += PlayCooldownSound;
-                }
             }
         }
     }

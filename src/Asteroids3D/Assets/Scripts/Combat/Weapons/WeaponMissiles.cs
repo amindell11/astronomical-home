@@ -12,13 +12,12 @@ namespace Combat.Weapons
         [SerializeField] private TargetingComputer targetingComputer;
 
         public TargetingComputer Targeting => targetingComputer;
-
-        private Rounds rounds;
+        public Rounds Rounds { get; private set; }
 
         protected override void Awake()
         {
             base.Awake();
-            rounds = GetComponent<Rounds>();
+            Rounds = GetComponent<Rounds>();
         }
 
         public override ProjectileBase Fire()
@@ -40,7 +39,7 @@ namespace Combat.Weapons
         /// </summary>
         public override bool ShouldFire(TargetingContext context)
         {
-            if (!rounds || rounds.AmmoCount <= 0) return false;
+            if (!Rounds || Rounds.AmmoCount <= 0) return false;
 
             switch (targetingComputer.State)
             {
@@ -50,7 +49,8 @@ namespace Combat.Weapons
                 case LockState.Locking:
                     const float missileRange = 10f;
                     const float missileAngleTolerance = 15f;
-                    return context.DistanceToTarget <= missileRange && context.AngleToTarget <= missileAngleTolerance;
+                    return context is { DistanceToTarget: <= missileRange, AngleToTarget: <= missileAngleTolerance };
+                case LockState.Cooldown:
                 default:
                     return false;
             }

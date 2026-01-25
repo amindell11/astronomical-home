@@ -41,22 +41,8 @@ namespace Ships.Damage
         public void TakeDamage(float damage, float hitMass, Vector3 hitVelocity, Vector3 hitPoint, GameObject attacker)
         { 
             if (damage <= 0 || IsInvulnerable) return; 
-            
             UpdateAttacker(attacker);
-            
-            float appliedDamage;
-            
-            // If shields are already depleted, damage goes directly to health
-            if (Shield.CurrentValue <= 0)
-            {
-                appliedDamage = Health.ApplyDamage(damage);
-            }
-            else
-            {
-                // Shields absorb damage; excess from a single hit is discarded (single-hit rule)
-                appliedDamage = Shield.ApplyDamage(damage);
-            }
-
+            var appliedDamage = Shield.CurrentValue <= 0 ? Health.ApplyDamage(damage) : Shield.ApplyDamage(damage);
             if (appliedDamage > 0)
             {
                 OnDamaged?.Invoke(appliedDamage, hitPoint);

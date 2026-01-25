@@ -6,13 +6,12 @@ namespace Combat.Weapons
     public partial class WeaponLaser : WeaponBase<LaserProjectile>
     {
         public float ProjectileSpeed => projectilePrefab.LaserSpeed;
-
-        private Heat heat;
+        public Heat Heat { get; private set; }
 
         protected override void Awake()
         {
             base.Awake();
-            heat = GetComponent<Heat>();
+            Heat = GetComponent<Heat>();
         }
 
         /// <summary>
@@ -21,9 +20,9 @@ namespace Combat.Weapons
         /// </summary>
         public override bool ShouldFire(TargetingContext context)
         {
-            if (!heat || !context.HasLineOfSight) return false;
+            if (!Heat || !context.HasLineOfSight) return false;
 
-            var isReadyToFire = !heat.WouldOverheatOnNextShot();
+            var isReadyToFire = !Heat.WouldOverheatOnNextShot();
             if (!isReadyToFire) return false;
             
             const float fireDistance = 20f;

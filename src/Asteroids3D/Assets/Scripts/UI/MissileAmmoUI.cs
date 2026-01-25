@@ -1,12 +1,8 @@
 using System.Collections.Generic;
-using System.Linq;
 using Combat.Conditions;
 using Combat.Targeting;
-using Combat.Weapons;
 using UnityEngine;
 using UnityEngine.UI;
-using Utils;
-using Weapons;
 
 namespace UI
 {
@@ -14,9 +10,6 @@ namespace UI
     [RequireComponent(typeof(CanvasGroup))]
     public sealed class MissileAmmoUI : MonoBehaviour
     {
-        [Tooltip("Missile launcher whose ammo we want to display.")]
-        [SerializeField] private WeaponMissiles launcher;
-
         [Header("Dynamic Icon Generation")]
         [Tooltip("Prefab used to instantiate each missile icon.")]
         [SerializeField] private Image iconPrefab;
@@ -51,49 +44,63 @@ namespace UI
         // Cache delegate to avoid allocations
         private System.Action<int> ammoChangedHandler;
         private Rounds rounds;
+        private TargetingComputer targeting;
 
         private void Awake()
         {
             canvasGroup = GetComponent<CanvasGroup>();
             if (!iconContainer) iconContainer = transform;
-        }
-
-        private void Start()
-        {
-            if (!launcher)
-            {
-                launcher = GameObject.FindGameObjectWithTag(TagNames.Player).GetComponentInChildren<WeaponMissiles>();
-            }
-
-            if (!launcher) return;
-            rounds = launcher.GetComponent<Rounds>();
-            RebuildIcons();
-
             ammoChangedHandler = OnAmmoChanged;
-            if (rounds) rounds.OnAmmoCountChanged += ammoChangedHandler;
-
-            UpdateAmmoIcons(rounds ? rounds.AmmoCount : 0);
         }
 
-        private void OnDisable()
+        public void Initialize(Rounds rounds, TargetingComputer targeting)
         {
-            if (rounds && ammoChangedHandler != null)
+            if (this.rounds && ammoChangedHandler != null)
+                this.rounds.OnAmmoCountChanged -= ammoChangedHandler;
+
+            this.rounds = rounds;
+            this.targeting = targeting;
+            if (!this.rounds) return;
+
+            RebuildIcons();
+            this.rounds.OnAmmoCountChanged += ammoChangedHandler;
+            UpdateAmmoIcons(this.rounds.AmmoCount);
+        }
+
+        public void RegisterIcon(Image image, GlowingUIController glow)
+        {
+            if (!image) return;
+
+            var index = icons.IndexOf(image);
+            if (index >= 0)
             {
-                rounds.OnAmmoCountChanged -= ammoChangedHandler;
+                if (index < glowControllers.Count)
+                    glowControllers[index] = glow;
+                else
+                    glowControllers.Add(glow);
+                return;
             }
+
+            icons.Add(image);
+            glowControllers.Add(glow);
         }
 
         private void Update()
         {
-            if (!launcher || !cooldownSpinner) return;
+            if (!targeting || !cooldownSpinner) return;
 
-            var onCooldown = launcher.Targeting.State == LockState.Cooldown;
+            var onCooldown = targeting.State == LockState.Cooldown;
             cooldownSpinner.enabled = onCooldown;
             if (onCooldown)
             {
-                // Simple rotation animation
                 cooldownSpinner.transform.Rotate(0f, 0f, -360f * Time.unscaledDeltaTime);
             }
+        }
+
+        private void OnDestroy()
+        {
+            if (rounds && ammoChangedHandler != null)
+                rounds.OnAmmoCountChanged -= ammoChangedHandler;
         }
 
         // ───────────────────────── Event Callbacks ─────────────────────────
@@ -138,59 +145,30 @@ namespace UI
 
         private void RebuildIcons()
         {
-            // Refresh the icon list by first collecting any existing images that have the
-            // designated tag, then creating additional ones as needed.
+            if (!iconPrefab || !rounds) return;
 
-            icons.Clear();
-            glowControllers.Clear();
+            var max = rounds.MaxAmmo;
 
-            // 1. Gather existing icons with the correct tag (might have been laid out in the editor)
-            if (iconContainer)
+            if (icons.Count > max)
             {
-                var existing = iconContainer.GetComponentsInChildren<Image>(includeInactive: true)
-                    .Where(img => img.CompareTag(IconTag));
-                icons.AddRange(existing);
-                foreach (var img in existing)
+                for (var i = icons.Count - 1; i >= max; i--)
                 {
-                    if (!img) { glowControllers.Add(null); continue; }
-                    var glow = img.GetComponent<GlowingUIController>();
-                    glowControllers.Add(glow);
+                    if (icons[i])
+                        Destroy(icons[i].gameObject);
+                    icons.RemoveAt(i);
+                    if (i < glowControllers.Count)
+                        glowControllers.RemoveAt(i);
                 }
             }
 
-            // 2. Ensure we have exactly rounds.MaxAmmo icons by adding more if necessary
-            if (!iconPrefab || !rounds) return;
+            for (var i = icons.Count; i < max; i++)
             {
-                var max = rounds.MaxAmmo;
-
-                // Remove excess icons if there are too many (e.g., max ammo decreased)
-                if (icons.Count > max)
+                var newIcon = Instantiate(iconPrefab, iconContainer);
+                newIcon.tag = IconTag;
+                if (!icons.Contains(newIcon))
                 {
-                    for (var i = icons.Count - 1; i >= max; i--)
-                    {
-                        if (icons[i])
-                        {
-                            Destroy(icons[i].gameObject);
-                        }
-                        icons.RemoveAt(i);
-                    }
-                }
-
-                // Instantiate additional icons if needed
-                for (var i = icons.Count; i < max; i++)
-                {
-                    var newIcon = Instantiate(iconPrefab, iconContainer);
-                    newIcon.tag = IconTag; // Mark so we can find it next time
                     icons.Add(newIcon);
-
-                    // Ensure each instantiated icon has a glow controller
-                    var glow = newIcon.GetComponent<GlowingUIController>();
-                    if (!glow)
-                    {
-                        glow = newIcon.gameObject.AddComponent<GlowingUIController>();
-                        glow.ApplyMissileAmmoPreset(); // Sensible defaults
-                    }
-                    glowControllers.Add(glow);
+                    glowControllers.Add(null);
                 }
             }
         }
