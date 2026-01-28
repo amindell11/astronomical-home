@@ -39,26 +39,22 @@ namespace UI
         private float defaultFlashSpeed = 4f;
         private Heat heat;
 
-        void Awake()
+        private void Awake()
         {
             if (!fillImage) fillImage = GetComponentInChildren<Image>();
             if (!glowController && fillImage)
                 glowController = fillImage.GetComponent<GlowingUIController>();
             if (!glowController)
                 glowController = GetComponent<GlowingUIController>();
-            if (glowController)
-            {
-                defaultFlashSpeed = glowController.FlashSpeed;
-                glowController.SetEmissionColor(normalGlowColor);
-                glowController.SetFlashing(false);
-            }
+            if (!glowController) return;
+            defaultFlashSpeed = glowController.FlashSpeed;
+            glowController.SetEmissionColor(normalGlowColor);
+            glowController.SetFlashing(false);
         }
 
         public void Initialize(Heat heat)
         {
             this.heat = heat;
-            // Also update the laserGun reference for backwards compatibility
-            if (heat) laserGun = heat.GetComponentInParent<WeaponLaser>();
         }
 
         void Update()

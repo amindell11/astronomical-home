@@ -5,7 +5,6 @@ namespace Sensors
 {
     public class FanSensor : IDirectionalSensor
     {
-        private readonly Collider[] buffer;
         private readonly Transform origin;
         private readonly float distance;
         private readonly float spreadAngle;
@@ -13,7 +12,7 @@ namespace Sensors
         private readonly float sphereRadius;
         private readonly LayerMask layerMask;
 
-        public Collider[] Buffer => buffer;
+        public Collider[] Buffer { get; }
 
         public FanSensor(
             Transform origin,
@@ -30,7 +29,7 @@ namespace Sensors
             this.degreesBetweenRays = degreesBetweenRays;
             this.sphereRadius = sphereRadius;
             this.layerMask = layerMask;
-            buffer = new Collider[bufferSize];
+            Buffer = new Collider[bufferSize];
         }
 
         public int Detect()
@@ -48,7 +47,7 @@ namespace Sensors
                 degreesBetweenRays,
                 sphereRadius,
                 layerMask,
-                buffer
+                Buffer
             );
         }
     }
