@@ -1,78 +1,80 @@
 ---
 name: test-driven-features
-description: Guidelines for writing tests alongside new features
+description: Guidelines for writing and running Unity tests alongside new features
 alwaysApply: false
 ---
 
 # Test-Driven Feature Development
 
-When implementing new features, write accompanying tests to ensure correctness and prevent regressions.
+Write tests for new gameplay logic and bug fixes so regressions are caught quickly.
 
-## When to Write Tests
+## When to write tests
 
 Write tests for:
-- New gameplay mechanics (damage, movement, weapons, AI behavior)
-- Bug fixes (regression tests to prevent reoccurrence)
-- Refactoring of existing systems
-- Complex calculations or algorithms
+- gameplay behavior (combat, navigation, scanning, utility logic)
+- bug fixes (add a regression test first)
+- refactors that change logic flow
+- deterministic math/utility code
 
 Skip tests for:
-- Pure UI/visual changes
-- Simple configuration changes
-- Editor-only tooling
+- purely visual/UI polish
+- inspector-only tweaks with no logic impact
 
-## Test Types by Feature
+## Test types
 
-### Gameplay Systems
-Use **PlayMode tests** with `TestServices`:
+### EditMode (fast, logic-first)
+Use for pure logic and deterministic helpers.
 
-```csharp
-[UnityTest]
-public IEnumerator NewFeature_Behavior_ExpectedOutcome()
-{
-    var config = TestConfig.Load();
-    var services = config.CreateServices();
-    
-    // Arrange - set up test conditions
-    // Act - trigger the behavior
-    yield return null; // Wait for physics/events
-    
-    // Assert - verify expected outcome
-    Assert.AreEqual(expected, actual);
-    
-    services.Dispose();
-}
-```
+Location:
+- `Assets/Scripts/Editor/Tests/EditMode/`
 
-### Pure Logic (No Unity Runtime)
-Use **EditMode tests**:
-
+Example shape:
 ```csharp
 [Test]
-public void Calculator_Method_ReturnsExpectedValue()
+public void Feature_Scenario_ExpectedResult()
 {
-    var calc = new Calculator(settings);
-    var result = calc.Compute(input);
-    Assert.AreEqual(expected, result);
+    // Arrange
+    // Act
+    // Assert
 }
 ```
 
-## Test Naming Convention
+### PlayMode (runtime integration)
+Use for frame/physics/runtime behavior.
 
-Use format: `{Method/Feature}_{Scenario}_{ExpectedBehavior}`
+Location:
+- `Assets/Scripts/Editor/Tests/PlayMode/`
+
+Example shape:
+```csharp
+[UnityTest]
+public IEnumerator Feature_Scenario_ExpectedRuntimeBehavior()
+{
+    // Arrange
+    // Act
+    yield return null;
+    // Assert
+}
+```
+
+## Naming convention
+
+`{FeatureOrMethod}_{Scenario}_{ExpectedBehavior}`
 
 Examples:
-- `MissileLaunch_FromStationaryShip_MissileMovesForward`
-- `ShieldDamage_ExceedsShield_OnlyShieldTakesDamage`
-- `Fragmentation_DestroyingAsteroid_CreatesFragments`
+- `CameraFollow_TargetMoves_CameraTracksTarget`
+- `Navigator_ObstacleDetected_PathAdjusts`
+- `CollisionDamageUtility_ImpulseHigh_DamageClamped`
 
-## Test Location
+## Running tests (agent-friendly)
 
-- PlayMode: `Assets/Tests/PlayMode/{FeatureName}PlayMode.cs`
-- EditMode: `Assets/Tests/EditMode/{FeatureName}EditModeTests.cs`
+Use the project runner:
 
-## Running Tests
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\unity_test_agent.ps1 -Mode Both
+```
 
-After implementing tests, run them via:
-1. **Unity Editor:** Window → General → Test Runner
-2. **Command line:** See `unity-testing.mdc` rule for batch execution
+For faster iteration:
+- run `-Mode EditMode` or `-Mode PlayMode`
+- use scope/filter arguments via extension tooling
+- rerun failed tests only after a fix

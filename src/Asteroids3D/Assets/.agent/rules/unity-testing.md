@@ -1,93 +1,70 @@
 ---
 name: unity-testing
-description: How to run Unity tests from command line and test architecture overview
+description: Canonical Unity CLI test workflow and compact result handling for this repository
 alwaysApply: false
 ---
 
-# Running Unity Tests
+# Unity Testing (Current Workflow)
 
-## Command Line Test Execution
+## Canonical runner
 
-Unity tests can be run from PowerShell when the Unity Editor is **not** open:
-
-```powershell
-$unityPath = "D:\Programs\Unity\Editor\6000.1.8f1\Editor\Unity.exe"
-$projectPath = "D:\amind\git\astronomical-home\src\Asteroids3D"
-$resultsFile = "$env:TEMP\test_results.xml"
-$logFile = "$env:TEMP\unity_test_log.txt"
-
-# Run PlayMode tests
-& $unityPath -batchmode -projectPath $projectPath -runTests -testPlatform PlayMode -testResults $resultsFile -logFile $logFile
-
-# Run EditMode tests
-& $unityPath -batchmode -projectPath $projectPath -runTests -testPlatform EditMode -testResults $resultsFile -logFile $logFile
-```
-
-## Parsing Test Results (Token-Efficient)
+Use the repository script for deterministic, compact output:
 
 ```powershell
-# Concise summary - truncate failure messages to reduce token usage
-[xml]$r = Get-Content $resultsFile
-Write-Host "Pass:$($r.'test-run'.passed) Fail:$($r.'test-run'.failed)"
-$r.SelectNodes("//test-case[@result='Failed']") | % {
-    $msg = $_.failure.message.InnerText -replace '\s+', ' '
-    if ($msg.Length -gt 120) { $msg = $msg.Substring(0,120) + "..." }
-    Write-Host "FAIL $($_.name): $msg"
-}
+powershell -ExecutionPolicy Bypass -File .\scripts\unity_test_agent.ps1 -Mode Both
 ```
 
-**Best practices for token efficiency:**
-- Use `-Tail 30` when reading log files (not full content)
-- Truncate failure messages to ~120 chars
-- Use short test names in output (`.name` not `.fullname`)
-- Avoid printing stack traces unless debugging specific failures
-
-## Test Architecture
-
-### Test Locations
-- **PlayMode tests:** `Assets/Tests/PlayMode/` - Tests that require Unity runtime
-- **EditMode tests:** `Assets/Tests/EditMode/` - Pure logic tests without runtime
-
-### Key Test Infrastructure
-
-- **`TestServices`** - Bootstrapper for ship-based tests using `Factory.CreateShip()`
-- **`TestConfig`** - ScriptableObject at `Assets/Tests/PlayMode/TestConfig.asset` with prefab references
-- **`TestSceneBuilder`** - Utilities for arena creation and positioning
-
-### Creating Test Services
-
-```csharp
-[SetUp]
-public void SetUp()
-{
-    var config = TestConfig.Load();
-    services = config.CreateServices(separation: 20f);
-}
-
-[TearDown]
-public void TearDown()
-{
-    services?.Dispose();
-}
+Windows shortcut:
+```cmd
+scripts\unity_test_agent.cmd -Mode Both
 ```
 
-### Test Config Setup
+## Supported run scopes
 
-The `TestConfig.asset` must reference:
-- Player/Enemy ship prefabs (`Assets/Prefabs/Ships/Ship_*.prefab`)
-- Commander prefabs (`Assets/Prefabs/Ships/Pilots/*.prefab`)
-- Ship settings (`Assets/Prefabs/Ships/DefaultSettings.asset`)
+The runner supports:
+- `Workspace` (broad)
+- `Feature` (targeted)
+- `Module` (subsystem)
 
-## Checking Logs (If No Results)
+and test selectors:
+- `-TestFilter`
+- `-TestCategory`
+- `-AssemblyNames`
+- `-OrderedTestListFile`
+- `-RerunFailedFrom <summary.json>` (rerun failed tests from prior summary)
 
-```powershell
-# Only read last 30 lines to check for errors - avoid full log
-Get-Content $logFile -Tail 30
-```
+## Artifacts
 
-## Important Notes
+Output directory (default): `results/unity-tests-agent/`
 
-1. **Unity must be closed** to run tests from command line (projects lock)
-2. **Tests take 60-120 seconds** - wait with `Start-Sleep -Seconds 90` before parsing
-3. If results file missing, check log tail for compilation errors
-4. PlayMode tests require the test scene to be buildable
+Per run:
+- `<timestamp>-EditMode.xml` / `<timestamp>-PlayMode.xml`
+- `<timestamp>-EditMode.log` / `<timestamp>-PlayMode.log`
+- `<timestamp>-summary.json`
+- `latest-summary.json`
+
+## JSON summary contract
+
+The summary is optimized for agent loops:
+- aggregate totals
+- per-platform status/duration
+- failures with:
+  - `name`
+  - `fullName`
+  - short `message`
+  - `topStack`
+
+Keep prompts thin: pass only failure summaries and artifact paths unless deep debugging is required.
+
+## Test locations (current)
+
+- EditMode: `Assets/Scripts/Editor/Tests/EditMode/`
+- PlayMode: `Assets/Scripts/Editor/Tests/PlayMode/`
+
+Deprecated PlayMode tests have been removed from the active guidance path. Do not rely on old `TestConfig`/`TestServices` patterns.
+
+## Exit codes
+
+- `0`: all selected tests passed
+- `1`: test failures
+- `2`: infrastructure error (missing XML, crash, compile/setup issue)

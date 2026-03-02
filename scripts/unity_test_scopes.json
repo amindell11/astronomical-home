@@ -1,0 +1,30 @@
+{
+  "smoke": {
+    "testFilter": "Tests\.EditMode\.CameraUtilsEditModeTests|CollisionDamageUtilityTests|GamePlanePlayMode|CameraFollowPlayMode"
+  },
+  "features": {
+    "camera": {
+      "testFilter": "CameraUtilsEditModeTests|CameraFollowPlayMode"
+    },
+    "navigation": {
+      "testFilter": "NavigatorPlayMode|MpcNavigatorPlayMode"
+    },
+    "scanning": {
+      "testFilter": "ScannerPlayMode"
+    },
+    "physics": {
+      "testFilter": "CollisionDamageUtilityTests|ActuatorEditModeTests|FragneticsCalculatorEditModeTests"
+    }
+  },
+  "modules": {
+    "ai": {
+      "testFilter": "NavigatorPlayMode|MpcNavigatorPlayMode|ScannerPlayMode"
+    },
+    "utils": {
+      "testFilter": "CollisionDamageUtilityTests|CameraUtilsEditModeTests|FragneticsCalculatorEditModeTests"
+    },
+    "workspace": {
+      "testFilter": ""
+    }
+  }
+}
