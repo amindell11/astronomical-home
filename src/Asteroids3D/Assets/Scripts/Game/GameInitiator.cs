@@ -18,13 +18,13 @@ namespace Game
     public class GameInitiator : MonoBehaviour
     {
         [SerializeField] private GameConfig gameConfig;
+        [SerializeField] private Transform referencePlane;
+        [SerializeField] private ShipRespawnRunner respawnRunner;
 
         private UpdatingAsteroidField asteroidField;
         private CameraRig cameraRig;
         private WorldRoot world;
         private Ship player, enemy;
-        private ShipRespawnRunner respawnRunner;
-        private UI.Overlay overlay;
         private bool isInitialized;
 
         public event Action<Ship, Camera> PresentationReady;
@@ -34,8 +34,7 @@ namespace Game
 
         private void Awake()
         {
-            respawnRunner = GetComponent<ShipRespawnRunner>() ?? gameObject.AddComponent<ShipRespawnRunner>();
-            PresentationReady += HandlePresentationReady;
+            ValidateSerializedDependencies();
             StartCoroutine(InitializeRoutine());
         }
 
@@ -54,8 +53,12 @@ namespace Game
             if (!config)
                 throw new ArgumentNullException(nameof(config));
 
+            ValidateSerializedDependencies();
+
             gameConfig = config;
             isInitialized = true;
+
+            GamePlane.SetReferencePlane(referencePlane);
 
             yield return StartCoroutine(LoadWorldScene());
 
@@ -68,7 +71,7 @@ namespace Game
             PublishPresentationReady();
         }
 
-        private static IEnumerator LoadWorldScene()
+        private IEnumerator LoadWorldScene()
         {
             const string worldSceneName = "BasicWorld";
 
@@ -79,12 +82,7 @@ namespace Game
                     yield return null;
             }
 
-            var planeGo = GameObject.FindGameObjectWithTag(TagNames.ReferencePlane);
-            if (!planeGo)
-                throw new InvalidOperationException($"Missing required '{TagNames.ReferencePlane}' tagged object in loaded world scene.");
-
-            GamePlane.SetReferencePlane(planeGo.transform);
-            GamePlane.Plane.SetPositionAndRotation(Vector3.zero, Quaternion.Euler(90f, 0f, 0f));
+            referencePlane.SetPositionAndRotation(Vector3.zero, Quaternion.Euler(90f, 0f, 0f));
         }
 
         private void InitializeCamera(GameConfig config)
@@ -167,6 +165,18 @@ namespace Game
 
             if (!respawnRunner || !respawnRunner.IsInitialized)
                 throw new InvalidOperationException("ShipRespawnRunner must be initialized before gameplay starts.");
+
+            if (GamePlane.Plane != referencePlane)
+                throw new InvalidOperationException("GamePlane must be configured from the serialized reference plane.");
+        }
+
+        private void ValidateSerializedDependencies()
+        {
+            if (!referencePlane)
+                throw new InvalidOperationException("GameInitiator requires a serialized reference plane Transform.");
+
+            if (!respawnRunner)
+                throw new InvalidOperationException("GameInitiator requires a scene-owned ShipRespawnRunner reference.");
         }
 
         private static void ValidateShipWiring(Ship ship)
@@ -206,8 +216,10 @@ namespace Game
             if (enemy)
                 Destroy(enemy.gameObject);
 
-            respawnRunner?.ResetRunner();
+            if (respawnRunner)
+                respawnRunner.ResetRunner();
             ShipRegistry?.Dispose();
+            GamePlane.Reset();
 
             cameraRig = null;
             asteroidField = null;
@@ -224,29 +236,11 @@ namespace Game
 
         private void OnDestroy()
         {
-            PresentationReady -= HandlePresentationReady;
-
             if (ShipRegistry != null)
             {
                 ShipRegistry.ActiveShips.OnAdd -= OnShipAddedToRegistry;
                 ShipRegistry.ActiveShips.OnRemove -= OnShipRemovedFromRegistry;
             }
-
-            if (overlay)
-                Destroy(overlay.gameObject);
-        }
-
-        private void HandlePresentationReady(Ship playerShip, Camera uiCamera)
-        {
-            if (!gameConfig || !gameConfig.UI || !playerShip)
-                return;
-
-            if (overlay)
-                Destroy(overlay.gameObject);
-
-            overlay = Instantiate(gameConfig.UI);
-            overlay.SetCanvasWorldCamera(uiCamera);
-            overlay.Initialize(playerShip);
         }
     }
 }
