@@ -110,6 +110,15 @@ namespace Ships
         {
             UpdateState();
             TryGetCommand();
+            ExecuteCommand();
+        }
+
+        private void ExecuteCommand()
+        {
+            if (CurrentCommand.primaryFire)
+                Weapons?.FirePrimary();
+            if (CurrentCommand.secondaryFire)
+                Weapons?.FireSecondary();
         }
 
         private void Update()
