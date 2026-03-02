@@ -55,6 +55,8 @@ namespace Asteroids.Fields
             CullingBoundary.radius = maxSpawnDistance * BoundaryMargin;
         }
 
+        public void SetWorldAnchor(Transform anchor) => AsteroidSpawner?.SetWorldAnchor(anchor);
+
         protected virtual void Start()
         {
             RecalculateTargetVolume();

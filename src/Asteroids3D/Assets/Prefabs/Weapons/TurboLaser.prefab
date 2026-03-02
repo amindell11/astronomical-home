@@ -106,35 +106,5 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 2028383931407238149, guid: d4f6577bb30c48945a17243a523023ff,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 2470082066440031219}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d4f6577bb30c48945a17243a523023ff, type: 3}
---- !u!1 &5510004962044530722 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2028383931407238149, guid: d4f6577bb30c48945a17243a523023ff,
-    type: 3}
-  m_PrefabInstance: {fileID: 5787473110910260263}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &2470082066440031219
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5510004962044530722}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5c7f1d5a3e1e486abec74ce5bb7c4d16, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  logEnable: 1
-  logDisable: 1
-  logStackTrace: 1
-  logUpdate: 0
-  customLabel: 
-  enableCount: 0
-  disableCount: 0
-  isCurrentlyEnabled: 0

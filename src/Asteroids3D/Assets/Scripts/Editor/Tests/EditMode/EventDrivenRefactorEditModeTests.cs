@@ -170,7 +170,7 @@ namespace Tests.EditMode
 
             StringAssert.DoesNotContain("using UnityEditor", updatingFieldSource);
             StringAssert.DoesNotContain("OnDrawGizmosSelected", updatingFieldSource);
-            StringAssert.DoesNotContain("UI.Overlay", initiatorSource);
+            StringAssert.DoesNotContain("GameContext.Instance", initiatorSource);
             StringAssert.Contains("PresentationReady", initiatorSource);
         }
 

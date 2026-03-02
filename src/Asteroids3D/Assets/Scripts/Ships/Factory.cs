@@ -1,3 +1,4 @@
+using System;
 using Ships.Command;
 using UnityEngine;
 
@@ -16,10 +17,12 @@ namespace Ships
              ShipSettings shipSettings,
              int team,
              Vector3 position,
-             Quaternion rotation)
+             Quaternion rotation,
+             Action<Ship> preInitialize = null)
         {
-            var ship = Object.Instantiate(prefab, position, rotation);
+            var ship = UnityEngine.Object.Instantiate(prefab, position, rotation);
             ship.AddCommander(commander);
+            preInitialize?.Invoke(ship);
             ship.Initialize(shipSettings, team);
             return ship;
         }

@@ -1,39 +1,60 @@
 using System;
 using System.Collections;
 using System.Linq;
+using AI;
 using Asteroids.Fields;
 using Cameras;
+using Player;
 using Ships;
 using UnityEngine;
-using World;
 using UnityEngine.SceneManagement;
 using Utils;
+using World;
 using Random = UnityEngine.Random;
-using ShipFactory  = Ships.Factory;
-using ShipSpawner = Ships.Spawner;
+using ShipFactory = Ships.Factory;
 
 namespace Game
 {
     public class GameInitiator : MonoBehaviour
     {
+        [SerializeField] private GameConfig gameConfig;
+
         private UpdatingAsteroidField asteroidField;
         private CameraRig cameraRig;
         private WorldRoot world;
         private Ship player, enemy;
-        private ShipSpawner spawner;
+        private ShipRespawnRunner respawnRunner;
+        private UI.Overlay overlay;
         private bool isInitialized;
 
         public event Action<Ship, Camera> PresentationReady;
 
         public ShipRegistry ShipRegistry { get; private set; }
+        private Transform WorldFollowerTransform => world && world.Follower ? world.Follower.transform : null;
 
-        public IEnumerator Initialize(GameConfig gameConfig)
+        private void Awake()
         {
-            if (isInitialized)
-                yield break;
+            respawnRunner = GetComponent<ShipRespawnRunner>() ?? gameObject.AddComponent<ShipRespawnRunner>();
+            PresentationReady += HandlePresentationReady;
+            StartCoroutine(InitializeRoutine());
+        }
+
+        private IEnumerator InitializeRoutine()
+        {
             if (!gameConfig)
                 throw new ArgumentNullException(nameof(gameConfig));
 
+            yield return Initialize(gameConfig);
+        }
+
+        public IEnumerator Initialize(GameConfig config)
+        {
+            if (isInitialized)
+                yield break;
+            if (!config)
+                throw new ArgumentNullException(nameof(config));
+
+            gameConfig = config;
             isInitialized = true;
 
             yield return StartCoroutine(LoadWorldScene());
@@ -42,6 +63,8 @@ namespace Game
             InitializeAsteroidField(gameConfig);
             InitializeShips(gameConfig);
             InitializeCamera(gameConfig);
+            ConfigurePlayerInputProjection();
+            ValidateRuntimeWiring();
             PublishPresentationReady();
         }
 
@@ -64,57 +87,114 @@ namespace Game
             GamePlane.Plane.SetPositionAndRotation(Vector3.zero, Quaternion.Euler(90f, 0f, 0f));
         }
 
-        private void InitializeCamera(GameConfig gameConfig)
+        private void InitializeCamera(GameConfig config)
         {
-            cameraRig = Instantiate(gameConfig.CameraRig);
-            GameContext.Instance.SetMainCamera(cameraRig.MainCamera);
+            cameraRig = Instantiate(config.CameraRig);
 
             var cameraFollow = cameraRig.ObserverCam;
             cameraFollow.SetSubject(player.transform);
             cameraFollow.AddSecondarySubjects(ShipRegistry.ActiveShips.Where(s => s != player).Select(s => s.transform));
-            ShipRegistry.ActiveShips.OnAdd += s => cameraFollow.AddSecondarySubject(s.transform);
-            ShipRegistry.ActiveShips.OnRemove += s => cameraFollow.RemoveSecondarySubject(s.transform);
+            ShipRegistry.ActiveShips.OnAdd += OnShipAddedToRegistry;
+            ShipRegistry.ActiveShips.OnRemove += OnShipRemovedFromRegistry;
         }
 
-        private void InitializeAsteroidField(GameConfig gameConfig)
+        private void OnShipAddedToRegistry(Ship ship)
+        {
+            if (!ship) return;
+            cameraRig?.ObserverCam?.AddSecondarySubject(ship.transform);
+        }
+
+        private void OnShipRemovedFromRegistry(Ship ship)
+        {
+            if (!ship) return;
+            cameraRig?.ObserverCam?.RemoveSecondarySubject(ship.transform);
+        }
+
+        private void InitializeAsteroidField(GameConfig config)
         {
             var cullingBoundary = world.AsteroidCullingBoundary;
-            asteroidField = Instantiate(gameConfig.AsteroidAsteroidField);
+            asteroidField = Instantiate(config.AsteroidAsteroidField);
             asteroidField.Initialize(cullingBoundary);
+            asteroidField.SetWorldAnchor(WorldFollowerTransform);
             asteroidField.CurrentAnchorPos = () => GamePlane.ProjectOntoPlane(cameraRig.transform.position);
         }
 
-        private void InitializeShips(GameConfig gameConfig)
+        private void InitializeShips(GameConfig config)
         {
-            ShipRegistry = new ShipRegistry(gameConfig);
-            GameContext.Instance.SetRegistry(ShipRegistry);
-            spawner = new ShipSpawner(gameConfig.ShipSpawnerSettings, ShipRegistry);
+            ShipRegistry = new ShipRegistry(config);
 
-            player = ShipFactory.CreateShip(gameConfig.PlayerTemplate, gameConfig.PlayerCommander, gameConfig.ShipSettings, 0,
-                Vector3.zero, Quaternion.identity);
+            player = ShipFactory.CreateShip(config.PlayerTemplate, config.PlayerCommander, config.ShipSettings, 0,
+                Vector3.zero, Quaternion.identity, WireShipDependencies);
             player.tag = TagNames.Player;
 
-            enemy = ShipFactory.CreateShip(gameConfig.EnemyTemplate, gameConfig.EnemyCommander, gameConfig.ShipSettings, 1,
-                GamePlane.PlanePointToWorld(Random.insideUnitCircle) * 5, Quaternion.identity);
-
-            player.Targeting?.SetRegistry(ShipRegistry);
-            enemy.Targeting?.SetRegistry(ShipRegistry);
+            enemy = ShipFactory.CreateShip(config.EnemyTemplate, config.EnemyCommander, config.ShipSettings, 1,
+                GamePlane.PlanePointToWorld(Random.insideUnitCircle) * 5, Quaternion.identity, WireShipDependencies);
 
             ShipRegistry.ActiveShips.Add(player);
             ShipRegistry.ActiveShips.Add(enemy);
 
+            respawnRunner.Initialize(config.ShipSpawnerSettings, ShipRegistry, () => WorldFollowerTransform);
+
             world.Follower.SetTarget(player.transform);
         }
 
-        private void InitializeWorld(GameConfig gameConfig)
+        private void WireShipDependencies(Ship ship)
         {
-            if (!gameConfig.World) return;
-            world = Instantiate(gameConfig.World);
-            GameContext.Instance.SetWorldFollow(world.Follower);
+            if (!ship)
+                return;
+
+            ship.Targeting?.SetRegistry(ShipRegistry);
+            if (ship.Commander is AICommander aiCommander)
+                aiCommander.SetRegistry(ShipRegistry);
+        }
+
+        private void ConfigurePlayerInputProjection()
+        {
+            if (player?.Commander is not PlayerCommander playerCommander)
+                return;
+
+            playerCommander.SetScreenToGamePlane(pos =>
+                GamePlane.ProjectOntoPlane(cameraRig.MainCamera.ScreenToWorldPoint(pos)));
+        }
+
+        private void ValidateRuntimeWiring()
+        {
+            ValidateShipWiring(player);
+            ValidateShipWiring(enemy);
+
+            if (player?.Commander is PlayerCommander pc && !pc.HasScreenProjectorConfigured)
+                throw new InvalidOperationException("PlayerCommander requires a configured screen-to-plane projector.");
+
+            if (!respawnRunner || !respawnRunner.IsInitialized)
+                throw new InvalidOperationException("ShipRespawnRunner must be initialized before gameplay starts.");
+        }
+
+        private static void ValidateShipWiring(Ship ship)
+        {
+            if (!ship)
+                throw new InvalidOperationException("Ship must be created before validation.");
+
+            if (ship.Targeting && !ship.Targeting.HasRegistry)
+                throw new InvalidOperationException($"TargetingComputer on ship '{ship.name}' is missing IShipRegistry wiring.");
+
+            if (ship.Commander is AICommander aiCommander && !aiCommander.HasRegistryConfigured)
+                throw new InvalidOperationException($"AICommander on ship '{ship.name}' is missing IShipRegistry wiring.");
+        }
+
+        private void InitializeWorld(GameConfig config)
+        {
+            if (!config.World) return;
+            world = Instantiate(config.World);
         }
 
         public void Shutdown()
         {
+            if (ShipRegistry != null)
+            {
+                ShipRegistry.ActiveShips.OnAdd -= OnShipAddedToRegistry;
+                ShipRegistry.ActiveShips.OnRemove -= OnShipRemovedFromRegistry;
+            }
+
             if (cameraRig)
                 Destroy(cameraRig.gameObject);
             if (asteroidField)
@@ -126,6 +206,7 @@ namespace Game
             if (enemy)
                 Destroy(enemy.gameObject);
 
+            respawnRunner?.ResetRunner();
             ShipRegistry?.Dispose();
 
             cameraRig = null;
@@ -139,6 +220,33 @@ namespace Game
         {
             if (!player || !cameraRig) return;
             PresentationReady?.Invoke(player, cameraRig.UICamera);
+        }
+
+        private void OnDestroy()
+        {
+            PresentationReady -= HandlePresentationReady;
+
+            if (ShipRegistry != null)
+            {
+                ShipRegistry.ActiveShips.OnAdd -= OnShipAddedToRegistry;
+                ShipRegistry.ActiveShips.OnRemove -= OnShipRemovedFromRegistry;
+            }
+
+            if (overlay)
+                Destroy(overlay.gameObject);
+        }
+
+        private void HandlePresentationReady(Ship playerShip, Camera uiCamera)
+        {
+            if (!gameConfig || !gameConfig.UI || !playerShip)
+                return;
+
+            if (overlay)
+                Destroy(overlay.gameObject);
+
+            overlay = Instantiate(gameConfig.UI);
+            overlay.SetCanvasWorldCamera(uiCamera);
+            overlay.Initialize(playerShip);
         }
     }
 }

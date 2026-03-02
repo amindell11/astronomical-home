@@ -9,7 +9,13 @@ namespace Asteroids.Spawning
         [SerializeField] private AsteroidSpawnSettings settings;
         public Registry Registry { get; private set; }
         private SpawnPool pool;
-        
+        private Transform worldAnchor;
+
+        public void SetWorldAnchor(Transform anchor)
+        {
+            worldAnchor = anchor;
+        }
+
         private void Awake()
         {
             if (!settings)
@@ -24,15 +30,15 @@ namespace Asteroids.Spawning
 
         public void DespawnAll()
         {
-            foreach(var a in Registry.ActiveAsteroids) Despawn(a);
+            foreach (var a in Registry.ActiveAsteroids) Despawn(a);
         }
-        
+
         public void Despawn(AsteroidController ast)
         {
             Registry.Unregister(ast);
             pool.ReleaseAsteroid(ast);
         }
-        
+
         public AsteroidController SpawnRandom(Pose pose)
         {
             var ast = SpawnAtPose(pose);
@@ -40,7 +46,7 @@ namespace Asteroids.Spawning
             Registry.Register(ast);
             return ast;
         }
-        
+
         public AsteroidController SpawnFragment(Frag frag)
         {
             var pose = new Pose(frag.Position, frag.Rotation);
@@ -55,6 +61,7 @@ namespace Asteroids.Spawning
             var ast = pool.Get();
             ast.transform.SetParent(transform);
             ast.transform.SetPositionAndRotation(pose.position, pose.rotation);
+            ast.SetWorldAnchor(worldAnchor);
             return ast;
         }
 
@@ -90,7 +97,7 @@ namespace Asteroids.Spawning
 
         private static float VelocityScale(float mass)
         {
-            return (mass > 0) ? 1f / Mathf.Pow(mass, 1f/3f) : 1f;
+            return (mass > 0) ? 1f / Mathf.Pow(mass, 1f / 3f) : 1f;
         }
 
         private static Vector3 RandomVelocity(float mass, Vector2 velocityRange)
@@ -108,9 +115,9 @@ namespace Asteroids.Spawning
                 Random.Range(spinRange.x, spinRange.y) * velocityScale
             );
         }
-        
+
         private (float finalMass, float finalScale) CalculateMassAndScale(
-            AsteroidSpawnSettings.MeshInfo meshInfo, float? mass=null)
+            AsteroidSpawnSettings.MeshInfo meshInfo, float? mass = null)
         {
             var baseVolume = meshInfo.cachedVolume;
             var baseMass = baseVolume * settings.density;

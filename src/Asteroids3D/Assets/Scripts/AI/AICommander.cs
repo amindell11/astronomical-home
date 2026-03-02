@@ -7,12 +7,6 @@ using Ships.Command;
 using UnityEngine;
 using Attack = AI.States.Attack;
 using Info = AI.Context.Info;
-using Evade = AI.States.Evade;
-using Idle = AI.States.Idle;
-using JinkEvade = AI.States.JinkEvade;
-using Kite = AI.States.Kite;
-using Orbit = AI.States.Orbit;
-using Patrol = AI.States.Patrol;
 using UtilitySelector = AI.Utility.UtilitySelector;
 
 namespace AI
@@ -38,11 +32,15 @@ namespace AI
 
         private Ship ship;
         private Info context;
-        public  Scanning.Scout Scout { get; private set; }
+        private IShipRegistry registry;
+        private bool systemsInitialized;
+
+        public Scanning.Scout Scout { get; private set; }
         public Navigator Navigator { get; private set; }
         public Gunner Gunner { get; private set; }
         public UtilitySelector UtilitySelector { get; private set; }
         public string CurrentStateName => UtilitySelector?.CurrentStateName ?? "None";
+        public bool HasRegistryConfigured => registry != null;
 
         public void Awake()
         {
@@ -52,11 +50,22 @@ namespace AI
             UtilitySelector = GetComponent<UtilitySelector>();
         }
 
+        public void SetRegistry(IShipRegistry shipRegistry)
+        {
+            registry = shipRegistry;
+            TryInitializeSystems();
+        }
+
         public override void InitializeCommander(Ship ship)
         {
             this.ship = ship;
+            TryInitializeSystems();
+        }
 
-            IShipRegistry registry = GameContext.SingletonOrNull?.ShipRegistry;
+        private void TryInitializeSystems()
+        {
+            if (systemsInitialized || !ship || registry == null)
+                return;
 
             var shipInfo = new AI.Context.ShipInfo(ship);
             var targeting = new TargetingUtils(shipInfo, combatTuning);
@@ -64,29 +73,25 @@ namespace AI
 
             System.Func<State> stateProvider = () => ship.CurrentState;
 
-            Scout.Initialize(ship.transform, ship.Id, ship.settings.Dynamics,  stateProvider, registry);
+            Scout.Initialize(ship.transform, ship.Id, ship.settings.Dynamics, stateProvider, registry);
             Navigator.Initialize(stateProvider, ship.settings.Dynamics, Scout);
             Gunner.Initialize(ship.Weapons.Primary, ship.Weapons.Secondary, targeting, stateProvider);
-            
+
             context = new Info(ship, Navigator, Gunner, Scout, targeting, maneuvers);
-        
+
             if (!utilityTuning)
                 utilityTuning = ScriptableObject.CreateInstance<UtilityTuning>();
-        
+
             UtilitySelector.Initialize(
-                //new Idle(Navigator, Gunner, utilityTuning),
-                //new Patrol(Navigator, Gunner, utilityTuning),
-                //new Evade(Navigator, Gunner, utilityTuning),
-               // new JinkEvade(Navigator, Gunner, utilityTuning),
                 new Attack(Navigator, Gunner, utilityTuning)
-               // new Orbit(Navigator, Gunner, utilityTuning),
-               // new Kite(Navigator, Gunner, utilityTuning)
             );
+
+            systemsInitialized = true;
         }
 
         private void FixedUpdate()
         {
-            if (!ship || !UtilitySelector) return;   
+            if (!systemsInitialized || !UtilitySelector) return;
             UtilitySelector.Tick(context, Time.fixedDeltaTime);
             GetSubCommands(ref cachedCommand);
         }
@@ -94,9 +99,9 @@ namespace AI
         private void GetSubCommands(ref Command command)
         {
             cachedCommand = Navigator.CurrentCommand;
-            
+
             var gunCmd = Gunner.CurrentCommand;
-            cachedCommand.primaryFire = gunCmd.primaryFire; 
+            cachedCommand.primaryFire = gunCmd.primaryFire;
             cachedCommand.secondaryFire = gunCmd.secondaryFire;
         }
     }

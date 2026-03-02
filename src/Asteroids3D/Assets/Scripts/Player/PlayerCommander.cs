@@ -1,8 +1,8 @@
-using Game;
+using System;
 using Ships;
 using Ships.Command;
 using UnityEngine;
-using Utils;
+using Game;
 
 namespace Player
 {
@@ -15,22 +15,32 @@ namespace Player
         [Header("Settings")]
         [Tooltip("If checked, the ship will rotate towards the mouse position. If unchecked, the ship will rotate using the rotation input axis.")]
         [SerializeField] private bool useMouseDirection = false;
-    
+
         [Header("Gizmo Settings")]
         [SerializeField] private bool showMouseGizmos = true;
         [SerializeField] private float mouseGizmoScale = 3f;
-    
+
         private Ship ship;
         private PlayerInputReader playerInput;
+        private bool hasScreenProjector;
 
         private Vector3 directionToMouse;
         private Vector3 projectedDirection;
         private float targetAngle;
+
+        public bool HasScreenProjectorConfigured => hasScreenProjector;
+
         private void Awake()
         {
-            playerInput = new PlayerInputReader(pos => 
-                GamePlane.ProjectOntoPlane(GameContext.Instance.MainCamera.ScreenToWorldPoint(pos)));
+            playerInput = new PlayerInputReader(_ => throw new InvalidOperationException("Screen-to-game-plane projector has not been configured."));
         }
+
+        public void SetScreenToGamePlane(Func<Vector3, Vector3> screenToGamePlane)
+        {
+            playerInput.SetScreenToGamePlane(screenToGamePlane);
+            hasScreenProjector = true;
+        }
+
         public override void InitializeCommander(Ship ship)
         {
             this.ship = ship;
@@ -47,8 +57,7 @@ namespace Player
         private void Update()
         {
             if (!ship) return;
-            
-            // Poll ALL inputs in Update for stability
+
             thrustInput = playerInput.Thrust;
             strafeInput = playerInput.Strafe;
             rotationInput = playerInput.Rotation;
@@ -57,14 +66,13 @@ namespace Player
             secondaryInput = playerInput.SecondaryFireDown;
             wantsRotate = playerInput.WantsToRotate;
 
-            if (useMouseDirection && wantsRotate)
+            if (useMouseDirection && wantsRotate && hasScreenProjector)
             {
                 var mouseWorldPos = playerInput.GetMouseWorldPosition();
                 directionToMouse = (mouseWorldPos - ship.transform.position).normalized;
                 targetAngle = CalculateYawAngle(directionToMouse);
             }
 
-            // Sync non-physics commands
             cachedCommand.thrust = thrustInput;
             cachedCommand.strafe = strafeInput;
             cachedCommand.boost = (boostInput && ship.Movement.BoostAvailable) ? 1f : 0f;
@@ -76,8 +84,7 @@ namespace Player
         {
             if (!ship) return;
 
-            // Calculate torque using stable FixedUpdate rate but with fresh Update axis data
-            cachedCommand.yawTorque = useMouseDirection 
+            cachedCommand.yawTorque = useMouseDirection
                 ? (wantsRotate ? GetMouseRotationTorque() : 0)
                 : rotationInput;
         }
@@ -87,17 +94,16 @@ namespace Player
             var kin = ship.Movement.Kinematics;
             return Ships.Movement.ControlUtils.RotationPd(targetAngle, kin.yaw, kin.yawRate, ship.settings.maxYawRate, 4f);
         }
-    
+
         private float CalculateYawAngle(Vector3 direction)
         {
             var planeNormal = GamePlane.Normal;
             projectedDirection = Vector3.ProjectOnPlane(direction, planeNormal).normalized;
             var angle = Vector3.SignedAngle(GamePlane.Forward, projectedDirection, planeNormal);
-        
+
             if (angle < 0) angle += 360f;
-        
+
             return angle;
         }
     }
 }
- 

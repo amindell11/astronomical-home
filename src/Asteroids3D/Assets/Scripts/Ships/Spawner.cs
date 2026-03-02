@@ -1,48 +1,39 @@
-﻿using System.Collections;
+using System;
+using System.Collections;
 using Game;
 using UnityEngine;
-using Utils;
 
 namespace Ships
 {
-public class Spawner
-{
-    private readonly ShipSpawnerSettings settings;
-    private readonly ShipRegistry registry;
-    private Transform worldCenter;
+    public class Spawner
+    {
+        private readonly ShipSpawnerSettings settings;
+        private readonly Func<Transform> worldCenterProvider;
 
-    public Spawner(ShipSpawnerSettings settings, ShipRegistry registry)
-    {
-        this.settings = settings;
-        this.registry = registry;
-        registry.ActiveShips.OnAdd += (s => s.Damage.OnDeath += OnShipDeath);
-        registry.ActiveShips.OnRemove += (s => s.Damage.OnDeath -= OnShipDeath);
-    }
-    
-    private void OnShipDeath(ShipId deadShipId, ShipId _killerId)
-    {
-        if (!registry.TryGetShip(deadShipId, out var deadShip)) return;
-        GameContext.Instance.StartCoroutine(WaitAndRespawnShip(settings.enemyRespawnDelay, deadShip));
-    }
+        public Spawner(ShipSpawnerSettings settings, Func<Transform> worldCenterProvider)
+        {
+            this.settings = settings;
+            this.worldCenterProvider = worldCenterProvider;
+        }
 
-    private IEnumerator WaitAndRespawnShip(float delay, Ship respawnShip)
-    {
-        yield return new WaitForSeconds(delay);
-        RespawnShipAtRandomPos(respawnShip);
-    }
+        public IEnumerator WaitAndRespawnShip(float delay, Ship respawnShip)
+        {
+            yield return new WaitForSeconds(delay);
+            RespawnShipAtRandomPos(respawnShip);
+        }
 
-    private void RespawnShipAtRandomPos(Ship respawnShip)
-    {
-        respawnShip.transform.position = GetRandomOffscreenPosition();
-        respawnShip.ResetShip();
-    }
+        public void RespawnShipAtRandomPos(Ship respawnShip)
+        {
+            respawnShip.transform.position = GetRandomOffscreenPosition();
+            respawnShip.ResetShip();
+        }
 
-    private Vector3 GetRandomOffscreenPosition()
-    {
-        worldCenter ??= GameContext.Instance.WorldFollow?.transform;
-        var centerPos = worldCenter ? worldCenter.position : Vector3.zero;
-        var pos = Random.insideUnitSphere.normalized * settings.offscreenDistance + centerPos;
-        return GamePlane.WorldPointToPlane(pos);
+        public Vector3 GetRandomOffscreenPosition()
+        {
+            var worldCenter = worldCenterProvider?.Invoke();
+            var centerPos = worldCenter ? worldCenter.position : Vector3.zero;
+            var pos = UnityEngine.Random.insideUnitSphere.normalized * settings.offscreenDistance + centerPos;
+            return GamePlane.ProjectOntoPlane(pos) + GamePlane.Origin;
+        }
     }
-}
 }
