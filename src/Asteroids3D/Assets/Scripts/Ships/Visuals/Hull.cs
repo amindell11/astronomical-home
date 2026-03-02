@@ -43,6 +43,7 @@ namespace Ships.Visuals
             source.OnDamaged      += SpawnSparks;
             source.OnDamaged      += TriggerFlash;
             source.OnDeath        += OnDeath;
+            ApplyVisualStateFromHealth();
         }
 
         private void OnDisable()
@@ -66,18 +67,25 @@ namespace Ships.Visuals
 
         private void OnHealthChanged(float current, float previous, float max)
         {
-            if (!GameSettings.VfxEnabled) return;
+            ApplyVisualStateFromHealth();
+        }
+
+        private void ApplyVisualStateFromHealth()
+        {
+            if (!source || !GameSettings.VfxEnabled) return;
+
+            var healthPct = source.Health.Pct;
 
             if (hull)
             {
                 hull.GetPropertyBlock(block);
-                var scale = Mathf.Lerp(2f, 0f, source.Health.Pct);  
+                var scale = Mathf.Lerp(2f, 0f, healthPct);
                 block.SetFloat(DetailScale, scale);
                 hull.SetPropertyBlock(block);
             }
 
             if (!smoke) return;
-            var showSmoke = source.Health.Pct < 0.5f;
+            var showSmoke = healthPct < 0.5f;
             if (smoke.gameObject.activeSelf != showSmoke)
                 smoke.gameObject.SetActive(showSmoke);
         }
