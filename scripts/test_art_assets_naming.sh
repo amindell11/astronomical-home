@@ -19,6 +19,7 @@ name_pattern = re.compile(r'^[a-z0-9]+(?:_[a-z0-9]+)*$')
 file_violations = []
 dir_violations = []
 ableton_violations = []
+root_file_violations = []
 
 for dirpath, dirnames, filenames in os.walk(root):
     rel_dir = os.path.relpath(dirpath, root)
@@ -40,6 +41,9 @@ for dirpath, dirnames, filenames in os.walk(root):
         if not name_pattern.match(base) or ext != ext.lower():
             file_violations.append(full_path)
 
+        if dirpath == root:
+            root_file_violations.append(full_path)
+
 errors = False
 if ableton_violations:
     errors = True
@@ -59,8 +63,14 @@ if file_violations:
     for path in file_violations:
         print(f'  {path}')
 
+if root_file_violations:
+    errors = True
+    print('Loose files found in Art root (place them in section folders):')
+    for path in root_file_violations:
+        print(f'  {path}')
+
 if errors:
     sys.exit(1)
 
-print('PASS: Art directories/files are snake_case and no Ableton source files remain.')
+print('PASS: Art is sectioned, snake_case, and free of Ableton source files.')
 PY
