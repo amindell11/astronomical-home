@@ -382,14 +382,14 @@ namespace Tests.PlayMode
             Assert.IsNotNull(targetable, "Ship should implement ITargetable");
 
             // Simulate lock progress
-            targetable.Lock.Progress?.Invoke(0.5f);
+            targetable.Lock.RaiseProgress(0.5f);
             yield return null;
 
             // No exception means event subscription is working
             LogDiagnostic("Lock progress event dispatched successfully without exception");
 
             // Simulate lock acquired
-            targetable.Lock.Acquired?.Invoke();
+            targetable.Lock.RaiseAcquired();
             yield return null;
 
             LogDiagnostic("Lock acquired event dispatched successfully without exception");

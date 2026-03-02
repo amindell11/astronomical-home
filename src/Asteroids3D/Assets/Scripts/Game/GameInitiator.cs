@@ -92,6 +92,9 @@ namespace Game
             enemy = ShipFactory.CreateShip(gameConfig.EnemyTemplate, gameConfig.EnemyCommander, gameConfig.ShipSettings, 1,
                 GamePlane.PlanePointToWorld(Random.insideUnitCircle) * 5, Quaternion.identity);
 
+            player.Targeting?.SetRegistry(ShipRegistry);
+            enemy.Targeting?.SetRegistry(ShipRegistry);
+
             ShipRegistry.ActiveShips.Add(player);
             ShipRegistry.ActiveShips.Add(enemy);
 

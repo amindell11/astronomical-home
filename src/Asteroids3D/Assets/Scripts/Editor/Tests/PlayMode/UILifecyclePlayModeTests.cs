@@ -35,11 +35,11 @@ namespace Tests.PlayMode
             var channel = parent.GetComponent<FakeTargetable>().Lock;
             var canvasGroup = indicatorGo.GetComponent<CanvasGroup>();
 
-            channel.Progress?.Invoke(0.4f);
+            channel.RaiseProgress(0.4f);
             yield return null;
             Assert.AreEqual(1f, canvasGroup.alpha, 0.0001f, "Indicator should show when receiving lock progress");
 
-            channel.Released?.Invoke();
+            channel.RaiseReleased();
             yield return null;
             Assert.AreEqual(0f, canvasGroup.alpha, 0.0001f, "Indicator should hide on release");
 
@@ -48,7 +48,7 @@ namespace Tests.PlayMode
             indicatorGo.SetActive(true);
             yield return null;
 
-            channel.Progress?.Invoke(0.6f);
+            channel.RaiseProgress(0.6f);
             yield return null;
             Assert.AreEqual(1f, canvasGroup.alpha, 0.0001f,
                 "Indicator should resubscribe and show again after disable/enable");

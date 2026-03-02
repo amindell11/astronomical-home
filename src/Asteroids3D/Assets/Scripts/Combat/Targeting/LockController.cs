@@ -15,7 +15,7 @@ namespace Combat.Targeting
 
         public LockState State { get; private set; } = LockState.Idle;
         public ITargetable CurrentTarget { get; private set; }
-        public float LockProgress => (State == LockState.Locking && lockOnTime > 0f) ? UnityEngine.Mathf.Clamp01(lockTimer / lockOnTime) : 0f;
+        public float LockProgress => State == LockState.Locking && lockOnTime > 0f ? UnityEngine.Mathf.Clamp01(lockTimer / lockOnTime) : 0f;
         public bool IsLocked => State == LockState.Locked;
 
         public LockController(float lockOnTime, float lockExpiry, Func<bool> canFireCheck)
@@ -76,13 +76,13 @@ namespace Combat.Targeting
             }
 
             lockTimer += deltaTime;
-            CurrentTarget?.Lock.Progress?.Invoke(LockProgress);
+            CurrentTarget?.Lock.RaiseProgress(LockProgress);
 
             if (lockTimer < lockOnTime) return;
 
             SetState(LockState.Locked);
             lockDuration = 0f;
-            CurrentTarget?.Lock.Acquired?.Invoke();
+            CurrentTarget?.Lock.RaiseAcquired();
         }
 
         private void UpdateLockedState(float deltaTime, bool isAcquired)
@@ -99,9 +99,7 @@ namespace Combat.Targeting
         private void UpdateCooldownState()
         {
             if (canFireCheck())
-            {
                 SetState(LockState.Idle);
-            }
         }
 
         private void CancelLock()
@@ -112,7 +110,7 @@ namespace Combat.Targeting
 
         private void ResetLock()
         {
-            CurrentTarget?.Lock.Released?.Invoke();
+            CurrentTarget?.Lock.RaiseReleased();
             CurrentTarget = null;
             lockTimer = 0f;
             lockDuration = 0f;

@@ -1,5 +1,6 @@
 ﻿using Movement;
 using AI.Utility;
+using Combat;
 using Game;
 using Ships;
 using Ships.Command;
@@ -32,6 +33,9 @@ namespace AI
         [Tooltip("Bot skill level, typically set by curriculum (0.0 to 1.0)")]
         [Range(0f, 1f)] public float difficulty = 1.0f;
 
+        [Header("Combat")]
+        [SerializeField] private CombatTuning combatTuning;
+
         private Ship ship;
         private Info context;
         public  Scanning.Scout Scout { get; private set; }
@@ -55,7 +59,7 @@ namespace AI
             IShipRegistry registry = GameContext.SingletonOrNull?.ShipRegistry;
 
             var shipInfo = new AI.Context.ShipInfo(ship);
-            var targeting = new AI.Computers.Targeting(ship, shipInfo);
+            var targeting = new TargetingUtils(shipInfo, combatTuning);
             var maneuvers = new Maneuvers(shipInfo);
 
             System.Func<State> stateProvider = () => ship.CurrentState;

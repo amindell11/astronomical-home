@@ -1,26 +1,27 @@
 using AI.Context;
-using Ships;
 using UnityEngine;
 using Utils;
 
-namespace AI.Computers
+namespace Combat
 {
-    public class Targeting
+    public class TargetingUtils
     {
-        private const int LosCacheFrames = 5;
-        private const float AngleToleranceBeforeRay = 15f;
+        private const int DefaultLosCacheFrames = 5;
+        private const float DefaultAngleToleranceBeforeRay = 15f;
+
         private readonly LayerMask obstacleMask;
-        private readonly Ship ship;
         private readonly ShipInfo shipInfo;
+        private readonly CombatTuning tuning;
 
         private bool cachedLos;
-        private Vector3 lastFirePos, lastTargetPos;
+        private Vector3 lastFirePos;
+        private Vector3 lastTargetPos;
         private int losFrame = -1;
 
-        public Targeting(Ship ship, ShipInfo shipInfo)
+        public TargetingUtils(ShipInfo shipInfo, CombatTuning tuning = null)
         {
-            this.ship = ship;
             this.shipInfo = shipInfo;
+            this.tuning = tuning;
             obstacleMask = LayerIds.Mask(LayerIds.Asteroid);
         }
 
@@ -56,7 +57,8 @@ namespace AI.Computers
                                            || Vector3.Distance(firePos, lastFirePos) > 1f
                                            || Vector3.Distance(targetPos, lastTargetPos) > 1f;
 
-            if (!needsUpdate) return cachedLos;
+            if (!needsUpdate)
+                return cachedLos;
 
             cachedLos = LineOfSight.IsClear(firePos, targetPos, obstacleMask);
             losFrame = frame;
@@ -124,5 +126,8 @@ namespace AI.Computers
         {
             return targetVel - shipInfo.Vel;
         }
+
+        private int LosCacheFrames => tuning ? Mathf.Max(1, tuning.LineOfSightCacheFrames) : DefaultLosCacheFrames;
+        private float AngleToleranceBeforeRay => tuning ? tuning.AngleToleranceBeforeRaycast : DefaultAngleToleranceBeforeRay;
     }
 }

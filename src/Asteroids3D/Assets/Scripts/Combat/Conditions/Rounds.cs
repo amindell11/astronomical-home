@@ -12,7 +12,7 @@ namespace Combat.Conditions
         public int AmmoCount { get; private set; }
         public int MaxAmmo => maxAmmo;
 
-        private void Start()
+        private void Awake()
         {
             Reset();
         }

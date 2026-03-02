@@ -93,7 +93,7 @@ namespace Ships
      
         private void HandleShipDeath()
         {
-            Lock.Released?.Invoke();
+            Lock.RaiseReleased();
             Weapons?.OnShipDeath();
             gameObject.SetActive(false);
         }

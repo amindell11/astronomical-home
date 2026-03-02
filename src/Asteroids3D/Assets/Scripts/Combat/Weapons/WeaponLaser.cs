@@ -1,10 +1,16 @@
 using Combat.Conditions;
 using Combat.Projectile;
+using UnityEngine;
 
 namespace Combat.Weapons
 {
     public partial class WeaponLaser : WeaponBase<LaserProjectile>
     {
+        private const float DefaultFireDistance = 20f;
+        private const float DefaultFireAngleTolerance = 5f;
+
+        [SerializeField] private CombatTuning tuning;
+
         public float ProjectileSpeed => projectilePrefab.LaserSpeed;
         public Heat Heat { get; private set; }
 
@@ -14,24 +20,21 @@ namespace Combat.Weapons
             Heat = GetComponent<Heat>();
         }
 
-        /// <summary>
-        /// Determines if the laser should fire based on the given targeting context.
-        /// Used by AI to make firing decisions.
-        /// </summary>
         public override bool ShouldFire(TargetingContext context)
         {
-            if (!Heat || !context.HasLineOfSight) return false;
+            if (!Heat || !context.hasLineOfSight)
+                return false;
 
-            var isReadyToFire = !Heat.WouldOverheatOnNextShot();
-            if (!isReadyToFire) return false;
-            
-            const float fireDistance = 20f;
-            const float fireAngleTolerance = 5f;
-            
-            var isInRange = context.DistanceToTarget <= fireDistance;
-            var isInAngle = context.AngleToTarget <= fireAngleTolerance;
+            if (Heat.WouldOverheatOnNextShot())
+                return false;
+
+            var isInRange = context.distanceToTarget <= FireDistance;
+            var isInAngle = context.angleToTarget <= FireAngleTolerance;
 
             return isInRange && isInAngle;
         }
+
+        private float FireDistance => tuning ? tuning.LaserFireDistance : DefaultFireDistance;
+        private float FireAngleTolerance => tuning ? tuning.LaserFireAngleTolerance : DefaultFireAngleTolerance;
     }
-} 
+}

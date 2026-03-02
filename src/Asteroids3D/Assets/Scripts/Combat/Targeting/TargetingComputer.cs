@@ -8,7 +8,7 @@ using Utils;
 
 namespace Combat.Targeting
 {
-    public partial class TargetingComputer : MonoBehaviour, ILockStateSource
+    public partial class TargetingComputer : MonoBehaviour, ILockStateSource, ILockProvider
     {
         [Header("Lock-On Settings")]
         [SerializeField] private float lockOnConeAngle = 30f;
@@ -22,7 +22,7 @@ namespace Combat.Targeting
 
         private LockController lockController;
         private Sensors.FanSensor sensor;
-        private ShipRegistry registry;
+        private IShipRegistry registry;
         private ShipId selfShipId;
 
         public event Action<LockState, LockState> OnStateChanged;
@@ -32,20 +32,23 @@ namespace Combat.Targeting
         public float LockProgress => lockController?.LockProgress ?? 0f;
         public bool IsLocked => lockController?.IsLocked ?? false;
 
+        public void SetRegistry(IShipRegistry shipRegistry)
+        {
+            registry = shipRegistry;
+        }
+
         private void Awake()
         {
             if (!weapon)
                 weapon = GetComponent<WeaponBase<Missile>>();
+            if (!firePoint)
+                firePoint = transform;
 
             var selfShip = GetComponentInParent<Ship>();
             if (selfShip)
                 selfShipId = new ShipId(selfShip.GetInstanceID());
-        }
 
-        private void Start()
-        {
-            registry = GameContext.SingletonOrNull?.ShipRegistry;
-            lockController = new LockController(lockOnTime, lockExpiry, () => weapon.CanFire());
+            lockController = new LockController(lockOnTime, lockExpiry, CanLock);
             lockController.OnStateChanged += HandleLockStateChanged;
 
             sensor = new Sensors.FanSensor(
@@ -56,6 +59,16 @@ namespace Combat.Targeting
                 2f,
                 LayerIds.Mask(LayerIds.Ship)
             );
+        }
+
+        private void Start()
+        {
+            registry ??= GameContext.SingletonOrNull?.ShipRegistry;
+        }
+
+        private bool CanLock()
+        {
+            return weapon && weapon.CanFire();
         }
 
         private void OnEnable()
@@ -104,13 +117,27 @@ namespace Combat.Targeting
             IsValid(t) && InRange(t) && InCone(t) && InLineOfSight(t);
 
         private static bool IsValid(ITargetable t) => t != null && t.TargetPoint;
-        private bool InRange(ITargetable t) => t.TargetPoint.position.magnitude <= maxLockDistance;
-        private bool InCone(ITargetable t) => Vector3.Angle(firePoint.up, (t.TargetPoint.position - firePoint.position).normalized) <= lockOnConeAngle / 2f;
-        private bool InLineOfSight(ITargetable t) => LineOfSight.IsClear(firePoint.position, t.TargetPoint.position, t.TargetPoint.root);
+
+        private bool InRange(ITargetable t)
+        {
+            return Vector3.Distance(firePoint.position, t.TargetPoint.position) <= maxLockDistance;
+        }
+
+        private bool InCone(ITargetable t)
+        {
+            return Vector3.Angle(firePoint.up, (t.TargetPoint.position - firePoint.position).normalized) <= lockOnConeAngle / 2f;
+        }
+
+        private bool InLineOfSight(ITargetable t)
+        {
+            return LineOfSight.IsClear(firePoint.position, t.TargetPoint.position, t.TargetPoint.root);
+        }
 
         private ITargetable FindBestTargetInCone()
         {
-            registry ??= GameContext.SingletonOrNull?.ShipRegistry;
+            if (registry == null)
+                registry = GameContext.SingletonOrNull?.ShipRegistry;
+
             if (registry == null)
                 return null;
 
@@ -129,7 +156,6 @@ namespace Combat.Targeting
                 var angle = Vector3.Angle(firePoint.up, dirToTarget.normalized);
 
                 if (angle >= smallestAngle) continue;
-               // if (!LineOfSight.IsClear(firePoint.position, ship.TargetPoint.position, ship.TargetPoint.root)) continue;
 
                 smallestAngle = angle;
                 bestCandidate = ship;

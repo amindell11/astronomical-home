@@ -23,12 +23,27 @@ namespace Combat.Targeting
     public sealed class LockChannel
     {
         /// <summary>Called every frame while a lock is building. Parameter: progress [0–1].</summary>
-        public Action<float> Progress;
+        public event Action<float> Progress;
 
         /// <summary>Called once when lock acquisition completes.</summary>
-        public Action Acquired;
+        public event Action Acquired;
 
         /// <summary>Called when a lock is cancelled, expired, or the missile is launched.</summary>
-        public Action Released;
+        public event Action Released;
+
+        public void RaiseProgress(float value)
+        {
+            Progress?.Invoke(value);
+        }
+
+        public void RaiseAcquired()
+        {
+            Acquired?.Invoke();
+        }
+
+        public void RaiseReleased()
+        {
+            Released?.Invoke();
+        }
     }
 }
