@@ -79,6 +79,8 @@ crashlytics-build.properties
 
 # Generated test/run artifacts
 /results/
+/TestResults/
+/test-results/
 
 # Local Pi planning artifacts
 /.pi/plans/

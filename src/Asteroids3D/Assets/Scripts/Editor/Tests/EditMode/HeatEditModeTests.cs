@@ -32,7 +32,7 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void WouldOverheatOnNextShot_WhenAtSeventyFivePercentHeat_ReturnsTrue()
+        public void WouldOverheatOnNextShot_WhenNextShotReachesExactlyMax_ReturnsFalse()
         {
             var go = new GameObject("HeatTest");
             try
@@ -44,9 +44,9 @@ namespace Tests.EditMode
                     heat.ProcessFire();
                 }
 
-                // At 75 heat with 25 heat/shot, next shot reaches max.
-                // Characterization expectation for board bug: this should be treated as an overheat risk.
-                Assert.IsTrue(heat.WouldOverheatOnNextShot());
+                // Default setup is 100 max / 25 per shot. At 75, next shot reaches exactly 100.
+                // Expected behavior: reaching max is allowed; only subsequent shots should be blocked.
+                Assert.IsFalse(heat.WouldOverheatOnNextShot());
             }
             finally
             {

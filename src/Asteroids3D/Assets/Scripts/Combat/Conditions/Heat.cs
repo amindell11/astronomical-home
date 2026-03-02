@@ -12,7 +12,7 @@ namespace Combat.Conditions
         [SerializeField] private float coolDownDelay = 0.5f; // seconds before cooling starts after a normal shot
         [SerializeField] private float overheatPenaltyTime = 1.5f; // seconds before cooling starts after overheating
 
-        private float _lastShotTime = -100f; // Initialize to allow immediate firing
+        private float lastShotTime = -100f; // Initialize to allow immediate firing
 
         // Events
         public event Action OnOverheat;
@@ -21,25 +21,29 @@ namespace Combat.Conditions
         public float CurrentHeat { get; private set; }
         public float MaxHeat => maxHeat;
         public float HeatPct => CurrentHeat / maxHeat;
-        public bool Overheated => CurrentHeat >= maxHeat;
-        
+        public bool Overheated { get; private set; }
+
         private void Update()
         {
-            if (CurrentHeat <= 0) return;
+            if (CurrentHeat <= 0)
+            {
+                Overheated = false;
+                return;
+            }
 
             var wasOverheatedBefore = Overheated;
             var delay = wasOverheatedBefore ? overheatPenaltyTime : coolDownDelay;
 
-            if (!(Time.time > _lastShotTime + delay)) return;
+            if (!(Time.time > lastShotTime + delay)) return;
             
             CurrentHeat -= coolingRate * Time.deltaTime;
             CurrentHeat = Mathf.Max(0, CurrentHeat);
             
-            var isOverheatedNow = Overheated;
-            if (wasOverheatedBefore && !isOverheatedNow)
-            {
-                OnCooldownStart?.Invoke();
-            }
+            // Add hysteresis: require cooling below (maxHeat - heatPerShot) to exit overheat
+            // This prevents flicker loop where weapon fires immediately when cooling to 99.99% heat
+            if (!Overheated || !(CurrentHeat < maxHeat - heatPerShot)) return;
+            Overheated = false;
+            OnCooldownStart?.Invoke();
         }
 
         public override bool CanFire()
@@ -55,17 +59,19 @@ namespace Combat.Conditions
         public override void ProcessFire()
         {
             CurrentHeat += heatPerShot;
-            _lastShotTime = Time.time;
+            lastShotTime = Time.time;
             CurrentHeat = Mathf.Min(CurrentHeat, maxHeat);
-            
-            if (Overheated)
-                OnOverheat?.Invoke();
+
+            if (!(CurrentHeat >= maxHeat) || Overheated) return;
+            Overheated = true;
+            OnOverheat?.Invoke();
         }
 
         public override void Reset()
         {
             CurrentHeat = 0f;
-            _lastShotTime = -100f;
+            lastShotTime = -100f;
+            Overheated = false;
         }
     }
 }

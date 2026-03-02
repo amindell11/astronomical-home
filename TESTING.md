@@ -20,6 +20,8 @@ The script writes two files to `results/unity-tests-agent/`:
 - `<timestamp>-summary.json` — timestamped full report
 - `latest-summary.json`      — always the most-recent run (overwritten each time)
 
+> Standardization note: canonical test artifact path is `results/unity-tests-agent`. When using `unity_test_run` directly, always pass `outDir: "results/unity-tests-agent"`. If omitted, some runners default to `TestResults/`, which fragments artifacts.
+
 ### Parameters
 
 | Parameter          | Default                                    | Description                              |
