@@ -19,7 +19,7 @@ public static class TestSceneBuilder
     public static GameObject CreateTestArena()
     {
         // Reuse existing arena if already created
-        if (_currentArena != null)
+        if (_currentArena)
             return _currentArena;
 
         _currentArena = new GameObject("TestArena");

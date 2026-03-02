@@ -82,6 +82,7 @@ namespace Ships.Damage
             Health.Reset();
             Shield.Reset();
             SetInvulnerability(0f);
+            LastAttacker = null;
         }
         
         public void PopulateSettings(ShipSettings s)
