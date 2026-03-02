@@ -1,6 +1,7 @@
 using System.Collections;
 using Game;
 using NUnit.Framework;
+using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -8,8 +9,11 @@ namespace Tests.PlayMode
 {
 
 [Category("Regression")]
-public class GamePlanePlayModeTests
+public class GamePlanePlayModeTests : PlayModeWorldFixture
 {
+    // Override to disable audio pause for these lightweight tests
+    protected override bool PauseAudio => false;
+
     [UnityTest]
     [Category("Smoke")]
     public IEnumerator GamePlane_ReferencePlane_CanBeSetAndQueried()

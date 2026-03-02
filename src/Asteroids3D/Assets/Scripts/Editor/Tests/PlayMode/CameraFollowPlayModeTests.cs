@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Cameras;
 using Game;
 using NUnit.Framework;
+using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -10,7 +11,7 @@ namespace Tests.PlayMode
 {
 
 [Category("Integration")]
-public class CameraFollowPlayModeTests
+public class CameraFollowPlayModeTests : PlayModeWorldFixture
 {
     private ObserverCam cam;
     private HashSet<GameObject> secondarySubjects;
@@ -21,9 +22,9 @@ public class CameraFollowPlayModeTests
     private const float FollowThreshold  = 0.1f;
 
     [SetUp]
-    public void SetUp()
+    public override void SetUp()
     {
-        TestSceneBuilder.CreateTestArena();
+        base.SetUp();
         
         cam = new GameObject("Camera").AddComponent<ObserverCam>();
         cam.transform.position = Vector3.zero;
@@ -41,13 +42,13 @@ public class CameraFollowPlayModeTests
     }
 
     [TearDown]
-    public void TearDown()
+    public override void TearDown()
     {
-        Object.DestroyImmediate(cam.gameObject);
-        Object.DestroyImmediate(subject.gameObject);
+        DestroyTestObject(cam);
+        DestroyTestObject(subject);
         foreach (var s in secondarySubjects) 
-            Object.DestroyImmediate(s.gameObject);
-        TestSceneBuilder.CleanupTestArena();
+            DestroyTestObject(s);
+        base.TearDown();
     }
 
     [UnityTest]

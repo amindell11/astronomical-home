@@ -2,6 +2,7 @@ using System.Collections;
 using AI;
 using NUnit.Framework;
 using Ships;
+using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
 #if UNITY_EDITOR
@@ -13,7 +14,7 @@ namespace Tests.PlayMode
 
 [Category("Integration")]
 [Category("Slow")]
-public class ScannerPlayModeTests
+public class ScannerPlayModeTests : PlayModeWorldFixture
 {
     private Ship ship;
     private AICommander cmdr;
@@ -21,12 +22,11 @@ public class ScannerPlayModeTests
     private const float ScanTimeoutSec = 3f;
 
     [SetUp]
-    public void SetUp()
+    public override void SetUp()
     {
-#if UNITY_EDITOR
-        AudioListener.pause = true;
-        TestSceneBuilder.CreateTestArena();
+        base.SetUp();
         
+#if UNITY_EDITOR
         var settings   = AssetDatabase.LoadAssetAtPath<ShipSettings>("Assets/Settings/Ships/DefaultSettings.asset");
         var shipPrefab = AssetDatabase.LoadAssetAtPath<Ship>("Assets/Prefabs/Ships/Ship_2.prefab");
         var cmdrPrefab = AssetDatabase.LoadAssetAtPath<AICommander>("Assets/Prefabs/Ships/Pilots/TestPilot.prefab");
@@ -38,12 +38,11 @@ public class ScannerPlayModeTests
     }
 
     [TearDown]
-    public void TearDown()
+    public override void TearDown()
     {
-        AudioListener.pause = false;
         if (ship != null)
             Object.Destroy(ship.gameObject);
-        TestSceneBuilder.CleanupTestArena();
+        base.TearDown();
     }
 
     [UnityTest]

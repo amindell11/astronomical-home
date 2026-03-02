@@ -5,6 +5,7 @@ using Movement.MPC;
 using Game;
 using NUnit.Framework;
 using Ships;
+using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
 #if UNITY_EDITOR
@@ -17,7 +18,7 @@ namespace Tests.PlayMode
 
 [Category("Integration")]
 [Category("Slow")]
-public class MpcNavigatorPlayModeTests
+public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
 {
     private Ship ship;
     private AICommander cmdr;
@@ -27,12 +28,11 @@ public class MpcNavigatorPlayModeTests
     private const float NavTimeoutSec  = 20f;
 
     [SetUp]
-    public void SetUp()
+    public override void SetUp()
     {
-#if UNITY_EDITOR
-        AudioListener.pause = true;
-        TestSceneBuilder.CreateTestArena();
+        base.SetUp();
         
+#if UNITY_EDITOR
         var settings   = AssetDatabase.LoadAssetAtPath<ShipSettings>("Assets/Settings/Ships/DefaultSettings.asset");
         var shipPrefab = AssetDatabase.LoadAssetAtPath<Ship>("Assets/Prefabs/Ships/Ship_2.prefab");
         var cmdrPrefab = AssetDatabase.LoadAssetAtPath<AICommander>("Assets/Prefabs/Ships/Pilots/TestPilotMPC.prefab");
@@ -46,12 +46,11 @@ public class MpcNavigatorPlayModeTests
     }
 
     [TearDown]
-    public void TearDown()
+    public override void TearDown()
     {
-        AudioListener.pause = false;
         if (ship != null)
             Object.Destroy(ship.gameObject);
-        TestSceneBuilder.CleanupTestArena();
+        base.TearDown();
     }
 
     [UnityTest]

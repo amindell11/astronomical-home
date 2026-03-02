@@ -2,6 +2,7 @@ using System.Collections;
 using Game;
 using NUnit.Framework;
 using Ships;
+using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Utils;
@@ -15,7 +16,7 @@ namespace Tests.PlayMode
 
 [Category("Integration")]
 [Category("Slow")]
-public class NavigatorPlayModeTests
+public class NavigatorPlayModeTests : PlayModeWorldFixture
 {
     private Ship ship;
     private AICommander cmdr;
@@ -24,12 +25,11 @@ public class NavigatorPlayModeTests
     private const float ArriveThreshold  = 0.1f;
 
     [SetUp]
-    public void SetUp()
+    public override void SetUp()
     {
-#if UNITY_EDITOR
-        AudioListener.pause = true;
-        TestSceneBuilder.CreateTestArena();
+        base.SetUp();
         
+#if UNITY_EDITOR
         var settings   = AssetDatabase.LoadAssetAtPath<ShipSettings>("Assets/Settings/Ships/DefaultSettings.asset");
         var shipPrefab = AssetDatabase.LoadAssetAtPath<Ship>("Assets/Prefabs/Ships/Ship_2.prefab");
         var cmdrPrefab = AssetDatabase.LoadAssetAtPath<AICommander>("Assets/Prefabs/Ships/Pilots/TestPilot.prefab");
@@ -41,12 +41,11 @@ public class NavigatorPlayModeTests
     }
 
     [TearDown]
-    public void TearDown()
+    public override void TearDown()
     {
-        AudioListener.pause = false;
         if (ship != null)
             Object.Destroy(ship.gameObject);
-        TestSceneBuilder.CleanupTestArena();
+        base.TearDown();
     }
 
     [UnityTest]
