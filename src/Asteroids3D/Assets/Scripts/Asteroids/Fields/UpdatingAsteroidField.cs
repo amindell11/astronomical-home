@@ -1,5 +1,4 @@
 using System;
-using UnityEditor;
 using UnityEngine;
 
 namespace Asteroids.Fields
@@ -8,28 +7,28 @@ namespace Asteroids.Fields
     /// Open-world asteroid field manager that centres spawning logic on the main
     /// player camera. All heavy logic lives in <see cref="AsteroidField"/>.
     /// </summary>
-    public class UpdatingAsteroidField : AsteroidField
+    public partial class UpdatingAsteroidField : AsteroidField
     {
         public Func<Vector3> CurrentAnchorPos { private get; set; }
-        
+
         private float densityCheckTimer = 0f;
-        
+
         // Cached settings for update behavior
         private float updateMinSpawnDistance;
         private float updateMaxSpawnDistance;
         private float densityCheckInterval;
-        
+
         protected override void CacheSettings()
         {
             base.CacheSettings();
-            
+
             if (!settings) return;
-            
+
             updateMinSpawnDistance = settings.updateMinSpawnDistance;
             updateMaxSpawnDistance = settings.updateMaxSpawnDistance;
             densityCheckInterval = settings.densityCheckInterval;
         }
-        
+
         protected override void Start()
         {
             base.Start();
@@ -41,37 +40,12 @@ namespace Asteroids.Fields
         private void Update()
         {
             densityCheckTimer -= Time.deltaTime;
-            if (densityCheckTimer < 0f) {
+            if (densityCheckTimer < 0f)
+            {
                 SpawnCenter = CurrentAnchorPos();
                 ManageField(updateMinSpawnDistance, updateMaxSpawnDistance, maxSpawnsPerFrame);
                 densityCheckTimer = densityCheckInterval;
             }
         }
-
-#if UNITY_EDITOR
-        protected override void OnDrawGizmosSelected()
-        {
-            // Draw the base class gizmos first (initial spawn zone and density check)
-            base.OnDrawGizmosSelected();
-        
-            // Now draw our update spawn zone
-
-            var center = SpawnCenter;
-            center.y = 0f;
-
-            // Draw update spawn zone with different colors
-            Gizmos.color = Color.green;
-            Gizmos.DrawWireSphere(center, updateMinSpawnDistance);
-            Gizmos.color = Color.magenta;
-            Gizmos.DrawWireSphere(center, updateMaxSpawnDistance);
-        
-            // Add labels to distinguish the zones
-            Handles.color = Color.white;
-            Handles.Label(center + Vector3.forward * (minSpawnDistance + 2f), "Initial Min");
-            Handles.Label(center + Vector3.forward * (maxSpawnDistance + 2f), "Initial Max");
-            Handles.Label(center + Vector3.forward * (updateMinSpawnDistance + 2f), "Update Min");
-            Handles.Label(center + Vector3.forward * (updateMaxSpawnDistance + 2f), "Update Max");
-        }
-#endif
     }
-} 
+}

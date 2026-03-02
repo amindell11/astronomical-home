@@ -1,3 +1,4 @@
+using System;
 using Combat.Projectile;
 using Combat.Weapons;
 using Game;
@@ -7,7 +8,7 @@ using Utils;
 
 namespace Combat.Targeting
 {
-    public partial class TargetingComputer : MonoBehaviour
+    public partial class TargetingComputer : MonoBehaviour, ILockStateSource
     {
         [Header("Lock-On Settings")]
         [SerializeField] private float lockOnConeAngle = 30f;
@@ -23,6 +24,8 @@ namespace Combat.Targeting
         private Sensors.FanSensor sensor;
         private ShipRegistry registry;
         private ShipId selfShipId;
+
+        public event Action<LockState, LockState> OnStateChanged;
 
         public LockState State => lockController?.State ?? LockState.Idle;
         public ITargetable CurrentTarget => lockController?.CurrentTarget;
@@ -43,6 +46,7 @@ namespace Combat.Targeting
         {
             registry = GameContext.SingletonOrNull?.ShipRegistry;
             lockController = new LockController(lockOnTime, lockExpiry, () => weapon.CanFire());
+            lockController.OnStateChanged += HandleLockStateChanged;
 
             sensor = new Sensors.FanSensor(
                 firePoint,
@@ -63,6 +67,12 @@ namespace Combat.Targeting
         private void OnDisable()
         {
             StopAllCoroutines();
+        }
+
+        private void OnDestroy()
+        {
+            if (lockController != null)
+                lockController.OnStateChanged -= HandleLockStateChanged;
         }
 
         private void FixedUpdate()
@@ -126,6 +136,11 @@ namespace Combat.Targeting
             }
 
             return bestCandidate;
+        }
+
+        private void HandleLockStateChanged(LockState previous, LockState next)
+        {
+            OnStateChanged?.Invoke(previous, next);
         }
     }
 }

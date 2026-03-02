@@ -18,35 +18,55 @@ namespace UI.Audio
         [SerializeField, Range(0f, 1f)] private float volume = 0.7f;
 
         private AudioSource source;
-        private TargetingComputer targeting;
-        private LockState lastState = LockState.Idle;
+        private ILockStateSource lockStateSource;
 
         private void Awake()
         {
-            source = GetComponent<AudioSource>();
-            source.playOnAwake = false;
-            source.loop        = false;
+            EnsureSource();
         }
 
         public void Initialize(TargetingComputer targetingComputer)
         {
-            targeting = targetingComputer;
-            lastState = targeting.State;
+            Initialize((ILockStateSource)targetingComputer);
+        }
+
+        public void Initialize(ILockStateSource targetingSource)
+        {
+            UnsubscribeFromSource();
+            lockStateSource = targetingSource;
+            if (lockStateSource == null)
+            {
+                StopAudio();
+                return;
+            }
+
+            if (isActiveAndEnabled)
+                SubscribeToSource();
+            HandleStateChange(lockStateSource.State);
+        }
+
+        private void OnEnable()
+        {
+            SubscribeToSource();
+            if (lockStateSource != null)
+                HandleStateChange(lockStateSource.State);
         }
 
         private void OnDisable()
         {
+            UnsubscribeFromSource();
             StopAudio();
         }
 
-        private void Update()
+        private void OnDestroy()
         {
-            if (!targeting) return;
+            UnsubscribeFromSource();
+            lockStateSource = null;
+        }
 
-            var currentState = targeting.State;
-            if (currentState == lastState) return;
-            HandleStateChange(currentState);
-            lastState = currentState;
+        private void HandleStateChanged(LockState _, LockState next)
+        {
+            HandleStateChange(next);
         }
 
         private void HandleStateChange(LockState newState)
@@ -70,6 +90,7 @@ namespace UI.Audio
         private void PlayLockingLoop()
         {
             if (!lockingLoopClip) return;
+            if (!EnsureSource()) return;
 
             source.loop = true;
             source.clip = lockingLoopClip;
@@ -84,18 +105,45 @@ namespace UI.Audio
         {
             // Ensure any looping clip is halted first
             StopAudio();
-            if (lockedClip)
-            {
-                source.PlayOneShot(lockedClip, volume);
-            }
+            if (!lockedClip || !EnsureSource())
+                return;
+
+            source.PlayOneShot(lockedClip, volume);
         }
 
         private void StopAudio()
         {
+            if (!EnsureSource()) return;
             source.loop = false;
             source.Stop();
             source.clip = null;
         }
 
+        private bool EnsureSource()
+        {
+            if (source)
+                return true;
+
+            source = GetComponent<AudioSource>();
+            if (!source)
+                return false;
+
+            source.playOnAwake = false;
+            source.loop = false;
+            return true;
+        }
+
+        private void SubscribeToSource()
+        {
+            if (lockStateSource == null) return;
+            lockStateSource.OnStateChanged -= HandleStateChanged;
+            lockStateSource.OnStateChanged += HandleStateChanged;
+        }
+
+        private void UnsubscribeFromSource()
+        {
+            if (lockStateSource == null) return;
+            lockStateSource.OnStateChanged -= HandleStateChanged;
+        }
     }
 }

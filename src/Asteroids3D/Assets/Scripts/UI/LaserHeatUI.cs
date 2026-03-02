@@ -19,7 +19,7 @@ namespace UI
         [SerializeField] private Image fillImage;
 
         [Header("Overheat Flash")]
-        [Tooltip("Optional animator that has a bool parameter named 'overheated'.")] 
+        [Tooltip("Optional animator that has a bool parameter named 'overheated'.")]
         [SerializeField] private Animator animator;
 
         [Header("Glow Settings")]
@@ -54,15 +54,50 @@ namespace UI
 
         public void Initialize(Heat heat)
         {
+            if (this.heat)
+                this.heat.OnHeatChanged -= OnHeatChanged;
+
             this.heat = heat;
+            if (!this.heat)
+            {
+                ApplyHeatVisuals(0f);
+                return;
+            }
+
+            if (isActiveAndEnabled)
+                this.heat.OnHeatChanged += OnHeatChanged;
+            ApplyHeatVisuals(this.heat.HeatPct);
         }
 
-        void Update()
+        private void OnEnable()
         {
-            if (!heat || !fillImage) return;
+            if (heat)
+                heat.OnHeatChanged += OnHeatChanged;
+        }
 
-            var pct = heat.HeatPct;      // 0 – 1
-            fillImage.fillAmount = pct;
+        private void OnDisable()
+        {
+            if (heat)
+                heat.OnHeatChanged -= OnHeatChanged;
+            ApplyHeatVisuals(0f);
+        }
+
+        private void OnDestroy()
+        {
+            if (heat)
+                heat.OnHeatChanged -= OnHeatChanged;
+        }
+
+        private void OnHeatChanged(float current, float max)
+        {
+            var pct = max > 0f ? current / max : 0f;
+            ApplyHeatVisuals(pct);
+        }
+
+        private void ApplyHeatVisuals(float pct)
+        {
+            if (fillImage)
+                fillImage.fillAmount = pct;
 
             if (animator)
             {
@@ -90,4 +125,4 @@ namespace UI
             }
         }
     }
-} 
+}

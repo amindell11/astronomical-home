@@ -44,7 +44,8 @@ namespace UI
         // Cache delegate to avoid allocations
         private System.Action<int> ammoChangedHandler;
         private Rounds rounds;
-        private TargetingComputer targeting;
+        private ILockStateSource lockStateSource;
+        private bool isOnCooldown;
 
         private void Awake()
         {
@@ -55,16 +56,34 @@ namespace UI
 
         public void Initialize(Rounds rounds, TargetingComputer targeting)
         {
+            Initialize(rounds, (ILockStateSource)targeting);
+        }
+
+        public void Initialize(Rounds rounds, ILockStateSource targeting)
+        {
             if (this.rounds && ammoChangedHandler != null)
                 this.rounds.OnAmmoCountChanged -= ammoChangedHandler;
 
+            UnsubscribeFromLockStateSource();
+
             this.rounds = rounds;
-            this.targeting = targeting;
+            lockStateSource = targeting;
             if (!this.rounds) return;
 
             RebuildIcons();
             this.rounds.OnAmmoCountChanged += ammoChangedHandler;
             UpdateAmmoIcons(this.rounds.AmmoCount);
+
+            if (lockStateSource != null)
+            {
+                if (isActiveAndEnabled)
+                    SubscribeToLockStateSource();
+                SetCooldownState(lockStateSource.State == LockState.Cooldown);
+            }
+            else
+            {
+                SetCooldownState(false);
+            }
         }
 
         public void RegisterIcon(Image image, GlowingUIController glow)
@@ -87,20 +106,29 @@ namespace UI
 
         private void Update()
         {
-            if (!targeting || !cooldownSpinner) return;
+            if (!isOnCooldown || !cooldownSpinner) return;
+            cooldownSpinner.transform.Rotate(0f, 0f, -360f * Time.unscaledDeltaTime);
+        }
 
-            var onCooldown = targeting.State == LockState.Cooldown;
-            cooldownSpinner.enabled = onCooldown;
-            if (onCooldown)
-            {
-                cooldownSpinner.transform.Rotate(0f, 0f, -360f * Time.unscaledDeltaTime);
-            }
+        private void OnEnable()
+        {
+            SubscribeToLockStateSource();
+            if (lockStateSource != null)
+                SetCooldownState(lockStateSource.State == LockState.Cooldown);
+        }
+
+        private void OnDisable()
+        {
+            SetCooldownState(false);
+            UnsubscribeFromLockStateSource();
         }
 
         private void OnDestroy()
         {
             if (rounds && ammoChangedHandler != null)
                 rounds.OnAmmoCountChanged -= ammoChangedHandler;
+            UnsubscribeFromLockStateSource();
+            lockStateSource = null;
         }
 
         // ───────────────────────── Event Callbacks ─────────────────────────
@@ -108,6 +136,11 @@ namespace UI
         private void OnAmmoChanged(int newAmmo)
         {
             UpdateAmmoIcons(newAmmo);
+        }
+
+        private void HandleLockStateChanged(LockState _, LockState next)
+        {
+            SetCooldownState(next == LockState.Cooldown);
         }
 
         // ───────────────────────── Helpers ─────────────────────────
@@ -172,5 +205,25 @@ namespace UI
                 }
             }
         }
+
+        private void SetCooldownState(bool onCooldown)
+        {
+            isOnCooldown = onCooldown;
+            if (cooldownSpinner)
+                cooldownSpinner.enabled = onCooldown;
+        }
+
+        private void SubscribeToLockStateSource()
+        {
+            if (lockStateSource == null) return;
+            lockStateSource.OnStateChanged -= HandleLockStateChanged;
+            lockStateSource.OnStateChanged += HandleLockStateChanged;
+        }
+
+        private void UnsubscribeFromLockStateSource()
+        {
+            if (lockStateSource == null) return;
+            lockStateSource.OnStateChanged -= HandleLockStateChanged;
+        }
     }
-} 
+}
