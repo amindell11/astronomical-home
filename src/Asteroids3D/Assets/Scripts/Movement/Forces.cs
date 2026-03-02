@@ -43,6 +43,11 @@ namespace Ships.Movement
 
         public static Outputs ComputeOutputs(Kinematics kin, Command.Command cmd, ShipSettings sets)
         {
+            if (sets == null)
+            {
+                return Outputs.Zero;
+            }
+
             return new Outputs(
                 Thrust(kin, cmd.thrust, sets.forwardForce, sets.reverseForce),
                 Strafe(kin, cmd.strafe, sets.maxStrafeForce, sets.minStrafeForce, sets.maxSpeed),
