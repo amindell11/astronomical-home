@@ -1,27 +1,50 @@
 using Game;
 using UnityEngine;
 
+namespace Tests.PlayMode
+{
+
 /// <summary>
 /// Minimal utilities for programmatic test scene composition.
-/// For ship creation, use <see cref="TestServices"/> or <see cref="Ships.Factory"/> directly.
+/// For ship creation, use <see cref="Ships.Factory"/> directly.
 /// </summary>
 public static class TestSceneBuilder
 {
+    private static GameObject _currentArena;
+
     /// <summary>
-    /// Creates a test arena with a properly configured reference plane.
+    /// Creates or returns the existing test arena with a properly configured reference plane.
+    /// Ensures only one arena exists per test run to prevent temp scene proliferation.
     /// </summary>
     public static GameObject CreateTestArena()
     {
-        var arena = new GameObject("TestArena");
+        // Reuse existing arena if already created
+        if (_currentArena != null)
+            return _currentArena;
+
+        _currentArena = new GameObject("TestArena");
 
         var plane = new GameObject("ReferencePlane");
         plane.tag = "ReferencePlane";
-        plane.transform.SetParent(arena.transform);
+        plane.transform.SetParent(_currentArena.transform);
         plane.transform.SetPositionAndRotation(Vector3.zero, Quaternion.Euler(90f, 0f, 0f));
 
         GamePlane.SetReferencePlane(plane.transform);
 
-        return arena;
+        return _currentArena;
+    }
+
+    /// <summary>
+    /// Cleans up the test arena and resets GamePlane. Call this in test TearDown.
+    /// </summary>
+    public static void CleanupTestArena()
+    {
+        if (_currentArena != null)
+        {
+            Object.DestroyImmediate(_currentArena);
+            _currentArena = null;
+        }
+        GamePlane.Reset();
     }
 
     /// <summary>
@@ -44,15 +67,19 @@ public static class TestSceneBuilder
     }
 
     /// <summary>
-    /// Creates an obstacle for line-of-sight testing.
+    /// Creates an obstacle for line-of-sight / navigation testing.
     /// </summary>
     public static GameObject CreateObstacle(Vector3 position, Vector3 size)
     {
         var obstacle = GameObject.CreatePrimitive(PrimitiveType.Cube);
         obstacle.name = "TestObstacle";
         obstacle.layer = LayerMask.NameToLayer("Asteroid");
-        obstacle.transform.position = position;
+
+        var planePosition = GamePlane.PlanePointToWorld(new Vector2(position.x, position.y));
+        obstacle.transform.position = planePosition + GamePlane.Normal * position.z;
         obstacle.transform.localScale = size;
         return obstacle;
     }
 }
+
+} // namespace Tests.PlayMode

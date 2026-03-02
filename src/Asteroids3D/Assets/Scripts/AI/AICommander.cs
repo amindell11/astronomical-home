@@ -1,4 +1,4 @@
-﻿using AI.Steering;
+﻿using Movement;
 using AI.Utility;
 using Game;
 using Ships;
@@ -52,7 +52,7 @@ namespace AI
         {
             this.ship = ship;
 
-            IShipRegistry registry = GameContext.Instance?.ShipRegistry;
+            IShipRegistry registry = GameContext.SingletonOrNull?.ShipRegistry;
 
             var shipInfo = new AI.Context.ShipInfo(ship);
             var targeting = new AI.Computers.Targeting(ship, shipInfo);

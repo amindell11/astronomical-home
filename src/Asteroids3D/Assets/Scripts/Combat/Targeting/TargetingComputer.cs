@@ -41,7 +41,7 @@ namespace Combat.Targeting
 
         private void Start()
         {
-            registry = GameContext.Instance.ShipRegistry;
+            registry = GameContext.SingletonOrNull?.ShipRegistry;
             lockController = new LockController(lockOnTime, lockExpiry, () => weapon.CanFire());
 
             sensor = new Sensors.FanSensor(
@@ -100,6 +100,10 @@ namespace Combat.Targeting
 
         private ITargetable FindBestTargetInCone()
         {
+            registry ??= GameContext.SingletonOrNull?.ShipRegistry;
+            if (registry == null)
+                return null;
+
             var colliderCount = sensor.Detect(firePoint.up);
             var colliders = sensor.Buffer;
 

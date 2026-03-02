@@ -64,6 +64,18 @@ using UnityEngine;
 		}
 
 		/// <summary>
+		///     Returns true when a singleton instance has already been assigned.
+		///     Accessing this property never auto-creates an instance.
+		/// </summary>
+		public static bool HasSingleton => s_IsInstanceAssigned;
+
+		/// <summary>
+		///     Returns the current singleton instance if assigned, otherwise null.
+		///     Accessing this property never auto-creates an instance.
+		/// </summary>
+		public static T SingletonOrNull => s_Instance;
+
+		/// <summary>
 		///     Assigns the singleton instance.
 		///     CAUTION: Only call this if you don't call base.Awake()!
 		/// </summary>
