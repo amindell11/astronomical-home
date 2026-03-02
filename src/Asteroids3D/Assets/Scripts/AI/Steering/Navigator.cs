@@ -1,7 +1,6 @@
 using System;
 using AI.Computers;
 using AI.Context;
-using AI.Steering;
 using Game;
 using Ships;
 using Ships.Command;

@@ -24,7 +24,7 @@ namespace Ships
         [Tooltip("Team number for this ship. Ships with the same team number are considered friendly.")]
         public int teamNumber;
         
-        public StatePoller StatePoller { get; private set; }
+        public KinematicsPoller KinematicsPoller { get; private set; }
         public ICommandSource Commander { get; private set; }
         public MovementController Movement { get; private set; }
         public WeaponsController Weapons { get; private set; }
@@ -44,7 +44,7 @@ namespace Ships
         private void Awake()
         {
             Id = new ShipId(GetInstanceID());
-            StatePoller = GetComponent<StatePoller>();
+            KinematicsPoller = GetComponent<KinematicsPoller>();
             Movement = GetComponent<MovementController>();
             Damage   = GetComponent<DamageController>();
             Weapons = GetComponent<WeaponsController>();
@@ -66,7 +66,7 @@ namespace Ships
             settings = shipSettings;
             teamNumber = team;
             Commander?.InitializeCommander(this);
-            Movement.Initialize(settings, ()=>StatePoller.Kinematics);
+            Movement.Initialize(settings, ()=>KinematicsPoller.Kinematics);
             Damage?.PopulateSettings(settings);
 
             if (Damage)

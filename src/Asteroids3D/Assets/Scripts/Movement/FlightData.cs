@@ -28,11 +28,7 @@ namespace Movement
 
         public static readonly Outputs Zero = new(Vector2.zero, Vector2.zero, Vector2.zero, 0, 0);
     }
-}
-
-namespace AI.Steering
-{
-    /// <summary>Ship physical properties for AI planning.</summary>
+/// <summary>Stores physical dyanmics properties of objects with thrust and rotation abilities</summary>
     public readonly struct Dynamics
     {
         public readonly float mass, maxSpeed, maxYawRate;

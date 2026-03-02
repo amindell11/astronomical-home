@@ -1,11 +1,12 @@
 using System;
+using AI;
 using AI.Scanning;
-using AI.Steering.MPC;
+using Movement.MPC;
 using Ships;
 using Ships.Command;
 using Movement;
 using UnityEngine;
-namespace AI.Steering.MPC
+namespace Movement.MPC
 {
     [DefaultExecutionOrder(-60)]
     public partial class MpcNavigator : Navigator
@@ -26,7 +27,7 @@ namespace AI.Steering.MPC
 #endif
         private Control lastControl;
         
-        public override void Initialize(Func<Ships.Command.State> stateProvider, Dynamics dynamics, Scanning.Scout scout)
+        public override void Initialize(Func<Ships.Command.State> stateProvider, Dynamics dynamics, Scout scout)
         {
             base.Initialize(stateProvider, dynamics, scout);
             

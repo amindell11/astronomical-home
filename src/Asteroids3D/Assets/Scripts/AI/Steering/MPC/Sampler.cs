@@ -1,6 +1,7 @@
+using AI.Scanning;
 using UnityEngine;
 
-namespace AI.Steering.MPC
+namespace Movement.MPC
 {
     /// <summary>
     /// Random sampling solver for MPC.
@@ -8,7 +9,7 @@ namespace AI.Steering.MPC
     public static partial class Sampler
     {
         public static float Solve(State initialState, Control[] warmStart, Vector2 goalPos,
-            Scanning.ObstacleScan scan, Config cfg, Dynamics shp,
+            ObstacleScan scan, Config cfg, Dynamics shp,
             int samples, float noiseStd, Control[] resultBuffer, Control lastControl)
         {
             var horizon = cfg.horizon;
@@ -44,7 +45,7 @@ namespace AI.Steering.MPC
         }
 
         private static float EvaluateTrajectory(State state, Control[] sequence, Vector2 goalPos,
-            Scanning.ObstacleScan scan, Config cfg, Dynamics shp, Control lastControl)
+            ObstacleScan scan, Config cfg, Dynamics shp, Control lastControl)
         {
             var totalCost = 0f;
             var current = state;

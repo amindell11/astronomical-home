@@ -1,7 +1,7 @@
 using AI.Context;
 using UnityEngine;
 
-namespace AI.Steering
+namespace Movement
 {
     public class Maneuvers
     {

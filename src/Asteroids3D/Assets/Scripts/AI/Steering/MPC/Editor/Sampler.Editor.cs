@@ -1,12 +1,13 @@
 #if UNITY_EDITOR
+using AI.Scanning;
 using UnityEngine;
 
-namespace AI.Steering.MPC
+namespace Movement.MPC
 {
     public static partial class Sampler
     {
         public static CostBreakdown EvaluateTrajectoryBreakdown(State state, Control[] sequence, Vector2 goalPos,
-            Scanning.ObstacleScan scan, Config cfg, Dynamics shp, Control lastControl)
+            ObstacleScan scan, Config cfg, Dynamics shp, Control lastControl)
         {
             var totalBreakdown = new CostBreakdown();
             var current = state;

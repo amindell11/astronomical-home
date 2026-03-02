@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace AI.Steering.MPC
+namespace Movement.MPC
 {
     /// <summary>
     /// Ship dynamics model for MPC trajectory prediction.

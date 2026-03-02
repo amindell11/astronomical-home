@@ -1,7 +1,7 @@
 using AI.Scanning;
 using UnityEngine;
 
-namespace AI.Steering.MPC
+namespace Movement.MPC
 {
     /// <summary>
     /// Cost evaluation for MPC trajectory optimization.

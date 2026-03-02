@@ -1,4 +1,5 @@
 using System;
+using AI;
 using AI.Scanning;
 using Ships;
 using Ships.Command;
@@ -6,7 +7,7 @@ using Movement;
 using Ships.Movement;
 using UnityEngine;
 
-namespace AI.Steering.Standard
+namespace Movement.Standard
 {
     [DefaultExecutionOrder(-60)]
     public partial class StandardNavigator : Navigator
@@ -23,7 +24,7 @@ namespace AI.Steering.Standard
 
         private Pilot pilot;
 
-        public override void Initialize(Func<State> stateProvider, Dynamics dynamics, Scanning.Scout scout)
+        public override void Initialize(Func<State> stateProvider, Dynamics dynamics, Scout scout)
         {
             base.Initialize(stateProvider, dynamics, scout);
             

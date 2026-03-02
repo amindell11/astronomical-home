@@ -8,7 +8,7 @@ using Utils;
 
 namespace Combat.Projectile
 {
-    [RequireComponent(typeof(StatePoller))]
+    [RequireComponent(typeof(KinematicsPoller))]
     public partial class Missile : Projectile<Missile>, IDamageable
     {
         [Header("Homing")]
@@ -25,7 +25,7 @@ namespace Combat.Projectile
         [SerializeField] private float acceleration = 40f;
 
         private Transform target;
-        private StatePoller statePoller;
+        private KinematicsPoller kinematicsPoller;
 
         public void SetTarget(Transform tgt) => target = tgt;
         public float NormalizedSpeed => rb && homingSpeed > 0f
@@ -37,8 +37,8 @@ namespace Combat.Projectile
         protected override void Awake()
         {
             base.Awake();
-            statePoller = GetComponent<StatePoller>();
-            if (!statePoller) statePoller = gameObject.AddComponent<StatePoller>();
+            kinematicsPoller = GetComponent<KinematicsPoller>();
+            if (!kinematicsPoller) kinematicsPoller = gameObject.AddComponent<KinematicsPoller>();
             if (damageLayerMask == -1)
                 damageLayerMask = LayerIds.Mask(LayerIds.Ship, LayerIds.Asteroid);
         }
@@ -61,7 +61,7 @@ namespace Combat.Projectile
         protected override void FixedUpdate()
         {
             base.FixedUpdate();
-            var kin = statePoller.Kinematics;
+            var kin = kinematicsPoller.Kinematics;
             var desiredDir = GetDesiredDirection(kin);
 
             ApplyTurn(kin.Forward, desiredDir);

@@ -1,5 +1,5 @@
 #if UNITY_EDITOR
-namespace AI.Steering.MPC
+namespace Movement.MPC
 {
     public struct CostBreakdown
     {

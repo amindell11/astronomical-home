@@ -2,7 +2,7 @@
 using AI.Scanning;
 using UnityEngine;
 
-namespace AI.Steering.MPC
+namespace Movement.MPC
 {
     public static partial class Cost
     {

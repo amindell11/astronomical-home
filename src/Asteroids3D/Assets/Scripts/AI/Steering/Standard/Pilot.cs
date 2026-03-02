@@ -1,7 +1,7 @@
 using Movement;
 using UnityEngine;
 
-namespace AI.Steering.Standard
+namespace Movement.Standard
 {
     public class Pilot
     {

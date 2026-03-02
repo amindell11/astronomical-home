@@ -1,11 +1,11 @@
 #if UNITY_EDITOR
 using AI.Computers;
-using AI.Steering;
-using AI.Steering.Standard;
+using Movement;
+using Movement.Standard;
 using Game;
 using UnityEngine;
 
-namespace AI.Steering.Standard
+namespace Movement.Standard
 {
     public partial class StandardNavigator
     {

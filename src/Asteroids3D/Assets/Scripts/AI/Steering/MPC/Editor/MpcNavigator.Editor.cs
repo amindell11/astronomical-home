@@ -1,10 +1,11 @@
 #if UNITY_EDITOR
-using AI.Steering;
+using AI.Scanning;
+using Movement;
 using Game;
 using UnityEditor;
 using UnityEngine;
 
-namespace AI.Steering.MPC
+namespace Movement.MPC
 {
     public partial class MpcNavigator
     {
@@ -18,7 +19,7 @@ namespace AI.Steering.MPC
 
         private float nextLogTime;
 
-        private Scanning.DetectedObstacle[] dbgObstacles;
+        private DetectedObstacle[] dbgObstacles;
         private int dbgObstacleCount;
 
         // Debug info
@@ -30,12 +31,12 @@ namespace AI.Steering.MPC
         public bool showObstacleCosts = true;
         public bool showTrajectoryCosts = true;
 
-        partial void StoreDebugObstacles(Scanning.ObstacleScan scan)
+        partial void StoreDebugObstacles(ObstacleScan scan)
         {
             // Deep copy obstacle data for visualization
             if (dbgObstacles == null || dbgObstacles.Length < scan.count)
             {
-                dbgObstacles = new Scanning.DetectedObstacle[Mathf.Max(scan.count, 32)];
+                dbgObstacles = new DetectedObstacle[Mathf.Max(scan.count, 32)];
             }
             
             dbgObstacleCount = scan.count;
@@ -75,7 +76,7 @@ namespace AI.Steering.MPC
 
                 var isTerminal = i == predictedStates.Length - 1;
                 var stepBreakdown = Cost.EvaluateBreakdown(state, u, prevU, currentWaypoint.position, 
-                    new Scanning.ObstacleScan(dbgObstacles, dbgObstacleCount), config, isTerminal);
+                    new ObstacleScan(dbgObstacles, dbgObstacleCount), config, isTerminal);
 
                 Gizmos.color = showTrajectoryCosts ? GetCostColor(stepBreakdown.obstacle / config.wObstacle) : Color.cyan;
 
@@ -126,7 +127,7 @@ namespace AI.Steering.MPC
             }
         }
 
-        private void DrawObstacleCostField(Scanning.DetectedObstacle obstacle, float threshold)
+        private void DrawObstacleCostField(DetectedObstacle obstacle, float threshold)
         {
             var obsWorldPos = GamePlane.PlanePointToWorld(obstacle.position);
             var rings = 5;

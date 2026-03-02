@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace AI.Steering.MPC
+namespace Movement.MPC
 {
     [CreateAssetMenu(menuName = "AI/MPC Settings", fileName = "MpcSettings")]
     public class Settings : ScriptableObject

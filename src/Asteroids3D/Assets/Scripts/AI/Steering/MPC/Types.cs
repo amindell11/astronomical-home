@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace AI.Steering.MPC
+namespace Movement.MPC
 {
     /// <summary>
     /// MPC state and control types, plus shared configuration.

@@ -1,11 +1,10 @@
 using Game;
-using Movement;
 using UnityEngine;
 
-namespace Ships.Movement
+namespace Movement
 {
     [DefaultExecutionOrder(-100)]
-    public class StatePoller : MonoBehaviour
+    public class KinematicsPoller : MonoBehaviour
     {
         private Rigidbody rb;
         public Kinematics Kinematics { get; private set; }
