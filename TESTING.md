@@ -39,6 +39,19 @@ To avoid repeated Unity re-import/build cost in fresh worktrees, use the persist
 # Run tests in that slot (always writes to results/unity-tests-agent)
 ./scripts/agent_worktree_pool.sh run-tests agent-1 -Mode Both -ScopeType Workspace
 
+# Create a PR for a slot branch (requires gh auth)
+./scripts/agent_worktree_pool.sh create-pr agent-1
+
+# Create PRs for all slot branches that are ahead of main
+./scripts/agent_worktree_pool.sh create-pool-prs
+
+# One-shot flow: prepare + run tests + create PR + release lock
+./scripts/agent_worktree_pool.sh finalize agent-1 origin/main -- -Mode Both -ScopeType Workspace
+
+# During PR review loop: inspect unresolved feedback, then revise branch
+./scripts/agent_worktree_pool.sh review-comments agent-1
+./scripts/agent_worktree_pool.sh revise agent-1 -- -Mode Smoke -ScopeType Feature -ScopeName camera
+
 # Release lock when done
 ./scripts/agent_worktree_pool.sh release agent-1
 ```

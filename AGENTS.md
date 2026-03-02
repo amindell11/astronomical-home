@@ -9,3 +9,4 @@ Do **not** use `obsidian-scout` for code reconnaissance, refactor scouting, or i
 - For design/doc requests: respect Obsidian conventions (wikilinks, embeds, aliases, anchors, frontmatter).
 - For all tasks: flag unknowns and ambiguities explicitly.
 - Standardize Unity test artifacts to `results/unity-tests-agent` (including `unity_test_run` via explicit `outDir`).
+- For requests mentioning `agent-1`/`agent-2`/`agent-3`, warm worktrees, PR review comments, or slot-based task flow, load and follow `.pi/skills/agent-worktree-pr-loop/SKILL.md`.
