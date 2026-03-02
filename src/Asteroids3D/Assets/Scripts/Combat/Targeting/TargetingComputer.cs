@@ -1,7 +1,6 @@
 using System;
 using Combat.Projectile;
 using Combat.Weapons;
-using Game;
 using Ships;
 using UnityEngine;
 using Utils;
@@ -12,10 +11,10 @@ namespace Combat.Targeting
     {
         [Header("Lock-On Settings")]
         [SerializeField] private float lockOnConeAngle = 30f;
-        [SerializeField] private float lockOnTime     = 0.6f;
-        [SerializeField] private float lockExpiry     = 3f;
-        [SerializeField] private float maxLockDistance= 100f;
-        [SerializeField] private float scanInterval   = 0.1f;
+        [SerializeField] private float lockOnTime = 0.6f;
+        [SerializeField] private float lockExpiry = 3f;
+        [SerializeField] private float maxLockDistance = 100f;
+        [SerializeField] private float scanInterval = 0.1f;
 
         [SerializeField] private Transform firePoint;
         [SerializeField] private WeaponBase<Missile> weapon;
@@ -31,10 +30,13 @@ namespace Combat.Targeting
         public ITargetable CurrentTarget => lockController?.CurrentTarget;
         public float LockProgress => lockController?.LockProgress ?? 0f;
         public bool IsLocked => lockController?.IsLocked ?? false;
+        public bool HasRegistry => registry != null;
 
         public void SetRegistry(IShipRegistry shipRegistry)
         {
             registry = shipRegistry;
+            if (registry != null && gameObject.activeInHierarchy && !enabled)
+                enabled = true;
         }
 
         private void Awake()
@@ -63,7 +65,8 @@ namespace Combat.Targeting
 
         private void Start()
         {
-            registry ??= GameContext.SingletonOrNull?.ShipRegistry;
+            if (registry == null)
+                enabled = false;
         }
 
         private bool CanLock()
@@ -73,7 +76,7 @@ namespace Combat.Targeting
 
         private void OnEnable()
         {
-            if (lockController != null)
+            if (lockController != null && registry != null)
                 StartCoroutine(ScanRoutine());
         }
 
@@ -90,13 +93,15 @@ namespace Combat.Targeting
 
         private void FixedUpdate()
         {
+            if (registry == null)
+                return;
             lockController.Update(Time.deltaTime, IsAcquired(CurrentTarget));
         }
 
         private System.Collections.IEnumerator ScanRoutine()
         {
             var wait = new WaitForSeconds(scanInterval);
-            while (enabled)
+            while (enabled && registry != null)
             {
                 if (lockController.CanStartNewLock())
                     ScanForTarget();
@@ -135,9 +140,6 @@ namespace Combat.Targeting
 
         private ITargetable FindBestTargetInCone()
         {
-            if (registry == null)
-                registry = GameContext.SingletonOrNull?.ShipRegistry;
-
             if (registry == null)
                 return null;
 

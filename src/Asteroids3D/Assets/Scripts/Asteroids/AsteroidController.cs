@@ -40,8 +40,12 @@ namespace Asteroids
             cheapCollider = GetComponent<SphereCollider>();
             Renderer = GetComponent<Renderer>();
             damage = GetComponent<AsteroidDamage>();
-            worldFollowTransform = GameContext.Instance.WorldFollow ? GameContext.Instance.WorldFollow.transform : null;
             Rb.useGravity = false;
+        }
+
+        public void SetWorldAnchor(Transform anchor)
+        {
+            worldFollowTransform = anchor;
         }
 
         public void Initialize(
@@ -58,9 +62,9 @@ namespace Asteroids
 
             meshFilter.mesh = meshInfo.mesh;
             AsteroidSpawner = asteroidSpawner;
-        
+
             Volume = meshInfo.cachedVolume * (scale * scale * scale);
-            
+
             Rb.mass = mass;
             transform.localScale = Vector3.one * scale;
 
@@ -117,7 +121,7 @@ namespace Asteroids
             Rb.angularVelocity = Vector3.zero;
             AsteroidSpawner.Despawn(this);
         }
-        
+
         private void OnTriggerExit(Collider other)
         {
             if (other.CompareTag(TagNames.AsteroidCullingBoundary))
@@ -139,7 +143,7 @@ namespace Asteroids
             var shouldEnable = distSqr < detailedColliderEnableDistance * detailedColliderEnableDistance;
             if (meshCollider.enabled != shouldEnable)
                 meshCollider.enabled = shouldEnable;
-            
+
         }
     }
 }

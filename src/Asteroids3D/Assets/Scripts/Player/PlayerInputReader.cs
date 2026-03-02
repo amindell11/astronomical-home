@@ -1,5 +1,4 @@
 using System;
-using Game;
 using UnityEngine;
 
 namespace Player
@@ -22,15 +21,21 @@ namespace Player
         public bool SecondaryFireDown => Input.GetButtonDown(Fire2Button);
         public bool WantsToRotate => Input.GetButton(DirectionButton);
 
-        public PlayerInputReader(Func<Vector3,Vector3> screenToGamePlane)
+        private Func<Vector3, Vector3> screenToGamePlane;
+
+        public PlayerInputReader(Func<Vector3, Vector3> screenToGamePlane)
         {
-            this.screenToGamePlane = screenToGamePlane;
+            SetScreenToGamePlane(screenToGamePlane);
         }
 
-        private readonly Func<Vector3, Vector3> screenToGamePlane;
+        public void SetScreenToGamePlane(Func<Vector3, Vector3> projector)
+        {
+            screenToGamePlane = projector ?? throw new ArgumentNullException(nameof(projector));
+        }
+
         public Vector3 GetMouseWorldPosition()
         {
-            return screenToGamePlane?.Invoke(Input.mousePosition) ?? Vector3.zero;
+            return screenToGamePlane(Input.mousePosition);
         }
     }
 }
