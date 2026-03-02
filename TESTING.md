@@ -28,18 +28,132 @@ The script writes two files to `results/unity-tests-agent/`:
 | `-ProjectPath`     | `src/Asteroids3D`                          | Unity project root                       |
 | `-OutDir`          | `results/unity-tests-agent`                | Output directory for XML + JSON          |
 | `-Mode`            | `Both`                                     | `Both`, `EditMode`, or `PlayMode`        |
-| `-TestFilter`      | *(all)*                                    | NUnit filter string (e.g. `Category=Smoke`) |
+| `-ScopeType`       | `Workspace`                                | `Workspace`, `Feature`, `Module`, or `Smoke` |
+| `-ScopeName`       | *(empty)*                                  | Name of feature/module (required for Feature/Module) |
+| `-TestFilter`      | *(resolved from scope)*                    | NUnit filter string (overrides scope resolution) |
+| `-TestCategory`    | *(none)*                                   | NUnit category filter                    |
+| `-ValidateScope`   | off                                        | Validate scope filter matches at least one test |
+| `-ScopeMapPath`    | `scripts/unity_test_scopes.json`           | Path to scope definition file            |
 | `-MaxFailures`     | `25`                                       | Max failures to include in JSON          |
 | `-IncludeStackTrace` | off                                      | Include stack traces in JSON output      |
 
-### Example — run only Smoke tests
+---
 
+## Scope-Based Execution
+
+The test agent supports **scope-based test selection** through `scripts/unity_test_scopes.json`.  
+Instead of manually specifying test filters, you can run predefined test scopes:
+
+### Scope Types
+
+| Scope Type  | Description | Requires `-ScopeName`? | Example |
+|-------------|-------------|------------------------|---------|
+| `Workspace` | All tests (empty filter) | No | `.\scripts\unity_test_agent.ps1` |
+| `Smoke`     | Fast sanity checks | No | `.\scripts\unity_test_agent.ps1 -ScopeType Smoke` |
+| `Feature`   | Feature-specific tests | **Yes** | `.\scripts\unity_test_agent.ps1 -ScopeType Feature -ScopeName camera` |
+| `Module`    | Module-specific tests | **Yes** | `.\scripts\unity_test_agent.ps1 -ScopeType Module -ScopeName ai` |
+
+### Available Scopes
+
+**Smoke** — Fast sanity checks across all critical systems:
+```powershell
+.\scripts\unity_test_agent.ps1 -ScopeType Smoke
+```
+
+**Features** — Focused on specific features:
+- `camera` — Camera utilities and follow behavior
+- `navigation` — Ship navigation systems (standard + MPC)
+- `scanning` — AI obstacle scanning
+- `physics` — Physics calculations (collision, actuators, fragnetics)
+
+```powershell
+.\scripts\unity_test_agent.ps1 -ScopeType Feature -ScopeName navigation
+```
+
+**Modules** — Broader system-level groupings:
+- `ai` — All AI-related tests (navigation + scanning)
+- `utils` — Utility/calculation tests (collision, camera, fragnetics)
+
+```powershell
+.\scripts\unity_test_agent.ps1 -ScopeType Module -ScopeName ai
+```
+
+### Scope Validation
+
+Use `-ValidateScope` to ensure scope definitions are not stale:
+
+```powershell
+.\scripts\unity_test_agent.ps1 -ScopeType Feature -ScopeName camera -ValidateScope
+```
+
+This runs a dry-run check to verify the scope's test filter matches at least one test.  
+If the filter matches **no tests**, the script exits with an error, indicating the scope definition may be outdated.
+
+**When to validate:**
+- After renaming/moving test files
+- After refactoring test class names
+- When adding new scopes to `unity_test_scopes.json`
+- In CI pipelines to catch stale scope definitions early
+
+### Scope Map Structure (`scripts/unity_test_scopes.json`)
+
+```json
+{
+  "smoke": {
+    "testFilter": "CameraUtilsEditModeTests|CollisionDamageUtilityTests|..."
+  },
+  "features": {
+    "camera": {
+      "testFilter": "CameraUtilsEditModeTests|CameraFollowPlayMode"
+    },
+    "navigation": {
+      "testFilter": "NavigatorPlayMode|MpcNavigatorPlayMode"
+    }
+  },
+  "modules": {
+    "ai": {
+      "testFilter": "NavigatorPlayMode|MpcNavigatorPlayMode|ScannerPlayMode"
+    }
+  }
+}
+```
+
+**Filter syntax:** NUnit regex (pipe-separated class name patterns)
+
+### Examples
+
+**Run smoke tests with validation:**
+```powershell
+.\scripts\unity_test_agent.ps1 -ScopeType Smoke -ValidateScope
+```
+
+**Run feature tests in EditMode only:**
+```powershell
+.\scripts\unity_test_agent.ps1 -Mode EditMode -ScopeType Feature -ScopeName physics
+```
+
+**Override scope with explicit filter:**
+```powershell
+# Scope is ignored when -TestFilter is provided
+.\scripts\unity_test_agent.ps1 -ScopeType Feature -ScopeName camera -TestFilter "CameraUtilsEditModeTests"
+```
+
+**Run category-filtered smoke tests:**
+```powershell
+# Combines scope filter + category filter
+.\scripts\unity_test_agent.ps1 -ScopeType Smoke -TestCategory "Regression"
+```
+
+---
+
+### Legacy Examples (still supported)
+
+**Run only Smoke category tests (old method):**
 ```powershell
 .\scripts\unity_test_agent.ps1 -Mode EditMode -TestFilter "Category=Smoke"
 ```
 
-### Example — run both modes, full stack traces on failure
-
+**Run both modes, full stack traces on failure:**
 ```powershell
 .\scripts\unity_test_agent.ps1 -IncludeStackTrace
 ```

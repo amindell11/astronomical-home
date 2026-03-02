@@ -1,6 +1,6 @@
 {
   "smoke": {
-    "testFilter": "Tests\.EditMode\.CameraUtilsEditModeTests|CollisionDamageUtilityTests|GamePlanePlayMode|CameraFollowPlayMode"
+    "testFilter": "Tests\\.EditMode\\.CameraUtilsEditModeTests|CollisionDamageUtilityTests|GamePlanePlayMode|CameraFollowPlayMode"
   },
   "features": {
     "camera": {

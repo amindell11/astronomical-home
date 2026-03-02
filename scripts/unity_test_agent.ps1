@@ -4,7 +4,7 @@ param(
     [string]$OutDir = "results/unity-tests-agent",
     [ValidateSet("Both", "EditMode", "PlayMode")]
     [string]$Mode = "Both",
-    [ValidateSet("Workspace", "Feature", "Module")]
+    [ValidateSet("Workspace", "Feature", "Module", "Smoke")]
     [string]$ScopeType = "Workspace",
     [string]$ScopeName = "",
     [string]$TestFilter = "",
@@ -15,7 +15,9 @@ param(
     [int]$MaxFailures = 25,
     [int]$MaxMessageLength = 240,
     [int]$LogTailLines = 40,
-    [switch]$IncludeStackTrace
+    [switch]$IncludeStackTrace,
+    [switch]$ValidateScope,
+    [string]$ScopeMapPath = ""
 )
 
 Set-StrictMode -Version Latest
@@ -105,6 +107,170 @@ function Get-TopStackFrame {
     if ($null -eq $first) { return "" }
 
     return ($first.Trim())
+}
+
+function Load-ScopeMap {
+    param([string]$Path)
+
+    if ([string]::IsNullOrWhiteSpace($Path)) {
+        $scriptDir = Split-Path -Parent $PSCommandPath
+        $Path = Join-Path $scriptDir "unity_test_scopes.json"
+    }
+
+    $fullPath = Resolve-FullPath $Path
+
+    if (-not (Test-Path -LiteralPath $fullPath)) {
+        Write-Warning "Scope map not found at: $fullPath"
+        return $null
+    }
+
+    try {
+        $raw = Get-Content -LiteralPath $fullPath -Raw
+        $map = $raw | ConvertFrom-Json
+        return $map
+    }
+    catch {
+        Write-Warning "Failed to parse scope map at $fullPath : $_"
+        return $null
+    }
+}
+
+function Resolve-ScopeFilter {
+    param(
+        [object]$ScopeMap,
+        [string]$ScopeType,
+        [string]$ScopeName
+    )
+
+    if ($null -eq $ScopeMap) {
+        return ""
+    }
+
+    $lowerType = $ScopeType.ToLower()
+    $lowerName = $ScopeName.ToLower()
+
+    # Special case: "Smoke" scope type
+    if ($lowerType -eq "smoke") {
+        if ($null -ne $ScopeMap.smoke -and $null -ne $ScopeMap.smoke.testFilter) {
+            return [string]$ScopeMap.smoke.testFilter
+        }
+        return ""
+    }
+
+    # "Workspace" scope type (empty filter = all tests)
+    if ($lowerType -eq "workspace") {
+        if ($null -ne $ScopeMap.modules -and $null -ne $ScopeMap.modules.workspace -and $null -ne $ScopeMap.modules.workspace.testFilter) {
+            return [string]$ScopeMap.modules.workspace.testFilter
+        }
+        return ""
+    }
+
+    # "Feature" scope type
+    if ($lowerType -eq "feature") {
+        if ([string]::IsNullOrWhiteSpace($lowerName)) {
+            Write-Warning "ScopeType=Feature requires -ScopeName to be specified"
+            return ""
+        }
+
+        if ($null -ne $ScopeMap.features) {
+            $featuresObj = $ScopeMap.features
+            $members = $featuresObj | Get-Member -MemberType NoteProperty | Where-Object { $_.Name -eq $lowerName }
+            if ($members) {
+                $entry = $featuresObj.$lowerName
+                if ($null -ne $entry.testFilter) {
+                    return [string]$entry.testFilter
+                }
+            }
+        }
+
+        Write-Warning "Feature '$lowerName' not found in scope map"
+        return ""
+    }
+
+    # "Module" scope type
+    if ($lowerType -eq "module") {
+        if ([string]::IsNullOrWhiteSpace($lowerName)) {
+            Write-Warning "ScopeType=Module requires -ScopeName to be specified"
+            return ""
+        }
+
+        if ($null -ne $ScopeMap.modules) {
+            $modulesObj = $ScopeMap.modules
+            $members = $modulesObj | Get-Member -MemberType NoteProperty | Where-Object { $_.Name -eq $lowerName }
+            if ($members) {
+                $entry = $modulesObj.$lowerName
+                if ($null -ne $entry.testFilter) {
+                    return [string]$entry.testFilter
+                }
+            }
+        }
+
+        Write-Warning "Module '$lowerName' not found in scope map"
+        return ""
+    }
+
+    return ""
+}
+
+function Test-ScopeFilterMatchesTests {
+    param(
+        [string]$UnityExe,
+        [string]$ProjectPath,
+        [string]$Platform,
+        [string]$TestFilter
+    )
+
+    if ([string]::IsNullOrWhiteSpace($TestFilter)) {
+        # Empty filter means "all tests", which always matches
+        return $true
+    }
+
+    # Create temp directory for dry-run
+    $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) ("unity-scope-validate-" + [System.Guid]::NewGuid().ToString("N"))
+    New-Item -ItemType Directory -Force -Path $tempDir | Out-Null
+
+    try {
+        $xmlPath = Join-Path $tempDir "test-list.xml"
+        $logPath = Join-Path $tempDir "test-list.log"
+
+        $args = @(
+            "-batchmode",
+            "-nographics",
+            "-projectPath", $ProjectPath,
+            "-runTests",
+            "-testPlatform", $Platform,
+            "-testResults", $xmlPath,
+            "-logFile", $logPath,
+            "-testFilter", $TestFilter
+        )
+
+        # Run Unity with the filter
+        $proc = Start-Process -FilePath $UnityExe -ArgumentList $args -Wait -NoNewWindow -PassThru
+        $exitCode = 0
+        if ($null -ne $proc -and $null -ne $proc.ExitCode) {
+            $exitCode = [int]$proc.ExitCode
+        }
+
+        # Parse the XML to see if any tests were found
+        if (Test-Path -LiteralPath $xmlPath) {
+            [xml]$xml = Get-Content -LiteralPath $xmlPath -Raw
+            $run = $xml.SelectSingleNode("/test-run")
+
+            if ($null -ne $run) {
+                $total = To-Int (Get-Attr -Node $run -Name "total")
+                return ($total -gt 0)
+            }
+        }
+
+        # If XML doesn't exist or parsing failed, assume no tests matched
+        return $false
+    }
+    finally {
+        # Clean up temp directory
+        if (Test-Path -LiteralPath $tempDir) {
+            Remove-Item -LiteralPath $tempDir -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
 }
 
 function Get-FailedFullNamesFromSummary {
@@ -266,6 +432,51 @@ if (-not (Test-Path -LiteralPath $project)) {
 
 New-Item -ItemType Directory -Force -Path $outRoot | Out-Null
 
+# Load scope map and resolve filter if not explicitly provided
+$scopeMap = Load-ScopeMap -Path $ScopeMapPath
+$resolvedFilter = $TestFilter
+$scopeResolved = $false
+
+if ([string]::IsNullOrWhiteSpace($TestFilter)) {
+    $resolvedFilter = Resolve-ScopeFilter -ScopeMap $scopeMap -ScopeType $ScopeType -ScopeName $ScopeName
+    if (-not [string]::IsNullOrWhiteSpace($resolvedFilter)) {
+        $scopeResolved = $true
+        Write-Host "Resolved scope ($ScopeType$(if ($ScopeName) { "/$ScopeName" })) to filter: $resolvedFilter"
+    }
+}
+
+# Validate scope if requested
+if ($ValidateScope.IsPresent -and -not [string]::IsNullOrWhiteSpace($resolvedFilter)) {
+    Write-Host "Validating scope filter matches at least one test..."
+
+    $platformsToValidate = switch ($Mode) {
+        "Both" { @("EditMode", "PlayMode") }
+        default { @($Mode) }
+    }
+
+    $anyMatches = $false
+    foreach ($platform in $platformsToValidate) {
+        Write-Host "  Checking $platform..."
+        $matches = Test-ScopeFilterMatchesTests -UnityExe $unityExe -ProjectPath $project -Platform $platform -TestFilter $resolvedFilter
+
+        if ($matches) {
+            Write-Host "  [OK] ${platform}: Filter matches tests"
+            $anyMatches = $true
+        }
+        else {
+            Write-Host "  [FAIL] ${platform}: Filter matches NO tests"
+        }
+    }
+
+    if (-not $anyMatches) {
+        throw "SCOPE VALIDATION FAILED: Filter '$resolvedFilter' (from $ScopeType$(if ($ScopeName) { "/$ScopeName" })) matched NO tests in any platform. The scope definition may be stale or incorrect."
+    }
+
+    Write-Host "[OK] Scope validation passed"
+}
+
+$TestFilter = $resolvedFilter
+
 $platforms = switch ($Mode) {
     "Both" { @("EditMode", "PlayMode") }
     default { @($Mode) }
@@ -328,6 +539,7 @@ foreach ($platform in $platforms) {
     $selection = [ordered]@{
         scopeType = $ScopeType
         scopeName = $ScopeName
+        scopeResolved = $scopeResolved
         testFilter = $TestFilter
         testCategory = $TestCategory
         assemblyNames = $AssemblyNames
@@ -383,6 +595,7 @@ $summary = [ordered]@{
     selection = [ordered]@{
         scopeType = $ScopeType
         scopeName = $ScopeName
+        scopeResolved = $scopeResolved
         testFilter = $TestFilter
         testCategory = $TestCategory
         assemblyNames = $AssemblyNames
