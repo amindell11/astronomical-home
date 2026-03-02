@@ -244,11 +244,11 @@ namespace Tests.PlayMode
 
         /// <summary>
         /// STEP 6: Attacker-state reset test.
-        /// Verify DamageController.LastAttacker is cleared after ResetShip().
+        /// Verify DamageController.LastAttackerId is cleared after ResetShip().
         /// This catches stale state across deaths.
         /// </summary>
         [UnityTest]
-        public IEnumerator AfterReset_LastAttackerIsCleared()
+        public IEnumerator AfterReset_LastAttackerIdIsCleared()
         {
             yield return null;
 
@@ -257,20 +257,79 @@ namespace Tests.PlayMode
 
             yield return null;
 
-            Assert.IsNotNull(playerDamage.LastAttacker,
-                "LastAttacker should be set after taking damage");
+            Assert.IsTrue(playerDamage.LastAttackerId.IsValid,
+                "LastAttackerId should be set after taking damage");
 
-            Assert.AreEqual(enemyShip, playerDamage.LastAttacker,
-                "LastAttacker should be the enemy ship");
+            Assert.AreEqual(enemyShip.Id, playerDamage.LastAttackerId,
+                "LastAttackerId should match the enemy ship id");
 
             // Reset the ship
             playerShip.ResetShip();
 
             yield return null;
 
-            // BUG REPRODUCTION: LastAttacker should be cleared
-            Assert.IsNull(playerDamage.LastAttacker,
-                "LastAttacker should be null after ResetShip()");
+            // BUG REPRODUCTION: LastAttackerId should be cleared
+            Assert.AreEqual(ShipId.Invalid, playerDamage.LastAttackerId,
+                "LastAttackerId should be ShipId.Invalid after ResetShip()");
+        }
+
+        /// <summary>
+        /// STEP 6 (continued): Death event should publish ShipId payloads.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator OnDeath_PublishesVictimAndKillerShipIds()
+        {
+            yield return null;
+
+            ShipId victimId = ShipId.Invalid;
+            ShipId killerId = ShipId.Invalid;
+            var eventRaised = false;
+
+            void HandleDeath(ShipId victim, ShipId killer)
+            {
+                eventRaised = true;
+                victimId = victim;
+                killerId = killer;
+            }
+
+            playerDamage.OnDeath += HandleDeath;
+
+            var maxShield = playerDamage.Shield.MaxValue;
+            var maxHealth = playerDamage.Health.MaxValue;
+
+            playerDamage.TakeDamage(maxShield + 100f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
+            yield return null;
+            playerDamage.TakeDamage(maxHealth + 100f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
+            yield return null;
+
+            playerDamage.OnDeath -= HandleDeath;
+
+            Assert.IsTrue(eventRaised, "OnDeath should be raised when ship health reaches zero");
+            Assert.AreEqual(playerShip.Id, victimId, "OnDeath victim id should match the damaged ship id");
+            Assert.AreEqual(enemyShip.Id, killerId, "OnDeath killer id should match the attacking ship id");
+        }
+
+        /// <summary>
+        /// STEP 6 (continued): Non-ship attackers should not set LastAttackerId.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator NonShipAttacker_DoesNotSetLastAttackerId()
+        {
+            yield return null;
+
+            var asteroid = new GameObject("TestNonShipAttacker");
+            try
+            {
+                playerDamage.TakeDamage(10f, 1f, Vector3.zero, Vector3.zero, asteroid);
+                yield return null;
+
+                Assert.AreEqual(ShipId.Invalid, playerDamage.LastAttackerId,
+                    "LastAttackerId should remain invalid when attacker has no Ship component");
+            }
+            finally
+            {
+                Object.Destroy(asteroid);
+            }
         }
 
         /// <summary>

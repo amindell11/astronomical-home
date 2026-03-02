@@ -63,7 +63,7 @@ namespace Ships.Audio
             if (current < previous) PlayHullHit();
         }
 
-        private void HandleDeath(Ships.Ship victim, Ships.Ship _)
+        private void HandleDeath(ShipId _victimId, ShipId _killerId)
         {
             if (deathClip)
                 global::Audio.PooledAudioSource.PlayClipAtPoint(deathClip, transform.position, deathVolume);

@@ -7,7 +7,7 @@ namespace Ships.Damage
     public partial class DamageController : MonoBehaviour, IDamageable
     {
         public event Action<float, Vector3> OnDamaged; // dmg, hitPoint
-        public event Action<Ship, Ship> OnDeath; // Passes the victim and killer Ship components
+        public event Action<ShipId, ShipId> OnDeath; // victimId, killerId
 
         public float maxHealth = 100f;
         public float maxShield = 100f;
@@ -17,7 +17,7 @@ namespace Ships.Damage
         public Resource Health { get; private set; }
         public RegenResource Shield { get; private set; }
         
-        public Ship LastAttacker {get; private set;}
+        public ShipId LastAttackerId { get; private set; } = ShipId.Invalid;
         private Ship myShip;
 
         private float invulnerableUntil;
@@ -58,12 +58,13 @@ namespace Ships.Damage
         {
             if (!attacker) return;
             var attackShip = attacker.GetComponentInParent<Ship>();
-            if (attackShip) LastAttacker = attackShip;
+            if (attackShip) LastAttackerId = attackShip.Id;
         }
         
         private void BroadcastDeath()
         {
-            OnDeath?.Invoke(myShip, LastAttacker);
+            var victimId = myShip ? myShip.Id : ShipId.Invalid;
+            OnDeath?.Invoke(victimId, LastAttackerId);
         }
    
         /// <summary>
@@ -82,7 +83,7 @@ namespace Ships.Damage
             Health.Reset();
             Shield.Reset();
             SetInvulnerability(0f);
-            LastAttacker = null;
+            LastAttackerId = ShipId.Invalid;
         }
         
         public void PopulateSettings(ShipSettings s)

@@ -60,7 +60,7 @@ namespace UI.Audio
             CheckAlarmCondition();
         }
 
-        private void OnPlayerDeath(Ships.Ship victim, Ships.Ship killer)
+        private void OnPlayerDeath(Ships.ShipId _victimId, Ships.ShipId _killerId)
         {
             StopAlarm();
         }

@@ -70,7 +70,7 @@ namespace Ships
             Damage?.PopulateSettings(settings);
 
             if (Damage)
-                Damage.OnDeath += (victim, killer) => HandleShipDeath();
+                Damage.OnDeath += (_, _) => HandleShipDeath();
 
             isInitialized = true;
         }

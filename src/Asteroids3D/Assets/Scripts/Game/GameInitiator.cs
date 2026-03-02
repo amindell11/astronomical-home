@@ -83,7 +83,7 @@ namespace Game
         {
             ShipRegistry = new ShipRegistry(gameConfig);
             GameContext.Instance.SetRegistry(ShipRegistry);
-            spawner = new ShipSpawner(gameConfig.ShipSpawnerSettings, ShipRegistry.ActiveShips);
+            spawner = new ShipSpawner(gameConfig.ShipSpawnerSettings, ShipRegistry.ActiveShips, ShipRegistry);
 
             player = ShipFactory.CreateShip(gameConfig.PlayerTemplate, gameConfig.PlayerCommander, gameConfig.ShipSettings, 0,
                 Vector3.zero, Quaternion.identity);
