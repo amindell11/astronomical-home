@@ -118,12 +118,12 @@ namespace Diagnostics
 
         private void SubscribeToWeaponEvents()
         {
-            if (weaponsController.Primary != null)
+            if (weaponsController.Primary)
             {
                 weaponsController.Primary.OnFire += HandlePrimaryFire;
             }
 
-            if (weaponsController.Secondary != null)
+            if (weaponsController.Secondary)
             {
                 weaponsController.Secondary.OnFire += HandleSecondaryFire;
             }
@@ -131,12 +131,12 @@ namespace Diagnostics
 
         private void UnsubscribeFromWeaponEvents()
         {
-            if (weaponsController.Primary != null)
+            if (weaponsController.Primary)
             {
                 weaponsController.Primary.OnFire -= HandlePrimaryFire;
             }
 
-            if (weaponsController.Secondary != null)
+            if (weaponsController.Secondary)
             {
                 weaponsController.Secondary.OnFire -= HandleSecondaryFire;
             }
