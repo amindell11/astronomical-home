@@ -15,8 +15,12 @@ namespace Ships
 
         public void Initialize(ShipSpawnerSettings settings, ShipRegistry shipRegistry, Func<Transform> worldCenterProvider)
         {
-            if (isInitialized)
-                return;
+            if (!settings)
+                throw new ArgumentNullException(nameof(settings));
+            if (shipRegistry == null)
+                throw new ArgumentNullException(nameof(shipRegistry));
+
+            UnbindCurrentRegistry();
 
             registry = shipRegistry;
             spawner = new Spawner(settings, worldCenterProvider);
@@ -29,6 +33,14 @@ namespace Ships
                 HandleShipAdded(ship);
 
             isInitialized = true;
+        }
+
+        public void ResetRunner()
+        {
+            UnbindCurrentRegistry();
+            spawner = null;
+            enemyRespawnDelay = 0f;
+            isInitialized = false;
         }
 
         private void HandleShipAdded(Ship ship)
@@ -54,7 +66,7 @@ namespace Ships
             StartCoroutine(spawner.WaitAndRespawnShip(enemyRespawnDelay, deadShip));
         }
 
-        private void OnDestroy()
+        private void UnbindCurrentRegistry()
         {
             if (registry == null)
                 return;
@@ -64,6 +76,13 @@ namespace Ships
 
             foreach (var ship in registry.ActiveShips)
                 HandleShipRemoved(ship);
+
+            registry = null;
+        }
+
+        private void OnDestroy()
+        {
+            ResetRunner();
         }
     }
 }

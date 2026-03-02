@@ -182,6 +182,7 @@ namespace Game
             if (enemy)
                 Destroy(enemy.gameObject);
 
+            respawnRunner?.ResetRunner();
             ShipRegistry?.Dispose();
 
             cameraRig = null;

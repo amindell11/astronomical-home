@@ -73,6 +73,29 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void ShipRespawnRunner_SourceSupportsReinitializeAcrossSessions()
+        {
+            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Ships", "ShipRespawnRunner.cs"));
+            StringAssert.Contains("UnbindCurrentRegistry();", source);
+            StringAssert.Contains("public void ResetRunner()", source);
+            StringAssert.DoesNotContain("if (isInitialized)", source);
+        }
+
+        [Test]
+        public void GameInitiator_ShutdownResetsRespawnRunner()
+        {
+            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Game", "GameInitiator.cs"));
+            StringAssert.Contains("respawnRunner?.ResetRunner();", source);
+        }
+
+        [Test]
+        public void TurboLaserPrefab_DoesNotReferenceEditorOnlyDiagnosticsScript()
+        {
+            var prefab = File.ReadAllText(Path.Combine(Application.dataPath, "Prefabs", "Weapons", "TurboLaser.prefab"));
+            StringAssert.DoesNotContain("5c7f1d5a3e1e486abec74ce5bb7c4d16", prefab);
+        }
+
+        [Test]
         public void RuntimeGameScripts_DoNotUseGameContextSingleton()
         {
             var assetsPath = Application.dataPath;
