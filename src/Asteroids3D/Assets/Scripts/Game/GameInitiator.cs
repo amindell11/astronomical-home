@@ -30,9 +30,11 @@ namespace Game
         public event Action<Ship, Camera> PresentationReady;
 
         public ShipRegistry ShipRegistry { get; private set; }
+        private Transform WorldFollowerTransform => world && world.Follower ? world.Follower.transform : null;
 
         private void Awake()
         {
+            respawnRunner = GetComponent<ShipRespawnRunner>() ?? gameObject.AddComponent<ShipRespawnRunner>();
             PresentationReady += HandlePresentationReady;
             StartCoroutine(InitializeRoutine());
         }
@@ -87,8 +89,20 @@ namespace Game
             var cameraFollow = cameraRig.ObserverCam;
             cameraFollow.SetSubject(player.transform);
             cameraFollow.AddSecondarySubjects(ShipRegistry.ActiveShips.Where(s => s != player).Select(s => s.transform));
-            ShipRegistry.ActiveShips.OnAdd += s => cameraFollow.AddSecondarySubject(s.transform);
-            ShipRegistry.ActiveShips.OnRemove += s => cameraFollow.RemoveSecondarySubject(s.transform);
+            ShipRegistry.ActiveShips.OnAdd += OnShipAddedToRegistry;
+            ShipRegistry.ActiveShips.OnRemove += OnShipRemovedFromRegistry;
+        }
+
+        private void OnShipAddedToRegistry(Ship ship)
+        {
+            if (!ship) return;
+            cameraRig?.ObserverCam?.AddSecondarySubject(ship.transform);
+        }
+
+        private void OnShipRemovedFromRegistry(Ship ship)
+        {
+            if (!ship) return;
+            cameraRig?.ObserverCam?.RemoveSecondarySubject(ship.transform);
         }
 
         private void InitializeAsteroidField(GameConfig config)
@@ -96,7 +110,7 @@ namespace Game
             var cullingBoundary = world.AsteroidCullingBoundary;
             asteroidField = Instantiate(config.AsteroidAsteroidField);
             asteroidField.Initialize(cullingBoundary);
-            asteroidField.SetWorldAnchor(world && world.Follower ? world.Follower.transform : null);
+            asteroidField.SetWorldAnchor(WorldFollowerTransform);
             asteroidField.CurrentAnchorPos = () => GamePlane.ProjectOntoPlane(cameraRig.transform.position);
         }
 
@@ -114,8 +128,7 @@ namespace Game
             ShipRegistry.ActiveShips.Add(player);
             ShipRegistry.ActiveShips.Add(enemy);
 
-            respawnRunner = gameObject.GetComponent<ShipRespawnRunner>() ?? gameObject.AddComponent<ShipRespawnRunner>();
-            respawnRunner.Initialize(config.ShipSpawnerSettings, ShipRegistry, () => world && world.Follower ? world.Follower.transform : null);
+            respawnRunner.Initialize(config.ShipSpawnerSettings, ShipRegistry, () => WorldFollowerTransform);
 
             world.Follower.SetTarget(player.transform);
         }
@@ -171,6 +184,12 @@ namespace Game
 
         public void Shutdown()
         {
+            if (ShipRegistry != null)
+            {
+                ShipRegistry.ActiveShips.OnAdd -= OnShipAddedToRegistry;
+                ShipRegistry.ActiveShips.OnRemove -= OnShipRemovedFromRegistry;
+            }
+
             if (cameraRig)
                 Destroy(cameraRig.gameObject);
             if (asteroidField)
@@ -201,6 +220,12 @@ namespace Game
         private void OnDestroy()
         {
             PresentationReady -= HandlePresentationReady;
+
+            if (ShipRegistry != null)
+            {
+                ShipRegistry.ActiveShips.OnAdd -= OnShipAddedToRegistry;
+                ShipRegistry.ActiveShips.OnRemove -= OnShipRemovedFromRegistry;
+            }
 
             if (overlay)
                 Destroy(overlay.gameObject);

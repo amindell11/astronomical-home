@@ -32,7 +32,7 @@ namespace Player
 
         private void Awake()
         {
-            playerInput = new PlayerInputReader(_ => Vector3.zero);
+            playerInput = new PlayerInputReader(_ => throw new InvalidOperationException("Screen-to-game-plane projector has not been configured."));
         }
 
         public void SetScreenToGamePlane(Func<Vector3, Vector3> screenToGamePlane)
@@ -66,7 +66,7 @@ namespace Player
             secondaryInput = playerInput.SecondaryFireDown;
             wantsRotate = playerInput.WantsToRotate;
 
-            if (useMouseDirection && wantsRotate)
+            if (useMouseDirection && wantsRotate && hasScreenProjector)
             {
                 var mouseWorldPos = playerInput.GetMouseWorldPosition();
                 directionToMouse = (mouseWorldPos - ship.transform.position).normalized;

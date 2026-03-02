@@ -33,7 +33,7 @@ namespace Ships
             var worldCenter = worldCenterProvider?.Invoke();
             var centerPos = worldCenter ? worldCenter.position : Vector3.zero;
             var pos = UnityEngine.Random.insideUnitSphere.normalized * settings.offscreenDistance + centerPos;
-            return GamePlane.WorldPointToPlane(pos);
+            return GamePlane.ProjectOntoPlane(pos) + GamePlane.Origin;
         }
     }
 }

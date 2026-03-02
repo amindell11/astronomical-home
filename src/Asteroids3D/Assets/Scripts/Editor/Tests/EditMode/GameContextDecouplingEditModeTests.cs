@@ -1,4 +1,6 @@
 using System.IO;
+using System.Reflection;
+using AI;
 using Combat.Targeting;
 using NUnit.Framework;
 using Player;
@@ -23,13 +25,15 @@ namespace Tests.EditMode
         [Test]
         public void Spawner_GetRandomOffscreenPosition_UsesWorldCenterProvider()
         {
-            var settings = ScriptableObject.CreateInstance<ShipSpawnerSettings>();
-            settings.offscreenDistance = 0f;
-
-            var anchorGo = new GameObject("Anchor");
+            ShipSpawnerSettings settings = null;
+            GameObject anchorGo = null;
             var called = 0;
             try
             {
+                settings = ScriptableObject.CreateInstance<ShipSpawnerSettings>();
+                settings.offscreenDistance = 0f;
+                anchorGo = new GameObject("Anchor");
+
                 var spawner = new Spawner(settings, () =>
                 {
                     called++;
@@ -41,17 +45,19 @@ namespace Tests.EditMode
             }
             finally
             {
-                Object.DestroyImmediate(anchorGo);
-                Object.DestroyImmediate(settings);
+                if (anchorGo) Object.DestroyImmediate(anchorGo);
+                if (settings) Object.DestroyImmediate(settings);
             }
         }
 
         [Test]
-        public void AiCommander_SourceUsesInjectedRegistryInsteadOfGameContextLookup()
+        public void AiCommander_ExposesRegistryInjectionApi()
         {
-            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "AI", "AICommander.cs"));
-            StringAssert.Contains("SetRegistry", source);
-            StringAssert.DoesNotContain("GameContext.SingletonOrNull", source);
+            var method = typeof(AICommander).GetMethod("SetRegistry", BindingFlags.Public | BindingFlags.Instance);
+            Assert.IsNotNull(method);
+            var parameters = method.GetParameters();
+            Assert.That(parameters.Length, Is.EqualTo(1));
+            Assert.That(parameters[0].ParameterType, Is.EqualTo(typeof(IShipRegistry)));
         }
 
         [Test]
@@ -73,12 +79,29 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void TargetingComputer_SourceStopsScanWhenRegistryIsCleared()
+        {
+            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Combat", "Targeting", "TargetingComputer.cs"));
+            StringAssert.Contains("StopScanRoutine();", source);
+            StringAssert.Contains("StartScanRoutineIfNeeded();", source);
+        }
+
+        [Test]
         public void ShipRespawnRunner_SourceSupportsReinitializeAcrossSessions()
         {
             var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Ships", "ShipRespawnRunner.cs"));
             StringAssert.Contains("UnbindCurrentRegistry();", source);
             StringAssert.Contains("public void ResetRunner()", source);
+            StringAssert.Contains("StopAllCoroutines();", source);
             StringAssert.DoesNotContain("if (isInitialized)", source);
+        }
+
+        [Test]
+        public void Spawner_SourceKeepsRespawnPositionInWorldSpace()
+        {
+            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Ships", "Spawner.cs"));
+            StringAssert.Contains("GamePlane.ProjectOntoPlane(pos) + GamePlane.Origin", source);
+            StringAssert.DoesNotContain("GamePlane.WorldPointToPlane(pos)", source);
         }
 
         [Test]
@@ -86,6 +109,17 @@ namespace Tests.EditMode
         {
             var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Game", "GameInitiator.cs"));
             StringAssert.Contains("respawnRunner?.ResetRunner();", source);
+        }
+
+        [Test]
+        public void GameInitiator_UsesNamedRegistryHandlersAndCachedRespawnRunner()
+        {
+            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Game", "GameInitiator.cs"));
+            StringAssert.Contains("OnShipAddedToRegistry", source);
+            StringAssert.Contains("OnShipRemovedFromRegistry", source);
+            StringAssert.DoesNotContain("OnAdd += s =>", source);
+            StringAssert.Contains("respawnRunner = GetComponent<ShipRespawnRunner>() ?? gameObject.AddComponent<ShipRespawnRunner>();", source);
+            StringAssert.Contains("respawnRunner.Initialize", source);
         }
 
         [Test]

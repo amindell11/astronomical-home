@@ -37,6 +37,7 @@ namespace Ships
 
         public void ResetRunner()
         {
+            StopAllCoroutines();
             UnbindCurrentRegistry();
             spawner = null;
             enemyRespawnDelay = 0f;

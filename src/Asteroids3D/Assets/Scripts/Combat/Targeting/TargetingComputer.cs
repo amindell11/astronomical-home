@@ -23,6 +23,7 @@ namespace Combat.Targeting
         private Sensors.FanSensor sensor;
         private IShipRegistry registry;
         private ShipId selfShipId;
+        private Coroutine scanRoutine;
 
         public event Action<LockState, LockState> OnStateChanged;
 
@@ -34,9 +35,25 @@ namespace Combat.Targeting
 
         public void SetRegistry(IShipRegistry shipRegistry)
         {
+            if (ReferenceEquals(registry, shipRegistry))
+                return;
+
             registry = shipRegistry;
-            if (registry != null && gameObject.activeInHierarchy && !enabled)
+
+            if (registry == null)
+            {
+                StopScanRoutine();
+                enabled = false;
+                return;
+            }
+
+            if (!gameObject.activeInHierarchy)
+                return;
+
+            if (!enabled)
                 enabled = true;
+            else
+                StartScanRoutineIfNeeded();
         }
 
         private void Awake()
@@ -76,17 +93,17 @@ namespace Combat.Targeting
 
         private void OnEnable()
         {
-            if (lockController != null && registry != null)
-                StartCoroutine(ScanRoutine());
+            StartScanRoutineIfNeeded();
         }
 
         private void OnDisable()
         {
-            StopAllCoroutines();
+            StopScanRoutine();
         }
 
         private void OnDestroy()
         {
+            StopScanRoutine();
             if (lockController != null)
                 lockController.OnStateChanged -= HandleLockStateChanged;
         }
@@ -107,6 +124,24 @@ namespace Combat.Targeting
                     ScanForTarget();
                 yield return wait;
             }
+
+            scanRoutine = null;
+        }
+
+        private void StartScanRoutineIfNeeded()
+        {
+            if (scanRoutine != null || registry == null || lockController == null || !enabled)
+                return;
+            scanRoutine = StartCoroutine(ScanRoutine());
+        }
+
+        private void StopScanRoutine()
+        {
+            if (scanRoutine == null)
+                return;
+
+            StopCoroutine(scanRoutine);
+            scanRoutine = null;
         }
 
         public ITargetable ConsumeLock() => lockController.ConsumeLock();
