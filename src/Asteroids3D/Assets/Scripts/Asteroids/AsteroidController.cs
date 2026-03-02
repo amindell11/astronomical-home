@@ -131,7 +131,7 @@ namespace Asteroids
 
         private void LateUpdate()
         {
-            transform.position = GamePlane.ProjectOntoPlane(transform.position) + GamePlane.Origin;
+            PlaneConstraints.ConstrainPosition(transform);
 
             if (!meshCollider) return;
             if (!worldFollowTransform) return;

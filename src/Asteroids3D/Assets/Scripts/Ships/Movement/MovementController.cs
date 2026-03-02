@@ -36,7 +36,7 @@ namespace Ships.Movement
             rb = GetComponent<Rigidbody>();
             parentShip = GetComponent<Ship>();
             booster = new Booster();
-            AlignRotationToPlane();
+            PlaneConstraints.AlignTransformUpToPlane(transform);
         }
 
         private void Start()
@@ -105,23 +105,7 @@ namespace Ships.Movement
 
         private void ConstrainToPlane()
         {
-            var n = GamePlane.Normal;
-            var d   = Vector3.Dot(transform.position - GamePlane.Origin, n);
-            transform.position -= n * d;
-            rb.linearVelocity = Vector3.ProjectOnPlane(rb.linearVelocity, n);
-        }
-        private void AlignRotationToPlane()
-        {
-            var projectedUp = Vector3.ProjectOnPlane(transform.up, GamePlane.Normal);
-            if (projectedUp.sqrMagnitude < 1e-6f)
-            {
-                transform.rotation = Quaternion.LookRotation(GamePlane.Normal, GamePlane.Forward);
-                return;
-            }
-
-            projectedUp.Normalize();
-            var toPlane = Quaternion.FromToRotation(transform.up, projectedUp);
-            transform.rotation = toPlane * transform.rotation;
+            PlaneConstraints.ConstrainPositionAndVelocity(transform, rb);
         }
 
         partial void DebugForces(Vector2 thrust, Vector2 strafe, Vector2 boost, float yaw);

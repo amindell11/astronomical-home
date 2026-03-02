@@ -56,6 +56,11 @@ namespace Game
                     yield return null;
             }
 
+            var planeGo = GameObject.FindGameObjectWithTag(TagNames.ReferencePlane);
+            if (!planeGo)
+                throw new InvalidOperationException($"Missing required '{TagNames.ReferencePlane}' tagged object in loaded world scene.");
+
+            GamePlane.SetReferencePlane(planeGo.transform);
             GamePlane.Plane.SetPositionAndRotation(Vector3.zero, Quaternion.Euler(90f, 0f, 0f));
         }
 
