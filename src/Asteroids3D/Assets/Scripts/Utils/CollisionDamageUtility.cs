@@ -20,8 +20,15 @@ namespace Damage
         }
         public static float RelativeKineticEnergy(float massA, Vector3 velocityA, float massB, Vector3 velocityB)
         {
+            if (massA <= 0f || massB <= 0f ||
+                float.IsNaN(massA) || float.IsNaN(massB) ||
+                float.IsInfinity(massA) || float.IsInfinity(massB))
+            {
+                return 0f;
+            }
+
             var vRel = velocityA - velocityB;
-            var   reducedMass = (massA + massB) > 0f ? (massA * massB) / (massA + massB) : 0f;
+            var reducedMass = (massA * massB) / (massA + massB);
             return 0.5f * reducedMass * vRel.sqrMagnitude;
         }
         public static float ComputeDamage(
