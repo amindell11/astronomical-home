@@ -5,11 +5,11 @@ namespace Combat.Conditions
 {
     public abstract class WeaponCondition : MonoBehaviour
     {
-        protected WeaponComponent _weapon;
+        protected WeaponComponent weapon;
 
         public void Initialize(WeaponComponent weapon)
         {
-            _weapon = weapon;
+            this.weapon = weapon;
         }
 
         /// <summary>

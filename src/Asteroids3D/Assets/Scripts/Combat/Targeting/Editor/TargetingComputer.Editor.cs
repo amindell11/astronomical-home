@@ -50,7 +50,7 @@ namespace Combat.Targeting
                 const float radius = 2f;
                 for (var i = 0; i < segments * progress; i++)
                 {
-                    var angle1 = (i / (float)segments) * 360f * Mathf.Deg2Rad;
+                    var angle1 = i / (float)segments * 360f * Mathf.Deg2Rad;
                     var angle2 = ((i + 1) / (float)segments) * 360f * Mathf.Deg2Rad;
 
                     var p1 = origin + new Vector3(Mathf.Cos(angle1), 0, Mathf.Sin(angle1)) * radius;

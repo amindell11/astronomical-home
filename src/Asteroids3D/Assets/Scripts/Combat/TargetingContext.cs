@@ -7,9 +7,9 @@ namespace Combat
     /// </summary>
     public struct TargetingContext
     {
-        public Vector2 TargetPosition;
-        public float DistanceToTarget;
-        public float AngleToTarget;
-        public bool HasLineOfSight;
+        public Vector2 targetPosition;
+        public float distanceToTarget;
+        public float angleToTarget;
+        public bool hasLineOfSight;
     }
 }

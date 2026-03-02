@@ -7,41 +7,41 @@ namespace Combat.Conditions
     {
         [SerializeField] private float fireRate = 0.2f;
         
-        private float _nextFireTime;
-        private bool _wasOnCooldown;
+        private float nextFireTime;
+        private bool wasOnCooldown;
 
         public event Action OnCooldownStart;
         public event Action OnCooldownReady;
         
-        public float CooldownRemaining => Mathf.Max(0, _nextFireTime - Time.time);
+        public float CooldownRemaining => Mathf.Max(0, nextFireTime - Time.time);
         public float CooldownPercentage => fireRate > 0 ? CooldownRemaining / fireRate : 0f;
 
         private void Update()
         {
             var isOnCooldown = !CanFire();
-            if (_wasOnCooldown && !isOnCooldown)
+            if (wasOnCooldown && !isOnCooldown)
             {
                 OnCooldownReady?.Invoke();
             }
-            _wasOnCooldown = isOnCooldown;
+            wasOnCooldown = isOnCooldown;
         }
 
         public override bool CanFire()
         {
-            return Time.time >= _nextFireTime;
+            return Time.time >= nextFireTime;
         }
 
         public override void ProcessFire()
         {
-            _nextFireTime = Time.time + fireRate;
+            nextFireTime = Time.time + fireRate;
             OnCooldownStart?.Invoke();
-            _wasOnCooldown = true;
+            wasOnCooldown = true;
         }
 
         public override void Reset()
         {
-            _nextFireTime = 0;
-            _wasOnCooldown = false;
+            nextFireTime = 0;
+            wasOnCooldown = false;
         }
     }
 }

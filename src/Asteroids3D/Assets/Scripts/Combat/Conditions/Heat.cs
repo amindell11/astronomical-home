@@ -56,7 +56,7 @@ namespace Combat.Conditions
 
         public bool WouldOverheatOnNextShot(float extraHeatMargin = 0f)
         {
-            return (CurrentHeat + heatPerShot + extraHeatMargin) > maxHeat;
+            return CurrentHeat + heatPerShot + extraHeatMargin > maxHeat;
         }
 
         public override void ProcessFire()

@@ -45,6 +45,7 @@ namespace Combat.Weapons
             foreach (var condition in conditions)
                 condition.Reset();
         }
+        // ReSharper disable Unity.PerformanceAnalysis
         protected void InvokeOnFire()
         {
             OnFire?.Invoke();

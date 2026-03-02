@@ -2,7 +2,6 @@ using System;
 using Damage;
 using Game;
 using Movement;
-using Ships.Movement;
 using UnityEngine;
 using Utils;
 
@@ -120,7 +119,7 @@ namespace Combat.Projectile
                 var obj = buffer[i].GetComponentInParent<IDamageable>();
                 if (obj == null || obj == directHitTarget || IsFriendly(obj)) continue;
 
-                var shooterGameObject = (Shooter as Component) ? (Shooter as Component).gameObject : null;
+                var shooterGameObject = (Shooter as Component)?.gameObject;
                 obj.TakeDamage(splashDamage, mass, velocity, buffer[i].ClosestPoint(transform.position), shooterGameObject);
             }
         }

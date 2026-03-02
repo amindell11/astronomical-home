@@ -93,7 +93,7 @@ namespace Combat.Projectile
         private void ApplyDirectDamage(IDamageable other)
         {
             var impactVelocity = rb ? rb.linearVelocity : Vector3.zero;
-            var shooterGameObject = (Shooter as Component) ? (Shooter as Component).gameObject : null;
+            var shooterGameObject = (Shooter as Component)?.gameObject;
             other?.TakeDamage(damage, mass, impactVelocity, transform.position, shooterGameObject);
         }
 
