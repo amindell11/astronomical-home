@@ -18,11 +18,12 @@ namespace Game
     {
         private UpdatingAsteroidField asteroidField;
         private CameraRig cameraRig;
-        private UI.Overlay ui;
         private WorldRoot world;
         private Ship player, enemy;
         private ShipSpawner spawner;
         private bool isInitialized;
+
+        public event Action<Ship, Camera> PresentationReady;
 
         public ShipRegistry ShipRegistry { get; private set; }
 
@@ -36,12 +37,12 @@ namespace Game
             isInitialized = true;
 
             yield return StartCoroutine(LoadWorldScene());
-            
+
             InitializeWorld(gameConfig);
             InitializeAsteroidField(gameConfig);
             InitializeShips(gameConfig);
             InitializeCamera(gameConfig);
-            InitializeUI(gameConfig);
+            PublishPresentationReady();
         }
 
         private static IEnumerator LoadWorldScene()
@@ -56,13 +57,6 @@ namespace Game
             }
 
             GamePlane.Plane.SetPositionAndRotation(Vector3.zero, Quaternion.Euler(90f, 0f, 0f));
-        }
-
-        private void InitializeUI(GameConfig gameConfig)
-        {
-            ui = Instantiate(gameConfig.UI);
-            ui.SetCanvasWorldCamera(cameraRig.UICamera);
-            ui.Initialize(player);
         }
 
         private void InitializeCamera(GameConfig gameConfig)
@@ -113,27 +107,30 @@ namespace Game
 
         public void Shutdown()
         {
-            if (ui)
-                Destroy(ui.gameObject);
             if (cameraRig)
                 Destroy(cameraRig.gameObject);
             if (asteroidField)
                 Destroy(asteroidField.gameObject);
             if (world)
                 Destroy(world.gameObject);
-            if (player) 
+            if (player)
                 Destroy(player.gameObject);
-            if (enemy) 
+            if (enemy)
                 Destroy(enemy.gameObject);
 
             ShipRegistry?.Dispose();
 
-            ui = null;
             cameraRig = null;
             asteroidField = null;
             world = null;
             ShipRegistry = null;
             isInitialized = false;
+        }
+
+        private void PublishPresentationReady()
+        {
+            if (!player || !cameraRig) return;
+            PresentationReady?.Invoke(player, cameraRig.UICamera);
         }
     }
 }

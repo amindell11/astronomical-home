@@ -11,6 +11,8 @@ namespace Combat.Targeting
         private float lockTimer;
         private float lockDuration;
 
+        public event Action<LockState, LockState> OnStateChanged;
+
         public LockState State { get; private set; } = LockState.Idle;
         public ITargetable CurrentTarget { get; private set; }
         public float LockProgress => (State == LockState.Locking && lockOnTime > 0f) ? UnityEngine.Mathf.Clamp01(lockTimer / lockOnTime) : 0f;
@@ -51,7 +53,7 @@ namespace Combat.Targeting
 
             CurrentTarget = candidate;
             lockTimer = 0f;
-            State = LockState.Locking;
+            SetState(LockState.Locking);
             return true;
         }
 
@@ -61,7 +63,7 @@ namespace Combat.Targeting
 
             var lockedTarget = CurrentTarget;
             ResetLock();
-            State = LockState.Cooldown;
+            SetState(LockState.Cooldown);
             return lockedTarget;
         }
 
@@ -73,12 +75,12 @@ namespace Combat.Targeting
                 return;
             }
 
+            lockTimer += deltaTime;
             CurrentTarget?.Lock.Progress?.Invoke(LockProgress);
 
-            lockTimer += deltaTime;
             if (lockTimer < lockOnTime) return;
 
-            State = LockState.Locked;
+            SetState(LockState.Locked);
             lockDuration = 0f;
             CurrentTarget?.Lock.Acquired?.Invoke();
         }
@@ -98,14 +100,14 @@ namespace Combat.Targeting
         {
             if (canFireCheck())
             {
-                State = LockState.Idle;
+                SetState(LockState.Idle);
             }
         }
 
         private void CancelLock()
         {
             ResetLock();
-            State = LockState.Idle;
+            SetState(LockState.Idle);
         }
 
         private void ResetLock()
@@ -114,6 +116,14 @@ namespace Combat.Targeting
             CurrentTarget = null;
             lockTimer = 0f;
             lockDuration = 0f;
+        }
+
+        private void SetState(LockState newState)
+        {
+            if (State == newState) return;
+            var previous = State;
+            State = newState;
+            OnStateChanged?.Invoke(previous, newState);
         }
     }
 }

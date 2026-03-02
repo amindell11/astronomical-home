@@ -1,4 +1,5 @@
 using System.Collections;
+using Ships;
 using UnityEngine;
 using Utils;
 using World;
@@ -16,6 +17,7 @@ namespace Game
         [SerializeField] private GameConfig gameConfig;
         private GameInitiator gameInitiator;
         private Coroutine restartRoutine;
+        private UI.Overlay overlay;
 
         public static GameContext Instance => Singleton;
 
@@ -23,11 +25,12 @@ namespace Game
         public ShipRegistry ShipRegistry { get; private set; }
         public WorldFollow WorldFollow { get; private set; }
         public Camera MainCamera { get; private set; }
-        
+
         protected override void Awake()
         {
             base.Awake();
             gameInitiator = gameObject.AddComponent<GameInitiator>();
+            gameInitiator.PresentationReady += HandlePresentationReady;
             StartCoroutine(InitializeRoutine());
         }
 
@@ -57,10 +60,33 @@ namespace Game
             PlayGame();
         }
 
-        
         private void PlayGame()
         {
-            CurrentState = GameState.Playing;        
+            CurrentState = GameState.Playing;
+        }
+
+        protected override void OnDestroy()
+        {
+            if (gameInitiator)
+                gameInitiator.PresentationReady -= HandlePresentationReady;
+
+            if (overlay)
+                Destroy(overlay.gameObject);
+
+            base.OnDestroy();
+        }
+
+        private void HandlePresentationReady(Ship player, Camera uiCamera)
+        {
+            if (!gameConfig || !gameConfig.UI || !player)
+                return;
+
+            if (overlay)
+                Destroy(overlay.gameObject);
+
+            overlay = Instantiate(gameConfig.UI);
+            overlay.SetCanvasWorldCamera(uiCamera);
+            overlay.Initialize(player);
         }
     }
 }
