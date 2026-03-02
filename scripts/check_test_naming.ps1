@@ -6,7 +6,7 @@
 .DESCRIPTION
     Ensures all test files follow *Tests.cs naming and that the primary
     public class name matches the file name. Utility classes (like TestSceneBuilder)
-    are excluded from the class name check.
+    and files under PlayMode/Common are excluded from test-file naming checks.
 
 .PARAMETER ProjectPath
     Path to Unity project root (default: src/Asteroids3D)
@@ -50,6 +50,11 @@ $utilityClasses = @(
     "TestSceneBuilder"
 )
 
+# Utility directories that are intentionally not test classes
+$utilityDirPatterns = @(
+    "*\Assets\Scripts\Editor\Tests\PlayMode\Common\*"
+)
+
 $violations = @()
 
 foreach ($file in $testFiles) {
@@ -57,9 +62,17 @@ foreach ($file in $testFiles) {
     $filePath = $file.FullName
     $relativePath = $filePath.Substring($projectRoot.Path.Length + 1)
 
-    # Skip .meta files and non-test utility classes
-    if ($fileName -in $utilityClasses) {
-        Write-Host "  OK $relativePath (utility class, exempt)" -ForegroundColor DarkGray
+    # Skip utility classes and utility directories (non-test helpers)
+    $isUtilityDir = $false
+    foreach ($pattern in $utilityDirPatterns) {
+        if ($filePath -like $pattern) {
+            $isUtilityDir = $true
+            break
+        }
+    }
+
+    if (($fileName -in $utilityClasses) -or $isUtilityDir) {
+        Write-Host "  OK $relativePath (utility file, exempt)" -ForegroundColor DarkGray
         continue
     }
 
