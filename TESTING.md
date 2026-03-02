@@ -101,19 +101,19 @@ if ($result.status -ne "passed") { exit 1 }
 ```
 Assets/Scripts/Editor/Tests/
 ├── EditMode/                          # Compiled as Tests.EditMode.asmdef (Editor only)
-│   ├── ActuatorEditModeTests.cs       # Forces.ComputeOutputs — pure math
-│   ├── CameraUtilsEditModeTests.cs    # CameraUtils — pure math  (canonical name)
+│   ├── ForcesEditModeTests.cs         # Forces.ComputeOutputs — pure math
+│   ├── CameraUtilsEditModeTests.cs    # CameraUtils — pure math
 │   ├── CameraUtilsEditMode.cs         # Empty stub — preserved for GUID continuity
 │   ├── CollisionDamageUtilityTests.cs # Kinetic energy / damage formulae
 │   └── FragneticsCalculatorEditModeTests.cs  # Asteroid fragmentation physics
 │
 └── PlayMode/                          # Compiled as Tests.PlayMode.asmdef
-    ├── TestSceneBuilder.cs            # Scene-building utilities
-    ├── CameraFollowPlayMode.cs        # ObserverCam follow behaviour
-    ├── GamePlanePlayMode.cs           # GamePlane coordinate transforms
-    ├── NavigatorPlayMode.cs           # Ship navigation to waypoints
-    ├── MpcNavigatorPlayMode.cs        # MPC-based ship navigation
-    ├── ScannerPlayMode.cs             # AI obstacle scanner
+    ├── TestSceneBuilder.cs            # Scene-building utilities (not a test class)
+    ├── CameraFollowPlayModeTests.cs   # ObserverCam follow behaviour
+    ├── GamePlanePlayModeTests.cs      # GamePlane coordinate transforms
+    ├── NavigatorPlayModeTests.cs      # Ship navigation to waypoints
+    ├── MpcNavigatorPlayModeTests.cs   # MPC-based ship navigation
+    ├── ScannerPlayModeTests.cs        # AI obstacle scanner
     └── Deprecated/                    # ⛔ NOT compiled (own asmdef gated by
         │                              #    UNITY_INCLUDE_DEPRECATED_TESTS symbol)
         ├── Tests.PlayMode.Deprecated.asmdef
@@ -124,6 +124,26 @@ Assets/Scripts/Editor/Tests/
         ├── MissileLaunchPlayMode.cs
         └── ShieldRegenerationPlayMode.cs
 ```
+
+### Naming Conventions
+
+All test files and classes follow a strict naming convention enforced by `scripts/check_test_naming.ps1`:
+
+**Rules:**
+1. **Test files** must end with `Tests.cs` (e.g., `MyFeatureTests.cs`)
+2. **Test classes** must match their file name exactly (e.g., `public class MyFeatureTests`)
+3. **Utility classes** (like `TestSceneBuilder`) are exempt from the `*Tests` requirement
+
+**Validation:**
+```powershell
+# Check all test files for naming violations
+.\scripts\check_test_naming.ps1
+
+# Show suggested fixes for violations
+.\scripts\check_test_naming.ps1 -Fix
+```
+
+This check is run in CI to prevent naming drift. If you rename a test class, you must also rename the file to match.
 
 ---
 
@@ -159,13 +179,14 @@ Run a specific category:
 ## Adding New Tests
 
 ### EditMode test checklist
-- File and class both end with `Tests` (e.g. `MyFeatureTests.cs` / `public class MyFeatureTests`)
+- ✅ **File and class must match exactly** (e.g., `MyFeatureTests.cs` / `public class MyFeatureTests`)
+- ✅ **Both must end with `Tests`** (enforced by `scripts/check_test_naming.ps1`)
 - Namespace: `Tests.EditMode`
 - At least one `[Category("Regression")]` on the class
 - Add `[Category("Smoke")]` to the single fastest / most critical test method
 
 ### PlayMode test checklist
-- File and class both end with `Tests`
+- ✅ **File and class must match exactly and end with `Tests`**
 - Namespace: `Tests.PlayMode`
 - Class-level `[Category("Integration")]`; add `[Category("Slow")]` when the test takes > ~1s
 - **No `AssetDatabase` calls outside `#if UNITY_EDITOR`** — wrap them:
