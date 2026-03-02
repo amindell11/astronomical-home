@@ -1,6 +1,7 @@
 using System.IO;
 using System.Reflection;
 using AI;
+using Game;
 using Combat.Targeting;
 using NUnit.Framework;
 using Player;
@@ -27,12 +28,15 @@ namespace Tests.EditMode
         {
             ShipSpawnerSettings settings = null;
             GameObject anchorGo = null;
+            GameObject planeGo = null;
             var called = 0;
             try
             {
                 settings = ScriptableObject.CreateInstance<ShipSpawnerSettings>();
                 settings.offscreenDistance = 0f;
                 anchorGo = new GameObject("Anchor");
+                planeGo = new GameObject("ReferencePlane");
+                GamePlane.SetReferencePlane(planeGo.transform);
 
                 var spawner = new Spawner(settings, () =>
                 {
@@ -45,6 +49,8 @@ namespace Tests.EditMode
             }
             finally
             {
+                GamePlane.Reset();
+                if (planeGo) Object.DestroyImmediate(planeGo);
                 if (anchorGo) Object.DestroyImmediate(anchorGo);
                 if (settings) Object.DestroyImmediate(settings);
             }
@@ -108,18 +114,30 @@ namespace Tests.EditMode
         public void GameInitiator_ShutdownResetsRespawnRunner()
         {
             var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Game", "GameInitiator.cs"));
-            StringAssert.Contains("respawnRunner?.ResetRunner();", source);
+            StringAssert.Contains("respawnRunner.ResetRunner();", source);
         }
 
         [Test]
-        public void GameInitiator_UsesNamedRegistryHandlersAndCachedRespawnRunner()
+        public void GameInitiator_UsesSerializedReferencePlaneAndRespawnRunner()
         {
             var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Game", "GameInitiator.cs"));
-            StringAssert.Contains("OnShipAddedToRegistry", source);
-            StringAssert.Contains("OnShipRemovedFromRegistry", source);
-            StringAssert.DoesNotContain("OnAdd += s =>", source);
-            StringAssert.Contains("respawnRunner = GetComponent<ShipRespawnRunner>() ?? gameObject.AddComponent<ShipRespawnRunner>();", source);
-            StringAssert.Contains("respawnRunner.Initialize", source);
+            StringAssert.Contains("[SerializeField] private Transform referencePlane;", source);
+            StringAssert.Contains("[SerializeField] private ShipRespawnRunner respawnRunner;", source);
+            StringAssert.Contains("GamePlane.SetReferencePlane(referencePlane);", source);
+            StringAssert.Contains("if (!referencePlane)", source);
+            StringAssert.DoesNotContain("GetComponent<ShipRespawnRunner>() ?? gameObject.AddComponent<ShipRespawnRunner>();", source);
+            StringAssert.DoesNotContain("UI.Overlay", source);
+            StringAssert.DoesNotContain("HandlePresentationReady", source);
+        }
+
+        [Test]
+        public void OverlayBootstrap_OwnsOverlayLifecycle()
+        {
+            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "UI", "OverlayBootstrap.cs"));
+            StringAssert.Contains("gameInitiator.PresentationReady += HandlePresentationReady;", source);
+            StringAssert.Contains("gameInitiator.PresentationReady -= HandlePresentationReady;", source);
+            StringAssert.Contains("overlay = Instantiate(gameConfig.UI);", source);
+            StringAssert.Contains("overlay.Initialize(playerShip);", source);
         }
 
         [Test]
