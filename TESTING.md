@@ -108,6 +108,12 @@ Assets/Scripts/Editor/Tests/
 │   └── FragneticsCalculatorEditModeTests.cs  # Asteroid fragmentation physics
 │
 └── PlayMode/                          # Compiled as Tests.PlayMode.asmdef
+    ├── Common/                        # Shared test utilities (reduce duplication)
+    │   ├── PlayModeWorldFixture.cs    # Shared setup/teardown + isolation
+    │   ├── TestAssets.cs              # Asset loading (AssetDatabase helpers)
+    │   ├── ShipTestFactory.cs         # Ship creation with common configs
+    │   ├── AsyncAssert.cs             # Async polling assertions with timeout
+    │   └── TestUtilities.cs           # General helpers (distance, angle, audio)
     ├── TestSceneBuilder.cs            # Scene-building utilities (not a test class)
     ├── CameraFollowPlayModeTests.cs   # ObserverCam follow behaviour
     ├── GamePlanePlayModeTests.cs      # GamePlane coordinate transforms
@@ -144,6 +150,89 @@ All test files and classes follow a strict naming convention enforced by `script
 ```
 
 This check is run in CI to prevent naming drift. If you rename a test class, you must also rename the file to match.
+
+---
+
+## Shared PlayMode Test Utilities
+
+The `Tests.PlayMode.Common` namespace provides reusable utilities to reduce duplication across PlayMode tests:
+
+### TestAssets
+Centralized asset loading to avoid repeated `AssetDatabase.LoadAssetAtPath` calls:
+```csharp
+using Tests.PlayMode.Common;
+
+// Load common test assets
+var settings = TestAssets.LoadDefaultShipSettings();
+var shipPrefab = TestAssets.LoadShip2Prefab();
+var pilotPrefab = TestAssets.LoadTestPilot();        // Standard pilot
+var mpcPilotPrefab = TestAssets.LoadTestPilotMpc();  // MPC pilot
+```
+
+### ShipTestFactory
+Factory methods for creating ships with standard test configurations:
+```csharp
+using Tests.PlayMode.Common;
+
+// Create ship with default settings at origin
+ship = ShipTestFactory.CreateDefaultShip(useMpcPilot: false);
+
+// Create at specific position
+ship = ShipTestFactory.CreateDefaultShipAt(position, rotation, useMpcPilot: true);
+
+// Clean up
+ShipTestFactory.DestroyShip(ship);
+```
+
+### AsyncAssert
+Polling-based assertions with configurable timeouts to avoid flaky tests:
+```csharp
+using Tests.PlayMode.Common;
+
+// Wait until condition becomes true (with timeout)
+yield return AsyncAssert.WaitUntil(
+    () => ship.arrived,
+    timeoutSec: 5f,
+    failureMessage: "Ship did not arrive",
+    useFixedUpdate: true);
+
+// Wait until condition, then run custom assertion
+yield return AsyncAssert.WaitUntilThen(
+    () => distanceToTarget < threshold,
+    timeoutSec: 10f,
+    () => Assert.That(finalDistance, Is.LessThan(threshold)),
+    useFixedUpdate: true);
+
+// Assert condition remains false for duration
+yield return AsyncAssert.WaitAndAssertRemainsFalse(
+    () => camera.hasMoved,
+    waitSec: 3f,
+    failureMessage: "Camera moved unexpectedly");
+
+// Specialized helpers for common patterns
+yield return AsyncAssert.WaitForVector2NearTarget(
+    () => GamePlane.WorldPointToPlane(ship.transform.position),
+    targetPos,
+    threshold: 0.5f,
+    timeoutSec: 20f);
+```
+
+### TestUtilities
+General-purpose helpers for common test operations:
+```csharp
+using Tests.PlayMode.Common;
+
+// Distance calculations
+float dist = TestUtilities.DistanceToPlaneTarget(ship.transform, targetPos);
+
+// Angle calculations
+float facingAngle = TestUtilities.GetPlaneFacingAngle(ship.transform);
+float angleDelta = TestUtilities.AngleDeltaToTarget(ship.transform, targetAngle: 90f);
+
+// Audio management (SetUp / TearDown)
+TestUtilities.PauseAudio();   // In SetUp
+TestUtilities.ResumeAudio();  // In TearDown
+```
 
 ---
 

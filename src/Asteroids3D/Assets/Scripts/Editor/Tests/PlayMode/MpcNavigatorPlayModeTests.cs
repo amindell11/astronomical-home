@@ -8,9 +8,6 @@ using Ships;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 using AICommander = AI.AICommander;
 
 namespace Tests.PlayMode
@@ -31,13 +28,9 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
     public override void SetUp()
     {
         base.SetUp();
-        
+
 #if UNITY_EDITOR
-        var settings   = AssetDatabase.LoadAssetAtPath<ShipSettings>("Assets/Settings/Ships/DefaultSettings.asset");
-        var shipPrefab = AssetDatabase.LoadAssetAtPath<Ship>("Assets/Prefabs/Ships/Ship_2.prefab");
-        var cmdrPrefab = AssetDatabase.LoadAssetAtPath<AICommander>("Assets/Prefabs/Ships/Pilots/TestPilotMPC.prefab");
-        
-        ship = Factory.CreateShip(shipPrefab, cmdrPrefab, settings, team: 0, Vector3.zero, Quaternion.identity);
+        ship = ShipTestFactory.CreateDefaultShip(useMpcPilot: true);
         cmdr = ship.Commander as AICommander;
         mpc  = cmdr.Navigator as MpcNavigator;
 #else
@@ -48,8 +41,7 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
     [TearDown]
     public override void TearDown()
     {
-        if (ship != null)
-            Object.Destroy(ship.gameObject);
+        ShipTestFactory.DestroyShip(ship);
         base.TearDown();
     }
 
@@ -60,21 +52,18 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
         mpc.SetNavigationPoint(Vector2.zero);
         mpc.SetFacingOverride(90f);
         
-        var deadline = Time.realtimeSinceStartup + YawTimeoutSec;
-        while (Time.realtimeSinceStartup < deadline)
-        {
-            var facingAngle = Vector2.SignedAngle(Vector2.up, ship.transform.up);
-            if (Mathf.Abs(Mathf.DeltaAngle(facingAngle, 90f)) < 5f) break;
-            yield return new WaitForFixedUpdate();
-        }
-
-        var finalFacing = Vector2.SignedAngle(Vector2.up, ship.transform.up);
-        var finalDiff   = Mathf.Abs(Mathf.DeltaAngle(finalFacing, 90f));
-        
-        Assert.That(finalDiff, Is.LessThan(10f),
-            $"Ship should rotate to face 90° within {YawTimeoutSec}s (final diff = {finalDiff:F1}°)");
-        Assert.That(ship.transform.position.magnitude, Is.LessThan(1f),
-            "Ship should remain stationary while only yawing");
+        yield return AsyncAssert.WaitUntilThen(
+            () => TestUtilities.AngleDeltaToTarget(ship.transform, 90f) < 5f,
+            YawTimeoutSec,
+            () =>
+            {
+                var finalDiff = TestUtilities.AngleDeltaToTarget(ship.transform, 90f);
+                Assert.That(finalDiff, Is.LessThan(10f),
+                    $"Ship should rotate to face 90° within {YawTimeoutSec}s (final diff = {finalDiff:F1}°)");
+                Assert.That(ship.transform.position.magnitude, Is.LessThan(1f),
+                    "Ship should remain stationary while only yawing");
+            },
+            useFixedUpdate: true);
     }
 
     [UnityTest]
@@ -83,16 +72,13 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
         var targetPos = new Vector2(15, 15);
         mpc.SetNavigationPoint(targetPos);
         
-        var deadline = Time.realtimeSinceStartup + NavTimeoutSec;
-        while (DistanceToPlaneTarget(targetPos) > mpc.arriveRadius && Time.realtimeSinceStartup < deadline)
-        {
-            yield return new WaitForFixedUpdate();
-        }
-
-        Assert.That(
-            DistanceToPlaneTarget(targetPos),
-            Is.LessThan(mpc.arriveRadius),
-            $"MPC should reach waypoint {targetPos} within {NavTimeoutSec}s");
+        yield return AsyncAssert.WaitForVector2NearTarget(
+            () => GamePlane.WorldPointToPlane(ship.transform.position),
+            targetPos,
+            mpc.arriveRadius,
+            NavTimeoutSec,
+            $"MPC should reach waypoint {targetPos} within {NavTimeoutSec}s",
+            useFixedUpdate: true);
     }
 
     [UnityTest]
@@ -111,7 +97,7 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
             yield return new WaitForFixedUpdate();
         }
         
-        float dist = DistanceToPlaneTarget(targetPos);
+        float dist = TestUtilities.DistanceToPlaneTarget(ship.transform, targetPos);
         Assert.That(dist, Is.LessThan(14f), "Ship should follow a moving waypoint");
     }
 
@@ -133,13 +119,13 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
             var shipPos2D = GamePlane.WorldPointToPlane(ship.transform.position);
             minDistToObstacle = Mathf.Min(minDistToObstacle, Vector2.Distance(shipPos2D, obstaclePos2D));
             
-            if (DistanceToPlaneTarget(targetPos) < mpc.arriveRadius)
+            if (TestUtilities.DistanceToPlaneTarget(ship.transform, targetPos) < mpc.arriveRadius)
                 break;
             
             yield return new WaitForFixedUpdate();
         }
         
-        var finalDistToTarget = DistanceToPlaneTarget(targetPos);
+        var finalDistToTarget = TestUtilities.DistanceToPlaneTarget(ship.transform, targetPos);
         Assert.That(finalDistToTarget, Is.LessThan(mpc.arriveRadius + 1f),
             "MPC should reach waypoint while avoiding obstacle");
         // Obstacle radius is 1 (half of size 2); ship should not enter it.
@@ -148,12 +134,6 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
         
         Object.Destroy(obstacle);
         yield return null;
-    }
-
-    private float DistanceToPlaneTarget(Vector2 target)
-    {
-        var shipPos2D = GamePlane.WorldPointToPlane(ship.transform.position);
-        return Vector2.Distance(shipPos2D, target);
     }
 }
 

@@ -60,19 +60,20 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
 
         subject.transform.position = GamePlane.Forward * 2;
 
-        // Poll until camera catches up (exit early), fall through on timeout.
-        var deadline = Time.realtimeSinceStartup + FollowTimeoutSec;
-        while (Time.realtimeSinceStartup < deadline)
-        {
-            var camPos2D     = GamePlane.WorldPointToPlane(cam.transform.position);
-            var subjectPos2D = GamePlane.WorldPointToPlane(subject.transform.position);
-            if (Vector2.Distance(camPos2D, subjectPos2D) < FollowThreshold) break;
-            yield return null;
-        }
-        
-        var finalCamPos2D     = GamePlane.WorldPointToPlane(cam.transform.position);
-        var finalSubjectPos2D = GamePlane.WorldPointToPlane(subject.transform.position);
-        Assert.That(Vector2.Distance(finalCamPos2D, finalSubjectPos2D), Is.LessThan(FollowThreshold));
+        yield return AsyncAssert.WaitUntilThen(
+            () =>
+            {
+                var camPos2D = GamePlane.WorldPointToPlane(cam.transform.position);
+                var subjectPos2D = GamePlane.WorldPointToPlane(subject.transform.position);
+                return Vector2.Distance(camPos2D, subjectPos2D) < FollowThreshold;
+            },
+            FollowTimeoutSec,
+            () =>
+            {
+                var finalCamPos2D = GamePlane.WorldPointToPlane(cam.transform.position);
+                var finalSubjectPos2D = GamePlane.WorldPointToPlane(subject.transform.position);
+                Assert.That(Vector2.Distance(finalCamPos2D, finalSubjectPos2D), Is.LessThan(FollowThreshold));
+            });
     }
     
     [UnityTest]
@@ -88,12 +89,15 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
         subject.SetActive(false);
         subject.transform.position = GamePlane.Forward * 10;
 
-        // Wait a bit to ensure camera would have moved if it was going to
-        var deadline = Time.realtimeSinceStartup + FollowTimeoutSec;
-        while (Time.realtimeSinceStartup < deadline)
-        {
-            yield return null;
-        }
+        // Wait to ensure camera would have moved if it was going to
+        yield return AsyncAssert.WaitAndAssertRemainsFalse(
+            () =>
+            {
+                var camPos2D = GamePlane.WorldPointToPlane(cam.transform.position);
+                return Vector2.Distance(camPos2D, initialCamPos2D) > FollowThreshold;
+            },
+            FollowTimeoutSec,
+            "Camera moved when subject was inactive");
 
         var finalCamPos2D     = GamePlane.WorldPointToPlane(cam.transform.position);
         var finalSubjectPos2D = GamePlane.WorldPointToPlane(subject.transform.position);

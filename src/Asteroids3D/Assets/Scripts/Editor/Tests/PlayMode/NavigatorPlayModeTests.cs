@@ -6,9 +6,6 @@ using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Utils;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 using AICommander = AI.AICommander;
 
 namespace Tests.PlayMode
@@ -28,12 +25,9 @@ public class NavigatorPlayModeTests : PlayModeWorldFixture
     public override void SetUp()
     {
         base.SetUp();
-        
+
 #if UNITY_EDITOR
-        var settings   = AssetDatabase.LoadAssetAtPath<ShipSettings>("Assets/Settings/Ships/DefaultSettings.asset");
-        var shipPrefab = AssetDatabase.LoadAssetAtPath<Ship>("Assets/Prefabs/Ships/Ship_2.prefab");
-        var cmdrPrefab = AssetDatabase.LoadAssetAtPath<AICommander>("Assets/Prefabs/Ships/Pilots/TestPilot.prefab");
-        ship = Factory.CreateShip(shipPrefab, cmdrPrefab, settings, team: 0, Vector3.zero, Quaternion.identity);
+        ship = ShipTestFactory.CreateDefaultShip(useMpcPilot: false);
         cmdr = ship.Commander as AICommander;
 #else
         Assert.Ignore("NavigatorPlayModeTests requires the Unity Editor (uses AssetDatabase).");
@@ -43,8 +37,7 @@ public class NavigatorPlayModeTests : PlayModeWorldFixture
     [TearDown]
     public override void TearDown()
     {
-        if (ship != null)
-            Object.Destroy(ship.gameObject);
+        ShipTestFactory.DestroyShip(ship);
         base.TearDown();
     }
 
@@ -66,15 +59,13 @@ public class NavigatorPlayModeTests : PlayModeWorldFixture
         var target = new Vector2(10, 10);
         cmdr.Navigator.SetNavigationPoint(target);
 
-        var deadline = Time.realtimeSinceStartup + NavTimeoutSec;
-        while (DistanceToPlaneTarget(target) > ArriveThreshold && Time.realtimeSinceStartup < deadline)
-        {
-            yield return new WaitForFixedUpdate();
-        }
-
-        Assert.That(DistanceToPlaneTarget(target),
-            Is.LessThan(ArriveThreshold),
-            $"Ship did not reach waypoint within {NavTimeoutSec}s. Final pos: {ship.transform.position}");
+        yield return AsyncAssert.WaitForVector2NearTarget(
+            () => GamePlane.WorldPointToPlane(ship.transform.position),
+            target,
+            ArriveThreshold,
+            NavTimeoutSec,
+            $"Ship did not reach waypoint within {NavTimeoutSec}s. Final pos: {ship.transform.position}",
+            useFixedUpdate: true);
     }
 
     [UnityTest]
@@ -85,25 +76,16 @@ public class NavigatorPlayModeTests : PlayModeWorldFixture
         var target   = new Vector2(10, 10);
         cmdr.Navigator.SetNavigationPoint(target, true);
 
-        // Poll for arrival instead of a blind WaitForSeconds.
-        var deadline = Time.realtimeSinceStartup + NavTimeoutSec;
-        while (DistanceToPlaneTarget(target) > ArriveThreshold && Time.realtimeSinceStartup < deadline)
-        {
-            yield return new WaitForFixedUpdate();
-        }
-
-        Assert.That(DistanceToPlaneTarget(target),
-            Is.LessThan(ArriveThreshold),
-            $"Ship should navigate around obstacle and reach ({target}) within {NavTimeoutSec}s");
+        yield return AsyncAssert.WaitForVector2NearTarget(
+            () => GamePlane.WorldPointToPlane(ship.transform.position),
+            target,
+            ArriveThreshold,
+            NavTimeoutSec,
+            $"Ship should navigate around obstacle and reach ({target}) within {NavTimeoutSec}s",
+            useFixedUpdate: true);
 
         Object.Destroy(obstacle);
         yield return null;
-    }
-
-    private float DistanceToPlaneTarget(Vector2 target)
-    {
-        var shipPos2D = GamePlane.WorldPointToPlane(ship.transform.position);
-        return Vector2.Distance(shipPos2D, target);
     }
 }
 

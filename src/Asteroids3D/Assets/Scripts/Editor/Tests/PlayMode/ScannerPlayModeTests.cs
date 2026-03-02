@@ -5,9 +5,6 @@ using Ships;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace Tests.PlayMode
 {
@@ -25,12 +22,9 @@ public class ScannerPlayModeTests : PlayModeWorldFixture
     public override void SetUp()
     {
         base.SetUp();
-        
+
 #if UNITY_EDITOR
-        var settings   = AssetDatabase.LoadAssetAtPath<ShipSettings>("Assets/Settings/Ships/DefaultSettings.asset");
-        var shipPrefab = AssetDatabase.LoadAssetAtPath<Ship>("Assets/Prefabs/Ships/Ship_2.prefab");
-        var cmdrPrefab = AssetDatabase.LoadAssetAtPath<AICommander>("Assets/Prefabs/Ships/Pilots/TestPilot.prefab");
-        ship = Ships.Factory.CreateShip(shipPrefab, cmdrPrefab, settings, team: 0, Vector3.zero, Quaternion.identity);
+        ship = ShipTestFactory.CreateDefaultShip(useMpcPilot: false);
         cmdr = ship.Commander as AICommander;
 #else
         Assert.Ignore("ScannerPlayModeTests requires the Unity Editor (uses AssetDatabase).");
@@ -40,8 +34,7 @@ public class ScannerPlayModeTests : PlayModeWorldFixture
     [TearDown]
     public override void TearDown()
     {
-        if (ship != null)
-            Object.Destroy(ship.gameObject);
+        ShipTestFactory.DestroyShip(ship);
         base.TearDown();
     }
 
@@ -51,13 +44,11 @@ public class ScannerPlayModeTests : PlayModeWorldFixture
     {
         var obstacle = TestSceneBuilder.CreateObstacle(new Vector3(0, 5, 0), new Vector3(5, 5, 1));
 
-        // Poll until the scanner registers the obstacle (exit early) instead of blind wait.
-        var deadline = Time.realtimeSinceStartup + ScanTimeoutSec;
-        while (cmdr.Scout.ObstacleScan.count == 0 && Time.realtimeSinceStartup < deadline)
-            yield return new WaitForFixedUpdate();
-
-        Assert.IsTrue(cmdr.Scout.ObstacleScan.count > 0,
-            $"Scanner should detect nearby obstacle within {ScanTimeoutSec}s");
+        yield return AsyncAssert.WaitUntil(
+            () => cmdr.Scout.ObstacleScan.count > 0,
+            ScanTimeoutSec,
+            $"Scanner should detect nearby obstacle within {ScanTimeoutSec}s",
+            useFixedUpdate: true);
 
         Object.Destroy(obstacle);
     }
