@@ -84,3 +84,6 @@ crashlytics-build.properties
 
 # Local Pi planning artifacts
 /.pi/plans/
+
+# Agent worktree pool
+.worktree-pool/
