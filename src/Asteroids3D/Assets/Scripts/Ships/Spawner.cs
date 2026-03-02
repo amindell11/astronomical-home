@@ -8,15 +8,15 @@ namespace Ships
 public class Spawner
 {
     private readonly ShipSpawnerSettings settings;
-    private readonly IShipRegistry registry;
+    private readonly ShipRegistry registry;
     private Transform worldCenter;
 
-    public Spawner(ShipSpawnerSettings settings, SubscribedSet<Ship> activeShips, IShipRegistry registry)
+    public Spawner(ShipSpawnerSettings settings, ShipRegistry registry)
     {
         this.settings = settings;
         this.registry = registry;
-        activeShips.OnAdd += (s => s.Damage.OnDeath += OnShipDeath);
-        activeShips.OnRemove += (s => s.Damage.OnDeath -= OnShipDeath);
+        registry.ActiveShips.OnAdd += (s => s.Damage.OnDeath += OnShipDeath);
+        registry.ActiveShips.OnRemove += (s => s.Damage.OnDeath -= OnShipDeath);
     }
     
     private void OnShipDeath(ShipId deadShipId, ShipId _killerId)
