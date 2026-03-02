@@ -1,5 +1,5 @@
 ﻿using System;
-using AI.Computers;
+using Combat;
 using Movement;
 using Ships;
 using Unity.Properties;
@@ -23,11 +23,11 @@ namespace AI.Context
         public Navigation Nav { get; private set; }
 
         // Computers (heavy calculations)
-        public Targeting Targeting { get; private set; }
+        public TargetingUtils TargetingUtils { get; private set; }
         public Scanning.Scout Scout { get; private set; }
         public Maneuvers Maneuvers { get; private set; }
 
-        public Info(Ships.Ship ship, Navigator navigator, Gunner gunner, Scanning.Scout scout, Targeting targeting, Maneuvers maneuvers)
+        public Info(Ships.Ship ship, Navigator navigator, Gunner gunner, Scanning.Scout scout, TargetingUtils targetingUtils, Maneuvers maneuvers)
         {
             this.ship = ship;
             if (!ship)
@@ -39,10 +39,10 @@ namespace AI.Context
             this.registry = scout.Registry;
 
             ShipInfo = new ShipInfo(ship);
-            Targeting = targeting;
+            TargetingUtils = targetingUtils;
             Scout = scout;
             Maneuvers = maneuvers;
-            Combat = new Combat(Scout, gunner, Targeting);
+            Combat = new Combat(Scout, gunner, TargetingUtils);
             Nav = new Navigation(ShipInfo, Scout, navigator);
         }
 
@@ -65,12 +65,12 @@ namespace AI.Context
         public float EnemyShieldPct => Combat?.EnemyShieldPct ?? 0f;
 
         // Targeting calculations (via Targeting computer)
-        public Vector2 VectorToEnemy => Targeting?.VectorTo(EnemyPos) ?? Vector2.zero;
-        public Vector2 EnemyRelVelocity => Targeting?.RelativeVelocity(EnemyVel) ?? Vector2.zero;
-        public float ClosingSpeed => Targeting?.ClosingSpeed(EnemyPos, EnemyVel) ?? 0f;
-        public bool LineOfSightToEnemy => Enemy && (Targeting?.HasLineOfSight(Enemy.transform.position) ?? false);
-        public float AngleToEnemy => Targeting?.AngleTo(EnemyPos) ?? 0f;
-        public float EnemyAngleToSelf => Enemy ? (Targeting?.AngleFromTarget(EnemyPos, Combat.EnemyForward) ?? 180f) : 180f;
+        public Vector2 VectorToEnemy => TargetingUtils?.VectorTo(EnemyPos) ?? Vector2.zero;
+        public Vector2 EnemyRelVelocity => TargetingUtils?.RelativeVelocity(EnemyVel) ?? Vector2.zero;
+        public float ClosingSpeed => TargetingUtils?.ClosingSpeed(EnemyPos, EnemyVel) ?? 0f;
+        public bool LineOfSightToEnemy => Enemy && (TargetingUtils?.HasLineOfSight(Enemy.transform.position) ?? false);
+        public float AngleToEnemy => TargetingUtils?.AngleTo(EnemyPos) ?? 0f;
+        public float EnemyAngleToSelf => Enemy ? (TargetingUtils?.AngleFromTarget(EnemyPos, Combat.EnemyForward) ?? 180f) : 180f;
         public float SelfAngleToEnemy => AngleToEnemy;
 
         // Gunner target accessors

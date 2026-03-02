@@ -24,7 +24,7 @@ namespace AI.States
         {
             if (!context.Enemy) return;   
             
-            var predictedTarget = context.Targeting.PredictIntercept(
+            var predictedTarget = context.TargetingUtils.PredictIntercept(
                 context.EnemyPos,
                 context.EnemyVel,
                 context.LaserSpeed

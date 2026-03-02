@@ -32,7 +32,7 @@ namespace AI.States
         {
             if (!ctx?.Enemy) return;
 
-            var predicted = ctx.Targeting.PredictIntercept(
+            var predicted = ctx.TargetingUtils.PredictIntercept(
                 ctx.EnemyPos,
                 ctx.EnemyVel,
                 ctx.LaserSpeed);

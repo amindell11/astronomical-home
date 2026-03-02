@@ -1,4 +1,4 @@
-using AI.Computers;
+using Combat;
 using Ships;
 using UnityEngine;
 
@@ -8,18 +8,18 @@ namespace AI.Context
     {
         private readonly Scanning.Scout scout;
         private readonly Gunner gunner;
-        private readonly Targeting targeting;
+        private readonly TargetingUtils targetingUtils;
         private readonly ShipId selfId;
         private readonly IShipRegistry registry;
 
         private ShipId enemyId;
         private Ship cachedEnemy;
 
-        public Combat(Scanning.Scout scout, Gunner gunner, Targeting targeting)
+        public Combat(Scanning.Scout scout, Gunner gunner, TargetingUtils targetingUtils)
         {
             this.scout = scout;
             this.gunner = gunner;
-            this.targeting = targeting;
+            this.targetingUtils = targetingUtils;
             this.selfId = scout.ShipId;
             this.registry = scout.Registry;
         }

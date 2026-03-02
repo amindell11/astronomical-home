@@ -67,7 +67,7 @@ namespace AI
             var targetPos = Target;
         
             // Line of sight ray
-            var hasLOS = targeting.HasLineOfSight(firePos, targetPos, AngleToTarget);
+            var hasLOS = targetingUtils.HasLineOfSight(firePos, targetPos, AngleToTarget);
             Gizmos.color = hasLOS ? Color.green : Color.red;
             Gizmos.DrawLine(firePos, targetPos);
         

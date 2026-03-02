@@ -1,5 +1,4 @@
-﻿using AI.Computers;
-using AI.Context;
+﻿using AI.Context;
 using Combat;
 using Combat.Weapons;
 using Game;
@@ -13,7 +12,7 @@ namespace AI
     public partial class Gunner : MonoBehaviour
     {
         private System.Func<State> getState;
-        private Targeting targeting;
+        private TargetingUtils targetingUtils;
         private WeaponComponent primaryWeapon;
         private WeaponComponent secondaryWeapon;
         protected Command currentCommand;
@@ -27,10 +26,10 @@ namespace AI
             : transform.position;
 
         public Vector2 TargetPlane => GamePlane.WorldPointToPlane(Target);
-        public Vector2 VectorToTarget => (HasTarget && targeting != null) ? targeting.VectorTo(TargetPlane) : Vector2.zero;
-        public float AngleToTarget => (HasTarget && targeting != null) ? targeting.AngleTo(TargetPlane) : 0f;
+        public Vector2 VectorToTarget => (HasTarget && targetingUtils != null) ? targetingUtils.VectorTo(TargetPlane) : Vector2.zero;
+        public float AngleToTarget => (HasTarget && targetingUtils != null) ? targetingUtils.AngleTo(TargetPlane) : 0f;
 
-        public bool HasTargetLos => (HasTarget && targeting != null) && targeting.HasLineOfSight(FirePoint, Target, AngleToTarget);
+        public bool HasTargetLos => (HasTarget && targetingUtils != null) && targetingUtils.HasLineOfSight(FirePoint, Target, AngleToTarget);
 
         public void SetTarget(Vector3 worldPos) => Target = worldPos;
         public void SetTarget(Vector2 planePos) => Target = GamePlane.PlanePointToWorld(planePos);
@@ -38,9 +37,9 @@ namespace AI
         public void SetTarget(Ships.Ship enemy) => Target = enemy ? enemy.transform.position : Vector3.zero;
         public void ClearTarget() => Target = Vector3.zero;
 
-        public void Initialize(WeaponComponent primary, WeaponComponent secondary, Targeting targeting, System.Func<State> stateProvider)
+        public void Initialize(WeaponComponent primary, WeaponComponent secondary, TargetingUtils targetingUtils, System.Func<State> stateProvider)
         {
-            this.targeting = targeting;
+            this.targetingUtils = targetingUtils;
             this.getState = stateProvider;
             primaryWeapon = primary;
             secondaryWeapon = secondary;
@@ -58,10 +57,10 @@ namespace AI
 
             var context = new TargetingContext
             {
-                TargetPosition = TargetPlane,
-                DistanceToTarget = targeting.DistanceTo(TargetPlane),
-                AngleToTarget = AngleToTarget,
-                HasLineOfSight = HasTargetLos
+                targetPosition = TargetPlane,
+                distanceToTarget = targetingUtils.DistanceTo(TargetPlane),
+                angleToTarget = AngleToTarget,
+                hasLineOfSight = HasTargetLos
             };
 
             cmd.primaryFire = primaryWeapon?.ShouldFire(context) ?? false;
