@@ -69,8 +69,9 @@ namespace Combat.Projectile
         protected void OnTriggerEnter(Collider other)
         {
             var dmg = other.GetComponentInParent<IDamageable>();
-            if (dmg == null || Shooter == null) return;
-            if (other.transform.root == Shooter.transform.root) return;
+            var shooterComponent = Shooter as Component;
+            if (dmg == null || !shooterComponent) return;
+            if (other.transform.root == shooterComponent.transform.root) return;
             if (IsFriendly(dmg)) return;
             
             OnHit(dmg);
@@ -92,13 +93,17 @@ namespace Combat.Projectile
         private void ApplyDirectDamage(IDamageable other)
         {
             var impactVelocity = rb ? rb.linearVelocity : Vector3.zero;
-            other?.TakeDamage(damage, mass, impactVelocity, transform.position, Shooter?.gameObject);
+            var shooterGameObject = (Shooter as Component) ? (Shooter as Component).gameObject : null;
+            other?.TakeDamage(damage, mass, impactVelocity, transform.position, shooterGameObject);
         }
 
         protected bool IsFriendly(IDamageable other)
         {
             if (other == null) return false;
-            if (other.gameObject == Shooter?.gameObject) return true;
+
+            var shooterComponent = Shooter as Component;
+            if (shooterComponent && other.gameObject == shooterComponent.gameObject) return true;
+
             return other is ProjectileBase { Shooter: not null } p && p.Shooter == Shooter;
         }
 

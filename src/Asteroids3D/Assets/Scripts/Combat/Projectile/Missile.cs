@@ -120,7 +120,8 @@ namespace Combat.Projectile
                 var obj = buffer[i].GetComponentInParent<IDamageable>();
                 if (obj == null || obj == directHitTarget || IsFriendly(obj)) continue;
 
-                obj.TakeDamage(splashDamage, mass, velocity, buffer[i].ClosestPoint(transform.position), Shooter?.gameObject);
+                var shooterGameObject = (Shooter as Component) ? (Shooter as Component).gameObject : null;
+                obj.TakeDamage(splashDamage, mass, velocity, buffer[i].ClosestPoint(transform.position), shooterGameObject);
             }
         }
 
