@@ -22,6 +22,29 @@ The script writes two files to `results/unity-tests-agent/`:
 
 > Standardization note: canonical test artifact path is `results/unity-tests-agent`. When using `unity_test_run` directly, always pass `outDir: "results/unity-tests-agent"`. If omitted, some runners default to `TestResults/`, which fragments artifacts.
 
+### Warm Worktree Pool (agent-1 / agent-2 / agent-3)
+
+To avoid repeated Unity re-import/build cost in fresh worktrees, use the persistent pool script:
+
+```bash
+# View pool state
+./scripts/agent_worktree_pool.sh status
+
+# Acquire a free slot (creates a lock)
+./scripts/agent_worktree_pool.sh acquire my-task-id
+
+# Reset that slot to origin/main without deleting ignored cache dirs (Library/)
+./scripts/agent_worktree_pool.sh prepare agent-1 origin/main
+
+# Run tests in that slot (always writes to results/unity-tests-agent)
+./scripts/agent_worktree_pool.sh run-tests agent-1 -Mode Both -ScopeType Workspace
+
+# Release lock when done
+./scripts/agent_worktree_pool.sh release agent-1
+```
+
+`prepare` uses `git clean -fd` (not `-fdx`) so ignored Unity cache directories remain warm.
+
 ### Parameters
 
 | Parameter          | Default                                    | Description                              |

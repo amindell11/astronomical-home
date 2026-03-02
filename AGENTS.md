@@ -1,10 +1,11 @@
 # AGENTS.md
 
-Use `obsidian-scout` for design/documentation requests in this repo.
+Use `obsidian-scout` **only** for design/documentation requests in this repo.
+Do **not** use `obsidian-scout` for code reconnaissance, refactor scouting, or implementation planning.
 
 ## Expectations
-- Research relevant notes in the Obsidian vault before proposing changes.
-- Cite note/file paths for non-obvious claims.
-- Respect Obsidian conventions (wikilinks, embeds, aliases, anchors, frontmatter).
-- Flag unknowns and ambiguities explicitly.
+- For design/doc requests: research relevant notes in the Obsidian vault before proposing changes.
+- For design/doc requests: cite note/file paths for non-obvious claims.
+- For design/doc requests: respect Obsidian conventions (wikilinks, embeds, aliases, anchors, frontmatter).
+- For all tasks: flag unknowns and ambiguities explicitly.
 - Standardize Unity test artifacts to `results/unity-tests-agent` (including `unity_test_run` via explicit `outDir`).
