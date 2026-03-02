@@ -15,6 +15,7 @@ namespace Asteroids
         private SphereCollider cheapCollider;
         private Transform worldFollowTransform;
         private AsteroidDamage damage;
+        private IGamePlane plane;
 
 
         [Header("Performance Tuning")]
@@ -41,6 +42,7 @@ namespace Asteroids
             Renderer = GetComponent<Renderer>();
             damage = GetComponent<AsteroidDamage>();
             worldFollowTransform = GameContext.Instance.WorldFollow ? GameContext.Instance.WorldFollow.transform : null;
+            plane = GameContext.SingletonOrNull?.Plane ?? StaticGamePlaneAdapter.Instance;
             Rb.useGravity = false;
         }
 
@@ -131,15 +133,15 @@ namespace Asteroids
 
         private void LateUpdate()
         {
-            transform.position = GamePlane.ProjectWorldPointToPlaneWorld(transform.position);
+            var frame = plane.CurrentFrame;
+            PlaneConstraints.ConstrainPosition(transform, frame);
 
             if (!meshCollider) return;
             if (!worldFollowTransform) return;
-            var distSqr = (GamePlane.ProjectWorldPointToPlaneWorld(worldFollowTransform.position) - GamePlane.ProjectWorldPointToPlaneWorld(transform.position)).sqrMagnitude;
+            var distSqr = (frame.ProjectWorldPointToPlaneWorld(worldFollowTransform.position) - frame.ProjectWorldPointToPlaneWorld(transform.position)).sqrMagnitude;
             var shouldEnable = distSqr < detailedColliderEnableDistance * detailedColliderEnableDistance;
             if (meshCollider.enabled != shouldEnable)
                 meshCollider.enabled = shouldEnable;
-            
         }
     }
 }

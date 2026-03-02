@@ -15,6 +15,7 @@ namespace Combat.Projectile
 
         protected Rigidbody rb;
         protected Vector3 startPosition;
+        protected IGamePlane PlaneProvider { get; private set; }
 
         public IShooter Shooter { get; private set; }
         public float Damage => damage;
@@ -28,6 +29,7 @@ namespace Combat.Projectile
         public virtual void Initialize(IShooter shooter)
         {
             Shooter = shooter;
+            PlaneProvider = ResolvePlane(shooter);
         }
 
         protected virtual void Awake()
@@ -44,7 +46,8 @@ namespace Combat.Projectile
 
         public virtual void Launch(Vector3 direction)
         {
-            startPosition = GamePlane.ProjectWorldPointToPlaneWorld(transform.position);
+            var frame = CurrentFrame();
+            startPosition = frame.ProjectWorldPointToPlaneWorld(transform.position);
             RaiseLaunched();
         }
 
@@ -55,7 +58,7 @@ namespace Combat.Projectile
 
         protected virtual void FixedUpdate()
         {
-            transform.position = GamePlane.ProjectWorldPointToPlaneWorld(transform.position);
+            PlaneConstraints.ConstrainPosition(transform, CurrentFrame());
             if (DistanceTraveled > maxDistance) Dispose();
         }
 
@@ -85,6 +88,7 @@ namespace Combat.Projectile
         protected virtual void ResetState()
         {
             Shooter = null;
+            PlaneProvider = null;
             if (!rb) return;
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
@@ -105,6 +109,22 @@ namespace Combat.Projectile
             if (shooterComponent && other.gameObject == shooterComponent.gameObject) return true;
 
             return other is ProjectileBase { Shooter: not null } p && p.Shooter == Shooter;
+        }
+
+        protected PlaneFrame CurrentFrame() => PlaneProvider?.CurrentFrame
+            ?? throw new InvalidOperationException($"{GetType().Name} has no injected game-plane provider.");
+
+        private static IGamePlane ResolvePlane(IShooter shooter)
+        {
+            if (shooter is Ships.Ship ship && ship.Plane != null)
+                return ship.Plane;
+
+            var fromContext = GameContext.SingletonOrNull?.Plane;
+            if (fromContext != null)
+                return fromContext;
+
+            throw new InvalidOperationException(
+                "Projectile requires an injected game-plane provider. Ensure shooter is a Ship with Plane configured.");
         }
 
         protected abstract void ReturnToPool();

@@ -26,14 +26,16 @@ namespace Player
         private Vector3 directionToMouse;
         private Vector3 projectedDirection;
         private float targetAngle;
-        private void Awake()
-        {
-            playerInput = new PlayerInputReader(pos => 
-                GamePlane.ProjectWorldPointToPlaneWorld(GameContext.Instance.MainCamera.ScreenToWorldPoint(pos)));
-        }
+
         public override void InitializeCommander(Ship ship)
         {
             this.ship = ship;
+            playerInput = new PlayerInputReader(pos =>
+            {
+                var frame = this.ship.Plane.CurrentFrame;
+                var world = GameContext.Instance.MainCamera.ScreenToWorldPoint(pos);
+                return frame.ProjectWorldPointToPlaneWorld(world);
+            });
         }
 
         private float thrustInput;
@@ -90,12 +92,12 @@ namespace Player
     
         private float CalculateYawAngle(Vector3 direction)
         {
-            var planeNormal = GamePlane.Normal;
-            projectedDirection = Vector3.ProjectOnPlane(direction, planeNormal).normalized;
-            var angle = Vector3.SignedAngle(GamePlane.Forward, projectedDirection, planeNormal);
-        
+            var frame = ship.Plane.CurrentFrame;
+            projectedDirection = Vector3.ProjectOnPlane(direction, frame.Normal).normalized;
+            var angle = Vector3.SignedAngle(frame.Forward, projectedDirection, frame.Normal);
+
             if (angle < 0) angle += 360f;
-        
+
             return angle;
         }
     }

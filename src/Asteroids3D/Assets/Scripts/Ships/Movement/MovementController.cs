@@ -23,6 +23,7 @@ namespace Ships.Movement
         private Rigidbody  rb;
         private Booster booster;
         private ShipSettings settings;
+        private IGamePlane plane;
         private Command.Command currentCommand;
         public Kinematics Kinematics => getKinematics();
         private Func<Kinematics> getKinematics;
@@ -30,13 +31,15 @@ namespace Ships.Movement
             set => currentCommand = value; }
         public bool BoostAvailable => booster.BoostAvailable;
         private Ship parentShip;
+
+        private PlaneFrame Frame => plane?.CurrentFrame
+            ?? throw new InvalidOperationException($"{nameof(MovementController)} requires an injected {nameof(IGamePlane)}.");
         
         private void Awake()
         {
             rb = GetComponent<Rigidbody>();
             parentShip = GetComponent<Ship>();
             booster = new Booster();
-            AlignRotationToPlane();
         }
 
         private void Start()
@@ -44,9 +47,11 @@ namespace Ships.Movement
             ResetMovement();
         }
 
-        public void Initialize(ShipSettings s, Func<Kinematics> getKinematics)
+        public void Initialize(ShipSettings s, Func<Kinematics> getKinematics, IGamePlane planeProvider)
         {
+            plane = planeProvider ?? throw new ArgumentNullException(nameof(planeProvider));
             this.getKinematics = getKinematics;
+            AlignRotationToPlane();
             PopulateSettings(s);
         }
         
@@ -89,39 +94,31 @@ namespace Ships.Movement
 
 
         private void ApplyForces(Vector2 thrust, Vector2 strafe, Vector2 boost, float yawTorque)
-        {   
-            rb.AddForce(GamePlane.PlaneDirToWorld(thrust), ForceMode.Force);
-            rb.AddForce(GamePlane.PlaneDirToWorld(strafe), ForceMode.Force);
-            rb.AddForce(GamePlane.PlaneDirToWorld(boost), ForceMode.Impulse);
-            rb.AddTorque(GamePlane.Normal * yawTorque, ForceMode.Force);
+        {
+            var frame = Frame;
+            rb.AddForce(frame.ToWorldVector(thrust), ForceMode.Force);
+            rb.AddForce(frame.ToWorldVector(strafe), ForceMode.Force);
+            rb.AddForce(frame.ToWorldVector(boost), ForceMode.Impulse);
+            rb.AddTorque(frame.Normal * yawTorque, ForceMode.Force);
             DebugForces(thrust,strafe,boost,yawTorque);
         }
+
         private void ApplyRotation(float yaw, float bank)
         {
+            var frame = Frame;
             var qYaw = Quaternion.AngleAxis(yaw, Vector3.forward);
             var qBank = Quaternion.AngleAxis(bank, Vector3.up);
-            rb.MoveRotation((GamePlane.Plane.rotation) * qYaw * qBank);
+            rb.MoveRotation(frame.Rotation * qYaw * qBank);
         }
 
         private void ConstrainToPlane()
         {
-            var n = GamePlane.Normal;
-            var d   = Vector3.Dot(transform.position - GamePlane.Origin, n);
-            transform.position -= n * d;
-            rb.linearVelocity = Vector3.ProjectOnPlane(rb.linearVelocity, n);
+            PlaneConstraints.ConstrainPositionAndVelocity(transform, rb, Frame);
         }
+
         private void AlignRotationToPlane()
         {
-            var projectedUp = Vector3.ProjectOnPlane(transform.up, GamePlane.Normal);
-            if (projectedUp.sqrMagnitude < 1e-6f)
-            {
-                transform.rotation = Quaternion.LookRotation(GamePlane.Normal, GamePlane.Forward);
-                return;
-            }
-
-            projectedUp.Normalize();
-            var toPlane = Quaternion.FromToRotation(transform.up, projectedUp);
-            transform.rotation = toPlane * transform.rotation;
+            PlaneConstraints.AlignTransformUpToPlane(transform, Frame);
         }
 
         partial void DebugForces(Vector2 thrust, Vector2 strafe, Vector2 boost, float yaw);

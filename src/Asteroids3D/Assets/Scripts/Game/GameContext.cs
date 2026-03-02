@@ -25,6 +25,7 @@ namespace Game
         public ShipRegistry ShipRegistry { get; private set; }
         public WorldFollow WorldFollow { get; private set; }
         public Camera MainCamera { get; private set; }
+        public IGamePlane Plane { get; private set; }
 
         protected override void Awake()
         {
@@ -53,6 +54,11 @@ namespace Game
         public void SetMainCamera(Camera camera)
         {
             MainCamera = camera;
+        }
+
+        public void SetPlane(IGamePlane plane)
+        {
+            Plane = plane ?? throw new System.ArgumentNullException(nameof(plane));
         }
 
         public void RestartGame()

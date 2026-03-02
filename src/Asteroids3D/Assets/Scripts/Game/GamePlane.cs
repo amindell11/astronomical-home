@@ -44,18 +44,12 @@ namespace Game
         public Vector3 ToWorldVector(Vector2 planeVector) =>
             Right * planeVector.x + Forward * planeVector.y;
 
-        /// <summary>
-        /// Projects a world-space point onto the gameplay plane and returns a world-space point.
-        /// </summary>
         public Vector3 ProjectWorldPointToPlaneWorld(Vector3 worldPoint)
         {
             var signedDistance = Vector3.Dot(worldPoint - Origin, Normal);
             return worldPoint - Normal * signedDistance;
         }
 
-        /// <summary>
-        /// Projects a world-space vector onto the gameplay plane and returns a world-space vector.
-        /// </summary>
         public Vector3 ProjectWorldVectorToPlaneWorld(Vector3 worldVector) =>
             Vector3.ProjectOnPlane(worldVector, Normal);
     }
@@ -66,10 +60,67 @@ namespace Game
     }
 
     /// <summary>
-    /// Centralized utility for converting between world-space and the game's abstract 2-D plane.
-    ///
-    /// Setup is explicit and required: <see cref="SetReferencePlane"/> must be called during
-    /// bootstrap. Missing plane configuration is treated as a fatal setup error.
+    /// Runtime DI-friendly implementation backed by a configured reference transform.
+    /// </summary>
+    public sealed class TransformGamePlane : IGamePlane
+    {
+        private readonly Transform referencePlane;
+
+        public TransformGamePlane(Transform referencePlane)
+        {
+            this.referencePlane = referencePlane
+                ? referencePlane
+                : throw new ArgumentNullException(nameof(referencePlane));
+        }
+
+        public PlaneFrame CurrentFrame => new(referencePlane);
+    }
+
+    /// <summary>
+    /// Compatibility adapter for systems not yet migrated off static GamePlane access.
+    /// </summary>
+    public sealed class StaticGamePlaneAdapter : IGamePlane
+    {
+        public static readonly StaticGamePlaneAdapter Instance = new();
+        private StaticGamePlaneAdapter() { }
+        public PlaneFrame CurrentFrame => GamePlane.Frame;
+    }
+
+    public static class PlaneConstraints
+    {
+        public static void ConstrainPosition(Transform target, in PlaneFrame frame)
+        {
+            if (!target) return;
+            target.position = frame.ProjectWorldPointToPlaneWorld(target.position);
+        }
+
+        public static void ConstrainPositionAndVelocity(Transform target, Rigidbody body, in PlaneFrame frame)
+        {
+            ConstrainPosition(target, frame);
+            if (!body) return;
+            body.linearVelocity = frame.ProjectWorldVectorToPlaneWorld(body.linearVelocity);
+        }
+
+        public static void AlignTransformUpToPlane(Transform target, in PlaneFrame frame)
+        {
+            if (!target) return;
+
+            var projectedUp = Vector3.ProjectOnPlane(target.up, frame.Normal);
+            if (projectedUp.sqrMagnitude < 1e-6f)
+            {
+                target.rotation = Quaternion.LookRotation(frame.Normal, frame.Forward);
+                return;
+            }
+
+            projectedUp.Normalize();
+            var toPlane = Quaternion.FromToRotation(target.up, projectedUp);
+            target.rotation = toPlane * target.rotation;
+        }
+    }
+
+    /// <summary>
+    /// Static compatibility facade. New runtime systems should consume IGamePlane via DI.
+    /// Setup is explicit and required: SetReferencePlane must be called during bootstrap.
     /// </summary>
     public static class GamePlane
     {
@@ -77,7 +128,6 @@ namespace Game
 
         public static bool IsConfigured => _referencePlane;
 
-        /// <summary>Assigns the reference plane explicitly (bootstrap / test setup).</summary>
         public static void SetReferencePlane(Transform plane)
         {
             if (!plane)
@@ -86,10 +136,8 @@ namespace Game
             _referencePlane = plane;
         }
 
-        /// <summary>Clears the cached reference plane. Useful for test teardown.</summary>
         public static void Reset() => _referencePlane = null;
 
-        /// <summary>Returns the configured reference plane. Throws when unconfigured.</summary>
         public static Transform Plane => _referencePlane ? _referencePlane : throw NotConfiguredException();
 
         public static PlaneFrame Frame => new(Plane);

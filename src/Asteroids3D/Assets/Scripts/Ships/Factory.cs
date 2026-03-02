@@ -1,3 +1,4 @@
+using Game;
 using Ships.Command;
 using UnityEngine;
 
@@ -16,9 +17,11 @@ namespace Ships
              ShipSettings shipSettings,
              int team,
              Vector3 position,
-             Quaternion rotation)
+             Quaternion rotation,
+             IGamePlane plane = null)
         {
             var ship = Object.Instantiate(prefab, position, rotation);
+            ship.SetPlane(plane ?? StaticGamePlaneAdapter.Instance);
             ship.AddCommander(commander);
             ship.Initialize(shipSettings, team);
             return ship;

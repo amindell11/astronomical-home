@@ -21,6 +21,7 @@ namespace Game
         private WorldRoot world;
         private Ship player, enemy;
         private ShipSpawner spawner;
+        private IGamePlane gamePlane;
         private bool isInitialized;
 
         public event Action<Ship, Camera> PresentationReady;
@@ -38,6 +39,11 @@ namespace Game
 
             yield return StartCoroutine(LoadWorldScene());
 
+            if (gamePlane == null)
+                throw new InvalidOperationException("Game plane service was not configured during world load.");
+
+            GameContext.Instance.SetPlane(gamePlane);
+
             InitializeWorld(gameConfig);
             InitializeAsteroidField(gameConfig);
             InitializeShips(gameConfig);
@@ -45,7 +51,7 @@ namespace Game
             PublishPresentationReady();
         }
 
-        private static IEnumerator LoadWorldScene()
+        private IEnumerator LoadWorldScene()
         {
             const string worldSceneName = "BasicWorld";
 
@@ -61,8 +67,11 @@ namespace Game
                 throw new InvalidOperationException(
                     $"Missing required '{TagNames.ReferencePlane}' tagged object in scene '{worldSceneName}'.");
 
+            planeGo.transform.SetPositionAndRotation(Vector3.zero, Quaternion.Euler(90f, 0f, 0f));
+            gamePlane = new TransformGamePlane(planeGo.transform);
+
+            // Temporary compatibility for systems still reading static GamePlane.
             GamePlane.SetReferencePlane(planeGo.transform);
-            GamePlane.Plane.SetPositionAndRotation(Vector3.zero, Quaternion.Euler(90f, 0f, 0f));
         }
 
         private void InitializeCamera(GameConfig gameConfig)
@@ -82,7 +91,7 @@ namespace Game
             var cullingBoundary = world.AsteroidCullingBoundary;
             asteroidField = Instantiate(gameConfig.AsteroidAsteroidField);
             asteroidField.Initialize(cullingBoundary);
-            asteroidField.CurrentAnchorPos = () => GamePlane.ProjectWorldPointToPlaneWorld(cameraRig.transform.position);
+            asteroidField.CurrentAnchorPos = () => gamePlane.CurrentFrame.ProjectWorldPointToPlaneWorld(cameraRig.transform.position);
         }
 
         private void InitializeShips(GameConfig gameConfig)
@@ -92,11 +101,11 @@ namespace Game
             spawner = new ShipSpawner(gameConfig.ShipSpawnerSettings, ShipRegistry);
 
             player = ShipFactory.CreateShip(gameConfig.PlayerTemplate, gameConfig.PlayerCommander, gameConfig.ShipSettings, 0,
-                Vector3.zero, Quaternion.identity);
+                Vector3.zero, Quaternion.identity, gamePlane);
             player.tag = TagNames.Player;
 
             enemy = ShipFactory.CreateShip(gameConfig.EnemyTemplate, gameConfig.EnemyCommander, gameConfig.ShipSettings, 1,
-                GamePlane.PlanePointToWorld(Random.insideUnitCircle) * 5, Quaternion.identity);
+                gamePlane.CurrentFrame.ToWorldPoint(Random.insideUnitCircle) * 5, Quaternion.identity, gamePlane);
 
             player.Targeting?.SetRegistry(ShipRegistry);
             enemy.Targeting?.SetRegistry(ShipRegistry);
@@ -133,6 +142,7 @@ namespace Game
             asteroidField = null;
             world = null;
             ShipRegistry = null;
+            gamePlane = null;
             isInitialized = false;
         }
 

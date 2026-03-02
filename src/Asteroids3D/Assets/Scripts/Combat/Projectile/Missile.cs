@@ -45,15 +45,17 @@ namespace Combat.Projectile
         public override void Initialize(IShooter shooter)
         {
             base.Initialize(shooter);
+            kinematicsPoller?.SetPlane(PlaneProvider);
             if (!rb) return;
             rb.maxLinearVelocity = homingSpeed;
         }
 
         public override void Launch(Vector3 direction)
-        {            
-            var shooterVelocity = GamePlane.WorldDirToPlane(Shooter?.Velocity ?? Vector3.zero);
-            var launchVelocity = GamePlane.WorldDirToPlane(direction) * initialSpeed + shooterVelocity;
-            rb.linearVelocity = GamePlane.PlaneDirToWorld(launchVelocity);
+        {
+            var frame = CurrentFrame();
+            var shooterVelocity = frame.ToPlaneVector(Shooter?.Velocity ?? Vector3.zero);
+            var launchVelocity = frame.ToPlaneVector(direction) * initialSpeed + shooterVelocity;
+            rb.linearVelocity = frame.ToWorldVector(launchVelocity);
             base.Launch(direction);
         }
 
@@ -71,7 +73,7 @@ namespace Combat.Projectile
         private Vector2 GetDesiredDirection(Kinematics kin)
         {
             if (!target) return kin.Forward;
-            var toTarget = GamePlane.WorldDirToPlane(target.position - transform.position);
+            var toTarget = CurrentFrame().ToPlaneVector(target.position - transform.position);
             return toTarget.sqrMagnitude > 0.01f ? toTarget.normalized : kin.Forward;
         }
 
@@ -82,12 +84,12 @@ namespace Combat.Projectile
             var clampedTurn = Mathf.Clamp(signedAngle, -maxTurnThisStep, maxTurnThisStep);
 
             if (Mathf.Abs(clampedTurn) > 0.01f)
-                transform.rotation = Quaternion.AngleAxis(clampedTurn, GamePlane.Normal) * transform.rotation;
+                transform.rotation = Quaternion.AngleAxis(clampedTurn, CurrentFrame().Normal) * transform.rotation;
         }
 
         private void ApplyVelocitySteering(Vector2 desiredDir)
         {
-            var desiredVelocity = GamePlane.PlaneDirToWorld(desiredDir * homingSpeed);
+            var desiredVelocity = CurrentFrame().ToWorldVector(desiredDir * homingSpeed);
             var maxTurnRad = homingTurnRate * Mathf.Deg2Rad * Time.fixedDeltaTime;
             var maxAccelThisStep = acceleration * Time.fixedDeltaTime;
 

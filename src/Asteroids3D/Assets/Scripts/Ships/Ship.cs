@@ -1,6 +1,7 @@
 using System;
 using Combat;
 using Combat.Targeting;
+using Game;
 using Ships.Command;
 using Ships.Damage;
 using Ships.Movement;
@@ -32,6 +33,7 @@ namespace Ships
         public TargetingComputer Targeting { get; private set; }
         public ShipId Id { get; private set; }
         public Collider[] Colliders {get; private set;}
+        public IGamePlane Plane { get; private set; } = StaticGamePlaneAdapter.Instance;
         private bool isInitialized;
 
         public State CurrentState { get; private set; }
@@ -60,13 +62,20 @@ namespace Ships
             Damage?.PopulateSettings(settings);
         }
         
+        public void SetPlane(IGamePlane plane)
+        {
+            Plane = plane ?? throw new ArgumentNullException(nameof(plane));
+        }
+
         public void Initialize(ShipSettings shipSettings, int team)
         {
             if (isInitialized) return;
             settings = shipSettings;
             teamNumber = team;
+
+            KinematicsPoller?.SetPlane(Plane);
+            Movement.Initialize(settings, ()=>KinematicsPoller.Kinematics, Plane);
             Commander?.InitializeCommander(this);
-            Movement.Initialize(settings, ()=>KinematicsPoller.Kinematics);
             Damage?.PopulateSettings(settings);
 
             if (Damage)

@@ -8,40 +8,37 @@ Date: 2026-03-02
 - Missing reference plane is a **fatal setup error**.
 - Long-term target is **strict DI** (remove static `GamePlane` access from gameplay systems).
 
-## Changes in this refactor
+## Changes implemented so far
 
 1. `GamePlane` no longer auto-finds or auto-creates a reference plane.
    - Setup must call `GamePlane.SetReferencePlane(...)` explicitly.
    - Access before setup throws `InvalidOperationException`.
-2. Added immutable `PlaneFrame` and `IGamePlane` contract in `GamePlane.cs`.
-3. Added explicit world-point projection API:
-   - `GamePlane.ProjectWorldPointToPlaneWorld(...)`
-4. Removed ambiguous legacy projection callsites and updated usages.
+2. Added immutable `PlaneFrame`, DI contract `IGamePlane`, and runtime implementation `TransformGamePlane`.
+3. Added shared `PlaneConstraints` utility to centralize planar constraint behavior.
+4. Added explicit world-point projection API:
+   - `ProjectWorldPointToPlaneWorld(...)`
 5. Fixed point/vector conversion bugs:
-   - `KinematicsPoller` now uses `WorldDirToPlane` for velocity.
-   - `Kinematics.WorldVel` now returns `Vector3`.
+   - `KinematicsPoller` uses vector conversion for velocity.
+   - `Kinematics.WorldVel` returns `Vector3`.
+6. Runtime DI slice completed for high-impact movement/combat flow:
+   - `GameContext` now exposes `Plane` service.
+   - `GameInitiator` creates and injects `TransformGamePlane`.
+   - `Ship` stores injected plane and propagates to subsystems.
+   - `MovementController`, `KinematicsPoller`, `PlayerCommander`, `ProjectileBase`, `Missile` consume injected plane provider.
 
-## Current static usage inventory
-
-The following files still reference `GamePlane.` and are migration candidates for strict DI.
+## Current static usage inventory (`GamePlane.` references)
 
 ### Runtime gameplay
 - `src/Asteroids3D/Assets/Scripts/AI/Gunner.cs`
 - `src/Asteroids3D/Assets/Scripts/AI/Scanning/ObstacleScanner.cs`
 - `src/Asteroids3D/Assets/Scripts/AI/Steering/Navigator.cs`
 - `src/Asteroids3D/Assets/Scripts/AI/Steering/Standard/PathPlanner.cs`
-- `src/Asteroids3D/Assets/Scripts/Asteroids/AsteroidController.cs`
 - `src/Asteroids3D/Assets/Scripts/Asteroids/Fields/AsteroidField.cs`
 - `src/Asteroids3D/Assets/Scripts/Cameras/ObserverCam.cs`
 - `src/Asteroids3D/Assets/Scripts/Cameras/SmoothCamBase.cs`
-- `src/Asteroids3D/Assets/Scripts/Combat/Projectile/Missile.cs`
-- `src/Asteroids3D/Assets/Scripts/Combat/Projectile/ProjectileBase.cs`
-- `src/Asteroids3D/Assets/Scripts/Game/GameInitiator.cs`
+- `src/Asteroids3D/Assets/Scripts/Game/GameInitiator.cs` (compatibility bridge only)
 - `src/Asteroids3D/Assets/Scripts/Movement/FlightData.cs`
-- `src/Asteroids3D/Assets/Scripts/Movement/KinematicsPoller.cs`
-- `src/Asteroids3D/Assets/Scripts/Player/PlayerCommander.cs`
 - `src/Asteroids3D/Assets/Scripts/Sensors/RayFanSensor.cs`
-- `src/Asteroids3D/Assets/Scripts/Ships/Movement/MovementController.cs`
 - `src/Asteroids3D/Assets/Scripts/Ships/Spawner.cs`
 - `src/Asteroids3D/Assets/Scripts/UI/LockOnIndicator.cs`
 - `src/Asteroids3D/Assets/Scripts/UI/MouseReticle.cs`
@@ -71,10 +68,9 @@ The following files still reference `GamePlane.` and are migration candidates fo
 - `src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/NavigatorPlayModeTests.cs`
 - `src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/TestSceneBuilder.cs`
 
-## Recommended next DI slice
+## Next DI slice recommendation
 
-1. Introduce `IPlaneFrameProvider` dependency on high-churn runtime systems first:
-   - `MovementController`, `KinematicsPoller`, `PlayerCommander`, `Missile`, `Navigator`.
-2. Pass provider through existing `Initialize(...)` seams where available.
-3. Keep editor/test migration separate from runtime migration.
-4. Remove static `GamePlane` usage package-by-package once consumers are migrated.
+1. Migrate AI steering/scanning (`Navigator`, `PathPlanner`, `ObstacleScanner`, `Gunner`) to injected `IGamePlane`.
+2. Migrate camera/UI runtime (`ObserverCam`, `SmoothCamBase`, `MouseReticle`, `LockOnIndicator`).
+3. Remove compatibility fallback (`StaticGamePlaneAdapter`) once runtime static usage reaches zero.
+4. Keep editor/test migration separate from runtime migration.
