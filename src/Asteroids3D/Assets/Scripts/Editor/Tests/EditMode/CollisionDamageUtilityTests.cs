@@ -2,15 +2,20 @@ using Damage;
 using NUnit.Framework;
 using UnityEngine;
 
+namespace Tests.EditMode
+{
+
 /// <summary>
 /// EditMode tests for CollisionDamageUtility static methods.
 /// Tests pure mathematical calculations without Unity scene dependencies.
 /// </summary>
+[Category("Regression")]
 public class CollisionDamageUtilityTests
 {
     #region KineticEnergy Tests
 
     [Test]
+    [Category("Smoke")]
     public void KineticEnergy_ZeroVelocity_ReturnsZero()
     {
         // Arrange
@@ -259,4 +264,6 @@ public class CollisionDamageUtilityTests
     }
 
     #endregion
-} 
+}
+
+} // namespace Tests.EditMode

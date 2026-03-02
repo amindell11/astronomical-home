@@ -1,12 +1,15 @@
+// Renamed from CameraUtilsEditMode.cs to follow *Tests naming convention.
 using Cameras;
 using NUnit.Framework;
 using UnityEngine;
 
 namespace Tests.EditMode
 {
+    [Category("Regression")]
     public class CameraUtilsEditModeTests
     {
         [Test]
+        [Category("Smoke")]
         public void ZoomToFitBounds_WideBounds_RespectsAspectRatio()
         {
             var center = new Vector2(0, 0);

@@ -1,24 +1,17 @@
 using System.Collections;
+using Game;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Game;
 
-public class GamePlanePlayMode
+namespace Tests.PlayMode
 {
-    [SetUp]
-    public void SetUp()
-    {
-        // Optional: Setup code before each test runs
-    }
 
-    [TearDown]
-    public void TearDown()
-    {
-        // Optional: Cleanup code after each test runs
-    }
-
+[Category("Regression")]
+public class GamePlanePlayModeTests
+{
     [UnityTest]
+    [Category("Smoke")]
     public IEnumerator GamePlane_ReferencePlane_CanBeSetAndQueried()
     {
         // Arrange
@@ -34,6 +27,7 @@ public class GamePlanePlayMode
 
         // Cleanup
         Object.DestroyImmediate(planeGO);
+        GamePlane.Reset();
 
         yield return null;
     }
@@ -53,8 +47,8 @@ public class GamePlanePlayMode
         Vector3 worldPoint = new Vector3(12, 0, 8);
 
         // Act
-        Vector2 planePoint = GamePlane.WorldPointToPlane(worldPoint);
-        Vector3 worldPointBack = GamePlane.PlanePointToWorld(planePoint);
+        var planePoint = GamePlane.WorldPointToPlane(worldPoint);
+        var worldPointBack = GamePlane.PlanePointToWorld(planePoint);
 
         // Assert
         Assert.That(worldPointBack.x, Is.EqualTo(worldPoint.x).Within(0.01f));
@@ -62,7 +56,10 @@ public class GamePlanePlayMode
 
         // Cleanup
         Object.DestroyImmediate(planeGO);
+        GamePlane.Reset();
 
         yield return null;
     }
 }
+
+} // namespace Tests.PlayMode

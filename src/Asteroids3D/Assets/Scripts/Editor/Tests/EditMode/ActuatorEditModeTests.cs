@@ -7,6 +7,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
+    [Category("Regression")]
     public class ForcesEditModeTests
     {
         private ShipSettings CreateTestSettings()
@@ -46,6 +47,7 @@ namespace Tests.EditMode
         }
 
         [Test]
+        [Category("Smoke")]
         public void ComputeOutputs_ReturnsZero_WhenSettingsNotProvided()
         {
             var kin = CreateKinematics(Vector2.zero, Vector2.zero, 0f);

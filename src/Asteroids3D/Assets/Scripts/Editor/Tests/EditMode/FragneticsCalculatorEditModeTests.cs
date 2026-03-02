@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
+    [Category("Regression")]
     public class FragneticsCalculatorEditModeTests
     {
         private AsteroidFragSettings asteroidFragSettings;
@@ -133,6 +134,7 @@ namespace Tests.EditMode
         }
 
         [Test]
+        [Category("Slow")]
         public void CoroutinePhysics_ConservesLinearAndAngularMomentum_WhenNoLossNoSpin()
         {
             // spinVariation = 0 already set in SetUp; momentum is strictly conserved in implementation

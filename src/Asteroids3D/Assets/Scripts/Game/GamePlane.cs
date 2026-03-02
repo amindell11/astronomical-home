@@ -16,6 +16,9 @@ namespace Game
         /// <summary>Assigns the reference plane explicitly (e.g., from a bootstrap script).</summary>
         public static void SetReferencePlane(Transform t) => _plane = t;
     
+        /// <summary>Clears the cached reference plane. Useful for test teardown.</summary>
+        public static void Reset() => _plane = null;
+    
         /// <summary>Returns the cached plane or attempts to find a GameObject tagged "ReferencePlane".</summary>
         public static Transform Plane => _plane ?? CachePlane();
     
