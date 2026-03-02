@@ -36,7 +36,13 @@ namespace UI
         }
         private void OnEnable()
         {
-            if (targetable == null) return;
+            targetable ??= GetComponentInParent<ITargetable>();
+            if (targetable == null)
+            {
+                Debug.LogWarning($"[{nameof(LockOnIndicator)}] No {nameof(ITargetable)} parent found for {name}", this);
+                return;
+            }
+
             targetable.Lock.Progress += HandleLockProgress;
             targetable.Lock.Acquired += HandleLockAcquired;
             targetable.Lock.Released += HandleLockReleased;
@@ -44,11 +50,12 @@ namespace UI
 
         private void OnDisable()
         {
-            if (targetable == null) return;
-            targetable.Lock.Progress -= HandleLockProgress;
-            targetable.Lock.Acquired -= HandleLockAcquired;
-            targetable.Lock.Released -= HandleLockReleased;
-            targetable = null;
+            if (targetable != null)
+            {
+                targetable.Lock.Progress -= HandleLockProgress;
+                targetable.Lock.Acquired -= HandleLockAcquired;
+                targetable.Lock.Released -= HandleLockReleased;
+            }
             Hide();
         }
 

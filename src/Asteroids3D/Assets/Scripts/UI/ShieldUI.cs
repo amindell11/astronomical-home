@@ -42,8 +42,13 @@ namespace UI
         private void OnEnable()
         {
             if (!source) source = GetComponentInParent<DamageController>();
+            if (!source)
+            {
+                Debug.LogWarning($"[{nameof(ShieldUI)}] No {nameof(DamageController)} source found for {name}", this);
+                return;
+            }
+
             source.Shield.OnValueChanged += OnShieldChanged;
-            
         }
 
         void OnDisable()
@@ -62,6 +67,8 @@ namespace UI
 
         void OnShieldChanged(float current, float previous, float max)
         {
+            if (!ring || max <= 0f) return;
+
             // Update radial fill
             ring.fillAmount = current / max;
             if(current<previous) TriggerFlash();

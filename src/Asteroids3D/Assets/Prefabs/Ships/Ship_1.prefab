@@ -148,7 +148,6 @@ GameObject:
   - component: {fileID: 4924019626341795963}
   - component: {fileID: 3463944397451626889}
   - component: {fileID: 4935107101280334435}
-  - component: {fileID: 587948498029800343}
   m_Layer: 7
   m_Name: Ship_1
   m_TagString: Ship
@@ -414,25 +413,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a66eca76d4f648968a2e29db340330aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &587948498029800343
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 579888702181409527}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8a9d2f4c7b3e4a1f9c6e5d8b2a7f4c3e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  monitorWeapons: 1
-  logFireEvents: 1
-  logEveryFrame: 0
-  primaryFireCount: 0
-  secondaryFireCount: 0
-  primaryWasNull: 0
-  secondaryWasNull: 0
 --- !u!1 &2915261707296390090
 GameObject:
   m_ObjectHideFlags: 0
