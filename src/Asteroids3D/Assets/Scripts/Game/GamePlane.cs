@@ -1,5 +1,4 @@
 using UnityEngine;
-using Utils;
 
 namespace Game
 {
@@ -14,27 +13,24 @@ namespace Game
         private static Transform _plane;
 
         /// <summary>Assigns the reference plane explicitly (e.g., from a bootstrap script).</summary>
-        public static void SetReferencePlane(Transform t) => _plane = t;
-    
-        /// <summary>Clears the cached reference plane. Useful for test teardown.</summary>
-        public static void Reset() => _plane = null;
-    
-        /// <summary>Returns the cached plane or attempts to find a GameObject tagged "ReferencePlane".</summary>
-        public static Transform Plane => _plane ?? CachePlane();
-    
-        private static Transform CachePlane()
+        public static void SetReferencePlane(Transform t)
         {
-            var go = GameObject.FindGameObjectWithTag(TagNames.ReferencePlane);
-            _plane = go?.transform ?? CreateReferencePlane();
-            return _plane;
+            if (!t)
+                throw new System.ArgumentNullException(nameof(t), "GamePlane reference cannot be null.");
+
+            if (_plane && _plane != t)
+                throw new System.InvalidOperationException("GamePlane has already been set. Reset before binding a different reference.");
+
+            _plane = t;
         }
 
-        private static Transform CreateReferencePlane()
-        {
-            var go = new GameObject(TagNames.ReferencePlane);
-            go.tag = TagNames.ReferencePlane;
-            return go.transform;
-        }
+        /// <summary>Clears the cached reference plane. Useful for test teardown.</summary>
+        public static void Reset() => _plane = null;
+
+        /// <summary>Returns the configured reference plane. Throws if not configured.</summary>
+        public static Transform Plane => _plane
+            ? _plane
+            : throw new System.InvalidOperationException("GamePlane not configured. Call GamePlane.SetReferencePlane() during bootstrap.");
         public static Vector3 Origin  => Plane.position;
         public static Vector3 Normal  => Plane.forward;
         public static Vector3 Forward => Plane.up;
@@ -62,4 +58,36 @@ namespace Game
         public static Vector3 PlaneDirToWorld(Vector2 planeDir) => 
             Right * planeDir.x + Forward * planeDir.y;
     }
-} 
+
+    public static class PlaneConstraints
+    {
+        public static void ConstrainPosition(Transform target)
+        {
+            if (!target) return;
+            target.position = GamePlane.ProjectOntoPlane(target.position) + GamePlane.Origin;
+        }
+
+        public static void ConstrainPositionAndVelocity(Transform target, Rigidbody body)
+        {
+            ConstrainPosition(target);
+            if (!body) return;
+            body.linearVelocity = Vector3.ProjectOnPlane(body.linearVelocity, GamePlane.Normal);
+        }
+
+        public static void AlignTransformUpToPlane(Transform target)
+        {
+            if (!target) return;
+
+            var projectedUp = Vector3.ProjectOnPlane(target.up, GamePlane.Normal);
+            if (projectedUp.sqrMagnitude < 1e-6f)
+            {
+                target.rotation = Quaternion.LookRotation(GamePlane.Normal, GamePlane.Forward);
+                return;
+            }
+
+            projectedUp.Normalize();
+            var toPlane = Quaternion.FromToRotation(target.up, projectedUp);
+            target.rotation = toPlane * target.rotation;
+        }
+    }
+}

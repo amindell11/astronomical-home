@@ -14,11 +14,19 @@ public class GamePlanePlayModeTests : PlayModeWorldFixture
     // Override to disable audio pause for these lightweight tests
     protected override bool PauseAudio => false;
 
+    [Test]
+    public void GamePlane_UnconfiguredAccess_Throws()
+    {
+        GamePlane.Reset();
+        Assert.Throws<System.InvalidOperationException>(() => _ = GamePlane.Plane);
+    }
+
     [UnityTest]
     [Category("Smoke")]
     public IEnumerator GamePlane_ReferencePlane_CanBeSetAndQueried()
     {
         // Arrange
+        GamePlane.Reset();
         var planeGO = new GameObject("TestReferencePlane");
         planeGO.tag = "ReferencePlane";
         var planeTransform = planeGO.transform;
@@ -40,6 +48,7 @@ public class GamePlanePlayModeTests : PlayModeWorldFixture
     public IEnumerator GamePlane_WorldToPlane_And_PlaneToWorld_AreConsistent()
     {
         // Arrange
+        GamePlane.Reset();
         var planeGO = new GameObject("TestReferencePlane");
         planeGO.tag = "ReferencePlane";
         var planeTransform = planeGO.transform;

@@ -10,7 +10,7 @@ namespace Movement
         public readonly float yaw, yawRate, bank;
 
         public float Speed => vel.magnitude;
-        public Vector2 WorldVel => GamePlane.PlaneDirToWorld(vel);
+        public Vector3 WorldVel => GamePlane.PlaneDirToWorld(vel);
         public Vector2 Forward => new(-Mathf.Sin(yaw * Mathf.Deg2Rad), Mathf.Cos(yaw * Mathf.Deg2Rad));
 
         public Kinematics(Vector2 pos, Vector2 vel, float yaw, float yawRate, float bank)

@@ -44,7 +44,8 @@ namespace Combat.Projectile
 
         public virtual void Launch(Vector3 direction)
         {
-            startPosition = GamePlane.ProjectOntoPlane(transform.position);
+            PlaneConstraints.ConstrainPosition(transform);
+            startPosition = transform.position;
             RaiseLaunched();
         }
 
@@ -55,7 +56,7 @@ namespace Combat.Projectile
 
         protected virtual void FixedUpdate()
         {
-            transform.position = GamePlane.ProjectOntoPlane(transform.position);
+            PlaneConstraints.ConstrainPosition(transform);
             if (DistanceTraveled > maxDistance) Dispose();
         }
 
