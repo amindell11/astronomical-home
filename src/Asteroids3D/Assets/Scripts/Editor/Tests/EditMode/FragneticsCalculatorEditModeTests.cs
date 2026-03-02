@@ -200,8 +200,9 @@ namespace Tests.EditMode
                 velocity: Vector3.zero,
                 position: Vector3.zero,
                 inertiaTensor: Vector3.one * 2f);
-            var frags1 = calc.GenerateFragments(astData);
-            var frags2 = calc.GenerateFragments(astData); // same count distribution statistically with fixed seed
+            var baseFrags = calc.GenerateFragments(astData);
+            var frags1 = CloneFrags(baseFrags);
+            var frags2 = CloneFrags(baseFrags);
 
             var hitSlow = new HitData(5f, new Vector3(2f, 0, 0), astData.Position + new Vector3(0.1f, 0, 0));
             var hitFast = new HitData(5f, new Vector3(20f, 0, 0), astData.Position + new Vector3(0.1f, 0, 0));
@@ -209,8 +210,10 @@ namespace Tests.EditMode
             var momSlow = calc.CalculateInitialMomentum(astData, hitSlow);
             var momFast = calc.CalculateInitialMomentum(astData, hitFast);
 
+            Random.InitState(987654);
             var co1 = calc.CoCalculateFragmentPhysics(astData, hitSlow, frags1, momSlow, null);
             RunToEnd(co1);
+            Random.InitState(987654);
             var co2 = calc.CoCalculateFragmentPhysics(astData, hitFast, frags2, momFast, null);
             RunToEnd(co2);
 
@@ -232,6 +235,17 @@ namespace Tests.EditMode
 
         // Helpers
         // (no GameObject helpers needed)
+
+        private static Frag[] CloneFrags(Frag[] source)
+        {
+            var copy = new Frag[source.Length];
+            for (var i = 0; i < source.Length; i++)
+            {
+                copy[i] = source[i];
+            }
+
+            return copy;
+        }
 
         private static void RunToEnd(IEnumerator co)
         {

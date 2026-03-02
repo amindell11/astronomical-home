@@ -33,17 +33,15 @@ namespace Asteroids.Fragnetics
         }
         public (Vector3 linear, Vector3 angular) CalculateInitialMomentum(AsteroidData ast, HitData hit)
         {
-	        // Work in the asteroid frame: only the projectile contributes linear momentum initially.
-	        var projectileRelative = hit.Velocity - ast.Velocity;
-	        var totalLinearMomentum = hit.Mass * projectileRelative;
+	        // Work consistently in world space for both momentum accumulation and correction.
+	        var totalLinearMomentum = ast.Mass * ast.Velocity + hit.Mass * hit.Velocity;
 
-	        // Asteroid spin still contributes angular momentum in its own frame
 	        var localAngularVelocity = Quaternion.Inverse(ast.Rotation) * ast.AngularVelocity;
 	        var localAngularMomentum = Vector3.Scale(ast.InertiaTensor, localAngularVelocity);
 	        var asteroidAngularMomentum = ast.Rotation * localAngularMomentum;
 
 	        var r = hit.HitPoint - ast.Position;
-	        var projectileAngularMomentum = Vector3.Cross(r, hit.Mass * projectileRelative);
+	        var projectileAngularMomentum = Vector3.Cross(r, hit.Mass * hit.Velocity);
 	        var totalAngularMomentum = asteroidAngularMomentum + projectileAngularMomentum;
 
 	        return (totalLinearMomentum, totalAngularMomentum);
@@ -145,7 +143,6 @@ namespace Asteroids.Fragnetics
 
 			for (var i = 0; i < frags.Length; ++i)
 			{
-				// Build velocities in asteroid frame (no drift)
 				frags[i].Velocity = FragmentationVelocity(frags[i].Position, center, hitDir, momentumPerMass, s);
 				spinJitter[i] = UnityEngine.Random.insideUnitSphere * s.spinVariation;
 
@@ -156,8 +153,7 @@ namespace Asteroids.Fragnetics
 			}
 			
 			var (vCorr, omegaBase) = MomentumCorrection(momentum, acc);
-			// After corrections in asteroid frame, add asteroid drift to convert back to world
-			ApplyCorrections(frags, spinJitter, vCorr, omegaBase, ast.Velocity);
+			ApplyCorrections(frags, spinJitter, vCorr, omegaBase);
 
 			onFrag?.Invoke(frags);
 		}
@@ -200,15 +196,13 @@ namespace Asteroids.Fragnetics
 		}
 
 		private static void ApplyCorrections
-			(Frag[] frags, Vector3[] spinJitter, 
-				Vector3 vCorr, Vector3 omegaBase, Vector3 astBaseVelocity)
+			(Frag[] frags, Vector3[] spinJitter,
+				Vector3 vCorr, Vector3 omegaBase)
 		{
 			for (var i = 0; i < frags.Length; ++i)
 			{
 				frags[i].Velocity += vCorr;
 				frags[i].Spin = omegaBase + spinJitter[i];
-				// Convert back to world frame by adding asteroid drift after corrections
-				frags[i].Velocity += astBaseVelocity;
 			}
 		}
 		
