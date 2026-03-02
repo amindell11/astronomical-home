@@ -29,7 +29,7 @@ namespace Player
         private void Awake()
         {
             playerInput = new PlayerInputReader(pos => 
-                GamePlane.ProjectOntoPlane(GameContext.Instance.MainCamera.ScreenToWorldPoint(pos)));
+                GamePlane.ProjectWorldPointToPlaneWorld(GameContext.Instance.MainCamera.ScreenToWorldPoint(pos)));
         }
         public override void InitializeCommander(Ship ship)
         {

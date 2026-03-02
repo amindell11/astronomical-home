@@ -44,7 +44,7 @@ namespace Combat.Projectile
 
         public virtual void Launch(Vector3 direction)
         {
-            startPosition = GamePlane.ProjectOntoPlane(transform.position);
+            startPosition = GamePlane.ProjectWorldPointToPlaneWorld(transform.position);
             RaiseLaunched();
         }
 
@@ -55,7 +55,7 @@ namespace Combat.Projectile
 
         protected virtual void FixedUpdate()
         {
-            transform.position = GamePlane.ProjectOntoPlane(transform.position);
+            transform.position = GamePlane.ProjectWorldPointToPlaneWorld(transform.position);
             if (DistanceTraveled > maxDistance) Dispose();
         }
 

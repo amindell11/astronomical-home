@@ -131,11 +131,11 @@ namespace Asteroids
 
         private void LateUpdate()
         {
-            transform.position = GamePlane.ProjectOntoPlane(transform.position) + GamePlane.Origin;
+            transform.position = GamePlane.ProjectWorldPointToPlaneWorld(transform.position);
 
             if (!meshCollider) return;
             if (!worldFollowTransform) return;
-            var distSqr = (GamePlane.ProjectOntoPlane(worldFollowTransform.position) - GamePlane.ProjectOntoPlane(transform.position)).sqrMagnitude;
+            var distSqr = (GamePlane.ProjectWorldPointToPlaneWorld(worldFollowTransform.position) - GamePlane.ProjectWorldPointToPlaneWorld(transform.position)).sqrMagnitude;
             var shouldEnable = distSqr < detailedColliderEnableDistance * detailedColliderEnableDistance;
             if (meshCollider.enabled != shouldEnable)
                 meshCollider.enabled = shouldEnable;

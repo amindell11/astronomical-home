@@ -56,6 +56,12 @@ namespace Game
                     yield return null;
             }
 
+            var planeGo = GameObject.FindGameObjectWithTag(TagNames.ReferencePlane);
+            if (!planeGo)
+                throw new InvalidOperationException(
+                    $"Missing required '{TagNames.ReferencePlane}' tagged object in scene '{worldSceneName}'.");
+
+            GamePlane.SetReferencePlane(planeGo.transform);
             GamePlane.Plane.SetPositionAndRotation(Vector3.zero, Quaternion.Euler(90f, 0f, 0f));
         }
 
@@ -76,7 +82,7 @@ namespace Game
             var cullingBoundary = world.AsteroidCullingBoundary;
             asteroidField = Instantiate(gameConfig.AsteroidAsteroidField);
             asteroidField.Initialize(cullingBoundary);
-            asteroidField.CurrentAnchorPos = () => GamePlane.ProjectOntoPlane(cameraRig.transform.position);
+            asteroidField.CurrentAnchorPos = () => GamePlane.ProjectWorldPointToPlaneWorld(cameraRig.transform.position);
         }
 
         private void InitializeShips(GameConfig gameConfig)

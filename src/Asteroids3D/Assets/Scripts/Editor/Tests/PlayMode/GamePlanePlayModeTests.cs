@@ -16,6 +16,21 @@ public class GamePlanePlayModeTests : PlayModeWorldFixture
 
     [UnityTest]
     [Category("Smoke")]
+    public IEnumerator GamePlane_Throws_When_Unconfigured()
+    {
+        // Arrange
+        GamePlane.Reset();
+
+        // Act + Assert
+        Assert.Throws<System.InvalidOperationException>(() => _ = GamePlane.Plane);
+
+        // Restore test arena plane for base teardown/use-after checks
+        TestSceneBuilder.CreateTestArena();
+        yield return null;
+    }
+
+    [UnityTest]
+    [Category("Smoke")]
     public IEnumerator GamePlane_ReferencePlane_CanBeSetAndQueried()
     {
         // Arrange
