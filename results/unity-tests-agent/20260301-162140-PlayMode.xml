@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Failed(Child)" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-03-02 00:22:04Z" end-time="2026-03-02 00:22:07Z" duration="3.0586005">
+  <test-suite type="TestSuite" id="1029" name="Astronomical" fullname="Astronomical" runstate="Runnable" testcasecount="1" result="Failed" site="Child" start-time="2026-03-02 00:22:04Z" end-time="2026-03-02 00:22:07Z" duration="3.058601" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="suiteIsReordered" value="True" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1030" name="Tests.PlayMode.dll" fullname="Tests.PlayMode.dll" runstate="Runnable" testcasecount="1" result="Failed" site="Child" start-time="2026-03-02 00:22:04Z" end-time="2026-03-02 00:22:07Z" duration="3.044992" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="40408" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+        <property name="suiteIsReordered" value="True" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1031" name="Tests" fullname="Tests" runstate="Runnable" testcasecount="1" result="Failed" site="Child" start-time="2026-03-02 00:22:04Z" end-time="2026-03-02 00:22:07Z" duration="3.044175" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties>
+          <property name="suiteIsReordered" value="True" />
+        </properties>
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1032" name="PlayMode" fullname="PlayMode" runstate="Runnable" testcasecount="1" result="Failed" site="Child" start-time="2026-03-02 00:22:04Z" end-time="2026-03-02 00:22:07Z" duration="3.043879" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties>
+            <property name="suiteIsReordered" value="True" />
+          </properties>
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestFixture" id="1033" name="CameraFollowPlayModeTests" fullname="Tests.PlayMode.CameraFollowPlayModeTests" classname="Tests.PlayMode.CameraFollowPlayModeTests" runstate="Runnable" testcasecount="1" result="Failed" site="Child" start-time="2026-03-02 00:22:04Z" end-time="2026-03-02 00:22:07Z" duration="3.042862" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Integration" />
+              <property name="suiteIsReordered" value="True" />
+            </properties>
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-case id="1003" name="Subject_Goes_Inactive_Camera_StillFollows" fullname="Tests.PlayMode.CameraFollowPlayModeTests.Subject_Goes_Inactive_Camera_StillFollows" methodname="Subject_Goes_Inactive_Camera_StillFollows" classname="Tests.PlayMode.CameraFollowPlayModeTests" runstate="Runnable" seed="299266753" result="Failed" start-time="2026-03-02 00:22:04Z" end-time="2026-03-02 00:22:07Z" duration="3.028460" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Category" value="Slow" />
+                <property name="suiteIsReordered" value="True" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <failure>
+                <message><![CDATA[  Camera should still follow the subject even when it is inactive
+  Expected: less than 0.100000001f
+  But was:  10.0f
+]]></message>
+                <stack-trace><![CDATA[at Tests.PlayMode.CameraFollowPlayModeTests+<Subject_Goes_Inactive_Camera_StillFollows>d__8.MoveNext () [0x00109] in D:\amind\git\astronomical-home\src\Asteroids3D\Assets\Scripts\Editor\Tests\PlayMode\CameraFollowPlayMode.cs:96
+at UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in .\Library\PackageCache\com.unity.test-framework@7056e7f856e9\UnityEngine.TestRunner\NUnitExtensions\Attributes\TestEnumerator.cs:44
+]]></stack-trace>
+              </failure>
+              <output><![CDATA[Saving results to: C:/Users/amind/AppData/LocalLow/AryeGames/Astronomical\TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

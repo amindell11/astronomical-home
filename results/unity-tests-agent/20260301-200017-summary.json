@@ -1,0 +1,73 @@
+{
+    "generatedAt":  "2026-03-01T20:01:48.6062797-08:00",
+    "projectPath":  "D:\\amind\\git\\astronomical-home\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "PlayMode",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "testFilter":  "",
+                      "testCategory":  "",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  ""
+                  },
+    "status":  "failed",
+    "totals":  {
+                   "total":  12,
+                   "passed":  9,
+                   "failed":  3,
+                   "skipped":  0,
+                   "durationSec":  74.077
+               },
+    "runs":  [
+                 {
+                     "platform":  "PlayMode",
+                     "xmlPath":  "D:\\amind\\git\\astronomical-home\\results\\unity-tests-agent\\20260301-200017-PlayMode.xml",
+                     "logPath":  "D:\\amind\\git\\astronomical-home\\results\\unity-tests-agent\\20260301-200017-PlayMode.log",
+                     "unityExitCode":  2,
+                     "status":  "unknown",
+                     "total":  12,
+                     "passed":  9,
+                     "failed":  3,
+                     "skipped":  0,
+                     "durationSec":  74.077272,
+                     "failures":  [
+                                      {
+                                          "name":  "MpcMovingWaypoint_ShipFollowsTarget",
+                                          "fullName":  "Tests.PlayMode.MpcNavigatorPlayModeTests.MpcMovingWaypoint_ShipFollowsTarget",
+                                          "durationSec":  10.019658,
+                                          "message":  "Ship should follow a moving waypoint Expected: less than 13.0f But was: 13.7295809f",
+                                          "topStack":  "at Tests.PlayMode.MpcNavigatorPlayModeTests+\u003cMpcMovingWaypoint_ShipFollowsTarget\u003ed__9.MoveNext () [0x000dc] in D:\\amind\\git\\astronomical-home\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\PlayMode\\MpcNavigatorPlayMode.cs:116",
+                                          "stackTrace":  "at Tests.PlayMode.MpcNavigatorPlayModeTests+\u003cMpcMovingWaypoint_ShipFollowsTarget\u003ed__9.MoveNext () [0x000dc] in D:\\amind\\git\\astronomical-home\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\PlayMode\\MpcNavigatorPlayMode.cs:116 at UnityEngine.TestTools.TestEnumerator+\u003cExecute\u003ed__7.MoveNext () [0x0003a] in .\\Library\\PackageCache\\com.unity.test-framework@7056e7f856e9\\UnityEngine.TestRunner\\NUnitExtensions\\Attributes\\TestEnumerator.cs:44"
+                                      },
+                                      {
+                                          "name":  "AvoidObstacles_ShipReachesWaypointAroundBarrier",
+                                          "fullName":  "Tests.PlayMode.NavigatorPlayModeTests.AvoidObstacles_ShipReachesWaypointAroundBarrier",
+                                          "durationSec":  25.01755,
+                                          "message":  "Ship should navigate around obstacle and reach ((10.00, 10.00)) within 25s Expected: less than 0.100000001f But was: 12.739665f",
+                                          "topStack":  "at Tests.PlayMode.NavigatorPlayModeTests+\u003cAvoidObstacles_ShipReachesWaypointAroundBarrier\u003ed__8.MoveNext () [0x000df] in D:\\amind\\git\\astronomical-home\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\PlayMode\\NavigatorPlayMode.cs:94",
+                                          "stackTrace":  "at Tests.PlayMode.NavigatorPlayModeTests+\u003cAvoidObstacles_ShipReachesWaypointAroundBarrier\u003ed__8.MoveNext () [0x000df] in D:\\amind\\git\\astronomical-home\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\PlayMode\\NavigatorPlayMode.cs:94 at UnityEngine.TestTools.TestEnumerator+\u003cExecute\u003ed__7.MoveNext () [0x0003a] in .\\Library\\PackageCache\\com.unity.test-framework@7056e7f856e9\\UnityEngine.TestRunner\\NUnitExtensions\\Attributes\\TestEnumerator.cs:44"
+                                      },
+                                      {
+                                          "name":  "NavigateToWaypoint_ShipArrivesWithinTimeout",
+                                          "fullName":  "Tests.PlayMode.NavigatorPlayModeTests.NavigateToWaypoint_ShipArrivesWithinTimeout",
+                                          "durationSec":  25.020153,
+                                          "message":  "Ship did not reach waypoint within 25s. Final pos: (1.00, 0.00, 0.99) Expected: less than 0.100000001f But was: 12.739665f",
+                                          "topStack":  "at Tests.PlayMode.NavigatorPlayModeTests+\u003cNavigateToWaypoint_ShipArrivesWithinTimeout\u003ed__7.MoveNext () [0x000a1] in D:\\amind\\git\\astronomical-home\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\PlayMode\\NavigatorPlayMode.cs:75",
+                                          "stackTrace":  "at Tests.PlayMode.NavigatorPlayModeTests+\u003cNavigateToWaypoint_ShipArrivesWithinTimeout\u003ed__7.MoveNext () [0x000a1] in D:\\amind\\git\\astronomical-home\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\PlayMode\\NavigatorPlayMode.cs:75 at UnityEngine.TestTools.TestEnumerator+\u003cExecute\u003ed__7.MoveNext () [0x0003a] in .\\Library\\PackageCache\\com.unity.test-framework@7056e7f856e9\\UnityEngine.TestRunner\\NUnitExtensions\\Attributes\\TestEnumerator.cs:44"
+                                      }
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "testFilter":  "",
+                                       "orderedTestListFile":  "",
+                                       "assemblyNames":  "",
+                                       "testCategory":  "",
+                                       "scopeType":  "Workspace",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  ""
+                                   }
+                 }
+             ]
+}

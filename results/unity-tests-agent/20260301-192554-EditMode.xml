@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="23" result="Failed(Child)" total="23" passed="18" failed="5" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-03-02 03:26:03Z" end-time="2026-03-02 03:26:04Z" duration="0.0686003">
+  <test-suite type="TestSuite" id="1000" name="Astronomical" fullname="Astronomical" runstate="Runnable" testcasecount="23" result="Failed" site="Child" start-time="2026-03-02 03:26:03Z" end-time="2026-03-02 03:26:04Z" duration="0.068600" total="23" passed="18" failed="5" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1028" name="Tests.EditMode.dll" fullname="D:/amind/git/astronomical-home/src/Asteroids3D/Library/ScriptAssemblies/Tests.EditMode.dll" runstate="Runnable" testcasecount="23" result="Failed" site="Child" start-time="2026-03-02 03:26:03Z" end-time="2026-03-02 03:26:04Z" duration="0.062541" total="23" passed="18" failed="5" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="43860" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1029" name="Tests" fullname="Tests" runstate="Runnable" testcasecount="23" result="Failed" site="Child" start-time="2026-03-02 03:26:03Z" end-time="2026-03-02 03:26:04Z" duration="0.062237" total="23" passed="18" failed="5" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1030" name="EditMode" fullname="Tests.EditMode" runstate="Runnable" testcasecount="23" result="Failed" site="Child" start-time="2026-03-02 03:26:03Z" end-time="2026-03-02 03:26:04Z" duration="0.062109" total="23" passed="18" failed="5" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestFixture" id="1004" name="CameraUtilsEditModeTests" fullname="Tests.EditMode.CameraUtilsEditModeTests" classname="Tests.EditMode.CameraUtilsEditModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-03-02 03:26:03Z" end-time="2026-03-02 03:26:04Z" duration="0.024080" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Regression" />
+            </properties>
+            <test-case id="1006" name="ShiftToKeepPointInView_TargetOutsideBounds_ShiftsCenter" fullname="Tests.EditMode.CameraUtilsEditModeTests.ShiftToKeepPointInView_TargetOutsideBounds_ShiftsCenter" methodname="ShiftToKeepPointInView_TargetOutsideBounds_ShiftsCenter" classname="Tests.EditMode.CameraUtilsEditModeTests" runstate="Runnable" seed="890211585" result="Passed" start-time="2026-03-02 03:26:03Z" end-time="2026-03-02 03:26:03Z" duration="0.012742" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1005" name="ZoomToFitBounds_WideBounds_RespectsAspectRatio" fullname="Tests.EditMode.CameraUtilsEditModeTests.ZoomToFitBounds_WideBounds_RespectsAspectRatio" methodname="ZoomToFitBounds_WideBounds_RespectsAspectRatio" classname="Tests.EditMode.CameraUtilsEditModeTests" runstate="Runnable" seed="522367377" result="Passed" start-time="2026-03-02 03:26:04Z" end-time="2026-03-02 03:26:04Z" duration="0.000306" asserts="0">
+              <properties>
+                <property name="Category" value="Smoke" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1007" name="CollisionDamageUtilityTests" fullname="Tests.EditMode.CollisionDamageUtilityTests" classname="Tests.EditMode.CollisionDamageUtilityTests" runstate="Runnable" testcasecount="14" result="Failed" site="Child" start-time="2026-03-02 03:26:04Z" end-time="2026-03-02 03:26:04Z" duration="0.013091" total="14" passed="13" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Regression" />
+            </properties>
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-case id="1018" name="ComputeDamage_SingleBody_ScalesKineticEnergyCorrectly" fullname="Tests.EditMode.CollisionDamageUtilityTests.ComputeDamage_SingleBody_ScalesKineticEnergyCorrectly" methodname="ComputeDamage_SingleBody_ScalesKineticEnergyCorrectly" classname="Tests.EditMode.CollisionDamageUtilityTests" runstate="Runnable" seed="478032261" result="Passed" start-time="2026-03-02 03:26:04Z" end-time="2026-03-02 03:26:04Z" duration="0.000626" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1019" name="ComputeDamage_TwoBodies_UsesRelativeKineticEnergy" fullname="Tests.EditMode.CollisionDamageUtilityTests.ComputeDamage_TwoBodies_UsesRelativeKineticEnergy" methodname="ComputeDamage_TwoBodies_UsesRelativeKineticEnergy" classname="Tests.EditMode.CollisionDamageUtilityTests" runstate="Runnable" seed="777863712" result="Passed" start-time="2026-03-02 03:26:04Z" end-time="2026-03-02 03:26:04Z" duration="0.000322" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1012" name="KineticEnergy_3DVelocity_UsesCorrectMagnitude" fullname="Tests.EditMode.CollisionDamageUtilityTests.KineticEnergy_3DVelocity_UsesCorrectMagnitude" methodname="KineticEnergy_3DVelocity_UsesCorrectMagnitude" classname="Tests.EditMode.CollisionDamageUtilityTests" runstate="Runnable" seed="1516788604" result="Passed" start-time="2026-03-02 03:26:04Z" end-time="2026-03-02 03:26:04Z" duration="0.000178" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1011" name="KineticEnergy_AnalyticalFormula_MatchesManualCalculation" fullname="Tests.EditMode.CollisionDamageUtilityTests.KineticEnergy_AnalyticalFormula_MatchesManualCalculation" methodname="KineticEnergy_AnalyticalFormula_MatchesManualCalculation" classname="Tests.EditMode.CollisionDamageUtilityTests" runstate="Runnable" seed="618137640" result="Passed" start-time="2026-03-02 03:26:04Z" end-time="2026-03-02 03:26:04Z" duration="0.000166" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1010" name="KineticEnergy_ClosedFormVsAnalytical_MatchesExpected" fullname="Tests.EditMode.CollisionDamageUtilityTests.KineticEnergy_ClosedFormVsAnalytical_MatchesExpected" methodname="KineticEnergy_ClosedFormVsAnalytical_MatchesExpected" classname="Tests.EditMode.CollisionDamageUtilityTests" runstate="Runnable" seed="325496224" result="Passed" start-time="2026-03-02 03:26:04Z" end-time="2026-03-02 03:26:04Z" duration="0.000191" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1021" name="KineticEnergy_LargeNumbers_HandlesCorrectly" fullname="Tests.EditMode.CollisionDamageUtilityTests.KineticEnergy_LargeNumbers_HandlesCorrectly" methodname="KineticEnergy_LargeNumbers_HandlesCorrectly" classname="Tests.EditMode.CollisionDamageUtilityTests" runstate="Runnable" seed="1228956246" result="Passed" start-time="2026-03-02 03:26:04Z" end-time="2026-03-02 03:26:04Z" duration="0.000151" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1009" name="KineticEnergy_ZeroMass_ReturnsZero" fullname="Tests.EditMode.CollisionDamageUtilityTests.KineticEnergy_ZeroMass_ReturnsZero" methodname="KineticEnergy_ZeroMass_ReturnsZero" classname="Tests.EditMode.CollisionDamageUtilityTests" runstate="Runnable" seed="2064830146" result="Passed" start-time="2026-03-02 03:26:04Z" end-time="2026-03-02 03:26:04Z" duration="0.000427" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1008" name="KineticEnergy_ZeroVelocity_ReturnsZero" fullname="Tests.EditMode.CollisionDamageUtilityTests.KineticEnergy_ZeroVelocity_ReturnsZero" methodname="KineticEnergy_ZeroVelocity_ReturnsZero" classname="Tests.EditMode.CollisionDamageUtilityTests" runstate="Runnable" seed="652458514" result="Passed" start-time="2026-03-02 03:26:04Z" end-time="2026-03-02 03:26:04Z" duration="0.000175" asserts="0">
+              <properties>
+                <property name="Category" value="Smoke" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1013" name="RelativeKineticEnergy_IdenticalObjects_ReturnsZero" fullname="Tests.EditMode.CollisionDamageUtilityTests.RelativeKineticEnergy_IdenticalObjects_ReturnsZero" methodname="RelativeKineticEnergy_IdenticalObjects_ReturnsZero" classname="Tests.EditMode.CollisionDamageUtilityTests" runstate="Runnable" seed="148859877" result="Passed" start-time="2026-03-02 03:26:04Z" end-time="2026-03-02 03:26:04Z" duration="0.000154" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1020" name="RelativeKineticEnergy_NegativeMass_ReturnsZero" fullname="Tests.EditMode.CollisionDamageUtilityTests.RelativeKineticEnergy_NegativeMass_ReturnsZero" methodname="RelativeKineticEnergy_NegativeMass_ReturnsZero" classname="Tests.EditMode.CollisionDamageUtilityTests" runstate="Runnable" seed="1658861821" result="Failed" start-time="2026-03-02 03:26:04Z" end-time="2026-03-02 03:26:04Z" duration="0.007920" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <failure>
+                <message><![CDATA[  Should handle negative mass gracefully by returning zero
+  Expected: 0.0d +/- 0.0010000000474974513d
+  But was:  -1.875d
+]]></message>
+                <stack-trace><![CDATA[at Tests.EditMode.CollisionDamageUtilityTests.RelativeKineticEnergy_NegativeMass_ReturnsZero () [0x00020] in D:\amind\git\astronomical-home\src\Asteroids3D\Assets\Scripts\Editor\Tests\EditMode\CollisionDamageUtilityTests.cs:246
+]]></stack-trace>
+              </failure>
+            </test-case>
+            <test-case id="1017" name="RelativeKineticEnergy_OppositeVelocities_MaximumRelativeSpeed" fullname="Tests.EditMode.CollisionDamageUtilityTests.RelativeKineticEnergy_OppositeVelocities_MaximumRelativeSpeed" methodname="RelativeKineticEnergy_OppositeVelocities_MaximumRelativeSpeed" classname="Tests.EditMode.CollisionDamageUtilityTests" runstate="Runnable" seed="985937835" result="Passed" start-time="2026-03-02 03:26:04Z" end-time="2026-03-02 03:26:04Z" duration="0.000228" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1015" name="RelativeKineticEnergy_ReducedMassFormula_MatchesExpected" fullname="Tests.EditMode.CollisionDamageUtilityTests.RelativeKineticEnergy_ReducedMassFormula_MatchesExpected" methodname="RelativeKineticEnergy_ReducedMassFormula_MatchesExpected" classname="Tests.EditMode.CollisionDamageUtilityTests" runstate="Runnable" seed="1663923887" result="Passed" start-time="2026-03-02 03:26:04Z" end-time="2026-03-02 03:26:04Z" duration="0.000241" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1014" name="RelativeKineticEnergy_Symmetry_ABAEqualsBAA" fullname="Tests.EditMode.CollisionDamageUtilityTests.RelativeKineticEnergy_Symmetry_ABAEqualsBAA" methodname="RelativeKineticEnergy_Symmetry_ABAEqualsBAA" classname="Tests.EditMode.CollisionDamageUtilityTests" runstate="Runnable" seed="1105123254" result="Passed" start-time="2026-03-02 03:26:04Z" end-time="2026-03-02 03:26:04Z" duration="0.000169" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1016" name="RelativeKineticEnergy_ZeroMass_ReturnsZero" fullname="Tests.EditMode.CollisionDamageUtilityTests.RelativeKineticEnergy_ZeroMass_ReturnsZero" methodname="RelativeKineticEnergy_ZeroMass_ReturnsZero" classname="Tests.EditMode.CollisionDamageUtilityTests" runstate="Runnable" seed="1220441094" result="Passed" start-time="2026-03-02 03:26:04Z" end-time="2026-03-02 03:26:04Z" duration="0.000134" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1001" name="ForcesEditModeTests" fullname="Tests.EditMode.ForcesEditModeTests" classname="Tests.EditMode.ForcesEditModeTests" runstate="Runnable" testcasecount="2" result="Failed" site="Child" start-time="2026-03-02 03:26:04Z" end-time="2026-03-02 03:26:04Z" duration="0.004608" total="2" passed="1" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Regression" />
+            </properties>
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-case id="1003" name="ComputeOutputs_ComputesForces_FromCommandAndKinematics" fullname="Tests.EditMode.ForcesEditModeTests.ComputeOutputs_ComputesForces_FromCommandAndKinematics" methodname="ComputeOutputs_ComputesForces_FromCommandAndKinematics" classname="Tests.EditMode.ForcesEditModeTests" runstate="Runnable" seed="1690254880" result="Passed" start-time="2026-03-02 03:26:04Z" end-time="2026-03-02 03:26:04Z" duration="0.002794" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1002" name="ComputeOutputs_ReturnsZero_WhenSettingsNotProvided" fullname="Tests.EditMode.ForcesEditModeTests.ComputeOutputs_ReturnsZero_WhenSettingsNotProvided" methodname="ComputeOutputs_ReturnsZero_WhenSettingsNotProvided" classname="Tests.EditMode.ForcesEditModeTests" runstate="Runnable" seed="1734125231" result="Failed" label="Error" start-time="2026-03-02 03:26:04Z" end-time="2026-03-02 03:26:04Z" duration="0.001198" asserts="0">
+              <properties>
+                <property name="Category" value="Smoke" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <failure>
+                <message><![CDATA[System.NullReferenceException : Object reference not set to an instance of an object]]></message>
+                <stack-trace><![CDATA[  at Ships.Movement.Forces.ComputeOutputs (Movement.Kinematics kin, Ships.Command.Command cmd, Ships.ShipSettings sets) [0x00000] in D:\amind\git\astronomical-home\src\Asteroids3D\Assets\Scripts\Movement\Forces.cs:46 
+  at Tests.EditMode.ForcesEditModeTests.ComputeOutputs_ReturnsZero_WhenSettingsNotProvided () [0x0002e] in D:\amind\git\astronomical-home\src\Asteroids3D\Assets\Scripts\Editor\Tests\EditMode\ActuatorEditModeTests.cs:56 
+  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)
+  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <d6e80b37d98246a5859a00c653f9fdf3>:0 ]]></stack-trace>
+              </failure>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1022" name="FragneticsCalculatorEditModeTests" fullname="Tests.EditMode.FragneticsCalculatorEditModeTests" classname="Tests.EditMode.FragneticsCalculatorEditModeTests" runstate="Runnable" testcasecount="5" result="Failed" site="Child" start-time="2026-03-02 03:26:04Z" end-time="2026-03-02 03:26:04Z" duration="0.019230" total="5" passed="2" failed="3" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Regression" />
+            </properties>
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-case id="1024" name="CalculateInitialMomentum_ComputesLinearAndAngularCorrectly" fullname="Tests.EditMode.FragneticsCalculatorEditModeTests.CalculateInitialMomentum_ComputesLinearAndAngularCorrectly" methodname="CalculateInitialMomentum_ComputesLinearAndAngularCorrectly" classname="Tests.EditMode.FragneticsCalculatorEditModeTests" runstate="Runnable" seed="1380437793" result="Failed" start-time="2026-03-02 03:26:04Z" end-time="2026-03-02 03:26:04Z" duration="0.005078" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <failure>
+                <message><![CDATA[  Expected: 190.0f +/- 9.99999975E-06f
+  But was:  -30.0f
+]]></message>
+                <stack-trace><![CDATA[at Tests.EditMode.FragneticsCalculatorEditModeTests.AssertVec3Approximately (UnityEngine.Vector3 a, UnityEngine.Vector3 b, System.Single eps) [0x00000] in D:\amind\git\astronomical-home\src\Asteroids3D\Assets\Scripts\Editor\Tests\EditMode\FragneticsCalculatorEditModeTests.cs:253
+at Tests.EditMode.FragneticsCalculatorEditModeTests.CalculateInitialMomentum_ComputesLinearAndAngularCorrectly () [0x00189] in D:\amind\git\astronomical-home\src\Asteroids3D\Assets\Scripts\Editor\Tests\EditMode\FragneticsCalculatorEditModeTests.cs:106
+]]></stack-trace>
+              </failure>
+              <output><![CDATA[[InitialMomentum] pLin=(-30.00, 5.00, 2.50), expected=(190.00, 5.00, 2.50); pAng=(-4.18, -23.15, -3.80), expected=(-4.18, -8.15, 1.20)
+]]></output>
+            </test-case>
+            <test-case id="1026" name="CoroutinePhysics_ConservesLinearAndAngularMomentum_WhenNoLossNoSpin" fullname="Tests.EditMode.FragneticsCalculatorEditModeTests.CoroutinePhysics_ConservesLinearAndAngularMomentum_WhenNoLossNoSpin" methodname="CoroutinePhysics_ConservesLinearAndAngularMomentum_WhenNoLossNoSpin" classname="Tests.EditMode.FragneticsCalculatorEditModeTests" runstate="Runnable" seed="1900606594" result="Failed" start-time="2026-03-02 03:26:04Z" end-time="2026-03-02 03:26:04Z" duration="0.006118" asserts="0">
+              <properties>
+                <property name="Category" value="Slow" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <failure>
+                <message><![CDATA[  Expected: -56.0f +/- 0.00100000005f
+  But was:  40.0f
+]]></message>
+                <stack-trace><![CDATA[at Tests.EditMode.FragneticsCalculatorEditModeTests.AssertVec3Approximately (UnityEngine.Vector3 a, UnityEngine.Vector3 b, System.Single eps) [0x00000] in D:\amind\git\astronomical-home\src\Asteroids3D\Assets\Scripts\Editor\Tests\EditMode\FragneticsCalculatorEditModeTests.cs:253
+at Tests.EditMode.FragneticsCalculatorEditModeTests.CoroutinePhysics_ConservesLinearAndAngularMomentum_WhenNoLossNoSpin () [0x000f4] in D:\amind\git\astronomical-home\src\Asteroids3D\Assets\Scripts\Editor\Tests\EditMode\FragneticsCalculatorEditModeTests.cs:160
+]]></stack-trace>
+              </failure>
+              <output><![CDATA[[CoroutinePhysics] pFinal=(40.00, -24.00, 28.00), expected=(-56.00, 24.00, 4.00)
+]]></output>
+            </test-case>
+            <test-case id="1023" name="GenerateFragments_RespectsMassConservationAndBounds" fullname="Tests.EditMode.FragneticsCalculatorEditModeTests.GenerateFragments_RespectsMassConservationAndBounds" methodname="GenerateFragments_RespectsMassConservationAndBounds" classname="Tests.EditMode.FragneticsCalculatorEditModeTests" runstate="Runnable" seed="729869340" result="Passed" start-time="2026-03-02 03:26:04Z" end-time="2026-03-02 03:26:04Z" duration="0.002814" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[GenerateFragments] count=2, massSum=80.000, expected=80.000, minMass=5
+]]></output>
+            </test-case>
+            <test-case id="1025" name="PlaceholderPhysics_ProducesReasonableSpeeds_NoExplosions" fullname="Tests.EditMode.FragneticsCalculatorEditModeTests.PlaceholderPhysics_ProducesReasonableSpeeds_NoExplosions" methodname="PlaceholderPhysics_ProducesReasonableSpeeds_NoExplosions" classname="Tests.EditMode.FragneticsCalculatorEditModeTests" runstate="Runnable" seed="1645708632" result="Passed" start-time="2026-03-02 03:26:04Z" end-time="2026-03-02 03:26:04Z" duration="0.002265" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[PlaceholderPhysics] avgDelta=2.578 (baseSeparationSpeed=5)
+]]></output>
+            </test-case>
+            <test-case id="1027" name="SeparationSpeed_ScalesWithRelativeImpactVelocity" fullname="Tests.EditMode.FragneticsCalculatorEditModeTests.SeparationSpeed_ScalesWithRelativeImpactVelocity" methodname="SeparationSpeed_ScalesWithRelativeImpactVelocity" classname="Tests.EditMode.FragneticsCalculatorEditModeTests" runstate="Runnable" seed="835797600" result="Failed" start-time="2026-03-02 03:26:04Z" end-time="2026-03-02 03:26:04Z" duration="0.001601" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <failure>
+                <message><![CDATA[  Expected: 10.0f +/- 3.5f
+  But was:  5.24787855f
+]]></message>
+                <stack-trace><![CDATA[at Tests.EditMode.FragneticsCalculatorEditModeTests.SeparationSpeed_ScalesWithRelativeImpactVelocity () [0x0028c] in D:\amind\git\astronomical-home\src\Asteroids3D\Assets\Scripts\Editor\Tests\EditMode\FragneticsCalculatorEditModeTests.cs:230
+]]></stack-trace>
+              </failure>
+              <output><![CDATA[[SpeedScaling] avgSlow=0.450, avgFast=2.363, ratio=5.25, expectedRatio≈10.00. If this ratio is very high in-game, fragments may be too fast.
+Saving results to: C:/Users/amind/AppData/LocalLow/AryeGames/Astronomical\TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

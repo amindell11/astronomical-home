@@ -1,0 +1,84 @@
+{
+    "generatedAt":  "2026-03-01T19:25:43.5597045-08:00",
+    "projectPath":  "D:\\amind\\git\\astronomical-home\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "EditMode",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "testFilter":  "",
+                      "testCategory":  "",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  ""
+                  },
+    "status":  "failed",
+    "totals":  {
+                   "total":  23,
+                   "passed":  18,
+                   "failed":  5,
+                   "skipped":  0,
+                   "durationSec":  0.085
+               },
+    "runs":  [
+                 {
+                     "platform":  "EditMode",
+                     "xmlPath":  "D:\\amind\\git\\astronomical-home\\results\\unity-tests-agent\\20260301-192530-EditMode.xml",
+                     "logPath":  "D:\\amind\\git\\astronomical-home\\results\\unity-tests-agent\\20260301-192530-EditMode.log",
+                     "unityExitCode":  2,
+                     "status":  "unknown",
+                     "total":  23,
+                     "passed":  18,
+                     "failed":  5,
+                     "skipped":  0,
+                     "durationSec":  0.0853918,
+                     "failures":  [
+                                      {
+                                          "name":  "RelativeKineticEnergy_NegativeMass_ReturnsZero",
+                                          "fullName":  "Tests.EditMode.CollisionDamageUtilityTests.RelativeKineticEnergy_NegativeMass_ReturnsZero",
+                                          "durationSec":  0.007606,
+                                          "message":  "Should handle negative mass gracefully by returning zero Expected: 0.0d +/- 0.0010000000474974513d But was: -1.875d",
+                                          "topStack":  "at Tests.EditMode.CollisionDamageUtilityTests.RelativeKineticEnergy_NegativeMass_ReturnsZero () [0x00020] in D:\\amind\\git\\astronomical-home\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode\\CollisionDamageUtilityTests.cs:246"
+                                      },
+                                      {
+                                          "name":  "ComputeOutputs_ReturnsZero_WhenSettingsNotProvided",
+                                          "fullName":  "Tests.EditMode.ForcesEditModeTests.ComputeOutputs_ReturnsZero_WhenSettingsNotProvided",
+                                          "durationSec":  0.001911,
+                                          "message":  "System.NullReferenceException : Object reference not set to an instance of an object",
+                                          "topStack":  "at Ships.Movement.Forces.ComputeOutputs (Movement.Kinematics kin, Ships.Command.Command cmd, Ships.ShipSettings sets) [0x00000] in D:\\amind\\git\\astronomical-home\\src\\Asteroids3D\\Assets\\Scripts\\Movement\\Forces.cs:46"
+                                      },
+                                      {
+                                          "name":  "CalculateInitialMomentum_ComputesLinearAndAngularCorrectly",
+                                          "fullName":  "Tests.EditMode.FragneticsCalculatorEditModeTests.CalculateInitialMomentum_ComputesLinearAndAngularCorrectly",
+                                          "durationSec":  0.008066,
+                                          "message":  "Expected: 190.0f +/- 9.99999975E-06f But was: -30.0f",
+                                          "topStack":  "at Tests.EditMode.FragneticsCalculatorEditModeTests.AssertVec3Approximately (UnityEngine.Vector3 a, UnityEngine.Vector3 b, System.Single eps) [0x00000] in D:\\amind\\git\\astronomical-home\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode\\F..."
+                                      },
+                                      {
+                                          "name":  "CoroutinePhysics_ConservesLinearAndAngularMomentum_WhenNoLossNoSpin",
+                                          "fullName":  "Tests.EditMode.FragneticsCalculatorEditModeTests.CoroutinePhysics_ConservesLinearAndAngularMomentum_WhenNoLossNoSpin",
+                                          "durationSec":  0.007974,
+                                          "message":  "Expected: -56.0f +/- 0.00100000005f But was: 40.0f",
+                                          "topStack":  "at Tests.EditMode.FragneticsCalculatorEditModeTests.AssertVec3Approximately (UnityEngine.Vector3 a, UnityEngine.Vector3 b, System.Single eps) [0x00000] in D:\\amind\\git\\astronomical-home\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode\\F..."
+                                      },
+                                      {
+                                          "name":  "SeparationSpeed_ScalesWithRelativeImpactVelocity",
+                                          "fullName":  "Tests.EditMode.FragneticsCalculatorEditModeTests.SeparationSpeed_ScalesWithRelativeImpactVelocity",
+                                          "durationSec":  0.00213,
+                                          "message":  "Expected: 10.0f +/- 3.5f But was: 5.24787855f",
+                                          "topStack":  "at Tests.EditMode.FragneticsCalculatorEditModeTests.SeparationSpeed_ScalesWithRelativeImpactVelocity () [0x0028c] in D:\\amind\\git\\astronomical-home\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode\\FragneticsCalculatorEditModeTests.cs:23..."
+                                      }
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "testFilter":  "",
+                                       "orderedTestListFile":  "",
+                                       "assemblyNames":  "",
+                                       "testCategory":  "",
+                                       "scopeType":  "Workspace",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  ""
+                                   }
+                 }
+             ]
+}

@@ -1,0 +1,52 @@
+{
+    "generatedAt":  "2026-03-01T19:50:29.3948543-08:00",
+    "projectPath":  "D:\\amind\\git\\astronomical-home",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "PlayMode",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "testFilter":  "",
+                      "testCategory":  "",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "D:\\amind\\git\\astronomical-home\\results\\unity-tests-agent\\20260301-195026-rerun-tests.txt",
+                      "rerunFailedFrom":  "D:\\amind\\git\\astronomical-home\\results\\unity-tests-agent\\latest-summary.json"
+                  },
+    "status":  "infra_error",
+    "totals":  {
+                   "total":  0,
+                   "passed":  0,
+                   "failed":  0,
+                   "skipped":  0,
+                   "durationSec":  0
+               },
+    "runs":  [
+                 {
+                     "platform":  "PlayMode",
+                     "xmlPath":  "D:\\amind\\git\\astronomical-home\\results\\unity-tests-agent\\20260301-195026-PlayMode.xml",
+                     "logPath":  "D:\\amind\\git\\astronomical-home\\results\\unity-tests-agent\\20260301-195026-PlayMode.log",
+                     "unityExitCode":  1,
+                     "status":  "infra_error",
+                     "total":  0,
+                     "passed":  0,
+                     "failed":  0,
+                     "skipped":  0,
+                     "durationSec":  0,
+                     "failures":  [
+
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "testFilter":  "",
+                                       "orderedTestListFile":  "D:\\amind\\git\\astronomical-home\\results\\unity-tests-agent\\20260301-195026-rerun-tests.txt",
+                                       "assemblyNames":  "",
+                                       "testCategory":  "",
+                                       "scopeType":  "Workspace",
+                                       "rerunFailedFrom":  "D:\\amind\\git\\astronomical-home\\results\\unity-tests-agent\\latest-summary.json",
+                                       "scopeName":  ""
+                                   },
+                     "logTail":  "Waiting for clients to connect on \\\\.\\pipe\\Unity-LicenseClient-amind, press Ctrl-C to exit. [Licensing::IpcConnector] Successfully connected to: \"LicenseClient-amind\" at \"2026-03-02T03:50:27.3335478Z\" [Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 21324, path: \"D:/Programs/Unity/Editor/6000.1.8f1/Editor/Data/Resources/Licensing/Client/Unity.Licensing.Client.exe\") [Licensing::Module] LicensingClient has failed validation; ignoring [Licensing::Client] Handshaking with LicensingClient: Version: 1.16.2+bdef8f5 Session Id: 2136a50ff8414c009c4032dfabadaff3 Correlation Id: 53bfffd57992c1351aeb8aa0b18a7268 External correlation Id: 8221540629549842626 Machine Id: V9+mLXnp3reVDdboj2LuTfxScEc= [Licensing::Module] Successfully connected to LicensingClient on channel: \"LicenseClient-amind\" (connect: 0.85s, validation: 0.06s, handshake: 0.04s) [Licensing::IpcConnector] Successfully connected to: \"LicenseClient-amind-notifications\" at \"2026-03-02T03:50:27.4258973Z\" [Licensing::Module] Connected to LicensingClient (PId: 21324, launch time: 0.00, total connection time: 0.95s) [Licensing::Module] Error: Access token is unavailable; failed to update [Licensing::Client] Successfully resolved entitlement details [Licensing::Module] Serial number assigned to: \"1375767455228-UnityPersXXXX\" [Licensing::Client] Successfully updated license, isAync: True, time: 0.03 Built from \u00276000.1/staging\u0027 branch; Version is \u00276000.1.8f1 (2a5b1522e5ab) revision 2775829\u0027; Using compiler version \u0027194234433\u0027; Build Type \u0027Release\u0027 OS: \u0027Windows 11 (10.0.26200) 64bit Professional\u0027 Language: \u0027en\u0027 Physical Memory: 32265 MB [Licensing::Client] Successfully resolved entitlement details BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1, IsPro: 0 Date: 2026-03-02T03:50:27Z COMMAND LINE ARGUMENTS: D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe -batchmode -nographics -projectPath D:\\amind\\git\\astronomical-home -runTests -testPlatform PlayMode -testResults D:\\amind\\git\\astronomical-home\\results\\unity-tests-agent\\20260301-195026-PlayMode.xml -logFile D:\\amind\\git\\astronomical-home\\results\\unity-tests-agent\\20260301-195026-PlayMode.log -orderedTestListFile D:\\amind\\git\\astronomical-home\\results\\unity-tests-agent\\20260301-195026-rerun-tests.txt Couldn\u0027t set project path to: D:/amind/git/astronomical-home/D:/amind/git/astronomical-home Exiting without the bug reporter. Application will terminate with return code 1Shut down.",
+                     "note":  "Result XML not found"
+                 }
+             ]
+}

@@ -1,0 +1,87 @@
+﻿{
+    "generatedAt":  "2026-03-01T16:21:36.4878411-08:00",
+    "projectPath":  "D:\\amind\\git\\astronomical-home\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "Both",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "rerun-failed",
+                      "testFilter":  "",
+                      "testCategory":  "",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "D:\\amind\\git\\astronomical-home\\results\\unity-tests-agent\\20260301-162108-rerun-tests.txt",
+                      "rerunFailedFrom":  "D:\\amind\\git\\astronomical-home\\results\\unity-tests-agent\\20260301-162029-summary.json"
+                  },
+    "status":  "failed",
+    "totals":  {
+                   "total":  2,
+                   "passed":  0,
+                   "failed":  2,
+                   "skipped":  0,
+                   "durationSec":  3.078
+               },
+    "runs":  [
+                 {
+                     "platform":  "EditMode",
+                     "xmlPath":  "D:\\amind\\git\\astronomical-home\\results\\unity-tests-agent\\20260301-162108-EditMode.xml",
+                     "logPath":  "D:\\amind\\git\\astronomical-home\\results\\unity-tests-agent\\20260301-162108-EditMode.log",
+                     "unityExitCode":  2,
+                     "status":  "unknown",
+                     "total":  1,
+                     "passed":  0,
+                     "failed":  1,
+                     "skipped":  0,
+                     "durationSec":  0.0348829,
+                     "failures":  [
+                                      {
+                                          "name":  "RelativeKineticEnergy_NegativeMass_ReturnsZero",
+                                          "fullName":  "Tests.EditMode.CollisionDamageUtilityTests.RelativeKineticEnergy_NegativeMass_ReturnsZero",
+                                          "durationSec":  0.016484,
+                                          "message":  "Should handle negative mass gracefully by returning zero Expected: 0.0d +/- 0.0010000000474974513d But was: -1.875d",
+                                          "topStack":  "at Tests.EditMode.CollisionDamageUtilityTests.RelativeKineticEnergy_NegativeMass_ReturnsZero () [0x00020] in D:\\amind\\git\\astronomical-home\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\EditMode\\CollisionDamageUtilityTests.cs:246"
+                                      }
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "testFilter":  "",
+                                       "orderedTestListFile":  "D:\\amind\\git\\astronomical-home\\results\\unity-tests-agent\\20260301-162108-rerun-tests.txt",
+                                       "assemblyNames":  "",
+                                       "testCategory":  "",
+                                       "scopeType":  "Workspace",
+                                       "rerunFailedFrom":  "D:\\amind\\git\\astronomical-home\\results\\unity-tests-agent\\20260301-162029-summary.json",
+                                       "scopeName":  "rerun-failed"
+                                   }
+                 },
+                 {
+                     "platform":  "PlayMode",
+                     "xmlPath":  "D:\\amind\\git\\astronomical-home\\results\\unity-tests-agent\\20260301-162108-PlayMode.xml",
+                     "logPath":  "D:\\amind\\git\\astronomical-home\\results\\unity-tests-agent\\20260301-162108-PlayMode.log",
+                     "unityExitCode":  2,
+                     "status":  "unknown",
+                     "total":  1,
+                     "passed":  0,
+                     "failed":  1,
+                     "skipped":  0,
+                     "durationSec":  3.0430801,
+                     "failures":  [
+                                      {
+                                          "name":  "Subject_Goes_Inactive_Camera_StillFollows",
+                                          "fullName":  "Tests.PlayMode.CameraFollowPlayModeTests.Subject_Goes_Inactive_Camera_StillFollows",
+                                          "durationSec":  3.02374,
+                                          "message":  "Camera should still follow the subject even when it is inactive Expected: less than 0.100000001f But was: 10.0f",
+                                          "topStack":  "at Tests.PlayMode.CameraFollowPlayModeTests+\u003cSubject_Goes_Inactive_Camera_StillFollows\u003ed__8.MoveNext () [0x00109] in D:\\amind\\git\\astronomical-home\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\PlayMode\\CameraFollowPlayMode.cs:96"
+                                      }
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "testFilter":  "",
+                                       "orderedTestListFile":  "D:\\amind\\git\\astronomical-home\\results\\unity-tests-agent\\20260301-162108-rerun-tests.txt",
+                                       "assemblyNames":  "",
+                                       "testCategory":  "",
+                                       "scopeType":  "Workspace",
+                                       "rerunFailedFrom":  "D:\\amind\\git\\astronomical-home\\results\\unity-tests-agent\\20260301-162029-summary.json",
+                                       "scopeName":  "rerun-failed"
+                                   }
+                 }
+             ]
+}

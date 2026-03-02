@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="12" result="Failed(Child)" total="12" passed="9" failed="3" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-03-02 04:00:32Z" end-time="2026-03-02 04:01:46Z" duration="74.077272">
+  <test-suite type="TestSuite" id="1023" name="Astronomical" fullname="Astronomical" runstate="Runnable" testcasecount="12" result="Failed" site="Child" start-time="2026-03-02 04:00:32Z" end-time="2026-03-02 04:01:46Z" duration="74.077272" total="12" passed="9" failed="3" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1018" name="Tests.PlayMode.dll" fullname="D:/amind/git/astronomical-home/src/Asteroids3D/Library/ScriptAssemblies/Tests.PlayMode.dll" runstate="Runnable" testcasecount="12" result="Failed" site="Child" start-time="2026-03-02 04:00:32Z" end-time="2026-03-02 04:01:46Z" duration="74.069814" total="12" passed="9" failed="3" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="41244" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1019" name="Tests" fullname="Tests" runstate="Runnable" testcasecount="12" result="Failed" site="Child" start-time="2026-03-02 04:00:32Z" end-time="2026-03-02 04:01:46Z" duration="74.069371" total="12" passed="9" failed="3" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1020" name="PlayMode" fullname="Tests.PlayMode" runstate="Runnable" testcasecount="12" result="Failed" site="Child" start-time="2026-03-02 04:00:32Z" end-time="2026-03-02 04:01:46Z" duration="74.069116" total="12" passed="9" failed="3" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestFixture" id="1001" name="CameraFollowPlayModeTests" fullname="Tests.PlayMode.CameraFollowPlayModeTests" classname="Tests.PlayMode.CameraFollowPlayModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-03-02 04:00:32Z" end-time="2026-03-02 04:00:35Z" duration="3.392652" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Integration" />
+            </properties>
+            <test-case id="1002" name="Single_Subject_LockCameraToSubject_FollowsSubject" fullname="Tests.PlayMode.CameraFollowPlayModeTests.Single_Subject_LockCameraToSubject_FollowsSubject" methodname="Single_Subject_LockCameraToSubject_FollowsSubject" classname="Tests.PlayMode.CameraFollowPlayModeTests" runstate="Runnable" seed="437270455" result="Passed" start-time="2026-03-02 04:00:32Z" end-time="2026-03-02 04:00:32Z" duration="0.378987" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Category" value="Smoke" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1003" name="Subject_Goes_Inactive_Camera_DoesNotFollow" fullname="Tests.PlayMode.CameraFollowPlayModeTests.Subject_Goes_Inactive_Camera_DoesNotFollow" methodname="Subject_Goes_Inactive_Camera_DoesNotFollow" classname="Tests.PlayMode.CameraFollowPlayModeTests" runstate="Runnable" seed="2050149757" result="Passed" start-time="2026-03-02 04:00:32Z" end-time="2026-03-02 04:00:35Z" duration="3.002055" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Category" value="Slow" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1004" name="GamePlanePlayModeTests" fullname="Tests.PlayMode.GamePlanePlayModeTests" classname="Tests.PlayMode.GamePlanePlayModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-03-02 04:00:35Z" end-time="2026-03-02 04:00:35Z" duration="0.005883" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Regression" />
+            </properties>
+            <test-case id="1005" name="GamePlane_ReferencePlane_CanBeSetAndQueried" fullname="Tests.PlayMode.GamePlanePlayModeTests.GamePlane_ReferencePlane_CanBeSetAndQueried" methodname="GamePlane_ReferencePlane_CanBeSetAndQueried" classname="Tests.PlayMode.GamePlanePlayModeTests" runstate="Runnable" seed="1483506709" result="Passed" start-time="2026-03-02 04:00:35Z" end-time="2026-03-02 04:00:35Z" duration="0.003379" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Category" value="Smoke" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1006" name="GamePlane_WorldToPlane_And_PlaneToWorld_AreConsistent" fullname="Tests.PlayMode.GamePlanePlayModeTests.GamePlane_WorldToPlane_And_PlaneToWorld_AreConsistent" methodname="GamePlane_WorldToPlane_And_PlaneToWorld_AreConsistent" classname="Tests.PlayMode.GamePlanePlayModeTests" runstate="Runnable" seed="509404920" result="Passed" start-time="2026-03-02 04:00:35Z" end-time="2026-03-02 04:00:35Z" duration="0.001872" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1007" name="MpcNavigatorPlayModeTests" fullname="Tests.PlayMode.MpcNavigatorPlayModeTests" classname="Tests.PlayMode.MpcNavigatorPlayModeTests" runstate="Runnable" testcasecount="4" result="Failed" site="Child" start-time="2026-03-02 04:00:35Z" end-time="2026-03-02 04:00:56Z" duration="20.620353" total="4" passed="3" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Integration" />
+              <property name="Category" value="Slow" />
+            </properties>
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-case id="1009" name="MpcFixedWaypoint_ShipArrivesWithinTimeout" fullname="Tests.PlayMode.MpcNavigatorPlayModeTests.MpcFixedWaypoint_ShipArrivesWithinTimeout" methodname="MpcFixedWaypoint_ShipArrivesWithinTimeout" classname="Tests.PlayMode.MpcNavigatorPlayModeTests" runstate="Runnable" seed="415763464" result="Passed" start-time="2026-03-02 04:00:35Z" end-time="2026-03-02 04:00:39Z" duration="3.783619" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[There are no audio listeners in the scene. Please ensure there is always one audio listener in the scene
+]]></output>
+            </test-case>
+            <test-case id="1010" name="MpcMovingWaypoint_ShipFollowsTarget" fullname="Tests.PlayMode.MpcNavigatorPlayModeTests.MpcMovingWaypoint_ShipFollowsTarget" methodname="MpcMovingWaypoint_ShipFollowsTarget" classname="Tests.PlayMode.MpcNavigatorPlayModeTests" runstate="Runnable" seed="729879513" result="Failed" start-time="2026-03-02 04:00:39Z" end-time="2026-03-02 04:00:49Z" duration="10.019658" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <failure>
+                <message><![CDATA[  Ship should follow a moving waypoint
+  Expected: less than 13.0f
+  But was:  13.7295809f
+]]></message>
+                <stack-trace><![CDATA[at Tests.PlayMode.MpcNavigatorPlayModeTests+<MpcMovingWaypoint_ShipFollowsTarget>d__9.MoveNext () [0x000dc] in D:\amind\git\astronomical-home\src\Asteroids3D\Assets\Scripts\Editor\Tests\PlayMode\MpcNavigatorPlayMode.cs:116
+at UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in .\Library\PackageCache\com.unity.test-framework@7056e7f856e9\UnityEngine.TestRunner\NUnitExtensions\Attributes\TestEnumerator.cs:44
+]]></stack-trace>
+              </failure>
+              <output><![CDATA[There are no audio listeners in the scene. Please ensure there is always one audio listener in the scene
+]]></output>
+            </test-case>
+            <test-case id="1011" name="MpcObstacleAvoidance_ShipReachesTargetWithoutColliding" fullname="Tests.PlayMode.MpcNavigatorPlayModeTests.MpcObstacleAvoidance_ShipReachesTargetWithoutColliding" methodname="MpcObstacleAvoidance_ShipReachesTargetWithoutColliding" classname="Tests.PlayMode.MpcNavigatorPlayModeTests" runstate="Runnable" seed="75535420" result="Passed" start-time="2026-03-02 04:00:49Z" end-time="2026-03-02 04:00:56Z" duration="6.776256" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[There are no audio listeners in the scene. Please ensure there is always one audio listener in the scene
+]]></output>
+            </test-case>
+            <test-case id="1008" name="MpcYawOnly_ShipRotatesToFacingOverride" fullname="Tests.PlayMode.MpcNavigatorPlayModeTests.MpcYawOnly_ShipRotatesToFacingOverride" methodname="MpcYawOnly_ShipRotatesToFacingOverride" classname="Tests.PlayMode.MpcNavigatorPlayModeTests" runstate="Runnable" seed="1038274936" result="Passed" start-time="2026-03-02 04:00:56Z" end-time="2026-03-02 04:00:56Z" duration="0.039657" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Category" value="Smoke" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[There are no audio listeners in the scene. Please ensure there is always one audio listener in the scene
+]]></output>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1012" name="NavigatorPlayModeTests" fullname="Tests.PlayMode.NavigatorPlayModeTests" classname="Tests.PlayMode.NavigatorPlayModeTests" runstate="Runnable" testcasecount="3" result="Failed" site="Child" start-time="2026-03-02 04:00:56Z" end-time="2026-03-02 04:01:46Z" duration="50.044624" total="3" passed="1" failed="2" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Integration" />
+              <property name="Category" value="Slow" />
+            </properties>
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-case id="1015" name="AvoidObstacles_ShipReachesWaypointAroundBarrier" fullname="Tests.PlayMode.NavigatorPlayModeTests.AvoidObstacles_ShipReachesWaypointAroundBarrier" methodname="AvoidObstacles_ShipReachesWaypointAroundBarrier" classname="Tests.PlayMode.NavigatorPlayModeTests" runstate="Runnable" seed="1530308198" result="Failed" start-time="2026-03-02 04:00:56Z" end-time="2026-03-02 04:01:21Z" duration="25.017550" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <failure>
+                <message><![CDATA[  Ship should navigate around obstacle and reach ((10.00, 10.00)) within 25s
+  Expected: less than 0.100000001f
+  But was:  12.739665f
+]]></message>
+                <stack-trace><![CDATA[at Tests.PlayMode.NavigatorPlayModeTests+<AvoidObstacles_ShipReachesWaypointAroundBarrier>d__8.MoveNext () [0x000df] in D:\amind\git\astronomical-home\src\Asteroids3D\Assets\Scripts\Editor\Tests\PlayMode\NavigatorPlayMode.cs:94
+at UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in .\Library\PackageCache\com.unity.test-framework@7056e7f856e9\UnityEngine.TestRunner\NUnitExtensions\Attributes\TestEnumerator.cs:44
+]]></stack-trace>
+              </failure>
+              <output><![CDATA[There are no audio listeners in the scene. Please ensure there is always one audio listener in the scene
+]]></output>
+            </test-case>
+            <test-case id="1014" name="NavigateToWaypoint_ShipArrivesWithinTimeout" fullname="Tests.PlayMode.NavigatorPlayModeTests.NavigateToWaypoint_ShipArrivesWithinTimeout" methodname="NavigateToWaypoint_ShipArrivesWithinTimeout" classname="Tests.PlayMode.NavigatorPlayModeTests" runstate="Runnable" seed="1978287274" result="Failed" start-time="2026-03-02 04:01:21Z" end-time="2026-03-02 04:01:46Z" duration="25.020153" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <failure>
+                <message><![CDATA[  Ship did not reach waypoint within 25s. Final pos: (1.00, 0.00, 0.99)
+  Expected: less than 0.100000001f
+  But was:  12.739665f
+]]></message>
+                <stack-trace><![CDATA[at Tests.PlayMode.NavigatorPlayModeTests+<NavigateToWaypoint_ShipArrivesWithinTimeout>d__7.MoveNext () [0x000a1] in D:\amind\git\astronomical-home\src\Asteroids3D\Assets\Scripts\Editor\Tests\PlayMode\NavigatorPlayMode.cs:75
+at UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in .\Library\PackageCache\com.unity.test-framework@7056e7f856e9\UnityEngine.TestRunner\NUnitExtensions\Attributes\TestEnumerator.cs:44
+]]></stack-trace>
+              </failure>
+              <output><![CDATA[There are no audio listeners in the scene. Please ensure there is always one audio listener in the scene
+]]></output>
+            </test-case>
+            <test-case id="1013" name="SetNavigationPoint_WaypointBecomesValid" fullname="Tests.PlayMode.NavigatorPlayModeTests.SetNavigationPoint_WaypointBecomesValid" methodname="SetNavigationPoint_WaypointBecomesValid" classname="Tests.PlayMode.NavigatorPlayModeTests" runstate="Runnable" seed="1267428482" result="Passed" start-time="2026-03-02 04:01:46Z" end-time="2026-03-02 04:01:46Z" duration="0.005774" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Category" value="Smoke" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[There are no audio listeners in the scene. Please ensure there is always one audio listener in the scene
+]]></output>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1016" name="ScannerPlayModeTests" fullname="Tests.PlayMode.ScannerPlayModeTests" classname="Tests.PlayMode.ScannerPlayModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-03-02 04:01:46Z" end-time="2026-03-02 04:01:46Z" duration="0.004283" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties>
+              <property name="Category" value="Integration" />
+              <property name="Category" value="Slow" />
+            </properties>
+            <test-case id="1017" name="ObstacleScanner_DetectsNearbyObstacle_WithinTimeout" fullname="Tests.PlayMode.ScannerPlayModeTests.ObstacleScanner_DetectsNearbyObstacle_WithinTimeout" methodname="ObstacleScanner_DetectsNearbyObstacle_WithinTimeout" classname="Tests.PlayMode.ScannerPlayModeTests" runstate="Runnable" seed="380406643" result="Passed" start-time="2026-03-02 04:01:46Z" end-time="2026-03-02 04:01:46Z" duration="0.003556" asserts="0">
+              <properties>
+                <property name="_JOINTYPE" value="UnityCombinatorial" />
+                <property name="Category" value="Smoke" />
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[There are no audio listeners in the scene. Please ensure there is always one audio listener in the scene
+Saving results to: C:/Users/amind/AppData/LocalLow/AryeGames/Astronomical\TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

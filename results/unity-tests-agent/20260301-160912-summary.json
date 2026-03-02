@@ -1,0 +1,79 @@
+﻿{
+    "generatedAt":  "2026-03-01T16:09:12.4159105-08:00",
+    "projectPath":  "D:\\amind\\git\\astronomical-home\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "Both",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "smoke",
+                      "testFilter":  "Tests\\.EditMode\\.CameraUtilsEditModeTests|CollisionDamageUtilityTests|GamePlanePlayMode|CameraFollowPlayMode",
+                      "testCategory":  "",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  ""
+                  },
+    "status":  "infra_error",
+    "totals":  {
+                   "total":  0,
+                   "passed":  0,
+                   "failed":  0,
+                   "skipped":  0,
+                   "durationSec":  0
+               },
+    "runs":  [
+                 {
+                     "platform":  "EditMode",
+                     "xmlPath":  "D:\\amind\\git\\astronomical-home\\results\\unity-tests-agent\\20260301-160912-EditMode.xml",
+                     "logPath":  "D:\\amind\\git\\astronomical-home\\results\\unity-tests-agent\\20260301-160912-EditMode.log",
+                     "unityExitCode":  0,
+                     "status":  "infra_error",
+                     "total":  0,
+                     "passed":  0,
+                     "failed":  0,
+                     "skipped":  0,
+                     "durationSec":  0,
+                     "failures":  [
+
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "testFilter":  "Tests\\.EditMode\\.CameraUtilsEditModeTests|CollisionDamageUtilityTests|GamePlanePlayMode|CameraFollowPlayMode",
+                                       "orderedTestListFile":  "",
+                                       "assemblyNames":  "",
+                                       "testCategory":  "",
+                                       "scopeType":  "Workspace",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  "smoke"
+                                   },
+                     "logTail":  "",
+                     "note":  "Result XML not found"
+                 },
+                 {
+                     "platform":  "PlayMode",
+                     "xmlPath":  "D:\\amind\\git\\astronomical-home\\results\\unity-tests-agent\\20260301-160912-PlayMode.xml",
+                     "logPath":  "D:\\amind\\git\\astronomical-home\\results\\unity-tests-agent\\20260301-160912-PlayMode.log",
+                     "unityExitCode":  0,
+                     "status":  "infra_error",
+                     "total":  0,
+                     "passed":  0,
+                     "failed":  0,
+                     "skipped":  0,
+                     "durationSec":  0,
+                     "failures":  [
+
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "testFilter":  "Tests\\.EditMode\\.CameraUtilsEditModeTests|CollisionDamageUtilityTests|GamePlanePlayMode|CameraFollowPlayMode",
+                                       "orderedTestListFile":  "",
+                                       "assemblyNames":  "",
+                                       "testCategory":  "",
+                                       "scopeType":  "Workspace",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  "smoke"
+                                   },
+                     "logTail":  "",
+                     "note":  "Result XML not found"
+                 }
+             ]
+}

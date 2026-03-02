@@ -1,0 +1,77 @@
+{
+    "generatedAt":  "2026-03-01T19:36:09.3768355-08:00",
+    "projectPath":  "D:\\amind\\git\\astronomical-home\\src\\Asteroids3D",
+    "unityPath":  "D:\\Programs\\Unity\\Editor\\6000.1.8f1\\Editor\\Unity.exe",
+    "mode":  "PlayMode",
+    "selection":  {
+                      "scopeType":  "Workspace",
+                      "scopeName":  "",
+                      "testFilter":  "",
+                      "testCategory":  "",
+                      "assemblyNames":  "",
+                      "orderedTestListFile":  "",
+                      "rerunFailedFrom":  ""
+                  },
+    "status":  "failed",
+    "totals":  {
+                   "total":  12,
+                   "passed":  8,
+                   "failed":  4,
+                   "skipped":  0,
+                   "durationSec":  70.906
+               },
+    "runs":  [
+                 {
+                     "platform":  "PlayMode",
+                     "xmlPath":  "D:\\amind\\git\\astronomical-home\\results\\unity-tests-agent\\20260301-193443-PlayMode.xml",
+                     "logPath":  "D:\\amind\\git\\astronomical-home\\results\\unity-tests-agent\\20260301-193443-PlayMode.log",
+                     "unityExitCode":  2,
+                     "status":  "unknown",
+                     "total":  12,
+                     "passed":  8,
+                     "failed":  4,
+                     "skipped":  0,
+                     "durationSec":  70.9063166,
+                     "failures":  [
+                                      {
+                                          "name":  "MpcFixedWaypoint_ShipArrivesWithinTimeout",
+                                          "fullName":  "Tests.PlayMode.MpcNavigatorPlayModeTests.MpcFixedWaypoint_ShipArrivesWithinTimeout",
+                                          "durationSec":  0.157073,
+                                          "message":  "SetUp : Unhandled log message: \u0027[Exception] ArgumentNullException: Value cannot be null. Parameter name: gameConfig\u0027. Use UnityEngine.TestTools.LogAssert.Expect",
+                                          "topStack":  "Game.GameInitiator+\u003cInitialize\u003ed__12.MoveNext () (at Assets/Scripts/Game/GameInitiator.cs:45)"
+                                      },
+                                      {
+                                          "name":  "AvoidObstacles_ShipReachesWaypointAroundBarrier",
+                                          "fullName":  "Tests.PlayMode.NavigatorPlayModeTests.AvoidObstacles_ShipReachesWaypointAroundBarrier",
+                                          "durationSec":  25.020178,
+                                          "message":  "Ship should navigate around obstacle and reach ((10.00, 10.00)) within 25s Expected: less than 0.100000001f But was: 8.99238014f",
+                                          "topStack":  "at Tests.PlayMode.NavigatorPlayModeTests+\u003cAvoidObstacles_ShipReachesWaypointAroundBarrier\u003ed__8.MoveNext () [0x000fd] in D:\\amind\\git\\astronomical-home\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\PlayMode\\NavigatorPlayMode.cs:96"
+                                      },
+                                      {
+                                          "name":  "NavigateToWaypoint_ShipArrivesWithinTimeout",
+                                          "fullName":  "Tests.PlayMode.NavigatorPlayModeTests.NavigateToWaypoint_ShipArrivesWithinTimeout",
+                                          "durationSec":  25.018812,
+                                          "message":  "Ship did not reach waypoint within 25s. Final pos: (1.01, 0.00, 0.98) Expected: less than 0.100000001f But was: 8.99238014f",
+                                          "topStack":  "at Tests.PlayMode.NavigatorPlayModeTests+\u003cNavigateToWaypoint_ShipArrivesWithinTimeout\u003ed__7.MoveNext () [0x000bf] in D:\\amind\\git\\astronomical-home\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\PlayMode\\NavigatorPlayMode.cs:76"
+                                      },
+                                      {
+                                          "name":  "ObstacleScanner_DetectsNearbyObstacle_WithinTimeout",
+                                          "fullName":  "Tests.PlayMode.ScannerPlayModeTests.ObstacleScanner_DetectsNearbyObstacle_WithinTimeout",
+                                          "durationSec":  3.013946,
+                                          "message":  "Scanner should detect nearby obstacle within 3s Expected: True But was: False",
+                                          "topStack":  "at Tests.PlayMode.ScannerPlayModeTests+\u003cObstacleScanner_DetectsNearbyObstacle_WithinTimeout\u003ed__5.MoveNext () [0x000a3] in D:\\amind\\git\\astronomical-home\\src\\Asteroids3D\\Assets\\Scripts\\Editor\\Tests\\PlayMode\\ScannerPlayMode.cs:60"
+                                      }
+                                  ],
+                     "truncatedFailures":  0,
+                     "selection":  {
+                                       "testFilter":  "",
+                                       "orderedTestListFile":  "",
+                                       "assemblyNames":  "",
+                                       "testCategory":  "",
+                                       "scopeType":  "Workspace",
+                                       "rerunFailedFrom":  "",
+                                       "scopeName":  ""
+                                   }
+                 }
+             ]
+}
