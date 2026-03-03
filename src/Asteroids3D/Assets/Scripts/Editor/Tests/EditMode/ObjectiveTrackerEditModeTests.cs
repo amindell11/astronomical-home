@@ -15,9 +15,23 @@ namespace Tests.EditMode
     [Category("Objectives")]
     public class ObjectiveTrackerEditModeTests
     {
+        private readonly List<ObjectiveParams> createdParams = new();
+
+        [TearDown]
+        public void TearDown()
+        {
+            foreach (var paramsAsset in createdParams)
+            {
+                if (paramsAsset != null)
+                    Object.DestroyImmediate(paramsAsset);
+            }
+
+            createdParams.Clear();
+        }
+
         // ── Factory helpers ───────────────────────────────────────────────────────
 
-        private static (ObjectiveTracker tracker, StubKeyTracker key, StubPlayerAlive alive, StubPlayerPosition playerPos, StubExtractionBlocker blocker, StubChaserSpawner spawner)
+        private (ObjectiveTracker tracker, StubKeyTracker key, StubPlayerAlive alive, StubPlayerPosition playerPos, StubExtractionBlocker blocker, StubChaserSpawner spawner)
             BuildExploreTracker(Vector3? zonePos = null)
         {
             var key = new StubKeyTracker(false);
@@ -27,6 +41,7 @@ namespace Tests.EditMode
             var spawner = new StubChaserSpawner();
             var zone = new StubExtractionZone(zonePos ?? new Vector3(100f, 0f, 0f));
             var paramsAsset = ScriptableObject.CreateInstance<ObjectiveParams>();
+            createdParams.Add(paramsAsset);
             var factory = new ObjectiveStateFactory(key, playerPos, zone, blocker, spawner, paramsAsset);
             var tracker = new ObjectiveTracker(MissionDefinition.CreateDefault(), factory, alive);
             return (tracker, key, alive, playerPos, blocker, spawner);

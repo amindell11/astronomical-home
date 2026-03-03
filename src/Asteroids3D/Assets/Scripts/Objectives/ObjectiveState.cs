@@ -13,7 +13,5 @@ namespace Objectives
         public virtual void Exit() { }
 
         public abstract bool IsComplete { get; }
-
-        public abstract float ComputeUtility();
     }
 }

@@ -15,7 +15,9 @@ namespace Objectives
         public MissionDefinition(ObjectiveType initialState, Dictionary<ObjectiveType, ObjectiveType> transitions)
         {
             InitialState = initialState;
-            Transitions = transitions;
+            Transitions = transitions == null
+                ? new Dictionary<ObjectiveType, ObjectiveType>()
+                : new Dictionary<ObjectiveType, ObjectiveType>(transitions);
         }
 
         public bool TryGetNext(ObjectiveType current, out ObjectiveType next) =>

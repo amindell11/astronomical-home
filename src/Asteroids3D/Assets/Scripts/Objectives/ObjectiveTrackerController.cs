@@ -17,7 +17,7 @@ namespace Objectives
     /// - Extracted/Failed both restart the same encounter.
     /// </summary>
     [DefaultExecutionOrder(-60)]
-    public class ObjectiveTrackerRunner : MonoBehaviour,
+    public class ObjectiveTrackerController : MonoBehaviour,
         IObjectiveTrackerAdapter,
         IKeyTracker,
         IPlayerPosition,
@@ -69,7 +69,7 @@ namespace Objectives
 
             if (parameters == null)
             {
-                Debug.LogError("[ObjectiveTrackerRunner] Missing ObjectiveParams reference.", this);
+                Debug.LogError("[ObjectiveTrackerController] Missing ObjectiveParams reference.", this);
                 enabled = false;
                 return;
             }

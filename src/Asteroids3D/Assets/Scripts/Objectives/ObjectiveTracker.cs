@@ -71,7 +71,9 @@ namespace Objectives
             current.Exit();
             current = factory.Create(next);
             current.Enter();
-            OnStateChanged?.Invoke(previous, next);
+
+            if (previous != next)
+                OnStateChanged?.Invoke(previous, next);
         }
 
         private static bool IsTerminal(ObjectiveType type) =>

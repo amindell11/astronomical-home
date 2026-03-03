@@ -13,13 +13,17 @@ namespace Objectives
         [SerializeField] private float extractionRadius = 10f;
         [SerializeField] private float extractionBlockDistance = 20f;
 
-        [Header("Restart")]
-        [SerializeField] private float restartDelaySeconds = 0f;
-
         public float KeySpawnRadius => keySpawnRadius;
         public float KeyPickupDistance => keyPickupDistance;
         public float ExtractionRadius => extractionRadius;
         public float ExtractionBlockDistance => extractionBlockDistance;
-        public float RestartDelaySeconds => restartDelaySeconds;
+
+        private void OnValidate()
+        {
+            keySpawnRadius = Mathf.Max(0f, keySpawnRadius);
+            keyPickupDistance = Mathf.Max(0f, keyPickupDistance);
+            extractionRadius = Mathf.Max(0f, extractionRadius);
+            extractionBlockDistance = Mathf.Max(0f, extractionBlockDistance);
+        }
     }
 }

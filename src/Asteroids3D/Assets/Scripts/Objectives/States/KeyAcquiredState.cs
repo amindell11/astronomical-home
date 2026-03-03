@@ -13,7 +13,5 @@ namespace Objectives.States
 
         /// <summary>Always true — this state is a momentary transition marker.</summary>
         public override bool IsComplete => true;
-
-        public override float ComputeUtility() => 1f;
     }
 }

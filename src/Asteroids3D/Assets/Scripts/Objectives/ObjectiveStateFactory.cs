@@ -20,12 +20,12 @@ namespace Objectives
             IExtractionChaserSpawner chaserSpawner,
             ObjectiveParams parameters)
         {
-            this.keyTracker = keyTracker;
-            this.playerPosition = playerPosition;
-            this.extractionZone = extractionZone;
+            this.keyTracker = keyTracker ?? throw new ArgumentNullException(nameof(keyTracker));
+            this.playerPosition = playerPosition ?? throw new ArgumentNullException(nameof(playerPosition));
+            this.extractionZone = extractionZone ?? throw new ArgumentNullException(nameof(extractionZone));
             this.extractionBlocker = extractionBlocker;
             this.chaserSpawner = chaserSpawner;
-            this.parameters = parameters;
+            this.parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));
         }
 
         public ObjectiveState Create(ObjectiveType type) => type switch

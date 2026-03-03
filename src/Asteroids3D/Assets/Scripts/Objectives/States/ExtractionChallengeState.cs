@@ -19,11 +19,11 @@ namespace Objectives.States
             IExtractionChaserSpawner chaserSpawner,
             ObjectiveParams parameters)
         {
-            this.playerPosition = playerPosition;
-            this.extractionZone = extractionZone;
+            this.playerPosition = playerPosition ?? throw new System.ArgumentNullException(nameof(playerPosition));
+            this.extractionZone = extractionZone ?? throw new System.ArgumentNullException(nameof(extractionZone));
             this.extractionBlocker = extractionBlocker;
             this.chaserSpawner = chaserSpawner;
-            this.parameters = parameters;
+            this.parameters = parameters ?? throw new System.ArgumentNullException(nameof(parameters));
         }
 
         public override void Enter()
@@ -36,7 +36,5 @@ namespace Objectives.States
         public override bool IsComplete =>
             Vector3.Distance(playerPosition.Position, extractionZone.Position) <= parameters.ExtractionRadius
             && (extractionBlocker == null || !extractionBlocker.IsExtractionBlocked);
-
-        public override float ComputeUtility() => 1f;
     }
 }

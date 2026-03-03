@@ -8,7 +8,7 @@ namespace Diagnostics
     ///
     /// USAGE:
     /// 1. Attach to the same GameObject as your ObjectiveTracker MonoBehaviour adapter.
-    /// 2. Wire the TrackerAdapter reference in the Inspector (or let it auto-find).
+    /// 2. Wire the adapterSource reference in the Inspector to your ObjectiveTrackerController.
     /// 3. Play the scene — state transitions are logged to the Console.
     /// 4. In Scene view, gizmos show the extraction zone radius (yellow sphere).
     ///
@@ -33,15 +33,19 @@ namespace Diagnostics
         [Tooltip("Gizmo color for extraction zone")]
         [SerializeField] private Color extractionZoneColor = new Color(0f, 1f, 0.5f, 0.3f);
 
+        [Header("Adapter")]
+        [Tooltip("Assign the scene component that implements IObjectiveTrackerAdapter (usually ObjectiveTrackerController)")]
+        [SerializeField] private MonoBehaviour adapterSource;
+
         // ── Runtime subscription ──────────────────────────────────────────────────
 
         private IObjectiveTrackerAdapter adapter;
 
         private void Awake()
         {
-            adapter = GetComponent<IObjectiveTrackerAdapter>();
+            adapter = adapterSource as IObjectiveTrackerAdapter;
             if (adapter == null)
-                Debug.LogWarning($"[ObjectiveTrackerDiagnostics] No IObjectiveTrackerAdapter found on '{name}'. Transition logs disabled.", this);
+                Debug.LogWarning($"[ObjectiveTrackerDiagnostics] No IObjectiveTrackerAdapter assigned on '{name}'. Transition logs disabled.", this);
         }
 
         private void OnEnable()
