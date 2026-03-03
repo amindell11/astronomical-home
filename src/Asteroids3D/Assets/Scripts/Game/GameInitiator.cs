@@ -1,16 +1,11 @@
 using System;
 using System.Collections;
-using System.Linq;
 using AI;
-using Cameras;
 using Game.Session;
 using Player;
 using Ships;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using Utils;
-using World;
-using ShipFactory = Ships.Factory;
 
 namespace Game
 {
@@ -21,6 +16,9 @@ namespace Game
         [SerializeField] private ShipRespawnRunner respawnRunner;
 
         private SessionContext sessionContext;
+        private SessionEnvironmentLoader environmentLoader;
+        private SessionRuntimeBuilder runtimeBuilder;
+        private SessionPresentationBinder presentationBinder;
         private Coroutine sessionRoutine;
         private bool isInitialized;
         private bool worldSceneLoadedBySession;
@@ -35,6 +33,7 @@ namespace Game
         private void Awake()
         {
             ValidateSerializedDependencies();
+            EnsurePhaseModules();
 
             if (!gameConfig)
                 throw new ArgumentNullException(nameof(gameConfig));
@@ -90,6 +89,7 @@ namespace Game
 
             sessionContext = null;
             isInitialized = false;
+            worldSceneLoadedBySession = false;
         }
 
         public void Shutdown()
@@ -108,6 +108,7 @@ namespace Game
                 throw new ArgumentNullException(nameof(config.GameConfig));
 
             ValidateSerializedDependencies();
+            EnsurePhaseModules();
 
             var startupSucceeded = false;
             try
@@ -126,16 +127,17 @@ namespace Game
             }
             finally
             {
+                sessionRoutine = null;
                 if (!startupSucceeded)
-                {
-                    sessionRoutine = null;
                     TeardownFailedStartup();
-                }
-                else
-                {
-                    sessionRoutine = null;
-                }
             }
+        }
+
+        private void EnsurePhaseModules()
+        {
+            environmentLoader ??= new SessionEnvironmentLoader(referencePlane);
+            runtimeBuilder ??= new SessionRuntimeBuilder();
+            presentationBinder ??= new SessionPresentationBinder(() => WorldFollowerTransform);
         }
 
         private void TeardownFailedStartup()
@@ -153,147 +155,39 @@ namespace Game
             GamePlane.Reset();
 
             sessionContext = null;
+            worldSceneLoadedBySession = false;
         }
 
         private IEnumerator LoadEnvironment(SectorSessionConfig config)
         {
             GamePlane.SetReferencePlane(referencePlane);
-
-            if (config.LoadWorldScene)
-            {
-                yield return StartCoroutine(LoadWorldScene(config.WorldSceneName));
-            }
-            else
-            {
-                referencePlane.SetPositionAndRotation(Vector3.zero, Quaternion.Euler(90f, 0f, 0f));
-            }
+            yield return StartCoroutine(environmentLoader.LoadEnvironment(config, MarkWorldSceneLoadedBySession));
         }
 
-        private IEnumerator LoadWorldScene(string worldSceneName)
+        private void MarkWorldSceneLoadedBySession()
         {
-            if (string.IsNullOrWhiteSpace(worldSceneName))
-                yield break;
-
-            if (!SceneManager.GetSceneByName(worldSceneName).isLoaded)
-            {
-                var loadOp = SceneManager.LoadSceneAsync(worldSceneName, LoadSceneMode.Additive);
-                if (loadOp == null)
-                    throw new InvalidOperationException($"Failed to start async load for scene '{worldSceneName}'. Verify the scene exists and is added to Build Settings.");
-
-                while (!loadOp.isDone)
-                    yield return null;
-
-                worldSceneLoadedBySession = true;
-            }
-
-            referencePlane.SetPositionAndRotation(Vector3.zero, Quaternion.Euler(90f, 0f, 0f));
+            worldSceneLoadedBySession = true;
         }
 
-        private void BuildRuntimeServices(SectorSessionConfig config)
+        private void BuildRuntimeServices(SectorSessionConfig _config)
         {
-            InitializeWorld(config.GameConfig);
-            sessionContext.ShipRegistry = new ShipRegistry(config.GameConfig);
+            runtimeBuilder.BuildRuntimeServices(sessionContext);
         }
 
-        private void SpawnActors(SectorSessionConfig config)
+        private void SpawnActors(SectorSessionConfig _config)
         {
-            var shipRegistry = sessionContext.ShipRegistry;
-
-            sessionContext.Player = ShipFactory.CreateShip(
-                config.GameConfig.PlayerTemplate,
-                config.GameConfig.PlayerCommander,
-                config.GameConfig.ShipSettings,
-                0,
-                config.PlayerSpawnPosition,
-                config.PlayerSpawnRotation,
-                postInitialize: WireShipDependencies);
-            sessionContext.Player.tag = TagNames.Player;
-
-            shipRegistry.ActiveShips.Add(sessionContext.Player);
-
-            if (config.SpawnEnemy && config.GameConfig.EnemyTemplate)
-            {
-                var enemySpawn = config.GetEnemySpawnPosition();
-                sessionContext.Enemy = ShipFactory.CreateShip(
-                    config.GameConfig.EnemyTemplate,
-                    config.GameConfig.EnemyCommander,
-                    config.GameConfig.ShipSettings,
-                    1,
-                    enemySpawn,
-                    Quaternion.identity,
-                    WireShipDependencies);
-
-                shipRegistry.ActiveShips.Add(sessionContext.Enemy);
-            }
-
-            respawnRunner.Initialize(config.GameConfig.ShipSpawnerSettings, shipRegistry, () => WorldFollowerTransform);
-
-            if (sessionContext.World?.Follower && sessionContext.Player)
-                sessionContext.World.Follower.SetTarget(sessionContext.Player.transform);
+            runtimeBuilder.SpawnActors(sessionContext, WireShipDependencies, () => WorldFollowerTransform);
         }
 
-        private void BindPresentation(GameConfig config)
+        private void BindPresentation(GameConfig _config)
         {
-            InitializeCamera(config);
-            InitializeAsteroidField(config);
-            ConfigurePlayerInputProjection();
+            presentationBinder.Bind(sessionContext);
         }
 
         private void StartSessionFlow()
         {
             ValidateRuntimeWiring();
             PublishPresentationReady();
-        }
-
-        private void InitializeCamera(GameConfig config)
-        {
-            if (!config.CameraRig)
-                return;
-
-            sessionContext.CameraRig = Instantiate(config.CameraRig);
-
-            var cameraFollow = sessionContext.CameraRig.ObserverCam;
-            if (sessionContext.Player)
-                cameraFollow.SetSubject(sessionContext.Player.transform);
-
-            if (sessionContext.ShipRegistry != null)
-            {
-                cameraFollow.AddSecondarySubjects(sessionContext.ShipRegistry.ActiveShips.Where(s => s != sessionContext.Player).Select(s => s.transform));
-                sessionContext.ShipRegistry.ActiveShips.OnAdd += OnShipAddedToRegistry;
-                sessionContext.ShipRegistry.ActiveShips.OnRemove += OnShipRemovedFromRegistry;
-            }
-        }
-
-        private void OnShipAddedToRegistry(Ship ship)
-        {
-            if (!ship) return;
-            sessionContext?.CameraRig?.ObserverCam?.AddSecondarySubject(ship.transform);
-        }
-
-        private void OnShipRemovedFromRegistry(Ship ship)
-        {
-            if (!ship) return;
-            sessionContext?.CameraRig?.ObserverCam?.RemoveSecondarySubject(ship.transform);
-        }
-
-        private void InitializeAsteroidField(GameConfig config)
-        {
-            if (!config.AsteroidAsteroidField)
-                return;
-
-            var cullingBoundary = sessionContext.World ? sessionContext.World.AsteroidCullingBoundary : null;
-            sessionContext.AsteroidField = Instantiate(config.AsteroidAsteroidField);
-            sessionContext.AsteroidField.Initialize(cullingBoundary);
-            sessionContext.AsteroidField.SetWorldAnchor(WorldFollowerTransform);
-
-            if (sessionContext.CameraRig)
-                sessionContext.AsteroidField.CurrentAnchorPos = () => GamePlane.ProjectOntoPlane(sessionContext.CameraRig.transform.position);
-        }
-
-        private void InitializeWorld(GameConfig config)
-        {
-            if (!config.World) return;
-            sessionContext.World = Instantiate(config.World);
         }
 
         private void WireShipDependencies(Ship ship)
@@ -304,18 +198,6 @@ namespace Game
             ship.Targeting?.SetRegistry(ShipRegistry);
             if (ship.Commander is AICommander aiCommander)
                 aiCommander.SetRegistry(ShipRegistry);
-        }
-
-        private void ConfigurePlayerInputProjection()
-        {
-            if (sessionContext?.Player?.Commander is not PlayerCommander playerCommander)
-                return;
-
-            if (!sessionContext.CameraRig)
-                return;
-
-            playerCommander.SetScreenToGamePlane(pos =>
-                GamePlane.ProjectOntoPlane(sessionContext.CameraRig.MainCamera.ScreenToWorldPoint(pos)) + GamePlane.Origin);
         }
 
         private void ValidateRuntimeWiring()
@@ -376,26 +258,13 @@ namespace Game
 
         private void UnloadWorldScene(SectorSessionConfig config)
         {
-            if (!worldSceneLoadedBySession)
-                return;
-
-            if (config == null || string.IsNullOrWhiteSpace(config.WorldSceneName))
-                return;
-
-            var scene = SceneManager.GetSceneByName(config.WorldSceneName);
-            if (scene.isLoaded)
-                SceneManager.UnloadSceneAsync(config.WorldSceneName);
-
+            environmentLoader.UnloadOwnedWorldScene(config, worldSceneLoadedBySession);
             worldSceneLoadedBySession = false;
         }
 
         private void UnbindShipRegistry()
         {
-            if (sessionContext?.ShipRegistry == null)
-                return;
-
-            sessionContext.ShipRegistry.ActiveShips.OnAdd -= OnShipAddedToRegistry;
-            sessionContext.ShipRegistry.ActiveShips.OnRemove -= OnShipRemovedFromRegistry;
+            presentationBinder?.Unbind();
         }
 
         private void PublishPresentationReady()
