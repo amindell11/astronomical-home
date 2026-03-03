@@ -126,7 +126,7 @@ namespace Game
             player.tag = TagNames.Player;
 
             enemy = ShipFactory.CreateShip(config.EnemyTemplate, config.EnemyCommander, config.ShipSettings, 1,
-                GamePlane.PlanePointToWorld(Random.insideUnitCircle * 5), Quaternion.identity, WireShipDependencies);
+                GamePlane.PlanePointToWorld(Random.insideUnitCircle) * 5, Quaternion.identity, postInitialize: WireShipDependencies);
 
             ShipRegistry.ActiveShips.Add(player);
             ShipRegistry.ActiveShips.Add(enemy);
