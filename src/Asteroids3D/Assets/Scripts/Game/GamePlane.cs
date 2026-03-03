@@ -27,6 +27,9 @@ namespace Game
         /// <summary>Clears the cached reference plane. Useful for test teardown.</summary>
         public static void Reset() => _plane = null;
 
+        /// <summary>Returns true if a reference plane has been configured.</summary>
+        public static bool IsConfigured => _plane;
+
         /// <summary>Returns the configured reference plane. Throws if not configured.</summary>
         public static Transform Plane => _plane
             ? _plane

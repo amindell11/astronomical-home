@@ -33,6 +33,7 @@ public abstract class PlayModeWorldFixture
             AudioListener.pause = true;
 
         TestSceneBuilder.CreateTestArena();
+        GamePlane.SetReferencePlane(TestSceneBuilder.ReferencePlane);
     }
 
     /// <summary>

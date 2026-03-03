@@ -26,6 +26,10 @@ public class ScannerPlayModeTests : PlayModeWorldFixture
 #if UNITY_EDITOR
         ship = ShipTestFactory.CreateDefaultShip(useMpcPilot: false);
         cmdr = ship.Commander as AICommander;
+
+        // Scout.Initialize() (and therefore obstacleScanner) is gated on a registry being
+        // present. Supply a stub so AI systems fully initialise without a real game world.
+        cmdr.SetRegistry(new StubShipRegistry());
 #else
         Assert.Ignore("ScannerPlayModeTests requires the Unity Editor (uses AssetDatabase).");
 #endif

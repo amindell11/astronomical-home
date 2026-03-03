@@ -126,7 +126,7 @@ namespace Game
             player.tag = TagNames.Player;
 
             enemy = ShipFactory.CreateShip(config.EnemyTemplate, config.EnemyCommander, config.ShipSettings, 1,
-                GamePlane.PlanePointToWorld(Random.insideUnitCircle) * 5, Quaternion.identity, postInitialize: WireShipDependencies);
+                GamePlane.PlanePointToWorld(Random.insideUnitCircle * 5), Quaternion.identity, WireShipDependencies);
 
             ShipRegistry.ActiveShips.Add(player);
             ShipRegistry.ActiveShips.Add(enemy);
@@ -152,7 +152,7 @@ namespace Game
                 return;
 
             playerCommander.SetScreenToGamePlane(pos =>
-                GamePlane.ProjectOntoPlane(cameraRig.MainCamera.ScreenToWorldPoint(pos)));
+                GamePlane.ProjectOntoPlane(cameraRig.MainCamera.ScreenToWorldPoint(pos)) + GamePlane.Origin);
         }
 
         private void ValidateRuntimeWiring()
@@ -160,7 +160,7 @@ namespace Game
             ValidateShipWiring(player);
             ValidateShipWiring(enemy);
 
-            if (player?.Commander is PlayerCommander pc && !pc.HasScreenProjectorConfigured)
+            if (player?.Commander is PlayerCommander { HasScreenProjectorConfigured: false })
                 throw new InvalidOperationException("PlayerCommander requires a configured screen-to-plane projector.");
 
             if (!respawnRunner || !respawnRunner.IsInitialized)
@@ -187,7 +187,7 @@ namespace Game
             if (ship.Targeting && !ship.Targeting.HasRegistry)
                 throw new InvalidOperationException($"TargetingComputer on ship '{ship.name}' is missing IShipRegistry wiring.");
 
-            if (ship.Commander is AICommander aiCommander && !aiCommander.HasRegistryConfigured)
+            if (ship.Commander is AICommander { HasRegistryConfigured: false })
                 throw new InvalidOperationException($"AICommander on ship '{ship.name}' is missing IShipRegistry wiring.");
         }
 
@@ -236,11 +236,9 @@ namespace Game
 
         private void OnDestroy()
         {
-            if (ShipRegistry != null)
-            {
-                ShipRegistry.ActiveShips.OnAdd -= OnShipAddedToRegistry;
-                ShipRegistry.ActiveShips.OnRemove -= OnShipRemovedFromRegistry;
-            }
+            if (ShipRegistry == null) return;
+            ShipRegistry.ActiveShips.OnAdd -= OnShipAddedToRegistry;
+            ShipRegistry.ActiveShips.OnRemove -= OnShipRemovedFromRegistry;
         }
     }
 }

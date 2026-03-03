@@ -96,6 +96,7 @@ namespace UI
         private void LateUpdate()
         {
             if (canvasGroup && canvasGroup.alpha <= 0f) return;
+            if (!GamePlane.IsConfigured) return;
             transform.rotation = Quaternion.Euler(90, 0, 0);
             transform.position = transform.parent.position + GamePlane.Normal * verticalOffset;
         }
