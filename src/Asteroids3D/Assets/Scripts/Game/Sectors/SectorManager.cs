@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using Game.Bootstrap;
 using Game.Services;
+using Ships;
 using UnityEngine;
 
 namespace Game.Sectors
@@ -13,11 +14,13 @@ namespace Game.Sectors
         protected IGameServices Services { get; private set; }
         protected SectorConfigSO Config { get; private set; }
         protected bool IsSetUp { get; private set; }
+        protected ShipRespawnRunner RespawnRunner { get; private set; }
 
-        public void Initialize(IGameServices services, SectorConfigSO config)
+        public void Initialize(IGameServices services, SectorConfigSO config, ShipRespawnRunner respawnRunner = null)
         {
             Services = services ?? throw new ArgumentNullException(nameof(services));
             Config = config ?? throw new ArgumentNullException(nameof(config));
+            RespawnRunner = respawnRunner;
         }
 
         public IEnumerator Setup()

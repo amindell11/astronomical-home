@@ -101,15 +101,24 @@ namespace Game.Sectors
                 Services.CameraService.ConfigurePlayerInputProjection(pc);
             }
 
-            // Phase 5: Objective (if controller and params available)
-            // ObjectiveService.SetObjective requires full factory wiring which depends on
-            // scene-level components; deferred to ObjectiveTrackerController scene setup for MVP.
+            // Phase 5: Respawn runner
+            if (RespawnRunner && respawnSettings)
+            {
+                RespawnRunner.Initialize(
+                    respawnSettings,
+                    Services.UnitService.ActiveRegistry,
+                    () => Services.EnvironmentService.WorldFollowerTransform);
+            }
 
             yield return null;
         }
 
         protected override IEnumerator OnTeardown()
         {
+            // Reset respawn runner
+            if (RespawnRunner)
+                RespawnRunner.ResetRunner();
+
             // Unbind registry events
             var registry = Services.UnitService.ActiveRegistry;
             if (registry != null)
