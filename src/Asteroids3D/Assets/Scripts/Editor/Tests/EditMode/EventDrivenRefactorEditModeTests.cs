@@ -163,15 +163,15 @@ namespace Tests.EditMode
         {
             var assetsPath = Application.dataPath;
             var updatingFieldPath = Path.Combine(assetsPath, "Scripts", "Asteroids", "Fields", "UpdatingAsteroidField.cs");
-            var initiatorPath = Path.Combine(assetsPath, "Scripts", "Game", "GameInitiator.cs");
+            var managerPath = Path.Combine(assetsPath, "Scripts", "Game", "Bootstrap", "MainGameManager.cs");
 
             var updatingFieldSource = File.ReadAllText(updatingFieldPath);
-            var initiatorSource = File.ReadAllText(initiatorPath);
+            var managerSource = File.ReadAllText(managerPath);
 
             StringAssert.DoesNotContain("using UnityEditor", updatingFieldSource);
             StringAssert.DoesNotContain("OnDrawGizmosSelected", updatingFieldSource);
-            StringAssert.DoesNotContain("GameContext.Instance", initiatorSource);
-            StringAssert.Contains("PresentationReady", initiatorSource);
+            StringAssert.DoesNotContain("GameContext.Instance", managerSource);
+            StringAssert.Contains("PresentationReady", managerSource);
         }
 
         private static AudioClip CreateTestClip(string name)
