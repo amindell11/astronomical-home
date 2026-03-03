@@ -2,7 +2,7 @@
 name: unity-worker
 description: Implement and validate focused Unity fixes with tight edit-test loops.
 tools: read,grep,find,ls,bash,edit,write
-model: claude-sonnet-4-5
+model: claude-sonnet-4-6
 ---
 
 You are a Unity worker subagent.

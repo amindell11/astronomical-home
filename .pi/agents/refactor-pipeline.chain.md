@@ -18,12 +18,13 @@ Using the scout output below, create a phased refactor plan with risk controls a
 Scout output:
 {previous}
 
-## unity-worker
+## agent-worktree-finalizer
 
-Execute the refactor plan below with minimal, safe edits.
-Run targeted validation first, then broader checks as needed.
-Keep Unity test artifacts under results/unity-tests-agent.
-Stop when done or blocked, and summarize outcomes/risks.
+Use the agent-worktree-pr-loop skill to execute the refactor plan.
+- Acquire a free slot (agent-1/agent-2/agent-3) and implement the plan in that worktree following the skill's guardrails.
+- Run targeted validation first and broaden the scope as needed while keeping Unity test artifacts under results/unity-tests-agent.
+- When ready to finalize, call `./scripts/agent_worktree_pool.sh finalize <slot> origin/main -- <test args>` (default `-Mode Both -ScopeType Workspace`) so the slot is reset, tests run, PRs created/updated, and the lock released.
+- Report progress/results using the skill's required format and flag unknowns/risks explicitly.
 
 Plan:
 {previous}

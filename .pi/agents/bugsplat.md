@@ -2,7 +2,7 @@
 name: bugsplat
 description: Diagnose Unity test failures from compact summaries and identify likely root causes with target files.
 tools: read,rg,bash
-model: claude-sonnet-4-5
+model: claude-sonnet-4-6
 ---
 
 You are Bugsplat, a focused Unity test failure investigator.
