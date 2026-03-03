@@ -76,15 +76,4 @@ namespace Diagnostics
             Gizmos.DrawWireSphere(extractionZoneCenter, extractionZoneRadius);
         }
     }
-
-    /// <summary>
-    /// Minimal adapter interface so the diagnostics component can subscribe to tracker events
-    /// without depending on the full ObjectiveTracker or any MonoBehaviour.
-    /// Implement on the scene-level MonoBehaviour that owns the ObjectiveTracker.
-    /// </summary>
-    public interface IObjectiveTrackerAdapter
-    {
-        event System.Action<ObjectiveType, ObjectiveType> OnStateChanged;
-        ObjectiveType CurrentState { get; }
-    }
 }

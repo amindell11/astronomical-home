@@ -21,4 +21,14 @@ namespace Objectives
     {
         bool IsAlive { get; }
     }
+
+    public interface IExtractionBlocker
+    {
+        bool IsExtractionBlocked { get; }
+    }
+
+    public interface IExtractionChaserSpawner
+    {
+        void SpawnChaser();
+    }
 }
