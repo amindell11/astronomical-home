@@ -136,7 +136,7 @@ namespace Tests.EditMode
             var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "UI", "OverlayBootstrap.cs"));
             StringAssert.Contains("gameInitiator.PresentationReady += HandlePresentationReady;", source);
             StringAssert.Contains("gameInitiator.PresentationReady -= HandlePresentationReady;", source);
-            StringAssert.Contains("overlay = Instantiate(gameConfig.UI);", source);
+            StringAssert.Contains("overlay = Instantiate(overlayPrefab);", source);
             StringAssert.Contains("overlay.Initialize(playerShip);", source);
         }
 

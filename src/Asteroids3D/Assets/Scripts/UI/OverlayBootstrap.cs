@@ -8,7 +8,7 @@ namespace UI
     public class OverlayBootstrap : MonoBehaviour
     {
         [SerializeField] private GameInitiator gameInitiator;
-        [SerializeField] private GameConfig gameConfig;
+        [SerializeField] private Overlay overlayPrefab;
 
         private Overlay overlay;
 
@@ -16,8 +16,8 @@ namespace UI
         {
             if (!gameInitiator)
                 throw new InvalidOperationException("OverlayBootstrap requires a serialized GameInitiator reference.");
-            if (!gameConfig || !gameConfig.UI)
-                throw new InvalidOperationException("OverlayBootstrap requires a GameConfig with a UI overlay prefab.");
+            if (!overlayPrefab)
+                throw new InvalidOperationException("OverlayBootstrap requires a serialized overlay prefab.");
 
             gameInitiator.PresentationReady += HandlePresentationReady;
         }
@@ -39,7 +39,7 @@ namespace UI
             if (overlay)
                 Destroy(overlay.gameObject);
 
-            overlay = Instantiate(gameConfig.UI);
+            overlay = Instantiate(overlayPrefab);
             overlay.SetCanvasWorldCamera(uiCamera);
             overlay.Initialize(playerShip);
         }
