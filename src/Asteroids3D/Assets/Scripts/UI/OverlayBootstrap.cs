@@ -1,5 +1,5 @@
 using System;
-using Game;
+using Game.Bootstrap;
 using Ships;
 using UnityEngine;
 
@@ -7,25 +7,25 @@ namespace UI
 {
     public class OverlayBootstrap : MonoBehaviour
     {
-        [SerializeField] private GameInitiator gameInitiator;
+        [SerializeField] private MainGameManager gameManager;
         [SerializeField] private Overlay overlayPrefab;
 
         private Overlay overlay;
 
         private void Awake()
         {
-            if (!gameInitiator)
-                throw new InvalidOperationException("OverlayBootstrap requires a serialized GameInitiator reference.");
+            if (!gameManager)
+                throw new InvalidOperationException("OverlayBootstrap requires a serialized MainGameManager reference.");
             if (!overlayPrefab)
                 throw new InvalidOperationException("OverlayBootstrap requires a serialized overlay prefab.");
 
-            gameInitiator.PresentationReady += HandlePresentationReady;
+            gameManager.PresentationReady += HandlePresentationReady;
         }
 
         private void OnDestroy()
         {
-            if (gameInitiator)
-                gameInitiator.PresentationReady -= HandlePresentationReady;
+            if (gameManager)
+                gameManager.PresentationReady -= HandlePresentationReady;
 
             if (overlay)
                 Destroy(overlay.gameObject);
