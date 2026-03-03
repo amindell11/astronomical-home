@@ -255,7 +255,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameInitiator: {fileID: 217078673}
-  gameConfig: {fileID: 11400000, guid: c0767e9ad227ffc4883ba709ca8283f6, type: 2}
+  overlayPrefab: {fileID: 6902055608550465894, guid: 87f4b42386fd2af44b25b722572d1fcd, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
