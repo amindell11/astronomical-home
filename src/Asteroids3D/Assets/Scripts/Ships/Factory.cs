@@ -18,12 +18,12 @@ namespace Ships
              int team,
              Vector3 position,
              Quaternion rotation,
-             Action<Ship> preInitialize = null)
+             Action<Ship> postInitialize = null)
         {
             var ship = UnityEngine.Object.Instantiate(prefab, position, rotation);
             ship.AddCommander(commander);
-            preInitialize?.Invoke(ship);
             ship.Initialize(shipSettings, team);
+            postInitialize?.Invoke(ship);
             return ship;
         }
     }
