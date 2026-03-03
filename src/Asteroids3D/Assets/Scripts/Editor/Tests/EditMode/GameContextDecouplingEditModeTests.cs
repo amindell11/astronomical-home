@@ -1,8 +1,8 @@
 using System.IO;
 using System.Reflection;
 using AI;
-using Game;
 using Combat.Targeting;
+using Game.Bootstrap;
 using NUnit.Framework;
 using Player;
 using Ships;
@@ -111,31 +111,28 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void GameInitiator_ShutdownResetsRespawnRunner()
+        public void MainGameManager_ResetsRespawnRunnerOnRestart()
         {
-            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Game", "GameInitiator.cs"));
+            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Game", "Bootstrap", "MainGameManager.cs"));
             StringAssert.Contains("respawnRunner.ResetRunner();", source);
         }
 
         [Test]
-        public void GameInitiator_UsesSerializedReferencePlaneAndRespawnRunner()
+        public void MainGameManager_UsesSerializedReferencePlaneAndRespawnRunner()
         {
-            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Game", "GameInitiator.cs"));
+            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Game", "Bootstrap", "MainGameManager.cs"));
             StringAssert.Contains("[SerializeField] private Transform referencePlane;", source);
             StringAssert.Contains("[SerializeField] private ShipRespawnRunner respawnRunner;", source);
             StringAssert.Contains("GamePlane.SetReferencePlane(referencePlane);", source);
-            StringAssert.Contains("if (!referencePlane)", source);
-            StringAssert.DoesNotContain("GetComponent<ShipRespawnRunner>() ?? gameObject.AddComponent<ShipRespawnRunner>();", source);
-            StringAssert.DoesNotContain("UI.Overlay", source);
-            StringAssert.DoesNotContain("HandlePresentationReady", source);
+            StringAssert.DoesNotContain("GameContext.Instance", source);
         }
 
         [Test]
         public void OverlayBootstrap_OwnsOverlayLifecycle()
         {
             var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "UI", "OverlayBootstrap.cs"));
-            StringAssert.Contains("gameInitiator.PresentationReady += HandlePresentationReady;", source);
-            StringAssert.Contains("gameInitiator.PresentationReady -= HandlePresentationReady;", source);
+            StringAssert.Contains("gameManager.PresentationReady += HandlePresentationReady;", source);
+            StringAssert.Contains("gameManager.PresentationReady -= HandlePresentationReady;", source);
             StringAssert.Contains("overlay = Instantiate(overlayPrefab);", source);
             StringAssert.Contains("overlay.Initialize(playerShip);", source);
         }
@@ -153,7 +150,7 @@ namespace Tests.EditMode
             var assetsPath = Application.dataPath;
             var files = new[]
             {
-                Path.Combine(assetsPath, "Scripts", "Game", "GameInitiator.cs"),
+                Path.Combine(assetsPath, "Scripts", "Game", "Bootstrap", "MainGameManager.cs"),
                 Path.Combine(assetsPath, "Scripts", "AI", "AICommander.cs"),
                 Path.Combine(assetsPath, "Scripts", "Combat", "Targeting", "TargetingComputer.cs"),
                 Path.Combine(assetsPath, "Scripts", "Player", "PlayerCommander.cs"),

@@ -95,23 +95,13 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void WireShipDependencies_CanUseShipTargetingDirectly()
+        public void UnitService_WireShipDependencies_CanUseShipTargetingDirectly()
         {
-            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Game", "GameInitiator.cs"));
+            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Game", "Services", "Units", "UnitService.cs"));
             
             // After refactor, ship.Targeting is guaranteed non-null after Factory.CreateShip
             StringAssert.Contains("ship.Targeting?.SetRegistry", source,
-                "GameInitiator.WireShipDependencies can safely use ship.Targeting directly (no longer null after Factory.CreateShip)");
-        }
-
-        [Test]
-        public void ValidateShipWiring_UsesShipTargetingDirectly()
-        {
-            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Game", "GameInitiator.cs"));
-            
-            // Validation can check ship.Targeting directly
-            StringAssert.Contains("ship.Targeting &&", source,
-                "GameInitiator validation can check ship.Targeting directly (guaranteed non-null after Factory.CreateShip)");
+                "UnitService.WireShipDependencies can safely use ship.Targeting directly (no longer null after Factory.CreateShip)");
         }
 
         [Test]

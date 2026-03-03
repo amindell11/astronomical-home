@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Game
 {
-    [CreateAssetMenu(fileName = "GameInitiatorConfig", menuName = "Game/Game Initiator Config")]
+    [CreateAssetMenu(fileName = "GameConfig", menuName = "Game/Game Config")]
     public class GameConfig : ScriptableObject
     {
         [SerializeField] private Ship playerTemplate;
