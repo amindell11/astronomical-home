@@ -1,3 +1,5 @@
+using System;
+
 namespace Game.Services
 {
     public class GameServices : IGameServices
@@ -13,18 +15,19 @@ namespace Game.Services
             IObjectiveService objectiveService,
             ICameraService cameraService)
         {
-            UnitService = unitService;
-            EnvironmentService = environmentService;
-            ObjectiveService = objectiveService;
-            CameraService = cameraService;
+            UnitService = unitService ?? throw new ArgumentNullException(nameof(unitService));
+            EnvironmentService = environmentService ?? throw new ArgumentNullException(nameof(environmentService));
+            ObjectiveService = objectiveService ?? throw new ArgumentNullException(nameof(objectiveService));
+            CameraService = cameraService ?? throw new ArgumentNullException(nameof(cameraService));
         }
 
+        /// <summary>Clear all service registries between sectors.</summary>
         public void ClearAll()
         {
-            UnitService?.Clear();
-            EnvironmentService?.Clear();
-            ObjectiveService?.Clear();
-            CameraService?.Clear();
+            UnitService.Clear();
+            EnvironmentService.Clear();
+            ObjectiveService.Clear();
+            CameraService.Clear();
         }
     }
 }
