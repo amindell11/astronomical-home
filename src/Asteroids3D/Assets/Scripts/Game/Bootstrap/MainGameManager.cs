@@ -25,6 +25,15 @@ namespace Game.Bootstrap
         public event Action<GameState> OnGameStateChanged;
         public event Action<Ship, Camera> PresentationReady;
 
+        /// <summary>The active sector manager, if any.</summary>
+        public SectorManager ActiveSectorManager => activeSectorManager;
+
+        /// <summary>The service container for this game session.</summary>
+        public IGameServices Services => services;
+
+        /// <summary>Scene-owned respawn runner.</summary>
+        public ShipRespawnRunner RespawnRunner => respawnRunner;
+
         private void Awake()
         {
             DontDestroyOnLoad(gameObject);
@@ -49,14 +58,12 @@ namespace Game.Bootstrap
                     yield return HandleLoading();
                     break;
                 case GameState.Start:
-                    // Title screen placeholder — immediately proceed for MVP
                     TransitionTo(GameState.LoadSector);
                     break;
                 case GameState.LoadSector:
                     yield return HandleLoadSector();
                     break;
                 case GameState.InSector:
-                    // Sector manager drives gameplay; we just wait
                     yield break;
                 case GameState.Restart:
                     yield return HandleRestart();
@@ -73,12 +80,11 @@ namespace Game.Bootstrap
         {
             GamePlane.SetReferencePlane(referencePlane);
 
-            // Create services — using stubs until agent-2's implementations are merged
             services = new GameServices(
-                unitService: null,       // TODO: Wave 2 wires real UnitService
-                environmentService: null,
-                objectiveService: null,
-                cameraService: null
+                unitService: new UnitService(),
+                environmentService: new EnvironmentService(),
+                objectiveService: new ObjectiveService(),
+                cameraService: new CameraService()
             );
 
             yield return null;
@@ -95,17 +101,21 @@ namespace Game.Bootstrap
             activeSectorManager.OnSectorComplete += HandleSectorComplete;
 
             yield return activeSectorManager.Setup();
+
+            PublishPresentationReady();
             TransitionTo(GameState.InSector);
         }
 
         private void HandleSectorComplete(SectorResult result)
         {
-            // MVP: both extracted and failed restart the same sector
             TransitionTo(GameState.Restart);
         }
 
         private IEnumerator HandleRestart()
         {
+            if (respawnRunner)
+                respawnRunner.ResetRunner();
+
             if (activeSectorManager != null)
             {
                 activeSectorManager.OnSectorComplete -= HandleSectorComplete;
@@ -123,6 +133,9 @@ namespace Game.Bootstrap
 
         private void HandleExit()
         {
+            if (respawnRunner)
+                respawnRunner.ResetRunner();
+
             if (activeSectorManager != null)
             {
                 activeSectorManager.OnSectorComplete -= HandleSectorComplete;
@@ -132,6 +145,19 @@ namespace Game.Bootstrap
 
             services = null;
             GamePlane.Reset();
+        }
+
+        private void PublishPresentationReady()
+        {
+            var combatSector = activeSectorManager as CombatSectorManager;
+            if (combatSector == null || combatSector.Player == null)
+                return;
+
+            var uiCamera = services?.CameraService?.UICamera;
+            if (uiCamera == null)
+                return;
+
+            PresentationReady?.Invoke(combatSector.Player, uiCamera);
         }
 
         private void OnDestroy()
