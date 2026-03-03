@@ -97,7 +97,7 @@ namespace Game.Bootstrap
                 throw new InvalidOperationException("No sector entry configured on MainGameManager.");
 
             activeSectorManager = Instantiate(currentSector.managerPrefab);
-            activeSectorManager.Initialize(services, currentSector.config);
+            activeSectorManager.Initialize(services, currentSector.config, respawnRunner);
             activeSectorManager.OnSectorComplete += HandleSectorComplete;
 
             yield return activeSectorManager.Setup();
