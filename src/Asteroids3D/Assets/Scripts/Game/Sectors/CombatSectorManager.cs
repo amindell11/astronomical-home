@@ -1,7 +1,10 @@
 using System.Collections;
+using Cameras;
 using Game.Bootstrap;
-using UnityEngine;
+using Objectives;
+using Player;
 using Ships;
+using UnityEngine;
 
 namespace Game.Sectors
 {
@@ -22,7 +25,24 @@ namespace Game.Sectors
         [Header("Environment")]
         [SerializeField] private World.WorldRoot worldPrefab;
 
-        // TODO: these will call into Services once agent-2's implementations exist
+        [Header("Camera")]
+        [SerializeField] private CameraRig cameraRigPrefab;
+
+        [Header("Objective")]
+        [SerializeField] private ObjectiveParams objectiveParams;
+        [SerializeField] private Transform extractionZonePrefab;
+
+        [Header("Spawn Positions")]
+        [SerializeField] private Vector3 playerSpawnPosition = Vector3.zero;
+        [SerializeField] private Vector3 enemySpawnOffset = new Vector3(0f, 0f, 50f);
+
+        private Ship player;
+        private Ship enemy;
+        private ObjectiveTrackerController objectiveController;
+
+        /// <summary>The player ship spawned by this sector.</summary>
+        public Ship Player => player;
+
         protected override IEnumerator OnSetup()
         {
             // Phase 1: Load scene
@@ -32,32 +52,99 @@ namespace Game.Sectors
             }
 
             // Phase 2: Spawn world
-            // Services.EnvironmentService.SpawnWorld(worldPrefab);
+            if (worldPrefab)
+            {
+                Services.EnvironmentService.SpawnWorld(worldPrefab);
+            }
 
             // Phase 3: Spawn actors
-            // Services.UnitService.SpawnPlayer(playerTemplate, playerCommander, shipSettings, ...);
-            // Services.UnitService.SpawnEnemy(enemyTemplate, enemyCommander, shipSettings, ...);
+            player = Services.UnitService.SpawnShip(
+                playerTemplate, playerCommander, shipSettings,
+                0, playerSpawnPosition, Quaternion.identity);
+            player.tag = "Player";
 
-            // Phase 4: Set objective
-            // Services.ObjectiveService.SetObjective(...)
+            if (enemyTemplate)
+            {
+                enemy = Services.UnitService.SpawnShip(
+                    enemyTemplate, enemyCommander, shipSettings,
+                    1, playerSpawnPosition + enemySpawnOffset, Quaternion.identity);
+            }
 
-            // Phase 5: Bind camera
-            // Services.CameraService.SetSubject(player.transform);
+            // Wire world follower to player
+            var world = Services.EnvironmentService.World;
+            if (world && world.Follower && player)
+            {
+                world.Follower.SetTarget(player.transform);
+            }
+
+            // Phase 4: Camera
+            Services.CameraService.Initialize(cameraRigPrefab);
+            Services.CameraService.SetSubject(player.transform);
+
+            // Add enemy as secondary subject
+            if (enemy)
+            {
+                Services.CameraService.AddSecondarySubject(enemy.transform);
+            }
+
+            // Wire secondary subject tracking via registry events
+            var registry = Services.UnitService.ActiveRegistry;
+            if (registry != null)
+            {
+                registry.ActiveShips.OnAdd += OnShipAddedToRegistry;
+                registry.ActiveShips.OnRemove += OnShipRemovedFromRegistry;
+            }
+
+            // Configure player input projection
+            if (player.Commander is PlayerCommander pc)
+            {
+                Services.CameraService.ConfigurePlayerInputProjection(pc);
+            }
+
+            // Phase 5: Objective (if controller and params available)
+            // ObjectiveService.SetObjective requires full factory wiring which depends on
+            // scene-level components; deferred to ObjectiveTrackerController scene setup for MVP.
 
             yield return null;
         }
 
         protected override IEnumerator OnTeardown()
         {
-            // Destroy spawned objects, unload scene
-            // Services will handle their own cleanup via Clear()
+            // Unbind registry events
+            var registry = Services.UnitService.ActiveRegistry;
+            if (registry != null)
+            {
+                registry.ActiveShips.OnAdd -= OnShipAddedToRegistry;
+                registry.ActiveShips.OnRemove -= OnShipRemovedFromRegistry;
+            }
+
+            // Services handle their own object cleanup
+            Services.CameraService.Clear();
+            Services.UnitService.Clear();
+            Services.EnvironmentService.Clear();
+            Services.ObjectiveService.Clear();
 
             if (Config.LoadScene)
             {
                 yield return Services.EnvironmentService.UnloadSceneAsync(Config.SceneName);
             }
 
+            player = null;
+            enemy = null;
+
             yield return null;
+        }
+
+        private void OnShipAddedToRegistry(Ship ship)
+        {
+            if (!ship || ship == player) return;
+            Services.CameraService.AddSecondarySubject(ship.transform);
+        }
+
+        private void OnShipRemovedFromRegistry(Ship ship)
+        {
+            if (!ship) return;
+            Services.CameraService.RemoveSecondarySubject(ship.transform);
         }
     }
 }
