@@ -23,11 +23,11 @@ namespace Game
         private SessionContext sessionContext;
         private Coroutine sessionRoutine;
         private bool isInitialized;
+        private bool worldSceneLoadedBySession;
 
         public event Action<Ship, Camera> PresentationReady;
 
         public ShipRegistry ShipRegistry => sessionContext?.ShipRegistry;
-        public SessionContext CurrentContext => sessionContext;
         public bool IsSessionActive => isInitialized;
 
         private Transform WorldFollowerTransform => sessionContext?.WorldFollowerTransform;
@@ -110,18 +110,52 @@ namespace Game
 
             ValidateSerializedDependencies();
 
-            gameConfig = config.GameConfig;
-            sessionContext = new SessionContext(config, respawnRunner);
-            isInitialized = true;
+            var startupSucceeded = false;
+            try
+            {
+                gameConfig = config.GameConfig;
+                sessionContext = new SessionContext(config, respawnRunner);
+                isInitialized = true;
 
-            yield return LoadEnvironment(config);
-            BuildRuntimeServices(config);
-            SpawnActors(config);
-            BindPresentation(config.GameConfig);
-            BindLegacyBridge();
-            StartSessionFlow();
+                yield return LoadEnvironment(config);
+                BuildRuntimeServices(config);
+                SpawnActors(config);
+                BindPresentation(config.GameConfig);
+                BindLegacyBridge();
+                StartSessionFlow();
 
-            sessionRoutine = null;
+                startupSucceeded = true;
+            }
+            finally
+            {
+                if (!startupSucceeded)
+                {
+                    sessionRoutine = null;
+                    TeardownFailedStartup();
+                }
+                else
+                {
+                    sessionRoutine = null;
+                }
+            }
+        }
+
+        private void TeardownFailedStartup()
+        {
+            isInitialized = false;
+
+            UnbindShipRegistry();
+            ClearLegacyBridge();
+
+            if (respawnRunner)
+                respawnRunner.ResetRunner();
+
+            DestroySessionObjects();
+
+            sessionContext?.ShipRegistry?.Dispose();
+            GamePlane.Reset();
+
+            sessionContext = null;
         }
 
         private IEnumerator LoadEnvironment(SectorSessionConfig config)
@@ -146,8 +180,13 @@ namespace Game
             if (!SceneManager.GetSceneByName(worldSceneName).isLoaded)
             {
                 var loadOp = SceneManager.LoadSceneAsync(worldSceneName, LoadSceneMode.Additive);
-                while (loadOp is not { isDone: true })
+                if (loadOp == null)
+                    throw new InvalidOperationException($"Failed to start async load for scene '{worldSceneName}'. Verify the scene exists and is added to Build Settings.");
+
+                while (!loadOp.isDone)
                     yield return null;
+
+                worldSceneLoadedBySession = true;
             }
 
             referencePlane.SetPositionAndRotation(Vector3.zero, Quaternion.Euler(90f, 0f, 0f));
@@ -356,12 +395,17 @@ namespace Game
 
         private void UnloadWorldScene(SectorSessionConfig config)
         {
+            if (!worldSceneLoadedBySession)
+                return;
+
             if (config == null || string.IsNullOrWhiteSpace(config.WorldSceneName))
                 return;
 
             var scene = SceneManager.GetSceneByName(config.WorldSceneName);
             if (scene.isLoaded)
                 SceneManager.UnloadSceneAsync(config.WorldSceneName);
+
+            worldSceneLoadedBySession = false;
         }
 
         private void UnbindShipRegistry()
