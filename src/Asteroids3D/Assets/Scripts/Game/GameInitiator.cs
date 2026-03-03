@@ -122,11 +122,11 @@ namespace Game
             ShipRegistry = new ShipRegistry(config);
 
             player = ShipFactory.CreateShip(config.PlayerTemplate, config.PlayerCommander, config.ShipSettings, 0,
-                Vector3.zero, Quaternion.identity, WireShipDependencies);
+                Vector3.zero, Quaternion.identity, postInitialize: WireShipDependencies);
             player.tag = TagNames.Player;
 
             enemy = ShipFactory.CreateShip(config.EnemyTemplate, config.EnemyCommander, config.ShipSettings, 1,
-                GamePlane.PlanePointToWorld(Random.insideUnitCircle) * 5, Quaternion.identity, WireShipDependencies);
+                GamePlane.PlanePointToWorld(Random.insideUnitCircle) * 5, Quaternion.identity, postInitialize: WireShipDependencies);
 
             ShipRegistry.ActiveShips.Add(player);
             ShipRegistry.ActiveShips.Add(enemy);

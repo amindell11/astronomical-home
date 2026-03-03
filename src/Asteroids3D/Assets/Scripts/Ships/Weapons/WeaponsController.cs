@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace Ships.Weapons
 {
+    [DefaultExecutionOrder(-95)]
     public class WeaponsController : MonoBehaviour
     {
         [SerializeField] private WeaponComponent primaryMount;
