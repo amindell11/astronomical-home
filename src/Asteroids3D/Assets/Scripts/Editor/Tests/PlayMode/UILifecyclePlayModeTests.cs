@@ -1,6 +1,7 @@
 using System.Collections;
 using Combat.Targeting;
 using NUnit.Framework;
+using Tests.PlayMode.Common;
 using UI;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -10,7 +11,7 @@ namespace Tests.PlayMode
 {
     [Category("Regression")]
     [Category("UI")]
-    public class UILifecyclePlayModeTests
+    public class UILifecyclePlayModeTests : PlayModeWorldFixture
     {
         private sealed class FakeTargetable : MonoBehaviour, ITargetable
         {

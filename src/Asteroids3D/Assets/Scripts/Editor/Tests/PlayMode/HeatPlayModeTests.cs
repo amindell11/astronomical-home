@@ -2,6 +2,7 @@ using System.Collections;
 using System.Reflection;
 using Combat.Conditions;
 using NUnit.Framework;
+using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -9,7 +10,7 @@ namespace Tests.PlayMode
 {
     [Category("Regression")]
     [Category("Weapons")]
-    public class HeatPlayModeTests
+    public class HeatPlayModeTests : PlayModeWorldFixture
     {
         private static void SetPrivateField(object obj, string fieldName, float value)
         {
