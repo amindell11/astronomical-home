@@ -29,7 +29,6 @@ namespace Game.Session
             PlayerSpawnRotation = playerSpawnRotation ?? Quaternion.identity;
             EnemySpawnPositionProvider = enemySpawnPositionProvider ?? (() =>
                 GamePlane.PlanePointToWorld(Random.insideUnitCircle * enemySpawnRadius));
-            LegacyBridge = new NullSessionLegacyBridge();
         }
 
         public GameConfig GameConfig { get; }
@@ -40,7 +39,6 @@ namespace Game.Session
         public Vector3 PlayerSpawnPosition { get; }
         public Quaternion PlayerSpawnRotation { get; }
         public Func<Vector3> EnemySpawnPositionProvider { get; }
-        internal ISessionLegacyBridge LegacyBridge { get; }
 
         public Vector3 GetEnemySpawnPosition()
         {

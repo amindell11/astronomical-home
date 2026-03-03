@@ -79,7 +79,6 @@ namespace Game
             }
 
             UnbindShipRegistry();
-            ClearLegacyBridge();
 
             if (respawnRunner)
                 respawnRunner.ResetRunner();
@@ -121,7 +120,6 @@ namespace Game
                 BuildRuntimeServices(config);
                 SpawnActors(config);
                 BindPresentation(config.GameConfig);
-                BindLegacyBridge();
                 StartSessionFlow();
 
                 startupSucceeded = true;
@@ -145,7 +143,6 @@ namespace Game
             isInitialized = false;
 
             UnbindShipRegistry();
-            ClearLegacyBridge();
 
             if (respawnRunner)
                 respawnRunner.ResetRunner();
@@ -246,22 +243,6 @@ namespace Game
         {
             ValidateRuntimeWiring();
             PublishPresentationReady();
-        }
-
-        private void BindLegacyBridge()
-        {
-            if (sessionContext == null)
-                return;
-
-            sessionContext.Config.LegacyBridge.Bind(sessionContext);
-        }
-
-        private void ClearLegacyBridge()
-        {
-            if (sessionContext == null)
-                return;
-
-            sessionContext.Config.LegacyBridge.Clear(sessionContext);
         }
 
         private void InitializeCamera(GameConfig config)
