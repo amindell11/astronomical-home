@@ -2,10 +2,8 @@ using System;
 using System.Collections;
 using AI;
 using Game.Session;
-using Player;
 using Ships;
 using UnityEngine;
-using Utils;
 
 namespace Game
 {
@@ -19,6 +17,8 @@ namespace Game
         private SessionEnvironmentLoader environmentLoader;
         private SessionRuntimeBuilder runtimeBuilder;
         private SessionPresentationBinder presentationBinder;
+        private SessionRuntimeValidator runtimeValidator;
+        private SessionObjectGraphDisposer objectGraphDisposer;
         private Coroutine sessionRoutine;
         private bool isInitialized;
         private bool worldSceneLoadedBySession;
@@ -138,6 +138,8 @@ namespace Game
             environmentLoader ??= new SessionEnvironmentLoader(referencePlane);
             runtimeBuilder ??= new SessionRuntimeBuilder();
             presentationBinder ??= new SessionPresentationBinder(() => WorldFollowerTransform);
+            runtimeValidator ??= new SessionRuntimeValidator();
+            objectGraphDisposer ??= new SessionObjectGraphDisposer();
         }
 
         private void TeardownFailedStartup()
@@ -202,18 +204,7 @@ namespace Game
 
         private void ValidateRuntimeWiring()
         {
-            ValidateShipWiring(sessionContext.Player);
-            if (sessionContext.Enemy)
-                ValidateShipWiring(sessionContext.Enemy);
-
-            if (sessionContext.Player?.Commander is PlayerCommander { HasScreenProjectorConfigured: false })
-                throw new InvalidOperationException("PlayerCommander requires a configured screen-to-plane projector.");
-
-            if (!respawnRunner || !respawnRunner.IsInitialized)
-                throw new InvalidOperationException("ShipRespawnRunner must be initialized before gameplay starts.");
-
-            if (GamePlane.Plane != referencePlane)
-                throw new InvalidOperationException("GamePlane must be configured from the serialized reference plane.");
+            runtimeValidator.ValidateRuntimeWiring(sessionContext, respawnRunner, referencePlane, ValidateShipWiring);
         }
 
         private void ValidateSerializedDependencies()
@@ -239,21 +230,7 @@ namespace Game
 
         private void DestroySessionObjects()
         {
-            if (sessionContext == null)
-                return;
-
-            if (sessionContext.CameraRig)
-                Destroy(sessionContext.CameraRig.gameObject);
-            if (sessionContext.AsteroidField)
-                Destroy(sessionContext.AsteroidField.gameObject);
-            if (sessionContext.World)
-                Destroy(sessionContext.World.gameObject);
-            if (sessionContext.Player)
-                Destroy(sessionContext.Player.gameObject);
-            if (sessionContext.Enemy)
-                Destroy(sessionContext.Enemy.gameObject);
-
-            UnloadWorldScene(sessionContext.Config);
+            objectGraphDisposer.DestroySessionObjects(sessionContext, UnloadWorldScene);
         }
 
         private void UnloadWorldScene(SectorSessionConfig config)
