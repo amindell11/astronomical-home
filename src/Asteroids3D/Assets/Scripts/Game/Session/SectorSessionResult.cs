@@ -1,8 +1,10 @@
+using System;
+
 namespace Game.Session
 {
-    public readonly struct SectorSessionResult
+    internal readonly struct SectorSessionResult
     {
-        public SectorSessionResult(bool started, SessionContext context, string error)
+        private SectorSessionResult(bool started, SessionContext context, string error)
         {
             Started = started;
             Context = context;
@@ -15,11 +17,15 @@ namespace Game.Session
 
         public static SectorSessionResult Success(SessionContext context)
         {
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
             return new SectorSessionResult(true, context, null);
         }
 
         public static SectorSessionResult Failed(string error)
         {
+            if (string.IsNullOrWhiteSpace(error))
+                throw new ArgumentException("Error message must not be null or whitespace.", nameof(error));
             return new SectorSessionResult(false, null, error);
         }
     }

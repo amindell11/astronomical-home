@@ -18,8 +18,7 @@ namespace Game.Session
             float enemySpawnRadius = DefaultEnemySpawnRadius,
             Vector3? playerSpawnPosition = null,
             Quaternion? playerSpawnRotation = null,
-            Func<Vector3> enemySpawnPositionProvider = null,
-            ISessionLegacyBridge legacyBridge = null)
+            Func<Vector3> enemySpawnPositionProvider = null)
         {
             GameConfig = gameConfig ? gameConfig : throw new ArgumentNullException(nameof(gameConfig));
             WorldSceneName = worldSceneName;
@@ -30,7 +29,7 @@ namespace Game.Session
             PlayerSpawnRotation = playerSpawnRotation ?? Quaternion.identity;
             EnemySpawnPositionProvider = enemySpawnPositionProvider ?? (() =>
                 GamePlane.PlanePointToWorld(Random.insideUnitCircle * enemySpawnRadius));
-            LegacyBridge = legacyBridge ?? NullSessionLegacyBridge.Instance;
+            LegacyBridge = new NullSessionLegacyBridge();
         }
 
         public GameConfig GameConfig { get; }
@@ -41,7 +40,7 @@ namespace Game.Session
         public Vector3 PlayerSpawnPosition { get; }
         public Quaternion PlayerSpawnRotation { get; }
         public Func<Vector3> EnemySpawnPositionProvider { get; }
-        public ISessionLegacyBridge LegacyBridge { get; }
+        internal ISessionLegacyBridge LegacyBridge { get; }
 
         public Vector3 GetEnemySpawnPosition()
         {

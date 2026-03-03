@@ -1,6 +1,6 @@
 namespace Game.Session
 {
-    public interface ISessionLegacyBridge
+    internal interface ISessionLegacyBridge
     {
         void Bind(SessionContext context);
         void Clear(SessionContext context);
@@ -8,11 +8,9 @@ namespace Game.Session
 
     public sealed class NullSessionLegacyBridge : ISessionLegacyBridge
     {
-        public static readonly NullSessionLegacyBridge Instance = new();
+        public NullSessionLegacyBridge() { }
 
-        private NullSessionLegacyBridge() { }
-
-        public void Bind(SessionContext context) { }
-        public void Clear(SessionContext context) { }
+        void ISessionLegacyBridge.Bind(SessionContext context) { }
+        void ISessionLegacyBridge.Clear(SessionContext context) { }
     }
 }

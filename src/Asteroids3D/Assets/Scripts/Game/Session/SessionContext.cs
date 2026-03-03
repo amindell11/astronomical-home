@@ -7,12 +7,12 @@ using World;
 
 namespace Game.Session
 {
-    public sealed class SessionContext
+    internal sealed class SessionContext
     {
         public SessionContext(SectorSessionConfig config, ShipRespawnRunner respawnRunner)
         {
             Config = config ?? throw new ArgumentNullException(nameof(config));
-            RespawnRunner = respawnRunner;
+            RespawnRunner = respawnRunner ?? throw new ArgumentNullException(nameof(respawnRunner));
         }
 
         public SectorSessionConfig Config { get; }
