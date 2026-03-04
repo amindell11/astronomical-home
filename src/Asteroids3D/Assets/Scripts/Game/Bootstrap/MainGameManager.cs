@@ -113,56 +113,56 @@ namespace Game.Bootstrap
 
         private IEnumerator HandleRestart()
         {
-            if (respawnRunner)
-                respawnRunner.ResetRunner();
-
-            if (activeSectorManager != null)
-            {
-                activeSectorManager.OnSectorComplete -= HandleSectorComplete;
-                yield return activeSectorManager.Teardown();
-                Destroy(activeSectorManager.gameObject);
-                activeSectorManager = null;
-            }
-
-            services?.ClearAll();
-            GamePlane.Reset();
+            yield return Cleanup(runTeardown: true);
             GamePlane.SetReferencePlane(referencePlane);
-
             TransitionTo(GameState.LoadSector);
         }
 
         private void HandleExit()
         {
+            StartCoroutine(Cleanup(runTeardown: false));
+        }
+
+        private IEnumerator Cleanup(bool runTeardown)
+        {
             if (respawnRunner)
                 respawnRunner.ResetRunner();
 
             if (activeSectorManager != null)
             {
                 activeSectorManager.OnSectorComplete -= HandleSectorComplete;
+
+                if (runTeardown)
+                    yield return activeSectorManager.Teardown();
+
                 Destroy(activeSectorManager.gameObject);
                 activeSectorManager = null;
             }
 
-            services = null;
+            if (runTeardown)
+                services?.ClearAll();
+            else
+                services = null;
+
             GamePlane.Reset();
         }
 
         private void PublishPresentationReady()
         {
-            var combatSector = activeSectorManager as CombatSectorManager;
-            if (combatSector == null || combatSector.Player == null)
+            var presentationShip = activeSectorManager?.PresentationShip;
+            if (presentationShip == null)
                 return;
 
             var uiCamera = services?.CameraService?.UICamera;
             if (uiCamera == null)
                 return;
 
-            PresentationReady?.Invoke(combatSector.Player, uiCamera);
+            PresentationReady?.Invoke(presentationShip, uiCamera);
         }
 
         private void OnDestroy()
         {
-            HandleExit();
+            GamePlane.Reset();
         }
     }
 }
