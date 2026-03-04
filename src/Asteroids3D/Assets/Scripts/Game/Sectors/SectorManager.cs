@@ -15,6 +15,7 @@ namespace Game.Sectors
         protected SectorConfigSO Config { get; private set; }
         protected bool IsSetUp { get; private set; }
         protected ShipRespawnRunner RespawnRunner { get; private set; }
+        public virtual Ship PresentationShip => null;
 
         public void Initialize(IGameServices services, SectorConfigSO config, ShipRespawnRunner respawnRunner = null)
         {

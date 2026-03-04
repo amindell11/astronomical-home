@@ -42,75 +42,120 @@ namespace Game.Sectors
 
         /// <summary>The player ship spawned by this sector.</summary>
         public Ship Player => player;
+        public override Ship PresentationShip => player;
 
         protected override IEnumerator OnSetup()
         {
-            // Phase 1: Load scene
+            yield return LoadScenePhase();
+            SpawnWorldPhase();
+            SpawnActorsPhase();
+            WireWorldFollowerPhase();
+            CameraPhase();
+            RegistryBindingPhase();
+            PlayerInputProjectionPhase();
+            ObjectivePhase();
+            RespawnPhase();
+            yield return null;
+        }
+
+        private IEnumerator LoadScenePhase()
+        {
             if (Config.LoadScene)
-            {
                 yield return Services.EnvironmentService.LoadSceneAsync(Config.SceneName);
-            }
+        }
 
-            // Phase 2: Spawn world
+        private void SpawnWorldPhase()
+        {
             if (worldPrefab)
-            {
                 Services.EnvironmentService.SpawnWorld(worldPrefab);
-            }
+        }
 
-            // Phase 3: Spawn actors
+        private void SpawnActorsPhase()
+        {
             player = Services.UnitService.SpawnShip(
-                playerTemplate, playerCommander, shipSettings,
-                0, playerSpawnPosition, Quaternion.identity);
+                playerTemplate,
+                playerCommander,
+                shipSettings,
+                0,
+                playerSpawnPosition,
+                Quaternion.identity);
             player.tag = "Player";
 
-            if (enemyTemplate)
-            {
-                enemy = Services.UnitService.SpawnShip(
-                    enemyTemplate, enemyCommander, shipSettings,
-                    1, playerSpawnPosition + enemySpawnOffset, Quaternion.identity);
-            }
+            if (!enemyTemplate)
+                return;
 
-            // Wire world follower to player
+            enemy = Services.UnitService.SpawnShip(
+                enemyTemplate,
+                enemyCommander,
+                shipSettings,
+                1,
+                playerSpawnPosition + enemySpawnOffset,
+                Quaternion.identity);
+        }
+
+        private void WireWorldFollowerPhase()
+        {
             var world = Services.EnvironmentService.World;
             if (world && world.Follower && player)
-            {
                 world.Follower.SetTarget(player.transform);
-            }
+        }
 
-            // Phase 4: Camera
+        private void CameraPhase()
+        {
             Services.CameraService.Initialize(cameraRigPrefab);
-            Services.CameraService.SetSubject(player.transform);
 
-            // Add enemy as secondary subject
+            if (player)
+                Services.CameraService.SetSubject(player.transform);
+
             if (enemy)
-            {
                 Services.CameraService.AddSecondarySubject(enemy.transform);
-            }
+        }
 
-            // Wire secondary subject tracking via registry events
+        private void RegistryBindingPhase()
+        {
             var registry = Services.UnitService.ActiveRegistry;
-            if (registry != null)
-            {
-                registry.ActiveShips.OnAdd += OnShipAddedToRegistry;
-                registry.ActiveShips.OnRemove += OnShipRemovedFromRegistry;
-            }
+            if (registry == null)
+                return;
 
-            // Configure player input projection
-            if (player.Commander is PlayerCommander pc)
-            {
+            registry.ActiveShips.OnAdd += OnShipAddedToRegistry;
+            registry.ActiveShips.OnRemove += OnShipRemovedFromRegistry;
+        }
+
+        private void PlayerInputProjectionPhase()
+        {
+            if (player?.Commander is PlayerCommander pc)
                 Services.CameraService.ConfigurePlayerInputProjection(pc);
-            }
+        }
 
-            // Phase 5: Respawn runner
-            if (RespawnRunner && respawnSettings)
-            {
-                RespawnRunner.Initialize(
-                    respawnSettings,
-                    Services.UnitService.ActiveRegistry,
-                    () => Services.EnvironmentService.WorldFollowerTransform);
-            }
+        private void ObjectivePhase()
+        {
+            objectiveController = FindObjectOfType<ObjectiveTrackerController>();
+            if (objectiveController == null || objectiveParams == null)
+                return;
 
-            yield return null;
+            var factory = new ObjectiveStateFactory(
+                objectiveController,
+                objectiveController,
+                objectiveController,
+                objectiveController,
+                objectiveController,
+                objectiveParams);
+
+            Services.ObjectiveService.SetObjective(
+                MissionDefinition.CreateDefault(),
+                factory,
+                objectiveController);
+        }
+
+        private void RespawnPhase()
+        {
+            if (!RespawnRunner || !respawnSettings)
+                return;
+
+            RespawnRunner.Initialize(
+                respawnSettings,
+                Services.UnitService.ActiveRegistry,
+                () => Services.EnvironmentService.WorldFollowerTransform);
         }
 
         protected override IEnumerator OnTeardown()
