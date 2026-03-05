@@ -18,42 +18,20 @@ namespace Tests.EditMode
     [Category("Objectives")]
     public class ObjectiveTrackerEditModeTests
     {
-        private readonly List<ObjectiveParams> createdParams = new();
-
-        [TearDown]
-        public void TearDown()
-        {
-            foreach (var paramsAsset in createdParams)
-            {
-                if (paramsAsset != null)
-                    UnityEngine.Object.DestroyImmediate(paramsAsset);
-            }
-
-            createdParams.Clear();
-        }
-
         // ── Factory helpers ───────────────────────────────────────────────────────
 
-        private (ObjectiveTracker tracker, StubKeyTracker key, BoolRef alive, Vector3Ref playerPos, BoolRef blocker)
-            BuildExploreTracker(Vector3? zonePos = null)
+        private (ObjectiveTracker tracker, StubKeyTracker key, BoolRef alive, StubExtractionZone zone)
+            BuildExploreTracker(bool playerInZone = false)
         {
             var key = new StubKeyTracker(false);
             var alive = new BoolRef(true);
-            var playerPos = new Vector3Ref(Vector3.zero);
-            var blocker = new BoolRef(false);
-            var zone = zonePos ?? new Vector3(100f, 0f, 0f);
-            var paramsAsset = ScriptableObject.CreateInstance<ObjectiveParams>();
-            createdParams.Add(paramsAsset);
+            var zone = new StubExtractionZone(playerInZone);
 
             var builders = new Dictionary<string, Func<ObjectiveState>>
             {
                 ["explore"] = () => new ExploreState(key),
                 ["key"] = () => new KeyAcquiredState(),
-                ["extraction"] = () => new ExtractionChallengeState(
-                    () => playerPos.Value,
-                    () => zone,
-                    () => blocker.Value,
-                    paramsAsset.ExtractionRadius),
+                ["extraction"] = () => new ExtractionChallengeState(zone),
                 ["extracted"] = () => new ExtractedState(),
                 ["failed"] = () => new FailedState()
             };
@@ -63,7 +41,7 @@ namespace Tests.EditMode
                     failCriteria: () => !alive.Value),
                 builders);
 
-            return (tracker, key, alive, playerPos, blocker);
+            return (tracker, key, alive, zone);
         }
 
         // ── Initial state ─────────────────────────────────────────────────────────
@@ -71,7 +49,7 @@ namespace Tests.EditMode
         [Test]
         public void InitialState_IsExplore()
         {
-            var (tracker, _, _, _, _) = BuildExploreTracker();
+            var (tracker, _, _, _) = BuildExploreTracker();
             Assert.AreEqual(ObjectiveType.Explore, tracker.CurrentState);
         }
 
@@ -80,7 +58,7 @@ namespace Tests.EditMode
         [Test]
         public void Explore_TransitionsToKeyAcquired_WhenKeyPickedUp()
         {
-            var (tracker, key, _, _, _) = BuildExploreTracker();
+            var (tracker, key, _, _) = BuildExploreTracker();
 
             tracker.Tick(0.1f); // key=false → stays Explore
             Assert.AreEqual(ObjectiveType.Explore, tracker.CurrentState);
@@ -95,7 +73,7 @@ namespace Tests.EditMode
         [Test]
         public void KeyAcquired_TransitionsToExtractionChallenge_OnNextTick()
         {
-            var (tracker, key, _, _, _) = BuildExploreTracker();
+            var (tracker, key, _, _) = BuildExploreTracker();
 
             key.HasKey = true;
             tracker.Tick(0.1f); // Explore → KeyAcquired
@@ -110,17 +88,14 @@ namespace Tests.EditMode
         [Test]
         public void ExtractionChallenge_TransitionsToExtracted_WhenPlayerEntersZone()
         {
-            var zoneCenter = new Vector3(50f, 0f, 0f);
-            var (tracker, key, _, playerPos, _) = BuildExploreTracker(zonePos: zoneCenter);
+            var (tracker, key, _, zone) = BuildExploreTracker();
 
-            // Advance to ExtractionChallenge (2 Ticks with key in hand)
             key.HasKey = true;
             tracker.Tick(0.1f); // → KeyAcquired
             tracker.Tick(0.1f); // → ExtractionChallenge
             Assert.AreEqual(ObjectiveType.ExtractionChallenge, tracker.CurrentState);
 
-            // Move player into zone (within default radius 10)
-            playerPos.Value = zoneCenter;
+            zone.InZone = true;
             tracker.Tick(0.1f); // → Extracted
             Assert.AreEqual(ObjectiveType.Extracted, tracker.CurrentState);
         }
@@ -130,7 +105,7 @@ namespace Tests.EditMode
         [Test]
         public void AnyState_TransitionsToFailed_WhenPlayerDies_DuringExplore()
         {
-            var (tracker, _, alive, _, _) = BuildExploreTracker();
+            var (tracker, _, alive, _) = BuildExploreTracker();
 
             alive.Value = false;
             tracker.Tick(0.1f);
@@ -140,7 +115,7 @@ namespace Tests.EditMode
         [Test]
         public void AnyState_TransitionsToFailed_WhenPlayerDies_DuringExtraction()
         {
-            var (tracker, key, alive, _, _) = BuildExploreTracker();
+            var (tracker, key, alive, _) = BuildExploreTracker();
 
             key.HasKey = true;
             tracker.Tick(0.1f); // → KeyAcquired
@@ -157,12 +132,11 @@ namespace Tests.EditMode
         [Test]
         public void Extracted_IsTerminal_IgnoresSubsequentTicks()
         {
-            var zoneCenter = Vector3.zero;
-            var (tracker, key, _, _, _) = BuildExploreTracker(zonePos: zoneCenter);
+            var (tracker, key, _, zone) = BuildExploreTracker(playerInZone: true);
 
             key.HasKey = true;
             tracker.Tick(0.1f); // → KeyAcquired
-            tracker.Tick(0.1f); // → ExtractionChallenge (player already at zone=origin)
+            tracker.Tick(0.1f); // → ExtractionChallenge (zone.InZone=true)
             tracker.Tick(0.1f); // → Extracted
             Assert.AreEqual(ObjectiveType.Extracted, tracker.CurrentState);
 
@@ -173,7 +147,7 @@ namespace Tests.EditMode
         [Test]
         public void Failed_IsTerminal_IgnoresSubsequentTicks()
         {
-            var (tracker, _, alive, _, _) = BuildExploreTracker();
+            var (tracker, _, alive, _) = BuildExploreTracker();
 
             alive.Value = false;
             tracker.Tick(0.1f); // → Failed
@@ -188,7 +162,7 @@ namespace Tests.EditMode
         [Test]
         public void Fail_TransitionsToFailed_FromAnyNonTerminalState()
         {
-            var (tracker, _, _, _, _) = BuildExploreTracker();
+            var (tracker, _, _, _) = BuildExploreTracker();
             Assert.AreEqual(ObjectiveType.Explore, tracker.CurrentState);
 
             tracker.Fail();
@@ -198,11 +172,10 @@ namespace Tests.EditMode
         [Test]
         public void Fail_IsNoOp_WhenAlreadyFailed()
         {
-            var (tracker, _, _, _, _) = BuildExploreTracker();
+            var (tracker, _, _, _) = BuildExploreTracker();
             tracker.Fail();
             Assert.AreEqual(ObjectiveType.Failed, tracker.CurrentState);
 
-            // Should not throw or fire duplicate events
             tracker.Fail();
             Assert.AreEqual(ObjectiveType.Failed, tracker.CurrentState);
         }
@@ -210,8 +183,7 @@ namespace Tests.EditMode
         [Test]
         public void Fail_IsNoOp_WhenExtracted()
         {
-            var zoneCenter = Vector3.zero;
-            var (tracker, key, _, _, _) = BuildExploreTracker(zonePos: zoneCenter);
+            var (tracker, key, _, zone) = BuildExploreTracker(playerInZone: true);
 
             key.HasKey = true;
             tracker.Tick(0.1f); // → KeyAcquired
@@ -228,8 +200,7 @@ namespace Tests.EditMode
         [Test]
         public void Restart_FromExtracted_ResetsToExplore_WithNoConsequences()
         {
-            var zoneCenter = Vector3.zero;
-            var (tracker, key, _, _, _) = BuildExploreTracker(zonePos: zoneCenter);
+            var (tracker, key, _, zone) = BuildExploreTracker(playerInZone: true);
 
             key.HasKey = true;
             tracker.Tick(0.1f);
@@ -237,7 +208,8 @@ namespace Tests.EditMode
             tracker.Tick(0.1f);
             Assert.AreEqual(ObjectiveType.Extracted, tracker.CurrentState);
 
-            key.HasKey = false; // reset game state before restart
+            key.HasKey = false;
+            zone.InZone = false;
             tracker.Restart();
             Assert.AreEqual(ObjectiveType.Explore, tracker.CurrentState);
         }
@@ -245,7 +217,7 @@ namespace Tests.EditMode
         [Test]
         public void Restart_FromFailed_ResetsToExplore_WithNoConsequences()
         {
-            var (tracker, _, alive, _, _) = BuildExploreTracker();
+            var (tracker, _, alive, _) = BuildExploreTracker();
 
             alive.Value = false;
             tracker.Tick(0.1f);
@@ -261,8 +233,7 @@ namespace Tests.EditMode
         [Test]
         public void OnStateChanged_FiresOncePerTransition_FullSuccessPath()
         {
-            var zoneCenter = Vector3.zero;
-            var (tracker, key, _, _, _) = BuildExploreTracker(zonePos: zoneCenter);
+            var (tracker, key, _, zone) = BuildExploreTracker(playerInZone: true);
 
             var transitions = new List<(ObjectiveType from, ObjectiveType to)>();
             tracker.OnStateChanged += (f, t) => transitions.Add((f, t));
@@ -281,7 +252,7 @@ namespace Tests.EditMode
         [Test]
         public void OnStateChanged_FiresOnRestart()
         {
-            var (tracker, _, alive, _, _) = BuildExploreTracker();
+            var (tracker, _, alive, _) = BuildExploreTracker();
 
             var transitions = new List<(ObjectiveType from, ObjectiveType to)>();
             tracker.OnStateChanged += (f, t) => transitions.Add((f, t));
@@ -313,22 +284,22 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void ExtractionChallenge_DoesNotComplete_WhileBlockedByEnemyProximity()
+        public void ExtractionChallenge_DoesNotComplete_WhileBlocked()
         {
-            var zoneCenter = Vector3.zero;
-            var (tracker, key, _, playerPos, blocker) = BuildExploreTracker(zonePos: zoneCenter);
+            var (tracker, key, _, zone) = BuildExploreTracker();
 
             key.HasKey = true;
-            tracker.Tick(0.1f); // -> KeyAcquired
-            tracker.Tick(0.1f); // -> ExtractionChallenge
+            tracker.Tick(0.1f); // → KeyAcquired
+            tracker.Tick(0.1f); // → ExtractionChallenge
             Assert.AreEqual(ObjectiveType.ExtractionChallenge, tracker.CurrentState);
 
-            playerPos.Value = zoneCenter;
-            blocker.Value = true;
+            // Zone reports not in zone (blocked or out of range)
+            zone.InZone = false;
             tracker.Tick(0.1f);
-            Assert.AreEqual(ObjectiveType.ExtractionChallenge, tracker.CurrentState, "Should remain in extraction while enemy is close enough to follow/block.");
+            Assert.AreEqual(ObjectiveType.ExtractionChallenge, tracker.CurrentState,
+                "Should remain in extraction while zone reports player not in zone.");
 
-            blocker.Value = false;
+            zone.InZone = true;
             tracker.Tick(0.1f);
             Assert.AreEqual(ObjectiveType.Extracted, tracker.CurrentState);
         }
@@ -338,7 +309,7 @@ namespace Tests.EditMode
         [Test]
         public void CurrentStep_ReflectsStringStepId()
         {
-            var (tracker, key, _, _, _) = BuildExploreTracker();
+            var (tracker, key, _, _) = BuildExploreTracker();
             Assert.AreEqual("explore", tracker.CurrentStep);
 
             key.HasKey = true;
@@ -355,10 +326,11 @@ namespace Tests.EditMode
         public void KeyPickup_SpawnKey_ResetsCollectedFlag()
         {
             var go = new GameObject("Key");
+            go.AddComponent<SphereCollider>();
             try
             {
                 var kp = go.AddComponent<KeyPickup>();
-                kp.SpawnKey(Vector3.zero, 10f);
+                kp.SpawnKey(Vector3.zero);
                 Assert.IsFalse(kp.PlayerHasKey);
             }
             finally
@@ -371,15 +343,15 @@ namespace Tests.EditMode
         public void KeyPickup_ResetKey_RepositionsAndReactivates()
         {
             var go = new GameObject("Key");
+            go.AddComponent<SphereCollider>();
             try
             {
                 var kp = go.AddComponent<KeyPickup>();
-                kp.SpawnKey(Vector3.zero, 0f);
+                kp.SpawnKey(Vector3.zero);
                 go.SetActive(false);
 
-                kp.ResetKey(new Vector3(10f, 0f, 0f), 0f);
+                kp.ResetKey(new Vector3(10f, 0f, 0f));
                 Assert.IsTrue(go.activeSelf, "ResetKey should reactivate the key");
-                Assert.AreEqual(new Vector3(10f, 0f, 0f), kp.KeyPosition);
                 Assert.IsFalse(kp.PlayerHasKey);
             }
             finally
@@ -394,6 +366,14 @@ namespace Tests.EditMode
             Assert.IsTrue(typeof(IKeyTracker).IsAssignableFrom(typeof(KeyPickup)));
         }
 
+        // ── ExtractionZone ────────────────────────────────────────────────────────
+
+        [Test]
+        public void ExtractionZone_Implements_IExtractionZone()
+        {
+            Assert.IsTrue(typeof(IExtractionZone).IsAssignableFrom(typeof(ExtractionZone)));
+        }
+
         // ── Stubs ─────────────────────────────────────────────────────────────────
 
         private sealed class StubKeyTracker : IKeyTracker
@@ -403,18 +383,18 @@ namespace Tests.EditMode
             public bool PlayerHasKey => HasKey;
         }
 
+        private sealed class StubExtractionZone : IExtractionZone
+        {
+            public bool InZone;
+            public StubExtractionZone(bool inZone) => InZone = inZone;
+            public bool IsPlayerInZone => InZone;
+        }
+
         /// <summary>Mutable reference wrapper for bool, used in Func closures.</summary>
         private sealed class BoolRef
         {
             public bool Value;
             public BoolRef(bool value) => Value = value;
-        }
-
-        /// <summary>Mutable reference wrapper for Vector3, used in Func closures.</summary>
-        private sealed class Vector3Ref
-        {
-            public Vector3 Value;
-            public Vector3Ref(Vector3 value) => Value = value;
         }
     }
 }

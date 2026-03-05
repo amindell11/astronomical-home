@@ -27,7 +27,7 @@ namespace Diagnostics
         [Tooltip("Extraction zone world-space center")]
         [SerializeField] private Vector3 extractionZoneCenter = Vector3.zero;
 
-        [Tooltip("Extraction zone radius (should match ObjectiveParams)")]
+        [Tooltip("Extraction zone radius (should match ExtractionZone collider)")]
         [SerializeField] private float extractionZoneRadius = 10f;
 
         [Tooltip("Gizmo color for extraction zone")]

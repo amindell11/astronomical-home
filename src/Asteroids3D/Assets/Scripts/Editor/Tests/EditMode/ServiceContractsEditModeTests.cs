@@ -150,45 +150,37 @@ namespace Tests.EditMode
             Assert.IsTrue(typeof(IObjectiveTrackerAdapter).IsAssignableFrom(typeof(ObjectiveService)));
         }
 
+        private static Dictionary<string, Func<ObjectiveState>> BuildDefaultBuilders(
+            StubKeyTracker key = null, StubExtractionZone zone = null)
+        {
+            return new Dictionary<string, Func<ObjectiveState>>
+            {
+                ["explore"] = () => new ExploreState(key ?? new StubKeyTracker(false)),
+                ["key"] = () => new KeyAcquiredState(),
+                ["extraction"] = () => new ExtractionChallengeState(zone ?? new StubExtractionZone(false)),
+                ["extracted"] = () => new ExtractedState(),
+                ["failed"] = () => new FailedState()
+            };
+        }
+
         [Test]
         public void ObjectiveService_SetObjective_CreatesTracker_AndForwardsEvents()
         {
             var svc = CreateMonoBehaviourService<ObjectiveService>();
             var key = new StubKeyTracker(false);
-            var paramsAsset = ScriptableObject.CreateInstance<ObjectiveParams>();
 
-            try
-            {
-                var builders = new Dictionary<string, Func<ObjectiveState>>
-                {
-                    ["explore"] = () => new ExploreState(key),
-                    ["key"] = () => new KeyAcquiredState(),
-                    ["extraction"] = () => new ExtractionChallengeState(
-                        () => Vector3.zero,
-                        () => Vector3.zero,
-                        () => false,
-                        paramsAsset.ExtractionRadius),
-                    ["extracted"] = () => new ExtractedState(),
-                    ["failed"] = () => new FailedState()
-                };
+            svc.SetObjective(MissionDefinition.CreateDefault(), BuildDefaultBuilders(key));
 
-                svc.SetObjective(MissionDefinition.CreateDefault(), builders);
+            Assert.IsNotNull(svc.CurrentTracker);
+            Assert.AreEqual(ObjectiveType.Explore, svc.CurrentState);
 
-                Assert.IsNotNull(svc.CurrentTracker);
-                Assert.AreEqual(ObjectiveType.Explore, svc.CurrentState);
+            var transitions = new List<(ObjectiveType from, ObjectiveType to)>();
+            svc.OnStateChanged += (f, t) => transitions.Add((f, t));
 
-                var transitions = new List<(ObjectiveType from, ObjectiveType to)>();
-                svc.OnStateChanged += (f, t) => transitions.Add((f, t));
-
-                key.HasKey = true;
-                svc.CurrentTracker.Tick(0.1f); // Explore → KeyAcquired
-                Assert.AreEqual(1, transitions.Count);
-                Assert.AreEqual(ObjectiveType.KeyAcquired, svc.CurrentState);
-            }
-            finally
-            {
-                UnityEngine.Object.DestroyImmediate(paramsAsset);
-            }
+            key.HasKey = true;
+            svc.CurrentTracker.Tick(0.1f); // Explore → KeyAcquired
+            Assert.AreEqual(1, transitions.Count);
+            Assert.AreEqual(ObjectiveType.KeyAcquired, svc.CurrentState);
         }
 
         [Test]
@@ -198,66 +190,26 @@ namespace Tests.EditMode
             Assert.IsNull(svc.CurrentTracker);
             Assert.IsNull(svc.CurrentState);
 
-            var paramsAsset = ScriptableObject.CreateInstance<ObjectiveParams>();
-            try
-            {
-                var builders = new Dictionary<string, Func<ObjectiveState>>
-                {
-                    ["explore"] = () => new ExploreState(new StubKeyTracker(false)),
-                    ["key"] = () => new KeyAcquiredState(),
-                    ["extraction"] = () => new ExtractionChallengeState(
-                        () => Vector3.zero, () => Vector3.zero, () => false,
-                        paramsAsset.ExtractionRadius),
-                    ["extracted"] = () => new ExtractedState(),
-                    ["failed"] = () => new FailedState()
-                };
+            svc.SetObjective(MissionDefinition.CreateDefault(), BuildDefaultBuilders());
+            Assert.IsNotNull(svc.CurrentTracker);
 
-                svc.SetObjective(MissionDefinition.CreateDefault(), builders);
-                Assert.IsNotNull(svc.CurrentTracker);
-
-                svc.Clear();
-                Assert.IsNull(svc.CurrentTracker);
-                Assert.IsNull(svc.CurrentState);
-            }
-            finally
-            {
-                UnityEngine.Object.DestroyImmediate(paramsAsset);
-            }
+            svc.Clear();
+            Assert.IsNull(svc.CurrentTracker);
+            Assert.IsNull(svc.CurrentState);
         }
 
         [Test]
         public void ObjectiveService_Restart_DelegatesToTracker()
         {
             var svc = CreateMonoBehaviourService<ObjectiveService>();
-            var key = new StubKeyTracker(false);
-            var paramsAsset = ScriptableObject.CreateInstance<ObjectiveParams>();
 
-            try
-            {
-                var builders = new Dictionary<string, Func<ObjectiveState>>
-                {
-                    ["explore"] = () => new ExploreState(key),
-                    ["key"] = () => new KeyAcquiredState(),
-                    ["extraction"] = () => new ExtractionChallengeState(
-                        () => Vector3.zero, () => Vector3.zero, () => false,
-                        paramsAsset.ExtractionRadius),
-                    ["extracted"] = () => new ExtractedState(),
-                    ["failed"] = () => new FailedState()
-                };
+            svc.SetObjective(MissionDefinition.CreateDefault(), BuildDefaultBuilders());
 
-                svc.SetObjective(MissionDefinition.CreateDefault(), builders);
+            svc.Fail();
+            Assert.AreEqual(ObjectiveType.Failed, svc.CurrentState);
 
-                // Event-driven failure via Fail()
-                svc.Fail();
-                Assert.AreEqual(ObjectiveType.Failed, svc.CurrentState);
-
-                svc.Restart();
-                Assert.AreEqual(ObjectiveType.Explore, svc.CurrentState);
-            }
-            finally
-            {
-                UnityEngine.Object.DestroyImmediate(paramsAsset);
-            }
+            svc.Restart();
+            Assert.AreEqual(ObjectiveType.Explore, svc.CurrentState);
         }
 
         // ── ICameraService shape ─────────────────────────────────────────────────
@@ -307,6 +259,13 @@ namespace Tests.EditMode
             public bool HasKey;
             public StubKeyTracker(bool hasKey) => HasKey = hasKey;
             public bool PlayerHasKey => HasKey;
+        }
+
+        private sealed class StubExtractionZone : IExtractionZone
+        {
+            public bool InZone;
+            public StubExtractionZone(bool inZone) => InZone = inZone;
+            public bool IsPlayerInZone => InZone;
         }
     }
 }

@@ -12,58 +12,51 @@ namespace Objectives
     }
 
     /// <summary>
-    /// MonoBehaviour on the key prefab. Owns key visual state, pickup-by-distance
-    /// check, and spawn logic. Runs its own Update — no external tick needed.
+    /// MonoBehaviour on the key prefab. Detects pickup via trigger collision.
+    /// Requires a Collider (set to isTrigger) on the same GameObject.
+    /// The player must have a Collider and Rigidbody to generate trigger events.
     /// </summary>
+    [RequireComponent(typeof(Collider))]
     public class KeyPickup : MonoBehaviour, IKeyTracker
     {
-        [SerializeField] private float pickupDistance = 4f;
+        [Header("Spawn")]
+        [SerializeField] private float spawnRadius = 30f;
 
-        private Transform player;
         private bool collected;
+        private string playerTag = "Player";
 
         public bool PlayerHasKey => collected;
         public Vector3 KeyPosition => transform.position;
+        public float SpawnRadius => spawnRadius;
 
         public event Action OnKeyCollected;
 
-        public void Initialize(Transform playerTransform, float distance)
-        {
-            player = playerTransform;
-            pickupDistance = distance;
-            collected = false;
-            gameObject.SetActive(true);
-        }
-
         /// <summary>
-        /// Move to a random position within radius of center and reset collected state.
+        /// Move to a random position within <see cref="spawnRadius"/> of center
+        /// and reset collected state.
         /// </summary>
-        public void SpawnKey(Vector3 center, float radius)
+        public void SpawnKey(Vector3 center)
         {
             collected = false;
-            var offset2D = UnityEngine.Random.insideUnitCircle * radius;
+            var offset2D = UnityEngine.Random.insideUnitCircle * spawnRadius;
             transform.position = new Vector3(center.x + offset2D.x, center.y, center.z + offset2D.y);
             gameObject.SetActive(true);
         }
 
-        private void Update()
+        /// <summary>Reset collected state and re-show (for restart).</summary>
+        public void ResetKey(Vector3 center)
         {
-            if (collected || !player)
-                return;
-
-            var sqrDist = (player.position - transform.position).sqrMagnitude;
-            if (sqrDist <= pickupDistance * pickupDistance)
-            {
-                collected = true;
-                gameObject.SetActive(false);
-                OnKeyCollected?.Invoke();
-            }
+            SpawnKey(center);
         }
 
-        /// <summary>Reset collected state and re-show (for restart).</summary>
-        public void ResetKey(Vector3 center, float radius)
+        private void OnTriggerEnter(Collider other)
         {
-            SpawnKey(center, radius);
+            if (collected) return;
+            if (!other.CompareTag(playerTag)) return;
+
+            collected = true;
+            gameObject.SetActive(false);
+            OnKeyCollected?.Invoke();
         }
     }
 }

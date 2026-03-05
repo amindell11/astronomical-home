@@ -1,38 +1,26 @@
 using System;
-using UnityEngine;
 
 namespace Objectives.States
 {
     /// <summary>
     /// Player must reach the extraction zone while not blocked by a nearby chaser.
-    /// Optional onEnter callback fires side effects (e.g. spawn chaser) when entered.
+    /// Delegates the actual check to an <see cref="IExtractionZone"/>.
+    /// Optional onEnter callback fires side effects (e.g. activate chaser) when entered.
     /// </summary>
     public class ExtractionChallengeState : ObjectiveState
     {
-        private readonly Func<Vector3> playerPos;
-        private readonly Func<Vector3> zonePos;
-        private readonly Func<bool> isBlocked;
-        private readonly float extractionRadius;
+        private readonly IExtractionZone zone;
 
         public override ObjectiveType StateType => ObjectiveType.ExtractionChallenge;
 
-        public ExtractionChallengeState(
-            Func<Vector3> playerPos,
-            Func<Vector3> zonePos,
-            Func<bool> isBlocked,
-            float extractionRadius,
-            Action onEnter = null) : base(onEnter)
+        public ExtractionChallengeState(IExtractionZone zone, Action onEnter = null)
+            : base(onEnter)
         {
-            this.playerPos = playerPos ?? throw new ArgumentNullException(nameof(playerPos));
-            this.zonePos = zonePos ?? throw new ArgumentNullException(nameof(zonePos));
-            this.isBlocked = isBlocked;
-            this.extractionRadius = extractionRadius;
+            this.zone = zone ?? throw new ArgumentNullException(nameof(zone));
         }
 
         public override void Tick(float deltaTime) { }
 
-        public override bool IsComplete =>
-            Vector3.Distance(playerPos(), zonePos()) <= extractionRadius
-            && (isBlocked == null || !isBlocked());
+        public override bool IsComplete => zone.IsPlayerInZone;
     }
 }
