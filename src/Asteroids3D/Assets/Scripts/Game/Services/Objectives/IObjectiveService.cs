@@ -15,8 +15,7 @@ namespace Game.Services
         /// <summary>Create and activate a new objective tracker for this sector.</summary>
         void SetObjective(
             MissionDefinition mission,
-            IReadOnlyDictionary<string, Func<ObjectiveState>> builders,
-            Func<bool> isPlayerAlive);
+            IReadOnlyDictionary<string, Func<ObjectiveState>> builders);
 
         /// <summary>Restart the current objective from the initial state.</summary>
         void Restart();

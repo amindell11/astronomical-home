@@ -172,7 +172,7 @@ namespace Tests.EditMode
                     ["failed"] = () => new FailedState()
                 };
 
-                svc.SetObjective(MissionDefinition.CreateDefault(), builders, () => true);
+                svc.SetObjective(MissionDefinition.CreateDefault(), builders);
 
                 Assert.IsNotNull(svc.CurrentTracker);
                 Assert.AreEqual(ObjectiveType.Explore, svc.CurrentState);
@@ -212,7 +212,7 @@ namespace Tests.EditMode
                     ["failed"] = () => new FailedState()
                 };
 
-                svc.SetObjective(MissionDefinition.CreateDefault(), builders, () => true);
+                svc.SetObjective(MissionDefinition.CreateDefault(), builders);
                 Assert.IsNotNull(svc.CurrentTracker);
 
                 svc.Clear();
@@ -246,7 +246,9 @@ namespace Tests.EditMode
                     ["failed"] = () => new FailedState()
                 };
 
-                svc.SetObjective(MissionDefinition.CreateDefault(), builders, () => alive);
+                svc.SetObjective(
+                    MissionDefinition.CreateDefault(failCriteria: () => !alive),
+                    builders);
 
                 alive = false;
                 svc.CurrentTracker.Tick(0.1f);

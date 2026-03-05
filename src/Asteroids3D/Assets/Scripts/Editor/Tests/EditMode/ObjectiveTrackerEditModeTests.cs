@@ -59,9 +59,9 @@ namespace Tests.EditMode
             };
 
             var tracker = new ObjectiveTracker(
-                MissionDefinition.CreateDefault(),
-                builders,
-                () => alive.Value);
+                MissionDefinition.CreateDefault(
+                    failCriteria: () => !alive.Value),
+                builders);
 
             return (tracker, key, alive, playerPos, blocker);
         }

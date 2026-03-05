@@ -21,12 +21,11 @@ namespace Game.Services
 
         public void SetObjective(
             MissionDefinition mission,
-            IReadOnlyDictionary<string, Func<ObjectiveState>> builders,
-            Func<bool> isPlayerAlive)
+            IReadOnlyDictionary<string, Func<ObjectiveState>> builders)
         {
             Clear();
 
-            CurrentTracker = new ObjectiveTracker(mission, builders, isPlayerAlive);
+            CurrentTracker = new ObjectiveTracker(mission, builders);
             CurrentTracker.OnStateChanged += ForwardStateChanged;
         }
 

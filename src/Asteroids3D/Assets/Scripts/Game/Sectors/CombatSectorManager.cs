@@ -87,9 +87,7 @@ namespace Game.Sectors
             if (chaser)
                 chaser.gameObject.SetActive(false);
 
-            var extractionPos = extractionZonePrefab
-                ? extractionZonePrefab.position
-                : Vector3.zero;
+            var extractionPos = new Vector2(50, 50);
 
             var builders = new Dictionary<string, Func<ObjectiveState>>
             {
@@ -98,17 +96,17 @@ namespace Game.Sectors
                 ["extraction"] = () => new ExtractionChallengeState(
                     () => Player ? Player.transform.position : Vector3.zero,
                     () => extractionPos,
-                    () => IsExtractionBlocked(),
+                    IsExtractionBlocked,
                     objectiveParams.ExtractionRadius,
                     onEnter: () => { if (chaser) chaser.gameObject.SetActive(true); }),
                 ["extracted"] = () => new ExtractedState(onEnter: RestartEncounter),
                 ["failed"] = () => new FailedState(onEnter: RestartEncounter)
             };
 
-            Services.ObjectiveService.SetObjective(
-                MissionDefinition.CreateDefault(),
-                builders,
-                () => Player && Player.gameObject.activeSelf);
+            var mission = MissionDefinition.CreateDefault(
+                failCriteria: () => !Player || !Player.gameObject.activeSelf);
+
+            Services.ObjectiveService.SetObjective(mission, builders);
         }
 
         private bool IsExtractionBlocked()
@@ -121,15 +119,13 @@ namespace Game.Sectors
 
         private void RestartEncounter()
         {
-            if (keyPickup)
-                keyPickup.ResetKey(playerSpawnPosition, objectiveParams.KeySpawnRadius);
-
-            if (chaser)
-                chaser.gameObject.SetActive(false);
-
+            if (keyPickup) keyPickup.ResetKey(playerSpawnPosition, objectiveParams.KeySpawnRadius);
+            if (chaser) chaser.gameObject.SetActive(false);
             if (Player && !Player.gameObject.activeSelf)
+            {
+                Player.transform.position = playerSpawnPosition;
                 Player.ResetShip();
-
+            }
             Services.ObjectiveService.Restart();
         }
 

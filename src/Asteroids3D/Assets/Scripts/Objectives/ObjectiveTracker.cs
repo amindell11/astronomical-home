@@ -16,8 +16,6 @@ namespace Objectives
         private string currentStep;
         private readonly MissionDefinition mission;
         private readonly IReadOnlyDictionary<string, Func<ObjectiveState>> builders;
-        private readonly Func<bool> isPlayerAlive;
-
         /// <summary>Raised when the tracker transitions between states.</summary>
         public event Action<ObjectiveType, ObjectiveType> OnStateChanged;
 
@@ -29,12 +27,10 @@ namespace Objectives
 
         public ObjectiveTracker(
             MissionDefinition mission,
-            IReadOnlyDictionary<string, Func<ObjectiveState>> builders,
-            Func<bool> isPlayerAlive)
+            IReadOnlyDictionary<string, Func<ObjectiveState>> builders)
         {
             this.mission = mission ?? throw new ArgumentNullException(nameof(mission));
             this.builders = builders ?? throw new ArgumentNullException(nameof(builders));
-            this.isPlayerAlive = isPlayerAlive ?? throw new ArgumentNullException(nameof(isPlayerAlive));
 
             currentStep = mission.InitialStep;
             current = builders[currentStep]();
@@ -50,7 +46,7 @@ namespace Objectives
             if (IsTerminal(current.StateType))
                 return;
 
-            if (!isPlayerAlive())
+            if (mission.FailCriteria != null && mission.FailCriteria())
             {
                 TransitionTo("failed");
                 return;
