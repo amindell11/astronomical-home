@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 8376058910363217357}
   - component: {fileID: 4108587558117884671}
-  - component: {fileID: 8805847952996741134}
   m_Layer: 0
   m_Name: CombatSector
   m_TagString: Untagged
@@ -56,6 +55,8 @@ MonoBehaviour:
     type: 3}
   worldPrefab: {fileID: 4478678954348364341, guid: 85b078d06b0ea6c40acdfd2fe59a9556,
     type: 3}
+  updatingAsteroidFieldPrefab: {fileID: 7997124830668444265, guid: a4a07ada72adcc44ba51f616ad29384b,
+    type: 3}
   observerCamPrefab: {fileID: 5165561948949764142, guid: 2c36b9334ffd01546b166a7fe6b04853,
     type: 3}
   keyPickupPrefab: {fileID: 9103027025631425475, guid: a57fedd19f1e5f6438bed6b33c3a6912,
@@ -65,22 +66,6 @@ MonoBehaviour:
   keySpawnPosition: {x: -30, y: 25}
   extractionZonePosition: {x: 50, y: 50}
   playerSpawnPosition: {x: 0, y: 0}
-  enemySpawnOffset: {x: -20, y: 50}
+  enemySpawnPosition: {x: 0, y: 30}
+  chaserSpawnPosition: {x: 30, y: 50}
   spawnerSettings: {fileID: 11400000, guid: d5df05273fc201d41b456a239f5fa628, type: 2}
---- !u!114 &8805847952996741134
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1718666969227981958}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8c872b9e66ad4b9d9bd9cb8623afee35, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  logTransitions: 1
-  drawExtractionZone: 1
-  extractionZoneCenter: {x: 0, y: 0, z: 0}
-  extractionZoneRadius: 10
-  extractionZoneColor: {r: 0, g: 1, b: 0.5, a: 0.3}

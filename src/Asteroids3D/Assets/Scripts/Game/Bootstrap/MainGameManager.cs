@@ -7,6 +7,8 @@ using UnityEngine;
 
 namespace Game.Bootstrap
 {
+    [RequireComponent(typeof(ObjectiveService))]
+    [RequireComponent(typeof(UnitService))]
     public class MainGameManager : MonoBehaviour
     {
         [Header("Sector")]
@@ -74,9 +76,9 @@ namespace Game.Bootstrap
             GamePlane.SetReferencePlane(referencePlane);
 
             services = new GameServices(
-                unitService: gameObject.AddComponent<UnitService>(),
+                unitService: GetComponent<UnitService>(),
                 environmentService: new EnvironmentService(),
-                objectiveService: gameObject.AddComponent<ObjectiveService>(),
+                objectiveService: GetComponent<ObjectiveService>(),
                 cameraService: new CameraService()
             );
 

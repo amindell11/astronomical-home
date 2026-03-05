@@ -50,6 +50,13 @@ namespace Game.Services
             }
 
             spawnedShips.Clear();
+            // Do NOT call ActiveRegistry.Dispose() here — that unsubscribes the OnAdd/OnRemove
+            // callbacks, which permanently breaks the registry for subsequent runs.
+            // Ships are already fully unregistered via ActiveShips.Remove() above.
+        }
+
+        private void OnDestroy()
+        {
             ActiveRegistry.Dispose();
         }
 

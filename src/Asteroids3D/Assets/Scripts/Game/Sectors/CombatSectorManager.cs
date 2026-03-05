@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Asteroids.Fields;
 using Cameras;
 using Game.Sectors.Utils;
 using Objectives;
@@ -28,6 +29,7 @@ namespace Game.Sectors
 
         [Header("Environment")]
         [SerializeField] private World.WorldRoot worldPrefab;
+        [SerializeField] private UpdatingAsteroidField updatingAsteroidFieldPrefab;
 
         [Header("Camera")]
         [SerializeField] private ObserverCam observerCamPrefab;
@@ -42,12 +44,14 @@ namespace Game.Sectors
 
         [Header("Spawn Positions (Plane Space)")]
         [SerializeField] private Vector2 playerSpawnPosition = Vector2.zero;
-        [SerializeField] private Vector2 enemySpawnOffset = new Vector2(0f, 50f);
+        [SerializeField] private Vector2 enemySpawnPosition = new Vector2(0f, 50f);
+        [SerializeField] private Vector2 chaserSpawnPosition = new Vector2(50f, 50f);
 
         [Header("Ship Spawn Settings")]
         [SerializeField] private ShipSpawnerSettings spawnerSettings;
 
         private Ship player, enemy, chaser;
+        private UpdatingAsteroidField updatingAsteroidFieldInstance;
         private KeyPickup keyPickupInstance;
         private ExtractionZone extractionZoneInstance;
 
@@ -61,9 +65,11 @@ namespace Game.Sectors
             SectorUtils.BuildAndWireObserverCam(Services, observerCamPrefab);
 
             player = SectorUtils.BuildAndWirePlayer(playerTemplate, playerCommander, shipSettings, 0, playerSpawnPosition, Services);
-            enemy = Services.UnitService.SpawnShip(enemyTemplate, enemyCommander, shipSettings, 1, GamePlane.PlanePointToWorld(playerSpawnPosition + enemySpawnOffset), Quaternion.identity);
-            chaser = Services.UnitService.SpawnShip(enemyTemplate, enemyCommander, shipSettings, 1, GamePlane.PlanePointToWorld(playerSpawnPosition + enemySpawnOffset), Quaternion.identity);
+            enemy = Services.UnitService.SpawnShip(enemyTemplate, enemyCommander, shipSettings, 1, GamePlane.PlanePointToWorld(enemySpawnPosition), Quaternion.identity);
+            chaser = Services.UnitService.SpawnShip(enemyTemplate, enemyCommander, shipSettings, 1, GamePlane.PlanePointToWorld(chaserSpawnPosition), Quaternion.identity);
             chaser.gameObject.SetActive(false);
+
+            InitializeAsteroidField();
 
             // Player death → fail the objective immediately
             player.Damage.OnDeath += (_, __) => Services.ObjectiveService.Fail();
@@ -74,16 +80,43 @@ namespace Game.Sectors
                     Services.UnitService.WaitAndRespawnShip(s1,
                         Random.insideUnitCircle * spawnerSettings.offscreenDistance + GamePlane.WorldPointToPlane(Services.EnvironmentService.WorldFollowerTransform.position),
                         0, spawnerSettings.enemyRespawnDelay);
-
-                chaser.Damage.OnDeath += (s1, _) =>
-                    Services.UnitService.WaitAndRespawnShip(s1,
-                        Random.insideUnitCircle * spawnerSettings.offscreenDistance + GamePlane.WorldPointToPlane(Services.EnvironmentService.WorldFollowerTransform.position),
-                        0, spawnerSettings.enemyRespawnDelay);
             }
+
+            // Chaser always respawns near the world center so it can re-engage the player.
+            // This is wired unconditionally: without it, killing the chaser would permanently
+            // deactivate it (HandleShipDeath calls SetActive(false) with no reactivation path).
+            var respawnDelay = spawnerSettings ? spawnerSettings.enemyRespawnDelay : 3f;
+            chaser.Damage.OnDeath += (s1, _) =>
+                Services.UnitService.WaitAndRespawnShip(s1,
+                    Random.insideUnitCircle * (spawnerSettings ? spawnerSettings.offscreenDistance : 30f)
+                        + GamePlane.WorldPointToPlane(Services.EnvironmentService.WorldFollowerTransform.position),
+                    0, respawnDelay);
 
             ObjectivePhase();
 
             yield return null;
+        }
+
+        private void InitializeAsteroidField()
+        {
+            if (!updatingAsteroidFieldPrefab)
+                return;
+
+            var cullingBoundary = Services.EnvironmentService.World
+                ? Services.EnvironmentService.World.AsteroidCullingBoundary
+                : null;
+
+            if (!cullingBoundary)
+            {
+                Debug.LogWarning("Updating asteroid field prefab is assigned, but no AsteroidCullingBoundary exists in the spawned world.");
+                return;
+            }
+
+            updatingAsteroidFieldInstance = Instantiate(updatingAsteroidFieldPrefab);
+            updatingAsteroidFieldInstance.Initialize(cullingBoundary);
+            updatingAsteroidFieldInstance.SetWorldAnchor(Services.EnvironmentService.WorldFollowerTransform);
+            updatingAsteroidFieldInstance.CurrentAnchorPos = () =>
+                player ? GamePlane.ProjectOntoPlane(player.transform.position) : updatingAsteroidFieldInstance.transform.position;
         }
 
         private void ObjectivePhase()
@@ -92,13 +125,13 @@ namespace Game.Sectors
             if (keyPickupPrefab)
             {
                 var keyWorld = GamePlane.PlanePointToWorld(keySpawnPosition);
-                keyPickupInstance = Instantiate(keyPickupPrefab, keyWorld, Quaternion.identity);
+                keyPickupInstance = Instantiate(keyPickupPrefab, keyWorld, keyPickupPrefab.transform.rotation);
                 keyPickupInstance.SpawnKey(keyWorld);
             }
 
             if (extractionZonePrefab)
             {
-                extractionZoneInstance = Instantiate(extractionZonePrefab, GamePlane.PlanePointToWorld(extractionZonePosition), Quaternion.identity);
+                extractionZoneInstance = Instantiate(extractionZonePrefab, GamePlane.PlanePointToWorld(extractionZonePosition), extractionZonePrefab.transform.rotation);
                 extractionZoneInstance.Initialize(chaser ? chaser.transform : null);
             }
 
@@ -112,8 +145,8 @@ namespace Game.Sectors
                 ["extraction"] = () => new ExtractionChallengeState(
                     extractionZoneInstance,
                     onEnter: () => { if (chaser) chaser.gameObject.SetActive(true); }),
-                ["extracted"] = () => new ExtractedState(onEnter: RestartEncounter),
-                ["failed"] = () => new FailedState(onEnter: RestartEncounter)
+                ["extracted"] = () => new ExtractedState(onEnter: ()=>CompleteSector(SectorResult.Extracted())),
+                ["failed"] = () => new FailedState(onEnter: ()=>CompleteSector(SectorResult.Failed("failed")))
             };
 
             Services.ObjectiveService.SetObjective(MissionDefinition.CreateDefault(), builders);
@@ -121,14 +154,7 @@ namespace Game.Sectors
 
         private void RestartEncounter()
         {
-            if (keyPickupInstance) keyPickupInstance.ResetKey(GamePlane.PlanePointToWorld(keySpawnPosition));
-            if (chaser) chaser.gameObject.SetActive(false);
-            if (player && !player.gameObject.activeSelf)
-            {
-                player.transform.position = GamePlane.PlanePointToWorld(playerSpawnPosition);
-                player.ResetShip();
-            }
-            Services.ObjectiveService.Restart();
+            CompleteSector(SectorResult.Extracted());
         }
 
         protected override IEnumerator OnTeardown()
@@ -140,14 +166,17 @@ namespace Game.Sectors
 
             if (keyPickupInstance) Destroy(keyPickupInstance.gameObject);
             if (extractionZoneInstance) Destroy(extractionZoneInstance.gameObject);
+            if (updatingAsteroidFieldInstance) Destroy(updatingAsteroidFieldInstance.gameObject);
 
             if (Config.LoadScene)
                 yield return Services.EnvironmentService.UnloadSceneAsync(Config.SceneName);
 
             player = null;
             enemy = null;
+            chaser = null;
             keyPickupInstance = null;
             extractionZoneInstance = null;
+            updatingAsteroidFieldInstance = null;
 
             yield return null;
         }

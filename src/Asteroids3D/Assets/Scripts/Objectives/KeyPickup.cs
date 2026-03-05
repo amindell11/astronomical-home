@@ -1,4 +1,5 @@
 using System;
+using Player;
 using UnityEngine;
 
 namespace Objectives
@@ -22,10 +23,8 @@ namespace Objectives
         [Header("Spawn")]
         [SerializeField] private float spawnRadius = 30f;
 
-        private bool collected;
-        private string playerTag = "Player";
+        public bool PlayerHasKey { get; private set; }
 
-        public bool PlayerHasKey => collected;
         public Vector3 KeyPosition => transform.position;
 
         public event Action OnKeyCollected;
@@ -36,7 +35,7 @@ namespace Objectives
         /// </summary>
         public void SpawnKey(Vector3 center)
         {
-            collected = false;
+            PlayerHasKey = false;
             var offset2D = UnityEngine.Random.insideUnitCircle * spawnRadius;
             transform.position = new Vector3(center.x + offset2D.x, center.y, center.z + offset2D.y);
             gameObject.SetActive(true);
@@ -50,11 +49,10 @@ namespace Objectives
 
         private void OnTriggerEnter(Collider other)
         {
-            Debug.Log("Entered Key");
-            if (collected) return;
-            if (!other.CompareTag(playerTag)) return;
+            if (PlayerHasKey) return;
+            if (!other.GetComponentInParent<PlayerMarker>()) return;
 
-            collected = true;
+            PlayerHasKey = true;
             gameObject.SetActive(false);
             OnKeyCollected?.Invoke();
         }

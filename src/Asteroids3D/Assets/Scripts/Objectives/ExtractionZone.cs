@@ -1,3 +1,4 @@
+using Player;
 using UnityEngine;
 
 namespace Objectives
@@ -28,7 +29,6 @@ namespace Objectives
         private float blockDistanceSqr;
         private bool playerInZone;
         private Transform playerTransform;
-        private string playerTag = "Player";
 
         public bool IsPlayerInZone
         {
@@ -36,11 +36,8 @@ namespace Objectives
             {
                 if (!playerInZone) return false;
 
-                if (blocker && playerTransform &&
-                    (blocker.position - playerTransform.position).sqrMagnitude <= blockDistanceSqr)
-                    return false;
-
-                return true;
+                return !blocker || !playerTransform ||
+                       !((blocker.position - playerTransform.position).sqrMagnitude <= blockDistanceSqr);
             }
         }
 
@@ -60,14 +57,15 @@ namespace Objectives
 
         private void OnTriggerEnter(Collider other)
         {
-            if (!other.CompareTag(playerTag)) return;
+            var marker = other.GetComponentInParent<PlayerMarker>();
+            if (!marker) return;
             playerInZone = true;
-            playerTransform = other.transform;
+            playerTransform = marker.transform;
         }
 
         private void OnTriggerExit(Collider other)
         {
-            if (!other.CompareTag(playerTag)) return;
+            if (!other.GetComponentInParent<PlayerMarker>()) return;
             playerInZone = false;
         }
     }

@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 05c351aee451e594c9ffd819289ea8d6, type: 3}
+  m_Name: BigFieldSettings
+  m_EditorClassIdentifier: 
+  maxAsteroids: 300
+  initialMinSpawnDistance: 7.5
+  initialMaxSpawnDistance: 120
+  targetVolumeDensity: 0.2
+  densityCheckRadius: 120
+  maxSpawnsPerFrame: 10
+  updateMinSpawnDistance: 100
+  updateMaxSpawnDistance: 120
+  densityCheckInterval: 0.15
