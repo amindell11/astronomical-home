@@ -15,6 +15,7 @@ param(
     [int]$MaxFailures = 25,
     [int]$MaxMessageLength = 240,
     [int]$LogTailLines = 40,
+    [int]$UnityTimeoutSec = 1800,
     [switch]$IncludeStackTrace,
     [switch]$ValidateScope,
     [string]$ScopeMapPath = ""
@@ -22,6 +23,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+$Script:IsWindowsPlatform = ($env:OS -eq "Windows_NT")
 
 function Resolve-FullPath {
     param([string]$Path)
@@ -270,6 +272,89 @@ function Test-ScopeFilterMatchesTests {
         if (Test-Path -LiteralPath $tempDir) {
             Remove-Item -LiteralPath $tempDir -Recurse -Force -ErrorAction SilentlyContinue
         }
+    }
+}
+
+function Test-ProjectAlreadyOpen {
+    param([string]$ProjectPath)
+
+    if ($Script:IsWindowsPlatform -ne $true) {
+        return $null
+    }
+
+    try {
+        $normalizedProject = [System.IO.Path]::GetFullPath($ProjectPath).Replace('\\', '/').ToLowerInvariant()
+
+        $procs = Get-CimInstance Win32_Process -Filter "Name='Unity.exe'" -ErrorAction SilentlyContinue
+        foreach ($proc in $procs) {
+            $cmd = [string]$proc.CommandLine
+            if ([string]::IsNullOrWhiteSpace($cmd)) { continue }
+
+            $cmdLower = $cmd.ToLowerInvariant()
+            if ($cmdLower -notlike "*-projectpath*") { continue }
+            if ($cmdLower -like "*-batchmode*") { continue }
+
+            $cmdNorm = $cmdLower.Replace('\\', '/')
+            if ($cmdNorm.Contains($normalizedProject)) {
+                return [ordered]@{
+                    pid = [int]$proc.ProcessId
+                    commandLine = $cmd
+                }
+            }
+        }
+    }
+    catch {
+        # Best-effort check only; ignore detection failures.
+        return $null
+    }
+
+    return $null
+}
+
+function Invoke-UnityProcess {
+    param(
+        [string]$UnityExe,
+        [string[]]$Arguments,
+        [int]$TimeoutSec = 1800
+    )
+
+    $proc = Start-Process -FilePath $UnityExe -ArgumentList $Arguments -NoNewWindow -PassThru
+
+    if ($TimeoutSec -le 0) {
+        $TimeoutSec = 1800
+    }
+
+    $deadline = (Get-Date).AddSeconds($TimeoutSec)
+
+    while (-not $proc.HasExited) {
+        if ((Get-Date) -ge $deadline) {
+            if ($Script:IsWindowsPlatform -eq $true) {
+                & taskkill /PID $proc.Id /T /F *> $null
+            }
+            else {
+                Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+            }
+
+            Start-Sleep -Milliseconds 300
+            return [ordered]@{
+                exitCode = 124
+                timedOut = $true
+                pid = [int]$proc.Id
+            }
+        }
+
+        Start-Sleep -Milliseconds 500
+    }
+
+    $exitCode = 0
+    if ($null -ne $proc.ExitCode) {
+        $exitCode = [int]$proc.ExitCode
+    }
+
+    return [ordered]@{
+        exitCode = $exitCode
+        timedOut = $false
+        pid = [int]$proc.Id
     }
 }
 
@@ -530,12 +615,6 @@ foreach ($platform in $platforms) {
 
     Write-Host "Running Unity $platform tests..."
 
-    $proc = Start-Process -FilePath $unityExe -ArgumentList $args -Wait -NoNewWindow -PassThru
-    $unityExit = 0
-    if ($null -ne $proc -and $null -ne $proc.ExitCode) {
-        $unityExit = [int]$proc.ExitCode
-    }
-
     $selection = [ordered]@{
         scopeType = $ScopeType
         scopeName = $ScopeName
@@ -547,6 +626,31 @@ foreach ($platform in $platforms) {
         rerunFailedFrom = $rerunSummaryPath
     }
 
+    $blocking = Test-ProjectAlreadyOpen -ProjectPath $project
+    if ($null -ne $blocking) {
+        $runs += [ordered]@{
+            platform = $platform
+            xmlPath = $xmlPath
+            logPath = $logPath
+            unityExitCode = 32
+            status = "infra_error"
+            total = 0
+            passed = 0
+            failed = 0
+            skipped = 0
+            durationSec = 0.0
+            failures = @()
+            truncatedFailures = 0
+            selection = $selection
+            note = "Project appears open in another non-batch Unity instance (pid=$($blocking.pid)). Close that Unity editor before running batch tests."
+            blockingInstance = $blocking
+        }
+        continue
+    }
+
+    $invoke = Invoke-UnityProcess -UnityExe $unityExe -Arguments $args -TimeoutSec $UnityTimeoutSec
+    $unityExit = [int]$invoke.exitCode
+
     $parsed = Parse-UnityResultXml `
         -XmlPath $xmlPath `
         -Platform $platform `
@@ -557,6 +661,11 @@ foreach ($platform in $platforms) {
         -WithStackTrace:$IncludeStackTrace `
         -TailLines $LogTailLines `
         -Selection $selection
+
+    if ($invoke.timedOut) {
+        $parsed.status = "infra_error"
+        $parsed.note = "Unity test run timed out after $UnityTimeoutSec seconds and was terminated (pid=$($invoke.pid))."
+    }
 
     $runs += $parsed
 }
