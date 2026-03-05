@@ -1,7 +1,10 @@
+using System;
 using System.Collections;
+using System.Collections.Generic;
 using Cameras;
 using Game.Bootstrap;
 using Objectives;
+using Objectives.States;
 using Player;
 using Ships;
 using UnityEngine;
@@ -10,7 +13,8 @@ namespace Game.Sectors
 {
     /// <summary>
     /// Combat sector: loads a scene, spawns player + enemies, sets extraction objective.
-    /// Type-specific settings are serialized on this prefab, NOT in SectorConfigSO.
+    /// Builds the objective step dictionary inline with closures capturing runtime refs.
+    /// Owns chaser spawning and encounter restart as reactions to state changes.
     /// </summary>
     public class CombatSectorManager : SectorManager
     {
@@ -38,7 +42,9 @@ namespace Game.Sectors
 
         private Ship player;
         private Ship enemy;
-        private ObjectiveTrackerController objectiveController;
+        private KeyPickup keyPickup;
+        private GameObject keyVisual;
+        private Transform chaser;
 
         /// <summary>The player ship spawned by this sector.</summary>
         public Ship Player => player;
@@ -56,6 +62,20 @@ namespace Game.Sectors
             ObjectivePhase();
             RespawnPhase();
             yield return null;
+        }
+
+        private void Update()
+        {
+            if (keyPickup != null && player != null && objectiveParams != null)
+            {
+                if (keyPickup.CheckPickup(player.transform.position, objectiveParams.KeyPickupDistance))
+                {
+                    if (keyVisual != null)
+                        keyVisual.SetActive(false);
+                }
+            }
+
+            Services.ObjectiveService.Tick(Time.deltaTime);
         }
 
         private IEnumerator LoadScenePhase()
@@ -129,22 +149,91 @@ namespace Game.Sectors
 
         private void ObjectivePhase()
         {
-            objectiveController = FindObjectOfType<ObjectiveTrackerController>();
-            if (objectiveController == null || objectiveParams == null)
+            if (objectiveParams == null)
                 return;
 
-            var factory = new ObjectiveStateFactory(
-                objectiveController,
-                objectiveController,
-                objectiveController,
-                objectiveController,
-                objectiveController,
-                objectiveParams);
+            // Create key pickup
+            keyPickup = new KeyPickup();
+            var spawnCenter = playerSpawnPosition;
+            keyPickup.SpawnKey(spawnCenter, objectiveParams.KeySpawnRadius);
+
+            // Extraction zone position (use prefab position if available)
+            var extractionPos = extractionZonePrefab
+                ? extractionZonePrefab.position
+                : Vector3.zero;
+
+            // Build string-keyed step builders with closures
+            var builders = new Dictionary<string, Func<ObjectiveState>>
+            {
+                ["explore"] = () => new ExploreState(keyPickup),
+                ["key"] = () => new KeyAcquiredState(),
+                ["extraction"] = () => new ExtractionChallengeState(
+                    () => player ? player.transform.position : Vector3.zero,
+                    () => extractionPos,
+                    () => IsExtractionBlocked(),
+                    objectiveParams.ExtractionRadius),
+                ["extracted"] = () => new ExtractedState(),
+                ["failed"] = () => new FailedState()
+            };
+
+            var mission = MissionDefinition.CreateDefault();
 
             Services.ObjectiveService.SetObjective(
-                MissionDefinition.CreateDefault(),
-                factory,
-                objectiveController);
+                mission,
+                builders,
+                () => player != null && player.gameObject.activeSelf);
+
+            // Subscribe to state changes for reactions
+            Services.ObjectiveService.OnStateChanged += OnObjectiveStateChanged;
+        }
+
+        private bool IsExtractionBlocked()
+        {
+            if (chaser == null || player == null || objectiveParams == null)
+                return false;
+
+            return Vector3.Distance(chaser.position, player.transform.position) <= objectiveParams.ExtractionBlockDistance;
+        }
+
+        private void OnObjectiveStateChanged(ObjectiveType from, ObjectiveType to)
+        {
+            switch (to)
+            {
+                case ObjectiveType.ExtractionChallenge:
+                    SpawnChaser();
+                    break;
+                case ObjectiveType.Extracted:
+                case ObjectiveType.Failed:
+                    RestartEncounter();
+                    break;
+            }
+        }
+
+        private void SpawnChaser()
+        {
+            if (chaser != null)
+                chaser.gameObject.SetActive(true);
+        }
+
+        private void RestartEncounter()
+        {
+            // Reset key
+            keyPickup?.SpawnKey(playerSpawnPosition, objectiveParams.KeySpawnRadius);
+            if (keyVisual != null)
+            {
+                keyVisual.SetActive(true);
+                keyVisual.transform.position = keyPickup.KeyPosition;
+            }
+
+            // Reset chaser
+            if (chaser != null)
+                chaser.gameObject.SetActive(false);
+
+            // Respawn player if needed
+            if (player != null && !player.gameObject.activeSelf)
+                player.ResetShip();
+
+            Services.ObjectiveService.Restart();
         }
 
         private void RespawnPhase()
@@ -160,6 +249,10 @@ namespace Game.Sectors
 
         protected override IEnumerator OnTeardown()
         {
+            // Unsubscribe from objective events
+            if (Services?.ObjectiveService != null)
+                Services.ObjectiveService.OnStateChanged -= OnObjectiveStateChanged;
+
             // Reset respawn runner
             if (RespawnRunner)
                 RespawnRunner.ResetRunner();
@@ -185,6 +278,7 @@ namespace Game.Sectors
 
             player = null;
             enemy = null;
+            keyPickup = null;
 
             yield return null;
         }

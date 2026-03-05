@@ -3,38 +3,39 @@ using System.Collections.Generic;
 namespace Objectives
 {
     /// <summary>
-    /// Describes the state transition table for a mission.
-    /// Each entry maps a source state to the next state when IsComplete is true.
-    /// Terminal states (Extracted, Failed) have no entry.
+    /// Describes the state transition table for a mission using string step IDs.
+    /// String keys allow duplicate state types in a mission and leave the door open
+    /// for branching transitions later.
     /// </summary>
     public class MissionDefinition
     {
-        public ObjectiveType InitialState { get; }
-        public IReadOnlyDictionary<ObjectiveType, ObjectiveType> Transitions { get; }
+        public string InitialStep { get; }
+        public IReadOnlyDictionary<string, string> Transitions { get; }
 
-        public MissionDefinition(ObjectiveType initialState, Dictionary<ObjectiveType, ObjectiveType> transitions)
+        public MissionDefinition(string initialStep, Dictionary<string, string> transitions)
         {
-            InitialState = initialState;
+            InitialStep = initialStep;
             Transitions = transitions == null
-                ? new Dictionary<ObjectiveType, ObjectiveType>()
-                : new Dictionary<ObjectiveType, ObjectiveType>(transitions);
+                ? new Dictionary<string, string>()
+                : new Dictionary<string, string>(transitions);
         }
 
-        public bool TryGetNext(ObjectiveType current, out ObjectiveType next) =>
+        public bool TryGetNext(string current, out string next) =>
             Transitions.TryGetValue(current, out next);
 
         /// <summary>
         /// Standard sequential single-mission flow:
-        /// Explore -> KeyAcquired -> ExtractionChallenge -> Extracted.
-        /// Failure (player destroyed) is handled by ObjectiveTracker independently.
+        /// explore → key → extraction → extracted.
+        /// Failure (player destroyed) is handled by ObjectiveTracker independently
+        /// via the well-known "failed" step ID.
         /// </summary>
         public static MissionDefinition CreateDefault() => new MissionDefinition(
-            ObjectiveType.Explore,
-            new Dictionary<ObjectiveType, ObjectiveType>
+            "explore",
+            new Dictionary<string, string>
             {
-                { ObjectiveType.Explore,              ObjectiveType.KeyAcquired         },
-                { ObjectiveType.KeyAcquired,          ObjectiveType.ExtractionChallenge },
-                { ObjectiveType.ExtractionChallenge,  ObjectiveType.Extracted           }
+                { "explore",    "key"        },
+                { "key",        "extraction" },
+                { "extraction", "extracted"  }
             });
     }
 }

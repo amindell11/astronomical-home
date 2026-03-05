@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 using Objectives;
+using Objectives.States;
 using UnityEngine;
 
 namespace Tests.EditMode
@@ -8,6 +10,7 @@ namespace Tests.EditMode
     /// <summary>
     /// EditMode unit tests for the ObjectiveTracker state machine.
     /// All stubs are inline — no MonoBehaviours required, no scene loading.
+    /// Uses string-keyed builder dictionaries instead of ObjectiveStateFactory.
     ///
     /// One transition per Tick — ObjectiveTracker intentionally advances by at most one
     /// state per call so UI/audio hooks see every intermediate state for at least one frame.
@@ -23,7 +26,7 @@ namespace Tests.EditMode
             foreach (var paramsAsset in createdParams)
             {
                 if (paramsAsset != null)
-                    Object.DestroyImmediate(paramsAsset);
+                    UnityEngine.Object.DestroyImmediate(paramsAsset);
             }
 
             createdParams.Clear();
@@ -31,20 +34,36 @@ namespace Tests.EditMode
 
         // ── Factory helpers ───────────────────────────────────────────────────────
 
-        private (ObjectiveTracker tracker, StubKeyTracker key, StubPlayerAlive alive, StubPlayerPosition playerPos, StubExtractionBlocker blocker, StubChaserSpawner spawner)
+        private (ObjectiveTracker tracker, StubKeyTracker key, BoolRef alive, Vector3Ref playerPos, BoolRef blocker)
             BuildExploreTracker(Vector3? zonePos = null)
         {
             var key = new StubKeyTracker(false);
-            var alive = new StubPlayerAlive(true);
-            var playerPos = new StubPlayerPosition(Vector3.zero);
-            var blocker = new StubExtractionBlocker(false);
-            var spawner = new StubChaserSpawner();
-            var zone = new StubExtractionZone(zonePos ?? new Vector3(100f, 0f, 0f));
+            var alive = new BoolRef(true);
+            var playerPos = new Vector3Ref(Vector3.zero);
+            var blocker = new BoolRef(false);
+            var zone = zonePos ?? new Vector3(100f, 0f, 0f);
             var paramsAsset = ScriptableObject.CreateInstance<ObjectiveParams>();
             createdParams.Add(paramsAsset);
-            var factory = new ObjectiveStateFactory(key, playerPos, zone, blocker, spawner, paramsAsset);
-            var tracker = new ObjectiveTracker(MissionDefinition.CreateDefault(), factory, alive);
-            return (tracker, key, alive, playerPos, blocker, spawner);
+
+            var builders = new Dictionary<string, Func<ObjectiveState>>
+            {
+                ["explore"] = () => new ExploreState(key),
+                ["key"] = () => new KeyAcquiredState(),
+                ["extraction"] = () => new ExtractionChallengeState(
+                    () => playerPos.Value,
+                    () => zone,
+                    () => blocker.Value,
+                    paramsAsset.ExtractionRadius),
+                ["extracted"] = () => new ExtractedState(),
+                ["failed"] = () => new FailedState()
+            };
+
+            var tracker = new ObjectiveTracker(
+                MissionDefinition.CreateDefault(),
+                builders,
+                () => alive.Value);
+
+            return (tracker, key, alive, playerPos, blocker);
         }
 
         // ── Initial state ─────────────────────────────────────────────────────────
@@ -52,7 +71,7 @@ namespace Tests.EditMode
         [Test]
         public void InitialState_IsExplore()
         {
-            var (tracker, _, _, _, _, _) = BuildExploreTracker();
+            var (tracker, _, _, _, _) = BuildExploreTracker();
             Assert.AreEqual(ObjectiveType.Explore, tracker.CurrentState);
         }
 
@@ -61,7 +80,7 @@ namespace Tests.EditMode
         [Test]
         public void Explore_TransitionsToKeyAcquired_WhenKeyPickedUp()
         {
-            var (tracker, key, _, _, _, _) = BuildExploreTracker();
+            var (tracker, key, _, _, _) = BuildExploreTracker();
 
             tracker.Tick(0.1f); // key=false → stays Explore
             Assert.AreEqual(ObjectiveType.Explore, tracker.CurrentState);
@@ -76,7 +95,7 @@ namespace Tests.EditMode
         [Test]
         public void KeyAcquired_TransitionsToExtractionChallenge_OnNextTick()
         {
-            var (tracker, key, _, _, _, _) = BuildExploreTracker();
+            var (tracker, key, _, _, _) = BuildExploreTracker();
 
             key.HasKey = true;
             tracker.Tick(0.1f); // Explore → KeyAcquired
@@ -92,7 +111,7 @@ namespace Tests.EditMode
         public void ExtractionChallenge_TransitionsToExtracted_WhenPlayerEntersZone()
         {
             var zoneCenter = new Vector3(50f, 0f, 0f);
-            var (tracker, key, _, playerPos, _, _) = BuildExploreTracker(zonePos: zoneCenter);
+            var (tracker, key, _, playerPos, _) = BuildExploreTracker(zonePos: zoneCenter);
 
             // Advance to ExtractionChallenge (2 Ticks with key in hand)
             key.HasKey = true;
@@ -101,7 +120,7 @@ namespace Tests.EditMode
             Assert.AreEqual(ObjectiveType.ExtractionChallenge, tracker.CurrentState);
 
             // Move player into zone (within default radius 10)
-            playerPos.Pos = zoneCenter;
+            playerPos.Value = zoneCenter;
             tracker.Tick(0.1f); // → Extracted
             Assert.AreEqual(ObjectiveType.Extracted, tracker.CurrentState);
         }
@@ -111,9 +130,9 @@ namespace Tests.EditMode
         [Test]
         public void AnyState_TransitionsToFailed_WhenPlayerDies_DuringExplore()
         {
-            var (tracker, _, alive, _, _, _) = BuildExploreTracker();
+            var (tracker, _, alive, _, _) = BuildExploreTracker();
 
-            alive.Alive = false;
+            alive.Value = false;
             tracker.Tick(0.1f);
             Assert.AreEqual(ObjectiveType.Failed, tracker.CurrentState);
         }
@@ -121,14 +140,14 @@ namespace Tests.EditMode
         [Test]
         public void AnyState_TransitionsToFailed_WhenPlayerDies_DuringExtraction()
         {
-            var (tracker, key, alive, _, _, _) = BuildExploreTracker();
+            var (tracker, key, alive, _, _) = BuildExploreTracker();
 
             key.HasKey = true;
             tracker.Tick(0.1f); // → KeyAcquired
             tracker.Tick(0.1f); // → ExtractionChallenge
             Assert.AreEqual(ObjectiveType.ExtractionChallenge, tracker.CurrentState);
 
-            alive.Alive = false;
+            alive.Value = false;
             tracker.Tick(0.1f);
             Assert.AreEqual(ObjectiveType.Failed, tracker.CurrentState);
         }
@@ -139,7 +158,7 @@ namespace Tests.EditMode
         public void Extracted_IsTerminal_IgnoresSubsequentTicks()
         {
             var zoneCenter = Vector3.zero;
-            var (tracker, key, _, _, _, _) = BuildExploreTracker(zonePos: zoneCenter);
+            var (tracker, key, _, _, _) = BuildExploreTracker(zonePos: zoneCenter);
 
             key.HasKey = true;
             tracker.Tick(0.1f); // → KeyAcquired
@@ -154,9 +173,9 @@ namespace Tests.EditMode
         [Test]
         public void Failed_IsTerminal_IgnoresSubsequentTicks()
         {
-            var (tracker, _, alive, _, _, _) = BuildExploreTracker();
+            var (tracker, _, alive, _, _) = BuildExploreTracker();
 
-            alive.Alive = false;
+            alive.Value = false;
             tracker.Tick(0.1f); // → Failed
             Assert.AreEqual(ObjectiveType.Failed, tracker.CurrentState);
 
@@ -170,7 +189,7 @@ namespace Tests.EditMode
         public void Restart_FromExtracted_ResetsToExplore_WithNoConsequences()
         {
             var zoneCenter = Vector3.zero;
-            var (tracker, key, _, _, _, _) = BuildExploreTracker(zonePos: zoneCenter);
+            var (tracker, key, _, _, _) = BuildExploreTracker(zonePos: zoneCenter);
 
             key.HasKey = true;
             tracker.Tick(0.1f);
@@ -186,13 +205,13 @@ namespace Tests.EditMode
         [Test]
         public void Restart_FromFailed_ResetsToExplore_WithNoConsequences()
         {
-            var (tracker, _, alive, _, _, _) = BuildExploreTracker();
+            var (tracker, _, alive, _, _) = BuildExploreTracker();
 
-            alive.Alive = false;
+            alive.Value = false;
             tracker.Tick(0.1f);
             Assert.AreEqual(ObjectiveType.Failed, tracker.CurrentState);
 
-            alive.Alive = true;
+            alive.Value = true;
             tracker.Restart();
             Assert.AreEqual(ObjectiveType.Explore, tracker.CurrentState);
         }
@@ -203,7 +222,7 @@ namespace Tests.EditMode
         public void OnStateChanged_FiresOncePerTransition_FullSuccessPath()
         {
             var zoneCenter = Vector3.zero;
-            var (tracker, key, _, _, _, _) = BuildExploreTracker(zonePos: zoneCenter);
+            var (tracker, key, _, _, _) = BuildExploreTracker(zonePos: zoneCenter);
 
             var transitions = new List<(ObjectiveType from, ObjectiveType to)>();
             tracker.OnStateChanged += (f, t) => transitions.Add((f, t));
@@ -222,14 +241,14 @@ namespace Tests.EditMode
         [Test]
         public void OnStateChanged_FiresOnRestart()
         {
-            var (tracker, _, alive, _, _, _) = BuildExploreTracker();
+            var (tracker, _, alive, _, _) = BuildExploreTracker();
 
             var transitions = new List<(ObjectiveType from, ObjectiveType to)>();
             tracker.OnStateChanged += (f, t) => transitions.Add((f, t));
 
-            alive.Alive = false;
+            alive.Value = false;
             tracker.Tick(0.1f); // → Failed
-            alive.Alive = true;
+            alive.Value = true;
             tracker.Restart();  // Failed → Explore
 
             Assert.AreEqual(2, transitions.Count);
@@ -243,47 +262,87 @@ namespace Tests.EditMode
         public void MissionDefinition_CreateDefault_HasExpectedTransitions()
         {
             var mission = MissionDefinition.CreateDefault();
-            Assert.AreEqual(ObjectiveType.Explore, mission.InitialState);
+            Assert.AreEqual("explore", mission.InitialStep);
 
-            Assert.IsTrue(mission.TryGetNext(ObjectiveType.Explore,              out var n1)); Assert.AreEqual(ObjectiveType.KeyAcquired,          n1);
-            Assert.IsTrue(mission.TryGetNext(ObjectiveType.KeyAcquired,          out var n2)); Assert.AreEqual(ObjectiveType.ExtractionChallenge,  n2);
-            Assert.IsTrue(mission.TryGetNext(ObjectiveType.ExtractionChallenge,  out var n3)); Assert.AreEqual(ObjectiveType.Extracted,             n3);
+            Assert.IsTrue(mission.TryGetNext("explore",    out var n1)); Assert.AreEqual("key",        n1);
+            Assert.IsTrue(mission.TryGetNext("key",         out var n2)); Assert.AreEqual("extraction", n2);
+            Assert.IsTrue(mission.TryGetNext("extraction",  out var n3)); Assert.AreEqual("extracted",  n3);
 
-            Assert.IsFalse(mission.TryGetNext(ObjectiveType.Extracted, out _), "Extracted is terminal — no transition.");
-            Assert.IsFalse(mission.TryGetNext(ObjectiveType.Failed,    out _), "Failed is terminal — no transition.");
+            Assert.IsFalse(mission.TryGetNext("extracted", out _), "Extracted is terminal — no transition.");
+            Assert.IsFalse(mission.TryGetNext("failed",    out _), "Failed is terminal — no transition.");
         }
 
         [Test]
         public void ExtractionChallenge_DoesNotComplete_WhileBlockedByEnemyProximity()
         {
             var zoneCenter = Vector3.zero;
-            var (tracker, key, _, playerPos, blocker, _) = BuildExploreTracker(zonePos: zoneCenter);
+            var (tracker, key, _, playerPos, blocker) = BuildExploreTracker(zonePos: zoneCenter);
 
             key.HasKey = true;
             tracker.Tick(0.1f); // -> KeyAcquired
             tracker.Tick(0.1f); // -> ExtractionChallenge
             Assert.AreEqual(ObjectiveType.ExtractionChallenge, tracker.CurrentState);
 
-            playerPos.Pos = zoneCenter;
-            blocker.IsBlocked = true;
+            playerPos.Value = zoneCenter;
+            blocker.Value = true;
             tracker.Tick(0.1f);
             Assert.AreEqual(ObjectiveType.ExtractionChallenge, tracker.CurrentState, "Should remain in extraction while enemy is close enough to follow/block.");
 
-            blocker.IsBlocked = false;
+            blocker.Value = false;
             tracker.Tick(0.1f);
             Assert.AreEqual(ObjectiveType.Extracted, tracker.CurrentState);
         }
 
+        // ── CurrentStep ───────────────────────────────────────────────────────────
+
         [Test]
-        public void ExtractionChallenge_SpawnsChaser_OnEnter()
+        public void CurrentStep_ReflectsStringStepId()
         {
-            var (tracker, key, _, _, _, spawner) = BuildExploreTracker();
+            var (tracker, key, _, _, _) = BuildExploreTracker();
+            Assert.AreEqual("explore", tracker.CurrentStep);
 
             key.HasKey = true;
-            tracker.Tick(0.1f); // -> KeyAcquired
-            tracker.Tick(0.1f); // -> ExtractionChallenge (Enter should spawn chaser)
+            tracker.Tick(0.1f);
+            Assert.AreEqual("key", tracker.CurrentStep);
 
-            Assert.AreEqual(1, spawner.SpawnCount);
+            tracker.Tick(0.1f);
+            Assert.AreEqual("extraction", tracker.CurrentStep);
+        }
+
+        // ── KeyPickup ─────────────────────────────────────────────────────────────
+
+        [Test]
+        public void KeyPickup_SpawnKey_ResetsCollectedFlag()
+        {
+            var kp = new KeyPickup();
+            kp.SpawnKey(Vector3.zero, 10f);
+            Assert.IsFalse(kp.PlayerHasKey);
+
+            kp.CheckPickup(kp.KeyPosition, 5f); // pick it up
+            Assert.IsTrue(kp.PlayerHasKey);
+
+            kp.SpawnKey(Vector3.zero, 10f); // respawn resets
+            Assert.IsFalse(kp.PlayerHasKey);
+        }
+
+        [Test]
+        public void KeyPickup_CheckPickup_ReturnsTrueOnce_ThenFalse()
+        {
+            var kp = new KeyPickup();
+            kp.SpawnKey(Vector3.zero, 0f); // key at origin
+
+            Assert.IsTrue(kp.CheckPickup(Vector3.zero, 1f));
+            Assert.IsFalse(kp.CheckPickup(Vector3.zero, 1f)); // already collected
+        }
+
+        [Test]
+        public void KeyPickup_CheckPickup_ReturnsFalse_WhenTooFar()
+        {
+            var kp = new KeyPickup();
+            kp.SpawnKey(Vector3.zero, 0f); // key at origin
+
+            Assert.IsFalse(kp.CheckPickup(new Vector3(100f, 0f, 0f), 1f));
+            Assert.IsFalse(kp.PlayerHasKey);
         }
 
         // ── Stubs ─────────────────────────────────────────────────────────────────
@@ -295,38 +354,18 @@ namespace Tests.EditMode
             public bool PlayerHasKey => HasKey;
         }
 
-        private sealed class StubPlayerPosition : IPlayerPosition
+        /// <summary>Mutable reference wrapper for bool, used in Func closures.</summary>
+        private sealed class BoolRef
         {
-            public Vector3 Pos;
-            public StubPlayerPosition(Vector3 pos) => Pos = pos;
-            public Vector3 Position => Pos;
+            public bool Value;
+            public BoolRef(bool value) => Value = value;
         }
 
-        private sealed class StubExtractionZone : IExtractionZone
+        /// <summary>Mutable reference wrapper for Vector3, used in Func closures.</summary>
+        private sealed class Vector3Ref
         {
-            private readonly Vector3 pos;
-            public StubExtractionZone(Vector3 pos) => this.pos = pos;
-            public Vector3 Position => pos;
-        }
-
-        private sealed class StubPlayerAlive : IPlayerAlive
-        {
-            public bool Alive;
-            public StubPlayerAlive(bool alive) => Alive = alive;
-            public bool IsAlive => Alive;
-        }
-
-        private sealed class StubExtractionBlocker : IExtractionBlocker
-        {
-            public bool IsBlocked;
-            public StubExtractionBlocker(bool isBlocked) => IsBlocked = isBlocked;
-            public bool IsExtractionBlocked => IsBlocked;
-        }
-
-        private sealed class StubChaserSpawner : IExtractionChaserSpawner
-        {
-            public int SpawnCount { get; private set; }
-            public void SpawnChaser() => SpawnCount++;
+            public Vector3 Value;
+            public Vector3Ref(Vector3 value) => Value = value;
         }
     }
 }

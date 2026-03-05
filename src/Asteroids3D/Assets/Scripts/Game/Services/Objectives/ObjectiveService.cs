@@ -1,23 +1,31 @@
 using System;
+using System.Collections.Generic;
 using Objectives;
 
 namespace Game.Services
 {
-    public class ObjectiveService : IObjectiveService
+    /// <summary>
+    /// Owns the active ObjectiveTracker and implements IObjectiveTrackerAdapter
+    /// so diagnostics can subscribe without knowing the concrete service.
+    /// </summary>
+    public class ObjectiveService : IObjectiveService, IObjectiveTrackerAdapter
     {
         public ObjectiveTracker CurrentTracker { get; private set; }
         public ObjectiveType? CurrentState => CurrentTracker?.CurrentState;
+
+        // IObjectiveTrackerAdapter — returns Explore as default when no tracker is active
+        ObjectiveType IObjectiveTrackerAdapter.CurrentState => CurrentTracker?.CurrentState ?? ObjectiveType.Explore;
 
         public event Action<ObjectiveType, ObjectiveType> OnStateChanged;
 
         public void SetObjective(
             MissionDefinition mission,
-            ObjectiveStateFactory factory,
-            IPlayerAlive playerAlive)
+            IReadOnlyDictionary<string, Func<ObjectiveState>> builders,
+            Func<bool> isPlayerAlive)
         {
             Clear();
 
-            CurrentTracker = new ObjectiveTracker(mission, factory, playerAlive);
+            CurrentTracker = new ObjectiveTracker(mission, builders, isPlayerAlive);
             CurrentTracker.OnStateChanged += ForwardStateChanged;
         }
 

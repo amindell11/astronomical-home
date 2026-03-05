@@ -7,9 +7,9 @@ namespace Diagnostics
     /// Editor-only diagnostic MonoBehaviour for the ObjectiveTracker state machine.
     ///
     /// USAGE:
-    /// 1. Attach to the same GameObject as your ObjectiveTracker MonoBehaviour adapter.
-    /// 2. Wire the adapterSource reference in the Inspector to your ObjectiveTrackerController.
-    /// 3. Play the scene — state transitions are logged to the Console.
+    /// 1. Attach to any GameObject in the scene.
+    /// 2. Call SetAdapter() with an IObjectiveTrackerAdapter (e.g. ObjectiveService) during setup.
+    /// 3. State transitions are logged to the Console.
     /// 4. In Scene view, gizmos show the extraction zone radius (yellow sphere).
     ///
     /// This component does NOT affect gameplay and can be removed at any time.
@@ -33,19 +33,24 @@ namespace Diagnostics
         [Tooltip("Gizmo color for extraction zone")]
         [SerializeField] private Color extractionZoneColor = new Color(0f, 1f, 0.5f, 0.3f);
 
-        [Header("Adapter")]
-        [Tooltip("Assign the scene component that implements IObjectiveTrackerAdapter (usually ObjectiveTrackerController)")]
-        [SerializeField] private MonoBehaviour adapterSource;
-
         // ── Runtime subscription ──────────────────────────────────────────────────
 
         private IObjectiveTrackerAdapter adapter;
 
-        private void Awake()
+        /// <summary>
+        /// Wire an adapter at runtime (e.g. from CombatSectorManager after ObjectiveService is configured).
+        /// Replaces any previously wired adapter.
+        /// </summary>
+        public void SetAdapter(IObjectiveTrackerAdapter newAdapter)
         {
-            adapter = adapterSource as IObjectiveTrackerAdapter;
-            if (adapter == null)
-                Debug.LogWarning($"[ObjectiveTrackerDiagnostics] No IObjectiveTrackerAdapter assigned on '{name}'. Transition logs disabled.", this);
+            // Unsubscribe from previous
+            if (adapter != null)
+                adapter.OnStateChanged -= LogTransition;
+
+            adapter = newAdapter;
+
+            if (adapter != null && logTransitions && isActiveAndEnabled)
+                adapter.OnStateChanged += LogTransition;
         }
 
         private void OnEnable()

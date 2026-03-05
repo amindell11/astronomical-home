@@ -2,6 +2,7 @@ using System.IO;
 using System.Reflection;
 using AI;
 using Combat.Targeting;
+using Game;
 using Game.Bootstrap;
 using NUnit.Framework;
 using Player;

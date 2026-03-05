@@ -1,36 +1,43 @@
 using System;
+using System.Collections.Generic;
 
 namespace Objectives
 {
     /// <summary>
     /// Drives the sequential objective state machine for a single mission encounter.
-    /// Flow: Explore -> KeyAcquired -> ExtractionChallenge -> Extracted (success) or Failed (player destroyed).
+    /// Uses string step IDs and a builder dictionary instead of enum-keyed factory.
     ///
-    /// Architecture: inject only the specific interfaces each state needs via ObjectiveStateFactory.
-    /// No god-class context. Caller owns Tick() and wires IPlayerAlive for failure detection.
+    /// Architecture: caller builds a Dictionary&lt;string, Func&lt;ObjectiveState&gt;&gt; with
+    /// closures capturing runtime refs. No god-class context or factory needed.
     /// </summary>
     public class ObjectiveTracker
     {
         private ObjectiveState current;
+        private string currentStep;
         private readonly MissionDefinition mission;
-        private readonly ObjectiveStateFactory factory;
-        private readonly IPlayerAlive playerAlive;
+        private readonly IReadOnlyDictionary<string, Func<ObjectiveState>> builders;
+        private readonly Func<bool> isPlayerAlive;
 
         /// <summary>Raised when the tracker transitions between states.</summary>
         public event Action<ObjectiveType, ObjectiveType> OnStateChanged;
 
+        /// <summary>The ObjectiveType of the active state (for UI/diagnostics).</summary>
         public ObjectiveType CurrentState => current.StateType;
+
+        /// <summary>The string step ID of the active state.</summary>
+        public string CurrentStep => currentStep;
 
         public ObjectiveTracker(
             MissionDefinition mission,
-            ObjectiveStateFactory factory,
-            IPlayerAlive playerAlive)
+            IReadOnlyDictionary<string, Func<ObjectiveState>> builders,
+            Func<bool> isPlayerAlive)
         {
             this.mission = mission ?? throw new ArgumentNullException(nameof(mission));
-            this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
-            this.playerAlive = playerAlive ?? throw new ArgumentNullException(nameof(playerAlive));
+            this.builders = builders ?? throw new ArgumentNullException(nameof(builders));
+            this.isPlayerAlive = isPlayerAlive ?? throw new ArgumentNullException(nameof(isPlayerAlive));
 
-            current = factory.Create(mission.InitialState);
+            currentStep = mission.InitialStep;
+            current = builders[currentStep]();
             current.Enter();
         }
 
@@ -43,37 +50,37 @@ namespace Objectives
             if (IsTerminal(current.StateType))
                 return;
 
-            if (!playerAlive.IsAlive)
+            if (!isPlayerAlive())
             {
-                TransitionTo(ObjectiveType.Failed);
+                TransitionTo("failed");
                 return;
             }
 
             current.Tick(deltaTime);
 
-            if (current.IsComplete && mission.TryGetNext(current.StateType, out var next))
+            if (current.IsComplete && mission.TryGetNext(currentStep, out var next))
                 TransitionTo(next);
         }
 
         /// <summary>
         /// Restart the encounter from the initial state.
         /// Safe to call from both Extracted and Failed terminal states.
-        /// No consequences — same encounter restarts identically.
         /// </summary>
         public void Restart()
         {
-            TransitionTo(mission.InitialState);
+            TransitionTo(mission.InitialStep);
         }
 
-        private void TransitionTo(ObjectiveType next)
+        private void TransitionTo(string nextStep)
         {
             var previous = current.StateType;
             current.Exit();
-            current = factory.Create(next);
+            currentStep = nextStep;
+            current = builders[nextStep]();
             current.Enter();
 
-            if (previous != next)
-                OnStateChanged?.Invoke(previous, next);
+            if (previous != current.StateType)
+                OnStateChanged?.Invoke(previous, current.StateType);
         }
 
         private static bool IsTerminal(ObjectiveType type) =>

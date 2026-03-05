@@ -5,6 +5,7 @@ using System.Reflection;
 using Game.Services;
 using NUnit.Framework;
 using Objectives;
+using Objectives.States;
 using UnityEngine;
 
 namespace Tests.EditMode
@@ -124,18 +125,34 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void ObjectiveService_Implements_IObjectiveTrackerAdapter()
+        {
+            Assert.IsTrue(typeof(IObjectiveTrackerAdapter).IsAssignableFrom(typeof(ObjectiveService)));
+        }
+
+        [Test]
         public void ObjectiveService_SetObjective_CreatesTracker_AndForwardsEvents()
         {
             var svc = new ObjectiveService();
             var key = new StubKeyTracker(false);
-            var alive = new StubPlayerAlive(true);
-            var zone = new StubExtractionZone(Vector3.zero);
             var paramsAsset = ScriptableObject.CreateInstance<ObjectiveParams>();
 
             try
             {
-                var factory = new ObjectiveStateFactory(key, new StubPlayerPosition(Vector3.zero), zone, null, null, paramsAsset);
-                svc.SetObjective(MissionDefinition.CreateDefault(), factory, alive);
+                var builders = new Dictionary<string, Func<ObjectiveState>>
+                {
+                    ["explore"] = () => new ExploreState(key),
+                    ["key"] = () => new KeyAcquiredState(),
+                    ["extraction"] = () => new ExtractionChallengeState(
+                        () => Vector3.zero,
+                        () => Vector3.zero,
+                        () => false,
+                        paramsAsset.ExtractionRadius),
+                    ["extracted"] = () => new ExtractedState(),
+                    ["failed"] = () => new FailedState()
+                };
+
+                svc.SetObjective(MissionDefinition.CreateDefault(), builders, () => true);
 
                 Assert.IsNotNull(svc.CurrentTracker);
                 Assert.AreEqual(ObjectiveType.Explore, svc.CurrentState);
@@ -164,10 +181,18 @@ namespace Tests.EditMode
             var paramsAsset = ScriptableObject.CreateInstance<ObjectiveParams>();
             try
             {
-                var factory = new ObjectiveStateFactory(
-                    new StubKeyTracker(false), new StubPlayerPosition(Vector3.zero),
-                    new StubExtractionZone(Vector3.zero), null, null, paramsAsset);
-                svc.SetObjective(MissionDefinition.CreateDefault(), factory, new StubPlayerAlive(true));
+                var builders = new Dictionary<string, Func<ObjectiveState>>
+                {
+                    ["explore"] = () => new ExploreState(new StubKeyTracker(false)),
+                    ["key"] = () => new KeyAcquiredState(),
+                    ["extraction"] = () => new ExtractionChallengeState(
+                        () => Vector3.zero, () => Vector3.zero, () => false,
+                        paramsAsset.ExtractionRadius),
+                    ["extracted"] = () => new ExtractedState(),
+                    ["failed"] = () => new FailedState()
+                };
+
+                svc.SetObjective(MissionDefinition.CreateDefault(), builders, () => true);
                 Assert.IsNotNull(svc.CurrentTracker);
 
                 svc.Clear();
@@ -185,23 +210,31 @@ namespace Tests.EditMode
         {
             var svc = new ObjectiveService();
             var key = new StubKeyTracker(false);
-            var alive = new StubPlayerAlive(true);
+            var alive = true;
             var paramsAsset = ScriptableObject.CreateInstance<ObjectiveParams>();
 
             try
             {
-                var factory = new ObjectiveStateFactory(
-                    key, new StubPlayerPosition(Vector3.zero),
-                    new StubExtractionZone(Vector3.zero), null, null, paramsAsset);
-                svc.SetObjective(MissionDefinition.CreateDefault(), factory, alive);
+                var builders = new Dictionary<string, Func<ObjectiveState>>
+                {
+                    ["explore"] = () => new ExploreState(key),
+                    ["key"] = () => new KeyAcquiredState(),
+                    ["extraction"] = () => new ExtractionChallengeState(
+                        () => Vector3.zero, () => Vector3.zero, () => false,
+                        paramsAsset.ExtractionRadius),
+                    ["extracted"] = () => new ExtractedState(),
+                    ["failed"] = () => new FailedState()
+                };
+
+                svc.SetObjective(MissionDefinition.CreateDefault(), builders, () => alive);
 
                 // Kill player → Failed
-                alive.Alive = false;
+                alive = false;
                 svc.Tick(0.1f);
                 Assert.AreEqual(ObjectiveType.Failed, svc.CurrentState);
 
                 // Restart
-                alive.Alive = true;
+                alive = true;
                 svc.Restart();
                 Assert.AreEqual(ObjectiveType.Explore, svc.CurrentState);
             }
@@ -265,26 +298,6 @@ namespace Tests.EditMode
             public bool HasKey;
             public StubKeyTracker(bool hasKey) => HasKey = hasKey;
             public bool PlayerHasKey => HasKey;
-        }
-
-        private sealed class StubPlayerAlive : IPlayerAlive
-        {
-            public bool Alive;
-            public StubPlayerAlive(bool alive) => Alive = alive;
-            public bool IsAlive => Alive;
-        }
-
-        private sealed class StubPlayerPosition : IPlayerPosition
-        {
-            public StubPlayerPosition(Vector3 pos) { }
-            public Vector3 Position => Vector3.zero;
-        }
-
-        private sealed class StubExtractionZone : IExtractionZone
-        {
-            private readonly Vector3 pos;
-            public StubExtractionZone(Vector3 pos) => this.pos = pos;
-            public Vector3 Position => pos;
         }
     }
 }
