@@ -174,6 +174,7 @@ const RunParams = Type.Object({
   assemblyNames: Type.Optional(Type.String()),
   includeStackTrace: Type.Optional(Type.Boolean({ default: false })),
   maxFailures: Type.Optional(Type.Number({ default: 25 })),
+  timeoutSec: Type.Optional(Type.Number({ default: 1800 })),
 });
 
 const BugsplatParams = Type.Object({
@@ -220,7 +221,8 @@ export default function unityTestLoopExtension(pi: ExtensionAPI): void {
       }
 
       const shell = getShellAndArgs(scriptPath);
-      const args = [...shell.prefix, "-ProjectPath", projectPath, "-OutDir", outDir, "-Mode", platform];
+      const timeoutSec = Math.max(60, Math.floor(params.timeoutSec || 1800));
+      const args = [...shell.prefix, "-ProjectPath", projectPath, "-OutDir", outDir, "-Mode", platform, "-UnityTimeoutSec", String(timeoutSec)];
 
       args.push("-ScopeType", scopeType.charAt(0).toUpperCase() + scopeType.slice(1));
       if (params.scopeName) args.push("-ScopeName", params.scopeName);
@@ -235,10 +237,20 @@ export default function unityTestLoopExtension(pi: ExtensionAPI): void {
         args.push("-RerunFailedFrom", rerunFrom);
       }
 
-      onUpdate?.({ content: [{ type: "text", text: `Running Unity ${platform} tests (${scopeType}${params.scopeName ? `:${params.scopeName}` : ""})...` }] });
+      onUpdate?.({ content: [{ type: "text", text: `Running Unity ${platform} tests (${scopeType}${params.scopeName ? `:${params.scopeName}` : ""}, timeout=${timeoutSec}s)...` }] });
 
       const startedAt = Date.now();
-      const execResult = await pi.exec(shell.shell, args, { timeout: 7200000 });
+      let execResult: { stdout?: string; stderr?: string };
+      try {
+        execResult = await pi.exec(shell.shell, args, { timeout: (timeoutSec + 120) * 1000 });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return {
+          content: [{ type: "text", text: `Unity runner execution failed or timed out after ~${timeoutSec}s. ${message}` }],
+          isError: true,
+          details: { timeoutSec, command: shell.shell, args },
+        };
+      }
       const combinedOut = `${execResult.stdout || ""}\n${execResult.stderr || ""}`;
       const match = combinedOut.match(/UNITY_TEST_SUMMARY_JSON=(.+)/);
       const summaryPath = match?.[1]?.trim() || resolvePath(outDir, "latest-summary.json");

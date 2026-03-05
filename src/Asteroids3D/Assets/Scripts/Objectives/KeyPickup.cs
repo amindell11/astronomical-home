@@ -27,7 +27,6 @@ namespace Objectives
 
         public bool PlayerHasKey => collected;
         public Vector3 KeyPosition => transform.position;
-        public float SpawnRadius => spawnRadius;
 
         public event Action OnKeyCollected;
 
@@ -51,6 +50,7 @@ namespace Objectives
 
         private void OnTriggerEnter(Collider other)
         {
+            Debug.Log("Entered Key");
             if (collected) return;
             if (!other.CompareTag(playerTag)) return;
 
