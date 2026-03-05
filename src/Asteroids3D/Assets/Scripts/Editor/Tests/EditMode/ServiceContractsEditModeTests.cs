@@ -230,7 +230,6 @@ namespace Tests.EditMode
         {
             var svc = CreateMonoBehaviourService<ObjectiveService>();
             var key = new StubKeyTracker(false);
-            var alive = true;
             var paramsAsset = ScriptableObject.CreateInstance<ObjectiveParams>();
 
             try
@@ -246,15 +245,12 @@ namespace Tests.EditMode
                     ["failed"] = () => new FailedState()
                 };
 
-                svc.SetObjective(
-                    MissionDefinition.CreateDefault(failCriteria: () => !alive),
-                    builders);
+                svc.SetObjective(MissionDefinition.CreateDefault(), builders);
 
-                alive = false;
-                svc.CurrentTracker.Tick(0.1f);
+                // Event-driven failure via Fail()
+                svc.Fail();
                 Assert.AreEqual(ObjectiveType.Failed, svc.CurrentState);
 
-                alive = true;
                 svc.Restart();
                 Assert.AreEqual(ObjectiveType.Explore, svc.CurrentState);
             }

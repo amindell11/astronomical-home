@@ -34,6 +34,11 @@ namespace Game.Services
             CurrentTracker?.Tick(Time.deltaTime);
         }
 
+        public void Fail()
+        {
+            CurrentTracker?.Fail();
+        }
+
         public void Restart()
         {
             CurrentTracker?.Restart();

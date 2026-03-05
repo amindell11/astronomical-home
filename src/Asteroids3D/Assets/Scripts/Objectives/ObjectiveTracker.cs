@@ -59,6 +59,17 @@ namespace Objectives
         }
 
         /// <summary>
+        /// Immediately transition to the "failed" step.
+        /// Use for event-driven failure (e.g. player death).
+        /// No-op if already in a terminal state.
+        /// </summary>
+        public void Fail()
+        {
+            if (!IsTerminal(current.StateType))
+                TransitionTo("failed");
+        }
+
+        /// <summary>
         /// Restart the encounter from the initial state.
         /// Safe to call from both Extracted and Failed terminal states.
         /// </summary>

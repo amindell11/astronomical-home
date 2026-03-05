@@ -35,7 +35,6 @@ namespace Game.Sectors
         [SerializeField] private ObjectiveParams objectiveParams;
         [SerializeField] private Transform extractionZonePrefab;
         [SerializeField] private KeyPickup keyPickup;
-        [SerializeField] private Transform chaser;
 
         [Header("Spawn Positions")]
         [SerializeField] private Vector3 playerSpawnPosition = Vector3.zero;
@@ -44,10 +43,7 @@ namespace Game.Sectors
         [Header("Ship Spawn Settings")]
         [SerializeField] private ShipSpawnerSettings spawnerSettings;
 
-        private Ship enemy;
-
-        /// <summary>The player ship spawned by this sector.</summary>
-        public Ship Player { get; private set; }
+        private Ship player, enemy, chaser;
 
         protected override IEnumerator OnSetup()
         {
@@ -55,21 +51,28 @@ namespace Game.Sectors
                 yield return Services.EnvironmentService.LoadSceneAsync(Config.SceneName);
             if (worldPrefab)
                 Services.EnvironmentService.SpawnWorld(worldPrefab);
+            
             SectorUtils.BuildAndWireObserverCam(Services, observerCamPrefab);
 
-            Player = SectorUtils.BuildAndWirePlayer(playerTemplate, playerCommander, shipSettings, 0, playerSpawnPosition, Services);
+            player = SectorUtils.BuildAndWirePlayer(playerTemplate, playerCommander, shipSettings, 0, playerSpawnPosition, Services);
             enemy = Services.UnitService.SpawnShip(enemyTemplate, enemyCommander, shipSettings, 1, playerSpawnPosition + enemySpawnOffset, Quaternion.identity);
-
-            // Enemy respawns on death; player death is handled by the objective tracker (→ Failed → restart)
+            chaser = Services.UnitService.SpawnShip(enemyTemplate, enemyCommander, shipSettings, 1, new Vector2(50,50), Quaternion.identity);
+            
             if (spawnerSettings)
             {
                 enemy.Damage.OnDeath += (s1, _) =>
                     Services.UnitService.WaitAndRespawnShip(s1,
                         Random.insideUnitCircle * spawnerSettings.offscreenDistance + GamePlane.WorldPointToPlane(Services.EnvironmentService.WorldFollowerTransform.position),
                         0, spawnerSettings.enemyRespawnDelay);
+                
+                chaser.Damage.OnDeath += (s1, _) =>
+                    Services.UnitService.WaitAndRespawnShip(s1,
+                        Random.insideUnitCircle * spawnerSettings.offscreenDistance + GamePlane.WorldPointToPlane(Services.EnvironmentService.WorldFollowerTransform.position),
+                        0, spawnerSettings.enemyRespawnDelay);
             }
 
             ObjectivePhase();
+            
             yield return null;
         }
 
@@ -80,7 +83,7 @@ namespace Game.Sectors
 
             if (keyPickup)
             {
-                keyPickup.Initialize(Player.transform, objectiveParams.KeyPickupDistance);
+                keyPickup.Initialize(player.transform, objectiveParams.KeyPickupDistance);
                 keyPickup.SpawnKey(playerSpawnPosition, objectiveParams.KeySpawnRadius);
             }
 
@@ -94,7 +97,7 @@ namespace Game.Sectors
                 ["explore"] = () => new ExploreState(keyPickup),
                 ["key"] = () => new KeyAcquiredState(),
                 ["extraction"] = () => new ExtractionChallengeState(
-                    () => Player ? Player.transform.position : Vector3.zero,
+                    () => player ? player.transform.position : Vector3.zero,
                     () => extractionPos,
                     IsExtractionBlocked,
                     objectiveParams.ExtractionRadius,
@@ -104,27 +107,27 @@ namespace Game.Sectors
             };
 
             var mission = MissionDefinition.CreateDefault(
-                failCriteria: () => !Player || !Player.gameObject.activeSelf);
+                failCriteria: () => !player || !player.gameObject.activeSelf);
 
             Services.ObjectiveService.SetObjective(mission, builders);
         }
 
         private bool IsExtractionBlocked()
         {
-            if (!chaser || !Player || !objectiveParams)
+            if (!chaser || !player || !objectiveParams)
                 return false;
 
-            return Vector3.Distance(chaser.position, Player.transform.position) <= objectiveParams.ExtractionBlockDistance;
+            return Vector3.Distance(chaser.transform.position, player.transform.position) <= objectiveParams.ExtractionBlockDistance;
         }
 
         private void RestartEncounter()
         {
             if (keyPickup) keyPickup.ResetKey(playerSpawnPosition, objectiveParams.KeySpawnRadius);
             if (chaser) chaser.gameObject.SetActive(false);
-            if (Player && !Player.gameObject.activeSelf)
+            if (player && !player.gameObject.activeSelf)
             {
-                Player.transform.position = playerSpawnPosition;
-                Player.ResetShip();
+                player.transform.position = playerSpawnPosition;
+                player.ResetShip();
             }
             Services.ObjectiveService.Restart();
         }
@@ -139,7 +142,7 @@ namespace Game.Sectors
             if (Config.LoadScene)
                 yield return Services.EnvironmentService.UnloadSceneAsync(Config.SceneName);
 
-            Player = null;
+            player = null;
             enemy = null;
 
             yield return null;

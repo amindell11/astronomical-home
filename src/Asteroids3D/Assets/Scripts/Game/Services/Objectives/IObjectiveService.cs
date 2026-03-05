@@ -17,6 +17,9 @@ namespace Game.Services
             MissionDefinition mission,
             IReadOnlyDictionary<string, Func<ObjectiveState>> builders);
 
+        /// <summary>Immediately fail the current objective (event-driven failure).</summary>
+        void Fail();
+
         /// <summary>Restart the current objective from the initial state.</summary>
         void Restart();
 

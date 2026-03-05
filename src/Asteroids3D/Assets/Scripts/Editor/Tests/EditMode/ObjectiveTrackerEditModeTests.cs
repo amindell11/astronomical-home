@@ -183,6 +183,46 @@ namespace Tests.EditMode
             Assert.AreEqual(ObjectiveType.Failed, tracker.CurrentState);
         }
 
+        // ── Event-driven Fail() ──────────────────────────────────────────────────
+
+        [Test]
+        public void Fail_TransitionsToFailed_FromAnyNonTerminalState()
+        {
+            var (tracker, _, _, _, _) = BuildExploreTracker();
+            Assert.AreEqual(ObjectiveType.Explore, tracker.CurrentState);
+
+            tracker.Fail();
+            Assert.AreEqual(ObjectiveType.Failed, tracker.CurrentState);
+        }
+
+        [Test]
+        public void Fail_IsNoOp_WhenAlreadyFailed()
+        {
+            var (tracker, _, _, _, _) = BuildExploreTracker();
+            tracker.Fail();
+            Assert.AreEqual(ObjectiveType.Failed, tracker.CurrentState);
+
+            // Should not throw or fire duplicate events
+            tracker.Fail();
+            Assert.AreEqual(ObjectiveType.Failed, tracker.CurrentState);
+        }
+
+        [Test]
+        public void Fail_IsNoOp_WhenExtracted()
+        {
+            var zoneCenter = Vector3.zero;
+            var (tracker, key, _, _, _) = BuildExploreTracker(zonePos: zoneCenter);
+
+            key.HasKey = true;
+            tracker.Tick(0.1f); // → KeyAcquired
+            tracker.Tick(0.1f); // → ExtractionChallenge
+            tracker.Tick(0.1f); // → Extracted
+            Assert.AreEqual(ObjectiveType.Extracted, tracker.CurrentState);
+
+            tracker.Fail(); // no-op — already terminal
+            Assert.AreEqual(ObjectiveType.Extracted, tracker.CurrentState);
+        }
+
         // ── Restart ───────────────────────────────────────────────────────────────
 
         [Test]
