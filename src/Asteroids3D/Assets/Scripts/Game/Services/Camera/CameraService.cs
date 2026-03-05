@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Cameras;
 using UnityEngine;
 
@@ -19,6 +20,10 @@ namespace Game.Services
         {
         }
 
-        public void Clear() => Cameras.Clear();
+        public void Clear()
+        {
+            foreach (var cam in Cameras.Values.Where(cam => cam)) Object.Destroy(cam.gameObject);
+            Cameras.Clear();
+        }
     }
 }

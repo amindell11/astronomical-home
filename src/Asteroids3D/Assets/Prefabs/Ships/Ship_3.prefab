@@ -387,41 +387,11 @@ PrefabInstance:
     - {fileID: 1263418292412309701, guid: c3c15225cb3a8fd42a87c756c1d2d884, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 6768327948927986423, guid: c3c15225cb3a8fd42a87c756c1d2d884,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 3962942081386227465}
     - targetCorrespondingSourceObject: {fileID: 7172694582511940045, guid: c3c15225cb3a8fd42a87c756c1d2d884,
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 2374450310068230919}
   m_SourcePrefab: {fileID: 100100000, guid: c3c15225cb3a8fd42a87c756c1d2d884, type: 3}
---- !u!1 &1380564974009214320 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 6768327948927986423, guid: c3c15225cb3a8fd42a87c756c1d2d884,
-    type: 3}
-  m_PrefabInstance: {fileID: 5675994510712704903}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &3962942081386227465
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1380564974009214320}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5c7f1d5a3e1e486abec74ce5bb7c4d16, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  logEnable: 1
-  logDisable: 1
-  logStackTrace: 1
-  logUpdate: 0
-  customLabel: ShieldUI
-  enableCount: 0
-  disableCount: 0
-  isCurrentlyEnabled: 0
 --- !u!1 &3265014446781054538 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7172694582511940045, guid: c3c15225cb3a8fd42a87c756c1d2d884,

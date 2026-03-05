@@ -73,15 +73,19 @@ Shader "Custom/StarField"
             fixed4 frag (v2f i) : SV_Target
             {
                 // Early exit if pixel is outside screen
-                float2 screenUV = i.screenPos.xz / i.screenPos.w;
+                float2 screenUV = i.screenPos.xy / i.screenPos.w;
                 if (screenUV.x < 0 || screenUV.x > 1 || screenUV.y < 0 || screenUV.y > 1)
                     return fixed4(0,0,0,0);
 
-                // Use world position for star placement
-                float2 worldPos = i.worldPos.xz;
+                // Project into the StarField object's local plane basis so orientation
+                // follows transform rotation (instead of being hardwired to world XZ).
+                float3 planeRight = normalize(float3(unity_ObjectToWorld._m00, unity_ObjectToWorld._m10, unity_ObjectToWorld._m20));
+                float3 planeUp = normalize(float3(unity_ObjectToWorld._m01, unity_ObjectToWorld._m11, unity_ObjectToWorld._m21));
+                float2 worldPos = float2(dot(i.worldPos.xyz, planeRight), dot(i.worldPos.xyz, planeUp));
+                float2 cameraPos = float2(dot(_WorldSpaceCameraPos.xyz, planeRight), dot(_WorldSpaceCameraPos.xyz, planeUp));
                 
                 // Early exit if too far from camera
-                float distFromCamera = length(worldPos - _WorldSpaceCameraPos.xz);
+                float distFromCamera = length(worldPos - cameraPos);
                 if (distFromCamera > _CullDistance)
                     return fixed4(0,0,0,0);
                 
@@ -104,7 +108,7 @@ Shader "Custom/StarField"
                 
                 // Calculate parallax offset based on star size
                 float parallaxFactor = 1.0 - (finalStarSize / (_StarSize * (1.0 + _SizeVariation))); // Smaller stars move slower
-                float2 cameraOffset = (_WorldSpaceCameraPos.xz + _StartingOffset.xy) * _ParallaxStrength * parallaxFactor;
+                float2 cameraOffset = (cameraPos + _StartingOffset.xy) * _ParallaxStrength * parallaxFactor;
                 
                 // Apply parallax and starting offset to grid position
                 float2 finalPos = worldPos + cameraOffset;

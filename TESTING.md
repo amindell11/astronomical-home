@@ -72,6 +72,7 @@ To avoid repeated Unity re-import/build cost in fresh worktrees, use the persist
 | `-TestCategory`    | *(none)*                                   | NUnit category filter                    |
 | `-ValidateScope`   | off                                        | Validate scope filter matches at least one test |
 | `-ScopeMapPath`    | `scripts/unity_test_scopes.json`           | Path to scope definition file            |
+| `-UnityTimeoutSec` | `1800`                                     | Kill batch Unity run after timeout (prevents indefinite hangs) |
 | `-MaxFailures`     | `25`                                       | Max failures to include in JSON          |
 | `-IncludeStackTrace` | off                                      | Include stack traces in JSON output      |
 
