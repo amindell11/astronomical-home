@@ -42,24 +42,22 @@ namespace Game.Sectors
         [Header("Ship Spawn Settings")]
         [SerializeField] private ShipSpawnerSettings spawnerSettings;
 
+        [Header("Objective Visuals")]
+        [SerializeField] private GameObject keyVisual;
+        [SerializeField] private Transform chaser;
+
         private Ship enemy;
         private KeyPickup keyPickup;
-        private GameObject keyVisual;
-        private Transform chaser;
 
         /// <summary>The player ship spawned by this sector.</summary>
         public Ship Player { get; private set; }
 
         private void Update()
         {
-            if (keyPickup != null && Player != null && objectiveParams != null)
-            {
-                if (keyPickup.CheckPickup(Player.transform.position, objectiveParams.KeyPickupDistance))
-                {
-                    if (keyVisual != null)
-                        keyVisual.SetActive(false);
-                }
-            }
+            if (keyPickup != null && Player && objectiveParams
+                && keyPickup.CheckPickup(Player.transform.position, objectiveParams.KeyPickupDistance)
+                && keyVisual)
+                keyVisual.SetActive(false);
 
             Services.ObjectiveService.Tick(Time.deltaTime);
         }
