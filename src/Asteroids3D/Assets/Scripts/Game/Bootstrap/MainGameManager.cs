@@ -77,7 +77,8 @@ namespace Game.Bootstrap
                 unitService: gameObject.AddComponent<UnitService>(),
                 environmentService: new EnvironmentService(),
                 objectiveService: gameObject.AddComponent<ObjectiveService>(),
-                cameraService: new CameraService()
+                cameraService: new CameraService(),
+                uiService: new UIService()
             );
 
             yield return null;
@@ -95,7 +96,6 @@ namespace Game.Bootstrap
 
             yield return ActiveSectorManager.Setup();
 
-            PublishPresentationReady();
             TransitionTo(GameState.InSector);
         }
 
@@ -135,10 +135,6 @@ namespace Game.Bootstrap
                 services = null;
 
             GamePlane.Reset();
-        }
-
-        private void PublishPresentationReady()
-        {
         }
 
         private void OnDestroy()

@@ -6,5 +6,6 @@ namespace Game.Services
         IEnvironmentService EnvironmentService { get; }
         IObjectiveService ObjectiveService { get; }
         ICameraService CameraService { get; }
+        IUIService UIService { get; }
     }
 }
