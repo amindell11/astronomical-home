@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Objectives;
 
 namespace Game.Services
@@ -14,11 +15,8 @@ namespace Game.Services
         /// <summary>Create and activate a new objective tracker for this sector.</summary>
         void SetObjective(
             MissionDefinition mission,
-            ObjectiveStateFactory factory,
-            IPlayerAlive playerAlive);
-
-        /// <summary>Tick the active tracker. Call from SectorManager's Update loop.</summary>
-        void Tick(float deltaTime);
+            IReadOnlyDictionary<string, Func<ObjectiveState>> builders,
+            Func<bool> isPlayerAlive);
 
         /// <summary>Restart the current objective from the initial state.</summary>
         void Restart();

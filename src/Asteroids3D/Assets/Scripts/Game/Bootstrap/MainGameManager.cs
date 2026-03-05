@@ -76,7 +76,7 @@ namespace Game.Bootstrap
             services = new GameServices(
                 unitService: gameObject.AddComponent<UnitService>(),
                 environmentService: new EnvironmentService(),
-                objectiveService: new ObjectiveService(),
+                objectiveService: gameObject.AddComponent<ObjectiveService>(),
                 cameraService: new CameraService()
             );
 

@@ -1,40 +1,38 @@
+using System;
 using UnityEngine;
 
 namespace Objectives.States
 {
+    /// <summary>
+    /// Player must reach the extraction zone while not blocked by a nearby chaser.
+    /// Optional onEnter callback fires side effects (e.g. spawn chaser) when entered.
+    /// </summary>
     public class ExtractionChallengeState : ObjectiveState
     {
-        private readonly IPlayerPosition playerPosition;
-        private readonly IExtractionZone extractionZone;
-        private readonly IExtractionBlocker extractionBlocker;
-        private readonly IExtractionChaserSpawner chaserSpawner;
-        private readonly ObjectiveParams parameters;
+        private readonly Func<Vector3> playerPos;
+        private readonly Func<Vector3> zonePos;
+        private readonly Func<bool> isBlocked;
+        private readonly float extractionRadius;
 
         public override ObjectiveType StateType => ObjectiveType.ExtractionChallenge;
 
         public ExtractionChallengeState(
-            IPlayerPosition playerPosition,
-            IExtractionZone extractionZone,
-            IExtractionBlocker extractionBlocker,
-            IExtractionChaserSpawner chaserSpawner,
-            ObjectiveParams parameters)
+            Func<Vector3> playerPos,
+            Func<Vector3> zonePos,
+            Func<bool> isBlocked,
+            float extractionRadius,
+            Action onEnter = null) : base(onEnter)
         {
-            this.playerPosition = playerPosition ?? throw new System.ArgumentNullException(nameof(playerPosition));
-            this.extractionZone = extractionZone ?? throw new System.ArgumentNullException(nameof(extractionZone));
-            this.extractionBlocker = extractionBlocker;
-            this.chaserSpawner = chaserSpawner;
-            this.parameters = parameters ?? throw new System.ArgumentNullException(nameof(parameters));
-        }
-
-        public override void Enter()
-        {
-            chaserSpawner?.SpawnChaser();
+            this.playerPos = playerPos ?? throw new ArgumentNullException(nameof(playerPos));
+            this.zonePos = zonePos ?? throw new ArgumentNullException(nameof(zonePos));
+            this.isBlocked = isBlocked;
+            this.extractionRadius = extractionRadius;
         }
 
         public override void Tick(float deltaTime) { }
 
         public override bool IsComplete =>
-            Vector3.Distance(playerPosition.Position, extractionZone.Position) <= parameters.ExtractionRadius
-            && (extractionBlocker == null || !extractionBlocker.IsExtractionBlocked);
+            Vector3.Distance(playerPos(), zonePos()) <= extractionRadius
+            && (isBlocked == null || !isBlocked());
     }
 }
