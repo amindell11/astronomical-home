@@ -1,52 +1,69 @@
+using System;
 using UnityEngine;
 
 namespace Objectives
 {
     /// <summary>
-    /// Plain C# class owning key state: position, collected flag, spawn logic, pickup-by-distance check.
-    /// No MonoBehaviour — CombatSectorManager calls CheckPickup each frame and SpawnKey on restart.
+    /// Interface consumed by ExploreState to check if the player has the key.
     /// </summary>
-    public class KeyPickup : IKeyTracker
+    public interface IKeyTracker
     {
-        private Vector3 keyPosition;
+        bool PlayerHasKey { get; }
+    }
+
+    /// <summary>
+    /// MonoBehaviour on the key prefab. Owns key visual state, pickup-by-distance
+    /// check, and spawn logic. Runs its own Update — no external tick needed.
+    /// </summary>
+    public class KeyPickup : MonoBehaviour, IKeyTracker
+    {
+        [SerializeField] private float pickupDistance = 4f;
+
+        private Transform player;
         private bool collected;
 
         public bool PlayerHasKey => collected;
-        public Vector3 KeyPosition => keyPosition;
+        public Vector3 KeyPosition => transform.position;
+
+        public event Action OnKeyCollected;
+
+        public void Initialize(Transform playerTransform, float distance)
+        {
+            player = playerTransform;
+            pickupDistance = distance;
+            collected = false;
+            gameObject.SetActive(true);
+        }
 
         /// <summary>
-        /// Spawn the key at a random position within radius of center.
-        /// Resets the collected flag.
+        /// Move to a random position within radius of center and reset collected state.
         /// </summary>
         public void SpawnKey(Vector3 center, float radius)
         {
             collected = false;
-            var offset2D = Random.insideUnitCircle * radius;
-            keyPosition = new Vector3(center.x + offset2D.x, center.y, center.z + offset2D.y);
+            var offset2D = UnityEngine.Random.insideUnitCircle * radius;
+            transform.position = new Vector3(center.x + offset2D.x, center.y, center.z + offset2D.y);
+            gameObject.SetActive(true);
         }
 
-        /// <summary>
-        /// Check if the player is close enough to pick up the key.
-        /// Call each frame from the sector manager.
-        /// </summary>
-        public bool CheckPickup(Vector3 playerPos, float pickupDistance)
+        private void Update()
         {
-            if (collected)
-                return false;
+            if (collected || !player)
+                return;
 
-            if (Vector3.Distance(playerPos, keyPosition) <= pickupDistance)
+            var sqrDist = (player.position - transform.position).sqrMagnitude;
+            if (sqrDist <= pickupDistance * pickupDistance)
             {
                 collected = true;
-                return true;
+                gameObject.SetActive(false);
+                OnKeyCollected?.Invoke();
             }
-
-            return false;
         }
 
-        /// <summary>Reset collected state (for restart).</summary>
-        public void Reset()
+        /// <summary>Reset collected state and re-show (for restart).</summary>
+        public void ResetKey(Vector3 center, float radius)
         {
-            collected = false;
+            SpawnKey(center, radius);
         }
     }
 }

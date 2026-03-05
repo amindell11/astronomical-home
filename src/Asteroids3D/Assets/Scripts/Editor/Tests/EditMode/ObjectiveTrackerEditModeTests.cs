@@ -314,35 +314,44 @@ namespace Tests.EditMode
         [Test]
         public void KeyPickup_SpawnKey_ResetsCollectedFlag()
         {
-            var kp = new KeyPickup();
-            kp.SpawnKey(Vector3.zero, 10f);
-            Assert.IsFalse(kp.PlayerHasKey);
-
-            kp.CheckPickup(kp.KeyPosition, 5f); // pick it up
-            Assert.IsTrue(kp.PlayerHasKey);
-
-            kp.SpawnKey(Vector3.zero, 10f); // respawn resets
-            Assert.IsFalse(kp.PlayerHasKey);
+            var go = new GameObject("Key");
+            try
+            {
+                var kp = go.AddComponent<KeyPickup>();
+                kp.SpawnKey(Vector3.zero, 10f);
+                Assert.IsFalse(kp.PlayerHasKey);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(go);
+            }
         }
 
         [Test]
-        public void KeyPickup_CheckPickup_ReturnsTrueOnce_ThenFalse()
+        public void KeyPickup_ResetKey_RepositionsAndReactivates()
         {
-            var kp = new KeyPickup();
-            kp.SpawnKey(Vector3.zero, 0f); // key at origin
+            var go = new GameObject("Key");
+            try
+            {
+                var kp = go.AddComponent<KeyPickup>();
+                kp.SpawnKey(Vector3.zero, 0f);
+                go.SetActive(false);
 
-            Assert.IsTrue(kp.CheckPickup(Vector3.zero, 1f));
-            Assert.IsFalse(kp.CheckPickup(Vector3.zero, 1f)); // already collected
+                kp.ResetKey(new Vector3(10f, 0f, 0f), 0f);
+                Assert.IsTrue(go.activeSelf, "ResetKey should reactivate the key");
+                Assert.AreEqual(new Vector3(10f, 0f, 0f), kp.KeyPosition);
+                Assert.IsFalse(kp.PlayerHasKey);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(go);
+            }
         }
 
         [Test]
-        public void KeyPickup_CheckPickup_ReturnsFalse_WhenTooFar()
+        public void KeyPickup_Implements_IKeyTracker()
         {
-            var kp = new KeyPickup();
-            kp.SpawnKey(Vector3.zero, 0f); // key at origin
-
-            Assert.IsFalse(kp.CheckPickup(new Vector3(100f, 0f, 0f), 1f));
-            Assert.IsFalse(kp.PlayerHasKey);
+            Assert.IsTrue(typeof(IKeyTracker).IsAssignableFrom(typeof(KeyPickup)));
         }
 
         // ── Stubs ─────────────────────────────────────────────────────────────────

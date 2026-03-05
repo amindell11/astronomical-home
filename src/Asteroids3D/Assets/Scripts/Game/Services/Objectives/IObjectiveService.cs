@@ -18,9 +18,6 @@ namespace Game.Services
             IReadOnlyDictionary<string, Func<ObjectiveState>> builders,
             Func<bool> isPlayerAlive);
 
-        /// <summary>Tick the active tracker. Call from SectorManager's Update loop.</summary>
-        void Tick(float deltaTime);
-
         /// <summary>Restart the current objective from the initial state.</summary>
         void Restart();
 

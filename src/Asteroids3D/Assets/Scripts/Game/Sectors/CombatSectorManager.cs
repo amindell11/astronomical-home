@@ -13,7 +13,7 @@ namespace Game.Sectors
 {
     /// <summary>
     /// Combat sector: loads a scene, spawns player + enemies, sets extraction objective.
-    /// Builds the objective step dictionary inline with closures capturing runtime refs.
+    /// Fully event-based — no Update loop. KeyPickup self-ticks, ObjectiveService self-ticks.
     /// Owns chaser spawning and encounter restart as reactions to state changes.
     /// </summary>
     public class CombatSectorManager : SectorManager
@@ -34,6 +34,8 @@ namespace Game.Sectors
         [Header("Objective")]
         [SerializeField] private ObjectiveParams objectiveParams;
         [SerializeField] private Transform extractionZonePrefab;
+        [SerializeField] private KeyPickup keyPickup;
+        [SerializeField] private Transform chaser;
 
         [Header("Spawn Positions")]
         [SerializeField] private Vector3 playerSpawnPosition = Vector3.zero;
@@ -42,25 +44,10 @@ namespace Game.Sectors
         [Header("Ship Spawn Settings")]
         [SerializeField] private ShipSpawnerSettings spawnerSettings;
 
-        [Header("Objective Visuals")]
-        [SerializeField] private GameObject keyVisual;
-        [SerializeField] private Transform chaser;
-
         private Ship enemy;
-        private KeyPickup keyPickup;
 
         /// <summary>The player ship spawned by this sector.</summary>
         public Ship Player { get; private set; }
-
-        private void Update()
-        {
-            if (keyPickup != null && Player && objectiveParams
-                && keyPickup.CheckPickup(Player.transform.position, objectiveParams.KeyPickupDistance)
-                && keyVisual)
-                keyVisual.SetActive(false);
-
-            Services.ObjectiveService.Tick(Time.deltaTime);
-        }
 
         protected override IEnumerator OnSetup()
         {
@@ -72,14 +59,15 @@ namespace Game.Sectors
 
             Player = SectorUtils.BuildAndWirePlayer(playerTemplate, playerCommander, shipSettings, 0, playerSpawnPosition, Services);
             enemy = Services.UnitService.SpawnShip(enemyTemplate, enemyCommander, shipSettings, 1, playerSpawnPosition + enemySpawnOffset, Quaternion.identity);
-            Player.Damage.OnDeath += (s1, _) =>
-                Services.UnitService.WaitAndRespawnShip(s1,
-                    Random.insideUnitCircle * spawnerSettings.offscreenDistance + GamePlane.WorldPointToPlane(Services.EnvironmentService.WorldFollowerTransform.position),
-                    0, spawnerSettings.enemyRespawnDelay);
-            enemy.Damage.OnDeath += (s1, _) =>
-                Services.UnitService.WaitAndRespawnShip(s1,
-                    Random.insideUnitCircle * spawnerSettings.offscreenDistance + GamePlane.WorldPointToPlane(Services.EnvironmentService.WorldFollowerTransform.position),
-                    0, spawnerSettings.enemyRespawnDelay);
+
+            // Enemy respawns on death; player death is handled by the objective tracker (→ Failed → restart)
+            if (spawnerSettings)
+            {
+                enemy.Damage.OnDeath += (s1, _) =>
+                    Services.UnitService.WaitAndRespawnShip(s1,
+                        Random.insideUnitCircle * spawnerSettings.offscreenDistance + GamePlane.WorldPointToPlane(Services.EnvironmentService.WorldFollowerTransform.position),
+                        0, spawnerSettings.enemyRespawnDelay);
+            }
 
             ObjectivePhase();
             yield return null;
@@ -87,20 +75,22 @@ namespace Game.Sectors
 
         private void ObjectivePhase()
         {
-            if (objectiveParams == null)
+            if (!objectiveParams)
                 return;
 
-            // Create key pickup
-            keyPickup = new KeyPickup();
-            var spawnCenter = playerSpawnPosition;
-            keyPickup.SpawnKey(spawnCenter, objectiveParams.KeySpawnRadius);
+            if (keyPickup)
+            {
+                keyPickup.Initialize(Player.transform, objectiveParams.KeyPickupDistance);
+                keyPickup.SpawnKey(playerSpawnPosition, objectiveParams.KeySpawnRadius);
+            }
 
-            // Extraction zone position (use prefab position if available)
+            if (chaser)
+                chaser.gameObject.SetActive(false);
+
             var extractionPos = extractionZonePrefab
                 ? extractionZonePrefab.position
                 : Vector3.zero;
 
-            // Build string-keyed step builders with closures
             var builders = new Dictionary<string, Func<ObjectiveState>>
             {
                 ["explore"] = () => new ExploreState(keyPickup),
@@ -114,20 +104,17 @@ namespace Game.Sectors
                 ["failed"] = () => new FailedState()
             };
 
-            var mission = MissionDefinition.CreateDefault();
-
             Services.ObjectiveService.SetObjective(
-                mission,
+                MissionDefinition.CreateDefault(),
                 builders,
-                () => Player != null && Player.gameObject.activeSelf);
+                () => Player && Player.gameObject.activeSelf);
 
-            // Subscribe to state changes for reactions
             Services.ObjectiveService.OnStateChanged += OnObjectiveStateChanged;
         }
 
         private bool IsExtractionBlocked()
         {
-            if (chaser == null || Player == null || objectiveParams == null)
+            if (!chaser || !Player || !objectiveParams)
                 return false;
 
             return Vector3.Distance(chaser.position, Player.transform.position) <= objectiveParams.ExtractionBlockDistance;
@@ -138,7 +125,8 @@ namespace Game.Sectors
             switch (to)
             {
                 case ObjectiveType.ExtractionChallenge:
-                    SpawnChaser();
+                    if (chaser)
+                        chaser.gameObject.SetActive(true);
                     break;
                 case ObjectiveType.Extracted:
                 case ObjectiveType.Failed:
@@ -147,28 +135,15 @@ namespace Game.Sectors
             }
         }
 
-        private void SpawnChaser()
-        {
-            if (chaser != null)
-                chaser.gameObject.SetActive(true);
-        }
-
         private void RestartEncounter()
         {
-            // Reset key
-            keyPickup?.SpawnKey(playerSpawnPosition, objectiveParams.KeySpawnRadius);
-            if (keyVisual != null)
-            {
-                keyVisual.SetActive(true);
-                keyVisual.transform.position = keyPickup.KeyPosition;
-            }
+            if (keyPickup)
+                keyPickup.ResetKey(playerSpawnPosition, objectiveParams.KeySpawnRadius);
 
-            // Reset chaser
-            if (chaser != null)
+            if (chaser)
                 chaser.gameObject.SetActive(false);
 
-            // Respawn player if needed
-            if (Player != null && !Player.gameObject.activeSelf)
+            if (Player && !Player.gameObject.activeSelf)
                 Player.ResetShip();
 
             Services.ObjectiveService.Restart();
@@ -176,7 +151,6 @@ namespace Game.Sectors
 
         protected override IEnumerator OnTeardown()
         {
-            // Unsubscribe from objective events
             if (Services?.ObjectiveService != null)
                 Services.ObjectiveService.OnStateChanged -= OnObjectiveStateChanged;
 
@@ -186,13 +160,10 @@ namespace Game.Sectors
             Services.ObjectiveService.Clear();
 
             if (Config.LoadScene)
-            {
                 yield return Services.EnvironmentService.UnloadSceneAsync(Config.SceneName);
-            }
 
             Player = null;
             enemy = null;
-            keyPickup = null;
 
             yield return null;
         }

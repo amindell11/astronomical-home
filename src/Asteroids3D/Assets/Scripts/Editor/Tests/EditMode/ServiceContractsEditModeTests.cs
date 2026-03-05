@@ -12,11 +12,31 @@ namespace Tests.EditMode
 {
     /// <summary>
     /// EditMode tests validating the game service contracts and basic behavior.
-    /// No scene loading or MonoBehaviours required.
+    /// No scene loading required. MonoBehaviour services use a temp GameObject.
     /// </summary>
     [Category("Services")]
     public class ServiceContractsEditModeTests
     {
+        private readonly List<GameObject> tempObjects = new();
+
+        [TearDown]
+        public void TearDown()
+        {
+            foreach (var go in tempObjects)
+            {
+                if (go != null)
+                    UnityEngine.Object.DestroyImmediate(go);
+            }
+            tempObjects.Clear();
+        }
+
+        private T CreateMonoBehaviourService<T>() where T : MonoBehaviour
+        {
+            var go = new GameObject($"Test_{typeof(T).Name}");
+            tempObjects.Add(go);
+            return go.AddComponent<T>();
+        }
+
         // ── IGameServices shape ──────────────────────────────────────────────────
 
         [Test]
@@ -38,14 +58,15 @@ namespace Tests.EditMode
         [Test]
         public void GameServices_Constructor_ThrowsOnNullService()
         {
-            Assert.Throws<ArgumentNullException>(() =>
-                new GameServices(null, new EnvironmentService(), new ObjectiveService(), new CameraService()));
-            Assert.Throws<ArgumentNullException>(() =>
-                new GameServices(new UnitService(), null, new ObjectiveService(), new CameraService()));
-            Assert.Throws<ArgumentNullException>(() =>
-                new GameServices(new UnitService(), new EnvironmentService(), null, new CameraService()));
-            Assert.Throws<ArgumentNullException>(() =>
-                new GameServices(new UnitService(), new EnvironmentService(), new ObjectiveService(), null));
+            var unit = CreateMonoBehaviourService<UnitService>();
+            var obj = CreateMonoBehaviourService<ObjectiveService>();
+            var env = new EnvironmentService();
+            var cam = new CameraService();
+
+            Assert.Throws<ArgumentNullException>(() => new GameServices(null, env, obj, cam));
+            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, null, obj, cam));
+            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, env, null, cam));
+            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, env, obj, null));
         }
 
         // ── IUnitService shape ───────────────────────────────────────────────────
@@ -70,7 +91,7 @@ namespace Tests.EditMode
         [Test]
         public void UnitService_RegistryIsNotNull_AfterConstruction()
         {
-            var svc = new UnitService();
+            var svc = CreateMonoBehaviourService<UnitService>();
             Assert.IsNotNull(svc.Registry);
             Assert.IsNotNull(svc.ActiveRegistry);
         }
@@ -112,7 +133,6 @@ namespace Tests.EditMode
             Assert.IsNotNull(type.GetProperty("CurrentTracker"), "Missing CurrentTracker");
             Assert.IsNotNull(type.GetProperty("CurrentState"), "Missing CurrentState");
             Assert.IsNotNull(type.GetMethod("SetObjective"), "Missing SetObjective");
-            Assert.IsNotNull(type.GetMethod("Tick"), "Missing Tick");
             Assert.IsNotNull(type.GetMethod("Restart"), "Missing Restart");
             Assert.IsNotNull(type.GetMethod("Clear"), "Missing Clear");
             Assert.IsNotNull(type.GetEvent("OnStateChanged"), "Missing OnStateChanged");
@@ -133,7 +153,7 @@ namespace Tests.EditMode
         [Test]
         public void ObjectiveService_SetObjective_CreatesTracker_AndForwardsEvents()
         {
-            var svc = new ObjectiveService();
+            var svc = CreateMonoBehaviourService<ObjectiveService>();
             var key = new StubKeyTracker(false);
             var paramsAsset = ScriptableObject.CreateInstance<ObjectiveParams>();
 
@@ -161,7 +181,7 @@ namespace Tests.EditMode
                 svc.OnStateChanged += (f, t) => transitions.Add((f, t));
 
                 key.HasKey = true;
-                svc.Tick(0.1f); // Explore → KeyAcquired
+                svc.CurrentTracker.Tick(0.1f); // Explore → KeyAcquired
                 Assert.AreEqual(1, transitions.Count);
                 Assert.AreEqual(ObjectiveType.KeyAcquired, svc.CurrentState);
             }
@@ -174,7 +194,7 @@ namespace Tests.EditMode
         [Test]
         public void ObjectiveService_Clear_RemovesTracker()
         {
-            var svc = new ObjectiveService();
+            var svc = CreateMonoBehaviourService<ObjectiveService>();
             Assert.IsNull(svc.CurrentTracker);
             Assert.IsNull(svc.CurrentState);
 
@@ -208,7 +228,7 @@ namespace Tests.EditMode
         [Test]
         public void ObjectiveService_Restart_DelegatesToTracker()
         {
-            var svc = new ObjectiveService();
+            var svc = CreateMonoBehaviourService<ObjectiveService>();
             var key = new StubKeyTracker(false);
             var alive = true;
             var paramsAsset = ScriptableObject.CreateInstance<ObjectiveParams>();
@@ -228,12 +248,10 @@ namespace Tests.EditMode
 
                 svc.SetObjective(MissionDefinition.CreateDefault(), builders, () => alive);
 
-                // Kill player → Failed
                 alive = false;
-                svc.Tick(0.1f);
+                svc.CurrentTracker.Tick(0.1f);
                 Assert.AreEqual(ObjectiveType.Failed, svc.CurrentState);
 
-                // Restart
                 alive = true;
                 svc.Restart();
                 Assert.AreEqual(ObjectiveType.Explore, svc.CurrentState);
@@ -250,14 +268,10 @@ namespace Tests.EditMode
         public void ICameraService_HasRequiredMembers()
         {
             var type = typeof(ICameraService);
-            Assert.IsNotNull(type.GetProperty("CameraRig"), "Missing CameraRig");
-            Assert.IsNotNull(type.GetProperty("MainCamera"), "Missing MainCamera");
-            Assert.IsNotNull(type.GetProperty("UICamera"), "Missing UICamera");
+            Assert.IsNotNull(type.GetProperty("Cameras"), "Missing Cameras");
             Assert.IsNotNull(type.GetMethod("Initialize"), "Missing Initialize");
-            Assert.IsNotNull(type.GetMethod("SetSubject"), "Missing SetSubject");
-            Assert.IsNotNull(type.GetMethod("AddSecondarySubject"), "Missing AddSecondarySubject");
-            Assert.IsNotNull(type.GetMethod("RemoveSecondarySubject"), "Missing RemoveSecondarySubject");
-            Assert.IsNotNull(type.GetMethod("ConfigurePlayerInputProjection"), "Missing ConfigurePlayerInputProjection");
+            Assert.IsNotNull(type.GetMethod("AddCamera"), "Missing AddCamera");
+            Assert.IsNotNull(type.GetMethod("RemoveCamera"), "Missing RemoveCamera");
             Assert.IsNotNull(type.GetMethod("Clear"), "Missing Clear");
         }
 
@@ -271,7 +285,7 @@ namespace Tests.EditMode
         public void CameraService_IsNull_AfterConstruction()
         {
             var svc = new CameraService();
-            Assert.IsNull(svc.Cameras); 
+            Assert.IsNull(svc.Cameras);
         }
 
         // ── GameServices.ClearAll ────────────────────────────────────────────────
@@ -279,13 +293,12 @@ namespace Tests.EditMode
         [Test]
         public void GameServices_ClearAll_ClearsAllServices()
         {
-            var unit = new UnitService();
+            var unit = CreateMonoBehaviourService<UnitService>();
             var env = new EnvironmentService();
-            var obj = new ObjectiveService();
+            var obj = CreateMonoBehaviourService<ObjectiveService>();
             var cam = new CameraService();
             var services = new GameServices(unit, env, obj, cam);
 
-            // Should not throw
             Assert.DoesNotThrow(() => services.ClearAll());
         }
 

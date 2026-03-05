@@ -1,19 +1,20 @@
 using System;
 using System.Collections.Generic;
 using Objectives;
+using UnityEngine;
 
 namespace Game.Services
 {
     /// <summary>
-    /// Owns the active ObjectiveTracker and implements IObjectiveTrackerAdapter
-    /// so diagnostics can subscribe without knowing the concrete service.
+    /// MonoBehaviour service that owns the active ObjectiveTracker.
+    /// Ticks itself via Update — sectors don't need to call Tick manually.
+    /// Implements IObjectiveTrackerAdapter so diagnostics can subscribe.
     /// </summary>
-    public class ObjectiveService : IObjectiveService, IObjectiveTrackerAdapter
+    public class ObjectiveService : MonoBehaviour, IObjectiveService, IObjectiveTrackerAdapter
     {
         public ObjectiveTracker CurrentTracker { get; private set; }
         public ObjectiveType? CurrentState => CurrentTracker?.CurrentState;
 
-        // IObjectiveTrackerAdapter — returns Explore as default when no tracker is active
         ObjectiveType IObjectiveTrackerAdapter.CurrentState => CurrentTracker?.CurrentState ?? ObjectiveType.Explore;
 
         public event Action<ObjectiveType, ObjectiveType> OnStateChanged;
@@ -29,9 +30,9 @@ namespace Game.Services
             CurrentTracker.OnStateChanged += ForwardStateChanged;
         }
 
-        public void Tick(float deltaTime)
+        private void Update()
         {
-            CurrentTracker?.Tick(deltaTime);
+            CurrentTracker?.Tick(Time.deltaTime);
         }
 
         public void Restart()
