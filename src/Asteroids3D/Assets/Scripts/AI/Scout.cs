@@ -3,6 +3,7 @@ using Movement;
 using Ships;
 using Ships.Command;
 using UnityEngine;
+using Utils;
 
 namespace AI.Scanning
 {
@@ -43,7 +44,8 @@ namespace AI.Scanning
             getState = stateProvider;
             shipScanner = new ShipScanner(origin, nearbyShipRadius, shipId, registry);
             coverScanner = new CoverScanner(origin, asteroidCoverRadius, asteroidMask);
-            obstacleScanner = new DynamicObstacleScanner(origin, asteroidMask, lookAheadDist, degreesBetweenRays, maxRayDegrees, sphereCastRadius);
+            var avoidanceMask = asteroidMask | LayerIds.Mask(LayerIds.Ship);
+            obstacleScanner = new DynamicObstacleScanner(origin, avoidanceMask, lookAheadDist, degreesBetweenRays, maxRayDegrees, sphereCastRadius);
         }
 
         private void Update()

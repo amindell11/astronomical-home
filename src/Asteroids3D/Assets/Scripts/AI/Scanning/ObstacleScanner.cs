@@ -41,6 +41,7 @@ namespace AI.Scanning
         
         protected readonly Transform origin;
         protected readonly LayerMask obstacleMask;
+        protected readonly GameObject selfRoot;
 
         public DetectedObstacle[] DetectedBuffer { get; }
         public int DetectedCount { get; private set; }
@@ -50,6 +51,7 @@ namespace AI.Scanning
         {
             this.origin = origin;
             this.obstacleMask = obstacleMask;
+            selfRoot = origin.gameObject;
             DetectedBuffer = new DetectedObstacle[bufferSize];
             DetectedCount = 0;
         }
@@ -74,7 +76,8 @@ namespace AI.Scanning
             for (var i = 0; i < count && DetectedCount < DetectedBuffer.Length; i++)
             {
                 var col = ScratchBuffer[i];
-                if (col) DetectedBuffer[DetectedCount++] = new DetectedObstacle(col);
+                if (col && col.gameObject != selfRoot && col.transform.root != origin.root)
+                    DetectedBuffer[DetectedCount++] = new DetectedObstacle(col);
             }
         }
         
