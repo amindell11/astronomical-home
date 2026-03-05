@@ -3,8 +3,7 @@ using UnityEngine;
 
 namespace Cameras
 {
-    [RequireComponent(typeof(Camera))]
-    public abstract class SmoothCamera : MonoBehaviour
+    public abstract class SmoothCamera : CameraController
     {
         [Header("Movement")]
         [SerializeField]
@@ -18,13 +17,12 @@ namespace Cameras
         [SerializeField] protected float maxZoom = 50f;
         [SerializeField] protected float padding = 2f;
 
-        protected Camera Cam { get; private set; }
         protected Vector3 dampVelocity;
         protected float zoomVelocity;
 
-        protected virtual void Awake()
+        protected override void Awake()
         {
-            Cam = GetComponent<Camera>();
+            base.Awake();
             Cam.orthographic = true;
         }
     

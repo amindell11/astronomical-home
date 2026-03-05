@@ -18,15 +18,10 @@ namespace UI
                 throw new InvalidOperationException("OverlayBootstrap requires a serialized MainGameManager reference.");
             if (!overlayPrefab)
                 throw new InvalidOperationException("OverlayBootstrap requires a serialized overlay prefab.");
-
-            gameManager.PresentationReady += HandlePresentationReady;
         }
 
         private void OnDestroy()
         {
-            if (gameManager)
-                gameManager.PresentationReady -= HandlePresentationReady;
-
             if (overlay)
                 Destroy(overlay.gameObject);
         }
@@ -38,7 +33,7 @@ namespace UI
 
             if (overlay)
                 Destroy(overlay.gameObject);
-
+ 
             overlay = Instantiate(overlayPrefab);
             overlay.SetCanvasWorldCamera(uiCamera);
             overlay.Initialize(playerShip);

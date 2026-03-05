@@ -1,4 +1,4 @@
-namespace Game.Bootstrap
+namespace Game.Sectors
 {
     public readonly struct SectorResult
     {

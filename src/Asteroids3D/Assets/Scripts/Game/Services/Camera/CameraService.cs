@@ -1,56 +1,24 @@
+using System.Collections.Generic;
 using Cameras;
-using Player;
 using UnityEngine;
 
 namespace Game.Services
 {
     public class CameraService : ICameraService
     {
-        public CameraRig CameraRig { get; private set; }
-        public Camera MainCamera => CameraRig ? CameraRig.MainCamera : null;
-        public Camera UICamera => CameraRig ? CameraRig.UICamera : null;
+        public Dictionary<CameraTag, CameraController> Cameras { get; } = new();
 
-        public void Initialize(CameraRig prefab)
+        public T GetCamera<T>(CameraTag tag) where T : CameraController =>
+            Cameras.TryGetValue(tag, out var cam) ? cam as T : null;
+
+        public void AddCamera(CameraTag tag, CameraController camera) => Cameras[tag] = camera;
+
+        public void RemoveCamera(CameraTag tag) => Cameras.Remove(tag);
+
+        public void Initialize()
         {
-            if (!prefab) return;
-            Clear();
-            CameraRig = Object.Instantiate(prefab);
         }
 
-        public void SetSubject(Transform subject)
-        {
-            if (!CameraRig || !subject) return;
-            CameraRig.ObserverCam.SetSubject(subject);
-        }
-
-        public void AddSecondarySubject(Transform subject)
-        {
-            if (!CameraRig || !subject) return;
-            CameraRig.ObserverCam.AddSecondarySubject(subject);
-        }
-
-        public void RemoveSecondarySubject(Transform subject)
-        {
-            if (!CameraRig || !subject) return;
-            CameraRig.ObserverCam.RemoveSecondarySubject(subject);
-        }
-
-        public void ConfigurePlayerInputProjection(PlayerCommander commander)
-        {
-            if (commander == null || !CameraRig) return;
-
-            commander.SetScreenToGamePlane(pos =>
-                GamePlane.ProjectOntoPlane(CameraRig.MainCamera.ScreenToWorldPoint(pos))
-                + GamePlane.Origin);
-        }
-
-        public void Clear()
-        {
-            if (CameraRig != null)
-            {
-                Object.Destroy(CameraRig.gameObject);
-                CameraRig = null;
-            }
-        }
+        public void Clear() => Cameras.Clear();
     }
 }

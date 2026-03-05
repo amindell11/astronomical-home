@@ -14,26 +14,19 @@ namespace Game.Bootstrap
 
         [Header("Scene Refs")]
         [SerializeField] private Transform referencePlane;
-        [SerializeField] private ShipRespawnRunner respawnRunner;
 
         private GameServices services;
-        private SectorManager activeSectorManager;
-        private GameState currentState;
         private Coroutine stateRoutine;
+        public GameState CurrentState { get; private set; }
 
-        public GameState CurrentState => currentState;
         public event Action<GameState> OnGameStateChanged;
-        public event Action<Ship, Camera> PresentationReady;
-
+        
         /// <summary>The active sector manager, if any.</summary>
-        public SectorManager ActiveSectorManager => activeSectorManager;
+        public SectorManager ActiveSectorManager { get; private set; }
 
         /// <summary>The service container for this game session.</summary>
         public IGameServices Services => services;
-
-        /// <summary>Scene-owned respawn runner.</summary>
-        public ShipRespawnRunner RespawnRunner => respawnRunner;
-
+        
         private void Awake()
         {
             DontDestroyOnLoad(gameObject);
@@ -45,7 +38,7 @@ namespace Game.Bootstrap
             if (stateRoutine != null)
                 StopCoroutine(stateRoutine);
 
-            currentState = newState;
+            CurrentState = newState;
             OnGameStateChanged?.Invoke(newState);
             stateRoutine = StartCoroutine(RunState(newState));
         }
@@ -81,7 +74,7 @@ namespace Game.Bootstrap
             GamePlane.SetReferencePlane(referencePlane);
 
             services = new GameServices(
-                unitService: new UnitService(),
+                unitService: gameObject.AddComponent<UnitService>(),
                 environmentService: new EnvironmentService(),
                 objectiveService: new ObjectiveService(),
                 cameraService: new CameraService()
@@ -93,14 +86,14 @@ namespace Game.Bootstrap
 
         private IEnumerator HandleLoadSector()
         {
-            if (currentSector?.managerPrefab == null)
+            if (!currentSector?.managerPrefab)
                 throw new InvalidOperationException("No sector entry configured on MainGameManager.");
 
-            activeSectorManager = Instantiate(currentSector.managerPrefab);
-            activeSectorManager.Initialize(services, currentSector.config, respawnRunner);
-            activeSectorManager.OnSectorComplete += HandleSectorComplete;
+            ActiveSectorManager = Instantiate(currentSector.managerPrefab);
+            ActiveSectorManager.Initialize(services, currentSector.config);
+            ActiveSectorManager.OnSectorComplete += HandleSectorComplete;
 
-            yield return activeSectorManager.Setup();
+            yield return ActiveSectorManager.Setup();
 
             PublishPresentationReady();
             TransitionTo(GameState.InSector);
@@ -125,18 +118,15 @@ namespace Game.Bootstrap
 
         private IEnumerator Cleanup(bool runTeardown)
         {
-            if (respawnRunner)
-                respawnRunner.ResetRunner();
-
-            if (activeSectorManager != null)
+            if (ActiveSectorManager)
             {
-                activeSectorManager.OnSectorComplete -= HandleSectorComplete;
+                ActiveSectorManager.OnSectorComplete -= HandleSectorComplete;
 
                 if (runTeardown)
-                    yield return activeSectorManager.Teardown();
+                    yield return ActiveSectorManager.Teardown();
 
-                Destroy(activeSectorManager.gameObject);
-                activeSectorManager = null;
+                Destroy(ActiveSectorManager.gameObject);
+                ActiveSectorManager = null;
             }
 
             if (runTeardown)
@@ -149,15 +139,6 @@ namespace Game.Bootstrap
 
         private void PublishPresentationReady()
         {
-            var presentationShip = activeSectorManager?.PresentationShip;
-            if (presentationShip == null)
-                return;
-
-            var uiCamera = services?.CameraService?.UICamera;
-            if (uiCamera == null)
-                return;
-
-            PresentationReady?.Invoke(presentationShip, uiCamera);
         }
 
         private void OnDestroy()

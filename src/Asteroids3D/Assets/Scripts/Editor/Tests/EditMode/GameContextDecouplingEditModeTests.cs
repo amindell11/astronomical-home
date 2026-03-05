@@ -2,7 +2,7 @@ using System.IO;
 using System.Reflection;
 using AI;
 using Combat.Targeting;
-using Game.Bootstrap;
+using Game;
 using NUnit.Framework;
 using Player;
 using Ships;
@@ -22,40 +22,7 @@ namespace Tests.EditMode
             reader.SetScreenToGamePlane(_ => new Vector3(9f, 8f, 7f));
             Assert.AreEqual(new Vector3(9f, 8f, 7f), reader.GetMouseWorldPosition());
         }
-
-        [Test]
-        public void Spawner_GetRandomOffscreenPosition_UsesWorldCenterProvider()
-        {
-            ShipSpawnerSettings settings = null;
-            GameObject anchorGo = null;
-            GameObject planeGo = null;
-            var called = 0;
-            try
-            {
-                settings = ScriptableObject.CreateInstance<ShipSpawnerSettings>();
-                settings.offscreenDistance = 0f;
-                anchorGo = new GameObject("Anchor");
-                planeGo = new GameObject("ReferencePlane");
-                GamePlane.SetReferencePlane(planeGo.transform);
-
-                var spawner = new Spawner(settings, () =>
-                {
-                    called++;
-                    return anchorGo.transform;
-                });
-
-                _ = spawner.GetRandomOffscreenPosition();
-                Assert.That(called, Is.EqualTo(1));
-            }
-            finally
-            {
-                GamePlane.Reset();
-                if (planeGo) Object.DestroyImmediate(planeGo);
-                if (anchorGo) Object.DestroyImmediate(anchorGo);
-                if (settings) Object.DestroyImmediate(settings);
-            }
-        }
-
+        
         [Test]
         public void AiCommander_ExposesRegistryInjectionApi()
         {
