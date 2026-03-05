@@ -36,13 +36,13 @@ namespace Game.Sectors
         [SerializeField] private KeyPickup keyPickupPrefab;
         [SerializeField] private ExtractionZone extractionZonePrefab;
 
-        [Header("Objective Positions")]
-        [SerializeField] private Vector3 keySpawnPosition = Vector3.zero;
-        [SerializeField] private Vector3 extractionZonePosition = new Vector3(50f, 0f, 50f);
+        [Header("Objective Positions (Plane Space)")]
+        [SerializeField] private Vector2 keySpawnPosition = Vector2.zero;
+        [SerializeField] private Vector2 extractionZonePosition = new Vector2(50f, 50f);
 
-        [Header("Spawn Positions")]
-        [SerializeField] private Vector3 playerSpawnPosition = Vector3.zero;
-        [SerializeField] private Vector3 enemySpawnOffset = new Vector3(0f, 0f, 50f);
+        [Header("Spawn Positions (Plane Space)")]
+        [SerializeField] private Vector2 playerSpawnPosition = Vector2.zero;
+        [SerializeField] private Vector2 enemySpawnOffset = new Vector2(0f, 50f);
 
         [Header("Ship Spawn Settings")]
         [SerializeField] private ShipSpawnerSettings spawnerSettings;
@@ -61,8 +61,8 @@ namespace Game.Sectors
             SectorUtils.BuildAndWireObserverCam(Services, observerCamPrefab);
 
             player = SectorUtils.BuildAndWirePlayer(playerTemplate, playerCommander, shipSettings, 0, playerSpawnPosition, Services);
-            enemy = Services.UnitService.SpawnShip(enemyTemplate, enemyCommander, shipSettings, 1, playerSpawnPosition + enemySpawnOffset, Quaternion.identity);
-            chaser = Services.UnitService.SpawnShip(enemyTemplate, enemyCommander, shipSettings, 1, new Vector2(50, 50), Quaternion.identity);
+            enemy = Services.UnitService.SpawnShip(enemyTemplate, enemyCommander, shipSettings, 1, GamePlane.PlanePointToWorld(playerSpawnPosition + enemySpawnOffset), Quaternion.identity);
+            chaser = Services.UnitService.SpawnShip(enemyTemplate, enemyCommander, shipSettings, 1, GamePlane.PlanePointToWorld(playerSpawnPosition + enemySpawnOffset), Quaternion.identity);
             chaser.gameObject.SetActive(false);
 
             // Player death → fail the objective immediately
@@ -91,13 +91,14 @@ namespace Game.Sectors
             // Instantiate objective prefabs
             if (keyPickupPrefab)
             {
-                keyPickupInstance = Instantiate(keyPickupPrefab, keySpawnPosition, Quaternion.identity);
-                keyPickupInstance.SpawnKey(keySpawnPosition);
+                var keyWorld = GamePlane.PlanePointToWorld(keySpawnPosition);
+                keyPickupInstance = Instantiate(keyPickupPrefab, keyWorld, Quaternion.identity);
+                keyPickupInstance.SpawnKey(keyWorld);
             }
 
             if (extractionZonePrefab)
             {
-                extractionZoneInstance = Instantiate(extractionZonePrefab, extractionZonePosition, Quaternion.identity);
+                extractionZoneInstance = Instantiate(extractionZonePrefab, GamePlane.PlanePointToWorld(extractionZonePosition), Quaternion.identity);
                 extractionZoneInstance.Initialize(chaser ? chaser.transform : null);
             }
 
@@ -120,11 +121,11 @@ namespace Game.Sectors
 
         private void RestartEncounter()
         {
-            if (keyPickupInstance) keyPickupInstance.ResetKey(keySpawnPosition);
+            if (keyPickupInstance) keyPickupInstance.ResetKey(GamePlane.PlanePointToWorld(keySpawnPosition));
             if (chaser) chaser.gameObject.SetActive(false);
             if (player && !player.gameObject.activeSelf)
             {
-                player.transform.position = playerSpawnPosition;
+                player.transform.position = GamePlane.PlanePointToWorld(playerSpawnPosition);
                 player.ResetShip();
             }
             Services.ObjectiveService.Restart();
