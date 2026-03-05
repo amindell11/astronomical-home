@@ -14,7 +14,7 @@ namespace Game.Sectors
     /// <summary>
     /// Combat sector: loads a scene, spawns player + enemies, sets extraction objective.
     /// Fully event-based — no Update loop. KeyPickup self-ticks, ObjectiveService self-ticks.
-    /// Owns chaser spawning and encounter restart as reactions to state changes.
+    /// Side effects (chaser spawn, restart) are bundled into state onEnter callbacks.
     /// </summary>
     public class CombatSectorManager : SectorManager
     {
@@ -99,17 +99,16 @@ namespace Game.Sectors
                     () => Player ? Player.transform.position : Vector3.zero,
                     () => extractionPos,
                     () => IsExtractionBlocked(),
-                    objectiveParams.ExtractionRadius),
-                ["extracted"] = () => new ExtractedState(),
-                ["failed"] = () => new FailedState()
+                    objectiveParams.ExtractionRadius,
+                    onEnter: () => { if (chaser) chaser.gameObject.SetActive(true); }),
+                ["extracted"] = () => new ExtractedState(onEnter: RestartEncounter),
+                ["failed"] = () => new FailedState(onEnter: RestartEncounter)
             };
 
             Services.ObjectiveService.SetObjective(
                 MissionDefinition.CreateDefault(),
                 builders,
                 () => Player && Player.gameObject.activeSelf);
-
-            Services.ObjectiveService.OnStateChanged += OnObjectiveStateChanged;
         }
 
         private bool IsExtractionBlocked()
@@ -118,21 +117,6 @@ namespace Game.Sectors
                 return false;
 
             return Vector3.Distance(chaser.position, Player.transform.position) <= objectiveParams.ExtractionBlockDistance;
-        }
-
-        private void OnObjectiveStateChanged(ObjectiveType from, ObjectiveType to)
-        {
-            switch (to)
-            {
-                case ObjectiveType.ExtractionChallenge:
-                    if (chaser)
-                        chaser.gameObject.SetActive(true);
-                    break;
-                case ObjectiveType.Extracted:
-                case ObjectiveType.Failed:
-                    RestartEncounter();
-                    break;
-            }
         }
 
         private void RestartEncounter()
@@ -151,9 +135,6 @@ namespace Game.Sectors
 
         protected override IEnumerator OnTeardown()
         {
-            if (Services?.ObjectiveService != null)
-                Services.ObjectiveService.OnStateChanged -= OnObjectiveStateChanged;
-
             Services.CameraService.Clear();
             Services.UnitService.Clear();
             Services.EnvironmentService.Clear();

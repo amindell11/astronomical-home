@@ -5,7 +5,7 @@ namespace Objectives.States
 {
     /// <summary>
     /// Player must reach the extraction zone while not blocked by a nearby chaser.
-    /// No side effects on Enter — chaser spawning is a reaction in CombatSectorManager.
+    /// Optional onEnter callback fires side effects (e.g. spawn chaser) when entered.
     /// </summary>
     public class ExtractionChallengeState : ObjectiveState
     {
@@ -20,7 +20,8 @@ namespace Objectives.States
             Func<Vector3> playerPos,
             Func<Vector3> zonePos,
             Func<bool> isBlocked,
-            float extractionRadius)
+            float extractionRadius,
+            Action onEnter = null) : base(onEnter)
         {
             this.playerPos = playerPos ?? throw new ArgumentNullException(nameof(playerPos));
             this.zonePos = zonePos ?? throw new ArgumentNullException(nameof(zonePos));
