@@ -1,26 +1,23 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using AI;
 using Ships;
 using Ships.Command;
 using UnityEngine;
+using Random = UnityEngine.Random;
 using ShipFactory = Ships.Factory;
 
 namespace Game.Services
 {
-    public class UnitService : IUnitService
+    public class UnitService : MonoBehaviour, IUnitService
     {
-        private readonly ShipRegistry shipRegistry;
         private readonly List<Ship> spawnedShips = new();
+        public IShipRegistry Registry => ActiveRegistry;
+        public ShipRegistry ActiveRegistry { get; } = new();
 
-        public IShipRegistry Registry => shipRegistry;
-        public ShipRegistry ActiveRegistry => shipRegistry;
         public event Action<Ship> OnShipSpawned;
-
-        public UnitService()
-        {
-            shipRegistry = new ShipRegistry(null);
-        }
 
         public Ship SpawnShip(
             Ship template,
@@ -38,7 +35,7 @@ namespace Game.Services
                 position, rotation,
                 postInitialize: WireShipDependencies);
 
-            shipRegistry.ActiveShips.Add(ship);
+            ActiveRegistry.ActiveShips.Add(ship);
             spawnedShips.Add(ship);
             OnShipSpawned?.Invoke(ship);
             return ship;
@@ -46,25 +43,42 @@ namespace Game.Services
 
         public void Clear()
         {
-            foreach (var ship in spawnedShips)
+            foreach (var ship in spawnedShips.Where(ship => ship))
             {
-                if (ship != null)
-                {
-                    shipRegistry.ActiveShips.Remove(ship);
-                    UnityEngine.Object.Destroy(ship.gameObject);
-                }
+                ActiveRegistry.ActiveShips.Remove(ship);
+                UnityEngine.Object.Destroy(ship.gameObject);
             }
 
             spawnedShips.Clear();
-            shipRegistry.Dispose();
+            ActiveRegistry.Dispose();
         }
 
         private void WireShipDependencies(Ship ship)
         {
             if (!ship) return;
-            ship.Targeting?.SetRegistry(shipRegistry);
+            ship.Targeting?.SetRegistry(ActiveRegistry);
             if (ship.Commander is AICommander aiCommander)
-                aiCommander.SetRegistry(shipRegistry);
+                aiCommander.SetRegistry(ActiveRegistry);
+        }
+
+        public void RespawnShip(ShipId id, Vector2 pos, float rotation)
+        {
+            if(!ActiveRegistry.TryGetShip(id, out var ship)) return;
+            ship.transform.position = GamePlane.PlanePointToWorld(pos);
+            ship.transform.rotation = Quaternion.AngleAxis(rotation, GamePlane.Normal);
+            ship.ResetShip();
+        }
+
+        public void WaitAndRespawnShip(ShipId ship, Vector2 pos, float rotation, float delay)
+        {
+            StartCoroutine(WaitAndRespawn());
+            return;
+
+            IEnumerator WaitAndRespawn()
+            {
+                yield return new WaitForSeconds(delay);
+                RespawnShip(ship, pos, rotation);
+            }
         }
     }
 }

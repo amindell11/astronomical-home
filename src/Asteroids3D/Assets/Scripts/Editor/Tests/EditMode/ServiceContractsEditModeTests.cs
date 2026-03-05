@@ -271,9 +271,7 @@ namespace Tests.EditMode
         public void CameraService_IsNull_AfterConstruction()
         {
             var svc = new CameraService();
-            Assert.IsNull(svc.CameraRig);
-            Assert.IsNull(svc.MainCamera);
-            Assert.IsNull(svc.UICamera);
+            Assert.IsNull(svc.Cameras); 
         }
 
         // ── GameServices.ClearAll ────────────────────────────────────────────────

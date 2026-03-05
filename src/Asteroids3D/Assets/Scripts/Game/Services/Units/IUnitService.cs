@@ -27,5 +27,8 @@ namespace Game.Services
 
         /// <summary>Raised when a ship is spawned through this service.</summary>
         event Action<Ship> OnShipSpawned;
+        
+        public void RespawnShip(ShipId ship, Vector2 pos, float rotation);
+        public void WaitAndRespawnShip(ShipId ship, Vector2 pos, float rotation, float delay);
     }
 }

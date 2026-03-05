@@ -2,28 +2,14 @@ using UnityEngine;
 
 namespace Cameras
 {
-    [RequireComponent(typeof(ObserverCam))]
+    [RequireComponent(typeof(Camera))]
     public class CameraController : MonoBehaviour
     {
-        [Tooltip("Key used to toggle locking the camera to the player.")]
-        [SerializeField] private KeyCode toggleLockKey = KeyCode.C;
+        public Camera Cam { get; private set; }
 
-        [Tooltip("CameraFollow component to control. Defaults to the one on the same GameObject.")]
-        [SerializeField] private ObserverCam observerCam;
-
-        private void Awake()
+        protected virtual void Awake()
         {
-            if (!observerCam)
-            {
-                observerCam = GetComponent<ObserverCam>();
-            }
-        }
-
-        private void Update()
-        {
-            if (!observerCam) return;
-            if (!Input.GetKeyDown(toggleLockKey)) return;
-            observerCam.SetLockCameraToSubject(!observerCam.LockCameraToSubject);
+            Cam = GetComponent<Camera>();
         }
     }
-} 
+}

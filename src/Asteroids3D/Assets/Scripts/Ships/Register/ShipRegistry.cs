@@ -13,7 +13,7 @@ namespace Game
         private readonly Dictionary<ShipId, Ship> idToShip = new();
         private readonly Dictionary<ShipId, int> idToTeam = new();
 
-        public ShipRegistry(GameConfig gameConfig)
+        public ShipRegistry()
         {
             ActiveShips.OnAdd += RegisterShip;
             ActiveShips.OnRemove += UnregisterShip;

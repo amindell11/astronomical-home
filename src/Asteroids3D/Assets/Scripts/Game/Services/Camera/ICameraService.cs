@@ -1,34 +1,20 @@
+using System.Collections.Generic;
 using Cameras;
-using Player;
 using UnityEngine;
 
 namespace Game.Services
 {
     public interface ICameraService
     {
-        /// <summary>The active camera rig, if initialized.</summary>
-        CameraRig CameraRig { get; }
+        Dictionary<CameraTag, CameraController> Cameras { get; }
 
-        /// <summary>Main gameplay camera.</summary>
-        Camera MainCamera { get; }
-
-        /// <summary>UI overlay camera.</summary>
-        Camera UICamera { get; }
+        T GetCamera<T>(CameraTag tag) where T : CameraController;
 
         /// <summary>Instantiate the camera rig from a prefab.</summary>
-        void Initialize(CameraRig prefab);
+        void Initialize();
 
-        /// <summary>Set the primary follow subject.</summary>
-        void SetSubject(Transform subject);
-
-        /// <summary>Add a secondary subject for the camera to track.</summary>
-        void AddSecondarySubject(Transform subject);
-
-        /// <summary>Remove a secondary subject.</summary>
-        void RemoveSecondarySubject(Transform subject);
-
-        /// <summary>Configure player input screen-to-plane projection.</summary>
-        void ConfigurePlayerInputProjection(PlayerCommander commander);
+        void AddCamera(CameraTag tag, CameraController camera);
+        void RemoveCamera(CameraTag tag);
 
         /// <summary>Destroy the camera rig and reset state.</summary>
         void Clear();

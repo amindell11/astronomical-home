@@ -2,12 +2,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Cameras;
-using Game.Bootstrap;
+using Game.Sectors.Utils;
 using Objectives;
 using Objectives.States;
-using Player;
 using Ships;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Game.Sectors
 {
@@ -24,13 +24,12 @@ namespace Game.Sectors
         [SerializeField] private ShipSettings shipSettings;
         [SerializeField] private Ships.Command.Commander playerCommander;
         [SerializeField] private Ships.Command.Commander enemyCommander;
-        [SerializeField] private ShipSpawnerSettings respawnSettings;
 
         [Header("Environment")]
         [SerializeField] private World.WorldRoot worldPrefab;
 
         [Header("Camera")]
-        [SerializeField] private CameraRig cameraRigPrefab;
+        [SerializeField] private ObserverCam observerCamPrefab;
 
         [Header("Objective")]
         [SerializeField] private ObjectiveParams objectiveParams;
@@ -40,35 +39,22 @@ namespace Game.Sectors
         [SerializeField] private Vector3 playerSpawnPosition = Vector3.zero;
         [SerializeField] private Vector3 enemySpawnOffset = new Vector3(0f, 0f, 50f);
 
-        private Ship player;
+        [Header("Ship Spawn Settings")]
+        [SerializeField] private ShipSpawnerSettings spawnerSettings;
+
         private Ship enemy;
         private KeyPickup keyPickup;
         private GameObject keyVisual;
         private Transform chaser;
 
         /// <summary>The player ship spawned by this sector.</summary>
-        public Ship Player => player;
-        public override Ship PresentationShip => player;
-
-        protected override IEnumerator OnSetup()
-        {
-            yield return LoadScenePhase();
-            SpawnWorldPhase();
-            SpawnActorsPhase();
-            WireWorldFollowerPhase();
-            CameraPhase();
-            RegistryBindingPhase();
-            PlayerInputProjectionPhase();
-            ObjectivePhase();
-            RespawnPhase();
-            yield return null;
-        }
+        public Ship Player { get; private set; }
 
         private void Update()
         {
-            if (keyPickup != null && player != null && objectiveParams != null)
+            if (keyPickup != null && Player != null && objectiveParams != null)
             {
-                if (keyPickup.CheckPickup(player.transform.position, objectiveParams.KeyPickupDistance))
+                if (keyPickup.CheckPickup(Player.transform.position, objectiveParams.KeyPickupDistance))
                 {
                     if (keyVisual != null)
                         keyVisual.SetActive(false);
@@ -78,73 +64,27 @@ namespace Game.Sectors
             Services.ObjectiveService.Tick(Time.deltaTime);
         }
 
-        private IEnumerator LoadScenePhase()
+        protected override IEnumerator OnSetup()
         {
             if (Config.LoadScene)
                 yield return Services.EnvironmentService.LoadSceneAsync(Config.SceneName);
-        }
-
-        private void SpawnWorldPhase()
-        {
             if (worldPrefab)
                 Services.EnvironmentService.SpawnWorld(worldPrefab);
-        }
+            SectorUtils.BuildAndWireObserverCam(Services, observerCamPrefab);
 
-        private void SpawnActorsPhase()
-        {
-            player = Services.UnitService.SpawnShip(
-                playerTemplate,
-                playerCommander,
-                shipSettings,
-                0,
-                playerSpawnPosition,
-                Quaternion.identity);
-            player.tag = "Player";
+            Player = SectorUtils.BuildAndWirePlayer(playerTemplate, playerCommander, shipSettings, 0, playerSpawnPosition, Services);
+            enemy = Services.UnitService.SpawnShip(enemyTemplate, enemyCommander, shipSettings, 1, playerSpawnPosition + enemySpawnOffset, Quaternion.identity);
+            Player.Damage.OnDeath += (s1, _) =>
+                Services.UnitService.WaitAndRespawnShip(s1,
+                    Random.insideUnitCircle * spawnerSettings.offscreenDistance + GamePlane.WorldPointToPlane(Services.EnvironmentService.WorldFollowerTransform.position),
+                    0, spawnerSettings.enemyRespawnDelay);
+            enemy.Damage.OnDeath += (s1, _) =>
+                Services.UnitService.WaitAndRespawnShip(s1,
+                    Random.insideUnitCircle * spawnerSettings.offscreenDistance + GamePlane.WorldPointToPlane(Services.EnvironmentService.WorldFollowerTransform.position),
+                    0, spawnerSettings.enemyRespawnDelay);
 
-            if (!enemyTemplate)
-                return;
-
-            enemy = Services.UnitService.SpawnShip(
-                enemyTemplate,
-                enemyCommander,
-                shipSettings,
-                1,
-                playerSpawnPosition + enemySpawnOffset,
-                Quaternion.identity);
-        }
-
-        private void WireWorldFollowerPhase()
-        {
-            var world = Services.EnvironmentService.World;
-            if (world && world.Follower && player)
-                world.Follower.SetTarget(player.transform);
-        }
-
-        private void CameraPhase()
-        {
-            Services.CameraService.Initialize(cameraRigPrefab);
-
-            if (player)
-                Services.CameraService.SetSubject(player.transform);
-
-            if (enemy)
-                Services.CameraService.AddSecondarySubject(enemy.transform);
-        }
-
-        private void RegistryBindingPhase()
-        {
-            var registry = Services.UnitService.ActiveRegistry;
-            if (registry == null)
-                return;
-
-            registry.ActiveShips.OnAdd += OnShipAddedToRegistry;
-            registry.ActiveShips.OnRemove += OnShipRemovedFromRegistry;
-        }
-
-        private void PlayerInputProjectionPhase()
-        {
-            if (player?.Commander is PlayerCommander pc)
-                Services.CameraService.ConfigurePlayerInputProjection(pc);
+            ObjectivePhase();
+            yield return null;
         }
 
         private void ObjectivePhase()
@@ -168,7 +108,7 @@ namespace Game.Sectors
                 ["explore"] = () => new ExploreState(keyPickup),
                 ["key"] = () => new KeyAcquiredState(),
                 ["extraction"] = () => new ExtractionChallengeState(
-                    () => player ? player.transform.position : Vector3.zero,
+                    () => Player ? Player.transform.position : Vector3.zero,
                     () => extractionPos,
                     () => IsExtractionBlocked(),
                     objectiveParams.ExtractionRadius),
@@ -181,7 +121,7 @@ namespace Game.Sectors
             Services.ObjectiveService.SetObjective(
                 mission,
                 builders,
-                () => player != null && player.gameObject.activeSelf);
+                () => Player != null && Player.gameObject.activeSelf);
 
             // Subscribe to state changes for reactions
             Services.ObjectiveService.OnStateChanged += OnObjectiveStateChanged;
@@ -189,10 +129,10 @@ namespace Game.Sectors
 
         private bool IsExtractionBlocked()
         {
-            if (chaser == null || player == null || objectiveParams == null)
+            if (chaser == null || Player == null || objectiveParams == null)
                 return false;
 
-            return Vector3.Distance(chaser.position, player.transform.position) <= objectiveParams.ExtractionBlockDistance;
+            return Vector3.Distance(chaser.position, Player.transform.position) <= objectiveParams.ExtractionBlockDistance;
         }
 
         private void OnObjectiveStateChanged(ObjectiveType from, ObjectiveType to)
@@ -230,21 +170,10 @@ namespace Game.Sectors
                 chaser.gameObject.SetActive(false);
 
             // Respawn player if needed
-            if (player != null && !player.gameObject.activeSelf)
-                player.ResetShip();
+            if (Player != null && !Player.gameObject.activeSelf)
+                Player.ResetShip();
 
             Services.ObjectiveService.Restart();
-        }
-
-        private void RespawnPhase()
-        {
-            if (!RespawnRunner || !respawnSettings)
-                return;
-
-            RespawnRunner.Initialize(
-                respawnSettings,
-                Services.UnitService.ActiveRegistry,
-                () => Services.EnvironmentService.WorldFollowerTransform);
         }
 
         protected override IEnumerator OnTeardown()
@@ -253,19 +182,6 @@ namespace Game.Sectors
             if (Services?.ObjectiveService != null)
                 Services.ObjectiveService.OnStateChanged -= OnObjectiveStateChanged;
 
-            // Reset respawn runner
-            if (RespawnRunner)
-                RespawnRunner.ResetRunner();
-
-            // Unbind registry events
-            var registry = Services.UnitService.ActiveRegistry;
-            if (registry != null)
-            {
-                registry.ActiveShips.OnAdd -= OnShipAddedToRegistry;
-                registry.ActiveShips.OnRemove -= OnShipRemovedFromRegistry;
-            }
-
-            // Services handle their own object cleanup
             Services.CameraService.Clear();
             Services.UnitService.Clear();
             Services.EnvironmentService.Clear();
@@ -276,23 +192,11 @@ namespace Game.Sectors
                 yield return Services.EnvironmentService.UnloadSceneAsync(Config.SceneName);
             }
 
-            player = null;
+            Player = null;
             enemy = null;
             keyPickup = null;
 
             yield return null;
-        }
-
-        private void OnShipAddedToRegistry(Ship ship)
-        {
-            if (!ship || ship == player) return;
-            Services.CameraService.AddSecondarySubject(ship.transform);
-        }
-
-        private void OnShipRemovedFromRegistry(Ship ship)
-        {
-            if (!ship) return;
-            Services.CameraService.RemoveSecondarySubject(ship.transform);
         }
     }
 }

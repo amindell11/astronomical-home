@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Game.Bootstrap
+namespace Game.Sectors
 {
     [CreateAssetMenu(fileName = "SectorConfig", menuName = "Game/Sector Config")]
     public class SectorConfigSO : ScriptableObject

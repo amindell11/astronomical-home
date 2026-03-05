@@ -3,13 +3,12 @@ using System.Collections;
 using Game.Services;
 using Ships;
 
-namespace Game.Bootstrap
+namespace Game.Sectors
 {
     public interface ISectorManager
     {
         event Action<SectorResult> OnSectorComplete;
-        Ship PresentationShip { get; }
-        void Initialize(IGameServices services, SectorConfigSO config, ShipRespawnRunner respawnRunner = null);
+        void Initialize(IGameServices services, SectorConfigSO config);
         IEnumerator Setup();
         IEnumerator Teardown();
     }
