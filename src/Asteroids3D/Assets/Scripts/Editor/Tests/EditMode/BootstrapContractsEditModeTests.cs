@@ -118,7 +118,7 @@ namespace Tests.EditMode
         [Test]
         public void GameServices_ClearAll_ToleratesNullServices()
         {
-            var svc = new GameServices(null, null, null, null);
+            var svc = new GameServices(null, null, null, null, null);
             Assert.DoesNotThrow(() => svc.ClearAll(),
                 "ClearAll must not throw when services are null");
         }
