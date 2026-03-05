@@ -2,8 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Asteroids.Fields;
-using Cameras;
-using Game.Sectors.Utils;
 using Objectives;
 using Objectives.States;
 using Ships;
@@ -13,26 +11,18 @@ using Random = UnityEngine.Random;
 namespace Game.Sectors
 {
     /// <summary>
-    /// Combat sector: loads a scene, spawns player + enemies, sets extraction objective.
-    /// Fully event-based — no Update loop. KeyPickup and ExtractionZone use trigger
-    /// collisions, ObjectiveService self-ticks. Side effects (chaser spawn, restart)
-    /// are bundled into state onEnter callbacks.
+    /// Combat sector: spawns enemies, sets extraction objective.
+    /// Player, camera, and UI overlay are handled by PlaySector.
     /// </summary>
-    public class CombatSectorManager : SectorManager
+    public class CombatSectorManager : PlaySector
     {
         [Header("Combat Settings")]
-        [SerializeField] private Ship playerTemplate;
         [SerializeField] private Ship enemyTemplate;
-        [SerializeField] private ShipSettings shipSettings;
-        [SerializeField] private Ships.Command.Commander playerCommander;
         [SerializeField] private Ships.Command.Commander enemyCommander;
 
         [Header("Environment")]
         [SerializeField] private World.WorldRoot worldPrefab;
         [SerializeField] private UpdatingAsteroidField updatingAsteroidFieldPrefab;
-
-        [Header("Camera")]
-        [SerializeField] private ObserverCam observerCamPrefab;
 
         [Header("Objective Prefabs")]
         [SerializeField] private KeyPickup keyPickupPrefab;
@@ -42,15 +32,14 @@ namespace Game.Sectors
         [SerializeField] private Vector2 keySpawnPosition = Vector2.zero;
         [SerializeField] private Vector2 extractionZonePosition = new Vector2(50f, 50f);
 
-        [Header("Spawn Positions (Plane Space)")]
-        [SerializeField] private Vector2 playerSpawnPosition = Vector2.zero;
+        [Header("Enemy Spawn (Plane Space)")]
         [SerializeField] private Vector2 enemySpawnPosition = new Vector2(0f, 50f);
         [SerializeField] private Vector2 chaserSpawnPosition = new Vector2(50f, 50f);
 
         [Header("Ship Spawn Settings")]
         [SerializeField] private ShipSpawnerSettings spawnerSettings;
 
-        private Ship player, enemy, chaser;
+        private Ship enemy, chaser;
         private UpdatingAsteroidField updatingAsteroidFieldInstance;
         private KeyPickup keyPickupInstance;
         private ExtractionZone extractionZoneInstance;
@@ -62,9 +51,8 @@ namespace Game.Sectors
             if (worldPrefab)
                 Services.EnvironmentService.SpawnWorld(worldPrefab);
 
-            SectorUtils.BuildAndWireObserverCam(Services, observerCamPrefab);
+            yield return base.OnSetup();
 
-            player = SectorUtils.BuildAndWirePlayer(playerTemplate, playerCommander, shipSettings, 0, playerSpawnPosition, Services);
             enemy = Services.UnitService.SpawnShip(enemyTemplate, enemyCommander, shipSettings, 1, GamePlane.PlanePointToWorld(enemySpawnPosition), Quaternion.identity);
             chaser = Services.UnitService.SpawnShip(enemyTemplate, enemyCommander, shipSettings, 1, GamePlane.PlanePointToWorld(chaserSpawnPosition), Quaternion.identity);
             chaser.gameObject.SetActive(false);
@@ -93,8 +81,6 @@ namespace Game.Sectors
                     0, respawnDelay);
 
             ObjectivePhase();
-
-            yield return null;
         }
 
         private void InitializeAsteroidField()
@@ -121,7 +107,6 @@ namespace Game.Sectors
 
         private void ObjectivePhase()
         {
-            // Instantiate objective prefabs
             if (keyPickupPrefab)
             {
                 var keyWorld = GamePlane.PlanePointToWorld(keySpawnPosition);
@@ -159,26 +144,22 @@ namespace Game.Sectors
 
         protected override IEnumerator OnTeardown()
         {
-            Services.CameraService.Clear();
-            Services.UnitService.Clear();
-            Services.EnvironmentService.Clear();
             Services.ObjectiveService.Clear();
 
             if (keyPickupInstance) Destroy(keyPickupInstance.gameObject);
             if (extractionZoneInstance) Destroy(extractionZoneInstance.gameObject);
             if (updatingAsteroidFieldInstance) Destroy(updatingAsteroidFieldInstance.gameObject);
 
+            yield return base.OnTeardown();
+
             if (Config.LoadScene)
                 yield return Services.EnvironmentService.UnloadSceneAsync(Config.SceneName);
 
-            player = null;
             enemy = null;
             chaser = null;
             keyPickupInstance = null;
             extractionZoneInstance = null;
             updatingAsteroidFieldInstance = null;
-
-            yield return null;
         }
     }
 }

@@ -171,7 +171,7 @@ namespace Tests.EditMode
             StringAssert.DoesNotContain("using UnityEditor", updatingFieldSource);
             StringAssert.DoesNotContain("OnDrawGizmosSelected", updatingFieldSource);
             StringAssert.DoesNotContain("GameContext.Instance", managerSource);
-            StringAssert.Contains("PresentationReady", managerSource);
+            StringAssert.DoesNotContain("PresentationReady", managerSource);
         }
 
         private static AudioClip CreateTestClip(string name)

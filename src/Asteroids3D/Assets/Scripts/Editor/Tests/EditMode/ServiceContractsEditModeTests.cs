@@ -63,10 +63,13 @@ namespace Tests.EditMode
             var env = new EnvironmentService();
             var cam = new CameraService();
 
-            Assert.Throws<ArgumentNullException>(() => new GameServices(null, env, obj, cam));
-            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, null, obj, cam));
-            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, env, null, cam));
-            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, env, obj, null));
+            var ui = new UIService();
+
+            Assert.Throws<ArgumentNullException>(() => new GameServices(null, env, obj, cam, ui));
+            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, null, obj, cam, ui));
+            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, env, null, cam, ui));
+            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, env, obj, null, ui));
+            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, env, obj, cam, null));
         }
 
         // ── IUnitService shape ───────────────────────────────────────────────────
@@ -247,7 +250,7 @@ namespace Tests.EditMode
             var env = new EnvironmentService();
             var obj = CreateMonoBehaviourService<ObjectiveService>();
             var cam = new CameraService();
-            var services = new GameServices(unit, env, obj, cam);
+            var services = new GameServices(unit, env, obj, cam, new UIService());
 
             Assert.DoesNotThrow(() => services.ClearAll());
         }

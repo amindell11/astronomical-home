@@ -95,13 +95,12 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void OverlayBootstrap_OwnsOverlayLifecycle()
+        public void PlaySector_OwnsOverlayLifecycleViaUIService()
         {
-            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "UI", "OverlayBootstrap.cs"));
-            StringAssert.Contains("gameManager.PresentationReady += HandlePresentationReady;", source);
-            StringAssert.Contains("gameManager.PresentationReady -= HandlePresentationReady;", source);
-            StringAssert.Contains("overlay = Instantiate(overlayPrefab);", source);
-            StringAssert.Contains("overlay.Initialize(playerShip);", source);
+            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Game", "Sectors", "PlaySector.cs"));
+            StringAssert.Contains("Services.UIService.Show(overlay, observer.Cam);", source);
+            StringAssert.Contains("overlay.Initialize(player);", source);
+            StringAssert.Contains("Services.UIService.Clear();", source);
         }
 
         [Test]
