@@ -98,7 +98,7 @@ namespace Tests.EditMode
         public void PlaySector_OwnsOverlayLifecycleViaUIService()
         {
             var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Game", "Sectors", "PlaySector.cs"));
-            StringAssert.Contains("Services.UIService.Show(overlay, observer.Cam);", source);
+            StringAssert.Contains("Services.UIService.Show(overlay, uiCam);", source);
             StringAssert.Contains("overlay.Initialize(player);", source);
             StringAssert.Contains("Services.UIService.Clear();", source);
         }

@@ -46,10 +46,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerTemplate: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
     type: 3}
-  enemyTemplate: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
+  playerCommander: {fileID: 6378580657550141484, guid: ed986bef16a6fa9488e6052de65aa9dd,
     type: 3}
   shipSettings: {fileID: 11400000, guid: c2eae258625507d43948e555302ee7ee, type: 2}
-  playerCommander: {fileID: 6378580657550141484, guid: ed986bef16a6fa9488e6052de65aa9dd,
+  playerSpawnPosition: {x: 0, y: 0}
+  observerCamPrefab: {fileID: 5165561948949764142, guid: 2c36b9334ffd01546b166a7fe6b04853,
+    type: 3}
+  uiCamPrefab: {fileID: 3390105061295411697, guid: 295d83ec41ff69a44b8fed215945622a,
+    type: 3}
+  minimapCamPrefab: {fileID: 8356663853274892654, guid: d01c2caf016d7b942a890f2a013961f1,
+    type: 3}
+  overlayPrefab: {fileID: 6902055608550465894, guid: 87f4b42386fd2af44b25b722572d1fcd,
+    type: 3}
+  enemyTemplate: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
     type: 3}
   enemyCommander: {fileID: 1772957474756936600, guid: 08a3705197cc60842b107b8485d8ad25,
     type: 3}
@@ -57,15 +66,12 @@ MonoBehaviour:
     type: 3}
   updatingAsteroidFieldPrefab: {fileID: 7997124830668444265, guid: a4a07ada72adcc44ba51f616ad29384b,
     type: 3}
-  observerCamPrefab: {fileID: 5165561948949764142, guid: 2c36b9334ffd01546b166a7fe6b04853,
-    type: 3}
   keyPickupPrefab: {fileID: 9103027025631425475, guid: a57fedd19f1e5f6438bed6b33c3a6912,
     type: 3}
   extractionZonePrefab: {fileID: 7546324037402026647, guid: 0908c9d6b2b5b25499cf01ffc8214c5a,
     type: 3}
   keySpawnPosition: {x: -30, y: 25}
   extractionZonePosition: {x: 50, y: 50}
-  playerSpawnPosition: {x: 0, y: 0}
   enemySpawnPosition: {x: 0, y: 30}
   chaserSpawnPosition: {x: 30, y: 50}
   spawnerSettings: {fileID: 11400000, guid: d5df05273fc201d41b456a239f5fa628, type: 2}
