@@ -1,0 +1,118 @@
+using System.Collections;
+using Asteroids.Fields;
+using Ships;
+using UnityEngine;
+using Random = UnityEngine.Random;
+
+namespace Game.Sectors
+{
+    /// <summary>
+    /// Arena sector: spawns two AI teams that fight each other continuously.
+    /// When playerParticipates is false, the player ship uses an AI commander
+    /// and acts as the camera subject for spectating.
+    /// </summary>
+    public class ArenaSectorManager : PlaySector
+    {
+        [Header("Arena Settings")]
+        [SerializeField] private Ship enemyTemplate;
+        [SerializeField] private Ships.Command.Commander aiCommander;
+        [SerializeField] private int teamACount = 4;
+        [SerializeField] private int teamBCount = 4;
+        [SerializeField] private float spawnRadius = 60f;
+        [SerializeField] private float respawnDelay = 3f;
+        [SerializeField] private bool playerParticipates;
+
+        [Header("Environment")]
+        [SerializeField] private World.WorldRoot worldPrefab;
+        [SerializeField] private UpdatingAsteroidField updatingAsteroidFieldPrefab;
+
+        private readonly System.Collections.Generic.List<Ship> arenaShips = new();
+        private UpdatingAsteroidField asteroidFieldInstance;
+
+        protected override IEnumerator OnSetup()
+        {
+            if (Config.LoadScene)
+                yield return Services.EnvironmentService.LoadSceneAsync(Config.SceneName);
+            if (worldPrefab)
+                Services.EnvironmentService.SpawnWorld(worldPrefab);
+
+            // If player is spectating, use AI commander instead of player input
+            if (!playerParticipates)
+                playerCommander = aiCommander;
+
+            yield return base.OnSetup();
+
+            // Player is team 0; spawn additional team A ships (team 0)
+            var teamAExtra = teamACount - 1;
+            SpawnTeam(0, teamAExtra, -1f);
+
+            // Spawn team B (team 1)
+            SpawnTeam(1, teamBCount, 1f);
+
+            InitializeAsteroidField();
+
+            // Wire respawn for all ships
+            WireRespawn(player);
+            foreach (var ship in arenaShips)
+                WireRespawn(ship);
+        }
+
+        private void SpawnTeam(int team, int count, float sideSign)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                float angle = Mathf.PI * (i + 0.5f) / count;
+                var offset = new Vector2(
+                    Mathf.Cos(angle) * spawnRadius * sideSign,
+                    Mathf.Sin(angle) * spawnRadius);
+
+                var ship = Services.UnitService.SpawnShip(
+                    enemyTemplate, aiCommander, shipSettings, team,
+                    GamePlane.PlanePointToWorld(offset),
+                    Quaternion.identity);
+
+                arenaShips.Add(ship);
+            }
+        }
+
+        private void WireRespawn(Ship ship)
+        {
+            if (!ship) return;
+            ship.Damage.OnDeath += (deadShip, _) =>
+                Services.UnitService.WaitAndRespawnShip(deadShip,
+                    Random.insideUnitCircle * spawnRadius * 0.5f,
+                    0, respawnDelay);
+        }
+
+        private void InitializeAsteroidField()
+        {
+            if (!updatingAsteroidFieldPrefab) return;
+
+            var cullingBoundary = Services.EnvironmentService.World
+                ? Services.EnvironmentService.World.AsteroidCullingBoundary
+                : null;
+
+            if (!cullingBoundary) return;
+
+            asteroidFieldInstance = Instantiate(updatingAsteroidFieldPrefab);
+            asteroidFieldInstance.Initialize(cullingBoundary);
+            asteroidFieldInstance.SetWorldAnchor(Services.EnvironmentService.WorldFollowerTransform);
+            asteroidFieldInstance.CurrentAnchorPos = () =>
+                player ? GamePlane.ProjectOntoPlane(player.transform.position) : asteroidFieldInstance.transform.position;
+        }
+
+        protected override IEnumerator OnTeardown()
+        {
+            if (asteroidFieldInstance)
+                Destroy(asteroidFieldInstance.gameObject);
+
+            yield return base.OnTeardown();
+
+            if (Config.LoadScene)
+                yield return Services.EnvironmentService.UnloadSceneAsync(Config.SceneName);
+
+            arenaShips.Clear();
+            asteroidFieldInstance = null;
+        }
+    }
+}
