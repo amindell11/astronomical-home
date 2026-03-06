@@ -67,12 +67,8 @@ namespace Movement.MPC
             if (distSq < 1e-8f) return 0f;
 
             var dist = Mathf.Sqrt(distSq);
-            var dirToGoal = toGoal / (dist + 1e-4f);          // avoids noisy normalize
-            var fwd = new Vector2(-Mathf.Sin(yaw), Mathf.Cos(yaw));
-
-            var dot = Mathf.Clamp(Vector2.Dot(fwd, dirToGoal), -1f, 1f);
-            var cross = fwd.x * dirToGoal.y - fwd.y * dirToGoal.x;
-            var angErr = Mathf.Atan2(cross, dot);          // [-pi, pi]
+            var goalYaw = Mathf.Atan2(-toGoal.x, toGoal.y);
+            var angErr = WrapRadians(yaw - goalYaw);
             var headingCost = angErr * angErr;
 
             // fade out heading near the goal so it doesn't dither at "arrived"
@@ -85,9 +81,7 @@ namespace Movement.MPC
         {
             if (float.IsNaN(targetYaw)) return 0f;
             
-            var err = yaw - targetYaw;
-            while (err > Mathf.PI) err -= 2f * Mathf.PI;
-            while (err < -Mathf.PI) err += 2f * Mathf.PI;
+            var err = WrapRadians(yaw - targetYaw);
             return err * err;
         }
 
@@ -126,6 +120,13 @@ namespace Movement.MPC
                 cost += 1f / ((norm + ObstacleEpsilon) * (norm + ObstacleEpsilon));
             }
             return cost;
+        }
+
+        private static float WrapRadians(float angle)
+        {
+            while (angle > Mathf.PI) angle -= 2f * Mathf.PI;
+            while (angle < -Mathf.PI) angle += 2f * Mathf.PI;
+            return angle;
         }
     }
 }
