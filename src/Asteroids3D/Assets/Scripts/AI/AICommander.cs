@@ -72,7 +72,7 @@ namespace AI
             var targeting = new TargetingUtils(shipInfo, combatTuning);
             var maneuvers = new Maneuvers(shipInfo);
 
-            System.Func<State> stateProvider = () => ship.CurrentState;
+            System.Func<Ships.Command.State> stateProvider = () => ship.CurrentState;
 
             Scout.Initialize(ship.transform, ship.Id, ship.settings.Dynamics, stateProvider, registry);
             Navigator.Initialize(stateProvider, ship.settings.Dynamics, Scout);
