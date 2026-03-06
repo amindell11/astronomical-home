@@ -18,6 +18,7 @@ namespace Movement.MPC
         public bool enableObstacleAvoidance = true;
 
         private Control[] bestSequence;
+        private Control[] candidateSequence;
         private State[] predictedStates;
         private Config config;
 #if UNITY_EDITOR
@@ -33,6 +34,7 @@ namespace Movement.MPC
             
             var horizon = settings.Horizon;
             bestSequence = new Control[horizon];
+            candidateSequence = new Control[horizon];
             predictedStates = new State[horizon];
             
             config = BuildConfig();
@@ -43,6 +45,7 @@ namespace Movement.MPC
             return new Config
             {
                 dt = settings.rolloutDt,
+                invDt = settings.rolloutDt > 0f ? 1f / settings.rolloutDt : 0f,
                 horizon = settings.Horizon,
                 
                 wPos = settings.wPos,
@@ -58,6 +61,7 @@ namespace Movement.MPC
                 terminalMultiplier = settings.terminalMultiplier,
                 obstacleThreshold = settings.obstacleThreshold,
                 arrivalDistance = settings.arrivalDistance,
+                arrivalDistanceSq = settings.arrivalDistance * settings.arrivalDistance,
                 arrivalVelScale = settings.arrivalVelScale,
                 arrivalYawScale = settings.arrivalYawScale,
                 facingTarget = float.NaN
@@ -66,6 +70,7 @@ namespace Movement.MPC
 
         public override void GenerateNavCommands(Ships.Command.State state, ref Command cmd)
         {
+            using var _ = EditorProfilingScope.Begin("MPC.MpcNavigator.GenerateNavCommands");
             if (!currentWaypoint.isValid || HasArrived(state.kinematics)) return;
 
             RefreshWeights();
@@ -75,12 +80,15 @@ namespace Movement.MPC
             StoreDebugObstacles(scan);
 
             ShiftWarmStart();
-            
+
 #if UNITY_EDITOR
             var sw = System.Diagnostics.Stopwatch.StartNew();
 #endif
-            lastBestCost = Sampler.Solve(mpcState, bestSequence, currentWaypoint.position, 
+            using (EditorProfilingScope.Begin("MPC.MpcNavigator.Solve"))
+            {
+            lastBestCost = Sampler.Solve(mpcState, bestSequence, candidateSequence, currentWaypoint.position,
                 scan, config, dynamics, settings.samples, settings.noiseStd, bestSequence, lastControl);
+            }
 #if UNITY_EDITOR
             sw.Stop();
             
@@ -89,7 +97,10 @@ namespace Movement.MPC
                 currentWaypoint.position, scan, config, dynamics, lastControl);
 #endif
 
+            using (EditorProfilingScope.Begin("MPC.MpcNavigator.UpdatePredictedStates"))
+            {
             UpdatePredictedStates(mpcState);
+            }
             lastControl = bestSequence[0];
             ApplyControl(ref cmd, bestSequence[0]);
         }
@@ -118,8 +129,13 @@ namespace Movement.MPC
             yawRate = kin.yawRate * Mathf.Deg2Rad
         };
 
-        private void ShiftWarmStart() =>
-            System.Array.Copy(bestSequence, 1, bestSequence, 0, bestSequence.Length - 1);
+        private void ShiftWarmStart()
+        {
+            if (bestSequence.Length > 1)
+            {
+                System.Array.Copy(bestSequence, 1, bestSequence, 0, bestSequence.Length - 1);
+            }
+        }
 
         private void UpdatePredictedStates(State initial)
         {
@@ -141,10 +157,12 @@ namespace Movement.MPC
         private void RefreshWeights()
         {
             config.dt = settings.rolloutDt;
+            config.invDt = settings.rolloutDt > 0f ? 1f / settings.rolloutDt : 0f;
             var newHorizon = settings.Horizon;
             if (config.horizon != newHorizon)
             {
                 bestSequence = new Control[newHorizon];
+                candidateSequence = new Control[newHorizon];
                 predictedStates = new State[newHorizon];
                 config.horizon = newHorizon;
             }
@@ -161,6 +179,7 @@ namespace Movement.MPC
             config.terminalMultiplier = settings.terminalMultiplier;
             config.obstacleThreshold = settings.obstacleThreshold;
             config.arrivalDistance = settings.arrivalDistance;
+            config.arrivalDistanceSq = settings.arrivalDistance * settings.arrivalDistance;
             config.arrivalVelScale = settings.arrivalVelScale;
             config.arrivalYawScale = settings.arrivalYawScale;
             config.facingTarget = facingOverride ? facingAngle * Mathf.Deg2Rad : float.NaN;

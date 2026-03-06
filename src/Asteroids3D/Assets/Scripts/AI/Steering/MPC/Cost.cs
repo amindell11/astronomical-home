@@ -8,17 +8,25 @@ namespace Movement.MPC
     /// </summary>
     public static partial class Cost
     {
+        private const float ObstacleEpsilon = 0.01f;
+        private const float HeadingGateDistance = 2f;
+        private const float HeadingGateDistanceSq = HeadingGateDistance * HeadingGateDistance;
+        private const float TwoPi = 2f * Mathf.PI;
+
         public static float Evaluate(State s, Control u, Control prevU, Vector2 goalPos, 
             ObstacleScan scan, Config cfg, bool isTerminal)
         {
-            var distToGoal = Vector2.Distance(s.pos, goalPos);
+            using var _ = EditorProfilingScope.Begin("MPC.Cost.Evaluate");
+            var toGoal = goalPos - s.pos;
+            var distToGoalSq = toGoal.sqrMagnitude;
             
             // Arrival stabilization
             var wVel = cfg.wVel;
             var wYaw = cfg.wYaw;
             
-            if (distToGoal < cfg.arrivalDistance)
+            if (distToGoalSq < cfg.arrivalDistanceSq)
             {
+                var distToGoal = Mathf.Sqrt(distToGoalSq);
                 var t = 1f - (distToGoal / cfg.arrivalDistance); // 0 at arrivalDist, 1 at goal
                 wVel = Mathf.Lerp(cfg.wVel, cfg.wVel * cfg.arrivalVelScale, t);
                 wYaw = Mathf.Lerp(cfg.wYaw, cfg.wYaw * cfg.arrivalYawScale, t);
@@ -29,7 +37,11 @@ namespace Movement.MPC
             var headingCost = HeadingCost(s.pos, s.yaw, goalPos) * wYaw;
             var facingCost = FacingCost(s.yaw, cfg.facingTarget) * cfg.wFacing;
             var yawRateCost = YawRateCost(s.yawRate) * cfg.wYawRate;
-            var obstacleCost = ObstacleCost(s.pos, scan, cfg.obstacleThreshold) * cfg.wObstacle;
+            var obstacleCost = 0f;
+            if (cfg.wObstacle > 0f && scan.count > 0)
+            {
+                obstacleCost = ObstacleCost(s.pos, scan, cfg.obstacleThreshold) * cfg.wObstacle;
+            }
 
             var stateCost = posCost + velCost + headingCost + facingCost + yawRateCost + obstacleCost;
 
@@ -52,30 +64,25 @@ namespace Movement.MPC
         
         private static float HeadingCost(Vector2 pos, float yaw, Vector2 goal)
         {
-            // 3. Heading cost (face the goal) - continuous + robust
-            var toGoal = (goal - pos);
-            var dist = toGoal.magnitude;
-            var dirToGoal = toGoal / (dist + 1e-4f);          // avoids noisy normalize
-            var fwd = new Vector2(-Mathf.Sin(yaw), Mathf.Cos(yaw));
+            var toGoal = goal - pos;
+            var distSq = toGoal.sqrMagnitude;
+            if (distSq < 1e-8f) return 0f;
 
-            var dot = Mathf.Clamp(Vector2.Dot(fwd, dirToGoal), -1f, 1f);
-            var cross = fwd.x * dirToGoal.y - fwd.y * dirToGoal.x;
-            var angErr = Mathf.Atan2(cross, dot);          // [-pi, pi]
+            var goalYaw = Mathf.Atan2(-toGoal.x, toGoal.y);
+            var angErr = WrapRadians(yaw - goalYaw);
             var headingCost = angErr * angErr;
 
-            // fade out heading near the goal so it doesn't dither at "arrived"
-            var headingGate = Mathf.SmoothStep(0f, 1f, dist / 2f); // TODO add headingGateDist in cfg (e.g., 2f)
-            headingCost *= headingGate;
-            return headingCost;
+            if (distSq >= HeadingGateDistanceSq) return headingCost;
+
+            var normalizedDist = Mathf.Sqrt(distSq) / HeadingGateDistance;
+            return headingCost * Mathf.SmoothStep(0f, 1f, normalizedDist);
         }
 
         private static float FacingCost(float yaw, float targetYaw)
         {
             if (float.IsNaN(targetYaw)) return 0f;
             
-            var err = yaw - targetYaw;
-            while (err > Mathf.PI) err -= 2f * Mathf.PI;
-            while (err < -Mathf.PI) err += 2f * Mathf.PI;
+            var err = WrapRadians(yaw - targetYaw);
             return err * err;
         }
 
@@ -86,9 +93,9 @@ namespace Movement.MPC
 
         private static float SmoothnessCost(Control u, Control prev, Config cfg)
         {
-            var duT = (u.thrust - prev.thrust) / cfg.dt;
-            var duS = (u.strafe - prev.strafe) / cfg.dt;
-            var duY = (u.yawTorque - prev.yawTorque) / cfg.dt;
+            var duT = (u.thrust - prev.thrust) * cfg.invDt;
+            var duS = (u.strafe - prev.strafe) * cfg.invDt;
+            var duY = (u.yawTorque - prev.yawTorque) * cfg.invDt;
             
             return (duT * duT) * cfg.wSmoothnessThrust + 
                    (duS * duS) * cfg.wSmoothnessStrafe + 
@@ -97,19 +104,30 @@ namespace Movement.MPC
 
         private static float ObstacleCost(Vector2 pos, ObstacleScan scan, float threshold)
         {
+            if (scan.count == 0) return 0f;
+
             var cost = 0f;
             for (var i = 0; i < scan.count; i++)
             {
                 var obs = scan.buffer[i];
-                var dist = Vector2.Distance(pos, obs.position);
                 var range = obs.radius + threshold;
+                var rangeSq = range * range;
+                var distSq = (pos - obs.position).sqrMagnitude;
 
-                if (dist >= range) continue;
+                if (distSq >= rangeSq) continue;
                 
+                var dist = Mathf.Sqrt(distSq);
                 var norm = dist / range;
-                cost += 1f / ((norm + 0.01f) * (norm + 0.01f));
+                cost += 1f / ((norm + ObstacleEpsilon) * (norm + ObstacleEpsilon));
             }
             return cost;
+        }
+
+        private static float WrapRadians(float angle)
+        {
+            if (angle > Mathf.PI) return angle - TwoPi;
+            if (angle < -Mathf.PI) return angle + TwoPi;
+            return angle;
         }
     }
 }

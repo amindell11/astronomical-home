@@ -8,24 +8,33 @@ namespace Movement.MPC
     /// </summary>
     public static partial class Sampler
     {
-        public static float Solve(State initialState, Control[] warmStart, Vector2 goalPos,
+        public static float Solve(State initialState, Control[] warmStart, Control[] candidateBuffer, Vector2 goalPos,
             ObstacleScan scan, Config cfg, Dynamics shp,
             int samples, float noiseStd, Control[] resultBuffer, Control lastControl)
         {
+            using var _ = EditorProfilingScope.Begin("MPC.Sampler.Solve");
             var horizon = cfg.horizon;
             var bestCost = EvaluateTrajectory(initialState, warmStart, goalPos, scan, cfg, shp, lastControl);
-            System.Array.Copy(warmStart, resultBuffer, horizon);
+            if (!ReferenceEquals(warmStart, resultBuffer))
+            {
+                System.Array.Copy(warmStart, resultBuffer, horizon);
+            }
 
-            var candidate = new Control[horizon];
+            if (samples <= 1) return bestCost;
+            
+            if (candidateBuffer == null || candidateBuffer.Length < horizon)
+            {
+                candidateBuffer = new Control[horizon];
+            }
 
             for (var i = 0; i < samples - 1; i++)
             {
-                GenerateCandidate(warmStart, candidate, horizon, noiseStd);
-                var cost = EvaluateTrajectory(initialState, candidate, goalPos, scan, cfg, shp, lastControl);
+                GenerateCandidate(warmStart, candidateBuffer, horizon, noiseStd);
+                var cost = EvaluateTrajectory(initialState, candidateBuffer, goalPos, scan, cfg, shp, lastControl);
                 
                 if (cost >= bestCost) continue;
                 bestCost = cost;
-                System.Array.Copy(candidate, resultBuffer, horizon);
+                System.Array.Copy(candidateBuffer, resultBuffer, horizon);
             }
 
             return bestCost;
@@ -33,13 +42,15 @@ namespace Movement.MPC
 
         private static void GenerateCandidate(Control[] warmStart, Control[] candidate, int horizon, float noiseStd)
         {
+            using var _ = EditorProfilingScope.Begin("MPC.Sampler.GenerateCandidate");
             for (var j = 0; j < horizon; j++)
             {
+                var warm = warmStart[j];
                 candidate[j] = new Control
                 {
-                    thrust = Mathf.Clamp(warmStart[j].thrust + RandomGaussian() * noiseStd, -1f, 1f),
-                    strafe = Mathf.Clamp(warmStart[j].strafe + RandomGaussian() * noiseStd, -1f, 1f),
-                    yawTorque = Mathf.Clamp(warmStart[j].yawTorque + RandomGaussian() * noiseStd, -1f, 1f)
+                    thrust = Mathf.Clamp(warm.thrust + RandomGaussian() * noiseStd, -1f, 1f),
+                    strafe = Mathf.Clamp(warm.strafe + RandomGaussian() * noiseStd, -1f, 1f),
+                    yawTorque = Mathf.Clamp(warm.yawTorque + RandomGaussian() * noiseStd, -1f, 1f)
                 };
             }
         }
@@ -47,6 +58,7 @@ namespace Movement.MPC
         private static float EvaluateTrajectory(State state, Control[] sequence, Vector2 goalPos,
             ObstacleScan scan, Config cfg, Dynamics shp, Control lastControl)
         {
+            using var _ = EditorProfilingScope.Begin("MPC.Sampler.EvaluateTrajectory");
             var totalCost = 0f;
             var current = state;
             var prevU = lastControl;

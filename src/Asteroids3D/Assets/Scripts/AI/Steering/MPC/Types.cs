@@ -23,6 +23,7 @@ namespace Movement.MPC
     public struct Config
     {
         public float dt;
+        public float invDt;
         public int horizon;
 
         // Weights
@@ -41,10 +42,28 @@ namespace Movement.MPC
         
         // Arrival Stabilization
         public float arrivalDistance;
+        public float arrivalDistanceSq;
         public float arrivalVelScale;
         public float arrivalYawScale;
         
         // Facing override (radians, NaN if disabled)
         public float facingTarget;
+    }
+
+    internal readonly partial struct EditorProfilingScope : System.IDisposable
+    {
+        public static EditorProfilingScope Begin(string sampleName)
+        {
+            BeginSample(sampleName);
+            return new EditorProfilingScope();
+        }
+
+        public void Dispose()
+        {
+            EndSample();
+        }
+
+        static partial void BeginSample(string sampleName);
+        static partial void EndSample();
     }
 }
