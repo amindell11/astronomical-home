@@ -9,6 +9,9 @@ namespace UI
     [RequireComponent(typeof(Canvas))]
     public class Overlay : MonoBehaviour
     {
+        [Header("Minimap")]
+        [SerializeField] private RectTransform minimapRect;
+
         private Canvas canvas;
         private UILockOnAudio lockOnAudio;
         private UIHealthAudio healthAudio;
@@ -17,6 +20,7 @@ namespace UI
         private MissileAmmoUI missileAmmoUI;
 
         public MinimapObjectiveMarker ObjectiveMarker { get; private set; }
+        public RectTransform MinimapRect => minimapRect;
 
         private void Awake()
         {
