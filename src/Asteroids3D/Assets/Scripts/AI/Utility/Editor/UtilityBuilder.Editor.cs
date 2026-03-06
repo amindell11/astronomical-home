@@ -10,6 +10,15 @@ namespace AI.Utility
         private readonly List<(string name, float value)> breakdown = new();
         private bool trackBreakdown = true;
 
+        /// <summary>
+        /// Structured access to the factor breakdown for logging and analysis.
+        /// Each entry is (factorName, clampedValue) as fed into the geometric mean.
+        /// </summary>
+        public IReadOnlyList<(string name, float value)> Factors => breakdown;
+
+        /// <summary>Final geometric-mean result after Build(). Zero before Build() is called.</summary>
+        public float Result { get; private set; }
+
         partial void TrackBreakdown(string name, float value)
         {
             if (trackBreakdown)
@@ -23,7 +32,7 @@ namespace AI.Utility
 
         partial void LogBreakdown()
         {
-            //Debug.Log($"Utility Breakdown: {GetBreakdown()}");
+            Result = count > 0 ? Mathf.Pow(product, 1f / count) : 0f;
         }
 
         public string GetBreakdown()

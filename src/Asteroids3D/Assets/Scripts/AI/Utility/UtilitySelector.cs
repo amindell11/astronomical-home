@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AI.States;
@@ -27,7 +28,11 @@ namespace AI.Utility
         public Info Context { get; private set; }
         public string CurrentStateName => CurrentState?.Type.ToString() ?? "None";
         public Dictionary<StateType, float> UtilityScores => sampler?.UtilityScores;
+        public IReadOnlyList<AI.States.State> RegisteredStates => states;
         public UtilitySelectorSettings Config => config;
+
+        /// <summary>Fired on state transitions: (fromState, toState). Null fromState on first entry.</summary>
+        public event Action<AI.States.State, AI.States.State> OnStateTransition;
 
         private void Awake()
         {
@@ -81,10 +86,12 @@ namespace AI.Utility
         private void TransitionTo(AI.States.State newState, Info context)
         {
             if (newState == CurrentState) return;
+            var prev = CurrentState;
             CurrentState?.Exit();
             CurrentState = newState;
             CurrentState.Enter(context);
             stateChangeTime = Time.time;
+            OnStateTransition?.Invoke(prev, newState);
         }
     }
 }

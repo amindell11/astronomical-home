@@ -8,8 +8,7 @@ namespace AI.Utility
 {
     public partial class UtilitySelector
     {
-        // Exposed for Editor gizmos
-        internal IReadOnlyList<AI.States.State> States => states;
+        // Exposed for Editor gizmos (RegisteredStates is public in main class)
         internal Sampler Sampler => sampler;
         
         void OnDrawGizmos()
@@ -49,7 +48,7 @@ namespace AI.Utility
         {
             if (Sampler == null) return Enumerable.Empty<string>();
 
-            var stateUtilities = States
+            var stateUtilities = RegisteredStates
                 .Select(s => (state: s, utility: CollectionExtensions.GetValueOrDefault(UtilityScores, s.Type, 0f)))
                 .OrderByDescending(s => s.utility)
                 .Take(3)

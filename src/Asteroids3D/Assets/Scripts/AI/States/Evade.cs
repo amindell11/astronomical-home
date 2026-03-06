@@ -46,7 +46,7 @@ namespace AI.States
             var facingScore = ctx.Enemy ? (Mathf.Cos(ctx.EnemyAngleToSelf * Mathf.Deg2Rad) + 1f) / 2f : 0.5f;
             var dist = ctx.VectorToEnemy.magnitude;
 
-            return new UtilityBuilder()
+            return NewBuilder()
                 .Factor("selfHealth", ctx.HealthPct, utilityTuning.evadeHealthFactor)
                 .Factor("selfShield", ctx.ShieldPct, utilityTuning.evadeShieldFactor)
                 .FactorBinary(ctx.NearbyEnemyCount > ctx.NearbyFriendCount + 1, "outnumbered", utilityTuning.evadeOutnumberedFactor)

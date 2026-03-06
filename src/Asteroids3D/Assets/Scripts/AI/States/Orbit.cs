@@ -72,7 +72,7 @@ namespace AI.States
             var inRange = dist >= utilityTuning.orbitMinRadius && dist <= utilityTuning.orbitMaxRadius;
             var rangeScore = inRange ? 1f : Mathf.Clamp01(1f - Mathf.Abs(dist - utilityTuning.orbitRadius) / 20f);
 
-            return new UtilityBuilder()
+            return NewBuilder()
                 .Factor("selfHealth", ctx.HealthPct, utilityTuning.attackHealthFactor)
                 .Factor("selfShield", ctx.ShieldPct, utilityTuning.attackShieldFactor)
                 .Factor("enemyWeak", enemyHealth, utilityTuning.attackEnemyWeakFactor)

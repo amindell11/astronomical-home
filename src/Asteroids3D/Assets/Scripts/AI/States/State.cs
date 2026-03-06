@@ -23,6 +23,12 @@ namespace AI.States
         protected readonly string stateName;
         public abstract StateType Type { get; }
 
+        /// <summary>
+        /// The UtilityBuilder from the most recent ComputeUtility call.
+        /// Use NewBuilder() in ComputeUtility to populate this automatically.
+        /// </summary>
+        public UtilityBuilder LastBuilder { get; private set; }
+
         protected State(Navigator navigator, Gunner gunner, UtilityTuning utilityTuning)
         {
             this.navigator = navigator;
@@ -31,8 +37,17 @@ namespace AI.States
             stateName = GetType().Name;
         }
 
-        public UtilityTuning GetTuning() => utilityTuning;
+        /// <summary>
+        /// Creates a new UtilityBuilder and stores it as LastBuilder for logging access.
+        /// States should use this instead of <c>new UtilityBuilder()</c>.
+        /// </summary>
+        protected UtilityBuilder NewBuilder()
+        {
+            LastBuilder = new UtilityBuilder();
+            return LastBuilder;
+        }
 
+        public UtilityTuning GetTuning() => utilityTuning;
 
         public virtual void Enter(Info ctx)
         {
@@ -45,6 +60,5 @@ namespace AI.States
         }
 
         public abstract float ComputeUtility(Info ctx);
-
     }
 } 

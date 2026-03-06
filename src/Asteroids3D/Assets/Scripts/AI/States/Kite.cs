@@ -72,7 +72,7 @@ namespace AI.States
             var netThreat = Mathf.Clamp01((ctx.NearbyEnemyCount - ctx.NearbyFriendCount) / 3f);
             var angleOffset = Mathf.Max(0f, ctx.SelfAngleToEnemy - utilityTuning.kiteAngleTolerance) / 150f;
             
-            return new UtilityBuilder()
+            return NewBuilder()
                 .Factor("selfHealth", ctx.HealthPct, utilityTuning.evadeHealthFactor)
                 .Factor("selfShield", ctx.ShieldPct, utilityTuning.evadeShieldFactor)
                 .FactorBinary(ctx.NearbyEnemyCount > ctx.NearbyFriendCount + 1, "outnumbered", utilityTuning.evadeOutnumberedFactor)            

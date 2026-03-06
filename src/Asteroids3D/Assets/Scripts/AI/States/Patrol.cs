@@ -41,12 +41,9 @@ namespace AI.States
 
         public override float ComputeUtility(Info ctx)
         {
-            if (!ctx.InCombat)
-            {
-                return 2f;
-            }
-            
-            return 0f;
+            return NewBuilder()
+                .FactorBinary(!ctx.InCombat, "noCombat", new FactorRange(0.01f, 2.0f))
+                .Build();
         }
 
         private void ChooseNewPatrolPoint(Info ctx)
