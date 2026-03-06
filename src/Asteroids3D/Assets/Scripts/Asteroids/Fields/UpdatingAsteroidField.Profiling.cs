@@ -10,9 +10,12 @@ namespace Asteroids.Fields
             if (profilingSettings == null || settings == null)
                 return;
 
+            // AsteroidCount < 0 means use the prefab's default settings
+            if (profilingSettings.AsteroidCount < 0)
+                return;
+
             settings = Instantiate(settings);
             settings.maxAsteroids = profilingSettings.AsteroidCount;
-            settings.targetVolumeDensity = Mathf.Max(0.0001f, profilingSettings.AsteroidCount / (Mathf.PI * settings.densityCheckRadius * settings.densityCheckRadius));
             settings.maxSpawnsPerFrame = Mathf.Max(1, profilingSettings.AsteroidCount);
             settings.densityCheckInterval = Mathf.Max(0.05f, settings.densityCheckInterval);
             CacheSettings();

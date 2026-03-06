@@ -70,7 +70,7 @@ namespace Diagnostics.Performance
         public string QualityLevel = string.Empty;
         public int TeamACount = 1;
         public int TeamBCount = 6;
-        public int AsteroidCount = 20;
+        public int AsteroidCount = -1;
         public float SpawnRadius = 60f;
         public float RespawnDelay = 3f;
         public int StartupTimeoutSeconds = 90;
@@ -185,7 +185,7 @@ namespace Diagnostics.Performance
             settings.SampleSeconds = Mathf.Max(1, settings.SampleSeconds);
             settings.TeamACount = Mathf.Max(1, settings.TeamACount);
             settings.TeamBCount = Mathf.Max(1, settings.TeamBCount);
-            settings.AsteroidCount = Mathf.Max(0, settings.AsteroidCount);
+            // AsteroidCount < 0 means "use prefab default"
             settings.Width = Mathf.Max(320, settings.Width);
             settings.Height = Mathf.Max(200, settings.Height);
             settings.SpawnRadius = Mathf.Max(1f, settings.SpawnRadius);

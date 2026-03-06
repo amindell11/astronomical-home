@@ -11,7 +11,7 @@ param(
     [string]$QualityLevel = "",
     [int]$TeamACount = 1,
     [int]$TeamBCount = 6,
-    [int]$AsteroidCount = 20,
+    [int]$AsteroidCount = -1,
     [float]$SpawnRadius = 60,
     [float]$RespawnDelay = 3,
     [int]$StartupTimeoutSeconds = 90,
@@ -57,13 +57,16 @@ $args = @(
     "-latencyHeight", $Height,
     "-latencyTeamACount", $TeamACount,
     "-latencyTeamBCount", $TeamBCount,
-    "-latencyAsteroidCount", $AsteroidCount,
     "-latencySpawnRadius", $SpawnRadius,
     "-latencyRespawnDelay", $RespawnDelay,
     "-latencyStartupTimeoutSeconds", $StartupTimeoutSeconds,
     "-latencyDisableDebugOverlay",
     "-latencyDisableVSync"
 )
+
+if ($AsteroidCount -ge 0) {
+    $args += @("-latencyAsteroidCount", $AsteroidCount)
+}
 
 if (-not [string]::IsNullOrWhiteSpace($QualityLevel)) {
     $args += @("-latencyQuality", $QualityLevel)
