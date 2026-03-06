@@ -101,9 +101,9 @@ namespace Diagnostics
 
             if (targetVelocity.sqrMagnitude > 0.01f)
             {
-                var rb = targetMarker.AddComponent<Rigidbody>();
-                rb.useGravity = false;
-                rb.linearVelocity = GamePlane.PlaneDirToWorld(targetVelocity);
+                var targetRb = targetMarker.AddComponent<Rigidbody>();
+                targetRb.useGravity = false;
+                targetRb.linearVelocity = GamePlane.PlaneDirToWorld(targetVelocity);
             }
 
             // Create stub shooter
@@ -119,6 +119,18 @@ namespace Diagnostics
             activeMissile.Initialize(stubShooter);
             var launchDir = GamePlane.PlaneDirToWorld(Vector2.up);
             activeMissile.Launch(launchDir);
+
+            // Detect immediate deactivation (returned to pool)
+            activeMissile.ReturnedToPool += () =>
+                Debug.LogWarning("[MissileGuidanceDiagnostics] Missile was returned to pool!");
+
+            var rb = activeMissile.GetComponent<Rigidbody>();
+            Debug.Log($"[MissileGuidanceDiagnostics] Post-launch state:\n" +
+                      $"  active={activeMissile.gameObject.activeInHierarchy}\n" +
+                      $"  pos={activeMissile.transform.position}\n" +
+                      $"  vel={rb?.linearVelocity}\n" +
+                      $"  target pos={targetMarker.transform.position}\n" +
+                      $"  GamePlane normal={GamePlane.Normal} forward={GamePlane.Forward} origin={GamePlane.Origin}");
 
             flightPath.Clear();
             prevDistance = Vector3.Distance(activeMissile.transform.position, targetMarker.transform.position);
