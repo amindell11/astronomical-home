@@ -1,13 +1,12 @@
 #if UNITY_EDITOR
-using AI.Scanning;
-using UnityEngine;
+using Movement;
 
 namespace Movement.MPC
 {
     public static partial class Sampler
     {
-        public static CostBreakdown EvaluateTrajectoryBreakdown(State state, Control[] sequence, Vector2 goalPos,
-            ObstacleScan scan, Config cfg, Dynamics shp, Control lastControl)
+        public static CostBreakdown EvaluateTrajectoryBreakdown(State state, Control[] sequence,
+            CostInput input, Config cfg, Dynamics shp, Control lastControl)
         {
             var totalBreakdown = new CostBreakdown();
             var current = state;
@@ -17,7 +16,7 @@ namespace Movement.MPC
             {
                 var u = sequence[i];
                 var isTerminal = i == cfg.horizon - 1;
-                totalBreakdown.Add(Cost.EvaluateBreakdown(current, u, prevU, goalPos, scan, cfg, isTerminal));
+                totalBreakdown.Add(Cost.EvaluateBreakdown(current, u, prevU, input, cfg, isTerminal));
                 current = Model.Step(current, u, cfg, shp);
                 prevU = u;
             }

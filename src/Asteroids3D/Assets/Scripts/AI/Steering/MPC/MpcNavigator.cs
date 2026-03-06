@@ -20,7 +20,6 @@ namespace Movement.MPC
         public bool enableObstacleAvoidance = true;
 
         private Control[] bestSequence;
-        private Control[] candidateSequence;
         private State[] predictedStates;
         private Config config;
 #if UNITY_EDITOR
@@ -29,6 +28,7 @@ namespace Movement.MPC
         private float lastBestCost;
 #endif
         private Control lastControl;
+        private int lastObstacleCount;
 
         // Burst solver buffers
         private NativeArray<Control> burstWarmStart;
@@ -44,7 +44,6 @@ namespace Movement.MPC
 
             var horizon = settings.Horizon;
             bestSequence = new Control[horizon];
-            candidateSequence = new Control[horizon];
             predictedStates = new State[horizon];
 
             config = BuildConfig();
@@ -58,7 +57,7 @@ namespace Movement.MPC
                 dt = settings.rolloutDt,
                 invDt = settings.rolloutDt > 0f ? 1f / settings.rolloutDt : 0f,
                 horizon = settings.Horizon,
-                
+
                 wPos = settings.wPos,
                 wVel = settings.wVel,
                 wYaw = settings.wYaw,
@@ -103,8 +102,7 @@ namespace Movement.MPC
             sw.Stop();
 
             lastSolveTimeMs = (float)sw.Elapsed.TotalMilliseconds;
-            lastCostBreakdown = Sampler.EvaluateTrajectoryBreakdown(mpcState, bestSequence,
-                currentWaypoint.position, scan, config, dynamics, lastControl);
+            lastCostBreakdown = EvaluateBreakdown(mpcState);
 #endif
 
             using (EditorProfilingScope.Begin("MPC.MpcNavigator.UpdatePredictedStates"))
@@ -115,16 +113,14 @@ namespace Movement.MPC
             ApplyControl(ref cmd, bestSequence[0]);
         }
 
-
-
         private bool HasArrived(Kinematics kin)
         {
             var toGoal = currentWaypoint.position - kin.pos;
             var posArrived = toGoal.sqrMagnitude < arriveRadius * arriveRadius;
             var velStopped = kin.vel.sqrMagnitude < 0.1f;
-            
+
             if (!posArrived || !velStopped) return false;
-            
+
             // If facing override active, also check yaw
             if (!facingOverride) return true;
             var yawErr = Mathf.DeltaAngle(kin.yaw, facingAngle);
@@ -133,8 +129,8 @@ namespace Movement.MPC
 
         private static MPC.State ToMpcState(Kinematics kin) => new()
         {
-            pos = kin.pos,
-            vel = kin.vel,
+            pos = new float2(kin.pos.x, kin.pos.y),
+            vel = new float2(kin.vel.x, kin.vel.y),
             yaw = kin.yaw * Mathf.Deg2Rad,
             yawRate = kin.yawRate * Mathf.Deg2Rad
         };
@@ -172,14 +168,13 @@ namespace Movement.MPC
             if (config.horizon != newHorizon)
             {
                 bestSequence = new Control[newHorizon];
-                candidateSequence = new Control[newHorizon];
                 predictedStates = new State[newHorizon];
                 config.horizon = newHorizon;
             }
             config.wPos = settings.wPos;
             config.wVel = settings.wVel;
             config.wYaw = settings.wYaw;
-            config.wYawRate = settings.wYawRate; // Boost damping to prevent tailspins
+            config.wYawRate = settings.wYawRate;
             config.wEffort = settings.wEffort;
             config.wSmoothnessThrust = settings.wSmoothnessThrust;
             config.wSmoothnessStrafe = settings.wSmoothnessStrafe;
@@ -195,6 +190,16 @@ namespace Movement.MPC
             config.facingTarget = facingOverride ? facingAngle * Mathf.Deg2Rad : float.NaN;
         }
 
+        private CostInput BuildCostInput()
+        {
+            return new CostInput
+            {
+                goalPos = new float2(currentWaypoint.position.x, currentWaypoint.position.y),
+                obstacles = burstObstacles,
+                obstacleCount = lastObstacleCount
+            };
+        }
+
         private void SolveBurst(State mpcState, ObstacleScan scan)
         {
             var horizon = config.horizon;
@@ -207,8 +212,8 @@ namespace Movement.MPC
                 burstWarmStart[i] = bestSequence[i];
 
             // Convert obstacles to blittable data
-            var obsCount = (scan.count > 0 && enableObstacleAvoidance) ? scan.count : 0;
-            for (var i = 0; i < obsCount; i++)
+            lastObstacleCount = (scan.count > 0 && enableObstacleAvoidance) ? scan.count : 0;
+            for (var i = 0; i < lastObstacleCount; i++)
             {
                 var obs = scan.buffer[i];
                 burstObstacles[i] = new ObstacleData
@@ -220,9 +225,8 @@ namespace Movement.MPC
 
             lastBestCost = BurstSampler.Solve(
                 mpcState, burstWarmStart, burstCandidates, burstCosts,
-                new float2(currentWaypoint.position.x, currentWaypoint.position.y),
-                burstObstacles, obsCount,
-                config, dynamics, samples, settings.noiseStd, lastControl, burstResult);
+                BuildCostInput(), config, dynamics,
+                samples, settings.noiseStd, lastControl, burstResult);
 
             // Copy result back to managed array
             for (var i = 0; i < horizon; i++)
