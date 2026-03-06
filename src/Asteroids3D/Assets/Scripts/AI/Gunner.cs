@@ -31,6 +31,9 @@ namespace AI
 
         public bool HasTargetLos => (HasTarget && targetingUtils != null) && targetingUtils.HasLineOfSight(FirePoint, Target, AngleToTarget);
 
+        public float PrimaryProjectileSpeed =>
+            primaryWeapon is Combat.Weapons.WeaponLaser laser ? laser.ProjectileSpeed : 0f;
+
         public void SetTarget(Vector3 worldPos) => Target = worldPos;
         public void SetTarget(Vector2 planePos) => Target = GamePlane.PlanePointToWorld(planePos);
         public void SetTarget(Transform target) => Target = target ? target.position : Vector3.zero;
