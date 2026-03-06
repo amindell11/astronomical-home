@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System.Collections.Generic;
 using System.Linq;
+using AI.Debug;
 using AI.States;
 using UnityEngine;
 
@@ -8,19 +9,35 @@ namespace AI.Utility
 {
     public partial class UtilitySelector
     {
-        // Exposed for Editor gizmos (RegisteredStates is public in main class)
         internal Sampler Sampler => sampler;
-        
-        void OnDrawGizmos()
-        {
-            if (Config == null) return;
-            if (!Config.showCurrentStateGizmos && !Config.showStateSelectionGizmos) return;
 
-            if (Config.showCurrentStateGizmos && CurrentState != null && Context != null)
+        private AICommander cachedCommander;
+        private AIDebugSettings CachedSettings
+        {
+            get
+            {
+                if (!cachedCommander)
+                    cachedCommander = GetComponent<AICommander>();
+                return cachedCommander ? cachedCommander.DebugSettings : null;
+            }
+        }
+
+        void OnDrawGizmos() => DrawGizmosImpl(false);
+        void OnDrawGizmosSelected() => DrawGizmosImpl(true);
+
+        void DrawGizmosImpl(bool isSelected)
+        {
+            var settings = CachedSettings;
+            if (settings == null || !settings.ShouldDraw(isSelected)) return;
+
+            if (settings.IsActive(AIDebugChannel.StateDetail) && CurrentState != null && Context != null)
                 CurrentState.OnDrawGizmos(Context);
 
-            if (Config.showStateSelectionGizmos && UtilityScores is { Count: > 0 })
+            if (settings.IsActive(AIDebugChannel.Utility) && UtilityScores is { Count: > 0 })
                 DrawUtilityGizmos();
+
+            if (settings.IsActive(AIDebugChannel.Info) && Context != null)
+                DrawInfoLabel();
         }
 
         private void DrawUtilityGizmos()
@@ -36,6 +53,16 @@ namespace AI.Utility
                 : GetUtilityLines();
 
             UnityEditor.Handles.Label(transform.position + Vector3.up * 3f, header + "\n" + string.Join("\n", lines));
+        }
+
+        private void DrawInfoLabel()
+        {
+            var a = Context.Assessment;
+            UnityEditor.Handles.color = Color.white;
+            var info = $"HP: {a.HealthPct:P0} Shield: {a.ShieldPct:P0}";
+            if (a.NearbyEnemyCount > a.NearbyFriendCount)
+                info += $"\nOutnumbered {a.NearbyEnemyCount}v{a.NearbyFriendCount + 1}";
+            UnityEditor.Handles.Label(transform.position + Vector3.up * 5f, info);
         }
 
         private IEnumerable<string> GetUtilityLines() =>

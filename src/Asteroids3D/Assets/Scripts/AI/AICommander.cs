@@ -32,6 +32,10 @@ namespace AI
         [Header("Combat")]
         [SerializeField] private CombatTuning combatTuning;
 
+        [Header("Debug")]
+        [SerializeField] private Debug.AIDebugSettings debugSettings;
+        public Debug.AIDebugSettings DebugSettings => debugSettings;
+
         private Ship ship;
         private Info context;
         private IShipRegistry registry;

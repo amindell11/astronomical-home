@@ -11,55 +11,38 @@ namespace AI.States
         {
             base.OnDrawGizmos(ctx);
 
-            if (ctx==null) return;
+            if (ctx == null) return;
 
             var selfPos = ctx.ShipInfo.Pos3D;
             var t = utilityTuning.kite;
 
-            // Draw kite radius circle
-            Gizmos.color = new Color(0f, 0.8f, 1f, 0.3f); // Cyan
             var combat = ctx.Combat;
             if (combat.HasEnemy)
             {
                 var enemyPos = GamePlane.PlanePointToWorld(combat.EnemyPos);
-                Gizmos.DrawWireSphere(enemyPos, t.desiredDistance);
 
-                // Draw min/max kite range
-                Gizmos.color = new Color(1f, 1f, 0f, 0.2f); // Yellow
+                // Kite radius circles
+                Gizmos.color = new Color(0f, 0.8f, 1f, 0.3f);
+                Gizmos.DrawWireSphere(enemyPos, t.desiredDistance);
+                Gizmos.color = new Color(1f, 1f, 0f, 0.2f);
                 Gizmos.DrawWireSphere(enemyPos, t.minDistance);
-                Gizmos.color = new Color(1f, 0.5f, 0f, 0.2f); // Orange
+                Gizmos.color = new Color(1f, 0.5f, 0f, 0.2f);
                 Gizmos.DrawWireSphere(enemyPos, t.maxDistance);
 
-                // Draw arrowhead for retreat direction
+                // Retreat direction arrow
                 var dirAway = (ctx.ShipInfo.Pos - combat.EnemyPos).normalized;
                 var dirOppVel = combat.EnemyVel.sqrMagnitude > 0.01f ? (-combat.EnemyVel).normalized : Vector2.zero;
                 var retreatDir = (dirAway + dirOppVel).normalized;
-                if (retreatDir.sqrMagnitude < 0.01f) retreatDir = dirAway; // fallback
+                if (retreatDir.sqrMagnitude < 0.01f) retreatDir = dirAway;
 
                 var retreatDir3D = GamePlane.PlaneDirToWorld(retreatDir);
                 Gizmos.color = Color.cyan;
                 Gizmos.DrawRay(selfPos, retreatDir3D * 5f);
 
-                // Draw arrowhead for orbit direction
                 var perpLeft = Vector3.Cross(retreatDir3D, Vector3.forward).normalized;
                 var arrowTip = selfPos + retreatDir3D * 5f;
                 Gizmos.DrawLine(arrowTip, arrowTip - retreatDir3D * 1f + perpLeft * 0.5f);
                 Gizmos.DrawLine(arrowTip, arrowTip - retreatDir3D * 1f - perpLeft * 0.5f);
-
-                // Line to enemy
-                var a = ctx.Assessment;
-                Gizmos.color = a.HasLineOfSight ? Color.green : Color.red;
-                Gizmos.DrawLine(selfPos, enemyPos);
-
-                // Show kite state info
-                UnityEditor.Handles.color = Color.white;
-                var info = $"KITE (Retreat)\n";
-                info += $"Range: {a.EnemyDistance:F1}m (target: {t.desiredDistance:F0}m)\n";
-                info += $"HP: {a.HealthPct:P0} Shield: {a.ShieldPct:P0}\n";
-                if (a.HasLineOfSight) info += "✓ Clear shot";
-                else info += "✗ No LOS";
-
-                UnityEditor.Handles.Label(selfPos + Vector3.up * 4f, info);
             }
         }
     }
