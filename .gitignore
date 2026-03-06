@@ -87,3 +87,8 @@ crashlytics-build.properties
 
 # Agent worktree pool
 .worktree-pool/
+
+# AI agent ephemeral state
+.ralph/*.state.json
+.pi/**/*.state.json
+nul
