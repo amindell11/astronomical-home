@@ -57,6 +57,6 @@ namespace AI.Context
         public float AngleToTarget => gunner?.AngleToTarget ?? 0f;
 
         public bool IncomingMissile => false; //TODO
-        public float LaserSpeed => 0f; //TODO
+        public float LaserSpeed => gunner?.PrimaryProjectileSpeed ?? 0f;
     }
 }

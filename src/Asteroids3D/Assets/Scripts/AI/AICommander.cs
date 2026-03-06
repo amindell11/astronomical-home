@@ -5,6 +5,7 @@ using Game;
 using Ships;
 using Ships.Command;
 using UnityEngine;
+using AI.States;
 using Attack = AI.States.Attack;
 using Info = AI.Context.Info;
 using UtilitySelector = AI.Utility.UtilitySelector;
@@ -83,7 +84,12 @@ namespace AI
                 utilityTuning = ScriptableObject.CreateInstance<UtilityTuning>();
 
             UtilitySelector.Initialize(
-                new Attack(Navigator, Gunner, utilityTuning)
+                new Attack(Navigator, Gunner, utilityTuning),
+                new Evade(Navigator, Gunner, utilityTuning),
+                new Kite(Navigator, Gunner, utilityTuning),
+                new Orbit(Navigator, Gunner, utilityTuning),
+                new JinkEvade(Navigator, Gunner, utilityTuning),
+                new Patrol(Navigator, Gunner, utilityTuning)
             );
 
             systemsInitialized = true;
