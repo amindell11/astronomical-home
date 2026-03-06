@@ -5,6 +5,8 @@ using Movement.MPC;
 using Ships;
 using Ships.Command;
 using Movement;
+using Unity.Collections;
+using Unity.Mathematics;
 using UnityEngine;
 namespace Movement.MPC
 {
@@ -13,7 +15,7 @@ namespace Movement.MPC
     {
         [Header("Settings")]
         public MPC.Settings settings;
- 
+
         [Header("Obstacle Avoidance")]
         public bool enableObstacleAvoidance = true;
 
@@ -27,17 +29,26 @@ namespace Movement.MPC
         private float lastBestCost;
 #endif
         private Control lastControl;
-        
+
+        // Burst solver buffers
+        private NativeArray<Control> burstWarmStart;
+        private NativeArray<Control> burstCandidates;
+        private NativeArray<float> burstCosts;
+        private NativeArray<ObstacleData> burstObstacles;
+        private NativeArray<Control> burstResult;
+        private bool burstAllocated;
+
         public override void Initialize(Func<Ships.Command.State> stateProvider, Dynamics dynamics, Scout scout)
         {
             base.Initialize(stateProvider, dynamics, scout);
-            
+
             var horizon = settings.Horizon;
             bestSequence = new Control[horizon];
             candidateSequence = new Control[horizon];
             predictedStates = new State[horizon];
-            
+
             config = BuildConfig();
+            AllocateBurstBuffers(horizon, settings.samples);
         }
 
         private Config BuildConfig()
@@ -86,20 +97,19 @@ namespace Movement.MPC
 #endif
             using (EditorProfilingScope.Begin("MPC.MpcNavigator.Solve"))
             {
-            lastBestCost = Sampler.Solve(mpcState, bestSequence, candidateSequence, currentWaypoint.position,
-                scan, config, dynamics, settings.samples, settings.noiseStd, bestSequence, lastControl);
+                SolveBurst(mpcState, scan);
             }
 #if UNITY_EDITOR
             sw.Stop();
-            
+
             lastSolveTimeMs = (float)sw.Elapsed.TotalMilliseconds;
-            lastCostBreakdown = Sampler.EvaluateTrajectoryBreakdown(mpcState, bestSequence, 
+            lastCostBreakdown = Sampler.EvaluateTrajectoryBreakdown(mpcState, bestSequence,
                 currentWaypoint.position, scan, config, dynamics, lastControl);
 #endif
 
             using (EditorProfilingScope.Begin("MPC.MpcNavigator.UpdatePredictedStates"))
             {
-            UpdatePredictedStates(mpcState);
+                UpdatePredictedStates(mpcState);
             }
             lastControl = bestSequence[0];
             ApplyControl(ref cmd, bestSequence[0]);
@@ -183,6 +193,74 @@ namespace Movement.MPC
             config.arrivalVelScale = settings.arrivalVelScale;
             config.arrivalYawScale = settings.arrivalYawScale;
             config.facingTarget = facingOverride ? facingAngle * Mathf.Deg2Rad : float.NaN;
+        }
+
+        private void SolveBurst(State mpcState, ObstacleScan scan)
+        {
+            var horizon = config.horizon;
+            var samples = settings.samples;
+
+            EnsureBurstBuffers(horizon, samples);
+
+            // Copy warm start into native buffer
+            for (var i = 0; i < horizon; i++)
+                burstWarmStart[i] = bestSequence[i];
+
+            // Convert obstacles to blittable data
+            var obsCount = (scan.count > 0 && enableObstacleAvoidance) ? scan.count : 0;
+            for (var i = 0; i < obsCount; i++)
+            {
+                var obs = scan.buffer[i];
+                burstObstacles[i] = new ObstacleData
+                {
+                    position = new float2(obs.position.x, obs.position.y),
+                    radius = obs.radius
+                };
+            }
+
+            lastBestCost = BurstSampler.Solve(
+                mpcState, burstWarmStart, burstCandidates, burstCosts,
+                new float2(currentWaypoint.position.x, currentWaypoint.position.y),
+                burstObstacles, obsCount,
+                config, dynamics, samples, settings.noiseStd, lastControl, burstResult);
+
+            // Copy result back to managed array
+            for (var i = 0; i < horizon; i++)
+                bestSequence[i] = burstResult[i];
+        }
+
+        private void AllocateBurstBuffers(int horizon, int samples)
+        {
+            DisposeBurstBuffers();
+            burstWarmStart = new NativeArray<Control>(horizon, Allocator.Persistent);
+            burstCandidates = new NativeArray<Control>(samples * horizon, Allocator.Persistent);
+            burstCosts = new NativeArray<float>(samples, Allocator.Persistent);
+            burstObstacles = new NativeArray<ObstacleData>(64, Allocator.Persistent);
+            burstResult = new NativeArray<Control>(horizon, Allocator.Persistent);
+            burstAllocated = true;
+        }
+
+        private void EnsureBurstBuffers(int horizon, int samples)
+        {
+            if (burstAllocated && burstWarmStart.Length == horizon && burstCosts.Length == samples)
+                return;
+            AllocateBurstBuffers(horizon, samples);
+        }
+
+        private void DisposeBurstBuffers()
+        {
+            if (!burstAllocated) return;
+            burstWarmStart.Dispose();
+            burstCandidates.Dispose();
+            burstCosts.Dispose();
+            burstObstacles.Dispose();
+            burstResult.Dispose();
+            burstAllocated = false;
+        }
+
+        private void OnDestroy()
+        {
+            DisposeBurstBuffers();
         }
 
         partial void StoreDebugObstacles(ObstacleScan scan);
