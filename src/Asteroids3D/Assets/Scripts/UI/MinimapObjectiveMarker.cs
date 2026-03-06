@@ -1,4 +1,3 @@
-using Objectives;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -7,6 +6,7 @@ namespace UI
     /// <summary>
     /// Positions a UI icon over the minimap RawImage to mark the current objective's
     /// world position. Attach as a child of the minimap RawImage in the overlay prefab.
+    /// The parent RectTransform is used as the minimap bounds.
     /// </summary>
     public class MinimapObjectiveMarker : MonoBehaviour
     {
@@ -19,10 +19,10 @@ namespace UI
         private Camera minimapCam;
         private Transform target;
 
-        public void Initialize(Camera cam, RectTransform minimap)
+        public void Initialize(Camera cam)
         {
             minimapCam = cam;
-            minimapRect = minimap;
+            minimapRect = transform.parent as RectTransform;
             if (icon) icon.enabled = false;
         }
 
