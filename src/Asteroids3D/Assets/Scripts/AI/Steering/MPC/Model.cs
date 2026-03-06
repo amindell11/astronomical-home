@@ -7,25 +7,15 @@ namespace Movement.MPC
     /// </summary>
     public static partial class Model
     {
-        static partial void BeginStepProfiling();
-        static partial void EndStepProfiling();
-
         public static State Step(State s, Control u, Config cfg, Dynamics shp)
         {
-            BeginStepProfiling();
-            try
-            {
+            using var _ = EditorProfilingScope.Begin("MPC.Model.Step");
             var (fwd, right) = BodyAxes(s.yaw);
             var acc = ComputeAcceleration(u, fwd, right, cfg, shp, s.vel);
             var (nextPos, nextVel) = IntegrateLinear(s.pos, s.vel, acc, cfg.dt, shp);
             var (nextYaw, nextYawRate) = IntegrateAngular(s.yaw, s.yawRate, u.yawTorque, cfg, shp);
             
             return new State { pos = nextPos, vel = nextVel, yaw = nextYaw, yawRate = nextYawRate };
-            }
-            finally
-            {
-                EndStepProfiling();
-            }
         }
 
         private static (Vector2 fwd, Vector2 right) BodyAxes(float yaw)

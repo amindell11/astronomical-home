@@ -8,15 +8,10 @@ namespace Movement.MPC
     /// </summary>
     public static partial class Cost
     {
-        static partial void BeginEvaluateProfiling();
-        static partial void EndEvaluateProfiling();
-
         public static float Evaluate(State s, Control u, Control prevU, Vector2 goalPos, 
             ObstacleScan scan, Config cfg, bool isTerminal)
         {
-            BeginEvaluateProfiling();
-            try
-            {
+            using var _ = EditorProfilingScope.Begin("MPC.Cost.Evaluate");
             var toGoal = goalPos - s.pos;
             var distToGoalSq = toGoal.sqrMagnitude;
             var arrivalDistanceSq = cfg.arrivalDistance * cfg.arrivalDistance;
@@ -52,11 +47,6 @@ namespace Movement.MPC
                 total += cfg.terminalMultiplier * stateCost;
 
             return total;
-            }
-            finally
-            {
-                EndEvaluateProfiling();
-            }
         }
 
 

@@ -1,16 +1,11 @@
 #if UNITY_EDITOR
 using AI.Scanning;
 using UnityEngine;
-using UnityEngine.Profiling;
 
 namespace Movement.MPC
 {
     public static partial class Cost
     {
-        static partial void BeginEvaluateProfiling() => Profiler.BeginSample("MPC.Cost.Evaluate");
-
-        static partial void EndEvaluateProfiling() => Profiler.EndSample();
-
         public static CostBreakdown EvaluateBreakdown(State s, Control u, Control prevU, Vector2 goalPos, 
             ObstacleScan scan, Config cfg, bool isTerminal)
         {

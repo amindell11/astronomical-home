@@ -47,4 +47,21 @@ namespace Movement.MPC
         // Facing override (radians, NaN if disabled)
         public float facingTarget;
     }
+
+    internal readonly partial struct EditorProfilingScope : System.IDisposable
+    {
+        public static EditorProfilingScope Begin(string sampleName)
+        {
+            BeginSample(sampleName);
+            return new EditorProfilingScope();
+        }
+
+        public void Dispose()
+        {
+            EndSample();
+        }
+
+        static partial void BeginSample(string sampleName);
+        static partial void EndSample();
+    }
 }
