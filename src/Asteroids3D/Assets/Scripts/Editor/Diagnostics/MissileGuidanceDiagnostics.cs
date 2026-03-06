@@ -61,6 +61,8 @@ namespace Diagnostics
         {
             ClearActiveTest();
 
+            if (!EnsureGamePlane()) return;
+
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Weapons/MissileProjectile.prefab");
             if (!prefab)
             {
@@ -199,7 +201,7 @@ namespace Diagnostics
 
         private void OnDrawGizmos()
         {
-            if (!activeMissile || !targetMarker) return;
+            if (!activeMissile || !targetMarker || !GamePlane.IsConfigured) return;
 
             // Flight path trail
             if (showFlightPath && flightPath.Count > 1)
@@ -274,6 +276,25 @@ namespace Diagnostics
                 SuperGizmos.DrawWireArc(activeMissile.transform.position, GamePlane.Normal,
                     activeMissile.transform.up, angle, 1.5f);
             }
+        }
+
+        private static bool EnsureGamePlane()
+        {
+            if (GamePlane.IsConfigured) return true;
+
+            var planeGo = GameObject.FindWithTag("ReferencePlane");
+            if (planeGo)
+            {
+                GamePlane.SetReferencePlane(planeGo.transform);
+                Debug.Log("[MissileGuidanceDiagnostics] GamePlane was not configured — " +
+                          $"auto-bound to '{planeGo.name}' (tagged ReferencePlane).");
+                return true;
+            }
+
+            Debug.LogError("[MissileGuidanceDiagnostics] GamePlane is not configured and no " +
+                           "GameObject tagged 'ReferencePlane' was found in the scene. " +
+                           "Add one or run from a bootstrapped scene.");
+            return false;
         }
 
         private static void ApplyOverride(object obj, string fieldName, float value)
