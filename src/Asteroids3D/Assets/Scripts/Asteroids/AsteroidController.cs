@@ -28,6 +28,7 @@ namespace Asteroids
         public Rigidbody Rb { get; private set; }
         public AsteroidSpawner AsteroidSpawner { get; private set; }
         public Renderer Renderer { get; private set; }
+        public Fragger Fragger { get; private set; }
         public Mesh CurrentMesh => meshFilter.sharedMesh;
         public event Action<Vector3> OnDestroyed;
 
@@ -50,6 +51,7 @@ namespace Asteroids
 
         public void Initialize(
             AsteroidSpawner asteroidSpawner,
+            Fragger fragger,
             AsteroidSpawnSettings.MeshInfo meshInfo,
             float mass,
             float scale,
@@ -62,6 +64,7 @@ namespace Asteroids
 
             meshFilter.mesh = meshInfo.mesh;
             AsteroidSpawner = asteroidSpawner;
+            Fragger = fragger;
 
             Volume = meshInfo.cachedVolume * (scale * scale * scale);
 
@@ -111,7 +114,7 @@ namespace Asteroids
 
         internal void HandleDestroyed(HitData hit)
         {
-            Fragger.Singleton.CreateFragments(this, hit, _ => CleanupAsteroid());
+            Fragger.CreateFragments(this, hit, _ => CleanupAsteroid());
             OnDestroyed?.Invoke(transform.position);
         }
 

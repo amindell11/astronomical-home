@@ -3,19 +3,17 @@ using System.Collections;
 using Asteroids.Spawning;
 using JetBrains.Annotations;
 using UnityEngine;
-using Utils;
 
 namespace Asteroids.Fragnetics
 {
 
-    public class Fragger : MonoSingleton<Fragger>
+    public class Fragger : MonoBehaviour
     {
         [SerializeField] private AsteroidFragSettings asteroidFragAsteroidFragSettings;
         private Calculator calc;
 
-        protected override void Awake()
+        private void Awake()
         {
-            base.Awake();
             calc = new Calculator(asteroidFragAsteroidFragSettings);
         }
 
