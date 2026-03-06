@@ -56,6 +56,13 @@ namespace Combat.Weapons
     {
         [Header("Launcher Settings")]
         [SerializeField] internal TProj projectilePrefab;
+
+        protected override void Awake()
+        {
+            base.Awake();
+            if (projectilePrefab)
+                SimplePool<TProj>.Warm(projectilePrefab);
+        }
         
         public override bool CanFire() => projectilePrefab && base.CanFire();
         

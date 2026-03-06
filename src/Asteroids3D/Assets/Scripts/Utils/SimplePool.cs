@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace Utils
@@ -22,12 +21,7 @@ namespace Utils
         public static T Get(T prefab, Vector3 position, Quaternion rotation)
         {
             var key = prefab.GetInstanceID();
-
-            if (!Pools.TryGetValue(key, out var stack))
-            {
-                stack = new Stack<T>();
-                Pools[key] = stack;
-            }
+            var stack = GetOrCreateStack(key);
 
             T instance;
 
@@ -43,12 +37,7 @@ namespace Utils
                 instance = Object.Instantiate(prefab, position, rotation);
 
                 // Set up pool parent for organization
-                if (!_poolParent)
-                {
-                    var poolObj = new GameObject($"Pool_{typeof(T).Name}");
-                    _poolParent = poolObj.transform;
-                    Object.DontDestroyOnLoad(poolObj);
-                }
+                EnsurePoolParent();
 
                 instance.transform.SetParent(_poolParent);
                 instance.gameObject.SetActive(true);
@@ -74,13 +63,27 @@ namespace Utils
                 key = 0;
             }
 
-            if (!Pools.TryGetValue(key, out var stack))
-            {
-                stack = new Stack<T>();
-                Pools[key] = stack;
-            }
+            var stack = GetOrCreateStack(key);
 
             stack.Push(instance);
+        }
+
+        public static void Warm(T prefab, int preloadCount = 1)
+        {
+            if (!prefab) return;
+
+            var key = prefab.GetInstanceID();
+            var stack = GetOrCreateStack(key);
+            EnsurePoolParent();
+
+            while (stack.Count < preloadCount)
+            {
+                var instance = Object.Instantiate(prefab, Vector3.zero, Quaternion.identity);
+                instance.transform.SetParent(_poolParent);
+                instance.gameObject.SetActive(false);
+                InstanceToKey[instance] = key;
+                stack.Push(instance);
+            }
         }
     
         /// <summary>
@@ -88,7 +91,7 @@ namespace Utils
         /// </summary>
         public static void Clear()
         {
-            foreach (var stack in Pools.Select(kvp => kvp.Value))
+            foreach (var stack in Pools.Values)
             {
                 while (stack.Count > 0)
                 {
@@ -99,6 +102,25 @@ namespace Utils
             }
             Pools.Clear();
             InstanceToKey.Clear();
+        }
+
+        private static Stack<T> GetOrCreateStack(int key)
+        {
+            if (Pools.TryGetValue(key, out var stack))
+                return stack;
+
+            stack = new Stack<T>();
+            Pools[key] = stack;
+            return stack;
+        }
+
+        private static void EnsurePoolParent()
+        {
+            if (_poolParent) return;
+
+            var poolObj = new GameObject($"Pool_{typeof(T).Name}");
+            _poolParent = poolObj.transform;
+            Object.DontDestroyOnLoad(poolObj);
         }
     
         /// <summary>

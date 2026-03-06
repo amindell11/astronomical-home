@@ -30,12 +30,15 @@ namespace UI
 
         Image   ring;
         Color   baseColor;       // original tint without alpha
-        Coroutine animCo;
+        bool flashActive;
+        float flashElapsed;
+        Vector3 baseScale;
 
         void Awake()
         {
             ring       = GetComponent<Image>();
             baseColor  = ring.color;
+            baseScale  = transform.localScale;
             // start fully transparent until first event
             ring.canvasRenderer.SetAlpha(1f);
         }
@@ -57,6 +60,9 @@ namespace UI
             if (source) {
                 source.Shield.OnValueChanged -= OnShieldChanged;
             }
+
+            flashActive = false;
+            transform.localScale = baseScale;
         }
 
         void LateUpdate()
@@ -79,44 +85,24 @@ namespace UI
         }
         void TriggerFlash()
         {
-            if (animCo != null) StopCoroutine(animCo);
-            animCo = StartCoroutine(FlashRoutine());
-        }
-        IEnumerator FlashRoutine()
-        {
-            // ---------- 1  fade in ----------
-            //yield return Fade(0, 1, fadeIn);
-
-            // ---------- 2  shimmer while fully visible ----------
-            float t = 0;
-            var baseScale = Vector3.one;
-            while (t < linger)
-            {
-                t += Time.unscaledDeltaTime;
-                var wobble = 1f + Mathf.Sin(t * shimmerFreq * Mathf.PI * 2) * shimmerAmp;
-                transform.localScale = baseScale * wobble;
-                yield return null;
-            }
-            transform.localScale = baseScale;
-
-            // ---------- 3  fade out ----------
-            //yield return Fade(1, 0, fadeOut);
+            flashActive = true;
+            flashElapsed = 0f;
         }
 
-        IEnumerator Fade(float aFrom, float aTo, float dur)
+        void Update()
         {
-            var elapsed = 0f;
-            var c = ring.color;
-            while (elapsed < dur)
+            if (!flashActive) return;
+
+            flashElapsed += Time.unscaledDeltaTime;
+            if (flashElapsed >= linger)
             {
-                elapsed += Time.unscaledDeltaTime;
-                var k = Mathf.Clamp01(elapsed / dur);
-                c.a = Mathf.Lerp(aFrom, aTo, k);
-                ring.color = c;
-                yield return null;
+                flashActive = false;
+                transform.localScale = baseScale;
+                return;
             }
-            c.a = aTo;
-            ring.color = c;
+
+            var wobble = 1f + Mathf.Sin(flashElapsed * shimmerFreq * Mathf.PI * 2) * shimmerAmp;
+            transform.localScale = baseScale * wobble;
         }
 
     }

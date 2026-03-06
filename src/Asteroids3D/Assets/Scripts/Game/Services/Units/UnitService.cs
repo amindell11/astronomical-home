@@ -1,19 +1,25 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using AI;
 using Ships;
 using Ships.Command;
 using UnityEngine;
-using Random = UnityEngine.Random;
 using ShipFactory = Ships.Factory;
 
 namespace Game.Services
 {
     public class UnitService : MonoBehaviour, IUnitService
     {
+        private struct PendingRespawn
+        {
+            public ShipId ship;
+            public Vector2 pos;
+            public float rotation;
+            public float respawnTime;
+        }
+
         private readonly List<Ship> spawnedShips = new();
+        private readonly List<PendingRespawn> pendingRespawns = new();
         public IShipRegistry Registry => ActiveRegistry;
         public ShipRegistry ActiveRegistry { get; } = new();
 
@@ -43,13 +49,16 @@ namespace Game.Services
 
         public void Clear()
         {
-            foreach (var ship in spawnedShips.Where(ship => ship))
+            for (var i = 0; i < spawnedShips.Count; i++)
             {
+                var ship = spawnedShips[i];
+                if (!ship) continue;
                 ActiveRegistry.ActiveShips.Remove(ship);
                 UnityEngine.Object.Destroy(ship.gameObject);
             }
 
             spawnedShips.Clear();
+            pendingRespawns.Clear();
             // Do NOT call ActiveRegistry.Dispose() here — that unsubscribes the OnAdd/OnRemove
             // callbacks, which permanently breaks the registry for subsequent runs.
             // Ships are already fully unregistered via ActiveShips.Remove() above.
@@ -78,13 +87,24 @@ namespace Game.Services
 
         public void WaitAndRespawnShip(ShipId ship, Vector2 pos, float rotation, float delay)
         {
-            StartCoroutine(WaitAndRespawn());
-            return;
-
-            IEnumerator WaitAndRespawn()
+            pendingRespawns.Add(new PendingRespawn
             {
-                yield return new WaitForSeconds(delay);
-                RespawnShip(ship, pos, rotation);
+                ship = ship,
+                pos = pos,
+                rotation = rotation,
+                respawnTime = Time.time + delay
+            });
+        }
+
+        private void Update()
+        {
+            for (var i = pendingRespawns.Count - 1; i >= 0; i--)
+            {
+                if (Time.time < pendingRespawns[i].respawnTime) continue;
+
+                var pending = pendingRespawns[i];
+                pendingRespawns.RemoveAt(i);
+                RespawnShip(pending.ship, pending.pos, pending.rotation);
             }
         }
     }
