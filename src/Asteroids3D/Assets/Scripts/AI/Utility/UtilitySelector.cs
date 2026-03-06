@@ -40,14 +40,14 @@ namespace AI.Utility
             sampler = new Sampler(config, instanceUtilityWeights);
         }
 
-        public void Initialize(params AI.States.State[] statesToAdd)
+        public void Initialize(UtilityTuning tuning, params AI.States.State[] statesToAdd)
         {
-            states.Clear(); 
+            states.Clear();
             states.AddRange(statesToAdd.Where(s => s != null));
             if (states.Count == 0) return;
-            
-            sampler.SetTuning(states[0].GetTuning());
-            
+
+            sampler.SetTuning(tuning);
+
             if (CurrentState != null) return;
             TransitionTo(states[0], null);
         }

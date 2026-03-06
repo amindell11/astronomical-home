@@ -16,7 +16,7 @@ namespace AI.States
             Gizmos.color = new Color(1f, 0.5f, 0f, 0.2f);
             Gizmos.DrawWireSphere(position, utilityTuning.attack.facingDistance); // Close range
 
-            var combat = ctx.CombatTracker;
+            var combat = ctx.Combat;
             if (combat.HasEnemy)
             {
                 var enemyPos = GamePlane.PlanePointToWorld(combat.EnemyPos);

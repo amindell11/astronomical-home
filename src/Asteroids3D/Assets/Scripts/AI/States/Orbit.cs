@@ -19,7 +19,7 @@ namespace AI.States
             base.Enter(ctx);
             stateEntryTime = Time.time;
 
-            var combat = ctx.CombatTracker;
+            var combat = ctx.Combat;
             if (combat.HasEnemy)
             {
                 var relativeVel = ctx.TargetingUtils.RelativeVelocity(combat.EnemyVel);
@@ -31,7 +31,7 @@ namespace AI.States
 
         public override void Tick(Info ctx, float deltaTime)
         {
-            var combat = ctx.CombatTracker;
+            var combat = ctx.Combat;
             if (!combat.HasEnemy) return;
 
             var predicted = ctx.TargetingUtils.PredictIntercept(
@@ -66,7 +66,7 @@ namespace AI.States
 
         public override float ComputeUtility(Info ctx)
         {
-            if (!ctx.CombatTracker.HasEnemy) return 0f;
+            if (!ctx.Combat.HasEnemy) return 0f;
 
             var a = ctx.Assessment;
             var t = utilityTuning.orbit;

@@ -17,7 +17,7 @@ namespace AI.States
             var t = utilityTuning.orbit;
 
             // Draw orbit radius circles
-            var combat = ctx.CombatTracker;
+            var combat = ctx.Combat;
             if (combat.HasEnemy)
             {
                 var enemyPos = GamePlane.PlanePointToWorld(combat.EnemyPos);

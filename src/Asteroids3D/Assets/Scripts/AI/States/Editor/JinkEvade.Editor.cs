@@ -21,9 +21,9 @@ namespace AI.States
             Gizmos.DrawWireSphere(tgtPos, 1.2f);
 
             // Draw flee + jink vectors
-            if (ctx.CombatTracker.HasEnemy)
+            if (ctx.Combat.HasEnemy)
             {
-                var enemyPos = GamePlane.PlanePointToWorld(ctx.CombatTracker.EnemyPos);
+                var enemyPos = GamePlane.PlanePointToWorld(ctx.Combat.EnemyPos);
                 Gizmos.color = Color.red;
                 Gizmos.DrawLine(selfPos, enemyPos);
             }

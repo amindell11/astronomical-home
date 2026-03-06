@@ -47,8 +47,6 @@ namespace AI.States
             return LastBuilder;
         }
 
-        public UtilityTuning GetTuning() => utilityTuning;
-
         public virtual void Enter(Info ctx)
         {
         }

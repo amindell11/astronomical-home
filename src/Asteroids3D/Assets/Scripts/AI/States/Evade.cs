@@ -36,7 +36,7 @@ namespace AI.States
 
         public override float ComputeUtility(Info ctx)
         {
-            if (!ctx.CombatTracker.HasEnemy) return 0f;
+            if (!ctx.Combat.HasEnemy) return 0f;
 
             var a = ctx.Assessment;
             var t = utilityTuning.evade;
@@ -60,7 +60,7 @@ namespace AI.States
 
         private Vector2 CalculateEvadePoint(Info ctx)
         {
-            var combat = ctx.CombatTracker;
+            var combat = ctx.Combat;
             var selfPos = ctx.ShipInfo.Pos;
             Vector2 fleeDirection;
 

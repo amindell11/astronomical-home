@@ -17,7 +17,7 @@ namespace AI.States
 
         public override void Tick(Info ctx, float deltaTime)
         {
-            var combat = ctx.CombatTracker;
+            var combat = ctx.Combat;
             if (!combat.HasEnemy) return;
 
             var predictedTarget = ctx.TargetingUtils.PredictIntercept(
@@ -65,7 +65,7 @@ namespace AI.States
 
         public override float ComputeUtility(Info ctx)
         {
-            if (!ctx.CombatTracker.HasEnemy) return 0f;
+            if (!ctx.Combat.HasEnemy) return 0f;
 
             var a = ctx.Assessment;
             var t = utilityTuning.kite;

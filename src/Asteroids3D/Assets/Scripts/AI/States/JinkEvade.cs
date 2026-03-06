@@ -30,7 +30,7 @@ namespace AI.States
 
         public override void Tick(Info ctx, float deltaTime)
         {
-            var combat = ctx.CombatTracker;
+            var combat = ctx.Combat;
             var t = utilityTuning.jinkEvade;
 
             if (Time.time >= nextJinkTime)
@@ -66,7 +66,7 @@ namespace AI.States
 
         public override float ComputeUtility(Info ctx)
         {
-            if (!ctx.CombatTracker.HasEnemy && !ctx.Assessment.IncomingMissile) return 0f;
+            if (!ctx.Combat.HasEnemy && !ctx.Assessment.IncomingMissile) return 0f;
 
             var a = ctx.Assessment;
             var t = utilityTuning.jinkEvade;
@@ -82,7 +82,7 @@ namespace AI.States
                 .Factor("enemyFacing", a.EnemyFacingThreat, t.enemyFacingFactor)
                 .FactorIf(a.IncomingMissile, "missileThreat", t.missileThreatFactor)
                 .FactorIf(criticalState, "criticalState", t.criticalStateFactor)
-                .FactorIf(ctx.CombatTracker.HasEnemy && a.SelfAngleToEnemy > t.facingAwayAngle, "facingAway", t.facingAwayFactor)
+                .FactorIf(ctx.Combat.HasEnemy && a.SelfAngleToEnemy > t.facingAwayAngle, "facingAway", t.facingAwayFactor)
                 .Factor("angle", a.SelfAngleNorm, t.angleFactor)
                 .Build();
         }

@@ -30,7 +30,7 @@ namespace AI.States
             Gizmos.DrawWireSphere(selfPos, utilityTuning.evade.fleeDistance);
 
             // Draw threat indicators
-            var combat = ctx.CombatTracker;
+            var combat = ctx.Combat;
             if (combat.HasEnemy)
             {
                 var enemyPos = new Vector3(combat.EnemyPos.x, combat.EnemyPos.y, selfPos.z);

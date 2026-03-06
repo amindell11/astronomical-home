@@ -213,7 +213,8 @@ namespace AI.Debug
                 if (!aiCommander) continue;
 
                 var context = aiCommander.UtilitySelector?.Context;
-                var enemy = context?.Enemy;
+                if (context == null) continue;
+                var enemy = context.Combat?.Enemy;
                 if (!enemy || !enemy.gameObject.activeInHierarchy) continue;
 
                 var color = ship.teamNumber == 0 ? TeamAColor : TeamBColor;

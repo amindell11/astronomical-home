@@ -85,7 +85,7 @@ namespace AI
             context = new Info(ship, Navigator, Gunner, Scout, targeting, maneuvers,
                 utilityTuning.combatExitDelay);
 
-            UtilitySelector.Initialize(
+            UtilitySelector.Initialize(utilityTuning,
                 new Attack(Navigator, Gunner, utilityTuning),
                 new Evade(Navigator, Gunner, utilityTuning),
                 new Kite(Navigator, Gunner, utilityTuning),

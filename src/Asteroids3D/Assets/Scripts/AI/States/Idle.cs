@@ -32,7 +32,7 @@ namespace AI.States
 
         public override float ComputeUtility(Info ctx)
         {
-            if(ctx.InCombat)
+            if(ctx.Assessment.InCombat)
             {
                 return 0f;
             }

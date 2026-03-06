@@ -18,7 +18,7 @@ namespace AI.States
 
             // Draw kite radius circle
             Gizmos.color = new Color(0f, 0.8f, 1f, 0.3f); // Cyan
-            var combat = ctx.CombatTracker;
+            var combat = ctx.Combat;
             if (combat.HasEnemy)
             {
                 var enemyPos = GamePlane.PlanePointToWorld(combat.EnemyPos);
