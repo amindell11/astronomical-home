@@ -99,7 +99,10 @@ namespace AI
         private void FixedUpdate()
         {
             if (!systemsInitialized || !UtilitySelector) return;
-            UtilitySelector.Tick(context, Time.fixedDeltaTime);
+            if (UtilitySelector.isActiveAndEnabled)
+            {
+                UtilitySelector.Tick(context, Time.fixedDeltaTime);
+            }
             GetSubCommands(ref cachedCommand);
         }
 
