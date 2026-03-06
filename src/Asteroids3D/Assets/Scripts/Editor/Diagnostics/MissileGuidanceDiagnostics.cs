@@ -24,9 +24,14 @@ namespace Diagnostics
         [SerializeField] private float initialSpeed;
         [SerializeField] private float acceleration;
 
+        [Header("Time")]
+        [SerializeField, Range(0.01f, 1f)] private float timeScale = 1f;
+
         [Header("Visualization")]
         [SerializeField] private bool showFlightPath = true;
         [SerializeField] private bool showVelocityHeadingDelta = true;
+        [SerializeField] private bool showShooterOrigin = true;
+        [SerializeField] private bool showTargetInfo = true;
         [SerializeField] private bool logTelemetry = true;
         [SerializeField] private int logInterval = 10;
 
@@ -39,6 +44,9 @@ namespace Diagnostics
         private Missile activeMissile;
         private GameObject targetMarker;
         private StubShooter stubShooter;
+        private Vector3 shooterOrigin;
+        private Vector3 shooterVelocityWorld;
+        private float prevTimeScale;
         private readonly List<Vector3> flightPath = new();
         private float prevDistance;
         private int fixedFrameCount;
@@ -104,6 +112,9 @@ namespace Diagnostics
             if (shooterVelocity.sqrMagnitude > 0.01f)
                 stubShooter.Velocity = GamePlane.PlaneDirToWorld(shooterVelocity);
 
+            shooterOrigin = transform.position;
+            shooterVelocityWorld = stubShooter.Velocity;
+
             activeMissile.SetTarget(targetMarker.transform);
             activeMissile.Initialize(stubShooter);
             var launchDir = GamePlane.PlaneDirToWorld(Vector2.up);
@@ -113,7 +124,10 @@ namespace Diagnostics
             prevDistance = Vector3.Distance(activeMissile.transform.position, targetMarker.transform.position);
             fixedFrameCount = 0;
 
-            Debug.Log($"[MissileGuidanceDiagnostics] Test spawned — target at {targetDistance}u, angle {targetAngle}°, shooter vel {shooterVelocity}");
+            prevTimeScale = Time.timeScale;
+            Time.timeScale = timeScale;
+
+            Debug.Log($"[MissileGuidanceDiagnostics] Test spawned — target at {targetDistance}u, angle {targetAngle}°, shooter vel {shooterVelocity}, timeScale {timeScale}");
         }
 
         [ContextMenu("Clear Active Test")]
@@ -126,11 +140,20 @@ namespace Diagnostics
             targetMarker = null;
             stubShooter = null;
             flightPath.Clear();
+            Time.timeScale = prevTimeScale > 0f ? prevTimeScale : 1f;
+        }
+
+        private void OnDisable()
+        {
+            Time.timeScale = prevTimeScale > 0f ? prevTimeScale : 1f;
         }
 
         private void FixedUpdate()
         {
             if (!activeMissile || !targetMarker) return;
+
+            if (!Mathf.Approximately(Time.timeScale, timeScale))
+                Time.timeScale = timeScale;
 
             // Record position
             if (flightPath.Count < 500)
@@ -190,14 +213,42 @@ namespace Diagnostics
                 }
             }
 
-            // Target marker and line
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(targetMarker.transform.position, 0.5f);
-            Gizmos.DrawLine(activeMissile.transform.position, targetMarker.transform.position);
+            // Target marker, line, and info
+            if (showTargetInfo)
+            {
+                Gizmos.color = Color.red;
+                Gizmos.DrawWireSphere(targetMarker.transform.position, 0.6f);
+                Gizmos.DrawWireSphere(targetMarker.transform.position, 0.3f);
+                Gizmos.DrawLine(activeMissile.transform.position, targetMarker.transform.position);
 
-            // Distance label
-            var midpoint = (activeMissile.transform.position + targetMarker.transform.position) * 0.5f;
-            Handles.Label(midpoint, $"dist: {currentDistance:F1}  closing: {closingSpeed:F1}");
+                var targetRb = targetMarker.GetComponent<Rigidbody>();
+                if (targetRb && targetRb.linearVelocity.sqrMagnitude > 0.01f)
+                {
+                    SuperGizmos.DrawArrow(targetMarker.transform.position, targetRb.linearVelocity.normalized,
+                        color: Color.red, scale: 2f, headScale: 0.6f);
+                    Handles.Label(targetMarker.transform.position + Vector3.up * 0.8f,
+                        $"target vel: {targetRb.linearVelocity.magnitude:F1}");
+                }
+
+                var midpoint = (activeMissile.transform.position + targetMarker.transform.position) * 0.5f;
+                Handles.Label(midpoint, $"dist: {currentDistance:F1}  closing: {closingSpeed:F1}");
+            }
+
+            // Shooter origin marker
+            if (showShooterOrigin)
+            {
+                Gizmos.color = new Color(0.2f, 0.8f, 1f, 0.5f);
+                Gizmos.DrawWireCube(shooterOrigin, Vector3.one * 0.4f);
+                Handles.Label(shooterOrigin + Vector3.up * 0.5f, "shooter");
+
+                if (shooterVelocityWorld.sqrMagnitude > 0.01f)
+                {
+                    SuperGizmos.DrawArrow(shooterOrigin, shooterVelocityWorld.normalized,
+                        color: new Color(0.2f, 0.8f, 1f), scale: 2f, headScale: 0.6f);
+                    Handles.Label(shooterOrigin + Vector3.up * 0.9f,
+                        $"shooter vel: {shooterVelocityWorld.magnitude:F1}");
+                }
+            }
 
             // Turn rate arc
             if (showVelocityHeadingDelta)
