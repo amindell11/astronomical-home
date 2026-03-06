@@ -23,8 +23,11 @@ namespace Cameras
 
         private HashSet<Transform> secondarySubjects;
         private Transform subject;
+        private Vector2? manualCenter;
+        private float? manualZoom;
 
         public bool LockCameraToSubject => lockCameraToSubject;
+        public Transform Subject => subject;
 
         protected override void Awake()
         {
@@ -47,6 +50,8 @@ namespace Cameras
 
         private Vector2 ComputeFocusCenter(Vector2 boundsMin, Vector2 boundsMax)
         {
+            if (manualCenter.HasValue)
+                return manualCenter.Value;
             if (lockCameraToSubject && subject)
                 return GamePlane.WorldPointToPlane(subject.position);
             return CameraUtils.BoundsCenter(boundsMin, boundsMax);
@@ -54,6 +59,8 @@ namespace Cameras
 
         private float ComputeDesiredZoom(Vector2 center, Vector2 boundsMin, Vector2 boundsMax)
         {
+            if (manualZoom.HasValue)
+                return ClampZoom(manualZoom.Value);
             if (lockZoomToSubject)
                 return ClampZoom(lockZoomDistance);
             var preferredSize = CameraUtils.ZoomToFitBounds(center, boundsMin, boundsMax, padding, Cam.aspect);
@@ -121,5 +128,13 @@ namespace Cameras
             if (target) secondarySubjects.Remove(target);
         }
         public void ClearSecondarySubjects() => secondarySubjects.Clear();
+
+        public void SetManualCenter(Vector2? center) => manualCenter = center;
+        public void SetManualZoom(float? zoom) => manualZoom = zoom;
+
+        public Vector2 CurrentCenter2D => manualCenter
+            ?? (subject ? GamePlane.WorldPointToPlane(subject.position) : Vector2.zero);
+
+        public IReadOnlyCollection<Transform> SecondarySubjects => secondarySubjects;
     }
 }

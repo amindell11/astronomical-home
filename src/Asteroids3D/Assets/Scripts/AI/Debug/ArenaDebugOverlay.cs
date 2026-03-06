@@ -1,0 +1,236 @@
+using System.Collections.Generic;
+using System.Linq;
+using AI.States;
+using AI.Utility;
+using Ships;
+using UnityEngine;
+
+namespace AI.Debug
+{
+    /// <summary>
+    /// Debug overlay for the AI Arena: state labels, utility bars, and target lines.
+    /// Attach to the ArenaSectorManager prefab or any active GameObject in the arena scene.
+    /// </summary>
+    public class ArenaDebugOverlay : MonoBehaviour
+    {
+        [Header("Display Toggles")]
+        [SerializeField] private bool showStateLabels = true;
+        [SerializeField] private bool showUtilityScores;
+        [SerializeField] private bool showTargetLines = true;
+
+        [Header("Visual Settings")]
+        [SerializeField] private Vector2 labelOffset = new(0, 40);
+        [SerializeField] private float barWidth = 120f;
+        [SerializeField] private float barHeight = 14f;
+
+        private static readonly Color TeamAColor = new(0.3f, 0.6f, 1f, 0.8f);
+        private static readonly Color TeamBColor = new(1f, 0.4f, 0.3f, 0.8f);
+
+        private Camera mainCam;
+        private Material lineMaterial;
+        private readonly List<Ship> trackedShips = new();
+
+        private static readonly Dictionary<StateType, Color> StateColors = new()
+        {
+            { StateType.Attack, new Color(1f, 0.2f, 0.2f) },
+            { StateType.Kite, new Color(1f, 0.9f, 0.2f) },
+            { StateType.Evade, new Color(0.2f, 0.9f, 0.3f) },
+            { StateType.JinkEvade, new Color(0.3f, 1f, 0.5f) },
+            { StateType.Orbit, new Color(1f, 0.6f, 0.2f) },
+            { StateType.Patrol, new Color(0.3f, 0.5f, 1f) },
+            { StateType.Idle, new Color(0.5f, 0.5f, 0.5f) }
+        };
+
+        private GUIStyle labelStyle;
+        private GUIStyle barBgStyle;
+        private GUIStyle barFillStyle;
+        private GUIStyle scoreStyle;
+        private bool stylesInitialized;
+
+        public void RegisterShip(Ship ship)
+        {
+            if (ship && !trackedShips.Contains(ship))
+                trackedShips.Add(ship);
+        }
+
+        private void InitStyles()
+        {
+            if (stylesInitialized) return;
+
+            labelStyle = new GUIStyle(GUI.skin.label)
+            {
+                alignment = TextAnchor.MiddleCenter,
+                fontStyle = FontStyle.Bold,
+                fontSize = 12
+            };
+
+            barBgStyle = new GUIStyle(GUI.skin.box);
+            var bgTex = new Texture2D(1, 1);
+            bgTex.SetPixel(0, 0, new Color(0, 0, 0, 0.5f));
+            bgTex.Apply();
+            barBgStyle.normal.background = bgTex;
+
+            barFillStyle = new GUIStyle();
+            var fillTex = new Texture2D(1, 1);
+            fillTex.SetPixel(0, 0, Color.white);
+            fillTex.Apply();
+            barFillStyle.normal.background = fillTex;
+
+            scoreStyle = new GUIStyle(GUI.skin.label)
+            {
+                alignment = TextAnchor.MiddleLeft,
+                fontSize = 10,
+                normal = { textColor = Color.white }
+            };
+
+            stylesInitialized = true;
+        }
+
+        private void Update()
+        {
+            trackedShips.RemoveAll(s => !s);
+
+            if (!mainCam)
+                mainCam = Camera.main;
+        }
+
+        private void OnGUI()
+        {
+            if (!mainCam) return;
+            if (!showStateLabels && !showUtilityScores) return;
+
+            InitStyles();
+
+            foreach (var ship in trackedShips)
+            {
+                if (!ship || !ship.gameObject.activeInHierarchy) continue;
+
+                var aiCommander = ship.Commander as AICommander;
+                if (!aiCommander) continue;
+
+                var screenPos = mainCam.WorldToScreenPoint(ship.transform.position);
+                if (screenPos.z < 0) continue;
+
+                // Unity OnGUI has Y inverted
+                var guiPos = new Vector2(screenPos.x, Screen.height - screenPos.y);
+
+                if (showStateLabels)
+                    DrawStateLabel(aiCommander, guiPos);
+
+                if (showUtilityScores)
+                    DrawUtilityBars(aiCommander, guiPos);
+            }
+        }
+
+        private void DrawStateLabel(AICommander commander, Vector2 guiPos)
+        {
+            var stateName = commander.CurrentStateName;
+            var stateType = commander.UtilitySelector?.CurrentState?.Type ?? StateType.Idle;
+
+            var color = StateColors.TryGetValue(stateType, out var c) ? c : Color.white;
+            labelStyle.normal.textColor = color;
+
+            var pos = new Vector2(guiPos.x - 60 + labelOffset.x, guiPos.y - 25 + labelOffset.y);
+            GUI.Label(new Rect(pos.x, pos.y, 120, 20), stateName, labelStyle);
+        }
+
+        private void DrawUtilityBars(AICommander commander, Vector2 guiPos)
+        {
+            var scores = commander.UtilitySelector?.UtilityScores;
+            if (scores == null || scores.Count == 0) return;
+
+            var currentType = commander.UtilitySelector.CurrentState?.Type;
+            var sorted = scores.OrderByDescending(kv => kv.Value).ToList();
+            var maxScore = sorted.Count > 0 ? Mathf.Max(sorted[0].Value, 1f) : 1f;
+
+            var startY = guiPos.y - 25 + labelOffset.y + 20;
+            var startX = guiPos.x - barWidth * 0.5f + labelOffset.x;
+
+            // Background panel
+            var panelHeight = sorted.Count * (barHeight + 2) + 4;
+            GUI.Box(new Rect(startX - 4, startY - 2, barWidth + 58, panelHeight),
+                GUIContent.none, barBgStyle);
+
+            for (int i = 0; i < sorted.Count; i++)
+            {
+                var kv = sorted[i];
+                var y = startY + i * (barHeight + 2);
+                var fill = kv.Value / maxScore;
+                var color = StateColors.TryGetValue(kv.Key, out var sc) ? sc : Color.grey;
+
+                if (currentType.HasValue && kv.Key == currentType.Value)
+                    color = Color.Lerp(color, Color.white, 0.3f);
+
+                // Bar background
+                GUI.Box(new Rect(startX, y, barWidth, barHeight), GUIContent.none, barBgStyle);
+
+                // Bar fill
+                var prevColor = GUI.color;
+                GUI.color = color;
+                GUI.Box(new Rect(startX, y, barWidth * fill, barHeight), GUIContent.none, barFillStyle);
+                GUI.color = prevColor;
+
+                // Label
+                var shortName = kv.Key.ToString().Substring(0, Mathf.Min(4, kv.Key.ToString().Length));
+                scoreStyle.normal.textColor = kv.Key == currentType ? Color.white : new Color(0.8f, 0.8f, 0.8f);
+                GUI.Label(new Rect(startX + 2, y, barWidth, barHeight),
+                    shortName, scoreStyle);
+                GUI.Label(new Rect(startX + barWidth + 4, y, 50, barHeight),
+                    kv.Value.ToString("F2"), scoreStyle);
+            }
+        }
+
+        private void CreateLineMaterial()
+        {
+            if (lineMaterial) return;
+            var shader = Shader.Find("Hidden/Internal-Colored");
+            lineMaterial = new Material(shader)
+            {
+                hideFlags = HideFlags.HideAndDontSave
+            };
+            lineMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            lineMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            lineMaterial.SetInt("_Cull", (int)UnityEngine.Rendering.CullMode.Off);
+            lineMaterial.SetInt("_ZWrite", 0);
+        }
+
+        private void OnRenderObject()
+        {
+            if (!showTargetLines) return;
+
+            CreateLineMaterial();
+            lineMaterial.SetPass(0);
+
+            GL.PushMatrix();
+            GL.MultMatrix(Matrix4x4.identity);
+            GL.Begin(GL.LINES);
+
+            foreach (var ship in trackedShips)
+            {
+                if (!ship || !ship.gameObject.activeInHierarchy) continue;
+
+                var aiCommander = ship.Commander as AICommander;
+                if (!aiCommander) continue;
+
+                var context = aiCommander.UtilitySelector?.Context;
+                var enemy = context?.Enemy;
+                if (!enemy || !enemy.gameObject.activeInHierarchy) continue;
+
+                var color = ship.teamNumber == 0 ? TeamAColor : TeamBColor;
+                GL.Color(color);
+                GL.Vertex(ship.transform.position);
+                GL.Vertex(enemy.transform.position);
+            }
+
+            GL.End();
+            GL.PopMatrix();
+        }
+
+        private void OnDestroy()
+        {
+            if (lineMaterial)
+                DestroyImmediate(lineMaterial);
+            trackedShips.Clear();
+        }
+    }
+}

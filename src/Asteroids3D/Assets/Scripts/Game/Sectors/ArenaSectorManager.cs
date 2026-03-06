@@ -22,12 +22,17 @@ namespace Game.Sectors
         [SerializeField] private float respawnDelay = 3f;
         [SerializeField] private bool playerParticipates;
 
+        [Header("Debug")]
+        [SerializeField] private bool enableDebugOverlay = true;
+
         [Header("Environment")]
         [SerializeField] private World.WorldRoot worldPrefab;
         [SerializeField] private UpdatingAsteroidField updatingAsteroidFieldPrefab;
 
         private readonly System.Collections.Generic.List<Ship> arenaShips = new();
         private UpdatingAsteroidField asteroidFieldInstance;
+        private AI.Debug.ArenaDebugOverlay debugOverlay;
+        private Cameras.ArenaSpectatorInput spectatorInput;
 
         protected override IEnumerator OnSetup()
         {
@@ -55,6 +60,34 @@ namespace Game.Sectors
             WireRespawn(player);
             foreach (var ship in arenaShips)
                 WireRespawn(ship);
+
+            // Debug overlay
+            if (enableDebugOverlay)
+            {
+                debugOverlay = gameObject.AddComponent<AI.Debug.ArenaDebugOverlay>();
+                if (player) debugOverlay.RegisterShip(player);
+                foreach (var ship in arenaShips)
+                    debugOverlay.RegisterShip(ship);
+            }
+
+            // Spectator input — attach to the ObserverCam so it can control it
+            var observer = Services.CameraService.GetCamera<Cameras.ObserverCam>(Cameras.CameraTag.Observer);
+            if (observer)
+            {
+                // Remove default input handler; arena uses its own
+                var defaultInput = observer.GetComponent<Cameras.ObserverCamInputHandler>();
+                if (defaultInput) Destroy(defaultInput);
+
+                spectatorInput = observer.gameObject.AddComponent<Cameras.ArenaSpectatorInput>();
+                var allShips = new System.Collections.Generic.List<Ship>();
+                if (player) allShips.Add(player);
+                allShips.AddRange(arenaShips);
+                spectatorInput.SetShips(allShips);
+
+                // Start locked to the player ship
+                observer.SetLockCameraToSubject(true);
+                observer.SetLockZoomToSubject(true);
+            }
         }
 
         private void SpawnTeam(int team, int count, float sideSign)
@@ -103,6 +136,12 @@ namespace Game.Sectors
 
         protected override IEnumerator OnTeardown()
         {
+            if (spectatorInput)
+                Destroy(spectatorInput);
+
+            if (debugOverlay)
+                Destroy(debugOverlay);
+
             if (asteroidFieldInstance)
                 Destroy(asteroidFieldInstance.gameObject);
 
@@ -113,6 +152,8 @@ namespace Game.Sectors
 
             arenaShips.Clear();
             asteroidFieldInstance = null;
+            debugOverlay = null;
+            spectatorInput = null;
         }
     }
 }

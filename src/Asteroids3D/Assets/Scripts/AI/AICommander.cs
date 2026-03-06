@@ -8,6 +8,7 @@ using UnityEngine;
 using AI.States;
 using Attack = AI.States.Attack;
 using Info = AI.Context.Info;
+using State = Ships.Command.State;
 using UtilitySelector = AI.Utility.UtilitySelector;
 
 namespace AI
