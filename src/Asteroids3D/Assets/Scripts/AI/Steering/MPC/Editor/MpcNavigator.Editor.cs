@@ -47,7 +47,7 @@ namespace Movement.MPC
 
         private CostBreakdown EvaluateBreakdown(State mpcState)
         {
-            return Sampler.EvaluateTrajectoryBreakdown(mpcState, bestSequence,
+            return Cost.EvaluateTrajectoryBreakdown(mpcState, bestSequence,
                 BuildCostInput(), config, dynamics, lastControl);
         }
 
