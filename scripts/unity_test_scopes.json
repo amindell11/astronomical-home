@@ -9,6 +9,9 @@
     "navigation": {
       "testFilter": "NavigatorPlayMode|MpcNavigatorPlayMode"
     },
+    "navigation_perf": {
+      "testFilter": "MpcPerformancePlayModeTests"
+    },
     "scanning": {
       "testFilter": "ScannerPlayMode"
     },
