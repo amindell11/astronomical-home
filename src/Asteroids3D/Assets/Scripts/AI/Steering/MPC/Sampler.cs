@@ -15,7 +15,10 @@ namespace Movement.MPC
             using var _ = EditorProfilingScope.Begin("MPC.Sampler.Solve");
             var horizon = cfg.horizon;
             var bestCost = EvaluateTrajectory(initialState, warmStart, goalPos, scan, cfg, shp, lastControl);
-            System.Array.Copy(warmStart, resultBuffer, horizon);
+            if (!ReferenceEquals(warmStart, resultBuffer))
+            {
+                System.Array.Copy(warmStart, resultBuffer, horizon);
+            }
             
             if (candidateBuffer == null || candidateBuffer.Length < horizon)
             {
@@ -40,11 +43,12 @@ namespace Movement.MPC
             using var _ = EditorProfilingScope.Begin("MPC.Sampler.GenerateCandidate");
             for (var j = 0; j < horizon; j++)
             {
+                var warm = warmStart[j];
                 candidate[j] = new Control
                 {
-                    thrust = Mathf.Clamp(warmStart[j].thrust + RandomGaussian() * noiseStd, -1f, 1f),
-                    strafe = Mathf.Clamp(warmStart[j].strafe + RandomGaussian() * noiseStd, -1f, 1f),
-                    yawTorque = Mathf.Clamp(warmStart[j].yawTorque + RandomGaussian() * noiseStd, -1f, 1f)
+                    thrust = Mathf.Clamp(warm.thrust + RandomGaussian() * noiseStd, -1f, 1f),
+                    strafe = Mathf.Clamp(warm.strafe + RandomGaussian() * noiseStd, -1f, 1f),
+                    yawTorque = Mathf.Clamp(warm.yawTorque + RandomGaussian() * noiseStd, -1f, 1f)
                 };
             }
         }
