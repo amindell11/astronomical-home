@@ -51,8 +51,11 @@ namespace Game.Sectors
             }
 
             if (minimapCamPrefab)
-            {   
-                Instantiate(minimapCamPrefab, observer.transform);
+            {
+                var minimapCam = Instantiate(minimapCamPrefab, observer.transform);
+                var overlay = Services.UIService.ActiveOverlay;
+                if (overlay && overlay.ObjectiveMarker && overlay.MinimapRect)
+                    overlay.ObjectiveMarker.Initialize(minimapCam, overlay.MinimapRect);
             }
 
             yield return null;
