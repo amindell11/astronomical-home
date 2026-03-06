@@ -68,6 +68,9 @@ namespace Movement.MPC
 
         public override void GenerateNavCommands(Ships.Command.State state, ref Command cmd)
         {
+            BeginGenerateNavCommandsProfiling();
+            try
+            {
             if (!currentWaypoint.isValid || HasArrived(state.kinematics)) return;
 
             RefreshWeights();
@@ -81,8 +84,16 @@ namespace Movement.MPC
 #if UNITY_EDITOR
             var sw = System.Diagnostics.Stopwatch.StartNew();
 #endif
+            BeginSolveProfiling();
+            try
+            {
             lastBestCost = Sampler.Solve(mpcState, bestSequence, candidateSequence, currentWaypoint.position,
                 scan, config, dynamics, settings.samples, settings.noiseStd, bestSequence, lastControl);
+            }
+            finally
+            {
+                EndSolveProfiling();
+            }
 #if UNITY_EDITOR
             sw.Stop();
             
@@ -91,9 +102,22 @@ namespace Movement.MPC
                 currentWaypoint.position, scan, config, dynamics, lastControl);
 #endif
 
+            BeginUpdatePredictedStatesProfiling();
+            try
+            {
             UpdatePredictedStates(mpcState);
+            }
+            finally
+            {
+                EndUpdatePredictedStatesProfiling();
+            }
             lastControl = bestSequence[0];
             ApplyControl(ref cmd, bestSequence[0]);
+            }
+            finally
+            {
+                EndGenerateNavCommandsProfiling();
+            }
         }
 
 
@@ -170,5 +194,11 @@ namespace Movement.MPC
         }
 
         partial void StoreDebugObstacles(ObstacleScan scan);
+        partial void BeginGenerateNavCommandsProfiling();
+        partial void EndGenerateNavCommandsProfiling();
+        partial void BeginSolveProfiling();
+        partial void EndSolveProfiling();
+        partial void BeginUpdatePredictedStatesProfiling();
+        partial void EndUpdatePredictedStatesProfiling();
     }
 }

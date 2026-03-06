@@ -8,10 +8,20 @@ namespace Movement.MPC
     /// </summary>
     public static partial class Sampler
     {
+        static partial void BeginSolveProfiling();
+        static partial void EndSolveProfiling();
+        static partial void BeginGenerateCandidateProfiling();
+        static partial void EndGenerateCandidateProfiling();
+        static partial void BeginEvaluateTrajectoryProfiling();
+        static partial void EndEvaluateTrajectoryProfiling();
+
         public static float Solve(State initialState, Control[] warmStart, Control[] candidateBuffer, Vector2 goalPos,
             ObstacleScan scan, Config cfg, Dynamics shp,
             int samples, float noiseStd, Control[] resultBuffer, Control lastControl)
         {
+            BeginSolveProfiling();
+            try
+            {
             var horizon = cfg.horizon;
             var bestCost = EvaluateTrajectory(initialState, warmStart, goalPos, scan, cfg, shp, lastControl);
             System.Array.Copy(warmStart, resultBuffer, horizon);
@@ -32,10 +42,18 @@ namespace Movement.MPC
             }
 
             return bestCost;
+            }
+            finally
+            {
+                EndSolveProfiling();
+            }
         }
 
         private static void GenerateCandidate(Control[] warmStart, Control[] candidate, int horizon, float noiseStd)
         {
+            BeginGenerateCandidateProfiling();
+            try
+            {
             for (var j = 0; j < horizon; j++)
             {
                 candidate[j] = new Control
@@ -45,11 +63,19 @@ namespace Movement.MPC
                     yawTorque = Mathf.Clamp(warmStart[j].yawTorque + RandomGaussian() * noiseStd, -1f, 1f)
                 };
             }
+            }
+            finally
+            {
+                EndGenerateCandidateProfiling();
+            }
         }
 
         private static float EvaluateTrajectory(State state, Control[] sequence, Vector2 goalPos,
             ObstacleScan scan, Config cfg, Dynamics shp, Control lastControl)
         {
+            BeginEvaluateTrajectoryProfiling();
+            try
+            {
             var totalCost = 0f;
             var current = state;
             var prevU = lastControl;
@@ -64,6 +90,11 @@ namespace Movement.MPC
             }
 
             return totalCost;
+            }
+            finally
+            {
+                EndEvaluateTrajectoryProfiling();
+            }
         }
 
 

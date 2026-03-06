@@ -4,6 +4,7 @@ using Movement;
 using Game;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace Movement.MPC
 {
@@ -45,6 +46,18 @@ namespace Movement.MPC
                 dbgObstacles[i] = scan.buffer[i];
             }
         }
+
+        partial void BeginGenerateNavCommandsProfiling() => Profiler.BeginSample("MPC.MpcNavigator.GenerateNavCommands");
+
+        partial void EndGenerateNavCommandsProfiling() => Profiler.EndSample();
+
+        partial void BeginSolveProfiling() => Profiler.BeginSample("MPC.MpcNavigator.Solve");
+
+        partial void EndSolveProfiling() => Profiler.EndSample();
+
+        partial void BeginUpdatePredictedStatesProfiling() => Profiler.BeginSample("MPC.MpcNavigator.UpdatePredictedStates");
+
+        partial void EndUpdatePredictedStatesProfiling() => Profiler.EndSample();
 
         private void OnDrawGizmos()
         {
