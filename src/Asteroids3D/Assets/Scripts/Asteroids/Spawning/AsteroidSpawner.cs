@@ -4,12 +4,14 @@ using Random = UnityEngine.Random;
 
 namespace Asteroids.Spawning
 {
+    [RequireComponent(typeof(Fragger))]
     public class AsteroidSpawner : MonoBehaviour
     {
         [SerializeField] private AsteroidSpawnSettings settings;
         public Registry Registry { get; private set; }
         private SpawnPool pool;
         private Transform worldAnchor;
+        private Fragger fragger;
 
         public void SetWorldAnchor(Transform anchor)
         {
@@ -26,6 +28,7 @@ namespace Asteroids.Spawning
             settings.ValidateSettings();
             Registry = new Registry();
             pool = new SpawnPool(settings, transform);
+            fragger = GetComponent<Fragger>();
         }
 
         public void DespawnAll()
@@ -73,7 +76,7 @@ namespace Asteroids.Spawning
             var velocity = RandomVelocity(mass, settings.velocityRange);
             var angularVelocity = RandomAngularVelocity(mass, settings.spinRange);
 
-            asteroid.Initialize(this, meshInfo, mass, scale, velocity, angularVelocity);
+            asteroid.Initialize(this, fragger, meshInfo, mass, scale, velocity, angularVelocity);
         }
 
         private void InitFragmentAsteroid(
@@ -84,7 +87,7 @@ namespace Asteroids.Spawning
         {
             var meshInfo = GetRandomMeshInfo(settings.meshInfos);
             var (finalMass, scale) = CalculateMassAndScale(meshInfo, mass);
-            asteroid.Initialize(this, meshInfo, finalMass, scale, velocity, angularVelocity);
+            asteroid.Initialize(this, fragger, meshInfo, finalMass, scale, velocity, angularVelocity);
         }
 
         private static AsteroidSpawnSettings.MeshInfo GetRandomMeshInfo(AsteroidSpawnSettings.MeshInfo[] meshInfos)
