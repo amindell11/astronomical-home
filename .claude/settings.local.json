@@ -2,7 +2,21 @@
   "permissions": {
     "allow": [
       "Bash(git stash show:*)",
-      "Bash(xargs grep:*)"
+      "Bash(xargs grep:*)",
+      "Bash(./scripts/agent_worktree_pool.sh acquire:*)",
+      "Bash(./scripts/agent_worktree_pool.sh status:*)",
+      "Bash(./scripts/agent_worktree_pool.sh review-comments:*)",
+      "Bash(./scripts/agent_worktree_pool.sh revise:*)",
+      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); [print\\(t[''name''],t.get\\(''status'',''?''\\)\\) for t in d.get\\(''tests'',d.get\\(''results'',[]\\)\\) if t.get\\(''status'',''''\\)==''Failed'' or t.get\\(''result'',''''\\)==''Failed'']\")",
+      "Read(//d/amind/git/agent-3/**)",
+      "Bash(python -c \":*)",
+      "Bash(python:*)",
+      "Bash(./scripts/agent_worktree_pool.sh run-tests:*)",
+      "Bash(pwsh:*)",
+      "Bash(powershell.exe:*)",
+      "Bash(grep:*)",
+      "Bash(cp:*)",
+      "Bash(\"D:/amind/git/astronomical-home/.worktree-pool/locks/agent-1.lock/task_branch\":*)"
     ]
   }
 }
