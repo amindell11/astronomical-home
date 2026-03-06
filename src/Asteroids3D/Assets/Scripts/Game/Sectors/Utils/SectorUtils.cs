@@ -42,8 +42,16 @@ namespace Game.Sectors.Utils
             if (registry == null)
                 return observer;
 
-            registry.ActiveShips.OnAdd += s => observer.AddSecondarySubject(s.transform);
-            registry.ActiveShips.OnRemove += s => observer.RemoveSecondarySubject(s.transform);
+            registry.ActiveShips.OnAdd += s =>
+            {
+                if (observer && s)
+                    observer.AddSecondarySubject(s.transform);
+            };
+            registry.ActiveShips.OnRemove += s =>
+            {
+                if (observer && s)
+                    observer.RemoveSecondarySubject(s.transform);
+            };
             return observer;
         }
     }

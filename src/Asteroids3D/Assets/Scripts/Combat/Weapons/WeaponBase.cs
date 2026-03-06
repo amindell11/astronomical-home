@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Combat.Conditions;
 using Combat.Projectile;
+using Diagnostics.Performance;
 using UnityEngine;
 using Utils;
 
@@ -63,15 +64,18 @@ namespace Combat.Weapons
         {
             if (!CanFire()) return null;
 
-            foreach (var condition in conditions)
-                condition.ProcessFire();
+            using (LatencyProfilingMarkers.ProjectileFire.Auto())
+            {
+                foreach (var condition in conditions)
+                    condition.ProcessFire();
 
-            var proj = SimplePool<TProj>.Get(projectilePrefab, firePoint.position, firePoint.rotation);
-            proj.Initialize(shooter);
-            proj.Launch(firePoint.up);
-            InvokeOnFire();
+                var proj = SimplePool<TProj>.Get(projectilePrefab, firePoint.position, firePoint.rotation);
+                proj.Initialize(shooter);
+                proj.Launch(firePoint.up);
+                InvokeOnFire();
 
-            return proj;
+                return proj;
+            }
         }
     }
 }

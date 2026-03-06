@@ -1,4 +1,5 @@
 using Asteroids.Fragnetics;
+using Diagnostics.Performance;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -44,19 +45,25 @@ namespace Asteroids.Spawning
 
         public AsteroidController SpawnRandom(Pose pose)
         {
-            var ast = SpawnAtPose(pose);
-            InitRandomAsteroid(ast);
-            Registry.Register(ast);
-            return ast;
+            using (LatencyProfilingMarkers.AsteroidSpawn.Auto())
+            {
+                var ast = SpawnAtPose(pose);
+                InitRandomAsteroid(ast);
+                Registry.Register(ast);
+                return ast;
+            }
         }
 
         public AsteroidController SpawnFragment(Frag frag)
         {
-            var pose = new Pose(frag.Position, frag.Rotation);
-            var ast = SpawnAtPose(pose);
-            InitFragmentAsteroid(ast, frag.Mass, frag.Velocity, frag.Spin);
-            Registry.Register(ast);
-            return ast;
+            using (LatencyProfilingMarkers.AsteroidSpawn.Auto())
+            {
+                var pose = new Pose(frag.Position, frag.Rotation);
+                var ast = SpawnAtPose(pose);
+                InitFragmentAsteroid(ast, frag.Mass, frag.Velocity, frag.Spin);
+                Registry.Register(ast);
+                return ast;
+            }
         }
 
         private AsteroidController SpawnAtPose(Pose pose)

@@ -1,6 +1,7 @@
 ﻿using Movement;
 using AI.Utility;
 using Combat;
+using Diagnostics.Performance;
 using Game;
 using Ships;
 using Ships.Command;
@@ -99,8 +100,11 @@ namespace AI
         private void FixedUpdate()
         {
             if (!systemsInitialized || !UtilitySelector) return;
-            UtilitySelector.Tick(context, Time.fixedDeltaTime);
-            GetSubCommands(ref cachedCommand);
+            using (LatencyProfilingMarkers.AIUpdate.Auto())
+            {
+                UtilitySelector.Tick(context, Time.fixedDeltaTime);
+                GetSubCommands(ref cachedCommand);
+            }
         }
 
         private void GetSubCommands(ref Command command)

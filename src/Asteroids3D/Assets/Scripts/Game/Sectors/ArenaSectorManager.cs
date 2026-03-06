@@ -1,5 +1,6 @@
 using System.Collections;
 using Asteroids.Fields;
+using Diagnostics.Performance;
 using Ships;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -33,9 +34,27 @@ namespace Game.Sectors
         private UpdatingAsteroidField asteroidFieldInstance;
         private AI.Debug.ArenaDebugOverlay debugOverlay;
         private Cameras.ArenaSpectatorInput spectatorInput;
+        private LatencyProfilingSettings profilingSettings;
+
+        public void ApplyLatencyProfilingSettings(LatencyProfilingSettings settings)
+        {
+            profilingSettings = settings;
+            if (settings == null)
+                return;
+
+            teamACount = settings.TeamACount;
+            teamBCount = settings.TeamBCount;
+            spawnRadius = settings.SpawnRadius;
+            respawnDelay = settings.RespawnDelay;
+            playerParticipates = false;
+            enableDebugOverlay = !settings.DisableDebugOverlay;
+        }
 
         protected override IEnumerator OnSetup()
         {
+            if (profilingSettings != null)
+                Random.InitState(profilingSettings.Seed);
+
             if (Config.LoadScene)
                 yield return Services.EnvironmentService.LoadSceneAsync(Config.SceneName);
             if (worldPrefab)
@@ -128,6 +147,7 @@ namespace Game.Sectors
             if (!cullingBoundary) return;
 
             asteroidFieldInstance = Instantiate(updatingAsteroidFieldPrefab);
+            asteroidFieldInstance.ApplyLatencyProfilingSettings(profilingSettings);
             asteroidFieldInstance.Initialize(cullingBoundary);
             asteroidFieldInstance.SetWorldAnchor(Services.EnvironmentService.WorldFollowerTransform);
             asteroidFieldInstance.CurrentAnchorPos = () =>

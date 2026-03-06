@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Diagnostics.Performance;
 
 namespace Objectives
 {
@@ -43,19 +44,22 @@ namespace Objectives
         /// </summary>
         public void Tick(float deltaTime)
         {
-            if (IsTerminal(current.StateType))
-                return;
-
-            if (mission.FailCriteria != null && mission.FailCriteria())
+            using (LatencyProfilingMarkers.ObjectiveTracker.Auto())
             {
-                TransitionTo("failed");
-                return;
+                if (IsTerminal(current.StateType))
+                    return;
+
+                if (mission.FailCriteria != null && mission.FailCriteria())
+                {
+                    TransitionTo("failed");
+                    return;
+                }
+
+                current.Tick(deltaTime);
+
+                if (current.IsComplete && mission.TryGetNext(currentStep, out var next))
+                    TransitionTo(next);
             }
-
-            current.Tick(deltaTime);
-
-            if (current.IsComplete && mission.TryGetNext(currentStep, out var next))
-                TransitionTo(next);
         }
 
         /// <summary>

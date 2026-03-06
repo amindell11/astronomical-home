@@ -1,5 +1,6 @@
 using System;
 using Damage;
+using Diagnostics.Performance;
 using Game;
 using UnityEngine;
 using Utils;
@@ -56,8 +57,11 @@ namespace Combat.Projectile
 
         protected virtual void FixedUpdate()
         {
-            PlaneConstraints.ConstrainPosition(transform);
-            if (DistanceTraveled > maxDistance) Dispose();
+            using (LatencyProfilingMarkers.ProjectileUpdate.Auto())
+            {
+                PlaneConstraints.ConstrainPosition(transform);
+                if (DistanceTraveled > maxDistance) Dispose();
+            }
         }
 
         protected virtual void OnHit(IDamageable other)
