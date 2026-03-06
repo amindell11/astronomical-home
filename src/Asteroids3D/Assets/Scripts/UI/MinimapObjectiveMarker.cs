@@ -32,9 +32,11 @@ namespace UI
             if (icon) icon.enabled = target;
         }
 
+        private readonly Vector3[] corners = new Vector3[4];
+
         private void LateUpdate()
         {
-            if (!target || !minimapCam || !icon)
+            if (!target || !minimapCam || !minimapRect || !icon)
             {
                 if (icon) icon.enabled = false;
                 return;
@@ -44,9 +46,13 @@ namespace UI
             vp.x = Mathf.Clamp01(vp.x);
             vp.y = Mathf.Clamp01(vp.y);
 
-            icon.rectTransform.anchoredPosition = new Vector2(
-                (vp.x - 0.5f) * minimapRect.rect.width,
-                (vp.y - 0.5f) * minimapRect.rect.height);
+            // Map viewport to minimap rect in world space (scale-independent)
+            minimapRect.GetWorldCorners(corners); // 0=BL, 1=TL, 2=TR, 3=BR
+            var pos = Vector3.Lerp(
+                Vector3.Lerp(corners[0], corners[3], vp.x),
+                Vector3.Lerp(corners[1], corners[2], vp.x),
+                vp.y);
+            icon.rectTransform.position = pos;
 
             float t = Mathf.Sin(Time.time * pulseSpeed) * 0.5f + 0.5f;
             icon.color = Color.Lerp(baseColor, Color.white, t);
