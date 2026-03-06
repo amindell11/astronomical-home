@@ -22,12 +22,16 @@ namespace Game.Sectors
         [SerializeField] private float respawnDelay = 3f;
         [SerializeField] private bool playerParticipates;
 
+        [Header("Debug")]
+        [SerializeField] private bool enableDebugOverlay = true;
+
         [Header("Environment")]
         [SerializeField] private World.WorldRoot worldPrefab;
         [SerializeField] private UpdatingAsteroidField updatingAsteroidFieldPrefab;
 
         private readonly System.Collections.Generic.List<Ship> arenaShips = new();
         private UpdatingAsteroidField asteroidFieldInstance;
+        private AI.Debug.ArenaDebugOverlay debugOverlay;
 
         protected override IEnumerator OnSetup()
         {
@@ -55,6 +59,15 @@ namespace Game.Sectors
             WireRespawn(player);
             foreach (var ship in arenaShips)
                 WireRespawn(ship);
+
+            // Debug overlay
+            if (enableDebugOverlay)
+            {
+                debugOverlay = gameObject.AddComponent<AI.Debug.ArenaDebugOverlay>();
+                if (player) debugOverlay.RegisterShip(player);
+                foreach (var ship in arenaShips)
+                    debugOverlay.RegisterShip(ship);
+            }
         }
 
         private void SpawnTeam(int team, int count, float sideSign)
@@ -103,6 +116,9 @@ namespace Game.Sectors
 
         protected override IEnumerator OnTeardown()
         {
+            if (debugOverlay)
+                Destroy(debugOverlay);
+
             if (asteroidFieldInstance)
                 Destroy(asteroidFieldInstance.gameObject);
 
@@ -113,6 +129,7 @@ namespace Game.Sectors
 
             arenaShips.Clear();
             asteroidFieldInstance = null;
+            debugOverlay = null;
         }
     }
 }
