@@ -1,5 +1,6 @@
 using AI.Scanning;
 using UnityEngine;
+using Unity.Profiling;
 
 namespace Movement.MPC
 {
@@ -8,10 +9,16 @@ namespace Movement.MPC
     /// </summary>
     public static partial class Sampler
     {
+        private static readonly ProfilerMarker SolveMarker = new("MPC.Sampler.Solve");
+        private static readonly ProfilerMarker GenerateCandidateMarker = new("MPC.Sampler.GenerateCandidate");
+        private static readonly ProfilerMarker EvaluateTrajectoryMarker = new("MPC.Sampler.EvaluateTrajectory");
+
         public static float Solve(State initialState, Control[] warmStart, Vector2 goalPos,
             ObstacleScan scan, Config cfg, Dynamics shp,
             int samples, float noiseStd, Control[] resultBuffer, Control lastControl)
         {
+            using var _ = SolveMarker.Auto();
+
             var horizon = cfg.horizon;
             var bestCost = EvaluateTrajectory(initialState, warmStart, goalPos, scan, cfg, shp, lastControl);
             System.Array.Copy(warmStart, resultBuffer, horizon);
@@ -33,6 +40,8 @@ namespace Movement.MPC
 
         private static void GenerateCandidate(Control[] warmStart, Control[] candidate, int horizon, float noiseStd)
         {
+            using var _ = GenerateCandidateMarker.Auto();
+
             for (var j = 0; j < horizon; j++)
             {
                 candidate[j] = new Control
@@ -47,6 +56,8 @@ namespace Movement.MPC
         private static float EvaluateTrajectory(State state, Control[] sequence, Vector2 goalPos,
             ObstacleScan scan, Config cfg, Dynamics shp, Control lastControl)
         {
+            using var _ = EvaluateTrajectoryMarker.Auto();
+
             var totalCost = 0f;
             var current = state;
             var prevU = lastControl;

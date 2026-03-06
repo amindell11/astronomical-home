@@ -6,11 +6,16 @@ using Ships;
 using Ships.Command;
 using Movement;
 using UnityEngine;
+using Unity.Profiling;
 namespace Movement.MPC
 {
     [DefaultExecutionOrder(-60)]
     public partial class MpcNavigator : Navigator
     {
+        private static readonly ProfilerMarker GenerateNavCommandsMarker = new("MPC.MpcNavigator.GenerateNavCommands");
+        private static readonly ProfilerMarker SolveMarker = new("MPC.MpcNavigator.Solve");
+        private static readonly ProfilerMarker UpdatePredictedStatesMarker = new("MPC.MpcNavigator.UpdatePredictedStates");
+
         [Header("Settings")]
         public MPC.Settings settings;
  
@@ -66,6 +71,8 @@ namespace Movement.MPC
 
         public override void GenerateNavCommands(Ships.Command.State state, ref Command cmd)
         {
+            using var _ = GenerateNavCommandsMarker.Auto();
+
             if (!currentWaypoint.isValid || HasArrived(state.kinematics)) return;
 
             RefreshWeights();
@@ -75,12 +82,15 @@ namespace Movement.MPC
             StoreDebugObstacles(scan);
 
             ShiftWarmStart();
-            
+
 #if UNITY_EDITOR
             var sw = System.Diagnostics.Stopwatch.StartNew();
 #endif
-            lastBestCost = Sampler.Solve(mpcState, bestSequence, currentWaypoint.position, 
-                scan, config, dynamics, settings.samples, settings.noiseStd, bestSequence, lastControl);
+            using (SolveMarker.Auto())
+            {
+                lastBestCost = Sampler.Solve(mpcState, bestSequence, currentWaypoint.position,
+                    scan, config, dynamics, settings.samples, settings.noiseStd, bestSequence, lastControl);
+            }
 #if UNITY_EDITOR
             sw.Stop();
             
@@ -89,7 +99,10 @@ namespace Movement.MPC
                 currentWaypoint.position, scan, config, dynamics, lastControl);
 #endif
 
-            UpdatePredictedStates(mpcState);
+            using (UpdatePredictedStatesMarker.Auto())
+            {
+                UpdatePredictedStates(mpcState);
+            }
             lastControl = bestSequence[0];
             ApplyControl(ref cmd, bestSequence[0]);
         }

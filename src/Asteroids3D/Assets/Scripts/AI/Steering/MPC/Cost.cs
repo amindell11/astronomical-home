@@ -1,5 +1,6 @@
 using AI.Scanning;
 using UnityEngine;
+using Unity.Profiling;
 
 namespace Movement.MPC
 {
@@ -8,9 +9,13 @@ namespace Movement.MPC
     /// </summary>
     public static partial class Cost
     {
+        private static readonly ProfilerMarker EvaluateMarker = new("MPC.Cost.Evaluate");
+
         public static float Evaluate(State s, Control u, Control prevU, Vector2 goalPos, 
             ObstacleScan scan, Config cfg, bool isTerminal)
         {
+            using var _ = EvaluateMarker.Auto();
+
             var distToGoal = Vector2.Distance(s.pos, goalPos);
             
             // Arrival stabilization
