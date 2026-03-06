@@ -9,6 +9,9 @@ namespace Movement.MPC
     public static partial class Cost
     {
         private const float ObstacleEpsilon = 0.01f;
+        private const float HeadingGateDistance = 2f;
+        private const float HeadingGateDistanceSq = HeadingGateDistance * HeadingGateDistance;
+        private const float TwoPi = 2f * Mathf.PI;
 
         public static float Evaluate(State s, Control u, Control prevU, Vector2 goalPos, 
             ObstacleScan scan, Config cfg, bool isTerminal)
@@ -61,20 +64,18 @@ namespace Movement.MPC
         
         private static float HeadingCost(Vector2 pos, float yaw, Vector2 goal)
         {
-            // 3. Heading cost (face the goal) - continuous + robust
-            var toGoal = (goal - pos);
+            var toGoal = goal - pos;
             var distSq = toGoal.sqrMagnitude;
             if (distSq < 1e-8f) return 0f;
 
-            var dist = Mathf.Sqrt(distSq);
             var goalYaw = Mathf.Atan2(-toGoal.x, toGoal.y);
             var angErr = WrapRadians(yaw - goalYaw);
             var headingCost = angErr * angErr;
 
-            // fade out heading near the goal so it doesn't dither at "arrived"
-            var headingGate = Mathf.SmoothStep(0f, 1f, dist / 2f); // TODO add headingGateDist in cfg (e.g., 2f)
-            headingCost *= headingGate;
-            return headingCost;
+            if (distSq >= HeadingGateDistanceSq) return headingCost;
+
+            var normalizedDist = Mathf.Sqrt(distSq) / HeadingGateDistance;
+            return headingCost * Mathf.SmoothStep(0f, 1f, normalizedDist);
         }
 
         private static float FacingCost(float yaw, float targetYaw)
@@ -124,8 +125,8 @@ namespace Movement.MPC
 
         private static float WrapRadians(float angle)
         {
-            while (angle > Mathf.PI) angle -= 2f * Mathf.PI;
-            while (angle < -Mathf.PI) angle += 2f * Mathf.PI;
+            if (angle > Mathf.PI) return angle - TwoPi;
+            if (angle < -Mathf.PI) return angle + TwoPi;
             return angle;
         }
     }

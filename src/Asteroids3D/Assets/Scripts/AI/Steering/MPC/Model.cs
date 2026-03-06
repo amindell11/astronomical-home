@@ -7,6 +7,8 @@ namespace Movement.MPC
     /// </summary>
     public static partial class Model
     {
+        private const float TwoPi = 2f * Mathf.PI;
+
         public static State Step(State s, Control u, Config cfg, Dynamics shp)
         {
             using var _ = EditorProfilingScope.Begin("MPC.Model.Step");
@@ -58,8 +60,8 @@ namespace Movement.MPC
 
         private static float WrapAngle(float angle)
         {
-            while (angle > Mathf.PI) angle -= 2f * Mathf.PI;
-            while (angle < -Mathf.PI) angle += 2f * Mathf.PI;
+            if (angle > Mathf.PI) return angle - TwoPi;
+            if (angle < -Mathf.PI) return angle + TwoPi;
             return angle;
         }
     }

@@ -19,6 +19,8 @@ namespace Movement.MPC
             {
                 System.Array.Copy(warmStart, resultBuffer, horizon);
             }
+
+            if (samples <= 1) return bestCost;
             
             if (candidateBuffer == null || candidateBuffer.Length < horizon)
             {

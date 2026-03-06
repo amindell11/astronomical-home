@@ -129,8 +129,13 @@ namespace Movement.MPC
             yawRate = kin.yawRate * Mathf.Deg2Rad
         };
 
-        private void ShiftWarmStart() =>
-            System.Array.Copy(bestSequence, 1, bestSequence, 0, bestSequence.Length - 1);
+        private void ShiftWarmStart()
+        {
+            if (bestSequence.Length > 1)
+            {
+                System.Array.Copy(bestSequence, 1, bestSequence, 0, bestSequence.Length - 1);
+            }
+        }
 
         private void UpdatePredictedStates(State initial)
         {
