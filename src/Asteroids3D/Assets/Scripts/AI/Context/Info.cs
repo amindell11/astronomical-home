@@ -27,7 +27,12 @@ namespace AI.Context
         public Scanning.Scout Scout { get; private set; }
         public Maneuvers Maneuvers { get; private set; }
 
-        public Info(Ships.Ship ship, Navigator navigator, Gunner gunner, Scanning.Scout scout, TargetingUtils targetingUtils, Maneuvers maneuvers)
+        // New assessment layer (Phase 1)
+        public CombatTracker CombatTracker { get; private set; }
+        public SituationAssessment Assessment { get; private set; }
+
+        public Info(Ships.Ship ship, Navigator navigator, Gunner gunner, Scanning.Scout scout, TargetingUtils targetingUtils, Maneuvers maneuvers,
+            float combatExitDelay = 3f)
         {
             this.ship = ship;
             if (!ship)
@@ -44,6 +49,14 @@ namespace AI.Context
             Maneuvers = maneuvers;
             Combat = new Combat(Scout, gunner, TargetingUtils);
             Nav = new Navigation(ShipInfo, Scout, navigator);
+            CombatTracker = new CombatTracker(Scout, gunner, targetingUtils, shipId, registry, combatExitDelay);
+            Assessment = SituationAssessment.None;
+        }
+
+        public void UpdateAssessment()
+        {
+            CombatTracker.Update();
+            Assessment = SituationAssessment.Evaluate(ShipInfo, CombatTracker, Scout, TargetingUtils);
         }
 
         // Ship state

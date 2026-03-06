@@ -75,14 +75,15 @@ namespace AI
 
             System.Func<State> stateProvider = () => ship.CurrentState;
 
+            if (!utilityTuning)
+                utilityTuning = ScriptableObject.CreateInstance<UtilityTuning>();
+
             Scout.Initialize(ship.transform, ship.Id, ship.settings.Dynamics, stateProvider, registry);
             Navigator.Initialize(stateProvider, ship.settings.Dynamics, Scout);
             Gunner.Initialize(ship.Weapons.Primary, ship.Weapons.Secondary, targeting, stateProvider);
 
-            context = new Info(ship, Navigator, Gunner, Scout, targeting, maneuvers);
-
-            if (!utilityTuning)
-                utilityTuning = ScriptableObject.CreateInstance<UtilityTuning>();
+            context = new Info(ship, Navigator, Gunner, Scout, targeting, maneuvers,
+                utilityTuning.combatExitDelay);
 
             UtilitySelector.Initialize(
                 new Attack(Navigator, Gunner, utilityTuning),
@@ -101,6 +102,7 @@ namespace AI
             if (!systemsInitialized || !UtilitySelector) return;
             if (UtilitySelector.isActiveAndEnabled)
             {
+                context.UpdateAssessment();
                 UtilitySelector.Tick(context, Time.fixedDeltaTime);
             }
             GetSubCommands(ref cachedCommand);

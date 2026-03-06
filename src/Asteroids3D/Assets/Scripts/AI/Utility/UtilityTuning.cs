@@ -13,6 +13,17 @@ namespace AI.Utility
         [Header("State Weights (Shared Baseline)")]
         [Tooltip("Base weight multipliers for all states. These compound with per-instance biases.")]
         public UtilityWeights utilityWeights;
+
+        [Header("Combat Assessment")]
+        public float combatExitDelay = 3f;
+
+        [Header("Per-State Tuning")]
+        public AttackTuning attack = AttackTuning.Default;
+        public EvadeTuning evade = EvadeTuning.Default;
+        public KiteTuning kite = KiteTuning.Default;
+        public OrbitTuning orbit = OrbitTuning.Default;
+        public JinkEvadeTuning jinkEvade = JinkEvadeTuning.Default;
+        public PatrolTuning patrol = PatrolTuning.Default;
         
         [Header("Attack Utility Factors")]
         [Tooltip("Factor range for self health (low health = 0.3x, full health = 1.0x)")]
