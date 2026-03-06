@@ -4,6 +4,7 @@ using Random = UnityEngine.Random;
 
 namespace Asteroids.Spawning
 {
+    [RequireComponent(typeof(Fragger))]
     public class AsteroidSpawner : MonoBehaviour
     {
         [SerializeField] private AsteroidSpawnSettings settings;
@@ -27,7 +28,7 @@ namespace Asteroids.Spawning
             settings.ValidateSettings();
             Registry = new Registry();
             pool = new SpawnPool(settings, transform);
-            fragger = GetComponentInParent<Fragger>();
+            fragger = GetComponent<Fragger>();
         }
 
         public void DespawnAll()
