@@ -1,3 +1,4 @@
+using Game;
 using UnityEngine;
 using TargetingUtils = Combat.TargetingUtils;
 
@@ -87,7 +88,7 @@ namespace AI.Context
             var scan = scout.ShipScan;
             var enemyCount = scan?.EnemyCount(scout.ShipId, scout.Registry) ?? 0;
             var friendCount = scan?.FriendCount(scout.ShipId, scout.Registry) ?? 0;
-            var outnumbered = Mathf.Clamp01((enemyCount - friendCount) / 3f);
+            var outnumbered = Mathf.Clamp01((float)(enemyCount - friendCount) / 3f);
 
             var hasEnemy = combat.HasEnemy;
             var enemyDistance = float.MaxValue;
@@ -104,8 +105,7 @@ namespace AI.Context
                 enemyDistance = vec.magnitude;
                 enemyCombinedDurability = (combat.EnemyHealthPct + combat.EnemyShieldPct) / 2f;
 
-                hasLos = targeting.HasLineOfSight(
-                    new Vector3(enemyPos.x, enemyPos.y, shipInfo.Pos3D.z));
+                hasLos = targeting.HasLineOfSight(GamePlane.PlanePointToWorld(enemyPos));
 
                 var rawClosing = targeting.ClosingSpeed(enemyPos, combat.EnemyVel);
                 closingRate = Mathf.Clamp01(rawClosing * 0.05f + 0.5f);

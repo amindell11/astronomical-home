@@ -14,7 +14,7 @@ namespace AI.Context
         private readonly float combatExitDelay;
 
         private Ship cachedEnemy;
-        private float lastContactTime;
+        private float lastContactTime = -1f;
 
         public CombatTracker(
             Scanning.Scout scout,
@@ -35,7 +35,7 @@ namespace AI.Context
         public Ship Enemy => cachedEnemy;
         public bool HasEnemy => cachedEnemy && cachedEnemy.gameObject.activeInHierarchy;
         public bool InCombat => HasEnemy || TimeSinceCombat < combatExitDelay;
-        public float TimeSinceCombat { get; private set; }
+        public float TimeSinceCombat { get; private set; } = float.MaxValue;
 
         public Vector2 EnemyPos => HasEnemy ? cachedEnemy.CurrentState.kinematics.pos : Vector2.zero;
         public Vector2 EnemyVel => HasEnemy ? cachedEnemy.CurrentState.kinematics.vel : Vector2.zero;
