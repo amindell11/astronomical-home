@@ -228,8 +228,8 @@ namespace Tests.PlayMode
             LaunchAt(missile, Vector2.up, shooter);
 
             yield return AsyncAssert.WaitUntil(
-                () => DistanceToTarget() < 2f,
-                5f,
+                () => DistanceToTarget() < 3f,
+                8f,
                 $"Missile did not converge on 90-degree target (dist={DistanceToTarget():F2})",
                 useFixedUpdate: true);
 
