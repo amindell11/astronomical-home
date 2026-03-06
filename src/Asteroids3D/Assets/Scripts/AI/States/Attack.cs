@@ -11,7 +11,7 @@ namespace AI.States
 
         private Transform lastTarget;
         private float lastTargetUpdate;
-        
+
         public Attack(Navigator navigator, Gunner gunner, UtilityTuning utilityTuning) : base(navigator, gunner, utilityTuning)
         {
         }
@@ -20,21 +20,26 @@ namespace AI.States
         {
         }
 
-        public override void Tick(Info context, float deltaTime)
+        public override void Tick(Info ctx, float deltaTime)
         {
-            if (!context.Enemy) return;   
-            
-            var predictedTarget = context.TargetingUtils.PredictIntercept(
-                context.EnemyPos,
-                context.EnemyVel,
-                context.LaserSpeed
+            var combat = ctx.CombatTracker;
+            if (!combat.HasEnemy) return;
+
+            var predictedTarget = ctx.TargetingUtils.PredictIntercept(
+                combat.EnemyPos,
+                combat.EnemyVel,
+                combat.LaserSpeed
             );
-            
+
             gunner.SetTarget(predictedTarget);
-            
-            var vectorToPredictedTarget = predictedTarget - context.SelfPosition;
-            
-            if(context.VectorToEnemy.magnitude < utilityTuning.attackFacingDistance || Vector3.Dot(context.EnemyRelVelocity, context.VectorToEnemy) < utilityTuning.attackFacingSpeed){
+
+            var vectorToPredictedTarget = predictedTarget - ctx.ShipInfo.Pos;
+            var vectorToEnemy = combat.EnemyPos - ctx.ShipInfo.Pos;
+            var relVel = ctx.TargetingUtils.RelativeVelocity(combat.EnemyVel);
+
+            if (vectorToEnemy.magnitude < utilityTuning.attack.facingDistance
+                || Vector3.Dot(relVel, vectorToEnemy) < utilityTuning.attack.facingSpeed)
+            {
                 navigator.SetFacingTarget(vectorToPredictedTarget);
             }
             else
@@ -42,10 +47,9 @@ namespace AI.States
                 navigator.ClearFacingOverride();
             }
             navigator.SetNavigationPoint(
-                context.EnemyPos,
+                combat.EnemyPos,
                 true,
-                context.EnemyVel);
-
+                combat.EnemyVel);
         }
 
         public override void Exit()
@@ -56,25 +60,24 @@ namespace AI.States
 
         public override float ComputeUtility(Info ctx)
         {
-            if (!ctx.Enemy)
+            if (!ctx.CombatTracker.HasEnemy)
                 return 0f;
 
-            var dist = ctx.VectorToEnemy.magnitude;
-            var enemyHealth = (ctx.EnemyHealthPct + ctx.EnemyShieldPct) / 2f;
-            var netThreat = Mathf.Clamp01((ctx.NearbyEnemyCount - ctx.NearbyFriendCount) / 3f);
-            var inRange = dist >= utilityTuning.attackUtilityOptimalRangeMin && dist <= utilityTuning.attackUtilityOptimalRangeMax;
-            var rangeScore = inRange ? 1f : Mathf.Clamp01(1f - Mathf.Abs(dist - 20f) / 30f);
+            var a = ctx.Assessment;
+            var t = utilityTuning.attack;
+            var inRange = a.EnemyDistance >= t.optimalRangeMin && a.EnemyDistance <= t.optimalRangeMax;
+            var rangeScore = inRange ? 1f : Mathf.Clamp01(1f - Mathf.Abs(a.EnemyDistance - 20f) / 30f);
 
             return NewBuilder()
-                .Factor("selfHealth", ctx.HealthPct, utilityTuning.attackHealthFactor)
-                .Factor("selfShield", ctx.ShieldPct, utilityTuning.attackShieldFactor)
-                .Factor("enemyWeak", enemyHealth, utilityTuning.attackEnemyWeakFactor)
-                .Factor("range", rangeScore, utilityTuning.attackRangeFactor)
-                .FactorBinary(ctx.LineOfSightToEnemy, "LOS", utilityTuning.attackLOSFactor)
-                .Factor("threat", netThreat, utilityTuning.attackThreatFactor)
-                .FactorIf(dist > utilityTuning.attackOuterDistanceThreshold, "outerRange", utilityTuning.attackOuterRangeFactor)
-                .Factor("desperation", ctx.HealthPct, utilityTuning.attackDesperationFactor)
+                .Factor("selfHealth", a.HealthPct, t.healthFactor)
+                .Factor("selfShield", a.ShieldPct, t.shieldFactor)
+                .Factor("enemyWeak", a.EnemyCombinedDurability, t.enemyWeakFactor)
+                .Factor("range", rangeScore, t.rangeFactor)
+                .FactorBinary(a.HasLineOfSight, "LOS", t.losFactor)
+                .Factor("threat", a.Outnumbered, t.threatFactor)
+                .FactorIf(a.EnemyDistance > t.outerDistanceThreshold, "outerRange", t.outerRangeFactor)
+                .Factor("desperation", a.HealthPct, t.desperationFactor)
                 .Build();
         }
     }
-} 
+}

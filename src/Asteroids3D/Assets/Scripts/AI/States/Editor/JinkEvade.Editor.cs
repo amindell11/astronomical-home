@@ -12,7 +12,7 @@ namespace AI.States
             base.OnDrawGizmos(ctx);
             if (ctx==null) return;
 
-            var selfPos = ctx.SelfPosition3D;
+            var selfPos = ctx.ShipInfo.Pos3D;
             var tgtPos  = GamePlane.PlanePointToWorld(currentTarget);
 
             // Draw path line
@@ -21,9 +21,9 @@ namespace AI.States
             Gizmos.DrawWireSphere(tgtPos, 1.2f);
 
             // Draw flee + jink vectors
-            if (ctx.Enemy)
+            if (ctx.CombatTracker.HasEnemy)
             {
-                var enemyPos = GamePlane.PlanePointToWorld(ctx.EnemyPos);
+                var enemyPos = GamePlane.PlanePointToWorld(ctx.CombatTracker.EnemyPos);
                 Gizmos.color = Color.red;
                 Gizmos.DrawLine(selfPos, enemyPos);
             }

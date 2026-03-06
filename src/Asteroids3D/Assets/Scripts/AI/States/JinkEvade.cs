@@ -22,28 +22,36 @@ namespace AI.States
         public override void Enter(Info ctx)
         {
             base.Enter(ctx);
+            var t = utilityTuning.jinkEvade;
             jinkLeft      = Random.value > 0.5f;
-            nextJinkTime  = Time.time + utilityTuning.jinkInterval;
+            nextJinkTime  = Time.time + t.interval;
             gunner.SetTarget(Vector2.zero); // cease fire while jinking
         }
 
         public override void Tick(Info ctx, float deltaTime)
         {
+            var combat = ctx.CombatTracker;
+            var t = utilityTuning.jinkEvade;
+
             if (Time.time >= nextJinkTime)
             {
                 jinkLeft = !jinkLeft;
-                nextJinkTime = Time.time + utilityTuning.jinkInterval;
+                nextJinkTime = Time.time + t.interval;
             }
 
-            var fleeDir = ctx.Enemy ? -ctx.VectorToEnemy.normalized : Random.insideUnitCircle.normalized;
+            var fleeDir = combat.HasEnemy
+                ? -(combat.EnemyPos - ctx.ShipInfo.Pos).normalized
+                : Random.insideUnitCircle.normalized;
 
             var sideDir = jinkLeft ? new Vector2(fleeDir.y, -fleeDir.x)  // 90° CW
                                         : new Vector2(-fleeDir.y, fleeDir.x); // 90° CCW
 
-            var amp = ctx.IncomingMissile ? utilityTuning.jinkSideStepDistance * utilityTuning.jinkMissileAmplitudeFactor : utilityTuning.jinkSideStepDistance;
+            var amp = ctx.Assessment.IncomingMissile
+                ? t.sideStepDistance * t.missileAmplitudeFactor
+                : t.sideStepDistance;
 
-            var offset = fleeDir * utilityTuning.jinkFleeDistance + sideDir * amp;
-            currentTarget  = ctx.SelfPosition + offset;
+            var offset = fleeDir * t.fleeDistance + sideDir * amp;
+            currentTarget = ctx.ShipInfo.Pos + offset;
 
             navigator.SetNavigationPoint(currentTarget, avoid: true);
             navigator.SetFacingTarget(fleeDir);
@@ -58,28 +66,25 @@ namespace AI.States
 
         public override float ComputeUtility(Info ctx)
         {
-            if (!ctx.Enemy && !ctx.IncomingMissile) return 0f;
+            if (!ctx.CombatTracker.HasEnemy && !ctx.Assessment.IncomingMissile) return 0f;
 
-            var criticalState = ctx.HealthPct < utilityTuning.jinkCriticalHealthThreshold 
-                && ctx.ShieldPct < utilityTuning.jinkCriticalShieldThreshold;
-            
-            var angleScore = ctx.SelfAngleToEnemy / 180f;
-            var closingScore = Mathf.Clamp01(ctx.ClosingSpeed * 0.05f + 0.5f);
-            var facingScore = ctx.Enemy ? (Mathf.Cos(ctx.EnemyAngleToSelf * Mathf.Deg2Rad) + 1f) / 2f : 0.5f;
-            var dist = ctx.Enemy ? ctx.VectorToEnemy.magnitude : 100f;
+            var a = ctx.Assessment;
+            var t = utilityTuning.jinkEvade;
+            var criticalState = a.HealthPct < t.criticalHealthThreshold
+                && a.ShieldPct < t.criticalShieldThreshold;
 
             return NewBuilder()
-                .Factor("selfHealth", ctx.HealthPct, utilityTuning.evadeHealthFactor)
-                .Factor("selfShield", ctx.ShieldPct, utilityTuning.evadeShieldFactor)
-                .FactorBinary(ctx.NearbyEnemyCount > ctx.NearbyFriendCount + 1, "outnumbered", utilityTuning.evadeOutnumberedFactor)
-                .FactorBinary(ctx.Enemy && ctx.LineOfSightToEnemy, "enemyLOS", utilityTuning.evadeEnemyLOSFactor)
-                .Factor("closing", closingScore, utilityTuning.evadeClosingSpeedFactor)
-                .Factor("enemyFacing", facingScore, utilityTuning.evadeEnemyFacingFactor)
-                .FactorIf(ctx.IncomingMissile, "missileThreat", utilityTuning.jinkMissileThreatFactor)
-                .FactorIf(criticalState, "criticalState", utilityTuning.jinkCriticalStateFactor)
-                .FactorIf(ctx.Enemy && ctx.SelfAngleToEnemy > utilityTuning.jinkFacingAwayAngle, "facingAway", utilityTuning.jinkFacingAwayFactor)
-                .Factor("angle", angleScore, utilityTuning.jinkAngleFactor)
+                .Factor("selfHealth", a.HealthPct, t.healthFactor)
+                .Factor("selfShield", a.ShieldPct, t.shieldFactor)
+                .Factor("outnumbered", a.Outnumbered, t.outnumberedFactor)
+                .FactorBinary(a.HasLineOfSight, "enemyLOS", t.enemyLOSFactor)
+                .Factor("closing", a.ClosingRate, t.closingSpeedFactor)
+                .Factor("enemyFacing", a.EnemyFacingThreat, t.enemyFacingFactor)
+                .FactorIf(a.IncomingMissile, "missileThreat", t.missileThreatFactor)
+                .FactorIf(criticalState, "criticalState", t.criticalStateFactor)
+                .FactorIf(ctx.CombatTracker.HasEnemy && a.SelfAngleToEnemy > t.facingAwayAngle, "facingAway", t.facingAwayFactor)
+                .Factor("angle", a.SelfAngleNorm, t.angleFactor)
                 .Build();
         }
     }
-} 
+}

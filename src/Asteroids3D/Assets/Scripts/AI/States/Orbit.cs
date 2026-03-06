@@ -19,10 +19,11 @@ namespace AI.States
             base.Enter(ctx);
             stateEntryTime = Time.time;
 
-            if (ctx?.Enemy)
+            var combat = ctx.CombatTracker;
+            if (combat.HasEnemy)
             {
-                var relativeVel = ctx.EnemyRelVelocity;
-                var toEnemy = ctx.VectorToEnemy;
+                var relativeVel = ctx.TargetingUtils.RelativeVelocity(combat.EnemyVel);
+                var toEnemy = combat.EnemyPos - ctx.ShipInfo.Pos;
                 var cross = relativeVel.x * toEnemy.y - relativeVel.y * toEnemy.x;
                 orbitClockwise = Mathf.Abs(cross) < 1f ? Random.value > 0.5f : cross > 0f;
             }
@@ -30,25 +31,27 @@ namespace AI.States
 
         public override void Tick(Info ctx, float deltaTime)
         {
-            if (!ctx?.Enemy) return;
+            var combat = ctx.CombatTracker;
+            if (!combat.HasEnemy) return;
 
             var predicted = ctx.TargetingUtils.PredictIntercept(
-                ctx.EnemyPos,
-                ctx.EnemyVel,
-                ctx.LaserSpeed);
+                combat.EnemyPos,
+                combat.EnemyVel,
+                combat.LaserSpeed);
 
             gunner.SetTarget(predicted);
-            navigator.SetFacingTarget(predicted - ctx.SelfPosition);
+            navigator.SetFacingTarget(predicted - ctx.ShipInfo.Pos);
 
+            var t = utilityTuning.orbit;
             var orbitPoint = ctx.Maneuvers.ComputeOrbitPoint(
-                ctx.EnemyPos,
+                combat.EnemyPos,
                 orbitClockwise,
-                utilityTuning.orbitRadius,
-                utilityTuning.orbitLeadTime);
+                t.radius,
+                t.leadTime);
 
             navigator.SetNavigationPoint(orbitPoint, avoid: true);
 
-            if (Time.time - stateEntryTime > utilityTuning.orbitFlipMinTime && Random.value < utilityTuning.orbitFlipChancePerSecond * deltaTime)
+            if (Time.time - stateEntryTime > t.flipMinTime && Random.value < t.flipChancePerSecond * deltaTime)
             {
                 orbitClockwise = !orbitClockwise;
             }
@@ -63,26 +66,24 @@ namespace AI.States
 
         public override float ComputeUtility(Info ctx)
         {
-            if (!ctx?.Enemy) return 0f;
+            if (!ctx.CombatTracker.HasEnemy) return 0f;
 
-            var dist = ctx.VectorToEnemy.magnitude;
-            var enemyHealth = (ctx.EnemyHealthPct + ctx.EnemyShieldPct) / 2f;
-            var healthFactor = (ctx.HealthPct + ctx.ShieldPct) / 2f;
-            var netThreat = Mathf.Clamp01((ctx.NearbyEnemyCount - ctx.NearbyFriendCount) / 3f);
-            var inRange = dist >= utilityTuning.orbitMinRadius && dist <= utilityTuning.orbitMaxRadius;
-            var rangeScore = inRange ? 1f : Mathf.Clamp01(1f - Mathf.Abs(dist - utilityTuning.orbitRadius) / 20f);
+            var a = ctx.Assessment;
+            var t = utilityTuning.orbit;
+            var inRange = a.EnemyDistance >= t.minRadius && a.EnemyDistance <= t.maxRadius;
+            var rangeScore = inRange ? 1f : Mathf.Clamp01(1f - Mathf.Abs(a.EnemyDistance - t.radius) / 20f);
 
             return NewBuilder()
-                .Factor("selfHealth", ctx.HealthPct, utilityTuning.attackHealthFactor)
-                .Factor("selfShield", ctx.ShieldPct, utilityTuning.attackShieldFactor)
-                .Factor("enemyWeak", enemyHealth, utilityTuning.attackEnemyWeakFactor)
-                .Factor("range", rangeScore, utilityTuning.attackRangeFactor)
-                .FactorBinary(ctx.LineOfSightToEnemy, "LOS", utilityTuning.attackLOSFactor)
-                .Factor("threat", netThreat, utilityTuning.attackThreatFactor)
-                .FactorBinary(inRange, "orbitRange", utilityTuning.orbitInRangeFactor)
-                .FactorIf(!ctx.LineOfSightToEnemy, "flanking", utilityTuning.orbitFlankingFactor)
-                .FactorIf(healthFactor < utilityTuning.orbitLowHealthThreshold, "lowHealth", utilityTuning.orbitLowHealthFactor)
+                .Factor("selfHealth", a.HealthPct, t.healthFactor)
+                .Factor("selfShield", a.ShieldPct, t.shieldFactor)
+                .Factor("enemyWeak", a.EnemyCombinedDurability, t.enemyWeakFactor)
+                .Factor("range", rangeScore, t.rangeFactor)
+                .FactorBinary(a.HasLineOfSight, "LOS", t.losFactor)
+                .Factor("threat", a.Outnumbered, t.threatFactor)
+                .FactorBinary(inRange, "orbitRange", t.inRangeFactor)
+                .FactorIf(!a.HasLineOfSight, "flanking", t.flankingFactor)
+                .FactorIf(a.CombinedDurability < t.lowHealthThreshold, "lowHealth", t.lowHealthFactor)
                 .Build();
         }
     }
-} 
+}
