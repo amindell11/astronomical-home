@@ -11,6 +11,7 @@ namespace UI
     public class MinimapObjectiveMarker : MonoBehaviour
     {
         [SerializeField] private Image icon;
+        [SerializeField] private float iconSize = 12f;
         [SerializeField] private float pulseSpeed = 4f;
         [SerializeField] private float pulseScale = 0.15f;
         [SerializeField] private Color baseColor = Color.yellow;
@@ -23,7 +24,16 @@ namespace UI
         {
             minimapCam = cam;
             minimapRect = transform.parent as RectTransform;
-            if (icon) icon.enabled = false;
+
+            if (icon)
+            {
+                var rt = icon.rectTransform;
+                rt.anchorMin = new Vector2(0.5f, 0.5f);
+                rt.anchorMax = new Vector2(0.5f, 0.5f);
+                rt.pivot = new Vector2(0.5f, 0.5f);
+                rt.sizeDelta = new Vector2(iconSize, iconSize);
+                icon.enabled = false;
+            }
         }
 
         public void SetTarget(Transform objective)
