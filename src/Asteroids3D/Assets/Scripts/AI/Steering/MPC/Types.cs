@@ -23,6 +23,7 @@ namespace Movement.MPC
     public struct Config
     {
         public float dt;
+        public float invDt;
         public int horizon;
 
         // Weights
@@ -41,6 +42,7 @@ namespace Movement.MPC
         
         // Arrival Stabilization
         public float arrivalDistance;
+        public float arrivalDistanceSq;
         public float arrivalVelScale;
         public float arrivalYawScale;
         

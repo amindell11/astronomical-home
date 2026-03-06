@@ -11,7 +11,7 @@ namespace Movement.MPC
         {
             using var _ = EditorProfilingScope.Begin("MPC.Model.Step");
             var (fwd, right) = BodyAxes(s.yaw);
-            var acc = ComputeAcceleration(u, fwd, right, cfg, shp, s.vel);
+            var acc = ComputeAcceleration(u, fwd, right, shp, s.vel);
             var (nextPos, nextVel) = IntegrateLinear(s.pos, s.vel, acc, cfg.dt, shp);
             var (nextYaw, nextYawRate) = IntegrateAngular(s.yaw, s.yawRate, u.yawTorque, cfg, shp);
             
@@ -25,7 +25,7 @@ namespace Movement.MPC
             return (new Vector2(-sin, cos), new Vector2(cos, sin));
         }
 
-        private static Vector2 ComputeAcceleration(Control u, Vector2 fwd, Vector2 right, Config cfg, Dynamics shp, Vector2 vel)
+        private static Vector2 ComputeAcceleration(Control u, Vector2 fwd, Vector2 right, Dynamics shp, Vector2 vel)
         {
             var accF = ((u.thrust >= 0 ? shp.forwardAcc : shp.reverseAcc) * u.thrust) / shp.mass;
             
@@ -40,7 +40,8 @@ namespace Movement.MPC
         {
             var dragFactor = Mathf.Max(0f, 1f - shp.linearDrag * dt);
             var nextVel = vel * dragFactor + acc * dt;
-            if (nextVel.sqrMagnitude > shp.maxSpeed * shp.maxSpeed)
+            var maxSpeedSq = shp.maxSpeed * shp.maxSpeed;
+            if (nextVel.sqrMagnitude > maxSpeedSq)
                 nextVel = nextVel.normalized * shp.maxSpeed;
             return (pos + nextVel * dt, nextVel);
         }

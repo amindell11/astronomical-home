@@ -45,6 +45,7 @@ namespace Movement.MPC
             return new Config
             {
                 dt = settings.rolloutDt,
+                invDt = settings.rolloutDt > 0f ? 1f / settings.rolloutDt : 0f,
                 horizon = settings.Horizon,
                 
                 wPos = settings.wPos,
@@ -60,6 +61,7 @@ namespace Movement.MPC
                 terminalMultiplier = settings.terminalMultiplier,
                 obstacleThreshold = settings.obstacleThreshold,
                 arrivalDistance = settings.arrivalDistance,
+                arrivalDistanceSq = settings.arrivalDistance * settings.arrivalDistance,
                 arrivalVelScale = settings.arrivalVelScale,
                 arrivalYawScale = settings.arrivalYawScale,
                 facingTarget = float.NaN
@@ -150,6 +152,7 @@ namespace Movement.MPC
         private void RefreshWeights()
         {
             config.dt = settings.rolloutDt;
+            config.invDt = settings.rolloutDt > 0f ? 1f / settings.rolloutDt : 0f;
             var newHorizon = settings.Horizon;
             if (config.horizon != newHorizon)
             {
@@ -171,6 +174,7 @@ namespace Movement.MPC
             config.terminalMultiplier = settings.terminalMultiplier;
             config.obstacleThreshold = settings.obstacleThreshold;
             config.arrivalDistance = settings.arrivalDistance;
+            config.arrivalDistanceSq = settings.arrivalDistance * settings.arrivalDistance;
             config.arrivalVelScale = settings.arrivalVelScale;
             config.arrivalYawScale = settings.arrivalYawScale;
             config.facingTarget = facingOverride ? facingAngle * Mathf.Deg2Rad : float.NaN;
