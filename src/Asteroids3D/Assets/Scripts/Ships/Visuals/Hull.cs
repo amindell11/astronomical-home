@@ -25,7 +25,8 @@ namespace Ships.Visuals
         private static readonly int DetailScale = Shader.PropertyToID("_DetailAlbedoMapScale");
 
         private Color baseColor;
-        private Coroutine doFlash;
+        private bool flashActive;
+        private float flashElapsed;
 
         private void Awake()
         {
@@ -53,6 +54,7 @@ namespace Ships.Visuals
             source.OnDamaged      -= SpawnSparks;
             source.OnDamaged      -= TriggerFlash;
             source.OnDeath        -= OnDeath;
+            flashActive = false;
         }
 
         private void OnDeath(ShipId _victimId, ShipId _killerId)
@@ -100,42 +102,39 @@ namespace Ships.Visuals
         private void TriggerFlash(float dmg, Vector3 _)
         {
             if (dmg <= 0f || !hull || !GameSettings.VfxEnabled) return;
-            if (doFlash != null) StopCoroutine(doFlash);
-            doFlash = StartCoroutine(FlashRoutine());
+            flashActive = true;
+            flashElapsed = 0f;
+            ApplyFlashColor(0f);
         }
 
-        private IEnumerator FlashRoutine()
+        private void Update()
         {
-            if (!hull) yield break;
+            if (!flashActive || !hull) return;
 
+            flashElapsed += Time.unscaledDeltaTime;
+            if (flashElapsed >= flashTime)
+            {
+                flashActive = false;
+                ApplyFlashColor(1f);
+                return;
+            }
+
+            ApplyFlashColor(flashElapsed / flashTime);
+        }
+
+        private void ApplyFlashColor(float normalizedTime)
+        {
             var pb = block;
-            var half = flashTime * 0.5f;
-            // Cache base color once
             if (baseColor == default)
             {
                 hull.GetPropertyBlock(pb);
                 baseColor = pb.GetColor(Color);
             }
 
-            // Fade in
-            for (float t = 0; t < half; t += Time.unscaledDeltaTime)
-            {
-                var k = t / half;
-                var c = UnityEngine.Color.Lerp(baseColor, flashColor, k);
-                pb.SetColor(Color, c);
-                hull.SetPropertyBlock(pb);
-                yield return null;
-            }
-            // Fade out
-            for (float t = 0; t < half; t += Time.unscaledDeltaTime)
-            {
-                var k = t / half;
-                var c = UnityEngine.Color.Lerp(flashColor, baseColor, k);
-                pb.SetColor(Color, c);
-                hull.SetPropertyBlock(pb);
-                yield return null;
-            }
-            pb.SetColor(Color, baseColor);
+            var blend = normalizedTime <= 0.5f
+                ? normalizedTime * 2f
+                : 2f - normalizedTime * 2f;
+            pb.SetColor(Color, UnityEngine.Color.Lerp(baseColor, flashColor, blend));
             hull.SetPropertyBlock(pb);
         }
     }

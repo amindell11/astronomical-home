@@ -1,4 +1,3 @@
-using System.Collections;
 using UnityEngine;
 
 namespace Combat.Projectile.Audio
@@ -20,8 +19,11 @@ namespace Combat.Projectile.Audio
 
         private Missile missile;
         private AudioSource audioSource;
-        private Coroutine engineCoroutine;
         private bool engineActive;
+        private bool enginePending;
+        private bool engineFadingIn;
+        private float engineStartTime;
+        private float engineFadeElapsed;
 
         private void Awake()
         {
@@ -56,8 +58,29 @@ namespace Combat.Projectile.Audio
 
         private void Update()
         {
-            if (!engineActive || !audioSource || !engineLoopClip) return;
-            if (audioSource.clip != engineLoopClip) return;
+            if (!audioSource || !engineLoopClip) return;
+
+            if (enginePending)
+            {
+                if (Time.time < engineStartTime) return;
+                StartEngineLoop();
+            }
+
+            if (engineFadingIn)
+            {
+                engineFadeElapsed += Time.deltaTime;
+                if (engineFadeInTime > 0f)
+                    audioSource.volume = Mathf.Lerp(0f, engineVolume, Mathf.Clamp01(engineFadeElapsed / engineFadeInTime));
+
+                if (engineFadeElapsed >= engineFadeInTime)
+                {
+                    audioSource.volume = engineVolume;
+                    engineFadingIn = false;
+                    engineActive = true;
+                }
+            }
+
+            if (!engineActive || audioSource.clip != engineLoopClip) return;
             audioSource.pitch = Mathf.Lerp(minEnginePitch, maxEnginePitch, missile ? missile.NormalizedSpeed : 0f);
         }
 
@@ -65,8 +88,9 @@ namespace Combat.Projectile.Audio
         {
             if (!audioSource) return;
             if (launchClip) audioSource.PlayOneShot(launchClip, launchVolume);
-            if (engineCoroutine != null) StopCoroutine(engineCoroutine);
-            engineCoroutine = StartCoroutine(StartEngineLoop());
+            StopEngine();
+            enginePending = true;
+            engineStartTime = Time.time + engineStartDelay;
         }
 
         private void HandleDetonated(Vector3 position)
@@ -75,40 +99,31 @@ namespace Combat.Projectile.Audio
             if (detonationClip) global::Audio.PooledAudioSource.PlayClipAtPoint(detonationClip, position, detonationVolume);
         }
 
-        private IEnumerator StartEngineLoop()
+        private void StartEngineLoop()
         {
-            if (!engineLoopClip || !audioSource) yield break;
-            yield return new WaitForSeconds(engineStartDelay);
-            if (!isActiveAndEnabled || !audioSource) yield break;
+            if (!engineLoopClip || !audioSource || !isActiveAndEnabled) return;
 
             audioSource.clip = engineLoopClip;
             audioSource.volume = 0f;
             audioSource.loop = true;
             audioSource.pitch = minEnginePitch;
             audioSource.Play();
-
-            if (engineFadeInTime > 0f)
+            enginePending = false;
+            engineFadeElapsed = 0f;
+            engineFadingIn = engineFadeInTime > 0f;
+            if (!engineFadingIn)
             {
-                for (var t = 0f; t < engineFadeInTime; t += Time.deltaTime)
-                {
-                    audioSource.volume = Mathf.Lerp(0f, engineVolume, t / engineFadeInTime);
-                    yield return null;
-                }
+                audioSource.volume = engineVolume;
+                engineActive = true;
             }
-
-            audioSource.volume = engineVolume;
-            engineActive = true;
-            engineCoroutine = null;
         }
 
         private void StopEngine()
         {
             engineActive = false;
-            if (engineCoroutine != null)
-            {
-                StopCoroutine(engineCoroutine);
-                engineCoroutine = null;
-            }
+            enginePending = false;
+            engineFadingIn = false;
+            engineFadeElapsed = 0f;
             if (!audioSource) return;
             audioSource.Stop();
             audioSource.clip = null;

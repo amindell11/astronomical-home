@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Game;
 using UnityEngine;
 using Utils;
@@ -88,8 +87,9 @@ namespace Cameras
         {
             CameraUtils.InitEmptyBounds(out min, out max);
 
-            foreach (var t in secondarySubjects.Where(t => t && t.gameObject.activeInHierarchy))
+            foreach (var t in secondarySubjects)
             {
+                if (!t || !t.gameObject.activeInHierarchy) continue;
                 CameraUtils.ExpandBounds(ref min, ref max, GamePlane.WorldPointToPlane(t.position));
             }
 
