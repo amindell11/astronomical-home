@@ -135,6 +135,36 @@ namespace Game.Sectors
             };
 
             Services.ObjectiveService.SetObjective(MissionDefinition.CreateDefault(), builders);
+
+            WireObjectiveMarker();
+        }
+
+        private void WireObjectiveMarker()
+        {
+            var overlay = Services.UIService.ActiveOverlay;
+            if (!overlay || !overlay.ObjectiveMarker) return;
+
+            var marker = overlay.ObjectiveMarker;
+
+            SetMarkerTarget(marker, Services.ObjectiveService.CurrentState ?? ObjectiveType.Explore);
+            Services.ObjectiveService.OnStateChanged += (_, to) => SetMarkerTarget(marker, to);
+        }
+
+        private void SetMarkerTarget(UI.MinimapObjectiveMarker marker, ObjectiveType state)
+        {
+            switch (state)
+            {
+                case ObjectiveType.Explore:
+                    marker.SetTarget(keyPickupInstance ? keyPickupInstance.transform : null);
+                    break;
+                case ObjectiveType.KeyAcquired:
+                case ObjectiveType.ExtractionChallenge:
+                    marker.SetTarget(extractionZoneInstance ? extractionZoneInstance.transform : null);
+                    break;
+                default:
+                    marker.SetTarget(null);
+                    break;
+            }
         }
 
         private void RestartEncounter()

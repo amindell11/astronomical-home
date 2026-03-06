@@ -16,6 +16,8 @@ namespace UI
         private LaserHeatUI laserHeatUI;
         private MissileAmmoUI missileAmmoUI;
 
+        public MinimapObjectiveMarker ObjectiveMarker { get; private set; }
+
         private void Awake()
         {
             canvas = GetComponent<Canvas>();
@@ -24,6 +26,7 @@ namespace UI
             laserAudio = GetComponentInChildren<UILaserAudio>();
             laserHeatUI = GetComponentInChildren<LaserHeatUI>();
             missileAmmoUI = GetComponentInChildren<MissileAmmoUI>();
+            ObjectiveMarker = GetComponentInChildren<MinimapObjectiveMarker>(true);
         }
 
         public void SetCanvasWorldCamera(Camera uicam)
