@@ -6,16 +6,11 @@ using Ships;
 using Ships.Command;
 using Movement;
 using UnityEngine;
-using Unity.Profiling;
 namespace Movement.MPC
 {
     [DefaultExecutionOrder(-60)]
     public partial class MpcNavigator : Navigator
     {
-        private static readonly ProfilerMarker GenerateNavCommandsMarker = new("MPC.MpcNavigator.GenerateNavCommands");
-        private static readonly ProfilerMarker SolveMarker = new("MPC.MpcNavigator.Solve");
-        private static readonly ProfilerMarker UpdatePredictedStatesMarker = new("MPC.MpcNavigator.UpdatePredictedStates");
-
         [Header("Settings")]
         public MPC.Settings settings;
  
@@ -23,6 +18,7 @@ namespace Movement.MPC
         public bool enableObstacleAvoidance = true;
 
         private Control[] bestSequence;
+        private Control[] candidateSequence;
         private State[] predictedStates;
         private Config config;
 #if UNITY_EDITOR
@@ -38,6 +34,7 @@ namespace Movement.MPC
             
             var horizon = settings.Horizon;
             bestSequence = new Control[horizon];
+            candidateSequence = new Control[horizon];
             predictedStates = new State[horizon];
             
             config = BuildConfig();
@@ -71,8 +68,6 @@ namespace Movement.MPC
 
         public override void GenerateNavCommands(Ships.Command.State state, ref Command cmd)
         {
-            using var _ = GenerateNavCommandsMarker.Auto();
-
             if (!currentWaypoint.isValid || HasArrived(state.kinematics)) return;
 
             RefreshWeights();
@@ -86,11 +81,8 @@ namespace Movement.MPC
 #if UNITY_EDITOR
             var sw = System.Diagnostics.Stopwatch.StartNew();
 #endif
-            using (SolveMarker.Auto())
-            {
-                lastBestCost = Sampler.Solve(mpcState, bestSequence, currentWaypoint.position,
-                    scan, config, dynamics, settings.samples, settings.noiseStd, bestSequence, lastControl);
-            }
+            lastBestCost = Sampler.Solve(mpcState, bestSequence, candidateSequence, currentWaypoint.position,
+                scan, config, dynamics, settings.samples, settings.noiseStd, bestSequence, lastControl);
 #if UNITY_EDITOR
             sw.Stop();
             
@@ -99,10 +91,7 @@ namespace Movement.MPC
                 currentWaypoint.position, scan, config, dynamics, lastControl);
 #endif
 
-            using (UpdatePredictedStatesMarker.Auto())
-            {
-                UpdatePredictedStates(mpcState);
-            }
+            UpdatePredictedStates(mpcState);
             lastControl = bestSequence[0];
             ApplyControl(ref cmd, bestSequence[0]);
         }
@@ -158,6 +147,7 @@ namespace Movement.MPC
             if (config.horizon != newHorizon)
             {
                 bestSequence = new Control[newHorizon];
+                candidateSequence = new Control[newHorizon];
                 predictedStates = new State[newHorizon];
                 config.horizon = newHorizon;
             }

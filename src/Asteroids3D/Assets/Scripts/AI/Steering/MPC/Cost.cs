@@ -1,6 +1,5 @@
 using AI.Scanning;
 using UnityEngine;
-using Unity.Profiling;
 
 namespace Movement.MPC
 {
@@ -9,21 +8,20 @@ namespace Movement.MPC
     /// </summary>
     public static partial class Cost
     {
-        private static readonly ProfilerMarker EvaluateMarker = new("MPC.Cost.Evaluate");
-
         public static float Evaluate(State s, Control u, Control prevU, Vector2 goalPos, 
             ObstacleScan scan, Config cfg, bool isTerminal)
         {
-            using var _ = EvaluateMarker.Auto();
-
-            var distToGoal = Vector2.Distance(s.pos, goalPos);
+            var toGoal = goalPos - s.pos;
+            var distToGoalSq = toGoal.sqrMagnitude;
+            var arrivalDistanceSq = cfg.arrivalDistance * cfg.arrivalDistance;
             
             // Arrival stabilization
             var wVel = cfg.wVel;
             var wYaw = cfg.wYaw;
             
-            if (distToGoal < cfg.arrivalDistance)
+            if (distToGoalSq < arrivalDistanceSq)
             {
+                var distToGoal = Mathf.Sqrt(distToGoalSq);
                 var t = 1f - (distToGoal / cfg.arrivalDistance); // 0 at arrivalDist, 1 at goal
                 wVel = Mathf.Lerp(cfg.wVel, cfg.wVel * cfg.arrivalVelScale, t);
                 wYaw = Mathf.Lerp(cfg.wYaw, cfg.wYaw * cfg.arrivalYawScale, t);
@@ -106,11 +104,13 @@ namespace Movement.MPC
             for (var i = 0; i < scan.count; i++)
             {
                 var obs = scan.buffer[i];
-                var dist = Vector2.Distance(pos, obs.position);
                 var range = obs.radius + threshold;
+                var rangeSq = range * range;
+                var distSq = (pos - obs.position).sqrMagnitude;
 
-                if (dist >= range) continue;
+                if (distSq >= rangeSq) continue;
                 
+                var dist = Mathf.Sqrt(distSq);
                 var norm = dist / range;
                 cost += 1f / ((norm + 0.01f) * (norm + 0.01f));
             }

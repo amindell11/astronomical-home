@@ -1,5 +1,4 @@
 using UnityEngine;
-using Unity.Profiling;
 
 namespace Movement.MPC
 {
@@ -8,12 +7,8 @@ namespace Movement.MPC
     /// </summary>
     public static class Model
     {
-        private static readonly ProfilerMarker StepMarker = new("MPC.Model.Step");
-
         public static State Step(State s, Control u, Config cfg, Dynamics shp)
         {
-            using var _ = StepMarker.Auto();
-
             var (fwd, right) = BodyAxes(s.yaw);
             var acc = ComputeAcceleration(u, fwd, right, cfg, shp, s.vel);
             var (nextPos, nextVel) = IntegrateLinear(s.pos, s.vel, acc, cfg.dt, shp);
