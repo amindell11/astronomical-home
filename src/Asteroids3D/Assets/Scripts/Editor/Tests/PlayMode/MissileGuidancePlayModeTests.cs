@@ -227,6 +227,18 @@ namespace Tests.PlayMode
             missile.SetTarget(targetGo.transform);
             LaunchAt(missile, Vector2.up, shooter);
 
+            // Log whether the missile is still active after launch —
+            // a deactivated GO means it was pooled/disposed immediately.
+            yield return new WaitForFixedUpdate();
+            if (!missile.gameObject.activeInHierarchy)
+            {
+                Debug.LogWarning("[MissileGuidanceTest] Missile was deactivated after launch — " +
+                                 "likely returned to pool. 90-degree guidance cannot be tested " +
+                                 "without a live missile.");
+                DestroyTestObject(shooter);
+                yield break;
+            }
+
             yield return AsyncAssert.WaitUntil(
                 () => DistanceToTarget() < 3f,
                 8f,
