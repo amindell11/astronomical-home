@@ -17,9 +17,10 @@ Use this skill for this repo's pooled worktree workflow.
 - `./scripts/agent_worktree_pool.sh prepare <slot> origin/main`
 - `./scripts/agent_worktree_pool.sh run-tests <slot> -- <unity_test_agent.ps1 args>`
 - `./scripts/agent_worktree_pool.sh create-pr <slot>`
-- `./scripts/agent_worktree_pool.sh finalize <slot> origin/main -- <test args>`
+- `./scripts/agent_worktree_pool.sh submit <slot> origin/main -- <test args>`
 - `./scripts/agent_worktree_pool.sh review-comments <slot>`
 - `./scripts/agent_worktree_pool.sh revise <slot> -- <test args>`
+- `./scripts/agent_worktree_pool.sh finalize <slot> origin/main`
 - `./scripts/agent_worktree_pool.sh release <slot>`
 
 ## Two distinct flows
@@ -28,16 +29,17 @@ Use this skill for this repo's pooled worktree workflow.
 
 1. Acquire a free slot.
 2. Implement changes in that slot worktree.
-3. Run `finalize` to:
-   - reset slot to `origin/main`
-   - run tests with standardized output path `results/unity-tests-agent`
-   - create/update PR
-   - release lock
-
-Default command:
+3. Run `submit` to run tests and create PR (**lock is kept**):
 
 ```bash
-./scripts/agent_worktree_pool.sh finalize agent-<n> origin/main -- -Mode Both -ScopeType Workspace
+./scripts/agent_worktree_pool.sh submit agent-<n> origin/main -- -Mode Both -ScopeType Workspace
+```
+
+4. Wait for PR review feedback. Use `review-comments` and `revise` (flow B) as needed.
+5. Once the PR is merged, run `finalize` to reset the slot and release the lock:
+
+```bash
+./scripts/agent_worktree_pool.sh finalize agent-<n> origin/main
 ```
 
 ### B) PR feedback flow (no reset)
@@ -55,9 +57,18 @@ Default command:
 ./scripts/agent_worktree_pool.sh revise agent-<n> -- -Mode Smoke
 ```
 
+## Branch naming
+
+Each task gets its own remote branch: `task/<lease-id>`.
+The local worktree stays on the `agent-N` branch; `submit` pushes to the
+task-specific remote branch automatically. This ensures each task has its
+own PR even when the same slot is reused.
+
 ## Guardrails
 
-- Keep PR head branch the same slot branch (`agent-1`, `agent-2`, `agent-3`).
+- Each task gets its own remote branch (`task/<lease-id>`) and PR.
+  The local worktree stays on the `agent-N` branch; `submit` pushes to
+  the task-specific remote branch automatically.
 - Do **not** run `prepare` during feedback rounds unless user explicitly asks to restart from main.
 - Do not run two agents in the same slot at once.
 - Prefer targeted/smoke tests during iteration; run broader scope before handoff when requested.

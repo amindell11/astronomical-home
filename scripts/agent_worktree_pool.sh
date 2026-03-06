@@ -35,9 +35,15 @@ Commands:
   create-pool-prs [base]
       Create PRs for all agent-* slots that are ahead of base.
 
-  finalize <slot> [base_ref] [-- unity_test_agent.ps1 args...]
-      End-to-end helper: prepare slot, run tests, create PR, release lock.
-      Test args after -- are passed to unity_test_agent.ps1.
+  submit <slot> [base_ref] [-- unity_test_agent.ps1 args...]
+      Run tests, push to a task-specific remote branch (task/<lease>),
+      and create PR — but keep the lock so the agent can respond to
+      review feedback.  Test args after -- are passed to
+      unity_test_agent.ps1.
+
+  finalize <slot> [base_ref]
+      After PR is merged: reset slot branch to base ref (default:
+      origin/main), clean the worktree, and release the lock.
 
   review-comments <slot> [base]
       Show open PR URL and unresolved review threads/comments for slot.
@@ -55,7 +61,8 @@ Examples:
   scripts/agent_worktree_pool.sh create-pool-prs
   scripts/agent_worktree_pool.sh review-comments agent-1
   scripts/agent_worktree_pool.sh revise agent-1 -- -Mode Smoke -ScopeType Feature -ScopeName camera
-  scripts/agent_worktree_pool.sh finalize agent-1 origin/main -- -Mode Smoke
+  scripts/agent_worktree_pool.sh submit agent-1 origin/main -- -Mode Smoke
+  scripts/agent_worktree_pool.sh finalize agent-1 origin/main
   scripts/agent_worktree_pool.sh release agent-1
 EOF
 }
@@ -84,6 +91,20 @@ lock_dir_for() {
   printf '%s/%s.lock' "$LOCK_ROOT" "$slot"
 }
 
+lease_for() {
+  local slot="$1"
+  local ldir
+  ldir="$(lock_dir_for "$slot")"
+  cat "$ldir/lease" 2>/dev/null || true
+}
+
+task_branch_for() {
+  local slot="$1"
+  local ldir
+  ldir="$(lock_dir_for "$slot")"
+  cat "$ldir/task_branch" 2>/dev/null || true
+}
+
 repo_slug() {
   local url
   url="$(git -C "$ROOT" config --get remote.origin.url)"
@@ -109,11 +130,12 @@ cmd_status() {
     local ldir
     ldir="$(lock_dir_for "$slot")"
     if [[ -d "$ldir" ]]; then
-      local lease pid ts
+      local lease pid ts tb
       lease="$(cat "$ldir/lease" 2>/dev/null || true)"
       pid="$(cat "$ldir/pid" 2>/dev/null || true)"
       ts="$(cat "$ldir/timestamp" 2>/dev/null || true)"
-      echo "$slot | LOCKED | $path | lease=${lease:-unknown} pid=${pid:-unknown} at=${ts:-unknown}"
+      tb="$(cat "$ldir/task_branch" 2>/dev/null || true)"
+      echo "$slot | LOCKED | $path | lease=${lease:-unknown} pid=${pid:-unknown} at=${ts:-unknown}${tb:+ branch=$tb}"
     else
       echo "$slot | FREE   | $path"
     fi
@@ -222,7 +244,7 @@ Automated PR from warm worktree slot.
 - slot: $slot
 - branch: $slot
 
-This PR was created via `scripts/agent_worktree_pool.sh create-pr`.
+This PR was created via \`scripts/agent_worktree_pool.sh create-pr\`.
 EOF
 )
 
@@ -238,7 +260,7 @@ cmd_create_pool_prs() {
   done < <(slots_tsv)
 }
 
-cmd_finalize() {
+cmd_submit() {
   local slot="$1"
   local base_ref="${2:-origin/main}"
   shift 2 || true
@@ -254,10 +276,83 @@ cmd_finalize() {
   local base_branch
   base_branch="${base_ref#origin/}"
 
-  cmd_prepare "$slot" "$base_ref"
+  # Ensure slot branch is checked out (do NOT reset — preserve agent's work)
+  local path
+  path="$(slot_path "$slot")"
+  git -C "$path" checkout "$slot"
+
   cmd_run_tests "$slot" "${test_args[@]}"
-  cmd_create_pr "$slot" "$base_branch"
+
+  # Derive a task-specific remote branch from the lease id
+  local lease task_branch
+  lease="$(lease_for "$slot")"
+  if [[ -z "$lease" ]]; then
+    lease="task-$(date +%Y%m%d-%H%M%S)"
+  fi
+  task_branch="task/$lease"
+
+  # Store task branch in lock dir
+  local ldir
+  ldir="$(lock_dir_for "$slot")"
+  printf '%s\n' "$task_branch" > "$ldir/task_branch"
+
+  # Push local slot branch to the task-specific remote branch
+  git -C "$path" push -u origin "$slot:refs/heads/$task_branch" >/dev/null
+
+  # Create PR from the task branch
+  command -v gh >/dev/null 2>&1 || {
+    echo "gh CLI not found in PATH" >&2
+    return 1
+  }
+
+  git -C "$ROOT" fetch origin "$base_branch" >/dev/null 2>&1 || true
+
+  local existing
+  existing="$(gh pr list --head "$task_branch" --base "$base_branch" --state open --json url --jq '.[0].url' 2>/dev/null || true)"
+  if [[ -n "$existing" ]]; then
+    echo "$slot PR already open: $existing"
+  else
+    local title body
+    title="$(git -C "$path" log --format=%s -n 1 "origin/$base_branch..$slot" 2>/dev/null || true)"
+    [[ -n "$title" ]] || title="agent update: $task_branch"
+
+    body=$(cat <<EOF
+## Summary
+Automated PR from warm worktree slot.
+
+- slot: $slot
+- lease: $lease
+- branch: $task_branch
+
+This PR was created via \`scripts/agent_worktree_pool.sh submit\`.
+EOF
+)
+
+    local url
+    url="$(gh pr create --base "$base_branch" --head "$task_branch" --title "$title" --body "$body")"
+    echo "$slot PR created: $url"
+  fi
+
+  echo ""
+  echo "PR submitted for $slot (branch: $task_branch). Lock kept —"
+  echo "use 'revise' for feedback, then 'finalize' once the PR is merged."
+}
+
+cmd_finalize() {
+  local slot="$1"
+  local base_ref="${2:-origin/main}"
+
+  # Clean up remote task branch (PR is merged, branch is no longer needed)
+  local task_branch
+  task_branch="$(task_branch_for "$slot")"
+  if [[ -n "$task_branch" ]]; then
+    git -C "$ROOT" push origin --delete "$task_branch" 2>/dev/null || true
+  fi
+
+  cmd_prepare "$slot" "$base_ref"
   cmd_release "$slot"
+
+  echo "Finalized $slot: reset to $base_ref and released lock."
 }
 
 cmd_review_comments() {
@@ -269,8 +364,13 @@ cmd_review_comments() {
     return 1
   }
 
+  # Look up PR by task branch first, fall back to slot name
+  local head_branch
+  head_branch="$(task_branch_for "$slot")"
+  [[ -n "$head_branch" ]] || head_branch="$slot"
+
   local pr
-  pr="$(pr_number_for_slot "$slot" "$base")"
+  pr="$(pr_number_for_slot "$head_branch" "$base")"
   if [[ -z "$pr" || "$pr" == "null" ]]; then
     echo "No open PR found for slot=$slot base=$base"
     return 1
@@ -320,17 +420,28 @@ cmd_revise() {
     test_args=("$@")
   fi
 
-  local path
+  local path task_branch
   path="$(slot_path "$slot")"
+  task_branch="$(task_branch_for "$slot")"
 
   git -C "$path" fetch origin
   git -C "$path" checkout "$slot"
-  git -C "$path" pull --rebase origin "$slot"
+
+  # If there's a task branch, rebase from it; otherwise fall back to slot name
+  local remote_ref="${task_branch:-$slot}"
+  if git -C "$path" rev-parse "origin/$remote_ref" >/dev/null 2>&1; then
+    git -C "$path" pull --rebase origin "$remote_ref"
+  fi
 
   cmd_run_tests "$slot" "${test_args[@]}"
 
-  git -C "$path" push origin "$slot"
-  echo "Revised and pushed $slot"
+  # Push to task branch if set, otherwise slot branch
+  if [[ -n "$task_branch" ]]; then
+    git -C "$path" push origin "$slot:refs/heads/$task_branch"
+  else
+    git -C "$path" push origin "$slot"
+  fi
+  echo "Revised and pushed $slot -> ${task_branch:-$slot}"
 }
 
 main() {
@@ -364,8 +475,12 @@ main() {
     create-pool-prs)
       cmd_create_pool_prs "$@"
       ;;
+    submit)
+      [[ $# -ge 1 ]] || { echo "submit requires <slot> [base_ref] [-- test_args...]" >&2; exit 1; }
+      cmd_submit "$@"
+      ;;
     finalize)
-      [[ $# -ge 1 ]] || { echo "finalize requires <slot> [base_ref] [-- test_args...]" >&2; exit 1; }
+      [[ $# -ge 1 ]] || { echo "finalize requires <slot> [base_ref]" >&2; exit 1; }
       cmd_finalize "$@"
       ;;
     review-comments)
