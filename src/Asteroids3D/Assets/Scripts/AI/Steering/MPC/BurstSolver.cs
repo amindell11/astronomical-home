@@ -71,22 +71,43 @@ namespace Movement.MPC
         }
     }
 
-    public static class BurstSampler
+    /// <summary>
+    /// Owns the NativeArray buffers for the Burst solver.
+    /// Create once, call Solve each frame, Dispose on teardown.
+    /// </summary>
+    public class SolverBuffers : System.IDisposable
     {
-        public static float Solve(
-            State initialState,
-            NativeArray<Control> warmStart,
-            NativeArray<Control> candidates,
-            NativeArray<float> costs,
-            CostInput costInput,
-            Config cfg,
-            Dynamics dynamics,
-            int samples,
-            float noiseStd,
-            Control lastControl,
-            NativeArray<Control> resultBuffer)
+        private NativeArray<Control> warmStart;
+        private NativeArray<Control> candidates;
+        private NativeArray<float> costs;
+        private NativeArray<Control> result;
+        private NativeArray<ObstacleData> obstacles;
+        private bool allocated;
+        private int lastObstacleCount;
+
+        public NativeArray<ObstacleData> Obstacles => obstacles;
+        public int ObstacleCount => lastObstacleCount;
+
+        public float Solve(State initialState, Control[] sequence,
+            AI.Scanning.ObstacleScan scan, bool useObstacles,
+            float2 goalPos, Config cfg, Dynamics dynamics,
+            int samples, float noiseStd, Control lastControl)
         {
             var horizon = cfg.horizon;
+            EnsureBuffers(horizon, samples);
+
+            for (var i = 0; i < horizon; i++)
+                warmStart[i] = sequence[i];
+
+            ConvertObstacles(scan, useObstacles);
+
+            var costInput = new CostInput
+            {
+                goalPos = goalPos,
+                obstacles = obstacles,
+                obstacleCount = lastObstacleCount
+            };
+
             var rngSeed = (uint)(Time.frameCount * 7919 + initialState.pos.GetHashCode());
             if (rngSeed == 0) rngSeed = 1;
 
@@ -117,8 +138,59 @@ namespace Movement.MPC
                 }
             }
 
-            NativeArray<Control>.Copy(candidates, bestIndex * horizon, resultBuffer, 0, horizon);
+            NativeArray<Control>.Copy(candidates, bestIndex * horizon, result, 0, horizon);
+            for (var i = 0; i < horizon; i++)
+                sequence[i] = result[i];
+
             return bestCost;
+        }
+
+        public CostInput BuildCostInput(float2 goalPos)
+        {
+            return new CostInput
+            {
+                goalPos = goalPos,
+                obstacles = obstacles,
+                obstacleCount = lastObstacleCount
+            };
+        }
+
+        private void ConvertObstacles(AI.Scanning.ObstacleScan scan, bool useObstacles)
+        {
+            lastObstacleCount = (scan.count > 0 && useObstacles) ? scan.count : 0;
+            for (var i = 0; i < lastObstacleCount; i++)
+            {
+                var obs = scan.buffer[i];
+                obstacles[i] = new ObstacleData
+                {
+                    position = new float2(obs.position.x, obs.position.y),
+                    radius = obs.radius
+                };
+            }
+        }
+
+        private void EnsureBuffers(int horizon, int samples)
+        {
+            if (allocated && warmStart.Length == horizon && costs.Length == samples)
+                return;
+            Dispose();
+            warmStart = new NativeArray<Control>(horizon, Allocator.Persistent);
+            candidates = new NativeArray<Control>(samples * horizon, Allocator.Persistent);
+            costs = new NativeArray<float>(samples, Allocator.Persistent);
+            obstacles = new NativeArray<ObstacleData>(64, Allocator.Persistent);
+            result = new NativeArray<Control>(horizon, Allocator.Persistent);
+            allocated = true;
+        }
+
+        public void Dispose()
+        {
+            if (!allocated) return;
+            warmStart.Dispose();
+            candidates.Dispose();
+            costs.Dispose();
+            obstacles.Dispose();
+            result.Dispose();
+            allocated = false;
         }
     }
 }

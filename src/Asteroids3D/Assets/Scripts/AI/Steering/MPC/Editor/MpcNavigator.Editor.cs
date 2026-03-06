@@ -48,7 +48,7 @@ namespace Movement.MPC
         private CostBreakdown EvaluateBreakdown(State mpcState)
         {
             return Cost.EvaluateTrajectoryBreakdown(mpcState, bestSequence,
-                BuildCostInput(), config, dynamics, lastControl);
+                solver.BuildCostInput(GoalPos()), config, dynamics, lastControl);
         }
 
         private void OnDrawGizmos()
@@ -72,7 +72,7 @@ namespace Movement.MPC
 
             var prevPos = GamePlane.PlanePointToWorld(predictedStates[0].pos);
             var prevU = bestSequence[0];
-            var input = BuildCostInput();
+            var input = solver.BuildCostInput(GoalPos());
 
             for (var i = 1; i < predictedStates.Length; i++)
             {
