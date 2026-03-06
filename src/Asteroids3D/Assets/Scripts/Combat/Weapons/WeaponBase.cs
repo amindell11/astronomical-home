@@ -64,7 +64,7 @@ namespace Combat.Weapons
         {
             if (!CanFire()) return null;
 
-            using (LatencyProfilingMarkers.ProjectileFire.Auto())
+            using (LatencyProfilingMarkers.Measure(FrameTimingAccumulator.Category.ProjectileFire, LatencyProfilingMarkers.ProjectileFire))
             {
                 foreach (var condition in conditions)
                     condition.ProcessFire();

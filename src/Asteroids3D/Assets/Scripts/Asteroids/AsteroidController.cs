@@ -1,6 +1,7 @@
 using System;
 using Asteroids.Fragnetics;
 using Asteroids.Spawning;
+using Diagnostics.Performance;
 using Game;
 using UnityEngine;
 using Utils;
@@ -138,15 +139,18 @@ namespace Asteroids
 
         private void LateUpdate()
         {
-            PlaneConstraints.ConstrainPosition(transform);
+            using (LatencyProfilingMarkers.Measure(FrameTimingAccumulator.Category.AsteroidUpdate, LatencyProfilingMarkers.AsteroidUpdate))
+            {
+                PlaneConstraints.ConstrainPosition(transform);
 
-            if (!meshCollider) return;
-            if (!worldFollowTransform) return;
-            var distSqr = (GamePlane.ProjectOntoPlane(worldFollowTransform.position) - GamePlane.ProjectOntoPlane(transform.position)).sqrMagnitude;
-            var shouldEnable = distSqr < detailedColliderEnableDistance * detailedColliderEnableDistance;
-            if (meshCollider.enabled != shouldEnable)
-                meshCollider.enabled = shouldEnable;
-
+                if (!meshCollider) return;
+                if (!worldFollowTransform) return;
+                var distSqr = (GamePlane.ProjectOntoPlane(worldFollowTransform.position) -
+                               GamePlane.ProjectOntoPlane(transform.position)).sqrMagnitude;
+                var shouldEnable = distSqr < detailedColliderEnableDistance * detailedColliderEnableDistance;
+                if (meshCollider.enabled != shouldEnable)
+                    meshCollider.enabled = shouldEnable;
+            }
         }
     }
 }

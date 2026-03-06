@@ -13,11 +13,21 @@ namespace Diagnostics.Performance
         private readonly List<FrameSample> frameSamples = new();
         private readonly List<string> notes = new();
 
+        private static readonly (string Name, FrameTimingAccumulator.Category Cat)[] swCategories =
+        {
+            (LatencyProfilingMarkers.AIUpdateName, FrameTimingAccumulator.Category.AIUpdate),
+            (LatencyProfilingMarkers.ScoutScanName, FrameTimingAccumulator.Category.ScoutScan),
+            (LatencyProfilingMarkers.ProjectileFireName, FrameTimingAccumulator.Category.ProjectileFire),
+            (LatencyProfilingMarkers.ProjectileUpdateName, FrameTimingAccumulator.Category.ProjectileUpdate),
+            (LatencyProfilingMarkers.ObjectiveTrackerName, FrameTimingAccumulator.Category.ObjectiveTracker),
+            (LatencyProfilingMarkers.AsteroidSpawnName, FrameTimingAccumulator.Category.AsteroidSpawn),
+            (LatencyProfilingMarkers.AsteroidUpdateName, FrameTimingAccumulator.Category.AsteroidUpdate),
+        };
+
         private LatencyProfilingSettings settings;
         private ProfilerRecorder mainThreadRecorder;
         private ProfilerRecorder renderThreadRecorder;
         private ProfilerRecorder gcAllocRecorder;
-        private MarkerRecorder[] markerRecorders;
         private int gcCollectionsAtStart;
         private bool isSampling;
         private string startedAtUtc;
@@ -31,24 +41,12 @@ namespace Diagnostics.Performance
             renderThreadRecorder = StartOptionalRecorder(ProfilerCategory.Render, "Render Thread");
             gcAllocRecorder = StartOptionalRecorder(ProfilerCategory.Memory, "GC Allocated In Frame");
 
-            markerRecorders = new[]
-            {
-                new MarkerRecorder(LatencyProfilingMarkers.AIUpdateName, StartOptionalRecorder(ProfilerCategory.Scripts, LatencyProfilingMarkers.AIUpdateName)),
-                new MarkerRecorder(LatencyProfilingMarkers.ProjectileFireName, StartOptionalRecorder(ProfilerCategory.Scripts, LatencyProfilingMarkers.ProjectileFireName)),
-                new MarkerRecorder(LatencyProfilingMarkers.ProjectileUpdateName, StartOptionalRecorder(ProfilerCategory.Scripts, LatencyProfilingMarkers.ProjectileUpdateName)),
-                new MarkerRecorder(LatencyProfilingMarkers.ObjectiveTrackerName, StartOptionalRecorder(ProfilerCategory.Scripts, LatencyProfilingMarkers.ObjectiveTrackerName)),
-                new MarkerRecorder(LatencyProfilingMarkers.AsteroidSpawnName, StartOptionalRecorder(ProfilerCategory.Scripts, LatencyProfilingMarkers.AsteroidSpawnName)),
-            };
-
             if (!mainThreadRecorder.Valid)
                 notes.Add("Main thread recorder was unavailable on this runtime.");
             if (!renderThreadRecorder.Valid)
                 notes.Add("Render thread recorder was unavailable on this runtime.");
             if (!gcAllocRecorder.Valid)
                 notes.Add("GC allocation recorder was unavailable on this runtime.");
-
-            foreach (var marker in markerRecorders.Where(marker => !marker.Recorder.Valid))
-                notes.Add($"Profiler marker recorder was unavailable for '{marker.Name}'.");
         }
 
         public void BeginSampling()
@@ -76,7 +74,7 @@ namespace Diagnostics.Performance
                 mainThreadMs = BuildSeriesStats(frameSamples.Where(sample => sample.MainThreadMs.HasValue).Select(sample => sample.MainThreadMs.Value).ToList()),
                 renderThreadMs = BuildSeriesStats(frameSamples.Where(sample => sample.RenderThreadMs.HasValue).Select(sample => sample.RenderThreadMs.Value).ToList()),
                 gc = BuildGcStats(frameSamples, GetGcCollectionCount() - gcCollectionsAtStart),
-                markers = BuildMarkerStats(frameSamples),
+                markers = BuildMarkerStats(frameSamples, swCategories),
                 notes = notes.ToArray()
             };
 
@@ -87,6 +85,11 @@ namespace Diagnostics.Performance
 
         private void Update()
         {
+            // Always drain the accumulator to prevent stale data
+            var markerValues = new double[swCategories.Length];
+            for (var i = 0; i < swCategories.Length; i++)
+                markerValues[i] = FrameTimingAccumulator.ReadAndResetMs(swCategories[i].Cat);
+
             if (!isSampling)
                 return;
 
@@ -97,7 +100,7 @@ namespace Diagnostics.Performance
                 MainThreadMs = ReadMilliseconds(mainThreadRecorder),
                 RenderThreadMs = ReadMilliseconds(renderThreadRecorder),
                 GcAllocBytes = ReadBytes(gcAllocRecorder),
-                MarkerValuesMs = ReadMarkerValues(markerRecorders)
+                MarkerValuesMs = markerValues
             };
 
             frameSamples.Add(sample);
@@ -129,19 +132,6 @@ namespace Diagnostics.Performance
                 return null;
 
             return recorder.LastValue;
-        }
-
-        private static double?[] ReadMarkerValues(IReadOnlyList<MarkerRecorder> markers)
-        {
-            var values = new double?[markers.Count];
-            for (var i = 0; i < markers.Count; i++)
-            {
-                values[i] = markers[i].Recorder.Valid
-                    ? markers[i].Recorder.LastValue / 1_000_000d
-                    : null;
-            }
-
-            return values;
         }
 
         private static LatencyFrameStats BuildFrameStats(List<double> values)
@@ -195,37 +185,38 @@ namespace Diagnostics.Performance
             };
         }
 
-        private LatencyMarkerStats[] BuildMarkerStats(List<FrameSample> samples)
+        private static LatencyMarkerStats[] BuildMarkerStats(
+            List<FrameSample> samples,
+            (string Name, FrameTimingAccumulator.Category Cat)[] categories)
         {
-            var stats = new List<LatencyMarkerStats>(markerRecorders.Length);
+            var stats = new LatencyMarkerStats[categories.Length];
 
-            for (var i = 0; i < markerRecorders.Length; i++)
+            for (var i = 0; i < categories.Length; i++)
             {
                 var values = samples
-                    .Select(sample => sample.MarkerValuesMs.Length > i ? sample.MarkerValuesMs[i] : null)
-                    .Where(value => value.HasValue)
-                    .Select(value => value.Value)
+                    .Where(sample => sample.MarkerValuesMs.Length > i)
+                    .Select(sample => sample.MarkerValuesMs[i])
                     .ToList();
 
                 var seriesStats = BuildSeriesStats(values);
-                stats.Add(new LatencyMarkerStats
+                stats[i] = new LatencyMarkerStats
                 {
-                    name = markerRecorders[i].Name,
+                    name = categories[i].Name,
                     available = seriesStats.available,
                     sampleCount = seriesStats.sampleCount,
                     average = seriesStats.average,
                     p95 = seriesStats.p95,
                     max = seriesStats.max
-                });
+                };
             }
 
-            return stats.ToArray();
+            return stats;
         }
 
         private static string BuildCsv(IEnumerable<FrameSample> samples)
         {
             var builder = new StringBuilder();
-            builder.AppendLine("frame,frame_time_ms,main_thread_ms,render_thread_ms,gc_alloc_bytes,ai_update_ms,projectile_fire_ms,projectile_update_ms,objective_tracker_ms,asteroid_spawn_ms");
+            builder.AppendLine("frame,frame_time_ms,main_thread_ms,render_thread_ms,gc_alloc_bytes,ai_update_ms,scout_scan_ms,projectile_fire_ms,projectile_update_ms,objective_tracker_ms,asteroid_spawn_ms,asteroid_update_ms");
 
             foreach (var sample in samples)
             {
@@ -239,10 +230,12 @@ namespace Diagnostics.Performance
                 builder.Append(',');
                 builder.Append(sample.GcAllocBytes?.ToString(CultureInfo.InvariantCulture) ?? string.Empty);
 
-                for (var i = 0; i < 5; i++)
+                for (var i = 0; i < swCategories.Length; i++)
                 {
                     builder.Append(',');
-                    builder.Append(Format(sample.MarkerValuesMs.Length > i ? sample.MarkerValuesMs[i] : null));
+                    builder.Append(sample.MarkerValuesMs.Length > i
+                        ? sample.MarkerValuesMs[i].ToString("0.###", CultureInfo.InvariantCulture)
+                        : string.Empty);
                 }
 
                 builder.AppendLine();
@@ -292,27 +285,6 @@ namespace Diagnostics.Performance
                 renderThreadRecorder.Dispose();
             if (gcAllocRecorder.Valid)
                 gcAllocRecorder.Dispose();
-
-            if (markerRecorders == null)
-                return;
-
-            for (var i = 0; i < markerRecorders.Length; i++)
-            {
-                if (markerRecorders[i].Recorder.Valid)
-                    markerRecorders[i].Recorder.Dispose();
-            }
-        }
-
-        private readonly struct MarkerRecorder
-        {
-            public MarkerRecorder(string name, ProfilerRecorder recorder)
-            {
-                Name = name;
-                Recorder = recorder;
-            }
-
-            public string Name { get; }
-            public ProfilerRecorder Recorder { get; }
         }
 
         private sealed class FrameSample
@@ -322,7 +294,7 @@ namespace Diagnostics.Performance
             public double? MainThreadMs;
             public double? RenderThreadMs;
             public long? GcAllocBytes;
-            public double?[] MarkerValuesMs;
+            public double[] MarkerValuesMs;
         }
     }
 

@@ -57,7 +57,7 @@ namespace Combat.Projectile
 
         protected virtual void FixedUpdate()
         {
-            using (LatencyProfilingMarkers.ProjectileUpdate.Auto())
+            using (LatencyProfilingMarkers.Measure(FrameTimingAccumulator.Category.ProjectileUpdate, LatencyProfilingMarkers.ProjectileUpdate))
             {
                 PlaneConstraints.ConstrainPosition(transform);
                 if (DistanceTraveled > maxDistance) Dispose();

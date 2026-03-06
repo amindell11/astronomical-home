@@ -1,4 +1,5 @@
 using System;
+using Diagnostics.Performance;
 using Movement;
 using Ships;
 using Ships.Command;
@@ -52,9 +53,12 @@ namespace AI.Scanning
         {
             if (!shipId.IsValid) return;
 
-            shipScanner?.Scan();
-            coverScanner?.Scan();
-            obstacleScanner?.Scan(getState().kinematics.vel, shipDynamics.maxSpeed);
+            using (LatencyProfilingMarkers.Measure(FrameTimingAccumulator.Category.ScoutScan, LatencyProfilingMarkers.ScoutScan))
+            {
+                shipScanner?.Scan();
+                coverScanner?.Scan();
+                obstacleScanner?.Scan(getState().kinematics.vel, shipDynamics.maxSpeed);
+            }
         }
 
         public ObstacleScan ObstacleScan => new(obstacleScanner?.DetectedBuffer, obstacleScanner?.DetectedCount ?? 0);

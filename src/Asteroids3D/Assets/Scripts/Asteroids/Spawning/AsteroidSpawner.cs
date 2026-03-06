@@ -45,7 +45,7 @@ namespace Asteroids.Spawning
 
         public AsteroidController SpawnRandom(Pose pose)
         {
-            using (LatencyProfilingMarkers.AsteroidSpawn.Auto())
+            using (LatencyProfilingMarkers.Measure(FrameTimingAccumulator.Category.AsteroidSpawn, LatencyProfilingMarkers.AsteroidSpawn))
             {
                 var ast = SpawnAtPose(pose);
                 InitRandomAsteroid(ast);
@@ -56,7 +56,7 @@ namespace Asteroids.Spawning
 
         public AsteroidController SpawnFragment(Frag frag)
         {
-            using (LatencyProfilingMarkers.AsteroidSpawn.Auto())
+            using (LatencyProfilingMarkers.Measure(FrameTimingAccumulator.Category.AsteroidSpawn, LatencyProfilingMarkers.AsteroidSpawn))
             {
                 var pose = new Pose(frag.Position, frag.Rotation);
                 var ast = SpawnAtPose(pose);

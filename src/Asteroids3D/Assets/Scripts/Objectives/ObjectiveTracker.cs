@@ -44,7 +44,7 @@ namespace Objectives
         /// </summary>
         public void Tick(float deltaTime)
         {
-            using (LatencyProfilingMarkers.ObjectiveTracker.Auto())
+            using (LatencyProfilingMarkers.Measure(FrameTimingAccumulator.Category.ObjectiveTracker, LatencyProfilingMarkers.ObjectiveTracker))
             {
                 if (IsTerminal(current.StateType))
                     return;

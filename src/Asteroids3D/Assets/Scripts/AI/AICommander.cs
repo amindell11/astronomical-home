@@ -100,7 +100,7 @@ namespace AI
         private void FixedUpdate()
         {
             if (!systemsInitialized || !UtilitySelector) return;
-            using (LatencyProfilingMarkers.AIUpdate.Auto())
+            using (LatencyProfilingMarkers.Measure(FrameTimingAccumulator.Category.AIUpdate, LatencyProfilingMarkers.AIUpdate))
             {
                 UtilitySelector.Tick(context, Time.fixedDeltaTime);
                 GetSubCommands(ref cachedCommand);
