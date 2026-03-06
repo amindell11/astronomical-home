@@ -32,6 +32,7 @@ namespace Game.Sectors
         private readonly System.Collections.Generic.List<Ship> arenaShips = new();
         private UpdatingAsteroidField asteroidFieldInstance;
         private AI.Debug.ArenaDebugOverlay debugOverlay;
+        private Cameras.ArenaSpectatorInput spectatorInput;
 
         protected override IEnumerator OnSetup()
         {
@@ -67,6 +68,25 @@ namespace Game.Sectors
                 if (player) debugOverlay.RegisterShip(player);
                 foreach (var ship in arenaShips)
                     debugOverlay.RegisterShip(ship);
+            }
+
+            // Spectator input — attach to the ObserverCam so it can control it
+            var observer = Services.CameraService.GetCamera<Cameras.ObserverCam>(Cameras.CameraTag.Observer);
+            if (observer)
+            {
+                // Remove default input handler; arena uses its own
+                var defaultInput = observer.GetComponent<Cameras.ObserverCamInputHandler>();
+                if (defaultInput) Destroy(defaultInput);
+
+                spectatorInput = observer.gameObject.AddComponent<Cameras.ArenaSpectatorInput>();
+                var allShips = new System.Collections.Generic.List<Ship>();
+                if (player) allShips.Add(player);
+                allShips.AddRange(arenaShips);
+                spectatorInput.SetShips(allShips);
+
+                // Start locked to the player ship
+                observer.SetLockCameraToSubject(true);
+                observer.SetLockZoomToSubject(true);
             }
         }
 
@@ -116,6 +136,9 @@ namespace Game.Sectors
 
         protected override IEnumerator OnTeardown()
         {
+            if (spectatorInput)
+                Destroy(spectatorInput);
+
             if (debugOverlay)
                 Destroy(debugOverlay);
 
@@ -130,6 +153,7 @@ namespace Game.Sectors
             arenaShips.Clear();
             asteroidFieldInstance = null;
             debugOverlay = null;
+            spectatorInput = null;
         }
     }
 }
