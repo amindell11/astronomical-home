@@ -24,6 +24,7 @@ namespace Game.Sectors
 
         [Header("Debug")]
         [SerializeField] private bool enableDebugOverlay = true;
+        [SerializeField] private AI.Debug.AIDebugSettings debugSettings;
 
         [Header("Environment")]
         [SerializeField] private World.WorldRoot worldPrefab;
@@ -65,6 +66,7 @@ namespace Game.Sectors
             if (enableDebugOverlay)
             {
                 debugOverlay = gameObject.AddComponent<AI.Debug.ArenaDebugOverlay>();
+                debugOverlay.Initialize(debugSettings);
                 if (player) debugOverlay.RegisterShip(player);
                 foreach (var ship in arenaShips)
                     debugOverlay.RegisterShip(ship);

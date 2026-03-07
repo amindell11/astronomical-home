@@ -10,23 +10,15 @@ namespace AI.States
         public override void OnDrawGizmos(Info ctx)
         {
             base.OnDrawGizmos(ctx);
-            if (ctx==null) return;
+            if (ctx == null) return;
 
             var selfPos = ctx.ShipInfo.Pos3D;
-            var tgtPos  = GamePlane.PlanePointToWorld(currentTarget);
+            var tgtPos = GamePlane.PlanePointToWorld(currentTarget);
 
             // Draw path line
             Gizmos.color = Color.magenta;
             Gizmos.DrawLine(selfPos, tgtPos);
             Gizmos.DrawWireSphere(tgtPos, 1.2f);
-
-            // Draw flee + jink vectors
-            if (ctx.Combat.HasEnemy)
-            {
-                var enemyPos = GamePlane.PlanePointToWorld(ctx.Combat.EnemyPos);
-                Gizmos.color = Color.red;
-                Gizmos.DrawLine(selfPos, enemyPos);
-            }
 
             // Label
             UnityEditor.Handles.color = Color.white;

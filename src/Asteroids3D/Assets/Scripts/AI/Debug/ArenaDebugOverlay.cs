@@ -13,10 +13,9 @@ namespace AI.Debug
     /// </summary>
     public class ArenaDebugOverlay : MonoBehaviour
     {
-        [Header("Display Toggles")]
-        [SerializeField] private bool showStateLabels = true;
-        [SerializeField] private bool showUtilityScores;
-        [SerializeField] private bool showTargetLines = true;
+        private AIDebugSettings debugSettings;
+
+        public void Initialize(AIDebugSettings settings) => debugSettings = settings;
 
         [Header("Visual Settings")]
         [SerializeField] private Vector2 labelOffset = new(0, 40);
@@ -97,6 +96,8 @@ namespace AI.Debug
         private void OnGUI()
         {
             if (!mainCam) return;
+            var showStateLabels = debugSettings != null && debugSettings.IsActive(AIDebugChannel.Utility);
+            var showUtilityScores = showStateLabels;
             if (!showStateLabels && !showUtilityScores) return;
 
             InitStyles();
@@ -196,7 +197,7 @@ namespace AI.Debug
 
         private void OnRenderObject()
         {
-            if (!showTargetLines) return;
+            if (debugSettings == null || !debugSettings.IsActive(AIDebugChannel.Targeting)) return;
 
             CreateLineMaterial();
             lineMaterial.SetPass(0);

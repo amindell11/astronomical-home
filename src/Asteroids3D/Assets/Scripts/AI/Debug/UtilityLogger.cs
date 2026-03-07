@@ -53,6 +53,13 @@ namespace AI.Debug
                 return;
             }
 
+            var debugSettings = commander.DebugSettings;
+            if (debugSettings == null || !debugSettings.IsActive(AIDebugChannel.Logging))
+            {
+                enabled = false;
+                return;
+            }
+
             selector = commander.UtilitySelector;
             if (!selector)
             {

@@ -1,36 +1,47 @@
 #if UNITY_EDITOR
+using AI.Debug;
 using UnityEngine;
 
 namespace AI.Scanning
 {
     public partial class Scout
     {
-        [Header("Debug")]
-        [Tooltip("Show debug gizmos in scene view")]
-        public bool showDebugGizmos = true;
-
-        void OnDrawGizmos()
+        private AICommander cachedCommander;
+        private AIDebugSettings CachedSettings
         {
-            if (!showDebugGizmos || !Application.isPlaying || obstacleScanner == null) return;
+            get
+            {
+                if (!cachedCommander)
+                    cachedCommander = GetComponent<AICommander>();
+                return cachedCommander ? cachedCommander.DebugSettings : null;
+            }
+        }
+
+        void OnDrawGizmos() => DrawGizmosImpl(false);
+        void OnDrawGizmosSelected() => DrawGizmosImpl(true);
+
+        void DrawGizmosImpl(bool isSelected)
+        {
+            var settings = CachedSettings;
+            if (settings == null || !settings.ShouldDraw(isSelected)) return;
+            if (!settings.IsActive(AIDebugChannel.Scanning)) return;
+            if (!Application.isPlaying || obstacleScanner == null) return;
 
             var pos = transform.position;
 
-            // Nearby ship radius (yellow)
             Gizmos.color = new Color(1f, 1f, 0f, 0.2f);
             Gizmos.DrawWireSphere(pos, nearbyShipRadius);
 
-            // Asteroid cover radius (cyan)
             Gizmos.color = new Color(0f, 1f, 1f, 0.2f);
             Gizmos.DrawWireSphere(pos, asteroidCoverRadius);
-            
+
             DrawObstacleGizmos();
         }
-        
+
         private void DrawObstacleGizmos()
         {
             if (obstacleScanner == null) return;
-            
-            // Draw raycast fan from scanner's debug rays (orange)
+
             Gizmos.color = new Color(1f, 0.75f, 0f, 0.5f);
             var radius = obstacleScanner.LastSphereRadius;
             foreach (var ray in obstacleScanner.DebugRays)
@@ -40,9 +51,8 @@ namespace AI.Scanning
                     Gizmos.DrawWireSphere(transform.position + ray, radius);
             }
 
-            // Draw white circles around detected obstacles
             if (obstacleScanner.DetectedCount <= 0) return;
-            
+
             Gizmos.color = Color.white;
             for (var i = 0; i < obstacleScanner.DetectedCount; i++)
             {

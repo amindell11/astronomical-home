@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
-using Movement;
+using AI;
+using AI.Debug;
 using Movement.Standard;
 using Game;
 using UnityEngine;
@@ -13,6 +14,17 @@ namespace Movement.Standard
         private Vector2 dbgGoal2D;
         private float dbgThrust, dbgStrafe;
 
+        private AICommander cachedCommander;
+        private AIDebugSettings CachedSettings
+        {
+            get
+            {
+                if (!cachedCommander)
+                    cachedCommander = GetComponent<AICommander>();
+                return cachedCommander ? cachedCommander.DebugSettings : null;
+            }
+        }
+
         partial void StoreDebugState(Vector2 goal, PathPlanner.DebugInfo path, Pilot.Output pilot)
         {
             dbgGoal2D = goal;
@@ -25,8 +37,14 @@ namespace Movement.Standard
             dbgStrafe = strafe;
         }
 
-        void OnDrawGizmos()
+        void OnDrawGizmos() => DrawGizmosImpl(false);
+        void OnDrawGizmosSelected() => DrawGizmosImpl(true);
+
+        void DrawGizmosImpl(bool isSelected)
         {
+            var settings = CachedSettings;
+            if (settings == null || !settings.ShouldDraw(isSelected)) return;
+            if (!settings.IsActive(AIDebugChannel.Steering)) return;
             if (!Application.isPlaying || !scout) return;
 
             // Ship future position

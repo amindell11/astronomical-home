@@ -93,8 +93,9 @@ namespace Movement.MPC
             sw.Stop();
             
             lastSolveTimeMs = (float)sw.Elapsed.TotalMilliseconds;
-            lastCostBreakdown = Sampler.EvaluateTrajectoryBreakdown(mpcState, bestSequence, 
+            lastCostBreakdown = Sampler.EvaluateTrajectoryBreakdown(mpcState, bestSequence,
                 currentWaypoint.position, scan, config, dynamics, lastControl);
+            LogSolverPerformanceIfNeeded();
 #endif
 
             using (EditorProfilingScope.Begin("MPC.MpcNavigator.UpdatePredictedStates"))
@@ -186,5 +187,6 @@ namespace Movement.MPC
         }
 
         partial void StoreDebugObstacles(ObstacleScan scan);
+        partial void LogSolverPerformanceIfNeeded();
     }
 }
