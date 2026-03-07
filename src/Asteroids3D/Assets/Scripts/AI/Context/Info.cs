@@ -1,98 +1,55 @@
-﻿using System;
-using Combat;
+using System;
 using Movement;
-using Ships;
 using Unity.Properties;
 using UnityEngine;
+using TargetingUtils = Combat.TargetingUtils;
+
 namespace AI.Context
 {
     /// <summary>
-    /// Provides on-demand AI context data for AI state machine consumption.
-    /// Composes ShipInfo, CombatInfo, and Navigation providers for focused responsibilities.
+    /// Provides AI context data for state machine consumption.
+    /// Thin container composing subsystem references and a per-tick SituationAssessment.
     /// </summary>
     [Serializable, GeneratePropertyBag]
     public partial class Info
     {
-        private Ships.Ship ship;
-        private ShipId shipId;
-        private IShipRegistry registry;
-
-        // Data providers
         public ShipInfo ShipInfo { get; private set; }
-        public Combat Combat { get; private set; }
+        public CombatTracker Combat { get; private set; }
         public Navigation Nav { get; private set; }
-
-        // Computers (heavy calculations)
         public TargetingUtils TargetingUtils { get; private set; }
         public Scanning.Scout Scout { get; private set; }
         public Maneuvers Maneuvers { get; private set; }
+        public SituationAssessment Assessment { get; private set; }
 
-        public Info(Ships.Ship ship, Navigator navigator, Gunner gunner, Scanning.Scout scout, TargetingUtils targetingUtils, Maneuvers maneuvers)
+        public Info(Ships.Ship ship, Navigator navigator, Gunner gunner, Scanning.Scout scout, TargetingUtils targetingUtils, Maneuvers maneuvers,
+            float combatExitDelay = 3f)
         {
-            this.ship = ship;
-            if (!ship)
-            {
-                return;
-            }
+            if (!ship) return;
 
-            this.shipId = scout.ShipId;
-            this.registry = scout.Registry;
+            var shipId = scout.ShipId;
+            var registry = scout.Registry;
 
             ShipInfo = new ShipInfo(ship);
             TargetingUtils = targetingUtils;
             Scout = scout;
             Maneuvers = maneuvers;
-            Combat = new Combat(Scout, gunner, TargetingUtils);
-            Nav = new Navigation(ShipInfo, Scout, navigator);
+            Combat = new CombatTracker(scout, gunner, targetingUtils, shipId, registry, combatExitDelay);
+            Nav = new Navigation(ShipInfo, navigator);
+            Assessment = SituationAssessment.None;
         }
 
-        // Ship state
-        public Vector2 SelfPosition => ShipInfo?.Pos ?? Vector2.zero;
-        public Vector3 SelfPosition3D => ShipInfo?.Pos3D ?? (ship ? ship.transform.position : Vector3.zero);
-        public Transform SelfTransform => ship ? ship.transform : null;
-        public Vector2 SelfVelocity => ShipInfo?.Vel ?? Vector2.zero;
-        public float SpeedPct => ShipInfo?.SpeedPct ?? 0f;
-        public Vector2 SelfForward => ShipInfo?.Forward ?? Vector2.up;
-        public float ShieldPct => ShipInfo?.ShieldPct ?? 0f;
-        public float HealthPct => ShipInfo?.HealthPct ?? 0f;
-
-        // Enemy state (from Combat)
-        public bool InCombat => Combat?.InCombat ?? false;
-        public Ships.Ship Enemy => Combat?.Enemy;
-        public Vector2 EnemyPos => Combat?.EnemyPos ?? Vector2.zero;
-        public Vector2 EnemyVel => Combat?.EnemyVel ?? Vector2.zero;
-        public float EnemyHealthPct => Combat?.EnemyHealthPct ?? 0f;
-        public float EnemyShieldPct => Combat?.EnemyShieldPct ?? 0f;
-
-        // Targeting calculations (via Targeting computer)
-        public Vector2 VectorToEnemy => TargetingUtils?.VectorTo(EnemyPos) ?? Vector2.zero;
-        public Vector2 EnemyRelVelocity => TargetingUtils?.RelativeVelocity(EnemyVel) ?? Vector2.zero;
-        public float ClosingSpeed => TargetingUtils?.ClosingSpeed(EnemyPos, EnemyVel) ?? 0f;
-        public bool LineOfSightToEnemy => Enemy && (TargetingUtils?.HasLineOfSight(Enemy.transform.position) ?? false);
-        public float AngleToEnemy => TargetingUtils?.AngleTo(EnemyPos) ?? 0f;
-        public float EnemyAngleToSelf => Enemy ? (TargetingUtils?.AngleFromTarget(EnemyPos, Combat.EnemyForward) ?? 180f) : 180f;
-        public float SelfAngleToEnemy => AngleToEnemy;
-
-        // Gunner target accessors
-        public Vector2 VectorToTarget => Combat?.VectorToTarget ?? Vector2.zero;
-        public bool HasTargetLos => Combat?.HasTargetLos ?? false;
-        public float AngleToTarget => Combat?.AngleToTarget ?? 0f;
-        public bool IncomingMissile => Combat?.IncomingMissile ?? false;
-        public float LaserSpeed => Combat?.LaserSpeed ?? 0f;
-
-        // Scout analysis results
-        public int NearbyEnemyCount => Scout?.ShipScan?.EnemyCount(shipId, registry) ?? 0;
-        public int NearbyFriendCount => Scout?.ShipScan?.FriendCount(shipId, registry) ?? 0;
-
-        // Backward-compatible accessors delegating to Navigation
-        public Vector2 VectorToWaypoint => Nav?.VectorToWaypoint ?? Vector2.zero;
-        public bool NearAsteroidCover => Nav?.NearAsteroidCover ?? false;
+        public void UpdateAssessment()
+        {
+            Combat.Update();
+            Assessment = SituationAssessment.Evaluate(ShipInfo, Combat, Scout, TargetingUtils);
+        }
 
         public override string ToString()
         {
-            return $"AIContext[Shield:{ShieldPct:F2} Health:{HealthPct:F2} " +
-                   $"EnemyDist:{VectorToEnemy.magnitude:F1} LOS:{LineOfSightToEnemy} " +
-                   $"Enemies:{NearbyEnemyCount} Friends:{NearbyFriendCount}]";
+            var a = Assessment;
+            return $"AIContext[HP:{a.HealthPct:F2} Shield:{a.ShieldPct:F2} " +
+                   $"EnemyDist:{a.EnemyDistance:F1} LOS:{a.HasLineOfSight} " +
+                   $"Enemies:{a.NearbyEnemyCount} Friends:{a.NearbyFriendCount}]";
         }
     }
 }

@@ -39,15 +39,6 @@ namespace Movement
             return idealPos + leadOffset + radiusCorrection;
         }
 
-        public Vector2 ComputeEvadePoint(Vector2 threatPos, float fleeDistance)
-        {
-            var selfPos = shipInfo.Pos;
-            var fleeDirection = (selfPos - threatPos).normalized;
-            if (fleeDirection.sqrMagnitude < 0.01f)
-                fleeDirection = Random.insideUnitCircle.normalized;
-            return selfPos + fleeDirection * fleeDistance;
-        }
-
         public Vector2 ComputeKitePoint(Vector2 enemyPos, Vector2 enemyVel, float desiredDistance)
         {
             var selfPos = shipInfo.Pos;
@@ -59,17 +50,6 @@ namespace Movement
                 retreatDir = dirAway;
 
             return selfPos + retreatDir * desiredDistance;
-        }
-
-        public Vector2 ComputeJinkPoint(Vector2 baseFleeDir, float jinkDistance, bool jinkRight)
-        {
-            var selfPos = shipInfo.Pos;
-            var perpendicular = jinkRight
-                ? new Vector2(baseFleeDir.y, -baseFleeDir.x)
-                : new Vector2(-baseFleeDir.y, baseFleeDir.x);
-
-            var jinkDir = (baseFleeDir + perpendicular * 0.5f).normalized;
-            return selfPos + jinkDir * jinkDistance;
         }
     }
 }

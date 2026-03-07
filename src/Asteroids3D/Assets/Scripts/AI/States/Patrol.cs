@@ -19,17 +19,17 @@ namespace AI.States
         public override void Enter(Info ctx)
         {
             base.Enter(ctx);
-            
+
             gunner.SetTarget((Transform)null);
-            
+
             ChooseNewPatrolPoint(ctx);
         }
 
-        public override void Tick(Info context, float deltaTime)
+        public override void Tick(Info ctx, float deltaTime)
         {
-            if (!navigator.CurrentWaypoint.isValid || context.VectorToWaypoint.magnitude < navigator.arriveRadius)
+            if (!navigator.CurrentWaypoint.isValid || ctx.Nav.VectorToWaypoint.magnitude < navigator.arriveRadius)
             {
-                ChooseNewPatrolPoint(context);
+                ChooseNewPatrolPoint(ctx);
             }
         }
 
@@ -42,14 +42,15 @@ namespace AI.States
         public override float ComputeUtility(Info ctx)
         {
             return NewBuilder()
-                .FactorBinary(!ctx.InCombat, "noCombat", new FactorRange(0.01f, 2.0f))
+                .FactorBinary(!ctx.Assessment.InCombat, "noCombat", new FactorRange(0.01f, 2.0f))
                 .Build();
         }
 
         private void ChooseNewPatrolPoint(Info ctx)
         {
-            var currentPos = ctx.SelfPosition;
-            var randomDistance = Random.Range(utilityTuning.patrolRadius * utilityTuning.patrolMinDistanceFactor, utilityTuning.patrolRadius);
+            var t = utilityTuning.patrol;
+            var currentPos = ctx.ShipInfo.Pos;
+            var randomDistance = Random.Range(t.radius * t.minDistanceFactor, t.radius);
             var randomDirection = Random.insideUnitCircle.normalized;
             currentTarget = currentPos + randomDirection * randomDistance;
 
@@ -58,4 +59,4 @@ namespace AI.States
             navigator.SetNavigationPoint(currentTarget, enableAvoidance);
         }
     }
-} 
+}

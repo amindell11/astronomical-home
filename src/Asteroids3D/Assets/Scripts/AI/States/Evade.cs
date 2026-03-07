@@ -18,7 +18,7 @@ namespace AI.States
         public override void Enter(Info ctx)
         {
             base.Enter(ctx);
-            
+
             gunner.SetTarget((Transform)null);
         }
 
@@ -36,44 +36,44 @@ namespace AI.States
 
         public override float ComputeUtility(Info ctx)
         {
-            if (!ctx.Enemy) return 0f;
+            if (!ctx.Combat.HasEnemy) return 0f;
 
-            var fightingRetreat = ctx.HealthPct < utilityTuning.evadeFightingRetreatHealthThreshold 
-                && ctx.ShieldPct > utilityTuning.evadeFightingRetreatShieldThreshold;
-            
-            var angleScore = ctx.SelfAngleToEnemy / 180f;
-            var closingScore = Mathf.Clamp01(ctx.ClosingSpeed * 0.05f + 0.5f);
-            var facingScore = ctx.Enemy ? (Mathf.Cos(ctx.EnemyAngleToSelf * Mathf.Deg2Rad) + 1f) / 2f : 0.5f;
-            var dist = ctx.VectorToEnemy.magnitude;
+            var a = ctx.Assessment;
+            var t = utilityTuning.evade;
+            var fightingRetreat = a.HealthPct < t.fightingRetreatHealthThreshold
+                && a.ShieldPct > t.fightingRetreatShieldThreshold;
 
             return NewBuilder()
-                .Factor("selfHealth", ctx.HealthPct, utilityTuning.evadeHealthFactor)
-                .Factor("selfShield", ctx.ShieldPct, utilityTuning.evadeShieldFactor)
-                .FactorBinary(ctx.NearbyEnemyCount > ctx.NearbyFriendCount + 1, "outnumbered", utilityTuning.evadeOutnumberedFactor)
-                .FactorBinary(ctx.Enemy && ctx.LineOfSightToEnemy, "enemyLOS", utilityTuning.evadeEnemyLOSFactor)
-                .Factor("closing", closingScore, utilityTuning.evadeClosingSpeedFactor)
-                .Factor("enemyFacing", facingScore, utilityTuning.evadeEnemyFacingFactor)
-                .FactorIf(ctx.IncomingMissile, "missile", utilityTuning.evadeMissileFactor)
-                .FactorIf(dist < utilityTuning.evadeUtilityTooCloseDistance && ctx.LineOfSightToEnemy, "tooClose", utilityTuning.evadeTooCloseFactor)
-                .FactorIf(fightingRetreat, "fightingRetreat", utilityTuning.evadeFightingRetreatFactor)
-                .FactorIf(ctx.IncomingMissile, "missilePenalty", utilityTuning.evadeMissilePenaltyFactor)
-                .Factor("angle", angleScore, utilityTuning.evadeAngleFactor)
+                .Factor("selfHealth", a.HealthPct, t.healthFactor)
+                .Factor("selfShield", a.ShieldPct, t.shieldFactor)
+                .Factor("outnumbered", a.Outnumbered, t.outnumberedFactor)
+                .FactorBinary(a.HasLineOfSight, "enemyLOS", t.enemyLOSFactor)
+                .Factor("closing", a.ClosingRate, t.closingSpeedFactor)
+                .Factor("enemyFacing", a.EnemyFacingThreat, t.enemyFacingFactor)
+                .FactorIf(a.IncomingMissile, "missile", t.missileFactor)
+                .FactorIf(a.EnemyDistance < t.tooCloseDistance && a.HasLineOfSight, "tooClose", t.tooCloseFactor)
+                .FactorIf(fightingRetreat, "fightingRetreat", t.fightingRetreatFactor)
+                .FactorIf(a.IncomingMissile, "missilePenalty", t.missilePenaltyFactor)
+                .Factor("angle", a.SelfAngleNorm, t.angleFactor)
                 .Build();
         }
 
         private Vector2 CalculateEvadePoint(Info ctx)
         {
-            var selfPos = ctx.SelfPosition;
+            var combat = ctx.Combat;
+            var selfPos = ctx.ShipInfo.Pos;
             Vector2 fleeDirection;
-            
-            if (ctx.Enemy && ctx.Enemy.gameObject.activeInHierarchy)
+
+            if (combat.HasEnemy)
             {
-                fleeDirection = -ctx.VectorToEnemy.normalized;
-            }else{
+                fleeDirection = -(combat.EnemyPos - selfPos).normalized;
+            }
+            else
+            {
                 fleeDirection = Random.insideUnitCircle.normalized;
             }
-            
-            return selfPos + fleeDirection * utilityTuning.evadeFleeDistance;
+
+            return selfPos + fleeDirection * utilityTuning.evade.fleeDistance;
         }
     }
-} 
+}

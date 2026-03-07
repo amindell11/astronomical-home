@@ -32,6 +32,10 @@ namespace AI
         [Header("Combat")]
         [SerializeField] private CombatTuning combatTuning;
 
+        [Header("Debug")]
+        [SerializeField] private Debug.AIDebugSettings debugSettings;
+        public Debug.AIDebugSettings DebugSettings => debugSettings;
+
         private Ship ship;
         private Info context;
         private IShipRegistry registry;
@@ -75,16 +79,17 @@ namespace AI
 
             System.Func<State> stateProvider = () => ship.CurrentState;
 
+            if (!utilityTuning)
+                utilityTuning = ScriptableObject.CreateInstance<UtilityTuning>();
+
             Scout.Initialize(ship.transform, ship.Id, ship.settings.Dynamics, stateProvider, registry);
             Navigator.Initialize(stateProvider, ship.settings.Dynamics, Scout);
             Gunner.Initialize(ship.Weapons.Primary, ship.Weapons.Secondary, targeting, stateProvider);
 
-            context = new Info(ship, Navigator, Gunner, Scout, targeting, maneuvers);
+            context = new Info(ship, Navigator, Gunner, Scout, targeting, maneuvers,
+                utilityTuning.combatExitDelay);
 
-            if (!utilityTuning)
-                utilityTuning = ScriptableObject.CreateInstance<UtilityTuning>();
-
-            UtilitySelector.Initialize(
+            UtilitySelector.Initialize(utilityTuning,
                 new Attack(Navigator, Gunner, utilityTuning),
                 new Evade(Navigator, Gunner, utilityTuning),
                 new Kite(Navigator, Gunner, utilityTuning),
@@ -101,6 +106,7 @@ namespace AI
             if (!systemsInitialized || !UtilitySelector) return;
             if (UtilitySelector.isActiveAndEnabled)
             {
+                context.UpdateAssessment();
                 UtilitySelector.Tick(context, Time.fixedDeltaTime);
             }
             GetSubCommands(ref cachedCommand);

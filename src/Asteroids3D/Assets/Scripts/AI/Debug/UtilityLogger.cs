@@ -53,6 +53,13 @@ namespace AI.Debug
                 return;
             }
 
+            var debugSettings = commander.DebugSettings;
+            if (debugSettings == null || !debugSettings.IsActive(AIDebugChannel.Logging))
+            {
+                enabled = false;
+                return;
+            }
+
             selector = commander.UtilitySelector;
             if (!selector)
             {
@@ -122,30 +129,31 @@ namespace AI.Debug
             AppendField("tick", tickCounter);
 
             // Context snapshot
+            var a = ctx.Assessment;
             lineBuffer.Append(",\"ctx\":{");
-            AppendField("hp", ctx.HealthPct);
+            AppendField("hp", a.HealthPct);
             lineBuffer.Append(',');
-            AppendField("shield", ctx.ShieldPct);
+            AppendField("shield", a.ShieldPct);
             lineBuffer.Append(',');
-            AppendField("inCombat", ctx.InCombat);
+            AppendField("inCombat", a.InCombat);
             lineBuffer.Append(',');
-            AppendField("enemyDist", ctx.Enemy ? ctx.VectorToEnemy.magnitude : -1f);
+            AppendField("enemyDist", ctx.Combat.HasEnemy ? a.EnemyDistance : -1f);
             lineBuffer.Append(',');
-            AppendField("enemyHp", ctx.Enemy ? ctx.EnemyHealthPct : -1f);
+            AppendField("enemyHp", ctx.Combat.HasEnemy ? ctx.Combat.EnemyHealthPct : -1f);
             lineBuffer.Append(',');
-            AppendField("enemyShield", ctx.Enemy ? ctx.EnemyShieldPct : -1f);
+            AppendField("enemyShield", ctx.Combat.HasEnemy ? ctx.Combat.EnemyShieldPct : -1f);
             lineBuffer.Append(',');
-            AppendField("los", ctx.Enemy && ctx.LineOfSightToEnemy);
+            AppendField("los", a.HasLineOfSight);
             lineBuffer.Append(',');
-            AppendField("enemies", ctx.NearbyEnemyCount);
+            AppendField("enemies", a.NearbyEnemyCount);
             lineBuffer.Append(',');
-            AppendField("friends", ctx.NearbyFriendCount);
+            AppendField("friends", a.NearbyFriendCount);
             lineBuffer.Append(',');
-            AppendField("closing", ctx.ClosingSpeed);
+            AppendField("closing", a.ClosingRate);
             lineBuffer.Append(',');
-            AppendField("missile", ctx.IncomingMissile);
+            AppendField("missile", a.IncomingMissile);
             lineBuffer.Append(',');
-            AppendField("angle", ctx.AngleToEnemy);
+            AppendField("angle", a.SelfAngleToEnemy);
             lineBuffer.Append('}');
 
             // Utility scores

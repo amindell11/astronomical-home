@@ -24,13 +24,6 @@ namespace AI.Utility
         [Range(0.1f, 5.0f)]
         public float samplingTemperature = 1.0f;
         
-        [Header("Debug")]
-        [Tooltip("Show state selection debug info (utilities/probabilities) in scene view")]
-        public bool showStateSelectionGizmos = true;
-        
-        [Tooltip("Show current state debug gizmos in scene view")]
-        public bool showCurrentStateGizmos = true;
-        
         [Header("Utility Smoothing & Stickiness")]
         [Tooltip("Additive bonus applied to the current state's utility to encourage stability (stickiness)")]
         [Range(0f, 1f)]
