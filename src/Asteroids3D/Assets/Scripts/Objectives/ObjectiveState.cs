@@ -2,7 +2,7 @@ using System;
 
 namespace Objectives
 {
-    public enum ObjectiveType { Explore, KeyAcquired, ExtractionChallenge, Extracted, Failed }
+    public enum ObjectiveType { Explore, KeyAcquired, ExtractionChallenge, Extracted, Failed, Completed }
 
     public abstract class ObjectiveState
     {

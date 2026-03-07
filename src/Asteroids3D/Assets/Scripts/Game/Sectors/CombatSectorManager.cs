@@ -1,9 +1,7 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using Asteroids.Fields;
+using Game.Encounters;
 using Objectives;
-using Objectives.States;
 using Ships;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -11,8 +9,9 @@ using Random = UnityEngine.Random;
 namespace Game.Sectors
 {
     /// <summary>
-    /// Combat sector: spawns enemies, sets extraction objective.
+    /// Combat sector: spawns enemies, orchestrates encounter sequence.
     /// Player, camera, and UI overlay are handled by PlaySector.
+    /// Ships persist across encounter transitions; encounters own only objective GameObjects.
     /// </summary>
     public class CombatSectorManager : PlaySector
     {
@@ -24,14 +23,6 @@ namespace Game.Sectors
         [SerializeField] private World.WorldRoot worldPrefab;
         [SerializeField] private UpdatingAsteroidField updatingAsteroidFieldPrefab;
 
-        [Header("Objective Prefabs")]
-        [SerializeField] private KeyPickup keyPickupPrefab;
-        [SerializeField] private ExtractionZone extractionZonePrefab;
-
-        [Header("Objective Positions (Plane Space)")]
-        [SerializeField] private Vector2 keySpawnPosition = Vector2.zero;
-        [SerializeField] private Vector2 extractionZonePosition = new Vector2(50f, 50f);
-
         [Header("Enemy Spawn (Plane Space)")]
         [SerializeField] private Vector2 enemySpawnPosition = new Vector2(0f, 50f);
         [SerializeField] private Vector2 chaserSpawnPosition = new Vector2(50f, 50f);
@@ -39,10 +30,14 @@ namespace Game.Sectors
         [Header("Ship Spawn Settings")]
         [SerializeField] private ShipSpawnerSettings spawnerSettings;
 
+        [Header("Encounters")]
+        [SerializeField] private Encounter[] encounters;
+
         private Ship enemy, chaser;
         private UpdatingAsteroidField updatingAsteroidFieldInstance;
-        private KeyPickup keyPickupInstance;
-        private ExtractionZone extractionZoneInstance;
+        private Encounter activeEncounter;
+        private int encounterIndex;
+        private UI.MinimapObjectiveMarker marker;
 
         protected override IEnumerator OnSetup()
         {
@@ -59,8 +54,11 @@ namespace Game.Sectors
 
             InitializeAsteroidField();
 
-            // Player death → fail the objective immediately
-            player.Damage.OnDeath += (_, __) => Services.ObjectiveService.Fail();
+            player.Damage.OnDeath += (_, __) =>
+            {
+                activeEncounter?.Fail();
+                CompleteSector(SectorResult.Failed("player_died"));
+            };
 
             if (spawnerSettings)
             {
@@ -70,9 +68,6 @@ namespace Game.Sectors
                         0, spawnerSettings.enemyRespawnDelay);
             }
 
-            // Chaser always respawns near the world center so it can re-engage the player.
-            // This is wired unconditionally: without it, killing the chaser would permanently
-            // deactivate it (HandleShipDeath calls SetActive(false) with no reactivation path).
             var respawnDelay = spawnerSettings ? spawnerSettings.enemyRespawnDelay : 3f;
             chaser.Damage.OnDeath += (s1, _) =>
                 Services.UnitService.WaitAndRespawnShip(s1,
@@ -80,7 +75,9 @@ namespace Game.Sectors
                         + GamePlane.WorldPointToPlane(Services.EnvironmentService.WorldFollowerTransform.position),
                     0, respawnDelay);
 
-            ObjectivePhase();
+            WireObjectiveMarker();
+
+            yield return StartEncounter(0);
         }
 
         private void InitializeAsteroidField()
@@ -105,38 +102,44 @@ namespace Game.Sectors
                 player ? GamePlane.ProjectOntoPlane(player.transform.position) : updatingAsteroidFieldInstance.transform.position;
         }
 
-        private void ObjectivePhase()
+        private IEnumerator StartEncounter(int index)
         {
-            if (keyPickupPrefab)
+            encounterIndex = index;
+            var encounter = Instantiate(encounters[index]);
+            encounter.Initialize(Services, player);
+
+            if (encounter is ExtractionEncounter extraction)
+                extraction.SetChaser(chaser);
+
+            encounter.OnEncounterComplete += HandleEncounterComplete;
+            yield return encounter.Setup();
+            activeEncounter = encounter;
+
+            if (marker)
+                SetMarkerTarget(marker, Services.ObjectiveService.CurrentState ?? ObjectiveType.Explore);
+        }
+
+        private void HandleEncounterComplete(Encounter enc, EncounterResult result)
+        {
+            if (result == EncounterResult.Failed)
             {
-                var keyWorld = GamePlane.PlanePointToWorld(keySpawnPosition);
-                keyPickupInstance = Instantiate(keyPickupPrefab, keyWorld, keyPickupPrefab.transform.rotation);
-                keyPickupInstance.SpawnKey(keyWorld);
+                CompleteSector(SectorResult.Failed("encounter_failed"));
+                return;
             }
+            StartCoroutine(TransitionToNextEncounter(enc));
+        }
 
-            if (extractionZonePrefab)
-            {
-                extractionZoneInstance = Instantiate(extractionZonePrefab, GamePlane.PlanePointToWorld(extractionZonePosition), extractionZonePrefab.transform.rotation);
-                extractionZoneInstance.Initialize(chaser ? chaser.transform : null);
-            }
+        private IEnumerator TransitionToNextEncounter(Encounter enc)
+        {
+            yield return enc.Teardown();
+            Destroy(enc.gameObject);
+            activeEncounter = null;
 
-            if (chaser)
-                chaser.gameObject.SetActive(false);
-
-            var builders = new Dictionary<string, Func<ObjectiveState>>
-            {
-                ["explore"] = () => new ExploreState(keyPickupInstance),
-                ["key"] = () => new KeyAcquiredState(),
-                ["extraction"] = () => new ExtractionChallengeState(
-                    extractionZoneInstance,
-                    onEnter: () => { if (chaser) chaser.gameObject.SetActive(true); }),
-                ["extracted"] = () => new ExtractedState(onEnter: ()=>CompleteSector(SectorResult.Extracted())),
-                ["failed"] = () => new FailedState(onEnter: ()=>CompleteSector(SectorResult.Failed("failed")))
-            };
-
-            Services.ObjectiveService.SetObjective(MissionDefinition.CreateDefault(), builders);
-
-            WireObjectiveMarker();
+            encounterIndex++;
+            if (encounterIndex < encounters.Length)
+                yield return StartEncounter(encounterIndex);
+            else
+                CompleteSector(SectorResult.Extracted());
         }
 
         private void WireObjectiveMarker()
@@ -144,40 +147,37 @@ namespace Game.Sectors
             var overlay = Services.UIService.ActiveOverlay;
             if (!overlay || !overlay.ObjectiveMarker) return;
 
-            var marker = overlay.ObjectiveMarker;
+            marker = overlay.ObjectiveMarker;
 
-            SetMarkerTarget(marker, Services.ObjectiveService.CurrentState ?? ObjectiveType.Explore);
             Services.ObjectiveService.OnStateChanged += (_, to) => SetMarkerTarget(marker, to);
         }
 
-        private void SetMarkerTarget(UI.MinimapObjectiveMarker marker, ObjectiveType state)
+        private void SetMarkerTarget(UI.MinimapObjectiveMarker m, ObjectiveType state)
         {
             switch (state)
             {
                 case ObjectiveType.Explore:
-                    marker.SetTarget(keyPickupInstance ? keyPickupInstance.transform : null);
-                    break;
                 case ObjectiveType.KeyAcquired:
                 case ObjectiveType.ExtractionChallenge:
-                    marker.SetTarget(extractionZoneInstance ? extractionZoneInstance.transform : null);
+                    m.SetTarget(activeEncounter ? activeEncounter.ObjectiveTarget : null);
                     break;
                 default:
-                    marker.SetTarget(null);
+                    m.SetTarget(null);
                     break;
             }
         }
 
-        private void RestartEncounter()
-        {
-            CompleteSector(SectorResult.Extracted());
-        }
-
         protected override IEnumerator OnTeardown()
         {
+            if (activeEncounter != null)
+            {
+                yield return activeEncounter.Teardown();
+                Destroy(activeEncounter.gameObject);
+                activeEncounter = null;
+            }
+
             Services.ObjectiveService.Clear();
 
-            if (keyPickupInstance) Destroy(keyPickupInstance.gameObject);
-            if (extractionZoneInstance) Destroy(extractionZoneInstance.gameObject);
             if (updatingAsteroidFieldInstance) Destroy(updatingAsteroidFieldInstance.gameObject);
 
             yield return base.OnTeardown();
@@ -187,8 +187,6 @@ namespace Game.Sectors
 
             enemy = null;
             chaser = null;
-            keyPickupInstance = null;
-            extractionZoneInstance = null;
             updatingAsteroidFieldInstance = null;
         }
     }

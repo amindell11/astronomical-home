@@ -91,6 +91,6 @@ namespace Objectives
         }
 
         private static bool IsTerminal(ObjectiveType type) =>
-            type == ObjectiveType.Extracted || type == ObjectiveType.Failed;
+            type is ObjectiveType.Extracted or ObjectiveType.Failed or ObjectiveType.Completed;
     }
 }
