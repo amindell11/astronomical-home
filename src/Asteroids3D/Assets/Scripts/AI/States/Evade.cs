@@ -15,6 +15,8 @@ namespace AI.States
         {
         }
 
+        public override bool IsAvailable(Info ctx) => ctx.Combat.HasEnemy;
+
         public override void Enter(Info ctx)
         {
             base.Enter(ctx);
@@ -36,8 +38,6 @@ namespace AI.States
 
         public override float ComputeUtility(Info ctx)
         {
-            if (!ctx.Combat.HasEnemy) return 0f;
-
             var a = ctx.Assessment;
             var t = utilityTuning.evade;
             var fightingRetreat = a.HealthPct < t.fightingRetreatHealthThreshold

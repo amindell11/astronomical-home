@@ -14,6 +14,8 @@ namespace AI.States
 
         public Orbit(Navigator navigator, Gunner gunner, UtilityTuning utilityTuning) : base(navigator, gunner, utilityTuning) { }
 
+        public override bool IsAvailable(Info ctx) => ctx.Combat.HasEnemy;
+
         public override void Enter(Info ctx)
         {
             base.Enter(ctx);
@@ -66,8 +68,6 @@ namespace AI.States
 
         public override float ComputeUtility(Info ctx)
         {
-            if (!ctx.Combat.HasEnemy) return 0f;
-
             var a = ctx.Assessment;
             var t = utilityTuning.orbit;
             var inRange = a.EnemyDistance >= t.minRadius && a.EnemyDistance <= t.maxRadius;

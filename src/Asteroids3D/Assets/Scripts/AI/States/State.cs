@@ -47,6 +47,13 @@ namespace AI.States
             return LastBuilder;
         }
 
+        /// <summary>
+        /// Hard precondition: can this state run right now?
+        /// Return false to exclude from evaluation entirely (e.g. no target for Attack).
+        /// Default: true — all states are available unless overridden.
+        /// </summary>
+        public virtual bool IsAvailable(Info ctx) => true;
+
         public virtual void Enter(Info ctx)
         {
         }

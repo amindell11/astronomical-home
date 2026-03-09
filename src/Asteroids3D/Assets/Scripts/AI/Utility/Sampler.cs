@@ -39,6 +39,12 @@ namespace AI.Utility
 
             foreach (var state in states)
             {
+                if (IsExcluded(state, context))
+                {
+                    UtilityScores[state.Type] = 0f;
+                    continue;
+                }
+
                 var utility = ComputeSmoothedUtility(state, currentState, timeSinceEntry, context);
                 UtilityScores[state.Type] = utility;
 
@@ -53,6 +59,7 @@ namespace AI.Utility
             for (var i = 0; i < states.Count; i++)
             {
                 var state = states[i];
+                if (IsExcluded(state, context)) continue;
                 AddTopState(state, UtilityScores[state.Type]);
             }
 
@@ -77,6 +84,20 @@ namespace AI.Utility
             if (config.stickyFadeTime <= 0f) return config.stickyBonus;
             var fade = Mathf.Clamp01(1f - timeSinceEntry / config.stickyFadeTime);
             return config.stickyBonus * fade;
+        }
+
+        private bool IsExcluded(AI.States.State state, Info context = null)
+        {
+            if (ResolveWeight(state) <= 0f) return true;
+            if (context != null && !state.IsAvailable(context)) return true;
+            return false;
+        }
+
+        private float ResolveWeight(AI.States.State state)
+        {
+            var baseWeight = utilityTuning && utilityTuning.utilityWeights ? utilityTuning.utilityWeights[state.Type] : 1f;
+            var instanceBias = instanceUtilityWeights ? instanceUtilityWeights[state.Type] : 1f;
+            return baseWeight * instanceBias;
         }
 
         private float ApplyWeight(AI.States.State state, float baseUtility)

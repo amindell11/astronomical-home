@@ -16,6 +16,8 @@ namespace AI.States
         {
         }
 
+        public override bool IsAvailable(Info ctx) => !ctx.Combat.HasEnemy;
+
         public override void Enter(Info ctx)
         {
             base.Enter(ctx);

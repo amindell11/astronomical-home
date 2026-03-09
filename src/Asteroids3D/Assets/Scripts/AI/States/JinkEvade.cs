@@ -19,6 +19,8 @@ namespace AI.States
 
         public JinkEvade(Navigator navigator, Gunner gunner, UtilityTuning utilityTuning) : base(navigator, gunner, utilityTuning) { }
 
+        public override bool IsAvailable(Info ctx) => ctx.Combat.HasEnemy || ctx.Assessment.IncomingMissile;
+
         public override void Enter(Info ctx)
         {
             base.Enter(ctx);
@@ -66,8 +68,6 @@ namespace AI.States
 
         public override float ComputeUtility(Info ctx)
         {
-            if (!ctx.Combat.HasEnemy && !ctx.Assessment.IncomingMissile) return 0f;
-
             var a = ctx.Assessment;
             var t = utilityTuning.jinkEvade;
             var criticalState = a.HealthPct < t.criticalHealthThreshold
