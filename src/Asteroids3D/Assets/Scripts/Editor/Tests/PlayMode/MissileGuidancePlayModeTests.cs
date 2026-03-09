@@ -55,6 +55,7 @@ namespace Tests.PlayMode
 
             var m = go.AddComponent<Missile>();
             SetField(m, "maxDistance", 200f);
+            SetField(m, "maxLifetime", 10f);
 
             return m;
         }
@@ -68,8 +69,14 @@ namespace Tests.PlayMode
 
         private void LaunchAt(Missile m, Vector2 planeDir, IShooter shooter)
         {
-            m.Initialize(shooter);
+            // Align transform.up to the launch direction on the game plane,
+            // matching how WeaponBase.Fire() sets firePoint.rotation before Launch().
+            // KinematicsPoller reads transform.up to compute yaw/Forward, so without
+            // this the guidance system sees a wrong heading and cannot converge.
             var worldDir = GamePlane.PlaneDirToWorld(planeDir.normalized);
+            m.transform.rotation = Quaternion.LookRotation(GamePlane.Normal, worldDir);
+
+            m.Initialize(shooter);
             m.Launch(worldDir);
         }
 

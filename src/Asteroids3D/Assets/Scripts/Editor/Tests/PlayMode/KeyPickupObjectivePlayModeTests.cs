@@ -38,6 +38,7 @@ namespace Tests.PlayMode
             col.radius = radius;
             var kp = go.AddComponent<KeyPickup>();
             kp.SpawnKey(Vector3.zero);
+            go.transform.position = Vector3.zero;
             return kp;
         }
 

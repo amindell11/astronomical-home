@@ -235,10 +235,10 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void CameraService_IsNull_AfterConstruction()
+        public void CameraService_IsEmpty_AfterConstruction()
         {
             var svc = new CameraService();
-            Assert.IsNull(svc.Cameras);
+            Assert.IsEmpty(svc.Cameras);
         }
 
         // ── GameServices.ClearAll ────────────────────────────────────────────────

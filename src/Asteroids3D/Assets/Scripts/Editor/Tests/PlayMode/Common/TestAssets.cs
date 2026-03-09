@@ -17,8 +17,8 @@ public static class TestAssets
     // Standard asset paths
     private const string DefaultShipSettingsPath = "Assets/Settings/Ships/DefaultSettings.asset";
     private const string Ship2PrefabPath = "Assets/Prefabs/Ships/Ship_2.prefab";
-    private const string TestPilotPath = "Assets/Prefabs/Ships/Pilots/TestPilot.prefab";
-    private const string TestPilotMpcPath = "Assets/Prefabs/Ships/Pilots/TestPilotMPC.prefab";
+    private const string TestPilotPath = "Assets/Prefabs/Pilots/TestPilot.prefab";
+    private const string TestPilotMpcPath = "Assets/Prefabs/Pilots/TestPilotMPC.prefab";
 
     /// <summary>
     /// Loads the default ship settings asset.
