@@ -116,11 +116,11 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void GameServices_ClearAll_ToleratesNullServices()
+        public void GameServices_Constructor_RejectsNullServices()
         {
-            var svc = new GameServices(null, null, null, null, null);
-            Assert.DoesNotThrow(() => svc.ClearAll(),
-                "ClearAll must not throw when services are null");
+            Assert.Throws<ArgumentNullException>(() =>
+                new GameServices(null, null, null, null, null),
+                "GameServices constructor must reject null services");
         }
 
         // --- SectorConfigSO ---

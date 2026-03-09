@@ -60,36 +60,10 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void ShipRespawnRunner_SourceSupportsReinitializeAcrossSessions()
-        {
-            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Ships", "ShipRespawnRunner.cs"));
-            StringAssert.Contains("UnbindCurrentRegistry();", source);
-            StringAssert.Contains("public void ResetRunner()", source);
-            StringAssert.Contains("StopAllCoroutines();", source);
-            StringAssert.DoesNotContain("if (isInitialized)", source);
-        }
-
-        [Test]
-        public void Spawner_SourceKeepsRespawnPositionInWorldSpace()
-        {
-            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Ships", "Spawner.cs"));
-            StringAssert.Contains("GamePlane.ProjectOntoPlane(pos) + GamePlane.Origin", source);
-            StringAssert.DoesNotContain("GamePlane.WorldPointToPlane(pos)", source);
-        }
-
-        [Test]
-        public void MainGameManager_ResetsRespawnRunnerOnRestart()
-        {
-            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Game", "Bootstrap", "MainGameManager.cs"));
-            StringAssert.Contains("respawnRunner.ResetRunner();", source);
-        }
-
-        [Test]
-        public void MainGameManager_UsesSerializedReferencePlaneAndRespawnRunner()
+        public void MainGameManager_UsesSerializedReferencePlane()
         {
             var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Game", "Bootstrap", "MainGameManager.cs"));
             StringAssert.Contains("[SerializeField] private Transform referencePlane;", source);
-            StringAssert.Contains("[SerializeField] private ShipRespawnRunner respawnRunner;", source);
             StringAssert.Contains("GamePlane.SetReferencePlane(referencePlane);", source);
             StringAssert.DoesNotContain("GameContext.Instance", source);
         }
@@ -120,8 +94,7 @@ namespace Tests.EditMode
                 Path.Combine(assetsPath, "Scripts", "AI", "AICommander.cs"),
                 Path.Combine(assetsPath, "Scripts", "Combat", "Targeting", "TargetingComputer.cs"),
                 Path.Combine(assetsPath, "Scripts", "Player", "PlayerCommander.cs"),
-                Path.Combine(assetsPath, "Scripts", "Asteroids", "AsteroidController.cs"),
-                Path.Combine(assetsPath, "Scripts", "Ships", "Spawner.cs")
+                Path.Combine(assetsPath, "Scripts", "Asteroids", "AsteroidController.cs")
             };
 
             foreach (var file in files)
