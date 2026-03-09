@@ -57,10 +57,16 @@ namespace Movement.MPC
             }
         }
 
+        private CostBreakdown EvaluateBreakdown(State mpcState)
+        {
+            return Cost.EvaluateTrajectoryBreakdown(mpcState, bestSequence,
+                solver.BuildCostInput(GoalPos()), config, dynamics, lastControl);
+        }
+
         partial void LogSolverPerformanceIfNeeded()
         {
             if (!logSolverPerformance || !(Time.time > nextLogTime)) return;
-            UnityEngine.Debug.Log($"[MPC] {gameObject.name} | Solve: {lastSolveTimeMs:F2}ms | Cost: {lastBestCost:F1}");
+            Debug.Log($"[MPC] {gameObject.name} | Solve: {lastSolveTimeMs:F2}ms | Cost: {lastBestCost:F1}");
             nextLogTime = Time.time + 1f;
         }
 
@@ -82,18 +88,18 @@ namespace Movement.MPC
         {
             if (predictedStates == null || predictedStates.Length == 0) return;
 
-            var prevPos = GamePlane.PlanePointToWorld(predictedStates[0].pos);
+            var prevPos = GamePlane.PlanePointToWorld(new Vector2(predictedStates[0].pos.x, predictedStates[0].pos.y));
             var prevU = bestSequence[0];
+            var input = solver.BuildCostInput(GoalPos());
 
             for (var i = 1; i < predictedStates.Length; i++)
             {
                 var state = predictedStates[i];
                 var u = bestSequence[i];
-                var pos = GamePlane.PlanePointToWorld(state.pos);
+                var pos = GamePlane.PlanePointToWorld(new Vector2(state.pos.x, state.pos.y));
 
                 var isTerminal = i == predictedStates.Length - 1;
-                var stepBreakdown = Cost.EvaluateBreakdown(state, u, prevU, currentWaypoint.position,
-                    new ObstacleScan(dbgObstacles, dbgObstacleCount), config, isTerminal);
+                var stepBreakdown = Cost.EvaluateBreakdown(state, u, prevU, input, config, isTerminal);
 
                 Gizmos.color = showTrajectoryCosts ? GetCostColor(stepBreakdown.obstacle / config.wObstacle) : Color.cyan;
 
@@ -102,7 +108,7 @@ namespace Movement.MPC
 
                 if (i % labelStep == 0)
                 {
-                    UnityEditor.Handles.Label(pos + Vector3.up * 0.2f,
+                    Handles.Label(pos + Vector3.up * 0.2f,
                         $"Cost: {stepBreakdown.total:F1}\n(P:{stepBreakdown.pos:F1} O:{stepBreakdown.obstacle:F1})",
                         new GUIStyle { normal = { textColor = Color.white }, fontSize = 10 });
                 }
@@ -171,8 +177,8 @@ namespace Movement.MPC
         }
     }
 
-    [UnityEditor.CustomEditor(typeof(MpcNavigator))]
-    public class MpcNavigatorEditor : UnityEditor.Editor
+    [CustomEditor(typeof(MpcNavigator))]
+    public class MpcNavigatorEditor : Editor
     {
         public override void OnInspectorGUI()
         {
@@ -181,14 +187,14 @@ namespace Movement.MPC
             var nav = (MpcNavigator)target;
             if (!nav.showCostBreakdown || !Application.isPlaying) return;
 
-            UnityEditor.EditorGUILayout.Space();
-            UnityEditor.EditorGUILayout.LabelField("MPC Debug Scaffolding", UnityEditor.EditorStyles.boldLabel);
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("MPC Debug Scaffolding", EditorStyles.boldLabel);
 
             var solveTimeColor = nav.lastSolveTimeMs > 2.0f ? "red" : "lime";
-            UnityEditor.EditorGUILayout.LabelField($"Solve Time: <color={solveTimeColor}>{nav.lastSolveTimeMs:F2} ms</color>",
-                new GUIStyle(UnityEditor.EditorStyles.label) { richText = true });
+            EditorGUILayout.LabelField($"Solve Time: <color={solveTimeColor}>{nav.lastSolveTimeMs:F2} ms</color>",
+                new GUIStyle(EditorStyles.label) { richText = true });
 
-            UnityEditor.EditorGUILayout.LabelField($"Total Cost: {nav.lastBestCost:F2}");
+            EditorGUILayout.LabelField($"Total Cost: {nav.lastBestCost:F2}");
 
             var breakdown = nav.lastCostBreakdown;
             DrawCostBar("Position", breakdown.pos, nav.lastBestCost, Color.green);
@@ -206,14 +212,14 @@ namespace Movement.MPC
         private void DrawCostBar(string label, float value, float total, Color color)
         {
             var pct = total > 0 ? value / total : 0;
-            var rect = UnityEditor.EditorGUILayout.GetControlRect(false, 18);
+            var rect = EditorGUILayout.GetControlRect(false, 18);
 
             EditorGUI.DrawRect(rect, new Color(0.1f, 0.1f, 0.1f, 1f));
 
             var barRect = new Rect(rect.x, rect.y, rect.width * pct, rect.height);
             EditorGUI.DrawRect(barRect, color * 0.7f);
 
-            var style = new GUIStyle(UnityEditor.EditorStyles.miniLabel) { alignment = TextAnchor.MiddleLeft };
+            var style = new GUIStyle(EditorStyles.miniLabel) { alignment = TextAnchor.MiddleLeft };
             EditorGUI.LabelField(rect, $" {label}: {value:F1} ({pct * 100:F0}%)", style);
         }
     }

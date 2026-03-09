@@ -1,68 +1,58 @@
-using UnityEngine;
+using Unity.Mathematics;
+using Movement;
 
 namespace Movement.MPC
 {
-    /// <summary>
-    /// Ship dynamics model for MPC trajectory prediction.
-    /// </summary>
     public static partial class Model
     {
-        private const float TwoPi = 2f * Mathf.PI;
-
         public static State Step(State s, Control u, Config cfg, Dynamics shp)
         {
-            using var _ = EditorProfilingScope.Begin("MPC.Model.Step");
-            var (fwd, right) = BodyAxes(s.yaw);
+            BodyAxes(s.yaw, out var fwd, out var right);
             var acc = ComputeAcceleration(u, fwd, right, shp, s.vel);
-            var (nextPos, nextVel) = IntegrateLinear(s.pos, s.vel, acc, cfg.dt, shp);
-            var (nextYaw, nextYawRate) = IntegrateAngular(s.yaw, s.yawRate, u.yawTorque, cfg, shp);
-            
+            IntegrateLinear(s.pos, s.vel, acc, cfg.dt, shp, out var nextPos, out var nextVel);
+            IntegrateAngular(s.yaw, s.yawRate, u.yawTorque, cfg, shp, out var nextYaw, out var nextYawRate);
+
             return new State { pos = nextPos, vel = nextVel, yaw = nextYaw, yawRate = nextYawRate };
         }
 
-        private static (Vector2 fwd, Vector2 right) BodyAxes(float yaw)
+        private static void BodyAxes(float yaw, out float2 fwd, out float2 right)
         {
-            var sin = Mathf.Sin(yaw);
-            var cos = Mathf.Cos(yaw);
-            return (new Vector2(-sin, cos), new Vector2(cos, sin));
+            var sin = math.sin(yaw);
+            var cos = math.cos(yaw);
+            fwd = new float2(-sin, cos);
+            right = new float2(cos, sin);
         }
 
-        private static Vector2 ComputeAcceleration(Control u, Vector2 fwd, Vector2 right, Dynamics shp, Vector2 vel)
+        private static float2 ComputeAcceleration(Control u, float2 fwd, float2 right, Dynamics shp, float2 vel)
         {
             var accF = ((u.thrust >= 0 ? shp.forwardAcc : shp.reverseAcc) * u.thrust) / shp.mass;
-            
-            var speedPct = Mathf.Clamp01(vel.magnitude / shp.maxSpeed);
-            var strafeMag = Mathf.Lerp(shp.maxStrafeAcc, shp.minStrafeAcc, speedPct);
+
+            var speedPct = math.clamp(math.length(vel) / shp.maxSpeed, 0f, 1f);
+            var strafeMag = math.lerp(shp.maxStrafeAcc, shp.minStrafeAcc, speedPct);
             var accS = (strafeMag * u.strafe) / shp.mass;
-            
+
             return fwd * accF + right * accS;
         }
 
-        private static (Vector2 pos, Vector2 vel) IntegrateLinear(Vector2 pos, Vector2 vel, Vector2 acc, float dt, Dynamics shp)
+        private static void IntegrateLinear(float2 pos, float2 vel, float2 acc, float dt, Dynamics shp,
+            out float2 nextPos, out float2 nextVel)
         {
-            var dragFactor = Mathf.Max(0f, 1f - shp.linearDrag * dt);
-            var nextVel = vel * dragFactor + acc * dt;
+            var dragFactor = math.max(0f, 1f - shp.linearDrag * dt);
+            nextVel = vel * dragFactor + acc * dt;
             var maxSpeedSq = shp.maxSpeed * shp.maxSpeed;
-            if (nextVel.sqrMagnitude > maxSpeedSq)
-                nextVel = nextVel.normalized * shp.maxSpeed;
-            return (pos + nextVel * dt, nextVel);
+            if (math.lengthsq(nextVel) > maxSpeedSq)
+                nextVel = math.normalize(nextVel) * shp.maxSpeed;
+            nextPos = pos + nextVel * dt;
         }
 
-        private static (float yaw, float yawRate) IntegrateAngular(float yaw, float yawRate, float yawInput, Config cfg, Dynamics shp)
+        private static void IntegrateAngular(float yaw, float yawRate, float yawInput, Config cfg, Dynamics shp,
+            out float nextYaw, out float nextYawRate)
         {
             var torqueAlpha = shp.yawTorque * yawInput;
-            var dragFactor = Mathf.Max(0f, 1f - shp.angularDrag * cfg.dt);
-            var nextYawRate = yawRate * dragFactor + torqueAlpha * cfg.dt;
-            nextYawRate = Mathf.Clamp(nextYawRate, -shp.maxYawRate, shp.maxYawRate);
-            var nextYaw = WrapAngle(yaw + nextYawRate * cfg.dt);
-            return (nextYaw, nextYawRate);
-        }
-
-        private static float WrapAngle(float angle)
-        {
-            if (angle > Mathf.PI) return angle - TwoPi;
-            if (angle < -Mathf.PI) return angle + TwoPi;
-            return angle;
+            var dragFactor = math.max(0f, 1f - shp.angularDrag * cfg.dt);
+            nextYawRate = yawRate * dragFactor + torqueAlpha * cfg.dt;
+            nextYawRate = math.clamp(nextYawRate, -shp.maxYawRate, shp.maxYawRate);
+            nextYaw = Cost.WrapRadians(yaw + nextYawRate * cfg.dt);
         }
     }
 }
