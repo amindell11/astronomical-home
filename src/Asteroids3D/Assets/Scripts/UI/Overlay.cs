@@ -40,13 +40,15 @@ namespace UI
 
         public void Initialize(Ship player)
         {
-            if (lockOnAudio && player.Targeting)
-                lockOnAudio.Initialize(player.Targeting);
+            var combatShip = player as CombatShip;
+
+            if (lockOnAudio && combatShip?.Targeting)
+                lockOnAudio.Initialize(combatShip.Targeting);
 
             if (healthAudio && player.Damage)
                 healthAudio.Initialize(player.Damage);
 
-            var laser = player.Weapons?.Primary as WeaponLaser;
+            var laser = combatShip?.Weapons?.Primary as WeaponLaser;
             var heat = laser ? laser.Heat : null;
             if (heat)
             {
@@ -54,7 +56,7 @@ namespace UI
                 if (laserHeatUI) laserHeatUI.Initialize(heat);
             }
 
-            var missiles = player.Weapons?.Secondary as WeaponMissiles;
+            var missiles = combatShip?.Weapons?.Secondary as WeaponMissiles;
             var rounds = missiles ? missiles.Rounds : null;
             var targeting = missiles ? missiles.Targeting : null;
             if (missileAmmoUI && rounds && targeting)

@@ -39,6 +39,7 @@ namespace Tests.PlayMode
     public class ShipChildComponentStatePlayModeTests : PlayModeWorldFixture
     {
         private Ship testShip;
+        private CombatShip combatShip;
         private Ship enemyShip;
         
         // Toggle for diagnostic logging (set to true to enable detailed logs)
@@ -60,7 +61,9 @@ namespace Tests.PlayMode
             Assert.IsNotNull(commanderPrefab, "TestPilot prefab failed to load");
 
             testShip = ShipTestFactory.CreateShip(shipPrefab, commanderPrefab, settings, team: 0);
+            combatShip = testShip as CombatShip;
             Assert.IsNotNull(testShip, "Test ship failed to instantiate");
+            Assert.IsNotNull(combatShip, "Test ship should be a CombatShip");
 
             // Create enemy for damage attribution
             enemyShip = ShipTestFactory.CreateDefaultShipAt(
@@ -95,7 +98,7 @@ namespace Tests.PlayMode
         {
             yield return null; // Wait for initialization
 
-            var weaponsController = testShip.Weapons;
+            var weaponsController = combatShip.Weapons;
             Assert.IsNotNull(weaponsController, "WeaponsController missing on test ship");
             Assert.IsNotNull(weaponsController.Primary, "Primary weapon missing");
             Assert.IsTrue(weaponsController.gameObject.activeInHierarchy, 
@@ -137,7 +140,7 @@ namespace Tests.PlayMode
         {
             yield return null;
 
-            var weaponsController = testShip.Weapons;
+            var weaponsController = combatShip.Weapons;
             var shieldUI = testShip.GetComponentInChildren<ShieldUI>(includeInactive: true);
             var lockOnIndicator = testShip.GetComponentInChildren<LockOnIndicator>(includeInactive: true);
 
@@ -187,7 +190,7 @@ namespace Tests.PlayMode
         {
             yield return null;
 
-            var weaponsController = testShip.Weapons;
+            var weaponsController = combatShip.Weapons;
             var shieldUI = testShip.GetComponentInChildren<ShieldUI>(includeInactive: true);
             var lockOnIndicator = testShip.GetComponentInChildren<LockOnIndicator>(includeInactive: true);
 
@@ -269,7 +272,7 @@ namespace Tests.PlayMode
             yield return null;
 
             // Verify weapon can fire
-            var weaponsController = testShip.Weapons;
+            var weaponsController = combatShip.Weapons;
             Assert.IsNotNull(weaponsController, "WeaponsController should exist after reset");
             Assert.IsNotNull(weaponsController.Primary, "Primary weapon should exist after reset");
 
@@ -405,7 +408,7 @@ namespace Tests.PlayMode
         {
             yield return null;
 
-            var weaponsController = testShip.Weapons;
+            var weaponsController = combatShip.Weapons;
             var originalActive = weaponsController.gameObject.activeSelf;
 
             LogDiagnostic($"Test setup - Weapons originally active: {originalActive}");
@@ -463,7 +466,7 @@ namespace Tests.PlayMode
             {
                 LogDiagnostic($"=== Cycle {cycle + 1}/{numCycles} ===");
 
-                var weaponsController = testShip.Weapons;
+                var weaponsController = combatShip.Weapons;
                 var shieldUI = testShip.GetComponentInChildren<ShieldUI>(includeInactive: true);
                 var lockOnIndicator = testShip.GetComponentInChildren<LockOnIndicator>(includeInactive: true);
 
