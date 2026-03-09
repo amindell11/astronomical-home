@@ -1,0 +1,4 @@
+interface:
+  display_name: "Unity Perf Probe Loop"
+  short_description: "Run Unity perf probes safely."
+  default_prompt: "Use this skill to measure Unity performance changes across commits or worktrees, especially for MPC perf probes. Keep runs sequential, collect comparable artifacts, and restore the original worktree state when done."

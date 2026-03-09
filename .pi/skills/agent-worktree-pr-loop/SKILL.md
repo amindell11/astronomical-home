@@ -10,6 +10,15 @@ metadata:
 
 Use this skill for this repo's pooled worktree workflow.
 
+## Visibility commands
+
+Before starting work or when reporting status, use the dashboard for a full overview:
+
+- `./scripts/worktree_dashboard.sh` — rich view of all slots: lock status, branch, changed files, PRs, ahead/behind main
+- `./scripts/worktree_dashboard.sh --watch` — auto-refresh every 5s (suggest to user for monitoring)
+
+For interactive exploration, suggest the user run `lazygit` in any worktree directory. Press `w` in lazygit to see all worktrees and switch between them.
+
 ## Core commands
 
 - `./scripts/agent_worktree_pool.sh status`
@@ -73,6 +82,23 @@ own PR even when the same slot is reused.
 - Do not run two agents in the same slot at once.
 - Prefer targeted/smoke tests during iteration; run broader scope before handoff when requested.
 
+## Viewing diffs and history
+
+For non-interactive contexts (agent reporting), use:
+```bash
+# Summary of what changed vs main
+git -C "$(slot_path)" diff --stat origin/main
+# Full diff
+git -C "$(slot_path)" diff origin/main
+# Commit log for the slot
+git -C "$(slot_path)" log --oneline origin/main..HEAD
+```
+
+For interactive review, suggest the user open lazygit in the worktree:
+```bash
+lazygit -p D:/amind/git/agent-<n>
+```
+
 ## Required reporting format
 
 When completing a slot task, respond with:
@@ -84,3 +110,8 @@ When completing a slot task, respond with:
 - **Files changed:** `<paths>`
 - **Tests:** `<command(s)>` + `passed/failed summary`
 - **Unknowns/Risks:** `<explicit bullets>`
+
+When starting or finishing, always run the dashboard and include its output:
+```bash
+./scripts/worktree_dashboard.sh
+```
