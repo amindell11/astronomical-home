@@ -51,6 +51,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   utilityTuning: {fileID: 11400000, guid: e4c52ba5b796d2642b7fa9e69870137b, type: 2}
   difficulty: 1
+  combatTuning: {fileID: 0}
+  debugSettings: {fileID: 11400000, guid: 2e2ae38aa858dd74d9f7908425a3067d, type: 2}
 --- !u!114 &-1070365238870678526
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -78,9 +80,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 672451d8ba1d1c24b95ea05b1fea1e71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  showGizmos: 1
-  showTargeting: 1
-  showLineOfSight: 1
 --- !u!114 &4713944334268074824
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -108,11 +107,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   arriveRadius: 0.5
-  showDebugGizmos: 0
+  labelStep: 5
+  showCostBreakdown: 0
+  logSolverPerformance: 0
+  lastSolveTimeMs: 0
   showObstacleCosts: 1
   showTrajectoryCosts: 1
   settings: {fileID: 11400000, guid: 9d049f5482896884799106aff602155b, type: 2}
   enableObstacleAvoidance: 1
+  lastBestCost: 0
 --- !u!114 &606810096680689649
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -125,7 +128,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3358d33db4de47449a05f34455161639, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  showDebugGizmos: 1
   nearbyShipRadius: 30
   asteroidCoverRadius: 15
   asteroidMask:

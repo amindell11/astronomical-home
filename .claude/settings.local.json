@@ -18,7 +18,9 @@
       "Bash(cp:*)",
       "Bash(\"D:/amind/git/astronomical-home/.worktree-pool/locks/agent-1.lock/task_branch\":*)",
       "Bash(gh pr:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git rm:*)",
+      "Bash(git commit:*)"
     ]
   }
 }

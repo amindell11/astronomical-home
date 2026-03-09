@@ -66,12 +66,9 @@ MonoBehaviour:
     type: 3}
   updatingAsteroidFieldPrefab: {fileID: 7997124830668444265, guid: a4a07ada72adcc44ba51f616ad29384b,
     type: 3}
-  keyPickupPrefab: {fileID: 9103027025631425475, guid: a57fedd19f1e5f6438bed6b33c3a6912,
-    type: 3}
-  extractionZonePrefab: {fileID: 7546324037402026647, guid: 0908c9d6b2b5b25499cf01ffc8214c5a,
-    type: 3}
-  keySpawnPosition: {x: -30, y: 25}
-  extractionZonePosition: {x: 50, y: 50}
   enemySpawnPosition: {x: 0, y: 30}
   chaserSpawnPosition: {x: 30, y: 50}
   spawnerSettings: {fileID: 11400000, guid: d5df05273fc201d41b456a239f5fa628, type: 2}
+  encounters:
+  - {fileID: -8353361788564463139, guid: 1d60948d36dad664ca363cd69408abd3, type: 3}
+  - {fileID: 4116817535831531617, guid: be8d39d418e043b44985b54ded154a37, type: 3}

@@ -67,6 +67,8 @@ MonoBehaviour:
   spawnRadius: 30
   respawnDelay: 3
   playerParticipates: 0
+  enableDebugOverlay: 1
+  debugSettings: {fileID: 11400000, guid: 2e2ae38aa858dd74d9f7908425a3067d, type: 2}
   worldPrefab: {fileID: 4478678954348364341, guid: 85b078d06b0ea6c40acdfd2fe59a9556,
     type: 3}
   updatingAsteroidFieldPrefab: {fileID: 7997124830668444265, guid: a4a07ada72adcc44ba51f616ad29384b,

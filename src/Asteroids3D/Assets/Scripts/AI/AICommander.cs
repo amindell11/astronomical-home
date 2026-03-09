@@ -90,12 +90,12 @@ namespace AI
                 utilityTuning.combatExitDelay);
 
             UtilitySelector.Initialize(utilityTuning,
-                new Attack(Navigator, Gunner, utilityTuning),
-                new Evade(Navigator, Gunner, utilityTuning),
-                new Kite(Navigator, Gunner, utilityTuning),
-                new Orbit(Navigator, Gunner, utilityTuning),
-                new JinkEvade(Navigator, Gunner, utilityTuning),
-                new Patrol(Navigator, Gunner, utilityTuning)
+                new Attack(Navigator, Gunner, utilityTuning)
+               // new Evade(Navigator, Gunner, utilityTuning),
+               // new Kite(Navigator, Gunner, utilityTuning),
+               // new Orbit(Navigator, Gunner, utilityTuning),
+               // new JinkEvade(Navigator, Gunner, utilityTuning),
+               // new Patrol(Navigator, Gunner, utilityTuning)
             );
 
             systemsInitialized = true;
