@@ -1,14 +1,12 @@
-using UnityEngine;
+using Unity.Collections;
+using Unity.Mathematics;
 
 namespace Movement.MPC
 {
-    /// <summary>
-    /// MPC state and control types, plus shared configuration.
-    /// </summary>
     public struct State
     {
-        public Vector2 pos;
-        public Vector2 vel;
+        public float2 pos;
+        public float2 vel;
         public float yaw;     // Radians
         public float yawRate; // Radians per second
     }
@@ -39,15 +37,33 @@ namespace Movement.MPC
         public float wFacing;
         public float terminalMultiplier;
         public float obstacleThreshold;
-        
+
         // Arrival Stabilization
         public float arrivalDistance;
         public float arrivalDistanceSq;
         public float arrivalVelScale;
         public float arrivalYawScale;
-        
+
         // Facing override (radians, NaN if disabled)
         public float facingTarget;
+    }
+
+    public struct ObstacleData
+    {
+        public float2 position;
+        public float radius;
+    }
+
+    /// <summary>
+    /// Read-only world data for cost evaluation. Extend this struct to add
+    /// tactical inputs (enemy positions, cover points, LOS data, etc.)
+    /// without changing Cost.Evaluate's signature or touching the Burst job.
+    /// </summary>
+    public struct CostInput
+    {
+        public float2 goalPos;
+        public NativeArray<ObstacleData> obstacles;
+        public int obstacleCount;
     }
 
     internal readonly partial struct EditorProfilingScope : System.IDisposable

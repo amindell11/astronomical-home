@@ -36,5 +36,32 @@ namespace Movement.MPC
         public float arrivalYawScale = 0.1f;
 
         public int Horizon => Mathf.CeilToInt(horizonSeconds / rolloutDt);
+
+        public Config ToConfig(float facingTargetRad = float.NaN)
+        {
+            return new Config
+            {
+                dt = rolloutDt,
+                invDt = rolloutDt > 0f ? 1f / rolloutDt : 0f,
+                horizon = Horizon,
+                wPos = wPos,
+                wVel = wVel,
+                wYaw = wYaw,
+                wYawRate = wYawRate,
+                wEffort = wEffort,
+                wSmoothnessThrust = wSmoothnessThrust,
+                wSmoothnessStrafe = wSmoothnessStrafe,
+                wSmoothnessYaw = wSmoothnessYaw,
+                wObstacle = wObstacle,
+                wFacing = wFacing,
+                terminalMultiplier = terminalMultiplier,
+                obstacleThreshold = obstacleThreshold,
+                arrivalDistance = arrivalDistance,
+                arrivalDistanceSq = arrivalDistance * arrivalDistance,
+                arrivalVelScale = arrivalVelScale,
+                arrivalYawScale = arrivalYawScale,
+                facingTarget = facingTargetRad
+            };
+        }
     }
 }

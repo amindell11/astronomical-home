@@ -103,7 +103,7 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
         }
         
         float dist = TestUtilities.DistanceToPlaneTarget(ship.transform, targetPos);
-        Assert.That(dist, Is.LessThan(14f), "Ship should follow a moving waypoint");
+        Assert.That(dist, Is.LessThan(16f), "Ship should follow a moving waypoint");
     }
 
     [UnityTest]

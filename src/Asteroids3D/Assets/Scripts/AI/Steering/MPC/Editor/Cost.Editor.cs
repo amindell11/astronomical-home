@@ -1,38 +1,67 @@
 #if UNITY_EDITOR
-using AI.Scanning;
-using UnityEngine;
+using Movement;
 
 namespace Movement.MPC
 {
     public static partial class Cost
     {
-        public static CostBreakdown EvaluateBreakdown(State s, Control u, Control prevU, Vector2 goalPos, 
-            ObstacleScan scan, Config cfg, bool isTerminal)
+        public static CostBreakdown EvaluateBreakdown(State s, Control u, Control prevU,
+            CostInput input, Config cfg, bool isTerminal)
         {
-            var breakdown = new CostBreakdown();
-            breakdown.pos = PositionCost(s.pos, goalPos) * cfg.wPos;
-            breakdown.vel = VelocityCost(s.vel) * cfg.wVel;
-            breakdown.heading = HeadingCost(s.pos, s.yaw, goalPos) * cfg.wYaw;
-            breakdown.facing = FacingCost(s.yaw, cfg.facingTarget) * cfg.wFacing;
-            breakdown.yawRate = YawRateCost(s.yawRate) * cfg.wYawRate;
-            breakdown.obstacle = ObstacleCost(s.pos, scan, cfg.obstacleThreshold) * cfg.wObstacle;
+            var wVel = cfg.wVel;
+            var wYaw = cfg.wYaw;
 
-            var stateCost = breakdown.pos + breakdown.vel + breakdown.heading + breakdown.facing + breakdown.yawRate + breakdown.obstacle;
+            var distToGoalSq = Unity.Mathematics.math.lengthsq(input.goalPos - s.pos);
+            if (distToGoalSq < cfg.arrivalDistanceSq)
+            {
+                var distToGoal = Unity.Mathematics.math.sqrt(distToGoalSq);
+                var t = 1f - (distToGoal / cfg.arrivalDistance);
+                wVel = Unity.Mathematics.math.lerp(cfg.wVel, cfg.wVel * cfg.arrivalVelScale, t);
+                wYaw = Unity.Mathematics.math.lerp(cfg.wYaw, cfg.wYaw * cfg.arrivalYawScale, t);
+            }
 
-            breakdown.effort = EffortCost(u) * cfg.wEffort;
-            breakdown.smoothness = SmoothnessCost(u, prevU, cfg);
-            var controlCost = breakdown.effort + breakdown.smoothness;
+            var breakdown = new CostBreakdown
+            {
+                pos = PositionCost(s.pos, input.goalPos) * cfg.wPos,
+                vel = VelocityCost(s.vel) * wVel,
+                heading = HeadingCost(s.pos, s.yaw, input.goalPos) * wYaw,
+                facing = FacingCost(s.yaw, cfg.facingTarget) * cfg.wFacing,
+                yawRate = YawRateCost(s.yawRate) * cfg.wYawRate,
+                obstacle = (cfg.wObstacle > 0f && input.obstacleCount > 0)
+                    ? ObstacleCost(s.pos, input.obstacles, input.obstacleCount, cfg.obstacleThreshold) * cfg.wObstacle
+                    : 0f,
+                effort = EffortCost(u) * cfg.wEffort,
+                smoothness = SmoothnessCost(u, prevU, cfg)
+            };
 
-            var total = stateCost + controlCost;
+            var stateCost = breakdown.pos + breakdown.vel + breakdown.heading +
+                            breakdown.facing + breakdown.yawRate + breakdown.obstacle;
+            var total = stateCost + breakdown.effort + breakdown.smoothness;
 
             if (isTerminal)
-            {
-                var termExtra = cfg.terminalMultiplier * stateCost;
-                total += termExtra;
-            }
+                total += cfg.terminalMultiplier * stateCost;
 
             breakdown.total = total;
             return breakdown;
+        }
+
+        public static CostBreakdown EvaluateTrajectoryBreakdown(State state, Control[] sequence,
+            CostInput input, Config cfg, Dynamics shp, Control lastControl)
+        {
+            var totalBreakdown = new CostBreakdown();
+            var current = state;
+            var prevU = lastControl;
+
+            for (var i = 0; i < cfg.horizon; i++)
+            {
+                var u = sequence[i];
+                var isTerminal = i == cfg.horizon - 1;
+                totalBreakdown.Add(EvaluateBreakdown(current, u, prevU, input, cfg, isTerminal));
+                current = Model.Step(current, u, cfg, shp);
+                prevU = u;
+            }
+
+            return totalBreakdown;
         }
     }
 }
