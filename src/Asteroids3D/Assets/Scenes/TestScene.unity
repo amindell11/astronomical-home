@@ -168,7 +168,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentSector:
     config: {fileID: 11400000, guid: 6cb05f9f988f48a18ee615e444e24d3f, type: 2}
-    managerPrefab: {fileID: 4108587558117884671, guid: 0c857ec6bbbc29545889c01f72aeb6e9,
+    managerPrefab: {fileID: -7192160661153055855, guid: 0c857ec6bbbc29545889c01f72aeb6e9,
       type: 3}
   referencePlane: {fileID: 927331002}
 --- !u!114 &217078674
