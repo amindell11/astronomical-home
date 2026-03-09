@@ -93,5 +93,18 @@ namespace AI.Utility
             stateChangeTime = Time.time;
             OnStateTransition?.Invoke(prev, newState);
         }
+
+#if UNITY_EDITOR
+        /// <summary>
+        /// Resets selector state so Initialize() can register a new state set.
+        /// Editor/test-only — zero production impact.
+        /// </summary>
+        public void ResetForTesting()
+        {
+            CurrentState?.Exit();
+            CurrentState = null;
+            states.Clear();
+        }
+#endif
     }
 }
