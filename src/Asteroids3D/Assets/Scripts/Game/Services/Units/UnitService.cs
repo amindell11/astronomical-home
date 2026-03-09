@@ -72,7 +72,8 @@ namespace Game.Services
         private void WireShipDependencies(Ship ship)
         {
             if (!ship) return;
-            ship.Targeting?.SetRegistry(ActiveRegistry);
+            var combatShip = ship as CombatShip;
+            combatShip?.Targeting?.SetRegistry(ActiveRegistry);
             if (ship.Commander is AICommander aiCommander)
                 aiCommander.SetRegistry(ActiveRegistry);
         }

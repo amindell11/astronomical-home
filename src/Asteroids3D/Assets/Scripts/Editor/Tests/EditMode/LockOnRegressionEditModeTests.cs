@@ -43,28 +43,34 @@ namespace Tests.EditMode
                 "WeaponsController must instantiate secondary weapon at runtime in Awake");
         }
 
-        // NOTE: This test uses intentional source-based guardrails to enforce the AGENTS.md rule
-        // that GetComponentInChildren must only appear in Awake(), never in Initialize().
-        // The fix ensures WeaponsController (order -95) runs before Ship (order -90), so weapon
-        // children already exist when Ship.Awake() caches them. A runtime-reflection approach was
-        // not used because the constraint is about call-site placement within specific methods.
-        // If Ship.cs method ordering or formatting changes, update the IndexOf anchor accordingly.
+        // NOTE: After the Ship/CombatShip split, weapon and targeting caching moved to CombatShip.
+        // Ship base still caches Colliders in Awake; CombatShip caches Weapons + Targeting.
         [Test]
-        public void Ship_CachesChildRefsInAwake_NotInInitialize()
+        public void CombatShip_CachesChildRefsInAwake()
         {
-            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Ships", "Ship.cs"));
+            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Ships", "CombatShip.cs"));
 
-            // Awake() MUST cache runtime children (WeaponsController runs first so they exist)
-            var awakeStart = source.IndexOf("private void Awake()");
-            var awakeEnd   = source.IndexOf("private void", awakeStart + 1);
+            // CombatShip.Awake() MUST cache runtime children
+            var awakeStart = source.IndexOf("protected override void Awake()");
+            Assert.Greater(awakeStart, -1, "CombatShip must have an Awake override");
+            var awakeEnd = source.IndexOf("protected override", awakeStart + 1);
             if (awakeEnd == -1) awakeEnd = source.Length;
             var awakeBody = source.Substring(awakeStart, awakeEnd - awakeStart);
 
             StringAssert.Contains("GetComponentInChildren", awakeBody,
-                "Ship.Awake() must cache Targeting/Colliders in Awake (children exist because WeaponsController runs first)");
+                "CombatShip.Awake() must cache Targeting in Awake (children exist because WeaponsController runs first)");
+            StringAssert.Contains("GetComponent<WeaponsController>", awakeBody,
+                "CombatShip.Awake() must cache WeaponsController");
+        }
+
+        [Test]
+        public void Ship_InitializeDoesNotCallGetComponentInChildren()
+        {
+            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Ships", "Ship.cs"));
 
             // Initialize() must NOT contain GetComponentInChildren (forbidden by AGENTS.md)
-            var initStart = source.IndexOf("public void Initialize(");
+            var initStart = source.IndexOf("public virtual void Initialize(");
+            Assert.Greater(initStart, -1, "Ship must have a virtual Initialize method");
             var initEnd   = source.IndexOf("\n        public ", initStart + 1);
             if (initEnd == -1) initEnd = source.Length;
             var initBody = source.Substring(initStart, initEnd - initStart);
@@ -99,9 +105,9 @@ namespace Tests.EditMode
         {
             var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Game", "Services", "Units", "UnitService.cs"));
             
-            // After refactor, ship.Targeting is guaranteed non-null after Factory.CreateShip
-            StringAssert.Contains("ship.Targeting?.SetRegistry", source,
-                "UnitService.WireShipDependencies can safely use ship.Targeting directly (no longer null after Factory.CreateShip)");
+            // After refactor, CombatShip.Targeting is used via safe cast
+            StringAssert.Contains("Targeting?.SetRegistry", source,
+                "UnitService.WireShipDependencies must wire targeting via CombatShip cast");
         }
 
         [Test]

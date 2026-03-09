@@ -23,6 +23,7 @@ namespace Tests.PlayMode
     public class WeaponCommandDispatchPlayModeTests : PlayModeWorldFixture
     {
         private Ship ship;
+        private CombatShip combatShip;
         private Commander commanderPrefab;
 
         private sealed class AlwaysFireCommander : Commander
@@ -55,10 +56,12 @@ namespace Tests.PlayMode
             commanderPrefab = commanderGo.AddComponent<AlwaysFireCommander>();
 
             ship = Factory.CreateShip(shipPrefab, commanderPrefab, settings, team: 0, position: Vector3.zero, rotation: Quaternion.identity);
+            combatShip = ship as CombatShip;
             Assert.IsNotNull(ship, "Ship failed to instantiate");
-            Assert.IsNotNull(ship.Weapons, "WeaponsController missing on ship");
-            Assert.IsNotNull(ship.Weapons.Primary, "Primary weapon mount not instantiated");
-            Assert.IsNotNull(ship.Weapons.Secondary, "Secondary weapon mount not instantiated");
+            Assert.IsNotNull(combatShip, "Ship must be a CombatShip");
+            Assert.IsNotNull(combatShip.Weapons, "WeaponsController missing on ship");
+            Assert.IsNotNull(combatShip.Weapons.Primary, "Primary weapon mount not instantiated");
+            Assert.IsNotNull(combatShip.Weapons.Secondary, "Secondary weapon mount not instantiated");
 #else
             Assert.Ignore("WeaponCommandDispatchPlayModeTests requires Unity Editor assets.");
 #endif
@@ -88,7 +91,7 @@ namespace Tests.PlayMode
         public IEnumerator PrimaryFireCommand_DispatchesToWeapon_OnFireIsRaised()
         {
             var fireCount = 0;
-            ship.Weapons.Primary.OnFire += () => fireCount++;
+            combatShip.Weapons.Primary.OnFire += () => fireCount++;
 
             yield return null;
             Assert.IsTrue(ship.CurrentCommand.primaryFire,
@@ -111,7 +114,7 @@ namespace Tests.PlayMode
         public IEnumerator SecondaryFireCommand_DispatchesToWeapon_OnFireIsRaised()
         {
             var fireCount = 0;
-            ship.Weapons.Secondary.OnFire += () => fireCount++;
+            combatShip.Weapons.Secondary.OnFire += () => fireCount++;
 
             yield return null;
             Assert.IsTrue(ship.CurrentCommand.secondaryFire,

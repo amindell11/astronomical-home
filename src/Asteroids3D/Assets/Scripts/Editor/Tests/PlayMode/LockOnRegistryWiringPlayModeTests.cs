@@ -28,6 +28,7 @@ namespace Tests.PlayMode
     public class LockOnRegistryWiringPlayModeTests : PlayModeWorldFixture
     {
         private Ship testShip;
+        private CombatShip combatShip;
         private AICommander testPilot;
 
         [SetUp]
@@ -73,11 +74,13 @@ namespace Tests.PlayMode
                 postInitialize: null);
 
             Assert.IsNotNull(testShip, "Factory.CreateShip should return non-null ship");
+            combatShip = testShip as CombatShip;
+            Assert.IsNotNull(combatShip, "Ship must be a CombatShip");
 
             yield return null; // Wait one frame for initialization to complete
 
             // VERIFY: ship.Targeting is non-null after Factory.CreateShip
-            Assert.IsNotNull(testShip.Targeting,
+            Assert.IsNotNull(combatShip.Targeting,
                 "ship.Targeting must be non-null after Factory.CreateShip " +
                 "(RefreshChildReferences should have cached the TargetingComputer child)");
 #else
@@ -114,18 +117,20 @@ namespace Tests.PlayMode
                 team: 0,
                 position: Vector3.zero,
                 rotation: Quaternion.identity,
-                postInitialize: s => s.Targeting?.SetRegistry(stubRegistry));
+                postInitialize: s => (s as CombatShip)?.Targeting?.SetRegistry(stubRegistry));
 
             Assert.IsNotNull(testShip, "Factory.CreateShip should return non-null ship");
+            combatShip = testShip as CombatShip;
+            Assert.IsNotNull(combatShip, "Ship must be a CombatShip");
 
             yield return null; // Wait one frame for Start() to run
 
             // VERIFY: ship.Targeting has registry
-            Assert.IsTrue(testShip.Targeting.HasRegistry,
+            Assert.IsTrue(combatShip.Targeting.HasRegistry,
                 "TargetingComputer.HasRegistry must be true after SetRegistry was called in postInitialize");
 
             // VERIFY: TargetingComputer is enabled (Start() should not disable it)
-            Assert.IsTrue(testShip.Targeting.enabled,
+            Assert.IsTrue(combatShip.Targeting.enabled,
                 "TargetingComputer must be enabled when registry is set " +
                 "(Start() should not disable it when HasRegistry is true)");
 #else
@@ -162,15 +167,17 @@ namespace Tests.PlayMode
                 postInitialize: null);
 
             Assert.IsNotNull(testShip, "Factory.CreateShip should return non-null ship");
+            combatShip = testShip as CombatShip;
+            Assert.IsNotNull(combatShip, "Ship must be a CombatShip");
 
             yield return null; // Wait one frame for Start() to run
 
             // VERIFY: ship.Targeting is non-null
-            Assert.IsNotNull(testShip.Targeting,
+            Assert.IsNotNull(combatShip.Targeting,
                 "ship.Targeting must be non-null even without registry injection");
 
             // VERIFY: TargetingComputer is disabled (Start() disables when registry is null)
-            Assert.IsFalse(testShip.Targeting.enabled,
+            Assert.IsFalse(combatShip.Targeting.enabled,
                 "TargetingComputer must be disabled when no registry is set " +
                 "(Start() should disable itself when HasRegistry is false)");
 #else

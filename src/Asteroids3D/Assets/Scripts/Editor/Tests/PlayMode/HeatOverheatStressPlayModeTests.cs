@@ -30,6 +30,7 @@ namespace Tests.PlayMode
         }
 
         private Ship ship;
+        private CombatShip combatShip;
         private Commander commanderPrefab;
         private Heat primaryHeat;
         private DisableProbe primaryWeaponDisableProbe;
@@ -64,16 +65,18 @@ namespace Tests.PlayMode
             var commanderGo = new GameObject("ContinuousFireCommanderPrefab");
             commanderPrefab = commanderGo.AddComponent<ContinuousFireCommander>();
 
-            ship = Factory.CreateShip(shipPrefab, commanderPrefab, settings, team: 0, 
+            ship = Factory.CreateShip(shipPrefab, commanderPrefab, settings, team: 0,
                                       position: Vector3.zero, rotation: Quaternion.identity);
-            
-            Assert.IsNotNull(ship, "Ship failed to instantiate");
-            Assert.IsNotNull(ship.Weapons, "WeaponsController missing on ship");
-            Assert.IsNotNull(ship.Weapons.Primary, "Primary weapon not instantiated");
+            combatShip = ship as CombatShip;
 
-            primaryHeat = ship.Weapons.Primary.GetComponent<Heat>();
+            Assert.IsNotNull(ship, "Ship failed to instantiate");
+            Assert.IsNotNull(combatShip, "Ship must be a CombatShip");
+            Assert.IsNotNull(combatShip.Weapons, "WeaponsController missing on ship");
+            Assert.IsNotNull(combatShip.Weapons.Primary, "Primary weapon not instantiated");
+
+            primaryHeat = combatShip.Weapons.Primary.GetComponent<Heat>();
             Assert.IsNotNull(primaryHeat, "Heat component missing on primary weapon");
-            primaryWeaponDisableProbe = ship.Weapons.Primary.gameObject.AddComponent<DisableProbe>();
+            primaryWeaponDisableProbe = combatShip.Weapons.Primary.gameObject.AddComponent<DisableProbe>();
 #else
             Assert.Ignore("HeatOverheatStressPlayModeTests requires Unity Editor assets.");
 #endif
@@ -125,7 +128,7 @@ namespace Tests.PlayMode
                 yield return new WaitForFixedUpdate();
                 elapsed += Time.fixedDeltaTime;
 
-                Assert.IsTrue(ship.Weapons.Primary.gameObject.activeSelf,
+                Assert.IsTrue(combatShip.Weapons.Primary.gameObject.activeSelf,
                     $"Primary weapon gameobject became inactive at t={elapsed:F2}s");
                 Assert.AreEqual(0, primaryWeaponDisableProbe.disableCount,
                     $"Primary weapon received OnDisable during continuous fire at t={elapsed:F2}s");
@@ -182,7 +185,7 @@ namespace Tests.PlayMode
                 var refireElapsed = 0f;
                 var refireDetected = false;
                 var fireCountBefore = 0;
-                ship.Weapons.Primary.OnFire += () => fireCountBefore++;
+                combatShip.Weapons.Primary.OnFire += () => fireCountBefore++;
 
                 while (!refireDetected && refireElapsed < 1.0f)
                 {
@@ -256,7 +259,7 @@ namespace Tests.PlayMode
             // Phase 4: Verify weapon can fire again
             commander.enablePrimaryFire = true;
             var fireCount = 0;
-            ship.Weapons.Primary.OnFire += () => fireCount++;
+            combatShip.Weapons.Primary.OnFire += () => fireCount++;
 
             var refireElapsed = 0f;
             while (fireCount == 0 && refireElapsed < 1.0f)
