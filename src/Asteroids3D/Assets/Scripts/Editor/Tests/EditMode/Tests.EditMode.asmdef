@@ -3,8 +3,10 @@
     "rootNamespace": "",
     "references": [
         "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner", 
-        "Game.Core"
+        "UnityEditor.TestRunner",
+        "Game.Core",
+        "Unity.Mathematics",
+        "Unity.Collections"
     ],
     "includePlatforms": [
         "Editor"
