@@ -13,7 +13,8 @@ namespace AI.States
         {
         }
 
-        public override bool IsAvailable(Info ctx) => ctx.Combat.HasEnemy;
+        public override bool IsAvailable(Info ctx) =>
+            ctx.Combat.HasEnemy && ctx.Assessment.EnemyDistance <= utilityTuning.attack.optimalRangeMax;
 
         public override void Enter(Info context)
         {
@@ -27,6 +28,8 @@ namespace AI.States
         {
             var combat = ctx.Combat;
             if (!combat.HasEnemy) return;
+
+            navigator.SetObstacleExclusion(combat.Enemy.transform);
 
             var predictedTarget = ctx.TargetingUtils.PredictIntercept(
                 combat.EnemyPos,
@@ -55,6 +58,7 @@ namespace AI.States
             navigator.ClearFacingOverride();
             navigator.ClearGoalMode();
             navigator.ClearEnemyYaw();
+            navigator.ClearObstacleExclusion();
         }
 
         public override float ComputeUtility(Info ctx)

@@ -8,6 +8,7 @@ namespace AI.States
     {
         Idle,
         Patrol,
+        Pursuit,
         Attack,
         Evade
     }

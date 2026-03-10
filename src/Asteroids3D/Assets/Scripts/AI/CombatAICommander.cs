@@ -65,6 +65,7 @@ namespace AI
 
             utilitySelector.Initialize(utilityTuning,
                 new Attack(Navigator, gunner, utilityTuning),
+                new Pursuit(Navigator, gunner, utilityTuning),
                 new Evade(Navigator, gunner, utilityTuning),
                 new Patrol(Navigator, gunner, utilityTuning)
             );
