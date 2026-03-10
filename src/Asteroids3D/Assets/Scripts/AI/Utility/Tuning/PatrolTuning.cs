@@ -6,7 +6,9 @@ namespace AI.Utility
     [Serializable]
     public struct PatrolTuning
     {
+        [Tooltip("Maximum distance from current position when picking a new patrol waypoint.")]
         public float radius;
+        [Tooltip("Minimum patrol distance as a fraction of radius (e.g. 0.3 = at least 30% of radius).")]
         public float minDistanceFactor;
         [Tooltip("Distance at which the patrol waypoint is considered reached. " +
                  "Should be <= MPC arrivalDistance to avoid the ship hovering outside the decel zone.")]

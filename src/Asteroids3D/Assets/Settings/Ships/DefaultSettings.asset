@@ -19,15 +19,15 @@ MonoBehaviour:
   reverseForce: 2800
   yawTorque: 5600
   angularDrag: 1.7
-  maxBankAngle: 45
-  bankingSpeed: 5
+  maxBankAngle: 35
+  bankTorque: 3200
   minStrafeForce: 3200
   maxStrafeForce: 4000
   linearDrag: 0.5
   boostImpulse: 11200
   boostCooldown: 3
+  startingLives: 1
   maxHealth: 100
   maxShield: 50
-  startingLives: 1
   shieldRegenDelay: 4
   shieldRegenRate: 10

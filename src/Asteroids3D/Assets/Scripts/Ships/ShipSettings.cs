@@ -16,8 +16,8 @@ namespace Ships
         public float reverseForce = 3500f;
         public float yawTorque = 7000;
         public float angularDrag = 1.7f;
-        public float maxBankAngle = 45f; //visual only
-        public float bankingSpeed = 5f; //visual only
+        public float maxBankAngle = 45f;
+        public float bankTorque = 5000f;
         public float minStrafeForce = 4000f;
         public float maxStrafeForce = 5000f;
         public float linearDrag = .5f;
@@ -52,7 +52,7 @@ namespace Ships
             minStrafeAcc : minStrafeForce,
             maxSpeed : maxSpeed,
             maxYawRate : maxYawRate * Mathf.Deg2Rad,
-            yawTorque : yawTorque * Mathf.Deg2Rad,
+            yawTorque : yawTorque,
             angularDrag : angularDrag,
             linearDrag: linearDrag,
             yawInertia: yawInertia > 0f ? yawInertia : mass

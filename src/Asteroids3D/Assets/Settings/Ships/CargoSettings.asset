@@ -17,7 +17,7 @@ MonoBehaviour:
   maxYawRate: 45
   forwardForce: 8000
   reverseForce: 3000
-  yawTorque: 4000
+  yawTorque: 1
   angularDrag: 2.5
   maxBankAngle: 10
   bankingSpeed: 2
@@ -26,8 +26,8 @@ MonoBehaviour:
   linearDrag: 0.8
   boostImpulse: 6000
   boostCooldown: 8
+  startingLives: 1
   maxHealth: 400
   maxShield: 150
-  startingLives: 1
   shieldRegenDelay: 6
   shieldRegenRate: 8

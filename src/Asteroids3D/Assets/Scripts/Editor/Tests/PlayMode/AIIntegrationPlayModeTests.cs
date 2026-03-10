@@ -214,13 +214,15 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
         Assert.IsTrue(cmdrA.Navigator.CurrentWaypoint.isValid,
             "Evade should set a valid waypoint");
 
-        // Waypoint should be in opposite direction from enemy
-        var shipPos = new Vector2(shipA.transform.position.x, shipA.transform.position.z);
-        var wp = cmdrA.Navigator.CurrentWaypoint.position;
-        var toWaypoint = (wp - shipPos).normalized;
-        var toEnemy = new Vector2(10f, 0f).normalized;
-        var dot = Vector2.Dot(toWaypoint, toEnemy);
-        Assert.Less(dot, 0.2f, $"Evade waypoint should be away from enemy (dot={dot})");
+        // In Flee mode the nav target is the enemy position; the MPC cost function
+        // drives the ship away. Verify the ship actually increases distance over time.
+        var initialDist = Vector3.Distance(shipA.transform.position, new Vector3(10f, 0f, 0f));
+
+        yield return AsyncAssert.WaitUntil(
+            () => Vector3.Distance(shipA.transform.position, new Vector3(10f, 0f, 0f)) > initialDist + 1f,
+            timeoutSec: 5f,
+            failureMessage: "Ship did not move away from enemy in Evade/Flee mode",
+            useFixedUpdate: true);
     }
 
     // ──────────────────────────────────────────────────────────

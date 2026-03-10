@@ -74,7 +74,7 @@ namespace Movement.MPC
 
         private CostBreakdown EvaluateBreakdown(State mpcState)
         {
-            var input = solver.BuildCostInput(GoalPos());
+            var input = solver.BuildCostInput(GoalPos(), enemyYaw);
             if (costBreakdownMode == CostBreakdownMode.CurrentState)
                 return Cost.EvaluateBreakdown(mpcState, bestSequence[0], lastControl, input, config, false);
             return Cost.EvaluateTrajectoryBreakdown(mpcState, bestSequence, input, config, dynamics, lastControl);
@@ -107,7 +107,7 @@ namespace Movement.MPC
 
             var prevPos = GamePlane.PlanePointToWorld(new Vector2(predictedStates[0].pos.x, predictedStates[0].pos.y));
             var prevU = bestSequence[0];
-            var input = solver.BuildCostInput(GoalPos());
+            var input = solver.BuildCostInput(GoalPos(), enemyYaw);
 
             for (var i = 1; i < predictedStates.Length; i++)
             {
@@ -227,6 +227,8 @@ namespace Movement.MPC
             DrawCostBar("Velocity", breakdown.vel, total, Color.blue);
             DrawCostBar("Yaw Rate", breakdown.yawRate, total, Color.magenta);
             DrawCostBar("Obstacle", breakdown.obstacle, total, Color.red);
+            DrawCostBar("LOS", breakdown.los, total, new Color(1f, 0.5f, 0f));
+            DrawCostBar("Exposure", breakdown.exposure, total, new Color(1f, 0.3f, 0.3f));
             DrawCostBar("Effort", breakdown.effort, total, Color.gray);
             DrawCostBar("Smoothness", breakdown.smoothness, total, Color.white);
 

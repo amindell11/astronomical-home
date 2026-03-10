@@ -102,8 +102,22 @@ namespace Ships.Movement
         }
         private void ConstrainRotation()
         {
-            // Strip pitch angular velocity, keep yaw and bank.
-            var pitchAxis = Vector3.Cross(transform.up, GamePlane.Normal);
+            // Project transform.up onto the game plane to get the heading.
+            var projectedUp = Vector3.ProjectOnPlane(transform.up, GamePlane.Normal);
+            if (projectedUp.sqrMagnitude < 1e-6f)
+            {
+                // Degenerate case: transform.up is parallel to Normal. Force a reset.
+                rb.rotation = GamePlane.Rotation;
+                rb.angularVelocity = Vector3.zero;
+                return;
+            }
+
+            // Rotate transform.up back onto the plane, preserving yaw and bank.
+            projectedUp.Normalize();
+            rb.rotation = Quaternion.FromToRotation(transform.up, projectedUp) * rb.rotation;
+
+            // Strip pitch angular velocity so it can't accumulate.
+            var pitchAxis = Vector3.Cross(projectedUp, GamePlane.Normal);
             if (pitchAxis.sqrMagnitude > 1e-6f)
             {
                 pitchAxis.Normalize();

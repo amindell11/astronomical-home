@@ -20,6 +20,7 @@ namespace Movement.MPC
                 wYaw = Unity.Mathematics.math.lerp(cfg.wYaw, cfg.wYaw * cfg.arrivalYawScale, t);
             }
 
+            var hasEnemy = !Unity.Mathematics.math.isnan(input.enemyYaw);
             var breakdown = new CostBreakdown
             {
                 pos = GoalCost(s.pos, input.goalPos, cfg) * cfg.wPos,
@@ -31,12 +32,19 @@ namespace Movement.MPC
                 obstacle = (cfg.wObstacle > 0f && input.obstacleCount > 0)
                     ? ObstacleCost(s.pos, input.obstacles, input.obstacleCount, cfg.obstacleThreshold) * cfg.wObstacle
                     : 0f,
+                los = (hasEnemy && cfg.wLos > 0f && input.obstacleCount > 0)
+                    ? LosCost(s.pos, input.goalPos, input.obstacles, input.obstacleCount) * cfg.wLos
+                    : 0f,
+                exposure = (hasEnemy && cfg.wExposure > 0f)
+                    ? ExposureCost(s.pos, input.goalPos, input.enemyYaw) * cfg.wExposure
+                    : 0f,
                 effort = EffortCost(u) * cfg.wEffort,
                 smoothness = SmoothnessCost(u, prevU, cfg)
             };
 
             var stateCost = breakdown.pos + breakdown.vel + breakdown.heading +
-                            breakdown.facing + breakdown.yawRate + breakdown.obstacle;
+                            breakdown.facing + breakdown.yawRate + breakdown.obstacle +
+                            breakdown.los + breakdown.exposure;
             var total = stateCost + breakdown.effort + breakdown.smoothness;
 
             if (isTerminal)

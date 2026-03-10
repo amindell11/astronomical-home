@@ -11,6 +11,8 @@ namespace Movement.MPC
         public float facing;
         public float yawRate;
         public float obstacle;
+        public float los;
+        public float exposure;
         public float effort;
         public float smoothness;
         public float total;
@@ -23,6 +25,8 @@ namespace Movement.MPC
             facing += other.facing;
             yawRate += other.yawRate;
             obstacle += other.obstacle;
+            los += other.los;
+            exposure += other.exposure;
             effort += other.effort;
             smoothness += other.smoothness;
             total += other.total;

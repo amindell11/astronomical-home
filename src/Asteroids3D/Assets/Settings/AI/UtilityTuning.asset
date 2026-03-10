@@ -36,13 +36,10 @@ MonoBehaviour:
     desperationFactor:
       atLow: 1.2
       atHigh: 1
-    optimalRangeMin: 6
-    optimalRangeMax: 40
+    optimalRangeMin: 5
+    optimalRangeMax: 12
     outerDistanceThreshold: 25
     outerRangeFactor: 1.15
-    facingDistance: 6
-    facingSpeed: -1
-    targetUpdateInterval: 0.5
   evade:
     healthFactor:
       atLow: 1.3
@@ -73,92 +70,9 @@ MonoBehaviour:
     fightingRetreatHealthThreshold: 0.5
     fightingRetreatShieldThreshold: 0.5
     fightingRetreatFactor: 1.25
-  kite:
-    healthFactor:
-      atLow: 1.3
-      atHigh: 0.7
-    shieldFactor:
-      atLow: 1.2
-      atHigh: 0.8
-    outnumberedFactor:
-      atLow: 0.8
-      atHigh: 1.3
-    tooCloseFactor: 1.3
-    lowHealthThreshold: 0.4
-    highShieldThreshold: 0.6
-    lowHealthHighShieldFactor: 1.2
-    angleTolerance: 30
-    angleFactor:
-      atLow: 0.7
-      atHigh: 1
-    desiredDistance: 10
-    minDistance: 5
-    maxDistance: 25
-    pushAwayDistance: 5
-    returnDistanceFactor: 0.5
-  orbit:
-    healthFactor:
-      atLow: 0.3
-      atHigh: 1
-    shieldFactor:
-      atLow: 0.4
-      atHigh: 1
-    enemyWeakFactor:
-      atLow: 1.3
-      atHigh: 1
-    rangeFactor:
-      atLow: 0.6
-      atHigh: 1.2
-    losFactor:
-      atLow: 0.4
-      atHigh: 1.2
-    threatFactor:
-      atLow: 1
-      atHigh: 0.5
-    inRangeFactor:
-      atLow: 0.7
-      atHigh: 1.4
-    flankingFactor: 1.3
-    lowHealthThreshold: 0.25
-    lowHealthFactor: 0.6
-    radius: 15
-    minRadius: 10
-    maxRadius: 25
-    leadTime: 2
-    flipMinTime: 3
-    flipChancePerSecond: 0.1
-  jinkEvade:
-    healthFactor:
-      atLow: 1.3
-      atHigh: 0.7
-    shieldFactor:
-      atLow: 1.2
-      atHigh: 0.8
-    outnumberedFactor:
-      atLow: 0.8
-      atHigh: 1.3
-    enemyLOSFactor:
-      atLow: 0.7
-      atHigh: 1.2
-    closingSpeedFactor:
-      atLow: 0.8
-      atHigh: 1.2
-    enemyFacingFactor:
-      atLow: 0.9
-      atHigh: 1.2
-    missileThreatFactor: 1.7
-    criticalHealthThreshold: 0.3
-    criticalShieldThreshold: 0.1
-    criticalStateFactor: 1.5
-    facingAwayAngle: 120
-    facingAwayFactor: 1.2
-    angleFactor:
-      atLow: 0.7
-      atHigh: 1
-    fleeDistance: 40
-    sideStepDistance: 12
-    interval: 1.2
-    missileAmplitudeFactor: 1.5
   patrol:
     radius: 50
     minDistanceFactor: 0.3
+    arriveRadius: 3
+    stuckTimeout: 3
+    stuckProgressThreshold: 1

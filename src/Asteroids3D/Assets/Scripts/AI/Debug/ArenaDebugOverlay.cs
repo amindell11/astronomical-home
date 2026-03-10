@@ -32,10 +32,7 @@ namespace AI.Debug
         private static readonly Dictionary<StateType, Color> StateColors = new()
         {
             { StateType.Attack, new Color(1f, 0.2f, 0.2f) },
-            { StateType.Kite, new Color(1f, 0.9f, 0.2f) },
             { StateType.Evade, new Color(0.2f, 0.9f, 0.3f) },
-            { StateType.JinkEvade, new Color(0.3f, 1f, 0.5f) },
-            { StateType.Orbit, new Color(1f, 0.6f, 0.2f) },
             { StateType.Patrol, new Color(0.3f, 0.5f, 1f) },
             { StateType.Idle, new Color(0.5f, 0.5f, 0.5f) }
         };

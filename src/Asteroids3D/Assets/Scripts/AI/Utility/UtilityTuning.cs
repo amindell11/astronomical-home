@@ -18,9 +18,6 @@ namespace AI.Utility
         [Header("Per-State Tuning")]
         public AttackTuning attack = AttackTuning.Default;
         public EvadeTuning evade = EvadeTuning.Default;
-        public KiteTuning kite = KiteTuning.Default;
-        public OrbitTuning orbit = OrbitTuning.Default;
-        public JinkEvadeTuning jinkEvade = JinkEvadeTuning.Default;
         public PatrolTuning patrol = PatrolTuning.Default;
     }
 }

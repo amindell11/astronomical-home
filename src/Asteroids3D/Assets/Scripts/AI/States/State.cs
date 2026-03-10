@@ -9,10 +9,7 @@ namespace AI.States
         Idle,
         Patrol,
         Attack,
-        Evade,
-        Kite,
-        Orbit,
-        JinkEvade
+        Evade
     }
 
     public abstract partial class State
