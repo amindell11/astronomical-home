@@ -36,18 +36,8 @@ namespace AI.States
             gunner.SetTarget(predictedTarget);
 
             var vectorToPredictedTarget = predictedTarget - ctx.ShipInfo.Pos;
-            var vectorToEnemy = combat.EnemyPos - ctx.ShipInfo.Pos;
-            var relVel = ctx.TargetingUtils.RelativeVelocity(combat.EnemyVel);
 
-            if (vectorToEnemy.magnitude < utilityTuning.attack.facingDistance
-                || Vector3.Dot(relVel, vectorToEnemy) < utilityTuning.attack.facingSpeed)
-            {
-                navigator.SetFacingTarget(vectorToPredictedTarget);
-            }
-            else
-            {
-                navigator.ClearFacingOverride();
-            }
+            navigator.SetFacingTarget(vectorToPredictedTarget);
             navigator.SetNavigationPoint(
                 combat.EnemyPos,
                 true,
