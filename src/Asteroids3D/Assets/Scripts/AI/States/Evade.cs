@@ -29,12 +29,8 @@ namespace AI.States
         {
             if (ctx.Combat.HasEnemy)
             {
+                navigator.SetObstacleExclusion(ctx.Combat.Enemy.transform);
                 navigator.SetNavigationPoint(ctx.Combat.EnemyPos, true, ctx.Combat.EnemyVel);
-            }
-            else
-            {
-                evadePoint = CalculateEvadePoint(ctx);
-                navigator.SetNavigationPoint(evadePoint, true);
             }
         }
 
@@ -43,6 +39,7 @@ namespace AI.States
             base.Exit();
             navigator.ClearNavigationPoint();
             navigator.ClearGoalMode();
+            navigator.ClearObstacleExclusion();
         }
 
         public override float ComputeUtility(Info ctx)
@@ -66,23 +63,6 @@ namespace AI.States
                 .Factor("angle", a.SelfAngleNorm, t.angleFactor)
                 .Build();
         }
-
-        private Vector2 CalculateEvadePoint(Info ctx)
-        {
-            var combat = ctx.Combat;
-            var selfPos = ctx.ShipInfo.Pos;
-            Vector2 fleeDirection;
-
-            if (combat.HasEnemy)
-            {
-                fleeDirection = -(combat.EnemyPos - selfPos).normalized;
-            }
-            else
-            {
-                fleeDirection = Random.insideUnitCircle.normalized;
-            }
-
-            return selfPos + fleeDirection * utilityTuning.evade.fleeDistance;
-        }
+        
     }
 }

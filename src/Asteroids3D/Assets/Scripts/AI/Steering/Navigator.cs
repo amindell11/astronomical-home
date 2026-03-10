@@ -122,5 +122,15 @@ namespace AI
         {
             enemyYaw = float.NaN;
         }
+
+        public void SetObstacleExclusion(Transform root)
+        {
+            scout.SetObstacleExclusion(root);
+        }
+
+        public void ClearObstacleExclusion()
+        {
+            scout.ClearObstacleExclusion();
+        }
     }
 }

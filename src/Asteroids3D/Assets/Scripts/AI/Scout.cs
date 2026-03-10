@@ -60,5 +60,8 @@ namespace AI.Scanning
         public ObstacleScan ObstacleScan => new(obstacleScanner?.DetectedBuffer, obstacleScanner?.DetectedCount ?? 0);
         public ShipScanResult? ShipScan => shipScanner?.LastResult;
         public bool HasNearbyCover => coverScanner?.HasCover ?? false;
+
+        public void SetObstacleExclusion(Transform root) => obstacleScanner?.SetExcludeRoot(root);
+        public void ClearObstacleExclusion() => obstacleScanner?.ClearExcludeRoot();
     }
 }

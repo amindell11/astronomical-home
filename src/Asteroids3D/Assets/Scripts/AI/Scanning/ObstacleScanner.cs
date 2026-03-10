@@ -42,10 +42,14 @@ namespace AI.Scanning
         protected readonly Transform origin;
         protected readonly LayerMask obstacleMask;
         protected readonly GameObject selfRoot;
+        private Transform excludeRoot;
 
         public DetectedObstacle[] DetectedBuffer { get; }
         public int DetectedCount { get; private set; }
         public IEnumerable<DetectedObstacle> Detected => DetectedBuffer.Take(DetectedCount);
+
+        public void SetExcludeRoot(Transform root) => excludeRoot = root;
+        public void ClearExcludeRoot() => excludeRoot = null;
 
         protected ObstacleScanner(Transform origin, LayerMask obstacleMask, int bufferSize = 64)
         {
@@ -76,7 +80,8 @@ namespace AI.Scanning
             for (var i = 0; i < count && DetectedCount < DetectedBuffer.Length; i++)
             {
                 var col = ScratchBuffer[i];
-                if (col && col.gameObject != selfRoot && col.transform.root != origin.root)
+                if (col && col.gameObject != selfRoot && col.transform.root != origin.root
+                    && (!excludeRoot || col.transform.root != excludeRoot))
                     DetectedBuffer[DetectedCount++] = new DetectedObstacle(col);
             }
         }
