@@ -14,7 +14,8 @@ namespace Game.Sectors
     public class ArenaSectorManager : PlaySector
     {
         [Header("Arena Settings")]
-        [SerializeField] private Ship enemyTemplate;
+        [SerializeField] private Ship teamATemplate;
+        [SerializeField] private Ship teamBTemplate;
         [SerializeField] private Ships.Command.Commander aiCommander;
         [SerializeField] private int teamACount = 4;
         [SerializeField] private int teamBCount = 4;
@@ -42,18 +43,19 @@ namespace Game.Sectors
             if (worldPrefab)
                 Services.EnvironmentService.SpawnWorld(worldPrefab);
 
-            // If player is spectating, use AI commander instead of player input
+            // Player commandeers a team A ship; use AI commander when spectating
+            playerTemplate = teamATemplate;
             if (!playerParticipates)
                 playerCommander = aiCommander;
 
             yield return base.OnSetup();
 
-            // Player is team 0; spawn additional team A ships (team 0)
+            // Player already occupies one team A slot; spawn the rest
             var teamAExtra = teamACount - 1;
-            SpawnTeam(0, teamAExtra, -1f);
+            SpawnTeam(teamATemplate, 0, teamAExtra, -1f);
 
-            // Spawn team B (team 1)
-            SpawnTeam(1, teamBCount, 1f);
+            // Spawn team B
+            SpawnTeam(teamBTemplate, 1, teamBCount, 1f);
 
             InitializeAsteroidField();
 
@@ -92,7 +94,7 @@ namespace Game.Sectors
             }
         }
 
-        private void SpawnTeam(int team, int count, float sideSign)
+        private void SpawnTeam(Ship template, int team, int count, float sideSign)
         {
             for (int i = 0; i < count; i++)
             {
@@ -102,9 +104,9 @@ namespace Game.Sectors
                     Mathf.Sin(angle) * spawnRadius);
 
                 var ship = Services.UnitService.SpawnShip(
-                    enemyTemplate, aiCommander, shipSettings, team,
+                    template, aiCommander, shipSettings, team,
                     GamePlane.PlanePointToWorld(offset),
-                    Quaternion.identity);
+                    GamePlane.Rotation);
 
                 arenaShips.Add(ship);
             }
