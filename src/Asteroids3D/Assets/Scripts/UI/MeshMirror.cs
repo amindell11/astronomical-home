@@ -12,11 +12,13 @@ namespace UI
     {
         private AsteroidController source;
         private MeshFilter meshFilter;
+        private MeshCollider sourceCollider;
 
         private void Awake()
         {
             source = GetComponentInParent<AsteroidController>();
             meshFilter = GetComponent<MeshFilter>();
+            if (source) sourceCollider = source.GetComponent<MeshCollider>();
         }
 
         private void OnEnable()
@@ -31,7 +33,9 @@ namespace UI
 
         private void SyncMesh()
         {
-            meshFilter.sharedMesh = source.CurrentMesh;
+            meshFilter.sharedMesh = sourceCollider && sourceCollider.sharedMesh
+                ? sourceCollider.sharedMesh
+                : source.CurrentMesh;
         }
     }
 }
