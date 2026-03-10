@@ -29,9 +29,9 @@ namespace AI.States
                 Gizmos.color = Color.green;
                 Gizmos.DrawLine(position, currentTargetWorld);
 
-                // Target marker
+                // Target marker – radius matches the arrive radius
                 Gizmos.color = Color.yellow;
-                Gizmos.DrawWireSphere(currentTargetWorld, 1.5f);
+                Gizmos.DrawWireSphere(currentTargetWorld, utilityTuning.patrol.arriveRadius);
                 Gizmos.DrawWireCube(currentTargetWorld, Vector3.one * 0.5f);
 
                 var distToTarget = Vector2.Distance(ctx.ShipInfo.Pos, currentTarget);

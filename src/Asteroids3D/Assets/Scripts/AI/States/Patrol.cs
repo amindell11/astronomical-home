@@ -12,6 +12,9 @@ namespace AI.States
         private bool hasTarget = false;
         private readonly bool enableAvoidance = true;
 
+        private float stuckTimer;
+        private float bestDistToWaypoint;
+
         public Patrol(Navigator navigator, Gunner gunner, UtilityTuning utilityTuning) : base(navigator, gunner, utilityTuning)
         {
         }
@@ -29,9 +32,27 @@ namespace AI.States
 
         public override void Tick(Info ctx, float deltaTime)
         {
-            if (!navigator.CurrentWaypoint.isValid || ctx.Nav.VectorToWaypoint.magnitude < navigator.arriveRadius)
+            if (!navigator.CurrentWaypoint.isValid || ctx.Nav.VectorToWaypoint.magnitude < utilityTuning.patrol.arriveRadius)
             {
                 ChooseNewPatrolPoint(ctx);
+                return;
+            }
+
+            var dist = ctx.Nav.VectorToWaypoint.magnitude;
+            var t = utilityTuning.patrol;
+
+            if (dist < bestDistToWaypoint - t.stuckProgressThreshold)
+            {
+                bestDistToWaypoint = dist;
+                stuckTimer = 0f;
+            }
+            else
+            {
+                stuckTimer += deltaTime;
+                if (stuckTimer >= t.stuckTimeout)
+                {
+                    ChooseNewPatrolPoint(ctx);
+                }
             }
         }
 
@@ -57,6 +78,8 @@ namespace AI.States
             currentTarget = currentPos + randomDirection * randomDistance;
 
             hasTarget = true;
+            stuckTimer = 0f;
+            bestDistToWaypoint = float.MaxValue;
 
             navigator.SetNavigationPoint(currentTarget, enableAvoidance);
         }

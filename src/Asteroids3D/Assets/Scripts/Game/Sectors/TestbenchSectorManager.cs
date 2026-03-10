@@ -2,12 +2,14 @@ using System.Collections;
 using Asteroids.Fields;
 using Ships;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Game.Sectors
 {
     /// <summary>
     /// Minimal testbench sector: world, asteroids, and an optional enemy.
-    /// No encounters, objectives, respawn logic, or sector completion — runs indefinitely.
+    /// No encounters, objectives, or sector completion — runs indefinitely.
+    /// Both player and enemy ships respawn after death.
     /// </summary>
     public class TestbenchSectorManager : PlaySector
     {
@@ -20,6 +22,16 @@ namespace Game.Sectors
         [SerializeField] private Ship enemyTemplate;
         [SerializeField] private Ships.Command.Commander enemyCommander;
         [SerializeField] private Vector2 enemySpawnPosition = new Vector2(0f, 50f);
+
+        [Header("Respawn")]
+        [Tooltip("Enable respawn for the player ship when it dies.")]
+        [SerializeField] private bool respawnPlayer = true;
+        [Tooltip("Enable respawn for the enemy ship when it dies.")]
+        [SerializeField] private bool respawnEnemy = true;
+        [Tooltip("Delay in seconds before a ship respawns after death.")]
+        [SerializeField] private float respawnDelay = 3f;
+        [Tooltip("Radius around the spawn origin used for randomising the respawn position.")]
+        [SerializeField] private float respawnRadius = 30f;
 
         private Ship enemy;
         private UpdatingAsteroidField asteroidFieldInstance;
@@ -41,7 +53,27 @@ namespace Game.Sectors
                     Quaternion.identity);
             }
 
+            WireRespawn();
             InitializeAsteroidField();
+        }
+
+        private void WireRespawn()
+        {
+            if (respawnPlayer && player)
+            {
+                player.Damage.OnDeath += (deadShip, _) =>
+                    Services.UnitService.WaitAndRespawnShip(deadShip,
+                        playerSpawnPosition + Random.insideUnitCircle * respawnRadius,
+                        0, respawnDelay);
+            }
+
+            if (respawnEnemy && enemy)
+            {
+                enemy.Damage.OnDeath += (deadShip, _) =>
+                    Services.UnitService.WaitAndRespawnShip(deadShip,
+                        enemySpawnPosition + Random.insideUnitCircle * respawnRadius,
+                        0, respawnDelay);
+            }
         }
 
         private void InitializeAsteroidField()

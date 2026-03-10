@@ -62,8 +62,8 @@ MonoBehaviour:
     type: 3}
   aiCommander: {fileID: 1772957474756936600, guid: 08a3705197cc60842b107b8485d8ad25,
     type: 3}
-  teamACount: 4
-  teamBCount: 4
+  teamACount: 10
+  teamBCount: 10
   spawnRadius: 30
   respawnDelay: 3
   playerParticipates: 0

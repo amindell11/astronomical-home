@@ -44,11 +44,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6840ea13178546d4f98f938bedb81730, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerTemplate: {fileID: -3142211812614329419, guid: 6a1f3c13144deb54cb174d2197b87e9b,
+  playerTemplate: {fileID: 7184882482910536223, guid: c3c15225cb3a8fd42a87c756c1d2d884,
     type: 3}
-  playerCommander: {fileID: 6378580657550141484, guid: ed986bef16a6fa9488e6052de65aa9dd,
+  playerCommander: {fileID: 1772957474756936600, guid: 08a3705197cc60842b107b8485d8ad25,
     type: 3}
-  shipSettings: {fileID: 11400000, guid: 1eb69b843dc04f34a86b6cabcbb87f94, type: 2}
+  shipSettings: {fileID: 11400000, guid: c2eae258625507d43948e555302ee7ee, type: 2}
   playerSpawnPosition: {x: 0, y: 0}
   observerCamPrefab: {fileID: 5165561948949764142, guid: 2c36b9334ffd01546b166a7fe6b04853,
     type: 3}
@@ -67,4 +67,8 @@ MonoBehaviour:
     type: 3}
   enemyCommander: {fileID: 1772957474756936600, guid: 08a3705197cc60842b107b8485d8ad25,
     type: 3}
-  enemySpawnPosition: {x: 0, y: 50}
+  enemySpawnPosition: {x: 0, y: 30}
+  respawnPlayer: 1
+  respawnEnemy: 1
+  respawnDelay: 3
+  respawnRadius: 30
