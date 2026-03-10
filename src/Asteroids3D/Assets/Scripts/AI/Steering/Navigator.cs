@@ -26,6 +26,7 @@ namespace AI
         protected Movement.MPC.GoalMode goalMode;
         protected float goalDesiredRange;
         protected float goalRangeTolerance;
+        protected float enemyYaw = float.NaN;
 
         protected Command currentCommand;
         public Command CurrentCommand => currentCommand;
@@ -110,6 +111,16 @@ namespace AI
             goalMode = Movement.MPC.GoalMode.Waypoint;
             goalDesiredRange = 0f;
             goalRangeTolerance = 0f;
+        }
+
+        public void SetEnemyYaw(float yawDegrees)
+        {
+            enemyYaw = yawDegrees * Mathf.Deg2Rad;
+        }
+
+        public void ClearEnemyYaw()
+        {
+            enemyYaw = float.NaN;
         }
     }
 }

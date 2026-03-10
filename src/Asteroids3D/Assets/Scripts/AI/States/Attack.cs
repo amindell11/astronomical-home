@@ -9,9 +9,6 @@ namespace AI.States
     {
         public override StateType Type => StateType.Attack;
 
-        private Transform lastTarget;
-        private float lastTargetUpdate;
-
         public Attack(Navigator navigator, Gunner gunner, UtilityTuning utilityTuning) : base(navigator, gunner, utilityTuning)
         {
         }
@@ -46,6 +43,10 @@ namespace AI.States
                 combat.EnemyPos,
                 true,
                 combat.EnemyVel);
+
+            var enemyFwd = combat.EnemyForward;
+            var enemyYawDeg = Mathf.Atan2(-enemyFwd.x, enemyFwd.y) * Mathf.Rad2Deg;
+            navigator.SetEnemyYaw(enemyYawDeg);
         }
 
         public override void Exit()
@@ -53,6 +54,7 @@ namespace AI.States
             navigator.ClearNavigationPoint();
             navigator.ClearFacingOverride();
             navigator.ClearGoalMode();
+            navigator.ClearEnemyYaw();
         }
 
         public override float ComputeUtility(Info ctx)

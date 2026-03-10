@@ -58,7 +58,7 @@ namespace Movement.MPC
             {
                 lastBestCost = solver.Solve(mpcState, bestSequence,
                     scan, enableObstacleAvoidance,
-                    GoalPos(), config, dynamics,
+                    GoalPos(), enemyYaw, config, dynamics,
                     settings.samples, settings.noiseStd, lastControl);
             }
 #if UNITY_EDITOR
