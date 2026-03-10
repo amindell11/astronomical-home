@@ -24,6 +24,7 @@ namespace Combat.Targeting
         private IShipRegistry registry;
         private ShipId selfShipId;
         private Coroutine scanRoutine;
+        private WaitForSeconds scanWait;
 
         public event Action<LockState, LockState> OnStateChanged;
 
@@ -82,6 +83,7 @@ namespace Combat.Targeting
 
         private void Start()
         {
+            scanWait = new WaitForSeconds(scanInterval);
             if (registry == null)
                 enabled = false;
         }
@@ -117,12 +119,11 @@ namespace Combat.Targeting
 
         private System.Collections.IEnumerator ScanRoutine()
         {
-            var wait = new WaitForSeconds(scanInterval);
             while (enabled && registry != null)
             {
                 if (lockController.CanStartNewLock())
                     ScanForTarget();
-                yield return wait;
+                yield return scanWait;
             }
 
             scanRoutine = null;

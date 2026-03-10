@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using AI.Scanning.Sensors;
 using Ships;
 using UnityEngine;
@@ -13,24 +12,15 @@ namespace AI.Scanning
         public int count;
         public static ShipScanResult Empty => new() { shipIds = System.Array.Empty<ShipId>(), count = 0 };
 
-        public IEnumerable<ShipId> ShipIds => shipIds.Take(count);
-
-        public IEnumerable<ShipId> Friends(ShipId self, IShipRegistry registry) =>
-            registry == null ? Enumerable.Empty<ShipId>() : ShipIds.Where(id => registry.IsFriendly(self, id));
-
-        public IEnumerable<ShipId> Enemies(ShipId self, IShipRegistry registry) =>
-            registry == null ? Enumerable.Empty<ShipId>() : ShipIds.Where(id => registry.IsHostile(self, id));
-
-        public int FriendCount(ShipId self, IShipRegistry registry) => registry == null ? 0 : Friends(self, registry).Count();
-        public int EnemyCount(ShipId self, IShipRegistry registry) => registry == null ? 0 : Enemies(self, registry).Count();
-
         public ShipId NearestEnemy(ShipId self, Vector3 pos, IShipRegistry registry)
         {
             if (registry == null) return ShipId.Invalid;
             var nearestId = ShipId.Invalid;
             var nearestDist = float.MaxValue;
-            foreach (var id in Enemies(self, registry))
+            for (var i = 0; i < count; i++)
             {
+                var id = shipIds[i];
+                if (!registry.IsHostile(self, id)) continue;
                 if (!registry.TryGetShip(id, out var ship)) continue;
                 var dist = Vector3.Distance(pos, ship.transform.position);
                 if (!(dist < nearestDist)) continue;
@@ -38,6 +28,34 @@ namespace AI.Scanning
                 nearestId = id;
             }
             return nearestId;
+        }
+
+        public int FriendCount(ShipId self, IShipRegistry registry)
+        {
+            if (registry == null) return 0;
+
+            var friendCount = 0;
+            for (var i = 0; i < count; i++)
+            {
+                if (registry.IsFriendly(self, shipIds[i]))
+                    friendCount++;
+            }
+
+            return friendCount;
+        }
+
+        public int EnemyCount(ShipId self, IShipRegistry registry)
+        {
+            if (registry == null) return 0;
+
+            var enemyCount = 0;
+            for (var i = 0; i < count; i++)
+            {
+                if (registry.IsHostile(self, shipIds[i]))
+                    enemyCount++;
+            }
+
+            return enemyCount;
         }
     }
 
