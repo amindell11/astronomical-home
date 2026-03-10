@@ -1,3 +1,4 @@
+using Unity.Collections;
 using Unity.Mathematics;
 
 namespace Movement.MPC
@@ -39,7 +40,19 @@ namespace Movement.MPC
                 obstacleCost = ObstacleCost(s.pos, input.obstacles, input.obstacleCount, cfg.obstacleThreshold) * cfg.wObstacle;
             }
 
-            var stateCost = posCost + velCost + headingCost + facingCost + yawRateCost + obstacleCost;
+            var hasEnemy = !math.isnan(input.enemyYaw);
+            var losCost = 0f;
+            var exposureCost = 0f;
+            if (hasEnemy)
+            {
+                if (cfg.wLos > 0f && input.obstacleCount > 0)
+                    losCost = LosCost(s.pos, input.goalPos, input.obstacles, input.obstacleCount) * cfg.wLos;
+                if (cfg.wExposure > 0f)
+                    exposureCost = ExposureCost(s.pos, input.goalPos, input.enemyYaw) * cfg.wExposure;
+            }
+
+            var stateCost = posCost + velCost + headingCost + facingCost + yawRateCost + obstacleCost
+                            + losCost + exposureCost;
 
             var effortCost = EffortCost(u) * cfg.wEffort;
             var smoothnessCost = SmoothnessCost(u, prevU, cfg);
@@ -145,6 +158,62 @@ namespace Movement.MPC
                 cost += obs.weight / ((norm + ObstacleEpsilon) * (norm + ObstacleEpsilon));
             }
             return cost;
+        }
+
+        /// <summary>
+        /// Penalizes positions where obstacles block the line from ship to enemy.
+        /// Uses closest-approach distance to detect line-circle intersection.
+        /// Returns a soft occlusion score: 0 = clear LOS, positive = blocked.
+        /// </summary>
+        public static float LosCost(float2 pos, float2 enemy,
+            NativeArray<ObstacleData> obstacles, int count)
+        {
+            var ray = enemy - pos;
+            var rayLenSq = math.lengthsq(ray);
+            if (rayLenSq < 1e-8f) return 0f;
+
+            var invRayLenSq = 1f / rayLenSq;
+            var cost = 0f;
+
+            for (var i = 0; i < count; i++)
+            {
+                var obs = obstacles[i];
+                var toObs = obs.position - pos;
+
+                // Project obstacle center onto ray, clamped to segment [0,1]
+                var t = math.saturate(math.dot(toObs, ray) * invRayLenSq);
+                var closest = pos + t * ray;
+                var distSq = math.lengthsq(obs.position - closest);
+                var rSq = obs.radius * obs.radius;
+
+                if (distSq >= rSq) continue;
+
+                // Smooth penetration: 1 at center, 0 at edge
+                var penetration = 1f - math.sqrt(distSq) / obs.radius;
+                cost += penetration * penetration;
+            }
+
+            return cost;
+        }
+
+        /// <summary>
+        /// Penalizes being in the enemy's forward weapon arc.
+        /// Cost is highest when directly in front of the enemy, zero when behind/beside.
+        /// </summary>
+        public static float ExposureCost(float2 pos, float2 enemyPos, float enemyYaw)
+        {
+            var toShip = pos - enemyPos;
+            var dist = math.length(toShip);
+            if (dist < 1e-4f) return 1f; // On top of enemy = max exposure
+
+            var dir = toShip / dist;
+            // Enemy forward vector (matching yaw convention: yaw=0 → +Y)
+            var enemyFwd = new float2(-math.sin(enemyYaw), math.cos(enemyYaw));
+            var cosAngle = math.dot(enemyFwd, dir);
+
+            // Only penalize being in front half (cosAngle > 0)
+            if (cosAngle <= 0f) return 0f;
+            return cosAngle * cosAngle;
         }
 
         internal static float WrapRadians(float angle)

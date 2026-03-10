@@ -62,6 +62,10 @@ namespace Movement.MPC
         public GoalMode goalMode;
         public float desiredRange;
         public float rangeTolerance;
+
+        // Tactical LOS
+        public float wLos;
+        public float wExposure;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -83,6 +87,9 @@ namespace Movement.MPC
         public float2 goalPos;
         public NativeArray<ObstacleData> obstacles;
         public int obstacleCount;
+
+        /// <summary>Enemy facing direction in radians (same convention as State.yaw). NaN if no enemy.</summary>
+        public float enemyYaw;
     }
 
     internal readonly partial struct EditorProfilingScope : System.IDisposable
