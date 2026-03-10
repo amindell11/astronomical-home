@@ -41,7 +41,9 @@ namespace Ships
             onSettingsChanged?.Invoke();
         }
 
-        public Dynamics Dynamics => new Dynamics
+        public Dynamics Dynamics => BuildDynamics(0f);
+
+        public Dynamics BuildDynamics(float yawInertia) => new Dynamics
         (
             mass : mass,
             forwardAcc : forwardForce,
@@ -50,9 +52,10 @@ namespace Ships
             minStrafeAcc : minStrafeForce,
             maxSpeed : maxSpeed,
             maxYawRate : maxYawRate * Mathf.Deg2Rad,
-            yawTorque : yawTorque * Mathf.Deg2Rad,  
+            yawTorque : yawTorque * Mathf.Deg2Rad,
             angularDrag : angularDrag,
-            linearDrag: linearDrag
+            linearDrag: linearDrag,
+            yawInertia: yawInertia
         );
 
     }

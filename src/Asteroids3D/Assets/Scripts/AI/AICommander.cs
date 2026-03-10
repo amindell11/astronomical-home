@@ -56,8 +56,8 @@ namespace AI
 
             System.Func<State> stateProvider = () => ship.CurrentState;
 
-            Scout.Initialize(ship.transform, ship.Id, ship.settings.Dynamics, stateProvider, registry);
-            Navigator.Initialize(stateProvider, ship.settings.Dynamics, Scout);
+            Scout.Initialize(ship.transform, ship.Id, ship.Dynamics, stateProvider, registry);
+            Navigator.Initialize(stateProvider, ship.Dynamics, Scout);
 
             systemsInitialized = true;
         }

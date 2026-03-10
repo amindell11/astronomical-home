@@ -34,14 +34,17 @@ namespace Movement
         public readonly float mass, maxSpeed, maxYawRate;
         public readonly float forwardAcc, reverseAcc, maxStrafeAcc, minStrafeAcc;
         public readonly float yawTorque, angularDrag, linearDrag;
+        public readonly float yawInertia;
 
-        public Dynamics(float mass, float forwardAcc, float reverseAcc, float maxStrafeAcc, float minStrafeAcc, 
-            float maxSpeed, float maxYawRate, float yawTorque, float angularDrag, float linearDrag)
+        public Dynamics(float mass, float forwardAcc, float reverseAcc, float maxStrafeAcc, float minStrafeAcc,
+            float maxSpeed, float maxYawRate, float yawTorque, float angularDrag, float linearDrag,
+            float yawInertia = 0f)
         {
             (this.mass, this.maxSpeed, this.maxYawRate) = (mass, maxSpeed, maxYawRate);
             (this.forwardAcc, this.reverseAcc) = (forwardAcc, reverseAcc);
             (this.maxStrafeAcc, this.minStrafeAcc) = (maxStrafeAcc, minStrafeAcc);
             (this.yawTorque, this.angularDrag, this.linearDrag) = (yawTorque, angularDrag, linearDrag);
+            this.yawInertia = yawInertia > 0f ? yawInertia : mass;
         }
 
         public static readonly Dynamics Default = new(

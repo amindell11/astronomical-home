@@ -51,11 +51,11 @@ namespace AI
             if (!utilityTuning)
                 utilityTuning = ScriptableObject.CreateInstance<UtilityTuning>();
 
-            Scout.Initialize(ship.transform, ship.Id, ship.settings.Dynamics, stateProvider, registry);
-            Navigator.Initialize(stateProvider, ship.settings.Dynamics, Scout);
+            Scout.Initialize(ship.transform, ship.Id, ship.Dynamics, stateProvider, registry);
+            Navigator.Initialize(stateProvider, ship.Dynamics, Scout);
 
             var combatShip = ship as CombatShip;
-            if (combatShip != null)
+            if (combatShip)
             {
                 gunner.Initialize(combatShip.Weapons.Primary, combatShip.Weapons.Secondary, targeting, stateProvider);
             }
@@ -64,12 +64,12 @@ namespace AI
                 utilityTuning.combatExitDelay);
 
             utilitySelector.Initialize(utilityTuning,
-                new Attack(Navigator, gunner, utilityTuning)
-               // new Evade(Navigator, gunner, utilityTuning),
+                new Attack(Navigator, gunner, utilityTuning),
+                new Evade(Navigator, gunner, utilityTuning),
                // new Kite(Navigator, gunner, utilityTuning),
                // new Orbit(Navigator, gunner, utilityTuning),
                // new JinkEvade(Navigator, gunner, utilityTuning),
-               // new Patrol(Navigator, gunner, utilityTuning)
+               new Patrol(Navigator, gunner, utilityTuning)
             );
 
             systemsInitialized = true;

@@ -37,7 +37,8 @@ namespace Movement.MPC
         private static void IntegrateLinear(float2 pos, float2 vel, float2 acc, float dt, Dynamics shp,
             out float2 nextPos, out float2 nextVel)
         {
-            var dragFactor = math.max(0f, 1f - shp.linearDrag * dt);
+            // Match Unity Rigidbody drag: vel *= 1 / (1 + drag * dt)
+            var dragFactor = 1f / (1f + shp.linearDrag * dt);
             nextVel = vel * dragFactor + acc * dt;
             var maxSpeedSq = shp.maxSpeed * shp.maxSpeed;
             if (math.lengthsq(nextVel) > maxSpeedSq)
@@ -48,8 +49,9 @@ namespace Movement.MPC
         private static void IntegrateAngular(float yaw, float yawRate, float yawInput, Config cfg, Dynamics shp,
             out float nextYaw, out float nextYawRate)
         {
-            var torqueAlpha = shp.yawTorque * yawInput;
-            var dragFactor = math.max(0f, 1f - shp.angularDrag * cfg.dt);
+            var torqueAlpha = shp.yawTorque * yawInput / shp.yawInertia;
+            // Match Unity Rigidbody drag: vel *= 1 / (1 + drag * dt)
+            var dragFactor = 1f / (1f + shp.angularDrag * cfg.dt);
             nextYawRate = yawRate * dragFactor + torqueAlpha * cfg.dt;
             nextYawRate = math.clamp(nextYawRate, -shp.maxYawRate, shp.maxYawRate);
             nextYaw = Cost.WrapRadians(yaw + nextYawRate * cfg.dt);

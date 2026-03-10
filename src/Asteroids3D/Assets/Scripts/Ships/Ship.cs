@@ -27,6 +27,7 @@ namespace Ships
         public DamageController Damage { get; private set; }
         public ShipId Id { get; private set; }
         public Collider[] Colliders {get; private set;}
+        public Dynamics Dynamics { get; private set; }
         private bool isInitialized;
 
         public State CurrentState { get; protected set; }
@@ -61,6 +62,9 @@ namespace Ships
             Commander?.InitializeCommander(this);
             Movement.Initialize(settings, ()=>KinematicsPoller.Kinematics);
             Damage?.PopulateSettings(settings);
+
+            var rb = GetComponent<Rigidbody>();
+            Dynamics = settings.BuildDynamics(rb ? rb.inertiaTensor.z : 0f);
 
             if (Damage)
                 Damage.OnDeath += (_, _) => HandleShipDeath();
