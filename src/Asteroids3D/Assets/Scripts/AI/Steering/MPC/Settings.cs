@@ -37,7 +37,9 @@ namespace Movement.MPC
 
         public int Horizon => Mathf.CeilToInt(horizonSeconds / rolloutDt);
 
-        public Config ToConfig(float facingTargetRad = float.NaN)
+        public Config ToConfig(float facingTargetRad = float.NaN,
+            GoalMode goalMode = GoalMode.Waypoint,
+            float desiredRange = 0f, float rangeTolerance = 0f)
         {
             return new Config
             {
@@ -60,7 +62,10 @@ namespace Movement.MPC
                 arrivalDistanceSq = arrivalDistance * arrivalDistance,
                 arrivalVelScale = arrivalVelScale,
                 arrivalYawScale = arrivalYawScale,
-                facingTarget = facingTargetRad
+                facingTarget = facingTargetRad,
+                goalMode = goalMode,
+                desiredRange = desiredRange,
+                rangeTolerance = rangeTolerance
             };
         }
     }

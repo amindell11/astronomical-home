@@ -22,7 +22,7 @@ namespace Movement.MPC
 
             var breakdown = new CostBreakdown
             {
-                pos = PositionCost(s.pos, input.goalPos) * cfg.wPos,
+                pos = GoalCost(s.pos, input.goalPos, cfg) * cfg.wPos,
                 vel = VelocityCost(s.vel) * wVel,
                 heading = Unity.Mathematics.math.isnan(cfg.facingTarget)
                     ? HeadingCost(s.pos, s.yaw, input.goalPos) * wYaw : 0f,

@@ -20,6 +20,10 @@ namespace AI.States
 
         public override void Enter(Info context)
         {
+            var t = utilityTuning.attack;
+            var desiredRange = (t.optimalRangeMin + t.optimalRangeMax) * 0.5f;
+            var tolerance = (t.optimalRangeMax - t.optimalRangeMin) * 0.5f;
+            navigator.SetGoalMaintainRange(desiredRange, tolerance);
         }
 
         public override void Tick(Info ctx, float deltaTime)
@@ -48,6 +52,7 @@ namespace AI.States
         {
             navigator.ClearNavigationPoint();
             navigator.ClearFacingOverride();
+            navigator.ClearGoalMode();
         }
 
         public override float ComputeUtility(Info ctx)

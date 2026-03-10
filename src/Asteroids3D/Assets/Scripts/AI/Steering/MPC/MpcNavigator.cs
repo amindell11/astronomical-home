@@ -122,7 +122,7 @@ namespace Movement.MPC
         private void RefreshConfig()
         {
             var facingRad = facingOverride ? facingAngle * Mathf.Deg2Rad : float.NaN;
-            config = settings.ToConfig(facingRad);
+            config = settings.ToConfig(facingRad, goalMode, goalDesiredRange, goalRangeTolerance);
 
             if (bestSequence.Length != config.horizon)
             {

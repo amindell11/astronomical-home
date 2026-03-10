@@ -38,6 +38,7 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
         // AI systems (Scout, Navigator, Gunner) are fully initialized before tests run.
         cmdr.SetRegistry(new StubShipRegistry());
         cmdr.UtilitySelector.enabled = false;
+        mpc.ClearGoalMode();
 #else
         Assert.Ignore("MpcNavigatorPlayModeTests requires the Unity Editor (uses AssetDatabase).");
 #endif
