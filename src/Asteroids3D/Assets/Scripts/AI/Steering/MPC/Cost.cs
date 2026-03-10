@@ -29,7 +29,8 @@ namespace Movement.MPC
 
             var posCost = PositionCost(s.pos, input.goalPos) * cfg.wPos;
             var velCost = VelocityCost(s.vel) * wVel;
-            var headingCost = HeadingCost(s.pos, s.yaw, input.goalPos) * wYaw;
+            var hasFacing = !math.isnan(cfg.facingTarget);
+            var headingCost = hasFacing ? 0f : HeadingCost(s.pos, s.yaw, input.goalPos) * wYaw;
             var facingCost = FacingCost(s.yaw, cfg.facingTarget) * cfg.wFacing;
             var yawRateCost = YawRateCost(s.yawRate) * cfg.wYawRate;
             var obstacleCost = 0f;

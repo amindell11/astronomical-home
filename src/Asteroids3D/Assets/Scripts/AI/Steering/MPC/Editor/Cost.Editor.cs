@@ -24,7 +24,8 @@ namespace Movement.MPC
             {
                 pos = PositionCost(s.pos, input.goalPos) * cfg.wPos,
                 vel = VelocityCost(s.vel) * wVel,
-                heading = HeadingCost(s.pos, s.yaw, input.goalPos) * wYaw,
+                heading = Unity.Mathematics.math.isnan(cfg.facingTarget)
+                    ? HeadingCost(s.pos, s.yaw, input.goalPos) * wYaw : 0f,
                 facing = FacingCost(s.yaw, cfg.facingTarget) * cfg.wFacing,
                 yawRate = YawRateCost(s.yawRate) * cfg.wYawRate,
                 obstacle = (cfg.wObstacle > 0f && input.obstacleCount > 0)
