@@ -75,6 +75,8 @@ namespace Movement.MPC
 
         private bool HasArrived(Kinematics kin)
         {
+            if (continuousNavigation) return false;
+
             var toGoal = currentWaypoint.position - kin.pos;
             var posArrived = toGoal.sqrMagnitude < arriveRadius * arriveRadius;
             var velStopped = kin.vel.sqrMagnitude < 0.1f;

@@ -11,6 +11,7 @@ namespace AI.States
 
         private Transform lastTarget;
         private float lastTargetUpdate;
+        private float engageRange;
 
         public Attack(Navigator navigator, Gunner gunner, UtilityTuning utilityTuning) : base(navigator, gunner, utilityTuning)
         {
@@ -18,6 +19,9 @@ namespace AI.States
 
         public override void Enter(Info context)
         {
+            var t = utilityTuning.attack;
+            engageRange = (t.optimalRangeMin + t.optimalRangeMax) * 0.5f;
+            navigator.SetContinuousNavigation(true);
         }
 
         public override void Tick(Info ctx, float deltaTime)
@@ -46,16 +50,22 @@ namespace AI.States
             {
                 navigator.ClearFacingOverride();
             }
-            navigator.SetNavigationPoint(
-                combat.EnemyPos,
-                true,
-                combat.EnemyVel);
+
+            // Compute waypoint at engage range from enemy, along the ship-to-enemy line
+            var toEnemy = combat.EnemyPos - ctx.ShipInfo.Pos;
+            var dist = toEnemy.magnitude;
+            var goalPos = dist > 0.01f
+                ? combat.EnemyPos - toEnemy / dist * engageRange
+                : ctx.ShipInfo.Pos;
+
+            navigator.SetNavigationPoint(goalPos, true, combat.EnemyVel);
         }
 
         public override void Exit()
         {
             navigator.ClearNavigationPoint();
             navigator.ClearFacingOverride();
+            navigator.SetContinuousNavigation(false);
         }
 
         public override float ComputeUtility(Info ctx)

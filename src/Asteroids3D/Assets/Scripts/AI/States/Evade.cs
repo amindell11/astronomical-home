@@ -9,7 +9,7 @@ namespace AI.States
     {
         public override StateType Type => StateType.Evade;
 
-        private Vector2 evadePoint;
+        private const float FleeProjectionDistance = 50f;
 
         public Evade(Navigator navigator, Gunner gunner, UtilityTuning utilityTuning) : base(navigator, gunner, utilityTuning)
         {
@@ -20,18 +20,26 @@ namespace AI.States
             base.Enter(ctx);
 
             gunner.SetTarget((Transform)null);
+            navigator.SetContinuousNavigation(true);
         }
 
         public override void Tick(Info ctx, float deltaTime)
         {
-            evadePoint = CalculateEvadePoint(ctx);
-            navigator.SetNavigationPoint(evadePoint, true);
+            if (!ctx.Combat.HasEnemy) return;
+
+            // Project a waypoint far away from the enemy
+            var awayFromEnemy = ctx.ShipInfo.Pos - ctx.Combat.EnemyPos;
+            var dist = awayFromEnemy.magnitude;
+            var fleeDir = dist > 0.01f ? awayFromEnemy / dist : Vector2.up;
+            var fleeTarget = ctx.ShipInfo.Pos + fleeDir * FleeProjectionDistance;
+            navigator.SetNavigationPoint(fleeTarget, true);
         }
 
         public override void Exit()
         {
             base.Exit();
             navigator.ClearNavigationPoint();
+            navigator.SetContinuousNavigation(false);
         }
 
         public override float ComputeUtility(Info ctx)
@@ -58,22 +66,5 @@ namespace AI.States
                 .Build();
         }
 
-        private Vector2 CalculateEvadePoint(Info ctx)
-        {
-            var combat = ctx.Combat;
-            var selfPos = ctx.ShipInfo.Pos;
-            Vector2 fleeDirection;
-
-            if (combat.HasEnemy)
-            {
-                fleeDirection = -(combat.EnemyPos - selfPos).normalized;
-            }
-            else
-            {
-                fleeDirection = Random.insideUnitCircle.normalized;
-            }
-
-            return selfPos + fleeDirection * utilityTuning.evade.fleeDistance;
-        }
     }
 }

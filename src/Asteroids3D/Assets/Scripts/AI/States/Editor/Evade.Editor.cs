@@ -12,26 +12,17 @@ namespace AI.States
             base.OnDrawGizmos(ctx);
 
             var selfPos = ctx.ShipInfo.Pos3D;
-            var evadePos3D = GamePlane.PlanePointToWorld(evadePoint);
-
-            Gizmos.color = Color.green;
-            Gizmos.DrawLine(selfPos, evadePos3D);
-
-            Gizmos.color = Color.cyan;
-            Gizmos.DrawWireSphere(evadePos3D, 1f);
-
-            var distToEvadePoint = Vector2.Distance(ctx.ShipInfo.Pos, evadePoint);
-            UnityEditor.Handles.color = Color.cyan;
-            UnityEditor.Handles.Label(evadePos3D + Vector3.up, $"Evade Point\n{distToEvadePoint:F1}m");
-
-            // Draw flee distance circle
-            Gizmos.color = new Color(0f, 1f, 0f, 0.2f);
-            Gizmos.DrawWireSphere(selfPos, utilityTuning.evade.fleeDistance);
-
-            // Draw flee direction arrow
             var combat = ctx.Combat;
+
             if (combat.HasEnemy)
             {
+                var enemyPos3D = GamePlane.PlanePointToWorld(combat.EnemyPos);
+
+                // Draw line to threat
+                Gizmos.color = Color.red;
+                Gizmos.DrawLine(selfPos, enemyPos3D);
+
+                // Draw flee direction arrow
                 var fleeDir = -(combat.EnemyPos - ctx.ShipInfo.Pos).normalized;
                 var fleeDir3D = new Vector3(fleeDir.x, fleeDir.y, 0);
 

@@ -17,10 +17,10 @@ namespace Movement.MPC
         public float wYaw = 0.5f;
         public float wYawRate = 0.1f;
         public float wEffort = 0.05f;
-        
+
         [Header("Smoothness Weights")]
         public float wSmoothnessThrust = 0.5f;
-        public float wSmoothnessStrafe = 5.0f; 
+        public float wSmoothnessStrafe = 5.0f;
         public float wSmoothnessYaw = 0.2f;
 
         public float wObstacle = 10.0f;

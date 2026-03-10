@@ -24,6 +24,10 @@ namespace AI
         protected float facingAngle;
         protected Dynamics dynamics;
 
+        /// When true, the navigator never considers itself "arrived" — used for
+        /// continuous objectives like Attack (maintain range) and Evade (flee).
+        protected bool continuousNavigation;
+
         protected Command currentCommand;
         public Command CurrentCommand => currentCommand;
         
@@ -88,6 +92,11 @@ namespace AI
         public void ClearFacingOverride()
         {
             facingOverride = false;
+        }
+
+        public void SetContinuousNavigation(bool enabled)
+        {
+            continuousNavigation = enabled;
         }
     }
 }

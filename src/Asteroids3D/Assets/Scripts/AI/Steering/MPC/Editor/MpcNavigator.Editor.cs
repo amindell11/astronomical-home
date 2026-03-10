@@ -60,7 +60,8 @@ namespace Movement.MPC
         private CostBreakdown EvaluateBreakdown(State mpcState)
         {
             return Cost.EvaluateTrajectoryBreakdown(mpcState, bestSequence,
-                solver.BuildCostInput(GoalPos()), config, dynamics, lastControl);
+                solver.BuildCostInput(GoalPos()),
+                config, dynamics, lastControl);
         }
 
         partial void LogSolverPerformanceIfNeeded()
