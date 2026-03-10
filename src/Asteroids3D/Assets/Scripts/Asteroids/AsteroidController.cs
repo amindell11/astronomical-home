@@ -31,6 +31,7 @@ namespace Asteroids
         public Fragger Fragger { get; private set; }
         public Mesh CurrentMesh => meshFilter.sharedMesh;
         public event Action<Vector3> OnDestroyed;
+        public event Action OnInitialized;
 
 
         private void Awake()
@@ -90,6 +91,8 @@ namespace Asteroids
 
             Physics.SyncTransforms();
             Physics.autoSyncTransforms = prevAutoSync;
+
+            OnInitialized?.Invoke();
         }
         public void ResetAsteroid()
         {
