@@ -25,9 +25,8 @@ namespace Movement.MPC
             {
                 pos = GoalCost(s.pos, input.goalPos, cfg) * cfg.wPos,
                 vel = VelocityCost(s.vel) * wVel,
-                heading = Unity.Mathematics.math.isnan(cfg.facingTarget)
-                    ? HeadingCost(s.pos, s.yaw, input.goalPos) * wYaw : 0f,
-                facing = FacingCost(s.yaw, cfg.facingTarget) * cfg.wFacing,
+                heading = HeadingCost(s.pos, s.yaw, input.goalPos) * wYaw,
+                facing = FacingCost(s.yaw, cfg.facingTarget, cfg.facingPower) * cfg.wFacing,
                 yawRate = YawRateCost(s.yawRate) * cfg.wYawRate,
                 obstacle = (cfg.wObstacle > 0f && input.obstacleCount > 0)
                     ? ObstacleCost(s.pos, input.obstacles, input.obstacleCount, cfg.obstacleThreshold) * cfg.wObstacle
@@ -36,19 +35,19 @@ namespace Movement.MPC
                     ? LosCost(s.pos, input.goalPos, input.obstacles, input.obstacleCount) * cfg.wLos
                     : 0f,
                 exposure = (hasEnemy && cfg.wExposure > 0f)
-                    ? ExposureCost(s.pos, input.goalPos, input.enemyYaw) * cfg.wExposure
+                    ? ExposureCost(s.pos, input.goalPos, input.enemyYaw, cfg.exposurePower) * cfg.wExposure
                     : 0f,
                 effort = EffortCost(u) * cfg.wEffort,
                 smoothness = SmoothnessCost(u, prevU, cfg)
             };
 
-            var stateCost = breakdown.pos + breakdown.vel + breakdown.heading +
-                            breakdown.facing + breakdown.yawRate + breakdown.obstacle +
-                            breakdown.los + breakdown.exposure;
-            var total = stateCost + breakdown.effort + breakdown.smoothness;
+            var positionalCost = breakdown.pos + breakdown.vel + breakdown.heading +
+                                breakdown.yawRate + breakdown.obstacle;
+            var tacticalCost = breakdown.facing + breakdown.los + breakdown.exposure;
+            var total = positionalCost + tacticalCost + breakdown.effort + breakdown.smoothness;
 
             if (isTerminal)
-                total += cfg.terminalMultiplier * stateCost;
+                total += cfg.terminalMultiplier * positionalCost;
 
             breakdown.total = total;
             return breakdown;

@@ -57,6 +57,7 @@ namespace Movement.MPC
 
         // Facing override (radians, NaN if disabled)
         public float facingTarget;
+        public float facingPower;
 
         // Goal mode
         public GoalMode goalMode;
@@ -66,6 +67,7 @@ namespace Movement.MPC
         // Tactical LOS
         public float wLos;
         public float wExposure;
+        public float exposurePower;
     }
 
     [StructLayout(LayoutKind.Sequential)]

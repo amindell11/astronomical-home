@@ -42,12 +42,16 @@ namespace Movement.MPC
         [Tooltip("Facing override weight. Steers the nose toward a specific angle (e.g. lead target in Attack). " +
                  "Only active when a facing override is set.")]
         public float wFacing = 1.0f;
+        [Tooltip("Facing precision. 1 = linear (uniform), higher = steeper near zero error for tighter aim.")]
+        public float facingPower = 1f;
 
         [Header("Tactical LOS")]
         [Tooltip("Line-of-sight cost weight. Penalizes positions where obstacles block the view to the enemy.")]
         public float wLos = 0f;
         [Tooltip("Exposure cost weight. Penalizes being in the enemy's forward weapon arc.")]
         public float wExposure = 0f;
+        [Tooltip("Sharpness of the exposure cone. 2 = quadratic (default), higher = narrower spike centered on enemy's nose.")]
+        public float exposurePower = 2f;
 
         [Tooltip("Multiplier applied to state costs at the final rollout step. " +
                  "Encourages the solver to reach a good terminal state.")]
@@ -87,8 +91,10 @@ namespace Movement.MPC
                 wSmoothnessYaw = wSmoothnessYaw,
                 wObstacle = wObstacle,
                 wFacing = wFacing,
+                facingPower = facingPower,
                 wLos = wLos,
                 wExposure = wExposure,
+                exposurePower = exposurePower,
                 terminalMultiplier = terminalMultiplier,
                 obstacleThreshold = obstacleThreshold,
                 arrivalDistance = arrivalDistance,

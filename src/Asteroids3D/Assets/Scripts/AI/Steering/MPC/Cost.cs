@@ -30,9 +30,8 @@ namespace Movement.MPC
 
             var posCost = GoalCost(s.pos, input.goalPos, cfg) * cfg.wPos;
             var velCost = VelocityCost(s.vel) * wVel;
-            var hasFacing = !math.isnan(cfg.facingTarget);
-            var headingCost = hasFacing ? 0f : HeadingCost(s.pos, s.yaw, input.goalPos) * wYaw;
-            var facingCost = FacingCost(s.yaw, cfg.facingTarget) * cfg.wFacing;
+            var headingCost = HeadingCost(s.pos, s.yaw, input.goalPos) * wYaw;
+            var facingCost = FacingCost(s.yaw, cfg.facingTarget, cfg.facingPower) * cfg.wFacing;
             var yawRateCost = YawRateCost(s.yawRate) * cfg.wYawRate;
             var obstacleCost = 0f;
             if (cfg.wObstacle > 0f && input.obstacleCount > 0)
@@ -48,20 +47,22 @@ namespace Movement.MPC
                 if (cfg.wLos > 0f && input.obstacleCount > 0)
                     losCost = LosCost(s.pos, input.goalPos, input.obstacles, input.obstacleCount) * cfg.wLos;
                 if (cfg.wExposure > 0f)
-                    exposureCost = ExposureCost(s.pos, input.goalPos, input.enemyYaw) * cfg.wExposure;
+                    exposureCost = ExposureCost(s.pos, input.goalPos, input.enemyYaw, cfg.exposurePower) * cfg.wExposure;
             }
 
-            var stateCost = posCost + velCost + headingCost + facingCost + yawRateCost + obstacleCost
-                            + losCost + exposureCost;
+            // Positional costs benefit from terminal boost (planning toward good end state)
+            var positionalCost = posCost + velCost + headingCost + yawRateCost + obstacleCost;
+            // Tactical costs use stale data and should not be terminal-boosted
+            var tacticalCost = facingCost + losCost + exposureCost;
 
             var effortCost = EffortCost(u) * cfg.wEffort;
             var smoothnessCost = SmoothnessCost(u, prevU, cfg);
             var controlCost = effortCost + smoothnessCost;
 
-            var total = stateCost + controlCost;
+            var total = positionalCost + tacticalCost + controlCost;
 
             if (isTerminal)
-                total += cfg.terminalMultiplier * stateCost;
+                total += cfg.terminalMultiplier * positionalCost;
 
             return total;
         }
@@ -115,11 +116,11 @@ namespace Movement.MPC
             return cost * Smoothstep01(normalizedDist);
         }
 
-        internal static float FacingCost(float yaw, float targetYaw)
+        internal static float FacingCost(float yaw, float targetYaw, float power = 1f)
         {
             if (math.isnan(targetYaw)) return 0f;
-            var err = WrapRadians(yaw - targetYaw);
-            return err * err;
+            var err = math.abs(WrapRadians(yaw - targetYaw));
+            return math.pow(err, 1f / power);
         }
 
         internal static float YawRateCost(float yawRate) => yawRate * yawRate;
@@ -200,7 +201,8 @@ namespace Movement.MPC
         /// Penalizes being in the enemy's forward weapon arc.
         /// Cost is highest when directly in front of the enemy, zero when behind/beside.
         /// </summary>
-        public static float ExposureCost(float2 pos, float2 enemyPos, float enemyYaw)
+        public static float ExposureCost(float2 pos, float2 enemyPos, float enemyYaw,
+            float power = 2f)
         {
             var toShip = pos - enemyPos;
             var dist = math.length(toShip);
@@ -213,7 +215,7 @@ namespace Movement.MPC
 
             // Only penalize being in front half (cosAngle > 0)
             if (cosAngle <= 0f) return 0f;
-            return cosAngle * cosAngle;
+            return math.pow(cosAngle, power);
         }
 
         internal static float WrapRadians(float angle)
