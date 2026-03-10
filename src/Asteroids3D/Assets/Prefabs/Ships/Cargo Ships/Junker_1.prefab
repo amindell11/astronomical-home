@@ -3108,7 +3108,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1853286326006952367}
   m_Layer: 7
-  m_Name: GameObject
+  m_Name: Mesh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -20944,6 +20944,7 @@ MonoBehaviour:
   enableDebugLogs: 0
   showMovementGizmos: 1
   movementGizmoScale: 3
+  meshTransform: {fileID: 0}
 --- !u!114 &-2355966110245288272
 MonoBehaviour:
   m_ObjectHideFlags: 0

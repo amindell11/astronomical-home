@@ -33,7 +33,7 @@ namespace Game
             switch (axis)
             {
                 case PlaneAxis.X:
-                    _normal  = Vector3.left;
+                    _normal  = Vector3.right;
                     _forward = Vector3.forward;
                     _right   = Vector3.up;
                     _positionConstraint = RigidbodyConstraints.FreezePositionX;
@@ -45,7 +45,7 @@ namespace Game
                     _positionConstraint = RigidbodyConstraints.FreezePositionY;
                     break;
                 case PlaneAxis.Z:
-                    _normal  = Vector3.back;
+                    _normal  = Vector3.forward;
                     _forward = Vector3.up;
                     _right   = Vector3.right;
                     _positionConstraint = RigidbodyConstraints.FreezePositionZ;

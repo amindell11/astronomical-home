@@ -94,9 +94,10 @@ namespace Ships.Movement
             rb.AddForce(GamePlane.PlaneDirToWorld(boost), ForceMode.Impulse);
             rb.AddTorque(GamePlane.Normal * yawTorque, ForceMode.Force);
 
-            // Bank: spring torque toward target angle around the ship's heading axis.
+            // Bank: damped spring torque toward target angle around the ship's heading axis.
             var bankError = (targetBank - Kinematics.bank) * Mathf.Deg2Rad;
-            rb.AddTorque(transform.up * (bankError * settings.bankTorque), ForceMode.Force);
+            var bankRate = Vector3.Dot(rb.angularVelocity, transform.up);
+            rb.AddTorque(transform.up * (bankError * settings.bankTorque - bankRate * settings.bankDamping), ForceMode.Force);
 
             DebugForces(thrust,strafe,boost,yawTorque);
         }

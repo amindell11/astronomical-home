@@ -49,10 +49,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f284819d1af474d4ea191417a0184dd1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  utilityTuning: {fileID: 11400000, guid: e4c52ba5b796d2642b7fa9e69870137b, type: 2}
   difficulty: 1
-  combatTuning: {fileID: 0}
   debugSettings: {fileID: 11400000, guid: 2e2ae38aa858dd74d9f7908425a3067d, type: 2}
+  utilityTuning: {fileID: 11400000, guid: e4c52ba5b796d2642b7fa9e69870137b, type: 2}
+  combatTuning: {fileID: 0}
 --- !u!114 &-1070365238870678526
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -108,7 +108,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   arriveRadius: 0.5
   labelStep: 5
-  showCostBreakdown: 0
+  showCostBreakdown: 1
+  costBreakdownMode: 0
   logSolverPerformance: 0
   lastSolveTimeMs: 0
   showObstacleCosts: 1

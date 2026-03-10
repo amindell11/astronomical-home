@@ -44,7 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6840ea13178546d4f98f938bedb81730, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerTemplate: {fileID: 7184882482910536223, guid: c3c15225cb3a8fd42a87c756c1d2d884,
+  playerTemplate: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
     type: 3}
   playerCommander: {fileID: 1772957474756936600, guid: 08a3705197cc60842b107b8485d8ad25,
     type: 3}
@@ -63,7 +63,7 @@ MonoBehaviour:
   updatingAsteroidFieldPrefab: {fileID: 7997124830668444265, guid: a4a07ada72adcc44ba51f616ad29384b,
     type: 3}
   spawnEnemyOnStart: 1
-  enemyTemplate: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
+  enemyTemplate: {fileID: 7184882482910536223, guid: c3c15225cb3a8fd42a87c756c1d2d884,
     type: 3}
   enemyCommander: {fileID: 1772957474756936600, guid: 08a3705197cc60842b107b8485d8ad25,
     type: 3}

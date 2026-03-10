@@ -58,16 +58,18 @@ MonoBehaviour:
     type: 3}
   overlayPrefab: {fileID: 6902055608550465894, guid: 87f4b42386fd2af44b25b722572d1fcd,
     type: 3}
-  enemyTemplate: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
+  teamATemplate: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
+    type: 3}
+  teamBTemplate: {fileID: 7184882482910536223, guid: c3c15225cb3a8fd42a87c756c1d2d884,
     type: 3}
   aiCommander: {fileID: 1772957474756936600, guid: 08a3705197cc60842b107b8485d8ad25,
     type: 3}
-  teamACount: 10
-  teamBCount: 10
+  teamACount: 4
+  teamBCount: 4
   spawnRadius: 30
   respawnDelay: 3
   playerParticipates: 0
-  enableDebugOverlay: 1
+  enableDebugOverlay: 0
   debugSettings: {fileID: 11400000, guid: 2e2ae38aa858dd74d9f7908425a3067d, type: 2}
   worldPrefab: {fileID: 4478678954348364341, guid: 85b078d06b0ea6c40acdfd2fe59a9556,
     type: 3}

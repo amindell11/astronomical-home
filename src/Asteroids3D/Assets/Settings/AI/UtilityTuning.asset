@@ -36,7 +36,7 @@ MonoBehaviour:
     desperationFactor:
       atLow: 1.2
       atHigh: 1
-    optimalRangeMin: 5
+    optimalRangeMin: 5.7
     optimalRangeMax: 12
     outerDistanceThreshold: 25
     outerRangeFactor: 1.15
