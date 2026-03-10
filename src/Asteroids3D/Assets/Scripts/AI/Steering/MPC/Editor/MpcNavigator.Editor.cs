@@ -9,6 +9,12 @@ using UnityEngine;
 
 namespace Movement.MPC
 {
+    public enum CostBreakdownMode
+    {
+        CurrentState,
+        Trajectory,
+    }
+
     public partial class MpcNavigator
     {
         [Header("Debug Visualization")]
@@ -16,12 +22,15 @@ namespace Movement.MPC
         public int labelStep = 5;
         [Tooltip("Show cost breakdown in Inspector")]
         public bool showCostBreakdown = true;
+        [Tooltip("Which cost to display: current ship state or full trajectory")]
+        public CostBreakdownMode costBreakdownMode = CostBreakdownMode.CurrentState;
         [Tooltip("Log solver performance once per second")]
         public bool logSolverPerformance = false;
 
         private float nextLogTime;
 
         private DetectedObstacle[] dbgObstacles;
+        private float[] dbgObstacleWeights;
         private int dbgObstacleCount;
 
         // Debug info
@@ -47,20 +56,28 @@ namespace Movement.MPC
         {
             if (dbgObstacles == null || dbgObstacles.Length < scan.count)
             {
-                dbgObstacles = new DetectedObstacle[Mathf.Max(scan.count, 32)];
+                var size = Mathf.Max(scan.count, 32);
+                dbgObstacles = new DetectedObstacle[size];
+                dbgObstacleWeights = new float[size];
             }
 
             dbgObstacleCount = scan.count;
+            var shipMass = dynamics.mass;
+            var invShipMass = shipMass > 0f ? 1f / shipMass : 1f;
             for (var i = 0; i < scan.count; i++)
             {
                 dbgObstacles[i] = scan.buffer[i];
+                var rb = scan.buffer[i].collider ? scan.buffer[i].collider.attachedRigidbody : null;
+                dbgObstacleWeights[i] = (rb ? rb.mass : shipMass) * invShipMass;
             }
         }
 
         private CostBreakdown EvaluateBreakdown(State mpcState)
         {
-            return Cost.EvaluateTrajectoryBreakdown(mpcState, bestSequence,
-                solver.BuildCostInput(GoalPos()), config, dynamics, lastControl);
+            var input = solver.BuildCostInput(GoalPos());
+            if (costBreakdownMode == CostBreakdownMode.CurrentState)
+                return Cost.EvaluateBreakdown(mpcState, bestSequence[0], lastControl, input, config, false);
+            return Cost.EvaluateTrajectoryBreakdown(mpcState, bestSequence, input, config, dynamics, lastControl);
         }
 
         partial void LogSolverPerformanceIfNeeded()
@@ -134,20 +151,23 @@ namespace Movement.MPC
             for (var i = 0; i < dbgObstacleCount; i++)
             {
                 var obs = dbgObstacles[i];
+                var weight = dbgObstacleWeights != null && i < dbgObstacleWeights.Length
+                    ? dbgObstacleWeights[i] : 1f;
                 var obsWorldPos = GamePlane.PlanePointToWorld(obs.position);
 
-                Gizmos.color = Color.white;
+                var weightAlpha = Mathf.Clamp01(weight);
+                Gizmos.color = new Color(1f, 1f, 1f, 0.3f + 0.7f * weightAlpha);
                 Gizmos.DrawWireSphere(obsWorldPos, obs.radius);
 
                 var threshold = obs.radius + settings.obstacleThreshold;
-                Gizmos.color = new Color(1f, 1f, 0f, 0.3f);
+                Gizmos.color = new Color(1f, 1f, 0f, 0.1f + 0.4f * weightAlpha);
                 Gizmos.DrawWireSphere(obsWorldPos, threshold);
 
-                DrawObstacleCostField(obs, threshold);
+                DrawObstacleCostField(obs, threshold, weight);
             }
         }
 
-        private void DrawObstacleCostField(DetectedObstacle obstacle, float threshold)
+        private void DrawObstacleCostField(DetectedObstacle obstacle, float threshold, float weight)
         {
             var obsWorldPos = GamePlane.PlanePointToWorld(obstacle.position);
             var rings = 5;
@@ -157,7 +177,7 @@ namespace Movement.MPC
                 var radius = obstacle.radius + (threshold - obstacle.radius) * (i / (float)rings);
                 var normalizedDist = radius / threshold;
                 var epsilon = 0.01f;
-                var cost = 1f / ((normalizedDist + epsilon) * (normalizedDist + epsilon));
+                var cost = weight / ((normalizedDist + epsilon) * (normalizedDist + epsilon));
                 var visualCost = Mathf.Clamp01(cost / 10f);
                 Gizmos.color = new Color(1f, 0f, 0f, visualCost * 0.5f);
                 Gizmos.DrawWireSphere(obsWorldPos, radius);
@@ -188,23 +208,27 @@ namespace Movement.MPC
             if (!nav.showCostBreakdown || !Application.isPlaying) return;
 
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField("MPC Debug Scaffolding", EditorStyles.boldLabel);
+            var modeLabel = nav.costBreakdownMode == CostBreakdownMode.CurrentState
+                ? "MPC Cost Breakdown (Current State)"
+                : "MPC Cost Breakdown (Full Trajectory)";
+            EditorGUILayout.LabelField(modeLabel, EditorStyles.boldLabel);
 
             var solveTimeColor = nav.lastSolveTimeMs > 2.0f ? "red" : "lime";
             EditorGUILayout.LabelField($"Solve Time: <color={solveTimeColor}>{nav.lastSolveTimeMs:F2} ms</color>",
                 new GUIStyle(EditorStyles.label) { richText = true });
 
-            EditorGUILayout.LabelField($"Total Cost: {nav.lastBestCost:F2}");
-
             var breakdown = nav.lastCostBreakdown;
-            DrawCostBar("Position", breakdown.pos, nav.lastBestCost, Color.green);
-            DrawCostBar("Heading", breakdown.heading, nav.lastBestCost, Color.yellow);
-            DrawCostBar("Facing", breakdown.facing, nav.lastBestCost, Color.cyan);
-            DrawCostBar("Velocity", breakdown.vel, nav.lastBestCost, Color.blue);
-            DrawCostBar("Yaw Rate", breakdown.yawRate, nav.lastBestCost, Color.magenta);
-            DrawCostBar("Obstacle", breakdown.obstacle, nav.lastBestCost, Color.red);
-            DrawCostBar("Effort", breakdown.effort, nav.lastBestCost, Color.gray);
-            DrawCostBar("Smoothness", breakdown.smoothness, nav.lastBestCost, Color.white);
+            var total = breakdown.total;
+            EditorGUILayout.LabelField($"Total Cost: {total:F2}");
+
+            DrawCostBar("Position", breakdown.pos, total, Color.green);
+            DrawCostBar("Heading", breakdown.heading, total, Color.yellow);
+            DrawCostBar("Facing", breakdown.facing, total, Color.cyan);
+            DrawCostBar("Velocity", breakdown.vel, total, Color.blue);
+            DrawCostBar("Yaw Rate", breakdown.yawRate, total, Color.magenta);
+            DrawCostBar("Obstacle", breakdown.obstacle, total, Color.red);
+            DrawCostBar("Effort", breakdown.effort, total, Color.gray);
+            DrawCostBar("Smoothness", breakdown.smoothness, total, Color.white);
 
             Repaint();
         }
