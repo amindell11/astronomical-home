@@ -20,7 +20,7 @@ namespace Tests.EditMode
             s.maxSpeed = 20f;
             s.yawTorque = 300f;
             s.maxBankAngle = 45f;
-            s.bankingSpeed = 5f;
+            s.bankTorque = 5000f;
             s.boostImpulse = 2000f;
             s.boostCooldown = 1.0f;
             return s;

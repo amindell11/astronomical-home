@@ -10,7 +10,7 @@ namespace Movement.MPC
             BodyAxes(s.yaw, out var fwd, out var right);
             var acc = ComputeAcceleration(u, fwd, right, shp, s.vel);
             IntegrateLinear(s.pos, s.vel, acc, cfg.dt, shp, out var nextPos, out var nextVel);
-            IntegrateAngular(s.yaw, s.yawRate, u.yawTorque, cfg, shp, out var nextYaw, out var nextYawRate);
+            IntegrateAngular(s.yaw, s.yawRate, u.yawTorque, u.strafe, cfg, shp, out var nextYaw, out var nextYawRate);
 
             return new State { pos = nextPos, vel = nextVel, yaw = nextYaw, yawRate = nextYawRate };
         }
@@ -46,10 +46,26 @@ namespace Movement.MPC
             nextPos = pos + nextVel * dt;
         }
 
-        private static void IntegrateAngular(float yaw, float yawRate, float yawInput, Config cfg, Dynamics shp,
-            out float nextYaw, out float nextYawRate)
+        private static void IntegrateAngular(float yaw, float yawRate, float yawInput, float strafeInput,
+            Config cfg, Dynamics shp, out float nextYaw, out float nextYawRate)
         {
             var torqueAlpha = shp.yawTorque * yawInput / shp.yawInertia;
+
+            // Bank coupling: the bank spring-damper torque is applied around transform.up,
+            // which is tilted by the bank angle. Its yaw-axis projection adds a cross-coupled
+            // yaw torque that the MPC must account for to match Unity physics.
+            if (shp.maxBankAngleRad > 0f)
+            {
+                var bankAngle = -strafeInput * shp.maxBankAngleRad;
+                var sinBank = math.sin(bankAngle);
+                // Bank restoring torque = bankError * bankTorque - bankRate * bankDamping.
+                // At steady state the target bank equals the current estimated bank,
+                // so bankError ≈ 0 and the dominant term is the rate damping.
+                // The yaw-rate component projected through the bank tilt is yawRate * sinBank.
+                var bankYawTorque = -yawRate * sinBank * shp.bankDamping;
+                torqueAlpha += bankYawTorque / shp.yawInertia;
+            }
+
             // Match Unity Rigidbody drag: vel *= 1 / (1 + drag * dt)
             var dragFactor = 1f / (1f + shp.angularDrag * cfg.dt);
             nextYawRate = yawRate * dragFactor + torqueAlpha * cfg.dt;

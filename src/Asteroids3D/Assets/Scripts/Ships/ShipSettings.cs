@@ -18,6 +18,7 @@ namespace Ships
         public float angularDrag = 1.7f;
         public float maxBankAngle = 45f;
         public float bankTorque = 5000f;
+        public float bankDamping = 200f;
         public float minStrafeForce = 4000f;
         public float maxStrafeForce = 5000f;
         public float linearDrag = .5f;
@@ -55,7 +56,10 @@ namespace Ships
             yawTorque : yawTorque,
             angularDrag : angularDrag,
             linearDrag: linearDrag,
-            yawInertia: yawInertia > 0f ? yawInertia : mass
+            yawInertia: yawInertia > 0f ? yawInertia : mass,
+            bankTorque: bankTorque,
+            bankDamping: bankDamping,
+            maxBankAngleRad: maxBankAngle * Mathf.Deg2Rad
         );
 
     }
