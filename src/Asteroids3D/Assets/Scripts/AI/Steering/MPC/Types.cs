@@ -52,6 +52,7 @@ namespace Movement.MPC
     {
         public float2 position;
         public float radius;
+        public float weight;
     }
 
     /// <summary>

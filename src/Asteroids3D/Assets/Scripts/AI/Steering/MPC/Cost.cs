@@ -113,7 +113,7 @@ namespace Movement.MPC
 
                 var dist = math.sqrt(distSq);
                 var norm = dist / range;
-                cost += 1f / ((norm + ObstacleEpsilon) * (norm + ObstacleEpsilon));
+                cost += obs.weight / ((norm + ObstacleEpsilon) * (norm + ObstacleEpsilon));
             }
             return cost;
         }

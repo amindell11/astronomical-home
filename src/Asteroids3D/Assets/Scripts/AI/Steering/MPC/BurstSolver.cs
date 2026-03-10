@@ -99,7 +99,7 @@ namespace Movement.MPC
             for (var i = 0; i < horizon; i++)
                 warmStart[i] = sequence[i];
 
-            ConvertObstacles(scan, useObstacles);
+            ConvertObstacles(scan, useObstacles, dynamics.mass);
 
             var costInput = new CostInput
             {
@@ -155,16 +155,20 @@ namespace Movement.MPC
             };
         }
 
-        private void ConvertObstacles(AI.Scanning.ObstacleScan scan, bool useObstacles)
+        private void ConvertObstacles(AI.Scanning.ObstacleScan scan, bool useObstacles, float shipMass)
         {
             lastObstacleCount = (scan.count > 0 && useObstacles) ? scan.count : 0;
+            var invShipMass = shipMass > 0f ? 1f / shipMass : 1f;
             for (var i = 0; i < lastObstacleCount; i++)
             {
                 var obs = scan.buffer[i];
+                var rb = obs.collider ? obs.collider.attachedRigidbody : null;
+                var obsMass = rb ? rb.mass : shipMass;
                 obstacles[i] = new ObstacleData
                 {
                     position = new float2(obs.position.x, obs.position.y),
-                    radius = obs.radius
+                    radius = obs.radius,
+                    weight = obsMass * invShipMass
                 };
             }
         }
