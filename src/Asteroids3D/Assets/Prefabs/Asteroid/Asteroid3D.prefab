@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 1742436966187025463}
   - component: {fileID: 4100788614052468321}
   - component: {fileID: 6738765961511675585}
+  - component: {fileID: 8414262758457191972}
   m_Layer: 11
   m_Name: LowLODMESH
   m_TagString: Untagged
@@ -86,6 +87,18 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &8414262758457191972
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1139799907270352447}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2cd5315f7174e614b99f480c7dfe629a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1706132292860893391
 GameObject:
   m_ObjectHideFlags: 0
