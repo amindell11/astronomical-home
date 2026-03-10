@@ -23,6 +23,9 @@ namespace AI
         protected bool facingOverride;
         protected float facingAngle;
         protected Dynamics dynamics;
+        protected Movement.MPC.GoalMode goalMode;
+        protected float goalDesiredRange;
+        protected float goalRangeTolerance;
 
         protected Command currentCommand;
         public Command CurrentCommand => currentCommand;
@@ -88,6 +91,25 @@ namespace AI
         public void ClearFacingOverride()
         {
             facingOverride = false;
+        }
+
+        public void SetGoalMaintainRange(float desiredRange, float rangeTolerance)
+        {
+            goalMode = Movement.MPC.GoalMode.MaintainRange;
+            goalDesiredRange = desiredRange;
+            goalRangeTolerance = rangeTolerance;
+        }
+
+        public void SetGoalFlee()
+        {
+            goalMode = Movement.MPC.GoalMode.Flee;
+        }
+
+        public void ClearGoalMode()
+        {
+            goalMode = Movement.MPC.GoalMode.Waypoint;
+            goalDesiredRange = 0f;
+            goalRangeTolerance = 0f;
         }
     }
 }

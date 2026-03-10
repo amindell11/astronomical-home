@@ -1,8 +1,17 @@
+using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Mathematics;
 
 namespace Movement.MPC
 {
+    public enum GoalMode
+    {
+        Waypoint = 0,
+        MaintainRange = 1,
+        Flee = 2
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     public struct State
     {
         public float2 pos;
@@ -11,6 +20,7 @@ namespace Movement.MPC
         public float yawRate; // Radians per second
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     public struct Control
     {
         public float thrust;
@@ -18,6 +28,7 @@ namespace Movement.MPC
         public float yawTorque;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     public struct Config
     {
         public float dt;
@@ -46,8 +57,14 @@ namespace Movement.MPC
 
         // Facing override (radians, NaN if disabled)
         public float facingTarget;
+
+        // Goal mode
+        public GoalMode goalMode;
+        public float desiredRange;
+        public float rangeTolerance;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     public struct ObstacleData
     {
         public float2 position;
@@ -60,6 +77,7 @@ namespace Movement.MPC
     /// tactical inputs (enemy positions, cover points, LOS data, etc.)
     /// without changing Cost.Evaluate's signature or touching the Burst job.
     /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
     public struct CostInput
     {
         public float2 goalPos;

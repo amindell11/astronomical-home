@@ -27,7 +27,7 @@ namespace Movement.MPC
                 wYaw = math.lerp(cfg.wYaw, cfg.wYaw * cfg.arrivalYawScale, t);
             }
 
-            var posCost = PositionCost(s.pos, input.goalPos) * cfg.wPos;
+            var posCost = GoalCost(s.pos, input.goalPos, cfg) * cfg.wPos;
             var velCost = VelocityCost(s.vel) * wVel;
             var hasFacing = !math.isnan(cfg.facingTarget);
             var headingCost = hasFacing ? 0f : HeadingCost(s.pos, s.yaw, input.goalPos) * wYaw;
@@ -53,7 +53,36 @@ namespace Movement.MPC
             return total;
         }
 
+        internal static float GoalCost(float2 pos, float2 goal, Config cfg)
+        {
+            switch (cfg.goalMode)
+            {
+                case GoalMode.MaintainRange:
+                    return RangeBandCost(pos, goal, cfg.desiredRange, cfg.rangeTolerance);
+                case GoalMode.Flee:
+                    return FleeCost(pos, goal);
+                default:
+                    return PositionCost(pos, goal);
+            }
+        }
+
         internal static float PositionCost(float2 pos, float2 goal) => math.lengthsq(pos - goal);
+
+        private const float FleeEpsilon = 1f;
+
+        internal static float RangeBandCost(float2 pos, float2 goal, float desiredRange, float tolerance)
+        {
+            var dist = math.length(pos - goal);
+            var err = math.abs(dist - desiredRange) - tolerance;
+            if (err <= 0f) return 0f;
+            return err * err;
+        }
+
+        internal static float FleeCost(float2 pos, float2 goal)
+        {
+            var distSq = math.lengthsq(pos - goal);
+            return FleeEpsilon / (distSq + FleeEpsilon);
+        }
 
         internal static float VelocityCost(float2 vel) => math.lengthsq(vel);
 

@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Game;
 using UnityEngine;
 
@@ -29,6 +30,7 @@ namespace Movement
         public static readonly Outputs Zero = new(Vector2.zero, Vector2.zero, Vector2.zero, 0, 0);
     }
 /// <summary>Stores physical dyanmics properties of objects with thrust and rotation abilities</summary>
+    [StructLayout(LayoutKind.Sequential)]
     public readonly struct Dynamics
     {
         public readonly float mass, maxSpeed, maxYawRate;
@@ -44,11 +46,14 @@ namespace Movement
             (this.forwardAcc, this.reverseAcc) = (forwardAcc, reverseAcc);
             (this.maxStrafeAcc, this.minStrafeAcc) = (maxStrafeAcc, minStrafeAcc);
             (this.yawTorque, this.angularDrag, this.linearDrag) = (yawTorque, angularDrag, linearDrag);
-            this.yawInertia = yawInertia > 0f ? yawInertia : mass;
+            // Avoid control flow in struct constructor (Burst padding bug).
+            // Callers must pass yawInertia > 0 or pass mass explicitly.
+            this.yawInertia = yawInertia;
         }
 
         public static readonly Dynamics Default = new(
             mass: 200, forwardAcc: 8f, reverseAcc: 4f, maxStrafeAcc: 6f, minStrafeAcc: 4f,
-            maxSpeed: 20f, maxYawRate: 10f, yawTorque: 1f, angularDrag: 0.1f, linearDrag: 0.1f);
+            maxSpeed: 20f, maxYawRate: 10f, yawTorque: 1f, angularDrag: 0.1f, linearDrag: 0.1f,
+            yawInertia: 200);
     }
 }

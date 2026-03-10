@@ -22,18 +22,27 @@ namespace AI.States
             base.Enter(ctx);
 
             gunner.SetTarget((Transform)null);
+            navigator.SetGoalFlee();
         }
 
         public override void Tick(Info ctx, float deltaTime)
         {
-            evadePoint = CalculateEvadePoint(ctx);
-            navigator.SetNavigationPoint(evadePoint, true);
+            if (ctx.Combat.HasEnemy)
+            {
+                navigator.SetNavigationPoint(ctx.Combat.EnemyPos, true, ctx.Combat.EnemyVel);
+            }
+            else
+            {
+                evadePoint = CalculateEvadePoint(ctx);
+                navigator.SetNavigationPoint(evadePoint, true);
+            }
         }
 
         public override void Exit()
         {
             base.Exit();
             navigator.ClearNavigationPoint();
+            navigator.ClearGoalMode();
         }
 
         public override float ComputeUtility(Info ctx)

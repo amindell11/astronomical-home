@@ -55,7 +55,7 @@ namespace Ships
             yawTorque : yawTorque * Mathf.Deg2Rad,
             angularDrag : angularDrag,
             linearDrag: linearDrag,
-            yawInertia: yawInertia
+            yawInertia: yawInertia > 0f ? yawInertia : mass
         );
 
     }
