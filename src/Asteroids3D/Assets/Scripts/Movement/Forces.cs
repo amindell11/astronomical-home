@@ -33,12 +33,9 @@ namespace Ships.Movement
             return input * rotationThrust;
         }
         
-        private static float Bank(Kinematics kin, float input, float maxBankAngle, float bankSpeed)
+        private static float Bank(float input, float maxBankAngle)
         {
-            var targetBank = -input * maxBankAngle;
-            var currentBank = kin.bank;
-            var bank = Mathf.Lerp(currentBank, targetBank, bankSpeed * Time.fixedDeltaTime);
-            return bank;
+            return -input * maxBankAngle;
         }
 
         public static Outputs ComputeOutputs(Kinematics kin, Command.Command cmd, ShipSettings sets)
@@ -53,7 +50,7 @@ namespace Ships.Movement
                 Strafe(kin, cmd.strafe, sets.maxStrafeForce, sets.minStrafeForce, sets.maxSpeed),
                 Boost(kin, cmd.boost, sets.boostImpulse),
                 YawTorque(kin, cmd.yawTorque, sets.yawTorque),
-                Bank(kin, cmd.strafe, sets.maxBankAngle, sets.bankingSpeed)
+                Bank(cmd.strafe, sets.maxBankAngle)
             );
         }
 

@@ -82,7 +82,7 @@ namespace Game.Services
         {
             if(!ActiveRegistry.TryGetShip(id, out var ship)) return;
             ship.transform.position = GamePlane.PlanePointToWorld(pos);
-            ship.transform.rotation = Quaternion.AngleAxis(rotation, GamePlane.Normal);
+            ship.transform.rotation = GamePlane.Rotation * Quaternion.AngleAxis(rotation, Vector3.forward);
             ship.ResetShip();
         }
 

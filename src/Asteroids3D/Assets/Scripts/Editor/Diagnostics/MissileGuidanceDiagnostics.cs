@@ -282,19 +282,10 @@ namespace Diagnostics
         {
             if (GamePlane.IsConfigured) return true;
 
-            var planeGo = GameObject.FindWithTag("ReferencePlane");
-            if (planeGo)
-            {
-                GamePlane.SetReferencePlane(planeGo.transform);
-                Debug.Log("[MissileGuidanceDiagnostics] GamePlane was not configured — " +
-                          $"auto-bound to '{planeGo.name}' (tagged ReferencePlane).");
-                return true;
-            }
-
-            Debug.LogError("[MissileGuidanceDiagnostics] GamePlane is not configured and no " +
-                           "GameObject tagged 'ReferencePlane' was found in the scene. " +
-                           "Add one or run from a bootstrapped scene.");
-            return false;
+            GamePlane.Configure(PlaneAxis.Y);
+            Debug.Log("[MissileGuidanceDiagnostics] GamePlane was not configured — " +
+                      "auto-configured with PlaneAxis.Y.");
+            return true;
         }
 
         private static void ApplyOverride(object obj, string fieldName, float value)

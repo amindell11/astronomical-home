@@ -48,8 +48,8 @@ namespace Game.Sectors
 
             yield return base.OnSetup();
 
-            enemy = Services.UnitService.SpawnShip(enemyTemplate, enemyCommander, shipSettings, 1, GamePlane.PlanePointToWorld(enemySpawnPosition), Quaternion.identity);
-            chaser = Services.UnitService.SpawnShip(enemyTemplate, enemyCommander, shipSettings, 1, GamePlane.PlanePointToWorld(chaserSpawnPosition), Quaternion.identity);
+            enemy = Services.UnitService.SpawnShip(enemyTemplate, enemyCommander, shipSettings, 1, GamePlane.PlanePointToWorld(enemySpawnPosition), GamePlane.Rotation);
+            chaser = Services.UnitService.SpawnShip(enemyTemplate, enemyCommander, shipSettings, 1, GamePlane.PlanePointToWorld(chaserSpawnPosition), GamePlane.Rotation);
             chaser.gameObject.SetActive(false);
 
             InitializeAsteroidField();

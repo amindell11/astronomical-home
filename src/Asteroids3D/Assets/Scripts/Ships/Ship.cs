@@ -64,6 +64,7 @@ namespace Ships
             Damage?.PopulateSettings(settings);
 
             var rb = GetComponent<Rigidbody>();
+            if (rb) rb.ResetInertiaTensor();
             Dynamics = settings.BuildDynamics(rb ? rb.inertiaTensor.z : 0f);
 
             if (Damage)

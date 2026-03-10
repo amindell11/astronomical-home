@@ -50,7 +50,7 @@ namespace Game.Sectors
                 enemy = Services.UnitService.SpawnShip(
                     enemyTemplate, enemyCommander, shipSettings,
                     1, GamePlane.PlanePointToWorld(enemySpawnPosition),
-                    Quaternion.identity);
+                    GamePlane.Rotation);
             }
 
             WireRespawn();

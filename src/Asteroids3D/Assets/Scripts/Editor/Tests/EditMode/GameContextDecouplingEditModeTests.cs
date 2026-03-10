@@ -60,11 +60,11 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void MainGameManager_UsesSerializedReferencePlane()
+        public void MainGameManager_UsesSerializedPlaneAxis()
         {
             var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Game", "Bootstrap", "MainGameManager.cs"));
-            StringAssert.Contains("[SerializeField] private Transform referencePlane;", source);
-            StringAssert.Contains("GamePlane.SetReferencePlane(referencePlane);", source);
+            StringAssert.Contains("[SerializeField] private PlaneAxis planeAxis", source);
+            StringAssert.Contains("GamePlane.Configure(planeAxis, planeOrigin);", source);
             StringAssert.DoesNotContain("GameContext.Instance", source);
         }
 

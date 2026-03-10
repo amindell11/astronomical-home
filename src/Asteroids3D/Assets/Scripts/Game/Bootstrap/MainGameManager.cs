@@ -14,8 +14,9 @@ namespace Game.Bootstrap
         [Header("Sector")]
         [SerializeField] private SectorEntry currentSector;
 
-        [Header("Scene Refs")]
-        [SerializeField] private Transform referencePlane;
+        [Header("Game Plane")]
+        [SerializeField] private PlaneAxis planeAxis = PlaneAxis.Y;
+        [SerializeField] private Vector3 planeOrigin;
 
         private GameServices services;
         private Coroutine stateRoutine;
@@ -73,7 +74,7 @@ namespace Game.Bootstrap
 
         private IEnumerator HandleLoading()
         {
-            GamePlane.SetReferencePlane(referencePlane);
+            GamePlane.Configure(planeAxis, planeOrigin);
 
             services = new GameServices(
                 unitService: GetComponent<UnitService>(),
@@ -109,7 +110,7 @@ namespace Game.Bootstrap
         private IEnumerator HandleRestart()
         {
             yield return Cleanup(runTeardown: true);
-            GamePlane.SetReferencePlane(referencePlane);
+            GamePlane.Configure(planeAxis, planeOrigin);
             TransitionTo(GameState.LoadSector);
         }
 

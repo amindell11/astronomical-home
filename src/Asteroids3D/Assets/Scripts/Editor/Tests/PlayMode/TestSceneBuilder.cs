@@ -11,10 +11,9 @@ namespace Tests.PlayMode
 public static class TestSceneBuilder
 {
     private static GameObject _currentArena;
-    private static Transform _referencePlane;
 
     /// <summary>
-    /// Creates or returns the existing test arena and exposes its reference plane for tests.
+    /// Creates or returns the existing test arena.
     /// Ensures only one arena exists per test run to prevent temp scene proliferation.
     /// </summary>
     public static GameObject CreateTestArena()
@@ -25,20 +24,8 @@ public static class TestSceneBuilder
 
         _currentArena = new GameObject("TestArena");
 
-        var plane = new GameObject("ReferencePlane");
-        plane.tag = "ReferencePlane";
-        plane.transform.SetParent(_currentArena.transform);
-        plane.transform.SetPositionAndRotation(Vector3.zero, Quaternion.Euler(90f, 0f, 0f));
-
-        _referencePlane = plane.transform;
-
         return _currentArena;
     }
-
-    /// <summary>
-    /// Returns the transform used as the reference plane inside the test arena.
-    /// </summary>
-    public static Transform ReferencePlane => _referencePlane;
 
     /// <summary>
     /// Cleans up the test arena and resets GamePlane. Call this in test TearDown.
@@ -50,7 +37,6 @@ public static class TestSceneBuilder
             Object.DestroyImmediate(_currentArena);
             _currentArena = null;
         }
-        _referencePlane = null;
         GamePlane.Reset();
     }
 

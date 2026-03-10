@@ -15,8 +15,8 @@ namespace Game.Sectors.Utils
                 playerCommander,
                 shipSettings,
                 0,
-                playerSpawnPosition,
-                Quaternion.identity);
+                GamePlane.PlanePointToWorld(playerSpawnPosition),
+                GamePlane.Rotation);
             player.tag = "Player";
             if (!player.GetComponent<PlayerMarker>())
                 player.gameObject.AddComponent<PlayerMarker>();

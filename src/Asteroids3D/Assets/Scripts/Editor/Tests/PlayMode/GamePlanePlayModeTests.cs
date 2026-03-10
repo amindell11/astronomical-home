@@ -18,27 +18,27 @@ public class GamePlanePlayModeTests : PlayModeWorldFixture
     public void GamePlane_UnconfiguredAccess_Throws()
     {
         GamePlane.Reset();
-        Assert.Throws<System.InvalidOperationException>(() => _ = GamePlane.Plane);
+        Assert.Throws<System.InvalidOperationException>(() => _ = GamePlane.Normal);
     }
 
     [UnityTest]
     [Category("Smoke")]
-    public IEnumerator GamePlane_ReferencePlane_CanBeSetAndQueried()
+    public IEnumerator GamePlane_Configure_SetsAxesCorrectly()
     {
         // Arrange
         GamePlane.Reset();
-        var planeGO = new GameObject("TestReferencePlane");
-        planeGO.tag = "ReferencePlane";
-        var planeTransform = planeGO.transform;
 
         // Act
-        GamePlane.SetReferencePlane(planeTransform);
+        GamePlane.Configure(PlaneAxis.Y, new Vector3(10, 0, 5));
 
         // Assert
-        Assert.AreEqual(planeTransform, GamePlane.Plane);
+        Assert.IsTrue(GamePlane.IsConfigured);
+        Assert.AreEqual(Vector3.down, GamePlane.Normal);
+        Assert.AreEqual(Vector3.forward, GamePlane.Forward);
+        Assert.AreEqual(Vector3.right, GamePlane.Right);
+        Assert.AreEqual(new Vector3(10, 0, 5), GamePlane.Origin);
 
         // Cleanup
-        Object.DestroyImmediate(planeGO);
         GamePlane.Reset();
 
         yield return null;
@@ -49,13 +49,7 @@ public class GamePlanePlayModeTests : PlayModeWorldFixture
     {
         // Arrange
         GamePlane.Reset();
-        var planeGO = new GameObject("TestReferencePlane");
-        planeGO.tag = "ReferencePlane";
-        var planeTransform = planeGO.transform;
-        planeTransform.position = new Vector3(10, 0, 5);
-        planeTransform.rotation = Quaternion.Euler(90f, 0f, 0f); // Horizontal plane: local XY maps to world XZ
-
-        GamePlane.SetReferencePlane(planeTransform);
+        GamePlane.Configure(PlaneAxis.Y, new Vector3(10, 0, 5));
 
         Vector3 worldPoint = new Vector3(12, 0, 8);
 
@@ -68,7 +62,6 @@ public class GamePlanePlayModeTests : PlayModeWorldFixture
         Assert.That(worldPointBack.z, Is.EqualTo(worldPoint.z).Within(0.01f));
 
         // Cleanup
-        Object.DestroyImmediate(planeGO);
         GamePlane.Reset();
 
         yield return null;

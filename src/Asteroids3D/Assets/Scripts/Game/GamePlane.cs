@@ -3,43 +3,84 @@ using UnityEngine;
 namespace Game
 {
     /// <summary>
+    /// Which world axis serves as the game-plane normal (the "off-plane" direction).
+    /// </summary>
+    public enum PlaneAxis { X, Y, Z }
+
+    /// <summary>
     /// Centralised utility for converting between world-space and the game's abstract 2-D plane.
-    /// The plane is defined by a single <see cref="Transform"/> (usually tagged
-    /// "ReferencePlane") whose position is the origin, <c>up</c> is +Y on the plane,
-    /// and <c>forward</c> is the plane normal.
+    /// Configured once at startup with a <see cref="PlaneAxis"/> and an origin position.
     /// </summary>
     public static class GamePlane
     {
-        private static Transform _plane;
+        private static bool _configured;
+        private static Vector3 _origin;
+        private static Vector3 _normal;
+        private static Vector3 _forward;
+        private static Vector3 _right;
+        private static RigidbodyConstraints _positionConstraint;
+        private static Quaternion _rotation;
 
-        /// <summary>Assigns the reference plane explicitly (e.g., from a bootstrap script).</summary>
-        public static void SetReferencePlane(Transform t)
+        /// <summary>Configure the game plane from an axis enum and world-space origin.</summary>
+        public static void Configure(PlaneAxis axis, Vector3 origin = default)
         {
-            if (!t)
-                throw new System.ArgumentNullException(nameof(t), "GamePlane reference cannot be null.");
+            if (_configured)
+                throw new System.InvalidOperationException(
+                    "GamePlane has already been configured. Call Reset() before reconfiguring.");
 
-            if (_plane && _plane != t)
-                throw new System.InvalidOperationException("GamePlane has already been set. Reset before binding a different reference.");
+            _origin = origin;
 
-            _plane = t;
+            switch (axis)
+            {
+                case PlaneAxis.X:
+                    _normal  = Vector3.left;
+                    _forward = Vector3.forward;
+                    _right   = Vector3.up;
+                    _positionConstraint = RigidbodyConstraints.FreezePositionX;
+                    break;
+                case PlaneAxis.Y:
+                    _normal  = Vector3.down;
+                    _forward = Vector3.forward;
+                    _right   = Vector3.right;
+                    _positionConstraint = RigidbodyConstraints.FreezePositionY;
+                    break;
+                case PlaneAxis.Z:
+                    _normal  = Vector3.back;
+                    _forward = Vector3.up;
+                    _right   = Vector3.right;
+                    _positionConstraint = RigidbodyConstraints.FreezePositionZ;
+                    break;
+            }
+
+            _rotation = Quaternion.LookRotation(_normal, _forward);
+            _configured = true;
         }
 
-        /// <summary>Clears the cached reference plane. Useful for test teardown.</summary>
-        public static void Reset() => _plane = null;
+        /// <summary>Clears the configuration. Useful for test teardown and restarts.</summary>
+        public static void Reset()
+        {
+            _configured = false;
+            _origin = Vector3.zero;
+        }
 
-        /// <summary>Returns true if a reference plane has been configured.</summary>
-        public static bool IsConfigured => _plane;
+        /// <summary>Returns true if the game plane has been configured.</summary>
+        public static bool IsConfigured => _configured;
 
-        /// <summary>Returns the configured reference plane. Throws if not configured.</summary>
-        public static Transform Plane => _plane
-            ? _plane
-            : throw new System.InvalidOperationException("GamePlane not configured. Call GamePlane.SetReferencePlane() during bootstrap.");
-        public static Vector3 Origin  => Plane.position;
-        public static Vector3 Normal  => Plane.forward;
-        public static Vector3 Forward => Plane.up;
-        public static Vector3 Right   => Plane.right;
+        public static Vector3 Origin  { get { AssertConfigured(); return _origin; } }
+        public static Vector3 Normal  { get { AssertConfigured(); return _normal; } }
+        public static Vector3 Forward { get { AssertConfigured(); return _forward; } }
+        public static Vector3 Right   { get { AssertConfigured(); return _right; } }
 
-        public static Vector3 ProjectOntoPlane(Vector3 world) => 
+        /// <summary>Base rotation for objects lying in the game plane (forward along normal, up along plane forward).</summary>
+        public static Quaternion Rotation { get { AssertConfigured(); return _rotation; } }
+
+        /// <summary>The RigidbodyConstraints flag that freezes movement along the off-plane axis.</summary>
+        public static RigidbodyConstraints PositionConstraint
+        {
+            get { AssertConfigured(); return _positionConstraint; }
+        }
+
+        public static Vector3 ProjectOntoPlane(Vector3 world) =>
             Vector3.ProjectOnPlane(world - Origin, Normal);
 
         public static Vector2 WorldPointToPlane(Vector3 worldPt)
@@ -48,49 +89,45 @@ namespace Game
             var projected = Vector3.ProjectOnPlane(relative, Normal);
             return new Vector2(Vector3.Dot(projected, Right), Vector3.Dot(projected, Forward));
         }
-        
+
         public static Vector2 WorldDirToPlane(Vector3 worldDir)
         {
             var projected = Vector3.ProjectOnPlane(worldDir, Normal);
             return new Vector2(Vector3.Dot(projected, Right), Vector3.Dot(projected, Forward));
         }
-        
-        public static Vector3 PlanePointToWorld(Vector2 planePt) => 
+
+        public static Vector3 PlanePointToWorld(Vector2 planePt) =>
             Origin + Right * planePt.x + Forward * planePt.y;
-        
-        public static Vector3 PlaneDirToWorld(Vector2 planeDir) => 
+
+        public static Vector3 PlaneDirToWorld(Vector2 planeDir) =>
             Right * planeDir.x + Forward * planeDir.y;
+
+        private static void AssertConfigured()
+        {
+            if (!_configured)
+                throw new System.InvalidOperationException(
+                    "GamePlane not configured. Call GamePlane.Configure() during bootstrap.");
+        }
     }
 
     public static class PlaneConstraints
     {
+        /// <summary>
+        /// Applies the appropriate RigidbodyConstraints to freeze the off-plane position axis.
+        /// Call once at startup, not every frame.
+        /// </summary>
+        public static void ConstrainBodyToPlane(Rigidbody body)
+        {
+            if (!body) return;
+            body.constraints |= GamePlane.PositionConstraint;
+        }
+
+        /// <summary>Teleports a non-physics transform onto the game plane. For Rigidbodies, use ConstrainBodyToPlane instead.</summary>
         public static void ConstrainPosition(Transform target)
         {
             if (!target) return;
             target.position = GamePlane.ProjectOntoPlane(target.position) + GamePlane.Origin;
         }
 
-        public static void ConstrainPositionAndVelocity(Transform target, Rigidbody body)
-        {
-            ConstrainPosition(target);
-            if (!body) return;
-            body.linearVelocity = Vector3.ProjectOnPlane(body.linearVelocity, GamePlane.Normal);
-        }
-
-        public static void AlignTransformUpToPlane(Transform target)
-        {
-            if (!target) return;
-
-            var projectedUp = Vector3.ProjectOnPlane(target.up, GamePlane.Normal);
-            if (projectedUp.sqrMagnitude < 1e-6f)
-            {
-                target.rotation = Quaternion.LookRotation(GamePlane.Normal, GamePlane.Forward);
-                return;
-            }
-
-            projectedUp.Normalize();
-            var toPlane = Quaternion.FromToRotation(target.up, projectedUp);
-            target.rotation = toPlane * target.rotation;
-        }
     }
 }

@@ -30,13 +30,13 @@ namespace Ships.Movement
             set => currentCommand = value; }
         public bool BoostAvailable => booster.BoostAvailable;
         private Ship parentShip;
-        
+
         private void Awake()
         {
             rb = GetComponent<Rigidbody>();
             parentShip = GetComponent<Ship>();
             booster = new Booster();
-            PlaneConstraints.AlignTransformUpToPlane(transform);
+            PlaneConstraints.ConstrainBodyToPlane(rb);
         }
 
         private void Start()
@@ -49,7 +49,7 @@ namespace Ships.Movement
             this.getKinematics = getKinematics;
             PopulateSettings(s);
         }
-        
+
         public void PopulateSettings(ShipSettings s)
         {
             if (!s) return;
@@ -58,7 +58,7 @@ namespace Ships.Movement
             ApplySettings(s);
             settings = s;
         }
-        
+
         private void ApplySettings(ShipSettings s)
         {
             if (!rb) return;
@@ -82,32 +82,35 @@ namespace Ships.Movement
 
             currentCommand.boost = booster.ProcessBoost(currentCommand.boost, settings.boostCooldown);
             var outs = Forces.ComputeOutputs(Kinematics, currentCommand, settings);
-            ApplyForces(outs.thrust, outs.strafe, outs.boost, outs.yawTorque);
-            ApplyRotation(Kinematics.yaw, outs.bank);
-            ConstrainToPlane();
+            ApplyForces(outs.thrust, outs.strafe, outs.boost, outs.yawTorque, outs.bank);
+            ConstrainRotation();
         }
 
 
-        private void ApplyForces(Vector2 thrust, Vector2 strafe, Vector2 boost, float yawTorque)
-        {   
+        private void ApplyForces(Vector2 thrust, Vector2 strafe, Vector2 boost, float yawTorque, float targetBank)
+        {
             rb.AddForce(GamePlane.PlaneDirToWorld(thrust), ForceMode.Force);
             rb.AddForce(GamePlane.PlaneDirToWorld(strafe), ForceMode.Force);
             rb.AddForce(GamePlane.PlaneDirToWorld(boost), ForceMode.Impulse);
             rb.AddTorque(GamePlane.Normal * yawTorque, ForceMode.Force);
+
+            // Bank: spring torque toward target angle around the ship's heading axis.
+            var bankError = (targetBank - Kinematics.bank) * Mathf.Deg2Rad;
+            rb.AddTorque(transform.up * (bankError * settings.bankTorque), ForceMode.Force);
+
             DebugForces(thrust,strafe,boost,yawTorque);
         }
-        private void ApplyRotation(float yaw, float bank)
+        private void ConstrainRotation()
         {
-            var qYaw = Quaternion.AngleAxis(yaw, Vector3.forward);
-            var qBank = Quaternion.AngleAxis(bank, Vector3.up);
-            rb.MoveRotation((GamePlane.Plane.rotation) * qYaw * qBank);
-        }
-
-        private void ConstrainToPlane()
-        {
-            PlaneConstraints.ConstrainPositionAndVelocity(transform, rb);
+            // Strip pitch angular velocity, keep yaw and bank.
+            var pitchAxis = Vector3.Cross(transform.up, GamePlane.Normal);
+            if (pitchAxis.sqrMagnitude > 1e-6f)
+            {
+                pitchAxis.Normalize();
+                rb.angularVelocity -= Vector3.Dot(rb.angularVelocity, pitchAxis) * pitchAxis;
+            }
         }
 
         partial void DebugForces(Vector2 thrust, Vector2 strafe, Vector2 boost, float yaw);
     }
-} 
+}
