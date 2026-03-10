@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using AI.States;
 using UnityEngine;
 using Info = AI.Context.Info;
@@ -15,6 +14,9 @@ namespace AI.Utility
         private readonly Dictionary<AI.States.State, float> smoothedUtilities = new();
         private readonly UtilitySelectorSettings config;
         private readonly UtilityWeights instanceUtilityWeights;
+        private readonly List<(AI.States.State state, float utility)> topStateUtilities = new(3);
+        private readonly List<(AI.States.State state, float exp)> expBuffer = new(3);
+        private readonly List<(AI.States.State state, float probability)> probabilityBuffer = new(3);
         private UtilityTuning utilityTuning;
 
         public Dictionary<StateType, float> UtilityScores { get; } = new();
@@ -46,9 +48,15 @@ namespace AI.Utility
             }
 
             if (!config.useProbabilisticSampling) return bestState;
-            
-            var topStates = states.OrderByDescending(s => UtilityScores[s.Type]).Take(3);
-            return SampleFromDistribution(topStates.Select(s => (state: s, utility: UtilityScores[s.Type])).ToList());
+
+            topStateUtilities.Clear();
+            for (var i = 0; i < states.Count; i++)
+            {
+                var state = states[i];
+                AddTopState(state, UtilityScores[state.Type]);
+            }
+
+            return SampleFromDistribution(topStateUtilities);
         }
 
         public float GetSmoothedUtility(AI.States.State state) => smoothedUtilities.GetValueOrDefault(state, 0f);
@@ -102,17 +110,36 @@ namespace AI.Utility
 
         public List<(AI.States.State state, float probability)> ComputeSoftmaxProbabilities(List<(AI.States.State state, float utility)> stateUtilities)
         {
-            var maxUtility = stateUtilities.Max(s => s.utility / config.samplingTemperature);
+            expBuffer.Clear();
+            probabilityBuffer.Clear();
 
-            var expValues = stateUtilities
-                .Select(s => (s.state, exp: Mathf.Exp(s.utility / config.samplingTemperature - maxUtility)))
-                .ToList();
+            var invTemperature = 1f / config.samplingTemperature;
+            var maxUtility = float.NegativeInfinity;
+            for (var i = 0; i < stateUtilities.Count; i++)
+            {
+                var scaledUtility = stateUtilities[i].utility * invTemperature;
+                if (scaledUtility > maxUtility)
+                    maxUtility = scaledUtility;
+            }
 
-            var expSum = expValues.Sum(e => e.exp);
+            var expSum = 0f;
+            for (var i = 0; i < stateUtilities.Count; i++)
+            {
+                var entry = stateUtilities[i];
+                var exp = Mathf.Exp(entry.utility * invTemperature - maxUtility);
+                expBuffer.Add((entry.state, exp));
+                expSum += exp;
+            }
 
-            return expValues
-                .Select(e => (e.state, probability: expSum > 0f ? e.exp / expSum : 1f / expValues.Count))
-                .ToList();
+            var fallbackProbability = expBuffer.Count > 0 ? 1f / expBuffer.Count : 0f;
+            for (var i = 0; i < expBuffer.Count; i++)
+            {
+                var entry = expBuffer[i];
+                var probability = expSum > 0f ? entry.exp / expSum : fallbackProbability;
+                probabilityBuffer.Add((entry.state, probability));
+            }
+
+            return probabilityBuffer;
         }
 
         private static AI.States.State SampleFromProbabilities(List<(AI.States.State state, float probability)> probabilities)
@@ -129,6 +156,26 @@ namespace AI.Utility
             }
 
             return probabilities[^1].state;
+        }
+
+        private void AddTopState(AI.States.State state, float utility)
+        {
+            var insertAt = topStateUtilities.Count;
+            for (var i = 0; i < topStateUtilities.Count; i++)
+            {
+                if (!(utility > topStateUtilities[i].utility))
+                    continue;
+
+                insertAt = i;
+                break;
+            }
+
+            if (insertAt >= 3)
+                return;
+
+            topStateUtilities.Insert(insertAt, (state, utility));
+            if (topStateUtilities.Count > 3)
+                topStateUtilities.RemoveAt(3);
         }
 
         #endregion
