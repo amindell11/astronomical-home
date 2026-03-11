@@ -232,7 +232,6 @@ MonoBehaviour:
   enableDebugLogs: 0
   showMovementGizmos: 1
   movementGizmoScale: 3
-  meshTransform: {fileID: 0}
 --- !u!114 &8323755265108850685
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -393,7 +392,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 579888702181409527}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: feca358b14193c741a28582c8465a29f, type: 3}
   m_Name: 

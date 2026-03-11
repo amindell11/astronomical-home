@@ -19,12 +19,12 @@ namespace Ships.Weapons
 
         public void FirePrimary()
         {
-            if (Primary) Primary.Fire();
+            if (enabled && Primary) Primary.Fire();
         }
 
         public void FireSecondary()
         {
-            if (Secondary) Secondary.Fire();
+            if (enabled && Secondary) Secondary.Fire();
         }
 
         public void ResetSystem()

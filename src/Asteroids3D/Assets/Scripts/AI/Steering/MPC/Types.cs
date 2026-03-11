@@ -87,11 +87,16 @@ namespace Movement.MPC
     public struct CostInput
     {
         public float2 goalPos;
+        public float2 goalVel;
         public NativeArray<ObstacleData> obstacles;
         public int obstacleCount;
 
         /// <summary>Enemy facing direction in radians (same convention as State.yaw). NaN if no enemy.</summary>
         public float enemyYaw;
+        /// <summary>Enemy yaw rate in radians/second for projection over the horizon.</summary>
+        public float enemyYawRate;
+        /// <summary>Projectile speed for computing lead-target facing angle. 0 = no dynamic facing.</summary>
+        public float projectileSpeed;
     }
 
     internal readonly partial struct EditorProfilingScope : System.IDisposable

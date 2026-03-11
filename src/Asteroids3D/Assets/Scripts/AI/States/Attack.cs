@@ -39,9 +39,6 @@ namespace AI.States
 
             gunner.SetTarget(predictedTarget);
 
-            var vectorToPredictedTarget = predictedTarget - ctx.ShipInfo.Pos;
-
-            navigator.SetFacingTarget(vectorToPredictedTarget);
             navigator.SetNavigationPoint(
                 combat.EnemyPos,
                 true,
@@ -49,15 +46,14 @@ namespace AI.States
 
             var enemyFwd = combat.EnemyForward;
             var enemyYawDeg = Mathf.Atan2(-enemyFwd.x, enemyFwd.y) * Mathf.Rad2Deg;
-            navigator.SetEnemyYaw(enemyYawDeg);
+            navigator.SetEnemyState(enemyYawDeg, combat.EnemyYawRate, combat.LaserSpeed);
         }
 
         public override void Exit()
         {
             navigator.ClearNavigationPoint();
-            navigator.ClearFacingOverride();
             navigator.ClearGoalMode();
-            navigator.ClearEnemyYaw();
+            navigator.ClearEnemyState();
             navigator.ClearObstacleExclusion();
         }
 

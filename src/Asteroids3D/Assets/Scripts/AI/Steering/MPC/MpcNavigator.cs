@@ -58,7 +58,8 @@ namespace Movement.MPC
             {
                 lastBestCost = solver.Solve(mpcState, bestSequence,
                     scan, enableObstacleAvoidance,
-                    GoalPos(), enemyYaw, config, dynamics,
+                    GoalPos(), GoalVel(), enemyYaw, enemyYawRate,
+                    projectileSpeed, config, dynamics,
                     settings.samples, settings.noiseStd, lastControl);
             }
 #if UNITY_EDITOR
@@ -95,6 +96,7 @@ namespace Movement.MPC
         };
 
         private float2 GoalPos() => new(currentWaypoint.position.x, currentWaypoint.position.y);
+        private float2 GoalVel() => new(currentWaypoint.velocity.x, currentWaypoint.velocity.y);
 
         private void ShiftWarmStart()
         {

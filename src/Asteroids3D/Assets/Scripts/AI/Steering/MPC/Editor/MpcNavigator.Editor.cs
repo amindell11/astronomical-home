@@ -74,7 +74,7 @@ namespace Movement.MPC
 
         private CostBreakdown EvaluateBreakdown(State mpcState)
         {
-            var input = solver.BuildCostInput(GoalPos(), enemyYaw);
+            var input = solver.BuildCostInput(GoalPos(), GoalVel(), enemyYaw, enemyYawRate, projectileSpeed);
             if (costBreakdownMode == CostBreakdownMode.CurrentState)
                 return Cost.EvaluateBreakdown(mpcState, bestSequence[0], lastControl, input, config, false);
             return Cost.EvaluateTrajectoryBreakdown(mpcState, bestSequence, input, config, dynamics, lastControl);
@@ -107,7 +107,7 @@ namespace Movement.MPC
 
             var prevPos = GamePlane.PlanePointToWorld(new Vector2(predictedStates[0].pos.x, predictedStates[0].pos.y));
             var prevU = bestSequence[0];
-            var input = solver.BuildCostInput(GoalPos(), enemyYaw);
+            var input = solver.BuildCostInput(GoalPos(), GoalVel(), enemyYaw, enemyYawRate, projectileSpeed);
 
             for (var i = 1; i < predictedStates.Length; i++)
             {
@@ -116,7 +116,7 @@ namespace Movement.MPC
                 var pos = GamePlane.PlanePointToWorld(new Vector2(state.pos.x, state.pos.y));
 
                 var isTerminal = i == predictedStates.Length - 1;
-                var stepBreakdown = Cost.EvaluateBreakdown(state, u, prevU, input, config, isTerminal);
+                var stepBreakdown = Cost.EvaluateBreakdown(state, u, prevU, input, config, isTerminal, i);
 
                 Gizmos.color = showTrajectoryCosts ? GetCostColor(stepBreakdown.obstacle / config.wObstacle) : Color.cyan;
 

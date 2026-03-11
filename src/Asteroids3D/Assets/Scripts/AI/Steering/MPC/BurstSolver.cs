@@ -55,7 +55,7 @@ namespace Movement.MPC
             {
                 var u = candidates[offset + i];
                 var isTerminal = i == horizon - 1;
-                totalCost += Cost.Evaluate(current, u, prevU, costInput, cfg, isTerminal);
+                totalCost += Cost.Evaluate(current, u, prevU, costInput, cfg, isTerminal, i);
                 current = Model.Step(current, u, cfg, dynamics);
                 prevU = u;
             }
@@ -90,7 +90,8 @@ namespace Movement.MPC
 
         public float Solve(State initialState, Control[] sequence,
             AI.Scanning.ObstacleScan scan, bool useObstacles,
-            float2 goalPos, float enemyYaw, Config cfg, Dynamics dynamics,
+            float2 goalPos, float2 goalVel, float enemyYaw, float enemyYawRate,
+            float projectileSpeed, Config cfg, Dynamics dynamics,
             int samples, float noiseStd, Control lastControl)
         {
             var horizon = cfg.horizon;
@@ -104,9 +105,12 @@ namespace Movement.MPC
             var costInput = new CostInput
             {
                 goalPos = goalPos,
+                goalVel = goalVel,
                 obstacles = obstacles,
                 obstacleCount = lastObstacleCount,
-                enemyYaw = enemyYaw
+                enemyYaw = enemyYaw,
+                enemyYawRate = enemyYawRate,
+                projectileSpeed = projectileSpeed
             };
 
             var rngSeed = (uint)(Time.frameCount * 7919 + initialState.pos.GetHashCode());
@@ -146,14 +150,18 @@ namespace Movement.MPC
             return bestCost;
         }
 
-        public CostInput BuildCostInput(float2 goalPos, float enemyYaw = float.NaN)
+        public CostInput BuildCostInput(float2 goalPos, float2 goalVel = default,
+            float enemyYaw = float.NaN, float enemyYawRate = 0f, float projectileSpeed = 0f)
         {
             return new CostInput
             {
                 goalPos = goalPos,
+                goalVel = goalVel,
                 obstacles = obstacles,
                 obstacleCount = lastObstacleCount,
-                enemyYaw = enemyYaw
+                enemyYaw = enemyYaw,
+                enemyYawRate = enemyYawRate,
+                projectileSpeed = projectileSpeed
             };
         }
 

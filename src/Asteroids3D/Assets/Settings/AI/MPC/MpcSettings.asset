@@ -17,21 +17,21 @@ MonoBehaviour:
   samples: 128
   noiseStd: 0.25
   wPos: 50
-  wVel: 0.05
-  wYaw: 0.5
-  wYawRate: 0
-  wEffort: 5
-  wSmoothnessThrust: 0.1
-  wSmoothnessStrafe: 12
+  wVel: 10
+  wYaw: 200
+  wYawRate: 20
+  wEffort: 15
+  wSmoothnessThrust: 0.92
+  wSmoothnessStrafe: 0.1
   wSmoothnessYaw: 0.1
-  wObstacle: 5
+  wObstacle: 20
   wFacing: 500
   facingPower: 2
   wLos: 100
-  wExposure: 500
-  exposurePower: 2
+  wExposure: 1104.7
+  exposurePower: 4
   terminalMultiplier: 10
-  obstacleThreshold: 15
+  obstacleThreshold: 6.3
   arrivalDistance: 4
   arrivalVelScale: 5
   arrivalYawScale: 0.1

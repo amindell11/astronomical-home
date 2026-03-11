@@ -11,9 +11,15 @@ namespace Movement.MPC
         private const float TwoPi = 2f * math.PI;
 
         public static float Evaluate(State s, Control u, Control prevU,
-            CostInput input, Config cfg, bool isTerminal)
+            CostInput input, Config cfg, bool isTerminal, int step = 0)
         {
-            var toGoal = input.goalPos - s.pos;
+            // Project enemy state forward for this timestep
+            var stepTime = step * cfg.dt;
+            var goalPos = input.goalPos + input.goalVel * stepTime;
+            var hasEnemy = !math.isnan(input.enemyYaw);
+            var enemyYaw = hasEnemy ? input.enemyYaw + input.enemyYawRate * stepTime : input.enemyYaw;
+
+            var toGoal = goalPos - s.pos;
             var distToGoalSq = math.lengthsq(toGoal);
 
             // Arrival stabilization
@@ -28,10 +34,16 @@ namespace Movement.MPC
                 wYaw = math.lerp(cfg.wYaw, cfg.wYaw * cfg.arrivalYawScale, t);
             }
 
-            var posCost = GoalCost(s.pos, input.goalPos, cfg) * cfg.wPos;
+            var posCost = GoalCost(s.pos, goalPos, cfg) * cfg.wPos;
             var velCost = VelocityCost(s.vel) * wVel;
-            var headingCost = HeadingCost(s.pos, s.yaw, input.goalPos) * wYaw;
-            var facingCost = FacingCost(s.yaw, cfg.facingTarget, cfg.facingPower) * cfg.wFacing;
+            var headingCost = HeadingCost(s.pos, s.yaw, goalPos) * wYaw;
+
+            // Dynamic facing: compute lead-target angle per step, or fall back to static override
+            var facingTarget = cfg.facingTarget;
+            if (input.projectileSpeed > 0f && hasEnemy)
+                facingTarget = InterceptYaw(s.pos, goalPos, input.goalVel, input.projectileSpeed);
+            var facingCost = FacingCost(s.yaw, facingTarget, cfg.facingPower) * cfg.wFacing;
+
             var yawRateCost = YawRateCost(s.yawRate) * cfg.wYawRate;
             var obstacleCost = 0f;
             if (cfg.wObstacle > 0f && input.obstacleCount > 0)
@@ -39,20 +51,19 @@ namespace Movement.MPC
                 obstacleCost = ObstacleCost(s.pos, input.obstacles, input.obstacleCount, cfg.obstacleThreshold) * cfg.wObstacle;
             }
 
-            var hasEnemy = !math.isnan(input.enemyYaw);
             var losCost = 0f;
             var exposureCost = 0f;
             if (hasEnemy)
             {
                 if (cfg.wLos > 0f && input.obstacleCount > 0)
-                    losCost = LosCost(s.pos, input.goalPos, input.obstacles, input.obstacleCount) * cfg.wLos;
+                    losCost = LosCost(s.pos, goalPos, input.obstacles, input.obstacleCount) * cfg.wLos;
                 if (cfg.wExposure > 0f)
-                    exposureCost = ExposureCost(s.pos, input.goalPos, input.enemyYaw, cfg.exposurePower) * cfg.wExposure;
+                    exposureCost = ExposureCost(s.pos, goalPos, enemyYaw, cfg.exposurePower) * cfg.wExposure;
             }
 
             // Positional costs benefit from terminal boost (planning toward good end state)
             var positionalCost = posCost + velCost + headingCost + yawRateCost + obstacleCost;
-            // Tactical costs use stale data and should not be terminal-boosted
+            // Tactical costs are projected forward and can now be terminal-boosted
             var tacticalCost = facingCost + losCost + exposureCost;
 
             var effortCost = EffortCost(u) * cfg.wEffort;
@@ -62,9 +73,24 @@ namespace Movement.MPC
             var total = positionalCost + tacticalCost + controlCost;
 
             if (isTerminal)
-                total += cfg.terminalMultiplier * positionalCost;
+                total += cfg.terminalMultiplier * (positionalCost + tacticalCost);
 
             return total;
+        }
+
+        /// <summary>
+        /// Computes the yaw angle to aim at a first-order intercept point.
+        /// Uses t = dist / projectileSpeed as time-of-flight estimate.
+        /// </summary>
+        internal static float InterceptYaw(float2 shipPos, float2 targetPos, float2 targetVel, float projectileSpeed)
+        {
+            var toTarget = targetPos - shipPos;
+            var dist = math.length(toTarget);
+            if (dist < 1e-4f) return math.atan2(-toTarget.x, toTarget.y);
+            var tof = dist / projectileSpeed;
+            var intercept = targetPos + targetVel * tof;
+            var toIntercept = intercept - shipPos;
+            return math.atan2(-toIntercept.x, toIntercept.y);
         }
 
         internal static float GoalCost(float2 pos, float2 goal, Config cfg)
@@ -199,7 +225,9 @@ namespace Movement.MPC
 
         /// <summary>
         /// Penalizes being in the enemy's forward weapon arc.
-        /// Cost is highest when directly in front of the enemy, zero when behind/beside.
+        /// Cost is highest when directly in front of the enemy at close range,
+        /// zero when behind/beside. Inverse-distance scaling makes close-range
+        /// exposure far more urgent than long-range.
         /// </summary>
         public static float ExposureCost(float2 pos, float2 enemyPos, float enemyYaw,
             float power = 2f)
@@ -215,7 +243,11 @@ namespace Movement.MPC
 
             // Only penalize being in front half (cosAngle > 0)
             if (cosAngle <= 0f) return 0f;
-            return math.pow(cosAngle, power);
+
+            var angular = math.pow(cosAngle, power);
+            // Inverse-distance: at 1 unit → 1.0, at 10 units → 0.1, at 50 → 0.02
+            var proximity = 1f / dist;
+            return angular * proximity;
         }
 
         internal static float WrapRadians(float angle)

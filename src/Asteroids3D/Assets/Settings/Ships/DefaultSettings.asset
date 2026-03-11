@@ -12,18 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3208e94f16e301643b270a7505a83d3f, type: 3}
   m_Name: DefaultSettings
   m_EditorClassIdentifier: 
-  mass: 800
+  mass: 500
   maxSpeed: 25
   maxYawRate: 180
   forwardForce: 5600
   reverseForce: 2800
-  yawTorque: 5600
-  angularDrag: 1.7
+  yawTorque: 15000
+  angularDrag: 3
   maxBankAngle: 35
-  bankTorque: 3200
+  bankTorque: 20000
+  bankDamping: 2000
   minStrafeForce: 3200
   maxStrafeForce: 4000
-  linearDrag: 0.5
+  linearDrag: 0.3
   boostImpulse: 11200
   boostCooldown: 3
   startingLives: 1

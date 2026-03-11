@@ -27,6 +27,8 @@ namespace AI
         protected float goalDesiredRange;
         protected float goalRangeTolerance;
         protected float enemyYaw = float.NaN;
+        protected float enemyYawRate;
+        protected float projectileSpeed;
 
         protected Command currentCommand;
         public Command CurrentCommand => currentCommand;
@@ -113,14 +115,18 @@ namespace AI
             goalRangeTolerance = 0f;
         }
 
-        public void SetEnemyYaw(float yawDegrees)
+        public void SetEnemyState(float yawDegrees, float yawRateDegrees, float projectileSpeed)
         {
             enemyYaw = yawDegrees * Mathf.Deg2Rad;
+            enemyYawRate = yawRateDegrees * Mathf.Deg2Rad;
+            this.projectileSpeed = projectileSpeed;
         }
 
-        public void ClearEnemyYaw()
+        public void ClearEnemyState()
         {
             enemyYaw = float.NaN;
+            enemyYawRate = 0f;
+            projectileSpeed = 0f;
         }
 
         public void SetObstacleExclusion(Transform root)
