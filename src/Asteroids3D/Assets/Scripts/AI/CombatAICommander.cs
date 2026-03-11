@@ -5,7 +5,6 @@ using Ships;
 using Ships.Command;
 using UnityEngine;
 using AI.States;
-using Attack = AI.States.Attack;
 using Info = AI.Context.Info;
 using State = Ships.Command.State;
 
@@ -64,7 +63,9 @@ namespace AI
                 utilityTuning.combatExitDelay);
 
             utilitySelector.Initialize(utilityTuning,
-                new Attack(Navigator, gunner, utilityTuning),
+                new AttackAggressive(Navigator, gunner, utilityTuning),
+                new AttackEvasive(Navigator, gunner, utilityTuning),
+                new AttackFlanking(Navigator, gunner, utilityTuning),
                 new Pursuit(Navigator, gunner, utilityTuning),
                 new Evade(Navigator, gunner, utilityTuning),
                 new Patrol(Navigator, gunner, utilityTuning)

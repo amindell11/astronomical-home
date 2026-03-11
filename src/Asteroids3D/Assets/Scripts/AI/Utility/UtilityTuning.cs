@@ -17,6 +17,9 @@ namespace AI.Utility
 
         [Header("Per-State Tuning")]
         public AttackTuning attack = AttackTuning.Default;
+        public AttackAggressiveTuning attackAggressive = AttackAggressiveTuning.Default;
+        public AttackEvasiveTuning attackEvasive = AttackEvasiveTuning.Default;
+        public AttackFlankingTuning attackFlanking = AttackFlankingTuning.Default;
         public PursuitTuning pursuit = PursuitTuning.Default;
         public EvadeTuning evade = EvadeTuning.Default;
         public PatrolTuning patrol = PatrolTuning.Default;

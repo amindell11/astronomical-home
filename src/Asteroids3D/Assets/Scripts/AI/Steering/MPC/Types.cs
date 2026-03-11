@@ -68,6 +68,44 @@ namespace Movement.MPC
         public float wLos;
         public float wExposure;
         public float exposurePower;
+
+        // Tangential velocity (evasive lateral movement)
+        public float wTangential;
+    }
+
+    /// <summary>
+    /// Per-state MPC weight overrides. NaN fields use the base Settings value.
+    /// Set via Navigator.SetMpcWeightOverrides / ClearMpcWeightOverrides.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public struct WeightOverrides
+    {
+        public float wFacing;
+        public float wExposure;
+        public float wLos;
+        public float wTangential;
+        public float exposurePower;
+        public float facingPower;
+
+        public static WeightOverrides None => new WeightOverrides
+        {
+            wFacing = float.NaN,
+            wExposure = float.NaN,
+            wLos = float.NaN,
+            wTangential = float.NaN,
+            exposurePower = float.NaN,
+            facingPower = float.NaN,
+        };
+
+        public void Apply(ref Config cfg)
+        {
+            if (!float.IsNaN(wFacing)) cfg.wFacing = wFacing;
+            if (!float.IsNaN(wExposure)) cfg.wExposure = wExposure;
+            if (!float.IsNaN(wLos)) cfg.wLos = wLos;
+            if (!float.IsNaN(wTangential)) cfg.wTangential = wTangential;
+            if (!float.IsNaN(exposurePower)) cfg.exposurePower = exposurePower;
+            if (!float.IsNaN(facingPower)) cfg.facingPower = facingPower;
+        }
     }
 
     [StructLayout(LayoutKind.Sequential)]

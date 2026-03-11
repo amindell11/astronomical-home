@@ -104,7 +104,8 @@ namespace Movement.MPC
                 facingTarget = facingTargetRad,
                 goalMode = goalMode,
                 desiredRange = desiredRange,
-                rangeTolerance = rangeTolerance
+                rangeTolerance = rangeTolerance,
+                wTangential = 0f
             };
         }
     }

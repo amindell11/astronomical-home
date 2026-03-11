@@ -29,6 +29,7 @@ namespace AI
         protected float enemyYaw = float.NaN;
         protected float enemyYawRate;
         protected float projectileSpeed;
+        protected Movement.MPC.WeightOverrides mpcWeightOverrides = Movement.MPC.WeightOverrides.None;
 
         protected Command currentCommand;
         public Command CurrentCommand => currentCommand;
@@ -127,6 +128,16 @@ namespace AI
             enemyYaw = float.NaN;
             enemyYawRate = 0f;
             projectileSpeed = 0f;
+        }
+
+        public void SetMpcWeightOverrides(Movement.MPC.WeightOverrides overrides)
+        {
+            mpcWeightOverrides = overrides;
+        }
+
+        public void ClearMpcWeightOverrides()
+        {
+            mpcWeightOverrides = Movement.MPC.WeightOverrides.None;
         }
 
         public void SetObstacleExclusion(Transform root)

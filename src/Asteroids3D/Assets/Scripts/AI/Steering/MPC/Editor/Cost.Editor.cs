@@ -45,13 +45,16 @@ namespace Movement.MPC
                 exposure = (hasEnemy && cfg.wExposure > 0f)
                     ? ExposureCost(s.pos, goalPos, enemyYaw, cfg.exposurePower) * cfg.wExposure
                     : 0f,
+                tangential = (hasEnemy && cfg.wTangential > 0f)
+                    ? TangentialVelocityCost(s.pos, s.vel, goalPos) * cfg.wTangential
+                    : 0f,
                 effort = EffortCost(u) * cfg.wEffort,
                 smoothness = SmoothnessCost(u, prevU, cfg)
             };
 
             var positionalCost = breakdown.pos + breakdown.vel + breakdown.heading +
                                 breakdown.yawRate + breakdown.obstacle;
-            var tacticalCost = breakdown.facing + breakdown.los + breakdown.exposure;
+            var tacticalCost = breakdown.facing + breakdown.los + breakdown.exposure + breakdown.tangential;
             var total = positionalCost + tacticalCost + breakdown.effort + breakdown.smoothness;
 
             if (isTerminal)

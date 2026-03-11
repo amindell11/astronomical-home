@@ -10,7 +10,10 @@ namespace AI.States
         Patrol,
         Pursuit,
         Attack,
-        Evade
+        Evade,
+        AttackAggressive,
+        AttackEvasive,
+        AttackFlanking
     }
 
     public abstract partial class State

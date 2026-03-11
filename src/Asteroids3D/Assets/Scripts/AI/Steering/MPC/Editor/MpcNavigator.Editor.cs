@@ -229,6 +229,7 @@ namespace Movement.MPC
             DrawCostBar("Obstacle", breakdown.obstacle, total, Color.red);
             DrawCostBar("LOS", breakdown.los, total, new Color(1f, 0.5f, 0f));
             DrawCostBar("Exposure", breakdown.exposure, total, new Color(1f, 0.3f, 0.3f));
+            DrawCostBar("Tangential", breakdown.tangential, total, new Color(0.3f, 0.8f, 1f));
             DrawCostBar("Effort", breakdown.effort, total, Color.gray);
             DrawCostBar("Smoothness", breakdown.smoothness, total, Color.white);
 

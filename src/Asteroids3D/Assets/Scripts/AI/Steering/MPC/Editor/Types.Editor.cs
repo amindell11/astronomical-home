@@ -13,6 +13,7 @@ namespace Movement.MPC
         public float obstacle;
         public float los;
         public float exposure;
+        public float tangential;
         public float effort;
         public float smoothness;
         public float total;
@@ -27,6 +28,7 @@ namespace Movement.MPC
             obstacle += other.obstacle;
             los += other.los;
             exposure += other.exposure;
+            tangential += other.tangential;
             effort += other.effort;
             smoothness += other.smoothness;
             total += other.total;

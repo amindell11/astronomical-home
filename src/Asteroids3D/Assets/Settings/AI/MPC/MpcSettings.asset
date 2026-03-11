@@ -13,22 +13,22 @@ MonoBehaviour:
   m_Name: MpcSettings
   m_EditorClassIdentifier: 
   horizonSeconds: 1.7
-  rolloutDt: 0.1
+  rolloutDt: 0.3
   samples: 128
-  noiseStd: 0.25
+  noiseStd: 0.05
   wPos: 50
   wVel: 10
   wYaw: 200
   wYawRate: 20
-  wEffort: 15
-  wSmoothnessThrust: 0.92
-  wSmoothnessStrafe: 0.1
-  wSmoothnessYaw: 0.1
+  wEffort: 2000
+  wSmoothnessThrust: 1
+  wSmoothnessStrafe: 1
+  wSmoothnessYaw: 1
   wObstacle: 20
   wFacing: 500
   facingPower: 2
   wLos: 100
-  wExposure: 1104.7
+  wExposure: 10000
   exposurePower: 4
   terminalMultiplier: 10
   obstacleThreshold: 6.3

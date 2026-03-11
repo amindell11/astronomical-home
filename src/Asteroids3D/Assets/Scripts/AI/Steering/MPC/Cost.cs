@@ -53,18 +53,21 @@ namespace Movement.MPC
 
             var losCost = 0f;
             var exposureCost = 0f;
+            var tangentialCost = 0f;
             if (hasEnemy)
             {
                 if (cfg.wLos > 0f && input.obstacleCount > 0)
                     losCost = LosCost(s.pos, goalPos, input.obstacles, input.obstacleCount) * cfg.wLos;
                 if (cfg.wExposure > 0f)
                     exposureCost = ExposureCost(s.pos, goalPos, enemyYaw, cfg.exposurePower) * cfg.wExposure;
+                if (cfg.wTangential > 0f)
+                    tangentialCost = TangentialVelocityCost(s.pos, s.vel, goalPos) * cfg.wTangential;
             }
 
             // Positional costs benefit from terminal boost (planning toward good end state)
             var positionalCost = posCost + velCost + headingCost + yawRateCost + obstacleCost;
             // Tactical costs are projected forward and can now be terminal-boosted
-            var tacticalCost = facingCost + losCost + exposureCost;
+            var tacticalCost = facingCost + losCost + exposureCost + tangentialCost;
 
             var effortCost = EffortCost(u) * cfg.wEffort;
             var smoothnessCost = SmoothnessCost(u, prevU, cfg);
@@ -248,6 +251,21 @@ namespace Movement.MPC
             // Inverse-distance: at 1 unit → 1.0, at 10 units → 0.1, at 50 → 0.02
             var proximity = 1f / dist;
             return angular * proximity;
+        }
+
+        /// <summary>
+        /// Rewards lateral (tangential) velocity relative to the enemy.
+        /// High tangential speed = low cost, making the ship harder to track.
+        /// </summary>
+        internal static float TangentialVelocityCost(float2 pos, float2 vel, float2 enemyPos)
+        {
+            var toEnemy = enemyPos - pos;
+            var dist = math.length(toEnemy);
+            if (dist < 1e-4f) return 0f;
+            var radialDir = toEnemy / dist;
+            // Tangential speed = magnitude of velocity component perpendicular to radial direction
+            var tangentialSpeed = math.abs(vel.x * radialDir.y - vel.y * radialDir.x);
+            return 1f / (tangentialSpeed + 0.5f);
         }
 
         internal static float WrapRadians(float angle)
