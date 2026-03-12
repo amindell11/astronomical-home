@@ -32,21 +32,21 @@ namespace AI.Utility
 
         partial void LogBreakdown()
         {
-            Result = count > 0 ? Mathf.Pow(product, 1f / count) : 0f;
+            Result = totalWeight > 0f ? Mathf.Pow(product, 1f / totalWeight) : 0f;
         }
 
         public string GetBreakdown()
         {
             if (!trackBreakdown || breakdown.Count == 0)
-                return $"Total: {(count > 0 ? Mathf.Pow(product, 1f / count) : 0f):F3}";
+                return $"Total: {(totalWeight > 0f ? Mathf.Pow(product, 1f / totalWeight) : 0f):F3}";
 
             var sb = new StringBuilder();
             foreach (var (name, value) in breakdown)
             {
                 sb.Append($"{name}:{value:F2} | ");
             }
-            var result = count > 0 ? Mathf.Pow(product, 1f / count) : 0f;
-            sb.Append($"= {result:F3} (geomean of {count})");
+            var result = totalWeight > 0f ? Mathf.Pow(product, 1f / totalWeight) : 0f;
+            sb.Append($"= {result:F3} (geomean, w={totalWeight:F1})");
             return sb.ToString();
         }
     }

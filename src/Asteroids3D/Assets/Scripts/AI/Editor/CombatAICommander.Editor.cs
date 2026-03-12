@@ -1,6 +1,5 @@
 #if UNITY_EDITOR
 using AI.States;
-using AI.Utility;
 
 namespace AI
 {
@@ -20,11 +19,11 @@ namespace AI
             for (var i = 0; i < stateProfiles.Length; i++)
             {
                 if (stateProfiles[i] == null) return;
-                states[i] = new AIState(stateProfiles[i], Navigator, gunner, utilityTuning);
+                states[i] = new AIState(stateProfiles[i], Navigator, gunner);
             }
 
             utilitySelector.ResetForTesting();
-            utilitySelector.Initialize(utilityTuning, states);
+            utilitySelector.Initialize(states);
         }
     }
 }

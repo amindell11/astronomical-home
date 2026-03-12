@@ -24,20 +24,11 @@ namespace AI.Debug
 
         private static readonly Color TeamAColor = new(0.3f, 0.6f, 1f, 0.8f);
         private static readonly Color TeamBColor = new(1f, 0.4f, 0.3f, 0.8f);
+        private static readonly Color DefaultStateColor = new(0.5f, 0.5f, 0.5f);
 
         private Camera mainCam;
         private Material lineMaterial;
         private readonly List<Ship> trackedShips = new();
-
-        private static readonly Dictionary<StateType, Color> StateColors = new()
-        {
-            { StateType.Attack, new Color(1f, 0.2f, 0.2f) },
-            { StateType.AttackAggressive, new Color(1f, 0.1f, 0.1f) },
-            { StateType.AttackEvasive, new Color(1f, 0.6f, 0.2f) },
-            { StateType.Evade, new Color(0.2f, 0.9f, 0.3f) },
-            { StateType.Patrol, new Color(0.3f, 0.5f, 1f) },
-            { StateType.Idle, new Color(0.5f, 0.5f, 0.5f) }
-        };
 
         private GUIStyle labelStyle;
         private GUIStyle barBgStyle;
@@ -125,13 +116,29 @@ namespace AI.Debug
         private void DrawStateLabel(AICommander commander, Vector2 guiPos)
         {
             var stateName = commander.CurrentStateName;
-            var stateType = commander.UtilitySelector?.CurrentState?.Type ?? StateType.Idle;
-
-            var color = StateColors.TryGetValue(stateType, out var c) ? c : Color.white;
+            var color = GetCurrentStateColor(commander);
             labelStyle.normal.textColor = color;
 
             var pos = new Vector2(guiPos.x - 60 + labelOffset.x, guiPos.y - 25 + labelOffset.y);
             GUI.Label(new Rect(pos.x, pos.y, 120, 20), stateName, labelStyle);
+        }
+
+        private static Color GetCurrentStateColor(AICommander commander)
+        {
+            var name = commander.UtilitySelector?.CurrentState?.ProfileName;
+            return name != null ? ColorFromName(name) : DefaultStateColor;
+        }
+
+        private static Color GetStateColor(AI.States.State state)
+        {
+            return state != null ? ColorFromName(state.ProfileName) : DefaultStateColor;
+        }
+
+        private static Color ColorFromName(string name)
+        {
+            var hash = (uint)name.GetHashCode();
+            var h = (hash % 360) / 360f;
+            return Color.HSVToRGB(h, 0.7f, 0.9f);
         }
 
         private void DrawUtilityBars(AICommander commander, Vector2 guiPos)
@@ -139,7 +146,7 @@ namespace AI.Debug
             var scores = commander.UtilitySelector?.UtilityScores;
             if (scores == null || scores.Count == 0) return;
 
-            var currentType = commander.UtilitySelector.CurrentState?.Type;
+            var currentName = commander.UtilitySelector.CurrentState?.ProfileName;
             var sorted = scores.OrderByDescending(kv => kv.Value).ToList();
             var maxScore = sorted.Count > 0 ? Mathf.Max(sorted[0].Value, 1f) : 1f;
 
@@ -151,14 +158,23 @@ namespace AI.Debug
             GUI.Box(new Rect(startX - 4, startY - 2, barWidth + 58, panelHeight),
                 GUIContent.none, barBgStyle);
 
+            // Build a name→color map from registered states
+            var stateColorMap = new Dictionary<string, Color>();
+            var registeredStates = commander.UtilitySelector?.RegisteredStates;
+            if (registeredStates != null)
+            {
+                foreach (var state in registeredStates)
+                    stateColorMap[state.ProfileName] = GetStateColor(state);
+            }
+
             for (int i = 0; i < sorted.Count; i++)
             {
                 var kv = sorted[i];
                 var y = startY + i * (barHeight + 2);
                 var fill = kv.Value / maxScore;
-                var color = StateColors.TryGetValue(kv.Key, out var sc) ? sc : Color.grey;
+                var color = stateColorMap.TryGetValue(kv.Key, out var sc) ? sc : Color.grey;
 
-                if (currentType.HasValue && kv.Key == currentType.Value)
+                if (currentName != null && kv.Key == currentName)
                     color = Color.Lerp(color, Color.white, 0.3f);
 
                 // Bar background
@@ -171,8 +187,8 @@ namespace AI.Debug
                 GUI.color = prevColor;
 
                 // Label
-                var shortName = kv.Key.ToString().Substring(0, Mathf.Min(4, kv.Key.ToString().Length));
-                scoreStyle.normal.textColor = kv.Key == currentType ? Color.white : new Color(0.8f, 0.8f, 0.8f);
+                var shortName = kv.Key.Substring(0, Mathf.Min(4, kv.Key.Length));
+                scoreStyle.normal.textColor = kv.Key == currentName ? Color.white : new Color(0.8f, 0.8f, 0.8f);
                 GUI.Label(new Rect(startX + 2, y, barWidth, barHeight),
                     shortName, scoreStyle);
                 GUI.Label(new Rect(startX + barWidth + 4, y, 50, barHeight),

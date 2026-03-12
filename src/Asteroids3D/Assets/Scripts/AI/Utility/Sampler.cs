@@ -17,17 +17,14 @@ namespace AI.Utility
         private readonly List<(AI.States.State state, float utility)> topStateUtilities = new(3);
         private readonly List<(AI.States.State state, float exp)> expBuffer = new(3);
         private readonly List<(AI.States.State state, float probability)> probabilityBuffer = new(3);
-        private UtilityTuning utilityTuning;
 
-        public Dictionary<StateType, float> UtilityScores { get; } = new();
+        public Dictionary<string, float> UtilityScores { get; } = new();
 
         public Sampler(UtilitySelectorSettings config, UtilityWeights instanceUtilityWeights)
         {
             this.config = config;
             this.instanceUtilityWeights = instanceUtilityWeights;
         }
-
-        public void SetTuning(UtilityTuning tun) => utilityTuning = tun;
 
         public AI.States.State Evaluate(IReadOnlyList<AI.States.State> states, AI.States.State currentState, float timeSinceEntry, AI.Context.Info context)
         {
@@ -41,12 +38,12 @@ namespace AI.Utility
             {
                 if (IsExcluded(state, context))
                 {
-                    UtilityScores[state.Type] = 0f;
+                    UtilityScores[state.ProfileName] = 0f;
                     continue;
                 }
 
                 var utility = ComputeSmoothedUtility(state, currentState, timeSinceEntry, context);
-                UtilityScores[state.Type] = utility;
+                UtilityScores[state.ProfileName] = utility;
 
                 if (!(utility > highestUtility)) continue;
                 highestUtility = utility;
@@ -60,7 +57,7 @@ namespace AI.Utility
             {
                 var state = states[i];
                 if (IsExcluded(state, context)) continue;
-                AddTopState(state, UtilityScores[state.Type]);
+                AddTopState(state, UtilityScores[state.ProfileName]);
             }
 
             return SampleFromDistribution(topStateUtilities);
@@ -72,11 +69,14 @@ namespace AI.Utility
         {
             var baseUtility = state.ComputeUtility(context);
 
+            // Instance weight scales the geometric mean output before sticky bonus,
+            // so the weight biases state preference without amplifying hysteresis.
+            baseUtility *= ResolveWeight(state);
+
             if (state == currentState)
                 baseUtility += ComputeStickyBonus(timeSinceEntry);
 
-            var weighted = ApplyWeight(state, baseUtility);
-            return ApplySmoothing(state, weighted);
+            return ApplySmoothing(state, baseUtility);
         }
 
         private float ComputeStickyBonus(float timeSinceEntry)
@@ -95,18 +95,7 @@ namespace AI.Utility
 
         private float ResolveWeight(AI.States.State state)
         {
-            var baseWeight = utilityTuning && utilityTuning.utilityWeights ? utilityTuning.utilityWeights[state.Type] : 1f;
-            var instanceBias = instanceUtilityWeights ? instanceUtilityWeights[state.Type] : 1f;
-            return baseWeight * instanceBias;
-        }
-
-        private float ApplyWeight(AI.States.State state, float baseUtility)
-        {
-            if (state == null) return baseUtility;
-
-            var baseWeight = utilityTuning && utilityTuning.utilityWeights ? utilityTuning.utilityWeights[state.Type] : 1f;
-            var instanceBias = instanceUtilityWeights ? instanceUtilityWeights[state.Type] : 1f;
-            return baseUtility * baseWeight * instanceBias;
+            return instanceUtilityWeights ? instanceUtilityWeights[state.ProfileName] : 1f;
         }
 
         private float ApplySmoothing(AI.States.State state, float utility)

@@ -20,52 +20,53 @@ namespace AI.Utility
     public partial class UtilityBuilder
     {
         private float product = 1f;
-        private int count = 0;
+        private float totalWeight = 0f;
 
-        public UtilityBuilder Factor(string name, float value)
+        public UtilityBuilder Factor(string name, float value, float weight = 1f)
         {
             var clamped = Mathf.Clamp(value, 0.01f, 2f);
-            product *= clamped;
-            count++;
+            if (weight <= 0f) return this;
+            product *= Mathf.Pow(clamped, weight);
+            totalWeight += weight;
             TrackBreakdown(name, clamped);
             return this;
         }
 
-        public UtilityBuilder Factor(string name, float input, FactorRange range)
+        public UtilityBuilder Factor(string name, float input, FactorRange range, float weight = 1f)
         {
             var t = Mathf.Clamp01(input);
             t = t * t * (3f - 2f * t);
             var value = Mathf.Lerp(range.atLow, range.atHigh, t);
-            return Factor(name, value);
-        }
-        
-        public UtilityBuilder FactorIf(bool condition, string name, float valueIfTrue)
-        {
-            return !condition ? this : Factor(name, valueIfTrue);
+            return Factor(name, value, weight);
         }
 
-        public UtilityBuilder FactorBinary(bool condition, string name, FactorRange range)
+        public UtilityBuilder FactorIf(bool condition, string name, float valueIfTrue, float weight = 1f)
         {
-            return Factor(name, condition ? range.atHigh : range.atLow);
+            return !condition ? this : Factor(name, valueIfTrue, weight);
+        }
+
+        public UtilityBuilder FactorBinary(bool condition, string name, FactorRange range, float weight = 1f)
+        {
+            return Factor(name, condition ? range.atHigh : range.atLow, weight);
         }
 
         public float Build()
         {
-            if (count == 0) return 0f;
-            var result = Mathf.Clamp(Mathf.Pow(product, 1f / count), 0f, 2f);
+            if (totalWeight <= 0f) return 0f;
+            var result = Mathf.Clamp(Mathf.Pow(product, 1f / totalWeight), 0f, 2f);
             LogBreakdown();
             return result;
         }
 
         public float BuildRaw()
         {
-            return count == 0 ? 0f : Mathf.Pow(product, 1f / count);
+            return totalWeight <= 0f ? 0f : Mathf.Pow(product, 1f / totalWeight);
         }
 
         public void Clear()
         {
             product = 1f;
-            count = 0;
+            totalWeight = 0f;
             ClearBreakdown();
         }
 

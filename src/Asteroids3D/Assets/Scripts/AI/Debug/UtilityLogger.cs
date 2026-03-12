@@ -182,7 +182,7 @@ namespace AI.Debug
                     if (builder?.Factors == null || builder.Factors.Count == 0) continue;
 
                     if (!first) lineBuffer.Append(',');
-                    lineBuffer.Append('"').Append(state.Type.ToString()).Append("\":{");
+                    lineBuffer.Append('"').Append(state.ProfileName).Append("\":{");
 
                     for (var i = 0; i < builder.Factors.Count; i++)
                     {
@@ -200,9 +200,9 @@ namespace AI.Debug
             if (isTransition)
             {
                 lineBuffer.Append(",\"transition\":{");
-                AppendFieldStr("from", transitionFrom?.Type.ToString() ?? "None");
+                AppendFieldStr("from", transitionFrom?.ProfileName ?? "None");
                 lineBuffer.Append(',');
-                AppendFieldStr("to", transitionTo?.Type.ToString() ?? "None");
+                AppendFieldStr("to", transitionTo?.ProfileName ?? "None");
                 lineBuffer.Append('}');
             }
 

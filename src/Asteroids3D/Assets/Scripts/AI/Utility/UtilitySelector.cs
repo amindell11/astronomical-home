@@ -26,8 +26,8 @@ namespace AI.Utility
 
         public AI.States.State CurrentState { get; private set; }
         public Info Context { get; private set; }
-        public string CurrentStateName => CurrentState?.Type.ToString() ?? "None";
-        public Dictionary<StateType, float> UtilityScores => sampler?.UtilityScores;
+        public string CurrentStateName => CurrentState?.ProfileName ?? "None";
+        public Dictionary<string, float> UtilityScores => sampler?.UtilityScores;
         public IReadOnlyList<AI.States.State> RegisteredStates => states;
         public UtilitySelectorSettings Config => config;
 
@@ -40,13 +40,11 @@ namespace AI.Utility
             sampler = new Sampler(config, instanceUtilityWeights);
         }
 
-        public void Initialize(UtilityTuning tuning, params AI.States.State[] statesToAdd)
+        public void Initialize(params AI.States.State[] statesToAdd)
         {
             states.Clear();
             states.AddRange(statesToAdd.Where(s => s != null));
             if (states.Count == 0) return;
-
-            sampler.SetTuning(tuning);
 
             if (CurrentState != null) return;
             TransitionTo(states[0], null);
