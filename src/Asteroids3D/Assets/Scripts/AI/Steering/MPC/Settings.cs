@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Movement.MPC
 {
@@ -16,7 +15,7 @@ namespace Movement.MPC
         [Tooltip("Standard deviation of Gaussian noise added to the warm-start sequence for exploration.")]
         public float noiseStd = 0.25f;
 
-        [Header("Weights")]
+        [Header("Navigation")]
         [Tooltip("Position cost weight. Drives the ship toward the goal (Waypoint mode), " +
                  "into the range band (MaintainRange), or away from the target (Flee).")]
         public float wPos = 1.0f;
@@ -27,60 +26,48 @@ namespace Movement.MPC
         public float wYaw = 0.5f;
         [Tooltip("Yaw rate cost weight. Penalizes spinning; keeps rotations smooth.")]
         public float wYawRate = 0.1f;
+        [Tooltip("Multiplier applied to state costs at the final rollout step. " +
+                 "Encourages the solver to reach a good terminal state.")]
+        public float terminalMultiplier = 10f;
+
+        [Header("Control")]
         [Tooltip("Effort cost weight. Penalizes large control inputs (thrust, strafe, yaw torque).")]
         public float wEffort = 0.05f;
-
-        [Header("Smoothness Weights")]
         [Tooltip("Smoothness weight for thrust changes between steps. Reduces forward/back jitter.")]
         public float wSmoothnessThrust = 0.5f;
         [Tooltip("Smoothness weight for strafe changes between steps. High value suppresses lateral oscillation.")]
         public float wSmoothnessStrafe = 5.0f;
         [Tooltip("Smoothness weight for yaw torque changes between steps. Reduces rotational jitter.")]
         public float wSmoothnessYaw = 0.2f;
+        [Tooltip("Momentum cost weight. Penalizes velocity direction changes, rewarding smooth trajectories that maintain course.")]
+        public float wMomentum = 0f;
+        [Tooltip("EMA smoothing factor for applied controls. 0 = no smoothing, 0.95 = very smooth (slow response).")]
+        [Range(0f, 0.95f)]
+        public float controlSmoothing = 0.5f;
 
-        [Tooltip("Obstacle avoidance weight. Inverse-distance cost near obstacles; higher = wider berth.")]
-        public float wObstacle = 10.0f;
+        [Header("Tactical")]
         [Tooltip("Facing override weight. Steers the nose toward a specific angle (e.g. lead target in Attack). " +
                  "Only active when a facing override is set.")]
         public float wFacing = 1.0f;
-        [FormerlySerializedAs("facingPower")]
         [Tooltip("Facing Huber dead-zone width in radians. Errors within this range get a gentle quadratic penalty; beyond it cost grows linearly.")]
         public float facingWidth = 0.5f;
-
-        [Header("Tactical LOS")]
         [Tooltip("Line-of-sight cost weight. Penalizes positions where obstacles block the view to the enemy.")]
         public float wLos = 1f;
         [Tooltip("Exposure cost weight. Penalizes being in the enemy's forward weapon arc.")]
         public float wExposure = 1f;
-        [FormerlySerializedAs("exposurePower")]
         [Tooltip("Exposure Gaussian width in radians. Smaller = narrower danger cone in front of enemy.")]
         public float exposureWidth = 0.5f;
         [Tooltip("Tangential velocity cost weight. Rewards lateral movement relative to enemy, making the ship harder to track.")]
         public float wTangential = 1f;
 
-        [Tooltip("Multiplier applied to state costs at the final rollout step. " +
-                 "Encourages the solver to reach a good terminal state.")]
-        public float terminalMultiplier = 10f;
-
         [Header("Obstacle Avoidance")]
+        [Tooltip("Obstacle avoidance weight. Inverse-distance cost near obstacles; higher = wider berth.")]
+        public float wObstacle = 10.0f;
         [Tooltip("Distance beyond an obstacle's radius at which the avoidance cost begins. " +
                  "Effectively inflates obstacles by this amount.")]
         public float obstacleThreshold = 5.0f;
         [Tooltip("Extra clearance added per unit speed. effectiveThreshold = obstacleThreshold + speed * this value.")]
         public float obstacleSpeedMargin = 0.3f;
-
-        [Header("Control Smoothing")]
-        [Tooltip("EMA smoothing factor for applied controls. 0 = no smoothing, 0.95 = very smooth (slow response).")]
-        [Range(0f, 0.95f)]
-        public float controlSmoothing = 0.5f;
-
-        [Header("Relaxation")]
-        [Tooltip("Cost at or below which controls are fully zeroed (ship coasts).")]
-        public float relaxMin = 0.5f;
-        [Tooltip("Cost at or above which controls are applied at full authority.")]
-        public float relaxMax = 2.0f;
-        [Tooltip("Curve exponent for the relaxation ramp. 1 = linear, <1 = aggressive early ramp, >1 = gentle early ramp.")]
-        public float relaxCurve = 1.0f;
 
         [Header("Arrival Stabilization")]
         [Tooltip("Distance to goal at which arrival stabilization begins ramping up.")]
@@ -89,6 +76,14 @@ namespace Movement.MPC
         public float arrivalVelScale = 5.0f;
         [Tooltip("Yaw cost multiplier at the goal center. Ramps down near the goal so the ship prioritizes stopping over turning.")]
         public float arrivalYawScale = 0.1f;
+
+        [Header("Relaxation")]
+        [Tooltip("Cost at or below which controls are fully zeroed (ship coasts).")]
+        public float relaxMin = 0.5f;
+        [Tooltip("Cost at or above which controls are applied at full authority.")]
+        public float relaxMax = 2.0f;
+        [Tooltip("Curve exponent for the relaxation ramp. 1 = linear, <1 = aggressive early ramp, >1 = gentle early ramp.")]
+        public float relaxCurve = 1.0f;
 
         public int Horizon => Mathf.CeilToInt(horizonSeconds / rolloutDt);
 
@@ -101,32 +96,39 @@ namespace Movement.MPC
                 dt = rolloutDt,
                 invDt = rolloutDt > 0f ? 1f / rolloutDt : 0f,
                 horizon = Horizon,
+                // Navigation
                 wPos = wPos,
                 wVel = wVel,
                 wYaw = wYaw,
                 wYawRate = wYawRate,
+                terminalMultiplier = terminalMultiplier,
+                // Control
                 wEffort = wEffort,
                 wSmoothnessThrust = wSmoothnessThrust,
                 wSmoothnessStrafe = wSmoothnessStrafe,
                 wSmoothnessYaw = wSmoothnessYaw,
-                wObstacle = wObstacle,
+                wMomentum = wMomentum,
+                // Tactical
                 wFacing = wFacing,
                 facingWidth = facingWidth,
+                facingTarget = facingTargetRad,
                 wLos = wLos,
                 wExposure = wExposure,
                 exposureWidth = exposureWidth,
-                terminalMultiplier = terminalMultiplier,
+                wTangential = wTangential,
+                // Obstacle
+                wObstacle = wObstacle,
                 obstacleThreshold = obstacleThreshold,
                 obstacleSpeedMargin = obstacleSpeedMargin,
+                // Arrival
                 arrivalDistance = arrivalDistance,
                 arrivalDistanceSq = arrivalDistance * arrivalDistance,
                 arrivalVelScale = arrivalVelScale,
                 arrivalYawScale = arrivalYawScale,
-                facingTarget = facingTargetRad,
+                // Goal
                 goalMode = goalMode,
                 desiredRange = desiredRange,
                 rangeTolerance = rangeTolerance,
-                wTangential = wTangential
             };
         }
     }

@@ -98,6 +98,10 @@ namespace Movement.MPC
                 obstacleCost = ObstacleCost(s.pos, input.obstacles, input.obstacleCount, effectiveThreshold) * cfg.wObstacle;
             }
 
+            var momentumCost = 0f;
+            if (cfg.wMomentum > 0f)
+                momentumCost = MomentumCost(s.vel, input.initialVel) * cfg.wMomentum;
+
             var losCost = 0f;
             var exposureCost = 0f;
             var tangentialCost = 0f;
@@ -111,7 +115,7 @@ namespace Movement.MPC
                     tangentialCost = TangentialVelocityCost(s.pos, s.vel, ctx.goalPos) * cfg.wTangential;
             }
 
-            var positionalCost = posCost + velCost + headingCost + yawRateCost + obstacleCost;
+            var positionalCost = posCost + velCost + headingCost + yawRateCost + obstacleCost + momentumCost;
             var tacticalCost = facingCost + losCost + exposureCost + tangentialCost;
 
             var effortCost = EffortCost(u) * cfg.wEffort;
@@ -312,6 +316,21 @@ namespace Movement.MPC
             // Tangential speed = magnitude of velocity component perpendicular to radial direction
             var tangentialSpeed = math.abs(vel.x * radialDir.y - vel.y * radialDir.x);
             return 1f / (tangentialSpeed + 0.5f);
+        }
+
+        /// <summary>
+        /// Penalizes velocity direction changes relative to the initial velocity.
+        /// Returns 0 when maintaining course, up to 2 when reversing direction.
+        /// Returns 0 when either velocity is near-zero (no meaningful direction).
+        /// </summary>
+        internal static float MomentumCost(float2 vel, float2 initialVel)
+        {
+            var speedSq = math.lengthsq(vel);
+            var initSpeedSq = math.lengthsq(initialVel);
+            if (speedSq < 1e-4f || initSpeedSq < 1e-4f) return 0f;
+
+            var cosAngle = math.dot(vel, initialVel) / (math.sqrt(speedSq) * math.sqrt(initSpeedSq));
+            return 1f - cosAngle; // 0 = same direction, 1 = perpendicular, 2 = opposite
         }
 
         internal static float WrapRadians(float angle)

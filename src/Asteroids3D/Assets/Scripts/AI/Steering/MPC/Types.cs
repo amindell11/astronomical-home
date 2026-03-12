@@ -1,8 +1,6 @@
 using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Mathematics;
-using UnityEngine.Serialization;
-
 namespace Movement.MPC
 {
     public enum GoalMode
@@ -36,49 +34,49 @@ namespace Movement.MPC
         public float invDt;
         public int horizon;
 
-        // Weights
+        // Navigation
         public float wPos;
         public float wVel;
         public float wYaw;
         public float wYawRate;
+        public float terminalMultiplier;
+
+        // Control
         public float wEffort;
         public float wSmoothnessThrust;
         public float wSmoothnessStrafe;
         public float wSmoothnessYaw;
-        public float wObstacle;
+        public float wMomentum;
+
+        // Tactical
         public float wFacing;
-        public float terminalMultiplier;
+        public float facingTarget;
+        public float facingWidth;
+        public float wLos;
+        public float wExposure;
+        public float exposureWidth;
+        public float wTangential;
+
+        // Obstacle
+        public float wObstacle;
         public float obstacleThreshold;
         public float obstacleSpeedMargin;
 
-        // Arrival Stabilization
+        // Arrival
         public float arrivalDistance;
         public float arrivalDistanceSq;
         public float arrivalVelScale;
         public float arrivalYawScale;
 
-        // Facing override (radians, NaN if disabled)
-        public float facingTarget;
-        public float facingWidth;
-
-        // Goal mode
+        // Goal
         public GoalMode goalMode;
         public float desiredRange;
         public float rangeTolerance;
-
-        // Tactical LOS
-        public float wLos;
-        public float wExposure;
-        public float exposureWidth;
-
-        // Tangential velocity (evasive lateral movement)
-        public float wTangential;
     }
 
     /// <summary>
     /// Per-state weight multipliers. Each field scales the corresponding base weight
     /// from MpcSettings. Default (1.0) = use base as-is, 0 = disable, 2 = double.
-    /// Width fields (facingWidth, exposureWidth) are absolute values, not multipliers.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [System.Serializable]
@@ -89,50 +87,55 @@ namespace Movement.MPC
         public float vel;
         public float yaw;
         public float yawRate;
+
+        // Control
         public float effort;
         public float smoothnessThrust;
         public float smoothnessStrafe;
         public float smoothnessYaw;
-        public float obstacle;
+        public float momentum;
 
         // Tactical
         public float facing;
-        public float exposure;
+        public float facingWidth;
         public float los;
+        public float exposure;
+        public float exposureWidth;
         public float tangential;
 
-        // Widths (absolute, not multiplied — 0 = use base)
-        [FormerlySerializedAs("facingPower")]
-        public float facingWidth;
-        [FormerlySerializedAs("exposurePower")]
-        public float exposureWidth;
+        // Obstacle
+        public float obstacle;
 
         public static WeightMultipliers Default => new WeightMultipliers
         {
             pos = 1f, vel = 1f, yaw = 1f, yawRate = 1f,
-            effort = 1f, smoothnessThrust = 1f, smoothnessStrafe = 1f, smoothnessYaw = 1f,
+            effort = 1f, smoothnessThrust = 1f, smoothnessStrafe = 1f, smoothnessYaw = 1f, momentum = 1f,
+            facing = 1f, facingWidth = 1f, los = 1f, exposure = 1f, exposureWidth = 1f, tangential = 1f,
             obstacle = 1f,
-            facing = 1f, exposure = 1f, los = 1f, tangential = 1f,
-            facingWidth = 0f, exposureWidth = 0f,
         };
 
         public void Apply(ref Config cfg)
         {
+            // Navigation
             cfg.wPos *= pos;
             cfg.wVel *= vel;
             cfg.wYaw *= yaw;
             cfg.wYawRate *= yawRate;
+            // Control
             cfg.wEffort *= effort;
             cfg.wSmoothnessThrust *= smoothnessThrust;
             cfg.wSmoothnessStrafe *= smoothnessStrafe;
             cfg.wSmoothnessYaw *= smoothnessYaw;
-            cfg.wObstacle *= obstacle;
+            cfg.wMomentum *= momentum;
+            // Tactical
             cfg.wFacing *= facing;
-            cfg.wExposure *= exposure;
+            cfg.facingWidth *= facingWidth;
             cfg.wLos *= los;
+            cfg.wExposure *= exposure;
+            cfg.exposureWidth *= exposureWidth;
             cfg.wTangential *= tangential;
-            if (facingWidth > 0f) cfg.facingWidth = facingWidth;
-            if (exposureWidth > 0f) cfg.exposureWidth = exposureWidth;
+            // Obstacle
+            cfg.wObstacle *= obstacle;
         }
     }
 
@@ -168,6 +171,9 @@ namespace Movement.MPC
         public NativeArray<State> enemyStates;
         /// <summary>Number of valid entries in enemyStates.</summary>
         public int enemyStateCount;
+
+        /// <summary>Ship velocity at the start of the rollout. Used by momentum cost to reward maintaining direction.</summary>
+        public float2 initialVel;
     }
 
     internal readonly partial struct EditorProfilingScope : System.IDisposable

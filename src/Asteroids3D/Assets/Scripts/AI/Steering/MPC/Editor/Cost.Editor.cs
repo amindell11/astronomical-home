@@ -31,12 +31,15 @@ namespace Movement.MPC
                 tangential = (ctx.hasEnemy && cfg.wTangential > 0f)
                     ? TangentialVelocityCost(s.pos, s.vel, ctx.goalPos) * cfg.wTangential
                     : 0f,
+                momentum = cfg.wMomentum > 0f
+                    ? MomentumCost(s.vel, input.initialVel) * cfg.wMomentum
+                    : 0f,
                 effort = EffortCost(u) * cfg.wEffort,
                 smoothness = SmoothnessCost(u, prevU, cfg)
             };
 
             var positionalCost = breakdown.pos + breakdown.vel + breakdown.heading +
-                                breakdown.yawRate + breakdown.obstacle;
+                                breakdown.yawRate + breakdown.obstacle + breakdown.momentum;
             var tacticalCost = breakdown.facing + breakdown.los + breakdown.exposure + breakdown.tangential;
             var total = positionalCost + tacticalCost + breakdown.effort + breakdown.smoothness;
 

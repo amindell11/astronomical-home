@@ -146,6 +146,7 @@ namespace Movement.MPC
                 projectileSpeed = projectileSpeed,
                 enemyStates = enemyStates,
                 enemyStateCount = enemyStateCount,
+                initialVel = initialState.vel,
             };
 
             var rngSeed = (uint)(Time.frameCount * 7919 + initialState.pos.GetHashCode());
@@ -186,7 +187,8 @@ namespace Movement.MPC
         }
 
         public CostInput BuildCostInput(float2 goalPos, float2 goalVel = default,
-            float enemyYaw = float.NaN, float enemyYawRate = 0f, float projectileSpeed = 0f)
+            float enemyYaw = float.NaN, float enemyYawRate = 0f, float projectileSpeed = 0f,
+            float2 initialVel = default)
         {
             return new CostInput
             {
@@ -199,6 +201,7 @@ namespace Movement.MPC
                 projectileSpeed = projectileSpeed,
                 enemyStates = enemyStates.IsCreated ? enemyStates : default,
                 enemyStateCount = enemyStates.IsCreated ? enemyStates.Length : 0,
+                initialVel = initialVel,
             };
         }
 
