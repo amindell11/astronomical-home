@@ -1,0 +1,106 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b56d01da063dcc54487eaaf6f8e443eb, type: 3}
+  m_Name: Evade
+  m_EditorClassIdentifier:
+  stateType: 4
+  goalStrategy: 2
+  goalMode: 2
+  desiredRange: 0
+  rangeTolerance: 0
+  enableTacticalCosts: 0
+  enableFiring: 0
+  weightMultipliers:
+    pos: 1
+    vel: 1
+    yaw: 1
+    yawRate: 1
+    effort: 1
+    obstacle: 1
+    facing: 0
+    exposure: 0
+    los: 0
+    tangential: 0
+    facingWidth: 0
+    exposureWidth: 0
+  requiresEnemy: 1
+  requiresNoEnemy: 0
+  minRange: 0
+  maxRange: 0
+  patrolRadius: 50
+  patrolMinDistanceFactor: 0.3
+  patrolArriveRadius: 3
+  patrolStuckTimeout: 3
+  patrolStuckProgressThreshold: 1
+  utilityFactors:
+    healthFactor:
+      atLow: 1.3
+      atHigh: 0.7
+    shieldFactor:
+      atLow: 1.2
+      atHigh: 0.8
+    enemyWeakFactor:
+      atLow: 0
+      atHigh: 0
+    rangeFactor:
+      atLow: 0
+      atHigh: 0
+    losFactor:
+      atLow: 0
+      atHigh: 0
+    threatFactor:
+      atLow: 0
+      atHigh: 0
+    desperationFactor:
+      atLow: 0
+      atHigh: 0
+    enemyFacingFactor:
+      atLow: 0.9
+      atHigh: 1.2
+    selfAngleFactor:
+      atLow: 0
+      atHigh: 0
+    closingRateFactor:
+      atLow: 0
+      atHigh: 0
+    outnumberedFactor:
+      atLow: 0.8
+      atHigh: 1.3
+    enemyLOSFactor:
+      atLow: 0.7
+      atHigh: 1.2
+    closingSpeedFactor:
+      atLow: 0.8
+      atHigh: 1.2
+    angleFactor:
+      atLow: 0.7
+      atHigh: 1
+    distanceFactor:
+      atLow: 0
+      atHigh: 0
+    engageDistance: 0
+    missileFactor: 1.5
+    tooCloseFactor: 1.3
+    tooCloseDistance: 7
+    missilePenaltyFactor: 0.8
+    fightingRetreatHealthThreshold: 0.5
+    fightingRetreatShieldThreshold: 0.5
+    fightingRetreatFactor: 1.25
+    optimalRangeMin: 0
+    optimalRangeMax: 0
+    outerDistanceThreshold: 0
+    outerRangeFactor: 0
+    rangeScoreCenter: 0
+    rangeScoreSpan: 0
+    noCombatFactor:
+      atLow: 0
+      atHigh: 0

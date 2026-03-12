@@ -18,8 +18,14 @@ MonoBehaviour:
   - type: 1
     weight: 1
   - type: 2
-    weight: 1
+    weight: 0
   - type: 3
-    weight: 1
+    weight: 0
   - type: 4
+    weight: 1
+  - type: 5
+    weight: 0
+  - type: 6
+    weight: 0
+  - type: 7
     weight: 0
