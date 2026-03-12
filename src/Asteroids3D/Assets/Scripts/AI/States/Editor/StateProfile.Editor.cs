@@ -8,35 +8,80 @@ namespace AI.States
     [CustomEditor(typeof(StateProfile))]
     public class StateProfileEditor : UnityEditor.Editor
     {
+        private Settings cachedBaseSettings;
+        private bool baseSettingsResolved;
+
         public override void OnInspectorGUI()
         {
-            base.OnInspectorGUI();
+            serializedObject.Update();
 
-            var profile = (StateProfile)target;
-            var mults = profile.weightMultipliers;
+            var iterator = serializedObject.GetIterator();
+            iterator.NextVisible(true); // skip m_Script
+            while (iterator.NextVisible(false))
+            {
+                if (iterator.propertyPath == "weightMultipliers")
+                {
+                    DrawWeightMultipliersWithCurves(iterator);
+                }
+                else
+                {
+                    EditorGUILayout.PropertyField(iterator, true);
+                }
+            }
 
-            // Find the base MpcSettings to resolve effective values
-            var baseSettings = FindBaseSettings();
-            var baseFacingWidth = baseSettings ? baseSettings.facingWidth : 0.5f;
-            var baseExposureWidth = baseSettings ? baseSettings.exposureWidth : 0.5f;
-
-            var effectiveFacing = mults.facingWidth > 0f ? mults.facingWidth : baseFacingWidth;
-            var effectiveExposure = mults.exposureWidth > 0f ? mults.exposureWidth : baseExposureWidth;
-
-            EditorGUILayout.Space();
-            var suffix = mults.facingWidth > 0f || mults.exposureWidth > 0f ? " (with overrides)" : " (base values)";
-            EditorGUILayout.LabelField("Cost Curve Previews" + suffix, EditorStyles.boldLabel);
-
-            SettingsEditor.DrawFacingCurve("Facing Cost", effectiveFacing);
-            SettingsEditor.DrawExposureCurve("Exposure Cost", effectiveExposure);
+            serializedObject.ApplyModifiedProperties();
         }
 
-        private static Settings FindBaseSettings()
+        private void DrawWeightMultipliersWithCurves(SerializedProperty prop)
         {
+            prop.isExpanded = EditorGUILayout.Foldout(prop.isExpanded, prop.displayName, true);
+            if (!prop.isExpanded) return;
+
+            EditorGUI.indentLevel++;
+
+            var child = prop.Copy();
+            var end = prop.GetEndProperty();
+            child.NextVisible(true); // enter children
+
+            while (!SerializedProperty.EqualContents(child, end))
+            {
+                EditorGUILayout.PropertyField(child, true);
+
+                if (child.name == "facingWidth")
+                {
+                    var width = ResolveEffectiveWidth(child.floatValue, true);
+                    SettingsEditor.DrawFacingCurve("  Facing Cost Preview", width);
+                }
+                else if (child.name == "exposureWidth")
+                {
+                    var width = ResolveEffectiveWidth(child.floatValue, false);
+                    SettingsEditor.DrawExposureCurve("  Exposure Cost Preview", width);
+                }
+
+                if (!child.NextVisible(false)) break;
+            }
+
+            EditorGUI.indentLevel--;
+        }
+
+        private float ResolveEffectiveWidth(float multiplier, bool isFacing)
+        {
+            var baseSettings = GetBaseSettings();
+            var baseWidth = baseSettings
+                ? (isFacing ? baseSettings.facingWidth : baseSettings.exposureWidth)
+                : 0.5f;
+            return baseWidth * multiplier;
+        }
+
+        private Settings GetBaseSettings()
+        {
+            if (baseSettingsResolved) return cachedBaseSettings;
+            baseSettingsResolved = true;
             var guids = AssetDatabase.FindAssets("t:Movement.MPC.Settings");
             if (guids.Length == 0) return null;
             var path = AssetDatabase.GUIDToAssetPath(guids[0]);
-            return AssetDatabase.LoadAssetAtPath<Settings>(path);
+            cachedBaseSettings = AssetDatabase.LoadAssetAtPath<Settings>(path);
+            return cachedBaseSettings;
         }
     }
 }

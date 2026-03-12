@@ -12,26 +12,22 @@ namespace AI.States
             base.OnDrawGizmos(ctx);
             if (ctx == null) return;
 
-            switch (Profile.goalStrategy)
-            {
-                case GoalStrategy.RandomWaypoint:
-                    DrawPatrolGizmos(ctx);
-                    break;
-                case GoalStrategy.FleeEnemy:
-                    DrawEvadeGizmos(ctx);
-                    break;
-                case GoalStrategy.TrackEnemy:
-                    DrawCombatGizmos(ctx);
-                    break;
-            }
+            var goal = Profile.goal;
+            if (goal is RandomWaypointGoal)
+                DrawPatrolGizmos(ctx);
+            else if (goal is FleeEnemyGoal)
+                DrawEvadeGizmos(ctx);
+            else if (goal is TrackEnemyGoal)
+                DrawCombatGizmos(ctx);
         }
 
         private void DrawPatrolGizmos(Info ctx)
         {
+            var patrol = (RandomWaypointGoal)Profile.goal;
             var position = ctx.ShipInfo.Pos3D;
 
             Gizmos.color = new Color(0f, 1f, 0f, 0.1f);
-            Gizmos.DrawWireSphere(position, Profile.patrolRadius);
+            Gizmos.DrawWireSphere(position, patrol.patrolRadius);
 
             if (hasPatrolTarget)
             {
@@ -41,7 +37,7 @@ namespace AI.States
                 Gizmos.DrawLine(position, currentTargetWorld);
 
                 Gizmos.color = Color.yellow;
-                Gizmos.DrawWireSphere(currentTargetWorld, Profile.patrolArriveRadius);
+                Gizmos.DrawWireSphere(currentTargetWorld, patrol.arriveRadius);
                 Gizmos.DrawWireCube(currentTargetWorld, Vector3.one * 0.5f);
 
                 var distToTarget = Vector2.Distance(ctx.ShipInfo.Pos, patrolTarget);
@@ -50,7 +46,7 @@ namespace AI.States
             }
 
             UnityEditor.Handles.color = Color.white;
-            var info = $"PATROL\nRadius: {Profile.patrolRadius:F0}m";
+            var info = $"PATROL\nRadius: {patrol.patrolRadius:F0}m";
             info += hasPatrolTarget ? "\nMoving to waypoint" : "\nSearching for waypoint";
             UnityEditor.Handles.Label(position + Vector3.up * 4f, info);
         }
@@ -102,17 +98,20 @@ namespace AI.States
 
             var enemyPos = GamePlane.PlanePointToWorld(combat.EnemyPos);
 
-            // Draw range band
-            var f = Profile.utilityFactors;
-            if (f.optimalRangeMin > 0f || f.optimalRangeMax > 0f)
+            // Draw range band from RangeBandFactor if present
+            foreach (var factor in Profile.utilityFactors)
             {
-                Gizmos.color = new Color(1f, 0.3f, 0.1f, 0.15f);
-                Gizmos.DrawWireSphere(enemyPos, f.optimalRangeMin);
-                Gizmos.DrawWireSphere(enemyPos, f.optimalRangeMax);
+                if (factor is RangeBandFactor rb)
+                {
+                    Gizmos.color = new Color(1f, 0.3f, 0.1f, 0.15f);
+                    Gizmos.DrawWireSphere(enemyPos, rb.optimalMin);
+                    Gizmos.DrawWireSphere(enemyPos, rb.optimalMax);
 
-                var desired = (f.optimalRangeMin + f.optimalRangeMax) * 0.5f;
-                Gizmos.color = new Color(1f, 0.5f, 0f, 0.3f);
-                Gizmos.DrawWireSphere(enemyPos, desired);
+                    var desired = (rb.optimalMin + rb.optimalMax) * 0.5f;
+                    Gizmos.color = new Color(1f, 0.5f, 0f, 0.3f);
+                    Gizmos.DrawWireSphere(enemyPos, desired);
+                    break;
+                }
             }
 
             // Targeting crosshair
@@ -126,7 +125,7 @@ namespace AI.States
             var a = ctx.Assessment;
             UnityEditor.Handles.color = new Color(1f, 0.5f, 0f);
             UnityEditor.Handles.Label(enemyPos + Vector3.up * 2f,
-                $"{Profile.stateType}: Range {a.EnemyDistance:F1}m");
+                $"{Profile.name}: Range {a.EnemyDistance:F1}m");
         }
     }
 }

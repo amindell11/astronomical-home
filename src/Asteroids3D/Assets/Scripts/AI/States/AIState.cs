@@ -15,7 +15,7 @@ namespace AI.States
     {
         public StateProfile Profile { get; }
 
-        public override StateType Type => Profile.stateType;
+        public override string ProfileName => Profile.name;
 
         /// <summary>
         /// The NavigationIntent produced by the most recent Tick.
@@ -29,8 +29,8 @@ namespace AI.States
         private float stuckTimer;
         private float bestDistToWaypoint;
 
-        public AIState(StateProfile profile, Navigator navigator, Gunner gunner, UtilityTuning utilityTuning)
-            : base(navigator, gunner, utilityTuning)
+        public AIState(StateProfile profile, Navigator navigator, Gunner gunner)
+            : base(navigator, gunner)
         {
             this.Profile = profile;
         }
@@ -50,26 +50,20 @@ namespace AI.States
 
         public override void Enter(Info ctx)
         {
-            // Configure navigator for this state
-            switch (Profile.goalMode)
-            {
-                case GoalMode.MaintainRange:
-                    navigator.SetGoalMaintainRange(Profile.desiredRange, Profile.rangeTolerance);
-                    break;
-                case GoalMode.Flee:
-                    navigator.SetGoalFlee();
-                    break;
-                default:
-                    navigator.ClearGoalMode();
-                    break;
-            }
+            var goal = Profile.goal;
+            if (goal is TrackEnemyGoal track)
+                navigator.SetGoalMaintainRange(track.desiredRange, track.rangeTolerance);
+            else if (goal is FleeEnemyGoal)
+                navigator.SetGoalFlee();
+            else
+                navigator.ClearGoalMode();
 
             navigator.SetWeightMultipliers(Profile.weightMultipliers);
 
             if (!Profile.enableFiring)
                 gunner.SetTarget((Transform)null);
 
-            if (Profile.goalStrategy == GoalStrategy.RandomWaypoint && ctx != null)
+            if (goal is RandomWaypointGoal && ctx != null)
                 ChooseNewPatrolPoint(ctx);
         }
 
@@ -93,30 +87,28 @@ namespace AI.States
 
         private NavigationIntent ProduceIntent(Info ctx, float deltaTime)
         {
+            var goal = Profile.goal;
             var intent = new NavigationIntent
             {
                 isValid = true,
-                goalMode = Profile.goalMode,
-                desiredRange = Profile.desiredRange,
-                rangeTolerance = Profile.rangeTolerance,
+                goalMode = goal?.GoalMode ?? GoalMode.Waypoint,
                 enableFiring = Profile.enableFiring,
                 weightMultipliers = Profile.weightMultipliers,
             };
 
-            switch (Profile.goalStrategy)
+            switch (goal)
             {
-                case GoalStrategy.RandomWaypoint:
-                    TickPatrol(ctx, deltaTime, ref intent);
-                    break;
-
-                case GoalStrategy.TrackEnemy:
+                case TrackEnemyGoal track:
+                    intent.desiredRange = track.desiredRange;
+                    intent.rangeTolerance = track.rangeTolerance;
                     TickTrackEnemy(ctx, ref intent);
                     break;
-
-                case GoalStrategy.FleeEnemy:
+                case FleeEnemyGoal:
                     TickFleeEnemy(ctx, ref intent);
                     break;
-
+                case RandomWaypointGoal:
+                    TickPatrol(ctx, deltaTime, ref intent);
+                    break;
             }
 
             return intent;
@@ -150,15 +142,17 @@ namespace AI.States
 
         private void TickPatrol(Info ctx, float deltaTime, ref NavigationIntent intent)
         {
+            var patrol = (RandomWaypointGoal)Profile.goal;
+
             if (!navigator.CurrentWaypoint.isValid ||
-                ctx.Nav.VectorToWaypoint.magnitude < Profile.patrolArriveRadius)
+                ctx.Nav.VectorToWaypoint.magnitude < patrol.arriveRadius)
             {
                 ChooseNewPatrolPoint(ctx);
             }
             else
             {
                 var dist = ctx.Nav.VectorToWaypoint.magnitude;
-                if (dist < bestDistToWaypoint - Profile.patrolStuckProgressThreshold)
+                if (dist < bestDistToWaypoint - patrol.stuckProgressThreshold)
                 {
                     bestDistToWaypoint = dist;
                     stuckTimer = 0f;
@@ -166,7 +160,7 @@ namespace AI.States
                 else
                 {
                     stuckTimer += deltaTime;
-                    if (stuckTimer >= Profile.patrolStuckTimeout)
+                    if (stuckTimer >= patrol.stuckTimeout)
                         ChooseNewPatrolPoint(ctx);
                 }
             }
@@ -176,10 +170,11 @@ namespace AI.States
 
         private void ChooseNewPatrolPoint(Info ctx)
         {
+            var patrol = (RandomWaypointGoal)Profile.goal;
             var currentPos = ctx.ShipInfo.Pos;
             var randomDistance = Random.Range(
-                Profile.patrolRadius * Profile.patrolMinDistanceFactor,
-                Profile.patrolRadius);
+                patrol.patrolRadius * patrol.minDistanceFactor,
+                patrol.patrolRadius);
             var randomDirection = Random.insideUnitCircle.normalized;
             patrolTarget = currentPos + randomDirection * randomDistance;
 
@@ -222,7 +217,7 @@ namespace AI.States
                 navigator.SetObstacleExclusion(intent.obstacleExclusion);
 
             // Navigation point (not for patrol — already set in ChooseNewPatrolPoint)
-            if (Profile.goalStrategy != GoalStrategy.RandomWaypoint)
+            if (!(Profile.goal is RandomWaypointGoal))
             {
                 navigator.SetNavigationPoint(
                     intent.goalPosition,
@@ -244,96 +239,16 @@ namespace AI.States
 
         public override float ComputeUtility(Info ctx)
         {
-            var a = ctx.Assessment;
-            var f = Profile.utilityFactors;
-
-            // Patrol: simple binary factor
-            if (Profile.goalStrategy == GoalStrategy.RandomWaypoint)
+            var builder = NewBuilder();
+            if (Profile.utilityFactors != null)
             {
-                return NewBuilder()
-                    .FactorBinary(!a.InCombat, "noCombat", f.noCombatFactor)
-                    .Build();
+                foreach (var factor in Profile.utilityFactors)
+                {
+                    if (factor != null)
+                        builder.Factor(factor.Name, factor.Evaluate(ctx.Assessment), factor.weight);
+                }
             }
-
-            // Pursuit: distance-based
-            if (Profile.stateType == StateType.Pursuit)
-            {
-                var distNorm = Mathf.Clamp01(a.EnemyDistance / f.engageDistance);
-                return NewBuilder()
-                    .Factor("selfHealth", a.HealthPct, f.healthFactor)
-                    .Factor("selfShield", a.ShieldPct, f.shieldFactor)
-                    .Factor("distance", distNorm, f.distanceFactor)
-                    .Factor("threat", a.Outnumbered, f.threatFactor)
-                    .Build();
-            }
-
-            // Evade: lots of conditional factors
-            if (Profile.stateType == StateType.Evade)
-            {
-                var fightingRetreat = a.HealthPct < f.fightingRetreatHealthThreshold
-                    && a.ShieldPct > f.fightingRetreatShieldThreshold;
-
-                return NewBuilder()
-                    .Factor("selfHealth", a.HealthPct, f.healthFactor)
-                    .Factor("selfShield", a.ShieldPct, f.shieldFactor)
-                    .Factor("outnumbered", a.Outnumbered, f.outnumberedFactor)
-                    .FactorBinary(a.HasLineOfSight, "enemyLOS", f.enemyLOSFactor)
-                    .Factor("closing", a.ClosingRate, f.closingSpeedFactor)
-                    .Factor("enemyFacing", a.EnemyFacingThreat, f.enemyFacingFactor)
-                    .FactorIf(a.IncomingMissile, "missile", f.missileFactor)
-                    .FactorIf(a.EnemyDistance < f.tooCloseDistance && a.HasLineOfSight, "tooClose", f.tooCloseFactor)
-                    .FactorIf(fightingRetreat, "fightingRetreat", f.fightingRetreatFactor)
-                    .FactorIf(a.IncomingMissile, "missilePenalty", f.missilePenaltyFactor)
-                    .Factor("angle", a.SelfAngleNorm, f.angleFactor)
-                    .Build();
-            }
-
-            // Combat states (Attack, AttackAggressive, AttackEvasive)
-            var inRange = a.EnemyDistance >= f.optimalRangeMin && a.EnemyDistance <= f.optimalRangeMax;
-            float rangeScore;
-
-            if (f.rangeScoreSpan > 0f)
-                rangeScore = inRange ? 1f : Mathf.Clamp01(1f - Mathf.Abs(a.EnemyDistance - f.rangeScoreCenter) / f.rangeScoreSpan);
-            else
-                rangeScore = inRange ? 1f : 0.3f;
-
-            var builder = NewBuilder()
-                .Factor("selfHealth", a.HealthPct, f.healthFactor)
-                .Factor("selfShield", a.ShieldPct, f.shieldFactor);
-
-            // Optional factors — only add if non-neutral
-            if (!IsInactive(f.enemyWeakFactor))
-                builder.Factor("enemyWeak", a.EnemyCombinedDurability, f.enemyWeakFactor);
-
-            if (!IsInactive(f.enemyFacingFactor))
-                builder.Factor("enemyFacing", a.EnemyFacingThreat, f.enemyFacingFactor);
-
-            if (!IsInactive(f.selfAngleFactor))
-                builder.Factor("selfAngle", a.SelfAngleNorm, f.selfAngleFactor);
-
-            if (!IsInactive(f.closingRateFactor))
-                builder.Factor("closingRate", a.ClosingRate, f.closingRateFactor);
-
-            builder.Factor("range", rangeScore, f.rangeFactor);
-            builder.FactorBinary(a.HasLineOfSight, "LOS", f.losFactor);
-
-            if (!IsInactive(f.threatFactor))
-                builder.Factor("threat", a.Outnumbered, f.threatFactor);
-
-            if (f.outerDistanceThreshold > 0f && a.EnemyDistance > f.outerDistanceThreshold)
-                builder.FactorIf(true, "outerRange", f.outerRangeFactor);
-
-            if (!IsInactive(f.desperationFactor))
-                builder.Factor("desperation", a.HealthPct, f.desperationFactor);
-
             return builder.Build();
         }
-
-        /// <summary>
-        /// A factor is inactive if it's zeroed (unset struct default) or neutral (1,1).
-        /// </summary>
-        private static bool IsInactive(FactorRange range) =>
-            (range.atLow == 0f && range.atHigh == 0f) ||
-            (Mathf.Approximately(range.atLow, 1f) && Mathf.Approximately(range.atHigh, 1f));
     }
 }

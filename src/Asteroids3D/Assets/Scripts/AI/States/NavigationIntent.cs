@@ -4,13 +4,6 @@ using UnityEngine;
 
 namespace AI.States
 {
-    public enum GoalStrategy
-    {
-        RandomWaypoint,
-        TrackEnemy,
-        FleeEnemy,
-    }
-
     /// <summary>
     /// Declarative description of what the navigator should do this frame.
     /// Produced by AIState.Tick, consumed by Navigator.ApplyIntent.

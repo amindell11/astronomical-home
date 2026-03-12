@@ -4,24 +4,14 @@ using Info = AI.Context.Info;
 
 namespace AI.States
 {
-    public enum StateType
-    {
-        Idle,
-        Patrol,
-        Pursuit,
-        Attack,
-        Evade,
-        AttackAggressive,
-        AttackEvasive
-    }
-
     public abstract partial class State
     {
         protected readonly Navigator navigator;
         protected readonly Gunner gunner;
-        protected readonly UtilityTuning utilityTuning;
         protected readonly string stateName;
-        public abstract StateType Type { get; }
+
+        /// <summary>Display name for this state, derived from its profile asset.</summary>
+        public abstract string ProfileName { get; }
 
         /// <summary>
         /// The UtilityBuilder from the most recent ComputeUtility call.
@@ -29,11 +19,10 @@ namespace AI.States
         /// </summary>
         public UtilityBuilder LastBuilder { get; private set; }
 
-        protected State(Navigator navigator, Gunner gunner, UtilityTuning utilityTuning)
+        protected State(Navigator navigator, Gunner gunner)
         {
             this.navigator = navigator;
             this.gunner = gunner;
-            this.utilityTuning = utilityTuning;
             stateName = GetType().Name;
         }
 
@@ -66,4 +55,4 @@ namespace AI.States
 
         public abstract float ComputeUtility(Info ctx);
     }
-} 
+}
