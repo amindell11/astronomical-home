@@ -1,0 +1,47 @@
+using Movement;
+using Movement.MPC;
+using UnityEngine;
+
+namespace AI.States
+{
+    public enum GoalStrategy
+    {
+        RandomWaypoint,
+        TrackEnemy,
+        FleeEnemy,
+    }
+
+    /// <summary>
+    /// Declarative description of what the navigator should do this frame.
+    /// Produced by AIState.Tick, consumed by Navigator.ApplyIntent.
+    /// Replaces all Set*/Clear* mutation on Navigator.
+    /// </summary>
+    public struct NavigationIntent
+    {
+        public bool isValid;
+
+        // Goal
+        public GoalMode goalMode;
+        public Vector2 goalPosition;
+        public Vector2 goalVelocity;
+        public float desiredRange;
+        public float rangeTolerance;
+
+        // Tactical
+        public bool hasEnemy;
+        public float enemyYawDeg;
+        public float enemyYawRateDeg;
+        public float projectileSpeed;
+        public Dynamics enemyDynamics;
+        public Transform obstacleExclusion;
+
+        // MPC weight multipliers
+        public WeightMultipliers weightMultipliers;
+
+        // Gunner
+        public bool enableFiring;
+        public Vector2 gunnerTarget;
+
+        public static NavigationIntent None => new NavigationIntent { isValid = false };
+    }
+}

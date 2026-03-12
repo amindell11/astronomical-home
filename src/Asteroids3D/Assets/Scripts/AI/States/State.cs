@@ -12,8 +12,7 @@ namespace AI.States
         Attack,
         Evade,
         AttackAggressive,
-        AttackEvasive,
-        AttackFlanking
+        AttackEvasive
     }
 
     public abstract partial class State

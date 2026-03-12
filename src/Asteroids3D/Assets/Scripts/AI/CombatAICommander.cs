@@ -12,11 +12,15 @@ namespace AI
 {
     [RequireComponent(typeof(Gunner))]
     [RequireComponent(typeof(UtilitySelector))]
-    public class CombatAICommander : AICommander
+    public partial class CombatAICommander : AICommander
     {
         [Header("AI Configuration")]
         [Tooltip("AI tuning parameters (distances, bonuses, thresholds, etc.)")]
         [SerializeField] private UtilityTuning utilityTuning;
+
+        [Header("State Profiles")]
+        [Tooltip("Data-driven state profiles. If populated, these replace the hardcoded state classes.")]
+        [SerializeField] private StateProfile[] stateProfiles;
 
         [Header("Combat")]
         [SerializeField] private CombatTuning combatTuning;
@@ -62,14 +66,23 @@ namespace AI
             context = new Info(ship, Navigator, gunner, Scout, targeting, maneuvers,
                 utilityTuning.combatExitDelay);
 
-            utilitySelector.Initialize(utilityTuning,
-                new AttackAggressive(Navigator, gunner, utilityTuning),
-                new AttackEvasive(Navigator, gunner, utilityTuning),
-                new AttackFlanking(Navigator, gunner, utilityTuning),
-                new Pursuit(Navigator, gunner, utilityTuning),
-                new Evade(Navigator, gunner, utilityTuning),
-                new Patrol(Navigator, gunner, utilityTuning)
-            );
+            if (stateProfiles != null && stateProfiles.Length > 0)
+            {
+                var states = new AI.States.State[stateProfiles.Length];
+                for (var i = 0; i < stateProfiles.Length; i++)
+                    states[i] = new AIState(stateProfiles[i], Navigator, gunner, utilityTuning);
+                utilitySelector.Initialize(utilityTuning, states);
+            }
+            else
+            {
+                utilitySelector.Initialize(utilityTuning,
+                    new AttackAggressive(Navigator, gunner, utilityTuning),
+                    new AttackEvasive(Navigator, gunner, utilityTuning),
+                    new Pursuit(Navigator, gunner, utilityTuning),
+                    new Evade(Navigator, gunner, utilityTuning),
+                    new Patrol(Navigator, gunner, utilityTuning)
+                );
+            }
 
             systemsInitialized = true;
         }
