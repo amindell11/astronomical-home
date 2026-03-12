@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3208e94f16e301643b270a7505a83d3f, type: 3}
   m_Name: DefaultSettings
   m_EditorClassIdentifier: 
-  mass: 500
+  mass: 800
   maxSpeed: 25
   maxYawRate: 180
   forwardForce: 5600

@@ -18,21 +18,26 @@ MonoBehaviour:
   noiseStd: 0.25
   wPos: 50
   wVel: 10
-  wYaw: 5
+  wYaw: 0.97
   wYawRate: 1
   wEffort: 20
-  wSmoothnessThrust: 0.1
-  wSmoothnessStrafe: 0.1
-  wSmoothnessYaw: 0.1
-  wObstacle: 20
-  wFacing: 1
-  facingWidth: 0.5
-  wLos: 1
-  wExposure: 1
-  exposureWidth: 0.5
-  wTangential: 1
+  wSmoothnessThrust: 1
+  wSmoothnessStrafe: 0.5
+  wSmoothnessYaw: 1
+  wObstacle: 40
+  wFacing: 100
+  facingWidth: 2
+  wLos: 100
+  wExposure: 300
+  exposureWidth: 4
+  wTangential: 100
   terminalMultiplier: 10
   obstacleThreshold: 6.3
+  obstacleSpeedMargin: 0.3
+  controlSmoothing: 0
+  relaxMin: 25
+  relaxMax: 150
+  relaxCurve: 1.51
   arrivalDistance: 4
   arrivalVelScale: 5
   arrivalYawScale: 0.1

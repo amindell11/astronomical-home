@@ -68,6 +68,8 @@ MonoBehaviour:
   enemyCommander: {fileID: 1772957474756936600, guid: 08a3705197cc60842b107b8485d8ad25,
     type: 3}
   enemySpawnPosition: {x: 0, y: 30}
+  enableDebugOverlay: 1
+  debugSettings: {fileID: 11400000, guid: 2e2ae38aa858dd74d9f7908425a3067d, type: 2}
   respawnPlayer: 1
   respawnEnemy: 1
   respawnDelay: 3

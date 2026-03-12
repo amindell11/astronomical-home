@@ -11,12 +11,9 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b56d01da063dcc54487eaaf6f8e443eb, type: 3}
   m_Name: AttackAggressive
-  m_EditorClassIdentifier:
-  stateType: 5
-  goalStrategy: 1
-  goalMode: 1
-  desiredRange: 15.5
-  rangeTolerance: 9.5
+  m_EditorClassIdentifier: 
+  goal:
+    rid: 7421252954394461004
   enableTacticalCosts: 1
   enableFiring: 1
   weightMultipliers:
@@ -25,82 +22,184 @@ MonoBehaviour:
     yaw: 1
     yawRate: 1
     effort: 1
+    smoothnessThrust: 0
+    smoothnessStrafe: 0
+    smoothnessYaw: 0
     obstacle: 1
     facing: 2
     exposure: 0.5
     los: 1
     tangential: 0
-    facingWidth: 0.3
-    exposureWidth: 0
+    facingWidth: 0.6
+    exposureWidth: 1
   requiresEnemy: 1
   requiresNoEnemy: 0
   minRange: 0
   maxRange: 25
-  patrolRadius: 50
-  patrolMinDistanceFactor: 0.3
-  patrolArriveRadius: 3
-  patrolStuckTimeout: 3
-  patrolStuckProgressThreshold: 1
   utilityFactors:
-    healthFactor:
-      atLow: 0.3
-      atHigh: 1.2
-    shieldFactor:
-      atLow: 0.4
-      atHigh: 1.1
-    enemyWeakFactor:
-      atLow: 1.3
-      atHigh: 1
-    rangeFactor:
-      atLow: 0.5
-      atHigh: 1.2
-    losFactor:
-      atLow: 0.4
-      atHigh: 1.2
-    threatFactor:
-      atLow: 0
-      atHigh: 0
-    desperationFactor:
-      atLow: 0
-      atHigh: 0
-    enemyFacingFactor:
-      atLow: 1.2
-      atHigh: 0.5
-    selfAngleFactor:
-      atLow: 1.2
-      atHigh: 0.5
-    closingRateFactor:
-      atLow: 0
-      atHigh: 0
-    outnumberedFactor:
-      atLow: 0
-      atHigh: 0
-    enemyLOSFactor:
-      atLow: 0
-      atHigh: 0
-    closingSpeedFactor:
-      atLow: 0
-      atHigh: 0
-    angleFactor:
-      atLow: 0
-      atHigh: 0
-    distanceFactor:
-      atLow: 0
-      atHigh: 0
-    engageDistance: 0
-    missileFactor: 0
-    tooCloseFactor: 0
-    tooCloseDistance: 0
-    missilePenaltyFactor: 0
-    fightingRetreatHealthThreshold: 0
-    fightingRetreatShieldThreshold: 0
-    fightingRetreatFactor: 0
-    optimalRangeMin: 6
-    optimalRangeMax: 25
-    outerDistanceThreshold: 0
-    outerRangeFactor: 0
-    rangeScoreCenter: 15
-    rangeScoreSpan: 25
-    noCombatFactor:
-      atLow: 0
-      atHigh: 0
+  - rid: 7421252954394461005
+  - rid: 7421252954394461006
+  - rid: 7421252954394461007
+  - rid: 7421252954394461008
+  - rid: 7421252954394461009
+  - rid: 7421252954394461010
+  - rid: 7421252954394461011
+  references:
+    version: 2
+    RefIds:
+    - rid: 7421252954394461004
+      type: {class: TrackEnemyGoal, ns: AI.States, asm: Game.Core}
+      data:
+        desiredRange: 15.5
+        rangeTolerance: 9.5
+    - rid: 7421252954394461005
+      type: {class: CurveFactor, ns: AI.States, asm: Game.Core}
+      data:
+        input: 0
+        response:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0.55
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 1.45
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+    - rid: 7421252954394461006
+      type: {class: CurveFactor, ns: AI.States, asm: Game.Core}
+      data:
+        input: 1
+        response:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0.65
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 1.35
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+    - rid: 7421252954394461007
+      type: {class: CurveFactor, ns: AI.States, asm: Game.Core}
+      data:
+        input: 2
+        response:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 1.15
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0.85
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+    - rid: 7421252954394461008
+      type: {class: RangeBandFactor, ns: AI.States, asm: Game.Core}
+      data:
+        optimalMin: 6
+        optimalMax: 25
+    - rid: 7421252954394461009
+      type: {class: BinaryFactor, ns: AI.States, asm: Game.Core}
+      data:
+        signal: 0
+        whenTrue: 1.4
+        whenFalse: 0.6
+    - rid: 7421252954394461010
+      type: {class: CurveFactor, ns: AI.States, asm: Game.Core}
+      data:
+        input: 5
+        response:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 1.35
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0.65
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+    - rid: 7421252954394461011
+      type: {class: CurveFactor, ns: AI.States, asm: Game.Core}
+      data:
+        input: 6
+        response:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 1.35
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0.65
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4

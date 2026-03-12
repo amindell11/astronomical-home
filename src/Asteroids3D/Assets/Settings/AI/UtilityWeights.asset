@@ -13,19 +13,13 @@ MonoBehaviour:
   m_Name: UtilityWeights
   m_EditorClassIdentifier: 
   weights:
-  - type: 0
+  - profile: {fileID: 11400000, guid: 810eec9f0227d5f45a38f462c537a795, type: 2}
     weight: 1
-  - type: 1
+  - profile: {fileID: 11400000, guid: 6a2c1289cd40cdb4092e35e2d3486690, type: 2}
     weight: 1
-  - type: 2
-    weight: 0
-  - type: 3
-    weight: 0
-  - type: 4
+  - profile: {fileID: 11400000, guid: 1b712301a9e747448ba8faa02df5aa8c, type: 2}
     weight: 1
-  - type: 5
-    weight: 0
-  - type: 6
-    weight: 0
-  - type: 7
-    weight: 0
+  - profile: {fileID: 11400000, guid: d90063e255dead04198763c69f2e8ba4, type: 2}
+    weight: 1
+  - profile: {fileID: 11400000, guid: c66a677b8ba837d4f87b3741f82985bd, type: 2}
+    weight: 1
