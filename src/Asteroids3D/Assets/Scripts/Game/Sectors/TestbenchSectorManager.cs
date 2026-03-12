@@ -23,6 +23,10 @@ namespace Game.Sectors
         [SerializeField] private Ships.Command.Commander enemyCommander;
         [SerializeField] private Vector2 enemySpawnPosition = new Vector2(0f, 50f);
 
+        [Header("Debug")]
+        [SerializeField] private bool enableDebugOverlay = true;
+        [SerializeField] private AI.Debug.AIDebugSettings debugSettings;
+
         [Header("Respawn")]
         [Tooltip("Enable respawn for the player ship when it dies.")]
         [SerializeField] private bool respawnPlayer = true;
@@ -35,6 +39,7 @@ namespace Game.Sectors
 
         private Ship enemy;
         private UpdatingAsteroidField asteroidFieldInstance;
+        private AI.Debug.ArenaDebugOverlay debugOverlay;
 
         protected override IEnumerator OnSetup()
         {
@@ -55,6 +60,14 @@ namespace Game.Sectors
 
             WireRespawn();
             InitializeAsteroidField();
+
+            if (enableDebugOverlay)
+            {
+                debugOverlay = gameObject.AddComponent<AI.Debug.ArenaDebugOverlay>();
+                debugOverlay.Initialize(debugSettings);
+                if (player) debugOverlay.RegisterShip(player);
+                if (enemy) debugOverlay.RegisterShip(enemy);
+            }
         }
 
         private void WireRespawn()
@@ -99,6 +112,7 @@ namespace Game.Sectors
 
         protected override IEnumerator OnTeardown()
         {
+            if (debugOverlay) Destroy(debugOverlay);
             if (asteroidFieldInstance) Destroy(asteroidFieldInstance.gameObject);
 
             yield return base.OnTeardown();
@@ -108,6 +122,7 @@ namespace Game.Sectors
 
             enemy = null;
             asteroidFieldInstance = null;
+            debugOverlay = null;
         }
     }
 }

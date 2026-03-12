@@ -95,8 +95,8 @@ namespace AI.Debug
         private void OnGUI()
         {
             if (!mainCam) return;
-            var showStateLabels = debugSettings != null && debugSettings.IsActive(AIDebugChannel.Utility);
-            var showUtilityScores = showStateLabels;
+            var showStateLabels = debugSettings != null && debugSettings.IsActive(AIDebugChannel.Info);
+            var showUtilityScores = debugSettings != null && debugSettings.IsActive(AIDebugChannel.Utility);
             if (!showStateLabels && !showUtilityScores) return;
 
             InitStyles();
