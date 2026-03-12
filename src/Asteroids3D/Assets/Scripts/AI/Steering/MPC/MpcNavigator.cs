@@ -21,6 +21,7 @@ namespace Movement.MPC
         private Control[] bestSequence;
         private State[] predictedStates;
         private Config config;
+        private Control smoothedControl;
 #if UNITY_EDITOR
         public float lastBestCost;
 #else
@@ -60,7 +61,8 @@ namespace Movement.MPC
                     scan, enableObstacleAvoidance,
                     GoalPos(), GoalVel(), enemyYaw, enemyYawRate,
                     projectileSpeed, config, dynamics,
-                    settings.samples, settings.noiseStd, lastControl);
+                    settings.samples, settings.noiseStd, lastControl,
+                    enemyDynamics);
             }
 #if UNITY_EDITOR
             sw.Stop();
@@ -71,7 +73,28 @@ namespace Movement.MPC
 
             UpdatePredictedStates(mpcState);
             lastControl = bestSequence[0];
-            ApplyControl(ref cmd, bestSequence[0]);
+
+            var raw = bestSequence[0];
+            var a = settings.controlSmoothing;
+            smoothedControl = new Control
+            {
+                thrust = math.lerp(raw.thrust, smoothedControl.thrust, a),
+                strafe = math.lerp(raw.strafe, smoothedControl.strafe, a),
+                yawTorque = math.lerp(raw.yawTorque, smoothedControl.yawTorque, a),
+            };
+
+            // Scale controls by urgency — below relaxMin = coast, above relaxMax = full authority
+            if (settings.relaxMax > settings.relaxMin)
+            {
+                var normalizedCost = lastBestCost / config.horizon;
+                var t = math.saturate((normalizedCost - settings.relaxMin) / (settings.relaxMax - settings.relaxMin));
+                var urgency = math.pow(t, settings.relaxCurve);
+                smoothedControl.thrust *= urgency;
+                smoothedControl.strafe *= urgency;
+                smoothedControl.yawTorque *= urgency;
+            }
+
+            ApplyControl(ref cmd, smoothedControl);
         }
 
         private bool HasArrived(Kinematics kin)
@@ -125,7 +148,7 @@ namespace Movement.MPC
         {
             var facingRad = facingOverride ? facingAngle * Mathf.Deg2Rad : float.NaN;
             config = settings.ToConfig(facingRad, goalMode, goalDesiredRange, goalRangeTolerance);
-            mpcWeightOverrides.Apply(ref config);
+            weightMultipliers.Apply(ref config);
 
             if (bestSequence.Length != config.horizon)
             {

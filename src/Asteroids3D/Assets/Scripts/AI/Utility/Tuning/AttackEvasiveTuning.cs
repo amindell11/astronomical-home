@@ -32,7 +32,7 @@ namespace AI.Utility
         [Tooltip("Tangential velocity weight (rewards lateral movement).")]
         public float wTangential;
         [Tooltip("Exposure cone sharpness.")]
-        public float exposurePower;
+        public float exposureWidth;
 
         public static AttackEvasiveTuning Default => new AttackEvasiveTuning
         {
@@ -46,7 +46,7 @@ namespace AI.Utility
             optimalRangeMax = 45f,
             wExposure = 3.0f,
             wTangential = 1.5f,
-            exposurePower = 2f,
+            exposureWidth = 0.8f,
         };
     }
 }

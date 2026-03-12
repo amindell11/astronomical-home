@@ -10,63 +10,108 @@ namespace Movement.MPC
         private const float HeadingGateDistanceSq = HeadingGateDistance * HeadingGateDistance;
         private const float TwoPi = 2f * math.PI;
 
+        /// <summary>
+        /// Preprocessed per-step context shared by Evaluate and EvaluateBreakdown.
+        /// Keeps goal-mode logic (Flee, arrival, heading flip) in one place.
+        /// </summary>
+        internal struct EvalContext
+        {
+            public float2 goalPos;
+            public float enemyYaw;
+            public bool hasEnemy;
+            public bool isFlee;
+            public float wVel;
+            public float wYaw;
+            public float2 headingGoal;
+            public float facingTarget;
+
+            internal static EvalContext Create(State s, CostInput input, Config cfg, int step)
+            {
+                var stepTime = step * cfg.dt;
+                var hasEnemy = !math.isnan(input.enemyYaw);
+
+                // Use pre-rolled enemy trajectory if available, otherwise linear extrapolation
+                float2 goalPos;
+                float2 goalVel;
+                float enemyYaw;
+                if (input.enemyStates.IsCreated && step < input.enemyStateCount)
+                {
+                    var es = input.enemyStates[step];
+                    goalPos = es.pos;
+                    goalVel = es.vel;
+                    enemyYaw = hasEnemy ? es.yaw : input.enemyYaw;
+                }
+                else
+                {
+                    goalPos = input.goalPos + input.goalVel * stepTime;
+                    goalVel = input.goalVel;
+                    enemyYaw = hasEnemy ? input.enemyYaw + input.enemyYawRate * stepTime : input.enemyYaw;
+                }
+
+                var isFlee = cfg.goalMode == GoalMode.Flee;
+                var wVel = cfg.wVel;
+                var wYaw = cfg.wYaw;
+                var distToGoalSq = math.lengthsq(goalPos - s.pos);
+
+                // Arrival stabilization (disabled in Flee — we start near the goal and want to accelerate away)
+                if (!isFlee && distToGoalSq < cfg.arrivalDistanceSq)
+                {
+                    var distToGoal = math.sqrt(distToGoalSq);
+                    var t = 1f - (distToGoal / cfg.arrivalDistance);
+                    wVel = math.lerp(cfg.wVel, cfg.wVel * cfg.arrivalVelScale, t);
+                    wYaw = math.lerp(cfg.wYaw, cfg.wYaw * cfg.arrivalYawScale, t);
+                }
+
+                var facingTarget = cfg.facingTarget;
+                if (input.projectileSpeed > 0f && hasEnemy)
+                    facingTarget = InterceptYaw(s.pos, goalPos, goalVel, input.projectileSpeed);
+
+                return new EvalContext
+                {
+                    goalPos = goalPos,
+                    enemyYaw = enemyYaw,
+                    hasEnemy = hasEnemy,
+                    isFlee = isFlee,
+                    wVel = wVel,
+                    wYaw = wYaw,
+                    headingGoal = isFlee ? 2f * s.pos - goalPos : goalPos,
+                    facingTarget = facingTarget,
+                };
+            }
+        }
+
         public static float Evaluate(State s, Control u, Control prevU,
             CostInput input, Config cfg, bool isTerminal, int step = 0)
         {
-            // Project enemy state forward for this timestep
-            var stepTime = step * cfg.dt;
-            var goalPos = input.goalPos + input.goalVel * stepTime;
-            var hasEnemy = !math.isnan(input.enemyYaw);
-            var enemyYaw = hasEnemy ? input.enemyYaw + input.enemyYawRate * stepTime : input.enemyYaw;
+            var ctx = EvalContext.Create(s, input, cfg, step);
 
-            var toGoal = goalPos - s.pos;
-            var distToGoalSq = math.lengthsq(toGoal);
-
-            // Arrival stabilization
-            var wVel = cfg.wVel;
-            var wYaw = cfg.wYaw;
-
-            if (distToGoalSq < cfg.arrivalDistanceSq)
-            {
-                var distToGoal = math.sqrt(distToGoalSq);
-                var t = 1f - (distToGoal / cfg.arrivalDistance);
-                wVel = math.lerp(cfg.wVel, cfg.wVel * cfg.arrivalVelScale, t);
-                wYaw = math.lerp(cfg.wYaw, cfg.wYaw * cfg.arrivalYawScale, t);
-            }
-
-            var posCost = GoalCost(s.pos, goalPos, cfg) * cfg.wPos;
-            var velCost = VelocityCost(s.vel) * wVel;
-            var headingCost = HeadingCost(s.pos, s.yaw, goalPos) * wYaw;
-
-            // Dynamic facing: compute lead-target angle per step, or fall back to static override
-            var facingTarget = cfg.facingTarget;
-            if (input.projectileSpeed > 0f && hasEnemy)
-                facingTarget = InterceptYaw(s.pos, goalPos, input.goalVel, input.projectileSpeed);
-            var facingCost = FacingCost(s.yaw, facingTarget, cfg.facingPower) * cfg.wFacing;
-
+            var posCost = GoalCost(s.pos, ctx.goalPos, cfg) * cfg.wPos;
+            var velCost = ctx.isFlee ? 0f : VelocityCost(s.vel) * ctx.wVel;
+            var headingCost = HeadingCost(s.pos, s.yaw, ctx.headingGoal) * ctx.wYaw;
+            var facingCost = FacingCost(s.yaw, ctx.facingTarget, cfg.facingWidth) * cfg.wFacing;
             var yawRateCost = YawRateCost(s.yawRate) * cfg.wYawRate;
+
             var obstacleCost = 0f;
             if (cfg.wObstacle > 0f && input.obstacleCount > 0)
             {
-                obstacleCost = ObstacleCost(s.pos, input.obstacles, input.obstacleCount, cfg.obstacleThreshold) * cfg.wObstacle;
+                var effectiveThreshold = cfg.obstacleThreshold + math.length(s.vel) * cfg.obstacleSpeedMargin;
+                obstacleCost = ObstacleCost(s.pos, input.obstacles, input.obstacleCount, effectiveThreshold) * cfg.wObstacle;
             }
 
             var losCost = 0f;
             var exposureCost = 0f;
             var tangentialCost = 0f;
-            if (hasEnemy)
+            if (ctx.hasEnemy)
             {
                 if (cfg.wLos > 0f && input.obstacleCount > 0)
-                    losCost = LosCost(s.pos, goalPos, input.obstacles, input.obstacleCount) * cfg.wLos;
+                    losCost = LosCost(s.pos, ctx.goalPos, input.obstacles, input.obstacleCount) * cfg.wLos;
                 if (cfg.wExposure > 0f)
-                    exposureCost = ExposureCost(s.pos, goalPos, enemyYaw, cfg.exposurePower) * cfg.wExposure;
+                    exposureCost = ExposureCost(s.pos, ctx.goalPos, ctx.enemyYaw, cfg.exposureWidth) * cfg.wExposure;
                 if (cfg.wTangential > 0f)
-                    tangentialCost = TangentialVelocityCost(s.pos, s.vel, goalPos) * cfg.wTangential;
+                    tangentialCost = TangentialVelocityCost(s.pos, s.vel, ctx.goalPos) * cfg.wTangential;
             }
 
-            // Positional costs benefit from terminal boost (planning toward good end state)
             var positionalCost = posCost + velCost + headingCost + yawRateCost + obstacleCost;
-            // Tactical costs are projected forward and can now be terminal-boosted
             var tacticalCost = facingCost + losCost + exposureCost + tangentialCost;
 
             var effortCost = EffortCost(u) * cfg.wEffort;
@@ -123,8 +168,8 @@ namespace Movement.MPC
 
         internal static float FleeCost(float2 pos, float2 goal)
         {
-            var distSq = math.lengthsq(pos - goal);
-            return FleeEpsilon / (distSq + FleeEpsilon);
+            var dist = math.length(pos - goal);
+            return FleeEpsilon / (dist + FleeEpsilon);
         }
 
         internal static float VelocityCost(float2 vel) => math.lengthsq(vel);
@@ -145,11 +190,11 @@ namespace Movement.MPC
             return cost * Smoothstep01(normalizedDist);
         }
 
-        internal static float FacingCost(float yaw, float targetYaw, float power = 1f)
+        internal static float FacingCost(float yaw, float targetYaw, float width = 1f)
         {
             if (math.isnan(targetYaw)) return 0f;
             var err = math.abs(WrapRadians(yaw - targetYaw));
-            return math.pow(err, 1f / power);
+            return err < width ? err * err : 2f * width * err - width * width;
         }
 
         internal static float YawRateCost(float yawRate) => yawRate * yawRate;
@@ -233,7 +278,7 @@ namespace Movement.MPC
         /// exposure far more urgent than long-range.
         /// </summary>
         public static float ExposureCost(float2 pos, float2 enemyPos, float enemyYaw,
-            float power = 2f)
+            float width = 1f)
         {
             var toShip = pos - enemyPos;
             var dist = math.length(toShip);
@@ -244,10 +289,11 @@ namespace Movement.MPC
             var enemyFwd = new float2(-math.sin(enemyYaw), math.cos(enemyYaw));
             var cosAngle = math.dot(enemyFwd, dir);
 
-            // Only penalize being in front half (cosAngle > 0)
-            if (cosAngle <= 0f) return 0f;
+            // Angle from enemy's nose (0 = directly in front, π = behind)
+            var angle = math.acos(math.clamp(cosAngle, -1f, 1f));
+            var x = angle / math.max(width, 1e-4f);
+            var angular = math.exp(-x * x);
 
-            var angular = math.pow(cosAngle, power);
             // Inverse-distance: at 1 unit → 1.0, at 10 units → 0.1, at 50 → 0.02
             var proximity = 1f / dist;
             return angular * proximity;

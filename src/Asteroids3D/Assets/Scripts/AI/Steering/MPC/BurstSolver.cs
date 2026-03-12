@@ -82,17 +82,21 @@ namespace Movement.MPC
         private NativeArray<float> costs;
         private NativeArray<Control> result;
         private NativeArray<ObstacleData> obstacles;
+        private NativeArray<State> enemyStates;
         private bool allocated;
         private int lastObstacleCount;
 
         public NativeArray<ObstacleData> Obstacles => obstacles;
         public int ObstacleCount => lastObstacleCount;
+        public NativeArray<State> EnemyStates => enemyStates;
+        public int LastEnemyStateCount { get; private set; }
 
         public float Solve(State initialState, Control[] sequence,
             AI.Scanning.ObstacleScan scan, bool useObstacles,
             float2 goalPos, float2 goalVel, float enemyYaw, float enemyYawRate,
             float projectileSpeed, Config cfg, Dynamics dynamics,
-            int samples, float noiseStd, Control lastControl)
+            int samples, float noiseStd, Control lastControl,
+            Dynamics enemyDynamics = default)
         {
             var horizon = cfg.horizon;
             EnsureBuffers(horizon, samples);
@@ -102,6 +106,35 @@ namespace Movement.MPC
 
             ConvertObstacles(scan, useObstacles, dynamics.mass);
 
+            // Roll out predicted enemy trajectory assuming maintained thrust along facing
+            var hasEnemyRollout = !math.isnan(enemyYaw) && enemyDynamics.mass > 0f;
+            var enemyStateCount = 0;
+            if (hasEnemyRollout)
+            {
+                var enemyState = new State
+                {
+                    pos = goalPos,
+                    vel = goalVel,
+                    yaw = enemyYaw,
+                    yawRate = enemyYawRate,
+                };
+                // Estimate thrust and strafe from velocity projected onto body axes
+                var sin = math.sin(enemyYaw);
+                var cos = math.cos(enemyYaw);
+                var fwd = new float2(-sin, cos);
+                var right = new float2(cos, sin);
+                var estimatedThrust = math.clamp(math.dot(goalVel, fwd) / enemyDynamics.maxSpeed, -1f, 1f);
+                var estimatedStrafe = math.clamp(math.dot(goalVel, right) / enemyDynamics.maxSpeed, -1f, 1f);
+                var enemyControl = new Control { thrust = estimatedThrust, strafe = estimatedStrafe };
+                for (var i = 0; i < horizon; i++)
+                {
+                    enemyState = Model.Step(enemyState, enemyControl, cfg, enemyDynamics);
+                    enemyStates[i] = enemyState;
+                }
+                enemyStateCount = horizon;
+            }
+            LastEnemyStateCount = enemyStateCount;
+
             var costInput = new CostInput
             {
                 goalPos = goalPos,
@@ -110,7 +143,9 @@ namespace Movement.MPC
                 obstacleCount = lastObstacleCount,
                 enemyYaw = enemyYaw,
                 enemyYawRate = enemyYawRate,
-                projectileSpeed = projectileSpeed
+                projectileSpeed = projectileSpeed,
+                enemyStates = enemyStates,
+                enemyStateCount = enemyStateCount,
             };
 
             var rngSeed = (uint)(Time.frameCount * 7919 + initialState.pos.GetHashCode());
@@ -161,7 +196,9 @@ namespace Movement.MPC
                 obstacleCount = lastObstacleCount,
                 enemyYaw = enemyYaw,
                 enemyYawRate = enemyYawRate,
-                projectileSpeed = projectileSpeed
+                projectileSpeed = projectileSpeed,
+                enemyStates = enemyStates.IsCreated ? enemyStates : default,
+                enemyStateCount = enemyStates.IsCreated ? enemyStates.Length : 0,
             };
         }
 
@@ -192,6 +229,7 @@ namespace Movement.MPC
             candidates = new NativeArray<Control>(samples * horizon, Allocator.Persistent);
             costs = new NativeArray<float>(samples, Allocator.Persistent);
             obstacles = new NativeArray<ObstacleData>(64, Allocator.Persistent);
+            enemyStates = new NativeArray<State>(horizon, Allocator.Persistent);
             result = new NativeArray<Control>(horizon, Allocator.Persistent);
             allocated = true;
         }
@@ -203,6 +241,7 @@ namespace Movement.MPC
             candidates.Dispose();
             costs.Dispose();
             obstacles.Dispose();
+            enemyStates.Dispose();
             result.Dispose();
             allocated = false;
         }

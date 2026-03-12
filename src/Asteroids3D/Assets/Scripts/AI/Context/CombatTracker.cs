@@ -39,6 +39,7 @@ namespace AI.Context
 
         public Vector2 EnemyPos => HasEnemy ? cachedEnemy.CurrentState.kinematics.pos : Vector2.zero;
         public Vector2 EnemyVel => HasEnemy ? cachedEnemy.CurrentState.kinematics.vel : Vector2.zero;
+        public Movement.Dynamics EnemyDynamics => HasEnemy ? cachedEnemy.Dynamics : default;
         public Vector2 EnemyForward => HasEnemy ? cachedEnemy.CurrentState.kinematics.Forward : Vector2.up;
         public float EnemyYawRate => HasEnemy ? cachedEnemy.CurrentState.kinematics.yawRate : 0f;
         public float EnemyHealthPct => HasEnemy ? cachedEnemy.CurrentState.healthPct : 0f;

@@ -25,15 +25,8 @@ namespace AI.States
             var tolerance = (t.optimalRangeMax - t.optimalRangeMin) * 0.5f;
             navigator.SetGoalMaintainRange(desiredRange, tolerance);
 
-            navigator.SetMpcWeightOverrides(new WeightOverrides
-            {
-                wFacing = float.NaN,
-                wExposure = t.wExposure,
-                wLos = float.NaN,
-                wTangential = t.wTangential,
-                exposurePower = t.exposurePower,
-                facingPower = float.NaN,
-            });
+            // Legacy fallback — use default multipliers (StateProfile path is preferred)
+            navigator.SetWeightMultipliers(WeightMultipliers.Default);
         }
 
         public override void Tick(Info ctx, float deltaTime)
@@ -60,7 +53,7 @@ namespace AI.States
             navigator.ClearGoalMode();
             navigator.ClearEnemyState();
             navigator.ClearObstacleExclusion();
-            navigator.ClearMpcWeightOverrides();
+            navigator.ClearWeightMultipliers();
         }
 
         public override float ComputeUtility(Info ctx)

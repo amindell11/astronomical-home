@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Movement.MPC
 {
@@ -42,16 +43,20 @@ namespace Movement.MPC
         [Tooltip("Facing override weight. Steers the nose toward a specific angle (e.g. lead target in Attack). " +
                  "Only active when a facing override is set.")]
         public float wFacing = 1.0f;
-        [Tooltip("Facing precision. 1 = linear (uniform), higher = steeper near zero error for tighter aim.")]
-        public float facingPower = 1f;
+        [FormerlySerializedAs("facingPower")]
+        [Tooltip("Facing Huber dead-zone width in radians. Errors within this range get a gentle quadratic penalty; beyond it cost grows linearly.")]
+        public float facingWidth = 0.5f;
 
         [Header("Tactical LOS")]
         [Tooltip("Line-of-sight cost weight. Penalizes positions where obstacles block the view to the enemy.")]
-        public float wLos = 0f;
+        public float wLos = 1f;
         [Tooltip("Exposure cost weight. Penalizes being in the enemy's forward weapon arc.")]
-        public float wExposure = 0f;
-        [Tooltip("Sharpness of the exposure cone. 2 = quadratic (default), higher = narrower spike centered on enemy's nose.")]
-        public float exposurePower = 2f;
+        public float wExposure = 1f;
+        [FormerlySerializedAs("exposurePower")]
+        [Tooltip("Exposure Gaussian width in radians. Smaller = narrower danger cone in front of enemy.")]
+        public float exposureWidth = 0.5f;
+        [Tooltip("Tangential velocity cost weight. Rewards lateral movement relative to enemy, making the ship harder to track.")]
+        public float wTangential = 1f;
 
         [Tooltip("Multiplier applied to state costs at the final rollout step. " +
                  "Encourages the solver to reach a good terminal state.")]
@@ -61,6 +66,21 @@ namespace Movement.MPC
         [Tooltip("Distance beyond an obstacle's radius at which the avoidance cost begins. " +
                  "Effectively inflates obstacles by this amount.")]
         public float obstacleThreshold = 5.0f;
+        [Tooltip("Extra clearance added per unit speed. effectiveThreshold = obstacleThreshold + speed * this value.")]
+        public float obstacleSpeedMargin = 0.3f;
+
+        [Header("Control Smoothing")]
+        [Tooltip("EMA smoothing factor for applied controls. 0 = no smoothing, 0.95 = very smooth (slow response).")]
+        [Range(0f, 0.95f)]
+        public float controlSmoothing = 0.5f;
+
+        [Header("Relaxation")]
+        [Tooltip("Cost at or below which controls are fully zeroed (ship coasts).")]
+        public float relaxMin = 0.5f;
+        [Tooltip("Cost at or above which controls are applied at full authority.")]
+        public float relaxMax = 2.0f;
+        [Tooltip("Curve exponent for the relaxation ramp. 1 = linear, <1 = aggressive early ramp, >1 = gentle early ramp.")]
+        public float relaxCurve = 1.0f;
 
         [Header("Arrival Stabilization")]
         [Tooltip("Distance to goal at which arrival stabilization begins ramping up.")]
@@ -91,12 +111,13 @@ namespace Movement.MPC
                 wSmoothnessYaw = wSmoothnessYaw,
                 wObstacle = wObstacle,
                 wFacing = wFacing,
-                facingPower = facingPower,
+                facingWidth = facingWidth,
                 wLos = wLos,
                 wExposure = wExposure,
-                exposurePower = exposurePower,
+                exposureWidth = exposureWidth,
                 terminalMultiplier = terminalMultiplier,
                 obstacleThreshold = obstacleThreshold,
+                obstacleSpeedMargin = obstacleSpeedMargin,
                 arrivalDistance = arrivalDistance,
                 arrivalDistanceSq = arrivalDistance * arrivalDistance,
                 arrivalVelScale = arrivalVelScale,
@@ -105,7 +126,7 @@ namespace Movement.MPC
                 goalMode = goalMode,
                 desiredRange = desiredRange,
                 rangeTolerance = rangeTolerance,
-                wTangential = 0f
+                wTangential = wTangential
             };
         }
     }

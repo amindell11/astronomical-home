@@ -34,7 +34,7 @@ namespace AI.Utility
         [Tooltip("Exposure weight override (low — willing to tank hits).")]
         public float wExposure;
         [Tooltip("Facing precision override.")]
-        public float facingPower;
+        public float facingWidth;
 
         public static AttackAggressiveTuning Default => new AttackAggressiveTuning
         {
@@ -49,7 +49,7 @@ namespace AI.Utility
             optimalRangeMax = 25f,
             wFacing = 2.0f,
             wExposure = 0.5f,
-            facingPower = 1.5f,
+            facingWidth = 0.3f,
         };
     }
 }

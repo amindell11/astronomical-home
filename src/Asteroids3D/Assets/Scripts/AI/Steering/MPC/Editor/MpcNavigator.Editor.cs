@@ -97,6 +97,7 @@ namespace Movement.MPC
             if (!settings.IsActive(AIDebugChannel.Steering)) return;
 
             DrawPredictedTrajectory();
+            DrawEnemyRollout();
             DrawGoal();
             DrawObstacleDebugInfo();
         }
@@ -132,6 +133,35 @@ namespace Movement.MPC
 
                 prevPos = pos;
                 prevU = u;
+            }
+        }
+
+        private void DrawEnemyRollout()
+        {
+            if (solver == null || solver.LastEnemyStateCount == 0) return;
+
+            var enemyStates = solver.EnemyStates;
+            var count = solver.LastEnemyStateCount;
+
+            var prevPos = GamePlane.PlanePointToWorld(new Vector2(enemyStates[0].pos.x, enemyStates[0].pos.y));
+
+            for (var i = 1; i < count; i++)
+            {
+                var state = enemyStates[i];
+                var pos = GamePlane.PlanePointToWorld(new Vector2(state.pos.x, state.pos.y));
+
+                Gizmos.color = new Color(1f, 0.3f, 0.3f, 0.8f);
+                Gizmos.DrawLine(prevPos, pos);
+                Gizmos.DrawSphere(pos, 0.15f);
+
+                if (i % labelStep == 0)
+                {
+                    Handles.Label(pos + Vector3.up * 0.2f,
+                        $"Enemy t+{i}",
+                        new GUIStyle { normal = { textColor = new Color(1f, 0.4f, 0.4f) }, fontSize = 10 });
+                }
+
+                prevPos = pos;
             }
         }
 
@@ -220,6 +250,10 @@ namespace Movement.MPC
             var breakdown = nav.lastCostBreakdown;
             var total = breakdown.total;
             EditorGUILayout.LabelField($"Total Cost: {total:F2}");
+
+            var horizon = nav.settings.Horizon;
+            var normalizedCost = horizon > 0 ? nav.lastBestCost / horizon : nav.lastBestCost;
+            EditorGUILayout.LabelField($"Normalized Cost (per-step): {normalizedCost:F3}");
 
             DrawCostBar("Position", breakdown.pos, total, Color.green);
             DrawCostBar("Heading", breakdown.heading, total, Color.yellow);

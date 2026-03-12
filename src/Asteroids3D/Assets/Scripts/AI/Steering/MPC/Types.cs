@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Mathematics;
+using UnityEngine.Serialization;
 
 namespace Movement.MPC
 {
@@ -48,6 +49,7 @@ namespace Movement.MPC
         public float wFacing;
         public float terminalMultiplier;
         public float obstacleThreshold;
+        public float obstacleSpeedMargin;
 
         // Arrival Stabilization
         public float arrivalDistance;
@@ -57,7 +59,7 @@ namespace Movement.MPC
 
         // Facing override (radians, NaN if disabled)
         public float facingTarget;
-        public float facingPower;
+        public float facingWidth;
 
         // Goal mode
         public GoalMode goalMode;
@@ -67,44 +69,70 @@ namespace Movement.MPC
         // Tactical LOS
         public float wLos;
         public float wExposure;
-        public float exposurePower;
+        public float exposureWidth;
 
         // Tangential velocity (evasive lateral movement)
         public float wTangential;
     }
 
     /// <summary>
-    /// Per-state MPC weight overrides. NaN fields use the base Settings value.
-    /// Set via Navigator.SetMpcWeightOverrides / ClearMpcWeightOverrides.
+    /// Per-state weight multipliers. Each field scales the corresponding base weight
+    /// from MpcSettings. Default (1.0) = use base as-is, 0 = disable, 2 = double.
+    /// Width fields (facingWidth, exposureWidth) are absolute values, not multipliers.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public struct WeightOverrides
+    [System.Serializable]
+    public struct WeightMultipliers
     {
-        public float wFacing;
-        public float wExposure;
-        public float wLos;
-        public float wTangential;
-        public float exposurePower;
-        public float facingPower;
+        // Navigation
+        public float pos;
+        public float vel;
+        public float yaw;
+        public float yawRate;
+        public float effort;
+        public float smoothnessThrust;
+        public float smoothnessStrafe;
+        public float smoothnessYaw;
+        public float obstacle;
 
-        public static WeightOverrides None => new WeightOverrides
+        // Tactical
+        public float facing;
+        public float exposure;
+        public float los;
+        public float tangential;
+
+        // Widths (absolute, not multiplied — 0 = use base)
+        [FormerlySerializedAs("facingPower")]
+        public float facingWidth;
+        [FormerlySerializedAs("exposurePower")]
+        public float exposureWidth;
+
+        public static WeightMultipliers Default => new WeightMultipliers
         {
-            wFacing = float.NaN,
-            wExposure = float.NaN,
-            wLos = float.NaN,
-            wTangential = float.NaN,
-            exposurePower = float.NaN,
-            facingPower = float.NaN,
+            pos = 1f, vel = 1f, yaw = 1f, yawRate = 1f,
+            effort = 1f, smoothnessThrust = 1f, smoothnessStrafe = 1f, smoothnessYaw = 1f,
+            obstacle = 1f,
+            facing = 1f, exposure = 1f, los = 1f, tangential = 1f,
+            facingWidth = 0f, exposureWidth = 0f,
         };
 
         public void Apply(ref Config cfg)
         {
-            if (!float.IsNaN(wFacing)) cfg.wFacing = wFacing;
-            if (!float.IsNaN(wExposure)) cfg.wExposure = wExposure;
-            if (!float.IsNaN(wLos)) cfg.wLos = wLos;
-            if (!float.IsNaN(wTangential)) cfg.wTangential = wTangential;
-            if (!float.IsNaN(exposurePower)) cfg.exposurePower = exposurePower;
-            if (!float.IsNaN(facingPower)) cfg.facingPower = facingPower;
+            cfg.wPos *= pos;
+            cfg.wVel *= vel;
+            cfg.wYaw *= yaw;
+            cfg.wYawRate *= yawRate;
+            cfg.wEffort *= effort;
+            cfg.wSmoothnessThrust *= smoothnessThrust;
+            cfg.wSmoothnessStrafe *= smoothnessStrafe;
+            cfg.wSmoothnessYaw *= smoothnessYaw;
+            cfg.wObstacle *= obstacle;
+            cfg.wFacing *= facing;
+            cfg.wExposure *= exposure;
+            cfg.wLos *= los;
+            cfg.wTangential *= tangential;
+            if (facingWidth > 0f) cfg.facingWidth = facingWidth;
+            if (exposureWidth > 0f) cfg.exposureWidth = exposureWidth;
         }
     }
 
@@ -135,6 +163,11 @@ namespace Movement.MPC
         public float enemyYawRate;
         /// <summary>Projectile speed for computing lead-target facing angle. 0 = no dynamic facing.</summary>
         public float projectileSpeed;
+
+        /// <summary>Pre-rolled enemy trajectory over the horizon. If valid, overrides linear extrapolation.</summary>
+        public NativeArray<State> enemyStates;
+        /// <summary>Number of valid entries in enemyStates.</summary>
+        public int enemyStateCount;
     }
 
     internal readonly partial struct EditorProfilingScope : System.IDisposable

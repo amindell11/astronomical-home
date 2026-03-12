@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using Movement;
+using Unity.Mathematics;
 
 namespace Movement.MPC
 {
@@ -8,45 +9,27 @@ namespace Movement.MPC
         public static CostBreakdown EvaluateBreakdown(State s, Control u, Control prevU,
             CostInput input, Config cfg, bool isTerminal, int step = 0)
         {
-            var stepTime = step * cfg.dt;
-            var goalPos = input.goalPos + input.goalVel * stepTime;
-            var hasEnemy = !Unity.Mathematics.math.isnan(input.enemyYaw);
-            var enemyYaw = hasEnemy ? input.enemyYaw + input.enemyYawRate * stepTime : input.enemyYaw;
-
-            var wVel = cfg.wVel;
-            var wYaw = cfg.wYaw;
-
-            var distToGoalSq = Unity.Mathematics.math.lengthsq(goalPos - s.pos);
-            if (distToGoalSq < cfg.arrivalDistanceSq)
-            {
-                var distToGoal = Unity.Mathematics.math.sqrt(distToGoalSq);
-                var t = 1f - (distToGoal / cfg.arrivalDistance);
-                wVel = Unity.Mathematics.math.lerp(cfg.wVel, cfg.wVel * cfg.arrivalVelScale, t);
-                wYaw = Unity.Mathematics.math.lerp(cfg.wYaw, cfg.wYaw * cfg.arrivalYawScale, t);
-            }
-
-            var facingTarget = cfg.facingTarget;
-            if (input.projectileSpeed > 0f && hasEnemy)
-                facingTarget = InterceptYaw(s.pos, goalPos, input.goalVel, input.projectileSpeed);
+            var ctx = EvalContext.Create(s, input, cfg, step);
 
             var breakdown = new CostBreakdown
             {
-                pos = GoalCost(s.pos, goalPos, cfg) * cfg.wPos,
-                vel = VelocityCost(s.vel) * wVel,
-                heading = HeadingCost(s.pos, s.yaw, goalPos) * wYaw,
-                facing = FacingCost(s.yaw, facingTarget, cfg.facingPower) * cfg.wFacing,
+                pos = GoalCost(s.pos, ctx.goalPos, cfg) * cfg.wPos,
+                vel = ctx.isFlee ? 0f : VelocityCost(s.vel) * ctx.wVel,
+                heading = HeadingCost(s.pos, s.yaw, ctx.headingGoal) * ctx.wYaw,
+                facing = FacingCost(s.yaw, ctx.facingTarget, cfg.facingWidth) * cfg.wFacing,
                 yawRate = YawRateCost(s.yawRate) * cfg.wYawRate,
                 obstacle = (cfg.wObstacle > 0f && input.obstacleCount > 0)
-                    ? ObstacleCost(s.pos, input.obstacles, input.obstacleCount, cfg.obstacleThreshold) * cfg.wObstacle
+                    ? ObstacleCost(s.pos, input.obstacles, input.obstacleCount,
+                        cfg.obstacleThreshold + math.length(s.vel) * cfg.obstacleSpeedMargin) * cfg.wObstacle
                     : 0f,
-                los = (hasEnemy && cfg.wLos > 0f && input.obstacleCount > 0)
-                    ? LosCost(s.pos, goalPos, input.obstacles, input.obstacleCount) * cfg.wLos
+                los = (ctx.hasEnemy && cfg.wLos > 0f && input.obstacleCount > 0)
+                    ? LosCost(s.pos, ctx.goalPos, input.obstacles, input.obstacleCount) * cfg.wLos
                     : 0f,
-                exposure = (hasEnemy && cfg.wExposure > 0f)
-                    ? ExposureCost(s.pos, goalPos, enemyYaw, cfg.exposurePower) * cfg.wExposure
+                exposure = (ctx.hasEnemy && cfg.wExposure > 0f)
+                    ? ExposureCost(s.pos, ctx.goalPos, ctx.enemyYaw, cfg.exposureWidth) * cfg.wExposure
                     : 0f,
-                tangential = (hasEnemy && cfg.wTangential > 0f)
-                    ? TangentialVelocityCost(s.pos, s.vel, goalPos) * cfg.wTangential
+                tangential = (ctx.hasEnemy && cfg.wTangential > 0f)
+                    ? TangentialVelocityCost(s.pos, s.vel, ctx.goalPos) * cfg.wTangential
                     : 0f,
                 effort = EffortCost(u) * cfg.wEffort,
                 smoothness = SmoothnessCost(u, prevU, cfg)

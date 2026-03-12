@@ -29,7 +29,8 @@ namespace AI
         protected float enemyYaw = float.NaN;
         protected float enemyYawRate;
         protected float projectileSpeed;
-        protected Movement.MPC.WeightOverrides mpcWeightOverrides = Movement.MPC.WeightOverrides.None;
+        protected Dynamics enemyDynamics;
+        protected Movement.MPC.WeightMultipliers weightMultipliers = Movement.MPC.WeightMultipliers.Default;
 
         protected Command currentCommand;
         public Command CurrentCommand => currentCommand;
@@ -116,11 +117,13 @@ namespace AI
             goalRangeTolerance = 0f;
         }
 
-        public void SetEnemyState(float yawDegrees, float yawRateDegrees, float projectileSpeed)
+        public void SetEnemyState(float yawDegrees, float yawRateDegrees, float projectileSpeed,
+            Dynamics enemyDynamics = default)
         {
             enemyYaw = yawDegrees * Mathf.Deg2Rad;
             enemyYawRate = yawRateDegrees * Mathf.Deg2Rad;
             this.projectileSpeed = projectileSpeed;
+            this.enemyDynamics = enemyDynamics;
         }
 
         public void ClearEnemyState()
@@ -128,16 +131,17 @@ namespace AI
             enemyYaw = float.NaN;
             enemyYawRate = 0f;
             projectileSpeed = 0f;
+            enemyDynamics = default;
         }
 
-        public void SetMpcWeightOverrides(Movement.MPC.WeightOverrides overrides)
+        public void SetWeightMultipliers(Movement.MPC.WeightMultipliers multipliers)
         {
-            mpcWeightOverrides = overrides;
+            weightMultipliers = multipliers;
         }
 
-        public void ClearMpcWeightOverrides()
+        public void ClearWeightMultipliers()
         {
-            mpcWeightOverrides = Movement.MPC.WeightOverrides.None;
+            weightMultipliers = Movement.MPC.WeightMultipliers.Default;
         }
 
         public void SetObstacleExclusion(Transform root)
