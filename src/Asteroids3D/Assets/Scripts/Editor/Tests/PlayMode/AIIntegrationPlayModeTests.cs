@@ -1,8 +1,9 @@
 #if UNITY_EDITOR
 using System.Collections;
-using System.Linq;
+using System.Collections.Generic;
+using AI;
 using AI.States;
-using AI.Utility;
+using Movement.MPC;
 using NUnit.Framework;
 using Tests.PlayMode.Common;
 using UnityEngine;
@@ -16,6 +17,97 @@ namespace Tests.PlayMode
 [Category("Slow")]
 public class AIIntegrationPlayModeTests : AIIntegrationFixture
 {
+    // ──────────────────────────────────────────────────────────
+    // Helpers
+    // ──────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Creates a 2-keyframe AnimationCurve with zero tangents.
+    /// Reproduces the old smoothstep behavior: Lerp(atLow, atHigh, smoothstep(t)).
+    /// </summary>
+    private static AnimationCurve MakeCurve(float atLow, float atHigh)
+    {
+        return new AnimationCurve(
+            new Keyframe(0f, atLow, 0f, 0f),
+            new Keyframe(1f, atHigh, 0f, 0f));
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // State Profile Helpers
+    // ──────────────────────────────────────────────────────────
+
+    private static StateProfile CreateAttackProfile()
+    {
+        var p = ScriptableObject.CreateInstance<StateProfile>();
+        p.name = "Attack";
+        p.goal = new TrackEnemyGoal { desiredRange = 17.5f, rangeTolerance = 12.5f };
+        p.enableTacticalCosts = true;
+        p.enableFiring = true;
+        p.weightMultipliers = WeightMultipliers.Default;
+        p.requiresEnemy = true;
+        p.maxRange = 30f;
+        p.utilityFactors = new List<UtilityFactor>
+        {
+            new CurveFactor { input = ContinuousInput.Health, response = MakeCurve(0.65f, 1.35f) },
+            new CurveFactor { input = ContinuousInput.Shield, response = MakeCurve(0.7f, 1.3f) },
+            new CurveFactor { input = ContinuousInput.EnemyDurability, response = MakeCurve(1.2f, 0.8f) },
+            new RangeBandFactor { optimalMin = 5f, optimalMax = 30f },
+            new BinaryFactor { signal = BinarySignal.LOS, whenTrue = 1.4f, whenFalse = 0.6f },
+            new CurveFactor { input = ContinuousInput.Outnumbered, response = MakeCurve(1.0f, 0.7f) },
+        };
+        return p;
+    }
+
+    private static StateProfile CreatePatrolProfile()
+    {
+        var p = ScriptableObject.CreateInstance<StateProfile>();
+        p.name = "Patrol";
+        p.goal = new RandomWaypointGoal
+        {
+            patrolRadius = 50f,
+            minDistanceFactor = 0.3f,
+            arriveRadius = 3f,
+            stuckTimeout = 3f,
+            stuckProgressThreshold = 1f,
+        };
+        p.enableTacticalCosts = false;
+        p.enableFiring = false;
+        p.weightMultipliers = WeightMultipliers.Default;
+        p.requiresNoEnemy = true;
+        p.utilityFactors = new List<UtilityFactor>
+        {
+            new BinaryFactor { signal = BinarySignal.NoCombat, whenTrue = 2.0f, whenFalse = 0.01f },
+        };
+        return p;
+    }
+
+    private static StateProfile CreateEvadeProfile()
+    {
+        var p = ScriptableObject.CreateInstance<StateProfile>();
+        p.name = "Evade";
+        p.goal = new FleeEnemyGoal();
+        p.enableTacticalCosts = false;
+        p.enableFiring = false;
+        p.weightMultipliers = WeightMultipliers.Default;
+        p.requiresEnemy = true;
+        p.utilityFactors = new List<UtilityFactor>
+        {
+            new CurveFactor { input = ContinuousInput.Health, response = MakeCurve(1.8f, 0.2f) },
+            new CurveFactor { input = ContinuousInput.Shield, response = MakeCurve(1.6f, 0.4f) },
+            new CurveFactor { input = ContinuousInput.Outnumbered, response = MakeCurve(0.6f, 1.4f) },
+            new BinaryFactor { signal = BinarySignal.LOS, whenTrue = 1.2f, whenFalse = 0.8f },
+            new CurveFactor { input = ContinuousInput.ClosingRate, response = MakeCurve(0.7f, 1.3f) },
+            new CurveFactor { input = ContinuousInput.EnemyFacing, response = MakeCurve(0.5f, 1.5f) },
+            new CurveFactor { input = ContinuousInput.SelfAngle, response = MakeCurve(0.8f, 1.2f) },
+        };
+        return p;
+    }
+
+    private static AIState CreateState(StateProfile profile, AICommander cmdr)
+    {
+        return new AIState(profile, cmdr.Navigator, cmdr.Gunner);
+    }
+
     // ──────────────────────────────────────────────────────────
     // Scanning & Enemy Acquisition
     // ──────────────────────────────────────────────────────────
@@ -59,12 +151,12 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
         var (shipB, _) = CreateAIShip(new Vector3(20f, 0f, 0f), team: 1);
 
         InitializeWithStates(cmdrA,
-            new Attack(cmdrA.Navigator, cmdrA.Gunner, ScriptableObject.CreateInstance<UtilityTuning>()),
-            new Patrol(cmdrA.Navigator, cmdrA.Gunner, ScriptableObject.CreateInstance<UtilityTuning>()));
+            CreateState(CreateAttackProfile(), cmdrA),
+            CreateState(CreatePatrolProfile(), cmdrA));
 
         // Wait for Attack state and navigation toward enemy
         yield return AsyncAssert.WaitUntil(
-            () => cmdrA.UtilitySelector.CurrentState?.Type == StateType.Attack &&
+            () => cmdrA.UtilitySelector.CurrentState?.ProfileName == "Attack" &&
                   cmdrA.Navigator.CurrentWaypoint.isValid,
             timeoutSec: 6f,
             failureMessage: "Ship did not enter Attack state with valid waypoint",
@@ -86,11 +178,11 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
         var (_, cmdrA) = CreateAIShip(Vector3.zero, team: 0);
 
         InitializeWithStates(cmdrA,
-            new Attack(cmdrA.Navigator, cmdrA.Gunner, ScriptableObject.CreateInstance<UtilityTuning>()),
-            new Patrol(cmdrA.Navigator, cmdrA.Gunner, ScriptableObject.CreateInstance<UtilityTuning>()));
+            CreateState(CreateAttackProfile(), cmdrA),
+            CreateState(CreatePatrolProfile(), cmdrA));
 
         yield return AsyncAssert.WaitUntil(
-            () => cmdrA.UtilitySelector.CurrentState?.Type == StateType.Patrol,
+            () => cmdrA.UtilitySelector.CurrentState?.ProfileName == "Patrol",
             timeoutSec: 5f,
             failureMessage: "Ship did not transition to Patrol when no enemy present",
             useFixedUpdate: true);
@@ -109,14 +201,13 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
         var (shipA, cmdrA) = CreateAIShip(Vector3.zero, team: 0);
         CreateAIShip(new Vector3(15f, 0f, 0f), team: 1);
 
-        var tuning = ScriptableObject.CreateInstance<UtilityTuning>();
         InitializeWithStates(cmdrA,
-            new Attack(cmdrA.Navigator, cmdrA.Gunner, tuning),
-            new Evade(cmdrA.Navigator, cmdrA.Gunner, tuning));
+            CreateState(CreateAttackProfile(), cmdrA),
+            CreateState(CreateEvadeProfile(), cmdrA));
 
         // Wait for Attack state first
         yield return AsyncAssert.WaitUntil(
-            () => cmdrA.UtilitySelector.CurrentState?.Type == StateType.Attack,
+            () => cmdrA.UtilitySelector.CurrentState?.ProfileName == "Attack",
             timeoutSec: 5f,
             failureMessage: "Ship did not enter Attack state",
             useFixedUpdate: true);
@@ -127,7 +218,7 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
         DealDamage(shipA, maxShield + maxHealth * 0.9f);
 
         yield return AsyncAssert.WaitUntil(
-            () => cmdrA.UtilitySelector.CurrentState?.Type == StateType.Evade,
+            () => cmdrA.UtilitySelector.CurrentState?.ProfileName == "Evade",
             timeoutSec: 5f,
             failureMessage: "Ship did not transition to Evade after heavy damage",
             useFixedUpdate: true);
@@ -139,14 +230,13 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
         var (_, cmdrA) = CreateAIShip(Vector3.zero, team: 0);
         var (shipB, _) = CreateAIShip(new Vector3(15f, 0f, 0f), team: 1);
 
-        var tuning = ScriptableObject.CreateInstance<UtilityTuning>();
         InitializeWithStates(cmdrA,
-            new Attack(cmdrA.Navigator, cmdrA.Gunner, tuning),
-            new Patrol(cmdrA.Navigator, cmdrA.Gunner, tuning));
+            CreateState(CreateAttackProfile(), cmdrA),
+            CreateState(CreatePatrolProfile(), cmdrA));
 
         // Wait for Attack state
         yield return AsyncAssert.WaitUntil(
-            () => cmdrA.UtilitySelector.CurrentState?.Type == StateType.Attack,
+            () => cmdrA.UtilitySelector.CurrentState?.ProfileName == "Attack",
             timeoutSec: 5f,
             failureMessage: "Ship did not enter Attack state",
             useFixedUpdate: true);
@@ -156,7 +246,7 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
 
         // Should transition to Patrol after combat exit delay (~3s default)
         yield return AsyncAssert.WaitUntil(
-            () => cmdrA.UtilitySelector.CurrentState?.Type == StateType.Patrol,
+            () => cmdrA.UtilitySelector.CurrentState?.ProfileName == "Patrol",
             timeoutSec: 8f,
             failureMessage: "Ship did not transition to Patrol after enemy destroyed",
             useFixedUpdate: true);
@@ -174,7 +264,7 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
 
         // Wait for Attack state with valid waypoint
         yield return AsyncAssert.WaitUntil(
-            () => cmdrA.UtilitySelector.CurrentState?.Type == StateType.Attack &&
+            () => cmdrA.UtilitySelector.CurrentState?.ProfileName == "Attack" &&
                   cmdrA.Navigator.CurrentWaypoint.isValid,
             timeoutSec: 6f,
             failureMessage: "Ship did not enter Attack state with valid waypoint",
@@ -193,11 +283,9 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
         var (shipA, cmdrA) = CreateAIShip(Vector3.zero, team: 0);
         CreateAIShip(new Vector3(10f, 0f, 0f), team: 1);
 
-        var tuning = ScriptableObject.CreateInstance<UtilityTuning>();
-        var evadeState = new Evade(cmdrA.Navigator, cmdrA.Gunner, tuning);
-        InitializeWithStates(cmdrA,
-            new Attack(cmdrA.Navigator, cmdrA.Gunner, tuning),
-            evadeState);
+        var attackState = CreateState(CreateAttackProfile(), cmdrA);
+        var evadeState = CreateState(CreateEvadeProfile(), cmdrA);
+        InitializeWithStates(cmdrA, attackState, evadeState);
 
         // Wait for enemy detection then force transition to Evade
         yield return AsyncAssert.WaitUntil(
@@ -236,7 +324,7 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
         CreateAIShip(new Vector3(15f, 0f, 0f), team: 1);
 
         yield return AsyncAssert.WaitUntil(
-            () => cmdrA.UtilitySelector.CurrentState?.Type == StateType.Attack &&
+            () => cmdrA.UtilitySelector.CurrentState?.ProfileName == "Attack" &&
                   cmdrA.Gunner.HasTarget,
             timeoutSec: 6f,
             failureMessage: "Gunner did not receive target in Attack state",
@@ -249,15 +337,13 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
         var (_, cmdrA) = CreateAIShip(Vector3.zero, team: 0);
         CreateAIShip(new Vector3(15f, 0f, 0f), team: 1);
 
-        var tuning = ScriptableObject.CreateInstance<UtilityTuning>();
-        var evadeState = new Evade(cmdrA.Navigator, cmdrA.Gunner, tuning);
-        InitializeWithStates(cmdrA,
-            new Attack(cmdrA.Navigator, cmdrA.Gunner, tuning),
-            evadeState);
+        var attackState = CreateState(CreateAttackProfile(), cmdrA);
+        var evadeState = CreateState(CreateEvadeProfile(), cmdrA);
+        InitializeWithStates(cmdrA, attackState, evadeState);
 
         // Wait for Attack + gunner target
         yield return AsyncAssert.WaitUntil(
-            () => cmdrA.UtilitySelector.CurrentState?.Type == StateType.Attack &&
+            () => cmdrA.UtilitySelector.CurrentState?.ProfileName == "Attack" &&
                   cmdrA.Gunner.HasTarget,
             timeoutSec: 6f,
             failureMessage: "Gunner did not get target in Attack",

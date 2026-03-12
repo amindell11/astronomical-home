@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using AI;
 using AI.States;
-using AI.Utility;
 using Game;
 using NUnit.Framework;
 using Ships;
@@ -71,9 +70,8 @@ public abstract class AIIntegrationFixture : PlayModeWorldFixture
     /// </summary>
     protected void InitializeWithStates(AICommander cmdr, params State[] states)
     {
-        var tuning = ScriptableObject.CreateInstance<UtilityTuning>();
         cmdr.UtilitySelector.ResetForTesting();
-        cmdr.UtilitySelector.Initialize(tuning, states);
+        cmdr.UtilitySelector.Initialize(states);
     }
 
     /// <summary>
