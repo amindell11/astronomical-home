@@ -29,6 +29,7 @@ namespace Ships.Movement
         internal Command.Command CurrentCommand {
             set => currentCommand = value; }
         public bool BoostAvailable => booster.BoostAvailable;
+        public float BoostCooldownRemaining => booster.CooldownRemaining;
         private Ship parentShip;
 
         private void Awake()

@@ -12,7 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b56d01da063dcc54487eaaf6f8e443eb, type: 3}
   m_Name: Evade
   m_EditorClassIdentifier: 
-  stateType: 4
   goal:
     rid: 7421252954394460903
   enableTacticalCosts: 0
@@ -23,20 +22,22 @@ MonoBehaviour:
     yaw: 1
     yawRate: 1
     effort: 0.25
-    smoothnessThrust: 0
-    smoothnessStrafe: 0
-    smoothnessYaw: 0
-    obstacle: 1
+    smoothnessThrust: 0.2
+    smoothnessStrafe: 0.2
+    smoothnessYaw: 0.2
+    momentum: 2
     facing: 0
-    exposure: 0
-    los: 0
-    tangential: 0
     facingWidth: 1
+    los: 0
+    exposure: 5
     exposureWidth: 1
+    tangential: 0
+    obstacle: 1
+    boostEffort: 0
   requiresEnemy: 1
   requiresNoEnemy: 0
-  minRange: 0
-  maxRange: 0
+  minRange: 7
+  maxRange: 35
   utilityFactors:
   - rid: 7421252954394460904
   - rid: 7421252954394460905
@@ -57,6 +58,7 @@ MonoBehaviour:
     - rid: 7421252954394460904
       type: {class: CurveFactor, ns: AI.States, asm: Game.Core}
       data:
+        weight: 1
         input: 0
         response:
           serializedVersion: 2
@@ -85,6 +87,7 @@ MonoBehaviour:
     - rid: 7421252954394460905
       type: {class: CurveFactor, ns: AI.States, asm: Game.Core}
       data:
+        weight: 1
         input: 1
         response:
           serializedVersion: 2
@@ -113,6 +116,7 @@ MonoBehaviour:
     - rid: 7421252954394460906
       type: {class: CurveFactor, ns: AI.States, asm: Game.Core}
       data:
+        weight: 1
         input: 3
         response:
           serializedVersion: 2
@@ -141,12 +145,14 @@ MonoBehaviour:
     - rid: 7421252954394460907
       type: {class: BinaryFactor, ns: AI.States, asm: Game.Core}
       data:
+        weight: 1
         signal: 0
         whenTrue: 1.25
         whenFalse: 0.75
     - rid: 7421252954394460908
       type: {class: CurveFactor, ns: AI.States, asm: Game.Core}
       data:
+        weight: 1
         input: 4
         response:
           serializedVersion: 2
@@ -175,6 +181,7 @@ MonoBehaviour:
     - rid: 7421252954394460909
       type: {class: CurveFactor, ns: AI.States, asm: Game.Core}
       data:
+        weight: 1
         input: 5
         response:
           serializedVersion: 2
@@ -203,6 +210,7 @@ MonoBehaviour:
     - rid: 7421252954394460910
       type: {class: CurveFactor, ns: AI.States, asm: Game.Core}
       data:
+        weight: 1
         input: 6
         response:
           serializedVersion: 2
@@ -231,17 +239,20 @@ MonoBehaviour:
     - rid: 7421252954394460911
       type: {class: BinaryFactor, ns: AI.States, asm: Game.Core}
       data:
+        weight: 1
         signal: 2
         whenTrue: 1.2
         whenFalse: 1
     - rid: 7421252954394460912
       type: {class: ProximityThreatFactor, ns: AI.States, asm: Game.Core}
       data:
+        weight: 1
         dangerDistance: 7
         boost: 1.3
     - rid: 7421252954394460913
       type: {class: FightingRetreatFactor, ns: AI.States, asm: Game.Core}
       data:
+        weight: 1
         healthThreshold: 0.5
         shieldThreshold: 0.5
         boost: 1.25

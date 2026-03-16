@@ -59,7 +59,9 @@ namespace Ships
             yawInertia: yawInertia > 0f ? yawInertia : mass,
             bankTorque: bankTorque,
             bankDamping: bankDamping,
-            maxBankAngleRad: maxBankAngle * Mathf.Deg2Rad
+            maxBankAngleRad: maxBankAngle * Mathf.Deg2Rad,
+            boostImpulse: boostImpulse,
+            boostCooldown: boostCooldown
         );
 
     }

@@ -119,8 +119,9 @@ namespace Movement.MPC
             var tacticalCost = facingCost + losCost + exposureCost + tangentialCost;
 
             var effortCost = EffortCost(u) * cfg.wEffort;
+            var boostEffortCost = u.boost * u.boost * cfg.wBoostEffort;
             var smoothnessCost = SmoothnessCost(u, prevU, cfg);
-            var controlCost = effortCost + smoothnessCost;
+            var controlCost = effortCost + boostEffortCost + smoothnessCost;
 
             var total = positionalCost + tacticalCost + controlCost;
 

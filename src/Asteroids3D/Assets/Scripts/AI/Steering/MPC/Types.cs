@@ -17,6 +17,7 @@ namespace Movement.MPC
         public float2 vel;
         public float yaw;     // Radians
         public float yawRate; // Radians per second
+        public float boostCooldownRemaining;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -25,6 +26,7 @@ namespace Movement.MPC
         public float thrust;
         public float strafe;
         public float yawTorque;
+        public float boost;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -68,6 +70,9 @@ namespace Movement.MPC
         public float arrivalVelScale;
         public float arrivalYawScale;
 
+        // Boost
+        public float wBoostEffort;
+
         // Goal
         public GoalMode goalMode;
         public float desiredRange;
@@ -106,12 +111,16 @@ namespace Movement.MPC
         // Obstacle
         public float obstacle;
 
+        // Boost
+        public float boostEffort;
+
         public static WeightMultipliers Default => new WeightMultipliers
         {
             pos = 1f, vel = 1f, yaw = 1f, yawRate = 1f,
             effort = 1f, smoothnessThrust = 1f, smoothnessStrafe = 1f, smoothnessYaw = 1f, momentum = 1f,
             facing = 1f, facingWidth = 1f, los = 1f, exposure = 1f, exposureWidth = 1f, tangential = 1f,
             obstacle = 1f,
+            boostEffort = 1f,
         };
 
         public void Apply(ref Config cfg)
@@ -136,6 +145,8 @@ namespace Movement.MPC
             cfg.wTangential *= tangential;
             // Obstacle
             cfg.wObstacle *= obstacle;
+            // Boost
+            cfg.wBoostEffort *= boostEffort;
         }
     }
 

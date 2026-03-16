@@ -12,7 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b56d01da063dcc54487eaaf6f8e443eb, type: 3}
   m_Name: Patrol
   m_EditorClassIdentifier: 
-  stateType: 1
   goal:
     rid: 7421252954394460901
   enableTacticalCosts: 0
@@ -23,16 +22,18 @@ MonoBehaviour:
     yaw: 1000
     yawRate: 1
     effort: 1
-    smoothnessThrust: 0
-    smoothnessStrafe: 0
-    smoothnessYaw: 0
-    obstacle: 10
+    smoothnessThrust: 0.2
+    smoothnessStrafe: 0.2
+    smoothnessYaw: 0.2
+    momentum: 1
     facing: 0
-    exposure: 0
-    los: 0
-    tangential: 0
     facingWidth: 1
+    los: 0
+    exposure: 0
     exposureWidth: 1
+    tangential: 0
+    obstacle: 10
+    boostEffort: 0
   requiresEnemy: 0
   requiresNoEnemy: 1
   minRange: 0
@@ -53,6 +54,7 @@ MonoBehaviour:
     - rid: 7421252954394460902
       type: {class: BinaryFactor, ns: AI.States, asm: Game.Core}
       data:
+        weight: 1
         signal: 1
         whenTrue: 2
         whenFalse: 0.01

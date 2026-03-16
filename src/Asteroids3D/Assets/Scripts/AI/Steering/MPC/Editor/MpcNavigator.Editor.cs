@@ -266,6 +266,7 @@ namespace Movement.MPC
             DrawCostBar("Tangential", breakdown.tangential, total, new Color(0.3f, 0.8f, 1f));
             DrawCostBar("Momentum", breakdown.momentum, total, new Color(0.6f, 1f, 0.6f));
             DrawCostBar("Effort", breakdown.effort, total, Color.gray);
+            DrawCostBar("Boost Effort", breakdown.boostEffort, total, new Color(1f, 0.6f, 0f));
             DrawCostBar("Smoothness", breakdown.smoothness, total, Color.white);
 
             Repaint();

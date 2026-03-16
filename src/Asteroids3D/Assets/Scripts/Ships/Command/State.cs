@@ -10,5 +10,6 @@ namespace Ships.Command
             public bool isSecondaryReady;
             public float healthPct;
             public float shieldPct;
+            public float boostCooldownRemaining;
     }
 }

@@ -20,6 +20,7 @@ namespace Movement.MPC
         public Dynamics dynamics;
         public Control lastControl;
         public float noiseStd;
+        public float boostSampleProbability;
         public uint rngSeed;
 
         public void Execute(int candidateIndex)
@@ -42,7 +43,8 @@ namespace Movement.MPC
                     {
                         thrust = math.clamp(warm.thrust + NextGaussian(ref rng) * noiseStd, -1f, 1f),
                         strafe = math.clamp(warm.strafe + NextGaussian(ref rng) * noiseStd, -1f, 1f),
-                        yawTorque = math.clamp(warm.yawTorque + NextGaussian(ref rng) * noiseStd, -1f, 1f)
+                        yawTorque = math.clamp(warm.yawTorque + NextGaussian(ref rng) * noiseStd, -1f, 1f),
+                        boost = rng.NextFloat() < boostSampleProbability ? 1f : 0f
                     };
                 }
             }
@@ -96,7 +98,8 @@ namespace Movement.MPC
             float2 goalPos, float2 goalVel, float enemyYaw, float enemyYawRate,
             float projectileSpeed, Config cfg, Dynamics dynamics,
             int samples, float noiseStd, Control lastControl,
-            Dynamics enemyDynamics = default)
+            Dynamics enemyDynamics = default,
+            float boostCooldownRemaining = 0f, float boostSampleProbability = 0.15f)
         {
             var horizon = cfg.horizon;
             EnsureBuffers(horizon, samples);
@@ -149,6 +152,8 @@ namespace Movement.MPC
                 initialVel = initialState.vel,
             };
 
+            initialState.boostCooldownRemaining = boostCooldownRemaining;
+
             var rngSeed = (uint)(Time.frameCount * 7919 + initialState.pos.GetHashCode());
             if (rngSeed == 0) rngSeed = 1;
 
@@ -163,6 +168,7 @@ namespace Movement.MPC
                 dynamics = dynamics,
                 lastControl = lastControl,
                 noiseStd = noiseStd,
+                boostSampleProbability = boostSampleProbability,
                 rngSeed = rngSeed
             };
 

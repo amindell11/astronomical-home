@@ -41,6 +41,11 @@ namespace Movement.MPC
         public float wSmoothnessYaw = 0.2f;
         [Tooltip("Momentum cost weight. Penalizes velocity direction changes, rewarding smooth trajectories that maintain course.")]
         public float wMomentum = 0f;
+        [Tooltip("Boost effort cost weight. Penalizes boost usage so the solver doesn't boost gratuitously.")]
+        public float wBoostEffort = 0.5f;
+        [Tooltip("Probability of sampling boost=1 at each step during candidate generation.")]
+        [Range(0f, 1f)]
+        public float boostSampleProbability = 0.15f;
         [Tooltip("EMA smoothing factor for applied controls. 0 = no smoothing, 0.95 = very smooth (slow response).")]
         [Range(0f, 0.95f)]
         public float controlSmoothing = 0.5f;
@@ -108,6 +113,7 @@ namespace Movement.MPC
                 wSmoothnessStrafe = wSmoothnessStrafe,
                 wSmoothnessYaw = wSmoothnessYaw,
                 wMomentum = wMomentum,
+                wBoostEffort = wBoostEffort,
                 // Tactical
                 wFacing = wFacing,
                 facingWidth = facingWidth,

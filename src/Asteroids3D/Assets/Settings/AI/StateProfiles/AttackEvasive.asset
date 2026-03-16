@@ -22,16 +22,18 @@ MonoBehaviour:
     yaw: 1
     yawRate: 1
     effort: 1
-    smoothnessThrust: 0
-    smoothnessStrafe: 0
-    smoothnessYaw: 0
-    obstacle: 1
+    smoothnessThrust: 0.2
+    smoothnessStrafe: 0.2
+    smoothnessYaw: 0.2
+    momentum: 0.5
     facing: 1
-    exposure: 3
-    los: 1
-    tangential: 1.5
     facingWidth: 0.64
-    exposureWidth: 0.69
+    los: 1
+    exposure: 3
+    exposureWidth: 0.45
+    tangential: 4.76
+    obstacle: 1
+    boostEffort: 1
   requiresEnemy: 1
   requiresNoEnemy: 0
   minRange: 0
@@ -49,6 +51,7 @@ MonoBehaviour:
     - rid: 7421252954394460895
       type: {class: CurveFactor, ns: AI.States, asm: Game.Core}
       data:
+        weight: 1
         input: 0
         response:
           serializedVersion: 2
@@ -77,6 +80,7 @@ MonoBehaviour:
     - rid: 7421252954394460896
       type: {class: CurveFactor, ns: AI.States, asm: Game.Core}
       data:
+        weight: 1
         input: 1
         response:
           serializedVersion: 2
@@ -105,17 +109,20 @@ MonoBehaviour:
     - rid: 7421252954394460897
       type: {class: RangeBandFactor, ns: AI.States, asm: Game.Core}
       data:
+        weight: 1
         optimalMin: 12
         optimalMax: 45
     - rid: 7421252954394460898
       type: {class: BinaryFactor, ns: AI.States, asm: Game.Core}
       data:
+        weight: 1
         signal: 0
         whenTrue: 1.35
         whenFalse: 0.65
     - rid: 7421252954394460899
       type: {class: CurveFactor, ns: AI.States, asm: Game.Core}
       data:
+        weight: 1
         input: 5
         response:
           serializedVersion: 2
@@ -144,6 +151,7 @@ MonoBehaviour:
     - rid: 7421252954394460900
       type: {class: CurveFactor, ns: AI.States, asm: Game.Core}
       data:
+        weight: 1
         input: 4
         response:
           serializedVersion: 2

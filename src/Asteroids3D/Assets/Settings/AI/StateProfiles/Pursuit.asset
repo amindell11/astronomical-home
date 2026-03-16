@@ -22,20 +22,22 @@ MonoBehaviour:
     yaw: 1
     yawRate: 1
     effort: 1
-    smoothnessThrust: 0
-    smoothnessStrafe: 0
-    smoothnessYaw: 0
-    obstacle: 1
+    smoothnessThrust: 0.2
+    smoothnessStrafe: 0.2
+    smoothnessYaw: 0.2
+    momentum: 2
     facing: 0
-    exposure: 0
-    los: 0
-    tangential: 0
     facingWidth: 1
+    los: 0
+    exposure: 0
     exposureWidth: 1
+    tangential: 0
+    obstacle: 2
+    boostEffort: 0
   requiresEnemy: 1
   requiresNoEnemy: 0
   minRange: 10
-  maxRange: 50
+  maxRange: 5000
   utilityFactors:
   - rid: 7421252954394460995
   - rid: 7421252954394460891
@@ -52,6 +54,7 @@ MonoBehaviour:
     - rid: 7421252954394460891
       type: {class: CurveFactor, ns: AI.States, asm: Game.Core}
       data:
+        weight: 1
         input: 1
         response:
           serializedVersion: 2
@@ -80,6 +83,7 @@ MonoBehaviour:
     - rid: 7421252954394460892
       type: {class: DistanceFactor, ns: AI.States, asm: Game.Core}
       data:
+        weight: 1
         engageDistance: 50
         response:
           serializedVersion: 2
@@ -108,6 +112,7 @@ MonoBehaviour:
     - rid: 7421252954394460893
       type: {class: CurveFactor, ns: AI.States, asm: Game.Core}
       data:
+        weight: 1
         input: 3
         response:
           serializedVersion: 2
@@ -136,6 +141,7 @@ MonoBehaviour:
     - rid: 7421252954394460995
       type: {class: CurveFactor, ns: AI.States, asm: Game.Core}
       data:
+        weight: 1
         input: 0
         response:
           serializedVersion: 2

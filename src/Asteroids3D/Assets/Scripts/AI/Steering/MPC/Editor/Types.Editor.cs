@@ -16,6 +16,7 @@ namespace Movement.MPC
         public float tangential;
         public float momentum;
         public float effort;
+        public float boostEffort;
         public float smoothness;
         public float total;
 
@@ -32,6 +33,7 @@ namespace Movement.MPC
             tangential += other.tangential;
             momentum += other.momentum;
             effort += other.effort;
+            boostEffort += other.boostEffort;
             smoothness += other.smoothness;
             total += other.total;
         }

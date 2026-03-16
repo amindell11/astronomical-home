@@ -55,6 +55,11 @@ namespace Movement.MPC
 #if UNITY_EDITOR
             var sw = System.Diagnostics.Stopwatch.StartNew();
 #endif
+            var boostCooldown = state.boostCooldownRemaining;
+            // If cooldown exceeds entire horizon, skip boost sampling to save candidate quality
+            var boostProb = boostCooldown > settings.horizonSeconds
+                ? 0f : settings.boostSampleProbability;
+
             using (EditorProfilingScope.Begin("MPC.MpcNavigator.Solve"))
             {
                 lastBestCost = solver.Solve(mpcState, bestSequence,
@@ -62,7 +67,8 @@ namespace Movement.MPC
                     GoalPos(), GoalVel(), enemyYaw, enemyYawRate,
                     projectileSpeed, config, dynamics,
                     settings.samples, settings.noiseStd, lastControl,
-                    enemyDynamics);
+                    enemyDynamics,
+                    boostCooldown, boostProb);
             }
 #if UNITY_EDITOR
             sw.Stop();
@@ -94,7 +100,7 @@ namespace Movement.MPC
                 smoothedControl.yawTorque *= urgency;
             }
 
-            ApplyControl(ref cmd, smoothedControl);
+            ApplyControl(ref cmd, smoothedControl, raw.boost);
         }
 
         private bool HasArrived(Kinematics kin)
@@ -137,11 +143,12 @@ namespace Movement.MPC
             }
         }
 
-        private static void ApplyControl(ref Command cmd, Control u)
+        private static void ApplyControl(ref Command cmd, Control u, float boost)
         {
             cmd.thrust = u.thrust;
             cmd.strafe = u.strafe;
             cmd.yawTorque = u.yawTorque;
+            cmd.boost = boost;
         }
 
         private void RefreshConfig()

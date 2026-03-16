@@ -35,13 +35,14 @@ namespace Movement.MPC
                     ? MomentumCost(s.vel, input.initialVel) * cfg.wMomentum
                     : 0f,
                 effort = EffortCost(u) * cfg.wEffort,
+                boostEffort = u.boost * u.boost * cfg.wBoostEffort,
                 smoothness = SmoothnessCost(u, prevU, cfg)
             };
 
             var positionalCost = breakdown.pos + breakdown.vel + breakdown.heading +
                                 breakdown.yawRate + breakdown.obstacle + breakdown.momentum;
             var tacticalCost = breakdown.facing + breakdown.los + breakdown.exposure + breakdown.tangential;
-            var total = positionalCost + tacticalCost + breakdown.effort + breakdown.smoothness;
+            var total = positionalCost + tacticalCost + breakdown.effort + breakdown.boostEffort + breakdown.smoothness;
 
             if (isTerminal)
                 total += cfg.terminalMultiplier * (positionalCost + tacticalCost);

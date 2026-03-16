@@ -131,6 +131,7 @@ namespace Ships
                 kinematics = Movement.Kinematics,
                 healthPct = Damage.Health.Pct,
                 shieldPct = Damage.Shield.Pct,
+                boostCooldownRemaining = Movement.BoostCooldownRemaining,
             };
         }
     }

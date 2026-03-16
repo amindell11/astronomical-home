@@ -25,8 +25,8 @@ MonoBehaviour:
   minStrafeForce: 3200
   maxStrafeForce: 4000
   linearDrag: 0.3
-  boostImpulse: 11200
-  boostCooldown: 3
+  boostImpulse: 9000
+  boostCooldown: 5
   startingLives: 1
   maxHealth: 100
   maxShield: 50
