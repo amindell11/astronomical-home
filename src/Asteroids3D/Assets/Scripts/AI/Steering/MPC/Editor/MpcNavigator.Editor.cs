@@ -40,6 +40,9 @@ namespace Movement.MPC
         [Header("Scene Gizmo Sub-Toggles")]
         public bool showObstacleCosts = true;
         public bool showTrajectoryCosts = true;
+        public bool showControlInputs = true;
+        [Tooltip("World-space offset from ship for the control input panel")]
+        public Vector3 controlPanelOffset = new(0f, 2.5f, 0f);
 
         private AICommander cachedCommander;
         private AIDebugSettings CachedSettings
@@ -100,6 +103,7 @@ namespace Movement.MPC
             DrawEnemyRollout();
             DrawGoal();
             DrawObstacleDebugInfo();
+            DrawControlInputs();
         }
 
         private void DrawPredictedTrajectory()
@@ -123,6 +127,11 @@ namespace Movement.MPC
 
                 Gizmos.DrawLine(prevPos, pos);
                 Gizmos.DrawSphere(pos, 0.15f);
+
+                // Planned yaw heading tick (MPC convention: fwd = (-sin, cos))
+                var yawDir = new Vector2(-Mathf.Sin(state.yaw), Mathf.Cos(state.yaw));
+                Gizmos.color = new Color(1f, 1f, 0.4f, 0.7f);
+                Gizmos.DrawRay(pos, GamePlane.PlaneDirToWorld(yawDir) * 0.4f);
 
                 if (i % labelStep == 0)
                 {
@@ -211,6 +220,104 @@ namespace Movement.MPC
                 var visualCost = Mathf.Clamp01(cost / 10f);
                 Gizmos.color = new Color(1f, 0f, 0f, visualCost * 0.5f);
                 Gizmos.DrawWireSphere(obsWorldPos, radius);
+            }
+        }
+
+        private void DrawControlInputs()
+        {
+            if (!showControlInputs || bestSequence == null || bestSequence.Length == 0) return;
+
+            var raw = bestSequence[0];
+            var smooth = smoothedControl;
+            var origin = transform.position + controlPanelOffset;
+
+            // Camera-facing basis vectors for the panel
+            var cam = Camera.current;
+            if (cam == null) return;
+            var right = cam.transform.right;
+            var up = cam.transform.up;
+
+            var barWidth = 1.2f;
+            var barHeight = 0.12f;
+            var rowSpacing = 0.22f;
+            var halfBar = barWidth * 0.5f;
+
+            var labelStyle = new GUIStyle
+            {
+                fontSize = 11,
+                fontStyle = FontStyle.Bold,
+                normal = { textColor = Color.white },
+                alignment = TextAnchor.MiddleRight,
+            };
+            var valueStyle = new GUIStyle
+            {
+                fontSize = 10,
+                normal = { textColor = new Color(0.8f, 0.8f, 0.8f) },
+                alignment = TextAnchor.MiddleLeft,
+            };
+
+            DrawControlBar(origin, right, up, 0, "THR", raw.thrust, smooth.thrust,
+                new Color(0.2f, 0.9f, 0.3f), barWidth, barHeight, halfBar, labelStyle, valueStyle);
+            DrawControlBar(origin, right, up, 1, "STR", raw.strafe, smooth.strafe,
+                new Color(0.3f, 0.6f, 1f), barWidth, barHeight, halfBar, labelStyle, valueStyle);
+            DrawControlBar(origin, right, up, 2, "YAW", raw.yawTorque, smooth.yawTorque,
+                new Color(1f, 0.4f, 0.8f), barWidth, barHeight, halfBar, labelStyle, valueStyle);
+        }
+
+        private void DrawControlBar(Vector3 origin, Vector3 right, Vector3 up,
+            int row, string label, float rawValue, float smoothValue, Color color,
+            float barWidth, float barHeight, float halfBar, GUIStyle labelStyle, GUIStyle valueStyle)
+        {
+            var rowOffset = -up * (row * 0.22f);
+            var center = origin + rowOffset;
+            var barLeft = center - right * halfBar;
+
+            // Background bar (dark, full width)
+            var bgColor = new Color(0.15f, 0.15f, 0.15f, 0.6f);
+            DrawQuad(barLeft, right, up, barWidth, barHeight, bgColor);
+
+            // Center tick mark
+            Gizmos.color = new Color(0.4f, 0.4f, 0.4f, 0.8f);
+            var midBottom = center - up * barHeight * 0.5f;
+            var midTop = center + up * barHeight * 0.5f;
+            Gizmos.DrawLine(midBottom, midTop);
+
+            // Raw value bar (dimmer, drawn first so smooth overlaps)
+            var rawColor = color * 0.35f;
+            rawColor.a = 0.5f;
+            var rawBarStart = center; // center of the bar = zero point
+            var rawBarWidth = Mathf.Abs(rawValue) * halfBar;
+            var rawBarOrigin = rawValue >= 0 ? rawBarStart : rawBarStart - right * rawBarWidth;
+            DrawQuad(rawBarOrigin, right, up, rawBarWidth, barHeight * 0.9f, rawColor);
+
+            // Smoothed value bar (brighter, slightly narrower)
+            var smoothColor = color;
+            smoothColor.a = 0.85f;
+            var smoothBarWidth = Mathf.Abs(smoothValue) * halfBar;
+            var smoothBarOrigin = smoothValue >= 0 ? rawBarStart : rawBarStart - right * smoothBarWidth;
+            DrawQuad(smoothBarOrigin, right, up, smoothBarWidth, barHeight * 0.55f, smoothColor);
+
+            // Label on the left
+            var labelPos = barLeft - right * 0.05f;
+            Handles.Label(labelPos, label, labelStyle);
+
+            // Values on the right
+            var valPos = barLeft + right * (barWidth + 0.08f);
+            Handles.Label(valPos, $"{smoothValue:+0.00;-0.00} ({rawValue:+0.00;-0.00})", valueStyle);
+        }
+
+        private static void DrawQuad(Vector3 bottomLeft, Vector3 right, Vector3 up,
+            float width, float height, Color color)
+        {
+            if (width < 0.001f) return;
+            Gizmos.color = color;
+            // Fill with horizontal scan lines
+            var steps = Mathf.Max(2, Mathf.CeilToInt(height / 0.02f));
+            for (var i = 0; i <= steps; i++)
+            {
+                var t = i / (float)steps;
+                var y = up * (t * height - height * 0.5f);
+                Gizmos.DrawLine(bottomLeft + y, bottomLeft + right * width + y);
             }
         }
 

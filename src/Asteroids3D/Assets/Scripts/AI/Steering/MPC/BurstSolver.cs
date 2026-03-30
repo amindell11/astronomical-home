@@ -99,7 +99,8 @@ namespace Movement.MPC
             float projectileSpeed, Config cfg, Dynamics dynamics,
             int samples, float noiseStd, Control lastControl,
             Dynamics enemyDynamics = default,
-            float boostCooldownRemaining = 0f, float boostSampleProbability = 0.15f)
+            float boostCooldownRemaining = 0f, float boostSampleProbability = 0.15f,
+            float eliteFraction = 0.1f)
         {
             var horizon = cfg.horizon;
             EnsureBuffers(horizon, samples);
@@ -174,22 +175,102 @@ namespace Movement.MPC
 
             job.Schedule(samples, 1).Complete();
 
-            var bestCost = costs[0];
-            var bestIndex = 0;
-            for (var i = 1; i < samples; i++)
+            // Elite averaging: average the top K candidates instead of picking the single best.
+            // This dramatically reduces frame-to-frame variance in the output.
+            var eliteCount = math.max(1, (int)(samples * math.clamp(eliteFraction, 0.01f, 0.5f)));
+            var costThreshold = FindKthSmallest(costs, samples, eliteCount);
+
+            // Zero out the result buffer
+            for (var j = 0; j < horizon; j++)
+                result[j] = default;
+
+            var bestCost = float.MaxValue;
+            var counted = 0;
+            for (var i = 0; i < samples && counted < eliteCount; i++)
             {
+                if (costs[i] > costThreshold) continue;
+
                 if (costs[i] < bestCost)
-                {
                     bestCost = costs[i];
-                    bestIndex = i;
+
+                var offset = i * horizon;
+                for (var j = 0; j < horizon; j++)
+                {
+                    var c = result[j];
+                    var s = candidates[offset + j];
+                    result[j] = new Control
+                    {
+                        thrust = c.thrust + s.thrust,
+                        strafe = c.strafe + s.strafe,
+                        yawTorque = c.yawTorque + s.yawTorque,
+                        boost = c.boost + s.boost,
+                    };
+                }
+                counted++;
+            }
+
+            var invCount = 1f / counted;
+            for (var j = 0; j < horizon; j++)
+            {
+                var c = result[j];
+                sequence[j] = new Control
+                {
+                    thrust = math.clamp(c.thrust * invCount, -1f, 1f),
+                    strafe = math.clamp(c.strafe * invCount, -1f, 1f),
+                    yawTorque = math.clamp(c.yawTorque * invCount, -1f, 1f),
+                    boost = c.boost * invCount > 0.5f ? 1f : 0f,
+                };
+            }
+
+            return bestCost;
+        }
+
+        /// <summary>
+        /// Find the K-th smallest value in costs[0..count-1] using a single pass.
+        /// Returns a threshold: at least K elements have cost &lt;= this value.
+        /// </summary>
+        private static float FindKthSmallest(NativeArray<float> costs, int count, int k)
+        {
+            // Simple approach: maintain a max-heap of size K using an array.
+            // For typical sample counts (64-256) this is fast enough.
+            if (k >= count) return float.MaxValue;
+
+            var heap = new NativeArray<float>(k, Allocator.Temp);
+            for (var i = 0; i < k; i++)
+                heap[i] = costs[i];
+
+            // Build initial max-heap
+            for (var i = k / 2 - 1; i >= 0; i--)
+                SiftDown(heap, i, k);
+
+            // Process remaining elements
+            for (var i = k; i < count; i++)
+            {
+                if (costs[i] < heap[0])
+                {
+                    heap[0] = costs[i];
+                    SiftDown(heap, 0, k);
                 }
             }
 
-            NativeArray<Control>.Copy(candidates, bestIndex * horizon, result, 0, horizon);
-            for (var i = 0; i < horizon; i++)
-                sequence[i] = result[i];
+            var result = heap[0]; // K-th smallest
+            heap.Dispose();
+            return result;
+        }
 
-            return bestCost;
+        private static void SiftDown(NativeArray<float> heap, int i, int n)
+        {
+            while (true)
+            {
+                var largest = i;
+                var left = 2 * i + 1;
+                var right = 2 * i + 2;
+                if (left < n && heap[left] > heap[largest]) largest = left;
+                if (right < n && heap[right] > heap[largest]) largest = right;
+                if (largest == i) break;
+                (heap[i], heap[largest]) = (heap[largest], heap[i]);
+                i = largest;
+            }
         }
 
         public CostInput BuildCostInput(float2 goalPos, float2 goalVel = default,

@@ -68,7 +68,8 @@ namespace Movement.MPC
                     projectileSpeed, config, dynamics,
                     settings.samples, settings.noiseStd, lastControl,
                     enemyDynamics,
-                    boostCooldown, boostProb);
+                    boostCooldown, boostProb,
+                    settings.eliteFraction);
             }
 #if UNITY_EDITOR
             sw.Stop();

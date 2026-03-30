@@ -53,11 +53,6 @@ MonoBehaviour:
   debugSettings: {fileID: 11400000, guid: 2e2ae38aa858dd74d9f7908425a3067d, type: 2}
   stateProfiles:
   - {fileID: 11400000, guid: 810eec9f0227d5f45a38f462c537a795, type: 2}
-  - {fileID: 11400000, guid: 6a2c1289cd40cdb4092e35e2d3486690, type: 2}
-  - {fileID: 11400000, guid: 1b712301a9e747448ba8faa02df5aa8c, type: 2}
-  - {fileID: 11400000, guid: d90063e255dead04198763c69f2e8ba4, type: 2}
-  - {fileID: 11400000, guid: c66a677b8ba837d4f87b3741f82985bd, type: 2}
-  - {fileID: 11400000, guid: 698e7dfc564118e42aba16c413520778, type: 2}
   combatTuning: {fileID: 0}
   combatExitDelay: 3
 --- !u!114 &-1070365238870678526
@@ -121,6 +116,8 @@ MonoBehaviour:
   lastSolveTimeMs: 0
   showObstacleCosts: 1
   showTrajectoryCosts: 1
+  showControlInputs: 1
+  controlPanelOffset: {x: 0, y: 2.5, z: 0}
   settings: {fileID: 11400000, guid: 9d049f5482896884799106aff602155b, type: 2}
   enableObstacleAvoidance: 1
   lastBestCost: 0

@@ -14,6 +14,9 @@ namespace Movement.MPC
         public int samples = 128;
         [Tooltip("Standard deviation of Gaussian noise added to the warm-start sequence for exploration.")]
         public float noiseStd = 0.25f;
+        [Tooltip("Fraction of top candidates to average (elite averaging). Higher = more stable but less reactive.")]
+        [Range(0.01f, 0.5f)]
+        public float eliteFraction = 0.1f;
 
         [Header("Navigation")]
         [Tooltip("Position cost weight. Drives the ship toward the goal (Waypoint mode), " +

@@ -286,10 +286,10 @@ namespace Movement.MPC
             float width = 1f)
         {
             var toShip = pos - enemyPos;
-            var dist = math.length(toShip);
-            if (dist < 1e-4f) return 1f; // On top of enemy = max exposure
+            var distSq = math.lengthsq(toShip);
+            if (distSq < 1e-8f) return 1f; // On top of enemy = max exposure
 
-            var dir = toShip / dist;
+            var dir = toShip * math.rsqrt(distSq);
             // Enemy forward vector (matching yaw convention: yaw=0 → +Y)
             var enemyFwd = new float2(-math.sin(enemyYaw), math.cos(enemyYaw));
             var cosAngle = math.dot(enemyFwd, dir);
@@ -297,11 +297,7 @@ namespace Movement.MPC
             // Angle from enemy's nose (0 = directly in front, π = behind)
             var angle = math.acos(math.clamp(cosAngle, -1f, 1f));
             var x = angle / math.max(width, 1e-4f);
-            var angular = math.exp(-x * x);
-
-            // Inverse-distance: at 1 unit → 1.0, at 10 units → 0.1, at 50 → 0.02
-            var proximity = 1f / dist;
-            return angular * proximity;
+            return math.exp(-x * x);
         }
 
         /// <summary>

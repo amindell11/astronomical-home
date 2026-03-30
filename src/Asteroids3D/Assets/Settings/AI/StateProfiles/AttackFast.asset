@@ -10,28 +10,28 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b56d01da063dcc54487eaaf6f8e443eb, type: 3}
-  m_Name: AttackAggressive
+  m_Name: AttackFast
   m_EditorClassIdentifier: 
   goal:
     rid: 7421252954394461004
   enableTacticalCosts: 1
-  enableFiring: 1
+  enableFiring: 0
   weightMultipliers:
     pos: 1
-    vel: 1
+    vel: 0
     yaw: 0
     yawRate: 1
     effort: 1
     smoothnessThrust: 0.2
     smoothnessStrafe: 0.2
     smoothnessYaw: 0.2
-    momentum: 0.5
-    facing: 2
-    facingWidth: 0.6
+    momentum: 2
+    facing: 5
+    facingWidth: 0.51
     los: 1
-    exposure: 0.5
-    exposureWidth: 1
-    tangential: 1
+    exposure: 5
+    exposureWidth: 0.5
+    tangential: 10
     obstacle: 1
     boostEffort: 1
   requiresEnemy: 1
@@ -53,7 +53,7 @@ MonoBehaviour:
       type: {class: TrackEnemyGoal, ns: AI.States, asm: Game.Core}
       data:
         desiredRange: 15.5
-        rangeTolerance: 6.96
+        rangeTolerance: 9.5
     - rid: 7421252954394461005
       type: {class: CurveFactor, ns: AI.States, asm: Game.Core}
       data:

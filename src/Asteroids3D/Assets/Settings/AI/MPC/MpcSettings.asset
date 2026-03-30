@@ -26,11 +26,11 @@ MonoBehaviour:
   wSmoothnessStrafe: 0.5
   wSmoothnessYaw: 1
   wMomentum: 1
-  wBoostEffort: 1
-  boostSampleProbability: 0.005
+  wBoostEffort: 50000
+  boostSampleProbability: 0.01
   controlSmoothing: 0
-  wFacing: 100
-  facingWidth: 2
+  wFacing: 150
+  facingWidth: 1.5
   wLos: 100
   wExposure: 500
   exposureWidth: 1.33
@@ -42,5 +42,5 @@ MonoBehaviour:
   arrivalVelScale: 5
   arrivalYawScale: 0.1
   relaxMin: 25
-  relaxMax: 150
-  relaxCurve: 1.51
+  relaxMax: 150.1
+  relaxCurve: 1.99

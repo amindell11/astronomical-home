@@ -33,7 +33,7 @@ MonoBehaviour:
     exposureWidth: 1
     tangential: 0
     obstacle: 10
-    boostEffort: 0
+    boostEffort: 10
   requiresEnemy: 0
   requiresNoEnemy: 1
   minRange: 0

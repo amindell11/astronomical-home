@@ -19,7 +19,7 @@ MonoBehaviour:
   weightMultipliers:
     pos: 1
     vel: 1
-    yaw: 1
+    yaw: 0
     yawRate: 1
     effort: 1
     smoothnessThrust: 0.2

@@ -19,21 +19,21 @@ MonoBehaviour:
   weightMultipliers:
     pos: 1
     vel: 1
-    yaw: 1
+    yaw: 0
     yawRate: 1
     effort: 1
     smoothnessThrust: 0.2
     smoothnessStrafe: 0.2
     smoothnessYaw: 0.2
-    momentum: 2
-    facing: 0
-    facingWidth: 1
-    los: 0
+    momentum: 5
+    facing: 5
+    facingWidth: 3
+    los: 1
     exposure: 0
     exposureWidth: 1
-    tangential: 0
+    tangential: 5
     obstacle: 2
-    boostEffort: 0
+    boostEffort: 0.5
   requiresEnemy: 1
   requiresNoEnemy: 0
   minRange: 10
