@@ -13,7 +13,9 @@ namespace Movement.MPC
 
             var breakdown = new CostBreakdown
             {
-                pos = GoalCost(s.pos, ctx.goalPos, cfg) * cfg.wPos,
+                pos = (ctx.hasNavTarget
+                    ? PositionCost(s.pos, ctx.posCostTarget)
+                    : GoalCost(s.pos, ctx.goalPos, cfg)) * cfg.wPos,
                 vel = ctx.isFlee ? 0f : VelocityCost(s.vel) * ctx.wVel,
                 heading = HeadingCost(s.pos, s.yaw, ctx.headingGoal) * ctx.wYaw,
                 facing = FacingCost(s.yaw, ctx.facingTarget, cfg.facingWidth) * cfg.wFacing,

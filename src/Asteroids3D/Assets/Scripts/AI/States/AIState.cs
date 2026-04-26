@@ -1,3 +1,4 @@
+using AI.Planning;
 using AI.Utility;
 using Movement;
 using Movement.MPC;
@@ -76,6 +77,7 @@ namespace AI.States
         public override void Exit()
         {
             navigator.ClearNavigationPoint();
+            navigator.ClearNavigationTarget();
             navigator.ClearGoalMode();
             navigator.ClearEnemyState();
             navigator.ClearObstacleExclusion();
@@ -123,6 +125,13 @@ namespace AI.States
             intent.goalVelocity = combat.EnemyVel;
             intent.obstacleExclusion = combat.Enemy.transform;
 
+            // Skip routing when close enough that MaintainRange owns the approach.
+            var track = Profile.goal as TrackEnemyGoal;
+            var distToEnemy = (ctx.ShipInfo.Pos - combat.EnemyPos).magnitude;
+            var closeRange = track != null && distToEnemy < 1.5f * track.desiredRange;
+            if (!closeRange)
+                TrySetRoutingTarget(ctx, ref intent, RoutingMode.Chase);
+
             if (Profile.enableTacticalCosts)
                 SetEnemyTactical(ctx, ref intent);
 
@@ -138,6 +147,18 @@ namespace AI.States
             intent.goalPosition = combat.EnemyPos;
             intent.goalVelocity = combat.EnemyVel;
             intent.obstacleExclusion = combat.Enemy.transform;
+
+            TrySetRoutingTarget(ctx, ref intent, RoutingMode.Evade);
+        }
+
+        private static void TrySetRoutingTarget(Info ctx, ref NavigationIntent intent, RoutingMode mode)
+        {
+            if (!ctx.NavPlanner) return;
+            var enemy = ctx.Combat.Enemy;
+            if (!enemy) return;
+            if (!ctx.NavPlanner.TryGetRoutedPlanePos(ctx.ShipInfo.Pos, enemy, mode, out var routedPlane))
+                return;
+            intent.navigationTarget = routedPlane;
         }
 
         private void TickPatrol(Info ctx, float deltaTime, ref NavigationIntent intent)
@@ -224,6 +245,12 @@ namespace AI.States
                     true,
                     intent.goalVelocity);
             }
+
+            // High-level planner routing override
+            if (intent.navigationTarget.HasValue)
+                navigator.SetNavigationTarget(intent.navigationTarget.Value);
+            else
+                navigator.ClearNavigationTarget();
 
             // Enemy state for MPC tactical costs (includes dynamics for physics-based rollout)
             if (intent.hasEnemy)

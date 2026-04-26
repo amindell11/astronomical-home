@@ -17,6 +17,8 @@ namespace Movement.MPC
         internal struct EvalContext
         {
             public float2 goalPos;
+            public float2 posCostTarget;
+            public bool hasNavTarget;
             public float enemyYaw;
             public bool hasEnemy;
             public bool isFlee;
@@ -66,15 +68,25 @@ namespace Movement.MPC
                 if (input.projectileSpeed > 0f && hasEnemy)
                     facingTarget = InterceptYaw(s.pos, goalPos, goalVel, input.projectileSpeed);
 
+                var hasNavTarget = !math.isnan(input.navigationTarget.x);
+                var posCostTarget = hasNavTarget ? input.navigationTarget : goalPos;
+
+                float2 headingGoal;
+                if (hasNavTarget) headingGoal = posCostTarget;
+                else if (isFlee) headingGoal = 2f * s.pos - goalPos;
+                else headingGoal = goalPos;
+
                 return new EvalContext
                 {
                     goalPos = goalPos,
+                    posCostTarget = posCostTarget,
+                    hasNavTarget = hasNavTarget,
                     enemyYaw = enemyYaw,
                     hasEnemy = hasEnemy,
                     isFlee = isFlee,
                     wVel = wVel,
                     wYaw = wYaw,
-                    headingGoal = isFlee ? 2f * s.pos - goalPos : goalPos,
+                    headingGoal = headingGoal,
                     facingTarget = facingTarget,
                 };
             }
@@ -85,7 +97,11 @@ namespace Movement.MPC
         {
             var ctx = EvalContext.Create(s, input, cfg, step);
 
-            var posCost = GoalCost(s.pos, ctx.goalPos, cfg) * cfg.wPos;
+            // High-level planner can override the position-cost target with a routing point.
+            // When set, position cost becomes a Waypoint-style pull regardless of GoalMode.
+            var posCost = ctx.hasNavTarget
+                ? PositionCost(s.pos, ctx.posCostTarget) * cfg.wPos
+                : GoalCost(s.pos, ctx.goalPos, cfg) * cfg.wPos;
             var velCost = ctx.isFlee ? 0f : VelocityCost(s.vel) * ctx.wVel;
             var headingCost = HeadingCost(s.pos, s.yaw, ctx.headingGoal) * ctx.wYaw;
             var facingCost = FacingCost(s.yaw, ctx.facingTarget, cfg.facingWidth) * cfg.wFacing;

@@ -185,6 +185,14 @@ namespace Movement.MPC
 
         /// <summary>Ship velocity at the start of the rollout. Used by momentum cost to reward maintaining direction.</summary>
         public float2 initialVel;
+
+        /// <summary>
+        /// Override target for position + heading costs from a high-level planner.
+        /// When set (non-NaN), position cost becomes a Waypoint-style pull toward this point
+        /// regardless of goalMode, and heading cost faces it. Range-band, Flee, and tactical
+        /// costs continue to use goalPos. Set to (NaN, NaN) to disable.
+        /// </summary>
+        public float2 navigationTarget;
     }
 
     internal readonly partial struct EditorProfilingScope : System.IDisposable

@@ -25,6 +25,7 @@ namespace Asteroids
         private Vector3 initialAngularVelocity;
         public float Mass => Rb.mass;
         public float Volume { get; private set; }
+        public float Radius { get; private set; }
         public Rigidbody Rb { get; private set; }
         public AsteroidSpawner AsteroidSpawner { get; private set; }
         public Renderer Renderer { get; private set; }
@@ -82,6 +83,7 @@ namespace Asteroids
                 var size = meshInfo.mesh.bounds.size;
                 var radius = Mathf.Max(size.x, Mathf.Max(size.y, size.z)) * scale * 0.5f;
                 cheapCollider.radius = radius;
+                Radius = radius * transform.lossyScale.x;
             }
 
             initialVelocity = velocity;

@@ -1,4 +1,5 @@
 using System;
+using AI.Planning;
 using Movement;
 using Unity.Properties;
 using UnityEngine;
@@ -20,9 +21,11 @@ namespace AI.Context
         public Scanning.Scout Scout { get; private set; }
         public Maneuvers Maneuvers { get; private set; }
         public SituationAssessment Assessment { get; private set; }
+        /// <summary>Optional high-level routing planner. Null in scenes without one.</summary>
+        public AsteroidNavField NavPlanner { get; private set; }
 
         public Info(Ships.Ship ship, Navigator navigator, Gunner gunner, Scanning.Scout scout, TargetingUtils targetingUtils, Maneuvers maneuvers,
-            float combatExitDelay = 3f)
+            float combatExitDelay = 3f, AsteroidNavField navPlanner = null)
         {
             if (!ship) return;
 
@@ -36,6 +39,7 @@ namespace AI.Context
             Combat = new CombatTracker(scout, gunner, targetingUtils, shipId, registry, combatExitDelay);
             Nav = new Navigation(ShipInfo, navigator);
             Assessment = SituationAssessment.None;
+            NavPlanner = navPlanner;
         }
 
         public void UpdateAssessment()

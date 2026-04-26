@@ -58,8 +58,9 @@ namespace AI
                 gunner.Initialize(combatShip.Weapons.Primary, combatShip.Weapons.Secondary, targeting, stateProvider);
             }
 
+            var navPlanner = Object.FindFirstObjectByType<AI.Planning.AsteroidNavField>();
             context = new Info(ship, Navigator, gunner, Scout, targeting, maneuvers,
-                combatExitDelay);
+                combatExitDelay, navPlanner);
 
             var states = new AI.States.State[stateProfiles.Length];
             for (var i = 0; i < stateProfiles.Length; i++)
