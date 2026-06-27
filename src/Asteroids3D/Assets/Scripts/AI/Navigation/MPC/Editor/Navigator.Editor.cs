@@ -107,8 +107,8 @@ namespace Movement.MPC
             if (comparisonResults == null || comparisonResults.Length != comparisonProfiles.Length)
                 comparisonResults = new ComparisonResult[comparisonProfiles.Length];
 
-            var costInput = solver.BuildCostInput(GoalPos(), GoalVel(), enemyYaw, enemyYawRate,
-                projectileSpeed, mpcState.vel);
+            var costInput = solver.BuildCostInput(GoalPos(), GoalVel(),
+                enemyPos, enemyVel, enemyYaw, enemyYawRate, projectileSpeed, mpcState.vel);
 
             for (var p = 0; p < comparisonProfiles.Length; p++)
             {
@@ -189,7 +189,7 @@ namespace Movement.MPC
 
         private CostBreakdown EvaluateBreakdown(State mpcState)
         {
-            var input = solver.BuildCostInput(GoalPos(), GoalVel(), enemyYaw, enemyYawRate, projectileSpeed, mpcState.vel);
+            var input = solver.BuildCostInput(GoalPos(), GoalVel(), enemyPos, enemyVel, enemyYaw, enemyYawRate, projectileSpeed, mpcState.vel);
             if (costBreakdownMode == CostBreakdownMode.CurrentState)
                 return Cost.EvaluateBreakdown(mpcState, bestSequence[0], lastControl, input, config, false);
             return Cost.EvaluateTrajectoryBreakdown(mpcState, bestSequence, input, config, dynamics, lastControl);
@@ -333,8 +333,8 @@ namespace Movement.MPC
             for (var i = 0; i < horizon; i++)
                 seq[i] = candidates[selectedCandidateIndex * horizon + i];
 
-            var input = solver.BuildCostInput(GoalPos(), GoalVel(), enemyYaw, enemyYawRate,
-                projectileSpeed, lastInitialState.vel);
+            var input = solver.BuildCostInput(GoalPos(), GoalVel(),
+                enemyPos, enemyVel, enemyYaw, enemyYawRate, projectileSpeed, lastInitialState.vel);
             return Cost.EvaluateTrajectoryBreakdown(lastInitialState, seq, input, config, dynamics, lastControl);
         }
 
@@ -351,7 +351,7 @@ namespace Movement.MPC
 
             var prevPos = GamePlane.PlanePointToWorld(new Vector2(predictedStates[0].pos.x, predictedStates[0].pos.y));
             var prevU = bestSequence[0];
-            var input = solver.BuildCostInput(GoalPos(), GoalVel(), enemyYaw, enemyYawRate, projectileSpeed, predictedStates[0].vel);
+            var input = solver.BuildCostInput(GoalPos(), GoalVel(), enemyPos, enemyVel, enemyYaw, enemyYawRate, projectileSpeed, predictedStates[0].vel);
 
             for (var i = 1; i < predictedStates.Length; i++)
             {

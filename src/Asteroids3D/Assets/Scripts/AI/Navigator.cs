@@ -37,6 +37,8 @@ namespace Movement.MPC
         protected GoalMode goalMode;
         protected float goalDesiredRange;
         protected float goalRangeTolerance;
+        protected float2 enemyPos;
+        protected float2 enemyVel;
         protected float enemyYaw = float.NaN;
         protected float enemyYawRate;
         protected float projectileSpeed;
@@ -94,6 +96,8 @@ namespace Movement.MPC
                 goalDesiredRange = goalDesiredRange,
                 goalRangeTolerance = goalRangeTolerance,
                 facingRad = facingOverride ? facingAngle * Mathf.Deg2Rad : float.NaN,
+                enemyPos = enemyPos,
+                enemyVel = enemyVel,
                 enemyYaw = enemyYaw,
                 enemyYawRate = enemyYawRate,
                 projectileSpeed = projectileSpeed,
@@ -244,15 +248,20 @@ namespace Movement.MPC
         // (fwd = (-sin, cos)) lives here, at the MPC boundary — not in the strategy layer.
         private void SetEnemyState(in EnemyTarget target, float projectileSpeed)
         {
-            var fwd = target.kinematics.Forward;
+            var k = target.kinematics;
+            enemyPos = new float2(k.pos.x, k.pos.y);
+            enemyVel = new float2(k.vel.x, k.vel.y);
+            var fwd = k.Forward;
             enemyYaw = Mathf.Atan2(-fwd.x, fwd.y);
-            enemyYawRate = target.kinematics.yawRate * Mathf.Deg2Rad;
+            enemyYawRate = k.yawRate * Mathf.Deg2Rad;
             this.projectileSpeed = projectileSpeed;
             this.enemyDynamics = target.dynamics;
         }
 
         private void ClearEnemyState()
         {
+            enemyPos = default;
+            enemyVel = default;
             enemyYaw = float.NaN;
             enemyYawRate = 0f;
             projectileSpeed = 0f;

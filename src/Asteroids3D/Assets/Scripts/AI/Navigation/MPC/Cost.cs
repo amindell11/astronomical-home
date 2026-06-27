@@ -27,8 +27,9 @@ namespace Movement.MPC
         /// </summary>
         internal struct EvalContext
         {
-            public float2 goalPos;
-            public float2 posCostTarget;
+            public float2 goalTarget;   // positional/closing/heading goal (waypoint, or the enemy if anchored)
+            public float2 enemyPos;     // tactical reference: predicted enemy position this step
+            public float2 enemyVel;
             public float enemyYaw;
             public bool hasEnemy;
             public float wVel;
@@ -41,29 +42,39 @@ namespace Movement.MPC
             {
                 var stepTime = step * cfg.dt;
                 var hasEnemy = !math.isnan(input.enemyYaw);
+                var anchored = cfg.goalMode.IsEnemyAnchored();
 
-                // Use pre-rolled enemy trajectory if available, otherwise linear extrapolation
-                float2 goalPos;
-                float2 goalVel;
+                // Predicted enemy this step: the pre-rolled trajectory if present, else linear
+                // extrapolation from the snapshot. Drives the tactical costs, and the goal too
+                // when it is enemy-anchored.
+                var haveTrack = input.enemyStates.IsCreated && step < input.enemyStateCount;
+                float2 enemyPos, enemyVel;
                 float enemyYaw;
-                if (input.enemyStates.IsCreated && step < input.enemyStateCount)
+                if (haveTrack)
                 {
                     var es = input.enemyStates[step];
-                    goalPos = es.pos;
-                    goalVel = es.vel;
+                    enemyPos = es.pos;
+                    enemyVel = es.vel;
                     enemyYaw = hasEnemy ? es.yaw : input.enemyYaw;
                 }
                 else
                 {
-                    goalPos = input.goalPos + input.goalVel * stepTime;
-                    goalVel = input.goalVel;
+                    enemyPos = input.enemyPos + input.enemyVel * stepTime;
+                    enemyVel = input.enemyVel;
                     enemyYaw = hasEnemy ? input.enemyYaw + input.enemyYawRate * stepTime : input.enemyYaw;
                 }
+
+                // The navigation goal target is the enemy when the goal is anchored to it,
+                // otherwise the (linearly extrapolated) absolute waypoint. This is the one
+                // place "is the goal the enemy?" is resolved.
+                var goalTarget = (anchored && hasEnemy)
+                    ? enemyPos
+                    : input.goalPos + input.goalVel * stepTime;
 
                 var isFlee = cfg.goalMode == GoalMode.Flee;
                 var wVel = cfg.wVel;
                 var wYaw = cfg.wYaw;
-                var distToGoalSq = math.lengthsq(goalPos - s.pos);
+                var distToGoalSq = math.lengthsq(goalTarget - s.pos);
 
                 // Arrival stabilization (disabled in Flee — we start near the goal and want to accelerate away)
                 if (!isFlee && distToGoalSq < cfg.arrivalDistanceSq)
@@ -80,16 +91,17 @@ namespace Movement.MPC
 
                 var facingTarget = cfg.facingTarget;
                 if (input.projectileSpeed > 0f && hasEnemy)
-                    facingTarget = InterceptYaw(s.pos, goalPos, goalVel, input.projectileSpeed);
+                    facingTarget = InterceptYaw(s.pos, enemyPos, enemyVel, input.projectileSpeed);
 
                 float2 headingGoal;
-                if (isFlee) headingGoal = 2f * s.pos - goalPos;
-                else headingGoal = goalPos;
+                if (isFlee) headingGoal = 2f * s.pos - goalTarget;
+                else headingGoal = goalTarget;
 
                 return new EvalContext
                 {
-                    goalPos = goalPos,
-                    posCostTarget = goalPos,
+                    goalTarget = goalTarget,
+                    enemyPos = enemyPos,
+                    enemyVel = enemyVel,
                     enemyYaw = enemyYaw,
                     hasEnemy = hasEnemy,
                     wVel = wVel,
@@ -118,7 +130,7 @@ namespace Movement.MPC
             var posCost = PositionalGoalCost(s.pos, ctx, cfg) * cfg.wPos;
             var velCost = VelocityCost(s.vel, cfg.maxSpeedSq) * ctx.wVel;
             var closingCost = ctx.wClosing == 0f ? 0f
-                : ClosingCost(s.pos, s.vel, ctx.posCostTarget, cfg.maxSpeedSq, cfg.closingFadeDistance) * ctx.wClosing;
+                : ClosingCost(s.pos, s.vel, ctx.goalTarget, cfg.maxSpeedSq, cfg.closingFadeDistance) * ctx.wClosing;
             var headingCost = HeadingCost(s.pos, s.yaw, ctx.headingGoal, cfg.wYawDistanceScale) * ctx.wYaw;
             var facingCost = FacingCost(s.yaw, ctx.facingTarget, cfg.facingWidth) * cfg.wFacing;
             var yawRateCost = YawRateCost(s.yawRate, cfg.maxYawRateSq) * cfg.wYawRate;
@@ -143,16 +155,16 @@ namespace Movement.MPC
             if (ctx.hasEnemy)
             {
                 if (cfg.wLos > 0f && input.obstacleCount > 0)
-                    losCost = LosCost(s.pos, ctx.goalPos, input.obstacles, input.obstacleCount) * cfg.wLos;
+                    losCost = LosCost(s.pos, ctx.enemyPos, input.obstacles, input.obstacleCount) * cfg.wLos;
                 if (cfg.wExposure > 0f)
-                    exposureCost = ExposureCost(s.pos, ctx.goalPos, ctx.enemyYaw, cfg.exposureWidth) * cfg.wExposure;
+                    exposureCost = ExposureCost(s.pos, ctx.enemyPos, ctx.enemyYaw, cfg.exposureWidth) * cfg.wExposure;
                 if (cfg.wTangential > 0f)
-                    tangentialCost = TangentialVelocityCost(s.pos, s.vel, ctx.goalPos) * cfg.wTangential;
+                    tangentialCost = TangentialVelocityCost(s.pos, s.vel, ctx.enemyPos) * cfg.wTangential;
             }
 
             var missDistanceCost = 0f;
             if (cfg.wMissDistance > 0f && input.projectileSpeed > 0f && ctx.hasEnemy)
-                missDistanceCost = MissDistanceCost(s.pos, s.vel, ctx.goalPos, input.projectileSpeed,
+                missDistanceCost = MissDistanceCost(s.pos, s.vel, ctx.enemyPos, input.projectileSpeed,
                     profileScale) * cfg.wMissDistance;
 
             var positionalCost = posCost + velCost + closingCost + headingCost + yawRateCost + obstacleCost + momentumCost;
@@ -195,7 +207,7 @@ namespace Movement.MPC
         /// EvaluateBreakdown so goal-mode handling lives in exactly one place.
         /// </summary>
         internal static float PositionalGoalCost(float2 pos, in EvalContext ctx, in Config cfg)
-            => GoalCost(pos, ctx.goalPos, cfg);
+            => GoalCost(pos, ctx.goalTarget, cfg);
 
         internal static float GoalCost(float2 pos, float2 goal, Config cfg)
         {

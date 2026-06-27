@@ -43,6 +43,7 @@ namespace Tests.EditMode
             goalVel = goalVel,
             goalMode = GoalMode.Waypoint,
             facingRad = float.NaN,
+            enemyYaw = float.NaN,                 // no enemy (NaN == no tactical target)
             weightOverrides = Array.Empty<WeightOverride>(),
             obstacleScan = default,
             enableObstacleAvoidance = false,

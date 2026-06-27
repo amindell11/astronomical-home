@@ -10,6 +10,17 @@ namespace Movement.MPC
         Flee = 2
     }
 
+    public static class GoalModeExtensions
+    {
+        /// <summary>
+        /// The enemy-relative goal modes. Their positional target IS the tracked enemy
+        /// (the cost reads the predicted enemy track), as opposed to an absolute waypoint.
+        /// This is the explicit "the goal is the enemy" indicator.
+        /// </summary>
+        public static bool IsEnemyAnchored(this GoalMode mode) =>
+            mode == GoalMode.MaintainRange || mode == GoalMode.Flee;
+    }
+
     [StructLayout(LayoutKind.Sequential)]
     public struct State
     {
@@ -173,6 +184,12 @@ namespace Movement.MPC
         public float2 goalVel;
         public NativeArray<ObstacleData> obstacles;
         public int obstacleCount;
+
+        /// <summary>Tracked enemy position/velocity. Independent of the goal: an enemy-anchored
+        /// goal reads the predicted enemy track for its position, while tactical costs always
+        /// reference the enemy. (For the linear fallback when no rollout exists.)</summary>
+        public float2 enemyPos;
+        public float2 enemyVel;
 
         /// <summary>Enemy facing direction in radians (same convention as State.yaw). NaN if no enemy.</summary>
         public float enemyYaw;

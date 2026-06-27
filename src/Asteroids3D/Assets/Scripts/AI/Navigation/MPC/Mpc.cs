@@ -17,10 +17,12 @@ namespace Movement.MPC
         public float goalDesiredRange;
         public float goalRangeTolerance;
         public float facingRad;            // NaN = no facing override
+        public float2 enemyPos;
+        public float2 enemyVel;
         public float enemyYaw;
         public float enemyYawRate;
-        public float projectileSpeed;
         public Dynamics enemyDynamics;
+        public float projectileSpeed;
         public WeightOverride[] weightOverrides;
         public ObstacleScan obstacleScan;
         public bool enableObstacleAvoidance;
@@ -88,11 +90,12 @@ namespace Movement.MPC
                 // Scale noise inversely with dt so state-space exploration stays constant.
                 var noiseStd = settings.noiseStd * settings.rolloutDt / config.dt;
                 lastBestCost = solver.Solve(mpcState, bestSequence,
+                    config, dynamics,
                     inputs.obstacleScan, inputs.enableObstacleAvoidance,
-                    inputs.goalPos, inputs.goalVel, inputs.enemyYaw, inputs.enemyYawRate,
-                    inputs.projectileSpeed, config, dynamics,
+                    inputs.goalPos, inputs.goalVel,
+                    inputs.enemyPos, inputs.enemyVel, inputs.enemyYaw, inputs.enemyYawRate,
+                    inputs.enemyDynamics, inputs.projectileSpeed,
                     settings.samples, noiseStd, lastControl,
-                    inputs.enemyDynamics,
                     boostCooldown, boostProb,
                     settings.eliteFraction);
             }

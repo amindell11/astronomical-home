@@ -114,11 +114,12 @@ namespace Movement.MPC
         public int LastHorizon { get; private set; }
 
         public float Solve(State initialState, Control[] sequence,
+            Config cfg, Dynamics dynamics,
             AI.Scanning.ObstacleScan scan, bool useObstacles,
-            float2 goalPos, float2 goalVel, float enemyYaw, float enemyYawRate,
-            float projectileSpeed, Config cfg, Dynamics dynamics,
+            float2 goalPos, float2 goalVel,
+            float2 enemyPos, float2 enemyVel, float enemyYaw, float enemyYawRate,
+            Dynamics enemyDynamics, float projectileSpeed,
             int samples, float noiseStd, Control lastControl,
-            Dynamics enemyDynamics = default,
             float boostCooldownRemaining = 0f, float boostSampleProbability = 0.15f,
             float eliteFraction = 0.1f)
         {
@@ -139,8 +140,8 @@ namespace Movement.MPC
             {
                 var enemyState = new State
                 {
-                    pos = goalPos,
-                    vel = goalVel,
+                    pos = enemyPos,
+                    vel = enemyVel,
                     yaw = enemyYaw,
                     yawRate = enemyYawRate,
                 };
@@ -149,8 +150,8 @@ namespace Movement.MPC
                 var cos = math.cos(enemyYaw);
                 var fwd = new float2(-sin, cos);
                 var right = new float2(cos, sin);
-                var estimatedThrust = math.clamp(math.dot(goalVel, fwd) / enemyDynamics.maxSpeed, -1f, 1f);
-                var estimatedStrafe = math.clamp(math.dot(goalVel, right) / enemyDynamics.maxSpeed, -1f, 1f);
+                var estimatedThrust = math.clamp(math.dot(enemyVel, fwd) / enemyDynamics.maxSpeed, -1f, 1f);
+                var estimatedStrafe = math.clamp(math.dot(enemyVel, right) / enemyDynamics.maxSpeed, -1f, 1f);
                 var enemyControl = new Control { thrust = estimatedThrust, strafe = estimatedStrafe };
                 for (var i = 0; i < horizon; i++)
                 {
@@ -167,6 +168,8 @@ namespace Movement.MPC
                 goalVel = goalVel,
                 obstacles = obstacles,
                 obstacleCount = lastObstacleCount,
+                enemyPos = enemyPos,
+                enemyVel = enemyVel,
                 enemyYaw = enemyYaw,
                 enemyYawRate = enemyYawRate,
                 projectileSpeed = projectileSpeed,
@@ -316,6 +319,7 @@ namespace Movement.MPC
         }
 
         public CostInput BuildCostInput(float2 goalPos, float2 goalVel = default,
+            float2 enemyPos = default, float2 enemyVel = default,
             float enemyYaw = float.NaN, float enemyYawRate = 0f, float projectileSpeed = 0f,
             float2 initialVel = default)
         {
@@ -325,6 +329,8 @@ namespace Movement.MPC
                 goalVel = goalVel,
                 obstacles = obstacles,
                 obstacleCount = lastObstacleCount,
+                enemyPos = enemyPos,
+                enemyVel = enemyVel,
                 enemyYaw = enemyYaw,
                 enemyYawRate = enemyYawRate,
                 projectileSpeed = projectileSpeed,

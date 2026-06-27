@@ -20,7 +20,7 @@ namespace Movement.MPC
                 pos = PositionalGoalCost(s.pos, ctx, cfg) * cfg.wPos,
                 vel = VelocityCost(s.vel, cfg.maxSpeedSq) * ctx.wVel,
                 closing = ctx.wClosing == 0f ? 0f
-                    : ClosingCost(s.pos, s.vel, ctx.posCostTarget, cfg.maxSpeedSq, cfg.closingFadeDistance) * ctx.wClosing,
+                    : ClosingCost(s.pos, s.vel, ctx.goalTarget, cfg.maxSpeedSq, cfg.closingFadeDistance) * ctx.wClosing,
                 heading = HeadingCost(s.pos, s.yaw, ctx.headingGoal, cfg.wYawDistanceScale) * ctx.wYaw,
                 facing = FacingCost(s.yaw, ctx.facingTarget, cfg.facingWidth) * cfg.wFacing,
                 yawRate = YawRateCost(s.yawRate, cfg.maxYawRateSq) * cfg.wYawRate,
@@ -31,16 +31,16 @@ namespace Movement.MPC
                         cfg.obstacleClosingScale, cfg.obstacleClosingHalfSpeed) * cfg.wObstacle
                     : 0f,
                 los = (ctx.hasEnemy && cfg.wLos > 0f && input.obstacleCount > 0)
-                    ? LosCost(s.pos, ctx.goalPos, input.obstacles, input.obstacleCount) * cfg.wLos
+                    ? LosCost(s.pos, ctx.enemyPos, input.obstacles, input.obstacleCount) * cfg.wLos
                     : 0f,
                 exposure = (ctx.hasEnemy && cfg.wExposure > 0f)
-                    ? ExposureCost(s.pos, ctx.goalPos, ctx.enemyYaw, cfg.exposureWidth) * cfg.wExposure
+                    ? ExposureCost(s.pos, ctx.enemyPos, ctx.enemyYaw, cfg.exposureWidth) * cfg.wExposure
                     : 0f,
                 tangential = (ctx.hasEnemy && cfg.wTangential > 0f)
-                    ? TangentialVelocityCost(s.pos, s.vel, ctx.goalPos) * cfg.wTangential
+                    ? TangentialVelocityCost(s.pos, s.vel, ctx.enemyPos) * cfg.wTangential
                     : 0f,
                 missDistance = (ctx.hasEnemy && cfg.wMissDistance > 0f && input.projectileSpeed > 0f)
-                    ? MissDistanceCost(s.pos, s.vel, ctx.goalPos, input.projectileSpeed,
+                    ? MissDistanceCost(s.pos, s.vel, ctx.enemyPos, input.projectileSpeed,
                         profileScale) * cfg.wMissDistance
                     : 0f,
                 momentum = cfg.wMomentum > 0f
