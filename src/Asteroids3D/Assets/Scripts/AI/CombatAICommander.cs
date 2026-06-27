@@ -45,7 +45,6 @@ namespace AI
 
             var shipInfo = new AI.Context.ShipInfo(ship);
             var targeting = new TargetingUtils(shipInfo, combatTuning);
-            var maneuvers = new Maneuvers(shipInfo);
 
             System.Func<State> stateProvider = () => ship.CurrentState;
 
@@ -59,7 +58,7 @@ namespace AI
             }
 
             var navPlanner = Object.FindFirstObjectByType<AI.Planning.AsteroidNavField>();
-            context = new Info(ship, Navigator, gunner, Scout, targeting, maneuvers,
+            context = new Info(ship, Navigator, gunner, Scout, targeting,
                 combatExitDelay, navPlanner);
 
             var states = new AI.States.State[stateProfiles.Length];
