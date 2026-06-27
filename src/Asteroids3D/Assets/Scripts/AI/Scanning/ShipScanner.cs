@@ -12,7 +12,7 @@ namespace AI.Scanning
         public int count;
         public static ShipScanResult Empty => new() { shipIds = System.Array.Empty<ShipId>(), count = 0 };
 
-        public ShipId NearestEnemy(ShipId self, Vector3 pos, IShipRegistry registry)
+        public readonly ShipId NearestEnemy(ShipId self, Vector3 pos, IShipRegistry registry)
         {
             if (registry == null) return ShipId.Invalid;
             var nearestId = ShipId.Invalid;
@@ -30,7 +30,7 @@ namespace AI.Scanning
             return nearestId;
         }
 
-        public int FriendCount(ShipId self, IShipRegistry registry)
+        public readonly int FriendCount(ShipId self, IShipRegistry registry)
         {
             if (registry == null) return 0;
 
@@ -44,7 +44,7 @@ namespace AI.Scanning
             return friendCount;
         }
 
-        public int EnemyCount(ShipId self, IShipRegistry registry)
+        public readonly int EnemyCount(ShipId self, IShipRegistry registry)
         {
             if (registry == null) return 0;
 

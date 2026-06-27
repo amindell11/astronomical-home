@@ -14,11 +14,9 @@ namespace Ships
             var ship = GetComponentInParent<Ship>();
             if (!ship) return;
 
-            if (!ship.CompareTag("Player"))
-            {
-                int layer = LayerMask.NameToLayer("Minimap_Enemy");
-                if (layer >= 0) gameObject.layer = layer;
-            }
+            if (ship.CompareTag("Player")) return;
+            var layer = LayerMask.NameToLayer("Minimap_Enemy");
+            if (layer >= 0) gameObject.layer = layer;
         }
     }
 }

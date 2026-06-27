@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Combat.Projectile
 {
-    public class LaserProjectile : Projectile<LaserProjectile>
+    public class Laser : Projectile<Laser>
     {
         [Header("Laser Properties")]
         [SerializeField] private float laserSpeed = 20f;

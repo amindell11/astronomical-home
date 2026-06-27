@@ -1,6 +1,6 @@
+using Combat;
 using Game;
 using UnityEngine;
-using TargetingUtils = Combat.TargetingUtils;
 
 namespace AI.Context
 {
@@ -39,8 +39,7 @@ namespace AI.Context
         private SituationAssessment(
             SelfStatus self = null,
             EnemyTracker combat = null,
-            Scanning.Scout scout = null,
-            TargetingUtils targeting = null)
+            Scanning.Scout scout = null)
         {
             InCombat = combat?.InCombat ?? false;
             TimeSinceCombat = combat?.TimeSinceCombat ?? float.MaxValue;
@@ -63,26 +62,27 @@ namespace AI.Context
 
             if (scout) {
                 var contacts = scout.Contacts;
-                NearbyEnemyCount = contacts.EnemyCount;
-                NearbyFriendCount = contacts.FriendCount;
-                Outnumbered = contacts.Outnumbered;
+                NearbyEnemyCount = contacts.enemyCount;
+                NearbyFriendCount = contacts.friendCount;
+                Outnumbered = contacts.outnumbered;
             }
 
-            if (self == null || combat == null || targeting == null || !combat.HasEnemy)
+            if (self == null || combat == null || !combat.HasEnemy)
                 return;
 
+            var selfKin = self.Kin;
             var enemyPos = combat.EnemyPos;
             EnemyDistance = (enemyPos - self.Pos).magnitude;
             EnemyCombinedDurability = (combat.EnemyHealthPct + combat.EnemyShieldPct) / 2f;
-            HasLineOfSight = targeting.HasLineOfSight(GamePlane.PlanePointToWorld(enemyPos));
+            HasLineOfSight = TargetingMath.HasLineOfSight(selfKin, GamePlane.PlanePointToWorld(enemyPos));
 
-            var rawClosing = targeting.ClosingSpeed(enemyPos, combat.EnemyVel);
+            var rawClosing = TargetingMath.ClosingSpeed(selfKin, enemyPos, combat.EnemyVel);
             ClosingRate = Mathf.Clamp01(rawClosing * 0.05f + 0.5f);
 
-            var angleFromEnemy = targeting.AngleFromTarget(enemyPos, combat.EnemyForward);
+            var angleFromEnemy = TargetingMath.AngleFromTarget(selfKin, enemyPos, combat.EnemyForward);
             EnemyFacingThreat = (Mathf.Cos(angleFromEnemy * Mathf.Deg2Rad) + 1f) / 2f;
 
-            SelfAngleToEnemy = targeting.AngleTo(enemyPos);
+            SelfAngleToEnemy = TargetingMath.AngleTo(selfKin, enemyPos);
             SelfAngleNorm = SelfAngleToEnemy / 180f;
         }
 
@@ -91,10 +91,9 @@ namespace AI.Context
         public static SituationAssessment Evaluate(
             SelfStatus self,
             EnemyTracker combat,
-            Scanning.Scout scout,
-            TargetingUtils targeting)
+            Scanning.Scout scout)
         {
-            return new SituationAssessment(self, combat, scout, targeting);
+            return new SituationAssessment(self, combat, scout);
         }
 
         public override string ToString()

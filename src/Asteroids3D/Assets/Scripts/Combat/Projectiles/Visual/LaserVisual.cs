@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Combat.Projectile.Visual
 {
-    [RequireComponent(typeof(LaserProjectile))]
+    [RequireComponent(typeof(Laser))]
     public class LaserVisual : MonoBehaviour
     {
         [Header("Fade Settings")]
@@ -12,14 +12,14 @@ namespace Combat.Projectile.Visual
             new Keyframe(1f, 1f)
         );
 
-        private LaserProjectile laser;
+        private Laser laser;
         private Renderer[] renderers;
         private Material[] materials;
         private Color[] originalColors;
 
         private void Awake()
         {
-            laser = GetComponent<LaserProjectile>();
+            laser = GetComponent<Laser>();
             renderers = GetComponentsInChildren<Renderer>();
             if (renderers == null || renderers.Length == 0) return;
 

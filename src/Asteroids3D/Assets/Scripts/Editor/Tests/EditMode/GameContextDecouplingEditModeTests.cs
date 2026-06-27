@@ -34,12 +34,12 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void TargetingComputer_RegistryFlagReflectsInjection()
+        public void LockOnSensor_RegistryFlagReflectsInjection()
         {
             var go = new GameObject("Targeting");
             try
             {
-                var targeting = go.AddComponent<TargetingComputer>();
+                var targeting = go.AddComponent<LockOnSensor>();
                 Assert.IsFalse(targeting.HasRegistry);
 
                 targeting.SetRegistry(new StubRegistry());
@@ -52,9 +52,9 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void TargetingComputer_SourceStopsScanWhenRegistryIsCleared()
+        public void LockOnSensor_SourceStopsScanWhenRegistryIsCleared()
         {
-            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Combat", "Targeting", "TargetingComputer.cs"));
+            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Combat", "Targeting", "LockOnSensor.cs"));
             StringAssert.Contains("StopScanRoutine();", source);
             StringAssert.Contains("StartScanRoutineIfNeeded();", source);
         }
@@ -92,7 +92,7 @@ namespace Tests.EditMode
             {
                 Path.Combine(assetsPath, "Scripts", "Game", "Bootstrap", "MainGameManager.cs"),
                 Path.Combine(assetsPath, "Scripts", "AI", "AICommander.cs"),
-                Path.Combine(assetsPath, "Scripts", "Combat", "Targeting", "TargetingComputer.cs"),
+                Path.Combine(assetsPath, "Scripts", "Combat", "Targeting", "LockOnSensor.cs"),
                 Path.Combine(assetsPath, "Scripts", "Player", "PlayerCommander.cs"),
                 Path.Combine(assetsPath, "Scripts", "Asteroids", "AsteroidController.cs")
             };

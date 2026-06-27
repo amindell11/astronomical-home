@@ -54,7 +54,7 @@ namespace UI
             ammoChangedHandler = OnAmmoChanged;
         }
 
-        public void Initialize(Rounds rounds, TargetingComputer targeting)
+        public void Initialize(Rounds rounds, LockOnSensor targeting)
         {
             Initialize(rounds, (ILockStateSource)targeting);
         }

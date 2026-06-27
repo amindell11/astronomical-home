@@ -8,7 +8,7 @@ namespace AI.States
     [CustomEditor(typeof(StateProfile))]
     public class StateProfileEditor : UnityEditor.Editor
     {
-        private MPCSettings cachedBaseMpcSettings;
+        private MpcSettings cachedBaseMpcSettings;
         private bool baseSettingsResolved;
 
         public override void OnInspectorGUI()
@@ -107,14 +107,14 @@ namespace AI.States
             return baseWidth * multiplier;
         }
 
-        private MPCSettings GetBaseSettings()
+        private MpcSettings GetBaseSettings()
         {
             if (baseSettingsResolved) return cachedBaseMpcSettings;
             baseSettingsResolved = true;
             var guids = AssetDatabase.FindAssets("t:Movement.MPC.Settings");
             if (guids.Length == 0) return null;
             var path = AssetDatabase.GUIDToAssetPath(guids[0]);
-            cachedBaseMpcSettings = AssetDatabase.LoadAssetAtPath<MPCSettings>(path);
+            cachedBaseMpcSettings = AssetDatabase.LoadAssetAtPath<MpcSettings>(path);
             return cachedBaseMpcSettings;
         }
     }

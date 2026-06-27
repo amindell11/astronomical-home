@@ -9,13 +9,13 @@ namespace Ships
     public class CombatShip : Ship, IShooter
     {
         public WeaponsController Weapons { get; private set; }
-        public TargetingComputer Targeting { get; private set; }
+        public LockOnSensor Targeting { get; private set; }
 
         protected override void Awake()
         {
             base.Awake();
             Weapons = GetComponent<WeaponsController>();
-            Targeting = GetComponentInChildren<TargetingComputer>();
+            Targeting = GetComponentInChildren<LockOnSensor>();
         }
 
         protected override void UpdateState()

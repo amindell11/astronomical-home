@@ -1,6 +1,5 @@
 using System;
 using Unity.Properties;
-using TargetingUtils = Combat.TargetingUtils;
 
 namespace AI.Context
 {
@@ -19,17 +18,15 @@ namespace AI.Context
     {
         public SelfStatus Self { get; private set; }
         public EnemyTracker Combat { get; private set; }
-        public TargetingUtils TargetingUtils { get; private set; }
         public Scanning.Scout Scout { get; private set; }
         public SituationAssessment Assessment { get; private set; }
-        public AIContext(SelfStatus self, Scanning.Scout scout, TargetingUtils targetingUtils,
+        public AIContext(SelfStatus self, Scanning.Scout scout,
             float combatExitDelay = 3f)
         {
             if (self == null || scout == null) return;
 
             Self = self;
             Scout = scout;
-            TargetingUtils = targetingUtils;
             Combat = new EnemyTracker(scout, combatExitDelay);
             Assessment = SituationAssessment.None;
         }
@@ -37,7 +34,7 @@ namespace AI.Context
         public void UpdateAssessment()
         {
             Combat.Update();
-            Assessment = SituationAssessment.Evaluate(Self, Combat, Scout, TargetingUtils);
+            Assessment = SituationAssessment.Evaluate(Self, Combat, Scout);
         }
 
         public override string ToString()

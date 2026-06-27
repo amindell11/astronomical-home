@@ -22,7 +22,7 @@ namespace Tests.EditMode
             try
             {
                 var target = new TestTargetable(targetGo.transform);
-                var lockController = new LockController(0.1f, 0.1f, () => true);
+                var lockController = new TargetLock(0.1f, 0.1f, () => true);
                 var transitions = new List<(LockState from, LockState to)>();
                 lockController.OnStateChanged += (from, to) => transitions.Add((from, to));
 

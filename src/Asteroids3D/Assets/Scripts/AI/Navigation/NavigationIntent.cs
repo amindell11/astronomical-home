@@ -31,9 +31,11 @@ namespace AI.States
         // MPC weight overrides (sparse; absent weight = base ×1)
         public WeightOverride[] weightOverrides;
 
-        // Gunner
+        // Gunner — the enemy to engage; the Gunner resolves its own firing solution.
         public bool enableFiring;
-        public Vector2 gunnerTarget;
+        public bool hasGunnerEnemy;
+        public Vector2 gunnerEnemyPos;
+        public Vector2 gunnerEnemyVel;
 
         public static NavigationIntent None => new NavigationIntent { isValid = false };
     }

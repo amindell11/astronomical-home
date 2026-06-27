@@ -43,7 +43,7 @@ namespace Movement.MPC
     /// </summary>
     public class Mpc : IDisposable
     {
-        private readonly MPCSettings settings;
+        private readonly MpcSettings settings;
         private readonly Dynamics dynamics;
         private readonly SolverBuffers solver;
 
@@ -57,7 +57,7 @@ namespace Movement.MPC
         private float lastBestCost;
         private State lastInitialState;
 
-        public Mpc(MPCSettings settings, Dynamics dynamics)
+        public Mpc(MpcSettings settings, Dynamics dynamics)
         {
             this.settings = settings;
             this.dynamics = dynamics;
@@ -241,7 +241,7 @@ namespace Movement.MPC
         public void Dispose() => solver?.Dispose();
 
         // ── Editor/debug accessors (read-only views of solver runtime state) ──
-        internal MPCSettings Settings => settings;
+        internal MpcSettings Settings => settings;
         internal Dynamics Dynamics => dynamics;
         internal SolverBuffers Solver => solver;
         internal Config Config => config;

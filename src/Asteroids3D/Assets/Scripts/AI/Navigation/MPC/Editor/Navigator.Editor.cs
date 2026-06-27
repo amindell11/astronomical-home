@@ -711,7 +711,7 @@ namespace Movement.MPC
             Repaint();
         }
 
-        private void RenderBreakdownBars(MPCSettings s, CostBreakdown breakdown)
+        private void RenderBreakdownBars(MpcSettings s, CostBreakdown breakdown)
         {
             var total = breakdown.total;
             DrawCostBar("Position", breakdown.pos, s.wPos, total, Color.green);

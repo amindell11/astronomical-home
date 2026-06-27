@@ -13,7 +13,7 @@ namespace UI
     {
         [Header("References")]
         [Tooltip("LaserGun whose heat we visualise.")]
-        [SerializeField] private WeaponLaser laserGun;
+        [SerializeField] private Lasers laserGun;
 
         [Tooltip("Image component whose FillAmount represents heat (0-1). Should use a Vertical fill method.")]
         [SerializeField] private Image fillImage;

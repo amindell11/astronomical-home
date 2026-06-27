@@ -7,7 +7,7 @@ using Utils;
 
 namespace Combat.Targeting
 {
-    public partial class TargetingComputer : MonoBehaviour, ILockStateSource, ILockProvider
+    public partial class LockOnSensor : MonoBehaviour, ILockStateSource, ILockProvider
     {
         [Header("Lock-On Settings")]
         [SerializeField] private float lockOnConeAngle = 30f;
@@ -19,7 +19,7 @@ namespace Combat.Targeting
         [SerializeField] private Transform firePoint;
         [SerializeField] private WeaponBase<Missile> weapon;
 
-        private LockController lockController;
+        private TargetLock targetLock;
         private Sensors.FanSensor sensor;
         private IShipRegistry registry;
         private ShipId selfShipId;
@@ -28,10 +28,10 @@ namespace Combat.Targeting
 
         public event Action<LockState, LockState> OnStateChanged;
 
-        public LockState State => lockController?.State ?? LockState.Idle;
-        public ITargetable CurrentTarget => lockController?.CurrentTarget;
-        public float LockProgress => lockController?.LockProgress ?? 0f;
-        public bool IsLocked => lockController?.IsLocked ?? false;
+        public LockState State => targetLock?.State ?? LockState.Idle;
+        public ITargetable CurrentTarget => targetLock?.CurrentTarget;
+        public float LockProgress => targetLock?.LockProgress ?? 0f;
+        public bool IsLocked => targetLock?.IsLocked ?? false;
         public bool HasRegistry => registry != null;
 
         public void SetRegistry(IShipRegistry shipRegistry)
@@ -68,8 +68,8 @@ namespace Combat.Targeting
             if (selfShip)
                 selfShipId = new ShipId(selfShip.GetInstanceID());
 
-            lockController = new LockController(lockOnTime, lockExpiry, CanLock);
-            lockController.OnStateChanged += HandleLockStateChanged;
+            targetLock = new TargetLock(lockOnTime, lockExpiry, CanLock);
+            targetLock.OnStateChanged += HandleTargetLockStateChanged;
 
             sensor = new Sensors.FanSensor(
                 firePoint,
@@ -106,22 +106,22 @@ namespace Combat.Targeting
         private void OnDestroy()
         {
             StopScanRoutine();
-            if (lockController != null)
-                lockController.OnStateChanged -= HandleLockStateChanged;
+            if (targetLock != null)
+                targetLock.OnStateChanged -= HandleTargetLockStateChanged;
         }
 
         private void FixedUpdate()
         {
             if (registry == null)
                 return;
-            lockController.Update(Time.deltaTime, IsAcquired(CurrentTarget));
+            targetLock.Update(Time.deltaTime, IsAcquired(CurrentTarget));
         }
 
         private System.Collections.IEnumerator ScanRoutine()
         {
             while (enabled && registry != null)
             {
-                if (lockController.CanStartNewLock())
+                if (targetLock.CanStartNewLock())
                     ScanForTarget();
                 yield return scanWait;
             }
@@ -131,7 +131,7 @@ namespace Combat.Targeting
 
         private void StartScanRoutineIfNeeded()
         {
-            if (scanRoutine != null || registry == null || lockController == null || !enabled)
+            if (scanRoutine != null || registry == null || targetLock == null || !enabled)
                 return;
             scanRoutine = StartCoroutine(ScanRoutine());
         }
@@ -145,13 +145,13 @@ namespace Combat.Targeting
             scanRoutine = null;
         }
 
-        public ITargetable ConsumeLock() => lockController.ConsumeLock();
+        public ITargetable ConsumeLock() => targetLock.ConsumeLock();
 
         private void ScanForTarget()
         {
             var bestTarget = FindBestTargetInCone();
             if (bestTarget != null)
-                lockController.TryStartLock(bestTarget);
+                targetLock.TryStartLock(bestTarget);
         }
 
         private bool IsAcquired(ITargetable t) =>
@@ -202,7 +202,7 @@ namespace Combat.Targeting
             return bestCandidate;
         }
 
-        private void HandleLockStateChanged(LockState previous, LockState next)
+        private void HandleTargetLockStateChanged(LockState previous, LockState next)
         {
             OnStateChanged?.Invoke(previous, next);
         }

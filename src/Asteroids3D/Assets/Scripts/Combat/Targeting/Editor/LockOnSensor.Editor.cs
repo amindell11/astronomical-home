@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Combat.Targeting
 {
-    public partial class TargetingComputer
+    public partial class LockOnSensor
     {
         private void OnDrawGizmos()
         {

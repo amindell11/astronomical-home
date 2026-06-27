@@ -48,7 +48,7 @@ namespace UI
             if (healthAudio && player.Damage)
                 healthAudio.Initialize(player.Damage);
 
-            var laser = combatShip?.Weapons?.Primary as WeaponLaser;
+            var laser = combatShip?.Weapons?.Primary as Lasers;
             var heat = laser ? laser.Heat : null;
             if (heat)
             {
@@ -56,7 +56,7 @@ namespace UI
                 if (laserHeatUI) laserHeatUI.Initialize(heat);
             }
 
-            var missiles = combatShip?.Weapons?.Secondary as WeaponMissiles;
+            var missiles = combatShip?.Weapons?.Secondary as Missiles;
             var rounds = missiles ? missiles.Rounds : null;
             var targeting = missiles ? missiles.Targeting : null;
             if (missileAmmoUI && rounds && targeting)

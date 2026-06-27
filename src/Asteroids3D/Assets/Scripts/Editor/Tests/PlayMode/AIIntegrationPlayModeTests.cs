@@ -52,7 +52,7 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
             new CurveFactor { input = ContinuousInput.Shield, response = MakeCurve(0.7f, 1.3f) },
             new CurveFactor { input = ContinuousInput.EnemyDurability, response = MakeCurve(1.2f, 0.8f) },
             new RangeBandFactor { optimalMin = 5f, optimalMax = 30f },
-            new BinaryFactor { signal = BinarySignal.LOS, whenTrue = 1.4f, whenFalse = 0.6f },
+            new BinaryFactor { signal = BinarySignal.Los, whenTrue = 1.4f, whenFalse = 0.6f },
             new CurveFactor { input = ContinuousInput.Outnumbered, response = MakeCurve(1.0f, 0.7f) },
         };
         return p;
@@ -95,7 +95,7 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
             new CurveFactor { input = ContinuousInput.Health, response = MakeCurve(1.8f, 0.2f) },
             new CurveFactor { input = ContinuousInput.Shield, response = MakeCurve(1.6f, 0.4f) },
             new CurveFactor { input = ContinuousInput.Outnumbered, response = MakeCurve(0.6f, 1.4f) },
-            new BinaryFactor { signal = BinarySignal.LOS, whenTrue = 1.2f, whenFalse = 0.8f },
+            new BinaryFactor { signal = BinarySignal.Los, whenTrue = 1.2f, whenFalse = 0.8f },
             new CurveFactor { input = ContinuousInput.ClosingRate, response = MakeCurve(0.7f, 1.3f) },
             new CurveFactor { input = ContinuousInput.EnemyFacing, response = MakeCurve(0.5f, 1.5f) },
             new CurveFactor { input = ContinuousInput.SelfAngle, response = MakeCurve(0.8f, 1.2f) },

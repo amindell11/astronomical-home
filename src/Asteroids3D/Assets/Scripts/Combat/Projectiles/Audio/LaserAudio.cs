@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Combat.Projectile.Audio
 {
-    [RequireComponent(typeof(LaserProjectile))]
+    [RequireComponent(typeof(Laser))]
     public class LaserAudio : MonoBehaviour
     {
         [Header("Audio")]
@@ -11,11 +11,11 @@ namespace Combat.Projectile.Audio
         [Range(0f, 1f)]
         [SerializeField] private float hitVolume = 1f;
 
-        private LaserProjectile laser;
+        private Laser laser;
 
         private void Awake()
         {
-            laser = GetComponent<LaserProjectile>();
+            laser = GetComponent<Laser>();
         }
 
         private void OnEnable()

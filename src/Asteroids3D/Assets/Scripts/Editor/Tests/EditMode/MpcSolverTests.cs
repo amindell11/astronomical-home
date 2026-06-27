@@ -23,13 +23,13 @@ namespace Tests.EditMode
         private const string MpcSettingsPath = "Assets/Settings/AI/MPC/MpcSettings.asset";
         private const string ShipSettingsPath = "Assets/Settings/Ships/DefaultSettings.asset";
 
-        private MPCSettings settings;
+        private MpcSettings settings;
         private Dynamics dynamics;
 
         [SetUp]
         public void SetUp()
         {
-            settings = AssetDatabase.LoadAssetAtPath<MPCSettings>(MpcSettingsPath);
+            settings = AssetDatabase.LoadAssetAtPath<MpcSettings>(MpcSettingsPath);
             var ship = AssetDatabase.LoadAssetAtPath<ShipSettings>(ShipSettingsPath);
             Assert.That(settings, Is.Not.Null, $"Missing MPC settings at {MpcSettingsPath}");
             Assert.That(ship, Is.Not.Null, $"Missing ship settings at {ShipSettingsPath}");

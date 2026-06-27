@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Combat.Weapons
 {
-    public partial class WeaponMissiles
+    public partial class Missiles
     {
         private void OnDrawGizmos()
         {

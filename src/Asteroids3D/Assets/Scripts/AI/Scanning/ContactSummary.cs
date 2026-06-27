@@ -11,18 +11,18 @@ namespace AI.Scanning
     /// </summary>
     public readonly struct ContactSummary
     {
-        public readonly ShipId NearestEnemyId;
-        public readonly int EnemyCount;
-        public readonly int FriendCount;
+        public readonly ShipId nearestEnemyId;
+        public readonly int enemyCount;
+        public readonly int friendCount;
         /// <summary>Clamp01((enemies - friends) / 3): 0 = even or outnumbering, 1 = heavily outnumbered.</summary>
-        public readonly float Outnumbered;
+        public readonly float outnumbered;
 
-        public ContactSummary(ShipId nearestEnemyId, int enemyCount, int friendCount)
+        private ContactSummary(ShipId nearestEnemyId, int enemyCount, int friendCount)
         {
-            NearestEnemyId = nearestEnemyId;
-            EnemyCount = enemyCount;
-            FriendCount = friendCount;
-            Outnumbered = Mathf.Clamp01((float)(enemyCount - friendCount) / 3f);
+            this.nearestEnemyId = nearestEnemyId;
+            this.enemyCount = enemyCount;
+            this.friendCount = friendCount;
+            outnumbered = Mathf.Clamp01((float)(enemyCount - friendCount) / 3f);
         }
 
         public static readonly ContactSummary Empty = new(ShipId.Invalid, 0, 0);

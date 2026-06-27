@@ -1,9 +1,10 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Movement.MPC
 {
     [CreateAssetMenu(menuName = "AI/MPC Settings", fileName = "MpcSettings")]
-    public class MPCSettings : ScriptableObject
+    public class MpcSettings : ScriptableObject
     {
         [Header("Solver")]
         [Tooltip("Total lookahead time in seconds. Longer = smoother paths but slower to react.")]

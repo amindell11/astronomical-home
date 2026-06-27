@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Movement.MPC
 {
-    [CustomEditor(typeof(MPCSettings))]
+    [CustomEditor(typeof(MpcSettings))]
     public class SettingsEditor : Editor
     {
         // Fields after which to insert curve previews
@@ -20,7 +20,7 @@ namespace Movement.MPC
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-            var settings = (MPCSettings)target;
+            var settings = (MpcSettings)target;
 
             var prop = serializedObject.GetIterator();
             prop.NextVisible(true); // skip m_Script
@@ -55,7 +55,7 @@ namespace Movement.MPC
             serializedObject.ApplyModifiedProperties();
         }
 
-        internal static void DrawPositionCurve(float curve, float satDistance)
+        private static void DrawPositionCurve(float curve, float satDistance)
         {
             var animCurve = new AnimationCurve();
             const int steps = 64;
@@ -78,7 +78,7 @@ namespace Movement.MPC
             EditorGUI.EndDisabledGroup();
         }
 
-        internal static void DrawTerminalRampCurve(float multiplier, float curve, int horizon)
+        private static void DrawTerminalRampCurve(float multiplier, float curve, int horizon)
         {
             var animCurve = new AnimationCurve();
             var steps = Mathf.Max(horizon, 2);
@@ -97,7 +97,7 @@ namespace Movement.MPC
             EditorGUI.EndDisabledGroup();
         }
 
-        internal static void DrawObstacleFalloffCurve(float curve)
+        private static void DrawObstacleFalloffCurve(float curve)
         {
             var animCurve = new AnimationCurve();
             const int steps = 64;
@@ -168,7 +168,7 @@ namespace Movement.MPC
             EditorGUI.EndDisabledGroup();
         }
 
-        internal static void DrawRelaxCurve(float min, float max, float curve)
+        private static void DrawRelaxCurve(float min, float max, float curve)
         {
             var animCurve = new AnimationCurve();
             const int steps = 64;

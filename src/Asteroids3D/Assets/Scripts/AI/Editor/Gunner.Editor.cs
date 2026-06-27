@@ -61,7 +61,7 @@ namespace AI
             var firePos = FirePoint;
             var targetPos = Target;
 
-            var hasLOS = targetingUtils.HasLineOfSight(firePos, targetPos, AngleToTarget);
+            var hasLOS = Combat.TargetingMath.IsLineClear(firePos, targetPos);
             Gizmos.color = hasLOS ? Color.green : Color.red;
             Gizmos.DrawLine(firePos, targetPos);
 

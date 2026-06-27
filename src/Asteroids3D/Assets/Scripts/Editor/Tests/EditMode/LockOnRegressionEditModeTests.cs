@@ -9,7 +9,7 @@ namespace Tests.EditMode
     /// 
     /// CONTEXT:
     /// - WeaponsController [DefaultExecutionOrder(-95)] runs before Ship [DefaultExecutionOrder(-90)]
-    /// - WeaponsController.Awake() instantiates weapon children (including TargetingComputer)
+    /// - WeaponsController.Awake() instantiates weapon children (including LockOnSensor)
     /// - Ship.Awake() then safely caches Targeting/Colliders via GetComponentInChildren (children exist)
     /// - Factory.CreateShip renamed preInitialize → postInitialize, fires AFTER ship.Initialize()
     /// - Net effect: ship.Targeting is valid after Factory.CreateShip returns; no Initialize() traversal
@@ -111,13 +111,13 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void MissilesPrefab_TargetingComputer_WeaponFieldIsNotSerialized()
+        public void MissilesPrefab_LockOnSensor_WeaponFieldIsNotSerialized()
         {
             var prefabContent = File.ReadAllText(Path.Combine(Application.dataPath, "Prefabs", "Weapons", "Missiles.prefab"));
             
-            // TargetingComputer.weapon should be {fileID: 0} (not serialized, set at runtime)
+            // LockOnSensor.weapon should be {fileID: 0} (not serialized, set at runtime)
             StringAssert.Contains("weapon: {fileID: 0}", prefabContent,
-                "Missiles.prefab TargetingComputer.weapon field must not be serialized (will be set at runtime via SetWeapon)");
+                "Missiles.prefab LockOnSensor.weapon field must not be serialized (will be set at runtime via SetWeapon)");
         }
     }
 }

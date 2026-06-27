@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UI.Audio
 {
-    /// Plays audio cues driven by TargetingComputer state changes.
+    /// Plays audio cues driven by LockOnSensor state changes.
     [RequireComponent(typeof(AudioSource))]
     public class UILockOnAudio : MonoBehaviour
     {
@@ -25,7 +25,7 @@ namespace UI.Audio
             EnsureSource();
         }
 
-        public void Initialize(TargetingComputer targetingComputer)
+        public void Initialize(LockOnSensor targetingComputer)
         {
             Initialize((ILockStateSource)targetingComputer);
         }

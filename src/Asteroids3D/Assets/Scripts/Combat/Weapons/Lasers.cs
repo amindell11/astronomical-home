@@ -4,12 +4,13 @@ using UnityEngine;
 
 namespace Combat.Weapons
 {
-    public partial class WeaponLaser : WeaponBase<LaserProjectile>
+    public partial class Lasers : WeaponBase<Laser>
     {
-        private const float DefaultFireDistance = 20f;
-        private const float DefaultFireAngleTolerance = 5f;
-
-        [SerializeField] private CombatTuning tuning;
+        [Header("AI Firing")]
+        [Tooltip("Max distance at which an AI gunner will open fire.")]
+        [SerializeField, Min(0f)] private float fireDistance = 20f;
+        [Tooltip("Max aim error (degrees) at which an AI gunner will open fire.")]
+        [SerializeField, Range(0f, 180f)] private float fireAngleTolerance = 5f;
 
         public float ProjectileSpeed => projectilePrefab.LaserSpeed;
         public Heat Heat { get; private set; }
@@ -28,13 +29,10 @@ namespace Combat.Weapons
             if (Heat.WouldOverheatOnNextShot())
                 return false;
 
-            var isInRange = context.distanceToTarget <= FireDistance;
-            var isInAngle = context.angleToTarget <= FireAngleTolerance;
+            var isInRange = context.distanceToTarget <= fireDistance;
+            var isInAngle = context.angleToTarget <= fireAngleTolerance;
 
             return isInRange && isInAngle;
         }
-
-        private float FireDistance => tuning ? tuning.LaserFireDistance : DefaultFireDistance;
-        private float FireAngleTolerance => tuning ? tuning.LaserFireAngleTolerance : DefaultFireAngleTolerance;
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using AI.Utility;
 using Movement.MPC;
 using UnityEngine;
+using AIContext = AI.Context.AIContext;
 using SituationAssessment = AI.Context.SituationAssessment;
 
 namespace AI.States
@@ -32,7 +33,7 @@ namespace AI.States
     public enum BinarySignal
     {
         [Tooltip("True when we have clear line of sight to the enemy.")]
-        LOS,
+        Los,
         [Tooltip("True when not in combat (no enemies detected recently).")]
         NoCombat,
         [Tooltip("True when a missile is heading toward us.")]
@@ -103,7 +104,7 @@ namespace AI.States
         {
             return signal switch
             {
-                BinarySignal.LOS => a.HasLineOfSight,
+                BinarySignal.Los => a.HasLineOfSight,
                 BinarySignal.NoCombat => !a.InCombat,
                 BinarySignal.IncomingMissile => a.IncomingMissile,
                 BinarySignal.NearCover => a.NearCover,
@@ -261,6 +262,28 @@ namespace AI.States
 
         [Header("Utility Factors")]
         [SerializeReference] public List<UtilityFactor> utilityFactors = new List<UtilityFactor>();
+
+        /// <summary>
+        /// Availability gate for selection: whether this state may be considered given the
+        /// current situation. A pure predicate over this profile's own availability fields.
+        /// </summary>
+        public bool IsAvailable(AIContext ctx)
+        {
+            var hasEnemy = ctx.Combat.HasEnemy;
+
+            if (requiresEnemy && !hasEnemy) return false;
+            if (requiresNoEnemy && hasEnemy) return false;
+
+            // Range gates only apply when there is an enemy to measure against.
+            if (hasEnemy)
+            {
+                var dist = ctx.Assessment.EnemyDistance;
+                if (minRange > 0f && dist <= minRange) return false;
+                if (maxRange > 0f && dist > maxRange) return false;
+            }
+
+            return true;
+        }
 
 #if UNITY_EDITOR
         private void OnValidate()

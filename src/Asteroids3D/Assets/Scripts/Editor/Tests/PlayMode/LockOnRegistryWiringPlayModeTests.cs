@@ -18,7 +18,7 @@ namespace Tests.PlayMode
     /// - Factory.CreateShip fires postInitialize callback AFTER ship.Initialize()
     /// - Therefore ship.Targeting is guaranteed non-null after Factory.CreateShip returns
     /// - WireShipDependencies can safely call ship.Targeting.SetRegistry()
-    /// - TargetingComputer.Start() enables itself only if registry is set
+    /// - LockOnSensor.Start() enables itself only if registry is set
     /// 
     /// These tests verify that ship.Targeting is properly wired and functional
     /// after Factory.CreateShip, with and without registry injection.
@@ -82,7 +82,7 @@ namespace Tests.PlayMode
             // VERIFY: ship.Targeting is non-null after Factory.CreateShip
             Assert.IsNotNull(combatShip.Targeting,
                 "ship.Targeting must be non-null after Factory.CreateShip " +
-                "(RefreshChildReferences should have cached the TargetingComputer child)");
+                "(RefreshChildReferences should have cached the LockOnSensor child)");
 #else
             Assert.Ignore("LockOnRegistryWiringPlayModeTests requires Unity Editor assets.");
             yield break;
@@ -91,10 +91,10 @@ namespace Tests.PlayMode
 
         /// <summary>
         /// Test 2: With registry injection via postInitialize callback,
-        /// TargetingComputer should have registry and be enabled.
+        /// LockOnSensor should have registry and be enabled.
         /// </summary>
         [UnityTest]
-        public IEnumerator Ship1_WithRegistryInjection_TargetingComputerHasRegistryAndIsEnabled()
+        public IEnumerator Ship1_WithRegistryInjection_LockOnSensorHasRegistryAndIsEnabled()
         {
 #if UNITY_EDITOR
             // Load Ship_1 prefab and test pilot
@@ -127,11 +127,11 @@ namespace Tests.PlayMode
 
             // VERIFY: ship.Targeting has registry
             Assert.IsTrue(combatShip.Targeting.HasRegistry,
-                "TargetingComputer.HasRegistry must be true after SetRegistry was called in postInitialize");
+                "LockOnSensor.HasRegistry must be true after SetRegistry was called in postInitialize");
 
-            // VERIFY: TargetingComputer is enabled (Start() should not disable it)
+            // VERIFY: LockOnSensor is enabled (Start() should not disable it)
             Assert.IsTrue(combatShip.Targeting.enabled,
-                "TargetingComputer must be enabled when registry is set " +
+                "LockOnSensor must be enabled when registry is set " +
                 "(Start() should not disable it when HasRegistry is true)");
 #else
             Assert.Ignore("LockOnRegistryWiringPlayModeTests requires Unity Editor assets.");
@@ -140,11 +140,11 @@ namespace Tests.PlayMode
         }
 
         /// <summary>
-        /// Test 3: Without registry injection, TargetingComputer should exist but be disabled.
-        /// TargetingComputer.Start() disables itself when registry is null.
+        /// Test 3: Without registry injection, LockOnSensor should exist but be disabled.
+        /// LockOnSensor.Start() disables itself when registry is null.
         /// </summary>
         [UnityTest]
-        public IEnumerator Ship1_WithoutRegistryInjection_TargetingComputerIsDisabled()
+        public IEnumerator Ship1_WithoutRegistryInjection_LockOnSensorIsDisabled()
         {
 #if UNITY_EDITOR
             // Load Ship_1 prefab and test pilot
@@ -176,9 +176,9 @@ namespace Tests.PlayMode
             Assert.IsNotNull(combatShip.Targeting,
                 "ship.Targeting must be non-null even without registry injection");
 
-            // VERIFY: TargetingComputer is disabled (Start() disables when registry is null)
+            // VERIFY: LockOnSensor is disabled (Start() disables when registry is null)
             Assert.IsFalse(combatShip.Targeting.enabled,
-                "TargetingComputer must be disabled when no registry is set " +
+                "LockOnSensor must be disabled when no registry is set " +
                 "(Start() should disable itself when HasRegistry is false)");
 #else
             Assert.Ignore("LockOnRegistryWiringPlayModeTests requires Unity Editor assets.");

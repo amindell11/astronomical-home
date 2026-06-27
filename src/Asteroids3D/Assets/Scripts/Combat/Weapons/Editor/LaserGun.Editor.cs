@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Combat.Weapons
 {
-    public partial class WeaponLaser
+    public partial class Lasers
     {
         private void OnDrawGizmosSelected()
         {

@@ -2,7 +2,7 @@ using System;
 
 namespace Combat.Targeting
 {
-    public class LockController
+    public class TargetLock
     {
         private readonly float lockOnTime;
         private readonly float lockExpiry;
@@ -18,7 +18,7 @@ namespace Combat.Targeting
         public float LockProgress => State == LockState.Locking && lockOnTime > 0f ? UnityEngine.Mathf.Clamp01(lockTimer / lockOnTime) : 0f;
         public bool IsLocked => State == LockState.Locked;
 
-        public LockController(float lockOnTime, float lockExpiry, Func<bool> canFireCheck)
+        public TargetLock(float lockOnTime, float lockExpiry, Func<bool> canFireCheck)
         {
             this.lockOnTime = lockOnTime;
             this.lockExpiry = lockExpiry;

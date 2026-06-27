@@ -53,7 +53,7 @@ namespace Movement.MPC
         [Header("Settings")]
         // Prefabs serialize this under its former name "settings".
         [FormerlySerializedAs("settings")]
-        public MPCSettings mpcSettings;
+        public MpcSettings mpcSettings;
 
         [Header("Obstacle Avoidance")]
         public bool enableObstacleAvoidance = true;
@@ -66,7 +66,7 @@ namespace Movement.MPC
             this.scout = scout;
             currentWaypoint = new Waypoint { isValid = false };
             if (!mpcSettings)
-                mpcSettings = ScriptableObject.CreateInstance<MPCSettings>();
+                mpcSettings = ScriptableObject.CreateInstance<MpcSettings>();
             mpc = new Mpc(mpcSettings, dynamics);
         }
 

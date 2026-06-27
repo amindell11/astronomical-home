@@ -16,6 +16,7 @@ namespace AI.States
     {
         protected readonly Navigator navigator;
         protected readonly Gunner gunner;
+        private readonly GoalRunner goalRunner;
 
         public StateProfile Profile { get; }
 
@@ -29,54 +30,35 @@ namespace AI.States
         /// </summary>
         public NavigationIntent LastIntent { get; private set; }
 
-        // Patrol state
-        private Vector2 patrolTarget;
-        private bool hasPatrolTarget;
-        private float stuckTimer;
-        private float bestDistToWaypoint;
-
         public AIState(StateProfile profile, Navigator navigator, Gunner gunner)
         {
             this.navigator = navigator;
             this.gunner = gunner;
             Profile = profile;
+            goalRunner = GoalRunner.Create(profile.goal, navigator);
         }
 
-        public bool IsAvailable(AIContext ctx)
-        {
-            if (Profile.requiresEnemy && !ctx.Combat.HasEnemy)
-                return false;
-            if (Profile.requiresNoEnemy && ctx.Combat.HasEnemy)
-                return false;
-            if (Profile.minRange > 0f && ctx.Combat.HasEnemy && ctx.Assessment.EnemyDistance <= Profile.minRange)
-                return false;
-            if (Profile.maxRange > 0f && ctx.Combat.HasEnemy && ctx.Assessment.EnemyDistance > Profile.maxRange)
-                return false;
-            return true;
-        }
+        public bool IsAvailable(AIContext ctx) => Profile.IsAvailable(ctx);
 
         public void Enter(AIContext ctx)
         {
-            // Goal mode, weights, and enemy state are all (re)applied every Tick
-            // through Navigator.ApplyIntent. Enter only does one-shot setup Tick can't redo.
-            if (!Profile.enableFiring && gunner)
-                gunner.SetTarget((Transform)null);
-
-            if (Profile.goal is RandomWaypointGoal && ctx != null)
-                ChooseNewPatrolPoint(ctx);
+            // Goal mode, weights, firing, and enemy state are all (re)applied every Tick
+            // through Navigator.ApplyIntent / Gunner.ApplyIntent. Enter only does one-shot
+            // setup Tick can't redo.
+            goalRunner.Enter(ctx);
         }
 
         public void Tick(AIContext ctx, float deltaTime)
         {
             LastIntent = ProduceIntent(ctx, deltaTime);
             navigator.ApplyIntent(LastIntent);
-            ApplyGunnerIntent(LastIntent);
+            if (gunner) gunner.ApplyIntent(LastIntent);
         }
 
         public void Exit()
         {
             navigator.ResetNavigation();
-            hasPatrolTarget = false;
+            goalRunner.Reset();
             LastIntent = NavigationIntent.None;
         }
 
@@ -91,97 +73,34 @@ namespace AI.States
                 weightOverrides = Profile.weightOverrides,
             };
 
-            switch (goal)
-            {
-                case TrackEnemyGoal track:
-                    intent.desiredRange = track.desiredRange;
-                    intent.rangeTolerance = track.rangeTolerance;
-                    TickTrackEnemy(ctx, ref intent);
-                    break;
-                case FleeEnemyGoal:
-                    TickFleeEnemy(ctx, ref intent);
-                    break;
-                case RandomWaypointGoal:
-                    TickPatrol(ctx, deltaTime, ref intent);
-                    break;
-            }
+            // Goal owns the motion fields; the state layers on its tactical modulation.
+            goalRunner.Fill(ctx, deltaTime, ref intent);
+            ApplyTacticalModulation(ctx, ref intent);
 
             return intent;
         }
 
-        private void TickTrackEnemy(AIContext ctx, ref NavigationIntent intent)
+        /// <summary>State-level enrichment gated by profile flags: tactical MPC costs and
+        /// gunner lead. Only meaningful when an enemy is present.</summary>
+        private void ApplyTacticalModulation(AIContext ctx, ref NavigationIntent intent)
         {
-            var combat = ctx.Combat;
-            if (!combat.HasEnemy) return;
-
-            intent.goalPosition = combat.EnemyPos;
-            intent.goalVelocity = combat.EnemyVel;
-            intent.obstacleExclusion = combat.Enemy.transform;
+            if (!ctx.Combat.HasEnemy) return;
 
             if (Profile.enableTacticalCosts)
                 SetEnemyTactical(ctx, ref intent);
 
             if (Profile.enableFiring)
-                SetGunnerTarget(ctx, ref intent);
+                MarkGunnerEnemy(ctx, ref intent);
         }
 
-        private void TickFleeEnemy(AIContext ctx, ref NavigationIntent intent)
+        /// <summary>Declares the enemy for the gunner to engage. The gunner resolves the
+        /// firing solution (intercept lead) itself in <see cref="Gunner.ApplyIntent"/>.</summary>
+        private static void MarkGunnerEnemy(AIContext ctx, ref NavigationIntent intent)
         {
             var combat = ctx.Combat;
-            if (!combat.HasEnemy) return;
-
-            intent.goalPosition = combat.EnemyPos;
-            intent.goalVelocity = combat.EnemyVel;
-            intent.obstacleExclusion = combat.Enemy.transform;
-
-            if (Profile.enableTacticalCosts)
-                SetEnemyTactical(ctx, ref intent);
-
-        }
-
-        private void TickPatrol(AIContext ctx, float deltaTime, ref NavigationIntent intent)
-        {
-            var patrol = (RandomWaypointGoal)Profile.goal;
-
-            if (!navigator.CurrentWaypoint.isValid ||
-                VectorToWaypoint(ctx).magnitude < patrol.arriveRadius)
-            {
-                ChooseNewPatrolPoint(ctx);
-            }
-            else
-            {
-                var dist = VectorToWaypoint(ctx).magnitude;
-                if (dist < bestDistToWaypoint - patrol.stuckProgressThreshold)
-                {
-                    bestDistToWaypoint = dist;
-                    stuckTimer = 0f;
-                }
-                else
-                {
-                    stuckTimer += deltaTime;
-                    if (stuckTimer >= patrol.stuckTimeout)
-                        ChooseNewPatrolPoint(ctx);
-                }
-            }
-
-            intent.goalPosition = patrolTarget;
-        }
-
-        private void ChooseNewPatrolPoint(AIContext ctx)
-        {
-            var patrol = (RandomWaypointGoal)Profile.goal;
-            var currentPos = ctx.Self.Pos;
-            var randomDistance = Random.Range(
-                patrol.patrolRadius * patrol.minDistanceFactor,
-                patrol.patrolRadius);
-            var randomDirection = Random.insideUnitCircle.normalized;
-            patrolTarget = currentPos + randomDirection * randomDistance;
-
-            hasPatrolTarget = true;
-            stuckTimer = 0f;
-            bestDistToWaypoint = float.MaxValue;
-
-            navigator.SetNavigationPoint(patrolTarget, true);
+            intent.hasGunnerEnemy = true;
+            intent.gunnerEnemyPos = combat.EnemyPos;
+            intent.gunnerEnemyVel = combat.EnemyVel;
         }
 
         private void SetEnemyTactical(AIContext ctx, ref NavigationIntent intent)
@@ -191,38 +110,10 @@ namespace AI.States
             intent.hasEnemy = true;
             intent.enemyYawDeg = Mathf.Atan2(-enemyFwd.x, enemyFwd.y) * Mathf.Rad2Deg;
             intent.enemyYawRateDeg = combat.EnemyYawRate;
-            intent.projectileSpeed = ProjectileSpeed;
+            intent.projectileSpeed = gunner.PrimaryProjectileSpeed;
             intent.enemyDynamics = combat.EnemyDynamics;
         }
-
-        /// <summary>Speed of the primary weapon's projectile, used for intercept lead. 0 when unarmed.</summary>
-        private float ProjectileSpeed => gunner ? gunner.PrimaryProjectileSpeed : 0f;
-
-        /// <summary>Plane-space vector from the ship to the navigator's current waypoint,
-        /// or zero when there is no valid waypoint.</summary>
-        private Vector2 VectorToWaypoint(AIContext ctx) =>
-            navigator?.CurrentWaypoint.isValid == true
-                ? navigator.CurrentWaypoint.position - ctx.Self.Pos
-                : Vector2.zero;
-
-        private void SetGunnerTarget(AIContext ctx, ref NavigationIntent intent)
-        {
-            var combat = ctx.Combat;
-            intent.gunnerTarget = ctx.TargetingUtils.PredictIntercept(
-                combat.EnemyPos, combat.EnemyVel, ProjectileSpeed);
-        }
-
-        /// <summary>
-        /// Gunner is the one actuator the Navigator doesn't own, so its slice of the intent
-        /// is applied here. All navigation flows through <see cref="Navigator.ApplyIntent"/>.
-        /// </summary>
-        private void ApplyGunnerIntent(in NavigationIntent intent)
-        {
-            if (!intent.isValid || !gunner) return;
-            if (intent.enableFiring && intent.gunnerTarget.sqrMagnitude > 0f)
-                gunner.SetTarget(intent.gunnerTarget);
-        }
-
+        
         // ── Utility Scoring ──
 
         public float ComputeUtility(AIContext ctx)

@@ -6,20 +6,20 @@ using Missile = Combat.Projectile.Missile;
 
 namespace Combat.Weapons
 {
-    public partial class WeaponMissiles : WeaponBase<Missile>
+    public partial class Missiles : WeaponBase<Missile>
     {
-        private const float DefaultMissileRange = 10f;
-        private const float DefaultMissileAngleTolerance = 15f;
-
         [Header("Targeting")]
-        [SerializeField] private TargetingComputer targetingComputer;
+        [SerializeField] private LockOnSensor targetingComputer;
 
-        [Header("AI")]
-        [SerializeField] private CombatTuning tuning;
+        [Header("AI Firing (No Lock)")]
+        [Tooltip("Max distance at which an AI gunner will fire unguided (no lock).")]
+        [SerializeField, Min(0f)] private float fallbackRange = 10f;
+        [Tooltip("Max aim error (degrees) at which an AI gunner will fire unguided (no lock).")]
+        [SerializeField, Range(0f, 180f)] private float fallbackAngleTolerance = 15f;
 
         private ILockProvider lockProvider;
 
-        public TargetingComputer Targeting => targetingComputer;
+        public LockOnSensor Targeting => targetingComputer;
         public Rounds Rounds { get; private set; }
 
         protected override void Awake()
@@ -27,7 +27,7 @@ namespace Combat.Weapons
             base.Awake();
             Rounds = GetComponent<Rounds>();
             if (!targetingComputer)
-                targetingComputer = GetComponent<TargetingComputer>();
+                targetingComputer = GetComponent<LockOnSensor>();
             lockProvider = targetingComputer;
         }
 
@@ -60,14 +60,11 @@ namespace Combat.Weapons
                     return true;
                 case LockState.Idle:
                 case LockState.Locking:
-                    return context.distanceToTarget <= MissileRange && context.angleToTarget <= MissileAngleTolerance;
+                    return context.distanceToTarget <= fallbackRange && context.angleToTarget <= fallbackAngleTolerance;
                 case LockState.Cooldown:
                 default:
                     return false;
             }
         }
-
-        private float MissileRange => tuning ? tuning.MissileFallbackRange : DefaultMissileRange;
-        private float MissileAngleTolerance => tuning ? tuning.MissileFallbackAngleTolerance : DefaultMissileAngleTolerance;
     }
 }

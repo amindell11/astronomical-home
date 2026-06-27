@@ -59,7 +59,7 @@ namespace AI.Context
         private void AcquireEnemy()
         {
             var registry = scout.Registry;
-            var enemyId = scout.Contacts.NearestEnemyId;
+            var enemyId = scout.Contacts.nearestEnemyId;
             if (enemyId.IsValid && registry != null && registry.TryGetShip(enemyId, out var enemy))
                 cachedEnemy = enemy;
         }

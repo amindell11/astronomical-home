@@ -26,8 +26,6 @@ namespace AI
         [SerializeField] private StateProfile[] stateProfiles;
 
         [Header("Combat")]
-        [Tooltip("Optional. Leave empty (or omit the Gunner component) for a peaceful, unarmed AI.")]
-        [SerializeField] private CombatTuning combatTuning;
         [Tooltip("Seconds after losing an enemy before exiting combat state.")]
         [SerializeField] private float combatExitDelay = 3f;
 
@@ -71,7 +69,7 @@ namespace AI
                 return;
 
             var self = new AI.Context.SelfStatus(ship);
-            var targeting = new TargetingUtils(self, combatTuning);
+            System.Func<Movement.Kinematics> pose = () => self.Kin;
 
             System.Func<State> stateProvider = () => ship.CurrentState;
 
@@ -81,10 +79,10 @@ namespace AI
             // Weapons are optional: only a CombatShip carrying a Gunner gets armed.
             if (Gunner && ship is CombatShip combatShip)
             {
-                Gunner.Initialize(combatShip.Weapons.Primary, combatShip.Weapons.Secondary, targeting, stateProvider);
+                Gunner.Initialize(combatShip.Weapons.Primary, combatShip.Weapons.Secondary, pose, stateProvider);
             }
 
-            context = new AIContext(self, Scout, targeting, combatExitDelay);
+            context = new AIContext(self, Scout, combatExitDelay);
 
             var states = new AI.States.AIState[stateProfiles.Length];
             for (var i = 0; i < stateProfiles.Length; i++)
