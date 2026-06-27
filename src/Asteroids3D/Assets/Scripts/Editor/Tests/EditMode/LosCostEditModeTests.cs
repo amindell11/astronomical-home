@@ -55,25 +55,31 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void LosCost_Accumulates_For_Multiple_Blocking_Obstacles()
+        public void LosCost_TakesWorstBlocker_AndSaturates()
         {
+            // LosCost is normalized [0,1] and reports the single worst (deepest) occluder
+            // rather than summing. obstacle[0] is off-center (partial block), obstacle[1]
+            // is dead-center (full block); adding the full blocker raises the cost to its
+            // max without exceeding 1.
             obstacles = new NativeArray<ObstacleData>(2, Allocator.Temp);
-            obstacles[0] = new ObstacleData { position = new float2(0, 7), radius = 2f, weight = 1f };
+            obstacles[0] = new ObstacleData { position = new float2(1.5f, 7), radius = 2f, weight = 1f };
             obstacles[1] = new ObstacleData { position = new float2(0, 14), radius = 2f, weight = 1f };
 
-            var costTwo = Cost.LosCost(float2.zero, new float2(0, 20), obstacles, 2);
-            var costOne = Cost.LosCost(float2.zero, new float2(0, 20), obstacles, 1);
+            var costPartialOnly = Cost.LosCost(float2.zero, new float2(0, 20), obstacles, 1);
+            var costBoth = Cost.LosCost(float2.zero, new float2(0, 20), obstacles, 2);
 
-            Assert.Greater(costTwo, costOne);
+            Assert.Greater(costBoth, costPartialOnly);
+            Assert.LessOrEqual(costBoth, 1f);
         }
 
         [Test]
-        public void ExposureCost_Returns_Zero_When_Behind_Enemy()
+        public void ExposureCost_NearZero_When_Behind_Enemy()
         {
-            // Enemy at (0, 10) facing +Y (yaw=0)
-            // Ship at (0, 5) — behind the enemy
+            // Enemy at (0, 10) facing +Y (yaw=0); ship at (0, 5) — directly behind.
+            // The exposure arc is a Gaussian that asymptotes to (but never exactly reaches)
+            // zero behind the enemy.
             var cost = Cost.ExposureCost(new float2(0, 5), new float2(0, 10), 0f);
-            Assert.AreEqual(0f, cost);
+            Assert.Less(cost, 0.01f);
         }
 
         [Test]
@@ -86,12 +92,15 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void ExposureCost_Returns_Zero_When_To_The_Side()
+        public void ExposureCost_Low_To_The_Side()
         {
-            // Enemy at origin facing +Y (yaw=0)
-            // Ship at (10, 0) — perpendicular, exactly 90 degrees
-            var cost = Cost.ExposureCost(new float2(10, 0), float2.zero, 0f);
-            Assert.AreEqual(0f, cost, 0.01f);
+            // Enemy at origin facing +Y (yaw=0); ship at (10, 0) — perpendicular (90°).
+            // The exposure arc is a Gaussian, so the side is low but non-zero and well below
+            // a forward-arc hit (front at 0° = 1.0).
+            var side = Cost.ExposureCost(new float2(10, 0), float2.zero, 0f);
+            var front = Cost.ExposureCost(new float2(0, 10), float2.zero, 0f);
+            Assert.Less(side, 0.15f);
+            Assert.Less(side, front);
         }
 
         [Test]
