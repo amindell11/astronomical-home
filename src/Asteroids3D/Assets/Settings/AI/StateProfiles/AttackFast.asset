@@ -29,7 +29,7 @@ MonoBehaviour:
     facing: 5
     facingWidth: 0.51
     los: 1
-    exposure: 5
+    exposure: 0.5
     exposureWidth: 0.5
     tangential: 10
     obstacle: 1

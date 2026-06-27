@@ -19,12 +19,12 @@ MonoBehaviour:
   weightMultipliers:
     pos: 1
     vel: 5
-    yaw: 1000
+    yaw: 100
     yawRate: 1
     effort: 1
-    smoothnessThrust: 0.2
-    smoothnessStrafe: 0.2
-    smoothnessYaw: 0.2
+    smoothnessThrust: 1
+    smoothnessStrafe: 1
+    smoothnessYaw: 1
     momentum: 1
     facing: 0
     facingWidth: 1

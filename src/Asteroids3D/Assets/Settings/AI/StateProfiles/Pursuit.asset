@@ -14,29 +14,30 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   goal:
     rid: 7421252954394460889
-  enableTacticalCosts: 0
+  enableTacticalCosts: 1
   enableFiring: 0
   weightMultipliers:
     pos: 1
     vel: 1
-    yaw: 0
+    yaw: 1
     yawRate: 1
     effort: 1
-    smoothnessThrust: 0.2
-    smoothnessStrafe: 0.2
-    smoothnessYaw: 0.2
+    smoothnessThrust: 1
+    smoothnessStrafe: 1
+    smoothnessYaw: 1
     momentum: 5
-    facing: 5
-    facingWidth: 3
+    facing: 0
+    facingWidth: 0
     los: 1
     exposure: 0
-    exposureWidth: 1
-    tangential: 5
-    obstacle: 2
-    boostEffort: 0.5
+    exposureWidth: 0
+    tangential: 0.5
+    missDistance: 1
+    obstacle: 1
+    boostEffort: 1
   requiresEnemy: 1
   requiresNoEnemy: 0
-  minRange: 10
+  minRange: 18
   maxRange: 5000
   utilityFactors:
   - rid: 7421252954394460995
@@ -49,8 +50,8 @@ MonoBehaviour:
     - rid: 7421252954394460889
       type: {class: TrackEnemyGoal, ns: AI.States, asm: Game.Core}
       data:
-        desiredRange: 0
-        rangeTolerance: 0
+        desiredRange: 15
+        rangeTolerance: 5
     - rid: 7421252954394460891
       type: {class: CurveFactor, ns: AI.States, asm: Game.Core}
       data:

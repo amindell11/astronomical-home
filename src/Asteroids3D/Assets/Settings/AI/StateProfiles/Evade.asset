@@ -14,26 +14,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   goal:
     rid: 7421252954394460903
-  enableTacticalCosts: 0
+  enableTacticalCosts: 1
   enableFiring: 0
   weightMultipliers:
-    pos: 50
+    pos: 1
     vel: 1
     yaw: 1
     yawRate: 1
-    effort: 0.25
-    smoothnessThrust: 0.2
-    smoothnessStrafe: 0.2
-    smoothnessYaw: 0.2
-    momentum: 2
+    effort: 1
+    smoothnessThrust: 1
+    smoothnessStrafe: 1
+    smoothnessYaw: 1
+    momentum: 1
     facing: 0
     facingWidth: 1
     los: 0
-    exposure: 5
+    exposure: 1
     exposureWidth: 1
     tangential: 0
+    missDistance: 1
     obstacle: 1
-    boostEffort: 0.5
+    boostEffort: 1
   requiresEnemy: 1
   requiresNoEnemy: 0
   minRange: 7

@@ -22,10 +22,10 @@ MonoBehaviour:
     yaw: 0
     yawRate: 1
     effort: 1
-    smoothnessThrust: 0.2
-    smoothnessStrafe: 0.2
-    smoothnessYaw: 0.2
-    momentum: 0.5
+    smoothnessThrust: 1
+    smoothnessStrafe: 1
+    smoothnessYaw: 1
+    momentum: 1
     facing: 1
     facingWidth: 0.64
     los: 1
@@ -180,5 +180,5 @@ MonoBehaviour:
     - rid: 7421252954394460961
       type: {class: TrackEnemyGoal, ns: AI.States, asm: Game.Core}
       data:
-        desiredRange: 20
-        rangeTolerance: 10
+        desiredRange: 15
+        rangeTolerance: 2
