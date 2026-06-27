@@ -1,7 +1,5 @@
 using System.Collections;
-using AI.Planning;
 using Asteroids.Fields;
-using Asteroids.Spawning;
 using Ships;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -18,8 +16,6 @@ namespace Game.Sectors
         [Header("Environment")]
         [SerializeField] private World.WorldRoot worldPrefab;
         [SerializeField] private UpdatingAsteroidField updatingAsteroidFieldPrefab;
-        [Tooltip("Optional. Spawns a high-level routing planner that AIs use for chase/evade through asteroid fields.")]
-        [SerializeField] private AsteroidNavField navPlannerPrefab;
 
         [Header("Enemy (Optional)")]
         [SerializeField] private bool spawnEnemyOnStart;
@@ -43,7 +39,6 @@ namespace Game.Sectors
 
         private Ship enemy;
         private UpdatingAsteroidField asteroidFieldInstance;
-        private AsteroidNavField navPlannerInstance;
         private AI.Debug.ArenaDebugOverlay debugOverlay;
 
         protected override IEnumerator OnSetup()
@@ -113,22 +108,11 @@ namespace Game.Sectors
             asteroidFieldInstance.SetWorldAnchor(Services.EnvironmentService.WorldFollowerTransform);
             asteroidFieldInstance.CurrentAnchorPos = () =>
                 player ? GamePlane.ProjectOntoPlane(player.transform.position) : asteroidFieldInstance.transform.position;
-
-            InitializeNavPlanner();
-        }
-
-        private void InitializeNavPlanner()
-        {
-            if (!navPlannerPrefab) return;
-            navPlannerInstance = Instantiate(navPlannerPrefab);
-            navPlannerInstance.SetAnchor(Services.EnvironmentService.WorldFollowerTransform);
-            navPlannerInstance.SetAsteroidSpawner(asteroidFieldInstance.GetComponent<AsteroidSpawner>());
         }
 
         protected override IEnumerator OnTeardown()
         {
             if (debugOverlay) Destroy(debugOverlay);
-            if (navPlannerInstance) Destroy(navPlannerInstance.gameObject);
             if (asteroidFieldInstance) Destroy(asteroidFieldInstance.gameObject);
 
             yield return base.OnTeardown();
@@ -138,7 +122,6 @@ namespace Game.Sectors
 
             enemy = null;
             asteroidFieldInstance = null;
-            navPlannerInstance = null;
             debugOverlay = null;
         }
     }

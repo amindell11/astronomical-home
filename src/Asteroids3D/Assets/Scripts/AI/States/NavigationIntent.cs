@@ -20,11 +20,6 @@ namespace AI.States
         public float desiredRange;
         public float rangeTolerance;
 
-        // Optional override from a high-level planner. When set, the MPC's position +
-        // heading costs use this as the target instead of goalPosition. Tactical/range
-        // costs still use goalPosition.
-        public Vector2? navigationTarget;
-
         // Tactical
         public bool hasEnemy;
         public float enemyYawDeg;

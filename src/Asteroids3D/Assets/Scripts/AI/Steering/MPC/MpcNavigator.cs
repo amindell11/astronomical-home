@@ -81,8 +81,7 @@ namespace Movement.MPC
                     settings.samples, noiseStd, lastControl,
                     enemyDynamics,
                     boostCooldown, boostProb,
-                    settings.eliteFraction,
-                    NavigationTargetForSolver());
+                    settings.eliteFraction);
             }
 #if UNITY_EDITOR
             sw.Stop();
@@ -141,13 +140,6 @@ namespace Movement.MPC
 
         private float2 GoalPos() => new(currentWaypoint.position.x, currentWaypoint.position.y);
         private float2 GoalVel() => new(currentWaypoint.velocity.x, currentWaypoint.velocity.y);
-
-        private float2? NavigationTargetForSolver()
-        {
-            return navigationTarget.HasValue
-                ? new float2(navigationTarget.Value.x, navigationTarget.Value.y)
-                : (float2?)null;
-        }
 
         private void ShiftWarmStart()
         {

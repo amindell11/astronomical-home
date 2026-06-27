@@ -22,7 +22,6 @@ namespace AI
 
         protected Scanning.Scout scout;
         protected Waypoint currentWaypoint;
-        protected Vector2? navigationTarget;
         protected bool facingOverride;
         protected float facingAngle;
         protected Dynamics dynamics;
@@ -91,11 +90,6 @@ namespace AI
 
             SetNavigationPoint(intent.goalPosition, true, intent.goalVelocity);
 
-            if (intent.navigationTarget.HasValue)
-                SetNavigationTarget(intent.navigationTarget.Value);
-            else
-                ClearNavigationTarget();
-
             if (intent.hasEnemy)
                 SetEnemyState(intent.enemyYawDeg, intent.enemyYawRateDeg, intent.projectileSpeed,
                     intent.enemyDynamics);
@@ -114,7 +108,6 @@ namespace AI
         public void ResetNavigation()
         {
             ClearNavigationPoint();
-            ClearNavigationTarget();
             ClearGoalMode();
             ClearEnemyState();
             ClearObstacleExclusion();
@@ -144,26 +137,6 @@ namespace AI
         public void ClearNavigationPoint()
         {
             currentWaypoint.isValid = false;
-        }
-
-        /// <summary>
-        /// Set a high-level routing override. When set, the MPC's position + heading costs
-        /// pull toward this point instead of the goal (currentWaypoint). Range/Flee/tactical
-        /// costs continue to use the goal.
-        /// </summary>
-        public void SetNavigationTarget(Vector2 plane)
-        {
-            navigationTarget = plane;
-        }
-
-        public void SetNavigationTargetWorld(Vector3 worldPos)
-        {
-            navigationTarget = GamePlane.WorldPointToPlane(worldPos);
-        }
-
-        public void ClearNavigationTarget()
-        {
-            navigationTarget = null;
         }
 
         public void SetFacingOverride(float angle)
