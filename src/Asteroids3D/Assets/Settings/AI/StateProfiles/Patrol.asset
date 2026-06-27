@@ -16,24 +16,23 @@ MonoBehaviour:
     rid: 7421252954394460901
   enableTacticalCosts: 0
   enableFiring: 0
-  weightMultipliers:
-    pos: 1
-    vel: 5
-    yaw: 100
-    yawRate: 1
-    effort: 1
-    smoothnessThrust: 1
-    smoothnessStrafe: 1
-    smoothnessYaw: 1
-    momentum: 1
-    facing: 0
-    facingWidth: 1
-    los: 0
-    exposure: 0
-    exposureWidth: 1
-    tangential: 0
-    obstacle: 10
-    boostEffort: 10
+  weightOverrides:
+  - weight: 1
+    multiplier: 5
+  - weight: 2
+    multiplier: 100
+  - weight: 9
+    multiplier: 0
+  - weight: 11
+    multiplier: 0
+  - weight: 12
+    multiplier: 0
+  - weight: 14
+    multiplier: 0
+  - weight: 16
+    multiplier: 10
+  - weight: 17
+    multiplier: 10
   requiresEnemy: 0
   requiresNoEnemy: 1
   minRange: 0
