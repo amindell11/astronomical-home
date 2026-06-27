@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bd225a6ae1f912741b9bc93d2ffce406, type: 3}
   m_Name: AIDebugSettings
   m_EditorClassIdentifier: 
-  activeChannels: -1
+  activeChannels: 119
   alwaysDrawGizmos: 1

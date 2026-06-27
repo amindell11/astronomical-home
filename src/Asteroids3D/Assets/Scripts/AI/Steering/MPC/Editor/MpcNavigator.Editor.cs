@@ -2,8 +2,10 @@
 using AI;
 using AI.Debug;
 using AI.Scanning;
+using AI.States;
 using Movement;
 using Game;
+using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 
@@ -41,8 +43,105 @@ namespace Movement.MPC
         public bool showObstacleCosts = true;
         public bool showTrajectoryCosts = true;
         public bool showControlInputs = true;
+        [Tooltip("Render a random sampling of MPC candidate trajectories with rank-based alpha. " +
+                 "Click a terminal-point handle in the scene view to inspect that candidate's breakdown.")]
+        public bool showCandidateTrajectories = false;
+        [Range(1, 256)]
+        [Tooltip("How many of the (up to) 256 candidates to render. Subsample is reseeded each frame.")]
+        public int candidateSampleCount = 32;
+        [Range(0f, 5f)]
+        [Tooltip("Visibility falloff with cost rank. 0 = all rendered candidates equally bright, " +
+                 "higher = sharper focus on top-ranked. Default 2 ≈ worst-shown at ~13% of best's alpha.")]
+        public float candidateAlphaFalloff = 2f;
+        [System.NonSerialized] public int selectedCandidateIndex = -1;
+        // Subsample buffer reused per frame, sorted by cost ascending.
+        private int[] visibleCandidateIndices;
+        private int visibleCount;
         [Tooltip("World-space offset from ship for the control input panel")]
         public Vector3 controlPanelOffset = new(0f, 2.5f, 0f);
+
+        [Header("Comparison Rollouts")]
+        [Tooltip("State profiles to run comparison rollouts for. Each gets its own trajectory drawn in a unique color.")]
+        public StateProfile[] comparisonProfiles;
+
+        internal static readonly Color[] ComparisonColors =
+        {
+            new(1f, 0.4f, 0.1f, 0.7f),  // orange
+            new(0.4f, 1f, 0.4f, 0.7f),   // green
+            new(1f, 0.4f, 1f, 0.7f),     // magenta
+            new(1f, 1f, 0.3f, 0.7f),     // yellow
+            new(0.4f, 0.8f, 1f, 0.7f),   // light blue
+            new(1f, 0.6f, 0.6f, 0.7f),   // salmon
+        };
+
+        internal struct ComparisonResult
+        {
+            public StateProfile profile;
+            public Control[] sequence;
+            public State[] trajectory;
+            public float cost;
+        }
+        internal ComparisonResult[] comparisonResults;
+
+        partial void RunComparisonRollouts(State mpcState, ObstacleScan scan)
+        {
+            if (comparisonProfiles == null || comparisonProfiles.Length == 0)
+            {
+                comparisonResults = null;
+                return;
+            }
+
+            if (comparisonResults == null || comparisonResults.Length != comparisonProfiles.Length)
+                comparisonResults = new ComparisonResult[comparisonProfiles.Length];
+
+            var costInput = solver.BuildCostInput(GoalPos(), GoalVel(), enemyYaw, enemyYawRate,
+                projectileSpeed, mpcState.vel);
+
+            for (var p = 0; p < comparisonProfiles.Length; p++)
+            {
+                var profile = comparisonProfiles[p];
+                if (!profile) continue;
+
+                // Build config with this profile's weights
+                var goal = profile.goal;
+                var gm = goal?.GoalMode ?? GoalMode.Waypoint;
+                var desiredRange = 0f;
+                var rangeTolerance = 0f;
+                if (goal is TrackEnemyGoal track)
+                {
+                    desiredRange = track.desiredRange;
+                    rangeTolerance = track.rangeTolerance;
+                }
+                var facingRad = facingOverride ? facingAngle * Mathf.Deg2Rad : float.NaN;
+                var compConfig = settings.ToConfig(facingRad, gm, desiredRange, rangeTolerance);
+                compConfig.maxBankAngleRad = dynamics.maxBankAngleRad;
+                profile.weightMultipliers.Apply(ref compConfig);
+
+                var horizon = compConfig.horizon;
+                if (comparisonResults[p].sequence == null || comparisonResults[p].sequence.Length != horizon)
+                {
+                    comparisonResults[p].sequence = new Control[horizon];
+                    comparisonResults[p].trajectory = new State[horizon];
+                }
+
+                // Rescore the same candidates with different weights
+                var seq = comparisonResults[p].sequence;
+                comparisonResults[p].cost = solver.Rescore(mpcState, seq,
+                    compConfig, dynamics, costInput, lastControl,
+                    settings.samples, settings.eliteFraction);
+
+                // Roll out trajectory from the rescored elite average
+                var current = mpcState;
+                var traj = comparisonResults[p].trajectory;
+                for (var i = 0; i < horizon; i++)
+                {
+                    current = Model.Step(current, seq[i], compConfig, dynamics);
+                    traj[i] = current;
+                }
+
+                comparisonResults[p].profile = profile;
+            }
+        }
 
         private AICommander cachedCommander;
         private AIDebugSettings CachedSettings
@@ -99,11 +198,137 @@ namespace Movement.MPC
             if (settings == null || !settings.ShouldDraw(isSelected)) return;
             if (!settings.IsActive(AIDebugChannel.Steering)) return;
 
+            DrawShipRadius();
+            DrawCandidateTrajectories();
             DrawPredictedTrajectory();
+            DrawComparisonTrajectories();
             DrawEnemyRollout();
             DrawGoal();
             DrawObstacleDebugInfo();
             DrawControlInputs();
+        }
+
+        private void DrawCandidateTrajectories()
+        {
+            if (!showCandidateTrajectories || solver == null) return;
+            var samples = solver.LastSampleCount;
+            var horizon = solver.LastHorizon;
+            if (samples == 0 || horizon == 0) return;
+
+            var k = Mathf.Min(candidateSampleCount, samples);
+            if (visibleCandidateIndices == null || visibleCandidateIndices.Length < k)
+                visibleCandidateIndices = new int[k];
+            visibleCount = k;
+
+            // Stable per-frame reservoir subsample
+            var rng = new Unity.Mathematics.Random((uint)(Time.frameCount * 31u + 1u));
+            for (var i = 0; i < k; i++) visibleCandidateIndices[i] = i;
+            for (var i = k; i < samples; i++)
+            {
+                var j = rng.NextInt(0, i + 1);
+                if (j < k) visibleCandidateIndices[j] = i;
+            }
+
+            // Insertion sort ascending by cost so rank-based alpha is meaningful (best=opaque)
+            var costs = solver.Costs;
+            for (var a = 1; a < k; a++)
+            {
+                var idx = visibleCandidateIndices[a];
+                var cost = costs[idx];
+                var b = a - 1;
+                while (b >= 0 && costs[visibleCandidateIndices[b]] > cost)
+                {
+                    visibleCandidateIndices[b + 1] = visibleCandidateIndices[b];
+                    b--;
+                }
+                visibleCandidateIndices[b + 1] = idx;
+            }
+
+            var candidates = solver.Candidates;
+            var initial = lastInitialState;
+            var denom = Mathf.Max(k - 1, 1);
+
+            for (var i = 0; i < k; i++)
+            {
+                var idx = visibleCandidateIndices[i];
+                var rankFrac = i / (float)denom;
+                var alpha = Mathf.Max(0.03f, 0.85f * Mathf.Exp(-rankFrac * candidateAlphaFalloff));
+                var isSelected = idx == selectedCandidateIndex;
+                Gizmos.color = isSelected
+                    ? new Color(1f, 0.9f, 0.2f, 0.95f)
+                    : new Color(0.4f, 0.7f, 1f, alpha);
+
+                var prev = initial;
+                var prevWorld = GamePlane.PlanePointToWorld(new Vector2(prev.pos.x, prev.pos.y));
+                for (var step = 0; step < horizon; step++)
+                {
+                    var u = candidates[idx * horizon + step];
+                    var next = Model.Step(prev, u, config, dynamics);
+                    var nextWorld = GamePlane.PlanePointToWorld(new Vector2(next.pos.x, next.pos.y));
+                    Gizmos.DrawLine(prevWorld, nextWorld);
+                    prev = next;
+                    prevWorld = nextWorld;
+                }
+            }
+        }
+
+        // Drops a clickable Handles.Button at each visible candidate's terminal point.
+        // Called from MpcNavigatorEditor.OnSceneGUI so it has access to SceneView input.
+        internal bool DrawCandidateSelectionHandles()
+        {
+            if (!showCandidateTrajectories || solver == null) return false;
+            if (visibleCandidateIndices == null || visibleCount == 0) return false;
+
+            var horizon = solver.LastHorizon;
+            if (horizon == 0) return false;
+            var candidates = solver.Candidates;
+            var initial = lastInitialState;
+            var changed = false;
+
+            for (var i = 0; i < visibleCount; i++)
+            {
+                var idx = visibleCandidateIndices[i];
+                var current = initial;
+                for (var step = 0; step < horizon; step++)
+                    current = Model.Step(current, candidates[idx * horizon + step], config, dynamics);
+
+                var world = GamePlane.PlanePointToWorld(new Vector2(current.pos.x, current.pos.y));
+                var size = HandleUtility.GetHandleSize(world) * 0.05f;
+                var isSelected = idx == selectedCandidateIndex;
+                Handles.color = isSelected ? new Color(1f, 0.9f, 0.2f, 1f) : new Color(1f, 1f, 1f, 0.55f);
+                if (Handles.Button(world, Quaternion.identity, size, size * 1.6f, Handles.DotHandleCap))
+                {
+                    selectedCandidateIndex = isSelected ? -1 : idx;
+                    changed = true;
+                }
+            }
+            return changed;
+        }
+
+        // Rolls the selected candidate's control sequence and returns its cost breakdown.
+        // Returns null if no selection or buffers are stale.
+        internal CostBreakdown? GetSelectedCandidateBreakdown()
+        {
+            if (selectedCandidateIndex < 0 || solver == null) return null;
+            var samples = solver.LastSampleCount;
+            var horizon = solver.LastHorizon;
+            if (selectedCandidateIndex >= samples || horizon == 0) return null;
+
+            var candidates = solver.Candidates;
+            var seq = new Control[horizon];
+            for (var i = 0; i < horizon; i++)
+                seq[i] = candidates[selectedCandidateIndex * horizon + i];
+
+            var input = solver.BuildCostInput(GoalPos(), GoalVel(), enemyYaw, enemyYawRate,
+                projectileSpeed, lastInitialState.vel);
+            return Cost.EvaluateTrajectoryBreakdown(lastInitialState, seq, input, config, dynamics, lastControl);
+        }
+
+        private void DrawShipRadius()
+        {
+            if (dynamics.shipRadius <= 0f) return;
+            Handles.color = new Color(0f, 1f, 1f, 0.25f);
+            Handles.DrawWireDisc(transform.position, GamePlane.Normal, dynamics.shipRadius);
         }
 
         private void DrawPredictedTrajectory()
@@ -145,6 +370,45 @@ namespace Movement.MPC
             }
         }
 
+        private void DrawComparisonTrajectories()
+        {
+            if (comparisonResults == null) return;
+
+            for (var p = 0; p < comparisonResults.Length; p++)
+            {
+                var result = comparisonResults[p];
+                if (result.profile == null || result.trajectory == null) continue;
+
+                var color = ComparisonColors[p % ComparisonColors.Length];
+                var prevPos = GamePlane.PlanePointToWorld(new Vector2(result.trajectory[0].pos.x, result.trajectory[0].pos.y));
+
+                for (var i = 1; i < result.trajectory.Length; i++)
+                {
+                    var state = result.trajectory[i];
+                    var pos = GamePlane.PlanePointToWorld(new Vector2(state.pos.x, state.pos.y));
+
+                    Gizmos.color = color;
+                    Gizmos.DrawLine(prevPos, pos);
+                    Gizmos.DrawSphere(pos, 0.1f);
+
+                    prevPos = pos;
+                }
+
+                // Label at the end of the trajectory
+                var endPos = GamePlane.PlanePointToWorld(new Vector2(
+                    result.trajectory[result.trajectory.Length - 1].pos.x,
+                    result.trajectory[result.trajectory.Length - 1].pos.y));
+                Handles.Label(endPos + Vector3.up * 0.3f,
+                    $"{result.profile.name}\nCost: {result.cost:F1}",
+                    new GUIStyle
+                    {
+                        normal = { textColor = color },
+                        fontSize = 11,
+                        fontStyle = FontStyle.Bold,
+                    });
+            }
+        }
+
         private void DrawEnemyRollout()
         {
             if (solver == null || solver.LastEnemyStateCount == 0) return;
@@ -181,11 +445,32 @@ namespace Movement.MPC
                 Gizmos.color = Color.green;
                 Gizmos.DrawWireSphere(GamePlane.PlanePointToWorld(currentWaypoint.position), arriveRadius);
             }
+
+            // High-level planner routing override: shown as a magenta sphere with a line
+            // from the ship — visualizes what the AsteroidNavField is telling this AI to head
+            // toward. Only present when a planner routed call succeeded this frame.
+            if (navigationTarget.HasValue)
+            {
+                var navWorld = GamePlane.PlanePointToWorld(navigationTarget.Value);
+                Gizmos.color = Color.magenta;
+                Gizmos.DrawSphere(navWorld, 0.6f);
+                Gizmos.DrawLine(transform.position, navWorld);
+            }
         }
 
         private void DrawObstacleDebugInfo()
         {
             if (!showObstacleCosts || dbgObstacles == null || dbgObstacleCount == 0) return;
+
+            // Compute the effective threshold the MPC actually uses
+            var speed = predictedStates != null && predictedStates.Length > 0
+                ? math.length(predictedStates[0].vel)
+                : 0f;
+            var baseThreshold = settings.obstacleThreshold + speed * settings.obstacleSpeedMargin;
+            var profileScale = config.maxBankAngleRad > 0f
+                ? Mathf.Cos(Mathf.Abs(smoothedControl.strafe) * config.maxBankAngleRad)
+                : 1f;
+            var effectiveThreshold = baseThreshold * profileScale;
 
             for (var i = 0; i < dbgObstacleCount; i++)
             {
@@ -194,31 +479,42 @@ namespace Movement.MPC
                     ? dbgObstacleWeights[i] : 1f;
                 var obsWorldPos = GamePlane.PlanePointToWorld(obs.position);
 
+                // Inner ring: obstacle radius + ship radius (the inflated hard boundary)
+                var inflatedRadius = obs.radius + dynamics.shipRadius;
                 var weightAlpha = Mathf.Clamp01(weight);
                 Gizmos.color = new Color(1f, 1f, 1f, 0.3f + 0.7f * weightAlpha);
-                Gizmos.DrawWireSphere(obsWorldPos, obs.radius);
+                Gizmos.DrawWireSphere(obsWorldPos, inflatedRadius);
 
-                var threshold = obs.radius + settings.obstacleThreshold;
+                // Outer ring: inflated radius + effective threshold (speed + bank adjusted)
+                var range = inflatedRadius + effectiveThreshold;
                 Gizmos.color = new Color(1f, 1f, 0f, 0.1f + 0.4f * weightAlpha);
-                Gizmos.DrawWireSphere(obsWorldPos, threshold);
+                Gizmos.DrawWireSphere(obsWorldPos, range);
 
-                DrawObstacleCostField(obs, threshold, weight);
+                DrawObstacleCostField(obs, range, weight);
             }
         }
 
-        private void DrawObstacleCostField(DetectedObstacle obstacle, float threshold, float weight)
+        private void DrawObstacleCostField(DetectedObstacle obstacle, float range, float weight)
         {
             var obsWorldPos = GamePlane.PlanePointToWorld(obstacle.position);
-            var rings = 5;
+            var rings = 8;
+            var halfCurve = settings.obstacleFalloffCurve * 0.5f;
+            const float epsSq = 0.0001f;
+            var rangeSq = range * range;
+
+            // Cost at the inflated surface for normalization
+            var inflatedRadius = obstacle.radius + dynamics.shipRadius;
+            var surfaceNormSq = (inflatedRadius * inflatedRadius) / rangeSq;
+            var maxCost = weight / Mathf.Pow(surfaceNormSq + epsSq, halfCurve);
 
             for (var i = 1; i <= rings; i++)
             {
-                var radius = obstacle.radius + (threshold - obstacle.radius) * (i / (float)rings);
-                var normalizedDist = radius / threshold;
-                var epsilon = 0.01f;
-                var cost = weight / ((normalizedDist + epsilon) * (normalizedDist + epsilon));
-                var visualCost = Mathf.Clamp01(cost / 10f);
-                Gizmos.color = new Color(1f, 0f, 0f, visualCost * 0.5f);
+                var t = i / (float)rings;
+                var radius = inflatedRadius + (range - inflatedRadius) * t;
+                var normSq = (radius * radius) / rangeSq;
+                var cost = weight / Mathf.Pow(normSq + epsSq, halfCurve);
+                var alpha = Mathf.Clamp01(cost / maxCost);
+                Gizmos.color = new Color(1f, 0.2f * (1f - alpha), 0f, alpha * 0.6f);
                 Gizmos.DrawWireSphere(obsWorldPos, radius);
             }
         }
@@ -337,6 +633,16 @@ namespace Movement.MPC
     [CustomEditor(typeof(MpcNavigator))]
     public class MpcNavigatorEditor : Editor
     {
+        private bool showUnweightedCosts;
+
+        private void OnSceneGUI()
+        {
+            var nav = (MpcNavigator)target;
+            if (!Application.isPlaying) return;
+            if (nav.DrawCandidateSelectionHandles())
+                Repaint();
+        }
+
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
@@ -362,35 +668,87 @@ namespace Movement.MPC
             var normalizedCost = horizon > 0 ? nav.lastBestCost / horizon : nav.lastBestCost;
             EditorGUILayout.LabelField($"Normalized Cost (per-step): {normalizedCost:F3}");
 
-            DrawCostBar("Position", breakdown.pos, total, Color.green);
-            DrawCostBar("Heading", breakdown.heading, total, Color.yellow);
-            DrawCostBar("Facing", breakdown.facing, total, Color.cyan);
-            DrawCostBar("Velocity", breakdown.vel, total, Color.blue);
-            DrawCostBar("Yaw Rate", breakdown.yawRate, total, Color.magenta);
-            DrawCostBar("Obstacle", breakdown.obstacle, total, Color.red);
-            DrawCostBar("LOS", breakdown.los, total, new Color(1f, 0.5f, 0f));
-            DrawCostBar("Exposure", breakdown.exposure, total, new Color(1f, 0.3f, 0.3f));
-            DrawCostBar("Tangential", breakdown.tangential, total, new Color(0.3f, 0.8f, 1f));
-            DrawCostBar("Momentum", breakdown.momentum, total, new Color(0.6f, 1f, 0.6f));
-            DrawCostBar("Effort", breakdown.effort, total, Color.gray);
-            DrawCostBar("Boost Effort", breakdown.boostEffort, total, new Color(1f, 0.6f, 0f));
-            DrawCostBar("Smoothness", breakdown.smoothness, total, Color.white);
+            showUnweightedCosts = EditorGUILayout.ToggleLeft(
+                "Show Unweighted (raw cost / weight)", showUnweightedCosts);
+
+            RenderBreakdownBars(nav.settings, breakdown);
+
+            if (nav.showCandidateTrajectories && nav.selectedCandidateIndex >= 0)
+            {
+                EditorGUILayout.Space();
+                var selBreakdown = nav.GetSelectedCandidateBreakdown();
+                if (selBreakdown.HasValue)
+                {
+                    var sb = selBreakdown.Value;
+                    EditorGUILayout.LabelField(
+                        $"Selected Candidate #{nav.selectedCandidateIndex} (trajectory total)",
+                        EditorStyles.boldLabel);
+                    EditorGUILayout.LabelField($"Total Cost: {sb.total:F2}");
+                    if (GUILayout.Button("Clear Selection", GUILayout.Width(120)))
+                        nav.selectedCandidateIndex = -1;
+                    RenderBreakdownBars(nav.settings, sb);
+                }
+            }
+
+            if (nav.comparisonResults != null && nav.comparisonResults.Length > 0)
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField("Comparison Rollouts", EditorStyles.boldLabel);
+                for (var i = 0; i < nav.comparisonResults.Length; i++)
+                {
+                    var result = nav.comparisonResults[i];
+                    if (result.profile == null) continue;
+                    var color = MpcNavigator.ComparisonColors[i % MpcNavigator.ComparisonColors.Length];
+                    var style = new GUIStyle(EditorStyles.label) { normal = { textColor = color } };
+                    EditorGUILayout.LabelField($"  {result.profile.name}: {result.cost:F1}", style);
+                }
+            }
 
             Repaint();
         }
 
-        private void DrawCostBar(string label, float value, float total, Color color)
+        private void RenderBreakdownBars(Settings s, CostBreakdown breakdown)
         {
+            var total = breakdown.total;
+            DrawCostBar("Position", breakdown.pos, s.wPos, total, Color.green);
+            DrawCostBar("Heading", breakdown.heading, s.wYaw, total, Color.yellow);
+            DrawCostBar("Facing", breakdown.facing, s.wFacing, total, Color.cyan);
+            DrawCostBar("Velocity", breakdown.vel, s.wVel, total, Color.blue);
+            DrawCostBar("Closing", breakdown.closing, s.wClosing, total, new Color(0.4f, 0.9f, 0.7f));
+            DrawCostBar("Yaw Rate", breakdown.yawRate, s.wYawRate, total, Color.magenta);
+            DrawCostBar("Obstacle", breakdown.obstacle, s.wObstacle, total, Color.red);
+            DrawCostBar("LOS", breakdown.los, s.wLos, total, new Color(1f, 0.5f, 0f));
+            DrawCostBar("Exposure", breakdown.exposure, s.wExposure, total, new Color(1f, 0.3f, 0.3f));
+            DrawCostBar("Tangential", breakdown.tangential, s.wTangential, total, new Color(0.3f, 0.8f, 1f));
+            DrawCostBar("Miss Distance", breakdown.missDistance, s.wMissDistance, total, new Color(1f, 0.8f, 0.2f));
+            DrawCostBar("Momentum", breakdown.momentum, s.wMomentum, total, new Color(0.6f, 1f, 0.6f));
+            DrawCostBar("Effort", breakdown.effort, s.wEffort, total, Color.gray);
+            DrawCostBar("Boost Effort", breakdown.boostEffort, s.wBoostEffort, total, new Color(1f, 0.6f, 0f));
+            DrawCostBar("Smoothness", breakdown.smoothness, 0f, total, Color.white);
+        }
+
+        private void DrawCostBar(string label, float value, float weight, float total, Color color)
+        {
+            // Bar magnitude / percentage always reflect the WEIGHTED contribution to total
+            // (so comparisons between rows remain meaningful regardless of toggle state).
             var pct = total > 0 ? value / total : 0;
             var rect = EditorGUILayout.GetControlRect(false, 18);
 
             EditorGUI.DrawRect(rect, new Color(0.1f, 0.1f, 0.1f, 1f));
 
-            var barRect = new Rect(rect.x, rect.y, rect.width * pct, rect.height);
+            var barWidth = Mathf.Max(rect.width * Mathf.Abs(pct), Mathf.Abs(value) > 1e-6f ? 3f : 0f);
+            var barRect = new Rect(rect.x, rect.y, barWidth, rect.height);
             EditorGUI.DrawRect(barRect, color * 0.7f);
 
+            // The labeled value switches: weighted (default) vs unweighted (raw cost / weight)
+            var displayValue = (showUnweightedCosts && weight > 1e-6f) ? value / weight : value;
+            var suffix = (showUnweightedCosts && weight > 1e-6f) ? $" ×{weight:G3}" : "";
             var style = new GUIStyle(EditorStyles.miniLabel) { alignment = TextAnchor.MiddleLeft };
-            EditorGUI.LabelField(rect, $" {label}: {value:F1} ({pct * 100:F0}%)", style);
+            var absDisp = Mathf.Abs(displayValue);
+            var valueStr = absDisp >= 10f ? $"{displayValue:F1}"
+                : absDisp >= 1f ? $"{displayValue:F2}"
+                : $"{displayValue:F3}";
+            EditorGUI.LabelField(rect, $" {label}: {valueStr}{suffix} ({pct * 100:F1}%)", style);
         }
     }
 }
