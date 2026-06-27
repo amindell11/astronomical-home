@@ -262,6 +262,10 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
         var (_, cmdrA) = CreateAIShip(Vector3.zero, team: 0);
         var (shipB, _) = CreateAIShip(new Vector3(20f, 0f, 20f), team: 1);
 
+        InitializeWithStates(cmdrA,
+            CreateState(CreateAttackProfile(), cmdrA),
+            CreateState(CreatePatrolProfile(), cmdrA));
+
         // Wait for Attack state with valid waypoint
         yield return AsyncAssert.WaitUntil(
             () => cmdrA.UtilitySelector.CurrentState?.ProfileName == "Attack" &&
@@ -322,6 +326,10 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
     {
         var (_, cmdrA) = CreateAIShip(Vector3.zero, team: 0);
         CreateAIShip(new Vector3(15f, 0f, 0f), team: 1);
+
+        InitializeWithStates(cmdrA,
+            CreateState(CreateAttackProfile(), cmdrA),
+            CreateState(CreatePatrolProfile(), cmdrA));
 
         yield return AsyncAssert.WaitUntil(
             () => cmdrA.UtilitySelector.CurrentState?.ProfileName == "Attack" &&
