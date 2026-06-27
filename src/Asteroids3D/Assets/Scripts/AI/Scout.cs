@@ -24,7 +24,7 @@ namespace AI.Scanning
         [Tooltip("Lookahead time for the simple obstacle scanner. Detection radius = maxSpeed * this value.")]
         public float obstacleLookaheadTime = 2f;
 
-        [Header("Legacy (StandardNavigator / DynamicObstacleScanner only)")]
+        [Header("Legacy (DynamicObstacleScanner only)")]
         public float lookAheadDist = 15f;
         public float safeMargin = 1.0f;
         public float degreesBetweenRays = 15f;
@@ -93,7 +93,7 @@ namespace AI.Scanning
 
             // Other ships from the 360° ship scanner — covers blind spots of the directional/forward
             // obstacle scanner so the MPC actually sees ships approaching from the side.
-            if (shipScanner != null && Registry != null)
+            if (shipScanner == null || Registry == null) return;
             {
                 var scan = shipScanner.LastResult;
                 for (var i = 0; i < scan.count && mergedObstacleCount < mergedObstacles.Length; i++)
