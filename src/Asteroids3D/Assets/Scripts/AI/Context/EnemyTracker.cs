@@ -10,13 +10,13 @@ namespace AI.Context
     /// </summary>
     public class EnemyTracker
     {
-        private readonly Scanning.Scout scout;
+        private readonly Scout scout;
         private readonly float combatExitDelay;
 
         private Ship cachedEnemy;
         private float lastContactTime = -1f;
 
-        public EnemyTracker(Scanning.Scout scout, float combatExitDelay)
+        public EnemyTracker(Scout scout, float combatExitDelay)
         {
             this.scout = scout;
             this.combatExitDelay = combatExitDelay;
@@ -36,6 +36,27 @@ namespace AI.Context
         public float EnemyShieldPct => HasEnemy ? cachedEnemy.CurrentState.shieldPct : 0f;
 
         public bool IncomingMissile => false; // TODO
+
+        /// <summary>
+        /// Snapshots the current enemy as a ship-agnostic <see cref="EnemyTarget"/> for the
+        /// navigator/gunner. The single Ship→target adapter. False when there is no enemy.
+        /// </summary>
+        public bool TryGetTarget(out EnemyTarget target)
+        {
+            if (!HasEnemy)
+            {
+                target = default;
+                return false;
+            }
+
+            target = new EnemyTarget
+            {
+                kinematics = cachedEnemy.CurrentState.kinematics,
+                dynamics = cachedEnemy.Dynamics,
+                source = cachedEnemy.transform,
+            };
+            return true;
+        }
 
         public void Update()
         {

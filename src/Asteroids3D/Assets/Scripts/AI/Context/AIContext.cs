@@ -18,9 +18,9 @@ namespace AI.Context
     {
         public SelfStatus Self { get; private set; }
         public EnemyTracker Combat { get; private set; }
-        public Scanning.Scout Scout { get; private set; }
+        public Scout Scout { get; private set; }
         public SituationAssessment Assessment { get; private set; }
-        public AIContext(SelfStatus self, Scanning.Scout scout,
+        public AIContext(SelfStatus self, Scout scout,
             float combatExitDelay = 3f)
         {
             if (self == null || scout == null) return;

@@ -1,17 +1,14 @@
 #if UNITY_EDITOR
-using System.Collections.Generic;
-using System.Linq;
+using AI.Context;
 using AI.Debug;
-using AI.States;
+using AI.Utility;
 using UnityEditor;
 using UnityEngine;
 
-namespace AI.Utility
+namespace AI
 {
-    public partial class UtilitySelector
+    public partial class Brain
     {
-        internal Sampler Sampler => sampler;
-
         private AICommander cachedCommander;
         private AIDebugSettings CachedSettings
         {
@@ -23,6 +20,8 @@ namespace AI.Utility
             }
         }
 
+        private UtilityChooser UtilityChooser => chooser as UtilityChooser;
+
         void OnDrawGizmos() => DrawGizmosImpl(false);
         void OnDrawGizmosSelected() => DrawGizmosImpl(true);
 
@@ -31,16 +30,19 @@ namespace AI.Utility
             var settings = CachedSettings;
             if (settings == null || !settings.ShouldDraw(isSelected)) return;
 
-            if (settings.IsActive(AIDebugChannel.StateDetail) && CurrentAIState != null && Context != null)
-                CurrentAIState.OnDrawGizmos(Context);
+            var uc = UtilityChooser;
+            if (uc == null) return;
 
-            if (settings.IsActive(AIDebugChannel.Info) && Context != null)
-                DrawInfoLabel();
+            if (settings.IsActive(AIDebugChannel.StateDetail) && uc.CurrentAIState != null && uc.Context != null)
+                uc.CurrentAIState.OnDrawGizmos(uc.Context);
+
+            if (settings.IsActive(AIDebugChannel.Info) && uc.Context != null)
+                DrawInfoLabel(uc.Context);
         }
 
-        private void DrawInfoLabel()
+        private void DrawInfoLabel(AIContext ctx)
         {
-            var a = Context.Assessment;
+            var a = ctx.Assessment;
             Handles.color = Color.white;
             var info = $"HP: {a.HealthPct:P0} Shield: {a.ShieldPct:P0}";
             if (a.NearbyEnemyCount > a.NearbyFriendCount)
@@ -49,23 +51,24 @@ namespace AI.Utility
         }
     }
 
-    [CustomEditor(typeof(UtilitySelector))]
-    public class UtilitySelectorEditor : Editor
+    [CustomEditor(typeof(Brain))]
+    public class BrainEditor : Editor
     {
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
 
-            var selector = (UtilitySelector)target;
+            var brain = (Brain)target;
             if (!Application.isPlaying) return;
 
-            var state = selector.CurrentAIState;
+            var uc = brain.Chooser as UtilityChooser;
+            var state = uc?.CurrentAIState;
             if (state == null) return;
 
             EditorGUILayout.Space();
             EditorGUILayout.LabelField($"Factor Breakdown: {state.ProfileName}", EditorStyles.boldLabel);
 
-            var builder = state.LastBuilder;
+            var builder = uc.Sampler?.GetBuilder(state);
             if (builder == null || builder.Factors == null || builder.Factors.Count == 0)
             {
                 EditorGUILayout.LabelField("No factor data available.");

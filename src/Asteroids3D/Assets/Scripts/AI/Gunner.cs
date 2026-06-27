@@ -14,27 +14,23 @@ namespace AI
     [DefaultExecutionOrder(-50)]
     public partial class Gunner : MonoBehaviour
     {
-        private System.Func<State> getState;
+        private Func<State> getState;
         private Func<Kinematics> pose;
         private WeaponComponent primaryWeapon;
         private Gunsight primaryTrigger;
         private Gunsight secondaryTrigger;
         private Command currentCommand;
+        
         public Command CurrentCommand => currentCommand;
-
         public Vector3 Target { get; private set; }
         public bool HasTarget => Target != Vector3.zero;
-
         public Vector3 FirePoint => (primaryWeapon != null && primaryWeapon.firePoint)
             ? primaryWeapon.firePoint.position
             : transform.position;
-
         public Vector2 TargetPlane => GamePlane.WorldPointToPlane(Target);
         public float AngleToTarget => (HasTarget && pose != null) ? TargetingMath.AngleTo(pose(), TargetPlane) : 0f;
-
         public float PrimaryProjectileSpeed =>
             primaryWeapon is Lasers laser ? laser.ProjectileSpeed : 0f;
-
         public void SetTarget(Vector3 worldPos) => Target = worldPos;
         public void SetTarget(Vector2 planePos) => Target = GamePlane.PlanePointToWorld(planePos);
         public void SetTarget(Transform target) => Target = target ? target.position : Vector3.zero;
@@ -56,9 +52,9 @@ namespace AI
                 return;
             }
 
-            if (intent.hasGunnerEnemy && pose != null)
+            if (intent.hasTarget && pose != null)
                 SetTarget(TargetingMath.PredictIntercept(
-                    pose(), intent.gunnerEnemyPos, intent.gunnerEnemyVel, PrimaryProjectileSpeed));
+                    pose(), intent.target.kinematics.pos, intent.target.kinematics.vel, PrimaryProjectileSpeed));
         }
 
         public void Initialize(WeaponComponent primary, WeaponComponent secondary, Func<Kinematics> pose, System.Func<State> stateProvider)

@@ -1,4 +1,5 @@
 using System;
+using AI.Scanning;
 using AI.Scanning.Sensors;
 using Movement;
 using Ships;
@@ -6,7 +7,7 @@ using Ships.Command;
 using UnityEngine;
 using Utils;
 
-namespace AI.Scanning
+namespace AI
 {
     /// <summary>
     /// Orchestrates all scanning subsystems.

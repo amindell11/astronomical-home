@@ -126,7 +126,7 @@ namespace AI.Debug
 
         private static Color GetCurrentStateColor(AICommander commander)
         {
-            var name = commander.UtilitySelector?.CurrentAIState?.ProfileName;
+            var name = commander.UtilityChooser?.CurrentAIState?.ProfileName;
             return name != null ? ColorFromName(name) : DefaultStateColor;
         }
 
@@ -144,10 +144,10 @@ namespace AI.Debug
 
         private void DrawUtilityBars(AICommander commander, Vector2 guiPos)
         {
-            var scores = commander.UtilitySelector?.UtilityScores;
+            var scores = commander.UtilityChooser?.UtilityScores;
             if (scores == null || scores.Count == 0) return;
 
-            var currentName = commander.UtilitySelector.CurrentAIState?.ProfileName;
+            var currentName = commander.UtilityChooser.CurrentAIState?.ProfileName;
             var sorted = scores.OrderByDescending(kv => kv.Value).ToList();
             var maxScore = sorted.Count > 0 ? Mathf.Max(sorted[0].Value, 1f) : 1f;
 
@@ -161,7 +161,7 @@ namespace AI.Debug
 
             // Build a name→color map from registered states
             var stateColorMap = new Dictionary<string, Color>();
-            var registeredStates = commander.UtilitySelector?.RegisteredStates;
+            var registeredStates = commander.UtilityChooser?.RegisteredStates;
             if (registeredStates != null)
             {
                 foreach (var state in registeredStates)
@@ -229,7 +229,7 @@ namespace AI.Debug
                 var aiCommander = ship.Commander as AICommander;
                 if (!aiCommander) continue;
 
-                var context = aiCommander.UtilitySelector?.Context;
+                var context = aiCommander.UtilityChooser?.Context;
                 if (context == null) continue;
                 var enemy = context.Combat?.Enemy;
                 if (!enemy || !enemy.gameObject.activeInHierarchy) continue;

@@ -12,6 +12,7 @@ namespace AI.Utility
     public class Sampler
     {
         private readonly Dictionary<AI.States.AIState, float> smoothedUtilities = new();
+        private readonly Dictionary<AI.States.AIState, UtilityBuilder> lastBuilders = new();
         private readonly UtilitySelectorSettings config;
         private readonly UtilityWeights instanceUtilityWeights;
         private readonly List<(AI.States.AIState state, float utility)> topStateUtilities = new(3);
@@ -65,9 +66,32 @@ namespace AI.Utility
 
         public float GetSmoothedUtility(AI.States.AIState aiState) => smoothedUtilities.GetValueOrDefault(aiState, 0f);
 
+        /// <summary>The per-state factor breakdown from the most recent scoring pass (editor diagnostics).</summary>
+        public UtilityBuilder GetBuilder(AI.States.AIState aiState) => lastBuilders.GetValueOrDefault(aiState);
+
+        /// <summary>
+        /// Geometric-mean utility from the state's profile factors. Owns the factor breakdown
+        /// (kept per state for editor diagnostics) so <see cref="AI.States.AIState"/> stays a
+        /// pure behavior, unaware of how it is scored.
+        /// </summary>
+        private float ComputeBaseUtility(AI.States.AIState aiState, AIContext context)
+        {
+            var builder = new UtilityBuilder();
+            lastBuilders[aiState] = builder;
+
+            var factors = aiState.Profile.utilityFactors;
+            if (factors == null) return builder.Build();
+
+            foreach (var factor in factors)
+                if (factor != null)
+                    builder.Factor(factor.Name, factor.Evaluate(context.Assessment), factor.weight);
+
+            return builder.Build();
+        }
+
         private float ComputeSmoothedUtility(AI.States.AIState aiState, AI.States.AIState currentAIState, float timeSinceEntry, AIContext context)
         {
-            var baseUtility = aiState.ComputeUtility(context);
+            var baseUtility = ComputeBaseUtility(aiState, context);
 
             // Instance weight scales the geometric mean output before sticky bonus,
             // so the weight biases state preference without amplifying hysteresis.
@@ -89,7 +113,7 @@ namespace AI.Utility
         private bool IsExcluded(AI.States.AIState aiState, AIContext context = null)
         {
             if (ResolveWeight(aiState) <= 0f) return true;
-            if (context != null && !aiState.IsAvailable(context)) return true;
+            if (context != null && !aiState.Profile.IsAvailable(context)) return true;
             return false;
         }
 

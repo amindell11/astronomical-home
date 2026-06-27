@@ -2,7 +2,7 @@
 using AI.Debug;
 using UnityEngine;
 
-namespace AI.Scanning
+namespace AI
 {
     public partial class Scout
     {

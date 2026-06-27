@@ -1,5 +1,6 @@
 using System;
 using AI;
+using AI.Context;
 using AI.Scanning;
 using AI.States;
 using Game;
@@ -175,16 +176,15 @@ namespace Movement.MPC
 
             SetNavigationPoint(intent.goalPosition, true, intent.goalVelocity);
 
-            if (intent.hasEnemy)
-                SetEnemyState(intent.enemyYawDeg, intent.enemyYawRateDeg, intent.projectileSpeed,
-                    intent.enemyDynamics);
+            if (intent.applyTacticalCosts && intent.hasTarget)
+                SetEnemyState(intent.target, intent.projectileSpeed);
             else
                 ClearEnemyState();
 
             SetWeightOverrides(intent.weightOverrides);
 
-            if (intent.obstacleExclusion)
-                SetObstacleExclusion(intent.obstacleExclusion);
+            if (intent.hasTarget)
+                SetObstacleExclusion(intent.target.source);
             else
                 ClearObstacleExclusion();
         }
@@ -240,13 +240,15 @@ namespace Movement.MPC
             goalRangeTolerance = 0f;
         }
 
-        private void SetEnemyState(float yawDegrees, float yawRateDegrees, float projectileSpeed,
-            Dynamics enemyDynamics = default)
+        // Converts the enemy snapshot to the MPC's enemy inputs. The MPC yaw convention
+        // (fwd = (-sin, cos)) lives here, at the MPC boundary — not in the strategy layer.
+        private void SetEnemyState(in EnemyTarget target, float projectileSpeed)
         {
-            enemyYaw = yawDegrees * Mathf.Deg2Rad;
-            enemyYawRate = yawRateDegrees * Mathf.Deg2Rad;
+            var fwd = target.kinematics.Forward;
+            enemyYaw = Mathf.Atan2(-fwd.x, fwd.y);
+            enemyYawRate = target.kinematics.yawRate * Mathf.Deg2Rad;
             this.projectileSpeed = projectileSpeed;
-            this.enemyDynamics = enemyDynamics;
+            this.enemyDynamics = target.dynamics;
         }
 
         private void ClearEnemyState()

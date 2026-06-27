@@ -39,7 +39,7 @@ namespace AI.Context
         private SituationAssessment(
             SelfStatus self = null,
             EnemyTracker combat = null,
-            Scanning.Scout scout = null)
+            Scout scout = null)
         {
             InCombat = combat?.InCombat ?? false;
             TimeSinceCombat = combat?.TimeSinceCombat ?? float.MaxValue;
@@ -91,7 +91,7 @@ namespace AI.Context
         public static SituationAssessment Evaluate(
             SelfStatus self,
             EnemyTracker combat,
-            Scanning.Scout scout)
+            Scout scout)
         {
             return new SituationAssessment(self, combat, scout);
         }

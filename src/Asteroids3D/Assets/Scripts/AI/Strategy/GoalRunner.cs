@@ -48,7 +48,8 @@ namespace AI.States
 
             intent.goalPosition = combat.EnemyPos;
             intent.goalVelocity = combat.EnemyVel;
-            intent.obstacleExclusion = combat.Enemy.transform;
+            // Obstacle exclusion is now driven by the navigator from intent.target.source
+            // (whenever hasTarget), so the goal no longer carries the enemy transform.
         }
     }
 

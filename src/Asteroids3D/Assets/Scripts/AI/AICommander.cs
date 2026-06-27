@@ -11,8 +11,8 @@ using State = Ships.Command.State;
 namespace AI
 {
     [RequireComponent(typeof(Navigator))]
-    [RequireComponent(typeof(Scanning.Scout))]
-    [RequireComponent(typeof(Utility.UtilitySelector))]
+    [RequireComponent(typeof(Scout))]
+    [RequireComponent(typeof(Brain))]
 
     [DefaultExecutionOrder(-40)]
     public partial class AICommander : Commander
@@ -35,20 +35,22 @@ namespace AI
 
         private AIContext context;
 
-        public Scanning.Scout Scout { get; private set; }
+        public Scout Scout { get; private set; }
         public Navigator Navigator { get; private set; }
         // Gunner is optional: an unarmed (peaceful) ship has no Gunner component.
         public Gunner Gunner { get; private set; }
-        public UtilitySelector UtilitySelector { get; private set; }
-        public string CurrentStateName => UtilitySelector ? UtilitySelector.CurrentStateName : "None";
+        public Brain Brain { get; private set; }
+        // Editor/diagnostics convenience: the active policy when it is the utility chooser.
+        public UtilityChooser UtilityChooser => Brain ? Brain.Chooser as UtilityChooser : null;
+        public string CurrentStateName => UtilityChooser?.CurrentStateName ?? "None";
         public bool HasRegistryConfigured => registry != null;
 
         protected virtual void Awake()
         {
             Navigator = GetComponent<Navigator>();
-            Scout = GetComponent<Scanning.Scout>();
+            Scout = GetComponent<Scout>();
             Gunner = GetComponent<Gunner>();
-            UtilitySelector = GetComponent<UtilitySelector>();
+            Brain = GetComponent<Brain>();
         }
 
         public void SetRegistry(IShipRegistry shipRegistry)
@@ -87,7 +89,7 @@ namespace AI
             var states = new AI.States.AIState[stateProfiles.Length];
             for (var i = 0; i < stateProfiles.Length; i++)
                 states[i] = new AIState(stateProfiles[i], Navigator, Gunner);
-            UtilitySelector.Initialize(states);
+            (Brain.Chooser as IStateChooser)?.Initialize(states);
 
             systemsInitialized = true;
         }
@@ -95,10 +97,15 @@ namespace AI
         protected virtual void FixedUpdate()
         {
             if (!systemsInitialized) return;
-            if (UtilitySelector && UtilitySelector.isActiveAndEnabled)
+
+            // The brain decides; the commander actuates. A disabled Brain component
+            // bypasses the loop (tests drive the Navigator directly this way).
+            if (Brain && Brain.isActiveAndEnabled)
             {
                 context.UpdateAssessment();
-                UtilitySelector.Tick(context, Time.fixedDeltaTime);
+                var intent = Brain.Decide(context, Time.fixedDeltaTime);
+                Navigator.ApplyIntent(intent);
+                if (Gunner) Gunner.ApplyIntent(intent);
             }
             GetSubCommands(ref cachedCommand);
         }

@@ -1,4 +1,4 @@
-using Movement;
+using AI.Context;
 using Movement.MPC;
 using UnityEngine;
 
@@ -20,22 +20,19 @@ namespace AI.States
         public float desiredRange;
         public float rangeTolerance;
 
-        // Tactical
-        public bool hasEnemy;
-        public float enemyYawDeg;
-        public float enemyYawRateDeg;
-        public float projectileSpeed;
-        public Dynamics enemyDynamics;
-        public Transform obstacleExclusion;
+        // Enemy target — one snapshot of the ship we're engaging (see EnemyTarget). The gunner
+        // reads its kinematics for the firing solution; the navigator uses it for tactical MPC
+        // costs (when applyTacticalCosts) and obstacle exclusion (whenever hasTarget).
+        public bool hasTarget;
+        public EnemyTarget target;
+        public bool applyTacticalCosts;
+        public float projectileSpeed;   // OUR weapon's projectile speed (intercept geometry)
 
         // MPC weight overrides (sparse; absent weight = base ×1)
         public WeightOverride[] weightOverrides;
 
-        // Gunner — the enemy to engage; the Gunner resolves its own firing solution.
+        // Gunner — fire at the target; the Gunner resolves its own firing solution.
         public bool enableFiring;
-        public bool hasGunnerEnemy;
-        public Vector2 gunnerEnemyPos;
-        public Vector2 gunnerEnemyVel;
 
         public static NavigationIntent None => new NavigationIntent { isValid = false };
     }

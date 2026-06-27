@@ -41,8 +41,8 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
         // Navigator.Initialize() is gated on registry != null — supply a stub so all
         // AI systems (Scout, Navigator, Gunner) are fully initialized before tests run.
         cmdr.SetRegistry(new StubShipRegistry());
-        cmdr.UtilitySelector.enabled = false;
-        // Clear any goal/weight state the utility selector's first state applied during init.
+        cmdr.Brain.enabled = false;
+        // Clear any goal/weight state the utility chooser's first state applied during init.
         mpc.ResetNavigation();
 #else
         Assert.Ignore("MpcNavigatorPlayModeTests requires the Unity Editor (uses AssetDatabase).");

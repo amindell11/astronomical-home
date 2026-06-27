@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using AI.Context;
 using AI.States;
 using UnityEngine;
@@ -8,63 +7,69 @@ using UnityEngine;
 namespace AI.Utility
 {
     /// <summary>
-    /// Orchestrates AI state lifecycle and transitions.
-    /// Delegates utility evaluation and selection to UtilitySampler.
+    /// Utility-based decision policy: orchestrates AI state lifecycle and transitions,
+    /// delegating utility evaluation and selection to <see cref="Sampler"/>. One
+    /// implementation of <see cref="IStateChooser"/>, hosted by <see cref="Brain"/>.
     /// </summary>
-    [DefaultExecutionOrder(-70)]
-    public partial class UtilitySelector : MonoBehaviour
+    [Serializable]
+    public class UtilityChooser : IStateChooser
     {
         [SerializeField] private UtilitySelectorSettings config;
-        
+
         [Header("Instance Weights")]
         [Tooltip("Per-instance weight biases. Swap to create different AI personalities.")]
         [SerializeField] private UtilityWeights instanceUtilityWeights;
 
-        private readonly List<AI.States.AIState> states = new();
+        private readonly List<AIState> states = new();
         private Sampler sampler;
         private float stateChangeTime;
 
-        public AI.States.AIState CurrentAIState { get; private set; }
+        public AIState CurrentAIState { get; private set; }
         public AIContext Context { get; private set; }
         public string CurrentStateName => CurrentAIState?.ProfileName ?? "None";
         public Dictionary<string, float> UtilityScores => sampler?.UtilityScores;
-        public IReadOnlyList<AI.States.AIState> RegisteredStates => states;
+        public IReadOnlyList<AIState> RegisteredStates => states;
         public UtilitySelectorSettings Config => config;
+        internal Sampler Sampler => sampler;
 
         /// <summary>Fired on state transitions: (fromState, toState). Null fromState on first entry.</summary>
-        public event Action<AI.States.AIState, AI.States.AIState> OnStateTransition;
+        public event Action<AIState, AIState> OnStateTransition;
 
-        private void Awake()
+        public void Initialize(IReadOnlyList<AIState> statesToAdd)
         {
+            sampler ??= new Sampler(config, instanceUtilityWeights);
             stateChangeTime = Time.time;
-            sampler = new Sampler(config, instanceUtilityWeights);
-        }
 
-        public void Initialize(params AI.States.AIState[] statesToAdd)
-        {
             states.Clear();
-            states.AddRange(statesToAdd.Where(s => s != null));
+            if (statesToAdd != null)
+                foreach (var s in statesToAdd)
+                    if (s != null) states.Add(s);
             if (states.Count == 0) return;
 
             if (CurrentAIState != null) return;
             TransitionTo(states[0], null);
         }
-        
-        public void Tick(AIContext context, float deltaTime)
+
+        public NavigationIntent Decide(AIContext context, float deltaTime)
         {
             Context = context;
-            if (states.Count == 0) return;
+            if (states.Count == 0) return NavigationIntent.None;
 
-            CurrentAIState?.Tick(context, deltaTime);
+            var intent = CurrentAIState?.Tick(context, deltaTime) ?? NavigationIntent.None;
 
             var timeSinceChange = Time.time - stateChangeTime;
             var selectedState = sampler.Evaluate(states, CurrentAIState, timeSinceChange, context);
 
-            if (ShouldTransition(selectedState, timeSinceChange))
-                TransitionTo(selectedState, context);
+            if (!ShouldTransition(selectedState, timeSinceChange))
+                return intent;
+
+            // Transitioning: the new state ticks next frame, so reset the actuators this
+            // frame (matching the old Exit→ResetNavigation behavior) by returning None.
+            TransitionTo(selectedState, context);
+            return NavigationIntent.None;
         }
 
-        private bool ShouldTransition(AI.States.AIState selectedAIState, float timeSinceChange)
+        private bool ShouldTransition(AIState selectedAIState, float timeSinceChange)
         {
             if (selectedAIState == null || selectedAIState == CurrentAIState) return false;
             if (timeSinceChange < config.minTimeInState) return false;
@@ -75,13 +80,13 @@ namespace AI.Utility
             return (selectedUtility - currentUtility) > config.utilityThreshold;
         }
 
-        public void ForceTransition(AI.States.AIState newAIState, AIContext context)
+        public void ForceTransition(AIState newAIState, AIContext context)
         {
             if (newAIState != null && states.Contains(newAIState))
                 TransitionTo(newAIState, context);
         }
 
-        private void TransitionTo(AI.States.AIState newAIState, AIContext context)
+        private void TransitionTo(AIState newAIState, AIContext context)
         {
             if (newAIState == CurrentAIState) return;
             var prev = CurrentAIState;
@@ -94,7 +99,7 @@ namespace AI.Utility
 
 #if UNITY_EDITOR
         /// <summary>
-        /// Resets selector state so Initialize() can register a new state set.
+        /// Resets chooser state so Initialize() can register a new state set.
         /// Editor/test-only — zero production impact.
         /// </summary>
         public void ResetForTesting()

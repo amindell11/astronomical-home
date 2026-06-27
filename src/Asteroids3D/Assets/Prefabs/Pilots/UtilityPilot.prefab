@@ -12,9 +12,9 @@ GameObject:
   - component: {fileID: 1772957474756936600}
   - component: {fileID: -1070365238870678526}
   - component: {fileID: 2056539076943524747}
-  - component: {fileID: 4713944334268074824}
   - component: {fileID: 1676751311637226355}
   - component: {fileID: 606810096680689649}
+  - component: {fileID: 4478262572537416997}
   m_Layer: 7
   m_Name: UtilityPilot
   m_TagString: Untagged
@@ -50,11 +50,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   difficulty: 1
-  debugSettings: {fileID: 11400000, guid: 2e2ae38aa858dd74d9f7908425a3067d, type: 2}
   stateProfiles:
   - {fileID: 11400000, guid: 810eec9f0227d5f45a38f462c537a795, type: 2}
-  combatTuning: {fileID: 0}
   combatExitDelay: 3
+  debugSettings: {fileID: 11400000, guid: 2e2ae38aa858dd74d9f7908425a3067d, type: 2}
 --- !u!114 &-1070365238870678526
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -82,20 +81,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 672451d8ba1d1c24b95ea05b1fea1e71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &4713944334268074824
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1066014630051916606}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e65c9c022eb2de3498de597ac8fcb100, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  config: {fileID: 11400000, guid: 2953629aea9c0114d9f56764e09bca98, type: 2}
-  instanceUtilityWeights: {fileID: 0}
 --- !u!114 &1676751311637226355
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -108,7 +93,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f0f9ac3a41558b64f9a98d4dd5dbddb2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  arriveRadius: 0.5
   labelStep: 5
   showCostBreakdown: 1
   costBreakdownMode: 0
@@ -117,11 +101,14 @@ MonoBehaviour:
   showObstacleCosts: 1
   showTrajectoryCosts: 1
   showControlInputs: 1
+  showCandidateTrajectories: 0
+  candidateSampleCount: 32
+  candidateAlphaFalloff: 2
   controlPanelOffset: {x: 0, y: 2.5, z: 0}
   comparisonProfiles: []
-  settings: {fileID: 11400000, guid: 9d049f5482896884799106aff602155b, type: 2}
+  arriveRadius: 0.5
+  mpcSettings: {fileID: 11400000, guid: 9d049f5482896884799106aff602155b, type: 2}
   enableObstacleAvoidance: 1
-  lastBestCost: 0
 --- !u!114 &606810096680689649
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -139,10 +126,27 @@ MonoBehaviour:
   asteroidMask:
     serializedVersion: 2
     m_Bits: 256
-  useSimpleObstacleScanner: 1
   obstacleLookaheadTime: 1.5
-  lookAheadDist: 0
-  safeMargin: 1
-  degreesBetweenRays: 20
-  maxRayDegrees: 25
-  sphereCastRadius: 0.75
+--- !u!114 &4478262572537416997
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1066014630051916606}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e74b596751aefc842ad51157fcb57ee7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  chooser:
+    rid: 1937986634179674114
+  references:
+    version: 2
+    RefIds:
+    - rid: 1937986634179674114
+      type: {class: UtilityChooser, ns: AI.Utility, asm: Game.Core}
+      data:
+        config: {fileID: 11400000, guid: 2953629aea9c0114d9f56764e09bca98, type: 2}
+        instanceUtilityWeights: {fileID: 11400000, guid: 36dd1f0bf1188b246b6b19c1160602bc,
+          type: 2}

@@ -23,6 +23,9 @@ namespace AI
             if (!systemsInitialized || stateProfiles == null || stateProfiles.Length == 0)
                 return;
 
+            var uc = UtilityChooser;
+            if (uc == null) return;
+
             var states = new AIState[stateProfiles.Length];
             for (var i = 0; i < stateProfiles.Length; i++)
             {
@@ -30,8 +33,8 @@ namespace AI
                 states[i] = new AIState(stateProfiles[i], Navigator, Gunner);
             }
 
-            UtilitySelector.ResetForTesting();
-            UtilitySelector.Initialize(states);
+            uc.ResetForTesting();
+            uc.Initialize(states);
         }
     }
 }

@@ -33,7 +33,7 @@ namespace AI.Debug
         [SerializeField] private int flushThreshold = 50;
 
         private AICommander commander;
-        private UtilitySelector selector;
+        private UtilityChooser selector;
         private StreamWriter writer;
         private StringBuilder lineBuffer = new();
         private string shipLabel;
@@ -60,8 +60,8 @@ namespace AI.Debug
                 return;
             }
 
-            selector = commander.UtilitySelector;
-            if (!selector)
+            selector = commander.UtilityChooser;
+            if (selector == null)
             {
                 enabled = false;
                 return;
@@ -80,14 +80,14 @@ namespace AI.Debug
 
         private void OnDestroy()
         {
-            if (selector)
+            if (selector != null)
                 selector.OnStateTransition -= OnTransition;
             CloseLogFile();
         }
 
         private void FixedUpdate()
         {
-            if (!selector || selector.RegisteredStates == null || selector.RegisteredStates.Count == 0)
+            if (selector == null || selector.RegisteredStates == null || selector.RegisteredStates.Count == 0)
                 return;
 
             tickCounter++;
@@ -178,7 +178,7 @@ namespace AI.Debug
                 var first = true;
                 foreach (var state in selector.RegisteredStates)
                 {
-                    var builder = state.LastBuilder;
+                    var builder = selector.Sampler.GetBuilder(state);
                     if (builder?.Factors == null || builder.Factors.Count == 0) continue;
 
                     if (!first) lineBuffer.Append(',');
