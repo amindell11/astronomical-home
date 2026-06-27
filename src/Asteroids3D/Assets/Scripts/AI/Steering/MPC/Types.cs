@@ -167,6 +167,66 @@ namespace Movement.MPC
         }
     }
 
+    /// <summary>
+    /// Identifies a single MPC weight (or width) that a per-state override can scale.
+    /// Replaces the fixed <see cref="WeightMultipliers"/> mirror: states list only the
+    /// weights they actually change, and an absent entry means "use base as-is" (×1) —
+    /// no more all-zero serialization footgun.
+    /// </summary>
+    public enum MpcWeight
+    {
+        Pos, Vel, Yaw, YawRate,
+        Effort, SmoothnessThrust, SmoothnessStrafe, SmoothnessYaw, Momentum,
+        Facing, FacingWidth, Los, Exposure, ExposureWidth, Tangential, MissDistance,
+        Obstacle, BoostEffort,
+    }
+
+    /// <summary>A single per-state multiplier applied to one base MPC weight.</summary>
+    [System.Serializable]
+    public struct WeightOverride
+    {
+        public MpcWeight weight;
+        public float multiplier;
+    }
+
+    public static class WeightOverrideExtensions
+    {
+        /// <summary>
+        /// Multiplies each listed weight into the config. Mirrors the per-field mapping of
+        /// the legacy <see cref="WeightMultipliers.Apply"/> exactly. Runs managed-side in
+        /// MpcNavigator.RefreshConfig (before the Burst job), so the switch is free.
+        /// </summary>
+        public static void Apply(this WeightOverride[] overrides, ref Config cfg)
+        {
+            if (overrides == null) return;
+            for (var i = 0; i < overrides.Length; i++)
+            {
+                var m = overrides[i].multiplier;
+                switch (overrides[i].weight)
+                {
+                    case MpcWeight.Pos:               cfg.wPos *= m; break;
+                    case MpcWeight.Vel:               cfg.wVel *= m; break;
+                    case MpcWeight.Yaw:               cfg.wYaw *= m; break;
+                    case MpcWeight.YawRate:           cfg.wYawRate *= m; break;
+                    case MpcWeight.Effort:            cfg.wEffort *= m; break;
+                    case MpcWeight.SmoothnessThrust:  cfg.wSmoothnessThrust *= m; break;
+                    case MpcWeight.SmoothnessStrafe:  cfg.wSmoothnessStrafe *= m; break;
+                    case MpcWeight.SmoothnessYaw:     cfg.wSmoothnessYaw *= m; break;
+                    case MpcWeight.Momentum:          cfg.wMomentum *= m; break;
+                    case MpcWeight.Facing:            cfg.wFacing *= m; break;
+                    case MpcWeight.FacingWidth:       cfg.facingWidth *= m; break;
+                    case MpcWeight.Los:               cfg.wLos *= m; break;
+                    case MpcWeight.Exposure:          cfg.wExposure *= m; break;
+                    case MpcWeight.ExposureWidth:     cfg.exposureWidth *= m; break;
+                    case MpcWeight.Tangential:        cfg.wTangential *= m; break;
+                    case MpcWeight.MissDistance:      cfg.wMissDistance *= m; break;
+                    case MpcWeight.Obstacle:          cfg.wObstacle *= m; break;
+                    case MpcWeight.BoostEffort:       cfg.wBoostEffort *= m; break;
+                }
+            }
+        }
+    }
+
     [StructLayout(LayoutKind.Sequential)]
     public struct ObstacleData
     {

@@ -43,12 +43,16 @@ public enum MpcWeight { Pos, Vel, Yaw, YawRate, Effort, SmoothnessThrust,
 - `NavigationIntent.cs`, `AIState.cs`, `Navigator.cs`, `MpcNavigator.cs` — carry/apply
   overrides instead of the struct (`SetWeightMultipliers`/`ClearWeightMultipliers`/`ApplyIntent`,
   `RefreshConfig`).
-- Editor: override-list drawer (id dropdown + float); `Cost.Editor`/`MpcNavigator.Editor`
-  cost-bar code that reads `WeightMultipliers` fields.
+- Editor consumers: `StateProfile.Editor.cs` (`DrawWeightMultipliersWithCurves`, keyed on
+  propertyPath `"weightMultipliers"`) → new override-list drawer; `MpcNavigator.Editor.cs:118`
+  (`profile.weightMultipliers.Apply`) → `weightOverrides.Apply`; `States/Editor/MigrateStateProfiles.cs`
+  (lines ~159-162 read/write `p.weightMultipliers`) → update or drop.
 - Tests: `MpcNavigatorPlayModeTests` (`ClearWeightMultipliers()`, `WeightMultipliers.Default`),
   `AIIntegrationPlayModeTests` (profiles built with `WeightMultipliers.Default`).
-- **6 `StateProfile` assets**: `AttackAggressive, AttackEvasive, AttackFast, Evade, Patrol,
-  Pursuit` — migrate `weightMultipliers:` YAML → `weightOverrides:` (only fields ≠ 1).
+- **7 `StateProfile` assets**: `Attack, AttackAggressive, AttackEvasive, AttackFast, Evade,
+  Patrol, Pursuit` — migrate `weightMultipliers:` YAML → `weightOverrides:` (only fields ≠ 1).
+  NOTE `Attack.asset` was NOT retuned in-flight but still carries the old struct. Meaningful
+  zeros (e.g. AttackFast `vel:0, yaw:0`) MUST become explicit override entries (absence = ×1).
 
 ## Migration (risky part)
 Profiles were just retuned, so preserve exact values:
@@ -77,10 +81,23 @@ Utility-*selection* weights (`UtilitySelectorSettings` + `UtilityWeights` + per-
 — separate, low-slop; follow-up.
 
 ## Progress
-- [ ] Phase 1: enum + WeightOverride + apply helper
-- [ ] Phase 2: migration script + converted assets committed
-- [ ] Phase 3: swap representation, delete WeightMultipliers, update tests/drawer
-- [ ] Phase 4: full suite green + parity check
+- [x] Phase 1: `MpcWeight` enum + `WeightOverride` struct + `WeightOverrideExtensions.Apply`
+      added in `Types.cs` alongside the still-present `WeightMultipliers` (additive, compiles).
+- [ ] Phase 2: migrate the 7 assets' `weightMultipliers:` → `weightOverrides:` (direct YAML,
+      deterministic; commit assets separately). Convert every field ≠ 1, including explicit 0s.
+- [ ] Phase 3: swap `StateProfile`/`NavigationIntent`/`AIState`/`Navigator`/`MpcNavigator` to
+      `weightOverrides`; update `StateProfile.Editor`, `MpcNavigator.Editor:118`,
+      `MigrateStateProfiles.cs`, and the 2 test files (`ClearWeightMultipliers`,
+      `WeightMultipliers.Default` → `Array.Empty<WeightOverride>()` / no-op); delete `WeightMultipliers`.
+- [ ] Phase 4: full suite green + `Cost.EvaluateBreakdown` parity check on a sample state.
+
+### Resume hint for a fresh context
+Phase 1 is committed. Start Phase 2: for each of the 7 assets, replace the `weightMultipliers:`
+block with `weightOverrides:` (a YAML sequence of `{weight: <enum int>, multiplier: <v>}` for each
+field ≠ 1). `MpcWeight` enum order (0-based int values): Pos,Vel,Yaw,YawRate,Effort,SmoothnessThrust,
+SmoothnessStrafe,SmoothnessYaw,Momentum,Facing,FacingWidth,Los,Exposure,ExposureWidth,Tangential,
+MissDistance,Obstacle,BoostEffort. Then do Phase 3 (the `weightMultipliers.Apply` call sites become
+`weightOverrides.Apply`). Verify with the MPC + AIIntegration play-mode suite.
 
 ## Context: prior cleanup state (this branch)
 - #1 dead `Maneuvers` removed; #2 `Navigator.ApplyIntent` single entry point; #3 cost
