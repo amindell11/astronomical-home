@@ -10,7 +10,7 @@ namespace Combat
         private const float DefaultAngleToleranceBeforeRay = 15f;
 
         private readonly LayerMask obstacleMask;
-        private readonly ShipInfo shipInfo;
+        private readonly SelfStatus shipStatus;
         private readonly CombatTuning tuning;
 
         private bool cachedLos;
@@ -18,33 +18,33 @@ namespace Combat
         private Vector3 lastTargetPos;
         private int losFrame = -1;
 
-        public TargetingUtils(ShipInfo shipInfo, CombatTuning tuning = null)
+        public TargetingUtils(SelfStatus shipStatus, CombatTuning tuning = null)
         {
-            this.shipInfo = shipInfo;
+            this.shipStatus = shipStatus;
             this.tuning = tuning;
             obstacleMask = LayerIds.Mask(LayerIds.Asteroid);
         }
 
         public float AngleTo(Vector2 target)
         {
-            return (target - shipInfo.Pos).sqrMagnitude < 0.01f
+            return (target - shipStatus.Pos).sqrMagnitude < 0.01f
                 ? 0f
-                : Vector2.Angle(shipInfo.Forward, target - shipInfo.Pos);
+                : Vector2.Angle(shipStatus.Forward, target - shipStatus.Pos);
         }
 
         public float DistanceTo(Vector2 target)
         {
-            return (target - shipInfo.Pos).magnitude;
+            return (target - shipStatus.Pos).magnitude;
         }
 
         public Vector2 VectorTo(Vector2 target)
         {
-            return target - shipInfo.Pos;
+            return target - shipStatus.Pos;
         }
 
         public bool HasLineOfSight(Vector3 targetPos)
         {
-            return LineOfSight.IsClear(shipInfo.Pos3D, targetPos, obstacleMask);
+            return LineOfSight.IsClear(shipStatus.Pos3D, targetPos, obstacleMask);
         }
 
         public bool HasLineOfSight(Vector3 firePos, Vector3 targetPos, float angleToTarget)
@@ -69,9 +69,9 @@ namespace Combat
 
         public Vector2 PredictIntercept(Vector2 targetPos, Vector2 targetVel, float projectileSpeed)
         {
-            var shooterPos = shipInfo.Pos;
-            var shooterVel = shipInfo.Vel;
-            var forward = shipInfo.Forward;
+            var shooterPos = shipStatus.Pos;
+            var shooterVel = shipStatus.Vel;
+            var forward = shipStatus.Forward;
 
             var forwardVel = Vector2.Dot(shooterVel, forward) * forward;
             var relPos = targetPos - shooterPos;
@@ -110,21 +110,21 @@ namespace Combat
 
         public float ClosingSpeed(Vector2 targetPos, Vector2 targetVel)
         {
-            var toTarget = targetPos - shipInfo.Pos;
+            var toTarget = targetPos - shipStatus.Pos;
             if (toTarget.sqrMagnitude < 0.0001f) return 0f;
-            var relVel = targetVel - shipInfo.Vel;
+            var relVel = targetVel - shipStatus.Vel;
             return -Vector2.Dot(toTarget.normalized, relVel);
         }
 
         public float AngleFromTarget(Vector2 targetPos, Vector2 targetForward)
         {
-            var toSelf = shipInfo.Pos - targetPos;
+            var toSelf = shipStatus.Pos - targetPos;
             return toSelf.sqrMagnitude < 0.01f ? 0f : Vector2.Angle(targetForward, toSelf);
         }
 
         public Vector2 RelativeVelocity(Vector2 targetVel)
         {
-            return targetVel - shipInfo.Vel;
+            return targetVel - shipStatus.Vel;
         }
 
         private int LosCacheFrames => tuning ? Mathf.Max(1, tuning.LineOfSightCacheFrames) : DefaultLosCacheFrames;

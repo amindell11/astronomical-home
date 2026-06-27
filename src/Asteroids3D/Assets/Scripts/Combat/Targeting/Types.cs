@@ -3,26 +3,40 @@ using UnityEngine;
 
 namespace Combat.Targeting
 {
+    public enum LockState { Idle, Locking, Locked, Cooldown }
+
+    public interface ILockProvider
+    {
+        LockState State { get; }
+        ITargetable ConsumeLock();
+    }
+
+    public interface ILockStateSource
+    {
+        LockState State { get; }
+        event Action<LockState, LockState> OnStateChanged;
+    }
+
     /// <summary>
     /// Marker interface for anything a missile can chase.
     /// Ships, Asteroids, etc. should implement this.
     /// </summary>
-    public interface ITargetable 
-    { 
+    public interface ITargetable
+    {
         /// <summary>The point that missiles should aim for on this target.</summary>
-        Transform TargetPoint { get; } 
+        Transform TargetPoint { get; }
 
         /// <summary>Per-target lock channel that components can subscribe to or invoke.</summary>
         LockChannel Lock { get; }
-    } 
+    }
 
     /// <summary>
-    /// Lightweight container that holds delegates related to missile lock‐on events for a single target.
+    /// Lightweight container that holds delegates related to missile lock-on events for a single target.
     /// Components may freely subscribe (+=) or invoke (?.Invoke) these delegates.
     /// </summary>
     public sealed class LockChannel
     {
-        /// <summary>Called every frame while a lock is building. Parameter: progress [0–1].</summary>
+        /// <summary>Called every frame while a lock is building. Parameter: progress [0-1].</summary>
         public event Action<float> Progress;
 
         /// <summary>Called once when lock acquisition completes.</summary>
