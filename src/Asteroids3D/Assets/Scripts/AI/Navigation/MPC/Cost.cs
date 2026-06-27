@@ -29,7 +29,6 @@ namespace Movement.MPC
         {
             public float2 goalPos;
             public float2 posCostTarget;
-            public bool hasNavTarget;
             public float enemyYaw;
             public bool hasEnemy;
             public float wVel;
@@ -83,19 +82,14 @@ namespace Movement.MPC
                 if (input.projectileSpeed > 0f && hasEnemy)
                     facingTarget = InterceptYaw(s.pos, goalPos, goalVel, input.projectileSpeed);
 
-                var hasNavTarget = !math.isnan(input.navigationTarget.x);
-                var posCostTarget = hasNavTarget ? input.navigationTarget : goalPos;
-
                 float2 headingGoal;
-                if (hasNavTarget) headingGoal = posCostTarget;
-                else if (isFlee) headingGoal = 2f * s.pos - goalPos;
+                if (isFlee) headingGoal = 2f * s.pos - goalPos;
                 else headingGoal = goalPos;
 
                 return new EvalContext
                 {
                     goalPos = goalPos,
-                    posCostTarget = posCostTarget,
-                    hasNavTarget = hasNavTarget,
+                    posCostTarget = goalPos,
                     enemyYaw = enemyYaw,
                     hasEnemy = hasEnemy,
                     wVel = wVel,
@@ -119,9 +113,8 @@ namespace Movement.MPC
                 ? math.cos(math.abs(u.strafe) * cfg.maxBankAngleRad)
                 : 1f;
 
-            // Position + closing-velocity costs share one target (ctx.posCostTarget): a
-            // high-level routing point if set, otherwise the goal. Flee/range-band live
-            // inside PositionalGoalCost; the flee disables come baked into ctx weights.
+            // Position + closing-velocity costs share the current goal. Flee/range-band
+            // live inside PositionalGoalCost; the flee disables come baked into ctx weights.
             var posCost = PositionalGoalCost(s.pos, ctx, cfg) * cfg.wPos;
             var velCost = VelocityCost(s.vel, cfg.maxSpeedSq) * ctx.wVel;
             var closingCost = ctx.wClosing == 0f ? 0f
@@ -198,15 +191,11 @@ namespace Movement.MPC
         }
 
         /// <summary>
-        /// Single resolution point for the position cost target. A high-level routing point
-        /// (navigationTarget) overrides with a plain waypoint-style pull regardless of GoalMode;
-        /// otherwise the goal-mode cost (Waypoint / MaintainRange / Flee) applies. Shared by
-        /// Evaluate and EvaluateBreakdown so the reconciliation lives in exactly one place.
+        /// Single resolution point for the position cost target. Shared by Evaluate and
+        /// EvaluateBreakdown so goal-mode handling lives in exactly one place.
         /// </summary>
         internal static float PositionalGoalCost(float2 pos, in EvalContext ctx, in Config cfg)
-            => ctx.hasNavTarget
-                ? PositionCost(pos, ctx.posCostTarget, cfg.positionCurve, cfg.positionSaturationDistance)
-                : GoalCost(pos, ctx.goalPos, cfg);
+            => GoalCost(pos, ctx.goalPos, cfg);
 
         internal static float GoalCost(float2 pos, float2 goal, Config cfg)
         {

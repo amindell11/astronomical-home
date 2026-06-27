@@ -24,7 +24,6 @@ namespace Movement.MPC
         public WeightOverride[] weightOverrides;
         public ObstacleScan obstacleScan;
         public bool enableObstacleAvoidance;
-        public float2? navigationTarget;
     }
 
     /// <summary>The control output of a single MPC solve.</summary>
@@ -95,8 +94,7 @@ namespace Movement.MPC
                     settings.samples, noiseStd, lastControl,
                     inputs.enemyDynamics,
                     boostCooldown, boostProb,
-                    settings.eliteFraction,
-                    inputs.navigationTarget);
+                    settings.eliteFraction);
             }
 
             UpdatePredictedStates(mpcState);
