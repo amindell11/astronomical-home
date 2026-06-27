@@ -17,7 +17,6 @@ public static class TestAssets
     // Standard asset paths
     private const string DefaultShipSettingsPath = "Assets/Settings/Ships/DefaultSettings.asset";
     private const string Ship2PrefabPath = "Assets/Prefabs/Ships/Ship_2.prefab";
-    private const string TestPilotPath = "Assets/Prefabs/Pilots/TestPilot.prefab";
     private const string TestPilotMpcPath = "Assets/Prefabs/Pilots/TestPilotMPC.prefab";
 
     /// <summary>
@@ -39,18 +38,6 @@ public static class TestAssets
     {
 #if UNITY_EDITOR
         return AssetDatabase.LoadAssetAtPath<Ship>(Ship2PrefabPath);
-#else
-        return null;
-#endif
-    }
-
-    /// <summary>
-    /// Loads the standard test pilot AI commander prefab.
-    /// </summary>
-    public static AICommander LoadTestPilot()
-    {
-#if UNITY_EDITOR
-        return AssetDatabase.LoadAssetAtPath<AICommander>(TestPilotPath);
 #else
         return null;
 #endif

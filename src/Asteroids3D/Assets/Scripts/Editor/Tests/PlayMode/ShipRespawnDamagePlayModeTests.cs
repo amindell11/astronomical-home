@@ -46,14 +46,13 @@ namespace Tests.PlayMode
 
 #if UNITY_EDITOR
             // Create player ship for testing
-            playerShip = ShipTestFactory.CreateDefaultShip(useMpcPilot: false, team: 0);
+            playerShip = ShipTestFactory.CreateDefaultShip(team: 0);
             playerDamage = playerShip.Damage;
 
             // Create enemy ship to act as attacker
             enemyShip = ShipTestFactory.CreateDefaultShipAt(
                 new Vector3(10, 0, 0),
                 Quaternion.identity,
-                useMpcPilot: false,
                 team: 1);
 
             Assert.IsNotNull(playerShip, "Player ship failed to instantiate");
@@ -428,11 +427,11 @@ namespace Tests.PlayMode
 
             var settings = TestAssets.LoadDefaultShipSettings();
             var ship1Prefab = TestAssets.LoadShipPrefab("Assets/Prefabs/Ships/Ship_1.prefab");
-            var commanderPrefab = TestAssets.LoadTestPilot();
+            var commanderPrefab = TestAssets.LoadTestPilotMpc();
 
             Assert.IsNotNull(settings, "Default ship settings failed to load");
             Assert.IsNotNull(ship1Prefab, "Ship_1 prefab failed to load");
-            Assert.IsNotNull(commanderPrefab, "TestPilot prefab failed to load");
+            Assert.IsNotNull(commanderPrefab, "TestPilotMPC prefab failed to load");
 
             Ship smokeShip = null;
             try

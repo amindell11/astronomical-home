@@ -8,6 +8,7 @@ using Ships;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UnityEngine.TestTools.Utils;
 using AICommander = AI.AICommander;
 
 namespace Tests.PlayMode
@@ -50,6 +51,18 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
     {
         ShipTestFactory.DestroyShip(ship);
         base.TearDown();
+    }
+
+    [UnityTest]
+    [Category("Smoke")]
+    public IEnumerator SetNavigationPoint_WaypointBecomesValid()
+    {
+        // Exercises base-Navigator waypoint plumbing (not MPC-specific behaviour).
+        cmdr.Navigator.SetNavigationPoint(new Vector2(10, 10));
+        Assert.That(cmdr.Navigator.CurrentWaypoint.isValid, Is.True);
+        Assert.That(cmdr.Navigator.CurrentWaypoint.position,
+            Is.EqualTo(new Vector2(10, 10)).Using(new Vector2EqualityComparer(0.01f)));
+        yield return null;
     }
 
     [UnityTest]

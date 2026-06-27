@@ -24,7 +24,7 @@ public class ScannerPlayModeTests : PlayModeWorldFixture
         base.SetUp();
 
 #if UNITY_EDITOR
-        ship = ShipTestFactory.CreateDefaultShip(useMpcPilot: false);
+        ship = ShipTestFactory.CreateDefaultShip();
         cmdr = ship.Commander as AICommander;
 
         // Scout.Initialize() (and therefore obstacleScanner) is gated on a registry being

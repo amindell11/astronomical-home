@@ -14,10 +14,10 @@ public static class ShipTestFactory
     /// <summary>
     /// Creates a ship with default test settings at the origin.
     /// </summary>
-    /// <param name="useMpcPilot">If true, uses TestPilotMPC; otherwise uses standard TestPilot</param>
+    /// <param name="useMpcPilot">Retained for call-site compatibility; the MPC pilot is the only pilot now.</param>
     /// <param name="team">Team ID for the ship (default: 0)</param>
     /// <returns>Created ship instance, or null if asset loading fails</returns>
-    public static Ship CreateDefaultShip(bool useMpcPilot = false, int team = 0)
+    public static Ship CreateDefaultShip(bool useMpcPilot = true, int team = 0)
     {
         return CreateDefaultShipAt(Vector3.zero, Quaternion.identity, useMpcPilot, team);
     }
@@ -27,14 +27,14 @@ public static class ShipTestFactory
     /// </summary>
     /// <param name="position">World position</param>
     /// <param name="rotation">World rotation</param>
-    /// <param name="useMpcPilot">If true, uses TestPilotMPC; otherwise uses standard TestPilot</param>
+    /// <param name="useMpcPilot">Retained for call-site compatibility; the MPC pilot is the only pilot now.</param>
     /// <param name="team">Team ID for the ship (default: 0)</param>
     /// <returns>Created ship instance, or null if asset loading fails</returns>
-    public static Ship CreateDefaultShipAt(Vector3 position, Quaternion rotation, bool useMpcPilot = false, int team = 0)
+    public static Ship CreateDefaultShipAt(Vector3 position, Quaternion rotation, bool useMpcPilot = true, int team = 0)
     {
         var settings = TestAssets.LoadDefaultShipSettings();
         var shipPrefab = TestAssets.LoadShip2Prefab();
-        var cmdrPrefab = useMpcPilot ? TestAssets.LoadTestPilotMpc() : TestAssets.LoadTestPilot();
+        var cmdrPrefab = TestAssets.LoadTestPilotMpc();
 
         if (settings == null || shipPrefab == null || cmdrPrefab == null)
         {

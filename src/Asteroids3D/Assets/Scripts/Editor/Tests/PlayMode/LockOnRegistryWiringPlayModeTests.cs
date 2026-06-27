@@ -56,11 +56,11 @@ namespace Tests.PlayMode
 #if UNITY_EDITOR
             // Load Ship_1 prefab and test pilot
             var shipPrefab = TestAssets.LoadShipPrefab("Assets/Prefabs/Ships/Ship_1.prefab");
-            testPilot = TestAssets.LoadTestPilot();
+            testPilot = TestAssets.LoadTestPilotMpc();
             var settings = TestAssets.LoadDefaultShipSettings();
 
             Assert.IsNotNull(shipPrefab, "Ship_1 prefab failed to load");
-            Assert.IsNotNull(testPilot, "TestPilot prefab failed to load");
+            Assert.IsNotNull(testPilot, "TestPilotMPC prefab failed to load");
             Assert.IsNotNull(settings, "Default ship settings failed to load");
 
             // Create ship without postInitialize callback
@@ -99,11 +99,11 @@ namespace Tests.PlayMode
 #if UNITY_EDITOR
             // Load Ship_1 prefab and test pilot
             var shipPrefab = TestAssets.LoadShipPrefab("Assets/Prefabs/Ships/Ship_1.prefab");
-            testPilot = TestAssets.LoadTestPilot();
+            testPilot = TestAssets.LoadTestPilotMpc();
             var settings = TestAssets.LoadDefaultShipSettings();
 
             Assert.IsNotNull(shipPrefab, "Ship_1 prefab failed to load");
-            Assert.IsNotNull(testPilot, "TestPilot prefab failed to load");
+            Assert.IsNotNull(testPilot, "TestPilotMPC prefab failed to load");
             Assert.IsNotNull(settings, "Default ship settings failed to load");
 
             // Create stub registry
@@ -149,11 +149,11 @@ namespace Tests.PlayMode
 #if UNITY_EDITOR
             // Load Ship_1 prefab and test pilot
             var shipPrefab = TestAssets.LoadShipPrefab("Assets/Prefabs/Ships/Ship_1.prefab");
-            testPilot = TestAssets.LoadTestPilot();
+            testPilot = TestAssets.LoadTestPilotMpc();
             var settings = TestAssets.LoadDefaultShipSettings();
 
             Assert.IsNotNull(shipPrefab, "Ship_1 prefab failed to load");
-            Assert.IsNotNull(testPilot, "TestPilot prefab failed to load");
+            Assert.IsNotNull(testPilot, "TestPilotMPC prefab failed to load");
             Assert.IsNotNull(settings, "Default ship settings failed to load");
 
             // Create ship WITHOUT postInitialize (no registry injection)

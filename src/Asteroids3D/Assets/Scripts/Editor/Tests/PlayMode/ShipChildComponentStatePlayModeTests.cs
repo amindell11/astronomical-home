@@ -54,11 +54,11 @@ namespace Tests.PlayMode
             // Create test ship with all UI and weapon components
             var settings = TestAssets.LoadDefaultShipSettings();
             var shipPrefab = TestAssets.LoadShipPrefab("Assets/Prefabs/Ships/Ship_1.prefab"); // Ship_1 has UI components
-            var commanderPrefab = TestAssets.LoadTestPilot();
+            var commanderPrefab = TestAssets.LoadTestPilotMpc();
 
             Assert.IsNotNull(settings, "Default ship settings failed to load");
             Assert.IsNotNull(shipPrefab, "Ship_1 prefab failed to load");
-            Assert.IsNotNull(commanderPrefab, "TestPilot prefab failed to load");
+            Assert.IsNotNull(commanderPrefab, "TestPilotMPC prefab failed to load");
 
             testShip = ShipTestFactory.CreateShip(shipPrefab, commanderPrefab, settings, team: 0);
             combatShip = testShip as CombatShip;
@@ -69,7 +69,6 @@ namespace Tests.PlayMode
             enemyShip = ShipTestFactory.CreateDefaultShipAt(
                 new Vector3(10, 0, 0),
                 Quaternion.identity,
-                useMpcPilot: false,
                 team: 1);
             Assert.IsNotNull(enemyShip, "Enemy ship failed to instantiate");
 
