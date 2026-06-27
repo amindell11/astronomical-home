@@ -11,8 +11,7 @@ namespace AI
         [SerializeField] private AIDebugSettings debugSettings;
         public AIDebugSettings DebugSettings => debugSettings;
 
-        // Waypoint visualization moved to StandardNavigator.Editor / MpcNavigator.Editor
-        // gated on AIDebugChannel.Steering
+        // Waypoint visualization lives in Navigator.Editor, gated on AIDebugChannel.Steering
 
         private void OnValidate()
         {
