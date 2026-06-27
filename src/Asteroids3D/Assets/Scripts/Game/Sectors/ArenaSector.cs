@@ -13,7 +13,7 @@ namespace Game.Sectors
     /// When playerParticipates is false, the player ship uses an AI commander
     /// and acts as the camera subject for spectating.
     /// </summary>
-    public class ArenaSectorManager : PlaySector
+    public partial class ArenaSector : PlaySector
     {
         [Header("Arena Settings")]
         [SerializeField] private Ship teamATemplate;
@@ -25,10 +25,6 @@ namespace Game.Sectors
         [SerializeField] private float respawnDelay = 3f;
         [SerializeField] private bool playerParticipates;
 
-        [Header("Debug")]
-        [SerializeField] private bool enableDebugOverlay = true;
-        [SerializeField] private AI.Debug.AIDebugSettings debugSettings;
-
         [Header("Environment")]
         [SerializeField] private World.WorldRoot worldPrefab;
         [SerializeField] private UpdatingAsteroidField updatingAsteroidFieldPrefab;
@@ -38,7 +34,6 @@ namespace Game.Sectors
         private readonly System.Collections.Generic.List<Ship> arenaShips = new();
         private UpdatingAsteroidField asteroidFieldInstance;
         private AsteroidNavField navPlannerInstance;
-        private AI.Debug.ArenaDebugOverlay debugOverlay;
         private Cameras.ArenaSpectatorInput spectatorInput;
 
         protected override IEnumerator OnSetup()
@@ -69,41 +64,31 @@ namespace Game.Sectors
             foreach (var ship in arenaShips)
                 WireRespawn(ship);
 
-            // Debug overlay
-            if (enableDebugOverlay)
-            {
-                debugOverlay = gameObject.AddComponent<AI.Debug.ArenaDebugOverlay>();
-                debugOverlay.Initialize(debugSettings);
-                if (player) debugOverlay.RegisterShip(player);
-                foreach (var ship in arenaShips)
-                    debugOverlay.RegisterShip(ship);
-            }
+            InitializeDebugOverlay();
 
             // Spectator input — attach to the ObserverCam so it can control it
             var observer = Services.CameraService.GetCamera<Cameras.ObserverCam>(Cameras.CameraTag.Observer);
-            if (observer)
-            {
-                // Remove default input handler; arena uses its own
-                var defaultInput = observer.GetComponent<Cameras.ObserverCamInputHandler>();
-                if (defaultInput) Destroy(defaultInput);
+            if (!observer) yield break;
+            // Remove default input handler; arena uses its own
+            var defaultInput = observer.GetComponent<Cameras.ObserverCamInputHandler>();
+            if (defaultInput) Destroy(defaultInput);
 
-                spectatorInput = observer.gameObject.AddComponent<Cameras.ArenaSpectatorInput>();
-                var allShips = new System.Collections.Generic.List<Ship>();
-                if (player) allShips.Add(player);
-                allShips.AddRange(arenaShips);
-                spectatorInput.SetShips(allShips);
+            spectatorInput = observer.gameObject.AddComponent<Cameras.ArenaSpectatorInput>();
+            var allShips = new System.Collections.Generic.List<Ship>();
+            if (player) allShips.Add(player);
+            allShips.AddRange(arenaShips);
+            spectatorInput.SetShips(allShips);
 
-                // Start locked to the player ship
-                observer.SetLockCameraToSubject(true);
-                observer.SetLockZoomToSubject(true);
-            }
+            // Start locked to the player ship
+            observer.SetLockCameraToSubject(true);
+            observer.SetLockZoomToSubject(true);
         }
 
         private void SpawnTeam(Ship template, int team, int count, float sideSign)
         {
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
-                float angle = Mathf.PI * (i + 0.5f) / count;
+                var angle = Mathf.PI * (i + 0.5f) / count;
                 var offset = new Vector2(
                     Mathf.Cos(angle) * spawnRadius * sideSign,
                     Mathf.Sin(angle) * spawnRadius);
@@ -122,7 +107,7 @@ namespace Game.Sectors
             if (!ship) return;
             ship.Damage.OnDeath += (deadShip, _) =>
                 Services.UnitService.WaitAndRespawnShip(deadShip,
-                    Random.insideUnitCircle * spawnRadius * 0.5f,
+                    Random.insideUnitCircle * (spawnRadius * 0.5f),
                     0, respawnDelay);
         }
 
@@ -158,8 +143,7 @@ namespace Game.Sectors
             if (spectatorInput)
                 Destroy(spectatorInput);
 
-            if (debugOverlay)
-                Destroy(debugOverlay);
+            TeardownDebugOverlay();
 
             if (navPlannerInstance)
                 Destroy(navPlannerInstance.gameObject);
@@ -175,8 +159,10 @@ namespace Game.Sectors
             arenaShips.Clear();
             asteroidFieldInstance = null;
             navPlannerInstance = null;
-            debugOverlay = null;
             spectatorInput = null;
         }
+
+        partial void InitializeDebugOverlay();
+        partial void TeardownDebugOverlay();
     }
 }

@@ -5,10 +5,10 @@ using Ships;
 
 namespace Game.Sectors
 {
-    public interface ISectorManager
+    public interface ISector
     {
         event Action<SectorResult> OnSectorComplete;
-        void Initialize(IGameServices services, SectorConfigSO config);
+        void Initialize(IGameServices services, SectorSettings config);
         IEnumerator Setup();
         IEnumerator Teardown();
     }

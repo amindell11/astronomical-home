@@ -25,7 +25,7 @@ namespace Game.Bootstrap
         public event Action<GameState> OnGameStateChanged;
         
         /// <summary>The active sector manager, if any.</summary>
-        public SectorManager ActiveSectorManager { get; private set; }
+        public Sector ActiveSector { get; private set; }
 
         /// <summary>The service container for this game session.</summary>
         public IGameServices Services => services;
@@ -90,14 +90,14 @@ namespace Game.Bootstrap
 
         private IEnumerator HandleLoadSector()
         {
-            if (!currentSector?.managerPrefab)
+            if (!currentSector?.prefab)
                 throw new InvalidOperationException("No sector entry configured on MainGameManager.");
 
-            ActiveSectorManager = Instantiate(currentSector.managerPrefab);
-            ActiveSectorManager.Initialize(services, currentSector.config);
-            ActiveSectorManager.OnSectorComplete += HandleSectorComplete;
+            ActiveSector = Instantiate(currentSector.prefab);
+            ActiveSector.Initialize(services, currentSector.config);
+            ActiveSector.OnSectorComplete += HandleSectorComplete;
 
-            yield return ActiveSectorManager.Setup();
+            yield return ActiveSector.Setup();
 
             TransitionTo(GameState.InSector);
         }
@@ -121,15 +121,15 @@ namespace Game.Bootstrap
 
         private IEnumerator Cleanup(bool runTeardown)
         {
-            if (ActiveSectorManager)
+            if (ActiveSector)
             {
-                ActiveSectorManager.OnSectorComplete -= HandleSectorComplete;
+                ActiveSector.OnSectorComplete -= HandleSectorComplete;
 
                 if (runTeardown)
-                    yield return ActiveSectorManager.Teardown();
+                    yield return ActiveSector.Teardown();
 
-                Destroy(ActiveSectorManager.gameObject);
-                ActiveSectorManager = null;
+                Destroy(ActiveSector.gameObject);
+                ActiveSector = null;
             }
 
             if (runTeardown)

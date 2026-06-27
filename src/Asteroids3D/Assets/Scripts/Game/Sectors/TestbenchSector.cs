@@ -13,7 +13,7 @@ namespace Game.Sectors
     /// No encounters, objectives, or sector completion — runs indefinitely.
     /// Both player and enemy ships respawn after death.
     /// </summary>
-    public class TestbenchSectorManager : PlaySector
+    public partial class TestbenchSector : PlaySector
     {
         [Header("Environment")]
         [SerializeField] private World.WorldRoot worldPrefab;
@@ -26,10 +26,6 @@ namespace Game.Sectors
         [SerializeField] private Ship enemyTemplate;
         [SerializeField] private Ships.Command.Commander enemyCommander;
         [SerializeField] private Vector2 enemySpawnPosition = new Vector2(0f, 50f);
-
-        [Header("Debug")]
-        [SerializeField] private bool enableDebugOverlay = true;
-        [SerializeField] private AI.Debug.AIDebugSettings debugSettings;
 
         [Header("Respawn")]
         [Tooltip("Enable respawn for the player ship when it dies.")]
@@ -44,7 +40,6 @@ namespace Game.Sectors
         private Ship enemy;
         private UpdatingAsteroidField asteroidFieldInstance;
         private AsteroidNavField navPlannerInstance;
-        private AI.Debug.ArenaDebugOverlay debugOverlay;
 
         protected override IEnumerator OnSetup()
         {
@@ -66,13 +61,7 @@ namespace Game.Sectors
             WireRespawn();
             InitializeAsteroidField();
 
-            if (enableDebugOverlay)
-            {
-                debugOverlay = gameObject.AddComponent<AI.Debug.ArenaDebugOverlay>();
-                debugOverlay.Initialize(debugSettings);
-                if (player) debugOverlay.RegisterShip(player);
-                if (enemy) debugOverlay.RegisterShip(enemy);
-            }
+            InitializeDebugOverlay();
         }
 
         private void WireRespawn()
@@ -127,7 +116,7 @@ namespace Game.Sectors
 
         protected override IEnumerator OnTeardown()
         {
-            if (debugOverlay) Destroy(debugOverlay);
+            TeardownDebugOverlay();
             if (navPlannerInstance) Destroy(navPlannerInstance.gameObject);
             if (asteroidFieldInstance) Destroy(asteroidFieldInstance.gameObject);
 
@@ -139,7 +128,9 @@ namespace Game.Sectors
             enemy = null;
             asteroidFieldInstance = null;
             navPlannerInstance = null;
-            debugOverlay = null;
         }
+
+        partial void InitializeDebugOverlay();
+        partial void TeardownDebugOverlay();
     }
 }

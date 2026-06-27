@@ -12,7 +12,7 @@ namespace Game.Sectors
     /// Base class for sectors that feature a player ship, observer camera, and UI overlay.
     /// Sits between SectorManager and concrete sector types (e.g. CombatSectorManager).
     /// </summary>
-    public abstract class PlaySector : SectorManager
+    public abstract class PlaySector : Sector
     {
         [Header("Player")]
         [SerializeField] protected Ship playerTemplate;

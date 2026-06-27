@@ -5,7 +5,7 @@ namespace Game.Bootstrap
     [System.Serializable]
     public class SectorEntry
     {
-        public SectorConfigSO config;
-        public SectorManager managerPrefab;
+        public SectorSettings config;
+        public Sector prefab;
     }
 }

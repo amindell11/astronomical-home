@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Game.Sectors
 {
     [CreateAssetMenu(fileName = "SectorConfig", menuName = "Game/Sector Config")]
-    public class SectorConfigSO : ScriptableObject
+    public class SectorSettings : ScriptableObject
     {
         [SerializeField] private string displayName = "Unnamed Sector";
         [SerializeField] private string sceneName = "BasicWorld";

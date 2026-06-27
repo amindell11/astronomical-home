@@ -7,15 +7,15 @@ using UnityEngine;
 
 namespace Game.Sectors
 {
-    public abstract class SectorManager : MonoBehaviour, ISectorManager
+    public abstract class Sector : MonoBehaviour, ISector
     {
         public event Action<SectorResult> OnSectorComplete;
 
         protected IGameServices Services { get; private set; }
-        protected SectorConfigSO Config { get; private set; }
+        protected SectorSettings Config { get; private set; }
         protected bool IsSetUp { get; private set; }
 
-        public void Initialize(IGameServices services, SectorConfigSO config)
+        public void Initialize(IGameServices services, SectorSettings config)
         {
             Services = services ?? throw new ArgumentNullException(nameof(services));
             Config = config ?? throw new ArgumentNullException(nameof(config));

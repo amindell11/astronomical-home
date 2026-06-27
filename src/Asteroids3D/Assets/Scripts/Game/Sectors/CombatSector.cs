@@ -15,7 +15,7 @@ namespace Game.Sectors
     /// Player, camera, and UI overlay are handled by PlaySector.
     /// Ships persist across encounter transitions; encounters own only objective GameObjects.
     /// </summary>
-    public class CombatSectorManager : PlaySector
+    public class CombatSector : PlaySector
     {
         [Header("Combat Settings")]
         [SerializeField] private Ship enemyTemplate;
