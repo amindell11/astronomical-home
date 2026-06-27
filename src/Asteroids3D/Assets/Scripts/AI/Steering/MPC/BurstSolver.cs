@@ -7,25 +7,19 @@ using UnityEngine;
 namespace Movement.MPC
 {
     [BurstCompile]
-    public struct EvaluateCandidatesJob : IJobParallelFor
+    public struct GenerateCandidatesJob : IJobParallelFor
     {
         [ReadOnly] public NativeArray<Control> warmStart;
         [NativeDisableParallelForRestriction]
         public NativeArray<Control> candidates;
-        public NativeArray<float> costs;
 
-        [ReadOnly] public CostInput costInput;
-        public State initialState;
-        public Config cfg;
-        public Dynamics dynamics;
-        public Control lastControl;
+        public int horizon;
         public float noiseStd;
         public float boostSampleProbability;
         public uint rngSeed;
 
         public void Execute(int candidateIndex)
         {
-            var horizon = cfg.horizon;
             var offset = candidateIndex * horizon;
 
             if (candidateIndex == 0)
@@ -48,6 +42,32 @@ namespace Movement.MPC
                     };
                 }
             }
+        }
+
+        private static float NextGaussian(ref Unity.Mathematics.Random rng)
+        {
+            var u1 = 1f - rng.NextFloat();
+            var u2 = 1f - rng.NextFloat();
+            return math.sqrt(-2f * math.log(u1)) * math.sin(2f * math.PI * u2);
+        }
+    }
+
+    [BurstCompile]
+    public struct EvaluateCandidatesJob : IJobParallelFor
+    {
+        [ReadOnly] public NativeArray<Control> candidates;
+        public NativeArray<float> costs;
+
+        [ReadOnly] public CostInput costInput;
+        public State initialState;
+        public Config cfg;
+        public Dynamics dynamics;
+        public Control lastControl;
+
+        public void Execute(int candidateIndex)
+        {
+            var horizon = cfg.horizon;
+            var offset = candidateIndex * horizon;
 
             var totalCost = 0f;
             var current = initialState;
@@ -63,13 +83,6 @@ namespace Movement.MPC
             }
 
             costs[candidateIndex] = totalCost;
-        }
-
-        private static float NextGaussian(ref Unity.Mathematics.Random rng)
-        {
-            var u1 = 1f - rng.NextFloat();
-            var u2 = 1f - rng.NextFloat();
-            return math.sqrt(-2f * math.log(u1)) * math.sin(2f * math.PI * u2);
         }
     }
 
@@ -93,6 +106,13 @@ namespace Movement.MPC
         public NativeArray<State> EnemyStates => enemyStates;
         public int LastEnemyStateCount { get; private set; }
 
+        // Editor visualization access — read-only candidate sequences and their costs
+        // from the most recent Solve(). Valid until the next Solve() rewrites the buffers.
+        public NativeArray<Control> Candidates => candidates;
+        public NativeArray<float> Costs => costs;
+        public int LastSampleCount { get; private set; }
+        public int LastHorizon { get; private set; }
+
         public float Solve(State initialState, Control[] sequence,
             AI.Scanning.ObstacleScan scan, bool useObstacles,
             float2 goalPos, float2 goalVel, float enemyYaw, float enemyYawRate,
@@ -105,11 +125,13 @@ namespace Movement.MPC
         {
             var horizon = cfg.horizon;
             EnsureBuffers(horizon, samples);
+            LastSampleCount = samples;
+            LastHorizon = horizon;
 
             for (var i = 0; i < horizon; i++)
                 warmStart[i] = sequence[i];
 
-            ConvertObstacles(scan, useObstacles, dynamics.mass);
+            ConvertObstacles(scan, useObstacles, dynamics.mass, dynamics.shipRadius);
 
             // Roll out predicted enemy trajectory assuming maintained thrust along facing
             var hasEnemyRollout = !math.isnan(enemyYaw) && enemyDynamics.mass > 0f;
@@ -160,9 +182,40 @@ namespace Movement.MPC
             var rngSeed = (uint)(Time.frameCount * 7919 + initialState.pos.GetHashCode());
             if (rngSeed == 0) rngSeed = 1;
 
-            var job = new EvaluateCandidatesJob
+            new GenerateCandidatesJob
             {
                 warmStart = warmStart,
+                candidates = candidates,
+                horizon = horizon,
+                noiseStd = noiseStd,
+                boostSampleProbability = boostSampleProbability,
+                rngSeed = rngSeed
+            }.Schedule(samples, 1).Complete();
+
+            Evaluate(initialState, costInput, cfg, dynamics, lastControl, samples);
+
+            return EliteAverage(sequence, cfg.horizon, samples, eliteFraction);
+        }
+
+        /// <summary>
+        /// Re-evaluate the candidates from the last Solve() with a different config.
+        /// Reuses the same control sequences — only cost evaluation and elite selection differ.
+        /// Must be called after Solve() while buffers are still valid.
+        /// </summary>
+        public float Rescore(State initialState, Control[] sequence,
+            Config cfg, Dynamics dynamics, CostInput costInput,
+            Control lastControl, int samples, float eliteFraction = 0.1f)
+        {
+            if (!allocated) return float.MaxValue;
+            Evaluate(initialState, costInput, cfg, dynamics, lastControl, samples);
+            return EliteAverage(sequence, cfg.horizon, samples, eliteFraction);
+        }
+
+        private void Evaluate(State initialState, CostInput costInput,
+            Config cfg, Dynamics dynamics, Control lastControl, int samples)
+        {
+            new EvaluateCandidatesJob
+            {
                 candidates = candidates,
                 costs = costs,
                 costInput = costInput,
@@ -170,19 +223,14 @@ namespace Movement.MPC
                 cfg = cfg,
                 dynamics = dynamics,
                 lastControl = lastControl,
-                noiseStd = noiseStd,
-                boostSampleProbability = boostSampleProbability,
-                rngSeed = rngSeed
-            };
+            }.Schedule(samples, 1).Complete();
+        }
 
-            job.Schedule(samples, 1).Complete();
-
-            // Elite averaging: average the top K candidates instead of picking the single best.
-            // This dramatically reduces frame-to-frame variance in the output.
+        private float EliteAverage(Control[] sequence, int horizon, int samples, float eliteFraction)
+        {
             var eliteCount = math.max(1, (int)(samples * math.clamp(eliteFraction, 0.01f, 0.5f)));
             var costThreshold = FindKthSmallest(costs, samples, eliteCount);
 
-            // Zero out the result buffer
             for (var j = 0; j < horizon; j++)
                 result[j] = default;
 
@@ -191,9 +239,7 @@ namespace Movement.MPC
             for (var i = 0; i < samples && counted < eliteCount; i++)
             {
                 if (costs[i] > costThreshold) continue;
-
-                if (costs[i] < bestCost)
-                    bestCost = costs[i];
+                if (costs[i] < bestCost) bestCost = costs[i];
 
                 var offset = i * horizon;
                 for (var j = 0; j < horizon; j++)
@@ -233,19 +279,15 @@ namespace Movement.MPC
         /// </summary>
         private static float FindKthSmallest(NativeArray<float> costs, int count, int k)
         {
-            // Simple approach: maintain a max-heap of size K using an array.
-            // For typical sample counts (64-256) this is fast enough.
             if (k >= count) return float.MaxValue;
 
             var heap = new NativeArray<float>(k, Allocator.Temp);
             for (var i = 0; i < k; i++)
                 heap[i] = costs[i];
 
-            // Build initial max-heap
             for (var i = k / 2 - 1; i >= 0; i--)
                 SiftDown(heap, i, k);
 
-            // Process remaining elements
             for (var i = k; i < count; i++)
             {
                 if (costs[i] < heap[0])
@@ -255,7 +297,7 @@ namespace Movement.MPC
                 }
             }
 
-            var result = heap[0]; // K-th smallest
+            var result = heap[0];
             heap.Dispose();
             return result;
         }
@@ -295,9 +337,12 @@ namespace Movement.MPC
             };
         }
 
-        private void ConvertObstacles(AI.Scanning.ObstacleScan scan, bool useObstacles, float shipMass)
+        private void ConvertObstacles(AI.Scanning.ObstacleScan scan, bool useObstacles,
+            float shipMass, float shipRadius)
         {
-            lastObstacleCount = (scan.count > 0 && useObstacles) ? scan.count : 0;
+            // Clamp so a merged obstacle+ship scan can't overflow the fixed-size native buffer.
+            var rawCount = (scan.count > 0 && useObstacles) ? scan.count : 0;
+            lastObstacleCount = math.min(rawCount, obstacles.Length);
             var invShipMass = shipMass > 0f ? 1f / shipMass : 1f;
             for (var i = 0; i < lastObstacleCount; i++)
             {
@@ -307,7 +352,7 @@ namespace Movement.MPC
                 obstacles[i] = new ObstacleData
                 {
                     position = new float2(obs.position.x, obs.position.y),
-                    radius = obs.radius,
+                    radius = obs.radius + shipRadius,
                     weight = obsMass * invShipMass
                 };
             }
