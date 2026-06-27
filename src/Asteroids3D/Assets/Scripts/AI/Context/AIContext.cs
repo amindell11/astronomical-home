@@ -1,5 +1,4 @@
 using System;
-using AI.Planning;
 using Unity.Properties;
 using TargetingUtils = Combat.TargetingUtils;
 
@@ -23,11 +22,6 @@ namespace AI.Context
         public TargetingUtils TargetingUtils { get; private set; }
         public Scanning.Scout Scout { get; private set; }
         public SituationAssessment Assessment { get; private set; }
-        /// <summary>Active high-level routing planner, if any. Lazily resolved from
-        /// <see cref="AsteroidNavField.Active"/> so AI init order vs. planner spawn order
-        /// is irrelevant — returns null only when no planner has been spawned yet.</summary>
-        public AsteroidNavField NavPlanner => AsteroidNavField.Active;
-
         public AIContext(SelfStatus self, Scanning.Scout scout, TargetingUtils targetingUtils,
             float combatExitDelay = 3f)
         {

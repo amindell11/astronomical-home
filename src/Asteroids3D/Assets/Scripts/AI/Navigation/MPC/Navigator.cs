@@ -30,7 +30,6 @@ namespace Movement.MPC
 
         protected Scout scout;
         protected Waypoint currentWaypoint;
-        protected Vector2? navigationTarget;
         protected bool facingOverride;
         protected float facingAngle;
         protected GoalMode goalMode;
@@ -96,7 +95,6 @@ namespace Movement.MPC
                 weightOverrides = weightOverrides,
                 obstacleScan = scan,
                 enableObstacleAvoidance = enableObstacleAvoidance,
-                navigationTarget = NavigationTargetForSolver(),
             };
 
 #if UNITY_EDITOR
@@ -132,10 +130,6 @@ namespace Movement.MPC
 
         private float2 GoalPos() => new(currentWaypoint.position.x, currentWaypoint.position.y);
         private float2 GoalVel() => new(currentWaypoint.velocity.x, currentWaypoint.velocity.y);
-
-        private float2? NavigationTargetForSolver() => navigationTarget.HasValue
-            ? new float2(navigationTarget.Value.x, navigationTarget.Value.y)
-            : (float2?)null;
 
         private static void ApplyControl(ref Command cmd, in MpcResult r)
         {
@@ -176,11 +170,6 @@ namespace Movement.MPC
 
             SetNavigationPoint(intent.goalPosition, true, intent.goalVelocity);
 
-            if (intent.navigationTarget.HasValue)
-                SetNavigationTarget(intent.navigationTarget.Value);
-            else
-                ClearNavigationTarget();
-
             if (intent.hasEnemy)
                 SetEnemyState(intent.enemyYawDeg, intent.enemyYawRateDeg, intent.projectileSpeed,
                     intent.enemyDynamics);
@@ -199,7 +188,6 @@ namespace Movement.MPC
         public void ResetNavigation()
         {
             ClearNavigationPoint();
-            ClearNavigationTarget();
             ClearGoalMode();
             ClearEnemyState();
             ClearObstacleExclusion();
@@ -226,26 +214,6 @@ namespace Movement.MPC
         public void ClearNavigationPoint()
         {
             currentWaypoint.isValid = false;
-        }
-
-        /// <summary>
-        /// Set a high-level routing override. When set, the MPC's position + heading costs
-        /// pull toward this point instead of the goal (currentWaypoint). Range/Flee/tactical
-        /// costs continue to use the goal.
-        /// </summary>
-        public void SetNavigationTarget(Vector2 plane)
-        {
-            navigationTarget = plane;
-        }
-
-        public void SetNavigationTargetWorld(Vector3 worldPos)
-        {
-            navigationTarget = GamePlane.WorldPointToPlane(worldPos);
-        }
-
-        public void ClearNavigationTarget()
-        {
-            navigationTarget = null;
         }
 
         public void SetFacingOverride(float angle)
