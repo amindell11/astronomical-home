@@ -39,6 +39,19 @@ namespace Movement.MPC
         public CostBreakdown lastCostBreakdown;
         public float lastSolveTimeMs;
 
+        // Read-only views into the composed Mpc solver's runtime state. The visualization
+        // below was written against these as fields; they now forward to the Mpc object so
+        // the gizmo code is unchanged. All return null/default before Initialize.
+        private SolverBuffers solver => mpc?.Solver;
+        private Config config => mpc != null ? mpc.Config : default;
+        private Control[] bestSequence => mpc?.BestSequence;
+        private State[] predictedStates => mpc?.PredictedStates;
+        private State lastInitialState => mpc != null ? mpc.LastInitialState : default;
+        private Control lastControl => mpc != null ? mpc.LastControl : default;
+        private Control smoothedControl => mpc != null ? mpc.SmoothedControl : default;
+        private Dynamics dynamics => mpc != null ? mpc.Dynamics : default;
+        internal float lastBestCost => mpc != null ? mpc.LastBestCost : 0f;
+
         [Header("Scene Gizmo Sub-Toggles")]
         public bool showObstacleCosts = true;
         public bool showTrajectoryCosts = true;
@@ -194,6 +207,7 @@ namespace Movement.MPC
 
         void DrawGizmosImpl(bool isSelected)
         {
+            if (mpc == null) return;
             var settings = CachedSettings;
             if (settings == null || !settings.ShouldDraw(isSelected)) return;
             if (!settings.IsActive(AIDebugChannel.Steering)) return;

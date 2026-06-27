@@ -8,17 +8,19 @@ using Ships.Command;
 using Movement;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Serialization;
 namespace Movement.MPC
 {
     /// <summary>
-    /// The ship's navigator: turns a <see cref="NavigationIntent"/> into per-frame
-    /// movement commands via an MPC solver. This is the only navigator — the former
-    /// abstract base was folded in once the Standard nav stack was retired.
+    /// The ship's navigator: turns a <see cref="NavigationIntent"/> into per-frame movement
+    /// commands. It owns the control surface (waypoints, goals, enemy state, weight overrides)
+    /// and drives an <see cref="Mpc"/> solver — building the solver's inputs each tick and
+    /// applying its result. It holds no solver state or MPC math itself.
     /// </summary>
     [DefaultExecutionOrder(-60)]
     public partial class Navigator : MonoBehaviour
     {
-        // ── Shared control surface (waypoints, goals, intent) ──
+        // ── Control surface (waypoints, goals, intent) ──
 
         public struct Waypoint
         {
@@ -32,7 +34,6 @@ namespace Movement.MPC
         protected Vector2? navigationTarget;
         protected bool facingOverride;
         protected float facingAngle;
-        protected Dynamics dynamics;
         protected GoalMode goalMode;
         protected float goalDesiredRange;
         protected float goalRangeTolerance;
@@ -51,38 +52,21 @@ namespace Movement.MPC
         public Waypoint CurrentWaypoint => currentWaypoint;
 
         [Header("Settings")]
+        // Prefabs serialize this under its former name "settings".
+        [FormerlySerializedAs("settings")]
         public MPCSettings mpcSettings;
 
         [Header("Obstacle Avoidance")]
         public bool enableObstacleAvoidance = true;
 
-        private Control[] bestSequence;
-        private State[] predictedStates;
-        private Config config;
-        private Control smoothedControl;
-#if UNITY_EDITOR
-        internal float lastBestCost;
-        private State lastInitialState;
-#endif
-        private Control lastControl;
-        private float previousDt;
-        private Control[] resampleBuffer;
-        private SolverBuffers solver;
+        private Mpc mpc;
 
         public void Initialize(Func<Ships.Command.State> stateProvider, Dynamics dynamics, Scout scout)
         {
             getState = stateProvider;
-            this.dynamics = dynamics;
             this.scout = scout;
             currentWaypoint = new Waypoint { isValid = false };
-
-            config = mpcSettings.ToConfig();
-            config.maxBankAngleRad = dynamics.maxBankAngleRad;
-            config.maxSpeedSq = dynamics.maxSpeed * dynamics.maxSpeed;
-            config.maxYawRateSq = dynamics.maxYawRate * dynamics.maxYawRate;
-            bestSequence = new Control[config.horizon];
-            predictedStates = new State[config.horizon];
-            solver = new SolverBuffers();
+            mpc = new Mpc(mpcSettings, dynamics);
         }
 
         private void FixedUpdate()
@@ -97,69 +81,43 @@ namespace Movement.MPC
             using var _ = EditorProfilingScope.Begin("MPC.Navigator.GenerateNavCommands");
             if (!currentWaypoint.isValid || HasArrived(state.kinematics)) return;
 
-            var mpcState = ToMpcState(state.kinematics);
-            RefreshConfig(mpcState);
-#if UNITY_EDITOR
-            lastInitialState = mpcState;
-#endif
             var scan = scout.ObstacleScan;
-            StoreDebugObstacles(scan);
-            ShiftWarmStart();
+            var inputs = new MpcInputs
+            {
+                kinematics = state.kinematics,
+                boostCooldown = state.boostCooldownRemaining,
+                goalPos = GoalPos(),
+                goalVel = GoalVel(),
+                goalMode = goalMode,
+                goalDesiredRange = goalDesiredRange,
+                goalRangeTolerance = goalRangeTolerance,
+                facingRad = facingOverride ? facingAngle * Mathf.Deg2Rad : float.NaN,
+                enemyYaw = enemyYaw,
+                enemyYawRate = enemyYawRate,
+                projectileSpeed = projectileSpeed,
+                enemyDynamics = enemyDynamics,
+                weightOverrides = weightOverrides,
+                obstacleScan = scan,
+                enableObstacleAvoidance = enableObstacleAvoidance,
+                navigationTarget = NavigationTargetForSolver(),
+            };
 
 #if UNITY_EDITOR
+            StoreDebugObstacles(scan);
             var sw = System.Diagnostics.Stopwatch.StartNew();
 #endif
-            var boostCooldown = state.boostCooldownRemaining;
-            // If cooldown exceeds entire horizon, skip boost sampling to save candidate quality
-            var boostProb = boostCooldown > mpcSettings.horizonSeconds
-                ? 0f : mpcSettings.boostSampleProbability;
-
+            MpcResult result;
             using (EditorProfilingScope.Begin("MPC.Navigator.Solve"))
-            {
-                // Scale noise inversely with dt so state-space exploration stays constant
-                var noiseStd = mpcSettings.noiseStd * mpcSettings.rolloutDt / config.dt;
-                lastBestCost = solver.Solve(mpcState, bestSequence,
-                    scan, enableObstacleAvoidance,
-                    GoalPos(), GoalVel(), enemyYaw, enemyYawRate,
-                    projectileSpeed, config, dynamics,
-                    mpcSettings.samples, noiseStd, lastControl,
-                    enemyDynamics,
-                    boostCooldown, boostProb,
-                    mpcSettings.eliteFraction,
-                    NavigationTargetForSolver());
-            }
+                result = mpc.Plan(in inputs);
 #if UNITY_EDITOR
             sw.Stop();
             lastSolveTimeMs = (float)sw.Elapsed.TotalMilliseconds;
-            lastCostBreakdown = EvaluateBreakdown(mpcState);
+            lastCostBreakdown = EvaluateBreakdown(mpc.LastInitialState);
+            RunComparisonRollouts(mpc.LastInitialState, scan);
             LogSolverPerformanceIfNeeded();
 #endif
 
-            UpdatePredictedStates(mpcState);
-            RunComparisonRollouts(mpcState, scan);
-            lastControl = bestSequence[0];
-
-            var raw = bestSequence[0];
-            var a = mpcSettings.controlSmoothing;
-            smoothedControl = new Control
-            {
-                thrust = math.lerp(raw.thrust, smoothedControl.thrust, a),
-                strafe = math.lerp(raw.strafe, smoothedControl.strafe, a),
-                yawTorque = math.lerp(raw.yawTorque, smoothedControl.yawTorque, a),
-            };
-
-            // Scale controls by urgency — below relaxMin = coast, above relaxMax = full authority
-            if (mpcSettings.relaxMax > mpcSettings.relaxMin)
-            {
-                var normalizedCost = lastBestCost / config.horizon;
-                var t = math.saturate((normalizedCost - mpcSettings.relaxMin) / (mpcSettings.relaxMax - mpcSettings.relaxMin));
-                var urgency = math.pow(t, mpcSettings.relaxCurve);
-                smoothedControl.thrust *= urgency;
-                smoothedControl.strafe *= urgency;
-                smoothedControl.yawTorque *= urgency;
-            }
-
-            ApplyControl(ref cmd, smoothedControl, raw.boost);
+            ApplyControl(ref cmd, in result);
         }
 
         private bool HasArrived(Kinematics kin)
@@ -175,134 +133,20 @@ namespace Movement.MPC
             return !(Mathf.Abs(yawErr) > 5f);
         }
 
-        private static MPC.State ToMpcState(Kinematics kin) => new()
-        {
-            pos = new float2(kin.pos.x, kin.pos.y),
-            vel = new float2(kin.vel.x, kin.vel.y),
-            yaw = kin.yaw * Mathf.Deg2Rad,
-            yawRate = kin.yawRate * Mathf.Deg2Rad
-        };
-
         private float2 GoalPos() => new(currentWaypoint.position.x, currentWaypoint.position.y);
         private float2 GoalVel() => new(currentWaypoint.velocity.x, currentWaypoint.velocity.y);
 
-        private float2? NavigationTargetForSolver()
+        private float2? NavigationTargetForSolver() => navigationTarget.HasValue
+            ? new float2(navigationTarget.Value.x, navigationTarget.Value.y)
+            : (float2?)null;
+
+        private static void ApplyControl(ref Command cmd, in MpcResult r)
         {
-            return navigationTarget.HasValue
-                ? new float2(navigationTarget.Value.x, navigationTarget.Value.y)
-                : (float2?)null;
+            cmd.thrust = r.thrust;
+            cmd.strafe = r.strafe;
+            cmd.yawTorque = r.yawTorque;
+            cmd.boost = r.boost;
         }
-
-        private void ShiftWarmStart()
-        {
-            var newDt = config.dt;
-            var dtChanged = previousDt > 0f && math.abs(newDt - previousDt) > 1e-6f;
-            previousDt = newDt;
-
-            if (dtChanged)
-                ResampleWarmStart(newDt);
-            else
-                ShiftSequenceForward();
-        }
-
-        private void ShiftSequenceForward()
-        {
-            if (bestSequence.Length > 1)
-                System.Array.Copy(bestSequence, 1, bestSequence, 0, bestSequence.Length - 1);
-        }
-
-        private void ResampleWarmStart(float newDt)
-        {
-            var horizon = bestSequence.Length;
-            if (resampleBuffer == null || resampleBuffer.Length != horizon)
-                resampleBuffer = new Control[horizon];
-
-            for (var i = 0; i < horizon; i++)
-            {
-                var fIdx = i * newDt / previousDt + 1f; // +1 accounts for the one-step shift
-                resampleBuffer[i] = SampleSequenceAt(fIdx, horizon);
-            }
-
-            System.Array.Copy(resampleBuffer, bestSequence, horizon);
-        }
-
-        private Control SampleSequenceAt(float index, int horizon)
-        {
-            var lo = (int)index;
-            if (lo >= horizon - 1) return bestSequence[horizon - 1];
-
-            var a = bestSequence[lo];
-            var b = bestSequence[math.min(lo + 1, horizon - 1)];
-            var frac = index - lo;
-            return new Control
-            {
-                thrust = math.lerp(a.thrust, b.thrust, frac),
-                strafe = math.lerp(a.strafe, b.strafe, frac),
-                yawTorque = math.lerp(a.yawTorque, b.yawTorque, frac),
-                boost = frac < 0.5f ? a.boost : b.boost,
-            };
-        }
-
-        private void UpdatePredictedStates(State initial)
-        {
-            var current = initial;
-            for (var i = 0; i < predictedStates.Length; i++)
-            {
-                current = Model.Step(current, bestSequence[i], config, dynamics);
-                predictedStates[i] = current;
-            }
-        }
-
-        private static void ApplyControl(ref Command cmd, Control u, float boost)
-        {
-            cmd.thrust = u.thrust;
-            cmd.strafe = u.strafe;
-            cmd.yawTorque = u.yawTorque;
-            cmd.boost = boost;
-        }
-
-        private void RefreshConfig(State mpcState)
-        {
-            var facingRad = facingOverride ? facingAngle * Mathf.Deg2Rad : float.NaN;
-            config = mpcSettings.ToConfig(facingRad, goalMode, goalDesiredRange, goalRangeTolerance);
-            config.maxBankAngleRad = dynamics.maxBankAngleRad;
-            config.maxSpeedSq = dynamics.maxSpeed * dynamics.maxSpeed;
-            config.maxYawRateSq = dynamics.maxYawRate * dynamics.maxYawRate;
-            weightOverrides.Apply(ref config);
-
-            if (mpcSettings.adaptiveDtScale > 0f)
-            {
-                float t;
-                if (goalMode == GoalMode.Flee)
-                {
-                    // Flee: scale by closing speed (how fast the gap is changing)
-                    var toGoal = GoalPos() - mpcState.pos;
-                    var dist = math.length(toGoal);
-                    var dir = dist > 1e-4f ? toGoal / dist : float2.zero;
-                    var relVel = mpcState.vel - GoalVel();
-                    var closingSpeed = math.abs(math.dot(relVel, dir));
-                    t = math.saturate(closingSpeed / dynamics.maxSpeed);
-                }
-                else
-                {
-                    // Other modes: scale by distance to goal
-                    var dist = math.length(GoalPos() - mpcState.pos);
-                    t = math.saturate(dist / mpcSettings.adaptiveDtRefDistance);
-                }
-
-                var rawScale = 1f + t * mpcSettings.adaptiveDtScale;
-                // Bin to 0.25 increments so dt changes infrequently
-                var scale = math.round(rawScale * 4f) / 4f;
-                config.dt *= scale;
-                config.invDt = config.dt > 0f ? 1f / config.dt : 0f;
-            }
-
-            if (bestSequence.Length == config.horizon) return;
-            bestSequence = new Control[config.horizon];
-            predictedStates = new State[config.horizon];
-        }
-
-        partial void RunComparisonRollouts(State mpcState, AI.Scanning.ObstacleScan scan);
 
         /// <summary>
         /// Single production entry point for driving the navigator. Applies the whole
@@ -365,8 +209,9 @@ namespace Movement.MPC
             ClearWeightOverrides();
         }
 
-        // ── Low-level control surface ──
-        // Composed by ApplyIntent; also driven directly by play-mode tests.
+        // ── Control surface ──
+        // ApplyIntent composes the private helpers below. SetNavigationPoint and
+        // SetFacingOverride stay public for direct "go here" commands and play-mode tests.
 
         public void SetNavigationPoint(Vector2 point, bool avoid = false, Vector2? velocity = null)
         {
@@ -375,14 +220,7 @@ namespace Movement.MPC
             currentWaypoint.isValid = true;
         }
 
-        public void SetNavigationPointWorld(Vector3 worldPos, bool avoid = true, Vector3? velocity = null)
-        {
-            var planePos = GamePlane.WorldPointToPlane(worldPos);
-            var planeVel = velocity.HasValue ? GamePlane.WorldDirToPlane(velocity.Value) : (Vector2?)null;
-            SetNavigationPoint(planePos, avoid, planeVel);
-        }
-
-        public void ClearNavigationPoint()
+        private void ClearNavigationPoint()
         {
             currentWaypoint.isValid = false;
         }
@@ -392,17 +230,12 @@ namespace Movement.MPC
         /// pull toward this point instead of the goal (currentWaypoint). Range/Flee/tactical
         /// costs continue to use the goal.
         /// </summary>
-        public void SetNavigationTarget(Vector2 plane)
+        private void SetNavigationTarget(Vector2 plane)
         {
             navigationTarget = plane;
         }
 
-        public void SetNavigationTargetWorld(Vector3 worldPos)
-        {
-            navigationTarget = GamePlane.WorldPointToPlane(worldPos);
-        }
-
-        public void ClearNavigationTarget()
+        private void ClearNavigationTarget()
         {
             navigationTarget = null;
         }
@@ -413,39 +246,26 @@ namespace Movement.MPC
             facingAngle = angle;
         }
 
-        public void SetFacingTarget(Vector2 direction)
-        {
-            if (!(direction.sqrMagnitude > 0.01f)) return;
-            var angle = Vector2.SignedAngle(Vector2.up, direction);
-            if (angle < 0f) angle += 360f;
-            SetFacingOverride(angle);
-        }
-
-        public void ClearFacingOverride()
-        {
-            facingOverride = false;
-        }
-
-        public void SetGoalMaintainRange(float desiredRange, float rangeTolerance)
+        private void SetGoalMaintainRange(float desiredRange, float rangeTolerance)
         {
             goalMode = GoalMode.MaintainRange;
             goalDesiredRange = desiredRange;
             goalRangeTolerance = rangeTolerance;
         }
 
-        public void SetGoalFlee()
+        private void SetGoalFlee()
         {
             goalMode = GoalMode.Flee;
         }
 
-        public void ClearGoalMode()
+        private void ClearGoalMode()
         {
             goalMode = GoalMode.Waypoint;
             goalDesiredRange = 0f;
             goalRangeTolerance = 0f;
         }
 
-        public void SetEnemyState(float yawDegrees, float yawRateDegrees, float projectileSpeed,
+        private void SetEnemyState(float yawDegrees, float yawRateDegrees, float projectileSpeed,
             Dynamics enemyDynamics = default)
         {
             enemyYaw = yawDegrees * Mathf.Deg2Rad;
@@ -454,7 +274,7 @@ namespace Movement.MPC
             this.enemyDynamics = enemyDynamics;
         }
 
-        public void ClearEnemyState()
+        private void ClearEnemyState()
         {
             enemyYaw = float.NaN;
             enemyYawRate = 0f;
@@ -462,31 +282,32 @@ namespace Movement.MPC
             enemyDynamics = default;
         }
 
-        public void SetWeightOverrides(WeightOverride[] overrides)
+        private void SetWeightOverrides(WeightOverride[] overrides)
         {
             weightOverrides = overrides ?? Array.Empty<WeightOverride>();
         }
 
-        public void ClearWeightOverrides()
+        private void ClearWeightOverrides()
         {
             weightOverrides = Array.Empty<WeightOverride>();
         }
 
-        public void SetObstacleExclusion(Transform root)
+        private void SetObstacleExclusion(Transform root)
         {
             scout.SetObstacleExclusion(root);
         }
 
-        public void ClearObstacleExclusion()
+        private void ClearObstacleExclusion()
         {
             scout.ClearObstacleExclusion();
         }
 
         private void OnDestroy()
         {
-            solver?.Dispose();
+            mpc?.Dispose();
         }
 
+        partial void RunComparisonRollouts(State mpcState, ObstacleScan scan);
         partial void StoreDebugObstacles(ObstacleScan scan);
         partial void LogSolverPerformanceIfNeeded();
     }
