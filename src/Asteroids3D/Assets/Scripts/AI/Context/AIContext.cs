@@ -19,7 +19,7 @@ namespace AI.Context
     public partial class AIContext
     {
         public SelfStatus Self { get; private set; }
-        public CombatStatus Combat { get; private set; }
+        public EnemyTracker Combat { get; private set; }
         public TargetingUtils TargetingUtils { get; private set; }
         public Scanning.Scout Scout { get; private set; }
         public SituationAssessment Assessment { get; private set; }
@@ -36,7 +36,7 @@ namespace AI.Context
             Self = self;
             Scout = scout;
             TargetingUtils = targetingUtils;
-            Combat = new CombatStatus(scout, combatExitDelay);
+            Combat = new EnemyTracker(scout, combatExitDelay);
             Assessment = SituationAssessment.None;
         }
 

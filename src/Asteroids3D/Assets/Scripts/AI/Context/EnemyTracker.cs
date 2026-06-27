@@ -3,7 +3,12 @@ using UnityEngine;
 
 namespace AI.Context
 {
-    public class CombatStatus
+    /// <summary>
+    /// Tracks the AI's current enemy: acquisition via the <see cref="Scanning.Scout"/>, the
+    /// enemy's live kinematics/durability, and a combat-exit grace period. The "enemy" half of
+    /// the world model — distinct from the <c>Combat</c> package's weapon mechanics.
+    /// </summary>
+    public class EnemyTracker
     {
         private readonly Scanning.Scout scout;
         private readonly float combatExitDelay;
@@ -11,7 +16,7 @@ namespace AI.Context
         private Ship cachedEnemy;
         private float lastContactTime = -1f;
 
-        public CombatStatus(Scanning.Scout scout, float combatExitDelay)
+        public EnemyTracker(Scanning.Scout scout, float combatExitDelay)
         {
             this.scout = scout;
             this.combatExitDelay = combatExitDelay;

@@ -38,7 +38,7 @@ namespace AI.Context
 
         private SituationAssessment(
             SelfStatus self = null,
-            CombatStatus combat = null,
+            EnemyTracker combat = null,
             Scanning.Scout scout = null,
             TargetingUtils targeting = null)
         {
@@ -90,7 +90,7 @@ namespace AI.Context
 
         public static SituationAssessment Evaluate(
             SelfStatus self,
-            CombatStatus combat,
+            EnemyTracker combat,
             Scanning.Scout scout,
             TargetingUtils targeting)
         {
