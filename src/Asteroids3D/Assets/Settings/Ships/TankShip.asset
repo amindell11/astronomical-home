@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3208e94f16e301643b270a7505a83d3f, type: 3}
+  m_Name: TankShip
+  m_EditorClassIdentifier:
+  mass: 2000
+  maxSpeed: 15
+  maxYawRate: 100
+  forwardForce: 8000
+  reverseForce: 4000
+  yawTorque: 10000
+  angularDrag: 4
+  maxBankAngle: 20
+  bankTorque: 15000
+  bankDamping: 3000
+  minStrafeForce: 2500
+  maxStrafeForce: 3000
+  linearDrag: 0.6
+  boostImpulse: 6000
+  boostCooldown: 7
+  startingLives: 1
+  maxHealth: 250
+  maxShield: 120
+  shieldRegenDelay: 3
+  shieldRegenRate: 15

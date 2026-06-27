@@ -236,7 +236,7 @@ MonoBehaviour:
   offset: {x: 0, y: 0, z: -50}
   smoothTime: 0.15
   minZoom: 7
-  maxZoom: 17
+  maxZoom: 25
   padding: 5
   lockCameraToSubject: 0
   lockZoomToSubject: 0
