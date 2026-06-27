@@ -14,33 +14,46 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   horizonSeconds: 1.7
   rolloutDt: 0.1
-  samples: 128
-  noiseStd: 0.25
+  samples: 512
+  noiseStd: 0.75
+  eliteFraction: 0.113
+  adaptiveDtScale: 0
+  adaptiveDtRefDistance: 35
   wPos: 50
-  wVel: 10
-  wYaw: 0.97
+  wVel: 0
+  wClosing: 1
+  closingFadeDistance: 10
+  wYaw: 1
+  wYawDistanceScale: 1
   wYawRate: 1
+  positionCurve: 2
+  positionSaturationDistance: 35
   terminalMultiplier: 10
-  wEffort: 20
-  wSmoothnessThrust: 1
-  wSmoothnessStrafe: 0.5
-  wSmoothnessYaw: 1
-  wMomentum: 1
-  wBoostEffort: 50000
-  boostSampleProbability: 0.01
+  terminalCurve: 1
+  wEffort: 0.1
+  wSmoothnessThrust: 0
+  wSmoothnessStrafe: 0
+  wSmoothnessYaw: 0
+  wMomentum: 0
+  wBoostEffort: 1
+  boostSampleProbability: 0.001
   controlSmoothing: 0
-  wFacing: 150
+  wFacing: 1
   facingWidth: 1.5
-  wLos: 100
-  wExposure: 500
-  exposureWidth: 1.33
-  wTangential: 100
-  wObstacle: 40
-  obstacleThreshold: 6.3
-  obstacleSpeedMargin: 0.3
+  wLos: 1
+  wExposure: 1
+  exposureWidth: 0.5
+  wTangential: 1
+  wMissDistance: 0
+  wObstacle: 1
+  obstacleThreshold: 0.1
+  obstacleSpeedMargin: 1
+  obstacleFalloffCurve: 13.05
+  obstacleClosingScale: 1
+  obstacleClosingHalfSpeed: 5
   arrivalDistance: 4
   arrivalVelScale: 5
   arrivalYawScale: 0.1
-  relaxMin: 25
-  relaxMax: 150.1
-  relaxCurve: 1.99
+  relaxMin: 0
+  relaxMax: 0
+  relaxCurve: 1
