@@ -26,6 +26,13 @@ namespace AI.States
                 else
                 {
                     EditorGUILayout.PropertyField(iterator, true);
+
+                    if (iterator.name == "goal")
+                    {
+                        var profile = (StateProfile)target;
+                        if (profile.goal is TrackEnemyGoal track)
+                            DrawRangeBandCurve(track.desiredRange, track.rangeTolerance);
+                    }
                 }
             }
 
@@ -50,18 +57,57 @@ namespace AI.States
                 if (child.name == "facingWidth")
                 {
                     var width = ResolveEffectiveWidth(child.floatValue, true);
-                    SettingsEditor.DrawFacingCurve("  Facing Cost Preview", width);
+                    SettingsEditor.DrawFacingCurve(width);
                 }
                 else if (child.name == "exposureWidth")
                 {
                     var width = ResolveEffectiveWidth(child.floatValue, false);
-                    SettingsEditor.DrawExposureCurve("  Exposure Cost Preview", width);
+                    SettingsEditor.DrawExposureCurve(width);
                 }
 
                 if (!child.NextVisible(false)) break;
             }
 
             EditorGUI.indentLevel--;
+        }
+
+        private static void DrawRangeBandCurve(float desiredRange, float tolerance)
+        {
+            var inner = desiredRange - tolerance;
+            var outer = desiredRange + tolerance;
+            var maxDist = outer * 2.5f;
+            var curve = new AnimationCurve();
+            const int steps = 80;
+
+            for (var i = 0; i <= steps; i++)
+            {
+                var dist = maxDist * i / steps;
+                float cost;
+                if (dist >= inner && dist <= outer)
+                    cost = 0f;
+                else if (dist > outer)
+                {
+                    var err = dist - outer;
+                    cost = err * err;
+                }
+                else
+                {
+                    var t = dist / Mathf.Max(inner, 1e-4f);
+                    cost = -(1f - t * t);
+                }
+                curve.AddKey(new Keyframe(dist, cost) { weightedMode = WeightedMode.None });
+            }
+
+            // Cap display at 5x the reward magnitude so both sides are visible
+            var displayMin = -1.5f;
+            var displayMax = 5f;
+
+            EditorGUILayout.LabelField($"  Range Band  —  reward ← [{inner:F0}  ...  {outer:F0}] → penalty");
+            EditorGUI.BeginDisabledGroup(true);
+            EditorGUILayout.CurveField(curve, Color.cyan,
+                new Rect(0, displayMin, maxDist, displayMax - displayMin),
+                GUILayout.Height(60));
+            EditorGUI.EndDisabledGroup();
         }
 
         private float ResolveEffectiveWidth(float multiplier, bool isFacing)
