@@ -20,11 +20,13 @@ namespace AI.Context
         public TargetingUtils TargetingUtils { get; private set; }
         public Scanning.Scout Scout { get; private set; }
         public SituationAssessment Assessment { get; private set; }
-        /// <summary>Optional high-level routing planner. Null in scenes without one.</summary>
-        public AsteroidNavField NavPlanner { get; private set; }
+        /// <summary>Active high-level routing planner, if any. Lazily resolved from
+        /// <see cref="AsteroidNavField.Active"/> so AI init order vs. planner spawn order
+        /// is irrelevant — returns null only when no planner has been spawned yet.</summary>
+        public AsteroidNavField NavPlanner => AsteroidNavField.Active;
 
         public Info(Ships.Ship ship, Navigator navigator, Gunner gunner, Scanning.Scout scout, TargetingUtils targetingUtils,
-            float combatExitDelay = 3f, AsteroidNavField navPlanner = null)
+            float combatExitDelay = 3f)
         {
             if (!ship) return;
 
@@ -37,7 +39,6 @@ namespace AI.Context
             Combat = new CombatTracker(scout, gunner, targetingUtils, shipId, registry, combatExitDelay);
             Nav = new Navigation(ShipInfo, navigator);
             Assessment = SituationAssessment.None;
-            NavPlanner = navPlanner;
         }
 
         public void UpdateAssessment()

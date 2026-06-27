@@ -40,12 +40,35 @@ namespace AI.Planning
         [Tooltip("How many cells to walk along the gradient when computing a routing point.")]
         [SerializeField] private int routingStepsAhead = 6;
 
+        [Header("Diagnostics")]
+        [Tooltip("Log every call to TryGetRoutedPlanePos and every field rebuild. Spammy — enable temporarily.")]
+        [SerializeField] private bool verboseLogging;
+
+        /// <summary>
+        /// The active scene-level instance. Set on Awake, cleared on OnDestroy.
+        /// AI consumers (Info.NavPlanner) read this lazily so init ordering doesn't matter.
+        /// </summary>
+        public static AsteroidNavField Active { get; private set; }
+
         private readonly Dictionary<Ship, FieldEntry> cache = new();
         private readonly List<Ship> staleKeys = new();
 
         public int GridSize => gridSize;
         public float CellSize => cellSize;
         public Transform Anchor => anchor;
+        public int CachedTargetCount => cache.Count;
+
+        private void Awake()
+        {
+            if (Active && Active != this)
+                UnityEngine.Debug.LogWarning($"[AsteroidNavField] Multiple instances; replacing existing '{Active.name}' with '{name}'", this);
+            Active = this;
+        }
+
+        private void OnDestroy()
+        {
+            if (Active == this) Active = null;
+        }
 
         public void SetAnchor(Transform t) => anchor = t;
         public void SetAsteroidSpawner(AsteroidSpawner s) => asteroidSpawner = s;
@@ -58,14 +81,32 @@ namespace AI.Planning
         public bool TryGetRoutedPlanePos(Vector2 shipPlanePos, Ship target, RoutingMode mode, out Vector2 routedPlanePos)
         {
             routedPlanePos = shipPlanePos;
-            if (!anchor || !target) return false;
-            if (!GamePlane.IsConfigured) return false;
+            if (!anchor)
+            {
+                if (verboseLogging) UnityEngine.Debug.LogWarning("[AsteroidNavField] TryGetRouted: anchor is null", this);
+                return false;
+            }
+            if (!target)
+            {
+                if (verboseLogging) UnityEngine.Debug.LogWarning("[AsteroidNavField] TryGetRouted: target is null", this);
+                return false;
+            }
+            if (!GamePlane.IsConfigured)
+            {
+                if (verboseLogging) UnityEngine.Debug.LogWarning("[AsteroidNavField] TryGetRouted: GamePlane not configured", this);
+                return false;
+            }
 
             var entry = GetOrCreateEntry(target);
             EnsureFresh(entry, target);
-            if (entry.field == null || !entry.field.HasSolution) return false;
+            if (entry.field == null || !entry.field.HasSolution)
+            {
+                if (verboseLogging) UnityEngine.Debug.LogWarning($"[AsteroidNavField] TryGetRouted: no solution for target '{target.name}' (mode={mode})", this);
+                return false;
+            }
 
             routedPlanePos = entry.field.RoutedCell(shipPlanePos, routingStepsAhead, mode);
+            if (verboseLogging) UnityEngine.Debug.Log($"[AsteroidNavField] TryGetRouted ok: ship={shipPlanePos} target='{target.name}' mode={mode} → routed={routedPlanePos} (cache={cache.Count})", this);
             return true;
         }
 
@@ -118,6 +159,7 @@ namespace AI.Planning
             if (cache.TryGetValue(target, out var entry)) return entry;
             entry = new FieldEntry { field = new NavField(gridSize, cellSize) };
             cache[target] = entry;
+            if (verboseLogging) UnityEngine.Debug.Log($"[AsteroidNavField] cache MISS: created new entry for '{target.name}' (cache={cache.Count})", this);
             return entry;
         }
 
@@ -143,7 +185,14 @@ namespace AI.Planning
         {
             var anchorPlane = GamePlane.WorldPointToPlane(anchor.position);
             var halfExtent = gridSize * cellSize * 0.5f;
-            var origin = anchorPlane - new Vector2(halfExtent, halfExtent);
+            // Snap to cell-aligned positions so the grid only translates in whole-cell jumps —
+            // eliminates per-frame gizmo jitter and lets future incremental rebuilds key off
+            // a stable origin (only the cells that just entered the window need re-stamping).
+            var snappedAnchorX = Mathf.Floor(anchorPlane.x / cellSize) * cellSize;
+            var snappedAnchorY = Mathf.Floor(anchorPlane.y / cellSize) * cellSize;
+            var origin = new Vector2(snappedAnchorX - halfExtent, snappedAnchorY - halfExtent);
+            var asteroidCount = asteroidSpawner ? asteroidSpawner.Registry.ActiveCount : 0;
+            if (verboseLogging) UnityEngine.Debug.Log($"[AsteroidNavField] REBUILD field for '{target.name}' source={targetPlane} origin={origin} asteroids={asteroidCount}", this);
 
             var field = entry.field;
             field.Recenter(origin);
