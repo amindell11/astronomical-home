@@ -118,6 +118,7 @@ MonoBehaviour:
   showTrajectoryCosts: 1
   showControlInputs: 1
   controlPanelOffset: {x: 0, y: 2.5, z: 0}
+  comparisonProfiles: []
   settings: {fileID: 11400000, guid: 9d049f5482896884799106aff602155b, type: 2}
   enableObstacleAvoidance: 1
   lastBestCost: 0
@@ -138,7 +139,9 @@ MonoBehaviour:
   asteroidMask:
     serializedVersion: 2
     m_Bits: 256
-  lookAheadDist: 7
+  useSimpleObstacleScanner: 1
+  obstacleLookaheadTime: 1.5
+  lookAheadDist: 0
   safeMargin: 1
   degreesBetweenRays: 20
   maxRayDegrees: 25

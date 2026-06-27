@@ -25,7 +25,7 @@ namespace AI.Scanning
             baseSphereRadius = sphereRadius;
         }
 
-        public void Scan(Vector2 vel, float maxSpeed)
+        public override void Scan(Vector2 vel, float maxSpeed)
         {
             var v = vel.magnitude;
             var t = maxSpeed > 0 ? v / maxSpeed : 0;

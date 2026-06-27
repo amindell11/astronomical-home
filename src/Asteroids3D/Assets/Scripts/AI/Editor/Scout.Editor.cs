@@ -42,13 +42,21 @@ namespace AI.Scanning
         {
             if (obstacleScanner == null) return;
 
-            Gizmos.color = new Color(1f, 0.75f, 0f, 0.5f);
-            var radius = obstacleScanner.LastSphereRadius;
-            foreach (var ray in obstacleScanner.DebugRays)
+            if (obstacleScanner is SphereObstacleScanner sphere)
             {
-                Gizmos.DrawLine(transform.position, transform.position + ray);
-                if (radius > 0)
-                    Gizmos.DrawWireSphere(transform.position + ray, radius);
+                Gizmos.color = new Color(1f, 0.75f, 0f, 0.15f);
+                Gizmos.DrawWireSphere(transform.position, sphere.Radius);
+            }
+            else
+            {
+                Gizmos.color = new Color(1f, 0.75f, 0f, 0.5f);
+                var radius = obstacleScanner.LastSphereRadius;
+                foreach (var ray in obstacleScanner.DebugRays)
+                {
+                    Gizmos.DrawLine(transform.position, transform.position + ray);
+                    if (radius > 0)
+                        Gizmos.DrawWireSphere(transform.position + ray, radius);
+                }
             }
 
             if (obstacleScanner.DetectedCount <= 0) return;

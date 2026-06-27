@@ -18,6 +18,16 @@ namespace AI.Scanning
             position = GamePlane.WorldPointToPlane(collider.transform.position);
             radius = Mathf.Max(collider.bounds.extents.x, collider.bounds.extents.z);
         }
+
+        // Used for non-static obstacles (e.g. other ships) where the relevant world
+        // position is the ship's transform, not necessarily a child collider's local origin,
+        // and radius comes from ship settings rather than collider bounds.
+        public DetectedObstacle(Vector3 worldPos, float radius, Collider collider)
+        {
+            this.collider = collider;
+            position = GamePlane.WorldPointToPlane(worldPos);
+            this.radius = radius;
+        }
     }
 
     public readonly struct ObstacleScan
@@ -42,11 +52,13 @@ namespace AI.Scanning
         protected readonly Transform origin;
         protected readonly LayerMask obstacleMask;
         protected readonly GameObject selfRoot;
-        private Transform excludeRoot;
+        protected Transform excludeRoot;
 
         public DetectedObstacle[] DetectedBuffer { get; }
-        public int DetectedCount { get; private set; }
+        public int DetectedCount { get; protected set; }
         public IEnumerable<DetectedObstacle> Detected => DetectedBuffer.Take(DetectedCount);
+
+        public virtual void Scan(Vector2 vel, float maxSpeed) { }
 
         public void SetExcludeRoot(Transform root) => excludeRoot = root;
         public void ClearExcludeRoot() => excludeRoot = null;
