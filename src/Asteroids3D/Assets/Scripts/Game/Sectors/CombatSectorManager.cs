@@ -1,7 +1,5 @@
 using System.Collections;
-using AI.Planning;
 using Asteroids.Fields;
-using Asteroids.Spawning;
 using Game.Encounters;
 using Objectives;
 using Ships;
@@ -24,8 +22,6 @@ namespace Game.Sectors
         [Header("Environment")]
         [SerializeField] private World.WorldRoot worldPrefab;
         [SerializeField] private UpdatingAsteroidField updatingAsteroidFieldPrefab;
-        [Tooltip("Optional. Spawns a high-level routing planner that AIs use for chase/evade through asteroid fields.")]
-        [SerializeField] private AsteroidNavField navPlannerPrefab;
 
         [Header("Enemy Spawn (Plane Space)")]
         [SerializeField] private Vector2 enemySpawnPosition = new Vector2(0f, 50f);
@@ -39,7 +35,6 @@ namespace Game.Sectors
 
         private Ship enemy, chaser;
         private UpdatingAsteroidField updatingAsteroidFieldInstance;
-        private AsteroidNavField navPlannerInstance;
         private Encounter activeEncounter;
         private int encounterIndex;
         private UI.MinimapObjectiveMarker marker;
@@ -105,16 +100,6 @@ namespace Game.Sectors
             updatingAsteroidFieldInstance.SetWorldAnchor(Services.EnvironmentService.WorldFollowerTransform);
             updatingAsteroidFieldInstance.CurrentAnchorPos = () =>
                 player ? GamePlane.ProjectOntoPlane(player.transform.position) : updatingAsteroidFieldInstance.transform.position;
-
-            InitializeNavPlanner();
-        }
-
-        private void InitializeNavPlanner()
-        {
-            if (!navPlannerPrefab) return;
-            navPlannerInstance = Instantiate(navPlannerPrefab);
-            navPlannerInstance.SetAnchor(Services.EnvironmentService.WorldFollowerTransform);
-            navPlannerInstance.SetAsteroidSpawner(updatingAsteroidFieldInstance.GetComponent<AsteroidSpawner>());
         }
 
         private IEnumerator StartEncounter(int index)
@@ -193,7 +178,6 @@ namespace Game.Sectors
 
             Services.ObjectiveService.Clear();
 
-            if (navPlannerInstance) Destroy(navPlannerInstance.gameObject);
             if (updatingAsteroidFieldInstance) Destroy(updatingAsteroidFieldInstance.gameObject);
 
             yield return base.OnTeardown();
@@ -204,7 +188,6 @@ namespace Game.Sectors
             enemy = null;
             chaser = null;
             updatingAsteroidFieldInstance = null;
-            navPlannerInstance = null;
         }
     }
 }

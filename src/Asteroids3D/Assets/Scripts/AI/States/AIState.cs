@@ -1,4 +1,3 @@
-using AI.Planning;
 using AI.Utility;
 using Movement;
 using Movement.MPC;
@@ -51,7 +50,7 @@ namespace AI.States
 
         public override void Enter(Info ctx)
         {
-            // Goal mode, weights, enemy state, and routing are all (re)applied every Tick
+            // Goal mode, weights, and enemy state are all (re)applied every Tick
             // through Navigator.ApplyIntent. Enter only does one-shot setup Tick can't redo.
             if (!Profile.enableFiring)
                 gunner.SetTarget((Transform)null);
@@ -112,13 +111,6 @@ namespace AI.States
             intent.goalVelocity = combat.EnemyVel;
             intent.obstacleExclusion = combat.Enemy.transform;
 
-            // Skip routing when close enough that MaintainRange owns the approach.
-            var track = Profile.goal as TrackEnemyGoal;
-            var distToEnemy = (ctx.ShipInfo.Pos - combat.EnemyPos).magnitude;
-            var closeRange = track != null && distToEnemy < 1.5f * track.desiredRange;
-            if (!closeRange)
-                TrySetRoutingTarget(ctx, ref intent, RoutingMode.Chase);
-
             if (Profile.enableTacticalCosts)
                 SetEnemyTactical(ctx, ref intent);
 
@@ -138,17 +130,6 @@ namespace AI.States
             if (Profile.enableTacticalCosts)
                 SetEnemyTactical(ctx, ref intent);
 
-            TrySetRoutingTarget(ctx, ref intent, RoutingMode.Evade);
-        }
-
-        private static void TrySetRoutingTarget(Info ctx, ref NavigationIntent intent, RoutingMode mode)
-        {
-            if (!ctx.NavPlanner) return;
-            var enemy = ctx.Combat.Enemy;
-            if (!enemy) return;
-            if (!ctx.NavPlanner.TryGetRoutedPlanePos(ctx.ShipInfo.Pos, enemy, mode, out var routedPlane))
-                return;
-            intent.navigationTarget = routedPlane;
         }
 
         private void TickPatrol(Info ctx, float deltaTime, ref NavigationIntent intent)

@@ -446,16 +446,6 @@ namespace Movement.MPC
                 Gizmos.DrawWireSphere(GamePlane.PlanePointToWorld(currentWaypoint.position), arriveRadius);
             }
 
-            // High-level planner routing override: shown as a magenta sphere with a line
-            // from the ship — visualizes what the AsteroidNavField is telling this AI to head
-            // toward. Only present when a planner routed call succeeded this frame.
-            if (navigationTarget.HasValue)
-            {
-                var navWorld = GamePlane.PlanePointToWorld(navigationTarget.Value);
-                Gizmos.color = Color.magenta;
-                Gizmos.DrawSphere(navWorld, 0.6f);
-                Gizmos.DrawLine(transform.position, navWorld);
-            }
         }
 
         private void DrawObstacleDebugInfo()

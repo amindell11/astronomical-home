@@ -120,8 +120,7 @@ namespace Movement.MPC
             int samples, float noiseStd, Control lastControl,
             Dynamics enemyDynamics = default,
             float boostCooldownRemaining = 0f, float boostSampleProbability = 0.15f,
-            float eliteFraction = 0.1f,
-            float2? navigationTarget = null)
+            float eliteFraction = 0.1f)
         {
             var horizon = cfg.horizon;
             EnsureBuffers(horizon, samples);
@@ -174,7 +173,6 @@ namespace Movement.MPC
                 enemyStates = enemyStates,
                 enemyStateCount = enemyStateCount,
                 initialVel = initialState.vel,
-                navigationTarget = navigationTarget ?? new float2(float.NaN, float.NaN),
             };
 
             initialState.boostCooldownRemaining = boostCooldownRemaining;
@@ -319,7 +317,7 @@ namespace Movement.MPC
 
         public CostInput BuildCostInput(float2 goalPos, float2 goalVel = default,
             float enemyYaw = float.NaN, float enemyYawRate = 0f, float projectileSpeed = 0f,
-            float2 initialVel = default, float2? navigationTarget = null)
+            float2 initialVel = default)
         {
             return new CostInput
             {
@@ -333,7 +331,6 @@ namespace Movement.MPC
                 enemyStates = enemyStates.IsCreated ? enemyStates : default,
                 enemyStateCount = enemyStates.IsCreated ? enemyStates.Length : 0,
                 initialVel = initialVel,
-                navigationTarget = navigationTarget ?? new float2(float.NaN, float.NaN),
             };
         }
 
