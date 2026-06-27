@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Movement.MPC
 {
     [CreateAssetMenu(menuName = "AI/MPC Settings", fileName = "MpcSettings")]
-    public class Settings : ScriptableObject
+    public class MPCSettings : ScriptableObject
     {
         [Header("Solver")]
         [Tooltip("Total lookahead time in seconds. Longer = smoother paths but slower to react.")]

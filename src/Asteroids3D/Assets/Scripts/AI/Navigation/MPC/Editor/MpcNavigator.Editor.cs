@@ -113,7 +113,7 @@ namespace Movement.MPC
                     rangeTolerance = track.rangeTolerance;
                 }
                 var facingRad = facingOverride ? facingAngle * Mathf.Deg2Rad : float.NaN;
-                var compConfig = settings.ToConfig(facingRad, gm, desiredRange, rangeTolerance);
+                var compConfig = mpcSettings.ToConfig(facingRad, gm, desiredRange, rangeTolerance);
                 compConfig.maxBankAngleRad = dynamics.maxBankAngleRad;
                 profile.weightOverrides.Apply(ref compConfig);
 
@@ -128,7 +128,7 @@ namespace Movement.MPC
                 var seq = comparisonResults[p].sequence;
                 comparisonResults[p].cost = solver.Rescore(mpcState, seq,
                     compConfig, dynamics, costInput, lastControl,
-                    settings.samples, settings.eliteFraction);
+                    mpcSettings.samples, mpcSettings.eliteFraction);
 
                 // Roll out trajectory from the rescored elite average
                 var current = mpcState;
@@ -466,7 +466,7 @@ namespace Movement.MPC
             var speed = predictedStates != null && predictedStates.Length > 0
                 ? math.length(predictedStates[0].vel)
                 : 0f;
-            var baseThreshold = settings.obstacleThreshold + speed * settings.obstacleSpeedMargin;
+            var baseThreshold = mpcSettings.obstacleThreshold + speed * mpcSettings.obstacleSpeedMargin;
             var profileScale = config.maxBankAngleRad > 0f
                 ? Mathf.Cos(Mathf.Abs(smoothedControl.strafe) * config.maxBankAngleRad)
                 : 1f;
@@ -498,7 +498,7 @@ namespace Movement.MPC
         {
             var obsWorldPos = GamePlane.PlanePointToWorld(obstacle.position);
             var rings = 8;
-            var halfCurve = settings.obstacleFalloffCurve * 0.5f;
+            var halfCurve = mpcSettings.obstacleFalloffCurve * 0.5f;
             const float epsSq = 0.0001f;
             var rangeSq = range * range;
 
@@ -664,14 +664,14 @@ namespace Movement.MPC
             var total = breakdown.total;
             EditorGUILayout.LabelField($"Total Cost: {total:F2}");
 
-            var horizon = nav.settings.Horizon;
+            var horizon = nav.mpcSettings.Horizon;
             var normalizedCost = horizon > 0 ? nav.lastBestCost / horizon : nav.lastBestCost;
             EditorGUILayout.LabelField($"Normalized Cost (per-step): {normalizedCost:F3}");
 
             showUnweightedCosts = EditorGUILayout.ToggleLeft(
                 "Show Unweighted (raw cost / weight)", showUnweightedCosts);
 
-            RenderBreakdownBars(nav.settings, breakdown);
+            RenderBreakdownBars(nav.mpcSettings, breakdown);
 
             if (nav.showCandidateTrajectories && nav.selectedCandidateIndex >= 0)
             {
@@ -686,7 +686,7 @@ namespace Movement.MPC
                     EditorGUILayout.LabelField($"Total Cost: {sb.total:F2}");
                     if (GUILayout.Button("Clear Selection", GUILayout.Width(120)))
                         nav.selectedCandidateIndex = -1;
-                    RenderBreakdownBars(nav.settings, sb);
+                    RenderBreakdownBars(nav.mpcSettings, sb);
                 }
             }
 
@@ -707,7 +707,7 @@ namespace Movement.MPC
             Repaint();
         }
 
-        private void RenderBreakdownBars(Settings s, CostBreakdown breakdown)
+        private void RenderBreakdownBars(MPCSettings s, CostBreakdown breakdown)
         {
             var total = breakdown.total;
             DrawCostBar("Position", breakdown.pos, s.wPos, total, Color.green);

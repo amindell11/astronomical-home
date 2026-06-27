@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Movement.MPC
 {
-    [CustomEditor(typeof(Settings))]
+    [CustomEditor(typeof(MPCSettings))]
     public class SettingsEditor : Editor
     {
         // Fields after which to insert curve previews
@@ -20,7 +20,7 @@ namespace Movement.MPC
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-            var settings = (Settings)target;
+            var settings = (MPCSettings)target;
 
             var prop = serializedObject.GetIterator();
             prop.NextVisible(true); // skip m_Script

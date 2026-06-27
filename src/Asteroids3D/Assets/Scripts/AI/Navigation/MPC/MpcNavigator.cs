@@ -13,7 +13,7 @@ namespace Movement.MPC
     public partial class MpcNavigator : Navigator
     {
         [Header("Settings")]
-        public MPC.Settings settings;
+        public MPCSettings mpcSettings;
 
         [Header("Obstacle Avoidance")]
         public bool enableObstacleAvoidance = true;
@@ -23,23 +23,19 @@ namespace Movement.MPC
         private Config config;
         private Control smoothedControl;
 #if UNITY_EDITOR
-        public float lastBestCost;
-        // Snapshot of the ship's MPC state at the moment of the last Solve(), used by the
-        // editor to roll out individual candidate trajectories from the same starting point.
-        public State lastInitialState;
-#else
-        private float lastBestCost;
+        internal float lastBestCost;
+        private State lastInitialState;
 #endif
         private Control lastControl;
         private float previousDt;
         private Control[] resampleBuffer;
-        internal SolverBuffers solver;
+        private SolverBuffers solver;
 
         public override void Initialize(Func<Ships.Command.State> stateProvider, Dynamics dynamics, Scout scout)
         {
             base.Initialize(stateProvider, dynamics, scout);
 
-            config = settings.ToConfig();
+            config = mpcSettings.ToConfig();
             config.maxBankAngleRad = dynamics.maxBankAngleRad;
             config.maxSpeedSq = dynamics.maxSpeed * dynamics.maxSpeed;
             config.maxYawRateSq = dynamics.maxYawRate * dynamics.maxYawRate;
@@ -67,21 +63,21 @@ namespace Movement.MPC
 #endif
             var boostCooldown = state.boostCooldownRemaining;
             // If cooldown exceeds entire horizon, skip boost sampling to save candidate quality
-            var boostProb = boostCooldown > settings.horizonSeconds
-                ? 0f : settings.boostSampleProbability;
+            var boostProb = boostCooldown > mpcSettings.horizonSeconds
+                ? 0f : mpcSettings.boostSampleProbability;
 
             using (EditorProfilingScope.Begin("MPC.MpcNavigator.Solve"))
             {
                 // Scale noise inversely with dt so state-space exploration stays constant
-                var noiseStd = settings.noiseStd * settings.rolloutDt / config.dt;
+                var noiseStd = mpcSettings.noiseStd * mpcSettings.rolloutDt / config.dt;
                 lastBestCost = solver.Solve(mpcState, bestSequence,
                     scan, enableObstacleAvoidance,
                     GoalPos(), GoalVel(), enemyYaw, enemyYawRate,
                     projectileSpeed, config, dynamics,
-                    settings.samples, noiseStd, lastControl,
+                    mpcSettings.samples, noiseStd, lastControl,
                     enemyDynamics,
                     boostCooldown, boostProb,
-                    settings.eliteFraction,
+                    mpcSettings.eliteFraction,
                     NavigationTargetForSolver());
             }
 #if UNITY_EDITOR
@@ -96,7 +92,7 @@ namespace Movement.MPC
             lastControl = bestSequence[0];
 
             var raw = bestSequence[0];
-            var a = settings.controlSmoothing;
+            var a = mpcSettings.controlSmoothing;
             smoothedControl = new Control
             {
                 thrust = math.lerp(raw.thrust, smoothedControl.thrust, a),
@@ -105,11 +101,11 @@ namespace Movement.MPC
             };
 
             // Scale controls by urgency — below relaxMin = coast, above relaxMax = full authority
-            if (settings.relaxMax > settings.relaxMin)
+            if (mpcSettings.relaxMax > mpcSettings.relaxMin)
             {
                 var normalizedCost = lastBestCost / config.horizon;
-                var t = math.saturate((normalizedCost - settings.relaxMin) / (settings.relaxMax - settings.relaxMin));
-                var urgency = math.pow(t, settings.relaxCurve);
+                var t = math.saturate((normalizedCost - mpcSettings.relaxMin) / (mpcSettings.relaxMax - mpcSettings.relaxMin));
+                var urgency = math.pow(t, mpcSettings.relaxCurve);
                 smoothedControl.thrust *= urgency;
                 smoothedControl.strafe *= urgency;
                 smoothedControl.yawTorque *= urgency;
@@ -220,13 +216,13 @@ namespace Movement.MPC
         private void RefreshConfig(State mpcState)
         {
             var facingRad = facingOverride ? facingAngle * Mathf.Deg2Rad : float.NaN;
-            config = settings.ToConfig(facingRad, goalMode, goalDesiredRange, goalRangeTolerance);
+            config = mpcSettings.ToConfig(facingRad, goalMode, goalDesiredRange, goalRangeTolerance);
             config.maxBankAngleRad = dynamics.maxBankAngleRad;
             config.maxSpeedSq = dynamics.maxSpeed * dynamics.maxSpeed;
             config.maxYawRateSq = dynamics.maxYawRate * dynamics.maxYawRate;
             weightOverrides.Apply(ref config);
 
-            if (settings.adaptiveDtScale > 0f)
+            if (mpcSettings.adaptiveDtScale > 0f)
             {
                 float t;
                 if (goalMode == GoalMode.Flee)
@@ -243,21 +239,19 @@ namespace Movement.MPC
                 {
                     // Other modes: scale by distance to goal
                     var dist = math.length(GoalPos() - mpcState.pos);
-                    t = math.saturate(dist / settings.adaptiveDtRefDistance);
+                    t = math.saturate(dist / mpcSettings.adaptiveDtRefDistance);
                 }
 
-                var rawScale = 1f + t * settings.adaptiveDtScale;
+                var rawScale = 1f + t * mpcSettings.adaptiveDtScale;
                 // Bin to 0.25 increments so dt changes infrequently
                 var scale = math.round(rawScale * 4f) / 4f;
                 config.dt *= scale;
                 config.invDt = config.dt > 0f ? 1f / config.dt : 0f;
             }
 
-            if (bestSequence.Length != config.horizon)
-            {
-                bestSequence = new Control[config.horizon];
-                predictedStates = new State[config.horizon];
-            }
+            if (bestSequence.Length == config.horizon) return;
+            bestSequence = new Control[config.horizon];
+            predictedStates = new State[config.horizon];
         }
 
         partial void RunComparisonRollouts(State mpcState, AI.Scanning.ObstacleScan scan);
