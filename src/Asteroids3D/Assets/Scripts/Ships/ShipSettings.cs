@@ -23,6 +23,10 @@ namespace Ships
         public float maxStrafeForce = 5000f;
         public float linearDrag = .5f;
 
+        [Header("Geometry")]
+        [Tooltip("Approximate collision radius of the ship. Used by MPC to inflate obstacle boundaries.")]
+        public float shipRadius = 1f;
+
         [Header("Boost")]
         public float boostImpulse = 14000f;
         public float boostCooldown = 3f;
@@ -61,7 +65,8 @@ namespace Ships
             bankDamping: bankDamping,
             maxBankAngleRad: maxBankAngle * Mathf.Deg2Rad,
             boostImpulse: boostImpulse,
-            boostCooldown: boostCooldown
+            boostCooldown: boostCooldown,
+            shipRadius: shipRadius
         );
 
     }

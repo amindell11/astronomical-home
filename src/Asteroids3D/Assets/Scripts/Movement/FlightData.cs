@@ -39,12 +39,14 @@ namespace Movement
         public readonly float yawInertia;
         public readonly float bankTorque, bankDamping, maxBankAngleRad;
         public readonly float boostImpulse, boostCooldown;
+        public readonly float shipRadius;
 
         public Dynamics(float mass, float forwardAcc, float reverseAcc, float maxStrafeAcc, float minStrafeAcc,
             float maxSpeed, float maxYawRate, float yawTorque, float angularDrag, float linearDrag,
             float yawInertia = 0f,
             float bankTorque = 0f, float bankDamping = 0f, float maxBankAngleRad = 0f,
-            float boostImpulse = 0f, float boostCooldown = 0f)
+            float boostImpulse = 0f, float boostCooldown = 0f,
+            float shipRadius = 1f)
         {
             (this.mass, this.maxSpeed, this.maxYawRate) = (mass, maxSpeed, maxYawRate);
             (this.forwardAcc, this.reverseAcc) = (forwardAcc, reverseAcc);
@@ -55,6 +57,7 @@ namespace Movement
             this.yawInertia = yawInertia;
             (this.bankTorque, this.bankDamping, this.maxBankAngleRad) = (bankTorque, bankDamping, maxBankAngleRad);
             (this.boostImpulse, this.boostCooldown) = (boostImpulse, boostCooldown);
+            this.shipRadius = shipRadius;
         }
 
         public static readonly Dynamics Default = new(
