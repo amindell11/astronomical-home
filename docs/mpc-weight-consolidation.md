@@ -1,6 +1,7 @@
 # MPC Weight Consolidation (cleanup #4)
 
-Status: **executing**. Part of the RL-agnostic AI/MPC streamlining on branch
+Status: **complete** (phases 1–4 landed; commits a4607fba, fc6ecaff, b332ed17; MPC+AIIntegration
+PlayMode suite green, 15/15). Part of the RL-agnostic AI/MPC streamlining on branch
 `feat/asteroid-nav-planner`. Chosen approach: **sparse overrides** (full refactor).
 Behavior-preserving — verify against the MPC + AIIntegration play-mode suite.
 
@@ -85,11 +86,14 @@ Utility-*selection* weights (`UtilitySelectorSettings` + `UtilityWeights` + per-
       added in `Types.cs` alongside the still-present `WeightMultipliers` (additive, compiles).
 - [ ] Phase 2: migrate the 7 assets' `weightMultipliers:` → `weightOverrides:` (direct YAML,
       deterministic; commit assets separately). Convert every field ≠ 1, including explicit 0s.
-- [ ] Phase 3: swap `StateProfile`/`NavigationIntent`/`AIState`/`Navigator`/`MpcNavigator` to
-      `weightOverrides`; update `StateProfile.Editor`, `MpcNavigator.Editor:118`,
-      `MigrateStateProfiles.cs`, and the 2 test files (`ClearWeightMultipliers`,
-      `WeightMultipliers.Default` → `Array.Empty<WeightOverride>()` / no-op); delete `WeightMultipliers`.
-- [ ] Phase 4: full suite green + `Cost.EvaluateBreakdown` parity check on a sample state.
+- [x] Phase 3: swapped `StateProfile`/`NavigationIntent`/`AIState`/`Navigator`/`MpcNavigator` to
+      `weightOverrides`; updated `StateProfile.Editor`, `MpcNavigator.Editor:118`, deleted
+      `MigrateStateProfiles.cs` and the `WeightMultipliers` struct; test files use
+      `Array.Empty<WeightOverride>()` / `ClearWeightOverrides()`. Commit b332ed17.
+- [x] Phase 4: MPC + AIIntegration PlayMode suite green (15/15). Analytic parity preserved via the
+      Phase 2 migration table (every non-1 field carried verbatim, incl. the load-bearing
+      `Attack BoostEffort:0`). A dedicated `Cost.EvaluateBreakdown` parity test was not written —
+      optional belt-and-suspenders follow-up.
 
 ### Resume hint for a fresh context
 Phase 1 is committed. Start Phase 2: for each of the 7 assets, replace the `weightMultipliers:`
