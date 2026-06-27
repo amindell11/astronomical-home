@@ -69,18 +69,18 @@ namespace AI.States
 
         internal static float ResolveContinuous(ContinuousInput input, SituationAssessment a)
         {
-            switch (input)
+            return input switch
             {
-                case ContinuousInput.Health:          return a.HealthPct;
-                case ContinuousInput.Shield:          return a.ShieldPct;
-                case ContinuousInput.EnemyDurability:  return a.EnemyCombinedDurability;
-                case ContinuousInput.Outnumbered:     return a.Outnumbered;
-                case ContinuousInput.ClosingRate:      return a.ClosingRate;
-                case ContinuousInput.EnemyFacing:     return a.EnemyFacingThreat;
-                case ContinuousInput.SelfAngle:       return a.SelfAngleNorm;
-                case ContinuousInput.Speed:           return a.SpeedPct;
-                default:                               return 0f;
-            }
+                ContinuousInput.Health => a.HealthPct,
+                ContinuousInput.Shield => a.ShieldPct,
+                ContinuousInput.EnemyDurability => a.EnemyCombinedDurability,
+                ContinuousInput.Outnumbered => a.Outnumbered,
+                ContinuousInput.ClosingRate => a.ClosingRate,
+                ContinuousInput.EnemyFacing => a.EnemyFacingThreat,
+                ContinuousInput.SelfAngle => a.SelfAngleNorm,
+                ContinuousInput.Speed => a.SpeedPct,
+                _ => 0f
+            };
         }
     }
 
@@ -101,14 +101,14 @@ namespace AI.States
 
         internal static bool ResolveBinary(BinarySignal signal, SituationAssessment a)
         {
-            switch (signal)
+            return signal switch
             {
-                case BinarySignal.LOS:             return a.HasLineOfSight;
-                case BinarySignal.NoCombat:        return !a.InCombat;
-                case BinarySignal.IncomingMissile:  return a.IncomingMissile;
-                case BinarySignal.NearCover:       return a.NearCover;
-                default:                           return false;
-            }
+                BinarySignal.LOS => a.HasLineOfSight,
+                BinarySignal.NoCombat => !a.InCombat,
+                BinarySignal.IncomingMissile => a.IncomingMissile,
+                BinarySignal.NearCover => a.NearCover,
+                _ => false
+            };
         }
     }
 
@@ -129,10 +129,7 @@ namespace AI.States
             if (dist >= optimalMin && dist <= optimalMax) return 1f;
 
             var bandWidth = Mathf.Max(optimalMax - optimalMin, 1f);
-            if (dist < optimalMin)
-                return Mathf.Clamp01(1f - (optimalMin - dist) / bandWidth);
-            else
-                return Mathf.Clamp01(1f - (dist - optimalMax) / bandWidth);
+            return dist < optimalMin ? Mathf.Clamp01(1f - (optimalMin - dist) / bandWidth) : Mathf.Clamp01(1f - (dist - optimalMax) / bandWidth);
         }
     }
 
@@ -268,7 +265,7 @@ namespace AI.States
 #if UNITY_EDITOR
         private void OnValidate()
         {
-            foreach (var commander in FindObjectsByType<CombatAICommander>(
+            foreach (var commander in FindObjectsByType<AICommander>(
                          UnityEngine.FindObjectsSortMode.None))
                 commander.RefreshStates();
         }

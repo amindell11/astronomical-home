@@ -1,15 +1,18 @@
-using Ships;
 using Ships.Command;
 using Movement;
 using UnityEngine;
 
 namespace AI.Context
 {
-    public class ShipInfo
+    /// <summary>
+    /// Live introspection of the AI's own ship: kinematics and durability,
+    /// read straight from the ship each access. The "self" half of the world model.
+    /// </summary>
+    public class SelfStatus
     {
         private readonly Ships.Ship ship;
 
-        public ShipInfo(Ships.Ship ship)
+        public SelfStatus(Ships.Ship ship)
         {
             this.ship = ship;
         }

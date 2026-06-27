@@ -156,7 +156,7 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
 
         // Wait for Attack state and navigation toward enemy
         yield return AsyncAssert.WaitUntil(
-            () => cmdrA.UtilitySelector.CurrentState?.ProfileName == "Attack" &&
+            () => cmdrA.UtilitySelector.CurrentAIState?.ProfileName == "Attack" &&
                   cmdrA.Navigator.CurrentWaypoint.isValid,
             timeoutSec: 6f,
             failureMessage: "Ship did not enter Attack state with valid waypoint",
@@ -182,7 +182,7 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
             CreateState(CreatePatrolProfile(), cmdrA));
 
         yield return AsyncAssert.WaitUntil(
-            () => cmdrA.UtilitySelector.CurrentState?.ProfileName == "Patrol",
+            () => cmdrA.UtilitySelector.CurrentAIState?.ProfileName == "Patrol",
             timeoutSec: 5f,
             failureMessage: "Ship did not transition to Patrol when no enemy present",
             useFixedUpdate: true);
@@ -207,7 +207,7 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
 
         // Wait for Attack state first
         yield return AsyncAssert.WaitUntil(
-            () => cmdrA.UtilitySelector.CurrentState?.ProfileName == "Attack",
+            () => cmdrA.UtilitySelector.CurrentAIState?.ProfileName == "Attack",
             timeoutSec: 5f,
             failureMessage: "Ship did not enter Attack state",
             useFixedUpdate: true);
@@ -218,7 +218,7 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
         DealDamage(shipA, maxShield + maxHealth * 0.9f);
 
         yield return AsyncAssert.WaitUntil(
-            () => cmdrA.UtilitySelector.CurrentState?.ProfileName == "Evade",
+            () => cmdrA.UtilitySelector.CurrentAIState?.ProfileName == "Evade",
             timeoutSec: 5f,
             failureMessage: "Ship did not transition to Evade after heavy damage",
             useFixedUpdate: true);
@@ -236,7 +236,7 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
 
         // Wait for Attack state
         yield return AsyncAssert.WaitUntil(
-            () => cmdrA.UtilitySelector.CurrentState?.ProfileName == "Attack",
+            () => cmdrA.UtilitySelector.CurrentAIState?.ProfileName == "Attack",
             timeoutSec: 5f,
             failureMessage: "Ship did not enter Attack state",
             useFixedUpdate: true);
@@ -246,7 +246,7 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
 
         // Should transition to Patrol after combat exit delay (~3s default)
         yield return AsyncAssert.WaitUntil(
-            () => cmdrA.UtilitySelector.CurrentState?.ProfileName == "Patrol",
+            () => cmdrA.UtilitySelector.CurrentAIState?.ProfileName == "Patrol",
             timeoutSec: 8f,
             failureMessage: "Ship did not transition to Patrol after enemy destroyed",
             useFixedUpdate: true);
@@ -268,7 +268,7 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
 
         // Wait for Attack state with valid waypoint
         yield return AsyncAssert.WaitUntil(
-            () => cmdrA.UtilitySelector.CurrentState?.ProfileName == "Attack" &&
+            () => cmdrA.UtilitySelector.CurrentAIState?.ProfileName == "Attack" &&
                   cmdrA.Navigator.CurrentWaypoint.isValid,
             timeoutSec: 6f,
             failureMessage: "Ship did not enter Attack state with valid waypoint",
@@ -332,7 +332,7 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
             CreateState(CreatePatrolProfile(), cmdrA));
 
         yield return AsyncAssert.WaitUntil(
-            () => cmdrA.UtilitySelector.CurrentState?.ProfileName == "Attack" &&
+            () => cmdrA.UtilitySelector.CurrentAIState?.ProfileName == "Attack" &&
                   cmdrA.Gunner.HasTarget,
             timeoutSec: 6f,
             failureMessage: "Gunner did not receive target in Attack state",
@@ -351,7 +351,7 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
 
         // Wait for Attack + gunner target
         yield return AsyncAssert.WaitUntil(
-            () => cmdrA.UtilitySelector.CurrentState?.ProfileName == "Attack" &&
+            () => cmdrA.UtilitySelector.CurrentAIState?.ProfileName == "Attack" &&
                   cmdrA.Gunner.HasTarget,
             timeoutSec: 6f,
             failureMessage: "Gunner did not get target in Attack",

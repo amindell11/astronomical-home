@@ -68,7 +68,7 @@ public abstract class AIIntegrationFixture : PlayModeWorldFixture
     /// Resets the UtilitySelector and re-initializes with custom states.
     /// Allows tests to control which states are available for utility evaluation.
     /// </summary>
-    protected void InitializeWithStates(AICommander cmdr, params State[] states)
+    protected void InitializeWithStates(AICommander cmdr, params AIState[] states)
     {
         cmdr.UtilitySelector.ResetForTesting();
         cmdr.UtilitySelector.Initialize(states);

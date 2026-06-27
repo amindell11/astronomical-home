@@ -1,22 +1,25 @@
 using System;
 using AI.Planning;
-using Movement;
 using Unity.Properties;
-using UnityEngine;
 using TargetingUtils = Combat.TargetingUtils;
 
 namespace AI.Context
 {
     /// <summary>
-    /// Provides AI context data for state machine consumption.
-    /// Thin container composing subsystem references and a per-tick SituationAssessment.
+    /// The world model the AI reasons over for a single tick. Composes the live
+    /// views (<see cref="Self"/>, <see cref="Combat"/>) over the sensing tier
+    /// (<see cref="Scout"/>) and the per-tick normalized <see cref="Assessment"/>.
+    ///
+    /// Boundary: states read the live views to build navigation intents; utility
+    /// factors score off the read-only <see cref="Assessment"/> snapshot. This
+    /// container holds no actuators (navigator/gunner) — those are owned by the
+    /// states that act on the context.
     /// </summary>
     [Serializable, GeneratePropertyBag]
-    public partial class Info
+    public partial class AIContext
     {
-        public ShipInfo ShipInfo { get; private set; }
-        public CombatTracker Combat { get; private set; }
-        public Navigation Nav { get; private set; }
+        public SelfStatus Self { get; private set; }
+        public CombatStatus Combat { get; private set; }
         public TargetingUtils TargetingUtils { get; private set; }
         public Scanning.Scout Scout { get; private set; }
         public SituationAssessment Assessment { get; private set; }
@@ -25,26 +28,22 @@ namespace AI.Context
         /// is irrelevant — returns null only when no planner has been spawned yet.</summary>
         public AsteroidNavField NavPlanner => AsteroidNavField.Active;
 
-        public Info(Ships.Ship ship, Navigator navigator, Gunner gunner, Scanning.Scout scout, TargetingUtils targetingUtils,
+        public AIContext(SelfStatus self, Scanning.Scout scout, TargetingUtils targetingUtils,
             float combatExitDelay = 3f)
         {
-            if (!ship) return;
+            if (self == null || scout == null) return;
 
-            var shipId = scout.ShipId;
-            var registry = scout.Registry;
-
-            ShipInfo = new ShipInfo(ship);
-            TargetingUtils = targetingUtils;
+            Self = self;
             Scout = scout;
-            Combat = new CombatTracker(scout, gunner, targetingUtils, shipId, registry, combatExitDelay);
-            Nav = new Navigation(ShipInfo, navigator);
+            TargetingUtils = targetingUtils;
+            Combat = new CombatStatus(scout, combatExitDelay);
             Assessment = SituationAssessment.None;
         }
 
         public void UpdateAssessment()
         {
             Combat.Update();
-            Assessment = SituationAssessment.Evaluate(ShipInfo, Combat, Scout, TargetingUtils);
+            Assessment = SituationAssessment.Evaluate(Self, Combat, Scout, TargetingUtils);
         }
 
         public override string ToString()

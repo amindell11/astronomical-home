@@ -31,8 +31,8 @@ namespace AI.Utility
             var settings = CachedSettings;
             if (settings == null || !settings.ShouldDraw(isSelected)) return;
 
-            if (settings.IsActive(AIDebugChannel.StateDetail) && CurrentState != null && Context != null)
-                CurrentState.OnDrawGizmos(Context);
+            if (settings.IsActive(AIDebugChannel.StateDetail) && CurrentAIState != null && Context != null)
+                CurrentAIState.OnDrawGizmos(Context);
 
             if (settings.IsActive(AIDebugChannel.Info) && Context != null)
                 DrawInfoLabel();
@@ -59,7 +59,7 @@ namespace AI.Utility
             var selector = (UtilitySelector)target;
             if (!Application.isPlaying) return;
 
-            var state = selector.CurrentState;
+            var state = selector.CurrentAIState;
             if (state == null) return;
 
             EditorGUILayout.Space();

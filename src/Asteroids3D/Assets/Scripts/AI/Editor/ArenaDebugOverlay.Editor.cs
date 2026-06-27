@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using System.Linq;
 using AI.States;
@@ -125,13 +126,13 @@ namespace AI.Debug
 
         private static Color GetCurrentStateColor(AICommander commander)
         {
-            var name = commander.UtilitySelector?.CurrentState?.ProfileName;
+            var name = commander.UtilitySelector?.CurrentAIState?.ProfileName;
             return name != null ? ColorFromName(name) : DefaultStateColor;
         }
 
-        private static Color GetStateColor(AI.States.State state)
+        private static Color GetStateColor(AI.States.AIState aiState)
         {
-            return state != null ? ColorFromName(state.ProfileName) : DefaultStateColor;
+            return aiState != null ? ColorFromName(aiState.ProfileName) : DefaultStateColor;
         }
 
         private static Color ColorFromName(string name)
@@ -146,7 +147,7 @@ namespace AI.Debug
             var scores = commander.UtilitySelector?.UtilityScores;
             if (scores == null || scores.Count == 0) return;
 
-            var currentName = commander.UtilitySelector.CurrentState?.ProfileName;
+            var currentName = commander.UtilitySelector.CurrentAIState?.ProfileName;
             var sorted = scores.OrderByDescending(kv => kv.Value).ToList();
             var maxScore = sorted.Count > 0 ? Mathf.Max(sorted[0].Value, 1f) : 1f;
 
@@ -251,3 +252,4 @@ namespace AI.Debug
         }
     }
 }
+#endif

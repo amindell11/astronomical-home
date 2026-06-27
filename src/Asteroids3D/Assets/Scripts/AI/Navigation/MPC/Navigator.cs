@@ -1,7 +1,8 @@
 using System;
 using AI;
 using AI.Scanning;
-using Movement.MPC;
+using AI.States;
+using Game;
 using Ships;
 using Ships.Command;
 using Movement;
@@ -9,9 +10,46 @@ using Unity.Mathematics;
 using UnityEngine;
 namespace Movement.MPC
 {
+    /// <summary>
+    /// The ship's navigator: turns a <see cref="NavigationIntent"/> into per-frame
+    /// movement commands via an MPC solver. This is the only navigator — the former
+    /// abstract base was folded in once the Standard nav stack was retired.
+    /// </summary>
     [DefaultExecutionOrder(-60)]
-    public partial class MpcNavigator : Navigator
+    public partial class Navigator : MonoBehaviour
     {
+        // ── Shared control surface (waypoints, goals, intent) ──
+
+        public struct Waypoint
+        {
+            public Vector2 position;
+            public Vector2 velocity;
+            public bool isValid;
+        }
+
+        protected Scout scout;
+        protected Waypoint currentWaypoint;
+        protected Vector2? navigationTarget;
+        protected bool facingOverride;
+        protected float facingAngle;
+        protected Dynamics dynamics;
+        protected GoalMode goalMode;
+        protected float goalDesiredRange;
+        protected float goalRangeTolerance;
+        protected float enemyYaw = float.NaN;
+        protected float enemyYawRate;
+        protected float projectileSpeed;
+        protected Dynamics enemyDynamics;
+        protected WeightOverride[] weightOverrides = Array.Empty<WeightOverride>();
+
+        protected Command currentCommand;
+        public Command CurrentCommand => currentCommand;
+
+        protected Func<Ships.Command.State> getState;
+        public float arriveRadius = 2f;
+
+        public Waypoint CurrentWaypoint => currentWaypoint;
+
         [Header("Settings")]
         public MPCSettings mpcSettings;
 
@@ -31,9 +69,12 @@ namespace Movement.MPC
         private Control[] resampleBuffer;
         private SolverBuffers solver;
 
-        public override void Initialize(Func<Ships.Command.State> stateProvider, Dynamics dynamics, Scout scout)
+        public void Initialize(Func<Ships.Command.State> stateProvider, Dynamics dynamics, Scout scout)
         {
-            base.Initialize(stateProvider, dynamics, scout);
+            getState = stateProvider;
+            this.dynamics = dynamics;
+            this.scout = scout;
+            currentWaypoint = new Waypoint { isValid = false };
 
             config = mpcSettings.ToConfig();
             config.maxBankAngleRad = dynamics.maxBankAngleRad;
@@ -44,9 +85,16 @@ namespace Movement.MPC
             solver = new SolverBuffers();
         }
 
-        public override void GenerateNavCommands(Ships.Command.State state, ref Command cmd)
+        private void FixedUpdate()
         {
-            using var _ = EditorProfilingScope.Begin("MPC.MpcNavigator.GenerateNavCommands");
+            if (getState == null) return;
+            currentCommand = default;
+            GenerateNavCommands(getState(), ref currentCommand);
+        }
+
+        public void GenerateNavCommands(Ships.Command.State state, ref Command cmd)
+        {
+            using var _ = EditorProfilingScope.Begin("MPC.Navigator.GenerateNavCommands");
             if (!currentWaypoint.isValid || HasArrived(state.kinematics)) return;
 
             var mpcState = ToMpcState(state.kinematics);
@@ -66,7 +114,7 @@ namespace Movement.MPC
             var boostProb = boostCooldown > mpcSettings.horizonSeconds
                 ? 0f : mpcSettings.boostSampleProbability;
 
-            using (EditorProfilingScope.Begin("MPC.MpcNavigator.Solve"))
+            using (EditorProfilingScope.Begin("MPC.Navigator.Solve"))
             {
                 // Scale noise inversely with dt so state-space exploration stays constant
                 var noiseStd = mpcSettings.noiseStd * mpcSettings.rolloutDt / config.dt;
@@ -255,6 +303,184 @@ namespace Movement.MPC
         }
 
         partial void RunComparisonRollouts(State mpcState, AI.Scanning.ObstacleScan scan);
+
+        /// <summary>
+        /// Single production entry point for driving the navigator. Applies the whole
+        /// <see cref="NavigationIntent"/> in one place, resetting every field each call so
+        /// the result depends only on the intent — never on prior state or call order.
+        /// An invalid intent (<see cref="NavigationIntent.None"/>) resets the navigator to idle.
+        /// The granular Set*/Clear* methods below are the low-level seam this composes
+        /// (also used directly by tests); production code should call ApplyIntent instead.
+        /// </summary>
+        public void ApplyIntent(in NavigationIntent intent)
+        {
+            if (!intent.isValid)
+            {
+                ResetNavigation();
+                return;
+            }
+
+            switch (intent.goalMode)
+            {
+                case GoalMode.MaintainRange:
+                    SetGoalMaintainRange(intent.desiredRange, intent.rangeTolerance);
+                    break;
+                case GoalMode.Flee:
+                    SetGoalFlee();
+                    break;
+                default:
+                    ClearGoalMode();
+                    break;
+            }
+
+            SetNavigationPoint(intent.goalPosition, true, intent.goalVelocity);
+
+            if (intent.navigationTarget.HasValue)
+                SetNavigationTarget(intent.navigationTarget.Value);
+            else
+                ClearNavigationTarget();
+
+            if (intent.hasEnemy)
+                SetEnemyState(intent.enemyYawDeg, intent.enemyYawRateDeg, intent.projectileSpeed,
+                    intent.enemyDynamics);
+            else
+                ClearEnemyState();
+
+            SetWeightOverrides(intent.weightOverrides);
+
+            if (intent.obstacleExclusion)
+                SetObstacleExclusion(intent.obstacleExclusion);
+            else
+                ClearObstacleExclusion();
+        }
+
+        /// <summary>Resets all navigation overrides to idle. Mirrors a fresh, goal-less navigator.</summary>
+        public void ResetNavigation()
+        {
+            ClearNavigationPoint();
+            ClearNavigationTarget();
+            ClearGoalMode();
+            ClearEnemyState();
+            ClearObstacleExclusion();
+            ClearWeightOverrides();
+        }
+
+        // ── Low-level control surface ──
+        // Composed by ApplyIntent; also driven directly by play-mode tests.
+
+        public void SetNavigationPoint(Vector2 point, bool avoid = false, Vector2? velocity = null)
+        {
+            currentWaypoint.position = point;
+            currentWaypoint.velocity = velocity ?? Vector2.zero;
+            currentWaypoint.isValid = true;
+        }
+
+        public void SetNavigationPointWorld(Vector3 worldPos, bool avoid = true, Vector3? velocity = null)
+        {
+            var planePos = GamePlane.WorldPointToPlane(worldPos);
+            var planeVel = velocity.HasValue ? GamePlane.WorldDirToPlane(velocity.Value) : (Vector2?)null;
+            SetNavigationPoint(planePos, avoid, planeVel);
+        }
+
+        public void ClearNavigationPoint()
+        {
+            currentWaypoint.isValid = false;
+        }
+
+        /// <summary>
+        /// Set a high-level routing override. When set, the MPC's position + heading costs
+        /// pull toward this point instead of the goal (currentWaypoint). Range/Flee/tactical
+        /// costs continue to use the goal.
+        /// </summary>
+        public void SetNavigationTarget(Vector2 plane)
+        {
+            navigationTarget = plane;
+        }
+
+        public void SetNavigationTargetWorld(Vector3 worldPos)
+        {
+            navigationTarget = GamePlane.WorldPointToPlane(worldPos);
+        }
+
+        public void ClearNavigationTarget()
+        {
+            navigationTarget = null;
+        }
+
+        public void SetFacingOverride(float angle)
+        {
+            facingOverride = true;
+            facingAngle = angle;
+        }
+
+        public void SetFacingTarget(Vector2 direction)
+        {
+            if (!(direction.sqrMagnitude > 0.01f)) return;
+            var angle = Vector2.SignedAngle(Vector2.up, direction);
+            if (angle < 0f) angle += 360f;
+            SetFacingOverride(angle);
+        }
+
+        public void ClearFacingOverride()
+        {
+            facingOverride = false;
+        }
+
+        public void SetGoalMaintainRange(float desiredRange, float rangeTolerance)
+        {
+            goalMode = GoalMode.MaintainRange;
+            goalDesiredRange = desiredRange;
+            goalRangeTolerance = rangeTolerance;
+        }
+
+        public void SetGoalFlee()
+        {
+            goalMode = GoalMode.Flee;
+        }
+
+        public void ClearGoalMode()
+        {
+            goalMode = GoalMode.Waypoint;
+            goalDesiredRange = 0f;
+            goalRangeTolerance = 0f;
+        }
+
+        public void SetEnemyState(float yawDegrees, float yawRateDegrees, float projectileSpeed,
+            Dynamics enemyDynamics = default)
+        {
+            enemyYaw = yawDegrees * Mathf.Deg2Rad;
+            enemyYawRate = yawRateDegrees * Mathf.Deg2Rad;
+            this.projectileSpeed = projectileSpeed;
+            this.enemyDynamics = enemyDynamics;
+        }
+
+        public void ClearEnemyState()
+        {
+            enemyYaw = float.NaN;
+            enemyYawRate = 0f;
+            projectileSpeed = 0f;
+            enemyDynamics = default;
+        }
+
+        public void SetWeightOverrides(WeightOverride[] overrides)
+        {
+            weightOverrides = overrides ?? Array.Empty<WeightOverride>();
+        }
+
+        public void ClearWeightOverrides()
+        {
+            weightOverrides = Array.Empty<WeightOverride>();
+        }
+
+        public void SetObstacleExclusion(Transform root)
+        {
+            scout.SetObstacleExclusion(root);
+        }
+
+        public void ClearObstacleExclusion()
+        {
+            scout.ClearObstacleExclusion();
+        }
 
         private void OnDestroy()
         {

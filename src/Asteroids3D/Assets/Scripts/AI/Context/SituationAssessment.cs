@@ -37,104 +37,64 @@ namespace AI.Context
         public readonly bool IncomingMissile;
 
         private SituationAssessment(
-            bool inCombat, float timeSinceCombat,
-            float healthPct, float shieldPct, float speedPct, float combinedDurability,
-            float enemyDistance, float enemyCombinedDurability,
-            float outnumbered, int nearbyEnemyCount, int nearbyFriendCount,
-            bool hasLineOfSight, float closingRate, float enemyFacingThreat,
-            float selfAngleToEnemy, float selfAngleNorm,
-            bool nearCover, bool incomingMissile)
+            SelfStatus self = null,
+            CombatStatus combat = null,
+            Scanning.Scout scout = null,
+            TargetingUtils targeting = null)
         {
-            InCombat = inCombat;
-            TimeSinceCombat = timeSinceCombat;
-            HealthPct = healthPct;
-            ShieldPct = shieldPct;
-            SpeedPct = speedPct;
-            CombinedDurability = combinedDurability;
-            EnemyDistance = enemyDistance;
-            EnemyCombinedDurability = enemyCombinedDurability;
-            Outnumbered = outnumbered;
-            NearbyEnemyCount = nearbyEnemyCount;
-            NearbyFriendCount = nearbyFriendCount;
-            HasLineOfSight = hasLineOfSight;
-            ClosingRate = closingRate;
-            EnemyFacingThreat = enemyFacingThreat;
-            SelfAngleToEnemy = selfAngleToEnemy;
-            SelfAngleNorm = selfAngleNorm;
-            NearCover = nearCover;
-            IncomingMissile = incomingMissile;
+            InCombat = combat?.InCombat ?? false;
+            TimeSinceCombat = combat?.TimeSinceCombat ?? float.MaxValue;
+            HealthPct = self?.HealthPct ?? 1f;
+            ShieldPct = self?.ShieldPct ?? 1f;
+            SpeedPct = self?.SpeedPct ?? 0f;
+            CombinedDurability = (HealthPct + ShieldPct) / 2f;
+            EnemyDistance = float.MaxValue;
+            EnemyCombinedDurability = 0f;
+            Outnumbered = 0f;
+            NearbyEnemyCount = 0;
+            NearbyFriendCount = 0;
+            HasLineOfSight = false;
+            ClosingRate = 0.5f;
+            EnemyFacingThreat = 0f;
+            SelfAngleToEnemy = 180f;
+            SelfAngleNorm = 1f;
+            NearCover = scout?.HasNearbyCover ?? false;
+            IncomingMissile = combat?.IncomingMissile ?? false;
+
+            if (scout) {
+                var contacts = scout.Contacts;
+                NearbyEnemyCount = contacts.EnemyCount;
+                NearbyFriendCount = contacts.FriendCount;
+                Outnumbered = contacts.Outnumbered;
+            }
+
+            if (self == null || combat == null || targeting == null || !combat.HasEnemy)
+                return;
+
+            var enemyPos = combat.EnemyPos;
+            EnemyDistance = (enemyPos - self.Pos).magnitude;
+            EnemyCombinedDurability = (combat.EnemyHealthPct + combat.EnemyShieldPct) / 2f;
+            HasLineOfSight = targeting.HasLineOfSight(GamePlane.PlanePointToWorld(enemyPos));
+
+            var rawClosing = targeting.ClosingSpeed(enemyPos, combat.EnemyVel);
+            ClosingRate = Mathf.Clamp01(rawClosing * 0.05f + 0.5f);
+
+            var angleFromEnemy = targeting.AngleFromTarget(enemyPos, combat.EnemyForward);
+            EnemyFacingThreat = (Mathf.Cos(angleFromEnemy * Mathf.Deg2Rad) + 1f) / 2f;
+
+            SelfAngleToEnemy = targeting.AngleTo(enemyPos);
+            SelfAngleNorm = SelfAngleToEnemy / 180f;
         }
 
-        public static readonly SituationAssessment None = new SituationAssessment(
-            inCombat: false, timeSinceCombat: float.MaxValue,
-            healthPct: 1f, shieldPct: 1f, speedPct: 0f, combinedDurability: 1f,
-            enemyDistance: float.MaxValue, enemyCombinedDurability: 0f,
-            outnumbered: 0f, nearbyEnemyCount: 0, nearbyFriendCount: 0,
-            hasLineOfSight: false, closingRate: 0.5f, enemyFacingThreat: 0f,
-            selfAngleToEnemy: 180f, selfAngleNorm: 1f,
-            nearCover: false, incomingMissile: false);
+        public static readonly SituationAssessment None = new();
 
         public static SituationAssessment Evaluate(
-            ShipInfo shipInfo,
-            CombatTracker combat,
+            SelfStatus self,
+            CombatStatus combat,
             Scanning.Scout scout,
             TargetingUtils targeting)
         {
-            var healthPct = shipInfo.HealthPct;
-            var shieldPct = shipInfo.ShieldPct;
-            var speedPct = shipInfo.SpeedPct;
-            var combinedDurability = (healthPct + shieldPct) / 2f;
-
-            var scan = scout.ShipScan;
-            var enemyCount = scan?.EnemyCount(scout.ShipId, scout.Registry) ?? 0;
-            var friendCount = scan?.FriendCount(scout.ShipId, scout.Registry) ?? 0;
-            var outnumbered = Mathf.Clamp01((float)(enemyCount - friendCount) / 3f);
-
-            var hasEnemy = combat.HasEnemy;
-            var enemyDistance = float.MaxValue;
-            var enemyCombinedDurability = 0f;
-            var hasLos = false;
-            var closingRate = 0.5f;
-            var enemyFacingThreat = 0f;
-            var selfAngle = 180f;
-
-            if (hasEnemy)
-            {
-                var enemyPos = combat.EnemyPos;
-                var vec = enemyPos - shipInfo.Pos;
-                enemyDistance = vec.magnitude;
-                enemyCombinedDurability = (combat.EnemyHealthPct + combat.EnemyShieldPct) / 2f;
-
-                hasLos = targeting.HasLineOfSight(GamePlane.PlanePointToWorld(enemyPos));
-
-                var rawClosing = targeting.ClosingSpeed(enemyPos, combat.EnemyVel);
-                closingRate = Mathf.Clamp01(rawClosing * 0.05f + 0.5f);
-
-                var angleFromEnemy = targeting.AngleFromTarget(enemyPos, combat.EnemyForward);
-                enemyFacingThreat = (Mathf.Cos(angleFromEnemy * Mathf.Deg2Rad) + 1f) / 2f;
-
-                selfAngle = targeting.AngleTo(enemyPos);
-            }
-
-            return new SituationAssessment(
-                inCombat: combat.InCombat,
-                timeSinceCombat: combat.TimeSinceCombat,
-                healthPct: healthPct,
-                shieldPct: shieldPct,
-                speedPct: speedPct,
-                combinedDurability: combinedDurability,
-                enemyDistance: enemyDistance,
-                enemyCombinedDurability: enemyCombinedDurability,
-                outnumbered: outnumbered,
-                nearbyEnemyCount: enemyCount,
-                nearbyFriendCount: friendCount,
-                hasLineOfSight: hasLos,
-                closingRate: closingRate,
-                enemyFacingThreat: enemyFacingThreat,
-                selfAngleToEnemy: selfAngle,
-                selfAngleNorm: selfAngle / 180f,
-                nearCover: scout.HasNearbyCover,
-                incomingMissile: combat.IncomingMissile);
+            return new SituationAssessment(self, combat, scout, targeting);
         }
 
         public override string ToString()
@@ -143,5 +103,6 @@ namespace AI.Context
                    $"EnemyDist:{EnemyDistance:F1} LOS:{HasLineOfSight} " +
                    $"Combat:{InCombat} Enemies:{NearbyEnemyCount} Friends:{NearbyFriendCount}]";
         }
+
     }
 }

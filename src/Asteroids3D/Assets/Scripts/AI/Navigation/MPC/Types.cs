@@ -119,7 +119,7 @@ namespace Movement.MPC
     {
         /// <summary>
         /// Multiplies each listed weight into the config. Absent weights are left at their
-        /// base value (×1). Runs managed-side in MpcNavigator.RefreshConfig (before the
+        /// base value (×1). Runs managed-side in Navigator.RefreshConfig (before the
         /// Burst job), so the switch is free.
         /// </summary>
         public static void Apply(this WeightOverride[] overrides, ref Config cfg)

@@ -17,7 +17,7 @@ namespace Movement.MPC
         Trajectory,
     }
 
-    public partial class MpcNavigator
+    public partial class Navigator
     {
         [Header("Debug Visualization")]
         [Tooltip("Horizontal prediction step for labels")]
@@ -273,7 +273,7 @@ namespace Movement.MPC
         }
 
         // Drops a clickable Handles.Button at each visible candidate's terminal point.
-        // Called from MpcNavigatorEditor.OnSceneGUI so it has access to SceneView input.
+        // Called from NavigatorEditor.OnSceneGUI so it has access to SceneView input.
         internal bool DrawCandidateSelectionHandles()
         {
             if (!showCandidateTrajectories || solver == null) return false;
@@ -630,14 +630,14 @@ namespace Movement.MPC
         }
     }
 
-    [CustomEditor(typeof(MpcNavigator))]
-    public class MpcNavigatorEditor : Editor
+    [CustomEditor(typeof(Navigator))]
+    public class NavigatorEditor : Editor
     {
         private bool showUnweightedCosts;
 
         private void OnSceneGUI()
         {
-            var nav = (MpcNavigator)target;
+            var nav = (Navigator)target;
             if (!Application.isPlaying) return;
             if (nav.DrawCandidateSelectionHandles())
                 Repaint();
@@ -647,7 +647,7 @@ namespace Movement.MPC
         {
             base.OnInspectorGUI();
 
-            var nav = (MpcNavigator)target;
+            var nav = (Navigator)target;
             if (!nav.showCostBreakdown || !Application.isPlaying) return;
 
             EditorGUILayout.Space();
@@ -698,7 +698,7 @@ namespace Movement.MPC
                 {
                     var result = nav.comparisonResults[i];
                     if (result.profile == null) continue;
-                    var color = MpcNavigator.ComparisonColors[i % MpcNavigator.ComparisonColors.Length];
+                    var color = Navigator.ComparisonColors[i % Navigator.ComparisonColors.Length];
                     var style = new GUIStyle(EditorStyles.label) { normal = { textColor = color } };
                     EditorGUILayout.LabelField($"  {result.profile.name}: {result.cost:F1}", style);
                 }

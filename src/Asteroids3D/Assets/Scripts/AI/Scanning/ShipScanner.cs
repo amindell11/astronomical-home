@@ -59,7 +59,7 @@ namespace AI.Scanning
         }
     }
 
-    public class ShipScanner : IScanner<ShipScanResult>
+    public class ShipScanner
     {
         private readonly ShipId selfId;
         private readonly IShipRegistry registry;

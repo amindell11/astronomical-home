@@ -1,4 +1,5 @@
 using System;
+using AI.Scanning.Sensors;
 using Movement;
 using Ships;
 using Ships.Command;
@@ -20,20 +21,13 @@ namespace AI.Scanning
 
         [Header("Obstacle Detection")]
         public LayerMask asteroidMask;
-        public bool useSimpleObstacleScanner = true;
-        [Tooltip("Lookahead time for the simple obstacle scanner. Detection radius = maxSpeed * this value.")]
+        [Tooltip("Lookahead time for the obstacle scanner. Detection radius grows with speed over this horizon.")]
         public float obstacleLookaheadTime = 2f;
 
-        [Header("Legacy (DynamicObstacleScanner only)")]
-        public float lookAheadDist = 15f;
-        public float safeMargin = 1.0f;
-        public float degreesBetweenRays = 15f;
-        public float maxRayDegrees = 90f;
-        public float sphereCastRadius = 0.5f;
-
         private ShipScanner shipScanner;
-        private CoverScanner coverScanner;
+        private SphereSensor coverSensor;
         private ObstacleScanner obstacleScanner;
+        private Transform origin;
         private ShipId shipId;
         public ShipId ShipId => shipId;
         public IShipRegistry Registry { get; private set; }
@@ -41,25 +35,22 @@ namespace AI.Scanning
         private Func<State> getState;
 
         // Combined obstacle buffer: static obstacles from obstacleScanner + 360° ship detections from shipScanner.
-        // The fan/sphere obstacle scanner can miss ships off to the side; merging the dedicated ship scanner
+        // The sphere obstacle scanner focuses on static asteroids; merging the dedicated ship scanner
         // ensures the MPC sees every nearby ship regardless of bearing.
         private DetectedObstacle[] mergedObstacles = new DetectedObstacle[128];
         private int mergedObstacleCount;
+
         public void Initialize(Transform origin, ShipId shipId, Dynamics shipDynamics, Func<State> stateProvider, IShipRegistry registry)
         {
             this.shipId = shipId;
             this.shipDynamics = shipDynamics;
+            this.origin = origin;
             Registry = registry;
             getState = stateProvider;
             shipScanner = new ShipScanner(origin, nearbyShipRadius, shipId, registry);
-            coverScanner = new CoverScanner(origin, asteroidCoverRadius, asteroidMask);
+            coverSensor = new SphereSensor(origin, asteroidCoverRadius, asteroidMask, bufferSize: 8);
             // ShipScanner handles ships in a full sphere; obstacle scanner stays focused on static asteroids.
-            var avoidanceMask = asteroidMask;
-            if (useSimpleObstacleScanner)
-                obstacleScanner = new SphereObstacleScanner(origin, avoidanceMask,
-                    lookaheadTime: obstacleLookaheadTime);
-            else
-                obstacleScanner = new DynamicObstacleScanner(origin, avoidanceMask, lookAheadDist, degreesBetweenRays, maxRayDegrees, sphereCastRadius);
+            obstacleScanner = new ObstacleScanner(origin, asteroidMask, lookaheadTime: obstacleLookaheadTime);
         }
 
         private void Update()
@@ -67,14 +58,17 @@ namespace AI.Scanning
             if (!shipId.IsValid) return;
 
             shipScanner?.Scan();
-            coverScanner?.Scan();
-            if (obstacleScanner is SphereObstacleScanner sphere)
+            Contacts = shipScanner != null
+                ? ContactSummary.Build(shipScanner.LastResult, shipId, origin.position, Registry)
+                : ContactSummary.Empty;
+            HasNearbyCover = coverSensor != null && coverSensor.Detect() > 0;
+            if (obstacleScanner != null)
             {
-                sphere.LookaheadTime = obstacleLookaheadTime;
+                obstacleScanner.LookaheadTime = obstacleLookaheadTime;
                 var d = shipDynamics;
-                sphere.MaxAccel = Mathf.Sqrt(d.forwardAcc * d.forwardAcc + d.maxStrafeAcc * d.maxStrafeAcc) / d.mass;
+                obstacleScanner.MaxAccel = Mathf.Sqrt(d.forwardAcc * d.forwardAcc + d.maxStrafeAcc * d.maxStrafeAcc) / d.mass;
+                obstacleScanner.Scan(getState().kinematics.vel, shipDynamics.maxSpeed);
             }
-            obstacleScanner?.Scan(getState().kinematics.vel, shipDynamics.maxSpeed);
             BuildMergedObstacles();
         }
 
@@ -91,8 +85,8 @@ namespace AI.Scanning
                     mergedObstacles[mergedObstacleCount++] = src[i];
             }
 
-            // Other ships from the 360° ship scanner — covers blind spots of the directional/forward
-            // obstacle scanner so the MPC actually sees ships approaching from the side.
+            // Other ships from the 360° ship scanner — covers blind spots of the forward obstacle
+            // scanner so the MPC actually sees ships approaching from the side.
             if (shipScanner == null || Registry == null) return;
             {
                 var scan = shipScanner.LastResult;
@@ -111,7 +105,9 @@ namespace AI.Scanning
 
         public ObstacleScan ObstacleScan => new(mergedObstacles, mergedObstacleCount);
         public ShipScanResult? ShipScan => shipScanner?.LastResult;
-        public bool HasNearbyCover => coverScanner?.HasCover ?? false;
+        /// <summary>Cached per-tick contact summary (nearest enemy + force balance).</summary>
+        public ContactSummary Contacts { get; private set; } = ContactSummary.Empty;
+        public bool HasNearbyCover { get; private set; }
 
         public void SetObstacleExclusion(Transform root) => obstacleScanner?.SetExcludeRoot(root);
         public void ClearObstacleExclusion() => obstacleScanner?.ClearExcludeRoot();

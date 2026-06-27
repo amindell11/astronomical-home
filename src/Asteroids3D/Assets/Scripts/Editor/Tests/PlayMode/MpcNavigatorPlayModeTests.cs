@@ -20,7 +20,7 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
 {
     private Ship ship;
     private AICommander cmdr;
-    private MpcNavigator mpc;
+    private Navigator mpc;
 
     private const float YawTimeoutSec  = 8f;
     private const float NavTimeoutSec  = 20f;
@@ -33,7 +33,7 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
 #if UNITY_EDITOR
         ship = ShipTestFactory.CreateDefaultShip(useMpcPilot: true);
         cmdr = ship.Commander as AICommander;
-        mpc  = cmdr.Navigator as MpcNavigator;
+        mpc  = cmdr.Navigator as Navigator;
 
         // Navigator.Initialize() is gated on registry != null — supply a stub so all
         // AI systems (Scout, Navigator, Gunner) are fully initialized before tests run.
@@ -168,7 +168,7 @@ public class MpcEnemyProjectionPlayModeTests : PlayModeWorldFixture
 {
     private Ship ship;
     private AICommander cmdr;
-    private MpcNavigator mpc;
+    private Navigator mpc;
 
     private const float FacingTimeoutSec = 8f;
 
@@ -180,7 +180,7 @@ public class MpcEnemyProjectionPlayModeTests : PlayModeWorldFixture
 #if UNITY_EDITOR
         ship = ShipTestFactory.CreateDefaultShip(useMpcPilot: true);
         cmdr = ship.Commander as AICommander;
-        mpc  = cmdr.Navigator as MpcNavigator;
+        mpc  = cmdr.Navigator as Navigator;
 
         cmdr.SetRegistry(new StubShipRegistry());
         cmdr.UtilitySelector.enabled = false;

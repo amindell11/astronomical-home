@@ -1,30 +1,35 @@
 #if UNITY_EDITOR
+using AI.Context;
 using Game;
 using UnityEngine;
-using Info = AI.Context.Info;
 
 namespace AI.States
 {
     public partial class AIState
     {
-        public override void OnDrawGizmos(Info ctx)
+        public void OnDrawGizmos(AIContext ctx)
         {
-            base.OnDrawGizmos(ctx);
             if (ctx == null) return;
 
             var goal = Profile.goal;
-            if (goal is RandomWaypointGoal)
-                DrawPatrolGizmos(ctx);
-            else if (goal is FleeEnemyGoal)
-                DrawEvadeGizmos(ctx);
-            else if (goal is TrackEnemyGoal)
-                DrawCombatGizmos(ctx);
+            switch (goal)
+            {
+                case RandomWaypointGoal:
+                    DrawPatrolGizmos(ctx);
+                    break;
+                case FleeEnemyGoal:
+                    DrawEvadeGizmos(ctx);
+                    break;
+                case TrackEnemyGoal:
+                    DrawCombatGizmos(ctx);
+                    break;
+            }
         }
 
-        private void DrawPatrolGizmos(Info ctx)
+        private void DrawPatrolGizmos(AIContext ctx)
         {
             var patrol = (RandomWaypointGoal)Profile.goal;
-            var position = ctx.ShipInfo.Pos3D;
+            var position = ctx.Self.Pos3D;
 
             Gizmos.color = new Color(0f, 1f, 0f, 0.1f);
             Gizmos.DrawWireSphere(position, patrol.patrolRadius);
@@ -40,7 +45,7 @@ namespace AI.States
                 Gizmos.DrawWireSphere(currentTargetWorld, patrol.arriveRadius);
                 Gizmos.DrawWireCube(currentTargetWorld, Vector3.one * 0.5f);
 
-                var distToTarget = Vector2.Distance(ctx.ShipInfo.Pos, patrolTarget);
+                var distToTarget = Vector2.Distance(ctx.Self.Pos, patrolTarget);
                 UnityEditor.Handles.color = Color.green;
                 UnityEditor.Handles.Label(currentTargetWorld + Vector3.up, $"Patrol Target\n{distToTarget:F1}m");
             }
@@ -51,9 +56,9 @@ namespace AI.States
             UnityEditor.Handles.Label(position + Vector3.up * 4f, info);
         }
 
-        private void DrawEvadeGizmos(Info ctx)
+        private void DrawEvadeGizmos(AIContext ctx)
         {
-            var selfPos = ctx.ShipInfo.Pos3D;
+            var selfPos = ctx.Self.Pos3D;
             var combat = ctx.Combat;
 
             if (combat.HasEnemy)
@@ -66,7 +71,7 @@ namespace AI.States
                 Gizmos.color = new Color(1f, 0.2f, 0.2f, 0.5f);
                 Gizmos.DrawWireSphere(enemyPos3D, 1f);
 
-                var fleeDir = -(combat.EnemyPos - ctx.ShipInfo.Pos).normalized;
+                var fleeDir = -(combat.EnemyPos - ctx.Self.Pos).normalized;
                 var fleeDir3D = new Vector3(fleeDir.x, fleeDir.y, 0);
 
                 Gizmos.color = Color.green;
@@ -89,9 +94,9 @@ namespace AI.States
             }
         }
 
-        private void DrawCombatGizmos(Info ctx)
+        private void DrawCombatGizmos(AIContext ctx)
         {
-            var position = ctx.ShipInfo.Pos3D;
+            var position = ctx.Self.Pos3D;
             var combat = ctx.Combat;
 
             if (!combat.HasEnemy) return;

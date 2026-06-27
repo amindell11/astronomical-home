@@ -1,34 +1,19 @@
 using Ships;
 using UnityEngine;
-using TargetingUtils = Combat.TargetingUtils;
 
 namespace AI.Context
 {
-    public class CombatTracker
+    public class CombatStatus
     {
         private readonly Scanning.Scout scout;
-        private readonly Gunner gunner;
-        private readonly TargetingUtils targeting;
-        private readonly ShipId selfId;
-        private readonly IShipRegistry registry;
         private readonly float combatExitDelay;
 
         private Ship cachedEnemy;
         private float lastContactTime = -1f;
 
-        public CombatTracker(
-            Scanning.Scout scout,
-            Gunner gunner,
-            TargetingUtils targeting,
-            ShipId selfId,
-            IShipRegistry registry,
-            float combatExitDelay)
+        public CombatStatus(Scanning.Scout scout, float combatExitDelay)
         {
             this.scout = scout;
-            this.gunner = gunner;
-            this.targeting = targeting;
-            this.selfId = selfId;
-            this.registry = registry;
             this.combatExitDelay = combatExitDelay;
         }
 
@@ -45,10 +30,6 @@ namespace AI.Context
         public float EnemyHealthPct => HasEnemy ? cachedEnemy.CurrentState.healthPct : 0f;
         public float EnemyShieldPct => HasEnemy ? cachedEnemy.CurrentState.shieldPct : 0f;
 
-        public Vector2 VectorToTarget => gunner?.VectorToTarget ?? Vector2.zero;
-        public bool HasTargetLos => gunner?.HasTargetLos ?? false;
-        public float AngleToTarget => gunner?.AngleToTarget ?? 0f;
-        public float LaserSpeed => gunner?.PrimaryProjectileSpeed ?? 0f;
         public bool IncomingMissile => false; // TODO
 
         public void Update()
@@ -72,14 +53,9 @@ namespace AI.Context
 
         private void AcquireEnemy()
         {
-            if (registry == null || !registry.TryGetShip(selfId, out var selfShip))
-                return;
-
-            var scan = scout.ShipScan;
-            if (scan == null) return;
-
-            var enemyId = scan.Value.NearestEnemy(selfId, selfShip.transform.position, registry);
-            if (enemyId.IsValid && registry.TryGetShip(enemyId, out var enemy))
+            var registry = scout.Registry;
+            var enemyId = scout.Contacts.NearestEnemyId;
+            if (enemyId.IsValid && registry != null && registry.TryGetShip(enemyId, out var enemy))
                 cachedEnemy = enemy;
         }
     }

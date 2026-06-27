@@ -15,7 +15,7 @@ namespace AI
         private TargetingUtils targetingUtils;
         private WeaponComponent primaryWeapon;
         private WeaponComponent secondaryWeapon;
-        protected Command currentCommand;
+        private Command currentCommand;
         public Command CurrentCommand => currentCommand;
 
         public Vector3 Target { get; private set; }
@@ -47,14 +47,14 @@ namespace AI
             primaryWeapon = primary;
             secondaryWeapon = secondary;
         }
-        private void FixedUpdate(){
-            if(getState !=null) {
-                currentCommand = default;
-                GenerateGunnerCommands(getState(), ref currentCommand);
-            }
+        private void FixedUpdate()
+        {
+            if (getState == null) return;
+            currentCommand = default;
+            GenerateGunnerCommands(getState(), ref currentCommand);
         }
 
-        protected void GenerateGunnerCommands(State state, ref Command cmd)
+        private void GenerateGunnerCommands(State state, ref Command cmd)
         {
             if (!HasTarget) return;
 

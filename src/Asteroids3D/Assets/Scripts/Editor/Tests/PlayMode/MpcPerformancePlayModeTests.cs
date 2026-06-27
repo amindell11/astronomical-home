@@ -21,7 +21,7 @@ public class MpcPerformancePlayModeTests : PlayModeWorldFixture
     private const float SpawnRadius = 18f;
 
     private readonly Ship[] ships = new Ship[ShipCount];
-    private readonly MpcNavigator[] navigators = new MpcNavigator[ShipCount];
+    private readonly Navigator[] navigators = new Navigator[ShipCount];
     private readonly Vector3[] startPositions = new Vector3[ShipCount];
 
     [SetUp]
@@ -45,8 +45,8 @@ public class MpcPerformancePlayModeTests : PlayModeWorldFixture
             cmdr.SetRegistry(new StubShipRegistry());
             cmdr.UtilitySelector.enabled = false;
 
-            var navigator = cmdr.Navigator as MpcNavigator;
-            Assert.That(navigator, Is.Not.Null, $"Ship {i} navigator should be an MpcNavigator");
+            var navigator = cmdr.Navigator as Navigator;
+            Assert.That(navigator, Is.Not.Null, $"Ship {i} navigator should be a Navigator");
 
             navigator.SetNavigationPoint(targetPos);
 

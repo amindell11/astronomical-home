@@ -1,4 +1,4 @@
-#if UNITY_EDITOR || DEBUG
+#if UNITY_EDITOR
 using System;
 using System.IO;
 using System.Text;
@@ -40,8 +40,8 @@ namespace AI.Debug
         private int tickCounter;
         private int entriesBuffered;
         private bool pendingTransition;
-        private State transitionFrom;
-        private State transitionTo;
+        private AIState transitionFrom;
+        private AIState transitionTo;
         private float sessionStartTime;
 
         private void Start()
@@ -102,7 +102,7 @@ namespace AI.Debug
             pendingTransition = false;
         }
 
-        private void OnTransition(State from, State to)
+        private void OnTransition(AIState from, AIState to)
         {
             pendingTransition = true;
             transitionFrom = from;

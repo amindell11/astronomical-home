@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-using System.Linq;
 using Game;
-using Sensors;
 using UnityEngine;
 
 namespace AI.Scanning
@@ -45,49 +42,56 @@ namespace AI.Scanning
         public static implicit operator ObstacleScan((DetectedObstacle[] buffer, int count) tuple) => new ObstacleScan(tuple.buffer, tuple.count);
     }
 
-    public partial class ObstacleScanner
+    /// <summary>
+    /// Detects obstacles within a single OverlapSphere whose radius expands with speed,
+    /// letting the MPC handle relevance through its cost function.
+    /// </summary>
+    public class ObstacleScanner
     {
         private static readonly Collider[] ScratchBuffer = new Collider[128];
-        
-        protected readonly Transform origin;
-        protected readonly LayerMask obstacleMask;
-        protected readonly GameObject selfRoot;
-        protected Transform excludeRoot;
+
+        private readonly Transform origin;
+        private readonly LayerMask obstacleMask;
+        private readonly GameObject selfRoot;
+        private Transform excludeRoot;
 
         public DetectedObstacle[] DetectedBuffer { get; }
-        public int DetectedCount { get; protected set; }
-        public IEnumerable<DetectedObstacle> Detected => DetectedBuffer.Take(DetectedCount);
+        public int DetectedCount { get; private set; }
 
-        public virtual void Scan(Vector2 vel, float maxSpeed) { }
+        /// <summary>Effective radius used in the last scan.</summary>
+        public float Radius { get; private set; }
 
-        public void SetExcludeRoot(Transform root) => excludeRoot = root;
-        public void ClearExcludeRoot() => excludeRoot = null;
+        /// <summary>Lookahead time in seconds.</summary>
+        public float LookaheadTime { get; set; }
 
-        protected ObstacleScanner(Transform origin, LayerMask obstacleMask, int bufferSize = 64)
+        /// <summary>Max acceleration magnitude (m/s²). Used to extend detection range.</summary>
+        public float MaxAccel { get; set; }
+
+        public ObstacleScanner(Transform origin, LayerMask obstacleMask, float lookaheadTime = 2f, int bufferSize = 64)
         {
             this.origin = origin;
             this.obstacleMask = obstacleMask;
             selfRoot = origin.gameObject;
+            LookaheadTime = lookaheadTime;
             DetectedBuffer = new DetectedObstacle[bufferSize];
             DetectedCount = 0;
         }
 
-        protected void Scan(Vector2 scanDir, float dist, float spreadAngle, float degreesBetweenRays, float sphereRadius)
+        public void SetExcludeRoot(Transform root) => excludeRoot = root;
+        public void ClearExcludeRoot() => excludeRoot = null;
+
+        /// <summary>
+        /// Scan for obstacles. Radius covers the distance reachable within
+        /// the lookahead time from current speed plus max-acceleration contribution.
+        /// </summary>
+        public void Scan(Vector2 vel, float maxSpeed)
         {
-            System.Array.Clear(ScratchBuffer, 0, ScratchBuffer.Length);
-            
-            var direction = GamePlane.PlaneDirToWorld(scanDir).normalized;
-            RecordDebugParams(direction, dist, spreadAngle, degreesBetweenRays, sphereRadius);
-            
-            var count = RayFanSensor.Detect(origin.position, 
-                direction, 
-                dist, 
-                spreadAngle, 
-                degreesBetweenRays, 
-                sphereRadius, 
-                obstacleMask, 
-                ScratchBuffer);
-            
+            var t = LookaheadTime;
+            Radius = vel.magnitude * t + 0.5f * MaxAccel * t * t;
+            var count = Physics.OverlapSphereNonAlloc(
+                origin.position, Radius, ScratchBuffer, obstacleMask,
+                QueryTriggerInteraction.Ignore);
+
             DetectedCount = 0;
             for (var i = 0; i < count && DetectedCount < DetectedBuffer.Length; i++)
             {
@@ -97,8 +101,5 @@ namespace AI.Scanning
                     DetectedBuffer[DetectedCount++] = new DetectedObstacle(col);
             }
         }
-        
-        partial void RecordDebugParams(Vector3 direction, float dist, float spreadAngle, float degreesBetweenRays, float sphereRadius);
     }
 }
-
