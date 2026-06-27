@@ -11,18 +11,24 @@ namespace Movement.MPC
         {
             var ctx = EvalContext.Create(s, input, cfg, step);
 
+            var profileScale = cfg.maxBankAngleRad > 0f
+                ? math.cos(math.abs(u.strafe) * cfg.maxBankAngleRad)
+                : 1f;
+
             var breakdown = new CostBreakdown
             {
-                pos = (ctx.hasNavTarget
-                    ? PositionCost(s.pos, ctx.posCostTarget)
-                    : GoalCost(s.pos, ctx.goalPos, cfg)) * cfg.wPos,
-                vel = ctx.isFlee ? 0f : VelocityCost(s.vel) * ctx.wVel,
-                heading = HeadingCost(s.pos, s.yaw, ctx.headingGoal) * ctx.wYaw,
+                pos = PositionalGoalCost(s.pos, ctx, cfg) * cfg.wPos,
+                vel = VelocityCost(s.vel, cfg.maxSpeedSq) * ctx.wVel,
+                closing = ctx.wClosing == 0f ? 0f
+                    : ClosingCost(s.pos, s.vel, ctx.posCostTarget, cfg.maxSpeedSq, cfg.closingFadeDistance) * ctx.wClosing,
+                heading = HeadingCost(s.pos, s.yaw, ctx.headingGoal, cfg.wYawDistanceScale) * ctx.wYaw,
                 facing = FacingCost(s.yaw, ctx.facingTarget, cfg.facingWidth) * cfg.wFacing,
-                yawRate = YawRateCost(s.yawRate) * cfg.wYawRate,
+                yawRate = YawRateCost(s.yawRate, cfg.maxYawRateSq) * cfg.wYawRate,
                 obstacle = (cfg.wObstacle > 0f && input.obstacleCount > 0)
-                    ? ObstacleCost(s.pos, input.obstacles, input.obstacleCount,
-                        cfg.obstacleThreshold + math.length(s.vel) * cfg.obstacleSpeedMargin) * cfg.wObstacle
+                    ? ObstacleCost(s.pos, s.vel, input.obstacles, input.obstacleCount,
+                        (cfg.obstacleThreshold + math.length(s.vel) * cfg.obstacleSpeedMargin) * profileScale,
+                        cfg.obstacleFalloffCurve,
+                        cfg.obstacleClosingScale, cfg.obstacleClosingHalfSpeed) * cfg.wObstacle
                     : 0f,
                 los = (ctx.hasEnemy && cfg.wLos > 0f && input.obstacleCount > 0)
                     ? LosCost(s.pos, ctx.goalPos, input.obstacles, input.obstacleCount) * cfg.wLos
@@ -33,6 +39,10 @@ namespace Movement.MPC
                 tangential = (ctx.hasEnemy && cfg.wTangential > 0f)
                     ? TangentialVelocityCost(s.pos, s.vel, ctx.goalPos) * cfg.wTangential
                     : 0f,
+                missDistance = (ctx.hasEnemy && cfg.wMissDistance > 0f && input.projectileSpeed > 0f)
+                    ? MissDistanceCost(s.pos, s.vel, ctx.goalPos, input.projectileSpeed,
+                        profileScale) * cfg.wMissDistance
+                    : 0f,
                 momentum = cfg.wMomentum > 0f
                     ? MomentumCost(s.vel, input.initialVel) * cfg.wMomentum
                     : 0f,
@@ -41,13 +51,17 @@ namespace Movement.MPC
                 smoothness = SmoothnessCost(u, prevU, cfg)
             };
 
-            var positionalCost = breakdown.pos + breakdown.vel + breakdown.heading +
+            var positionalCost = breakdown.pos + breakdown.vel + breakdown.closing + breakdown.heading +
                                 breakdown.yawRate + breakdown.obstacle + breakdown.momentum;
-            var tacticalCost = breakdown.facing + breakdown.los + breakdown.exposure + breakdown.tangential;
+            var tacticalCost = breakdown.facing + breakdown.los + breakdown.exposure + breakdown.tangential + breakdown.missDistance;
             var total = positionalCost + tacticalCost + breakdown.effort + breakdown.boostEffort + breakdown.smoothness;
 
-            if (isTerminal)
-                total += cfg.terminalMultiplier * (positionalCost + tacticalCost);
+            if (cfg.terminalMultiplier > 0f && cfg.horizon > 1)
+            {
+                var t = step / (float)(cfg.horizon - 1);
+                var ramp = Unity.Mathematics.math.pow(t, cfg.terminalCurve) * cfg.terminalMultiplier;
+                total += ramp * (positionalCost + tacticalCost);
+            }
 
             breakdown.total = total;
             return breakdown;

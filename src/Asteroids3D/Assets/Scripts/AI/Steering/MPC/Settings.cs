@@ -18,20 +18,50 @@ namespace Movement.MPC
         [Range(0.01f, 0.5f)]
         public float eliteFraction = 0.1f;
 
+        [Header("Adaptive Timestep")]
+        [Tooltip("Max dt scale factor. 0 = disabled. In Flee: scales by closing speed. " +
+                 "Otherwise: scales by distance to goal. dt is multiplied by up to (1 + this value).")]
+        public float adaptiveDtScale = 0f;
+        [Tooltip("Reference distance for distance-based dt scaling (non-Flee modes). " +
+                 "At this distance, dt scale is at maximum.")]
+        public float adaptiveDtRefDistance = 50f;
+
         [Header("Navigation")]
         [Tooltip("Position cost weight. Drives the ship toward the goal (Waypoint mode), " +
                  "into the range band (MaintainRange), or away from the target (Flee).")]
         public float wPos = 1.0f;
         [Tooltip("Velocity cost weight. Penalizes residual speed; scaled up near the goal for clean stops.")]
         public float wVel = 0.5f;
+        [Tooltip("Closing velocity reward weight. Rewards velocity component pointing at the goal " +
+                 "(Lyapunov-style gradient). Provides a continuous escape signal from spinning local " +
+                 "optima. Smoothstep-gated to zero within closingFadeDistance so it doesn't fight arrival.")]
+        public float wClosing = 1f;
+        [Tooltip("Distance below which the closing-velocity reward fades smoothly to zero. " +
+                 "Lets the velocity-damping arrival logic take over near the goal without overshooting.")]
+        public float closingFadeDistance = 10f;
         [Tooltip("Heading cost weight. Aligns the ship's nose toward the goal when no facing override is set. " +
                  "Disabled when a facing override is active.")]
         public float wYaw = 0.5f;
+        [Tooltip("Distance scaling for heading cost: heading_cost *= 1 + wYawDistanceScale * dist. " +
+                 "Keeps the heading signal visible against position cost at long range (matches " +
+                 "∂PositionCost/∂heading for positionCurve=2). 0 = current behavior, 1 = full physical scaling.")]
+        public float wYawDistanceScale = 1f;
         [Tooltip("Yaw rate cost weight. Penalizes spinning; keeps rotations smooth.")]
         public float wYawRate = 0.1f;
-        [Tooltip("Multiplier applied to state costs at the final rollout step. " +
-                 "Encourages the solver to reach a good terminal state.")]
+        [Tooltip("Position cost distance exponent. 2 = quadratic (default), 1 = linear, 1.5 = compromise. " +
+                 "Lower values keep facing/heading costs relevant at long range.")]
+        public float positionCurve = 2f;
+        [Tooltip("Distance at which position cost half-saturates (Lorentzian cap). 0 = no cap (current behavior). " +
+                 "Past this distance, position cost flattens toward an asymptote — preventing far-distance " +
+                 "position cost from drowning out heading/closing/yaw signals. Closing-velocity reward " +
+                 "provides the urgency that quadratic position cost used to.")]
+        public float positionSaturationDistance = 35f;
+        [Tooltip("Peak multiplier for state costs at the end of the horizon. " +
+                 "Ramps up from 0 at step 0 to this value at the final step, shaped by terminalCurve.")]
         public float terminalMultiplier = 10f;
+        [Tooltip("Exponent shaping the terminal ramp. 1 = linear, >1 = late ramp (convex), <1 = early ramp (concave). " +
+                 "High values approximate the old step-function behavior.")]
+        public float terminalCurve = 1f;
 
         [Header("Control")]
         [Tooltip("Effort cost weight. Penalizes large control inputs (thrust, strafe, yaw torque).")]
@@ -67,6 +97,9 @@ namespace Movement.MPC
         public float exposureWidth = 0.5f;
         [Tooltip("Tangential velocity cost weight. Rewards lateral movement relative to enemy, making the ship harder to track.")]
         public float wTangential = 1f;
+        [Tooltip("Miss distance cost weight. Penalizes being easy to hit by computing how far a projectile would miss " +
+                 "given the ship's lateral velocity and range. Naturally captures speed, evasive movement, and distance.")]
+        public float wMissDistance = 0f;
 
         [Header("Obstacle Avoidance")]
         [Tooltip("Obstacle avoidance weight. Inverse-distance cost near obstacles; higher = wider berth.")]
@@ -76,6 +109,14 @@ namespace Movement.MPC
         public float obstacleThreshold = 5.0f;
         [Tooltip("Extra clearance added per unit speed. effectiveThreshold = obstacleThreshold + speed * this value.")]
         public float obstacleSpeedMargin = 0.3f;
+        [Tooltip("Obstacle cost falloff exponent. Higher = cost concentrated near surface, lower = spreads further out. 2 = inverse-square (default).")]
+        public float obstacleFalloffCurve = 2f;
+        [Tooltip("Peak extra multiplier applied to per-obstacle cost when ship is closing on it at high speed. " +
+                 "0 = disabled. Multiplier saturates: cost *= 1 + scale * v / (v + halfSpeed), where v is closing speed.")]
+        public float obstacleClosingScale = 1f;
+        [Tooltip("Closing speed at which the closing-scale multiplier reaches half its peak. " +
+                 "Lower = ramps up faster with closing speed. Ignored when obstacleClosingScale = 0.")]
+        public float obstacleClosingHalfSpeed = 5f;
 
         [Header("Arrival Stabilization")]
         [Tooltip("Distance to goal at which arrival stabilization begins ramping up.")]
@@ -107,9 +148,15 @@ namespace Movement.MPC
                 // Navigation
                 wPos = wPos,
                 wVel = wVel,
+                wClosing = wClosing,
+                closingFadeDistance = closingFadeDistance,
                 wYaw = wYaw,
+                wYawDistanceScale = wYawDistanceScale,
                 wYawRate = wYawRate,
+                positionCurve = positionCurve,
+                positionSaturationDistance = positionSaturationDistance,
                 terminalMultiplier = terminalMultiplier,
+                terminalCurve = terminalCurve,
                 // Control
                 wEffort = wEffort,
                 wSmoothnessThrust = wSmoothnessThrust,
@@ -125,10 +172,14 @@ namespace Movement.MPC
                 wExposure = wExposure,
                 exposureWidth = exposureWidth,
                 wTangential = wTangential,
+                wMissDistance = wMissDistance,
                 // Obstacle
                 wObstacle = wObstacle,
                 obstacleThreshold = obstacleThreshold,
                 obstacleSpeedMargin = obstacleSpeedMargin,
+                obstacleFalloffCurve = obstacleFalloffCurve,
+                obstacleClosingScale = obstacleClosingScale,
+                obstacleClosingHalfSpeed = obstacleClosingHalfSpeed,
                 // Arrival
                 arrivalDistance = arrivalDistance,
                 arrivalDistanceSq = arrivalDistance * arrivalDistance,

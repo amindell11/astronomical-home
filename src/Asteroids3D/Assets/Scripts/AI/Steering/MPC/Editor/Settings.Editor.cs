@@ -7,28 +7,122 @@ namespace Movement.MPC
     [CustomEditor(typeof(Settings))]
     public class SettingsEditor : Editor
     {
+        // Fields after which to insert curve previews
+        private static readonly string[] CurveAfter =
+        {
+            "terminalCurve",
+            "facingWidth",
+            "exposureWidth",
+            "obstacleFalloffCurve",
+            "relaxCurve",
+        };
+
         public override void OnInspectorGUI()
         {
-            base.OnInspectorGUI();
-
+            serializedObject.Update();
             var settings = (Settings)target;
 
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Cost Curve Previews", EditorStyles.boldLabel);
+            var prop = serializedObject.GetIterator();
+            prop.NextVisible(true); // skip m_Script
 
-            DrawFacingCurve("Facing Cost", settings.facingWidth);
-            DrawExposureCurve("Exposure Cost", settings.exposureWidth);
-            DrawRelaxCurve("Relaxation", settings.relaxMin, settings.relaxMax, settings.relaxCurve);
+            while (prop.NextVisible(false))
+            {
+                EditorGUILayout.PropertyField(prop, true);
+
+                switch (prop.name)
+                {
+                    case "positionCurve":
+                        DrawPositionCurve(settings.positionCurve, settings.positionSaturationDistance);
+                        break;
+                    case "terminalCurve":
+                        DrawTerminalRampCurve(settings.terminalMultiplier, settings.terminalCurve, settings.Horizon);
+                        break;
+                    case "facingWidth":
+                        DrawFacingCurve(settings.facingWidth);
+                        break;
+                    case "exposureWidth":
+                        DrawExposureCurve(settings.exposureWidth);
+                        break;
+                    case "obstacleFalloffCurve":
+                        DrawObstacleFalloffCurve(settings.obstacleFalloffCurve);
+                        break;
+                    case "relaxCurve":
+                        DrawRelaxCurve(settings.relaxMin, settings.relaxMax, settings.relaxCurve);
+                        break;
+                }
+            }
+
+            serializedObject.ApplyModifiedProperties();
         }
 
-        /// <summary>
-        /// Facing cost: Huber loss over [-π, π], symmetric around 0.
-        /// Quadratic within ±width, linear beyond.
-        /// </summary>
-        internal static void DrawFacingCurve(string label, float width)
+        internal static void DrawPositionCurve(float curve, float satDistance)
         {
-            EditorGUILayout.LabelField($"{label}  —  Huber(err, width={width:F2})");
+            var animCurve = new AnimationCurve();
+            const int steps = 64;
+            var maxDist = satDistance > 0f ? Mathf.Max(50f, satDistance * 2.5f) : 50f;
+            var maxCost = satDistance > 0f ? 1f : Mathf.Pow(maxDist, curve);
+            var satMax = satDistance > 0f ? Mathf.Pow(satDistance, curve) : 0f;
 
+            for (var i = 0; i <= steps; i++)
+            {
+                var dist = maxDist * i / steps;
+                var raw = Mathf.Pow(dist, curve);
+                var cost = satDistance > 0f ? raw / (raw + satMax) : raw;
+                animCurve.AddKey(new Keyframe(dist, cost) { weightedMode = WeightedMode.None });
+            }
+
+            EditorGUI.BeginDisabledGroup(true);
+            EditorGUILayout.CurveField(animCurve, Color.green,
+                new Rect(0, 0, maxDist, maxCost),
+                GUILayout.Height(50));
+            EditorGUI.EndDisabledGroup();
+        }
+
+        internal static void DrawTerminalRampCurve(float multiplier, float curve, int horizon)
+        {
+            var animCurve = new AnimationCurve();
+            var steps = Mathf.Max(horizon, 2);
+
+            for (var i = 0; i < steps; i++)
+            {
+                var t = i / (float)(steps - 1);
+                var ramp = Mathf.Pow(t, curve) * multiplier;
+                animCurve.AddKey(new Keyframe(i, 1f + ramp) { weightedMode = WeightedMode.None });
+            }
+
+            EditorGUI.BeginDisabledGroup(true);
+            EditorGUILayout.CurveField(animCurve, Color.yellow,
+                new Rect(0, 0, steps - 1, 1f + multiplier),
+                GUILayout.Height(50));
+            EditorGUI.EndDisabledGroup();
+        }
+
+        internal static void DrawObstacleFalloffCurve(float curve)
+        {
+            var animCurve = new AnimationCurve();
+            const int steps = 64;
+            const float epsSq = 0.0001f;
+            var halfCurve = curve * 0.5f;
+
+            var refCost = 1f / Mathf.Pow(0.25f + epsSq, halfCurve);
+
+            for (var i = 0; i <= steps; i++)
+            {
+                var norm = (float)i / steps;
+                var normSq = norm * norm;
+                var cost = 1f / Mathf.Pow(normSq + epsSq, halfCurve);
+                animCurve.AddKey(new Keyframe(norm, cost / refCost) { weightedMode = WeightedMode.None });
+            }
+
+            EditorGUI.BeginDisabledGroup(true);
+            EditorGUILayout.CurveField(animCurve, Color.red,
+                new Rect(0, 0, 1f, 5f),
+                GUILayout.Height(50));
+            EditorGUI.EndDisabledGroup();
+        }
+
+        internal static void DrawFacingCurve(float width)
+        {
             var curve = new AnimationCurve();
             const int steps = 64;
             var maxInput = Mathf.PI;
@@ -47,18 +141,12 @@ namespace Movement.MPC
             EditorGUI.BeginDisabledGroup(true);
             EditorGUILayout.CurveField(curve, Color.cyan,
                 new Rect(-maxInput, 0, 2f * maxInput, maxCost),
-                GUILayout.Height(60));
+                GUILayout.Height(50));
             EditorGUI.EndDisabledGroup();
         }
 
-        /// <summary>
-        /// Exposure cost: exp(-(angle/width)²) over angle [-π, π].
-        /// Bell curve centered on enemy's nose (angle=0).
-        /// </summary>
-        internal static void DrawExposureCurve(string label, float width)
+        internal static void DrawExposureCurve(float width)
         {
-            EditorGUILayout.LabelField($"{label}  —  exp(-(angle/{width:F2})²)");
-
             var curve = new AnimationCurve();
             const int steps = 64;
             var maxAngle = Mathf.PI;
@@ -76,20 +164,15 @@ namespace Movement.MPC
             EditorGUI.BeginDisabledGroup(true);
             EditorGUILayout.CurveField(curve, Color.cyan,
                 new Rect(-maxAngle, 0, 2f * maxAngle, 1f),
-                GUILayout.Height(60));
+                GUILayout.Height(50));
             EditorGUI.EndDisabledGroup();
         }
-        /// <summary>
-        /// Relaxation ramp: urgency = pow((cost - min) / (max - min), curve), clamped [0, 1].
-        /// </summary>
-        internal static void DrawRelaxCurve(string label, float min, float max, float curve)
-        {
-            EditorGUILayout.LabelField($"{label}  —  pow((cost - {min:F2}) / ({max:F2} - {min:F2}), {curve:F2})");
 
+        internal static void DrawRelaxCurve(float min, float max, float curve)
+        {
             var animCurve = new AnimationCurve();
             const int steps = 64;
             var range = Mathf.Max(max - min, 1e-4f);
-            // Show a bit beyond relaxMax so the plateau is visible
             var maxCost = max * 1.25f;
 
             for (var i = 0; i <= steps; i++)
@@ -104,7 +187,7 @@ namespace Movement.MPC
             EditorGUI.BeginDisabledGroup(true);
             EditorGUILayout.CurveField(animCurve, Color.green,
                 new Rect(0, 0, maxCost, 1f),
-                GUILayout.Height(60));
+                GUILayout.Height(50));
             EditorGUI.EndDisabledGroup();
         }
     }

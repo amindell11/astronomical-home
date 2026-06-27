@@ -7,6 +7,7 @@ namespace Movement.MPC
     {
         public float pos;
         public float vel;
+        public float closing;
         public float heading;
         public float facing;
         public float yawRate;
@@ -14,6 +15,7 @@ namespace Movement.MPC
         public float los;
         public float exposure;
         public float tangential;
+        public float missDistance;
         public float momentum;
         public float effort;
         public float boostEffort;
@@ -24,6 +26,7 @@ namespace Movement.MPC
         {
             pos += other.pos;
             vel += other.vel;
+            closing += other.closing;
             heading += other.heading;
             facing += other.facing;
             yawRate += other.yawRate;
@@ -31,6 +34,7 @@ namespace Movement.MPC
             los += other.los;
             exposure += other.exposure;
             tangential += other.tangential;
+            missDistance += other.missDistance;
             momentum += other.momentum;
             effort += other.effort;
             boostEffort += other.boostEffort;

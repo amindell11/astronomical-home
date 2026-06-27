@@ -39,9 +39,15 @@ namespace Movement.MPC
         // Navigation
         public float wPos;
         public float wVel;
+        public float wClosing;
+        public float closingFadeDistance;
         public float wYaw;
+        public float wYawDistanceScale;
         public float wYawRate;
+        public float positionCurve;
+        public float positionSaturationDistance;
         public float terminalMultiplier;
+        public float terminalCurve;
 
         // Control
         public float wEffort;
@@ -58,11 +64,15 @@ namespace Movement.MPC
         public float wExposure;
         public float exposureWidth;
         public float wTangential;
+        public float wMissDistance;
 
         // Obstacle
         public float wObstacle;
         public float obstacleThreshold;
         public float obstacleSpeedMargin;
+        public float obstacleFalloffCurve;
+        public float obstacleClosingScale;
+        public float obstacleClosingHalfSpeed;
 
         // Arrival
         public float arrivalDistance;
@@ -72,6 +82,11 @@ namespace Movement.MPC
 
         // Boost
         public float wBoostEffort;
+
+        // Ship geometry / dynamics (for cost normalization)
+        public float maxBankAngleRad;
+        public float maxSpeedSq;
+        public float maxYawRateSq;
 
         // Goal
         public GoalMode goalMode;
@@ -107,6 +122,7 @@ namespace Movement.MPC
         public float exposure;
         public float exposureWidth;
         public float tangential;
+        public float missDistance;
 
         // Obstacle
         public float obstacle;
@@ -118,7 +134,7 @@ namespace Movement.MPC
         {
             pos = 1f, vel = 1f, yaw = 1f, yawRate = 1f,
             effort = 1f, smoothnessThrust = 1f, smoothnessStrafe = 1f, smoothnessYaw = 1f, momentum = 1f,
-            facing = 1f, facingWidth = 1f, los = 1f, exposure = 1f, exposureWidth = 1f, tangential = 1f,
+            facing = 1f, facingWidth = 1f, los = 1f, exposure = 1f, exposureWidth = 1f, tangential = 1f, missDistance = 1f,
             obstacle = 1f,
             boostEffort = 1f,
         };
@@ -143,6 +159,7 @@ namespace Movement.MPC
             cfg.wExposure *= exposure;
             cfg.exposureWidth *= exposureWidth;
             cfg.wTangential *= tangential;
+            cfg.wMissDistance *= missDistance;
             // Obstacle
             cfg.wObstacle *= obstacle;
             // Boost
