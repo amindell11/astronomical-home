@@ -8,6 +8,7 @@ using Ships.Command;
 using Movement;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Serialization;
 namespace Movement.MPC
 {
     /// <summary>
@@ -50,6 +51,7 @@ namespace Movement.MPC
         public Waypoint CurrentWaypoint => currentWaypoint;
 
         [Header("Settings")]
+        [FormerlySerializedAs("settings")]
         public MPCSettings mpcSettings;
 
         [Header("Obstacle Avoidance")]
@@ -62,6 +64,8 @@ namespace Movement.MPC
             getState = stateProvider;
             this.scout = scout;
             currentWaypoint = new Waypoint { isValid = false };
+            if (!mpcSettings)
+                mpcSettings = ScriptableObject.CreateInstance<MPCSettings>();
             mpc = new Mpc(mpcSettings, dynamics);
         }
 
