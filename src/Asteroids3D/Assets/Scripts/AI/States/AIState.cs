@@ -82,7 +82,7 @@ namespace AI.States
                 isValid = true,
                 goalMode = goal?.GoalMode ?? GoalMode.Waypoint,
                 enableFiring = Profile.enableFiring,
-                weightMultipliers = Profile.weightMultipliers,
+                weightOverrides = Profile.weightOverrides,
             };
 
             switch (goal)

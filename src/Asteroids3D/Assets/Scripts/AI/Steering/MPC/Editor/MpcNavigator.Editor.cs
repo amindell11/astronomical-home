@@ -115,7 +115,7 @@ namespace Movement.MPC
                 var facingRad = facingOverride ? facingAngle * Mathf.Deg2Rad : float.NaN;
                 var compConfig = settings.ToConfig(facingRad, gm, desiredRange, rangeTolerance);
                 compConfig.maxBankAngleRad = dynamics.maxBankAngleRad;
-                profile.weightMultipliers.Apply(ref compConfig);
+                profile.weightOverrides.Apply(ref compConfig);
 
                 var horizon = compConfig.horizon;
                 if (comparisonResults[p].sequence == null || comparisonResults[p].sequence.Length != horizon)

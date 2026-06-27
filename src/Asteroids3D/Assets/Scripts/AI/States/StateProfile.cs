@@ -247,9 +247,10 @@ namespace AI.States
         [Tooltip("Enable weapon firing in this state.")]
         public bool enableFiring;
 
-        [Header("MPC Weight Multipliers")]
-        [Tooltip("Per-state multipliers for MPC weights. 1 = use base, 0 = disable, 2 = double.")]
-        public WeightMultipliers weightMultipliers;
+        [Header("MPC Weight Overrides")]
+        [Tooltip("Sparse per-state multipliers for MPC weights. List only the weights this " +
+                 "state changes; an absent weight uses the base value (×1). 0 = disable, 2 = double.")]
+        public WeightOverride[] weightOverrides = System.Array.Empty<WeightOverride>();
 
         [Header("Availability")]
         [Tooltip("State requires an enemy to be available.")]

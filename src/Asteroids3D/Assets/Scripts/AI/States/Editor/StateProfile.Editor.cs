@@ -19,9 +19,9 @@ namespace AI.States
             iterator.NextVisible(true); // skip m_Script
             while (iterator.NextVisible(false))
             {
-                if (iterator.propertyPath == "weightMultipliers")
+                if (iterator.propertyPath == "weightOverrides")
                 {
-                    DrawWeightMultipliersWithCurves(iterator);
+                    DrawWeightOverridesWithCurves(iterator);
                 }
                 else
                 {
@@ -39,36 +39,24 @@ namespace AI.States
             serializedObject.ApplyModifiedProperties();
         }
 
-        private void DrawWeightMultipliersWithCurves(SerializedProperty prop)
+        private void DrawWeightOverridesWithCurves(SerializedProperty prop)
         {
-            prop.isExpanded = EditorGUILayout.Foldout(prop.isExpanded, prop.displayName, true);
+            EditorGUILayout.PropertyField(prop, true);
             if (!prop.isExpanded) return;
 
-            EditorGUI.indentLevel++;
-
-            var child = prop.Copy();
-            var end = prop.GetEndProperty();
-            child.NextVisible(true); // enter children
-
-            while (!SerializedProperty.EqualContents(child, end))
+            // Preview the facing/exposure cost curves for any width overrides in the list.
+            for (var i = 0; i < prop.arraySize; i++)
             {
-                EditorGUILayout.PropertyField(child, true);
+                var element = prop.GetArrayElementAtIndex(i);
+                var weight = element.FindPropertyRelative("weight");
+                var multiplier = element.FindPropertyRelative("multiplier");
+                if (weight == null || multiplier == null) continue;
 
-                if (child.name == "facingWidth")
-                {
-                    var width = ResolveEffectiveWidth(child.floatValue, true);
-                    SettingsEditor.DrawFacingCurve(width);
-                }
-                else if (child.name == "exposureWidth")
-                {
-                    var width = ResolveEffectiveWidth(child.floatValue, false);
-                    SettingsEditor.DrawExposureCurve(width);
-                }
-
-                if (!child.NextVisible(false)) break;
+                if (weight.enumValueIndex == (int)MpcWeight.FacingWidth)
+                    SettingsEditor.DrawFacingCurve(ResolveEffectiveWidth(multiplier.floatValue, true));
+                else if (weight.enumValueIndex == (int)MpcWeight.ExposureWidth)
+                    SettingsEditor.DrawExposureCurve(ResolveEffectiveWidth(multiplier.floatValue, false));
             }
-
-            EditorGUI.indentLevel--;
         }
 
         private static void DrawRangeBandCurve(float desiredRange, float tolerance)

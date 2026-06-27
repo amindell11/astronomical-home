@@ -39,7 +39,7 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
         cmdr.SetRegistry(new StubShipRegistry());
         cmdr.UtilitySelector.enabled = false;
         mpc.ClearGoalMode();
-        mpc.ClearWeightMultipliers();
+        mpc.ClearWeightOverrides();
 #else
         Assert.Ignore("MpcNavigatorPlayModeTests requires the Unity Editor (uses AssetDatabase).");
 #endif
@@ -172,7 +172,7 @@ public class MpcEnemyProjectionPlayModeTests : PlayModeWorldFixture
         cmdr.SetRegistry(new StubShipRegistry());
         cmdr.UtilitySelector.enabled = false;
         mpc.ClearGoalMode();
-        mpc.ClearWeightMultipliers();
+        mpc.ClearWeightOverrides();
 #else
         Assert.Ignore("MpcEnemyProjectionPlayModeTests requires the Unity Editor.");
 #endif

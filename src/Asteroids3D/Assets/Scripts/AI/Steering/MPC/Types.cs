@@ -95,83 +95,9 @@ namespace Movement.MPC
     }
 
     /// <summary>
-    /// Per-state weight multipliers. Each field scales the corresponding base weight
-    /// from MpcSettings. Default (1.0) = use base as-is, 0 = disable, 2 = double.
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    [System.Serializable]
-    public struct WeightMultipliers
-    {
-        // Navigation
-        public float pos;
-        public float vel;
-        public float yaw;
-        public float yawRate;
-
-        // Control
-        public float effort;
-        public float smoothnessThrust;
-        public float smoothnessStrafe;
-        public float smoothnessYaw;
-        public float momentum;
-
-        // Tactical
-        public float facing;
-        public float facingWidth;
-        public float los;
-        public float exposure;
-        public float exposureWidth;
-        public float tangential;
-        public float missDistance;
-
-        // Obstacle
-        public float obstacle;
-
-        // Boost
-        public float boostEffort;
-
-        public static WeightMultipliers Default => new WeightMultipliers
-        {
-            pos = 1f, vel = 1f, yaw = 1f, yawRate = 1f,
-            effort = 1f, smoothnessThrust = 1f, smoothnessStrafe = 1f, smoothnessYaw = 1f, momentum = 1f,
-            facing = 1f, facingWidth = 1f, los = 1f, exposure = 1f, exposureWidth = 1f, tangential = 1f, missDistance = 1f,
-            obstacle = 1f,
-            boostEffort = 1f,
-        };
-
-        public void Apply(ref Config cfg)
-        {
-            // Navigation
-            cfg.wPos *= pos;
-            cfg.wVel *= vel;
-            cfg.wYaw *= yaw;
-            cfg.wYawRate *= yawRate;
-            // Control
-            cfg.wEffort *= effort;
-            cfg.wSmoothnessThrust *= smoothnessThrust;
-            cfg.wSmoothnessStrafe *= smoothnessStrafe;
-            cfg.wSmoothnessYaw *= smoothnessYaw;
-            cfg.wMomentum *= momentum;
-            // Tactical
-            cfg.wFacing *= facing;
-            cfg.facingWidth *= facingWidth;
-            cfg.wLos *= los;
-            cfg.wExposure *= exposure;
-            cfg.exposureWidth *= exposureWidth;
-            cfg.wTangential *= tangential;
-            cfg.wMissDistance *= missDistance;
-            // Obstacle
-            cfg.wObstacle *= obstacle;
-            // Boost
-            cfg.wBoostEffort *= boostEffort;
-        }
-    }
-
-    /// <summary>
     /// Identifies a single MPC weight (or width) that a per-state override can scale.
-    /// Replaces the fixed <see cref="WeightMultipliers"/> mirror: states list only the
-    /// weights they actually change, and an absent entry means "use base as-is" (×1) —
-    /// no more all-zero serialization footgun.
+    /// States list only the weights they actually change, and an absent entry means
+    /// "use base as-is" (×1) — no all-zero serialization footgun.
     /// </summary>
     public enum MpcWeight
     {
@@ -192,9 +118,9 @@ namespace Movement.MPC
     public static class WeightOverrideExtensions
     {
         /// <summary>
-        /// Multiplies each listed weight into the config. Mirrors the per-field mapping of
-        /// the legacy <see cref="WeightMultipliers.Apply"/> exactly. Runs managed-side in
-        /// MpcNavigator.RefreshConfig (before the Burst job), so the switch is free.
+        /// Multiplies each listed weight into the config. Absent weights are left at their
+        /// base value (×1). Runs managed-side in MpcNavigator.RefreshConfig (before the
+        /// Burst job), so the switch is free.
         /// </summary>
         public static void Apply(this WeightOverride[] overrides, ref Config cfg)
         {

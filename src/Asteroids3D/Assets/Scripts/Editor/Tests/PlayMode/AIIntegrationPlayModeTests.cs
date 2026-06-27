@@ -43,7 +43,7 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
         p.goal = new TrackEnemyGoal { desiredRange = 17.5f, rangeTolerance = 12.5f };
         p.enableTacticalCosts = true;
         p.enableFiring = true;
-        p.weightMultipliers = WeightMultipliers.Default;
+        p.weightOverrides = System.Array.Empty<WeightOverride>();
         p.requiresEnemy = true;
         p.maxRange = 30f;
         p.utilityFactors = new List<UtilityFactor>
@@ -72,7 +72,7 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
         };
         p.enableTacticalCosts = false;
         p.enableFiring = false;
-        p.weightMultipliers = WeightMultipliers.Default;
+        p.weightOverrides = System.Array.Empty<WeightOverride>();
         p.requiresNoEnemy = true;
         p.utilityFactors = new List<UtilityFactor>
         {
@@ -88,7 +88,7 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
         p.goal = new FleeEnemyGoal();
         p.enableTacticalCosts = false;
         p.enableFiring = false;
-        p.weightMultipliers = WeightMultipliers.Default;
+        p.weightOverrides = System.Array.Empty<WeightOverride>();
         p.requiresEnemy = true;
         p.utilityFactors = new List<UtilityFactor>
         {

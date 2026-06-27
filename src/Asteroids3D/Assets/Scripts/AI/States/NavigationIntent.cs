@@ -33,8 +33,8 @@ namespace AI.States
         public Dynamics enemyDynamics;
         public Transform obstacleExclusion;
 
-        // MPC weight multipliers
-        public WeightMultipliers weightMultipliers;
+        // MPC weight overrides (sparse; absent weight = base ×1)
+        public WeightOverride[] weightOverrides;
 
         // Gunner
         public bool enableFiring;

@@ -33,7 +33,7 @@ namespace AI
         protected float enemyYawRate;
         protected float projectileSpeed;
         protected Dynamics enemyDynamics;
-        protected Movement.MPC.WeightMultipliers weightMultipliers = Movement.MPC.WeightMultipliers.Default;
+        protected Movement.MPC.WeightOverride[] weightOverrides = System.Array.Empty<Movement.MPC.WeightOverride>();
 
         protected Command currentCommand;
         public Command CurrentCommand => currentCommand;
@@ -102,7 +102,7 @@ namespace AI
             else
                 ClearEnemyState();
 
-            SetWeightMultipliers(intent.weightMultipliers);
+            SetWeightOverrides(intent.weightOverrides);
 
             if (intent.obstacleExclusion)
                 SetObstacleExclusion(intent.obstacleExclusion);
@@ -118,7 +118,7 @@ namespace AI
             ClearGoalMode();
             ClearEnemyState();
             ClearObstacleExclusion();
-            ClearWeightMultipliers();
+            ClearWeightOverrides();
         }
 
         // ── Low-level control surface ──
@@ -221,14 +221,14 @@ namespace AI
             enemyDynamics = default;
         }
 
-        public void SetWeightMultipliers(Movement.MPC.WeightMultipliers multipliers)
+        public void SetWeightOverrides(Movement.MPC.WeightOverride[] overrides)
         {
-            weightMultipliers = multipliers;
+            weightOverrides = overrides ?? System.Array.Empty<Movement.MPC.WeightOverride>();
         }
 
-        public void ClearWeightMultipliers()
+        public void ClearWeightOverrides()
         {
-            weightMultipliers = Movement.MPC.WeightMultipliers.Default;
+            weightOverrides = System.Array.Empty<Movement.MPC.WeightOverride>();
         }
 
         public void SetObstacleExclusion(Transform root)

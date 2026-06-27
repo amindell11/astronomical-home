@@ -224,7 +224,7 @@ namespace Movement.MPC
             config.maxBankAngleRad = dynamics.maxBankAngleRad;
             config.maxSpeedSq = dynamics.maxSpeed * dynamics.maxSpeed;
             config.maxYawRateSq = dynamics.maxYawRate * dynamics.maxYawRate;
-            weightMultipliers.Apply(ref config);
+            weightOverrides.Apply(ref config);
 
             if (settings.adaptiveDtScale > 0f)
             {
