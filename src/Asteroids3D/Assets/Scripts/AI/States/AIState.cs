@@ -51,38 +51,25 @@ namespace AI.States
 
         public override void Enter(Info ctx)
         {
-            var goal = Profile.goal;
-            if (goal is TrackEnemyGoal track)
-                navigator.SetGoalMaintainRange(track.desiredRange, track.rangeTolerance);
-            else if (goal is FleeEnemyGoal)
-                navigator.SetGoalFlee();
-            else
-                navigator.ClearGoalMode();
-
-            navigator.SetWeightMultipliers(Profile.weightMultipliers);
-
+            // Goal mode, weights, enemy state, and routing are all (re)applied every Tick
+            // through Navigator.ApplyIntent. Enter only does one-shot setup Tick can't redo.
             if (!Profile.enableFiring)
                 gunner.SetTarget((Transform)null);
 
-            if (goal is RandomWaypointGoal && ctx != null)
+            if (Profile.goal is RandomWaypointGoal && ctx != null)
                 ChooseNewPatrolPoint(ctx);
         }
 
         public override void Tick(Info ctx, float deltaTime)
         {
             LastIntent = ProduceIntent(ctx, deltaTime);
-            ApplyIntent(LastIntent, ctx);
+            navigator.ApplyIntent(LastIntent);
+            ApplyGunnerIntent(LastIntent);
         }
 
         public override void Exit()
         {
-            navigator.ClearNavigationPoint();
-            navigator.ClearNavigationTarget();
-            navigator.ClearGoalMode();
-            navigator.ClearEnemyState();
-            navigator.ClearObstacleExclusion();
-            navigator.ClearWeightMultipliers();
-
+            navigator.ResetNavigation();
             hasPatrolTarget = false;
             LastIntent = NavigationIntent.None;
         }
@@ -147,6 +134,9 @@ namespace AI.States
             intent.goalPosition = combat.EnemyPos;
             intent.goalVelocity = combat.EnemyVel;
             intent.obstacleExclusion = combat.Enemy.transform;
+
+            if (Profile.enableTacticalCosts)
+                SetEnemyTactical(ctx, ref intent);
 
             TrySetRoutingTarget(ctx, ref intent, RoutingMode.Evade);
         }
@@ -225,39 +215,12 @@ namespace AI.States
         }
 
         /// <summary>
-        /// Apply the intent to the navigator and gunner. This is the bridge
-        /// between the declarative intent and the current imperative navigator API.
-        /// Will be replaced by Navigator.ApplyIntent() in a future pass.
+        /// Gunner is the one actuator the Navigator doesn't own, so its slice of the intent
+        /// is applied here. All navigation flows through <see cref="Navigator.ApplyIntent"/>.
         /// </summary>
-        private void ApplyIntent(NavigationIntent intent, Info ctx)
+        private void ApplyGunnerIntent(in NavigationIntent intent)
         {
             if (!intent.isValid) return;
-
-            // Obstacle exclusion
-            if (intent.obstacleExclusion)
-                navigator.SetObstacleExclusion(intent.obstacleExclusion);
-
-            // Navigation point (not for patrol — already set in ChooseNewPatrolPoint)
-            if (!(Profile.goal is RandomWaypointGoal))
-            {
-                navigator.SetNavigationPoint(
-                    intent.goalPosition,
-                    true,
-                    intent.goalVelocity);
-            }
-
-            // High-level planner routing override
-            if (intent.navigationTarget.HasValue)
-                navigator.SetNavigationTarget(intent.navigationTarget.Value);
-            else
-                navigator.ClearNavigationTarget();
-
-            // Enemy state for MPC tactical costs (includes dynamics for physics-based rollout)
-            if (intent.hasEnemy)
-                navigator.SetEnemyState(intent.enemyYawDeg, intent.enemyYawRateDeg, intent.projectileSpeed,
-                    intent.enemyDynamics);
-
-            // Gunner target
             if (intent.enableFiring && intent.gunnerTarget.sqrMagnitude > 0f)
                 gunner.SetTarget(intent.gunnerTarget);
         }

@@ -1,10 +1,12 @@
 using System;
 using AI.Context;
+using AI.States;
 using Game;
 using Ships;
 using Ships.Command;
 using Movement;
 using UnityEngine;
+using State = Ships.Command.State;
 
 namespace AI
 {
@@ -57,6 +59,70 @@ namespace AI
         }
         
         public abstract void GenerateNavCommands(State state, ref Command cmd);
+
+        /// <summary>
+        /// Single production entry point for driving the navigator. Applies the whole
+        /// <see cref="NavigationIntent"/> in one place, resetting every field each call so
+        /// the result depends only on the intent — never on prior state or call order.
+        /// An invalid intent (<see cref="NavigationIntent.None"/>) resets the navigator to idle.
+        /// The granular Set*/Clear* methods below are the low-level seam this composes
+        /// (also used directly by tests); production code should call ApplyIntent instead.
+        /// </summary>
+        public void ApplyIntent(in NavigationIntent intent)
+        {
+            if (!intent.isValid)
+            {
+                ResetNavigation();
+                return;
+            }
+
+            switch (intent.goalMode)
+            {
+                case Movement.MPC.GoalMode.MaintainRange:
+                    SetGoalMaintainRange(intent.desiredRange, intent.rangeTolerance);
+                    break;
+                case Movement.MPC.GoalMode.Flee:
+                    SetGoalFlee();
+                    break;
+                default:
+                    ClearGoalMode();
+                    break;
+            }
+
+            SetNavigationPoint(intent.goalPosition, true, intent.goalVelocity);
+
+            if (intent.navigationTarget.HasValue)
+                SetNavigationTarget(intent.navigationTarget.Value);
+            else
+                ClearNavigationTarget();
+
+            if (intent.hasEnemy)
+                SetEnemyState(intent.enemyYawDeg, intent.enemyYawRateDeg, intent.projectileSpeed,
+                    intent.enemyDynamics);
+            else
+                ClearEnemyState();
+
+            SetWeightMultipliers(intent.weightMultipliers);
+
+            if (intent.obstacleExclusion)
+                SetObstacleExclusion(intent.obstacleExclusion);
+            else
+                ClearObstacleExclusion();
+        }
+
+        /// <summary>Resets all navigation overrides to idle. Mirrors a fresh, goal-less navigator.</summary>
+        public void ResetNavigation()
+        {
+            ClearNavigationPoint();
+            ClearNavigationTarget();
+            ClearGoalMode();
+            ClearEnemyState();
+            ClearObstacleExclusion();
+            ClearWeightMultipliers();
+        }
+
+        // ── Low-level control surface ──
+        // Composed by ApplyIntent; also driven directly by play-mode tests.
 
         public void SetNavigationPoint(Vector2 point, bool avoid = false, Vector2? velocity = null)
         {
