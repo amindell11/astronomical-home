@@ -45,10 +45,10 @@ namespace Movement.MPC
         protected Dynamics enemyDynamics;
         protected WeightOverride[] weightOverrides = Array.Empty<WeightOverride>();
 
-        protected Command currentCommand;
-        public Command CurrentCommand => currentCommand;
+        protected PilotCommand currentCommand;
+        public PilotCommand CurrentCommand => currentCommand;
 
-        protected Func<Ships.Command.State> getState;
+        protected IShipStatus context;
         public float arriveRadius = 2f;
 
         public Waypoint CurrentWaypoint => currentWaypoint;
@@ -63,9 +63,9 @@ namespace Movement.MPC
 
         private Mpc mpc;
 
-        public void Initialize(Func<Ships.Command.State> stateProvider, Dynamics dynamics, Scout scout)
+        public void Initialize(IShipStatus shipContext, Dynamics dynamics, Scout scout)
         {
-            getState = stateProvider;
+            context = shipContext;
             this.scout = scout;
             currentWaypoint = new Waypoint { isValid = false };
             if (!mpcSettings)
@@ -73,23 +73,18 @@ namespace Movement.MPC
             mpc = new Mpc(mpcSettings, dynamics);
         }
 
-        private void FixedUpdate()
-        {
-            if (getState == null) return;
-            currentCommand = default;
-            GenerateNavCommands(getState(), ref currentCommand);
-        }
-
-        public void GenerateNavCommands(Ships.Command.State state, ref Command cmd)
+        public PilotCommand ComputeCommand()
         {
             using var _ = EditorProfilingScope.Begin("MPC.Navigator.GenerateNavCommands");
-            if (!currentWaypoint.isValid || HasArrived(state.kinematics)) return;
+            var kin = context.Kinematics;
+            if (!currentWaypoint.isValid || HasArrived(kin))
+                return currentCommand = default;
 
             var scan = scout.ObstacleScan;
             var inputs = new MpcInputs
             {
-                kinematics = state.kinematics,
-                boostCooldown = state.boostCooldownRemaining,
+                kinematics = kin,
+                boostCooldown = context.BoostCooldownRemaining,
                 goalPos = GoalPos(),
                 goalVel = GoalVel(),
                 goalMode = goalMode,
@@ -122,7 +117,8 @@ namespace Movement.MPC
             LogSolverPerformanceIfNeeded();
 #endif
 
-            ApplyControl(ref cmd, in result);
+            ApplyControl(in result);
+            return currentCommand;
         }
 
         private bool HasArrived(Kinematics kin)
@@ -141,12 +137,12 @@ namespace Movement.MPC
         private float2 GoalPos() => new(currentWaypoint.position.x, currentWaypoint.position.y);
         private float2 GoalVel() => new(currentWaypoint.velocity.x, currentWaypoint.velocity.y);
 
-        private static void ApplyControl(ref Command cmd, in MpcResult r)
+        private void ApplyControl(in MpcResult r)
         {
-            cmd.thrust = r.thrust;
-            cmd.strafe = r.strafe;
-            cmd.yawTorque = r.yawTorque;
-            cmd.boost = r.boost;
+            currentCommand.thrust = r.thrust;
+            currentCommand.strafe = r.strafe;
+            currentCommand.yawTorque = r.yawTorque;
+            currentCommand.boost = r.boost;
         }
 
         /// <summary>
@@ -173,6 +169,7 @@ namespace Movement.MPC
                 case GoalMode.Flee:
                     SetGoalFlee();
                     break;
+                case GoalMode.Waypoint:
                 default:
                     ClearGoalMode();
                     break;

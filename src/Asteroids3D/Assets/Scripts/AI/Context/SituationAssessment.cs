@@ -1,5 +1,6 @@
 using Combat;
 using Game;
+using Ships.Command;
 using UnityEngine;
 
 namespace AI.Context
@@ -37,7 +38,7 @@ namespace AI.Context
         public readonly bool IncomingMissile;
 
         private SituationAssessment(
-            SelfStatus self = null,
+            IShipStatus self = null,
             EnemyTracker combat = null,
             Scout scout = null)
         {
@@ -45,7 +46,7 @@ namespace AI.Context
             TimeSinceCombat = combat?.TimeSinceCombat ?? float.MaxValue;
             HealthPct = self?.HealthPct ?? 1f;
             ShieldPct = self?.ShieldPct ?? 1f;
-            SpeedPct = self?.SpeedPct ?? 0f;
+            SpeedPct = self != null && self.MaxSpeed > 0f ? self.Kinematics.Speed / self.MaxSpeed : 0f;
             CombinedDurability = (HealthPct + ShieldPct) / 2f;
             EnemyDistance = float.MaxValue;
             EnemyCombinedDurability = 0f;
@@ -70,9 +71,9 @@ namespace AI.Context
             if (self == null || combat == null || !combat.HasEnemy)
                 return;
 
-            var selfKin = self.Kin;
+            var selfKin = self.Kinematics;
             var enemyPos = combat.EnemyPos;
-            EnemyDistance = (enemyPos - self.Pos).magnitude;
+            EnemyDistance = (enemyPos - selfKin.pos).magnitude;
             EnemyCombinedDurability = (combat.EnemyHealthPct + combat.EnemyShieldPct) / 2f;
             HasLineOfSight = TargetingMath.HasLineOfSight(selfKin, GamePlane.PlanePointToWorld(enemyPos));
 
@@ -89,7 +90,7 @@ namespace AI.Context
         public static readonly SituationAssessment None = new();
 
         public static SituationAssessment Evaluate(
-            SelfStatus self,
+            IShipStatus self,
             EnemyTracker combat,
             Scout scout)
         {

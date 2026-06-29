@@ -14,7 +14,7 @@ namespace AI.States
     {
         public override void OnDrawGizmos(AIContext ctx, StateProfile profile)
         {
-            var position = ctx.Self.Pos3D;
+            var position = ctx.Self.Transform.position;
 
             Gizmos.color = new Color(0f, 1f, 0f, 0.1f);
             Gizmos.DrawWireSphere(position, goal.patrolRadius);
@@ -30,7 +30,7 @@ namespace AI.States
                 Gizmos.DrawWireSphere(currentTargetWorld, goal.arriveRadius);
                 Gizmos.DrawWireCube(currentTargetWorld, Vector3.one * 0.5f);
 
-                var distToTarget = Vector2.Distance(ctx.Self.Pos, patrolTarget);
+                var distToTarget = Vector2.Distance(ctx.Self.Kinematics.pos, patrolTarget);
                 UnityEditor.Handles.color = Color.green;
                 UnityEditor.Handles.Label(currentTargetWorld + Vector3.up, $"Patrol Target\n{distToTarget:F1}m");
             }
@@ -46,7 +46,7 @@ namespace AI.States
     {
         public override void OnDrawGizmos(AIContext ctx, StateProfile profile)
         {
-            var selfPos = ctx.Self.Pos3D;
+            var selfPos = ctx.Self.Transform.position;
             var combat = ctx.Combat;
 
             if (combat.HasEnemy)
@@ -59,7 +59,7 @@ namespace AI.States
                 Gizmos.color = new Color(1f, 0.2f, 0.2f, 0.5f);
                 Gizmos.DrawWireSphere(enemyPos3D, 1f);
 
-                var fleeDir = -(combat.EnemyPos - ctx.Self.Pos).normalized;
+                var fleeDir = -(combat.EnemyPos - ctx.Self.Kinematics.pos).normalized;
                 var fleeDir3D = new Vector3(fleeDir.x, fleeDir.y, 0);
 
                 Gizmos.color = Color.green;

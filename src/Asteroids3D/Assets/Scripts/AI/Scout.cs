@@ -33,7 +33,7 @@ namespace AI
         public ShipId ShipId => shipId;
         public IShipRegistry Registry { get; private set; }
         private Dynamics shipDynamics;
-        private Func<State> getState;
+        private IShipStatus shipContext;
 
         // Combined obstacle buffer: static obstacles from obstacleScanner + 360° ship detections from shipScanner.
         // The sphere obstacle scanner focuses on static asteroids; merging the dedicated ship scanner
@@ -41,13 +41,13 @@ namespace AI
         private DetectedObstacle[] mergedObstacles = new DetectedObstacle[128];
         private int mergedObstacleCount;
 
-        public void Initialize(Transform origin, ShipId shipId, Dynamics shipDynamics, Func<State> stateProvider, IShipRegistry registry)
+        public void Initialize(Transform origin, ShipId shipId, Dynamics shipDynamics, IShipStatus shipContext, IShipRegistry registry)
         {
             this.shipId = shipId;
             this.shipDynamics = shipDynamics;
             this.origin = origin;
             Registry = registry;
-            getState = stateProvider;
+            this.shipContext = shipContext;
             shipScanner = new ShipScanner(origin, nearbyShipRadius, shipId, registry);
             coverSensor = new SphereSensor(origin, asteroidCoverRadius, asteroidMask, bufferSize: 8);
             // ShipScanner handles ships in a full sphere; obstacle scanner stays focused on static asteroids.
@@ -68,7 +68,7 @@ namespace AI
                 obstacleScanner.LookaheadTime = obstacleLookaheadTime;
                 var d = shipDynamics;
                 obstacleScanner.MaxAccel = Mathf.Sqrt(d.forwardAcc * d.forwardAcc + d.maxStrafeAcc * d.maxStrafeAcc) / d.mass;
-                obstacleScanner.Scan(getState().kinematics.vel, shipDynamics.maxSpeed);
+                obstacleScanner.Scan(shipContext.Kinematics.vel, shipDynamics.maxSpeed);
             }
             BuildMergedObstacles();
         }

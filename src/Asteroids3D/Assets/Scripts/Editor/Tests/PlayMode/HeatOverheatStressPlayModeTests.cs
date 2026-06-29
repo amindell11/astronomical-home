@@ -38,15 +38,16 @@ namespace Tests.PlayMode
         private sealed class ContinuousFireCommander : Commander
         {
             public bool enablePrimaryFire = true;
+            private IWeapons weapons;
 
-            public override void InitializeCommander(Ship ship)
+            public override void Initialize(in ShipControl control)
             {
-                cachedCommand = default;
+                weapons = control.WeaponActuator;
             }
 
-            private void Update()
+            private void FixedUpdate()
             {
-                cachedCommand.primaryFire = enablePrimaryFire;
+                weapons?.Fire(WeaponSlot.Primary, new WeaponCommand { fire = enablePrimaryFire });
             }
         }
 

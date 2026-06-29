@@ -1,5 +1,6 @@
 using Combat;
 using Combat.Targeting;
+using Ships.Command;
 using Ships.Weapons;
 using UnityEngine;
 
@@ -16,24 +17,11 @@ namespace Ships
             base.Awake();
             Weapons = GetComponent<WeaponsController>();
             Targeting = GetComponentInChildren<LockOnSensor>();
+            Weapons.Initialize(() => Kinematics);
         }
 
-        protected override void UpdateState()
-        {
-            base.UpdateState();
-            var s = CurrentState;
-            s.isPrimaryReady = Weapons?.Primary?.CanFire() ?? false;
-            s.isSecondaryReady = Weapons?.Secondary?.CanFire() ?? false;
-            CurrentState = s;
-        }
-
-        protected override void ExecuteCommand()
-        {
-            if (CurrentCommand.primaryFire)
-                Weapons?.FirePrimary();
-            if (CurrentCommand.secondaryFire)
-                Weapons?.FireSecondary();
-        }
+        protected override ShipControl BuildShipControl() =>
+            new(this, Movement, Weapons.Context, Weapons);
 
         protected override void HandleShipDeath()
         {

@@ -12,7 +12,7 @@ namespace Combat.Weapons
         [Tooltip("Max aim error (degrees) at which an AI gunner will open fire.")]
         [SerializeField, Range(0f, 180f)] private float fireAngleTolerance = 5f;
 
-        public float ProjectileSpeed => projectilePrefab.LaserSpeed;
+        public override float ProjectileSpeed => projectilePrefab.LaserSpeed;
         public Heat Heat { get; private set; }
 
         protected override void Awake()

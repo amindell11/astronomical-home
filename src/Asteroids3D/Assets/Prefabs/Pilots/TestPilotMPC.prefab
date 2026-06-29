@@ -50,7 +50,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   difficulty: 0.513
-  stateProfiles: []
   combatExitDelay: 3
   debugSettings: {fileID: 0}
 --- !u!114 &-1070365238870678526

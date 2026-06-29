@@ -129,7 +129,7 @@ namespace AI.States
 
         private void ChooseNewPatrolPoint(AIContext ctx)
         {
-            var currentPos = ctx.Self.Pos;
+            var currentPos = ctx.Self.Kinematics.pos;
             var randomDistance = Random.Range(
                 goal.patrolRadius * goal.minDistanceFactor,
                 goal.patrolRadius);
@@ -147,7 +147,7 @@ namespace AI.States
         /// or zero when there is no valid waypoint.</summary>
         private Vector2 VectorToWaypoint(AIContext ctx) =>
             navigator?.CurrentWaypoint.isValid == true
-                ? navigator.CurrentWaypoint.position - ctx.Self.Pos
+                ? navigator.CurrentWaypoint.position - ctx.Self.Kinematics.pos
                 : Vector2.zero;
     }
 }

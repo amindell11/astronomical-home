@@ -1,4 +1,5 @@
 using Movement;
+using Ships.Command;
 using UnityEngine;
 
 namespace Ships.Movement
@@ -38,7 +39,7 @@ namespace Ships.Movement
             return -input * maxBankAngle;
         }
 
-        public static Outputs ComputeOutputs(Kinematics kin, Command.Command cmd, ShipSettings sets)
+        public static Outputs ComputeOutputs(Kinematics kin, PilotCommand cmd, ShipSettings sets)
         {
             if (sets == null)
             {

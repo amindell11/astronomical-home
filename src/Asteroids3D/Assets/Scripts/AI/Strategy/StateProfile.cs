@@ -288,9 +288,9 @@ namespace AI.States
 #if UNITY_EDITOR
         private void OnValidate()
         {
-            foreach (var commander in FindObjectsByType<AICommander>(
+            foreach (var brain in FindObjectsByType<Brain>(
                          UnityEngine.FindObjectsSortMode.None))
-                commander.RefreshStates();
+                brain.RefreshStates();
         }
 #endif
     }

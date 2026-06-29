@@ -11,7 +11,7 @@ namespace Ships
     [RequireComponent(typeof(MovementController))]
     [RequireComponent(typeof(DamageController))]
     [DefaultExecutionOrder(-90)]
-    public class Ship : MonoBehaviour, ITargetable
+    public class Ship : MonoBehaviour, ITargetable, IShipStatus
     {
         [Header("Settings Asset")]
         [Tooltip("ShipSettings asset that holds all tunable parameters.")]
@@ -22,28 +22,37 @@ namespace Ships
         public int teamNumber;
 
         public KinematicsPoller KinematicsPoller { get; private set; }
-        public ICommandSource Commander { get; private set; }
+        public Commander Commander { get; private set; }
         public MovementController Movement { get; private set; }
         public DamageController Damage { get; private set; }
+        public Rigidbody Rigidbody { get; private set; }
         public ShipId Id { get; private set; }
         public Collider[] Colliders {get; private set;}
         public Dynamics Dynamics { get; private set; }
-        private bool isInitialized;
-
-        public State CurrentState { get; protected set; }
-        public Command.Command CurrentCommand { get; private set; }
-
         public Transform TargetPoint => transform;
         public LockChannel Lock { get; } = new LockChannel();
         public Vector3 Velocity => Movement ? Movement.Kinematics.WorldVel : Vector3.zero;
+
+        // ── IShipStatus: the narrow read view handed to commanders ──
+        Transform IShipStatus.Transform => transform;
+        public Kinematics Kinematics => Movement ? Movement.Kinematics : default;
+        public float HealthPct => Damage ? Damage.Health.Pct : 1f;
+        public float ShieldPct => Damage ? Damage.Shield.Pct : 1f;
+        public bool BoostAvailable => Movement && Movement.BoostAvailable;
+        public float BoostCooldownRemaining => Movement ? Movement.BoostCooldownRemaining : 0f;
+        public float MaxSpeed => settings ? settings.maxSpeed : 0f;
+        public float MaxYawRate => settings ? settings.maxYawRate : 0f;
+
+        private bool isInitialized = false;
 
         protected virtual void Awake()
         {
             Id = new ShipId(GetInstanceID());
             KinematicsPoller = GetComponent<KinematicsPoller>();
-            Movement = GetComponent<MovementController>();
-            Damage   = GetComponent<DamageController>();
-            Colliders = GetComponentsInChildren<Collider>();
+            Movement         = GetComponent<MovementController>();
+            Damage           = GetComponent<DamageController>();
+            Colliders        = GetComponentsInChildren<Collider>();
+            Rigidbody        = GetComponent<Rigidbody>();
         }
 
         private void OnEnable() => PopulateSettings();
@@ -59,31 +68,36 @@ namespace Ships
             if (isInitialized) return;
             settings = shipSettings;
             teamNumber = team;
-            Commander?.InitializeCommander(this);
             Movement.Initialize(settings, ()=>KinematicsPoller.Kinematics);
             Damage?.PopulateSettings(settings);
 
-            var rb = GetComponent<Rigidbody>();
-            if (rb) rb.ResetInertiaTensor();
-            Dynamics = settings.BuildDynamics(rb ? rb.inertiaTensor.z : 0f);
+            if (Rigidbody) Rigidbody.ResetInertiaTensor();
+            Dynamics = settings.BuildDynamics(Rigidbody ? Rigidbody.inertiaTensor.z : 0f);
 
             if (Damage)
                 Damage.OnDeath += (_, _) => HandleShipDeath();
 
             isInitialized = true;
+            Commander?.Initialize(BuildShipControl());
         }
 
-        private void SetCommander(ICommandSource commander)
+        /// <summary>
+        /// Assembles the narrow control surface handed to the commander. The base ship is unarmed;
+        /// <see cref="CombatShip"/> overrides this to add the weapon context and actuator.
+        /// </summary>
+        protected virtual ShipControl BuildShipControl() => new(this, Movement);
+
+        private void SetCommander(Commander commander)
         {
             Commander = commander;
-            if (isInitialized && Commander !=null)
-                Commander.InitializeCommander(this);
+            if (isInitialized && Commander != null)
+                Commander.Initialize(BuildShipControl());
         }
 
         public void AddCommander(Commander commanderPrefab)
         {
             if (!commanderPrefab) return;
-            if (Commander !=null ) throw new Exception("Commander already set");
+            if (Commander != null) throw new Exception("Commander already set");
             var instance = Instantiate(commanderPrefab, transform);
             SetCommander(instance);
         }
@@ -100,39 +114,6 @@ namespace Ships
             Movement.ResetMovement();
             Damage.ResetDamageState();
             gameObject.SetActive(true);
-        }
-
-        private void FixedUpdate()
-        {
-            UpdateState();
-            TryGetCommand();
-            ExecuteCommand();
-        }
-
-        protected virtual void ExecuteCommand()
-        {
-        }
-
-        private void Update()
-        {
-            TryGetCommand();
-        }
-
-        private void TryGetCommand()
-        {
-            if (Commander != null && Commander.TryGetCommand(CurrentState, out var cmd))
-                CurrentCommand = cmd;
-        }
-
-        protected virtual void UpdateState()
-        {
-            CurrentState = new State
-            {
-                kinematics = Movement.Kinematics,
-                healthPct = Damage.Health.Pct,
-                shieldPct = Damage.Shield.Pct,
-                boostCooldownRemaining = Movement.BoostCooldownRemaining,
-            };
         }
     }
 }

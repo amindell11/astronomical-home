@@ -281,7 +281,8 @@ namespace Tests.PlayMode
             LogDiagnostic($"Before fire attempt - CanFire: {weaponsController.Primary.CanFire()}");
 
             // Attempt to fire
-            weaponsController.FirePrimary();
+            weaponsController.Fire(Ships.Command.WeaponSlot.Primary,
+                new Ships.Command.WeaponCommand { fire = true });
             yield return new WaitForFixedUpdate();
 
             // BUG REPRODUCTION: Weapon should be able to fire after reset

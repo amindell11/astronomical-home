@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using AI.Debug;
 using Game;
+using Ships.Command;
 using UnityEngine;
 
 namespace AI
@@ -37,7 +38,7 @@ namespace AI
 
             var pos = transform.position;
             var targetPos = Target;
-            Vector3 forward = getState != null ? getState().kinematics.Forward : Vector2.up;
+            Vector3 forward = pose != null ? (Vector2)pose().Forward : Vector2.up;
             forward = new Vector3(forward.x, forward.y, 0f);
 
             // Line to target
@@ -56,9 +57,10 @@ namespace AI
 
         void DrawLineOfSightGizmos()
         {
-            if (!HasTarget || !primaryWeapon) return;
+            var sight = weapons?.Sight(WeaponSlot.Primary);
+            if (!HasTarget || sight == null) return;
 
-            var firePos = FirePoint;
+            var firePos = sight.FirePoint;
             var targetPos = Target;
 
             var hasLOS = Combat.TargetingMath.IsLineClear(firePos, targetPos);

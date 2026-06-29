@@ -5,6 +5,7 @@ using Ships;
 using UI;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
+using Ships.Command;
 
 namespace Game.Sectors
 {
@@ -16,7 +17,7 @@ namespace Game.Sectors
     {
         [Header("Player")]
         [SerializeField] protected Ship playerTemplate;
-        [SerializeField] protected Ships.Command.Commander playerCommander;
+        [SerializeField] protected Commander playerCommander;
         [SerializeField] protected ShipSettings shipSettings;
         [SerializeField] protected Vector2 playerSpawnPosition = Vector2.zero;
 

@@ -159,7 +159,10 @@ namespace Combat.Projectile
                 var obj = buffer[i].GetComponentInParent<IDamageable>();
                 if (obj == null || obj == directHitTarget || IsFriendly(obj)) continue;
 
-                var shooterGameObject = (Shooter as Component)?.gameObject;
+                // Unity "fake null": a destroyed shooter is non-null in C# but throws on member
+                // access, so guard with the UnityEngine.Object bool operator, not ?..
+                var shooterComponent = Shooter as Component;
+                var shooterGameObject = shooterComponent ? shooterComponent.gameObject : null;
                 obj.TakeDamage(splashDamage, mass, velocity, buffer[i].ClosestPoint(transform.position), shooterGameObject);
             }
         }

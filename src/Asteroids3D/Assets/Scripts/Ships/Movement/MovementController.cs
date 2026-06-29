@@ -5,12 +5,12 @@ using System;
 using Game;
 using Movement;
 using UnityEngine;
-
+using Ships.Command;
 namespace Ships.Movement
 {
     [RequireComponent(typeof(Rigidbody))]
     [DefaultExecutionOrder(50)]
-    public partial class MovementController : MonoBehaviour
+    public partial class MovementController : MonoBehaviour, IPilot
     {
 
         [Header("Debug")]
@@ -23,19 +23,20 @@ namespace Ships.Movement
         private Rigidbody  rb;
         private Booster booster;
         private ShipSettings settings;
-        private Command.Command currentCommand;
+        private PilotCommand currentCommand;
         public Kinematics Kinematics => getKinematics();
         private Func<Kinematics> getKinematics;
-        internal Command.Command CurrentCommand {
-            set => currentCommand = value; }
+        /// <summary>The piloting command applied on the most recent step (read by visuals/audio).</summary>
+        public PilotCommand CurrentCommand => currentCommand;
         public bool BoostAvailable => booster.BoostAvailable;
         public float BoostCooldownRemaining => booster.CooldownRemaining;
-        private Ship parentShip;
+
+        /// <summary>IPilot: the commander pushes the next step's piloting command here.</summary>
+        public void Drive(in PilotCommand cmd) => currentCommand = cmd;
 
         private void Awake()
         {
             rb = GetComponent<Rigidbody>();
-            parentShip = GetComponent<Ship>();
             booster = new Booster();
             PlaneConstraints.ConstrainBodyToPlane(rb);
         }
@@ -79,8 +80,6 @@ namespace Ships.Movement
 
         private void FixedUpdate()
         {
-            currentCommand = parentShip.CurrentCommand;
-
             currentCommand.boost = booster.ProcessBoost(currentCommand.boost, settings.boostCooldown);
             var outs = Forces.ComputeOutputs(Kinematics, currentCommand, settings);
             ApplyForces(outs.thrust, outs.strafe, outs.boost, outs.yawTorque, outs.bank);

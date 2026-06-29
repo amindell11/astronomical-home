@@ -7,6 +7,18 @@ using Utils;
 
 namespace Combat.Weapons
 {
+    /// <summary>
+    /// Contextual data about a target used for weapon firing decisions
+    /// (the input to <see cref="WeaponComponent.ShouldFire"/>).
+    /// </summary>
+    public struct TargetingContext
+    {
+        public Vector2 targetPosition;
+        public float distanceToTarget;
+        public float angleToTarget;
+        public bool hasLineOfSight;
+    }
+
     public abstract class WeaponComponent : MonoBehaviour
     {
         [SerializeField] public Transform firePoint;
@@ -25,6 +37,17 @@ namespace Combat.Weapons
         }
 
         public abstract ProjectileBase Fire();
+
+        /// <summary>Muzzle speed of this weapon's projectile, used for AI intercept lead. 0 if not applicable.</summary>
+        public virtual float ProjectileSpeed => 0f;
+
+        /// <summary>
+        /// Whether the weapon repeats while the trigger is held (full-auto, paced by its cooldown),
+        /// or fires once per trigger press (semi-auto). Cadence/rate is owned by the weapon's
+        /// conditions (e.g. <c>Cooldown</c>) either way; this only governs how a held human trigger
+        /// is interpreted. AI fire is unaffected — it is paced by the cooldown regardless.
+        /// </summary>
+        public virtual bool AutoFire => true;
 
         public virtual bool CanFire()
         {

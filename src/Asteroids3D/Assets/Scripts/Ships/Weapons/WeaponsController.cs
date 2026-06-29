@@ -1,15 +1,22 @@
+using System;
+using System.Collections.Generic;
+using Combat;
 using Combat.Weapons;
+using Movement;
+using Ships.Command;
 using UnityEngine;
 
 namespace Ships.Weapons
 {
     [DefaultExecutionOrder(-95)]
-    public class WeaponsController : MonoBehaviour
+    public class WeaponsController : MonoBehaviour, IWeapons
     {
         [SerializeField] private WeaponComponent primaryMount;
         [SerializeField] private WeaponComponent secondaryMount;
         public WeaponComponent Primary { get; private set; }
         public WeaponComponent Secondary { get; private set; }
+
+        private WeaponContext context;
 
         private void Awake()
         {
@@ -17,15 +24,28 @@ namespace Ships.Weapons
             if (secondaryMount) Secondary = Instantiate(secondaryMount, transform);
         }
 
-        public void FirePrimary()
+        /// <summary>Supplies the ship pose used to build each slot's firing solution.</summary>
+        public void Initialize(Func<Kinematics> pose)
         {
-            if (enabled && Primary) Primary.Fire();
+            context = new WeaponContext(this, pose);
         }
 
-        public void FireSecondary()
+        /// <summary>The slot-keyed read view handed to armed commanders.</summary>
+        public IWeaponContext Context => context;
+
+        // ── IWeapons ──
+        public void Fire(WeaponSlot slot, in WeaponCommand cmd)
         {
-            if (enabled && Secondary) Secondary.Fire();
+            if (!enabled || !cmd.fire) return;
+            Mount(slot)?.Fire();
         }
+
+        private WeaponComponent Mount(WeaponSlot slot) => slot switch
+        {
+            WeaponSlot.Primary => Primary,
+            WeaponSlot.Secondary => Secondary,
+            _ => null,
+        };
 
         public void ResetSystem()
         {
@@ -36,6 +56,45 @@ namespace Ships.Weapons
         public void OnShipDeath()
         {
             ResetSystem();
+        }
+
+        /// <summary>Slot-keyed read view over the controller's mounts.</summary>
+        private sealed class WeaponContext : IWeaponContext
+        {
+            private readonly WeaponsController owner;
+            private readonly Gunsight primarySight;
+            private readonly Gunsight secondarySight;
+            private readonly List<WeaponSlot> slots = new(2);
+
+            public WeaponContext(WeaponsController owner, Func<Kinematics> pose)
+            {
+                this.owner = owner;
+                if (owner.Primary)
+                {
+                    primarySight = new Gunsight(owner.Primary, pose);
+                    slots.Add(WeaponSlot.Primary);
+                }
+                if (owner.Secondary)
+                {
+                    secondarySight = new Gunsight(owner.Secondary, pose);
+                    slots.Add(WeaponSlot.Secondary);
+                }
+            }
+
+            public IReadOnlyList<WeaponSlot> Slots => slots;
+
+            public bool IsReady(WeaponSlot slot) => owner.Mount(slot)?.CanFire() ?? false;
+
+            public bool IsAutoFire(WeaponSlot slot) => owner.Mount(slot)?.AutoFire ?? true;
+
+            public float ProjectileSpeed(WeaponSlot slot) => owner.Mount(slot)?.ProjectileSpeed ?? 0f;
+
+            public Gunsight Sight(WeaponSlot slot) => slot switch
+            {
+                WeaponSlot.Primary => primarySight,
+                WeaponSlot.Secondary => secondarySight,
+                _ => null,
+            };
         }
     }
 }

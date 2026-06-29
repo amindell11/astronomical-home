@@ -22,6 +22,9 @@ namespace Combat.Weapons
         public LockOnSensor Targeting => targetingComputer;
         public Rounds Rounds { get; private set; }
 
+        // Missiles are semi-auto: one launch per trigger press, not a held stream.
+        public override bool AutoFire => false;
+
         protected override void Awake()
         {
             base.Awake();

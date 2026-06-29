@@ -1,11 +1,8 @@
-﻿using System;
-using AI.Context;
+using System;
 using AI.States;
 using Combat;
-using Combat.Weapons;
 using Game;
 using Movement;
-using Ships;
 using Ships.Command;
 using UnityEngine;
 
@@ -14,28 +11,41 @@ namespace AI
     [DefaultExecutionOrder(-50)]
     public partial class Gunner : MonoBehaviour
     {
-        private Func<State> getState;
+        private IWeaponContext weapons;
+        private IWeapons actuator;
         private Func<Kinematics> pose;
-        private WeaponComponent primaryWeapon;
-        private Gunsight primaryTrigger;
-        private Gunsight secondaryTrigger;
-        private Command currentCommand;
-        
-        public Command CurrentCommand => currentCommand;
-        public Vector3 Target { get; private set; }
+        private Vector3 Target { get; set; }
         public bool HasTarget => Target != Vector3.zero;
-        public Vector3 FirePoint => (primaryWeapon != null && primaryWeapon.firePoint)
-            ? primaryWeapon.firePoint.position
-            : transform.position;
-        public Vector2 TargetPlane => GamePlane.WorldPointToPlane(Target);
-        public float AngleToTarget => (HasTarget && pose != null) ? TargetingMath.AngleTo(pose(), TargetPlane) : 0f;
-        public float PrimaryProjectileSpeed =>
-            primaryWeapon is Lasers laser ? laser.ProjectileSpeed : 0f;
-        public void SetTarget(Vector3 worldPos) => Target = worldPos;
-        public void SetTarget(Vector2 planePos) => Target = GamePlane.PlanePointToWorld(planePos);
-        public void SetTarget(Transform target) => Target = target ? target.position : Vector3.zero;
-        public void SetTarget(Ship enemy) => Target = enemy ? enemy.transform.position : Vector3.zero;
-        public void ClearTarget() => Target = Vector3.zero;
+
+        /// <summary>Muzzle speed of the primary weapon, used by the navigator for intercept lead.</summary>
+        public float PrimaryProjectileSpeed => weapons?.ProjectileSpeed(WeaponSlot.Primary) ?? 0f;
+        private void SetTarget(Vector2 planePos) => Target = GamePlane.PlanePointToWorld(planePos);
+        private void ClearTarget() => Target = Vector3.zero;
+
+        public void Initialize(IWeaponContext weapons, IWeapons actuator, Func<Kinematics> poseFunc)
+        {
+            this.weapons = weapons;
+            this.actuator = actuator;
+            pose = poseFunc;
+        }
+
+        /// <summary>
+        /// Evaluates each equipped weapon independently against the current target and pushes a
+        /// per-slot <see cref="WeaponCommand"/> to the actuator. Each weapon owns its own fire
+        /// decision via its <see cref="Gunsight"/>.
+        /// </summary>
+        public void Fire()
+        {
+            if (weapons == null || actuator == null) return;
+
+            var slots = weapons.Slots;
+            for (var i = 0; i < slots.Count; i++)
+            {
+                var slot = slots[i];
+                var fire = HasTarget && (weapons.Sight(slot)?.Evaluate(Target) ?? false);
+                actuator.Fire(slot, new WeaponCommand { fire = fire });
+            }
+        }
 
         /// <summary>
         /// Consumes the gunner slice of a <see cref="NavigationIntent"/>, mirroring
@@ -53,31 +63,7 @@ namespace AI
             }
 
             if (intent.hasTarget && pose != null)
-                SetTarget(TargetingMath.PredictIntercept(
-                    pose(), intent.target.kinematics.pos, intent.target.kinematics.vel, PrimaryProjectileSpeed));
-        }
-
-        public void Initialize(WeaponComponent primary, WeaponComponent secondary, Func<Kinematics> pose, System.Func<State> stateProvider)
-        {
-            this.pose = pose;
-            this.getState = stateProvider;
-            primaryWeapon = primary;
-            primaryTrigger = primary ? new Gunsight(primary, pose) : null;
-            secondaryTrigger = secondary ? new Gunsight(secondary, pose) : null;
-        }
-        private void FixedUpdate()
-        {
-            if (getState == null) return;
-            currentCommand = default;
-            GenerateGunnerCommands(getState(), ref currentCommand);
-        }
-
-        private void GenerateGunnerCommands(State state, ref Command cmd)
-        {
-            if (!HasTarget) return;
-
-            cmd.primaryFire = primaryTrigger?.Evaluate(Target) ?? false;
-            cmd.secondaryFire = secondaryTrigger?.Evaluate(Target) ?? false;
+                SetTarget(TargetingMath.PredictIntercept(pose(), intent.target.kinematics.pos, intent.target.kinematics.vel, 10f));
         }
     }
 }

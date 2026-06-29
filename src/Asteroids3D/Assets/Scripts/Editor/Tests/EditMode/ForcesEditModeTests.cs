@@ -26,13 +26,13 @@ namespace Tests.EditMode
             return s;
         }
 
-        private static Command CreateCommand(
+        private static PilotCommand CreateCommand(
             float thrust = 0f,
             float strafe = 0f,
             float boost = 0f,
             float yawTorque = 0f)
         {
-            return new Command
+            return new PilotCommand
             {
                 thrust = thrust,
                 strafe = strafe,

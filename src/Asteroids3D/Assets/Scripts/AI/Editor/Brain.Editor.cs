@@ -22,6 +22,20 @@ namespace AI
 
         private UtilityChooser UtilityChooser => chooser as UtilityChooser;
 
+        // Hot-reload the policy when its config changes in the inspector during play — editing the
+        // stateProfiles array here, or (via StateProfile.OnValidate) a profile asset's contents —
+        // so a paused session picks up the change instead of staying stuck on the old states.
+        private void OnValidate() => RefreshStates();
+
+        /// <summary>Editor-only: rebuild the state set from the current profiles and restart state
+        /// selection. No-op before the brain is initialized (i.e. outside play).</summary>
+        internal void RefreshStates()
+        {
+            if (navigator == null) return;
+            UtilityChooser?.ResetForTesting();
+            BuildStates();
+        }
+
         void OnDrawGizmos() => DrawGizmosImpl(false);
         void OnDrawGizmosSelected() => DrawGizmosImpl(true);
 

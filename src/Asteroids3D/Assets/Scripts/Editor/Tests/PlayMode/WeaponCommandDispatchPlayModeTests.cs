@@ -28,15 +28,20 @@ namespace Tests.PlayMode
 
         private sealed class AlwaysFireCommander : Commander
         {
-            public override void InitializeCommander(Ship ship)
+            private IWeapons weapons;
+            public bool Fired { get; private set; }
+
+            public override void Initialize(in ShipControl control)
             {
-                cachedCommand = default;
+                weapons = control.WeaponActuator;
             }
 
-            private void Update()
+            private void FixedUpdate()
             {
-                cachedCommand.primaryFire = true;
-                cachedCommand.secondaryFire = true;
+                if (weapons == null) return;
+                weapons.Fire(WeaponSlot.Primary, new WeaponCommand { fire = true });
+                weapons.Fire(WeaponSlot.Secondary, new WeaponCommand { fire = true });
+                Fired = true;
             }
         }
 
@@ -93,9 +98,9 @@ namespace Tests.PlayMode
             var fireCount = 0;
             combatShip.Weapons.Primary.OnFire += () => fireCount++;
 
-            yield return null;
-            Assert.IsTrue(ship.CurrentCommand.primaryFire,
-                "Setup sanity: commander should be requesting primary fire.");
+            yield return new WaitForFixedUpdate();
+            Assert.IsTrue((ship.Commander as AlwaysFireCommander)?.Fired ?? false,
+                "Setup sanity: commander should be pushing fire commands.");
 
             var elapsed = 0f;
             const float timeoutSec = 1.0f;
@@ -116,9 +121,9 @@ namespace Tests.PlayMode
             var fireCount = 0;
             combatShip.Weapons.Secondary.OnFire += () => fireCount++;
 
-            yield return null;
-            Assert.IsTrue(ship.CurrentCommand.secondaryFire,
-                "Setup sanity: commander should be requesting secondary fire.");
+            yield return new WaitForFixedUpdate();
+            Assert.IsTrue((ship.Commander as AlwaysFireCommander)?.Fired ?? false,
+                "Setup sanity: commander should be pushing fire commands.");
 
             var elapsed = 0f;
             const float timeoutSec = 1.0f;

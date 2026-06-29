@@ -27,13 +27,13 @@ namespace AI.Context
         public bool InCombat => HasEnemy || TimeSinceCombat < combatExitDelay;
         public float TimeSinceCombat { get; private set; } = float.MaxValue;
 
-        public Vector2 EnemyPos => HasEnemy ? cachedEnemy.CurrentState.kinematics.pos : Vector2.zero;
-        public Vector2 EnemyVel => HasEnemy ? cachedEnemy.CurrentState.kinematics.vel : Vector2.zero;
+        public Vector2 EnemyPos => HasEnemy ? cachedEnemy.Kinematics.pos : Vector2.zero;
+        public Vector2 EnemyVel => HasEnemy ? cachedEnemy.Kinematics.vel : Vector2.zero;
         public Movement.Dynamics EnemyDynamics => HasEnemy ? cachedEnemy.Dynamics : default;
-        public Vector2 EnemyForward => HasEnemy ? cachedEnemy.CurrentState.kinematics.Forward : Vector2.up;
-        public float EnemyYawRate => HasEnemy ? cachedEnemy.CurrentState.kinematics.yawRate : 0f;
-        public float EnemyHealthPct => HasEnemy ? cachedEnemy.CurrentState.healthPct : 0f;
-        public float EnemyShieldPct => HasEnemy ? cachedEnemy.CurrentState.shieldPct : 0f;
+        public Vector2 EnemyForward => HasEnemy ? cachedEnemy.Kinematics.Forward : Vector2.up;
+        public float EnemyYawRate => HasEnemy ? cachedEnemy.Kinematics.yawRate : 0f;
+        public float EnemyHealthPct => HasEnemy ? cachedEnemy.HealthPct : 0f;
+        public float EnemyShieldPct => HasEnemy ? cachedEnemy.ShieldPct : 0f;
 
         public bool IncomingMissile => false; // TODO
 
@@ -51,7 +51,7 @@ namespace AI.Context
 
             target = new EnemyTarget
             {
-                kinematics = cachedEnemy.CurrentState.kinematics,
+                kinematics = cachedEnemy.Kinematics,
                 dynamics = cachedEnemy.Dynamics,
                 source = cachedEnemy.transform,
             };

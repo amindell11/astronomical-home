@@ -23,7 +23,7 @@
       "Bash(git commit:*)"
     ]
   },
-  "disabledMcpjsonServers": [
+  "enabledMcpjsonServers": [
     "unity-mcp"
   ]
 }

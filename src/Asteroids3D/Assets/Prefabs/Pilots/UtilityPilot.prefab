@@ -50,8 +50,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   difficulty: 1
-  stateProfiles:
-  - {fileID: 11400000, guid: 810eec9f0227d5f45a38f462c537a795, type: 2}
   combatExitDelay: 3
   debugSettings: {fileID: 11400000, guid: 2e2ae38aa858dd74d9f7908425a3067d, type: 2}
 --- !u!114 &-1070365238870678526
@@ -137,8 +135,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e74b596751aefc842ad51157fcb57ee7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
+  stateProfiles:
+  - {fileID: 11400000, guid: 810eec9f0227d5f45a38f462c537a795, type: 2}
   chooser:
     rid: 1937986634179674114
   references:

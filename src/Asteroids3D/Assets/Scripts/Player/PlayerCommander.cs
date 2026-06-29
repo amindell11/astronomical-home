@@ -1,5 +1,4 @@
 using System;
-using Ships;
 using Ships.Command;
 using UnityEngine;
 using Game;
@@ -7,7 +6,9 @@ using Game;
 namespace Player
 {
     /// <summary>
-    /// Translates player input into commands for the Ship component.
+    /// Translates player input into piloting and firing commands, pushed to the injected
+    /// <see cref="IPilot"/>/<see cref="IWeapons"/> actuators. Reads ship situation through the
+    /// narrow <see cref="IShipStatus"/> — it never touches the Ship directly.
     /// </summary>
     [DefaultExecutionOrder(-30)]
     public partial class PlayerCommander : Commander
@@ -20,7 +21,10 @@ namespace Player
         [SerializeField] private bool showMouseGizmos = true;
         [SerializeField] private float mouseGizmoScale = 3f;
 
-        private Ship ship;
+        private IShipStatus context;
+        private IPilot pilot;
+        private IWeapons weapons;
+        private IWeaponContext weaponContext;
         private PlayerInputReader playerInput;
         private bool hasScreenProjector;
 
@@ -41,58 +45,79 @@ namespace Player
             hasScreenProjector = true;
         }
 
-        public override void InitializeCommander(Ship ship)
+        public override void Initialize(in ShipControl control)
         {
-            this.ship = ship;
+            context = control.Ship;
+            pilot = control.Pilot;
+            weapons = control.WeaponActuator;
+            weaponContext = control.Weapons;
         }
 
         private float thrustInput;
         private float strafeInput;
         private float rotationInput;
-        private bool primaryInput;
-        private bool secondaryInput;
+        private bool primaryHeld;
+        private bool secondaryHeld;
+        private bool prevPrimaryHeld;
+        private bool prevSecondaryHeld;
         private bool boostInput;
         private bool wantsRotate;
 
         private void Update()
         {
-            if (!ship) return;
+            if (context == null) return;
 
             thrustInput = playerInput.Thrust;
             strafeInput = playerInput.Strafe;
             rotationInput = playerInput.Rotation;
             boostInput = playerInput.BoostDown;
-            primaryInput = playerInput.PrimaryFire;
-            secondaryInput = playerInput.SecondaryFireDown;
+            primaryHeld = playerInput.PrimaryFire;
+            secondaryHeld = playerInput.SecondaryFire;
             wantsRotate = playerInput.WantsToRotate;
 
             if (useMouseDirection && wantsRotate && hasScreenProjector)
             {
                 var mouseWorldPos = playerInput.GetMouseWorldPosition();
-                directionToMouse = (mouseWorldPos - ship.transform.position).normalized;
+                directionToMouse = (mouseWorldPos - context.Transform.position).normalized;
                 targetAngle = CalculateYawAngle(directionToMouse);
             }
-
-            cachedCommand.thrust = thrustInput;
-            cachedCommand.strafe = strafeInput;
-            cachedCommand.boost = (boostInput && ship.Movement.BoostAvailable) ? 1f : 0f;
-            cachedCommand.primaryFire = primaryInput;
-            cachedCommand.secondaryFire = secondaryInput;
         }
 
         private void FixedUpdate()
         {
-            if (!ship) return;
+            if (context == null) return;
 
-            cachedCommand.yawTorque = useMouseDirection
-                ? (wantsRotate ? GetMouseRotationTorque() : 0)
-                : rotationInput;
+            var cmd = new PilotCommand
+            {
+                thrust = thrustInput,
+                strafe = strafeInput,
+                boost = (boostInput && context.BoostAvailable) ? 1f : 0f,
+                yawTorque = useMouseDirection
+                    ? (wantsRotate ? GetMouseRotationTorque() : 0f)
+                    : rotationInput,
+            };
+            pilot.Drive(cmd);
+
+            if (weapons != null)
+            {
+                FireSlot(WeaponSlot.Primary, primaryHeld, ref prevPrimaryHeld);
+                FireSlot(WeaponSlot.Secondary, secondaryHeld, ref prevSecondaryHeld);
+            }
+        }
+
+        // Auto-fire weapons fire while the trigger is held; semi-auto weapons fire once per press
+        // (rising edge). The weapon declares which via IWeaponContext.IsAutoFire.
+        private void FireSlot(WeaponSlot slot, bool held, ref bool prevHeld)
+        {
+            var fire = weaponContext.IsAutoFire(slot) ? held : (held && !prevHeld);
+            prevHeld = held;
+            weapons.Fire(slot, new WeaponCommand { fire = fire });
         }
 
         private float GetMouseRotationTorque()
         {
-            var kin = ship.Movement.Kinematics;
-            return Ships.Movement.ControlUtils.RotationPd(targetAngle, kin.yaw, kin.yawRate, ship.settings.maxYawRate, 4f);
+            var kin = context.Kinematics;
+            return Ships.Movement.ControlUtils.RotationPd(targetAngle, kin.yaw, kin.yawRate, context.MaxYawRate, 4f);
         }
 
         private float CalculateYawAngle(Vector3 direction)

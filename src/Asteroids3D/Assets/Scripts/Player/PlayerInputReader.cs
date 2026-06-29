@@ -17,8 +17,10 @@ namespace Player
         public float Strafe => Input.GetAxis(HorizontalAxis);
         public float Rotation => Input.GetAxis(RotationAxis);
         public bool BoostDown => Input.GetButtonDown(BoostButton);
+        // Both triggers report the held (level) state; the weapon decides auto vs semi-auto,
+        // and PlayerCommander derives the press edge for semi-auto weapons.
         public bool PrimaryFire => Input.GetButton(Fire1Button);
-        public bool SecondaryFireDown => Input.GetButtonDown(Fire2Button);
+        public bool SecondaryFire => Input.GetButton(Fire2Button);
         public bool WantsToRotate => Input.GetButton(DirectionButton);
 
         private Func<Vector3, Vector3> screenToGamePlane;

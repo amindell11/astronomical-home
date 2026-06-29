@@ -1,4 +1,5 @@
 using System;
+using Ships.Command;
 using Unity.Properties;
 
 namespace AI.Context
@@ -16,11 +17,11 @@ namespace AI.Context
     [Serializable, GeneratePropertyBag]
     public partial class AIContext
     {
-        public SelfStatus Self { get; private set; }
+        public IShipStatus Self { get; private set; }
         public EnemyTracker Combat { get; private set; }
         public Scout Scout { get; private set; }
         public SituationAssessment Assessment { get; private set; }
-        public AIContext(SelfStatus self, Scout scout,
+        public AIContext(IShipStatus self, Scout scout,
             float combatExitDelay = 3f)
         {
             if (self == null || scout == null) return;

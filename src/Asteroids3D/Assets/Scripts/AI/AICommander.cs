@@ -1,12 +1,11 @@
 using AI.Context;
 using AI.Utility;
-using Combat;
+using System;
+using Movement;
 using Movement.MPC;
 using Ships;
 using Ships.Command;
 using UnityEngine;
-using AI.States;
-using State = Ships.Command.State;
 
 namespace AI
 {
@@ -21,15 +20,11 @@ namespace AI
         [Tooltip("Bot skill level, typically set by curriculum (0.0 to 1.0)")]
         [Range(0f, 1f)] public float difficulty = 1.0f;
 
-        [Header("State Profiles")]
-        [Tooltip("Data-driven state profiles that define available AI states.")]
-        [SerializeField] private StateProfile[] stateProfiles;
-
         [Header("Combat")]
         [Tooltip("Seconds after losing an enemy before exiting combat state.")]
         [SerializeField] private float combatExitDelay = 3f;
 
-        protected Ship ship;
+        protected ShipControl control;
         protected IShipRegistry registry;
         protected bool systemsInitialized;
 
@@ -43,7 +38,6 @@ namespace AI
         // Editor/diagnostics convenience: the active policy when it is the utility chooser.
         public UtilityChooser UtilityChooser => Brain ? Brain.Chooser as UtilityChooser : null;
         public string CurrentStateName => UtilityChooser?.CurrentStateName ?? "None";
-        public bool HasRegistryConfigured => registry != null;
 
         protected virtual void Awake()
         {
@@ -59,37 +53,26 @@ namespace AI
             TryInitializeSystems();
         }
 
-        public override void InitializeCommander(Ship ship)
+        public override void Initialize(in ShipControl control)
         {
-            this.ship = ship;
+            this.control = control;
             TryInitializeSystems();
         }
 
-        protected virtual void TryInitializeSystems()
+        private void TryInitializeSystems()
         {
-            if (systemsInitialized || !ship || registry == null)
-                return;
+            if (systemsInitialized || control.Ship == null || registry == null)  return;
+            var self = control.Ship;
+            Func<Kinematics> pose = () => self.Kinematics;
 
-            var self = new AI.Context.SelfStatus(ship);
-            System.Func<Movement.Kinematics> pose = () => self.Kin;
-
-            System.Func<State> stateProvider = () => ship.CurrentState;
-
-            Scout.Initialize(ship.transform, ship.Id, ship.Dynamics, stateProvider, registry);
-            Navigator.Initialize(stateProvider, ship.Dynamics, Scout);
-
-            // Weapons are optional: only a CombatShip carrying a Gunner gets armed.
-            if (Gunner && ship is CombatShip combatShip)
-            {
-                Gunner.Initialize(combatShip.Weapons.Primary, combatShip.Weapons.Secondary, pose, stateProvider);
-            }
+            Scout.Initialize(self.Transform, self.Id, self.Dynamics, self, registry);
+            Navigator.Initialize(self, self.Dynamics, Scout);
+            if (Gunner && control.IsArmed)
+                Gunner.Initialize(control.Weapons, control.WeaponActuator, pose);
 
             context = new AIContext(self, Scout, combatExitDelay);
 
-            var states = new AI.States.AIState[stateProfiles.Length];
-            for (var i = 0; i < stateProfiles.Length; i++)
-                states[i] = new AIState(stateProfiles[i], Navigator, Gunner);
-            (Brain.Chooser as IStateChooser)?.Initialize(states);
+            Brain.Initialize(Navigator, Gunner);
 
             systemsInitialized = true;
         }
@@ -98,8 +81,6 @@ namespace AI
         {
             if (!systemsInitialized) return;
 
-            // The brain decides; the commander actuates. A disabled Brain component
-            // bypasses the loop (tests drive the Navigator directly this way).
             if (Brain && Brain.isActiveAndEnabled)
             {
                 context.UpdateAssessment();
@@ -107,17 +88,9 @@ namespace AI
                 Navigator.ApplyIntent(intent);
                 if (Gunner) Gunner.ApplyIntent(intent);
             }
-            GetSubCommands(ref cachedCommand);
-        }
 
-        protected virtual void GetSubCommands(ref Command command)
-        {
-            cachedCommand = Navigator.CurrentCommand;
-
-            if (!Gunner) return;
-            var gunCmd = Gunner.CurrentCommand;
-            cachedCommand.primaryFire = gunCmd.primaryFire;
-            cachedCommand.secondaryFire = gunCmd.secondaryFire;
+            control.Pilot.Drive(Navigator.ComputeCommand());
+            if (Gunner) Gunner.Fire();
         }
     }
 }
