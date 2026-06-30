@@ -93,11 +93,21 @@ namespace Game.Bootstrap
             if (!currentSector?.prefab)
                 throw new InvalidOperationException("No sector entry configured on MainGameManager.");
 
-            ActiveSector = Instantiate(currentSector.prefab);
+            // Instantiate the sector subtree under an inactive holder so authored content children
+            // do not Awake until services exist and adoption has wired each object. Setup runs
+            // while inert; then reparent out (world pose preserved) and drop the holder so children
+            // Awake post-wiring. Authoring stays WYSIWYG — only runtime instantiation is gated.
+            var holder = new GameObject("SectorLoad") { hideFlags = HideFlags.HideAndDontSave };
+            holder.SetActive(false);
+
+            ActiveSector = Instantiate(currentSector.prefab, holder.transform);
             ActiveSector.Initialize(services, currentSector.config);
             ActiveSector.OnSectorComplete += HandleSectorComplete;
 
             yield return ActiveSector.Setup();
+
+            ActiveSector.transform.SetParent(null, true);
+            Destroy(holder);
 
             TransitionTo(GameState.InSector);
         }

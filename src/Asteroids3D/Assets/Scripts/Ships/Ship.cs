@@ -102,6 +102,17 @@ namespace Ships
             SetCommander(instance);
         }
 
+        /// <summary>
+        /// Wire an already-existing commander instance (e.g. a pilot authored as a child of this
+        /// ship in a sector prefab) without instantiating a copy. Used by the adopt pipeline.
+        /// </summary>
+        public void AdoptCommander(Commander commander)
+        {
+            if (!commander) return;
+            if (Commander != null) throw new Exception("Commander already set");
+            SetCommander(commander);
+        }
+
 
         protected virtual void HandleShipDeath()
         {

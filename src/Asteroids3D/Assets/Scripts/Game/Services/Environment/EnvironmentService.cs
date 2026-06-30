@@ -61,6 +61,14 @@ namespace Game.Services
             World = UnityEngine.Object.Instantiate(prefab);
         }
 
+        public void AdoptWorld(WorldRoot existing)
+        {
+            if (!existing) return;
+            World = existing;
+            // Detach from the sector so Clear()/lifetime matches a spawned world.
+            existing.transform.SetParent(null, true);
+        }
+
         public void Clear()
         {
             if (World != null)

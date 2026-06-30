@@ -17,7 +17,17 @@ namespace Game.Services
 
         ObjectiveType IObjectiveTrackerAdapter.CurrentState => CurrentTracker?.CurrentState ?? ObjectiveType.Explore;
 
+        public Transform CurrentTarget { get; private set; }
+
         public event Action<ObjectiveType, ObjectiveType> OnStateChanged;
+        public event Action<Transform> OnTargetChanged;
+
+        public void SetTarget(Transform target)
+        {
+            if (CurrentTarget == target) return;
+            CurrentTarget = target;
+            OnTargetChanged?.Invoke(target);
+        }
 
         public void SetObjective(
             MissionDefinition mission,
@@ -51,6 +61,7 @@ namespace Game.Services
                 CurrentTracker.OnStateChanged -= ForwardStateChanged;
                 CurrentTracker = null;
             }
+            SetTarget(null);
         }
 
         private void ForwardStateChanged(ObjectiveType from, ObjectiveType to)

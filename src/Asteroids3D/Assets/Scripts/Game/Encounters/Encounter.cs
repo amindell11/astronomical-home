@@ -28,14 +28,31 @@ namespace Game.Encounters
             Phase = EncounterPhase.SettingUp;
             yield return OnSetup();
             Phase = EncounterPhase.Running;
+
+            // Report this encounter's objective target to the service channel. The objective state
+            // determines which transform ObjectiveTarget returns, so re-report on every state change.
+            // UI (the minimap marker) reads CurrentTarget and self-decides visibility by CurrentState.
+            if (Services?.ObjectiveService != null)
+            {
+                Services.ObjectiveService.OnStateChanged += HandleObjectiveStateChanged;
+                Services.ObjectiveService.SetTarget(ObjectiveTarget);
+            }
         }
 
         public IEnumerator Teardown()
         {
             Phase = EncounterPhase.TearingDown;
+            if (Services?.ObjectiveService != null)
+            {
+                Services.ObjectiveService.OnStateChanged -= HandleObjectiveStateChanged;
+                Services.ObjectiveService.SetTarget(null);
+            }
             yield return OnTeardown();
             Phase = EncounterPhase.Disposed;
         }
+
+        private void HandleObjectiveStateChanged(Objectives.ObjectiveType from, Objectives.ObjectiveType to)
+            => Services?.ObjectiveService?.SetTarget(ObjectiveTarget);
 
         public void Fail()
         {

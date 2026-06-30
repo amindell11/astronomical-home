@@ -69,20 +69,20 @@ namespace Tests.EditMode
                 "SectorManager must extend MonoBehaviour");
         }
 
-        // --- CombatSectorManager extends SectorManager ---
+        // --- PlaySector is the single concrete play-sector ---
 
         [Test]
-        public void CombatSectorManager_ExtendsSectorManager()
+        public void PlaySector_ExtendsSector()
         {
-            Assert.IsTrue(typeof(Sector).IsAssignableFrom(typeof(CombatSector)),
-                "CombatSectorManager must extend SectorManager");
+            Assert.IsTrue(typeof(Sector).IsAssignableFrom(typeof(PlaySector)),
+                "PlaySector must extend Sector");
         }
 
         [Test]
-        public void CombatSectorManager_IsNotAbstract()
+        public void PlaySector_IsNotAbstract()
         {
-            Assert.IsFalse(typeof(CombatSector).IsAbstract,
-                "CombatSectorManager must be concrete");
+            Assert.IsFalse(typeof(PlaySector).IsAbstract,
+                "PlaySector must be concrete (Combat/Arena/Testbench are prefabs of it)");
         }
 
         // --- GameServices ---

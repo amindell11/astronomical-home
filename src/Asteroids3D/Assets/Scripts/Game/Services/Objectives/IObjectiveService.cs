@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Objectives;
+using UnityEngine;
 
 namespace Game.Services
 {
@@ -11,6 +12,18 @@ namespace Game.Services
 
         /// <summary>Current objective state, or null if inactive.</summary>
         ObjectiveType? CurrentState { get; }
+
+        /// <summary>
+        /// Transform the active objective points at (e.g. a key, an extraction zone), or null.
+        /// Producers (encounters) report it; UI subscribers (the minimap marker) read it.
+        /// </summary>
+        Transform CurrentTarget { get; }
+
+        /// <summary>Set the current objective target, raising <see cref="OnTargetChanged"/> on change.</summary>
+        void SetTarget(Transform target);
+
+        /// <summary>Raised when <see cref="CurrentTarget"/> changes.</summary>
+        event Action<Transform> OnTargetChanged;
 
         /// <summary>Create and activate a new objective tracker for this sector.</summary>
         void SetObjective(

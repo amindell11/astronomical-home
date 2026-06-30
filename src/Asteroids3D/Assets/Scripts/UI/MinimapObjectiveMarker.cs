@@ -1,3 +1,5 @@
+using Game.Services;
+using Objectives;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -19,6 +21,8 @@ namespace UI
         private Camera minimapCam;
         private Transform target;
 
+        private IObjectiveService objectives;
+
         public void Initialize(Camera cam, RectTransform minimap)
         {
             minimapCam = cam;
@@ -26,21 +30,43 @@ namespace UI
             if (icon) icon.enabled = false;
         }
 
-        public void SetTarget(Transform objective)
+        /// <summary>
+        /// Bind to the objective service: subscribe to target changes and self-decide visibility by
+        /// the service's CurrentState. Replaces the sector acting as the marker's bridge.
+        /// </summary>
+        public void BindObjectiveService(IObjectiveService service)
         {
-            target = objective;
-            if (icon) icon.enabled = target;
+            if (objectives != null) objectives.OnTargetChanged -= OnObjectiveTargetChanged;
+            objectives = service;
+            if (objectives == null) return;
+            objectives.OnTargetChanged += OnObjectiveTargetChanged;
+            OnObjectiveTargetChanged(objectives.CurrentTarget);
         }
+
+        private void OnObjectiveTargetChanged(Transform t) => target = t;
+
+        private void OnDestroy()
+        {
+            if (objectives != null) objectives.OnTargetChanged -= OnObjectiveTargetChanged;
+        }
+
+        private static bool IsShowingState(ObjectiveType? state) =>
+            state == ObjectiveType.Explore ||
+            state == ObjectiveType.KeyAcquired ||
+            state == ObjectiveType.ExtractionChallenge;
 
         private void LateUpdate()
         {
-            if (!target || !minimapCam || !icon)
+            // Show the objective target only during objective states that have one.
+            var effective = IsShowingState(objectives?.CurrentState) ? target : null;
+
+            if (!effective || !minimapCam || !icon)
             {
                 if (icon) icon.enabled = false;
                 return;
             }
 
-            var vp = minimapCam.WorldToViewportPoint(target.position);
+            var vp = minimapCam.WorldToViewportPoint(effective.position);
             vp.x = Mathf.Clamp01(vp.x);
             vp.y = Mathf.Clamp01(vp.y);
 

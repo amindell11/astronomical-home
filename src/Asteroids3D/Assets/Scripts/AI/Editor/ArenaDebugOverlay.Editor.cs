@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AI.States;
 using AI.Utility;
+using Game.Services;
 using Ships;
 using UnityEngine;
 
@@ -15,8 +16,23 @@ namespace AI.Debug
     public class ArenaDebugOverlay : MonoBehaviour
     {
         private AIDebugSettings debugSettings;
+        private IUnitService boundUnits;
 
-        public void Initialize(AIDebugSettings settings) => debugSettings = settings;
+        /// <summary>
+        /// Initialise the overlay. When a unit service is supplied, the overlay self-subscribes to
+        /// <see cref="IUnitService.OnShipSpawned"/> and auto-tracks every ship (existing + future) —
+        /// no per-sector RegisterShip wiring needed.
+        /// </summary>
+        public void Initialize(AIDebugSettings settings, IUnitService units = null)
+        {
+            debugSettings = settings;
+            if (units == null) return;
+
+            foreach (var ship in units.ActiveRegistry.ActiveShips)
+                RegisterShip(ship);
+            units.OnShipSpawned += RegisterShip;
+            boundUnits = units;
+        }
 
         [Header("Visual Settings")]
         [SerializeField] private Vector2 labelOffset = new(0, 40);
@@ -246,6 +262,8 @@ namespace AI.Debug
 
         private void OnDestroy()
         {
+            if (boundUnits != null) boundUnits.OnShipSpawned -= RegisterShip;
+            boundUnits = null;
             if (lineMaterial)
                 DestroyImmediate(lineMaterial);
             trackedShips.Clear();

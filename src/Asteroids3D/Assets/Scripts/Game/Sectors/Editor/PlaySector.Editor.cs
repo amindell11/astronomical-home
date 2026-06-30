@@ -4,10 +4,15 @@ using UnityEngine;
 
 namespace Game.Sectors
 {
-    public partial class ArenaSector
+    /// <summary>
+    /// Editor-only debug-overlay installer for <see cref="PlaySector"/>. The overlay is an
+    /// <c>#if UNITY_EDITOR</c> component, so it cannot be authored on a prefab — it is added at
+    /// runtime and self-subscribes to <c>UnitService.OnShipSpawned</c> to auto-track every ship.
+    /// </summary>
+    public partial class PlaySector
     {
         [Header("Debug")]
-        [SerializeField] private bool enableDebugOverlay = true;
+        [SerializeField] private bool enableDebugOverlay;
         [SerializeField] private AIDebugSettings debugSettings;
 
         private ArenaDebugOverlay debugOverlay;
@@ -17,10 +22,7 @@ namespace Game.Sectors
             if (!enableDebugOverlay) return;
 
             debugOverlay = gameObject.AddComponent<ArenaDebugOverlay>();
-            debugOverlay.Initialize(debugSettings);
-            if (player) debugOverlay.RegisterShip(player);
-            foreach (var ship in arenaShips)
-                debugOverlay.RegisterShip(ship);
+            debugOverlay.Initialize(debugSettings, Services.UnitService);
         }
 
         partial void TeardownDebugOverlay()

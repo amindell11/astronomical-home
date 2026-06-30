@@ -22,6 +22,12 @@ namespace Game.Services
             Vector3 position,
             Quaternion rotation);
 
+        /// <summary>
+        /// Take ownership of an already-instantiated ship (authored as a sector child): wire its
+        /// child pilot, initialise it from its own settings/team, and register it.
+        /// </summary>
+        Ship AdoptShip(Ship ship);
+
         /// <summary>Destroy all spawned units and clear the registry.</summary>
         void Clear();
 
