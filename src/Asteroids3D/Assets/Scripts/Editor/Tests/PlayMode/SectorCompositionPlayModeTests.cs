@@ -1,7 +1,6 @@
 #if UNITY_EDITOR
 using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
 using AI;
 using Game;
 using Game.Sectors;
@@ -95,7 +94,7 @@ namespace Tests.PlayMode
                 new CameraService(), new UIService());
 
             _config = ScriptableObject.CreateInstance<SectorSettings>();
-            ReflectSet(_config, "loadScene", false);
+            _config.SetLoadScene(false);
         }
 
         [TearDown]
@@ -140,10 +139,7 @@ namespace Tests.PlayMode
         }
 
         private static void SetManifest(Sector sector, AdoptEntry[] adopted, SectorSpawner[] spawners)
-        {
-            if (adopted != null) ReflectSet(sector, "adopted", adopted);
-            if (spawners != null) ReflectSet(sector, "spawners", spawners);
-        }
+            => sector.SetManifest(adopted, spawners, null);
 
         private Ship AddAdoptedShipChild(
             Transform parent, Ship shipPrefab, Commander commanderPrefab, ShipSettings settings,
@@ -170,17 +166,6 @@ namespace Tests.PlayMode
 
         private static AdoptEntry Entry(Component target, int team = 0, bool startActive = true) =>
             new AdoptEntry { target = target, team = team, startActive = startActive };
-
-        private static void ReflectSet(object target, string fieldName, object value)
-        {
-            for (var t = target.GetType(); t != null && t != typeof(object); t = t.BaseType)
-            {
-                var fi = t.GetField(fieldName,
-                    BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-                if (fi != null) { fi.SetValue(target, value); return; }
-            }
-            throw new System.InvalidOperationException($"Field '{fieldName}' not found on '{target.GetType().FullName}'");
-        }
 
         // ── Tests ───────────────────────────────────────────────────────────────
 
@@ -284,11 +269,7 @@ namespace Tests.PlayMode
             var spawnerGO = new GameObject("Ring");
             spawnerGO.transform.SetParent(sector.transform);
             var ring = spawnerGO.AddComponent<RingSpawner>();
-            ReflectSet(ring, "template", ship);
-            ReflectSet(ring, "commander", cmdr);
-            ReflectSet(ring, "settings", settings);
-            ReflectSet(ring, "count", 3);
-            ReflectSet(ring, "radius", 20f);
+            ring.Configure(ship, cmdr, settings, count: 3, radius: 20f);
             SetManifest(sector, null, new SectorSpawner[] { ring });
 
             yield return sector.Setup();
@@ -334,10 +315,7 @@ namespace Tests.PlayMode
             var spawnerGO = new GameObject("Ring");
             spawnerGO.transform.SetParent(sector.transform);
             var ring = spawnerGO.AddComponent<RingSpawner>();
-            ReflectSet(ring, "template", ship);
-            ReflectSet(ring, "commander", cmdr);
-            ReflectSet(ring, "settings", settings);
-            ReflectSet(ring, "count", 3);
+            ring.Configure(ship, cmdr, settings, count: 3);
             SetManifest(sector, null, new SectorSpawner[] { ring });
 
             yield return sector.Setup();
@@ -380,7 +358,7 @@ namespace Tests.PlayMode
             var log = new List<string>();
             var a = AddProbeModule(sector, "A", log);
             var b = AddProbeModule(sector, "B", log);
-            ReflectSet(sector, "modules", new SectorModule[] { a, b });
+            sector.SetManifest(null, null, new SectorModule[] { a, b });
 
             yield return sector.Setup();
             yield return sector.Teardown();
@@ -397,7 +375,7 @@ namespace Tests.PlayMode
             var endGO = TrackGO(new GameObject("EndModule"));
             endGO.transform.SetParent(sector.transform);
             var end = endGO.AddComponent<EndModule>();
-            ReflectSet(sector, "modules", new SectorModule[] { end });
+            sector.SetManifest(null, null, new SectorModule[] { end });
 
             SectorResult? got = null;
             ((ISector)sector).OnSectorComplete += r => got = r;
@@ -489,8 +467,8 @@ namespace Tests.PlayMode
             EncounterTestSector sector, params Game.Encounters.Encounter[] templates)
         {
             var module = sector.gameObject.AddComponent<EncounterSequenceModule>();
-            ReflectSet(module, "encounters", templates);
-            ReflectSet(sector, "modules", new SectorModule[] { module });
+            module.SetEncounters(templates);
+            sector.SetManifest(null, null, new SectorModule[] { module });
             return module;
         }
 

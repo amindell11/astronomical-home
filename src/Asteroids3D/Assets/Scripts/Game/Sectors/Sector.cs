@@ -17,7 +17,7 @@ namespace Game.Sectors
     /// Combat / Arena / Testbench are prefabs of this class, differing only in their manifest, modules
     /// and producer-owned RespawnPolicies.
     /// </summary>
-    public class Sector : MonoBehaviour, ISector
+    public partial class Sector : MonoBehaviour, ISector
     {
         public event Action<SectorResult> OnSectorComplete;
 

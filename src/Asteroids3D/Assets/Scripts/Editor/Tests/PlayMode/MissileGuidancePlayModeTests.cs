@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Reflection;
 using Combat;
 using Combat.Projectile;
 using Game;
@@ -29,22 +28,6 @@ namespace Tests.PlayMode
             base.TearDown();
         }
 
-        private static void SetField(object obj, string fieldName, object value)
-        {
-            var type = obj.GetType();
-            while (type != null)
-            {
-                var field = type.GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
-                if (field != null)
-                {
-                    field.SetValue(obj, value);
-                    return;
-                }
-                type = type.BaseType;
-            }
-            Assert.Fail($"Field '{fieldName}' not found on {obj.GetType().Name} or its base types");
-        }
-
         private Missile CreateTestMissile(Vector3 worldPos)
         {
             var go = new GameObject("TestMissile");
@@ -54,8 +37,7 @@ namespace Tests.PlayMode
             rb.useGravity = false;
 
             var m = go.AddComponent<Missile>();
-            SetField(m, "maxDistance", 200f);
-            SetField(m, "maxLifetime", 10f);
+            m.Configure(maxDistance: 200f, maxLifetime: 10f);
 
             return m;
         }
