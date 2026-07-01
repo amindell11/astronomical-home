@@ -12,6 +12,7 @@ namespace Combat.Conditions
         [SerializeField] private float coolDownDelay = 0.5f; // seconds before cooling starts after a normal shot
         [SerializeField] private float overheatPenaltyTime = 1.5f; // seconds before cooling starts after overheating
 
+        private float clock;                // internal time base, advanced by Tick(dt)
         private float lastShotTime = -100f; // Initialize to allow immediate firing
 
         // Events
@@ -24,27 +25,34 @@ namespace Combat.Conditions
         public float HeatPct => maxHeat > 0f ? CurrentHeat / maxHeat : 0f;
         public bool Overheated { get; private set; }
 
-        private void Update()
+        private void Update() => Tick(Time.deltaTime);
+
+        /// <summary>
+        /// Advances cooling by <paramref name="dt"/> seconds against an internal clock.
+        /// Production drives this each frame with <c>Time.deltaTime</c> (via <see cref="Update"/>);
+        /// tests can drive it directly for deterministic, zero-wall-time coverage.
+        /// </summary>
+        public void Tick(float dt)
         {
+            clock += dt;
+
             if (CurrentHeat <= 0)
             {
                 Overheated = false;
                 return;
             }
 
-            var wasOverheatedBefore = Overheated;
-            var delay = wasOverheatedBefore ? overheatPenaltyTime : coolDownDelay;
-
-            if (!(Time.time > lastShotTime + delay)) return;
+            var delay = Overheated ? overheatPenaltyTime : coolDownDelay;
+            if (clock <= lastShotTime + delay) return;
 
             var previousHeat = CurrentHeat;
-            CurrentHeat -= coolingRate * Time.deltaTime;
+            CurrentHeat -= coolingRate * dt;
             CurrentHeat = Mathf.Max(0, CurrentHeat);
             PublishHeatChangedIfNeeded(previousHeat);
 
-            // Add hysteresis: require cooling below (maxHeat - heatPerShot) to exit overheat
-            // This prevents flicker loop where weapon fires immediately when cooling to 99.99% heat
-            if (!Overheated || !(CurrentHeat < maxHeat - heatPerShot)) return;
+            // Hysteresis: require cooling below (maxHeat - heatPerShot) to exit overheat, preventing a
+            // flicker loop where the weapon re-fires the instant heat cools to ~99.99%.
+            if (!Overheated || CurrentHeat >= maxHeat - heatPerShot) return;
             Overheated = false;
             OnCooldownStart?.Invoke();
         }
@@ -63,7 +71,7 @@ namespace Combat.Conditions
         {
             var previousHeat = CurrentHeat;
             CurrentHeat += heatPerShot;
-            lastShotTime = Time.time;
+            lastShotTime = clock;
             CurrentHeat = Mathf.Min(CurrentHeat, maxHeat);
             PublishHeatChangedIfNeeded(previousHeat);
 
@@ -76,9 +84,25 @@ namespace Combat.Conditions
         {
             var previousHeat = CurrentHeat;
             CurrentHeat = 0f;
+            clock = 0f;
             lastShotTime = -100f;
             Overheated = false;
             PublishHeatChangedIfNeeded(previousHeat);
+        }
+
+        /// <summary>
+        /// Configures the heat curve at runtime (weapon tuning / upgrades / difficulty) and resets
+        /// to a cold state. Serialized fields act as the authored inspector defaults.
+        /// </summary>
+        public void Configure(float maxHeat, float heatPerShot, float coolingRate,
+                              float coolDownDelay, float overheatPenaltyTime)
+        {
+            this.maxHeat = maxHeat;
+            this.heatPerShot = heatPerShot;
+            this.coolingRate = coolingRate;
+            this.coolDownDelay = coolDownDelay;
+            this.overheatPenaltyTime = overheatPenaltyTime;
+            Reset();
         }
 
         private void PublishHeatChangedIfNeeded(float previousHeat)
