@@ -33,6 +33,17 @@ namespace Combat.Projectile
         private float aliveTime;
 
         public void SetTarget(Transform tgt) => target = tgt;
+
+        /// <summary>
+        /// Configures range/lifetime at spawn (missile variants / tuning). <paramref name="maxDistance"/>
+        /// is the inherited <see cref="ProjectileBase"/> travel cap; <paramref name="maxLifetime"/> is
+        /// the missile's self-destruct timeout.
+        /// </summary>
+        public void Configure(float maxDistance, float maxLifetime)
+        {
+            this.maxDistance = maxDistance;
+            this.maxLifetime = maxLifetime;
+        }
         public float NormalizedSpeed => rb && homingSpeed > 0f
             ? Mathf.Clamp01(rb.linearVelocity.magnitude / homingSpeed)
             : 0f;

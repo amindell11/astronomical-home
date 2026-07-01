@@ -123,10 +123,10 @@ namespace Tests.EditMode
         [Test]
         public void SectorConfigSO_HasExpectedProperties()
         {
+            // Per-entry/per-session overridable config. Scene identity (sceneName/loadScene) is
+            // sector-type intrinsic and lives on the Sector template, not here.
             var type = typeof(SectorSettings);
             Assert.IsNotNull(type.GetProperty("DisplayName"), "Must have DisplayName");
-            Assert.IsNotNull(type.GetProperty("SceneName"), "Must have SceneName");
-            Assert.IsNotNull(type.GetProperty("LoadScene"), "Must have LoadScene");
             Assert.IsNotNull(type.GetProperty("DifficultySeed"), "Must have DifficultySeed");
         }
 
