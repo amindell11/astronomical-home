@@ -14,6 +14,9 @@ namespace Game.Sectors
             if (spawners != null) this.spawners = spawners;
             if (modules != null) this.modules = modules;
         }
+
+        /// <summary>Test/editor seam: toggle scene loading so tests can build a sector without a scene load.</summary>
+        internal void SetLoadScene(bool value) => loadScene = value;
     }
 }
 #endif
