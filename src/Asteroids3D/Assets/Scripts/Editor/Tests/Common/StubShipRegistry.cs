@@ -1,13 +1,14 @@
 using Ships;
 using UnityEngine;
 
-namespace Tests.PlayMode.Common
+namespace Tests.Common
 {
 
 /// <summary>
-/// Minimal IShipRegistry stub for PlayMode tests that need AI systems initialized
-/// (Scout, Navigator, etc.) but don't require real ship lookup or team logic.
-/// All queries return not-found / neutral results.
+/// Minimal IShipRegistry stub for EditMode and PlayMode tests that need AI systems
+/// initialized (Scout, Navigator, etc.) or a registry injected, but don't require
+/// real ship lookup or team logic. All queries return not-found / neutral results.
+/// Lives in the assembly-neutral Tests.Common assembly so both test assemblies share it.
 /// </summary>
 public sealed class StubShipRegistry : IShipRegistry
 {
@@ -34,4 +35,4 @@ public sealed class StubShipRegistry : IShipRegistry
     public int GetTeam(ShipId id) => -1;
 }
 
-} // namespace Tests.PlayMode.Common
+} // namespace Tests.Common

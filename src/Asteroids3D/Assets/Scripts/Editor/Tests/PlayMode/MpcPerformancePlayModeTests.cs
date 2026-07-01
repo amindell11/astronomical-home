@@ -3,6 +3,7 @@ using AI;
 using Movement.MPC;
 using NUnit.Framework;
 using Ships;
+using Tests.Common;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
