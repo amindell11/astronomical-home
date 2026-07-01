@@ -6,6 +6,7 @@ using Game.Bootstrap;
 using Game.Sectors;
 using Game.Services;
 using NUnit.Framework;
+using Ships;
 using UnityEngine;
 
 namespace Tests.EditMode
@@ -29,9 +30,11 @@ namespace Tests.EditMode
             Assert.IsNotNull(method, "ISectorManager must declare Initialize method");
 
             var parameters = method.GetParameters();
-            Assert.AreEqual(2, parameters.Length);
+            Assert.AreEqual(3, parameters.Length);
             Assert.AreEqual(typeof(IGameServices), parameters[0].ParameterType);
             Assert.AreEqual(typeof(SectorSettings), parameters[1].ParameterType);
+            Assert.AreEqual(typeof(Ship), parameters[2].ParameterType,
+                "Initialize must accept the injected session-rig player as its third parameter");
         }
 
         [Test]
@@ -46,13 +49,13 @@ namespace Tests.EditMode
             Assert.AreEqual(typeof(IEnumerator), teardown.ReturnType);
         }
 
-        // --- SectorManager is abstract and implements ISectorManager ---
+        // --- Sector is the single concrete play-sector and implements ISector ---
 
         [Test]
-        public void SectorManager_IsAbstract()
+        public void Sector_IsConcrete()
         {
-            Assert.IsTrue(typeof(Sector).IsAbstract,
-                "SectorManager must be abstract");
+            Assert.IsFalse(typeof(Sector).IsAbstract,
+                "Sector is now the single concrete play-sector (Combat/Arena/Testbench are prefabs of it)");
         }
 
         [Test]
@@ -67,22 +70,6 @@ namespace Tests.EditMode
         {
             Assert.IsTrue(typeof(MonoBehaviour).IsAssignableFrom(typeof(Sector)),
                 "SectorManager must extend MonoBehaviour");
-        }
-
-        // --- PlaySector is the single concrete play-sector ---
-
-        [Test]
-        public void PlaySector_ExtendsSector()
-        {
-            Assert.IsTrue(typeof(Sector).IsAssignableFrom(typeof(PlaySector)),
-                "PlaySector must extend Sector");
-        }
-
-        [Test]
-        public void PlaySector_IsNotAbstract()
-        {
-            Assert.IsFalse(typeof(PlaySector).IsAbstract,
-                "PlaySector must be concrete (Combat/Arena/Testbench are prefabs of it)");
         }
 
         // --- GameServices ---

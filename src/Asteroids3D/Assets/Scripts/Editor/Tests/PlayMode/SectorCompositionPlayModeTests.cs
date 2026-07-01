@@ -56,12 +56,10 @@ namespace Tests.PlayMode
             public void Fire(SectorResult r) => RequestSectorEnd(r);
         }
 
-        /// <summary>Sector that exposes a settable player (for EncounterSequenceModule's ctx.Player).</summary>
+        /// <summary>Sector whose player is injected via Initialize (for EncounterSequenceModule's ctx.Player).</summary>
         private class EncounterTestSector : Sector
         {
-            public Ship InjectedPlayer;
             public bool IsBuilt => IsSetUp;
-            protected override Ship GetSectorPlayer() => InjectedPlayer;
             protected override IEnumerator OnAfterTeardown() { Services.UnitService.Clear(); yield break; }
         }
 
@@ -126,7 +124,7 @@ namespace Tests.PlayMode
             // so authored ship children do not Awake/FixedUpdate before adoption initialises them.
             go.SetActive(false);
             var sector = go.AddComponent<TestSector>();
-            sector.Initialize(_services, _config);
+            sector.Initialize(_services, _config, null);
             return sector;
         }
 
@@ -421,11 +419,11 @@ namespace Tests.PlayMode
         // ── EncounterSequenceModule (Stage 2.5) ──────────────────────────────────
 
         // Active sector (coroutines started inside the module require an active GameObject).
-        private EncounterTestSector CreateActiveEncounterSector()
+        private EncounterTestSector CreateActiveEncounterSector(Ship player = null)
         {
             var go = TrackGO(new GameObject("EncounterSector"));
             var sector = go.AddComponent<EncounterTestSector>();
-            sector.Initialize(_services, _config);
+            sector.Initialize(_services, _config, player);
             return sector;
         }
 
@@ -499,10 +497,9 @@ namespace Tests.PlayMode
             var settings = TestAssets.LoadDefaultShipSettings();
             if (!ship || !cmdr || !settings) { Assert.Ignore("Required test assets not found."); yield break; }
 
-            var sector = CreateActiveEncounterSector();
             var player = _unitService.SpawnShip(ship, cmdr, settings, 0,
                 GamePlane.PlanePointToWorld(Vector2.zero), GamePlane.Rotation);
-            sector.InjectedPlayer = player;
+            var sector = CreateActiveEncounterSector(player);
 
             var module = AttachEncounterModule(sector, NewStubEncounterTemplate("Enc0"));
 

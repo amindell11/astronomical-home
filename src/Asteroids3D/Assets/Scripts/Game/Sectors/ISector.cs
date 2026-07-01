@@ -8,7 +8,7 @@ namespace Game.Sectors
     public interface ISector
     {
         event Action<SectorResult> OnSectorComplete;
-        void Initialize(IGameServices services, SectorSettings config);
+        void Initialize(IGameServices services, SectorSettings config, Ship player);
         IEnumerator Setup();
         IEnumerator Teardown();
     }

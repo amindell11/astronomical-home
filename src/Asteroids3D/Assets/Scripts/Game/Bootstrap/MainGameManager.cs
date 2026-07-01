@@ -14,6 +14,10 @@ namespace Game.Bootstrap
         [Header("Sector")]
         [SerializeField] private SectorEntry currentSector;
 
+        [Header("Session Rig")]
+        [Tooltip("Session-tier player/camera/UI/world rig. Built once at Start; persists across sector restarts.")]
+        [SerializeField] private PlayerRig playerRig;
+
         [Header("Game Plane")]
         [SerializeField] private PlaneAxis planeAxis = PlaneAxis.Y;
         [SerializeField] private Vector3 planeOrigin;
@@ -54,7 +58,7 @@ namespace Game.Bootstrap
                     yield return HandleLoading();
                     break;
                 case GameState.Start:
-                    TransitionTo(GameState.LoadSector);
+                    yield return HandleStart();
                     break;
                 case GameState.LoadSector:
                     yield return HandleLoadSector();
@@ -88,6 +92,16 @@ namespace Game.Bootstrap
             TransitionTo(GameState.Start);
         }
 
+        // Build the session-tier rig (player, observer camera, UI overlay, world) exactly once,
+        // before the first sector loads. It persists across sector restarts and is torn down only on
+        // session exit — the sector references the player, it does not own it.
+        private IEnumerator HandleStart()
+        {
+            if (playerRig)
+                yield return playerRig.Build(services);
+            TransitionTo(GameState.LoadSector);
+        }
+
         private IEnumerator HandleLoadSector()
         {
             if (!currentSector?.prefab)
@@ -101,7 +115,8 @@ namespace Game.Bootstrap
             holder.SetActive(false);
 
             ActiveSector = Instantiate(currentSector.prefab, holder.transform);
-            ActiveSector.Initialize(services, currentSector.config);
+            // Inject the persistent rig's player — the sector references it, never builds/owns it.
+            ActiveSector.Initialize(services, currentSector.config, playerRig ? playerRig.Player : null);
             ActiveSector.OnSectorComplete += HandleSectorComplete;
 
             yield return ActiveSector.Setup();
@@ -117,19 +132,35 @@ namespace Game.Bootstrap
             TransitionTo(GameState.Restart);
         }
 
+        // Restart tears down only the sector's content; the session rig (player/camera/UI/world) and
+        // the service registries persist, so the player survives a restart instead of being rebuilt.
         private IEnumerator HandleRestart()
         {
-            yield return Cleanup(runTeardown: true);
+            yield return TeardownActiveSector(runTeardown: true);
             GamePlane.Configure(planeAxis, planeOrigin);
             TransitionTo(GameState.LoadSector);
         }
 
         private void HandleExit()
         {
-            StartCoroutine(Cleanup(runTeardown: false));
+            StartCoroutine(ExitRoutine());
         }
 
-        private IEnumerator Cleanup(bool runTeardown)
+        // Session exit: drop the sector, then tear down the persistent rig and wipe every registry.
+        private IEnumerator ExitRoutine()
+        {
+            yield return TeardownActiveSector(runTeardown: false);
+
+            if (playerRig)
+                playerRig.Teardown();
+
+            services?.ClearAll();
+            services = null;
+
+            GamePlane.Reset();
+        }
+
+        private IEnumerator TeardownActiveSector(bool runTeardown)
         {
             if (ActiveSector)
             {
@@ -141,13 +172,6 @@ namespace Game.Bootstrap
                 Destroy(ActiveSector.gameObject);
                 ActiveSector = null;
             }
-
-            if (runTeardown)
-                services?.ClearAll();
-            else
-                services = null;
-
-            GamePlane.Reset();
         }
 
         private void OnDestroy()

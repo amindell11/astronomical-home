@@ -69,12 +69,13 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void PlaySector_OwnsOverlayLifecycleViaUIService()
+        public void PlayerRig_OwnsOverlayLifecycleViaUIService()
         {
-            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Game", "Sectors", "PlaySector.cs"));
-            StringAssert.Contains("Services.UIService.Show(overlay, uiCam);", source);
-            StringAssert.Contains("overlay.Initialize(player);", source);
-            StringAssert.Contains("Services.UIService.Clear();", source);
+            // The overlay lifecycle moved UP to the session-tier rig (Stage 3): the rig builds it via
+            // UIService and hands it the player. Teardown is via services.ClearAll() on session exit.
+            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Game", "Bootstrap", "PlayerRig.cs"));
+            StringAssert.Contains("services.UIService.Show(overlay, uiCam);", source);
+            StringAssert.Contains("overlay.Initialize(Player);", source);
         }
 
         [Test]

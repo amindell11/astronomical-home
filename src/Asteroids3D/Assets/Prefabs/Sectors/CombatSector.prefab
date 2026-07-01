@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8376058910363217357}
-  - component: {fileID: 4108587558117884671}
+  - component: {fileID: 6734031631238332472}
   m_Layer: 0
   m_Name: CombatSector
   m_TagString: Untagged
@@ -35,7 +35,7 @@ Transform:
   - {fileID: 1119954945372358847}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4108587558117884671
+--- !u!114 &6734031631238332472
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -44,61 +44,31 @@ MonoBehaviour:
   m_GameObject: {fileID: 1718666969227981958}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 718373e2c5b1c29448d519816e43b594, type: 3}
+  m_Script: {fileID: 11500000, guid: 39b192030cca4c3c91b5f8ca080420cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   adopted:
   - target: {fileID: 7742011771732502815}
-    role: 
-    team: 1
-    startActive: 0
-    respawn:
-      origin: 1
-      point: {x: 30, y: 50}
-      radius: 5
-      delay: 2
-  - target: {fileID: 350762763904327520}
-    role: 
-    team: 1
+    team: 0
     startActive: 1
     respawn:
-      origin: 1
-      point: {x: 0, y: 30}
-      radius: 5
-      delay: 2
+      origin: 0
+      point: {x: 0, y: 0}
+      radius: 0
+      delay: 0
+  - target: {fileID: 350762763904327520}
+    team: 0
+    startActive: 1
+    respawn:
+      origin: 0
+      point: {x: 0, y: 0}
+      radius: 0
+      delay: 0
   spawners: []
   modules:
   - {fileID: 8099642933775748658}
-  playerTemplate: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
-    type: 3}
-  playerCommander: {fileID: 6378580657550141484, guid: ed986bef16a6fa9488e6052de65aa9dd,
-    type: 3}
-  shipSettings: {fileID: 11400000, guid: c2eae258625507d43948e555302ee7ee, type: 2}
-  playerSpawnPosition: {x: 0, y: 0}
-  playerRespawn:
-    origin: 0
-    point: {x: 0, y: 0}
-    radius: 0
-    delay: 0
-  observerCamPrefab: {fileID: 5165561948949764142, guid: 2c36b9334ffd01546b166a7fe6b04853,
-    type: 3}
-  uiCamPrefab: {fileID: 3390105061295411697, guid: 295d83ec41ff69a44b8fed215945622a,
-    type: 3}
-  minimapCamPrefab: {fileID: 8356663853274892654, guid: d01c2caf016d7b942a890f2a013961f1,
-    type: 3}
-  overlayPrefab: {fileID: 6902055608550465894, guid: 87f4b42386fd2af44b25b722572d1fcd,
-    type: 3}
-  enemyTemplate: {fileID: 0}
-  enemyCommander: {fileID: 0}
-  chaser: {fileID: 0}
-  worldPrefab: {fileID: 4478678954348364341, guid: 85b078d06b0ea6c40acdfd2fe59a9556,
-    type: 3}
   updatingAsteroidFieldPrefab: {fileID: 7997124830668444265, guid: a4a07ada72adcc44ba51f616ad29384b,
     type: 3}
-  enemySpawnPosition: {x: 0, y: 30}
-  chaserSpawnPosition: {x: 30, y: 50}
-  spawnerSettings: {fileID: 11400000, guid: d5df05273fc201d41b456a239f5fa628, type: 2}
-  encounters: []
 --- !u!1001 &1647443509423964513
 PrefabInstance:
   m_ObjectHideFlags: 0

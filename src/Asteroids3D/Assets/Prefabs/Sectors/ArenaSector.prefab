@@ -9,8 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8376058910363217357}
-  - component: {fileID: -1964771671215288555}
   - component: {fileID: 4131614711866306222}
+  - component: {fileID: 5948089623529452662}
   m_Layer: 0
   m_Name: ArenaSector
   m_TagString: Untagged
@@ -35,57 +35,6 @@ Transform:
   - {fileID: 6313974149400373976}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &-1964771671215288555
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1718666969227981958}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 718373e2c5b1c29448d519816e43b594, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  adopted: []
-  spawners:
-  - {fileID: 6582090711314777745}
-  - {fileID: 121297906597730660}
-  modules:
-  - {fileID: 4131614711866306222}
-  playerTemplate: {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637,
-    type: 3}
-  playerCommander: {fileID: 6378580657550141484, guid: ed986bef16a6fa9488e6052de65aa9dd,
-    type: 3}
-  shipSettings: {fileID: 11400000, guid: c2eae258625507d43948e555302ee7ee, type: 2}
-  playerSpawnPosition: {x: 0, y: 0}
-  playerRespawn:
-    origin: 0
-    point: {x: 0, y: 0}
-    radius: 0
-    delay: 0
-  observerCamPrefab: {fileID: 5165561948949764142, guid: 2c36b9334ffd01546b166a7fe6b04853,
-    type: 3}
-  uiCamPrefab: {fileID: 3390105061295411697, guid: 295d83ec41ff69a44b8fed215945622a,
-    type: 3}
-  minimapCamPrefab: {fileID: 8356663853274892654, guid: d01c2caf016d7b942a890f2a013961f1,
-    type: 3}
-  overlayPrefab: {fileID: 6902055608550465894, guid: 87f4b42386fd2af44b25b722572d1fcd,
-    type: 3}
-  teamATemplate: {fileID: 0}
-  teamBTemplate: {fileID: 0}
-  aiCommander: {fileID: 0}
-  teamACount: 4
-  teamBCount: 4
-  spawnRadius: 30
-  respawnDelay: 3
-  playerParticipates: 0
-  worldPrefab: {fileID: 4478678954348364341, guid: 85b078d06b0ea6c40acdfd2fe59a9556,
-    type: 3}
-  updatingAsteroidFieldPrefab: {fileID: 7997124830668444265, guid: a4a07ada72adcc44ba51f616ad29384b,
-    type: 3}
-  enableDebugOverlay: 1
-  debugSettings: {fileID: 11400000, guid: 2e2ae38aa858dd74d9f7908425a3067d, type: 2}
 --- !u!114 &4131614711866306222
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -98,6 +47,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 042cb923646caaa4daf7716c5a45f3a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &5948089623529452662
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1718666969227981958}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 39b192030cca4c3c91b5f8ca080420cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  adopted: []
+  spawners:
+  - {fileID: 6582090711314777745}
+  - {fileID: 121297906597730660}
+  modules:
+  - {fileID: 4131614711866306222}
+  updatingAsteroidFieldPrefab: {fileID: 7997124830668444265, guid: a4a07ada72adcc44ba51f616ad29384b,
+    type: 3}
 --- !u!1 &6420115723280658274
 GameObject:
   m_ObjectHideFlags: 0
