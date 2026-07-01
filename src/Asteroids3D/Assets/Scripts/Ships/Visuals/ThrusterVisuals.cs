@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using Utils;
 
 namespace Ships.Visuals
 {
@@ -17,8 +16,7 @@ namespace Ships.Visuals
         {
             if (thrustParticles == null || thrustParticles.Length == 0 || !ship) return;
 
-            // Also check global VFX setting
-            var shouldPlay = ship.Movement.CurrentCommand.thrust > 0.05f && GameSettings.VfxEnabled;
+            var shouldPlay = ship.Movement.CurrentCommand.thrust > 0.05f;
             UpdateThrustAnimations(shouldPlay);
         }
 

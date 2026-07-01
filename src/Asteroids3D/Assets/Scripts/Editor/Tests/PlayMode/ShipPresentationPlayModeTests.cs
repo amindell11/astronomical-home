@@ -9,7 +9,6 @@ using Tests.PlayMode.Common;
 using UI;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Utils;
 
 namespace Tests.PlayMode
 {
@@ -34,7 +33,6 @@ namespace Tests.PlayMode
             base.SetUp();
 
 #if UNITY_EDITOR
-            GameSettings.SetVfxEnabled(true);
             var settings = TestAssets.LoadDefaultShipSettings();
             var prefab = TestAssets.LoadShipPrefab(Ship1Path);
             Assert.IsNotNull(settings, "Default ship settings failed to load");
