@@ -38,7 +38,7 @@ namespace Tests.PlayMode
     public class ShipChildComponentStatePlayModeTests : PlayModeWorldFixture
     {
         private Ship testShip;
-        private CombatShip combatShip;
+        private Ship combatShip;
         private Ship enemyShip;
         
         // Toggle for diagnostic logging (set to true to enable detailed logs)
@@ -60,9 +60,9 @@ namespace Tests.PlayMode
             Assert.IsNotNull(commanderPrefab, "TestPilotMPC prefab failed to load");
 
             testShip = ShipTestFactory.CreateShip(shipPrefab, commanderPrefab, settings, team: 0);
-            combatShip = testShip as CombatShip;
+            combatShip = testShip;
             Assert.IsNotNull(testShip, "Test ship failed to instantiate");
-            Assert.IsNotNull(combatShip, "Test ship should be a CombatShip");
+            Assert.IsNotNull(combatShip.Weapons, "Test ship should be armed (WeaponsController present)");
 
             // Create enemy for damage attribution
             enemyShip = ShipTestFactory.CreateDefaultShipAt(

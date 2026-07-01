@@ -22,7 +22,7 @@ namespace Tests.PlayMode
     public class HeatOverheatStressPlayModeTests : PlayModeWorldFixture
     {
         private Ship ship;
-        private CombatShip combatShip;
+        private Ship combatShip;
         private Commander commanderPrefab;
         private Heat primaryHeat;
 
@@ -52,9 +52,9 @@ namespace Tests.PlayMode
             commanderPrefab = new GameObject("ContinuousFireCommanderPrefab").AddComponent<ContinuousFireCommander>();
             ship = Factory.CreateShip(shipPrefab, commanderPrefab, settings, team: 0,
                                       position: Vector3.zero, rotation: Quaternion.identity);
-            combatShip = ship as CombatShip;
+            combatShip = ship;
 
-            Assert.IsNotNull(combatShip, "Ship must be a CombatShip");
+            Assert.IsNotNull(combatShip.Weapons, "Ship must be armed (WeaponsController present)");
             Assert.IsNotNull(combatShip.Weapons?.Primary, "Primary weapon not instantiated");
 
             primaryHeat = combatShip.Weapons.Primary.GetComponent<Heat>();
