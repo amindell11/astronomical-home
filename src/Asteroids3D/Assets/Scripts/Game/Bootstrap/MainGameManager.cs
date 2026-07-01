@@ -3,6 +3,7 @@ using System.Collections;
 using Game.Sectors;
 using Game.Services;
 using Player;
+using Presentation;
 using Ships;
 using UnityEngine;
 
@@ -22,11 +23,16 @@ namespace Game.Bootstrap
         [Tooltip("Session policy: when false, no player ship is built (spectator/headless).")]
         [SerializeField] private bool buildPlayer = true;
 
+        [Tooltip("Session policy: when false, ships spawn without visual rigs (headless/RL). " +
+                 "Presentation is a game-tier overlay attached to each ship via the unit registry.")]
+        [SerializeField] private bool installPresentation = true;
+
         [Header("Game Plane")]
         [SerializeField] private PlaneAxis planeAxis = PlaneAxis.Y;
         [SerializeField] private Vector3 planeOrigin;
 
         private GameServices services;
+        private PresentationInstaller presentationInstaller;
         private Coroutine stateRoutine;
         public GameState CurrentState { get; private set; }
 
@@ -103,6 +109,15 @@ namespace Game.Bootstrap
         {
             if (playerRig)
                 yield return playerRig.Build(services, buildPlayer, () => TransitionTo(GameState.Restart));
+
+            // Game-tier presentation: attach a visual rig to each active ship (player built above, plus
+            // any spawned/adopted by sectors) via the unit registry. Skipped entirely for headless/RL.
+            if (installPresentation)
+            {
+                presentationInstaller = new PresentationInstaller();
+                presentationInstaller.Install(services.UnitService);
+            }
+
             TransitionTo(GameState.LoadSector);
         }
 
@@ -167,6 +182,9 @@ namespace Game.Bootstrap
         private IEnumerator ExitRoutine()
         {
             yield return TeardownActiveSector(runTeardown: false);
+
+            presentationInstaller?.Uninstall();
+            presentationInstaller = null;
 
             if (playerRig)
                 playerRig.Teardown();

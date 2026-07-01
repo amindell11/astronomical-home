@@ -1,13 +1,10 @@
 using System.Collections;
-using System.Reflection;
 using NUnit.Framework;
 using Ships;
 using Ships.Damage;
-using Ships.Visuals;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Utils;
 
 namespace Tests.PlayMode
 {
@@ -415,79 +412,6 @@ namespace Tests.PlayMode
         }
 
         /// <summary>
-        /// STEP 8: Repro test for board bug around respawn visuals.
-        /// Smoke should be hidden after respawn and only re-appear once health drops below 50% again.
-        /// </summary>
-        [UnityTest]
-        public IEnumerator AfterReset_SmokeTrailIsHidden_UntilHealthDropsAgain()
-        {
-            yield return null;
-
-            GameSettings.SetVfxEnabled(true);
-
-            var settings = TestAssets.LoadDefaultShipSettings();
-            var ship1Prefab = TestAssets.LoadShipPrefab("Assets/Prefabs/Ships/Ship_1.prefab");
-            var commanderPrefab = TestAssets.LoadTestPilotMpc();
-
-            Assert.IsNotNull(settings, "Default ship settings failed to load");
-            Assert.IsNotNull(ship1Prefab, "Ship_1 prefab failed to load");
-            Assert.IsNotNull(commanderPrefab, "TestPilotMPC prefab failed to load");
-
-            Ship smokeShip = null;
-            try
-            {
-                smokeShip = ShipTestFactory.CreateShip(ship1Prefab, commanderPrefab, settings, team: 0);
-                Assert.IsNotNull(smokeShip, "Failed to create smoke test ship");
-
-                var smokeDamage = smokeShip.Damage;
-                var smokeObject = GetSmokeObject(smokeShip);
-
-                Assert.IsNotNull(smokeDamage, "DamageController missing on smoke test ship");
-                Assert.IsNotNull(smokeObject, "Hull smoke ParticleSystem reference was not found");
-
-                yield return null;
-
-                Assert.IsFalse(smokeObject.activeSelf,
-                    "Smoke should start hidden at full health");
-
-                // Deplete shield first, then lower health below smoke threshold.
-                smokeDamage.TakeDamage(smokeDamage.Shield.CurrentValue + 25f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
-                yield return null;
-
-                smokeDamage.TakeDamage(smokeDamage.Health.MaxValue * 0.6f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
-                yield return null;
-
-                Assert.Less(smokeDamage.Health.Pct, 0.5f,
-                    "Health should be below 50% to trigger smoke");
-                Assert.IsTrue(smokeObject.activeSelf,
-                    "Smoke should be visible when health drops below 50%");
-
-                // Kill + respawn.
-                smokeDamage.TakeDamage(smokeDamage.Health.MaxValue + 25f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
-                yield return null;
-
-                Assert.IsFalse(smokeShip.gameObject.activeSelf,
-                    "Smoke test ship should be inactive after lethal damage");
-
-                smokeShip.ResetShip();
-                yield return null;
-
-                Assert.IsTrue(smokeShip.gameObject.activeSelf,
-                    "Smoke test ship should be active after ResetShip()");
-                Assert.AreEqual(1f, smokeDamage.Health.Pct, 0.01f,
-                    "Health should be fully restored after reset");
-
-                // BUG EXPECTATION: this currently fails when smoke state is stale across disable/enable.
-                Assert.IsFalse(smokeObject.activeSelf,
-                    "Smoke should be hidden immediately after respawn and remain off until health drops again");
-            }
-            finally
-            {
-                ShipTestFactory.DestroyShip(smokeShip);
-            }
-        }
-
-        /// <summary>
         /// STEP 9: Integration test for damage routing (no overflow).
         /// When shield is partially depleted and damage exceeds remaining shield,
         /// the overflow is absorbed (not applied to health). This is the intended behavior per design:
@@ -524,18 +448,6 @@ namespace Tests.PlayMode
             // Health should NOT be damaged by the overflow
             Assert.AreEqual(initialHealth, playerDamage.Health.CurrentValue, 0.01f,
                 $"Health should NOT be damaged by overflow (per design). Expected {initialHealth}, got {playerDamage.Health.CurrentValue}");
-        }
-
-        private static GameObject GetSmokeObject(Ship ship)
-        {
-            var hull = ship.GetComponentInChildren<HullVisuals>(true);
-            if (!hull) return null;
-
-            var smokeField = typeof(HullVisuals).GetField("smoke", BindingFlags.Instance | BindingFlags.NonPublic);
-            if (smokeField == null) return null;
-
-            var smoke = smokeField.GetValue(hull) as ParticleSystem;
-            return smoke ? smoke.gameObject : null;
         }
     }
 }

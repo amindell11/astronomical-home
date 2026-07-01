@@ -52,16 +52,23 @@ namespace Presentation
             rigs.Clear();
         }
 
-        private void Attach(Ship ship)
+        /// <summary>
+        /// Attach a ship's declared visual rig under it and inject its <see cref="ShipView"/>. Returns
+        /// the rig (or null if the ship declares none). Single source of truth for rig attachment,
+        /// shared by the installer and tests.
+        /// </summary>
+        public static ShipVisualRig AttachRigTo(Ship ship)
         {
-            if (!ship || rigs.ContainsKey(ship)) return;
-
-            var binding = ship.GetComponent<ShipVisualBinding>();
-            if (!binding || !binding.VisualRigPrefab) return;
+            var binding = ship ? ship.GetComponent<ShipVisualBinding>() : null;
+            if (!binding || !binding.VisualRigPrefab) return null;
 
             var rig = Object.Instantiate(binding.VisualRigPrefab, ship.transform);
+            // Neutralize the rig's local transform so its children inherit the ship root's transform
+            // exactly as they did when they were direct children of the ship (the rig prefab root
+            // carries the ship's authored rotation/scale, which must not be double-applied).
             rig.transform.localPosition = Vector3.zero;
             rig.transform.localRotation = Quaternion.identity;
+            rig.transform.localScale = Vector3.one;
 
             rig.Bind(new ShipView(
                 ship.transform,
@@ -69,7 +76,14 @@ namespace Presentation
                 () => ship.Movement.CurrentCommand,
                 ship.Lock));
 
-            rigs[ship] = rig;
+            return rig;
+        }
+
+        private void Attach(Ship ship)
+        {
+            if (!ship || rigs.ContainsKey(ship)) return;
+            var rig = AttachRigTo(ship);
+            if (rig) rigs[ship] = rig;
         }
 
         private void Detach(Ship ship)
