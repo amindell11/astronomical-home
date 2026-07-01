@@ -168,14 +168,6 @@ namespace Tests.PlayMode
             return m;
         }
 
-        // A single TakeDamage hit drains EITHER shield OR health, so hit repeatedly until dead.
-        private static void KillShip(Ship s)
-        {
-            s.Damage.SetInvulnerability(0f);
-            for (var i = 0; i < 5 && s.Damage.Health.CurrentValue > 0f; i++)
-                s.Damage.TakeDamage(99999f, 0f, Vector3.zero, Vector3.zero, null);
-        }
-
         private static AdoptEntry Entry(Component target, int team = 0, bool startActive = true) =>
             new AdoptEntry { target = target, team = team, startActive = startActive };
 
@@ -440,7 +432,7 @@ namespace Tests.PlayMode
             var policy = new RespawnPolicy { origin = RespawnPolicy.Origin.FixedPoint, point = point, radius = 0f, delay = 0f };
             Assert.IsTrue(Respawn.Wire(s, policy, _services), "FixedPoint policy must wire a respawn.");
 
-            KillShip(s);
+            TestDamage.Kill(s);
 
             // UnitService.Update processes the (delay 0) pending respawn next frame.
             yield return null;
@@ -466,7 +458,7 @@ namespace Tests.PlayMode
             var policy = new RespawnPolicy { origin = RespawnPolicy.Origin.None };
             Assert.IsFalse(Respawn.Wire(s, policy, _services), "A None policy must wire nothing.");
 
-            KillShip(s);
+            TestDamage.Kill(s);
 
             yield return null;
             yield return null;

@@ -145,13 +145,7 @@ namespace Tests.PlayMode
                          $"Weapons active: {weaponsController.gameObject.activeSelf}");
 
             // Deal lethal damage to kill ship
-            var maxShield = testShip.Damage.Shield.MaxValue;
-            var maxHealth = testShip.Damage.Health.MaxValue;
-            
-            testShip.Damage.TakeDamage(maxShield + 100f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
-            yield return null;
-            
-            testShip.Damage.TakeDamage(maxHealth + 100f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
+            TestDamage.Kill(testShip, enemyShip.gameObject);
             yield return null;
 
             // Verify ship is deactivated
@@ -192,12 +186,7 @@ namespace Tests.PlayMode
             var lockOnIndicator = testShip.GetComponentInChildren<LockOnIndicator>(includeInactive: true);
 
             // Kill ship
-            var maxShield = testShip.Damage.Shield.MaxValue;
-            var maxHealth = testShip.Damage.Health.MaxValue;
-            
-            testShip.Damage.TakeDamage(maxShield + 100f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
-            yield return null;
-            testShip.Damage.TakeDamage(maxHealth + 100f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
+            TestDamage.Kill(testShip, enemyShip.gameObject);
             yield return null;
 
             LogDiagnostic($"Before reset - Ship active: {testShip.gameObject.activeSelf}");
@@ -257,12 +246,7 @@ namespace Tests.PlayMode
             yield return null;
 
             // Kill and reset ship
-            var maxShield = testShip.Damage.Shield.MaxValue;
-            var maxHealth = testShip.Damage.Health.MaxValue;
-            
-            testShip.Damage.TakeDamage(maxShield + 100f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
-            yield return null;
-            testShip.Damage.TakeDamage(maxHealth + 100f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
+            TestDamage.Kill(testShip, enemyShip.gameObject);
             yield return null;
 
             testShip.ResetShip();
@@ -307,12 +291,7 @@ namespace Tests.PlayMode
             }
 
             // Kill and reset ship
-            var maxShield = testShip.Damage.Shield.MaxValue;
-            var maxHealth = testShip.Damage.Health.MaxValue;
-            
-            testShip.Damage.TakeDamage(maxShield + 100f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
-            yield return null;
-            testShip.Damage.TakeDamage(maxHealth + 100f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
+            TestDamage.Kill(testShip, enemyShip.gameObject);
             yield return null;
 
             testShip.ResetShip();
@@ -360,12 +339,7 @@ namespace Tests.PlayMode
             }
 
             // Kill and reset ship
-            var maxShield = testShip.Damage.Shield.MaxValue;
-            var maxHealth = testShip.Damage.Health.MaxValue;
-            
-            testShip.Damage.TakeDamage(maxShield + 100f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
-            yield return null;
-            testShip.Damage.TakeDamage(maxHealth + 100f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
+            TestDamage.Kill(testShip, enemyShip.gameObject);
             yield return null;
 
             testShip.ResetShip();
@@ -469,12 +443,7 @@ namespace Tests.PlayMode
                 var lockOnIndicator = testShip.GetComponentInChildren<LockOnIndicator>(includeInactive: true);
 
                 // Kill ship
-                var maxShield = testShip.Damage.Shield.MaxValue;
-                var maxHealth = testShip.Damage.Health.MaxValue;
-                
-                testShip.Damage.TakeDamage(maxShield + 100f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
-                yield return null;
-                testShip.Damage.TakeDamage(maxHealth + 100f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
+                TestDamage.Kill(testShip, enemyShip.gameObject);
                 yield return null;
 
                 Assert.IsFalse(testShip.gameObject.activeSelf,
