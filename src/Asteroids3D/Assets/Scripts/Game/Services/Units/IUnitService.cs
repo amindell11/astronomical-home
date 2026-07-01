@@ -28,6 +28,13 @@ namespace Game.Services
         /// </summary>
         Ship AdoptShip(Ship ship);
 
+        /// <summary>
+        /// Destroy a single service-owned ship (a spawner product or adopted ship) and unregister it,
+        /// dropping any queued respawn for it. Used by producer-owned teardown so sector content is
+        /// cleared on restart while the session-tier player (never passed here) survives.
+        /// </summary>
+        void DespawnShip(Ship ship);
+
         /// <summary>Destroy all spawned units and clear the registry.</summary>
         void Clear();
 

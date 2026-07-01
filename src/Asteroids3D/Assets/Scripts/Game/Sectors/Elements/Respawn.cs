@@ -16,27 +16,37 @@ namespace Game.Sectors
         /// <summary>
         /// Subscribe a respawn to <paramref name="ship"/>'s death using <paramref name="policy"/>.
         /// Returns true if a subscription was wired (false for a disabled policy / missing ship/services).
-        /// The revive position is resolved at death time (so <c>FollowerRelative</c> tracks the
-        /// follower's location when the ship dies).
+        /// <para>
+        /// For <c>FixedPoint</c> the anchor is <b>producer-relative</b>: the producer's plane position is
+        /// snapshotted <b>now</b> (wire/spawn time) from <paramref name="origin"/> — defaulting to the
+        /// ship's own transform — and <c>policy.point</c> is an offset from it, so a default (zero) point
+        /// revives the ship exactly where it started rather than wherever it drifted to by death. For
+        /// <c>FollowerRelative</c> the anchor is resolved at death time (tracking the world follower).
+        /// </para>
         /// </summary>
-        public static bool Wire(Ship ship, RespawnPolicy policy, IGameServices services)
+        public static bool Wire(Ship ship, RespawnPolicy policy, IGameServices services, Transform origin = null)
         {
             if (!policy.Enabled || !ship || services == null || !ship.Damage) return false;
 
+            var producerBase = GamePlane.WorldPointToPlane((origin ? origin : ship.transform).position);
             ship.Damage.OnDeath += (victim, _) =>
-                services.UnitService.WaitAndRespawnShip(victim, Resolve(policy, services), 0f, policy.delay);
+                services.UnitService.WaitAndRespawnShip(
+                    victim, Resolve(policy, services, producerBase), 0f, policy.delay);
             return true;
         }
 
         /// <summary>
-        /// Plane-space revive position for a policy: a random point within <c>radius</c> of the
-        /// resolved anchor (the fixed point, or the world follower's plane position).
+        /// Plane-space revive position for a policy: a random point within <c>radius</c> of the resolved
+        /// anchor. For <c>FixedPoint</c> the anchor is <paramref name="producerBase"/> plus the policy's
+        /// offset <c>point</c> (producer-relative); for <c>FollowerRelative</c> it is the world follower's
+        /// plane position. <paramref name="producerBase"/> defaults to origin, so a policy authored at the
+        /// world origin resolves to its raw <c>point</c>.
         /// </summary>
-        public static Vector2 Resolve(RespawnPolicy policy, IGameServices services)
+        public static Vector2 Resolve(RespawnPolicy policy, IGameServices services, Vector2 producerBase = default)
         {
             var anchor = policy.origin == RespawnPolicy.Origin.FollowerRelative
                 ? FollowerAnchor(services)
-                : policy.point;
+                : producerBase + policy.point;
             return anchor + Random.insideUnitCircle * policy.radius;
         }
 

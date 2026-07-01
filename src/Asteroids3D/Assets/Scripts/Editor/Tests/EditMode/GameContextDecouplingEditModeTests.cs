@@ -73,7 +73,7 @@ namespace Tests.EditMode
         {
             // The overlay lifecycle moved UP to the session-tier rig (Stage 3): the rig builds it via
             // UIService and hands it the player. Teardown is via services.ClearAll() on session exit.
-            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Game", "Bootstrap", "PlayerRig.cs"));
+            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Player", "PlayerRig.cs"));
             StringAssert.Contains("services.UIService.Show(overlay, uiCam);", source);
             StringAssert.Contains("overlay.Initialize(Player);", source);
         }

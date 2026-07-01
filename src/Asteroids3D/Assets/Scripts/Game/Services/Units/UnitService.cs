@@ -69,6 +69,18 @@ namespace Game.Services
             return ship;
         }
 
+        public void DespawnShip(Ship ship)
+        {
+            // Producer-owned teardown: destroy one service-owned ship (a spawner product or an adopted
+            // ship) without touching the rest. The session player is never passed here, so it survives
+            // a sector restart. Also drop any queued revive so it can't fire on the destroyed ship.
+            if (!ship) return;
+            ActiveRegistry.ActiveShips.Remove(ship);
+            spawnedShips.Remove(ship);
+            pendingRespawns.RemoveAll(p => p.ship == ship.Id);
+            UnityEngine.Object.Destroy(ship.gameObject);
+        }
+
         public void Clear()
         {
             for (var i = 0; i < spawnedShips.Count; i++)

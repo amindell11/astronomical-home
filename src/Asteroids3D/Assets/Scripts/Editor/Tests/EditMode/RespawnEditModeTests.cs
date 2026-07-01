@@ -78,6 +78,21 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void Resolve_FixedPoint_IsProducerRelative()
+        {
+            var policy = new RespawnPolicy
+            {
+                origin = RespawnPolicy.Origin.FixedPoint,
+                point = new Vector2(2, -3),
+                radius = 0f,
+            };
+
+            var producerBase = new Vector2(10, 5);
+            Assert.AreEqual(new Vector2(12, 2), Respawn.Resolve(policy, Services(), producerBase),
+                "FixedPoint must resolve to the producer's base position plus 'point' (producer-relative offset).");
+        }
+
+        [Test]
         public void Resolve_FollowerRelative_ReturnsFollowerPlanePosition()
         {
             _follower = new GameObject("Follower");

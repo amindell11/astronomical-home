@@ -26,8 +26,19 @@ namespace Game.Sectors
         /// <summary>Instantiate this spawner's content. Populate <see cref="Spawned"/>.</summary>
         public abstract IEnumerator Build(SectorBuildContext ctx);
 
-        /// <summary>Tear down loose instances this spawner owns. Service-owned ships are NOT torn down here.</summary>
-        public virtual IEnumerator Teardown(SectorBuildContext ctx) { yield break; }
+        /// <summary>
+        /// Tear down the instances this spawner produced. The default despawns every ship in
+        /// <see cref="Spawned"/> (its products) via the unit service so restart starts from a clean
+        /// unit set — the session-tier player is never a spawner product, so it survives. Non-ship
+        /// producers (e.g. an asteroid field) override this to release their own loose instances.
+        /// </summary>
+        public virtual IEnumerator Teardown(SectorBuildContext ctx)
+        {
+            foreach (var ship in Spawned)
+                if (ship) ctx.Services.UnitService.DespawnShip(ship);
+            Spawned = System.Array.Empty<Ship>();
+            yield break;
+        }
 
         /// <summary>Editor-only preview hook; concrete spawners draw placement gizmos here.</summary>
         protected virtual void OnDrawGizmos() { }

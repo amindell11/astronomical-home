@@ -1,5 +1,6 @@
 using System.Collections;
 using Cameras;
+using Game.Bootstrap;
 using Game.Sectors;
 using Game.Sectors.Utils;
 using Game.Services;
@@ -10,7 +11,7 @@ using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using World;
 
-namespace Game.Bootstrap
+namespace Player
 {
     /// <summary>
     /// Session-tier rig: builds the world (singleton infrastructure), player ship, observer camera and
@@ -22,6 +23,14 @@ namespace Game.Bootstrap
     /// </summary>
     public partial class PlayerRig : MonoBehaviour
     {
+        /// <summary>
+        /// Session policy for what happens when the persistent player ship dies.
+        /// <see cref="None"/> = nothing, <see cref="RespawnInPlace"/> = revive via the rig's
+        /// <see cref="playerRespawn"/>, <see cref="RestartSector"/> = tear down and reload the active
+        /// sector (the rig persists).
+        /// </summary>
+        public enum PlayerDeathBehavior { None, RespawnInPlace, RestartSector }
+
         [Header("Environment")]
         [SerializeField] private WorldRoot worldPrefab;
 

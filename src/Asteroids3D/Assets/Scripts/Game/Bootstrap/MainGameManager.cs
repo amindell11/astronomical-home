@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using Game.Sectors;
 using Game.Services;
+using Player;
 using Ships;
 using UnityEngine;
 
@@ -122,11 +123,12 @@ namespace Game.Bootstrap
             ActiveSector.Initialize(services, currentSector.config, playerRig ? playerRig.Player : null);
             ActiveSector.OnSectorComplete += HandleSectorComplete;
 
-            // Entry reset: place the persistent player at the sector's declared start (plane-space).
-            // The sector only DECLARES the start via PlayerStart; the session tier does the reset.
+            // Entry reset: place the persistent player at the sector's declared start (plane-space,
+            // producer-relative to the sector so it's deterministic every load). The sector only
+            // DECLARES the start via PlayerStart; the session tier does the reset.
             if (playerRig && playerRig.Player)
                 services.UnitService.RespawnShip(
-                    playerRig.Player.Id, ActiveSector.PlayerStart ?? Vector2.zero, 0f);
+                    playerRig.Player.Id, ActiveSector.PlayerStart, 0f);
 
             yield return ActiveSector.Setup();
 

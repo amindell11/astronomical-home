@@ -3,7 +3,7 @@ using AI.Debug;
 using Game.Services;
 using UnityEngine;
 
-namespace Game.Bootstrap
+namespace Player
 {
     /// <summary>
     /// Editor-only debug-overlay installer for <see cref="PlayerRig"/>. The overlay is an

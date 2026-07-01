@@ -12,7 +12,7 @@ namespace Game.Sectors
     /// The single concrete play-sector. Owns manifest content (adopted ships, procedural spawners —
     /// including any asteroid field, which is just another spawner) and behavior modules. The player,
     /// observer camera, UI overlay and world are built once by the session-tier
-    /// <see cref="Game.Bootstrap.PlayerRig"/> and injected
+    /// <see cref="global::Player.PlayerRig"/> and injected
     /// via <see cref="Initialize"/> — the sector references the player, it does not own it.
     /// Combat / Arena / Testbench are prefabs of this class, differing only in their manifest, modules
     /// and producer-owned RespawnPolicies.
@@ -47,16 +47,18 @@ namespace Game.Sectors
         public IReadOnlyList<SectorModule> Modules => modules;
 
         /// <summary>
-        /// Plane-space player start declared by an optional <see cref="PlayerStartMarker"/> child, or
-        /// null if none is placed. The sector only DECLARES this; the session tier resets the injected
-        /// player on entry. The sector never repositions the player itself.
+        /// Plane-space player start, resolved from an optional <see cref="PlayerStartMarker"/> child, or
+        /// the sector root's own transform when none is placed. Either way it is producer-relative to the
+        /// sector and recomputed from the freshly-loaded sector each entry, so the player reset is
+        /// deterministic and never drifts across a restart. The sector only DECLARES this; the session
+        /// tier does the reset — the sector never repositions the player itself.
         /// </summary>
-        public Vector2? PlayerStart
+        public Vector2 PlayerStart
         {
             get
             {
                 var marker = GetComponentInChildren<PlayerStartMarker>(true);
-                return marker ? GamePlane.WorldPointToPlane(marker.transform.position) : (Vector2?)null;
+                return GamePlane.WorldPointToPlane((marker ? marker.transform : transform).position);
             }
         }
 
@@ -117,10 +119,17 @@ namespace Game.Sectors
 
             yield return OnBeforeTeardown();
 
-            // Tear down loose/spawned instances in reverse. The persistent rig (player/camera/UI/world)
-            // is NOT touched here — it survives sector restarts and is torn down only on session exit.
+            // Tear down loose/spawned instances in reverse. Each spawner despawns its own products; the
+            // persistent rig (player/camera/UI/world) is NOT a spawner product and is left untouched — it
+            // survives sector restarts and is torn down only on session exit.
             for (var i = spawners.Length - 1; i >= 0; i--)
                 if (spawners[i]) yield return spawners[i].Teardown(Context);
+
+            // Adopted ships are service-owned and root-detached at adoption, so destroying the sector
+            // subtree does not take them. Despawn each here so NPCs don't accumulate across restarts.
+            // Non-ship adopts (WorldRoot) are session infra and are deliberately left alone.
+            foreach (var entry in adopted)
+                if (entry.target is Ship ship) Services.UnitService.DespawnShip(ship);
 
             yield return OnAfterTeardown();
 

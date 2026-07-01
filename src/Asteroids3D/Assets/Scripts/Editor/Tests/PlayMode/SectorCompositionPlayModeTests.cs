@@ -128,6 +128,17 @@ namespace Tests.PlayMode
             return sector;
         }
 
+        // A bare base Sector that does NOT force-Clear on teardown, so tests can verify the
+        // per-producer despawn path itself clears sector-owned ships (the restart-leak fix).
+        private Sector CreateBareSector()
+        {
+            var go = TrackGO(new GameObject("BareSector"));
+            go.SetActive(false);
+            var sector = go.AddComponent<Sector>();
+            sector.Initialize(_services, _config, null);
+            return sector;
+        }
+
         private static void SetManifest(Sector sector, AdoptEntry[] adopted, SectorSpawner[] spawners)
         {
             if (adopted != null) ReflectSet(sector, "adopted", adopted);
@@ -317,6 +328,55 @@ namespace Tests.PlayMode
             Assert.IsFalse(sector.IsBuilt, "IsSetUp must be false after Teardown.");
             Assert.AreEqual(0, _unitService.ActiveRegistry.ActiveShips.Count,
                 "Adopted/spawned ships must be cleared on teardown.");
+        }
+
+        [UnityTest]
+        public IEnumerator Teardown_DespawnsSpawnerProducts_WithoutForceClear()
+        {
+            var ship = TestAssets.LoadShip2Prefab();
+            var cmdr = TestAssets.LoadTestPilotMpc();
+            var settings = TestAssets.LoadDefaultShipSettings();
+            if (!ship || !cmdr || !settings) { Assert.Ignore("Required test assets not found."); yield break; }
+
+            var sector = CreateBareSector();
+            var spawnerGO = new GameObject("Ring");
+            spawnerGO.transform.SetParent(sector.transform);
+            var ring = spawnerGO.AddComponent<RingSpawner>();
+            ReflectSet(ring, "template", ship);
+            ReflectSet(ring, "commander", cmdr);
+            ReflectSet(ring, "settings", settings);
+            ReflectSet(ring, "count", 3);
+            SetManifest(sector, null, new SectorSpawner[] { ring });
+
+            yield return sector.Setup();
+            Assert.AreEqual(3, _unitService.ActiveRegistry.ActiveShips.Count, "Ring must spawn 3 ships.");
+
+            yield return sector.Teardown();
+
+            Assert.AreEqual(0, _unitService.ActiveRegistry.ActiveShips.Count,
+                "The spawner's own Teardown must despawn its products (no force-Clear) so NPCs don't leak across restarts.");
+            Assert.AreEqual(0, ring.Spawned.Count, "Spawned must be emptied after teardown.");
+        }
+
+        [UnityTest]
+        public IEnumerator Teardown_DespawnsAdoptedShips_WithoutForceClear()
+        {
+            var ship = TestAssets.LoadShip2Prefab();
+            var cmdr = TestAssets.LoadTestPilotMpc();
+            var settings = TestAssets.LoadDefaultShipSettings();
+            if (!ship || !cmdr || !settings) { Assert.Ignore("Required test assets not found."); yield break; }
+
+            var sector = CreateBareSector();
+            var child = AddAdoptedShipChild(sector.transform, ship, cmdr, settings);
+            SetManifest(sector, new[] { Entry(child) }, null);
+
+            yield return sector.Setup();
+            Assert.AreEqual(1, _unitService.ActiveRegistry.ActiveShips.Count, "Adopt must register 1 ship.");
+
+            yield return sector.Teardown();
+
+            Assert.AreEqual(0, _unitService.ActiveRegistry.ActiveShips.Count,
+                "Adopted ships (root-detached, service-owned) must be despawned on teardown so they don't leak across restarts.");
         }
 
         // ── Module infrastructure (Stage 2.1) ────────────────────────────────────
