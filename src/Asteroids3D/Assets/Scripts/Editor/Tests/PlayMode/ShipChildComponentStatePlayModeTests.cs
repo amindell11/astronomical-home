@@ -33,9 +33,7 @@ namespace Tests.PlayMode
     /// 2. Whether child objects re-enable properly after parent reactivation (expected)
     /// 3. Whether direct child deactivation causes different behavior (unexpected edge case)
     /// </summary>
-    [Category("Integration")]
-    [Category("UI")]
-    [Category("Weapons")]
+    [Category("Ships")]
     public class ShipChildComponentStatePlayModeTests : PlayModeWorldFixture
     {
         private Ship testShip;

@@ -17,7 +17,7 @@ namespace Tests.PlayMode
 // (SetNavigationPoint / SetFacingOverride) and assert on the ship's emergent motion.
 // Solver-decision behavior (lead facing, goal-velocity projection, etc.) is covered far
 // more cheaply at the unit level in Tests.EditMode/MpcSolverTests.
-[Category("Integration")]
+[Category("MPC")]
 [Category("Slow")]
 public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
 {

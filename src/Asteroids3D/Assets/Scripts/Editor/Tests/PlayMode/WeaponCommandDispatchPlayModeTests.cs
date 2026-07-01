@@ -18,7 +18,6 @@ namespace Tests.PlayMode
     ///   the ship should dispatch those commands to WeaponsController and trigger OnFire.
     /// - Current regression: command bits are present but weapon fire is never invoked.
     /// </summary>
-    [Category("Integration")]
     [Category("Weapons")]
     public class WeaponCommandDispatchPlayModeTests : PlayModeWorldFixture
     {

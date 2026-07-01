@@ -31,7 +31,7 @@ namespace Tests.PlayMode
     /// - DamageController.TakeDamage() (damage routing logic)
     /// - RegenResource.Reset() / RegenResource.Configure()
     /// </summary>
-    [Category("Integration")]
+    [Category("Damage")]
     [Category("Slow")]
     public class ShipRespawnDamagePlayModeTests : PlayModeWorldFixture
     {

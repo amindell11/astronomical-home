@@ -11,7 +11,7 @@ using AICommander = AI.AICommander;
 namespace Tests.PlayMode
 {
 
-[Category("Integration")]
+[Category("MPC")]
 [Category("Slow")]
 public class MpcPerformancePlayModeTests : PlayModeWorldFixture
 {

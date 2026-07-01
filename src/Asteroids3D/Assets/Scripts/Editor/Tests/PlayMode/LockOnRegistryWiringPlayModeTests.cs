@@ -23,8 +23,7 @@ namespace Tests.PlayMode
     /// These tests verify that ship.Targeting is properly wired and functional
     /// after Factory.CreateShip, with and without registry injection.
     /// </summary>
-    [Category("Regression")]
-    [Category("Integration")]
+    [Category("Targeting")]
     public class LockOnRegistryWiringPlayModeTests : PlayModeWorldFixture
     {
         private Ship testShip;

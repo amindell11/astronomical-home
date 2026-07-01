@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    [Category("Regression")]
+    [Category("Core")]
     public class GameContextDecouplingEditModeTests
     {
         [Test]

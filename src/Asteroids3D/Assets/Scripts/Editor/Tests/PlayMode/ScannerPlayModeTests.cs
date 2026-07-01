@@ -9,8 +9,7 @@ using UnityEngine.TestTools;
 namespace Tests.PlayMode
 {
 
-[Category("Integration")]
-[Category("Slow")]
+[Category("AI")]
 public class ScannerPlayModeTests : PlayModeWorldFixture
 {
     private Ship ship;

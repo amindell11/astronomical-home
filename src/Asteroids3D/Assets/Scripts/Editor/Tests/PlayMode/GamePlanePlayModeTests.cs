@@ -8,7 +8,7 @@ using UnityEngine.TestTools;
 namespace Tests.PlayMode
 {
 
-[Category("Regression")]
+[Category("Core")]
 public class GamePlanePlayModeTests : PlayModeWorldFixture
 {
     // Override to disable audio pause for these lightweight tests

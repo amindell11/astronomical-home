@@ -8,7 +8,6 @@ using UnityEngine.TestTools;
 
 namespace Tests.PlayMode
 {
-    [Category("Regression")]
     [Category("Weapons")]
     public class HeatPlayModeTests : PlayModeWorldFixture
     {

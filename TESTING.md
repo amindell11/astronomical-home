@@ -99,23 +99,26 @@ Instead of manually specifying test filters, you can run predefined test scopes:
 .\scripts\unity_test_agent.ps1 -ScopeType Smoke
 ```
 
-**Features** — Focused on specific features:
-- `camera` — Camera utilities and follow behavior
-- `navigation` — Ship navigation systems (standard + MPC)
-- `scanning` — AI obstacle scanning
-- `physics` — Physics calculations (collision, actuators, fragnetics)
+**Features** — Focused on specific features (see `scripts/unity_test_scopes.json`):
+`camera`, `navigation` (MPC solver + navigator), `navigation_perf`, `scanning`,
+`ai`, `physics`, `weapons`, `targeting`, `objectives`, `sectors`, `damage`,
+`ui`, `ships`, `services`, `bootstrap`.
 
 ```powershell
 .\scripts\unity_test_agent.ps1 -ScopeType Feature -ScopeName navigation
 ```
 
 **Modules** — Broader system-level groupings:
-- `ai` — All AI-related tests (navigation + scanning)
-- `utils` — Utility/calculation tests (collision, camera, fragnetics)
+`ai`, `mpc`, `combat`, `sectors`, `objectives`, `utils`, `workspace`.
 
 ```powershell
 .\scripts\unity_test_agent.ps1 -ScopeType Module -ScopeName ai
 ```
+
+> Prefer `-TestCategory <Domain>` for zero-upkeep slicing — every fixture
+> carries a domain category, so it never goes stale the way name-regex scopes
+> can. See [NUnit Categories](#nunit-categories) below. The scope map is a
+> convenience layer for the friendly names above.
 
 ### Scope Validation
 
@@ -146,18 +149,20 @@ If the filter matches **no tests**, the script exits with an error, indicating t
       "testFilter": "CameraUtilsEditModeTests|CameraFollowPlayMode"
     },
     "navigation": {
-      "testFilter": "NavigatorPlayMode|MpcNavigatorPlayMode"
+      "testFilter": "MpcNavigatorPlayMode|MpcSolverTests|MpcBoostEditModeTests|LosCostEditModeTests"
     }
   },
   "modules": {
     "ai": {
-      "testFilter": "NavigatorPlayMode|MpcNavigatorPlayMode|ScannerPlayMode"
+      "testFilter": "AIIntegrationPlayMode|MpcNavigatorPlayMode|MpcSolverTests|MpcBoostEditModeTests|LosCostEditModeTests|ScannerPlayMode"
     }
   }
 }
 ```
 
-**Filter syntax:** NUnit regex (pipe-separated class name patterns)
+**Filter syntax:** NUnit regex (pipe-separated class name patterns). Keep it in
+sync when renaming fixtures, or prefer `-TestCategory <Domain>` which needs no
+map upkeep.
 
 ### Examples
 
@@ -177,10 +182,10 @@ If the filter matches **no tests**, the script exits with an error, indicating t
 .\scripts\unity_test_agent.ps1 -ScopeType Feature -ScopeName camera -TestFilter "CameraUtilsEditModeTests"
 ```
 
-**Run category-filtered smoke tests:**
+**Run a single domain across both modes:**
 ```powershell
-# Combines scope filter + category filter
-.\scripts\unity_test_agent.ps1 -ScopeType Smoke -TestCategory "Regression"
+# No scope map needed — every fixture carries a domain category
+.\scripts\unity_test_agent.ps1 -Mode Both -TestCategory Sectors
 ```
 
 ---
@@ -253,12 +258,13 @@ if ($result.status -ne "passed") { exit 1 }
 
 ```
 Assets/Scripts/Editor/Tests/
+├── TEST_CATEGORIES.md                 # Pointer to the "NUnit Categories" section below
 ├── EditMode/                          # Compiled as Tests.EditMode.asmdef (Editor only)
-│   ├── ForcesEditModeTests.cs         # Forces.ComputeOutputs — pure math
-│   ├── CameraUtilsEditModeTests.cs    # CameraUtils — pure math
-│   ├── CameraUtilsEditMode.cs         # Empty stub — preserved for GUID continuity
-│   ├── CollisionDamageUtilityTests.cs # Kinetic energy / damage formulae
-│   └── FragneticsCalculatorEditModeTests.cs  # Asteroid fragmentation physics
+│   ├── ForcesEditModeTests.cs         # [Physics] Forces.ComputeOutputs — pure math
+│   ├── CollisionDamageUtilityTests.cs # [Damage]  Kinetic energy / damage formulae
+│   ├── MpcSolverTests.cs              # [MPC]     Solver decisions (cheap unit coverage)
+│   ├── ObjectiveTrackerEditModeTests.cs # [Objectives] Mission state machine
+│   └── … one fixture per feature (17 total; grouped by domain category)
 │
 └── PlayMode/                          # Compiled as Tests.PlayMode.asmdef
     ├── Common/                        # Shared test utilities (reduce duplication)
@@ -266,22 +272,15 @@ Assets/Scripts/Editor/Tests/
     │   ├── TestAssets.cs              # Asset loading (AssetDatabase helpers)
     │   ├── ShipTestFactory.cs         # Ship creation with common configs
     │   ├── AsyncAssert.cs             # Async polling assertions with timeout
+    │   ├── AIIntegrationFixture.cs    # Multi-ship AI loop base fixture
+    │   ├── StubShipRegistry.cs        # Minimal IShipRegistry stub
     │   └── TestUtilities.cs           # General helpers (distance, angle, audio)
     ├── TestSceneBuilder.cs            # Scene-building utilities (not a test class)
-    ├── CameraFollowPlayModeTests.cs   # ObserverCam follow behaviour
-    ├── GamePlanePlayModeTests.cs      # GamePlane coordinate transforms
-    ├── NavigatorPlayModeTests.cs      # Ship navigation to waypoints
-    ├── MpcNavigatorPlayModeTests.cs   # MPC-based ship navigation
-    ├── ScannerPlayModeTests.cs        # AI obstacle scanner
-    └── Deprecated/                    # ⛔ NOT compiled (own asmdef gated by
-        │                              #    UNITY_INCLUDE_DEPRECATED_TESTS symbol)
-        ├── Tests.PlayMode.Deprecated.asmdef
-        ├── ActuatorPlayModeTests.cs
-        ├── AsteroidSpawningPlayMode.cs
-        ├── LaserDamagePlayMode.cs
-        ├── MissileHomingPlayMode.cs
-        ├── MissileLaunchPlayMode.cs
-        └── ShieldRegenerationPlayMode.cs
+    ├── CameraFollowPlayModeTests.cs   # [Camera]   ObserverCam follow behaviour
+    ├── GamePlanePlayModeTests.cs      # [Core]     GamePlane coordinate transforms
+    ├── MpcNavigatorPlayModeTests.cs   # [MPC]      MPC closed-loop navigation
+    ├── SectorCompositionPlayModeTests.cs # [Sectors] Manifest adopt/spawn/teardown
+    └── … one fixture per feature (17 total; grouped by domain category)
 ```
 
 ### Naming Conventions
@@ -318,8 +317,7 @@ using Tests.PlayMode.Common;
 // Load common test assets
 var settings = TestAssets.LoadDefaultShipSettings();
 var shipPrefab = TestAssets.LoadShip2Prefab();
-var pilotPrefab = TestAssets.LoadTestPilot();        // Standard pilot
-var mpcPilotPrefab = TestAssets.LoadTestPilotMpc();  // MPC pilot
+var mpcPilotPrefab = TestAssets.LoadTestPilotMpc();  // MPC pilot (the only pilot)
 ```
 
 ### ShipTestFactory
@@ -328,10 +326,10 @@ Factory methods for creating ships with standard test configurations:
 using Tests.PlayMode.Common;
 
 // Create ship with default settings at origin
-ship = ShipTestFactory.CreateDefaultShip(useMpcPilot: false);
+ship = ShipTestFactory.CreateDefaultShip();
 
 // Create at specific position
-ship = ShipTestFactory.CreateDefaultShipAt(position, rotation, useMpcPilot: true);
+ship = ShipTestFactory.CreateDefaultShipAt(position, rotation);
 
 // Clean up
 ShipTestFactory.DestroyShip(ship);
@@ -391,19 +389,53 @@ TestUtilities.ResumeAudio();  // In TearDown
 
 ## NUnit Categories
 
-| Category      | Meaning                                              | Where used              |
-|---------------|------------------------------------------------------|-------------------------|
-| `Smoke`       | Fast sanity check; run on every push                 | EditMode + PlayMode     |
-| `Regression`  | Full correctness coverage; run on PRs                | EditMode                |
-| `Integration` | Multi-system / scene-based tests                     | PlayMode                |
-| `Slow`        | Tests that take > ~1s; skip in tight inner loops     | PlayMode + some EditMode|
+Every fixture is tagged on **two orthogonal axes** so an agent or CI can run a
+single feature slice instead of the whole suite.
 
-Run a specific category:
+### Axis 1 — Domain (required, exactly one per fixture)
+
+The feature area under test. Pick the *primary* one; the test name carries the
+finer detail.
+
+| Domain       | Covers                                                        |
+|--------------|---------------------------------------------------------------|
+| `AI`         | Perception + utility/state selection (Scout, UtilityChooser)  |
+| `MPC`        | Model-predictive nav: solver, boost, LOS cost, navigator loop |
+| `Sectors`    | Sector composition/lifecycle, manifest sync, respawn policy   |
+| `Weapons`    | Weapon dispatch, heat, missile guidance                       |
+| `Targeting`  | Lock-on sensor/registry wiring                                |
+| `Objectives` | Objective tracker/channel, key pickup pipeline                |
+| `Camera`     | Camera follow + camera utils                                  |
+| `UI`         | HUD/indicator lifecycle, event-driven UI/audio                |
+| `Damage`     | DamageController routing, respawn health/shield               |
+| `Physics`    | Forces, fragnetics, collision-damage math                     |
+| `Movement`   | Ship sim/kinematics contract (reserved — lands with sim tests)|
+| `Core`       | Foundational spatial/context plumbing (GamePlane, decoupling) |
+| `Services`   | Game service contracts                                        |
+| `Bootstrap`  | Bootstrap/wiring contracts                                    |
+| `Ships`      | Ship composition/activation lifecycle                         |
+
+### Axis 2 — Speed (optional overlay)
+
+| Tag     | Meaning                                                             |
+|---------|--------------------------------------------------------------------|
+| `Smoke` | Curated, fast, representative — the gating subset. Usually method-level. |
+| `Slow`  | Multi-second wall-clock. Skip in tight iteration loops.            |
+
+A fixture may carry `Slow` while still exposing one `Smoke` method (the smoke
+test is the fast representative of an otherwise-slow suite).
+
+> **Not used:** `Regression` (dropped — every test guards a regression, so it
+> carried no selective value) and `Integration` (dropped — it mirrored "is a
+> PlayMode test"; select that with `-Mode PlayMode`).
+
+Run a slice — `-TestCategory` forwards straight to Unity's NUnit filter and
+needs no scope-map upkeep:
 
 ```powershell
-.\scripts\unity_test_agent.ps1 -TestFilter "Category=Smoke"
-.\scripts\unity_test_agent.ps1 -TestFilter "Category=Regression"
-.\scripts\unity_test_agent.ps1 -Mode PlayMode -TestFilter "Category=Integration"
+.\scripts\unity_test_agent.ps1 -Mode Both -TestCategory Weapons   # one domain
+.\scripts\unity_test_agent.ps1 -Mode Both -TestCategory Smoke     # fast gating subset
+.\scripts\unity_test_agent.ps1 -Mode PlayMode -TestCategory Sectors
 ```
 
 ---
@@ -414,7 +446,6 @@ Run a specific category:
 |-----------------------|------------------|
 | `Tests.EditMode`      | `Tests.EditMode` |
 | `Tests.PlayMode`      | `Tests.PlayMode` |
-| `Tests.PlayMode.Deprecated` | `Tests.PlayMode.Deprecated` *(not compiled by default)* |
 
 ---
 
@@ -424,13 +455,13 @@ Run a specific category:
 - ✅ **File and class must match exactly** (e.g., `MyFeatureTests.cs` / `public class MyFeatureTests`)
 - ✅ **Both must end with `Tests`** (enforced by `scripts/check_test_naming.ps1`)
 - Namespace: `Tests.EditMode`
-- At least one `[Category("Regression")]` on the class
+- Exactly one **domain** `[Category(...)]` on the class (see the table above)
 - Add `[Category("Smoke")]` to the single fastest / most critical test method
 
 ### PlayMode test checklist
 - ✅ **File and class must match exactly and end with `Tests`**
 - Namespace: `Tests.PlayMode`
-- Class-level `[Category("Integration")]`; add `[Category("Slow")]` when the test takes > ~1s
+- Exactly one **domain** `[Category(...)]` on the class; add `[Category("Slow")]` when the suite takes > ~1s of wall-clock
 - **No `AssetDatabase` calls outside `#if UNITY_EDITOR`** — wrap them:
   ```csharp
   #if UNITY_EDITOR
@@ -454,10 +485,11 @@ Run a specific category:
   Assert.That(condition, Is.True, "Condition not met within timeout");
   ```
 
-### Deprecated tests
-If a test needs to be retired but kept for reference, move it to `PlayMode/Deprecated/`.  
-The `Tests.PlayMode.Deprecated.asmdef` gate (`defineConstraints: ["UNITY_INCLUDE_DEPRECATED_TESTS"]`)  
-ensures they are **never compiled** unless the symbol is explicitly defined.
+### Retiring tests
+Retire a test by **deleting it** — git history preserves it if you ever need it
+back. To *temporarily* quarantine a flaky or known-broken test without deleting
+it, mark the method `[Ignore("reason — link/ticket")]` so it shows as skipped
+rather than red (see `MissileGuidancePlayModeTests.Target90Degrees_Converges`).
 
 ---
 
@@ -468,4 +500,4 @@ ensures they are **never compiled** unless the symbol is explicitly defined.
 | `infra_error` in JSON, no XML produced | Unity crashed during import or compilation | Check `*.log` in the output dir for compile errors |
 | PlayMode tests ignored at runtime | `AssetDatabase` unavailable outside editor | Wrap in `#if UNITY_EDITOR` and add `Assert.Ignore(...)` fallback |
 | Test flaky / timing-dependent | `WaitForSeconds` without condition check | Convert to polling loop with timeout (see pattern above) |
-| Deprecated tests compiling unexpectedly | File placed in wrong folder | Move to `PlayMode/Deprecated/`; ensure `Tests.PlayMode.Deprecated.asmdef` is present |
+| `-TestCategory Foo` runs nothing | Domain typo or fixture missing its domain tag | Check the domain table above; every fixture needs exactly one |

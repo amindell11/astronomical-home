@@ -9,7 +9,6 @@ using UnityEngine.UI;
 
 namespace Tests.PlayMode
 {
-    [Category("Regression")]
     [Category("UI")]
     public class UILifecyclePlayModeTests : PlayModeWorldFixture
     {

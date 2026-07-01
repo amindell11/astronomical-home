@@ -14,7 +14,7 @@ namespace Tests.PlayMode
     /// (content children must not Awake before adoption wires them) and completion signalling.
     /// </summary>
     [TestFixture]
-    [Category("Integration")]
+    [Category("Sectors")]
     public class SectorLifecyclePlayModeTests : PlayModeWorldFixture
     {
         /// <summary>Records when its Awake runs (used to prove the inactive-holder gating).</summary>

@@ -17,7 +17,7 @@ namespace Tests.EditMode
     /// These tests verify the correct post-refactor state via pure source file string checks.
     /// No type references or reflection - only File.ReadAllText + StringAssert.
     /// </summary>
-    [Category("Regression")]
+    [Category("Targeting")]
     public class LockOnRegressionEditModeTests
     {
         [Test]

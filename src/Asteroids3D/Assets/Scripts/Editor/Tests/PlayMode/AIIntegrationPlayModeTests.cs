@@ -13,7 +13,7 @@ namespace Tests.PlayMode
 {
 
 [TestFixture]
-[Category("Integration")]
+[Category("AI")]
 [Category("Slow")]
 public class AIIntegrationPlayModeTests : AIIntegrationFixture
 {

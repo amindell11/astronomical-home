@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    [Category("Regression")]
+    [Category("Weapons")]
     public class HeatEditModeTests
     {
         [Test]
