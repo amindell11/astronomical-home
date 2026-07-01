@@ -12,6 +12,12 @@ namespace Game.Services
         /// <summary>World follower transform for camera/asteroid anchoring.</summary>
         Transform WorldFollowerTransform { get; }
 
+        /// <summary>
+        /// Asteroid culling boundary for field anchoring. First-class service member (forward-compat
+        /// for a future WorldRoot dissolution — content reads it here, never through <see cref="World"/>).
+        /// </summary>
+        SphereCollider AsteroidCullingBoundary { get; }
+
         /// <summary>Load a scene additively. Yields until complete.</summary>
         IEnumerator LoadSceneAsync(string sceneName);
 
