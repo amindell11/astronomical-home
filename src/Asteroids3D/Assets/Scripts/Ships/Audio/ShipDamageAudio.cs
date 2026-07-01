@@ -1,5 +1,6 @@
-﻿using Ships;
+using Ships;
 using Ships.Damage;
+using Ships.Presentation;
 using UnityEngine;
 
 namespace Ships.Audio
@@ -7,16 +8,17 @@ namespace Ships.Audio
     /// <summary>
     /// Centralises damage-related SFX for a ship (shield hits, hull hits, death explosion).
     /// Requires its own <see cref="AudioSource"/> so that volume & EQ can be routed
-    /// independently from weapons or engine sounds.
+    /// independently from weapons or engine sounds. The damage surface is injected via
+    /// <see cref="Bind"/> (see <see cref="IShipVisual"/>).
     /// </summary>
     [RequireComponent(typeof(AudioSource))]
-    public sealed class ShipDamageAudio : MonoBehaviour
+    public sealed class ShipDamageAudio : MonoBehaviour, IShipVisual
     {
         [Header("Clips")] [SerializeField] private AudioClip shieldHitClip;
         [SerializeField] private AudioClip shieldDepletedClip;
         [SerializeField] private AudioClip hullHitClip;
         [SerializeField] private AudioClip deathClip;
-        
+
         [Header("Volumes")] [SerializeField, Range(0f, 1f)]
         private float shieldVolume = 0.8f;
 
@@ -24,32 +26,47 @@ namespace Ships.Audio
         [SerializeField, Range(0f, 1f)] private float hullVolume = 1f;
         [SerializeField, Range(0f, 1f)] private float deathVolume = 1f;
 
-        private AudioSource source; 
-        private DamageController damage;
+        private AudioSource source;
+        private IDamageEvents damage;
+        private bool subscribed;
 
         private void Awake()
         {
             source = GetComponent<AudioSource>();
-            damage = GetComponentInParent<DamageController>();
             source.loop = false;
             source.playOnAwake = false;
             source.spatialBlend = 1f; // fully 3-D positional
         }
 
+        public void Bind(in ShipView view)
+        {
+            damage = view.Damage;
+            if (isActiveAndEnabled) Subscribe();
+        }
+
         private void OnEnable()
         {
-            if (!damage) return;
+            if (damage != null) Subscribe();
+        }
+
+        private void OnDisable() => Unsubscribe();
+
+        private void Subscribe()
+        {
+            if (subscribed || damage == null) return;
             damage.Shield.OnValueChanged += HandleShieldChanged;
             damage.Health.OnValueChanged += HandleHealthChanged;
             damage.OnDeath += HandleDeath;
+            subscribed = true;
         }
 
-        private void OnDisable()
+        private void Unsubscribe()
         {
-            if (!damage) return;
+            if (!subscribed || damage == null) return;
             damage.Shield.OnValueChanged -= HandleShieldChanged;
             damage.Health.OnValueChanged -= HandleHealthChanged;
             damage.OnDeath -= HandleDeath;
+            subscribed = false;
         }
 
         private void HandleShieldChanged(float current, float previous, float max)
@@ -87,5 +104,4 @@ namespace Ships.Audio
                 source.PlayOneShot(hullHitClip, hullVolume);
         }
     }
-
-} 
+}

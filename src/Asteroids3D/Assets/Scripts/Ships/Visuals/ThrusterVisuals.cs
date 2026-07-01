@@ -1,22 +1,22 @@
-﻿using UnityEngine;
+using System;
+using Ships.Command;
+using Ships.Presentation;
+using UnityEngine;
 
 namespace Ships.Visuals
 {
-    public class ThrusterVisuals : MonoBehaviour
+    public class ThrusterVisuals : MonoBehaviour, IShipVisual
     {
         public ParticleSystem[] thrustParticles;
-        private Ship ship;
+        private Func<PilotCommand> command;
 
-        private void Start()    
-        {
-            ship = GetComponentInParent<Ship>();
-        }
+        public void Bind(in ShipView view) => command = view.Command;
 
         private void Update()
         {
-            if (thrustParticles == null || thrustParticles.Length == 0 || !ship) return;
+            if (thrustParticles == null || thrustParticles.Length == 0 || command == null) return;
 
-            var shouldPlay = ship.Movement.CurrentCommand.thrust > 0.05f;
+            var shouldPlay = command().thrust > 0.05f;
             UpdateThrustAnimations(shouldPlay);
         }
 

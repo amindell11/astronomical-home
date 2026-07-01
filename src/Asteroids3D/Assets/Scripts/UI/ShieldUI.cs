@@ -1,32 +1,27 @@
-using System.Collections;
 using Game;
-using Ships;
 using Ships.Damage;
+using Ships.Presentation;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace UI
 {
     [RequireComponent(typeof(Image))]
-    public class ShieldUI : MonoBehaviour
+    public class ShieldUI : MonoBehaviour, IShipVisual
     {
         [Header("Timing (seconds)")]
-        //[SerializeField] float fadeIn  = 0.06f;      // quick pop-in for hit flash
         [SerializeField] float linger  = 0.30f;      // visible while it "shimmers"
-        //[SerializeField] float fadeOut = 0.40f;      // dissolve back to invisible
 
         [Header("Shimmer")]
         [SerializeField] float shimmerFreq = 20f;    // Hz of scale flicker
         [SerializeField] float shimmerAmp  = 0.08f;  // 8 % size wobble
 
-        //[Header("Regen Fade")]
-        //[SerializeField] float regenFadeIn = 0.3f;   // fade-in when shield starts regenerating from 0
-
         [Header("Fill & Color")]
-        [Tooltip("Optional gradient to tint ring based on remaining shield")] 
+        [Tooltip("Optional gradient to tint ring based on remaining shield")]
         [SerializeField] Gradient shieldColors;
 
-        [SerializeField] DamageController source;    // assign the ship whose shield flashes
+        private IDamageEvents source;   // injected: the ship whose shield flashes
+        private bool subscribed;
 
         Image   ring;
         Color   baseColor;       // original tint without alpha
@@ -43,26 +38,36 @@ namespace UI
             ring.canvasRenderer.SetAlpha(1f);
         }
 
+        public void Bind(in ShipView view)
+        {
+            source = view.Damage;
+            if (isActiveAndEnabled) Subscribe();
+        }
+
         private void OnEnable()
         {
-            if (!source) source = GetComponentInParent<DamageController>();
-            if (!source)
-            {
-                Debug.LogWarning($"[{nameof(ShieldUI)}] No {nameof(DamageController)} source found for {name}", this);
-                return;
-            }
-
-            source.Shield.OnValueChanged += OnShieldChanged;
+            if (source != null) Subscribe();
         }
 
         void OnDisable()
         {
-            if (source) {
-                source.Shield.OnValueChanged -= OnShieldChanged;
-            }
-
+            Unsubscribe();
             flashActive = false;
             transform.localScale = baseScale;
+        }
+
+        private void Subscribe()
+        {
+            if (subscribed || source == null) return;
+            source.Shield.OnValueChanged += OnShieldChanged;
+            subscribed = true;
+        }
+
+        private void Unsubscribe()
+        {
+            if (!subscribed || source == null) return;
+            source.Shield.OnValueChanged -= OnShieldChanged;
+            subscribed = false;
         }
 
         void LateUpdate()
@@ -107,5 +112,3 @@ namespace UI
 
     }
 }
-
-
