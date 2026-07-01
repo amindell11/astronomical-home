@@ -6,6 +6,7 @@ namespace Ships.Damage
     {
         private float regenRate;
         private float regenDelay;
+        private float clock;            // internal time base, advanced by Update(dt)
         private float lastDamageTime;
 
         public RegenResource(float maxValue, float regenRate, float regenDelay) : base(maxValue)
@@ -19,20 +20,21 @@ namespace Ships.Damage
         {
             var damageAbsorbed = base.ApplyDamage(amount);
             if (damageAbsorbed > 0)
-                lastDamageTime = Time.time;
+                lastDamageTime = clock;
             return damageAbsorbed;
         }
-        
+
         public void Update(float deltaTime)
         {
-            if (CurrentValue < MaxValue && Time.time >= lastDamageTime + regenDelay)
+            clock += deltaTime;
+            if (CurrentValue < MaxValue && clock >= lastDamageTime + regenDelay)
                 Regenerate(deltaTime);
         }
         
         private void Regenerate(float deltaTime)
         {
             var regenAmount = regenRate * deltaTime;
-            Set(CurrentValue+regenAmount);
+            Set(Mathf.Min(CurrentValue + regenAmount, MaxValue));
         }
         
         public void Configure(float maxValue, float regenRate, float regenDelay)
