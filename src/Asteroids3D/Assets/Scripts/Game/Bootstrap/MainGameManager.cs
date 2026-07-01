@@ -18,6 +18,9 @@ namespace Game.Bootstrap
         [Tooltip("Session-tier player/camera/UI/world rig. Built once at Start; persists across sector restarts.")]
         [SerializeField] private PlayerRig playerRig;
 
+        [Tooltip("Session policy: when false, no player ship is built (spectator/headless).")]
+        [SerializeField] private bool buildPlayer = true;
+
         [Header("Game Plane")]
         [SerializeField] private PlaneAxis planeAxis = PlaneAxis.Y;
         [SerializeField] private Vector3 planeOrigin;
@@ -98,7 +101,7 @@ namespace Game.Bootstrap
         private IEnumerator HandleStart()
         {
             if (playerRig)
-                yield return playerRig.Build(services);
+                yield return playerRig.Build(services, buildPlayer, () => TransitionTo(GameState.Restart));
             TransitionTo(GameState.LoadSector);
         }
 
@@ -119,6 +122,12 @@ namespace Game.Bootstrap
             ActiveSector.Initialize(services, currentSector.config, playerRig ? playerRig.Player : null);
             ActiveSector.OnSectorComplete += HandleSectorComplete;
 
+            // Entry reset: place the persistent player at the sector's declared start (plane-space).
+            // The sector only DECLARES the start via PlayerStart; the session tier does the reset.
+            if (playerRig && playerRig.Player)
+                services.UnitService.RespawnShip(
+                    playerRig.Player.Id, ActiveSector.PlayerStart ?? Vector2.zero, 0f);
+
             yield return ActiveSector.Setup();
 
             ActiveSector.transform.SetParent(null, true);
@@ -136,8 +145,14 @@ namespace Game.Bootstrap
         // the service registries persist, so the player survives a restart instead of being rebuilt.
         private IEnumerator HandleRestart()
         {
+            // Drop any queued player/NPC revives so a pending respawn can't fire into the torn-down sector.
+            services.UnitService.CancelPendingRespawns();
+
             yield return TeardownActiveSector(runTeardown: true);
-            GamePlane.Configure(planeAxis, planeOrigin);
+            // GamePlane is session-global and persists across restarts (like the rig/services); only
+            // (re)configure if something actually cleared it. Reconfiguring unconditionally throws,
+            // since HandleLoading already configured it and nothing resets it on the restart path.
+            if (!GamePlane.IsConfigured) GamePlane.Configure(planeAxis, planeOrigin);
             TransitionTo(GameState.LoadSector);
         }
 

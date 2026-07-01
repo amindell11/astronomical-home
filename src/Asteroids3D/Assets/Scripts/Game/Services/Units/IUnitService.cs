@@ -36,5 +36,8 @@ namespace Game.Services
         
         public void RespawnShip(ShipId ship, Vector2 pos, float rotation);
         public void WaitAndRespawnShip(ShipId ship, Vector2 pos, float rotation, float delay);
+
+        /// <summary>Drop all queued (delayed) respawns without reviving their ships.</summary>
+        public void CancelPendingRespawns();
     }
 }

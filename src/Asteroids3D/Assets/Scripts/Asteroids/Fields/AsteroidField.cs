@@ -12,6 +12,7 @@ namespace Asteroids.Fields
         protected const float BoundaryMargin = 1.1f;
         
         [SerializeField] protected AsteroidFieldSettings settings;
+        [SerializeField] private SphereCollider cullingBoundary;
 
         protected AsteroidSpawner AsteroidSpawner { get; private set; }
         protected Vector3 SpawnCenter;
@@ -49,16 +50,14 @@ namespace Asteroids.Fields
             maxSpawnsPerFrame = settings.maxSpawnsPerFrame;
         }
 
-        public void Initialize(SphereCollider cullingBoundary)
-        {
-            CullingBoundary = cullingBoundary;
-            CullingBoundary.radius = maxSpawnDistance * BoundaryMargin;
-        }
-
         public void SetWorldAnchor(Transform anchor) => AsteroidSpawner?.SetWorldAnchor(anchor);
+
+        public void DespawnAll() => AsteroidSpawner?.DespawnAll();
 
         protected virtual void Start()
         {
+            CullingBoundary = cullingBoundary;
+            if (CullingBoundary) CullingBoundary.radius = maxSpawnDistance * BoundaryMargin;
             RecalculateTargetVolume();
             ManageField();
         }

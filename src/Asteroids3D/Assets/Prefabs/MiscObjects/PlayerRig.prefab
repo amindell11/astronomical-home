@@ -13,6 +13,13 @@ GameObject:
   - component: {fileID: -3245791385895265377}
   - component: {fileID: 7363836567933488776}
   - component: {fileID: -71793491309689547}
+  - component: {fileID: -402705025476415541}
+  - component: {fileID: 96320434583518384}
+  - component: {fileID: -6710187472455739698}
+  - component: {fileID: -9007223409810514918}
+  - component: {fileID: 4241393030814243159}
+  - component: {fileID: -5907580442026095801}
+  - component: {fileID: 8614037640691208366}
   m_Layer: 0
   m_Name: PlayerRig
   m_TagString: Untagged
@@ -55,6 +62,7 @@ MonoBehaviour:
     type: 3}
   shipSettings: {fileID: 11400000, guid: c2eae258625507d43948e555302ee7ee, type: 2}
   playerSpawnPosition: {x: 0, y: 0}
+  deathBehavior: 2
   playerRespawn:
     origin: 1
     point: {x: 0, y: 0}
@@ -101,6 +109,111 @@ MonoBehaviour:
   barWidth: 120
   barHeight: 14
 --- !u!114 &-71793491309689547
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8570481771073749529}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f579dc3418d388d4192a0cf6b0b557ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  labelOffset: {x: 0, y: 40}
+  barWidth: 120
+  barHeight: 14
+--- !u!114 &-402705025476415541
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8570481771073749529}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f579dc3418d388d4192a0cf6b0b557ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  labelOffset: {x: 0, y: 40}
+  barWidth: 120
+  barHeight: 14
+--- !u!114 &96320434583518384
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8570481771073749529}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f579dc3418d388d4192a0cf6b0b557ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  labelOffset: {x: 0, y: 40}
+  barWidth: 120
+  barHeight: 14
+--- !u!114 &-6710187472455739698
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8570481771073749529}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f579dc3418d388d4192a0cf6b0b557ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  labelOffset: {x: 0, y: 40}
+  barWidth: 120
+  barHeight: 14
+--- !u!114 &-9007223409810514918
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8570481771073749529}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f579dc3418d388d4192a0cf6b0b557ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  labelOffset: {x: 0, y: 40}
+  barWidth: 120
+  barHeight: 14
+--- !u!114 &4241393030814243159
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8570481771073749529}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f579dc3418d388d4192a0cf6b0b557ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  labelOffset: {x: 0, y: 40}
+  barWidth: 120
+  barHeight: 14
+--- !u!114 &-5907580442026095801
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8570481771073749529}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f579dc3418d388d4192a0cf6b0b557ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  labelOffset: {x: 0, y: 40}
+  barWidth: 120
+  barHeight: 14
+--- !u!114 &8614037640691208366
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

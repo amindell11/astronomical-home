@@ -3,7 +3,7 @@ using Utils;
 
 namespace Ships.Visuals
 {
-    public class Thruster : MonoBehaviour
+    public class ThrusterVisuals : MonoBehaviour
     {
         public ParticleSystem[] thrustParticles;
         private Ship ship;

@@ -51,10 +51,10 @@ MonoBehaviour:
     team: 0
     startActive: 1
     respawn:
-      origin: 0
+      origin: 1
       point: {x: 0, y: 0}
       radius: 0
-      delay: 0
+      delay: 1
   - target: {fileID: 3794287164448020253}
     team: 1
     startActive: 1
@@ -62,7 +62,7 @@ MonoBehaviour:
       origin: 0
       point: {x: 0, y: 0}
       radius: 0
-      delay: 0
+      delay: 1
   spawners: []
   modules: []
   updatingAsteroidFieldPrefab: {fileID: 0}

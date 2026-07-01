@@ -31,7 +31,11 @@ namespace Game.Bootstrap
         [SerializeField] private ShipSettings shipSettings;
         [SerializeField] private Vector2 playerSpawnPosition = Vector2.zero;
 
-        [Tooltip("Optional player respawn rule (origin None = no respawn).")]
+        [Tooltip("What happens when the player ship dies. RestartSector reloads the active sector; " +
+                 "RespawnInPlace revives via playerRespawn; None does nothing.")]
+        [SerializeField] private PlayerDeathBehavior deathBehavior = PlayerDeathBehavior.RestartSector;
+
+        [Tooltip("Used when deathBehavior = RespawnInPlace.")]
         [SerializeField] private RespawnPolicy playerRespawn;
 
         [Header("Camera")]
@@ -50,7 +54,7 @@ namespace Game.Bootstrap
         /// first sector loads. Instances are owned by the services (Unit/Camera/UI/Environment) and
         /// therefore cleared by <c>services.ClearAll()</c> on session exit.
         /// </summary>
-        public IEnumerator Build(IGameServices services)
+        public IEnumerator Build(IGameServices services, bool buildPlayer, System.Action onPlayerDeathRestart)
         {
             // World is singleton infrastructure built before the player/camera, which depend on it.
             if (worldPrefab)
@@ -58,15 +62,37 @@ namespace Game.Bootstrap
 
             SectorUtils.BuildAndWireObserverCam(services, observerCamPrefab);
 
+            // Spectator/headless session: no player ship, no player-driven UI. The observer camera
+            // already frames the fleet via the registry OnAdd/OnRemove wiring, so spectate works.
+            if (!buildPlayer)
+            {
+                InitializeDebugOverlay(services);
+                yield return null;
+                yield break;
+            }
+
             Player = SectorUtils.BuildAndWirePlayer(
                 playerTemplate, playerCommander, shipSettings,
                 0, playerSpawnPosition, services);
 
-            Respawn.Wire(Player, playerRespawn, services);
+            // Session death policy: revive in place, restart the sector, or do nothing.
+            switch (deathBehavior)
+            {
+                case PlayerDeathBehavior.RespawnInPlace:
+                    Respawn.Wire(Player, playerRespawn, services);
+                    break;
+                case PlayerDeathBehavior.RestartSector:
+                    if (Player && Player.Damage)
+                        Player.Damage.OnDeath += (_, _) => onPlayerDeathRestart?.Invoke();
+                    break;
+                case PlayerDeathBehavior.None:
+                default:
+                    break;
+            }
 
             var observer = services.CameraService.GetCamera<ObserverCam>(CameraTag.Observer);
 
-            if (overlayPrefab && uiCamPrefab)
+            if (Player && overlayPrefab && uiCamPrefab)
             {
                 var uiCam = Instantiate(uiCamPrefab, observer.transform);
                 uiCam.GetUniversalAdditionalCameraData().renderType = CameraRenderType.Overlay;

@@ -5,7 +5,7 @@ using Utils;
 
 namespace Ships.Visuals
 {
-    public class Hull : MonoBehaviour
+    public class HullVisuals : MonoBehaviour
     {
         [SerializeField] private Renderer hull;
         [SerializeField] private ParticleSystem smoke;

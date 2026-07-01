@@ -25,7 +25,6 @@ namespace Tests.EditMode
             public Transform follower;
             public WorldRoot World => null;
             public Transform WorldFollowerTransform => follower;
-            public SphereCollider AsteroidCullingBoundary => null;
             public IEnumerator LoadSceneAsync(string sceneName) { yield break; }
             public IEnumerator UnloadSceneAsync(string sceneName) { yield break; }
             public void SpawnWorld(WorldRoot prefab) { }

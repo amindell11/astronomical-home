@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Asteroids.Fields;
 using Game.Services;
 using Ships;
 using UnityEngine;
@@ -10,9 +9,10 @@ using World;
 namespace Game.Sectors
 {
     /// <summary>
-    /// The single concrete play-sector. Owns manifest content (adopted ships, procedural spawners),
-    /// an optional asteroid field, and behavior modules. The player, observer camera, UI overlay and
-    /// world are built once by the session-tier <see cref="Game.Bootstrap.PlayerRig"/> and injected
+    /// The single concrete play-sector. Owns manifest content (adopted ships, procedural spawners —
+    /// including any asteroid field, which is just another spawner) and behavior modules. The player,
+    /// observer camera, UI overlay and world are built once by the session-tier
+    /// <see cref="Game.Bootstrap.PlayerRig"/> and injected
     /// via <see cref="Initialize"/> — the sector references the player, it does not own it.
     /// Combat / Arena / Testbench are prefabs of this class, differing only in their manifest, modules
     /// and producer-owned RespawnPolicies.
@@ -31,12 +31,6 @@ namespace Game.Sectors
         [Tooltip("Behavior modules (root components) set up after content in list order; teardown reverse.")]
         [SerializeField] private SectorModule[] modules = Array.Empty<SectorModule>();
 
-        [Header("Content")]
-        [Tooltip("Optional asteroid field spawned as sector content; anchors to the injected player.")]
-        [SerializeField] private UpdatingAsteroidField updatingAsteroidFieldPrefab;
-
-        private UpdatingAsteroidField asteroidFieldInstance;
-
         protected IGameServices Services { get; private set; }
         protected SectorSettings Config { get; private set; }
         protected bool IsSetUp { get; private set; }
@@ -52,6 +46,20 @@ namespace Game.Sectors
         /// <summary>Baked module manifest (read-only view for editor/tests).</summary>
         public IReadOnlyList<SectorModule> Modules => modules;
 
+        /// <summary>
+        /// Plane-space player start declared by an optional <see cref="PlayerStartMarker"/> child, or
+        /// null if none is placed. The sector only DECLARES this; the session tier resets the injected
+        /// player on entry. The sector never repositions the player itself.
+        /// </summary>
+        public Vector2? PlayerStart
+        {
+            get
+            {
+                var marker = GetComponentInChildren<PlayerStartMarker>(true);
+                return marker ? GamePlane.WorldPointToPlane(marker.transform.position) : (Vector2?)null;
+            }
+        }
+
         public void Initialize(IGameServices services, SectorSettings config, Ship player)
         {
             Services = services ?? throw new ArgumentNullException(nameof(services));
@@ -66,9 +74,8 @@ namespace Game.Sectors
                 yield return Services.EnvironmentService.LoadSceneAsync(Config.SceneName);
 
             // The session rig (world, player, camera, UI) is already built and the player is injected
-            // via Initialize. Manifest content adopts here in list order, then the sector-owned
-            // asteroid field anchors to the injected player. OnBeforeContent is a vestigial extension
-            // hook (used by test subclasses); the base body is empty.
+            // via Initialize. Manifest content adopts here in list order. OnBeforeContent is a
+            // vestigial extension hook (used by test subclasses); the base body is empty.
             yield return OnBeforeContent();
 
             foreach (var t in adopted)
@@ -79,9 +86,6 @@ namespace Game.Sectors
                 if (t) yield return t.Build(Context);
 
             yield return OnAfterContent();
-
-            // Sector-owned asteroid field content, anchored to the injected player.
-            InitializeAsteroidField();
 
             // Behavior modules run after all content. The context already carries the injected player
             // (set in Initialize) so modules can read ctx.Player; everything else is a dragged
@@ -113,10 +117,6 @@ namespace Game.Sectors
 
             yield return OnBeforeTeardown();
 
-            // Destroy sector-owned content instances (the asteroid field is loose, not service-owned).
-            if (asteroidFieldInstance) Destroy(asteroidFieldInstance.gameObject);
-            asteroidFieldInstance = null;
-
             // Tear down loose/spawned instances in reverse. The persistent rig (player/camera/UI/world)
             // is NOT touched here — it survives sector restarts and is torn down only on session exit.
             for (var i = spawners.Length - 1; i >= 0; i--)
@@ -143,7 +143,6 @@ namespace Game.Sectors
             {
                 case Ship ship: AdoptShip(ship, entry); break;
                 case WorldRoot world: Services.EnvironmentService.AdoptWorld(world); break;
-                case UpdatingAsteroidField field: AdoptField(field); break;
                 default:
                     break;
             }
@@ -159,45 +158,6 @@ namespace Game.Sectors
             Respawn.Wire(adoptedShip, entry.respawn, Services);
             if (!entry.startActive) adoptedShip.gameObject.SetActive(false);
         }
-
-        private void AdoptField(UpdatingAsteroidField field) => WireField(field);
-
-        /// <summary>
-        /// Spawn the optional sector-owned asteroid field prefab as loose content and wire it to the
-        /// injected player anchor. Reads the culling boundary via the first-class environment-service
-        /// member (never through <c>World</c>) — forward-compat for a future WorldRoot dissolution.
-        /// </summary>
-        private void InitializeAsteroidField()
-        {
-            if (!updatingAsteroidFieldPrefab) return;
-
-            asteroidFieldInstance = Instantiate(updatingAsteroidFieldPrefab);
-            if (!WireField(asteroidFieldInstance))
-            {
-                Debug.LogWarning("[Sector] Asteroid field prefab assigned but no AsteroidCullingBoundary available.");
-                Destroy(asteroidFieldInstance.gameObject);
-                asteroidFieldInstance = null;
-            }
-        }
-
-        /// <summary>Wire an asteroid field to the culling boundary, follower anchor and player anchor.</summary>
-        private bool WireField(UpdatingAsteroidField field)
-        {
-            var cullingBoundary = Services.EnvironmentService.AsteroidCullingBoundary;
-            if (!cullingBoundary) return false;
-
-            field.Initialize(cullingBoundary);
-            field.SetWorldAnchor(Services.EnvironmentService.WorldFollowerTransform);
-            field.CurrentAnchorPos = () => GetContentAnchorWorldPos(field.transform.position);
-            return true;
-        }
-
-        /// <summary>
-        /// World-space anchor used by asteroid fields: the injected player's position projected onto
-        /// the game plane, or the field's own position when no player is injected (headless/RL).
-        /// </summary>
-        private Vector3 GetContentAnchorWorldPos(Vector3 fallback) =>
-            Context.Player ? GamePlane.ProjectOntoPlane(Context.Player.transform.position) : fallback;
 
 #if UNITY_EDITOR
         /// <summary>

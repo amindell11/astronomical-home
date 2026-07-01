@@ -528,10 +528,10 @@ namespace Tests.PlayMode
 
         private static GameObject GetSmokeObject(Ship ship)
         {
-            var hull = ship.GetComponentInChildren<Hull>(true);
+            var hull = ship.GetComponentInChildren<HullVisuals>(true);
             if (!hull) return null;
 
-            var smokeField = typeof(Hull).GetField("smoke", BindingFlags.Instance | BindingFlags.NonPublic);
+            var smokeField = typeof(HullVisuals).GetField("smoke", BindingFlags.Instance | BindingFlags.NonPublic);
             if (smokeField == null) return null;
 
             var smoke = smokeField.GetValue(hull) as ParticleSystem;

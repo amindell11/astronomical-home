@@ -489,38 +489,11 @@ namespace Tests.PlayMode
             yield return sector.Teardown();
         }
 
-        [UnityTest]
-        public IEnumerator EncounterModule_PlayerDeath_FailsActiveEncounter_AndRaisesFailed()
-        {
-            var ship = TestAssets.LoadShip2Prefab();
-            var cmdr = TestAssets.LoadTestPilotMpc();
-            var settings = TestAssets.LoadDefaultShipSettings();
-            if (!ship || !cmdr || !settings) { Assert.Ignore("Required test assets not found."); yield break; }
-
-            var player = _unitService.SpawnShip(ship, cmdr, settings, 0,
-                GamePlane.PlanePointToWorld(Vector2.zero), GamePlane.Rotation);
-            var sector = CreateActiveEncounterSector(player);
-
-            var module = AttachEncounterModule(sector, NewStubEncounterTemplate("Enc0"));
-
-            SectorResult? got = null;
-            ((ISector)sector).OnSectorComplete += r => got = r;
-
-            yield return sector.Setup();
-
-            var active = module.Active as StubEncounter;
-            Assert.IsNotNull(active);
-
-            KillShip(player);
-            for (var i = 0; i < 4 && !got.HasValue; i++) yield return null;
-
-            Assert.IsTrue(got.HasValue, "Player death must end the sector.");
-            Assert.IsFalse(got.Value.Success);
-            Assert.AreEqual("player_died", got.Value.FailReason);
-            Assert.IsTrue(active.OnFailCalled, "Player death must fail the active encounter.");
-
-            yield return sector.Teardown();
-        }
+        // NOTE: player-death → sector-restart is no longer the EncounterSequenceModule's job. That
+        // responsibility now lives in the session tier (PlayerRig.deathBehavior = RestartSector wires
+        // Ship.OnDeath → MainGameManager restart). The former
+        // EncounterModule_PlayerDeath_FailsActiveEncounter_AndRaisesFailed test was removed because the
+        // module intentionally no longer subscribes to player death.
     }
 }
 #endif

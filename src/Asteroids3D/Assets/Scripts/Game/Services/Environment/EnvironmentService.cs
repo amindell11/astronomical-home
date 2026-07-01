@@ -15,9 +15,6 @@ namespace Game.Services
         public Transform WorldFollowerTransform =>
             World && World.Follower ? World.Follower.transform : null;
 
-        public SphereCollider AsteroidCullingBoundary =>
-            World ? World.AsteroidCullingBoundary : null;
-
         public IEnumerator LoadSceneAsync(string sceneName)
         {
             if (string.IsNullOrWhiteSpace(sceneName))

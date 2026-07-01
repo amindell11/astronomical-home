@@ -108,6 +108,11 @@ namespace Game.Services
             ship.ResetShip();
         }
 
+        public void CancelPendingRespawns()
+        {
+            pendingRespawns.Clear();
+        }
+
         public void WaitAndRespawnShip(ShipId ship, Vector2 pos, float rotation, float delay)
         {
             pendingRespawns.Add(new PendingRespawn

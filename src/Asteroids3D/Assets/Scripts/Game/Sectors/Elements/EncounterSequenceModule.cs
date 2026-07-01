@@ -36,9 +36,6 @@ namespace Game.Sectors
             _services = ctx.Services;
             _player = ctx.Player;
 
-            if (_player && _player.Damage)
-                _player.Damage.OnDeath += OnPlayerDeath;
-
             if (encounters == null || encounters.Length == 0)
                 yield break;
 
@@ -47,9 +44,6 @@ namespace Game.Sectors
 
         public override IEnumerator Teardown(SectorBuildContext ctx)
         {
-            if (_player && _player.Damage)
-                _player.Damage.OnDeath -= OnPlayerDeath;
-
             if (_activeEncounter != null)
             {
                 yield return _activeEncounter.Teardown();
@@ -95,12 +89,6 @@ namespace Game.Sectors
                 yield return StartEncounter(_encounterIndex);
             else
                 RequestSectorEnd(SectorResult.Extracted());
-        }
-
-        private void OnPlayerDeath(ShipId victim, ShipId killer)
-        {
-            _activeEncounter?.Fail();
-            RequestSectorEnd(SectorResult.Failed("player_died"));
         }
     }
 }

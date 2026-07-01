@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Asteroids.Fragnetics;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -33,7 +34,8 @@ namespace Asteroids.Spawning
 
         public void DespawnAll()
         {
-            foreach (var a in Registry.ActiveAsteroids) Despawn(a);
+            // Snapshot first: Despawn -> Registry.Unregister mutates ActiveAsteroids mid-enumeration.
+            foreach (var a in new List<AsteroidController>(Registry.ActiveAsteroids)) Despawn(a);
         }
 
         public void Despawn(AsteroidController ast)
