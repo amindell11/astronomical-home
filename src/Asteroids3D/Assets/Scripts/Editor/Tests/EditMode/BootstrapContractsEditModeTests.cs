@@ -11,6 +11,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
+    [Category("Bootstrap")]
     public class BootstrapContractsEditModeTests
     {
         // --- ISectorManager interface shape ---

@@ -13,8 +13,8 @@ namespace Tests.PlayMode
     /// Ship-level stress test for reproducing board bug "overheat not working right".
     /// Tests realistic weapon/controller flow with repeated fire-cooldown cycles.
     /// </summary>
-    [Category("Regression")]
     [Category("Weapons")]
+    [Category("Slow")]
     public class HeatOverheatStressPlayModeTests : PlayModeWorldFixture
     {
         private sealed class DisableProbe : MonoBehaviour

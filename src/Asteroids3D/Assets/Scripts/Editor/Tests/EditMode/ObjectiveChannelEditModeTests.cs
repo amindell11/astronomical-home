@@ -12,6 +12,7 @@ namespace Tests.EditMode
     /// visibility. Pure C# / lightweight GameObjects — no sector or prefab construction.
     /// </summary>
     [TestFixture]
+    [Category("Objectives")]
     public class ObjectiveChannelEditModeTests
     {
         private readonly List<GameObject> _created = new();

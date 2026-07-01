@@ -23,7 +23,7 @@ namespace Tests.PlayMode
     /// <c>Setup()</c> adopts/builds from that manifest.
     /// </summary>
     [TestFixture]
-    [Category("Integration")]
+    [Category("Sectors")]
     public class SectorCompositionPlayModeTests : PlayModeWorldFixture
     {
         private class TestSector : Sector

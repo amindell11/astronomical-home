@@ -10,7 +10,7 @@ using UnityEngine.TestTools;
 namespace Tests.PlayMode
 {
 
-[Category("Integration")]
+[Category("Camera")]
 public class CameraFollowPlayModeTests : PlayModeWorldFixture
 {
     private ObserverCam cam;

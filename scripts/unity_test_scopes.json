@@ -1,13 +1,14 @@
 {
+  "_comment": "Friendly scope-name -> test-name regex map for unity_test_agent.ps1 (-ScopeType Feature/Module -ScopeName <key>). Kept in sync by hand. For zero-upkeep slicing prefer '-TestCategory <Domain>' (see Assets/Scripts/Editor/Tests/TEST_CATEGORIES.md); every fixture carries a domain category.",
   "smoke": {
-    "testFilter": "Tests\\.EditMode\\.CameraUtilsEditModeTests|CollisionDamageUtilityTests|GamePlanePlayMode|CameraFollowPlayMode"
+    "testFilter": "CameraUtilsEditModeTests|CollisionDamageUtilityTests|GamePlanePlayMode|ForcesEditModeTests"
   },
   "features": {
     "camera": {
       "testFilter": "CameraUtilsEditModeTests|CameraFollowPlayMode"
     },
     "navigation": {
-      "testFilter": "NavigatorPlayMode|MpcNavigatorPlayMode"
+      "testFilter": "MpcNavigatorPlayMode|MpcSolverTests|MpcBoostEditModeTests|LosCostEditModeTests"
     },
     "navigation_perf": {
       "testFilter": "MpcPerformancePlayModeTests"
@@ -15,16 +16,58 @@
     "scanning": {
       "testFilter": "ScannerPlayMode"
     },
+    "ai": {
+      "testFilter": "AIIntegrationPlayMode|ScannerPlayMode"
+    },
     "physics": {
-      "testFilter": "CollisionDamageUtilityTests|ActuatorEditModeTests|FragneticsCalculatorEditModeTests"
+      "testFilter": "CollisionDamageUtilityTests|ForcesEditModeTests|FragneticsCalculatorEditModeTests"
+    },
+    "weapons": {
+      "testFilter": "HeatPlayMode|HeatOverheatStress|HeatEditModeTests|MissileGuidance|WeaponCommandDispatch"
+    },
+    "targeting": {
+      "testFilter": "LockOnRegistryWiring|LockOnRegressionEditModeTests"
+    },
+    "objectives": {
+      "testFilter": "KeyPickupObjective|ObjectiveTrackerEditModeTests|ObjectiveChannelEditModeTests"
+    },
+    "sectors": {
+      "testFilter": "SectorCompositionPlayMode|SectorLifecyclePlayMode|SectorManifestSyncEditModeTests|RespawnEditModeTests"
+    },
+    "damage": {
+      "testFilter": "ShipRespawnDamagePlayMode|CollisionDamageUtilityTests"
+    },
+    "ui": {
+      "testFilter": "UILifecyclePlayMode|EventDrivenRefactorEditModeTests"
+    },
+    "ships": {
+      "testFilter": "ShipChildComponentStatePlayMode"
+    },
+    "services": {
+      "testFilter": "ServiceContractsEditModeTests|GameContextDecouplingEditModeTests"
+    },
+    "bootstrap": {
+      "testFilter": "BootstrapContractsEditModeTests"
     }
   },
   "modules": {
     "ai": {
-      "testFilter": "NavigatorPlayMode|MpcNavigatorPlayMode|ScannerPlayMode"
+      "testFilter": "AIIntegrationPlayMode|MpcNavigatorPlayMode|MpcSolverTests|MpcBoostEditModeTests|LosCostEditModeTests|ScannerPlayMode"
+    },
+    "mpc": {
+      "testFilter": "MpcNavigatorPlayMode|MpcPerformancePlayModeTests|MpcSolverTests|MpcBoostEditModeTests|LosCostEditModeTests"
+    },
+    "combat": {
+      "testFilter": "HeatPlayMode|HeatOverheatStress|HeatEditModeTests|MissileGuidance|WeaponCommandDispatch|LockOnRegistryWiring|LockOnRegressionEditModeTests"
+    },
+    "sectors": {
+      "testFilter": "SectorCompositionPlayMode|SectorLifecyclePlayMode|SectorManifestSyncEditModeTests|RespawnEditModeTests|BootstrapContractsEditModeTests"
+    },
+    "objectives": {
+      "testFilter": "KeyPickupObjective|ObjectiveTrackerEditModeTests|ObjectiveChannelEditModeTests"
     },
     "utils": {
-      "testFilter": "CollisionDamageUtilityTests|CameraUtilsEditModeTests|FragneticsCalculatorEditModeTests"
+      "testFilter": "CollisionDamageUtilityTests|CameraUtilsEditModeTests|FragneticsCalculatorEditModeTests|ForcesEditModeTests"
     },
     "workspace": {
       "testFilter": ""

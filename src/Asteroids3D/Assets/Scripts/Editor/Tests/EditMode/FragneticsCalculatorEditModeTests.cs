@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    [Category("Regression")]
+    [Category("Physics")]
     public class FragneticsCalculatorEditModeTests
     {
         private AsteroidFragSettings asteroidFragSettings;
