@@ -8,6 +8,7 @@ using Tests.PlayMode.Common;
 using UI;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UnityEngine.UI;
 
 namespace Tests.PlayMode
 {
@@ -304,22 +305,23 @@ namespace Tests.PlayMode
 
             LogDiagnostic($"ShieldUI after reset - enabled: {shieldUI.enabled}, active: {shieldUI.gameObject.activeInHierarchy}");
 
-            // Apply shield damage and verify UI responds (implicit via event subscription)
+            // ShieldUI's radial fill (Image.fillAmount on its own GameObject) is driven by
+            // DamageController.Shield.OnValueChanged. Asserting the fill tracks the post-damage
+            // shield fraction proves the UI actually re-subscribed across the death→reset cycle
+            // — not merely that dispatching the event threw no exception.
+            var ring = shieldUI.GetComponent<Image>();
+            Assert.IsNotNull(ring, "ShieldUI requires an Image to render its fill");
+            var maxShield = testShip.Damage.Shield.MaxValue;
+
             var shieldBefore = testShip.Damage.Shield.CurrentValue;
             testShip.Damage.TakeDamage(10f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
             yield return null;
 
             var shieldAfter = testShip.Damage.Shield.CurrentValue;
-
-            // BUG REPRODUCTION: Shield should have decreased
             Assert.Less(shieldAfter, shieldBefore,
                 "Shield should decrease after taking damage post-reset");
-
-            LogDiagnostic($"Shield damage applied successfully - Before: {shieldBefore}, After: {shieldAfter}");
-
-            // Note: We can't directly verify UI response without accessing private fields,
-            // but if the component is enabled and events are subscribed, it should respond.
-            // The fact that no exceptions are thrown is a good sign.
+            Assert.AreEqual(shieldAfter / maxShield, ring.fillAmount, 0.01f,
+                "ShieldUI fill should track the current shield fraction after reset (event re-subscribed)");
         }
 
         /// <summary>
@@ -352,22 +354,24 @@ namespace Tests.PlayMode
 
             LogDiagnostic($"LockOnIndicator after reset - enabled: {lockOnIndicator.enabled}, active: {lockOnIndicator.gameObject.activeInHierarchy}");
 
-            // Trigger lock progress event via ITargetable interface
             var targetable = testShip as ITargetable;
             Assert.IsNotNull(targetable, "Ship should implement ITargetable");
 
-            // Simulate lock progress
+            // LockOnIndicator drives its CanvasGroup.alpha from the Lock channel (1 on progress,
+            // 0 on release). Asserting alpha follows those events proves it re-subscribed across
+            // the death→reset cycle — not merely that dispatch threw no exception.
+            var canvasGroup = lockOnIndicator.GetComponent<CanvasGroup>();
+            Assert.IsNotNull(canvasGroup, "LockOnIndicator requires a CanvasGroup");
+
             targetable.Lock.RaiseProgress(0.5f);
             yield return null;
+            Assert.AreEqual(1f, canvasGroup.alpha, 0.0001f,
+                "LockOnIndicator should show (alpha 1) on lock progress after reset");
 
-            // No exception means event subscription is working
-            LogDiagnostic("Lock progress event dispatched successfully without exception");
-
-            // Simulate lock acquired
-            targetable.Lock.RaiseAcquired();
+            targetable.Lock.RaiseReleased();
             yield return null;
-
-            LogDiagnostic("Lock acquired event dispatched successfully without exception");
+            Assert.AreEqual(0f, canvasGroup.alpha, 0.0001f,
+                "LockOnIndicator should hide (alpha 0) on lock release after reset");
         }
 
         /// <summary>
