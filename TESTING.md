@@ -493,6 +493,81 @@ rather than red (see `MissileGuidancePlayModeTests.Target90Degrees_Converges`).
 
 ---
 
+## Best practices
+
+Distilled from the test-suite cleanup. Rules of thumb, not laws.
+
+- **Push logic down to EditMode; reserve PlayMode for real integration.** If the
+  behaviour is Time-free and doesn't need the game loop, physics, coroutines, or
+  a prefab, it's an EditMode unit test. A `MonoBehaviour`'s pure logic is usually
+  reachable in EditMode via `new GameObject().AddComponent<T>()` + a production
+  init method (see below) — `Awake` doesn't run, so initialise explicitly.
+  Reserve PlayMode for what genuinely needs it: physics/`OnTrigger`, activation
+  lifecycle across `SetActive`, real-prefab wiring, and ship-identity
+  (`ShipId`/`OnDeath`). Example split: `DamageControllerEditModeTests` (routing,
+  reset, regen — fast) vs `ShipRespawnDamagePlayModeTests` (ship-id + hull-smoke).
+- **Assert an observable effect, not "no exception."** Dispatching an event and
+  checking nothing threw proves little. Assert the visible result —
+  `CanvasGroup.alpha`, `Image.fillAmount`, a resource value. If the effect isn't
+  observable, that's a seam gap in the production type, not a reason to weaken
+  the test.
+- **Make time deterministic.** Drive time-based logic through an injected
+  `Tick(float dt)` against an internal clock rather than reading
+  `Time.time`/`Time.deltaTime` directly. Tests then step time at zero wall-clock
+  (see `Heat.Tick`, `RegenResource.Update(dt)`). This is both a test practice and
+  a seam (below).
+- **Perf tests assert a *generous* budget, not a tautology.** `solveMs > 0`
+  catches nothing. A loose ceiling (~30× observed headroom) catches catastrophic
+  regressions (Burst off, O(n²)) without flaking on slow CI. See
+  `MpcPerformancePlayModeTests`.
+- **Quarantine flakies, don't tolerate red.** `[Ignore("reason — ticket")]` so a
+  known-flaky shows as skipped; fix the determinism separately.
+- **Refactor tests verify-before-delete.** When moving/rewriting coverage: (1)
+  regression-run the existing tests against the refactored production code to
+  prove it's behaviour-neutral, (2) add the new coverage and see it green, (3)
+  *then* delete the old. Never delete the guard before the replacement is proven.
+- **Share fixtures, don't copy them.** Common helpers live in the `Tests.Common`
+  assembly (referenced by both EditMode and PlayMode) or `Tests.PlayMode.Common`.
+  One `StubShipRegistry`, one `TestDamage.Kill`, one reflection-free path — a
+  third copy of a stub is a smell.
+
+## Designing for testability (seams)
+
+When a test reaches for reflection to set a private field, that's the signal —
+**the production type is missing a seam.** Add the seam; don't write a nicer
+reflection helper. How to choose the seam:
+
+1. **Reuse an existing production config path first.** Before adding anything,
+   check how the value is set in the game. `DamageController` is configured from
+   a `ShipSettings` SO via `PopulateSettings(...)` — tests build a `ShipSettings`
+   and call that same method. No new API, no reflection.
+2. **Real capability → `public Configure(...)`.** If the seam is something
+   production would plausibly use (weapon tuning, spawner setup, missile
+   variants), make it a public runtime method. Tests just reuse it. See
+   `Heat.Configure`, `Missile.Configure`, `RingSpawner.Configure`.
+3. **Editor/test-only injection → `internal` + `.Editor.cs` partial.** If it's
+   only ever set by the editor bake or a test (not production runtime), keep it
+   `internal` and put it in a `#if UNITY_EDITOR` `partial` in an `Editor/`
+   subfolder (repo convention). `[assembly: InternalsVisibleTo("Tests.EditMode")]`
+   / `"Tests.PlayMode"` already exists in `AssemblyInfo.cs`. See
+   `Sector.Editor.cs` (`SetManifest`, `SetLoadScene`).
+4. **A seam lives on the class that owns the state.** A `partial` of class A
+   cannot touch class B's `private` members, and `InternalsVisibleTo` only
+   crosses *assembly* boundaries, not class boundaries. The setter for
+   `SectorSettings.loadScene` had to be on `SectorSettings` (or the field moved).
+5. **Put config where it varies.** Type-intrinsic config belongs on the
+   template/prefab; per-instance/per-run config belongs in an overridable SO.
+   Scene identity (`sceneName`/`loadScene`) moved onto the `Sector` template
+   (every instance of a sector loads the same scene); `difficultySeed` stays in
+   the per-entry `SectorSettings`. Getting this right often *removes* the need
+   for a seam entirely.
+6. **The `Tick(dt)` + internal-clock pattern** (for #3 above): keep a private
+   `clock` advanced by `Tick(float dt)`; have `Update()` call
+   `Tick(Time.deltaTime)`; measure delays against `clock`, not `Time.time`.
+   Behaviour is identical in play, and fully deterministic under test.
+
+---
+
 ## Troubleshooting
 
 | Symptom | Likely cause | Fix |
