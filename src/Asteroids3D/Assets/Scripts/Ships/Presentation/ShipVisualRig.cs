@@ -11,9 +11,14 @@ namespace Ships.Presentation
     /// </summary>
     public sealed class ShipVisualRig : MonoBehaviour
     {
+        private IShipVisual[] visuals;
+
+        // Component discovery happens once in Awake (runs during Instantiate, before the installer's
+        // Bind call); Bind only fans the injected view out to the cached children.
+        private void Awake() => visuals = GetComponentsInChildren<IShipVisual>(true);
+
         public void Bind(in ShipView view)
         {
-            var visuals = GetComponentsInChildren<IShipVisual>(true);
             foreach (var visual in visuals)
                 visual.Bind(view);
         }
