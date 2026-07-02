@@ -28,7 +28,7 @@ namespace Tests.PlayMode
     public class LockOnRegistryWiringPlayModeTests : PlayModeWorldFixture
     {
         private Ship testShip;
-        private CombatShip combatShip;
+        private Ship combatShip;
         private AICommander testPilot;
 
         [SetUp]
@@ -74,8 +74,8 @@ namespace Tests.PlayMode
                 postInitialize: null);
 
             Assert.IsNotNull(testShip, "Factory.CreateShip should return non-null ship");
-            combatShip = testShip as CombatShip;
-            Assert.IsNotNull(combatShip, "Ship must be a CombatShip");
+            combatShip = testShip;
+            Assert.IsNotNull(combatShip.Targeting, "Ship must have a lock-on sensor (armed)");
 
             yield return null; // Wait one frame for initialization to complete
 
@@ -117,11 +117,11 @@ namespace Tests.PlayMode
                 team: 0,
                 position: Vector3.zero,
                 rotation: Quaternion.identity,
-                postInitialize: s => (s as CombatShip)?.Targeting?.SetRegistry(stubRegistry));
+                postInitialize: s => s.Targeting?.SetRegistry(stubRegistry));
 
             Assert.IsNotNull(testShip, "Factory.CreateShip should return non-null ship");
-            combatShip = testShip as CombatShip;
-            Assert.IsNotNull(combatShip, "Ship must be a CombatShip");
+            combatShip = testShip;
+            Assert.IsNotNull(combatShip.Targeting, "Ship must have a lock-on sensor (armed)");
 
             yield return null; // Wait one frame for Start() to run
 
@@ -167,8 +167,8 @@ namespace Tests.PlayMode
                 postInitialize: null);
 
             Assert.IsNotNull(testShip, "Factory.CreateShip should return non-null ship");
-            combatShip = testShip as CombatShip;
-            Assert.IsNotNull(combatShip, "Ship must be a CombatShip");
+            combatShip = testShip;
+            Assert.IsNotNull(combatShip.Targeting, "Ship must have a lock-on sensor (armed)");
 
             yield return null; // Wait one frame for Start() to run
 
