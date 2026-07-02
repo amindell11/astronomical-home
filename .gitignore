@@ -82,13 +82,7 @@ crashlytics-build.properties
 /TestResults/
 /test-results/
 
-# Local Pi planning artifacts
-/.pi/plans/
-
 # Agent worktree pool
 .worktree-pool/
 
-# AI agent ephemeral state
-.ralph/*.state.json
-.pi/**/*.state.json
 nul

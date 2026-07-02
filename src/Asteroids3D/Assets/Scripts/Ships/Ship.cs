@@ -1,8 +1,10 @@
 using System;
+using Combat;
 using Combat.Targeting;
 using Ships.Command;
 using Ships.Damage;
 using Ships.Movement;
+using Ships.Weapons;
 using Movement;
 using UnityEngine;
 
@@ -11,7 +13,7 @@ namespace Ships
     [RequireComponent(typeof(MovementController))]
     [RequireComponent(typeof(DamageController))]
     [DefaultExecutionOrder(-90)]
-    public class Ship : MonoBehaviour, ITargetable, IShipStatus
+    public class Ship : MonoBehaviour, ITargetable, IShipStatus, IShooter
     {
         [Header("Settings Asset")]
         [Tooltip("ShipSettings asset that holds all tunable parameters.")]
@@ -25,6 +27,13 @@ namespace Ships
         public Commander Commander { get; private set; }
         public MovementController Movement { get; private set; }
         public DamageController Damage { get; private set; }
+
+        /// <summary>The ship's weapons, or null if it carries none (peaceful ship).</summary>
+        public WeaponsController Weapons { get; private set; }
+
+        /// <summary>The ship's lock-on sensor, or null if it carries no weapons.</summary>
+        public LockOnSensor Targeting { get; private set; }
+
         public Rigidbody Rigidbody { get; private set; }
         public ShipId Id { get; private set; }
         public Collider[] Colliders {get; private set;}
@@ -53,6 +62,11 @@ namespace Ships
             Damage           = GetComponent<DamageController>();
             Colliders        = GetComponentsInChildren<Collider>();
             Rigidbody        = GetComponent<Rigidbody>();
+
+            // Weapons are optional: a ship without a WeaponsController is simply unarmed.
+            Weapons  = GetComponent<WeaponsController>();
+            Targeting = GetComponentInChildren<LockOnSensor>();
+            Weapons?.Initialize(() => Kinematics);
         }
 
         private void OnEnable() => PopulateSettings();
@@ -82,10 +96,14 @@ namespace Ships
         }
 
         /// <summary>
-        /// Assembles the narrow control surface handed to the commander. The base ship is unarmed;
-        /// <see cref="CombatShip"/> overrides this to add the weapon context and actuator.
+        /// Assembles the narrow control surface handed to the commander. Ships with a
+        /// <see cref="WeaponsController"/> hand over the weapon context and actuator; unarmed
+        /// ships hand over only movement, so a peaceful commander never sees a weapons surface.
         /// </summary>
-        protected virtual ShipControl BuildShipControl() => new(this, Movement);
+        private ShipControl BuildShipControl() =>
+            Weapons
+                ? new(this, Movement, Weapons.Context, Weapons)
+                : new(this, Movement);
 
         private void SetCommander(Commander commander)
         {
@@ -116,12 +134,14 @@ namespace Ships
 
         protected virtual void HandleShipDeath()
         {
+            Weapons?.OnShipDeath();
             Lock.RaiseReleased();
             gameObject.SetActive(false);
         }
 
         public virtual void ResetShip()
         {
+            Weapons?.ResetSystem();
             Movement.ResetMovement();
             Damage.ResetDamageState();
             gameObject.SetActive(true);

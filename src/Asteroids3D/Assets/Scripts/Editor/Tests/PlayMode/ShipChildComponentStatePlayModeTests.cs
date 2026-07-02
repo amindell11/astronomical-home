@@ -8,6 +8,7 @@ using Tests.PlayMode.Common;
 using UI;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UnityEngine.UI;
 
 namespace Tests.PlayMode
 {
@@ -33,13 +34,11 @@ namespace Tests.PlayMode
     /// 2. Whether child objects re-enable properly after parent reactivation (expected)
     /// 3. Whether direct child deactivation causes different behavior (unexpected edge case)
     /// </summary>
-    [Category("Integration")]
-    [Category("UI")]
-    [Category("Weapons")]
+    [Category("Ships")]
     public class ShipChildComponentStatePlayModeTests : PlayModeWorldFixture
     {
         private Ship testShip;
-        private CombatShip combatShip;
+        private Ship combatShip;
         private Ship enemyShip;
         
         // Toggle for diagnostic logging (set to true to enable detailed logs)
@@ -61,9 +60,9 @@ namespace Tests.PlayMode
             Assert.IsNotNull(commanderPrefab, "TestPilotMPC prefab failed to load");
 
             testShip = ShipTestFactory.CreateShip(shipPrefab, commanderPrefab, settings, team: 0);
-            combatShip = testShip as CombatShip;
+            combatShip = testShip;
             Assert.IsNotNull(testShip, "Test ship failed to instantiate");
-            Assert.IsNotNull(combatShip, "Test ship should be a CombatShip");
+            Assert.IsNotNull(combatShip.Weapons, "Test ship should be armed (WeaponsController present)");
 
             // Create enemy for damage attribution
             enemyShip = ShipTestFactory.CreateDefaultShipAt(
@@ -147,13 +146,7 @@ namespace Tests.PlayMode
                          $"Weapons active: {weaponsController.gameObject.activeSelf}");
 
             // Deal lethal damage to kill ship
-            var maxShield = testShip.Damage.Shield.MaxValue;
-            var maxHealth = testShip.Damage.Health.MaxValue;
-            
-            testShip.Damage.TakeDamage(maxShield + 100f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
-            yield return null;
-            
-            testShip.Damage.TakeDamage(maxHealth + 100f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
+            TestDamage.Kill(testShip, enemyShip.gameObject);
             yield return null;
 
             // Verify ship is deactivated
@@ -194,12 +187,7 @@ namespace Tests.PlayMode
             var lockOnIndicator = testShip.GetComponentInChildren<LockOnIndicator>(includeInactive: true);
 
             // Kill ship
-            var maxShield = testShip.Damage.Shield.MaxValue;
-            var maxHealth = testShip.Damage.Health.MaxValue;
-            
-            testShip.Damage.TakeDamage(maxShield + 100f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
-            yield return null;
-            testShip.Damage.TakeDamage(maxHealth + 100f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
+            TestDamage.Kill(testShip, enemyShip.gameObject);
             yield return null;
 
             LogDiagnostic($"Before reset - Ship active: {testShip.gameObject.activeSelf}");
@@ -259,12 +247,7 @@ namespace Tests.PlayMode
             yield return null;
 
             // Kill and reset ship
-            var maxShield = testShip.Damage.Shield.MaxValue;
-            var maxHealth = testShip.Damage.Health.MaxValue;
-            
-            testShip.Damage.TakeDamage(maxShield + 100f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
-            yield return null;
-            testShip.Damage.TakeDamage(maxHealth + 100f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
+            TestDamage.Kill(testShip, enemyShip.gameObject);
             yield return null;
 
             testShip.ResetShip();
@@ -309,12 +292,7 @@ namespace Tests.PlayMode
             }
 
             // Kill and reset ship
-            var maxShield = testShip.Damage.Shield.MaxValue;
-            var maxHealth = testShip.Damage.Health.MaxValue;
-            
-            testShip.Damage.TakeDamage(maxShield + 100f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
-            yield return null;
-            testShip.Damage.TakeDamage(maxHealth + 100f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
+            TestDamage.Kill(testShip, enemyShip.gameObject);
             yield return null;
 
             testShip.ResetShip();
@@ -327,22 +305,23 @@ namespace Tests.PlayMode
 
             LogDiagnostic($"ShieldUI after reset - enabled: {shieldUI.enabled}, active: {shieldUI.gameObject.activeInHierarchy}");
 
-            // Apply shield damage and verify UI responds (implicit via event subscription)
+            // ShieldUI's radial fill (Image.fillAmount on its own GameObject) is driven by
+            // DamageController.Shield.OnValueChanged. Asserting the fill tracks the post-damage
+            // shield fraction proves the UI actually re-subscribed across the death→reset cycle
+            // — not merely that dispatching the event threw no exception.
+            var ring = shieldUI.GetComponent<Image>();
+            Assert.IsNotNull(ring, "ShieldUI requires an Image to render its fill");
+            var maxShield = testShip.Damage.Shield.MaxValue;
+
             var shieldBefore = testShip.Damage.Shield.CurrentValue;
             testShip.Damage.TakeDamage(10f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
             yield return null;
 
             var shieldAfter = testShip.Damage.Shield.CurrentValue;
-
-            // BUG REPRODUCTION: Shield should have decreased
             Assert.Less(shieldAfter, shieldBefore,
                 "Shield should decrease after taking damage post-reset");
-
-            LogDiagnostic($"Shield damage applied successfully - Before: {shieldBefore}, After: {shieldAfter}");
-
-            // Note: We can't directly verify UI response without accessing private fields,
-            // but if the component is enabled and events are subscribed, it should respond.
-            // The fact that no exceptions are thrown is a good sign.
+            Assert.AreEqual(shieldAfter / maxShield, ring.fillAmount, 0.01f,
+                "ShieldUI fill should track the current shield fraction after reset (event re-subscribed)");
         }
 
         /// <summary>
@@ -362,12 +341,7 @@ namespace Tests.PlayMode
             }
 
             // Kill and reset ship
-            var maxShield = testShip.Damage.Shield.MaxValue;
-            var maxHealth = testShip.Damage.Health.MaxValue;
-            
-            testShip.Damage.TakeDamage(maxShield + 100f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
-            yield return null;
-            testShip.Damage.TakeDamage(maxHealth + 100f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
+            TestDamage.Kill(testShip, enemyShip.gameObject);
             yield return null;
 
             testShip.ResetShip();
@@ -380,22 +354,24 @@ namespace Tests.PlayMode
 
             LogDiagnostic($"LockOnIndicator after reset - enabled: {lockOnIndicator.enabled}, active: {lockOnIndicator.gameObject.activeInHierarchy}");
 
-            // Trigger lock progress event via ITargetable interface
             var targetable = testShip as ITargetable;
             Assert.IsNotNull(targetable, "Ship should implement ITargetable");
 
-            // Simulate lock progress
+            // LockOnIndicator drives its CanvasGroup.alpha from the Lock channel (1 on progress,
+            // 0 on release). Asserting alpha follows those events proves it re-subscribed across
+            // the death→reset cycle — not merely that dispatch threw no exception.
+            var canvasGroup = lockOnIndicator.GetComponent<CanvasGroup>();
+            Assert.IsNotNull(canvasGroup, "LockOnIndicator requires a CanvasGroup");
+
             targetable.Lock.RaiseProgress(0.5f);
             yield return null;
+            Assert.AreEqual(1f, canvasGroup.alpha, 0.0001f,
+                "LockOnIndicator should show (alpha 1) on lock progress after reset");
 
-            // No exception means event subscription is working
-            LogDiagnostic("Lock progress event dispatched successfully without exception");
-
-            // Simulate lock acquired
-            targetable.Lock.RaiseAcquired();
+            targetable.Lock.RaiseReleased();
             yield return null;
-
-            LogDiagnostic("Lock acquired event dispatched successfully without exception");
+            Assert.AreEqual(0f, canvasGroup.alpha, 0.0001f,
+                "LockOnIndicator should hide (alpha 0) on lock release after reset");
         }
 
         /// <summary>
@@ -471,12 +447,7 @@ namespace Tests.PlayMode
                 var lockOnIndicator = testShip.GetComponentInChildren<LockOnIndicator>(includeInactive: true);
 
                 // Kill ship
-                var maxShield = testShip.Damage.Shield.MaxValue;
-                var maxHealth = testShip.Damage.Health.MaxValue;
-                
-                testShip.Damage.TakeDamage(maxShield + 100f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
-                yield return null;
-                testShip.Damage.TakeDamage(maxHealth + 100f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
+                TestDamage.Kill(testShip, enemyShip.gameObject);
                 yield return null;
 
                 Assert.IsFalse(testShip.gameObject.activeSelf,

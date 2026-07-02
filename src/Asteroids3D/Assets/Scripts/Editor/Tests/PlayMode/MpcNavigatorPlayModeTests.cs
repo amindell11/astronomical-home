@@ -4,6 +4,7 @@ using Movement.MPC;
 using Game;
 using NUnit.Framework;
 using Ships;
+using Tests.Common;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -17,7 +18,7 @@ namespace Tests.PlayMode
 // (SetNavigationPoint / SetFacingOverride) and assert on the ship's emergent motion.
 // Solver-decision behavior (lead facing, goal-velocity projection, etc.) is covered far
 // more cheaply at the unit level in Tests.EditMode/MpcSolverTests.
-[Category("Integration")]
+[Category("MPC")]
 [Category("Slow")]
 public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
 {

@@ -3,6 +3,7 @@ using AI;
 using Combat.Targeting;
 using NUnit.Framework;
 using Ships;
+using Tests.Common;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -23,12 +24,11 @@ namespace Tests.PlayMode
     /// These tests verify that ship.Targeting is properly wired and functional
     /// after Factory.CreateShip, with and without registry injection.
     /// </summary>
-    [Category("Regression")]
-    [Category("Integration")]
+    [Category("Targeting")]
     public class LockOnRegistryWiringPlayModeTests : PlayModeWorldFixture
     {
         private Ship testShip;
-        private CombatShip combatShip;
+        private Ship combatShip;
         private AICommander testPilot;
 
         [SetUp]
@@ -74,8 +74,8 @@ namespace Tests.PlayMode
                 postInitialize: null);
 
             Assert.IsNotNull(testShip, "Factory.CreateShip should return non-null ship");
-            combatShip = testShip as CombatShip;
-            Assert.IsNotNull(combatShip, "Ship must be a CombatShip");
+            combatShip = testShip;
+            Assert.IsNotNull(combatShip.Targeting, "Ship must have a lock-on sensor (armed)");
 
             yield return null; // Wait one frame for initialization to complete
 
@@ -107,7 +107,7 @@ namespace Tests.PlayMode
             Assert.IsNotNull(settings, "Default ship settings failed to load");
 
             // Create stub registry
-            var stubRegistry = new StubRegistry();
+            var stubRegistry = new StubShipRegistry();
 
             // Create ship WITH postInitialize callback that injects registry
             testShip = Factory.CreateShip(
@@ -117,11 +117,11 @@ namespace Tests.PlayMode
                 team: 0,
                 position: Vector3.zero,
                 rotation: Quaternion.identity,
-                postInitialize: s => (s as CombatShip)?.Targeting?.SetRegistry(stubRegistry));
+                postInitialize: s => s.Targeting?.SetRegistry(stubRegistry));
 
             Assert.IsNotNull(testShip, "Factory.CreateShip should return non-null ship");
-            combatShip = testShip as CombatShip;
-            Assert.IsNotNull(combatShip, "Ship must be a CombatShip");
+            combatShip = testShip;
+            Assert.IsNotNull(combatShip.Targeting, "Ship must have a lock-on sensor (armed)");
 
             yield return null; // Wait one frame for Start() to run
 
@@ -167,8 +167,8 @@ namespace Tests.PlayMode
                 postInitialize: null);
 
             Assert.IsNotNull(testShip, "Factory.CreateShip should return non-null ship");
-            combatShip = testShip as CombatShip;
-            Assert.IsNotNull(combatShip, "Ship must be a CombatShip");
+            combatShip = testShip;
+            Assert.IsNotNull(combatShip.Targeting, "Ship must have a lock-on sensor (armed)");
 
             yield return null; // Wait one frame for Start() to run
 
@@ -186,33 +186,5 @@ namespace Tests.PlayMode
 #endif
         }
 
-        /// <summary>
-        /// Minimal IShipRegistry stub for testing.
-        /// Copied pattern from GameContextDecouplingEditModeTests.
-        /// </summary>
-        private sealed class StubRegistry : IShipRegistry
-        {
-            public bool TryGetShipId(Collider collider, out ShipId id)
-            {
-                id = ShipId.Invalid;
-                return false;
-            }
-
-            public bool TryGetShip(ShipId id, out Ship ship)
-            {
-                ship = null;
-                return false;
-            }
-
-            public bool TryGetShip(Collider collider, out Ship ship, ShipId? excludeId = null)
-            {
-                ship = null;
-                return false;
-            }
-
-            public bool IsFriendly(ShipId a, ShipId b) => false;
-            public bool IsHostile(ShipId a, ShipId b) => false;
-            public int GetTeam(ShipId id) => -1;
-        }
     }
 }

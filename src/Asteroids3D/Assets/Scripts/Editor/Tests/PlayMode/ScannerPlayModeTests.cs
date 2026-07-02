@@ -2,6 +2,7 @@ using System.Collections;
 using AI;
 using NUnit.Framework;
 using Ships;
+using Tests.Common;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -9,8 +10,7 @@ using UnityEngine.TestTools;
 namespace Tests.PlayMode
 {
 
-[Category("Integration")]
-[Category("Slow")]
+[Category("AI")]
 public class ScannerPlayModeTests : PlayModeWorldFixture
 {
     private Ship ship;

@@ -18,12 +18,11 @@ namespace Tests.PlayMode
     ///   the ship should dispatch those commands to WeaponsController and trigger OnFire.
     /// - Current regression: command bits are present but weapon fire is never invoked.
     /// </summary>
-    [Category("Integration")]
     [Category("Weapons")]
     public class WeaponCommandDispatchPlayModeTests : PlayModeWorldFixture
     {
         private Ship ship;
-        private CombatShip combatShip;
+        private Ship combatShip;
         private Commander commanderPrefab;
 
         private sealed class AlwaysFireCommander : Commander
@@ -61,10 +60,9 @@ namespace Tests.PlayMode
             commanderPrefab = commanderGo.AddComponent<AlwaysFireCommander>();
 
             ship = Factory.CreateShip(shipPrefab, commanderPrefab, settings, team: 0, position: Vector3.zero, rotation: Quaternion.identity);
-            combatShip = ship as CombatShip;
+            combatShip = ship;
             Assert.IsNotNull(ship, "Ship failed to instantiate");
-            Assert.IsNotNull(combatShip, "Ship must be a CombatShip");
-            Assert.IsNotNull(combatShip.Weapons, "WeaponsController missing on ship");
+            Assert.IsNotNull(combatShip.Weapons, "Ship must be armed (WeaponsController present)");
             Assert.IsNotNull(combatShip.Weapons.Primary, "Primary weapon mount not instantiated");
             Assert.IsNotNull(combatShip.Weapons.Secondary, "Secondary weapon mount not instantiated");
 #else

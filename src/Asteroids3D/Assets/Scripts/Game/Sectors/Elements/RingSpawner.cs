@@ -27,6 +27,18 @@ namespace Game.Sectors
         [Tooltip("Optional respawn rule applied to every ship this spawner produces (origin None = no respawn).")]
         [SerializeField] private RespawnPolicy respawn;
 
+        /// <summary>Configures the ring's template and layout at runtime (spawner setup / tuning).</summary>
+        public void Configure(Ship template, Commander commander, ShipSettings settings,
+                              int count, float radius = 30f, int team = 0)
+        {
+            this.template = template;
+            this.commander = commander;
+            this.settings = settings;
+            this.count = count;
+            this.radius = radius;
+            this.team = team;
+        }
+
         public override IEnumerator Build(SectorBuildContext ctx)
         {
             var spawned = new List<Ship>();

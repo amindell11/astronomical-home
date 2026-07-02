@@ -17,7 +17,7 @@ namespace Game.Sectors
     /// Combat / Arena / Testbench are prefabs of this class, differing only in their manifest, modules
     /// and producer-owned RespawnPolicies.
     /// </summary>
-    public class Sector : MonoBehaviour, ISector
+    public partial class Sector : MonoBehaviour, ISector
     {
         public event Action<SectorResult> OnSectorComplete;
 
@@ -30,6 +30,12 @@ namespace Game.Sectors
 
         [Tooltip("Behavior modules (root components) set up after content in list order; teardown reverse.")]
         [SerializeField] private SectorModule[] modules = Array.Empty<SectorModule>();
+
+        [Header("Scene")]
+        [Tooltip("World scene this sector loads additively. Sector-type intrinsic — it does not vary " +
+                 "per session/entry, so it lives on the sector template rather than the overridable SectorSettings.")]
+        [SerializeField] private string sceneName = "BasicWorld";
+        [SerializeField] private bool loadScene = true;
 
         protected IGameServices Services { get; private set; }
         protected SectorSettings Config { get; private set; }
@@ -72,8 +78,8 @@ namespace Game.Sectors
 
         public IEnumerator Setup()
         {
-            if (Config.LoadScene)
-                yield return Services.EnvironmentService.LoadSceneAsync(Config.SceneName);
+            if (loadScene)
+                yield return Services.EnvironmentService.LoadSceneAsync(sceneName);
 
             // The session rig (world, player, camera, UI) is already built and the player is injected
             // via Initialize. Manifest content adopts here in list order. OnBeforeContent is a
@@ -133,8 +139,8 @@ namespace Game.Sectors
 
             yield return OnAfterTeardown();
 
-            if (Config.LoadScene)
-                yield return Services.EnvironmentService.UnloadSceneAsync(Config.SceneName);
+            if (loadScene)
+                yield return Services.EnvironmentService.UnloadSceneAsync(sceneName);
         }
 
         protected void CompleteSector(SectorResult result)

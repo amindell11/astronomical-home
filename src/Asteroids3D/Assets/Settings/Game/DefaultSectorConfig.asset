@@ -13,6 +13,4 @@ MonoBehaviour:
   m_Name: DefaultSectorConfig
   m_EditorClassIdentifier: 
   displayName: Default Sector
-  sceneName: BasicWorld
-  loadScene: 1
   difficultySeed: 0

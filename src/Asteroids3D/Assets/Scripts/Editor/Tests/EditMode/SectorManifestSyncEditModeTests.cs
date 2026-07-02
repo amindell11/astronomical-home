@@ -13,6 +13,7 @@ namespace Tests.EditMode
     /// recognised nodes so no heavy Ship/World construction is needed.
     /// </summary>
     [TestFixture]
+    [Category("Sectors")]
     public class SectorManifestSyncEditModeTests
     {
         private class StubSpawner : SectorSpawner

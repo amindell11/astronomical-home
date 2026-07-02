@@ -1,7 +1,6 @@
 #if UNITY_EDITOR
 using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
 using AI;
 using Game;
 using Game.Sectors;
@@ -23,7 +22,7 @@ namespace Tests.PlayMode
     /// <c>Setup()</c> adopts/builds from that manifest.
     /// </summary>
     [TestFixture]
-    [Category("Integration")]
+    [Category("Sectors")]
     public class SectorCompositionPlayModeTests : PlayModeWorldFixture
     {
         private class TestSector : Sector
@@ -95,7 +94,6 @@ namespace Tests.PlayMode
                 new CameraService(), new UIService());
 
             _config = ScriptableObject.CreateInstance<SectorSettings>();
-            ReflectSet(_config, "loadScene", false);
         }
 
         [TearDown]
@@ -124,6 +122,7 @@ namespace Tests.PlayMode
             // so authored ship children do not Awake/FixedUpdate before adoption initialises them.
             go.SetActive(false);
             var sector = go.AddComponent<TestSector>();
+            sector.SetLoadScene(false); // don't load a world scene in tests
             sector.Initialize(_services, _config, null);
             return sector;
         }
@@ -135,15 +134,13 @@ namespace Tests.PlayMode
             var go = TrackGO(new GameObject("BareSector"));
             go.SetActive(false);
             var sector = go.AddComponent<Sector>();
+            sector.SetLoadScene(false); // don't load a world scene in tests
             sector.Initialize(_services, _config, null);
             return sector;
         }
 
         private static void SetManifest(Sector sector, AdoptEntry[] adopted, SectorSpawner[] spawners)
-        {
-            if (adopted != null) ReflectSet(sector, "adopted", adopted);
-            if (spawners != null) ReflectSet(sector, "spawners", spawners);
-        }
+            => sector.SetManifest(adopted, spawners, null);
 
         private Ship AddAdoptedShipChild(
             Transform parent, Ship shipPrefab, Commander commanderPrefab, ShipSettings settings,
@@ -168,27 +165,8 @@ namespace Tests.PlayMode
             return m;
         }
 
-        // A single TakeDamage hit drains EITHER shield OR health, so hit repeatedly until dead.
-        private static void KillShip(Ship s)
-        {
-            s.Damage.SetInvulnerability(0f);
-            for (var i = 0; i < 5 && s.Damage.Health.CurrentValue > 0f; i++)
-                s.Damage.TakeDamage(99999f, 0f, Vector3.zero, Vector3.zero, null);
-        }
-
         private static AdoptEntry Entry(Component target, int team = 0, bool startActive = true) =>
             new AdoptEntry { target = target, team = team, startActive = startActive };
-
-        private static void ReflectSet(object target, string fieldName, object value)
-        {
-            for (var t = target.GetType(); t != null && t != typeof(object); t = t.BaseType)
-            {
-                var fi = t.GetField(fieldName,
-                    BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-                if (fi != null) { fi.SetValue(target, value); return; }
-            }
-            throw new System.InvalidOperationException($"Field '{fieldName}' not found on '{target.GetType().FullName}'");
-        }
 
         // ── Tests ───────────────────────────────────────────────────────────────
 
@@ -292,11 +270,7 @@ namespace Tests.PlayMode
             var spawnerGO = new GameObject("Ring");
             spawnerGO.transform.SetParent(sector.transform);
             var ring = spawnerGO.AddComponent<RingSpawner>();
-            ReflectSet(ring, "template", ship);
-            ReflectSet(ring, "commander", cmdr);
-            ReflectSet(ring, "settings", settings);
-            ReflectSet(ring, "count", 3);
-            ReflectSet(ring, "radius", 20f);
+            ring.Configure(ship, cmdr, settings, count: 3, radius: 20f);
             SetManifest(sector, null, new SectorSpawner[] { ring });
 
             yield return sector.Setup();
@@ -342,10 +316,7 @@ namespace Tests.PlayMode
             var spawnerGO = new GameObject("Ring");
             spawnerGO.transform.SetParent(sector.transform);
             var ring = spawnerGO.AddComponent<RingSpawner>();
-            ReflectSet(ring, "template", ship);
-            ReflectSet(ring, "commander", cmdr);
-            ReflectSet(ring, "settings", settings);
-            ReflectSet(ring, "count", 3);
+            ring.Configure(ship, cmdr, settings, count: 3);
             SetManifest(sector, null, new SectorSpawner[] { ring });
 
             yield return sector.Setup();
@@ -388,7 +359,7 @@ namespace Tests.PlayMode
             var log = new List<string>();
             var a = AddProbeModule(sector, "A", log);
             var b = AddProbeModule(sector, "B", log);
-            ReflectSet(sector, "modules", new SectorModule[] { a, b });
+            sector.SetManifest(null, null, new SectorModule[] { a, b });
 
             yield return sector.Setup();
             yield return sector.Teardown();
@@ -405,7 +376,7 @@ namespace Tests.PlayMode
             var endGO = TrackGO(new GameObject("EndModule"));
             endGO.transform.SetParent(sector.transform);
             var end = endGO.AddComponent<EndModule>();
-            ReflectSet(sector, "modules", new SectorModule[] { end });
+            sector.SetManifest(null, null, new SectorModule[] { end });
 
             SectorResult? got = null;
             ((ISector)sector).OnSectorComplete += r => got = r;
@@ -440,7 +411,7 @@ namespace Tests.PlayMode
             var policy = new RespawnPolicy { origin = RespawnPolicy.Origin.FixedPoint, point = point, radius = 0f, delay = 0f };
             Assert.IsTrue(Respawn.Wire(s, policy, _services), "FixedPoint policy must wire a respawn.");
 
-            KillShip(s);
+            TestDamage.Kill(s);
 
             // UnitService.Update processes the (delay 0) pending respawn next frame.
             yield return null;
@@ -466,7 +437,7 @@ namespace Tests.PlayMode
             var policy = new RespawnPolicy { origin = RespawnPolicy.Origin.None };
             Assert.IsFalse(Respawn.Wire(s, policy, _services), "A None policy must wire nothing.");
 
-            KillShip(s);
+            TestDamage.Kill(s);
 
             yield return null;
             yield return null;
@@ -483,6 +454,7 @@ namespace Tests.PlayMode
         {
             var go = TrackGO(new GameObject("EncounterSector"));
             var sector = go.AddComponent<EncounterTestSector>();
+            sector.SetLoadScene(false); // don't load a world scene in tests
             sector.Initialize(_services, _config, player);
             return sector;
         }
@@ -497,8 +469,8 @@ namespace Tests.PlayMode
             EncounterTestSector sector, params Game.Encounters.Encounter[] templates)
         {
             var module = sector.gameObject.AddComponent<EncounterSequenceModule>();
-            ReflectSet(module, "encounters", templates);
-            ReflectSet(sector, "modules", new SectorModule[] { module });
+            module.SetEncounters(templates);
+            sector.SetManifest(null, null, new SectorModule[] { module });
             return module;
         }
 
