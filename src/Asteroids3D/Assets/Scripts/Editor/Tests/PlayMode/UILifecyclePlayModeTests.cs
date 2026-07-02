@@ -1,6 +1,7 @@
 using System.Collections;
 using Combat.Targeting;
 using NUnit.Framework;
+using Ships.Presentation;
 using Tests.PlayMode.Common;
 using UI;
 using UnityEngine;
@@ -13,28 +14,30 @@ namespace Tests.PlayMode
     [Category("UI")]
     public class UILifecyclePlayModeTests : PlayModeWorldFixture
     {
-        private sealed class FakeTargetable : MonoBehaviour, ITargetable
-        {
-            public Transform TargetPoint => transform;
-            public LockChannel Lock { get; } = new LockChannel();
-        }
-
+        /// <summary>
+        /// Rig visuals are wired by injection (<see cref="IShipVisual.Bind"/>), not parent discovery:
+        /// once a LockChannel is injected, the indicator responds to lock progress, and it re-subscribes
+        /// across a disable/enable cycle (death/respawn).
+        /// </summary>
         [UnityTest]
-        public IEnumerator LockOnIndicator_Reenable_ReacquiresParentAndRespondsToProgress()
+        public IEnumerator LockOnIndicator_Injected_RespondsToProgress_AndResubscribesOnReenable()
         {
-            var parent = new GameObject("TargetableParent");
-            parent.AddComponent<FakeTargetable>();
+            var channel = new LockChannel();
 
+            // The indicator lives under a parent in the rig; LateUpdate reads transform.parent.
+            var parent = new GameObject("RigRoot");
             var indicatorGo = new GameObject("LockOnIndicator");
             indicatorGo.transform.SetParent(parent.transform, false);
             indicatorGo.AddComponent<CanvasGroup>();
             indicatorGo.AddComponent<Image>();
             var indicator = indicatorGo.AddComponent<LockOnIndicator>();
-
-            yield return null;
-
-            var channel = parent.GetComponent<FakeTargetable>().Lock;
             var canvasGroup = indicatorGo.GetComponent<CanvasGroup>();
+
+            yield return null; // Awake/Start (Hide)
+
+            // Inject the lock channel exactly as the presentation installer does.
+            indicator.Bind(new ShipView(indicatorGo.transform, null, null, channel));
+            yield return null;
 
             channel.RaiseProgress(0.4f);
             yield return null;
@@ -57,11 +60,13 @@ namespace Tests.PlayMode
             Object.Destroy(parent);
         }
 
+        /// <summary>
+        /// An unbound ShieldUI (never injected) is inert — it neither throws nor logs, it simply does
+        /// nothing until a ShipView is bound.
+        /// </summary>
         [UnityTest]
-        public IEnumerator ShieldUI_MissingDamageController_DoesNotThrow()
+        public IEnumerator ShieldUI_Unbound_IsInertAndDoesNotThrow()
         {
-            LogAssert.Expect(LogType.Warning, "[ShieldUI] No DamageController source found for ShieldUI");
-
             var go = new GameObject("ShieldUI");
             go.AddComponent<Image>();
             go.AddComponent<ShieldUI>();
