@@ -31,7 +31,7 @@ public abstract class AIIntegrationFixture : PlayModeWorldFixture
         foreach (var ship in trackedShips)
         {
             if (ship != null)
-                Object.Destroy(ship.gameObject);
+                Object.DestroyImmediate(ship.gameObject);
         }
         trackedShips.Clear();
 

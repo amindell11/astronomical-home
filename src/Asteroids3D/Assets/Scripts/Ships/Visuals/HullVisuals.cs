@@ -59,7 +59,7 @@ namespace Ships.Visuals
 
         private void OnDeath(ShipId _victimId, ShipId _killerId)
         {
-            if (!GameSettings.VfxEnabled || !explosionPrefab) return;
+            if (!explosionPrefab) return;
             var pooled = explosionPrefab.GetComponent<PooledVFX>();
             if (pooled)
                 SimplePool<PooledVFX>.Get(pooled, transform.position, Quaternion.identity);
@@ -74,7 +74,7 @@ namespace Ships.Visuals
 
         private void ApplyVisualStateFromHealth()
         {
-            if (!source || !GameSettings.VfxEnabled) return;
+            if (!source) return;
 
             var healthPct = source.Health.Pct;
 
@@ -94,14 +94,14 @@ namespace Ships.Visuals
 
         private void SpawnSparks(float dmg, Vector3 hitPt)
         {
-            if (!sparksPrefab || dmg <= 0f || !GameSettings.VfxEnabled) return;
+            if (!sparksPrefab || dmg <= 0f) return;
 
             SimplePool<PooledVFX>.Get(sparksPrefab, hitPt, Quaternion.identity);
         }
 
         private void TriggerFlash(float dmg, Vector3 _)
         {
-            if (dmg <= 0f || !hull || !GameSettings.VfxEnabled) return;
+            if (dmg <= 0f || !hull) return;
             flashActive = true;
             flashElapsed = 0f;
             ApplyFlashColor(0f);

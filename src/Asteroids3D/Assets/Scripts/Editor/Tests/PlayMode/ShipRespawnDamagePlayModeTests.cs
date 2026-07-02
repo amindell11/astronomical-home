@@ -1,19 +1,17 @@
 using System.Collections;
-using System.Reflection;
 using NUnit.Framework;
 using Ships;
 using Ships.Damage;
-using Ships.Visuals;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Utils;
 
 namespace Tests.PlayMode
 {
     /// <summary>
     /// PlayMode residue for ship death/respawn that genuinely needs a real ship or the real prefab:
-    /// ShipId attribution on damage/death, and hull-smoke presentation across respawn.
+    /// ShipId attribution on damage/death — needs real ships (hull-smoke presentation moved to
+    /// ShipPresentationPlayModeTests with the visual rig attached).
     ///
     /// The pure damage-routing / reset / regen / invulnerability logic previously duplicated here now
     /// lives fast in <c>Tests.EditMode/DamageControllerEditModeTests</c> (constructed via the production
@@ -116,88 +114,5 @@ namespace Tests.PlayMode
             Assert.AreEqual(enemyShip.Id, killerId, "OnDeath killer id should match the attacking ship id");
         }
 
-        /// <summary>
-        /// Board-bug repro around respawn visuals: hull smoke should be hidden after respawn and only
-        /// re-appear once health drops below 50% again. Presentation — needs the real Ship_1 prefab.
-        /// </summary>
-        [UnityTest]
-        public IEnumerator AfterReset_SmokeTrailIsHidden_UntilHealthDropsAgain()
-        {
-            yield return null;
-
-            GameSettings.SetVfxEnabled(true);
-
-            var settings = TestAssets.LoadDefaultShipSettings();
-            var ship1Prefab = TestAssets.LoadShipPrefab("Assets/Prefabs/Ships/Ship_1.prefab");
-            var commanderPrefab = TestAssets.LoadTestPilotMpc();
-
-            Assert.IsNotNull(settings, "Default ship settings failed to load");
-            Assert.IsNotNull(ship1Prefab, "Ship_1 prefab failed to load");
-            Assert.IsNotNull(commanderPrefab, "TestPilotMPC prefab failed to load");
-
-            Ship smokeShip = null;
-            try
-            {
-                smokeShip = ShipTestFactory.CreateShip(ship1Prefab, commanderPrefab, settings, team: 0);
-                Assert.IsNotNull(smokeShip, "Failed to create smoke test ship");
-
-                var smokeDamage = smokeShip.Damage;
-                var smokeObject = GetSmokeObject(smokeShip);
-
-                Assert.IsNotNull(smokeDamage, "DamageController missing on smoke test ship");
-                Assert.IsNotNull(smokeObject, "Hull smoke ParticleSystem reference was not found");
-
-                yield return null;
-
-                Assert.IsFalse(smokeObject.activeSelf,
-                    "Smoke should start hidden at full health");
-
-                // Deplete shield first, then lower health below the smoke threshold.
-                smokeDamage.TakeDamage(smokeDamage.Shield.CurrentValue + 25f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
-                yield return null;
-
-                smokeDamage.TakeDamage(smokeDamage.Health.MaxValue * 0.6f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
-                yield return null;
-
-                Assert.Less(smokeDamage.Health.Pct, 0.5f,
-                    "Health should be below 50% to trigger smoke");
-                Assert.IsTrue(smokeObject.activeSelf,
-                    "Smoke should be visible when health drops below 50%");
-
-                // Kill + respawn.
-                smokeDamage.TakeDamage(smokeDamage.Health.MaxValue + 25f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
-                yield return null;
-
-                Assert.IsFalse(smokeShip.gameObject.activeSelf,
-                    "Smoke test ship should be inactive after lethal damage");
-
-                smokeShip.ResetShip();
-                yield return null;
-
-                Assert.IsTrue(smokeShip.gameObject.activeSelf,
-                    "Smoke test ship should be active after ResetShip()");
-                Assert.AreEqual(1f, smokeDamage.Health.Pct, 0.01f,
-                    "Health should be fully restored after reset");
-
-                Assert.IsFalse(smokeObject.activeSelf,
-                    "Smoke should be hidden immediately after respawn and remain off until health drops again");
-            }
-            finally
-            {
-                ShipTestFactory.DestroyShip(smokeShip);
-            }
-        }
-
-        private static GameObject GetSmokeObject(Ship ship)
-        {
-            var hull = ship.GetComponentInChildren<HullVisuals>(true);
-            if (!hull) return null;
-
-            var smokeField = typeof(HullVisuals).GetField("smoke", BindingFlags.Instance | BindingFlags.NonPublic);
-            if (smokeField == null) return null;
-
-            var smoke = smokeField.GetValue(hull) as ParticleSystem;
-            return smoke ? smoke.gameObject : null;
-        }
     }
 }
