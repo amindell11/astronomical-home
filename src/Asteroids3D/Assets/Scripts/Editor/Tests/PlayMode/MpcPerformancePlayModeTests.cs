@@ -3,6 +3,7 @@ using AI;
 using Movement.MPC;
 using NUnit.Framework;
 using Ships;
+using Tests.Common;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -11,7 +12,7 @@ using AICommander = AI.AICommander;
 namespace Tests.PlayMode
 {
 
-[Category("Integration")]
+[Category("MPC")]
 [Category("Slow")]
 public class MpcPerformancePlayModeTests : PlayModeWorldFixture
 {
@@ -115,7 +116,17 @@ public class MpcPerformancePlayModeTests : PlayModeWorldFixture
             $"avgShipSolveMs={avgShipSolveMs:F3} avgFrameSolveMs={avgFrameSolveMs:F3} " +
             $"maxShipSolveMs={maxShipSolveMs:F3} maxFrameSolveMs={maxFrameSolveMs:F3} movedShips={movedShips}/{ShipCount}");
 
+        // Generous absolute budget — not a tight perf target but a catastrophic-regression guard
+        // (e.g. Burst disabled, or an O(n^2) blow-up in the solver). Kept loose so it does not
+        // flake on slower CI hardware; real solve cost is well under these ceilings.
+        const float budgetAvgShipMs = 10f;
+        const float budgetMaxFrameMs = 100f;
+
         Assert.That(avgShipSolveMs, Is.GreaterThan(0f), "Perf probe should observe non-zero MPC solve time.");
+        Assert.That(avgShipSolveMs, Is.LessThan(budgetAvgShipMs),
+            $"MPC avg per-ship solve {avgShipSolveMs:F3}ms exceeded generous budget {budgetAvgShipMs}ms (catastrophic regression?).");
+        Assert.That(maxFrameSolveMs, Is.LessThan(budgetMaxFrameMs),
+            $"MPC worst-frame solve {maxFrameSolveMs:F3}ms for {ShipCount} ships exceeded generous budget {budgetMaxFrameMs}ms.");
         Assert.That(movedShips, Is.GreaterThanOrEqualTo(ShipCount / 2), "Perf probe should keep most ships actively navigating.");
     }
 }

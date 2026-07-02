@@ -15,6 +15,7 @@ namespace Tests.EditMode
     /// a disabled/invalid policy wires nothing.
     /// </summary>
     [TestFixture]
+    [Category("Sectors")]
     public class RespawnEditModeTests
     {
         private GameObject _follower;

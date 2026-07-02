@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 namespace Tests.EditMode
 {
-    [Category("Regression")]
+    [Category("UI")]
     public class EventDrivenRefactorEditModeTests
     {
         [Test]

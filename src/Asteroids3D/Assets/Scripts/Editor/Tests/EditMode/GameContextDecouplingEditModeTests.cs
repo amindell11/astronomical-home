@@ -6,11 +6,12 @@ using Game;
 using NUnit.Framework;
 using Player;
 using Ships;
+using Tests.Common;
 using UnityEngine;
 
 namespace Tests.EditMode
 {
-    [Category("Regression")]
+    [Category("Core")]
     public class GameContextDecouplingEditModeTests
     {
         [Test]
@@ -42,7 +43,7 @@ namespace Tests.EditMode
                 var targeting = go.AddComponent<LockOnSensor>();
                 Assert.IsFalse(targeting.HasRegistry);
 
-                targeting.SetRegistry(new StubRegistry());
+                targeting.SetRegistry(new StubShipRegistry());
                 Assert.IsTrue(targeting.HasRegistry);
             }
             finally
@@ -106,29 +107,5 @@ namespace Tests.EditMode
             }
         }
 
-        private sealed class StubRegistry : IShipRegistry
-        {
-            public bool TryGetShipId(Collider collider, out ShipId id)
-            {
-                id = ShipId.Invalid;
-                return false;
-            }
-
-            public bool TryGetShip(ShipId id, out Ship ship)
-            {
-                ship = null;
-                return false;
-            }
-
-            public bool TryGetShip(Collider collider, out Ship ship, ShipId? excludeId = null)
-            {
-                ship = null;
-                return false;
-            }
-
-            public bool IsFriendly(ShipId a, ShipId b) => false;
-            public bool IsHostile(ShipId a, ShipId b) => false;
-            public int GetTeam(ShipId id) => -1;
-        }
     }
 }

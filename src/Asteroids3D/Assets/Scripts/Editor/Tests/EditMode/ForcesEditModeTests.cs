@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    [Category("Regression")]
+    [Category("Physics")]
     public class ForcesEditModeTests
     {
         private ShipSettings CreateTestSettings()

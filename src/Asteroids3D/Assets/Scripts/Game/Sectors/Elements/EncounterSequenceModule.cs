@@ -15,7 +15,7 @@ namespace Game.Sectors
     /// channel (the encounter reports its target via the <c>Encounter</c> base), so the module does
     /// not touch the marker.
     /// </summary>
-    public class EncounterSequenceModule : SectorModule
+    public partial class EncounterSequenceModule : SectorModule
     {
         [Tooltip("Encounter templates, instantiated and run one at a time in order. NOT adopted.")]
         [SerializeField] private Encounter[] encounters;

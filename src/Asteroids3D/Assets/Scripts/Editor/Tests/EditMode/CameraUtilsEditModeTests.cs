@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    [Category("Regression")]
+    [Category("Camera")]
     public class CameraUtilsEditModeTests
     {
         [Test]

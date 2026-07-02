@@ -9,7 +9,7 @@ namespace Tests.EditMode
 /// EditMode tests for CollisionDamageUtility static methods.
 /// Tests pure mathematical calculations without Unity scene dependencies.
 /// </summary>
-[Category("Regression")]
+[Category("Damage")]
 public class CollisionDamageUtilityTests
 {
     #region KineticEnergy Tests
