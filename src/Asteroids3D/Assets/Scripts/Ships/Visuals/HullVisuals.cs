@@ -1,17 +1,16 @@
-﻿using System.Collections;
 using Ships.Damage;
+using Ships.Presentation;
 using UnityEngine;
 using Utils;
 
 namespace Ships.Visuals
 {
-    public class HullVisuals : MonoBehaviour
+    public class HullVisuals : MonoBehaviour, IShipVisual
     {
         [SerializeField] private Renderer hull;
         [SerializeField] private ParticleSystem smoke;
         [SerializeField] private PooledVFX sparksPrefab;
-        [SerializeField] private DamageController source;
-        
+
         [Header("Damage Flash")]
         [SerializeField] private Color flashColor = UnityEngine.Color.white;
         [SerializeField] private float flashTime = 0.15f;
@@ -19,6 +18,9 @@ namespace Ships.Visuals
         [Header("Death VFX")]
         [SerializeField]
         private GameObject explosionPrefab;
+
+        private IDamageEvents source;
+        private bool subscribed;
 
         private MaterialPropertyBlock block;
         private static readonly int Color = Shader.PropertyToID("_BaseColor"); // URP Lit shader
@@ -36,25 +38,47 @@ namespace Ships.Visuals
             baseColor = !block.HasVector(Color) ? hull.sharedMaterial.GetColor(Color) : block.GetColor(Color);
         }
 
+        public void Bind(in ShipView view)
+        {
+            source = view.Damage;
+            if (isActiveAndEnabled)
+            {
+                Subscribe();
+                ApplyVisualStateFromHealth();
+            }
+        }
+
         private void OnEnable()
         {
-            if (!source) source = GetComponentInParent<DamageController>();
-            if (!source) return;
-            source.Health.OnValueChanged += OnHealthChanged;
-            source.OnDamaged      += SpawnSparks;
-            source.OnDamaged      += TriggerFlash;
-            source.OnDeath        += OnDeath;
+            if (source == null) return;
+            Subscribe();
             ApplyVisualStateFromHealth();
         }
 
         private void OnDisable()
         {
-            if (!source) return;
-            source.Health.OnValueChanged -= OnHealthChanged;
-            source.OnDamaged      -= SpawnSparks;
-            source.OnDamaged      -= TriggerFlash;
-            source.OnDeath        -= OnDeath;
+            Unsubscribe();
             flashActive = false;
+        }
+
+        private void Subscribe()
+        {
+            if (subscribed || source == null) return;
+            source.Health.OnValueChanged += OnHealthChanged;
+            source.OnDamaged += SpawnSparks;
+            source.OnDamaged += TriggerFlash;
+            source.OnDeath += OnDeath;
+            subscribed = true;
+        }
+
+        private void Unsubscribe()
+        {
+            if (!subscribed || source == null) return;
+            source.Health.OnValueChanged -= OnHealthChanged;
+            source.OnDamaged -= SpawnSparks;
+            source.OnDamaged -= TriggerFlash;
+            source.OnDeath -= OnDeath;
+            subscribed = false;
         }
 
         private void OnDeath(ShipId _victimId, ShipId _killerId)
@@ -74,7 +98,7 @@ namespace Ships.Visuals
 
         private void ApplyVisualStateFromHealth()
         {
-            if (!source) return;
+            if (source == null) return;
 
             var healthPct = source.Health.Pct;
 
@@ -139,4 +163,3 @@ namespace Ships.Visuals
         }
     }
 }
-

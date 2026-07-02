@@ -1,5 +1,6 @@
 using Combat.Targeting;
 using Game;
+using Ships.Presentation;
 using UnityEngine;
 
 namespace UI
@@ -8,10 +9,11 @@ namespace UI
     /// World-space UI element that displays lock-on progress over a target.
     /// It expects to live under a Canvas set to World Space and to have an Animator
     /// that exposes a float parameter named "lockProgress" (0–1) and a Trigger
-    /// named "LockComplete" for the flash when locking finishes.
+    /// named "LockComplete" for the flash when locking finishes. The lock channel is
+    /// injected via <see cref="Bind"/> (see <see cref="IShipVisual"/>).
     /// </summary>
     [RequireComponent(typeof(CanvasGroup))]
-    public sealed class LockOnIndicator : MonoBehaviour
+    public sealed class LockOnIndicator : MonoBehaviour, IShipVisual
     {
         private static readonly int LockProgress = Animator.StringToHash("lockProgress");
         private static readonly int LockComplete = Animator.StringToHash("LockComplete");
@@ -21,11 +23,11 @@ namespace UI
         [SerializeField] private float verticalOffset = -5f;
 
         private CanvasGroup canvasGroup;
-        private ITargetable targetable;
+        private LockChannel lockChannel;
+        private bool subscribed;
 
         private void Awake()
         {
-            targetable = GetComponentInParent<ITargetable>();
             canvasGroup = GetComponent<CanvasGroup>();
             if (!animator) animator = GetComponentInChildren<Animator>();
         }
@@ -34,29 +36,40 @@ namespace UI
         {
             Hide();
         }
+
+        public void Bind(in ShipView view)
+        {
+            lockChannel = view.Lock;
+            if (isActiveAndEnabled) Subscribe();
+        }
+
         private void OnEnable()
         {
-            targetable ??= GetComponentInParent<ITargetable>();
-            if (targetable == null)
-            {
-                Debug.LogWarning($"[{nameof(LockOnIndicator)}] No {nameof(ITargetable)} parent found for {name}", this);
-                return;
-            }
-
-            targetable.Lock.Progress += HandleLockProgress;
-            targetable.Lock.Acquired += HandleLockAcquired;
-            targetable.Lock.Released += HandleLockReleased;
+            if (lockChannel != null) Subscribe();
         }
 
         private void OnDisable()
         {
-            if (targetable != null)
-            {
-                targetable.Lock.Progress -= HandleLockProgress;
-                targetable.Lock.Acquired -= HandleLockAcquired;
-                targetable.Lock.Released -= HandleLockReleased;
-            }
+            Unsubscribe();
             Hide();
+        }
+
+        private void Subscribe()
+        {
+            if (subscribed || lockChannel == null) return;
+            lockChannel.Progress += HandleLockProgress;
+            lockChannel.Acquired += HandleLockAcquired;
+            lockChannel.Released += HandleLockReleased;
+            subscribed = true;
+        }
+
+        private void Unsubscribe()
+        {
+            if (!subscribed || lockChannel == null) return;
+            lockChannel.Progress -= HandleLockProgress;
+            lockChannel.Acquired -= HandleLockAcquired;
+            lockChannel.Released -= HandleLockReleased;
+            subscribed = false;
         }
 
         private void HandleLockProgress(float progress)
@@ -101,4 +114,4 @@ namespace UI
             transform.position = transform.parent.position + GamePlane.Normal * verticalOffset;
         }
     }
-} 
+}

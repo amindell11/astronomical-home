@@ -1,4 +1,6 @@
-﻿using Ships;
+using System;
+using Ships.Command;
+using Ships.Presentation;
 using UnityEngine;
 
 namespace Ships.Audio
@@ -6,10 +8,10 @@ namespace Ships.Audio
     /// <summary>
     /// Engine audio system that plays separate loops for thrust and strafe movements.
     /// Thrust audio plays at reduced volume when in reverse.
-    /// Audio only plays when the ship has valid commands and is actually moving.
     /// AudioSources should have their clips assigned directly in the Inspector.
+    /// The live pilot command is injected via <see cref="Bind"/> (see <see cref="IShipVisual"/>).
     /// </summary>
-    public sealed class EngineAudio : MonoBehaviour
+    public sealed class EngineAudio : MonoBehaviour, IShipVisual
     {
         [Header("Audio Sources")]
         [SerializeField] private AudioSource thrustSource;
@@ -21,16 +23,13 @@ namespace Ships.Audio
         [SerializeField, Range(0f, 1f)] private float reverseVolumeMultiplier = 0.5f;
 
         [Header("Pitch Modulation")]
-        [Tooltip("Optional pitch modulation based on input intensity (0â€“1 â†’ pitch)")]
+        [Tooltip("Optional pitch modulation based on input intensity (0-1 -> pitch)")]
         [SerializeField] private AnimationCurve inputToPitch = AnimationCurve.Linear(0, 1, 1, 1.3f);
 
-        private Ship ship;
+        private Func<PilotCommand> command;
         private bool audioInitialized;
 
-        private void Awake()
-        {
-            ship = GetComponentInParent<Ship>();
-        }
+        public void Bind(in ShipView view) => command = view.Command;
 
         private void OnEnable()
         {
@@ -53,11 +52,12 @@ namespace Ships.Audio
 
         private void Update()
         {
-            if (!audioInitialized || !ship || !thrustSource || !strafeSource) 
+            if (!audioInitialized || command == null || !thrustSource || !strafeSource)
                 return;
 
-            var thrust = ship.Movement.CurrentCommand.thrust;
-            var strafe = ship.Movement.CurrentCommand.strafe;
+            var cmd = command();
+            var thrust = cmd.thrust;
+            var strafe = cmd.strafe;
 
             // Calculate thrust volume (reduced for reverse)
             var thrustIntensity = Mathf.Abs(thrust);
@@ -82,4 +82,4 @@ namespace Ships.Audio
             strafeSource.pitch = pitch;
         }
     }
-} 
+}
