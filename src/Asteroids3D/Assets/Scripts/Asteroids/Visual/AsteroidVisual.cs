@@ -35,7 +35,7 @@ namespace Asteroids.Visual
         private void HandleDestroyed(Vector3 position)
         {
             if (cachedRenderer) cachedRenderer.enabled = false;
-            if (!explosionPrefab) return;
+            if (!GameSettings.VfxEnabled || !explosionPrefab) return;
             if (pooledExplosion)
             {
                 SimplePool<PooledVFX>.Get(pooledExplosion, position, Quaternion.identity);
