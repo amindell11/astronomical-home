@@ -577,6 +577,52 @@ namespace Tests.EditMode
             }
         }
 
+        // ── Exclusion volumes (authored clearings) ───────────────────────────────
+
+        [Test]
+        public void ExclusionVolume_HomesInside_AreNeverGenerated_SurvivorsUnchanged()
+        {
+            var center = new Vector2(20f, 20f);
+            const float radius = 35f;
+            var p = DefaultParams();
+            p.ExclusionVolumes = new[] { new ExclusionVolume { Center = center, Radius = radius } };
+
+            var withClearing = GeneratePatch(new AsteroidFieldLayout(Seed, p));
+            var baseline = GeneratePatch(new AsteroidFieldLayout(Seed, DefaultParams()));
+            Assert.Less(withClearing.Count, baseline.Count,
+                "a cell-sized clearing at authored density must cull something");
+
+            foreach (var spec in withClearing)
+                Assert.Greater(Vector2.Distance(spec.PlanePosition, center), radius,
+                    $"{spec.Id} spawned inside the clearing");
+
+            // The cull is a skip, not a reshuffle: survivors are exactly the
+            // baseline specs outside the volume, verbatim.
+            var expected = baseline.Where(s => (s.PlanePosition - center).sqrMagnitude > radius * radius).ToList();
+            Assert.AreEqual(expected.Count, withClearing.Count);
+            for (var i = 0; i < expected.Count; i++) AssertSpecsEqual(expected[i], withClearing[i]);
+        }
+
+        [Test]
+        public void ExclusionVolume_ComposesWithOverlapRejection_Deterministically()
+        {
+            var p = PackedParams();
+            p.ExclusionVolumes = new[] { new ExclusionVolume { Center = new Vector2(-30f, 10f), Radius = 40f } };
+
+            var first = GeneratePatch(new AsteroidFieldLayout(Seed, p));
+            var second = GeneratePatch(new AsteroidFieldLayout(Seed, p));
+            Assert.AreEqual(first.Count, second.Count);
+            for (var i = 0; i < first.Count; i++) AssertSpecsEqual(first[i], second[i]);
+
+            // An excluded candidate still blocks its neighbours: the accepted
+            // set outside the clearing matches the no-clearing layout exactly.
+            var noClearing = PackedParams();
+            var reference = GeneratePatch(new AsteroidFieldLayout(Seed, noClearing))
+                .Where(s => (s.PlanePosition - new Vector2(-30f, 10f)).sqrMagnitude > 40f * 40f).ToList();
+            Assert.AreEqual(reference.Count, first.Count);
+            for (var i = 0; i < reference.Count; i++) AssertSpecsEqual(reference[i], first[i]);
+        }
+
         // ── Deterministic RNG sanity ─────────────────────────────────────────────
 
         [Test]
