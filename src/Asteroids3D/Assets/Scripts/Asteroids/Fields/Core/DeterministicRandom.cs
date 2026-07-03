@@ -62,7 +62,7 @@ namespace Asteroids.Fields.Core
         /// <summary>Order-sensitive integer mix (murmur3-style finalizer chain) for keying streams.</summary>
         public static uint Hash(int a, int b, int c, int d = unchecked((int)0x5BD1E995))
         {
-            var h = (uint)a;
+            var h = Mix((uint)a);
             h = Mix(h ^ (uint)b);
             h = Mix(h ^ (uint)c);
             h = Mix(h ^ (uint)d);
