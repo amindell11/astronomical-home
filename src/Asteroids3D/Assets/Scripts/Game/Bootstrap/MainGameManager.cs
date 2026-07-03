@@ -242,11 +242,15 @@ namespace Game.Bootstrap
 
         private IEnumerator HandleStart()
         {
-            yield return ComposeSession(session);
-
+            // Wire the reset policy BEFORE composing: PlayerRig.Build yields a frame after the
+            // player exists, so a death in that frame (spawn collision, leaked hazard) must
+            // already have a subscriber or the restart request is dropped. Subscribe on the
+            // serialized input — composition hasn't populated session.Rig yet.
             session.OnSectorComplete = HandleSectorComplete;
-            if (session.Rig)
-                session.Rig.RestartRequested += HandleRestartRequested;
+            if (playerRig)
+                playerRig.RestartRequested += HandleRestartRequested;
+
+            yield return ComposeSession(session);
 
             TransitionTo(GameState.LoadSector);
         }
@@ -279,8 +283,9 @@ namespace Game.Bootstrap
 
         private IEnumerator ExitRoutine()
         {
-            if (session.Rig)
-                session.Rig.RestartRequested -= HandleRestartRequested;
+            // Mirror of the HandleStart subscription (same serialized reference).
+            if (playerRig)
+                playerRig.RestartRequested -= HandleRestartRequested;
 
             yield return TeardownSession(session);
             session = null;
