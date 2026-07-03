@@ -97,7 +97,7 @@ namespace AI
                     if (!Registry.TryGetShip(id, out var ship) || ship == null) continue;
                     var col = (ship.Colliders != null && ship.Colliders.Length > 0) ? ship.Colliders[0] : null;
                     if (!col) continue;
-                    var radius = ship.frame ? ship.frame.shipRadius : col.bounds.extents.magnitude * 0.5f;
+                    var radius = ship.Stats != null ? ship.ShipRadius : col.bounds.extents.magnitude * 0.5f;
                     mergedObstacles[mergedObstacleCount++] =
                         new DetectedObstacle(ship.transform.position, radius, col);
                 }

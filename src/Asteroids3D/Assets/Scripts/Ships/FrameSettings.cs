@@ -1,3 +1,4 @@
+using Ships.Presentation;
 using UnityEngine;
 
 namespace Ships
@@ -18,8 +19,14 @@ namespace Ships
         public float maxBankAngle = 45f;
 
         [Header("Geometry")]
-        [Tooltip("Approximate collision radius of the ship. Used by MPC to inflate obstacle boundaries.")]
-        public float shipRadius = 1f;
+        [Tooltip("Uniform spawn scale applied to the ship root. Base geometry is authored at scale 1; " +
+                 "the collision radius is derived from the scaled collider bounds at spawn.")]
+        public float size = 1f;
+
+        [Header("Visuals")]
+        [Tooltip("Visual-rig prefab the presentation installer attaches under a ship of this frame. " +
+                 "Null → no rig (headless/RL ship stays renderer-, audio- and particle-free).")]
+        public ShipVisualRig visualRig;
 
         [Header("Default Modules")]
         public EngineModule defaultEngine;

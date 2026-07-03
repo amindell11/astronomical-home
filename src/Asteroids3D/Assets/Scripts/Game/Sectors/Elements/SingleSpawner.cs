@@ -44,7 +44,7 @@ namespace Game.Sectors
         protected override void OnDrawGizmos()
         {
 #if UNITY_EDITOR
-            var markerRadius = settings ? settings.shipRadius : 1f;
+            var markerRadius = settings ? settings.size : 1f;
             Gizmos.color = new Color(0.2f, 0.7f, 1f, 0.9f);
             Gizmos.DrawWireSphere(transform.position, markerRadius);
             Gizmos.DrawLine(transform.position, transform.position + transform.forward * markerRadius * 3f);

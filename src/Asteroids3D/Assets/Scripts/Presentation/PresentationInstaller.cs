@@ -8,8 +8,8 @@ namespace Presentation
 {
     /// <summary>
     /// Game-tier presentation composition root. While installed, it attaches each active ship's visual
-    /// rig (declared via <see cref="ShipVisualBinding"/>) and injects a <see cref="ShipView"/>, and
-    /// tears the rig down when the ship leaves play. It is owned by the game manager and gated like the
+    /// rig (declared on its <see cref="FrameSettings.visualRig"/>) and injects a <see cref="ShipView"/>,
+    /// and tears the rig down when the ship leaves play. It is owned by the game manager and gated like the
     /// player/UI: a headless/RL session simply never installs it, so its ships stay renderer-, audio-
     /// and particle-free while remaining fully simulated.
     ///
@@ -53,19 +53,19 @@ namespace Presentation
         }
 
         /// <summary>
-        /// Attach a ship's declared visual rig under it and inject its <see cref="ShipView"/>. Returns
-        /// the rig (or null if the ship declares none). Single source of truth for rig attachment,
-        /// shared by the installer and tests.
+        /// Attach a ship's frame-declared visual rig under it and inject its <see cref="ShipView"/>.
+        /// Returns the rig (or null if the ship's frame declares none). Single source of truth for rig
+        /// attachment, shared by the installer and tests.
         /// </summary>
         public static ShipVisualRig AttachRigTo(Ship ship)
         {
-            var binding = ship ? ship.GetComponent<ShipVisualBinding>() : null;
-            if (!binding || !binding.VisualRigPrefab) return null;
+            var rigPrefab = ship && ship.frame ? ship.frame.visualRig : null;
+            if (!rigPrefab) return null;
 
-            var rig = Object.Instantiate(binding.VisualRigPrefab, ship.transform);
+            var rig = Object.Instantiate(rigPrefab, ship.transform);
             // Neutralize the rig's local transform so its children inherit the ship root's transform
-            // exactly as they did when they were direct children of the ship (the rig prefab root
-            // carries the ship's authored rotation/scale, which must not be double-applied).
+            // (which carries the frame's size scale and the spawn pose); the rig prefab root's own
+            // authored offset/scale must not be double-applied.
             rig.transform.localPosition = Vector3.zero;
             rig.transform.localRotation = Quaternion.identity;
             rig.transform.localScale = Vector3.one;

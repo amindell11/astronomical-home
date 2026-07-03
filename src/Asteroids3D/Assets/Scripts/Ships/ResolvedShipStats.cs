@@ -15,6 +15,8 @@ namespace Ships
         // ── Frame-owned ──
         public float mass = 1000f;
         public float maxBankAngle = 45f;
+        public float size = 1f;
+        // NOT frame-owned: derived by Ship from the scaled collider bounds at spawn. Default until then.
         public float shipRadius = 1f;
         public float maxHealth = 100f;
         public int startingLives = 1;
@@ -51,7 +53,7 @@ namespace Ships
             {
                 r.mass = frame.mass;
                 r.maxBankAngle = frame.maxBankAngle;
-                r.shipRadius = frame.shipRadius;
+                r.size = frame.size;
                 r.maxHealth = frame.maxHealth;
                 r.startingLives = frame.startingLives;
             }

@@ -66,6 +66,13 @@ namespace Ships
         public float MaxSpeed => Stats != null ? Stats.maxSpeed : 0f;
         public float MaxYawRate => Stats != null ? Stats.maxYawRate : 0f;
 
+        /// <summary>
+        /// Collision radius derived at spawn from the ship's scaled collider bounds (see
+        /// <see cref="Initialize"/>). 1 until the ship has resolved. Consumed by MPC obstacle
+        /// inflation and the scanner.
+        /// </summary>
+        public float ShipRadius => Stats?.shipRadius ?? 1f;
+
         private bool isInitialized = false;
 
         protected virtual void Awake()
@@ -143,7 +150,17 @@ namespace Ships
             Damage?.PopulateSettings(Stats);
             Subscribe();
 
+            // Physical size is a frame scalar: base geometry is authored at scale 1 and scaled
+            // uniformly at spawn. Colliders scale with the root; the rig child inherits it too.
+            transform.localScale = Vector3.one * Stats.size;
+            Physics.SyncTransforms();
+
             if (Rigidbody) Rigidbody.ResetInertiaTensor();
+
+            // shipRadius is DERIVED from the (now scaled) collider bounds — a single source of truth
+            // with no authored value to drift, so shipRadius == baseRadius * size.
+            Stats.shipRadius = DeriveShipRadius();
+
             Dynamics = Stats.BuildDynamics(Rigidbody ? Rigidbody.inertiaTensor.z : 0f);
 
             if (Damage)
@@ -151,6 +168,23 @@ namespace Ships
 
             isInitialized = true;
             Commander?.Initialize(BuildShipControl());
+        }
+
+        /// <summary>
+        /// Derive the collision radius from the ship's own colliders' combined world bounds, evaluated
+        /// after the frame's <c>size</c> scale is applied. Mirrors the single-collider precedent in
+        /// <see cref="AI.Scout"/> (extents magnitude × 0.5). Falls back to the resolved default when the
+        /// ship carries no colliders.
+        /// </summary>
+        private float DeriveShipRadius()
+        {
+            if (Colliders == null || Colliders.Length == 0)
+                return Stats?.shipRadius ?? 1f;
+
+            var bounds = Colliders[0].bounds;
+            for (var i = 1; i < Colliders.Length; i++)
+                bounds.Encapsulate(Colliders[i].bounds);
+            return bounds.extents.magnitude * 0.5f;
         }
 
         /// <summary>

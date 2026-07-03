@@ -79,7 +79,7 @@ namespace Game.Sectors
                 prev = next;
             }
 
-            var markerRadius = settings ? settings.shipRadius : 1f;
+            var markerRadius = settings ? settings.size : 1f;
             Gizmos.color = new Color(1f, 0.6f, 0.2f, 0.9f);
             for (var i = 0; i < count; i++)
             {

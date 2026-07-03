@@ -61,7 +61,7 @@ namespace Tests.PlayMode
             rig = PresentationInstaller.AttachRigTo(ship);
             yield return null;
 
-            Assert.IsNotNull(rig, "AttachRigTo should return a rig for a ship carrying a ShipVisualBinding");
+            Assert.IsNotNull(rig, "AttachRigTo should return a rig for a ship whose frame declares a visualRig");
             Assert.AreEqual(ship.transform, rig.transform.parent, "Rig should be parented under the ship");
             Assert.IsNotNull(ship.GetComponentInChildren<HullVisuals>(true), "Rig should contribute HullVisuals");
             Assert.IsNotNull(ship.GetComponentInChildren<ShieldUI>(true), "Rig should contribute ShieldUI");
