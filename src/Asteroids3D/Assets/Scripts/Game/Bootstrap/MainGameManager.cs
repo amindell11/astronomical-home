@@ -9,6 +9,16 @@ using UnityEngine;
 
 namespace Game.Bootstrap
 {
+    /// <summary>
+    /// Session-tier orchestrator, split into two layers:
+    /// driver-agnostic <b>lifecycle primitives</b> (<see cref="ComposeSession"/>,
+    /// <see cref="LoadSector"/>, <see cref="ResetSector"/>, <see cref="TeardownSession"/>) that
+    /// operate on an explicit per-session <see cref="GameSession"/> container, and the
+    /// <b>interactive gameplay driver</b> — the coroutine state machine — that paces those
+    /// primitives against the frame loop and wires the in-game restart triggers. A headless/RL
+    /// harness drives the same primitives from its own step loop without inheriting the driver's
+    /// restart-on-complete policy.
+    /// </summary>
     [RequireComponent(typeof(ObjectiveService))]
     [RequireComponent(typeof(UnitService))]
     public class MainGameManager : MonoBehaviour
@@ -31,24 +41,189 @@ namespace Game.Bootstrap
         [SerializeField] private PlaneAxis planeAxis = PlaneAxis.Y;
         [SerializeField] private Vector3 planeOrigin;
 
-        private GameServices services;
-        private PresentationInstaller presentationInstaller;
+        // Sibling MonoBehaviour services ([RequireComponent]); cached once in Awake — never
+        // looked up mid-lifecycle.
+        private UnitService unitService;
+        private ObjectiveService objectiveService;
+
+        private GameSession session;
         private Coroutine stateRoutine;
         public GameState CurrentState { get; private set; }
 
         public event Action<GameState> OnGameStateChanged;
-        
+
         /// <summary>The active sector manager, if any.</summary>
-        public Sector ActiveSector { get; private set; }
+        public Sector ActiveSector => session?.ActiveSector;
 
         /// <summary>The service container for this game session.</summary>
-        public IGameServices Services => services;
-        
+        public IGameServices Services => session?.Services;
+
         private void Awake()
         {
+            unitService = GetComponent<UnitService>();
+            objectiveService = GetComponent<ObjectiveService>();
+
             DontDestroyOnLoad(gameObject);
             TransitionTo(GameState.Loading);
         }
+
+        // ------------------------------------------------------------------
+        // Lifecycle primitives — driver-agnostic, per-session.
+        //
+        // Each primitive takes the GameSession container explicitly rather than assuming a
+        // process-wide singleton, so N in-process arenas stay an additive change. GamePlane
+        // configuration is the driver's job (it is process-global state, not per-session);
+        // physics isolation for co-located arenas is a follow-on.
+        // ------------------------------------------------------------------
+
+        /// <summary>
+        /// Compose a session: service container, optional player/camera/UI rig, presentation
+        /// overlay. The rig persists across sector loads; only session teardown removes it.
+        /// </summary>
+        internal IEnumerator ComposeSession(GameSession target, Action onPlayerDeathRestart)
+        {
+            ComposeServices(target);
+            yield return ComposeRigAndPresentation(target, onPlayerDeathRestart);
+        }
+
+        private void ComposeServices(GameSession target)
+        {
+            target.Services = new GameServices(
+                unitService: unitService,
+                environmentService: new EnvironmentService(),
+                objectiveService: objectiveService,
+                cameraService: new CameraService(),
+                uiService: new UIService()
+            );
+        }
+
+        // Build the session-tier rig (player, observer camera, UI overlay, world) exactly once,
+        // before the first sector loads. It persists across sector restarts and is torn down only on
+        // session exit — the sector references the player, it does not own it.
+        private IEnumerator ComposeRigAndPresentation(GameSession target, Action onPlayerDeathRestart)
+        {
+            if (playerRig)
+            {
+                target.Rig = playerRig;
+                yield return playerRig.Build(target.Services, buildPlayer, onPlayerDeathRestart);
+            }
+
+            // Game-tier presentation: attach a visual rig to each active ship (player built above, plus
+            // any spawned/adopted by sectors) via the unit registry. Skipped entirely for headless/RL.
+            if (installPresentation)
+            {
+                target.Presentation = new PresentationInstaller();
+                target.Presentation.Install(target.Services.UnitService);
+            }
+        }
+
+        /// <summary>
+        /// Load the configured sector into the session. <paramref name="onSectorComplete"/> is the
+        /// caller's policy hook — the gameplay driver wires restart, an RL driver wires its
+        /// terminal condition (or nothing).
+        /// </summary>
+        internal IEnumerator LoadSector(GameSession target, Action<SectorResult> onSectorComplete)
+        {
+            if (!currentSector?.prefab)
+                throw new InvalidOperationException("No sector entry configured on MainGameManager.");
+
+            // Instantiate the sector subtree under an inactive holder so authored content children
+            // do not Awake until services exist and adoption has wired each object. Setup runs
+            // while inert; then reparent out (world pose preserved) and drop the holder so children
+            // Awake post-wiring. Authoring stays WYSIWYG — only runtime instantiation is gated.
+            var holder = new GameObject("SectorLoad") { hideFlags = HideFlags.HideAndDontSave };
+            holder.SetActive(false);
+
+            var sector = Instantiate(currentSector.prefab, holder.transform);
+            target.ActiveSector = sector;
+            // Inject the persistent rig's player — the sector references it, never builds/owns it.
+            sector.Initialize(target.Services, currentSector.config, target.Rig ? target.Rig.Player : null);
+
+            target.SectorCompleteHandler = onSectorComplete;
+            if (onSectorComplete != null)
+                sector.OnSectorComplete += onSectorComplete;
+
+            // Entry reset: place the persistent player at the sector's declared start (plane-space,
+            // producer-relative to the sector so it's deterministic every load). The sector only
+            // DECLARES the start via PlayerStart; the session tier does the reset.
+            if (target.Rig && target.Rig.Player)
+                target.Services.UnitService.RespawnShip(
+                    target.Rig.Player.Id, sector.PlayerStart, 0f);
+
+            yield return sector.Setup();
+
+            sector.transform.SetParent(null, true);
+            Destroy(holder);
+        }
+
+        /// <summary>
+        /// Reset the session's sector: tear down the loaded one and load fresh. The session rig
+        /// (player/camera/UI/world) and service registries persist — only sector content cycles.
+        /// </summary>
+        internal IEnumerator ResetSector(GameSession target, Action<SectorResult> onSectorComplete)
+        {
+            yield return UnloadSector(target);
+            yield return LoadSector(target, onSectorComplete);
+        }
+
+        // Teardown-only half of a reset: cancel pending revives, run sector teardown, destroy content.
+        private IEnumerator UnloadSector(GameSession target)
+        {
+            // Drop any queued player/NPC revives so a pending respawn can't fire into the torn-down sector.
+            target.Services.UnitService.CancelPendingRespawns();
+
+            yield return DestroyActiveSector(target, runTeardown: true);
+
+            // GamePlane is session-global and persists across restarts (like the rig/services); only
+            // (re)configure if something actually cleared it. Reconfiguring unconditionally throws,
+            // since the driver already configured it and nothing resets it on the restart path.
+            if (!GamePlane.IsConfigured) GamePlane.Configure(planeAxis, planeOrigin);
+        }
+
+        /// <summary>
+        /// Session exit: drop the sector (without running its teardown phase), then tear down the
+        /// persistent rig and wipe every registry.
+        /// </summary>
+        internal IEnumerator TeardownSession(GameSession target)
+        {
+            yield return DestroyActiveSector(target, runTeardown: false);
+
+            target.Presentation?.Uninstall();
+            target.Presentation = null;
+
+            if (target.Rig)
+                target.Rig.Teardown();
+            target.Rig = null;
+
+            target.Services?.ClearAll();
+            target.Services = null;
+
+            GamePlane.Reset();
+        }
+
+        private IEnumerator DestroyActiveSector(GameSession target, bool runTeardown)
+        {
+            var sector = target.ActiveSector;
+            if (sector)
+            {
+                if (target.SectorCompleteHandler != null)
+                    sector.OnSectorComplete -= target.SectorCompleteHandler;
+                target.SectorCompleteHandler = null;
+
+                if (runTeardown)
+                    yield return sector.Teardown();
+
+                Destroy(sector.gameObject);
+                target.ActiveSector = null;
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // Interactive gameplay driver — the coroutine state machine.
+        //
+        // Owns the clock (frame loop) and the reset policy (sector complete / player death →
+        // restart). Everything it does goes through the primitives above.
+        // ------------------------------------------------------------------
 
         private void TransitionTo(GameState newState)
         {
@@ -90,69 +265,29 @@ namespace Game.Bootstrap
         {
             GamePlane.Configure(planeAxis, planeOrigin);
 
-            services = new GameServices(
-                unitService: GetComponent<UnitService>(),
-                environmentService: new EnvironmentService(),
-                objectiveService: GetComponent<ObjectiveService>(),
-                cameraService: new CameraService(),
-                uiService: new UIService()
-            );
+            session = new GameSession();
+            ComposeServices(session);
 
             yield return null;
             TransitionTo(GameState.Start);
         }
 
-        // Build the session-tier rig (player, observer camera, UI overlay, world) exactly once,
-        // before the first sector loads. It persists across sector restarts and is torn down only on
-        // session exit — the sector references the player, it does not own it.
         private IEnumerator HandleStart()
         {
-            if (playerRig)
-                yield return playerRig.Build(services, buildPlayer, () => TransitionTo(GameState.Restart));
-
-            // Game-tier presentation: attach a visual rig to each active ship (player built above, plus
-            // any spawned/adopted by sectors) via the unit registry. Skipped entirely for headless/RL.
-            if (installPresentation)
-            {
-                presentationInstaller = new PresentationInstaller();
-                presentationInstaller.Install(services.UnitService);
-            }
+            yield return ComposeRigAndPresentation(session, () => TransitionTo(GameState.Restart));
 
             TransitionTo(GameState.LoadSector);
         }
 
         private IEnumerator HandleLoadSector()
         {
-            if (!currentSector?.prefab)
-                throw new InvalidOperationException("No sector entry configured on MainGameManager.");
-
-            // Instantiate the sector subtree under an inactive holder so authored content children
-            // do not Awake until services exist and adoption has wired each object. Setup runs
-            // while inert; then reparent out (world pose preserved) and drop the holder so children
-            // Awake post-wiring. Authoring stays WYSIWYG — only runtime instantiation is gated.
-            var holder = new GameObject("SectorLoad") { hideFlags = HideFlags.HideAndDontSave };
-            holder.SetActive(false);
-
-            ActiveSector = Instantiate(currentSector.prefab, holder.transform);
-            // Inject the persistent rig's player — the sector references it, never builds/owns it.
-            ActiveSector.Initialize(services, currentSector.config, playerRig ? playerRig.Player : null);
-            ActiveSector.OnSectorComplete += HandleSectorComplete;
-
-            // Entry reset: place the persistent player at the sector's declared start (plane-space,
-            // producer-relative to the sector so it's deterministic every load). The sector only
-            // DECLARES the start via PlayerStart; the session tier does the reset.
-            if (playerRig && playerRig.Player)
-                services.UnitService.RespawnShip(
-                    playerRig.Player.Id, ActiveSector.PlayerStart, 0f);
-
-            yield return ActiveSector.Setup();
-
-            ActiveSector.transform.SetParent(null, true);
-            Destroy(holder);
+            yield return LoadSector(session, HandleSectorComplete);
 
             TransitionTo(GameState.InSector);
         }
 
+        // Gameplay reset policy: a completed sector restarts. An RL driver replaces this hook with
+        // its own terminal condition instead of inheriting it.
         private void HandleSectorComplete(SectorResult result)
         {
             TransitionTo(GameState.Restart);
@@ -162,14 +297,7 @@ namespace Game.Bootstrap
         // the service registries persist, so the player survives a restart instead of being rebuilt.
         private IEnumerator HandleRestart()
         {
-            // Drop any queued player/NPC revives so a pending respawn can't fire into the torn-down sector.
-            services.UnitService.CancelPendingRespawns();
-
-            yield return TeardownActiveSector(runTeardown: true);
-            // GamePlane is session-global and persists across restarts (like the rig/services); only
-            // (re)configure if something actually cleared it. Reconfiguring unconditionally throws,
-            // since HandleLoading already configured it and nothing resets it on the restart path.
-            if (!GamePlane.IsConfigured) GamePlane.Configure(planeAxis, planeOrigin);
+            yield return UnloadSector(session);
             TransitionTo(GameState.LoadSector);
         }
 
@@ -178,35 +306,10 @@ namespace Game.Bootstrap
             StartCoroutine(ExitRoutine());
         }
 
-        // Session exit: drop the sector, then tear down the persistent rig and wipe every registry.
         private IEnumerator ExitRoutine()
         {
-            yield return TeardownActiveSector(runTeardown: false);
-
-            presentationInstaller?.Uninstall();
-            presentationInstaller = null;
-
-            if (playerRig)
-                playerRig.Teardown();
-
-            services?.ClearAll();
-            services = null;
-
-            GamePlane.Reset();
-        }
-
-        private IEnumerator TeardownActiveSector(bool runTeardown)
-        {
-            if (ActiveSector)
-            {
-                ActiveSector.OnSectorComplete -= HandleSectorComplete;
-
-                if (runTeardown)
-                    yield return ActiveSector.Teardown();
-
-                Destroy(ActiveSector.gameObject);
-                ActiveSector = null;
-            }
+            yield return TeardownSession(session);
+            session = null;
         }
 
         private void OnDestroy()
