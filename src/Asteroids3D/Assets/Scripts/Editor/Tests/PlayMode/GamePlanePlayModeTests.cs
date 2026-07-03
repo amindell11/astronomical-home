@@ -14,6 +14,17 @@ public class GamePlanePlayModeTests : PlayModeWorldFixture
     // Override to disable audio pause for these lightweight tests
     protected override bool PauseAudio => false;
 
+    // These tests deliberately run frames with GamePlane unconfigured. Any object leaked by an
+    // earlier test that touches GamePlane from Update/FixedUpdate (seen: ProjectileBase via
+    // PlaneConstraints) throws during those frames and fails THIS test, so clear them first.
+    [SetUp]
+    public void DestroyLeakedPlaneConstrainedObjects()
+    {
+        foreach (var projectile in Object.FindObjectsByType<Combat.Projectile.ProjectileBase>(
+                     FindObjectsInactive.Include, FindObjectsSortMode.None))
+            Object.DestroyImmediate(projectile.gameObject);
+    }
+
     [Test]
     public void GamePlane_UnconfiguredAccess_Throws()
     {
