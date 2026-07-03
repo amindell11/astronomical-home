@@ -19,6 +19,12 @@ namespace Asteroids.Fields
         [Tooltip("Seeded ambient drift/spin for visual life; home positions stay the truth on reload")]
         public bool ambientDrift = true;
 
+        [Header("Spawn Overlap Rejection")]
+        [Tooltip("Candidates whose volume-sphere radii (×this margin) overlap a higher-priority neighbour are never generated — kills spawn interpenetration (the 'unprogrammed drift'). 0 disables. ~1.15–1.25 approximates the convex hull's real reach. Rejection lowers effective density; compensate via averageAsteroidsPerCell (empirical).")]
+        public float packingMargin = 1.2f;
+        [Tooltip("Floor on the edge-to-edge spawn gap (units); guards tiny meshes where the margin alone is negligible")]
+        public float minSpacing;
+
         [Header("Noise Profile")]
         [Tooltip("fBm harmonics: more octaves = clumps get multi-scale internal structure")]
         [Range(1, 8)] public int noiseOctaves = 3;
@@ -73,6 +79,8 @@ namespace Asteroids.Fields
                 NoiseFrequency = noiseFrequency,
                 DensityMultiplierRange = densityMultiplierRange,
                 FieldRadius = fieldRadius,
+                PackingMargin = packingMargin,
+                MinSpacing = minSpacing,
                 NoiseOctaves = noiseOctaves,
                 NoiseLacunarity = noiseLacunarity,
                 NoisePersistence = noisePersistence,
