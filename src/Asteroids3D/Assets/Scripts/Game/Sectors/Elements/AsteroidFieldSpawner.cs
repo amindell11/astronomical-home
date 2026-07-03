@@ -23,7 +23,13 @@ namespace Game.Sectors
         public override IEnumerator Build(SectorBuildContext ctx)
         {
             if (!field) field = GetComponent<Asteroids.Fields.AsteroidField>();
-            (field as Asteroids.Fields.UpdatingAsteroidField)?.SetPlayer(ctx.Player?.transform);
+            if (field is Asteroids.Fields.UpdatingAsteroidField updating)
+            {
+                updating.SetPlayer(ctx.Player?.transform);
+                // Static authored start — declared even in spectator/headless
+                // runs so the layout is identical regardless of who is flying.
+                if (ctx.Sector) updating.SetPlayerStart(ctx.Sector.PlayerStart);
+            }
             yield break;
         }
 

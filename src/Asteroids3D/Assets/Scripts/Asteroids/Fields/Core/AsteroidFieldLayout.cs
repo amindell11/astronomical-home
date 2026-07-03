@@ -35,6 +35,11 @@ namespace Asteroids.Fields.Core
         public float WarpStrength;
         public float WarpFrequency;
 
+        // Static authored clearings (field-relative plane space): an asteroid
+        // whose home lies inside any volume is never generated — a permanent
+        // hole, exactly parallel to the FieldRadius cull. Null/empty = none.
+        public ExclusionVolume[] ExclusionVolumes;
+
         public float[] MeshVolumes;
         public float MeshDensity;
         public Vector2 MassScaleRange;
@@ -59,6 +64,20 @@ namespace Asteroids.Fields.Core
         public Vector2 PlaneVelocity;
         public Vector3 AngularVelocity;
         public float HealthFraction;
+    }
+
+    /// <summary>
+    /// A circular no-spawn clearing in field-relative plane space. Must be
+    /// static/authored (e.g. the sector's player start): baking it into the
+    /// generation-time cull keeps the layout deterministic and persistent.
+    /// Anything runtime-dependent must instead be handled at instantiation
+    /// time, never here.
+    /// </summary>
+    [Serializable]
+    public struct ExclusionVolume
+    {
+        public Vector2 Center;
+        public float Radius;
     }
 
     /// <summary>
@@ -203,11 +222,12 @@ namespace Asteroids.Fields.Core
 
         /// <summary>
         /// Appends the baseline asteroids of a cell. Asteroids whose home lies
-        /// beyond the field radius are skipped, and (when a packing margin or
-        /// spacing floor is authored) so are candidates overlapping a
-        /// higher-priority neighbour (bounded sector / non-interpenetrating
-        /// spawns; IDs stay stable because the per-cell count is decided first
-        /// and a rejected asteroid is a deterministic skip, not a renumber).
+        /// beyond the field radius or inside an authored exclusion volume are
+        /// skipped, and (when a packing margin or spacing floor is authored)
+        /// so are candidates overlapping a higher-priority neighbour (bounded
+        /// sector / permanent clearings / non-interpenetrating spawns; IDs stay
+        /// stable because the per-cell count is decided first and a rejected
+        /// asteroid is a deterministic skip, not a renumber).
         /// </summary>
         public void GenerateCell(int cellX, int cellY, List<FieldAsteroidSpec> results)
         {
@@ -217,9 +237,25 @@ namespace Asteroids.Fields.Core
                 var id = AsteroidId.Baseline(cellX, cellY, i);
                 if (rejectOverlaps && IsBlockedByHigherPriorityCandidate(id)) continue;
                 var spec = GenerateAsteroid(id);
-                if (spec.PlanePosition.sqrMagnitude <= p.FieldRadius * p.FieldRadius)
+                if (spec.PlanePosition.sqrMagnitude <= p.FieldRadius * p.FieldRadius
+                    && !InsideExclusionVolume(spec.PlanePosition))
                     results.Add(spec);
             }
+        }
+
+        /// <summary>
+        /// Culled like the field radius: after overlap rejection, so an
+        /// excluded candidate still blocks its neighbours — the layout around
+        /// a clearing is independent of whether the clearing exists.
+        /// </summary>
+        private bool InsideExclusionVolume(Vector2 planePos)
+        {
+            var volumes = p.ExclusionVolumes;
+            if (volumes == null) return false;
+            for (var i = 0; i < volumes.Length; i++)
+                if ((planePos - volumes[i].Center).sqrMagnitude <= volumes[i].Radius * volumes[i].Radius)
+                    return true;
+            return false;
         }
 
         /// <summary>

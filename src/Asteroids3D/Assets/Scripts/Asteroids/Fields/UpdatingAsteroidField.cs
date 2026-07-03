@@ -33,6 +33,7 @@ namespace Asteroids.Fields
         public AsteroidFieldModel Model { get; private set; }
 
         private Transform playerAnchor;
+        private Vector2? playerStartPlane;
         private ChunkStreamer streamer;
         private Vector2 fieldOriginPlane;
         private bool initialized;
@@ -73,6 +74,16 @@ namespace Asteroids.Fields
             CurrentAnchorPos = () => playerAnchor ? GamePlane.ProjectOntoPlane(playerAnchor.position) : transform.position;
         }
 
+        /// <summary>
+        /// Stash the sector's static authored player start (absolute plane
+        /// space) so generation carves a permanent clearing around it. Called
+        /// from <see cref="Game.Sectors.AsteroidFieldSpawner"/> during
+        /// <c>Build</c>, like <see cref="SetPlayer"/>. Only static authored
+        /// positions may feed the layout — dynamic occupancy must never bake
+        /// into the deterministic baseline.
+        /// </summary>
+        public void SetPlayerStart(Vector2 absolutePlanePosition) => playerStartPlane = absolutePlanePosition;
+
         protected override void CacheSettings()
         {
             base.CacheSettings();
@@ -105,6 +116,8 @@ namespace Asteroids.Fields
             for (var i = 0; i < meshVolumes.Length; i++)
                 meshVolumes[i] = spawnSettings.meshInfos[i].cachedVolume;
 
+            fieldOriginPlane = GamePlane.WorldPointToPlane(transform.position);
+
             var genParams = settings.BuildGenerationParams();
             genParams.MeshVolumes = meshVolumes;
             genParams.MeshDensity = spawnSettings.density;
@@ -112,10 +125,18 @@ namespace Asteroids.Fields
             genParams.VelocityRange = spawnSettings.velocityRange;
             genParams.SpinRange = spawnSettings.spinRange;
 
+            // The player start is static and authored, so it is safe to bake as
+            // a generation-time cull (a persistent clearing). Spec positions are
+            // field-relative; the start arrives in absolute plane space.
+            if (playerStartPlane.HasValue && settings.startClearRadius > 0f)
+                genParams.ExclusionVolumes = new[]
+                {
+                    new ExclusionVolume { Center = playerStartPlane.Value - fieldOriginPlane, Radius = settings.startClearRadius }
+                };
+
             var layout = new AsteroidFieldLayout(seed, genParams);
             Model = new AsteroidFieldModel(layout);
             streamer = new ChunkStreamer(settings.chunkSize, loadRadius, unloadRadius);
-            fieldOriginPlane = GamePlane.WorldPointToPlane(transform.position);
 
             AsteroidSpawner.PreSizePool(settings.WorstCaseLoadedCount());
             AsteroidSpawner.OnFragmentSpawned -= HandleFragmentSpawned;
