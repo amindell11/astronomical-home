@@ -12,12 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 05c351aee451e594c9ffd819289ea8d6, type: 3}
   m_Name: FieldSettings
   m_EditorClassIdentifier: 
-  maxAsteroids: 200
-  initialMinSpawnDistance: 7.5
-  initialMaxSpawnDistance: 80
-  targetVolumeDensity: 0.25
-  densityCheckRadius: 80
+  chunkSize: 40
+  noiseFrequency: 0.35
+  averageAsteroidsPerCell: 6
+  densityMultiplierRange: {x: 0.3, y: 1.7}
+  fieldRadius: 400
+  ambientDrift: 1
+  loadRadius: 80
+  unloadRadiusMultiplier: 1.5
   maxSpawnsPerFrame: 10
-  updateMinSpawnDistance: 50
-  updateMaxSpawnDistance: 80
-  densityCheckInterval: 0.15
+  maxAsteroids: 600

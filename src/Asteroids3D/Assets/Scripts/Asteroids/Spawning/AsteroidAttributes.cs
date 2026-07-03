@@ -4,9 +4,9 @@ namespace Asteroids.Spawning
 {
     /// <summary>
     /// Everything that defines an asteroid's identity apart from its pose:
-    /// mesh, mass, scale and initial kinematics. Orientation stays on the
-    /// spawn <see cref="Pose"/> for now; the deterministic provider (PR2)
-    /// will generate the full pose alongside these attributes.
+    /// mesh, mass, scale and initial kinematics. Orientation travels on the
+    /// spawn <see cref="Pose"/>; the deterministic field generates both from
+    /// one seeded stream (<see cref="Fields.Core.FieldAsteroidSpec"/>).
     /// </summary>
     public readonly struct AsteroidAttributes
     {
@@ -31,14 +31,4 @@ namespace Asteroids.Spawning
         }
     }
 
-    /// <summary>
-    /// Seam between "decide what an asteroid is" and "put it in the world"
-    /// (<see cref="AsteroidSpawner.Spawn"/>). The deterministic seeded
-    /// provider (PR2) replaces <see cref="RandomAsteroidAttributeRoller"/>
-    /// behind this interface.
-    /// </summary>
-    public interface IAsteroidAttributeProvider
-    {
-        AsteroidAttributes Roll();
-    }
 }

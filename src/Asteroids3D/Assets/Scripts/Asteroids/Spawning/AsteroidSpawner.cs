@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Asteroids.Fragnetics;
 using UnityEngine;
@@ -9,20 +10,44 @@ namespace Asteroids.Spawning
     {
         [SerializeField] private AsteroidSpawnSettings settings;
 
-        /// <summary>Attribute-decision seam; swapped for the deterministic provider in PR2.</summary>
+        public AsteroidSpawnSettings Settings => settings;
+
+        /// <summary>Attribute roller for the fragment path (mass-constrained rolls).</summary>
         public RandomAsteroidAttributeRoller AttributeProvider { get; private set; }
 
         public int ActiveCount => registry.ActiveCount;
         public float TotalVolume => registry.TotalVolume;
 
+        /// <summary>
+        /// Raised for fragments spawned via <see cref="Fragger"/> so the field
+        /// can assign them authored IDs and track them in the override overlay.
+        /// </summary>
+        public event Action<AsteroidController> OnFragmentSpawned;
+
         private Registry registry;
         private SpawnPool pool;
+        private int poolMaxSizeHint;
         private Transform worldAnchor;
         private Fragger fragger;
+
+        // Created lazily so the field can pre-size it (from the computed
+        // worst-case loaded count) before the first spawn, regardless of
+        // sibling Awake ordering.
+        private SpawnPool Pool => pool ??= new SpawnPool(settings, transform, poolMaxSizeHint);
 
         public void SetWorldAnchor(Transform anchor)
         {
             worldAnchor = anchor;
+        }
+
+        /// <summary>
+        /// Raises the pool's retained-object cap to the given worst-case count.
+        /// Must be called before the first spawn; later calls are ignored.
+        /// </summary>
+        public void PreSizePool(int worstCaseCount)
+        {
+            if (pool != null) return;
+            poolMaxSizeHint = Mathf.Max(poolMaxSizeHint, worstCaseCount);
         }
 
         private void Awake()
@@ -34,7 +59,6 @@ namespace Asteroids.Spawning
             }
             settings.ValidateSettings();
             registry = new Registry();
-            pool = new SpawnPool(settings, transform);
             fragger = GetComponent<Fragger>();
             AttributeProvider = new RandomAsteroidAttributeRoller(settings);
         }
@@ -48,7 +72,7 @@ namespace Asteroids.Spawning
         public void Despawn(AsteroidController ast)
         {
             registry.Unregister(ast);
-            pool.ReleaseAsteroid(ast);
+            Pool.ReleaseAsteroid(ast);
         }
 
         public AsteroidController Spawn(Pose pose, in AsteroidAttributes attrs)
@@ -63,12 +87,14 @@ namespace Asteroids.Spawning
         {
             var pose = new Pose(frag.Position, frag.Rotation);
             var attrs = AttributeProvider.RollForMass(frag.Mass, frag.Velocity, frag.Spin);
-            return Spawn(pose, attrs);
+            var ast = Spawn(pose, attrs);
+            OnFragmentSpawned?.Invoke(ast);
+            return ast;
         }
 
         private AsteroidController SpawnAtPose(Pose pose)
         {
-            var ast = pool.Get();
+            var ast = Pool.Get();
             ast.transform.SetParent(transform);
             ast.transform.SetPositionAndRotation(pose.position, pose.rotation);
             ast.SetWorldAnchor(worldAnchor);

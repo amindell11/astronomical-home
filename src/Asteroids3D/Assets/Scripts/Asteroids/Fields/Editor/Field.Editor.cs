@@ -7,25 +7,9 @@ namespace Asteroids.Fields
     {
         protected virtual void OnDrawGizmosSelected()
         {
-            var center = SpawnCenter;
-            center.y = 0f;
-
+            if (!settings) return;
             Gizmos.color = Color.cyan;
-            const int segments = 32;
-            var angle = 0f;
-            var lastPoint = center + new Vector3(Mathf.Cos(angle) * densityCheckRadius, 0, Mathf.Sin(angle) * densityCheckRadius);
-            for (var i = 1; i <= segments; i++)
-            {
-                angle = (i / (float)segments) * Mathf.PI * 2f;
-                var nextPoint = center + new Vector3(Mathf.Cos(angle) * densityCheckRadius, 0, Mathf.Sin(angle) * densityCheckRadius);
-                Gizmos.DrawLine(lastPoint, nextPoint);
-                lastPoint = nextPoint;
-            }
-
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(center, minSpawnDistance);
-            Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(center, maxSpawnDistance);
+            Gizmos.DrawWireSphere(transform.position, settings.fieldRadius);
         }
     }
 }

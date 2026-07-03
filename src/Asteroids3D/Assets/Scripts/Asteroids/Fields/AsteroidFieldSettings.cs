@@ -5,37 +5,53 @@ namespace Asteroids.Fields
     [CreateAssetMenu(fileName = "AsteroidFieldSettings", menuName = "Asteroid/Field Settings")]
     public class AsteroidFieldSettings : ScriptableObject
     {
-        // NOTE: The annulus/timer fields below (spawn zones, density timing) are
-        // slated for removal when the deterministic streaming field lands
-        // (doc/Feature_Plans/Deterministic_Asteroid_Field.md, PR2). Don't build
-        // new dependencies on them.
+        [Header("Deterministic Layout")]
+        [Tooltip("Cell = chunk = load/unload unit (units)")]
+        public float chunkSize = 40f;
+        [Tooltip("Perlin step per cell; lower = broader clumps and voids")]
+        public float noiseFrequency = 0.35f;
+        [Tooltip("Authored average asteroid count per cell before noise modulation")]
+        public float averageAsteroidsPerCell = 6f;
+        [Tooltip("Perlin maps into this density multiplier range (clusters vs corridors)")]
+        public Vector2 densityMultiplierRange = new(0.3f, 1.7f);
+        [Tooltip("Bounded sector: no baseline asteroids beyond this radius from the field origin")]
+        public float fieldRadius = 400f;
+        [Tooltip("Seeded ambient drift/spin for visual life; home positions stay the truth on reload")]
+        public bool ambientDrift = true;
 
-        [Header("Asteroid Population")]
-        [Tooltip("Maximum number of asteroids that can exist in the field")]
-        public int maxAsteroids = 200;
-
-        [Header("Initial Spawn Zone")]
-        [Tooltip("Minimum spawn distance from the field center on initialization")]
-        public float initialMinSpawnDistance = 7.5f;
-        [Tooltip("Maximum spawn distance from the field center on initialization")]
-        public float initialMaxSpawnDistance = 80f;
-
-        [Header("Volume Density Control")]
-        [Tooltip("Target volume per square meter for the asteroid field (volume-based, not mass-based)")]
-        public float targetVolumeDensity = 0.25f;
-        [Tooltip("Radius used to calculate target volume")]
-        public float densityCheckRadius = 80f;
-        [Tooltip("Maximum number of asteroids to spawn per frame")]
+        [Header("Streaming")]
+        [Tooltip("Chunks whose center enters this radius around the anchor are loaded")]
+        public float loadRadius = 80f;
+        [Tooltip("Unload only past loadRadius * this (hysteresis; keeps fragment freezes out of view)")]
+        public float unloadRadiusMultiplier = 1.5f;
+        [Tooltip("Load-work budget: maximum asteroids spawned per frame after the initial fill")]
         public int maxSpawnsPerFrame = 10;
 
-        [Header("Update Spawn Zone (for UpdatingAsteroidField)")]
-        [Tooltip("Minimum spawn distance used during ongoing updates")]
-        public float updateMinSpawnDistance = 50f;
-        [Tooltip("Maximum spawn distance used during ongoing updates")]
-        public float updateMaxSpawnDistance = 80f;
+        [Header("Editor Sanity")]
+        [Tooltip("Editor-time warning threshold only. There is deliberately no runtime clamp — clipping content by count would reintroduce load-order nondeterminism.")]
+        public int maxAsteroids = 300;
 
-        [Header("Update Timing (for UpdatingAsteroidField)")]
-        [Tooltip("Time interval between density checks and spawn updates")]
-        public float densityCheckInterval = 0.15f;
+        public float UnloadRadius => loadRadius * unloadRadiusMultiplier;
+
+        /// <summary>
+        /// Computed worst-case simultaneously-loaded baseline count (full unload
+        /// disc at maximum noise density). Used to pre-size the spawn pool.
+        /// </summary>
+        public int WorstCaseLoadedCount()
+        {
+            if (chunkSize <= 0f) return 0;
+            var worstChunks = Mathf.PI * Mathf.Pow(UnloadRadius / chunkSize + 1f, 2f);
+            return Mathf.CeilToInt(worstChunks * averageAsteroidsPerCell * densityMultiplierRange.y);
+        }
+
+        private void OnValidate()
+        {
+            var worst = WorstCaseLoadedCount();
+            if (maxAsteroids > 0 && worst > maxAsteroids)
+                Debug.LogWarning(
+                    $"{name}: worst-case loaded asteroid count ({worst}) exceeds maxAsteroids ({maxAsteroids}). " +
+                    "Reduce density/load radius or raise the warning threshold — there is no runtime clamp.",
+                    this);
+        }
     }
 }

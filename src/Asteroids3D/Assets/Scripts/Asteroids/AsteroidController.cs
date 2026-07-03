@@ -30,6 +30,7 @@ namespace Asteroids
         public AsteroidSpawner AsteroidSpawner { get; private set; }
         public Renderer Renderer { get; private set; }
         public Fragger Fragger { get; private set; }
+        public AsteroidDamage Damage => damage;
         public Mesh CurrentMesh => meshFilter.sharedMesh;
         public event Action<Vector3> OnDestroyed;
         public event Action OnInitialized;
@@ -128,12 +129,6 @@ namespace Asteroids
             Rb.linearVelocity = Vector3.zero;
             Rb.angularVelocity = Vector3.zero;
             AsteroidSpawner.Despawn(this);
-        }
-
-        private void OnTriggerExit(Collider other)
-        {
-            if (other.CompareTag(TagNames.AsteroidCullingBoundary))
-                CleanupAsteroid();
         }
 
         private void OnCollisionEnter(Collision collision)
