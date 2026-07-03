@@ -71,11 +71,9 @@ namespace Game.Services
 
         public void Clear()
         {
-            if (World != null)
-            {
-                UnityEngine.Object.Destroy(World.gameObject);
-                World = null;
-            }
+            if (!World) return;
+            UnityEngine.Object.Destroy(World.gameObject);
+            World = null;
             // Scene unloading is explicit via UnloadSceneAsync, not part of Clear
         }
     }
