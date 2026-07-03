@@ -6,6 +6,7 @@ using Player;
 using Presentation;
 using Ships;
 using UnityEngine;
+using Utils;
 
 namespace Game.Bootstrap
 {
@@ -26,6 +27,11 @@ namespace Game.Bootstrap
         [Tooltip("Session policy: when false, ships spawn without visual rigs (headless/RL). " +
                  "Presentation is a game-tier overlay attached to each ship via the unit registry.")]
         [SerializeField] private bool installPresentation = true;
+
+        [Tooltip("Session policy: global VFX toggle applied at load — gates the not-yet-rig-migrated " +
+                 "weapon/projectile/asteroid explosion effects. Turn off for headless/RL to skip their " +
+                 "particle simulation + VFX pooling. Runtime-only (does not persist to PlayerPrefs).")]
+        [SerializeField] private bool enableVfx = true;
 
         [Header("Game Plane")]
         [SerializeField] private PlaneAxis planeAxis = PlaneAxis.Y;
@@ -89,6 +95,10 @@ namespace Game.Bootstrap
         private IEnumerator HandleLoading()
         {
             GamePlane.Configure(planeAxis, planeOrigin);
+
+            // Game-tier VFX policy: gate the still-un-migrated weapon/projectile/asteroid effects.
+            // Runtime-only override so a headless/RL session never leaks into the saved preference.
+            GameSettings.SetVfxEnabled(enableVfx);
 
             services = new GameServices(
                 unitService: GetComponent<UnitService>(),
