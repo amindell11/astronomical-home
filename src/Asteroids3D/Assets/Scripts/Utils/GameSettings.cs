@@ -31,14 +31,16 @@ namespace Utils
         }
 
         /// <summary>
-        /// Updates the VFX setting and saves it to PlayerPrefs for future sessions.
+        /// Sets the global VFX toggle. By default this is a runtime-only override (does NOT persist),
+        /// which is what a game-tier caller like <c>MainGameManager</c> wants — a headless/RL session
+        /// disabling VFX must not leak into the player's saved preference. Pass <paramref name="persist"/>
+        /// = true (e.g. from a settings menu) to also write it to PlayerPrefs for future sessions.
         /// </summary>
-        /// <param name="enabled">The new value for the VFX setting.</param>
-        public static void SetVfxEnabled(bool enabled)
+        public static void SetVfxEnabled(bool enabled, bool persist = false)
         {
-            if (VfxEnabled != enabled)
+            VfxEnabled = enabled;
+            if (persist)
             {
-                VfxEnabled = enabled;
                 PlayerPrefs.SetInt("VFX_ENABLED", enabled ? 1 : 0);
                 PlayerPrefs.Save(); // Immediately write to disk
             }

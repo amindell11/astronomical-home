@@ -50,6 +50,15 @@ namespace Asteroids
             Health = MaxHealth;
         }
 
+        /// <summary>
+        /// Restores persisted damage on reload: sets remaining health to the
+        /// given fraction of max (deterministic field override overlay).
+        /// </summary>
+        public void ApplyHealthFraction(float fraction)
+        {
+            Health = MaxHealth * Mathf.Clamp01(fraction);
+        }
+
         public void TakeDamage(float damage, float hitMass, Vector3 hitVelocity, Vector3 hitPoint, GameObject attacker)
         {
             if (!controller) return;

@@ -9,7 +9,7 @@ namespace Asteroids.Spawning
         private readonly ObjectPool<AsteroidController> pool;
         private readonly Transform parent;
         
-        public SpawnPool(AsteroidSpawnSettings settings, Transform parentTransform){
+        public SpawnPool(AsteroidSpawnSettings settings, Transform parentTransform, int maxSizeHint = 0){
             prefab = settings.asteroidPrefab;
             parent = parentTransform;
             pool = new ObjectPool<AsteroidController>(
@@ -19,7 +19,7 @@ namespace Asteroids.Spawning
                 OnAsteroidDestroyed,
                 false,
                 settings.poolCapacity,
-                settings.maxPoolSize
+                Mathf.Max(settings.maxPoolSize, maxSizeHint)
             );
             PreWarm(settings.poolCapacity);
         }

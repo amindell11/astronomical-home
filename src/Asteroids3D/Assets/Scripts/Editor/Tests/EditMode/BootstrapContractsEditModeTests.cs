@@ -6,6 +6,7 @@ using Game.Bootstrap;
 using Game.Sectors;
 using Game.Services;
 using NUnit.Framework;
+using Player;
 using Ships;
 using UnityEngine;
 
@@ -184,6 +185,91 @@ namespace Tests.EditMode
         {
             var ev = typeof(MainGameManager).GetEvent("OnGameStateChanged");
             Assert.IsNotNull(ev, "MainGameManager must declare OnGameStateChanged event");
+        }
+
+        // --- Lifecycle primitives (bootstrap/session decoupling) ---
+
+        [Test]
+        public void MainGameManager_ExposesDriverAgnosticLifecyclePrimitives()
+        {
+            // The primitives are the seam an RL/headless driver reuses; each takes the explicit
+            // per-session container (not a process singleton) and returns a coroutine.
+            var flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
+            foreach (var name in new[] { "ComposeSession", "LoadSector", "UnloadSector", "TeardownSession" })
+            {
+                var method = typeof(MainGameManager).GetMethod(name, flags);
+                Assert.IsNotNull(method, $"MainGameManager must expose lifecycle primitive {name}");
+                Assert.AreEqual(typeof(IEnumerator), method.ReturnType,
+                    $"{name} must be a coroutine (IEnumerator)");
+                var parameters = method.GetParameters();
+                Assert.GreaterOrEqual(parameters.Length, 1, $"{name} must take the session container");
+                Assert.AreEqual(typeof(GameSession), parameters[0].ParameterType,
+                    $"{name} must take GameSession as its first parameter (per-instance shaping)");
+            }
+        }
+
+        [Test]
+        public void GameSession_ExposesPerSessionState()
+        {
+            var type = typeof(GameSession);
+            Assert.IsFalse(typeof(MonoBehaviour).IsAssignableFrom(type),
+                "GameSession is a plain container, not a scene object");
+            Assert.IsNotNull(type.GetProperty("Services"), "GameSession must expose Services");
+            Assert.IsNotNull(type.GetProperty("ActiveSector"), "GameSession must expose ActiveSector");
+            Assert.IsNotNull(type.GetProperty("Rig"), "GameSession must expose Rig");
+            Assert.IsNotNull(type.GetProperty("Presentation"), "GameSession must expose Presentation");
+
+            var hook = type.GetProperty("OnSectorComplete");
+            Assert.IsNotNull(hook, "GameSession must expose the OnSectorComplete policy hook");
+            Assert.AreEqual(typeof(Action<SectorResult>), hook.PropertyType);
+            Assert.IsTrue(hook.CanWrite, "OnSectorComplete is the driver-settable policy seam");
+        }
+
+        [Test]
+        public void ComposeSession_CarriesNoResetPolicy()
+        {
+            // Plan C: composition is policy-free. The reset trigger is wired by the driver via
+            // PlayerRig.RestartRequested, never passed through the composition primitive.
+            var method = typeof(MainGameManager).GetMethod("ComposeSession",
+                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+            Assert.IsNotNull(method, "MainGameManager must expose ComposeSession");
+            var parameters = method.GetParameters();
+            Assert.AreEqual(1, parameters.Length,
+                "ComposeSession must take only the session container — no policy callbacks");
+            Assert.AreEqual(typeof(GameSession), parameters[0].ParameterType);
+        }
+
+        [Test]
+        public void PlayerRig_DeclaresRestartAsEventNotCallback()
+        {
+            // The rig only DECLARES that its death policy requested a restart; the driver decides
+            // what a restart means. Build therefore takes no restart callback.
+            var ev = typeof(PlayerRig).GetEvent("RestartRequested");
+            Assert.IsNotNull(ev, "PlayerRig must declare RestartRequested event");
+            Assert.AreEqual(typeof(Action), ev.EventHandlerType);
+
+            var build = typeof(PlayerRig).GetMethod("Build");
+            Assert.IsNotNull(build, "PlayerRig must expose Build");
+            var parameters = build.GetParameters();
+            Assert.AreEqual(2, parameters.Length,
+                "Build must take (services, buildPlayer) only — death policy is not a Build argument");
+            Assert.AreEqual(typeof(IGameServices), parameters[0].ParameterType);
+            Assert.AreEqual(typeof(bool), parameters[1].ParameterType);
+        }
+
+        [Test]
+        public void MainGameManager_DoesNotLookUpSiblingServicesOutsideAwake()
+        {
+            // Injection hygiene (plan §A): the sibling MonoBehaviour services are cached in Awake;
+            // no GetComponent calls mid-lifecycle. The only two lookups allowed in the file are the
+            // Awake cache assignments.
+            var source = System.IO.File.ReadAllText(System.IO.Path.Combine(
+                Application.dataPath, "Scripts", "Game", "Bootstrap", "MainGameManager.cs"));
+            StringAssert.Contains("unitService = GetComponent<UnitService>();", source);
+            StringAssert.Contains("objectiveService = GetComponent<ObjectiveService>();", source);
+            var lookups = source.Split(new[] { "GetComponent<" }, StringSplitOptions.None).Length - 1;
+            Assert.AreEqual(2, lookups,
+                "MainGameManager must contain exactly the two Awake cache lookups");
         }
 
         [Test]
