@@ -21,7 +21,7 @@ namespace Tests.EditMode
     public class MpcSolverTests
     {
         private const string MpcSettingsPath = "Assets/Settings/AI/MPC/MpcSettings.asset";
-        private const string ShipSettingsPath = "Assets/Settings/Ships/Default_Frame.asset";
+        private const string ShipSettingsPath = "Assets/Settings/Ships/Frames/Default_Frame.asset";
 
         private MpcSettings settings;
         private Dynamics dynamics;

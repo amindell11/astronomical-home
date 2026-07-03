@@ -15,7 +15,7 @@ namespace Tests.PlayMode.Common
 public static class TestAssets
 {
     // Standard asset paths
-    private const string DefaultShipSettingsPath = "Assets/Settings/Ships/Default_Frame.asset";
+    private const string DefaultShipSettingsPath = "Assets/Settings/Ships/Frames/Default_Frame.asset";
     private const string Ship2PrefabPath = "Assets/Prefabs/Ships/Ship_2.prefab";
     private const string TestPilotMpcPath = "Assets/Prefabs/Pilots/TestPilotMPC.prefab";
 
