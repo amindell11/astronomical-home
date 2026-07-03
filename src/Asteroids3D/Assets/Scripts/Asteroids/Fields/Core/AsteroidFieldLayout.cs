@@ -18,6 +18,11 @@ namespace Asteroids.Fields.Core
         public Vector2 DensityMultiplierRange;
         public float FieldRadius;
 
+        // Spawn-overlap rejection. Both 0 (struct default) disables rejection
+        // entirely, reproducing the pre-rejection layout bit-for-bit.
+        public float PackingMargin;
+        public float MinSpacing;
+
         // Noise profile. Struct defaults (0/false) are normalized by the
         // layout to the neutral profile: 1 octave, no ridging, contrast 1,
         // no floor, no warp — i.e. plain single-octave Perlin.
@@ -57,6 +62,23 @@ namespace Asteroids.Fields.Core
     }
 
     /// <summary>
+    /// The spatial footprint of a baseline asteroid: exactly the first four
+    /// RNG draws of its stream (position ×2, mesh index, mass factor), enough
+    /// to evaluate spawn overlap without generating the full spec.
+    /// <see cref="AsteroidFieldLayout.GenerateAsteroid"/> continues the same
+    /// stream after these draws, so the candidate a cell computes for a
+    /// neighbour can never diverge from what that neighbour computes for itself.
+    /// </summary>
+    public struct AsteroidCandidate
+    {
+        public Vector2 Position;
+        /// <summary>Volume-equivalent sphere radius × scale (no packing margin applied).</summary>
+        public float Radius;
+        public int MeshIndex;
+        public float MassFactor;
+    }
+
+    /// <summary>
     /// The deterministic baseline layer: a procedural lookup table over hashed
     /// jittered cells with Perlin-modulated density. Never persisted — any
     /// cell regenerates the identical asteroid set (IDs, poses, attributes)
@@ -75,6 +97,7 @@ namespace Asteroids.Fields.Core
         private readonly float lacunarity;
         private readonly float persistence;
         private readonly float contrast;
+        private readonly bool rejectOverlaps;
 
         public float CellSize => p.CellSize;
         public float FieldRadius => p.FieldRadius;
@@ -89,6 +112,7 @@ namespace Asteroids.Fields.Core
             lacunarity = p.NoiseLacunarity <= 0f ? 2f : p.NoiseLacunarity;
             persistence = p.NoisePersistence <= 0f ? 0.5f : p.NoisePersistence;
             contrast = p.NoiseContrast <= 0f ? 1f : p.NoiseContrast;
+            rejectOverlaps = p.PackingMargin > 0f || p.MinSpacing > 0f;
 
             // The first octave's offsets are drawn exactly like the original
             // single-octave field, so the neutral profile reproduces it.
@@ -179,36 +203,124 @@ namespace Asteroids.Fields.Core
 
         /// <summary>
         /// Appends the baseline asteroids of a cell. Asteroids whose home lies
-        /// beyond the field radius are skipped (bounded sector; IDs stay
-        /// stable because the per-cell count is decided first).
+        /// beyond the field radius are skipped, and (when a packing margin or
+        /// spacing floor is authored) so are candidates overlapping a
+        /// higher-priority neighbour (bounded sector / non-interpenetrating
+        /// spawns; IDs stay stable because the per-cell count is decided first
+        /// and a rejected asteroid is a deterministic skip, not a renumber).
         /// </summary>
         public void GenerateCell(int cellX, int cellY, List<FieldAsteroidSpec> results)
         {
             var count = CountForCell(cellX, cellY);
             for (var i = 0; i < count; i++)
             {
-                var spec = GenerateAsteroid(AsteroidId.Baseline(cellX, cellY, i));
+                var id = AsteroidId.Baseline(cellX, cellY, i);
+                if (rejectOverlaps && IsBlockedByHigherPriorityCandidate(id)) continue;
+                var spec = GenerateAsteroid(id);
                 if (spec.PlanePosition.sqrMagnitude <= p.FieldRadius * p.FieldRadius)
                     results.Add(spec);
             }
         }
 
         /// <summary>
-        /// Regenerates one baseline asteroid purely from its stable ID — the
-        /// determinism keystone: no dependence on neighbours or load order.
+        /// Priority rejection: a candidate is rejected iff an overlapping
+        /// candidate with a lexicographically-smaller key (cellX, cellY, index)
+        /// exists. Max asteroid radius is far below the cell size, so the 3×3
+        /// Moore neighbourhood provably contains every possible blocker.
+        /// Blockers are raw candidates — a blocker that was itself rejected
+        /// (or field-radius-culled) still blocks; asking whether it survived
+        /// would recurse into an unbounded sweep over earlier cells. The rule
+        /// is therefore fully order- and load-independent, at the cost of
+        /// slightly compounded holes.
         /// </summary>
-        public FieldAsteroidSpec GenerateAsteroid(AsteroidId id)
+        private bool IsBlockedByHigherPriorityCandidate(AsteroidId id)
         {
-            var rng = new DeterministicRandom(DeterministicRandom.Hash(seed, id.CellX, id.CellY, id.Index));
+            var candidate = GenerateCandidate(id);
+            for (var dy = -1; dy <= 1; dy++)
+            for (var dx = -1; dx <= 1; dx++)
+            {
+                var cellX = id.CellX + dx;
+                var cellY = id.CellY + dy;
+                int limit;
+                if (cellX < id.CellX || (cellX == id.CellX && cellY < id.CellY))
+                    limit = CountForCell(cellX, cellY); // whole cell precedes ours
+                else if (cellX == id.CellX && cellY == id.CellY)
+                    limit = id.Index;                   // earlier indices in our own cell
+                else
+                    continue;                           // lexicographically after us
 
+                for (var j = 0; j < limit; j++)
+                {
+                    var other = GenerateCandidate(AsteroidId.Baseline(cellX, cellY, j));
+                    var required = RequiredSeparation(candidate.Radius, other.Radius);
+                    if ((other.Position - candidate.Position).sqrMagnitude < required * required)
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        private float RequiredSeparation(float radiusA, float radiusB)
+        {
+            var sum = radiusA + radiusB;
+            return Mathf.Max(sum * p.PackingMargin, sum + p.MinSpacing);
+        }
+
+        /// <summary>
+        /// The overlap footprint of a baseline asteroid, from its ID alone.
+        /// Exposed for tests; the layout uses it for neighbourhood rejection.
+        /// </summary>
+        public AsteroidCandidate GenerateCandidate(AsteroidId id)
+        {
+            var rng = RngFor(id);
+            return GenerateCandidate(id, ref rng);
+        }
+
+        /// <summary>
+        /// Performs exactly the first four draws of the asteroid's stream and
+        /// stops. <see cref="GenerateAsteroid"/> continues drawing from the
+        /// same stream — one source of truth for the opening draw sequence.
+        /// </summary>
+        private AsteroidCandidate GenerateCandidate(AsteroidId id, ref DeterministicRandom rng)
+        {
             var cellMin = new Vector2(id.CellX * p.CellSize, id.CellY * p.CellSize);
             var position = cellMin + new Vector2(rng.Range(0f, p.CellSize), rng.Range(0f, p.CellSize));
 
             var meshCount = p.MeshVolumes?.Length ?? 0;
             var meshIndex = rng.RangeInt(meshCount);
             var baseVolume = meshCount > 0 ? p.MeshVolumes[meshIndex] : 0f;
-            var baseMass = baseVolume * p.MeshDensity;
             var massFactor = rng.Range(p.MassScaleRange.x, p.MassScaleRange.y);
+            var scale = Mathf.Pow(massFactor, 1f / 3f);
+
+            return new AsteroidCandidate
+            {
+                Position = position,
+                Radius = Mathf.Pow(3f * baseVolume / (4f * Mathf.PI), 1f / 3f) * scale,
+                MeshIndex = meshIndex,
+                MassFactor = massFactor
+            };
+        }
+
+        private DeterministicRandom RngFor(AsteroidId id) =>
+            new(DeterministicRandom.Hash(seed, id.CellX, id.CellY, id.Index));
+
+        /// <summary>
+        /// Regenerates one baseline asteroid purely from its stable ID — the
+        /// determinism keystone: no dependence on neighbours or load order.
+        /// (Overlap rejection lives in <see cref="GenerateCell"/>; this always
+        /// returns the same pose for an ID regardless of neighbours.)
+        /// </summary>
+        public FieldAsteroidSpec GenerateAsteroid(AsteroidId id)
+        {
+            var rng = RngFor(id);
+            var candidate = GenerateCandidate(id, ref rng);
+            var position = candidate.Position;
+
+            var meshCount = p.MeshVolumes?.Length ?? 0;
+            var meshIndex = candidate.MeshIndex;
+            var baseVolume = meshCount > 0 ? p.MeshVolumes[meshIndex] : 0f;
+            var baseMass = baseVolume * p.MeshDensity;
+            var massFactor = candidate.MassFactor;
             var mass = baseMass * massFactor;
             var scale = Mathf.Pow(massFactor, 1f / 3f);
 

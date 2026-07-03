@@ -70,6 +70,9 @@ namespace Asteroids.Fields
             ForEachCellInRange(anchorPlane, radius, cell, (cx, cy, center) =>
             {
                 if (center.magnitude > settings.fieldRadius) return;
+                // Pre-rejection density: the heatmap (like CountForCell) shows
+                // authored density and deliberately overstates on-screen counts
+                // when overlap rejection is active — do not "fix" this.
                 var multiplier = layout.DensityMultiplier(cx, cy);
                 Color color;
                 if (multiplier <= 0f)

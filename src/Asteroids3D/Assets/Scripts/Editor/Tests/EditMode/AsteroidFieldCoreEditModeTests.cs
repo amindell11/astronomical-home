@@ -476,6 +476,107 @@ namespace Tests.EditMode
             Assert.IsTrue(anyDifferent, "warp must actually displace the sample domain");
         }
 
+        // ── Spawn-overlap priority rejection ─────────────────────────────────────
+
+        private static FieldGenerationParams PackedParams(float margin = 1.2f, float minSpacing = 0.5f)
+        {
+            var p = DefaultParams();
+            p.PackingMargin = margin;
+            p.MinSpacing = minSpacing;
+            return p;
+        }
+
+        private static List<FieldAsteroidSpec> GeneratePatch(AsteroidFieldLayout layout, int extent = 3)
+        {
+            var list = new List<FieldAsteroidSpec>();
+            for (var cx = -extent; cx <= extent; cx++)
+            for (var cy = -extent; cy <= extent; cy++)
+                layout.GenerateCell(cx, cy, list);
+            return list;
+        }
+
+        [Test]
+        public void OverlapRejection_AcceptedAsteroids_RespectMinSeparation()
+        {
+            const float margin = 1.2f;
+            const float minSpacing = 0.5f;
+            var layout = new AsteroidFieldLayout(Seed, PackedParams(margin, minSpacing));
+            var specs = GeneratePatch(layout);
+            Assume.That(specs.Count, Is.GreaterThan(20), "patch unexpectedly sparse");
+
+            // Only pairs fully inside the patch are meaningful (edge cells have
+            // unexamined outside neighbours) — but every generated pair must hold,
+            // since both members were accepted against each other.
+            for (var i = 0; i < specs.Count; i++)
+            for (var j = i + 1; j < specs.Count; j++)
+            {
+                var a = layout.GenerateCandidate(specs[i].Id);
+                var b = layout.GenerateCandidate(specs[j].Id);
+                var required = Mathf.Max((a.Radius + b.Radius) * margin, a.Radius + b.Radius + minSpacing);
+                Assert.GreaterOrEqual(
+                    Vector2.Distance(a.Position, b.Position), required - 1e-4f,
+                    $"{specs[i].Id} and {specs[j].Id} spawn overlapping");
+            }
+        }
+
+        [Test]
+        public void OverlapRejection_ActuallyRejects_AndIsDeterministic()
+        {
+            var rejecting = GeneratePatch(new AsteroidFieldLayout(Seed, PackedParams()));
+            var baseline = GeneratePatch(new AsteroidFieldLayout(Seed, DefaultParams()));
+            Assert.Less(rejecting.Count, baseline.Count,
+                "at authored density some candidates must be rejected — otherwise this test guards nothing");
+
+            // Same seed → identical accepted set (IDs + poses), including rejections.
+            var again = GeneratePatch(new AsteroidFieldLayout(Seed, PackedParams()));
+            Assert.AreEqual(rejecting.Count, again.Count);
+            for (var i = 0; i < rejecting.Count; i++) AssertSpecsEqual(rejecting[i], again[i]);
+        }
+
+        [Test]
+        public void OverlapRejection_RejectedIdsStayRejected_AndAcceptedIdsDoNotRenumber()
+        {
+            var layout = new AsteroidFieldLayout(Seed, PackedParams());
+            var first = GeneratePatch(layout, extent: 2).Select(s => s.Id).ToArray();
+            var second = GeneratePatch(new AsteroidFieldLayout(Seed, PackedParams()), extent: 2).Select(s => s.Id).ToArray();
+            CollectionAssert.AreEqual(first, second, "rejection must be stable across regenerations");
+
+            // A rejected index is a skip, not a renumber: every accepted ID still
+            // regenerates its own spec verbatim (the determinism keystone).
+            foreach (var spec in GeneratePatch(layout, extent: 2))
+                AssertSpecsEqual(spec, layout.GenerateAsteroid(spec.Id));
+        }
+
+        [Test]
+        public void OverlapRejection_ZeroMarginAndSpacing_DisablesRejection()
+        {
+            // Struct-default params must reproduce the pre-rejection layout:
+            // every counted index inside the field radius is present.
+            var layout = NewLayout();
+            var specs = Generate(layout, 0, 0);
+            Assert.AreEqual(layout.CountForCell(0, 0), specs.Count,
+                "cell (0,0) is fully inside the field radius; with rejection off every index must be present");
+        }
+
+        [Test]
+        public void GenerateCandidate_MatchesGenerateAsteroid_OpeningDraws()
+        {
+            // The candidate a cell computes for a neighbour must match what that
+            // neighbour computes for itself — same function, same stream prefix.
+            var layout = new AsteroidFieldLayout(Seed, PackedParams());
+            for (var i = 0; i < 12; i++)
+            {
+                var id = AsteroidId.Baseline(2, -3, i);
+                var candidate = layout.GenerateCandidate(id);
+                var spec = layout.GenerateAsteroid(id);
+                Assert.AreEqual(spec.PlanePosition, candidate.Position);
+                Assert.AreEqual(spec.MeshIndex, candidate.MeshIndex);
+                var volume = DefaultParams().MeshVolumes[spec.MeshIndex];
+                var expectedRadius = Mathf.Pow(3f * volume / (4f * Mathf.PI), 1f / 3f) * spec.Scale;
+                Assert.AreEqual(expectedRadius, candidate.Radius, expectedRadius * 1e-4f);
+            }
+        }
+
         // ── Deterministic RNG sanity ─────────────────────────────────────────────
 
         [Test]
