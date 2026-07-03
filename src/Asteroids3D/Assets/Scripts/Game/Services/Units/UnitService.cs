@@ -28,7 +28,6 @@ namespace Game.Services
         public Ship SpawnShip(
             Ship template,
             Commander commander,
-            FrameSettings settings,
             int team,
             Vector3 position,
             Quaternion rotation)
@@ -37,7 +36,7 @@ namespace Game.Services
                 throw new ArgumentNullException(nameof(template));
 
             var ship = ShipFactory.CreateShip(
-                template, commander, settings, team,
+                template, commander, team,
                 position, rotation,
                 postInitialize: WireShipDependencies);
 
@@ -60,7 +59,7 @@ namespace Game.Services
             if (commander)
                 ship.AdoptCommander(commander);
 
-            ship.Initialize(ship.frame, ship.teamNumber);
+            ship.Initialize(ship.teamNumber);
 
             ActiveRegistry.ActiveShips.Add(ship);
             spawnedShips.Add(ship);

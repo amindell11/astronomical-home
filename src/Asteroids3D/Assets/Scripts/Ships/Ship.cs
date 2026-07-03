@@ -7,7 +7,6 @@ using Ships.Movement;
 using Ships.Weapons;
 using Movement;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Ships
 {
@@ -16,22 +15,28 @@ namespace Ships
     [DefaultExecutionOrder(-90)]
     public class Ship : MonoBehaviour, ITargetable, IShipStatus, IShooter
     {
-        [Header("Frame & Modules")]
-        [Tooltip("Frame archetype: chassis stats + references to the default engine/shield modules.")]
-        [FormerlySerializedAs("settings")]
-        public FrameSettings frame;
+        [Header("Chassis")]
+        [Tooltip("Ship mass (kg). Drives momentum and the physics inertia tensor.")]
+        public float mass = 800f;
 
-        [Tooltip("Optional engine override. Falls back to the frame's default engine when unset.")]
+        [Tooltip("Lives before the ship is permanently destroyed.")]
+        public int startingLives = 1;
+
+        [Tooltip("Hull hit points.")]
+        public float maxHealth = 100f;
+
+        [Tooltip("Maximum roll (bank) angle, in degrees, entered while turning.")]
+        public float maxBankAngle = 35f;
+
+        [Header("Modules")]
+        [Tooltip("Engine module: movement/handling stats. Required for a mobile ship.")]
         public EngineModule engine;
 
-        [Tooltip("Optional shield override. Falls back to the frame's default shield when unset.")]
+        [Tooltip("Shield module: shield capacity/regen. Null → the ship carries no shield.")]
         public ShieldModule shield;
 
-        /// <summary>The flattened stats resolved from frame + modules. Null until settings populate.</summary>
+        /// <summary>The flattened stats resolved from this ship's chassis + modules.</summary>
         public ResolvedShipStats Stats { get; private set; }
-
-        private EngineModule ResolvedEngine => engine ? engine : (frame ? frame.defaultEngine : null);
-        private ShieldModule ResolvedShield => shield ? shield : (frame ? frame.defaultShield : null);
 
         [Header("Team Settings")]
         [Tooltip("Team number for this ship. Ships with the same team number are considered friendly.")]
@@ -102,10 +107,14 @@ namespace Ships
             Subscribe();
         }
 
-        private void Resolve()
-        {
-            Stats = frame ? ResolvedShipStats.Resolve(frame, ResolvedEngine, ResolvedShield) : null;
-        }
+        private void Resolve() => Stats = ResolvedShipStats.Resolve(this, engine, shield);
+
+        /// <summary>
+        /// Resolve this ship's stats from its own chassis + modules without instantiating it. The
+        /// collision radius stays at its default until <see cref="Initialize"/> derives it from the
+        /// live colliders. Handy for editor tooling and tests that only need the stat block.
+        /// </summary>
+        public ResolvedShipStats ResolveStats() => ResolvedShipStats.Resolve(this, engine, shield);
 
         // Live inspector tuning: re-resolve and re-apply movement when any source SO changes. This
         // preserves the old ShipSettings.onSettingsChanged behaviour (which only re-applied movement).
@@ -115,50 +124,44 @@ namespace Ships
             Movement?.PopulateSettings(Stats);
         }
 
-        private FrameSettings subFrame;
         private EngineModule subEngine;
         private ShieldModule subShield;
 
         private void Subscribe()
         {
             Unsubscribe();
-            subFrame = frame;
-            subEngine = ResolvedEngine;
-            subShield = ResolvedShield;
-            if (subFrame) subFrame.onChanged.AddListener(OnSettingsChanged);
+            subEngine = engine;
+            subShield = shield;
             if (subEngine) subEngine.onChanged.AddListener(OnSettingsChanged);
             if (subShield) subShield.onChanged.AddListener(OnSettingsChanged);
         }
 
         private void Unsubscribe()
         {
-            if (subFrame) subFrame.onChanged.RemoveListener(OnSettingsChanged);
             if (subEngine) subEngine.onChanged.RemoveListener(OnSettingsChanged);
             if (subShield) subShield.onChanged.RemoveListener(OnSettingsChanged);
-            subFrame = null;
             subEngine = null;
             subShield = null;
         }
 
-        public virtual void Initialize(FrameSettings frameSettings, int team)
+        public virtual void Initialize(int team)
         {
             if (isInitialized) return;
-            frame = frameSettings;
             teamNumber = team;
             Resolve();
             Movement.Initialize(Stats, ()=>KinematicsPoller.Kinematics);
             Damage?.PopulateSettings(Stats);
             Subscribe();
 
-            // Physical size is a frame scalar: base geometry is authored at scale 1 and scaled
-            // uniformly at spawn. Colliders scale with the root; the rig child inherits it too.
-            transform.localScale = Vector3.one * Stats.size;
+            // Physical size is the ship prefab's authored root scale — the colliders and the embedded
+            // rig inherit it, so there is no runtime scaling to apply. Flush transforms so the collider
+            // bounds reflect that scale before deriving the radius from them.
             Physics.SyncTransforms();
 
             if (Rigidbody) Rigidbody.ResetInertiaTensor();
 
-            // shipRadius is DERIVED from the (now scaled) collider bounds — a single source of truth
-            // with no authored value to drift, so shipRadius == baseRadius * size.
+            // shipRadius is DERIVED from the authored-scale collider bounds — a single source of truth
+            // with no authored scalar to drift.
             Stats.shipRadius = DeriveShipRadius();
 
             Dynamics = Stats.BuildDynamics(Rigidbody ? Rigidbody.inertiaTensor.z : 0f);
@@ -172,7 +175,7 @@ namespace Ships
 
         /// <summary>
         /// Derive the collision radius from the ship's own colliders' combined world bounds, evaluated
-        /// after the frame's <c>size</c> scale is applied. Mirrors the single-collider precedent in
+        /// at the prefab's authored root scale. Mirrors the single-collider precedent in
         /// <see cref="AI.Scout"/> (extents magnitude × 0.5). Falls back to the resolved default when the
         /// ship carries no colliders.
         /// </summary>

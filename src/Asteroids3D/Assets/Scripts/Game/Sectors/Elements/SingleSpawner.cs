@@ -18,7 +18,6 @@ namespace Game.Sectors
     {
         [SerializeField] private Ship template;
         [SerializeField] private Commander commander;
-        [SerializeField] private FrameSettings settings;
         [SerializeField] private int team;
         [SerializeField] private bool startActive = true;
 
@@ -31,7 +30,7 @@ namespace Game.Sectors
                 yield break;
 
             var ship = ctx.Services.UnitService.SpawnShip(
-                template, commander, settings, team,
+                template, commander, team,
                 transform.position, transform.rotation == Quaternion.identity ? GamePlane.Rotation : transform.rotation);
 
             if (ship)
@@ -44,7 +43,7 @@ namespace Game.Sectors
         protected override void OnDrawGizmos()
         {
 #if UNITY_EDITOR
-            var markerRadius = settings ? settings.size : 1f;
+            var markerRadius = template ? template.transform.localScale.x : 1f;
             Gizmos.color = new Color(0.2f, 0.7f, 1f, 0.9f);
             Gizmos.DrawWireSphere(transform.position, markerRadius);
             Gizmos.DrawLine(transform.position, transform.position + transform.forward * markerRadius * 3f);

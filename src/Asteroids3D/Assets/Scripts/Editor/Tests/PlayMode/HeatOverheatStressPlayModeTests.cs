@@ -43,14 +43,12 @@ namespace Tests.PlayMode
             base.SetUp();
 
 #if UNITY_EDITOR
-            var settings = TestAssets.LoadDefaultShipSettings();
             var shipPrefab = TestAssets.LoadShip2Prefab();
 
-            Assert.IsNotNull(settings, "Default ship settings asset failed to load");
             Assert.IsNotNull(shipPrefab, "Ship_2 prefab failed to load");
 
             commanderPrefab = new GameObject("ContinuousFireCommanderPrefab").AddComponent<ContinuousFireCommander>();
-            ship = Factory.CreateShip(shipPrefab, commanderPrefab, settings, team: 0,
+            ship = Factory.CreateShip(shipPrefab, commanderPrefab, team: 0,
                                       position: Vector3.zero, rotation: Quaternion.identity);
             combatShip = ship;
 

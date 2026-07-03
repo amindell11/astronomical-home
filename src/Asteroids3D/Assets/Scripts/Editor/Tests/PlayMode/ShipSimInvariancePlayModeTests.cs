@@ -209,12 +209,11 @@ namespace Tests.PlayMode
         private static Ship CreateUnpilotedShip(Vector3 position, Quaternion rotation)
         {
 #if UNITY_EDITOR
-            var settings = TestAssets.LoadDefaultShipSettings();
             var prefab = TestAssets.LoadShipPrefab(Ship1Path);
-            if (settings == null || prefab == null) return null;
+            if (prefab == null) return null;
 
             // Null commander → deterministic manual piloting via MovementController.Drive.
-            return Factory.CreateShip(prefab, null, settings, 0, position, rotation);
+            return Factory.CreateShip(prefab, null, 0, position, rotation);
 #else
             return null;
 #endif

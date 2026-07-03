@@ -20880,7 +20880,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.628875, y: 1.628875, z: 1.628875}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1853286326006952367}
@@ -20927,9 +20927,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 67188210c0b7f614089a327a9a1ca7a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  frame: {fileID: 11400000, guid: 0ba2aaac14bc4826937d9a34eb23131b, type: 2}
-  engine: {fileID: 0}
-  shield: {fileID: 0}
+  mass: 4000
+  startingLives: 1
+  maxHealth: 400
+  maxBankAngle: 10
+  engine: {fileID: 11400000, guid: 8b9b8c7c6d664169897fdbfd232593d7, type: 2}
+  shield: {fileID: 11400000, guid: 1df67c0d876d4885bb8b12c532765350, type: 2}
   teamNumber: 0
 --- !u!114 &-3878361978911940446
 MonoBehaviour:

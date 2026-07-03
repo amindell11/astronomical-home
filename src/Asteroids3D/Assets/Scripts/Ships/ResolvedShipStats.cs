@@ -5,18 +5,17 @@ namespace Ships
 {
     /// <summary>
     /// The flattened, runtime-facing view of a ship's stats, produced at spawn by copying each field
-    /// from its single owner (frame / engine / shield). This is a PLAIN C# type — not a
-    /// ScriptableObject — and is what all runtime consumers (movement, damage, forces, dynamics) read.
+    /// from its single owner (the ship's own chassis / engine / shield). This is a PLAIN C# type — not
+    /// a ScriptableObject — and is what all runtime consumers (movement, damage, forces, dynamics) read.
     /// There is no combination math: disjoint ownership means the resolver just copies each field from
     /// the source that owns it.
     /// </summary>
     public sealed class ResolvedShipStats
     {
-        // ── Frame-owned ──
-        public float mass = 1000f;
-        public float maxBankAngle = 45f;
-        public float size = 1f;
-        // NOT frame-owned: derived by Ship from the scaled collider bounds at spawn. Default until then.
+        // ── Chassis-owned (the Ship itself) ──
+        public float mass = 800f;
+        public float maxBankAngle = 35f;
+        // NOT chassis-owned: derived by Ship from the collider bounds at spawn. Default until then.
         public float shipRadius = 1f;
         public float maxHealth = 100f;
         public int startingLives = 1;
@@ -45,17 +44,16 @@ namespace Ships
         /// Build a resolved stat block by copying each field from its owner. Any null source leaves
         /// that owner's fields at their defaults.
         /// </summary>
-        public static ResolvedShipStats Resolve(FrameSettings frame, EngineModule engine, ShieldModule shield)
+        public static ResolvedShipStats Resolve(Ship ship, EngineModule engine, ShieldModule shield)
         {
             var r = new ResolvedShipStats();
 
-            if (frame)
+            if (ship)
             {
-                r.mass = frame.mass;
-                r.maxBankAngle = frame.maxBankAngle;
-                r.size = frame.size;
-                r.maxHealth = frame.maxHealth;
-                r.startingLives = frame.startingLives;
+                r.mass = ship.mass;
+                r.maxBankAngle = ship.maxBankAngle;
+                r.maxHealth = ship.maxHealth;
+                r.startingLives = ship.startingLives;
             }
 
             if (engine)

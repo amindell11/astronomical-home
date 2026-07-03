@@ -3,9 +3,9 @@ using UnityEngine;
 namespace Ships
 {
     /// <summary>
-    /// Movement/handling stats for a ship. One of the composable modules a <see cref="FrameSettings"/>
-    /// references as its default engine. Owns every movement-related field (disjoint ownership: the
-    /// resolver copies these verbatim into <see cref="ResolvedShipStats"/>).
+    /// Movement/handling stats for a ship. One of the composable modules a <see cref="Ship"/> carries.
+    /// Owns every movement-related field (disjoint ownership: the resolver copies these verbatim into
+    /// <see cref="ResolvedShipStats"/>).
     /// </summary>
     [CreateAssetMenu(fileName = "EngineModule", menuName = "Ship/Modules/Engine")]
     public class EngineModule : TunableModule

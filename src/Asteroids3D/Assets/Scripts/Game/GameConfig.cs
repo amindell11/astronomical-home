@@ -15,7 +15,6 @@ namespace Game
         [SerializeField] private Ship enemyTemplate;
         [SerializeField] private UpdatingAsteroidField asteroidAsteroidField;
         [SerializeField] private CameraRig cameraRig;
-        [SerializeField] private FrameSettings shipSettings;
         [SerializeField] private Commander playerCommander;
         [SerializeField] private Commander enemyCommander;
         [SerializeField] private WorldRoot world;
@@ -25,7 +24,6 @@ namespace Game
         public Ship EnemyTemplate => enemyTemplate;
         public UpdatingAsteroidField AsteroidAsteroidField => asteroidAsteroidField;
         public CameraRig CameraRig => cameraRig;
-        public FrameSettings ShipSettings => shipSettings;
         public Commander PlayerCommander => playerCommander;
         public Commander EnemyCommander => enemyCommander;
         public WorldRoot World => world;
