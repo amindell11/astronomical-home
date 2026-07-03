@@ -4,29 +4,19 @@ using Random = UnityEngine.Random;
 namespace Asteroids.Spawning
 {
     /// <summary>
-    /// UnityEngine.Random-based attribute provider, extracted verbatim from the
-    /// old inline rolls in <see cref="AsteroidSpawner"/>. Plain class so the
-    /// math is EditMode-testable without a scene.
+    /// UnityEngine.Random-based attribute roller for the fragment path only —
+    /// fragments have no LUT home, and their rolled outcome is persisted in
+    /// the override overlay, so global randomness is acceptable here. The
+    /// baseline field draws everything from seeded per-asteroid streams
+    /// (<see cref="Fields.Core.AsteroidFieldLayout"/>) instead.
     /// </summary>
-    public class RandomAsteroidAttributeRoller : IAsteroidAttributeProvider
+    public class RandomAsteroidAttributeRoller
     {
         private readonly AsteroidSpawnSettings settings;
 
         public RandomAsteroidAttributeRoller(AsteroidSpawnSettings settings)
         {
             this.settings = settings;
-        }
-
-        /// <summary>Roll a full random asteroid: mesh, mass/scale, velocity, spin.</summary>
-        public AsteroidAttributes Roll()
-        {
-            var meshInfo = GetRandomMeshInfo(settings.meshInfos);
-            var (mass, scale) = CalculateMassAndScale(meshInfo);
-
-            var velocity = RandomVelocity(mass, settings.velocityRange);
-            var angularVelocity = RandomAngularVelocity(mass, settings.spinRange);
-
-            return new AsteroidAttributes(meshInfo, mass, scale, velocity, angularVelocity);
         }
 
         /// <summary>
@@ -45,27 +35,6 @@ namespace Asteroids.Spawning
             if (meshInfos is not { Length: > 0 }) return default;
             var idx = Random.Range(0, meshInfos.Length);
             return meshInfos[idx];
-        }
-
-        private static float VelocityScale(float mass)
-        {
-            return (mass > 0) ? 1f / Mathf.Pow(mass, 1f / 3f) : 1f;
-        }
-
-        private static Vector3 RandomVelocity(float mass, Vector2 velocityRange)
-        {
-            var velocityScale = VelocityScale(mass);
-            return Random.insideUnitCircle.normalized * (Random.Range(velocityRange.x, velocityRange.y) * velocityScale);
-        }
-
-        private static Vector3 RandomAngularVelocity(float mass, Vector2 spinRange)
-        {
-            var velocityScale = VelocityScale(mass);
-            return new Vector3(
-                Random.Range(spinRange.x, spinRange.y) * velocityScale,
-                Random.Range(spinRange.x, spinRange.y) * velocityScale,
-                Random.Range(spinRange.x, spinRange.y) * velocityScale
-            );
         }
 
         private (float finalMass, float finalScale) CalculateMassAndScale(

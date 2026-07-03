@@ -8,25 +8,21 @@ namespace Asteroids.Fields
     {
         protected override void OnDrawGizmosSelected()
         {
-            // Draw the base class gizmos first (initial spawn zone and density check)
+            // Field boundary from the base class.
             base.OnDrawGizmosSelected();
+            if (!settings) return;
 
-            // Now draw our update spawn zone
-            var center = SpawnCenter;
-            center.y = 0f;
+            // Streaming radii around the anchor (the field origin at edit time).
+            var center = transform.position;
 
-            // Draw update spawn zone with different colors
             Gizmos.color = Color.green;
-            Gizmos.DrawWireSphere(center, updateMinSpawnDistance);
+            Gizmos.DrawWireSphere(center, settings.loadRadius);
             Gizmos.color = Color.magenta;
-            Gizmos.DrawWireSphere(center, updateMaxSpawnDistance);
+            Gizmos.DrawWireSphere(center, settings.UnloadRadius);
 
-            // Add labels to distinguish the zones
             Handles.color = Color.white;
-            Handles.Label(center + Vector3.forward * (minSpawnDistance + 2f), "Initial Min");
-            Handles.Label(center + Vector3.forward * (maxSpawnDistance + 2f), "Initial Max");
-            Handles.Label(center + Vector3.forward * (updateMinSpawnDistance + 2f), "Update Min");
-            Handles.Label(center + Vector3.forward * (updateMaxSpawnDistance + 2f), "Update Max");
+            Handles.Label(center + Vector3.forward * (settings.loadRadius + 2f), "Load");
+            Handles.Label(center + Vector3.forward * (settings.UnloadRadius + 2f), "Unload");
         }
     }
 }
