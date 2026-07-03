@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Asteroids.Fragnetics;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 namespace Asteroids.Spawning
 {
@@ -9,7 +8,14 @@ namespace Asteroids.Spawning
     public class AsteroidSpawner : MonoBehaviour
     {
         [SerializeField] private AsteroidSpawnSettings settings;
-        public Registry Registry { get; private set; }
+
+        /// <summary>Attribute-decision seam; swapped for the deterministic provider in PR2.</summary>
+        public RandomAsteroidAttributeRoller AttributeProvider { get; private set; }
+
+        public int ActiveCount => registry.ActiveCount;
+        public float TotalVolume => registry.TotalVolume;
+
+        private Registry registry;
         private SpawnPool pool;
         private Transform worldAnchor;
         private Fragger fragger;
@@ -27,38 +33,37 @@ namespace Asteroids.Spawning
                 return;
             }
             settings.ValidateSettings();
-            Registry = new Registry();
+            registry = new Registry();
             pool = new SpawnPool(settings, transform);
             fragger = GetComponent<Fragger>();
+            AttributeProvider = new RandomAsteroidAttributeRoller(settings);
         }
 
         public void DespawnAll()
         {
             // Snapshot first: Despawn -> Registry.Unregister mutates ActiveAsteroids mid-enumeration.
-            foreach (var a in new List<AsteroidController>(Registry.ActiveAsteroids)) Despawn(a);
+            foreach (var a in new List<AsteroidController>(registry.ActiveAsteroids)) Despawn(a);
         }
 
         public void Despawn(AsteroidController ast)
         {
-            Registry.Unregister(ast);
+            registry.Unregister(ast);
             pool.ReleaseAsteroid(ast);
         }
 
-        public AsteroidController SpawnRandom(Pose pose)
+        public AsteroidController Spawn(Pose pose, in AsteroidAttributes attrs)
         {
             var ast = SpawnAtPose(pose);
-            InitRandomAsteroid(ast);
-            Registry.Register(ast);
+            ast.Initialize(this, fragger, attrs.MeshInfo, attrs.Mass, attrs.Scale, attrs.Velocity, attrs.AngularVelocity);
+            registry.Register(ast);
             return ast;
         }
 
         public AsteroidController SpawnFragment(Frag frag)
         {
             var pose = new Pose(frag.Position, frag.Rotation);
-            var ast = SpawnAtPose(pose);
-            InitFragmentAsteroid(ast, frag.Mass, frag.Velocity, frag.Spin);
-            Registry.Register(ast);
-            return ast;
+            var attrs = AttributeProvider.RollForMass(frag.Mass, frag.Velocity, frag.Spin);
+            return Spawn(pose, attrs);
         }
 
         private AsteroidController SpawnAtPose(Pose pose)
@@ -68,81 +73,6 @@ namespace Asteroids.Spawning
             ast.transform.SetPositionAndRotation(pose.position, pose.rotation);
             ast.SetWorldAnchor(worldAnchor);
             return ast;
-        }
-
-        private void InitRandomAsteroid(AsteroidController asteroid)
-        {
-            var meshInfo = GetRandomMeshInfo(settings.meshInfos);
-            var (mass, scale) = CalculateMassAndScale(meshInfo);
-
-            var velocity = RandomVelocity(mass, settings.velocityRange);
-            var angularVelocity = RandomAngularVelocity(mass, settings.spinRange);
-
-            asteroid.Initialize(this, fragger, meshInfo, mass, scale, velocity, angularVelocity);
-        }
-
-        private void InitFragmentAsteroid(
-            AsteroidController asteroid,
-            float mass,
-            Vector3 velocity,
-            Vector3 angularVelocity)
-        {
-            var meshInfo = GetRandomMeshInfo(settings.meshInfos);
-            var (finalMass, scale) = CalculateMassAndScale(meshInfo, mass);
-            asteroid.Initialize(this, fragger, meshInfo, finalMass, scale, velocity, angularVelocity);
-        }
-
-        private static AsteroidSpawnSettings.MeshInfo GetRandomMeshInfo(AsteroidSpawnSettings.MeshInfo[] meshInfos)
-        {
-            if (meshInfos is not { Length: > 0 }) return default;
-            var idx = Random.Range(0, meshInfos.Length);
-            return meshInfos[idx];
-        }
-
-
-        private static float VelocityScale(float mass)
-        {
-            return (mass > 0) ? 1f / Mathf.Pow(mass, 1f / 3f) : 1f;
-        }
-
-        private static Vector3 RandomVelocity(float mass, Vector2 velocityRange)
-        {
-            var velocityScale = VelocityScale(mass);
-            return Random.insideUnitCircle.normalized * (Random.Range(velocityRange.x, velocityRange.y) * velocityScale);
-        }
-
-        private static Vector3 RandomAngularVelocity(float mass, Vector2 spinRange)
-        {
-            var velocityScale = VelocityScale(mass);
-            return new Vector3(
-                Random.Range(spinRange.x, spinRange.y) * velocityScale,
-                Random.Range(spinRange.x, spinRange.y) * velocityScale,
-                Random.Range(spinRange.x, spinRange.y) * velocityScale
-            );
-        }
-
-        private (float finalMass, float finalScale) CalculateMassAndScale(
-            AsteroidSpawnSettings.MeshInfo meshInfo, float? mass = null)
-        {
-            var baseVolume = meshInfo.cachedVolume;
-            var baseMass = baseVolume * settings.density;
-
-            return mass.HasValue ? ScaleFromMass() : MassFromScale();
-
-            (float finalMass, float finalScale) ScaleFromMass()
-            {
-                var factor = mass.Value / baseMass;
-                var finalScale = Mathf.Pow(factor, 1f / 3f);
-                return (mass.Value, finalScale);
-            }
-
-            (float finalMass, float finalScale) MassFromScale()
-            {
-                var factor = Random.Range(settings.massScaleRange.x, settings.massScaleRange.y);
-                var finalScale = Mathf.Pow(factor, 1f / 3f);
-                var finalMassComputed = baseMass * factor;
-                return (finalMassComputed, finalScale);
-            }
         }
     }
 }
