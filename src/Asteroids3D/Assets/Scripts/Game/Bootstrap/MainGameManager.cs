@@ -79,11 +79,13 @@ namespace Game.Bootstrap
         /// <summary>
         /// Compose a session: service container, optional player/camera/UI rig, presentation
         /// overlay. The rig persists across sector loads; only session teardown removes it.
+        /// Carries no reset policy — what happens on player death is the driver's concern
+        /// (subscribe to <see cref="PlayerRig.RestartRequested"/>), not part of composition.
         /// </summary>
-        internal IEnumerator ComposeSession(GameSession target, Action onPlayerDeathRestart)
+        internal IEnumerator ComposeSession(GameSession target)
         {
             ComposeServices(target);
-            yield return ComposeRigAndPresentation(target, onPlayerDeathRestart);
+            yield return ComposeRigAndPresentation(target);
         }
 
         private void ComposeServices(GameSession target)
@@ -100,12 +102,12 @@ namespace Game.Bootstrap
         // Build the session-tier rig (player, observer camera, UI overlay, world) exactly once,
         // before the first sector loads. It persists across sector restarts and is torn down only on
         // session exit — the sector references the player, it does not own it.
-        private IEnumerator ComposeRigAndPresentation(GameSession target, Action onPlayerDeathRestart)
+        private IEnumerator ComposeRigAndPresentation(GameSession target)
         {
             if (playerRig)
             {
                 target.Rig = playerRig;
-                yield return playerRig.Build(target.Services, buildPlayer, onPlayerDeathRestart);
+                yield return playerRig.Build(target.Services, buildPlayer);
             }
 
             // Game-tier presentation: attach a visual rig to each active ship (player built above, plus
@@ -274,7 +276,13 @@ namespace Game.Bootstrap
 
         private IEnumerator HandleStart()
         {
-            yield return ComposeRigAndPresentation(session, () => TransitionTo(GameState.Restart));
+            yield return ComposeRigAndPresentation(session);
+
+            // Gameplay reset policy: the rig's death→restart request is wired HERE, by the driver —
+            // it is not part of session composition, so an RL driver composing the same session
+            // never inherits it.
+            if (playerRig)
+                playerRig.RestartRequested += RequestSectorRestart;
 
             TransitionTo(GameState.LoadSector);
         }
@@ -286,11 +294,17 @@ namespace Game.Bootstrap
             TransitionTo(GameState.InSector);
         }
 
-        // Gameplay reset policy: a completed sector restarts. An RL driver replaces this hook with
-        // its own terminal condition instead of inheriting it.
-        private void HandleSectorComplete(SectorResult result)
+        // Single gameplay reset hook: every "episode/sector ended" trigger — sector completion and
+        // the rig's player-death restart request — funnels here. An RL driver wires its own terminal
+        // condition to the primitives instead of inheriting this policy.
+        private void RequestSectorRestart()
         {
             TransitionTo(GameState.Restart);
+        }
+
+        private void HandleSectorComplete(SectorResult result)
+        {
+            RequestSectorRestart();
         }
 
         // Restart tears down only the sector's content; the session rig (player/camera/UI/world) and
@@ -308,6 +322,9 @@ namespace Game.Bootstrap
 
         private IEnumerator ExitRoutine()
         {
+            if (playerRig)
+                playerRig.RestartRequested -= RequestSectorRestart;
+
             yield return TeardownSession(session);
             session = null;
         }

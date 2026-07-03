@@ -59,11 +59,19 @@ namespace Player
         public Ship Player { get; private set; }
 
         /// <summary>
+        /// Raised when the rig's death policy is <see cref="PlayerDeathBehavior.RestartSector"/> and
+        /// the player ship dies. The rig only DECLARES that a restart was requested; whoever drives
+        /// the session (the interactive gameplay driver) decides what a restart means. Headless/RL
+        /// sessions build no rig, so this coupling never enters their path.
+        /// </summary>
+        public event System.Action RestartRequested;
+
+        /// <summary>
         /// Build the world/player/camera/UI rig into the session services. Called once, before the
         /// first sector loads. Instances are owned by the services (Unit/Camera/UI/Environment) and
         /// therefore cleared by <c>services.ClearAll()</c> on session exit.
         /// </summary>
-        public IEnumerator Build(IGameServices services, bool buildPlayer, System.Action onPlayerDeathRestart)
+        public IEnumerator Build(IGameServices services, bool buildPlayer)
         {
             // World is singleton infrastructure built before the player/camera, which depend on it.
             if (worldPrefab)
@@ -92,7 +100,7 @@ namespace Player
                     break;
                 case PlayerDeathBehavior.RestartSector:
                     if (Player && Player.Damage)
-                        Player.Damage.OnDeath += (_, _) => onPlayerDeathRestart?.Invoke();
+                        Player.Damage.OnDeath += (_, _) => RestartRequested?.Invoke();
                     break;
                 case PlayerDeathBehavior.None:
                 default:
@@ -138,6 +146,7 @@ namespace Player
         {
             TeardownDebugOverlay();
             Player = null;
+            RestartRequested = null;
         }
 
         // Editor-only debug-overlay installer (PlayerRig.Editor.cs). No-op outside the editor.

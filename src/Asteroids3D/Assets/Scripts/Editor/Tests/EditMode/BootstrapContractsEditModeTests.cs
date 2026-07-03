@@ -6,6 +6,7 @@ using Game.Bootstrap;
 using Game.Sectors;
 using Game.Services;
 using NUnit.Framework;
+using Player;
 using Ships;
 using UnityEngine;
 
@@ -217,6 +218,38 @@ namespace Tests.EditMode
             Assert.IsNotNull(type.GetProperty("ActiveSector"), "GameSession must expose ActiveSector");
             Assert.IsNotNull(type.GetProperty("Rig"), "GameSession must expose Rig");
             Assert.IsNotNull(type.GetProperty("Presentation"), "GameSession must expose Presentation");
+        }
+
+        [Test]
+        public void ComposeSession_CarriesNoResetPolicy()
+        {
+            // Plan C: composition is policy-free. The reset trigger is wired by the driver via
+            // PlayerRig.RestartRequested, never passed through the composition primitive.
+            var method = typeof(MainGameManager).GetMethod("ComposeSession",
+                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+            Assert.IsNotNull(method, "MainGameManager must expose ComposeSession");
+            var parameters = method.GetParameters();
+            Assert.AreEqual(1, parameters.Length,
+                "ComposeSession must take only the session container — no policy callbacks");
+            Assert.AreEqual(typeof(GameSession), parameters[0].ParameterType);
+        }
+
+        [Test]
+        public void PlayerRig_DeclaresRestartAsEventNotCallback()
+        {
+            // The rig only DECLARES that its death policy requested a restart; the driver decides
+            // what a restart means. Build therefore takes no restart callback.
+            var ev = typeof(PlayerRig).GetEvent("RestartRequested");
+            Assert.IsNotNull(ev, "PlayerRig must declare RestartRequested event");
+            Assert.AreEqual(typeof(Action), ev.EventHandlerType);
+
+            var build = typeof(PlayerRig).GetMethod("Build");
+            Assert.IsNotNull(build, "PlayerRig must expose Build");
+            var parameters = build.GetParameters();
+            Assert.AreEqual(2, parameters.Length,
+                "Build must take (services, buildPlayer) only — death policy is not a Build argument");
+            Assert.AreEqual(typeof(IGameServices), parameters[0].ParameterType);
+            Assert.AreEqual(typeof(bool), parameters[1].ParameterType);
         }
 
         [Test]
