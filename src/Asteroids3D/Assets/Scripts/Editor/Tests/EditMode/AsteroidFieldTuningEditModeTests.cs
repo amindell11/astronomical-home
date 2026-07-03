@@ -57,35 +57,44 @@ namespace Tests.EditMode
         [Test]
         public void DensityPreview_WithoutAttributeParams_MatchesFullLayout()
         {
-            // The editor heatmap builds a layout with density params only; it
-            // must sample identically to the fully-parameterized runtime layout.
-            FieldGenerationParams DensityOnly() => new()
+            // The editor heatmap builds its layout from
+            // settings.BuildGenerationParams() alone; it must sample identically
+            // to the runtime layout, which adds the attribute inputs on top.
+            // Exercise the full noise profile so no pipeline stage can drift.
+            var settings = ScriptableObject.CreateInstance<AsteroidFieldSettings>();
+            try
             {
-                CellSize = 40f,
-                AverageAsteroidsPerCell = 6f,
-                NoiseFrequency = 0.35f,
-                DensityMultiplierRange = new Vector2(0.3f, 1.7f),
-                FieldRadius = 400f,
-                MeshVolumes = System.Array.Empty<float>()
-            };
-            var full = DensityOnly();
-            full.MeshVolumes = new[] { 1f, 3f, 8f };
-            full.MeshDensity = 2f;
-            full.MassScaleRange = new Vector2(0.5f, 2f);
-            full.VelocityRange = new Vector2(0.5f, 2f);
-            full.SpinRange = new Vector2(-30f, 30f);
-            full.AmbientDrift = true;
+                settings.noiseOctaves = 4;
+                settings.noiseLacunarity = 2.3f;
+                settings.noisePersistence = 0.55f;
+                settings.ridgedNoise = true;
+                settings.noiseContrast = 2.2f;
+                settings.densityFloor = 0.3f;
+                settings.warpStrength = 1.5f;
+                settings.warpFrequency = 0.11f;
 
-            var preview = new AsteroidFieldLayout(4242, DensityOnly());
-            var runtime = new AsteroidFieldLayout(4242, full);
+                var preview = new AsteroidFieldLayout(4242, settings.BuildGenerationParams());
 
-            for (var cx = -6; cx <= 6; cx += 2)
-            for (var cy = -6; cy <= 6; cy += 2)
+                var full = settings.BuildGenerationParams();
+                full.MeshVolumes = new[] { 1f, 3f, 8f };
+                full.MeshDensity = 2f;
+                full.MassScaleRange = new Vector2(0.5f, 2f);
+                full.VelocityRange = new Vector2(0.5f, 2f);
+                full.SpinRange = new Vector2(-30f, 30f);
+                var runtime = new AsteroidFieldLayout(4242, full);
+
+                for (var cx = -6; cx <= 6; cx += 2)
+                for (var cy = -6; cy <= 6; cy += 2)
+                {
+                    Assert.AreEqual(runtime.DensityMultiplier(cx, cy), preview.DensityMultiplier(cx, cy),
+                        $"multiplier diverged at ({cx},{cy})");
+                    Assert.AreEqual(runtime.CountForCell(cx, cy), preview.CountForCell(cx, cy),
+                        $"count diverged at ({cx},{cy})");
+                }
+            }
+            finally
             {
-                Assert.AreEqual(runtime.DensityMultiplier(cx, cy), preview.DensityMultiplier(cx, cy),
-                    $"multiplier diverged at ({cx},{cy})");
-                Assert.AreEqual(runtime.CountForCell(cx, cy), preview.CountForCell(cx, cy),
-                    $"count diverged at ({cx},{cy})");
+                Object.DestroyImmediate(settings);
             }
         }
     }

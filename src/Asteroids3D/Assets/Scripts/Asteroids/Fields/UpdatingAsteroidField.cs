@@ -105,20 +105,14 @@ namespace Asteroids.Fields
             for (var i = 0; i < meshVolumes.Length; i++)
                 meshVolumes[i] = spawnSettings.meshInfos[i].cachedVolume;
 
-            var layout = new AsteroidFieldLayout(seed, new FieldGenerationParams
-            {
-                CellSize = settings.chunkSize,
-                AverageAsteroidsPerCell = settings.averageAsteroidsPerCell,
-                NoiseFrequency = settings.noiseFrequency,
-                DensityMultiplierRange = settings.densityMultiplierRange,
-                FieldRadius = settings.fieldRadius,
-                MeshVolumes = meshVolumes,
-                MeshDensity = spawnSettings.density,
-                MassScaleRange = spawnSettings.massScaleRange,
-                VelocityRange = spawnSettings.velocityRange,
-                SpinRange = spawnSettings.spinRange,
-                AmbientDrift = settings.ambientDrift
-            });
+            var genParams = settings.BuildGenerationParams();
+            genParams.MeshVolumes = meshVolumes;
+            genParams.MeshDensity = spawnSettings.density;
+            genParams.MassScaleRange = spawnSettings.massScaleRange;
+            genParams.VelocityRange = spawnSettings.velocityRange;
+            genParams.SpinRange = spawnSettings.spinRange;
+
+            var layout = new AsteroidFieldLayout(seed, genParams);
             Model = new AsteroidFieldModel(layout);
             streamer = new ChunkStreamer(settings.chunkSize, loadRadius, unloadRadius);
             fieldOriginPlane = GamePlane.WorldPointToPlane(transform.position);

@@ -52,16 +52,9 @@ namespace Asteroids.Fields
 
             if (previewLayout == null || previewSettingsVersion != settings.Version || previewSeed != seed)
             {
-                previewLayout = new AsteroidFieldLayout(seed, new FieldGenerationParams
-                {
-                    CellSize = settings.chunkSize,
-                    AverageAsteroidsPerCell = settings.averageAsteroidsPerCell,
-                    NoiseFrequency = settings.noiseFrequency,
-                    DensityMultiplierRange = settings.densityMultiplierRange,
-                    FieldRadius = settings.fieldRadius,
-                    // Attribute inputs don't influence density/counts.
-                    MeshVolumes = System.Array.Empty<float>()
-                });
+                // Attribute inputs (mesh volumes etc.) don't influence density,
+                // so the settings-built params alone give an exact preview.
+                previewLayout = new AsteroidFieldLayout(seed, settings.BuildGenerationParams());
                 previewSettingsVersion = settings.Version;
                 previewSeed = seed;
             }
@@ -78,9 +71,18 @@ namespace Asteroids.Fields
             {
                 if (center.magnitude > settings.fieldRadius) return;
                 var multiplier = layout.DensityMultiplier(cx, cy);
-                var t = Mathf.InverseLerp(settings.densityMultiplierRange.x, settings.densityMultiplierRange.y, multiplier);
-                var color = Color.Lerp(new Color(0.1f, 0.3f, 1f), new Color(1f, 0.25f, 0.1f), t);
-                color.a = HeatmapAlpha;
+                Color color;
+                if (multiplier <= 0f)
+                {
+                    // True void (below the density floor): near-black.
+                    color = new Color(0f, 0f, 0f, HeatmapAlpha * 0.75f);
+                }
+                else
+                {
+                    var t = Mathf.InverseLerp(settings.densityMultiplierRange.x, settings.densityMultiplierRange.y, multiplier);
+                    color = Color.Lerp(new Color(0.1f, 0.3f, 1f), new Color(1f, 0.25f, 0.1f), t);
+                    color.a = HeatmapAlpha;
+                }
 
                 Handles.DrawSolidRectangleWithOutline(CellCorners(cx, cy, cell, originPlane), color, Color.clear);
             });

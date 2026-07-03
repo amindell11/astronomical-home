@@ -18,6 +18,18 @@ namespace Asteroids.Fields.Core
         public Vector2 DensityMultiplierRange;
         public float FieldRadius;
 
+        // Noise profile. Struct defaults (0/false) are normalized by the
+        // layout to the neutral profile: 1 octave, no ridging, contrast 1,
+        // no floor, no warp — i.e. plain single-octave Perlin.
+        public int NoiseOctaves;
+        public float NoiseLacunarity;
+        public float NoisePersistence;
+        public bool RidgedNoise;
+        public float NoiseContrast;
+        public float DensityFloor;
+        public float WarpStrength;
+        public float WarpFrequency;
+
         public float[] MeshVolumes;
         public float MeshDensity;
         public Vector2 MassScaleRange;
@@ -52,9 +64,17 @@ namespace Asteroids.Fields.Core
     /// </summary>
     public class AsteroidFieldLayout
     {
+        private const int MaxOctaves = 8;
+
         private readonly int seed;
         private readonly FieldGenerationParams p;
-        private readonly Vector2 noiseOffset;
+        private readonly Vector2[] octaveOffsets;
+        private readonly Vector2 warpOffsetX;
+        private readonly Vector2 warpOffsetY;
+        private readonly int octaves;
+        private readonly float lacunarity;
+        private readonly float persistence;
+        private readonly float contrast;
 
         public float CellSize => p.CellSize;
         public float FieldRadius => p.FieldRadius;
@@ -63,21 +83,88 @@ namespace Asteroids.Fields.Core
         {
             this.seed = seed;
             p = generationParams;
+
+            // Normalize struct-default (zeroed) profile values to the neutral profile.
+            octaves = Mathf.Clamp(p.NoiseOctaves < 1 ? 1 : p.NoiseOctaves, 1, MaxOctaves);
+            lacunarity = p.NoiseLacunarity <= 0f ? 2f : p.NoiseLacunarity;
+            persistence = p.NoisePersistence <= 0f ? 0.5f : p.NoisePersistence;
+            contrast = p.NoiseContrast <= 0f ? 1f : p.NoiseContrast;
+
+            // The first octave's offsets are drawn exactly like the original
+            // single-octave field, so the neutral profile reproduces it.
             var offsetRng = new DeterministicRandom(DeterministicRandom.Hash(seed, 91, 17));
-            noiseOffset = new Vector2(offsetRng.Range(0f, 4096f), offsetRng.Range(0f, 4096f));
+            octaveOffsets = new Vector2[octaves];
+            for (var o = 0; o < octaves; o++)
+                octaveOffsets[o] = new Vector2(offsetRng.Range(0f, 4096f), offsetRng.Range(0f, 4096f));
+            var warpRng = new DeterministicRandom(DeterministicRandom.Hash(seed, 47, 101));
+            warpOffsetX = new Vector2(warpRng.Range(0f, 4096f), warpRng.Range(0f, 4096f));
+            warpOffsetY = new Vector2(warpRng.Range(0f, 4096f), warpRng.Range(0f, 4096f));
         }
 
         public Vector2Int CellOf(Vector2 planePos) => new(
             Mathf.FloorToInt(planePos.x / p.CellSize),
             Mathf.FloorToInt(planePos.y / p.CellSize));
 
-        /// <summary>Perlin-modulated density multiplier sampled at the cell (organic clumps/voids).</summary>
+        /// <summary>
+        /// Density multiplier sampled at the cell. Shaped noise below the
+        /// density floor produces exactly 0 (true void); everything else maps
+        /// into the authored multiplier range.
+        /// </summary>
         public float DensityMultiplier(int cellX, int cellY)
         {
-            var noise = Mathf.PerlinNoise(
-                noiseOffset.x + (cellX + 0.5f) * p.NoiseFrequency,
-                noiseOffset.y + (cellY + 0.5f) * p.NoiseFrequency);
-            return Mathf.Lerp(p.DensityMultiplierRange.x, p.DensityMultiplierRange.y, Mathf.Clamp01(noise));
+            var shaped = SampleShapedNoise(cellX + 0.5f, cellY + 0.5f);
+            if (shaped < 0f) return 0f; // below the coverage floor: true void
+            return Mathf.Lerp(p.DensityMultiplierRange.x, p.DensityMultiplierRange.y, shaped);
+        }
+
+        /// <summary>
+        /// The full noise pipeline in cell coordinates: domain warp → fBm
+        /// octaves (optionally ridged) → contrast exponent → coverage floor.
+        /// Returns 0..1, or -1 when below the floor (empty corridor).
+        /// </summary>
+        private float SampleShapedNoise(float x, float y)
+        {
+            if (p.WarpStrength > 0f && p.WarpFrequency > 0f)
+            {
+                // Two decorrelated noise fields bend the sample domain,
+                // turning straight filaments into organic swirls.
+                var wx = Mathf.PerlinNoise(warpOffsetX.x + x * p.WarpFrequency, warpOffsetX.y + y * p.WarpFrequency) - 0.5f;
+                var wy = Mathf.PerlinNoise(warpOffsetY.x + x * p.WarpFrequency, warpOffsetY.y + y * p.WarpFrequency) - 0.5f;
+                x += wx * 2f * p.WarpStrength;
+                y += wy * 2f * p.WarpStrength;
+            }
+
+            var sum = 0f;
+            var norm = 0f;
+            var amplitude = 1f;
+            var frequency = p.NoiseFrequency;
+            for (var o = 0; o < octaves; o++)
+            {
+                var n = Mathf.Clamp01(Mathf.PerlinNoise(
+                    octaveOffsets[o].x + x * frequency,
+                    octaveOffsets[o].y + y * frequency));
+                // Ridged: fold around the midline so noise ridges become
+                // sharp bright filaments — the "tight spindle" shape.
+                if (p.RidgedNoise) n = 1f - Mathf.Abs(2f * n - 1f);
+                sum += n * amplitude;
+                norm += amplitude;
+                amplitude *= persistence;
+                frequency *= lacunarity;
+            }
+            var shaped = norm > 0f ? sum / norm : 0f;
+
+            // Contrast >1 crushes midtones so only peaks keep density.
+            shaped = Mathf.Pow(shaped, contrast);
+
+            // Coverage floor: below it is a true void; above renormalizes to
+            // keep the full multiplier range reachable.
+            var floor = Mathf.Clamp01(p.DensityFloor);
+            if (floor > 0f)
+            {
+                if (shaped <= floor) return -1f;
+                shaped = (shaped - floor) / (1f - floor);
+            }
+            return Mathf.Clamp01(shaped);
         }
 
         /// <summary>Deterministic asteroid count for a cell, before field-radius culling.</summary>

@@ -19,6 +19,24 @@ namespace Asteroids.Fields
         [Tooltip("Seeded ambient drift/spin for visual life; home positions stay the truth on reload")]
         public bool ambientDrift = true;
 
+        [Header("Noise Profile")]
+        [Tooltip("fBm harmonics: more octaves = clumps get multi-scale internal structure")]
+        [Range(1, 8)] public int noiseOctaves = 3;
+        [Tooltip("Frequency step per octave (~2 = each harmonic twice as fine)")]
+        public float noiseLacunarity = 2f;
+        [Tooltip("Amplitude falloff per octave (~0.5 = each harmonic half as strong)")]
+        [Range(0.05f, 1f)] public float noisePersistence = 0.5f;
+        [Tooltip("Fold octaves around the midline so noise ridges become tight filaments/spindles")]
+        public bool ridgedNoise;
+        [Tooltip("Exponent on the combined noise: >1 crushes midtones so only peaks keep density (higher contrast)")]
+        [Range(0.2f, 6f)] public float noiseContrast = 1f;
+        [Tooltip("Shaped noise below this is a TRUE void (zero asteroids) — carves wide-open corridors")]
+        [Range(0f, 0.9f)] public float densityFloor;
+        [Tooltip("Domain warp displacement in cells (0 = off): bends filaments into organic swirls")]
+        public float warpStrength;
+        [Tooltip("Frequency of the warp field, per cell")]
+        public float warpFrequency = 0.12f;
+
         [Header("Streaming")]
         [Tooltip("Chunks whose center enters this radius around the anchor are loaded")]
         public float loadRadius = 80f;
@@ -39,6 +57,33 @@ namespace Asteroids.Fields
         /// the live-tuning loop for field shape/size.
         /// </summary>
         [System.NonSerialized] public int Version;
+
+        /// <summary>
+        /// The layout/noise inputs of the generation params, built in ONE place
+        /// so the runtime field, the editor heatmap preview and tests can never
+        /// drift apart. Attribute inputs (mesh volumes etc.) are filled in by
+        /// the field from its spawn settings.
+        /// </summary>
+        public Core.FieldGenerationParams BuildGenerationParams()
+        {
+            return new Core.FieldGenerationParams
+            {
+                CellSize = chunkSize,
+                AverageAsteroidsPerCell = averageAsteroidsPerCell,
+                NoiseFrequency = noiseFrequency,
+                DensityMultiplierRange = densityMultiplierRange,
+                FieldRadius = fieldRadius,
+                NoiseOctaves = noiseOctaves,
+                NoiseLacunarity = noiseLacunarity,
+                NoisePersistence = noisePersistence,
+                RidgedNoise = ridgedNoise,
+                NoiseContrast = noiseContrast,
+                DensityFloor = densityFloor,
+                WarpStrength = warpStrength,
+                WarpFrequency = warpFrequency,
+                AmbientDrift = ambientDrift
+            };
+        }
 
         /// <summary>
         /// Computed worst-case simultaneously-loaded baseline count (full unload

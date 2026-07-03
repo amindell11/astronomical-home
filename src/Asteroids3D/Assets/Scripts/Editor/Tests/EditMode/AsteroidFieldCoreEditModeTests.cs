@@ -359,6 +359,123 @@ namespace Tests.EditMode
             CollectionAssert.AreEqual(initial, reloadedNearOrigin);
         }
 
+        // ── Noise profile shaping (octaves / ridged / contrast / floor / warp) ──
+
+        private static FieldGenerationParams SpindleParams()
+        {
+            var p = DefaultParams();
+            p.NoiseOctaves = 4;
+            p.NoiseLacunarity = 2.2f;
+            p.NoisePersistence = 0.5f;
+            p.RidgedNoise = true;
+            p.NoiseContrast = 2.5f;
+            p.DensityFloor = 0.35f;
+            p.WarpStrength = 1.5f;
+            p.WarpFrequency = 0.11f;
+            return p;
+        }
+
+        [Test]
+        public void NoiseProfile_FullPipeline_IsDeterministic()
+        {
+            var a = new AsteroidFieldLayout(Seed, SpindleParams());
+            var b = new AsteroidFieldLayout(Seed, SpindleParams());
+            for (var cx = -4; cx <= 4; cx++)
+            for (var cy = -4; cy <= 4; cy++)
+                Assert.AreEqual(a.DensityMultiplier(cx, cy), b.DensityMultiplier(cx, cy));
+
+            var specsA = Generate(a, 0, 0);
+            var specsB = Generate(b, 0, 0);
+            Assert.AreEqual(specsA.Count, specsB.Count);
+            for (var i = 0; i < specsA.Count; i++) AssertSpecsEqual(specsA[i], specsB[i]);
+        }
+
+        [Test]
+        public void NeutralProfile_MatchesStructDefaults()
+        {
+            // Explicit neutral profile must normalize to the same output as an
+            // all-zero (struct default) profile — the back-compat guarantee.
+            var neutral = DefaultParams();
+            neutral.NoiseOctaves = 1;
+            neutral.NoiseLacunarity = 2f;
+            neutral.NoisePersistence = 0.5f;
+            neutral.NoiseContrast = 1f;
+
+            var a = new AsteroidFieldLayout(Seed, DefaultParams());
+            var b = new AsteroidFieldLayout(Seed, neutral);
+            for (var cx = -5; cx <= 5; cx++)
+            for (var cy = -5; cy <= 5; cy++)
+                Assert.AreEqual(a.DensityMultiplier(cx, cy), b.DensityMultiplier(cx, cy));
+        }
+
+        [Test]
+        public void ContrastAboveOne_LowersMeanDensity()
+        {
+            var flat = DefaultParams();
+            var punchy = DefaultParams();
+            punchy.NoiseContrast = 3f;
+            var a = new AsteroidFieldLayout(Seed, flat);
+            var b = new AsteroidFieldLayout(Seed, punchy);
+
+            float meanA = 0f, meanB = 0f;
+            var count = 0;
+            for (var cx = -15; cx <= 15; cx++)
+            for (var cy = -15; cy <= 15; cy++)
+            {
+                meanA += a.DensityMultiplier(cx, cy);
+                meanB += b.DensityMultiplier(cx, cy);
+                count++;
+            }
+            Assert.Less(meanB / count, meanA / count,
+                "contrast > 1 must crush midtones toward the range minimum (peakier field)");
+        }
+
+        [Test]
+        public void DensityFloor_CarvesTrueVoids()
+        {
+            var p = DefaultParams();
+            p.NoiseContrast = 2f;
+            p.DensityFloor = 0.5f;
+            var layout = new AsteroidFieldLayout(Seed, p);
+
+            var voids = 0;
+            var occupied = 0;
+            for (var cx = -15; cx <= 15; cx++)
+            for (var cy = -15; cy <= 15; cy++)
+            {
+                var m = layout.DensityMultiplier(cx, cy);
+                if (m <= 0f)
+                {
+                    voids++;
+                    Assert.AreEqual(0, layout.CountForCell(cx, cy), "void cells must spawn nothing");
+                }
+                else
+                {
+                    occupied++;
+                    Assert.That(m, Is.InRange(0.3f, 1.7f), "non-void cells stay in the authored range");
+                }
+            }
+            Assert.Greater(voids, 0, "a 0.5 floor should carve some true voids");
+            Assert.Greater(occupied, 0, "and still leave occupied cells");
+        }
+
+        [Test]
+        public void DomainWarp_ChangesThePattern()
+        {
+            var straight = SpindleParams();
+            straight.WarpStrength = 0f;
+            var warped = SpindleParams();
+
+            var a = new AsteroidFieldLayout(Seed, straight);
+            var b = new AsteroidFieldLayout(Seed, warped);
+
+            var anyDifferent = false;
+            for (var cx = -10; cx <= 10 && !anyDifferent; cx++)
+            for (var cy = -10; cy <= 10 && !anyDifferent; cy++)
+                anyDifferent = !Mathf.Approximately(a.DensityMultiplier(cx, cy), b.DensityMultiplier(cx, cy));
+            Assert.IsTrue(anyDifferent, "warp must actually displace the sample domain");
+        }
+
         // ── Deterministic RNG sanity ─────────────────────────────────────────────
 
         [Test]
