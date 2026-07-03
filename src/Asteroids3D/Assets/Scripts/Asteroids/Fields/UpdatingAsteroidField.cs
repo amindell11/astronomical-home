@@ -23,6 +23,10 @@ namespace Asteroids.Fields
         [Tooltip("Authored layout seed for this placed field. Two sectors sharing the same settings asset still get distinct layouts by varying this.")]
         [SerializeField] private int seed = 12345;
 
+        [Header("Debug Visualization (editor gizmos)")]
+        [SerializeField] private bool drawChunkGizmos = true;
+        [SerializeField] private bool drawNoiseHeatmap = true;
+
         public Func<Vector3> CurrentAnchorPos { private get; set; }
 
         /// <summary>Headless core, exposed for tests and tooling.</summary>
@@ -32,6 +36,8 @@ namespace Asteroids.Fields
         private ChunkStreamer streamer;
         private Vector2 fieldOriginPlane;
         private bool initialized;
+        private int appliedSettingsVersion;
+        private bool rebuildRequested;
 
         // Cached settings
         protected float loadRadius;
@@ -85,6 +91,13 @@ namespace Asteroids.Fields
             SetWorldAnchor(follower ? follower.transform : null);
             CurrentAnchorPos ??= () => transform.position;
 
+            InitializeField();
+        }
+
+        private void InitializeField()
+        {
+            CacheSettings();
+
             var spawnSettings = AsteroidSpawner ? AsteroidSpawner.Settings : null;
             if (!settings || !spawnSettings || spawnSettings.meshInfos is not { Length: > 0 }) return;
 
@@ -92,30 +105,50 @@ namespace Asteroids.Fields
             for (var i = 0; i < meshVolumes.Length; i++)
                 meshVolumes[i] = spawnSettings.meshInfos[i].cachedVolume;
 
-            var layout = new AsteroidFieldLayout(seed, new FieldGenerationParams
-            {
-                CellSize = settings.chunkSize,
-                AverageAsteroidsPerCell = settings.averageAsteroidsPerCell,
-                NoiseFrequency = settings.noiseFrequency,
-                DensityMultiplierRange = settings.densityMultiplierRange,
-                FieldRadius = settings.fieldRadius,
-                MeshVolumes = meshVolumes,
-                MeshDensity = spawnSettings.density,
-                MassScaleRange = spawnSettings.massScaleRange,
-                VelocityRange = spawnSettings.velocityRange,
-                SpinRange = spawnSettings.spinRange,
-                AmbientDrift = settings.ambientDrift
-            });
+            var genParams = settings.BuildGenerationParams();
+            genParams.MeshVolumes = meshVolumes;
+            genParams.MeshDensity = spawnSettings.density;
+            genParams.MassScaleRange = spawnSettings.massScaleRange;
+            genParams.VelocityRange = spawnSettings.velocityRange;
+            genParams.SpinRange = spawnSettings.spinRange;
+
+            var layout = new AsteroidFieldLayout(seed, genParams);
             Model = new AsteroidFieldModel(layout);
             streamer = new ChunkStreamer(settings.chunkSize, loadRadius, unloadRadius);
             fieldOriginPlane = GamePlane.WorldPointToPlane(transform.position);
 
             AsteroidSpawner.PreSizePool(settings.WorstCaseLoadedCount());
+            AsteroidSpawner.OnFragmentSpawned -= HandleFragmentSpawned;
             AsteroidSpawner.OnFragmentSpawned += HandleFragmentSpawned;
+            appliedSettingsVersion = settings.Version;
+            rebuildRequested = false;
             initialized = true;
 
             // Initial fill is synchronous (unbudgeted), like the old field's Start-time spawn burst.
             StepStreaming(int.MaxValue);
+        }
+
+        /// <summary>
+        /// Live-tuning support: tears everything down (including the overlay —
+        /// stable IDs are derived from the layout, so edits invalidate it) and
+        /// regenerates from the current settings/seed. Triggered automatically
+        /// when the settings asset or seed is edited in the inspector.
+        /// </summary>
+        [ContextMenu("Rebuild Field")]
+        public void RebuildField()
+        {
+            if (!initialized) return;
+            DespawnAll();
+            initialized = false;
+            InitializeField();
+        }
+
+        private void OnValidate()
+        {
+            // Editor-only Unity message; covers inspector edits to component
+            // fields (seed, toggles). Cleared by InitializeField so the
+            // load-time OnValidate never triggers a spurious rebuild.
+            rebuildRequested = true;
         }
 
         private void OnDestroy()
@@ -126,6 +159,11 @@ namespace Asteroids.Fields
         private void Update()
         {
             if (!initialized) return;
+            if (rebuildRequested || (settings && settings.Version != appliedSettingsVersion))
+            {
+                RebuildField();
+                return;
+            }
             StepStreaming(maxSpawnsPerFrame);
         }
 

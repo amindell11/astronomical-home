@@ -12,13 +12,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 05c351aee451e594c9ffd819289ea8d6, type: 3}
   m_Name: BigFieldSettings
   m_EditorClassIdentifier: 
-  chunkSize: 40
-  noiseFrequency: 0.35
-  averageAsteroidsPerCell: 6
-  densityMultiplierRange: {x: 0.3, y: 1.7}
-  fieldRadius: 400
+  chunkSize: 10
+  noiseFrequency: 0.3
+  averageAsteroidsPerCell: 6.2
+  densityMultiplierRange: {x: 0.09, y: 0.25}
+  fieldRadius: 406.5
   ambientDrift: 1
-  loadRadius: 80
+  noiseOctaves: 3
+  noiseLacunarity: 2
+  noisePersistence: 0.5
+  ridgedNoise: 1
+  noiseContrast: 1.8
+  densityFloor: 0.25
+  warpStrength: 1.2
+  warpFrequency: 0.12
+  loadRadius: 51
   unloadRadiusMultiplier: 1.5
   maxSpawnsPerFrame: 10
   maxAsteroids: 600

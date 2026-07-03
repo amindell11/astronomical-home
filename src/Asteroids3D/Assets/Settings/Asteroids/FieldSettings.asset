@@ -18,6 +18,14 @@ MonoBehaviour:
   densityMultiplierRange: {x: 0.3, y: 1.7}
   fieldRadius: 400
   ambientDrift: 1
+  noiseOctaves: 3
+  noiseLacunarity: 2
+  noisePersistence: 0.5
+  ridgedNoise: 1
+  noiseContrast: 1.8
+  densityFloor: 0.25
+  warpStrength: 1.2
+  warpFrequency: 0.12
   loadRadius: 80
   unloadRadiusMultiplier: 1.5
   maxSpawnsPerFrame: 10
