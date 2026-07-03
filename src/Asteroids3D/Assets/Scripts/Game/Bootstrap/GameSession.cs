@@ -27,7 +27,12 @@ namespace Game.Bootstrap
         /// <summary>The currently loaded sector, if any.</summary>
         public Sector ActiveSector { get; internal set; }
 
-        /// <summary>Completion handler subscribed at load time, so unload can detach the same delegate.</summary>
-        internal Action<SectorResult> SectorCompleteHandler { get; set; }
+        /// <summary>
+        /// "Episode/sector ended" policy hook, set once by the driver before the first load
+        /// (gameplay wires restart; an RL driver wires its terminal condition, or leaves it null and
+        /// polls). LoadSector subscribes it to the sector and UnloadSector detaches it, so do not
+        /// reassign while a sector is loaded.
+        /// </summary>
+        public Action<SectorResult> OnSectorComplete { get; set; }
     }
 }

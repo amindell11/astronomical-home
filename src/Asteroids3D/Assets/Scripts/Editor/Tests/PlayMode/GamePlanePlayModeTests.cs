@@ -14,6 +14,11 @@ public class GamePlanePlayModeTests : PlayModeWorldFixture
     // Override to disable audio pause for these lightweight tests
     protected override bool PauseAudio => false;
 
+    // NOTE: never `yield` while GamePlane is unconfigured. Objects leaked by earlier tests
+    // (seen: pooled ProjectileBase via PlaneConstraints) tick during yielded frames and their
+    // GamePlane access throws, failing THIS test. Reset only where no frame can run afterwards
+    // (synchronous tests, or after the final yield — TearDown's CleanupTestArena resets anyway).
+
     [Test]
     public void GamePlane_UnconfiguredAccess_Throws()
     {
@@ -38,9 +43,7 @@ public class GamePlanePlayModeTests : PlayModeWorldFixture
         Assert.AreEqual(Vector3.right, GamePlane.Right);
         Assert.AreEqual(new Vector3(10, 0, 5), GamePlane.Origin);
 
-        // Cleanup
-        GamePlane.Reset();
-
+        // Yield while still configured; TearDown resets GamePlane synchronously afterwards.
         yield return null;
     }
 
@@ -61,9 +64,7 @@ public class GamePlanePlayModeTests : PlayModeWorldFixture
         Assert.That(worldPointBack.x, Is.EqualTo(worldPoint.x).Within(0.01f));
         Assert.That(worldPointBack.z, Is.EqualTo(worldPoint.z).Within(0.01f));
 
-        // Cleanup
-        GamePlane.Reset();
-
+        // Yield while still configured; TearDown resets GamePlane synchronously afterwards.
         yield return null;
     }
 }
