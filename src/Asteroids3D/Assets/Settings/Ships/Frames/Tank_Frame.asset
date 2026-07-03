@@ -16,6 +16,7 @@ MonoBehaviour:
   startingLives: 1
   maxHealth: 250
   maxBankAngle: 20
-  shipRadius: 1
+  size: 1
+  visualRig: {fileID: 0}
   defaultEngine: {fileID: 11400000, guid: 150832d78ce14857bbab7ba851d18bad, type: 2}
   defaultShield: {fileID: 11400000, guid: bdddc3c9c4f441b18693895c83a57986, type: 2}

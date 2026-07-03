@@ -20927,7 +20927,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 67188210c0b7f614089a327a9a1ca7a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settings: {fileID: 11400000, guid: 0ba2aaac14bc4826937d9a34eb23131b, type: 2}
+  frame: {fileID: 11400000, guid: 0ba2aaac14bc4826937d9a34eb23131b, type: 2}
+  engine: {fileID: 0}
+  shield: {fileID: 0}
   teamNumber: 0
 --- !u!114 &-3878361978911940446
 MonoBehaviour:
@@ -20944,7 +20946,6 @@ MonoBehaviour:
   enableDebugLogs: 0
   showMovementGizmos: 1
   movementGizmoScale: 3
-  meshTransform: {fileID: 0}
 --- !u!114 &-2355966110245288272
 MonoBehaviour:
   m_ObjectHideFlags: 0

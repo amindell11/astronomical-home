@@ -10,13 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1f0ca8ccaf624c7bacd375edc566145d, type: 3}
-  m_Name: Fast_Frame
+  m_Name: Ship2_Frame
   m_EditorClassIdentifier: 
-  mass: 500
+  mass: 800
   startingLives: 1
-  maxHealth: 60
-  maxBankAngle: 50
-  size: 1
-  visualRig: {fileID: 0}
-  defaultEngine: {fileID: 11400000, guid: 2f170d2182e848688046cf6ed03294a2, type: 2}
-  defaultShield: {fileID: 11400000, guid: 66aeed18377449ea9b4cb90f7d4b931d, type: 2}
+  maxHealth: 100
+  maxBankAngle: 35
+  size: 1.2
+  visualRig: {fileID: 6985481256910270464, guid: fef81fc890b746e8a6ac0fce4cbd82f1,
+    type: 3}
+  defaultEngine: {fileID: 11400000, guid: 9a0a0db8a855481cbdd5d1ad3cd8e04f, type: 2}
+  defaultShield: {fileID: 11400000, guid: b1d2f66ceaf747c4a837ab13d0fd71bc, type: 2}

@@ -15,7 +15,6 @@ GameObject:
   - component: {fileID: 8323755265108850685}
   - component: {fileID: 3463944397451626889}
   - component: {fileID: 4935107101280334435}
-  - component: {fileID: 1844412981673342992}
   m_Layer: 7
   m_Name: Ship_1
   m_TagString: Ship
@@ -33,7 +32,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.35, y: 1.35, z: 1.35}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 314116195773112417}
@@ -79,7 +78,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 67188210c0b7f614089a327a9a1ca7a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settings: {fileID: 11400000, guid: d13d1fbc6c8e4f6686f856197f2b6fc9, type: 2}
+  frame: {fileID: 11400000, guid: d13d1fbc6c8e4f6686f856197f2b6fc9, type: 2}
+  engine: {fileID: 0}
+  shield: {fileID: 0}
   teamNumber: 0
 --- !u!114 &8752571619316856911
 MonoBehaviour:
@@ -140,20 +141,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a66eca76d4f648968a2e29db340330aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &1844412981673342992
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 579888702181409527}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 612f7217e7b9576429d612c64667f11e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  visualRigPrefab: {fileID: 3329361744963321735, guid: 7ea4dac0955778f47b9d2b953f107848,
-    type: 3}
 --- !u!1 &2915261707296390090
 GameObject:
   m_ObjectHideFlags: 0
