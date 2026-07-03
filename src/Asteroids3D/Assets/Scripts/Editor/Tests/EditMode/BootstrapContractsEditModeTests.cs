@@ -186,6 +186,53 @@ namespace Tests.EditMode
             Assert.IsNotNull(ev, "MainGameManager must declare OnGameStateChanged event");
         }
 
+        // --- Lifecycle primitives (bootstrap/session decoupling) ---
+
+        [Test]
+        public void MainGameManager_ExposesDriverAgnosticLifecyclePrimitives()
+        {
+            // The primitives are the seam an RL/headless driver reuses; each takes the explicit
+            // per-session container (not a process singleton) and returns a coroutine.
+            var flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
+            foreach (var name in new[] { "ComposeSession", "LoadSector", "ResetSector", "TeardownSession" })
+            {
+                var method = typeof(MainGameManager).GetMethod(name, flags);
+                Assert.IsNotNull(method, $"MainGameManager must expose lifecycle primitive {name}");
+                Assert.AreEqual(typeof(IEnumerator), method.ReturnType,
+                    $"{name} must be a coroutine (IEnumerator)");
+                var parameters = method.GetParameters();
+                Assert.GreaterOrEqual(parameters.Length, 1, $"{name} must take the session container");
+                Assert.AreEqual(typeof(GameSession), parameters[0].ParameterType,
+                    $"{name} must take GameSession as its first parameter (per-instance shaping)");
+            }
+        }
+
+        [Test]
+        public void GameSession_ExposesPerSessionState()
+        {
+            var type = typeof(GameSession);
+            Assert.IsFalse(typeof(MonoBehaviour).IsAssignableFrom(type),
+                "GameSession is a plain container, not a scene object");
+            Assert.IsNotNull(type.GetProperty("Services"), "GameSession must expose Services");
+            Assert.IsNotNull(type.GetProperty("ActiveSector"), "GameSession must expose ActiveSector");
+            Assert.IsNotNull(type.GetProperty("Rig"), "GameSession must expose Rig");
+            Assert.IsNotNull(type.GetProperty("Presentation"), "GameSession must expose Presentation");
+        }
+
+        [Test]
+        public void MainGameManager_DoesNotLookUpSiblingServicesOutsideAwake()
+        {
+            // Injection hygiene (plan §A): the sibling MonoBehaviour services are cached in Awake;
+            // no GetComponent calls mid-lifecycle.
+            var source = System.IO.File.ReadAllText(System.IO.Path.Combine(
+                Application.dataPath, "Scripts", "Game", "Bootstrap", "MainGameManager.cs"));
+            var awakeStart = source.IndexOf("private void Awake()", StringComparison.Ordinal);
+            Assert.GreaterOrEqual(awakeStart, 0, "MainGameManager must declare Awake");
+            var lastLookup = source.LastIndexOf("GetComponent<", StringComparison.Ordinal);
+            Assert.Less(lastLookup, source.IndexOf('}', awakeStart),
+                "GetComponent lookups must not appear after Awake's body");
+        }
+
         [Test]
         public void MainGameManager_Awake_CallsDontDestroyOnLoad()
         {
