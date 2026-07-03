@@ -5,6 +5,11 @@ namespace Asteroids.Fields
     [CreateAssetMenu(fileName = "AsteroidFieldSettings", menuName = "Asteroid/Field Settings")]
     public class AsteroidFieldSettings : ScriptableObject
     {
+        // NOTE: The annulus/timer fields below (spawn zones, density timing) are
+        // slated for removal when the deterministic streaming field lands
+        // (doc/Feature_Plans/Deterministic_Asteroid_Field.md, PR2). Don't build
+        // new dependencies on them.
+
         [Header("Asteroid Population")]
         [Tooltip("Maximum number of asteroids that can exist in the field")]
         public int maxAsteroids = 200;

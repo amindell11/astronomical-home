@@ -73,13 +73,14 @@ namespace Asteroids.Fields
         {
             if (!AsteroidSpawner) return;
             var safetyBreak = spawnsPerFrame;
-            while (AsteroidSpawner.Registry.TotalVolume < TargetVolume &&
-                   AsteroidSpawner.Registry.ActiveCount < maxAsteroids &&
+            while (AsteroidSpawner.TotalVolume < TargetVolume &&
+                   AsteroidSpawner.ActiveCount < maxAsteroids &&
                    safetyBreak > 0)
             {
                 var pos = GetRandomFieldPos(minSpawn, maxSpawn);
                 var rot = Random.rotationUniform;
-                AsteroidSpawner.SpawnRandom(new Pose(pos,rot));
+                var attrs = AsteroidSpawner.AttributeProvider.Roll();
+                AsteroidSpawner.Spawn(new Pose(pos, rot), attrs);
                 safetyBreak--;
             }
         }
