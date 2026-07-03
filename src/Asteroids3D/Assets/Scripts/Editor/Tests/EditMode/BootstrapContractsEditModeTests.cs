@@ -195,7 +195,7 @@ namespace Tests.EditMode
             // The primitives are the seam an RL/headless driver reuses; each takes the explicit
             // per-session container (not a process singleton) and returns a coroutine.
             var flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
-            foreach (var name in new[] { "ComposeSession", "LoadSector", "ResetSector", "TeardownSession" })
+            foreach (var name in new[] { "ComposeSession", "LoadSector", "UnloadSector", "TeardownSession" })
             {
                 var method = typeof(MainGameManager).GetMethod(name, flags);
                 Assert.IsNotNull(method, $"MainGameManager must expose lifecycle primitive {name}");
@@ -218,6 +218,11 @@ namespace Tests.EditMode
             Assert.IsNotNull(type.GetProperty("ActiveSector"), "GameSession must expose ActiveSector");
             Assert.IsNotNull(type.GetProperty("Rig"), "GameSession must expose Rig");
             Assert.IsNotNull(type.GetProperty("Presentation"), "GameSession must expose Presentation");
+
+            var hook = type.GetProperty("OnSectorComplete");
+            Assert.IsNotNull(hook, "GameSession must expose the OnSectorComplete policy hook");
+            Assert.AreEqual(typeof(Action<SectorResult>), hook.PropertyType);
+            Assert.IsTrue(hook.CanWrite, "OnSectorComplete is the driver-settable policy seam");
         }
 
         [Test]
@@ -256,14 +261,15 @@ namespace Tests.EditMode
         public void MainGameManager_DoesNotLookUpSiblingServicesOutsideAwake()
         {
             // Injection hygiene (plan §A): the sibling MonoBehaviour services are cached in Awake;
-            // no GetComponent calls mid-lifecycle.
+            // no GetComponent calls mid-lifecycle. The only two lookups allowed in the file are the
+            // Awake cache assignments.
             var source = System.IO.File.ReadAllText(System.IO.Path.Combine(
                 Application.dataPath, "Scripts", "Game", "Bootstrap", "MainGameManager.cs"));
-            var awakeStart = source.IndexOf("private void Awake()", StringComparison.Ordinal);
-            Assert.GreaterOrEqual(awakeStart, 0, "MainGameManager must declare Awake");
-            var lastLookup = source.LastIndexOf("GetComponent<", StringComparison.Ordinal);
-            Assert.Less(lastLookup, source.IndexOf('}', awakeStart),
-                "GetComponent lookups must not appear after Awake's body");
+            StringAssert.Contains("unitService = GetComponent<UnitService>();", source);
+            StringAssert.Contains("objectiveService = GetComponent<ObjectiveService>();", source);
+            var lookups = source.Split(new[] { "GetComponent<" }, StringSplitOptions.None).Length - 1;
+            Assert.AreEqual(2, lookups,
+                "MainGameManager must contain exactly the two Awake cache lookups");
         }
 
         [Test]

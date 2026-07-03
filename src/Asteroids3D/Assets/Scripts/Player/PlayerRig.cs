@@ -60,9 +60,8 @@ namespace Player
 
         /// <summary>
         /// Raised when the rig's death policy is <see cref="PlayerDeathBehavior.RestartSector"/> and
-        /// the player ship dies. The rig only DECLARES that a restart was requested; whoever drives
-        /// the session (the interactive gameplay driver) decides what a restart means. Headless/RL
-        /// sessions build no rig, so this coupling never enters their path.
+        /// the player ship dies. The rig only declares the request; the session driver decides what
+        /// a restart means.
         /// </summary>
         public event System.Action RestartRequested;
 
@@ -100,7 +99,7 @@ namespace Player
                     break;
                 case PlayerDeathBehavior.RestartSector:
                     if (Player && Player.Damage)
-                        Player.Damage.OnDeath += (_, _) => RestartRequested?.Invoke();
+                        Player.Damage.OnDeath += OnPlayerDeath;
                     break;
                 case PlayerDeathBehavior.None:
                 default:
@@ -145,9 +144,12 @@ namespace Player
         public void Teardown()
         {
             TeardownDebugOverlay();
+            if (Player && Player.Damage)
+                Player.Damage.OnDeath -= OnPlayerDeath;
             Player = null;
-            RestartRequested = null;
         }
+
+        private void OnPlayerDeath(ShipId victimId, ShipId killerId) => RestartRequested?.Invoke();
 
         // Editor-only debug-overlay installer (PlayerRig.Editor.cs). No-op outside the editor.
         partial void InitializeDebugOverlay(IGameServices services);
