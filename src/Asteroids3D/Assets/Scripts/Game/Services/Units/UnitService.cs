@@ -28,7 +28,7 @@ namespace Game.Services
         public Ship SpawnShip(
             Ship template,
             Commander commander,
-            ShipSettings settings,
+            FrameSettings settings,
             int team,
             Vector3 position,
             Quaternion rotation)
@@ -60,7 +60,7 @@ namespace Game.Services
             if (commander)
                 ship.AdoptCommander(commander);
 
-            ship.Initialize(ship.settings, ship.teamNumber);
+            ship.Initialize(ship.frame, ship.teamNumber);
 
             ActiveRegistry.ActiveShips.Add(ship);
             spawnedShips.Add(ship);

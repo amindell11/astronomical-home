@@ -9,17 +9,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3208e94f16e301643b270a7505a83d3f, type: 3}
-  m_Name: InterceptorShip
-  m_EditorClassIdentifier:
-  mass: 400
+  m_Script: {fileID: 11500000, guid: f6e8aa7f30404320a5996027a2198c28, type: 3}
+  m_Name: Interceptor_Engine
+  m_EditorClassIdentifier: 
   maxSpeed: 42
   maxYawRate: 260
   forwardForce: 6000
   reverseForce: 3000
   yawTorque: 22000
   angularDrag: 2
-  maxBankAngle: 60
   bankTorque: 28000
   bankDamping: 1500
   minStrafeForce: 4500
@@ -27,8 +25,3 @@ MonoBehaviour:
   linearDrag: 0.15
   boostImpulse: 16000
   boostCooldown: 2.5
-  startingLives: 1
-  maxHealth: 40
-  maxShield: 20
-  shieldRegenDelay: 6
-  shieldRegenRate: 6

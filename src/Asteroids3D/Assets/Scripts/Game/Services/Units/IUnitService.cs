@@ -17,7 +17,7 @@ namespace Game.Services
         Ship SpawnShip(
             Ship template,
             Commander commander,
-            ShipSettings settings,
+            FrameSettings settings,
             int team,
             Vector3 position,
             Quaternion rotation);

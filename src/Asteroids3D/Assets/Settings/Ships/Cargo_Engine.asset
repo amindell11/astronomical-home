@@ -9,25 +9,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3208e94f16e301643b270a7505a83d3f, type: 3}
-  m_Name: CargoSettings
+  m_Script: {fileID: 11500000, guid: f6e8aa7f30404320a5996027a2198c28, type: 3}
+  m_Name: Cargo_Engine
   m_EditorClassIdentifier: 
-  mass: 4000
   maxSpeed: 10
   maxYawRate: 45
   forwardForce: 8000
   reverseForce: 3000
   yawTorque: 1
   angularDrag: 2.5
-  maxBankAngle: 10
-  bankingSpeed: 2
+  bankTorque: 5000
+  bankDamping: 200
   minStrafeForce: 1500
   maxStrafeForce: 2000
   linearDrag: 0.8
   boostImpulse: 6000
   boostCooldown: 8
-  startingLives: 1
-  maxHealth: 400
-  maxShield: 150
-  shieldRegenDelay: 6
-  shieldRegenRate: 8

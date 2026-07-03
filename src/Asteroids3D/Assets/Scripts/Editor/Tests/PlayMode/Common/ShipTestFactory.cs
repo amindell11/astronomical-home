@@ -58,7 +58,7 @@ public static class ShipTestFactory
     public static Ship CreateShip(
         Ship shipPrefab,
         AICommander cmdrPrefab,
-        ShipSettings settings,
+        FrameSettings settings,
         int team = 0,
         Vector3? position = null,
         Quaternion? rotation = null)

@@ -19,7 +19,7 @@ namespace Game.Sectors
     {
         [SerializeField] private Ship template;
         [SerializeField] private Commander commander;
-        [SerializeField] private ShipSettings settings;
+        [SerializeField] private FrameSettings settings;
         [SerializeField] private int team;
         [SerializeField] private int count = 4;
         [SerializeField] private float radius = 30f;
@@ -28,7 +28,7 @@ namespace Game.Sectors
         [SerializeField] private RespawnPolicy respawn;
 
         /// <summary>Configures the ring's template and layout at runtime (spawner setup / tuning).</summary>
-        public void Configure(Ship template, Commander commander, ShipSettings settings,
+        public void Configure(Ship template, Commander commander, FrameSettings settings,
                               int count, float radius = 30f, int team = 0)
         {
             this.template = template;

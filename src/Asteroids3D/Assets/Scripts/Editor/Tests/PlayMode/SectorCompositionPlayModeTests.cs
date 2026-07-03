@@ -143,12 +143,12 @@ namespace Tests.PlayMode
             => sector.SetManifest(adopted, spawners, null);
 
         private Ship AddAdoptedShipChild(
-            Transform parent, Ship shipPrefab, Commander commanderPrefab, ShipSettings settings,
+            Transform parent, Ship shipPrefab, Commander commanderPrefab, FrameSettings settings,
             int team = 0, Vector3? localPos = null)
         {
             var ship = Object.Instantiate(shipPrefab, parent);
             if (localPos.HasValue) ship.transform.localPosition = localPos.Value;
-            ship.settings = settings;
+            ship.frame = settings;
             ship.teamNumber = team;
             if (commanderPrefab)
                 Object.Instantiate(commanderPrefab, ship.transform); // pilot authored as a child

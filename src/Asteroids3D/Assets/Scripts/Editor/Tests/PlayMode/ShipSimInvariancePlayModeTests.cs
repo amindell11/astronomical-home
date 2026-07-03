@@ -108,7 +108,7 @@ namespace Tests.PlayMode
         public IEnumerator SustainedThrust_SpeedNeverExceedsMax()
         {
             yield return Settle();
-            var maxSpeed = ship.settings.maxSpeed;
+            var maxSpeed = ship.Stats.maxSpeed;
 
             for (var i = 0; i < 200; i++)
             {

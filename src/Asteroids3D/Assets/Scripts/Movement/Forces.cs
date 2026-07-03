@@ -39,7 +39,7 @@ namespace Ships.Movement
             return -input * maxBankAngle;
         }
 
-        public static Outputs ComputeOutputs(Kinematics kin, PilotCommand cmd, ShipSettings sets)
+        public static Outputs ComputeOutputs(Kinematics kin, PilotCommand cmd, ResolvedShipStats sets)
         {
             if (sets == null)
             {

@@ -18,7 +18,7 @@ namespace Game.Sectors
     {
         [SerializeField] private Ship template;
         [SerializeField] private Commander commander;
-        [SerializeField] private ShipSettings settings;
+        [SerializeField] private FrameSettings settings;
         [SerializeField] private int team;
         [SerializeField] private bool startActive = true;
 

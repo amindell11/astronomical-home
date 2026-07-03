@@ -7,6 +7,7 @@ using Ships.Movement;
 using Ships.Weapons;
 using Movement;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Ships
 {
@@ -15,9 +16,22 @@ namespace Ships
     [DefaultExecutionOrder(-90)]
     public class Ship : MonoBehaviour, ITargetable, IShipStatus, IShooter
     {
-        [Header("Settings Asset")]
-        [Tooltip("ShipSettings asset that holds all tunable parameters.")]
-        public ShipSettings settings;
+        [Header("Frame & Modules")]
+        [Tooltip("Frame archetype: chassis stats + references to the default engine/shield modules.")]
+        [FormerlySerializedAs("settings")]
+        public FrameSettings frame;
+
+        [Tooltip("Optional engine override. Falls back to the frame's default engine when unset.")]
+        public EngineModule engine;
+
+        [Tooltip("Optional shield override. Falls back to the frame's default shield when unset.")]
+        public ShieldModule shield;
+
+        /// <summary>The flattened stats resolved from frame + modules. Null until settings populate.</summary>
+        public ResolvedShipStats Stats { get; private set; }
+
+        private EngineModule ResolvedEngine => engine ? engine : (frame ? frame.defaultEngine : null);
+        private ShieldModule ResolvedShield => shield ? shield : (frame ? frame.defaultShield : null);
 
         [Header("Team Settings")]
         [Tooltip("Team number for this ship. Ships with the same team number are considered friendly.")]
@@ -49,8 +63,8 @@ namespace Ships
         public float ShieldPct => Damage ? Damage.Shield.Pct : 1f;
         public bool BoostAvailable => Movement && Movement.BoostAvailable;
         public float BoostCooldownRemaining => Movement ? Movement.BoostCooldownRemaining : 0f;
-        public float MaxSpeed => settings ? settings.maxSpeed : 0f;
-        public float MaxYawRate => settings ? settings.maxYawRate : 0f;
+        public float MaxSpeed => Stats != null ? Stats.maxSpeed : 0f;
+        public float MaxYawRate => Stats != null ? Stats.maxYawRate : 0f;
 
         private bool isInitialized = false;
 
@@ -71,22 +85,66 @@ namespace Ships
 
         private void OnEnable() => PopulateSettings();
 
+        private void OnDisable() => Unsubscribe();
+
         private void PopulateSettings()
         {
-            Movement?.PopulateSettings(settings);
-            Damage?.PopulateSettings(settings);
+            Resolve();
+            Movement?.PopulateSettings(Stats);
+            Damage?.PopulateSettings(Stats);
+            Subscribe();
         }
 
-        public virtual void Initialize(ShipSettings shipSettings, int team)
+        private void Resolve()
+        {
+            Stats = frame ? ResolvedShipStats.Resolve(frame, ResolvedEngine, ResolvedShield) : null;
+        }
+
+        // Live inspector tuning: re-resolve and re-apply movement when any source SO changes. This
+        // preserves the old ShipSettings.onSettingsChanged behaviour (which only re-applied movement).
+        private void OnSettingsChanged()
+        {
+            Resolve();
+            Movement?.PopulateSettings(Stats);
+        }
+
+        private FrameSettings subFrame;
+        private EngineModule subEngine;
+        private ShieldModule subShield;
+
+        private void Subscribe()
+        {
+            Unsubscribe();
+            subFrame = frame;
+            subEngine = ResolvedEngine;
+            subShield = ResolvedShield;
+            if (subFrame) subFrame.onChanged.AddListener(OnSettingsChanged);
+            if (subEngine) subEngine.onChanged.AddListener(OnSettingsChanged);
+            if (subShield) subShield.onChanged.AddListener(OnSettingsChanged);
+        }
+
+        private void Unsubscribe()
+        {
+            if (subFrame) subFrame.onChanged.RemoveListener(OnSettingsChanged);
+            if (subEngine) subEngine.onChanged.RemoveListener(OnSettingsChanged);
+            if (subShield) subShield.onChanged.RemoveListener(OnSettingsChanged);
+            subFrame = null;
+            subEngine = null;
+            subShield = null;
+        }
+
+        public virtual void Initialize(FrameSettings frameSettings, int team)
         {
             if (isInitialized) return;
-            settings = shipSettings;
+            frame = frameSettings;
             teamNumber = team;
-            Movement.Initialize(settings, ()=>KinematicsPoller.Kinematics);
-            Damage?.PopulateSettings(settings);
+            Resolve();
+            Movement.Initialize(Stats, ()=>KinematicsPoller.Kinematics);
+            Damage?.PopulateSettings(Stats);
+            Subscribe();
 
             if (Rigidbody) Rigidbody.ResetInertiaTensor();
-            Dynamics = settings.BuildDynamics(Rigidbody ? Rigidbody.inertiaTensor.z : 0f);
+            Dynamics = Stats.BuildDynamics(Rigidbody ? Rigidbody.inertiaTensor.z : 0f);
 
             if (Damage)
                 Damage.OnDeath += (_, _) => HandleShipDeath();

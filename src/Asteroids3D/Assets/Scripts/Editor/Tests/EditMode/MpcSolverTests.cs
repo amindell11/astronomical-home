@@ -21,7 +21,7 @@ namespace Tests.EditMode
     public class MpcSolverTests
     {
         private const string MpcSettingsPath = "Assets/Settings/AI/MPC/MpcSettings.asset";
-        private const string ShipSettingsPath = "Assets/Settings/Ships/DefaultSettings.asset";
+        private const string ShipSettingsPath = "Assets/Settings/Ships/Default_Frame.asset";
 
         private MpcSettings settings;
         private Dynamics dynamics;
@@ -30,10 +30,10 @@ namespace Tests.EditMode
         public void SetUp()
         {
             settings = AssetDatabase.LoadAssetAtPath<MpcSettings>(MpcSettingsPath);
-            var ship = AssetDatabase.LoadAssetAtPath<ShipSettings>(ShipSettingsPath);
+            var ship = AssetDatabase.LoadAssetAtPath<FrameSettings>(ShipSettingsPath);
             Assert.That(settings, Is.Not.Null, $"Missing MPC settings at {MpcSettingsPath}");
             Assert.That(ship, Is.Not.Null, $"Missing ship settings at {ShipSettingsPath}");
-            dynamics = ship.Dynamics;
+            dynamics = ship.Resolve().Dynamics;
         }
 
         private static MpcInputs WaypointInputs(float2 goalPos, float2 goalVel = default) => new()

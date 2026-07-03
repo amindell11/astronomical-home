@@ -14,7 +14,7 @@ namespace Ships
         public static Ship CreateShip(
              Ship prefab,
              Commander commander,
-             ShipSettings shipSettings,
+             FrameSettings shipSettings,
              int team,
              Vector3 position,
              Quaternion rotation,

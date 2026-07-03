@@ -37,7 +37,7 @@ namespace Player
         [Header("Player")]
         [SerializeField] private Ship playerTemplate;
         [SerializeField] private Commander playerCommander;
-        [SerializeField] private ShipSettings shipSettings;
+        [SerializeField] private FrameSettings shipSettings;
         [SerializeField] private Vector2 playerSpawnPosition = Vector2.zero;
 
         [Tooltip("What happens when the player ship dies. RestartSector reloads the active sector; " +
