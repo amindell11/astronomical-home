@@ -34,6 +34,13 @@ namespace Asteroids.Fields
         public float UnloadRadius => loadRadius * unloadRadiusMultiplier;
 
         /// <summary>
+        /// Bumped on every inspector edit (OnValidate is editor-only, so this
+        /// stays 0 in builds). Live fields poll it and rebuild when it moves —
+        /// the live-tuning loop for field shape/size.
+        /// </summary>
+        [System.NonSerialized] public int Version;
+
+        /// <summary>
         /// Computed worst-case simultaneously-loaded baseline count (full unload
         /// disc at maximum noise density). Used to pre-size the spawn pool.
         /// </summary>
@@ -46,6 +53,7 @@ namespace Asteroids.Fields
 
         private void OnValidate()
         {
+            Version++;
             var worst = WorstCaseLoadedCount();
             if (maxAsteroids > 0 && worst > maxAsteroids)
                 Debug.LogWarning(
