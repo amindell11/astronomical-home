@@ -23,8 +23,8 @@ namespace Game.Bootstrap
         [Tooltip("Session policy: when false, no player ship is built (spectator/headless).")]
         [SerializeField] private bool buildPlayer = true;
 
-        [Tooltip("Session policy: when false, ships spawn without visual rigs (headless/RL). " +
-                 "Presentation is a game-tier overlay attached to each ship via the unit registry.")]
+        [Tooltip("Session policy: when false, each ship's embedded visual rig is disabled (headless/RL) " +
+                 "so ships stay renderer/audio/particle-free while remaining fully simulated.")]
         [SerializeField] private bool installPresentation = true;
 
         [Header("Game Plane")]
@@ -32,7 +32,7 @@ namespace Game.Bootstrap
         [SerializeField] private Vector3 planeOrigin;
 
         private GameServices services;
-        private PresentationInstaller presentationInstaller;
+        private PresentationGate presentationGate;
         private Coroutine stateRoutine;
         public GameState CurrentState { get; private set; }
 
@@ -110,12 +110,13 @@ namespace Game.Bootstrap
             if (playerRig)
                 yield return playerRig.Build(services, buildPlayer, () => TransitionTo(GameState.Restart));
 
-            // Game-tier presentation: attach a visual rig to each active ship (player built above, plus
-            // any spawned/adopted by sectors) via the unit registry. Skipped entirely for headless/RL.
-            if (installPresentation)
+            // Ship prefabs carry their visual rig as an embedded, self-binding child. For a headless/RL
+            // session we install a gate that disables each ship's rig (present and future) so it stays
+            // renderer/audio/particle-free while fully simulated; a normal session leaves rigs on.
+            if (!installPresentation)
             {
-                presentationInstaller = new PresentationInstaller();
-                presentationInstaller.Install(services.UnitService);
+                presentationGate = new PresentationGate();
+                presentationGate.Install(services.UnitService);
             }
 
             TransitionTo(GameState.LoadSector);
@@ -183,8 +184,8 @@ namespace Game.Bootstrap
         {
             yield return TeardownActiveSector(runTeardown: false);
 
-            presentationInstaller?.Uninstall();
-            presentationInstaller = null;
+            presentationGate?.Uninstall();
+            presentationGate = null;
 
             if (playerRig)
                 playerRig.Teardown();
