@@ -155,8 +155,12 @@ namespace Tests.PlayMode
             Assert.Ignore("Requires the Unity Editor.");
             yield break;
 #else
-            // Spawn a second ship far away so colliders cannot interact.
-            var shipB = CreateUnpilotedShip(new Vector3(1000f, 0f, 1000f), Quaternion.identity);
+            // Spawn a second ship offset from the first — far enough that their colliders never touch
+            // (~22x the ship radius), but NOT far from the origin: this test compares the two ships'
+            // displacements within a tight 1e-3 tolerance, and float32 precision degrades with world
+            // distance (ULP ~1.7e-4 at 1000+ units), which would swamp the determinism signal with
+            // position-precision noise rather than measuring real nondeterminism.
+            var shipB = CreateUnpilotedShip(new Vector3(30f, 0f, 0f), Quaternion.identity);
             Assert.IsNotNull(shipB, "Second ship failed to instantiate");
 
             try

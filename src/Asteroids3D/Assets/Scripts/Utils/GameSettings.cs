@@ -12,6 +12,14 @@ namespace Utils
         public static bool VfxEnabled { get; private set; }
 
         /// <summary>
+        /// Global toggle for ship visual presentation (each ship prefab's embedded visual rig). A
+        /// per-session policy — a headless/RL session turns it off so every ship's rig self-disables
+        /// and stays renderer-, audio- and particle-free while the ship remains fully simulated.
+        /// Defaults on; runtime-only (never persisted).
+        /// </summary>
+        public static bool PresentationEnabled { get; private set; } = true;
+
+        /// <summary>
         /// This method is called by Unity when the game engine starts,
         /// before any scene has loaded. It ensures our settings are loaded right away.
         /// </summary>
@@ -28,6 +36,10 @@ namespace Utils
         {
             // Get the "VFX_ENABLED" value from storage, defaulting to 1 (true).
             VfxEnabled = PlayerPrefs.GetInt("VFX_ENABLED", 1) == 1;
+
+            // Presentation is a per-session policy, not a saved preference: default it on each load and
+            // let a game-tier caller (MainGameManager) turn it off for a headless/RL session.
+            PresentationEnabled = true;
         }
 
         /// <summary>
@@ -45,5 +57,11 @@ namespace Utils
                 PlayerPrefs.Save(); // Immediately write to disk
             }
         }
+
+        /// <summary>
+        /// Set the runtime presentation toggle (session policy — a headless/RL session turns it off).
+        /// Runtime-only: never persisted, so a headless run can't leak into the player's saved prefs.
+        /// </summary>
+        public static void SetPresentationEnabled(bool enabled) => PresentationEnabled = enabled;
     }
 } 
