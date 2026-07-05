@@ -92,6 +92,17 @@ namespace Movement.MPC
     /// </summary>
     public class SolverBuffers : System.IDisposable
     {
+        /// <summary>
+        /// Fixed base for the per-tick sampler seed. Default 0 preserves the production
+        /// <c>Time.frameCount</c>-derived seeding <em>exactly</em>. When set non-zero it
+        /// replaces the frame-count term (the position hash still varies the seed per ship
+        /// and per step), so a run no longer depends on when it started — giving reproducible
+        /// single debug runs on top of the statistical (multi-seed) evaluation. Only ever
+        /// assigned by the chase-benchmark harness; shipped gameplay leaves it 0.
+        /// See doc/Feature_Plans/Chase_Nav_Track_B_Field_And_Eval.md.
+        /// </summary>
+        public static uint SeedBias;
+
         private NativeArray<Control> warmStart;
         private NativeArray<Control> candidates;
         private NativeArray<float> costs;
@@ -180,7 +191,8 @@ namespace Movement.MPC
 
             initialState.boostCooldownRemaining = boostCooldownRemaining;
 
-            var rngSeed = (uint)(Time.frameCount * 7919 + initialState.pos.GetHashCode());
+            var frameComponent = SeedBias != 0u ? SeedBias : (uint)(Time.frameCount * 7919);
+            var rngSeed = frameComponent + (uint)initialState.pos.GetHashCode();
             if (rngSeed == 0) rngSeed = 1;
 
             new GenerateCandidatesJob
