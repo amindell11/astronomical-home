@@ -15,17 +15,12 @@ namespace Movement.MPC
         public int samples = 128;
         [Tooltip("Standard deviation of Gaussian noise added to the warm-start sequence for exploration.")]
         public float noiseStd = 0.25f;
+        [Tooltip("Number of temporal noise knots interpolated across the horizon. Higher = choppier samples.")]
+        [Range(2, 8)]
+        public int noiseKnots = 5;
         [Tooltip("Fraction of top candidates to average (elite averaging). Higher = more stable but less reactive.")]
         [Range(0.01f, 0.5f)]
         public float eliteFraction = 0.1f;
-
-        [Header("Adaptive Timestep")]
-        [Tooltip("Max dt scale factor. 0 = disabled. In Flee: scales by closing speed. " +
-                 "Otherwise: scales by distance to goal. dt is multiplied by up to (1 + this value).")]
-        public float adaptiveDtScale = 0f;
-        [Tooltip("Reference distance for distance-based dt scaling (non-Flee modes). " +
-                 "At this distance, dt scale is at maximum.")]
-        public float adaptiveDtRefDistance = 50f;
 
         [Header("Navigation")]
         [Tooltip("Position cost weight. Drives the ship toward the goal (Waypoint mode), " +
@@ -80,9 +75,6 @@ namespace Movement.MPC
         [Tooltip("Probability of sampling boost=1 at each step during candidate generation.")]
         [Range(0f, 1f)]
         public float boostSampleProbability = 0.15f;
-        [Tooltip("EMA smoothing factor for applied controls. 0 = no smoothing, 0.95 = very smooth (slow response).")]
-        [Range(0f, 0.95f)]
-        public float controlSmoothing = 0.5f;
 
         [Header("Tactical")]
         [Tooltip("Facing override weight. Steers the nose toward a specific angle (e.g. lead target in Attack). " +
@@ -134,14 +126,6 @@ namespace Movement.MPC
         public float arrivalVelScale = 5.0f;
         [Tooltip("Yaw cost multiplier at the goal center. Ramps down near the goal so the ship prioritizes stopping over turning.")]
         public float arrivalYawScale = 0.1f;
-
-        [Header("Relaxation")]
-        [Tooltip("Cost at or below which controls are fully zeroed (ship coasts).")]
-        public float relaxMin = 0.5f;
-        [Tooltip("Cost at or above which controls are applied at full authority.")]
-        public float relaxMax = 2.0f;
-        [Tooltip("Curve exponent for the relaxation ramp. 1 = linear, <1 = aggressive early ramp, >1 = gentle early ramp.")]
-        public float relaxCurve = 1.0f;
 
         public int Horizon => Mathf.CeilToInt(horizonSeconds / rolloutDt);
 

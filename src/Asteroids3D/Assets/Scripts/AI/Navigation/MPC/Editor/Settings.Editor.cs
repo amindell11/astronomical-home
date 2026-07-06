@@ -7,16 +7,6 @@ namespace Movement.MPC
     [CustomEditor(typeof(MpcSettings))]
     public class SettingsEditor : Editor
     {
-        // Fields after which to insert curve previews
-        private static readonly string[] CurveAfter =
-        {
-            "terminalCurve",
-            "facingWidth",
-            "exposureWidth",
-            "obstacleFalloffCurve",
-            "relaxCurve",
-        };
-
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -45,9 +35,6 @@ namespace Movement.MPC
                         break;
                     case "obstacleFalloffCurve":
                         DrawObstacleFalloffCurve(settings.obstacleFalloffCurve);
-                        break;
-                    case "relaxCurve":
-                        DrawRelaxCurve(settings.relaxMin, settings.relaxMax, settings.relaxCurve);
                         break;
                 }
             }
@@ -168,28 +155,6 @@ namespace Movement.MPC
             EditorGUI.EndDisabledGroup();
         }
 
-        private static void DrawRelaxCurve(float min, float max, float curve)
-        {
-            var animCurve = new AnimationCurve();
-            const int steps = 64;
-            var range = Mathf.Max(max - min, 1e-4f);
-            var maxCost = max * 1.25f;
-
-            for (var i = 0; i <= steps; i++)
-            {
-                var t = (float)i / steps;
-                var cost = t * maxCost;
-                var normalized = Mathf.Clamp01((cost - min) / range);
-                var urgency = Mathf.Pow(normalized, curve);
-                animCurve.AddKey(new Keyframe(cost, urgency) { weightedMode = WeightedMode.None });
-            }
-
-            EditorGUI.BeginDisabledGroup(true);
-            EditorGUILayout.CurveField(animCurve, Color.green,
-                new Rect(0, 0, maxCost, 1f),
-                GUILayout.Height(50));
-            EditorGUI.EndDisabledGroup();
-        }
     }
 }
 #endif

@@ -105,6 +105,44 @@ namespace Tests.EditMode
                 "Opposite facing overrides should drive planned yaw in opposite directions");
         }
 
+        [Test]
+        public void KnotNoise_ProducesSustainedSameSignRuns()
+        {
+            const uint seed = 12345u;
+            const int horizon = 17;
+            const int candidates = 128;
+            var sustainedRuns = 0;
+
+            for (var candidate = 1; candidate <= candidates; candidate++)
+            {
+                var longestRun = 0;
+                var currentRun = 0;
+                var lastSign = 0;
+
+                for (var step = 0; step < horizon; step++)
+                {
+                    var noise = GenerateCandidatesJob.KnotNoise(seed, candidate, step, horizon, 5, 1, 1f);
+                    var sign = Math.Sign(noise);
+                    if (sign == 0)
+                    {
+                        currentRun = 0;
+                        lastSign = 0;
+                        continue;
+                    }
+
+                    currentRun = sign == lastSign ? currentRun + 1 : 1;
+                    longestRun = Math.Max(longestRun, currentRun);
+                    lastSign = sign;
+                }
+
+                if (longestRun >= 5)
+                    sustainedRuns++;
+            }
+
+            Assert.That(sustainedRuns, Is.GreaterThan(candidates / 2),
+                "Knot-interpolated strafe noise should commonly hold a direction for at least five steps.");
+        }
+
         // NOTE: A projectile-lead facing test (enemy moving, projectileSpeed > 0 shifts the
         // planned facing toward the intercept) belongs here, but base-weight facing/exposure
         // authority was intentionally collapsed in the MPC retune (authority moved to per-state

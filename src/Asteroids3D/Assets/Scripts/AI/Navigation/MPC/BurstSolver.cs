@@ -16,6 +16,7 @@ namespace Movement.MPC
 
         public int horizon;
         public float noiseStd;
+        public int noiseKnots;
         public float boostSampleProbability;
         public uint rngSeed;
 
@@ -36,13 +37,54 @@ namespace Movement.MPC
                     var warm = warmStart[j];
                     candidates[offset + j] = new Control
                     {
-                        thrust = math.clamp(warm.thrust + NextGaussian(ref rng) * noiseStd, -1f, 1f),
-                        strafe = math.clamp(warm.strafe + NextGaussian(ref rng) * noiseStd, -1f, 1f),
-                        yawTorque = math.clamp(warm.yawTorque + NextGaussian(ref rng) * noiseStd, -1f, 1f),
+                        thrust = math.clamp(warm.thrust + KnotNoise(rngSeed, candidateIndex, j, horizon, noiseKnots, 0, noiseStd), -1f, 1f),
+                        strafe = math.clamp(warm.strafe + KnotNoise(rngSeed, candidateIndex, j, horizon, noiseKnots, 1, noiseStd), -1f, 1f),
+                        yawTorque = math.clamp(warm.yawTorque + KnotNoise(rngSeed, candidateIndex, j, horizon, noiseKnots, 2, noiseStd), -1f, 1f),
                         boost = rng.NextFloat() < boostSampleProbability ? 1f : 0f
                     };
                 }
             }
+        }
+
+        public static float KnotNoise(uint rngSeed, int candidateIndex, int step, int horizon,
+            int knotCount, int channel, float noiseStd)
+        {
+            if (noiseStd <= 0f) return 0f;
+            knotCount = math.clamp(knotCount, 2, 8);
+            if (horizon <= 1)
+                return GaussianFromSeed(KnotSeed(rngSeed, candidateIndex, channel, 0)) * noiseStd;
+
+            var scaled = step * (knotCount - 1f) / (horizon - 1f);
+            var k0 = (int)math.floor(scaled);
+            var k1 = math.min(k0 + 1, knotCount - 1);
+            var t = scaled - k0;
+            var smooth = t * t * (3f - 2f * t);
+            var a = GaussianFromSeed(KnotSeed(rngSeed, candidateIndex, channel, k0));
+            var b = GaussianFromSeed(KnotSeed(rngSeed, candidateIndex, channel, k1));
+            return math.lerp(a, b, smooth) * noiseStd;
+        }
+
+        private static uint KnotSeed(uint rngSeed, int candidateIndex, int channel, int knot)
+        {
+            unchecked
+            {
+                var x = rngSeed;
+                x ^= (uint)(candidateIndex + 1) * 0x9E3779B9u;
+                x ^= (uint)(channel + 11) * 0x85EBCA6Bu;
+                x ^= (uint)(knot + 101) * 0xC2B2AE35u;
+                x ^= x >> 16;
+                x *= 0x7FEB352Du;
+                x ^= x >> 15;
+                x *= 0x846CA68Bu;
+                x ^= x >> 16;
+                return x == 0 ? 1u : x;
+            }
+        }
+
+        private static float GaussianFromSeed(uint seed)
+        {
+            var rng = new Unity.Mathematics.Random(seed);
+            return NextGaussian(ref rng);
         }
 
         private static float NextGaussian(ref Unity.Mathematics.Random rng)
@@ -123,7 +165,7 @@ namespace Movement.MPC
             float2 enemyPos, float2 enemyVel, float enemyYaw, float enemyYawRate,
             Dynamics enemyDynamics, float projectileSpeed,
             TerminalNavFieldSnapshot terminalField,
-            int samples, float noiseStd, Control lastControl,
+            int samples, float noiseStd, int noiseKnots, Control lastControl,
             float boostCooldownRemaining = 0f, float boostSampleProbability = 0.15f,
             float eliteFraction = 0.1f)
         {
@@ -201,6 +243,7 @@ namespace Movement.MPC
                 candidates = candidates,
                 horizon = horizon,
                 noiseStd = noiseStd,
+                noiseKnots = noiseKnots,
                 boostSampleProbability = boostSampleProbability,
                 rngSeed = rngSeed
             }.Schedule(samples, 1).Complete();
