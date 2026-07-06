@@ -17,6 +17,7 @@ namespace AI.Navigation.Field
         public Vector2 Origin { get; private set; }
         public bool HasSolution { get; private set; }
         public float[] Costs => costs;
+        public bool[] Blocked => blocked;
 
         public NavField(int gridSize, float cellSize)
         {
@@ -99,6 +100,12 @@ namespace AI.Navigation.Field
             var idx = WorldToCellSafe(position);
             return idx < 0 || blocked[idx];
         }
+
+        public bool IsCellBlocked(int x, int y) => blocked[Index(x, y)];
+
+        public float CostToGoAt(int x, int y) => costs[Index(x, y)];
+
+        public Vector2 CellCenterAt(int x, int y) => CellCenter(x, y);
 
         public float CostToGo(Vector2 position)
         {

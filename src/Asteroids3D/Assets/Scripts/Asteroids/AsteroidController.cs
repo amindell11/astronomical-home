@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Asteroids.Fragnetics;
 using Asteroids.Spawning;
 using Game;
@@ -15,6 +16,7 @@ namespace Asteroids
         private SphereCollider cheapCollider;
         private Transform worldFollowTransform;
         private AsteroidDamage damage;
+        private static readonly Dictionary<Mesh, Vector3[]> VertexCache = new();
 
 
         [Header("Performance Tuning")]
@@ -83,9 +85,9 @@ namespace Asteroids
             if (cheapCollider)
             {
                 var size = meshInfo.mesh.bounds.size;
-                var radius = Mathf.Max(size.x, Mathf.Max(size.y, size.z)) * scale * 0.5f;
-                cheapCollider.radius = radius;
-                Radius = radius * transform.lossyScale.x;
+                var localRadius = Mathf.Max(size.x, Mathf.Max(size.y, size.z)) * 0.5f;
+                cheapCollider.radius = localRadius;
+                Radius = CurrentPlaneRadius();
             }
 
             initialVelocity = velocity;
@@ -117,6 +119,30 @@ namespace Asteroids
             if (meshCollider.sharedMesh != targetColliderMesh)
                 meshCollider.sharedMesh = targetColliderMesh;
             meshCollider.enabled = false;
+        }
+
+        public float CurrentPlaneRadius()
+        {
+            if (!GamePlane.IsConfigured) return Radius;
+            var mesh = meshCollider && meshCollider.sharedMesh ? meshCollider.sharedMesh : CurrentMesh;
+            if (!mesh) return Radius;
+
+            if (!VertexCache.TryGetValue(mesh, out var vertices))
+            {
+                vertices = mesh.vertices;
+                VertexCache[mesh] = vertices;
+            }
+
+            var center = GamePlane.WorldPointToPlane(transform.position);
+            var localToWorld = transform.localToWorldMatrix;
+            var maxSq = 0f;
+            for (var i = 0; i < vertices.Length; i++)
+            {
+                var plane = GamePlane.WorldPointToPlane(localToWorld.MultiplyPoint3x4(vertices[i]));
+                maxSq = Mathf.Max(maxSq, (plane - center).sqrMagnitude);
+            }
+
+            return Mathf.Sqrt(maxSq);
         }
 
         internal void HandleDestroyed(HitData hit)

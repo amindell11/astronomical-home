@@ -224,7 +224,7 @@ namespace Asteroids.Fields
                     var ast = asteroids[i];
                     if (!ast) continue;
                     var pos = GamePlane.WorldPointToPlane(ast.transform.position);
-                    var radius = Mathf.Max(ast.Radius, 0f);
+                    var radius = Mathf.Max(ast.CurrentPlaneRadius(), 0f);
                     if (pos.x + radius < center.x - halfExtents.x ||
                         pos.x - radius > center.x + halfExtents.x ||
                         pos.y + radius < center.y - halfExtents.y ||
@@ -243,7 +243,7 @@ namespace Asteroids.Fields
             for (var i = 0; i < asteroids.Count; i++)
             {
                 var ast = asteroids[i];
-                if (ast) max = Mathf.Max(max, ast.Radius);
+                if (ast) max = Mathf.Max(max, ast.CurrentPlaneRadius());
             }
             return max;
         }

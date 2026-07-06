@@ -8,6 +8,7 @@ namespace AI.Navigation.Field
     public sealed class TerminalNavFieldSnapshot
     {
         public float[] costs;
+        public bool[] blocked;
         public int gridSize;
         public float cellSize;
         public Vector2 origin;
@@ -68,6 +69,7 @@ namespace AI.Navigation.Field
 
             var snapshot = entry.snapshot;
             snapshot.costs = entry.field.Costs;
+            snapshot.blocked = entry.field.Blocked;
             snapshot.gridSize = entry.field.GridSize;
             snapshot.cellSize = entry.field.CellSize;
             snapshot.origin = entry.field.Origin;

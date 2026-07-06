@@ -56,6 +56,10 @@ namespace Movement.MPC
         public bool showObstacleCosts = true;
         public bool showTrajectoryCosts = true;
         public bool showControlInputs = true;
+        public bool showTerminalFieldBounds = true;
+        public bool showTerminalFieldBlockedCells = true;
+        public bool showTerminalFieldHeatmap = false;
+        public bool showTerminalFieldSource = true;
         [Tooltip("Render a random sampling of MPC candidate trajectories with rank-based alpha. " +
                  "Click a terminal-point handle in the scene view to inspect that candidate's breakdown.")]
         public bool showCandidateTrajectories = false;
@@ -218,8 +222,73 @@ namespace Movement.MPC
             DrawComparisonTrajectories();
             DrawEnemyRollout();
             DrawGoal();
+            DrawTerminalField(isSelected);
             DrawObstacleDebugInfo();
             DrawControlInputs();
+        }
+
+        private void DrawTerminalField(bool isSelected)
+        {
+            var field = lastTerminalField;
+            if (field == null || !field.hasSolution || field.costs == null || field.gridSize <= 1 || field.cellSize <= 0f)
+                return;
+
+            var size = field.gridSize * field.cellSize;
+            if (showTerminalFieldBounds)
+            {
+                var c0 = GamePlane.PlanePointToWorld(field.origin);
+                var c1 = GamePlane.PlanePointToWorld(field.origin + new Vector2(size, 0f));
+                var c2 = GamePlane.PlanePointToWorld(field.origin + new Vector2(size, size));
+                var c3 = GamePlane.PlanePointToWorld(field.origin + new Vector2(0f, size));
+                Gizmos.color = new Color(0.4f, 0.8f, 1f, 0.55f);
+                Gizmos.DrawLine(c0, c1);
+                Gizmos.DrawLine(c1, c2);
+                Gizmos.DrawLine(c2, c3);
+                Gizmos.DrawLine(c3, c0);
+            }
+
+            if (!isSelected) return;
+            if (!showTerminalFieldBlockedCells && !showTerminalFieldHeatmap && !showTerminalFieldSource) return;
+
+            var maxCost = 1f;
+            if (showTerminalFieldHeatmap)
+            {
+                for (var i = 0; i < field.costs.Length; i++)
+                {
+                    var c = field.costs[i];
+                    if (!float.IsInfinity(c) && c > maxCost) maxCost = c;
+                }
+            }
+
+            var sphereRadius = field.cellSize * 0.35f;
+            for (var y = 0; y < field.gridSize; y++)
+            for (var x = 0; x < field.gridSize; x++)
+            {
+                var idx = y * field.gridSize + x;
+                var center = field.origin + new Vector2((x + 0.5f) * field.cellSize, (y + 0.5f) * field.cellSize);
+                var world = GamePlane.PlanePointToWorld(center);
+                var blocked = field.blocked != null && idx < field.blocked.Length && field.blocked[idx];
+
+                if (blocked && showTerminalFieldBlockedCells)
+                {
+                    Gizmos.color = new Color(1f, 0.2f, 0.2f, 0.6f);
+                    Gizmos.DrawSphere(world, sphereRadius);
+                }
+                else if (!blocked && showTerminalFieldHeatmap)
+                {
+                    var c = field.costs[idx];
+                    if (float.IsInfinity(c)) continue;
+                    var t = Mathf.Clamp01(c / maxCost);
+                    Gizmos.color = new Color(t, 1f - t, 0.2f, 0.4f);
+                    Gizmos.DrawSphere(world, sphereRadius * 0.5f);
+                }
+            }
+
+            if (showTerminalFieldSource)
+            {
+                Gizmos.color = Color.green;
+                Gizmos.DrawSphere(GamePlane.PlanePointToWorld(field.source), field.cellSize * 0.5f);
+            }
         }
 
         private void DrawCandidateTrajectories()

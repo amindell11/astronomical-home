@@ -45,6 +45,7 @@ namespace Movement.MPC
         protected float projectileSpeed;
         protected Dynamics enemyDynamics;
         protected Transform enemyTargetRoot;
+        protected TerminalNavFieldSnapshot lastTerminalField;
         protected WeightOverride[] weightOverrides = Array.Empty<WeightOverride>();
 
         protected PilotCommand currentCommand;
@@ -104,8 +105,8 @@ namespace Movement.MPC
                 weightOverrides = weightOverrides,
                 obstacleScan = scan,
                 enableObstacleAvoidance = enableObstacleAvoidance,
-                terminalField = GetTerminalField(),
             };
+            inputs.terminalField = lastTerminalField = GetTerminalField();
 
 #if UNITY_EDITOR
             StoreDebugObstacles(scan);
@@ -270,6 +271,7 @@ namespace Movement.MPC
             projectileSpeed = 0f;
             enemyDynamics = default;
             enemyTargetRoot = null;
+            lastTerminalField = null;
         }
 
         private TerminalNavFieldSnapshot GetTerminalField()
