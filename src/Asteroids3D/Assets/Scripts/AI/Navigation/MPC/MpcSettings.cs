@@ -124,6 +124,12 @@ namespace Movement.MPC
         [Tooltip("Max obstacle distance considered by the gap detector.")]
         public float gapMaxRange = 40f;
 
+        [Header("Terminal Field (cost-to-go)")]
+        [Tooltip("Weight on the per-rollout terminal cost-to-go sample (time-to-go seconds, " +
+                 "stage-cost units — keep near 1; under-weighting re-creates horizon myopia). " +
+                 "0 disables the terminal hook.")]
+        public float wTerminal = 1f;
+
         [Header("Arrival Stabilization")]
         [Tooltip("Distance to goal at which arrival stabilization begins ramping up.")]
         public float arrivalDistance = 3.0f;
@@ -184,6 +190,8 @@ namespace Movement.MPC
                 goalMode = goalMode,
                 desiredRange = desiredRange,
                 rangeTolerance = rangeTolerance,
+                // Terminal field
+                wTerminal = wTerminal,
             };
         }
     }

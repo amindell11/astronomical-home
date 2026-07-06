@@ -6,7 +6,8 @@
         "GUID:0acc523941302664db1f4e527237feb3",
         "GUID:5aec7dd6c99f4df47918cb5822b2c659",
         "GUID:584d57d225904db990c8670b71908128",
-        "GUID:3ba9d43214e04d738b22b5e448da986d"
+        "GUID:3ba9d43214e04d738b22b5e448da986d",
+        "Unity.Mathematics"
     ],
     "includePlatforms": [
         "Editor",

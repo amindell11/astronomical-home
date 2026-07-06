@@ -122,6 +122,11 @@ namespace Movement.MPC
                 prevU = u;
             }
 
+            // Track B3: cost-to-go terminal hook — one field fetch per rollout, at the state
+            // reached after the final step. Invalid field or wTerminal 0 → contributes nothing.
+            if (cfg.wTerminal > 0f && costInput.terminalField.isValid != 0)
+                totalCost += cfg.wTerminal * Field.TerminalFieldData.Sample(current.pos, costInput.terminalField);
+
             costs[candidateIndex] = totalCost;
         }
     }
@@ -134,6 +139,18 @@ namespace Movement.MPC
     {
         public const int MaxInjected = 32;
 
+        /// <summary>
+        /// Test-only sampler seed override. When set, the candidate-generation RNG seed is
+        /// derived from this base plus a per-instance solve counter instead of
+        /// <c>Time.frameCount</c>, so a single run replays the same noise sequence under a
+        /// deterministic simulation. Unset (null, the default) preserves shipped behavior
+        /// exactly. Static so a benchmark harness can pin every ship at once; clear it in
+        /// teardown.
+        /// </summary>
+        public static uint? SamplerSeedOverride;
+
+        private uint solveCount;
+
         private NativeArray<Control> warmStart;
         private NativeArray<Control> injected;
         private NativeArray<Control> candidates;
@@ -141,6 +158,8 @@ namespace Movement.MPC
         private NativeArray<Control> result;
         private NativeArray<ObstacleData> obstacles;
         private NativeArray<State> enemyStates;
+        private NativeArray<float> dummyTerminalCost;
+        private NativeArray<byte> dummyTerminalBlocked;
         private bool allocated;
         private int lastObstacleCount;
 
@@ -169,12 +188,23 @@ namespace Movement.MPC
             int samples, float noiseStd, int noiseKnots, Control lastControl,
             float boostCooldownRemaining = 0f, float boostSampleProbability = 0.15f,
             float eliteFraction = 0.1f,
-            Control[] injectedControls = null, int injectedCount = 0)
+            Control[] injectedControls = null, int injectedCount = 0,
+            Field.TerminalFieldData terminalField = default)
         {
             var horizon = cfg.horizon;
             EnsureBuffers(horizon, samples);
             LastSampleCount = samples;
             LastHorizon = horizon;
+
+            // The job safety system rejects uncreated NativeArray fields even when guarded by
+            // isValid, so an absent terminal field gets the (never-read) dummy buffers.
+            if (!terminalField.costToGo.IsCreated)
+            {
+                terminalField.costToGo = dummyTerminalCost;
+                terminalField.blocked = dummyTerminalBlocked;
+                terminalField.isValid = 0;
+                terminalField.gridSize = 1;
+            }
 
             for (var i = 0; i < horizon; i++)
                 warmStart[i] = sequence[i];
@@ -232,11 +262,18 @@ namespace Movement.MPC
                 enemyStates = enemyStates,
                 enemyStateCount = enemyStateCount,
                 initialVel = initialState.vel,
+                terminalField = terminalField,
             };
 
             initialState.boostCooldownRemaining = boostCooldownRemaining;
 
-            var rngSeed = (uint)(Time.frameCount * 7919 + initialState.pos.GetHashCode());
+            // Seed off the frame counter in shipped play; a benchmark can pin the base seed
+            // (per-instance solve counter keeps successive solves decorrelated) for
+            // reproducible single runs.
+            solveCount++;
+            var rngSeed = SamplerSeedOverride.HasValue
+                ? (uint)(SamplerSeedOverride.Value + solveCount * 7919u)
+                : (uint)(Time.frameCount * 7919 + initialState.pos.GetHashCode());
             if (rngSeed == 0) rngSeed = 1;
 
             new GenerateCandidatesJob
@@ -400,6 +437,13 @@ namespace Movement.MPC
                 enemyStates = enemyStates.IsCreated ? enemyStates : default,
                 enemyStateCount = enemyStates.IsCreated ? enemyStates.Length : 0,
                 initialVel = initialVel,
+                terminalField = new Field.TerminalFieldData
+                {
+                    costToGo = dummyTerminalCost,
+                    blocked = dummyTerminalBlocked,
+                    gridSize = 1,
+                    isValid = 0,
+                },
             };
         }
 
@@ -438,6 +482,8 @@ namespace Movement.MPC
             obstacles = new NativeArray<ObstacleData>(64, Allocator.Persistent);
             enemyStates = new NativeArray<State>(horizon, Allocator.Persistent);
             result = new NativeArray<Control>(horizon, Allocator.Persistent);
+            dummyTerminalCost = new NativeArray<float>(1, Allocator.Persistent);
+            dummyTerminalBlocked = new NativeArray<byte>(1, Allocator.Persistent);
             allocated = true;
         }
 
@@ -451,6 +497,8 @@ namespace Movement.MPC
             obstacles.Dispose();
             enemyStates.Dispose();
             result.Dispose();
+            dummyTerminalCost.Dispose();
+            dummyTerminalBlocked.Dispose();
             allocated = false;
         }
     }
