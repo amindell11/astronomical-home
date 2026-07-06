@@ -21,6 +21,9 @@ namespace Movement.MPC
         [Tooltip("Fraction of top candidates to average (elite averaging). Higher = more stable but less reactive.")]
         [Range(0.01f, 0.5f)]
         public float eliteFraction = 0.1f;
+        [Tooltip("Number of gap-threading primitive candidates injected alongside random samples. 0 disables injection.")]
+        [Range(0, 10)]
+        public int gapPrimitiveCount = 4;
 
         [Header("Navigation")]
         [Tooltip("Position cost weight. Drives the ship toward the goal (Waypoint mode), " +

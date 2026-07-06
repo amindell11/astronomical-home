@@ -97,7 +97,7 @@ namespace Movement.MPC
                     inputs.enemyPos, inputs.enemyVel, inputs.enemyYaw, inputs.enemyYawRate,
                     inputs.enemyDynamics, inputs.projectileSpeed,
                     inputs.terminalField,
-                    settings.samples, noiseStd, settings.noiseKnots, lastControl,
+                    settings.samples, noiseStd, settings.noiseKnots, settings.gapPrimitiveCount, lastControl,
                     boostCooldown, boostProb,
                     settings.eliteFraction);
             }

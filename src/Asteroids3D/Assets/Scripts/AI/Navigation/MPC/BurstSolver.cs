@@ -165,7 +165,7 @@ namespace Movement.MPC
             float2 enemyPos, float2 enemyVel, float enemyYaw, float enemyYawRate,
             Dynamics enemyDynamics, float projectileSpeed,
             TerminalNavFieldSnapshot terminalField,
-            int samples, float noiseStd, int noiseKnots, Control lastControl,
+            int samples, float noiseStd, int noiseKnots, int gapPrimitiveCount, Control lastControl,
             float boostCooldownRemaining = 0f, float boostSampleProbability = 0.15f,
             float eliteFraction = 0.1f)
         {
@@ -247,6 +247,8 @@ namespace Movement.MPC
                 boostSampleProbability = boostSampleProbability,
                 rngSeed = rngSeed
             }.Schedule(samples, 1).Complete();
+
+            InjectGapPrimitives(initialState, goalPos, cfg, samples, gapPrimitiveCount);
 
             Evaluate(initialState, costInput, cfg, dynamics, lastControl, samples);
 
@@ -425,6 +427,38 @@ namespace Movement.MPC
             public float2 source;
             public float nominalSpeed;
             public bool hasSolution;
+        }
+
+        private void InjectGapPrimitives(State initialState, float2 goalPos, Config cfg, int samples, int primitiveCount)
+        {
+            if (primitiveCount <= 0 || samples <= 1 || lastObstacleCount < 2) return;
+            if (!GapDetector.TryFindBestGap(initialState.pos, goalPos, obstacles, lastObstacleCount,
+                    cfg.shipRadius, cfg.maxBankAngleRad, out var gap))
+            {
+                return;
+            }
+
+            var count = math.min(math.min(primitiveCount, samples - 1), 10);
+            for (var p = 0; p < count; p++)
+            {
+                var offset = (p + 1) * cfg.horizon;
+                var strafeSign = ((p & 1) == 0) ? 1f : -1f;
+                var thrustScale = p < 2 ? 1f : 0.75f;
+                for (var step = 0; step < cfg.horizon; step++)
+                {
+                    var phase = step / math.max(1f, cfg.horizon - 1f);
+                    var desiredYaw = math.atan2(-gap.axis.x, gap.axis.y);
+                    var yawErr = Cost.WrapRadians(initialState.yaw - desiredYaw);
+                    var yawTorque = math.clamp(-yawErr / (0.35f * math.PI), -1f, 1f);
+                    var bankRamp = phase < 0.25f ? phase / 0.25f : phase > 0.8f ? (1f - phase) / 0.2f : 1f;
+                    candidates[offset + step] = new Control
+                    {
+                        thrust = thrustScale,
+                        strafe = math.clamp(strafeSign * bankRamp, -1f, 1f),
+                        yawTorque = yawTorque,
+                    };
+                }
+            }
         }
 
         private void ConvertObstacles(AI.Scanning.ObstacleScan scan, bool useObstacles,

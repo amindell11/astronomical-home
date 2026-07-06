@@ -18,6 +18,7 @@ MonoBehaviour:
   noiseStd: 0.75
   noiseKnots: 5
   eliteFraction: 0.113
+  gapPrimitiveCount: 4
   wPos: 50
   wVel: 0
   wClosing: 1

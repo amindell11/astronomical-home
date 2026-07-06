@@ -186,6 +186,52 @@ namespace Tests.EditMode
             }
         }
 
+        [Test]
+        public void GapDetector_FindsGapBetweenTwoDiscs()
+        {
+            var obstacles = new Unity.Collections.NativeArray<ObstacleData>(2, Unity.Collections.Allocator.Temp);
+            try
+            {
+                obstacles[0] = new ObstacleData { position = new float2(10f, -3f), radius = 1f, weight = 1f };
+                obstacles[1] = new ObstacleData { position = new float2(10f, 3f), radius = 1f, weight = 1f };
+
+                var found = GapDetector.TryFindBestGap(float2.zero, new float2(20f, 0f),
+                    obstacles, 2, shipRadius: 1f, maxBankAngleRad: 0.61f, out var gap);
+
+                Assert.That(found, Is.True);
+                Assert.That(gap.axis.x, Is.GreaterThan(0.95f));
+                Assert.That(Mathf.Abs(gap.axis.y), Is.LessThan(0.05f));
+                Assert.That(gap.width, Is.EqualTo(4f).Within(0.001f));
+                Assert.That(gap.bankOnly, Is.EqualTo(0));
+            }
+            finally
+            {
+                obstacles.Dispose();
+            }
+        }
+
+        [Test]
+        public void GapDetector_ClassifiesBankOnlyGap()
+        {
+            var obstacles = new Unity.Collections.NativeArray<ObstacleData>(2, Unity.Collections.Allocator.Temp);
+            try
+            {
+                obstacles[0] = new ObstacleData { position = new float2(10f, -1.95f), radius = 1f, weight = 1f };
+                obstacles[1] = new ObstacleData { position = new float2(10f, 1.95f), radius = 1f, weight = 1f };
+
+                var found = GapDetector.TryFindBestGap(float2.zero, new float2(20f, 0f),
+                    obstacles, 2, shipRadius: 1f, maxBankAngleRad: 0.61f, out var gap);
+
+                Assert.That(found, Is.True);
+                Assert.That(gap.width, Is.LessThan(2.1f));
+                Assert.That(gap.bankOnly, Is.EqualTo(1));
+            }
+            finally
+            {
+                obstacles.Dispose();
+            }
+        }
+
         // NOTE: A projectile-lead facing test (enemy moving, projectileSpeed > 0 shifts the
         // planned facing toward the intercept) belongs here, but base-weight facing/exposure
         // authority was intentionally collapsed in the MPC retune (authority moved to per-state
