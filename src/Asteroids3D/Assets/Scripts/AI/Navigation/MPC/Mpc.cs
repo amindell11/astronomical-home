@@ -1,4 +1,5 @@
 using System;
+using AI.Navigation.Field;
 using AI.Scanning;
 using Movement;
 using Unity.Mathematics;
@@ -26,6 +27,7 @@ namespace Movement.MPC
         public WeightOverride[] weightOverrides;
         public ObstacleScan obstacleScan;
         public bool enableObstacleAvoidance;
+        public TerminalNavFieldSnapshot terminalField;
     }
 
     /// <summary>The control output of a single MPC solve.</summary>
@@ -95,6 +97,7 @@ namespace Movement.MPC
                     inputs.goalPos, inputs.goalVel,
                     inputs.enemyPos, inputs.enemyVel, inputs.enemyYaw, inputs.enemyYawRate,
                     inputs.enemyDynamics, inputs.projectileSpeed,
+                    inputs.terminalField,
                     settings.samples, noiseStd, lastControl,
                     boostCooldown, boostProb,
                     settings.eliteFraction);

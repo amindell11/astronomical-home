@@ -3,6 +3,7 @@ using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
+using AI.Navigation.Field;
 
 namespace Movement.MPC
 {
@@ -98,8 +99,10 @@ namespace Movement.MPC
         private NativeArray<Control> result;
         private NativeArray<ObstacleData> obstacles;
         private NativeArray<State> enemyStates;
+        private NativeArray<float> terminalCosts;
         private bool allocated;
         private int lastObstacleCount;
+        private const int MaxTerminalGridSize = 128;
 
         public NativeArray<ObstacleData> Obstacles => obstacles;
         public int ObstacleCount => lastObstacleCount;
@@ -119,6 +122,7 @@ namespace Movement.MPC
             float2 goalPos, float2 goalVel,
             float2 enemyPos, float2 enemyVel, float enemyYaw, float enemyYawRate,
             Dynamics enemyDynamics, float projectileSpeed,
+            TerminalNavFieldSnapshot terminalField,
             int samples, float noiseStd, Control lastControl,
             float boostCooldownRemaining = 0f, float boostSampleProbability = 0.15f,
             float eliteFraction = 0.1f)
@@ -132,6 +136,7 @@ namespace Movement.MPC
                 warmStart[i] = sequence[i];
 
             ConvertObstacles(scan, useObstacles, dynamics.mass, dynamics.shipRadius);
+            var terminalInput = CopyTerminalField(terminalField);
 
             // Roll out predicted enemy trajectory assuming maintained thrust along facing
             var hasEnemyRollout = !math.isnan(enemyYaw) && enemyDynamics.mass > 0f;
@@ -176,6 +181,13 @@ namespace Movement.MPC
                 enemyStates = enemyStates,
                 enemyStateCount = enemyStateCount,
                 initialVel = initialState.vel,
+                terminalCosts = terminalCosts,
+                terminalGridSize = terminalInput.gridSize,
+                terminalCellSize = terminalInput.cellSize,
+                terminalOrigin = terminalInput.origin,
+                terminalSource = terminalInput.source,
+                terminalNominalSpeed = terminalInput.nominalSpeed,
+                terminalHasSolution = terminalInput.hasSolution ? 1 : 0,
             };
 
             initialState.boostCooldownRemaining = boostCooldownRemaining;
@@ -337,7 +349,39 @@ namespace Movement.MPC
                 enemyStates = enemyStates.IsCreated ? enemyStates : default,
                 enemyStateCount = enemyStates.IsCreated ? enemyStates.Length : 0,
                 initialVel = initialVel,
+                terminalCosts = terminalCosts.IsCreated ? terminalCosts : default,
             };
+        }
+
+        private TerminalInput CopyTerminalField(TerminalNavFieldSnapshot snapshot)
+        {
+            if (snapshot == null || !snapshot.hasSolution || snapshot.costs == null)
+                return default;
+
+            var gridSize = math.clamp(snapshot.gridSize, 2, MaxTerminalGridSize);
+            var count = math.min(gridSize * gridSize, math.min(snapshot.costs.Length, terminalCosts.Length));
+            for (var i = 0; i < count; i++)
+                terminalCosts[i] = snapshot.costs[i];
+
+            return new TerminalInput
+            {
+                gridSize = gridSize,
+                cellSize = snapshot.cellSize,
+                origin = new float2(snapshot.origin.x, snapshot.origin.y),
+                source = new float2(snapshot.source.x, snapshot.source.y),
+                nominalSpeed = math.max(snapshot.nominalSpeed, 0.01f),
+                hasSolution = count == gridSize * gridSize,
+            };
+        }
+
+        private struct TerminalInput
+        {
+            public int gridSize;
+            public float cellSize;
+            public float2 origin;
+            public float2 source;
+            public float nominalSpeed;
+            public bool hasSolution;
         }
 
         private void ConvertObstacles(AI.Scanning.ObstacleScan scan, bool useObstacles,
@@ -371,6 +415,7 @@ namespace Movement.MPC
             costs = new NativeArray<float>(samples, Allocator.Persistent);
             obstacles = new NativeArray<ObstacleData>(64, Allocator.Persistent);
             enemyStates = new NativeArray<State>(horizon, Allocator.Persistent);
+            terminalCosts = new NativeArray<float>(MaxTerminalGridSize * MaxTerminalGridSize, Allocator.Persistent);
             result = new NativeArray<Control>(horizon, Allocator.Persistent);
             allocated = true;
         }
@@ -383,6 +428,7 @@ namespace Movement.MPC
             costs.Dispose();
             obstacles.Dispose();
             enemyStates.Dispose();
+            terminalCosts.Dispose();
             result.Dispose();
             allocated = false;
         }

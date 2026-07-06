@@ -79,6 +79,10 @@ namespace Movement.MPC
 
         // Obstacle
         public float wObstacle;
+        public float wTerminal;
+        public int terminalGridSize;
+        public float terminalCellSize;
+        public float terminalFallbackSpeed;
         public float obstacleThreshold;
         public float obstacleSpeedMargin;
         public float obstacleFalloffCurve;
@@ -205,6 +209,14 @@ namespace Movement.MPC
 
         /// <summary>Ship velocity at the start of the rollout. Used by momentum cost to reward maintaining direction.</summary>
         public float2 initialVel;
+
+        public NativeArray<float> terminalCosts;
+        public int terminalGridSize;
+        public float terminalCellSize;
+        public float2 terminalOrigin;
+        public float2 terminalSource;
+        public float terminalNominalSpeed;
+        public int terminalHasSolution;
 
     }
 

@@ -46,6 +46,10 @@ MonoBehaviour:
   wTangential: 1
   wMissDistance: 0
   wObstacle: 1
+  wTerminal: 1
+  terminalGridSize: 64
+  terminalCellSize: 5
+  terminalFallbackSpeed: 20
   obstacleThreshold: 0.1
   obstacleSpeedMargin: 1
   obstacleFalloffCurve: 13.05

@@ -177,6 +177,9 @@ namespace Movement.MPC
 
             var total = positionalCost + tacticalCost + controlCost;
 
+            if (isTerminal && cfg.wTerminal > 0f)
+                total += TerminalTimeToGoCost(s.pos, input, cfg) * cfg.wTerminal;
+
             if (cfg.terminalMultiplier > 0f && cfg.horizon > 1)
             {
                 var t = step / (float)(cfg.horizon - 1);
@@ -186,6 +189,41 @@ namespace Movement.MPC
 
             return total;
         }
+
+        internal static float TerminalTimeToGoCost(float2 pos, CostInput input, Config cfg)
+        {
+            if (input.terminalHasSolution == 0 ||
+                !input.terminalCosts.IsCreated ||
+                input.terminalGridSize <= 1 ||
+                input.terminalCellSize <= 0f)
+            {
+                return 0f;
+            }
+
+            var local = (pos - input.terminalOrigin) / input.terminalCellSize;
+            var x0 = (int)math.floor(local.x - 0.5f);
+            var y0 = (int)math.floor(local.y - 0.5f);
+            if (x0 < 0 || y0 < 0 || x0 >= input.terminalGridSize - 1 || y0 >= input.terminalGridSize - 1)
+                return DistanceFallback(pos, input);
+
+            var tx = math.saturate(local.x - (x0 + 0.5f));
+            var ty = math.saturate(local.y - (y0 + 0.5f));
+            var c00 = TerminalCellCost(input, x0, y0);
+            var c10 = TerminalCellCost(input, x0 + 1, y0);
+            var c01 = TerminalCellCost(input, x0, y0 + 1);
+            var c11 = TerminalCellCost(input, x0 + 1, y0 + 1);
+            if (!math.isfinite(c00) || !math.isfinite(c10) || !math.isfinite(c01) || !math.isfinite(c11))
+                return DistanceFallback(pos, input);
+
+            var cells = math.lerp(math.lerp(c00, c10, tx), math.lerp(c01, c11, tx), ty);
+            return cells * input.terminalCellSize / math.max(input.terminalNominalSpeed, 0.01f);
+        }
+
+        private static float TerminalCellCost(CostInput input, int x, int y) =>
+            input.terminalCosts[y * input.terminalGridSize + x];
+
+        private static float DistanceFallback(float2 pos, CostInput input) =>
+            math.distance(pos, input.terminalSource) / math.max(input.terminalNominalSpeed, 0.01f);
 
         /// <summary>
         /// Computes the yaw angle to aim at a first-order intercept point.

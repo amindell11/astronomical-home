@@ -105,6 +105,14 @@ namespace Movement.MPC
         [Header("Obstacle Avoidance")]
         [Tooltip("Obstacle avoidance weight. Inverse-distance cost near obstacles; higher = wider berth.")]
         public float wObstacle = 10.0f;
+        [Tooltip("Terminal time-to-go field weight. 0 disables the NavField terminal hook.")]
+        public float wTerminal = 0f;
+        [Tooltip("Terminal NavField grid size in cells. Rounded/clamped at runtime.")]
+        public int terminalGridSize = 64;
+        [Tooltip("Terminal NavField cell size in world units.")]
+        public float terminalCellSize = 5f;
+        [Tooltip("Fallback speed for terminal time-to-go when a field sample is off-grid or blocked.")]
+        public float terminalFallbackSpeed = 20f;
         [Tooltip("Distance beyond an obstacle's radius at which the avoidance cost begins. " +
                  "Effectively inflates obstacles by this amount.")]
         public float obstacleThreshold = 5.0f;
@@ -176,6 +184,10 @@ namespace Movement.MPC
                 wMissDistance = wMissDistance,
                 // Obstacle
                 wObstacle = wObstacle,
+                wTerminal = wTerminal,
+                terminalGridSize = Mathf.Clamp(terminalGridSize, 2, 128),
+                terminalCellSize = Mathf.Max(0.1f, terminalCellSize),
+                terminalFallbackSpeed = Mathf.Max(0.1f, terminalFallbackSpeed),
                 obstacleThreshold = obstacleThreshold,
                 obstacleSpeedMargin = obstacleSpeedMargin,
                 obstacleFalloffCurve = obstacleFalloffCurve,

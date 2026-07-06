@@ -1,6 +1,7 @@
 using System;
 using AI;
 using AI.Context;
+using AI.Navigation.Field;
 using AI.Scanning;
 using AI.States;
 using Game;
@@ -43,6 +44,7 @@ namespace Movement.MPC
         protected float enemyYawRate;
         protected float projectileSpeed;
         protected Dynamics enemyDynamics;
+        protected Transform enemyTargetRoot;
         protected WeightOverride[] weightOverrides = Array.Empty<WeightOverride>();
 
         protected PilotCommand currentCommand;
@@ -62,11 +64,13 @@ namespace Movement.MPC
         public bool enableObstacleAvoidance = true;
 
         private Mpc mpc;
+        private Dynamics ownDynamics;
 
         public void Initialize(IShipStatus shipContext, Dynamics dynamics, Scout scout)
         {
             context = shipContext;
             this.scout = scout;
+            ownDynamics = dynamics;
             currentWaypoint = new Waypoint { isValid = false };
             if (!mpcSettings)
                 mpcSettings = ScriptableObject.CreateInstance<MpcSettings>();
@@ -100,6 +104,7 @@ namespace Movement.MPC
                 weightOverrides = weightOverrides,
                 obstacleScan = scan,
                 enableObstacleAvoidance = enableObstacleAvoidance,
+                terminalField = GetTerminalField(),
             };
 
 #if UNITY_EDITOR
@@ -253,6 +258,7 @@ namespace Movement.MPC
             enemyYawRate = k.yawRate * Mathf.Deg2Rad;
             this.projectileSpeed = projectileSpeed;
             this.enemyDynamics = target.dynamics;
+            this.enemyTargetRoot = target.source;
         }
 
         private void ClearEnemyState()
@@ -263,6 +269,19 @@ namespace Movement.MPC
             enemyYawRate = 0f;
             projectileSpeed = 0f;
             enemyDynamics = default;
+            enemyTargetRoot = null;
+        }
+
+        private TerminalNavFieldSnapshot GetTerminalField()
+        {
+            if (mpcSettings.wTerminal <= 0f || !enemyTargetRoot) return null;
+            var nominalSpeed = Mathf.Max(mpcSettings.terminalFallbackSpeed, ownDynamics.maxSpeed);
+            return TerminalNavFieldService.GetForTarget(
+                enemyTargetRoot,
+                Mathf.Clamp(mpcSettings.terminalGridSize, 2, 128),
+                Mathf.Max(0.1f, mpcSettings.terminalCellSize),
+                nominalSpeed,
+                ownDynamics.shipRadius);
         }
 
         private void SetWeightOverrides(WeightOverride[] overrides)
