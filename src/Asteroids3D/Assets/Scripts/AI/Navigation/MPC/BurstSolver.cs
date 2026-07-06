@@ -163,7 +163,8 @@ namespace Movement.MPC
             float boostCooldownRemaining = 0f, float boostSampleProbability = 0.15f,
             float eliteFraction = 0.1f, int noiseKnots = 4,
             int cemIterations = 2, float strafeSigmaFloor = 0.3f, float sigmaFloor = 0.05f,
-            float meanMomentum = 0.5f, Control[] primitives = null, int primitiveCount = 0)
+            float meanMomentum = 0.5f, Control[] primitives = null, int primitiveCount = 0,
+            float eliteTemperature = 0.2f)
         {
             var horizon = cfg.horizon;
             // Budget-neutral: total evaluations ≈ samples, split across CEM iterations.
@@ -272,7 +273,7 @@ namespace Movement.MPC
 
                 // Refit: result ← elite-average sequence; sigma ← floored per-channel elite std.
                 var iterBest = RefitElites(horizon, m, eliteFraction,
-                    strafeSigmaFloor, sigmaFloor, out sigma, out var eliteMean);
+                    strafeSigmaFloor, sigmaFloor, eliteTemperature, out sigma, out var eliteMean);
                 LastIterationCosts[iter] = eliteMean;
                 bestCost = math.min(bestCost, iterBest);
 
@@ -304,7 +305,7 @@ namespace Movement.MPC
             // budget. Only cost/elite selection differ; sigma output is unused for a rescore.
             var m = math.min(LastSampleCount, costs.Length);
             Evaluate(initialState, costInput, cfg, dynamics, lastControl, m);
-            var best = RefitElites(cfg.horizon, m, eliteFraction, 0.3f, 0.05f, out _, out _);
+            var best = RefitElites(cfg.horizon, m, eliteFraction, 0.3f, 0.05f, 0.2f, out _, out _);
             for (var j = 0; j < cfg.horizon; j++)
                 sequence[j] = result[j];
             return best;
@@ -332,15 +333,13 @@ namespace Movement.MPC
         /// elite cost. Callers copy <see cref="result"/> into the mean/output sequence.
         /// </summary>
         private float RefitElites(int horizon, int m, float eliteFraction,
-            float strafeSigmaFloor, float sigmaFloor, out float3 sigma, out float eliteMeanCost)
+            float strafeSigmaFloor, float sigmaFloor, float eliteTemperature,
+            out float3 sigma, out float eliteMeanCost)
         {
             var eliteCount = math.max(1, (int)(m * math.clamp(eliteFraction, 0.01f, 0.5f)));
             var costThreshold = FindKthSmallest(costs, m, eliteCount);
 
-            for (var j = 0; j < horizon; j++)
-                result[j] = default;
-
-            // Pass 1: accumulate the elite sum into result + track best/mean elite cost.
+            // Pass A: best/mean elite cost.
             var bestCost = float.MaxValue;
             var costSum = 0f;
             var counted = 0;
@@ -349,7 +348,29 @@ namespace Movement.MPC
                 if (costs[i] > costThreshold) continue;
                 bestCost = math.min(bestCost, costs[i]);
                 costSum += costs[i];
+                counted++;
+            }
+            var meanCost = costSum / counted;
 
+            // Adaptive softmax temperature scaled by the ABSOLUTE cost magnitude, so sharpness
+            // depends on RELATIVE cost differences. Open field (elites within a small fraction of
+            // each other) stays soft — near-uniform, momentum-smooth, no off-axis veer — while a
+            // clear cheap winner (a threading primitive at a fraction of the colliders' cost)
+            // dominates the mean. Spread is a floor for the degenerate small-|meanCost| case.
+            var costScale = math.max(math.abs(meanCost), meanCost - bestCost);
+            var tau = math.max(1e-4f, eliteTemperature * costScale);
+
+            // Pass B: cost-weighted mean. A much-cheaper elite (e.g. a threading primitive amid
+            // colliding samples) dominates instead of being averaged 1/eliteCount away.
+            for (var j = 0; j < horizon; j++)
+                result[j] = default;
+            var weightSum = 0f;
+            var visited = 0;
+            for (var i = 0; i < m && visited < eliteCount; i++)
+            {
+                if (costs[i] > costThreshold) continue;
+                var w = math.exp(-(costs[i] - bestCost) / tau);
+                weightSum += w;
                 var offset = i * horizon;
                 for (var j = 0; j < horizon; j++)
                 {
@@ -357,50 +378,49 @@ namespace Movement.MPC
                     var s = candidates[offset + j];
                     result[j] = new Control
                     {
-                        thrust = c.thrust + s.thrust,
-                        strafe = c.strafe + s.strafe,
-                        yawTorque = c.yawTorque + s.yawTorque,
-                        boost = c.boost + s.boost,
+                        thrust = c.thrust + w * s.thrust,
+                        strafe = c.strafe + w * s.strafe,
+                        yawTorque = c.yawTorque + w * s.yawTorque,
+                        boost = c.boost + w * s.boost,
                     };
                 }
-                counted++;
+                visited++;
             }
 
-            // Turn the accumulated sum into the mean, in place.
-            var invCount = 1f / counted;
+            var invW = 1f / math.max(weightSum, 1e-6f);
             for (var j = 0; j < horizon; j++)
             {
                 var c = result[j];
                 result[j] = new Control
                 {
-                    thrust = math.clamp(c.thrust * invCount, -1f, 1f),
-                    strafe = math.clamp(c.strafe * invCount, -1f, 1f),
-                    yawTorque = math.clamp(c.yawTorque * invCount, -1f, 1f),
-                    boost = c.boost * invCount > 0.5f ? 1f : 0f,
+                    thrust = math.clamp(c.thrust * invW, -1f, 1f),
+                    strafe = math.clamp(c.strafe * invW, -1f, 1f),
+                    yawTorque = math.clamp(c.yawTorque * invW, -1f, 1f),
+                    boost = c.boost * invW > 0.5f ? 1f : 0f,
                 };
             }
 
-            // Pass 2: per-channel variance of the same elites around the new mean.
+            // Pass C: weighted per-channel variance around the softmax mean.
             var varAcc = float3.zero;
-            var visited = 0;
+            visited = 0;
             for (var i = 0; i < m && visited < eliteCount; i++)
             {
                 if (costs[i] > costThreshold) continue;
+                var w = math.exp(-(costs[i] - bestCost) / tau);
                 var offset = i * horizon;
                 for (var j = 0; j < horizon; j++)
                 {
                     var s = candidates[offset + j];
                     var mean = result[j];
                     var d = new float3(s.thrust - mean.thrust, s.strafe - mean.strafe, s.yawTorque - mean.yawTorque);
-                    varAcc += d * d;
+                    varAcc += w * d * d;
                 }
                 visited++;
             }
 
-            var sampleN = math.max(1, counted * horizon);
-            var rawSigma = math.sqrt(varAcc / sampleN);
+            var rawSigma = math.sqrt(varAcc / math.max(weightSum * horizon, 1e-6f));
             sigma = FloorSigma(rawSigma, strafeSigmaFloor, sigmaFloor);
-            eliteMeanCost = costSum * invCount;
+            eliteMeanCost = meanCost;
             return bestCost;
         }
 

@@ -143,17 +143,22 @@ namespace Tests.EditMode
             float costOff = 0f, costOn = 0f;
             for (var r = 0; r < reps; r++)
             {
-                costOff += SolveOnce(solver, scan, null, 0);
-                costOn += SolveOnce(solver, scan, prims, count);
+                costOff += SolveOnce(solver, scan, null, 0).cost;
+                costOn += SolveOnce(solver, scan, prims, count).cost;
             }
+            // The injected primitive threads and becomes the winning (cheapest) elite. Whether the
+            // softmax mean visibly commits to a bank depends on how many Gaussian samples also
+            // thread (razor-thin in this game's coupled bank/strafe) — that commitment is measured
+            // in the closed-loop benchmark; here we assert the robust mechanism: the best elite drops.
             Assert.That(costOn, Is.LessThan(costOff),
                 $"injection should lower the best-elite cost (on {costOn / reps:F0} vs off {costOff / reps:F0})");
         }
 
-        private float SolveOnce(SolverBuffers solver, ObstacleScan scan, Control[] primitives, int primitiveCount)
+        private (float cost, float peakStrafe) SolveOnce(SolverBuffers solver, ObstacleScan scan,
+            Control[] primitives, int primitiveCount)
         {
             var seq = new Control[cfg.horizon];
-            return solver.Solve(Initial(), seq, cfg, dynamics,
+            var cost = solver.Solve(Initial(), seq, cfg, dynamics,
                 scan, true,
                 new float2(0f, 30f), float2.zero,
                 float2.zero, float2.zero, float.NaN, 0f,
@@ -162,7 +167,10 @@ namespace Tests.EditMode
                 0f, 0f,
                 settings.eliteFraction, settings.noiseKnots,
                 settings.cemIterations, settings.strafeSigmaFloor, settings.sigmaFloor,
-                settings.meanMomentum, primitives, primitiveCount);
+                settings.meanMomentum, primitives, primitiveCount, settings.eliteTemperature);
+            var peak = 0f;
+            for (var j = 0; j < cfg.horizon; j++) peak = math.max(peak, math.abs(seq[j].strafe));
+            return (cost, peak);
         }
     }
 }

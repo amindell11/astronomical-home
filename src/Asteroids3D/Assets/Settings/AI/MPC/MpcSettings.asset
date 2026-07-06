@@ -20,6 +20,7 @@ MonoBehaviour:
   eliteFraction: 0.113
   cemIterations: 2
   meanMomentum: 0.5
+  eliteTemperature: 0.2
   strafeSigmaFloor: 0.3
   sigmaFloor: 0.05
   enableGapInjection: 1

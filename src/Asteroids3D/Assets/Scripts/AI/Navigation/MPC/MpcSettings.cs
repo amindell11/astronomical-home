@@ -33,6 +33,11 @@ namespace Movement.MPC
                  "(raw elite average), lower = smoother/stickier.")]
         [Range(0.05f, 1f)]
         public float meanMomentum = 0.5f;
+        [Tooltip("Softmax temperature for the cost-weighted elite mean (relative to the elite cost " +
+                 "spread). Lower = sharper: a much-cheaper elite (e.g. a gap-threading primitive amid " +
+                 "colliding samples) dominates the returned mean instead of being averaged away. " +
+                 "Momentum damps the resulting frame-to-frame commitment.")]
+        public float eliteTemperature = 0.2f;
         [Tooltip("Lower bound on the strafe channel's adaptive sampling sigma. Prevents CEM from " +
                  "collapsing lateral exploration once elites briefly agree — keeps evasive/gap-threading " +
                  "maneuvers reachable.")]

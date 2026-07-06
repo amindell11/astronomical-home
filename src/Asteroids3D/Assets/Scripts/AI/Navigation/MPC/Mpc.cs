@@ -98,7 +98,8 @@ namespace Movement.MPC
                     boostCooldown, boostProb,
                     settings.eliteFraction, settings.noiseKnots,
                     settings.cemIterations, settings.strafeSigmaFloor, settings.sigmaFloor,
-                    settings.meanMomentum, inputs.primitives, inputs.primitiveCount);
+                    settings.meanMomentum, inputs.primitives, inputs.primitiveCount,
+                    settings.eliteTemperature);
             }
 
             UpdatePredictedStates(mpcState);
