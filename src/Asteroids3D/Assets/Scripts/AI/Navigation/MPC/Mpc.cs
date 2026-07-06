@@ -26,6 +26,10 @@ namespace Movement.MPC
         public WeightOverride[] weightOverrides;
         public ObstacleScan obstacleScan;
         public bool enableObstacleAvoidance;
+        /// <summary>Scripted candidate sequences injected into the sample set (flattened,
+        /// horizon-length each) — e.g. bank-through-gap primitives. Null/0 = none.</summary>
+        public Control[] injectedControls;
+        public int injectedCount;
     }
 
     /// <summary>The control output of a single MPC solve.</summary>
@@ -90,7 +94,8 @@ namespace Movement.MPC
                     inputs.enemyDynamics, inputs.projectileSpeed,
                     settings.samples, settings.noiseStd, settings.noiseKnots, lastControl,
                     boostCooldown, boostProb,
-                    settings.eliteFraction);
+                    settings.eliteFraction,
+                    inputs.injectedControls, inputs.injectedCount);
             }
 
             UpdatePredictedStates(mpcState);

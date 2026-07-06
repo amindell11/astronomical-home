@@ -10,10 +10,12 @@ namespace Movement.MPC
     public struct GenerateCandidatesJob : IJobParallelFor
     {
         [ReadOnly] public NativeArray<Control> warmStart;
+        [ReadOnly] public NativeArray<Control> injected;
         [NativeDisableParallelForRestriction]
         public NativeArray<Control> candidates;
 
         public int horizon;
+        public int injectedCount;
         public float noiseStd;
         public int noiseKnots;
         public float boostSampleProbability;
@@ -27,6 +29,17 @@ namespace Movement.MPC
             {
                 for (var j = 0; j < horizon; j++)
                     candidates[offset + j] = warmStart[j];
+                return;
+            }
+
+            // Injected candidates (Biased-MPPI pattern, CEM flavor): scripted control
+            // sequences — e.g. bank-through-gap primitives — compete with the Gaussian
+            // samples on cost alone. No importance correction needed; elites refit.
+            if (candidateIndex <= injectedCount)
+            {
+                var src = (candidateIndex - 1) * horizon;
+                for (var j = 0; j < horizon; j++)
+                    candidates[offset + j] = injected[src + j];
                 return;
             }
 
@@ -119,7 +132,10 @@ namespace Movement.MPC
     /// </summary>
     public class SolverBuffers : System.IDisposable
     {
+        public const int MaxInjected = 32;
+
         private NativeArray<Control> warmStart;
+        private NativeArray<Control> injected;
         private NativeArray<Control> candidates;
         private NativeArray<float> costs;
         private NativeArray<Control> result;
@@ -139,6 +155,10 @@ namespace Movement.MPC
         public NativeArray<float> Costs => costs;
         public int LastSampleCount { get; private set; }
         public int LastHorizon { get; private set; }
+        /// <summary>Candidate index of the single cheapest elite from the last Solve()/Rescore().
+        /// Index 0 = warm start, 1..LastInjectedCount = injected sequences, rest Gaussian.</summary>
+        public int LastBestIndex { get; private set; }
+        public int LastInjectedCount { get; private set; }
 
         public float Solve(State initialState, Control[] sequence,
             Config cfg, Dynamics dynamics,
@@ -148,7 +168,8 @@ namespace Movement.MPC
             Dynamics enemyDynamics, float projectileSpeed,
             int samples, float noiseStd, int noiseKnots, Control lastControl,
             float boostCooldownRemaining = 0f, float boostSampleProbability = 0.15f,
-            float eliteFraction = 0.1f)
+            float eliteFraction = 0.1f,
+            Control[] injectedControls = null, int injectedCount = 0)
         {
             var horizon = cfg.horizon;
             EnsureBuffers(horizon, samples);
@@ -157,6 +178,14 @@ namespace Movement.MPC
 
             for (var i = 0; i < horizon; i++)
                 warmStart[i] = sequence[i];
+
+            // Copy injected candidate sequences (flattened, horizon-length each) into the
+            // native buffer. Clamped so injections can never crowd out Gaussian exploration.
+            injectedCount = injectedControls == null ? 0
+                : math.min(math.min(injectedCount, MaxInjected), samples - 1);
+            for (var i = 0; i < injectedCount * horizon; i++)
+                injected[i] = injectedControls[i];
+            LastInjectedCount = injectedCount;
 
             ConvertObstacles(scan, useObstacles, dynamics.mass);
 
@@ -213,8 +242,10 @@ namespace Movement.MPC
             new GenerateCandidatesJob
             {
                 warmStart = warmStart,
+                injected = injected,
                 candidates = candidates,
                 horizon = horizon,
+                injectedCount = injectedCount,
                 noiseStd = noiseStd,
                 noiseKnots = noiseKnots,
                 boostSampleProbability = boostSampleProbability,
@@ -268,7 +299,11 @@ namespace Movement.MPC
             for (var i = 0; i < samples && counted < eliteCount; i++)
             {
                 if (costs[i] > costThreshold) continue;
-                if (costs[i] < bestCost) bestCost = costs[i];
+                if (costs[i] < bestCost)
+                {
+                    bestCost = costs[i];
+                    LastBestIndex = i;
+                }
 
                 var offset = i * horizon;
                 for (var j = 0; j < horizon; j++)
@@ -397,6 +432,7 @@ namespace Movement.MPC
                 return;
             Dispose();
             warmStart = new NativeArray<Control>(horizon, Allocator.Persistent);
+            injected = new NativeArray<Control>(MaxInjected * horizon, Allocator.Persistent);
             candidates = new NativeArray<Control>(samples * horizon, Allocator.Persistent);
             costs = new NativeArray<float>(samples, Allocator.Persistent);
             obstacles = new NativeArray<ObstacleData>(64, Allocator.Persistent);
@@ -409,6 +445,7 @@ namespace Movement.MPC
         {
             if (!allocated) return;
             warmStart.Dispose();
+            injected.Dispose();
             candidates.Dispose();
             costs.Dispose();
             obstacles.Dispose();

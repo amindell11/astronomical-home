@@ -62,15 +62,25 @@ namespace Movement.MPC
         public bool enableObstacleAvoidance = true;
 
         private Mpc mpc;
+        private Dynamics dynamics;
+
+        // ── Gap layer (detector + injected bank-through primitives) ──
+        private GapDetector gapDetector;
+        private DetectedGap[] gapBuffer = new DetectedGap[16];
+        private Control[] injectedBuffer;      // flattened horizon-length sequences
+        private Control[] cachedGapElite;      // last winning injected sequence, re-seeded next solve
+        private bool hasCachedGapElite;
 
         public void Initialize(IShipStatus shipContext, Dynamics dynamics, Scout scout)
         {
             context = shipContext;
             this.scout = scout;
+            this.dynamics = dynamics;
             currentWaypoint = new Waypoint { isValid = false };
             if (!mpcSettings)
                 mpcSettings = ScriptableObject.CreateInstance<MpcSettings>();
             mpc = new Mpc(mpcSettings, dynamics);
+            gapDetector = new GapDetector();
         }
 
         public PilotCommand ComputeCommand()
@@ -81,6 +91,7 @@ namespace Movement.MPC
                 return currentCommand = default;
 
             var scan = scout.ObstacleScan;
+            var injectedCount = BuildGapPrimitives(kin, scan);
             var inputs = new MpcInputs
             {
                 kinematics = kin,
@@ -100,6 +111,8 @@ namespace Movement.MPC
                 weightOverrides = weightOverrides,
                 obstacleScan = scan,
                 enableObstacleAvoidance = enableObstacleAvoidance,
+                injectedControls = injectedBuffer,
+                injectedCount = injectedCount,
             };
 
 #if UNITY_EDITOR
@@ -109,6 +122,7 @@ namespace Movement.MPC
             MpcResult result;
             using (EditorProfilingScope.Begin("MPC.Navigator.Solve"))
                 result = mpc.Plan(in inputs);
+            CacheWinningInjection(injectedCount);
 #if UNITY_EDITOR
             sw.Stop();
             lastSolveTimeMs = (float)sw.Elapsed.TotalMilliseconds;
@@ -136,6 +150,92 @@ namespace Movement.MPC
 
         private float2 GoalPos() => new(currentWaypoint.position.x, currentWaypoint.position.y);
         private float2 GoalVel() => new(currentWaypoint.velocity.x, currentWaypoint.velocity.y);
+
+        /// <summary>
+        /// Runs the gap detector over the obstacle scan and synthesizes bank-through-gap
+        /// primitive sequences into <see cref="injectedBuffer"/> for CEM injection: top-k
+        /// gaps by score with switch hysteresis, plus the previous tick's winning injected
+        /// sequence (if any) as an extra seed. Returns the injected sequence count.
+        /// </summary>
+        private int BuildGapPrimitives(in Kinematics kin, in ObstacleScan scan)
+        {
+            if (!enableObstacleAvoidance || mpcSettings.gapTopK <= 0 || scan.count == 0)
+                return 0;
+
+            var horizon = mpcSettings.Horizon;
+            var maxSequences = mpcSettings.gapTopK * mpcSettings.primitivesPerGap + 1;
+            if (injectedBuffer == null || injectedBuffer.Length != maxSequences * horizon)
+            {
+                injectedBuffer = new Control[maxSequences * horizon];
+                cachedGapElite = new Control[horizon];
+                hasCachedGapElite = false;
+            }
+
+            var state = new State
+            {
+                pos = new float2(kin.pos.x, kin.pos.y),
+                vel = new float2(kin.vel.x, kin.vel.y),
+                yaw = kin.yaw * Mathf.Deg2Rad,
+                yawRate = kin.yawRate * Mathf.Deg2Rad,
+            };
+            var hullFull = dynamics.shipRadius + mpcSettings.collisionSafetyMargin;
+            var hullBank = dynamics.shipRadius * Mathf.Cos(dynamics.maxBankAngleRad)
+                           + mpcSettings.collisionSafetyMargin;
+
+            var gapCount = gapDetector.Detect(state.pos, scan, hullFull, hullBank,
+                mpcSettings.gapMaxRange, gapBuffer);
+
+            var goalBearing = GapDetector.Bearing(state.pos, GoalPos());
+            var speed = math.length(state.vel);
+            for (var i = 0; i < gapCount; i++)
+                gapBuffer[i].score = GapDetector.Score(in gapBuffer[i], state.yaw, speed,
+                    goalBearing, dynamics.maxYawRate);
+
+            var chosen = gapDetector.ChooseGap(gapBuffer, gapCount, mpcSettings.gapSwitchMargin);
+            StoreDebugGaps(gapBuffer, gapCount, chosen);
+            if (chosen < 0) return 0;
+
+            // Inject the chosen gap first, then the remaining gaps in score order up to top-k.
+            var injectedCount = GapPrimitives.Synthesize(in gapBuffer[chosen], in state, in dynamics,
+                mpcSettings.rolloutDt, horizon, mpcSettings.primitivesPerGap, injectedBuffer, 0);
+            for (var k = 1; k < mpcSettings.gapTopK; k++)
+            {
+                // Next-best unconsumed gap (consumed ones have score = -inf).
+                var next = -1;
+                for (var i = 0; i < gapCount; i++)
+                {
+                    if (i == chosen || float.IsNegativeInfinity(gapBuffer[i].score)) continue;
+                    if (next < 0 || gapBuffer[i].score > gapBuffer[next].score) next = i;
+                }
+                if (next < 0) break;
+                injectedCount += GapPrimitives.Synthesize(in gapBuffer[next], in state, in dynamics,
+                    mpcSettings.rolloutDt, horizon, mpcSettings.primitivesPerGap,
+                    injectedBuffer, injectedCount * horizon);
+                gapBuffer[next].score = float.NegativeInfinity; // consume so the next pass skips it
+            }
+
+            // Re-seed last tick's winning injected sequence so a successful thread persists
+            // across solves even when this tick's synthesis shifts its timing.
+            if (hasCachedGapElite && injectedCount < maxSequences)
+            {
+                System.Array.Copy(cachedGapElite, 0, injectedBuffer, injectedCount * horizon, horizon);
+                injectedCount++;
+            }
+
+            return injectedCount;
+        }
+
+        /// <summary>If an injected sequence won the last solve outright, cache it for re-injection.</summary>
+        private void CacheWinningInjection(int injectedCount)
+        {
+            if (injectedCount <= 0) return;
+            var bestIndex = mpc.Solver.LastBestIndex;
+            if (bestIndex < 1 || bestIndex > injectedCount) return;
+
+            var horizon = mpcSettings.Horizon;
+            System.Array.Copy(injectedBuffer, (bestIndex - 1) * horizon, cachedGapElite, 0, horizon);
+            hasCachedGapElite = true;
+        }
 
         private void ApplyControl(in MpcResult r)
         {
@@ -292,6 +392,7 @@ namespace Movement.MPC
 
         partial void RunComparisonRollouts(State mpcState, ObstacleScan scan);
         partial void StoreDebugObstacles(ObstacleScan scan);
+        partial void StoreDebugGaps(DetectedGap[] gaps, int count, int chosen);
         partial void LogSolverPerformanceIfNeeded();
     }
 }

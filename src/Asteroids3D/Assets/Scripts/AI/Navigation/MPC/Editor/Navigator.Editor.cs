@@ -34,6 +34,10 @@ namespace Movement.MPC
         private DetectedObstacle[] dbgObstacles;
         private int dbgObstacleCount;
 
+        private DetectedGap[] dbgGaps;
+        private int dbgGapCount;
+        private int dbgChosenGap = -1;
+
         // Debug info
         public CostBreakdown lastCostBreakdown;
         public float lastSolveTimeMs;
@@ -46,12 +50,13 @@ namespace Movement.MPC
         private Control[] bestSequence => mpc?.BestSequence;
         private State[] predictedStates => mpc?.PredictedStates;
         private State lastInitialState => mpc != null ? mpc.LastInitialState : default;
+        // (ship dynamics now live on the runtime partial's `dynamics` field, set in Initialize)
         private Control lastControl => mpc != null ? mpc.LastControl : default;
-        private Dynamics dynamics => mpc != null ? mpc.Dynamics : default;
         internal float lastBestCost => mpc != null ? mpc.LastBestCost : 0f;
 
         [Header("Scene Gizmo Sub-Toggles")]
         public bool showObstacleCosts = true;
+        public bool showGaps = true;
         public bool showTrajectoryCosts = true;
         public bool showControlInputs = true;
         [Tooltip("Render a random sampling of MPC candidate trajectories with rank-based alpha. " +
@@ -175,6 +180,57 @@ namespace Movement.MPC
                 dbgObstacles[i] = scan.buffer[i];
         }
 
+        partial void StoreDebugGaps(DetectedGap[] gaps, int count, int chosen)
+        {
+            if (dbgGaps == null || dbgGaps.Length < count)
+                dbgGaps = new DetectedGap[Mathf.Max(count, 16)];
+
+            dbgGapCount = count;
+            dbgChosenGap = chosen;
+            for (var i = 0; i < count; i++)
+                dbgGaps[i] = gaps[i];
+        }
+
+        private void DrawGaps()
+        {
+            if (!showGaps || dbgGaps == null || dbgGapCount == 0) return;
+
+            var origin = transform.position;
+            var injectedWon = solver != null && solver.LastInjectedCount > 0 &&
+                              solver.LastBestIndex >= 1 && solver.LastBestIndex <= solver.LastInjectedCount;
+
+            for (var i = 0; i < dbgGapCount; i++)
+            {
+                var gap = dbgGaps[i];
+                var isChosen = i == dbgChosenGap;
+                var dir = new Vector2(-Mathf.Sin(gap.axisAngle), Mathf.Cos(gap.axisAngle));
+                var worldDir = GamePlane.PlaneDirToWorld(dir);
+                var length = Mathf.Min(gap.depth, 25f);
+
+                // Chosen = green, bank-only = cyan, others = dim white; edge rays show width.
+                Gizmos.color = isChosen ? new Color(0.2f, 1f, 0.2f, 0.9f)
+                    : gap.bankOnly ? new Color(0.3f, 0.9f, 1f, 0.5f)
+                    : new Color(1f, 1f, 1f, 0.35f);
+                Gizmos.DrawRay(origin, worldDir * length);
+
+                var half = gap.angularWidth * 0.5f;
+                var edgeA = new Vector2(-Mathf.Sin(gap.axisAngle - half), Mathf.Cos(gap.axisAngle - half));
+                var edgeB = new Vector2(-Mathf.Sin(gap.axisAngle + half), Mathf.Cos(gap.axisAngle + half));
+                var edgeColor = Gizmos.color;
+                edgeColor.a *= 0.4f;
+                Gizmos.color = edgeColor;
+                Gizmos.DrawRay(origin, GamePlane.PlaneDirToWorld(edgeA) * length);
+                Gizmos.DrawRay(origin, GamePlane.PlaneDirToWorld(edgeB) * length);
+
+                if (isChosen)
+                {
+                    Handles.Label(origin + worldDir * (length + 0.5f),
+                        $"gap {gap.score:F2}{(gap.bankOnly ? " BANK" : "")}{(injectedWon ? " INJ-WON" : "")}",
+                        new GUIStyle { normal = { textColor = Color.green }, fontSize = 10 });
+                }
+            }
+        }
+
         private CostBreakdown EvaluateBreakdown(State mpcState)
         {
             var input = solver.BuildCostInput(GoalPos(), GoalVel(), enemyPos, enemyVel, enemyYaw, enemyYawRate, projectileSpeed, mpcState.vel);
@@ -207,6 +263,7 @@ namespace Movement.MPC
             DrawEnemyRollout();
             DrawGoal();
             DrawObstacleDebugInfo();
+            DrawGaps();
             DrawControlInputs();
         }
 

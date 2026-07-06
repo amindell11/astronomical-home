@@ -110,6 +110,20 @@ namespace Movement.MPC
                  "model error. Deliberately NOT speed-scaled — speed safety is the admissibility term's job.")]
         public float collisionSafetyMargin = 0.25f;
 
+        [Header("Gap Primitives")]
+        [Tooltip("Number of top-scored gaps that get scripted bank-through primitives injected " +
+                 "into the sample set each solve. 0 disables the gap layer entirely.")]
+        public int gapTopK = 3;
+        [Tooltip("Scripted control-sequence variants injected per gap (pulse sign/length variations).")]
+        [Range(1, 8)]
+        public int primitivesPerGap = 4;
+        [Tooltip("Fractional score margin a competing gap must exceed over the currently tracked gap " +
+                 "before the chosen gap switches. Gap-selection hysteresis kills oscillation here, " +
+                 "not inside the solver.")]
+        public float gapSwitchMargin = 0.25f;
+        [Tooltip("Max obstacle distance considered by the gap detector.")]
+        public float gapMaxRange = 40f;
+
         [Header("Arrival Stabilization")]
         [Tooltip("Distance to goal at which arrival stabilization begins ramping up.")]
         public float arrivalDistance = 3.0f;
