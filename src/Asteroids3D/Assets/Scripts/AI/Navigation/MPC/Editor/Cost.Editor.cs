@@ -24,11 +24,9 @@ namespace Movement.MPC
                 heading = HeadingCost(s.pos, s.yaw, ctx.headingGoal, cfg.wYawDistanceScale) * ctx.wYaw,
                 facing = FacingCost(s.yaw, ctx.facingTarget, cfg.facingWidth) * cfg.wFacing,
                 yawRate = YawRateCost(s.yawRate, cfg.maxYawRateSq) * cfg.wYawRate,
-                obstacle = (cfg.wObstacle > 0f && input.obstacleCount > 0)
-                    ? ObstacleCost(s.pos, s.vel, input.obstacles, input.obstacleCount,
-                        (cfg.obstacleThreshold + math.length(s.vel) * cfg.obstacleSpeedMargin) * profileScale,
-                        cfg.obstacleFalloffCurve,
-                        cfg.obstacleClosingScale, cfg.obstacleClosingHalfSpeed) * cfg.wObstacle
+                obstacle = input.obstacleCount > 0
+                    ? ObstacleCost(s.pos, s.vel, cfg.shipRadius * profileScale,
+                        input.obstacles, input.obstacleCount, cfg)
                     : 0f,
                 los = (ctx.hasEnemy && cfg.wLos > 0f && input.obstacleCount > 0)
                     ? LosCost(s.pos, ctx.enemyPos, input.obstacles, input.obstacleCount) * cfg.wLos

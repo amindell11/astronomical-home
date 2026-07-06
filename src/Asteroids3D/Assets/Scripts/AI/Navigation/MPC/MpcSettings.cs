@@ -95,22 +95,18 @@ namespace Movement.MPC
                  "given the ship's lateral velocity and range. Naturally captures speed, evasive movement, and distance.")]
         public float wMissDistance = 0f;
 
-        [Header("Obstacle Avoidance")]
-        [Tooltip("Obstacle avoidance weight. Inverse-distance cost near obstacles; higher = wider berth.")]
-        public float wObstacle = 10.0f;
-        [Tooltip("Distance beyond an obstacle's radius at which the avoidance cost begins. " +
-                 "Effectively inflates obstacles by this amount.")]
-        public float obstacleThreshold = 5.0f;
-        [Tooltip("Extra clearance added per unit speed. effectiveThreshold = obstacleThreshold + speed * this value.")]
-        public float obstacleSpeedMargin = 0.3f;
-        [Tooltip("Obstacle cost falloff exponent. Higher = cost concentrated near surface, lower = spreads further out. 2 = inverse-square (default).")]
-        public float obstacleFalloffCurve = 2f;
-        [Tooltip("Peak extra multiplier applied to per-obstacle cost when ship is closing on it at high speed. " +
-                 "0 = disabled. Multiplier saturates: cost *= 1 + scale * v / (v + halfSpeed), where v is closing speed.")]
-        public float obstacleClosingScale = 1f;
-        [Tooltip("Closing speed at which the closing-scale multiplier reaches half its peak. " +
-                 "Lower = ramps up faster with closing speed. Ignored when obstacleClosingScale = 0.")]
-        public float obstacleClosingHalfSpeed = 5f;
+        [Header("Obstacle Avoidance (collision + stopping-distance admissibility)")]
+        [Tooltip("Admissibility weight. Scales the stopping-distance cost that penalizes states from " +
+                 "which braking/turning away is no longer possible. Higher = the ship keeps more speed " +
+                 "margin around obstacles.")]
+        public float wObstacle = 5.0f;
+        [Tooltip("Fixed penalty added per overlapping obstacle per rollout step when the (bank-narrowed) " +
+                 "hull overlaps an obstacle. Must decisively dominate stage costs so any colliding rollout " +
+                 "is excluded from the elite set.")]
+        public float collisionPenalty = 10000f;
+        [Tooltip("Constant safety margin (world units) added to the hull for the hard collision test. " +
+                 "Covers model error; NOT speed-scaled.")]
+        public float obstacleSafetyMargin = 0.3f;
 
         [Header("Arrival Stabilization")]
         [Tooltip("Distance to goal at which arrival stabilization begins ramping up.")]
@@ -159,13 +155,10 @@ namespace Movement.MPC
                 exposureWidth = exposureWidth,
                 wTangential = wTangential,
                 wMissDistance = wMissDistance,
-                // Obstacle
+                // Obstacle (shipRadius / maxDecel are set by Mpc from Dynamics)
                 wObstacle = wObstacle,
-                obstacleThreshold = obstacleThreshold,
-                obstacleSpeedMargin = obstacleSpeedMargin,
-                obstacleFalloffCurve = obstacleFalloffCurve,
-                obstacleClosingScale = obstacleClosingScale,
-                obstacleClosingHalfSpeed = obstacleClosingHalfSpeed,
+                collisionPenalty = collisionPenalty,
+                obstacleSafetyMargin = obstacleSafetyMargin,
                 // Arrival
                 arrivalDistance = arrivalDistance,
                 arrivalDistanceSq = arrivalDistance * arrivalDistance,

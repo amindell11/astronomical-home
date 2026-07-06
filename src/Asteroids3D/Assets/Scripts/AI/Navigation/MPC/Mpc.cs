@@ -62,9 +62,7 @@ namespace Movement.MPC
             this.dynamics = dynamics;
 
             config = settings.ToConfig();
-            config.maxBankAngleRad = dynamics.maxBankAngleRad;
-            config.maxSpeedSq = dynamics.maxSpeed * dynamics.maxSpeed;
-            config.maxYawRateSq = dynamics.maxYawRate * dynamics.maxYawRate;
+            ApplyDynamics(ref config);
             bestSequence = new Control[config.horizon];
             predictedStates = new State[config.horizon];
             solver = new SolverBuffers();
@@ -140,14 +138,25 @@ namespace Movement.MPC
         private void RefreshConfig(State mpcState, in MpcInputs inputs)
         {
             config = settings.ToConfig(inputs.facingRad, inputs.goalMode, inputs.goalDesiredRange, inputs.goalRangeTolerance);
-            config.maxBankAngleRad = dynamics.maxBankAngleRad;
-            config.maxSpeedSq = dynamics.maxSpeed * dynamics.maxSpeed;
-            config.maxYawRateSq = dynamics.maxYawRate * dynamics.maxYawRate;
+            ApplyDynamics(ref config);
             inputs.weightOverrides.Apply(ref config);
 
             if (bestSequence.Length == config.horizon) return;
             bestSequence = new Control[config.horizon];
             predictedStates = new State[config.horizon];
+        }
+
+        // Copies ship geometry/dynamics constants onto the config. maxDecel is the best-case
+        // thruster deceleration (drag ignored = optimistic; the hard collision term is the real
+        // safety net) used by the stopping-distance admissibility cost.
+        private void ApplyDynamics(ref Config cfg)
+        {
+            cfg.maxBankAngleRad = dynamics.maxBankAngleRad;
+            cfg.maxSpeedSq = dynamics.maxSpeed * dynamics.maxSpeed;
+            cfg.maxYawRateSq = dynamics.maxYawRate * dynamics.maxYawRate;
+            cfg.shipRadius = dynamics.shipRadius;
+            var maxForce = math.max(dynamics.forwardAcc, math.max(dynamics.reverseAcc, dynamics.maxStrafeAcc));
+            cfg.maxDecel = dynamics.mass > 0f ? maxForce / dynamics.mass : maxForce;
         }
 
         public void Dispose() => solver?.Dispose();

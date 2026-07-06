@@ -5,18 +5,7 @@ namespace Movement.MPC
 {
     public static partial class Cost
     {
-        private const float ObstacleEpsilonSq = 0.0001f;
-        // Ranked obstacle buffer: two float4s indexed as a contiguous 8-element array.
-        private struct RankedBuffer
-        {
-            private float4 a, b;
-            public float this[int i]
-            {
-                get => i < 4 ? a[i] : b[i - 4];
-                set { if (i < 4) a[i] = value; else b[i - 4] = value; }
-            }
-        }
-        private const int MaxRankedObstacles = 8;
+        private const float ObstacleEpsilon = 0.0001f;
         private const float HeadingGateDistance = 2f;
         private const float HeadingGateDistanceSq = HeadingGateDistance * HeadingGateDistance;
         private const float TwoPi = 2f * math.PI;
@@ -135,15 +124,11 @@ namespace Movement.MPC
             var facingCost = FacingCost(s.yaw, ctx.facingTarget, cfg.facingWidth) * cfg.wFacing;
             var yawRateCost = YawRateCost(s.yawRate, cfg.maxYawRateSq) * cfg.wYawRate;
 
-            var obstacleCost = 0f;
-            if (cfg.wObstacle > 0f && input.obstacleCount > 0)
-            {
-                var baseThreshold = cfg.obstacleThreshold + math.length(s.vel) * cfg.obstacleSpeedMargin;
-                var effectiveThreshold = baseThreshold * profileScale;
-                obstacleCost = ObstacleCost(s.pos, s.vel, input.obstacles, input.obstacleCount,
-                    effectiveThreshold, cfg.obstacleFalloffCurve,
-                    cfg.obstacleClosingScale, cfg.obstacleClosingHalfSpeed) * cfg.wObstacle;
-            }
+            // Bank narrows the HULL (not padding): hull = shipRadius * profileScale.
+            var hull = cfg.shipRadius * profileScale;
+            var obstacleCost = input.obstacleCount > 0
+                ? ObstacleCost(s.pos, s.vel, hull, input.obstacles, input.obstacleCount, cfg)
+                : 0f;
 
             var momentumCost = 0f;
             if (cfg.wMomentum > 0f)
@@ -352,71 +337,60 @@ namespace Movement.MPC
                    (duY * duY * normFactor) * cfg.wSmoothnessYaw;
         }
 
-        internal static float ObstacleCost(float2 pos, float2 vel,
-            Unity.Collections.NativeArray<ObstacleData> obstacles,
-            int count, float threshold, float falloffCurve,
-            float closingScale, float closingHalfSpeed)
+        /// <summary>
+        /// A2 obstacle cost: a near-binary hard-collision penalty plus a continuous
+        /// stopping-distance admissibility term. <paramref name="hull"/> is the bank-narrowed
+        /// ship radius (shipRadius * cos(|strafe|·maxBank)) so banking narrows the HULL, not padding.
+        ///
+        /// Collision: for each obstacle whose surface the hull (+ safety margin) overlaps, add
+        /// cfg.collisionPenalty. Summed across obstacles (overlaps are rare) so a colliding rollout
+        /// is decisively excluded from the elite set.
+        ///
+        /// Admissibility: penalizes states from which the ship can no longer brake before reaching
+        /// the obstacle surface, given its closing speed. Exactly 0 when brakeable
+        /// (stoppingDist ≤ clearance) or when not closing; rises smoothly (C¹ at the boundary,
+        /// bounded to [0,1)) as the stopping distance overruns the clearance. Aggregated by MAX
+        /// (the binding constraint) — never summed — so it does not scale with obstacle count.
+        /// Weighted by cfg.wObstacle.
+        /// </summary>
+        internal static float ObstacleCost(float2 pos, float2 vel, float hull,
+            NativeArray<ObstacleData> obstacles, int count, in Config cfg)
         {
             if (count == 0) return 0f;
 
-            var halfCurve = falloffCurve * 0.5f;
-            var ranked = new RankedBuffer();
-            var rankedCount = 0;
-            // Saturating closing-speed multiplier: c *= 1 + scale * v / (v + halfSpeed).
-            // Bounded growth (asymptote = 1 + scale) prevents the optimizer from chasing
-            // arbitrarily large gains by trimming thrust near obstacles.
-            var closingActive = closingScale > 0f && closingHalfSpeed > 0f;
+            var collision = 0f;
+            var maxAdmissibility = 0f;
+            var twoMaxDecel = 2f * math.max(cfg.maxDecel, ObstacleEpsilon);
 
             for (var i = 0; i < count; i++)
             {
                 var obs = obstacles[i];
-                var range = obs.radius + threshold;
-                var rangeSq = range * range;
                 var toObs = obs.position - pos;
-                var distSq = math.lengthsq(toObs);
+                var dist = math.length(toObs);
 
-                if (distSq >= rangeSq) continue;
+                // Hard collision: hull surface (+ margin) overlaps the obstacle surface.
+                var collisionRadius = obs.radius + hull + cfg.obstacleSafetyMargin;
+                if (dist < collisionRadius)
+                    collision += cfg.collisionPenalty;
 
-                var normSq = distSq / rangeSq;
-                // Normalize so cost ≈ weight at threshold edge (normSq≈1), >weight closer to surface
-                var c = obs.weight * math.pow(1f + ObstacleEpsilonSq, halfCurve) /
-                        math.pow(normSq + ObstacleEpsilonSq, halfCurve);
-
-                if (closingActive && distSq > 1e-8f)
+                // Stopping-distance admissibility. Only closing motion matters.
+                if (dist > 1e-4f)
                 {
-                    var dirToObs = toObs * math.rsqrt(distSq);
+                    var dirToObs = toObs / dist;
                     var closingSpeed = math.max(0f, math.dot(vel, dirToObs));
-                    c *= 1f + closingScale * closingSpeed / (closingSpeed + closingHalfSpeed);
-                }
-
-                // Insert into descending sorted buffer of 8
-                if (rankedCount < MaxRankedObstacles)
-                {
-                    ranked[rankedCount] = c;
-                    for (var j = rankedCount; j > 0 && ranked[j] > ranked[j - 1]; j--)
-                        (ranked[j], ranked[j - 1]) = (ranked[j - 1], ranked[j]);
-                    rankedCount++;
-                }
-                else if (c > ranked[MaxRankedObstacles - 1])
-                {
-                    ranked[MaxRankedObstacles - 1] = c;
-                    for (var j = MaxRankedObstacles - 1; j > 0 && ranked[j] > ranked[j - 1]; j--)
-                        (ranked[j], ranked[j - 1]) = (ranked[j - 1], ranked[j]);
+                    if (closingSpeed > 1e-4f)
+                    {
+                        var clearance = dist - obs.radius - hull; // hull surface to obstacle surface
+                        var stoppingDist = closingSpeed * closingSpeed / twoMaxDecel;
+                        // 0 when stoppingDist ≤ clearance (brakeable); →1 as the overrun grows.
+                        // Squaring the saturated deficit ratio gives a C¹ zero at the boundary.
+                        var deficit = math.saturate(1f - clearance / math.max(stoppingDist, ObstacleEpsilon));
+                        maxAdmissibility = math.max(maxAdmissibility, deficit * deficit);
+                    }
                 }
             }
 
-            // Harmonic-weighted sum, then Lorentzian-normalized to [0, 1).
-            // Per-obstacle c can be unbounded inside the threshold (raw inverse-power blows up
-            // near surface), so a simple total/harmonicMax was *only* normalized at the edge case.
-            // Lorentzian saturation bounds the result regardless of N obstacles or depth:
-            //   N=1 at edge → ~0.27, N=8 at edge → 0.5, any depth → asymptotes to 1.
-            // Harmonic(8) = 1 + 1/2 + 1/3 + ... + 1/8 ≈ 2.717
-            const float harmonicMax = 2.717f;
-            var total = 0f;
-            for (var i = 0; i < rankedCount; i++)
-                total += ranked[i] / (i + 1);
-
-            return total / (total + harmonicMax);
+            return collision + cfg.wObstacle * maxAdmissibility;
         }
 
         /// <summary>
