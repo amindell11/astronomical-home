@@ -17,6 +17,12 @@ namespace Movement.MPC
         public float noiseStd;
         public float boostSampleProbability;
         public uint rngSeed;
+        // Number of interpolated knots per channel for time-correlated noise. Min 2.
+        public int noiseKnots;
+
+        // Max knots supported without a heap allocation inside the Burst job. Draws beyond
+        // this are clamped; 4-5 knots over ~17 steps is the intended operating point.
+        private const int MaxKnots = 16;
 
         public void Execute(int candidateIndex)
         {
@@ -26,23 +32,49 @@ namespace Movement.MPC
             {
                 for (var j = 0; j < horizon; j++)
                     candidates[offset + j] = warmStart[j];
+                return;
             }
-            else
+
+            var rng = new Unity.Mathematics.Random(rngSeed + (uint)candidateIndex);
+
+            // Time-correlated noise: draw K knot values per channel up front, then linearly
+            // interpolate across the horizon. A single draw holds a coherent maneuver over
+            // ~horizon/K steps, so candidates can express "hold hard strafe for 0.5 s".
+            var k = math.clamp(noiseKnots, 2, MaxKnots);
+            var thrustKnots = new float4x4();
+            var strafeKnots = new float4x4();
+            var yawKnots = new float4x4();
+            for (var i = 0; i < k; i++)
             {
-                var rng = new Unity.Mathematics.Random(rngSeed + (uint)candidateIndex);
-                for (var j = 0; j < horizon; j++)
+                thrustKnots[i / 4][i % 4] = NextGaussian(ref rng);
+                strafeKnots[i / 4][i % 4] = NextGaussian(ref rng);
+                yawKnots[i / 4][i % 4] = NextGaussian(ref rng);
+            }
+
+            var invHorizon = 1f / math.max(1, horizon - 1);
+            for (var j = 0; j < horizon; j++)
+            {
+                var warm = warmStart[j];
+                var t = j * (k - 1) * invHorizon;
+                var lo = (int)t;
+                var frac = t - lo;
+                var hi = math.min(lo + 1, k - 1);
+
+                var thrustDelta = math.lerp(Knot(thrustKnots, lo), Knot(thrustKnots, hi), frac) * noiseStd;
+                var strafeDelta = math.lerp(Knot(strafeKnots, lo), Knot(strafeKnots, hi), frac) * noiseStd;
+                var yawDelta = math.lerp(Knot(yawKnots, lo), Knot(yawKnots, hi), frac) * noiseStd;
+
+                candidates[offset + j] = new Control
                 {
-                    var warm = warmStart[j];
-                    candidates[offset + j] = new Control
-                    {
-                        thrust = math.clamp(warm.thrust + NextGaussian(ref rng) * noiseStd, -1f, 1f),
-                        strafe = math.clamp(warm.strafe + NextGaussian(ref rng) * noiseStd, -1f, 1f),
-                        yawTorque = math.clamp(warm.yawTorque + NextGaussian(ref rng) * noiseStd, -1f, 1f),
-                        boost = rng.NextFloat() < boostSampleProbability ? 1f : 0f
-                    };
-                }
+                    thrust = math.clamp(warm.thrust + thrustDelta, -1f, 1f),
+                    strafe = math.clamp(warm.strafe + strafeDelta, -1f, 1f),
+                    yawTorque = math.clamp(warm.yawTorque + yawDelta, -1f, 1f),
+                    boost = rng.NextFloat() < boostSampleProbability ? 1f : 0f
+                };
             }
         }
+
+        private static float Knot(float4x4 knots, int i) => knots[i / 4][i % 4];
 
         private static float NextGaussian(ref Unity.Mathematics.Random rng)
         {
@@ -132,7 +164,7 @@ namespace Movement.MPC
             Dynamics enemyDynamics, float projectileSpeed,
             int samples, float noiseStd, Control lastControl,
             float boostCooldownRemaining = 0f, float boostSampleProbability = 0.15f,
-            float eliteFraction = 0.1f)
+            float eliteFraction = 0.1f, int noiseKnots = 4)
         {
             var horizon = cfg.horizon;
             EnsureBuffers(horizon, samples);
@@ -202,7 +234,8 @@ namespace Movement.MPC
                 horizon = horizon,
                 noiseStd = noiseStd,
                 boostSampleProbability = boostSampleProbability,
-                rngSeed = rngSeed
+                rngSeed = rngSeed,
+                noiseKnots = noiseKnots
             }.Schedule(samples, 1).Complete();
 
             Evaluate(initialState, costInput, cfg, dynamics, lastControl, samples);

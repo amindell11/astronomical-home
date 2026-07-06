@@ -48,7 +48,6 @@ namespace Movement.MPC
         private State[] predictedStates => mpc?.PredictedStates;
         private State lastInitialState => mpc != null ? mpc.LastInitialState : default;
         private Control lastControl => mpc != null ? mpc.LastControl : default;
-        private Control smoothedControl => mpc != null ? mpc.SmoothedControl : default;
         private Dynamics dynamics => mpc != null ? mpc.Dynamics : default;
         internal float lastBestCost => mpc != null ? mpc.LastBestCost : 0f;
 
@@ -472,7 +471,7 @@ namespace Movement.MPC
                 : 0f;
             var baseThreshold = mpcSettings.obstacleThreshold + speed * mpcSettings.obstacleSpeedMargin;
             var profileScale = config.maxBankAngleRad > 0f
-                ? Mathf.Cos(Mathf.Abs(smoothedControl.strafe) * config.maxBankAngleRad)
+                ? Mathf.Cos(Mathf.Abs(lastControl.strafe) * config.maxBankAngleRad)
                 : 1f;
             var effectiveThreshold = baseThreshold * profileScale;
 
@@ -528,7 +527,9 @@ namespace Movement.MPC
             if (!showControlInputs || bestSequence == null || bestSequence.Length == 0) return;
 
             var raw = bestSequence[0];
-            var smooth = smoothedControl;
+            // Control smoothing was removed; the applied control is bestSequence[0] verbatim.
+            // Keep the second (brighter) bar wired to the applied control for a meaningful readout.
+            var smooth = lastControl;
             var origin = transform.position + controlPanelOffset;
 
             // Camera-facing basis vectors for the panel
