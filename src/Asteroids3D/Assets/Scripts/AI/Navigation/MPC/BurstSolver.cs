@@ -140,6 +140,22 @@ namespace Movement.MPC
         public const int MaxInjected = 32;
 
         /// <summary>
+        /// Generous safety cap on obstacles fed to the rollout jobs. The reachability cull
+        /// keeps only obstacles a rollout can actually interact with over the horizon; the
+        /// nearest <see cref="MaxSolverObstacles"/> survivors (by current distance) are taken.
+        /// <see cref="LastCullOverflow"/> reports when the cap bites.
+        /// </summary>
+        public const int MaxSolverObstacles = 32;
+
+        /// <summary>Slack added to every cull radius so borderline obstacles stay in.</summary>
+        private const float CullMargin = 1f;
+
+        /// <summary>Job batch size. Purely a scheduling knob — results are per-index
+        /// deterministic and identical for any batch size; 1 wastes time on work-stealing
+        /// overhead for 512 tiny items.</summary>
+        private const int JobBatchSize = 8;
+
+        /// <summary>
         /// Test-only sampler seed override. When set, the candidate-generation RNG seed is
         /// derived from this base plus a per-instance solve counter instead of
         /// <c>Time.frameCount</c>, so a single run replays the same noise sequence under a
@@ -160,11 +176,22 @@ namespace Movement.MPC
         private NativeArray<State> enemyStates;
         private NativeArray<float> dummyTerminalCost;
         private NativeArray<byte> dummyTerminalBlocked;
+        private NativeArray<float> kthHeap;
         private bool allocated;
         private int lastObstacleCount;
 
+        // Managed scratch for the per-solve obstacle cull (grown on demand, never per-solve).
+        private float[] cullDistSq = System.Array.Empty<float>();
+        private int[] cullIndex = System.Array.Empty<int>();
+
         public NativeArray<ObstacleData> Obstacles => obstacles;
         public int ObstacleCount => lastObstacleCount;
+
+        /// <summary>Reachable obstacles dropped by the <see cref="MaxSolverObstacles"/> cap in
+        /// the last Solve() (0 = the cap did not bite; the cull alone sufficed).</summary>
+        public int LastCullOverflow { get; private set; }
+        /// <summary>Obstacles in the last scan that failed the reachability cull.</summary>
+        public int LastCullRejected { get; private set; }
         public NativeArray<State> EnemyStates => enemyStates;
         public int LastEnemyStateCount { get; private set; }
 
@@ -217,7 +244,8 @@ namespace Movement.MPC
                 injected[i] = injectedControls[i];
             LastInjectedCount = injectedCount;
 
-            ConvertObstacles(scan, useObstacles, dynamics.mass);
+            ConvertObstacles(scan, useObstacles, dynamics.mass, initialState.pos,
+                cfg, dynamics, enemyPos, enemyYaw, enemyDynamics);
 
             // Roll out predicted enemy trajectory assuming maintained thrust along facing
             var hasEnemyRollout = !math.isnan(enemyYaw) && enemyDynamics.mass > 0f;
@@ -287,7 +315,7 @@ namespace Movement.MPC
                 noiseKnots = noiseKnots,
                 boostSampleProbability = boostSampleProbability,
                 rngSeed = rngSeed
-            }.Schedule(samples, 1).Complete();
+            }.Schedule(samples, JobBatchSize).Complete();
 
             Evaluate(initialState, costInput, cfg, dynamics, lastControl, samples);
 
@@ -320,7 +348,7 @@ namespace Movement.MPC
                 cfg = cfg,
                 dynamics = dynamics,
                 lastControl = lastControl,
-            }.Schedule(samples, 1).Complete();
+            }.Schedule(samples, JobBatchSize).Complete();
         }
 
         private float EliteAverage(Control[] sequence, int horizon, int samples, float eliteFraction)
@@ -378,11 +406,11 @@ namespace Movement.MPC
         /// Find the K-th smallest value in costs[0..count-1] using a single pass.
         /// Returns a threshold: at least K elements have cost &lt;= this value.
         /// </summary>
-        private static float FindKthSmallest(NativeArray<float> costs, int count, int k)
+        private float FindKthSmallest(NativeArray<float> costs, int count, int k)
         {
             if (k >= count) return float.MaxValue;
 
-            var heap = new NativeArray<float>(k, Allocator.Temp);
+            var heap = kthHeap; // persistent scratch — no per-solve allocation
             for (var i = 0; i < k; i++)
                 heap[i] = costs[i];
 
@@ -398,9 +426,7 @@ namespace Movement.MPC
                 }
             }
 
-            var result = heap[0];
-            heap.Dispose();
-            return result;
+            return heap[0];
         }
 
         private static void SiftDown(NativeArray<float> heap, int i, int n)
@@ -448,18 +474,89 @@ namespace Movement.MPC
         }
 
         private void ConvertObstacles(AI.Scanning.ObstacleScan scan, bool useObstacles,
-            float shipMass)
+            float shipMass, float2 shipPos, in Config cfg, in Dynamics dynamics,
+            float2 enemyPos, float enemyYaw, in Dynamics enemyDynamics)
         {
-            // Clamp so a merged obstacle+ship scan can't overflow the fixed-size native buffer.
+            LastCullOverflow = 0;
+            LastCullRejected = 0;
             var rawCount = (scan.count > 0 && useObstacles) ? scan.count : 0;
-            lastObstacleCount = math.min(rawCount, obstacles.Length);
-            var invShipMass = shipMass > 0f ? 1f / shipMass : 1f;
-            for (var i = 0; i < lastObstacleCount; i++)
+            if (rawCount == 0)
+            {
+                lastObstacleCount = 0;
+                return;
+            }
+
+            // ── Reachability cull (behavior-neutral) ──
+            // Rollout positions stay within reach = maxSpeed·horizon of the start (Model.Step
+            // hard-caps speed). From any rollout state, the collision term needs
+            // dist < obsRadius + hull, and the admissibility term needs
+            // clearance < stoppingDist ≤ maxSpeed² / 2·(brakingDecel + brakingDrag·maxSpeed).
+            // Any obstacle farther than reach + stopBound + hull + obsRadius (+ margin) from
+            // the start contributes exactly 0 to both terms on every candidate.
+            var horizonSeconds = cfg.horizon * cfg.dt;
+            var reach = dynamics.maxSpeed * horizonSeconds;
+            var hull = cfg.shipRadius + cfg.collisionSafetyMargin; // profileScale ≤ 1 upper bound
+            var decelAtMax = cfg.brakingDecel + cfg.brakingDrag * dynamics.maxSpeed;
+            var stopBound = decelAtMax > 0f
+                ? dynamics.maxSpeed * dynamics.maxSpeed / (2f * decelAtMax)
+                : float.PositiveInfinity; // cannot brake: admissibility has no range bound
+            var keepBase = reach + stopBound + hull + CullMargin;
+
+            // LOS cost traces rollout-pos → predicted-enemy rays; both endpoints stay within
+            // max(shipReach, enemyReach) of the ship→enemy segment, so obstacles outside that
+            // inflated corridor cannot intersect any rollout's LOS ray either.
+            var keepLos = cfg.wLos > 0f && !math.isnan(enemyYaw);
+            var enemyReach = enemyDynamics.mass > 0f
+                ? enemyDynamics.maxSpeed * horizonSeconds
+                : 0f;
+            var corridorPad = math.max(reach, enemyReach) + CullMargin;
+
+            if (cullDistSq.Length < rawCount)
+            {
+                cullDistSq = new float[rawCount];
+                cullIndex = new int[rawCount];
+            }
+
+            var survivors = 0;
+            for (var i = 0; i < rawCount; i++)
             {
                 var obs = scan.buffer[i];
+                var pos = new float2(obs.position.x, obs.position.y);
+                var distSq = math.lengthsq(pos - shipPos);
+                var keepRadius = keepBase + obs.radius;
+                var keep = distSq <= keepRadius * keepRadius;
+                if (!keep && keepLos)
+                {
+                    var losRadius = obs.radius + corridorPad;
+                    keep = DistSqToSegment(pos, shipPos, enemyPos) <= losRadius * losRadius;
+                }
+                if (!keep) continue;
+
+                // Insertion sort by distance so the cap always drops the farthest survivors
+                // (and Collides early-outs hit nearest-first).
+                var j = survivors++;
+                while (j > 0 && cullDistSq[j - 1] > distSq)
+                {
+                    cullDistSq[j] = cullDistSq[j - 1];
+                    cullIndex[j] = cullIndex[j - 1];
+                    j--;
+                }
+                cullDistSq[j] = distSq;
+                cullIndex[j] = i;
+            }
+
+            var take = math.min(survivors, math.min(MaxSolverObstacles, obstacles.Length));
+            LastCullOverflow = survivors - take;
+            LastCullRejected = rawCount - survivors;
+            lastObstacleCount = take;
+
+            var invShipMass = shipMass > 0f ? 1f / shipMass : 1f;
+            for (var k = 0; k < take; k++)
+            {
+                var obs = scan.buffer[cullIndex[k]];
                 var rb = obs.collider ? obs.collider.attachedRigidbody : null;
                 var obsMass = rb ? rb.mass : shipMass;
-                obstacles[i] = new ObstacleData
+                obstacles[k] = new ObstacleData
                 {
                     // True obstacle radius — the ship footprint lives in the cost evaluation
                     // (bank-narrowed hull), not baked into the world geometry.
@@ -468,6 +565,15 @@ namespace Movement.MPC
                     weight = obsMass * invShipMass
                 };
             }
+        }
+
+        private static float DistSqToSegment(float2 p, float2 a, float2 b)
+        {
+            var ab = b - a;
+            var abLenSq = math.lengthsq(ab);
+            if (abLenSq < 1e-8f) return math.lengthsq(p - a);
+            var t = math.saturate(math.dot(p - a, ab) / abLenSq);
+            return math.lengthsq(p - (a + t * ab));
         }
 
         private void EnsureBuffers(int horizon, int samples)
@@ -484,6 +590,7 @@ namespace Movement.MPC
             result = new NativeArray<Control>(horizon, Allocator.Persistent);
             dummyTerminalCost = new NativeArray<float>(1, Allocator.Persistent);
             dummyTerminalBlocked = new NativeArray<byte>(1, Allocator.Persistent);
+            kthHeap = new NativeArray<float>(samples, Allocator.Persistent);
             allocated = true;
         }
 
@@ -499,6 +606,7 @@ namespace Movement.MPC
             result.Dispose();
             dummyTerminalCost.Dispose();
             dummyTerminalBlocked.Dispose();
+            kthHeap.Dispose();
             allocated = false;
         }
     }

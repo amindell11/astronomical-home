@@ -10,11 +10,61 @@ namespace AI.Scanning
         public readonly float radius;
         public readonly Collider collider;
 
+        /// <summary>
+        /// Physics-fallback conversion: derive a TIGHT in-plane circle from the actual collider
+        /// geometry, consistent with the registry path's authoritative radii (world AABB
+        /// extents over-report rotated shapes and mis-report scaled ones).
+        /// </summary>
         public DetectedObstacle(Collider collider)
         {
             this.collider = collider;
-            position = GamePlane.WorldPointToPlane(collider.transform.position);
-            radius = Mathf.Max(collider.bounds.extents.x, collider.bounds.extents.z);
+            switch (collider)
+            {
+                case SphereCollider s:
+                {
+                    // Exact: the world-space sphere center and radius.
+                    var worldCenter = s.transform.TransformPoint(s.center);
+                    position = GamePlane.WorldPointToPlane(worldCenter);
+                    radius = s.radius * Utils.ColliderPlanarRadius.MaxAbsScale(s.transform.lossyScale);
+                    break;
+                }
+                case BoxCollider b:
+                {
+                    // Tight for the current orientation: max planar distance of the 8 world
+                    // corners from the box center's plane projection.
+                    var t = b.transform;
+                    var worldCenter = t.TransformPoint(b.center);
+                    var center2 = GamePlane.WorldPointToPlane(worldCenter);
+                    var h = b.size * 0.5f;
+                    var maxSq = 0f;
+                    for (var i = 0; i < 8; i++)
+                    {
+                        var corner = b.center + new Vector3(
+                            (i & 1) == 0 ? -h.x : h.x,
+                            (i & 2) == 0 ? -h.y : h.y,
+                            (i & 4) == 0 ? -h.z : h.z);
+                        var p = GamePlane.WorldPointToPlane(t.TransformPoint(corner)) - center2;
+                        maxSq = Mathf.Max(maxSq, p.sqrMagnitude);
+                    }
+                    position = center2;
+                    radius = Mathf.Sqrt(maxSq);
+                    break;
+                }
+                case MeshCollider m when m.sharedMesh:
+                {
+                    // Rotation-invariant tight bound (cached per mesh, never per query) —
+                    // matches AsteroidController.Radius exactly for asteroid mesh colliders,
+                    // so the fallback and the deterministic registry path agree.
+                    position = GamePlane.WorldPointToPlane(collider.transform.position);
+                    radius = Utils.ColliderPlanarRadius.MeshWorldRadius(
+                        m.sharedMesh, m.transform.lossyScale);
+                    break;
+                }
+                default:
+                    position = GamePlane.WorldPointToPlane(collider.transform.position);
+                    radius = Mathf.Max(collider.bounds.extents.x, collider.bounds.extents.z);
+                    break;
+            }
         }
 
         // Used when the authoritative position/radius come from the source object rather than

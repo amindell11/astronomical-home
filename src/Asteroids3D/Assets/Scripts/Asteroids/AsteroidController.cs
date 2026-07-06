@@ -87,8 +87,14 @@ namespace Asteroids
                 var size = meshInfo.mesh.bounds.size;
                 var radius = Mathf.Max(size.x, Mathf.Max(size.y, size.z)) * scale * 0.5f;
                 cheapCollider.radius = radius;
-                Radius = radius * transform.lossyScale.x;
             }
+
+            // Authoritative in-plane obstacle radius: tight, rotation-invariant bound from the
+            // actual collision geometry (the convex MeshCollider mesh), computed once per spawn.
+            // The old bounds estimate (max AABB half-extent, double-scaled through the sphere
+            // trigger) over-reported large asteroids ~scale× and UNDER-reported small ones.
+            var collisionMesh = meshInfo.colliderMesh ? meshInfo.colliderMesh : meshInfo.mesh;
+            Radius = Utils.ColliderPlanarRadius.MeshWorldRadius(collisionMesh, transform.lossyScale);
 
             initialVelocity = velocity;
             initialAngularVelocity = angularVelocity;
