@@ -22,7 +22,8 @@ namespace AI
 
         [Header("Obstacle Detection")]
         public LayerMask asteroidMask;
-        [Tooltip("Lookahead time for the obstacle scanner. Detection radius grows with speed over this horizon.")]
+        [Tooltip("Lookahead time used to size the obstacle query box. Sizes a FIXED worst-case " +
+                 "AABB (from max speed, not current speed), so the box no longer grows as the ship accelerates.")]
         public float obstacleLookaheadTime = 2f;
 
         private ShipScanner shipScanner;
@@ -34,6 +35,13 @@ namespace AI
         public IShipRegistry Registry { get; private set; }
         private Dynamics shipDynamics;
         private IShipStatus shipContext;
+
+        // Fixed worst-case half-extent for the obstacle query box, computed once from dynamics.
+        private float obstacleHalfExtent;
+        private AI.Scanning.IObstacleFieldProvider obstacleFieldProvider;
+        public void SetObstacleFieldProvider(AI.Scanning.IObstacleFieldProvider p) => obstacleFieldProvider = p;
+        /// <summary>The active deterministic obstacle field (B2), or null. Also feeds the B3 terminal field.</summary>
+        public AI.Scanning.IObstacleField ObstacleField => obstacleFieldProvider?.ObstacleField;
 
         // Combined obstacle buffer: static obstacles from obstacleScanner + 360° ship detections from shipScanner.
         // The sphere obstacle scanner focuses on static asteroids; merging the dedicated ship scanner
@@ -50,8 +58,12 @@ namespace AI
             this.shipContext = shipContext;
             shipScanner = new ShipScanner(origin, nearbyShipRadius, shipId, registry);
             coverSensor = new SphereSensor(origin, asteroidCoverRadius, asteroidMask, bufferSize: 8);
-            // ShipScanner handles ships in a full sphere; obstacle scanner stays focused on static asteroids.
-            obstacleScanner = new ObstacleScanner(origin, asteroidMask, lookaheadTime: obstacleLookaheadTime);
+            // ShipScanner handles ships in a full sphere; the obstacle scanner queries the
+            // deterministic asteroid field inside a FIXED box. Size it once from the worst case
+            // (max speed, not current speed) so the box is stable as the ship accelerates.
+            var maxAccel = Mathf.Sqrt(shipDynamics.forwardAcc * shipDynamics.forwardAcc + shipDynamics.maxStrafeAcc * shipDynamics.maxStrafeAcc) / shipDynamics.mass;
+            obstacleHalfExtent = shipDynamics.maxSpeed * obstacleLookaheadTime + 0.5f * maxAccel * obstacleLookaheadTime * obstacleLookaheadTime;
+            obstacleScanner = new ObstacleScanner(origin) { HalfExtent = obstacleHalfExtent };
         }
 
         private void Update()
@@ -65,10 +77,9 @@ namespace AI
             HasNearbyCover = coverSensor != null && coverSensor.Detect() > 0;
             if (obstacleScanner != null)
             {
-                obstacleScanner.LookaheadTime = obstacleLookaheadTime;
-                var d = shipDynamics;
-                obstacleScanner.MaxAccel = Mathf.Sqrt(d.forwardAcc * d.forwardAcc + d.maxStrafeAcc * d.maxStrafeAcc) / d.mass;
-                obstacleScanner.Scan(shipContext.Kinematics.vel, shipDynamics.maxSpeed);
+                // Refresh the fixed half-extent in case dynamics/serialized values changed.
+                obstacleScanner.HalfExtent = obstacleHalfExtent;
+                obstacleScanner.Scan(obstacleFieldProvider?.ObstacleField);
             }
             BuildMergedObstacles();
         }
@@ -110,7 +121,9 @@ namespace AI
         public ContactSummary Contacts { get; private set; } = ContactSummary.Empty;
         public bool HasNearbyCover { get; private set; }
 
-        public void SetObstacleExclusion(Transform root) => obstacleScanner?.SetExcludeRoot(root);
-        public void ClearObstacleExclusion() => obstacleScanner?.ClearExcludeRoot();
+        // Exclusion is a no-op now that obstacles come from the deterministic field query
+        // (which never includes ships). Kept so Navigator still compiles.
+        public void SetObstacleExclusion(Transform root) { }
+        public void ClearObstacleExclusion() { }
     }
 }

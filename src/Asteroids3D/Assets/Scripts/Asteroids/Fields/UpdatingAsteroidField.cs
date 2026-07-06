@@ -16,7 +16,7 @@ namespace Asteroids.Fields
     /// (Class name kept from the old annulus spawner to avoid churn across
     /// GameConfig / SectorManifestSync / AdoptEntry / AsteroidFieldSpawner.)
     /// </summary>
-    public partial class UpdatingAsteroidField : AsteroidField
+    public partial class UpdatingAsteroidField : AsteroidField, AI.Scanning.IObstacleField
     {
         [SerializeField] private World.WorldFollow follower;
 
@@ -386,6 +386,38 @@ namespace Asteroids.Fields
             if (id.Authored) Model.Overlay.RemoveAuthored(id);
             else Model.Overlay.Tombstone(id);
             Untrack(ast);
+        }
+
+        // ── Obstacle field query (B2) ────────────────────────────────────────────
+
+        /// <summary>
+        /// Fills <paramref name="buffer"/> with live asteroids inside a fixed-size AABB
+        /// (half-extent per axis) around <paramref name="centerPlane"/>. Only spawned,
+        /// non-destroyed asteroids in the loaded chunks are reported; destroyed ones have
+        /// already been untracked. The chunk sweep uses the layout cell grid, then a precise
+        /// per-asteroid box test rejects the corner slop.
+        /// </summary>
+        public int QueryObstacles(Vector2 centerPlane, float halfExtent, AI.Scanning.DetectedObstacle[] buffer)
+        {
+            if (!initialized || buffer == null || buffer.Length == 0) return 0;
+            var relCenter = centerPlane - fieldOriginPlane;
+            var cellMin = Model.Layout.CellOf(relCenter - new Vector2(halfExtent, halfExtent));
+            var cellMax = Model.Layout.CellOf(relCenter + new Vector2(halfExtent, halfExtent));
+            var count = 0;
+            for (var cx = cellMin.x; cx <= cellMax.x && count < buffer.Length; cx++)
+            for (var cy = cellMin.y; cy <= cellMax.y && count < buffer.Length; cy++)
+            {
+                if (!spawnedByChunk.TryGetValue(new Vector2Int(cx, cy), out var list)) continue;
+                for (var i = 0; i < list.Count && count < buffer.Length; i++)
+                {
+                    var ast = list[i];
+                    if (!ast) continue;
+                    var p = GamePlane.WorldPointToPlane(ast.transform.position);
+                    if (Mathf.Abs(p.x - centerPlane.x) > halfExtent || Mathf.Abs(p.y - centerPlane.y) > halfExtent) continue;
+                    buffer[count++] = new AI.Scanning.DetectedObstacle(ast.transform.position, ast.Radius, ast.SimpleCollider);
+                }
+            }
+            return count;
         }
 
         // ── Coordinate mapping ───────────────────────────────────────────────────

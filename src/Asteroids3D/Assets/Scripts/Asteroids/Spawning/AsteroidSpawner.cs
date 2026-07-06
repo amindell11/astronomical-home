@@ -19,20 +19,6 @@ namespace Asteroids.Spawning
         public float TotalVolume => registry.TotalVolume;
 
         /// <summary>
-        /// Live spawners, for consumers that query asteroid state directly instead of via
-        /// physics (e.g. the MPC obstacle scan). Registered on enable, removed on disable;
-        /// a spawner without settings disables itself in Awake and never appears here.
-        /// </summary>
-        public static IReadOnlyList<AsteroidSpawner> ActiveSpawners => activeSpawners;
-        private static readonly List<AsteroidSpawner> activeSpawners = new();
-
-        /// <summary>
-        /// The live asteroid set (registry state: destroyed asteroids leave immediately,
-        /// fragments enter on spawn). Null until Awake has run.
-        /// </summary>
-        public HashSet<AsteroidController> LiveAsteroids => registry?.LiveSet;
-
-        /// <summary>
         /// Raised for fragments spawned via <see cref="Fragger"/> so the field
         /// can assign them authored IDs and track them in the override overlay.
         /// </summary>
@@ -75,16 +61,6 @@ namespace Asteroids.Spawning
             registry = new Registry();
             fragger = GetComponent<Fragger>();
             AttributeProvider = new RandomAsteroidAttributeRoller(settings);
-        }
-
-        private void OnEnable()
-        {
-            if (settings) activeSpawners.Add(this);
-        }
-
-        private void OnDisable()
-        {
-            activeSpawners.Remove(this);
         }
 
         public void DespawnAll()

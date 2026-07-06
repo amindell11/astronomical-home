@@ -34,10 +34,6 @@ namespace Movement.MPC
         private DetectedObstacle[] dbgObstacles;
         private int dbgObstacleCount;
 
-        private DetectedGap[] dbgGaps;
-        private int dbgGapCount;
-        private int dbgChosenGap = -1;
-
         // Debug info
         public CostBreakdown lastCostBreakdown;
         public float lastSolveTimeMs;
@@ -56,7 +52,6 @@ namespace Movement.MPC
 
         [Header("Scene Gizmo Sub-Toggles")]
         public bool showObstacleCosts = true;
-        public bool showGaps = true;
         public bool showTrajectoryCosts = true;
         public bool showControlInputs = true;
         [Tooltip("Render a random sampling of MPC candidate trajectories with rank-based alpha. " +
@@ -180,57 +175,6 @@ namespace Movement.MPC
                 dbgObstacles[i] = scan.buffer[i];
         }
 
-        partial void StoreDebugGaps(DetectedGap[] gaps, int count, int chosen)
-        {
-            if (dbgGaps == null || dbgGaps.Length < count)
-                dbgGaps = new DetectedGap[Mathf.Max(count, 16)];
-
-            dbgGapCount = count;
-            dbgChosenGap = chosen;
-            for (var i = 0; i < count; i++)
-                dbgGaps[i] = gaps[i];
-        }
-
-        private void DrawGaps()
-        {
-            if (!showGaps || dbgGaps == null || dbgGapCount == 0) return;
-
-            var origin = transform.position;
-            var injectedWon = solver != null && solver.LastInjectedCount > 0 &&
-                              solver.LastBestIndex >= 1 && solver.LastBestIndex <= solver.LastInjectedCount;
-
-            for (var i = 0; i < dbgGapCount; i++)
-            {
-                var gap = dbgGaps[i];
-                var isChosen = i == dbgChosenGap;
-                var dir = new Vector2(-Mathf.Sin(gap.axisAngle), Mathf.Cos(gap.axisAngle));
-                var worldDir = GamePlane.PlaneDirToWorld(dir);
-                var length = Mathf.Min(gap.depth, 25f);
-
-                // Chosen = green, bank-only = cyan, others = dim white; edge rays show width.
-                Gizmos.color = isChosen ? new Color(0.2f, 1f, 0.2f, 0.9f)
-                    : gap.bankOnly ? new Color(0.3f, 0.9f, 1f, 0.5f)
-                    : new Color(1f, 1f, 1f, 0.35f);
-                Gizmos.DrawRay(origin, worldDir * length);
-
-                var half = gap.angularWidth * 0.5f;
-                var edgeA = new Vector2(-Mathf.Sin(gap.axisAngle - half), Mathf.Cos(gap.axisAngle - half));
-                var edgeB = new Vector2(-Mathf.Sin(gap.axisAngle + half), Mathf.Cos(gap.axisAngle + half));
-                var edgeColor = Gizmos.color;
-                edgeColor.a *= 0.4f;
-                Gizmos.color = edgeColor;
-                Gizmos.DrawRay(origin, GamePlane.PlaneDirToWorld(edgeA) * length);
-                Gizmos.DrawRay(origin, GamePlane.PlaneDirToWorld(edgeB) * length);
-
-                if (isChosen)
-                {
-                    Handles.Label(origin + worldDir * (length + 0.5f),
-                        $"gap {gap.score:F2}{(gap.bankOnly ? " BANK" : "")}{(injectedWon ? " INJ-WON" : "")}",
-                        new GUIStyle { normal = { textColor = Color.green }, fontSize = 10 });
-                }
-            }
-        }
-
         private CostBreakdown EvaluateBreakdown(State mpcState)
         {
             var input = solver.BuildCostInput(GoalPos(), GoalVel(), enemyPos, enemyVel, enemyYaw, enemyYawRate, projectileSpeed, mpcState.vel);
@@ -263,7 +207,6 @@ namespace Movement.MPC
             DrawEnemyRollout();
             DrawGoal();
             DrawObstacleDebugInfo();
-            DrawGaps();
             DrawControlInputs();
         }
 
@@ -520,13 +463,14 @@ namespace Movement.MPC
             var hullUnbanked = config.shipRadius + config.collisionSafetyMargin;
             var hullCurrent = config.shipRadius * profileScale + config.collisionSafetyMargin;
 
-            // Stopping distance at the current speed — the admissibility term's reach.
+            // Turn-away reach at the current speed: the head-on distance inside which the
+            // lateral thrust can no longer sidestep a full corridor width before impact
+            // (½·a_lat·t² == corridor at t = along/speed) — the admissibility term's bite range.
             var vel = predictedStates != null && predictedStates.Length > 0
                 ? predictedStates[0].vel
                 : default;
             var speed = math.length(vel);
-            var decel = config.brakingDecel + config.brakingDrag * speed;
-            var stoppingDist = decel > 0f ? speed * speed / (2f * decel) : 0f;
+            var halfLatAccel = 0.5f * Mathf.Max(config.maxLatAccel, 1e-4f);
 
             for (var i = 0; i < dbgObstacleCount; i++)
             {
@@ -544,12 +488,14 @@ namespace Movement.MPC
                     Gizmos.DrawWireSphere(obsWorldPos, obs.radius + hullCurrent);
                 }
 
-                // Outer ring: where the admissibility cost starts biting at the current
-                // speed (clearance == stopping distance while closing head-on).
-                if (stoppingDist > 0.05f)
+                // Outer ring: where the turn-away cost starts biting for a head-on approach
+                // at the current speed (sidestep distance == corridor width at the boundary).
+                var corridor = obs.radius + hullCurrent;
+                var biteRange = speed > 0.05f ? speed * math.sqrt(corridor / halfLatAccel) : 0f;
+                if (biteRange > 0.05f)
                 {
                     Gizmos.color = new Color(1f, 1f, 0f, 0.35f);
-                    Gizmos.DrawWireSphere(obsWorldPos, obs.radius + hullCurrent + stoppingDist);
+                    Gizmos.DrawWireSphere(obsWorldPos, corridor + biteRange);
                 }
             }
         }

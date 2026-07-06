@@ -1,6 +1,5 @@
 using System.Collections.Generic;
-using Asteroids.Spawning;
-using Game;
+using AI.Scanning;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -12,12 +11,13 @@ namespace Movement.MPC.Field
     /// Runtime service maintaining one cost-to-go <see cref="NavField"/> per chase target,
     /// shared by every pursuer of that target. Rebuilds run as Burst jobs off the main thread
     /// against a double buffer: the solver keeps sampling the last solved field while the next
-    /// one bakes; buffers swap on job completion. Obstacles come from the live asteroid spawn
-    /// registry (destroyed asteroids leave immediately) — no physics queries, no
-    /// FindObjectsByType. Re-solves when the target moves more than a cell, the live asteroid
-    /// count drifts, or the field goes stale.
-    /// Created lazily on first query; consumers hold no per-frame lookups (the Navigator asks
-    /// through the static <see cref="Instance"/>, which is a cached reference).
+    /// one bakes; buffers swap on job completion. Obstacles come from Track B2's deterministic
+    /// field query (<see cref="IObstacleField"/>, handed in by the Navigator) — live state, so
+    /// destroyed asteroids drop out immediately, with no physics scan and no
+    /// <c>FindObjectsByType</c>. Re-solves when the target moves more than a cell, the live
+    /// obstacle count drifts, or the field goes stale.
+    /// Created lazily on first query; consumers hold no per-frame component lookups (the
+    /// Navigator asks through the static <see cref="Instance"/>, a cached reference).
     /// </summary>
     [DefaultExecutionOrder(-90)]
     public partial class NavFieldService : MonoBehaviour
@@ -35,10 +35,13 @@ namespace Movement.MPC.Field
         [Header("Rebuild policy")]
         [Tooltip("Minimum interval between rebuilds of one target's field.")]
         [SerializeField] private float minRebuildInterval = 0.15f;
-        [Tooltip("Rebuild when the live asteroid count changed by at least this much.")]
+        [Tooltip("Rebuild when the live obstacle count changed by at least this much.")]
         [SerializeField] private int registryDeltaThreshold = 3;
         [Tooltip("Rebuild at least this often regardless of motion (drifting rocks).")]
         [SerializeField] private float maxStaleness = 1f;
+
+        // Hard ceiling on obstacles gathered per rebuild (dense-field guard).
+        private const int MaxObstacles = 8192;
 
         private static NavFieldService instance;
 
@@ -61,7 +64,8 @@ namespace Movement.MPC.Field
         {
             public NavField front;
             public NavField back;
-            public NativeArray<float3> obstacles;
+            public NativeArray<float3> obstacles;   // packed (x, y, inflatedRadius)
+            public DetectedObstacle[] scratch;      // reused query buffer
             public JobHandle pending;
             public bool jobRunning;
             public float lastBuildTime;
@@ -99,11 +103,12 @@ namespace Movement.MPC.Field
 
         /// <summary>
         /// Sampling view of the target's field. Returns false while nothing is solved yet
-        /// (first frames) — the caller's terminal hook then contributes 0. Kicks the
-        /// rebuild machinery as a side effect.
+        /// (first frames) — the caller's terminal hook then contributes 0. Kicks the rebuild
+        /// machinery as a side effect. <paramref name="field"/> is B2's live obstacle source
+        /// (may be null between sectors, in which case the field bakes with no obstacles).
         /// </summary>
         public bool TryGetData(Transform target, float2 targetPlanePos, float nominalSpeed,
-            out TerminalFieldData data)
+            IObstacleField field, out TerminalFieldData data)
         {
             data = default;
             if (!target) return false;
@@ -115,74 +120,75 @@ namespace Movement.MPC.Field
                     front = new NavField(gridSize, cellSize),
                     back = new NavField(gridSize, cellSize),
                     obstacles = new NativeArray<float3>(256, Allocator.Persistent),
+                    scratch = new DetectedObstacle[256],
                 };
                 fields[target] = entry;
             }
 
-            EnsureFresh(entry, targetPlanePos);
+            EnsureFresh(entry, targetPlanePos, field);
 
             if (!entry.front.HasSolution) return false;
             data = entry.front.Data(nominalSpeed);
             return true;
         }
 
-        private void EnsureFresh(Entry entry, float2 goal)
+        private void EnsureFresh(Entry entry, float2 goal, IObstacleField field)
         {
             if (entry.jobRunning) return;
 
             var now = Time.time;
-            var obstacleCount = LiveAsteroidCount();
             var neverBuilt = !entry.front.HasSolution && entry.lastBuildTime <= 0f;
             var dueByTimer = now - entry.lastBuildTime >= minRebuildInterval;
             if (!neverBuilt && !dueByTimer) return;
 
+            var count = GatherObstacles(entry, goal, field);
+
             var moved = math.distancesq(entry.lastGoal, goal) > cellSize * cellSize;
-            var delta = math.abs(obstacleCount - entry.lastObstacleCount) >= registryDeltaThreshold;
+            var delta = math.abs(count - entry.lastObstacleCount) >= registryDeltaThreshold;
             var staleTimer = now - entry.lastBuildTime >= maxStaleness;
             if (!neverBuilt && !moved && !delta && !staleTimer) return;
 
-            var count = GatherObstacles(entry);
             entry.pending = entry.back.ScheduleSolve(goal, entry.obstacles, count);
             entry.jobRunning = true;
             entry.lastBuildTime = now;
             entry.lastGoal = goal;
-            entry.lastObstacleCount = obstacleCount;
+            entry.lastObstacleCount = count;
         }
 
-        private static int LiveAsteroidCount()
+        /// <summary>
+        /// Query B2's field for every live asteroid inside the grid AABB around the target and
+        /// pack them (position + inflated radius) into the entry's native buffer. Grows the
+        /// scratch/native buffers on truncation up to <see cref="MaxObstacles"/>.
+        /// </summary>
+        private int GatherObstacles(Entry entry, float2 goal, IObstacleField field)
         {
-            var total = 0;
-            var spawners = AsteroidSpawner.ActiveSpawners;
-            for (var i = 0; i < spawners.Count; i++)
-                total += spawners[i].ActiveCount;
-            return total;
-        }
+            if (field == null) return 0;
 
-        private int GatherObstacles(Entry entry)
-        {
-            var count = 0;
-            var spawners = AsteroidSpawner.ActiveSpawners;
-            for (var s = 0; s < spawners.Count; s++)
+            var center = new Vector2(goal.x, goal.y);
+            var halfExtent = gridSize * cellSize * 0.5f;
+
+            var n = field.QueryObstacles(center, halfExtent, entry.scratch);
+            // Filled the buffer exactly ⇒ likely truncated; grow and re-query (dense fields).
+            while (n == entry.scratch.Length && entry.scratch.Length < MaxObstacles)
             {
-                var live = spawners[s].LiveAsteroids;
-                if (live == null) continue;
-                foreach (var ast in live)
-                {
-                    if (!ast) continue;
-                    if (count >= entry.obstacles.Length) Grow(entry);
-                    var pos = GamePlane.WorldPointToPlane(ast.transform.position);
-                    entry.obstacles[count++] = new float3(pos.x, pos.y, ast.Radius + shipRadiusBuffer);
-                }
+                entry.scratch = new DetectedObstacle[entry.scratch.Length * 2];
+                n = field.QueryObstacles(center, halfExtent, entry.scratch);
             }
-            return count;
-        }
 
-        private static void Grow(Entry entry)
-        {
-            var bigger = new NativeArray<float3>(entry.obstacles.Length * 2, Allocator.Persistent);
-            NativeArray<float3>.Copy(entry.obstacles, bigger, entry.obstacles.Length);
-            entry.obstacles.Dispose();
-            entry.obstacles = bigger;
+            if (n > entry.obstacles.Length)
+            {
+                var cap = entry.obstacles.Length;
+                while (cap < n) cap *= 2;
+                if (entry.obstacles.IsCreated) entry.obstacles.Dispose();
+                entry.obstacles = new NativeArray<float3>(cap, Allocator.Persistent);
+            }
+
+            for (var i = 0; i < n; i++)
+            {
+                var d = entry.scratch[i];
+                entry.obstacles[i] = new float3(d.position.x, d.position.y, d.radius + shipRadiusBuffer);
+            }
+            return n;
         }
 
         private void Update()

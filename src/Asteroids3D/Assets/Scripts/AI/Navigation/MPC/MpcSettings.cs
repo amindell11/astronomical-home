@@ -98,31 +98,19 @@ namespace Movement.MPC
         public float wMissDistance = 0f;
 
         [Header("Obstacle Avoidance")]
-        [Tooltip("Admissibility (speed-shaping) weight. Penalizes rollout states from which the ship " +
-                 "can no longer brake to a stop before an obstacle (stopping-distance vs clearance ratio, " +
-                 "continuous in position and speed). 0 when brakeable — proximity alone is free.")]
-        public float wObstacle = 1f;
+        [Tooltip("Admissibility (turn-away) weight. Penalizes rollout states whose velocity leads " +
+                 "into an obstacle that the ship's lateral thrust can no longer sidestep before " +
+                 "reaching it (collision-course-gated, continuous, C1 at the boundary). Obstacles " +
+                 "the ship already passes clear of cost nothing — a weaving pursuer steers around " +
+                 "off-course rocks for free.")]
+        public float wObstacle = 5f;
         [Tooltip("Fixed cost added for every rollout step whose (bank-narrowed) hull overlaps an obstacle. " +
                  "Near-binary: must decisively dominate any per-step stage cost (>=10x) so colliding " +
                  "rollouts never win the elite set.")]
-        public float collisionPenalty = 1000f;
+        public float collisionPenalty = 10000f;
         [Tooltip("Constant safety margin added to the hull radius in the collision test, absorbing " +
                  "model error. Deliberately NOT speed-scaled — speed safety is the admissibility term's job.")]
-        public float collisionSafetyMargin = 0.25f;
-
-        [Header("Gap Primitives")]
-        [Tooltip("Number of top-scored gaps that get scripted bank-through primitives injected " +
-                 "into the sample set each solve. 0 disables the gap layer entirely.")]
-        public int gapTopK = 3;
-        [Tooltip("Scripted control-sequence variants injected per gap (pulse sign/length variations).")]
-        [Range(1, 8)]
-        public int primitivesPerGap = 4;
-        [Tooltip("Fractional score margin a competing gap must exceed over the currently tracked gap " +
-                 "before the chosen gap switches. Gap-selection hysteresis kills oscillation here, " +
-                 "not inside the solver.")]
-        public float gapSwitchMargin = 0.25f;
-        [Tooltip("Max obstacle distance considered by the gap detector.")]
-        public float gapMaxRange = 40f;
+        public float collisionSafetyMargin = 0.3f;
 
         [Header("Terminal Field (cost-to-go)")]
         [Tooltip("Weight on the per-rollout terminal cost-to-go sample (time-to-go seconds, " +

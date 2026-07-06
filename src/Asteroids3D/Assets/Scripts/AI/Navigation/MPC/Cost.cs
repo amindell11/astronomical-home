@@ -133,8 +133,8 @@ namespace Movement.MPC
                 if (Collides(s.pos, input.obstacles, input.obstacleCount, hullRadius))
                     collisionCost = cfg.collisionPenalty;
                 else if (cfg.wObstacle > 0f)
-                    obstacleCost = AdmissibilityCost(s.pos, s.vel, input.obstacles, input.obstacleCount,
-                        hullRadius, cfg.brakingDecel, cfg.brakingDrag) * cfg.wObstacle;
+                    obstacleCost = TurnAwayCost(s.pos, s.vel, input.obstacles, input.obstacleCount,
+                        hullRadius, cfg.maxLatAccel) * cfg.wObstacle;
             }
 
             var momentumCost = 0f;
@@ -366,42 +366,48 @@ namespace Movement.MPC
         }
 
         /// <summary>
-        /// Admissibility (speed-shaping) cost: penalizes states from which braking to a stop
-        /// before an obstacle is no longer possible. Per obstacle, compares the stopping
-        /// distance along the closing direction (closingSpeed² / 2·decel, with decel =
-        /// brakingDecel + brakingDrag·closingSpeed) against the free clearance to the hull,
-        /// as a smooth ratio: 0 when brakeable, →1 as stopping distance dwarfs clearance.
-        /// Continuous in position AND speed — no range boundary, no speed-inflated threshold,
-        /// no ranked-buffer set churn. Returns the worst violation across all obstacles.
+        /// Admissibility (collision-course-gated turn-away) cost: only obstacles the current
+        /// velocity actually leads INTO incur cost. For each obstacle ahead, project its center
+        /// onto the velocity axis; if the perpendicular offset already clears the corridor
+        /// (obs.radius + hull) the ship passes clean → 0. Otherwise the cost measures whether
+        /// the ship can still sidestep the remaining lateral deficit (dNeeded) with its lateral
+        /// thrust before reaching the obstacle's plane (dTurn = ½·a_lat·t² over tAvail).
+        /// Exactly 0 when the sidestep suffices; rises smoothly (C¹ at the boundary, bounded
+        /// [0,1]) as it falls short. A weaving pursuer steers around off-course rocks for free
+        /// and only pays for dead-ahead obstacles it leads into. Worst obstacle wins (max) —
+        /// the binding constraint, never a sum. Chosen over the stopping-distance ratio after
+        /// the A2 ablation showed braking-based cost causes chase timidity without preventing
+        /// the failures it targets (see Chase_Nav_Track_A_Implementation_Log.md).
         /// </summary>
-        internal static float AdmissibilityCost(float2 pos, float2 vel,
+        internal static float TurnAwayCost(float2 pos, float2 vel,
             Unity.Collections.NativeArray<ObstacleData> obstacles, int count,
-            float hullRadius, float brakingDecel, float brakingDrag)
+            float hullRadius, float maxLatAccel)
         {
+            var speed = math.length(vel);
+            if (speed <= 1e-3f) return 0f; // no heading — nothing is being led into
+
+            var velDir = vel / speed;
+            var halfLatAccel = 0.5f * math.max(maxLatAccel, 1e-4f);
             var worst = 0f;
+
             for (var i = 0; i < count; i++)
             {
                 var obs = obstacles[i];
                 var toObs = obs.position - pos;
-                var distSq = math.lengthsq(toObs);
-                if (distSq < 1e-8f) return 1f; // inside the obstacle center — max violation
+                var corridor = obs.radius + hullRadius;
 
-                var dist = math.sqrt(distSq);
-                var closingSpeed = math.dot(vel, toObs / dist);
-                if (closingSpeed <= 0f) continue; // receding — always admissible
+                var along = math.dot(toObs, velDir);
+                if (along <= 0f) continue;                      // behind us — no cost
 
-                var decel = brakingDecel + brakingDrag * closingSpeed;
-                if (decel <= 0f) return 1f; // cannot brake at all while closing
+                var perp = math.length(toObs - along * velDir);
+                if (perp >= corridor) continue;                 // collision-course gate: passes clear
 
-                var stoppingDist = closingSpeed * closingSpeed / (2f * decel);
-                var clearance = dist - obs.radius - hullRadius;
-                if (clearance >= stoppingDist) continue; // can stop in time — free
-
-                // Smooth ratio in [0, 1): 0 at the admissibility boundary, →1 as the
-                // stopping distance dwarfs the remaining clearance (clearance ≤ 0 counts
-                // as a full violation; the hard collision term takes over below overlap).
-                var violation = 1f - math.max(clearance, 0f) / stoppingDist;
-                worst = math.max(worst, violation);
+                var dNeeded = corridor - perp;                  // extra lateral clearance to miss
+                var tAvail = along / speed;                     // time until we reach its plane
+                var dTurn = halfLatAccel * tAvail * tAvail;     // max sidestep before impact
+                // 0 when the sidestep covers the deficit; →1 as it falls short. Squaring gives C¹ zero.
+                var deficit = math.saturate(1f - dTurn / math.max(dNeeded, 1e-4f));
+                worst = math.max(worst, deficit * deficit);
             }
             return worst;
         }

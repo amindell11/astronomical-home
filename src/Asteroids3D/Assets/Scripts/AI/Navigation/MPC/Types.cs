@@ -96,8 +96,7 @@ namespace Movement.MPC
         public float maxSpeedSq;
         public float maxYawRateSq;
         public float shipRadius;
-        public float brakingDecel;   // Thrust-only braking deceleration (reverseAcc / mass)
-        public float brakingDrag;    // Linear drag coefficient; adds drag * speed to braking decel
+        public float maxLatAccel;    // Best-case lateral (strafe) acceleration (m/s²) for turn-away admissibility
 
         // Goal
         public GoalMode goalMode;
@@ -122,8 +121,9 @@ namespace Movement.MPC
             cfg.maxSpeedSq = dyn.maxSpeed * dyn.maxSpeed;
             cfg.maxYawRateSq = dyn.maxYawRate * dyn.maxYawRate;
             cfg.shipRadius = dyn.shipRadius;
-            cfg.brakingDecel = dyn.mass > 0f ? dyn.reverseAcc / dyn.mass : 0f;
-            cfg.brakingDrag = dyn.linearDrag;
+            // Best case: the model's strafe force at zero speed (it lerps maxStrafe→minStrafe
+            // with speed). Optimistic on purpose — the term should under- not over-trigger.
+            cfg.maxLatAccel = dyn.mass > 0f ? dyn.maxStrafeAcc / dyn.mass : dyn.maxStrafeAcc;
         }
     }
 

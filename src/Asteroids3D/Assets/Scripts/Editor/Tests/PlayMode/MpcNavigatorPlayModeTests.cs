@@ -125,12 +125,34 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
         Assert.That(dist, Is.LessThan(16f), "Ship should follow a moving waypoint");
     }
 
+    /// <summary>Feeds a hand-placed obstacle through the B2 seam (obstacles come from the
+    /// deterministic field query now — there is no physics scan for primitive colliders).</summary>
+    private sealed class StubObstacleField : AI.Scanning.IObstacleField, AI.Scanning.IObstacleFieldProvider
+    {
+        public Vector3 position;
+        public float radius;
+        public Collider collider;
+        public AI.Scanning.IObstacleField ObstacleField => this;
+        public int QueryObstacles(Vector2 centerPlane, float halfExtent, AI.Scanning.DetectedObstacle[] buffer)
+        {
+            if (buffer == null || buffer.Length == 0) return 0;
+            buffer[0] = new AI.Scanning.DetectedObstacle(position, radius, collider);
+            return 1;
+        }
+    }
+
     [UnityTest]
     public IEnumerator MpcObstacleAvoidance_ShipReachesTargetWithoutColliding()
     {
         mpc.enableObstacleAvoidance = true;
 
         var obstacle   = TestSceneBuilder.CreateObstacle(new Vector3(10, 10, 0), new Vector3(2, 2, 2));
+        cmdr.SetObstacleFieldProvider(new StubObstacleField
+        {
+            position = new Vector3(10, 10, 0),
+            radius = 1f,
+            collider = obstacle.GetComponent<Collider>(),
+        });
         var targetPos  = new Vector2(20, 20);
         var obstaclePos2D = new Vector2(10, 10);
         mpc.SetNavigationPoint(targetPos);

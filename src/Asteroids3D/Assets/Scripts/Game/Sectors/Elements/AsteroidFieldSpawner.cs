@@ -29,12 +29,18 @@ namespace Game.Sectors
                 // Static authored start — declared even in spectator/headless
                 // runs so the layout is identical regardless of who is flying.
                 if (ctx.Sector) updating.SetPlayerStart(ctx.Sector.PlayerStart);
+
+                // Publish the field as the sector's obstacle source so AI ships query
+                // live asteroids directly (deterministic) instead of physics-scanning.
+                if (ctx.Services?.EnvironmentService != null && updating is AI.Scanning.IObstacleField of)
+                    ctx.Services.EnvironmentService.RegisterObstacleField(of);
             }
             yield break;
         }
 
         public override IEnumerator Teardown(SectorBuildContext ctx)
         {
+            ctx.Services?.EnvironmentService?.RegisterObstacleField(null);
             if (field) field.DespawnAll();
             yield break;
         }

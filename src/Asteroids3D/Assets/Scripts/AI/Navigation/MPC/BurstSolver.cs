@@ -10,12 +10,10 @@ namespace Movement.MPC
     public struct GenerateCandidatesJob : IJobParallelFor
     {
         [ReadOnly] public NativeArray<Control> warmStart;
-        [ReadOnly] public NativeArray<Control> injected;
         [NativeDisableParallelForRestriction]
         public NativeArray<Control> candidates;
 
         public int horizon;
-        public int injectedCount;
         public float noiseStd;
         public int noiseKnots;
         public float boostSampleProbability;
@@ -29,17 +27,6 @@ namespace Movement.MPC
             {
                 for (var j = 0; j < horizon; j++)
                     candidates[offset + j] = warmStart[j];
-                return;
-            }
-
-            // Injected candidates (Biased-MPPI pattern, CEM flavor): scripted control
-            // sequences — e.g. bank-through-gap primitives — compete with the Gaussian
-            // samples on cost alone. No importance correction needed; elites refit.
-            if (candidateIndex <= injectedCount)
-            {
-                var src = (candidateIndex - 1) * horizon;
-                for (var j = 0; j < horizon; j++)
-                    candidates[offset + j] = injected[src + j];
                 return;
             }
 
@@ -137,8 +124,6 @@ namespace Movement.MPC
     /// </summary>
     public class SolverBuffers : System.IDisposable
     {
-        public const int MaxInjected = 32;
-
         /// <summary>
         /// Test-only sampler seed override. When set, the candidate-generation RNG seed is
         /// derived from this base plus a per-instance solve counter instead of
@@ -152,7 +137,6 @@ namespace Movement.MPC
         private uint solveCount;
 
         private NativeArray<Control> warmStart;
-        private NativeArray<Control> injected;
         private NativeArray<Control> candidates;
         private NativeArray<float> costs;
         private NativeArray<Control> result;
@@ -174,10 +158,6 @@ namespace Movement.MPC
         public NativeArray<float> Costs => costs;
         public int LastSampleCount { get; private set; }
         public int LastHorizon { get; private set; }
-        /// <summary>Candidate index of the single cheapest elite from the last Solve()/Rescore().
-        /// Index 0 = warm start, 1..LastInjectedCount = injected sequences, rest Gaussian.</summary>
-        public int LastBestIndex { get; private set; }
-        public int LastInjectedCount { get; private set; }
 
         public float Solve(State initialState, Control[] sequence,
             Config cfg, Dynamics dynamics,
@@ -188,7 +168,6 @@ namespace Movement.MPC
             int samples, float noiseStd, int noiseKnots, Control lastControl,
             float boostCooldownRemaining = 0f, float boostSampleProbability = 0.15f,
             float eliteFraction = 0.1f,
-            Control[] injectedControls = null, int injectedCount = 0,
             Field.TerminalFieldData terminalField = default)
         {
             var horizon = cfg.horizon;
@@ -208,14 +187,6 @@ namespace Movement.MPC
 
             for (var i = 0; i < horizon; i++)
                 warmStart[i] = sequence[i];
-
-            // Copy injected candidate sequences (flattened, horizon-length each) into the
-            // native buffer. Clamped so injections can never crowd out Gaussian exploration.
-            injectedCount = injectedControls == null ? 0
-                : math.min(math.min(injectedCount, MaxInjected), samples - 1);
-            for (var i = 0; i < injectedCount * horizon; i++)
-                injected[i] = injectedControls[i];
-            LastInjectedCount = injectedCount;
 
             ConvertObstacles(scan, useObstacles, dynamics.mass);
 
@@ -269,20 +240,20 @@ namespace Movement.MPC
 
             // Seed off the frame counter in shipped play; a benchmark can pin the base seed
             // (per-instance solve counter keeps successive solves decorrelated) for
-            // reproducible single runs.
+            // reproducible single runs. The position hash stays in BOTH modes so two ships
+            // pinned to the same base seed never share a noise stream.
             solveCount++;
-            var rngSeed = SamplerSeedOverride.HasValue
-                ? (uint)(SamplerSeedOverride.Value + solveCount * 7919u)
-                : (uint)(Time.frameCount * 7919 + initialState.pos.GetHashCode());
+            var frameComponent = SamplerSeedOverride.HasValue
+                ? SamplerSeedOverride.Value + solveCount * 7919u
+                : (uint)(Time.frameCount * 7919);
+            var rngSeed = frameComponent + (uint)initialState.pos.GetHashCode();
             if (rngSeed == 0) rngSeed = 1;
 
             new GenerateCandidatesJob
             {
                 warmStart = warmStart,
-                injected = injected,
                 candidates = candidates,
                 horizon = horizon,
-                injectedCount = injectedCount,
                 noiseStd = noiseStd,
                 noiseKnots = noiseKnots,
                 boostSampleProbability = boostSampleProbability,
@@ -336,11 +307,7 @@ namespace Movement.MPC
             for (var i = 0; i < samples && counted < eliteCount; i++)
             {
                 if (costs[i] > costThreshold) continue;
-                if (costs[i] < bestCost)
-                {
-                    bestCost = costs[i];
-                    LastBestIndex = i;
-                }
+                if (costs[i] < bestCost) bestCost = costs[i];
 
                 var offset = i * horizon;
                 for (var j = 0; j < horizon; j++)
@@ -476,7 +443,6 @@ namespace Movement.MPC
                 return;
             Dispose();
             warmStart = new NativeArray<Control>(horizon, Allocator.Persistent);
-            injected = new NativeArray<Control>(MaxInjected * horizon, Allocator.Persistent);
             candidates = new NativeArray<Control>(samples * horizon, Allocator.Persistent);
             costs = new NativeArray<float>(samples, Allocator.Persistent);
             obstacles = new NativeArray<ObstacleData>(64, Allocator.Persistent);
@@ -491,7 +457,6 @@ namespace Movement.MPC
         {
             if (!allocated) return;
             warmStart.Dispose();
-            injected.Dispose();
             candidates.Dispose();
             costs.Dispose();
             obstacles.Dispose();

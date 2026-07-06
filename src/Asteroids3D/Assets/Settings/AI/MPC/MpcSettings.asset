@@ -43,13 +43,9 @@ MonoBehaviour:
   exposureWidth: 0.5
   wTangential: 1
   wMissDistance: 0
-  wObstacle: 1
-  collisionPenalty: 1000
-  collisionSafetyMargin: 0.25
-  gapTopK: 3
-  primitivesPerGap: 4
-  gapSwitchMargin: 0.25
-  gapMaxRange: 40
+  wObstacle: 5
+  collisionPenalty: 10000
+  collisionSafetyMargin: 0.3
   wTerminal: 1
   arrivalDistance: 4
   arrivalVelScale: 5

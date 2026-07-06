@@ -26,10 +26,6 @@ namespace Movement.MPC
         public WeightOverride[] weightOverrides;
         public ObstacleScan obstacleScan;
         public bool enableObstacleAvoidance;
-        /// <summary>Scripted candidate sequences injected into the sample set (flattened,
-        /// horizon-length each) — e.g. bank-through-gap primitives. Null/0 = none.</summary>
-        public Control[] injectedControls;
-        public int injectedCount;
         /// <summary>Terminal cost-to-go field view (Track B3); default/invalid = hook off.</summary>
         public Field.TerminalFieldData terminalField;
     }
@@ -97,7 +93,6 @@ namespace Movement.MPC
                     settings.samples, settings.noiseStd, settings.noiseKnots, lastControl,
                     boostCooldown, boostProb,
                     settings.eliteFraction,
-                    inputs.injectedControls, inputs.injectedCount,
                     inputs.terminalField);
             }
 

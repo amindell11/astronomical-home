@@ -9,12 +9,6 @@ namespace Asteroids.Spawning
         private readonly HashSet<AsteroidController> activeAsteroids = new();
         private readonly Dictionary<AsteroidController, float> trackedVolumes = new();
         public IReadOnlyCollection<AsteroidController> ActiveAsteroids => activeAsteroids;
-
-        /// <summary>
-        /// Concrete live set for hot-path enumeration (the interface view boxes its enumerator).
-        /// Read-only by convention — mutate only via Register/Unregister.
-        /// </summary>
-        public HashSet<AsteroidController> LiveSet => activeAsteroids;
         public int ActiveCount => activeAsteroids.Count;
         public float TotalVolume { get; private set; }
 

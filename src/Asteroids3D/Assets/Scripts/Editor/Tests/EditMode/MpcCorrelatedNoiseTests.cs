@@ -28,17 +28,14 @@ namespace Tests.EditMode
         private static void WithCandidates(System.Action<NativeArray<Control>> assert)
         {
             var warmStart = new NativeArray<Control>(Horizon, Allocator.TempJob);
-            var injected = new NativeArray<Control>(0, Allocator.TempJob);
             var candidates = new NativeArray<Control>(Samples * Horizon, Allocator.TempJob);
             try
             {
                 new GenerateCandidatesJob
                 {
                     warmStart = warmStart,
-                    injected = injected,
                     candidates = candidates,
                     horizon = Horizon,
-                    injectedCount = 0,
                     noiseStd = NoiseStd,
                     noiseKnots = NoiseKnots,
                     boostSampleProbability = 0f,
@@ -50,7 +47,6 @@ namespace Tests.EditMode
             finally
             {
                 warmStart.Dispose();
-                injected.Dispose();
                 candidates.Dispose();
             }
         }

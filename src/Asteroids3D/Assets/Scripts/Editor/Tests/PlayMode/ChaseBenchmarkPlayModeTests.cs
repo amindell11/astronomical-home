@@ -54,8 +54,13 @@ namespace Tests.PlayMode
             var objectiveServiceGO = Track(new GameObject("ObjectiveService"));
             var objectiveService = objectiveServiceGO.AddComponent<ObjectiveService>();
 
+            // Mirror MainGameManager.ComposeSession: the environment service owns the active
+            // obstacle field (registered by the sector's AsteroidFieldSpawner) and the unit
+            // service forwards it to each AI ship it wires.
+            var environmentService = new EnvironmentService();
+            unitService.BindObstacleFieldProvider(environmentService);
             services = new GameServices(
-                unitService, new EnvironmentService(), objectiveService,
+                unitService, environmentService, objectiveService,
                 new CameraService(), new UIService());
 
             sectorConfig = ScriptableObject.CreateInstance<SectorSettings>();

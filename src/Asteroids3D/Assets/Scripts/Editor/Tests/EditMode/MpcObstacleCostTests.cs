@@ -9,9 +9,10 @@ namespace Tests.EditMode
 {
     /// <summary>
     /// Unit tests for the A2 obstacle-cost redesign: the hard hull-overlap collision term
-    /// (bank narrowing applied to the hull radius, not padding) and the stopping-distance
-    /// admissibility term that replaced the graded threshold repulsion. All closed-form —
-    /// these call the cost statics directly with hand-built configs and obstacle buffers.
+    /// (bank narrowing applied to the hull radius, not padding) and the collision-course-gated
+    /// turn-away admissibility term that replaced the graded threshold repulsion. All
+    /// closed-form — these call the cost statics directly with hand-built configs and
+    /// obstacle buffers.
     /// </summary>
     [Category("MPC")]
     public class MpcObstacleCostTests
@@ -20,8 +21,7 @@ namespace Tests.EditMode
         private const float ShipRadius = 1.4f;
         private const float SafetyMargin = 0.1f;
         private const float MaxBankRad = 35f * Mathf.Deg2Rad;
-        private const float BrakingDecel = 3.5f;  // reverseForce 2800 / mass 800
-        private const float BrakingDrag = 0.3f;
+        private const float MaxLatAccel = 6f;   // best-case strafe accel (maxStrafeAcc / mass)
         private const float CollisionPenalty = 1000f;
 
         private static Config CollisionOnlyConfig() => new()
@@ -33,8 +33,7 @@ namespace Tests.EditMode
             collisionSafetyMargin = SafetyMargin,
             collisionPenalty = CollisionPenalty,
             maxBankAngleRad = MaxBankRad,
-            brakingDecel = BrakingDecel,
-            brakingDrag = BrakingDrag,
+            maxLatAccel = MaxLatAccel,
             facingTarget = float.NaN,
             // Every weight left at 0 so Evaluate's total isolates the collision term.
         };
@@ -96,63 +95,102 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void Admissibility_MonotonicInClosingSpeed_AndZeroWhenBrakeable()
+        public void TurnAway_MonotonicInClosingSpeed_AndZeroWhenAvoidable()
         {
-            // One obstacle dead ahead: clearance = 20 − 2 − hull(1.5) = 16.5.
+            // One obstacle dead ahead at 20 u: corridor = 2 + 1.5 = 3.5.
+            // Sidestep boundary: ½·a·(d/v)² == corridor → v = d·sqrt(a / (2·corridor)) ≈ 18.5.
             var hull = ShipRadius + SafetyMargin;
+            const float corridor = 2f + ShipRadius + SafetyMargin;
             WithObstacles(new[] { new float2(0f, 20f) }, 2f, obstacles =>
             {
                 var prev = 0f;
-                for (var v = 0f; v <= 25f; v += 1f)
+                for (var v = 1f; v <= 30f; v += 1f)
                 {
-                    var cost = Cost.AdmissibilityCost(float2.zero, new float2(0f, v),
-                        obstacles, obstacles.Length, hull, BrakingDecel, BrakingDrag);
+                    var cost = Cost.TurnAwayCost(float2.zero, new float2(0f, v),
+                        obstacles, obstacles.Length, hull, MaxLatAccel);
 
                     Assert.That(cost, Is.GreaterThanOrEqualTo(prev - 1e-5f),
-                        $"Admissibility cost decreased between v={v - 1} and v={v}");
+                        $"Turn-away cost decreased between v={v - 1} and v={v}");
                     Assert.That(cost, Is.InRange(0f, 1f));
 
-                    // Below the admissibility boundary the state must be completely free.
-                    var stopping = v * v / (2f * (BrakingDecel + BrakingDrag * v));
-                    if (stopping < 16.5f)
-                        Assert.That(cost, Is.Zero, $"Brakeable state at v={v} must cost nothing");
+                    // Below the sidestep boundary the state must be completely free.
+                    var dTurn = 0.5f * MaxLatAccel * (20f / v) * (20f / v);
+                    if (dTurn > corridor)
+                        Assert.That(cost, Is.Zero, $"Avoidable state at v={v} must cost nothing");
                     prev = cost;
                 }
 
                 Assert.That(prev, Is.GreaterThan(0f),
-                    "At max speed the stopping distance exceeds clearance — cost must be positive");
+                    "At max speed the sidestep no longer covers the corridor — cost must be positive");
             });
         }
 
         [Test]
-        public void Admissibility_ZeroWhenReceding_EvenWhenClose()
+        public void TurnAway_CollisionCourseGate_OffPathObstacleIsFree()
+        {
+            // Obstacle 5 u off the velocity axis, corridor 3.5: the ship already passes clear,
+            // so even a fast dead-straight rollout pays nothing — a weaving pursuer steers
+            // around off-course rocks for free.
+            var hull = ShipRadius + SafetyMargin;
+            WithObstacles(new[] { new float2(5f, 10f) }, 2f, obstacles =>
+            {
+                var cost = Cost.TurnAwayCost(float2.zero, new float2(0f, 25f),
+                    obstacles, obstacles.Length, hull, MaxLatAccel);
+                Assert.That(cost, Is.Zero);
+            });
+        }
+
+        [Test]
+        public void TurnAway_ZeroWhenReceding_EvenWhenClose()
         {
             // Skimming just outside the hull boundary while flying away: no penalty —
             // proximity alone is free (close-and-tight flying is the point).
             var hull = ShipRadius + SafetyMargin;
             WithObstacles(new[] { new float2(0f, 4f) }, 2f, obstacles =>
             {
-                var cost = Cost.AdmissibilityCost(float2.zero, new float2(0f, -25f),
-                    obstacles, obstacles.Length, hull, BrakingDecel, BrakingDrag);
+                var cost = Cost.TurnAwayCost(float2.zero, new float2(0f, -25f),
+                    obstacles, obstacles.Length, hull, MaxLatAccel);
                 Assert.That(cost, Is.Zero);
             });
         }
 
         [Test]
-        public void Admissibility_ContinuousAtBoundary()
+        public void TurnAway_ContinuousAtBoundary()
         {
-            // Cost just above the admissibility boundary must be small — the term ramps
-            // smoothly from zero instead of jumping (no set-membership discontinuity).
+            // Cost just above the sidestep boundary must be small — the squared deficit ramps
+            // C¹-smoothly from zero instead of jumping (no set-membership discontinuity).
             var hull = ShipRadius + SafetyMargin;
             WithObstacles(new[] { new float2(0f, 20f) }, 2f, obstacles =>
             {
-                // Solve stopping(v) = clearance = 16.5 → v ≈ 16.78; probe just above
-                // (stopping(17) ≈ 16.80 → violation ≈ 0.018).
-                var cost = Cost.AdmissibilityCost(float2.zero, new float2(0f, 17f),
-                    obstacles, obstacles.Length, hull, BrakingDecel, BrakingDrag);
+                // Boundary ≈ 18.52; probe just above (v = 19 → deficit ≈ 0.05, squared ≈ 0.0025).
+                var cost = Cost.TurnAwayCost(float2.zero, new float2(0f, 19f),
+                    obstacles, obstacles.Length, hull, MaxLatAccel);
                 Assert.That(cost, Is.GreaterThan(0f));
                 Assert.That(cost, Is.LessThan(0.05f),
                     "Cost must rise smoothly from the boundary, not jump");
+            });
+        }
+
+        [Test]
+        public void CollidingRollout_OutCosts_EveryNonCollidingState()
+        {
+            // The collision penalty must decisively dominate the bounded admissibility term:
+            // an overlapping state costs at least the penalty, while the worst possible
+            // non-colliding state costs at most wObstacle (bounded by 1) — never comparable.
+            var cfg = CollisionOnlyConfig();
+            cfg.wObstacle = 5f;
+            WithObstacles(new[] { new float2(0f, 2f) }, 2f, obstacles =>
+            {
+                var input = new CostInput { obstacles = obstacles, obstacleCount = obstacles.Length, enemyYaw = float.NaN };
+
+                var overlapping = Cost.Evaluate(new State(), new Control(), new Control(), input, cfg, false);
+                var closingFast = Cost.Evaluate(new State { pos = new float2(0f, -8f), vel = new float2(0f, 30f) },
+                    new Control(), new Control(), input, cfg, false);
+
+                Assert.That(overlapping, Is.GreaterThanOrEqualTo(CollisionPenalty));
+                Assert.That(closingFast, Is.LessThanOrEqualTo(cfg.wObstacle + 1f),
+                    "Non-colliding admissibility cost is bounded — it must never rival the penalty");
+                Assert.That(overlapping, Is.GreaterThan(closingFast * 10f));
             });
         }
     }

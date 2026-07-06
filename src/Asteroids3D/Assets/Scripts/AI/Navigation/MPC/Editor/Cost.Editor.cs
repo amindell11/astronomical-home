@@ -29,8 +29,8 @@ namespace Movement.MPC
                 facing = FacingCost(s.yaw, ctx.facingTarget, cfg.facingWidth) * cfg.wFacing,
                 yawRate = YawRateCost(s.yawRate, cfg.maxYawRateSq) * cfg.wYawRate,
                 obstacle = (!collided && cfg.wObstacle > 0f && input.obstacleCount > 0)
-                    ? AdmissibilityCost(s.pos, s.vel, input.obstacles, input.obstacleCount,
-                        hullRadius, cfg.brakingDecel, cfg.brakingDrag) * cfg.wObstacle
+                    ? TurnAwayCost(s.pos, s.vel, input.obstacles, input.obstacleCount,
+                        hullRadius, cfg.maxLatAccel) * cfg.wObstacle
                     : 0f,
                 collision = collided ? cfg.collisionPenalty : 0f,
                 los = (ctx.hasEnemy && cfg.wLos > 0f && input.obstacleCount > 0)
