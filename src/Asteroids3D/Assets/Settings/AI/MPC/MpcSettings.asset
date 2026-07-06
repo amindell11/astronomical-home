@@ -16,9 +16,8 @@ MonoBehaviour:
   rolloutDt: 0.1
   samples: 512
   noiseStd: 0.75
+  noiseKnots: 4
   eliteFraction: 0.113
-  adaptiveDtScale: 0
-  adaptiveDtRefDistance: 35
   wPos: 50
   wVel: 0
   wClosing: 1
@@ -37,7 +36,6 @@ MonoBehaviour:
   wMomentum: 0
   wBoostEffort: 1
   boostSampleProbability: 0.001
-  controlSmoothing: 0
   wFacing: 1
   facingWidth: 1.5
   wLos: 1
@@ -54,6 +52,3 @@ MonoBehaviour:
   arrivalDistance: 4
   arrivalVelScale: 5
   arrivalYawScale: 0.1
-  relaxMin: 0
-  relaxMax: 0
-  relaxCurve: 1
