@@ -99,7 +99,10 @@ namespace Tests.PlayMode
 
         private IEnumerator RunEpisode(ChaseRunConfig cfg, List<ChaseRunResult> results)
         {
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(SectorPrefabPath);
+            // LoadMainAssetAtPath, not LoadAssetAtPath<GameObject>: with nested prefab
+            // instances the typed loader may return an arbitrary GameObject SUB-asset
+            // (enumeration order is not stable across imports) instead of the root.
+            var prefab = AssetDatabase.LoadMainAssetAtPath(SectorPrefabPath) as GameObject;
             Assert.IsNotNull(prefab, $"Missing benchmark sector prefab at {SectorPrefabPath}");
 
             ChaseBenchmarkModule.PendingConfig = cfg;
