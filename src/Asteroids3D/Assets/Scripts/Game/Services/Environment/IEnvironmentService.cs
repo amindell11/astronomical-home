@@ -4,13 +4,10 @@ using World;
 
 namespace Game.Services
 {
-    public interface IEnvironmentService : AI.Scanning.IObstacleFieldProvider
+    public interface IEnvironmentService
     {
         /// <summary>Currently active world root, if any.</summary>
         WorldRoot World { get; }
-
-        /// <summary>Register/clear the active obstacle field (null clears). Set by the sector's field spawner.</summary>
-        void RegisterObstacleField(AI.Scanning.IObstacleField field);
 
         /// <summary>World follower transform for camera/respawn anchoring.</summary>
         Transform WorldFollowerTransform { get; }

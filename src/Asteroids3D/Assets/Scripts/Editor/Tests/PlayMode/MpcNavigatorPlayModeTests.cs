@@ -53,6 +53,7 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
     [TearDown]
     public override void TearDown()
     {
+        AI.Scanning.ObstacleFields.Register(null); // drop any stub left by a failed assert
         ShipTestFactory.DestroyShip(ship);
         base.TearDown();
     }
@@ -126,13 +127,12 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
     }
 
     /// <summary>Feeds a hand-placed obstacle through the B2 seam (obstacles come from the
-    /// deterministic field query now — there is no physics scan for primitive colliders).</summary>
-    private sealed class StubObstacleField : AI.Scanning.IObstacleField, AI.Scanning.IObstacleFieldProvider
+    /// session's active obstacle field now — there is no physics scan for primitive colliders).</summary>
+    private sealed class StubObstacleField : AI.Scanning.IObstacleField
     {
         public Vector3 position;
         public float radius;
         public Collider collider;
-        public AI.Scanning.IObstacleField ObstacleField => this;
         public int QueryObstacles(Vector2 centerPlane, float halfExtent, AI.Scanning.DetectedObstacle[] buffer)
         {
             if (buffer == null || buffer.Length == 0) return 0;
@@ -147,12 +147,13 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
         mpc.enableObstacleAvoidance = true;
 
         var obstacle   = TestSceneBuilder.CreateObstacle(new Vector3(10, 10, 0), new Vector3(2, 2, 2));
-        cmdr.SetObstacleFieldProvider(new StubObstacleField
+        var stubField  = new StubObstacleField
         {
             position = new Vector3(10, 10, 0),
             radius = 1f,
             collider = obstacle.GetComponent<Collider>(),
-        });
+        };
+        AI.Scanning.ObstacleFields.Register(stubField);
         var targetPos  = new Vector2(20, 20);
         var obstaclePos2D = new Vector2(10, 10);
         mpc.SetNavigationPoint(targetPos);
@@ -178,6 +179,7 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
         Assert.That(minDistToObstacle, Is.GreaterThan(1.5f),
             "MPC should maintain clearance from obstacle center");
 
+        AI.Scanning.ObstacleFields.Unregister(stubField);
         Object.Destroy(obstacle);
         yield return null;
     }

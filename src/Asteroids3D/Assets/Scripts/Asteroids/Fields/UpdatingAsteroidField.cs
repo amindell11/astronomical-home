@@ -182,6 +182,9 @@ namespace Asteroids.Fields
 
         private void OnDestroy()
         {
+            // Defensive: a destroyed field must never linger behind the static access point
+            // (interface references don't go null when the MonoBehaviour dies).
+            AI.Scanning.ObstacleFields.Unregister(this);
             if (AsteroidSpawner) AsteroidSpawner.OnFragmentSpawned -= HandleFragmentSpawned;
         }
 
@@ -359,6 +362,10 @@ namespace Asteroids.Fields
             if (!spawnedByChunk.TryGetValue(chunk, out var list))
                 spawnedByChunk[chunk] = list = new List<AsteroidController>();
             list.Add(ast);
+            // High-water mark of live radii; pads the obstacle query so a big rock whose
+            // center sits just outside the box is still reported. Never shrinks — a
+            // conservative pad only costs a slightly wider sweep.
+            if (ast.Radius > maxTrackedRadius) maxTrackedRadius = ast.Radius;
         }
 
         private void Untrack(AsteroidController ast)
@@ -390,19 +397,26 @@ namespace Asteroids.Fields
 
         // ── Obstacle field query (B2) ────────────────────────────────────────────
 
+        // High-water mark of live asteroid radii, used to pad the query sweep (see Track).
+        private float maxTrackedRadius;
+
         /// <summary>
-        /// Fills <paramref name="buffer"/> with live asteroids inside a fixed-size AABB
-        /// (half-extent per axis) around <paramref name="centerPlane"/>. Only spawned,
+        /// Fills <paramref name="buffer"/> with live asteroids that OVERLAP a fixed-size AABB
+        /// (half-extent per axis) around <paramref name="centerPlane"/> — an asteroid whose
+        /// center lies outside the box but whose radius protrudes into it is still reported
+        /// (the scan and the terminal field consume this as collision geometry, so a
+        /// center-only cull would blind avoidance to boundary rocks). Only spawned,
         /// non-destroyed asteroids in the loaded chunks are reported; destroyed ones have
-        /// already been untracked. The chunk sweep uses the layout cell grid, then a precise
-        /// per-asteroid box test rejects the corner slop.
+        /// already been untracked. The chunk sweep uses the layout cell grid padded by the
+        /// largest live radius, then a precise radius-inflated box test rejects corner slop.
         /// </summary>
         public int QueryObstacles(Vector2 centerPlane, float halfExtent, AI.Scanning.DetectedObstacle[] buffer)
         {
             if (!initialized || buffer == null || buffer.Length == 0) return 0;
             var relCenter = centerPlane - fieldOriginPlane;
-            var cellMin = Model.Layout.CellOf(relCenter - new Vector2(halfExtent, halfExtent));
-            var cellMax = Model.Layout.CellOf(relCenter + new Vector2(halfExtent, halfExtent));
+            var sweep = halfExtent + maxTrackedRadius;
+            var cellMin = Model.Layout.CellOf(relCenter - new Vector2(sweep, sweep));
+            var cellMax = Model.Layout.CellOf(relCenter + new Vector2(sweep, sweep));
             var count = 0;
             for (var cx = cellMin.x; cx <= cellMax.x && count < buffer.Length; cx++)
             for (var cy = cellMin.y; cy <= cellMax.y && count < buffer.Length; cy++)
@@ -413,7 +427,8 @@ namespace Asteroids.Fields
                     var ast = list[i];
                     if (!ast) continue;
                     var p = GamePlane.WorldPointToPlane(ast.transform.position);
-                    if (Mathf.Abs(p.x - centerPlane.x) > halfExtent || Mathf.Abs(p.y - centerPlane.y) > halfExtent) continue;
+                    var reach = halfExtent + ast.Radius;
+                    if (Mathf.Abs(p.x - centerPlane.x) > reach || Mathf.Abs(p.y - centerPlane.y) > reach) continue;
                     buffer[count++] = new AI.Scanning.DetectedObstacle(ast.transform.position, ast.Radius, ast.SimpleCollider);
                 }
             }

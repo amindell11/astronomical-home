@@ -12,10 +12,6 @@ namespace Game.Services
 
         public WorldRoot World { get; private set; }
 
-        public AI.Scanning.IObstacleField ObstacleField { get; private set; }
-
-        public void RegisterObstacleField(AI.Scanning.IObstacleField field) => ObstacleField = field;
-
         public Transform WorldFollowerTransform =>
             World && World.Follower ? World.Follower.transform : null;
 
@@ -75,9 +71,6 @@ namespace Game.Services
 
         public void Clear()
         {
-            // Cleared unconditionally: the field is a sector-scoped registration that may exist
-            // even when no WorldRoot was spawned, so it must not be gated on the World guard below.
-            ObstacleField = null;
             if (!World) return;
             UnityEngine.Object.Destroy(World.gameObject);
             World = null;

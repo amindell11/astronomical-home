@@ -54,23 +54,34 @@ namespace AI.Scanning
         public DetectedObstacle[] DetectedBuffer { get; }
         public int DetectedCount { get; private set; }
 
-        /// <summary>Half-extent (per axis) of the fixed query box, in plane units.</summary>
-        public float HalfExtent { get; set; }
+        /// <summary>
+        /// Half-extent (per axis) of the fixed query box, in plane units: the worst-case
+        /// travel envelope over the lookahead horizon at max speed — a per-ship constant
+        /// computed once at construction, so the obstacle set never breathes with speed.
+        /// </summary>
+        public float HalfExtent { get; }
 
-        public ObstacleScanner(Transform origin, int bufferSize = 64)
+        /// <param name="maxSpeed">Ship max speed (plane units/s).</param>
+        /// <param name="maxAccel">Max acceleration magnitude (units/s²); extends the envelope.</param>
+        /// <param name="lookaheadTime">Planning horizon the envelope must cover, seconds.</param>
+        public ObstacleScanner(Transform origin, float maxSpeed, float maxAccel,
+            float lookaheadTime, int bufferSize = 64)
         {
             this.origin = origin;
+            HalfExtent = maxSpeed * lookaheadTime + 0.5f * maxAccel * lookaheadTime * lookaheadTime;
             DetectedBuffer = new DetectedObstacle[bufferSize];
             DetectedCount = 0;
         }
 
         /// <summary>
-        /// Query the supplied field for live asteroids inside the fixed box around the ship.
-        /// A null field (no active sector) clears the buffer.
+        /// Query the session's active obstacle field (<see cref="ObstacleFields.Active"/>)
+        /// for live asteroids inside the fixed box around the ship. No active field
+        /// (no sector, or a sector without asteroids) clears the buffer.
         /// </summary>
-        public void Scan(IObstacleField field)
+        public void Scan()
         {
             DetectedCount = 0;
+            var field = ObstacleFields.Active;
             if (field == null) return;
             var centerPlane = GamePlane.WorldPointToPlane(origin.position);
             DetectedCount = field.QueryObstacles(centerPlane, HalfExtent, DetectedBuffer);

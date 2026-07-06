@@ -36,13 +36,6 @@ namespace AI
         private Dynamics shipDynamics;
         private IShipStatus shipContext;
 
-        // Fixed worst-case half-extent for the obstacle query box, computed once from dynamics.
-        private float obstacleHalfExtent;
-        private AI.Scanning.IObstacleFieldProvider obstacleFieldProvider;
-        public void SetObstacleFieldProvider(AI.Scanning.IObstacleFieldProvider p) => obstacleFieldProvider = p;
-        /// <summary>The active deterministic obstacle field (B2), or null. Also feeds the B3 terminal field.</summary>
-        public AI.Scanning.IObstacleField ObstacleField => obstacleFieldProvider?.ObstacleField;
-
         // Combined obstacle buffer: static obstacles from obstacleScanner + 360° ship detections from shipScanner.
         // The sphere obstacle scanner focuses on static asteroids; merging the dedicated ship scanner
         // ensures the MPC sees every nearby ship regardless of bearing.
@@ -59,11 +52,10 @@ namespace AI
             shipScanner = new ShipScanner(origin, nearbyShipRadius, shipId, registry);
             coverSensor = new SphereSensor(origin, asteroidCoverRadius, asteroidMask, bufferSize: 8);
             // ShipScanner handles ships in a full sphere; the obstacle scanner queries the
-            // deterministic asteroid field inside a FIXED box. Size it once from the worst case
-            // (max speed, not current speed) so the box is stable as the ship accelerates.
+            // session's deterministic asteroid field and owns its (fixed, worst-case) query
+            // envelope — Scout only hands it the dynamics it derives the envelope from.
             var maxAccel = Mathf.Sqrt(shipDynamics.forwardAcc * shipDynamics.forwardAcc + shipDynamics.maxStrafeAcc * shipDynamics.maxStrafeAcc) / shipDynamics.mass;
-            obstacleHalfExtent = shipDynamics.maxSpeed * obstacleLookaheadTime + 0.5f * maxAccel * obstacleLookaheadTime * obstacleLookaheadTime;
-            obstacleScanner = new ObstacleScanner(origin) { HalfExtent = obstacleHalfExtent };
+            obstacleScanner = new ObstacleScanner(origin, shipDynamics.maxSpeed, maxAccel, obstacleLookaheadTime);
         }
 
         private void Update()
@@ -75,12 +67,7 @@ namespace AI
                 ? ContactSummary.Build(shipScanner.LastResult, shipId, origin.position, Registry)
                 : ContactSummary.Empty;
             HasNearbyCover = coverSensor != null && coverSensor.Detect() > 0;
-            if (obstacleScanner != null)
-            {
-                // Refresh the fixed half-extent in case dynamics/serialized values changed.
-                obstacleScanner.HalfExtent = obstacleHalfExtent;
-                obstacleScanner.Scan(obstacleFieldProvider?.ObstacleField);
-            }
+            obstacleScanner?.Scan();
             BuildMergedObstacles();
         }
 

@@ -30,17 +30,17 @@ namespace Game.Sectors
                 // runs so the layout is identical regardless of who is flying.
                 if (ctx.Sector) updating.SetPlayerStart(ctx.Sector.PlayerStart);
 
-                // Publish the field as the sector's obstacle source so AI ships query
+                // Publish the field as the session's obstacle source so AI ships query
                 // live asteroids directly (deterministic) instead of physics-scanning.
-                if (ctx.Services?.EnvironmentService != null && updating is AI.Scanning.IObstacleField of)
-                    ctx.Services.EnvironmentService.RegisterObstacleField(of);
+                AI.Scanning.ObstacleFields.Register(updating);
             }
             yield break;
         }
 
         public override IEnumerator Teardown(SectorBuildContext ctx)
         {
-            ctx.Services?.EnvironmentService?.RegisterObstacleField(null);
+            if (field is AI.Scanning.IObstacleField of)
+                AI.Scanning.ObstacleFields.Unregister(of);
             if (field) field.DespawnAll();
             yield break;
         }

@@ -93,6 +93,16 @@ namespace Game.Benchmark
             pursuerProbe = AttachProbe(pursuer, pursuerPilot);
             evaderProbe = AttachProbe(evader, evaderPilot);
 
+            // Reset per-episode accumulators: a sector restart reuses this module instance,
+            // and stale sums/durations would end the next episode instantly or pollute its row.
+            simTime = 0f;
+            distanceSum = 0f;
+            distanceSamples = 0;
+            minDistance = float.MaxValue;
+            lastDistance = 0f;
+            contactTime = 0f;
+            LastResult = default;
+
             running = true;
             EpisodeComplete = false;
             yield break;

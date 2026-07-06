@@ -25,11 +25,6 @@ namespace Game.Services
 
         public event Action<Ship> OnShipSpawned;
 
-        // Bound once at session composition; handed to each AI ship so its Scout can query the
-        // active obstacle field. Null until bound (headless/test paths may leave it unset).
-        private AI.Scanning.IObstacleFieldProvider obstacleFieldProvider;
-        public void BindObstacleFieldProvider(AI.Scanning.IObstacleFieldProvider provider) => obstacleFieldProvider = provider;
-
         public Ship SpawnShip(
             Ship template,
             Commander commander,
@@ -113,10 +108,7 @@ namespace Game.Services
             if (!ship) return;
             ship.Targeting?.SetRegistry(ActiveRegistry);
             if (ship.Commander is AICommander aiCommander)
-            {
                 aiCommander.SetRegistry(ActiveRegistry);
-                aiCommander.SetObstacleFieldProvider(obstacleFieldProvider);
-            }
         }
 
         public void RespawnShip(ShipId id, Vector2 pos, float rotation)

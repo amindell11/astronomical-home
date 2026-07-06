@@ -31,11 +31,16 @@ review: `Chase_Nav_Implementation_Comparison.md`. This branch is the synthesis d
   Sampler seed seam: `SolverBuffers.SamplerSeedOverride` — the pinned mode now keeps the
   per-ship position hash in the seed (Opus's design), so two pinned ships never share a
   noise stream.
-- **B2 — deterministic-field obstacle sensing** (Opus): `IObstacleField` implemented by
-  `UpdatingAsteroidField` (chunk-cell query over `spawnedByChunk`), registered by
-  `AsteroidFieldSpawner` into `EnvironmentService` and forwarded by `UnitService` to
-  each AI ship's Scout. Fixed-size query AABB from worst-case speed — no speed churn,
-  no physics round-trip, destroyed asteroids drop out immediately, authoritative radii.
+- **B2 — deterministic-field obstacle sensing** (Opus's query, locator wiring): the
+  `IObstacleField` chunk-cell query implemented by `UpdatingAsteroidField`, published
+  through the static `ObstacleFields.Active` access point (the `GamePlane` pattern for
+  world-scoped state): the sector's `AsteroidFieldSpawner` registers on build /
+  unregisters on teardown, and consumers (the obstacle scanner, the terminal nav field)
+  pull it directly — **no per-ship wiring through AICommander/UnitService/services**.
+  The scanner owns its fixed worst-case query envelope (computed once from dynamics).
+  No speed churn, no physics round-trip, destroyed asteroids drop out immediately,
+  radius-aware AABB culling (a rock protruding into the box is reported even when its
+  center is outside).
 - **B3 — terminal cost-to-go field** (shared Fable/Opus core + Opus service): Burst
   Dijkstra `NavField` + `NavFieldService` (double-buffered, off-main-thread bakes, one
   field per chase target) **fed by the same B2 `IObstacleField`** — one obstacle

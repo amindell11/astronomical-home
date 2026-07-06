@@ -39,6 +39,7 @@ public class ScannerPlayModeTests : PlayModeWorldFixture
     [TearDown]
     public override void TearDown()
     {
+        ObstacleFields.Register(null); // drop the stub field
         ShipTestFactory.DestroyShip(ship);
         base.TearDown();
     }
@@ -47,10 +48,10 @@ public class ScannerPlayModeTests : PlayModeWorldFixture
     [Category("Smoke")]
     public IEnumerator ObstacleScanner_DetectsNearbyObstacle_WithinTimeout()
     {
-        // The obstacle scanner now queries the deterministic asteroid field, not physics colliders.
-        // Inject a stub field that reports one obstacle at the ship's location so the merge path fills.
-        var stub = new StubObstacleField(new DetectedObstacle(ship.transform.position, 5f, null));
-        cmdr.SetObstacleFieldProvider(new StubObstacleFieldProvider(stub));
+        // The obstacle scanner now queries the session's active obstacle field, not physics
+        // colliders. Register a stub that reports one obstacle at the ship's location so the
+        // merge path fills.
+        ObstacleFields.Register(new StubObstacleField(new DetectedObstacle(ship.transform.position, 5f, null)));
 
         yield return AsyncAssert.WaitUntil(
             () => cmdr.Scout.ObstacleScan.count > 0,
@@ -73,12 +74,6 @@ public class ScannerPlayModeTests : PlayModeWorldFixture
             buffer[0] = obstacle;
             return 1;
         }
-    }
-
-    private sealed class StubObstacleFieldProvider : IObstacleFieldProvider
-    {
-        public StubObstacleFieldProvider(IObstacleField field) => ObstacleField = field;
-        public IObstacleField ObstacleField { get; }
     }
 }
 

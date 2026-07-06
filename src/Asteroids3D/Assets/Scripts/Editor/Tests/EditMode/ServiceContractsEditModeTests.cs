@@ -111,23 +111,6 @@ namespace Tests.EditMode
             Assert.IsNotNull(type.GetMethod("UnloadSceneAsync"), "Missing UnloadSceneAsync");
             Assert.IsNotNull(type.GetMethod("SpawnWorld"), "Missing SpawnWorld");
             Assert.IsNotNull(type.GetMethod("Clear"), "Missing Clear");
-            // B2: the environment service is now the obstacle-field seam. ObstacleField itself is
-            // declared on the inherited IObstacleFieldProvider (covered by the assignability test below).
-            Assert.IsNotNull(type.GetMethod("RegisterObstacleField"), "Missing RegisterObstacleField");
-        }
-
-        [Test]
-        public void IEnvironmentService_IsObstacleFieldProvider()
-        {
-            Assert.IsTrue(typeof(AI.Scanning.IObstacleFieldProvider).IsAssignableFrom(typeof(IEnvironmentService)),
-                "IEnvironmentService must supply the active obstacle field");
-        }
-
-        [Test]
-        public void EnvironmentService_ObstacleFieldIsNull_AfterConstruction()
-        {
-            var svc = new EnvironmentService();
-            Assert.IsNull(svc.ObstacleField);
         }
 
         [Test]

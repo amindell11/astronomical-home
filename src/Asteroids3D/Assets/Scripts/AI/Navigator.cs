@@ -92,12 +92,12 @@ namespace Movement.MPC
             var scan = scout.ObstacleScan;
 
             // Terminal cost-to-go field: one shared field per chase target, sampled by the
-            // solver at each rollout's terminal state. Obstacles come from B2's live field
-            // query (via the Scout). Invalid/absent field = hook off.
+            // solver at each rollout's terminal state. Obstacles come from the session's
+            // active obstacle field (B2). Invalid/absent field = hook off.
             var terminalField = default(Field.TerminalFieldData);
             if (terminalFieldTarget && mpcSettings.wTerminal > 0f)
                 Field.NavFieldService.Instance.TryGetData(
-                    terminalFieldTarget, enemyPos, selfMaxSpeed, scout.ObstacleField, out terminalField);
+                    terminalFieldTarget, enemyPos, selfMaxSpeed, ObstacleFields.Active, out terminalField);
 
             var inputs = new MpcInputs
             {
