@@ -51,6 +51,7 @@ MonoBehaviour:
   obstacleFalloffCurve: 13.05
   obstacleClosingScale: 1
   obstacleClosingHalfSpeed: 5
+  wTerminal: 1
   arrivalDistance: 4
   arrivalVelScale: 5
   arrivalYawScale: 0.1

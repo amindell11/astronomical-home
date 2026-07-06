@@ -103,6 +103,10 @@ namespace Movement.MPC
         public GoalMode goalMode;
         public float desiredRange;
         public float rangeTolerance;
+
+        // Terminal cost-to-go field (Track B3). Weight on the per-rollout terminal sample,
+        // in stage-cost units; 0 disables the hook entirely.
+        public float wTerminal;
     }
 
     /// <summary>
@@ -205,6 +209,10 @@ namespace Movement.MPC
 
         /// <summary>Ship velocity at the start of the rollout. Used by momentum cost to reward maintaining direction.</summary>
         public float2 initialVel;
+
+        /// <summary>Cost-to-go field sampled once per rollout at the terminal state
+        /// (Track B3). isValid == 0 (the default) makes the hook contribute 0.</summary>
+        public Field.TerminalFieldData terminalField;
 
     }
 
