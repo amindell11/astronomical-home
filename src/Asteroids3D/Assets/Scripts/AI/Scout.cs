@@ -22,8 +22,6 @@ namespace AI
 
         [Header("Obstacle Detection")]
         public LayerMask asteroidMask;
-        [Tooltip("Lookahead time for the obstacle scanner. Detection radius grows with speed over this horizon.")]
-        public float obstacleLookaheadTime = 2f;
 
         private ShipScanner shipScanner;
         private SphereSensor coverSensor;
@@ -51,7 +49,7 @@ namespace AI
             shipScanner = new ShipScanner(origin, nearbyShipRadius, shipId, registry);
             coverSensor = new SphereSensor(origin, asteroidCoverRadius, asteroidMask, bufferSize: 8);
             // ShipScanner handles ships in a full sphere; obstacle scanner stays focused on static asteroids.
-            obstacleScanner = new ObstacleScanner(origin, asteroidMask, lookaheadTime: obstacleLookaheadTime);
+            obstacleScanner = new ObstacleScanner(origin, asteroidMask);
         }
 
         private void Update()
@@ -65,10 +63,9 @@ namespace AI
             HasNearbyCover = coverSensor != null && coverSensor.Detect() > 0;
             if (obstacleScanner != null)
             {
-                obstacleScanner.LookaheadTime = obstacleLookaheadTime;
                 var d = shipDynamics;
                 obstacleScanner.MaxAccel = Mathf.Sqrt(d.forwardAcc * d.forwardAcc + d.maxStrafeAcc * d.maxStrafeAcc) / d.mass;
-                obstacleScanner.Scan(shipContext.Kinematics.vel, shipDynamics.maxSpeed);
+                obstacleScanner.Scan(shipDynamics.maxSpeed);
             }
             BuildMergedObstacles();
         }

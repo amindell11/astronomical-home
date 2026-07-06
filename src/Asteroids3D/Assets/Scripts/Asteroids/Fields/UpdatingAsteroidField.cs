@@ -103,6 +103,7 @@ namespace Asteroids.Fields
             CurrentAnchorPos ??= () => transform.position;
 
             InitializeField();
+            AsteroidFieldRegistry.Register(this);
         }
 
         private void InitializeField()
@@ -174,6 +175,7 @@ namespace Asteroids.Fields
 
         private void OnDestroy()
         {
+            AsteroidFieldRegistry.Unregister(this);
             if (AsteroidSpawner) AsteroidSpawner.OnFragmentSpawned -= HandleFragmentSpawned;
         }
 
@@ -200,6 +202,50 @@ namespace Asteroids.Fields
             hasInProgressChunk = false;
             streamer?.Reset();
             Model?.Overlay.Clear();
+        }
+
+        public void QueryLiveAsteroidsAabb(Vector2 center, Vector2 halfExtents, List<LiveAsteroidQueryHit> results)
+        {
+            if (!initialized || Model == null) return;
+
+            var maxRadius = MaxLoadedAsteroidRadius();
+            var min = center - halfExtents - Vector2.one * maxRadius;
+            var max = center + halfExtents + Vector2.one * maxRadius;
+            var minCell = Model.Layout.CellOf(min - fieldOriginPlane);
+            var maxCell = Model.Layout.CellOf(max - fieldOriginPlane);
+
+            for (var y = minCell.y; y <= maxCell.y; y++)
+            for (var x = minCell.x; x <= maxCell.x; x++)
+            {
+                var chunk = new Vector2Int(x, y);
+                if (!spawnedByChunk.TryGetValue(chunk, out var asteroids)) continue;
+                for (var i = 0; i < asteroids.Count; i++)
+                {
+                    var ast = asteroids[i];
+                    if (!ast) continue;
+                    var pos = GamePlane.WorldPointToPlane(ast.transform.position);
+                    var radius = Mathf.Max(ast.Radius, 0f);
+                    if (pos.x + radius < center.x - halfExtents.x ||
+                        pos.x - radius > center.x + halfExtents.x ||
+                        pos.y + radius < center.y - halfExtents.y ||
+                        pos.y - radius > center.y + halfExtents.y)
+                        continue;
+
+                    results.Add(new LiveAsteroidQueryHit(ast, pos, radius, ast.PrimaryCollider));
+                }
+            }
+        }
+
+        private float MaxLoadedAsteroidRadius()
+        {
+            var max = 0f;
+            foreach (var asteroids in spawnedByChunk.Values)
+            for (var i = 0; i < asteroids.Count; i++)
+            {
+                var ast = asteroids[i];
+                if (ast) max = Mathf.Max(max, ast.Radius);
+            }
+            return max;
         }
 
         // ── Streaming ────────────────────────────────────────────────────────────

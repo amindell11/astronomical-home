@@ -31,6 +31,7 @@ namespace Asteroids
         public Renderer Renderer { get; private set; }
         public Fragger Fragger { get; private set; }
         public AsteroidDamage Damage => damage;
+        public Collider PrimaryCollider => cheapCollider ? cheapCollider : meshCollider;
         public Mesh CurrentMesh => meshFilter.sharedMesh;
         public event Action<Vector3> OnDestroyed;
         public event Action OnInitialized;

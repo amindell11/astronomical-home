@@ -1,9 +1,12 @@
 using System.Collections;
 using AI;
+using Asteroids.Fields;
+using Game;
 using NUnit.Framework;
 using Ships;
 using Tests.Common;
 using Tests.PlayMode.Common;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -15,6 +18,7 @@ public class ScannerPlayModeTests : PlayModeWorldFixture
 {
     private Ship ship;
     private AICommander cmdr;
+    private UpdatingAsteroidField field;
 
     private const float ScanTimeoutSec = 3f;
 
@@ -39,6 +43,11 @@ public class ScannerPlayModeTests : PlayModeWorldFixture
     public override void TearDown()
     {
         ShipTestFactory.DestroyShip(ship);
+        if (field)
+        {
+            field.DespawnAll();
+            Object.DestroyImmediate(field.gameObject);
+        }
         base.TearDown();
     }
 
@@ -55,6 +64,23 @@ public class ScannerPlayModeTests : PlayModeWorldFixture
             useFixedUpdate: true);
 
         Object.Destroy(obstacle);
+    }
+
+    [UnityTest]
+    public IEnumerator ObstacleScanner_DetectsDeterministicFieldAsteroids()
+    {
+        field = AssetDatabase.LoadAssetAtPath<UpdatingAsteroidField>("Assets/Prefabs/Asteroid/AsteroidController.prefab");
+        Assert.That(field, Is.Not.Null, "Missing deterministic asteroid field prefab.");
+
+        field = Object.Instantiate(field, Vector3.zero, GamePlane.Rotation);
+        field.SetPlayer(ship.transform);
+        field.SetPlayerStart(new Vector2(1000f, 1000f));
+
+        yield return AsyncAssert.WaitUntil(
+            () => cmdr.Scout.ObstacleScan.count > 0,
+            ScanTimeoutSec,
+            $"Scanner should detect live deterministic field asteroids within {ScanTimeoutSec}s",
+            useFixedUpdate: true);
     }
 }
 
