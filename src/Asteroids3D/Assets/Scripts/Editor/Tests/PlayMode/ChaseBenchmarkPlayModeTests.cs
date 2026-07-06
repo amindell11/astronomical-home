@@ -168,7 +168,8 @@ public class ChaseBenchmarkPlayModeTests : AIIntegrationFixture
             evaderImpactImpulse = evaderProbe.TotalImpulse,
             pursuerMeanSolveMs = pursuerSolveMs / samples,
             pursuerControlChatterPerSec = pursuerChatter / Mathf.Max(elapsed, 0.0001f),
-            gapsThreaded = -1,
+            // A3 Track A telemetry: tight/bank-only gaps the pursuer threaded (was -1 placeholder).
+            gapsThreaded = pursuerCmdr.Navigator.GapsThreaded,
         });
 
         CleanupScenario(field, pursuer, evader);

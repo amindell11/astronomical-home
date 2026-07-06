@@ -52,6 +52,7 @@ namespace Movement.MPC
         internal float lastBestCost => mpc != null ? mpc.LastBestCost : 0f;
 
         [Header("Scene Gizmo Sub-Toggles")]
+        public bool showGaps = true;
         public bool showObstacleCosts = true;
         public bool showTrajectoryCosts = true;
         public bool showControlInputs = true;
@@ -212,6 +213,7 @@ namespace Movement.MPC
             if (!settings.IsActive(AIDebugChannel.Steering)) return;
 
             DrawShipRadius();
+            DrawGaps();
             DrawCandidateTrajectories();
             DrawPredictedTrajectory();
             DrawComparisonTrajectories();
@@ -336,6 +338,64 @@ namespace Movement.MPC
                 enemyPos, enemyVel, enemyYaw, enemyYawRate, projectileSpeed, lastInitialState.vel);
             return Cost.EvaluateTrajectoryBreakdown(lastInitialState, seq, input, config, dynamics, lastControl);
         }
+
+        private void DrawGaps()
+        {
+            if (!showGaps || gapBuffer == null || gapBufferCount == 0) return;
+
+            var shipPlane = new Vector2(lastInitialState.pos.x, lastInitialState.pos.y);
+            var shipWorld = GamePlane.PlanePointToWorld(shipPlane);
+            var chosenValid = gapSelector != null && gapSelector.HasChosen;
+            var chosenDir = chosenValid ? gapSelector.Chosen.dirRad : 0f;
+
+            for (var i = 0; i < gapBufferCount; i++)
+            {
+                var g = gapBuffer[i];
+                var isChosen = chosenValid && Mathf.Abs(Mathf.DeltaAngle(g.dirRad * Mathf.Rad2Deg, chosenDir * Mathf.Rad2Deg)) < 1f;
+                var baseCol = g.classification == GapClass.Open
+                    ? new Color(0.3f, 1f, 0.45f)
+                    : new Color(1f, 0.6f, 0.1f);
+                baseCol.a = isChosen ? 1f : 0.35f;
+
+                var len = Mathf.Clamp(g.depth, 4f, 30f);
+                var axis = GamePlane.PlanePointToWorld(shipPlane + AxisDir(g.dirRad) * len);
+                Gizmos.color = baseCol;
+                Gizmos.DrawLine(shipWorld, axis);
+
+                // Free-interval edges (shorter rays).
+                Gizmos.color = new Color(baseCol.r, baseCol.g, baseCol.b, baseCol.a * 0.6f);
+                Gizmos.DrawLine(shipWorld, GamePlane.PlanePointToWorld(shipPlane + AxisDir(g.edgeLoRad) * len * 0.7f));
+                Gizmos.DrawLine(shipWorld, GamePlane.PlanePointToWorld(shipPlane + AxisDir(g.edgeHiRad) * len * 0.7f));
+
+                if (isChosen)
+                {
+                    Handles.Label(axis + Vector3.up * 0.3f,
+                        $"{g.classification} w={g.linearWidth:F1} s={g.score:F2}",
+                        new GUIStyle { normal = { textColor = baseCol }, fontSize = 11, fontStyle = FontStyle.Bold });
+                }
+            }
+
+            // Injected primitive rollouts (what got seeded into the CEM this frame).
+            if (chosenValid && primitiveBuffer != null && primitiveCount > 0)
+            {
+                var horizon = config.horizon;
+                Gizmos.color = new Color(1f, 0.9f, 0.2f, 0.5f);
+                for (var p = 0; p < primitiveCount; p++)
+                {
+                    var s = lastInitialState;
+                    var prev = GamePlane.PlanePointToWorld(new Vector2(s.pos.x, s.pos.y));
+                    for (var j = 0; j < horizon; j++)
+                    {
+                        s = Model.Step(s, primitiveBuffer[p * horizon + j], config, dynamics);
+                        var w = GamePlane.PlanePointToWorld(new Vector2(s.pos.x, s.pos.y));
+                        Gizmos.DrawLine(prev, w);
+                        prev = w;
+                    }
+                }
+            }
+        }
+
+        private static Vector2 AxisDir(float yawRad) => new(-Mathf.Sin(yawRad), Mathf.Cos(yawRad));
 
         private void DrawShipRadius()
         {

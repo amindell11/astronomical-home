@@ -22,6 +22,8 @@ MonoBehaviour:
   meanMomentum: 0.5
   strafeSigmaFloor: 0.3
   sigmaFloor: 0.05
+  enableGapInjection: 1
+  gapHysteresisMargin: 0.2
   wPos: 50
   wVel: 0
   wClosing: 1

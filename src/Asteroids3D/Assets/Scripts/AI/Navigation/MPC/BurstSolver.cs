@@ -163,7 +163,7 @@ namespace Movement.MPC
             float boostCooldownRemaining = 0f, float boostSampleProbability = 0.15f,
             float eliteFraction = 0.1f, int noiseKnots = 4,
             int cemIterations = 2, float strafeSigmaFloor = 0.3f, float sigmaFloor = 0.05f,
-            float meanMomentum = 0.5f)
+            float meanMomentum = 0.5f, Control[] primitives = null, int primitiveCount = 0)
         {
             var horizon = cfg.horizon;
             // Budget-neutral: total evaluations ≈ samples, split across CEM iterations.
@@ -252,6 +252,21 @@ namespace Movement.MPC
                     rngSeed = iterSeed,
                     noiseKnots = noiseKnots
                 }.Schedule(m, 1).Complete();
+
+                // Seed injection (iteration 0 only): overwrite the first candidate slots after the
+                // mean (index 0) with the gap-threading primitives. If one wins it enters the elites
+                // and the momentum-blended mean moves toward it; later iterations refit around it.
+                if (iter == 0 && primitives != null && primitiveCount > 0)
+                {
+                    var inject = math.min(primitiveCount, m - 1);
+                    for (var p = 0; p < inject; p++)
+                    {
+                        var src = p * horizon;
+                        var dst = (p + 1) * horizon;
+                        for (var j = 0; j < horizon; j++)
+                            candidates[dst + j] = primitives[src + j];
+                    }
+                }
 
                 Evaluate(initialState, costInput, cfg, dynamics, lastControl, m);
 

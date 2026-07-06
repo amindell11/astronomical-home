@@ -49,6 +49,7 @@ namespace Movement.MPC
         public PilotCommand CurrentCommand => currentCommand;
 
         protected IShipStatus context;
+        protected Dynamics shipDynamics;
         public float arriveRadius = 2f;
 
         public Waypoint CurrentWaypoint => currentWaypoint;
@@ -67,10 +68,12 @@ namespace Movement.MPC
         {
             context = shipContext;
             this.scout = scout;
+            shipDynamics = dynamics;
             currentWaypoint = new Waypoint { isValid = false };
             if (!mpcSettings)
                 mpcSettings = ScriptableObject.CreateInstance<MpcSettings>();
             mpc = new Mpc(mpcSettings, dynamics);
+            InitGaps();
         }
 
         public PilotCommand ComputeCommand()
@@ -81,6 +84,7 @@ namespace Movement.MPC
                 return currentCommand = default;
 
             var scan = scout.ObstacleScan;
+            var gapCount = ComputeGapPrimitives(kin, scan);
             var inputs = new MpcInputs
             {
                 kinematics = kin,
@@ -100,6 +104,8 @@ namespace Movement.MPC
                 weightOverrides = weightOverrides,
                 obstacleScan = scan,
                 enableObstacleAvoidance = enableObstacleAvoidance,
+                primitives = gapCount > 0 ? primitiveBuffer : null,
+                primitiveCount = gapCount,
             };
 
 #if UNITY_EDITOR
@@ -118,6 +124,7 @@ namespace Movement.MPC
 #endif
 
             ApplyControl(in result);
+            UpdateGapTelemetry(kin);
             return currentCommand;
         }
 

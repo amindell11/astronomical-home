@@ -26,6 +26,11 @@ namespace Movement.MPC
         public WeightOverride[] weightOverrides;
         public ObstacleScan obstacleScan;
         public bool enableObstacleAvoidance;
+
+        /// <summary>Seeded gap-threading primitives, flat [p*horizon + step]. Injected into the
+        /// CEM candidate set (iteration 0). Null / count 0 = pure CEM.</summary>
+        public Control[] primitives;
+        public int primitiveCount;
     }
 
     /// <summary>The control output of a single MPC solve.</summary>
@@ -93,7 +98,7 @@ namespace Movement.MPC
                     boostCooldown, boostProb,
                     settings.eliteFraction, settings.noiseKnots,
                     settings.cemIterations, settings.strafeSigmaFloor, settings.sigmaFloor,
-                    settings.meanMomentum);
+                    settings.meanMomentum, inputs.primitives, inputs.primitiveCount);
             }
 
             UpdatePredictedStates(mpcState);
@@ -151,7 +156,11 @@ namespace Movement.MPC
         // Copies ship geometry/dynamics constants onto the config. maxLatAccel is the best-case
         // lateral (strafe) acceleration (drag ignored = optimistic; the hard collision term is the
         // real safety net) used by the turn-away admissibility cost.
-        private void ApplyDynamics(ref Config cfg)
+        private void ApplyDynamics(ref Config cfg) => ApplyDynamicsTo(ref cfg, dynamics);
+
+        /// <summary>Copies ship geometry/dynamics constants onto a config. Shared with the gap
+        /// primitive synthesizer so its forward-simulated rollouts use the same model constants.</summary>
+        internal static void ApplyDynamicsTo(ref Config cfg, in Dynamics dynamics)
         {
             cfg.maxBankAngleRad = dynamics.maxBankAngleRad;
             cfg.maxSpeedSq = dynamics.maxSpeed * dynamics.maxSpeed;

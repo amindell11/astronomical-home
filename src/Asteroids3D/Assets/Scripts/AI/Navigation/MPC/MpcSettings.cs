@@ -40,6 +40,14 @@ namespace Movement.MPC
         [Tooltip("Lower bound on the thrust/yaw adaptive sampling sigma so no channel fully collapses.")]
         public float sigmaFloor = 0.05f;
 
+        [Header("Gap Threading")]
+        [Tooltip("Detect angular gaps between obstacles and inject scripted 'thread the gap' " +
+                 "primitives into the CEM candidate set (Biased-MPPI seeding). Off = pure CEM.")]
+        public bool enableGapInjection = true;
+        [Tooltip("Gap-selection hysteresis: keep the previously chosen gap unless a competitor's " +
+                 "score beats it by this fraction. Damps chase oscillation at the gap level. 0.2 = 20%.")]
+        public float gapHysteresisMargin = 0.2f;
+
         [Header("Navigation")]
         [Tooltip("Position cost weight. Drives the ship toward the goal (Waypoint mode), " +
                  "into the range band (MaintainRange), or away from the target (Flee).")]
