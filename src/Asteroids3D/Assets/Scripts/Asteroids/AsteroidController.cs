@@ -31,6 +31,9 @@ namespace Asteroids
         public Renderer Renderer { get; private set; }
         public Fragger Fragger { get; private set; }
         public AsteroidDamage Damage => damage;
+        /// <summary>Always-present cheap collider (attached to the rigidbody). Handed to
+        /// obstacle-scan consumers that resolve mass/root through a collider reference.</summary>
+        public Collider SimpleCollider => cheapCollider;
         public Mesh CurrentMesh => meshFilter.sharedMesh;
         public event Action<Vector3> OnDestroyed;
         public event Action OnInitialized;
