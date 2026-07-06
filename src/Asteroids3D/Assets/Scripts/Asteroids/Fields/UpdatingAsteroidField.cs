@@ -84,6 +84,14 @@ namespace Asteroids.Fields
         /// </summary>
         public void SetPlayerStart(Vector2 absolutePlanePosition) => playerStartPlane = absolutePlanePosition;
 
+        /// <summary>
+        /// Benchmark/tooling hook: override the authored layout seed. Takes effect on the next
+        /// <c>InitializeField</c> — call it before the field's <c>Start</c> runs (e.g. from a
+        /// sector module's Setup, while the sector is still under its inactive load holder) or
+        /// follow it with <see cref="RebuildField"/> on a live field.
+        /// </summary>
+        public void SetLayoutSeed(int value) => seed = value;
+
         protected override void CacheSettings()
         {
             base.CacheSettings();

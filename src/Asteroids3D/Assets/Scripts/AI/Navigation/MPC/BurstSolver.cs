@@ -92,6 +92,18 @@ namespace Movement.MPC
     /// </summary>
     public class SolverBuffers : System.IDisposable
     {
+        /// <summary>
+        /// Test-only sampler seed override. When set, the candidate-generation RNG seed is
+        /// derived from this base plus a per-instance solve counter instead of
+        /// <c>Time.frameCount</c>, so a single run replays the same noise sequence under a
+        /// deterministic simulation. Unset (null, the default) preserves shipped behavior
+        /// exactly. Static so a benchmark harness can pin every ship at once; clear it in
+        /// teardown.
+        /// </summary>
+        public static uint? SamplerSeedOverride;
+
+        private uint solveCount;
+
         private NativeArray<Control> warmStart;
         private NativeArray<Control> candidates;
         private NativeArray<float> costs;
@@ -180,7 +192,13 @@ namespace Movement.MPC
 
             initialState.boostCooldownRemaining = boostCooldownRemaining;
 
-            var rngSeed = (uint)(Time.frameCount * 7919 + initialState.pos.GetHashCode());
+            // Seed off the frame counter in shipped play; a benchmark can pin the base seed
+            // (per-instance solve counter keeps successive solves decorrelated) for
+            // reproducible single runs.
+            solveCount++;
+            var rngSeed = SamplerSeedOverride.HasValue
+                ? (uint)(SamplerSeedOverride.Value + solveCount * 7919u)
+                : (uint)(Time.frameCount * 7919 + initialState.pos.GetHashCode());
             if (rngSeed == 0) rngSeed = 1;
 
             new GenerateCandidatesJob
