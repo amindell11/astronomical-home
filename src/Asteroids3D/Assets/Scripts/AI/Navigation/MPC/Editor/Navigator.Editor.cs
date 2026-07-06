@@ -466,15 +466,14 @@ namespace Movement.MPC
         {
             if (!showObstacleCosts || dbgObstacles == null || dbgObstacleCount == 0) return;
 
-            // Compute the effective threshold the MPC actually uses
             var speed = predictedStates != null && predictedStates.Length > 0
                 ? math.length(predictedStates[0].vel)
                 : 0f;
-            var baseThreshold = mpcSettings.obstacleThreshold + speed * mpcSettings.obstacleSpeedMargin;
             var profileScale = config.maxBankAngleRad > 0f
                 ? Mathf.Cos(Mathf.Abs(smoothedControl.strafe) * config.maxBankAngleRad)
                 : 1f;
-            var effectiveThreshold = baseThreshold * profileScale;
+            var hullRadius = dynamics.shipRadius * profileScale + 0.1f;
+            var stoppingDistance = speed * speed / (2f * Mathf.Max(config.maxDecel, 0.01f));
 
             for (var i = 0; i < dbgObstacleCount; i++)
             {
@@ -483,43 +482,16 @@ namespace Movement.MPC
                     ? dbgObstacleWeights[i] : 1f;
                 var obsWorldPos = GamePlane.PlanePointToWorld(obs.position);
 
-                // Inner ring: obstacle radius + ship radius (the inflated hard boundary)
-                var inflatedRadius = obs.radius + dynamics.shipRadius;
+                // Inner ring: true obstacle radius + bank-scaled ship hull.
+                var inflatedRadius = obs.radius + hullRadius;
                 var weightAlpha = Mathf.Clamp01(weight);
                 Gizmos.color = new Color(1f, 1f, 1f, 0.3f + 0.7f * weightAlpha);
                 Gizmos.DrawWireSphere(obsWorldPos, inflatedRadius);
 
-                // Outer ring: inflated radius + effective threshold (speed + bank adjusted)
-                var range = inflatedRadius + effectiveThreshold;
+                // Outer ring: current stopping distance at predicted speed.
+                var range = inflatedRadius + stoppingDistance;
                 Gizmos.color = new Color(1f, 1f, 0f, 0.1f + 0.4f * weightAlpha);
                 Gizmos.DrawWireSphere(obsWorldPos, range);
-
-                DrawObstacleCostField(obs, range, weight);
-            }
-        }
-
-        private void DrawObstacleCostField(DetectedObstacle obstacle, float range, float weight)
-        {
-            var obsWorldPos = GamePlane.PlanePointToWorld(obstacle.position);
-            var rings = 8;
-            var halfCurve = mpcSettings.obstacleFalloffCurve * 0.5f;
-            const float epsSq = 0.0001f;
-            var rangeSq = range * range;
-
-            // Cost at the inflated surface for normalization
-            var inflatedRadius = obstacle.radius + dynamics.shipRadius;
-            var surfaceNormSq = (inflatedRadius * inflatedRadius) / rangeSq;
-            var maxCost = weight / Mathf.Pow(surfaceNormSq + epsSq, halfCurve);
-
-            for (var i = 1; i <= rings; i++)
-            {
-                var t = i / (float)rings;
-                var radius = inflatedRadius + (range - inflatedRadius) * t;
-                var normSq = (radius * radius) / rangeSq;
-                var cost = weight / Mathf.Pow(normSq + epsSq, halfCurve);
-                var alpha = Mathf.Clamp01(cost / maxCost);
-                Gizmos.color = new Color(1f, 0.2f * (1f - alpha), 0f, alpha * 0.6f);
-                Gizmos.DrawWireSphere(obsWorldPos, radius);
             }
         }
 

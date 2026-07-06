@@ -105,19 +105,6 @@ namespace Movement.MPC
         public float terminalCellSize = 5f;
         [Tooltip("Fallback speed for terminal time-to-go when a field sample is off-grid or blocked.")]
         public float terminalFallbackSpeed = 20f;
-        [Tooltip("Distance beyond an obstacle's radius at which the avoidance cost begins. " +
-                 "Effectively inflates obstacles by this amount.")]
-        public float obstacleThreshold = 5.0f;
-        [Tooltip("Extra clearance added per unit speed. effectiveThreshold = obstacleThreshold + speed * this value.")]
-        public float obstacleSpeedMargin = 0.3f;
-        [Tooltip("Obstacle cost falloff exponent. Higher = cost concentrated near surface, lower = spreads further out. 2 = inverse-square (default).")]
-        public float obstacleFalloffCurve = 2f;
-        [Tooltip("Peak extra multiplier applied to per-obstacle cost when ship is closing on it at high speed. " +
-                 "0 = disabled. Multiplier saturates: cost *= 1 + scale * v / (v + halfSpeed), where v is closing speed.")]
-        public float obstacleClosingScale = 1f;
-        [Tooltip("Closing speed at which the closing-scale multiplier reaches half its peak. " +
-                 "Lower = ramps up faster with closing speed. Ignored when obstacleClosingScale = 0.")]
-        public float obstacleClosingHalfSpeed = 5f;
 
         [Header("Arrival Stabilization")]
         [Tooltip("Distance to goal at which arrival stabilization begins ramping up.")]
@@ -172,11 +159,6 @@ namespace Movement.MPC
                 terminalGridSize = Mathf.Clamp(terminalGridSize, 2, 128),
                 terminalCellSize = Mathf.Max(0.1f, terminalCellSize),
                 terminalFallbackSpeed = Mathf.Max(0.1f, terminalFallbackSpeed),
-                obstacleThreshold = obstacleThreshold,
-                obstacleSpeedMargin = obstacleSpeedMargin,
-                obstacleFalloffCurve = obstacleFalloffCurve,
-                obstacleClosingScale = obstacleClosingScale,
-                obstacleClosingHalfSpeed = obstacleClosingHalfSpeed,
                 // Arrival
                 arrivalDistance = arrivalDistance,
                 arrivalDistanceSq = arrivalDistance * arrivalDistance,

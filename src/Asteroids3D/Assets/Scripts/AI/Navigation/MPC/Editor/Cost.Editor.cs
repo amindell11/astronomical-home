@@ -26,9 +26,7 @@ namespace Movement.MPC
                 yawRate = YawRateCost(s.yawRate, cfg.maxYawRateSq) * cfg.wYawRate,
                 obstacle = (cfg.wObstacle > 0f && input.obstacleCount > 0)
                     ? ObstacleCost(s.pos, s.vel, input.obstacles, input.obstacleCount,
-                        (cfg.obstacleThreshold + math.length(s.vel) * cfg.obstacleSpeedMargin) * profileScale,
-                        cfg.obstacleFalloffCurve,
-                        cfg.obstacleClosingScale, cfg.obstacleClosingHalfSpeed) * cfg.wObstacle
+                        cfg.shipRadius * profileScale, cfg.maxDecel) * cfg.wObstacle
                     : 0f,
                 los = (ctx.hasEnemy && cfg.wLos > 0f && input.obstacleCount > 0)
                     ? LosCost(s.pos, ctx.enemyPos, input.obstacles, input.obstacleCount) * cfg.wLos

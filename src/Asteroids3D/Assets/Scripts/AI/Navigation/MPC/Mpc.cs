@@ -67,6 +67,8 @@ namespace Movement.MPC
             config.maxBankAngleRad = dynamics.maxBankAngleRad;
             config.maxSpeedSq = dynamics.maxSpeed * dynamics.maxSpeed;
             config.maxYawRateSq = dynamics.maxYawRate * dynamics.maxYawRate;
+            config.shipRadius = dynamics.shipRadius;
+            config.maxDecel = MaxDecel(dynamics);
             bestSequence = new Control[config.horizon];
             predictedStates = new State[config.horizon];
             solver = new SolverBuffers();
@@ -146,6 +148,8 @@ namespace Movement.MPC
             config.maxBankAngleRad = dynamics.maxBankAngleRad;
             config.maxSpeedSq = dynamics.maxSpeed * dynamics.maxSpeed;
             config.maxYawRateSq = dynamics.maxYawRate * dynamics.maxYawRate;
+            config.shipRadius = dynamics.shipRadius;
+            config.maxDecel = MaxDecel(dynamics);
             inputs.weightOverrides.Apply(ref config);
 
             if (bestSequence.Length == config.horizon) return;
@@ -154,6 +158,9 @@ namespace Movement.MPC
         }
 
         public void Dispose() => solver?.Dispose();
+
+        private static float MaxDecel(Dynamics dynamics)
+            => math.max(math.max(dynamics.reverseAcc, dynamics.maxStrafeAcc), 0.01f);
 
         // ── Editor/debug accessors (read-only views of solver runtime state) ──
         internal MpcSettings Settings => settings;

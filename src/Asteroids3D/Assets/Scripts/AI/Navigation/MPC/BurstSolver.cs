@@ -177,7 +177,7 @@ namespace Movement.MPC
             for (var i = 0; i < horizon; i++)
                 warmStart[i] = sequence[i];
 
-            ConvertObstacles(scan, useObstacles, dynamics.mass, dynamics.shipRadius);
+            ConvertObstacles(scan, useObstacles, dynamics.mass);
             var terminalInput = CopyTerminalField(terminalField);
 
             // Roll out predicted enemy trajectory assuming maintained thrust along facing
@@ -428,7 +428,7 @@ namespace Movement.MPC
         }
 
         private void ConvertObstacles(AI.Scanning.ObstacleScan scan, bool useObstacles,
-            float shipMass, float shipRadius)
+            float shipMass)
         {
             // Clamp so a merged obstacle+ship scan can't overflow the fixed-size native buffer.
             var rawCount = (scan.count > 0 && useObstacles) ? scan.count : 0;
@@ -442,7 +442,7 @@ namespace Movement.MPC
                 obstacles[i] = new ObstacleData
                 {
                     position = new float2(obs.position.x, obs.position.y),
-                    radius = obs.radius + shipRadius,
+                    radius = obs.radius,
                     weight = obsMass * invShipMass
                 };
             }

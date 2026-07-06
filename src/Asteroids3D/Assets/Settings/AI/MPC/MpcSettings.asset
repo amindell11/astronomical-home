@@ -48,11 +48,6 @@ MonoBehaviour:
   terminalGridSize: 64
   terminalCellSize: 5
   terminalFallbackSpeed: 20
-  obstacleThreshold: 0.1
-  obstacleSpeedMargin: 1
-  obstacleFalloffCurve: 13.05
-  obstacleClosingScale: 1
-  obstacleClosingHalfSpeed: 5
   arrivalDistance: 4
   arrivalVelScale: 5
   arrivalYawScale: 0.1

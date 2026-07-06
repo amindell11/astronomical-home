@@ -143,6 +143,49 @@ namespace Tests.EditMode
                 "Knot-interpolated strafe noise should commonly hold a direction for at least five steps.");
         }
 
+        [Test]
+        public void ObstacleCost_BankedHullCanClearNarrowGap()
+        {
+            var obstacles = new Unity.Collections.NativeArray<ObstacleData>(1, Unity.Collections.Allocator.Temp);
+            try
+            {
+                obstacles[0] = new ObstacleData { position = new float2(2.35f, 0f), radius = 1f, weight = 1f };
+
+                var unbanked = Cost.ObstacleCost(float2.zero, float2.zero, obstacles, 1, shipRadius: 1.4f, maxDecel: 4f);
+                var banked = Cost.ObstacleCost(float2.zero, float2.zero, obstacles, 1, shipRadius: 0.7f, maxDecel: 4f);
+
+                Assert.That(unbanked, Is.GreaterThan(10f),
+                    "Unbanked hull should collide with this just-too-narrow clearance.");
+                Assert.That(banked, Is.EqualTo(0f).Within(0.001f),
+                    "Bank-narrowed hull should clear the same obstacle when not closing.");
+            }
+            finally
+            {
+                obstacles.Dispose();
+            }
+        }
+
+        [Test]
+        public void ObstacleCost_StoppingDistanceIncreasesWithClosingSpeed()
+        {
+            var obstacles = new Unity.Collections.NativeArray<ObstacleData>(1, Unity.Collections.Allocator.Temp);
+            try
+            {
+                obstacles[0] = new ObstacleData { position = new float2(10f, 0f), radius = 1f, weight = 1f };
+
+                var slow = Cost.ObstacleCost(float2.zero, new float2(1f, 0f), obstacles, 1, shipRadius: 1.4f, maxDecel: 4f);
+                var fast = Cost.ObstacleCost(float2.zero, new float2(10f, 0f), obstacles, 1, shipRadius: 1.4f, maxDecel: 4f);
+
+                Assert.That(slow, Is.EqualTo(0f).Within(0.001f));
+                Assert.That(fast, Is.GreaterThan(slow),
+                    "A state that cannot brake before the obstacle should receive admissibility cost.");
+            }
+            finally
+            {
+                obstacles.Dispose();
+            }
+        }
+
         // NOTE: A projectile-lead facing test (enemy moving, projectileSpeed > 0 shifts the
         // planned facing toward the intercept) belongs here, but base-weight facing/exposure
         // authority was intentionally collapsed in the MPC retune (authority moved to per-state

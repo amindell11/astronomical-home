@@ -33,9 +33,6 @@ namespace Movement.MPC
                     case "exposureWidth":
                         DrawExposureCurve(settings.exposureWidth);
                         break;
-                    case "obstacleFalloffCurve":
-                        DrawObstacleFalloffCurve(settings.obstacleFalloffCurve);
-                        break;
                 }
             }
 
@@ -80,30 +77,6 @@ namespace Movement.MPC
             EditorGUI.BeginDisabledGroup(true);
             EditorGUILayout.CurveField(animCurve, Color.yellow,
                 new Rect(0, 0, steps - 1, 1f + multiplier),
-                GUILayout.Height(50));
-            EditorGUI.EndDisabledGroup();
-        }
-
-        private static void DrawObstacleFalloffCurve(float curve)
-        {
-            var animCurve = new AnimationCurve();
-            const int steps = 64;
-            const float epsSq = 0.0001f;
-            var halfCurve = curve * 0.5f;
-
-            var refCost = 1f / Mathf.Pow(0.25f + epsSq, halfCurve);
-
-            for (var i = 0; i <= steps; i++)
-            {
-                var norm = (float)i / steps;
-                var normSq = norm * norm;
-                var cost = 1f / Mathf.Pow(normSq + epsSq, halfCurve);
-                animCurve.AddKey(new Keyframe(norm, cost / refCost) { weightedMode = WeightedMode.None });
-            }
-
-            EditorGUI.BeginDisabledGroup(true);
-            EditorGUILayout.CurveField(animCurve, Color.red,
-                new Rect(0, 0, 1f, 5f),
                 GUILayout.Height(50));
             EditorGUI.EndDisabledGroup();
         }

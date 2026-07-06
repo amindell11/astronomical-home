@@ -83,11 +83,6 @@ namespace Movement.MPC
         public int terminalGridSize;
         public float terminalCellSize;
         public float terminalFallbackSpeed;
-        public float obstacleThreshold;
-        public float obstacleSpeedMargin;
-        public float obstacleFalloffCurve;
-        public float obstacleClosingScale;
-        public float obstacleClosingHalfSpeed;
 
         // Arrival
         public float arrivalDistance;
@@ -102,6 +97,8 @@ namespace Movement.MPC
         public float maxBankAngleRad;
         public float maxSpeedSq;
         public float maxYawRateSq;
+        public float shipRadius;
+        public float maxDecel;
 
         // Goal
         public GoalMode goalMode;
