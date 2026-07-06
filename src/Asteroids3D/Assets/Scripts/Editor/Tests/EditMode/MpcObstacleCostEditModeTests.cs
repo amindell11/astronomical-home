@@ -45,8 +45,7 @@ namespace Tests.EditMode
             c.maxSpeedSq = d.maxSpeed * d.maxSpeed;
             c.maxYawRateSq = d.maxYawRate * d.maxYawRate;
             c.shipRadius = d.shipRadius;
-            var maxForce = Mathf.Max(d.forwardAcc, Mathf.Max(d.reverseAcc, d.maxStrafeAcc));
-            c.maxDecel = d.mass > 0f ? maxForce / d.mass : maxForce;
+            c.maxLatAccel = d.mass > 0f ? d.maxStrafeAcc / d.mass : d.maxStrafeAcc;
             return c;
         }
 
@@ -97,37 +96,54 @@ namespace Tests.EditMode
                 "Max-strafe banked hull should clear the same gap with zero cost");
         }
 
-        // (b) Admissibility rises monotonically with closing speed at fixed clearance, and is
-        // exactly 0 while the ship can still stop in time (stoppingDist <= clearance).
+        // (b) Turn-away admissibility rises monotonically with closing speed for a dead-ahead
+        // obstacle, and is exactly 0 at low speed (plenty of time to sidestep) and when receding.
         [Test]
-        public void Admissibility_MonotoneInClosingSpeed_ZeroWhenBrakeable()
+        public void Admissibility_MonotoneInClosingSpeed_ZeroWhenAvoidable()
         {
             var hull = Hull(cfg, 0f);
             const float obsRadius = 1f;
-            const float clearance = 5f;
-            var dist = obsRadius + hull + clearance;      // hull-surface to obstacle-surface = clearance
-            var obsPos = new float2(dist, 0f);            // obstacle straight ahead (+x)
+            const float along = 10f;
+            var obsPos = new float2(along, 0f);           // dead ahead (+x), on the velocity axis
 
             float Cost(float speed) =>
                 ObstacleCostAt(float2.zero, new float2(speed, 0f), hull, obsPos, obsRadius, cfg);
 
-            // Brakeable: stoppingDist = v^2/(2*maxDecel). With maxDecel ~7, v=5 => ~1.8 < 5.
-            var brakeable = 5f;
-            Assert.That(brakeable * brakeable / (2f * cfg.maxDecel), Is.LessThan(clearance),
-                "Test setup: low speed must be brakeable within the clearance");
-            Assert.That(Cost(brakeable), Is.EqualTo(0f),
-                "Cost must be exactly 0 while the ship can stop before the obstacle");
+            // Low speed => tAvail large => the ship can sidestep the whole corridor => 0.
+            Assert.That(Cost(6f), Is.EqualTo(0f),
+                "At low closing speed there is ample time to sidestep => zero cost");
 
             var c12 = Cost(12f);
-            var c15 = Cost(15f);
+            var c16 = Cost(16f);
             var c20 = Cost(20f);
-            Assert.That(c12, Is.GreaterThan(0f), "Once stoppingDist overruns clearance, cost is positive");
-            Assert.That(c15, Is.GreaterThan(c12), "Cost must increase with closing speed");
-            Assert.That(c20, Is.GreaterThan(c15), "Cost must increase with closing speed");
+            Assert.That(c12, Is.GreaterThan(0f), "Fast and dead-ahead must cost something");
+            Assert.That(c16, Is.GreaterThan(c12), "Cost must increase with closing speed");
+            Assert.That(c20, Is.GreaterThan(c16), "Cost must increase with closing speed");
 
-            // Not closing => 0 regardless of proximity.
+            // Receding (obstacle behind the velocity) => 0 regardless of proximity.
             Assert.That(ObstacleCostAt(float2.zero, new float2(-20f, 0f), hull, obsPos, obsRadius, cfg),
-                Is.EqualTo(0f), "Receding motion must not incur admissibility cost");
+                Is.EqualTo(0f), "An obstacle behind the velocity must not incur admissibility cost");
+        }
+
+        // (b2) Collision-course gate: an obstacle the velocity passes clear of (perp >= corridor)
+        // costs 0 even at high closing speed, while the same-range obstacle on the path costs > 0.
+        [Test]
+        public void Admissibility_CollisionCourseGate_OffPathObstacleIsFree()
+        {
+            var hull = Hull(cfg, 0f);
+            const float obsRadius = 1f;
+            var corridor = obsRadius + hull + cfg.obstacleSafetyMargin;
+            var vel = new float2(20f, 0f);   // fast, moving +x
+
+            // Off to the side: perpendicular offset clears the corridor => we miss it => 0.
+            var offPath = new float2(5f, corridor + 1.5f);
+            Assert.That(ObstacleCostAt(float2.zero, vel, hull, offPath, obsRadius, cfg),
+                Is.EqualTo(0f), "An obstacle the velocity passes clear of must be free");
+
+            // Same forward range but near the path (perp < corridor) => positive cost.
+            var onPath = new float2(5f, 0.5f);
+            Assert.That(ObstacleCostAt(float2.zero, vel, hull, onPath, obsRadius, cfg),
+                Is.GreaterThan(0f), "An obstacle the velocity leads into must incur cost");
         }
 
         // (c) A rollout that drives straight through an obstacle out-costs every rollout that

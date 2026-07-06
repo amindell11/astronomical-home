@@ -155,7 +155,7 @@ namespace Movement.MPC
                 exposureWidth = exposureWidth,
                 wTangential = wTangential,
                 wMissDistance = wMissDistance,
-                // Obstacle (shipRadius / maxDecel are set by Mpc from Dynamics)
+                // Obstacle (shipRadius / maxLatAccel are set by Mpc from Dynamics)
                 wObstacle = wObstacle,
                 collisionPenalty = collisionPenalty,
                 obstacleSafetyMargin = obstacleSafetyMargin,

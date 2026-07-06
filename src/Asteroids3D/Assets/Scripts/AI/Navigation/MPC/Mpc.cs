@@ -146,17 +146,16 @@ namespace Movement.MPC
             predictedStates = new State[config.horizon];
         }
 
-        // Copies ship geometry/dynamics constants onto the config. maxDecel is the best-case
-        // thruster deceleration (drag ignored = optimistic; the hard collision term is the real
-        // safety net) used by the stopping-distance admissibility cost.
+        // Copies ship geometry/dynamics constants onto the config. maxLatAccel is the best-case
+        // lateral (strafe) acceleration (drag ignored = optimistic; the hard collision term is the
+        // real safety net) used by the turn-away admissibility cost.
         private void ApplyDynamics(ref Config cfg)
         {
             cfg.maxBankAngleRad = dynamics.maxBankAngleRad;
             cfg.maxSpeedSq = dynamics.maxSpeed * dynamics.maxSpeed;
             cfg.maxYawRateSq = dynamics.maxYawRate * dynamics.maxYawRate;
             cfg.shipRadius = dynamics.shipRadius;
-            var maxForce = math.max(dynamics.forwardAcc, math.max(dynamics.reverseAcc, dynamics.maxStrafeAcc));
-            cfg.maxDecel = dynamics.mass > 0f ? maxForce / dynamics.mass : maxForce;
+            cfg.maxLatAccel = dynamics.mass > 0f ? dynamics.maxStrafeAcc / dynamics.mass : dynamics.maxStrafeAcc;
         }
 
         public void Dispose() => solver?.Dispose();

@@ -96,7 +96,7 @@ namespace Movement.MPC
         public float maxSpeedSq;
         public float maxYawRateSq;
         public float shipRadius;   // true hull radius (A2 obstacle cost applies it here, not baked into obstacle radii)
-        public float maxDecel;     // best-case thruster deceleration (m/s^2) for stopping-distance admissibility
+        public float maxLatAccel;  // best-case lateral (strafe) acceleration (m/s^2) for turn-away admissibility
 
         // Goal
         public GoalMode goalMode;
