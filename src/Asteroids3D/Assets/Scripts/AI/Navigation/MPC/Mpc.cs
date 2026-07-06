@@ -91,7 +91,8 @@ namespace Movement.MPC
                     inputs.enemyDynamics, inputs.projectileSpeed,
                     settings.samples, settings.noiseStd, lastControl,
                     boostCooldown, boostProb,
-                    settings.eliteFraction, settings.noiseKnots);
+                    settings.eliteFraction, settings.noiseKnots,
+                    settings.cemIterations, settings.strafeSigmaFloor, settings.sigmaFloor);
             }
 
             UpdatePredictedStates(mpcState);

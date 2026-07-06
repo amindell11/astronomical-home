@@ -22,6 +22,17 @@ namespace Movement.MPC
         [Tooltip("Fraction of top candidates to average (elite averaging). Higher = more stable but less reactive.")]
         [Range(0.01f, 0.5f)]
         public float eliteFraction = 0.1f;
+        [Tooltip("Cross-Entropy Method iterations per solve. The 'samples' budget is split across " +
+                 "these (M = samples / cemIterations), so total evaluations stay ~constant. Each " +
+                 "iteration refits the sampling mean + per-channel sigma from the elites. 1 = single-shot.")]
+        [Range(1, 8)]
+        public int cemIterations = 4;
+        [Tooltip("Lower bound on the strafe channel's adaptive sampling sigma. Prevents CEM from " +
+                 "collapsing lateral exploration once elites briefly agree — keeps evasive/gap-threading " +
+                 "maneuvers reachable.")]
+        public float strafeSigmaFloor = 0.3f;
+        [Tooltip("Lower bound on the thrust/yaw adaptive sampling sigma so no channel fully collapses.")]
+        public float sigmaFloor = 0.05f;
 
         [Header("Navigation")]
         [Tooltip("Position cost weight. Drives the ship toward the goal (Waypoint mode), " +

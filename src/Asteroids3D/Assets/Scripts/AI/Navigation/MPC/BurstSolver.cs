@@ -14,7 +14,8 @@ namespace Movement.MPC
         public NativeArray<Control> candidates;
 
         public int horizon;
-        public float noiseStd;
+        // Per-channel sampling sigma (thrust, strafe, yawTorque). CEM adapts this each iteration.
+        public float3 noiseStd;
         public float boostSampleProbability;
         public uint rngSeed;
         // Number of interpolated knots per channel for time-correlated noise. Min 2.
@@ -60,9 +61,9 @@ namespace Movement.MPC
                 var frac = t - lo;
                 var hi = math.min(lo + 1, k - 1);
 
-                var thrustDelta = math.lerp(Knot(thrustKnots, lo), Knot(thrustKnots, hi), frac) * noiseStd;
-                var strafeDelta = math.lerp(Knot(strafeKnots, lo), Knot(strafeKnots, hi), frac) * noiseStd;
-                var yawDelta = math.lerp(Knot(yawKnots, lo), Knot(yawKnots, hi), frac) * noiseStd;
+                var thrustDelta = math.lerp(Knot(thrustKnots, lo), Knot(thrustKnots, hi), frac) * noiseStd.x;
+                var strafeDelta = math.lerp(Knot(strafeKnots, lo), Knot(strafeKnots, hi), frac) * noiseStd.y;
+                var yawDelta = math.lerp(Knot(yawKnots, lo), Knot(yawKnots, hi), frac) * noiseStd.z;
 
                 candidates[offset + j] = new Control
                 {
@@ -139,11 +140,18 @@ namespace Movement.MPC
         public int LastEnemyStateCount { get; private set; }
 
         // Editor visualization access — read-only candidate sequences and their costs
-        // from the most recent Solve(). Valid until the next Solve() rewrites the buffers.
+        // from the most recent Solve(). With iterative CEM these reflect the FINAL iteration's
+        // per-iteration candidate count (M = samples / cemIterations), not the total budget.
         public NativeArray<Control> Candidates => candidates;
         public NativeArray<float> Costs => costs;
         public int LastSampleCount { get; private set; }
         public int LastHorizon { get; private set; }
+
+        // CEM test/debug seams. LastSigma is the per-channel (thrust, strafe, yaw) sampling sigma
+        // after the final refit (floored). LastIterationCosts[i] is the elite-mean cost at
+        // iteration i (used to check convergence).
+        internal float3 LastSigma { get; private set; }
+        internal float[] LastIterationCosts { get; private set; }
 
         public float Solve(State initialState, Control[] sequence,
             Config cfg, Dynamics dynamics,
@@ -153,13 +161,20 @@ namespace Movement.MPC
             Dynamics enemyDynamics, float projectileSpeed,
             int samples, float noiseStd, Control lastControl,
             float boostCooldownRemaining = 0f, float boostSampleProbability = 0.15f,
-            float eliteFraction = 0.1f, int noiseKnots = 4)
+            float eliteFraction = 0.1f, int noiseKnots = 4,
+            int cemIterations = 4, float strafeSigmaFloor = 0.3f, float sigmaFloor = 0.05f)
         {
             var horizon = cfg.horizon;
-            EnsureBuffers(horizon, samples);
-            LastSampleCount = samples;
+            // Budget-neutral: total evaluations ≈ samples, split across CEM iterations.
+            var iterations = math.max(1, cemIterations);
+            var m = math.max(1, samples / iterations);
+            EnsureBuffers(horizon, m);
+            LastSampleCount = m;
             LastHorizon = horizon;
+            if (LastIterationCosts == null || LastIterationCosts.Length != iterations)
+                LastIterationCosts = new float[iterations];
 
+            // mu (the CEM mean sequence) starts as the shifted warm-start.
             for (var i = 0; i < horizon; i++)
                 warmStart[i] = sequence[i];
 
@@ -215,20 +230,45 @@ namespace Movement.MPC
             var rngSeed = (uint)(Time.frameCount * 7919 + initialState.pos.GetHashCode());
             if (rngSeed == 0) rngSeed = 1;
 
-            new GenerateCandidatesJob
+            // Iterative CEM. sigma re-widens to noiseStd each solve (the shifted warm-start mean is
+            // the cross-frame memory); it adapts per-channel across iterations, floored so no
+            // channel collapses. Each iteration samples M candidates around the current mean,
+            // evaluates, and refits mean + sigma from the elites.
+            var sigma = new float3(noiseStd, noiseStd, noiseStd);
+            var bestCost = float.MaxValue;
+            for (var iter = 0; iter < iterations; iter++)
             {
-                warmStart = warmStart,
-                candidates = candidates,
-                horizon = horizon,
-                noiseStd = noiseStd,
-                boostSampleProbability = boostSampleProbability,
-                rngSeed = rngSeed,
-                noiseKnots = noiseKnots
-            }.Schedule(samples, 1).Complete();
+                var iterSeed = rngSeed + (uint)(iter + 1) * 104729u;
+                if (iterSeed == 0) iterSeed = 1;
 
-            Evaluate(initialState, costInput, cfg, dynamics, lastControl, samples);
+                new GenerateCandidatesJob
+                {
+                    warmStart = warmStart,     // holds the current mean μ
+                    candidates = candidates,
+                    horizon = horizon,
+                    noiseStd = sigma,
+                    boostSampleProbability = boostSampleProbability,
+                    rngSeed = iterSeed,
+                    noiseKnots = noiseKnots
+                }.Schedule(m, 1).Complete();
 
-            return EliteAverage(sequence, cfg.horizon, samples, eliteFraction);
+                Evaluate(initialState, costInput, cfg, dynamics, lastControl, m);
+
+                // Refit: result ← elite-mean sequence; sigma ← floored per-channel elite std.
+                var iterBest = RefitElites(horizon, m, eliteFraction,
+                    strafeSigmaFloor, sigmaFloor, out sigma, out var eliteMean);
+                LastIterationCosts[iter] = eliteMean;
+                bestCost = math.min(bestCost, iterBest);
+
+                // The refined mean becomes the next iteration's sampling center (and candidate 0).
+                for (var j = 0; j < horizon; j++)
+                    warmStart[j] = result[j];
+            }
+
+            LastSigma = sigma;
+            for (var j = 0; j < horizon; j++)
+                sequence[j] = warmStart[j];
+            return bestCost;
         }
 
         /// <summary>
@@ -241,8 +281,14 @@ namespace Movement.MPC
             Control lastControl, int samples, float eliteFraction = 0.1f)
         {
             if (!allocated) return float.MaxValue;
-            Evaluate(initialState, costInput, cfg, dynamics, lastControl, samples);
-            return EliteAverage(sequence, cfg.horizon, samples, eliteFraction);
+            // Re-score the FINAL CEM iteration's candidates (LastSampleCount = M), not the total
+            // budget. Only cost/elite selection differ; sigma output is unused for a rescore.
+            var m = math.min(LastSampleCount, costs.Length);
+            Evaluate(initialState, costInput, cfg, dynamics, lastControl, m);
+            var best = RefitElites(cfg.horizon, m, eliteFraction, 0.3f, 0.05f, out _, out _);
+            for (var j = 0; j < cfg.horizon; j++)
+                sequence[j] = result[j];
+            return best;
         }
 
         private void Evaluate(State initialState, CostInput costInput,
@@ -260,20 +306,30 @@ namespace Movement.MPC
             }.Schedule(samples, 1).Complete();
         }
 
-        private float EliteAverage(Control[] sequence, int horizon, int samples, float eliteFraction)
+        /// <summary>
+        /// CEM refit over the current candidate/cost buffers. Writes the per-step elite-mean
+        /// control into the <see cref="result"/> buffer, computes the floored per-channel sampling
+        /// sigma for the next iteration, and reports the elite-mean cost. Returns the best (min)
+        /// elite cost. Callers copy <see cref="result"/> into the mean/output sequence.
+        /// </summary>
+        private float RefitElites(int horizon, int m, float eliteFraction,
+            float strafeSigmaFloor, float sigmaFloor, out float3 sigma, out float eliteMeanCost)
         {
-            var eliteCount = math.max(1, (int)(samples * math.clamp(eliteFraction, 0.01f, 0.5f)));
-            var costThreshold = FindKthSmallest(costs, samples, eliteCount);
+            var eliteCount = math.max(1, (int)(m * math.clamp(eliteFraction, 0.01f, 0.5f)));
+            var costThreshold = FindKthSmallest(costs, m, eliteCount);
 
             for (var j = 0; j < horizon; j++)
                 result[j] = default;
 
+            // Pass 1: accumulate the elite sum into result + track best/mean elite cost.
             var bestCost = float.MaxValue;
+            var costSum = 0f;
             var counted = 0;
-            for (var i = 0; i < samples && counted < eliteCount; i++)
+            for (var i = 0; i < m && counted < eliteCount; i++)
             {
                 if (costs[i] > costThreshold) continue;
-                if (costs[i] < bestCost) bestCost = costs[i];
+                bestCost = math.min(bestCost, costs[i]);
+                costSum += costs[i];
 
                 var offset = i * horizon;
                 for (var j = 0; j < horizon; j++)
@@ -291,11 +347,12 @@ namespace Movement.MPC
                 counted++;
             }
 
+            // Turn the accumulated sum into the mean, in place.
             var invCount = 1f / counted;
             for (var j = 0; j < horizon; j++)
             {
                 var c = result[j];
-                sequence[j] = new Control
+                result[j] = new Control
                 {
                     thrust = math.clamp(c.thrust * invCount, -1f, 1f),
                     strafe = math.clamp(c.strafe * invCount, -1f, 1f),
@@ -304,8 +361,36 @@ namespace Movement.MPC
                 };
             }
 
+            // Pass 2: per-channel variance of the same elites around the new mean.
+            var varAcc = float3.zero;
+            var visited = 0;
+            for (var i = 0; i < m && visited < eliteCount; i++)
+            {
+                if (costs[i] > costThreshold) continue;
+                var offset = i * horizon;
+                for (var j = 0; j < horizon; j++)
+                {
+                    var s = candidates[offset + j];
+                    var mean = result[j];
+                    var d = new float3(s.thrust - mean.thrust, s.strafe - mean.strafe, s.yawTorque - mean.yawTorque);
+                    varAcc += d * d;
+                }
+                visited++;
+            }
+
+            var sampleN = math.max(1, counted * horizon);
+            var rawSigma = math.sqrt(varAcc / sampleN);
+            sigma = FloorSigma(rawSigma, strafeSigmaFloor, sigmaFloor);
+            eliteMeanCost = costSum * invCount;
             return bestCost;
         }
+
+        /// <summary>Floors the per-channel sigma so no channel collapses; strafe gets its own
+        /// (larger) floor so lateral exploration never dies.</summary>
+        internal static float3 FloorSigma(float3 raw, float strafeSigmaFloor, float sigmaFloor) =>
+            new float3(math.max(raw.x, sigmaFloor),
+                       math.max(raw.y, strafeSigmaFloor),
+                       math.max(raw.z, sigmaFloor));
 
         /// <summary>
         /// Find the K-th smallest value in costs[0..count-1] using a single pass.
@@ -396,14 +481,14 @@ namespace Movement.MPC
             }
         }
 
-        private void EnsureBuffers(int horizon, int samples)
+        private void EnsureBuffers(int horizon, int perIterCount)
         {
-            if (allocated && warmStart.Length == horizon && costs.Length == samples)
+            if (allocated && warmStart.Length == horizon && costs.Length == perIterCount)
                 return;
             Dispose();
             warmStart = new NativeArray<Control>(horizon, Allocator.Persistent);
-            candidates = new NativeArray<Control>(samples * horizon, Allocator.Persistent);
-            costs = new NativeArray<float>(samples, Allocator.Persistent);
+            candidates = new NativeArray<Control>(perIterCount * horizon, Allocator.Persistent);
+            costs = new NativeArray<float>(perIterCount, Allocator.Persistent);
             obstacles = new NativeArray<ObstacleData>(64, Allocator.Persistent);
             enemyStates = new NativeArray<State>(horizon, Allocator.Persistent);
             result = new NativeArray<Control>(horizon, Allocator.Persistent);
