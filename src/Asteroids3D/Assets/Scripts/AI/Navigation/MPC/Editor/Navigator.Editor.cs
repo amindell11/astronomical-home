@@ -48,7 +48,6 @@ namespace Movement.MPC
         private State[] predictedStates => mpc?.PredictedStates;
         private State lastInitialState => mpc != null ? mpc.LastInitialState : default;
         private Control lastControl => mpc != null ? mpc.LastControl : default;
-        private Control smoothedControl => mpc != null ? mpc.SmoothedControl : default;
         private Dynamics dynamics => mpc != null ? mpc.Dynamics : default;
         internal float lastBestCost => mpc != null ? mpc.LastBestCost : 0f;
 
@@ -472,7 +471,7 @@ namespace Movement.MPC
                 : 0f;
             var baseThreshold = mpcSettings.obstacleThreshold + speed * mpcSettings.obstacleSpeedMargin;
             var profileScale = config.maxBankAngleRad > 0f
-                ? Mathf.Cos(Mathf.Abs(smoothedControl.strafe) * config.maxBankAngleRad)
+                ? Mathf.Cos(Mathf.Abs(lastControl.strafe) * config.maxBankAngleRad)
                 : 1f;
             var effectiveThreshold = baseThreshold * profileScale;
 
@@ -528,7 +527,6 @@ namespace Movement.MPC
             if (!showControlInputs || bestSequence == null || bestSequence.Length == 0) return;
 
             var raw = bestSequence[0];
-            var smooth = smoothedControl;
             var origin = transform.position + controlPanelOffset;
 
             // Camera-facing basis vectors for the panel
@@ -556,16 +554,16 @@ namespace Movement.MPC
                 alignment = TextAnchor.MiddleLeft,
             };
 
-            DrawControlBar(origin, right, up, 0, "THR", raw.thrust, smooth.thrust,
+            DrawControlBar(origin, right, up, 0, "THR", raw.thrust,
                 new Color(0.2f, 0.9f, 0.3f), barWidth, barHeight, halfBar, labelStyle, valueStyle);
-            DrawControlBar(origin, right, up, 1, "STR", raw.strafe, smooth.strafe,
+            DrawControlBar(origin, right, up, 1, "STR", raw.strafe,
                 new Color(0.3f, 0.6f, 1f), barWidth, barHeight, halfBar, labelStyle, valueStyle);
-            DrawControlBar(origin, right, up, 2, "YAW", raw.yawTorque, smooth.yawTorque,
+            DrawControlBar(origin, right, up, 2, "YAW", raw.yawTorque,
                 new Color(1f, 0.4f, 0.8f), barWidth, barHeight, halfBar, labelStyle, valueStyle);
         }
 
         private void DrawControlBar(Vector3 origin, Vector3 right, Vector3 up,
-            int row, string label, float rawValue, float smoothValue, Color color,
+            int row, string label, float value, Color color,
             float barWidth, float barHeight, float halfBar, GUIStyle labelStyle, GUIStyle valueStyle)
         {
             var rowOffset = -up * (row * 0.22f);
@@ -582,28 +580,20 @@ namespace Movement.MPC
             var midTop = center + up * barHeight * 0.5f;
             Gizmos.DrawLine(midBottom, midTop);
 
-            // Raw value bar (dimmer, drawn first so smooth overlaps)
-            var rawColor = color * 0.35f;
-            rawColor.a = 0.5f;
-            var rawBarStart = center; // center of the bar = zero point
-            var rawBarWidth = Mathf.Abs(rawValue) * halfBar;
-            var rawBarOrigin = rawValue >= 0 ? rawBarStart : rawBarStart - right * rawBarWidth;
-            DrawQuad(rawBarOrigin, right, up, rawBarWidth, barHeight * 0.9f, rawColor);
-
-            // Smoothed value bar (brighter, slightly narrower)
-            var smoothColor = color;
-            smoothColor.a = 0.85f;
-            var smoothBarWidth = Mathf.Abs(smoothValue) * halfBar;
-            var smoothBarOrigin = smoothValue >= 0 ? rawBarStart : rawBarStart - right * smoothBarWidth;
-            DrawQuad(smoothBarOrigin, right, up, smoothBarWidth, barHeight * 0.55f, smoothColor);
+            // Applied control bar (center of the bar = zero point)
+            var barColor = color;
+            barColor.a = 0.85f;
+            var valueBarWidth = Mathf.Abs(value) * halfBar;
+            var valueBarOrigin = value >= 0 ? center : center - right * valueBarWidth;
+            DrawQuad(valueBarOrigin, right, up, valueBarWidth, barHeight * 0.9f, barColor);
 
             // Label on the left
             var labelPos = barLeft - right * 0.05f;
             Handles.Label(labelPos, label, labelStyle);
 
-            // Values on the right
+            // Value on the right
             var valPos = barLeft + right * (barWidth + 0.08f);
-            Handles.Label(valPos, $"{smoothValue:+0.00;-0.00} ({rawValue:+0.00;-0.00})", valueStyle);
+            Handles.Label(valPos, $"{value:+0.00;-0.00}", valueStyle);
         }
 
         private static void DrawQuad(Vector3 bottomLeft, Vector3 right, Vector3 up,

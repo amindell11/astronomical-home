@@ -15,6 +15,7 @@ namespace Movement.MPC
 
         public int horizon;
         public float noiseStd;
+        public int noiseKnots;
         public float boostSampleProbability;
         public uint rngSeed;
 
@@ -26,22 +27,48 @@ namespace Movement.MPC
             {
                 for (var j = 0; j < horizon; j++)
                     candidates[offset + j] = warmStart[j];
+                return;
             }
-            else
+
+            var rng = new Unity.Mathematics.Random(rngSeed + (uint)candidateIndex);
+
+            // Time-correlated noise: draw Gaussian values at a few evenly spaced knots
+            // over the horizon and linearly interpolate between them, so a single draw
+            // can express a sustained maneuver ("hold hard strafe for 0.5 s") instead of
+            // per-step i.i.d. jitter that averages itself away. One float3 per knot
+            // perturbs thrust/strafe/yawTorque together.
+            var knots = math.max(2, noiseKnots);
+            var knotScale = (knots - 1) / (float)math.max(1, horizon - 1);
+            var prevKnot = NextGaussian3(ref rng);
+            var nextKnot = NextGaussian3(ref rng);
+            var segment = 0;
+
+            for (var j = 0; j < horizon; j++)
             {
-                var rng = new Unity.Mathematics.Random(rngSeed + (uint)candidateIndex);
-                for (var j = 0; j < horizon; j++)
+                var knotPos = j * knotScale;
+                var seg = math.min((int)knotPos, knots - 2);
+                while (segment < seg)
                 {
-                    var warm = warmStart[j];
-                    candidates[offset + j] = new Control
-                    {
-                        thrust = math.clamp(warm.thrust + NextGaussian(ref rng) * noiseStd, -1f, 1f),
-                        strafe = math.clamp(warm.strafe + NextGaussian(ref rng) * noiseStd, -1f, 1f),
-                        yawTorque = math.clamp(warm.yawTorque + NextGaussian(ref rng) * noiseStd, -1f, 1f),
-                        boost = rng.NextFloat() < boostSampleProbability ? 1f : 0f
-                    };
+                    prevKnot = nextKnot;
+                    nextKnot = NextGaussian3(ref rng);
+                    segment++;
                 }
+
+                var noise = math.lerp(prevKnot, nextKnot, knotPos - segment) * noiseStd;
+                var warm = warmStart[j];
+                candidates[offset + j] = new Control
+                {
+                    thrust = math.clamp(warm.thrust + noise.x, -1f, 1f),
+                    strafe = math.clamp(warm.strafe + noise.y, -1f, 1f),
+                    yawTorque = math.clamp(warm.yawTorque + noise.z, -1f, 1f),
+                    boost = rng.NextFloat() < boostSampleProbability ? 1f : 0f
+                };
             }
+        }
+
+        private static float3 NextGaussian3(ref Unity.Mathematics.Random rng)
+        {
+            return new float3(NextGaussian(ref rng), NextGaussian(ref rng), NextGaussian(ref rng));
         }
 
         private static float NextGaussian(ref Unity.Mathematics.Random rng)
@@ -119,7 +146,7 @@ namespace Movement.MPC
             float2 goalPos, float2 goalVel,
             float2 enemyPos, float2 enemyVel, float enemyYaw, float enemyYawRate,
             Dynamics enemyDynamics, float projectileSpeed,
-            int samples, float noiseStd, Control lastControl,
+            int samples, float noiseStd, int noiseKnots, Control lastControl,
             float boostCooldownRemaining = 0f, float boostSampleProbability = 0.15f,
             float eliteFraction = 0.1f)
         {
@@ -189,6 +216,7 @@ namespace Movement.MPC
                 candidates = candidates,
                 horizon = horizon,
                 noiseStd = noiseStd,
+                noiseKnots = noiseKnots,
                 boostSampleProbability = boostSampleProbability,
                 rngSeed = rngSeed
             }.Schedule(samples, 1).Complete();
