@@ -92,7 +92,8 @@ namespace Movement.MPC
                     settings.samples, settings.noiseStd, lastControl,
                     boostCooldown, boostProb,
                     settings.eliteFraction, settings.noiseKnots,
-                    settings.cemIterations, settings.strafeSigmaFloor, settings.sigmaFloor);
+                    settings.cemIterations, settings.strafeSigmaFloor, settings.sigmaFloor,
+                    settings.meanMomentum);
             }
 
             UpdatePredictedStates(mpcState);

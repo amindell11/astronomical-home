@@ -162,7 +162,8 @@ namespace Movement.MPC
             int samples, float noiseStd, Control lastControl,
             float boostCooldownRemaining = 0f, float boostSampleProbability = 0.15f,
             float eliteFraction = 0.1f, int noiseKnots = 4,
-            int cemIterations = 4, float strafeSigmaFloor = 0.3f, float sigmaFloor = 0.05f)
+            int cemIterations = 2, float strafeSigmaFloor = 0.3f, float sigmaFloor = 0.05f,
+            float meanMomentum = 0.5f)
         {
             var horizon = cfg.horizon;
             // Budget-neutral: total evaluations ≈ samples, split across CEM iterations.
@@ -254,15 +255,18 @@ namespace Movement.MPC
 
                 Evaluate(initialState, costInput, cfg, dynamics, lastControl, m);
 
-                // Refit: result ← elite-mean sequence; sigma ← floored per-channel elite std.
+                // Refit: result ← elite-average sequence; sigma ← floored per-channel elite std.
                 var iterBest = RefitElites(horizon, m, eliteFraction,
                     strafeSigmaFloor, sigmaFloor, out sigma, out var eliteMean);
                 LastIterationCosts[iter] = eliteMean;
                 bestCost = math.min(bestCost, iterBest);
 
-                // The refined mean becomes the next iteration's sampling center (and candidate 0).
+                // iCEM mean momentum: blend toward the elite average instead of jumping to it.
+                // At iter 0 warmStart is the shifted warm-start, so the returned mean stays
+                // anchored to last frame's solution (temporal continuity → no step-0 jitter).
+                // The blended mean is the next iteration's sampling center (and candidate 0).
                 for (var j = 0; j < horizon; j++)
-                    warmStart[j] = result[j];
+                    warmStart[j] = BlendMean(warmStart[j], result[j], meanMomentum);
             }
 
             LastSigma = sigma;
@@ -391,6 +395,18 @@ namespace Movement.MPC
             new float3(math.max(raw.x, sigmaFloor),
                        math.max(raw.y, strafeSigmaFloor),
                        math.max(raw.z, sigmaFloor));
+
+        /// <summary>iCEM mean momentum: lerp the previous mean toward the elite average by
+        /// <paramref name="momentum"/> (0 = keep previous, 1 = jump to elite average). Values in
+        /// (0,1) keep the returned mean strictly between the two, restoring temporal continuity.</summary>
+        internal static Control BlendMean(Control prev, Control eliteAvg, float momentum) =>
+            new Control
+            {
+                thrust = math.clamp(math.lerp(prev.thrust, eliteAvg.thrust, momentum), -1f, 1f),
+                strafe = math.clamp(math.lerp(prev.strafe, eliteAvg.strafe, momentum), -1f, 1f),
+                yawTorque = math.clamp(math.lerp(prev.yawTorque, eliteAvg.yawTorque, momentum), -1f, 1f),
+                boost = math.lerp(prev.boost, eliteAvg.boost, momentum) > 0.5f ? 1f : 0f,
+            };
 
         /// <summary>
         /// Find the K-th smallest value in costs[0..count-1] using a single pass.

@@ -62,6 +62,33 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void BlendMean_MomentumBelowOne_StaysStrictlyBetween()
+        {
+            var prev = new Control { thrust = -0.4f, strafe = 0.2f, yawTorque = 0.9f };
+            var eliteAvg = new Control { thrust = 0.8f, strafe = -0.6f, yawTorque = -0.1f };
+
+            var blended = SolverBuffers.BlendMean(prev, eliteAvg, 0.5f);
+            // Each channel must land strictly between prev and eliteAvg (momentum < 1).
+            AssertBetween(blended.thrust, prev.thrust, eliteAvg.thrust);
+            AssertBetween(blended.strafe, prev.strafe, eliteAvg.strafe);
+            AssertBetween(blended.yawTorque, prev.yawTorque, eliteAvg.yawTorque);
+
+            // momentum 1 == raw elite average; momentum 0 == keep previous.
+            var full = SolverBuffers.BlendMean(prev, eliteAvg, 1f);
+            Assert.That(full.thrust, Is.EqualTo(eliteAvg.thrust).Within(1e-5f));
+            var none = SolverBuffers.BlendMean(prev, eliteAvg, 0f);
+            Assert.That(none.thrust, Is.EqualTo(prev.thrust).Within(1e-5f));
+        }
+
+        private static void AssertBetween(float v, float a, float b)
+        {
+            var lo = math.min(a, b);
+            var hi = math.max(a, b);
+            Assert.That(v, Is.GreaterThan(lo).And.LessThan(hi),
+                $"{v} should be strictly between {a} and {b}");
+        }
+
+        [Test]
         public void AdaptiveSigma_StrafeChannel_NeverCollapsesBelowFloor()
         {
             // A waypoint dead ahead makes the optimal strafe ≈ 0, so CEM elites converge on the

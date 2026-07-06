@@ -18,7 +18,8 @@ MonoBehaviour:
   noiseStd: 0.75
   noiseKnots: 4
   eliteFraction: 0.113
-  cemIterations: 4
+  cemIterations: 2
+  meanMomentum: 0.5
   strafeSigmaFloor: 0.3
   sigmaFloor: 0.05
   wPos: 50

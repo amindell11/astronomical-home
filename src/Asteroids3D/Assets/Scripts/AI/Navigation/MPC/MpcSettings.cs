@@ -26,7 +26,13 @@ namespace Movement.MPC
                  "these (M = samples / cemIterations), so total evaluations stay ~constant. Each " +
                  "iteration refits the sampling mean + per-channel sigma from the elites. 1 = single-shot.")]
         [Range(1, 8)]
-        public int cemIterations = 4;
+        public int cemIterations = 2;
+        [Tooltip("iCEM mean momentum: each iteration blends the mean toward the elite average by " +
+                 "this fraction instead of jumping to it (lerp). Keeps the returned mean anchored to " +
+                 "the shifted warm-start, restoring frame-to-frame continuity. 1 = no momentum " +
+                 "(raw elite average), lower = smoother/stickier.")]
+        [Range(0.05f, 1f)]
+        public float meanMomentum = 0.5f;
         [Tooltip("Lower bound on the strafe channel's adaptive sampling sigma. Prevents CEM from " +
                  "collapsing lateral exploration once elites briefly agree — keeps evasive/gap-threading " +
                  "maneuvers reachable.")]
