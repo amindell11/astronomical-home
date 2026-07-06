@@ -4,7 +4,16 @@ using World;
 
 namespace Game.Services
 {
-    public interface IEnvironmentService
+    public interface IObstacleField
+    {
+    }
+
+    public interface IObstacleFieldProvider
+    {
+        IObstacleField ObstacleField { get; }
+    }
+
+    public interface IEnvironmentService : IObstacleFieldProvider
     {
         /// <summary>Currently active world root, if any.</summary>
         WorldRoot World { get; }
@@ -23,6 +32,9 @@ namespace Game.Services
 
         /// <summary>Take ownership of an already-instantiated WorldRoot (authored as a sector child).</summary>
         void AdoptWorld(WorldRoot existing);
+
+        /// <summary>Register the currently active obstacle field, if any.</summary>
+        void RegisterObstacleField(IObstacleField obstacleField);
 
         /// <summary>Destroy world and clear tracked state. Does NOT unload scenes.</summary>
         void Clear();

@@ -25,11 +25,13 @@ namespace Tests.EditMode
         {
             public Transform follower;
             public WorldRoot World => null;
+            public IObstacleField ObstacleField => null;
             public Transform WorldFollowerTransform => follower;
             public IEnumerator LoadSceneAsync(string sceneName) { yield break; }
             public IEnumerator UnloadSceneAsync(string sceneName) { yield break; }
             public void SpawnWorld(WorldRoot prefab) { }
             public void AdoptWorld(WorldRoot existing) { }
+            public void RegisterObstacleField(IObstacleField obstacleField) { }
             public void Clear() { }
         }
 

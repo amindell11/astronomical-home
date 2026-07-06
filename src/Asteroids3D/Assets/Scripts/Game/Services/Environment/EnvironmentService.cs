@@ -11,6 +11,7 @@ namespace Game.Services
         private string loadedSceneName;
 
         public WorldRoot World { get; private set; }
+        public IObstacleField ObstacleField { get; private set; }
 
         public Transform WorldFollowerTransform =>
             World && World.Follower ? World.Follower.transform : null;
@@ -69,11 +70,17 @@ namespace Game.Services
             existing.transform.SetParent(null, true);
         }
 
+        public void RegisterObstacleField(IObstacleField obstacleField)
+        {
+            ObstacleField = obstacleField;
+        }
+
         public void Clear()
         {
             if (!World) return;
             UnityEngine.Object.Destroy(World.gameObject);
             World = null;
+            ObstacleField = null;
             // Scene unloading is explicit via UnloadSceneAsync, not part of Clear
         }
     }
