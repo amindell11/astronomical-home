@@ -15,6 +15,10 @@ namespace Movement.MPC
                 ? math.cos(math.abs(u.strafe) * cfg.maxBankAngleRad)
                 : 1f;
 
+            var hullRadius = cfg.shipRadius * profileScale + cfg.collisionSafetyMargin;
+            var collided = input.obstacleCount > 0 && cfg.collisionPenalty > 0f &&
+                           Collides(s.pos, input.obstacles, input.obstacleCount, hullRadius);
+
             var breakdown = new CostBreakdown
             {
                 pos = PositionalGoalCost(s.pos, ctx, cfg) * cfg.wPos,
@@ -24,12 +28,11 @@ namespace Movement.MPC
                 heading = HeadingCost(s.pos, s.yaw, ctx.headingGoal, cfg.wYawDistanceScale) * ctx.wYaw,
                 facing = FacingCost(s.yaw, ctx.facingTarget, cfg.facingWidth) * cfg.wFacing,
                 yawRate = YawRateCost(s.yawRate, cfg.maxYawRateSq) * cfg.wYawRate,
-                obstacle = (cfg.wObstacle > 0f && input.obstacleCount > 0)
-                    ? ObstacleCost(s.pos, s.vel, input.obstacles, input.obstacleCount,
-                        (cfg.obstacleThreshold + math.length(s.vel) * cfg.obstacleSpeedMargin) * profileScale,
-                        cfg.obstacleFalloffCurve,
-                        cfg.obstacleClosingScale, cfg.obstacleClosingHalfSpeed) * cfg.wObstacle
+                obstacle = (!collided && cfg.wObstacle > 0f && input.obstacleCount > 0)
+                    ? AdmissibilityCost(s.pos, s.vel, input.obstacles, input.obstacleCount,
+                        hullRadius, cfg.brakingDecel, cfg.brakingDrag) * cfg.wObstacle
                     : 0f,
+                collision = collided ? cfg.collisionPenalty : 0f,
                 los = (ctx.hasEnemy && cfg.wLos > 0f && input.obstacleCount > 0)
                     ? LosCost(s.pos, ctx.enemyPos, input.obstacles, input.obstacleCount) * cfg.wLos
                     : 0f,
@@ -63,7 +66,8 @@ namespace Movement.MPC
                 total += ramp * (positionalCost + tacticalCost);
             }
 
-            breakdown.total = total;
+            // Mirrors Cost.Evaluate: collision is a fixed penalty outside the terminal ramp.
+            breakdown.total = total + breakdown.collision;
             return breakdown;
         }
 

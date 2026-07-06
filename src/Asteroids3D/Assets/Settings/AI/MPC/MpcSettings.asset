@@ -44,11 +44,8 @@ MonoBehaviour:
   wTangential: 1
   wMissDistance: 0
   wObstacle: 1
-  obstacleThreshold: 0.1
-  obstacleSpeedMargin: 1
-  obstacleFalloffCurve: 13.05
-  obstacleClosingScale: 1
-  obstacleClosingHalfSpeed: 5
+  collisionPenalty: 1000
+  collisionSafetyMargin: 0.25
   arrivalDistance: 4
   arrivalVelScale: 5
   arrivalYawScale: 0.1

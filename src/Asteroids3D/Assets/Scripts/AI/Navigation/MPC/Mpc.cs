@@ -62,9 +62,7 @@ namespace Movement.MPC
             this.dynamics = dynamics;
 
             config = settings.ToConfig();
-            config.maxBankAngleRad = dynamics.maxBankAngleRad;
-            config.maxSpeedSq = dynamics.maxSpeed * dynamics.maxSpeed;
-            config.maxYawRateSq = dynamics.maxYawRate * dynamics.maxYawRate;
+            config.ApplyDynamics(in dynamics);
             bestSequence = new Control[config.horizon];
             predictedStates = new State[config.horizon];
             solver = new SolverBuffers();
@@ -136,9 +134,7 @@ namespace Movement.MPC
         private void RefreshConfig(in MpcInputs inputs)
         {
             config = settings.ToConfig(inputs.facingRad, inputs.goalMode, inputs.goalDesiredRange, inputs.goalRangeTolerance);
-            config.maxBankAngleRad = dynamics.maxBankAngleRad;
-            config.maxSpeedSq = dynamics.maxSpeed * dynamics.maxSpeed;
-            config.maxYawRateSq = dynamics.maxYawRate * dynamics.maxYawRate;
+            config.ApplyDynamics(in dynamics);
             inputs.weightOverrides.Apply(ref config);
 
             if (bestSequence.Length == config.horizon) return;

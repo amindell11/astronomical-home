@@ -32,7 +32,6 @@ namespace Movement.MPC
         private float nextLogTime;
 
         private DetectedObstacle[] dbgObstacles;
-        private float[] dbgObstacleWeights;
         private int dbgObstacleCount;
 
         // Debug info
@@ -126,7 +125,7 @@ namespace Movement.MPC
                 }
                 var facingRad = facingOverride ? facingAngle * Mathf.Deg2Rad : float.NaN;
                 var compConfig = mpcSettings.ToConfig(facingRad, gm, desiredRange, rangeTolerance);
-                compConfig.maxBankAngleRad = dynamics.maxBankAngleRad;
+                compConfig.ApplyDynamics(dynamics);
                 profile.weightOverrides.Apply(ref compConfig);
 
                 var horizon = compConfig.horizon;
@@ -169,21 +168,11 @@ namespace Movement.MPC
         partial void StoreDebugObstacles(ObstacleScan scan)
         {
             if (dbgObstacles == null || dbgObstacles.Length < scan.count)
-            {
-                var size = Mathf.Max(scan.count, 32);
-                dbgObstacles = new DetectedObstacle[size];
-                dbgObstacleWeights = new float[size];
-            }
+                dbgObstacles = new DetectedObstacle[Mathf.Max(scan.count, 32)];
 
             dbgObstacleCount = scan.count;
-            var shipMass = dynamics.mass;
-            var invShipMass = shipMass > 0f ? 1f / shipMass : 1f;
             for (var i = 0; i < scan.count; i++)
-            {
                 dbgObstacles[i] = scan.buffer[i];
-                var rb = scan.buffer[i].collider ? scan.buffer[i].collider.attachedRigidbody : null;
-                dbgObstacleWeights[i] = (rb ? rb.mass : shipMass) * invShipMass;
-            }
         }
 
         private CostBreakdown EvaluateBreakdown(State mpcState)
@@ -361,7 +350,9 @@ namespace Movement.MPC
                 var isTerminal = i == predictedStates.Length - 1;
                 var stepBreakdown = Cost.EvaluateBreakdown(state, u, prevU, input, config, isTerminal, i);
 
-                Gizmos.color = showTrajectoryCosts ? GetCostColor(stepBreakdown.obstacle / config.wObstacle) : Color.cyan;
+                var obstacleSeverity = stepBreakdown.collision > 0f ? 5f
+                    : config.wObstacle > 0f ? stepBreakdown.obstacle / config.wObstacle : 0f;
+                Gizmos.color = showTrajectoryCosts ? GetCostColor(obstacleSeverity) : Color.cyan;
 
                 Gizmos.DrawLine(prevPos, pos);
                 Gizmos.DrawSphere(pos, 0.15f);
@@ -374,7 +365,7 @@ namespace Movement.MPC
                 if (i % labelStep == 0)
                 {
                     Handles.Label(pos + Vector3.up * 0.2f,
-                        $"Cost: {stepBreakdown.total:F1}\n(P:{stepBreakdown.pos:F1} O:{stepBreakdown.obstacle:F1})",
+                        $"Cost: {stepBreakdown.total:F1}\n(P:{stepBreakdown.pos:F1} O:{stepBreakdown.obstacle + stepBreakdown.collision:F1})",
                         new GUIStyle { normal = { textColor = Color.white }, fontSize = 10 });
                 }
 
@@ -465,60 +456,44 @@ namespace Movement.MPC
         {
             if (!showObstacleCosts || dbgObstacles == null || dbgObstacleCount == 0) return;
 
-            // Compute the effective threshold the MPC actually uses
-            var speed = predictedStates != null && predictedStates.Length > 0
-                ? math.length(predictedStates[0].vel)
-                : 0f;
-            var baseThreshold = mpcSettings.obstacleThreshold + speed * mpcSettings.obstacleSpeedMargin;
+            // Collision boundaries the MPC actually tests: hull at current bank + safety margin.
             var profileScale = config.maxBankAngleRad > 0f
                 ? Mathf.Cos(Mathf.Abs(lastControl.strafe) * config.maxBankAngleRad)
                 : 1f;
-            var effectiveThreshold = baseThreshold * profileScale;
+            var hullUnbanked = config.shipRadius + config.collisionSafetyMargin;
+            var hullCurrent = config.shipRadius * profileScale + config.collisionSafetyMargin;
+
+            // Stopping distance at the current speed — the admissibility term's reach.
+            var vel = predictedStates != null && predictedStates.Length > 0
+                ? predictedStates[0].vel
+                : default;
+            var speed = math.length(vel);
+            var decel = config.brakingDecel + config.brakingDrag * speed;
+            var stoppingDist = decel > 0f ? speed * speed / (2f * decel) : 0f;
 
             for (var i = 0; i < dbgObstacleCount; i++)
             {
                 var obs = dbgObstacles[i];
-                var weight = dbgObstacleWeights != null && i < dbgObstacleWeights.Length
-                    ? dbgObstacleWeights[i] : 1f;
                 var obsWorldPos = GamePlane.PlanePointToWorld(obs.position);
 
-                // Inner ring: obstacle radius + ship radius (the inflated hard boundary)
-                var inflatedRadius = obs.radius + dynamics.shipRadius;
-                var weightAlpha = Mathf.Clamp01(weight);
-                Gizmos.color = new Color(1f, 1f, 1f, 0.3f + 0.7f * weightAlpha);
-                Gizmos.DrawWireSphere(obsWorldPos, inflatedRadius);
+                // Inner ring: hard collision boundary for the unbanked hull
+                Gizmos.color = new Color(1f, 1f, 1f, 0.8f);
+                Gizmos.DrawWireSphere(obsWorldPos, obs.radius + hullUnbanked);
 
-                // Outer ring: inflated radius + effective threshold (speed + bank adjusted)
-                var range = inflatedRadius + effectiveThreshold;
-                Gizmos.color = new Color(1f, 1f, 0f, 0.1f + 0.4f * weightAlpha);
-                Gizmos.DrawWireSphere(obsWorldPos, range);
+                // Bank ring: collision boundary at the current commanded bank (narrower)
+                if (hullCurrent < hullUnbanked - 1e-4f)
+                {
+                    Gizmos.color = new Color(0.3f, 0.8f, 1f, 0.8f);
+                    Gizmos.DrawWireSphere(obsWorldPos, obs.radius + hullCurrent);
+                }
 
-                DrawObstacleCostField(obs, range, weight);
-            }
-        }
-
-        private void DrawObstacleCostField(DetectedObstacle obstacle, float range, float weight)
-        {
-            var obsWorldPos = GamePlane.PlanePointToWorld(obstacle.position);
-            var rings = 8;
-            var halfCurve = mpcSettings.obstacleFalloffCurve * 0.5f;
-            const float epsSq = 0.0001f;
-            var rangeSq = range * range;
-
-            // Cost at the inflated surface for normalization
-            var inflatedRadius = obstacle.radius + dynamics.shipRadius;
-            var surfaceNormSq = (inflatedRadius * inflatedRadius) / rangeSq;
-            var maxCost = weight / Mathf.Pow(surfaceNormSq + epsSq, halfCurve);
-
-            for (var i = 1; i <= rings; i++)
-            {
-                var t = i / (float)rings;
-                var radius = inflatedRadius + (range - inflatedRadius) * t;
-                var normSq = (radius * radius) / rangeSq;
-                var cost = weight / Mathf.Pow(normSq + epsSq, halfCurve);
-                var alpha = Mathf.Clamp01(cost / maxCost);
-                Gizmos.color = new Color(1f, 0.2f * (1f - alpha), 0f, alpha * 0.6f);
-                Gizmos.DrawWireSphere(obsWorldPos, radius);
+                // Outer ring: where the admissibility cost starts biting at the current
+                // speed (clearance == stopping distance while closing head-on).
+                if (stoppingDist > 0.05f)
+                {
+                    Gizmos.color = new Color(1f, 1f, 0f, 0.35f);
+                    Gizmos.DrawWireSphere(obsWorldPos, obs.radius + hullCurrent + stoppingDist);
+                }
             }
         }
 
@@ -711,6 +686,7 @@ namespace Movement.MPC
             DrawCostBar("Closing", breakdown.closing, s.wClosing, total, new Color(0.4f, 0.9f, 0.7f));
             DrawCostBar("Yaw Rate", breakdown.yawRate, s.wYawRate, total, Color.magenta);
             DrawCostBar("Obstacle", breakdown.obstacle, s.wObstacle, total, Color.red);
+            DrawCostBar("Collision", breakdown.collision, s.collisionPenalty, total, new Color(1f, 0f, 0.5f));
             DrawCostBar("LOS", breakdown.los, s.wLos, total, new Color(1f, 0.5f, 0f));
             DrawCostBar("Exposure", breakdown.exposure, s.wExposure, total, new Color(1f, 0.3f, 0.3f));
             DrawCostBar("Tangential", breakdown.tangential, s.wTangential, total, new Color(0.3f, 0.8f, 1f));

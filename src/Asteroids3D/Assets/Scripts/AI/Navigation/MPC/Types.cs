@@ -79,11 +79,8 @@ namespace Movement.MPC
 
         // Obstacle
         public float wObstacle;
-        public float obstacleThreshold;
-        public float obstacleSpeedMargin;
-        public float obstacleFalloffCurve;
-        public float obstacleClosingScale;
-        public float obstacleClosingHalfSpeed;
+        public float collisionPenalty;
+        public float collisionSafetyMargin;
 
         // Arrival
         public float arrivalDistance;
@@ -98,11 +95,32 @@ namespace Movement.MPC
         public float maxBankAngleRad;
         public float maxSpeedSq;
         public float maxYawRateSq;
+        public float shipRadius;
+        public float brakingDecel;   // Thrust-only braking deceleration (reverseAcc / mass)
+        public float brakingDrag;    // Linear drag coefficient; adds drag * speed to braking decel
 
         // Goal
         public GoalMode goalMode;
         public float desiredRange;
         public float rangeTolerance;
+    }
+
+    public static class ConfigExtensions
+    {
+        /// <summary>
+        /// Copies the dynamics-derived fields the cost model needs into the config.
+        /// Single source of truth for config↔dynamics coupling — used by Mpc's ctor,
+        /// RefreshConfig, and the editor comparison rollouts.
+        /// </summary>
+        public static void ApplyDynamics(ref this Config cfg, in Movement.Dynamics dyn)
+        {
+            cfg.maxBankAngleRad = dyn.maxBankAngleRad;
+            cfg.maxSpeedSq = dyn.maxSpeed * dyn.maxSpeed;
+            cfg.maxYawRateSq = dyn.maxYawRate * dyn.maxYawRate;
+            cfg.shipRadius = dyn.shipRadius;
+            cfg.brakingDecel = dyn.mass > 0f ? dyn.reverseAcc / dyn.mass : 0f;
+            cfg.brakingDrag = dyn.linearDrag;
+        }
     }
 
     /// <summary>
