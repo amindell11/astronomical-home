@@ -26,6 +26,8 @@ namespace Movement.MPC
         public WeightOverride[] weightOverrides;
         public ObstacleScan obstacleScan;
         public bool enableObstacleAvoidance;
+        /// <summary>Terminal cost-to-go field view (Track B3); default/invalid = hook off.</summary>
+        public Field.TerminalFieldData terminalField;
     }
 
     /// <summary>The control output of a single MPC solve.</summary>
@@ -91,7 +93,8 @@ namespace Movement.MPC
                     inputs.enemyDynamics, inputs.projectileSpeed,
                     settings.samples, settings.noiseStd, lastControl,
                     boostCooldown, boostProb,
-                    settings.eliteFraction, settings.noiseKnots);
+                    settings.eliteFraction, settings.noiseKnots,
+                    inputs.terminalField);
             }
 
             UpdatePredictedStates(mpcState);

@@ -40,6 +40,8 @@ namespace AI
         private float obstacleHalfExtent;
         private AI.Scanning.IObstacleFieldProvider obstacleFieldProvider;
         public void SetObstacleFieldProvider(AI.Scanning.IObstacleFieldProvider p) => obstacleFieldProvider = p;
+        /// <summary>The active deterministic obstacle field (B2), or null. Also feeds the B3 terminal field.</summary>
+        public AI.Scanning.IObstacleField ObstacleField => obstacleFieldProvider?.ObstacleField;
 
         // Combined obstacle buffer: static obstacles from obstacleScanner + 360° ship detections from shipScanner.
         // The sphere obstacle scanner focuses on static asteroids; merging the dedicated ship scanner
