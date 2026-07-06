@@ -155,13 +155,24 @@ namespace Tests.EditMode
             var injected = new Control[4 * cfg.horizon];
             var injectedCount = GapPrimitives.Synthesize(in gap, in state, in dyn, cfg.dt, cfg.horizon, 4, injected, 0);
 
-            var costWithout = SolveOnce(state, cfg, dyn, scan, goal, null, 0, out _);
-            var costWith = SolveOnce(state, cfg, dyn, scan, goal, injected, injectedCount, out var bestIndex);
+            // Pin the sampler (Track B's seed seam) so the Gaussian baseline is deterministic:
+            // unpinned, the frameCount-derived seed makes the best Gaussian candidate drift
+            // across runs and the margin assertion below is a coin flip near the threshold.
+            SolverBuffers.SamplerSeedOverride = 1234u;
+            try
+            {
+                var costWithout = SolveOnce(state, cfg, dyn, scan, goal, null, 0, out _);
+                var costWith = SolveOnce(state, cfg, dyn, scan, goal, injected, injectedCount, out var bestIndex);
 
-            Assert.That(costWith, Is.LessThan(costWithout - 10f),
-                "Injected bank-through primitive must beat the best Gaussian candidate decisively");
-            Assert.That(bestIndex, Is.InRange(1, injectedCount),
-                "The winning candidate must be one of the injected primitives");
+                Assert.That(costWith, Is.LessThan(costWithout - 10f),
+                    "Injected bank-through primitive must beat the best Gaussian candidate decisively");
+                Assert.That(bestIndex, Is.InRange(1, injectedCount),
+                    "The winning candidate must be one of the injected primitives");
+            }
+            finally
+            {
+                SolverBuffers.SamplerSeedOverride = null;
+            }
         }
 
         private static float SolveOnce(State state, Config cfg, Dynamics dyn, ObstacleScan scan,
