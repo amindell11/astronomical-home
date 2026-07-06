@@ -346,12 +346,15 @@ namespace Movement.MPC
         /// cfg.collisionPenalty. Summed across obstacles (overlaps are rare) so a colliding rollout
         /// is decisively excluded from the elite set.
         ///
-        /// Admissibility: penalizes states from which the ship can no longer brake before reaching
-        /// the obstacle surface, given its closing speed. Exactly 0 when brakeable
-        /// (stoppingDist ≤ clearance) or when not closing; rises smoothly (C¹ at the boundary,
-        /// bounded to [0,1)) as the stopping distance overruns the clearance. Aggregated by MAX
-        /// (the binding constraint) — never summed — so it does not scale with obstacle count.
-        /// Weighted by cfg.wObstacle.
+        /// Admissibility (collision-course-gated turn-away): only obstacles the current velocity
+        /// actually leads INTO incur cost. For each obstacle ahead, project onto the velocity
+        /// axis; if the perpendicular offset already clears the corridor (obs.radius + hull +
+        /// margin) we pass it clean → 0. Otherwise the cost measures whether the ship can still
+        /// sidestep the remaining lateral deficit (dNeeded) with its lateral thrust before reaching
+        /// the obstacle's plane (dTurn over tAvail). Exactly 0 when the sidestep suffices; rises
+        /// smoothly (C¹ at the boundary, bounded [0,1)) as it falls short. So a weaving pursuer
+        /// steers around rocks for free and only pays for dead-ahead-fast obstacles it leads into.
+        /// Aggregated by MAX (the binding constraint) — never summed. Weighted by cfg.wObstacle.
         /// </summary>
         internal static float ObstacleCost(float2 pos, float2 vel, float hull,
             NativeArray<ObstacleData> obstacles, int count, in Config cfg)
@@ -360,34 +363,35 @@ namespace Movement.MPC
 
             var collision = 0f;
             var maxAdmissibility = 0f;
-            var twoMaxDecel = 2f * math.max(cfg.maxDecel, ObstacleEpsilon);
+            var speed = math.length(vel);
+            var hasHeading = speed > 1e-3f;
+            var velDir = hasHeading ? vel / speed : float2.zero;
+            var halfLatAccel = 0.5f * math.max(cfg.maxLatAccel, ObstacleEpsilon);
 
             for (var i = 0; i < count; i++)
             {
                 var obs = obstacles[i];
                 var toObs = obs.position - pos;
-                var dist = math.length(toObs);
 
                 // Hard collision: hull surface (+ margin) overlaps the obstacle surface.
-                var collisionRadius = obs.radius + hull + cfg.obstacleSafetyMargin;
-                if (dist < collisionRadius)
+                var corridor = obs.radius + hull + cfg.obstacleSafetyMargin;
+                if (math.lengthsq(toObs) < corridor * corridor)
                     collision += cfg.collisionPenalty;
 
-                // Stopping-distance admissibility. Only closing motion matters.
-                if (dist > 1e-4f)
-                {
-                    var dirToObs = toObs / dist;
-                    var closingSpeed = math.max(0f, math.dot(vel, dirToObs));
-                    if (closingSpeed > 1e-4f)
-                    {
-                        var clearance = dist - obs.radius - hull; // hull surface to obstacle surface
-                        var stoppingDist = closingSpeed * closingSpeed / twoMaxDecel;
-                        // 0 when stoppingDist ≤ clearance (brakeable); →1 as the overrun grows.
-                        // Squaring the saturated deficit ratio gives a C¹ zero at the boundary.
-                        var deficit = math.saturate(1f - clearance / math.max(stoppingDist, ObstacleEpsilon));
-                        maxAdmissibility = math.max(maxAdmissibility, deficit * deficit);
-                    }
-                }
+                if (!hasHeading) continue;
+
+                var along = math.dot(toObs, velDir);
+                if (along <= 0f) continue;                      // behind us — no cost
+
+                var perp = math.length(toObs - along * velDir);
+                if (perp >= corridor) continue;                 // collision-course gate: we pass clear
+
+                var dNeeded = corridor - perp;                  // extra lateral clearance to miss
+                var tAvail = along / speed;                     // time until we reach its plane
+                var dTurn = halfLatAccel * tAvail * tAvail;     // max sidestep before impact
+                // 0 when the sidestep covers the deficit; →1 as it falls short. Squaring gives C¹ zero.
+                var deficit = math.saturate(1f - dTurn / math.max(dNeeded, ObstacleEpsilon));
+                maxAdmissibility = math.max(maxAdmissibility, deficit * deficit);
             }
 
             return collision + cfg.wObstacle * maxAdmissibility;
