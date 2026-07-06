@@ -31,6 +31,8 @@ namespace Tests.EditMode
             public void SpawnWorld(WorldRoot prefab) { }
             public void AdoptWorld(WorldRoot existing) { }
             public void Clear() { }
+            public AI.Scanning.IObstacleField ObstacleField { get; private set; }
+            public void RegisterObstacleField(AI.Scanning.IObstacleField field) => ObstacleField = field;
         }
 
         private class StubServices : IGameServices

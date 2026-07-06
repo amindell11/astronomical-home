@@ -1,5 +1,6 @@
 using System.Collections;
 using AI;
+using AI.Scanning;
 using NUnit.Framework;
 using Ships;
 using Tests.Common;
@@ -46,15 +47,38 @@ public class ScannerPlayModeTests : PlayModeWorldFixture
     [Category("Smoke")]
     public IEnumerator ObstacleScanner_DetectsNearbyObstacle_WithinTimeout()
     {
-        var obstacle = TestSceneBuilder.CreateObstacle(new Vector3(0, 5, 0), new Vector3(5, 5, 1));
+        // The obstacle scanner now queries the deterministic asteroid field, not physics colliders.
+        // Inject a stub field that reports one obstacle at the ship's location so the merge path fills.
+        var stub = new StubObstacleField(new DetectedObstacle(ship.transform.position, 5f, null));
+        cmdr.SetObstacleFieldProvider(new StubObstacleFieldProvider(stub));
 
         yield return AsyncAssert.WaitUntil(
             () => cmdr.Scout.ObstacleScan.count > 0,
             ScanTimeoutSec,
-            $"Scanner should detect nearby obstacle within {ScanTimeoutSec}s",
+            $"Scanner should detect the stub field obstacle within {ScanTimeoutSec}s",
             useFixedUpdate: true);
+    }
 
-        Object.Destroy(obstacle);
+    // Reports a single fixed obstacle whenever it falls inside the query box.
+    private sealed class StubObstacleField : IObstacleField
+    {
+        private readonly DetectedObstacle obstacle;
+        public StubObstacleField(DetectedObstacle obstacle) => this.obstacle = obstacle;
+
+        public int QueryObstacles(Vector2 centerPlane, float halfExtent, DetectedObstacle[] buffer)
+        {
+            if (buffer == null || buffer.Length == 0) return 0;
+            if (Mathf.Abs(obstacle.position.x - centerPlane.x) > halfExtent
+                || Mathf.Abs(obstacle.position.y - centerPlane.y) > halfExtent) return 0;
+            buffer[0] = obstacle;
+            return 1;
+        }
+    }
+
+    private sealed class StubObstacleFieldProvider : IObstacleFieldProvider
+    {
+        public StubObstacleFieldProvider(IObstacleField field) => ObstacleField = field;
+        public IObstacleField ObstacleField { get; }
     }
 }
 

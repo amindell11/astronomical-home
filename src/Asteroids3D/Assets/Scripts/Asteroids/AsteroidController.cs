@@ -26,6 +26,9 @@ namespace Asteroids
         public float Mass => Rb.mass;
         public float Volume { get; private set; }
         public float Radius { get; private set; }
+        // Cheap sphere is always present; mesh collider is the LOD fallback. Both share the
+        // asteroid's Rigidbody, so DetectedObstacle's mass lookup resolves to Rb.mass either way.
+        public Collider Collider => cheapCollider ? (Collider)cheapCollider : meshCollider;
         public Rigidbody Rb { get; private set; }
         public AsteroidSpawner AsteroidSpawner { get; private set; }
         public Renderer Renderer { get; private set; }

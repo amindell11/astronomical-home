@@ -29,6 +29,7 @@ namespace AI
         protected bool systemsInitialized;
 
         private AIContext context;
+        private AI.Scanning.IObstacleFieldProvider obstacleFieldProvider;
 
         public Scout Scout { get; private set; }
         public Navigator Navigator { get; private set; }
@@ -53,6 +54,12 @@ namespace AI
             TryInitializeSystems();
         }
 
+        public void SetObstacleFieldProvider(AI.Scanning.IObstacleFieldProvider provider)
+        {
+            obstacleFieldProvider = provider;
+            if (Scout) Scout.SetObstacleFieldProvider(provider);
+        }
+
         public override void Initialize(in ShipControl control)
         {
             this.control = control;
@@ -66,6 +73,7 @@ namespace AI
             Func<Kinematics> pose = () => self.Kinematics;
 
             Scout.Initialize(self.Transform, self.Id, self.Dynamics, self, registry);
+            Scout.SetObstacleFieldProvider(obstacleFieldProvider);
             Navigator.Initialize(self, self.Dynamics, Scout);
             if (Gunner && control.IsArmed)
                 Gunner.Initialize(control.Weapons, control.WeaponActuator, pose);

@@ -87,9 +87,13 @@ namespace Game.Bootstrap
         /// </summary>
         internal IEnumerator ComposeSession(GameSession target)
         {
+            // The environment service owns the active obstacle field; the unit service forwards it
+            // to each AI ship it wires, so bind the provider before composing the container.
+            var environmentService = new EnvironmentService();
+            unitService.BindObstacleFieldProvider(environmentService);
             target.Services = new GameServices(
                 unitService: unitService,
-                environmentService: new EnvironmentService(),
+                environmentService: environmentService,
                 objectiveService: objectiveService,
                 cameraService: new CameraService(),
                 uiService: new UIService()

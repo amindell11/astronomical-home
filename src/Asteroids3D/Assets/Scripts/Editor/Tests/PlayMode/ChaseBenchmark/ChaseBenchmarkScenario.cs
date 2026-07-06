@@ -52,7 +52,6 @@ namespace Tests.PlayMode.ChaseBenchmark
                 config.desiredRange, config.rangeTolerance, "pursuer", interceptRadius, out var pProbe);
             var evaderCmdr = Wire(Evader, Pursuer, registry, GoalMode.Flee,
                 0f, 0f, "evader", interceptRadius, out var eProbe);
-            _ = pursuerCmdr; _ = evaderCmdr;
             PursuerProbe = pProbe;
             EvaderProbe = eProbe;
 
@@ -67,7 +66,18 @@ namespace Tests.PlayMode.ChaseBenchmark
             {
                 field.SetPlayer(Pursuer.transform);
                 field.SetPlayerStart(pursuerPlane);
+                // B2: production wires the obstacle field to ships via EnvironmentService; the
+                // benchmark has no service container, so register it directly so both ships'
+                // Scout queries the field for asteroids (otherwise Scan(null) sees none).
+                var provider = new BenchmarkObstacleFieldProvider { ObstacleField = field };
+                pursuerCmdr.SetObstacleFieldProvider(provider);
+                evaderCmdr.SetObstacleFieldProvider(provider);
             }
+        }
+
+        private sealed class BenchmarkObstacleFieldProvider : AI.Scanning.IObstacleFieldProvider
+        {
+            public AI.Scanning.IObstacleField ObstacleField { get; set; }
         }
 
         private static AICommander Wire(Ship self, Ship target, ShipRegistry registry,
