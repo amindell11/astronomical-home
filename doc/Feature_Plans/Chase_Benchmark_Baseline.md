@@ -50,7 +50,35 @@ truncate the sample.
 
 ## Baseline — current main (pre Track A/B changes)
 
-<!-- BASELINE TABLE — filled from the committed baseline JSONL; see results/chase-benchmark/ -->
+Two independent repeats at identical config (5 field seeds x 2 field offsets,
+40 s sim per episode, 10 episodes each; sampler unpinned — statistical model).
+Committed JSONL: `doc/Feature_Plans/chase-benchmark-baselines/` (runtime output
+directory `results/chase-benchmark/` is gitignored; promote result sets worth
+keeping into the baselines folder). All headline means agree within ~1 std
+between repeats — the distribution is stable run-to-run.
 
-_To be filled by the B1 baseline run (two repeats at identical config to show
-distribution stability)._
+| metric (mean ± std over 10 eps)   | baseline A          | baseline B          |
+|-----------------------------------|---------------------|---------------------|
+| pursuer collisions/ep             | 8.60 ± 4.62         | 9.20 ± 4.26         |
+| pursuer impact impulse            | 17256 ± 5824        | 15925 ± 8969        |
+| pursuer mean speed                | 7.71 ± 2.01         | 8.28 ± 1.50         |
+| pursuer chatter thrust /s         | 4.39 ± 0.86         | 4.00 ± 0.43         |
+| pursuer chatter strafe /s         | 6.87 ± 0.43         | 6.81 ± 0.27         |
+| pursuer chatter yaw /s            | 9.21 ± 0.63         | 8.97 ± 0.33         |
+| pursuer solve ms (mean)           | 0.456 ± 0.026       | 0.457 ± 0.029       |
+| evader collisions/ep              | 13.80 ± 9.40        | 15.00 ± 7.27        |
+| evader impact impulse             | 28124 ± 19883       | 35754 ± 7951        |
+| evader mean speed                 | 7.00 ± 1.75         | 7.38 ± 1.51         |
+| evader chatter thrust /s          | 4.89 ± 0.80         | 4.54 ± 0.30         |
+| evader chatter strafe /s          | 6.83 ± 0.32         | 6.75 ± 0.17         |
+| evader chatter yaw /s             | 9.68 ± 0.62         | 9.53 ± 0.37         |
+| evader solve ms (mean)            | 0.466 ± 0.027       | 0.462 ± 0.027       |
+| chase mean distance (secondary)   | 10.59 ± 7.89        | 8.17 ± 1.62         |
+| chase min distance (secondary)    | 2.65 ± 2.33         | 1.42 ± 0.26         |
+| chase final distance (secondary)  | 9.59 ± 3.91         | 8.47 ± 4.35         |
+| chase contact time s (secondary)  | 35.02 ± 9.88        | 37.48 ± 3.21        |
+
+Reading: ~9 pursuer / ~14 evader rock collisions per 40 s episode and high strafe/yaw
+chatter are exactly the trade-study failure modes (topology-blind reactive avoidance,
+effectively-disabled obstacle cost). These rows are the reference for every later
+Track A/B PR.
