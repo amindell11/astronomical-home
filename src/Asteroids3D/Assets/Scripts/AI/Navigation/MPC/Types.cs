@@ -77,13 +77,10 @@ namespace Movement.MPC
         public float wTangential;
         public float wMissDistance;
 
-        // Obstacle
-        public float wObstacle;
-        public float obstacleThreshold;
-        public float obstacleSpeedMargin;
-        public float obstacleFalloffCurve;
-        public float obstacleClosingScale;
-        public float obstacleClosingHalfSpeed;
+        // Obstacle (A2: collision + stopping-distance admissibility)
+        public float wObstacle;          // admissibility weight
+        public float collisionPenalty;   // fixed penalty per overlapping obstacle per step
+        public float obstacleSafetyMargin; // constant model-error margin added to the hull
 
         // Arrival
         public float arrivalDistance;
@@ -98,6 +95,8 @@ namespace Movement.MPC
         public float maxBankAngleRad;
         public float maxSpeedSq;
         public float maxYawRateSq;
+        public float shipRadius;   // true hull radius (A2 obstacle cost applies it here, not baked into obstacle radii)
+        public float maxDecel;     // best-case thruster deceleration (m/s^2) for stopping-distance admissibility
 
         // Goal
         public GoalMode goalMode;
