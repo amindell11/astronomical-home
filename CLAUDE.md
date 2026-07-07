@@ -45,25 +45,23 @@ to work in place instead.
 How state reaches code in this project — follow these when adding any new
 dependency, and prefer zero new wiring over new seams:
 
-1. **World-scoped state uses a static access point (the `GamePlane` pattern),
-   never per-ship wiring.** Anything that exists at most once per session —
-   the game plane, the active asteroid/obstacle field, the nav-field service —
-   is published through one narrow static (`GamePlane`, `ObstacleFields.Active`,
-   `NavFieldService.Instance`). The *owning lifecycle* (bootstrap, a sector
-   element's Build/Teardown) registers and unregisters it; consumers pull it
-   at the point of use. Do NOT thread world state through Commander/UnitService/
-   GameServices just to hand it to a component that could read a static.
-2. **Per-ship dependencies enter a component exactly once, through
+1. **Per-ship dependencies enter a component exactly once, through
    `Initialize(...)` parameters** (see `Scout.Initialize`, `Navigator.Initialize`).
    Never add ad-hoc `Set<Thing>()` setters per feature — if a component needs a
    new per-ship dependency, extend its Initialize signature.
-3. **Keep knowledge at its abstraction level.** A composer (Scout, AICommander)
+2. **Keep knowledge at its abstraction level.** A composer (Scout, AICommander)
    only instantiates and sequences its parts; domain math and configuration
    (scan envelopes, cost shapes, query extents) live inside the part that uses
    them. If a field on a high-level object only exists to be forwarded
    downward, it belongs downward.
-4. **Adding a method to a service interface (`IEnvironmentService` etc.) or a
-   pass-through to Commander/UnitService is a last resort** — it multiplies
-   test stubs and touches bootstrap. Reach for it only when the dependency is
-   genuinely per-session-composition (differs per game mode) rather than
-   world-global or per-ship.
+3. **Do not thread world/session-scoped state through per-ship wiring**
+   (Commander/UnitService pass-throughs, service-interface additions) just to
+   hand it to a component. How world-scoped state SHOULD reach consumers is a
+   deliberately open question — multiple arena instances per process are
+   planned (RL training), so process-wide statics are equally suspect long-term.
+   Until that design lands: keep any such seam as narrow as possible, mark it
+   interim (see `ObstacleFields`), don't copy it to new systems, and raise the
+   question with the user rather than inventing a pattern.
+4. **The smell to catch mid-diff:** if wiring ONE new dependency touches
+   bootstrap + a service interface + Commander/UnitService + the consuming
+   component, stop and reclassify before pushing.

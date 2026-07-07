@@ -8,13 +8,17 @@ namespace AI.Scanning
     }
 
     /// <summary>
-    /// Static access point for the session's active obstacle field, following the
-    /// <see cref="Game.GamePlane"/> pattern for world-scoped state: the owning lifecycle
+    /// INTERIM access point for the session's active obstacle field: the owning lifecycle
     /// (the sector's <c>AsteroidFieldSpawner</c>) registers on build and unregisters on
     /// teardown; consumers (obstacle scan, terminal nav field) pull <see cref="Active"/>
-    /// directly. World state is never threaded through per-ship wiring — AI components
-    /// take per-ship dependencies once via Initialize and read world state from access
-    /// points like this one. Null means "no field": ships sense zero static obstacles.
+    /// directly. Null means "no field": ships sense zero static obstacles.
+    /// <para>
+    /// DEFERRED DESIGN: a process-wide static assumes one field per process, which breaks
+    /// once multiple arena instances run in one process (planned for RL training). How
+    /// world-scoped state should reach consumers in that world is deliberately an open
+    /// question — keep this surface minimal and don't copy the pattern to new systems
+    /// without revisiting it.
+    /// </para>
     /// </summary>
     public static class ObstacleFields
     {
