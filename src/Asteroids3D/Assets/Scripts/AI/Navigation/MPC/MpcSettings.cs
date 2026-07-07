@@ -15,17 +15,15 @@ namespace Movement.MPC
         public int samples = 128;
         [Tooltip("Standard deviation of Gaussian noise added to the warm-start sequence for exploration.")]
         public float noiseStd = 0.25f;
+        [Tooltip("Number of noise knots spread evenly over the horizon. Gaussian noise is drawn " +
+                 "at each knot and linearly interpolated between them (time-correlated exploration), " +
+                 "so one draw can hold a maneuver for several steps. 2 = one linear ramp across the " +
+                 "whole horizon; higher = choppier, approaching per-step i.i.d. noise.")]
+        [Range(2, 16)]
+        public int noiseKnots = 5;
         [Tooltip("Fraction of top candidates to average (elite averaging). Higher = more stable but less reactive.")]
         [Range(0.01f, 0.5f)]
         public float eliteFraction = 0.1f;
-
-        [Header("Adaptive Timestep")]
-        [Tooltip("Max dt scale factor. 0 = disabled. In Flee: scales by closing speed. " +
-                 "Otherwise: scales by distance to goal. dt is multiplied by up to (1 + this value).")]
-        public float adaptiveDtScale = 0f;
-        [Tooltip("Reference distance for distance-based dt scaling (non-Flee modes). " +
-                 "At this distance, dt scale is at maximum.")]
-        public float adaptiveDtRefDistance = 50f;
 
         [Header("Navigation")]
         [Tooltip("Position cost weight. Drives the ship toward the goal (Waypoint mode), " +
@@ -80,9 +78,6 @@ namespace Movement.MPC
         [Tooltip("Probability of sampling boost=1 at each step during candidate generation.")]
         [Range(0f, 1f)]
         public float boostSampleProbability = 0.15f;
-        [Tooltip("EMA smoothing factor for applied controls. 0 = no smoothing, 0.95 = very smooth (slow response).")]
-        [Range(0f, 0.95f)]
-        public float controlSmoothing = 0.5f;
 
         [Header("Tactical")]
         [Tooltip("Facing override weight. Steers the nose toward a specific angle (e.g. lead target in Attack). " +
@@ -103,21 +98,25 @@ namespace Movement.MPC
         public float wMissDistance = 0f;
 
         [Header("Obstacle Avoidance")]
-        [Tooltip("Obstacle avoidance weight. Inverse-distance cost near obstacles; higher = wider berth.")]
-        public float wObstacle = 10.0f;
-        [Tooltip("Distance beyond an obstacle's radius at which the avoidance cost begins. " +
-                 "Effectively inflates obstacles by this amount.")]
-        public float obstacleThreshold = 5.0f;
-        [Tooltip("Extra clearance added per unit speed. effectiveThreshold = obstacleThreshold + speed * this value.")]
-        public float obstacleSpeedMargin = 0.3f;
-        [Tooltip("Obstacle cost falloff exponent. Higher = cost concentrated near surface, lower = spreads further out. 2 = inverse-square (default).")]
-        public float obstacleFalloffCurve = 2f;
-        [Tooltip("Peak extra multiplier applied to per-obstacle cost when ship is closing on it at high speed. " +
-                 "0 = disabled. Multiplier saturates: cost *= 1 + scale * v / (v + halfSpeed), where v is closing speed.")]
-        public float obstacleClosingScale = 1f;
-        [Tooltip("Closing speed at which the closing-scale multiplier reaches half its peak. " +
-                 "Lower = ramps up faster with closing speed. Ignored when obstacleClosingScale = 0.")]
-        public float obstacleClosingHalfSpeed = 5f;
+        [Tooltip("Admissibility (turn-away) weight. Penalizes rollout states whose velocity leads " +
+                 "into an obstacle that the ship's lateral thrust can no longer sidestep before " +
+                 "reaching it (collision-course-gated, continuous, C1 at the boundary). Obstacles " +
+                 "the ship already passes clear of cost nothing — a weaving pursuer steers around " +
+                 "off-course rocks for free.")]
+        public float wObstacle = 5f;
+        [Tooltip("Fixed cost added for every rollout step whose (bank-narrowed) hull overlaps an obstacle. " +
+                 "Near-binary: must decisively dominate any per-step stage cost (>=10x) so colliding " +
+                 "rollouts never win the elite set.")]
+        public float collisionPenalty = 10000f;
+        [Tooltip("Constant safety margin added to the hull radius in the collision test, absorbing " +
+                 "model error. Deliberately NOT speed-scaled — speed safety is the admissibility term's job.")]
+        public float collisionSafetyMargin = 0.3f;
+
+        [Header("Terminal Field (cost-to-go)")]
+        [Tooltip("Weight on the per-rollout terminal cost-to-go sample (time-to-go seconds, " +
+                 "stage-cost units — keep near 1; under-weighting re-creates horizon myopia). " +
+                 "0 disables the terminal hook.")]
+        public float wTerminal = 1f;
 
         [Header("Arrival Stabilization")]
         [Tooltip("Distance to goal at which arrival stabilization begins ramping up.")]
@@ -126,14 +125,6 @@ namespace Movement.MPC
         public float arrivalVelScale = 5.0f;
         [Tooltip("Yaw cost multiplier at the goal center. Ramps down near the goal so the ship prioritizes stopping over turning.")]
         public float arrivalYawScale = 0.1f;
-
-        [Header("Relaxation")]
-        [Tooltip("Cost at or below which controls are fully zeroed (ship coasts).")]
-        public float relaxMin = 0.5f;
-        [Tooltip("Cost at or above which controls are applied at full authority.")]
-        public float relaxMax = 2.0f;
-        [Tooltip("Curve exponent for the relaxation ramp. 1 = linear, <1 = aggressive early ramp, >1 = gentle early ramp.")]
-        public float relaxCurve = 1.0f;
 
         public int Horizon => Mathf.CeilToInt(horizonSeconds / rolloutDt);
 
@@ -176,11 +167,8 @@ namespace Movement.MPC
                 wMissDistance = wMissDistance,
                 // Obstacle
                 wObstacle = wObstacle,
-                obstacleThreshold = obstacleThreshold,
-                obstacleSpeedMargin = obstacleSpeedMargin,
-                obstacleFalloffCurve = obstacleFalloffCurve,
-                obstacleClosingScale = obstacleClosingScale,
-                obstacleClosingHalfSpeed = obstacleClosingHalfSpeed,
+                collisionPenalty = collisionPenalty,
+                collisionSafetyMargin = collisionSafetyMargin,
                 // Arrival
                 arrivalDistance = arrivalDistance,
                 arrivalDistanceSq = arrivalDistance * arrivalDistance,
@@ -190,6 +178,8 @@ namespace Movement.MPC
                 goalMode = goalMode,
                 desiredRange = desiredRange,
                 rangeTolerance = rangeTolerance,
+                // Terminal field
+                wTerminal = wTerminal,
             };
         }
     }

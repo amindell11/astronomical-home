@@ -13,8 +13,6 @@ namespace Movement.MPC
             "terminalCurve",
             "facingWidth",
             "exposureWidth",
-            "obstacleFalloffCurve",
-            "relaxCurve",
         };
 
         public override void OnInspectorGUI()
@@ -42,12 +40,6 @@ namespace Movement.MPC
                         break;
                     case "exposureWidth":
                         DrawExposureCurve(settings.exposureWidth);
-                        break;
-                    case "obstacleFalloffCurve":
-                        DrawObstacleFalloffCurve(settings.obstacleFalloffCurve);
-                        break;
-                    case "relaxCurve":
-                        DrawRelaxCurve(settings.relaxMin, settings.relaxMax, settings.relaxCurve);
                         break;
                 }
             }
@@ -93,30 +85,6 @@ namespace Movement.MPC
             EditorGUI.BeginDisabledGroup(true);
             EditorGUILayout.CurveField(animCurve, Color.yellow,
                 new Rect(0, 0, steps - 1, 1f + multiplier),
-                GUILayout.Height(50));
-            EditorGUI.EndDisabledGroup();
-        }
-
-        private static void DrawObstacleFalloffCurve(float curve)
-        {
-            var animCurve = new AnimationCurve();
-            const int steps = 64;
-            const float epsSq = 0.0001f;
-            var halfCurve = curve * 0.5f;
-
-            var refCost = 1f / Mathf.Pow(0.25f + epsSq, halfCurve);
-
-            for (var i = 0; i <= steps; i++)
-            {
-                var norm = (float)i / steps;
-                var normSq = norm * norm;
-                var cost = 1f / Mathf.Pow(normSq + epsSq, halfCurve);
-                animCurve.AddKey(new Keyframe(norm, cost / refCost) { weightedMode = WeightedMode.None });
-            }
-
-            EditorGUI.BeginDisabledGroup(true);
-            EditorGUILayout.CurveField(animCurve, Color.red,
-                new Rect(0, 0, 1f, 5f),
                 GUILayout.Height(50));
             EditorGUI.EndDisabledGroup();
         }
@@ -168,28 +136,6 @@ namespace Movement.MPC
             EditorGUI.EndDisabledGroup();
         }
 
-        private static void DrawRelaxCurve(float min, float max, float curve)
-        {
-            var animCurve = new AnimationCurve();
-            const int steps = 64;
-            var range = Mathf.Max(max - min, 1e-4f);
-            var maxCost = max * 1.25f;
-
-            for (var i = 0; i <= steps; i++)
-            {
-                var t = (float)i / steps;
-                var cost = t * maxCost;
-                var normalized = Mathf.Clamp01((cost - min) / range);
-                var urgency = Mathf.Pow(normalized, curve);
-                animCurve.AddKey(new Keyframe(cost, urgency) { weightedMode = WeightedMode.None });
-            }
-
-            EditorGUI.BeginDisabledGroup(true);
-            EditorGUILayout.CurveField(animCurve, Color.green,
-                new Rect(0, 0, maxCost, 1f),
-                GUILayout.Height(50));
-            EditorGUI.EndDisabledGroup();
-        }
     }
 }
 #endif

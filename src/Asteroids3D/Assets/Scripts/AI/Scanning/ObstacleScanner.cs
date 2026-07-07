@@ -43,63 +43,48 @@ namespace AI.Scanning
     }
 
     /// <summary>
-    /// Detects obstacles within a single OverlapSphere whose radius expands with speed,
-    /// letting the MPC handle relevance through its cost function.
+    /// Fills a buffer with live asteroids inside a fixed-size AABB around the ship by
+    /// querying the deterministic asteroid field directly (no physics overlap). Destroyed
+    /// asteroids are never reported. The MPC handles relevance through its cost function.
     /// </summary>
     public class ObstacleScanner
     {
-        private static readonly Collider[] ScratchBuffer = new Collider[128];
-
         private readonly Transform origin;
-        private readonly LayerMask obstacleMask;
-        private readonly GameObject selfRoot;
-        private Transform excludeRoot;
 
         public DetectedObstacle[] DetectedBuffer { get; }
         public int DetectedCount { get; private set; }
 
-        /// <summary>Effective radius used in the last scan.</summary>
-        public float Radius { get; private set; }
+        /// <summary>
+        /// Half-extent (per axis) of the fixed query box, in plane units: the worst-case
+        /// travel envelope over the lookahead horizon at max speed — a per-ship constant
+        /// computed once at construction, so the obstacle set never breathes with speed.
+        /// </summary>
+        public float HalfExtent { get; }
 
-        /// <summary>Lookahead time in seconds.</summary>
-        public float LookaheadTime { get; set; }
-
-        /// <summary>Max acceleration magnitude (m/s²). Used to extend detection range.</summary>
-        public float MaxAccel { get; set; }
-
-        public ObstacleScanner(Transform origin, LayerMask obstacleMask, float lookaheadTime = 2f, int bufferSize = 64)
+        /// <param name="maxSpeed">Ship max speed (plane units/s).</param>
+        /// <param name="maxAccel">Max acceleration magnitude (units/s²); extends the envelope.</param>
+        /// <param name="lookaheadTime">Planning horizon the envelope must cover, seconds.</param>
+        public ObstacleScanner(Transform origin, float maxSpeed, float maxAccel,
+            float lookaheadTime, int bufferSize = 64)
         {
             this.origin = origin;
-            this.obstacleMask = obstacleMask;
-            selfRoot = origin.gameObject;
-            LookaheadTime = lookaheadTime;
+            HalfExtent = maxSpeed * lookaheadTime + 0.5f * maxAccel * lookaheadTime * lookaheadTime;
             DetectedBuffer = new DetectedObstacle[bufferSize];
             DetectedCount = 0;
         }
 
-        public void SetExcludeRoot(Transform root) => excludeRoot = root;
-        public void ClearExcludeRoot() => excludeRoot = null;
-
         /// <summary>
-        /// Scan for obstacles. Radius covers the distance reachable within
-        /// the lookahead time from current speed plus max-acceleration contribution.
+        /// Query the session's active obstacle field (<see cref="ObstacleFields.Active"/>)
+        /// for live asteroids inside the fixed box around the ship. No active field
+        /// (no sector, or a sector without asteroids) clears the buffer.
         /// </summary>
-        public void Scan(Vector2 vel, float maxSpeed)
+        public void Scan()
         {
-            var t = LookaheadTime;
-            Radius = vel.magnitude * t + 0.5f * MaxAccel * t * t;
-            var count = Physics.OverlapSphereNonAlloc(
-                origin.position, Radius, ScratchBuffer, obstacleMask,
-                QueryTriggerInteraction.Ignore);
-
             DetectedCount = 0;
-            for (var i = 0; i < count && DetectedCount < DetectedBuffer.Length; i++)
-            {
-                var col = ScratchBuffer[i];
-                if (col && col.gameObject != selfRoot && col.transform.root != origin.root
-                    && (!excludeRoot || col.transform.root != excludeRoot))
-                    DetectedBuffer[DetectedCount++] = new DetectedObstacle(col);
-            }
+            var field = ObstacleFields.Active;
+            if (field == null) return;
+            var centerPlane = GamePlane.WorldPointToPlane(origin.position);
+            DetectedCount = field.QueryObstacles(centerPlane, HalfExtent, DetectedBuffer);
         }
     }
 }

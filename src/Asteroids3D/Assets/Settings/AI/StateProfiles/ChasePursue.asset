@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b56d01da063dcc54487eaaf6f8e443eb, type: 3}
+  m_Name: ChasePursue
+  m_EditorClassIdentifier: 
+  goal:
+    rid: 9001000000000000001
+  enableTacticalCosts: 0
+  enableFiring: 0
+  weightOverrides: []
+  requiresEnemy: 1
+  requiresNoEnemy: 0
+  minRange: 0
+  maxRange: 0
+  utilityFactors: []
+  references:
+    version: 2
+    RefIds:
+    - rid: 9001000000000000001
+      type: {class: TrackEnemyGoal, ns: AI.States, asm: Game.Core}
+      data:
+        desiredRange: 6
+        rangeTolerance: 3

@@ -79,11 +79,8 @@ namespace Movement.MPC
 
         // Obstacle
         public float wObstacle;
-        public float obstacleThreshold;
-        public float obstacleSpeedMargin;
-        public float obstacleFalloffCurve;
-        public float obstacleClosingScale;
-        public float obstacleClosingHalfSpeed;
+        public float collisionPenalty;
+        public float collisionSafetyMargin;
 
         // Arrival
         public float arrivalDistance;
@@ -98,11 +95,36 @@ namespace Movement.MPC
         public float maxBankAngleRad;
         public float maxSpeedSq;
         public float maxYawRateSq;
+        public float shipRadius;
+        public float maxLatAccel;    // Best-case lateral (strafe) acceleration (m/s²) for turn-away admissibility
 
         // Goal
         public GoalMode goalMode;
         public float desiredRange;
         public float rangeTolerance;
+
+        // Terminal cost-to-go field (Track B3). Weight on the per-rollout terminal sample,
+        // in stage-cost units; 0 disables the hook entirely.
+        public float wTerminal;
+    }
+
+    public static class ConfigExtensions
+    {
+        /// <summary>
+        /// Copies the dynamics-derived fields the cost model needs into the config.
+        /// Single source of truth for config↔dynamics coupling — used by Mpc's ctor,
+        /// RefreshConfig, and the editor comparison rollouts.
+        /// </summary>
+        public static void ApplyDynamics(ref this Config cfg, in Movement.Dynamics dyn)
+        {
+            cfg.maxBankAngleRad = dyn.maxBankAngleRad;
+            cfg.maxSpeedSq = dyn.maxSpeed * dyn.maxSpeed;
+            cfg.maxYawRateSq = dyn.maxYawRate * dyn.maxYawRate;
+            cfg.shipRadius = dyn.shipRadius;
+            // Best case: the model's strafe force at zero speed (it lerps maxStrafe→minStrafe
+            // with speed). Optimistic on purpose — the term should under- not over-trigger.
+            cfg.maxLatAccel = dyn.mass > 0f ? dyn.maxStrafeAcc / dyn.mass : dyn.maxStrafeAcc;
+        }
     }
 
     /// <summary>
@@ -205,6 +227,10 @@ namespace Movement.MPC
 
         /// <summary>Ship velocity at the start of the rollout. Used by momentum cost to reward maintaining direction.</summary>
         public float2 initialVel;
+
+        /// <summary>Cost-to-go field sampled once per rollout at the terminal state
+        /// (Track B3). isValid == 0 (the default) makes the hook contribute 0.</summary>
+        public Field.TerminalFieldData terminalField;
 
     }
 

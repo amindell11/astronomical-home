@@ -8,7 +8,7 @@
       "testFilter": "CameraUtilsEditModeTests|CameraFollowPlayMode"
     },
     "navigation": {
-      "testFilter": "MpcNavigatorPlayMode|MpcSolverTests|MpcBoostEditModeTests|LosCostEditModeTests"
+      "testFilter": "MpcNavigatorPlayMode|MpcSolverTests|MpcBoostEditModeTests|MpcCorrelatedNoiseTests|MpcObstacleCostTests|LosCostEditModeTests"
     },
     "navigation_perf": {
       "testFilter": "MpcPerformancePlayModeTests"
@@ -52,10 +52,10 @@
   },
   "modules": {
     "ai": {
-      "testFilter": "AIIntegrationPlayMode|MpcNavigatorPlayMode|MpcSolverTests|MpcBoostEditModeTests|LosCostEditModeTests|ScannerPlayMode"
+      "testFilter": "AIIntegrationPlayMode|MpcNavigatorPlayMode|MpcSolverTests|MpcBoostEditModeTests|MpcCorrelatedNoiseTests|MpcObstacleCostTests|LosCostEditModeTests|ScannerPlayMode"
     },
     "mpc": {
-      "testFilter": "MpcNavigatorPlayMode|MpcPerformancePlayModeTests|MpcSolverTests|MpcBoostEditModeTests|LosCostEditModeTests"
+      "testFilter": "MpcNavigatorPlayMode|MpcPerformancePlayModeTests|MpcSolverTests|MpcBoostEditModeTests|MpcCorrelatedNoiseTests|MpcObstacleCostTests|LosCostEditModeTests"
     },
     "combat": {
       "testFilter": "HeatPlayMode|HeatOverheatStress|HeatEditModeTests|MissileGuidance|WeaponCommandDispatch|LockOnRegistryWiring|LockOnRegressionEditModeTests"

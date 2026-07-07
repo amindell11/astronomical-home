@@ -22,7 +22,8 @@ namespace AI
 
         [Header("Obstacle Detection")]
         public LayerMask asteroidMask;
-        [Tooltip("Lookahead time for the obstacle scanner. Detection radius grows with speed over this horizon.")]
+        [Tooltip("Lookahead time used to size the obstacle query box. Sizes a FIXED worst-case " +
+                 "AABB (from max speed, not current speed), so the box no longer grows as the ship accelerates.")]
         public float obstacleLookaheadTime = 2f;
 
         private ShipScanner shipScanner;
@@ -50,8 +51,11 @@ namespace AI
             this.shipContext = shipContext;
             shipScanner = new ShipScanner(origin, nearbyShipRadius, shipId, registry);
             coverSensor = new SphereSensor(origin, asteroidCoverRadius, asteroidMask, bufferSize: 8);
-            // ShipScanner handles ships in a full sphere; obstacle scanner stays focused on static asteroids.
-            obstacleScanner = new ObstacleScanner(origin, asteroidMask, lookaheadTime: obstacleLookaheadTime);
+            // ShipScanner handles ships in a full sphere; the obstacle scanner queries the
+            // session's deterministic asteroid field and owns its (fixed, worst-case) query
+            // envelope — Scout only hands it the dynamics it derives the envelope from.
+            var maxAccel = Mathf.Sqrt(shipDynamics.forwardAcc * shipDynamics.forwardAcc + shipDynamics.maxStrafeAcc * shipDynamics.maxStrafeAcc) / shipDynamics.mass;
+            obstacleScanner = new ObstacleScanner(origin, shipDynamics.maxSpeed, maxAccel, obstacleLookaheadTime);
         }
 
         private void Update()
@@ -63,13 +67,7 @@ namespace AI
                 ? ContactSummary.Build(shipScanner.LastResult, shipId, origin.position, Registry)
                 : ContactSummary.Empty;
             HasNearbyCover = coverSensor != null && coverSensor.Detect() > 0;
-            if (obstacleScanner != null)
-            {
-                obstacleScanner.LookaheadTime = obstacleLookaheadTime;
-                var d = shipDynamics;
-                obstacleScanner.MaxAccel = Mathf.Sqrt(d.forwardAcc * d.forwardAcc + d.maxStrafeAcc * d.maxStrafeAcc) / d.mass;
-                obstacleScanner.Scan(shipContext.Kinematics.vel, shipDynamics.maxSpeed);
-            }
+            obstacleScanner?.Scan();
             BuildMergedObstacles();
         }
 
@@ -110,7 +108,9 @@ namespace AI
         public ContactSummary Contacts { get; private set; } = ContactSummary.Empty;
         public bool HasNearbyCover { get; private set; }
 
-        public void SetObstacleExclusion(Transform root) => obstacleScanner?.SetExcludeRoot(root);
-        public void ClearObstacleExclusion() => obstacleScanner?.ClearExcludeRoot();
+        // Exclusion is a no-op now that obstacles come from the deterministic field query
+        // (which never includes ships). Kept so Navigator still compiles.
+        public void SetObstacleExclusion(Transform root) { }
+        public void ClearObstacleExclusion() { }
     }
 }

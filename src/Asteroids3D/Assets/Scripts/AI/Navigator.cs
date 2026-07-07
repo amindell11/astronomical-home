@@ -51,6 +51,12 @@ namespace Movement.MPC
         protected IShipStatus context;
         public float arriveRadius = 2f;
 
+        // Terminal cost-to-go field (Track B3): the chase target whose shared field the solver
+        // samples at rollout ends. Set only for enemy-anchored pursuit (MaintainRange); Flee is
+        // out of scope (trade study §7.4).
+        private Transform terminalFieldTarget;
+        private float selfMaxSpeed;
+
         public Waypoint CurrentWaypoint => currentWaypoint;
 
         [Header("Settings")]
@@ -62,11 +68,14 @@ namespace Movement.MPC
         public bool enableObstacleAvoidance = true;
 
         private Mpc mpc;
+        private Dynamics dynamics; // consumed by the editor/gizmo partial
 
         public void Initialize(IShipStatus shipContext, Dynamics dynamics, Scout scout)
         {
             context = shipContext;
             this.scout = scout;
+            this.dynamics = dynamics;
+            selfMaxSpeed = dynamics.maxSpeed;
             currentWaypoint = new Waypoint { isValid = false };
             if (!mpcSettings)
                 mpcSettings = ScriptableObject.CreateInstance<MpcSettings>();
@@ -81,6 +90,15 @@ namespace Movement.MPC
                 return currentCommand = default;
 
             var scan = scout.ObstacleScan;
+
+            // Terminal cost-to-go field: one shared field per chase target, sampled by the
+            // solver at each rollout's terminal state. Obstacles come from the session's
+            // active obstacle field (B2). Invalid/absent field = hook off.
+            var terminalField = default(Field.TerminalFieldData);
+            if (terminalFieldTarget && mpcSettings.wTerminal > 0f)
+                Field.NavFieldService.Instance.TryGetData(
+                    terminalFieldTarget, enemyPos, selfMaxSpeed, ObstacleFields.Active, out terminalField);
+
             var inputs = new MpcInputs
             {
                 kinematics = kin,
@@ -100,6 +118,7 @@ namespace Movement.MPC
                 weightOverrides = weightOverrides,
                 obstacleScan = scan,
                 enableObstacleAvoidance = enableObstacleAvoidance,
+                terminalField = terminalField,
             };
 
 #if UNITY_EDITOR
@@ -161,6 +180,11 @@ namespace Movement.MPC
                 return;
             }
 
+            // Terminal cost-to-go routing applies to enemy-anchored pursuit only.
+            terminalFieldTarget = intent.goalMode == GoalMode.MaintainRange && intent.hasTarget
+                ? intent.target.source
+                : null;
+
             switch (intent.goalMode)
             {
                 case GoalMode.MaintainRange:
@@ -193,6 +217,7 @@ namespace Movement.MPC
         /// <summary>Resets all navigation overrides to idle. Mirrors a fresh, goal-less navigator.</summary>
         public void ResetNavigation()
         {
+            terminalFieldTarget = null;
             ClearNavigationPoint();
             ClearGoalMode();
             ClearEnemyState();

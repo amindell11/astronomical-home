@@ -32,7 +32,6 @@ namespace Movement.MPC
         private float nextLogTime;
 
         private DetectedObstacle[] dbgObstacles;
-        private float[] dbgObstacleWeights;
         private int dbgObstacleCount;
 
         // Debug info
@@ -47,9 +46,8 @@ namespace Movement.MPC
         private Control[] bestSequence => mpc?.BestSequence;
         private State[] predictedStates => mpc?.PredictedStates;
         private State lastInitialState => mpc != null ? mpc.LastInitialState : default;
+        // (ship dynamics now live on the runtime partial's `dynamics` field, set in Initialize)
         private Control lastControl => mpc != null ? mpc.LastControl : default;
-        private Control smoothedControl => mpc != null ? mpc.SmoothedControl : default;
-        private Dynamics dynamics => mpc != null ? mpc.Dynamics : default;
         internal float lastBestCost => mpc != null ? mpc.LastBestCost : 0f;
 
         [Header("Scene Gizmo Sub-Toggles")]
@@ -127,7 +125,7 @@ namespace Movement.MPC
                 }
                 var facingRad = facingOverride ? facingAngle * Mathf.Deg2Rad : float.NaN;
                 var compConfig = mpcSettings.ToConfig(facingRad, gm, desiredRange, rangeTolerance);
-                compConfig.maxBankAngleRad = dynamics.maxBankAngleRad;
+                compConfig.ApplyDynamics(dynamics);
                 profile.weightOverrides.Apply(ref compConfig);
 
                 var horizon = compConfig.horizon;
@@ -170,21 +168,11 @@ namespace Movement.MPC
         partial void StoreDebugObstacles(ObstacleScan scan)
         {
             if (dbgObstacles == null || dbgObstacles.Length < scan.count)
-            {
-                var size = Mathf.Max(scan.count, 32);
-                dbgObstacles = new DetectedObstacle[size];
-                dbgObstacleWeights = new float[size];
-            }
+                dbgObstacles = new DetectedObstacle[Mathf.Max(scan.count, 32)];
 
             dbgObstacleCount = scan.count;
-            var shipMass = dynamics.mass;
-            var invShipMass = shipMass > 0f ? 1f / shipMass : 1f;
             for (var i = 0; i < scan.count; i++)
-            {
                 dbgObstacles[i] = scan.buffer[i];
-                var rb = scan.buffer[i].collider ? scan.buffer[i].collider.attachedRigidbody : null;
-                dbgObstacleWeights[i] = (rb ? rb.mass : shipMass) * invShipMass;
-            }
         }
 
         private CostBreakdown EvaluateBreakdown(State mpcState)
@@ -362,7 +350,9 @@ namespace Movement.MPC
                 var isTerminal = i == predictedStates.Length - 1;
                 var stepBreakdown = Cost.EvaluateBreakdown(state, u, prevU, input, config, isTerminal, i);
 
-                Gizmos.color = showTrajectoryCosts ? GetCostColor(stepBreakdown.obstacle / config.wObstacle) : Color.cyan;
+                var obstacleSeverity = stepBreakdown.collision > 0f ? 5f
+                    : config.wObstacle > 0f ? stepBreakdown.obstacle / config.wObstacle : 0f;
+                Gizmos.color = showTrajectoryCosts ? GetCostColor(obstacleSeverity) : Color.cyan;
 
                 Gizmos.DrawLine(prevPos, pos);
                 Gizmos.DrawSphere(pos, 0.15f);
@@ -375,7 +365,7 @@ namespace Movement.MPC
                 if (i % labelStep == 0)
                 {
                     Handles.Label(pos + Vector3.up * 0.2f,
-                        $"Cost: {stepBreakdown.total:F1}\n(P:{stepBreakdown.pos:F1} O:{stepBreakdown.obstacle:F1})",
+                        $"Cost: {stepBreakdown.total:F1}\n(P:{stepBreakdown.pos:F1} O:{stepBreakdown.obstacle + stepBreakdown.collision:F1})",
                         new GUIStyle { normal = { textColor = Color.white }, fontSize = 10 });
                 }
 
@@ -466,60 +456,47 @@ namespace Movement.MPC
         {
             if (!showObstacleCosts || dbgObstacles == null || dbgObstacleCount == 0) return;
 
-            // Compute the effective threshold the MPC actually uses
-            var speed = predictedStates != null && predictedStates.Length > 0
-                ? math.length(predictedStates[0].vel)
-                : 0f;
-            var baseThreshold = mpcSettings.obstacleThreshold + speed * mpcSettings.obstacleSpeedMargin;
+            // Collision boundaries the MPC actually tests: hull at current bank + safety margin.
             var profileScale = config.maxBankAngleRad > 0f
-                ? Mathf.Cos(Mathf.Abs(smoothedControl.strafe) * config.maxBankAngleRad)
+                ? Mathf.Cos(Mathf.Abs(lastControl.strafe) * config.maxBankAngleRad)
                 : 1f;
-            var effectiveThreshold = baseThreshold * profileScale;
+            var hullUnbanked = config.shipRadius + config.collisionSafetyMargin;
+            var hullCurrent = config.shipRadius * profileScale + config.collisionSafetyMargin;
+
+            // Turn-away reach at the current speed: the head-on distance inside which the
+            // lateral thrust can no longer sidestep a full corridor width before impact
+            // (½·a_lat·t² == corridor at t = along/speed) — the admissibility term's bite range.
+            var vel = predictedStates != null && predictedStates.Length > 0
+                ? predictedStates[0].vel
+                : default;
+            var speed = math.length(vel);
+            var halfLatAccel = 0.5f * Mathf.Max(config.maxLatAccel, 1e-4f);
 
             for (var i = 0; i < dbgObstacleCount; i++)
             {
                 var obs = dbgObstacles[i];
-                var weight = dbgObstacleWeights != null && i < dbgObstacleWeights.Length
-                    ? dbgObstacleWeights[i] : 1f;
                 var obsWorldPos = GamePlane.PlanePointToWorld(obs.position);
 
-                // Inner ring: obstacle radius + ship radius (the inflated hard boundary)
-                var inflatedRadius = obs.radius + dynamics.shipRadius;
-                var weightAlpha = Mathf.Clamp01(weight);
-                Gizmos.color = new Color(1f, 1f, 1f, 0.3f + 0.7f * weightAlpha);
-                Gizmos.DrawWireSphere(obsWorldPos, inflatedRadius);
+                // Inner ring: hard collision boundary for the unbanked hull
+                Gizmos.color = new Color(1f, 1f, 1f, 0.8f);
+                Gizmos.DrawWireSphere(obsWorldPos, obs.radius + hullUnbanked);
 
-                // Outer ring: inflated radius + effective threshold (speed + bank adjusted)
-                var range = inflatedRadius + effectiveThreshold;
-                Gizmos.color = new Color(1f, 1f, 0f, 0.1f + 0.4f * weightAlpha);
-                Gizmos.DrawWireSphere(obsWorldPos, range);
+                // Bank ring: collision boundary at the current commanded bank (narrower)
+                if (hullCurrent < hullUnbanked - 1e-4f)
+                {
+                    Gizmos.color = new Color(0.3f, 0.8f, 1f, 0.8f);
+                    Gizmos.DrawWireSphere(obsWorldPos, obs.radius + hullCurrent);
+                }
 
-                DrawObstacleCostField(obs, range, weight);
-            }
-        }
-
-        private void DrawObstacleCostField(DetectedObstacle obstacle, float range, float weight)
-        {
-            var obsWorldPos = GamePlane.PlanePointToWorld(obstacle.position);
-            var rings = 8;
-            var halfCurve = mpcSettings.obstacleFalloffCurve * 0.5f;
-            const float epsSq = 0.0001f;
-            var rangeSq = range * range;
-
-            // Cost at the inflated surface for normalization
-            var inflatedRadius = obstacle.radius + dynamics.shipRadius;
-            var surfaceNormSq = (inflatedRadius * inflatedRadius) / rangeSq;
-            var maxCost = weight / Mathf.Pow(surfaceNormSq + epsSq, halfCurve);
-
-            for (var i = 1; i <= rings; i++)
-            {
-                var t = i / (float)rings;
-                var radius = inflatedRadius + (range - inflatedRadius) * t;
-                var normSq = (radius * radius) / rangeSq;
-                var cost = weight / Mathf.Pow(normSq + epsSq, halfCurve);
-                var alpha = Mathf.Clamp01(cost / maxCost);
-                Gizmos.color = new Color(1f, 0.2f * (1f - alpha), 0f, alpha * 0.6f);
-                Gizmos.DrawWireSphere(obsWorldPos, radius);
+                // Outer ring: where the turn-away cost starts biting for a head-on approach
+                // at the current speed (sidestep distance == corridor width at the boundary).
+                var corridor = obs.radius + hullCurrent;
+                var biteRange = speed > 0.05f ? speed * math.sqrt(corridor / halfLatAccel) : 0f;
+                if (biteRange > 0.05f)
+                {
+                    Gizmos.color = new Color(1f, 1f, 0f, 0.35f);
+                    Gizmos.DrawWireSphere(obsWorldPos, corridor + biteRange);
+                }
             }
         }
 
@@ -528,7 +505,6 @@ namespace Movement.MPC
             if (!showControlInputs || bestSequence == null || bestSequence.Length == 0) return;
 
             var raw = bestSequence[0];
-            var smooth = smoothedControl;
             var origin = transform.position + controlPanelOffset;
 
             // Camera-facing basis vectors for the panel
@@ -556,16 +532,16 @@ namespace Movement.MPC
                 alignment = TextAnchor.MiddleLeft,
             };
 
-            DrawControlBar(origin, right, up, 0, "THR", raw.thrust, smooth.thrust,
+            DrawControlBar(origin, right, up, 0, "THR", raw.thrust,
                 new Color(0.2f, 0.9f, 0.3f), barWidth, barHeight, halfBar, labelStyle, valueStyle);
-            DrawControlBar(origin, right, up, 1, "STR", raw.strafe, smooth.strafe,
+            DrawControlBar(origin, right, up, 1, "STR", raw.strafe,
                 new Color(0.3f, 0.6f, 1f), barWidth, barHeight, halfBar, labelStyle, valueStyle);
-            DrawControlBar(origin, right, up, 2, "YAW", raw.yawTorque, smooth.yawTorque,
+            DrawControlBar(origin, right, up, 2, "YAW", raw.yawTorque,
                 new Color(1f, 0.4f, 0.8f), barWidth, barHeight, halfBar, labelStyle, valueStyle);
         }
 
         private void DrawControlBar(Vector3 origin, Vector3 right, Vector3 up,
-            int row, string label, float rawValue, float smoothValue, Color color,
+            int row, string label, float value, Color color,
             float barWidth, float barHeight, float halfBar, GUIStyle labelStyle, GUIStyle valueStyle)
         {
             var rowOffset = -up * (row * 0.22f);
@@ -582,28 +558,20 @@ namespace Movement.MPC
             var midTop = center + up * barHeight * 0.5f;
             Gizmos.DrawLine(midBottom, midTop);
 
-            // Raw value bar (dimmer, drawn first so smooth overlaps)
-            var rawColor = color * 0.35f;
-            rawColor.a = 0.5f;
-            var rawBarStart = center; // center of the bar = zero point
-            var rawBarWidth = Mathf.Abs(rawValue) * halfBar;
-            var rawBarOrigin = rawValue >= 0 ? rawBarStart : rawBarStart - right * rawBarWidth;
-            DrawQuad(rawBarOrigin, right, up, rawBarWidth, barHeight * 0.9f, rawColor);
-
-            // Smoothed value bar (brighter, slightly narrower)
-            var smoothColor = color;
-            smoothColor.a = 0.85f;
-            var smoothBarWidth = Mathf.Abs(smoothValue) * halfBar;
-            var smoothBarOrigin = smoothValue >= 0 ? rawBarStart : rawBarStart - right * smoothBarWidth;
-            DrawQuad(smoothBarOrigin, right, up, smoothBarWidth, barHeight * 0.55f, smoothColor);
+            // Applied control bar (center of the bar = zero point)
+            var barColor = color;
+            barColor.a = 0.85f;
+            var valueBarWidth = Mathf.Abs(value) * halfBar;
+            var valueBarOrigin = value >= 0 ? center : center - right * valueBarWidth;
+            DrawQuad(valueBarOrigin, right, up, valueBarWidth, barHeight * 0.9f, barColor);
 
             // Label on the left
             var labelPos = barLeft - right * 0.05f;
             Handles.Label(labelPos, label, labelStyle);
 
-            // Values on the right
+            // Value on the right
             var valPos = barLeft + right * (barWidth + 0.08f);
-            Handles.Label(valPos, $"{smoothValue:+0.00;-0.00} ({rawValue:+0.00;-0.00})", valueStyle);
+            Handles.Label(valPos, $"{value:+0.00;-0.00}", valueStyle);
         }
 
         private static void DrawQuad(Vector3 bottomLeft, Vector3 right, Vector3 up,
@@ -721,6 +689,7 @@ namespace Movement.MPC
             DrawCostBar("Closing", breakdown.closing, s.wClosing, total, new Color(0.4f, 0.9f, 0.7f));
             DrawCostBar("Yaw Rate", breakdown.yawRate, s.wYawRate, total, Color.magenta);
             DrawCostBar("Obstacle", breakdown.obstacle, s.wObstacle, total, Color.red);
+            DrawCostBar("Collision", breakdown.collision, s.collisionPenalty, total, new Color(1f, 0f, 0.5f));
             DrawCostBar("LOS", breakdown.los, s.wLos, total, new Color(1f, 0.5f, 0f));
             DrawCostBar("Exposure", breakdown.exposure, s.wExposure, total, new Color(1f, 0.3f, 0.3f));
             DrawCostBar("Tangential", breakdown.tangential, s.wTangential, total, new Color(0.3f, 0.8f, 1f));

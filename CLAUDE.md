@@ -39,3 +39,29 @@ This applies by default — the user doesn't need to say "use the worktree
 pool" or name a slot for it to kick in. Exceptions: trivial doc/comment-only
 edits the user explicitly asks to be made directly, or explicit instruction
 to work in place instead.
+
+## Dependency & wiring philosophy
+
+How state reaches code in this project — follow these when adding any new
+dependency, and prefer zero new wiring over new seams:
+
+1. **Per-ship dependencies enter a component exactly once, through
+   `Initialize(...)` parameters** (see `Scout.Initialize`, `Navigator.Initialize`).
+   Never add ad-hoc `Set<Thing>()` setters per feature — if a component needs a
+   new per-ship dependency, extend its Initialize signature.
+2. **Keep knowledge at its abstraction level.** A composer (Scout, AICommander)
+   only instantiates and sequences its parts; domain math and configuration
+   (scan envelopes, cost shapes, query extents) live inside the part that uses
+   them. If a field on a high-level object only exists to be forwarded
+   downward, it belongs downward.
+3. **Do not thread world/session-scoped state through per-ship wiring**
+   (Commander/UnitService pass-throughs, service-interface additions) just to
+   hand it to a component. How world-scoped state SHOULD reach consumers is a
+   deliberately open question — multiple arena instances per process are
+   planned (RL training), so process-wide statics are equally suspect long-term.
+   Until that design lands: keep any such seam as narrow as possible, mark it
+   interim (see `ObstacleFields`), don't copy it to new systems, and raise the
+   question with the user rather than inventing a pattern.
+4. **The smell to catch mid-diff:** if wiring ONE new dependency touches
+   bootstrap + a service interface + Commander/UnitService + the consuming
+   component, stop and reclassify before pushing.

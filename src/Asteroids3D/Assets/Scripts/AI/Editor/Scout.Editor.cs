@@ -42,8 +42,10 @@ namespace AI
         {
             if (obstacleScanner == null) return;
 
+            // Fixed worst-case query box (half-extent per axis) the field query fills from.
+            var extent = obstacleScanner.HalfExtent;
             Gizmos.color = new Color(1f, 0.75f, 0f, 0.15f);
-            Gizmos.DrawWireSphere(transform.position, obstacleScanner.Radius);
+            Gizmos.DrawWireCube(transform.position, new Vector3(extent * 2f, extent * 2f, extent * 2f));
 
             if (obstacleScanner.DetectedCount <= 0) return;
 
