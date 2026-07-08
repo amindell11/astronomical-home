@@ -9,23 +9,25 @@ namespace Movement.MPC.Field
     /// as terminal cost — no goal substitution, no waypoints, no gradient walking).
     /// Costs are stored in grid-step units; sampling converts to seconds via
     /// cellSize / nominalSpeed so <c>wTerminal ≈ 1</c> is meaningful against the
-    /// time-denominated stage costs. Blocked / off-grid / unreachable terminal states sample a
-    /// large-but-finite distance-to-goal fallback (never infinity — that would destroy elite
-    /// ranking); an invalid field contributes 0 (guarded at the call site).
+    /// time-denominated stage costs. Cells without a finite routed cost (off-grid, blocked,
+    /// unreachable in a Goal-seeded field) sample a large-but-finite distance-to-goal
+    /// fallback (never infinity — that would destroy elite ranking); BorderEscape-seeded
+    /// fields bake a finite pessimistic value into those cells at solve time, so the
+    /// fallback never fires in-grid. An invalid field contributes 0 (guarded at the call site).
     /// </summary>
     public struct TerminalFieldData
     {
-        [ReadOnly] public NativeArray<float> costToGo; // grid-step units; +inf = unreachable
-        [ReadOnly] public NativeArray<byte> blocked;
+        [ReadOnly] public NativeArray<float> costToGo; // grid-step units; +inf = no routed cost
+        [ReadOnly] public NativeArray<byte> blocked;   // stamp mask (inspection/gizmos; not sampled)
         public int gridSize;
         public float cellSize;
         public float2 origin;       // world/plane position of grid corner (cell 0,0 min corner)
-        public float2 goal;         // field source (the chase target) in plane space
+        public float2 goal;         // grid anchor (chase target / fleeing ship) in plane space
         public float secondsPerStep; // cellSize / nominalChaseSpeed
         public int isValid;         // 1 when a solved field is present
 
-        /// <summary>Multiplier applied to the straight-line time-to-goal for blocked/off-grid/
-        /// unreachable terminal states — pessimistic but finite, so a routed terminal state
+        /// <summary>Multiplier applied to the straight-line time-to-goal for off-grid or
+        /// unrouted terminal states — pessimistic but finite, so a routed terminal state
         /// always beats an unrouted one at equal distance.</summary>
         public const float FallbackFactor = 3f;
 
@@ -57,11 +59,11 @@ namespace Movement.MPC.Field
             return math.lerp(a, b, ty);
         }
 
+        // A finite cost always wins; +inf (blocked/unreachable in a Goal-seeded field —
+        // BorderEscape bakes those finite) falls back to the distance-shaped estimate.
         private static float CellValue(in TerminalFieldData f, int x, int y, float fallback)
         {
-            var idx = y * f.gridSize + x;
-            if (f.blocked[idx] != 0) return fallback;
-            var c = f.costToGo[idx];
+            var c = f.costToGo[y * f.gridSize + x];
             return math.isfinite(c) ? c * f.secondsPerStep : fallback;
         }
     }

@@ -137,7 +137,7 @@ namespace Movement.MPC
         Pos, Vel, Yaw, YawRate,
         Effort, SmoothnessThrust, SmoothnessStrafe, SmoothnessYaw, Momentum,
         Facing, FacingWidth, Los, Exposure, ExposureWidth, Tangential, MissDistance,
-        Obstacle, BoostEffort,
+        Obstacle, BoostEffort, Terminal,
     }
 
     /// <summary>A single per-state multiplier applied to one base MPC weight.</summary>
@@ -181,6 +181,7 @@ namespace Movement.MPC
                     case MpcWeight.MissDistance:      cfg.wMissDistance *= m; break;
                     case MpcWeight.Obstacle:          cfg.wObstacle *= m; break;
                     case MpcWeight.BoostEffort:       cfg.wBoostEffort *= m; break;
+                    case MpcWeight.Terminal:          cfg.wTerminal *= m; break;
                 }
             }
         }
