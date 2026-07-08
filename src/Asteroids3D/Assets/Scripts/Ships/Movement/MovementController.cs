@@ -22,7 +22,7 @@ namespace Ships.Movement
 
         private Rigidbody  rb;
         private Booster booster;
-        private ShipSettings settings;
+        private ResolvedShipStats settings;
         private PilotCommand currentCommand;
         public Kinematics Kinematics => getKinematics();
         private Func<Kinematics> getKinematics;
@@ -46,22 +46,20 @@ namespace Ships.Movement
             ResetMovement();
         }
 
-        public void Initialize(ShipSettings s, Func<Kinematics> getKinematics)
+        public void Initialize(ResolvedShipStats s, Func<Kinematics> getKinematics)
         {
             this.getKinematics = getKinematics;
             PopulateSettings(s);
         }
 
-        public void PopulateSettings(ShipSettings s)
+        public void PopulateSettings(ResolvedShipStats s)
         {
-            if (!s) return;
-            if (settings && settings != s) settings.onSettingsChanged.RemoveAllListeners();
-            s.onSettingsChanged.AddListener(()=>ApplySettings(s));
+            if (s == null) return;
             ApplySettings(s);
             settings = s;
         }
 
-        private void ApplySettings(ShipSettings s)
+        private void ApplySettings(ResolvedShipStats s)
         {
             if (!rb) return;
             rb.maxLinearVelocity = s.maxSpeed;

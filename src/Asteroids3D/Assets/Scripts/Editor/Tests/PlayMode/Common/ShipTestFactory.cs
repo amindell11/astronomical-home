@@ -32,17 +32,16 @@ public static class ShipTestFactory
     /// <returns>Created ship instance, or null if asset loading fails</returns>
     public static Ship CreateDefaultShipAt(Vector3 position, Quaternion rotation, bool useMpcPilot = true, int team = 0)
     {
-        var settings = TestAssets.LoadDefaultShipSettings();
         var shipPrefab = TestAssets.LoadShip2Prefab();
         var cmdrPrefab = TestAssets.LoadTestPilotMpc();
 
-        if (settings == null || shipPrefab == null || cmdrPrefab == null)
+        if (shipPrefab == null || cmdrPrefab == null)
         {
             Debug.LogError("Failed to load required assets for ship creation");
             return null;
         }
 
-        return Factory.CreateShip(shipPrefab, cmdrPrefab, settings, team, position, rotation);
+        return Factory.CreateShip(shipPrefab, cmdrPrefab, team, position, rotation);
     }
 
     /// <summary>
@@ -50,7 +49,6 @@ public static class ShipTestFactory
     /// </summary>
     /// <param name="shipPrefab">Ship prefab to instantiate</param>
     /// <param name="cmdrPrefab">AI commander prefab</param>
-    /// <param name="settings">Ship settings</param>
     /// <param name="team">Team ID for the ship (default: 0)</param>
     /// <param name="position">World position (default: origin)</param>
     /// <param name="rotation">World rotation (default: identity)</param>
@@ -58,7 +56,6 @@ public static class ShipTestFactory
     public static Ship CreateShip(
         Ship shipPrefab,
         AICommander cmdrPrefab,
-        ShipSettings settings,
         int team = 0,
         Vector3? position = null,
         Quaternion? rotation = null)
@@ -66,7 +63,6 @@ public static class ShipTestFactory
         return Factory.CreateShip(
             shipPrefab,
             cmdrPrefab,
-            settings,
             team,
             position ?? Vector3.zero,
             rotation ?? Quaternion.identity);

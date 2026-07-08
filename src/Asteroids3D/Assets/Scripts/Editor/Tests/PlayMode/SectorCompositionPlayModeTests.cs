@@ -143,12 +143,11 @@ namespace Tests.PlayMode
             => sector.SetManifest(adopted, spawners, null);
 
         private Ship AddAdoptedShipChild(
-            Transform parent, Ship shipPrefab, Commander commanderPrefab, ShipSettings settings,
+            Transform parent, Ship shipPrefab, Commander commanderPrefab,
             int team = 0, Vector3? localPos = null)
         {
             var ship = Object.Instantiate(shipPrefab, parent);
             if (localPos.HasValue) ship.transform.localPosition = localPos.Value;
-            ship.settings = settings;
             ship.teamNumber = team;
             if (commanderPrefab)
                 Object.Instantiate(commanderPrefab, ship.transform); // pilot authored as a child
@@ -175,14 +174,13 @@ namespace Tests.PlayMode
         {
             var ship = TestAssets.LoadShip2Prefab();
             var cmdr = TestAssets.LoadTestPilotMpc();
-            var settings = TestAssets.LoadDefaultShipSettings();
-            if (!ship || !cmdr || !settings) { Assert.Ignore("Required test assets not found."); yield break; }
+            if (!ship || !cmdr) { Assert.Ignore("Required test assets not found."); yield break; }
 
             var sector = CreateTestSector();
             var positions = new[] { new Vector3(5, 0, 0), new Vector3(-5, 0, 0), new Vector3(0, 0, 5) };
             var entries = new List<AdoptEntry>();
             foreach (var pos in positions)
-                entries.Add(Entry(AddAdoptedShipChild(sector.transform, ship, cmdr, settings, localPos: pos)));
+                entries.Add(Entry(AddAdoptedShipChild(sector.transform, ship, cmdr, localPos: pos)));
             SetManifest(sector, entries.ToArray(), null);
 
             yield return sector.Setup();
@@ -201,11 +199,10 @@ namespace Tests.PlayMode
         {
             var ship = TestAssets.LoadShip2Prefab();
             var cmdr = TestAssets.LoadTestPilotMpc();
-            var settings = TestAssets.LoadDefaultShipSettings();
-            if (!ship || !cmdr || !settings) { Assert.Ignore("Required test assets not found."); yield break; }
+            if (!ship || !cmdr) { Assert.Ignore("Required test assets not found."); yield break; }
 
             var sector = CreateTestSector();
-            var child = AddAdoptedShipChild(sector.transform, ship, cmdr, settings, team: 0);
+            var child = AddAdoptedShipChild(sector.transform, ship, cmdr, team: 0);
             const int annotatedTeam = 2;
             SetManifest(sector, new[] { Entry(child, team: annotatedTeam) }, null);
 
@@ -221,11 +218,10 @@ namespace Tests.PlayMode
         {
             var ship = TestAssets.LoadShip2Prefab();
             var cmdr = TestAssets.LoadTestPilotMpc();
-            var settings = TestAssets.LoadDefaultShipSettings();
-            if (!ship || !cmdr || !settings) { Assert.Ignore("Required test assets not found."); yield break; }
+            if (!ship || !cmdr) { Assert.Ignore("Required test assets not found."); yield break; }
 
             var sector = CreateTestSector();
-            var child = AddAdoptedShipChild(sector.transform, ship, cmdr, settings);
+            var child = AddAdoptedShipChild(sector.transform, ship, cmdr);
             SetManifest(sector, new[] { Entry(child, startActive: false) }, null);
 
             yield return sector.Setup();
@@ -239,11 +235,10 @@ namespace Tests.PlayMode
         {
             var ship = TestAssets.LoadShip2Prefab();
             var cmdr = TestAssets.LoadTestPilotMpc();
-            var settings = TestAssets.LoadDefaultShipSettings();
-            if (!ship || !cmdr || !settings) { Assert.Ignore("Required test assets not found."); yield break; }
+            if (!ship || !cmdr) { Assert.Ignore("Required test assets not found."); yield break; }
 
             var sector = CreateTestSector();
-            var child = AddAdoptedShipChild(sector.transform, ship, cmdr, settings);
+            var child = AddAdoptedShipChild(sector.transform, ship, cmdr);
             const float expected = 0.123f;
             var authoredPilot = child.GetComponentInChildren<AICommander>(true);
             Assert.IsNotNull(authoredPilot, "Authored ship must contain a pilot child.");
@@ -263,14 +258,13 @@ namespace Tests.PlayMode
         {
             var ship = TestAssets.LoadShip2Prefab();
             var cmdr = TestAssets.LoadTestPilotMpc();
-            var settings = TestAssets.LoadDefaultShipSettings();
-            if (!ship || !cmdr || !settings) { Assert.Ignore("Required test assets not found."); yield break; }
+            if (!ship || !cmdr) { Assert.Ignore("Required test assets not found."); yield break; }
 
             var sector = CreateTestSector();
             var spawnerGO = new GameObject("Ring");
             spawnerGO.transform.SetParent(sector.transform);
             var ring = spawnerGO.AddComponent<RingSpawner>();
-            ring.Configure(ship, cmdr, settings, count: 3, radius: 20f);
+            ring.Configure(ship, cmdr, count: 3, radius: 20f);
             SetManifest(sector, null, new SectorSpawner[] { ring });
 
             yield return sector.Setup();
@@ -309,14 +303,13 @@ namespace Tests.PlayMode
         {
             var ship = TestAssets.LoadShip2Prefab();
             var cmdr = TestAssets.LoadTestPilotMpc();
-            var settings = TestAssets.LoadDefaultShipSettings();
-            if (!ship || !cmdr || !settings) { Assert.Ignore("Required test assets not found."); yield break; }
+            if (!ship || !cmdr) { Assert.Ignore("Required test assets not found."); yield break; }
 
             var sector = CreateBareSector();
             var spawnerGO = new GameObject("Ring");
             spawnerGO.transform.SetParent(sector.transform);
             var ring = spawnerGO.AddComponent<RingSpawner>();
-            ring.Configure(ship, cmdr, settings, count: 3);
+            ring.Configure(ship, cmdr, count: 3);
             SetManifest(sector, null, new SectorSpawner[] { ring });
 
             yield return sector.Setup();
@@ -334,11 +327,10 @@ namespace Tests.PlayMode
         {
             var ship = TestAssets.LoadShip2Prefab();
             var cmdr = TestAssets.LoadTestPilotMpc();
-            var settings = TestAssets.LoadDefaultShipSettings();
-            if (!ship || !cmdr || !settings) { Assert.Ignore("Required test assets not found."); yield break; }
+            if (!ship || !cmdr) { Assert.Ignore("Required test assets not found."); yield break; }
 
             var sector = CreateBareSector();
-            var child = AddAdoptedShipChild(sector.transform, ship, cmdr, settings);
+            var child = AddAdoptedShipChild(sector.transform, ship, cmdr);
             SetManifest(sector, new[] { Entry(child) }, null);
 
             yield return sector.Setup();
@@ -400,10 +392,9 @@ namespace Tests.PlayMode
         {
             var ship = TestAssets.LoadShip2Prefab();
             var cmdr = TestAssets.LoadTestPilotMpc();
-            var settings = TestAssets.LoadDefaultShipSettings();
-            if (!ship || !cmdr || !settings) { Assert.Ignore("Required test assets not found."); yield break; }
+            if (!ship || !cmdr) { Assert.Ignore("Required test assets not found."); yield break; }
 
-            var s = _unitService.SpawnShip(ship, cmdr, settings, 0,
+            var s = _unitService.SpawnShip(ship, cmdr, 0,
                 GamePlane.PlanePointToWorld(Vector2.zero), GamePlane.Rotation);
             Assert.IsNotNull(s);
 
@@ -427,11 +418,10 @@ namespace Tests.PlayMode
         {
             var ship = TestAssets.LoadShip2Prefab();
             var cmdr = TestAssets.LoadTestPilotMpc();
-            var settings = TestAssets.LoadDefaultShipSettings();
-            if (!ship || !cmdr || !settings) { Assert.Ignore("Required test assets not found."); yield break; }
+            if (!ship || !cmdr) { Assert.Ignore("Required test assets not found."); yield break; }
 
             var spawnWorld = GamePlane.PlanePointToWorld(new Vector2(5f, 0f));
-            var s = _unitService.SpawnShip(ship, cmdr, settings, 0, spawnWorld, GamePlane.Rotation);
+            var s = _unitService.SpawnShip(ship, cmdr, 0, spawnWorld, GamePlane.Rotation);
             Assert.IsNotNull(s);
 
             var policy = new RespawnPolicy { origin = RespawnPolicy.Origin.None };

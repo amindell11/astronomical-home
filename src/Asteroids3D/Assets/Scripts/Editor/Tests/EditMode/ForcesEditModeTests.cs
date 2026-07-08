@@ -10,20 +10,21 @@ namespace Tests.EditMode
     [Category("Physics")]
     public class ForcesEditModeTests
     {
-        private ShipSettings CreateTestSettings()
+        private ResolvedShipStats CreateTestSettings()
         {
-            var s = ScriptableObject.CreateInstance<ShipSettings>();
-            s.forwardForce = 1000f;
-            s.reverseForce = 500f;
-            s.maxStrafeForce = 800f;
-            s.minStrafeForce = 400f;
-            s.maxSpeed = 20f;
-            s.yawTorque = 300f;
-            s.maxBankAngle = 45f;
-            s.bankTorque = 5000f;
-            s.boostImpulse = 2000f;
-            s.boostCooldown = 1.0f;
-            return s;
+            return new ResolvedShipStats
+            {
+                forwardForce = 1000f,
+                reverseForce = 500f,
+                maxStrafeForce = 800f,
+                minStrafeForce = 400f,
+                maxSpeed = 20f,
+                yawTorque = 300f,
+                maxBankAngle = 45f,
+                bankTorque = 5000f,
+                boostImpulse = 2000f,
+                boostCooldown = 1.0f,
+            };
         }
 
         private static PilotCommand CreateCommand(

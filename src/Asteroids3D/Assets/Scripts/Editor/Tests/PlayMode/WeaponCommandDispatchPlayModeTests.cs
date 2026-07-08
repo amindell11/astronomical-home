@@ -50,16 +50,14 @@ namespace Tests.PlayMode
             base.SetUp();
 
 #if UNITY_EDITOR
-            var settings = TestAssets.LoadDefaultShipSettings();
             var shipPrefab = TestAssets.LoadShip2Prefab();
 
-            Assert.IsNotNull(settings, "Default ship settings asset failed to load");
             Assert.IsNotNull(shipPrefab, "Ship_2 prefab failed to load");
 
             var commanderGo = new GameObject("AlwaysFireCommanderPrefab");
             commanderPrefab = commanderGo.AddComponent<AlwaysFireCommander>();
 
-            ship = Factory.CreateShip(shipPrefab, commanderPrefab, settings, team: 0, position: Vector3.zero, rotation: Quaternion.identity);
+            ship = Factory.CreateShip(shipPrefab, commanderPrefab, team: 0, position: Vector3.zero, rotation: Quaternion.identity);
             combatShip = ship;
             Assert.IsNotNull(ship, "Ship failed to instantiate");
             Assert.IsNotNull(combatShip.Weapons, "Ship must be armed (WeaponsController present)");

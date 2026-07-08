@@ -86,10 +86,10 @@ namespace Ships.Damage
             LastAttackerId = ShipId.Invalid;
         }
         
-        public void PopulateSettings(ShipSettings s)
+        public void PopulateSettings(ResolvedShipStats s)
         {
-            if (!s) return;
-            
+            if (s == null) return;
+
             Health ??= new Resource(maxHealth);
             Shield ??= new RegenResource(maxShield, shieldRegenRate, shieldRegenDelay);
 

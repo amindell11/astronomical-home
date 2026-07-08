@@ -9,27 +9,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3208e94f16e301643b270a7505a83d3f, type: 3}
-  m_Name: DefaultSettings
+  m_Script: {fileID: 11500000, guid: f6e8aa7f30404320a5996027a2198c28, type: 3}
+  m_Name: Default_Engine
   m_EditorClassIdentifier: 
-  mass: 800
   maxSpeed: 25
   maxYawRate: 180
   forwardForce: 5600
   reverseForce: 2800
   yawTorque: 15000
   angularDrag: 3
-  maxBankAngle: 35
   bankTorque: 20000
   bankDamping: 2000
   minStrafeForce: 3200
   maxStrafeForce: 4000
   linearDrag: 0.3
-  shipRadius: 1.4
   boostImpulse: 9000
   boostCooldown: 5
-  startingLives: 1
-  maxHealth: 100
-  maxShield: 50
-  shieldRegenDelay: 4
-  shieldRegenRate: 10

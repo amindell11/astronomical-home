@@ -8,12 +8,11 @@ namespace Game.Sectors.Utils
 {
     public class SectorUtils
     {
-        public static Ship BuildAndWirePlayer(Ship playerTemplate, Commander playerCommander,ShipSettings shipSettings, int team, Vector2  playerSpawnPosition, IGameServices services)
+        public static Ship BuildAndWirePlayer(Ship playerTemplate, Commander playerCommander, int team, Vector2  playerSpawnPosition, IGameServices services)
         {
             var player = services.UnitService.SpawnShip(
                 playerTemplate,
                 playerCommander,
-                shipSettings,
                 0,
                 GamePlane.PlanePointToWorld(playerSpawnPosition),
                 GamePlane.Rotation);

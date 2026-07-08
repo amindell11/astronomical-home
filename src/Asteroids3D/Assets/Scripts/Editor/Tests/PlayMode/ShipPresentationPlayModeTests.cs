@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Reflection;
 using NUnit.Framework;
-using Presentation;
 using Ships;
 using Ships.Presentation;
 using Ships.Visuals;
@@ -13,10 +12,8 @@ using UnityEngine.TestTools;
 namespace Tests.PlayMode
 {
     /// <summary>
-    /// Tests the ship presentation layer: the visual rig attaches under a sim ship (exactly as the
-    /// game-tier <see cref="PresentationInstaller"/> does) and its visuals wire up through the ship,
-    /// and damage-driven visuals still behave across death/respawn. Ships built directly by the test
-    /// factory are presentation-free until a rig is attached.
+    /// Tests the ship presentation layer: a ship prefab carries its visual rig as an embedded child
+    /// that self-binds its visuals to the ship, and damage-driven visuals behave across death/respawn.
     /// </summary>
     [Category("Integration")]
     [Category("Presentation")]
@@ -25,7 +22,6 @@ namespace Tests.PlayMode
         private const string Ship1Path = "Assets/Prefabs/Ships/Ship_1.prefab";
 
         private Ship ship;
-        private ShipVisualRig rig;
 
         [SetUp]
         public override void SetUp()
@@ -33,11 +29,9 @@ namespace Tests.PlayMode
             base.SetUp();
 
 #if UNITY_EDITOR
-            var settings = TestAssets.LoadDefaultShipSettings();
             var prefab = TestAssets.LoadShipPrefab(Ship1Path);
-            Assert.IsNotNull(settings, "Default ship settings failed to load");
             Assert.IsNotNull(prefab, "Ship_1 prefab failed to load");
-            ship = Factory.CreateShip(prefab, null, settings, 0, Vector3.zero, Quaternion.identity);
+            ship = Factory.CreateShip(prefab, null, 0, Vector3.zero, Quaternion.identity);
             Assert.IsNotNull(ship, "Ship_1 failed to instantiate");
 #else
             Assert.Ignore("ShipPresentationPlayModeTests requires the Unity Editor (uses AssetDatabase).");
@@ -51,33 +45,29 @@ namespace Tests.PlayMode
             base.TearDown();
         }
 
-        /// <summary>The rig is presentation-absent until attached, then parents under the ship and wires up.</summary>
+        /// <summary>The ship prefab embeds its rig under the ship, and the rig self-binds its visuals.</summary>
         [UnityTest]
-        public IEnumerator AttachRig_AddsRigUnderShip_AndWiresVisuals()
+        public IEnumerator EmbeddedRig_ParentsUnderShip_AndWiresVisuals()
         {
-            Assert.AreEqual(0, ship.GetComponentsInChildren<HullVisuals>(true).Length,
-                "Sim ship should have no visuals before a rig is attached");
-
-            rig = PresentationInstaller.AttachRigTo(ship);
-            yield return null;
-
-            Assert.IsNotNull(rig, "AttachRigTo should return a rig for a ship carrying a ShipVisualBinding");
+            var rig = ship.GetComponentInChildren<ShipVisualRig>(true);
+            Assert.IsNotNull(rig, "Ship_1 should embed a ShipVisualRig child");
             Assert.AreEqual(ship.transform, rig.transform.parent, "Rig should be parented under the ship");
+
+            yield return null; // let the embedded rig self-bind in Start
+
             Assert.IsNotNull(ship.GetComponentInChildren<HullVisuals>(true), "Rig should contribute HullVisuals");
             Assert.IsNotNull(ship.GetComponentInChildren<ShieldUI>(true), "Rig should contribute ShieldUI");
             Assert.IsNotNull(ship.GetComponentInChildren<LockOnIndicator>(true), "Rig should contribute LockOnIndicator");
         }
 
         /// <summary>
-        /// Smoke behavior across death/respawn, now driven through the attached rig: hidden at full
-        /// health, shown below 50%, hidden again after a respawn. (Moved from ShipRespawnDamage.)
+        /// Smoke behavior across death/respawn, driven through the embedded, self-bound rig: hidden at
+        /// full health, shown below 50%, hidden again after a respawn.
         /// </summary>
         [UnityTest]
         public IEnumerator SmokeTrail_HiddenAtFull_ShownWhenDamaged_HiddenAfterRespawn()
         {
-            rig = PresentationInstaller.AttachRigTo(ship);
-            Assert.IsNotNull(rig, "Rig should attach");
-            yield return null;
+            yield return null; // let the embedded rig self-bind
 
             var damage = ship.Damage;
             var smoke = GetSmokeObject(ship);

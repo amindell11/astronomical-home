@@ -3,7 +3,6 @@ using System.Collections;
 using Game.Sectors;
 using Game.Services;
 using Player;
-using Presentation;
 using Ships;
 using UnityEngine;
 using Utils;
@@ -37,8 +36,8 @@ namespace Game.Bootstrap
         [Tooltip("Session policy: when false, no player ship is built (spectator/headless).")]
         [SerializeField] private bool buildPlayer = true;
 
-        [Tooltip("Session policy: when false, ships spawn without visual rigs (headless/RL). " +
-                 "Presentation is a game-tier overlay attached to each ship via the unit registry.")]
+        [Tooltip("Session policy: when false, each ship's embedded visual rig is disabled (headless/RL) " +
+                 "so ships stay renderer/audio/particle-free while remaining fully simulated.")]
         [SerializeField] private bool installPresentation = true;
 
         [Tooltip("Session policy: global VFX toggle applied at load — gates the not-yet-rig-migrated " +
@@ -101,13 +100,8 @@ namespace Game.Bootstrap
                 yield return playerRig.Build(target.Services, buildPlayer);
             }
 
-            // Game-tier presentation: attach a visual rig to each active ship (player built above, plus
-            // any spawned/adopted by sectors) via the unit registry. Skipped entirely for headless/RL.
-            if (installPresentation)
-            {
-                target.Presentation = new PresentationInstaller();
-                target.Presentation.Install(target.Services.UnitService);
-            }
+            // Presentation policy (rigs on/off) is applied globally in HandleLoading via
+            // GameSettings.SetPresentationEnabled — each ship's embedded rig self-gates on spawn.
         }
 
         /// <summary>
@@ -167,9 +161,6 @@ namespace Game.Bootstrap
         internal IEnumerator TeardownSession(GameSession target)
         {
             yield return DestroyActiveSector(target, runTeardown: false);
-
-            target.Presentation?.Uninstall();
-            target.Presentation = null;
 
             if (target.Rig)
                 target.Rig.Teardown();
@@ -244,6 +235,10 @@ namespace Game.Bootstrap
             // Game-tier VFX policy: gate the still-un-migrated weapon/projectile/asteroid effects.
             // Runtime-only override so a headless/RL session never leaks into the saved preference.
             GameSettings.SetVfxEnabled(enableVfx);
+
+            // Game-tier presentation policy: when off (headless/RL), each ship's embedded visual rig
+            // self-disables in its Awake. Runtime-only override, same lifetime as the VFX toggle above.
+            GameSettings.SetPresentationEnabled(installPresentation);
 
             session = new GameSession();
 

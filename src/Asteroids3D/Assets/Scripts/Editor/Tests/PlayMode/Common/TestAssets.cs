@@ -15,21 +15,8 @@ namespace Tests.PlayMode.Common
 public static class TestAssets
 {
     // Standard asset paths
-    private const string DefaultShipSettingsPath = "Assets/Settings/Ships/DefaultSettings.asset";
     private const string Ship2PrefabPath = "Assets/Prefabs/Ships/Ship_2.prefab";
     private const string TestPilotMpcPath = "Assets/Prefabs/Pilots/TestPilotMPC.prefab";
-
-    /// <summary>
-    /// Loads the default ship settings asset.
-    /// </summary>
-    public static ShipSettings LoadDefaultShipSettings()
-    {
-#if UNITY_EDITOR
-        return AssetDatabase.LoadAssetAtPath<ShipSettings>(DefaultShipSettingsPath);
-#else
-        return null;
-#endif
-    }
 
     /// <summary>
     /// Loads the Ship_2 prefab (commonly used in tests).
@@ -50,18 +37,6 @@ public static class TestAssets
     {
 #if UNITY_EDITOR
         return AssetDatabase.LoadAssetAtPath<AICommander>(TestPilotMpcPath);
-#else
-        return null;
-#endif
-    }
-
-    /// <summary>
-    /// Loads a ship settings asset from a custom path.
-    /// </summary>
-    public static ShipSettings LoadShipSettings(string assetPath)
-    {
-#if UNITY_EDITOR
-        return AssetDatabase.LoadAssetAtPath<ShipSettings>(assetPath);
 #else
         return null;
 #endif

@@ -19,7 +19,6 @@ namespace Game.Sectors
     {
         [SerializeField] private Ship template;
         [SerializeField] private Commander commander;
-        [SerializeField] private ShipSettings settings;
         [SerializeField] private int team;
         [SerializeField] private int count = 4;
         [SerializeField] private float radius = 30f;
@@ -28,12 +27,11 @@ namespace Game.Sectors
         [SerializeField] private RespawnPolicy respawn;
 
         /// <summary>Configures the ring's template and layout at runtime (spawner setup / tuning).</summary>
-        public void Configure(Ship template, Commander commander, ShipSettings settings,
+        public void Configure(Ship template, Commander commander,
                               int count, float radius = 30f, int team = 0)
         {
             this.template = template;
             this.commander = commander;
-            this.settings = settings;
             this.count = count;
             this.radius = radius;
             this.team = team;
@@ -53,7 +51,7 @@ namespace Game.Sectors
                 var angle = 2f * Mathf.PI * (i + 0.5f) / count;
                 var offset = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * radius;
                 var ship = ctx.Services.UnitService.SpawnShip(
-                    template, commander, settings, team,
+                    template, commander, team,
                     GamePlane.PlanePointToWorld(center + offset), GamePlane.Rotation);
                 if (ship) spawned.Add(ship);
             }
@@ -79,7 +77,7 @@ namespace Game.Sectors
                 prev = next;
             }
 
-            var markerRadius = settings ? settings.shipRadius : 1f;
+            var markerRadius = template ? template.transform.localScale.x : 1f;
             Gizmos.color = new Color(1f, 0.6f, 0.2f, 0.9f);
             for (var i = 0; i < count; i++)
             {

@@ -51,15 +51,13 @@ namespace Tests.PlayMode
 
 #if UNITY_EDITOR
             // Create test ship with all UI and weapon components
-            var settings = TestAssets.LoadDefaultShipSettings();
             var shipPrefab = TestAssets.LoadShipPrefab("Assets/Prefabs/Ships/Ship_1.prefab"); // Ship_1 has UI components
             var commanderPrefab = TestAssets.LoadTestPilotMpc();
 
-            Assert.IsNotNull(settings, "Default ship settings failed to load");
             Assert.IsNotNull(shipPrefab, "Ship_1 prefab failed to load");
             Assert.IsNotNull(commanderPrefab, "TestPilotMPC prefab failed to load");
 
-            testShip = ShipTestFactory.CreateShip(shipPrefab, commanderPrefab, settings, team: 0);
+            testShip = ShipTestFactory.CreateShip(shipPrefab, commanderPrefab, team: 0);
             combatShip = testShip;
             Assert.IsNotNull(testShip, "Test ship failed to instantiate");
             Assert.IsNotNull(combatShip.Weapons, "Test ship should be armed (WeaponsController present)");

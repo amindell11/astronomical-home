@@ -37,7 +37,6 @@ namespace Player
         [Header("Player")]
         [SerializeField] private Ship playerTemplate;
         [SerializeField] private Commander playerCommander;
-        [SerializeField] private ShipSettings shipSettings;
         [SerializeField] private Vector2 playerSpawnPosition = Vector2.zero;
 
         [Tooltip("What happens when the player ship dies. RestartSector reloads the active sector; " +
@@ -88,7 +87,7 @@ namespace Player
             }
 
             Player = SectorUtils.BuildAndWirePlayer(
-                playerTemplate, playerCommander, shipSettings,
+                playerTemplate, playerCommander,
                 0, playerSpawnPosition, services);
 
             // Session death policy: revive in place, restart the sector, or do nothing.

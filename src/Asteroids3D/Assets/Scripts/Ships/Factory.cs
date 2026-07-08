@@ -14,7 +14,6 @@ namespace Ships
         public static Ship CreateShip(
              Ship prefab,
              Commander commander,
-             ShipSettings shipSettings,
              int team,
              Vector3 position,
              Quaternion rotation,
@@ -22,7 +21,7 @@ namespace Ships
         {
             var ship = UnityEngine.Object.Instantiate(prefab, position, rotation);
             ship.AddCommander(commander);
-            ship.Initialize(shipSettings, team);
+            ship.Initialize(team);
             postInitialize?.Invoke(ship);
             return ship;
         }

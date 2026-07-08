@@ -2,7 +2,6 @@ using System;
 using Game.Sectors;
 using Game.Services;
 using Player;
-using Presentation;
 
 namespace Game.Bootstrap
 {
@@ -20,9 +19,6 @@ namespace Game.Bootstrap
 
         /// <summary>Session-tier player/camera/UI/world rig; null for headless sessions.</summary>
         public PlayerRig Rig { get; internal set; }
-
-        /// <summary>Game-tier visual overlay installer; null when presentation is disabled.</summary>
-        public PresentationInstaller Presentation { get; internal set; }
 
         /// <summary>The currently loaded sector, if any.</summary>
         public Sector ActiveSector { get; internal set; }

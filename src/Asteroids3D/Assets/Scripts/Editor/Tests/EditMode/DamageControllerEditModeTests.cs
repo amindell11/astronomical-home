@@ -8,7 +8,7 @@ namespace Tests.EditMode
     /// <summary>
     /// EditMode coverage for DamageController's routing / reset / regen logic. These were previously
     /// slow PlayMode tests (ShipRespawnDamage) that spun up a full ship through the factory. The
-    /// routing is Time-free and configured through the production <see cref="ShipSettings"/> path
+    /// routing is Time-free and configured through the production <see cref="ResolvedShipStats"/> path
     /// (<see cref="DamageController.PopulateSettings"/>), so it runs here without play mode, physics,
     /// or a prefab. Behaviour that genuinely needs a real ship — LastAttackerId from an enemy ship,
     /// OnDeath victim/killer ids — and presentation (hull smoke) stay in PlayMode.
@@ -17,19 +17,20 @@ namespace Tests.EditMode
     public class DamageControllerEditModeTests
     {
         private GameObject _go;
-        private ShipSettings _settings;
 
         private DamageController NewDamage(float maxHealth = 100f, float maxShield = 50f,
                                            float regenRate = 10f, float regenDelay = 0.5f)
         {
             _go = new GameObject("DamageTest");
             var dc = _go.AddComponent<DamageController>();
-            _settings = ScriptableObject.CreateInstance<ShipSettings>();
-            _settings.maxHealth = maxHealth;
-            _settings.maxShield = maxShield;
-            _settings.shieldRegenRate = regenRate;
-            _settings.shieldRegenDelay = regenDelay;
-            dc.PopulateSettings(_settings); // production init path — also runs without Awake
+            var stats = new ResolvedShipStats
+            {
+                maxHealth = maxHealth,
+                maxShield = maxShield,
+                shieldRegenRate = regenRate,
+                shieldRegenDelay = regenDelay,
+            };
+            dc.PopulateSettings(stats); // production init path — also runs without Awake
             return dc;
         }
 
@@ -37,9 +38,7 @@ namespace Tests.EditMode
         public void TearDown()
         {
             if (_go) Object.DestroyImmediate(_go);
-            if (_settings) Object.DestroyImmediate(_settings);
             _go = null;
-            _settings = null;
         }
 
         private static void Damage(DamageController dc, float amount) =>
