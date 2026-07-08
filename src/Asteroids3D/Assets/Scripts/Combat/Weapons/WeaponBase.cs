@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Combat.Conditions;
 using Combat.Projectile;
@@ -56,18 +57,12 @@ namespace Combat.Weapons
         }
 
         /// <summary>
-        /// The first condition of the given type on this weapon (from the array cached at Awake),
-        /// or null. Lets consumers (e.g. HUD binding) discover a weapon's gauges by condition
-        /// presence instead of casting to concrete weapon classes.
+        /// This weapon's conditions (cached at Awake). Lets consumers (e.g. HUD generation)
+        /// discover a weapon's gauges from what it actually carries instead of casting to
+        /// concrete weapon classes.
         /// </summary>
-        public T GetCondition<T>() where T : WeaponCondition
-        {
-            if (conditions == null) return null;
-            foreach (var condition in conditions)
-                if (condition is T typed)
-                    return typed;
-            return null;
-        }
+        public IReadOnlyList<WeaponCondition> Conditions =>
+            conditions ?? Array.Empty<WeaponCondition>();
 
         /// <summary>The lock-state source driving this weapon's guidance UI, or null if it has none.</summary>
         public virtual ILockStateSource LockSource => null;

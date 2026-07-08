@@ -15,9 +15,10 @@ using UnityEditor;
 namespace Tests.PlayMode
 {
     /// <summary>
-    /// The HUD binds weapon readouts by condition presence (Heat → heat gauge, Rounds → ammo
-    /// display), not by casting slots to concrete weapon classes. These tests cover the binding
-    /// lookup across loadouts — including the Ripper, whose prefabs are also validated here.
+    /// The weapon HUD is generated from the equipped loadout: WeaponReadoutBuilder walks each
+    /// mounted weapon's conditions and clones the matching widget template per condition
+    /// (Heat → heat gauge, Rounds → ammo display). These tests cover the generation across
+    /// loadouts — including the Ripper, whose prefabs are also validated here.
     /// </summary>
     [Category("Weapons")]
     public class WeaponHudBindingPlayModeTests : PlayModeWorldFixture
@@ -26,6 +27,7 @@ namespace Tests.PlayMode
         private const string MissilesPrefabPath = "Assets/Prefabs/Weapons/Missiles.prefab";
         private const string RippersPrefabPath = "Assets/Prefabs/Weapons/Rippers.prefab";
         private const string RipperSlugPrefabPath = "Assets/Prefabs/Weapons/RipperSlug.prefab";
+        private const string OverlayPrefabPath = "Assets/Prefabs/UI/UIOverlay.prefab";
 
         private readonly List<GameObject> spawned = new();
 
@@ -68,49 +70,127 @@ namespace Tests.PlayMode
             return controller;
         }
 
+        /// <summary>A builder with bare widget templates, mirroring the HUD panel's setup.</summary>
+        private WeaponReadoutBuilder CreateBuilder()
+        {
+            var panel = new GameObject("HUDPanelTest");
+            spawned.Add(panel);
+            panel.SetActive(false);
+
+            var heatTemplate = new GameObject("HeatGaugeTemplate").AddComponent<LaserHeatUI>();
+            heatTemplate.transform.SetParent(panel.transform);
+            var ammoTemplate = new GameObject("AmmoDisplayTemplate").AddComponent<MissileAmmoUI>();
+            ammoTemplate.transform.SetParent(panel.transform);
+
+            var builder = panel.AddComponent<WeaponReadoutBuilder>();
+            builder.heatTemplate = heatTemplate;
+            builder.ammoTemplate = ammoTemplate;
+            panel.SetActive(true);
+            return builder;
+        }
+
         [Test]
-        public void DefaultLoadout_BindsHeatToPrimary_AmmoToSecondary()
+        public void DefaultLoadout_BuildsHeatGaugeAndAmmoDisplay()
         {
             var controller = CreateController(
                 LoadWeaponPrefab<Lasers>(LasersPrefabPath),
                 LoadWeaponPrefab<Missiles>(MissilesPrefabPath));
+            var builder = CreateBuilder();
 
-            var heat = Overlay.FindCondition<Heat>(controller, out var heatOwner);
-            Assert.IsNotNull(heat);
-            Assert.AreSame(controller.Primary, heatOwner);
+            builder.Build(controller);
 
-            var rounds = Overlay.FindCondition<Rounds>(controller, out var roundsOwner);
-            Assert.IsNotNull(rounds);
-            Assert.AreSame(controller.Secondary, roundsOwner);
-            Assert.AreEqual(((Missiles)roundsOwner).Targeting, roundsOwner.LockSource,
-                "The ammo readout's lock source comes from the weapon that owns the Rounds.");
+            Assert.AreEqual(2, builder.Built.Count);
+
+            var heatReadout = builder.Built[0];
+            Assert.AreSame(controller.Primary, heatReadout.Weapon);
+            Assert.IsInstanceOf<Heat>(heatReadout.Condition);
+            Assert.IsInstanceOf<LaserHeatUI>(heatReadout.Widget);
+            Assert.IsTrue(heatReadout.Widget.gameObject.activeSelf);
+
+            var ammoReadout = builder.Built[1];
+            Assert.AreSame(controller.Secondary, ammoReadout.Weapon);
+            Assert.IsInstanceOf<Rounds>(ammoReadout.Condition);
+            Assert.IsInstanceOf<MissileAmmoUI>(ammoReadout.Widget);
+
+            Assert.IsFalse(builder.heatTemplate.gameObject.activeSelf, "Templates stay hidden.");
+            Assert.IsFalse(builder.ammoTemplate.gameObject.activeSelf, "Templates stay hidden.");
+
+            Assert.IsNotNull(builder.FirstCondition<Heat>());
         }
 
         [Test]
-        public void RipperLoadout_BindsAmmoToPrimary_AndNoHeatGauge()
+        public void RipperLoadout_BuildsTwoAmmoDisplays_AndNoHeatGauge()
         {
             var controller = CreateController(
                 LoadWeaponPrefab<Rippers>(RippersPrefabPath),
                 LoadWeaponPrefab<Missiles>(MissilesPrefabPath));
+            var builder = CreateBuilder();
 
-            Assert.IsNull(Overlay.FindCondition<Heat>(controller, out _),
-                "No equipped weapon carries Heat, so the heat gauge must unbind.");
+            builder.Build(controller);
 
-            var rounds = Overlay.FindCondition<Rounds>(controller, out var roundsOwner);
-            Assert.IsNotNull(rounds);
-            Assert.AreSame(controller.Primary, roundsOwner, "Earlier slot wins when two mounts carry Rounds.");
-            Assert.IsInstanceOf<Rippers>(roundsOwner);
-            Assert.IsNull(roundsOwner.LockSource, "A ripper has no lock-on; the ammo readout gets no lock source.");
+            // The HUD follows the loadout: one ammo display per Rounds weapon, no heat gauge.
+            Assert.AreEqual(2, builder.Built.Count);
+            Assert.IsNull(builder.FirstCondition<Heat>());
+
+            Assert.AreSame(controller.Primary, builder.Built[0].Weapon);
+            Assert.IsInstanceOf<Rippers>(builder.Built[0].Weapon);
+            Assert.IsInstanceOf<Rounds>(builder.Built[0].Condition);
+
+            Assert.AreSame(controller.Secondary, builder.Built[1].Weapon);
+            Assert.IsInstanceOf<Missiles>(builder.Built[1].Weapon);
+            Assert.IsInstanceOf<Rounds>(builder.Built[1].Condition);
         }
 
         [Test]
-        public void NullOrUnarmedController_BindsNothing()
+        public void Rebuild_ReplacesPreviousWidgets()
         {
-            Assert.IsNull(Overlay.FindCondition<Heat>(null, out var owner));
-            Assert.IsNull(owner);
+            var controller = CreateController(
+                LoadWeaponPrefab<Lasers>(LasersPrefabPath),
+                LoadWeaponPrefab<Missiles>(MissilesPrefabPath));
+            var builder = CreateBuilder();
+
+            builder.Build(controller);
+            var firstWidgets = new List<MonoBehaviour>();
+            foreach (var readout in builder.Built)
+                firstWidgets.Add(readout.Widget);
+
+            builder.Build(controller);
+
+            Assert.AreEqual(2, builder.Built.Count, "Rebuild must not accumulate widgets.");
+            foreach (var widget in firstWidgets)
+                Assert.IsFalse(builder.Built[0].Widget == widget || builder.Built[1].Widget == widget,
+                    "Rebuild replaces prior widget instances.");
+        }
+
+        [Test]
+        public void NullOrUnarmedController_BuildsNothing()
+        {
+            var builder = CreateBuilder();
+
+            builder.Build(null);
+            Assert.AreEqual(0, builder.Built.Count);
 
             var unarmed = CreateController(null, null);
-            Assert.IsNull(Overlay.FindCondition<Rounds>(unarmed, out _));
+            builder.Build(unarmed);
+            Assert.AreEqual(0, builder.Built.Count);
+        }
+
+        [Test]
+        public void OverlayPrefab_WiresReadoutBuilderTemplates()
+        {
+#if UNITY_EDITOR
+            var overlay = AssetDatabase.LoadAssetAtPath<GameObject>(OverlayPrefabPath);
+            Assert.IsNotNull(overlay, "Failed to load UIOverlay prefab");
+
+            var builder = overlay.GetComponentInChildren<WeaponReadoutBuilder>(true);
+            Assert.IsNotNull(builder, "UIOverlay must carry a WeaponReadoutBuilder.");
+            Assert.IsNotNull(builder.heatTemplate, "Heat gauge template must be wired.");
+            Assert.IsNotNull(builder.ammoTemplate, "Ammo display template must be wired.");
+            Assert.AreSame(builder.transform, builder.heatTemplate.transform.parent,
+                "Templates live in the builder's layout panel so clones inherit its layout.");
+#else
+            Assert.Ignore("Requires Unity Editor assets.");
+#endif
         }
 
         [Test]

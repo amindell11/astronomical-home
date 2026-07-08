@@ -567,6 +567,7 @@ GameObject:
   - component: {fileID: 3657714232746991540}
   - component: {fileID: 7981103953497446255}
   - component: {fileID: 6498823678575909482}
+  - component: {fileID: 5379841027465518332}
   m_Layer: 10
   m_Name: HUDPanel
   m_TagString: Untagged
@@ -633,6 +634,20 @@ CanvasGroup:
   m_Interactable: 0
   m_BlocksRaycasts: 0
   m_IgnoreParentGroups: 0
+--- !u!114 &5379841027465518332
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2588259220844699363}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b608155c18904c18a183e62667cef507, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  heatTemplate: {fileID: 6040644075928143607}
+  ammoTemplate: {fileID: 4157621436492762279}
 --- !u!1 &3565447054997859531
 GameObject:
   m_ObjectHideFlags: 0

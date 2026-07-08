@@ -23,24 +23,26 @@ Missile-in-Secondary.**
 `Secondary as Missiles`. Equip anything else and its UI silently vanishes —
 this blocks *every* new weapon, so it goes first.
 
-Approach — **condition-driven binding**. The stats a weapon HUD shows are
-exactly the weapon's `WeaponCondition`s (heat, ammo/reload, later charge) plus
-the lock sensor. So instead of casting to concrete weapon classes, `Overlay`
-(or a small per-slot binder it owns) iterates the equipped mounts and binds
-widgets by component presence:
+Approach — **generate the HUD from the loadout**. The stats a weapon HUD shows
+are exactly the weapon's `WeaponCondition`s (heat, ammo/reload, later charge),
+so a `WeaponReadoutBuilder` on the HUD panel walks each equipped mount's
+conditions and *instantiates* the matching widget per condition, in slot order:
 
-- `weapon.TryGetComponent<Heat>` → heat gauge (`LaserHeatUI`, generalized)
-- `weapon.TryGetComponent<Rounds>` → ammo display (`MissileAmmoUI`, generalized)
-- `weapon.GetComponent<LockOnSensor>`/`Targeting` → lock spinner + audio
+- `Heat` → heat gauge (`LaserHeatUI` as template)
+- `Rounds` → ammo display (`MissileAmmoUI` as template), lock spinner sourced
+  from the owning weapon's `LockSource`
 
-A new weapon then gets its HUD for free by carrying the standard conditions.
-No new interface framework; the `WeaponCondition` system *is* the contract.
+The authored widgets under the HUD panel become deactivated templates cloned
+into the panel's existing layout group, so the HUD's shape follows the loadout
+(two `Rounds` weapons → two ammo displays) and a new weapon gets its HUD for
+free by carrying the standard conditions. No new interface framework; the
+`WeaponCondition` system *is* the contract.
 
 Notes:
-- `LaserHeatUI`/`MissileAmmoUI` keep their visuals; they lose the assumption of
-  which slot feeds them. Widgets should handle "no source" (hide) so unarmed /
-  differently-armed ships don't leave stale UI.
-- `UILaserAudio`/`UILockOnAudio` re-bind the same way.
+- `WeaponComponent` exposes its Awake-cached `Conditions` for enumeration and a
+  virtual `LockSource` (overridden by `Missiles`).
+- `UILaserAudio` stays a single overlay-level channel bound to the first
+  heat-carrying weapon; `UILockOnAudio` stays on the ship-level sensor.
 - Slot-count stays two; this PR does not touch `WeaponSlot`.
 
 **Weapon: Ripper** — "regular gun that uses ammo, no overheat, fixed reload
