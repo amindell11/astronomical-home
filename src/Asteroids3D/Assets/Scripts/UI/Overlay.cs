@@ -1,6 +1,7 @@
 using Combat.Conditions;
 using Combat.Weapons;
 using Ships;
+using Ships.Weapons;
 using UnityEngine;
 using UI.Audio;
 
@@ -46,19 +47,40 @@ namespace UI
             if (healthAudio && player.Damage)
                 healthAudio.Initialize(player.Damage);
 
-            var laser = player.Weapons?.Primary as Lasers;
-            var heat = laser ? laser.Heat : null;
-            if (heat)
-            {
-                if (laserAudio) laserAudio.Initialize(heat);
-                if (laserHeatUI) laserHeatUI.Initialize(heat);
-            }
+            BindWeaponReadouts(player.Weapons);
+        }
 
-            var missiles = player.Weapons?.Secondary as Missiles;
-            var rounds = missiles ? missiles.Rounds : null;
-            var targeting = missiles ? missiles.Targeting : null;
-            if (missileAmmoUI && rounds && targeting)
-                missileAmmoUI.Initialize(rounds, targeting);
+        /// <summary>
+        /// Binds each weapon readout to the first equipped mount that carries its condition,
+        /// scanning slots in order — no assumption about which weapon type sits in which slot.
+        /// A readout with no matching condition anywhere is cleared (widgets hide themselves).
+        /// One widget instance exists per condition type today; if two mounts carry the same
+        /// condition, the earlier slot wins.
+        /// </summary>
+        private void BindWeaponReadouts(WeaponsController weapons)
+        {
+            var heat = FindCondition<Heat>(weapons, out _);
+            if (laserAudio) laserAudio.Initialize(heat);
+            if (laserHeatUI) laserHeatUI.Initialize(heat);
+
+            var rounds = FindCondition<Rounds>(weapons, out var roundsWeapon);
+            if (missileAmmoUI) missileAmmoUI.Initialize(rounds, roundsWeapon ? roundsWeapon.LockSource : null);
+        }
+
+        /// <summary>The first mount's condition of type <typeparamref name="T"/>, in slot order.</summary>
+        internal static T FindCondition<T>(WeaponsController weapons, out WeaponComponent owner) where T : WeaponCondition
+        {
+            owner = null;
+            if (!weapons) return null;
+
+            foreach (var mount in new[] { weapons.Primary, weapons.Secondary })
+            {
+                var condition = mount ? mount.GetCondition<T>() : null;
+                if (!condition) continue;
+                owner = mount;
+                return condition;
+            }
+            return null;
         }
     }
 }

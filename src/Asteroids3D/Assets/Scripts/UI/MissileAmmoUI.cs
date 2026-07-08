@@ -46,6 +46,7 @@ namespace UI
         private Rounds rounds;
         private ILockStateSource lockStateSource;
         private bool isOnCooldown;
+        private bool isReloading;
 
         private void Awake()
         {
@@ -61,18 +62,24 @@ namespace UI
 
         public void Initialize(Rounds rounds, ILockStateSource targeting)
         {
-            if (this.rounds && ammoChangedHandler != null)
-                this.rounds.OnAmmoCountChanged -= ammoChangedHandler;
-
+            UnsubscribeFromRounds();
             UnsubscribeFromLockStateSource();
 
             this.rounds = rounds;
             lockStateSource = targeting;
-            if (!this.rounds) return;
+            if (!this.rounds)
+            {
+                SetReloadingState(false);
+                SetCooldownState(false);
+                return;
+            }
 
             RebuildIcons();
             this.rounds.OnAmmoCountChanged += ammoChangedHandler;
+            this.rounds.OnReloadStarted += HandleReloadStarted;
+            this.rounds.OnReloadCompleted += HandleReloadCompleted;
             UpdateAmmoIcons(this.rounds.AmmoCount);
+            SetReloadingState(this.rounds.IsReloading);
 
             if (lockStateSource != null)
             {
@@ -106,7 +113,7 @@ namespace UI
 
         private void Update()
         {
-            if (!isOnCooldown || !cooldownSpinner) return;
+            if ((!isOnCooldown && !isReloading) || !cooldownSpinner) return;
             cooldownSpinner.transform.Rotate(0f, 0f, -360f * Time.unscaledDeltaTime);
         }
 
@@ -125,8 +132,7 @@ namespace UI
 
         private void OnDestroy()
         {
-            if (rounds && ammoChangedHandler != null)
-                rounds.OnAmmoCountChanged -= ammoChangedHandler;
+            UnsubscribeFromRounds();
             UnsubscribeFromLockStateSource();
             lockStateSource = null;
         }
@@ -141,6 +147,16 @@ namespace UI
         private void HandleLockStateChanged(LockState _, LockState next)
         {
             SetCooldownState(next == LockState.Cooldown);
+        }
+
+        private void HandleReloadStarted()
+        {
+            SetReloadingState(true);
+        }
+
+        private void HandleReloadCompleted()
+        {
+            SetReloadingState(false);
         }
 
         // ───────────────────────── Helpers ─────────────────────────
@@ -209,8 +225,30 @@ namespace UI
         private void SetCooldownState(bool onCooldown)
         {
             isOnCooldown = onCooldown;
+            UpdateSpinner();
+        }
+
+        private void SetReloadingState(bool reloading)
+        {
+            isReloading = reloading;
+            UpdateSpinner();
+        }
+
+        // The spinner doubles as the reload indicator: it runs during a lock cooldown
+        // (missile-style weapons) or while the magazine refills (reloading weapons).
+        private void UpdateSpinner()
+        {
             if (cooldownSpinner)
-                cooldownSpinner.enabled = onCooldown;
+                cooldownSpinner.enabled = isOnCooldown || isReloading;
+        }
+
+        private void UnsubscribeFromRounds()
+        {
+            if (!rounds) return;
+            if (ammoChangedHandler != null)
+                rounds.OnAmmoCountChanged -= ammoChangedHandler;
+            rounds.OnReloadStarted -= HandleReloadStarted;
+            rounds.OnReloadCompleted -= HandleReloadCompleted;
         }
 
         private void SubscribeToLockStateSource()
