@@ -22,6 +22,8 @@ namespace Combat.Weapons
         public LockOnSensor Targeting => targetingComputer;
         public Rounds Rounds { get; private set; }
 
+        public override ILockStateSource LockSource => targetingComputer;
+
         // Missiles are semi-auto: one launch per trigger press, not a held stream.
         public override bool AutoFire => false;
 

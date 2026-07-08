@@ -1,20 +1,16 @@
 using Combat.Conditions;
-using Combat.Weapons;
 using UnityEngine;
 using UnityEngine.UI;
+
 namespace UI
 {
     /// <summary>
-    /// Displays the current heat level of a LaserGun using an Image with Fill mode.
-    /// Place the UI as a vertical bar near the aiming reticle and assign the references
-    /// in the inspector. Works in both world-space and screen-space canvases.
+    /// Heat readout widget: a vertical fill bar with an overheat flash. One is generated per
+    /// heat-carrying weapon by <see cref="WeaponReadoutBuilder"/>.
     /// </summary>
-    public sealed class LaserHeatUI : MonoBehaviour
+    public sealed class HeatGaugeUI : MonoBehaviour
     {
         [Header("References")]
-        [Tooltip("LaserGun whose heat we visualise.")]
-        [SerializeField] private Lasers laserGun;
-
         [Tooltip("Image component whose FillAmount represents heat (0-1). Should use a Vertical fill method.")]
         [SerializeField] private Image fillImage;
 
@@ -37,7 +33,7 @@ namespace UI
 
         private bool wasOverheated;
         private float defaultFlashSpeed = 4f;
-        private Heat heat;
+        private IHeatReadout heat;
 
         private void Awake()
         {
@@ -52,13 +48,13 @@ namespace UI
             glowController.SetFlashing(false);
         }
 
-        public void Initialize(Heat heat)
+        public void Initialize(IHeatReadout heat)
         {
-            if (this.heat)
+            if (this.heat != null)
                 this.heat.OnHeatChanged -= OnHeatChanged;
 
             this.heat = heat;
-            if (!this.heat)
+            if (this.heat == null)
             {
                 ApplyHeatVisuals(0f);
                 return;
@@ -71,20 +67,20 @@ namespace UI
 
         private void OnEnable()
         {
-            if (heat)
+            if (heat != null)
                 heat.OnHeatChanged += OnHeatChanged;
         }
 
         private void OnDisable()
         {
-            if (heat)
+            if (heat != null)
                 heat.OnHeatChanged -= OnHeatChanged;
             ApplyHeatVisuals(0f);
         }
 
         private void OnDestroy()
         {
-            if (heat)
+            if (heat != null)
                 heat.OnHeatChanged -= OnHeatChanged;
         }
 
@@ -105,7 +101,6 @@ namespace UI
                 animator.SetFloat("heat", pct);
             }
 
-            // Handle glow controller behaviour
             if (glowController)
             {
                 var isOverheated = pct >= 1f;

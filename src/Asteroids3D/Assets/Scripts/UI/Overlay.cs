@@ -1,6 +1,5 @@
 using Combat.Conditions;
-using Combat.Weapons;
-using Ships;
+using Combat.Targeting;
 using UnityEngine;
 using UI.Audio;
 
@@ -16,8 +15,7 @@ namespace UI
         private UILockOnAudio lockOnAudio;
         private UIHealthAudio healthAudio;
         private UILaserAudio laserAudio;
-        private LaserHeatUI laserHeatUI;
-        private MissileAmmoUI missileAmmoUI;
+        private WeaponReadoutBuilder readoutBuilder;
 
         public MinimapObjectiveMarker ObjectiveMarker { get; private set; }
         public RectTransform MinimapRect => minimapRect;
@@ -28,8 +26,7 @@ namespace UI
             lockOnAudio = GetComponentInChildren<UILockOnAudio>();
             healthAudio = GetComponentInChildren<UIHealthAudio>();
             laserAudio = GetComponentInChildren<UILaserAudio>();
-            laserHeatUI = GetComponentInChildren<LaserHeatUI>();
-            missileAmmoUI = GetComponentInChildren<MissileAmmoUI>();
+            readoutBuilder = GetComponentInChildren<WeaponReadoutBuilder>(true);
             ObjectiveMarker = GetComponentInChildren<MinimapObjectiveMarker>(true);
         }
 
@@ -38,27 +35,21 @@ namespace UI
             canvas.worldCamera = uicam;
         }
 
-        public void Initialize(Ship player)
+        public void Initialize(in HudBinding binding)
         {
-            if (lockOnAudio && player.Targeting)
-                lockOnAudio.Initialize(player.Targeting);
+            if (healthAudio)
+                healthAudio.Initialize(binding.Damage);
 
-            if (healthAudio && player.Damage)
-                healthAudio.Initialize(player.Damage);
+            if (readoutBuilder)
+                readoutBuilder.Build(binding.Weapons);
 
-            var laser = player.Weapons?.Primary as Lasers;
-            var heat = laser ? laser.Heat : null;
-            if (heat)
-            {
-                if (laserAudio) laserAudio.Initialize(heat);
-                if (laserHeatUI) laserHeatUI.Initialize(heat);
-            }
+            // Overheat and lock audio are single overlay-level channels; each follows the
+            // first weapon (in slot order) that exposes the matching readout.
+            if (laserAudio)
+                laserAudio.Initialize(readoutBuilder ? readoutBuilder.FirstReadout<IHeatReadout>() : null);
 
-            var missiles = player.Weapons?.Secondary as Missiles;
-            var rounds = missiles ? missiles.Rounds : null;
-            var targeting = missiles ? missiles.Targeting : null;
-            if (missileAmmoUI && rounds && targeting)
-                missileAmmoUI.Initialize(rounds, targeting);
+            if (lockOnAudio)
+                lockOnAudio.Initialize(readoutBuilder ? readoutBuilder.FirstReadout<ILockStateSource>() : null);
         }
     }
 }

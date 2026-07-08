@@ -11,8 +11,8 @@ namespace Ships.Weapons
     [DefaultExecutionOrder(-95)]
     public class WeaponsController : MonoBehaviour, IWeapons
     {
-        [SerializeField] private WeaponComponent primaryMount;
-        [SerializeField] private WeaponComponent secondaryMount;
+        [SerializeField] internal WeaponComponent primaryMount;
+        [SerializeField] internal WeaponComponent secondaryMount;
 
         /// <summary>A slot's mount point on the hull: the weapon instantiates here and fires from it.</summary>
         [Serializable]
@@ -58,6 +58,9 @@ namespace Ships.Weapons
         /// <summary>The slot-keyed read view handed to armed commanders.</summary>
         public IWeaponContext Context => context;
 
+        /// <summary>The slot-keyed display view handed to the HUD (same object, UI-facing surface).</summary>
+        public IWeaponReadouts ReadoutContext => context;
+
         // ── IWeapons ──
         public void Fire(WeaponSlot slot, in WeaponCommand cmd)
         {
@@ -84,7 +87,7 @@ namespace Ships.Weapons
         }
 
         /// <summary>Slot-keyed read view over the controller's mounts.</summary>
-        private sealed class WeaponContext : IWeaponContext
+        private sealed class WeaponContext : IWeaponContext, IWeaponReadouts
         {
             private readonly WeaponsController owner;
             private readonly Gunsight primarySight;
@@ -120,6 +123,12 @@ namespace Ships.Weapons
                 WeaponSlot.Secondary => secondarySight,
                 _ => null,
             };
+
+            // ── IWeaponReadouts ──
+            public string DisplayName(WeaponSlot slot) => owner.Mount(slot)?.DisplayName ?? string.Empty;
+
+            public IReadOnlyList<IWeaponReadout> Readouts(WeaponSlot slot) =>
+                owner.Mount(slot)?.Readouts ?? System.Array.Empty<IWeaponReadout>();
         }
     }
 }

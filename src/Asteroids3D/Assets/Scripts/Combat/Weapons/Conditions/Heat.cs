@@ -1,9 +1,23 @@
 using System;
+using Combat.Weapons;
 using UnityEngine;
 
 namespace Combat.Conditions
 {
-    public class Heat : WeaponCondition
+    /// <summary>
+    /// What a heat gauge renders: the read-only, event-driven face of <see cref="Heat"/>.
+    /// (Co-located with its sole implementer; C# disallows implementing an interface nested
+    /// in the implementing class itself.)
+    /// </summary>
+    public interface IHeatReadout : IWeaponReadout
+    {
+        float HeatPct { get; }
+        event Action<float, float> OnHeatChanged;
+        event Action OnOverheat;
+        event Action OnCooldownStart;
+    }
+
+    public class Heat : WeaponCondition, IHeatReadout
     {
         [Header("Heat System")]
         [SerializeField] private float maxHeat = 100f;
