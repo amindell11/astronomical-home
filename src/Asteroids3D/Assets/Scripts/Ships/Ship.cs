@@ -35,6 +35,12 @@ namespace Ships
         [Tooltip("Shield module: shield capacity/regen. Null → the ship carries no shield.")]
         public ShieldModule shield;
 
+        /// <summary>The currently-installed engine module. Change it via <see cref="Reequip"/>.</summary>
+        public EngineModule Engine => engine;
+
+        /// <summary>The currently-installed shield module, or null if the ship carries no shield.</summary>
+        public ShieldModule Shield => shield;
+
         /// <summary>The flattened stats resolved from this ship's chassis + modules.</summary>
         public ResolvedShipStats Stats { get; private set; }
 
@@ -116,13 +122,45 @@ namespace Ships
         /// </summary>
         public ResolvedShipStats ResolveStats() => ResolvedShipStats.Resolve(this, engine, shield);
 
-        // Live inspector tuning: re-resolve and re-apply movement when any source SO changes. This
-        // preserves the old ShipSettings.onSettingsChanged behaviour (which only re-applied movement).
-        private void OnSettingsChanged()
+        /// <summary>
+        /// Swap this ship's modules and re-resolve so every subsystem picks up the new build. Intended
+        /// for a between-run loadout change on the persistent player ship (the hangar), not a
+        /// live-while-flying swap: an AI pilot already flying caches <see cref="Dynamics"/> at init and
+        /// would keep the old value until re-initialised. A null <paramref name="newShield"/> is a valid
+        /// build (no shield).
+        /// </summary>
+        public void Reequip(EngineModule newEngine, ShieldModule newShield)
         {
-            Resolve();
-            Movement?.PopulateSettings(Stats);
+            engine = newEngine;
+            shield = newShield;
+
+            // Before Initialize there is nothing live to update — Initialize will resolve from these
+            // pointers. Re-subscribe so onChanged tracks the new SOs even in that case.
+            Subscribe();
+            if (!isInitialized) return;
+
+            ReResolve(resetVitals: true);
         }
+
+        // Re-resolve stats from the current chassis + modules and push them to the live subsystems.
+        // Geometry is unchanged by a module swap, so the derived collision radius carries forward.
+        // resetVitals re-applies the damage settings (which refills health/shield) — true on an equip
+        // swap (a between-run action), false on live inspector tuning so it doesn't heal on every tweak.
+        private void ReResolve(bool resetVitals)
+        {
+            var radius = Stats?.shipRadius ?? 1f;
+            Resolve();
+            Stats.shipRadius = radius;
+            Movement?.PopulateSettings(Stats);
+            if (resetVitals)
+                Damage?.PopulateSettings(Stats);
+            if (isInitialized)
+                Dynamics = Stats.BuildDynamics(Rigidbody ? Rigidbody.inertiaTensor.z : 0f);
+        }
+
+        // Live inspector tuning: re-resolve and re-apply when any source SO changes. Preserves the old
+        // ShipSettings.onSettingsChanged behaviour (re-apply movement without disturbing vitals).
+        private void OnSettingsChanged() => ReResolve(resetVitals: false);
 
         private EngineModule subEngine;
         private ShieldModule subShield;

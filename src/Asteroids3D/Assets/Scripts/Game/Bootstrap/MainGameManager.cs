@@ -212,6 +212,9 @@ namespace Game.Bootstrap
                 case GameState.Start:
                     yield return HandleStart();
                     break;
+                case GameState.Hangar:
+                    yield return HandleHangar();
+                    break;
                 case GameState.LoadSector:
                     yield return HandleLoadSector();
                     break;
@@ -258,6 +261,19 @@ namespace Game.Bootstrap
 
             yield return ComposeSession(session);
 
+            TransitionTo(GameState.Hangar);
+        }
+
+        /// <summary>
+        /// Between-run hangar step: install the player's chosen loadout onto the persistent ship before
+        /// the sector loads, so it flies the run with the selected build. Runs before every sector —
+        /// the first launch and every restart. Currently a pass-through that applies the standing
+        /// selection; the hangar UI pauses here for the player to edit it before Launch.
+        /// </summary>
+        private IEnumerator HandleHangar()
+        {
+            session.Rig?.ApplyLoadout();
+            yield return null;
             TransitionTo(GameState.LoadSector);
         }
 
@@ -279,7 +295,7 @@ namespace Game.Bootstrap
             // GamePlane persists across restarts (like the rig/services); only reconfigure if
             // something actually cleared it — reconfiguring unconditionally throws.
             if (!GamePlane.IsConfigured) GamePlane.Configure(planeAxis, planeOrigin);
-            TransitionTo(GameState.LoadSector);
+            TransitionTo(GameState.Hangar);
         }
 
         private void HandleExit()

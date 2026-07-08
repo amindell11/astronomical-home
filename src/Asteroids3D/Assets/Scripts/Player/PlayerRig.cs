@@ -46,6 +46,10 @@ namespace Player
         [Tooltip("Used when deathBehavior = RespawnInPlace.")]
         [SerializeField] private RespawnPolicy playerRespawn;
 
+        [Tooltip("Modules the hangar offers per slot for the player build. Null → no hangar choices " +
+                 "(the player flies its prefab-authored modules).")]
+        [SerializeField] private LoadoutConfig loadoutCatalog;
+
         [Header("Camera")]
         [SerializeField] private ObserverCam observerCamPrefab;
         [SerializeField] private Camera uiCamPrefab;
@@ -56,6 +60,18 @@ namespace Player
 
         /// <summary>The persistent player ship, injected into each sector. Null until <see cref="Build"/>.</summary>
         public Ship Player { get; private set; }
+
+        /// <summary>The modules the hangar can offer per slot. Null when no catalog is configured.</summary>
+        public LoadoutConfig Catalog => loadoutCatalog;
+
+        /// <summary>
+        /// The player's pending module selection — seeded from the ship's authored build in
+        /// <see cref="Build"/>, edited by the hangar, and installed by <see cref="ApplyLoadout"/> at
+        /// each run's <see cref="GameState.Hangar"/> step. Session-scoped (this is the session rig);
+        /// how session-scoped state should be owned across arenas is still an open question.
+        /// Null in a spectator/headless session (no player).
+        /// </summary>
+        public ShipLoadout Loadout { get; private set; }
 
         /// <summary>
         /// Raised when the rig's death policy is <see cref="PlayerDeathBehavior.RestartSector"/> and
@@ -89,6 +105,9 @@ namespace Player
             Player = SectorUtils.BuildAndWirePlayer(
                 playerTemplate, playerCommander,
                 0, playerSpawnPosition, services);
+
+            // Seed the pending loadout from the ship's authored build so an unedited hangar is a no-op.
+            Loadout = new ShipLoadout(Player.Engine, Player.Shield);
 
             // Session death policy: revive in place, restart the sector, or do nothing.
             switch (deathBehavior)
@@ -146,6 +165,17 @@ namespace Player
             if (Player && Player.Damage)
                 Player.Damage.OnDeath -= OnPlayerDeath;
             Player = null;
+        }
+
+        /// <summary>
+        /// Install the pending <see cref="Loadout"/> onto the persistent player ship, re-resolving it to
+        /// the selected build. Called at each run's <see cref="GameState.Hangar"/> step. No-op in a
+        /// spectator/headless session (no player).
+        /// </summary>
+        public void ApplyLoadout()
+        {
+            if (!Player || Loadout == null) return;
+            Player.Reequip(Loadout.Engine, Loadout.Shield);
         }
 
         private void OnPlayerDeath(ShipId victimId, ShipId killerId) => RestartRequested?.Invoke();
