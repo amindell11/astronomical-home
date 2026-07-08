@@ -402,16 +402,22 @@ namespace Asteroids.Fields
 
         // High-water mark of live asteroid radii, used to pad the query sweep (see Track).
         private float maxTrackedRadius;
+        // Reused gather buffer: all in-range asteroids, before the nearest-N cull. Grows as
+        // needed, never shrinks; no per-query allocation once warm.
+        private readonly List<AI.Scanning.DetectedObstacle> queryScratch = new(128);
 
         /// <summary>
-        /// Fills <paramref name="buffer"/> with live asteroids that OVERLAP a fixed-size AABB
-        /// (half-extent per axis) around <paramref name="centerPlane"/> — an asteroid whose
-        /// center lies outside the box but whose radius protrudes into it is still reported
-        /// (the scan and the terminal field consume this as collision geometry, so a
-        /// center-only cull would blind avoidance to boundary rocks). Only spawned,
-        /// non-destroyed asteroids in the loaded chunks are reported; destroyed ones have
-        /// already been untracked. The chunk sweep uses the layout cell grid padded by the
-        /// largest live radius, then a precise radius-inflated box test rejects corner slop.
+        /// Fills <paramref name="buffer"/> with the live asteroids nearest to
+        /// <paramref name="centerPlane"/> that OVERLAP a fixed-size AABB (half-extent per axis)
+        /// around it — an asteroid whose center lies outside the box but whose radius protrudes
+        /// into it is still reported (the scan and the terminal field consume this as collision
+        /// geometry, so a center-only cull would blind avoidance to boundary rocks). When more
+        /// asteroids overlap the box than <paramref name="buffer"/> can hold, the NEAREST are
+        /// kept (see <see cref="AI.Scanning.ObstacleSelection"/>) — not an arbitrary
+        /// chunk-scan-order prefix, which in a dense field silently drops near rocks in favour
+        /// of far ones. Only spawned, non-destroyed asteroids in the loaded chunks are
+        /// reported. The chunk sweep uses the layout cell grid padded by the largest live
+        /// radius, then a precise radius-inflated box test rejects corner slop.
         /// </summary>
         public int QueryObstacles(Vector2 centerPlane, float halfExtent, AI.Scanning.DetectedObstacle[] buffer)
         {
@@ -420,22 +426,22 @@ namespace Asteroids.Fields
             var sweep = halfExtent + maxTrackedRadius;
             var cellMin = Model.Layout.CellOf(relCenter - new Vector2(sweep, sweep));
             var cellMax = Model.Layout.CellOf(relCenter + new Vector2(sweep, sweep));
-            var count = 0;
-            for (var cx = cellMin.x; cx <= cellMax.x && count < buffer.Length; cx++)
-            for (var cy = cellMin.y; cy <= cellMax.y && count < buffer.Length; cy++)
+            queryScratch.Clear();
+            for (var cx = cellMin.x; cx <= cellMax.x; cx++)
+            for (var cy = cellMin.y; cy <= cellMax.y; cy++)
             {
                 if (!spawnedByChunk.TryGetValue(new Vector2Int(cx, cy), out var list)) continue;
-                for (var i = 0; i < list.Count && count < buffer.Length; i++)
+                for (var i = 0; i < list.Count; i++)
                 {
                     var ast = list[i];
                     if (!ast) continue;
                     var p = GamePlane.WorldPointToPlane(ast.transform.position);
                     var reach = halfExtent + ast.Radius;
                     if (Mathf.Abs(p.x - centerPlane.x) > reach || Mathf.Abs(p.y - centerPlane.y) > reach) continue;
-                    buffer[count++] = new AI.Scanning.DetectedObstacle(ast.transform.position, ast.Radius, ast.SimpleCollider);
+                    queryScratch.Add(new AI.Scanning.DetectedObstacle(ast.transform.position, ast.Radius, ast.SimpleCollider));
                 }
             }
-            return count;
+            return AI.Scanning.ObstacleSelection.KeepNearest(queryScratch, centerPlane, buffer);
         }
 
         // ── Coordinate mapping ───────────────────────────────────────────────────
