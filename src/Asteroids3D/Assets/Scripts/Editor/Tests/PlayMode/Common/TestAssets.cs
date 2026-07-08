@@ -65,6 +65,30 @@ public static class TestAssets
         return null;
 #endif
     }
+
+    /// <summary>
+    /// Loads an engine module asset from a custom path.
+    /// </summary>
+    public static EngineModule LoadEngineModule(string assetPath)
+    {
+#if UNITY_EDITOR
+        return AssetDatabase.LoadAssetAtPath<EngineModule>(assetPath);
+#else
+        return null;
+#endif
+    }
+
+    /// <summary>
+    /// Loads a shield module asset from a custom path.
+    /// </summary>
+    public static ShieldModule LoadShieldModule(string assetPath)
+    {
+#if UNITY_EDITOR
+        return AssetDatabase.LoadAssetAtPath<ShieldModule>(assetPath);
+#else
+        return null;
+#endif
+    }
 }
 
 } // namespace Tests.PlayMode.Common

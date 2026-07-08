@@ -4,6 +4,7 @@ namespace Game.Bootstrap
     {
         Loading,
         Start,
+        Hangar,
         LoadSector,
         InSector,
         Restart,
