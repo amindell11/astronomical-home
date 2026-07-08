@@ -86,7 +86,7 @@ namespace Movement.MPC
             {
                 lastBestCost = solver.Solve(mpcState, bestSequence,
                     config, dynamics,
-                    inputs.obstacleScan, inputs.enableObstacleAvoidance,
+                    inputs.obstacleScan, inputs.enableObstacleAvoidance, settings.multiSphereObstacles,
                     inputs.goalPos, inputs.goalVel,
                     inputs.enemyPos, inputs.enemyVel, inputs.enemyYaw, inputs.enemyYawRate,
                     inputs.enemyDynamics, inputs.projectileSpeed,

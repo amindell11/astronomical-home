@@ -438,10 +438,40 @@ namespace Asteroids.Fields
                     var p = GamePlane.WorldPointToPlane(ast.transform.position);
                     var reach = halfExtent + ast.Radius;
                     if (Mathf.Abs(p.x - centerPlane.x) > reach || Mathf.Abs(p.y - centerPlane.y) > reach) continue;
-                    queryScratch.Add(new AI.Scanning.DetectedObstacle(ast.transform.position, ast.Radius, ast.SimpleCollider));
+                    queryScratch.Add(BuildObstacle(ast));
                 }
             }
             return AI.Scanning.ObstacleSelection.KeepNearest(queryScratch, centerPlane, buffer);
+        }
+
+        /// <summary>
+        /// Projects an asteroid's baked mesh-local lobes to the plane (unconditionally — cheap;
+        /// the MPC kill switch, not the field, decides whether to consume them). A rock with
+        /// >1 baked lobe carries its tighter covering circles; the primary circle stays the
+        /// existing single mean-vertex circle, so selection and single-sphere fallback are
+        /// unchanged. ≤1 lobe uses the plain single-circle ctor.
+        /// </summary>
+        private static AI.Scanning.DetectedObstacle BuildObstacle(AsteroidController ast)
+        {
+            var lobes = ast.Lobes;
+            if (lobes is not { Length: > 1 })
+                return new AI.Scanning.DetectedObstacle(ast.transform.position, ast.Radius, ast.SimpleCollider);
+
+            var n = Mathf.Min(lobes.Length, 3);
+            var t = ast.transform;
+            var scale = t.lossyScale.x;
+            var c0 = ProjectLobe(t, lobes[0], scale);
+            var c1 = ProjectLobe(t, lobes[1], scale);
+            var c2 = n > 2 ? ProjectLobe(t, lobes[2], scale) : default;
+            return new AI.Scanning.DetectedObstacle(t.position, ast.Radius, ast.SimpleCollider, c0, c1, c2, n);
+        }
+
+        private static AI.Scanning.DetectedObstacle.PlaneCircle ProjectLobe(
+            Transform t, AsteroidSpawnSettings.MeshInfo.LobeSphere lobe, float scale)
+        {
+            var world = t.TransformPoint(lobe.center);
+            return new AI.Scanning.DetectedObstacle.PlaneCircle(
+                GamePlane.WorldPointToPlane(world), lobe.radius * scale);
         }
 
         // ── Coordinate mapping ───────────────────────────────────────────────────

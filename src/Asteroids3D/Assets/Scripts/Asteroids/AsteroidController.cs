@@ -27,6 +27,10 @@ namespace Asteroids
         public float Mass => Rb.mass;
         public float Volume { get; private set; }
         public float Radius { get; private set; }
+        /// <summary>Baked mesh-local covering spheres (1..3) for this asteroid's mesh, or null
+        /// when the mesh has no multi-lobe bake (≤1 lobe) — downstream falls back to the single
+        /// <see cref="Radius"/> circle. Rides in from the shared <see cref="AsteroidSpawnSettings.MeshInfo"/>.</summary>
+        public AsteroidSpawnSettings.MeshInfo.LobeSphere[] Lobes { get; private set; }
         public Rigidbody Rb { get; private set; }
         public AsteroidSpawner AsteroidSpawner { get; private set; }
         public Renderer Renderer { get; private set; }
@@ -72,6 +76,7 @@ namespace Asteroids
             meshFilter.mesh = meshInfo.mesh;
             AsteroidSpawner = asteroidSpawner;
             Fragger = fragger;
+            Lobes = meshInfo.cachedLobes is { Length: > 0 } lobes ? lobes : null;
 
             Volume = meshInfo.cachedVolume * (scale * scale * scale);
 

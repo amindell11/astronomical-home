@@ -46,6 +46,7 @@ MonoBehaviour:
   wObstacle: 5
   collisionPenalty: 10000
   collisionSafetyMargin: 0.3
+  multiSphereObstacles: 1
   wTerminal: 1
   arrivalDistance: 4
   arrivalVelScale: 5
