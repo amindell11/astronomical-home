@@ -64,8 +64,8 @@ namespace Ships.Weapons
         // ── IWeapons ──
         public void Fire(WeaponSlot slot, in WeaponCommand cmd)
         {
-            if (!enabled || !cmd.fire) return;
-            Mount(slot)?.Fire();
+            if (!enabled) return;
+            Mount(slot)?.HandleTrigger(cmd.pressed, cmd.held);
         }
 
         private WeaponComponent Mount(WeaponSlot slot) => slot switch
@@ -112,8 +112,6 @@ namespace Ships.Weapons
             public IReadOnlyList<WeaponSlot> Slots => slots;
 
             public bool IsReady(WeaponSlot slot) => owner.Mount(slot)?.CanFire() ?? false;
-
-            public bool IsAutoFire(WeaponSlot slot) => owner.Mount(slot)?.AutoFire ?? true;
 
             public float ProjectileSpeed(WeaponSlot slot) => owner.Mount(slot)?.ProjectileSpeed ?? 0f;
 

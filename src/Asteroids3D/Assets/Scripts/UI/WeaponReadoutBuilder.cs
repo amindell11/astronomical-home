@@ -25,6 +25,9 @@ namespace UI
         [Tooltip("Widget instantiated per ammo readout.")]
         [SerializeField] internal AmmoCounterUI ammoWidgetPrefab;
 
+        [Tooltip("Widget instantiated per charge readout.")]
+        [SerializeField] internal ChargeGaugeUI chargeWidgetPrefab;
+
         [Tooltip("Widget instantiated per lock readout.")]
         [SerializeField] internal LockReadoutUI lockWidgetPrefab;
 
@@ -98,6 +101,11 @@ namespace UI
                     var counter = Instantiate(ammoWidgetPrefab, container);
                     counter.Initialize(ammo);
                     return counter;
+
+                case IChargeReadout charge when chargeWidgetPrefab:
+                    var chargeGauge = Instantiate(chargeWidgetPrefab, container);
+                    chargeGauge.Initialize(charge);
+                    return chargeGauge;
 
                 case ILockStateSource lockSource when lockWidgetPrefab:
                     var spinner = Instantiate(lockWidgetPrefab, container);

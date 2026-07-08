@@ -86,16 +86,30 @@ namespace Combat.Projectile
         protected virtual void ResetState()
         {
             Shooter = null;
+            damageScale = 1f;
             if (!rb) return;
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
         }
 
+        /// <summary>
+        /// Per-shot damage multiplier set by the firing weapon after launch (e.g. charge-scaled
+        /// shots). Reset to 1 when the projectile returns to the pool.
+        /// </summary>
+        public void SetDamageScale(float scale)
+        {
+            damageScale = Mathf.Max(0f, scale);
+        }
+
+        internal float DamageScale => damageScale;
+
+        private float damageScale = 1f;
+
         private void ApplyDirectDamage(IDamageable other)
         {
             var impactVelocity = rb ? rb.linearVelocity : Vector3.zero;
             var shooterGameObject = (Shooter as Component)?.gameObject;
-            other?.TakeDamage(damage, mass, impactVelocity, transform.position, shooterGameObject);
+            other?.TakeDamage(damage * damageScale, mass, impactVelocity, transform.position, shooterGameObject);
         }
 
         protected bool IsFriendly(IDamageable other)

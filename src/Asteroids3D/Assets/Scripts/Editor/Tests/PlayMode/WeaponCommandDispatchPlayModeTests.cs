@@ -38,8 +38,8 @@ namespace Tests.PlayMode
             private void FixedUpdate()
             {
                 if (weapons == null) return;
-                weapons.Fire(WeaponSlot.Primary, new WeaponCommand { fire = true });
-                weapons.Fire(WeaponSlot.Secondary, new WeaponCommand { fire = true });
+                weapons.Fire(WeaponSlot.Primary, new WeaponCommand { pressed = true, held = true });
+                weapons.Fire(WeaponSlot.Secondary, new WeaponCommand { pressed = true, held = true });
                 Fired = true;
             }
         }

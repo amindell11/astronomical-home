@@ -24,7 +24,6 @@ namespace Player
         private IShipStatus context;
         private IPilot pilot;
         private IWeapons weapons;
-        private IWeaponContext weaponContext;
         private PlayerInputReader playerInput;
         private bool hasScreenProjector;
 
@@ -50,7 +49,6 @@ namespace Player
             context = control.Ship;
             pilot = control.Pilot;
             weapons = control.WeaponActuator;
-            weaponContext = control.Weapons;
         }
 
         private float thrustInput;
@@ -105,13 +103,13 @@ namespace Player
             }
         }
 
-        // Auto-fire weapons fire while the trigger is held; semi-auto weapons fire once per press
-        // (rising edge). The weapon declares which via IWeaponContext.IsAutoFire.
+        // Pushes raw trigger facts — held state and the press edge — every step; the weapon
+        // interprets its own firing semantics (auto/semi/charge) in HandleTrigger.
         private void FireSlot(WeaponSlot slot, bool held, ref bool prevHeld)
         {
-            var fire = weaponContext.IsAutoFire(slot) ? held : (held && !prevHeld);
+            var cmd = new WeaponCommand { held = held, pressed = held && !prevHeld };
             prevHeld = held;
-            weapons.Fire(slot, new WeaponCommand { fire = fire });
+            weapons.Fire(slot, cmd);
         }
 
         private float GetMouseRotationTorque()

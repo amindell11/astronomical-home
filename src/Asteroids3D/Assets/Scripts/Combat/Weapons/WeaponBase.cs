@@ -58,11 +58,23 @@ namespace Combat.Weapons
 
         /// <summary>
         /// Whether the weapon repeats while the trigger is held (full-auto, paced by its cooldown),
-        /// or fires once per trigger press (semi-auto). Cadence/rate is owned by the weapon's
-        /// conditions (e.g. <c>Cooldown</c>) either way; this only governs how a held human trigger
-        /// is interpreted. AI fire is unaffected — it is paced by the cooldown regardless.
+        /// or fires once per trigger press (semi-auto). Consumed by this weapon's own
+        /// <see cref="HandleTrigger"/> — commanders send raw trigger state and never interpret it.
         /// </summary>
         public virtual bool AutoFire => true;
+
+        /// <summary>
+        /// Applies one step of trigger state; the weapon owns its firing semantics. Default:
+        /// full-auto fires while the trigger is held, semi-auto on each press (an AI commander
+        /// "mashes" — reports a press every step it wants fire — so semi-auto still paces by its
+        /// own conditions under sustained AI intent). Charge weapons override to accumulate while
+        /// held and fire on release or at full charge.
+        /// </summary>
+        public virtual void HandleTrigger(bool pressed, bool held)
+        {
+            if (AutoFire ? held : pressed)
+                Fire();
+        }
 
         public virtual bool CanFire()
         {

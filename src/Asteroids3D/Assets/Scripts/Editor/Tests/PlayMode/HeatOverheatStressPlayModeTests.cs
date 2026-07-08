@@ -34,7 +34,7 @@ namespace Tests.PlayMode
             public override void Initialize(in ShipControl control) => weapons = control.WeaponActuator;
 
             private void FixedUpdate() =>
-                weapons?.Fire(WeaponSlot.Primary, new WeaponCommand { fire = enablePrimaryFire });
+                weapons?.Fire(WeaponSlot.Primary, new WeaponCommand { pressed = enablePrimaryFire, held = enablePrimaryFire });
         }
 
         [SetUp]
