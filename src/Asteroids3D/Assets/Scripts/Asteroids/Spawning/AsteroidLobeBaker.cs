@@ -1,3 +1,8 @@
+// Editor-only: lobes are baked at asset-authoring time into MeshInfo.cachedLobes
+// (runtime reads the cached data, never bakes — baking needs CPU-readable meshes).
+// Kept in the runtime-assembly source so OnValidate / the gizmo can call it, but
+// compiled out of player builds.
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -269,3 +274,4 @@ namespace Asteroids.Spawning
         }
     }
 }
+#endif
