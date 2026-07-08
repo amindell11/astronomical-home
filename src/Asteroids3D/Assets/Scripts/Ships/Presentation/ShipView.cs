@@ -27,12 +27,16 @@ namespace Ships.Presentation
         /// <summary>Lock-on channel for the lock indicator.</summary>
         public readonly LockChannel Lock;
 
-        public ShipView(Transform root, IDamageEvents damage, Func<PilotCommand> command, LockChannel @lock)
+        /// <summary>Whether this is the local player's ship (drives player-vs-enemy presentation, e.g. minimap layer).</summary>
+        public readonly bool IsPlayer;
+
+        public ShipView(Transform root, IDamageEvents damage, Func<PilotCommand> command, LockChannel @lock, bool isPlayer)
         {
             Root = root;
             Damage = damage;
             Command = command;
             Lock = @lock;
+            IsPlayer = isPlayer;
         }
     }
 }
