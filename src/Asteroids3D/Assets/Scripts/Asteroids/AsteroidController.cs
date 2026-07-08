@@ -88,16 +88,18 @@ namespace Asteroids
                 // Local-space radius: SphereCollider.radius is scaled by the transform, and
                 // the transform already carries `scale` — baking it in here too made the
                 // world sphere (and the reported Radius) grow/shrink by scale² instead of
-                // scale: big rocks bounced ships off empty air, small rocks under-collided.
+                // scale: the cheap sphere and the AI-facing Radius were both wrong by a
+                // factor of scale.
                 //
                 // The radius statistic is the MEAN vertex distance, not the circumscribed
                 // max: rocks are irregular, and a sphere that circumscribes the longest
                 // protrusion gives everything (AI avoidance rings included) far too much
-                // berth. Occasional clipping of a protrusion beats phantom volume — and the
-                // detailed MeshCollider takes over for near-field physics anyway.
-                // The AI's avoidance radius (Radius) MUST match the physics sphere: the
-                // cheap collider is never disabled, so an avoidance radius smaller than the
-                // sphere would make ships collide with space the solver was told is free.
+                // berth. Occasional clipping of a protrusion beats phantom volume.
+                //
+                // The cheap sphere (culling-boundary + far-field self-collision trigger; ship
+                // impacts use the detailed MeshCollider) and the AI-facing Radius are fed the
+                // same value here by choice, not necessity — they may legitimately diverge
+                // later (e.g. a looser cull sphere vs a tighter avoidance radius).
                 var localRadius = MeanVertexRadius(meshInfo.mesh);
                 cheapCollider.radius = localRadius;
                 Radius = localRadius * transform.lossyScale.x;
