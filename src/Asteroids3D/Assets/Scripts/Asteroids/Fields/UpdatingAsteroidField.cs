@@ -32,7 +32,7 @@ namespace Asteroids.Fields
         /// <summary>Headless core, exposed for tests and tooling.</summary>
         public AsteroidFieldModel Model { get; private set; }
 
-        private Transform playerAnchor;
+        private Transform streamAnchor;
         private Vector2? playerStartPlane;
         private ChunkStreamer streamer;
         private Vector2 fieldOriginPlane;
@@ -63,15 +63,18 @@ namespace Asteroids.Fields
         private readonly HashSet<AsteroidController> destructionHooked = new();
 
         /// <summary>
-        /// Stash the injected player anchor (may be null for spectator/headless runs) and wire the
-        /// follower to it. Called from <see cref="Game.Sectors.AsteroidFieldSpawner"/> during
+        /// Set the streaming anchor: the transform chunk loading and the world follower
+        /// center on. WHO the anchor is (player, chase evader, spectate subject) is the
+        /// caller's policy — the field itself is subject-agnostic. Null (spectator/headless
+        /// runs, no subject) or a later-destroyed anchor falls back to the field's own
+        /// origin. Called from <see cref="Game.Sectors.AsteroidFieldSpawner"/> during
         /// <c>Build</c>, before this component's own <c>Awake</c>/<c>Start</c> have run.
         /// </summary>
-        public void SetPlayer(Transform player)
+        public void SetAnchor(Transform anchor)
         {
-            playerAnchor = player;
-            if (follower) follower.SetTarget(player);
-            CurrentAnchorPos = () => playerAnchor ? GamePlane.ProjectOntoPlane(playerAnchor.position) : transform.position;
+            streamAnchor = anchor;
+            if (follower) follower.SetTarget(anchor);
+            CurrentAnchorPos = () => streamAnchor ? GamePlane.ProjectOntoPlane(streamAnchor.position) : transform.position;
         }
 
         /// <summary>

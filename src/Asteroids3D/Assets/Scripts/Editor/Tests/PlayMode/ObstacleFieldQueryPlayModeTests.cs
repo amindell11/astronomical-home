@@ -57,7 +57,7 @@ public class ObstacleFieldQueryPlayModeTests : PlayModeWorldFixture
         // dense BigField packs asteroids right through the query centre.
         anchorGo = new GameObject("FieldAnchor");
         anchorGo.transform.position = Vector3.zero;
-        field.SetPlayer(anchorGo.transform);
+        field.SetAnchor(anchorGo.transform);
 
         // The initial fill is synchronous in the field's Start; give it a couple of fixed steps.
         yield return new WaitForFixedUpdate();

@@ -25,7 +25,11 @@ namespace Game.Sectors
             if (!field) field = GetComponent<Asteroids.Fields.AsteroidField>();
             if (field is Asteroids.Fields.UpdatingAsteroidField updating)
             {
-                updating.SetPlayer(ctx.Player?.transform);
+                // Anchor policy: this sector streams around the player when one is alive.
+                // Unity lifetime check, NOT `?.` — the context can hold a destroyed ship
+                // (player died before a rebuild), and the null-conditional would pass it
+                // through to .transform and throw MissingReferenceException.
+                updating.SetAnchor(ctx.Player ? ctx.Player.transform : null);
                 // Static authored start — declared even in spectator/headless
                 // runs so the layout is identical regardless of who is flying.
                 if (ctx.Sector) updating.SetPlayerStart(ctx.Sector.PlayerStart);
