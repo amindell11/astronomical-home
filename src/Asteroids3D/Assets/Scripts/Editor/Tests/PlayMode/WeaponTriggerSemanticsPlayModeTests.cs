@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Combat;
 using Combat.Conditions;
 using Combat.Projectile;
 using Combat.Weapons;
