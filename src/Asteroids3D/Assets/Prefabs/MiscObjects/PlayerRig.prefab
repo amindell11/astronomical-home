@@ -54,13 +54,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c9e1f5a2b3d4e6f8a0c1d2e3f405162, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enableDebugOverlay: 1
+  debugSettings: {fileID: 11400000, guid: 2e2ae38aa858dd74d9f7908425a3067d, type: 2}
   worldPrefab: {fileID: 4478678954348364341, guid: 85b078d06b0ea6c40acdfd2fe59a9556,
     type: 3}
   playerTemplate: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
     type: 3}
   playerCommander: {fileID: 6378580657550141484, guid: ed986bef16a6fa9488e6052de65aa9dd,
     type: 3}
-  shipSettings: {fileID: 11400000, guid: d13d1fbc6c8e4f6686f856197f2b6fc9, type: 2}
   playerSpawnPosition: {x: 0, y: 0}
   deathBehavior: 2
   playerRespawn:
@@ -68,6 +69,7 @@ MonoBehaviour:
     point: {x: 0, y: 0}
     radius: 0
     delay: 2
+  loadoutCatalog: {fileID: 11400000, guid: cda2f130a4534c5d92dce80e24036813, type: 2}
   observerCamPrefab: {fileID: 5165561948949764142, guid: 2c36b9334ffd01546b166a7fe6b04853,
     type: 3}
   uiCamPrefab: {fileID: 3390105061295411697, guid: 295d83ec41ff69a44b8fed215945622a,
@@ -76,8 +78,8 @@ MonoBehaviour:
     type: 3}
   overlayPrefab: {fileID: 6902055608550465894, guid: 87f4b42386fd2af44b25b722572d1fcd,
     type: 3}
-  enableDebugOverlay: 1
-  debugSettings: {fileID: 11400000, guid: 2e2ae38aa858dd74d9f7908425a3067d, type: 2}
+  hangarScreenPrefab: {fileID: 5835161239343422082, guid: d115d32348e1b3342a7379b8b1c74681,
+    type: 3}
 --- !u!114 &-3245791385895265377
 MonoBehaviour:
   m_ObjectHideFlags: 0

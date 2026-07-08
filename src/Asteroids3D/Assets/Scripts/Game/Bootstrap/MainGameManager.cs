@@ -265,15 +265,16 @@ namespace Game.Bootstrap
         }
 
         /// <summary>
-        /// Between-run hangar step: install the player's chosen loadout onto the persistent ship before
-        /// the sector loads, so it flies the run with the selected build. Runs before every sector —
-        /// the first launch and every restart. Currently a pass-through that applies the standing
-        /// selection; the hangar UI pauses here for the player to edit it before Launch.
+        /// Between-run hangar step: show the hangar, let the player pick a loadout, and install it onto
+        /// the persistent ship before the sector loads. Runs before every sector — the first launch and
+        /// every restart. The rig runs the interactive screen when there is a player and presentation is
+        /// on; otherwise it applies the standing selection silently (headless/RL never blocks here).
         /// </summary>
         private IEnumerator HandleHangar()
         {
-            session.Rig?.ApplyLoadout();
-            yield return null;
+            if (session.Rig)
+                yield return session.Rig.RunHangar();
+
             TransitionTo(GameState.LoadSector);
         }
 
