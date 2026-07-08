@@ -5,15 +5,41 @@ namespace AI.Scanning
 {
     public readonly struct DetectedObstacle
     {
+        /// <summary>One covering circle already projected to plane space.</summary>
+        public readonly struct PlaneCircle
+        {
+            public readonly Vector2 center;
+            public readonly float radius;
+            public PlaneCircle(Vector2 center, float radius)
+            {
+                this.center = center;
+                this.radius = radius;
+            }
+        }
+
+        // Primary single circle: the K=1 / fallback / current behaviour. Selection ranks
+        // whole obstacles by THIS position, and multi-sphere-off consumers use it exclusively.
         public readonly Vector2 position;
         public readonly float radius;
         public readonly Collider collider;
+
+        // Up to three tighter covering circles for an elongated obstacle. lobeCount == 0 means
+        // "use the primary circle only" (every non-lobe ctor), so ships and legacy callers are
+        // unchanged. When lobeCount > 1 a multi-sphere-aware consumer may prefer these.
+        public readonly PlaneCircle lobe0;
+        public readonly PlaneCircle lobe1;
+        public readonly PlaneCircle lobe2;
+        public readonly int lobeCount;
 
         public DetectedObstacle(Collider collider)
         {
             this.collider = collider;
             position = GamePlane.WorldPointToPlane(collider.transform.position);
             radius = Mathf.Max(collider.bounds.extents.x, collider.bounds.extents.z);
+            lobe0 = default;
+            lobe1 = default;
+            lobe2 = default;
+            lobeCount = 0;
         }
 
         // Used for non-static obstacles (e.g. other ships) where the relevant world
@@ -24,7 +50,28 @@ namespace AI.Scanning
             this.collider = collider;
             position = GamePlane.WorldPointToPlane(worldPos);
             this.radius = radius;
+            lobe0 = default;
+            lobe1 = default;
+            lobe2 = default;
+            lobeCount = 0;
         }
+
+        // Multi-lobe overload: primary circle (fallback / selection key) plus up to three
+        // pre-projected plane lobes. lobeCount clamps to [0,3].
+        public DetectedObstacle(Vector3 worldPos, float radius, Collider collider,
+            PlaneCircle lobe0, PlaneCircle lobe1, PlaneCircle lobe2, int lobeCount)
+        {
+            this.collider = collider;
+            position = GamePlane.WorldPointToPlane(worldPos);
+            this.radius = radius;
+            this.lobe0 = lobe0;
+            this.lobe1 = lobe1;
+            this.lobe2 = lobe2;
+            this.lobeCount = Mathf.Clamp(lobeCount, 0, 3);
+        }
+
+        /// <summary>Lobe by index (0..lobeCount-1). Caller guarantees the range.</summary>
+        public PlaneCircle Lobe(int i) => i == 0 ? lobe0 : i == 1 ? lobe1 : lobe2;
     }
 
     public readonly struct ObstacleScan

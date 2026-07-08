@@ -111,6 +111,11 @@ namespace Movement.MPC
         [Tooltip("Constant safety margin added to the hull radius in the collision test, absorbing " +
                  "model error. Deliberately NOT speed-scaled — speed safety is the admissibility term's job.")]
         public float collisionSafetyMargin = 0.3f;
+        [Tooltip("Represent an elongated asteroid as its 2 tighter baked lobe spheres instead of " +
+                 "one fat covering circle, freeing the space beside the rod that the single circle " +
+                 "blocked. Kill switch: OFF reverts to single-circle-per-rock (byte-identical to " +
+                 "pre-multi-sphere behaviour). Rocks with ≤1 baked lobe are unaffected either way.")]
+        public bool multiSphereObstacles = true;
 
         [Header("Terminal Field (cost-to-go)")]
         [Tooltip("Weight on the per-rollout terminal cost-to-go sample (time-to-go seconds, " +

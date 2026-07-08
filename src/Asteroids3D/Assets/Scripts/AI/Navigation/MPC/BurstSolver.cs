@@ -161,7 +161,7 @@ namespace Movement.MPC
 
         public float Solve(State initialState, Control[] sequence,
             Config cfg, Dynamics dynamics,
-            AI.Scanning.ObstacleScan scan, bool useObstacles,
+            AI.Scanning.ObstacleScan scan, bool useObstacles, bool multiSphereObstacles,
             float2 goalPos, float2 goalVel,
             float2 enemyPos, float2 enemyVel, float enemyYaw, float enemyYawRate,
             Dynamics enemyDynamics, float projectileSpeed,
@@ -188,7 +188,7 @@ namespace Movement.MPC
             for (var i = 0; i < horizon; i++)
                 warmStart[i] = sequence[i];
 
-            ConvertObstacles(scan, useObstacles, dynamics.mass);
+            ConvertObstacles(scan, useObstacles, multiSphereObstacles, dynamics.mass);
 
             // Roll out predicted enemy trajectory assuming maintained thrust along facing
             var hasEnemyRollout = !math.isnan(enemyYaw) && enemyDynamics.mass > 0f;
@@ -415,26 +415,50 @@ namespace Movement.MPC
         }
 
         private void ConvertObstacles(AI.Scanning.ObstacleScan scan, bool useObstacles,
-            float shipMass)
+            bool multiSphereObstacles, float shipMass)
         {
-            // Clamp so a merged obstacle+ship scan can't overflow the fixed-size native buffer.
             var rawCount = (scan.count > 0 && useObstacles) ? scan.count : 0;
-            lastObstacleCount = math.min(rawCount, obstacles.Length);
             var invShipMass = shipMass > 0f ? 1f / shipMass : 1f;
-            for (var i = 0; i < lastObstacleCount; i++)
+
+            // `scan` is already the nearest-N set. Expand elongated rocks into their tighter
+            // lobes when multi-sphere is on; admit each rock ATOMICALLY (all its lobes or none)
+            // so the fixed buffer never holds a partial obstacle. Kill switch off (or ≤1 lobe)
+            // writes a single row from the primary circle — byte-identical to pre-PR behaviour.
+            var written = 0;
+            for (var i = 0; i < rawCount; i++)
             {
                 var obs = scan.buffer[i];
                 var rb = obs.collider ? obs.collider.attachedRigidbody : null;
-                var obsMass = rb ? rb.mass : shipMass;
-                obstacles[i] = new ObstacleData
+                var weight = (rb ? rb.mass : shipMass) * invShipMass;
+
+                if (multiSphereObstacles && obs.lobeCount > 1)
                 {
+                    if (written + obs.lobeCount > obstacles.Length) break;
+                    for (var k = 0; k < obs.lobeCount; k++)
+                    {
+                        var lobe = obs.Lobe(k);
+                        obstacles[written++] = new ObstacleData
+                        {
+                            position = new float2(lobe.center.x, lobe.center.y),
+                            radius = lobe.radius,
+                            weight = weight
+                        };
+                    }
+                }
+                else
+                {
+                    if (written + 1 > obstacles.Length) break;
                     // True obstacle radius — the ship footprint lives in the cost evaluation
                     // (bank-narrowed hull), not baked into the world geometry.
-                    position = new float2(obs.position.x, obs.position.y),
-                    radius = obs.radius,
-                    weight = obsMass * invShipMass
-                };
+                    obstacles[written++] = new ObstacleData
+                    {
+                        position = new float2(obs.position.x, obs.position.y),
+                        radius = obs.radius,
+                        weight = weight
+                    };
+                }
             }
+            lastObstacleCount = written;
         }
 
         private void EnsureBuffers(int horizon, int samples)
@@ -445,7 +469,9 @@ namespace Movement.MPC
             warmStart = new NativeArray<Control>(horizon, Allocator.Persistent);
             candidates = new NativeArray<Control>(samples * horizon, Allocator.Persistent);
             costs = new NativeArray<float>(samples, Allocator.Persistent);
-            obstacles = new NativeArray<ObstacleData>(64, Allocator.Persistent);
+            // 96 (not 64): multi-sphere expansion turns each elongated rock into up to 3 rows,
+            // so a full nearest-N scan needs headroom above the raw obstacle count.
+            obstacles = new NativeArray<ObstacleData>(96, Allocator.Persistent);
             enemyStates = new NativeArray<State>(horizon, Allocator.Persistent);
             result = new NativeArray<Control>(horizon, Allocator.Persistent);
             dummyTerminalCost = new NativeArray<float>(1, Allocator.Persistent);
