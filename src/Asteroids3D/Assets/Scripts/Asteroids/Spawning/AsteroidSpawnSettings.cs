@@ -66,30 +66,6 @@ namespace Asteroids.Spawning
         private void OnValidate()
         {
             ValidateSettings();
-#if UNITY_EDITOR
-            RebakeLobes();
-#endif
         }
-
-#if UNITY_EDITOR
-        /// <summary>
-        /// Editor-only: (re)bake the covering-sphere lobes for every mesh. Cheap for the
-        /// handful of shared asteroid meshes, so we just recompute unconditionally. Marks
-        /// the asset dirty so the baked data serializes.
-        /// </summary>
-        internal void RebakeLobes()
-        {
-            if (meshInfos == null) return;
-            bool changed = false;
-            for (int i = 0; i < meshInfos.Length; i++)
-            {
-                if (meshInfos[i].mesh == null) continue;
-                meshInfos[i].cachedLobes = AsteroidLobeBaker.Bake(meshInfos[i].mesh, out float aspect);
-                meshInfos[i].cachedLobeAspect = aspect;
-                changed = true;
-            }
-            if (changed) UnityEditor.EditorUtility.SetDirty(this);
-        }
-#endif
     }
 }
