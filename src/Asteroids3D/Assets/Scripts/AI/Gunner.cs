@@ -63,7 +63,7 @@ namespace AI
             }
 
             if (intent.hasTarget && pose != null)
-                SetTarget(TargetingMath.PredictIntercept(pose(), intent.target.kinematics.pos, intent.target.kinematics.vel, 10f));
+                SetTarget(TargetingMath.PredictIntercept(pose(), intent.target.kinematics.pos, intent.target.kinematics.vel, PrimaryProjectileSpeed));
         }
     }
 }
