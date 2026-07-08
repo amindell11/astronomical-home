@@ -176,6 +176,29 @@ namespace Asteroids
             damage?.HandleCollision(collision);
         }
 
+#if UNITY_EDITOR
+        /// <summary>
+        /// Editor-only visualization of the baked lobe decomposition for the current
+        /// mesh. Recomputes lobes on the fly from the same deterministic baker (reads
+        /// nothing at runtime); draws each as a world-space wire sphere. Only when
+        /// selected, so it stays cheap.
+        /// </summary>
+        private void OnDrawGizmosSelected()
+        {
+            var mf = GetComponent<MeshFilter>();
+            var mesh = mf != null ? mf.sharedMesh : null;
+            if (mesh == null) return;
+
+            var lobes = AsteroidLobeBaker.Bake(mesh, out _);
+            if (lobes == null) return;
+
+            Gizmos.color = new Color(0.25f, 0.9f, 1f, 0.7f);
+            float scale = transform.lossyScale.x;
+            foreach (var lobe in lobes)
+                Gizmos.DrawWireSphere(transform.TransformPoint(lobe.center), lobe.radius * scale);
+        }
+#endif
+
         private void LateUpdate()
         {
             PlaneConstraints.ConstrainPosition(transform);
