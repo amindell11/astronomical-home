@@ -22,6 +22,7 @@ namespace UI
     public class HangarScreen : MonoBehaviour
     {
         [Header("Row containers (option buttons are cloned into these)")]
+        [SerializeField] private Transform shipRow;
         [SerializeField] private Transform engineRow;
         [SerializeField] private Transform shieldRow;
 
@@ -55,6 +56,14 @@ namespace UI
 
             if (catalog)
             {
+                // Picking a ship reseeds the module slots to that ship's authored kit — the chassis
+                // presents its own identity, which the player can then customize further.
+                BuildRow(shipRow, catalog.ships, () => loadout.Ship, s =>
+                {
+                    loadout.Ship = s;
+                    loadout.Engine = s.Engine;
+                    loadout.Shield = s.Shield;
+                }, Describe);
                 BuildRow(engineRow, catalog.engines, () => loadout.Engine, m => loadout.Engine = m, Describe);
                 BuildRow(shieldRow, catalog.shields, () => loadout.Shield, m => loadout.Shield = m, Describe);
             }
@@ -112,6 +121,10 @@ namespace UI
             trigger.triggers.Add(enter);
             trigger.triggers.Add(exit);
         }
+
+        private static string Describe(Ship ship) =>
+            $"Hull {ship.maxHealth:0}   |   Mass {ship.mass:0}   |   Bank {ship.maxBankAngle:0} deg   |   " +
+            $"Kit: {(ship.Engine ? ship.Engine.name : "no engine")} + {(ship.Shield ? ship.Shield.name : "no shield")}";
 
         private static string Describe(EngineModule engine) =>
             $"Top speed {engine.maxSpeed:0}   |   Turn {engine.maxYawRate:0} deg/s   |   Thrust {engine.forwardForce:0}   |   " +

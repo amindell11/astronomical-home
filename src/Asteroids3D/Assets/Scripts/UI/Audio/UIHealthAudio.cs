@@ -36,6 +36,8 @@ namespace UI.Audio
 
         public void Initialize(IDamageEvents damageEvents)
         {
+            // Re-bindable: the persistent HUD re-Initializes when the hangar rebuilds the player.
+            UnsubscribeFromEvents();
             damage = damageEvents;
             SubscribeToEvents();
             InitializeCurrentValues();

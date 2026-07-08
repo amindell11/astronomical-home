@@ -21,7 +21,9 @@ namespace Utils
             return true;
         }
 
-        private new bool Remove(T item)
+        // Public like Add: external removals (e.g. UnitService.DespawnShip) must fire OnRemove, or
+        // subscribers (ShipRegistry unregistration, observer-cam subjects) silently keep dead entries.
+        public new bool Remove(T item)
         {
             if (item == null) return false;
             if (!base.Remove(item)) return false;

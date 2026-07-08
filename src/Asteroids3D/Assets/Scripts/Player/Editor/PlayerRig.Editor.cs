@@ -23,7 +23,12 @@ namespace Player
         {
             if (!enableDebugOverlay) return;
 
-            debugOverlay = gameObject.AddComponent<ArenaDebugOverlay>();
+            // Reuse before adding: Build() can run on the rig prefab ASSET (MainGameManager references
+            // it directly), so an unconditional AddComponent bakes a new overlay into the prefab file
+            // every editor session.
+            debugOverlay = GetComponent<ArenaDebugOverlay>();
+            if (!debugOverlay)
+                debugOverlay = gameObject.AddComponent<ArenaDebugOverlay>();
             debugOverlay.Initialize(debugSettings, services.UnitService);
         }
 

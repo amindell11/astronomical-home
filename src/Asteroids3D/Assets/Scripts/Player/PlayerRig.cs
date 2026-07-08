@@ -85,6 +85,13 @@ namespace Player
         /// </summary>
         public event System.Action RestartRequested;
 
+        // Session services captured at Build so the hangar can rebuild the player between runs.
+        private IGameServices services;
+
+        // The prefab the current Player instance was built from — a hangar ship change is detected
+        // against this (the prefab is the archetype; see ShipLoadout.Ship).
+        private Ship currentTemplate;
+
         /// <summary>
         /// Build the world/player/camera/UI rig into the session services. Called once, before the
         /// first sector loads. Instances are owned by the services (Unit/Camera/UI/Environment) and
@@ -92,6 +99,8 @@ namespace Player
         /// </summary>
         public IEnumerator Build(IGameServices services, bool buildPlayer)
         {
+            this.services = services;
+
             // World is singleton infrastructure built before the player/camera, which depend on it.
             if (worldPrefab)
                 services.EnvironmentService.SpawnWorld(worldPrefab);
@@ -110,24 +119,12 @@ namespace Player
             Player = SectorUtils.BuildAndWirePlayer(
                 playerTemplate, playerCommander,
                 0, playerSpawnPosition, services);
+            currentTemplate = playerTemplate;
 
             // Seed the pending loadout from the ship's authored build so an unedited hangar is a no-op.
-            Loadout = new ShipLoadout(Player.Engine, Player.Shield);
+            Loadout = new ShipLoadout(playerTemplate, Player.Engine, Player.Shield);
 
-            // Session death policy: revive in place, restart the sector, or do nothing.
-            switch (deathBehavior)
-            {
-                case PlayerDeathBehavior.RespawnInPlace:
-                    Respawn.Wire(Player, playerRespawn, services);
-                    break;
-                case PlayerDeathBehavior.RestartSector:
-                    if (Player && Player.Damage)
-                        Player.Damage.OnDeath += OnPlayerDeath;
-                    break;
-                case PlayerDeathBehavior.None:
-                default:
-                    break;
-            }
+            WireDeathPolicy();
 
             var observer = services.CameraService.GetCamera<ObserverCam>(CameraTag.Observer);
 
@@ -169,20 +166,77 @@ namespace Player
         public void Teardown()
         {
             TeardownDebugOverlay();
-            if (Player && Player.Damage)
-                Player.Damage.OnDeath -= OnPlayerDeath;
+            UnwireDeathPolicy();
             Player = null;
+            services = null;
         }
 
         /// <summary>
-        /// Install the pending <see cref="Loadout"/> onto the persistent player ship, re-resolving it to
-        /// the selected build. Called at each run's <see cref="GameState.Hangar"/> step. No-op in a
-        /// spectator/headless session (no player).
+        /// Install the pending <see cref="Loadout"/> onto the persistent player ship. A module change
+        /// is a data re-resolve (<see cref="Ship.Reequip"/>); a ship change is a whole-player rebuild
+        /// (<see cref="RebuildPlayer"/>) followed by the module equip. Called at each run's
+        /// <see cref="GameState.Hangar"/> step — never mid-sector. No-op in a spectator/headless
+        /// session (no player).
         /// </summary>
         public void ApplyLoadout()
         {
             if (!Player || Loadout == null) return;
+
+            if (Loadout.Ship && Loadout.Ship != currentTemplate)
+                RebuildPlayer(Loadout.Ship);
+
             Player.Reequip(Loadout.Engine, Loadout.Shield);
+        }
+
+        /// <summary>
+        /// Replace the persistent player with a fresh build of <paramref name="newTemplate"/>: despawn
+        /// the old ship, re-run the standard player build/wiring (registry, camera subject, world
+        /// follower, commander, screen-to-plane), re-arm the death policy, and re-bind the persistent
+        /// HUD overlay to the new ship. Runs only in the between-run hangar gap, where no sector is
+        /// loaded — the subsequent <c>LoadSector</c> injects and positions the new player as usual.
+        /// </summary>
+        private void RebuildPlayer(Ship newTemplate)
+        {
+            UnwireDeathPolicy();
+            services.UnitService.DespawnShip(Player);
+
+            Player = SectorUtils.BuildAndWirePlayer(
+                newTemplate, playerCommander,
+                0, playerSpawnPosition, services);
+            currentTemplate = newTemplate;
+
+            WireDeathPolicy();
+
+            // The overlay instance persists across the swap; re-Initialize re-binds every widget
+            // (readout builder clears and regenerates; audio binders unsubscribe their old source).
+            var overlay = services.UIService.ActiveOverlay;
+            if (overlay)
+                overlay.Initialize(new HudBinding(
+                    Player, Player.Damage, Player.Weapons ? Player.Weapons.ReadoutContext : null));
+        }
+
+        // Session death policy: revive in place, restart the sector, or do nothing.
+        private void WireDeathPolicy()
+        {
+            switch (deathBehavior)
+            {
+                case PlayerDeathBehavior.RespawnInPlace:
+                    Respawn.Wire(Player, playerRespawn, services);
+                    break;
+                case PlayerDeathBehavior.RestartSector:
+                    if (Player && Player.Damage)
+                        Player.Damage.OnDeath += OnPlayerDeath;
+                    break;
+                case PlayerDeathBehavior.None:
+                default:
+                    break;
+            }
+        }
+
+        private void UnwireDeathPolicy()
+        {
+            if (Player && Player.Damage)
+                Player.Damage.OnDeath -= OnPlayerDeath;
         }
 
         /// <summary>

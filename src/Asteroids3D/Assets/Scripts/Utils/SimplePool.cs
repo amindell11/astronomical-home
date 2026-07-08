@@ -23,27 +23,33 @@ namespace Utils
             var key = prefab.GetInstanceID();
             var stack = GetOrCreateStack(key);
 
-            T instance;
-
-            if (stack.Count > 0)
+            // Pooled instances can be destroyed out from under the static pool (play sessions with
+            // domain reload disabled, scene transitions, test teardown). Skip corpses instead of
+            // handing them out.
+            while (stack.Count > 0)
             {
-                instance = stack.Pop();
-                instance.transform.position = position;
-                instance.transform.rotation = rotation;
-                instance.gameObject.SetActive(true);
-            }
-            else
-            {
-                instance = Object.Instantiate(prefab, position, rotation);
+                var pooled = stack.Pop();
+                if (!pooled)
+                {
+                    InstanceToKey.Remove(pooled);
+                    continue;
+                }
 
-                // Set up pool parent for organization
-                EnsurePoolParent();
-
-                instance.transform.SetParent(_poolParent);
-                instance.gameObject.SetActive(true);
-                // Track which prefab pool this instance belongs to
-                InstanceToKey[instance] = key;
+                pooled.transform.position = position;
+                pooled.transform.rotation = rotation;
+                pooled.gameObject.SetActive(true);
+                return pooled;
             }
+
+            var instance = Object.Instantiate(prefab, position, rotation);
+
+            // Set up pool parent for organization
+            EnsurePoolParent();
+
+            instance.transform.SetParent(_poolParent);
+            instance.gameObject.SetActive(true);
+            // Track which prefab pool this instance belongs to
+            InstanceToKey[instance] = key;
 
             return instance;
         }
