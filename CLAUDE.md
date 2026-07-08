@@ -40,6 +40,17 @@ pool" or name a slot for it to kick in. Exceptions: trivial doc/comment-only
 edits the user explicitly asks to be made directly, or explicit instruction
 to work in place instead.
 
+### Comment hygiene across the PR lifecycle
+
+While a PR is in flight, comments that explain *what changed and why* — the bug
+that was fixed, the reasoning behind a change, before/after context — are
+encouraged; they help review. But those are review-time scaffolding, not
+permanent documentation. As soon as the PR is approved to merge (and before you
+squash-merge), strip that changelog-style narration from the code, leaving only
+brief, concise comments that describe the *current* implementation. A reader of
+`main` should never see comments framed around a past state ("was 10f, now uses
+projectile speed", "fixed the leak by…") — only what the code does now.
+
 ## Dependency & wiring philosophy
 
 How state reaches code in this project — follow these when adding any new
