@@ -35,7 +35,7 @@ namespace Tests.PlayMode
             yield return null; // Awake/Start (Hide)
 
             // Inject the lock channel exactly as the presentation installer does.
-            indicator.Bind(new ShipView(indicatorGo.transform, null, null, channel));
+            indicator.Bind(new ShipView(indicatorGo.transform, null, null, channel, isPlayer: false));
             yield return null;
 
             channel.RaiseProgress(0.4f);
