@@ -10,6 +10,9 @@ namespace Ships
     [CreateAssetMenu(fileName = "LoadoutConfig", menuName = "Ship/Loadout Config")]
     public class LoadoutConfig : ScriptableObject
     {
+        [Tooltip("Ship prefabs selectable in the hangar's Ship slot (the chassis choice).")]
+        public Ship[] ships;
+
         [Tooltip("Engine modules selectable in the hangar's Engine slot.")]
         public EngineModule[] engines;
 

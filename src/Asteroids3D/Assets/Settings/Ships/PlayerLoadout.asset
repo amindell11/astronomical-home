@@ -12,6 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 11b9f295ce8b41e9bc9fb1cebc53d5dc, type: 3}
   m_Name: PlayerLoadout
   m_EditorClassIdentifier: 
+  ships:
+  - {fileID: 7184882482910536223, guid: c3c15225cb3a8fd42a87c756c1d2d884, type: 3}
+  - {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274, type: 3}
+  - {fileID: 3274392229469629848, guid: f916ff84b95a82049bb516b94fb6d637, type: 3}
   engines:
   - {fileID: 11400000, guid: 9a0a0db8a855481cbdd5d1ad3cd8e04f, type: 2}
   - {fileID: 11400000, guid: 10ec8e4942e547f6bcc00b2007781243, type: 2}

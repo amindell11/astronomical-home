@@ -12,11 +12,16 @@ namespace Ships
     /// </summary>
     public class ShipLoadout
     {
+        /// <summary>The chosen ship prefab (the chassis/archetype). Changing it is a whole-player
+        /// rebuild, not a data re-resolve — see <c>PlayerRig.ApplyLoadout</c>.</summary>
+        public Ship Ship;
+
         public EngineModule Engine;
         public ShieldModule Shield;
 
-        public ShipLoadout(EngineModule engine, ShieldModule shield)
+        public ShipLoadout(Ship ship, EngineModule engine, ShieldModule shield)
         {
+            Ship = ship;
             Engine = engine;
             Shield = shield;
         }
