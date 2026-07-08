@@ -13,6 +13,18 @@ namespace Ships.Weapons
     {
         [SerializeField] private WeaponComponent primaryMount;
         [SerializeField] private WeaponComponent secondaryMount;
+
+        /// <summary>A slot's mount point on the hull: the weapon instantiates here and fires from it.</summary>
+        [Serializable]
+        internal struct Hardpoint
+        {
+            public WeaponSlot slot;
+            public Transform mount;
+        }
+
+        [Tooltip("Per-slot mount transforms on the hull. A slot with no entry falls back to this transform.")]
+        [SerializeField] private Hardpoint[] hardpoints;
+
         public WeaponComponent Primary { get; private set; }
         public WeaponComponent Secondary { get; private set; }
 
@@ -20,8 +32,21 @@ namespace Ships.Weapons
 
         private void Awake()
         {
-            if (primaryMount) Primary = Instantiate(primaryMount, transform);
-            if (secondaryMount) Secondary = Instantiate(secondaryMount, transform);
+            if (primaryMount) Primary = Instantiate(primaryMount, ResolveMount(WeaponSlot.Primary));
+            if (secondaryMount) Secondary = Instantiate(secondaryMount, ResolveMount(WeaponSlot.Secondary));
+        }
+
+        /// <summary>The authored mount for a slot, or this transform (ship origin) when none is set.</summary>
+        internal Transform ResolveMount(WeaponSlot slot) => ResolveMount(hardpoints, slot, transform);
+
+        /// <summary>Pure slot→mount lookup: the matching hardpoint's mount, else <paramref name="fallback"/>.</summary>
+        internal static Transform ResolveMount(Hardpoint[] hardpoints, WeaponSlot slot, Transform fallback)
+        {
+            if (hardpoints != null)
+                foreach (var hp in hardpoints)
+                    if (hp.slot == slot && hp.mount)
+                        return hp.mount;
+            return fallback;
         }
 
         /// <summary>Supplies the ship pose used to build each slot's firing solution.</summary>
