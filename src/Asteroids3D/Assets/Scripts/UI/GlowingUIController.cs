@@ -49,9 +49,6 @@ namespace UI
         {
             image = GetComponent<Image>();
             SetupMaterial();
-            var missileAmmoUI = GetComponentInParent<MissileAmmoUI>();
-            if (missileAmmoUI)
-                missileAmmoUI.RegisterIcon(image, this);
         }
 
         private void Start()

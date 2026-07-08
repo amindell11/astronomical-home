@@ -99,23 +99,18 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void MissileAmmoUI_CooldownSpinnerFollowsLockStateEvents()
+        public void LockReadoutUI_SpinnerFollowsLockStateEvents()
         {
-            var uiGo = new GameObject("MissileAmmoUITest");
-            var roundsGo = new GameObject("Rounds");
+            var uiGo = new GameObject("LockReadoutUITest");
             var spinnerGo = new GameObject("Spinner");
             try
             {
-                uiGo.AddComponent<CanvasGroup>();
-                var ui = uiGo.AddComponent<MissileAmmoUI>();
+                var ui = uiGo.AddComponent<LockReadoutUI>();
                 var spinner = spinnerGo.AddComponent<Image>();
-                SetPrivateField(ui, "cooldownSpinner", spinner);
-
-                var rounds = roundsGo.AddComponent<Rounds>();
-                rounds.Reset();
+                SetPrivateField(ui, "spinner", spinner);
 
                 var lockSource = new TestLockStateSource();
-                ui.Initialize(rounds, lockSource);
+                ui.Initialize(lockSource);
 
                 Assert.IsFalse(spinner.enabled);
                 lockSource.SetState(LockState.Cooldown);
@@ -126,21 +121,62 @@ namespace Tests.EditMode
             finally
             {
                 UnityEngine.Object.DestroyImmediate(uiGo);
-                UnityEngine.Object.DestroyImmediate(roundsGo);
                 UnityEngine.Object.DestroyImmediate(spinnerGo);
             }
         }
 
         [Test]
-        public void LaserHeatUI_UpdatesFillFromHeatChangedEvent()
+        public void AmmoCounterUI_CounterAndReloadFillFollowRoundsEvents()
+        {
+            var uiGo = new GameObject("AmmoCounterUITest");
+            var roundsGo = new GameObject("Rounds");
+            var textGo = new GameObject("Count");
+            var fillGo = new GameObject("ReloadFill");
+            try
+            {
+                var ui = uiGo.AddComponent<AmmoCounterUI>();
+                var text = textGo.AddComponent<Text>();
+                var fill = fillGo.AddComponent<Image>();
+                SetPrivateField(ui, "countText", text);
+                SetPrivateField(ui, "reloadFill", fill);
+
+                var rounds = roundsGo.AddComponent<Rounds>();
+                rounds.Configure(maxAmmo: 2, reloadTime: 1f);
+
+                ui.Initialize(rounds);
+                Assert.AreEqual("2 / 2", text.text);
+                Assert.IsFalse(fill.enabled);
+
+                rounds.ProcessFire();
+                Assert.AreEqual("1 / 2", text.text);
+
+                rounds.ProcessFire();
+                Assert.AreEqual("0 / 2", text.text);
+                Assert.IsTrue(fill.enabled, "Emptying the magazine starts the reload fill.");
+
+                rounds.Tick(1.1f);
+                Assert.AreEqual("2 / 2", text.text);
+                Assert.IsFalse(fill.enabled, "Reload completion hides the fill.");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(uiGo);
+                UnityEngine.Object.DestroyImmediate(roundsGo);
+                UnityEngine.Object.DestroyImmediate(textGo);
+                UnityEngine.Object.DestroyImmediate(fillGo);
+            }
+        }
+
+        [Test]
+        public void HeatGaugeUI_UpdatesFillFromHeatChangedEvent()
         {
             var heatGo = new GameObject("Heat");
-            var uiGo = new GameObject("LaserHeatUI");
+            var uiGo = new GameObject("HeatGaugeUI");
             try
             {
                 var heat = heatGo.AddComponent<Heat>();
                 var image = uiGo.AddComponent<Image>();
-                var ui = uiGo.AddComponent<LaserHeatUI>();
+                var ui = uiGo.AddComponent<HeatGaugeUI>();
                 SetPrivateField(ui, "fillImage", image);
 
                 ui.Initialize(heat);

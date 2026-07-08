@@ -1,9 +1,26 @@
 using System;
+using Combat.Weapons;
 using UnityEngine;
 
 namespace Combat.Conditions
 {
-    public class Rounds : WeaponCondition
+    /// <summary>
+    /// What an ammo display renders: the read-only, event-driven face of <see cref="Rounds"/>.
+    /// (Co-located with its sole implementer; C# disallows implementing an interface nested
+    /// in the implementing class itself.)
+    /// </summary>
+    public interface IAmmoReadout : IWeaponReadout
+    {
+        int AmmoCount { get; }
+        int MaxAmmo { get; }
+        bool IsReloading { get; }
+        float ReloadProgress { get; }
+        event Action<int> OnAmmoCountChanged;
+        event Action OnReloadStarted;
+        event Action OnReloadCompleted;
+    }
+
+    public class Rounds : WeaponCondition, IAmmoReadout
     {
         [Header("Ammo System")]
         [SerializeField] private int maxAmmo = 4;

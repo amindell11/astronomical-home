@@ -20,7 +20,7 @@ namespace UI.Audio
         [SerializeField, Range(0f, 1f)] private float volume = 0.6f;
 
         private AudioSource source;
-        private DamageController damage;
+        private IDamageEvents damage;
         private bool isAlarmPlaying;
 
         // Cache current values to avoid redundant calculations
@@ -34,9 +34,9 @@ namespace UI.Audio
             source.loop        = false;
         }
 
-        public void Initialize(DamageController damageController)
+        public void Initialize(IDamageEvents damageEvents)
         {
-            damage = damageController;
+            damage = damageEvents;
             SubscribeToEvents();
             InitializeCurrentValues();
         }
@@ -67,7 +67,7 @@ namespace UI.Audio
 
         private void SubscribeToEvents()
         {
-            if (!damage) return;
+            if (damage == null) return;
             damage.Health.OnValueChanged += OnHealthChanged;
             damage.Shield.OnValueChanged += OnShieldChanged;
             damage.OnDeath += OnPlayerDeath;
@@ -75,7 +75,7 @@ namespace UI.Audio
 
         private void InitializeCurrentValues()
         {
-            if (!damage) return;
+            if (damage == null) return;
             currentHealthPercentage = damage.Health.MaxValue > 0f
                 ? damage.Health.CurrentValue / damage.Health.MaxValue
                 : 0f;
@@ -127,7 +127,7 @@ namespace UI.Audio
 
         private void UnsubscribeFromEvents()
         {
-            if (!damage) return;
+            if (damage == null) return;
             damage.Health.OnValueChanged -= OnHealthChanged;
             damage.Shield.OnValueChanged -= OnShieldChanged;
             damage.OnDeath -= OnPlayerDeath;

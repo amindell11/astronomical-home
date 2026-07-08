@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Combat;
+using Combat.Weapons;
 using Movement;
 using UnityEngine;
 
@@ -111,6 +112,24 @@ namespace Ships.Command
 
         /// <summary>The firing solution helper for the given slot, or null if the slot is empty.</summary>
         Gunsight Sight(WeaponSlot slot);
+    }
+
+    /// <summary>
+    /// The read-only view of a ship's weapons that the HUD is given — the UI-facing sibling of
+    /// <see cref="IWeaponContext"/> (same backing object, separate surface, so commanders never
+    /// see display concerns and the UI never sees firing solutions). Slot-keyed; each slot's
+    /// displayable state is its list of <see cref="IWeaponReadout"/> contracts.
+    /// </summary>
+    public interface IWeaponReadouts
+    {
+        /// <summary>The weapon slots this ship has equipped.</summary>
+        IReadOnlyList<WeaponSlot> Slots { get; }
+
+        /// <summary>Name shown on the slot's readout panel.</summary>
+        string DisplayName(WeaponSlot slot);
+
+        /// <summary>The slot's displayable state (heat, ammo, lock…), in display order.</summary>
+        IReadOnlyList<IWeaponReadout> Readouts(WeaponSlot slot);
     }
 
     // ── Control bundle ──

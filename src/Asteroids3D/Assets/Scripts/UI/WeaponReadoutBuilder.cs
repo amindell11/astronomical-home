@@ -1,105 +1,120 @@
 using System.Collections.Generic;
 using Combat.Conditions;
+using Combat.Targeting;
 using Combat.Weapons;
-using Ships.Weapons;
+using Ships.Command;
 using UnityEngine;
 
 namespace UI
 {
     /// <summary>
-    /// Generates the weapon HUD from the equipped loadout: walks each mounted weapon's
-    /// conditions and instantiates the matching readout widget per condition (Heat → heat
-    /// gauge, Rounds → ammo display), in slot order. The authored widgets under the HUD
-    /// panel act as templates — deactivated at Awake and cloned into the panel's layout
-    /// group per matching condition, so the HUD's shape follows the loadout (two Rounds
-    /// weapons produce two ammo displays).
+    /// Generates the weapon HUD from the equipped loadout: one <see cref="WeaponReadoutPanel"/>
+    /// per slot, filled with one widget per readout the weapon exposes (heat gauge, ammo
+    /// counter, lock spinner), in display order. Consumes only the <see cref="IWeaponReadouts"/>
+    /// read surface — the HUD's shape follows the loadout and never touches sim objects.
     /// </summary>
     public sealed class WeaponReadoutBuilder : MonoBehaviour
     {
-        [Tooltip("Template cloned for each weapon that carries a Heat condition.")]
-        [SerializeField] internal LaserHeatUI heatTemplate;
+        [Header("Prefabs")]
+        [Tooltip("Panel instantiated per equipped weapon slot.")]
+        [SerializeField] internal WeaponReadoutPanel panelPrefab;
 
-        [Tooltip("Template cloned for each weapon that carries a Rounds condition.")]
-        [SerializeField] internal MissileAmmoUI ammoTemplate;
+        [Tooltip("Widget instantiated per heat readout.")]
+        [SerializeField] internal HeatGaugeUI heatWidgetPrefab;
+
+        [Tooltip("Widget instantiated per ammo readout.")]
+        [SerializeField] internal AmmoCounterUI ammoWidgetPrefab;
+
+        [Tooltip("Widget instantiated per lock readout.")]
+        [SerializeField] internal LockReadoutUI lockWidgetPrefab;
 
         internal readonly struct BoundReadout
         {
-            public readonly WeaponComponent Weapon;
-            public readonly WeaponCondition Condition;
+            public readonly WeaponSlot Slot;
+            public readonly IWeaponReadout Readout;
             public readonly MonoBehaviour Widget;
 
-            public BoundReadout(WeaponComponent weapon, WeaponCondition condition, MonoBehaviour widget)
+            public BoundReadout(WeaponSlot slot, IWeaponReadout readout, MonoBehaviour widget)
             {
-                Weapon = weapon;
-                Condition = condition;
+                Slot = slot;
+                Readout = readout;
                 Widget = widget;
             }
         }
 
+        private readonly List<WeaponReadoutPanel> panels = new();
         private readonly List<BoundReadout> built = new();
 
+        internal IReadOnlyList<WeaponReadoutPanel> Panels => panels;
         internal IReadOnlyList<BoundReadout> Built => built;
 
-        private void Awake()
-        {
-            if (heatTemplate) heatTemplate.gameObject.SetActive(false);
-            if (ammoTemplate) ammoTemplate.gameObject.SetActive(false);
-        }
-
-        /// <summary>Rebuilds the readouts for the given loadout; null or unarmed clears the HUD.</summary>
-        public void Build(WeaponsController weapons)
+        /// <summary>Rebuilds the readout panels for the given loadout; null or unarmed clears the HUD.</summary>
+        public void Build(IWeaponReadouts weapons)
         {
             Clear();
-            if (!weapons) return;
+            if (weapons == null) return;
 
-            BuildForWeapon(weapons.Primary);
-            BuildForWeapon(weapons.Secondary);
+            var slots = weapons.Slots;
+            for (var i = 0; i < slots.Count; i++)
+                BuildPanel(weapons, slots[i]);
         }
 
-        /// <summary>The first built condition of the given type, in slot order, or null.</summary>
-        public T FirstCondition<T>() where T : WeaponCondition
+        /// <summary>The first built readout of the given type, in slot order, or null.</summary>
+        public T FirstReadout<T>() where T : class
         {
             foreach (var readout in built)
-                if (readout.Condition is T typed)
+                if (readout.Readout is T typed)
                     return typed;
             return null;
         }
 
-        private void BuildForWeapon(WeaponComponent weapon)
+        private void BuildPanel(IWeaponReadouts weapons, WeaponSlot slot)
         {
-            if (!weapon) return;
+            if (!panelPrefab) return;
 
-            foreach (var condition in weapon.Conditions)
+            var panel = Instantiate(panelPrefab, transform);
+            panel.Initialize(weapons.DisplayName(slot));
+            panels.Add(panel);
+
+            var readouts = weapons.Readouts(slot);
+            for (var i = 0; i < readouts.Count; i++)
             {
-                switch (condition)
-                {
-                    case Heat heat when heatTemplate:
-                        var gauge = Clone(heatTemplate);
-                        gauge.Initialize(heat);
-                        built.Add(new BoundReadout(weapon, heat, gauge));
-                        break;
-
-                    case Rounds rounds when ammoTemplate:
-                        var display = Clone(ammoTemplate);
-                        display.Initialize(rounds, weapon.LockSource);
-                        built.Add(new BoundReadout(weapon, rounds, display));
-                        break;
-                }
+                var widget = CreateWidget(readouts[i], panel.Container);
+                if (widget)
+                    built.Add(new BoundReadout(slot, readouts[i], widget));
             }
         }
 
-        private static T Clone<T>(T template) where T : MonoBehaviour
+        private MonoBehaviour CreateWidget(IWeaponReadout readout, Transform container)
         {
-            var widget = Instantiate(template, template.transform.parent);
-            widget.gameObject.SetActive(true);
-            return widget;
+            switch (readout)
+            {
+                case IHeatReadout heat when heatWidgetPrefab:
+                    var gauge = Instantiate(heatWidgetPrefab, container);
+                    gauge.Initialize(heat);
+                    return gauge;
+
+                case IAmmoReadout ammo when ammoWidgetPrefab:
+                    var counter = Instantiate(ammoWidgetPrefab, container);
+                    counter.Initialize(ammo);
+                    return counter;
+
+                case ILockStateSource lockSource when lockWidgetPrefab:
+                    var spinner = Instantiate(lockWidgetPrefab, container);
+                    spinner.Initialize(lockSource);
+                    return spinner;
+
+                default:
+                    return null;
+            }
         }
 
         private void Clear()
         {
-            foreach (var readout in built)
-                if (readout.Widget)
-                    Destroy(readout.Widget.gameObject);
+            foreach (var panel in panels)
+                if (panel)
+                    Destroy(panel.gameObject);
+            panels.Clear();
             built.Clear();
         }
     }

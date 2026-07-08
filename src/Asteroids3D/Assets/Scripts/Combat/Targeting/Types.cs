@@ -1,4 +1,5 @@
 using System;
+using Combat.Weapons;
 using UnityEngine;
 
 namespace Combat.Targeting
@@ -11,7 +12,8 @@ namespace Combat.Targeting
         ITargetable ConsumeLock();
     }
 
-    public interface ILockStateSource
+    /// <summary>Lock state as displayable weapon state: a lock readout on the owning weapon's HUD panel.</summary>
+    public interface ILockStateSource : IWeaponReadout
     {
         LockState State { get; }
         event Action<LockState, LockState> OnStateChanged;

@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using Combat.Conditions;
 using Combat.Projectile;
+using Combat.Targeting;
 using Combat.Weapons;
 using NUnit.Framework;
+using Ships.Command;
 using Ships.Weapons;
 using Tests.PlayMode.Common;
 using UI;
@@ -15,10 +17,10 @@ using UnityEditor;
 namespace Tests.PlayMode
 {
     /// <summary>
-    /// The weapon HUD is generated from the equipped loadout: WeaponReadoutBuilder walks each
-    /// mounted weapon's conditions and clones the matching widget template per condition
-    /// (Heat → heat gauge, Rounds → ammo display). These tests cover the generation across
-    /// loadouts — including the Ripper, whose prefabs are also validated here.
+    /// The weapon HUD is generated from the equipped loadout via the IWeaponReadouts read
+    /// surface: WeaponReadoutBuilder creates one panel per slot and one widget per readout the
+    /// weapon exposes (heat gauge, ammo counter, lock spinner). These tests cover the
+    /// generation across loadouts — including the Ripper, whose prefabs are also validated.
     /// </summary>
     [Category("Weapons")]
     public class WeaponHudBindingPlayModeTests : PlayModeWorldFixture
@@ -57,7 +59,7 @@ namespace Tests.PlayMode
 #endif
         }
 
-        /// <summary>Builds an armed WeaponsController; Awake instantiates the given mounts.</summary>
+        /// <summary>Builds an armed controller; Awake instantiates the mounts, Initialize builds the context.</summary>
         private WeaponsController CreateController(WeaponComponent primary, WeaponComponent secondary)
         {
             var go = new GameObject("WeaponsControllerTest");
@@ -67,116 +69,130 @@ namespace Tests.PlayMode
             controller.primaryMount = primary;
             controller.secondaryMount = secondary;
             go.SetActive(true);
+            controller.Initialize(() => default);
             return controller;
         }
 
-        /// <summary>A builder with bare widget templates, mirroring the HUD panel's setup.</summary>
+        /// <summary>A builder wired with bare widget templates, mirroring the HUD panel's setup.</summary>
         private WeaponReadoutBuilder CreateBuilder()
         {
-            var panel = new GameObject("HUDPanelTest");
-            spawned.Add(panel);
-            panel.SetActive(false);
+            var root = new GameObject("HUDPanelTest");
+            spawned.Add(root);
 
-            var heatTemplate = new GameObject("HeatGaugeTemplate").AddComponent<LaserHeatUI>();
-            heatTemplate.transform.SetParent(panel.transform);
-            var ammoTemplate = new GameObject("AmmoDisplayTemplate").AddComponent<MissileAmmoUI>();
-            ammoTemplate.transform.SetParent(panel.transform);
-
-            var builder = panel.AddComponent<WeaponReadoutBuilder>();
-            builder.heatTemplate = heatTemplate;
-            builder.ammoTemplate = ammoTemplate;
-            panel.SetActive(true);
+            var builder = root.AddComponent<WeaponReadoutBuilder>();
+            builder.panelPrefab = new GameObject("PanelTemplate").AddComponent<WeaponReadoutPanel>();
+            builder.heatWidgetPrefab = new GameObject("HeatTemplate").AddComponent<HeatGaugeUI>();
+            builder.ammoWidgetPrefab = new GameObject("AmmoTemplate").AddComponent<AmmoCounterUI>();
+            builder.lockWidgetPrefab = new GameObject("LockTemplate").AddComponent<LockReadoutUI>();
+            spawned.Add(builder.panelPrefab.gameObject);
+            spawned.Add(builder.heatWidgetPrefab.gameObject);
+            spawned.Add(builder.ammoWidgetPrefab.gameObject);
+            spawned.Add(builder.lockWidgetPrefab.gameObject);
             return builder;
         }
 
         [Test]
-        public void DefaultLoadout_BuildsHeatGaugeAndAmmoDisplay()
+        public void DefaultLoadout_BuildsPanelPerSlot_WidgetPerReadout()
         {
             var controller = CreateController(
                 LoadWeaponPrefab<Lasers>(LasersPrefabPath),
                 LoadWeaponPrefab<Missiles>(MissilesPrefabPath));
             var builder = CreateBuilder();
 
-            builder.Build(controller);
+            builder.Build(controller.ReadoutContext);
 
-            Assert.AreEqual(2, builder.Built.Count);
+            Assert.AreEqual(2, builder.Panels.Count, "One panel per equipped slot.");
 
-            var heatReadout = builder.Built[0];
-            Assert.AreSame(controller.Primary, heatReadout.Weapon);
-            Assert.IsInstanceOf<Heat>(heatReadout.Condition);
-            Assert.IsInstanceOf<LaserHeatUI>(heatReadout.Widget);
-            Assert.IsTrue(heatReadout.Widget.gameObject.activeSelf);
+            // Primary (laser): heat gauge. Secondary (missiles): ammo counter + lock spinner.
+            Assert.AreEqual(3, builder.Built.Count);
 
-            var ammoReadout = builder.Built[1];
-            Assert.AreSame(controller.Secondary, ammoReadout.Weapon);
-            Assert.IsInstanceOf<Rounds>(ammoReadout.Condition);
-            Assert.IsInstanceOf<MissileAmmoUI>(ammoReadout.Widget);
+            Assert.AreEqual(WeaponSlot.Primary, builder.Built[0].Slot);
+            Assert.IsInstanceOf<IHeatReadout>(builder.Built[0].Readout);
+            Assert.IsInstanceOf<HeatGaugeUI>(builder.Built[0].Widget);
 
-            Assert.IsFalse(builder.heatTemplate.gameObject.activeSelf, "Templates stay hidden.");
-            Assert.IsFalse(builder.ammoTemplate.gameObject.activeSelf, "Templates stay hidden.");
+            Assert.AreEqual(WeaponSlot.Secondary, builder.Built[1].Slot);
+            Assert.IsInstanceOf<IAmmoReadout>(builder.Built[1].Readout);
+            Assert.IsInstanceOf<AmmoCounterUI>(builder.Built[1].Widget);
 
-            Assert.IsNotNull(builder.FirstCondition<Heat>());
+            Assert.AreEqual(WeaponSlot.Secondary, builder.Built[2].Slot);
+            Assert.IsInstanceOf<ILockStateSource>(builder.Built[2].Readout);
+            Assert.IsInstanceOf<LockReadoutUI>(builder.Built[2].Widget);
+
+            // Widgets live inside their slot's panel, which lives under the builder.
+            Assert.AreSame(builder.Panels[0].Container, builder.Built[0].Widget.transform.parent);
+            Assert.AreSame(builder.transform, builder.Panels[0].transform.parent);
+
+            Assert.IsNotNull(builder.FirstReadout<IHeatReadout>());
+            Assert.IsNotNull(builder.FirstReadout<ILockStateSource>());
         }
 
         [Test]
-        public void RipperLoadout_BuildsTwoAmmoDisplays_AndNoHeatGauge()
+        public void RipperLoadout_BuildsTwoAmmoCounters_AndNoHeatGauge()
         {
             var controller = CreateController(
                 LoadWeaponPrefab<Rippers>(RippersPrefabPath),
                 LoadWeaponPrefab<Missiles>(MissilesPrefabPath));
             var builder = CreateBuilder();
 
-            builder.Build(controller);
+            builder.Build(controller.ReadoutContext);
 
-            // The HUD follows the loadout: one ammo display per Rounds weapon, no heat gauge.
-            Assert.AreEqual(2, builder.Built.Count);
-            Assert.IsNull(builder.FirstCondition<Heat>());
+            // The HUD follows the loadout: each Rounds weapon gets its own ammo counter.
+            Assert.AreEqual(2, builder.Panels.Count);
+            Assert.IsNull(builder.FirstReadout<IHeatReadout>());
 
-            Assert.AreSame(controller.Primary, builder.Built[0].Weapon);
-            Assert.IsInstanceOf<Rippers>(builder.Built[0].Weapon);
-            Assert.IsInstanceOf<Rounds>(builder.Built[0].Condition);
+            Assert.AreEqual(WeaponSlot.Primary, builder.Built[0].Slot);
+            Assert.IsInstanceOf<IAmmoReadout>(builder.Built[0].Readout);
 
-            Assert.AreSame(controller.Secondary, builder.Built[1].Weapon);
-            Assert.IsInstanceOf<Missiles>(builder.Built[1].Weapon);
-            Assert.IsInstanceOf<Rounds>(builder.Built[1].Condition);
+            Assert.AreEqual(WeaponSlot.Secondary, builder.Built[1].Slot);
+            Assert.IsInstanceOf<IAmmoReadout>(builder.Built[1].Readout);
+            Assert.AreNotSame(builder.Built[0].Readout, builder.Built[1].Readout);
         }
 
         [Test]
-        public void Rebuild_ReplacesPreviousWidgets()
+        public void DisplayName_FallsBackToPrefabName()
+        {
+            var controller = CreateController(
+                LoadWeaponPrefab<Lasers>(LasersPrefabPath),
+                LoadWeaponPrefab<Missiles>(MissilesPrefabPath));
+
+            Assert.AreEqual("Lasers", controller.ReadoutContext.DisplayName(WeaponSlot.Primary),
+                "DisplayName strips the (Clone) suffix from the instantiated mount.");
+        }
+
+        [Test]
+        public void Rebuild_ReplacesPreviousPanels()
         {
             var controller = CreateController(
                 LoadWeaponPrefab<Lasers>(LasersPrefabPath),
                 LoadWeaponPrefab<Missiles>(MissilesPrefabPath));
             var builder = CreateBuilder();
 
-            builder.Build(controller);
-            var firstWidgets = new List<MonoBehaviour>();
-            foreach (var readout in builder.Built)
-                firstWidgets.Add(readout.Widget);
+            builder.Build(controller.ReadoutContext);
+            var firstPanels = new List<WeaponReadoutPanel>(builder.Panels);
 
-            builder.Build(controller);
+            builder.Build(controller.ReadoutContext);
 
-            Assert.AreEqual(2, builder.Built.Count, "Rebuild must not accumulate widgets.");
-            foreach (var widget in firstWidgets)
-                Assert.IsFalse(builder.Built[0].Widget == widget || builder.Built[1].Widget == widget,
-                    "Rebuild replaces prior widget instances.");
+            Assert.AreEqual(2, builder.Panels.Count, "Rebuild must not accumulate panels.");
+            foreach (var panel in builder.Panels)
+                Assert.IsFalse(firstPanels.Contains(panel), "Rebuild replaces prior panel instances.");
         }
 
         [Test]
-        public void NullOrUnarmedController_BuildsNothing()
+        public void NullOrUnarmedContext_BuildsNothing()
         {
             var builder = CreateBuilder();
 
             builder.Build(null);
+            Assert.AreEqual(0, builder.Panels.Count);
             Assert.AreEqual(0, builder.Built.Count);
 
             var unarmed = CreateController(null, null);
-            builder.Build(unarmed);
-            Assert.AreEqual(0, builder.Built.Count);
+            builder.Build(unarmed.ReadoutContext);
+            Assert.AreEqual(0, builder.Panels.Count);
         }
 
         [Test]
-        public void OverlayPrefab_WiresReadoutBuilderTemplates()
+        public void OverlayPrefab_WiresReadoutBuilderPrefabs()
         {
 #if UNITY_EDITOR
             var overlay = AssetDatabase.LoadAssetAtPath<GameObject>(OverlayPrefabPath);
@@ -184,10 +200,10 @@ namespace Tests.PlayMode
 
             var builder = overlay.GetComponentInChildren<WeaponReadoutBuilder>(true);
             Assert.IsNotNull(builder, "UIOverlay must carry a WeaponReadoutBuilder.");
-            Assert.IsNotNull(builder.heatTemplate, "Heat gauge template must be wired.");
-            Assert.IsNotNull(builder.ammoTemplate, "Ammo display template must be wired.");
-            Assert.AreSame(builder.transform, builder.heatTemplate.transform.parent,
-                "Templates live in the builder's layout panel so clones inherit its layout.");
+            Assert.IsNotNull(builder.panelPrefab, "Panel prefab must be wired.");
+            Assert.IsNotNull(builder.heatWidgetPrefab, "Heat gauge prefab must be wired.");
+            Assert.IsNotNull(builder.ammoWidgetPrefab, "Ammo counter prefab must be wired.");
+            Assert.IsNotNull(builder.lockWidgetPrefab, "Lock readout prefab must be wired.");
 #else
             Assert.Ignore("Requires Unity Editor assets.");
 #endif

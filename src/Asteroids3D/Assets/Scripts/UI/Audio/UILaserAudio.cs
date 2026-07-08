@@ -4,8 +4,8 @@ using UnityEngine;
 namespace UI.Audio
 {
     /// <summary>
-    /// Plays audio cues driven by Heat condition overheat events.
-    /// Subscribes to the Heat's OnOverheat and OnCooldownStart events.
+    /// Plays audio cues driven by heat readout overheat events.
+    /// Subscribes to the readout's OnOverheat and OnCooldownStart events.
     /// </summary>
     [RequireComponent(typeof(AudioSource))]
     public class UILaserAudio : MonoBehaviour
@@ -21,7 +21,7 @@ namespace UI.Audio
         [SerializeField, Range(0f, 1f)] private float volume = 0.7f;
 
         private AudioSource audioSource;
-        private Heat heat;
+        private IHeatReadout heat;
 
         void Awake()
         {
@@ -32,23 +32,23 @@ namespace UI.Audio
 
         void OnDestroy()
         {
-            if (heat)
+            if (heat != null)
             {
                 heat.OnOverheat -= PlayOverheatSound;
                 heat.OnCooldownStart -= PlayCooldownSound;
             }
         }
 
-        public void Initialize(Heat heat)
+        public void Initialize(IHeatReadout heat)
         {
-            if (this.heat)
+            if (this.heat != null)
             {
                 this.heat.OnOverheat -= PlayOverheatSound;
                 this.heat.OnCooldownStart -= PlayCooldownSound;
             }
 
             this.heat = heat;
-            if (!this.heat) return;
+            if (this.heat == null) return;
 
             this.heat.OnOverheat += PlayOverheatSound;
             this.heat.OnCooldownStart += PlayCooldownSound;

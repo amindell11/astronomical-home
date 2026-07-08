@@ -134,7 +134,9 @@ namespace Player
 
                 var overlay = Instantiate(overlayPrefab);
                 services.UIService.Show(overlay, uiCam);
-                overlay.Initialize(Player);
+                // The HUD binds narrow read surfaces, never the Ship itself (see HudBinding).
+                overlay.Initialize(new HudBinding(
+                    Player, Player.Damage, Player.Weapons ? Player.Weapons.ReadoutContext : null));
 
                 // Hand the objective marker the objective-service channel; it subscribes and
                 // self-decides visibility (encounters report their target via IObjectiveService).

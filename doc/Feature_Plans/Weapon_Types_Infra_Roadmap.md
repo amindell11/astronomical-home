@@ -23,26 +23,33 @@ Missile-in-Secondary.**
 `Secondary as Missiles`. Equip anything else and its UI silently vanishes —
 this blocks *every* new weapon, so it goes first.
 
-Approach — **generate the HUD from the loadout**. The stats a weapon HUD shows
-are exactly the weapon's `WeaponCondition`s (heat, ammo/reload, later charge),
-so a `WeaponReadoutBuilder` on the HUD panel walks each equipped mount's
-conditions and *instantiates* the matching widget per condition, in slot order:
+Approach — **generate the HUD from the loadout, through narrow read contracts**
+(design settled by grill 2026-07-08):
 
-- `Heat` → heat gauge (`LaserHeatUI` as template)
-- `Rounds` → ammo display (`MissileAmmoUI` as template), lock spinner sourced
-  from the owning weapon's `LockSource`
-
-The authored widgets under the HUD panel become deactivated templates cloned
-into the panel's existing layout group, so the HUD's shape follows the loadout
-(two `Rounds` weapons → two ammo displays) and a new weapon gets its HUD for
-free by carrying the standard conditions. No new interface framework; the
-`WeaponCondition` system *is* the contract.
-
-Notes:
-- `WeaponComponent` exposes its Awake-cached `Conditions` for enumeration and a
-  virtual `LockSource` (overridden by `Missiles`).
-- `UILaserAudio` stays a single overlay-level channel bound to the first
-  heat-carrying weapon; `UILockOnAudio` stays on the ship-level sensor.
+- **Read contracts on the sim**: each displayable condition exposes a nested,
+  read-only, event-driven interface co-located with its sole implementer —
+  `IHeatReadout` (Heat), `IAmmoReadout` (Rounds), plus the existing
+  `ILockStateSource` — all tagged `IWeaponReadout`. `WeaponComponent` exposes
+  `Readouts` (its readout-bearing conditions + `LockSource`) and `DisplayName`.
+- **UI-facing surface**: `IWeaponReadouts` (slots, display name, per-slot
+  readout list) is the HUD sibling of the commander-facing `IWeaponContext`,
+  implemented by the same `WeaponsController` context object.
+- **`HudBinding`**: `Overlay.Initialize` takes a readonly bundle
+  (`IShipStatus`, `IDamageEvents`, `IWeaponReadouts`) assembled by `PlayerRig`
+  — the UI's counterpart of `ShipControl`; `Ship` never enters the UI layer.
+- **Per-weapon panels**: `WeaponReadoutBuilder` (on `HUDPanel`) instantiates a
+  `WeaponReadoutPanel` per equipped slot (weapon display name + widget stack)
+  and one widget per readout: `IHeatReadout` → `HeatGaugeUI`, `IAmmoReadout` →
+  `AmmoCounterUI` (count + reload fill; missiles included — icon pips retired),
+  `ILockStateSource` → `LockReadoutUI`. One widget type per readout type.
+- Widgets are standalone prefabs under `Prefabs/UI/Readouts/`; the old
+  `HeatBar`/`MissileAmmoContainer` overlay nodes are deleted.
+- Audio stays two single overlay-level channels bound to the first matching
+  readout in slot order (overheat → first `IHeatReadout`, lock → first
+  `ILockStateSource`).
+- **Deferred** (board card, Mid Dev Pool): `WeaponHudLibrary` SO — designer-
+  chosen widget variants per weapon (e.g. pips vs counter) via a UI-side map,
+  keyed by weapon prefab; no UI config on sim objects.
 - Slot-count stays two; this PR does not touch `WeaponSlot`.
 
 **Weapon: Ripper** — "regular gun that uses ammo, no overheat, fixed reload

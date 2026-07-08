@@ -21,11 +21,24 @@ namespace Combat.Weapons
         public bool hasLineOfSight;
     }
 
+    /// <summary>
+    /// Marker for a weapon's displayable state contracts (heat, ammo, lock…). A weapon exposes
+    /// its readouts via <see cref="WeaponComponent.Readouts"/>; the HUD maps each readout
+    /// interface to a widget. Implementations are the sim objects themselves — the contract is
+    /// read-only and event-driven, so UI never touches sim internals.
+    /// </summary>
+    public interface IWeaponReadout
+    {
+    }
+
     public abstract class WeaponComponent : MonoBehaviour
     {
         [SerializeField] public Transform firePoint;
+        [Tooltip("Name shown on this weapon's HUD readout panel. Empty = the prefab name.")]
+        [SerializeField] private string displayName;
         protected IShooter shooter;
         protected WeaponCondition[] conditions;
+        private List<IWeaponReadout> readouts;
         
         public event Action OnFire;
 
@@ -56,13 +69,32 @@ namespace Combat.Weapons
             return conditions.All(c => c.CanFire());
         }
 
+        /// <summary>Name shown on this weapon's HUD readout panel.</summary>
+        public string DisplayName => string.IsNullOrEmpty(displayName)
+            ? name.Replace("(Clone)", string.Empty).Trim()
+            : displayName;
+
         /// <summary>
-        /// This weapon's conditions (cached at Awake). Lets consumers (e.g. HUD generation)
-        /// discover a weapon's gauges from what it actually carries instead of casting to
-        /// concrete weapon classes.
+        /// The displayable state this weapon carries (conditions implementing
+        /// <see cref="IWeaponReadout"/> plus its <see cref="LockSource"/>), in display order.
+        /// Built lazily so subclasses can finish wiring their lock source in Awake first.
         /// </summary>
-        public IReadOnlyList<WeaponCondition> Conditions =>
-            conditions ?? Array.Empty<WeaponCondition>();
+        public IReadOnlyList<IWeaponReadout> Readouts
+        {
+            get
+            {
+                if (readouts != null) return readouts;
+
+                readouts = new List<IWeaponReadout>();
+                if (conditions != null)
+                    foreach (var condition in conditions)
+                        if (condition is IWeaponReadout readout)
+                            readouts.Add(readout);
+                if (LockSource != null)
+                    readouts.Add(LockSource);
+                return readouts;
+            }
+        }
 
         /// <summary>The lock-state source driving this weapon's guidance UI, or null if it has none.</summary>
         public virtual ILockStateSource LockSource => null;

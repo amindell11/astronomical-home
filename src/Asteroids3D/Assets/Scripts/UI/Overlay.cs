@@ -1,5 +1,5 @@
 using Combat.Conditions;
-using Ships;
+using Combat.Targeting;
 using UnityEngine;
 using UI.Audio;
 
@@ -35,21 +35,21 @@ namespace UI
             canvas.worldCamera = uicam;
         }
 
-        public void Initialize(Ship player)
+        public void Initialize(in HudBinding binding)
         {
-            if (lockOnAudio && player.Targeting)
-                lockOnAudio.Initialize(player.Targeting);
-
-            if (healthAudio && player.Damage)
-                healthAudio.Initialize(player.Damage);
+            if (healthAudio)
+                healthAudio.Initialize(binding.Damage);
 
             if (readoutBuilder)
-                readoutBuilder.Build(player.Weapons);
+                readoutBuilder.Build(binding.Weapons);
 
-            // Overheat audio is a single overlay-level channel; it follows the first
-            // heat-carrying weapon in slot order.
+            // Overheat and lock audio are single overlay-level channels; each follows the
+            // first weapon (in slot order) that exposes the matching readout.
             if (laserAudio)
-                laserAudio.Initialize(readoutBuilder ? readoutBuilder.FirstCondition<Heat>() : null);
+                laserAudio.Initialize(readoutBuilder ? readoutBuilder.FirstReadout<IHeatReadout>() : null);
+
+            if (lockOnAudio)
+                lockOnAudio.Initialize(readoutBuilder ? readoutBuilder.FirstReadout<ILockStateSource>() : null);
         }
     }
 }
