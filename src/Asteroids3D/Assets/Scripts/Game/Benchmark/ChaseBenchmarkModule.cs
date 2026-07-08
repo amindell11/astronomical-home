@@ -84,7 +84,7 @@ namespace Game.Benchmark
                 field.SetLayoutSeed(activeConfig.fieldSeed);
                 field.transform.position += GamePlane.PlaneDirToWorld(activeConfig.fieldOffset);
                 // Chunk streaming follows the chase, not the (possibly absent) player.
-                if (evader) field.SetPlayer(evader.transform);
+                if (evader) field.SetAnchor(evader.transform);
             }
 
             SolverBuffers.SamplerSeedOverride =
