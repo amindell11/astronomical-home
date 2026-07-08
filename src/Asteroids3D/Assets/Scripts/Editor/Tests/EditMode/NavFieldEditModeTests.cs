@@ -138,6 +138,116 @@ namespace Tests.EditMode
             Assert.AreEqual(at5, at10 * 2f, at5 * 0.05f, "Time-to-go must scale inversely with nominal speed");
         }
 
+        // ── BorderEscape seeding (flee escape field) ──
+
+        private static NavField SolveEscape(int size, float cellSize, float2 self, float2 threat,
+            float threatBias, params float3[] obs)
+        {
+            var f = new NavField(size, cellSize);
+            var arr = Obstacles(obs);
+            f.SolveImmediate(SeedSpec.ForBorderEscape(self, threat, threatBias), arr, obs.Length);
+            arr.Dispose();
+            return f;
+        }
+
+        private static float EscapePessimisticSteps(int size, float threatBias) =>
+            threatBias * (size - 1) * 1.41421356f + (size - 1) * 1.41421356f;
+
+        [Test]
+        public void BorderEscape_ExitOppositeThreat_IsCheapest()
+        {
+            // Open 16x1 grid centered on the ship, threat to the east: fleeing west must be
+            // far cheaper than fleeing east (which pays the threat-bearing seed bias).
+            using var f = SolveEscape(16, 1f, float2.zero, new float2(4f, 0f), 1f);
+            var west = SampleSteps(f, new float2(-6f, 0f));
+            var east = SampleSteps(f, new float2(6f, 0f));
+            Assert.IsTrue(float.IsFinite(west) && float.IsFinite(east));
+            Assert.Greater(east, west + 5f, "Exits toward the threat must be substantially pricier");
+        }
+
+        [Test]
+        public void BorderEscape_GradientDescends_TowardAwayBorder()
+        {
+            // Along the away-from-threat axis, cost must fall monotonically toward the exit.
+            using var f = SolveEscape(16, 1f, float2.zero, new float2(4f, 0f), 1f);
+            var near = SampleSteps(f, new float2(-1.5f, 0.5f));
+            var mid = SampleSteps(f, new float2(-3.5f, 0.5f));
+            var far = SampleSteps(f, new float2(-5.5f, 0.5f));
+            Assert.Greater(near, mid);
+            Assert.Greater(mid, far);
+        }
+
+        [Test]
+        public void BorderEscape_NoThreat_SeedsWholeBorderAtZero()
+        {
+            // Degenerate threat (== self) seeds the border uniformly: center cost is the
+            // plain distance-to-border, with no directional preference.
+            using var f = SolveEscape(16, 1f, float2.zero, float2.zero, 1f);
+            var center = SampleSteps(f, new float2(0.5f, 0.5f));
+            Assert.AreEqual(7f, center, 1.5f, "Uniform border: center ≈ steps to nearest edge");
+            var west = SampleSteps(f, new float2(-5.5f, 0.5f));
+            var east = SampleSteps(f, new float2(5.5f, 0.5f));
+            Assert.AreEqual(west, east, 1f, "No threat ⇒ no directional bias");
+        }
+
+        [Test]
+        public void BorderEscape_BlockedAndPocketCells_BakeFinitePessimistic()
+        {
+            // A stamped cell and an enclosed (unreachable) pocket must both sample large but
+            // finite — NOT the goal-distance fallback, whose anchor here is the ship itself
+            // (a blocked cell near the ship would otherwise read as near-zero cost).
+            var pocket = new System.Collections.Generic.List<float3>
+            {
+                new float3(2.5f, 0.5f, 0.45f), // lone rock east of the ship (on a cell center)
+            };
+            // Ring enclosing (5,5) — interior cell unreachable.
+            for (var dx = -1; dx <= 1; dx++)
+            for (var dy = -1; dy <= 1; dy++)
+                if (dx != 0 || dy != 0)
+                    pocket.Add(new float3(5.5f + dx, 5.5f + dy, 0.45f));
+
+            using var f = SolveEscape(16, 1f, float2.zero, float2.zero, 1f, pocket.ToArray());
+            var pessimistic = EscapePessimisticSteps(16, 1f);
+
+            var onRock = SampleSteps(f, new float2(2.5f, 0.5f));
+            var freeMirror = SampleSteps(f, new float2(-2.5f, 0.5f));
+            Assert.IsTrue(float.IsFinite(onRock));
+            Assert.Greater(onRock, freeMirror + 3f,
+                "Blocked cell near the ship must sample pessimistic, not near-zero center distance");
+
+            var inPocket = SampleSteps(f, new float2(5.5f, 5.5f));
+            Assert.IsTrue(float.IsFinite(inPocket), "Pocket must be finite (elite ranking survives)");
+            Assert.AreEqual(pessimistic, inPocket, pessimistic * 0.35f,
+                "Pocket interior bakes the flat pessimistic value (bilinear blends its ring)");
+        }
+
+        [Test]
+        public void BorderEscape_OnlyExitTowardThreat_StillRouted()
+        {
+            // Border fully walled except a gap on the threat side: the expensive exit must
+            // still be used (priced like a full-grid detour, never forbidden) — center cost
+            // stays below the baked pessimistic ceiling.
+            var walls = new System.Collections.Generic.List<float3>();
+            for (var i = 0; i < 16; i++)
+            {
+                var c = i - 8 + 0.5f; // cell centers -7.5 .. 7.5
+                walls.Add(new float3(c, -7.5f, 0.45f));
+                walls.Add(new float3(c, 7.5f, 0.45f));
+                walls.Add(new float3(-7.5f, c, 0.45f));
+                if (math.abs(c) > 1.6f) walls.Add(new float3(7.5f, c, 0.45f)); // east gap at |y|<1.6
+            }
+
+            using var f = SolveEscape(16, 1f, float2.zero, new float2(4f, 0f), 1f, walls.ToArray());
+            var pessimistic = EscapePessimisticSteps(16, 1f);
+            var center = SampleSteps(f, new float2(0.5f, 0.5f));
+
+            Assert.IsTrue(float.IsFinite(center));
+            Assert.Less(center, pessimistic * 0.95f,
+                "The toward-threat gap must still route (finite, below the pessimistic ceiling)");
+            Assert.Greater(center, EscapePessimisticSteps(16, 1f) * 0.3f,
+                "…but it pays the threat-bearing seed bias");
+        }
+
         [Test]
         public void SolverHook_TerminalField_ShiftsBestCostByTerminalSample()
         {

@@ -6,12 +6,44 @@ using Unity.Mathematics;
 
 namespace Movement.MPC.Field
 {
+    /// <summary>How a solve seeds the Dijkstra sweep — the one axis field types differ on.</summary>
+    public enum SeedMode
+    {
+        /// <summary>Single zero-cost source at the goal point (pursuit: flow toward the chase target).</summary>
+        Goal = 0,
+        /// <summary>Every free border cell is a source, with a continuous threat-bearing initial
+        /// cost (0 for the exit opposite the threat, rising to ~a grid crossing for exits toward
+        /// it). Descending the field routes around obstacles toward openings away from the
+        /// threat (flee: escape routing).</summary>
+        BorderEscape = 1,
+    }
+
+    /// <summary>One solve's seeding parameters.</summary>
+    public struct SeedSpec
+    {
+        public SeedMode mode;
+        /// <summary>Grid anchor: the chase target (Goal) or the fleeing ship (BorderEscape).</summary>
+        public float2 center;
+        /// <summary>BorderEscape only: pursuer position biasing exit costs.</summary>
+        public float2 threat;
+        /// <summary>BorderEscape only: fraction of a full grid crossing charged to the
+        /// worst-bearing exit. 1 = fleeing past the threat costs as much as detouring
+        /// the entire grid.</summary>
+        public float threatBias;
+
+        public static SeedSpec ForGoal(float2 goal) =>
+            new SeedSpec { mode = SeedMode.Goal, center = goal };
+
+        public static SeedSpec ForBorderEscape(float2 self, float2 threat, float threatBias) =>
+            new SeedSpec { mode = SeedMode.BorderEscape, center = self, threat = threat, threatBias = threatBias };
+    }
+
     /// <summary>
     /// One solvable cost-to-go buffer: a square grid, circular obstacles stamped into a blocked
-    /// mask, 8-connected Dijkstra from a source cell (the chase target), costs in grid-step
-    /// units. Resurrection of the pre-#43 NavField Dijkstra core (<c>5f5a4530~1</c>) in
-    /// Burst/job form: flat NativeArrays, the stamp + sweep run as a single Burst job off the
-    /// main thread. Deliberately NOT resurrected: RoutedCell / gradient walking / goal
+    /// mask, 8-connected Dijkstra from a <see cref="SeedSpec"/>-defined source set, costs in
+    /// grid-step units. Resurrection of the pre-#43 NavField Dijkstra core (<c>5f5a4530~1</c>)
+    /// in Burst/job form: flat NativeArrays, the stamp + seed + sweep run as a single Burst job
+    /// off the main thread. Deliberately NOT resurrected: RoutedCell / gradient walking / goal
     /// substitution — consumption is exclusively via <see cref="TerminalFieldData"/> sampling
     /// as an MPC terminal cost.
     /// </summary>
@@ -46,18 +78,18 @@ namespace Movement.MPC.Field
         }
 
         /// <summary>
-        /// Schedule a full rebuild (stamp + Dijkstra) as a Burst job. Obstacles are
+        /// Schedule a full rebuild (stamp + seed + Dijkstra) as a Burst job. Obstacles are
         /// (x, y, inflatedRadius) in plane space. The caller owns the obstacle array's lifetime
         /// until the returned handle completes; call <see cref="MarkSolved"/> after completion.
         /// </summary>
-        public JobHandle ScheduleSolve(float2 goal, NativeArray<float3> obstacles, int obstacleCount,
+        public JobHandle ScheduleSolve(in SeedSpec seed, NativeArray<float3> obstacles, int obstacleCount,
             JobHandle dependsOn = default)
         {
-            Goal = goal;
+            Goal = seed.center;
             var halfExtent = GridSize * CellSize * 0.5f;
             // Snap origin so the grid translates in whole-cell steps (stable sampling).
-            var snappedX = math.floor((goal.x - halfExtent) / CellSize) * CellSize;
-            var snappedY = math.floor((goal.y - halfExtent) / CellSize) * CellSize;
+            var snappedX = math.floor((seed.center.x - halfExtent) / CellSize) * CellSize;
+            var snappedY = math.floor((seed.center.y - halfExtent) / CellSize) * CellSize;
             Origin = new float2(snappedX, snappedY);
             HasSolution = false;
 
@@ -66,7 +98,7 @@ namespace Movement.MPC.Field
                 gridSize = GridSize,
                 cellSize = CellSize,
                 origin = Origin,
-                source = goal,
+                seed = seed,
                 obstacles = obstacles,
                 obstacleCount = obstacleCount,
                 blocked = blocked,
@@ -74,15 +106,24 @@ namespace Movement.MPC.Field
             }.Schedule(dependsOn);
         }
 
+        /// <summary>Goal-mode convenience (pursuit fields, tests).</summary>
+        public JobHandle ScheduleSolve(float2 goal, NativeArray<float3> obstacles, int obstacleCount,
+            JobHandle dependsOn = default)
+            => ScheduleSolve(SeedSpec.ForGoal(goal), obstacles, obstacleCount, dependsOn);
+
         /// <summary>Call once the solve job has completed.</summary>
         public void MarkSolved() => HasSolution = true;
 
         /// <summary>Synchronous convenience for tests/tools.</summary>
-        public void SolveImmediate(float2 goal, NativeArray<float3> obstacles, int obstacleCount)
+        public void SolveImmediate(in SeedSpec seed, NativeArray<float3> obstacles, int obstacleCount)
         {
-            ScheduleSolve(goal, obstacles, obstacleCount).Complete();
+            ScheduleSolve(seed, obstacles, obstacleCount).Complete();
             MarkSolved();
         }
+
+        /// <summary>Goal-mode convenience (pursuit fields, tests).</summary>
+        public void SolveImmediate(float2 goal, NativeArray<float3> obstacles, int obstacleCount)
+            => SolveImmediate(SeedSpec.ForGoal(goal), obstacles, obstacleCount);
 
         /// <summary>Read-only sampling view (valid while this field's arrays are alive).</summary>
         public TerminalFieldData Data(float nominalSpeed) => new TerminalFieldData
@@ -103,12 +144,14 @@ namespace Movement.MPC.Field
             public int gridSize;
             public float cellSize;
             public float2 origin;
-            public float2 source;
+            public SeedSpec seed;
             [ReadOnly] public NativeArray<float3> obstacles;
             public int obstacleCount;
 
             public NativeArray<byte> blocked;
             public NativeArray<float> costToGo;
+
+            private const float SqrtTwo = 1.41421356f;
 
             public void Execute()
             {
@@ -145,25 +188,97 @@ namespace Movement.MPC.Field
                     }
                 }
 
-                // ── Source cell (nearest free if stamped) ──
-                var sx = math.clamp((int)math.floor((source.x - origin.x) / cellSize), 0, n - 1);
-                var sy = math.clamp((int)math.floor((source.y - origin.y) / cellSize), 0, n - 1);
+                // ── Seed + sweep ──
+                var heapCells = new NativeArray<int>(cellCount * 4, Allocator.Temp);
+                var heapCosts = new NativeArray<float>(cellCount * 4, Allocator.Temp);
+                var heapCount = 0;
+
+                if (seed.mode == SeedMode.BorderEscape)
+                    SeedBorder(heapCells, heapCosts, ref heapCount);
+                else
+                    SeedGoal(heapCells, heapCosts, ref heapCount);
+
+                Dijkstra(heapCells, heapCosts, ref heapCount);
+
+                heapCells.Dispose();
+                heapCosts.Dispose();
+
+                // BorderEscape samples must be finite everywhere: blocked and unreachable
+                // (pocket) cells bake a flat pessimistic value — worst-bearing exit plus a
+                // full grid crossing — so the shared sampler never falls back to the
+                // goal-distance formula (whose anchor here is the fleeing ship itself).
+                if (seed.mode == SeedMode.BorderEscape)
+                {
+                    var pessimistic = seed.threatBias * (n - 1) * SqrtTwo + (n - 1) * SqrtTwo;
+                    for (var i = 0; i < cellCount; i++)
+                        if (blocked[i] != 0 || !math.isfinite(costToGo[i]))
+                            costToGo[i] = pessimistic;
+                }
+            }
+
+            /// <summary>Single zero-cost source at the seed center (nearest free cell if stamped).</summary>
+            private void SeedGoal(NativeArray<int> heapCells, NativeArray<float> heapCosts, ref int heapCount)
+            {
+                var n = gridSize;
+                var sx = math.clamp((int)math.floor((seed.center.x - origin.x) / cellSize), 0, n - 1);
+                var sy = math.clamp((int)math.floor((seed.center.y - origin.y) / cellSize), 0, n - 1);
                 var src = sy * n + sx;
                 if (blocked[src] != 0)
                 {
                     src = FindNearestFree(sx, sy);
                     if (src < 0) return; // fully enclosed — all costs stay infinite
                 }
-
-                // ── 8-connected Dijkstra (binary heap in Temp arrays) ──
-                var heapCells = new NativeArray<int>(cellCount * 4, Allocator.Temp);
-                var heapCosts = new NativeArray<float>(cellCount * 4, Allocator.Temp);
-                var heapCount = 0;
-
                 costToGo[src] = 0f;
                 Push(heapCells, heapCosts, ref heapCount, src, 0f);
+            }
 
-                const float sqrtTwo = 1.41421356f;
+            /// <summary>
+            /// Every free border cell is a source. Initial cost is continuous in the cell's
+            /// bearing relative to the threat: 0 directly opposite, threatBias grid-crossings
+            /// directly toward it — exits past the threat are never forbidden, just priced
+            /// like a full-grid detour, so they win only when they are the only way out.
+            /// No threat (degenerate) seeds the whole border at 0.
+            /// </summary>
+            private void SeedBorder(NativeArray<int> heapCells, NativeArray<float> heapCosts, ref int heapCount)
+            {
+                var n = gridSize;
+                var toThreat = seed.threat - seed.center;
+                var hasThreat = math.lengthsq(toThreat) > 1e-6f;
+                var threatDir = hasThreat ? math.normalize(toThreat) : float2.zero;
+                var biasMax = seed.threatBias * (n - 1) * SqrtTwo;
+
+                for (var y = 0; y < n; y++)
+                {
+                    var isEdgeRow = y == 0 || y == n - 1;
+                    var stepX = isEdgeRow ? 1 : n - 1; // full edge rows; side columns otherwise
+                    for (var x = 0; x < n; x += stepX)
+                    {
+                        var idx = y * n + x;
+                        if (blocked[idx] != 0) continue;
+
+                        var cost0 = 0f;
+                        if (hasThreat)
+                        {
+                            var cellCenter = new float2(
+                                origin.x + (x + 0.5f) * cellSize,
+                                origin.y + (y + 0.5f) * cellSize);
+                            var dir = math.normalizesafe(cellCenter - seed.center);
+                            // dot in [-1,1]: 1 = exit toward the threat, -1 = directly away.
+                            cost0 = biasMax * (1f + math.dot(dir, threatDir)) * 0.5f;
+                        }
+
+                        if (cost0 < costToGo[idx])
+                        {
+                            costToGo[idx] = cost0;
+                            Push(heapCells, heapCosts, ref heapCount, idx, cost0);
+                        }
+                    }
+                }
+            }
+
+            private void Dijkstra(NativeArray<int> heapCells, NativeArray<float> heapCosts, ref int heapCount)
+            {
+                var n = gridSize;
                 while (heapCount > 0)
                 {
                     Pop(heapCells, heapCosts, ref heapCount, out var cell, out var cost);
@@ -181,7 +296,7 @@ namespace Movement.MPC.Field
                             if (nx < 0 || nx >= n) continue;
                             var nIdx = ny * n + nx;
                             if (blocked[nIdx] != 0) continue;
-                            var step = (dx != 0 && dy != 0) ? sqrtTwo : 1f;
+                            var step = (dx != 0 && dy != 0) ? SqrtTwo : 1f;
                             var newCost = cost + step;
                             if (newCost < costToGo[nIdx])
                             {
@@ -191,9 +306,6 @@ namespace Movement.MPC.Field
                         }
                     }
                 }
-
-                heapCells.Dispose();
-                heapCosts.Dispose();
             }
 
             private int FindNearestFree(int cx, int cy)

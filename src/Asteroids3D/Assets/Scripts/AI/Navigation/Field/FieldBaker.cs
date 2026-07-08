@@ -25,6 +25,11 @@ namespace Movement.MPC.Field
             public int registryDeltaThreshold;
             /// <summary>Rebuild at least this often regardless of motion (drifting rocks).</summary>
             public float maxStaleness;
+            /// <summary>Rebuild on the interval timer alone. For self-anchored fields (flee)
+            /// whose anchor and threat always move, the moved/delta/stale triggers — which
+            /// exist to skip work for idle chase targets — would degenerate to the timer
+            /// while missing threat-bearing changes the seeds depend on.</summary>
+            public bool timerOnly;
         }
 
         // Hard ceiling on obstacles gathered per rebuild (dense-field guard).
@@ -91,11 +96,11 @@ namespace Movement.MPC.Field
         }
 
         /// <summary>
-        /// Kick a rebuild toward <paramref name="goal"/> if the policy says one is due.
+        /// Kick a rebuild for <paramref name="seed"/> if the policy says one is due.
         /// <paramref name="field"/> is the live obstacle source (may be null between sectors,
         /// in which case the field bakes with no obstacles).
         /// </summary>
-        public void RequestBake(float2 goal, IObstacleField field)
+        public void RequestBake(in SeedSpec seed, IObstacleField field)
         {
             if (jobRunning) return;
 
@@ -104,19 +109,26 @@ namespace Movement.MPC.Field
             var dueByTimer = now - lastBuildTime >= policy.minRebuildInterval;
             if (!neverBuilt && !dueByTimer) return;
 
-            var count = GatherObstacles(goal, field);
+            var count = GatherObstacles(seed.center, field);
 
-            var moved = math.distancesq(lastGoal, goal) > cellSize * cellSize;
-            var delta = math.abs(count - lastObstacleCount) >= policy.registryDeltaThreshold;
-            var staleTimer = now - lastBuildTime >= policy.maxStaleness;
-            if (!neverBuilt && !moved && !delta && !staleTimer) return;
+            if (!policy.timerOnly)
+            {
+                var moved = math.distancesq(lastGoal, seed.center) > cellSize * cellSize;
+                var delta = math.abs(count - lastObstacleCount) >= policy.registryDeltaThreshold;
+                var staleTimer = now - lastBuildTime >= policy.maxStaleness;
+                if (!neverBuilt && !moved && !delta && !staleTimer) return;
+            }
 
-            pending = back.ScheduleSolve(goal, obstacles, count);
+            pending = back.ScheduleSolve(seed, obstacles, count);
             jobRunning = true;
             lastBuildTime = now;
-            lastGoal = goal;
+            lastGoal = seed.center;
             lastObstacleCount = count;
         }
+
+        /// <summary>Goal-mode convenience (pursuit fields keyed on a chase target).</summary>
+        public void RequestBake(float2 goal, IObstacleField field)
+            => RequestBake(SeedSpec.ForGoal(goal), field);
 
         /// <summary>
         /// Query the obstacle field for every live asteroid inside the grid AABB around the
