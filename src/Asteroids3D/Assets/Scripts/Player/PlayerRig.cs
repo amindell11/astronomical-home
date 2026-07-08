@@ -8,6 +8,7 @@ using Ships;
 using Ships.Command;
 using UI;
 using UnityEngine;
+using Utils;
 using UnityEngine.Rendering.Universal;
 using World;
 
@@ -57,6 +58,10 @@ namespace Player
 
         [Header("UI")]
         [SerializeField] private Overlay overlayPrefab;
+
+        [Tooltip("Between-run hangar screen. Null → no interactive hangar (the standing loadout is " +
+                 "applied silently).")]
+        [SerializeField] private HangarScreen hangarScreenPrefab;
 
         /// <summary>The persistent player ship, injected into each sector. Null until <see cref="Build"/>.</summary>
         public Ship Player { get; private set; }
@@ -176,6 +181,29 @@ namespace Player
         {
             if (!Player || Loadout == null) return;
             Player.Reequip(Loadout.Engine, Loadout.Shield);
+        }
+
+        /// <summary>
+        /// Run the between-run hangar: show the screen, wait for the player to Launch, then install the
+        /// chosen loadout. Skipped (standing selection applied silently) when there is no player, no
+        /// screen, or presentation is off (headless/RL) — so an automated run never blocks on a click.
+        /// </summary>
+        public IEnumerator RunHangar()
+        {
+            if (!Player || Loadout == null || !hangarScreenPrefab || !GameSettings.PresentationEnabled)
+            {
+                ApplyLoadout();
+                yield break;
+            }
+
+            var screen = Instantiate(hangarScreenPrefab);
+            var launched = false;
+            screen.Show(loadoutCatalog, Loadout, () => launched = true);
+
+            yield return new WaitUntil(() => launched);
+
+            ApplyLoadout();
+            Destroy(screen.gameObject);
         }
 
         private void OnPlayerDeath(ShipId victimId, ShipId killerId) => RestartRequested?.Invoke();
