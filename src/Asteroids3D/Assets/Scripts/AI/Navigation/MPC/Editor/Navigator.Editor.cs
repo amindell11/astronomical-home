@@ -57,6 +57,8 @@ namespace Movement.MPC
         [Tooltip("Render a random sampling of MPC candidate trajectories with rank-based alpha. " +
                  "Click a terminal-point handle in the scene view to inspect that candidate's breakdown.")]
         public bool showCandidateTrajectories = false;
+        [Tooltip("Render this ship's flee escape field (cost heatmap + blocked cells) while fleeing.")]
+        public bool showFleeField = false;
         [Range(1, 256)]
         [Tooltip("How many of the (up to) 256 candidates to render. Subsample is reseeded each frame.")]
         public int candidateSampleCount = 32;
@@ -201,6 +203,7 @@ namespace Movement.MPC
             if (!settings.IsActive(AIDebugChannel.Steering)) return;
 
             DrawShipRadius();
+            DrawFleeField();
             DrawCandidateTrajectories();
             DrawPredictedTrajectory();
             DrawComparisonTrajectories();
@@ -208,6 +211,12 @@ namespace Movement.MPC
             DrawGoal();
             DrawObstacleDebugInfo();
             DrawControlInputs();
+        }
+
+        private void DrawFleeField()
+        {
+            if (!showFleeField || fleeFieldBaker == null || !GamePlane.IsConfigured) return;
+            Field.NavFieldService.DrawField(fleeFieldBaker.Front);
         }
 
         private void DrawCandidateTrajectories()

@@ -52,10 +52,27 @@ namespace Movement.MPC
         public float arriveRadius = 2f;
 
         // Terminal cost-to-go field (Track B3): the chase target whose shared field the solver
-        // samples at rollout ends. Set only for enemy-anchored pursuit (MaintainRange); Flee is
-        // out of scope (trade study §7.4).
+        // samples at rollout ends. Set only for enemy-anchored pursuit (MaintainRange).
         private Transform terminalFieldTarget;
         private float selfMaxSpeed;
+
+        // Flee escape field: self-anchored grid, free border cells seeded with threat-bearing
+        // costs, sampled through the same terminal hook. Per-ship (nothing to share between
+        // evaders) and lazily created — most ships never flee. Active only while fleeing a
+        // live target; otherwise the baker sits idle.
+        private Field.FieldBaker fleeFieldBaker;
+        private bool hasFleeThreat;
+        private float2 fleeThreat;
+
+        // Flee field geometry/policy (mirrors NavFieldService's pursuit defaults; constants
+        // until benchmark evidence says a knob is worth exposing).
+        private const int FleeFieldGridSize = 64;
+        private const float FleeFieldCellSize = 3f;
+        private const float FleeFieldShipRadiusBuffer = 2f;
+        private const float FleeFieldRebuildInterval = 0.15f;
+        // Fraction of a grid crossing charged to the worst-bearing exit: 1 = fleeing past the
+        // threat costs as much as detouring the entire grid.
+        private const float FleeThreatBias = 1f;
 
         public Waypoint CurrentWaypoint => currentWaypoint;
 
@@ -91,13 +108,19 @@ namespace Movement.MPC
 
             var scan = scout.ObstacleScan;
 
-            // Terminal cost-to-go field: one shared field per chase target, sampled by the
-            // solver at each rollout's terminal state. Obstacles come from the session's
-            // active obstacle field (B2). Invalid/absent field = hook off.
+            // Terminal cost-to-go field, sampled by the solver at each rollout's terminal
+            // state: pursuit shares one field per chase target via the service; Flee bakes a
+            // per-ship escape field. Obstacles come from the session's active obstacle field
+            // (B2). Invalid/absent field = hook off.
             var terminalField = default(Field.TerminalFieldData);
-            if (terminalFieldTarget && mpcSettings.wTerminal > 0f)
-                Field.NavFieldService.Instance.TryGetData(
-                    terminalFieldTarget, enemyPos, selfMaxSpeed, ObstacleFields.Active, out terminalField);
+            if (mpcSettings.wTerminal > 0f)
+            {
+                if (terminalFieldTarget)
+                    Field.NavFieldService.Instance.TryGetData(
+                        terminalFieldTarget, enemyPos, selfMaxSpeed, ObstacleFields.Active, out terminalField);
+                else if (goalMode == GoalMode.Flee && hasFleeThreat)
+                    GetFleeField(new float2(kin.pos.x, kin.pos.y), out terminalField);
+            }
 
             var inputs = new MpcInputs
             {
@@ -156,6 +179,27 @@ namespace Movement.MPC
         private float2 GoalPos() => new(currentWaypoint.position.x, currentWaypoint.position.y);
         private float2 GoalVel() => new(currentWaypoint.velocity.x, currentWaypoint.velocity.y);
 
+        /// <summary>
+        /// Pump + rebake + sample the per-ship escape field (timer-only policy; the anchor is
+        /// this ship, so motion triggers are meaningless). False while the first bake is in
+        /// flight — the terminal hook then contributes 0, exactly like pursuit's warm-up.
+        /// </summary>
+        private bool GetFleeField(float2 selfPos, out Field.TerminalFieldData data)
+        {
+            fleeFieldBaker ??= new Field.FieldBaker(
+                FleeFieldGridSize, FleeFieldCellSize, FleeFieldShipRadiusBuffer,
+                new Field.FieldBaker.Policy
+                {
+                    minRebuildInterval = FleeFieldRebuildInterval,
+                    timerOnly = true,
+                });
+            fleeFieldBaker.Pump();
+            fleeFieldBaker.RequestBake(
+                Field.SeedSpec.ForBorderEscape(selfPos, fleeThreat, FleeThreatBias),
+                ObstacleFields.Active);
+            return fleeFieldBaker.TryGetData(selfMaxSpeed, out data);
+        }
+
         private void ApplyControl(in MpcResult r)
         {
             currentCommand.thrust = r.thrust;
@@ -180,10 +224,15 @@ namespace Movement.MPC
                 return;
             }
 
-            // Terminal cost-to-go routing applies to enemy-anchored pursuit only.
+            // Terminal cost-to-go routing: enemy-anchored pursuit shares a per-target field;
+            // Flee bakes a per-ship escape field against the live threat's position.
             terminalFieldTarget = intent.goalMode == GoalMode.MaintainRange && intent.hasTarget
                 ? intent.target.source
                 : null;
+            hasFleeThreat = intent.goalMode == GoalMode.Flee && intent.hasTarget;
+            fleeThreat = hasFleeThreat
+                ? new float2(intent.target.kinematics.pos.x, intent.target.kinematics.pos.y)
+                : default;
 
             switch (intent.goalMode)
             {
@@ -218,6 +267,8 @@ namespace Movement.MPC
         public void ResetNavigation()
         {
             terminalFieldTarget = null;
+            hasFleeThreat = false;
+            fleeThreat = default;
             ClearNavigationPoint();
             ClearGoalMode();
             ClearEnemyState();
@@ -313,6 +364,7 @@ namespace Movement.MPC
         private void OnDestroy()
         {
             mpc?.Dispose();
+            fleeFieldBaker?.Dispose();
         }
 
         partial void RunComparisonRollouts(State mpcState, ObstacleScan scan);
