@@ -16,6 +16,7 @@ param(
     [int]$MaxMessageLength = 240,
     [int]$LogTailLines = 40,
     [int]$UnityTimeoutSec = 1800,
+    [string]$ExcludeCategory = "RequiresGraphics",
     [switch]$IncludeStackTrace,
     [switch]$ValidateScope,
     [string]$ScopeMapPath = ""
@@ -562,6 +563,19 @@ if ($ValidateScope.IsPresent -and -not [string]::IsNullOrWhiteSpace($resolvedFil
 
 $TestFilter = $resolvedFilter
 
+$includeCategories = @()
+if (-not [string]::IsNullOrWhiteSpace($TestCategory)) {
+    $includeCategories = @($TestCategory -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" })
+}
+$excludeCategories = @()
+if (-not [string]::IsNullOrWhiteSpace($ExcludeCategory)) {
+    $excludeCategories = @($ExcludeCategory -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" -and $includeCategories -notcontains $_ })
+}
+$categoryFilter = (@($includeCategories) + @($excludeCategories | ForEach-Object { "!$_" })) -join ";"
+if (-not [string]::IsNullOrWhiteSpace($categoryFilter)) {
+    Write-Host "Test category filter: $categoryFilter"
+}
+
 $platforms = switch ($Mode) {
     "Both" { @("EditMode", "PlayMode") }
     default { @($Mode) }
@@ -601,8 +615,8 @@ foreach ($platform in $platforms) {
         $args += @("-testFilter", $TestFilter)
     }
 
-    if (-not [string]::IsNullOrWhiteSpace($TestCategory)) {
-        $args += @("-testCategory", $TestCategory)
+    if (-not [string]::IsNullOrWhiteSpace($categoryFilter)) {
+        $args += @("-testCategory", $categoryFilter)
     }
 
     if (-not [string]::IsNullOrWhiteSpace($AssemblyNames)) {
@@ -621,6 +635,8 @@ foreach ($platform in $platforms) {
         scopeResolved = $scopeResolved
         testFilter = $TestFilter
         testCategory = $TestCategory
+        excludeCategory = $ExcludeCategory
+        categoryFilter = $categoryFilter
         assemblyNames = $AssemblyNames
         orderedTestListFile = $orderedListPath
         rerunFailedFrom = $rerunSummaryPath
@@ -707,6 +723,8 @@ $summary = [ordered]@{
         scopeResolved = $scopeResolved
         testFilter = $TestFilter
         testCategory = $TestCategory
+        excludeCategory = $ExcludeCategory
+        categoryFilter = $categoryFilter
         assemblyNames = $AssemblyNames
         orderedTestListFile = $orderedListPath
         rerunFailedFrom = $rerunSummaryPath
