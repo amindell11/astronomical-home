@@ -105,7 +105,7 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
 
     private static AIState CreateState(StateProfile profile, AICommander cmdr)
     {
-        return new AIState(profile, cmdr.Navigator, cmdr.Gunner);
+        return new AIState(profile, cmdr.Navigator, cmdr.Gunner, 0);
     }
 
     // ──────────────────────────────────────────────────────────

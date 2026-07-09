@@ -2,7 +2,6 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
-using UnityEngine;
 
 namespace Movement.MPC
 {
@@ -125,16 +124,17 @@ namespace Movement.MPC
     public class SolverBuffers : System.IDisposable
     {
         /// <summary>
-        /// Test-only sampler seed override. When set, the candidate-generation RNG seed is
-        /// derived from this base plus a per-instance solve counter instead of
-        /// <c>Time.frameCount</c>, so a single run replays the same noise sequence under a
-        /// deterministic simulation. Unset (null, the default) preserves shipped behavior
-        /// exactly. Static so a benchmark harness can pin every ship at once; clear it in
-        /// teardown.
+        /// Optional global base-seed override (benchmark reproducibility): pins every ship to one
+        /// base so a whole chase replays identically. Null (default) uses the injected per-ship
+        /// seed. Interim world-scoped seam — see CLAUDE.md dependency philosophy; a per-session
+        /// container supersedes it in S1b.
         /// </summary>
         public static uint? SamplerSeedOverride;
 
+        private readonly uint samplerSeed;
         private uint solveCount;
+
+        public SolverBuffers(int seed) => samplerSeed = (uint)seed;
 
         private NativeArray<Control> warmStart;
         private NativeArray<Control> candidates;
@@ -238,15 +238,14 @@ namespace Movement.MPC
 
             initialState.boostCooldownRemaining = boostCooldownRemaining;
 
-            // Seed off the frame counter in shipped play; a benchmark can pin the base seed
-            // (per-instance solve counter keeps successive solves decorrelated) for
-            // reproducible single runs. The position hash stays in BOTH modes so two ships
-            // pinned to the same base seed never share a noise stream.
+            // Per-ship injected seed keeps two ships decorrelated; the solve counter decorrelates
+            // successive solves, and the position hash keeps candidates from repeating when a ship
+            // revisits a pose. Fully reproducible: same seed + same inputs replay the same noise.
+            // The Knuth multiplicative spread scatters adjacent ship seeds far apart so per-candidate
+            // streams (rngSeed + candidateIndex) never overlap between neighbouring ships.
             solveCount++;
-            var frameComponent = SamplerSeedOverride.HasValue
-                ? SamplerSeedOverride.Value + solveCount * 7919u
-                : (uint)(Time.frameCount * 7919);
-            var rngSeed = frameComponent + (uint)initialState.pos.GetHashCode();
+            var baseSeed = (SamplerSeedOverride ?? samplerSeed) * 2654435761u;
+            var rngSeed = baseSeed + solveCount * 7919u + (uint)initialState.pos.GetHashCode();
             if (rngSeed == 0) rngSeed = 1;
 
             new GenerateCandidatesJob

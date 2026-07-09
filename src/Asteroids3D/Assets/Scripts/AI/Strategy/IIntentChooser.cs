@@ -27,6 +27,6 @@ namespace AI
     /// </summary>
     public interface IStateChooser : IIntentChooser
     {
-        void Initialize(IReadOnlyList<AIState> states);
+        void Initialize(IReadOnlyList<AIState> states, int seed);
     }
 }

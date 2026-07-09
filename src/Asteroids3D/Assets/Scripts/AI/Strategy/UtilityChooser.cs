@@ -22,6 +22,7 @@ namespace AI.Utility
 
         private readonly List<AIState> states = new();
         private Sampler sampler;
+        private float simTime;
         private float stateChangeTime;
 
         public AIState CurrentAIState { get; private set; }
@@ -35,10 +36,10 @@ namespace AI.Utility
         /// <summary>Fired on state transitions: (fromState, toState). Null fromState on first entry.</summary>
         public event Action<AIState, AIState> OnStateTransition;
 
-        public void Initialize(IReadOnlyList<AIState> statesToAdd)
+        public void Initialize(IReadOnlyList<AIState> statesToAdd, int seed)
         {
-            sampler ??= new Sampler(config, instanceUtilityWeights);
-            stateChangeTime = Time.time;
+            sampler ??= new Sampler(config, instanceUtilityWeights, seed);
+            stateChangeTime = simTime;
 
             states.Clear();
             if (statesToAdd != null)
@@ -55,9 +56,10 @@ namespace AI.Utility
             Context = context;
             if (states.Count == 0) return NavigationIntent.None;
 
+            simTime += deltaTime;
             var intent = CurrentAIState?.Tick(context, deltaTime) ?? NavigationIntent.None;
 
-            var timeSinceChange = Time.time - stateChangeTime;
+            var timeSinceChange = simTime - stateChangeTime;
             var selectedState = sampler.Evaluate(states, CurrentAIState, timeSinceChange, context);
 
             if (!ShouldTransition(selectedState, timeSinceChange))
@@ -93,7 +95,7 @@ namespace AI.Utility
             CurrentAIState?.Exit();
             CurrentAIState = newAIState;
             CurrentAIState.Enter(context);
-            stateChangeTime = Time.time;
+            stateChangeTime = simTime;
             OnStateTransition?.Invoke(prev, newAIState);
         }
 

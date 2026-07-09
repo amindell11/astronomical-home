@@ -15,16 +15,18 @@ namespace AI.Utility
         private readonly Dictionary<AI.States.AIState, UtilityBuilder> lastBuilders = new();
         private readonly UtilitySelectorSettings config;
         private readonly UtilityWeights instanceUtilityWeights;
+        private readonly System.Random rng;
         private readonly List<(AI.States.AIState state, float utility)> topStateUtilities = new(3);
         private readonly List<(AI.States.AIState state, float exp)> expBuffer = new(3);
         private readonly List<(AI.States.AIState state, float probability)> probabilityBuffer = new(3);
 
         public Dictionary<string, float> UtilityScores { get; } = new();
 
-        public Sampler(UtilitySelectorSettings config, UtilityWeights instanceUtilityWeights)
+        public Sampler(UtilitySelectorSettings config, UtilityWeights instanceUtilityWeights, int seed)
         {
             this.config = config;
             this.instanceUtilityWeights = instanceUtilityWeights;
+            rng = new System.Random(seed);
         }
 
         public AI.States.AIState Evaluate(IReadOnlyList<AI.States.AIState> states, AI.States.AIState currentAIState, float timeSinceEntry, AI.Context.AIContext context)
@@ -176,11 +178,11 @@ namespace AI.Utility
             return probabilityBuffer;
         }
 
-        private static AI.States.AIState SampleFromProbabilities(List<(AI.States.AIState state, float probability)> probabilities)
+        private AI.States.AIState SampleFromProbabilities(List<(AI.States.AIState state, float probability)> probabilities)
         {
             if (probabilities.Count == 0) return null;
 
-            var random = Random.Range(0f, 1f);
+            var random = (float)rng.NextDouble();
             var cumulative = 0f;
 
             foreach (var (state, probability) in probabilities)
