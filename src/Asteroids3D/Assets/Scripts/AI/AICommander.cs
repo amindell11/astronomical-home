@@ -1,4 +1,6 @@
 using AI.Context;
+using AI.Observation;
+using AI.Scanning;
 using AI.Utility;
 using System;
 using Movement;
@@ -24,11 +26,20 @@ namespace AI
         [Tooltip("Seconds after losing an enemy before exiting combat state.")]
         [SerializeField] private float combatExitDelay = 3f;
 
+        [Header("Observation Logging")]
+        [Tooltip("Dump per-tick tactical observation transitions to JSONL. Off in normal play; RL/analysis substrate only.")]
+        [SerializeField] private bool logObservations;
+        [Tooltip("Sphere radius (world units) the threat scanner sweeps for in-flight ordnance.")]
+        [SerializeField] private float threatScanRadius = 40f;
+        [Tooltip("Optional subfolder under results/ai-observations/ for this run.")]
+        [SerializeField] private string observationSessionTag = "";
+
         protected ShipControl control;
         protected IShipRegistry registry;
         protected bool systemsInitialized;
 
         private AIContext context;
+        private ObservationRecorder observationRecorder;
 
         public Scout Scout { get; private set; }
         public Navigator Navigator { get; private set; }
@@ -74,6 +85,12 @@ namespace AI
 
             Brain.Initialize(Navigator, Gunner);
 
+            if (logObservations)
+            {
+                var threatScanner = new ThreatScanner(self.Transform, self.Transform.root, threatScanRadius);
+                observationRecorder = new ObservationRecorder(self, context.Combat, Scout, threatScanner, observationSessionTag);
+            }
+
             systemsInitialized = true;
         }
 
@@ -87,10 +104,16 @@ namespace AI
                 var intent = Brain.Decide(context, Time.fixedDeltaTime);
                 Navigator.ApplyIntent(intent);
                 if (Gunner) Gunner.ApplyIntent(intent);
+                observationRecorder?.Record(intent, Time.fixedDeltaTime);
             }
 
             control.Pilot.Drive(Navigator.ComputeCommand());
             if (Gunner) Gunner.Fire();
+        }
+
+        protected virtual void OnDestroy()
+        {
+            observationRecorder?.Close();
         }
     }
 }
