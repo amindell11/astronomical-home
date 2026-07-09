@@ -182,14 +182,16 @@ namespace UI
         }
 
         // Thruster particles stay but are dormant — the preview never binds a ShipView.
+        // Immediate destroy: FrameCamera measures the clone's renderers this same frame, and a
+        // deferred Destroy would leave the minimap marker's MeshRenderer in the bounds pass.
         private static void StripNonHull(ShipVisualRig rig)
         {
             foreach (var canvas in rig.GetComponentsInChildren<Canvas>(true))
                 if (canvas.gameObject != rig.gameObject)
-                    Destroy(canvas.gameObject);
+                    DestroyImmediate(canvas.gameObject);
             foreach (var minimap in rig.GetComponentsInChildren<MinimapLayerSetter>(true))
-                if (minimap.gameObject != rig.gameObject)
-                    Destroy(minimap.gameObject);
+                if (minimap && minimap.gameObject != rig.gameObject)
+                    DestroyImmediate(minimap.gameObject);
             // Disable, don't destroy: sources may be [RequireComponent]-pinned by their binders.
             foreach (var audio in rig.GetComponentsInChildren<AudioSource>(true))
             {
