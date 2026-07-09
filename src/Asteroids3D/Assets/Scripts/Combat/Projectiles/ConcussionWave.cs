@@ -32,6 +32,7 @@ namespace Combat.Projectile
 
         public float Radius => radius;
         public float MaxRadius => maxRadius;
+        public float MaxDamage => maxDamage;
 
         private void Awake()
         {

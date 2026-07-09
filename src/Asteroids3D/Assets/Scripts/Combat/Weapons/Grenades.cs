@@ -1,3 +1,4 @@
+using Combat.Conditions;
 using Combat.Projectile;
 using UnityEngine;
 
@@ -17,7 +18,29 @@ namespace Combat.Weapons
         [Tooltip("Min angle off the nose (degrees) before the AI drops — the target must be behind.")]
         [SerializeField, Range(0f, 180f)] private float minDropAngle = 120f;
 
+        [Header("Conditions")]
+        [SerializeField] private Rounds rounds;
+
         public override bool AutoFire => false;
+
+        public override string HangarStats
+        {
+            get
+            {
+                var wave = projectilePrefab ? projectilePrefab.WavePrefab : null;
+                if (!wave) return DisplayName;
+                var mag = rounds
+                    ? $"   |   {rounds.MaxAmmo} charges" + (rounds.ReloadTime > 0f ? $" (reload {rounds.ReloadTime:0.#}s)" : "")
+                    : "";
+                return $"Blast {wave.MaxDamage:0} to {wave.MaxRadius:0}u, hits friend and foe{mag}   |   Fuse {projectilePrefab.FuseSeconds:0.#}s";
+            }
+        }
+
+        protected override void Awake()
+        {
+            base.Awake();
+            if (!rounds) rounds = GetComponent<Rounds>();
+        }
 
         public override bool ShouldFire(TargetingContext context)
         {

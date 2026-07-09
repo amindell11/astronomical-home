@@ -52,6 +52,7 @@ MonoBehaviour:
     type: 3}
   dropRange: 12
   minDropAngle: 120
+  rounds: {fileID: 1100000000000000204}
 --- !u!114 &1100000000000000204
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -31,6 +31,10 @@ namespace Combat.Projectile
 
         public bool Armed => aliveTime >= armingSeconds;
 
+        /// <summary>Serialized-state reads for hangar stat lines (evaluated on the prefab asset).</summary>
+        public float FuseSeconds => fuseSeconds;
+        public ConcussionWave WavePrefab => wavePrefab;
+
         /// <summary>Deterministic test seam for the fuse/arming timers; resets the clock.</summary>
         public void Configure(float fuseSeconds, float armingSeconds)
         {
