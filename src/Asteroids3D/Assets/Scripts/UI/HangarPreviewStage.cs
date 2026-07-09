@@ -21,6 +21,7 @@ namespace UI
         private const float CameraFovDeg = 30f;
         private const int TextureSize = 768;
 
+        private bool continueSpinOnSwitch;
         private Camera stageCamera;
         private Transform anchor;
         private RenderTexture texture;
@@ -33,11 +34,12 @@ namespace UI
 
         public Texture Texture => texture;
 
-        public static HangarPreviewStage Create()
+        public static HangarPreviewStage Create(bool continueSpinOnSwitch)
         {
             var go = new GameObject("HangarPreviewStage");
             go.transform.position = new Vector3(0f, -1000f, 0f);
             var stage = go.AddComponent<HangarPreviewStage>();
+            stage.continueSpinOnSwitch = continueSpinOnSwitch;
             stage.BuildStage();
             return stage;
         }
@@ -104,10 +106,13 @@ namespace UI
             SetLayerRecursive(root, gameObject.layer);
 
             // Ship size lives on the prefab root, which the clone left behind — re-apply the rig's
-            // full in-prefab scale. The clone inherits the anchor's current spin phase, so a switch
-            // continues the turntable mid-rotation.
+            // full in-prefab scale. Under the spinning anchor, BaseOrientation as LOCAL rotation
+            // inherits the current spin phase (turntable continues through a switch); countering the
+            // anchor makes the ship enter at the canonical pose instead.
             root.localPosition = Vector3.zero;
-            root.localRotation = BaseOrientation;
+            root.localRotation = continueSpinOnSwitch
+                ? BaseOrientation
+                : Quaternion.Inverse(anchor.rotation) * BaseOrientation;
             currentTargetScale = rigTemplate.transform.lossyScale;
             root.localScale = Vector3.zero;
 

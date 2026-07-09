@@ -34,6 +34,9 @@ namespace UI
         [Tooltip("Displays the preview stage's render texture. Null → no 3D preview.")]
         [SerializeField] private RawImage previewImage;
 
+        [Tooltip("Continue the turntable mid-rotation when switching ships; off = each ship enters at the canonical pose (nose screen-right).")]
+        [SerializeField] private bool continueSpinOnSwitch;
+
         [Header("Selection tint")]
         [SerializeField] private Color selectedColor = new(0.20f, 0.55f, 0.95f, 1f);
         [SerializeField] private Color unselectedColor = new(0.20f, 0.20f, 0.24f, 1f);
@@ -51,7 +54,7 @@ namespace UI
 
             if (previewImage)
             {
-                previewStage = HangarPreviewStage.Create();
+                previewStage = HangarPreviewStage.Create(continueSpinOnSwitch);
                 previewImage.texture = previewStage.Texture;
                 previewStage.Show(loadout);
             }
