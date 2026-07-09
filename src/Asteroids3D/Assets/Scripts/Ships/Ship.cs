@@ -1,6 +1,7 @@
 using System;
 using Combat;
 using Combat.Targeting;
+using Combat.Weapons;
 using Ships.Command;
 using Ships.Damage;
 using Ships.Movement;
@@ -56,8 +57,11 @@ namespace Ships
         /// <summary>The ship's weapons, or null if it carries none (peaceful ship).</summary>
         public WeaponsController Weapons { get; private set; }
 
-        /// <summary>The ship's lock-on sensor, or null if it carries no weapons.</summary>
-        public LockOnSensor Targeting { get; private set; }
+        /// <summary>
+        /// The ship's lock-on sensor, or null if no mounted weapon carries one. Reads through to
+        /// the weapons controller, which owns the mounts and keeps this current across reequips.
+        /// </summary>
+        public LockOnSensor Targeting => Weapons ? Weapons.Sensor : null;
 
         public Rigidbody Rigidbody { get; private set; }
         public ShipId Id { get; private set; }
@@ -97,7 +101,6 @@ namespace Ships
 
             // Weapons are optional: a ship without a WeaponsController is simply unarmed.
             Weapons  = GetComponent<WeaponsController>();
-            Targeting = GetComponentInChildren<LockOnSensor>();
             Weapons?.Initialize(() => Kinematics);
         }
 
@@ -123,16 +126,23 @@ namespace Ships
         public ResolvedShipStats ResolveStats() => ResolvedShipStats.Resolve(this, engine, shield);
 
         /// <summary>
-        /// Swap this ship's modules and re-resolve so every subsystem picks up the new build. Intended
-        /// for a between-run loadout change on the persistent player ship (the hangar), not a
-        /// live-while-flying swap: an AI pilot already flying caches <see cref="Dynamics"/> at init and
-        /// would keep the old value until re-initialised. A null <paramref name="newShield"/> is a valid
-        /// build (no shield).
+        /// Swap this ship's full build — every first-class slot in one atomic apply — and re-resolve
+        /// so every subsystem picks up the new modules. Engine/Shield are data modules (stat
+        /// re-resolve); weapons are prefab modules (unchanged slots keep their mounts; see
+        /// <see cref="Weapons.WeaponsController.Reequip"/>). A between-run operation, not a
+        /// live-while-flying swap. Null modules are valid builds (no shield / empty weapon slot);
+        /// an unarmed chassis (no WeaponsController) ignores the weapon slots. A weapon swap leaves
+        /// world-scoped wiring (lock sensor registry) to the caller — re-run
+        /// <c>IUnitService.WireShipDependencies</c> after applying.
         /// </summary>
-        public void Reequip(EngineModule newEngine, ShieldModule newShield)
+        public void Reequip(EngineModule newEngine, ShieldModule newShield,
+            WeaponComponent newPrimaryWeapon, WeaponComponent newSecondaryWeapon)
         {
             engine = newEngine;
             shield = newShield;
+
+            if (Weapons)
+                Weapons.Reequip(newPrimaryWeapon, newSecondaryWeapon);
 
             // Before Initialize there is nothing live to update — Initialize will resolve from these
             // pointers. Re-subscribe so onChanged tracks the new SOs even in that case.

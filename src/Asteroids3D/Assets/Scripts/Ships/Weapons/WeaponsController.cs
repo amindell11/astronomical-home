@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Combat;
+using Combat.Targeting;
 using Combat.Weapons;
 using Movement;
 using Ships.Command;
@@ -28,12 +29,77 @@ namespace Ships.Weapons
         public WeaponComponent Primary { get; private set; }
         public WeaponComponent Secondary { get; private set; }
 
+        /// <summary>The equipped weapon prefabs (the loadout's weapon modules; see ShipLoadout).</summary>
+        public WeaponComponent PrimaryMountPrefab => primaryMount;
+        public WeaponComponent SecondaryMountPrefab => secondaryMount;
+
+        /// <summary>
+        /// The lock-on sensor carried by a mounted weapon, or null when no mount has one. Owned
+        /// here because the mounts are: set from the instances at Awake and kept current across
+        /// <see cref="Reequip"/>, so consumers (Ship.Targeting) never scan the hierarchy.
+        /// </summary>
+        public LockOnSensor Sensor { get; private set; }
+
         private WeaponContext context;
 
         private void Awake()
         {
             if (primaryMount) Primary = Instantiate(primaryMount, ResolveMount(WeaponSlot.Primary));
             if (secondaryMount) Secondary = Instantiate(secondaryMount, ResolveMount(WeaponSlot.Secondary));
+            Sensor = FindMountSensor();
+        }
+
+        /// <summary>
+        /// Swap the mounted weapons for new prefab modules (null = leave the slot empty). A slot
+        /// whose module is unchanged keeps its live mount instance untouched — an unedited loadout
+        /// apply is a no-op. Changed slots destroy the current mount instance, instantiate the new
+        /// prefab at the hardpoint, and refresh the context <em>in place</em> so references held by
+        /// commanders and the HUD stay valid. A between-run operation (see Ship.Reequip); not
+        /// intended mid-combat.
+        /// </summary>
+        public void Reequip(WeaponComponent newPrimary, WeaponComponent newSecondary)
+        {
+            var changed = false;
+
+            if (newPrimary != primaryMount)
+            {
+                primaryMount = newPrimary;
+                Primary = ReplaceMount(Primary, newPrimary, WeaponSlot.Primary);
+                changed = true;
+            }
+            if (newSecondary != secondaryMount)
+            {
+                secondaryMount = newSecondary;
+                Secondary = ReplaceMount(Secondary, newSecondary, WeaponSlot.Secondary);
+                changed = true;
+            }
+
+            if (changed)
+            {
+                context?.Refresh();
+                Sensor = FindMountSensor();
+            }
+        }
+
+        private WeaponComponent ReplaceMount(WeaponComponent current, WeaponComponent prefab, WeaponSlot slot)
+        {
+            if (current)
+            {
+                // Detach before the deferred Destroy so same-frame hierarchy queries
+                // can't find the outgoing mount.
+                current.transform.SetParent(null);
+                Destroy(current.gameObject);
+            }
+
+            return prefab ? Instantiate(prefab, ResolveMount(slot)) : null;
+        }
+
+        /// <summary>The first mounted weapon's lock sensor (mount-scoped; sensors ride the mounts).</summary>
+        private LockOnSensor FindMountSensor()
+        {
+            if (Primary && Primary.TryGetComponent(out LockOnSensor primarySensor)) return primarySensor;
+            if (Secondary && Secondary.TryGetComponent(out LockOnSensor secondarySensor)) return secondarySensor;
+            return null;
         }
 
         /// <summary>The authored mount for a slot, or this transform (ship origin) when none is set.</summary>
@@ -86,17 +152,33 @@ namespace Ships.Weapons
             ResetSystem();
         }
 
-        /// <summary>Slot-keyed read view over the controller's mounts.</summary>
+        /// <summary>
+        /// Slot-keyed read view over the controller's mounts. One instance lives for the ship's
+        /// lifetime and is refreshed in place on a reequip — consumers (commanders, HUD) hold the
+        /// object, never per-mount state.
+        /// </summary>
         private sealed class WeaponContext : IWeaponContext, IWeaponReadouts
         {
             private readonly WeaponsController owner;
-            private readonly Gunsight primarySight;
-            private readonly Gunsight secondarySight;
+            private readonly Func<Kinematics> pose;
+            private Gunsight primarySight;
+            private Gunsight secondarySight;
             private readonly List<WeaponSlot> slots = new(2);
 
             public WeaponContext(WeaponsController owner, Func<Kinematics> pose)
             {
                 this.owner = owner;
+                this.pose = pose;
+                Refresh();
+            }
+
+            /// <summary>Rebuild the per-slot state from the currently mounted weapons.</summary>
+            public void Refresh()
+            {
+                slots.Clear();
+                primarySight = null;
+                secondarySight = null;
+
                 if (owner.Primary)
                 {
                     primarySight = new Gunsight(owner.Primary, pose);

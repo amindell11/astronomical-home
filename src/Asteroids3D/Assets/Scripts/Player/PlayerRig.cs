@@ -122,7 +122,9 @@ namespace Player
             currentTemplate = playerTemplate;
 
             // Seed the pending loadout from the ship's authored build so an unedited hangar is a no-op.
-            Loadout = new ShipLoadout(playerTemplate, Player.Engine, Player.Shield);
+            Loadout = new ShipLoadout(playerTemplate, Player.Engine, Player.Shield,
+                Player.Weapons ? Player.Weapons.PrimaryMountPrefab : null,
+                Player.Weapons ? Player.Weapons.SecondaryMountPrefab : null);
 
             WireDeathPolicy();
 
@@ -182,18 +184,31 @@ namespace Player
         {
             if (!Player || Loadout == null) return;
 
+            // A dead player reaches the hangar deactivated (death disables the ship GameObject).
+            // Revive it before applying so swapped-in weapon mounts instantiate active and Awake-wire
+            // like on the alive path; the subsequent LoadSector repositions and resets it anyway.
+            if (!Player.gameObject.activeSelf)
+                Player.ResetShip();
+
             if (Loadout.Ship && Loadout.Ship != currentTemplate)
                 RebuildPlayer(Loadout.Ship);
 
-            Player.Reequip(Loadout.Engine, Loadout.Shield);
+            Player.Reequip(Loadout.Engine, Loadout.Shield,
+                Loadout.PrimaryWeapon, Loadout.SecondaryWeapon);
+
+            // Swapped-in weapon mounts carry world-facing parts (lock sensor) that the service
+            // wired at spawn; ask it to re-wire, then re-bind the HUD to the new readouts.
+            services.UnitService.WireShipDependencies(Player);
+            RebindHud();
         }
 
         /// <summary>
         /// Replace the persistent player with a fresh build of <paramref name="newTemplate"/>: despawn
         /// the old ship, re-run the standard player build/wiring (registry, camera subject, world
-        /// follower, commander, screen-to-plane), re-arm the death policy, and re-bind the persistent
-        /// HUD overlay to the new ship. Runs only in the between-run hangar gap, where no sector is
-        /// loaded — the subsequent <c>LoadSector</c> injects and positions the new player as usual.
+        /// follower, commander, screen-to-plane), and re-arm the death policy. The caller
+        /// (<see cref="ApplyLoadout"/>) re-binds the HUD after the module equip that follows. Runs
+        /// only in the between-run hangar gap, where no sector is loaded — the subsequent
+        /// <c>LoadSector</c> injects and positions the new player as usual.
         /// </summary>
         private void RebuildPlayer(Ship newTemplate)
         {
@@ -206,9 +221,13 @@ namespace Player
             currentTemplate = newTemplate;
 
             WireDeathPolicy();
+        }
 
-            // The overlay instance persists across the swap; re-Initialize re-binds every widget
-            // (readout builder clears and regenerates; audio binders unsubscribe their old source).
+        // The overlay instance persists across player rebuilds and loadout changes; re-Initialize
+        // re-binds every widget (readout builder clears and regenerates; audio binders unsubscribe
+        // their old source).
+        private void RebindHud()
+        {
             var overlay = services.UIService.ActiveOverlay;
             if (overlay)
                 overlay.Initialize(new HudBinding(

@@ -22,6 +22,12 @@ namespace Tests.PlayMode
 
         private Ship ship;
 
+        /// <summary>The ship's current weapon modules — "keep weapons as they are" for module swaps.</summary>
+        private static Combat.Weapons.WeaponComponent CurrentPrimary(Ship s) =>
+            s.Weapons ? s.Weapons.PrimaryMountPrefab : null;
+        private static Combat.Weapons.WeaponComponent CurrentSecondary(Ship s) =>
+            s.Weapons ? s.Weapons.SecondaryMountPrefab : null;
+
         public override void TearDown()
         {
             ShipTestFactory.DestroyShip(ship);
@@ -45,7 +51,7 @@ namespace Tests.PlayMode
             var baselineRadius = ship.Stats.shipRadius;
 
             // Swap to the racer engine → every consumer picks up the new top speed.
-            ship.Reequip(racer, ship.Shield);
+            ship.Reequip(racer, ship.Shield, CurrentPrimary(ship), CurrentSecondary(ship));
             Assert.AreEqual(racer.maxSpeed, ship.Stats.maxSpeed, 1e-3f, "stats reflect racer top speed");
             Assert.AreEqual(racer.maxSpeed, ship.Dynamics.maxSpeed, 1e-3f, "MPC dynamics rebuilt with racer top speed");
             Assert.AreEqual(racer.maxSpeed, ship.Rigidbody.maxLinearVelocity, 1e-3f,
@@ -55,7 +61,7 @@ namespace Tests.PlayMode
                 "collision radius is geometry-derived and carries across a module swap");
 
             // A second swap proves it is not a one-shot latch.
-            ship.Reequip(hauler, ship.Shield);
+            ship.Reequip(hauler, ship.Shield, CurrentPrimary(ship), CurrentSecondary(ship));
             Assert.AreEqual(hauler.maxSpeed, ship.Stats.maxSpeed, 1e-3f, "stats reflect hauler top speed after 2nd swap");
             Assert.AreEqual(hauler.maxSpeed, ship.Rigidbody.maxLinearVelocity, 1e-3f,
                 "rigidbody re-applied to hauler top speed after 2nd swap");
@@ -72,7 +78,7 @@ namespace Tests.PlayMode
             Assert.IsNotNull(bulwark, "bulwark shield asset loaded");
             Assert.AreNotEqual(ship.Stats.maxShield, bulwark.maxShield, "bulwark differs from the baseline shield cap");
 
-            ship.Reequip(ship.Engine, bulwark);
+            ship.Reequip(ship.Engine, bulwark, CurrentPrimary(ship), CurrentSecondary(ship));
             Assert.AreEqual(bulwark.maxShield, ship.Stats.maxShield, 1e-3f, "stats reflect the bulwark shield cap");
             Assert.AreEqual(1f, ship.ShieldPct, 1e-3f, "vitals refill on a between-run equip swap");
         }

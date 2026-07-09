@@ -1,14 +1,17 @@
+using Combat.Weapons;
+
 namespace Ships
 {
     /// <summary>
-    /// The pending module selection a hangar edits before it is applied to a ship. Holds the chosen
-    /// engine + shield; <see cref="Ship.Reequip"/> is what actually installs them. Kept separate from
-    /// the ship so the hangar can stage a build without touching the live ship until the player
-    /// commits (Launch).
+    /// The pending module selection a hangar edits before it is applied to a ship. Holds every
+    /// first-class slot — chassis, engine, shield, and the two weapon mounts;
+    /// <see cref="Ship.Reequip"/> is what actually installs them. Kept separate from the ship so
+    /// the hangar can stage a build without touching the live ship until the player commits
+    /// (Launch).
     ///
-    /// Weapons are a slot in the design too, but they are instantiated child prefabs rather than data
-    /// modules, so they swap via a different (GameObject-lifecycle) path and join this selection in a
-    /// follow-up.
+    /// Engine/Shield modules are ScriptableObjects; weapon modules are the weapon prefabs
+    /// themselves (prefab-as-module, like the chassis slot) — the loadout model treats all slots
+    /// uniformly even though their install paths differ (data re-resolve vs mount re-instantiation).
     /// </summary>
     public class ShipLoadout
     {
@@ -19,11 +22,18 @@ namespace Ships
         public EngineModule Engine;
         public ShieldModule Shield;
 
-        public ShipLoadout(Ship ship, EngineModule engine, ShieldModule shield)
+        /// <summary>Weapon prefab for each mount; null = empty slot (unarmed is a valid build).</summary>
+        public WeaponComponent PrimaryWeapon;
+        public WeaponComponent SecondaryWeapon;
+
+        public ShipLoadout(Ship ship, EngineModule engine, ShieldModule shield,
+            WeaponComponent primaryWeapon, WeaponComponent secondaryWeapon)
         {
             Ship = ship;
             Engine = engine;
             Shield = shield;
+            PrimaryWeapon = primaryWeapon;
+            SecondaryWeapon = secondaryWeapon;
         }
     }
 }

@@ -102,7 +102,8 @@ namespace Game.Services
             ActiveRegistry.Dispose();
         }
 
-        private void WireShipDependencies(Ship ship)
+        /// <summary>Idempotent world-state wiring; see <see cref="IUnitService.WireShipDependencies"/>.</summary>
+        public void WireShipDependencies(Ship ship)
         {
             if (!ship) return;
             ship.Targeting?.SetRegistry(ActiveRegistry);

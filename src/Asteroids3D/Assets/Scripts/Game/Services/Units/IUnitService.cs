@@ -45,5 +45,16 @@ namespace Game.Services
 
         /// <summary>Drop all queued (delayed) respawns without reviving their ships.</summary>
         public void CancelPendingRespawns();
+
+        /// <summary>
+        /// (Re-)push world-scoped dependencies (ship registry) into a ship's world-facing parts.
+        /// Idempotent; runs automatically at spawn/adopt. Re-run it after a loadout reequip swaps
+        /// in parts that need wiring (e.g. a missile mount's lock sensor) — the service owns world
+        /// state, so re-wiring is requested of it rather than threaded through per-ship code.
+        /// Interim seam: public only because the lock sensor lives on a swappable weapon mount;
+        /// relocating the sensor to the hull (weapon-types roadmap, PR 3 deferrals) dissolves the
+        /// re-wiring need and this member should retreat to private spawn wiring.
+        /// </summary>
+        void WireShipDependencies(Ship ship);
     }
 }
