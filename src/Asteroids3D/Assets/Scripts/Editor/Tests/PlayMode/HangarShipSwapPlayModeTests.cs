@@ -19,6 +19,7 @@ namespace Tests.PlayMode
     /// real PlayerRig prefab + a real service container — this is the integration seam the
     /// between-run flow drives.
     /// </summary>
+    [Category("RequiresGraphics")]
     public class HangarShipSwapPlayModeTests : PlayModeWorldFixture
     {
         private const string RigPrefabPath = "Assets/Prefabs/MiscObjects/PlayerRig.prefab";
