@@ -104,11 +104,10 @@ namespace UI
             SetLayerRecursive(root, gameObject.layer);
 
             // Ship size lives on the prefab root, which the clone left behind — re-apply the rig's
-            // full in-prefab scale. Counter the anchor's accumulated spin so every ship enters at
-            // BaseOrientation in world space: FrameCamera measures world bounds, and an elongated
-            // hull measured at an arbitrary turntable angle frames to an arbitrary apparent size.
+            // full in-prefab scale. The clone inherits the anchor's current spin phase, so a switch
+            // continues the turntable mid-rotation.
             root.localPosition = Vector3.zero;
-            root.localRotation = Quaternion.Inverse(anchor.rotation) * BaseOrientation;
+            root.localRotation = BaseOrientation;
             currentTargetScale = rigTemplate.transform.lossyScale;
             root.localScale = Vector3.zero;
 
@@ -120,15 +119,20 @@ namespace UI
 
         private void FrameCamera(Transform rig)
         {
-            // Measure at target scale — the clone is still zero-scaled for the pop-in.
+            // Measure at target scale and canonical pose — the clone is still zero-scaled for the
+            // pop-in, and its world bounds vary with the turntable angle of the click (an elongated
+            // hull measured broadside frames larger than nose-on).
             var previousScale = rig.localScale;
+            var previousRotation = rig.localRotation;
             rig.localScale = currentTargetScale;
+            rig.rotation = BaseOrientation;
             var bounds = new Bounds(anchor.position, Vector3.one);
             var renderers = rig.GetComponentsInChildren<Renderer>(true);
             foreach (var r in renderers)
                 if (FramesBounds(r))
                     bounds.Encapsulate(r.bounds);
             rig.localScale = previousScale;
+            rig.localRotation = previousRotation;
 
             // Largest single-axis extent — the 3D diagonal over-frames by ~1.7x.
             var extents = bounds.extents;
