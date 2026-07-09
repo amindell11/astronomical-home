@@ -2,7 +2,11 @@
 set -euo pipefail
 
 ROOT="$(git rev-parse --show-toplevel)"
-LOCK_ROOT="$ROOT/.worktree-pool/locks"
+LOCK_ROOT="${WORKTREE_POOL_LOCK_ROOT:-$ROOT/.worktree-pool/locks}"
+# Locks go stale by AGE, not by a live pid: each agent shell here is ephemeral,
+# so the acquiring pid is long dead by the next call. A lock older than the TTL
+# with no unpushed work in its slot is reclaimable. Override for tests.
+LOCK_TTL_SECONDS="${WORKTREE_POOL_LOCK_TTL:-43200}"
 mkdir -p "$LOCK_ROOT"
 
 usage() {
@@ -93,16 +97,83 @@ lock_dir_for() {
 
 lease_for() {
   local slot="$1"
-  local ldir
+  # Durable source of truth: the worktree's own git config (survives lock-dir
+  # loss, so submit/revise can recover the lease "by id"). Fall back to the
+  # lock dir for locks written before this binding existed.
+  local path cfg ldir
+  path="$(slot_path "$slot" 2>/dev/null || true)"
+  if [[ -n "$path" ]]; then
+    cfg="$(git -C "$path" config --get worktree-pool.lease 2>/dev/null || true)"
+    if [[ -n "$cfg" ]]; then
+      echo "$cfg"
+      return 0
+    fi
+  fi
   ldir="$(lock_dir_for "$slot")"
   cat "$ldir/lease" 2>/dev/null || true
 }
 
 task_branch_for() {
   local slot="$1"
+  local ldir tb lease
+  ldir="$(lock_dir_for "$slot")"
+  tb="$(cat "$ldir/task_branch" 2>/dev/null || true)"
+  if [[ -n "$tb" ]]; then
+    echo "$tb"
+    return 0
+  fi
+  # Derive deterministically from the lease so a missing task_branch file never
+  # forces a fall back to the bare slot name (which rebases onto ancient
+  # origin/agent-N — the documented REVISE HAZARD).
+  lease="$(lease_for "$slot")"
+  if [[ -n "$lease" ]]; then
+    echo "task/$lease"
+  fi
+  # Always succeed: a bare failing test as the last line would poison
+  # `x="$(task_branch_for ...)"` under `set -e` in callers.
+  return 0
+}
+
+write_lock() {
+  local slot="$1" lease="$2" path="$3"
   local ldir
   ldir="$(lock_dir_for "$slot")"
-  cat "$ldir/task_branch" 2>/dev/null || true
+  printf '%s\n' "$lease" > "$ldir/lease"
+  printf '%s\n' "$$" > "$ldir/pid"
+  date -u +"%Y-%m-%dT%H:%M:%SZ" > "$ldir/timestamp"
+  if [[ -n "$path" ]]; then
+    git -C "$path" config worktree-pool.lease "$lease" 2>/dev/null || true
+  fi
+}
+
+lock_age_seconds() {
+  local ldir="$1"
+  local ts_file="$ldir/timestamp"
+  [[ -f "$ts_file" ]] || { echo 999999999; return 0; }
+  local ts now
+  ts="$(date -u -d "$(cat "$ts_file")" +%s 2>/dev/null || echo 0)"
+  now="$(date -u +%s)"
+  echo $(( now - ts ))
+}
+
+# Reachable from some remote branch => already pushed => safe to reset/reclaim.
+is_head_pushed() {
+  local path="$1"
+  local remotes
+  remotes="$(git -C "$path" branch -r --contains HEAD 2>/dev/null | tr -d ' ' | grep -v '^$' || true)"
+  [[ -n "$remotes" ]]
+}
+
+# A slot is clobber-safe when its worktree has no uncommitted changes and no
+# local commits that aren't already on a remote branch.
+slot_is_clobber_safe() {
+  local path="$1" base="${2:-origin/main}"
+  local dirty ahead
+  dirty="$(git -C "$path" status --porcelain 2>/dev/null | wc -l | tr -d ' ')"
+  [[ "${dirty:-0}" -eq 0 ]] || return 1
+  ahead="$(git -C "$path" rev-list --count "$base"..HEAD 2>/dev/null || echo 0)"
+  [[ "${ahead:-0}" -eq 0 ]] && return 0
+  is_head_pushed "$path"
 }
 
 repo_slug() {
@@ -153,11 +224,26 @@ cmd_acquire() {
     local ldir
     ldir="$(lock_dir_for "$slot")"
     if mkdir "$ldir" 2>/dev/null; then
-      printf '%s\n' "$lease" > "$ldir/lease"
-      printf '%s\n' "$$" > "$ldir/pid"
-      date -u +"%Y-%m-%dT%H:%M:%SZ" > "$ldir/timestamp"
+      write_lock "$slot" "$lease" "$path"
       echo "SLOT=$slot PATH=$path"
       return 0
+    fi
+    # Locked. Reclaim only if the lock is past its TTL AND the slot holds no
+    # unpushed work (never clobber a dead lock's WIP -- the CLOBBER HAZARD).
+    local age
+    age="$(lock_age_seconds "$ldir")"
+    if [[ "$age" -gt "$LOCK_TTL_SECONDS" ]]; then
+      if slot_is_clobber_safe "$path"; then
+        rm -rf "$ldir"
+        if mkdir "$ldir" 2>/dev/null; then
+          write_lock "$slot" "$lease" "$path"
+          echo "Reclaimed stale lock on $slot (age ${age}s > TTL ${LOCK_TTL_SECONDS}s)" >&2
+          echo "SLOT=$slot PATH=$path"
+          return 0
+        fi
+      else
+        echo "Skipping $slot: stale lock (age ${age}s) but slot holds unpushed work; leaving locked" >&2
+      fi
     fi
   done < <(slots_tsv)
 
@@ -167,8 +253,10 @@ cmd_acquire() {
 
 cmd_release() {
   local slot="$1"
-  local ldir
+  local ldir path
   ldir="$(lock_dir_for "$slot")"
+  path="$(slot_path "$slot" 2>/dev/null || true)"
+  [[ -n "$path" ]] && git -C "$path" config --unset worktree-pool.lease 2>/dev/null || true
   if [[ -d "$ldir" ]]; then
     rm -rf "$ldir"
     echo "Released $slot"
@@ -180,10 +268,26 @@ cmd_release() {
 cmd_prepare() {
   local slot="$1"
   local base="${2:-origin/main}"
+  local force="${3:-}"
   local path
   path="$(slot_path "$slot")"
 
   git -C "$path" fetch origin
+
+  # Guard: never reset --hard over unpushed work unless explicitly forced.
+  if [[ "$force" != "--force" ]] && ! slot_is_clobber_safe "$path" "$base"; then
+    local ahead dirty
+    ahead="$(git -C "$path" rev-list --count "$base"..HEAD 2>/dev/null || echo 0)"
+    dirty="$(git -C "$path" status --porcelain 2>/dev/null | wc -l | tr -d ' ')"
+    echo "REFUSING to prepare $slot: it holds unpushed work" >&2
+    echo "  ($ahead commit(s) ahead of $base, $dirty uncommitted change(s))." >&2
+    echo "  Preserve it first, e.g.:" >&2
+    echo "    git -C $path push origin HEAD:refs/heads/task/<lease>" >&2
+    echo "  then re-run with --force:" >&2
+    echo "    $0 prepare $slot $base --force" >&2
+    return 1
+  fi
+
   git -C "$path" checkout "$slot"
   git -C "$path" reset --hard "$base"
   git -C "$path" clean -fd
@@ -291,9 +395,11 @@ cmd_submit() {
   fi
   task_branch="task/$lease"
 
-  # Store task branch in lock dir
+  # Store task branch in lock dir (recreate it if a stale-reclaim removed the
+  # dir, so submit never dies with "task_branch: No such file or directory").
   local ldir
   ldir="$(lock_dir_for "$slot")"
+  mkdir -p "$ldir"
   printf '%s\n' "$task_branch" > "$ldir/task_branch"
 
   # Push local slot branch to the task-specific remote branch
@@ -349,7 +455,10 @@ cmd_finalize() {
     git -C "$ROOT" push origin --delete "$task_branch" 2>/dev/null || true
   fi
 
-  cmd_prepare "$slot" "$base_ref"
+  # Post-merge reset is intentional discard: the slot's task-branch commits are
+  # subsumed into main (squash) and the remote task branch was just deleted, so
+  # force past the unpushed-work guard.
+  cmd_prepare "$slot" "$base_ref" --force
   cmd_release "$slot"
 
   echo "Finalized $slot: reset to $base_ref and released lock."
@@ -424,24 +533,25 @@ cmd_revise() {
   path="$(slot_path "$slot")"
   task_branch="$(task_branch_for "$slot")"
 
+  # Never fall back to the bare slot name: origin/agent-N is an ancient,
+  # unrelated branch, and rebasing onto it replays 100+ commits (REVISE HAZARD).
+  if [[ -z "$task_branch" ]]; then
+    echo "revise: no task branch known for $slot (no lease/task_branch)." >&2
+    echo "  Push manually instead: git -C $path push origin $slot:refs/heads/task/<lease>" >&2
+    return 1
+  fi
+
   git -C "$path" fetch origin
   git -C "$path" checkout "$slot"
 
-  # If there's a task branch, rebase from it; otherwise fall back to slot name
-  local remote_ref="${task_branch:-$slot}"
-  if git -C "$path" rev-parse "origin/$remote_ref" >/dev/null 2>&1; then
-    git -C "$path" pull --rebase origin "$remote_ref"
+  if git -C "$path" rev-parse "origin/$task_branch" >/dev/null 2>&1; then
+    git -C "$path" pull --rebase origin "$task_branch"
   fi
 
   cmd_run_tests "$slot" "${test_args[@]}"
 
-  # Push to task branch if set, otherwise slot branch
-  if [[ -n "$task_branch" ]]; then
-    git -C "$path" push origin "$slot:refs/heads/$task_branch"
-  else
-    git -C "$path" push origin "$slot"
-  fi
-  echo "Revised and pushed $slot -> ${task_branch:-$slot}"
+  git -C "$path" push origin "$slot:refs/heads/$task_branch"
+  echo "Revised and pushed $slot -> $task_branch"
 }
 
 main() {
