@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Damage;
 using Game;
@@ -40,6 +41,9 @@ namespace Combat.Projectile
                 sweepMask = LayerIds.Mask(LayerIds.Ship, LayerIds.Asteroid, LayerIds.Projectile, LayerIds.Missile);
         }
 
+        /// <summary>Raised by <see cref="Begin"/> — a live detonation, unlike OnEnable, which pool warmup also triggers.</summary>
+        public event Action Begun;
+
         /// <summary>Starts a sweep from this transform's position, attributing damage to <paramref name="attacker"/>.</summary>
         public void Begin(GameObject attacker)
         {
@@ -47,6 +51,7 @@ namespace Combat.Projectile
             radius = 0f;
             resolved.Clear();
             swept.Clear();
+            Begun?.Invoke();
         }
 
         private void FixedUpdate()
@@ -61,8 +66,17 @@ namespace Combat.Projectile
         private void Sweep()
         {
             var falloff = Falloff(radius, maxRadius);
+
+            // Already-swept inner colliders stay inside the growing sphere and would permanently
+            // crowd a fixed-size result, starving newly reached outer targets — regrow until the
+            // query fits.
             var buffer = PhysicsBuffers.GetColliderBuffer(64);
             var hitCount = Physics.OverlapSphereNonAlloc(transform.position, radius, buffer, sweepMask);
+            while (hitCount == buffer.Length)
+            {
+                buffer = PhysicsBuffers.GetColliderBuffer(buffer.Length * 2);
+                hitCount = Physics.OverlapSphereNonAlloc(transform.position, radius, buffer, sweepMask);
+            }
 
             for (var i = 0; i < hitCount; i++)
             {

@@ -35,6 +35,17 @@ namespace Combat.Projectile.Visual
         private void OnEnable()
         {
             transform.localScale = Vector3.zero;
+            wave.Begun += SpawnBurst;
+        }
+
+        private void OnDisable()
+        {
+            wave.Begun -= SpawnBurst;
+        }
+
+        /// <summary>On Begin, not OnEnable — pool warmup activates the instance once without a detonation.</summary>
+        private void SpawnBurst()
+        {
             if (GameSettings.VfxEnabled && burstPrefab)
                 SimplePool<PooledVFX>.Get(burstPrefab, transform.position, Quaternion.identity);
         }

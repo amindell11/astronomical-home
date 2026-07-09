@@ -96,6 +96,18 @@ namespace Tests.PlayMode
             return waves.Length > 0 ? waves[0] : null;
         }
 
+        // ── Pool warmup ──
+
+        [Test]
+        public void EquippingTheWeapon_WarmsPoolsWithoutAPhantomBurst()
+        {
+            MountWeapon(out _);
+
+            Assert.IsNull(FindActiveWave(), "Pool warmup must not leave an active wave.");
+            Assert.AreEqual(0, Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None).Length,
+                "Pool warmup must not fire the detonation burst (it activates the pooled wave once).");
+        }
+
         // ── Drop ──
 
         [Test]
@@ -196,6 +208,39 @@ namespace Tests.PlayMode
                 "The first wave swept the drifting second charge and set it off.");
             Assert.AreEqual(2, Object.FindObjectsByType<ConcussionWave>(FindObjectsSortMode.None).Length,
                 "Both charges produced waves.");
+        }
+
+        [UnityTest]
+        public IEnumerator Wave_SweepsMoreTargetsThanTheQueryBuffer()
+        {
+            // Swept inner colliders stay inside the growing sphere; with a fixed 64-slot query
+            // they'd crowd out newly reached outer targets. 70 targets pins the regrow path.
+            var weapon = MountWeapon(out _);
+            weapon.transform.root.position = new Vector3(80f, 0f, 80f);
+
+            const int targetCount = 70;
+            var targets = new List<DamageRecorder>(targetCount);
+            for (var i = 0; i < targetCount; i++)
+            {
+                var angle = i * Mathf.PI * 2f / targetCount;
+                var ring = 2f + i % 8;
+                targets.Add(CreateTarget(
+                    new Vector3(Mathf.Cos(angle) * ring, 0f, Mathf.Sin(angle) * ring), $"SwarmTarget{i}"));
+            }
+
+            var grenade = weapon.Fire() as Grenade;
+            grenade.transform.position = Vector3.zero;
+            grenade.TakeDamage(1f, 0.1f, Vector3.zero, Vector3.zero, null);
+
+            var wave = FindActiveWave();
+            Assert.IsNotNull(wave);
+            var steps = Mathf.CeilToInt(wave.MaxRadius / 20f / Time.fixedDeltaTime) + 4;
+            for (var i = 0; i < steps; i++)
+                yield return new WaitForFixedUpdate();
+
+            for (var i = 0; i < targetCount; i++)
+                Assert.Greater(targets[i].TotalDamage, 0f,
+                    $"Target {i} was starved out of the sweep — every target inside the wave must be hit.");
         }
 
         [UnityTest]
