@@ -104,9 +104,11 @@ namespace UI
             SetLayerRecursive(root, gameObject.layer);
 
             // Ship size lives on the prefab root, which the clone left behind — re-apply the rig's
-            // full in-prefab scale.
+            // full in-prefab scale. Counter the anchor's accumulated spin so every ship enters at
+            // BaseOrientation in world space: FrameCamera measures world bounds, and an elongated
+            // hull measured at an arbitrary turntable angle frames to an arbitrary apparent size.
             root.localPosition = Vector3.zero;
-            root.localRotation = BaseOrientation;
+            root.localRotation = Quaternion.Inverse(anchor.rotation) * BaseOrientation;
             currentTargetScale = rigTemplate.transform.lossyScale;
             root.localScale = Vector3.zero;
 
