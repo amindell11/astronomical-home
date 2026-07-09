@@ -43,6 +43,8 @@ namespace Combat.Conditions
 
         public float ChargePct { get; private set; }
 
+        public float FullChargeTime => chargeTime;
+
         /// <summary>
         /// Advances the charge by one trigger step of <paramref name="dt"/> seconds and returns
         /// whether the weapon should attempt to fire this step.

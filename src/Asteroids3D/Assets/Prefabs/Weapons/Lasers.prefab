@@ -79,3 +79,5 @@ MonoBehaviour:
   firePoint: {fileID: 0}
   projectilePrefab: {fileID: 5408995189547049293, guid: d4f6577bb30c48945a17243a523023ff,
     type: 3}
+  heat: {fileID: 6448982411033854647}
+  cooldown: {fileID: 8105349543242701031}

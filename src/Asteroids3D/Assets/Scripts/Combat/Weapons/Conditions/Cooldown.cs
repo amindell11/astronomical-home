@@ -13,6 +13,7 @@ namespace Combat.Conditions
         public event Action OnCooldownStart;
         public event Action OnCooldownReady;
         
+        public float SecondsBetweenShots => fireRate;
         public float CooldownRemaining => Mathf.Max(0, nextFireTime - Time.time);
         public float CooldownPercentage => fireRate > 0 ? CooldownRemaining / fireRate : 0f;
 

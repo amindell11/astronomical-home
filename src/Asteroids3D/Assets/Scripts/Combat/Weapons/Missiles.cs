@@ -11,6 +11,9 @@ namespace Combat.Weapons
         [Header("Targeting")]
         [SerializeField] private LockOnSensor targetingComputer;
 
+        [Header("Conditions")]
+        [SerializeField] private Rounds rounds;
+
         [Header("AI Firing (No Lock)")]
         [Tooltip("Max distance at which an AI gunner will fire unguided (no lock).")]
         [SerializeField, Min(0f)] private float fallbackRange = 10f;
@@ -20,17 +23,29 @@ namespace Combat.Weapons
         private ILockProvider lockProvider;
 
         public LockOnSensor Targeting => targetingComputer;
-        public Rounds Rounds { get; private set; }
+        public Rounds Rounds => rounds;
 
         public override ILockStateSource LockSource => targetingComputer;
 
         // Missiles are semi-auto: one launch per trigger press, not a held stream.
         public override bool AutoFire => false;
 
+        public override string HangarStats
+        {
+            get
+            {
+                if (!projectilePrefab) return DisplayName;
+                var ammo = rounds
+                    ? $"   |   {rounds.MaxAmmo} rounds" + (rounds.ReloadTime > 0f ? $" (reload {rounds.ReloadTime:0.#}s)" : "")
+                    : "";
+                return $"Damage {projectilePrefab.Damage:0} + {projectilePrefab.SplashDamage:0} splash{ammo}   |   Lock-on homing";
+            }
+        }
+
         protected override void Awake()
         {
             base.Awake();
-            Rounds = GetComponent<Rounds>();
+            if (!rounds) rounds = GetComponent<Rounds>();
             if (!targetingComputer)
                 targetingComputer = GetComponent<LockOnSensor>();
             lockProvider = targetingComputer;

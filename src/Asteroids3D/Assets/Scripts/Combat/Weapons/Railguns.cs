@@ -36,15 +36,27 @@ namespace Combat.Weapons
         /// <summary>Raised per shot with the beam's world start and end points (for visuals).</summary>
         public event Action<Vector3, Vector3> OnBeamFired;
 
-        public ChargeTime Charge { get; private set; }
+        [Header("Conditions")]
+        [SerializeField] private ChargeTime charge;
+
+        public ChargeTime Charge => charge;
 
         // Hitscan: no muzzle speed, no intercept lead.
         public override float ProjectileSpeed => 0f;
 
+        public override string HangarStats
+        {
+            get
+            {
+                var chargeText = charge ? $"   |   Full charge {charge.FullChargeTime:0.#}s" : "";
+                return $"Damage {damage:0}   |   Range {range:0}{chargeText}   |   Hitscan";
+            }
+        }
+
         protected override void Awake()
         {
             base.Awake();
-            Charge = GetComponent<ChargeTime>();
+            if (!charge) charge = GetComponent<ChargeTime>();
             if (hitMask == -1)
                 hitMask = LayerIds.Mask(LayerIds.Ship, LayerIds.Asteroid);
         }

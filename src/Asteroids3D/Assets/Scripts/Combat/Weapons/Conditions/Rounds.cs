@@ -34,6 +34,7 @@ namespace Combat.Conditions
 
         public int AmmoCount { get; private set; }
         public int MaxAmmo => maxAmmo;
+        public float ReloadTime => reloadTime;
         public bool IsReloading { get; private set; }
         public float ReloadProgress => IsReloading ? Mathf.Clamp01(reloadElapsed / reloadTime) : 0f;
 

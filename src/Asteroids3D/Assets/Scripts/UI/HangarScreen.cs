@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using Combat.Weapons;
 using Ships;
+using Ships.Weapons;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -19,6 +21,8 @@ namespace UI
         [SerializeField] private Transform shipRow;
         [SerializeField] private Transform engineRow;
         [SerializeField] private Transform shieldRow;
+        [SerializeField] private Transform primaryWeaponRow;
+        [SerializeField] private Transform secondaryWeaponRow;
 
         [Tooltip("Disabled button cloned once per option. Needs a child Text/label.")]
         [SerializeField] private Button optionButtonTemplate;
@@ -61,16 +65,29 @@ namespace UI
 
             if (catalog)
             {
+                // Ship.Weapons is Awake-cached and null on prefab assets, so resolve each catalog
+                // ship's authored mounts here, once, off the prefab's own WeaponsController.
+                var authoredMounts = new Dictionary<Ship, WeaponsController>();
+                foreach (var ship in catalog.ships ?? Array.Empty<Ship>())
+                    if (ship) authoredMounts[ship] = ship.GetComponent<WeaponsController>();
+
                 // Picking a ship reseeds the module slots to that ship's authored kit.
                 BuildRow(shipRow, catalog.ships, () => loadout.Ship, s =>
                 {
                     loadout.Ship = s;
                     loadout.Engine = s.Engine;
                     loadout.Shield = s.Shield;
+                    var mounts = authoredMounts[s];
+                    loadout.PrimaryWeapon = mounts ? mounts.PrimaryMountPrefab : null;
+                    loadout.SecondaryWeapon = mounts ? mounts.SecondaryMountPrefab : null;
                     if (previewStage) previewStage.Show(loadout);
                 }, Describe);
                 BuildRow(engineRow, catalog.engines, () => loadout.Engine, m => loadout.Engine = m, Describe);
                 BuildRow(shieldRow, catalog.shields, () => loadout.Shield, m => loadout.Shield = m, Describe);
+                BuildRow(primaryWeaponRow, catalog.weapons, () => loadout.PrimaryWeapon,
+                    w => loadout.PrimaryWeapon = w, Describe, WeaponLabel);
+                BuildRow(secondaryWeaponRow, catalog.weapons, () => loadout.SecondaryWeapon,
+                    w => loadout.SecondaryWeapon = w, Describe, WeaponLabel);
             }
 
             RefreshHighlights();
@@ -84,7 +101,7 @@ namespace UI
         }
 
         private void BuildRow<T>(Transform row, IReadOnlyList<T> options, Func<T> getCurrent, Action<T> setCurrent,
-            Func<T, string> describe)
+            Func<T, string> describe, Func<T, string> label = null)
             where T : UnityEngine.Object
         {
             if (!row || !optionButtonTemplate || options == null) return;
@@ -95,8 +112,8 @@ namespace UI
                 var button = Instantiate(optionButtonTemplate, row);
                 button.gameObject.SetActive(true);
 
-                var label = button.GetComponentInChildren<Text>();
-                if (label) label.text = option.name;
+                var labelText = button.GetComponentInChildren<Text>();
+                if (labelText) labelText.text = label != null ? label(option) : option.name;
 
                 var captured = option;
                 button.onClick.AddListener(() =>
@@ -104,18 +121,20 @@ namespace UI
                     setCurrent(captured);
                     RefreshHighlights();
                 });
-                AddHoverStats(button.gameObject, () => describe(captured));
+                // Stats are static serialized values; precompute so hover never runs the
+                // component lookups behind WeaponComponent.HangarStats.
+                AddHoverStats(button.gameObject, describe(captured));
             }
 
             refreshers.Add(() => TintRow(row, options, getCurrent));
         }
 
-        private void AddHoverStats(GameObject button, Func<string> stats)
+        private void AddHoverStats(GameObject button, string stats)
         {
             if (!statsText) return;
             var trigger = button.AddComponent<EventTrigger>();
             var enter = new EventTrigger.Entry { eventID = EventTriggerType.PointerEnter };
-            enter.callback.AddListener(_ => statsText.text = stats());
+            enter.callback.AddListener(_ => statsText.text = stats);
             var exit = new EventTrigger.Entry { eventID = EventTriggerType.PointerExit };
             exit.callback.AddListener(_ => statsText.text = "");
             trigger.triggers.Add(enter);
@@ -132,6 +151,10 @@ namespace UI
 
         private static string Describe(ShieldModule shield) =>
             $"Capacity {shield.maxShield:0}   |   Regen {shield.shieldRegenRate:0.#}/s after {shield.shieldRegenDelay:0.#}s";
+
+        private static string Describe(WeaponComponent weapon) => weapon.HangarStats;
+
+        private static string WeaponLabel(WeaponComponent weapon) => weapon.DisplayName;
 
         private void TintRow<T>(Transform row, IReadOnlyList<T> options, Func<T> getCurrent)
             where T : UnityEngine.Object

@@ -76,5 +76,7 @@ MonoBehaviour:
   firePoint: {fileID: 0}
   projectilePrefab: {fileID: 5408995189547049293, guid: 05108a6211974df09de2de019a7d23d7,
     type: 3}
+  rounds: {fileID: 6448982411033854647}
+  cooldown: {fileID: 8105349543242701031}
   fireDistance: 18
   fireAngleTolerance: 6

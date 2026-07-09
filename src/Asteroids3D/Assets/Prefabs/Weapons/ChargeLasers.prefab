@@ -78,6 +78,7 @@ MonoBehaviour:
   displayName: Charge Laser
   projectilePrefab: {fileID: 5408995189547049293, guid: 204237af4e4f426ea0eee9eb1a490331,
     type: 3}
+  charge: {fileID: 6448982411033854647}
   minChargeDamageScale: 0.4
   fullChargeDamageScale: 1
   fireDistance: 25

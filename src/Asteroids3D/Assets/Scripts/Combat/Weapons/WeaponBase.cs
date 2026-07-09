@@ -87,6 +87,12 @@ namespace Combat.Weapons
             : displayName;
 
         /// <summary>
+        /// Stat line shown when hovering this weapon in the hangar. The hangar reads it off the
+        /// prefab asset where Awake never runs, so overrides must use only serialized state.
+        /// </summary>
+        public virtual string HangarStats => DisplayName;
+
+        /// <summary>
         /// The displayable state this weapon carries (conditions implementing
         /// <see cref="IWeaponReadout"/> plus its <see cref="LockSource"/>), in display order.
         /// Built lazily so subclasses can finish wiring their lock source in Awake first.
@@ -119,7 +125,7 @@ namespace Combat.Weapons
         /// </summary>
         public virtual bool ShouldFire(TargetingContext context)
         {
-            return false; // Default: don't fire
+            return false;
         }
 
         public virtual void Reset()
