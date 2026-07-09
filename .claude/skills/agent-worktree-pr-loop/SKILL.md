@@ -28,7 +28,7 @@ For interactive exploration, suggest the user run `lazygit` in any worktree dire
 - `./scripts/agent_worktree_pool.sh status`
 - `./scripts/agent_worktree_pool.sh acquire <lease-id>`
 - `./scripts/agent_worktree_pool.sh prepare <slot> origin/main`
-- `./scripts/agent_worktree_pool.sh run-tests <slot> -- <unity_test_agent.ps1 args>`
+- `./scripts/agent_worktree_pool.sh run-tests <slot> <unity_test_agent.ps1 args>` (NO `--` — run-tests forwards args directly, e.g. `run-tests agent-4 -Mode Both -ScopeType Workspace`; the `--` separator is only for `submit`/`revise`, which take a base_ref first)
 - `./scripts/agent_worktree_pool.sh create-pr <slot>`
 - `./scripts/agent_worktree_pool.sh submit <slot> origin/main -- <test args>`
 - `./scripts/agent_worktree_pool.sh review-comments <slot>`
@@ -47,8 +47,13 @@ For interactive exploration, suggest the user run `lazygit` in any worktree dire
    Do this every time, even for tasks that look small — this step is what
    prevents building the wrong thing in an agent's context before a human
    ever sees it. If the task is ambiguous, ask before proceeding (use
-   AskUserQuestion for concrete decision points).
+   AskUserQuestion for concrete decision points). **Read the active-work
+   ledger** (see `CLAUDE.md` → "Cross-agent work ledger", absolute path in
+   the primary session's memory dir) so you don't collide with in-flight work.
 1. Acquire a free slot: `./scripts/agent_worktree_pool.sh acquire <lease-id>`.
+   Then **claim it in the ledger**: add a `🟡 in-progress` row with the
+   slot·branch and a link to the plan file / driving memory (re-read the
+   ledger right before editing so concurrent edits merge cleanly).
 2. Implement changes in that slot worktree — directly, or by delegating to a
    sub-agent (Agent tool) scoped to that worktree path when the task is large
    enough to benefit from an isolated context.
@@ -59,22 +64,38 @@ For interactive exploration, suggest the user run `lazygit` in any worktree dire
 ```
 
    Only submit once tests are passing and you've self-verified the diff
-   (read it back, sanity-check it does what was scoped in step 0).
+   (read it back, sanity-check it does what was scoped in step 0). Once the
+   PR is open, **flip the ledger row to `🔵 in-review` and record the PR
+   number.**
 4. Report back to the user in the required reporting format below and hand
    off for review.
 5. **Review round-trip.** Wait for the user's review. If they leave PR
    comments or ask for changes in chat, use `review-comments` and `revise`
    (flow B) as needed. Repeat until they're satisfied.
-6. **Merge only on explicit approval.** Once the user gives an explicit
-   go-ahead to merge (e.g. "merge it", "ship it", "go ahead") — not merely
-   approving the code with no merge instruction — squash-merge:
+6. **Sweep open comments, then merge only on explicit approval.** Once the
+   user gives an explicit go-ahead to merge (e.g. "merge it", "ship it", "go
+   ahead") — not merely approving the code with no merge instruction — do a
+   final comment sweep *before* merging so nothing gets buried:
+
+   a. Pull every unresolved comment:
+      `./scripts/agent_worktree_pool.sh review-comments agent-<n>`.
+   b. For each unaddressed comment, decide and act:
+      - **Trivial** (typo, rename, comment hygiene, a one-line guard, obvious
+        cleanup) → just fix it on the slot branch and `revise`.
+      - **Involved** (behavior change, design question, non-obvious tradeoff,
+        anything you're unsure how the user wants resolved) → do **not**
+        silently merge over it. Surface it to the user with a one-line summary
+        of the comment and a concrete proposed fix, and get direction first.
+   c. Only once no unaddressed comment remains — or the user has explicitly
+      waved the remaining ones through — squash-merge:
 
 ```bash
 gh pr merge <n> --squash --delete-branch=false
 ```
 
    Never merge without that explicit signal. Never force-push or skip CI to
-   get there.
+   get there, and never merge past an unaddressed non-trivial comment without
+   flagging it.
 7. Finalize: reset the slot to base and release the lock:
 
 ```bash
@@ -86,6 +107,9 @@ gh pr merge <n> --squash --delete-branch=false
 ```bash
 git checkout main && git pull
 ```
+
+9. **Clear the ledger row.** Once local `main` reflects the merge, mark the
+   row `✅ merged` and delete it (or move it to the ledger's Archive).
 
 ### B) PR feedback flow (no reset)
 
@@ -120,6 +144,13 @@ own PR even when the same slot is reused.
 - Do not merge (`gh pr merge`) without an explicit user go-ahead in the
   conversation. A merged code review comment ("LGTM") is not itself a merge
   instruction unless the user says so.
+- Before merging, sweep unresolved PR comments (step 6): fix trivial ones
+  directly and `revise`; for involved ones, flag them to the user with a
+  proposed fix rather than merging over them silently.
+- Keep the active-work ledger current: claim on acquire, `🔵 in-review` on PR
+  open, `⛔ blocked`/`🅿️ parked` if work stalls, and clear the row after merge
+  + main sync. It is the one place a concurrent agent or a later session can
+  see this slot is taken.
 
 ## Viewing diffs and history
 

@@ -29,9 +29,23 @@ How to use them to track work:
 - For design/doc requests, research the vault directly (don't speculate) and
   cite note/file paths for non-obvious claims. Respect Obsidian conventions
   (wikilinks, embeds, aliases, anchors, frontmatter).
-- The board is the user's — they edit it in Obsidian. Don't rewrite it
-  unprompted; reference items and *suggest* status moves ("this maps to the
-  `#AI` wingman item under Doing") rather than silently editing the file.
+- **The board is a first-class, agent-writable tracking artifact — actively
+  maintain it, don't merely suggest.** Add items, move them between columns,
+  tick sub-items, and tag them as work progresses. Match the Kanban markdown
+  exactly: `- [ ]` items under a `## Column` header, tab-indented sub-items,
+  `#Tags`. Leave unrelated items and the trailing `%% kanban:settings %%`
+  block untouched — write your item, don't reorganize the file.
+- **Deferrals live on the board.** When the user says to defer / punt / park
+  something, capture it as a board item in the appropriate column (a Dev Pool,
+  `To Do`, or nested under the parent item it relates to) with the right
+  `#Tags`. The board is that deferred work's canonical home.
+- **Keep board entries concise and human-readable** — a one-line summary the
+  user can scan, not a wall of context. Put the deep rationale, trade-offs, and
+  file-level detail in agent memory (`.claude/.../memory/`) and link the two:
+  reference the memory/plan-doc from the board item, and name the board item
+  from the memory file. The board says *what / for-when*; memory says
+  *why / how*. (Live in-flight claims are a third thing — those go in the
+  active-work ledger, see `CLAUDE.md`.)
 
 ## Working style
 
