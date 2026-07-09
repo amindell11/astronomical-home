@@ -173,6 +173,24 @@ namespace Tests.PlayMode
         }
 
         [Test]
+        public void Railgun_PrefabAuthoredChargeTime_ReachesFullAndFires()
+        {
+            // Drives the prefab's own serialized values (no Configure) with real fixed steps —
+            // the live repro of the pinned-just-below-full float regression.
+            var railgun = InstantiateWeapon<Railguns>(RailgunPrefabPath);
+            var target = CreateTarget(railgun.transform.position + Vector3.up * 5f);
+            var fired = 0;
+            railgun.OnFire += () => fired++;
+
+            var steps = Mathf.CeilToInt(2f / Time.fixedDeltaTime);
+            for (var i = 0; i < steps && fired == 0; i++)
+                railgun.HandleTrigger(pressed: false, held: true);
+
+            Assert.AreEqual(1, fired, "The prefab's authored charge time must reach full and auto-fire.");
+            Assert.Greater(target.TotalDamage, 0f);
+        }
+
+        [Test]
         public void Railgun_BeamSkipsItsOwnShip()
         {
             // The weapon is mounted inside a ship whose collider surrounds the fire point; the

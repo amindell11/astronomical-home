@@ -97,7 +97,10 @@ namespace Combat.Conditions
 
         private void SetCharge(float value)
         {
-            if (Mathf.Approximately(value, ChargePct)) return;
+            // Exact comparison on purpose: this only suppresses true no-ops (e.g. re-clamping at
+            // full every step). An approximate check here swallows the final ~0.9999999 → 1.0
+            // step of the accumulation, pinning the charge just below full so it can never fire.
+            if (value == ChargePct) return;
             ChargePct = value;
             OnChargeChanged?.Invoke(ChargePct);
         }

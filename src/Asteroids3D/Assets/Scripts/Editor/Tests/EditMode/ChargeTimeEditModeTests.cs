@@ -100,6 +100,23 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void Charge_ReachesExactlyFull_DespiteFloatAccumulation()
+        {
+            // Regression: 1.5s charge in 0.02s steps accumulates to ~0.9999999 one step before
+            // the clamp; the change guard must not swallow the final step to exactly 1, or the
+            // weapon pins just below full and can never fire.
+            charge.Configure(chargeTime: 1.5f, minChargeToFire: 1f, autoFireAtFull: true);
+
+            var fired = false;
+            for (var i = 0; i < 200 && !fired; i++)
+                fired = charge.HandleTrigger(held: true, dt: 0.02f);
+
+            Assert.IsTrue(fired, "Accumulated charge must clamp to exactly full and fire.");
+            Assert.AreEqual(1f, charge.ChargePct);
+            Assert.IsTrue(charge.CanFire());
+        }
+
+        [Test]
         public void ChargeEvents_ReportProgress()
         {
             charge.Configure(chargeTime: 1f, minChargeToFire: 0.3f, autoFireAtFull: false);
