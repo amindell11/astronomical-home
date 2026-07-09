@@ -12,6 +12,7 @@ namespace UI
         [SerializeField] private RectTransform minimapRect;
 
         private Canvas canvas;
+        private Canvas[] canvases;
         private UILockOnAudio lockOnAudio;
         private UIHealthAudio healthAudio;
         private UILaserAudio laserAudio;
@@ -23,6 +24,7 @@ namespace UI
         private void Awake()
         {
             canvas = GetComponent<Canvas>();
+            canvases = GetComponentsInChildren<Canvas>(true);
             lockOnAudio = GetComponentInChildren<UILockOnAudio>();
             healthAudio = GetComponentInChildren<UIHealthAudio>();
             laserAudio = GetComponentInChildren<UILaserAudio>();
@@ -36,12 +38,14 @@ namespace UI
         }
 
         /// <summary>
-        /// Toggles the canvas only — disabling components would break the HUD audio binders, which
-        /// unsubscribe in OnDisable and never resubscribe.
+        /// Toggles every canvas under the overlay — nested canvases (minimap) keep rendering when
+        /// only the root canvas is disabled, and disabling GameObjects would break the HUD audio
+        /// binders, which unsubscribe in OnDisable and never resubscribe.
         /// </summary>
         public void SetVisible(bool visible)
         {
-            canvas.enabled = visible;
+            foreach (var c in canvases)
+                c.enabled = visible;
         }
 
         public void Initialize(in HudBinding binding)

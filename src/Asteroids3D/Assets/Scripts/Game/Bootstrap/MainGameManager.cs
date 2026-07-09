@@ -4,6 +4,7 @@ using Game.Sectors;
 using Game.Services;
 using Player;
 using Ships;
+using UI;
 using UnityEngine;
 using Utils;
 
@@ -49,6 +50,11 @@ namespace Game.Bootstrap
         [SerializeField] private PlaneAxis planeAxis = PlaneAxis.Y;
         [SerializeField] private Vector3 planeOrigin;
 
+        [Header("Splash")]
+        [Tooltip("Full-screen splash shown over the non-interactive states (boot, session compose, " +
+                 "sector load). Optional; skipped when presentation is off (headless/RL).")]
+        [SerializeField] private LoadingSplash splashPrefab;
+
         // Sibling MonoBehaviour services ([RequireComponent]); cached once in Awake — never
         // looked up mid-lifecycle.
         private UnitService unitService;
@@ -72,6 +78,10 @@ namespace Game.Bootstrap
             objectiveService = GetComponent<ObjectiveService>();
 
             DontDestroyOnLoad(gameObject);
+
+            if (splashPrefab && installPresentation)
+                Instantiate(splashPrefab, transform).Initialize(this);
+
             TransitionTo(GameState.Loading);
         }
 
