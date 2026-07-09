@@ -1,3 +1,4 @@
+using Combat.Weapons;
 using UnityEngine;
 
 namespace Ships
@@ -18,5 +19,9 @@ namespace Ships
 
         [Tooltip("Shield modules selectable in the hangar's Shield slot.")]
         public ShieldModule[] shields;
+
+        [Tooltip("Weapon prefabs selectable in either weapon slot — one shared pool; the two mounts " +
+                 "are identical hardware, only their trigger bindings differ.")]
+        public WeaponComponent[] weapons;
     }
 }

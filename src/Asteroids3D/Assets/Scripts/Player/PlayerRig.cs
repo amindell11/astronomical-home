@@ -122,7 +122,9 @@ namespace Player
             currentTemplate = playerTemplate;
 
             // Seed the pending loadout from the ship's authored build so an unedited hangar is a no-op.
-            Loadout = new ShipLoadout(playerTemplate, Player.Engine, Player.Shield);
+            Loadout = new ShipLoadout(playerTemplate, Player.Engine, Player.Shield,
+                Player.Weapons ? Player.Weapons.PrimaryMountPrefab : null,
+                Player.Weapons ? Player.Weapons.SecondaryMountPrefab : null);
 
             WireDeathPolicy();
 
@@ -185,7 +187,13 @@ namespace Player
             if (Loadout.Ship && Loadout.Ship != currentTemplate)
                 RebuildPlayer(Loadout.Ship);
 
-            Player.Reequip(Loadout.Engine, Loadout.Shield);
+            Player.Reequip(Loadout.Engine, Loadout.Shield,
+                Loadout.PrimaryWeapon, Loadout.SecondaryWeapon);
+
+            // Swapped-in weapon mounts carry world-facing parts (lock sensor) that the service
+            // wired at spawn; ask it to re-wire, then re-bind the HUD to the new readouts.
+            services.UnitService.WireShipDependencies(Player);
+            RebindHud();
         }
 
         /// <summary>
@@ -206,9 +214,14 @@ namespace Player
             currentTemplate = newTemplate;
 
             WireDeathPolicy();
+            RebindHud();
+        }
 
-            // The overlay instance persists across the swap; re-Initialize re-binds every widget
-            // (readout builder clears and regenerates; audio binders unsubscribe their old source).
+        // The overlay instance persists across player rebuilds and loadout changes; re-Initialize
+        // re-binds every widget (readout builder clears and regenerates; audio binders unsubscribe
+        // their old source).
+        private void RebindHud()
+        {
             var overlay = services.UIService.ActiveOverlay;
             if (overlay)
                 overlay.Initialize(new HudBinding(

@@ -123,16 +123,31 @@ namespace Ships
         public ResolvedShipStats ResolveStats() => ResolvedShipStats.Resolve(this, engine, shield);
 
         /// <summary>
-        /// Swap this ship's modules and re-resolve so every subsystem picks up the new build. Intended
-        /// for a between-run loadout change on the persistent player ship (the hangar), not a
-        /// live-while-flying swap: an AI pilot already flying caches <see cref="Dynamics"/> at init and
-        /// would keep the old value until re-initialised. A null <paramref name="newShield"/> is a valid
-        /// build (no shield).
+        /// Swap this ship's full build — every first-class slot in one atomic apply — and re-resolve
+        /// so every subsystem picks up the new modules. Engine/Shield are data modules (stat
+        /// re-resolve); weapons are prefab modules (mount instances replaced via
+        /// <see cref="Weapons.WeaponsController.Reequip"/>). Intended for a between-run loadout
+        /// change on the persistent player ship (the hangar), not a live-while-flying swap: an AI
+        /// pilot already flying caches <see cref="Dynamics"/> at init and would keep the old value
+        /// until re-initialised. Null modules are valid builds (no shield / empty weapon slot); an
+        /// unarmed chassis (no WeaponsController) ignores the weapon slots — the chassis decides
+        /// which slots exist.
+        /// After a weapon swap the ship's world-facing parts need re-wiring (lock sensor registry) —
+        /// the orchestrator re-runs <c>IUnitService.WireShipDependencies</c> (see PlayerRig.ApplyLoadout).
         /// </summary>
-        public void Reequip(EngineModule newEngine, ShieldModule newShield)
+        public void Reequip(EngineModule newEngine, ShieldModule newShield,
+            Combat.Weapons.WeaponComponent newPrimaryWeapon, Combat.Weapons.WeaponComponent newSecondaryWeapon)
         {
             engine = newEngine;
             shield = newShield;
+
+            if (Weapons)
+            {
+                Weapons.Reequip(newPrimaryWeapon, newSecondaryWeapon);
+                // The Awake-time cache points at the outgoing mount's sensor; re-find it on the
+                // fresh hierarchy (the old mount is detached before its deferred destroy).
+                Targeting = GetComponentInChildren<Combat.Targeting.LockOnSensor>();
+            }
 
             // Before Initialize there is nothing live to update — Initialize will resolve from these
             // pointers. Re-subscribe so onChanged tracks the new SOs even in that case.
