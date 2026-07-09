@@ -9,8 +9,8 @@ namespace Tests.EditMode
     /// 
     /// CONTEXT:
     /// - WeaponsController [DefaultExecutionOrder(-95)] runs before Ship [DefaultExecutionOrder(-90)]
-    /// - WeaponsController.Awake() instantiates weapon children (including LockOnSensor)
-    /// - Ship.Awake() then safely caches Targeting/Colliders via GetComponentInChildren (children exist)
+    /// - WeaponsController.Awake() instantiates weapon children and owns the lock sensor
+    /// - Ship.Awake() caches the WeaponsController; Ship.Targeting reads through Weapons.Sensor
     /// - Factory.CreateShip renamed preInitialize → postInitialize, fires AFTER ship.Initialize()
     /// - Net effect: ship.Targeting is valid after Factory.CreateShip returns; no Initialize() traversal
     /// 
@@ -43,23 +43,20 @@ namespace Tests.EditMode
                 "WeaponsController must instantiate secondary weapon at runtime in Awake");
         }
 
-        // After merging CombatShip back into Ship, weapon + targeting caching lives in Ship.Awake.
-        // Weapons are optional (null for unarmed ships), so Ship caches them defensively in Awake
-        // alongside Colliders — never in Initialize (see Ship_InitializeDoesNotCallGetComponentInChildren).
+        // Weapons are optional (null for unarmed ships), so Ship caches the controller defensively
+        // in Awake — never in Initialize (see Ship_InitializeDoesNotCallGetComponentInChildren).
+        // Targeting is a read-through of Weapons.Sensor, so Ship itself never scans children.
         [Test]
-        public void Ship_CachesWeaponChildRefsInAwake()
+        public void Ship_CachesWeaponsControllerInAwake()
         {
             var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Ships", "Ship.cs"));
 
-            // Ship.Awake() MUST cache runtime children
             var awakeStart = source.IndexOf("void Awake()");
             Assert.Greater(awakeStart, -1, "Ship must have an Awake method");
             var awakeEnd = source.IndexOf("void OnEnable", awakeStart + 1);
             if (awakeEnd == -1) awakeEnd = source.Length;
             var awakeBody = source.Substring(awakeStart, awakeEnd - awakeStart);
 
-            StringAssert.Contains("GetComponentInChildren", awakeBody,
-                "Ship.Awake() must cache Targeting in Awake (children exist because WeaponsController runs first)");
             StringAssert.Contains("GetComponent<WeaponsController>", awakeBody,
                 "Ship.Awake() must cache WeaponsController (null when the ship is unarmed)");
         }

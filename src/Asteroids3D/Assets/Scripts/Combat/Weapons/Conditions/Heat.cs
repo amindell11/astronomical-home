@@ -29,13 +29,13 @@ namespace Combat.Conditions
         private float clock;                // internal time base, advanced by Tick(dt)
         private float lastShotTime = -100f; // Initialize to allow immediate firing
 
-        // Events
         public event Action OnOverheat;
         public event Action OnCooldownStart;
         public event Action<float, float> OnHeatChanged;
 
         public float CurrentHeat { get; private set; }
         public float MaxHeat => maxHeat;
+        public float HeatPerShot => heatPerShot;
         public float HeatPct => maxHeat > 0f ? CurrentHeat / maxHeat : 0f;
         public bool Overheated { get; private set; }
 

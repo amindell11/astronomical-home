@@ -27,6 +27,19 @@ namespace Combat.Weapons
         // Missiles are semi-auto: one launch per trigger press, not a held stream.
         public override bool AutoFire => false;
 
+        public override string HangarStats
+        {
+            get
+            {
+                if (!projectilePrefab) return DisplayName;
+                var rounds = GetComponent<Rounds>();
+                var ammo = rounds
+                    ? $"   |   {rounds.MaxAmmo} rounds" + (rounds.ReloadTime > 0f ? $" (reload {rounds.ReloadTime:0.#}s)" : "")
+                    : "";
+                return $"Damage {projectilePrefab.Damage:0} + {projectilePrefab.SplashDamage:0} splash{ammo}   |   Lock-on homing";
+            }
+        }
+
         protected override void Awake()
         {
             base.Awake();

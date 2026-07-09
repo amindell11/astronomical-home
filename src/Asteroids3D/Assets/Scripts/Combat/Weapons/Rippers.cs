@@ -19,6 +19,22 @@ namespace Combat.Weapons
         public override float ProjectileSpeed => projectilePrefab.LaserSpeed;
         public Rounds Rounds { get; private set; }
 
+        public override string HangarStats
+        {
+            get
+            {
+                if (!projectilePrefab) return DisplayName;
+                var cooldown = GetComponent<Cooldown>();
+                var rounds = GetComponent<Rounds>();
+                var rate = cooldown && cooldown.SecondsBetweenShots > 0f
+                    ? $"   |   Rate {1f / cooldown.SecondsBetweenShots:0.#}/s" : "";
+                var mag = rounds
+                    ? $"   |   Mag {rounds.MaxAmmo}" + (rounds.ReloadTime > 0f ? $" (reload {rounds.ReloadTime:0.#}s)" : "")
+                    : "";
+                return $"Damage {projectilePrefab.Damage:0}{rate}{mag}   |   Speed {projectilePrefab.LaserSpeed:0}";
+            }
+        }
+
         protected override void Awake()
         {
             base.Awake();

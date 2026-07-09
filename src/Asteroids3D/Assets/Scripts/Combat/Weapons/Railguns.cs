@@ -41,6 +41,16 @@ namespace Combat.Weapons
         // Hitscan: no muzzle speed, no intercept lead.
         public override float ProjectileSpeed => 0f;
 
+        public override string HangarStats
+        {
+            get
+            {
+                var charge = GetComponent<ChargeTime>();
+                var chargeText = charge ? $"   |   Full charge {charge.FullChargeTime:0.#}s" : "";
+                return $"Damage {damage:0}   |   Range {range:0}{chargeText}   |   Hitscan";
+            }
+        }
+
         protected override void Awake()
         {
             base.Awake();

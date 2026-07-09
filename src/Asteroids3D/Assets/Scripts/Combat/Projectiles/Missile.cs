@@ -34,6 +34,8 @@ namespace Combat.Projectile
 
         public void SetTarget(Transform tgt) => target = tgt;
 
+        public float SplashDamage => splashDamage;
+
         /// <summary>
         /// Configures range/lifetime at spawn (missile variants / tuning). <paramref name="maxDistance"/>
         /// is the inherited <see cref="ProjectileBase"/> travel cap; <paramref name="maxLifetime"/> is

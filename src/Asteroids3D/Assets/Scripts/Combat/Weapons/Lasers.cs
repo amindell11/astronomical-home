@@ -15,6 +15,21 @@ namespace Combat.Weapons
         public override float ProjectileSpeed => projectilePrefab.LaserSpeed;
         public Heat Heat { get; private set; }
 
+        public override string HangarStats
+        {
+            get
+            {
+                if (!projectilePrefab) return DisplayName;
+                var cooldown = GetComponent<Cooldown>();
+                var heat = GetComponent<Heat>();
+                var rate = cooldown && cooldown.SecondsBetweenShots > 0f
+                    ? $"   |   Rate {1f / cooldown.SecondsBetweenShots:0.#}/s" : "";
+                var shots = heat && heat.HeatPerShot > 0f
+                    ? $"   |   Overheats after {Mathf.FloorToInt(heat.MaxHeat / heat.HeatPerShot)} shots" : "";
+                return $"Damage {projectilePrefab.Damage:0}{rate}   |   Speed {projectilePrefab.LaserSpeed:0}{shots}";
+            }
+        }
+
         protected override void Awake()
         {
             base.Awake();
