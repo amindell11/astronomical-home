@@ -18,6 +18,7 @@ namespace Tests.PlayMode
     /// ship's authored kit. Headless-safe: the preview RawImage is removed before Show so no
     /// render-texture stage is ever created.
     /// </summary>
+    [Category("UI")]
     public class HangarWeaponRowsPlayModeTests : PlayModeWorldFixture
     {
         private const string ScreenPrefabPath = "Assets/Prefabs/UI/HangarScreen.prefab";

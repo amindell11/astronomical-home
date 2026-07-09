@@ -88,8 +88,7 @@ namespace Combat.Weapons
 
         /// <summary>
         /// Stat line shown when hovering this weapon in the hangar. The hangar reads it off the
-        /// prefab asset, so overrides must use serialized config (GetComponent is fine), never
-        /// Awake-cached state.
+        /// prefab asset where Awake never runs, so overrides must use only serialized state.
         /// </summary>
         public virtual string HangarStats => DisplayName;
 

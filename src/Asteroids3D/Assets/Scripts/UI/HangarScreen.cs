@@ -68,7 +68,7 @@ namespace UI
                 // Ship.Weapons is Awake-cached and null on prefab assets, so resolve each catalog
                 // ship's authored mounts here, once, off the prefab's own WeaponsController.
                 var authoredMounts = new Dictionary<Ship, WeaponsController>();
-                foreach (var ship in catalog.ships)
+                foreach (var ship in catalog.ships ?? Array.Empty<Ship>())
                     if (ship) authoredMounts[ship] = ship.GetComponent<WeaponsController>();
 
                 // Picking a ship reseeds the module slots to that ship's authored kit.
