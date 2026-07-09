@@ -1,0 +1,4 @@
+# Shell scripts and git hooks must stay LF so they run under bash on Windows
+# (a CRLF shebang line becomes a "bad interpreter" error).
+*.sh text eol=lf
+.githooks/** text eol=lf
