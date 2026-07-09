@@ -1,6 +1,7 @@
 using System;
 using Combat;
 using Combat.Targeting;
+using Combat.Weapons;
 using Ships.Command;
 using Ships.Damage;
 using Ships.Movement;
@@ -56,7 +57,7 @@ namespace Ships
         /// <summary>The ship's weapons, or null if it carries none (peaceful ship).</summary>
         public WeaponsController Weapons { get; private set; }
 
-        /// <summary>The ship's lock-on sensor, or null if it carries no weapons.</summary>
+        /// <summary>The ship's lock-on sensor, or null if no mounted weapon carries one.</summary>
         public LockOnSensor Targeting { get; private set; }
 
         public Rigidbody Rigidbody { get; private set; }
@@ -125,18 +126,15 @@ namespace Ships
         /// <summary>
         /// Swap this ship's full build — every first-class slot in one atomic apply — and re-resolve
         /// so every subsystem picks up the new modules. Engine/Shield are data modules (stat
-        /// re-resolve); weapons are prefab modules (mount instances replaced via
-        /// <see cref="Weapons.WeaponsController.Reequip"/>). Intended for a between-run loadout
-        /// change on the persistent player ship (the hangar), not a live-while-flying swap: an AI
-        /// pilot already flying caches <see cref="Dynamics"/> at init and would keep the old value
-        /// until re-initialised. Null modules are valid builds (no shield / empty weapon slot); an
-        /// unarmed chassis (no WeaponsController) ignores the weapon slots — the chassis decides
-        /// which slots exist.
-        /// After a weapon swap the ship's world-facing parts need re-wiring (lock sensor registry) —
-        /// the orchestrator re-runs <c>IUnitService.WireShipDependencies</c> (see PlayerRig.ApplyLoadout).
+        /// re-resolve); weapons are prefab modules (unchanged slots keep their mounts; see
+        /// <see cref="Weapons.WeaponsController.Reequip"/>). A between-run operation, not a
+        /// live-while-flying swap. Null modules are valid builds (no shield / empty weapon slot);
+        /// an unarmed chassis (no WeaponsController) ignores the weapon slots. A weapon swap leaves
+        /// world-scoped wiring (lock sensor registry) to the caller — re-run
+        /// <c>IUnitService.WireShipDependencies</c> after applying.
         /// </summary>
         public void Reequip(EngineModule newEngine, ShieldModule newShield,
-            Combat.Weapons.WeaponComponent newPrimaryWeapon, Combat.Weapons.WeaponComponent newSecondaryWeapon)
+            WeaponComponent newPrimaryWeapon, WeaponComponent newSecondaryWeapon)
         {
             engine = newEngine;
             shield = newShield;
@@ -146,7 +144,9 @@ namespace Ships
                 Weapons.Reequip(newPrimaryWeapon, newSecondaryWeapon);
                 // The Awake-time cache points at the outgoing mount's sensor; re-find it on the
                 // fresh hierarchy (the old mount is detached before its deferred destroy).
-                Targeting = GetComponentInChildren<Combat.Targeting.LockOnSensor>();
+                // includeInactive: the persistent player can be reequipped while deactivated (dead
+                // between runs) and the fresh sensor must still be found for re-wiring.
+                Targeting = GetComponentInChildren<LockOnSensor>(true);
             }
 
             // Before Initialize there is nothing live to update — Initialize will resolve from these

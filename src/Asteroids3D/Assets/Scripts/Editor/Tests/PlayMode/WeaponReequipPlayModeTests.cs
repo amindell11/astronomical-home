@@ -15,9 +15,11 @@ namespace Tests.PlayMode
 {
     /// <summary>
     /// Weapons are first-class loadout slots: <see cref="Ship.Reequip"/> swaps the mounted weapon
-    /// prefabs like it swaps engine/shield modules. The mount instances are replaced, but the
-    /// weapon context object survives (refreshed in place) so commander- and HUD-held references
-    /// stay valid, and the ship's targeting cache follows the missile mount in and out.
+    /// prefabs like it swaps engine/shield modules. Changed slots replace their mount instances
+    /// (unchanged slots keep them — an unedited apply is a no-op), while the weapon context object
+    /// survives (refreshed in place) so commander- and HUD-held references stay valid, and the
+    /// ship's targeting cache follows the missile mount in and out. Also covers the death path:
+    /// a reequip on a deactivated ship must survive the later revive.
     /// </summary>
     [Category("Weapons")]
     public class WeaponReequipPlayModeTests : PlayModeWorldFixture
@@ -25,6 +27,7 @@ namespace Tests.PlayMode
         private const string LasersPrefabPath = "Assets/Prefabs/Weapons/Lasers.prefab";
         private const string RippersPrefabPath = "Assets/Prefabs/Weapons/Rippers.prefab";
         private const string MissilesPrefabPath = "Assets/Prefabs/Weapons/Missiles.prefab";
+        private const string JunkerPrefabPath = "Assets/Prefabs/Ships/Cargo Ships/Junker_1.prefab";
 
         private Ship ship;
 
@@ -119,6 +122,78 @@ namespace Tests.PlayMode
             Assert.IsNull(ship.Weapons.Secondary, "empty secondary slot");
             Assert.AreEqual(0, ship.Weapons.Context.Slots.Count, "context reports no equipped slots");
             Assert.IsNull(ship.Targeting, "no sensor on an unarmed build");
+        }
+
+        [UnityTest]
+        public IEnumerator Reequip_UnchangedModules_KeepsMountInstances()
+        {
+            ship = ShipTestFactory.CreateDefaultShip();
+            Assert.IsNotNull(ship, "ship created");
+            yield return null;
+
+            var primaryBefore = ship.Weapons.Primary;
+            var secondaryBefore = ship.Weapons.Secondary;
+            var sensorBefore = ship.Targeting;
+
+            // The seeded "unedited hangar" apply: same modules back in.
+            ship.Reequip(ship.Engine, ship.Shield,
+                ship.Weapons.PrimaryMountPrefab, ship.Weapons.SecondaryMountPrefab);
+            yield return null; // a (wrong) deferred mount destroy would land here
+
+            Assert.IsTrue(primaryBefore, "unchanged primary mount not destroyed");
+            Assert.AreSame(primaryBefore, ship.Weapons.Primary, "unchanged primary keeps its live mount instance");
+            Assert.AreSame(secondaryBefore, ship.Weapons.Secondary, "unchanged secondary keeps its live mount instance");
+            Assert.AreSame(sensorBefore, ship.Targeting, "targeting cache still points at the same live sensor");
+        }
+
+        [UnityTest]
+        public IEnumerator Reequip_WhileInactive_AwakesCleanlyOnRevive()
+        {
+            ship = ShipTestFactory.CreateDefaultShip();
+            Assert.IsNotNull(ship, "ship created");
+            yield return null;
+
+            // Death path: the ship is deactivated on death, THEN the hangar applies a new loadout,
+            // so the fresh mounts instantiate under an inactive parent (Awake deferred).
+            ship.gameObject.SetActive(false);
+
+            var rippers = LoadWeapon<Rippers>(RippersPrefabPath);
+            var missiles = LoadWeapon<Missiles>(MissilesPrefabPath);
+            ship.Reequip(ship.Engine, ship.Shield, rippers, missiles);
+
+            Assert.IsNotNull(ship.Targeting, "sensor re-found on the inactive hierarchy");
+            Assert.AreEqual(0, ship.Weapons.ReadoutContext.Readouts(WeaponSlot.Primary).Count,
+                "pre-Awake readouts read empty rather than throwing");
+
+            // The production revive path — resets weapons BEFORE reactivating, so it must
+            // tolerate never-awakened mounts.
+            ship.ResetShip();
+            yield return null;
+
+            Assert.IsTrue(ship.gameObject.activeSelf, "ship revived");
+            Assert.Greater(ship.Weapons.ReadoutContext.Readouts(WeaponSlot.Primary).Count, 0,
+                "readouts built after Awake — the empty pre-Awake read did not stick");
+            Assert.AreSame(ship.Targeting, ship.Weapons.Secondary.GetComponent<Combat.Targeting.LockOnSensor>(),
+                "targeting cache points at the live missile sensor after revive");
+        }
+
+        [UnityTest]
+        public IEnumerator Reequip_UnarmedChassis_IgnoresWeaponSlots()
+        {
+            var junkerPrefab = TestAssets.LoadShipPrefab(JunkerPrefabPath);
+            Assert.IsNotNull(junkerPrefab, "junker prefab loaded");
+            ship = Object.Instantiate(junkerPrefab);
+            ship.Initialize(0); // commander-less; wires movement like Factory.CreateShip does
+            yield return null;
+
+            Assert.IsNull(ship.Weapons, "junker carries no WeaponsController");
+
+            var lasers = LoadWeapon<Lasers>(LasersPrefabPath);
+            var missiles = LoadWeapon<Missiles>(MissilesPrefabPath);
+            ship.Reequip(ship.Engine, ship.Shield, lasers, missiles);
+
+            Assert.IsNull(ship.Weapons, "weapon slots ignored — the chassis decides which slots exist");
+            Assert.IsNull(ship.Targeting, "no sensor appears on an unarmed chassis");
         }
     }
 }

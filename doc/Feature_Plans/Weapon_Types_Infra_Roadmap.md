@@ -176,20 +176,27 @@ change.
 
 ## PR 3 — Weapons as first-class loadout slots (hangar prep)
 
-**As built (2026-07-09, grill-settled):** weapons join the hangar loadout model with
+**As built (2026-07-08, grill-settled):** weapons join the hangar loadout model with
 **prefab-as-module** (the weapon prefab IS the module, matching the chassis slot's
 `Ship[]` precedent; no `WeaponModule` SO — full stat/visual unification stays parked):
 
 - `ShipLoadout` carries `PrimaryWeapon`/`SecondaryWeapon` prefab refs; `LoadoutConfig`
   gains **one shared** `weapons[]` pool (the two mounts are identical hardware).
 - `Ship.Reequip(engine, shield, primaryWeapon, secondaryWeapon)` — one atomic
-  whole-build apply. Weapons delegate to `WeaponsController.Reequip` (destroy mount
-  instances → instantiate new at hardpoints → **refresh the `WeaponContext` in place**
-  so commander/HUD-held references stay valid); the ship refreshes its `Targeting`
-  cache (old mount detached before deferred destroy so same-frame queries can't find it).
+  whole-build apply. Weapons delegate to `WeaponsController.Reequip`; a slot whose
+  module is unchanged keeps its live mount (an unedited hangar stays a no-op), a
+  changed slot destroys the mount instance and instantiates the new prefab at the
+  hardpoint, then the `WeaponContext` is **refreshed in place** so commander/HUD-held
+  references stay valid. The ship refreshes its `Targeting` cache (old mount detached
+  before deferred destroy so same-frame queries can't find it).
 - World wiring stays with the service: `IUnitService.WireShipDependencies(Ship)` is the
   spawn wiring made public + idempotent; `PlayerRig.ApplyLoadout` re-runs it (and
-  re-binds the HUD) after applying — no per-ship holder of world state, no new seam.
+  re-binds the HUD) after applying — no per-ship holder of world state, no new seam
+  (marked interim in the interface; dissolves with the sensor relocation below).
+- A dead player reaches the hangar deactivated; `ApplyLoadout` revives it (`ResetShip`)
+  before applying so swapped-in mounts instantiate active and Awake-wire like on the
+  alive path. `WeaponComponent.Reset`/`Readouts` also guard the pre-Awake state so a
+  never-awakened mount can't NRE or cache an empty readout list.
 - Loadout seeds from the controller's authored mount prefabs; null = unarmed (valid);
   weapon selection persists across chassis rebuilds like engine/shield.
 - **Not in this PR:** hangar UI weapon rows (next PR — `HangarScreen` rows + prefab edit).

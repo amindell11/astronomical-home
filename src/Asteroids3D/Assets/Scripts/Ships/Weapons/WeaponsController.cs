@@ -41,20 +41,31 @@ namespace Ships.Weapons
         }
 
         /// <summary>
-        /// Swap the mounted weapons for new prefab modules (null = leave the slot empty). Destroys
-        /// the current mount instances, instantiates the new ones at their hardpoints, and refreshes
-        /// the context <em>in place</em> so references held by commanders and the HUD stay valid.
-        /// A between-run operation (see Ship.Reequip); not intended mid-combat.
+        /// Swap the mounted weapons for new prefab modules (null = leave the slot empty). A slot
+        /// whose module is unchanged keeps its live mount instance untouched — an unedited loadout
+        /// apply is a no-op. Changed slots destroy the current mount instance, instantiate the new
+        /// prefab at the hardpoint, and refresh the context <em>in place</em> so references held by
+        /// commanders and the HUD stay valid. A between-run operation (see Ship.Reequip); not
+        /// intended mid-combat.
         /// </summary>
         public void Reequip(WeaponComponent newPrimary, WeaponComponent newSecondary)
         {
-            primaryMount = newPrimary;
-            secondaryMount = newSecondary;
+            var changed = false;
 
-            Primary = ReplaceMount(Primary, newPrimary, WeaponSlot.Primary);
-            Secondary = ReplaceMount(Secondary, newSecondary, WeaponSlot.Secondary);
+            if (newPrimary != primaryMount)
+            {
+                primaryMount = newPrimary;
+                Primary = ReplaceMount(Primary, newPrimary, WeaponSlot.Primary);
+                changed = true;
+            }
+            if (newSecondary != secondaryMount)
+            {
+                secondaryMount = newSecondary;
+                Secondary = ReplaceMount(Secondary, newSecondary, WeaponSlot.Secondary);
+                changed = true;
+            }
 
-            context?.Refresh();
+            if (changed) context?.Refresh();
         }
 
         private WeaponComponent ReplaceMount(WeaponComponent current, WeaponComponent prefab, WeaponSlot slot)

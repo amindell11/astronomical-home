@@ -90,18 +90,20 @@ namespace Combat.Weapons
         /// The displayable state this weapon carries (conditions implementing
         /// <see cref="IWeaponReadout"/> plus its <see cref="LockSource"/>), in display order.
         /// Built lazily so subclasses can finish wiring their lock source in Awake first.
+        /// Before Awake (e.g. a mount instantiated under an inactive ship) nothing is wired yet —
+        /// return empty WITHOUT caching so the list builds correctly once the weapon wakes.
         /// </summary>
         public IReadOnlyList<IWeaponReadout> Readouts
         {
             get
             {
                 if (readouts != null) return readouts;
+                if (conditions == null) return Array.Empty<IWeaponReadout>();
 
                 readouts = new List<IWeaponReadout>();
-                if (conditions != null)
-                    foreach (var condition in conditions)
-                        if (condition is IWeaponReadout readout)
-                            readouts.Add(readout);
+                foreach (var condition in conditions)
+                    if (condition is IWeaponReadout readout)
+                        readouts.Add(readout);
                 if (LockSource != null)
                     readouts.Add(LockSource);
                 return readouts;
@@ -122,6 +124,8 @@ namespace Combat.Weapons
 
         public virtual void Reset()
         {
+            // Null before Awake (a mount instantiated under an inactive ship): nothing live to reset.
+            if (conditions == null) return;
             foreach (var condition in conditions)
                 condition.Reset();
         }
