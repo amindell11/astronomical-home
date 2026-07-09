@@ -82,6 +82,27 @@ existing Heat/Rounds/hardpoint tests stay green.
 
 ## PR 2 — Trigger release semantics + per-slot AI aim → Charge Laser + Railgun
 
+**As built (2026-07-08):** `WeaponCommand` carries raw input facts — `held` (trigger down)
+and `pressed` (press edge) — forwarded every step; `WeaponComponent.HandleTrigger` owns all
+firing semantics (auto = fire on held, semi = fire on pressed, charge weapons override).
+The AI truthfully "mashes" (`pressed = held = ShouldFire` each step), which preserves
+semi-auto cooldown pacing under sustained AI intent while a human's semi stays
+one-shot-per-click. `IsAutoFire` left `IWeaponContext`. `ChargeTime` implements the shared
+charge interpreter (charge on held; fire on release ≥ min charge or auto at full — the AI
+path) plus `IChargeReadout` → `ChargeGaugeUI` on the PR1 builder. `Gunner` aims per slot
+with that slot's `ProjectileSpeed` (`<= 0` ⇒ hitscan, aim at present position). ChargeLasers
+scale shot damage by charge via `ProjectileBase.SetDamageScale` (reset on pool return);
+Railguns raycast, skipping the shooter's own hull (nearest non-own-root hit).
+
+**Deferred — trigger-source injection (pull model):** the more principled endpoint is
+injecting each weapon a trigger read-surface at Initialize (`ITrigger`-style, matching the
+`Func<Kinematics> pose` idiom) and letting weapons poll — retiring the per-tick
+`IWeapons.Fire` push entirely. Deliberately deferred: it breaks the push symmetry with the
+pilot channel (RL action shape) and rewrites the dispatch tests for the same observable
+behavior. Revisit if a third trigger-consuming feature (burst?) lands.
+
+**Original sketch (superseded by the above):**
+
 **Infra A: weapons see the trigger, not just fire ticks.**
 
 Today `WeaponsController.Fire()` early-outs on `!cmd.fire`

@@ -263,7 +263,7 @@ namespace Tests.PlayMode
 
             // Attempt to fire
             weaponsController.Fire(Ships.Command.WeaponSlot.Primary,
-                new Ships.Command.WeaponCommand { fire = true });
+                new Ships.Command.WeaponCommand { pressed = true, held = true });
             yield return new WaitForFixedUpdate();
 
             // BUG REPRODUCTION: Weapon should be able to fire after reset

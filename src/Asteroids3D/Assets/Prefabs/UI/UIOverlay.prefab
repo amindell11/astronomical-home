@@ -414,6 +414,8 @@ MonoBehaviour:
     type: 3}
   ammoWidgetPrefab: {fileID: 3000000000000000003, guid: bc07a76686e24c4c9786272a65936004,
     type: 3}
+  chargeWidgetPrefab: {fileID: 5000000000000000005, guid: c2172d916a3343c79dfae300066b0390,
+    type: 3}
   lockWidgetPrefab: {fileID: 4000000000000000003, guid: bb293538c99d4c40a374865356c5b172,
     type: 3}
 --- !u!1 &3565447054997859531

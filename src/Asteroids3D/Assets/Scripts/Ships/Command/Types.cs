@@ -36,14 +36,26 @@ namespace Ships.Command
     }
 
     /// <summary>
-    /// Per-frame command for a <em>single</em> weapon slot, pushed to an <see cref="IWeapons"/>.
-    /// Weapons are commanded individually (one command per slot) rather than bundled, so the
-    /// piloting and firing channels — and the weapons among themselves — stay independent.
+    /// Per-frame trigger state for a <em>single</em> weapon slot, pushed to an
+    /// <see cref="IWeapons"/>. Carries raw input facts only — what the trigger is doing, not
+    /// what it means. The weapon interprets its own firing semantics (full-auto fires while
+    /// held, semi-auto on each press, charge weapons accumulate while held and fire on
+    /// release; see <c>WeaponComponent.HandleTrigger</c>). Weapons are commanded individually
+    /// (one command per slot) rather than bundled, so the piloting and firing channels — and
+    /// the weapons among themselves — stay independent.
     /// </summary>
     public struct WeaponCommand
     {
-        /// <summary>When true the ship should attempt to fire this weapon this step.</summary>
-        public bool fire;
+        /// <summary>True while the trigger is down this step.</summary>
+        public bool held;
+
+        /// <summary>
+        /// True on a step the trigger was pulled. A human press is a rising edge of
+        /// <see cref="held"/>; an AI commander re-decides every step and truthfully reports a
+        /// press on <em>each</em> step it wants fire ("mashing"), which is what keeps semi-auto
+        /// weapons pacing by their own cooldown under sustained AI intent.
+        /// </summary>
+        public bool pressed;
     }
 
     // ── Actuators (push targets) ──
@@ -60,13 +72,14 @@ namespace Ships.Command
     }
 
     /// <summary>
-    /// The weapons actuator: fires individual weapon slots. Implemented by the weapons system;
-    /// injected into armed <see cref="Commander"/>s. The commander pushes a separate
-    /// <see cref="WeaponCommand"/> per slot it wants to act on.
+    /// The weapons actuator: feeds trigger state to individual weapon slots. Implemented by the
+    /// weapons system; injected into armed <see cref="Commander"/>s. The commander pushes a
+    /// separate <see cref="WeaponCommand"/> per slot every step (including trigger-up steps —
+    /// charge weapons fire on release).
     /// </summary>
     public interface IWeapons
     {
-        /// <summary>Applies a firing command to a single weapon slot for this step.</summary>
+        /// <summary>Applies one step of trigger state to a single weapon slot.</summary>
         void Fire(WeaponSlot slot, in WeaponCommand cmd);
     }
 
@@ -104,10 +117,7 @@ namespace Ships.Command
         /// <summary>Whether the weapon in the given slot can currently fire (cooldown, heat, ammo…).</summary>
         bool IsReady(WeaponSlot slot);
 
-        /// <summary>Whether the slot repeats while the trigger is held (full-auto) vs once per press (semi-auto).</summary>
-        bool IsAutoFire(WeaponSlot slot);
-
-        /// <summary>Muzzle speed of the slot's projectile (for AI intercept lead). 0 if not applicable.</summary>
+        /// <summary>Muzzle speed of the slot's projectile (for AI intercept lead). 0 = hitscan/no lead.</summary>
         float ProjectileSpeed(WeaponSlot slot);
 
         /// <summary>The firing solution helper for the given slot, or null if the slot is empty.</summary>
