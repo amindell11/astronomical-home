@@ -121,18 +121,20 @@ namespace UI
                     setCurrent(captured);
                     RefreshHighlights();
                 });
-                AddHoverStats(button.gameObject, () => describe(captured));
+                // Stats are static serialized values; precompute so hover never runs the
+                // component lookups behind WeaponComponent.HangarStats.
+                AddHoverStats(button.gameObject, describe(captured));
             }
 
             refreshers.Add(() => TintRow(row, options, getCurrent));
         }
 
-        private void AddHoverStats(GameObject button, Func<string> stats)
+        private void AddHoverStats(GameObject button, string stats)
         {
             if (!statsText) return;
             var trigger = button.AddComponent<EventTrigger>();
             var enter = new EventTrigger.Entry { eventID = EventTriggerType.PointerEnter };
-            enter.callback.AddListener(_ => statsText.text = stats());
+            enter.callback.AddListener(_ => statsText.text = stats);
             var exit = new EventTrigger.Entry { eventID = EventTriggerType.PointerExit };
             exit.callback.AddListener(_ => statsText.text = "");
             trigger.triggers.Add(enter);
