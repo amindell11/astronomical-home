@@ -52,9 +52,17 @@ namespace Game
                     break;
             }
 
-            _rotation = Quaternion.LookRotation(_normal, _forward);
+            _rotation = PlanePose(_normal, _forward);
             _configured = true;
         }
+
+        /// <summary>
+        /// The plane-dweller pose convention, pure (no configured-state dependency): forward = plane
+        /// normal (points AWAY from the top-down camera; the visible hull face is -forward),
+        /// up = in-plane heading (nose).
+        /// </summary>
+        public static Quaternion PlanePose(Vector3 planeNormal, Vector3 heading) =>
+            Quaternion.LookRotation(planeNormal, heading);
 
         /// <summary>Clears the configuration. Useful for test teardown and restarts.</summary>
         public static void Reset()

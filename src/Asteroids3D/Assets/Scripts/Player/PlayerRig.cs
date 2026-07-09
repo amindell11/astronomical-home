@@ -252,6 +252,9 @@ namespace Player
                 yield break;
             }
 
+            var overlay = services.UIService.ActiveOverlay;
+            if (overlay) overlay.SetVisible(false);
+
             var screen = Instantiate(hangarScreenPrefab);
             var launched = false;
             screen.Show(loadoutCatalog, Loadout, () => launched = true);
@@ -260,6 +263,10 @@ namespace Player
 
             ApplyLoadout();
             Destroy(screen.gameObject);
+
+            // ApplyLoadout may have rebuilt the player and re-bound the HUD; re-resolve the overlay.
+            var activeOverlay = services.UIService.ActiveOverlay;
+            if (activeOverlay) activeOverlay.SetVisible(true);
         }
 
         private void OnPlayerDeath(ShipId victimId, ShipId killerId) => RestartRequested?.Invoke();
