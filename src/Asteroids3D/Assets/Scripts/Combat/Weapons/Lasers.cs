@@ -12,16 +12,18 @@ namespace Combat.Weapons
         [Tooltip("Max aim error (degrees) at which an AI gunner will open fire.")]
         [SerializeField, Range(0f, 180f)] private float fireAngleTolerance = 5f;
 
+        [Header("Conditions")]
+        [SerializeField] private Heat heat;
+        [SerializeField] private Cooldown cooldown;
+
         public override float ProjectileSpeed => projectilePrefab.LaserSpeed;
-        public Heat Heat { get; private set; }
+        public Heat Heat => heat;
 
         public override string HangarStats
         {
             get
             {
                 if (!projectilePrefab) return DisplayName;
-                var cooldown = GetComponent<Cooldown>();
-                var heat = GetComponent<Heat>();
                 var rate = cooldown && cooldown.SecondsBetweenShots > 0f
                     ? $"   |   Rate {1f / cooldown.SecondsBetweenShots:0.#}/s" : "";
                 var shots = heat && heat.HeatPerShot > 0f
@@ -33,7 +35,8 @@ namespace Combat.Weapons
         protected override void Awake()
         {
             base.Awake();
-            Heat = GetComponent<Heat>();
+            if (!heat) heat = GetComponent<Heat>();
+            if (!cooldown) cooldown = GetComponent<Cooldown>();
         }
 
         public override bool ShouldFire(TargetingContext context)

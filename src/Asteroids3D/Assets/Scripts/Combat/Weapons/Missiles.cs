@@ -11,6 +11,9 @@ namespace Combat.Weapons
         [Header("Targeting")]
         [SerializeField] private LockOnSensor targetingComputer;
 
+        [Header("Conditions")]
+        [SerializeField] private Rounds rounds;
+
         [Header("AI Firing (No Lock)")]
         [Tooltip("Max distance at which an AI gunner will fire unguided (no lock).")]
         [SerializeField, Min(0f)] private float fallbackRange = 10f;
@@ -20,7 +23,7 @@ namespace Combat.Weapons
         private ILockProvider lockProvider;
 
         public LockOnSensor Targeting => targetingComputer;
-        public Rounds Rounds { get; private set; }
+        public Rounds Rounds => rounds;
 
         public override ILockStateSource LockSource => targetingComputer;
 
@@ -32,7 +35,6 @@ namespace Combat.Weapons
             get
             {
                 if (!projectilePrefab) return DisplayName;
-                var rounds = GetComponent<Rounds>();
                 var ammo = rounds
                     ? $"   |   {rounds.MaxAmmo} rounds" + (rounds.ReloadTime > 0f ? $" (reload {rounds.ReloadTime:0.#}s)" : "")
                     : "";
@@ -43,7 +45,7 @@ namespace Combat.Weapons
         protected override void Awake()
         {
             base.Awake();
-            Rounds = GetComponent<Rounds>();
+            if (!rounds) rounds = GetComponent<Rounds>();
             if (!targetingComputer)
                 targetingComputer = GetComponent<LockOnSensor>();
             lockProvider = targetingComputer;

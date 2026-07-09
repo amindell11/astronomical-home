@@ -52,6 +52,7 @@ MonoBehaviour:
   projectilePrefab: {fileID: -6854199025283548723, guid: 5615e4673e17c104384d4c8493c5d42b,
     type: 3}
   targetingComputer: {fileID: 941428023342471022}
+  rounds: {fileID: 8865327791154650922}
 --- !u!114 &8865327791154650922
 MonoBehaviour:
   m_ObjectHideFlags: 0
