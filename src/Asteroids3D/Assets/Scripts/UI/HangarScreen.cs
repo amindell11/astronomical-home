@@ -8,15 +8,9 @@ using UnityEngine.UI;
 namespace UI
 {
     /// <summary>
-    /// Between-run hangar screen: renders the player's loadout slots as rows of selectable options and
-    /// a Launch button. The prefab authors the static chrome (canvas, panel, row containers, an option
-    /// button template, the Launch button); this component populates each row from the
-    /// <see cref="LoadoutConfig"/> catalog at runtime and writes the picks into the pending
-    /// <see cref="ShipLoadout"/>. Nothing is applied to the live ship here — the caller
-    /// (<see cref="Player.PlayerRig"/>) installs the selection when Launch fires.
-    ///
-    /// Rows are built generically (<see cref="BuildRow{T}"/>), so adding the Ship slot is just another
-    /// row over the same machinery.
+    /// Between-run hangar screen: populates the prefab-authored rows from the <see cref="LoadoutConfig"/>
+    /// catalog and writes picks into the pending <see cref="ShipLoadout"/>. Nothing touches the live
+    /// ship — the caller installs the selection when Launch fires.
     /// </summary>
     [RequireComponent(typeof(Canvas))]
     public class HangarScreen : MonoBehaviour
@@ -47,11 +41,7 @@ namespace UI
         private HangarPreviewStage previewStage;
         private readonly List<Action> refreshers = new();
 
-        /// <summary>
-        /// Populate the screen from <paramref name="catalog"/>, seed highlights from
-        /// <paramref name="loadout"/>, and invoke <paramref name="onLaunch"/> when the player commits.
-        /// The screen mutates <paramref name="loadout"/> in place as options are picked.
-        /// </summary>
+        /// <summary>Mutates <paramref name="loadout"/> in place as options are picked.</summary>
         public void Show(LoadoutConfig catalog, ShipLoadout loadout, Action onLaunch)
         {
             EnsureEventSystem();
@@ -68,8 +58,7 @@ namespace UI
 
             if (catalog)
             {
-                // Picking a ship reseeds the module slots to that ship's authored kit — the chassis
-                // presents its own identity, which the player can then customize further.
+                // Picking a ship reseeds the module slots to that ship's authored kit.
                 BuildRow(shipRow, catalog.ships, () => loadout.Ship, s =>
                 {
                     loadout.Ship = s;
@@ -91,10 +80,6 @@ namespace UI
             }
         }
 
-        // Clone the template once per option into the row; each clone selects its option and refreshes
-        // the row's highlights on click, and shows its stats in the readout on hover. getCurrent/
-        // setCurrent read and write the owning loadout field, so the same code drives any slot
-        // (engine, shield, and later ship).
         private void BuildRow<T>(Transform row, IReadOnlyList<T> options, Func<T> getCurrent, Action<T> setCurrent,
             Func<T, string> describe)
             where T : UnityEngine.Object
@@ -122,7 +107,6 @@ namespace UI
             refreshers.Add(() => TintRow(row, options, getCurrent));
         }
 
-        // Show the option's stats in the readout while the pointer is over it; clear on exit.
         private void AddHoverStats(GameObject button, Func<string> stats)
         {
             if (!statsText) return;

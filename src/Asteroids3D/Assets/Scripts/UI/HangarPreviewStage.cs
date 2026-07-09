@@ -5,20 +5,13 @@ using UnityEngine;
 namespace UI
 {
     /// <summary>
-    /// Offscreen 3D preview for the hangar: renders the selected ship's visual rig — spinning slowly —
-    /// to a RenderTexture the screen shows in a RawImage. The stage lives far from the play space on
-    /// the ShipPreview layer with its own camera and light, so nothing leaks between the preview and
-    /// the world. Ship switches play a scale pop (old shrinks out, new overshoots in).
-    ///
-    /// Shows the loadout, not just the hull, so later module visuals (engines/shields/weapons) can
-    /// attach to the same rig instance.
+    /// Offscreen 3D preview for the hangar: clones the selected ship's visual rig onto a spinning
+    /// anchor and renders it to a RenderTexture on the isolated ShipPreview layer.
     /// </summary>
     public sealed class HangarPreviewStage : MonoBehaviour
     {
-        // The display plane sits horizontal above the menu, same convention as the arena's Y plane
-        // (GamePlane.PlanePose: normal points away from the viewer, up = nose). Normal world-down,
-        // nose starting screen-right — the stage's vertical turntable is then true in-plane yaw,
-        // exactly like turning in game.
+        // Same plane-dweller convention as the arena (GamePlane.PlanePose): normal away from the
+        // viewer (world-down), nose screen-right — world-Y anchor spin is then true in-plane yaw.
         private static readonly Quaternion BaseOrientation =
             Game.GamePlane.PlanePose(Vector3.down, Vector3.right);
 
@@ -29,22 +22,17 @@ namespace UI
         private const int TextureSize = 768;
 
         private Camera stageCamera;
-        private Transform anchor;       // spins; the rig clone hangs under it
+        private Transform anchor;
         private RenderTexture texture;
-        private Transform current;      // active rig clone
-        private Transform retiring;     // old clone shrinking out
+        private Transform current;
+        private Transform retiring;
         private Vector3 currentTargetScale;
         private Vector3 retiringStartScale;
         private float popInT = 1f;
         private float popOutT = 1f;
 
-        /// <summary>The texture the screen's RawImage should display.</summary>
         public Texture Texture => texture;
 
-        /// <summary>
-        /// Build a stage well below the play space. The ShipPreview layer isolates it; if the layer is
-        /// missing from the project the stage still works, just without cross-visibility guarantees.
-        /// </summary>
         public static HangarPreviewStage Create()
         {
             var go = new GameObject("HangarPreviewStage");
@@ -76,7 +64,6 @@ namespace UI
             anchor.SetParent(transform, false);
             anchor.gameObject.layer = layer;
 
-            // 3/4 view: above and in front, looking down at the anchor.
             var camGo = new GameObject("PreviewCamera");
             camGo.layer = layer;
             camGo.transform.SetParent(transform, false);
@@ -87,7 +74,6 @@ namespace UI
             stageCamera.backgroundColor = Color.clear;
             stageCamera.targetTexture = texture;
 
-            // Key light shines roughly along the camera axis so the camera-facing hull is lit.
             var lightGo = new GameObject("PreviewLight");
             lightGo.layer = layer;
             lightGo.transform.SetParent(transform, false);
@@ -98,13 +84,9 @@ namespace UI
             light.intensity = 1.6f;
         }
 
-        /// <summary>
-        /// Show the loadout's selected ship: the current rig pops out, the new ship's rig clone pops
-        /// in and resumes the idle spin. A null ship (or a ship with no rig) clears the stage.
-        /// </summary>
+        /// <summary>Swap the preview to the loadout's ship. A null ship (or rigless ship) clears the stage.</summary>
         public void Show(ShipLoadout loadout)
         {
-            // Retire whatever is up now.
             if (retiring) Destroy(retiring.gameObject);
             retiring = current;
             retiringStartScale = retiring ? retiring.localScale : Vector3.zero;
@@ -121,12 +103,12 @@ namespace UI
             StripNonHull(clone);
             SetLayerRecursive(root, gameObject.layer);
 
-            // Size lives on the ship prefab ROOT (the rig child inherits it in situ) — re-apply the
-            // rig's full in-prefab scale, then neutralize its authored local pose under our anchor.
+            // Ship size lives on the prefab root, which the clone left behind — re-apply the rig's
+            // full in-prefab scale.
             root.localPosition = Vector3.zero;
             root.localRotation = BaseOrientation;
             currentTargetScale = rigTemplate.transform.lossyScale;
-            root.localScale = Vector3.zero; // pop-in animates up to currentTargetScale
+            root.localScale = Vector3.zero;
 
             FrameCamera(root);
 
@@ -136,7 +118,7 @@ namespace UI
 
         private void FrameCamera(Transform rig)
         {
-            // Frame from the clone's renderer bounds at its TARGET scale (it is zero-scaled right now).
+            // Measure at target scale — the clone is still zero-scaled for the pop-in.
             var previousScale = rig.localScale;
             rig.localScale = currentTargetScale;
             var bounds = new Bounds(anchor.position, Vector3.one);
@@ -146,8 +128,7 @@ namespace UI
                     bounds.Encapsulate(r.bounds);
             rig.localScale = previousScale;
 
-            // Largest single-axis extent (not the 3D diagonal — that over-frames by ~1.7x) fills
-            // most of the vertical FOV.
+            // Largest single-axis extent — the 3D diagonal over-frames by ~1.7x.
             var extents = bounds.extents;
             var radius = Mathf.Max(Mathf.Max(extents.x, extents.y), Mathf.Max(extents.z, 0.5f));
             var distance = radius / Mathf.Tan(CameraFovDeg * 0.5f * Mathf.Deg2Rad) * 0.85f;
@@ -156,8 +137,8 @@ namespace UI
             stageCamera.transform.LookAt(bounds.center);
         }
 
-        // Frame on hull geometry only: particle/trail renderers report garbage bounds while idle
-        // (anchored at world origin), which would blow the framing up by the stage's offset.
+        // Idle particle/trail renderers report bounds anchored at world origin, which would blow
+        // the framing by the stage's offset — frame on hull meshes only.
         private static bool FramesBounds(Renderer r) => r is MeshRenderer || r is SkinnedMeshRenderer;
 
         private void Update()
@@ -182,7 +163,6 @@ namespace UI
             }
         }
 
-        // Overshoots to ~1.1 then settles at 1 — the "pop".
         private static float EaseOutBack(float t)
         {
             const float k = 1.70158f;
@@ -190,9 +170,7 @@ namespace UI
             return 1f + t * t * ((k + 1f) * t + k);
         }
 
-        // The rig also carries ship-space UI (shield ring, lock indicator), a minimap marker, and
-        // audio emitters — strip those so only the hull shows. Thruster particles stay but are
-        // dormant (pilot-command-driven; the preview never binds a ShipView).
+        // Thruster particles stay but are dormant — the preview never binds a ShipView.
         private static void StripNonHull(ShipVisualRig rig)
         {
             foreach (var canvas in rig.GetComponentsInChildren<Canvas>(true))
@@ -201,7 +179,7 @@ namespace UI
             foreach (var minimap in rig.GetComponentsInChildren<MinimapLayerSetter>(true))
                 if (minimap.gameObject != rig.gameObject)
                     Destroy(minimap.gameObject);
-            // Disable (not destroy) audio: sources may be [RequireComponent]-pinned by their binders.
+            // Disable, don't destroy: sources may be [RequireComponent]-pinned by their binders.
             foreach (var audio in rig.GetComponentsInChildren<AudioSource>(true))
             {
                 audio.playOnAwake = false;

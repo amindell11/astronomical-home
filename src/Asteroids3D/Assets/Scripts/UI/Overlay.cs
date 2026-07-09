@@ -36,8 +36,8 @@ namespace UI
         }
 
         /// <summary>
-        /// Hide/show the whole HUD by toggling the canvas alone, keeping component lifecycles live —
-        /// some HUD audio binders unsubscribe in OnDisable and never resubscribe.
+        /// Toggles the canvas only — disabling components would break the HUD audio binders, which
+        /// unsubscribe in OnDisable and never resubscribe.
         /// </summary>
         public void SetVisible(bool visible)
         {

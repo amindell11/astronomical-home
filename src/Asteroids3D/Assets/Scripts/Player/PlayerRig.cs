@@ -252,7 +252,6 @@ namespace Player
                 yield break;
             }
 
-            // Blank the combat HUD while the hangar is up.
             var overlay = services.UIService.ActiveOverlay;
             if (overlay) overlay.SetVisible(false);
 
