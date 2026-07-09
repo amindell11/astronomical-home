@@ -57,8 +57,11 @@ namespace Ships
         /// <summary>The ship's weapons, or null if it carries none (peaceful ship).</summary>
         public WeaponsController Weapons { get; private set; }
 
-        /// <summary>The ship's lock-on sensor, or null if no mounted weapon carries one.</summary>
-        public LockOnSensor Targeting { get; private set; }
+        /// <summary>
+        /// The ship's lock-on sensor, or null if no mounted weapon carries one. Reads through to
+        /// the weapons controller, which owns the mounts and keeps this current across reequips.
+        /// </summary>
+        public LockOnSensor Targeting => Weapons ? Weapons.Sensor : null;
 
         public Rigidbody Rigidbody { get; private set; }
         public ShipId Id { get; private set; }
@@ -98,7 +101,6 @@ namespace Ships
 
             // Weapons are optional: a ship without a WeaponsController is simply unarmed.
             Weapons  = GetComponent<WeaponsController>();
-            Targeting = GetComponentInChildren<LockOnSensor>();
             Weapons?.Initialize(() => Kinematics);
         }
 
@@ -140,14 +142,7 @@ namespace Ships
             shield = newShield;
 
             if (Weapons)
-            {
                 Weapons.Reequip(newPrimaryWeapon, newSecondaryWeapon);
-                // The Awake-time cache points at the outgoing mount's sensor; re-find it on the
-                // fresh hierarchy (the old mount is detached before its deferred destroy).
-                // includeInactive: the persistent player can be reequipped while deactivated (dead
-                // between runs) and the fresh sensor must still be found for re-wiring.
-                Targeting = GetComponentInChildren<LockOnSensor>(true);
-            }
 
             // Before Initialize there is nothing live to update — Initialize will resolve from these
             // pointers. Re-subscribe so onChanged tracks the new SOs even in that case.

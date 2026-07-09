@@ -161,7 +161,7 @@ namespace Tests.PlayMode
             var missiles = LoadWeapon<Missiles>(MissilesPrefabPath);
             ship.Reequip(ship.Engine, ship.Shield, rippers, missiles);
 
-            Assert.IsNotNull(ship.Targeting, "sensor re-found on the inactive hierarchy");
+            Assert.IsNotNull(ship.Targeting, "sensor tracked from the new mounts even while inactive");
             Assert.AreEqual(0, ship.Weapons.ReadoutContext.Readouts(WeaponSlot.Primary).Count,
                 "pre-Awake readouts read empty rather than throwing");
 
