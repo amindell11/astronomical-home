@@ -252,11 +252,9 @@ namespace Player
                 yield break;
             }
 
-            // Blank the combat HUD canvas while the hangar is up (component lifecycles stay live —
-            // some HUD audio binders unsubscribe on disable and never resubscribe).
-            var overlay = services?.UIService.ActiveOverlay;
-            var overlayCanvas = overlay ? overlay.GetComponent<Canvas>() : null;
-            if (overlayCanvas) overlayCanvas.enabled = false;
+            // Blank the combat HUD while the hangar is up.
+            var overlay = services.UIService.ActiveOverlay;
+            if (overlay) overlay.SetVisible(false);
 
             var screen = Instantiate(hangarScreenPrefab);
             var launched = false;
@@ -267,10 +265,9 @@ namespace Player
             ApplyLoadout();
             Destroy(screen.gameObject);
 
-            // ApplyLoadout may have rebuilt the player and re-bound the HUD; re-resolve the canvas.
-            var activeOverlay = services?.UIService.ActiveOverlay;
-            var activeCanvas = activeOverlay ? activeOverlay.GetComponent<Canvas>() : null;
-            if (activeCanvas) activeCanvas.enabled = true;
+            // ApplyLoadout may have rebuilt the player and re-bound the HUD; re-resolve the overlay.
+            var activeOverlay = services.UIService.ActiveOverlay;
+            if (activeOverlay) activeOverlay.SetVisible(true);
         }
 
         private void OnPlayerDeath(ShipId victimId, ShipId killerId) => RestartRequested?.Invoke();

@@ -40,12 +40,11 @@ namespace UI
         [Tooltip("Displays the preview stage's render texture. Null → no 3D preview.")]
         [SerializeField] private RawImage previewImage;
 
-        private HangarPreviewStage previewStage;
-
         [Header("Selection tint")]
         [SerializeField] private Color selectedColor = new(0.20f, 0.55f, 0.95f, 1f);
         [SerializeField] private Color unselectedColor = new(0.20f, 0.20f, 0.24f, 1f);
 
+        private HangarPreviewStage previewStage;
         private readonly List<Action> refreshers = new();
 
         /// <summary>

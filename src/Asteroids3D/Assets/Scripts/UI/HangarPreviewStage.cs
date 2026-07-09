@@ -34,6 +34,7 @@ namespace UI
         private Transform current;      // active rig clone
         private Transform retiring;     // old clone shrinking out
         private Vector3 currentTargetScale;
+        private Vector3 retiringStartScale;
         private float popInT = 1f;
         private float popOutT = 1f;
 
@@ -106,6 +107,7 @@ namespace UI
             // Retire whatever is up now.
             if (retiring) Destroy(retiring.gameObject);
             retiring = current;
+            retiringStartScale = retiring ? retiring.localScale : Vector3.zero;
             popOutT = retiring ? 0f : 1f;
             current = null;
 
@@ -119,11 +121,11 @@ namespace UI
             StripNonHull(clone);
             SetLayerRecursive(root, gameObject.layer);
 
-            // Size lives on the ship prefab ROOT (the rig child inherits it in situ) — re-apply it,
-            // then neutralize the rig's own authored local pose under our anchor.
+            // Size lives on the ship prefab ROOT (the rig child inherits it in situ) — re-apply the
+            // rig's full in-prefab scale, then neutralize its authored local pose under our anchor.
             root.localPosition = Vector3.zero;
             root.localRotation = BaseOrientation;
-            currentTargetScale = Vector3.Scale(rigTemplate.transform.localScale, ship.transform.localScale);
+            currentTargetScale = rigTemplate.transform.lossyScale;
             root.localScale = Vector3.zero; // pop-in animates up to currentTargetScale
 
             FrameCamera(root);
@@ -165,7 +167,7 @@ namespace UI
             if (popOutT < 1f && retiring)
             {
                 popOutT = Mathf.Min(1f, popOutT + Time.deltaTime / PopOutSeconds);
-                retiring.localScale = Vector3.Lerp(retiring.localScale, Vector3.zero, popOutT);
+                retiring.localScale = Vector3.Lerp(retiringStartScale, Vector3.zero, popOutT);
                 if (popOutT >= 1f)
                 {
                     Destroy(retiring.gameObject);
@@ -188,9 +190,9 @@ namespace UI
             return 1f + t * t * ((k + 1f) * t + k);
         }
 
-        // Clean-hull curation: the rig also carries ship-space UI (shield ring, lock indicator),
-        // a minimap marker, and audio emitters — none belong in a museum-piece preview. Thruster
-        // particles stay but are dormant (pilot-command-driven; the preview never binds a ShipView).
+        // The rig also carries ship-space UI (shield ring, lock indicator), a minimap marker, and
+        // audio emitters — strip those so only the hull shows. Thruster particles stay but are
+        // dormant (pilot-command-driven; the preview never binds a ShipView).
         private static void StripNonHull(ShipVisualRig rig)
         {
             foreach (var canvas in rig.GetComponentsInChildren<Canvas>(true))
@@ -217,7 +219,11 @@ namespace UI
         private void OnDestroy()
         {
             if (stageCamera) stageCamera.targetTexture = null;
-            if (texture) texture.Release();
+            if (texture)
+            {
+                texture.Release();
+                Destroy(texture);
+            }
         }
     }
 }

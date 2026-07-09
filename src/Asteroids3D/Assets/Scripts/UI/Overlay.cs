@@ -35,6 +35,15 @@ namespace UI
             canvas.worldCamera = uicam;
         }
 
+        /// <summary>
+        /// Hide/show the whole HUD by toggling the canvas alone, keeping component lifecycles live —
+        /// some HUD audio binders unsubscribe in OnDisable and never resubscribe.
+        /// </summary>
+        public void SetVisible(bool visible)
+        {
+            canvas.enabled = visible;
+        }
+
         public void Initialize(in HudBinding binding)
         {
             if (healthAudio)
