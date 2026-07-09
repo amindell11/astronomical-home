@@ -43,6 +43,29 @@ pool" or name a slot for it to kick in. Exceptions: trivial doc/comment-only
 edits the user explicitly asks to be made directly, or explicit instruction
 to work in place instead.
 
+## Comments & self-documenting code
+
+**Comments are strongly discouraged. Make the code self-documenting instead —
+always.** A comment is a last resort, justified only when the code genuinely
+cannot carry the meaning on its own. Before writing one, remove the need for it:
+a clearer name, a named local or constant instead of a magic value, a small
+well-named helper, a simpler structure. Write a comment only when it is
+**absolutely necessary** to understand the code — and then keep it to one tight
+line.
+
+The only legitimate (rare) case is a non-obvious ***why*** the code itself can't
+express: a workaround for an external/engine bug, a deliberately chosen
+invariant, a subtle ordering or timing requirement, a unit/coordinate-frame
+gotcha. Never comment the ***what*** the code already states plainly. Delete
+narration, section-banner comments, restated method signatures,
+`// TODO`-as-comment, and commented-out code.
+
+**Active cleanup campaign:** the codebase has accumulated excessive comments.
+Until that is tamed, **every PR going forward includes a pass that deletes
+redundant/obvious comments in the code your diff touches** (scope it to the
+files you're already changing — not a repo-wide sweep). See memory
+[[feedback-comments-self-documenting]].
+
 ### Comment hygiene across the PR lifecycle
 
 While a PR is in flight, comments that explain *what changed and why* — the bug
