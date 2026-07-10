@@ -15,6 +15,7 @@ namespace AI.Debug
         StateDetail = 1 << 4,
         Info       = 1 << 5,
         Logging    = 1 << 6,
+        Observation = 1 << 7,
     }
 
     [CreateAssetMenu(fileName = "AIDebugSettings", menuName = "AI/Debug Settings")]
