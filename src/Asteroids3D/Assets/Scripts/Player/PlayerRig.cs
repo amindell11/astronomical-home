@@ -273,6 +273,7 @@ namespace Player
 
             var overlay = services.UIService.ActiveOverlay;
             if (overlay) overlay.SetVisible(false);
+            SetPlayerInputEnabled(false);
 
             var screen = Instantiate(hangarScreenPrefab);
             var launched = false;
@@ -283,9 +284,18 @@ namespace Player
             ApplyLoadout();
             Destroy(screen.gameObject);
 
-            // ApplyLoadout may have rebuilt the player and re-bound the HUD; re-resolve the overlay.
+            // ApplyLoadout may rebuild the player and re-bind the HUD — refs from before it are stale.
+            SetPlayerInputEnabled(true);
             var activeOverlay = services.UIService.ActiveOverlay;
             if (activeOverlay) activeOverlay.SetVisible(true);
+        }
+
+        // Fire1 shares mouse 0 with UI clicks, so a hangar button press would fire the ship's
+        // primary weapon; the commander sleeps for the screen's lifetime instead.
+        private void SetPlayerInputEnabled(bool inputEnabled)
+        {
+            if (Player && Player.Commander)
+                Player.Commander.enabled = inputEnabled;
         }
 
         private void OnPlayerDeath(ShipId victimId, ShipId killerId) => RestartRequested?.Invoke();

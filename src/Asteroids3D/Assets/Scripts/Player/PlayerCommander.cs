@@ -81,6 +81,28 @@ namespace Player
             }
         }
 
+        // MovementController latches the last pilot command and charge weapons fire on a
+        // trigger-up step — release everything this commander drives when it goes silent.
+        private void OnDisable()
+        {
+            if (context == null) return;
+
+            thrustInput = 0f;
+            strafeInput = 0f;
+            rotationInput = 0f;
+            boostInput = false;
+            wantsRotate = false;
+            primaryHeld = false;
+            secondaryHeld = false;
+
+            pilot.Drive(default);
+            if (weapons != null)
+            {
+                FireSlot(WeaponSlot.Primary, false, ref prevPrimaryHeld);
+                FireSlot(WeaponSlot.Secondary, false, ref prevSecondaryHeld);
+            }
+        }
+
         private void FixedUpdate()
         {
             if (context == null) return;
