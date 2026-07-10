@@ -58,7 +58,7 @@ namespace Movement.MPC
         private float lastBestCost;
         private State lastInitialState;
 
-        public Mpc(MpcSettings settings, Dynamics dynamics)
+        public Mpc(MpcSettings settings, Dynamics dynamics, int seed)
         {
             this.settings = settings;
             this.dynamics = dynamics;
@@ -67,7 +67,7 @@ namespace Movement.MPC
             config.ApplyDynamics(in dynamics);
             bestSequence = new Control[config.horizon];
             predictedStates = new State[config.horizon];
-            solver = new SolverBuffers();
+            solver = new SolverBuffers(seed);
         }
 
         /// <summary>Solve for one step and return the first control of the best sequence.</summary>

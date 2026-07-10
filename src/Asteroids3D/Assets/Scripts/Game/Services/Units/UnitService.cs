@@ -20,6 +20,7 @@ namespace Game.Services
 
         private readonly List<Ship> spawnedShips = new();
         private readonly List<PendingRespawn> pendingRespawns = new();
+        private int nextAgentIndex;
         public IShipRegistry Registry => ActiveRegistry;
         public ShipRegistry ActiveRegistry { get; } = new();
 
@@ -36,7 +37,7 @@ namespace Game.Services
                 throw new ArgumentNullException(nameof(template));
 
             var ship = ShipFactory.CreateShip(
-                template, commander, team,
+                template, commander, team, NextDecisionSeed(team),
                 position, rotation,
                 postInitialize: WireShipDependencies);
 
@@ -59,7 +60,7 @@ namespace Game.Services
             if (commander)
                 ship.AdoptCommander(commander);
 
-            ship.Initialize(ship.teamNumber);
+            ship.Initialize(ship.teamNumber, NextDecisionSeed(ship.teamNumber));
 
             ActiveRegistry.ActiveShips.Add(ship);
             spawnedShips.Add(ship);
@@ -100,6 +101,23 @@ namespace Game.Services
         private void OnDestroy()
         {
             ActiveRegistry.Dispose();
+        }
+
+        private int NextDecisionSeed(int team) => DeriveDecisionSeed(team, nextAgentIndex++);
+
+        /// <summary>
+        /// Stable per-agent decision seed from the deterministic spawn order, so a reconstructed
+        /// episode replays identically (unlike a <c>GetInstanceID</c>-derived seed). Distinct per
+        /// ship, forced nonzero. <c>arenaBaseSeed</c> is 0 until S1b supplies per-arena seeds.
+        /// </summary>
+        private static int DeriveDecisionSeed(int team, int agentIndex)
+        {
+            const uint arenaBaseSeed = 0u;
+            var h = arenaBaseSeed;
+            h = (h ^ (uint)team) * 2654435761u;
+            h = (h ^ (uint)agentIndex) * 2654435761u;
+            h ^= h >> 15;
+            return (int)((h & 0x7FFFFFFFu) | 1u);
         }
 
         /// <summary>Idempotent world-state wiring; see <see cref="IUnitService.WireShipDependencies"/>.</summary>

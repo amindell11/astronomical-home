@@ -27,12 +27,12 @@ namespace AI.States
         /// </summary>
         public NavigationIntent LastIntent { get; private set; }
 
-        public AIState(StateProfile profile, Navigator navigator, Gunner gunner)
+        public AIState(StateProfile profile, Navigator navigator, Gunner gunner, int seed)
         {
             this.navigator = navigator;
             this.gunner = gunner;
             Profile = profile;
-            goalRunner = GoalRunner.Create(profile.goal, navigator);
+            goalRunner = GoalRunner.Create(profile.goal, navigator, seed);
         }
 
         public void Enter(AIContext ctx)

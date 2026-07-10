@@ -64,15 +64,16 @@ namespace AI
             if (systemsInitialized || control.Ship == null || registry == null)  return;
             var self = control.Ship;
             Func<Kinematics> pose = () => self.Kinematics;
+            var seed = self.DecisionSeed;
 
             Scout.Initialize(self.Transform, self.Id, self.Dynamics, self, registry);
-            Navigator.Initialize(self, self.Dynamics, Scout);
+            Navigator.Initialize(self, self.Dynamics, Scout, seed);
             if (Gunner && control.IsArmed)
                 Gunner.Initialize(control.Weapons, control.WeaponActuator, pose);
 
             context = new AIContext(self, Scout, combatExitDelay);
 
-            Brain.Initialize(Navigator, Gunner);
+            Brain.Initialize(Navigator, Gunner, seed);
 
             systemsInitialized = true;
         }
@@ -83,8 +84,9 @@ namespace AI
 
             if (Brain && Brain.isActiveAndEnabled)
             {
-                context.UpdateAssessment();
-                var intent = Brain.Decide(context, Time.fixedDeltaTime);
+                var dt = Time.fixedDeltaTime;
+                context.UpdateAssessment(dt);
+                var intent = Brain.Decide(context, dt);
                 Navigator.ApplyIntent(intent);
                 if (Gunner) Gunner.ApplyIntent(intent);
             }

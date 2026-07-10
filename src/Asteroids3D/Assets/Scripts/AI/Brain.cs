@@ -31,15 +31,17 @@ namespace AI
 
         private Navigator navigator;
         private Gunner gunner;
+        private int seed;
 
         /// <summary>
         /// Binds the actuators the discrete behaviors drive and builds the option set into the
         /// policy. A continuous policy (raw <see cref="IIntentChooser"/>) ignores the profiles.
         /// </summary>
-        public void Initialize(Navigator navigator, Gunner gunner)
+        public void Initialize(Navigator navigator, Gunner gunner, int seed)
         {
             this.navigator = navigator;
             this.gunner = gunner;
+            this.seed = seed;
             BuildStates();
         }
 
@@ -52,9 +54,9 @@ namespace AI
             for (var i = 0; i < stateProfiles.Length; i++)
             {
                 if (!stateProfiles[i]) return;
-                states[i] = new AIState(stateProfiles[i], navigator, gunner);
+                states[i] = new AIState(stateProfiles[i], navigator, gunner, seed);
             }
-            stateChooser.Initialize(states);
+            stateChooser.Initialize(states, seed);
         }
 
         public NavigationIntent Decide(AIContext ctx, float dt) =>

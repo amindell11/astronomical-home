@@ -31,7 +31,7 @@ namespace Tests.PlayMode
 #if UNITY_EDITOR
             var prefab = TestAssets.LoadShipPrefab(Ship1Path);
             Assert.IsNotNull(prefab, "Ship_1 prefab failed to load");
-            ship = Factory.CreateShip(prefab, null, 0, Vector3.zero, Quaternion.identity);
+            ship = Factory.CreateShip(prefab, null, 0, 0, Vector3.zero, Quaternion.identity);
             Assert.IsNotNull(ship, "Ship_1 failed to instantiate");
 #else
             Assert.Ignore("ShipPresentationPlayModeTests requires the Unity Editor (uses AssetDatabase).");

@@ -93,6 +93,14 @@ namespace Ships.Command
     public interface IShipStatus
     {
         ShipId Id { get; }
+
+        /// <summary>
+        /// Stable seed for this agent's decision RNG. Unlike <see cref="Id"/> (runtime object
+        /// identity), this is reproducible across reconstructed episodes, so a seeded run replays
+        /// identically — the substrate the RL/self-play phase is built on.
+        /// </summary>
+        int DecisionSeed { get; }
+
         Transform Transform { get; }
         Kinematics Kinematics { get; }
         Dynamics Dynamics { get; }

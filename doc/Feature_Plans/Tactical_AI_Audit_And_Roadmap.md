@@ -1,0 +1,349 @@
+# Tactical AI — System Audit & Roadmap
+
+**Date:** 2026-07-08 (direction decided 2026-07-09)
+**Status:** Direction committed via grill — ready to scope PR-S1a and PR-S2
+**Goal:** With AI navigation in a good place, use it as a baseline to build a more
+sophisticated **tactical** layer on top — moving toward fluid, dynamic combat
+behavior. This doc audits the current system (§1–2) and records the committed
+direction (§3): **not** a hand-authored tactical layer, but a commitment to deep
+learning — learn a tactical **value function**, keep the MPC as the controller, and
+make the environment RL-native. §4 is the dependency-ordered PR sequence.
+
+> **Direction changed after the audit.** §3 originally sketched a hand-authored
+> tactical roadmap (world-model expansion → movement verbs → coordination). A
+> grill on the broad direction (2026-07-09) rejected that: the prior hybrid
+> attempt produced a knob-farm that didn't fit RL *because it hybridized at the
+> behavior layer* (utility curves, cost weights = authored decision logic). The
+> committed direction below hybridizes at a different axis — **learned decisions +
+> a classical controller** — which is how AlphaDogfight / GT Sophy / CTDE-MARL
+> actually shipped. The audit (§1–2) is unchanged and still the ground truth.
+
+---
+
+## 1. The system as it stands
+
+The AI is a clean **three-stage per-ship pipeline**, driven from
+`AICommander.FixedUpdate` (`AI/AICommander.cs:80-94`):
+
+```
+PERCEIVE                    DECIDE                     ACTUATE
+Scout → AIContext →         Brain → IIntentChooser →   Navigator (MPC) → Pilot
+SituationAssessment         (UtilityChooser)           Gunner → weapons
+   (snapshot)          →    NavigationIntent      →    (intent applied)
+```
+
+Per tick (`AICommander.cs:80-94`):
+1. `context.UpdateAssessment()` — rebuild world model + `SituationAssessment` snapshot.
+2. `intent = Brain.Decide(context, dt)` — policy chooses an action.
+3. `Navigator.ApplyIntent(intent)` / `Gunner.ApplyIntent(intent)` — push to actuators.
+4. `control.Pilot.Drive(Navigator.ComputeCommand())` — MPC → motion.
+5. `Gunner.Fire()` — per-slot firing.
+
+Execution order is pinned so caches are fresh: `NavFieldService -90`, `Scout -80`,
+`Brain -70`, `Navigator -60`, `Gunner -50`, `AICommander -40`.
+
+### The three load-bearing seams (all genuinely well-built)
+- **`SituationAssessment`** (`AI/Context/SituationAssessment.cs`) — an immutable,
+  mostly-normalized ~18-scalar snapshot rebuilt each tick. Effectively an
+  observation vector already; consumed purely by utility factors
+  (`Sampler.cs:87`).
+- **`IIntentChooser.Decide(ctx, dt) → NavigationIntent`** (`AI/IIntentChooser.cs:20`)
+  — the policy is a plain `[Serializable]` object, **not** a MonoBehaviour, swapped
+  via `[SerializeReference]` on `Brain` (`AI/Brain.cs:24`). Built explicitly as the
+  RL slot-in point; the commander and actuators are untouched by a policy swap.
+- **`NavigationIntent` + `Navigator.ApplyIntent`** (`AI/Navigation/NavigationIntent.cs`,
+  `AI/Navigator.cs:219`) — a declarative action struct applied idempotently
+  ("result depends only on the intent, never on prior state or call order,"
+  `Navigator.cs:213-217`).
+
+### The nav layer (the baseline we like)
+A sampling-based CEM/MPPI MPC (`AI/Navigation/MPC/`): physically faithful dynamics
+(`Model.Step`, drag + bank-coupled yaw + boost), time-correlated noise, warm-start,
+and a topology-aware **terminal cost-to-go field** (Burst Dijkstra, in time-to-go
+units, `AI/Navigation/Field/NavField.cs`). Its cost function already contains real
+tactical ingredients (`AI/Navigation/MPC/Cost.cs`): intercept-lead facing, range-band
+holding, enemy-arc exposure avoidance, tangential-velocity juking, LOS preservation,
+miss-distance evasion. **Steerable, not just replaceable.**
+
+### States are data, not code
+One `AIState` shell; every behavior is a `StateProfile` ScriptableObject
+(`Assets/Settings/AI/StateProfiles/*.asset`) bundling a goal strategy, tactical
+flags, sparse MPC weight overrides, and utility factors (`AI/Strategy/StateProfile.cs`).
+Scoring is a weighted **geometric mean** of multiplier factors (`Sampler`,
+`UtilityBuilder`) with a solid anti-chatter stack: dwell floor + fading stickiness
++ exponential smoothing + transition margin.
+
+**Bottom line on strengths:** the *architecture* is in good shape. The RL seam
+exists, the observation snapshot exists, the action is declarative, states are
+authorable data, and the MPC is a reusable low-level controller.
+
+---
+
+## 2. Where the ceiling is
+
+Three convergent limitations cap tactical sophistication — **none of them in the
+nav layer.** They live in the world model, the intent vocabulary, and the decision
+shape. Plus a structural coordination gap.
+
+### 2.1 The world model is flat, memoryless, and single-target *(deepest limiter)*
+The AI knows **exactly one enemy** — the geometrically nearest contact
+(`EnemyTracker` + `ShipScanner.NearestEnemy`, `AI/Context/EnemyTracker.cs:80-86`).
+Everything downstream inherits that tunnel vision:
+- **No threat ranking.** Target = nearest by distance. `EnemyFacingThreat` /
+  `Outnumbered` are *computed* but never influence *which* enemy is engaged.
+- **No memory.** `SituationAssessment` / `EnemyTracker` recomputed from scratch each
+  tick. No last-known-position, no track history, no belief when LOS breaks — an
+  enemy that juke-breaks the sense sphere is simply dropped. Feints/baiting/"search
+  where I last saw them" are impossible.
+- **No multi-contact geometry.** 2nd..Nth enemies exist only as scalar *counts*
+  (`ContactSummary.cs`). Can't flank, focus-fire, or avoid crossfire.
+- **Blind to own resources.** `IShipStatus` exposes no energy, no ammo, no
+  per-weapon readiness. `IWeaponContext.IsReady` exists but the Gunner never
+  consults it. Can't reason "low energy / out of missiles → disengage."
+- **No incoming-fire perception.** `IncomingMissile` is a hardcoded `false` stub
+  (`EnemyTracker.cs:38`) — the whole missile-evasion path is dead code.
+- **Two disjoint targeting systems.** The missile `LockOnSensor`
+  (`Combat/Targeting/LockOnSensor.cs`) picks by *cone angle*; the gun target picks by
+  *nearest distance*. They can point at different ships; nothing reconciles them; the
+  Brain never reads the lock state.
+
+### 2.2 The action vocabulary is narrow
+- **Three movement verbs total:** `Waypoint`, `MaintainRange`, `Flee`
+  (`AI/Navigation/Types.cs:6-11`). No first-class orbit, strafe-at-range,
+  intercept-point, cover-seek, or break-off — *even though the MPC cost function
+  already has the machinery for most of them.* `MaintainRange` holds a scalar radius
+  with no angular hook, so "circle the target" only emerges weakly and can't be
+  commanded.
+- **Firing is one global boolean.** The Gunner fires *all* slots whenever each
+  self-gates (`AI/Gunner.cs:43-54`); no weapon selection, trigger discipline, ammo
+  conservation, or hold-fire-until-lock at the AI level. Worse, `enableFiring` rides
+  on the *movement* `StateProfile` — firing policy is a byproduct of which motion
+  state won, not an independent tactical decision.
+- **Cover is sensed but never used.** `HasNearbyCover` is a scoring input only;
+  there's no "get behind that asteroid" movement goal.
+
+### 2.3 The decision shape fights fluidity, and variants explode
+- **Hard one-state-per-tick argmax** (`Sampler.cs:49-52`). Fluid behavior
+  (strafe + retreat + fire simultaneously) can't be expressed as "one active state."
+  Blending is only available as stochastic *switching* (softmax) — jitter, not blend.
+- **Behavior nuance becomes whole new states.** Attack/AttackAggressive/AttackEvasive/
+  AttackFast are separate assets duplicating goal + factors + weight overrides. No
+  parametric or compositional layer — you can't say "Attack, but flank" without a new
+  asset.
+- **Strategic layer reaches into MPC internals.** `weightOverrides` reference cost
+  weights by integer index, brittly coupling strategic profiles to the navigation
+  cost enum's ordering.
+
+### 2.4 No coordination
+Every `Brain` decides in complete isolation. No blackboard, no shared target, no role
+assignment, no formation; ally awareness is a scalar `Outnumbered` count. (`difficulty`
+is declared on `AICommander` but never read — curriculum/skill scaling isn't wired.)
+
+---
+
+## 3. Committed direction — learn a tactical value function
+
+**The bet:** commit to deep learning as the destination. Learn the *decisions*;
+keep the *control* classical. Concretely: the MPC stays the controller, and the one
+thing we learn (for now) is a **tactical value function** V(s) that feeds the MPC's
+existing terminal cost-to-go slot. No authored decision knobs, no policy-gradient
+network yet.
+
+### 3.1 Why not the hand-authored roadmap
+The prior hybrid attempt ended in a knob-farm that "didn't fit RL" — because it
+hybridized at the **behavior layer** (utility curves, cost weights, state profiles),
+i.e. it hand-built the policy. The fix is to hybridize on a *different axis*:
+**learned decisions + a classical controller**. That's how the comparable systems
+shipped — AlphaDogfight (1v1 deep-RL dogfighting beat an F-16 pilot in sim), GT Sophy
+(deep RL beating top human racers, tactical overtaking), and CTDE-MARL (MAPPO/QMIX)
+for decentralized coordination. It also *dissolves* the two hard questions instead of
+answering them by hand (see 3.5, 3.6).
+
+### 3.2 The architecture (hierarchical, "MPC is the policy")
+- **Controller stays the MPC.** Keeping it is the *correct* RL architecture, not a
+  hedge — robotics/racing RL learns references/values a controller executes, rarely
+  raw torques. The MPC already has a **value-function-as-terminal-cost slot**
+  (`wTerminal` × cost-to-go field, `AI/Navigation/Field/NavField.cs`).
+- **Learn only V** = expected future combat advantage. Feed it in as
+  `terminal_cost = −wTerminal · V(x_terminal)`. The 1.5 s horizon does
+  *policy improvement*; V supplies the long-horizon credit the horizon can't see.
+- **Training loop = value iteration with MPC as the improvement operator**
+  (MuZero-shaped: model-based lookahead as the improver, a learned V as the critic).
+  Loop: MPC-greedy-w.r.t.-V_k self-plays → compute value targets (MC / n-step / λ) →
+  regress V_{k+1} → MPC now plans against a better V → iterate. **No actor network,
+  no policy-gradient instability.** Exploration comes free from the CEM sampling
+  noise + self-play diversity. A learned policy net enters *later* and only for a
+  concrete reason (cheaper deploy-time inference via distillation, sub-horizon
+  reactions, or learned team comms).
+
+### 3.3 The reward (V = combat advantage by construction)
+Per-agent (never a global team score), so it extends to teams unchanged:
+- **Spine (sparse):** `+1` enemy destroyed, `−1` self destroyed (normalized).
+- **Core dense term:** `+λ_d·(enemy HP lost) − λ_t·(my HP lost)` per step, normalized
+  by max HP. V over health-differential *is* an advantage function — "expected future
+  net damage swing."
+- **Positional shaping (potential-based, policy-invariant — Ng et al. 1999):**
+  `Φ(s) = k₁·[enemy in my firing envelope] − k₂·[I'm in enemy's firing envelope]`,
+  reward `+= γΦ(s') − Φ(s)`. Gives the *feel* of "seek my shot / deny theirs" with no
+  farmable exploit.
+- Optional regularizers only if it misbehaves: small per-step time cost, small
+  per-shot cost. Skip control-smoothness — the MPC owns it.
+- **Train in representative asteroid fields**, not empty space: V then *absorbs*
+  topology (partially subsuming the Dijkstra nav-field) and means both "how do I get
+  there" and "do I want to be there."
+
+### 3.4 The observation (token-list contract)
+- **Egocentric, target-relative** — my kinematics + resources, primary target
+  relative kinematics/facing/health.
+- **First-class threat-track channel:** in-flight dangerous objects (missiles now,
+  mines later) as tracked kinematic entities, separate from the enemy ship. *This is
+  the mechanism* that makes per-weapon evasion emergent (3.5) — omit it and the agent
+  can only avoid launch positions, never dodge a live missile.
+- **Encoding = a list of typed entity tokens** (self / target / threat-track /
+  obstacle-lobe). Pool with **nearest-K slots + a coarse local obstacle grid** for v1
+  (feeds a plain MLP; permutation handled by distance-sort). **Attention is the
+  destination, not the start** — the token-list contract makes it a drop-in swap
+  (only the net's first layer + inference graph change; obs extraction, reward, loop,
+  env untouched). Switch when: teams/many-entities, or K-slot rank-swap jitter hurts,
+  or V is distilled to once-per-tick inference. Rationale: 1v1 has small entity
+  counts (attention's variable-N strength unused), a plain MLP keeps pipe-validation
+  confound-free, and **V is evaluated hundreds of times/tick inside the MPC** so
+  cheap inference matters early.
+- **Scope bound: learning is movement-only.** Firing stays rule-based
+  (`Gunner`/`Gunsight`); V shapes movement to build firing geometry, deny theirs, and
+  dodge threat tracks. Learned trigger discipline is a separable later addition.
+
+### 3.5 How this answers "react to different weapons" (the original Q1)
+Per-weapon evasion is **not authored** — it's what a threat-track channel + a
+health-differential reward *produce*. A missile and a concussion mine are both just
+"threat track with kinematics"; the net learns different responses because their
+kinematics differ (missile closes/homes → late hard break, strip on an asteroid; mine
+sits with a trigger radius → route around early). Evasion keys on threat **geometry**,
+not weapon **identity** — the reframe only pays off *because* we learn it instead of
+tabulating it.
+(Current roster: `Lasers`/`Rippers`/`ChargeLasers` → `Laser`; `Railguns` hitscan;
+`Missiles` guided + `IDamageable`/shootable. No mines yet — hypothetical.)
+
+### 3.6 Coordination / decentralized wingman (the original Q2)
+Deferred to Phase 2, but the design makes it cheap: a **per-agent tactical-V is
+already the decentralized substrate.** Each agent runs its own V on its own local
+view = inherently decentralized. Teams later = **target assignment** ("who do I
+engage") + a light coordination signal layered on top of the *same* V, trained CTDE.
+Wingman and enemy become **one artifact** (same policy, different observation + team
+flag). The discipline that makes it compose: per-agent reward from day one, and the
+V's state is "me vs primary target + generic threat slots," never "the one enemy that
+exists."
+
+### 3.7 Scope: single ship first
+**1v1 self-play now, team-ready by construction, teams as an explicit later phase.**
+Combat advantage is defined against one opponent; 1v1 self-play is the cleanest
+signal and the standard path (AlphaDogfight was 1v1). Stacking CTDE on an unproven
+pipe is how you get "nothing converges and you can't tell which layer broke."
+
+### 3.8 Training environment & opponents
+- **Unity-first** (reuses real game physics, no train/deploy divergence). `Model.Step`
+  is already an isolated discrete model, so a **headless native sim stays on the
+  shelf** as a fast-follow if throughput bites — a model you'll have already validated.
+- **Bootstrap opponent = the current MPC+utility AI** (competent, stationary → dodges
+  cold-start, gives a free eval metric: *win-rate vs baseline*). Cold-start was never
+  really a risk: even with V₀ = current nav field, the MPC *already flies competently*
+  — we improve up from today's behavior, not from a random network.
+- **Then a checkpoint league** (sample past checkpoints; keep the scripted AI anchored
+  in the pool as anti-forgetting + interop guarantee). Symmetric 1v1 → both sides
+  **share one V** (parameter sharing).
+- **Frozen, versioned combat sandbox** per training run (canonical ship + current
+  weapons + representative field). Game content evolves; the sandbox is a snapshot.
+  Don't learn against a moving target.
+
+---
+
+## 4. PR sequence (dependency-ordered, with go/no-go gates)
+
+**Guardrail:** the current utility+MPC system **stays the shipped AI through all of
+Phase 0–1**. The learned V ships only after Gate 4. Feature-flag the terminal source
+(Dijkstra field vs learned-V bake) so it's A/B-able and instantly reversible — nothing
+here degrades the game while the bet is proven.
+
+### Phase 0 — Substrate (the leap, made concrete)
+> **Reshaped 2026-07-09 (grill + user call).** The original "PR-S1 · retire the three
+> statics" was split. **PR-S1a** (determinism) is arena-independent. The
+> multi-arena work is bigger than one PR and its **root decision — the arena isolation
+> mechanism — ripples widely**, so it's promoted to a **dedicated design rethink**
+> (memory `project_multi_arena_rethink`; board: High Dev Pool) instead of piecemeal
+> per-static conversion. Ground-truth finding: only `ObstacleFields.Active` is a real
+> AI-correctness blocker (2 consumers, both AI); `NavFieldService` is keyed-by-transform
+> (data-safe across arenas) and `GamePlane` is contingent on the isolation mechanism —
+> both deferrable. The minimal fix (obstacle field → the existing per-session
+> `EnvironmentService`, injected like `IShipRegistry` via `WireShipDependencies`) is
+> **rethink-proof** and is the likely first PR *out of* that design.
+
+- **PR-S1a · Determinism prerequisites *(arena-independent)*.** Seed the RNG
+  (`Sampler.cs:183`, `GoalRunner.cs:133-135`, `BurstSolver` frame-seed) via per-ship
+  injection; make the hysteresis/combat timers dt-driven (`EnemyTracker`,
+  `UtilityChooser.cs:60`, vs `Time.time`).
+- **PR-S1b · Multi-arena substrate *(design rethink first)*.** Statics → per-session
+  ownership + the isolation mechanism (separate `PhysicsScene` vs spatial offset vs
+  process-per-arena) + headless N-arena stepping. See memory
+  `project_multi_arena_rethink`.
+  → **Gate 1 (throughput):** acceptable steps/sec across many arenas? If no, the
+  native-sim decision moves forward *now*, before anything is built on top.
+- **PR-S2 · Observation contract + logger.** The egocentric target-relative
+  token-list obs (self / target / threat-tracks / obstacle-lobes). Log
+  `(obs, action, reward-components, next-obs, terminal)` from live play — doubles as
+  the RL data pipe and an analysis stream.
+- **PR-S3 · Reward + episode API.** Per-agent reward (3.3); engagement episode
+  boundaries + reset; headless episode runner.
+
+### Phase 1 — First learned V (1v1)
+- **PR-V1 · Self-play harness.** MPC(V) vs current AI (bootstrap) in the frozen
+  sandbox; records episodes; tracks win-rate vs baseline.
+- **PR-V2 · Offline V-fit.** Train the nearest-K MLP value regressor on logged
+  returns / TD targets.
+  → **Gate 2 (learnability):** does V predict advantage on held-out states?
+- **PR-V3 · Wire V into the MPC terminal.** Bake V to the engagement-keyed grid (same
+  runtime shape as today's field), re-tune `wTerminal`. *First moment the game feels
+  different.*
+  → **Gate 3 (no-regress):** MPC(learned-V) must not regress nav and should visibly
+  improve positioning vs MPC(Dijkstra-field).
+- **PR-V4 · Close the loop.** Iterate MPC(V_k) → collect → refit V_{k+1}; graduate to
+  league self-play; target-network + replay for stability.
+  → **Gate 4 (success):** iterated V beats the scripted baseline win-rate.
+
+### Phase 2 — Graduation (later, each separable)
+Attention encoder swap · learned firing / trigger discipline · **teams** (target
+assignment + decentralized CTDE coordination on the *same* per-agent V — the wingman)
+· native sim port if Gate 1 bit.
+
+**Load-bearing caveat:** Gate 1 gates the whole phase — if Unity can't produce the
+steps, everything downstream stalls. That's why it's PR-S1, not deferred cleanup.
+
+---
+
+## 5. One-line summary
+
+**The seams are right; stop hand-building the policy.** The MPC is a controller worth
+keeping and already has a value-function slot — so commit to DL by *learning the
+tactical value function* (MPC stays the policy), make the environment RL-native first,
+and let per-weapon evasion and decentralized coordination *emerge* from observation +
+reward + training scheme instead of being authored.
+
+---
+
+## Appendix — key files
+
+- **Owner/tick:** `AI/AICommander.cs`
+- **Perceive:** `AI/Scout.cs`; `AI/Context/{AIContext,EnemyTracker,EnemyTarget,SituationAssessment}.cs`;
+  `AI/Scanning/{ShipScanner,ContactSummary,ObstacleScanner}.cs`
+- **Decide:** `AI/Brain.cs`, `AI/IIntentChooser.cs`, `AI/Strategy/{UtilityChooser,Sampler,UtilityBuilder,AIState,GoalRunner,StateProfile}.cs`;
+  `Assets/Settings/AI/StateProfiles/*.asset`
+- **Actuate (nav):** `AI/Navigator.cs`; `AI/Navigation/{NavigationIntent,Types}.cs`;
+  `AI/Navigation/MPC/{Mpc,BurstSolver,Cost,Model}.cs`; `AI/Navigation/Field/*`
+- **Actuate (guns):** `AI/Gunner.cs`; `Combat/Weapons/{Gunsight,WeaponBase,ChargeLasers,Railguns,Missiles}.cs`;
+  `Combat/Targeting/{LockOnSensor,TargetLock,TargetingMath}.cs`
+- **Wiring/world state:** `Ships/Ship.cs`, `Ships/Command/Types.cs` (`IShipStatus`/`IWeaponContext`),
+  `Game/Services/Units/UnitService.cs`, `Ships/Registry/{IShipRegistry,ShipRegistry}.cs`,
+  `AI/Navigation/IObstacleField.cs` (`ObstacleFields.Active`), `AI/Navigation/Field/NavFieldService.cs`,
+  `GamePlane`, `Game/MainGameManager.cs`
+
+Related prior docs: `Chase_Navigation_Trade_Study.md`, `Chase_Nav_Synthesis_Summary.md`,
+`Flee_Terminal_Cost.md`, `RL_Implementation_Plan.md`, `Behavior_Upgrades.md`.

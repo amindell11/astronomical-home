@@ -109,7 +109,7 @@ namespace Tests.EditMode
             cfg.ApplyDynamics(in dynamics);
 
             var seq = new Control[settings.Horizon];
-            var solver = new SolverBuffers();
+            var solver = new SolverBuffers(0);
             try
             {
                 var scan = new ObstacleScan(buffer, count);

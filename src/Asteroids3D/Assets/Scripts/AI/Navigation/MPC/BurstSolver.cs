@@ -2,7 +2,6 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
-using UnityEngine;
 
 namespace Movement.MPC
 {
@@ -30,7 +29,7 @@ namespace Movement.MPC
                 return;
             }
 
-            var rng = new Unity.Mathematics.Random(rngSeed + (uint)candidateIndex);
+            var rng = new Unity.Mathematics.Random(CandidateSeed(rngSeed, (uint)candidateIndex));
 
             // Time-correlated noise: draw Gaussian values at a few evenly spaced knots
             // over the horizon and linearly interpolate between them, so a single draw
@@ -64,6 +63,17 @@ namespace Movement.MPC
                     boost = rng.NextFloat() < boostSampleProbability ? 1f : 0f
                 };
             }
+        }
+
+        // Hashes the solve seed (already folds in base seed + solve counter) with the candidate
+        // index into a well-scattered, nonzero seed. Nonzero is required — Unity.Mathematics.Random
+        // rejects a zero seed, which plain index addition could reach via overflow.
+        private static uint CandidateSeed(uint solveSeed, uint candidateIndex)
+        {
+            var h = solveSeed * 2654435761u;
+            h = (h ^ candidateIndex) * 2654435761u;
+            h ^= h >> 15;
+            return h == 0u ? 1u : h;
         }
 
         private static float3 NextGaussian3(ref Unity.Mathematics.Random rng)
@@ -125,16 +135,17 @@ namespace Movement.MPC
     public class SolverBuffers : System.IDisposable
     {
         /// <summary>
-        /// Test-only sampler seed override. When set, the candidate-generation RNG seed is
-        /// derived from this base plus a per-instance solve counter instead of
-        /// <c>Time.frameCount</c>, so a single run replays the same noise sequence under a
-        /// deterministic simulation. Unset (null, the default) preserves shipped behavior
-        /// exactly. Static so a benchmark harness can pin every ship at once; clear it in
-        /// teardown.
+        /// Optional global base-seed override (benchmark reproducibility): pins every ship to one
+        /// base so a whole chase replays identically. Null (default) uses the injected per-ship
+        /// seed. Interim world-scoped seam — see CLAUDE.md dependency philosophy; a per-session
+        /// container supersedes it in S1b.
         /// </summary>
         public static uint? SamplerSeedOverride;
 
+        private readonly uint samplerSeed;
         private uint solveCount;
+
+        public SolverBuffers(int seed) => samplerSeed = (uint)seed;
 
         private NativeArray<Control> warmStart;
         private NativeArray<Control> candidates;
@@ -238,16 +249,12 @@ namespace Movement.MPC
 
             initialState.boostCooldownRemaining = boostCooldownRemaining;
 
-            // Seed off the frame counter in shipped play; a benchmark can pin the base seed
-            // (per-instance solve counter keeps successive solves decorrelated) for
-            // reproducible single runs. The position hash stays in BOTH modes so two ships
-            // pinned to the same base seed never share a noise stream.
+            // The injected per-ship seed decorrelates ships, the solve counter decorrelates successive
+            // solves, and the position hash keeps candidates from repeating when a ship revisits a pose.
+            // GenerateCandidatesJob hashes this per candidate; same seed + same inputs replay the noise.
             solveCount++;
-            var frameComponent = SamplerSeedOverride.HasValue
-                ? SamplerSeedOverride.Value + solveCount * 7919u
-                : (uint)(Time.frameCount * 7919);
-            var rngSeed = frameComponent + (uint)initialState.pos.GetHashCode();
-            if (rngSeed == 0) rngSeed = 1;
+            var baseSeed = (SamplerSeedOverride ?? samplerSeed) * 2654435761u;
+            var rngSeed = baseSeed + solveCount * 7919u + (uint)initialState.pos.GetHashCode();
 
             new GenerateCandidatesJob
             {

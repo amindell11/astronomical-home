@@ -66,6 +66,7 @@ namespace Tests.PlayMode
                 shipPrefab,
                 testPilot,
                 team: 0,
+                decisionSeed: 0,
                 position: Vector3.zero,
                 rotation: Quaternion.identity,
                 postInitialize: null);
@@ -109,6 +110,7 @@ namespace Tests.PlayMode
                 shipPrefab,
                 testPilot,
                 team: 0,
+                decisionSeed: 0,
                 position: Vector3.zero,
                 rotation: Quaternion.identity,
                 postInitialize: s => s.Targeting?.SetRegistry(stubRegistry));
@@ -153,6 +155,7 @@ namespace Tests.PlayMode
                 shipPrefab,
                 testPilot,
                 team: 0,
+                decisionSeed: 0,
                 position: Vector3.zero,
                 rotation: Quaternion.identity,
                 postInitialize: null);
