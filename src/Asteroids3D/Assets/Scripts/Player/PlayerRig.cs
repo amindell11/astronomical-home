@@ -284,8 +284,7 @@ namespace Player
             ApplyLoadout();
             Destroy(screen.gameObject);
 
-            // ApplyLoadout may have rebuilt the player (fresh commander) and re-bound the HUD;
-            // re-resolve both.
+            // ApplyLoadout may rebuild the player and re-bind the HUD — refs from before it are stale.
             SetPlayerInputEnabled(true);
             var activeOverlay = services.UIService.ActiveOverlay;
             if (activeOverlay) activeOverlay.SetVisible(true);

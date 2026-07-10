@@ -81,9 +81,8 @@ namespace Player
             }
         }
 
-        // The actuators expect a live producer: MovementController latches the last pilot command
-        // across steps, and charge weapons fire on a trigger-up step that only a command can
-        // deliver. A commander that stops commanding must therefore release everything it drives.
+        // MovementController latches the last pilot command and charge weapons fire on a
+        // trigger-up step — release everything this commander drives when it goes silent.
         private void OnDisable()
         {
             if (context == null) return;
@@ -95,14 +94,12 @@ namespace Player
             wantsRotate = false;
             primaryHeld = false;
             secondaryHeld = false;
-            prevPrimaryHeld = false;
-            prevSecondaryHeld = false;
 
             pilot.Drive(default);
             if (weapons != null)
             {
-                weapons.Fire(WeaponSlot.Primary, default);
-                weapons.Fire(WeaponSlot.Secondary, default);
+                FireSlot(WeaponSlot.Primary, false, ref prevPrimaryHeld);
+                FireSlot(WeaponSlot.Secondary, false, ref prevSecondaryHeld);
             }
         }
 

@@ -11,7 +11,6 @@ namespace UI
         [Header("Minimap")]
         [SerializeField] private RectTransform minimapRect;
 
-        private Canvas canvas;
         private Canvas[] canvases;
         private UILockOnAudio lockOnAudio;
         private UIHealthAudio healthAudio;
@@ -23,7 +22,6 @@ namespace UI
 
         private void Awake()
         {
-            canvas = GetComponent<Canvas>();
             canvases = GetComponentsInChildren<Canvas>(true);
             lockOnAudio = GetComponentInChildren<UILockOnAudio>();
             healthAudio = GetComponentInChildren<UIHealthAudio>();
@@ -34,7 +32,8 @@ namespace UI
 
         public void SetCanvasWorldCamera(Camera uicam)
         {
-            canvas.worldCamera = uicam;
+            // GetComponentsInChildren returns self first; RequireComponent guarantees a root canvas.
+            canvases[0].worldCamera = uicam;
         }
 
         /// <summary>
