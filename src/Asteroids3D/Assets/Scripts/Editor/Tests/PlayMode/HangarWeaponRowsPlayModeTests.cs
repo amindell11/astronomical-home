@@ -23,6 +23,7 @@ namespace Tests.PlayMode
     {
         private const string ScreenPrefabPath = "Assets/Prefabs/UI/HangarScreen.prefab";
         private const string Ship1Path = "Assets/Prefabs/Ships/Ship_1.prefab";
+        private const string RealCatalogPath = "Assets/Settings/Ships/PlayerLoadout.asset";
 
         private static readonly string[] WeaponPaths =
         {
@@ -139,12 +140,11 @@ namespace Tests.PlayMode
             }
         }
 
-        // Pure prefab-asset arithmetic — catches the next catalog weapon overflowing the row
-        // (the 6th weapon shipped with buttons that no longer fit) without a layout pass.
+        // Checks authored prefab widths directly, so a catalog weapon that overflows the row fails without a layout pass.
         [Test]
         public void RealCatalog_WeaponOptionsFitWithinRowWidth()
         {
-            var realCatalog = Load<LoadoutConfig>("Assets/Settings/Ships/PlayerLoadout.asset");
+            var realCatalog = Load<LoadoutConfig>(RealCatalogPath);
             var screenPrefab = Load<HangarScreen>(ScreenPrefabPath);
 
             var template = (Button)new SerializedObject(screenPrefab)
