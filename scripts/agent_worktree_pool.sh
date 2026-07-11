@@ -64,8 +64,8 @@ Examples:
   scripts/agent_worktree_pool.sh create-pr agent-1
   scripts/agent_worktree_pool.sh create-pool-prs
   scripts/agent_worktree_pool.sh review-comments agent-1
-  scripts/agent_worktree_pool.sh revise agent-1 -- -Mode Smoke -ScopeType Feature -ScopeName camera
-  scripts/agent_worktree_pool.sh submit agent-1 origin/main -- -Mode Smoke
+  scripts/agent_worktree_pool.sh revise agent-1 -- -Mode EditMode -ScopeType Feature -ScopeName camera
+  scripts/agent_worktree_pool.sh submit agent-1 origin/main -- -Mode Both -ScopeType Workspace
   scripts/agent_worktree_pool.sh finalize agent-1 origin/main
   scripts/agent_worktree_pool.sh release agent-1
 EOF
@@ -103,7 +103,7 @@ lease_for() {
   local path cfg ldir
   path="$(slot_path "$slot" 2>/dev/null || true)"
   if [[ -n "$path" ]]; then
-    cfg="$(git -C "$path" config --get worktree-pool.lease 2>/dev/null || true)"
+    cfg="$(git -C "$path" config --worktree --get worktree-pool.lease 2>/dev/null || true)"
     if [[ -n "$cfg" ]]; then
       echo "$cfg"
       return 0
@@ -142,7 +142,14 @@ write_lock() {
   printf '%s\n' "$$" > "$ldir/pid"
   date -u +"%Y-%m-%dT%H:%M:%SZ" > "$ldir/timestamp"
   if [[ -n "$path" ]]; then
-    git -C "$path" config worktree-pool.lease "$lease" 2>/dev/null || true
+    # Worktree-scoped, never the repo-shared .git/config: all slots share that
+    # file, so a plain `git config` write here clobbers every other slot's
+    # lease and their submit/revise pushes to the wrong task branch (the
+    # cross-slot LEASE RACE). Also drop any lease left in the shared config by
+    # the pre-fix writer.
+    git -C "$path" config extensions.worktreeConfig true 2>/dev/null || true
+    git -C "$path" config --worktree worktree-pool.lease "$lease" 2>/dev/null || true
+    git -C "$path" config --unset worktree-pool.lease 2>/dev/null || true
   fi
 }
 
@@ -256,7 +263,10 @@ cmd_release() {
   local ldir path
   ldir="$(lock_dir_for "$slot")"
   path="$(slot_path "$slot" 2>/dev/null || true)"
-  [[ -n "$path" ]] && git -C "$path" config --unset worktree-pool.lease 2>/dev/null || true
+  if [[ -n "$path" ]]; then
+    git -C "$path" config --worktree --unset worktree-pool.lease 2>/dev/null || true
+    git -C "$path" config --unset worktree-pool.lease 2>/dev/null || true
+  fi
   if [[ -d "$ldir" ]]; then
     rm -rf "$ldir"
     echo "Released $slot"

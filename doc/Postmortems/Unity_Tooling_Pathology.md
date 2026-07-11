@@ -122,6 +122,7 @@ whole pool submit path was effectively blocked until D1 was quarantined (#95).
 | E3 | CLOBBER: `prepare` `reset --hard`s another task's unpushed WIP | `prepare` resets unconditionally; a reused slot may hold unpushed commits | **Guarded (PR4)** |
 | E4 | REVISE: rebases the branch onto ancient `origin/agent-N` (100+ commits) | `revise` falls back to the slot name when the lease/task-branch is missing ⇒ `git pull --rebase origin agent-N` | **Guarded (PR4)** |
 | E5 | `set -e` blocks push on any pre-existing failure | Interacts with D1/D3 | Mitigated by #95 |
+| E6 | LEASE RACE: `submit`/`revise` pushes to another task's branch | PR4's durable lease was written with plain `git config`, but agent worktrees share one `.git/config` — any concurrent `acquire` clobbered every slot's lease, and `lease_for` prefers config over the per-slot lock file. Bit two sessions on 2026-07-10 (#105, #106) | **Fixed: lease now `--worktree`-scoped (`extensions.worktreeConfig`)** |
 
 **Established manual workaround (pre-PR4):** don't rely on `submit`/`revise`
 end-to-end. Work in the slot, then `git add -A && commit` → `git push -u origin
