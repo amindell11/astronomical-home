@@ -62,7 +62,8 @@ namespace Tests.PlayMode
             var pilot = new RecordingPilot();
             var weapons = new RecordingWeapons();
             commander.Initialize(new ShipControl(
-                new StubStatus(commanderGo.transform), pilot, weapons: null, weaponActuator: weapons));
+                new StubStatus(commanderGo.transform), pilot, new SeedScope(0),
+                weapons: null, weaponActuator: weapons));
 
             yield return new WaitForFixedUpdate();
             Assert.IsTrue(pilot.Last.HasValue, "test premise: an enabled commander pushes pilot commands");

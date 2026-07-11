@@ -2,6 +2,22 @@
 
 See also `AGENTS.md` for Obsidian/design-doc conventions and test-artifact standards.
 
+## Root-cause discipline
+
+When addressing feedback or fixing a bug, **always chase the root cause — do not
+stop at the surface symptom.** Follow the failure all the way to its source, and
+then one step further: ask whether the bug reveals something wrong with the
+*underlying organization* of the code — a leaky abstraction, a fragile seam, a
+missing invariant, state reaching code the wrong way. If it does, propose a
+wider-scoped fix that makes the whole *class* of bug impossible (or at least
+loud) going forward, not just the single instance in front of you.
+
+It's not about winning the one battle — patch the symptom and move on — it's
+about winning the next one, and the one after that, and the war overall. When a
+narrow fix and a structural fix diverge, surface both to the user with the
+trade-off rather than silently taking the quick patch. Capture any structural
+insight in the relevant plan doc or memory so the lesson outlives the fix.
+
 ## Default workflow: agent-worktree PR loop
 
 For **any new coding task** in this repo (bug fix, feature, refactor — not pure
@@ -27,12 +43,23 @@ Summary of the loop (details in the skill file):
    re-push. Repeat until the user says it's good.
 5. **Merge on explicit approval.** Only after the user gives an explicit go
    (e.g. "merge it", "ship it", "looks good") — not just "looks good" about
-   the code with no merge instruction implied elsewhere — squash-merge the PR:
-   `gh pr merge <n> --squash --delete-branch=false`. Never merge without that
-   explicit signal, and never force-push or bypass CI to get there. Before
+   the code with no merge instruction implied elsewhere — squash-merge the PR
+   through the gate: `./scripts/agent_worktree_pool.sh merge <slot>`. Never
+   raw `gh pr merge`: the pool command re-tests against current main when
+   main moved after the branch's last test run (a stale-based branch can be
+   green on its own base yet break main with zero textual conflict). Never
+   merge without that explicit signal, and never force-push or skip the
+   gate's test run to get there. Before
    merging, sweep unresolved PR comments: fix trivial ones directly and
    re-push; for involved ones, flag them to the user with a proposed fix
-   rather than merging over them silently.
+   rather than merging over them silently. As part of that same pre-merge
+   sweep, run a `/simplify` pass on the diff (quality-only cleanup, not a bug
+   hunt) alongside the comment-hygiene strip, and fold its fixes in before
+   merging. **For every one of these pre-merge passes (simplify,
+   comment-hygiene strip, unresolved-comment fixes), report back a short
+   summary of what you changed and why** — unless you already discussed that
+   specific change with the user. They should never find edits landing on the
+   PR just before merge that they can't account for.
 6. **Finalize.** After merge, run
    `./scripts/agent_worktree_pool.sh finalize <slot> origin/main` to reset the
    slot to main and release the lock, then pull `origin/main` into the local
@@ -119,19 +146,24 @@ artifact, not a read-only reference:
 
 `D:/amind/Documents/Obsidian Vault/Astronomical/Engineering/Project Board.md`
 
-- Write the deferred work as a **concise, human-scannable** board item (a
-  one-liner the user can skim) in the appropriate column — a Dev Pool, `To Do`,
-  or nested under the parent item it belongs to — with the right `#Tags`. Match
-  the Kanban markdown (`- [ ]` under a `## Column`, tab-indented sub-items) and
-  leave unrelated items and the `%% kanban:settings %%` block untouched.
-- Put the **deep context** — rationale, trade-offs, file-level detail, what was
-  tried — in agent memory, and **link the two**: cite the memory file / plan
-  doc from the board item, and name the board item from the memory file.
+- Write the board item as an **extremely short kanban card — a title only, no
+  description.** A few words the user can scan at a glance (e.g. `- [ ] PlayerRig
+  decomposition`), with the right `#Tags` and a link to where the detail lives.
+  **Never** write a sentence, rationale, or file-level detail onto the card
+  itself — if you're tempted to add "— because…" or a clause explaining it, that
+  text belongs in the linked memory/plan doc, not the card. Match the Kanban
+  markdown (`- [ ]` under a `## Column`, tab-indented sub-items) in the
+  appropriate column — a Dev Pool, `To Do`, or nested under its parent item —
+  and leave unrelated items and the `%% kanban:settings %%` block untouched.
+- Put **all context** — rationale, trade-offs, file-level detail, what was
+  tried — in the linked agent memory or plan doc, never on the card. **Link the
+  two**: the card carries a link to the memory file / plan doc, and the memory
+  file names the board item.
 
 Three tracking surfaces, don't conflate them:
 - **Active-work ledger** (memory) — live, right-now claims/locks; per-worktree.
 - **Project board** (Obsidian) — backlog, deferrals, and status across the
-  project; concise entries.
+  project; title-only cards, detail linked out.
 - **Agent memory** — the durable *why/how* behind board items and decisions.
 
 Full board conventions: `AGENTS.md` → "Design docs & work tracking".

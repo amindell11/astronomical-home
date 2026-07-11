@@ -45,6 +45,13 @@ Commands:
       review feedback.  Test args after -- are passed to
       unity_test_agent.ps1.
 
+  merge <slot> [base_ref] [-- unity_test_agent.ps1 args...]
+      Gated squash-merge of the slot's open PR. If base (default:
+      origin/main) moved since the slot branch last contained it, merge
+      base in, re-run tests, and push before merging — so the tested
+      tree is the tree that lands on main. The ONLY sanctioned merge
+      path; do not call 'gh pr merge' directly.
+
   finalize <slot> [base_ref]
       After PR is merged: reset slot branch to base ref (default:
       origin/main), clean the worktree, and release the lock.
@@ -66,6 +73,7 @@ Examples:
   scripts/agent_worktree_pool.sh review-comments agent-1
   scripts/agent_worktree_pool.sh revise agent-1 -- -Mode EditMode -ScopeType Feature -ScopeName camera
   scripts/agent_worktree_pool.sh submit agent-1 origin/main -- -Mode Both -ScopeType Workspace
+  scripts/agent_worktree_pool.sh merge agent-1
   scripts/agent_worktree_pool.sh finalize agent-1 origin/main
   scripts/agent_worktree_pool.sh release agent-1
 EOF
@@ -454,6 +462,66 @@ EOF
   echo "use 'revise' for feedback, then 'finalize' once the PR is merged."
 }
 
+cmd_merge() {
+  local slot="$1"
+  shift || true
+
+  local base_ref="origin/main"
+  if [[ -n "${1:-}" && ${1:-} != "--" ]]; then
+    base_ref="$1"
+    shift
+  fi
+  [[ ${1:-} != "--" ]] || shift
+  local test_args=("$@")
+
+  command -v gh >/dev/null 2>&1 || {
+    echo "gh CLI not found in PATH" >&2
+    return 1
+  }
+
+  local path task_branch base_branch
+  path="$(slot_path "$slot")"
+  task_branch="$(task_branch_for "$slot")"
+  base_branch="${base_ref#origin/}"
+  if [[ -z "$task_branch" ]]; then
+    echo "merge: no task branch known for $slot (no lease/task_branch)." >&2
+    return 1
+  fi
+
+  local pr
+  pr="$(pr_number_for_slot "$task_branch" "$base_branch")"
+  if [[ -z "$pr" || "$pr" == "null" ]]; then
+    echo "merge: no open PR found for $task_branch -> $base_branch" >&2
+    return 1
+  fi
+
+  git -C "$path" fetch origin "$base_branch"
+  git -C "$path" checkout "$slot"
+
+  # The gate: the tested tree must be the tree that lands on main. Two PRs can
+  # each pass on their own base yet not compile together (zero textual overlap,
+  # so git merges both silently) — if base moved since this branch last
+  # contained it, merge base in and re-run the suite before merging the PR.
+  if git -C "$path" merge-base --is-ancestor "$base_ref" "$slot"; then
+    echo "$base_ref already contained in $slot — last test run covered the merge result."
+  else
+    echo "$base_ref moved since $slot last synced: merging it in and re-running tests."
+    if ! git -C "$path" merge --no-edit "$base_ref"; then
+      git -C "$path" merge --abort || true
+      echo "merge: conflict merging $base_ref into $slot — resolve in the worktree," >&2
+      echo "  'revise' to test+push, then re-run merge." >&2
+      return 1
+    fi
+    cmd_run_tests "$slot" "${test_args[@]}"
+    git -C "$path" push origin "$slot:refs/heads/$task_branch"
+  fi
+
+  gh pr merge "$pr" --squash --delete-branch=false
+  echo ""
+  echo "PR #$pr squash-merged. Next: finalize the slot and sync local main:"
+  echo "  ./scripts/agent_worktree_pool.sh finalize $slot $base_ref"
+}
+
 cmd_finalize() {
   local slot="$1"
   local base_ref="${2:-origin/main}"
@@ -598,6 +666,10 @@ main() {
     submit)
       [[ $# -ge 1 ]] || { echo "submit requires <slot> [base_ref] [-- test_args...]" >&2; exit 1; }
       cmd_submit "$@"
+      ;;
+    merge)
+      [[ $# -ge 1 ]] || { echo "merge requires <slot> [base_ref] [-- test_args...]" >&2; exit 1; }
+      cmd_merge "$@"
       ;;
     finalize)
       [[ $# -ge 1 ]] || { echo "finalize requires <slot> [base_ref]" >&2; exit 1; }
