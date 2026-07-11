@@ -93,14 +93,6 @@ namespace Ships.Command
     public interface IShipStatus
     {
         ShipId Id { get; }
-
-        /// <summary>
-        /// Stable seed for this agent's decision RNG. Unlike <see cref="Id"/> (runtime object
-        /// identity), this is reproducible across reconstructed episodes, so a seeded run replays
-        /// identically — the substrate the RL/self-play phase is built on.
-        /// </summary>
-        int DecisionSeed { get; }
-
         Transform Transform { get; }
         Kinematics Kinematics { get; }
         Dynamics Dynamics { get; }
@@ -171,11 +163,19 @@ namespace Ships.Command
         /// <summary>Weapons actuator, or null if unarmed.</summary>
         public readonly IWeapons WeaponActuator;
 
-        public ShipControl(IShipStatus ship, IPilot pilot,
+        /// <summary>
+        /// Root seed scope for this agent's decision RNGs — construction metadata assigned at spawn,
+        /// reproducible across reconstructed episodes (unlike the ship's runtime <see cref="ShipId"/>).
+        /// A commander splits it into per-consumer streams; a non-AI commander ignores it.
+        /// </summary>
+        public readonly SeedScope DecisionSeed;
+
+        public ShipControl(IShipStatus ship, IPilot pilot, SeedScope decisionSeed,
             IWeaponContext weapons = null, IWeapons weaponActuator = null)
         {
             Ship = ship;
             Pilot = pilot;
+            DecisionSeed = decisionSeed;
             Weapons = weapons;
             WeaponActuator = weaponActuator;
         }

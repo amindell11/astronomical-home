@@ -23,7 +23,6 @@ namespace Tests.EditMode
         private sealed class ShipStatusStub : IShipStatus
         {
             public ShipId Id => ShipId.Invalid;
-            public int DecisionSeed => 0;
             public Transform Transform => null;
             public Kinematics Kinematics { get; }
             public Dynamics Dynamics => default;
@@ -63,7 +62,7 @@ namespace Tests.EditMode
             {
                 var context = new AIContext(new ShipStatusStub(new Vector2(5f, -3f)), scout);
                 var goal = new RandomWaypointGoal { patrolRadius = 50f, minDistanceFactor = 0.3f };
-                var runner = GoalRunner.Create(goal, navigator, seed);
+                var runner = GoalRunner.Create(goal, navigator, new SeedScope(seed));
                 runner.Enter(context);
                 return navigator.CurrentWaypoint.position;
             }

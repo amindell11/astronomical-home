@@ -16,6 +16,9 @@ namespace AI
     [DefaultExecutionOrder(-40)]
     public partial class AICommander : Commander
     {
+        private const uint NavStream = 1;
+        private const uint StrategyStream = 2;
+
         [Header("Difficulty")]
         [Tooltip("Bot skill level, typically set by curriculum (0.0 to 1.0)")]
         [Range(0f, 1f)] public float difficulty = 1.0f;
@@ -64,16 +67,16 @@ namespace AI
             if (systemsInitialized || control.Ship == null || registry == null)  return;
             var self = control.Ship;
             Func<Kinematics> pose = () => self.Kinematics;
-            var seed = self.DecisionSeed;
+            var seed = control.DecisionSeed;
 
             Scout.Initialize(self.Transform, self.Id, self.Dynamics, self, registry);
-            Navigator.Initialize(self, self.Dynamics, Scout, seed);
+            Navigator.Initialize(self, self.Dynamics, Scout, seed.Derive(NavStream));
             if (Gunner && control.IsArmed)
                 Gunner.Initialize(control.Weapons, control.WeaponActuator, pose);
 
             context = new AIContext(self, Scout, combatExitDelay);
 
-            Brain.Initialize(Navigator, Gunner, seed);
+            Brain.Initialize(Navigator, Gunner, seed.Derive(StrategyStream));
 
             systemsInitialized = true;
         }

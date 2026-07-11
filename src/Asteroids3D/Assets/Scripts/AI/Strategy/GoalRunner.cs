@@ -1,5 +1,6 @@
 using AI.Context;
 using Movement.MPC;
+using Ships.Command;
 using UnityEngine;
 
 namespace AI.States
@@ -14,11 +15,11 @@ namespace AI.States
     /// </summary>
     internal abstract partial class GoalRunner
     {
-        public static GoalRunner Create(GoalStrategy goal, Navigator navigator, int seed) => goal switch
+        public static GoalRunner Create(GoalStrategy goal, Navigator navigator, SeedScope goalScope) => goal switch
         {
             TrackEnemyGoal track  => new TrackEnemyRunner(track),
             FleeEnemyGoal flee    => new FleeEnemyRunner(flee),
-            RandomWaypointGoal wp => new PatrolRunner(wp, navigator, seed),
+            RandomWaypointGoal wp => new PatrolRunner(wp, navigator, goalScope.ToSeed()),
             _                     => new NullGoalRunner(),
         };
 

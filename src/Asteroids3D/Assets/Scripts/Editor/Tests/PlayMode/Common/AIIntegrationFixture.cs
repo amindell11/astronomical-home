@@ -5,6 +5,7 @@ using AI.States;
 using Game;
 using NUnit.Framework;
 using Ships;
+using Ships.Command;
 using UnityEngine;
 
 namespace Tests.PlayMode.Common
@@ -71,7 +72,7 @@ public abstract class AIIntegrationFixture : PlayModeWorldFixture
     protected void InitializeWithStates(AICommander cmdr, params AIState[] states)
     {
         cmdr.UtilityChooser.ResetForTesting();
-        cmdr.UtilityChooser.Initialize(states, 0);
+        cmdr.UtilityChooser.Initialize(states, new SeedScope(0));
     }
 
     /// <summary>

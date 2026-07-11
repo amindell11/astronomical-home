@@ -2,6 +2,7 @@ using AI.Context;
 using AI.Utility;
 using Movement;
 using Movement.MPC;
+using Ships.Command;
 using UnityEngine;
 
 namespace AI.States
@@ -27,12 +28,12 @@ namespace AI.States
         /// </summary>
         public NavigationIntent LastIntent { get; private set; }
 
-        public AIState(StateProfile profile, Navigator navigator, Gunner gunner, int seed)
+        public AIState(StateProfile profile, Navigator navigator, Gunner gunner, SeedScope goalScope)
         {
             this.navigator = navigator;
             this.gunner = gunner;
             Profile = profile;
-            goalRunner = GoalRunner.Create(profile.goal, navigator, seed);
+            goalRunner = GoalRunner.Create(profile.goal, navigator, goalScope);
         }
 
         public void Enter(AIContext ctx)

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using AI.Context;
 using AI.States;
+using Ships.Command;
 using UnityEngine;
 
 namespace AI.Utility
@@ -36,9 +37,9 @@ namespace AI.Utility
         /// <summary>Fired on state transitions: (fromState, toState). Null fromState on first entry.</summary>
         public event Action<AIState, AIState> OnStateTransition;
 
-        public void Initialize(IReadOnlyList<AIState> statesToAdd, int seed)
+        public void Initialize(IReadOnlyList<AIState> statesToAdd, SeedScope samplerScope)
         {
-            sampler ??= new Sampler(config, instanceUtilityWeights, seed);
+            sampler ??= new Sampler(config, instanceUtilityWeights, samplerScope.ToSeed());
             stateChangeTime = simTime;
 
             states.Clear();

@@ -53,7 +53,7 @@ namespace Tests.EditMode
         // so per-solve sampling noise cancels out.
         private State SolveTerminal(MpcInputs inputs, int warmup = 8, int average = 6)
         {
-            using var mpc = new Mpc(settings, dynamics, 0);
+            using var mpc = new Mpc(settings, dynamics, 0u);
             for (var i = 0; i < warmup; i++) mpc.Plan(in inputs);
 
             float2 posSum = default;
@@ -70,7 +70,7 @@ namespace Tests.EditMode
 
         private Control[] SolveSequence(int seed, MpcInputs inputs, int solves = 6)
         {
-            using var mpc = new Mpc(settings, dynamics, seed);
+            using var mpc = new Mpc(settings, dynamics, (uint)seed);
             for (var i = 0; i < solves; i++) mpc.Plan(in inputs);
             return (Control[])mpc.BestSequence.Clone();
         }
@@ -80,7 +80,7 @@ namespace Tests.EditMode
         // asserted here, at the raw candidate buffer, not on the planned output.
         private Control[] SolveCandidates(int seed, MpcInputs inputs)
         {
-            using var mpc = new Mpc(settings, dynamics, seed);
+            using var mpc = new Mpc(settings, dynamics, (uint)seed);
             mpc.Plan(in inputs);
             var solver = mpc.Solver;
             var count = solver.LastSampleCount * solver.LastHorizon;

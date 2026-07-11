@@ -145,7 +145,7 @@ namespace Movement.MPC
         private readonly uint samplerSeed;
         private uint solveCount;
 
-        public SolverBuffers(int seed) => samplerSeed = (uint)seed;
+        public SolverBuffers(uint seed) => samplerSeed = seed;
 
         private NativeArray<Control> warmStart;
         private NativeArray<Control> candidates;
@@ -249,11 +249,12 @@ namespace Movement.MPC
 
             initialState.boostCooldownRemaining = boostCooldownRemaining;
 
-            // The injected per-ship seed decorrelates ships, the solve counter decorrelates successive
-            // solves, and the position hash keeps candidates from repeating when a ship revisits a pose.
-            // GenerateCandidatesJob hashes this per candidate; same seed + same inputs replay the noise.
+            // The injected per-ship sampler stream decorrelates ships, the solve counter decorrelates
+            // successive solves, and the position hash keeps candidates from repeating when a ship
+            // revisits a pose. GenerateCandidatesJob hashes this per candidate; same seed + same inputs
+            // replay the noise. The stream seed is already well-mixed (SeedScope), so no extra spread.
             solveCount++;
-            var baseSeed = (SamplerSeedOverride ?? samplerSeed) * 2654435761u;
+            var baseSeed = SamplerSeedOverride ?? samplerSeed;
             var rngSeed = baseSeed + solveCount * 7919u + (uint)initialState.pos.GetHashCode();
 
             new GenerateCandidatesJob

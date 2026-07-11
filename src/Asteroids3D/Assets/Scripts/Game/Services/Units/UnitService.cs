@@ -93,6 +93,9 @@ namespace Game.Services
 
             spawnedShips.Clear();
             pendingRespawns.Clear();
+            // Clear is the episode-reset boundary: restart the agent index so the next episode
+            // re-derives the same per-agent decision seeds (replay without reconstructing the service).
+            nextAgentIndex = 0;
             // Do NOT call ActiveRegistry.Dispose() here — that unsubscribes the OnAdd/OnRemove
             // callbacks, which permanently breaks the registry for subsequent runs.
             // Ships are already fully unregistered via ActiveShips.Remove() above.

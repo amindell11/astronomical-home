@@ -247,8 +247,8 @@ namespace Ships
         /// </summary>
         private ShipControl BuildShipControl() =>
             Weapons
-                ? new(this, Movement, Weapons.Context, Weapons)
-                : new(this, Movement);
+                ? new(this, Movement, new SeedScope(DecisionSeed), Weapons.Context, Weapons)
+                : new(this, Movement, new SeedScope(DecisionSeed));
 
         private void SetCommander(Commander commander)
         {

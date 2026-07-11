@@ -5,6 +5,7 @@ using AI;
 using AI.States;
 using Movement.MPC;
 using NUnit.Framework;
+using Ships.Command;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -105,7 +106,7 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
 
     private static AIState CreateState(StateProfile profile, AICommander cmdr)
     {
-        return new AIState(profile, cmdr.Navigator, cmdr.Gunner, 0);
+        return new AIState(profile, cmdr.Navigator, cmdr.Gunner, new SeedScope(0));
     }
 
     // ──────────────────────────────────────────────────────────

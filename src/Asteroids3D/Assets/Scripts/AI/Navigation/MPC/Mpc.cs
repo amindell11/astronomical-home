@@ -58,7 +58,7 @@ namespace Movement.MPC
         private float lastBestCost;
         private State lastInitialState;
 
-        public Mpc(MpcSettings settings, Dynamics dynamics, int seed)
+        public Mpc(MpcSettings settings, Dynamics dynamics, uint seed)
         {
             this.settings = settings;
             this.dynamics = dynamics;

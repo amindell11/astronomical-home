@@ -267,7 +267,7 @@ namespace Tests.EditMode
             using var field = Solve(16, 2f, new float2(10f, 10f));
 
             var seq = new Control[settings.Horizon];
-            var solver = new SolverBuffers(0);
+            var solver = new SolverBuffers(0u);
             try
             {
                 var cfgOff = settings.ToConfig();
