@@ -145,8 +145,8 @@ write_lock() {
     # Worktree-scoped, never the repo-shared .git/config: all slots share that
     # file, so a plain `git config` write here clobbers every other slot's
     # lease and their submit/revise pushes to the wrong task branch (the
-    # cross-slot LEASE RACE). Also drop any lease left in the shared config by
-    # the pre-fix writer.
+    # cross-slot LEASE RACE). The unqualified --unset keeps the shared config
+    # clear of the key so a stale cross-slot value can never be read back.
     git -C "$path" config extensions.worktreeConfig true 2>/dev/null || true
     git -C "$path" config --worktree worktree-pool.lease "$lease" 2>/dev/null || true
     git -C "$path" config --unset worktree-pool.lease 2>/dev/null || true
