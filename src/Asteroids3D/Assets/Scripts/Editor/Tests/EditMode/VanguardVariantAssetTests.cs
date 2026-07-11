@@ -53,6 +53,8 @@ namespace Tests.EditMode
             Assert.That(mesh.subMeshCount, Is.EqualTo(6));
             Assert.That(mesh.bounds.size.y, Is.GreaterThan(mesh.bounds.size.x));
             Assert.That(mesh.bounds.size.y, Is.GreaterThan(mesh.bounds.size.z));
+            Assert.That(Vector3.Angle(model.localRotation * Vector3.up, Vector3.up), Is.LessThan(0.01f));
+            Assert.That(Vector3.Angle(model.localRotation * Vector3.forward, Vector3.back), Is.LessThan(0.01f));
             Assert.That(materials.Select(material => material.name), Is.EquivalentTo(new[]
             {
                 "VNG_Hull_White",

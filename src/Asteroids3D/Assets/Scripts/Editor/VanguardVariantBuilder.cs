@@ -63,7 +63,7 @@ public static class VanguardVariantBuilder
             var targetBounds = TransformBounds(filter.sharedMesh.bounds,
                 Matrix4x4.TRS(model.localPosition, model.localRotation, model.localScale));
 
-            var correction = LongAxisToPositiveY(mesh.bounds.size);
+            var correction = Quaternion.AngleAxis(180f, Vector3.up) * LongAxisToPositiveY(mesh.bounds.size);
             var correctedBounds = TransformBounds(mesh.bounds, Matrix4x4.Rotate(correction));
             var scale = MaxComponent(targetBounds.size) / MaxComponent(correctedBounds.size);
             var scaledCenter = correction * mesh.bounds.center * scale;
