@@ -1,8 +1,8 @@
-"""Merged procedural HDR space skybox: Codex's nebula/anchor architecture, with
-wider nebula coverage and cooler (blue-white-leaning) field-star colors.
+"""Procedural HDR space skybox generator.
 
-Run: blender --background --python skybox_merged.py
-Outputs (EXR scene-linear 32-bit, PNG AgX preview) are written beside this script.
+Renders a seamless 360 equirectangular skybox (volumetric nebula + procedural
+star field + explicit HDR anchor stars) to a scene-linear EXR or Radiance HDR,
+plus an AgX-tonemapped PNG preview. Run: blender -b -P skybox_merged.py [-- args].
 """
 
 import array
@@ -13,6 +13,7 @@ import time
 
 import bpy
 from mathutils import Vector
+
 
 def _cli_args():
     argv = sys.argv
@@ -106,7 +107,7 @@ def build_world():
     e3 = galaxy_ramp.color_ramp.elements.new(0.88)
     e3.color = (0.0010, 0.0035, 0.009, 1.0)
 
-    # Fine dense stars: cool blue-white (kept from Codex).
+    # Fine dense stars: cool blue-white.
     star_noise_a = new_node(nodes, "ShaderNodeTexNoise", "Fine Stars", -850, 250)
     star_noise_a.noise_dimensions = "3D"
     set_input(star_noise_a, ("Scale",), 310.0)
@@ -119,8 +120,7 @@ def build_world():
     star_ramp_a.color_ramp.elements[1].position = 0.750
     star_ramp_a.color_ramp.elements[1].color = (2.8, 3.6, 5.2, 1.0)
 
-    # Sparse layer: nudged from saturated orange -> soft warm-white (cooler, toward
-    # the Claude-version star palette) so the field reads blue-white with gentle warmth.
+    # Sparse stars: soft warm-white, for gentle color variety across the field.
     star_noise_b = new_node(nodes, "ShaderNodeTexNoise", "Warm Sparse Stars", -850, 540)
     star_noise_b.noise_dimensions = "3D"
     set_input(star_noise_b, ("Scale",), 740.0)
@@ -176,13 +176,12 @@ def build_nebula_volume():
 
     texcoord = new_node(nodes, "ShaderNodeTexCoord", "Object Space Coordinates", -1050, 80)
     mapping = new_node(nodes, "ShaderNodeMapping", "Stretch Nebula", -850, 80)
-    # Less extreme flattening -> gas spreads across more of the sphere.
     set_input(mapping, ("Scale",), (0.62, 1.05, 0.62))
     set_input(mapping, ("Rotation",), (0.20, -0.35, 0.58))
 
     noise_large = new_node(nodes, "ShaderNodeTexNoise", "Billowing 3D Noise", -620, 180)
     noise_large.noise_dimensions = "3D"
-    set_input(noise_large, ("Scale",), 1.9)  # bigger billows (was 2.4)
+    set_input(noise_large, ("Scale",), 1.9)
     set_input(noise_large, ("Detail",), 7.0)
     set_input(noise_large, ("Roughness",), 0.68)
     set_input(noise_large, ("Lacunarity",), 2.1)
@@ -199,7 +198,7 @@ def build_nebula_volume():
     multiply_noise.operation = "MULTIPLY"
     threshold = new_node(nodes, "ShaderNodeValToRGB", "Wispy Density Threshold", -100, 120)
     threshold.color_ramp.interpolation = "EASE"
-    # Lower threshold -> much more of the noise becomes gas (wider coverage).
+    # Threshold that carves the noise into wispy gas vs. empty space.
     threshold.color_ramp.elements[0].position = 0.255
     threshold.color_ramp.elements[0].color = (0.0, 0.0, 0.0, 1.0)
     threshold.color_ramp.elements[1].position = 0.450
