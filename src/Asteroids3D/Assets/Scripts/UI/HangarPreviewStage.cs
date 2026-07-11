@@ -20,6 +20,10 @@ namespace UI
         private const float PopInSeconds = 0.25f;
         private const float CameraFovDeg = 30f;
         private const int TextureSize = 768;
+        private const float FramingMargin = 1.05f;
+        private const float MinFramedRadius = 0.5f;
+        // EaseOutBack (k = 1.70158) peaks ~10% past target scale mid-pop-in.
+        internal const float PopInOvershoot = 1.101f;
 
         private bool continueSpinOnSwitch;
         private Camera stageCamera;
@@ -124,12 +128,12 @@ namespace UI
 
         private void FrameCamera(Transform rig)
         {
-            // Measure at target scale and canonical pose — the clone is still zero-scaled for the
-            // pop-in, and its world bounds vary with the turntable angle of the click (an elongated
-            // hull measured broadside frames larger than nose-on).
+            // Measure at peak pop-in scale and canonical pose — the clone is still zero-scaled for
+            // the pop-in, and the canonical pose keeps the AABB tight and independent of the spin
+            // phase at click time.
             var previousScale = rig.localScale;
             var previousRotation = rig.localRotation;
-            rig.localScale = currentTargetScale;
+            rig.localScale = currentTargetScale * PopInOvershoot;
             rig.rotation = BaseOrientation;
             var bounds = new Bounds(anchor.position, Vector3.one);
             var renderers = rig.GetComponentsInChildren<Renderer>(true);
@@ -139,13 +143,32 @@ namespace UI
             rig.localScale = previousScale;
             rig.localRotation = previousRotation;
 
-            // Largest single-axis extent — the 3D diagonal over-frames by ~1.7x.
-            var extents = bounds.extents;
-            var radius = Mathf.Max(Mathf.Max(extents.x, extents.y), Mathf.Max(extents.z, 0.5f));
-            var distance = radius / Mathf.Tan(CameraFovDeg * 0.5f * Mathf.Deg2Rad) * 0.85f;
+            var (focus, distance) = SolveFraming(bounds, anchor.position, CameraFovDeg);
             var direction = new Vector3(0f, 0.55f, -1f).normalized;
-            stageCamera.transform.position = bounds.center + direction * distance;
-            stageCamera.transform.LookAt(bounds.center);
+            stageCamera.transform.position = focus + direction * distance;
+            stageCamera.transform.LookAt(focus);
+        }
+
+        // The turntable spins the hull about the anchor's vertical axis, so the camera must clear
+        // the volume swept over a full revolution — the enclosing sphere of every corner's spin
+        // circle — fit with sin (a tan fit clips whatever pokes nearer than the focus plane).
+        internal static (Vector3 focus, float distance) SolveFraming(
+            Bounds bounds, Vector3 anchorPosition, float fovDeg)
+        {
+            var spinRadiusSq = 0f;
+            for (var x = -1; x <= 1; x += 2)
+            for (var z = -1; z <= 1; z += 2)
+            {
+                var corner = new Vector2(
+                    bounds.center.x - anchorPosition.x + x * bounds.extents.x,
+                    bounds.center.z - anchorPosition.z + z * bounds.extents.z);
+                spinRadiusSq = Mathf.Max(spinRadiusSq, corner.sqrMagnitude);
+            }
+            var radius = Mathf.Max(
+                Mathf.Sqrt(spinRadiusSq + bounds.extents.y * bounds.extents.y), MinFramedRadius);
+            var distance = radius * FramingMargin / Mathf.Sin(fovDeg * 0.5f * Mathf.Deg2Rad);
+            var focus = new Vector3(anchorPosition.x, bounds.center.y, anchorPosition.z);
+            return (focus, distance);
         }
 
         // Idle particle/trail renderers report bounds anchored at world origin, which would blow
@@ -174,7 +197,7 @@ namespace UI
             }
         }
 
-        private static float EaseOutBack(float t)
+        internal static float EaseOutBack(float t)
         {
             const float k = 1.70158f;
             t -= 1f;
