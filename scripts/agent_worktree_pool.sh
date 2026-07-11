@@ -497,11 +497,13 @@ cmd_merge() {
 
   git -C "$path" fetch origin "$base_branch"
   git -C "$path" checkout "$slot"
+  # Gate against the freshly-fetched remote-tracking ref: a bare local name
+  # (e.g. 'main') can lag the remote and silently skip the re-test.
+  base_ref="origin/$base_branch"
 
-  # The gate: the tested tree must be the tree that lands on main. Two PRs can
-  # each pass on their own base yet not compile together (zero textual overlap,
-  # so git merges both silently) — if base moved since this branch last
-  # contained it, merge base in and re-run the suite before merging the PR.
+  # If base moved, the branch's last test run predates the merged tree: two PRs
+  # each green on their own base can still break main together (no textual
+  # conflict, so git merges both silently). Re-test the merged tree before landing.
   if git -C "$path" merge-base --is-ancestor "$base_ref" "$slot"; then
     echo "$base_ref already contained in $slot — last test run covered the merge result."
   else
