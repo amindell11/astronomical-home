@@ -23,7 +23,7 @@ namespace UI
         private const float FramingMargin = 1.05f;
         private const float MinFramedRadius = 0.5f;
         // EaseOutBack (k = 1.70158) peaks ~10% past target scale mid-pop-in.
-        internal const float PopInOvershoot = 1.1f;
+        internal const float PopInOvershoot = 1.101f;
 
         private bool continueSpinOnSwitch;
         private Camera stageCamera;
