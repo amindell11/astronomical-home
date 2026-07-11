@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT="$(git rev-parse --show-toplevel)"
+# Anchor to the primary worktree even when invoked from inside an agent-N
+# worktree: --show-toplevel is CWD-dependent, and a worktree-local
+# .worktree-pool/locks holds dead leases from prior tasks (revise then pushes
+# to a prior task's branch — the WRONG-BRANCH hazard).
+ROOT="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"
 LOCK_ROOT="${WORKTREE_POOL_LOCK_ROOT:-$ROOT/.worktree-pool/locks}"
 # Locks go stale by AGE, not by a live pid: each agent shell here is ephemeral,
 # so the acquiring pid is long dead by the next call. A lock older than the TTL
@@ -309,6 +313,9 @@ cmd_prepare() {
   git -C "$path" checkout "$slot"
   git -C "$path" reset --hard "$base"
   git -C "$path" clean -fd
+  # Ignored, so clean leaves it: purge pre-ROOT-anchor leftovers that an old
+  # script copy running inside the worktree could still resolve as live locks.
+  rm -rf "$path/.worktree-pool"
 
   echo "Prepared $slot at $path -> $base"
 }
@@ -518,7 +525,22 @@ cmd_merge() {
     git -C "$path" push origin "$slot:refs/heads/$task_branch"
   fi
 
-  gh pr merge "$pr" --squash --delete-branch=false
+  # GitHub recomputes mergeability asynchronously after the gate's push; a
+  # merge call inside that window fails "not mergeable" — brief retries ride
+  # it out.
+  local attempt merged=0
+  for attempt in 1 2 3 4 5; do
+    if gh pr merge "$pr" --squash --delete-branch=false; then
+      merged=1
+      break
+    fi
+    echo "merge: PR #$pr not mergeable yet (attempt $attempt/5) — retrying in 3s..."
+    sleep 3
+  done
+  if [[ "$merged" -ne 1 ]]; then
+    echo "merge: gh pr merge failed for PR #$pr after 5 attempts." >&2
+    return 1
+  fi
   echo ""
   echo "PR #$pr squash-merged. Next: finalize the slot and sync local main:"
   echo "  ./scripts/agent_worktree_pool.sh finalize $slot $base_ref"
