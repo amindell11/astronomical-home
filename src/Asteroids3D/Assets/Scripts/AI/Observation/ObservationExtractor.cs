@@ -88,7 +88,9 @@ namespace AI.Observation
             }
 
             var buffer = obstacles.buffer;
-            for (var i = 0; i < obstacles.count && buffer != null; i++)
+            if (buffer == null) return;
+
+            for (var i = 0; i < obstacles.count; i++)
             {
                 var o = buffer[i];
                 if (o.lobeCount > 0)

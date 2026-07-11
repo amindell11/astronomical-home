@@ -61,8 +61,7 @@ namespace AI.Scanning
             var hits = Physics.OverlapSphereNonAlloc(origin.position, radius, hitBuffer, mask);
             for (var i = 0; i < hits && Count < contacts.Length; i++)
             {
-                // Missiles carry their rigidbody + "Missile" tag on the collider's attached body;
-                // both reads are cheap properties, so the classification stays out of hierarchy walks.
+                // Tag and velocity live on the missile's rigidbody, not the collider.
                 var body = hitBuffer[i].attachedRigidbody;
                 if (!body || !body.CompareTag(TagNames.Missile) || AlreadySeen(body.transform)) continue;
 
