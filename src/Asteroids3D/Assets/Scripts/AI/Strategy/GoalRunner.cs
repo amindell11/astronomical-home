@@ -1,5 +1,6 @@
 using AI.Context;
 using Movement.MPC;
+using Ships.Command;
 using UnityEngine;
 
 namespace AI.States
@@ -14,11 +15,11 @@ namespace AI.States
     /// </summary>
     internal abstract partial class GoalRunner
     {
-        public static GoalRunner Create(GoalStrategy goal, Navigator navigator) => goal switch
+        public static GoalRunner Create(GoalStrategy goal, Navigator navigator, SeedScope goalScope) => goal switch
         {
             TrackEnemyGoal track  => new TrackEnemyRunner(track),
             FleeEnemyGoal flee    => new FleeEnemyRunner(flee),
-            RandomWaypointGoal wp => new PatrolRunner(wp, navigator),
+            RandomWaypointGoal wp => new PatrolRunner(wp, navigator, goalScope.ToSeed()),
             _                     => new NullGoalRunner(),
         };
 
@@ -82,16 +83,18 @@ namespace AI.States
     {
         private readonly RandomWaypointGoal goal;
         private readonly Navigator navigator;
+        private readonly System.Random rng;
 
         private Vector2 patrolTarget;
         private bool hasPatrolTarget;
         private float stuckTimer;
         private float bestDistToWaypoint;
 
-        public PatrolRunner(RandomWaypointGoal goal, Navigator navigator)
+        public PatrolRunner(RandomWaypointGoal goal, Navigator navigator, int seed)
         {
             this.goal = goal;
             this.navigator = navigator;
+            rng = new System.Random(seed);
         }
 
         public override void Enter(AIContext ctx)
@@ -130,10 +133,10 @@ namespace AI.States
         private void ChooseNewPatrolPoint(AIContext ctx)
         {
             var currentPos = ctx.Self.Kinematics.pos;
-            var randomDistance = Random.Range(
-                goal.patrolRadius * goal.minDistanceFactor,
-                goal.patrolRadius);
-            var randomDirection = Random.insideUnitCircle.normalized;
+            var minDistance = goal.patrolRadius * goal.minDistanceFactor;
+            var randomDistance = minDistance + (float)rng.NextDouble() * (goal.patrolRadius - minDistance);
+            var angle = (float)rng.NextDouble() * 2f * Mathf.PI;
+            var randomDirection = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
             patrolTarget = currentPos + randomDirection * randomDistance;
 
             hasPatrolTarget = true;

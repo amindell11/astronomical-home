@@ -53,7 +53,7 @@ namespace Tests.EditMode
         // so per-solve sampling noise cancels out.
         private State SolveTerminal(MpcInputs inputs, int warmup = 8, int average = 6)
         {
-            using var mpc = new Mpc(settings, dynamics);
+            using var mpc = new Mpc(settings, dynamics, 0u);
             for (var i = 0; i < warmup; i++) mpc.Plan(in inputs);
 
             float2 posSum = default;
@@ -66,6 +66,64 @@ namespace Tests.EditMode
                 yawSum += terminal.yaw;
             }
             return new State { pos = posSum / average, yaw = yawSum / average };
+        }
+
+        private Control[] SolveSequence(int seed, MpcInputs inputs, int solves = 6)
+        {
+            using var mpc = new Mpc(settings, dynamics, (uint)seed);
+            for (var i = 0; i < solves; i++) mpc.Plan(in inputs);
+            return (Control[])mpc.BestSequence.Clone();
+        }
+
+        // Candidate noise is where the injected seed acts. The elite-averaged control converges
+        // toward the same near-optimum regardless of seed (good MPC behavior), so divergence is
+        // asserted here, at the raw candidate buffer, not on the planned output.
+        private Control[] SolveCandidates(int seed, MpcInputs inputs)
+        {
+            using var mpc = new Mpc(settings, dynamics, (uint)seed);
+            mpc.Plan(in inputs);
+            var solver = mpc.Solver;
+            var count = solver.LastSampleCount * solver.LastHorizon;
+            var snapshot = new Control[count];
+            for (var i = 0; i < count; i++) snapshot[i] = solver.Candidates[i];
+            return snapshot;
+        }
+
+        private static bool SequencesEqual(Control[] a, Control[] b)
+        {
+            if (a.Length != b.Length) return false;
+            for (var i = 0; i < a.Length; i++)
+                if (a[i].thrust != b[i].thrust || a[i].strafe != b[i].strafe ||
+                    a[i].yawTorque != b[i].yawTorque || a[i].boost != b[i].boost)
+                    return false;
+            return true;
+        }
+
+        [Test]
+        public void Plan_SameSeedAndInputs_ReplaysIdenticalControls()
+        {
+            var inputs = WaypointInputs(new float2(30f, 12f));
+            var first = SolveSequence(1234, inputs);
+            var second = SolveSequence(1234, inputs);
+
+            Assert.That(SequencesEqual(first, second), Is.True,
+                "A fixed seed with identical inputs must reproduce the same planned controls bit-for-bit.");
+        }
+
+        [Test]
+        public void Plan_SameSeed_SamplesIdenticalCandidateNoise()
+        {
+            var inputs = WaypointInputs(new float2(30f, 12f));
+            Assert.That(SequencesEqual(SolveCandidates(1234, inputs), SolveCandidates(1234, inputs)), Is.True,
+                "A fixed seed must reproduce the same candidate noise.");
+        }
+
+        [Test]
+        public void Plan_DifferentSeeds_SampleDifferentCandidateNoise()
+        {
+            var inputs = WaypointInputs(new float2(30f, 12f));
+            Assert.That(SequencesEqual(SolveCandidates(1, inputs), SolveCandidates(2, inputs)), Is.False,
+                "Two ships with different seeds must sample different candidate noise.");
         }
 
         [Test]

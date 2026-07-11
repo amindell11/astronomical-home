@@ -17,9 +17,9 @@ public static class ShipTestFactory
     /// <param name="useMpcPilot">Retained for call-site compatibility; the MPC pilot is the only pilot now.</param>
     /// <param name="team">Team ID for the ship (default: 0)</param>
     /// <returns>Created ship instance, or null if asset loading fails</returns>
-    public static Ship CreateDefaultShip(bool useMpcPilot = true, int team = 0)
+    public static Ship CreateDefaultShip(bool useMpcPilot = true, int team = 0, int decisionSeed = 0)
     {
-        return CreateDefaultShipAt(Vector3.zero, Quaternion.identity, useMpcPilot, team);
+        return CreateDefaultShipAt(Vector3.zero, Quaternion.identity, useMpcPilot, team, decisionSeed);
     }
 
     /// <summary>
@@ -30,7 +30,7 @@ public static class ShipTestFactory
     /// <param name="useMpcPilot">Retained for call-site compatibility; the MPC pilot is the only pilot now.</param>
     /// <param name="team">Team ID for the ship (default: 0)</param>
     /// <returns>Created ship instance, or null if asset loading fails</returns>
-    public static Ship CreateDefaultShipAt(Vector3 position, Quaternion rotation, bool useMpcPilot = true, int team = 0)
+    public static Ship CreateDefaultShipAt(Vector3 position, Quaternion rotation, bool useMpcPilot = true, int team = 0, int decisionSeed = 0)
     {
         var shipPrefab = TestAssets.LoadShip2Prefab();
         var cmdrPrefab = TestAssets.LoadTestPilotMpc();
@@ -41,7 +41,7 @@ public static class ShipTestFactory
             return null;
         }
 
-        return Factory.CreateShip(shipPrefab, cmdrPrefab, team, position, rotation);
+        return Factory.CreateShip(shipPrefab, cmdrPrefab, team, decisionSeed, position, rotation);
     }
 
     /// <summary>
@@ -58,12 +58,14 @@ public static class ShipTestFactory
         AICommander cmdrPrefab,
         int team = 0,
         Vector3? position = null,
-        Quaternion? rotation = null)
+        Quaternion? rotation = null,
+        int decisionSeed = 0)
     {
         return Factory.CreateShip(
             shipPrefab,
             cmdrPrefab,
             team,
+            decisionSeed,
             position ?? Vector3.zero,
             rotation ?? Quaternion.identity);
     }

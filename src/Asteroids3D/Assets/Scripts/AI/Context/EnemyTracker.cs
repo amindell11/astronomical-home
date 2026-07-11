@@ -14,6 +14,7 @@ namespace AI.Context
         private readonly float combatExitDelay;
 
         private Ship cachedEnemy;
+        private float simTime;
         private float lastContactTime = -1f;
 
         public EnemyTracker(Scout scout, float combatExitDelay)
@@ -58,8 +59,10 @@ namespace AI.Context
             return true;
         }
 
-        public void Update()
+        public void Update(float deltaTime)
         {
+            simTime += deltaTime;
+
             if (cachedEnemy == null || !cachedEnemy.gameObject.activeInHierarchy)
             {
                 cachedEnemy = null;
@@ -68,12 +71,12 @@ namespace AI.Context
 
             if (HasEnemy)
             {
-                lastContactTime = Time.time;
+                lastContactTime = simTime;
                 TimeSinceCombat = 0f;
             }
             else
             {
-                TimeSinceCombat = lastContactTime > 0f ? Time.time - lastContactTime : float.MaxValue;
+                TimeSinceCombat = lastContactTime >= 0f ? simTime - lastContactTime : float.MaxValue;
             }
         }
 

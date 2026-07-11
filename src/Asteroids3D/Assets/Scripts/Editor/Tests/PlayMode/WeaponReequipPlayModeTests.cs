@@ -183,7 +183,7 @@ namespace Tests.PlayMode
             var junkerPrefab = TestAssets.LoadShipPrefab(JunkerPrefabPath);
             Assert.IsNotNull(junkerPrefab, "junker prefab loaded");
             ship = Object.Instantiate(junkerPrefab);
-            ship.Initialize(0); // commander-less; wires movement like Factory.CreateShip does
+            ship.Initialize(0, 0); // commander-less; wires movement like Factory.CreateShip does
             yield return null;
 
             Assert.IsNull(ship.Weapons, "junker carries no WeaponsController");

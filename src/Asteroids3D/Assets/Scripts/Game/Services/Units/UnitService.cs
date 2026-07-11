@@ -20,6 +20,7 @@ namespace Game.Services
 
         private readonly List<Ship> spawnedShips = new();
         private readonly List<PendingRespawn> pendingRespawns = new();
+        private int nextAgentIndex;
         public IShipRegistry Registry => ActiveRegistry;
         public ShipRegistry ActiveRegistry { get; } = new();
 
@@ -36,7 +37,7 @@ namespace Game.Services
                 throw new ArgumentNullException(nameof(template));
 
             var ship = ShipFactory.CreateShip(
-                template, commander, team,
+                template, commander, team, NextDecisionSeed(team),
                 position, rotation,
                 postInitialize: WireShipDependencies);
 
@@ -59,7 +60,7 @@ namespace Game.Services
             if (commander)
                 ship.AdoptCommander(commander);
 
-            ship.Initialize(ship.teamNumber);
+            ship.Initialize(ship.teamNumber, NextDecisionSeed(ship.teamNumber));
 
             ActiveRegistry.ActiveShips.Add(ship);
             spawnedShips.Add(ship);
@@ -92,6 +93,9 @@ namespace Game.Services
 
             spawnedShips.Clear();
             pendingRespawns.Clear();
+            // Clear is the episode-reset boundary: restart the agent index so the next episode
+            // re-derives the same per-agent decision seeds (replay without reconstructing the service).
+            nextAgentIndex = 0;
             // Do NOT call ActiveRegistry.Dispose() here — that unsubscribes the OnAdd/OnRemove
             // callbacks, which permanently breaks the registry for subsequent runs.
             // Ships are already fully unregistered via ActiveShips.Remove() above.
@@ -100,6 +104,19 @@ namespace Game.Services
         private void OnDestroy()
         {
             ActiveRegistry.Dispose();
+        }
+
+        private int NextDecisionSeed(int team) => DeriveDecisionSeed(team, nextAgentIndex++);
+
+        /// <summary>
+        /// Stable per-agent decision seed derived from the deterministic spawn order, so a
+        /// reconstructed episode replays identically (unlike a <c>GetInstanceID</c>-derived seed).
+        /// Distinct per ship, nonzero.
+        /// </summary>
+        private static int DeriveDecisionSeed(int team, int agentIndex)
+        {
+            const int arenaBaseSeed = 0; // 0 until S1b supplies per-arena seeds
+            return new SeedScope(arenaBaseSeed).Derive((uint)team).Derive((uint)agentIndex).ToSeed();
         }
 
         /// <summary>Idempotent world-state wiring; see <see cref="IUnitService.WireShipDependencies"/>.</summary>

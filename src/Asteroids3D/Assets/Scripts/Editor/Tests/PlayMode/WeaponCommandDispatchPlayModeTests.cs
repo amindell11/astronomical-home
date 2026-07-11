@@ -57,7 +57,7 @@ namespace Tests.PlayMode
             var commanderGo = new GameObject("AlwaysFireCommanderPrefab");
             commanderPrefab = commanderGo.AddComponent<AlwaysFireCommander>();
 
-            ship = Factory.CreateShip(shipPrefab, commanderPrefab, team: 0, position: Vector3.zero, rotation: Quaternion.identity);
+            ship = Factory.CreateShip(shipPrefab, commanderPrefab, team: 0, decisionSeed: 0, position: Vector3.zero, rotation: Quaternion.identity);
             combatShip = ship;
             Assert.IsNotNull(ship, "Ship failed to instantiate");
             Assert.IsNotNull(combatShip.Weapons, "Ship must be armed (WeaponsController present)");

@@ -15,13 +15,14 @@ namespace Ships
              Ship prefab,
              Commander commander,
              int team,
+             int decisionSeed,
              Vector3 position,
              Quaternion rotation,
              Action<Ship> postInitialize = null)
         {
             var ship = UnityEngine.Object.Instantiate(prefab, position, rotation);
             ship.AddCommander(commander);
-            ship.Initialize(team);
+            ship.Initialize(team, decisionSeed);
             postInitialize?.Invoke(ship);
             return ship;
         }

@@ -21,6 +21,8 @@ namespace Movement.MPC
     [DefaultExecutionOrder(-60)]
     public partial class Navigator : MonoBehaviour
     {
+        private const uint MpcSamplerStream = 1;
+
         // ── Control surface (waypoints, goals, intent) ──
 
         public struct Waypoint
@@ -87,7 +89,7 @@ namespace Movement.MPC
         private Mpc mpc;
         private Dynamics dynamics; // consumed by the editor/gizmo partial
 
-        public void Initialize(IShipStatus shipContext, Dynamics dynamics, Scout scout)
+        public void Initialize(IShipStatus shipContext, Dynamics dynamics, Scout scout, SeedScope navScope)
         {
             context = shipContext;
             this.scout = scout;
@@ -96,7 +98,7 @@ namespace Movement.MPC
             currentWaypoint = new Waypoint { isValid = false };
             if (!mpcSettings)
                 mpcSettings = ScriptableObject.CreateInstance<MpcSettings>();
-            mpc = new Mpc(mpcSettings, dynamics);
+            mpc = new Mpc(mpcSettings, dynamics, navScope.Derive(MpcSamplerStream).ToUint());
         }
 
         public PilotCommand ComputeCommand()

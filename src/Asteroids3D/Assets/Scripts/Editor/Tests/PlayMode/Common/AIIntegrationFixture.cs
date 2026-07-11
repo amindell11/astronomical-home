@@ -5,6 +5,7 @@ using AI.States;
 using Game;
 using NUnit.Framework;
 using Ships;
+using Ships.Command;
 using UnityEngine;
 
 namespace Tests.PlayMode.Common
@@ -45,9 +46,9 @@ public abstract class AIIntegrationFixture : PlayModeWorldFixture
     /// Creates an AI ship at the given position and team, registers it
     /// in the shared ShipRegistry, and wires up the AICommander.
     /// </summary>
-    protected (Ship ship, AICommander cmdr) CreateAIShip(Vector3 position, int team)
+    protected (Ship ship, AICommander cmdr) CreateAIShip(Vector3 position, int team, int decisionSeed = 0)
     {
-        var ship = ShipTestFactory.CreateDefaultShipAt(position, Quaternion.identity, useMpcPilot: true, team: team);
+        var ship = ShipTestFactory.CreateDefaultShipAt(position, Quaternion.identity, useMpcPilot: true, team: team, decisionSeed: decisionSeed);
         Assert.IsNotNull(ship, "Failed to create AI ship — check test asset paths");
 
         trackedShips.Add(ship);
@@ -71,7 +72,7 @@ public abstract class AIIntegrationFixture : PlayModeWorldFixture
     protected void InitializeWithStates(AICommander cmdr, params AIState[] states)
     {
         cmdr.UtilityChooser.ResetForTesting();
-        cmdr.UtilityChooser.Initialize(states);
+        cmdr.UtilityChooser.Initialize(states, new SeedScope(0));
     }
 
     /// <summary>

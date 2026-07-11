@@ -65,6 +65,7 @@ namespace Ships
 
         public Rigidbody Rigidbody { get; private set; }
         public ShipId Id { get; private set; }
+        public int DecisionSeed { get; private set; }
         public Collider[] Colliders {get; private set;}
         public Dynamics Dynamics { get; private set; }
         public Transform TargetPoint => transform;
@@ -192,10 +193,11 @@ namespace Ships
             subShield = null;
         }
 
-        public virtual void Initialize(int team)
+        public virtual void Initialize(int team, int decisionSeed)
         {
             if (isInitialized) return;
             teamNumber = team;
+            DecisionSeed = decisionSeed;
             Resolve();
             Movement.Initialize(Stats, ()=>KinematicsPoller.Kinematics);
             Damage?.PopulateSettings(Stats);
@@ -245,8 +247,8 @@ namespace Ships
         /// </summary>
         private ShipControl BuildShipControl() =>
             Weapons
-                ? new(this, Movement, Weapons.Context, Weapons)
-                : new(this, Movement);
+                ? new(this, Movement, new SeedScope(DecisionSeed), Weapons.Context, Weapons)
+                : new(this, Movement, new SeedScope(DecisionSeed));
 
         private void SetCommander(Commander commander)
         {

@@ -32,9 +32,9 @@ namespace AI.Context
             Assessment = SituationAssessment.None;
         }
 
-        public void UpdateAssessment()
+        public void UpdateAssessment(float deltaTime)
         {
-            Combat.Update();
+            Combat.Update(deltaTime);
             Assessment = SituationAssessment.Evaluate(Self, Combat, Scout);
         }
 

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using AI.Context;
 using AI.States;
+using Ships.Command;
 
 namespace AI
 {
@@ -27,6 +28,6 @@ namespace AI
     /// </summary>
     public interface IStateChooser : IIntentChooser
     {
-        void Initialize(IReadOnlyList<AIState> states);
+        void Initialize(IReadOnlyList<AIState> states, SeedScope samplerScope);
     }
 }
