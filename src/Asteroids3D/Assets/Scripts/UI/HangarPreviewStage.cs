@@ -22,6 +22,8 @@ namespace UI
         private const int TextureSize = 768;
         private const float FramingMargin = 1.05f;
         private const float MinFramedRadius = 0.5f;
+        // EaseOutBack (k = 1.70158) peaks ~10% past target scale mid-pop-in.
+        internal const float PopInOvershoot = 1.1f;
 
         private bool continueSpinOnSwitch;
         private Camera stageCamera;
@@ -126,12 +128,12 @@ namespace UI
 
         private void FrameCamera(Transform rig)
         {
-            // Measure at target scale and canonical pose — the clone is still zero-scaled for the
-            // pop-in, and the canonical pose keeps the AABB tight and independent of the spin
+            // Measure at peak pop-in scale and canonical pose — the clone is still zero-scaled for
+            // the pop-in, and the canonical pose keeps the AABB tight and independent of the spin
             // phase at click time.
             var previousScale = rig.localScale;
             var previousRotation = rig.localRotation;
-            rig.localScale = currentTargetScale;
+            rig.localScale = currentTargetScale * PopInOvershoot;
             rig.rotation = BaseOrientation;
             var bounds = new Bounds(anchor.position, Vector3.one);
             var renderers = rig.GetComponentsInChildren<Renderer>(true);
@@ -195,7 +197,7 @@ namespace UI
             }
         }
 
-        private static float EaseOutBack(float t)
+        internal static float EaseOutBack(float t)
         {
             const float k = 1.70158f;
             t -= 1f;

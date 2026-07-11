@@ -34,6 +34,16 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void PopInOvershoot_CoversTheEaseOutBackPeak()
+        {
+            var peak = 0f;
+            for (var t = 0f; t <= 1f; t += 0.001f)
+                peak = Mathf.Max(peak, HangarPreviewStage.EaseOutBack(t));
+            Assert.LessOrEqual(peak, HangarPreviewStage.PopInOvershoot,
+                "framing budgets PopInOvershoot; the easing curve must stay under it");
+        }
+
+        [Test]
         public void ElongatedHull_FillsAReasonableShareOfTheFrame()
         {
             var maxRatio = MaxProjectedFrustumRatio(
