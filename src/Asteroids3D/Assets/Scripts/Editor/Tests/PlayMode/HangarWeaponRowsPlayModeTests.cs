@@ -23,6 +23,7 @@ namespace Tests.PlayMode
     {
         private const string ScreenPrefabPath = "Assets/Prefabs/UI/HangarScreen.prefab";
         private const string Ship1Path = "Assets/Prefabs/Ships/Ship_1.prefab";
+        private const string RealCatalogPath = "Assets/Settings/Ships/PlayerLoadout.asset";
 
         private static readonly string[] WeaponPaths =
         {
@@ -137,6 +138,28 @@ namespace Tests.PlayMode
                 var weapon = Load<WeaponComponent>(path);
                 Assert.IsNotEmpty(weapon.HangarStats, $"{path} produces a hangar stats line on the prefab asset");
             }
+        }
+
+        // Checks authored prefab widths directly, so a catalog weapon that overflows the row fails without a layout pass.
+        [Test]
+        public void RealCatalog_WeaponOptionsFitWithinRowWidth()
+        {
+            var realCatalog = Load<LoadoutConfig>(RealCatalogPath);
+            var screenPrefab = Load<HangarScreen>(ScreenPrefabPath);
+
+            var template = (Button)new SerializedObject(screenPrefab)
+                .FindProperty("optionButtonTemplate").objectReferenceValue;
+            Assert.IsNotNull(template, "screen prefab wires an option button template");
+            var buttonWidth = ((RectTransform)template.transform).sizeDelta.x;
+
+            var row = (RectTransform)screenPrefab.transform.Find("Panel/PrimaryWeaponRow");
+            var layout = row.GetComponent<HorizontalLayoutGroup>();
+            var count = realCatalog.weapons.Length;
+            var needed = count * buttonWidth + (count - 1) * layout.spacing + layout.padding.horizontal;
+
+            Assert.LessOrEqual(needed, row.sizeDelta.x,
+                $"{count} catalog weapons need {needed}px but the row is {row.sizeDelta.x}px — " +
+                "shrink OptionTemplate or rework the row layout");
         }
     }
 }
