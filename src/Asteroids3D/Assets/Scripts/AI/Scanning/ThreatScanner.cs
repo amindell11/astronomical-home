@@ -1,4 +1,3 @@
-using Combat.Projectile;
 using Game;
 using UnityEngine;
 using Utils;
@@ -26,7 +25,8 @@ namespace AI.Scanning
     }
 
     /// <summary>
-    /// Sweeps the Missile layer for live guided ordnance and reports each as a plane-space
+    /// Sweeps the Projectile layer for live guided missiles — picked out by the "Missile" tag, so
+    /// hitscan/unguided shots sharing the layer are ignored — and reports each as a plane-space
     /// kinematic contact. This is the perception channel that later lets per-weapon evasion emerge
     /// from learning rather than being authored (roadmap §3.4). Runtime-ready, but presently driven
     /// only by the editor observation gizmo — nothing on the sim tick consumes it yet.
@@ -47,7 +47,7 @@ namespace AI.Scanning
         {
             this.origin = origin;
             this.radius = radius;
-            mask = LayerIds.Mask(LayerIds.Missile);
+            mask = LayerIds.Mask(LayerIds.Projectile);
             hitBuffer = new Collider[bufferSize];
             contacts = new ThreatContact[bufferSize];
             seen = new Transform[bufferSize];
@@ -61,16 +61,16 @@ namespace AI.Scanning
             var hits = Physics.OverlapSphereNonAlloc(origin.position, radius, hitBuffer, mask);
             for (var i = 0; i < hits && Count < contacts.Length; i++)
             {
-                var col = hitBuffer[i];
-                var missile = col.GetComponentInParent<Missile>();
-                if (!missile || AlreadySeen(missile.transform)) continue;
+                // Missiles carry their rigidbody + "Missile" tag on the collider's attached body;
+                // both reads are cheap properties, so the classification stays out of hierarchy walks.
+                var body = hitBuffer[i].attachedRigidbody;
+                if (!body || !body.CompareTag(TagNames.Missile) || AlreadySeen(body.transform)) continue;
 
-                var body = col.attachedRigidbody;
-                var planePos = GamePlane.WorldPointToPlane(missile.transform.position);
-                var planeVel = body ? GamePlane.WorldDirToPlane(body.linearVelocity) : Vector2.zero;
-
-                seen[Count] = missile.transform;
-                contacts[Count++] = new ThreatContact(planePos, planeVel, ThreatKind.Missile);
+                seen[Count] = body.transform;
+                contacts[Count++] = new ThreatContact(
+                    GamePlane.WorldPointToPlane(body.position),
+                    GamePlane.WorldDirToPlane(body.linearVelocity),
+                    ThreatKind.Missile);
             }
         }
 

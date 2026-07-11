@@ -6,6 +6,7 @@ using NUnit.Framework;
 using Ships;
 using Ships.Command;
 using UnityEngine;
+using Utils;
 
 namespace Tests.EditMode
 {
@@ -247,6 +248,45 @@ namespace Tests.EditMode
             ObservationExtractor.Populate(obs, self, TargetView.None, null, 0, default, 0f);
             Assert.That(obs.threats.Count, Is.EqualTo(0));
             Assert.IsFalse(obs.hasTarget);
+        }
+
+        // ── ThreatScanner (layer + tag classification) ─────────────────────────────
+
+        [Test]
+        public void ThreatScanner_DetectsTaggedMissile_AndIgnoresUntaggedProjectile()
+        {
+            var origin = new GameObject("origin");
+            var missile = MakeProjectile(new Vector3(0f, 5f, 0f), new Vector3(0f, -8f, 0f), TagNames.Missile);
+            var laser = MakeProjectile(new Vector3(1f, 4f, 0f), new Vector3(0f, -20f, 0f), "Untagged");
+            try
+            {
+                Physics.SyncTransforms();
+                var scanner = new ThreatScanner(origin.transform, 50f);
+                scanner.Scan();
+
+                Assert.That(scanner.Count, Is.EqualTo(1), "only the tagged missile counts as a threat");
+                var c = scanner.Contacts[0];
+                Assert.That(c.kind, Is.EqualTo(ThreatKind.Missile));
+                Assert.That(c.planePos.y, Is.EqualTo(5f).Within(0.01f));
+                Assert.That(c.planeVel.y, Is.EqualTo(-8f).Within(0.01f));
+            }
+            finally
+            {
+                Object.DestroyImmediate(origin);
+                Object.DestroyImmediate(missile);
+                Object.DestroyImmediate(laser);
+            }
+        }
+
+        private static GameObject MakeProjectile(Vector3 pos, Vector3 vel, string tag)
+        {
+            var go = new GameObject("projectile") { layer = LayerMask.NameToLayer(TagNames.Projectile), tag = tag };
+            go.transform.position = pos;
+            go.AddComponent<SphereCollider>().radius = 0.5f;
+            var rb = go.AddComponent<Rigidbody>();
+            rb.useGravity = false;
+            rb.linearVelocity = vel;
+            return go;
         }
     }
 }
