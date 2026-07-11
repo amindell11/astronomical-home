@@ -33,7 +33,7 @@ For interactive exploration, suggest the user run `lazygit` in any worktree dire
 - `./scripts/agent_worktree_pool.sh submit <slot> origin/main -- <test args>`
 - `./scripts/agent_worktree_pool.sh review-comments <slot>`
 - `./scripts/agent_worktree_pool.sh revise <slot> -- <test args>`
-- `gh pr merge <n> --squash --delete-branch=false` (only after explicit user go-ahead)
+- `./scripts/agent_worktree_pool.sh merge <slot>` (only after explicit user go-ahead; re-tests against current main if it moved, then squash-merges — never call `gh pr merge` directly)
 - `./scripts/agent_worktree_pool.sh finalize <slot> origin/main`
 - `./scripts/agent_worktree_pool.sh release <slot>`
 
@@ -86,16 +86,35 @@ For interactive exploration, suggest the user run `lazygit` in any worktree dire
         anything you're unsure how the user wants resolved) → do **not**
         silently merge over it. Surface it to the user with a one-line summary
         of the comment and a concrete proposed fix, and get direction first.
-   c. Only once no unaddressed comment remains — or the user has explicitly
-      waved the remaining ones through — squash-merge:
+   c. **Run a simplification pass on the diff.** Invoke `/simplify` (or the
+      `code-simplifier` agent) scoped to the changed code to catch
+      reuse/simplification/altitude cleanups the review round-trip missed.
+      Fold its fixes into the slot branch and `revise`. This sits alongside
+      the comment-hygiene pass — strip changelog-style narration from
+      comments so `main` shows only what the current code does (see
+      `CLAUDE.md` → "Comment hygiene across the PR lifecycle"). Keep the pass
+      quality-only; it is not a bug hunt (`/code-review` is for that), and
+      surface anything non-trivial it turns up rather than silently reshaping
+      behavior right before merge.
+   d. Only once no unaddressed comment remains — or the user has explicitly
+      waved the remaining ones through — and the simplify pass is folded in,
+      squash-merge through the gate:
 
 ```bash
-gh pr merge <n> --squash --delete-branch=false
+./scripts/agent_worktree_pool.sh merge agent-<n>
 ```
 
-   Never merge without that explicit signal. Never force-push or skip CI to
-   get there, and never merge past an unaddressed non-trivial comment without
-   flagging it.
+   The gate exists because `submit`/`revise` test the branch on the base it
+   last synced to — if main moved since, two individually-green PRs can land
+   a broken main with no textual conflict (see #105/#106: a required ctor
+   param added under a test that predated it). `merge` checks whether
+   `origin/main` is contained in the slot branch; if not, it merges main in,
+   re-runs the full suite, pushes, and only then squash-merges — so the
+   tested tree is the tree that lands. Never call `gh pr merge` directly.
+
+   Never merge without that explicit signal. Never force-push or skip the
+   gate's test run to get there, and never merge past an unaddressed
+   non-trivial comment without flagging it.
 7. Finalize: reset the slot to base and release the lock:
 
 ```bash
@@ -143,12 +162,18 @@ own PR even when the same slot is reused.
 - Do **not** run `prepare` during feedback rounds unless user explicitly asks to restart from main.
 - Do not run two agents in the same slot at once.
 - Prefer targeted/smoke tests during iteration; run broader scope before handoff when requested.
-- Do not merge (`gh pr merge`) without an explicit user go-ahead in the
-  conversation. A merged code review comment ("LGTM") is not itself a merge
-  instruction unless the user says so.
+- Do not merge without an explicit user go-ahead in the conversation. A
+  merged code review comment ("LGTM") is not itself a merge instruction
+  unless the user says so.
+- Merge ONLY via `./scripts/agent_worktree_pool.sh merge <slot>` — never raw
+  `gh pr merge`. The pool command is the compile/test gate on main: it
+  re-tests against current main when main moved after the branch's last test
+  run, which raw `gh pr merge` silently skips.
 - Before merging, sweep unresolved PR comments (step 6): fix trivial ones
   directly and `revise`; for involved ones, flag them to the user with a
-  proposed fix rather than merging over them silently.
+  proposed fix rather than merging over them silently. Also run a `/simplify`
+  pass and the comment-hygiene strip on the diff as part of that pre-merge
+  sweep.
 - Keep the active-work ledger current: claim on acquire, `🔵 in-review` on PR
   open, `⛔ blocked`/`🅿️ parked` if work stalls, and clear the row after merge
   + main sync. It is the one place a concurrent agent or a later session can
