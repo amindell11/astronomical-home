@@ -138,6 +138,29 @@ namespace Tests.PlayMode
                 Assert.IsNotEmpty(weapon.HangarStats, $"{path} produces a hangar stats line on the prefab asset");
             }
         }
+
+        // Pure prefab-asset arithmetic — catches the next catalog weapon overflowing the row
+        // (the 6th weapon shipped with buttons that no longer fit) without a layout pass.
+        [Test]
+        public void RealCatalog_WeaponOptionsFitWithinRowWidth()
+        {
+            var realCatalog = Load<LoadoutConfig>("Assets/Settings/Ships/PlayerLoadout.asset");
+            var screenPrefab = Load<HangarScreen>(ScreenPrefabPath);
+
+            var template = (Button)new SerializedObject(screenPrefab)
+                .FindProperty("optionButtonTemplate").objectReferenceValue;
+            Assert.IsNotNull(template, "screen prefab wires an option button template");
+            var buttonWidth = ((RectTransform)template.transform).sizeDelta.x;
+
+            var row = (RectTransform)screenPrefab.transform.Find("Panel/PrimaryWeaponRow");
+            var layout = row.GetComponent<HorizontalLayoutGroup>();
+            var count = realCatalog.weapons.Length;
+            var needed = count * buttonWidth + (count - 1) * layout.spacing + layout.padding.horizontal;
+
+            Assert.LessOrEqual(needed, row.sizeDelta.x,
+                $"{count} catalog weapons need {needed}px but the row is {row.sizeDelta.x}px — " +
+                "shrink OptionTemplate or rework the row layout");
+        }
     }
 }
 #endif
