@@ -65,9 +65,9 @@ namespace Movement.MPC
             }
         }
 
-        // Hashes the solve seed (already folds in base seed + solve counter) with the candidate
-        // index into a well-scattered, nonzero seed. Nonzero is required — Unity.Mathematics.Random
-        // rejects a zero seed, which plain index addition could reach via overflow.
+        // Hashes the solve seed (already folds in base seed + solve counter) with the candidate index
+        // into a well-scattered seed, forced nonzero — Unity.Mathematics.Random rejects a zero seed.
+        // Kept inline (not SeedScope) so the Burst solver stays decoupled from the command layer.
         private static uint CandidateSeed(uint solveSeed, uint candidateIndex)
         {
             var h = solveSeed * 2654435761u;
@@ -252,7 +252,7 @@ namespace Movement.MPC
             // The injected per-ship sampler stream decorrelates ships, the solve counter decorrelates
             // successive solves, and the position hash keeps candidates from repeating when a ship
             // revisits a pose. GenerateCandidatesJob hashes this per candidate; same seed + same inputs
-            // replay the noise. The stream seed is already well-mixed (SeedScope), so no extra spread.
+            // replay the noise.
             solveCount++;
             var baseSeed = SamplerSeedOverride ?? samplerSeed;
             var rngSeed = baseSeed + solveCount * 7919u + (uint)initialState.pos.GetHashCode();

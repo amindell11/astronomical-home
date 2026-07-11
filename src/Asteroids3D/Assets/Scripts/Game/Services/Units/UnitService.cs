@@ -109,18 +109,14 @@ namespace Game.Services
         private int NextDecisionSeed(int team) => DeriveDecisionSeed(team, nextAgentIndex++);
 
         /// <summary>
-        /// Stable per-agent decision seed from the deterministic spawn order, so a reconstructed
-        /// episode replays identically (unlike a <c>GetInstanceID</c>-derived seed). Distinct per
-        /// ship, forced nonzero. <c>arenaBaseSeed</c> is 0 until S1b supplies per-arena seeds.
+        /// Stable per-agent decision seed derived from the deterministic spawn order, so a
+        /// reconstructed episode replays identically (unlike a <c>GetInstanceID</c>-derived seed).
+        /// Distinct per ship, nonzero.
         /// </summary>
         private static int DeriveDecisionSeed(int team, int agentIndex)
         {
-            const uint arenaBaseSeed = 0u;
-            var h = arenaBaseSeed;
-            h = (h ^ (uint)team) * 2654435761u;
-            h = (h ^ (uint)agentIndex) * 2654435761u;
-            h ^= h >> 15;
-            return (int)((h & 0x7FFFFFFFu) | 1u);
+            const int arenaBaseSeed = 0; // 0 until S1b supplies per-arena seeds
+            return new SeedScope(arenaBaseSeed).Derive((uint)team).Derive((uint)agentIndex).ToSeed();
         }
 
         /// <summary>Idempotent world-state wiring; see <see cref="IUnitService.WireShipDependencies"/>.</summary>
