@@ -120,10 +120,12 @@ git checkout main && git pull
 ```
 
 2. Implement requested changes on same slot branch.
-3. Push updates with `revise` (pull/rebase + tests + push):
+3. Push updates with `revise` (pull/rebase + tests + push). Valid `-Mode`
+   values are `Both`/`EditMode`/`PlayMode` (`Smoke` is a `-ScopeType`, not a
+   mode):
 
 ```bash
-./scripts/agent_worktree_pool.sh revise agent-<n> -- -Mode Smoke
+./scripts/agent_worktree_pool.sh revise agent-<n> -- -Mode Both -ScopeType Workspace
 ```
 
 ## Branch naming
