@@ -342,8 +342,8 @@ cmd_prepare() {
   git -C "$path" checkout "$slot"
   git -C "$path" reset --hard "$base"
   git -C "$path" clean -fd
-  # Ignored, so clean leaves it: purge pre-ROOT-anchor leftovers that an old
-  # script copy running inside the worktree could still resolve as live locks.
+  # Ignored, so clean leaves it: purge any worktree-local .worktree-pool so a
+  # stale script copy running inside the worktree can't resolve it as live locks.
   rm -rf "$path/.worktree-pool"
 
   echo "Prepared $slot at $path -> $base"

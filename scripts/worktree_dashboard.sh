@@ -9,7 +9,10 @@ set -euo pipefail
 #   WORKTREE_DASHBOARD_PRS=1     Include open PR URLs via gh.
 #   WORKTREE_DASHBOARD_STATUS=1  Scan each worktree for local file changes.
 
-ROOT="$(git rev-parse --show-toplevel)"
+# Same CWD-invariant anchor as agent_worktree_pool.sh — a --show-toplevel
+# root read from inside an agent-N worktree misses the primary's locks and
+# shows occupied slots as FREE.
+ROOT="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"
 LOCK_ROOT="$ROOT/.worktree-pool/locks"
 SHOW_PRS="${WORKTREE_DASHBOARD_PRS:-0}"
 DO_FETCH="${WORKTREE_DASHBOARD_FETCH:-0}"
