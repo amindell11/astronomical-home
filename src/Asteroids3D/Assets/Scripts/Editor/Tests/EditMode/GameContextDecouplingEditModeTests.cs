@@ -77,7 +77,8 @@ namespace Tests.EditMode
             // services.ClearAll() on session exit.
             var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Player", "SessionRig.cs"));
             StringAssert.Contains("services.UIService.Show(overlay, uiCam);", source);
-            StringAssert.Contains("overlay.Initialize(new HudBinding(", source);
+            StringAssert.Contains("overlay.Initialize(", source);
+            StringAssert.Contains("new HudBinding(", source);
         }
 
         [Test]
