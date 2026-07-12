@@ -5,6 +5,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 POOL="$SCRIPT_DIR/agent_worktree_pool.sh"
+# Via bash: the pool script is tracked non-executable (mode 100644), so direct exec fails on Unix checkouts.
+pool() { bash "$POOL" "$@"; }
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
@@ -57,13 +59,13 @@ git -C "$TMP/primary" push -q origin main
 git -C "$TMP/primary" worktree add -q -b agent-1 "$TMP/agent-1" main
 cd "$TMP/primary"
 
-"$POOL" acquire merge-gate-test agent-1 >/dev/null
+pool acquire merge-gate-test agent-1 >/dev/null
 
 echo change > "$TMP/agent-1/feature.txt"
 git -C "$TMP/agent-1" add feature.txt
 git -C "$TMP/agent-1" commit -qm feature
 
-"$POOL" submit agent-1 origin/main >/dev/null
+pool submit agent-1 origin/main >/dev/null
 [[ "$(runner_runs)" == 1 ]] || fail "submit should run tests once (got $(runner_runs))"
 [[ "$(recorded_tree)" == "$(slot_tree)" ]] || fail "submit should record the tested tree"
 
@@ -73,18 +75,18 @@ git -C "$TMP/primary" commit -qm "base moves"
 git -C "$TMP/primary" push -q origin main
 
 echo 1 > "$RUNNER_EXIT_FILE"
-"$POOL" merge agent-1 >/dev/null 2>&1 && fail "merge must fail when the post-integration test run fails"
+pool merge agent-1 >/dev/null 2>&1 && fail "merge must fail when the post-integration test run fails"
 [[ "$(runner_runs)" == 2 ]] || fail "failed merge attempt should have run tests (got $(runner_runs))"
 [[ "$(gh_merges)" == 0 ]] || fail "failed test run must not reach gh pr merge"
 [[ "$(recorded_tree)" != "$(slot_tree)" ]] || fail "failed run must not record the merged tree as tested"
 
 echo 0 > "$RUNNER_EXIT_FILE"
-"$POOL" merge agent-1 >/dev/null
+pool merge agent-1 >/dev/null
 [[ "$(runner_runs)" == 3 ]] || fail "retry after failed run must re-run tests, not trust the base-merge commit (got $(runner_runs))"
 [[ "$(gh_merges)" == 1 ]] || fail "retry with passing tests should merge (got $(gh_merges))"
 [[ "$(recorded_tree)" == "$(slot_tree)" ]] || fail "passing run should record the merged tree"
 
-"$POOL" merge agent-1 >/dev/null
+pool merge agent-1 >/dev/null
 [[ "$(runner_runs)" == 3 ]] || fail "proven tree should skip the re-run (got $(runner_runs))"
 [[ "$(gh_merges)" == 2 ]] || fail "fast path should still merge (got $(gh_merges))"
 
