@@ -259,31 +259,28 @@ namespace Movement.MPC
                 ? new float2(intent.target.kinematics.pos.x, intent.target.kinematics.pos.y)
                 : default;
 
-            // VelocityReference is driven by a commanded velocity, not a destination — it arms
-            // the tracker directly and sets no waypoint (see ShouldIdle). Every other mode is
-            // waypoint-anchored.
-            if (intent.goalMode == GoalMode.VelocityReference)
+            switch (intent.goalMode)
             {
-                SetVelocityReference(intent.velocityReference);
+                case GoalMode.VelocityReference:
+                    SetVelocityReference(intent.velocityReference);
+                    break;
+                case GoalMode.MaintainRange:
+                    SetGoalMaintainRange(intent.desiredRange, intent.rangeTolerance);
+                    break;
+                case GoalMode.Flee:
+                    SetGoalFlee();
+                    break;
+                case GoalMode.Waypoint:
+                default:
+                    ClearGoalMode();
+                    break;
             }
-            else
-            {
-                switch (intent.goalMode)
-                {
-                    case GoalMode.MaintainRange:
-                        SetGoalMaintainRange(intent.desiredRange, intent.rangeTolerance);
-                        break;
-                    case GoalMode.Flee:
-                        SetGoalFlee();
-                        break;
-                    case GoalMode.Waypoint:
-                    default:
-                        ClearGoalMode();
-                        break;
-                }
 
+            // VelocityReference is driven by a commanded velocity, not a destination, so it sets
+            // no waypoint (SetVelocityReference clears it; ShouldIdle keys off the arm flag).
+            // Every other mode is waypoint-anchored.
+            if (intent.goalMode != GoalMode.VelocityReference)
                 SetNavigationPoint(intent.goalPosition, true, intent.goalVelocity);
-            }
 
             if (intent.applyTacticalCosts && intent.hasTarget)
                 SetEnemyState(intent.target, intent.projectileSpeed);
