@@ -1,19 +1,19 @@
-#if UNITY_EDITOR
 using Combat.Conditions;
 using UnityEditor;
 using UnityEngine;
 
 namespace Combat.Targeting
 {
-    public partial class LockOnSensor
+    internal static class LockOnSensorGizmos
     {
-        private void OnDrawGizmos()
+        [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected, typeof(LockOnSensor))]
+        private static void Draw(LockOnSensor sensor, GizmoType gizmoType)
         {
-            if (!firePoint) return;
-            var origin = firePoint.position;
-            var forward = firePoint.up;
+            if (!sensor.firePoint) return;
+            var origin = sensor.firePoint.position;
+            var forward = sensor.firePoint.up;
 
-            var stateColor = State switch
+            var stateColor = sensor.State switch
             {
                 LockState.Idle => Color.white,
                 LockState.Locking => Color.yellow,
@@ -22,28 +22,28 @@ namespace Combat.Targeting
                 _ => Color.gray
             };
 
-            DrawSensorCone(origin, forward, stateColor);
+            DrawSensorCone(sensor, origin, forward, stateColor);
 
             Gizmos.color = new Color(stateColor.r, stateColor.g, stateColor.b, 0.3f);
-            Gizmos.DrawWireSphere(origin, maxLockDistance);
+            Gizmos.DrawWireSphere(origin, sensor.maxLockDistance);
 
             Gizmos.color = stateColor;
-            Gizmos.DrawRay(origin, forward * maxLockDistance);
+            Gizmos.DrawRay(origin, forward * sensor.maxLockDistance);
 
-            if (CurrentTarget != null && CurrentTarget.TargetPoint != null)
+            if (sensor.CurrentTarget != null && sensor.CurrentTarget.TargetPoint != null)
             {
-                var targetPos = CurrentTarget.TargetPoint.position;
-            
+                var targetPos = sensor.CurrentTarget.TargetPoint.position;
+
                 Gizmos.color = stateColor;
                 Gizmos.DrawLine(origin, targetPos);
-            
-                Gizmos.color = State == LockState.Locked ? Color.green : Color.red;
+
+                Gizmos.color = sensor.State == LockState.Locked ? Color.green : Color.red;
                 Gizmos.DrawWireSphere(targetPos, 1f);
             }
 
-            if (State == LockState.Locking)
+            if (sensor.State == LockState.Locking)
             {
-                var progress = LockProgress;
+                var progress = sensor.LockProgress;
                 Gizmos.color = Color.Lerp(Color.red, Color.green, progress);
 
                 const int segments = 16;
@@ -59,24 +59,23 @@ namespace Combat.Targeting
                     Gizmos.DrawLine(p1, p2);
                 }
             }
-            
+
             var cooldownRemaining = 0f;
-            if (weapon)
+            if (sensor.weapon)
             {
-                var cooldown = weapon.GetComponent<Cooldown>();
+                var cooldown = sensor.weapon.GetComponent<Cooldown>();
                 if (cooldown)
-                {
                     cooldownRemaining = cooldown.CooldownRemaining;
-                }
             }
 
             Handles.color = stateColor;
-            Handles.Label(origin + Vector3.up * 3f, $"Targeting: {State}\nLock: {LockProgress:P0}\nCooldown: {cooldownRemaining:F1}s");
+            Handles.Label(origin + Vector3.up * 3f,
+                $"Targeting: {sensor.State}\nLock: {sensor.LockProgress:P0}\nCooldown: {cooldownRemaining:F1}s");
         }
 
-        private void DrawSensorCone(Vector3 origin, Vector3 forward, Color color)
+        private static void DrawSensorCone(LockOnSensor sensor, Vector3 origin, Vector3 forward, Color color)
         {
-            var halfAngle = lockOnConeAngle / 2f;
+            var halfAngle = sensor.lockOnConeAngle / 2f;
             var planeNormal = Game.GamePlane.Normal;
 
             Gizmos.color = new Color(color.r, color.g, color.b, 0.1f);
@@ -84,8 +83,8 @@ namespace Combat.Targeting
             var leftDir = Quaternion.AngleAxis(-halfAngle, planeNormal) * forward;
             var rightDir = Quaternion.AngleAxis(halfAngle, planeNormal) * forward;
 
-            Gizmos.DrawRay(origin, leftDir * maxLockDistance);
-            Gizmos.DrawRay(origin, rightDir * maxLockDistance);
+            Gizmos.DrawRay(origin, leftDir * sensor.maxLockDistance);
+            Gizmos.DrawRay(origin, rightDir * sensor.maxLockDistance);
 
             const float degreesBetweenRays = 5f;
             var raysPerSide = Mathf.FloorToInt(halfAngle / degreesBetweenRays);
@@ -96,10 +95,9 @@ namespace Combat.Targeting
                 var leftRay = Quaternion.AngleAxis(-angle, planeNormal) * forward;
                 var rightRay = Quaternion.AngleAxis(angle, planeNormal) * forward;
 
-                Gizmos.DrawRay(origin, leftRay * maxLockDistance);
-                Gizmos.DrawRay(origin, rightRay * maxLockDistance);
+                Gizmos.DrawRay(origin, leftRay * sensor.maxLockDistance);
+                Gizmos.DrawRay(origin, rightRay * sensor.maxLockDistance);
             }
         }
     }
 }
-#endif

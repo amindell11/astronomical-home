@@ -7,17 +7,17 @@ using Utils;
 
 namespace Combat.Targeting
 {
-    public partial class LockOnSensor : MonoBehaviour, ILockStateSource, ILockProvider
+    public class LockOnSensor : MonoBehaviour, ILockStateSource, ILockProvider
     {
         [Header("Lock-On Settings")]
-        [SerializeField] private float lockOnConeAngle = 30f;
+        [SerializeField] internal float lockOnConeAngle = 30f;
         [SerializeField] private float lockOnTime = 0.6f;
         [SerializeField] private float lockExpiry = 3f;
-        [SerializeField] private float maxLockDistance = 100f;
+        [SerializeField] internal float maxLockDistance = 100f;
         [SerializeField] private float scanInterval = 0.1f;
 
-        [SerializeField] private Transform firePoint;
-        [SerializeField] private WeaponBase<Missile> weapon;
+        [SerializeField] internal Transform firePoint;
+        [SerializeField] internal WeaponBase<Missile> weapon;
 
         private TargetLock targetLock;
         private Sensors.FanSensor sensor;
