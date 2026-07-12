@@ -95,7 +95,7 @@ reload. The trap only bites the in-Editor MCP `run_tests` path.
 | # | Failure mode | Root cause | Status |
 |---|---|---|---|
 | D1 | `HangarShipSwapPlayModeTests` (3) fail in batch, pass in-Editor | `-nographics` URP render loop can't create camera RTs (`RenderTexture.Create failed`); NUnit treats the logged error as failure | **Quarantined (#95)** |
-| D2 | Interactive editor blocks batch verification | Unity access is machine-wide; the coordinator queues the request and classifies an untracked main editor as user-owned | By design; ask the user to close it |
+| D2 | Interactive editor blocks batch verification | For batch requests the coordinator now blocks only on same-project untracked editors and on any untracked batch process — a cross-project interactive editor doesn't contend (lockfile/Library are per-project; D6's deadlocks were concurrent batch startups). Editor-mode requests keep the machine-wide rule | Relaxed; same-project editor: ask the user to close it |
 | D3 | `FullLoop_NoEnemy_PatrolStateSelected` cited as a blocker | Actually already `[Ignore]`d in code — not a live blocker; the memory note was stale | Resolved (verify before citing) |
 | D4 | GamePlane test order-dependent flaky | A leaked **pooled** `ProjectileBase` from an earlier combat test ticks during an unconfigured frame | Fixed (#60) |
 | D4b | *Failed fix — do not retry* | Destroying leaked projectiles in `SetUp` breaks the pool ⇒ `MissingReferenceException` in later weapon tests | Documented dead-end |
