@@ -14,3 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayName: Default Sector
   difficultySeed: 0
+  locale:
+    sceneName: BasicWorld
+    scenePath: Assets/Scenes/BasicWorld.unity
+    sceneAsset: {fileID: 102900000, guid: c6769c60dab772245bb6b149cda4f81b, type: 3}

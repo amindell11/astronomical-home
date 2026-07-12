@@ -107,8 +107,9 @@ namespace Tests.EditMode
             var type = typeof(IEnvironmentService);
             Assert.IsNotNull(type.GetProperty("World"), "Missing World");
             Assert.IsNotNull(type.GetProperty("WorldFollowerTransform"), "Missing WorldFollowerTransform");
-            Assert.IsNotNull(type.GetMethod("LoadSceneAsync"), "Missing LoadSceneAsync");
-            Assert.IsNotNull(type.GetMethod("UnloadSceneAsync"), "Missing UnloadSceneAsync");
+            Assert.IsNotNull(type.GetMethod("ApplyLocaleAsync"), "Missing ApplyLocaleAsync");
+            Assert.IsNotNull(type.GetMethod("RestoreBootEnvironmentAsync"), "Missing RestoreBootEnvironmentAsync");
+            Assert.IsNotNull(type.GetMethod("HomeToStableScene"), "Missing HomeToStableScene");
             Assert.IsNotNull(type.GetMethod("SpawnWorld"), "Missing SpawnWorld");
             Assert.IsNotNull(type.GetMethod("Clear"), "Missing Clear");
         }

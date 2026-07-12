@@ -65,8 +65,6 @@ namespace Tools.Editor
                 var spawners = so.FindProperty("spawners");
                 spawners.arraySize = 1;
                 spawners.GetArrayElementAtIndex(0).objectReferenceValue = fieldSpawner;
-                so.FindProperty("sceneName").stringValue = "BasicWorld";
-                so.FindProperty("loadScene").boolValue = false;
 
                 // ── Benchmark module ──
                 var module = root.AddComponent<ChaseBenchmarkModule>();

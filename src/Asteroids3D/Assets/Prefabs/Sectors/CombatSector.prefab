@@ -69,8 +69,6 @@ MonoBehaviour:
   - {fileID: 6809616338952782429}
   modules:
   - {fileID: 8099642933775748658}
-  sceneName: BasicWorld
-  loadScene: 1
 --- !u!1001 &1647443509423964513
 PrefabInstance:
   m_ObjectHideFlags: 0

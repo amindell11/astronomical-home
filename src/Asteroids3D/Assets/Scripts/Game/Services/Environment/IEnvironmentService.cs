@@ -6,25 +6,27 @@ namespace Game.Services
 {
     public interface IEnvironmentService
     {
-        /// <summary>Currently active world root, if any.</summary>
         WorldRoot World { get; }
-
-        /// <summary>World follower transform for camera/respawn anchoring.</summary>
         Transform WorldFollowerTransform { get; }
 
-        /// <summary>Load a scene additively. Yields until complete.</summary>
-        IEnumerator LoadSceneAsync(string sceneName);
+        /// <summary>
+        /// Make <paramref name="localeSceneName"/> the active (lighting) scene, loading it additively
+        /// first and unloading any previously-applied locale. No-op when the name is empty (inherit
+        /// boot lighting) or already the active locale.
+        /// </summary>
+        IEnumerator ApplyLocaleAsync(string localeSceneName);
 
-        /// <summary>Unload a previously session-loaded scene. Yields until complete.</summary>
-        IEnumerator UnloadSceneAsync(string sceneName);
+        /// <summary>Restore the boot scene as active and unload the applied locale, if any.</summary>
+        IEnumerator RestoreBootEnvironmentAsync();
 
-        /// <summary>Instantiate a WorldRoot prefab.</summary>
+        /// <summary>
+        /// Move a root object into the stable boot scene so the active-locale scene never captures it —
+        /// a controller destroyed by a locale unload would kill its own coroutine.
+        /// </summary>
+        void HomeToStableScene(GameObject go);
+
         void SpawnWorld(WorldRoot prefab);
-
-        /// <summary>Take ownership of an already-instantiated WorldRoot (authored as a sector child).</summary>
         void AdoptWorld(WorldRoot existing);
-
-        /// <summary>Destroy world and clear tracked state. Does NOT unload scenes.</summary>
         void Clear();
     }
 }

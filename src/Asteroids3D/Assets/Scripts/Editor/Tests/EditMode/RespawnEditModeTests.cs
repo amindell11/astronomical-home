@@ -26,8 +26,9 @@ namespace Tests.EditMode
             public Transform follower;
             public WorldRoot World => null;
             public Transform WorldFollowerTransform => follower;
-            public IEnumerator LoadSceneAsync(string sceneName) { yield break; }
-            public IEnumerator UnloadSceneAsync(string sceneName) { yield break; }
+            public IEnumerator ApplyLocaleAsync(string localeSceneName) { yield break; }
+            public IEnumerator RestoreBootEnvironmentAsync() { yield break; }
+            public void HomeToStableScene(GameObject go) { }
             public void SpawnWorld(WorldRoot prefab) { }
             public void AdoptWorld(WorldRoot existing) { }
             public void Clear() { }

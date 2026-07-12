@@ -122,7 +122,6 @@ namespace Tests.PlayMode
             // so authored ship children do not Awake/FixedUpdate before adoption initialises them.
             go.SetActive(false);
             var sector = go.AddComponent<TestSector>();
-            sector.SetLoadScene(false); // don't load a world scene in tests
             sector.Initialize(_services, _config, null);
             return sector;
         }
@@ -134,7 +133,6 @@ namespace Tests.PlayMode
             var go = TrackGO(new GameObject("BareSector"));
             go.SetActive(false);
             var sector = go.AddComponent<Sector>();
-            sector.SetLoadScene(false); // don't load a world scene in tests
             sector.Initialize(_services, _config, null);
             return sector;
         }
@@ -444,7 +442,6 @@ namespace Tests.PlayMode
         {
             var go = TrackGO(new GameObject("EncounterSector"));
             var sector = go.AddComponent<EncounterTestSector>();
-            sector.SetLoadScene(false); // don't load a world scene in tests
             sector.Initialize(_services, _config, player);
             return sector;
         }
