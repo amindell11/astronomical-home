@@ -20,6 +20,7 @@ function Invoke-Coordinator {
         [string]$Lease = "",
         [string]$Slot = "agent-1",
         [string]$Mode = "batch",
+        [string]$ProjectPath = "",
         [int]$TicketTtlSeconds = 900
     )
     $arguments = @(
@@ -31,6 +32,7 @@ function Invoke-Coordinator {
         "-Json"
     )
     if (-not [string]::IsNullOrWhiteSpace($Lease)) { $arguments += @("-Lease", $Lease, "-Slot", $Slot, "-Mode", $Mode) }
+    if (-not [string]::IsNullOrWhiteSpace($ProjectPath)) { $arguments += @("-ProjectPath", $ProjectPath) }
     $output = @(& powershell @arguments 2>&1)
     $code = $LASTEXITCODE
     $jsonLine = @($output | Where-Object { [string]$_ -match '^\s*[\{\[]' } | Select-Object -Last 1)
@@ -84,19 +86,36 @@ try {
     $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
     $commonGit = (& git -C $repoRoot rev-parse --path-format=absolute --git-common-dir | Select-Object -First 1)
     $mainProject = Join-Path (Split-Path -Parent $commonGit) "src\Asteroids3D"
+    $agentProject = Join-Path $repoRoot "src\Asteroids3D"
+
     Write-Snapshot @([ordered]@{ processId = 41001; commandLine = "Unity.exe -projectPath `"$mainProject`"" })
-    $userBlocked = Invoke-Coordinator -Action Acquire -Lease user-blocked
-    Assert-Equal $userBlocked.code 20 "user editor block exit"
+    $crossProject = Invoke-Coordinator -Action Acquire -Lease cross-project -ProjectPath $agentProject
+    Assert-Equal $crossProject.code 0 "cross-project editor batch exit"
+    Assert-Equal $crossProject.value.status "acquired" "cross-project editor does not block batch"
+    [void](Invoke-Coordinator -Action Release -Lease cross-project)
+
+    $userBlocked = Invoke-Coordinator -Action Acquire -Lease user-blocked -ProjectPath $mainProject
+    Assert-Equal $userBlocked.code 20 "user editor same-project block exit"
     Assert-Equal $userBlocked.value.status "blocked_user_editor" "user editor classification"
     Assert-Equal $userBlocked.value.blockers[0].processId 41001 "user editor pid"
     [void](Invoke-Coordinator -Action Cancel -Lease user-blocked)
 
-    $agentProject = Join-Path $repoRoot "src\Asteroids3D"
-    Write-Snapshot @([ordered]@{ processId = 41002; commandLine = "Unity.exe -projectPath `"$agentProject`"" })
-    $unmanaged = Invoke-Coordinator -Action Acquire -Lease unmanaged
-    Assert-Equal $unmanaged.code 21 "unmanaged editor exit"
-    Assert-Equal $unmanaged.value.status "blocked_unmanaged_unity" "unmanaged editor classification"
+    $editorStrict = Invoke-Coordinator -Action Acquire -Lease editor-strict -Mode editor -ProjectPath $agentProject
+    Assert-Equal $editorStrict.code 20 "editor-mode request keeps machine-wide block"
+    Assert-Equal $editorStrict.value.status "blocked_user_editor" "editor-mode block classification"
+    [void](Invoke-Coordinator -Action Cancel -Lease editor-strict)
+
+    Write-Snapshot @([ordered]@{ processId = 41002; commandLine = "Unity.exe -batchMode -projectPath `"$mainProject`"" })
+    $unmanaged = Invoke-Coordinator -Action Acquire -Lease unmanaged -ProjectPath $agentProject
+    Assert-Equal $unmanaged.code 21 "unmanaged batch process exit"
+    Assert-Equal $unmanaged.value.status "blocked_unmanaged_unity" "cross-project batch process still blocks"
     [void](Invoke-Coordinator -Action Cancel -Lease unmanaged)
+
+    Write-Snapshot @([ordered]@{ processId = 41005; commandLine = "Unity.exe -projectPath `"$agentProject`"" })
+    $sameProject = Invoke-Coordinator -Action Acquire -Lease same-project -ProjectPath $agentProject
+    Assert-Equal $sameProject.code 21 "same-project editor exit"
+    Assert-Equal $sameProject.value.status "blocked_unmanaged_unity" "editor on the requested project blocks batch"
+    [void](Invoke-Coordinator -Action Cancel -Lease same-project)
 
     Write-Snapshot @()
     [void](Invoke-Coordinator -Action Request -Lease stale -TicketTtlSeconds 1)
