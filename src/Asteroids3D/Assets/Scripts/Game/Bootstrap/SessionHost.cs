@@ -90,7 +90,8 @@ namespace Game.Bootstrap
             // Environment: make the sector's locale the active (lighting) scene before content builds.
             // Skipped headless (no presentation) and no-op when the locale is unassigned or unchanged.
             if (target.Profile.presentation)
-                yield return target.Services.EnvironmentService.ApplyLocaleAsync(LocaleSceneName(entry));
+                yield return target.Services.EnvironmentService.ApplyLocaleAsync(
+                    entry.config ? entry.config.Locale?.SceneName : null);
 
             // Instantiate the sector subtree under an inactive holder so authored content children
             // do not Awake until services exist and adoption has wired each object. Setup runs
@@ -121,12 +122,6 @@ namespace Game.Bootstrap
             if (target.Profile.presentation)
                 target.Services.EnvironmentService.HomeToStableScene(sector.gameObject);
             Destroy(holder);
-        }
-
-        private static string LocaleSceneName(SectorEntry entry)
-        {
-            var locale = entry.config ? entry.config.Locale : null;
-            return locale != null && locale.IsAssigned ? locale.SceneName : null;
         }
 
         /// <summary>

@@ -19,7 +19,6 @@ namespace Game.Sectors.Inspectors
 
             var assetProp = property.FindPropertyRelative("sceneAsset");
             var nameProp = property.FindPropertyRelative("sceneName");
-            var pathProp = property.FindPropertyRelative("scenePath");
 
             var line = new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight);
             EditorGUI.PropertyField(line, assetProp, label);
@@ -28,7 +27,6 @@ namespace Game.Sectors.Inspectors
             var path = asset ? AssetDatabase.GetAssetPath(asset) : string.Empty;
             var sceneName = asset ? Path.GetFileNameWithoutExtension(path) : string.Empty;
             if (nameProp.stringValue != sceneName) nameProp.stringValue = sceneName;
-            if (pathProp.stringValue != path) pathProp.stringValue = path;
 
             if (asset && !InEnabledBuildSettings(path))
             {

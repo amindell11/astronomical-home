@@ -15,13 +15,10 @@ namespace Game.Sectors
     public class SceneReference
     {
         [SerializeField] private string sceneName;
-        [SerializeField] private string scenePath;
 #if UNITY_EDITOR
         [SerializeField] private SceneAsset sceneAsset;
 #endif
 
         public string SceneName => sceneName;
-        public string ScenePath => scenePath;
-        public bool IsAssigned => !string.IsNullOrEmpty(sceneName);
     }
 }

@@ -29,7 +29,8 @@ namespace Game.Services
             if (!string.IsNullOrEmpty(loadedLocaleName))
                 yield return UnloadLocaleAsync(loadedLocaleName);
 
-            if (!SceneManager.GetSceneByName(localeSceneName).isLoaded)
+            var scene = SceneManager.GetSceneByName(localeSceneName);
+            if (!scene.isLoaded)
             {
                 var loadOp = SceneManager.LoadSceneAsync(localeSceneName, LoadSceneMode.Additive);
                 if (loadOp == null)
@@ -39,16 +40,12 @@ namespace Game.Services
 
                 while (!loadOp.isDone)
                     yield return null;
+
+                scene = SceneManager.GetSceneByName(localeSceneName);
             }
 
-            var scene = SceneManager.GetSceneByName(localeSceneName);
             if (scene.isLoaded)
-            {
-                SceneManager.SetActiveScene(scene);
-                // SetActiveScene switches RenderSettings but does not recompute the skybox-derived
-                // ambient/reflection probe; refresh it so hulls light against the new locale's sky.
-                DynamicGI.UpdateEnvironment();
-            }
+                MakeActive(scene);
             loadedLocaleName = localeSceneName;
         }
 
@@ -60,10 +57,7 @@ namespace Game.Services
             // Restore the boot scene as active before unloading the locale so RenderSettings never
             // resolve against a scene that is going away this frame.
             if (bootScene.IsValid() && bootScene.isLoaded)
-            {
-                SceneManager.SetActiveScene(bootScene);
-                DynamicGI.UpdateEnvironment();
-            }
+                MakeActive(bootScene);
 
             yield return UnloadLocaleAsync(loadedLocaleName);
             loadedLocaleName = null;
@@ -94,6 +88,14 @@ namespace Game.Services
             if (!World) return;
             UnityEngine.Object.Destroy(World.gameObject);
             World = null;
+        }
+
+        // SetActiveScene switches RenderSettings but does not recompute the skybox-derived
+        // ambient/reflection probe; refresh it so hulls light against the newly-active sky.
+        private static void MakeActive(Scene scene)
+        {
+            SceneManager.SetActiveScene(scene);
+            DynamicGI.UpdateEnvironment();
         }
 
         private static IEnumerator UnloadLocaleAsync(string sceneName)
