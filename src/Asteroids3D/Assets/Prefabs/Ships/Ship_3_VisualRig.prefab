@@ -460,23 +460,3 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 5675994510712704903}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &2374450310068230919
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3265014446781054538}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5c7f1d5a3e1e486abec74ce5bb7c4d16, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  logEnable: 1
-  logDisable: 1
-  logStackTrace: 1
-  logUpdate: 0
-  customLabel: LockOnUI
-  enableCount: 0
-  disableCount: 0
-  isCurrentlyEnabled: 0
