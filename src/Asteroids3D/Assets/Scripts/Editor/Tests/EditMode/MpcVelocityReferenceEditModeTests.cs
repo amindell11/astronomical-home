@@ -55,7 +55,7 @@ namespace Tests.EditMode
         public void VelocityReference_IgnoredByPositionGoalModes()
         {
             // In a position-goal mode the objective dispatches to the position bundle, so the
-            // commanded velocity must not touch the cost — the legacy modes stay byte-identical.
+            // commanded velocity must not touch the cost.
             var cfg = new Config
             {
                 dt = 0.1f, invDt = 10f, horizon = 17,

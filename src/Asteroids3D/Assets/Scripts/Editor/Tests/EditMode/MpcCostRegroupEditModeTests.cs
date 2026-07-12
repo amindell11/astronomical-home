@@ -8,12 +8,11 @@ using UnityEngine;
 namespace Tests.EditMode
 {
     /// <summary>
-    /// Guards the PR-0 cost regroup: <see cref="Cost.Evaluate"/> was reorganized into
-    /// Objective / Aim / Tactical / regularizer groups behind a <c>tacticalEnabled</c> toggle,
-    /// with no math change to the scripted path. These pin (a) Evaluate against the per-term
-    /// inspector breakdown so the two can't drift, and (b) that disabling tactics drops exactly
-    /// the authored-tactics block (LOS/exposure/tangential/miss-distance) and nothing else —
-    /// aim, objective, and feasibility stay put.
+    /// Pins the <see cref="Cost.Evaluate"/> grouping (Objective / Aim / Tactical / regularizers
+    /// behind a <c>tacticalEnabled</c> toggle): (a) Evaluate must equal the per-term inspector
+    /// breakdown so the two can't drift, and (b) disabling tactics must drop exactly the
+    /// authored-tactics block (LOS / exposure / tangential / miss-distance) and nothing else —
+    /// aim, objective, and the state regularizers stay put.
     /// </summary>
     [Category("MPC")]
     public class MpcCostRegroupEditModeTests
