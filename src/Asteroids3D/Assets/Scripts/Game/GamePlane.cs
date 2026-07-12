@@ -36,10 +36,12 @@ namespace Game
                     normal = Vector3.down;    forward = Vector3.forward; right = Vector3.right;
                     constraint = RigidbodyConstraints.FreezePositionY;
                     break;
-                default:
+                case PlaneAxis.Z:
                     normal = Vector3.forward; forward = Vector3.up;      right = Vector3.right;
                     constraint = RigidbodyConstraints.FreezePositionZ;
                     break;
+                default:
+                    throw new System.ArgumentOutOfRangeException(nameof(axis), axis, "Unknown PlaneAxis");
             }
 
             Normal  = normal;

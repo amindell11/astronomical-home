@@ -264,7 +264,7 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
     public IEnumerator AttackState_NavigatorTargetsEnemyPosition()
     {
         var (_, cmdrA) = CreateAIShip(Vector3.zero, team: 0);
-        var (shipB, _) = CreateAIShip(new Vector3(20f, 0f, 20f), team: 1);
+        var (shipB, _) = CreateAIShip(GamePlane.PlanePointToWorld(new Vector2(20f, 20f)), team: 1);
 
         InitializeWithStates(cmdrA,
             CreateState(CreateAttackProfile(), cmdrA),
@@ -379,8 +379,8 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
     public IEnumerator Assessment_ReflectsEnemyCount()
     {
         var (_, cmdrA) = CreateAIShip(Vector3.zero, team: 0);
-        CreateAIShip(new Vector3(12f, 0f, 0f), team: 1);
-        CreateAIShip(new Vector3(0f, 0f, 12f), team: 1);
+        CreateAIShip(GamePlane.PlanePointToWorld(new Vector2(12f, 0f)), team: 1);
+        CreateAIShip(GamePlane.PlanePointToWorld(new Vector2(0f, 12f)), team: 1);
 
         yield return AsyncAssert.WaitUntil(
             () => cmdrA.UtilityChooser.Context != null &&

@@ -164,8 +164,8 @@ namespace Tests.PlayMode
             weapon.transform.root.position = new Vector3(2f, 0f, 0f);
 
             var origin = Vector3.zero;
-            var near = CreateTarget(origin + new Vector3(0f, 0f, 3f), "NearTarget");
-            var far = CreateTarget(origin + new Vector3(0f, 0f, 9f), "FarTarget");
+            var near = CreateTarget(origin + GamePlane.PlaneDirToWorld(new Vector2(0f, 3f)), "NearTarget");
+            var far = CreateTarget(origin + GamePlane.PlaneDirToWorld(new Vector2(0f, 9f)), "FarTarget");
 
             var grenade = weapon.Fire() as Grenade;
             grenade.transform.position = origin;
@@ -196,7 +196,7 @@ namespace Tests.PlayMode
             first.transform.position = Vector3.zero;
             weapon.Reset();
             var second = weapon.Fire() as Grenade;
-            second.transform.position = new Vector3(0f, 0f, 4f);
+            second.transform.position = GamePlane.PlanePointToWorld(new Vector2(0f, 4f));
             second.Configure(fuseSeconds: 999f, armingSeconds: 0f);
 
             first.TakeDamage(1f, 0.1f, Vector3.zero, Vector3.zero, null);
@@ -225,7 +225,7 @@ namespace Tests.PlayMode
                 var angle = i * Mathf.PI * 2f / targetCount;
                 var ring = 2f + i % 8;
                 targets.Add(CreateTarget(
-                    new Vector3(Mathf.Cos(angle) * ring, 0f, Mathf.Sin(angle) * ring), $"SwarmTarget{i}"));
+                    GamePlane.PlanePointToWorld(new Vector2(Mathf.Cos(angle) * ring, Mathf.Sin(angle) * ring)), $"SwarmTarget{i}"));
             }
 
             var grenade = weapon.Fire() as Grenade;
