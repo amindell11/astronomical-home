@@ -109,41 +109,46 @@ namespace Movement.MPC
 
             ObstacleCosts(s, input, cfg, profileScale, out var collisionCost, out var obstacleCost);
 
-            // The active objective. The position-goal family is ramped (terminal goal); the
-            // velocity tracker is per-step and un-ramped, so the receding-horizon controller
-            // tracks the near term instead of only matching v_ref at the horizon end.
+            // The terminal ramp is a crude terminal cost-to-go: it up-weights the terminal STATE
+            // cost to stand in for consequences that land past the finite horizon (end spinning →
+            // keep spinning; end on a collision course → hit it just past H; end far from goal →
+            // still far). Cost-to-go is a function of the state, so every state cost rides the
+            // ramp — the position objective, aim, authored tactics, and the state regularizers
+            // (yaw-rate, obstacle turn-away, momentum).
+            //
+            // Two things sit outside the ramp by principle, not convenience:
+            //   • Control effort is a function of the input u, not the state — a spent input has
+            //     no cost-to-go, so it is per-step.
+            //   • The velocity tracker is a *regulation* objective ("be on v_ref now", executed
+            //     receding-horizon), not a *reaching* one, so it is uniform per-step, not
+            //     terminal-weighted.
             var velocityMode = cfg.goalMode == GoalMode.VelocityReference;
-            var rampedObjective = velocityMode ? 0f : Objective(s, ctx, cfg);
-            var trackCost = velocityMode
-                ? VelocityTrackCost(s.vel, input.velocityReference, cfg.maxSpeedSq) * cfg.wVelTrack
-                : 0f;
-
-            // State cost — grows toward the horizon end via the terminal ramp. Objective (the
-            // one active goal), Aim (intercept-facing, both identities), authored Tactical
-            // (gated off in the velocity-tracker), and the state-shaping regularizers.
-            var stateCost = rampedObjective
+            var stateCost = (velocityMode ? 0f : Objective(s, ctx, cfg))
                 + Aim(s, ctx, cfg)
                 + (cfg.tacticalEnabled ? Tactical(s, ctx, input, cfg, profileScale) : 0f)
-                + Regularizers(s, input, cfg, obstacleCost);
+                + StateRegularizers(s, input, cfg, obstacleCost);
 
-            var total = stateCost + ControlCost(u, prevU, cfg) + trackCost;
+            var perStepCost = ControlCost(u, prevU, cfg)
+                + (velocityMode ? VelocityTrackCost(s.vel, input.velocityReference, cfg.maxSpeedSq) * cfg.wVelTrack : 0f);
 
+            var total = stateCost + perStepCost;
             if (cfg.terminalMultiplier > 0f && cfg.horizon > 1)
             {
                 var t = step / (float)(cfg.horizon - 1);
-                var ramp = math.pow(t, cfg.terminalCurve) * cfg.terminalMultiplier;
-                total += ramp * stateCost;
+                total += math.pow(t, cfg.terminalCurve) * cfg.terminalMultiplier * stateCost;
             }
 
-            // Collision is a fixed, decisive penalty per colliding step — deliberately outside
-            // the terminal ramp so an early hit is punished as hard as a late one.
+            // Collision is a hard constraint, not a soft cost-to-go term — flat across the horizon
+            // (outside the ramp) so an early hit is punished as hard as a late one: never trade
+            // "hit now" for "clean later".
             return total + collisionCost;
         }
 
         /// <summary>
-        /// The objective — the "what to achieve", exactly one active, dispatched on goalMode.
-        /// Ships the position family (waypoint / range-band / flee) today; a future velocity
-        /// branch returns before the position bundle. Ramped.
+        /// The position-family objective (waypoint / range-band / flee): position + velocity
+        /// damping + closing reward + heading. A *reaching* objective and a function of the
+        /// state, so it rides the terminal ramp. The velocity-tracker mode has its own per-step
+        /// (regulation) objective instead — handled in <see cref="Evaluate"/>.
         /// </summary>
         internal static float Objective(State s, in EvalContext ctx, in Config cfg)
         {
@@ -185,19 +190,24 @@ namespace Movement.MPC
         }
 
         /// <summary>
-        /// State-shaping regularizers that ride the terminal ramp with the objective (as in the
-        /// legacy cost): obstacle turn-away, yaw-rate damping, momentum. Always on in both
-        /// identities. Takes the already-resolved <paramref name="obstacleCost"/> from
-        /// <see cref="ObstacleCosts"/> (collision and turn-away are mutually exclusive).
+        /// State regularizers — obstacle turn-away, yaw-rate damping, momentum. Functions of the
+        /// state, so they ride the terminal ramp like the rest of the state cost: their terminal
+        /// value predicts uncaptured post-horizon cost (a collision course, residual spin, drift).
+        /// Always on in both cost identities. Takes the already-resolved
+        /// <paramref name="obstacleCost"/> from <see cref="ObstacleCosts"/> (collision and
+        /// turn-away are mutually exclusive).
         /// </summary>
-        internal static float Regularizers(State s, in CostInput input, in Config cfg, float obstacleCost)
+        internal static float StateRegularizers(State s, in CostInput input, in Config cfg, float obstacleCost)
         {
             var yawRate = YawRateCost(s.yawRate, cfg.maxYawRateSq) * cfg.wYawRate;
             var momentum = cfg.wMomentum > 0f ? MomentumCost(s.vel, input.initialVel) * cfg.wMomentum : 0f;
             return obstacleCost + yawRate + momentum;
         }
 
-        /// <summary>Per-step control effort — effort, boost, smoothness. Never ramped.</summary>
+        /// <summary>
+        /// Control cost — effort, boost, smoothness. Functions of the control input u, not the
+        /// state; a spent input has no cost-to-go, so this is per-step and never ramped.
+        /// </summary>
         internal static float ControlCost(Control u, Control prevU, in Config cfg)
             => EffortCost(u) * cfg.wEffort + u.boost * u.boost * cfg.wBoostEffort + SmoothnessCost(u, prevU, cfg);
 

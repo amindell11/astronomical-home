@@ -181,31 +181,49 @@ it is strictly better. Guarded by a new test: *combat mode, near-and-stopped, do
 
 ## Implementation notes (as-built, PR-0 + PR-1 stacked on one branch)
 
-Two places where the as-built code deviates from the prose above — both to preserve the
-stated intent (behavior-preserving PR-0; un-ramped tracking) against details the plan glossed:
+### The terminal ramp is a cost-to-go over the STATE (resolves the PR-0 grouping)
 
-1. **Terminal-ramp membership (PR-0 §A).** The plan's regrouped ramp target — `Objective +
-   Aim + (tacticalEnabled ? Tactical : 0)` — is **not** byte-identical to the legacy ramp,
-   which multiplied `positionalCost + tacticalCost`, and `positionalCost` *includes* yaw-rate,
-   obstacle turn-away, and momentum. Ramping only Objective+Aim+Tactical would silently drop
-   those three from the ramp near the horizon end → a real behavior change → broken baked
-   tolerances. As-built, `stateCost` (the ramped quantity) is exactly `positionalCost +
-   tacticalCost`, i.e. the four groups plus the state-shaping regularizers (obstacle/yaw-rate/
-   momentum), so the scripted path is numerically identical (modulo float re-association).
-   Feasibility therefore isn't a single ramp-coherent block: its state regularizers ride the
-   ramp; control effort and the fixed collision penalty do not. Whether those regularizers
-   *should* be un-ramped is a legitimate question — but a deliberate, evidence-backed retune,
-   not a "behavior-preserving" refactor. Left as-is; noted under *Deferred*.
+The plan grouped the cost as Objective / Aim / Tactical / **Feasibility** and implied the
+regrouped ramp target is `Objective + Aim + (tacticalEnabled ? Tactical : 0)`. That is **not**
+byte-identical to the legacy ramp (`positionalCost + tacticalCost`) — `positionalCost` also
+includes yaw-rate, obstacle turn-away, and momentum — and, more importantly, "Feasibility" is
+the wrong axis: it lumps always-on regularizers that *split across the ramp* (state regularizers
+ride it; control effort does not). That split is what read as a hack.
 
-2. **Velocity objective lives outside the ramp (PR-1 §B).** The plan says put the velocity
-   branch *inside* `Objective`, and also that `VelocityTrackCost` is *un-ramped*. Those
-   conflict — `Objective` is part of the ramped `stateCost`. As-built, the velocity term is
-   dispatched in `Evaluate` (`goalMode == VelocityReference`) and added to the base total
-   **outside** the ramp, so tracking is uniform per-step (correct for a receding-horizon
-   tracker). `Objective` stays the position-family bundle. Aim + the regularizers remain
-   ramped in velocity mode, matching the scripted path.
+The principled boundary is **state cost vs. control cost**, because the terminal ramp is a crude
+terminal cost-to-go `V(x_H)`, and cost-to-go is by definition a function of the terminal *state*,
+never the control input:
 
-Two smaller as-built choices worth recording:
+- A **state** you are in at H persists past the finite horizon — residual spin keeps spinning, a
+  collision course lands just past H, distance-to-goal stays. Up-weighting terminal *state* cost
+  stands in for that uncaptured future. So **every state cost rides the ramp**: the position
+  objective, aim, authored tactics, and the state regularizers (yaw-rate, obstacle turn-away,
+  momentum).
+- A **control input** `u_k` is spent — there is no "carrying `u_k` past H", so control effort has
+  no cost-to-go and is per-step (un-ramped).
+
+`tacticalEnabled` is an **orthogonal** axis (the RL/scripted identity toggle), *not* the ramp
+axis: `Tactical` is a state cost that also happens to toggle off. Both decompositions coexist —
+the ramped `stateCost` is `Objective + Aim + (tacticalEnabled ? Tactical : 0) + StateRegularizers`.
+
+Two terms sit outside the ramp **by principle**:
+
+- **Collision** — a hard constraint, not a soft cost-to-go term: flat across the horizon so an
+  early hit is punished as hard as a late one (never trade "hit now" for "clean later").
+- **Velocity tracking** — a *regulation* objective ("be on `v_ref` now", executed
+  receding-horizon), not a *reaching* one, so uniform per-step. (The plan put the velocity branch
+  *inside* `Objective` — which is ramped — *and* called it un-ramped, a contradiction; as-built it
+  is dispatched in `Evaluate` and added outside the ramp. `Objective` stays the position-family
+  reaching bundle; aim + regularizers stay ramped in velocity mode.)
+
+Net: the principled rule and the tuned numbers **coincide** — the scripted path is byte-identical
+(modulo float re-association), so no re-tuning. The one term one *could* argue to un-ramp is
+obstacle turn-away (a far rock outweighing an imminent one sounds backwards), but imminent safety
+is carried by the flat collision penalty, so ramping the soft turn-away is defensible
+approach-shaping, not a safety hole. Un-ramping it would be a behavior change on tuned chase nav —
+deliberately not done here.
+
+### Other as-built choices
 
 - **No redundant `hasVelocityReference` flags on `MpcInputs`/`CostInput`.** The plan listed
   them there; in practice the cost dispatches purely on `goalMode == VelocityReference`, and
