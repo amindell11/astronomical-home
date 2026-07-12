@@ -2,6 +2,7 @@ using System;
 using Game.Sectors;
 using Game.Services;
 using Player;
+using Ships;
 
 namespace Game.Bootstrap
 {
@@ -18,7 +19,7 @@ namespace Game.Bootstrap
         public GameServices Services { get; internal set; }
 
         /// <summary>Session-tier player/camera/UI/world rig; null for headless sessions.</summary>
-        public PlayerRig Rig { get; internal set; }
+        public SessionRig Rig { get; internal set; }
 
         /// <summary>The currently loaded sector, if any.</summary>
         public Sector ActiveSector { get; internal set; }
@@ -30,5 +31,13 @@ namespace Game.Bootstrap
         /// reassign while a sector is loaded.
         /// </summary>
         public Action<SectorResult> OnSectorComplete { get; set; }
+
+        /// <summary>
+        /// "Player died" policy hook, set once by the driver before compose (gameplay wires
+        /// respawn/restart; an RL driver wires its terminal condition, or leaves it null). The host
+        /// injects it onto the player at Build — the rig wires it onto <c>Ship.Damage.OnDeath</c>
+        /// synchronously at spawn and re-wires it across a player rebuild; mechanism-only below.
+        /// </summary>
+        public Action<ShipId, ShipId> OnPlayerDeath { get; set; }
     }
 }

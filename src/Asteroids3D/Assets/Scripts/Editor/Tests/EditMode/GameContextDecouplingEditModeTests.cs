@@ -70,14 +70,15 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void PlayerRig_OwnsOverlayLifecycleViaUIService()
+        public void SessionRig_OwnsOverlayLifecycleViaUIService()
         {
-            // The overlay lifecycle moved UP to the session-tier rig (Stage 3): the rig builds it via
-            // UIService and hands it the player's narrow read surfaces (HudBinding), never the Ship.
-            // Teardown is via services.ClearAll() on session exit.
-            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Player", "PlayerRig.cs"));
+            // The overlay lifecycle lives on the session-tier rig: the rig builds it via UIService and
+            // hands it the player's narrow read surfaces (HudBinding), never the Ship. Teardown is via
+            // services.ClearAll() on session exit.
+            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Player", "SessionRig.cs"));
             StringAssert.Contains("services.UIService.Show(overlay, uiCam);", source);
-            StringAssert.Contains("overlay.Initialize(new HudBinding(", source);
+            StringAssert.Contains("overlay.Initialize(", source);
+            StringAssert.Contains("new HudBinding(", source);
         }
 
         [Test]

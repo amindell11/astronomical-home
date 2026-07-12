@@ -12,7 +12,7 @@ namespace Game.Sectors
     /// The single concrete play-sector. Owns manifest content (adopted ships, procedural spawners —
     /// including any asteroid field, which is just another spawner) and behavior modules. The player,
     /// observer camera, UI overlay and world are built once by the session-tier
-    /// <see cref="global::Player.PlayerRig"/> and injected
+    /// <see cref="global::Player.SessionRig"/> and injected
     /// via <see cref="Initialize"/> — the sector references the player, it does not own it.
     /// Combat / Arena / Testbench are prefabs of this class, differing only in their manifest, modules
     /// and producer-owned RespawnPolicies.
