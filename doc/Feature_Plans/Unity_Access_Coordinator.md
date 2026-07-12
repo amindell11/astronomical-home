@@ -49,6 +49,7 @@ Commands return structured JSON when `-Json` is supplied so scripts and agents d
 - `unity_doctor.ps1` reports the tracked owner, queue, and whether a detected main editor is user-owned.
 - `worktree_dashboard.sh` shows the Unity lane owner and queued slots.
 - `TESTING.md`, the Unity tooling postmortem, and the worktree skill document the batch-first and close-on-completion policy.
+- `.claude/skills/unity-access/SKILL.md` gives Claude a task-triggered, low-freedom workflow for status, batch-first use, FIFO waiting, tracked editor startup, blocker handling, and mandatory cleanup.
 
 ## Testing
 
@@ -62,6 +63,8 @@ PowerShell tests use an isolated state root and injected process snapshots to co
 - JSON status shape.
 
 A live smoke test acquires a free worktree, detects the currently open user main editor without closing it, and confirms clean cancellation/release without launching a second Unity process.
+
+The `unity-access` skill is also forward-tested with a fresh Claude CLI session. The probe must acquire or queue a short-lived batch lease without starting Unity, release or cancel it, and prove from final status that it left neither an owner nor a ticket behind.
 
 ## Out of scope
 
