@@ -229,7 +229,7 @@ function Get-Blockers {
     $blockers = @()
     foreach ($process in @(Get-RelevantUnityProcesses)) {
         if ($null -ne $Owner -and [int]$Owner.processId -eq $process.processId) { continue }
-        # For batch requests, an interactive editor on a DIFFERENT project cannot contend (lockfile/Library/caches are per-project; the observed deadlocks were concurrent batch startups — postmortem D6), so only same-project editors block.
+        # For batch requests, an interactive editor on a DIFFERENT project cannot contend (lockfile/Library/caches are per-project; the observed deadlocks were concurrent batch startups - postmortem D6), so only same-project editors block.
         if (-not [string]::IsNullOrWhiteSpace($requested) -and -not $process.batch -and $process.normalizedProjectPath -ne $requested) { continue }
         $kind = "unmanaged_unity"
         if (-not $process.batch -and $process.normalizedProjectPath -eq $mainProject) { $kind = "user_editor" }
@@ -289,7 +289,8 @@ function Try-AcquireAccess {
         return [ordered]@{ status = "waiting"; position = $position; owner = $current }
     }
 
-    $blockers = @(Get-Blockers $null $(if ($Mode -eq "batch") { $ResolvedProject } else { "" }))
+    $batchProject = if ($Mode -eq "batch") { $ResolvedProject } else { "" }
+    $blockers = @(Get-Blockers $null $batchProject)
     if ($blockers.Count -gt 0) {
         $status = if (@($blockers | Where-Object { $_.kind -eq "user_editor" }).Count -gt 0) { "blocked_user_editor" } else { "blocked_unmanaged_unity" }
         return [ordered]@{ status = $status; position = $position; blockers = $blockers }
