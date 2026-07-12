@@ -8,9 +8,11 @@ using System.Reflection;
 using AI;
 using Game;
 using Game.RLHarness;
+using Game.Services;
 using Movement.MPC;
 using NUnit.Framework;
 using Ships;
+using Tests.Common;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -31,6 +33,8 @@ namespace Tests.PlayMode
     public class ManeuverOraclePlayModeTests
     {
         private ShipRegistry registry;
+        private GameObject arenaHost;
+        private ArenaContext arena;
         private readonly List<GameObject> createdObjects = new();
         private readonly List<UnityEngine.Object> createdAssets = new();
         private float savedTimeScale;
@@ -41,6 +45,8 @@ namespace Tests.PlayMode
         {
             AudioListener.pause = true;
             registry = new ShipRegistry();
+            arenaHost = new GameObject("[OracleArena]");
+            arena = TestArena.On(arenaHost, registry);
 
             savedTimeScale = Time.timeScale;
             savedMaxDelta = Time.maximumDeltaTime;
@@ -56,6 +62,8 @@ namespace Tests.PlayMode
 
             registry?.Dispose();
             registry = null;
+            if (arenaHost) UnityEngine.Object.DestroyImmediate(arenaHost);
+            arena = null;
 
             foreach (var go in createdObjects)
                 if (go) UnityEngine.Object.DestroyImmediate(go);
@@ -218,7 +226,7 @@ namespace Tests.PlayMode
             typeof(Brain).GetField("chooser", BindingFlags.NonPublic | BindingFlags.Instance)
                 .SetValue(brain, chooser);
 
-            cmdr.SetRegistry(registry);
+            cmdr.SetArena(arena);
 
             var metrics = new OracleMetrics(cfg);
             var deadline = Time.realtimeSinceStartup + 60f + cfg.duration * 10f;
