@@ -102,7 +102,7 @@ namespace Tests.PlayMode
 
             ChaseBenchmarkModule.PendingConfig = cfg;
 
-            // Mirror MainGameManager.LoadSector: instantiate under an inactive holder so content
+            // Mirror SessionHost.LoadSector: instantiate under an inactive holder so content
             // does not Awake before adoption wires it.
             var holder = new GameObject("SectorLoad") { hideFlags = HideFlags.HideAndDontSave };
             holder.SetActive(false);

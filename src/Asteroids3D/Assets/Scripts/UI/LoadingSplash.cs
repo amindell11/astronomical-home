@@ -5,21 +5,21 @@ namespace UI
 {
     /// <summary>
     /// Full-screen splash canvas covering the non-interactive game states — boot, session compose,
-    /// and sector load/unload. Instantiated once by <see cref="MainGameManager"/> at boot and driven
+    /// and sector load/unload. Instantiated once by <see cref="GameDriver"/> at boot and driven
     /// by its state transitions; the hangar and live-sector states hide it.
     /// </summary>
     [RequireComponent(typeof(Canvas))]
     public class LoadingSplash : MonoBehaviour
     {
         private Canvas canvas;
-        private MainGameManager manager;
+        private GameDriver manager;
 
         private void Awake()
         {
             canvas = GetComponent<Canvas>();
         }
 
-        public void Initialize(MainGameManager manager)
+        public void Initialize(GameDriver manager)
         {
             this.manager = manager;
             manager.OnGameStateChanged += HandleGameStateChanged;
