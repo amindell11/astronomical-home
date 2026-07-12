@@ -117,6 +117,13 @@ namespace Movement.MPC
                  "pre-multi-sphere behaviour). Rocks with ≤1 baked lobe are unaffected either way.")]
         public bool multiSphereObstacles = true;
 
+        [Header("Velocity Reference (feasibility tracker)")]
+        [Tooltip("Weight on the velocity-tracking objective in GoalMode.VelocityReference: " +
+                 "cost = wVelTrack * ‖vel - velocityReference‖² / maxSpeed². Per-step (un-ramped) " +
+                 "so tracking is uniform across the horizon rather than terminal-weighted. Unused " +
+                 "by the position-goal modes.")]
+        public float wVelTrack = 5f;
+
         [Header("Terminal Field (cost-to-go)")]
         [Tooltip("Weight on the per-rollout terminal cost-to-go sample (time-to-go seconds, " +
                  "stage-cost units — keep near 1; under-weighting re-creates horizon myopia). " +
@@ -142,7 +149,6 @@ namespace Movement.MPC
                 dt = rolloutDt,
                 invDt = rolloutDt > 0f ? 1f / rolloutDt : 0f,
                 horizon = Horizon,
-                // Navigation
                 wPos = wPos,
                 wVel = wVel,
                 wClosing = wClosing,
@@ -154,14 +160,12 @@ namespace Movement.MPC
                 positionSaturationDistance = positionSaturationDistance,
                 terminalMultiplier = terminalMultiplier,
                 terminalCurve = terminalCurve,
-                // Control
                 wEffort = wEffort,
                 wSmoothnessThrust = wSmoothnessThrust,
                 wSmoothnessStrafe = wSmoothnessStrafe,
                 wSmoothnessYaw = wSmoothnessYaw,
                 wMomentum = wMomentum,
                 wBoostEffort = wBoostEffort,
-                // Tactical
                 wFacing = wFacing,
                 facingWidth = facingWidth,
                 facingTarget = facingTargetRad,
@@ -170,20 +174,19 @@ namespace Movement.MPC
                 exposureWidth = exposureWidth,
                 wTangential = wTangential,
                 wMissDistance = wMissDistance,
-                // Obstacle
                 wObstacle = wObstacle,
                 collisionPenalty = collisionPenalty,
                 collisionSafetyMargin = collisionSafetyMargin,
-                // Arrival
                 arrivalDistance = arrivalDistance,
                 arrivalDistanceSq = arrivalDistance * arrivalDistance,
                 arrivalVelScale = arrivalVelScale,
                 arrivalYawScale = arrivalYawScale,
-                // Goal
                 goalMode = goalMode,
                 desiredRange = desiredRange,
                 rangeTolerance = rangeTolerance,
-                // Terminal field
+                // The velocity-tracker drops the authored combat tactics (the reward teaches those); position-goal modes keep them.
+                tacticalEnabled = goalMode != GoalMode.VelocityReference,
+                wVelTrack = wVelTrack,
                 wTerminal = wTerminal,
             };
         }

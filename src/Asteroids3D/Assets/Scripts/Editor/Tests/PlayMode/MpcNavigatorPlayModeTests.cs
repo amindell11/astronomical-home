@@ -14,10 +14,7 @@ using AICommander = AI.AICommander;
 namespace Tests.PlayMode
 {
 
-// Closed-loop integration tests: drive the navigator with the public "go here" command
-// (SetNavigationPoint / SetFacingOverride) and assert on the ship's emergent motion.
-// Solver-decision behavior (lead facing, goal-velocity projection, etc.) is covered far
-// more cheaply at the unit level in Tests.EditMode/MpcSolverTests.
+// Closed-loop integration tests: drive the navigator with the public "go here" command and assert on the ship's emergent motion. Solver-decision behavior is covered more cheaply at the unit level in Tests.EditMode/MpcSolverTests.
 [Category("MPC")]
 [Category("Slow")]
 public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
@@ -39,8 +36,7 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
         cmdr = ship.Commander as AICommander;
         mpc  = cmdr.Navigator as Navigator;
 
-        // Navigator.Initialize() is gated on registry != null — supply a stub so all
-        // AI systems (Scout, Navigator, Gunner) are fully initialized before tests run.
+        // Navigator.Initialize() is gated on registry != null — supply a stub so all AI systems are fully initialized before tests run.
         cmdr.SetRegistry(new StubShipRegistry());
         cmdr.Brain.enabled = false;
         // Clear any goal/weight state the utility chooser's first state applied during init.
@@ -68,6 +64,30 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
         Assert.That(cmdr.Navigator.CurrentWaypoint.position,
             Is.EqualTo(new Vector2(10, 10)).Using(new Vector2EqualityComparer(0.01f)));
         yield return null;
+    }
+
+    [UnityTest]
+    [Category("Smoke")]
+    public IEnumerator SetVelocityReference_ShipVelocityTrendsToCommand()
+    {
+        // The velocity-tracker seam: a commanded planar velocity with no waypoint drives a real hull, and ShouldIdle keeps the MPC running without one.
+        var command = new Vector2(0f, 8f); // +Y, along the ship's initial nose
+        mpc.SetVelocityReference(command);
+
+        var rb = ship.GetComponent<Rigidbody>();
+        var deadline = Time.realtimeSinceStartup + NavTimeoutSec;
+        var vel = Vector2.zero;
+        while (Time.realtimeSinceStartup < deadline)
+        {
+            vel = GamePlane.WorldDirToPlane(rb.linearVelocity);
+            if (Vector2.Dot(vel, command.normalized) > 0.6f * command.magnitude) break;
+            yield return new WaitForFixedUpdate();
+        }
+
+        Assert.That(Vector2.Dot(vel, command.normalized), Is.GreaterThan(0.5f * command.magnitude),
+            $"Real ship velocity should trend toward the commanded reference (got {vel}).");
+        Assert.That(vel.y, Is.GreaterThan(Mathf.Abs(vel.x)),
+            "Velocity should track the commanded axis, not drift sideways.");
     }
 
     [UnityTest]
@@ -115,7 +135,6 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
         var deadline = Time.realtimeSinceStartup + 10f;
         while (Time.realtimeSinceStartup < deadline)
         {
-            // Move waypoint in a circle
             float t = Time.time;
             targetPos = new Vector2(Mathf.Cos(t) * 10f, Mathf.Sin(t) * 10f);
             mpc.SetNavigationPoint(targetPos);
@@ -126,8 +145,7 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
         Assert.That(dist, Is.LessThan(16f), "Ship should follow a moving waypoint");
     }
 
-    /// <summary>Feeds a hand-placed obstacle through the B2 seam (obstacles come from the
-    /// session's active obstacle field now — there is no physics scan for primitive colliders).</summary>
+    /// <summary>Feeds a hand-placed obstacle through the obstacle-field seam (there is no physics scan for primitive colliders).</summary>
     private sealed class StubObstacleField : AI.Scanning.IObstacleField
     {
         public Vector3 position;
@@ -187,19 +205,16 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
     [UnityTest]
     public IEnumerator GoalVelocity_ShipLeadsMovingWaypoint()
     {
-        // Waypoint at (15, 0) moving north at 5 units/sec.
-        // Ship should head toward (15, N) where N > 0, i.e. northeast, not due east.
+        // Waypoint at (15,0) moving north at 5 u/s: the ship should head northeast (positive Y), not due east.
         var waypointPos = new Vector2(15f, 0f);
         var waypointVel = new Vector2(0f, 5f);
 
         mpc.SetNavigationPoint(waypointPos, false, waypointVel);
 
-        // Let the ship start moving and observe its heading
         float accumulatedYComponent = 0f;
         int samples = 0;
         var deadline = Time.realtimeSinceStartup + 4f;
 
-        // Wait a moment for the ship to start moving
         for (var i = 0; i < 20; i++)
             yield return new WaitForFixedUpdate();
 
@@ -217,8 +232,6 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
         Assert.That(samples, Is.GreaterThan(10), "Ship should have measurable velocity during test");
 
         var avgYComponent = accumulatedYComponent / samples;
-        // The ship heading should have a positive Y component, indicating it's
-        // leading the target northward, not flying purely east.
         Assert.That(avgYComponent, Is.GreaterThan(0.05f),
             $"Ship velocity should have positive Y component (leading the moving goal). Avg Y: {avgYComponent:F3}");
     }
