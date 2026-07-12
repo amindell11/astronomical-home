@@ -17,22 +17,31 @@ namespace Game.Bootstrap
     /// <see cref="GameSession"/> container; they carry no reset policy and never touch the
     /// process-global <see cref="GamePlane"/>. The <b>interactive gameplay driver</b> — the
     /// coroutine state machine below them — paces the primitives against the frame loop, owns
-    /// GamePlane, and wires the gameplay reset policy (sector complete / player death → restart)
-    /// via <see cref="GameSession.OnSectorComplete"/> and <see cref="PlayerRig.RestartRequested"/>.
-    /// A headless/RL harness drives the same primitives from its own step loop with its own policy.
-    /// Composition inputs (sector entry, rig, policy bools) still live as serialized fields on this
-    /// manager; multi-arena work would move the per-session ones into per-call/session data.
+    /// GamePlane, owns the between-run hangar flow, and wires the gameplay reset policy (sector
+    /// complete / player death → restart) via <see cref="GameSession.OnSectorComplete"/> and
+    /// <see cref="GameSession.OnPlayerDeath"/>. A headless/RL harness drives the same primitives from
+    /// its own step loop with its own policy. Composition inputs (sector entry, rig, policy bools)
+    /// still live as serialized fields on this manager; multi-arena work would move the per-session
+    /// ones into per-call/session data.
     /// </summary>
     [RequireComponent(typeof(ObjectiveService))]
     [RequireComponent(typeof(UnitService))]
     public class MainGameManager : MonoBehaviour
     {
+        /// <summary>
+        /// Session policy for what happens when the persistent player ship dies.
+        /// <see cref="None"/> = nothing, <see cref="RespawnInPlace"/> = revive via
+        /// <see cref="playerRespawn"/>, <see cref="RestartSector"/> = tear down and reload the active
+        /// sector (the rig persists).
+        /// </summary>
+        public enum PlayerDeathBehavior { None, RespawnInPlace, RestartSector }
+
         [Header("Sector")]
         [SerializeField] private SectorEntry currentSector;
 
         [Header("Session Rig")]
         [Tooltip("Session-tier player/camera/UI/world rig. Built once at Start; persists across sector restarts.")]
-        [SerializeField] private PlayerRig playerRig;
+        [SerializeField] private SessionRig playerRig;
 
         [Tooltip("Session policy: when false, no player ship is built (spectator/headless).")]
         [SerializeField] private bool buildPlayer = true;
@@ -54,6 +63,23 @@ namespace Game.Bootstrap
         [Tooltip("Full-screen splash shown over the non-interactive states (boot, session compose, " +
                  "sector load). Optional; skipped when presentation is off (headless/RL).")]
         [SerializeField] private LoadingSplash splashPrefab;
+
+        [Header("Hangar")]
+        [Tooltip("Between-run hangar screen. Null → no interactive hangar (the standing loadout is " +
+                 "applied silently).")]
+        [SerializeField] private HangarScreen hangarScreenPrefab;
+
+        [Tooltip("Modules the hangar offers per slot. Null → no hangar choices (the player flies its " +
+                 "prefab-authored modules).")]
+        [SerializeField] private LoadoutConfig loadoutCatalog;
+
+        [Header("Death Policy")]
+        [Tooltip("What happens when the player ship dies. RestartSector reloads the active sector; " +
+                 "RespawnInPlace revives via playerRespawn; None does nothing.")]
+        [SerializeField] private PlayerDeathBehavior deathBehavior = PlayerDeathBehavior.RestartSector;
+
+        [Tooltip("Used when deathBehavior = RespawnInPlace.")]
+        [SerializeField] private RespawnPolicy playerRespawn;
 
         // Sibling MonoBehaviour services ([RequireComponent]); cached once in Awake — never
         // looked up mid-lifecycle.
@@ -107,11 +133,30 @@ namespace Game.Bootstrap
             if (playerRig)
             {
                 target.Rig = playerRig;
-                yield return playerRig.Build(target.Services, buildPlayer);
+                target.OnPlayerDeath = BuildDeathCallback(target.Services);
+                yield return playerRig.Build(target.Services, buildPlayer, target.OnPlayerDeath);
             }
 
             // Presentation policy (rigs on/off) is applied globally in HandleLoading via
             // GameSettings.SetPresentationEnabled — each ship's embedded rig self-gates on spawn.
+        }
+
+        // Map the owned death policy to the callback the rig wires onto the player at spawn. Null for
+        // None; a restart request for RestartSector; a producer-relative revive for RespawnInPlace.
+        private System.Action<ShipId, ShipId> BuildDeathCallback(IGameServices deathServices)
+        {
+            switch (deathBehavior)
+            {
+                case PlayerDeathBehavior.RestartSector:
+                    return (_, _) => HandleRestartRequested();
+                case PlayerDeathBehavior.RespawnInPlace:
+                    var policy = playerRespawn;
+                    return (victim, _) => deathServices.UnitService.WaitAndRespawnShip(
+                        victim, Respawn.Resolve(policy, deathServices), 0f, policy.delay);
+                case PlayerDeathBehavior.None:
+                default:
+                    return null;
+            }
         }
 
         /// <summary>
@@ -261,13 +306,10 @@ namespace Game.Bootstrap
 
         private IEnumerator HandleStart()
         {
-            // Wire the reset policy BEFORE composing: PlayerRig.Build yields a frame after the
-            // player exists, so a death in that frame (spawn collision, leaked hazard) must
-            // already have a subscriber or the restart request is dropped. Subscribe on the
-            // serialized input — composition hasn't populated session.Rig yet.
+            // The player-death reset is injected via GameSession.OnPlayerDeath, which ComposeSession
+            // builds and the rig wires onto the player synchronously at spawn — so a spawn-frame death
+            // already has a subscriber without any pre-compose subscription dance.
             session.OnSectorComplete = HandleSectorComplete;
-            if (playerRig)
-                playerRig.RestartRequested += HandleRestartRequested;
 
             yield return ComposeSession(session);
 
@@ -277,15 +319,58 @@ namespace Game.Bootstrap
         /// <summary>
         /// Between-run hangar step: show the hangar, let the player pick a loadout, and install it onto
         /// the persistent ship before the sector loads. Runs before every sector — the first launch and
-        /// every restart. The rig runs the interactive screen when there is a player and presentation is
-        /// on; otherwise it applies the standing selection silently (headless/RL never blocks here).
+        /// every restart. Runs the interactive screen when there is a player and presentation is on;
+        /// otherwise it applies the standing selection silently (headless/RL never blocks here).
         /// </summary>
         private IEnumerator HandleHangar()
         {
             if (session.Rig)
-                yield return session.Rig.RunHangar();
+                yield return RunHangar(session);
 
             TransitionTo(GameState.LoadSector);
+        }
+
+        /// <summary>
+        /// Run the between-run hangar: show the screen, wait for the player to Launch, then install the
+        /// chosen loadout via the rig. Skipped (standing selection applied silently) when there is no
+        /// player, no screen, or presentation is off (headless/RL) — so an automated run never blocks
+        /// on a click. Kept callable in isolation so the flow is testable without the state machine.
+        /// </summary>
+        internal IEnumerator RunHangar(GameSession target)
+        {
+            var rig = target.Rig;
+            if (!rig || !rig.Player || rig.Loadout == null || !hangarScreenPrefab
+                || !GameSettings.PresentationEnabled)
+            {
+                if (rig) rig.ApplyLoadout();
+                yield break;
+            }
+
+            var overlay = target.Services.UIService.ActiveOverlay;
+            if (overlay) overlay.SetVisible(false);
+            SetPlayerInputEnabled(rig, false);
+
+            var screen = Instantiate(hangarScreenPrefab);
+            var launched = false;
+            screen.Show(loadoutCatalog, rig.Loadout, () => launched = true);
+
+            yield return new WaitUntil(() => launched);
+
+            rig.ApplyLoadout();
+            Destroy(screen.gameObject);
+
+            // ApplyLoadout may rebuild the player and re-bind the HUD — refs from before it are stale.
+            SetPlayerInputEnabled(rig, true);
+            var activeOverlay = target.Services.UIService.ActiveOverlay;
+            if (activeOverlay) activeOverlay.SetVisible(true);
+        }
+
+        // Fire1 shares mouse 0 with UI clicks, so a hangar button press would fire the ship's
+        // primary weapon; the commander sleeps for the screen's lifetime instead.
+        private static void SetPlayerInputEnabled(SessionRig rig, bool inputEnabled)
+        {
+            if (rig.Player && rig.Player.Commander)
+                rig.Player.Commander.enabled = inputEnabled;
         }
 
         private IEnumerator HandleLoadSector()
@@ -316,10 +401,6 @@ namespace Game.Bootstrap
 
         private IEnumerator ExitRoutine()
         {
-            // Mirror of the HandleStart subscription (same serialized reference).
-            if (playerRig)
-                playerRig.RestartRequested -= HandleRestartRequested;
-
             yield return TeardownSession(session);
             session = null;
 

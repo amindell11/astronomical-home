@@ -16,7 +16,7 @@ namespace Ships
     public class ShipLoadout
     {
         /// <summary>The chosen ship prefab (the chassis/archetype). Changing it is a whole-player
-        /// rebuild, not a data re-resolve — see <c>PlayerRig.ApplyLoadout</c>.</summary>
+        /// rebuild, not a data re-resolve — see <c>SessionRig.ApplyLoadout</c>.</summary>
         public Ship Ship;
 
         public EngineModule Engine;

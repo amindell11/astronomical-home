@@ -19,19 +19,11 @@ namespace Player
     /// UI overlay <b>once</b> at <see cref="GameState.Start"/> and holds them for the whole session.
     /// Sectors are swapped underneath it and reference the player by injection
     /// (<see cref="Sector.Initialize"/>) — they never build or clear the rig. Only session exit tears
-    /// the rig down. This is the code that used to live in <c>PlaySector.OnBeforeContent</c>, lifted up
-    /// a tier so the player persists across sector restarts instead of being rebuilt each load.
+    /// the rig down. Pure mechanism: the rig holds no session policy — the driver injects the
+    /// player-death behavior via <see cref="Build"/> and the rig only wires it onto each player it builds.
     /// </summary>
-    public partial class PlayerRig : MonoBehaviour
+    public partial class SessionRig : MonoBehaviour
     {
-        /// <summary>
-        /// Session policy for what happens when the persistent player ship dies.
-        /// <see cref="None"/> = nothing, <see cref="RespawnInPlace"/> = revive via the rig's
-        /// <see cref="playerRespawn"/>, <see cref="RestartSector"/> = tear down and reload the active
-        /// sector (the rig persists).
-        /// </summary>
-        public enum PlayerDeathBehavior { None, RespawnInPlace, RestartSector }
-
         [Header("Environment")]
         [SerializeField] private WorldRoot worldPrefab;
 
@@ -39,17 +31,6 @@ namespace Player
         [SerializeField] private Ship playerTemplate;
         [SerializeField] private Commander playerCommander;
         [SerializeField] private Vector2 playerSpawnPosition = Vector2.zero;
-
-        [Tooltip("What happens when the player ship dies. RestartSector reloads the active sector; " +
-                 "RespawnInPlace revives via playerRespawn; None does nothing.")]
-        [SerializeField] private PlayerDeathBehavior deathBehavior = PlayerDeathBehavior.RestartSector;
-
-        [Tooltip("Used when deathBehavior = RespawnInPlace.")]
-        [SerializeField] private RespawnPolicy playerRespawn;
-
-        [Tooltip("Modules the hangar offers per slot for the player build. Null → no hangar choices " +
-                 "(the player flies its prefab-authored modules).")]
-        [SerializeField] private LoadoutConfig loadoutCatalog;
 
         [Header("Camera")]
         [SerializeField] private ObserverCam observerCamPrefab;
@@ -59,15 +40,8 @@ namespace Player
         [Header("UI")]
         [SerializeField] private Overlay overlayPrefab;
 
-        [Tooltip("Between-run hangar screen. Null → no interactive hangar (the standing loadout is " +
-                 "applied silently).")]
-        [SerializeField] private HangarScreen hangarScreenPrefab;
-
         /// <summary>The persistent player ship, injected into each sector. Null until <see cref="Build"/>.</summary>
         public Ship Player { get; private set; }
-
-        /// <summary>The modules the hangar can offer per slot. Null when no catalog is configured.</summary>
-        public LoadoutConfig Catalog => loadoutCatalog;
 
         /// <summary>
         /// The player's pending module selection — seeded from the ship's authored build in
@@ -78,15 +52,12 @@ namespace Player
         /// </summary>
         public ShipLoadout Loadout { get; private set; }
 
-        /// <summary>
-        /// Raised when the rig's death policy is <see cref="PlayerDeathBehavior.RestartSector"/> and
-        /// the player ship dies. The rig only declares the request; the session driver decides what
-        /// a restart means.
-        /// </summary>
-        public event System.Action RestartRequested;
-
         // Session services captured at Build so the hangar can rebuild the player between runs.
         private IGameServices services;
+
+        // Driver-supplied player-death behavior, stored at Build and wired onto every player the rig
+        // builds (re-wired across RebuildPlayer). The rig owns no death policy — only this callback.
+        private System.Action<ShipId, ShipId> onPlayerDeath;
 
         // The prefab the current Player instance was built from — a hangar ship change is detected
         // against this (the prefab is the archetype; see ShipLoadout.Ship).
@@ -95,11 +66,15 @@ namespace Player
         /// <summary>
         /// Build the world/player/camera/UI rig into the session services. Called once, before the
         /// first sector loads. Instances are owned by the services (Unit/Camera/UI/Environment) and
-        /// therefore cleared by <c>services.ClearAll()</c> on session exit.
+        /// therefore cleared by <c>services.ClearAll()</c> on session exit. The driver-supplied
+        /// <paramref name="onPlayerDeath"/> is stored and wired onto the player synchronously at spawn
+        /// (before any yield), so a spawn-frame death already has a subscriber.
         /// </summary>
-        public IEnumerator Build(IGameServices services, bool buildPlayer)
+        public IEnumerator Build(IGameServices services, bool buildPlayer,
+            System.Action<ShipId, ShipId> onPlayerDeath)
         {
             this.services = services;
+            this.onPlayerDeath = onPlayerDeath;
 
             // World is singleton infrastructure built before the player/camera, which depend on it.
             if (worldPrefab)
@@ -121,16 +96,17 @@ namespace Player
                 0, playerSpawnPosition, services);
             currentTemplate = playerTemplate;
 
+            WirePlayerDeath();
+
             // Seed the pending loadout from the ship's authored build so an unedited hangar is a no-op.
             Loadout = new ShipLoadout(playerTemplate, Player.Engine, Player.Shield,
                 Player.Weapons ? Player.Weapons.PrimaryMountPrefab : null,
                 Player.Weapons ? Player.Weapons.SecondaryMountPrefab : null);
 
-            WireDeathPolicy();
-
             var observer = services.CameraService.GetCamera<ObserverCam>(CameraTag.Observer);
 
-            if (Player && overlayPrefab && uiCamPrefab)
+            // HUD/UI-cam/minimap are presentation: a headless/RL run builds no Canvas.
+            if (GameSettings.PresentationEnabled && Player && overlayPrefab && uiCamPrefab)
             {
                 var uiCam = Instantiate(uiCamPrefab, observer.transform);
                 uiCam.GetUniversalAdditionalCameraData().renderType = CameraRenderType.Overlay;
@@ -148,7 +124,7 @@ namespace Player
                     overlay.ObjectiveMarker.BindObjectiveService(services.ObjectiveService);
             }
 
-            if (minimapCamPrefab)
+            if (GameSettings.PresentationEnabled && minimapCamPrefab)
             {
                 var minimapCam = Instantiate(minimapCamPrefab, observer.transform);
                 var overlay = services.UIService.ActiveOverlay;
@@ -168,7 +144,7 @@ namespace Player
         public void Teardown()
         {
             TeardownDebugOverlay();
-            UnwireDeathPolicy();
+            UnwirePlayerDeath();
             Player = null;
             services = null;
         }
@@ -205,14 +181,14 @@ namespace Player
         /// <summary>
         /// Replace the persistent player with a fresh build of <paramref name="newTemplate"/>: despawn
         /// the old ship, re-run the standard player build/wiring (registry, camera subject, world
-        /// follower, commander, screen-to-plane), and re-arm the death policy. The caller
+        /// follower, commander, screen-to-plane), and re-wire the injected death callback. The caller
         /// (<see cref="ApplyLoadout"/>) re-binds the HUD after the module equip that follows. Runs
         /// only in the between-run hangar gap, where no sector is loaded — the subsequent
         /// <c>LoadSector</c> injects and positions the new player as usual.
         /// </summary>
         private void RebuildPlayer(Ship newTemplate)
         {
-            UnwireDeathPolicy();
+            UnwirePlayerDeath();
             services.UnitService.DespawnShip(Player);
 
             Player = SectorUtils.BuildAndWirePlayer(
@@ -220,7 +196,7 @@ namespace Player
                 0, playerSpawnPosition, services);
             currentTemplate = newTemplate;
 
-            WireDeathPolicy();
+            WirePlayerDeath();
         }
 
         // The overlay instance persists across player rebuilds and loadout changes; re-Initialize
@@ -234,73 +210,19 @@ namespace Player
                     Player, Player.Damage, Player.Weapons ? Player.Weapons.ReadoutContext : null));
         }
 
-        // Session death policy: revive in place, restart the sector, or do nothing.
-        private void WireDeathPolicy()
+        private void WirePlayerDeath()
         {
-            switch (deathBehavior)
-            {
-                case PlayerDeathBehavior.RespawnInPlace:
-                    Respawn.Wire(Player, playerRespawn, services);
-                    break;
-                case PlayerDeathBehavior.RestartSector:
-                    if (Player && Player.Damage)
-                        Player.Damage.OnDeath += OnPlayerDeath;
-                    break;
-                case PlayerDeathBehavior.None:
-                default:
-                    break;
-            }
+            if (onPlayerDeath != null && Player && Player.Damage)
+                Player.Damage.OnDeath += onPlayerDeath;
         }
 
-        private void UnwireDeathPolicy()
+        private void UnwirePlayerDeath()
         {
-            if (Player && Player.Damage)
-                Player.Damage.OnDeath -= OnPlayerDeath;
+            if (onPlayerDeath != null && Player && Player.Damage)
+                Player.Damage.OnDeath -= onPlayerDeath;
         }
 
-        /// <summary>
-        /// Run the between-run hangar: show the screen, wait for the player to Launch, then install the
-        /// chosen loadout. Skipped (standing selection applied silently) when there is no player, no
-        /// screen, or presentation is off (headless/RL) — so an automated run never blocks on a click.
-        /// </summary>
-        public IEnumerator RunHangar()
-        {
-            if (!Player || Loadout == null || !hangarScreenPrefab || !GameSettings.PresentationEnabled)
-            {
-                ApplyLoadout();
-                yield break;
-            }
-
-            var overlay = services.UIService.ActiveOverlay;
-            if (overlay) overlay.SetVisible(false);
-            SetPlayerInputEnabled(false);
-
-            var screen = Instantiate(hangarScreenPrefab);
-            var launched = false;
-            screen.Show(loadoutCatalog, Loadout, () => launched = true);
-
-            yield return new WaitUntil(() => launched);
-
-            ApplyLoadout();
-            Destroy(screen.gameObject);
-
-            // ApplyLoadout may rebuild the player and re-bind the HUD — refs from before it are stale.
-            SetPlayerInputEnabled(true);
-            var activeOverlay = services.UIService.ActiveOverlay;
-            if (activeOverlay) activeOverlay.SetVisible(true);
-        }
-
-        // Fire1 shares mouse 0 with UI clicks, so a hangar button press would fire the ship's
-        // primary weapon; the commander sleeps for the screen's lifetime instead.
-        private void SetPlayerInputEnabled(bool inputEnabled)
-        {
-            if (Player && Player.Commander)
-                Player.Commander.enabled = inputEnabled;
-        }
-
-        private void OnPlayerDeath(ShipId victimId, ShipId killerId) => RestartRequested?.Invoke();
-
-        // Editor-only debug-overlay installer (PlayerRig.Editor.cs). No-op outside the editor.
+        // Editor-only debug-overlay installer (SessionRig.Editor.cs). No-op outside the editor.
         partial void InitializeDebugOverlay(IGameServices services);
         partial void TeardownDebugOverlay();
     }

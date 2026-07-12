@@ -1,8 +1,11 @@
 #if UNITY_EDITOR
 using System.Collections;
+using System.Reflection;
+using Game.Bootstrap;
 using Game.Services;
 using NUnit.Framework;
 using Player;
+using Ships;
 using Tests.PlayMode.Common;
 using UI;
 using UnityEditor;
@@ -17,15 +20,19 @@ namespace Tests.PlayMode
     /// <summary>
     /// While the hangar screen is open the player's commander must be disabled — Fire1 shares
     /// mouse 0 with UI clicks, so an enabled commander turns every hangar button press into a
-    /// weapon shot on the live ship behind the screen. Launch must restore it.
+    /// weapon shot on the live ship behind the screen. Launch must restore it. The gate now lives
+    /// in the driver's <see cref="MainGameManager.RunHangar"/>, so the flow is driven there.
     /// </summary>
     [Category("RequiresGraphics")]
     public class HangarInputGatePlayModeTests : PlayModeWorldFixture
     {
         private const string RigPrefabPath = "Assets/Prefabs/MiscObjects/PlayerRig.prefab";
+        private const string HangarScreenPath = "Assets/Prefabs/UI/HangarScreen.prefab";
+        private const string CatalogPath = "Assets/Settings/Ships/PlayerLoadout.asset";
 
         private GameObject servicesGo;
-        private PlayerRig rig;
+        private GameObject driverGo;
+        private SessionRig rig;
         private GameServices services;
 
         public override void TearDown()
@@ -36,6 +43,7 @@ namespace Tests.PlayMode
             if (EventSystem.current) DestroyTestObject(EventSystem.current.gameObject);
             if (rig) rig.Teardown();
             services?.ClearAll();
+            DestroyTestObject(driverGo);
             DestroyTestObject(rig ? rig.gameObject : null);
             DestroyTestObject(servicesGo);
             base.TearDown();
@@ -56,18 +64,28 @@ namespace Tests.PlayMode
                 cameraService: new CameraService(),
                 uiService: new UIService());
 
-            var rigPrefab = AssetDatabase.LoadAssetAtPath<PlayerRig>(RigPrefabPath);
-            Assert.IsNotNull(rigPrefab, "PlayerRig prefab loads");
+            var rigPrefab = AssetDatabase.LoadAssetAtPath<SessionRig>(RigPrefabPath);
+            Assert.IsNotNull(rigPrefab, "SessionRig prefab loads");
             rig = Object.Instantiate(rigPrefab);
-            yield return rig.Build(services, buildPlayer: true);
+            yield return rig.Build(services, buildPlayer: true, onPlayerDeath: null);
             Assert.IsNotNull(rig.Player, "rig built a player");
             Assert.IsNotNull(rig.Player.Commander, "player has a commander");
             Assert.IsTrue(rig.Player.Commander.enabled, "test premise: commander starts enabled");
 
+            // The hangar screen + catalog live on the driver now; supply them to an inactive driver
+            // (its Awake/state-machine never runs) and drive the flow coroutine on the active rig.
+            driverGo = new GameObject("TestDriver");
+            driverGo.SetActive(false);
+            var driver = driverGo.AddComponent<MainGameManager>();
+            SetPrivate(driver, "hangarScreenPrefab", AssetDatabase.LoadAssetAtPath<HangarScreen>(HangarScreenPath));
+            SetPrivate(driver, "loadoutCatalog", AssetDatabase.LoadAssetAtPath<LoadoutConfig>(CatalogPath));
+
+            var session = new GameSession { Rig = rig, Services = services };
+
             var finished = false;
             IEnumerator Run()
             {
-                yield return rig.RunHangar();
+                yield return driver.RunHangar(session);
                 finished = true;
             }
             rig.StartCoroutine(Run());
@@ -90,6 +108,10 @@ namespace Tests.PlayMode
             Assert.IsTrue(rig.Player.Commander.enabled, "player input is restored after launch");
             Assert.IsTrue(screen == null, "hangar screen was destroyed on launch");
         }
+
+        private static void SetPrivate(object target, string field, Object value) =>
+            target.GetType().GetField(field, BindingFlags.Instance | BindingFlags.NonPublic)
+                .SetValue(target, value);
     }
 }
 #endif

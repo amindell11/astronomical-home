@@ -512,8 +512,8 @@ namespace Tests.PlayMode
         }
 
         // NOTE: player-death → sector-restart is no longer the EncounterSequenceModule's job. That
-        // responsibility now lives in the session tier (PlayerRig.deathBehavior = RestartSector wires
-        // Ship.OnDeath → MainGameManager restart). The former
+        // responsibility now lives in the game driver (MainGameManager.deathBehavior = RestartSector
+        // injects GameSession.OnPlayerDeath, wired onto Ship.OnDeath by the rig). The former
         // EncounterModule_PlayerDeath_FailsActiveEncounter_AndRaisesFailed test was removed because the
         // module intentionally no longer subscribes to player death.
     }

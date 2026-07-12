@@ -229,8 +229,8 @@ namespace Tests.EditMode
         [Test]
         public void ComposeSession_CarriesNoResetPolicy()
         {
-            // Plan C: composition is policy-free. The reset trigger is wired by the driver via
-            // PlayerRig.RestartRequested, never passed through the composition primitive.
+            // Composition is policy-free: the reset trigger is injected via GameSession.OnPlayerDeath
+            // (built by the driver, wired by the rig at spawn), never passed as a compose parameter.
             var method = typeof(MainGameManager).GetMethod("ComposeSession",
                 BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
             Assert.IsNotNull(method, "MainGameManager must expose ComposeSession");
@@ -241,21 +241,26 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void PlayerRig_DeclaresRestartAsEventNotCallback()
+        public void SessionRig_TakesInjectedDeathCallback_NoRestartEvent()
         {
-            // The rig only DECLARES that its death policy requested a restart; the driver decides
-            // what a restart means. Build therefore takes no restart callback.
-            var ev = typeof(PlayerRig).GetEvent("RestartRequested");
-            Assert.IsNotNull(ev, "PlayerRig must declare RestartRequested event");
-            Assert.AreEqual(typeof(Action), ev.EventHandlerType);
+            // The rig holds zero death policy: no RestartRequested event. The driver injects the
+            // player-death behavior as a callback via Build, and the rig wires it onto the player.
+            Assert.IsNull(typeof(SessionRig).GetEvent("RestartRequested"),
+                "SessionRig must no longer declare a RestartRequested event");
 
-            var build = typeof(PlayerRig).GetMethod("Build");
-            Assert.IsNotNull(build, "PlayerRig must expose Build");
+            var hook = typeof(GameSession).GetProperty("OnPlayerDeath");
+            Assert.IsNotNull(hook, "GameSession must expose the OnPlayerDeath policy hook");
+            Assert.AreEqual(typeof(Action<ShipId, ShipId>), hook.PropertyType);
+            Assert.IsTrue(hook.CanWrite, "OnPlayerDeath is the driver-settable policy seam");
+
+            var build = typeof(SessionRig).GetMethod("Build");
+            Assert.IsNotNull(build, "SessionRig must expose Build");
             var parameters = build.GetParameters();
-            Assert.AreEqual(2, parameters.Length,
-                "Build must take (services, buildPlayer) only — death policy is not a Build argument");
+            Assert.AreEqual(3, parameters.Length,
+                "Build must take (services, buildPlayer, onPlayerDeath)");
             Assert.AreEqual(typeof(IGameServices), parameters[0].ParameterType);
             Assert.AreEqual(typeof(bool), parameters[1].ParameterType);
+            Assert.AreEqual(typeof(Action<ShipId, ShipId>), parameters[2].ParameterType);
         }
 
         [Test]
