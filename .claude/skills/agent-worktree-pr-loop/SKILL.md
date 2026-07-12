@@ -23,6 +23,18 @@ Before starting work or when reporting status, use the dashboard for a full over
 
 For interactive exploration, suggest the user run `lazygit` in any worktree directory. Press `w` in lazygit to see all worktrees and switch between them.
 
+## Shared Unity access
+
+Unity editors and batch test processes share one machine-wide FIFO lane managed
+by `scripts/unity_access.ps1`. Prefer batch tests; `unity_test_agent.ps1`
+acquires and releases the lane around every Unity process. Use
+`-Action StartEditor` only for graphics, interaction, or MCP verification that
+batch mode cannot cover, then `-Action Release -CloseEditor` as soon as the
+check finishes. An untracked editor on the primary worktree belongs to the
+user: report its PID and ask the user to close it. Never close it automatically.
+The durable MCP server on port 8081 is shared and remains running between lane
+owners.
+
 ## Core commands
 
 - `./scripts/agent_worktree_pool.sh status`

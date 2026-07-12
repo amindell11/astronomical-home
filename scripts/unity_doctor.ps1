@@ -96,10 +96,38 @@ function Get-EnterPlayModeState {
 
 $project = Resolve-FullPath $ProjectPath
 $checks = New-Object System.Collections.Generic.List[object]
+$unityAccess = $null
 
 function Add-Check {
     param([string]$Name, [string]$Level, [string]$Detail)
     $checks.Add([ordered]@{ name = $Name; level = $Level; detail = $Detail })
+}
+
+$unityAccessScript = Join-Path $PSScriptRoot "unity_access.ps1"
+if (Test-Path -LiteralPath $unityAccessScript) {
+    try {
+        $accessJson = & powershell -NoProfile -ExecutionPolicy Bypass -File $unityAccessScript -Action Status -Json
+        $unityAccess = $accessJson | ConvertFrom-Json
+        if ($null -ne $unityAccess.owner) {
+            Add-Check "unity-access" "INFO" "Lane owned by slot=$($unityAccess.owner.slot) mode=$($unityAccess.owner.mode) lease=$($unityAccess.owner.lease) pid=$($unityAccess.owner.processId)"
+        }
+        elseif (@($unityAccess.blockers | Where-Object { $_.kind -eq "user_editor" }).Count -gt 0) {
+            $userEditor = @($unityAccess.blockers | Where-Object { $_.kind -eq "user_editor" })[0]
+            Add-Check "unity-access" "WARN" "Untracked main-worktree editor is user-owned (pid=$($userEditor.processId)); agents must queue and ask the user to close it."
+        }
+        elseif (@($unityAccess.blockers).Count -gt 0) {
+            Add-Check "unity-access" "WARN" "Unity lane is blocked by unmanaged Unity process(es): $((@($unityAccess.blockers | ForEach-Object { $_.processId })) -join ',')"
+        }
+        else {
+            Add-Check "unity-access" "OK" "Unity lane is free."
+        }
+        if (@($unityAccess.queue).Count -gt 0) {
+            Add-Check "unity-queue" "INFO" "$(@($unityAccess.queue).Count) queued request(s): $((@($unityAccess.queue | ForEach-Object { "$($_.position):$($_.slot)" })) -join ', ')"
+        }
+    }
+    catch {
+        Add-Check "unity-access" "WARN" "Could not read Unity access coordinator state: $($_.Exception.Message)"
+    }
 }
 
 # --- MCP HTTP server ---
@@ -160,6 +188,7 @@ if ($Json.IsPresent) {
         mcpPort       = $McpPort
         mcpReachable  = $mcpUp
         enterPlayMode = $epm
+        unityAccess    = $unityAccess
         checks        = $checks
     }
     $out | ConvertTo-Json -Depth 6

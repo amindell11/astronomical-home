@@ -1,0 +1,4 @@
+interface:
+  display_name: "Unity Access"
+  short_description: "Safely queue and use the shared Unity editor"
+  default_prompt: "Use $unity-access to safely coordinate a Unity test session."

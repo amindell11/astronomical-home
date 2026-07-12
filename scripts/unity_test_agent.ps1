@@ -19,12 +19,17 @@ param(
     [string]$ExcludeCategory = "RequiresGraphics",
     [switch]$IncludeStackTrace,
     [switch]$ValidateScope,
-    [string]$ScopeMapPath = ""
+    [string]$ScopeMapPath = "",
+    [switch]$SkipUnityAccess,
+    [string]$UnityAccessLease = "",
+    [int]$UnityAccessWaitSec = 60,
+    [string]$UnityAccessStateRoot = ""
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 $Script:IsWindowsPlatform = ($env:OS -eq "Windows_NT")
+$Script:UnityAccessRunId = [guid]::NewGuid().ToString("N")
 
 function Resolve-FullPath {
     param([string]$Path)
@@ -38,6 +43,79 @@ function Resolve-FullPath {
     }
 
     return [System.IO.Path]::GetFullPath((Join-Path (Get-Location) $Path))
+}
+
+function Get-UnityAccessSlot {
+    param([string]$ProjectFullPath)
+    $repo = Resolve-FullPath (Join-Path $ProjectFullPath "..\..")
+    $branch = (& git -C $repo branch --show-current 2>$null | Select-Object -First 1)
+    if ([string]::IsNullOrWhiteSpace($branch)) { return "main" }
+    return [string]$branch
+}
+
+function Invoke-UnityAccess {
+    param([string]$Action, [string]$ProjectFullPath, [int]$ProcessId = 0)
+    if ($SkipUnityAccess.IsPresent) { return $null }
+
+    $coordinator = Join-Path $PSScriptRoot "unity_access.ps1"
+    $slot = Get-UnityAccessSlot $ProjectFullPath
+    $lease = if ([string]::IsNullOrWhiteSpace($UnityAccessLease)) { "unity-tests-$slot-$Script:UnityAccessRunId" } else { $UnityAccessLease }
+    $arguments = @(
+        "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $coordinator,
+        "-Action", $Action,
+        "-Lease", $lease,
+        "-Slot", $slot,
+        "-Mode", "batch",
+        "-ProjectPath", $ProjectFullPath,
+        "-WaitSeconds", $UnityAccessWaitSec,
+        "-Json"
+    )
+    if (-not [string]::IsNullOrWhiteSpace($UnityAccessStateRoot)) { $arguments += @("-StateRoot", $UnityAccessStateRoot) }
+    if ($ProcessId -gt 0) { $arguments += @("-ProcessId", $ProcessId) }
+
+    $output = @(& powershell @arguments 2>&1)
+    $exitCode = $LASTEXITCODE
+    $line = @($output | Where-Object { [string]$_ -match '^\s*\{' } | Select-Object -Last 1)
+    $result = if ($line.Count -gt 0) { [string]$line[0] | ConvertFrom-Json } else { $null }
+    if ($exitCode -ne 0) {
+        if ($Action -in @("Acquire", "Wait")) {
+            $cancelArguments = @(
+                "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $coordinator,
+                "-Action", "Cancel", "-Lease", $lease, "-Json"
+            )
+            if (-not [string]::IsNullOrWhiteSpace($UnityAccessStateRoot)) { $cancelArguments += @("-StateRoot", $UnityAccessStateRoot) }
+            & powershell @cancelArguments 2>&1 | Out-Null
+        }
+        if ($null -ne $result -and $result.status -eq "blocked_user_editor") {
+            $blocker = @($result.blockers | Select-Object -First 1)
+            throw "Unity access is waiting for the user-owned main editor (pid=$($blocker[0].processId)) to close. The request was cancelled; close the editor and rerun."
+        }
+        throw "Unity access $Action failed (exit=$exitCode): $($output -join ' ')"
+    }
+    return $result
+}
+
+function Enter-UnityAccess {
+    param([string]$ProjectFullPath)
+    [void](Invoke-UnityAccess -Action "Acquire" -ProjectFullPath $ProjectFullPath)
+}
+
+function Attach-UnityAccess {
+    param([string]$ProjectFullPath, [int]$ProcessId)
+    [void](Invoke-UnityAccess -Action "Attach" -ProjectFullPath $ProjectFullPath -ProcessId $ProcessId)
+}
+
+function Exit-UnityAccess {
+    param([string]$ProjectFullPath)
+    [void](Invoke-UnityAccess -Action "Release" -ProjectFullPath $ProjectFullPath)
+}
+
+function Get-ArgumentValue {
+    param([string[]]$Arguments, [string]$Name)
+    for ($i = 0; $i -lt $Arguments.Count - 1; $i++) {
+        if ($Arguments[$i] -ieq $Name) { return [string]$Arguments[$i + 1] }
+    }
+    return ""
 }
 
 function To-Int {
@@ -232,6 +310,7 @@ function Test-ScopeFilterMatchesTests {
     $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) ("unity-scope-validate-" + [System.Guid]::NewGuid().ToString("N"))
     New-Item -ItemType Directory -Force -Path $tempDir | Out-Null
 
+    $accessHeld = $false
     try {
         $xmlPath = Join-Path $tempDir "test-list.xml"
         $logPath = Join-Path $tempDir "test-list.log"
@@ -247,8 +326,11 @@ function Test-ScopeFilterMatchesTests {
             "-testFilter", $TestFilter
         )
 
-        # Run Unity with the filter
-        $proc = Start-Process -FilePath $UnityExe -ArgumentList $args -Wait -NoNewWindow -PassThru
+        Enter-UnityAccess -ProjectFullPath $ProjectPath
+        $accessHeld = $true
+        $proc = Start-Process -FilePath $UnityExe -ArgumentList $args -NoNewWindow -PassThru
+        Attach-UnityAccess -ProjectFullPath $ProjectPath -ProcessId $proc.Id
+        $proc.WaitForExit()
         $exitCode = 0
         if ($null -ne $proc -and $null -ne $proc.ExitCode) {
             $exitCode = [int]$proc.ExitCode
@@ -269,47 +351,11 @@ function Test-ScopeFilterMatchesTests {
         return $false
     }
     finally {
-        # Clean up temp directory
+        if ($accessHeld) { Exit-UnityAccess -ProjectFullPath $ProjectPath }
         if (Test-Path -LiteralPath $tempDir) {
             Remove-Item -LiteralPath $tempDir -Recurse -Force -ErrorAction SilentlyContinue
         }
     }
-}
-
-function Test-ProjectAlreadyOpen {
-    param([string]$ProjectPath)
-
-    if ($Script:IsWindowsPlatform -ne $true) {
-        return $null
-    }
-
-    try {
-        $normalizedProject = [System.IO.Path]::GetFullPath($ProjectPath).Replace('\\', '/').ToLowerInvariant()
-
-        $procs = Get-CimInstance Win32_Process -Filter "Name='Unity.exe'" -ErrorAction SilentlyContinue
-        foreach ($proc in $procs) {
-            $cmd = [string]$proc.CommandLine
-            if ([string]::IsNullOrWhiteSpace($cmd)) { continue }
-
-            $cmdLower = $cmd.ToLowerInvariant()
-            if ($cmdLower -notlike "*-projectpath*") { continue }
-            if ($cmdLower -like "*-batchmode*") { continue }
-
-            $cmdNorm = $cmdLower.Replace('\\', '/')
-            if ($cmdNorm.Contains($normalizedProject)) {
-                return [ordered]@{
-                    pid = [int]$proc.ProcessId
-                    commandLine = $cmd
-                }
-            }
-        }
-    }
-    catch {
-        # Best-effort check only; ignore detection failures.
-        return $null
-    }
-
-    return $null
 }
 
 function Invoke-UnityProcess {
@@ -319,43 +365,54 @@ function Invoke-UnityProcess {
         [int]$TimeoutSec = 1800
     )
 
-    $proc = Start-Process -FilePath $UnityExe -ArgumentList $Arguments -NoNewWindow -PassThru
+    $processProject = Get-ArgumentValue -Arguments $Arguments -Name "-projectPath"
+    $accessHeld = $false
+    Enter-UnityAccess -ProjectFullPath $processProject
+    $accessHeld = $true
 
-    if ($TimeoutSec -le 0) {
-        $TimeoutSec = 1800
-    }
+    try {
+        $proc = Start-Process -FilePath $UnityExe -ArgumentList $Arguments -NoNewWindow -PassThru
+        Attach-UnityAccess -ProjectFullPath $processProject -ProcessId $proc.Id
 
-    $deadline = (Get-Date).AddSeconds($TimeoutSec)
-
-    while (-not $proc.HasExited) {
-        if ((Get-Date) -ge $deadline) {
-            if ($Script:IsWindowsPlatform -eq $true) {
-                & taskkill /PID $proc.Id /T /F *> $null
-            }
-            else {
-                Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
-            }
-
-            Start-Sleep -Milliseconds 300
-            return [ordered]@{
-                exitCode = 124
-                timedOut = $true
-                pid = [int]$proc.Id
-            }
+        if ($TimeoutSec -le 0) {
+            $TimeoutSec = 1800
         }
 
-        Start-Sleep -Milliseconds 500
-    }
+        $deadline = (Get-Date).AddSeconds($TimeoutSec)
 
-    $exitCode = 0
-    if ($null -ne $proc.ExitCode) {
-        $exitCode = [int]$proc.ExitCode
-    }
+        while (-not $proc.HasExited) {
+            if ((Get-Date) -ge $deadline) {
+                if ($Script:IsWindowsPlatform -eq $true) {
+                    & taskkill /PID $proc.Id /T /F *> $null
+                }
+                else {
+                    Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+                }
 
-    return [ordered]@{
-        exitCode = $exitCode
-        timedOut = $false
-        pid = [int]$proc.Id
+                Start-Sleep -Milliseconds 300
+                return [ordered]@{
+                    exitCode = 124
+                    timedOut = $true
+                    pid = [int]$proc.Id
+                }
+            }
+
+            Start-Sleep -Milliseconds 500
+        }
+
+        $exitCode = 0
+        if ($null -ne $proc.ExitCode) {
+            $exitCode = [int]$proc.ExitCode
+        }
+
+        return [ordered]@{
+            exitCode = $exitCode
+            timedOut = $false
+            pid = [int]$proc.Id
+        }
+    }
+    finally {
+        if ($accessHeld) { Exit-UnityAccess -ProjectFullPath $processProject }
     }
 }
 
@@ -640,28 +697,6 @@ foreach ($platform in $platforms) {
         assemblyNames = $AssemblyNames
         orderedTestListFile = $orderedListPath
         rerunFailedFrom = $rerunSummaryPath
-    }
-
-    $blocking = Test-ProjectAlreadyOpen -ProjectPath $project
-    if ($null -ne $blocking) {
-        $runs += [ordered]@{
-            platform = $platform
-            xmlPath = $xmlPath
-            logPath = $logPath
-            unityExitCode = 32
-            status = "infra_error"
-            total = 0
-            passed = 0
-            failed = 0
-            skipped = 0
-            durationSec = 0.0
-            failures = @()
-            truncatedFailures = 0
-            selection = $selection
-            note = "Project appears open in another non-batch Unity instance (pid=$($blocking.pid)). Close that Unity editor before running batch tests."
-            blockingInstance = $blocking
-        }
-        continue
     }
 
     $invoke = Invoke-UnityProcess -UnityExe $unityExe -Arguments $args -TimeoutSec $UnityTimeoutSec
