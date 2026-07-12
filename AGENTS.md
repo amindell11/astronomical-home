@@ -57,6 +57,13 @@ How to use them to track work:
 
 - Standardize Unity test artifacts to `results/unity-tests-agent` (pass an
   explicit `outDir`/`-OutDir`).
+- Unity access is machine-wide and serialized through
+  `scripts/unity_access.ps1`. Prefer batch tests; they acquire and release the
+  lane automatically. Use a tracked interactive editor only when batch mode
+  cannot verify the behavior, and close/release it immediately afterward.
+  An untracked main-worktree editor is user-owned: ask the user to close it,
+  never terminate it. Inspect ownership and the FIFO queue with
+  `./scripts/unity_access.ps1 -Action Status`.
 - For PlayMode tests, prefer inheriting from
   `Tests.PlayMode.Common.PlayModeWorldFixture` when it makes sense (ensures
   GamePlane/test-arena setup and cleanup).
