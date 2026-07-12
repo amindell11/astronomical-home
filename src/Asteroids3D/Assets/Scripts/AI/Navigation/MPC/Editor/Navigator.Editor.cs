@@ -32,19 +32,15 @@ namespace Movement.MPC
         private DetectedObstacle[] dbgObstacles;
         private int dbgObstacleCount;
 
-        // Debug info
         public CostBreakdown lastCostBreakdown;
         public float lastSolveTimeMs;
 
-        // Read-only views into the composed Mpc solver's runtime state. The visualization
-        // below was written against these as fields; they now forward to the Mpc object so
-        // the gizmo code is unchanged. All return null/default before Initialize.
+        // Read-only forwarders into the composed Mpc solver's runtime state, so the gizmo code below reads it as fields. All return null/default before Initialize.
         private SolverBuffers solver => mpc?.Solver;
         private Config config => mpc != null ? mpc.Config : default;
         private Control[] bestSequence => mpc?.BestSequence;
         private State[] predictedStates => mpc?.PredictedStates;
         private State lastInitialState => mpc != null ? mpc.LastInitialState : default;
-        // (ship dynamics now live on the runtime partial's `dynamics` field, set in Initialize)
         private Control lastControl => mpc != null ? mpc.LastControl : default;
         internal float lastBestCost => mpc != null ? mpc.LastBestCost : 0f;
 
@@ -113,7 +109,6 @@ namespace Movement.MPC
                 var profile = comparisonProfiles[p];
                 if (!profile) continue;
 
-                // Build config with this profile's weights
                 var goal = profile.goal;
                 var gm = goal?.GoalMode ?? GoalMode.Waypoint;
                 var desiredRange = 0f;
@@ -135,13 +130,11 @@ namespace Movement.MPC
                     comparisonResults[p].trajectory = new State[horizon];
                 }
 
-                // Rescore the same candidates with different weights
                 var seq = comparisonResults[p].sequence;
                 comparisonResults[p].cost = solver.Rescore(mpcState, seq,
                     compConfig, dynamics, costInput, lastControl,
                     mpcSettings.samples, mpcSettings.eliteFraction);
 
-                // Roll out trajectory from the rescored elite average
                 var current = mpcState;
                 var traj = comparisonResults[p].trajectory;
                 for (var i = 0; i < horizon; i++)
@@ -179,8 +172,7 @@ namespace Movement.MPC
             nextLogTime = Time.time + 1f;
         }
 
-        // Called by the editor assembly's NavigatorSteeringGizmos, which owns the
-        // AIDebugChannel.Steering gate; drawing stays here with the solver's internal state.
+        // Called by NavigatorSteeringGizmos (which owns the AIDebugChannel.Steering gate); drawing stays here with the solver's internal state.
         internal void DrawGizmosImpl()
         {
             if (mpc == null) return;
@@ -266,8 +258,7 @@ namespace Movement.MPC
             }
         }
 
-        // Drops a clickable Handles.Button at each visible candidate's terminal point.
-        // Called from NavigatorEditor.OnSceneGUI so it has access to SceneView input.
+        // Clickable Handles.Button at each visible candidate's terminal point; called from OnSceneGUI for SceneView input access.
         internal bool DrawCandidateSelectionHandles()
         {
             if (!showCandidateTrajectories || solver == null) return false;
@@ -299,8 +290,7 @@ namespace Movement.MPC
             return changed;
         }
 
-        // Rolls the selected candidate's control sequence and returns its cost breakdown.
-        // Returns null if no selection or buffers are stale.
+        // Returns the selected candidate's trajectory breakdown, or null if no selection or buffers are stale.
         internal CostBreakdown? GetSelectedCandidateBreakdown()
         {
             if (selectedCandidateIndex < 0 || solver == null) return null;
@@ -390,7 +380,6 @@ namespace Movement.MPC
                     prevPos = pos;
                 }
 
-                // Label at the end of the trajectory
                 var endPos = GamePlane.PlanePointToWorld(new Vector2(
                     result.trajectory[result.trajectory.Length - 1].pos.x,
                     result.trajectory[result.trajectory.Length - 1].pos.y));
@@ -455,9 +444,7 @@ namespace Movement.MPC
             var hullUnbanked = config.shipRadius + config.collisionSafetyMargin;
             var hullCurrent = config.shipRadius * profileScale + config.collisionSafetyMargin;
 
-            // Turn-away reach at the current speed: the head-on distance inside which the
-            // lateral thrust can no longer sidestep a full corridor width before impact
-            // (½·a_lat·t² == corridor at t = along/speed) — the admissibility term's bite range.
+            // Turn-away bite range: head-on distance inside which lateral thrust can no longer sidestep a full corridor before impact (½·a_lat·t² == corridor at t = along/speed).
             var vel = predictedStates != null && predictedStates.Length > 0
                 ? predictedStates[0].vel
                 : default;
@@ -480,8 +467,7 @@ namespace Movement.MPC
                     Gizmos.DrawWireSphere(obsWorldPos, obs.radius + hullCurrent);
                 }
 
-                // Outer ring: where the turn-away cost starts biting for a head-on approach
-                // at the current speed (sidestep distance == corridor width at the boundary).
+                // Outer ring: where the turn-away cost starts biting for a head-on approach at the current speed.
                 var corridor = obs.radius + hullCurrent;
                 var biteRange = speed > 0.05f ? speed * math.sqrt(corridor / halfLatAccel) : 0f;
                 if (biteRange > 0.05f)
@@ -540,28 +526,24 @@ namespace Movement.MPC
             var center = origin + rowOffset;
             var barLeft = center - right * halfBar;
 
-            // Background bar (dark, full width)
             var bgColor = new Color(0.15f, 0.15f, 0.15f, 0.6f);
             DrawQuad(barLeft, right, up, barWidth, barHeight, bgColor);
 
-            // Center tick mark
             Gizmos.color = new Color(0.4f, 0.4f, 0.4f, 0.8f);
             var midBottom = center - up * barHeight * 0.5f;
             var midTop = center + up * barHeight * 0.5f;
             Gizmos.DrawLine(midBottom, midTop);
 
-            // Applied control bar (center of the bar = zero point)
+            // Applied control bar — center of the bar is the zero point.
             var barColor = color;
             barColor.a = 0.85f;
             var valueBarWidth = Mathf.Abs(value) * halfBar;
             var valueBarOrigin = value >= 0 ? center : center - right * valueBarWidth;
             DrawQuad(valueBarOrigin, right, up, valueBarWidth, barHeight * 0.9f, barColor);
 
-            // Label on the left
             var labelPos = barLeft - right * 0.05f;
             Handles.Label(labelPos, label, labelStyle);
 
-            // Value on the right
             var valPos = barLeft + right * (barWidth + 0.08f);
             Handles.Label(valPos, $"{value:+0.00;-0.00}", valueStyle);
         }
@@ -695,8 +677,7 @@ namespace Movement.MPC
 
         private void DrawCostBar(string label, float value, float weight, float total, Color color)
         {
-            // Bar magnitude / percentage always reflect the WEIGHTED contribution to total
-            // (so comparisons between rows remain meaningful regardless of toggle state).
+            // Bar magnitude / percentage always reflect the WEIGHTED contribution, so rows stay comparable regardless of toggle state.
             var pct = total > 0 ? value / total : 0;
             var rect = EditorGUILayout.GetControlRect(false, 18);
 

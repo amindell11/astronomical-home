@@ -6,12 +6,7 @@ using Unity.Mathematics;
 
 namespace Tests.EditMode
 {
-    /// <summary>
-    /// Track B3: the resurrected Dijkstra cost-to-go core (Burst job form) and its
-    /// terminal-cost sampling semantics. Adapted from the pre-#43 NavFieldEditModeTests;
-    /// gradient-walk/RoutedCell tests are deliberately dropped — that consumption pattern
-    /// is not resurrected.
-    /// </summary>
+    /// <summary>The Dijkstra cost-to-go core (Burst job form) and its terminal-cost sampling semantics; gradient-walk/RoutedCell tests are deliberately dropped.</summary>
     [Category("Planning")]
     public class NavFieldEditModeTests
     {
@@ -53,8 +48,7 @@ namespace Tests.EditMode
         public void StampObstacle_BlockedCells_SampleFallback_NotRouted()
         {
             using var f = Solve(10, 1f, new float2(1.5f, 1.5f), new float3(5.5f, 5.5f, 1.5f));
-            // A blocked cell must sample the finite fallback, which is strictly worse than a
-            // free cell at comparable range.
+            // A blocked cell must sample the finite fallback, strictly worse than a free cell at comparable range.
             var blockedSample = SampleSteps(f, new float2(5.5f, 5.5f));
             var freeSample = SampleSteps(f, new float2(5.5f, 1.5f)); // same range, free
             Assert.IsTrue(float.IsFinite(blockedSample), "Blocked sample must be finite");
@@ -64,10 +58,7 @@ namespace Tests.EditMode
         [Test]
         public void Solve_WallWithGap_CostRoutesThroughGap()
         {
-            // Wall along y=10 except a gap at x=15: cost on the far side must reflect the
-            // detour through the gap, not the straight line.
-            // Goal-centered grid: goal (2.5,2.5) on a 20x1 grid spans roughly [-8, 12].
-            // Wall along y = 6.5 from x = -7..11 with a gap at x = 8.
+            // Wall along y=6.5 (x=-7..11) with a gap at x=8, on a goal-centered 20x1 grid: cost behind must reflect the detour through the gap, not the straight line.
             var wall = new System.Collections.Generic.List<float3>();
             for (var x = -7; x < 12; x++)
                 if (x != 8)
@@ -112,8 +103,7 @@ namespace Tests.EditMode
         [Test]
         public void Sample_Bilinear_InterpolatesBetweenCells()
         {
-            // Grid is goal-centered; keep the samples in the interior (the outer half-cell
-            // ring intentionally samples the off-grid fallback).
+            // Keep samples in the interior; the outer half-cell ring intentionally samples the off-grid fallback.
             using var f = Solve(16, 1f, new float2(0.5f, 0.5f));
             var a = SampleSteps(f, new float2(3.5f, 0.5f)); // cell center, ~3
             var b = SampleSteps(f, new float2(4.5f, 0.5f)); // cell center, ~4
@@ -138,8 +128,6 @@ namespace Tests.EditMode
             Assert.AreEqual(at5, at10 * 2f, at5 * 0.05f, "Time-to-go must scale inversely with nominal speed");
         }
 
-        // ── BorderEscape seeding (flee escape field) ──
-
         private static NavField SolveEscape(int size, float cellSize, float2 self, float2 threat,
             float threatBias, params float3[] obs)
         {
@@ -156,8 +144,7 @@ namespace Tests.EditMode
         [Test]
         public void BorderEscape_ExitOppositeThreat_IsCheapest()
         {
-            // Open 16x1 grid centered on the ship, threat to the east: fleeing west must be
-            // far cheaper than fleeing east (which pays the threat-bearing seed bias).
+            // Open grid, threat to the east: fleeing west must be far cheaper than fleeing east (which pays the threat-bearing seed bias).
             using var f = SolveEscape(16, 1f, float2.zero, new float2(4f, 0f), 1f);
             var west = SampleSteps(f, new float2(-6f, 0f));
             var east = SampleSteps(f, new float2(6f, 0f));
@@ -180,8 +167,7 @@ namespace Tests.EditMode
         [Test]
         public void BorderEscape_NoThreat_SeedsWholeBorderAtZero()
         {
-            // Degenerate threat (== self) seeds the border uniformly: center cost is the
-            // plain distance-to-border, with no directional preference.
+            // Degenerate threat (== self) seeds the border uniformly: center cost is the plain distance-to-border, no directional preference.
             using var f = SolveEscape(16, 1f, float2.zero, float2.zero, 1f);
             var center = SampleSteps(f, new float2(0.5f, 0.5f));
             Assert.AreEqual(7f, center, 1.5f, "Uniform border: center ≈ steps to nearest edge");
@@ -193,9 +179,7 @@ namespace Tests.EditMode
         [Test]
         public void BorderEscape_BlockedAndPocketCells_BakeFinitePessimistic()
         {
-            // A stamped cell and an enclosed (unreachable) pocket must both sample large but
-            // finite — NOT the goal-distance fallback, whose anchor here is the ship itself
-            // (a blocked cell near the ship would otherwise read as near-zero cost).
+            // A stamped cell and an enclosed pocket must both sample large-but-finite, not the ship-anchored goal-distance fallback (which would read a blocked cell near the ship as near-zero).
             var pocket = new System.Collections.Generic.List<float3>
             {
                 new float3(2.5f, 0.5f, 0.45f), // lone rock east of the ship (on a cell center)
@@ -224,9 +208,7 @@ namespace Tests.EditMode
         [Test]
         public void BorderEscape_OnlyExitTowardThreat_StillRouted()
         {
-            // Border fully walled except a gap on the threat side: the expensive exit must
-            // still be used (priced like a full-grid detour, never forbidden) — center cost
-            // stays below the baked pessimistic ceiling.
+            // Border fully walled except a gap on the threat side: the expensive exit must still route (priced like a full-grid detour), so center cost stays below the pessimistic ceiling.
             var walls = new System.Collections.Generic.List<float3>();
             for (var i = 0; i < 16; i++)
             {
@@ -251,8 +233,7 @@ namespace Tests.EditMode
         [Test]
         public void SolverHook_TerminalField_ShiftsBestCostByTerminalSample()
         {
-            // With a single candidate (the zero warm start), Solve's best cost must differ by
-            // exactly wTerminal * Sample(terminal state) when a solved field is attached.
+            // With a single candidate (the zero warm start), Solve's best cost must differ by exactly wTerminal * Sample(terminal state) when a solved field is attached.
             var settings = UnityEngine.ScriptableObject.CreateInstance<MpcSettings>();
             settings.samples = 1;
             settings.horizonSeconds = 0.5f;

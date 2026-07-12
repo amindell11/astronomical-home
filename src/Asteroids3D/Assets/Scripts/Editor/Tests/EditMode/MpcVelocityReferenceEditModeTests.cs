@@ -10,19 +10,10 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>
-    /// PR-1 validation for the VelocityReference objective. Two layers:
-    /// (1) closed-form unit tests of <see cref="Cost.VelocityTrackCost"/> and its inertness in
-    /// the position-goal modes, and (2) a tracking-fidelity test that drives <c>Mpc.Plan</c>
-    /// directly (no ship/physics, mirroring <see cref="MpcSolverTests"/>) to confirm the solver
-    /// actually converges the ship's velocity onto the command — tight on-axis, and within a
-    /// characterized strafe-authority envelope off-axis (the physically-hardest case).
-    /// </summary>
+    /// <summary>Validates the VelocityReference objective: closed-form unit tests of <see cref="Cost.VelocityTrackCost"/> (and its inertness in position-goal modes), plus a tracking-fidelity test driving <c>Mpc.Plan</c> directly to confirm the solver converges velocity onto the command — tight on-axis, within a characterized strafe-authority envelope off-axis.</summary>
     [Category("MPC")]
     public class MpcVelocityReferenceEditModeTests
     {
-        // ── Unit: the tracker cost ──
-
         [Test]
         public void VelocityTrackCost_ZeroAtReference()
         {
@@ -54,8 +45,7 @@ namespace Tests.EditMode
         [Test]
         public void VelocityReference_IgnoredByPositionGoalModes()
         {
-            // In a position-goal mode the objective dispatches to the position bundle, so the
-            // commanded velocity must not touch the cost.
+            // In a position-goal mode the objective dispatches to the position bundle, so the commanded velocity must not touch the cost.
             var cfg = new Config
             {
                 dt = 0.1f, invDt = 10f, horizon = 17,
@@ -71,8 +61,6 @@ namespace Tests.EditMode
                 Is.EqualTo(Cost.Evaluate(state, default, default, b, cfg, false)),
                 "Waypoint-mode cost must not depend on velocityReference.");
         }
-
-        // ── Tracking fidelity: drive the solver, measure planned terminal velocity ──
 
         private const string MpcSettingsPath = "Assets/Settings/AI/MPC/MpcSettings.asset";
         private const string ShipPrefabPath = "Assets/Prefabs/Ships/Ship_1.prefab";
@@ -90,9 +78,7 @@ namespace Tests.EditMode
             dynamics = ship.ResolveStats().Dynamics;
         }
 
-        // Commanding a world-plane velocity with the nose pinned by facingRad (so the off-axis
-        // case genuinely tests strafe authority, not a yaw-then-thrust). The closed-loop driver
-        // overwrites kinematics each step; this is the shared template.
+        // Nose pinned by facingRad so the off-axis case genuinely tests strafe authority, not a yaw-then-thrust; the closed-loop driver overwrites kinematics each step.
         private MpcInputs VelocityInputs(float2 vRef, float facingRad) => new()
         {
             kinematics = default,
@@ -105,10 +91,7 @@ namespace Tests.EditMode
             enableObstacleAvoidance = false,
         };
 
-        // Closed-loop: re-plan each step, apply the first control, advance the same Model the
-        // solver rolls out on (no ship/physics), and settle onto the commanded velocity. This is
-        // the receding-horizon controller in miniature — the single-plan terminal velocity from
-        // rest only sees one horizon of acceleration and drastically under-measures tracking.
+        // Receding-horizon controller in miniature: re-plan each step and advance the same Model the solver rolls out on. A single plan from rest only sees one horizon of acceleration and drastically under-measures tracking.
         private float2 ClosedLoopFinalVelocity(float2 vRef, float facingRad, float2 initialVel = default, int steps = 100)
         {
             using var mpc = new Mpc(settings, dynamics, 0u);

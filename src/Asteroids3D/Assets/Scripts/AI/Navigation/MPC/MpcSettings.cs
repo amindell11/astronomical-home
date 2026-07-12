@@ -149,7 +149,6 @@ namespace Movement.MPC
                 dt = rolloutDt,
                 invDt = rolloutDt > 0f ? 1f / rolloutDt : 0f,
                 horizon = Horizon,
-                // Navigation
                 wPos = wPos,
                 wVel = wVel,
                 wClosing = wClosing,
@@ -161,14 +160,12 @@ namespace Movement.MPC
                 positionSaturationDistance = positionSaturationDistance,
                 terminalMultiplier = terminalMultiplier,
                 terminalCurve = terminalCurve,
-                // Control
                 wEffort = wEffort,
                 wSmoothnessThrust = wSmoothnessThrust,
                 wSmoothnessStrafe = wSmoothnessStrafe,
                 wSmoothnessYaw = wSmoothnessYaw,
                 wMomentum = wMomentum,
                 wBoostEffort = wBoostEffort,
-                // Tactical
                 wFacing = wFacing,
                 facingWidth = facingWidth,
                 facingTarget = facingTargetRad,
@@ -177,24 +174,19 @@ namespace Movement.MPC
                 exposureWidth = exposureWidth,
                 wTangential = wTangential,
                 wMissDistance = wMissDistance,
-                // Obstacle
                 wObstacle = wObstacle,
                 collisionPenalty = collisionPenalty,
                 collisionSafetyMargin = collisionSafetyMargin,
-                // Arrival
                 arrivalDistance = arrivalDistance,
                 arrivalDistanceSq = arrivalDistance * arrivalDistance,
                 arrivalVelScale = arrivalVelScale,
                 arrivalYawScale = arrivalYawScale,
-                // Goal
                 goalMode = goalMode,
                 desiredRange = desiredRange,
                 rangeTolerance = rangeTolerance,
-                // The velocity-tracker identity drops the authored combat tactics (the reward
-                // teaches those); every position-goal mode keeps them.
+                // The velocity-tracker drops the authored combat tactics (the reward teaches those); position-goal modes keep them.
                 tacticalEnabled = goalMode != GoalMode.VelocityReference,
                 wVelTrack = wVelTrack,
-                // Terminal field
                 wTerminal = wTerminal,
             };
         }

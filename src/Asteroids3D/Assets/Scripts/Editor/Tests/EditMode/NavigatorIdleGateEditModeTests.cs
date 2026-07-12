@@ -6,15 +6,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>
-    /// Guards the PR-0 idle-gate fix: <see cref="Navigator.ShouldIdle"/> now dispatches on the
-    /// objective instead of hard-wiring waypoint-arrival semantics. Waypoint/patrol still idle
-    /// once stopped at the destination, but the continuous combat objectives (MaintainRange,
-    /// Flee) must keep running while their target exists — they never "arrive", so the old
-    /// near-and-stopped arrival check spuriously froze them.
-    /// ShouldIdle reads only the control surface (waypoint + goalMode), so no solver/context
-    /// wiring is needed here.
-    /// </summary>
+    /// <summary>Guards <see cref="Navigator.ShouldIdle"/> dispatching on the objective: waypoint/patrol idle once stopped at the destination, but the continuous MaintainRange/Flee objectives keep running while their target exists. ShouldIdle reads only the control surface, so no solver/context wiring is needed.</summary>
     [Category("MPC")]
     public class NavigatorIdleGateEditModeTests
     {

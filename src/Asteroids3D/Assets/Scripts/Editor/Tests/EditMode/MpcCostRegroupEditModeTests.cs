@@ -7,18 +7,11 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>
-    /// Pins the <see cref="Cost.Evaluate"/> grouping (Objective / Aim / Tactical / regularizers
-    /// behind a <c>tacticalEnabled</c> toggle): (a) Evaluate must equal the per-term inspector
-    /// breakdown so the two can't drift, and (b) disabling tactics must drop exactly the
-    /// authored-tactics block (LOS / exposure / tangential / miss-distance) and nothing else —
-    /// aim, objective, and the state regularizers stay put.
-    /// </summary>
+    /// <summary>Pins the <see cref="Cost.Evaluate"/> grouping: Evaluate must equal the per-term inspector breakdown, and disabling tactics must drop exactly the authored-tactics block (LOS / exposure / tangential / miss-distance) and nothing else.</summary>
     [Category("MPC")]
     public class MpcCostRegroupEditModeTests
     {
-        // A config with every cost group live (enemy present, obstacles, projectile lead,
-        // terminal ramp on) so the regroup is exercised across all terms at once.
+        // Every cost group live (enemy, obstacles, projectile lead, terminal ramp) so the regroup is exercised across all terms at once.
         private static Config RichConfig() => new()
         {
             dt = 0.1f, invDt = 10f, horizon = 17,
@@ -46,8 +39,7 @@ namespace Tests.EditMode
         private static readonly Control PrevU = new() { thrust = 0.2f, strafe = -0.1f, yawTorque = 0.1f, boost = 0f };
         private const int Step = 8;   // mid-horizon → terminal ramp active (t = 0.5)
 
-        // Enemy well clear of the ship, obstacles ahead-but-not-overlapping so turn-away is live
-        // and the collision penalty is not.
+        // Enemy well clear of the ship, obstacles ahead-but-not-overlapping so turn-away is live and the collision penalty is not.
         private static void WithInput(System.Action<CostInput> body)
         {
             var obstacles = new NativeArray<ObstacleData>(2, Allocator.Temp);
@@ -124,8 +116,7 @@ namespace Tests.EditMode
         {
             WithInput(input =>
             {
-                // Zero the four authored-tactics weights but keep facing (aim) and everything
-                // else live: toggling tacticalEnabled must then be a no-op.
+                // Zero the four authored-tactics weights but keep facing (aim) live: toggling tacticalEnabled must then be a no-op.
                 var on = RichConfig();
                 on.wLos = 0f; on.wExposure = 0f; on.wTangential = 0f; on.wMissDistance = 0f;
                 var off = on;

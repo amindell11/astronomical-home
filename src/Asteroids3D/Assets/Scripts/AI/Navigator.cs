@@ -12,18 +12,11 @@ using UnityEngine;
 using UnityEngine.Serialization;
 namespace Movement.MPC
 {
-    /// <summary>
-    /// The ship's navigator: turns a <see cref="NavigationIntent"/> into per-frame movement
-    /// commands. It owns the control surface (waypoints, goals, enemy state, weight overrides)
-    /// and drives an <see cref="Mpc"/> solver — building the solver's inputs each tick and
-    /// applying its result. It holds no solver state or MPC math itself.
-    /// </summary>
+    /// <summary>Turns a <see cref="NavigationIntent"/> into per-frame movement commands: owns the control surface (waypoints, goals, enemy state, weight overrides) and drives an <see cref="Mpc"/> solver, holding no solver state or MPC math itself.</summary>
     [DefaultExecutionOrder(-60)]
     public partial class Navigator : MonoBehaviour
     {
         private const uint MpcSamplerStream = 1;
-
-        // ── Control surface (waypoints, goals, intent) ──
 
         public struct Waypoint
         {
@@ -55,27 +48,21 @@ namespace Movement.MPC
         protected IShipStatus context;
         public float arriveRadius = 2f;
 
-        // Terminal cost-to-go field (Track B3): the chase target whose shared field the solver
-        // samples at rollout ends. Set only for enemy-anchored pursuit (MaintainRange).
+        // Terminal cost-to-go field: the chase target whose shared field the solver samples at rollout ends. Set only for enemy-anchored pursuit (MaintainRange).
         private Transform terminalFieldTarget;
         private float selfMaxSpeed;
 
-        // Flee escape field: self-anchored grid, free border cells seeded with threat-bearing
-        // costs, sampled through the same terminal hook. Per-ship (nothing to share between
-        // evaders) and lazily created — most ships never flee. Active only while fleeing a
-        // live target; otherwise the baker sits idle.
+        // Flee escape field: a per-ship, lazily-created self-anchored grid sampled through the terminal hook, active only while fleeing a live target.
         private Field.FieldBaker fleeFieldBaker;
         private bool hasFleeThreat;
         private float2 fleeThreat;
 
-        // Flee field geometry/policy (mirrors NavFieldService's pursuit defaults; constants
-        // until benchmark evidence says a knob is worth exposing).
+        // Flee field geometry/policy — constants (mirroring NavFieldService's pursuit defaults) until benchmark evidence says a knob is worth exposing.
         private const int FleeFieldGridSize = 64;
         private const float FleeFieldCellSize = 3f;
         private const float FleeFieldShipRadiusBuffer = 2f;
         private const float FleeFieldRebuildInterval = 0.15f;
-        // Fraction of a grid crossing charged to the worst-bearing exit: 1 = fleeing past the
-        // threat costs as much as detouring the entire grid.
+        // Fraction of a grid crossing charged to the worst-bearing exit: 1 = fleeing past the threat costs as much as detouring the entire grid.
         private const float FleeThreatBias = 1f;
 
         public Waypoint CurrentWaypoint => currentWaypoint;
@@ -112,10 +99,7 @@ namespace Movement.MPC
 
             var scan = scout.ObstacleScan;
 
-            // Terminal cost-to-go field, sampled by the solver at each rollout's terminal
-            // state: pursuit shares one field per chase target via the service; Flee bakes a
-            // per-ship escape field. Obstacles come from the session's active obstacle field
-            // (B2). Invalid/absent field = hook off.
+            // Terminal cost-to-go field: pursuit shares one field per chase target via the service, Flee bakes a per-ship escape field; invalid/absent field = hook off.
             var terminalField = default(Field.TerminalFieldData);
             if (mpcSettings.wTerminal > 0f)
             {
@@ -168,17 +152,10 @@ namespace Movement.MPC
             return currentCommand;
         }
 
-        /// <summary>
-        /// Whether the MPC should sit idle (emit no command) this tick. Separates "do I have a
-        /// destination" from "should I be controlling the ship", per objective:
-        /// waypoint/patrol idle once stopped at the destination; MaintainRange/Flee are
-        /// continuous hold/evade objectives that run whenever their target (the waypoint) exists
-        /// and never "arrive".
-        /// </summary>
+        /// <summary>Whether the MPC should sit idle (emit no command) this tick, dispatched per objective: waypoint/patrol idle once stopped at the destination, while the continuous MaintainRange/Flee objectives run whenever their target exists and never "arrive".</summary>
         internal bool ShouldIdle(Kinematics kin)
         {
-            // Velocity mode has no waypoint; a zero reference is a valid "stop" command, so the
-            // arm flag — not the reference value — gates activity.
+            // Velocity mode has no waypoint; a zero reference is a valid "stop", so the arm flag — not the reference value — gates activity.
             if (goalMode == GoalMode.VelocityReference) return !hasVelocityReference;
             if (!currentWaypoint.isValid) return true;
             return goalMode switch
@@ -204,11 +181,7 @@ namespace Movement.MPC
         private float2 GoalPos() => new(currentWaypoint.position.x, currentWaypoint.position.y);
         private float2 GoalVel() => new(currentWaypoint.velocity.x, currentWaypoint.velocity.y);
 
-        /// <summary>
-        /// Pump + rebake + sample the per-ship escape field (timer-only policy; the anchor is
-        /// this ship, so motion triggers are meaningless). False while the first bake is in
-        /// flight — the terminal hook then contributes 0, exactly like pursuit's warm-up.
-        /// </summary>
+        /// <summary>Pump + rebake + sample the per-ship escape field (timer-only, since the anchor is this ship). False while the first bake is in flight, so the terminal hook contributes 0 like pursuit's warm-up.</summary>
         private bool GetFleeField(float2 selfPos, out Field.TerminalFieldData data)
         {
             fleeFieldBaker ??= new Field.FieldBaker(
@@ -233,14 +206,7 @@ namespace Movement.MPC
             currentCommand.boost = r.boost;
         }
 
-        /// <summary>
-        /// Single production entry point for driving the navigator. Applies the whole
-        /// <see cref="NavigationIntent"/> in one place, resetting every field each call so
-        /// the result depends only on the intent — never on prior state or call order.
-        /// An invalid intent (<see cref="NavigationIntent.None"/>) resets the navigator to idle.
-        /// The granular Set*/Clear* methods below are the low-level seam this composes
-        /// (also used directly by tests); production code should call ApplyIntent instead.
-        /// </summary>
+        /// <summary>The single production entry point for driving the navigator, resetting every field each call so the result depends only on the intent, never on prior state or call order. An invalid intent resets to idle. Composes the granular Set*/Clear* seam below (which tests also drive directly).</summary>
         public void ApplyIntent(in NavigationIntent intent)
         {
             if (!intent.isValid)
@@ -249,8 +215,7 @@ namespace Movement.MPC
                 return;
             }
 
-            // Terminal cost-to-go routing: enemy-anchored pursuit shares a per-target field;
-            // Flee bakes a per-ship escape field against the live threat's position.
+            // Terminal cost-to-go routing: pursuit shares a per-target field; Flee bakes a per-ship escape field against the live threat.
             terminalFieldTarget = intent.goalMode == GoalMode.MaintainRange && intent.hasTarget
                 ? intent.target.source
                 : null;
@@ -276,9 +241,7 @@ namespace Movement.MPC
                     break;
             }
 
-            // VelocityReference is driven by a commanded velocity, not a destination, so it sets
-            // no waypoint (SetVelocityReference clears it; ShouldIdle keys off the arm flag).
-            // Every other mode is waypoint-anchored.
+            // VelocityReference is driven by a commanded velocity, not a destination, so it sets no waypoint; every other mode is waypoint-anchored.
             if (intent.goalMode != GoalMode.VelocityReference)
                 SetNavigationPoint(intent.goalPosition, true, intent.goalVelocity);
 
@@ -308,10 +271,7 @@ namespace Movement.MPC
             ClearWeightOverrides();
         }
 
-        // ── Control surface ──
-        // ApplyIntent composes the private helpers below. SetNavigationPoint and
-        // SetFacingOverride stay public for direct "go here" commands and play-mode tests.
-
+        // SetNavigationPoint and SetFacingOverride stay public for direct "go here" commands and play-mode tests; ApplyIntent composes the rest.
         public void SetNavigationPoint(Vector2 point, bool avoid = false, Vector2? velocity = null)
         {
             currentWaypoint.position = point;
@@ -324,13 +284,7 @@ namespace Movement.MPC
             currentWaypoint.isValid = false;
         }
 
-        /// <summary>
-        /// Arms velocity-tracker mode with a commanded world-plane velocity (mirrors
-        /// <see cref="SetNavigationPoint"/> for the position modes). Sets no waypoint — the
-        /// reference IS the command — so <see cref="ShouldIdle"/> keys off the arm flag, and a
-        /// zero reference is a valid "stop". The low-level seam ApplyIntent composes; also driven
-        /// directly by play-mode tests.
-        /// </summary>
+        /// <summary>Arms velocity-tracker mode with a commanded world-plane velocity. Sets no waypoint — the reference IS the command — so <see cref="ShouldIdle"/> keys off the arm flag and a zero reference is a valid "stop".</summary>
         public void SetVelocityReference(Vector2 reference)
         {
             goalMode = GoalMode.VelocityReference;
@@ -367,8 +321,7 @@ namespace Movement.MPC
             hasVelocityReference = false;
         }
 
-        // Converts the enemy snapshot to the MPC's enemy inputs. The MPC yaw convention
-        // (fwd = (-sin, cos)) lives here, at the MPC boundary — not in the strategy layer.
+        // Converts the enemy snapshot to MPC inputs; the MPC yaw convention (fwd = (-sin, cos)) lives here at the boundary, not in the strategy layer.
         private void SetEnemyState(in EnemyTarget target, float projectileSpeed)
         {
             var k = target.kinematics;

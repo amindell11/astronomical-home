@@ -4,29 +4,21 @@ using UnityEngine;
 
 namespace AI.States
 {
-    /// <summary>
-    /// Declarative description of what the navigator should do this frame.
-    /// Produced by AIState.Tick, consumed by Navigator.ApplyIntent.
-    /// Replaces all Set*/Clear* mutation on Navigator.
-    /// </summary>
+    /// <summary>Declarative description of what the navigator should do this frame, produced by AIState.Tick and consumed by Navigator.ApplyIntent.</summary>
     public struct NavigationIntent
     {
         public bool isValid;
 
-        // Goal
         public GoalMode goalMode;
         public Vector2 goalPosition;
         public Vector2 goalVelocity;
         public float desiredRange;
         public float rangeTolerance;
 
-        // Commanded world-plane velocity for GoalMode.VelocityReference (the tracker seam a
-        // learned goal-policy drives). Ignored by the position-goal modes.
+        // Commanded world-plane velocity for GoalMode.VelocityReference (the tracker seam a learned goal-policy drives); ignored by the position-goal modes.
         public Vector2 velocityReference;
 
-        // Enemy target — one snapshot of the ship we're engaging (see EnemyTarget). The gunner
-        // reads its kinematics for the firing solution; the navigator uses it for tactical MPC
-        // costs (when applyTacticalCosts) and obstacle exclusion (whenever hasTarget).
+        // One snapshot of the ship we're engaging: the gunner reads its kinematics for the firing solution; the navigator uses it for tactical MPC costs (when applyTacticalCosts) and obstacle exclusion (whenever hasTarget).
         public bool hasTarget;
         public EnemyTarget target;
         public bool applyTacticalCosts;

@@ -9,10 +9,7 @@ namespace Movement.MPC
         private const float HeadingGateDistanceSq = HeadingGateDistance * HeadingGateDistance;
         private const float TwoPi = 2f * math.PI;
 
-        /// <summary>
-        /// Preprocessed per-step context shared by Evaluate and EvaluateBreakdown.
-        /// Keeps goal-mode logic (Flee, arrival, heading flip) in one place.
-        /// </summary>
+        /// <summary>Preprocessed per-step context shared by Evaluate and EvaluateBreakdown — goal-mode logic (Flee, arrival, heading flip) in one place.</summary>
         internal struct EvalContext
         {
             public float2 goalTarget;   // positional/closing/heading goal (waypoint, or the enemy if anchored)
@@ -32,9 +29,7 @@ namespace Movement.MPC
                 var hasEnemy = !math.isnan(input.enemyYaw);
                 var anchored = cfg.goalMode.IsEnemyAnchored();
 
-                // Predicted enemy this step: the pre-rolled trajectory if present, else linear
-                // extrapolation from the snapshot. Drives the tactical costs, and the goal too
-                // when it is enemy-anchored.
+                // Predicted enemy this step: pre-rolled trajectory if present, else linear extrapolation.
                 var haveTrack = input.enemyStates.IsCreated && step < input.enemyStateCount;
                 float2 enemyPos, enemyVel;
                 float enemyYaw;
@@ -52,9 +47,7 @@ namespace Movement.MPC
                     enemyYaw = hasEnemy ? input.enemyYaw + input.enemyYawRate * stepTime : input.enemyYaw;
                 }
 
-                // The navigation goal target is the enemy when the goal is anchored to it,
-                // otherwise the (linearly extrapolated) absolute waypoint. This is the one
-                // place "is the goal the enemy?" is resolved.
+                // Enemy when anchored, else the extrapolated waypoint — the one place "is the goal the enemy?" resolves.
                 var goalTarget = (anchored && hasEnemy)
                     ? enemyPos
                     : input.goalPos + input.goalVel * stepTime;
@@ -73,7 +66,6 @@ namespace Movement.MPC
                     wYaw = math.lerp(cfg.wYaw, cfg.wYaw * cfg.arrivalYawScale, t);
                 }
 
-                // Flee disables both velocity damping and the closing-velocity reward.
                 if (isFlee) wVel = 0f;
                 var wClosing = isFlee ? 0f : cfg.wClosing;
 
@@ -109,19 +101,7 @@ namespace Movement.MPC
 
             ObstacleCosts(s, input, cfg, profileScale, out var collisionCost, out var obstacleCost);
 
-            // The terminal ramp is a crude terminal cost-to-go: it up-weights the terminal STATE
-            // cost to stand in for consequences that land past the finite horizon (end spinning →
-            // keep spinning; end on a collision course → hit it just past H; end far from goal →
-            // still far). Cost-to-go is a function of the state, so every state cost rides the
-            // ramp — the position objective, aim, authored tactics, and the state regularizers
-            // (yaw-rate, obstacle turn-away, momentum).
-            //
-            // Two things sit outside the ramp by principle, not convenience:
-            //   • Control effort is a function of the input u, not the state — a spent input has
-            //     no cost-to-go, so it is per-step.
-            //   • The velocity tracker is a *regulation* objective ("be on v_ref now", executed
-            //     receding-horizon), not a *reaching* one, so it is uniform per-step, not
-            //     terminal-weighted.
+            // Terminal ramp = crude cost-to-go: up-weights terminal STATE cost. Control effort (a function of u) and the velocity tracker (regulation, not reaching) stay per-step, outside the ramp.
             var velocityMode = cfg.goalMode == GoalMode.VelocityReference;
             var stateCost = (velocityMode ? 0f : Objective(s, ctx, cfg))
                 + Aim(s, ctx, cfg)
@@ -138,18 +118,11 @@ namespace Movement.MPC
                 total += math.pow(t, cfg.terminalCurve) * cfg.terminalMultiplier * stateCost;
             }
 
-            // Collision is a hard constraint, not a soft cost-to-go term — flat across the horizon
-            // (outside the ramp) so an early hit is punished as hard as a late one: never trade
-            // "hit now" for "clean later".
+            // Collision is a hard constraint, flat across the horizon (un-ramped) — an early hit costs as much as a late one.
             return total + collisionCost;
         }
 
-        /// <summary>
-        /// The position-family objective (waypoint / range-band / flee): position + velocity
-        /// damping + closing reward + heading. A *reaching* objective and a function of the
-        /// state, so it rides the terminal ramp. The velocity-tracker mode has its own per-step
-        /// (regulation) objective instead — handled in <see cref="Evaluate"/>.
-        /// </summary>
+        /// <summary>The position-family objective (waypoint / range-band / flee): a reaching objective that rides the terminal ramp. The velocity-tracker mode uses a per-step objective instead (see <see cref="Evaluate"/>).</summary>
         internal static float Objective(State s, in EvalContext ctx, in Config cfg)
         {
             var pos = PositionalGoalCost(s.pos, ctx, cfg) * cfg.wPos;
@@ -160,19 +133,11 @@ namespace Movement.MPC
             return pos + vel + closing + heading;
         }
 
-        /// <summary>
-        /// Intercept-facing geometry. Kept in both cost identities (aiming is not an authored
-        /// tactic); only the <see cref="Tactical"/> block toggles off in the velocity-tracker.
-        /// Ramped. Contributes 0 when no facing target is set (FacingCost handles NaN).
-        /// </summary>
+        /// <summary>Intercept-facing geometry, kept in both cost identities (aiming is not an authored tactic, so unlike <see cref="Tactical"/> it stays on in the velocity-tracker). Ramped; 0 when no facing target is set.</summary>
         internal static float Aim(State s, in EvalContext ctx, in Config cfg)
             => FacingCost(s.yaw, ctx.facingTarget, cfg.facingWidth) * cfg.wFacing;
 
-        /// <summary>
-        /// Authored combat tactics (LOS, exposure, tangential, miss-distance). Summed only when
-        /// <see cref="Config.tacticalEnabled"/>; the velocity-tracker gates the whole block off,
-        /// since the reward teaches those behaviors instead. Ramped. Requires a live enemy.
-        /// </summary>
+        /// <summary>Authored combat tactics (LOS, exposure, tangential, miss-distance), gated by <see cref="Config.tacticalEnabled"/> off in the velocity-tracker. Ramped; requires a live enemy.</summary>
         internal static float Tactical(State s, in EvalContext ctx, in CostInput input, in Config cfg, float profileScale)
         {
             if (!ctx.hasEnemy) return 0f;
@@ -189,14 +154,7 @@ namespace Movement.MPC
             return los + exposure + tangential + missDistance;
         }
 
-        /// <summary>
-        /// State regularizers — obstacle turn-away, yaw-rate damping, momentum. Functions of the
-        /// state, so they ride the terminal ramp like the rest of the state cost: their terminal
-        /// value predicts uncaptured post-horizon cost (a collision course, residual spin, drift).
-        /// Always on in both cost identities. Takes the already-resolved
-        /// <paramref name="obstacleCost"/> from <see cref="ObstacleCosts"/> (collision and
-        /// turn-away are mutually exclusive).
-        /// </summary>
+        /// <summary>State regularizers (obstacle turn-away, yaw-rate damping, momentum) — state functions that ride the terminal ramp; always on. Takes the pre-resolved <paramref name="obstacleCost"/> from <see cref="ObstacleCosts"/>.</summary>
         internal static float StateRegularizers(State s, in CostInput input, in Config cfg, float obstacleCost)
         {
             var yawRate = YawRateCost(s.yawRate, cfg.maxYawRateSq) * cfg.wYawRate;
@@ -204,26 +162,15 @@ namespace Movement.MPC
             return obstacleCost + yawRate + momentum;
         }
 
-        /// <summary>
-        /// Control cost — effort, boost, smoothness. Functions of the control input u, not the
-        /// state; a spent input has no cost-to-go, so this is per-step and never ramped.
-        /// </summary>
+        /// <summary>Control cost (effort, boost, smoothness) — a function of the input u, not the state, so it is per-step and never ramped.</summary>
         internal static float ControlCost(Control u, Control prevU, in Config cfg)
             => EffortCost(u) * cfg.wEffort + u.boost * u.boost * cfg.wBoostEffort + SmoothnessCost(u, prevU, cfg);
 
-        /// <summary>
-        /// Bank profile: cos(strafe * maxBank) is the fraction of the ship's cross-section
-        /// visible from any horizontal direction — banking rolls the collider, genuinely
-        /// narrowing the in-plane hull. Drives obstacle clearance and the miss-distance profile.
-        /// </summary>
+        /// <summary>Bank profile: cos(strafe * maxBank) is the fraction of the ship's cross-section visible in-plane — banking rolls the collider, narrowing the hull. Drives obstacle clearance and the miss-distance profile.</summary>
         internal static float BankProfileScale(float strafe, in Config cfg)
             => cfg.maxBankAngleRad > 0f ? math.cos(math.abs(strafe) * cfg.maxBankAngleRad) : 1f;
 
-        /// <summary>
-        /// The hard collision penalty (fixed, un-ramped) and the collision-course-gated
-        /// turn-away admissibility cost (ramped) are mutually exclusive per step: an overlapping
-        /// hull pays the penalty and no turn-away; a clear hull pays only turn-away.
-        /// </summary>
+        /// <summary>The hard collision penalty (fixed, un-ramped) and the gated turn-away cost (ramped) are mutually exclusive per step: an overlapping hull pays only the penalty, a clear hull only turn-away.</summary>
         internal static void ObstacleCosts(State s, in CostInput input, in Config cfg,
             float profileScale, out float collision, out float obstacle)
         {
@@ -239,10 +186,7 @@ namespace Movement.MPC
                     hullRadius, cfg.maxLatAccel) * cfg.wObstacle;
         }
 
-        /// <summary>
-        /// Computes the yaw angle to aim at a first-order intercept point.
-        /// Uses t = dist / projectileSpeed as time-of-flight estimate.
-        /// </summary>
+        /// <summary>Yaw to a first-order intercept point, using t = dist / projectileSpeed as the time-of-flight estimate.</summary>
         internal static float InterceptYaw(float2 shipPos, float2 targetPos, float2 targetVel, float projectileSpeed)
         {
             var toTarget = targetPos - shipPos;
@@ -254,10 +198,7 @@ namespace Movement.MPC
             return math.atan2(-toIntercept.x, toIntercept.y);
         }
 
-        /// <summary>
-        /// Single resolution point for the position cost target. Shared by Evaluate and
-        /// EvaluateBreakdown so goal-mode handling lives in exactly one place.
-        /// </summary>
+        /// <summary>Single resolution point for the position cost target, shared by Evaluate and EvaluateBreakdown so goal-mode handling lives in one place.</summary>
         internal static float PositionalGoalCost(float2 pos, in EvalContext ctx, in Config cfg)
             => GoalCost(pos, ctx.goalTarget, cfg);
 
@@ -274,13 +215,7 @@ namespace Movement.MPC
             }
         }
 
-        /// <summary>
-        /// Position cost normalized to [0, 1) via Lorentzian saturation: cost = raw / (raw + satMax),
-        /// where raw = d^curve and satMax = satDistance^curve. Half-saturates at d = satDistance,
-        /// asymptotes to 1 at far distance. Closing-velocity reward provides the long-range
-        /// urgency that an unbounded quadratic used to. satDistance &lt;= 0 falls back to raw d^curve
-        /// (unbounded; legacy behavior).
-        /// </summary>
+        /// <summary>Position cost normalized to [0, 1) via Lorentzian saturation: raw / (raw + satMax), raw = d^curve, half-saturating at d = satDistance. satDistance &lt;= 0 falls back to unbounded raw d^curve.</summary>
         internal static float PositionCost(float2 pos, float2 goal, float curve, float satDistance)
         {
             var raw = (curve == 2f)
@@ -303,16 +238,14 @@ namespace Movement.MPC
 
             if (dist > outer)
             {
-                // Too far: Lorentzian-saturated urgency normalized to [0, 1).
-                // Half-saturates at err = tolerance, asymptotes to 1.
+                // Too far: Lorentzian-saturated urgency in [0, 1), half-saturating at err = tolerance.
                 var err = dist - outer;
                 var errSq = err * err;
                 var tolSq = math.max(tolerance * tolerance, 1e-4f);
                 return errSq / (errSq + tolSq);
             }
 
-            // Too close: diminishing reward — closer is better for aiming but with soft floor
-            // Returns negative (reward), approaching -1 as dist→0
+            // Too close: negative (reward), approaching -1 as dist→0 — closer is better for aiming, with a soft floor.
             var t = dist / math.max(inner, 1e-4f); // 1 at inner edge, 0 at enemy
             return -(1f - t * t);
         }
@@ -327,21 +260,11 @@ namespace Movement.MPC
         internal static float VelocityCost(float2 vel, float maxSpeedSq) =>
             maxSpeedSq > 0f ? math.lengthsq(vel) / maxSpeedSq : 0f;
 
-        /// <summary>
-        /// Squared velocity-tracking error, normalized by maxSpeed² (same idiom as VelocityCost).
-        /// 0 when the ship's planar velocity equals the commanded reference; grows with the error.
-        /// World-plane throughout — no frame conversion, since State.vel and the reference share it.
-        /// </summary>
+        /// <summary>Squared velocity-tracking error normalized by maxSpeed²; 0 at the reference. World-plane throughout — State.vel and the reference share the frame, so no conversion.</summary>
         internal static float VelocityTrackCost(float2 vel, float2 velocityReference, float maxSpeedSq) =>
             maxSpeedSq > 0f ? math.lengthsq(vel - velocityReference) / maxSpeedSq : 0f;
 
-        /// <summary>
-        /// Negative-when-closing reward for velocity component aimed at goal. Provides a
-        /// Lyapunov-style gradient so "spin slightly slower with slight thrust" beats
-        /// "spin at full rate" — escape path from sample-based MPC's spinning local optima.
-        /// Returns ~ [-1, 1]: -1 = closing at maxSpeed, +1 = receding at maxSpeed.
-        /// Smoothstep-gated to 0 within fadeDistance so velocity-damping arrival can take over.
-        /// </summary>
+        /// <summary>Negative-when-closing reward (~[-1, 1]) for velocity aimed at the goal — a Lyapunov-style gradient that escapes sample-based MPC's spinning local optima. Smoothstep-gated to 0 within fadeDistance so arrival damping takes over.</summary>
         internal static float ClosingCost(float2 pos, float2 vel, float2 goal,
             float maxSpeedSq, float fadeDistance)
         {
@@ -369,8 +292,7 @@ namespace Movement.MPC
             var angErr = WrapRadians(yaw - goalYaw);
             var cost = (angErr * angErr) / (math.PI * math.PI);
 
-            // Scale by (1 + scale * dist) so heading stays visible vs position cost (≈ dist²) at range.
-            // Matches ∂PositionCost/∂heading for positionCurve=2; scale=0 disables and recovers normalized 0-1.
+            // Scale by (1 + scale * dist) so heading stays visible vs position cost at range (matches ∂PositionCost/∂heading for positionCurve=2; scale=0 disables).
             var dist = math.sqrt(distSq);
             var distMultiplier = 1f + distanceScale * dist;
 
@@ -402,7 +324,7 @@ namespace Movement.MPC
         internal static float SmoothnessCost(Control u, Control prev, Config cfg)
         {
             // Max delta is 2 (-1 to +1), max rate = 2*invDt, max rate² = 4*invDt²
-            var normFactor = 0.25f * cfg.dt * cfg.dt; // 1 / (4 * invDt²)
+            var normFactor = 0.25f * cfg.dt * cfg.dt;
             var duT = u.thrust - prev.thrust;
             var duS = u.strafe - prev.strafe;
             var duY = u.yawTorque - prev.yawTorque;
@@ -412,12 +334,7 @@ namespace Movement.MPC
                    (duY * duY * normFactor) * cfg.wSmoothnessYaw;
         }
 
-        /// <summary>
-        /// Hard hull-overlap test: true if the (bank-narrowed, margin-inflated) ship disc
-        /// overlaps any obstacle disc. Near-binary by design — rollouts that hit are rejected
-        /// via a large fixed penalty; rollouts that miss are NOT punished for proximity, so
-        /// close-and-tight flying stays free (trade study §3.4).
-        /// </summary>
+        /// <summary>Hard hull-overlap test between the (bank-narrowed, margin-inflated) ship disc and any obstacle disc. Near-binary by design: misses aren't penalized for proximity, so close-and-tight flying stays free (trade study §3.4).</summary>
         internal static bool Collides(float2 pos,
             Unity.Collections.NativeArray<ObstacleData> obstacles, int count, float hullRadius)
         {
@@ -431,20 +348,7 @@ namespace Movement.MPC
             return false;
         }
 
-        /// <summary>
-        /// Admissibility (collision-course-gated turn-away) cost: only obstacles the current
-        /// velocity actually leads INTO incur cost. For each obstacle ahead, project its center
-        /// onto the velocity axis; if the perpendicular offset already clears the corridor
-        /// (obs.radius + hull) the ship passes clean → 0. Otherwise the cost measures whether
-        /// the ship can still sidestep the remaining lateral deficit (dNeeded) with its lateral
-        /// thrust before reaching the obstacle's plane (dTurn = ½·a_lat·t² over tAvail).
-        /// Exactly 0 when the sidestep suffices; rises smoothly (C¹ at the boundary, bounded
-        /// [0,1]) as it falls short. A weaving pursuer steers around off-course rocks for free
-        /// and only pays for dead-ahead obstacles it leads into. Worst obstacle wins (max) —
-        /// the binding constraint, never a sum. Chosen over the stopping-distance ratio after
-        /// the A2 ablation showed braking-based cost causes chase timidity without preventing
-        /// the failures it targets (see Chase_Nav_Track_A_Implementation_Log.md).
-        /// </summary>
+        /// <summary>Collision-course-gated turn-away cost: only obstacles the velocity leads into and can't sidestep before impact cost anything (0 when the sidestep suffices, →1 as it falls short, C¹ at the boundary); worst obstacle wins. Chosen over the stopping-distance ratio after the A2 ablation (see Chase_Nav_Track_A_Implementation_Log.md).</summary>
         internal static float TurnAwayCost(float2 pos, float2 vel,
             Unity.Collections.NativeArray<ObstacleData> obstacles, int count,
             float hullRadius, float maxLatAccel)
@@ -478,11 +382,6 @@ namespace Movement.MPC
             return worst;
         }
 
-        /// <summary>
-        /// Penalizes positions where obstacles block the line from ship to enemy.
-        /// Uses closest-approach distance to detect line-circle intersection.
-        /// Returns a soft occlusion score: 0 = clear LOS, positive = blocked.
-        /// </summary>
         /// <summary>Normalized 0-1: 0 = clear LOS, 1 = fully blocked.</summary>
         public static float LosCost(float2 pos, float2 enemy,
             NativeArray<ObstacleData> obstacles, int count)
@@ -499,8 +398,7 @@ namespace Movement.MPC
                 var obs = obstacles[i];
                 var rSq = obs.radius * obs.radius;
 
-                // Skip the target itself: if the goal endpoint sits inside this obstacle's sphere,
-                // the obstacle IS the target (or wraps it) — no self-blocking of LOS to the very thing we're aiming at.
+                // Skip an obstacle wrapping the target itself — it can't block LOS to the thing we're aiming at.
                 if (math.lengthsq(obs.position - enemy) <= rSq) continue;
 
                 var toObs = obs.position - pos;
@@ -517,12 +415,7 @@ namespace Movement.MPC
             return maxPenetration;
         }
 
-        /// <summary>
-        /// Penalizes being in the enemy's forward weapon arc.
-        /// Cost is highest when directly in front of the enemy at close range,
-        /// zero when behind/beside. Inverse-distance scaling makes close-range
-        /// exposure far more urgent than long-range.
-        /// </summary>
+        /// <summary>Penalizes being in the enemy's forward weapon arc; inverse-distance scaling makes close-range exposure far more urgent than long-range.</summary>
         public static float ExposureCost(float2 pos, float2 enemyPos, float enemyYaw,
             float width = 1f)
         {
@@ -541,11 +434,7 @@ namespace Movement.MPC
             return math.exp(-x * x);
         }
 
-        /// <summary>
-        /// Rewards lateral (tangential) velocity relative to the enemy.
-        /// High tangential speed = low cost, making the ship harder to track.
-        /// </summary>
-        /// <summary>Normalized 0-1: 1 = no lateral movement, ~0 = fast lateral movement.</summary>
+        /// <summary>Normalized 0-1: 1 = no lateral movement, ~0 = fast lateral movement (harder to track).</summary>
         internal static float TangentialVelocityCost(float2 pos, float2 vel, float2 enemyPos)
         {
             var toEnemy = enemyPos - pos;
@@ -556,14 +445,7 @@ namespace Movement.MPC
             return 0.5f / (tangentialSpeed + 0.5f);
         }
 
-        /// <summary>
-        /// Penalizes states where the ship is easy to hit.
-        /// Computes miss distance: the perpendicular displacement of the ship
-        /// from the enemy's line of fire during the projectile's time of flight.
-        /// Banking (from strafe) reduces the ship's cross-section by cos(bankAngle),
-        /// shrinking the effective profile the enemy must hit.
-        /// Naturally captures speed, lateral movement, range, and bank in one term.
-        /// </summary>
+        /// <summary>Miss distance: the ship's perpendicular displacement from the enemy's line of fire over the projectile's time of flight, with banking shrinking the effective profile — captures speed, lateral movement, range, and bank in one term.</summary>
         internal static float MissDistanceCost(float2 pos, float2 vel, float2 enemyPos,
             float projectileSpeed, float profileScale)
         {
@@ -574,7 +456,6 @@ namespace Movement.MPC
             var dist = math.sqrt(distSq);
             var tof = dist / projectileSpeed;
 
-            // Perpendicular velocity component relative to the line of fire
             var radialDir = toShip / dist;
             var radialSpeed = math.dot(vel, radialDir);
             var tangentialSpeedSq = math.lengthsq(vel) - radialSpeed * radialSpeed;
@@ -585,11 +466,7 @@ namespace Movement.MPC
             return effectiveProfile / (missDistance + effectiveProfile);
         }
 
-        /// <summary>
-        /// Penalizes velocity direction changes relative to the initial velocity.
-        /// Returns 0 when maintaining course, up to 2 when reversing direction.
-        /// Returns 0 when either velocity is near-zero (no meaningful direction).
-        /// </summary>
+        /// <summary>Penalizes velocity direction change vs the initial velocity: 0 maintaining course → 1 reversed; 0 when either velocity is near-zero.</summary>
         internal static float MomentumCost(float2 vel, float2 initialVel)
         {
             var speedSq = math.lengthsq(vel);

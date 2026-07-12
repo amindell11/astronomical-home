@@ -12,8 +12,7 @@ namespace Movement.MPC
             var ctx = EvalContext.Create(s, input, cfg, step);
             var profileScale = BankProfileScale(u.strafe, cfg);
 
-            // Shares Evaluate's obstacle resolution so the two can't drift: collision and
-            // turn-away are mutually exclusive per step.
+            // Shares Evaluate's obstacle resolution so the two can't drift.
             ObstacleCosts(s, input, cfg, profileScale, out var collision, out var obstacle);
             var tacticalOn = cfg.tacticalEnabled;
             var velocityMode = cfg.goalMode == GoalMode.VelocityReference;
@@ -55,8 +54,7 @@ namespace Movement.MPC
             var positionalCost = breakdown.pos + breakdown.vel + breakdown.closing + breakdown.heading +
                                 breakdown.yawRate + breakdown.obstacle + breakdown.momentum;
             var tacticalCost = breakdown.facing + breakdown.los + breakdown.exposure + breakdown.tangential + breakdown.missDistance;
-            // velocityTrack is the un-ramped objective (mirrors Cost.Evaluate): in the base total
-            // but excluded from the terminal ramp.
+            // velocityTrack is the un-ramped objective (mirrors Cost.Evaluate): in the base total, excluded from the ramp.
             var total = positionalCost + tacticalCost + breakdown.effort + breakdown.boostEffort +
                         breakdown.smoothness + breakdown.velocityTrack;
 

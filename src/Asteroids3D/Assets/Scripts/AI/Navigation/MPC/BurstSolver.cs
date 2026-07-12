@@ -31,11 +31,7 @@ namespace Movement.MPC
 
             var rng = new Unity.Mathematics.Random(CandidateSeed(rngSeed, (uint)candidateIndex));
 
-            // Time-correlated noise: draw Gaussian values at a few evenly spaced knots
-            // over the horizon and linearly interpolate between them, so a single draw
-            // can express a sustained maneuver ("hold hard strafe for 0.5 s") instead of
-            // per-step i.i.d. jitter that averages itself away. One float3 per knot
-            // perturbs thrust/strafe/yawTorque together.
+            // Time-correlated noise: Gaussian draws at a few evenly spaced knots, interpolated between, so one draw can express a sustained maneuver instead of self-averaging per-step jitter.
             var knots = math.max(2, noiseKnots);
             var knotScale = (knots - 1) / (float)math.max(1, horizon - 1);
             var prevKnot = NextGaussian3(ref rng);
@@ -65,9 +61,7 @@ namespace Movement.MPC
             }
         }
 
-        // Hashes the solve seed (already folds in base seed + solve counter) with the candidate index
-        // into a well-scattered seed, forced nonzero — Unity.Mathematics.Random rejects a zero seed.
-        // Kept inline (not SeedScope) so the Burst solver stays decoupled from the command layer.
+        // Hashes the solve seed with the candidate index into a scattered nonzero seed (Unity.Mathematics.Random rejects a zero seed). Inline, not SeedScope, to keep the Burst solver decoupled from the command layer.
         private static uint CandidateSeed(uint solveSeed, uint candidateIndex)
         {
             var h = solveSeed * 2654435761u;
@@ -119,8 +113,7 @@ namespace Movement.MPC
                 prevU = u;
             }
 
-            // Track B3: cost-to-go terminal hook — one field fetch per rollout, at the state
-            // reached after the final step. Invalid field or wTerminal 0 → contributes nothing.
+            // Cost-to-go terminal hook: one field fetch per rollout at the final state; invalid field or wTerminal 0 contributes nothing.
             if (cfg.wTerminal > 0f && costInput.terminalField.isValid != 0)
                 totalCost += cfg.wTerminal * Field.TerminalFieldData.Sample(current.pos, costInput.terminalField);
 
@@ -128,18 +121,10 @@ namespace Movement.MPC
         }
     }
 
-    /// <summary>
-    /// Owns the NativeArray buffers for the Burst solver.
-    /// Create once, call Solve each frame, Dispose on teardown.
-    /// </summary>
+    /// <summary>Owns the NativeArray buffers for the Burst solver: create once, call Solve each frame, Dispose on teardown.</summary>
     public class SolverBuffers : System.IDisposable
     {
-        /// <summary>
-        /// Optional global base-seed override (benchmark reproducibility): pins every ship to one
-        /// base so a whole chase replays identically. Null (default) uses the injected per-ship
-        /// seed. Interim world-scoped seam — see CLAUDE.md dependency philosophy; a per-session
-        /// container supersedes it in S1b.
-        /// </summary>
+        /// <summary>Optional global base-seed override (benchmark reproducibility): pins every ship to one base so a chase replays identically; null uses the injected per-ship seed. Interim world-scoped seam — see CLAUDE.md dependency philosophy.</summary>
         public static uint? SamplerSeedOverride;
 
         private readonly uint samplerSeed;
@@ -163,8 +148,7 @@ namespace Movement.MPC
         public NativeArray<State> EnemyStates => enemyStates;
         public int LastEnemyStateCount { get; private set; }
 
-        // Editor visualization access — read-only candidate sequences and their costs
-        // from the most recent Solve(). Valid until the next Solve() rewrites the buffers.
+        // Editor visualization: read-only candidate sequences and costs from the most recent Solve(), valid until the next Solve() rewrites the buffers.
         public NativeArray<Control> Candidates => candidates;
         public NativeArray<float> Costs => costs;
         public int LastSampleCount { get; private set; }
@@ -186,8 +170,7 @@ namespace Movement.MPC
             LastSampleCount = samples;
             LastHorizon = horizon;
 
-            // The job safety system rejects uncreated NativeArray fields even when guarded by
-            // isValid, so an absent terminal field gets the (never-read) dummy buffers.
+            // The job safety system rejects uncreated NativeArray fields even when guarded by isValid, so an absent terminal field gets the never-read dummy buffers.
             if (!terminalField.costToGo.IsCreated)
             {
                 terminalField.costToGo = dummyTerminalCost;
@@ -250,10 +233,7 @@ namespace Movement.MPC
 
             initialState.boostCooldownRemaining = boostCooldownRemaining;
 
-            // The injected per-ship sampler stream decorrelates ships, the solve counter decorrelates
-            // successive solves, and the position hash keeps candidates from repeating when a ship
-            // revisits a pose. GenerateCandidatesJob hashes this per candidate; same seed + same inputs
-            // replay the noise.
+            // Per-ship stream, solve counter, and position hash together decorrelate ships/solves/poses while keeping the noise replayable for identical inputs.
             solveCount++;
             var baseSeed = SamplerSeedOverride ?? samplerSeed;
             var rngSeed = baseSeed + solveCount * 7919u + (uint)initialState.pos.GetHashCode();
@@ -274,11 +254,7 @@ namespace Movement.MPC
             return EliteAverage(sequence, cfg.horizon, samples, eliteFraction);
         }
 
-        /// <summary>
-        /// Re-evaluate the candidates from the last Solve() with a different config.
-        /// Reuses the same control sequences — only cost evaluation and elite selection differ.
-        /// Must be called after Solve() while buffers are still valid.
-        /// </summary>
+        /// <summary>Re-evaluate the last Solve()'s candidates with a different config (same sequences, only cost/elite selection differ). Must be called after Solve() while buffers are still valid.</summary>
         public float Rescore(State initialState, Control[] sequence,
             Config cfg, Dynamics dynamics, CostInput costInput,
             Control lastControl, int samples, float eliteFraction = 0.1f)
@@ -350,10 +326,7 @@ namespace Movement.MPC
             return bestCost;
         }
 
-        /// <summary>
-        /// Find the K-th smallest value in costs[0..count-1] using a single pass.
-        /// Returns a threshold: at least K elements have cost &lt;= this value.
-        /// </summary>
+        /// <summary>Single-pass K-th smallest of costs[0..count-1], returned as a threshold: at least K elements have cost &lt;= it.</summary>
         private static float FindKthSmallest(NativeArray<float> costs, int count, int k)
         {
             if (k >= count) return float.MaxValue;
@@ -429,10 +402,7 @@ namespace Movement.MPC
             var rawCount = (scan.count > 0 && useObstacles) ? scan.count : 0;
             var invShipMass = shipMass > 0f ? 1f / shipMass : 1f;
 
-            // `scan` is already the nearest-N set. Expand elongated rocks into their tighter
-            // lobes when multi-sphere is on; admit each rock ATOMICALLY (all its lobes or none)
-            // so the fixed buffer never holds a partial obstacle. Kill switch off (or ≤1 lobe)
-            // writes a single row from the primary circle — byte-identical to pre-PR behaviour.
+            // Expand elongated rocks into their tighter lobes when multi-sphere is on, admitting each rock atomically (all lobes or none) so the buffer never holds a partial obstacle; kill switch off writes one primary-circle row per rock.
             var written = 0;
             for (var i = 0; i < rawCount; i++)
             {
@@ -457,8 +427,7 @@ namespace Movement.MPC
                 else
                 {
                     if (written + 1 > obstacles.Length) break;
-                    // True obstacle radius — the ship footprint lives in the cost evaluation
-                    // (bank-narrowed hull), not baked into the world geometry.
+                    // True obstacle radius — the ship footprint lives in the cost evaluation (bank-narrowed hull), not the world geometry.
                     obstacles[written++] = new ObstacleData
                     {
                         position = new float2(obs.position.x, obs.position.y),
@@ -478,8 +447,7 @@ namespace Movement.MPC
             warmStart = new NativeArray<Control>(horizon, Allocator.Persistent);
             candidates = new NativeArray<Control>(samples * horizon, Allocator.Persistent);
             costs = new NativeArray<float>(samples, Allocator.Persistent);
-            // 96 (not 64): multi-sphere expansion turns each elongated rock into up to 3 rows,
-            // so a full nearest-N scan needs headroom above the raw obstacle count.
+            // 96 (not 64): multi-sphere expansion turns each elongated rock into up to 3 rows, so a full nearest-N scan needs headroom above the raw obstacle count.
             obstacles = new NativeArray<ObstacleData>(96, Allocator.Persistent);
             enemyStates = new NativeArray<State>(horizon, Allocator.Persistent);
             result = new NativeArray<Control>(horizon, Allocator.Persistent);
