@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT="$(git rev-parse --show-toplevel)"
+# Anchor to the primary worktree even when invoked from inside an agent-N
+# worktree: --show-toplevel is CWD-dependent, and a worktree-local
+# .worktree-pool/locks holds dead leases from prior tasks (revise then pushes
+# to a prior task's branch — the WRONG-BRANCH hazard).
+ROOT="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"
 LOCK_ROOT="${WORKTREE_POOL_LOCK_ROOT:-$ROOT/.worktree-pool/locks}"
 # Locks go stale by AGE, not by a live pid: each agent shell here is ephemeral,
 # so the acquiring pid is long dead by the next call. A lock older than the TTL
@@ -17,8 +21,11 @@ Commands:
   status
       List agent-* worktree slots and lock status.
 
-  acquire [lease_id]
-      Lock and return an available slot.
+  acquire [lease_id] [slot]
+      Lock and return an available slot. Auto-pick prefers genuinely
+      free slots over stale-lock reclaims. Naming a slot is strict:
+      if it isn't free (or safely reclaimable) acquire FAILS — no
+      silent fallback to auto-pick.
       Output: SLOT=<name> PATH=<abs-path>
 
   release <slot>
@@ -66,6 +73,7 @@ Commands:
 Examples:
   scripts/agent_worktree_pool.sh status
   scripts/agent_worktree_pool.sh acquire task-123
+  scripts/agent_worktree_pool.sh acquire task-123 agent-4
   scripts/agent_worktree_pool.sh prepare agent-1 origin/main
   scripts/agent_worktree_pool.sh run-tests agent-1 -Mode EditMode -ScopeType Smoke
   scripts/agent_worktree_pool.sh create-pr agent-1
@@ -233,33 +241,58 @@ cmd_status() {
   fi
 }
 
+try_lock_slot() {
+  local slot="$1" lease="$2" path="$3"
+  local ldir
+  ldir="$(lock_dir_for "$slot")"
+  mkdir "$ldir" 2>/dev/null || return 1
+  write_lock "$slot" "$lease" "$path"
+  echo "SLOT=$slot PATH=$path"
+}
+
+# Reclaim only if the lock is past its TTL AND the slot holds no unpushed
+# work (never clobber a dead lock's WIP -- the CLOBBER HAZARD).
+try_reclaim_slot() {
+  local slot="$1" lease="$2" path="$3"
+  local ldir age
+  ldir="$(lock_dir_for "$slot")"
+  age="$(lock_age_seconds "$ldir")"
+  [[ "$age" -gt "$LOCK_TTL_SECONDS" ]] || return 1
+  if ! slot_is_clobber_safe "$path"; then
+    echo "Skipping $slot: stale lock (age ${age}s) but slot holds unpushed work; leaving locked" >&2
+    return 1
+  fi
+  rm -rf "$ldir"
+  mkdir "$ldir" 2>/dev/null || return 1
+  write_lock "$slot" "$lease" "$path"
+  echo "Reclaimed stale lock on $slot (age ${age}s > TTL ${LOCK_TTL_SECONDS}s)" >&2
+  echo "SLOT=$slot PATH=$path"
+}
+
 cmd_acquire() {
   local lease="${1:-task-$(date +%Y%m%d-%H%M%S)}"
+  local wanted="${2:-}"
+
+  # A named slot is strict: the caller chose it for state the pool can't see
+  # (warm Unity Library, an open editor, ledger affinity) — silently handing
+  # back a different slot recreates the surprise naming was meant to remove.
+  if [[ -n "$wanted" ]]; then
+    local path
+    path="$(slot_path "$wanted")" || { echo "acquire: unknown slot '$wanted'" >&2; return 1; }
+    try_lock_slot "$wanted" "$lease" "$path" && return 0
+    try_reclaim_slot "$wanted" "$lease" "$path" && return 0
+    echo "acquire: $wanted unavailable (lease=$(lease_for "$wanted")); no fallback when a slot is named." >&2
+    return 1
+  fi
+
+  # Free slots first; reclaiming a stale lock crosses another session's
+  # expectations, so it is a fallback pass, never interleaved.
+  local slot path
   while IFS=$'\t' read -r slot path; do
-    local ldir
-    ldir="$(lock_dir_for "$slot")"
-    if mkdir "$ldir" 2>/dev/null; then
-      write_lock "$slot" "$lease" "$path"
-      echo "SLOT=$slot PATH=$path"
-      return 0
-    fi
-    # Locked. Reclaim only if the lock is past its TTL AND the slot holds no
-    # unpushed work (never clobber a dead lock's WIP -- the CLOBBER HAZARD).
-    local age
-    age="$(lock_age_seconds "$ldir")"
-    if [[ "$age" -gt "$LOCK_TTL_SECONDS" ]]; then
-      if slot_is_clobber_safe "$path"; then
-        rm -rf "$ldir"
-        if mkdir "$ldir" 2>/dev/null; then
-          write_lock "$slot" "$lease" "$path"
-          echo "Reclaimed stale lock on $slot (age ${age}s > TTL ${LOCK_TTL_SECONDS}s)" >&2
-          echo "SLOT=$slot PATH=$path"
-          return 0
-        fi
-      else
-        echo "Skipping $slot: stale lock (age ${age}s) but slot holds unpushed work; leaving locked" >&2
-      fi
-    fi
+    try_lock_slot "$slot" "$lease" "$path" && return 0
+  done < <(slots_tsv)
+  while IFS=$'\t' read -r slot path; do
+    try_reclaim_slot "$slot" "$lease" "$path" && return 0
   done < <(slots_tsv)
 
   echo "No free slots" >&2
@@ -309,6 +342,9 @@ cmd_prepare() {
   git -C "$path" checkout "$slot"
   git -C "$path" reset --hard "$base"
   git -C "$path" clean -fd
+  # Ignored, so clean leaves it: purge any worktree-local .worktree-pool so a
+  # stale script copy running inside the worktree can't resolve it as live locks.
+  rm -rf "$path/.worktree-pool"
 
   echo "Prepared $slot at $path -> $base"
 }
@@ -518,7 +554,22 @@ cmd_merge() {
     git -C "$path" push origin "$slot:refs/heads/$task_branch"
   fi
 
-  gh pr merge "$pr" --squash --delete-branch=false
+  # GitHub recomputes mergeability asynchronously after the gate's push; a
+  # merge call inside that window fails "not mergeable" — brief retries ride
+  # it out.
+  local attempt merged=0
+  for attempt in 1 2 3 4 5; do
+    if gh pr merge "$pr" --squash --delete-branch=false; then
+      merged=1
+      break
+    fi
+    echo "merge: PR #$pr not mergeable yet (attempt $attempt/5) — retrying in 3s..."
+    sleep 3
+  done
+  if [[ "$merged" -ne 1 ]]; then
+    echo "merge: gh pr merge failed for PR #$pr after 5 attempts." >&2
+    return 1
+  fi
   echo ""
   echo "PR #$pr squash-merged. Next: finalize the slot and sync local main:"
   echo "  ./scripts/agent_worktree_pool.sh finalize $slot $base_ref"
