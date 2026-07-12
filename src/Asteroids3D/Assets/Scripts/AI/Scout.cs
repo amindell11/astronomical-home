@@ -14,7 +14,7 @@ namespace AI
     /// Performs scans each frame and provides cached results to consumers.
     /// </summary>
     [DefaultExecutionOrder(-80)]
-    public partial class Scout : MonoBehaviour
+    public class Scout : MonoBehaviour
     {
         [Header("Ship Scanning")]
         public float nearbyShipRadius = 30f;
@@ -28,7 +28,7 @@ namespace AI
 
         private ShipScanner shipScanner;
         private SphereSensor coverSensor;
-        private ObstacleScanner obstacleScanner;
+        internal ObstacleScanner obstacleScanner;
         private Transform origin;
         private ShipId shipId;
         public ShipId ShipId => shipId;

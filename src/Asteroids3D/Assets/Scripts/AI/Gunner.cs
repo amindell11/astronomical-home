@@ -9,9 +9,9 @@ using UnityEngine;
 namespace AI
 {
     [DefaultExecutionOrder(-50)]
-    public partial class Gunner : MonoBehaviour
+    public class Gunner : MonoBehaviour
     {
-        private IWeaponContext weapons;
+        internal IWeaponContext weapons;
         private IWeapons actuator;
         private Func<Kinematics> pose;
 
@@ -20,7 +20,7 @@ namespace AI
         private bool hasEnemy;
 
         /// <summary>The primary weapon's intercept point (world space), for diagnostics/gizmos.</summary>
-        private Vector3 Target { get; set; }
+        internal Vector3 Target { get; private set; }
         public bool HasTarget => Target != Vector3.zero;
 
         /// <summary>Muzzle speed of the primary weapon, used by the navigator for intercept lead.</summary>

@@ -1,6 +1,4 @@
 #if UNITY_EDITOR
-using AI;
-using AI.Debug;
 using AI.Scanning;
 using AI.States;
 using Movement;
@@ -156,17 +154,6 @@ namespace Movement.MPC
             }
         }
 
-        private AICommander cachedCommander;
-        private AIDebugSettings CachedSettings
-        {
-            get
-            {
-                if (!cachedCommander)
-                    cachedCommander = GetComponent<AICommander>();
-                return cachedCommander ? cachedCommander.DebugSettings : null;
-            }
-        }
-
         partial void StoreDebugObstacles(ObstacleScan scan)
         {
             if (dbgObstacles == null || dbgObstacles.Length < scan.count)
@@ -192,15 +179,11 @@ namespace Movement.MPC
             nextLogTime = Time.time + 1f;
         }
 
-        private void OnDrawGizmos() => DrawGizmosImpl(false);
-        private void OnDrawGizmosSelected() => DrawGizmosImpl(true);
-
-        void DrawGizmosImpl(bool isSelected)
+        // Called by the editor assembly's NavigatorSteeringGizmos, which owns the
+        // AIDebugChannel.Steering gate; drawing stays here with the solver's internal state.
+        internal void DrawGizmosImpl()
         {
             if (mpc == null) return;
-            var settings = CachedSettings;
-            if (settings == null || !settings.ShouldDraw(isSelected)) return;
-            if (!settings.IsActive(AIDebugChannel.Steering)) return;
 
             DrawShipRadius();
             DrawFleeField();
