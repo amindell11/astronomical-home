@@ -133,7 +133,8 @@ namespace Game.Bootstrap
             if (playerRig)
             {
                 target.Rig = playerRig;
-                target.OnPlayerDeath = BuildDeathCallback(target.Services);
+                // Consume the driver-set hook (see HandleStart); never overwrite it — a headless/RL
+                // driver supplies its own OnPlayerDeath before composing.
                 yield return playerRig.Build(target.Services, buildPlayer, target.OnPlayerDeath);
             }
 
@@ -141,9 +142,11 @@ namespace Game.Bootstrap
             // GameSettings.SetPresentationEnabled — each ship's embedded rig self-gates on spawn.
         }
 
-        // Map the owned death policy to the callback the rig wires onto the player at spawn. Null for
-        // None; a restart request for RestartSector; a producer-relative revive for RespawnInPlace.
-        private System.Action<ShipId, ShipId> BuildDeathCallback(IGameServices deathServices)
+        // Map the gameplay death policy to the callback the rig wires onto the player. Null for None
+        // (and for a disabled RespawnInPlace policy, matching Respawn.Wire's Enabled guard); a restart
+        // request for RestartSector; a producer-relative revive for RespawnInPlace. Services are read
+        // from the session at death time, which is after composition has populated them.
+        private Action<ShipId, ShipId> BuildDeathCallback(GameSession target)
         {
             switch (deathBehavior)
             {
@@ -151,8 +154,9 @@ namespace Game.Bootstrap
                     return (_, _) => HandleRestartRequested();
                 case PlayerDeathBehavior.RespawnInPlace:
                     var policy = playerRespawn;
-                    return (victim, _) => deathServices.UnitService.WaitAndRespawnShip(
-                        victim, Respawn.Resolve(policy, deathServices), 0f, policy.delay);
+                    if (!policy.Enabled) return null;
+                    return (victim, _) => target.Services.UnitService.WaitAndRespawnShip(
+                        victim, Respawn.Resolve(policy, target.Services), 0f, policy.delay);
                 case PlayerDeathBehavior.None:
                 default:
                     return null;
@@ -306,10 +310,12 @@ namespace Game.Bootstrap
 
         private IEnumerator HandleStart()
         {
-            // The player-death reset is injected via GameSession.OnPlayerDeath, which ComposeSession
-            // builds and the rig wires onto the player synchronously at spawn — so a spawn-frame death
-            // already has a subscriber without any pre-compose subscription dance.
+            // The driver sets its reset-policy hooks on the session BEFORE composing; the primitives
+            // consume them (LoadSector wires OnSectorComplete to the sector; ComposeSession passes
+            // OnPlayerDeath to the rig, which wires it onto the player synchronously at spawn, so a
+            // spawn-frame death already has a subscriber — no pre-compose subscription dance).
             session.OnSectorComplete = HandleSectorComplete;
+            session.OnPlayerDeath = BuildDeathCallback(session);
 
             yield return ComposeSession(session);
 
