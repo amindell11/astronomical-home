@@ -87,6 +87,12 @@ namespace Game.Bootstrap
             if (!entry?.prefab)
                 throw new InvalidOperationException("No sector entry configured on the session profile.");
 
+            // Environment: make the sector's locale the active (lighting) scene before content builds.
+            // Skipped headless (no presentation) and no-op when the locale is unassigned or unchanged.
+            if (target.Profile.presentation)
+                yield return target.Services.EnvironmentService.ApplyLocaleAsync(
+                    entry.config ? entry.config.Locale?.SceneName : null);
+
             // Instantiate the sector subtree under an inactive holder so authored content children
             // do not Awake until services exist and adoption has wired each object. Setup runs
             // while inert; then reparent out (world pose preserved) and drop the holder so children
@@ -112,6 +118,9 @@ namespace Game.Bootstrap
             yield return sector.Setup();
 
             sector.transform.SetParent(null, true);
+            // Keep the sector — which runs the teardown coroutine — out of the swappable locale scene.
+            if (target.Profile.presentation)
+                target.Services.EnvironmentService.HomeToStableScene(sector.gameObject);
             Destroy(holder);
         }
 
@@ -139,6 +148,11 @@ namespace Game.Bootstrap
             if (target.Rig)
                 target.Rig.Teardown();
             target.Rig = null;
+
+            // Restore boot lighting + unload the locale after the rig is gone (the rig lives in the
+            // boot scene, so the unload never touches it).
+            if (target.Profile != null && target.Profile.presentation && target.Services != null)
+                yield return target.Services.EnvironmentService.RestoreBootEnvironmentAsync();
 
             target.Services?.ClearAll();
             target.Services = null;
