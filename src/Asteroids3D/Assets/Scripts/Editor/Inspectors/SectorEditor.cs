@@ -1,4 +1,3 @@
-#if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
 
@@ -58,4 +57,3 @@ namespace Game.Sectors
         }
     }
 }
-#endif
