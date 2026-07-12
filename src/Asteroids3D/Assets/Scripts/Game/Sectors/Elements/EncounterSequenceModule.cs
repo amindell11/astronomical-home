@@ -15,7 +15,7 @@ namespace Game.Sectors
     /// channel (the encounter reports its target via the <c>Encounter</c> base), so the module does
     /// not touch the marker.
     /// </summary>
-    public partial class EncounterSequenceModule : SectorModule
+    public class EncounterSequenceModule : SectorModule
     {
         [Tooltip("Encounter templates, instantiated and run one at a time in order. NOT adopted.")]
         [SerializeField] private Encounter[] encounters;
@@ -90,5 +90,9 @@ namespace Game.Sectors
             else
                 RequestSectorEnd(SectorResult.Extracted());
         }
+#if UNITY_EDITOR
+        /// <summary>Test/editor seam: set the encounter sequence without reflecting the serialized field.</summary>
+        internal void SetEncounters(Encounter[] encounters) => this.encounters = encounters;
+#endif
     }
 }
