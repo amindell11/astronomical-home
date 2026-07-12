@@ -1,4 +1,3 @@
-#if UNITY_EDITOR
 using AI;
 using Asteroids.Fields;
 using Game.Benchmark;
@@ -143,4 +142,3 @@ namespace Tools.Editor
         }
     }
 }
-#endif

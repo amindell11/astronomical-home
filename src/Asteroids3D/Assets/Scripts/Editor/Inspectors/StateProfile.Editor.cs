@@ -1,4 +1,3 @@
-#if UNITY_EDITOR
 using Movement.MPC;
 using UnityEditor;
 using UnityEngine;
@@ -119,4 +118,3 @@ namespace AI.States
         }
     }
 }
-#endif
