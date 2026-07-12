@@ -131,7 +131,6 @@ GameObject:
   - component: {fileID: 217078673}
   - component: {fileID: 217078676}
   - component: {fileID: 217078675}
-  - component: {fileID: 217078674}
   m_Layer: 0
   m_Name: Initiator
   m_TagString: Untagged
@@ -183,19 +182,6 @@ MonoBehaviour:
     point: {x: 0, y: 0}
     radius: 0
     delay: 2
---- !u!114 &217078674
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 217078671}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8c872b9e66ad4b9d9bd9cb8623afee35, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  logTransitions: 1
 --- !u!114 &217078675
 MonoBehaviour:
   m_ObjectHideFlags: 0

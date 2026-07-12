@@ -5,6 +5,7 @@
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "Game.Core",
+        "Game.Core.Editor",
         "Unity.Mathematics",
         "Unity.Collections",
         "Tests.Common"
@@ -24,4 +25,4 @@
     ],
     "versionDefines": [],
     "noEngineReferences": false
-} 
+}
