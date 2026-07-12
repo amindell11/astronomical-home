@@ -11,7 +11,7 @@ namespace UI
     {
         void LateUpdate()
         {
-            transform.rotation = Quaternion.LookRotation(GamePlane.Normal, GamePlane.Forward);
+            transform.rotation = GamePlane.Rotation;
         }
     }
 }

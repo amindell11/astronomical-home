@@ -83,7 +83,6 @@ namespace Diagnostics
             ApplyOverride(activeMissile, "acceleration", acceleration);
             SetFieldHierarchy(activeMissile, "maxDistance", 500f);
 
-            // Create target marker
             var angleRad = targetAngle * Mathf.Deg2Rad;
             var planeDir = new Vector2(Mathf.Sin(angleRad), Mathf.Cos(angleRad));
             var missileOriginPlane = GamePlane.WorldPointToPlane(transform.position);
@@ -105,7 +104,6 @@ namespace Diagnostics
                 targetRb.linearVelocity = GamePlane.PlaneDirToWorld(targetVelocity);
             }
 
-            // Create stub shooter
             var shooterGo = new GameObject("DiagStubShooter");
             stubShooter = shooterGo.AddComponent<StubShooter>();
             if (shooterVelocity.sqrMagnitude > 0.01f)
@@ -166,11 +164,9 @@ namespace Diagnostics
             if (!Mathf.Approximately(Time.timeScale, timeScale))
                 Time.timeScale = timeScale;
 
-            // Record position
             if (flightPath.Count < 500)
                 flightPath.Add(activeMissile.transform.position);
 
-            // Compute telemetry
             var dist = Vector3.Distance(activeMissile.transform.position, targetMarker.transform.position);
             closingSpeed = (prevDistance - dist) / Time.fixedDeltaTime;
             currentDistance = dist;
@@ -200,7 +196,6 @@ namespace Diagnostics
         {
             if (!activeMissile || !targetMarker) return;
 
-            // Flight path trail
             if (showFlightPath && flightPath.Count > 1)
             {
                 for (var i = 1; i < flightPath.Count; i++)
@@ -211,7 +206,6 @@ namespace Diagnostics
                 }
             }
 
-            // Velocity and heading arrows
             if (showVelocityHeadingDelta)
             {
                 var rb = activeMissile.GetComponent<Rigidbody>();
@@ -224,7 +218,6 @@ namespace Diagnostics
                 }
             }
 
-            // Target marker, line, and info
             if (showTargetInfo)
             {
                 Gizmos.color = Color.red;
@@ -245,7 +238,6 @@ namespace Diagnostics
                 Handles.Label(midpoint, $"dist: {currentDistance:F1}  closing: {closingSpeed:F1}");
             }
 
-            // Shooter origin marker
             if (showShooterOrigin)
             {
                 Gizmos.color = new Color(0.2f, 0.8f, 1f, 0.5f);
@@ -261,7 +253,6 @@ namespace Diagnostics
                 }
             }
 
-            // Turn rate arc
             if (showVelocityHeadingDelta)
             {
                 var toTarget = (targetMarker.transform.position - activeMissile.transform.position).normalized;

@@ -34,7 +34,6 @@ namespace UI
             ring       = GetComponent<Image>();
             baseColor  = ring.color;
             baseScale  = transform.localScale;
-            // start fully transparent until first event
             ring.canvasRenderer.SetAlpha(1f);
         }
 
@@ -73,7 +72,7 @@ namespace UI
         void LateUpdate()
         {
             if (ring && ring.canvasRenderer.GetAlpha() <= 0f) return;
-            transform.rotation = Quaternion.LookRotation(GamePlane.Normal, GamePlane.Forward);
+            transform.rotation = GamePlane.Rotation;
         }
 
 
@@ -81,7 +80,6 @@ namespace UI
         {
             if (!ring || max <= 0f) return;
 
-            // Update radial fill
             ring.fillAmount = current / max;
             if(current<previous) TriggerFlash();
 

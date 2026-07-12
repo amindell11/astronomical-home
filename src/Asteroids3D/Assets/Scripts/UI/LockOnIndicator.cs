@@ -109,7 +109,7 @@ namespace UI
         private void LateUpdate()
         {
             if (canvasGroup && canvasGroup.alpha <= 0f) return;
-            transform.rotation = Quaternion.LookRotation(GamePlane.Normal, GamePlane.Forward);
+            transform.rotation = GamePlane.Rotation;
             transform.position = transform.parent.position + GamePlane.Normal * verticalOffset;
         }
     }
