@@ -13,6 +13,10 @@ namespace Game.Services
         /// <summary>All ships currently in play.</summary>
         ShipRegistry ActiveRegistry { get; }
 
+        /// <summary>Assign the per-arena handle the service injects into each ship it wires. Required
+        /// before the first spawn; one-shot (a conflicting re-assign throws).</summary>
+        void SetArena(ArenaContext arena);
+
         /// <summary>Spawn a ship, wire its dependencies, and register it.</summary>
         Ship SpawnShip(
             Ship template,
