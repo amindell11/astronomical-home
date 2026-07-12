@@ -149,6 +149,19 @@ not just pass/fail.
 
 ---
 
+## Findings (gate run 2026-07-12, empty space)
+
+**Sweep** (orbit/break/range × `wVelTrack {5,20,50,100}`, nose-on-target, 0.9·maxSpeed orbit):
+- **Range PASS at `wVelTrack ≥ 20`** — settles to band (steady-state err ~1 vs tol 2), holds, no limit-cycle. The radial/forward axis (strong) tracks cleanly.
+- **Orbit + Break FAIL at all `wVelTrack`**, and higher `wVelTrack` makes orbit *worse* (radius err 0.73→1.27; ≤0.7 rev). Both failing maneuvers need lateral/strafe authority; the passing one is radial. Root axis: `Forces.Strafe` lerps `maxStrafeForce→minStrafeForce` (Default_Engine 4000→3200 vs `forwardForce` 5600) so strafe weakens with speed and can't supply `v²/R` centripetal while nose-locked on target. `wSmoothnessStrafe` is already 0 — no weight to relax, so it's a **dynamics** limit, not a tracker-weight one.
+
+**Localizing probe** (pins "over-aggressive command" vs "interface ceiling"):
+- **Gentler/wider aimed orbit is FEASIBLE.** `R=30, frac=0.3` holds radius to **14% error** (nose-on-target); `R=30, frac=0.5` → 21%. The tight/fast `R=15, 0.9·maxSpeed` first-pass command demanded ~34 m/s² centripetal — over-aggressive. So the first sweep's "orbit fails" was **substantially bad oracle tuning** (exactly the Q2 risk), not a hard ceiling: the velocity interface *can* circle-strafe while aiming, within a kinematic envelope.
+- **Free-yaw is NOT the lever.** At `R=15, frac=0.5`, free-yaw radius error (0.61) ≈ aimed (0.60) — dropping the aim constraint adds speed but no radius-hold. So the binding constraint is the **turn-rate/centripetal envelope**, not aim-while-strafe coupling.
+- **Break stays hard even free-yaw** — never exits the 30°/s aimer's cone (`timeToExceedArc=-1`), flees radially. Out-turning an aimer needs lateral displacement-rate the ship lacks: a genuine **low-lateral-authority** observation.
+
+**Verdict: CONDITIONAL GO.** The velocity-reference interface is expressive enough — range works, orbit holds within a feasibility envelope, and an RL policy naturally operates within achievable kinematics (an infeasible tight/fast command just tracks best-effort). No fatal ceiling → proceed to PR-2b. Two carried notes: (1) **metric fix** — the "≥1 revolution" orbit gate created false fails on slow wide orbits that *held radius* (e.g. `R=30,frac=0.3`: err 0.14 but 0.66 rev in 24 s); score radius-hold over a fixed arc/time, not a full revolution. (2) **low lateral authority** is a ship-dynamics lever if juke-to-break combat matters — separable from the RL interface, flag for PR-3/game-balance.
+
 ## Deferred (recorded so lessons outlive the PR)
 
 - **CMA-ES** over the maneuver-chooser params — only if a hand-authored maneuver is ambiguous.
