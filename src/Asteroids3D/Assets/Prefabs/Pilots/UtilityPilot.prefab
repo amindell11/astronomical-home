@@ -51,7 +51,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   difficulty: 1
   combatExitDelay: 3
-  debugSettings: {fileID: 11400000, guid: 2e2ae38aa858dd74d9f7908425a3067d, type: 2}
 --- !u!114 &-1070365238870678526
 MonoBehaviour:
   m_ObjectHideFlags: 0

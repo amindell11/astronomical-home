@@ -1,8 +1,6 @@
-#if UNITY_EDITOR
 using System.Collections.Generic;
 using System.Linq;
 using AI.States;
-using AI.Utility;
 using Game.Services;
 using Ships;
 using UnityEngine;
@@ -10,22 +8,21 @@ using UnityEngine;
 namespace AI.Debug
 {
     /// <summary>
-    /// Debug overlay for the AI Arena: state labels, utility bars, and target lines.
-    /// Attach to the ArenaSectorManager prefab or any active GameObject in the arena scene.
+    /// Debug overlay for the AI Arena: state labels, utility bars, and target lines. Lives in the
+    /// editor assembly, so it is never authored on prefabs — <see cref="ArenaDebugOverlayInstaller"/>
+    /// adds it to the session rig at runtime.
     /// </summary>
     public class ArenaDebugOverlay : MonoBehaviour
     {
-        private AIDebugSettings debugSettings;
         private IUnitService boundUnits;
 
         /// <summary>
-        /// Initialise the overlay. When a unit service is supplied, the overlay self-subscribes to
+        /// When a unit service is supplied, the overlay self-subscribes to
         /// <see cref="IUnitService.OnShipSpawned"/> and auto-tracks every ship (existing + future) —
         /// no per-sector RegisterShip wiring needed.
         /// </summary>
-        public void Initialize(AIDebugSettings settings, IUnitService units = null)
+        public void Initialize(IUnitService units = null)
         {
-            debugSettings = settings;
             if (units == null) return;
 
             foreach (var ship in units.ActiveRegistry.ActiveShips)
@@ -103,8 +100,9 @@ namespace AI.Debug
         private void OnGUI()
         {
             if (!mainCam) return;
-            var showStateLabels = debugSettings != null && debugSettings.IsActive(AIDebugChannel.Info);
-            var showUtilityScores = debugSettings != null && debugSettings.IsActive(AIDebugChannel.Utility);
+            var settings = AIDebugContext.Settings;
+            var showStateLabels = settings != null && settings.IsActive(AIDebugChannel.Info);
+            var showUtilityScores = settings != null && settings.IsActive(AIDebugChannel.Utility);
             if (!showStateLabels && !showUtilityScores) return;
 
             InitStyles();
@@ -146,7 +144,7 @@ namespace AI.Debug
             return name != null ? ColorFromName(name) : DefaultStateColor;
         }
 
-        private static Color GetStateColor(AI.States.AIState aiState)
+        private static Color GetStateColor(AIState aiState)
         {
             return aiState != null ? ColorFromName(aiState.ProfileName) : DefaultStateColor;
         }
@@ -170,12 +168,10 @@ namespace AI.Debug
             var startY = guiPos.y - 25 + labelOffset.y + 20;
             var startX = guiPos.x - barWidth * 0.5f + labelOffset.x;
 
-            // Background panel
             var panelHeight = sorted.Count * (barHeight + 2) + 4;
             GUI.Box(new Rect(startX - 4, startY - 2, barWidth + 58, panelHeight),
                 GUIContent.none, barBgStyle);
 
-            // Build a name→color map from registered states
             var stateColorMap = new Dictionary<string, Color>();
             var registeredStates = commander.UtilityChooser?.RegisteredStates;
             if (registeredStates != null)
@@ -194,16 +190,13 @@ namespace AI.Debug
                 if (currentName != null && kv.Key == currentName)
                     color = Color.Lerp(color, Color.white, 0.3f);
 
-                // Bar background
                 GUI.Box(new Rect(startX, y, barWidth, barHeight), GUIContent.none, barBgStyle);
 
-                // Bar fill
                 var prevColor = GUI.color;
                 GUI.color = color;
                 GUI.Box(new Rect(startX, y, barWidth * fill, barHeight), GUIContent.none, barFillStyle);
                 GUI.color = prevColor;
 
-                // Label
                 var shortName = kv.Key.Substring(0, Mathf.Min(4, kv.Key.Length));
                 scoreStyle.normal.textColor = kv.Key == currentName ? Color.white : new Color(0.8f, 0.8f, 0.8f);
                 GUI.Label(new Rect(startX + 2, y, barWidth, barHeight),
@@ -229,7 +222,8 @@ namespace AI.Debug
 
         private void OnRenderObject()
         {
-            if (debugSettings == null || !debugSettings.IsActive(AIDebugChannel.Targeting)) return;
+            var settings = AIDebugContext.Settings;
+            if (settings == null || !settings.IsActive(AIDebugChannel.Targeting)) return;
 
             CreateLineMaterial();
             lineMaterial.SetPass(0);
@@ -270,4 +264,3 @@ namespace AI.Debug
         }
     }
 }
-#endif

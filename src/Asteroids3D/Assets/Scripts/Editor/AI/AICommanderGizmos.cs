@@ -1,54 +1,42 @@
-#if UNITY_EDITOR
+using System.Runtime.CompilerServices;
 using AI.Debug;
 using AI.Observation;
 using AI.Scanning;
 using Game;
+using UnityEditor;
 using UnityEngine;
 
 namespace AI
 {
-    public partial class AICommander
+    /// <summary>Renders the tactical-observation tokens reconstructed back to world space: if the
+    /// markers land on the real entities, the egocentric extraction round-trips correctly.</summary>
+    internal static class AICommanderGizmos
     {
-        private const float ObservationThreatRadius = 40f;
+        private const float ThreatRadius = 40f;
 
-        private AIDebugSettings cachedObsSettings;
-        private ThreatScanner obsThreatScanner;
-        private readonly TacticalObservation obsSnapshot = new();
+        private static readonly ConditionalWeakTable<AICommander, ThreatScanner> Scanners = new();
+        private static readonly TacticalObservation Snapshot = new();
 
-        private AIDebugSettings ObservationSettings
+        [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected, typeof(AICommander))]
+        private static void Draw(AICommander commander, GizmoType gizmoType)
         {
-            get
-            {
-                if (!cachedObsSettings) cachedObsSettings = DebugSettings;
-                return cachedObsSettings;
-            }
-        }
+            if (!AIDebugContext.ShouldDraw(AIDebugChannel.Observation, gizmoType)) return;
+            if (!Application.isPlaying || commander.context == null || commander.Scout == null) return;
 
-        void OnDrawGizmos() => DrawObservationGizmos(false);
-        void OnDrawGizmosSelected() => DrawObservationGizmos(true);
+            var self = commander.context.Self;
+            var scanner = Scanners.GetValue(commander,
+                c => new ThreatScanner(c.context.Self.Transform, ThreatRadius));
+            scanner.Scan();
 
-        private void DrawObservationGizmos(bool isSelected)
-        {
-            var settings = ObservationSettings;
-            if (settings == null || !settings.ShouldDraw(isSelected)) return;
-            if (!settings.IsActive(AIDebugChannel.Observation)) return;
-            if (!Application.isPlaying || control.Ship == null || Scout == null) return;
-
-            var self = control.Ship;
-            obsThreatScanner ??= new ThreatScanner(self.Transform, ObservationThreatRadius);
-            obsThreatScanner.Scan();
-
-            var combat = context?.Combat;
+            var combat = commander.context.Combat;
             var target = combat != null && combat.HasEnemy
                 ? new TargetView(true, combat.EnemyPos, combat.EnemyVel, combat.EnemyForward,
                     combat.EnemyHealthPct, combat.EnemyShieldPct)
                 : TargetView.None;
 
-            ObservationExtractor.Populate(obsSnapshot, self, target,
-                obsThreatScanner.Contacts, obsThreatScanner.Count, Scout.ObstacleScan, Time.time);
+            ObservationExtractor.Populate(Snapshot, self, target,
+                scanner.Contacts, scanner.Count, commander.Scout.ObstacleScan, Time.time);
 
-            // Render from the ego-frame tokens, reconstructed back to world: if the markers land on
-            // the real entities, the egocentric extraction round-trips correctly.
             var kin = self.Kinematics;
             var frame = new EgoFrame(kin.pos, kin.Forward);
             var shipWorld = GamePlane.PlanePointToWorld(kin.pos);
@@ -59,21 +47,21 @@ namespace AI
             DrawObstacles(frame);
         }
 
-        private void DrawSelf(EgoFrame frame, Vector3 shipWorld)
+        private static void DrawSelf(EgoFrame frame, Vector3 shipWorld)
         {
             Gizmos.color = Color.green;
             var fwd = GamePlane.PlaneDirToWorld(frame.PlaneDirection(Vector2.up));
             Gizmos.DrawLine(shipWorld, shipWorld + fwd * 3f);
 
             Gizmos.color = new Color(0f, 1f, 1f, 0.7f);
-            var vel = GamePlane.PlaneDirToWorld(frame.PlaneDirection(obsSnapshot.self.velocity));
+            var vel = GamePlane.PlaneDirToWorld(frame.PlaneDirection(Snapshot.self.velocity));
             Gizmos.DrawLine(shipWorld, shipWorld + vel * 0.5f);
         }
 
-        private void DrawTarget(EgoFrame frame, Vector3 shipWorld)
+        private static void DrawTarget(EgoFrame frame, Vector3 shipWorld)
         {
-            if (!obsSnapshot.hasTarget) return;
-            var t = obsSnapshot.target;
+            if (!Snapshot.hasTarget) return;
+            var t = Snapshot.target;
             var world = GamePlane.PlanePointToWorld(frame.ToPlane(t.relPosition));
 
             Gizmos.color = Color.Lerp(Color.red, Color.green, t.healthPct);
@@ -85,10 +73,10 @@ namespace AI
             Gizmos.DrawLine(world, world + facing * 3f);
         }
 
-        private void DrawThreats(EgoFrame frame)
+        private static void DrawThreats(EgoFrame frame)
         {
             Gizmos.color = Color.red;
-            foreach (var th in obsSnapshot.threats)
+            foreach (var th in Snapshot.threats)
             {
                 var world = GamePlane.PlanePointToWorld(frame.ToPlane(th.relPosition));
                 Gizmos.DrawWireSphere(world, 0.8f);
@@ -97,10 +85,10 @@ namespace AI
             }
         }
 
-        private void DrawObstacles(EgoFrame frame)
+        private static void DrawObstacles(EgoFrame frame)
         {
             Gizmos.color = new Color(1f, 1f, 1f, 0.25f);
-            foreach (var ob in obsSnapshot.obstacles)
+            foreach (var ob in Snapshot.obstacles)
             {
                 var world = GamePlane.PlanePointToWorld(frame.ToPlane(ob.relPosition));
                 Gizmos.DrawWireSphere(world, ob.radius);
@@ -108,4 +96,3 @@ namespace AI
         }
     }
 }
-#endif
