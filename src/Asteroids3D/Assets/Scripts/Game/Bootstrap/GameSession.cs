@@ -15,6 +15,9 @@ namespace Game.Bootstrap
     /// </summary>
     public sealed class GameSession
     {
+        /// <summary>Driver-supplied composition inputs (what to build/load); set before ComposeSession, consumed by the primitives.</summary>
+        public SessionProfile Profile { get; internal set; }
+
         /// <summary>Service registries owned by this session; cleared on session teardown.</summary>
         public GameServices Services { get; internal set; }
 

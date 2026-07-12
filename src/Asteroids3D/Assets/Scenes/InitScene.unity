@@ -165,13 +165,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30435f22975445b2a7c1e02181f5a529, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentSector:
-    config: {fileID: 11400000, guid: 6cb05f9f988f48a18ee615e444e24d3f, type: 2}
-    prefab: {fileID: 6734031631238332472, guid: 47426a24cc9026e408695399dc81c107,
-      type: 3}
+  sessionProfile:
+    sectorEntry:
+      config: {fileID: 11400000, guid: 6cb05f9f988f48a18ee615e444e24d3f, type: 2}
+      prefab: {fileID: 6734031631238332472, guid: 47426a24cc9026e408695399dc81c107, type: 3}
+    buildPlayer: 1
+    presentation: 1
+    vfx: 1
   playerRig: {fileID: 3540623995813302772, guid: 07feb380eb970254986133c3546b624c,
     type: 3}
-  buildPlayer: 1
   planeAxis: 2
   planeOrigin: {x: 0, y: 0, z: 0}
   splashPrefab: {fileID: 4900000000000000005, guid: 29caef627551652e1ae46b2ea099953e,

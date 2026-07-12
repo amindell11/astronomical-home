@@ -14,10 +14,10 @@ namespace Game.Bootstrap
     /// Session-tier orchestrator, split into two layers. The <b>lifecycle primitives</b>
     /// (<see cref="ComposeSession"/>, <see cref="LoadSector"/>, <see cref="UnloadSector"/>,
     /// <see cref="TeardownSession"/>) are driver-agnostic coroutines over an explicit per-session
-    /// <see cref="GameSession"/> container; they carry no reset policy and never touch the
-    /// process-global <see cref="GamePlane"/>. The <b>interactive gameplay driver</b> — the
-    /// coroutine state machine below them — paces the primitives against the frame loop, owns
-    /// GamePlane, owns the between-run hangar flow, and wires the gameplay reset policy (sector
+    /// <see cref="GameSession"/> container; they carry no reset policy. Composition configures the
+    /// universal world plane (<see cref="GamePlane"/>). The <b>interactive gameplay driver</b> — the
+    /// coroutine state machine below them — paces the primitives against the frame loop, owns the
+    /// between-run hangar flow, and wires the gameplay reset policy (sector
     /// complete / player death → restart) via <see cref="GameSession.OnSectorComplete"/> and
     /// <see cref="GameSession.OnPlayerDeath"/>. A headless/RL harness drives the same primitives from
     /// its own step loop with its own policy. Composition inputs (sector entry, rig, policy bools)
@@ -36,24 +36,12 @@ namespace Game.Bootstrap
         /// </summary>
         public enum PlayerDeathBehavior { None, RespawnInPlace, RestartSector }
 
-        [Header("Sector")]
-        [SerializeField] private SectorEntry currentSector;
+        [Header("Session")]
+        [SerializeField] private SessionProfile sessionProfile = new SessionProfile();
 
         [Header("Session Rig")]
         [Tooltip("Session-tier player/camera/UI/world rig. Built once at Start; persists across sector restarts.")]
         [SerializeField] private SessionRig playerRig;
-
-        [Tooltip("Session policy: when false, no player ship is built (spectator/headless).")]
-        [SerializeField] private bool buildPlayer = true;
-
-        [Tooltip("Session policy: when false, each ship's embedded visual rig is disabled (headless/RL) " +
-                 "so ships stay renderer/audio/particle-free while remaining fully simulated.")]
-        [SerializeField] private bool installPresentation = true;
-
-        [Tooltip("Session policy: global VFX toggle applied at load — gates the not-yet-rig-migrated " +
-                 "weapon/projectile/asteroid explosion effects. Turn off for headless/RL to skip their " +
-                 "particle simulation + VFX pooling. Runtime-only (does not persist to PlayerPrefs).")]
-        [SerializeField] private bool enableVfx = true;
 
         [Header("Game Plane")]
         [SerializeField] private PlaneAxis planeAxis = PlaneAxis.Y;
@@ -105,7 +93,7 @@ namespace Game.Bootstrap
 
             DontDestroyOnLoad(gameObject);
 
-            if (splashPrefab && installPresentation)
+            if (splashPrefab && sessionProfile.presentation)
                 Instantiate(splashPrefab, transform).Initialize(this);
 
             TransitionTo(GameState.Loading);
@@ -122,6 +110,16 @@ namespace Game.Bootstrap
         /// </summary>
         internal IEnumerator ComposeSession(GameSession target)
         {
+            // Game-tier VFX policy: gate the still-un-migrated weapon/projectile/asteroid effects.
+            // Runtime-only override so a headless/RL session never leaks into the saved preference.
+            GameSettings.SetVfxEnabled(target.Profile.vfx);
+
+            // Presentation policy: when off (headless/RL), each ship's embedded visual rig
+            // self-disables in its Awake. Runtime-only override, same lifetime as the VFX toggle.
+            GameSettings.SetPresentationEnabled(target.Profile.presentation);
+
+            GamePlane.Configure(planeAxis, planeOrigin);
+
             target.Services = new GameServices(
                 unitService: unitService,
                 environmentService: new EnvironmentService(),
@@ -135,11 +133,8 @@ namespace Game.Bootstrap
                 target.Rig = playerRig;
                 // Consume the driver-set hook (see HandleStart); never overwrite it — a headless/RL
                 // driver supplies its own OnPlayerDeath before composing.
-                yield return playerRig.Build(target.Services, buildPlayer, target.OnPlayerDeath);
+                yield return playerRig.Build(target.Services, target.Profile.buildPlayer, target.OnPlayerDeath);
             }
-
-            // Presentation policy (rigs on/off) is applied globally in HandleLoading via
-            // GameSettings.SetPresentationEnabled — each ship's embedded rig self-gates on spawn.
         }
 
         // Map the gameplay death policy to the callback the rig wires onto the player. Null for None
@@ -164,11 +159,12 @@ namespace Game.Bootstrap
         }
 
         /// <summary>
-        /// Load <paramref name="entry"/>'s sector into the session and subscribe the session's
+        /// Load the profile's sector into the session and subscribe the session's
         /// <see cref="GameSession.OnSectorComplete"/> policy hook to it.
         /// </summary>
-        internal IEnumerator LoadSector(GameSession target, SectorEntry entry)
+        internal IEnumerator LoadSector(GameSession target)
         {
+            var entry = target.Profile.sectorEntry;
             if (!entry?.prefab)
                 throw new InvalidOperationException("No sector entry configured on MainGameManager.");
 
@@ -292,17 +288,7 @@ namespace Game.Bootstrap
 
         private IEnumerator HandleLoading()
         {
-            GamePlane.Configure(planeAxis, planeOrigin);
-
-            // Game-tier VFX policy: gate the still-un-migrated weapon/projectile/asteroid effects.
-            // Runtime-only override so a headless/RL session never leaks into the saved preference.
-            GameSettings.SetVfxEnabled(enableVfx);
-
-            // Game-tier presentation policy: when off (headless/RL), each ship's embedded visual rig
-            // self-disables in its Awake. Runtime-only override, same lifetime as the VFX toggle above.
-            GameSettings.SetPresentationEnabled(installPresentation);
-
-            session = new GameSession();
+            session = new GameSession { Profile = sessionProfile };
 
             yield return null;
             TransitionTo(GameState.Start);
@@ -381,7 +367,7 @@ namespace Game.Bootstrap
 
         private IEnumerator HandleLoadSector()
         {
-            yield return LoadSector(session, currentSector);
+            yield return LoadSector(session);
 
             TransitionTo(GameState.InSector);
         }
