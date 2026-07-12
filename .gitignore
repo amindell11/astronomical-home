@@ -85,4 +85,7 @@ crashlytics-build.properties
 # Agent worktree pool
 .worktree-pool/
 
+# Claude session-local state
+.claude/scheduled_tasks.lock
+
 nul
