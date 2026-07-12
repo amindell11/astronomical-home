@@ -6,12 +6,12 @@ using UnityEngine;
 namespace Player
 {
     /// <summary>
-    /// Editor-only debug-overlay installer for <see cref="PlayerRig"/>. The overlay is an
+    /// Editor-only debug-overlay installer for <see cref="SessionRig"/>. The overlay is an
     /// <c>#if UNITY_EDITOR</c> component, so it cannot be authored on a prefab — it is added at
     /// runtime and self-subscribes to <c>UnitService.OnShipSpawned</c> to auto-track every ship.
     /// It lives on the session rig (not the sector) so it tracks ships across sector loads.
     /// </summary>
-    public partial class PlayerRig
+    public partial class SessionRig
     {
         [Header("Debug")]
         [SerializeField] private bool enableDebugOverlay;

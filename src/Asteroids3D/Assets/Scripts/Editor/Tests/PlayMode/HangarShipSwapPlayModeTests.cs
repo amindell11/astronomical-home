@@ -13,10 +13,10 @@ using Utils;
 namespace Tests.PlayMode
 {
     /// <summary>
-    /// The hangar's ship change is a whole-player rebuild (PlayerRig.ApplyLoadout →
+    /// The hangar's ship change is a whole-player rebuild (SessionRig.ApplyLoadout →
     /// RebuildPlayer): the old ship despawns, a fresh build of the chosen prefab takes its place
-    /// with the standard wiring re-run, and the death policy follows the new instance. Uses the
-    /// real PlayerRig prefab + a real service container — this is the integration seam the
+    /// with the standard wiring re-run, and the injected death callback follows the new instance.
+    /// Uses the real SessionRig prefab + a real service container — this is the integration seam the
     /// between-run flow drives.
     /// </summary>
     [Category("RequiresGraphics")]
@@ -26,7 +26,7 @@ namespace Tests.PlayMode
         private const string Ship1Path = "Assets/Prefabs/Ships/Ship_1.prefab";
 
         private GameObject servicesGo;
-        private PlayerRig rig;
+        private SessionRig rig;
         private GameServices services;
 
         public override void SetUp()
@@ -46,7 +46,7 @@ namespace Tests.PlayMode
             base.TearDown();
         }
 
-        private IEnumerator BuildRig()
+        private IEnumerator BuildRig(System.Action<ShipId, ShipId> onPlayerDeath = null)
         {
             servicesGo = new GameObject("TestServices");
             var unitService = servicesGo.AddComponent<UnitService>();
@@ -58,10 +58,10 @@ namespace Tests.PlayMode
                 cameraService: new CameraService(),
                 uiService: new UIService());
 
-            var rigPrefab = AssetDatabase.LoadAssetAtPath<PlayerRig>(RigPrefabPath);
-            Assert.IsNotNull(rigPrefab, "PlayerRig prefab loads");
+            var rigPrefab = AssetDatabase.LoadAssetAtPath<SessionRig>(RigPrefabPath);
+            Assert.IsNotNull(rigPrefab, "SessionRig prefab loads");
             rig = Object.Instantiate(rigPrefab);
-            yield return rig.Build(services, buildPlayer: true);
+            yield return rig.Build(services, buildPlayer: true, onPlayerDeath: onPlayerDeath);
             Assert.IsNotNull(rig.Player, "rig built a player");
         }
 
@@ -106,9 +106,10 @@ namespace Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator ShipChange_DeathPolicyFollowsNewShip()
+        public IEnumerator ShipChange_DeathCallbackFollowsNewShip()
         {
-            yield return BuildRig();
+            var died = false;
+            yield return BuildRig((_, _) => died = true);
 
             var ship1 = AssetDatabase.LoadAssetAtPath<Ship>(Ship1Path);
             rig.Loadout.Ship = ship1;
@@ -116,17 +117,14 @@ namespace Tests.PlayMode
             rig.Loadout.Shield = ship1.Shield;
             rig.ApplyLoadout();
 
-            var restartRequested = false;
-            rig.RestartRequested += () => restartRequested = true;
-
-            // Lethal damage on the NEW ship must raise the rig's restart request (RestartSector
-            // policy). Damage applies to shield OR hull per hit (overflow discarded), so two hits:
+            // Lethal damage on the NEW ship must fire the injected death callback (re-wired across the
+            // rebuild). Damage applies to shield OR hull per hit (overflow discarded), so two hits:
             // one to drop the shield, one to kill the hull.
             var lethal = rig.Player.Stats.maxShield + rig.Player.Stats.maxHealth + 100f;
             rig.Player.Damage.TakeDamage(lethal, 0f, Vector3.zero, rig.Player.transform.position, null);
             rig.Player.Damage.TakeDamage(lethal, 0f, Vector3.zero, rig.Player.transform.position, null);
 
-            Assert.IsTrue(restartRequested, "death policy re-armed on the rebuilt player");
+            Assert.IsTrue(died, "injected death callback re-armed on the rebuilt player");
         }
     }
 }

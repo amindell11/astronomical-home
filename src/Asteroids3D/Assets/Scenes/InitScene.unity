@@ -177,6 +177,15 @@ MonoBehaviour:
   planeOrigin: {x: 0, y: 0, z: 0}
   splashPrefab: {fileID: 4900000000000000005, guid: 29caef627551652e1ae46b2ea099953e,
     type: 3}
+  hangarScreenPrefab: {fileID: 5835161239343422082, guid: d115d32348e1b3342a7379b8b1c74681,
+    type: 3}
+  loadoutCatalog: {fileID: 11400000, guid: cda2f130a4534c5d92dce80e24036813, type: 2}
+  deathBehavior: 2
+  playerRespawn:
+    origin: 1
+    point: {x: 0, y: 0}
+    radius: 0
+    delay: 2
 --- !u!114 &217078674
 MonoBehaviour:
   m_ObjectHideFlags: 0

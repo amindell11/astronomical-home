@@ -6,7 +6,7 @@ namespace Game.Sectors
     /// <summary>
     /// Producer-owned respawn rule, authored beside the spawn/adopt that creates a ship. Carried by
     /// <see cref="RingSpawner"/> (revives its products), <see cref="AdoptEntry"/> (revives an adopted
-    /// ship), and the session-tier <c>PlayerRig</c> (revives the player). <see cref="Respawn.Wire"/> turns it into an
+    /// ship), and the game driver (revives the player). <see cref="Respawn.Wire"/> turns it into an
     /// <c>OnDeath → WaitAndRespawnShip</c> subscription. Revive at a random point within
     /// <see cref="radius"/> of the resolved anchor, after <see cref="delay"/> seconds. For
     /// <see cref="Origin.FixedPoint"/> the anchor is producer-relative: the producer's position snapshotted
