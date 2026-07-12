@@ -20,8 +20,7 @@ namespace AI
         [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected, typeof(AICommander))]
         private static void Draw(AICommander commander, GizmoType gizmoType)
         {
-            var isSelected = (gizmoType & GizmoType.Selected) != 0;
-            if (!AIDebugContext.ShouldDraw(AIDebugChannel.Observation, isSelected)) return;
+            if (!AIDebugContext.ShouldDraw(AIDebugChannel.Observation, gizmoType)) return;
             if (!Application.isPlaying || commander.context == null || commander.Scout == null) return;
 
             var self = commander.context.Self;

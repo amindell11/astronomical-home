@@ -12,8 +12,7 @@ namespace AI
         [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected, typeof(Navigator))]
         private static void Draw(Navigator navigator, GizmoType gizmoType)
         {
-            var isSelected = (gizmoType & GizmoType.Selected) != 0;
-            if (!AIDebugContext.ShouldDraw(AIDebugChannel.Steering, isSelected)) return;
+            if (!AIDebugContext.ShouldDraw(AIDebugChannel.Steering, gizmoType)) return;
             navigator.DrawGizmosImpl();
         }
     }

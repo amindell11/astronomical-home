@@ -9,8 +9,7 @@ namespace AI
         [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected, typeof(Scout))]
         private static void Draw(Scout scout, GizmoType gizmoType)
         {
-            var isSelected = (gizmoType & GizmoType.Selected) != 0;
-            if (!AIDebugContext.ShouldDraw(AIDebugChannel.Scanning, isSelected)) return;
+            if (!AIDebugContext.ShouldDraw(AIDebugChannel.Scanning, gizmoType)) return;
             if (!Application.isPlaying || scout.obstacleScanner == null) return;
 
             var pos = scout.transform.position;

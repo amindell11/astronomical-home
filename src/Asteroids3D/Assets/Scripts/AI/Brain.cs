@@ -68,8 +68,7 @@ namespace AI
             chooser?.Decide(ctx, dt) ?? NavigationIntent.None;
 
 #if UNITY_EDITOR
-        // Hot-reloads the policy when its config changes during play: this component's
-        // stateProfiles array here, or a profile asset's contents via StateProfile.OnValidate.
+        // Hot-reload the policy when stateProfiles or a profile asset changes during play.
         private void OnValidate() => RefreshStates();
 
         /// <summary>Editor-only: rebuild the state set from the current profiles and restart state

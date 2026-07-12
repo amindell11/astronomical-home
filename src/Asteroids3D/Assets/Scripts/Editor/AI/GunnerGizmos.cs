@@ -10,8 +10,7 @@ namespace AI
         [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected, typeof(Gunner))]
         private static void Draw(Gunner gunner, GizmoType gizmoType)
         {
-            var isSelected = (gizmoType & GizmoType.Selected) != 0;
-            if (!AIDebugContext.ShouldDraw(AIDebugChannel.Targeting, isSelected)) return;
+            if (!AIDebugContext.ShouldDraw(AIDebugChannel.Targeting, gizmoType)) return;
 
             DrawTargeting(gunner);
             DrawLineOfSight(gunner);

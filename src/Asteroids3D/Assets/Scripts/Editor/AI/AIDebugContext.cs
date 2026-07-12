@@ -26,5 +26,8 @@ namespace AI.Debug
             var settings = Settings;
             return settings && settings.ShouldDraw(isSelected) && settings.IsActive(channel);
         }
+
+        public static bool ShouldDraw(AIDebugChannel channel, GizmoType gizmoType) =>
+            ShouldDraw(channel, (gizmoType & GizmoType.Selected) != 0);
     }
 }
