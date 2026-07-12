@@ -9,7 +9,7 @@ namespace Cameras
     /// Multi-target camera that follows all active ships with optional player-lock modes.
     /// Extends CameraFollowBase with configurable focus and zoom behaviors.
     /// </summary>
-    public partial class ObserverCam : SmoothCamera
+    public class ObserverCam : SmoothCamera
     {
         [Header("Focus Behavior")]
         [SerializeField] private bool lockCameraToSubject;
@@ -83,7 +83,7 @@ namespace Cameras
             return CameraUtils.ShiftToKeepPointInView(center, toPlayer2D, zoomSize, Cam.aspect, padding);
         }
     
-        private bool TryGetBoundaryAroundAllSubjects(out Vector2 min, out Vector2 max)
+        internal bool TryGetBoundaryAroundAllSubjects(out Vector2 min, out Vector2 max)
         {
             CameraUtils.InitEmptyBounds(out min, out max);
 
