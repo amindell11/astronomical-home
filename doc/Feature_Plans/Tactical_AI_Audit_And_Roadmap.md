@@ -1,7 +1,7 @@
 # Tactical AI — System Audit & Roadmap
 
-**Date:** 2026-07-08 (direction decided 2026-07-09)
-**Status:** Direction committed via grill — ready to scope PR-S1a and PR-S2
+**Date:** 2026-07-08 (direction decided 2026-07-09; **pivoted 2026-07-11** — see the v2 banner below)
+**Status:** Direction **pivoted 2026-07-11** via grill — committed to a *learned goal-policy + MPC-as-tracker* (§3′/§4′). The §3/§4 learn-V plan is demoted to a conditional later upgrade. PR-S1a (#106) in review; PR-S2 (#107) merged.
 **Goal:** With AI navigation in a good place, use it as a baseline to build a more
 sophisticated **tactical** layer on top — moving toward fluid, dynamic combat
 behavior. This doc audits the current system (§1–2) and records the committed
@@ -17,6 +17,104 @@ make the environment RL-native. §4 is the dependency-ordered PR sequence.
 > committed direction below hybridizes at a different axis — **learned decisions +
 > a classical controller** — which is how AlphaDogfight / GT Sophy / CTDE-MARL
 > actually shipped. The audit (§1–2) is unchanged and still the ground truth.
+
+> **Direction pivoted again (2026-07-11).** A grill on PR-S3 reopened the §3 bet and
+> replaced it. The near-term direction is now a **learned goal-policy that outputs a
+> kinematic reference the MPC tracks** (§3′), not a learned value function the MPC plans
+> against. §3/§4 below are kept as **superseded** history; §3′/§4′ are the live plan. The
+> audit (§1–2) still stands. An independent Codex consult (gpt-5.6, 2026-07-11) reached the
+> same recommendation unprompted.
+
+---
+
+## 3′. Committed direction v2 (2026-07-11) — learned goal-policy + MPC-as-tracker
+
+**The pivot.** The §3 bet (learn V; MPC plans greedily against it) is demoted to a
+*conditional later upgrade*. The near-term direction:
+
+- **Learner** — an ML-Agents PPO policy (the installed-but-unused `com.unity.ml-agents`
+  3.0.0) that runs once per decision tick (~0.2–0.4 s) and outputs a **desired planar
+  velocity reference + a fire gate**. It slots into the existing `Brain`/`IIntentChooser`
+  seam (`AI/Brain.cs`, `AI/IIntentChooser.cs`) — the produced intent *is* the velocity
+  reference, not a mode+weights bundle.
+- **Controller** — the MPC is reshaped into a **feasibility tracker**: track the commanded
+  velocity, keep collision-avoidance, keep intercept-facing as pure aiming geometry
+  (`Cost.InterceptYaw`). The authored tactical cost block —
+  `FacingCost`(as-tactic)/`ExposureCost`/`TangentialVelocityCost`/`MissDistanceCost`/`LosCost`
+  (`AI/Navigation/MPC/Cost.cs`) — is **gated off in the new mode, not deleted**: the legacy
+  modes keep it so the shipped AI is untouched and *becomes the scripted baseline opponent*.
+- **Reward** — unchanged from §3.3 (sparse ±1, dense HP-differential, potential-based
+  firing-envelope shaping Φ), computed at decision boundaries.
+- **Training** — vs the frozen scripted baseline first (clean "beat the utility AI on
+  held-out seeds" signal); self-play snapshots later.
+
+**Why the pivot (root cause).** The §3 bet *forced* a large bespoke-infra investment: V must
+be evaluated **in-process, hundreds of times per tick inside the CEM rollout** (§3.4), so V
+cannot be a Python-side network — it must be a C#/Sentis artifact hot-reloaded each
+value-iteration round, with a custom trainer, a returns logger, and ONNX hot-reload
+plumbing. None of that exists, and it buys nothing until "the game feels different" once. The
+two things §3 actually wanted from V — (a) no cold-start-from-random and (b) training
+stability — are **preserved by the goal-policy**: a random *velocity goal* still yields
+competent collision-free motion (the MPC executes it), and PPO over a low-dim reference into
+a stabilizing controller is about as well-behaved as policy-gradient gets. Codex concurred
+unprompted: *"Build B first… Option A is a premature heavy investment… it spends substantial
+engineering effort on a custom training system before establishing that learning produces
+better combat at all."*
+
+**The deeper reason the old intent had to change — tactics live in the MPC cost.** The
+current tactical behavior *is* the ~5 hand-authored cost terms in `Cost.Evaluate`
+(intercept-facing, arc-exposure, tangential juke, miss-distance, LOS) with tuned weights. The
+pre-pivot intent was `GoalMode + desiredRange + weight *multipliers*` — so any policy over it
+could only **re-weight a fixed library of authored tactics**, never invent a maneuver that
+isn't already a cost term. That ceiling *is* the knob-farm §3 was fleeing, relocated from
+utility curves to cost weights. Cutting the learned/classical boundary at a **kinematic
+velocity reference** (the "③" cut) removes the ceiling: a 2D velocity command spans strafe,
+any-radius orbit, threat-relative evasive breaks, and cover approach by construction, and the
+*reward* — not authored cost terms — teaches "deny their arc / be hard to hit / juke." This
+also closes A's one residual advantage (ranking arbitrary feasible trajectories), since a
+velocity+fire interface is not restrictive.
+
+**When A/learn-V comes back.** Only if diagnostics show the binding limit is the MPC's ~1.5 s
+horizon (not the interface, observation, reward, or game mechanics) — Codex's "oracle-goal
+test" (below) is the discriminator. Likely-dominant middle form if it does: learn Q(s,g),
+sample K candidate goals, rank with Q, MPC executes the winner — lookahead without a network
+in the hot Burst loop.
+
+## 4′. PR sequence v2 (2026-07-11)
+
+Supersedes §4's Phase 0/1. Guardrail unchanged: the current utility+MPC AI stays the shipped
+AI (gated) until a learned agent beats it.
+
+- **PR-1 · MPC velocity-reference mode + interface validation** *(classical, no ML).* Add a
+  gated `VelocityReference` goal mode: the MPC tracks a commanded planar velocity, keeps
+  collision-avoidance + intercept-facing, tactical cost block off *in-mode* (legacy modes
+  untouched). Validate with scripted / CMA-ES **oracle** velocity schedules over target
+  maneuvers (tight orbit, hard break vs a live missile track, range hold) — doubles as the
+  interface-ceiling de-risk. **Keystone: the oracle and the learner both drive this interface.**
+- **PR-2 · Episode / reward / reset layer** *(the architecture-neutral survivor of the old
+  PR-S3).* Per-agent reward §3.3 at decision boundaries; engagement episode boundaries +
+  reset; headless episode runner (mirror `ChaseBenchmarkModule` + PlayMode driver +
+  `Time.timeScale`).
+- **PR-3 · ML-Agents `Agent`.** Sensor = the merged `ObservationExtractor` (#107); action =
+  velocity reference + fire gate → PR-1's interface; reward/lifecycle = `AddReward`/`EndEpisode`.
+  Train vs frozen baseline. → **Gate: beats the scripted baseline on held-out seeds**
+  (lower-CI win-rate > 50%, no nav/collision regressions).
+- **PR-4 · Self-play snapshots + eval league** (frozen baseline anchored as anti-forgetting).
+- **Later / conditional:** learned firing discipline; teams (CTDE); learn-V or
+  Q(s,g)-ranking *iff* the horizon is proven the binding limit; native-sim port iff
+  throughput (old Gate 1) bites.
+
+**Old Phase-0 statics work:** PR-S1a determinism (#106, in review) and the multi-arena
+rethink (`project_multi_arena_rethink`) remain valid substrate but **do not block** PR-1/PR-2
+— the velocity interface, reward, and a single-arena episode runner are arena-count-independent.
+
+**ML-Agents 3.0 gotchas to honor (Codex consult).** Pin the matching Python trainer
+toolchain (Sentis 2.1); continuous actions arrive normalized `[-1,1]` (clamp/transform
+explicitly); **the 3.0 trainer has no mixed continuous+discrete action support** → keep
+firing scripted or make the fire-gate a continuous threshold; `MaxStep` counts *decisions*
+not physics ticks; PPO (not SAC) for self-play; reset both competitors atomically and award
+terminal reward before `EndEpisode`; accumulate per-physics-step damage into the
+decision-boundary reward; terminal potential = 0 so Φ telescopes.
 
 ---
 
@@ -141,7 +239,12 @@ is declared on `AICommander` but never read — curriculum/skill scaling isn't w
 
 ---
 
-## 3. Committed direction — learn a tactical value function
+## 3. ~~Committed direction — learn a tactical value function~~ (SUPERSEDED 2026-07-11 → §3′)
+
+> **Superseded by §3′.** Kept as history + as the definition of the *conditional later
+> upgrade*. The reward design (§3.3) and observation contract (§3.4) below **carry forward
+> unchanged** into the v2 plan; only the "MPC plans greedily against a learned V" training
+> architecture is demoted.
 
 **The bet:** commit to deep learning as the destination. Learn the *decisions*;
 keep the *control* classical. Concretely: the MPC stays the controller, and the one
@@ -257,7 +360,11 @@ pipe is how you get "nothing converges and you can't tell which layer broke."
 
 ---
 
-## 4. PR sequence (dependency-ordered, with go/no-go gates)
+## 4. ~~PR sequence (dependency-ordered, with go/no-go gates)~~ (SUPERSEDED 2026-07-11 → §4′)
+
+> **Superseded by §4′.** The Phase-0 statics/determinism findings remain valid (PR-S1a in
+> review as #106; multi-arena as its own rethink), but the Phase-0→1 ordering below assumed
+> the learn-V architecture. See §4′ for the live sequence.
 
 **Guardrail:** the current utility+MPC system **stays the shipped AI through all of
 Phase 0–1**. The learned V ships only after Gate 4. Feature-flag the terminal source
@@ -321,11 +428,17 @@ steps, everything downstream stalls. That's why it's PR-S1, not deferred cleanup
 
 ## 5. One-line summary
 
-**The seams are right; stop hand-building the policy.** The MPC is a controller worth
-keeping and already has a value-function slot — so commit to DL by *learning the
-tactical value function* (MPC stays the policy), make the environment RL-native first,
-and let per-weapon evasion and decentralized coordination *emerge* from observation +
-reward + training scheme instead of being authored.
+**(v2, 2026-07-11)** The seams are right; the tactics were hiding in the MPC *cost*. Stop
+hand-building the policy **and** stop planning to hot-reload a learned V into the CEM inner
+loop — instead **learn a goal-policy that emits a kinematic velocity reference and let the MPC
+track it** (MPC demoted to a feasibility controller, its authored tactical terms gated off and
+kept only as the scripted baseline). ML-Agents PPO vs the frozen baseline first; learn-V
+returns only if the MPC horizon is proven the binding limit. Per-weapon evasion and
+coordination still *emerge* from observation + reward + training, not authoring.
+
+> ~~**(v1, superseded)** The seams are right; stop hand-building the policy. The MPC is a
+> controller worth keeping and already has a value-function slot — so commit to DL by
+> *learning the tactical value function* (MPC stays the policy)…~~
 
 ---
 
