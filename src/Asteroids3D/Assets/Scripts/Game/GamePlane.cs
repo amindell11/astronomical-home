@@ -24,29 +24,29 @@ namespace Game
         {
             Origin = origin;
 
+            Vector3 normal, forward, right;
+            RigidbodyConstraints constraint;
             switch (axis)
             {
                 case PlaneAxis.X:
-                    Normal  = Vector3.right;
-                    Forward = Vector3.forward;
-                    Right   = Vector3.up;
-                    PositionConstraint = RigidbodyConstraints.FreezePositionX;
+                    normal = Vector3.right;   forward = Vector3.forward; right = Vector3.up;
+                    constraint = RigidbodyConstraints.FreezePositionX;
                     break;
                 case PlaneAxis.Y:
-                    Normal  = Vector3.down;
-                    Forward = Vector3.forward;
-                    Right   = Vector3.right;
-                    PositionConstraint = RigidbodyConstraints.FreezePositionY;
+                    normal = Vector3.down;    forward = Vector3.forward; right = Vector3.right;
+                    constraint = RigidbodyConstraints.FreezePositionY;
                     break;
                 default:
-                    Normal  = Vector3.forward;
-                    Forward = Vector3.up;
-                    Right   = Vector3.right;
-                    PositionConstraint = RigidbodyConstraints.FreezePositionZ;
+                    normal = Vector3.forward; forward = Vector3.up;      right = Vector3.right;
+                    constraint = RigidbodyConstraints.FreezePositionZ;
                     break;
             }
 
-            Rotation = PlanePose(Normal, Forward);
+            Normal  = normal;
+            Forward = forward;
+            Right   = right;
+            PositionConstraint = constraint;
+            Rotation = PlanePose(normal, forward);
         }
 
         /// <summary>Plane-dweller pose: forward = plane normal (points AWAY from the top-down camera), up = in-plane heading.</summary>
