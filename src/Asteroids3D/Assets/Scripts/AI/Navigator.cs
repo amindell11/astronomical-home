@@ -4,6 +4,7 @@ using AI.Context;
 using AI.Scanning;
 using AI.States;
 using Game;
+using Game.Services;
 using Ships;
 using Ships.Command;
 using Movement;
@@ -46,6 +47,7 @@ namespace Movement.MPC
         public PilotCommand CurrentCommand => currentCommand;
 
         protected IShipStatus context;
+        protected ArenaContext arena;
         public float arriveRadius = 2f;
 
         // Terminal cost-to-go field: the chase target whose shared field the solver samples at rollout ends. Set only for enemy-anchored pursuit (MaintainRange).
@@ -78,11 +80,12 @@ namespace Movement.MPC
         private Mpc mpc;
         private Dynamics dynamics; // consumed by the editor/gizmo partial
 
-        public void Initialize(IShipStatus shipContext, Dynamics dynamics, Scout scout, SeedScope navScope)
+        public void Initialize(IShipStatus shipContext, Dynamics dynamics, Scout scout, SeedScope navScope, ArenaContext arena)
         {
             context = shipContext;
             this.scout = scout;
             this.dynamics = dynamics;
+            this.arena = arena;
             selfMaxSpeed = dynamics.maxSpeed;
             currentWaypoint = new Waypoint { isValid = false };
             if (!mpcSettings)
@@ -104,8 +107,8 @@ namespace Movement.MPC
             if (mpcSettings.wTerminal > 0f)
             {
                 if (terminalFieldTarget)
-                    Field.NavFieldService.Instance.TryGetData(
-                        terminalFieldTarget, enemyPos, selfMaxSpeed, ObstacleFields.Active, out terminalField);
+                    arena.NavField.TryGetData(
+                        terminalFieldTarget, enemyPos, selfMaxSpeed, arena.ObstacleField, out terminalField);
                 else if (goalMode == GoalMode.Flee && hasFleeThreat)
                     GetFleeField(new float2(kin.pos.x, kin.pos.y), out terminalField);
             }
@@ -194,7 +197,7 @@ namespace Movement.MPC
             fleeFieldBaker.Pump();
             fleeFieldBaker.RequestBake(
                 Field.SeedSpec.ForBorderEscape(selfPos, fleeThreat, FleeThreatBias),
-                ObstacleFields.Active);
+                arena.ObstacleField);
             return fleeFieldBaker.TryGetData(selfMaxSpeed, out data);
         }
 

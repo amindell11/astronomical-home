@@ -185,9 +185,6 @@ namespace Asteroids.Fields
 
         private void OnDestroy()
         {
-            // Defensive: a destroyed field must never linger behind the static access point
-            // (interface references don't go null when the MonoBehaviour dies).
-            AI.Scanning.ObstacleFields.Unregister(this);
             if (AsteroidSpawner) AsteroidSpawner.OnFragmentSpawned -= HandleFragmentSpawned;
         }
 

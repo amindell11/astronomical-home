@@ -108,7 +108,7 @@ namespace Tests.EditMode
         public void GameServices_Constructor_RejectsNullServices()
         {
             Assert.Throws<ArgumentNullException>(() =>
-                new GameServices(null, null, null, null, null),
+                new GameServices(null, null, null, null, null, null),
                 "GameServices constructor must reject null services");
         }
 

@@ -21,8 +21,12 @@ namespace Game.Services
         private readonly List<Ship> spawnedShips = new();
         private readonly List<PendingRespawn> pendingRespawns = new();
         private int nextAgentIndex;
+        private ArenaContext arena;
         public IShipRegistry Registry => ActiveRegistry;
         public ShipRegistry ActiveRegistry { get; } = new();
+
+        /// <summary>The world-frame handle injected into each AI ship at wire time. Set once at compose.</summary>
+        public void SetArena(ArenaContext context) => arena = context;
 
         public event Action<Ship> OnShipSpawned;
 
@@ -123,9 +127,9 @@ namespace Game.Services
         public void WireShipDependencies(Ship ship)
         {
             if (!ship) return;
-            ship.Targeting?.SetRegistry(ActiveRegistry);
+            ship.Targeting?.SetRegistry(arena.Registry);
             if (ship.Commander is AICommander aiCommander)
-                aiCommander.SetRegistry(ActiveRegistry);
+                aiCommander.SetArena(arena);
         }
 
         public void RespawnShip(ShipId id, Vector2 pos, float rotation)

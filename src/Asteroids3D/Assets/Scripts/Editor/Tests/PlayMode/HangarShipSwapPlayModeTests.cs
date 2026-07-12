@@ -51,12 +51,15 @@ namespace Tests.PlayMode
             servicesGo = new GameObject("TestServices");
             var unitService = servicesGo.AddComponent<UnitService>();
             var objectiveService = servicesGo.AddComponent<ObjectiveService>();
+            var arena = Tests.Common.TestArena.On(servicesGo, unitService.Registry);
+            unitService.SetArena(arena);
             services = new GameServices(
                 unitService: unitService,
                 environmentService: new EnvironmentService(),
                 objectiveService: objectiveService,
                 cameraService: new CameraService(),
-                uiService: new UIService());
+                uiService: new UIService(),
+                arena: arena);
 
             var rigPrefab = AssetDatabase.LoadAssetAtPath<SessionRig>(RigPrefabPath);
             Assert.IsNotNull(rigPrefab, "SessionRig prefab loads");

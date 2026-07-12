@@ -1,6 +1,7 @@
 using AI.Context;
 using AI.Utility;
 using System;
+using Game.Services;
 using Movement;
 using Movement.MPC;
 using Ships;
@@ -28,7 +29,7 @@ namespace AI
         [SerializeField] private float combatExitDelay = 3f;
 
         protected ShipControl control;
-        protected IShipRegistry registry;
+        protected ArenaContext arena;
         protected bool systemsInitialized;
 
         internal AIContext context;
@@ -50,9 +51,9 @@ namespace AI
             Brain = GetComponent<Brain>();
         }
 
-        public void SetRegistry(IShipRegistry shipRegistry)
+        public void SetArena(ArenaContext arenaContext)
         {
-            registry = shipRegistry;
+            arena = arenaContext;
             TryInitializeSystems();
         }
 
@@ -64,13 +65,13 @@ namespace AI
 
         private void TryInitializeSystems()
         {
-            if (systemsInitialized || control.Ship == null || registry == null)  return;
+            if (systemsInitialized || control.Ship == null || arena == null)  return;
             var self = control.Ship;
             Func<Kinematics> pose = () => self.Kinematics;
             var seed = control.DecisionSeed;
 
-            Scout.Initialize(self.Transform, self.Id, self.Dynamics, self, registry);
-            Navigator.Initialize(self, self.Dynamics, Scout, seed.Derive(NavStream));
+            Scout.Initialize(self.Transform, self.Id, self.Dynamics, self, arena);
+            Navigator.Initialize(self, self.Dynamics, Scout, seed.Derive(NavStream), arena);
             if (Gunner && control.IsArmed)
                 Gunner.Initialize(control.Weapons, control.WeaponActuator, pose);
 

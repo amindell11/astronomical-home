@@ -7,5 +7,6 @@ namespace Game.Services
         IObjectiveService ObjectiveService { get; }
         ICameraService CameraService { get; }
         IUIService UIService { get; }
+        ArenaContext Arena { get; }
     }
 }

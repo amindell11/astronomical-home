@@ -54,9 +54,11 @@ namespace Tests.PlayMode
             var objectiveServiceGO = Track(new GameObject("ObjectiveService"));
             var objectiveService = objectiveServiceGO.AddComponent<ObjectiveService>();
 
+            var arena = Tests.Common.TestArena.On(unitServiceGO, unitService.Registry);
+            unitService.SetArena(arena);
             services = new GameServices(
                 unitService, new EnvironmentService(), objectiveService,
-                new CameraService(), new UIService());
+                new CameraService(), new UIService(), arena);
 
             sectorConfig = ScriptableObject.CreateInstance<SectorSettings>();
 

@@ -43,7 +43,7 @@ public class MpcPerformancePlayModeTests : PlayModeWorldFixture
             var cmdr = ship.Commander as AICommander;
             Assert.That(cmdr, Is.Not.Null, $"Ship {i} commander should be an AICommander");
 
-            cmdr.SetRegistry(new StubShipRegistry());
+            cmdr.SetArena(Arena);
             cmdr.Brain.enabled = false;
 
             var navigator = cmdr.Navigator as Navigator;
