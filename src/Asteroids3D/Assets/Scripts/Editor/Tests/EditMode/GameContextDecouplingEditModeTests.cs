@@ -62,16 +62,6 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void SessionHost_UsesSerializedPlaneAxis()
-        {
-            // GamePlane ownership (axis serialize + Configure) lives on the below-seam host now.
-            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Game", "Bootstrap", "SessionHost.cs"));
-            StringAssert.Contains("[SerializeField] private PlaneAxis planeAxis", source);
-            StringAssert.Contains("GamePlane.Configure(planeAxis, planeOrigin);", source);
-            StringAssert.DoesNotContain("GameContext.Instance", source);
-        }
-
-        [Test]
         public void SessionRig_OwnsOverlayLifecycleViaUIService()
         {
             // The overlay lifecycle lives on the session-tier rig: the rig builds it via UIService and

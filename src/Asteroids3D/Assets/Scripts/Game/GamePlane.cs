@@ -2,128 +2,110 @@ using UnityEngine;
 
 namespace Game
 {
-    /// <summary>
-    /// Which world axis serves as the game-plane normal (the "off-plane" direction).
-    /// </summary>
     public enum PlaneAxis { X, Y, Z }
 
     /// <summary>
-    /// Centralised utility for converting between world-space and the game's abstract 2-D plane.
-    /// Configured once at startup with a <see cref="PlaneAxis"/> and an origin position.
+    /// Immutable basis for a game plane: the axis/origin-parameterised conversions between world
+    /// space and the abstract 2-D plane. The shipped game uses one frozen instance
+    /// (<see cref="GamePlane.Canonical"/>); the parameterised constructor exists for tests.
     /// </summary>
-    public static class GamePlane
+    public readonly struct GamePlaneFrame
     {
-        private static bool _configured;
-        private static Vector3 _origin;
-        private static Vector3 _normal;
-        private static Vector3 _forward;
-        private static Vector3 _right;
-        private static RigidbodyConstraints _positionConstraint;
-        private static Quaternion _rotation;
+        public Vector3 Origin { get; }
+        public Vector3 Normal { get; }
+        public Vector3 Forward { get; }
+        public Vector3 Right { get; }
+        public RigidbodyConstraints PositionConstraint { get; }
 
-        /// <summary>Configure the game plane from an axis enum and world-space origin.</summary>
-        public static void Configure(PlaneAxis axis, Vector3 origin = default)
+        /// <summary>Base rotation for objects lying in the plane (forward along normal, up along plane forward).</summary>
+        public Quaternion Rotation { get; }
+
+        public GamePlaneFrame(PlaneAxis axis, Vector3 origin = default)
         {
-            if (_configured)
-                throw new System.InvalidOperationException(
-                    "GamePlane has already been configured. Call Reset() before reconfiguring.");
-
-            _origin = origin;
+            Origin = origin;
 
             switch (axis)
             {
                 case PlaneAxis.X:
-                    _normal  = Vector3.right;
-                    _forward = Vector3.forward;
-                    _right   = Vector3.up;
-                    _positionConstraint = RigidbodyConstraints.FreezePositionX;
+                    Normal  = Vector3.right;
+                    Forward = Vector3.forward;
+                    Right   = Vector3.up;
+                    PositionConstraint = RigidbodyConstraints.FreezePositionX;
                     break;
                 case PlaneAxis.Y:
-                    _normal  = Vector3.down;
-                    _forward = Vector3.forward;
-                    _right   = Vector3.right;
-                    _positionConstraint = RigidbodyConstraints.FreezePositionY;
+                    Normal  = Vector3.down;
+                    Forward = Vector3.forward;
+                    Right   = Vector3.right;
+                    PositionConstraint = RigidbodyConstraints.FreezePositionY;
                     break;
-                case PlaneAxis.Z:
-                    _normal  = Vector3.forward;
-                    _forward = Vector3.up;
-                    _right   = Vector3.right;
-                    _positionConstraint = RigidbodyConstraints.FreezePositionZ;
+                default:
+                    Normal  = Vector3.forward;
+                    Forward = Vector3.up;
+                    Right   = Vector3.right;
+                    PositionConstraint = RigidbodyConstraints.FreezePositionZ;
                     break;
             }
 
-            _rotation = PlanePose(_normal, _forward);
-            _configured = true;
+            Rotation = PlanePose(Normal, Forward);
         }
 
-        /// <summary>
-        /// The plane-dweller pose convention, pure (no configured-state dependency): forward = plane
-        /// normal (points AWAY from the top-down camera; the visible hull face is -forward),
-        /// up = in-plane heading (nose).
-        /// </summary>
+        /// <summary>Plane-dweller pose: forward = plane normal (points AWAY from the top-down camera), up = in-plane heading.</summary>
         public static Quaternion PlanePose(Vector3 planeNormal, Vector3 heading) =>
             Quaternion.LookRotation(planeNormal, heading);
 
-        /// <summary>Clears the configuration. Useful for test teardown and restarts.</summary>
-        public static void Reset()
-        {
-            _configured = false;
-            _origin = Vector3.zero;
-        }
-
-        /// <summary>Returns true if the game plane has been configured.</summary>
-        public static bool IsConfigured => _configured;
-
-        public static Vector3 Origin  { get { AssertConfigured(); return _origin; } }
-        public static Vector3 Normal  { get { AssertConfigured(); return _normal; } }
-        public static Vector3 Forward { get { AssertConfigured(); return _forward; } }
-        public static Vector3 Right   { get { AssertConfigured(); return _right; } }
-
-        /// <summary>Base rotation for objects lying in the game plane (forward along normal, up along plane forward).</summary>
-        public static Quaternion Rotation { get { AssertConfigured(); return _rotation; } }
-
-        /// <summary>The RigidbodyConstraints flag that freezes movement along the off-plane axis.</summary>
-        public static RigidbodyConstraints PositionConstraint
-        {
-            get { AssertConfigured(); return _positionConstraint; }
-        }
-
-        public static Vector3 ProjectOntoPlane(Vector3 world) =>
+        public Vector3 ProjectOntoPlane(Vector3 world) =>
             Vector3.ProjectOnPlane(world - Origin, Normal);
 
-        public static Vector2 WorldPointToPlane(Vector3 worldPt)
+        public Vector2 WorldPointToPlane(Vector3 worldPt)
         {
-            var relative = worldPt - Origin;
-            var projected = Vector3.ProjectOnPlane(relative, Normal);
+            var projected = Vector3.ProjectOnPlane(worldPt - Origin, Normal);
             return new Vector2(Vector3.Dot(projected, Right), Vector3.Dot(projected, Forward));
         }
 
-        public static Vector2 WorldDirToPlane(Vector3 worldDir)
+        public Vector2 WorldDirToPlane(Vector3 worldDir)
         {
             var projected = Vector3.ProjectOnPlane(worldDir, Normal);
             return new Vector2(Vector3.Dot(projected, Right), Vector3.Dot(projected, Forward));
         }
 
-        public static Vector3 PlanePointToWorld(Vector2 planePt) =>
+        public Vector3 PlanePointToWorld(Vector2 planePt) =>
             Origin + Right * planePt.x + Forward * planePt.y;
 
-        public static Vector3 PlaneDirToWorld(Vector2 planeDir) =>
+        public Vector3 PlaneDirToWorld(Vector2 planeDir) =>
             Right * planeDir.x + Forward * planeDir.y;
+    }
 
-        private static void AssertConfigured()
-        {
-            if (!_configured)
-                throw new System.InvalidOperationException(
-                    "GamePlane not configured. Call GamePlane.Configure() during bootstrap.");
-        }
+    /// <summary>
+    /// The one frozen world plane: a thin facade over the canonical <see cref="GamePlaneFrame"/>.
+    /// A compile-time coordinate convention (closer to <see cref="Mathf"/> than to a service), so it
+    /// carries no runtime configuration and no lifecycle to coordinate across arenas.
+    /// </summary>
+    public static class GamePlane
+    {
+        public static readonly GamePlaneFrame Canonical = new GamePlaneFrame(PlaneAxis.Z);
+
+        public static Vector3 Origin  => Canonical.Origin;
+        public static Vector3 Normal  => Canonical.Normal;
+        public static Vector3 Forward => Canonical.Forward;
+        public static Vector3 Right   => Canonical.Right;
+        public static Quaternion Rotation => Canonical.Rotation;
+
+        /// <summary>The RigidbodyConstraints flag that freezes movement along the off-plane axis.</summary>
+        public static RigidbodyConstraints PositionConstraint => Canonical.PositionConstraint;
+
+        public static Quaternion PlanePose(Vector3 planeNormal, Vector3 heading) =>
+            GamePlaneFrame.PlanePose(planeNormal, heading);
+
+        public static Vector3 ProjectOntoPlane(Vector3 world) => Canonical.ProjectOntoPlane(world);
+        public static Vector2 WorldPointToPlane(Vector3 worldPt) => Canonical.WorldPointToPlane(worldPt);
+        public static Vector2 WorldDirToPlane(Vector3 worldDir) => Canonical.WorldDirToPlane(worldDir);
+        public static Vector3 PlanePointToWorld(Vector2 planePt) => Canonical.PlanePointToWorld(planePt);
+        public static Vector3 PlaneDirToWorld(Vector2 planeDir) => Canonical.PlaneDirToWorld(planeDir);
     }
 
     public static class PlaneConstraints
     {
-        /// <summary>
-        /// Applies the appropriate RigidbodyConstraints to freeze the off-plane position axis.
-        /// Call once at startup, not every frame.
-        /// </summary>
+        /// <summary>Freeze the off-plane position axis on a body. Call once at startup, not every frame.</summary>
         public static void ConstrainBodyToPlane(Rigidbody body)
         {
             if (!body) return;
@@ -136,6 +118,5 @@ namespace Game
             if (!target) return;
             target.position = GamePlane.ProjectOntoPlane(target.position) + GamePlane.Origin;
         }
-
     }
 }

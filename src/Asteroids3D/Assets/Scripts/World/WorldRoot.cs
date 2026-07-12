@@ -14,7 +14,6 @@ namespace World
 
         private void LateUpdate()
         {
-            if (!GamePlane.IsConfigured) return;
             transform.rotation = Quaternion.LookRotation(GamePlane.Normal, GamePlane.Forward);
         }
     }

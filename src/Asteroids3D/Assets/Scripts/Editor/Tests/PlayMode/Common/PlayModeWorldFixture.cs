@@ -12,8 +12,7 @@ namespace Tests.PlayMode.Common
 /// Shared PlayMode test fixture that ensures deterministic world state,
 /// proper isolation between tests, and centralized cleanup of global/static state.
 /// Inherit from this class to get automatic setup/teardown of:
-/// - Test arena with reference plane
-/// - GamePlane static state reset
+/// - Test arena (registry + NavField sibling)
 /// - AudioListener pause/unpause
 /// - TestSceneBuilder cleanup
 /// </summary>
@@ -44,7 +43,6 @@ public abstract class PlayModeWorldFixture
             AudioListener.pause = true;
 
         TestSceneBuilder.CreateTestArena();
-        GamePlane.Configure(PlaneAxis.Y);
 
         arenaHost = new GameObject("[TestArena]");
         Arena = TestArena.On(arenaHost);
@@ -52,7 +50,7 @@ public abstract class PlayModeWorldFixture
     }
 
     /// <summary>
-    /// Called after each test. Cleans up the arena, resets GamePlane, and unpauses audio.
+    /// Called after each test. Cleans up the arena and unpauses audio.
     /// Override this method if you need additional cleanup, but remember to call base.TearDown().
     /// </summary>
     [TearDown]

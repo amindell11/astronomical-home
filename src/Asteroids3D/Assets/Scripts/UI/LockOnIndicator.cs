@@ -109,7 +109,6 @@ namespace UI
         private void LateUpdate()
         {
             if (canvasGroup && canvasGroup.alpha <= 0f) return;
-            if (!GamePlane.IsConfigured) return;
             transform.rotation = Quaternion.LookRotation(GamePlane.Normal, GamePlane.Forward);
             transform.position = transform.parent.position + GamePlane.Normal * verticalOffset;
         }

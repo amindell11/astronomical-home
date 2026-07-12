@@ -1,6 +1,5 @@
 using AI.Observation;
 using AI.Scanning;
-using Game;
 using Movement;
 using NUnit.Framework;
 using Ships;
@@ -20,16 +19,6 @@ namespace Tests.EditMode
     public class TacticalObservationEditModeTests
     {
         private const float Eps = 1e-3f;
-
-        [SetUp]
-        public void SetUp()
-        {
-            if (GamePlane.IsConfigured) GamePlane.Reset();
-            GamePlane.Configure(PlaneAxis.Z); // XY plane: world (x, y, 0) → plane (x, y)
-        }
-
-        [TearDown]
-        public void TearDown() => GamePlane.Reset();
 
         private sealed class FakeShip : IShipStatus
         {

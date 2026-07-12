@@ -45,9 +45,6 @@ namespace Tests.PlayMode
         public void SetUp()
         {
             AudioListener.pause = true;
-            if (GamePlane.IsConfigured) GamePlane.Reset();
-            // Match the shipped game convention (InitScene uses PlaneAxis.Z: the XY plane).
-            GamePlane.Configure(PlaneAxis.Z);
 
             var unitServiceGO = Track(new GameObject("UnitService"));
             unitService = unitServiceGO.AddComponent<UnitService>();
@@ -82,7 +79,6 @@ namespace Tests.PlayMode
             created.Clear();
 
             if (sectorConfig) UnityEngine.Object.DestroyImmediate(sectorConfig);
-            GamePlane.Reset();
             AudioListener.pause = false;
         }
 

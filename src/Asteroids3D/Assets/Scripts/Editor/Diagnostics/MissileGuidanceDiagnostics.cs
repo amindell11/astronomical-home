@@ -60,8 +60,6 @@ namespace Diagnostics
         {
             ClearActiveTest();
 
-            if (!EnsureGamePlane()) return;
-
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Weapons/MissileProjectile.prefab");
             if (!prefab)
             {
@@ -200,7 +198,7 @@ namespace Diagnostics
 
         private void OnDrawGizmos()
         {
-            if (!activeMissile || !targetMarker || !GamePlane.IsConfigured) return;
+            if (!activeMissile || !targetMarker) return;
 
             // Flight path trail
             if (showFlightPath && flightPath.Count > 1)
@@ -275,16 +273,6 @@ namespace Diagnostics
                 SuperGizmos.DrawWireArc(activeMissile.transform.position, GamePlane.Normal,
                     activeMissile.transform.up, angle, 1.5f);
             }
-        }
-
-        private static bool EnsureGamePlane()
-        {
-            if (GamePlane.IsConfigured) return true;
-
-            GamePlane.Configure(PlaneAxis.Y);
-            Debug.Log("[MissileGuidanceDiagnostics] GamePlane was not configured — " +
-                      "auto-configured with PlaneAxis.Y.");
-            return true;
         }
 
         private static void ApplyOverride(object obj, string fieldName, float value)

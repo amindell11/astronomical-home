@@ -45,13 +45,6 @@ namespace Tests.EditMode
             public ArenaContext Arena => null;
         }
 
-        [SetUp]
-        public void SetUp()
-        {
-            // GamePlane is static/process-wide; another fixture may have configured it already.
-            if (!GamePlane.IsConfigured) GamePlane.Configure(PlaneAxis.Y);
-        }
-
         [TearDown]
         public void TearDown()
         {

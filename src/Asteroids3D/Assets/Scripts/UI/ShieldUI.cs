@@ -73,9 +73,7 @@ namespace UI
         void LateUpdate()
         {
             if (ring && ring.canvasRenderer.GetAlpha() <= 0f) return;
-            transform.rotation = GamePlane.IsConfigured
-                ? Quaternion.LookRotation(GamePlane.Normal, GamePlane.Forward)
-                : Quaternion.Euler(90, 0, 0);
+            transform.rotation = Quaternion.LookRotation(GamePlane.Normal, GamePlane.Forward);
         }
 
 

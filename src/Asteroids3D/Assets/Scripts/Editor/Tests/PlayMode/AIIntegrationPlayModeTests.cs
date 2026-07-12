@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using AI;
 using AI.States;
+using Game;
 using Movement.MPC;
 using NUnit.Framework;
 using Ships.Command;
@@ -279,7 +280,7 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
 
         // Waypoint should be near enemy position (within some tolerance for prediction)
         var wp = cmdrA.Navigator.CurrentWaypoint.position;
-        var enemyPlane = new Vector2(shipB.transform.position.x, shipB.transform.position.z);
+        var enemyPlane = GamePlane.WorldPointToPlane(shipB.transform.position);
         var dist = Vector2.Distance(wp, enemyPlane);
         Assert.Less(dist, 30f, $"Attack waypoint ({wp}) should be near enemy position ({enemyPlane}), was {dist} away");
     }

@@ -1,71 +1,59 @@
-using System.Collections;
 using Game;
 using NUnit.Framework;
-using Tests.PlayMode.Common;
 using UnityEngine;
-using UnityEngine.TestTools;
 
 namespace Tests.PlayMode
 {
 
 [Category("Core")]
-public class GamePlanePlayModeTests : PlayModeWorldFixture
+public class GamePlanePlayModeTests
 {
-    // Override to disable audio pause for these lightweight tests
-    protected override bool PauseAudio => false;
+    [Test]
+    public void Frame_Y_SetsAxesAndOrigin()
+    {
+        var frame = new GamePlaneFrame(PlaneAxis.Y, new Vector3(10, 0, 5));
 
-    // NOTE: never `yield` while GamePlane is unconfigured. Objects leaked by earlier tests
-    // (seen: pooled ProjectileBase via PlaneConstraints) tick during yielded frames and their
-    // GamePlane access throws, failing THIS test. Reset only where no frame can run afterwards
-    // (synchronous tests, or after the final yield — TearDown's CleanupTestArena resets anyway).
+        Assert.AreEqual(Vector3.down, frame.Normal);
+        Assert.AreEqual(Vector3.forward, frame.Forward);
+        Assert.AreEqual(Vector3.right, frame.Right);
+        Assert.AreEqual(new Vector3(10, 0, 5), frame.Origin);
+        Assert.AreEqual(RigidbodyConstraints.FreezePositionY, frame.PositionConstraint);
+    }
 
     [Test]
-    public void GamePlane_UnconfiguredAccess_Throws()
+    public void Frame_WorldToPlane_And_PlaneToWorld_AreConsistent()
     {
-        GamePlane.Reset();
-        Assert.Throws<System.InvalidOperationException>(() => _ = GamePlane.Normal);
-    }
+        var frame = new GamePlaneFrame(PlaneAxis.Y, new Vector3(10, 0, 5));
+        var worldPoint = new Vector3(12, 0, 8);
 
-    [UnityTest]
-    [Category("Smoke")]
-    public IEnumerator GamePlane_Configure_SetsAxesCorrectly()
-    {
-        // Arrange
-        GamePlane.Reset();
+        var planePoint = frame.WorldPointToPlane(worldPoint);
+        var worldPointBack = frame.PlanePointToWorld(planePoint);
 
-        // Act
-        GamePlane.Configure(PlaneAxis.Y, new Vector3(10, 0, 5));
-
-        // Assert
-        Assert.IsTrue(GamePlane.IsConfigured);
-        Assert.AreEqual(Vector3.down, GamePlane.Normal);
-        Assert.AreEqual(Vector3.forward, GamePlane.Forward);
-        Assert.AreEqual(Vector3.right, GamePlane.Right);
-        Assert.AreEqual(new Vector3(10, 0, 5), GamePlane.Origin);
-
-        // Yield while still configured; TearDown resets GamePlane synchronously afterwards.
-        yield return null;
-    }
-
-    [UnityTest]
-    public IEnumerator GamePlane_WorldToPlane_And_PlaneToWorld_AreConsistent()
-    {
-        // Arrange
-        GamePlane.Reset();
-        GamePlane.Configure(PlaneAxis.Y, new Vector3(10, 0, 5));
-
-        Vector3 worldPoint = new Vector3(12, 0, 8);
-
-        // Act
-        var planePoint = GamePlane.WorldPointToPlane(worldPoint);
-        var worldPointBack = GamePlane.PlanePointToWorld(planePoint);
-
-        // Assert
         Assert.That(worldPointBack.x, Is.EqualTo(worldPoint.x).Within(0.01f));
         Assert.That(worldPointBack.z, Is.EqualTo(worldPoint.z).Within(0.01f));
+    }
 
-        // Yield while still configured; TearDown resets GamePlane synchronously afterwards.
-        yield return null;
+    [Test]
+    public void Frame_Z_SetsXYPlaneBasis()
+    {
+        var frame = new GamePlaneFrame(PlaneAxis.Z);
+
+        Assert.AreEqual(Vector3.forward, frame.Normal);
+        Assert.AreEqual(Vector3.up, frame.Forward);
+        Assert.AreEqual(Vector3.right, frame.Right);
+        Assert.AreEqual(RigidbodyConstraints.FreezePositionZ, frame.PositionConstraint);
+    }
+
+    [Test]
+    public void Canonical_IsFrozenZFrameAtOrigin()
+    {
+        var z = new GamePlaneFrame(PlaneAxis.Z);
+
+        Assert.AreEqual(Vector3.zero, GamePlane.Canonical.Origin);
+        Assert.AreEqual(z.Normal, GamePlane.Canonical.Normal);
+        Assert.AreEqual(z.Forward, GamePlane.Canonical.Forward);
+        Assert.AreEqual(z.Right, GamePlane.Canonical.Right);
+        Assert.AreEqual(z.PositionConstraint, GamePlane.Canonical.PositionConstraint);
     }
 }
 

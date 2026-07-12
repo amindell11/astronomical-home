@@ -31,20 +31,12 @@ namespace Tests.EditMode
         private readonly List<GameObject> created = new();
         private GameObject Track(GameObject go) { created.Add(go); return go; }
 
-        [SetUp]
-        public void SetUp()
-        {
-            if (GamePlane.IsConfigured) GamePlane.Reset();
-            GamePlane.Configure(PlaneAxis.Z);
-        }
-
         [TearDown]
         public void TearDown()
         {
             foreach (var go in created)
                 if (go) Object.DestroyImmediate(go);
             created.Clear();
-            if (GamePlane.IsConfigured) GamePlane.Reset();
         }
 
         [Test]
