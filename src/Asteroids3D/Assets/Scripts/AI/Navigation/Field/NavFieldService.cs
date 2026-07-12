@@ -6,13 +6,9 @@ using UnityEngine;
 namespace Movement.MPC.Field
 {
     /// <summary>
-    /// Session-root sibling maintaining one cost-to-go <see cref="NavField"/> per chase target,
-    /// shared by every pursuer of that target. The per-field machinery (double-buffered Burst
-    /// solves, obstacle gathering, rebuild policy) lives in <see cref="FieldBaker"/>; this
-    /// service is purely the sharing point — a registry keyed by target plus the frame pump.
-    /// Obstacles come from the deterministic field query (<see cref="IObstacleField"/>, handed in
-    /// by the Navigator off its arena) — live state, so destroyed asteroids drop out immediately.
-    /// Reached per-arena through <see cref="Game.Services.ArenaContext.NavField"/>.
+    /// Session-root sibling holding one shared cost-to-go <see cref="NavField"/> per chase target so
+    /// every pursuer of that target reuses one solve; the per-field solve/rebuild machinery lives in
+    /// <see cref="FieldBaker"/>. Reached per-arena via <see cref="Game.Services.ArenaContext.NavField"/>.
     /// </summary>
     [DefaultExecutionOrder(-90)]
     public partial class NavFieldService : MonoBehaviour
@@ -73,7 +69,6 @@ namespace Movement.MPC.Field
 
         private void Update()
         {
-            // Swap buffers for completed bakes; drop entries whose target died.
             stale.Clear();
             foreach (var kvp in fields)
             {

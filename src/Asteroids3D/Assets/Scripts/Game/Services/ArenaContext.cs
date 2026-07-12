@@ -7,10 +7,9 @@ using UnityEngine;
 namespace Game.Services
 {
     /// <summary>
-    /// Per-arena world-frame handle: the single injection surface for the world providers an AI ship
-    /// reads (obstacle field, cost-to-go field, ship registry) plus the arena's in-plane offset. A
-    /// plain handle with no lifecycle — consumers dereference its provider slots each frame, so a
-    /// register-later field (set during sector setup, after ships are wired) is picked up live.
+    /// Per-arena handle bundling the world providers an AI ship reads plus the arena's in-plane
+    /// offset. Slots are dereferenced each frame, so a field registered after ships are wired
+    /// (during sector setup) is picked up live.
     /// </summary>
     public class ArenaContext
     {
