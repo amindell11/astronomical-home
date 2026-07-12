@@ -61,12 +61,12 @@ namespace Tests.PlayMode
             }
         }
 
-        /// <summary>A shooter root with the weapon mounted as a child, nose along world +Z (in-plane).</summary>
+        /// <summary>A shooter root with the weapon mounted as a child, nose along the plane's forward axis.</summary>
         private Grenades MountWeapon(out MovingShooter shooter)
         {
             var ship = new GameObject("Shooter") { layer = LayerIds.Ship };
             spawned.Add(ship);
-            ship.transform.rotation = Quaternion.FromToRotation(Vector3.up, Vector3.forward);
+            ship.transform.rotation = GamePlane.Rotation;
             shooter = ship.AddComponent<MovingShooter>();
 
 #if UNITY_EDITOR
@@ -114,13 +114,13 @@ namespace Tests.PlayMode
         public void Grenade_DropsBackward_FromTheShooterVelocity()
         {
             var weapon = MountWeapon(out var shooter);
-            shooter.Velocity = new Vector3(0f, 0f, 10f);
+            shooter.Velocity = GamePlane.PlaneDirToWorld(new Vector2(0f, 10f));
 
             var grenade = weapon.Fire() as Grenade;
 
             Assert.IsNotNull(grenade, "Firing releases a charge.");
             var velocity = grenade.GetComponent<Rigidbody>().linearVelocity;
-            var expected = new Vector3(0f, 0f, 10f - 3f);
+            var expected = GamePlane.PlaneDirToWorld(new Vector2(0f, 10f - 3f));
             Assert.Less((velocity - expected).magnitude, 0.01f,
                 "The charge inherits the shooter's velocity minus the backward push.");
         }
