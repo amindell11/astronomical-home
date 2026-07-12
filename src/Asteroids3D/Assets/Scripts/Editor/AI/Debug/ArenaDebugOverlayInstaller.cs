@@ -6,8 +6,7 @@ using UnityEngine;
 namespace AI.Debug
 {
     /// <summary>Backs SessionRig's editor-overlay hook: the overlay is an editor-assembly
-    /// MonoBehaviour the runtime rig cannot name. Interim seam until the Player domain's
-    /// editor-assembly conversion.</summary>
+    /// MonoBehaviour the runtime rig can never name, so the hook is assigned from this side.</summary>
     internal static class ArenaDebugOverlayInstaller
     {
         [InitializeOnLoadMethod]

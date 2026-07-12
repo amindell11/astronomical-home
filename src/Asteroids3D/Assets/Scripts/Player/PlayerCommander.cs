@@ -11,24 +11,24 @@ namespace Player
     /// narrow <see cref="IShipStatus"/> — it never touches the Ship directly.
     /// </summary>
     [DefaultExecutionOrder(-30)]
-    public partial class PlayerCommander : Commander
+    public class PlayerCommander : Commander
     {
         [Header("Settings")]
         [Tooltip("If checked, the ship will rotate towards the mouse position. If unchecked, the ship will rotate using the rotation input axis.")]
-        [SerializeField] private bool useMouseDirection = false;
+        [SerializeField] internal bool useMouseDirection = false;
 
         [Header("Gizmo Settings")]
-        [SerializeField] private bool showMouseGizmos = true;
-        [SerializeField] private float mouseGizmoScale = 3f;
+        [SerializeField] internal bool showMouseGizmos = true;
+        [SerializeField] internal float mouseGizmoScale = 3f;
 
         private IShipStatus context;
         private IPilot pilot;
         private IWeapons weapons;
-        private PlayerInputReader playerInput;
+        internal PlayerInputReader playerInput;
         private bool hasScreenProjector;
 
-        private Vector3 directionToMouse;
-        private Vector3 projectedDirection;
+        internal Vector3 directionToMouse;
+        internal Vector3 projectedDirection;
         private float targetAngle;
 
         public bool HasScreenProjectorConfigured => hasScreenProjector;

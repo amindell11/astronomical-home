@@ -22,7 +22,7 @@ namespace Player
     /// the rig down. Pure mechanism: the rig holds no session policy — the driver injects the
     /// player-death behavior via <see cref="Build"/> and the rig only wires it onto each player it builds.
     /// </summary>
-    public partial class SessionRig : MonoBehaviour
+    public class SessionRig : MonoBehaviour
     {
         [Header("Environment")]
         [SerializeField] private WorldRoot worldPrefab;
@@ -223,8 +223,32 @@ namespace Player
                 Player.Damage.OnDeath -= onPlayerDeath;
         }
 
-        // Editor-only debug-overlay installer (SessionRig.Editor.cs). No-op outside the editor.
-        partial void InitializeDebugOverlay(IGameServices services);
-        partial void TeardownDebugOverlay();
+#if UNITY_EDITOR
+        [Header("Debug")]
+        [SerializeField] private bool enableDebugOverlay;
+
+        // The overlay is an editor-assembly component this runtime class cannot name;
+        // ArenaDebugOverlayInstaller assigns the hook at editor load.
+        internal static System.Func<GameObject, IUnitService, Component> installDebugOverlay;
+
+        private Component debugOverlay;
+#endif
+
+        private void InitializeDebugOverlay(IGameServices services)
+        {
+#if UNITY_EDITOR
+            if (!enableDebugOverlay || installDebugOverlay == null) return;
+            debugOverlay = installDebugOverlay(gameObject, services.UnitService);
+#endif
+        }
+
+        private void TeardownDebugOverlay()
+        {
+#if UNITY_EDITOR
+            if (debugOverlay)
+                Destroy(debugOverlay);
+            debugOverlay = null;
+#endif
+        }
     }
 }
