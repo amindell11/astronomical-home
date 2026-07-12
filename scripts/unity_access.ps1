@@ -11,6 +11,7 @@ param(
     [int]$PollSeconds = 2,
     [int]$TicketTtlSeconds = 900,
     [int]$OwnerTtlSeconds = 300,
+    [int]$EditorCloseWaitSeconds = 30,
     [string]$StateRoot = "",
     [string]$ProcessSnapshotPath = "",
     [string]$UnityPath = "D:\Programs\Unity\Editor\6000.1.8f1\Editor\Unity.exe",
@@ -27,6 +28,7 @@ $ErrorActionPreference = "Stop"
 $ExitWaiting = 20
 $ExitUnmanaged = 21
 $ExitOwnership = 22
+$ExitIncomplete = 23
 $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
 function Resolve-FullPath {
@@ -207,14 +209,13 @@ function Get-Owner {
         if (Test-Path -LiteralPath $OwnerRoot) { Remove-Item -LiteralPath $OwnerRoot -Recurse -Force -ErrorAction SilentlyContinue }
         return $null
     }
-    $processes = @(Get-RelevantUnityProcesses)
-    if ([int]$owner.processId -gt 0) {
-        if (@($processes | Where-Object { $_.processId -eq [int]$owner.processId }).Count -eq 0) {
-            Remove-Item -LiteralPath $OwnerRoot -Recurse -Force
-            return $null
-        }
+    $isStale = if ([int]$owner.processId -gt 0) {
+        @(Get-RelevantUnityProcesses | Where-Object { $_.processId -eq [int]$owner.processId }).Count -eq 0
     }
-    elseif (([datetime]::UtcNow - (Get-DateValue $owner.updatedAt)).TotalSeconds -gt $OwnerTtlSeconds) {
+    else {
+        ([datetime]::UtcNow - (Get-DateValue $owner.updatedAt)).TotalSeconds -gt $OwnerTtlSeconds
+    }
+    if ($isStale) {
         Remove-Item -LiteralPath $OwnerRoot -Recurse -Force
         return $null
     }
@@ -260,10 +261,14 @@ function Get-StatusValue {
     }
 }
 
+function Get-QueuePosition {
+    param([array]$Tickets, [string]$RequestedLease)
+    return 1 + [array]::IndexOf(@($Tickets | ForEach-Object { [string]$_.data.lease }), $RequestedLease)
+}
+
 function Request-Access {
-    $ticket = Ensure-Ticket $Lease $Slot $Mode $ResolvedProject
-    $tickets = @(Get-Tickets)
-    $position = 1 + [array]::IndexOf(@($tickets | ForEach-Object { $_.file }), $ticket.file)
+    [void](Ensure-Ticket $Lease $Slot $Mode $ResolvedProject)
+    $position = Get-QueuePosition (Get-Tickets) $Lease
     return [ordered]@{ status = "queued"; lease = $Lease; slot = $Slot; mode = $Mode; position = $position }
 }
 
@@ -275,9 +280,8 @@ function Try-AcquireAccess {
         return [ordered]@{ status = "acquired"; owner = $current; renewed = $true }
     }
 
-    $request = Request-Access
-    $tickets = @(Get-Tickets)
-    $position = 1 + [array]::IndexOf(@($tickets | ForEach-Object { [string]$_.data.lease }), $Lease)
+    [void](Request-Access)
+    $position = Get-QueuePosition (Get-Tickets) $Lease
     if ($null -ne $current) {
         return [ordered]@{ status = "waiting"; position = $position; owner = $current }
     }
@@ -343,7 +347,7 @@ function Release-Access {
         $process = Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue
         if ($null -ne $process) {
             [void]$process.CloseMainWindow()
-            $deadline = [datetime]::UtcNow.AddSeconds(30)
+            $deadline = [datetime]::UtcNow.AddSeconds([Math]::Max(0, $EditorCloseWaitSeconds))
             while ($null -ne (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue) -and [datetime]::UtcNow -lt $deadline) { Start-Sleep -Milliseconds 500 }
             if ($null -ne (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue)) {
                 return [ordered]@{ status = "editor_did_not_exit"; owner = $owner }
@@ -434,7 +438,11 @@ $result = switch ($Action) {
 
 Write-Result $result
 $resultStatus = if ($Action -eq "Status") { "" } else { [string]$result.status }
-if ($resultStatus -eq "ownership_mismatch") { exit $ExitOwnership }
-if ($resultStatus -eq "blocked_unmanaged_unity") { exit $ExitUnmanaged }
-if ($resultStatus -in @("waiting", "blocked_user_editor")) { exit $ExitWaiting }
-exit 0
+$statusExitCodes = @{
+    ownership_mismatch = $ExitOwnership
+    editor_did_not_exit = $ExitIncomplete
+    blocked_unmanaged_unity = $ExitUnmanaged
+    waiting = $ExitWaiting
+    blocked_user_editor = $ExitWaiting
+}
+exit ($(if ($statusExitCodes.ContainsKey($resultStatus)) { $statusExitCodes[$resultStatus] } else { 0 }))

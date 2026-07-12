@@ -29,6 +29,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 $Script:IsWindowsPlatform = ($env:OS -eq "Windows_NT")
+$Script:UnityAccessRunId = [guid]::NewGuid().ToString("N")
 
 function Resolve-FullPath {
     param([string]$Path)
@@ -58,7 +59,7 @@ function Invoke-UnityAccess {
 
     $coordinator = Join-Path $PSScriptRoot "unity_access.ps1"
     $slot = Get-UnityAccessSlot $ProjectFullPath
-    $lease = if ([string]::IsNullOrWhiteSpace($UnityAccessLease)) { "unity-tests-$slot" } else { $UnityAccessLease }
+    $lease = if ([string]::IsNullOrWhiteSpace($UnityAccessLease)) { "unity-tests-$slot-$Script:UnityAccessRunId" } else { $UnityAccessLease }
     $arguments = @(
         "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $coordinator,
         "-Action", $Action,
@@ -77,9 +78,17 @@ function Invoke-UnityAccess {
     $line = @($output | Where-Object { [string]$_ -match '^\s*\{' } | Select-Object -Last 1)
     $result = if ($line.Count -gt 0) { [string]$line[0] | ConvertFrom-Json } else { $null }
     if ($exitCode -ne 0) {
+        if ($Action -in @("Acquire", "Wait")) {
+            $cancelArguments = @(
+                "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $coordinator,
+                "-Action", "Cancel", "-Lease", $lease, "-Json"
+            )
+            if (-not [string]::IsNullOrWhiteSpace($UnityAccessStateRoot)) { $cancelArguments += @("-StateRoot", $UnityAccessStateRoot) }
+            & powershell @cancelArguments 2>&1 | Out-Null
+        }
         if ($null -ne $result -and $result.status -eq "blocked_user_editor") {
             $blocker = @($result.blockers | Select-Object -First 1)
-            throw "Unity access is waiting for the user-owned main editor (pid=$($blocker[0].processId)) to close. Your request remains queued; close the editor and rerun."
+            throw "Unity access is waiting for the user-owned main editor (pid=$($blocker[0].processId)) to close. The request was cancelled; close the editor and rerun."
         }
         throw "Unity access $Action failed (exit=$exitCode): $($output -join ' ')"
     }

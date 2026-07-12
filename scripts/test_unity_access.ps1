@@ -129,6 +129,24 @@ try {
     $afterBatch = Invoke-Coordinator -Action Status
     Assert-True ($null -eq $afterBatch.value.owner) "run batch releases owner"
 
+    try {
+        $stubbornAcquire = Invoke-Coordinator -Action Acquire -Lease stubborn-editor -Mode editor
+        Assert-Equal $stubbornAcquire.value.status "acquired" "stubborn editor acquire"
+        $stubbornAttach = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Attach -Lease stubborn-editor -Slot agent-1 -Mode editor -ProcessId $PID -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+        Assert-Equal $LASTEXITCODE 0 "stubborn editor attach exit"
+        Write-Snapshot @([ordered]@{ processId = $PID; commandLine = "Unity.exe -projectPath `"$agentProject`"" })
+        $stubbornRelease = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Release -Lease stubborn-editor -CloseEditor -EditorCloseWaitSeconds 0 -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+        Assert-Equal $LASTEXITCODE 23 "incomplete editor release exit"
+        $stubbornResult = [string](@($stubbornRelease | Select-Object -Last 1)[0]) | ConvertFrom-Json
+        Assert-Equal $stubbornResult.status "editor_did_not_exit" "incomplete editor release status"
+        $stubbornStatus = Invoke-Coordinator -Action Status
+        Assert-Equal $stubbornStatus.value.owner.lease "stubborn-editor" "incomplete editor release retains owner"
+    }
+    finally {
+        Write-Snapshot @()
+        [void](Invoke-Coordinator -Action Release -Lease stubborn-editor)
+    }
+
     Write-Host "UNITY_ACCESS_TESTS_PASSED assertions=$Assertions"
 }
 finally {
