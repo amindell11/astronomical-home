@@ -8,9 +8,9 @@ using UnityEngine;
 namespace AI.Debug
 {
     /// <summary>
-    /// Debug overlay for the AI Arena: state labels, utility bars, and target lines. Lives in the
-    /// editor assembly, so it is never authored on prefabs — <see cref="ArenaDebugOverlayInstaller"/>
-    /// adds it to the session rig at runtime.
+    /// Debug overlay for the AI Arena: state labels, utility bars, and target lines. Dormant — Unity
+    /// can't AddComponent editor-assembly MonoBehaviours, so nothing installs it into
+    /// <c>SessionRig.installDebugOverlay</c> until a runtime relay host lands (see project board).
     /// </summary>
     public class ArenaDebugOverlay : MonoBehaviour
     {
