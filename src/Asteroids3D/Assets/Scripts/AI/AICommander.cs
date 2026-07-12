@@ -14,7 +14,7 @@ namespace AI
     [RequireComponent(typeof(Brain))]
 
     [DefaultExecutionOrder(-40)]
-    public partial class AICommander : Commander
+    public class AICommander : Commander
     {
         private const uint NavStream = 1;
         private const uint StrategyStream = 2;
@@ -31,7 +31,7 @@ namespace AI
         protected IShipRegistry registry;
         protected bool systemsInitialized;
 
-        private AIContext context;
+        internal AIContext context;
 
         public Scout Scout { get; private set; }
         public Navigator Navigator { get; private set; }

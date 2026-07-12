@@ -38,13 +38,13 @@ namespace Utils
             VfxEnabled = PlayerPrefs.GetInt("VFX_ENABLED", 1) == 1;
 
             // Presentation is a per-session policy, not a saved preference: default it on each load and
-            // let a game-tier caller (MainGameManager) turn it off for a headless/RL session.
+            // let a game-tier caller (SessionHost) turn it off for a headless/RL session.
             PresentationEnabled = true;
         }
 
         /// <summary>
         /// Sets the global VFX toggle. By default this is a runtime-only override (does NOT persist),
-        /// which is what a game-tier caller like <c>MainGameManager</c> wants — a headless/RL session
+        /// which is what a game-tier caller like <c>SessionHost</c> wants — a headless/RL session
         /// disabling VFX must not leak into the player's saved preference. Pass <paramref name="persist"/>
         /// = true (e.g. from a settings menu) to also write it to PlayerPrefs for future sessions.
         /// </summary>

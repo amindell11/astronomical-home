@@ -9,7 +9,7 @@ using Utils;
 namespace Asteroids
 {
     [RequireComponent(typeof(AsteroidDamage))]
-    public partial class AsteroidController : MonoBehaviour
+    public class AsteroidController : MonoBehaviour
     {
         private MeshFilter meshFilter;
         private MeshCollider meshCollider;

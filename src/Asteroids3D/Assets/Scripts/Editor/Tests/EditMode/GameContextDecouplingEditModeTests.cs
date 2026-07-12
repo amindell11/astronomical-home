@@ -61,9 +61,10 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void MainGameManager_UsesSerializedPlaneAxis()
+        public void SessionHost_UsesSerializedPlaneAxis()
         {
-            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Game", "Bootstrap", "MainGameManager.cs"));
+            // GamePlane ownership (axis serialize + Configure) lives on the below-seam host now.
+            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Game", "Bootstrap", "SessionHost.cs"));
             StringAssert.Contains("[SerializeField] private PlaneAxis planeAxis", source);
             StringAssert.Contains("GamePlane.Configure(planeAxis, planeOrigin);", source);
             StringAssert.DoesNotContain("GameContext.Instance", source);
@@ -94,7 +95,8 @@ namespace Tests.EditMode
             var assetsPath = Application.dataPath;
             var files = new[]
             {
-                Path.Combine(assetsPath, "Scripts", "Game", "Bootstrap", "MainGameManager.cs"),
+                Path.Combine(assetsPath, "Scripts", "Game", "Bootstrap", "GameDriver.cs"),
+                Path.Combine(assetsPath, "Scripts", "Game", "Bootstrap", "SessionHost.cs"),
                 Path.Combine(assetsPath, "Scripts", "AI", "AICommander.cs"),
                 Path.Combine(assetsPath, "Scripts", "Combat", "Targeting", "LockOnSensor.cs"),
                 Path.Combine(assetsPath, "Scripts", "Player", "PlayerCommander.cs"),

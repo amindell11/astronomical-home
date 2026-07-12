@@ -6,7 +6,7 @@ using Missile = Combat.Projectile.Missile;
 
 namespace Combat.Weapons
 {
-    public partial class Missiles : WeaponBase<Missile>
+    public class Missiles : WeaponBase<Missile>
     {
         [Header("Targeting")]
         [SerializeField] private LockOnSensor targetingComputer;

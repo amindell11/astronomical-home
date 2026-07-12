@@ -13,7 +13,7 @@ namespace AI.States
     /// delegates motion to it and keeps only selection (utility/availability) and
     /// modulation (tactical/firing/weights) for itself.
     /// </summary>
-    internal abstract partial class GoalRunner
+    internal abstract class GoalRunner
     {
         public static GoalRunner Create(GoalStrategy goal, Navigator navigator, SeedScope goalScope) => goal switch
         {
@@ -34,13 +34,13 @@ namespace AI.States
     }
 
     /// <summary>Fallback for an unset/unknown goal: produces no motion.</summary>
-    internal sealed partial class NullGoalRunner : GoalRunner
+    internal sealed class NullGoalRunner : GoalRunner
     {
         public override void Fill(AIContext ctx, float deltaTime, ref NavigationIntent intent) { }
     }
 
     /// <summary>Shared base for goals defined relative to the current enemy.</summary>
-    internal abstract partial class EnemyGoalRunner : GoalRunner
+    internal abstract class EnemyGoalRunner : GoalRunner
     {
         public override void Fill(AIContext ctx, float deltaTime, ref NavigationIntent intent)
         {
@@ -55,7 +55,7 @@ namespace AI.States
     }
 
     /// <summary>Track and engage the enemy at a desired range.</summary>
-    internal sealed partial class TrackEnemyRunner : EnemyGoalRunner
+    internal sealed class TrackEnemyRunner : EnemyGoalRunner
     {
         private readonly TrackEnemyGoal goal;
 
@@ -70,7 +70,7 @@ namespace AI.States
     }
 
     /// <summary>Flee from the enemy (motion mirrors tracking; goal mode inverts it).</summary>
-    internal sealed partial class FleeEnemyRunner : EnemyGoalRunner
+    internal sealed class FleeEnemyRunner : EnemyGoalRunner
     {
         public FleeEnemyRunner(FleeEnemyGoal goal) { }
     }
@@ -79,14 +79,14 @@ namespace AI.States
     /// Wander to random waypoints within a radius, re-targeting on arrival or when
     /// progress stalls. Holds the per-ship patrol bookkeeping the shared goal asset can't.
     /// </summary>
-    internal sealed partial class PatrolRunner : GoalRunner
+    internal sealed class PatrolRunner : GoalRunner
     {
-        private readonly RandomWaypointGoal goal;
+        internal readonly RandomWaypointGoal goal;
         private readonly Navigator navigator;
         private readonly System.Random rng;
 
-        private Vector2 patrolTarget;
-        private bool hasPatrolTarget;
+        internal Vector2 patrolTarget;
+        internal bool hasPatrolTarget;
         private float stuckTimer;
         private float bestDistToWaypoint;
 

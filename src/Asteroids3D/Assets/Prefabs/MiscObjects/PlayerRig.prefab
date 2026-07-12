@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 3124471097745599468}
   - component: {fileID: 3540623995813302772}
-  - component: {fileID: -3245791385895265377}
   m_Layer: 0
   m_Name: PlayerRig
   m_TagString: Untagged
@@ -46,7 +45,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enableDebugOverlay: 1
-  debugSettings: {fileID: 11400000, guid: 2e2ae38aa858dd74d9f7908425a3067d, type: 2}
   worldPrefab: {fileID: 4478678954348364341, guid: 85b078d06b0ea6c40acdfd2fe59a9556,
     type: 3}
   playerTemplate: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
@@ -62,18 +60,3 @@ MonoBehaviour:
     type: 3}
   overlayPrefab: {fileID: 6902055608550465894, guid: 87f4b42386fd2af44b25b722572d1fcd,
     type: 3}
---- !u!114 &-3245791385895265377
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8570481771073749529}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f579dc3418d388d4192a0cf6b0b557ba, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  labelOffset: {x: 0, y: 40}
-  barWidth: 120
-  barHeight: 14

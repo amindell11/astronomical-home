@@ -163,42 +163,56 @@ namespace Tests.EditMode
             CollectionAssert.Contains(names, "Exit");
         }
 
-        // --- MainGameManager ---
+        // --- GameDriver (above-seam) / SessionHost (below-seam) ---
 
         [Test]
-        public void MainGameManager_IsMonoBehaviour()
+        public void GameDriver_IsMonoBehaviour()
         {
-            Assert.IsTrue(typeof(MonoBehaviour).IsAssignableFrom(typeof(MainGameManager)),
-                "MainGameManager must extend MonoBehaviour");
+            Assert.IsTrue(typeof(MonoBehaviour).IsAssignableFrom(typeof(GameDriver)),
+                "GameDriver must extend MonoBehaviour");
         }
 
         [Test]
-        public void MainGameManager_HasCurrentStateProperty()
+        public void SessionHost_IsMonoBehaviour()
         {
-            var prop = typeof(MainGameManager).GetProperty("CurrentState");
-            Assert.IsNotNull(prop, "MainGameManager must expose CurrentState");
+            Assert.IsTrue(typeof(MonoBehaviour).IsAssignableFrom(typeof(SessionHost)),
+                "SessionHost must extend MonoBehaviour");
+        }
+
+        [Test]
+        public void GameDriver_HasCurrentStateProperty()
+        {
+            var prop = typeof(GameDriver).GetProperty("CurrentState");
+            Assert.IsNotNull(prop, "GameDriver must expose CurrentState");
             Assert.AreEqual(typeof(GameState), prop.PropertyType);
         }
 
         [Test]
-        public void MainGameManager_HasOnGameStateChangedEvent()
+        public void GameDriver_HasOnGameStateChangedEvent()
         {
-            var ev = typeof(MainGameManager).GetEvent("OnGameStateChanged");
-            Assert.IsNotNull(ev, "MainGameManager must declare OnGameStateChanged event");
+            var ev = typeof(GameDriver).GetEvent("OnGameStateChanged");
+            Assert.IsNotNull(ev, "GameDriver must declare OnGameStateChanged event");
         }
 
-        // --- Lifecycle primitives (bootstrap/session decoupling) ---
+        // --- Lifecycle primitives (the driver-agnostic seam, below on SessionHost) ---
 
         [Test]
-        public void MainGameManager_ExposesDriverAgnosticLifecyclePrimitives()
+        public void SessionHost_ImplementsSessionPrimitivesSeam()
         {
-            // The primitives are the seam an RL/headless driver reuses; each takes the explicit
-            // per-session container (not a process singleton) and returns a coroutine.
+            Assert.IsTrue(typeof(ISessionPrimitives).IsAssignableFrom(typeof(SessionHost)),
+                "SessionHost must implement ISessionPrimitives (the driver-agnostic seam)");
+        }
+
+        [Test]
+        public void SessionHost_ExposesDriverAgnosticLifecyclePrimitives()
+        {
+            // The primitives are the seam an RL/headless driver reuses; each coroutine takes the explicit
+            // per-session container (not a process singleton). ApplyLoadout is the one non-coroutine.
             var flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
             foreach (var name in new[] { "ComposeSession", "LoadSector", "UnloadSector", "TeardownSession" })
             {
-                var method = typeof(MainGameManager).GetMethod(name, flags);
-                Assert.IsNotNull(method, $"MainGameManager must expose lifecycle primitive {name}");
+                var method = typeof(SessionHost).GetMethod(name, flags);
+                Assert.IsNotNull(method, $"SessionHost must expose lifecycle primitive {name}");
                 Assert.AreEqual(typeof(IEnumerator), method.ReturnType,
                     $"{name} must be a coroutine (IEnumerator)");
                 var parameters = method.GetParameters();
@@ -206,6 +220,12 @@ namespace Tests.EditMode
                 Assert.AreEqual(typeof(GameSession), parameters[0].ParameterType,
                     $"{name} must take GameSession as its first parameter (per-instance shaping)");
             }
+
+            var applyLoadout = typeof(SessionHost).GetMethod("ApplyLoadout", flags);
+            Assert.IsNotNull(applyLoadout, "SessionHost must expose ApplyLoadout");
+            var applyParams = applyLoadout.GetParameters();
+            Assert.AreEqual(1, applyParams.Length);
+            Assert.AreEqual(typeof(GameSession), applyParams[0].ParameterType);
         }
 
         [Test]
@@ -231,9 +251,9 @@ namespace Tests.EditMode
         {
             // Composition is policy-free: the reset trigger is injected via GameSession.OnPlayerDeath
             // (built by the driver, wired by the rig at spawn), never passed as a compose parameter.
-            var method = typeof(MainGameManager).GetMethod("ComposeSession",
+            var method = typeof(SessionHost).GetMethod("ComposeSession",
                 BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-            Assert.IsNotNull(method, "MainGameManager must expose ComposeSession");
+            Assert.IsNotNull(method, "SessionHost must expose ComposeSession");
             var parameters = method.GetParameters();
             Assert.AreEqual(1, parameters.Length,
                 "ComposeSession must take only the session container — no policy callbacks");
@@ -264,29 +284,39 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void MainGameManager_DoesNotLookUpSiblingServicesOutsideAwake()
+        public void SessionHost_DoesNotLookUpSiblingServicesOutsideAwake()
         {
             // Injection hygiene (plan §A): the sibling MonoBehaviour services are cached in Awake;
             // no GetComponent calls mid-lifecycle. The only two lookups allowed in the file are the
-            // Awake cache assignments.
+            // Awake cache assignments — both now live on the host below the seam.
             var source = System.IO.File.ReadAllText(System.IO.Path.Combine(
-                Application.dataPath, "Scripts", "Game", "Bootstrap", "MainGameManager.cs"));
+                Application.dataPath, "Scripts", "Game", "Bootstrap", "SessionHost.cs"));
             StringAssert.Contains("unitService = GetComponent<UnitService>();", source);
             StringAssert.Contains("objectiveService = GetComponent<ObjectiveService>();", source);
             var lookups = source.Split(new[] { "GetComponent<" }, StringSplitOptions.None).Length - 1;
             Assert.AreEqual(2, lookups,
-                "MainGameManager must contain exactly the two Awake cache lookups");
+                "SessionHost must contain exactly the two Awake cache lookups");
         }
 
         [Test]
-        public void MainGameManager_Awake_CallsDontDestroyOnLoad()
+        public void SessionHost_DoesNotReferenceTheDriver()
         {
-            // Source-level verification: Awake method body contains DontDestroyOnLoad
-            var method = typeof(MainGameManager).GetMethod("Awake",
-                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-            Assert.IsNotNull(method, "MainGameManager must have an Awake method");
+            // Seam direction: the dependency points UP only. The below-seam host must never name any
+            // driver — a driver references the host, not the reverse.
+            var source = System.IO.File.ReadAllText(System.IO.Path.Combine(
+                Application.dataPath, "Scripts", "Game", "Bootstrap", "SessionHost.cs"));
+            StringAssert.DoesNotContain("GameDriver", source,
+                "SessionHost must not reference GameDriver (the seam points up only)");
+        }
 
-            // Verify via IL that the method references DontDestroyOnLoad
+        [Test]
+        public void GameDriver_Awake_CallsDontDestroyOnLoad()
+        {
+            // Source-level verification: Awake method body exists on the driver.
+            var method = typeof(GameDriver).GetMethod("Awake",
+                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+            Assert.IsNotNull(method, "GameDriver must have an Awake method");
+
             var body = method.GetMethodBody();
             Assert.IsNotNull(body, "Awake must have a method body");
             var il = body.GetILAsByteArray();

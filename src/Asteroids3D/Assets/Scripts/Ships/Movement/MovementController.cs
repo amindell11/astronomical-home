@@ -1,6 +1,3 @@
-// This file contains movement and plane logic for ships.
-// Damage and health are now handled by ShipHealth.
-
 using System;
 using Game;
 using Movement;
@@ -10,7 +7,7 @@ namespace Ships.Movement
 {
     [RequireComponent(typeof(Rigidbody))]
     [DefaultExecutionOrder(50)]
-    public partial class MovementController : MonoBehaviour, IPilot
+    public class MovementController : MonoBehaviour, IPilot
     {
 
         [Header("Debug")]
@@ -22,7 +19,7 @@ namespace Ships.Movement
 
         private Rigidbody  rb;
         private Booster booster;
-        private ResolvedShipStats settings;
+        internal ResolvedShipStats settings;
         private PilotCommand currentCommand;
         public Kinematics Kinematics => getKinematics();
         private Func<Kinematics> getKinematics;
@@ -97,7 +94,9 @@ namespace Ships.Movement
             var bankRate = Vector3.Dot(rb.angularVelocity, transform.up);
             rb.AddTorque(transform.up * (bankError * settings.bankTorque - bankRate * settings.bankDamping), ForceMode.Force);
 
-            DebugForces(thrust,strafe,boost,yawTorque);
+#if UNITY_EDITOR
+            DebugForces(thrust, strafe, boost, yawTorque);
+#endif
         }
         private void ConstrainRotation()
         {
@@ -124,6 +123,17 @@ namespace Ships.Movement
             }
         }
 
-        partial void DebugForces(Vector2 thrust, Vector2 strafe, Vector2 boost, float yaw);
+#if UNITY_EDITOR
+        internal Vector2 dbgThrust, dbgStrafe, dbgBoost;
+        internal float dbgYaw;
+
+        private void DebugForces(Vector2 thrust, Vector2 strafe, Vector2 boost, float yaw)
+        {
+            dbgThrust = thrust;
+            dbgStrafe = strafe;
+            dbgBoost = boost;
+            dbgYaw = yaw;
+        }
+#endif
     }
 }

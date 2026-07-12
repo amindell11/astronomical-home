@@ -95,7 +95,7 @@ reload. The trap only bites the in-Editor MCP `run_tests` path.
 | # | Failure mode | Root cause | Status |
 |---|---|---|---|
 | D1 | `HangarShipSwapPlayModeTests` (3) fail in batch, pass in-Editor | `-nographics` URP render loop can't create camera RTs (`RenderTexture.Create failed`); NUnit treats the logged error as failure | **Quarantined (#95)** |
-| D2 | "Project appears open… infra_error" (exit 32) | The runner **can't run while an interactive editor holds the project** (RC1), surfaced by `Test-ProjectAlreadyOpen` | By design; doctor warns |
+| D2 | Interactive editor blocks batch verification | Unity access is machine-wide; the coordinator queues the request and classifies an untracked main editor as user-owned | By design; ask the user to close it |
 | D3 | `FullLoop_NoEnemy_PatrolStateSelected` cited as a blocker | Actually already `[Ignore]`d in code — not a live blocker; the memory note was stale | Resolved (verify before citing) |
 | D4 | GamePlane test order-dependent flaky | A leaked **pooled** `ProjectileBase` from an earlier combat test ticks during an unconfigured frame | Fixed (#60) |
 | D4b | *Failed fix — do not retry* | Destroying leaked projectiles in `SetUp` breaks the pool ⇒ `MissingReferenceException` in later weapon tests | Documented dead-end |
@@ -200,8 +200,9 @@ this section disagree, prefer this section (and re-verify against live state via
   DisableDomainReload bit, flip it to None for the run and restore after.
 - **Burst:** clear `Library/BurstCache` before testing after struct-layout
   changes; expect a cold cache to make the first run minutes-long.
-- **Don't run concurrent batch suites** across multiple agents (boot deadlock);
-  if one is force-killed, clear the stale `Temp/UnityLockfile`.
+- **Don't run concurrent Unity processes** across agents. The batch runner and
+  tracked editors serialize through `scripts/unity_access.ps1`; if a process
+  is force-killed, clear the stale `Temp/UnityLockfile`.
 
 ---
 
@@ -213,7 +214,9 @@ this section disagree, prefer this section (and re-verify against live state via
   failures; the batch path is the gate.
 - **Suspect setup ordering before engine corruption** when tests fail as a
   class (Cluster F).
-- **One editor, one port, one project holder** — sequence Unity-MCP work and
-  batch testing; never assume they coexist.
+- **One Unity lane, one shared MCP server** — `scripts/unity_access.ps1`
+  sequences interactive editors and batch testing. Prefer batch, treat an
+  untracked main editor as user-owned, and close tracked editors immediately
+  after verification.
 - **Author agent-facing scripts ASCII-only** and validate parsing under Windows
   PowerShell 5.1.

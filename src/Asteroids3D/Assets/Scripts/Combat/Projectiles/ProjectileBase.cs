@@ -13,7 +13,7 @@ namespace Combat.Projectile
         [SerializeField] protected float maxDistance = 50f;
         [SerializeField] protected float mass        = 0.1f;
 
-        protected Rigidbody rb;
+        protected internal Rigidbody rb;
         protected Vector3 startPosition;
 
         public IShooter Shooter { get; private set; }

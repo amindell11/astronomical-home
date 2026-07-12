@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Combat.Weapons
 {
-    public partial class Lasers : WeaponBase<Laser>
+    public class Lasers : WeaponBase<Laser>
     {
         [Header("AI Firing")]
         [Tooltip("Max distance at which an AI gunner will open fire.")]

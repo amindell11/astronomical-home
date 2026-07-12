@@ -6,6 +6,26 @@ Agent-friendly reference for running, interpreting, and extending the Unity test
 
 ## Quick Start (Agent / CI)
 
+Unity execution is serialized across all worktrees. The test runner joins the
+FIFO automatically, prefers a short-lived batch process, and releases the lane
+after each Unity invocation. Check the lane before a run:
+
+```powershell
+.\scripts\unity_access.ps1 -Action Status
+```
+
+Agents can wait on the queue without manual polling. `Wait` renews the ticket
+while it polls and acquires automatically when earlier owners or unmanaged
+Unity processes exit:
+
+```powershell
+.\scripts\unity_access.ps1 -Action Wait -Lease my-task-tests -Slot agent-1 -Mode batch -WaitSeconds 60
+```
+
+If an untracked main-worktree editor is reported, it is user-owned. Ask the
+user to close it and rerun; never terminate it. Requests remain queued for the
+next attempt.
+
 ```powershell
 # From repo root — runs both EditMode and PlayMode, writes JSON summary.
 .\scripts\unity_test_agent.ps1
@@ -57,6 +77,21 @@ To avoid repeated Unity re-import/build cost in fresh worktrees, use the persist
 ```
 
 `prepare` uses `git clean -fd` (not `-fdx`) so ignored Unity cache directories remain warm.
+
+### Interactive Editor / MCP Checks
+
+Use an interactive editor only when headless batch tests cannot cover the
+behavior. The coordinator starts or reuses the durable MCP server, records the
+owning slot and editor PID, and blocks behind earlier requests:
+
+```powershell
+.\scripts\unity_access.ps1 -Action StartEditor -Lease my-task-editor -Slot agent-1 -Mode editor -WaitSeconds 60
+.\scripts\unity_access.ps1 -Action Status
+.\scripts\unity_access.ps1 -Action Release -Lease my-task-editor -CloseEditor
+```
+
+Do not use the MCP window's **Stop Server** action. The server on port 8081 is
+shared; release only the editor session and lane.
 
 ### Parameters
 

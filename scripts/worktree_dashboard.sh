@@ -14,6 +14,12 @@ set -euo pipefail
 # shows occupied slots as FREE.
 ROOT="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"
 LOCK_ROOT="$ROOT/.worktree-pool/locks"
+if [[ -n "${BASH_SOURCE[0]:-}" ]]; then
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+else
+  SCRIPT_DIR="$(git rev-parse --show-toplevel)/scripts"
+fi
+UNITY_ACCESS_SCRIPT="$SCRIPT_DIR/unity_access.ps1"
 SHOW_PRS="${WORKTREE_DASHBOARD_PRS:-0}"
 DO_FETCH="${WORKTREE_DASHBOARD_FETCH:-0}"
 SHOW_STATUS="${WORKTREE_DASHBOARD_STATUS:-0}"
@@ -178,6 +184,11 @@ worktree_rows() {
 run_dashboard() {
   header
   main_info
+
+  if [[ -f "$UNITY_ACCESS_SCRIPT" ]] && command -v powershell.exe >/dev/null 2>&1; then
+    echo ""
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$UNITY_ACCESS_SCRIPT" -Action Status 2>/dev/null | sed 's/^/  /' || true
+  fi
 
   if [[ "$DO_FETCH" == "1" ]]; then
     git -C "$ROOT" fetch origin --quiet 2>/dev/null || true

@@ -21,7 +21,7 @@ namespace Tests.PlayMode
     /// While the hangar screen is open the player's commander must be disabled — Fire1 shares
     /// mouse 0 with UI clicks, so an enabled commander turns every hangar button press into a
     /// weapon shot on the live ship behind the screen. Launch must restore it. The gate now lives
-    /// in the driver's <see cref="MainGameManager.RunHangar"/>, so the flow is driven there.
+    /// in the driver's <see cref="GameDriver.RunHangar"/>, so the flow is driven there.
     /// </summary>
     [Category("RequiresGraphics")]
     public class HangarInputGatePlayModeTests : PlayModeWorldFixture
@@ -76,7 +76,7 @@ namespace Tests.PlayMode
             // (its Awake/state-machine never runs) and drive the flow coroutine on the active rig.
             driverGo = new GameObject("TestDriver");
             driverGo.SetActive(false);
-            var driver = driverGo.AddComponent<MainGameManager>();
+            var driver = driverGo.AddComponent<GameDriver>();
             SetPrivate(driver, "hangarScreenPrefab", AssetDatabase.LoadAssetAtPath<HangarScreen>(HangarScreenPath));
             SetPrivate(driver, "loadoutCatalog", AssetDatabase.LoadAssetAtPath<LoadoutConfig>(CatalogPath));
 
