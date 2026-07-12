@@ -26,7 +26,7 @@ For interactive exploration, suggest the user run `lazygit` in any worktree dire
 ## Core commands
 
 - `./scripts/agent_worktree_pool.sh status`
-- `./scripts/agent_worktree_pool.sh acquire <lease-id>`
+- `./scripts/agent_worktree_pool.sh acquire <lease-id> [slot]` — name a slot when you have a reason (warm Unity Library from related work, the ledger/dashboard shows affinity, or avoiding a slot with an open editor); a named slot that isn't free fails rather than falling back, so pick from the dashboard, don't guess. Omit for auto-pick (free slots before stale reclaims).
 - `./scripts/agent_worktree_pool.sh prepare <slot> origin/main`
 - `./scripts/agent_worktree_pool.sh run-tests <slot> <unity_test_agent.ps1 args>` (NO `--` — run-tests forwards args directly, e.g. `run-tests agent-4 -Mode Both -ScopeType Workspace`; the `--` separator is only for `submit`/`revise`, which take a base_ref first)
 - `./scripts/agent_worktree_pool.sh create-pr <slot>`
