@@ -8,14 +8,14 @@ using Utils;
 namespace Combat.Projectile
 {
     [RequireComponent(typeof(KinematicsPoller))]
-    public partial class Missile : Projectile<Missile>, IDamageable
+    public class Missile : Projectile<Missile>, IDamageable
     {
         [Header("Homing")]
         [SerializeField] private float homingSpeed    = 15f;
         [SerializeField] private float homingTurnRate = 90f;
 
         [Header("Explosion")]
-        [SerializeField] private float explosionRadius = 3f;
+        [SerializeField] internal float explosionRadius = 3f;
         [SerializeField] private float splashDamage    = 5f;
         [SerializeField] private LayerMask damageLayerMask = -1;
 
@@ -26,7 +26,7 @@ namespace Combat.Projectile
         [Header("Lifetime")]
         [SerializeField] private float maxLifetime = 4f;
 
-        private Transform target;
+        internal Transform target;
         private KinematicsPoller kinematicsPoller;
         private Vector2 prevLosDir;
         private bool hasLos;
