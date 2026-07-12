@@ -77,8 +77,10 @@ always.** A comment is a last resort, justified only when the code genuinely
 cannot carry the meaning on its own. Before writing one, remove the need for it:
 a clearer name, a named local or constant instead of a magic value, a small
 well-named helper, a simpler structure. Write a comment only when it is
-**absolutely necessary** to understand the code — and then keep it to one tight
-line.
+**absolutely necessary** to understand the code — and then keep it to **one
+line**. More than one line is a rare escape hatch, justified only when the *why*
+is genuinely irreducible (e.g. a documented external-bug workaround) and you can
+say why it won't collapse to a single line.
 
 The only legitimate (rare) case is a non-obvious ***why*** the code itself can't
 express: a workaround for an external/engine bug, a deliberately chosen
@@ -87,22 +89,35 @@ gotcha. Never comment the ***what*** the code already states plainly. Delete
 narration, section-banner comments, restated method signatures,
 `// TODO`-as-comment, and commented-out code.
 
-**Active cleanup campaign:** the codebase has accumulated excessive comments.
-Until that is tamed, **every PR going forward includes a pass that deletes
-redundant/obvious comments in the code your diff touches** (scope it to the
-files you're already changing — not a repo-wide sweep). See memory
+**Active cleanup campaign (ratchet):** the codebase has accumulated excessive
+comments. Until that is tamed, **every PR fully de-comments each file its diff
+touches — the whole file, not just the changed hunks.** For every file you open
+to edit, run the standing rule over *all* its comments (added, pre-existing,
+near or far from your change), in order: (1) does the code already say it? →
+**delete.** (2) is it explaining *what* rather than a non-obvious *why*? →
+**delete.** (3) a genuine non-obvious *why*? → **collapse to one line.** Scope
+stays at the files you're already editing — not a repo-wide sweep — so the
+backlog drains one touched file at a time. See memory
 [[feedback-comments-self-documenting]].
 
 ### Comment hygiene across the PR lifecycle
 
-While a PR is in flight, comments that explain *what changed and why* — the bug
-that was fixed, the reasoning behind a change, before/after context — are
-encouraged; they help review. But those are review-time scaffolding, not
-permanent documentation. As soon as the PR is approved to merge (and before you
-squash-merge), strip that changelog-style narration from the code, leaving only
-brief, concise comments that describe the *current* implementation. A reader of
-`main` should never see comments framed around a past state ("was 10f, now uses
-projectile speed", "fixed the leak by…") — only what the code does now.
+Explanatory narration — the bug you fixed, before/after reasoning, "why this
+change" — is **review scaffolding, and its home is the PR description and
+review-reply threads, not the code.** Put it there by default. If a note truly
+must sit inline for the reviewer, keep it to a single, clearly-temporary line —
+never a block.
+
+Enforce the cleanup campaign above as a **hard gate before you squash-merge:**
+re-run that whole-file sweep over every file your diff touched, and additionally
+strip any past-state framing from surviving comments ("was 10f, now…", "fixed
+the leak by…"). The bar to keep a comment at merge is exactly the bar to write
+one fresh: absolutely necessary, one line, *why* not *what*. **A multi-line
+explanatory block is a defect to fix here — whether or not it mentions the
+past.** The one escape hatch is a comment longer than one line for an
+irreducible *why* (e.g. a documented external-bug workaround) that you can
+justify not collapsing. A reader of `main` should never meet a comment framed
+around a past state, nor a block restating what the code already does.
 
 ## Cross-agent work ledger
 
