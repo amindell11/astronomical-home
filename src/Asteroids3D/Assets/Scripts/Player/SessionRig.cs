@@ -227,7 +227,7 @@ namespace Player
         [Header("Debug")]
         [SerializeField] private bool enableDebugOverlay;
 
-        // Editor-assembly overlay this runtime class can't name; ArenaDebugOverlayInstaller assigns the hook at editor load.
+        // Seam for an editor-assembly overlay this runtime class can't name; unassigned (overlay parked) until a runtime relay host lands — Unity can't AddComponent editor-assembly MonoBehaviours.
         internal static System.Func<GameObject, IUnitService, Component> installDebugOverlay;
 
         private Component debugOverlay;
