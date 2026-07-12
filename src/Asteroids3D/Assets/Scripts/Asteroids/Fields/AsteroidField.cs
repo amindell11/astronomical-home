@@ -9,9 +9,9 @@ namespace Asteroids.Fields
     /// and the sibling <see cref="Asteroids.Spawning.AsteroidSpawner"/>. The
     /// deterministic streaming brain lives in <see cref="UpdatingAsteroidField"/>.
     /// </summary>
-    public partial class AsteroidField : MonoBehaviour
+    public class AsteroidField : MonoBehaviour
     {
-        [SerializeField] protected AsteroidFieldSettings settings;
+        [SerializeField] protected internal AsteroidFieldSettings settings;
 
         protected AsteroidSpawner AsteroidSpawner { get; private set; }
 
