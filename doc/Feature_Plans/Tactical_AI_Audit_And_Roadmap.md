@@ -85,12 +85,25 @@ in the hot Burst loop.
 Supersedes §4's Phase 0/1. Guardrail unchanged: the current utility+MPC AI stays the shipped
 AI (gated) until a learned agent beats it.
 
-- **PR-1 · MPC velocity-reference mode + interface validation** *(classical, no ML).* Add a
-  gated `VelocityReference` goal mode: the MPC tracks a commanded planar velocity, keeps
-  collision-avoidance + intercept-facing, tactical cost block off *in-mode* (legacy modes
-  untouched). Validate with scripted / CMA-ES **oracle** velocity schedules over target
-  maneuvers (tight orbit, hard break vs a live missile track, range hold) — doubles as the
-  interface-ceiling de-risk. **Keystone: the oracle and the learner both drive this interface.**
+- **PR-0 · Cost regroup + objective-aware idle gate** *(refactor, lands first).* Reorganize
+  `Cost.Evaluate` into `Feasibility + Aim + Objective(goalMode-dispatch) + Tactical(toggle)` so
+  the velocity tracker is a *composition*, not the scripted controller with its tactical terms
+  zeroed out (the post-RL end-state is **two cost identities sharing one solver** — scripted
+  baseline vs velocity tracker). Behavior-preserving for the scripted path (tuned assets + baked
+  tolerances pin it) **plus one targeted fix**: the Navigator idle gate goes per-objective-kind,
+  so MaintainRange/Flee stop mis-using waypoint-arrival semantics. Detail:
+  `MPC_Velocity_Reference_Mode.md`.
+- **PR-1 · MPC velocity-reference mode + tracking validation** *(classical, no ML).* Add a
+  gated `VelocityReference` goal mode: the objective dispatch tracks a commanded **world-plane**
+  velocity (`VelocityTrackCost`), keeps collision-avoidance + intercept-facing, tactical block
+  off via `tacticalEnabled` (legacy modes byte-identical — **no weight-zeroing**). The reference
+  enters through `NavigationIntent`/`ApplyIntent` (the seam the learner drives) plus a low-level
+  `Navigator.SetVelocityReference`. Validate the **tracking fidelity** (solver converges to
+  `v_ref`, incl. the off-axis strafe-authority case) in EditMode on `Model.Step`, plus a
+  PlayMode smoke. **The closed-loop maneuver oracle (orbit/break/range) + CMA-ES move to PR-2**
+  (built on the runner as a go/no-go gate *before* reward/ML) — see split rationale in
+  `MPC_Velocity_Reference_Mode.md`. **Keystone: the interface both the oracle and the learner
+  drive is built and exercised here.**
 - **PR-2 · Episode / reward / reset layer** *(the architecture-neutral survivor of the old
   PR-S3).* Per-agent reward §3.3 at decision boundaries; engagement episode boundaries +
   reset; headless episode runner (mirror `ChaseBenchmarkModule` + PlayMode driver +
