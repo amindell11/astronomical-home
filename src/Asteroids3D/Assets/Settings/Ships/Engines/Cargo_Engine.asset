@@ -13,15 +13,15 @@ MonoBehaviour:
   m_Name: Cargo_Engine
   m_EditorClassIdentifier: 
   maxSpeed: 10
-  maxYawRate: 45
-  forwardForce: 8000
-  reverseForce: 3000
-  yawTorque: 1
+  maxYawRate: 120
+  forwardForce: 200000
+  reverseForce: 1000
+  yawTorque: 21.25
   angularDrag: 2.5
   bankTorque: 5000
   bankDamping: 200
-  minStrafeForce: 1500
-  maxStrafeForce: 2000
+  minStrafeForce: 200
+  maxStrafeForce: 500
   linearDrag: 0.8
-  boostImpulse: 6000
-  boostCooldown: 8
+  boostImpulse: 0
+  boostCooldown: 0
