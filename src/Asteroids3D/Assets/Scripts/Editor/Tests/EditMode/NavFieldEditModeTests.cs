@@ -276,7 +276,7 @@ namespace Tests.EditMode
                 var state = new State { pos = new float2(0f, 0f) };
 
                 var costOff = solver.Solve(state, seq, cfgOff, dynamics,
-                    default, false, false, new float2(5f, 0f), float2.zero,
+                    default, false, false, new float2(5f, 0f), float2.zero, float2.zero,
                     float2.zero, float2.zero, float.NaN, 0f, default, 0f,
                     1, 0f, 2, default);
 
@@ -287,7 +287,7 @@ namespace Tests.EditMode
                 cfgOn.maxYawRateSq = 9.87f;
 
                 var costOn = solver.Solve(state, seq, cfgOn, dynamics,
-                    default, false, false, new float2(5f, 0f), float2.zero,
+                    default, false, false, new float2(5f, 0f), float2.zero, float2.zero,
                     float2.zero, float2.zero, float.NaN, 0f, default, 0f,
                     1, 0f, 2, default,
                     terminalField: field.Data(10f));

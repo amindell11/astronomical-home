@@ -13,6 +13,7 @@ namespace Movement.MPC
         public float boostCooldown;
         public float2 goalPos;
         public float2 goalVel;
+        public float2 velocityReference;   // commanded planar velocity for GoalMode.VelocityReference
         public GoalMode goalMode;
         public float goalDesiredRange;
         public float goalRangeTolerance;
@@ -87,7 +88,7 @@ namespace Movement.MPC
                 lastBestCost = solver.Solve(mpcState, bestSequence,
                     config, dynamics,
                     inputs.obstacleScan, inputs.enableObstacleAvoidance, settings.multiSphereObstacles,
-                    inputs.goalPos, inputs.goalVel,
+                    inputs.goalPos, inputs.goalVel, inputs.velocityReference,
                     inputs.enemyPos, inputs.enemyVel, inputs.enemyYaw, inputs.enemyYawRate,
                     inputs.enemyDynamics, inputs.projectileSpeed,
                     settings.samples, settings.noiseStd, settings.noiseKnots, lastControl,

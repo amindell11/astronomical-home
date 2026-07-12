@@ -173,7 +173,7 @@ namespace Movement.MPC
         public float Solve(State initialState, Control[] sequence,
             Config cfg, Dynamics dynamics,
             AI.Scanning.ObstacleScan scan, bool useObstacles, bool multiSphereObstacles,
-            float2 goalPos, float2 goalVel,
+            float2 goalPos, float2 goalVel, float2 velocityReference,
             float2 enemyPos, float2 enemyVel, float enemyYaw, float enemyYawRate,
             Dynamics enemyDynamics, float projectileSpeed,
             int samples, float noiseStd, int noiseKnots, Control lastControl,
@@ -234,6 +234,7 @@ namespace Movement.MPC
             {
                 goalPos = goalPos,
                 goalVel = goalVel,
+                velocityReference = velocityReference,
                 obstacles = obstacles,
                 obstacleCount = lastObstacleCount,
                 enemyPos = enemyPos,

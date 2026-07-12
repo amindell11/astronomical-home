@@ -7,7 +7,11 @@ namespace Movement.MPC
     {
         Waypoint = 0,
         MaintainRange = 1,
-        Flee = 2
+        Flee = 2,
+        // Track a commanded planar velocity instead of a position goal — the feasibility-tracker
+        // identity a learned goal-policy drives. Not enemy-anchored (the reference is absolute
+        // world motion, not the enemy's position).
+        VelocityReference = 3
     }
 
     public static class GoalModeExtensions
@@ -102,6 +106,14 @@ namespace Movement.MPC
         public GoalMode goalMode;
         public float desiredRange;
         public float rangeTolerance;
+
+        // Authored combat tactics (LOS, exposure, tangential, miss-distance). On for the
+        // scripted controller; off in the velocity-tracker identity, where the reward teaches
+        // those behaviors and the policy expresses them through the velocity reference.
+        public bool tacticalEnabled;
+
+        // Velocity-track weight — the VelocityReference objective. Unused by other modes.
+        public float wVelTrack;
 
         // Terminal cost-to-go field (Track B3). Weight on the per-rollout terminal sample,
         // in stage-cost units; 0 disables the hook entirely.
@@ -205,6 +217,11 @@ namespace Movement.MPC
     {
         public float2 goalPos;
         public float2 goalVel;
+
+        /// <summary>Commanded world-plane velocity for GoalMode.VelocityReference. The tracker
+        /// objective is ‖s.vel − velocityReference‖²; ignored by the position-goal modes.</summary>
+        public float2 velocityReference;
+
         public NativeArray<ObstacleData> obstacles;
         public int obstacleCount;
 

@@ -105,80 +105,128 @@ namespace Movement.MPC
             CostInput input, Config cfg, bool isTerminal, int step = 0)
         {
             var ctx = EvalContext.Create(s, input, cfg, step);
+            var profileScale = BankProfileScale(u.strafe, cfg);
 
-            // Bank profile: cos(strafe * maxBank) gives the fraction of the ship's
-            // cross-section visible from any horizontal direction. Used by obstacle
-            // avoidance (narrower ship = tighter clearance) and miss-distance cost.
-            var profileScale = cfg.maxBankAngleRad > 0f
-                ? math.cos(math.abs(u.strafe) * cfg.maxBankAngleRad)
-                : 1f;
+            ObstacleCosts(s, input, cfg, profileScale, out var collisionCost, out var obstacleCost);
 
-            // Position + closing-velocity costs share the current goal. Flee/range-band
-            // live inside PositionalGoalCost; the flee disables come baked into ctx weights.
-            var posCost = PositionalGoalCost(s.pos, ctx, cfg) * cfg.wPos;
-            var velCost = VelocityCost(s.vel, cfg.maxSpeedSq) * ctx.wVel;
-            var closingCost = ctx.wClosing == 0f ? 0f
-                : ClosingCost(s.pos, s.vel, ctx.goalTarget, cfg.maxSpeedSq, cfg.closingFadeDistance) * ctx.wClosing;
-            var headingCost = HeadingCost(s.pos, s.yaw, ctx.headingGoal, cfg.wYawDistanceScale) * ctx.wYaw;
-            var facingCost = FacingCost(s.yaw, ctx.facingTarget, cfg.facingWidth) * cfg.wFacing;
-            var yawRateCost = YawRateCost(s.yawRate, cfg.maxYawRateSq) * cfg.wYawRate;
+            // The active objective. The position-goal family is ramped (terminal goal); the
+            // velocity tracker is per-step and un-ramped, so the receding-horizon controller
+            // tracks the near term instead of only matching v_ref at the horizon end.
+            var velocityMode = cfg.goalMode == GoalMode.VelocityReference;
+            var rampedObjective = velocityMode ? 0f : Objective(s, ctx, cfg);
+            var trackCost = velocityMode
+                ? VelocityTrackCost(s.vel, input.velocityReference, cfg.maxSpeedSq) * cfg.wVelTrack
+                : 0f;
 
-            var collisionCost = 0f;
-            var obstacleCost = 0f;
-            if (input.obstacleCount > 0 && (cfg.collisionPenalty > 0f || cfg.wObstacle > 0f))
-            {
-                // Banking narrows the hull itself (not just padding): the collider rolls with
-                // the bank, so the in-plane cross-section genuinely shrinks by cos(bank).
-                var hullRadius = cfg.shipRadius * profileScale + cfg.collisionSafetyMargin;
-                if (Collides(s.pos, input.obstacles, input.obstacleCount, hullRadius))
-                    collisionCost = cfg.collisionPenalty;
-                else if (cfg.wObstacle > 0f)
-                    obstacleCost = TurnAwayCost(s.pos, s.vel, input.obstacles, input.obstacleCount,
-                        hullRadius, cfg.maxLatAccel) * cfg.wObstacle;
-            }
+            // State cost — grows toward the horizon end via the terminal ramp. Objective (the
+            // one active goal), Aim (intercept-facing, both identities), authored Tactical
+            // (gated off in the velocity-tracker), and the state-shaping regularizers.
+            var stateCost = rampedObjective
+                + Aim(s, ctx, cfg)
+                + (cfg.tacticalEnabled ? Tactical(s, ctx, input, cfg, profileScale) : 0f)
+                + Regularizers(s, input, cfg, obstacleCost);
 
-            var momentumCost = 0f;
-            if (cfg.wMomentum > 0f)
-                momentumCost = MomentumCost(s.vel, input.initialVel) * cfg.wMomentum;
-
-            var losCost = 0f;
-            var exposureCost = 0f;
-            var tangentialCost = 0f;
-            if (ctx.hasEnemy)
-            {
-                if (cfg.wLos > 0f && input.obstacleCount > 0)
-                    losCost = LosCost(s.pos, ctx.enemyPos, input.obstacles, input.obstacleCount) * cfg.wLos;
-                if (cfg.wExposure > 0f)
-                    exposureCost = ExposureCost(s.pos, ctx.enemyPos, ctx.enemyYaw, cfg.exposureWidth) * cfg.wExposure;
-                if (cfg.wTangential > 0f)
-                    tangentialCost = TangentialVelocityCost(s.pos, s.vel, ctx.enemyPos) * cfg.wTangential;
-            }
-
-            var missDistanceCost = 0f;
-            if (cfg.wMissDistance > 0f && input.projectileSpeed > 0f && ctx.hasEnemy)
-                missDistanceCost = MissDistanceCost(s.pos, s.vel, ctx.enemyPos, input.projectileSpeed,
-                    profileScale) * cfg.wMissDistance;
-
-            var positionalCost = posCost + velCost + closingCost + headingCost + yawRateCost + obstacleCost + momentumCost;
-            var tacticalCost = facingCost + losCost + exposureCost + tangentialCost + missDistanceCost;
-
-            var effortCost = EffortCost(u) * cfg.wEffort;
-            var boostEffortCost = u.boost * u.boost * cfg.wBoostEffort;
-            var smoothnessCost = SmoothnessCost(u, prevU, cfg);
-            var controlCost = effortCost + boostEffortCost + smoothnessCost;
-
-            var total = positionalCost + tacticalCost + controlCost;
+            var total = stateCost + ControlCost(u, prevU, cfg) + trackCost;
 
             if (cfg.terminalMultiplier > 0f && cfg.horizon > 1)
             {
                 var t = step / (float)(cfg.horizon - 1);
                 var ramp = math.pow(t, cfg.terminalCurve) * cfg.terminalMultiplier;
-                total += ramp * (positionalCost + tacticalCost);
+                total += ramp * stateCost;
             }
 
             // Collision is a fixed, decisive penalty per colliding step — deliberately outside
             // the terminal ramp so an early hit is punished as hard as a late one.
             return total + collisionCost;
+        }
+
+        /// <summary>
+        /// The objective — the "what to achieve", exactly one active, dispatched on goalMode.
+        /// Ships the position family (waypoint / range-band / flee) today; a future velocity
+        /// branch returns before the position bundle. Ramped.
+        /// </summary>
+        internal static float Objective(State s, in EvalContext ctx, in Config cfg)
+        {
+            var pos = PositionalGoalCost(s.pos, ctx, cfg) * cfg.wPos;
+            var vel = VelocityCost(s.vel, cfg.maxSpeedSq) * ctx.wVel;
+            var closing = ctx.wClosing == 0f ? 0f
+                : ClosingCost(s.pos, s.vel, ctx.goalTarget, cfg.maxSpeedSq, cfg.closingFadeDistance) * ctx.wClosing;
+            var heading = HeadingCost(s.pos, s.yaw, ctx.headingGoal, cfg.wYawDistanceScale) * ctx.wYaw;
+            return pos + vel + closing + heading;
+        }
+
+        /// <summary>
+        /// Intercept-facing geometry. Kept in both cost identities (aiming is not an authored
+        /// tactic); only the <see cref="Tactical"/> block toggles off in the velocity-tracker.
+        /// Ramped. Contributes 0 when no facing target is set (FacingCost handles NaN).
+        /// </summary>
+        internal static float Aim(State s, in EvalContext ctx, in Config cfg)
+            => FacingCost(s.yaw, ctx.facingTarget, cfg.facingWidth) * cfg.wFacing;
+
+        /// <summary>
+        /// Authored combat tactics (LOS, exposure, tangential, miss-distance). Summed only when
+        /// <see cref="Config.tacticalEnabled"/>; the velocity-tracker gates the whole block off,
+        /// since the reward teaches those behaviors instead. Ramped. Requires a live enemy.
+        /// </summary>
+        internal static float Tactical(State s, in EvalContext ctx, in CostInput input, in Config cfg, float profileScale)
+        {
+            if (!ctx.hasEnemy) return 0f;
+
+            var los = (cfg.wLos > 0f && input.obstacleCount > 0)
+                ? LosCost(s.pos, ctx.enemyPos, input.obstacles, input.obstacleCount) * cfg.wLos : 0f;
+            var exposure = cfg.wExposure > 0f
+                ? ExposureCost(s.pos, ctx.enemyPos, ctx.enemyYaw, cfg.exposureWidth) * cfg.wExposure : 0f;
+            var tangential = cfg.wTangential > 0f
+                ? TangentialVelocityCost(s.pos, s.vel, ctx.enemyPos) * cfg.wTangential : 0f;
+            var missDistance = (cfg.wMissDistance > 0f && input.projectileSpeed > 0f)
+                ? MissDistanceCost(s.pos, s.vel, ctx.enemyPos, input.projectileSpeed, profileScale) * cfg.wMissDistance : 0f;
+
+            return los + exposure + tangential + missDistance;
+        }
+
+        /// <summary>
+        /// State-shaping regularizers that ride the terminal ramp with the objective (as in the
+        /// legacy cost): obstacle turn-away, yaw-rate damping, momentum. Always on in both
+        /// identities. Takes the already-resolved <paramref name="obstacleCost"/> from
+        /// <see cref="ObstacleCosts"/> (collision and turn-away are mutually exclusive).
+        /// </summary>
+        internal static float Regularizers(State s, in CostInput input, in Config cfg, float obstacleCost)
+        {
+            var yawRate = YawRateCost(s.yawRate, cfg.maxYawRateSq) * cfg.wYawRate;
+            var momentum = cfg.wMomentum > 0f ? MomentumCost(s.vel, input.initialVel) * cfg.wMomentum : 0f;
+            return obstacleCost + yawRate + momentum;
+        }
+
+        /// <summary>Per-step control effort — effort, boost, smoothness. Never ramped.</summary>
+        internal static float ControlCost(Control u, Control prevU, in Config cfg)
+            => EffortCost(u) * cfg.wEffort + u.boost * u.boost * cfg.wBoostEffort + SmoothnessCost(u, prevU, cfg);
+
+        /// <summary>
+        /// Bank profile: cos(strafe * maxBank) is the fraction of the ship's cross-section
+        /// visible from any horizontal direction — banking rolls the collider, genuinely
+        /// narrowing the in-plane hull. Drives obstacle clearance and the miss-distance profile.
+        /// </summary>
+        internal static float BankProfileScale(float strafe, in Config cfg)
+            => cfg.maxBankAngleRad > 0f ? math.cos(math.abs(strafe) * cfg.maxBankAngleRad) : 1f;
+
+        /// <summary>
+        /// The hard collision penalty (fixed, un-ramped) and the collision-course-gated
+        /// turn-away admissibility cost (ramped) are mutually exclusive per step: an overlapping
+        /// hull pays the penalty and no turn-away; a clear hull pays only turn-away.
+        /// </summary>
+        internal static void ObstacleCosts(State s, in CostInput input, in Config cfg,
+            float profileScale, out float collision, out float obstacle)
+        {
+            collision = 0f;
+            obstacle = 0f;
+            if (input.obstacleCount <= 0 || (cfg.collisionPenalty <= 0f && cfg.wObstacle <= 0f)) return;
+
+            var hullRadius = cfg.shipRadius * profileScale + cfg.collisionSafetyMargin;
+            if (Collides(s.pos, input.obstacles, input.obstacleCount, hullRadius))
+                collision = cfg.collisionPenalty;
+            else if (cfg.wObstacle > 0f)
+                obstacle = TurnAwayCost(s.pos, s.vel, input.obstacles, input.obstacleCount,
+                    hullRadius, cfg.maxLatAccel) * cfg.wObstacle;
         }
 
         /// <summary>
@@ -268,6 +316,14 @@ namespace Movement.MPC
         /// <summary>Normalized 0-1: 0 = stopped, 1 = at maxSpeed.</summary>
         internal static float VelocityCost(float2 vel, float maxSpeedSq) =>
             maxSpeedSq > 0f ? math.lengthsq(vel) / maxSpeedSq : 0f;
+
+        /// <summary>
+        /// Squared velocity-tracking error, normalized by maxSpeed² (same idiom as VelocityCost).
+        /// 0 when the ship's planar velocity equals the commanded reference; grows with the error.
+        /// World-plane throughout — no frame conversion, since State.vel and the reference share it.
+        /// </summary>
+        internal static float VelocityTrackCost(float2 vel, float2 velocityReference, float maxSpeedSq) =>
+            maxSpeedSq > 0f ? math.lengthsq(vel - velocityReference) / maxSpeedSq : 0f;
 
         /// <summary>
         /// Negative-when-closing reward for velocity component aimed at goal. Provides a

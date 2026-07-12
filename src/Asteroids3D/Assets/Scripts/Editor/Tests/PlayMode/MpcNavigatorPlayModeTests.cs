@@ -72,6 +72,32 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
 
     [UnityTest]
     [Category("Smoke")]
+    public IEnumerator SetVelocityReference_ShipVelocityTrendsToCommand()
+    {
+        // The velocity-tracker seam: no waypoint, just a commanded planar velocity. Confirms it
+        // drives a real hull through the pilot/movement pipeline and that ShouldIdle keeps the
+        // MPC running with no waypoint set.
+        var command = new Vector2(0f, 8f); // +Y, along the ship's initial nose
+        mpc.SetVelocityReference(command);
+
+        var rb = ship.GetComponent<Rigidbody>();
+        var deadline = Time.realtimeSinceStartup + NavTimeoutSec;
+        var vel = Vector2.zero;
+        while (Time.realtimeSinceStartup < deadline)
+        {
+            vel = GamePlane.WorldDirToPlane(rb.linearVelocity);
+            if (Vector2.Dot(vel, command.normalized) > 0.6f * command.magnitude) break;
+            yield return new WaitForFixedUpdate();
+        }
+
+        Assert.That(Vector2.Dot(vel, command.normalized), Is.GreaterThan(0.5f * command.magnitude),
+            $"Real ship velocity should trend toward the commanded reference (got {vel}).");
+        Assert.That(vel.y, Is.GreaterThan(Mathf.Abs(vel.x)),
+            "Velocity should track the commanded axis, not drift sideways.");
+    }
+
+    [UnityTest]
+    [Category("Smoke")]
     public IEnumerator MpcYawOnly_ShipRotatesToFacingOverride()
     {
         mpc.SetNavigationPoint(Vector2.zero);

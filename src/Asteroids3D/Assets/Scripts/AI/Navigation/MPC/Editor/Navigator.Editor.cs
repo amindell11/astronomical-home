@@ -692,6 +692,7 @@ namespace Movement.MPC
         {
             var total = breakdown.total;
             DrawCostBar("Position", breakdown.pos, s.wPos, total, Color.green);
+            DrawCostBar("Velocity Track", breakdown.velocityTrack, s.wVelTrack, total, new Color(0.5f, 1f, 0.5f));
             DrawCostBar("Heading", breakdown.heading, s.wYaw, total, Color.yellow);
             DrawCostBar("Facing", breakdown.facing, s.wFacing, total, Color.cyan);
             DrawCostBar("Velocity", breakdown.vel, s.wVel, total, Color.blue);

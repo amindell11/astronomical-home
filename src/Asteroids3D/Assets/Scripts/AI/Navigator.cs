@@ -39,6 +39,8 @@ namespace Movement.MPC
         protected GoalMode goalMode;
         protected float goalDesiredRange;
         protected float goalRangeTolerance;
+        protected float2 velocityReference;
+        protected bool hasVelocityReference;
         protected float2 enemyPos;
         protected float2 enemyVel;
         protected float enemyYaw = float.NaN;
@@ -105,7 +107,7 @@ namespace Movement.MPC
         {
             using var _ = EditorProfilingScope.Begin("MPC.Navigator.GenerateNavCommands");
             var kin = context.Kinematics;
-            if (!currentWaypoint.isValid || HasArrived(kin))
+            if (ShouldIdle(kin))
                 return currentCommand = default;
 
             var scan = scout.ObstacleScan;
@@ -130,6 +132,7 @@ namespace Movement.MPC
                 boostCooldown = context.BoostCooldownRemaining,
                 goalPos = GoalPos(),
                 goalVel = GoalVel(),
+                velocityReference = velocityReference,
                 goalMode = goalMode,
                 goalDesiredRange = goalDesiredRange,
                 goalRangeTolerance = goalRangeTolerance,
@@ -163,6 +166,26 @@ namespace Movement.MPC
 
             ApplyControl(in result);
             return currentCommand;
+        }
+
+        /// <summary>
+        /// Whether the MPC should sit idle (emit no command) this tick. Separates "do I have a
+        /// destination" from "should I be controlling the ship", per objective:
+        /// waypoint/patrol idle once stopped at the destination; MaintainRange/Flee are
+        /// continuous hold/evade objectives that run whenever their target (the waypoint) exists
+        /// and never "arrive".
+        /// </summary>
+        internal bool ShouldIdle(Kinematics kin)
+        {
+            // Velocity mode has no waypoint; a zero reference is a valid "stop" command, so the
+            // arm flag — not the reference value — gates activity.
+            if (goalMode == GoalMode.VelocityReference) return !hasVelocityReference;
+            if (!currentWaypoint.isValid) return true;
+            return goalMode switch
+            {
+                GoalMode.MaintainRange or GoalMode.Flee => false,
+                _ => HasArrived(kin),
+            };
         }
 
         private bool HasArrived(Kinematics kin)
@@ -236,21 +259,31 @@ namespace Movement.MPC
                 ? new float2(intent.target.kinematics.pos.x, intent.target.kinematics.pos.y)
                 : default;
 
-            switch (intent.goalMode)
+            // VelocityReference is driven by a commanded velocity, not a destination — it arms
+            // the tracker directly and sets no waypoint (see ShouldIdle). Every other mode is
+            // waypoint-anchored.
+            if (intent.goalMode == GoalMode.VelocityReference)
             {
-                case GoalMode.MaintainRange:
-                    SetGoalMaintainRange(intent.desiredRange, intent.rangeTolerance);
-                    break;
-                case GoalMode.Flee:
-                    SetGoalFlee();
-                    break;
-                case GoalMode.Waypoint:
-                default:
-                    ClearGoalMode();
-                    break;
+                SetVelocityReference(intent.velocityReference);
             }
+            else
+            {
+                switch (intent.goalMode)
+                {
+                    case GoalMode.MaintainRange:
+                        SetGoalMaintainRange(intent.desiredRange, intent.rangeTolerance);
+                        break;
+                    case GoalMode.Flee:
+                        SetGoalFlee();
+                        break;
+                    case GoalMode.Waypoint:
+                    default:
+                        ClearGoalMode();
+                        break;
+                }
 
-            SetNavigationPoint(intent.goalPosition, true, intent.goalVelocity);
+                SetNavigationPoint(intent.goalPosition, true, intent.goalVelocity);
+            }
 
             if (intent.applyTacticalCosts && intent.hasTarget)
                 SetEnemyState(intent.target, intent.projectileSpeed);
@@ -294,29 +327,47 @@ namespace Movement.MPC
             currentWaypoint.isValid = false;
         }
 
+        /// <summary>
+        /// Arms velocity-tracker mode with a commanded world-plane velocity (mirrors
+        /// <see cref="SetNavigationPoint"/> for the position modes). Sets no waypoint — the
+        /// reference IS the command — so <see cref="ShouldIdle"/> keys off the arm flag, and a
+        /// zero reference is a valid "stop". The low-level seam ApplyIntent composes; also driven
+        /// directly by play-mode tests.
+        /// </summary>
+        public void SetVelocityReference(Vector2 reference)
+        {
+            goalMode = GoalMode.VelocityReference;
+            velocityReference = new float2(reference.x, reference.y);
+            hasVelocityReference = true;
+            ClearNavigationPoint();
+        }
+
         public void SetFacingOverride(float angle)
         {
             facingOverride = true;
             facingAngle = angle;
         }
 
-        private void SetGoalMaintainRange(float desiredRange, float rangeTolerance)
+        internal void SetGoalMaintainRange(float desiredRange, float rangeTolerance)
         {
             goalMode = GoalMode.MaintainRange;
             goalDesiredRange = desiredRange;
             goalRangeTolerance = rangeTolerance;
+            hasVelocityReference = false;
         }
 
         private void SetGoalFlee()
         {
             goalMode = GoalMode.Flee;
+            hasVelocityReference = false;
         }
 
-        private void ClearGoalMode()
+        internal void ClearGoalMode()
         {
             goalMode = GoalMode.Waypoint;
             goalDesiredRange = 0f;
             goalRangeTolerance = 0f;
+            hasVelocityReference = false;
         }
 
         // Converts the enemy snapshot to the MPC's enemy inputs. The MPC yaw convention

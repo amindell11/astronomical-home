@@ -117,6 +117,13 @@ namespace Movement.MPC
                  "pre-multi-sphere behaviour). Rocks with ≤1 baked lobe are unaffected either way.")]
         public bool multiSphereObstacles = true;
 
+        [Header("Velocity Reference (feasibility tracker)")]
+        [Tooltip("Weight on the velocity-tracking objective in GoalMode.VelocityReference: " +
+                 "cost = wVelTrack * ‖vel - velocityReference‖² / maxSpeed². Per-step (un-ramped) " +
+                 "so tracking is uniform across the horizon rather than terminal-weighted. Unused " +
+                 "by the position-goal modes.")]
+        public float wVelTrack = 5f;
+
         [Header("Terminal Field (cost-to-go)")]
         [Tooltip("Weight on the per-rollout terminal cost-to-go sample (time-to-go seconds, " +
                  "stage-cost units — keep near 1; under-weighting re-creates horizon myopia). " +
@@ -183,6 +190,10 @@ namespace Movement.MPC
                 goalMode = goalMode,
                 desiredRange = desiredRange,
                 rangeTolerance = rangeTolerance,
+                // The velocity-tracker identity drops the authored combat tactics (the reward
+                // teaches those); every position-goal mode keeps them.
+                tacticalEnabled = goalMode != GoalMode.VelocityReference,
+                wVelTrack = wVelTrack,
                 // Terminal field
                 wTerminal = wTerminal,
             };

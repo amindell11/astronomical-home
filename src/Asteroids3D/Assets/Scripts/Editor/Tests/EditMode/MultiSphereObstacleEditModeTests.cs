@@ -116,7 +116,7 @@ namespace Tests.EditMode
                 var state = new State { pos = float2.zero };
                 solver.Solve(state, seq, cfg, dynamics,
                     scan, true, multiSphere,
-                    new float2(5f, 0f), float2.zero,
+                    new float2(5f, 0f), float2.zero, float2.zero,
                     float2.zero, float2.zero, float.NaN, 0f, default, 0f,
                     1, 0f, 2, default);
                 return solver.ObstacleCount;

@@ -20,6 +20,10 @@ namespace AI.States
         public float desiredRange;
         public float rangeTolerance;
 
+        // Commanded world-plane velocity for GoalMode.VelocityReference (the tracker seam a
+        // learned goal-policy drives). Ignored by the position-goal modes.
+        public Vector2 velocityReference;
+
         // Enemy target — one snapshot of the ship we're engaging (see EnemyTarget). The gunner
         // reads its kinematics for the firing solution; the navigator uses it for tactical MPC
         // costs (when applyTacticalCosts) and obstacle exclusion (whenever hasTarget).
