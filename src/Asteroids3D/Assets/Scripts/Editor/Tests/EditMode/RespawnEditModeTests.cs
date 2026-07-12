@@ -42,6 +42,7 @@ namespace Tests.EditMode
             public IObjectiveService ObjectiveService => null;
             public ICameraService CameraService => null;
             public IUIService UIService => null;
+            public ArenaContext Arena => null;
         }
 
         [SetUp]

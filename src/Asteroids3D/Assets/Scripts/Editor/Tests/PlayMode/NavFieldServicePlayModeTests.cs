@@ -47,7 +47,7 @@ namespace Tests.PlayMode
         public override void SetUp()
         {
             base.SetUp();
-            service = NavFieldService.Instance;
+            service = new GameObject("[NavFieldService]").AddComponent<NavFieldService>();
             targetGo = new GameObject("ChaseTarget");
             targetGo.transform.position = GamePlane.PlanePointToWorld(Vector2.zero);
             stub.obstacles.Clear();

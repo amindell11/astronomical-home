@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using Game.Sectors;
 using Game.Services;
+using Movement.MPC.Field;
 using Player;
 using UnityEngine;
 using Utils;
@@ -13,14 +14,12 @@ namespace Game.Bootstrap
     /// interactive game or a headless/RL harness drives over an explicit per-session
     /// <see cref="GameSession"/>. The primitives compose the service container + optional player/camera/UI
     /// rig, cycle the sector, and tear the session down; they carry no clock and no reset policy — the
-    /// driver above them supplies both.
-    ///
-    /// This host also owns the universal world plane (<see cref="GamePlane"/>): composition configures
-    /// it, teardown/destroy reset it. The dependency points UP only — a driver references the host; the
+    /// driver above them supplies both. The dependency points UP only — a driver references the host; the
     /// host never references any driver.
     /// </summary>
     [RequireComponent(typeof(ObjectiveService))]
     [RequireComponent(typeof(UnitService))]
+    [RequireComponent(typeof(NavFieldService))]
     public class SessionHost : MonoBehaviour, ISessionPrimitives
     {
         [Header("Session Rig")]
@@ -33,11 +32,13 @@ namespace Game.Bootstrap
 
         private UnitService unitService;
         private ObjectiveService objectiveService;
+        private NavFieldService navFieldService;
 
         private void Awake()
         {
             unitService = GetComponent<UnitService>();
             objectiveService = GetComponent<ObjectiveService>();
+            navFieldService = GetComponent<NavFieldService>();
         }
 
         /// <summary>
@@ -60,12 +61,16 @@ namespace Game.Bootstrap
             if (!GamePlane.IsConfigured)
                 GamePlane.Configure(planeAxis, planeOrigin);
 
+            var arena = new ArenaContext(target.Profile.offset, unitService.Registry, navFieldService);
+            unitService.SetArena(arena);
+
             target.Services = new GameServices(
                 unitService: unitService,
                 environmentService: new EnvironmentService(),
                 objectiveService: objectiveService,
                 cameraService: new CameraService(),
-                uiService: new UIService()
+                uiService: new UIService(),
+                arena: arena
             );
 
             if (playerRig)

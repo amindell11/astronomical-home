@@ -132,6 +132,7 @@ GameObject:
   - component: {fileID: 217078680}
   - component: {fileID: 217078676}
   - component: {fileID: 217078675}
+  - component: {fileID: 217078690}
   m_Layer: 0
   m_Name: Initiator
   m_TagString: Untagged
@@ -199,6 +200,24 @@ MonoBehaviour:
   playerRig: {fileID: 0}
   planeAxis: 2
   planeOrigin: {x: 0, y: 0, z: 0}
+--- !u!114 &217078690
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 217078671}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 216797f26a6f4354a41ad08b33a83cdd, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  gridSize: 64
+  cellSize: 3
+  shipRadiusBuffer: 2
+  minRebuildInterval: 0.15
+  registryDeltaThreshold: 3
+  maxStaleness: 1
 --- !u!114 &217078675
 MonoBehaviour:
   m_ObjectHideFlags: 0

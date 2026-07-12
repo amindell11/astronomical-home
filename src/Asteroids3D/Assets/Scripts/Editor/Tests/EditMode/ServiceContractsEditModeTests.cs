@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Game.Services;
+using Movement.MPC.Field;
 using NUnit.Framework;
 using Objectives;
 using Objectives.States;
+using Tests.Common;
 using UnityEngine;
 
 namespace Tests.EditMode
@@ -64,12 +66,14 @@ namespace Tests.EditMode
             var cam = new CameraService();
 
             var ui = new UIService();
+            var arena = TestArena.On(CreateMonoBehaviourService<NavFieldService>().gameObject);
 
-            Assert.Throws<ArgumentNullException>(() => new GameServices(null, env, obj, cam, ui));
-            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, null, obj, cam, ui));
-            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, env, null, cam, ui));
-            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, env, obj, null, ui));
-            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, env, obj, cam, null));
+            Assert.Throws<ArgumentNullException>(() => new GameServices(null, env, obj, cam, ui, arena));
+            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, null, obj, cam, ui, arena));
+            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, env, null, cam, ui, arena));
+            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, env, obj, null, ui, arena));
+            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, env, obj, cam, null, arena));
+            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, env, obj, cam, ui, null));
         }
 
         // ── IUnitService shape ───────────────────────────────────────────────────
@@ -251,7 +255,8 @@ namespace Tests.EditMode
             var env = new EnvironmentService();
             var obj = CreateMonoBehaviourService<ObjectiveService>();
             var cam = new CameraService();
-            var services = new GameServices(unit, env, obj, cam, new UIService());
+            var arena = TestArena.On(CreateMonoBehaviourService<NavFieldService>().gameObject);
+            var services = new GameServices(unit, env, obj, cam, new UIService(), arena);
 
             Assert.DoesNotThrow(() => services.ClearAll());
         }

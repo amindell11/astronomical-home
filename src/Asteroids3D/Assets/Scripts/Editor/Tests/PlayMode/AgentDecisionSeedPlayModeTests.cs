@@ -38,6 +38,7 @@ namespace Tests.PlayMode
         {
             var host = new GameObject("TestUnitService");
             var units = host.AddComponent<UnitService>();
+            units.SetArena(Tests.Common.TestArena.On(host, units.Registry));
             var template = TestAssets.LoadShip2Prefab();
             Assert.IsNotNull(template, "Ship_2 prefab failed to load");
 

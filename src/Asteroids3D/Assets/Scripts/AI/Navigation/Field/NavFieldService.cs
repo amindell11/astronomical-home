@@ -6,15 +6,9 @@ using UnityEngine;
 namespace Movement.MPC.Field
 {
     /// <summary>
-    /// Runtime service maintaining one cost-to-go <see cref="NavField"/> per chase target,
-    /// shared by every pursuer of that target. The per-field machinery (double-buffered Burst
-    /// solves, obstacle gathering, rebuild policy) lives in <see cref="FieldBaker"/>; this
-    /// service is purely the sharing point — a registry keyed by target plus the frame pump.
-    /// Obstacles come from Track B2's deterministic field query (<see cref="IObstacleField"/>,
-    /// handed in by the Navigator) — live state, so destroyed asteroids drop out immediately,
-    /// with no physics scan and no <c>FindObjectsByType</c>.
-    /// Created lazily on first query; consumers hold no per-frame component lookups (the
-    /// Navigator asks through the static <see cref="Instance"/>, a cached reference).
+    /// Session-root sibling holding one shared cost-to-go <see cref="NavField"/> per chase target so
+    /// every pursuer of that target reuses one solve; the per-field solve/rebuild machinery lives in
+    /// <see cref="FieldBaker"/>. Reached per-arena via <see cref="Game.Services.ArenaContext.NavField"/>.
     /// </summary>
     [DefaultExecutionOrder(-90)]
     public partial class NavFieldService : MonoBehaviour
@@ -37,41 +31,13 @@ namespace Movement.MPC.Field
         [Tooltip("Rebuild at least this often regardless of motion (drifting rocks).")]
         [SerializeField] private float maxStaleness = 1f;
 
-        private static NavFieldService instance;
-
-        /// <summary>Lazily-created scene singleton (no scene authoring required).</summary>
-        public static NavFieldService Instance
-        {
-            get
-            {
-                if (instance) return instance;
-                var go = new GameObject("[NavFieldService]");
-                instance = go.AddComponent<NavFieldService>();
-                return instance;
-            }
-        }
-
-        /// <summary>True when a live instance exists (query without creating one).</summary>
-        public static bool HasInstance => instance;
-
         private readonly Dictionary<Transform, FieldBaker> fields = new();
         private readonly List<Transform> stale = new();
-
-        private void Awake()
-        {
-            if (instance && instance != this)
-            {
-                Destroy(gameObject);
-                return;
-            }
-            instance = this;
-        }
 
         private void OnDestroy()
         {
             foreach (var baker in fields.Values) baker.Dispose();
             fields.Clear();
-            if (instance == this) instance = null;
         }
 
         /// <summary>
@@ -103,7 +69,6 @@ namespace Movement.MPC.Field
 
         private void Update()
         {
-            // Swap buffers for completed bakes; drop entries whose target died.
             stale.Clear();
             foreach (var kvp in fields)
             {
