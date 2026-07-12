@@ -39,13 +39,41 @@ How to use them to track work:
   something, capture it as a board item in the appropriate column (a Dev Pool,
   `To Do`, or nested under the parent item it relates to) with the right
   `#Tags`. The board is that deferred work's canonical home.
-- **Keep board entries concise and human-readable** — a one-line summary the
-  user can scan, not a wall of context. Put the deep rationale, trade-offs, and
-  file-level detail in agent memory (`.claude/.../memory/`) and link the two:
-  reference the memory/plan-doc from the board item, and name the board item
-  from the memory file. The board says *what / for-when*; memory says
-  *why / how*. (Live in-flight claims are a third thing — those go in the
-  active-work ledger, see `CLAUDE.md`.)
+- **Board cards are title-only — a few scannable words, no description.**
+  `- [ ] PlayerRig decomposition`, not a sentence. Never write a rationale,
+  clause, or file-level detail onto the card; if you're tempted to append
+  "— because…", that text belongs in the linked memory/plan doc. Put **all**
+  deep rationale, trade-offs, and file-level detail in agent memory
+  (`.claude/.../memory/`) and link the two: the card carries a link to the
+  memory/plan-doc, and the memory file names the board item. The board says
+  *what / for-when*; memory says *why / how*. (Live in-flight claims are a third
+  thing — those go in the active-work ledger, see `CLAUDE.md`.)
+
+## Agent memory
+
+This repo is backed by a persistent, file-based agent memory — durable facts,
+decisions, and the *why/how* behind board items. It lives **outside** the repo,
+in the primary session's memory directory:
+
+`C:\Users\amind\.claude\projects\D--amind-git-astronomical-home\memory\`
+
+- **`MEMORY.md`** in that directory is the index: one line per memory, loaded
+  into the primary session's context automatically at session start. Each fact
+  is its own `.md` file (with frontmatter) linked from the index; add a fact by
+  writing the file and appending a one-line pointer to `MEMORY.md`. Prefer
+  updating an existing file over creating a near-duplicate.
+- **The directory is keyed to the working-tree path** (`D--amind-git-astronomical-home`).
+  An agent running in an `agent-N` worktree resolves a *different* memory dir
+  and will **not** auto-load the primary session's memory. Such agents must read
+  and write the **absolute path above**, not their own memory dir. This is the
+  same reason the active-work ledger
+  (`…/memory/active_work_ledger.md`) is always referenced by absolute path — see
+  `CLAUDE.md` → "Cross-agent work ledger".
+- **Three tracking surfaces, don't conflate them:** agent memory holds the
+  durable *why/how*; the Obsidian **project board** holds title-only backlog /
+  status cards; the **active-work ledger** holds live, right-now claims/locks.
+  Board cards and ledger rows link out to the memory file that carries their
+  detail.
 
 ## Working style
 
