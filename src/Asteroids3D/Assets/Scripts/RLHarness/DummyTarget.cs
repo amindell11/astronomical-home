@@ -49,7 +49,6 @@ namespace Game.RLHarness
 
         private void SyncTransform()
         {
-            if (!GamePlane.IsConfigured) return;
             transform.position = GamePlane.PlanePointToWorld(planePosition);
             transform.rotation = GamePlane.PlanePose(GamePlane.Normal, GamePlane.PlaneDirToWorld(planeForward));
         }

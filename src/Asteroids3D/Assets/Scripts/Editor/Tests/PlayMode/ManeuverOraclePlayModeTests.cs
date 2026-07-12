@@ -40,9 +40,6 @@ namespace Tests.PlayMode
         public void SetUp()
         {
             AudioListener.pause = true;
-            if (GamePlane.IsConfigured) GamePlane.Reset();
-            GamePlane.Configure(PlaneAxis.Z);
-
             registry = new ShipRegistry();
 
             savedTimeScale = Time.timeScale;
@@ -68,7 +65,6 @@ namespace Tests.PlayMode
                 if (asset) UnityEngine.Object.DestroyImmediate(asset);
             createdAssets.Clear();
 
-            GamePlane.Reset();
             AudioListener.pause = false;
         }
 
