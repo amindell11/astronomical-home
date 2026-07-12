@@ -53,6 +53,7 @@ namespace Diagnostics
         private class StubShooter : MonoBehaviour, IShooter
         {
             public Vector3 Velocity { get; set; }
+            public Rigidbody Body => GetComponent<Rigidbody>();
         }
 
         [ContextMenu("Spawn Missile Test")]
@@ -76,7 +77,6 @@ namespace Diagnostics
                 return;
             }
 
-            // Apply tuning overrides via reflection
             ApplyOverride(activeMissile, "homingSpeed", homingSpeed);
             ApplyOverride(activeMissile, "homingTurnRate", homingTurnRate);
             ApplyOverride(activeMissile, "initialSpeed", initialSpeed);
@@ -117,7 +117,6 @@ namespace Diagnostics
             var launchDir = GamePlane.PlaneDirToWorld(Vector2.up);
             activeMissile.Launch(launchDir);
 
-            // Detect immediate deactivation (returned to pool)
             activeMissile.ReturnedToPool += () =>
                 Debug.LogWarning("[MissileGuidanceDiagnostics] Missile was returned to pool!");
 

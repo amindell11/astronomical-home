@@ -72,9 +72,9 @@ namespace Combat.Projectile
             var dmg = other.GetComponentInParent<IDamageable>();
             var shooterComponent = Shooter as Component;
             if (dmg == null || !shooterComponent) return;
-            if (other.transform.root == shooterComponent.transform.root) return;
+            if (other.attachedRigidbody && other.attachedRigidbody == Shooter.Body) return;
             if (IsFriendly(dmg)) return;
-            
+
             OnHit(dmg);
         }
 
@@ -92,10 +92,7 @@ namespace Combat.Projectile
             rb.angularVelocity = Vector3.zero;
         }
 
-        /// <summary>
-        /// Per-shot damage multiplier set by the firing weapon after launch (e.g. charge-scaled
-        /// shots). Reset to 1 when the projectile returns to the pool.
-        /// </summary>
+        /// <summary>Per-shot multiplier set by the firing weapon after launch (charge-scaled shots); resets to 1 on pool return.</summary>
         public void SetDamageScale(float scale)
         {
             damageScale = Mathf.Max(0f, scale);
