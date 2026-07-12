@@ -1,13 +1,7 @@
-using Game;
 using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>
-    /// A fixed-position target for the maneuver oracle. Holds an authoritative plane-space pose
-    /// and, when armed, rotates its facing toward the ship-under-test at a capped angular rate —
-    /// the bounded-rate aimer the Break maneuver has to out-turn. Pure geometry: no firing, no HP.
-    /// </summary>
     public class DummyTarget : MonoBehaviour
     {
         private Vector2 planePosition;

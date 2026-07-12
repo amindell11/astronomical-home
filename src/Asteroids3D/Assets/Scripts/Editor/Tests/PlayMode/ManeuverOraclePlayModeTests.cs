@@ -19,17 +19,8 @@ using UnityEngine.TestTools;
 
 namespace Tests.PlayMode
 {
-    /// <summary>
-    /// PR-2a maneuver-oracle gate. Drives one ship-under-test through the real learner path
-    /// (a scripted <see cref="ManeuverChooser"/> emitting VelocityReference intents, tracked by
-    /// the ship's own AICommander/MPC loop) against a single dummy target, and measures whether a
-    /// 2D velocity command can hold orbit / break / range maneuvers at a swept wVelTrack.
-    ///
-    /// Smoke is always-on (guards the harness). The full sweep is opt-in via ORACLE_SWEEP=1 and
-    /// writes one JSONL row per (maneuver x wVelTrack) to results/maneuver-oracle/ for a human read.
-    /// </summary>
     [TestFixture]
-    [Category("ManeuverOracle")]
+    [Category("MPC")]
     public class ManeuverOraclePlayModeTests
     {
         private ShipRegistry registry;
@@ -136,12 +127,6 @@ namespace Tests.PlayMode
             WriteJsonl(tag, results);
         }
 
-        /// <summary>
-        /// Localizing probe (opt-in ORACLE_PROBE=1) for the first-pass orbit/break failure. Separates
-        /// "the hand-authored command was too aggressive" (gentler speed x radius, nose-on-target aim)
-        /// from "the ceiling is aim-while-strafe" (free-yaw: nose tracks velocity so forward thrust
-        /// curves the path). wVelTrack pinned at 20 (orbit worsened with higher weight in the sweep).
-        /// </summary>
         [UnityTest]
         [Timeout(3600000)]
         public IEnumerator Probe_LocalizeOrbit_WritesJsonl()

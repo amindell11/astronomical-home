@@ -9,13 +9,6 @@ namespace Game.RLHarness
 {
     public enum ManeuverKind { Orbit, Break, Range }
 
-    /// <summary>
-    /// A scripted velocity-goal policy on the exact learner path: it emits a
-    /// <see cref="NavigationIntent"/> with <see cref="GoalMode.VelocityReference"/> that the
-    /// ship's own AICommander loop tracks through the MPC feasibility tracker. PR-3 swaps only
-    /// this body (scripted math to ML inference); the plumbing is unchanged. Recomputes the
-    /// commanded velocity at a fixed 5 Hz and holds it between recomputes.
-    /// </summary>
     public class ManeuverChooser : IIntentChooser
     {
         private const int RecomputeIntervalTicks = 10; // 5 Hz at a 50 Hz fixed step
@@ -73,7 +66,7 @@ namespace Game.RLHarness
             var vRef = kind switch
             {
                 ManeuverKind.Orbit => OrbitVelocity(losHat, r, maxSpeed),
-                ManeuverKind.Break => BreakVelocity(losHat, self.vel, maxSpeed),
+                ManeuverKind.Break => BreakVelocity(losHat, maxSpeed),
                 ManeuverKind.Range => RangeVelocity(losHat, r, self.vel, maxSpeed),
                 _ => Vector2.zero,
             };
@@ -99,14 +92,12 @@ namespace Game.RLHarness
             return orbitSpeedFraction * maxSpeed * tangent + radial;
         }
 
-        private Vector2 BreakVelocity(Vector2 losHat, Vector2 selfVel, float maxSpeed)
+        private Vector2 BreakVelocity(Vector2 losHat, float maxSpeed)
         {
             var dummyToShip = -losHat;
-            var f = dummy.PlaneForward;
-            var signedAim = Cross(dummyToShip, f);
+            var signedAim = Cross(dummyToShip, dummy.PlaneForward);
             var dir = signedAim > 0f ? -1f : 1f;
-            var breakHat = dir * Perp(dummyToShip);
-            return maxSpeed * breakHat;
+            return maxSpeed * dir * Perp(dummyToShip);
         }
 
         private Vector2 RangeVelocity(Vector2 losHat, float r, Vector2 selfVel, float maxSpeed)
@@ -118,8 +109,8 @@ namespace Game.RLHarness
 
         private EnemyTarget BuildTarget(AIContext ctx, Vector2 dummyPlane)
         {
-            var f = dummy.PlaneForward;
-            var yawDeg = Mathf.Atan2(-f.x, f.y) * Mathf.Rad2Deg;
+            var dummyForward = dummy.PlaneForward;
+            var yawDeg = Mathf.Atan2(-dummyForward.x, dummyForward.y) * Mathf.Rad2Deg;
             return new EnemyTarget
             {
                 kinematics = new Kinematics(dummyPlane, Vector2.zero, yawDeg, 0f, 0f),

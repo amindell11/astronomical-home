@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>One maneuver-oracle episode's configuration. Mirrors ChaseRunConfig's shape.</summary>
     [Serializable]
     public struct OracleRunConfig
     {
@@ -19,7 +18,6 @@ namespace Game.RLHarness
         public string tag;
     }
 
-    /// <summary>One JSONL row: config echo plus per-maneuver metrics and pass flags. JsonUtility-serializable.</summary>
     [Serializable]
     public struct OracleRunResult
     {
@@ -53,11 +51,6 @@ namespace Game.RLHarness
         public string ToJsonLine() => JsonUtility.ToJson(this);
     }
 
-    /// <summary>
-    /// Ship-vs-dummy geometry accumulator, fed once per FixedUpdate by the test driver. Turns the
-    /// per-tick series into the envelope metrics the gate reads (radius hold + angular progress for
-    /// orbit, arc breakout for break, settle + steady-state error for range).
-    /// </summary>
     public class OracleMetrics
     {
         private const float SettleSeconds = 3f;
@@ -127,13 +120,13 @@ namespace Game.RLHarness
             var fwd = dummyForward.sqrMagnitude > 1e-6f ? dummyForward.normalized : Vector2.up;
             var cos = Mathf.Clamp(Vector2.Dot(fwd, dummyToShipHat), -1f, 1f);
             var exposureDeg = Mathf.Acos(cos) * Mathf.Rad2Deg;
-            var out_ = exposureDeg > ArcHalfWidthDeg;
+            var beyondArc = exposureDeg > ArcHalfWidthDeg;
 
-            if (out_ && timeToExceedArc < 0f) timeToExceedArc = time;
+            if (beyondArc && timeToExceedArc < 0f) timeToExceedArc = time;
             if (timeToExceedArc >= 0f)
             {
                 postExceedCount++;
-                if (out_) postExceedHeldOut++;
+                if (beyondArc) postExceedHeldOut++;
             }
         }
 
