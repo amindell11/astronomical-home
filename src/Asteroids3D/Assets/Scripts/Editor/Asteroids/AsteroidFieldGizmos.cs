@@ -1,4 +1,4 @@
-#if UNITY_EDITOR
+using System.Runtime.CompilerServices;
 using Asteroids.Fields.Core;
 using Game;
 using UnityEditor;
@@ -6,36 +6,46 @@ using UnityEngine;
 
 namespace Asteroids.Fields
 {
-    public partial class UpdatingAsteroidField
+    internal static class AsteroidFieldGizmos
     {
         private const float HeatmapAlpha = 0.18f;
         private const int MaxGizmoCellsPerAxis = 64;
 
-        // Edit-mode preview of the exact runtime layout (same seed + params via
-        // the same core code), so density can be tuned without entering play.
-        private AsteroidFieldLayout previewLayout;
-        private int previewSettingsVersion = -1;
-        private int previewSeed;
-
-        protected override void OnDrawGizmosSelected()
+        // Edit-mode preview of the exact runtime layout (same seed + params via the same core code).
+        private sealed class PreviewState
         {
-            // Field boundary from the base class.
-            base.OnDrawGizmosSelected();
-            if (!settings) return;
+            public AsteroidFieldLayout Layout;
+            public int SettingsVersion = -1;
+            public int Seed;
+        }
 
-            var layout = ActiveLayout();
+        private static readonly ConditionalWeakTable<UpdatingAsteroidField, PreviewState> Previews = new();
+
+        [DrawGizmo(GizmoType.Selected, typeof(AsteroidField))]
+        private static void Draw(AsteroidField field, GizmoType gizmoType)
+        {
+            if (!field.settings) return;
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawWireSphere(field.transform.position, field.settings.fieldRadius);
+
+            if (field is UpdatingAsteroidField updating) DrawStreaming(updating);
+        }
+
+        private static void DrawStreaming(UpdatingAsteroidField field)
+        {
+            var settings = field.settings;
+            var layout = ActiveLayout(field);
             if (layout == null) return;
 
-            var originPlane = initialized ? fieldOriginPlane : WorldToPlaneSafe(transform.position);
-            var anchorWorld = Application.isPlaying && initialized && CurrentAnchorPos != null
-                ? CurrentAnchorPos()
-                : transform.position;
+            var originPlane = field.initialized ? field.fieldOriginPlane : WorldToPlaneSafe(field.transform.position);
+            var anchorWorld = Application.isPlaying && field.initialized && field.CurrentAnchorPos != null
+                ? field.CurrentAnchorPos()
+                : field.transform.position;
             var anchorPlane = WorldToPlaneSafe(anchorWorld) - originPlane;
 
-            if (drawNoiseHeatmap) DrawNoiseHeatmap(layout, originPlane, anchorPlane);
-            if (drawChunkGizmos) DrawChunkGrid(originPlane, anchorPlane);
+            if (field.drawNoiseHeatmap) DrawNoiseHeatmap(settings, layout, originPlane, anchorPlane);
+            if (field.drawChunkGizmos) DrawChunkGrid(field, originPlane, anchorPlane);
 
-            // Streaming radii around the anchor.
             Gizmos.color = Color.green;
             Gizmos.DrawWireSphere(anchorWorld, settings.loadRadius);
             Gizmos.color = Color.magenta;
@@ -46,22 +56,24 @@ namespace Asteroids.Fields
         }
 
         /// <summary>Runtime layout when playing; otherwise a settings-synced preview.</summary>
-        private AsteroidFieldLayout ActiveLayout()
+        private static AsteroidFieldLayout ActiveLayout(UpdatingAsteroidField field)
         {
-            if (initialized && Model != null) return Model.Layout;
+            if (field.initialized && field.Model != null) return field.Model.Layout;
 
-            if (previewLayout == null || previewSettingsVersion != settings.Version || previewSeed != seed)
+            var settings = field.settings;
+            var preview = Previews.GetValue(field, _ => new PreviewState());
+            if (preview.Layout == null || preview.SettingsVersion != settings.Version || preview.Seed != field.seed)
             {
-                // Attribute inputs (mesh volumes etc.) don't influence density,
-                // so the settings-built params alone give an exact preview.
-                previewLayout = new AsteroidFieldLayout(seed, settings.BuildGenerationParams());
-                previewSettingsVersion = settings.Version;
-                previewSeed = seed;
+                // Attribute inputs (mesh volumes etc.) don't influence density, so the settings-built params alone give an exact preview.
+                preview.Layout = new AsteroidFieldLayout(field.seed, settings.BuildGenerationParams());
+                preview.SettingsVersion = settings.Version;
+                preview.Seed = field.seed;
             }
-            return previewLayout;
+            return preview.Layout;
         }
 
-        private void DrawNoiseHeatmap(AsteroidFieldLayout layout, Vector2 originPlane, Vector2 anchorPlane)
+        private static void DrawNoiseHeatmap(AsteroidFieldSettings settings, AsteroidFieldLayout layout,
+            Vector2 originPlane, Vector2 anchorPlane)
         {
             var cell = settings.chunkSize;
             if (cell <= 0f) return;
@@ -70,9 +82,8 @@ namespace Asteroids.Fields
             ForEachCellInRange(anchorPlane, radius, cell, (cx, cy, center) =>
             {
                 if (center.magnitude > settings.fieldRadius) return;
-                // Pre-rejection density: the heatmap (like CountForCell) shows
-                // authored density and deliberately overstates on-screen counts
-                // when overlap rejection is active — do not "fix" this.
+                // Pre-rejection density: the heatmap (like CountForCell) shows authored density and
+                // deliberately overstates on-screen counts when overlap rejection is active — do not "fix" this.
                 var multiplier = layout.DensityMultiplier(cx, cy);
                 Color color;
                 if (multiplier <= 0f)
@@ -91,24 +102,24 @@ namespace Asteroids.Fields
             });
         }
 
-        private void DrawChunkGrid(Vector2 originPlane, Vector2 anchorPlane)
+        private static void DrawChunkGrid(UpdatingAsteroidField field, Vector2 originPlane, Vector2 anchorPlane)
         {
-            var cell = settings.chunkSize;
+            var cell = field.settings.chunkSize;
             if (cell <= 0f) return;
 
             var dimGrid = new Color(1f, 1f, 1f, 0.08f);
             var loadedColor = new Color(0.2f, 1f, 0.2f, 0.9f);
             var queuedColor = new Color(1f, 0.9f, 0.2f, 0.9f);
 
-            var radius = settings.UnloadRadius + cell;
+            var radius = field.settings.UnloadRadius + cell;
             ForEachCellInRange(anchorPlane, radius, cell, (cx, cy, _) =>
             {
                 var chunk = new Vector2Int(cx, cy);
                 var color = dimGrid;
-                if (Application.isPlaying && initialized && streamer != null)
+                if (Application.isPlaying && field.initialized && field.streamer != null)
                 {
-                    if (queuedChunks.Contains(chunk)) color = queuedColor;
-                    else if (streamer.IsLoaded(chunk)) color = loadedColor;
+                    if (field.queuedChunks.Contains(chunk)) color = queuedColor;
+                    else if (field.streamer.IsLoaded(chunk)) color = loadedColor;
                 }
 
                 Handles.DrawSolidRectangleWithOutline(CellCorners(cx, cy, cell, originPlane), Color.clear, color);
@@ -145,8 +156,7 @@ namespace Asteroids.Fields
             };
         }
 
-        // GamePlane is only configured during bootstrap; fall back to the XZ
-        // plane in edit mode (matches the game's PlaneAxis.Y convention).
+        // GamePlane is only configured during bootstrap; fall back to the XZ plane in edit mode (matches PlaneAxis.Y).
         private static Vector2 WorldToPlaneSafe(Vector3 world) =>
             GamePlane.IsConfigured ? GamePlane.WorldPointToPlane(world) : new Vector2(world.x, world.z);
 
@@ -154,4 +164,3 @@ namespace Asteroids.Fields
             GamePlane.IsConfigured ? GamePlane.PlanePointToWorld(plane) : new Vector3(plane.x, 0f, plane.y);
     }
 }
-#endif

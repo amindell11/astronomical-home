@@ -16,27 +16,27 @@ namespace Asteroids.Fields
     /// (Class name kept from the old annulus spawner to avoid churn across
     /// GameConfig / SectorManifestSync / AdoptEntry / AsteroidFieldSpawner.)
     /// </summary>
-    public partial class UpdatingAsteroidField : AsteroidField, AI.Scanning.IObstacleField
+    public class UpdatingAsteroidField : AsteroidField, AI.Scanning.IObstacleField
     {
         [SerializeField] private World.WorldFollow follower;
 
         [Tooltip("Authored layout seed for this placed field. Two sectors sharing the same settings asset still get distinct layouts by varying this.")]
-        [SerializeField] private int seed = 12345;
+        [SerializeField] internal int seed = 12345;
 
         [Header("Debug Visualization (editor gizmos)")]
-        [SerializeField] private bool drawChunkGizmos = true;
-        [SerializeField] private bool drawNoiseHeatmap = true;
+        [SerializeField] internal bool drawChunkGizmos = true;
+        [SerializeField] internal bool drawNoiseHeatmap = true;
 
-        public Func<Vector3> CurrentAnchorPos { private get; set; }
+        public Func<Vector3> CurrentAnchorPos { internal get; set; }
 
         /// <summary>Headless core, exposed for tests and tooling.</summary>
         public AsteroidFieldModel Model { get; private set; }
 
         private Transform streamAnchor;
         private Vector2? playerStartPlane;
-        private ChunkStreamer streamer;
-        private Vector2 fieldOriginPlane;
-        private bool initialized;
+        internal ChunkStreamer streamer;
+        internal Vector2 fieldOriginPlane;
+        internal bool initialized;
         private int appliedSettingsVersion;
         private bool rebuildRequested;
 
@@ -47,7 +47,7 @@ namespace Asteroids.Fields
 
         // Streaming state
         private readonly Queue<Vector2Int> loadQueue = new();
-        private readonly HashSet<Vector2Int> queuedChunks = new();
+        internal readonly HashSet<Vector2Int> queuedChunks = new();
         private readonly List<FieldAsteroidSpec> chunkSpecBuffer = new();
         private int chunkSpecCursor;
         private Vector2Int inProgressChunk;
