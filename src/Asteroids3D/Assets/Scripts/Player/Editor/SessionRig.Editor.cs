@@ -23,7 +23,7 @@ namespace Player
         {
             if (!enableDebugOverlay) return;
 
-            // Reuse before adding: Build() can run on the rig prefab ASSET (MainGameManager references
+            // Reuse before adding: Build() can run on the rig prefab ASSET (SessionHost references
             // it directly), so an unconditional AddComponent bakes a new overlay into the prefab file
             // every editor session.
             debugOverlay = GetComponent<ArenaDebugOverlay>();

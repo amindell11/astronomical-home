@@ -8,7 +8,7 @@ namespace Diagnostics
     /// Editor-only diagnostic MonoBehaviour for the ObjectiveTracker state machine.
     ///
     /// USAGE:
-    /// 1. Attach to the same GameObject as MainGameManager (which RequireComponents ObjectiveService).
+    /// 1. Attach to the same GameObject as SessionHost (which RequireComponents ObjectiveService).
     /// 2. State transitions are logged to the Console automatically.
     /// 3. In Scene view, gizmos show the extraction zone radius (yellow sphere).
     ///

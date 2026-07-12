@@ -8,7 +8,7 @@ namespace Game.Bootstrap
 {
     /// <summary>
     /// Per-session state owned by the bootstrap lifecycle primitives on
-    /// <see cref="MainGameManager"/>: the service container, the optional player/camera/UI rig,
+    /// <see cref="SessionHost"/>: the service container, the optional player/camera/UI rig,
     /// the presentation overlay, and the currently loaded sector. The primitives take this
     /// container explicitly instead of reading process-wide singletons, so a future multi-arena
     /// (RL) harness can own several sessions in one process without a signature-breaking retrofit.
