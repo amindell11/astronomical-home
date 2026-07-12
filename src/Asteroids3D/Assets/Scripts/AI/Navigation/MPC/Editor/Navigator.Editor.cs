@@ -190,7 +190,7 @@ namespace Movement.MPC
 
         private void DrawFleeField()
         {
-            if (!showFleeField || fleeFieldBaker == null || !GamePlane.IsConfigured) return;
+            if (!showFleeField || fleeFieldBaker == null) return;
             Field.NavFieldService.DrawField(fleeFieldBaker.Front);
         }
 

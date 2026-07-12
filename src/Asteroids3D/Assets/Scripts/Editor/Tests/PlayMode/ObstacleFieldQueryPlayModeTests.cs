@@ -29,8 +29,7 @@ public class ObstacleFieldQueryPlayModeTests : PlayModeWorldFixture
     public override void TearDown()
     {
         // Destroying fieldGo also destroys the active asteroids (they parent under the spawner on
-        // this GameObject). Wrapped so a cleanup hiccup can't skip base.TearDown()'s GamePlane.Reset(),
-        // which would otherwise cascade into the next fixture's SetUp ("already configured").
+        // this GameObject). Wrapped so a cleanup hiccup can't skip base.TearDown().
         try
         {
             if (fieldGo) Object.DestroyImmediate(fieldGo);

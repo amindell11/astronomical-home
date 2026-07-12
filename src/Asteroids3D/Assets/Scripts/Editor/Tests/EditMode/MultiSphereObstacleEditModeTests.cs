@@ -1,5 +1,4 @@
 using AI.Scanning;
-using Game;
 using Movement;
 using Movement.MPC;
 using NUnit.Framework;
@@ -58,16 +57,6 @@ namespace Tests.EditMode
             Assert.IsFalse(Cost.Collides(outside, lobes, lobes.Length, Hull));
             Assert.IsFalse(Cost.Collides(outside, single, single.Length, Hull));
         }
-
-        [SetUp]
-        public void SetUp()
-        {
-            if (GamePlane.IsConfigured) GamePlane.Reset();
-            GamePlane.Configure(PlaneAxis.Y);
-        }
-
-        [TearDown]
-        public void TearDown() => GamePlane.Reset();
 
         private static Dynamics MakeDynamics() => new Dynamics(
             mass: 1f, forwardAcc: 5f, reverseAcc: 5f, maxStrafeAcc: 5f, minStrafeAcc: 5f,

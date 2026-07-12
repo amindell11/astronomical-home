@@ -198,8 +198,6 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier:
   playerRig: {fileID: 0}
-  planeAxis: 2
-  planeOrigin: {x: 0, y: 0, z: 0}
 --- !u!114 &217078690
 MonoBehaviour:
   m_ObjectHideFlags: 0

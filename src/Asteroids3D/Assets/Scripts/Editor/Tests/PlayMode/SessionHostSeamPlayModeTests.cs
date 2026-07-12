@@ -33,7 +33,6 @@ namespace Tests.PlayMode
             GameSettings.SetPresentationEnabled(true);
             DestroyTestObject(hostGo);
             DestroyTestObject(rigInstance ? rigInstance.gameObject : null);
-            if (GamePlane.IsConfigured) GamePlane.Reset();
             base.TearDown();
         }
 
@@ -48,7 +47,6 @@ namespace Tests.PlayMode
             hostGo = new GameObject("SessionRoot");
             var host = hostGo.AddComponent<SessionHost>();
             SetPrivate(host, "playerRig", rigInstance);
-            SetPrivate(host, "planeAxis", PlaneAxis.Y);
 
             var session = new GameSession
             {
@@ -61,15 +59,11 @@ namespace Tests.PlayMode
                 }
             };
 
-            // ComposeSession reconfigures the plane; the fixture already configured it in SetUp.
-            GamePlane.Reset();
-
             yield return host.ComposeSession(session);
 
             Assert.IsNotNull(session.Services, "ComposeSession must populate the session's services");
             Assert.IsNotNull(session.Rig, "ComposeSession must adopt the rig onto the session");
             Assert.IsNotNull(session.Rig.Player, "ComposeSession must build the player (buildPlayer = true)");
-            Assert.IsTrue(GamePlane.IsConfigured, "ComposeSession must configure the world plane");
 
             // The seam's non-coroutine primitive — its only caller besides an RL driver.
             Assert.DoesNotThrow(() => host.ApplyLoadout(session),
@@ -79,7 +73,6 @@ namespace Tests.PlayMode
 
             Assert.IsNull(session.Services, "TeardownSession must clear the session's services");
             Assert.IsNull(session.Rig, "TeardownSession must drop the session rig");
-            Assert.IsFalse(GamePlane.IsConfigured, "TeardownSession must reset the world plane");
         }
 
         private static void SetPrivate(object target, string field, object value) =>
