@@ -12,11 +12,11 @@ namespace AI.States
     /// Replaces all concrete state classes (Attack, Patrol, Evade, etc.)
     /// with a single data-driven class.
     /// </summary>
-    public partial class AIState
+    public class AIState
     {
         protected readonly Navigator navigator;
         protected readonly Gunner gunner;
-        private readonly GoalRunner goalRunner;
+        internal readonly GoalRunner goalRunner;
 
         public StateProfile Profile { get; }
 

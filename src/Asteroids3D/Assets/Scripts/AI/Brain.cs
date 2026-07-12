@@ -19,7 +19,7 @@ namespace AI
     /// states themselves.
     /// </summary>
     [DefaultExecutionOrder(-70)]
-    public partial class Brain : MonoBehaviour
+    public class Brain : MonoBehaviour
     {
         [Tooltip("The decision policy. Defaults to UtilityChooser; swap for another IIntentChooser (e.g. an RL policy).")]
         [SerializeReference] private IIntentChooser chooser = new UtilityChooser();
@@ -66,5 +66,19 @@ namespace AI
 
         public NavigationIntent Decide(AIContext ctx, float dt) =>
             chooser?.Decide(ctx, dt) ?? NavigationIntent.None;
+
+#if UNITY_EDITOR
+        // Hot-reload the policy when stateProfiles or a profile asset changes during play.
+        private void OnValidate() => RefreshStates();
+
+        /// <summary>Editor-only: rebuild the state set from the current profiles and restart state
+        /// selection. No-op before the brain is initialized (i.e. outside play).</summary>
+        internal void RefreshStates()
+        {
+            if (navigator == null) return;
+            (chooser as UtilityChooser)?.ResetForTesting();
+            BuildStates();
+        }
+#endif
     }
 }

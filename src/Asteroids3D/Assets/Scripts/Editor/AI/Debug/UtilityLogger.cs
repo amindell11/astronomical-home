@@ -1,4 +1,3 @@
-#if UNITY_EDITOR
 using System;
 using System.IO;
 using System.Text;
@@ -53,7 +52,7 @@ namespace AI.Debug
                 return;
             }
 
-            var debugSettings = commander.DebugSettings;
+            var debugSettings = AIDebugContext.Settings;
             if (debugSettings == null || !debugSettings.IsActive(AIDebugChannel.Logging))
             {
                 enabled = false;
@@ -119,7 +118,6 @@ namespace AI.Debug
             lineBuffer.Clear();
             lineBuffer.Append('{');
 
-            // Timestamp & identity
             AppendField("t", (Time.time - sessionStartTime));
             lineBuffer.Append(',');
             AppendFieldStr("ship", shipLabel);
@@ -128,7 +126,6 @@ namespace AI.Debug
             lineBuffer.Append(',');
             AppendField("tick", tickCounter);
 
-            // Context snapshot
             var a = ctx.Assessment;
             lineBuffer.Append(",\"ctx\":{");
             AppendField("hp", a.HealthPct);
@@ -156,7 +153,6 @@ namespace AI.Debug
             AppendField("angle", a.SelfAngleToEnemy);
             lineBuffer.Append('}');
 
-            // Utility scores
             var scores = selector.UtilityScores;
             if (scores != null && scores.Count > 0)
             {
@@ -171,7 +167,6 @@ namespace AI.Debug
                 lineBuffer.Append('}');
             }
 
-            // Factor breakdowns per state
             if (includeFactorBreakdowns)
             {
                 lineBuffer.Append(",\"factors\":{");
@@ -196,7 +191,6 @@ namespace AI.Debug
                 lineBuffer.Append('}');
             }
 
-            // Transition event
             if (isTransition)
             {
                 lineBuffer.Append(",\"transition\":{");
@@ -263,4 +257,3 @@ namespace AI.Debug
         }
     }
 }
-#endif

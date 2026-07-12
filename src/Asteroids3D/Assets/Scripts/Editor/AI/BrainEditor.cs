@@ -1,67 +1,38 @@
-#if UNITY_EDITOR
 using AI.Context;
 using AI.Debug;
+using AI.States;
 using AI.Utility;
 using UnityEditor;
 using UnityEngine;
 
 namespace AI
 {
-    public partial class Brain
+    internal static class BrainGizmos
     {
-        private AICommander cachedCommander;
-        private AIDebugSettings CachedSettings
+        [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected, typeof(Brain))]
+        private static void Draw(Brain brain, GizmoType gizmoType)
         {
-            get
-            {
-                if (!cachedCommander)
-                    cachedCommander = GetComponent<AICommander>();
-                return cachedCommander ? cachedCommander.DebugSettings : null;
-            }
+            var isSelected = (gizmoType & GizmoType.Selected) != 0;
+            var settings = AIDebugContext.Settings;
+            if (!settings || !settings.ShouldDraw(isSelected)) return;
+
+            if (brain.Chooser is not UtilityChooser uc || uc.Context == null) return;
+
+            if (settings.IsActive(AIDebugChannel.StateDetail) && uc.CurrentAIState != null)
+                GoalRunnerGizmos.Draw(uc.CurrentAIState, uc.Context);
+
+            if (settings.IsActive(AIDebugChannel.Info))
+                DrawInfoLabel(brain, uc.Context);
         }
 
-        private UtilityChooser UtilityChooser => chooser as UtilityChooser;
-
-        // Hot-reload the policy when its config changes in the inspector during play — editing the
-        // stateProfiles array here, or (via StateProfile.OnValidate) a profile asset's contents —
-        // so a paused session picks up the change instead of staying stuck on the old states.
-        private void OnValidate() => RefreshStates();
-
-        /// <summary>Editor-only: rebuild the state set from the current profiles and restart state
-        /// selection. No-op before the brain is initialized (i.e. outside play).</summary>
-        internal void RefreshStates()
-        {
-            if (navigator == null) return;
-            UtilityChooser?.ResetForTesting();
-            BuildStates();
-        }
-
-        void OnDrawGizmos() => DrawGizmosImpl(false);
-        void OnDrawGizmosSelected() => DrawGizmosImpl(true);
-
-        void DrawGizmosImpl(bool isSelected)
-        {
-            var settings = CachedSettings;
-            if (settings == null || !settings.ShouldDraw(isSelected)) return;
-
-            var uc = UtilityChooser;
-            if (uc == null) return;
-
-            if (settings.IsActive(AIDebugChannel.StateDetail) && uc.CurrentAIState != null && uc.Context != null)
-                uc.CurrentAIState.OnDrawGizmos(uc.Context);
-
-            if (settings.IsActive(AIDebugChannel.Info) && uc.Context != null)
-                DrawInfoLabel(uc.Context);
-        }
-
-        private void DrawInfoLabel(AIContext ctx)
+        private static void DrawInfoLabel(Brain brain, AIContext ctx)
         {
             var a = ctx.Assessment;
             Handles.color = Color.white;
             var info = $"HP: {a.HealthPct:P0} Shield: {a.ShieldPct:P0}";
             if (a.NearbyEnemyCount > a.NearbyFriendCount)
                 info += $"\nOutnumbered {a.NearbyEnemyCount}v{a.NearbyFriendCount + 1}";
-            Handles.Label(transform.position + Vector3.up * 5f, info);
+            Handles.Label(brain.transform.position + Vector3.up * 5f, info);
         }
     }
 
@@ -126,4 +97,3 @@ namespace AI
         }
     }
 }
-#endif
