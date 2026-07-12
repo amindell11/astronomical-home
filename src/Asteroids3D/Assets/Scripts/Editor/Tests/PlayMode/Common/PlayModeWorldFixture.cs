@@ -1,5 +1,8 @@
 using Game;
+using Game.Services;
+using Movement.MPC.Field;
 using NUnit.Framework;
+using Tests.Common;
 using UnityEngine;
 
 namespace Tests.PlayMode.Common
@@ -9,8 +12,7 @@ namespace Tests.PlayMode.Common
 /// Shared PlayMode test fixture that ensures deterministic world state,
 /// proper isolation between tests, and centralized cleanup of global/static state.
 /// Inherit from this class to get automatic setup/teardown of:
-/// - Test arena with reference plane
-/// - GamePlane static state reset
+/// - Test arena (registry + NavField sibling)
 /// - AudioListener pause/unpause
 /// - TestSceneBuilder cleanup
 /// </summary>
@@ -21,6 +23,14 @@ public abstract class PlayModeWorldFixture
     /// Override in derived classes if audio is needed for the test.
     /// </summary>
     protected virtual bool PauseAudio => true;
+
+    private GameObject arenaHost;
+
+    /// <summary>The per-test world-frame handle wired into AI ships (registry + NavField sibling).</summary>
+    protected ArenaContext Arena { get; private set; }
+
+    /// <summary>The NavField sibling backing <see cref="Arena"/>, for tests that drive it directly.</summary>
+    protected NavFieldService NavField { get; private set; }
 
     /// <summary>
     /// Called before each test. Creates the test arena and pauses audio.
@@ -33,18 +43,25 @@ public abstract class PlayModeWorldFixture
             AudioListener.pause = true;
 
         TestSceneBuilder.CreateTestArena();
-        GamePlane.Configure(PlaneAxis.Y);
+
+        arenaHost = new GameObject("[TestArena]");
+        Arena = TestArena.On(arenaHost);
+        NavField = Arena.NavField;
     }
 
     /// <summary>
-    /// Called after each test. Cleans up the arena, resets GamePlane, and unpauses audio.
+    /// Called after each test. Cleans up the arena and unpauses audio.
     /// Override this method if you need additional cleanup, but remember to call base.TearDown().
     /// </summary>
     [TearDown]
     public virtual void TearDown()
     {
+        if (arenaHost) Object.DestroyImmediate(arenaHost);
+        Arena = null;
+        NavField = null;
+
         TestSceneBuilder.CleanupTestArena();
-        
+
         if (PauseAudio)
             AudioListener.pause = false;
     }

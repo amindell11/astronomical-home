@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using AI;
 using AI.States;
 using Game;
+using Game.Services;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
@@ -19,12 +20,14 @@ namespace Tests.PlayMode.Common
 public abstract class AIIntegrationFixture : PlayModeWorldFixture
 {
     protected ShipRegistry registry;
+    private ArenaContext arena;
     private readonly List<Ship> trackedShips = new();
 
     public override void SetUp()
     {
         base.SetUp();
         registry = new ShipRegistry();
+        arena = new ArenaContext(Vector2.zero, registry, NavField);
     }
 
     public override void TearDown()
@@ -59,8 +62,8 @@ public abstract class AIIntegrationFixture : PlayModeWorldFixture
         var cmdr = ship.GetComponentInChildren<AICommander>();
         Assert.IsNotNull(cmdr, "Ship missing AICommander component");
 
-        // Wire registry into AI systems (triggers TryInitializeSystems)
-        cmdr.SetRegistry(registry);
+        // Wire the arena (registry + NavField) into AI systems (triggers TryInitializeSystems)
+        cmdr.SetArena(arena);
 
         return (ship, cmdr);
     }

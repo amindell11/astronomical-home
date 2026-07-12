@@ -3,6 +3,7 @@ using System.Reflection;
 using AI;
 using Combat.Targeting;
 using Game;
+using Game.Services;
 using NUnit.Framework;
 using Player;
 using Ships;
@@ -25,13 +26,13 @@ namespace Tests.EditMode
         }
         
         [Test]
-        public void AiCommander_ExposesRegistryInjectionApi()
+        public void AiCommander_ExposesArenaInjectionApi()
         {
-            var method = typeof(AICommander).GetMethod("SetRegistry", BindingFlags.Public | BindingFlags.Instance);
+            var method = typeof(AICommander).GetMethod("SetArena", BindingFlags.Public | BindingFlags.Instance);
             Assert.IsNotNull(method);
             var parameters = method.GetParameters();
             Assert.That(parameters.Length, Is.EqualTo(1));
-            Assert.That(parameters[0].ParameterType, Is.EqualTo(typeof(IShipRegistry)));
+            Assert.That(parameters[0].ParameterType, Is.EqualTo(typeof(ArenaContext)));
         }
 
         [Test]
@@ -58,16 +59,6 @@ namespace Tests.EditMode
             var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Combat", "Targeting", "LockOnSensor.cs"));
             StringAssert.Contains("StopScanRoutine();", source);
             StringAssert.Contains("StartScanRoutineIfNeeded();", source);
-        }
-
-        [Test]
-        public void SessionHost_UsesSerializedPlaneAxis()
-        {
-            // GamePlane ownership (axis serialize + Configure) lives on the below-seam host now.
-            var source = File.ReadAllText(Path.Combine(Application.dataPath, "Scripts", "Game", "Bootstrap", "SessionHost.cs"));
-            StringAssert.Contains("[SerializeField] private PlaneAxis planeAxis", source);
-            StringAssert.Contains("GamePlane.Configure(planeAxis, planeOrigin);", source);
-            StringAssert.DoesNotContain("GameContext.Instance", source);
         }
 
         [Test]

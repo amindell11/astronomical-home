@@ -23,5 +23,9 @@ namespace Game.Bootstrap
         [Tooltip("Global VFX toggle applied at compose — gates the not-yet-rig-migrated " +
                  "weapon/projectile/asteroid explosion effects. Runtime-only.")]
         public bool vfx = true;
+
+        [Tooltip("This arena's in-plane world offset. Zero for the single-arena game; the RL harness " +
+                 "supplies a per-arena offset. Dormant until PR-B wires placement through it.")]
+        public Vector2 offset;
     }
 }

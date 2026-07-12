@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using Game.Sectors;
 using Game.Services;
+using Movement.MPC.Field;
 using Player;
 using UnityEngine;
 using Utils;
@@ -13,59 +14,50 @@ namespace Game.Bootstrap
     /// interactive game or a headless/RL harness drives over an explicit per-session
     /// <see cref="GameSession"/>. The primitives compose the service container + optional player/camera/UI
     /// rig, cycle the sector, and tear the session down; they carry no clock and no reset policy — the
-    /// driver above them supplies both.
-    ///
-    /// This host also owns the universal world plane (<see cref="GamePlane"/>): composition configures
-    /// it, teardown/destroy reset it. The dependency points UP only — a driver references the host; the
+    /// driver above them supplies both. The dependency points UP only — a driver references the host; the
     /// host never references any driver.
     /// </summary>
     [RequireComponent(typeof(ObjectiveService))]
     [RequireComponent(typeof(UnitService))]
+    [RequireComponent(typeof(NavFieldService))]
     public class SessionHost : MonoBehaviour, ISessionPrimitives
     {
         [Header("Session Rig")]
         [Tooltip("Session-tier player/camera/UI/world rig. Built once at Start; persists across sector restarts.")]
         [SerializeField] private SessionRig playerRig;
 
-        [Header("Game Plane")]
-        [SerializeField] private PlaneAxis planeAxis = PlaneAxis.Y;
-        [SerializeField] private Vector3 planeOrigin;
-
         private UnitService unitService;
         private ObjectiveService objectiveService;
+        private NavFieldService navFieldService;
 
         private void Awake()
         {
             unitService = GetComponent<UnitService>();
             objectiveService = GetComponent<ObjectiveService>();
+            navFieldService = GetComponent<NavFieldService>();
         }
 
         /// <summary>
-        /// Compose a session: service container, optional player/camera/UI rig, presentation
-        /// overlay, and the universal world plane. Built once per session; the rig persists across
-        /// sector loads and is removed only by <see cref="TeardownSession"/>.
+        /// Compose a session: service container and optional player/camera/UI rig. Built once per
+        /// session; the rig persists across sector loads and is removed only by
+        /// <see cref="TeardownSession"/>.
         /// </summary>
         public IEnumerator ComposeSession(GameSession target)
         {
-            // Game-tier VFX policy: gate the still-un-migrated weapon/projectile/asteroid effects.
-            // Runtime-only override so a headless/RL session never leaks into the saved preference.
+            // Runtime-only overrides so a headless/RL session never leaks into the saved preferences.
             GameSettings.SetVfxEnabled(target.Profile.vfx);
-
-            // Presentation policy: when off (headless/RL), each ship's embedded visual rig
-            // self-disables in its Awake. Runtime-only override, same lifetime as the VFX toggle.
             GameSettings.SetPresentationEnabled(target.Profile.presentation);
 
-            // GamePlane is a process-global; guard so composing a second session (multi-arena)
-            // shares the one plane instead of throwing on an already-configured Configure.
-            if (!GamePlane.IsConfigured)
-                GamePlane.Configure(planeAxis, planeOrigin);
+            var arena = new ArenaContext(target.Profile.offset, unitService.Registry, navFieldService);
+            unitService.SetArena(arena);
 
             target.Services = new GameServices(
                 unitService: unitService,
                 environmentService: new EnvironmentService(),
                 objectiveService: objectiveService,
                 cameraService: new CameraService(),
-                uiService: new UIService()
+                uiService: new UIService(),
+                arena: arena
             );
 
             if (playerRig)
@@ -139,7 +131,7 @@ namespace Game.Bootstrap
 
         /// <summary>
         /// Session exit: drop the sector (without running its teardown phase), tear down the
-        /// persistent rig, wipe every registry, and reset the world plane.
+        /// persistent rig, and wipe every registry.
         /// </summary>
         public IEnumerator TeardownSession(GameSession target)
         {
@@ -156,8 +148,6 @@ namespace Game.Bootstrap
 
             target.Services?.ClearAll();
             target.Services = null;
-
-            GamePlane.Reset();
         }
 
         /// <summary>Install the session rig's standing loadout onto the persistent player.</summary>
@@ -177,11 +167,6 @@ namespace Game.Bootstrap
                 Destroy(sector.gameObject);
                 target.ActiveSector = null;
             }
-        }
-
-        private void OnDestroy()
-        {
-            GamePlane.Reset();
         }
     }
 }

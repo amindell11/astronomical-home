@@ -1,71 +1,106 @@
-using System.Collections;
 using Game;
 using NUnit.Framework;
-using Tests.PlayMode.Common;
 using UnityEngine;
-using UnityEngine.TestTools;
 
 namespace Tests.PlayMode
 {
 
 [Category("Core")]
-public class GamePlanePlayModeTests : PlayModeWorldFixture
+public class GamePlanePlayModeTests
 {
-    // Override to disable audio pause for these lightweight tests
-    protected override bool PauseAudio => false;
+    [Test]
+    public void Frame_Y_SetsAxesAndOrigin()
+    {
+        var frame = new GamePlaneFrame(PlaneAxis.Y, new Vector3(10, 0, 5));
 
-    // NOTE: never `yield` while GamePlane is unconfigured. Objects leaked by earlier tests
-    // (seen: pooled ProjectileBase via PlaneConstraints) tick during yielded frames and their
-    // GamePlane access throws, failing THIS test. Reset only where no frame can run afterwards
-    // (synchronous tests, or after the final yield — TearDown's CleanupTestArena resets anyway).
+        Assert.AreEqual(Vector3.down, frame.Normal);
+        Assert.AreEqual(Vector3.forward, frame.Forward);
+        Assert.AreEqual(Vector3.right, frame.Right);
+        Assert.AreEqual(new Vector3(10, 0, 5), frame.Origin);
+        Assert.AreEqual(RigidbodyConstraints.FreezePositionY, frame.PositionConstraint);
+    }
 
     [Test]
-    public void GamePlane_UnconfiguredAccess_Throws()
+    public void Frame_WorldToPlane_And_PlaneToWorld_AreConsistent()
     {
-        GamePlane.Reset();
-        Assert.Throws<System.InvalidOperationException>(() => _ = GamePlane.Normal);
-    }
+        var frame = new GamePlaneFrame(PlaneAxis.Y, new Vector3(10, 0, 5));
+        var worldPoint = new Vector3(12, 0, 8);
 
-    [UnityTest]
-    [Category("Smoke")]
-    public IEnumerator GamePlane_Configure_SetsAxesCorrectly()
-    {
-        // Arrange
-        GamePlane.Reset();
+        var planePoint = frame.WorldPointToPlane(worldPoint);
+        var worldPointBack = frame.PlanePointToWorld(planePoint);
 
-        // Act
-        GamePlane.Configure(PlaneAxis.Y, new Vector3(10, 0, 5));
-
-        // Assert
-        Assert.IsTrue(GamePlane.IsConfigured);
-        Assert.AreEqual(Vector3.down, GamePlane.Normal);
-        Assert.AreEqual(Vector3.forward, GamePlane.Forward);
-        Assert.AreEqual(Vector3.right, GamePlane.Right);
-        Assert.AreEqual(new Vector3(10, 0, 5), GamePlane.Origin);
-
-        // Yield while still configured; TearDown resets GamePlane synchronously afterwards.
-        yield return null;
-    }
-
-    [UnityTest]
-    public IEnumerator GamePlane_WorldToPlane_And_PlaneToWorld_AreConsistent()
-    {
-        // Arrange
-        GamePlane.Reset();
-        GamePlane.Configure(PlaneAxis.Y, new Vector3(10, 0, 5));
-
-        Vector3 worldPoint = new Vector3(12, 0, 8);
-
-        // Act
-        var planePoint = GamePlane.WorldPointToPlane(worldPoint);
-        var worldPointBack = GamePlane.PlanePointToWorld(planePoint);
-
-        // Assert
         Assert.That(worldPointBack.x, Is.EqualTo(worldPoint.x).Within(0.01f));
         Assert.That(worldPointBack.z, Is.EqualTo(worldPoint.z).Within(0.01f));
+    }
 
-        // Yield while still configured; TearDown resets GamePlane synchronously afterwards.
-        yield return null;
+    [Test]
+    public void Frame_Z_SetsXYPlaneBasis()
+    {
+        var frame = new GamePlaneFrame(PlaneAxis.Z);
+
+        Assert.AreEqual(Vector3.forward, frame.Normal);
+        Assert.AreEqual(Vector3.up, frame.Forward);
+        Assert.AreEqual(Vector3.right, frame.Right);
+        Assert.AreEqual(RigidbodyConstraints.FreezePositionZ, frame.PositionConstraint);
+    }
+
+    [Test]
+    public void Frame_X_SetsYZPlaneBasis()
+    {
+        var frame = new GamePlaneFrame(PlaneAxis.X);
+
+        Assert.AreEqual(Vector3.right, frame.Normal);
+        Assert.AreEqual(Vector3.forward, frame.Forward);
+        Assert.AreEqual(Vector3.up, frame.Right);
+        Assert.AreEqual(RigidbodyConstraints.FreezePositionX, frame.PositionConstraint);
+    }
+
+    [Test]
+    public void Frame_Rotation_IsPlanePoseOfNormalAndForward([Values(PlaneAxis.X, PlaneAxis.Y, PlaneAxis.Z)] PlaneAxis axis)
+    {
+        var frame = new GamePlaneFrame(axis, new Vector3(3, 4, 5));
+
+        Assert.AreEqual(GamePlaneFrame.PlanePose(frame.Normal, frame.Forward), frame.Rotation);
+    }
+
+    [Test]
+    public void Frame_DirConversions_RoundTrip([Values(PlaneAxis.X, PlaneAxis.Y, PlaneAxis.Z)] PlaneAxis axis)
+    {
+        // Origin is irrelevant for direction conversions; a nonzero one must not leak in.
+        var frame = new GamePlaneFrame(axis, new Vector3(3, 4, 5));
+        var planeDir = new Vector2(2f, -7f);
+
+        var back = frame.WorldDirToPlane(frame.PlaneDirToWorld(planeDir));
+
+        Assert.That(back.x, Is.EqualTo(planeDir.x).Within(0.001f));
+        Assert.That(back.y, Is.EqualTo(planeDir.y).Within(0.001f));
+    }
+
+    [Test]
+    public void Facade_DelegatesToCanonical()
+    {
+        var planePt = new Vector2(6f, -2f);
+        var planeDir = new Vector2(-1f, 3f);
+        var world = new Vector3(6f, -2f, 4f);
+
+        Assert.AreEqual(GamePlane.Canonical.PlanePointToWorld(planePt), GamePlane.PlanePointToWorld(planePt));
+        Assert.AreEqual(GamePlane.Canonical.PlaneDirToWorld(planeDir), GamePlane.PlaneDirToWorld(planeDir));
+        Assert.AreEqual(GamePlane.Canonical.WorldPointToPlane(world), GamePlane.WorldPointToPlane(world));
+        Assert.AreEqual(GamePlane.Canonical.WorldDirToPlane(world), GamePlane.WorldDirToPlane(world));
+        Assert.AreEqual(GamePlane.Canonical.ProjectOntoPlane(world), GamePlane.ProjectOntoPlane(world));
+        Assert.AreEqual(GamePlane.Canonical.Rotation, GamePlane.Rotation);
+    }
+
+    [Test]
+    public void Canonical_IsFrozenZFrameAtOrigin()
+    {
+        var z = new GamePlaneFrame(PlaneAxis.Z);
+
+        Assert.AreEqual(Vector3.zero, GamePlane.Canonical.Origin);
+        Assert.AreEqual(z.Normal, GamePlane.Canonical.Normal);
+        Assert.AreEqual(z.Forward, GamePlane.Canonical.Forward);
+        Assert.AreEqual(z.Right, GamePlane.Canonical.Right);
+        Assert.AreEqual(z.PositionConstraint, GamePlane.Canonical.PositionConstraint);
     }
 }
 

@@ -108,7 +108,7 @@ namespace Tests.EditMode
         public void GameServices_Constructor_RejectsNullServices()
         {
             Assert.Throws<ArgumentNullException>(() =>
-                new GameServices(null, null, null, null, null),
+                new GameServices(null, null, null, null, null, null),
                 "GameServices constructor must reject null services");
         }
 
@@ -286,15 +286,16 @@ namespace Tests.EditMode
         public void SessionHost_DoesNotLookUpSiblingServicesOutsideAwake()
         {
             // Injection hygiene (plan §A): the sibling MonoBehaviour services are cached in Awake;
-            // no GetComponent calls mid-lifecycle. The only two lookups allowed in the file are the
-            // Awake cache assignments — both now live on the host below the seam.
+            // no GetComponent calls mid-lifecycle. The only lookups allowed in the file are the
+            // Awake cache assignments — all on the host below the seam.
             var source = System.IO.File.ReadAllText(System.IO.Path.Combine(
                 Application.dataPath, "Scripts", "Game", "Bootstrap", "SessionHost.cs"));
             StringAssert.Contains("unitService = GetComponent<UnitService>();", source);
             StringAssert.Contains("objectiveService = GetComponent<ObjectiveService>();", source);
+            StringAssert.Contains("navFieldService = GetComponent<NavFieldService>();", source);
             var lookups = source.Split(new[] { "GetComponent<" }, StringSplitOptions.None).Length - 1;
-            Assert.AreEqual(2, lookups,
-                "SessionHost must contain exactly the two Awake cache lookups");
+            Assert.AreEqual(3, lookups,
+                "SessionHost must contain exactly the three Awake cache lookups");
         }
 
         [Test]

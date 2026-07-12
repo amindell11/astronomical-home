@@ -28,9 +28,9 @@ public class ScannerPlayModeTests : PlayModeWorldFixture
         ship = ShipTestFactory.CreateDefaultShip();
         cmdr = ship.Commander as AICommander;
 
-        // Scout.Initialize() (and therefore obstacleScanner) is gated on a registry being
-        // present. Supply a stub so AI systems fully initialise without a real game world.
-        cmdr.SetRegistry(new StubShipRegistry());
+        // Scout.Initialize() (and therefore obstacleScanner) is gated on an arena being
+        // present. Supply the fixture arena so AI systems fully initialise without a real game world.
+        cmdr.SetArena(Arena);
 #else
         Assert.Ignore("ScannerPlayModeTests requires the Unity Editor (uses AssetDatabase).");
 #endif
@@ -39,7 +39,6 @@ public class ScannerPlayModeTests : PlayModeWorldFixture
     [TearDown]
     public override void TearDown()
     {
-        ObstacleFields.Register(null); // drop the stub field
         ShipTestFactory.DestroyShip(ship);
         base.TearDown();
     }
@@ -48,10 +47,9 @@ public class ScannerPlayModeTests : PlayModeWorldFixture
     [Category("Smoke")]
     public IEnumerator ObstacleScanner_DetectsNearbyObstacle_WithinTimeout()
     {
-        // The obstacle scanner now queries the session's active obstacle field, not physics
-        // colliders. Register a stub that reports one obstacle at the ship's location so the
-        // merge path fills.
-        ObstacleFields.Register(new StubObstacleField(new DetectedObstacle(ship.transform.position, 5f, null)));
+        // The obstacle scanner queries the arena's obstacle field, not physics colliders.
+        // Inject a stub that reports one obstacle at the ship's location so the merge path fills.
+        Arena.ObstacleField = new StubObstacleField(new DetectedObstacle(ship.transform.position, 5f, null));
 
         yield return AsyncAssert.WaitUntil(
             () => cmdr.Scout.ObstacleScan.count > 0,

@@ -27,9 +27,7 @@ public static class TestSceneBuilder
         return _currentArena;
     }
 
-    /// <summary>
-    /// Cleans up the test arena and resets GamePlane. Call this in test TearDown.
-    /// </summary>
+    /// <summary>Cleans up the test arena. Call this in test TearDown.</summary>
     public static void CleanupTestArena()
     {
         if (_currentArena != null)
@@ -37,7 +35,6 @@ public static class TestSceneBuilder
             Object.DestroyImmediate(_currentArena);
             _currentArena = null;
         }
-        GamePlane.Reset();
     }
 
     /// <summary>

@@ -45,18 +45,17 @@ namespace Tests.PlayMode
         public void SetUp()
         {
             AudioListener.pause = true;
-            if (GamePlane.IsConfigured) GamePlane.Reset();
-            // Match the shipped game convention (InitScene uses PlaneAxis.Z: the XY plane).
-            GamePlane.Configure(PlaneAxis.Z);
 
             var unitServiceGO = Track(new GameObject("UnitService"));
             unitService = unitServiceGO.AddComponent<UnitService>();
             var objectiveServiceGO = Track(new GameObject("ObjectiveService"));
             var objectiveService = objectiveServiceGO.AddComponent<ObjectiveService>();
 
+            var arena = Tests.Common.TestArena.On(unitServiceGO, unitService.Registry);
+            unitService.SetArena(arena);
             services = new GameServices(
                 unitService, new EnvironmentService(), objectiveService,
-                new CameraService(), new UIService());
+                new CameraService(), new UIService(), arena);
 
             sectorConfig = ScriptableObject.CreateInstance<SectorSettings>();
 
@@ -80,7 +79,6 @@ namespace Tests.PlayMode
             created.Clear();
 
             if (sectorConfig) UnityEngine.Object.DestroyImmediate(sectorConfig);
-            GamePlane.Reset();
             AudioListener.pause = false;
         }
 

@@ -156,11 +156,8 @@ namespace Asteroids.Fields
             };
         }
 
-        // GamePlane is only configured during bootstrap; fall back to the XZ plane in edit mode (matches PlaneAxis.Y).
-        private static Vector2 WorldToPlaneSafe(Vector3 world) =>
-            GamePlane.IsConfigured ? GamePlane.WorldPointToPlane(world) : new Vector2(world.x, world.z);
+        private static Vector2 WorldToPlaneSafe(Vector3 world) => GamePlane.WorldPointToPlane(world);
 
-        private static Vector3 PlanePointToWorldSafe(Vector2 plane) =>
-            GamePlane.IsConfigured ? GamePlane.PlanePointToWorld(plane) : new Vector3(plane.x, 0f, plane.y);
+        private static Vector3 PlanePointToWorldSafe(Vector2 plane) => GamePlane.PlanePointToWorld(plane);
     }
 }

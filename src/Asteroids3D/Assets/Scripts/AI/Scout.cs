@@ -1,6 +1,7 @@
 using System;
 using AI.Scanning;
 using AI.Scanning.Sensors;
+using Game.Services;
 using Movement;
 using Ships;
 using Ships.Command;
@@ -42,20 +43,20 @@ namespace AI
         private DetectedObstacle[] mergedObstacles = new DetectedObstacle[128];
         private int mergedObstacleCount;
 
-        public void Initialize(Transform origin, ShipId shipId, Dynamics shipDynamics, IShipStatus shipContext, IShipRegistry registry)
+        public void Initialize(Transform origin, ShipId shipId, Dynamics shipDynamics, IShipStatus shipContext, ArenaContext arena)
         {
             this.shipId = shipId;
             this.shipDynamics = shipDynamics;
             this.origin = origin;
-            Registry = registry;
+            Registry = arena.Registry;
             this.shipContext = shipContext;
-            shipScanner = new ShipScanner(origin, nearbyShipRadius, shipId, registry);
+            shipScanner = new ShipScanner(origin, nearbyShipRadius, shipId, arena.Registry);
             coverSensor = new SphereSensor(origin, asteroidCoverRadius, asteroidMask, bufferSize: 8);
             // ShipScanner handles ships in a full sphere; the obstacle scanner queries the
-            // session's deterministic asteroid field and owns its (fixed, worst-case) query
+            // arena's deterministic asteroid field and owns its (fixed, worst-case) query
             // envelope — Scout only hands it the dynamics it derives the envelope from.
             var maxAccel = Mathf.Sqrt(shipDynamics.forwardAcc * shipDynamics.forwardAcc + shipDynamics.maxStrafeAcc * shipDynamics.maxStrafeAcc) / shipDynamics.mass;
-            obstacleScanner = new ObstacleScanner(origin, shipDynamics.maxSpeed, maxAccel, obstacleLookaheadTime);
+            obstacleScanner = new ObstacleScanner(origin, shipDynamics.maxSpeed, maxAccel, obstacleLookaheadTime, arena);
         }
 
         private void Update()

@@ -21,8 +21,18 @@ namespace Game.Services
         private readonly List<Ship> spawnedShips = new();
         private readonly List<PendingRespawn> pendingRespawns = new();
         private int nextAgentIndex;
+        private ArenaContext arena;
         public IShipRegistry Registry => ActiveRegistry;
         public ShipRegistry ActiveRegistry { get; } = new();
+
+        /// <summary>Assign the arena handle wired into each ship; one-shot so a stray re-compose can't
+        /// swap the arena out from under live ships.</summary>
+        public void SetArena(ArenaContext context)
+        {
+            if (arena != null && !ReferenceEquals(arena, context))
+                throw new InvalidOperationException("UnitService arena is already set to a different ArenaContext.");
+            arena = context;
+        }
 
         public event Action<Ship> OnShipSpawned;
 
@@ -123,9 +133,11 @@ namespace Game.Services
         public void WireShipDependencies(Ship ship)
         {
             if (!ship) return;
-            ship.Targeting?.SetRegistry(ActiveRegistry);
+            if (arena == null)
+                throw new InvalidOperationException("UnitService.SetArena must be called before wiring ships.");
+            ship.Targeting?.SetRegistry(arena.Registry);
             if (ship.Commander is AICommander aiCommander)
-                aiCommander.SetRegistry(ActiveRegistry);
+                aiCommander.SetArena(arena);
         }
 
         public void RespawnShip(ShipId id, Vector2 pos, float rotation)

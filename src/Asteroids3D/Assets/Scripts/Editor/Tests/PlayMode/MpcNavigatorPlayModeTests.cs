@@ -36,8 +36,8 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
         cmdr = ship.Commander as AICommander;
         mpc  = cmdr.Navigator as Navigator;
 
-        // Navigator.Initialize() is gated on registry != null — supply a stub so all AI systems are fully initialized before tests run.
-        cmdr.SetRegistry(new StubShipRegistry());
+        // Navigator.Initialize() is gated on arena != null — supply the fixture arena so all AI systems are fully initialized before tests run.
+        cmdr.SetArena(Arena);
         cmdr.Brain.enabled = false;
         // Clear any goal/weight state the utility chooser's first state applied during init.
         mpc.ResetNavigation();
@@ -49,7 +49,6 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
     [TearDown]
     public override void TearDown()
     {
-        AI.Scanning.ObstacleFields.Register(null); // drop any stub left by a failed assert
         ShipTestFactory.DestroyShip(ship);
         base.TearDown();
     }
@@ -171,7 +170,7 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
             radius = 1f,
             collider = obstacle.GetComponent<Collider>(),
         };
-        AI.Scanning.ObstacleFields.Register(stubField);
+        Arena.ObstacleField = stubField;
         var targetPos  = new Vector2(20, 20);
         var obstaclePos2D = new Vector2(10, 10);
         mpc.SetNavigationPoint(targetPos);
@@ -197,7 +196,7 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
         Assert.That(minDistToObstacle, Is.GreaterThan(1.5f),
             "MPC should maintain clearance from obstacle center");
 
-        AI.Scanning.ObstacleFields.Unregister(stubField);
+        Arena.ObstacleField = null;
         Object.Destroy(obstacle);
         yield return null;
     }

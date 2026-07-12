@@ -1,7 +1,6 @@
 #if UNITY_EDITOR
 using System.Collections.Generic;
 using AI.Scanning;
-using Game;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -17,16 +16,6 @@ namespace Tests.EditMode
     [Category("AI")]
     public class ObstacleSelectionEditModeTests
     {
-        [SetUp]
-        public void SetUp()
-        {
-            if (GamePlane.IsConfigured) GamePlane.Reset();
-            GamePlane.Configure(PlaneAxis.Z); // XY plane: world (x, y, 0) → plane (x, y)
-        }
-
-        [TearDown]
-        public void TearDown() => GamePlane.Reset();
-
         private static DetectedObstacle At(float x, float y) =>
             new DetectedObstacle(new Vector3(x, y, 0f), 1f, null);
 

@@ -1,15 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Anchor to the primary worktree even when invoked from inside an agent-N
-# worktree: --show-toplevel is CWD-dependent, and a worktree-local
-# .worktree-pool/locks holds dead leases from prior tasks (revise then pushes
-# to a prior task's branch — the WRONG-BRANCH hazard).
+# Anchor to the primary worktree: --show-toplevel is CWD-dependent, and a worktree-local lock dir holds dead leases (the WRONG-BRANCH hazard).
 ROOT="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"
 LOCK_ROOT="${WORKTREE_POOL_LOCK_ROOT:-$ROOT/.worktree-pool/locks}"
-# Locks go stale by AGE, not by a live pid: each agent shell here is ephemeral,
-# so the acquiring pid is long dead by the next call. A lock older than the TTL
-# with no unpushed work in its slot is reclaimable. Override for tests.
+# Locks go stale by AGE, not pid — each agent shell is ephemeral, so the acquiring pid is dead by the next call. TTL override for tests.
 LOCK_TTL_SECONDS="${WORKTREE_POOL_LOCK_TTL:-43200}"
 mkdir -p "$LOCK_ROOT"
 
@@ -53,11 +48,12 @@ Commands:
       unity_test_agent.ps1.
 
   merge <slot> [base_ref] [-- unity_test_agent.ps1 args...]
-      Gated squash-merge of the slot's open PR. If base (default:
-      origin/main) moved since the slot branch last contained it, merge
-      base in, re-run tests, and push before merging — so the tested
-      tree is the tree that lands on main. The ONLY sanctioned merge
-      path; do not call 'gh pr merge' directly.
+      Gated squash-merge of the slot's open PR. Merges base (default:
+      origin/main) in if it moved, then re-runs tests unless the exact
+      resulting tree has a recorded passing run (written by
+      submit/revise/merge only after the runner exits 0) — so the tree
+      that lands on main is a tree that actually passed. The ONLY
+      sanctioned merge path; do not call 'gh pr merge' directly.
 
   finalize <slot> [base_ref]
       After PR is merged: reset slot branch to base ref (default:
@@ -113,9 +109,7 @@ lock_dir_for() {
 
 lease_for() {
   local slot="$1"
-  # Durable source of truth: the worktree's own git config (survives lock-dir
-  # loss, so submit/revise can recover the lease "by id"). Fall back to the
-  # lock dir for locks written before this binding existed.
+  # Worktree git config is the durable lease source (survives lock-dir loss); the lock dir is the legacy fallback.
   local path cfg ldir
   path="$(slot_path "$slot" 2>/dev/null || true)"
   if [[ -n "$path" ]]; then
@@ -138,16 +132,27 @@ task_branch_for() {
     echo "$tb"
     return 0
   fi
-  # Derive deterministically from the lease so a missing task_branch file never
-  # forces a fall back to the bare slot name (which rebases onto ancient
-  # origin/agent-N — the documented REVISE HAZARD).
+  # Derive from the lease so a missing task_branch file never falls back to the bare slot name (rebases onto ancient origin/agent-N — the REVISE HAZARD).
   lease="$(lease_for "$slot")"
   if [[ -n "$lease" ]]; then
     echo "task/$lease"
   fi
-  # Always succeed: a bare failing test as the last line would poison
-  # `x="$(task_branch_for ...)"` under `set -e` in callers.
+  # Always succeed: a failing last line would poison callers' command substitution under set -e.
   return 0
+}
+
+# Proof of testing is content-addressed: the tree hash recorded here only after the runner exits 0. A local base-merge commit alone is never evidence (a failed run after base integration must force a re-test on retry).
+record_tested_tree() {
+  local slot="$1" path="$2"
+  local ldir
+  ldir="$(lock_dir_for "$slot")"
+  mkdir -p "$ldir"
+  git -C "$path" rev-parse 'HEAD^{tree}' > "$ldir/tested_tree"
+}
+
+tested_tree_for() {
+  local slot="$1"
+  cat "$(lock_dir_for "$slot")/tested_tree" 2>/dev/null || true
 }
 
 write_lock() {
@@ -158,11 +163,7 @@ write_lock() {
   printf '%s\n' "$$" > "$ldir/pid"
   date -u +"%Y-%m-%dT%H:%M:%SZ" > "$ldir/timestamp"
   if [[ -n "$path" ]]; then
-    # Worktree-scoped, never the repo-shared .git/config: all slots share that
-    # file, so a plain `git config` write here clobbers every other slot's
-    # lease and their submit/revise pushes to the wrong task branch (the
-    # cross-slot LEASE RACE). The unqualified --unset keeps the shared config
-    # clear of the key so a stale cross-slot value can never be read back.
+    # Worktree-scoped, never the repo-shared .git/config: a plain write there clobbers every slot's lease (cross-slot LEASE RACE); the unqualified --unset keeps the shared key clear.
     git -C "$path" config extensions.worktreeConfig true 2>/dev/null || true
     git -C "$path" config --worktree worktree-pool.lease "$lease" 2>/dev/null || true
     git -C "$path" config --unset worktree-pool.lease 2>/dev/null || true
@@ -187,8 +188,7 @@ is_head_pushed() {
   [[ -n "$remotes" ]]
 }
 
-# A slot is clobber-safe when its worktree has no uncommitted changes and no
-# local commits that aren't already on a remote branch.
+# Clobber-safe: no uncommitted changes and no local commits absent from every remote branch.
 slot_is_clobber_safe() {
   local path="$1" base="${2:-origin/main}"
   local dirty ahead
@@ -250,8 +250,7 @@ try_lock_slot() {
   echo "SLOT=$slot PATH=$path"
 }
 
-# Reclaim only if the lock is past its TTL AND the slot holds no unpushed
-# work (never clobber a dead lock's WIP -- the CLOBBER HAZARD).
+# Reclaim only past-TTL locks whose slot holds no unpushed work (never clobber a dead lock's WIP — the CLOBBER HAZARD).
 try_reclaim_slot() {
   local slot="$1" lease="$2" path="$3"
   local ldir age
@@ -273,9 +272,7 @@ cmd_acquire() {
   local lease="${1:-task-$(date +%Y%m%d-%H%M%S)}"
   local wanted="${2:-}"
 
-  # A named slot is strict: the caller chose it for state the pool can't see
-  # (warm Unity Library, an open editor, ledger affinity) — silently handing
-  # back a different slot recreates the surprise naming was meant to remove.
+  # A named slot is strict: the caller chose it for state the pool can't see — silently handing back a different slot recreates the surprise naming was meant to remove.
   if [[ -n "$wanted" ]]; then
     local path
     path="$(slot_path "$wanted")" || { echo "acquire: unknown slot '$wanted'" >&2; return 1; }
@@ -285,8 +282,7 @@ cmd_acquire() {
     return 1
   fi
 
-  # Free slots first; reclaiming a stale lock crosses another session's
-  # expectations, so it is a fallback pass, never interleaved.
+  # Free slots first; reclaiming a stale lock crosses another session's expectations, so it is a fallback pass, never interleaved.
   local slot path
   while IFS=$'\t' read -r slot path; do
     try_lock_slot "$slot" "$lease" "$path" && return 0
@@ -342,8 +338,7 @@ cmd_prepare() {
   git -C "$path" checkout "$slot"
   git -C "$path" reset --hard "$base"
   git -C "$path" clean -fd
-  # Ignored, so clean leaves it: purge any worktree-local .worktree-pool so a
-  # stale script copy running inside the worktree can't resolve it as live locks.
+  # Ignored, so clean leaves it: purge worktree-local .worktree-pool so a stale script copy can't resolve it as live locks.
   rm -rf "$path/.worktree-pool"
 
   echo "Prepared $slot at $path -> $base"
@@ -440,8 +435,8 @@ cmd_submit() {
   git -C "$path" checkout "$slot"
 
   cmd_run_tests "$slot" "${test_args[@]}"
+  record_tested_tree "$slot" "$path"
 
-  # Derive a task-specific remote branch from the lease id
   local lease task_branch
   lease="$(lease_for "$slot")"
   if [[ -z "$lease" ]]; then
@@ -449,17 +444,14 @@ cmd_submit() {
   fi
   task_branch="task/$lease"
 
-  # Store task branch in lock dir (recreate it if a stale-reclaim removed the
-  # dir, so submit never dies with "task_branch: No such file or directory").
+  # mkdir -p: recreate the lock dir if a stale-reclaim removed it, so submit never dies on the task_branch write.
   local ldir
   ldir="$(lock_dir_for "$slot")"
   mkdir -p "$ldir"
   printf '%s\n' "$task_branch" > "$ldir/task_branch"
 
-  # Push local slot branch to the task-specific remote branch
   git -C "$path" push -u origin "$slot:refs/heads/$task_branch" >/dev/null
 
-  # Create PR from the task branch
   command -v gh >/dev/null 2>&1 || {
     echo "gh CLI not found in PATH" >&2
     return 1
@@ -533,30 +525,35 @@ cmd_merge() {
 
   git -C "$path" fetch origin "$base_branch"
   git -C "$path" checkout "$slot"
-  # Gate against the freshly-fetched remote-tracking ref: a bare local name
-  # (e.g. 'main') can lag the remote and silently skip the re-test.
+  # Gate against the freshly-fetched remote-tracking ref: a bare local name (e.g. 'main') can lag the remote and silently skip the re-test.
   base_ref="origin/$base_branch"
 
-  # If base moved, the branch's last test run predates the merged tree: two PRs
-  # each green on their own base can still break main together (no textual
-  # conflict, so git merges both silently). Re-test the merged tree before landing.
-  if git -C "$path" merge-base --is-ancestor "$base_ref" "$slot"; then
-    echo "$base_ref already contained in $slot — last test run covered the merge result."
-  else
-    echo "$base_ref moved since $slot last synced: merging it in and re-running tests."
+  # If base moved, integrate it first: two PRs each green on their own base can still break main together with no textual conflict.
+  if ! git -C "$path" merge-base --is-ancestor "$base_ref" "$slot"; then
+    echo "$base_ref moved since $slot last synced: merging it in."
     if ! git -C "$path" merge --no-edit "$base_ref"; then
       git -C "$path" merge --abort || true
       echo "merge: conflict merging $base_ref into $slot — resolve in the worktree," >&2
       echo "  'revise' to test+push, then re-run merge." >&2
       return 1
     fi
-    cmd_run_tests "$slot" "${test_args[@]}"
-    git -C "$path" push origin "$slot:refs/heads/$task_branch"
   fi
 
-  # GitHub recomputes mergeability asynchronously after the gate's push; a
-  # merge call inside that window fails "not mergeable" — brief retries ride
-  # it out.
+  # Skip the re-test only on recorded proof for this exact tree: ancestry alone is not evidence — a base-merge commit survives a failed test run, and a retry must re-test it.
+  local current_tree tested_tree
+  current_tree="$(git -C "$path" rev-parse "$slot^{tree}")"
+  tested_tree="$(tested_tree_for "$slot")"
+  if [[ -n "$tested_tree" && "$tested_tree" == "$current_tree" ]]; then
+    echo "Tree $current_tree already passed tests — skipping re-run."
+  else
+    echo "No test proof for tree $current_tree — running tests before merge."
+    cmd_run_tests "$slot" "${test_args[@]}"
+    record_tested_tree "$slot" "$path"
+  fi
+  # Unconditional: gh merges the REMOTE branch, so any local-only commits must be on it before the squash.
+  git -C "$path" push origin "$slot:refs/heads/$task_branch"
+
+  # GitHub recomputes mergeability asynchronously after the gate's push; a merge call inside that window fails "not mergeable" — brief retries ride it out.
   local attempt merged=0
   for attempt in 1 2 3 4 5; do
     if gh pr merge "$pr" --squash --delete-branch=false; then
@@ -579,16 +576,13 @@ cmd_finalize() {
   local slot="$1"
   local base_ref="${2:-origin/main}"
 
-  # Clean up remote task branch (PR is merged, branch is no longer needed)
   local task_branch
   task_branch="$(task_branch_for "$slot")"
   if [[ -n "$task_branch" ]]; then
     git -C "$ROOT" push origin --delete "$task_branch" 2>/dev/null || true
   fi
 
-  # Post-merge reset is intentional discard: the slot's task-branch commits are
-  # subsumed into main (squash) and the remote task branch was just deleted, so
-  # force past the unpushed-work guard.
+  # --force: post-merge reset is intentional discard — the squash subsumed the slot's commits and the remote task branch is gone.
   cmd_prepare "$slot" "$base_ref" --force
   cmd_release "$slot"
 
@@ -604,7 +598,6 @@ cmd_review_comments() {
     return 1
   }
 
-  # Look up PR by task branch first, fall back to slot name
   local head_branch
   head_branch="$(task_branch_for "$slot")"
   [[ -n "$head_branch" ]] || head_branch="$slot"
@@ -664,8 +657,7 @@ cmd_revise() {
   path="$(slot_path "$slot")"
   task_branch="$(task_branch_for "$slot")"
 
-  # Never fall back to the bare slot name: origin/agent-N is an ancient,
-  # unrelated branch, and rebasing onto it replays 100+ commits (REVISE HAZARD).
+  # Never fall back to the bare slot name: rebasing onto ancient origin/agent-N replays 100+ commits (REVISE HAZARD).
   if [[ -z "$task_branch" ]]; then
     echo "revise: no task branch known for $slot (no lease/task_branch)." >&2
     echo "  Push manually instead: git -C $path push origin $slot:refs/heads/task/<lease>" >&2
@@ -680,6 +672,7 @@ cmd_revise() {
   fi
 
   cmd_run_tests "$slot" "${test_args[@]}"
+  record_tested_tree "$slot" "$path"
 
   git -C "$path" push origin "$slot:refs/heads/$task_branch"
   echo "Revised and pushed $slot -> $task_branch"

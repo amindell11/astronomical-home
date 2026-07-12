@@ -43,8 +43,8 @@ Run commands from the repository root with PowerShell.
   ```
 
 - Exit code `20` means the request is still queued. Preserve the ticket if continuing later; otherwise cancel it.
-- `blocked_user_editor` means an untracked editor on the main worktree belongs to the user. Report its PID and ask the user to close it. Never terminate or attach to it.
-- `blocked_unmanaged_unity` means an untracked Unity process is active. Do not close it; wait for it to exit or identify its owner.
+- `blocked_user_editor` means an untracked editor on the main worktree belongs to the user. Report its PID and ask the user to close it. Never terminate or attach to it. Batch requests hit this only when they target the main project itself — an interactive editor on a *different* project does not block batch acquisition. Editor-mode requests still block on any untracked Unity process.
+- `blocked_unmanaged_unity` means an untracked Unity process is active — for batch requests, either a batch process on any project or an editor on the requested project. Do not close it; wait for it to exit or identify its owner.
 - Never bypass the coordinator, jump the FIFO queue, or use the Unity MCP window's **Stop Server** action. The MCP server on port 8081 is shared independently of the current editor lease.
 
 ## Cleanup is mandatory

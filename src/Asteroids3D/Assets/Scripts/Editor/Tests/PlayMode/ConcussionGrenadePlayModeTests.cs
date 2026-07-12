@@ -61,12 +61,12 @@ namespace Tests.PlayMode
             }
         }
 
-        /// <summary>A shooter root with the weapon mounted as a child, nose along world +Z (in-plane).</summary>
+        /// <summary>A shooter root with the weapon mounted as a child, nose along the plane's forward axis.</summary>
         private Grenades MountWeapon(out MovingShooter shooter)
         {
             var ship = new GameObject("Shooter") { layer = LayerIds.Ship };
             spawned.Add(ship);
-            ship.transform.rotation = Quaternion.FromToRotation(Vector3.up, Vector3.forward);
+            ship.transform.rotation = GamePlane.Rotation;
             shooter = ship.AddComponent<MovingShooter>();
 
 #if UNITY_EDITOR
@@ -114,13 +114,13 @@ namespace Tests.PlayMode
         public void Grenade_DropsBackward_FromTheShooterVelocity()
         {
             var weapon = MountWeapon(out var shooter);
-            shooter.Velocity = new Vector3(0f, 0f, 10f);
+            shooter.Velocity = GamePlane.PlaneDirToWorld(new Vector2(0f, 10f));
 
             var grenade = weapon.Fire() as Grenade;
 
             Assert.IsNotNull(grenade, "Firing releases a charge.");
             var velocity = grenade.GetComponent<Rigidbody>().linearVelocity;
-            var expected = new Vector3(0f, 0f, 10f - 3f);
+            var expected = GamePlane.PlaneDirToWorld(new Vector2(0f, 10f - 3f));
             Assert.Less((velocity - expected).magnitude, 0.01f,
                 "The charge inherits the shooter's velocity minus the backward push.");
         }
@@ -164,8 +164,8 @@ namespace Tests.PlayMode
             weapon.transform.root.position = new Vector3(2f, 0f, 0f);
 
             var origin = Vector3.zero;
-            var near = CreateTarget(origin + new Vector3(0f, 0f, 3f), "NearTarget");
-            var far = CreateTarget(origin + new Vector3(0f, 0f, 9f), "FarTarget");
+            var near = CreateTarget(origin + GamePlane.PlaneDirToWorld(new Vector2(0f, 3f)), "NearTarget");
+            var far = CreateTarget(origin + GamePlane.PlaneDirToWorld(new Vector2(0f, 9f)), "FarTarget");
 
             var grenade = weapon.Fire() as Grenade;
             grenade.transform.position = origin;
@@ -196,7 +196,7 @@ namespace Tests.PlayMode
             first.transform.position = Vector3.zero;
             weapon.Reset();
             var second = weapon.Fire() as Grenade;
-            second.transform.position = new Vector3(0f, 0f, 4f);
+            second.transform.position = GamePlane.PlanePointToWorld(new Vector2(0f, 4f));
             second.Configure(fuseSeconds: 999f, armingSeconds: 0f);
 
             first.TakeDamage(1f, 0.1f, Vector3.zero, Vector3.zero, null);
@@ -225,7 +225,7 @@ namespace Tests.PlayMode
                 var angle = i * Mathf.PI * 2f / targetCount;
                 var ring = 2f + i % 8;
                 targets.Add(CreateTarget(
-                    new Vector3(Mathf.Cos(angle) * ring, 0f, Mathf.Sin(angle) * ring), $"SwarmTarget{i}"));
+                    GamePlane.PlanePointToWorld(new Vector2(Mathf.Cos(angle) * ring, Mathf.Sin(angle) * ring)), $"SwarmTarget{i}"));
             }
 
             var grenade = weapon.Fire() as Grenade;

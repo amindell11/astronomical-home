@@ -42,13 +42,7 @@ namespace Tests.EditMode
             public IObjectiveService ObjectiveService => null;
             public ICameraService CameraService => null;
             public IUIService UIService => null;
-        }
-
-        [SetUp]
-        public void SetUp()
-        {
-            // GamePlane is static/process-wide; another fixture may have configured it already.
-            if (!GamePlane.IsConfigured) GamePlane.Configure(PlaneAxis.Y);
+            public ArenaContext Arena => null;
         }
 
         [TearDown]

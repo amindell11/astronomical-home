@@ -17,7 +17,7 @@ namespace Movement.MPC.Field
 
         private void OnDrawGizmos()
         {
-            if (!drawFieldGizmos || !GamePlane.IsConfigured) return;
+            if (!drawFieldGizmos) return;
 
             foreach (var kvp in fields)
                 DrawField(kvp.Value.Front);
