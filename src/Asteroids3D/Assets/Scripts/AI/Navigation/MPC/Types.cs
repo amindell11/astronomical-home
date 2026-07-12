@@ -7,16 +7,14 @@ namespace Movement.MPC
     {
         Waypoint = 0,
         MaintainRange = 1,
-        Flee = 2
+        Flee = 2,
+        // Commanded planar velocity instead of a position goal — the feasibility-tracker a learned goal-policy drives. Not enemy-anchored.
+        VelocityReference = 3
     }
 
     public static class GoalModeExtensions
     {
-        /// <summary>
-        /// The enemy-relative goal modes. Their positional target IS the tracked enemy
-        /// (the cost reads the predicted enemy track), as opposed to an absolute waypoint.
-        /// This is the explicit "the goal is the enemy" indicator.
-        /// </summary>
+        /// <summary>The enemy-relative goal modes, whose positional target is the tracked enemy rather than an absolute waypoint — the explicit "the goal is the enemy" indicator.</summary>
         public static bool IsEnemyAnchored(this GoalMode mode) =>
             mode == GoalMode.MaintainRange || mode == GoalMode.Flee;
     }
@@ -47,7 +45,6 @@ namespace Movement.MPC
         public float invDt;
         public int horizon;
 
-        // Navigation
         public float wPos;
         public float wVel;
         public float wClosing;
@@ -60,14 +57,12 @@ namespace Movement.MPC
         public float terminalMultiplier;
         public float terminalCurve;
 
-        // Control
         public float wEffort;
         public float wSmoothnessThrust;
         public float wSmoothnessStrafe;
         public float wSmoothnessYaw;
         public float wMomentum;
 
-        // Tactical
         public float wFacing;
         public float facingTarget;
         public float facingWidth;
@@ -77,61 +72,52 @@ namespace Movement.MPC
         public float wTangential;
         public float wMissDistance;
 
-        // Obstacle
         public float wObstacle;
         public float collisionPenalty;
         public float collisionSafetyMargin;
 
-        // Arrival
         public float arrivalDistance;
         public float arrivalDistanceSq;
         public float arrivalVelScale;
         public float arrivalYawScale;
 
-        // Boost
         public float wBoostEffort;
 
-        // Ship geometry / dynamics (for cost normalization)
         public float maxBankAngleRad;
         public float maxSpeedSq;
         public float maxYawRateSq;
         public float shipRadius;
         public float maxLatAccel;    // Best-case lateral (strafe) acceleration (m/s²) for turn-away admissibility
 
-        // Goal
         public GoalMode goalMode;
         public float desiredRange;
         public float rangeTolerance;
 
-        // Terminal cost-to-go field (Track B3). Weight on the per-rollout terminal sample,
-        // in stage-cost units; 0 disables the hook entirely.
+        // Authored combat tactics — on for the scripted controller, off in the velocity-tracker where the reward teaches those behaviors.
+        public bool tacticalEnabled;
+
+        // Velocity-track weight — the VelocityReference objective. Unused by other modes.
+        public float wVelTrack;
+
+        // Weight on the per-rollout terminal cost-to-go sample, in stage-cost units; 0 disables the hook.
         public float wTerminal;
     }
 
     public static class ConfigExtensions
     {
-        /// <summary>
-        /// Copies the dynamics-derived fields the cost model needs into the config.
-        /// Single source of truth for config↔dynamics coupling — used by Mpc's ctor,
-        /// RefreshConfig, and the editor comparison rollouts.
-        /// </summary>
+        /// <summary>Copies the dynamics-derived fields the cost model needs into the config — the single source of truth for config↔dynamics coupling.</summary>
         public static void ApplyDynamics(ref this Config cfg, in Movement.Dynamics dyn)
         {
             cfg.maxBankAngleRad = dyn.maxBankAngleRad;
             cfg.maxSpeedSq = dyn.maxSpeed * dyn.maxSpeed;
             cfg.maxYawRateSq = dyn.maxYawRate * dyn.maxYawRate;
             cfg.shipRadius = dyn.shipRadius;
-            // Best case: the model's strafe force at zero speed (it lerps maxStrafe→minStrafe
-            // with speed). Optimistic on purpose — the term should under- not over-trigger.
+            // Strafe force at zero speed — optimistic on purpose so the turn-away term under- not over-triggers.
             cfg.maxLatAccel = dyn.mass > 0f ? dyn.maxStrafeAcc / dyn.mass : dyn.maxStrafeAcc;
         }
     }
 
-    /// <summary>
-    /// Identifies a single MPC weight (or width) that a per-state override can scale.
-    /// States list only the weights they actually change, and an absent entry means
-    /// "use base as-is" (×1) — no all-zero serialization footgun.
-    /// </summary>
+    /// <summary>Identifies a single MPC weight (or width) a per-state override can scale; states list only the weights they change (absent = base ×1), avoiding an all-zero serialization footgun.</summary>
     public enum MpcWeight
     {
         Pos, Vel, Yaw, YawRate,
@@ -150,11 +136,7 @@ namespace Movement.MPC
 
     public static class WeightOverrideExtensions
     {
-        /// <summary>
-        /// Multiplies each listed weight into the config. Absent weights are left at their
-        /// base value (×1). Runs managed-side in Navigator.RefreshConfig (before the
-        /// Burst job), so the switch is free.
-        /// </summary>
+        /// <summary>Multiplies each listed weight into the config (absent weights stay at base ×1). Runs managed-side before the Burst job, so the switch is free.</summary>
         public static void Apply(this WeightOverride[] overrides, ref Config cfg)
         {
             if (overrides == null) return;
@@ -195,22 +177,20 @@ namespace Movement.MPC
         public float weight;
     }
 
-    /// <summary>
-    /// Read-only world data for cost evaluation. Extend this struct to add
-    /// tactical inputs (enemy positions, cover points, LOS data, etc.)
-    /// without changing Cost.Evaluate's signature or touching the Burst job.
-    /// </summary>
+    /// <summary>Read-only world data for cost evaluation; extend it to add tactical inputs without changing Cost.Evaluate's signature or touching the Burst job.</summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct CostInput
     {
         public float2 goalPos;
         public float2 goalVel;
+
+        /// <summary>Commanded world-plane velocity for GoalMode.VelocityReference (objective ‖s.vel − velocityReference‖²); ignored by the position-goal modes.</summary>
+        public float2 velocityReference;
+
         public NativeArray<ObstacleData> obstacles;
         public int obstacleCount;
 
-        /// <summary>Tracked enemy position/velocity. Independent of the goal: an enemy-anchored
-        /// goal reads the predicted enemy track for its position, while tactical costs always
-        /// reference the enemy. (For the linear fallback when no rollout exists.)</summary>
+        /// <summary>Tracked enemy position/velocity (linear fallback when no rollout exists), independent of the goal — tactical costs always reference the enemy.</summary>
         public float2 enemyPos;
         public float2 enemyVel;
 
@@ -229,8 +209,7 @@ namespace Movement.MPC
         /// <summary>Ship velocity at the start of the rollout. Used by momentum cost to reward maintaining direction.</summary>
         public float2 initialVel;
 
-        /// <summary>Cost-to-go field sampled once per rollout at the terminal state
-        /// (Track B3). isValid == 0 (the default) makes the hook contribute 0.</summary>
+        /// <summary>Cost-to-go field sampled once per rollout at the terminal state; isValid == 0 (the default) makes the hook contribute 0.</summary>
         public Field.TerminalFieldData terminalField;
 
     }

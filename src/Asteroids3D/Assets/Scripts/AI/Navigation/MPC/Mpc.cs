@@ -13,6 +13,7 @@ namespace Movement.MPC
         public float boostCooldown;
         public float2 goalPos;
         public float2 goalVel;
+        public float2 velocityReference;   // commanded planar velocity for GoalMode.VelocityReference
         public GoalMode goalMode;
         public float goalDesiredRange;
         public float goalRangeTolerance;
@@ -40,11 +41,7 @@ namespace Movement.MPC
         public float cost;
     }
 
-    /// <summary>
-    /// Model-predictive control solver. Owns the rollout buffers, warm-start, and per-tick
-    /// config refresh. The <see cref="Navigator"/> drives it via
-    /// <see cref="Plan"/> — it knows nothing of waypoints, intents, or the component graph.
-    /// </summary>
+    /// <summary>Model-predictive control solver owning the rollout buffers, warm-start, and per-tick config refresh. The <see cref="Navigator"/> drives it via <see cref="Plan"/>; it knows nothing of waypoints, intents, or the component graph.</summary>
     public class Mpc : IDisposable
     {
         private readonly MpcSettings settings;
@@ -87,7 +84,7 @@ namespace Movement.MPC
                 lastBestCost = solver.Solve(mpcState, bestSequence,
                     config, dynamics,
                     inputs.obstacleScan, inputs.enableObstacleAvoidance, settings.multiSphereObstacles,
-                    inputs.goalPos, inputs.goalVel,
+                    inputs.goalPos, inputs.goalVel, inputs.velocityReference,
                     inputs.enemyPos, inputs.enemyVel, inputs.enemyYaw, inputs.enemyYawRate,
                     inputs.enemyDynamics, inputs.projectileSpeed,
                     settings.samples, settings.noiseStd, settings.noiseKnots, lastControl,
@@ -147,7 +144,6 @@ namespace Movement.MPC
 
         public void Dispose() => solver?.Dispose();
 
-        // ── Editor/debug accessors (read-only views of solver runtime state) ──
         internal MpcSettings Settings => settings;
         internal Dynamics Dynamics => dynamics;
         internal SolverBuffers Solver => solver;

@@ -8,17 +8,11 @@ using Unity.Mathematics;
 
 namespace Tests.EditMode
 {
-    /// <summary>
-    /// PR-2b mechanism proof: representing an elongated rock as its tighter baked lobe spheres
-    /// frees the space beside the "rod" that a single fat mean-vertex circle blocked, while the
-    /// clearance along the fat axis is unchanged. Also pins ConvertObstacles' expansion,
-    /// kill-switch, and atomic-admit semantics via the public solver buffer.
-    /// </summary>
+    /// <summary>Mechanism proof that representing an elongated rock as its tighter baked lobe spheres frees the space beside the rod that a single fat circle blocked (fat-axis clearance unchanged). Also pins ConvertObstacles' expansion, kill-switch, and atomic-admit semantics.</summary>
     [Category("Planning")]
     public class MultiSphereObstacleEditModeTests
     {
-        // Rod geometry: two lobes on the x-axis at (±d,0), radius r. A gap opens along y between
-        // and beside them that the single covering circle (center 0, radius d+r) still fills.
+        // Rod geometry: two lobes on the x-axis at (±d,0), radius r; a gap opens along y that the single covering circle (center 0, radius d+r) still fills.
         private const float D = 1.5f;
         private const float R = 1.0f;
         private const float SingleR = D + R; // 2.5 — mean-vertex-style circle spanning both lobes
@@ -34,16 +28,13 @@ namespace Tests.EditMode
             weight = 1f
         };
 
-        // ── Geometry mechanism proof ─────────────────────────────────────────────
-
         [Test]
         public void TwoLobes_FreeTheNotch_ThatSingleCircleBlocks()
         {
             using var lobes = Circles(C(-D, 0f, R), C(D, 0f, R));
             using var single = Circles(C(0f, 0f, SingleR));
 
-            // Notch: beside the thin axis, between the two lobes. sqrt(1.5²+1.4²)=2.05 > R+Hull=1.1,
-            // so it is clear of BOTH lobes; but 1.4 < SingleR+Hull=2.6, so the fat circle blocks it.
+            // Notch (0,1.4): sqrt(1.5²+1.4²)=2.05 > R+Hull=1.1 clears both lobes, but 1.4 < SingleR+Hull=2.6 so the fat circle blocks it.
             var notch = new float2(0f, 1.4f);
             Assert.IsFalse(Cost.Collides(notch, lobes, lobes.Length, Hull),
                 "Notch point must be collision-free under the two lobes");
@@ -68,8 +59,6 @@ namespace Tests.EditMode
             Assert.IsFalse(Cost.Collides(outside, single, single.Length, Hull));
         }
 
-        // ── ConvertObstacles behaviour (driven through the public solver) ─────────
-
         [SetUp]
         public void SetUp()
         {
@@ -85,9 +74,7 @@ namespace Tests.EditMode
             maxSpeed: 10f, maxYawRate: 180f, yawTorque: 1f, angularDrag: 0.1f,
             linearDrag: 0.1f, yawInertia: 1f, maxBankAngleRad: 0.5f);
 
-        // Builds a K=2 DetectedObstacle whose two plane lobes sit at (±d,0). The primary circle
-        // is irrelevant to these assertions (single-mode writes it; here we only check lobe rows
-        // and counts), so its world position projects to the origin.
+        // Builds a K=2 DetectedObstacle with plane lobes at (±d,0); the primary circle is irrelevant to these lobe-row/count assertions, so its world position projects to the origin.
         private static DetectedObstacle Rod(int lobeCount = 2)
         {
             var l0 = new DetectedObstacle.PlaneCircle(new UnityEngine.Vector2(-D, 0f), R);
@@ -116,7 +103,7 @@ namespace Tests.EditMode
                 var state = new State { pos = float2.zero };
                 solver.Solve(state, seq, cfg, dynamics,
                     scan, true, multiSphere,
-                    new float2(5f, 0f), float2.zero,
+                    new float2(5f, 0f), float2.zero, float2.zero,
                     float2.zero, float2.zero, float.NaN, 0f, default, 0f,
                     1, 0f, 2, default);
                 return solver.ObstacleCount;
@@ -147,8 +134,7 @@ namespace Tests.EditMode
         [Test]
         public void ConvertObstacles_AtomicAdmit_LastK2RockAllOrNothing()
         {
-            // 96-row buffer. 48 K=2 rocks fill it exactly (96 rows); a 49th K=2 rock (98 > 96)
-            // must be rejected whole — count stays even at 96, never 97.
+            // 48 K=2 rocks fill the 96-row buffer exactly; a 49th (98 > 96) must be rejected whole — count stays 96, never 97.
             var buffer = new DetectedObstacle[49];
             for (var i = 0; i < buffer.Length; i++) buffer[i] = Rod();
             var count = RunConvert(buffer, 49, multiSphere: true);
@@ -159,8 +145,7 @@ namespace Tests.EditMode
         [Test]
         public void ConvertObstacles_AtomicAdmit_K3RockRejectedWhole_EvenWhenSomeLobesFit()
         {
-            // 47 K=2 rocks = 94 rows, then one K=3 rock: 94+3=97 > 96, so the whole K=3 rock is
-            // dropped even though 2 of its 3 lobes would fit — proving admission is atomic.
+            // 47 K=2 rocks = 94 rows, then a K=3 rock (94+3=97 > 96) is dropped whole even though 2 of its 3 lobes would fit — admission is atomic.
             var buffer = new DetectedObstacle[48];
             for (var i = 0; i < 47; i++) buffer[i] = Rod();
             buffer[47] = Rod(lobeCount: 3);

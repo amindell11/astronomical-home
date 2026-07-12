@@ -9,6 +9,7 @@ namespace Movement.MPC
         public float vel;
         public float closing;
         public float heading;
+        public float velocityTrack;
         public float facing;
         public float yawRate;
         public float obstacle;
@@ -29,6 +30,7 @@ namespace Movement.MPC
             vel += other.vel;
             closing += other.closing;
             heading += other.heading;
+            velocityTrack += other.velocityTrack;
             facing += other.facing;
             yawRate += other.yawRate;
             obstacle += other.obstacle;
