@@ -10,6 +10,7 @@ using Tests.PlayMode.Common;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
+using Utils;
 
 namespace Tests.PlayMode
 {
