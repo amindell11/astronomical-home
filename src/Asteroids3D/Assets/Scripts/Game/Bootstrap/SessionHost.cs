@@ -31,8 +31,6 @@ namespace Game.Bootstrap
         [SerializeField] private PlaneAxis planeAxis = PlaneAxis.Y;
         [SerializeField] private Vector3 planeOrigin;
 
-        // Sibling MonoBehaviour services ([RequireComponent]); cached once in Awake — never
-        // looked up mid-lifecycle.
         private UnitService unitService;
         private ObjectiveService objectiveService;
 
@@ -57,7 +55,10 @@ namespace Game.Bootstrap
             // self-disables in its Awake. Runtime-only override, same lifetime as the VFX toggle.
             GameSettings.SetPresentationEnabled(target.Profile.presentation);
 
-            GamePlane.Configure(planeAxis, planeOrigin);
+            // GamePlane is a process-global; guard so composing a second session (multi-arena)
+            // shares the one plane instead of throwing on an already-configured Configure.
+            if (!GamePlane.IsConfigured)
+                GamePlane.Configure(planeAxis, planeOrigin);
 
             target.Services = new GameServices(
                 unitService: unitService,

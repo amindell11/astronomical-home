@@ -87,11 +87,6 @@ namespace Game.Bootstrap
             TransitionTo(GameState.Loading);
         }
 
-        // ------------------------------------------------------------------
-        // Coroutine state machine — owns the clock and the gameplay reset policy:
-        // sector completion and player death both restart the sector.
-        // ------------------------------------------------------------------
-
         private void TransitionTo(GameState newState)
         {
             if (stateRoutine != null)
