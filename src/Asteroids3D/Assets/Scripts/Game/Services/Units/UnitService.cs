@@ -25,8 +25,7 @@ namespace Game.Services
         public IShipRegistry Registry => ActiveRegistry;
         public ShipRegistry ActiveRegistry { get; } = new();
 
-        /// <summary>Assign the arena handle wired into each ship; one-shot so a stray re-compose can't
-        /// swap the arena out from under live ships.</summary>
+        /// <summary>Assign the arena handle wired into each ship; one-shot so a stray re-compose can't swap the arena out from under live ships.</summary>
         public void SetArena(ArenaContext context)
         {
             if (arena != null && !ReferenceEquals(arena, context))
@@ -81,9 +80,7 @@ namespace Game.Services
 
         public void DespawnShip(Ship ship)
         {
-            // Producer-owned teardown: destroy one service-owned ship (a spawner product or an adopted
-            // ship) without touching the rest. The session player is never passed here, so it survives
-            // a sector restart. Also drop any queued revive so it can't fire on the destroyed ship.
+            // Drops any queued revive so it can't fire on the destroyed ship; the session player is never passed here.
             if (!ship) return;
             ActiveRegistry.ActiveShips.Remove(ship);
             spawnedShips.Remove(ship);
@@ -103,12 +100,9 @@ namespace Game.Services
 
             spawnedShips.Clear();
             pendingRespawns.Clear();
-            // Clear is the episode-reset boundary: restart the agent index so the next episode
-            // re-derives the same per-agent decision seeds (replay without reconstructing the service).
+            // Restart the agent index so the next run re-derives the same per-agent decision seeds.
             nextAgentIndex = 0;
-            // Do NOT call ActiveRegistry.Dispose() here — that unsubscribes the OnAdd/OnRemove
-            // callbacks, which permanently breaks the registry for subsequent runs.
-            // Ships are already fully unregistered via ActiveShips.Remove() above.
+            // ActiveRegistry.Dispose() here would unsubscribe OnAdd/OnRemove and permanently break the registry for later runs.
         }
 
         private void OnDestroy()
@@ -118,11 +112,7 @@ namespace Game.Services
 
         private int NextDecisionSeed(int team) => DeriveDecisionSeed(team, nextAgentIndex++);
 
-        /// <summary>
-        /// Stable per-agent decision seed derived from the deterministic spawn order, so a
-        /// reconstructed episode replays identically (unlike a <c>GetInstanceID</c>-derived seed).
-        /// Distinct per ship, nonzero.
-        /// </summary>
+        /// <summary>Stable per-agent decision seed from the deterministic spawn order, so a reconstructed episode replays identically; distinct per ship, nonzero.</summary>
         private static int DeriveDecisionSeed(int team, int agentIndex)
         {
             const int arenaBaseSeed = 0; // 0 until S1b supplies per-arena seeds
@@ -140,12 +130,29 @@ namespace Game.Services
                 aiCommander.SetArena(arena);
         }
 
+        /// <summary>Atomic pair-reset: repose, restore the ship's systems, and restore its commander "as if freshly spawned".</summary>
         public void RespawnShip(ShipId id, Vector2 pos, float rotation)
         {
             if(!ActiveRegistry.TryGetShip(id, out var ship)) return;
-            ship.transform.position = GamePlane.PlanePointToWorld(pos);
-            ship.transform.rotation = GamePlane.Rotation * Quaternion.AngleAxis(rotation, Vector3.forward);
+            var worldPos = GamePlane.PlanePointToWorld(pos);
+            var worldRot = GamePlane.Rotation * Quaternion.AngleAxis(rotation, Vector3.forward);
+            ship.transform.SetPositionAndRotation(worldPos, worldRot);
+            // Physics queries (scanner overlaps, LOS raycasts) run before the next simulation step; without this they see the pre-teleport pose.
+            Physics.SyncTransforms();
+            var body = ship.Rigidbody;
+            if (body && ship.gameObject.activeInHierarchy)
+            {
+                // Exact teleport, applied after the transform sync so the direct pose write is authoritative: clear motion and reset the interpolation buffers (toggling interpolation snaps them), or the extrapolating body smears stale motion into its restored pose.
+                body.linearVelocity = Vector3.zero;
+                body.angularVelocity = Vector3.zero;
+                var interpolation = body.interpolation;
+                body.interpolation = RigidbodyInterpolation.None;
+                body.position = worldPos;
+                body.rotation = worldRot;
+                body.interpolation = interpolation;
+            }
             ship.ResetShip();
+            ship.Commander?.ResetState();
         }
 
         public void CancelPendingRespawns()

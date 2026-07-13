@@ -74,7 +74,7 @@ public abstract class AIIntegrationFixture : PlayModeWorldFixture
     /// </summary>
     protected void InitializeWithStates(AICommander cmdr, params AIState[] states)
     {
-        cmdr.UtilityChooser.ResetForTesting();
+        cmdr.UtilityChooser.Reset();
         cmdr.UtilityChooser.Initialize(states, new SeedScope(0));
     }
 

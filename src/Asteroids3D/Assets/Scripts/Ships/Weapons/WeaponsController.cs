@@ -33,11 +33,7 @@ namespace Ships.Weapons
         public WeaponComponent PrimaryMountPrefab => primaryMount;
         public WeaponComponent SecondaryMountPrefab => secondaryMount;
 
-        /// <summary>
-        /// The lock-on sensor carried by a mounted weapon, or null when no mount has one. Owned
-        /// here because the mounts are: set from the instances at Awake and kept current across
-        /// <see cref="Reequip"/>, so consumers (Ship.Targeting) never scan the hierarchy.
-        /// </summary>
+        /// <summary>The lock-on sensor carried by a mounted weapon (null when none); kept current across <see cref="Reequip"/> so consumers never scan the hierarchy.</summary>
         public LockOnSensor Sensor { get; private set; }
 
         private WeaponContext context;
@@ -49,14 +45,7 @@ namespace Ships.Weapons
             Sensor = FindMountSensor();
         }
 
-        /// <summary>
-        /// Swap the mounted weapons for new prefab modules (null = leave the slot empty). A slot
-        /// whose module is unchanged keeps its live mount instance untouched — an unedited loadout
-        /// apply is a no-op. Changed slots destroy the current mount instance, instantiate the new
-        /// prefab at the hardpoint, and refresh the context <em>in place</em> so references held by
-        /// commanders and the HUD stay valid. A between-run operation (see Ship.Reequip); not
-        /// intended mid-combat.
-        /// </summary>
+        /// <summary>Between-run mount swap (null = empty slot): unchanged slots keep their live instance, changed slots re-instantiate and the context refreshes in place so held references stay valid.</summary>
         public void Reequip(WeaponComponent newPrimary, WeaponComponent newSecondary)
         {
             var changed = false;
@@ -145,6 +134,7 @@ namespace Ships.Weapons
         {
             Primary?.Reset();
             Secondary?.Reset();
+            Sensor?.ResetLock();
         }
 
         public void OnShipDeath()
@@ -152,11 +142,7 @@ namespace Ships.Weapons
             ResetSystem();
         }
 
-        /// <summary>
-        /// Slot-keyed read view over the controller's mounts. One instance lives for the ship's
-        /// lifetime and is refreshed in place on a reequip — consumers (commanders, HUD) hold the
-        /// object, never per-mount state.
-        /// </summary>
+        /// <summary>Slot-keyed read view over the mounts; one ship-lifetime instance, refreshed in place on reequip so consumers hold the object, never per-mount state.</summary>
         private sealed class WeaponContext : IWeaponContext, IWeaponReadouts
         {
             private readonly WeaponsController owner;

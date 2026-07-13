@@ -233,10 +233,11 @@ namespace Movement.MPC
 
             initialState.boostCooldownRemaining = boostCooldownRemaining;
 
-            // Per-ship stream, solve counter, and position hash together decorrelate ships/solves/poses while keeping the noise replayable for identical inputs.
+            // Per-ship stream, solve counter, and quantized position hash decorrelate ships/solves/poses while keeping the noise replayable across physically-identical states (raw float bits would make one ulp of pose noise pick a different stream).
             solveCount++;
             var baseSeed = SamplerSeedOverride ?? samplerSeed;
-            var rngSeed = baseSeed + solveCount * 7919u + (uint)initialState.pos.GetHashCode();
+            var quantizedPos = (int2)math.round(initialState.pos * 8f);
+            var rngSeed = baseSeed + solveCount * 7919u + math.hash(quantizedPos);
 
             new GenerateCandidatesJob
             {

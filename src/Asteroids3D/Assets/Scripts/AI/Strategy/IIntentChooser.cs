@@ -19,6 +19,9 @@ namespace AI
         /// to idle/reset (e.g. no decision available, or mid-transition).
         /// </summary>
         NavigationIntent Decide(AIContext ctx, float dt);
+
+        /// <summary>Discard accumulated decision state so the next Decide behaves as freshly initialized (stateless policies need not override).</summary>
+        void Reset() { }
     }
 
     /// <summary>

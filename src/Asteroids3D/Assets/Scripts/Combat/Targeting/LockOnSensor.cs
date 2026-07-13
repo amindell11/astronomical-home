@@ -147,6 +147,9 @@ namespace Combat.Targeting
 
         public ITargetable ConsumeLock() => targetLock.ConsumeLock();
 
+        /// <summary>Drops any lock in progress or held (respawn reset).</summary>
+        public void ResetLock() => targetLock?.Cancel();
+
         private void ScanForTarget()
         {
             var bestTarget = FindBestTargetInCone();

@@ -71,10 +71,13 @@ namespace Ships.Movement
         {
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
+            booster.Reset();
+            currentCommand = default;
         }
 
         private void FixedUpdate()
         {
+            booster.Tick(Time.fixedDeltaTime);
             currentCommand.boost = booster.ProcessBoost(currentCommand.boost, settings.boostCooldown);
             var outs = Forces.ComputeOutputs(Kinematics, currentCommand, settings);
             ApplyForces(outs.thrust, outs.strafe, outs.boost, outs.yawTorque, outs.bank);
