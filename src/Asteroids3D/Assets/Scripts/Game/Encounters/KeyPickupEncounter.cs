@@ -21,7 +21,7 @@ namespace Game.Encounters
         {
             if (keyPickupPrefab)
             {
-                var keyWorld = GamePlane.PlanePointToWorld(keySpawnPosition);
+                var keyWorld = Services.Arena.Place(keySpawnPosition);
                 keyPickupInstance = Instantiate(keyPickupPrefab, keyWorld, keyPickupPrefab.transform.rotation);
                 keyPickupInstance.SpawnKey(keyWorld);
             }

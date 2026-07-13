@@ -17,7 +17,7 @@ namespace Tests.Common
         {
             var navField = host.GetComponent<NavFieldService>();
             if (!navField) navField = host.AddComponent<NavFieldService>();
-            return new ArenaContext(Vector2.zero, registry ?? new StubShipRegistry(), navField);
+            return new ArenaContext(Vector2.zero, registry ?? new StubShipRegistry(), navField, host.transform);
         }
     }
 }

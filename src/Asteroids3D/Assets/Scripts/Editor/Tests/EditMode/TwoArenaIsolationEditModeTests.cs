@@ -67,5 +67,18 @@ namespace Tests.EditMode
             scanner.Scan();
             Assert.AreEqual(0, scanner.DetectedCount, "a null arena field senses zero obstacles");
         }
+
+        [Test]
+        public void Place_AppliesArenaOffset_ToAuthoredPlanePoints()
+        {
+            var host = Track(new GameObject("Arena"));
+            var offset = new Vector2(1000f, -250f);
+            var arena = new Game.Services.ArenaContext(offset, new StubShipRegistry(),
+                host.AddComponent<Movement.MPC.Field.NavFieldService>(), host.transform);
+
+            var authored = new Vector2(7f, 3f);
+            Assert.AreEqual(GamePlane.PlanePointToWorld(authored + offset), arena.Place(authored),
+                "Place must convert an authored plane point into the arena's offset world frame.");
+        }
     }
 }

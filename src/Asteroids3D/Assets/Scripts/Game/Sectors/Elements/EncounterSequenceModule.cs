@@ -57,7 +57,7 @@ namespace Game.Sectors
         private IEnumerator StartEncounter(int index)
         {
             _encounterIndex = index;
-            var encounter = Instantiate(encounters[index]);
+            var encounter = Instantiate(encounters[index], _services.Arena.Root);
             encounter.Initialize(_services, _player);
 
             if (encounter is ExtractionEncounter extraction)

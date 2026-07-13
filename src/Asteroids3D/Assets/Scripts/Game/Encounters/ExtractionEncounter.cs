@@ -27,15 +27,14 @@ namespace Game.Encounters
             {
                 extractionZoneInstance = Instantiate(
                     extractionZonePrefab,
-                    GamePlane.PlanePointToWorld(extractionZonePosition),
+                    Services.Arena.Place(extractionZonePosition),
                     extractionZonePrefab.transform.rotation);
                 extractionZoneInstance.Initialize(chaser ? chaser.transform : null);
             }
 
             if (chaser) chaser.gameObject.SetActive(true);
 
-            // Give physics a frame to process the new collider so OnTriggerEnter fires
-            // even if the player is already overlapping the zone at spawn.
+            // A physics frame so OnTriggerEnter fires even if the player already overlaps the zone at spawn.
             yield return null;
 
             var mission = new MissionDefinition(

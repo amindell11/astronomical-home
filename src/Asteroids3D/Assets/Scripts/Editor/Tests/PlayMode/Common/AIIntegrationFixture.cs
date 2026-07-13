@@ -27,7 +27,7 @@ public abstract class AIIntegrationFixture : PlayModeWorldFixture
     {
         base.SetUp();
         registry = new ShipRegistry();
-        arena = new ArenaContext(Vector2.zero, registry, NavField);
+        arena = new ArenaContext(Vector2.zero, registry, NavField, NavField.transform);
     }
 
     public override void TearDown()

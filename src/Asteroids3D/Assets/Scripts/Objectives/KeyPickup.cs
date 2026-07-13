@@ -1,4 +1,5 @@
 using System;
+using Game;
 using Player;
 using UnityEngine;
 
@@ -30,14 +31,14 @@ namespace Objectives
         public event Action OnKeyCollected;
 
         /// <summary>
-        /// Move to a random position within <see cref="spawnRadius"/> of center
+        /// Move to a random in-plane position within <see cref="spawnRadius"/> of center
         /// and reset collected state.
         /// </summary>
         public void SpawnKey(Vector3 center)
         {
             PlayerHasKey = false;
             var offset2D = UnityEngine.Random.insideUnitCircle * spawnRadius;
-            transform.position = new Vector3(center.x + offset2D.x, center.y, center.z + offset2D.y);
+            transform.position = center + GamePlane.PlaneDirToWorld(offset2D);
             gameObject.SetActive(true);
         }
 

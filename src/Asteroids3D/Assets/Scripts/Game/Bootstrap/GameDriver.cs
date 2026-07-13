@@ -20,10 +20,9 @@ namespace Game.Bootstrap
     ///
     /// The driver-agnostic lifecycle primitives it sequences live below the seam on a sibling
     /// <see cref="SessionHost"/> (behind <see cref="ISessionPrimitives"/>); the driver never composes or
-    /// tears down directly — it calls the host. GamePlane ownership and its reset-on-teardown/destroy
-    /// policy likewise live on the host. This driver is the swappable component: a headless/RL driver
-    /// replaces it on the same GameObject, driving the same host from its own step loop with its own
-    /// policy.
+    /// tears down directly — it calls the host. This driver is the swappable component: a headless/RL
+    /// driver replaces it on the same GameObject, driving the same host from its own step loop with its
+    /// own policy.
     /// </summary>
     [RequireComponent(typeof(SessionHost))]
     public class GameDriver : MonoBehaviour
@@ -136,10 +135,7 @@ namespace Game.Bootstrap
 
         private IEnumerator HandleStart()
         {
-            // The driver sets its reset-policy hooks on the session BEFORE composing; the host's
-            // primitives consume them (LoadSector wires OnSectorComplete to the sector; ComposeSession
-            // passes OnPlayerDeath to the rig, which wires it onto the player synchronously at spawn, so
-            // a spawn-frame death already has a subscriber — no pre-compose subscription dance).
+            // Reset-policy hooks must be set BEFORE composing so a spawn-frame death already has a subscriber.
             session.OnSectorComplete = HandleSectorComplete;
             session.OnPlayerDeath = BuildDeathCallback(session);
 
@@ -148,10 +144,7 @@ namespace Game.Bootstrap
             TransitionTo(GameState.Hangar);
         }
 
-        // Map the gameplay death policy to the callback the rig wires onto the player. Null for None
-        // (and for a disabled RespawnInPlace policy, matching Respawn.Wire's Enabled guard); a restart
-        // request for RestartSector; a producer-relative revive for RespawnInPlace. Services are read
-        // from the session at death time, which is after composition has populated them.
+        // Services are read from the session at death time, after composition has populated them.
         private Action<ShipId, ShipId> BuildDeathCallback(GameSession target)
         {
             switch (deathBehavior)
@@ -161,8 +154,11 @@ namespace Game.Bootstrap
                 case PlayerDeathBehavior.RespawnInPlace:
                     var policy = playerRespawn;
                     if (!policy.Enabled) return null;
+                    // No live producer transform here, so the authored point resolves against the arena offset.
                     return (victim, _) => target.Services.UnitService.WaitAndRespawnShip(
-                        victim, Respawn.Resolve(policy, target.Services), 0f, policy.delay);
+                        victim,
+                        Respawn.Resolve(policy, target.Services, target.Services.Arena.Offset),
+                        0f, policy.delay);
                 case PlayerDeathBehavior.None:
                 default:
                     return null;
@@ -220,8 +216,7 @@ namespace Game.Bootstrap
             if (activeOverlay) activeOverlay.SetVisible(true);
         }
 
-        // Fire1 shares mouse 0 with UI clicks, so a hangar button press would fire the ship's
-        // primary weapon; the commander sleeps for the screen's lifetime instead.
+        // Fire1 shares mouse 0 with UI clicks, so the commander sleeps for the hangar screen's lifetime.
         private static void SetPlayerInputEnabled(SessionRig rig, bool inputEnabled)
         {
             if (rig.Player && rig.Player.Commander)
@@ -241,8 +236,6 @@ namespace Game.Bootstrap
 
         private IEnumerator HandleRestart()
         {
-            // GamePlane is host-owned and persists across restart (UnloadSector never resets it), so no
-            // reconfigure guard is needed here.
             yield return host.UnloadSector(session);
 
             TransitionTo(GameState.Hangar);

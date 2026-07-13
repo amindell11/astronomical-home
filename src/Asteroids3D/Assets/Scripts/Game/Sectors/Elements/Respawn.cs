@@ -38,9 +38,10 @@ namespace Game.Sectors
         /// <summary>
         /// Plane-space revive position for a policy: a random point within <c>radius</c> of the resolved
         /// anchor. For <c>FixedPoint</c> the anchor is <paramref name="producerBase"/> plus the policy's
-        /// offset <c>point</c> (producer-relative); for <c>FollowerRelative</c> it is the world follower's
-        /// plane position. <paramref name="producerBase"/> defaults to origin, so a policy authored at the
-        /// world origin resolves to its raw <c>point</c>.
+        /// offset <c>point</c> (producer-relative). For <c>FollowerRelative</c> it is the world follower's
+        /// plane position, falling back to the arena origin when no follower exists. A caller with no
+        /// live producer transform (the driver's player policy) passes the arena offset as
+        /// <paramref name="producerBase"/> so an authored <c>point</c> resolves arena-relative.
         /// </summary>
         public static Vector2 Resolve(RespawnPolicy policy, IGameServices services, Vector2 producerBase = default)
         {
@@ -53,7 +54,8 @@ namespace Game.Sectors
         private static Vector2 FollowerAnchor(IGameServices services)
         {
             var follower = services?.EnvironmentService?.WorldFollowerTransform;
-            return follower ? GamePlane.WorldPointToPlane(follower.position) : Vector2.zero;
+            if (follower) return GamePlane.WorldPointToPlane(follower.position);
+            return services?.Arena?.Offset ?? Vector2.zero;
         }
     }
 }
