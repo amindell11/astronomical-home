@@ -4,9 +4,10 @@
     [string]$OutDir = "results/unity-tests-agent",
     [ValidateSet("Both", "EditMode", "PlayMode")]
     [string]$Mode = "Both",
-    [ValidateSet("Workspace", "Feature", "Module", "Smoke")]
+    [ValidateSet("Workspace", "Feature", "Module", "Smoke", "Auto")]
     [string]$ScopeType = "Workspace",
     [string]$ScopeName = "",
+    [string]$DiffBase = "origin/main",
     [string]$TestFilter = "",
     [string]$TestCategory = "",
     [string]$AssemblyNames = "",
@@ -28,26 +29,13 @@
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot "unity_test_scope_lib.ps1")
 $Script:IsWindowsPlatform = ($env:OS -eq "Windows_NT")
 $Script:UnityAccessRunId = [guid]::NewGuid().ToString("N")
 # Boot window ends once licensing + global package-cache work is done and per-project Library work begins (postmortem D6).
 $Script:BootCompletePattern = 'Application\.AssetDatabase Initial Refresh Start'
 $Script:BootWatchTimeoutSec = 180
 $Script:BootAcquireWaitSec = 300
-
-function Resolve-FullPath {
-    param([string]$Path)
-
-    if ([string]::IsNullOrWhiteSpace($Path)) {
-        return ""
-    }
-
-    if ([System.IO.Path]::IsPathRooted($Path)) {
-        return [System.IO.Path]::GetFullPath($Path)
-    }
-
-    return [System.IO.Path]::GetFullPath((Join-Path (Get-Location) $Path))
-}
 
 function Get-UnityAccessSlot {
     param([string]$ProjectFullPath)
@@ -215,103 +203,60 @@ function Get-TopStackFrame {
     return ($first.Trim())
 }
 
-function Load-ScopeMap {
-    param([string]$Path)
+function Get-AutoChangedFiles {
+    param([string]$RepoProbePath, [string]$BaseRef)
 
-    if ([string]::IsNullOrWhiteSpace($Path)) {
-        $scriptDir = Split-Path -Parent $PSCommandPath
-        $Path = Join-Path $scriptDir "unity_test_scopes.json"
+    $repoRoot = [string](& git -C $RepoProbePath rev-parse --show-toplevel | Select-Object -First 1)
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($repoRoot)) {
+        throw "git rev-parse --show-toplevel failed under '$RepoProbePath'"
     }
 
-    $fullPath = Resolve-FullPath $Path
-
-    if (-not (Test-Path -LiteralPath $fullPath)) {
-        Write-Warning "Scope map not found at: $fullPath"
-        return $null
+    $mergeBase = [string](& git -C $repoRoot merge-base $BaseRef HEAD | Select-Object -First 1)
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($mergeBase)) {
+        throw "git merge-base $BaseRef HEAD failed"
     }
 
-    try {
-        $raw = Get-Content -LiteralPath $fullPath -Raw
-        $map = $raw | ConvertFrom-Json
-        return $map
+    $diffFiles = @(& git -C $repoRoot diff --name-only $mergeBase)
+    if ($LASTEXITCODE -ne 0) {
+        throw "git diff --name-only $mergeBase failed"
     }
-    catch {
-        Write-Warning "Failed to parse scope map at $fullPath : $_"
-        return $null
+
+    $untrackedFiles = @(& git -C $repoRoot ls-files --others --exclude-standard)
+    if ($LASTEXITCODE -ne 0) {
+        throw "git ls-files --others failed"
+    }
+
+    return [pscustomobject]@{
+        mergeBase = $mergeBase
+        files = @(@($diffFiles) + @($untrackedFiles) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique)
     }
 }
 
-function Resolve-ScopeFilter {
-    param(
-        [object]$ScopeMap,
-        [string]$ScopeType,
-        [string]$ScopeName
-    )
+function Write-AutoSelection {
+    param([object]$Auto, [string]$BaseRef, [string]$MergeBase)
 
-    if ($null -eq $ScopeMap) {
-        return ""
+    Write-Host "=== Auto scope resolution (diff base: $BaseRef, merge-base: $MergeBase) ==="
+    Write-Host ("Changed files considered: {0}" -f @($Auto.consideredFiles).Count)
+    foreach ($file in @($Auto.consideredFiles)) {
+        Write-Host "  $file"
     }
 
-    $lowerType = $ScopeType.ToLower()
-    $lowerName = $ScopeName.ToLower()
-
-    if ($lowerType -eq "smoke") {
-        if ($null -ne $ScopeMap.smoke -and $null -ne $ScopeMap.smoke.testFilter) {
-            return [string]$ScopeMap.smoke.testFilter
+    switch ($Auto.mode) {
+        "smoke" {
+            Write-Host "No test-relevant changed files -> running SMOKE scope only."
         }
-        return ""
-    }
-
-    if ($lowerType -eq "workspace") {
-        if ($null -ne $ScopeMap.modules -and $null -ne $ScopeMap.modules.workspace -and $null -ne $ScopeMap.modules.workspace.testFilter) {
-            return [string]$ScopeMap.modules.workspace.testFilter
+        "modules" {
+            Write-Host ("Matched modules: {0}" -f (@($Auto.matchedModules) -join ", "))
+            Write-Host ("Resolved filter (module union + smoke): {0}" -f $Auto.testFilter)
         }
-        return ""
-    }
-
-    if ($lowerType -eq "feature") {
-        if ([string]::IsNullOrWhiteSpace($lowerName)) {
-            Write-Warning "ScopeType=Feature requires -ScopeName to be specified"
-            return ""
-        }
-
-        if ($null -ne $ScopeMap.features) {
-            $featuresObj = $ScopeMap.features
-            $members = $featuresObj | Get-Member -MemberType NoteProperty | Where-Object { $_.Name -eq $lowerName }
-            if ($members) {
-                $entry = $featuresObj.$lowerName
-                if ($null -ne $entry.testFilter) {
-                    return [string]$entry.testFilter
-                }
+        "fallback" {
+            Write-Host "AUTO SCOPE FALLBACK -> FULL WORKSPACE SUITE (never under-test)."
+            foreach ($file in @($Auto.unmatchedFiles)) {
+                Write-Host "  UNMATCHED (no module 'paths' glob in unity_test_scopes.json): $file"
             }
         }
-
-        Write-Warning "Feature '$lowerName' not found in scope map"
-        return ""
     }
-
-    if ($lowerType -eq "module") {
-        if ([string]::IsNullOrWhiteSpace($lowerName)) {
-            Write-Warning "ScopeType=Module requires -ScopeName to be specified"
-            return ""
-        }
-
-        if ($null -ne $ScopeMap.modules) {
-            $modulesObj = $ScopeMap.modules
-            $members = $modulesObj | Get-Member -MemberType NoteProperty | Where-Object { $_.Name -eq $lowerName }
-            if ($members) {
-                $entry = $modulesObj.$lowerName
-                if ($null -ne $entry.testFilter) {
-                    return [string]$entry.testFilter
-                }
-            }
-        }
-
-        Write-Warning "Module '$lowerName' not found in scope map"
-        return ""
-    }
-
-    return ""
+    Write-Host "=== End auto scope resolution ==="
 }
 
 function Test-ScopeFilterMatchesTests {
@@ -599,12 +544,45 @@ New-Item -ItemType Directory -Force -Path $outRoot | Out-Null
 $scopeMap = Load-ScopeMap -Path $ScopeMapPath
 $resolvedFilter = $TestFilter
 $scopeResolved = $false
+$autoSummary = $null
 
 if ([string]::IsNullOrWhiteSpace($TestFilter)) {
-    $resolvedFilter = Resolve-ScopeFilter -ScopeMap $scopeMap -ScopeType $ScopeType -ScopeName $ScopeName
-    if (-not [string]::IsNullOrWhiteSpace($resolvedFilter)) {
-        $scopeResolved = $true
-        Write-Host "Resolved scope ($ScopeType$(if ($ScopeName) { "/$ScopeName" })) to filter: $resolvedFilter"
+    if ($ScopeType -eq "Auto") {
+        $autoMergeBase = ""
+        $autoSelection = $null
+        try {
+            $diff = Get-AutoChangedFiles -RepoProbePath $project -BaseRef $DiffBase
+            $autoMergeBase = $diff.mergeBase
+            $autoSelection = Resolve-AutoSelection -ScopeMap $scopeMap -ChangedFiles $diff.files
+        }
+        catch {
+            Write-Warning "AUTO SCOPE: git diff against '$DiffBase' failed ($($_.Exception.Message)). Falling back to the FULL Workspace suite."
+            $autoSelection = [pscustomobject]@{
+                mode = "fallback"
+                consideredFiles = @()
+                matchedModules = @()
+                unmatchedFiles = @()
+                testFilter = Resolve-ScopeFilter -ScopeMap $scopeMap -ScopeType "Workspace" -ScopeName ""
+            }
+        }
+
+        Write-AutoSelection -Auto $autoSelection -BaseRef $DiffBase -MergeBase $autoMergeBase
+        $resolvedFilter = [string]$autoSelection.testFilter
+        $scopeResolved = -not [string]::IsNullOrWhiteSpace($resolvedFilter)
+        $autoSummary = [ordered]@{
+            diffBase = $DiffBase
+            mergeBase = $autoMergeBase
+            mode = [string]$autoSelection.mode
+            matchedModules = @($autoSelection.matchedModules)
+            unmatchedFiles = @($autoSelection.unmatchedFiles)
+        }
+    }
+    else {
+        $resolvedFilter = Resolve-ScopeFilter -ScopeMap $scopeMap -ScopeType $ScopeType -ScopeName $ScopeName
+        if (-not [string]::IsNullOrWhiteSpace($resolvedFilter)) {
+            $scopeResolved = $true
+            Write-Host "Resolved scope ($ScopeType$(if ($ScopeName) { "/$ScopeName" })) to filter: $resolvedFilter"
+        }
     }
 }
 
@@ -671,6 +649,20 @@ if (
     }
 }
 
+$selection = [ordered]@{
+    scopeType = $ScopeType
+    scopeName = $ScopeName
+    scopeResolved = $scopeResolved
+    testFilter = $TestFilter
+    testCategory = $TestCategory
+    excludeCategory = $ExcludeCategory
+    categoryFilter = $categoryFilter
+    assemblyNames = $AssemblyNames
+    orderedTestListFile = $orderedListPath
+    rerunFailedFrom = $rerunSummaryPath
+    auto = $autoSummary
+}
+
 $runs = @()
 
 foreach ($platform in $platforms) {
@@ -704,19 +696,6 @@ foreach ($platform in $platforms) {
     }
 
     Write-Host "Running Unity $platform tests..."
-
-    $selection = [ordered]@{
-        scopeType = $ScopeType
-        scopeName = $ScopeName
-        scopeResolved = $scopeResolved
-        testFilter = $TestFilter
-        testCategory = $TestCategory
-        excludeCategory = $ExcludeCategory
-        categoryFilter = $categoryFilter
-        assemblyNames = $AssemblyNames
-        orderedTestListFile = $orderedListPath
-        rerunFailedFrom = $rerunSummaryPath
-    }
 
     $invoke = Invoke-UnityProcess -UnityExe $unityExe -Arguments $args -TimeoutSec $UnityTimeoutSec
     $unityExit = [int]$invoke.exitCode
@@ -771,18 +750,7 @@ $summary = [ordered]@{
     projectPath = $project
     unityPath = $unityExe
     mode = $Mode
-    selection = [ordered]@{
-        scopeType = $ScopeType
-        scopeName = $ScopeName
-        scopeResolved = $scopeResolved
-        testFilter = $TestFilter
-        testCategory = $TestCategory
-        excludeCategory = $ExcludeCategory
-        categoryFilter = $categoryFilter
-        assemblyNames = $AssemblyNames
-        orderedTestListFile = $orderedListPath
-        rerunFailedFrom = $rerunSummaryPath
-    }
+    selection = $selection
     status = $overallStatus
     totals = [ordered]@{
         total = $total
