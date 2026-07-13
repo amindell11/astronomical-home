@@ -8,14 +8,7 @@ using World;
 
 namespace Game.Sectors
 {
-    /// <summary>
-    /// The single concrete play-sector. Owns manifest content (adopted ships, procedural spawners —
-    /// including any asteroid field, which is just another spawner) and behavior modules. The player,
-    /// observer camera, UI overlay and world are built once by the session-tier
-    /// <see cref="global::Player.SessionRig"/> and injected via <see cref="Initialize"/> — the sector
-    /// references the player, it does not own it. Combat / Arena / Testbench are prefabs of this class,
-    /// differing only in their manifest, modules and producer-owned RespawnPolicies.
-    /// </summary>
+    /// <summary>The single concrete play-sector: owns manifest content + modules; player/camera/world are session-tier, injected via Initialize. Combat/Arena/Testbench are prefabs differing only in manifest.</summary>
     public class Sector : MonoBehaviour, ISector
     {
         public event Action<SectorResult> OnSectorComplete;
@@ -44,12 +37,7 @@ namespace Game.Sectors
         /// <summary>Baked module manifest (read-only view for editor/tests).</summary>
         public IReadOnlyList<SectorModule> Modules => modules;
 
-        /// <summary>
-        /// Plane-space player start, resolved from an optional <see cref="PlayerStartMarker"/> child, or
-        /// the sector root's own transform when none is placed — producer-relative to the sector and
-        /// recomputed each entry so the reset is deterministic. The sector only DECLARES it; the session
-        /// tier does the reset.
-        /// </summary>
+        /// <summary>Plane-space player start from an optional PlayerStartMarker child (sector root otherwise), recomputed each entry — the sector only declares it, the session tier does the reset.</summary>
         public Vector2 PlayerStart
         {
             get
@@ -68,6 +56,9 @@ namespace Game.Sectors
 
         public IEnumerator Setup()
         {
+            // Fresh bus each cycle so a restart never sees stale latched tokens (episode-reset requirement).
+            Context = new SectorBuildContext(Services, this, Context.Player, new SectorEventBus());
+
             yield return OnBeforeContent();
 
             foreach (var t in adopted)
@@ -91,6 +82,8 @@ namespace Game.Sectors
         public IEnumerator Teardown()
         {
             IsSetUp = false;
+            // Freeze before module teardown: modules dismantle sequentially and no rule may fire mid-teardown.
+            Context.Bus?.Freeze();
 
             for (var i = modules.Length - 1; i >= 0; i--)
             {
@@ -105,8 +98,7 @@ namespace Game.Sectors
             for (var i = spawners.Length - 1; i >= 0; i--)
                 if (spawners[i]) yield return spawners[i].Teardown(Context);
 
-            // Despawn adopted ships so NPCs don't accumulate across restarts; non-ship adopts
-            // (WorldRoot) are session infra and are deliberately left alone.
+            // Despawn adopted ships so NPCs don't accumulate across restarts; non-ship adopts (WorldRoot) are session infra, deliberately left alone.
             foreach (var entry in adopted)
                 if (entry.target is Ship ship) Services.UnitService.DespawnShip(ship);
 
@@ -142,10 +134,7 @@ namespace Game.Sectors
         }
 
 #if UNITY_EDITOR
-        /// <summary>
-        /// Editor-only: reconcile the serialized manifest with the live child hierarchy. Caller marks
-        /// the object dirty / records undo.
-        /// </summary>
+        /// <summary>Editor-only: reconcile the serialized manifest with the live child hierarchy; caller marks dirty / records undo.</summary>
         public SectorManifestSync.ReconcileResult SyncManifest()
         {
             var result = SectorManifestSync.Reconcile(transform, adopted, spawners, modules);
@@ -159,10 +148,7 @@ namespace Game.Sectors
         public SectorManifestSync.DriftReport ComputeDrift() =>
             SectorManifestSync.ComputeDrift(transform, adopted, spawners, modules);
 
-        /// <summary>
-        /// Test/editor seam: inject the baked manifest directly, mirroring what the inspector Sync
-        /// writes via <see cref="SyncManifest"/>. Null arguments leave that slice untouched.
-        /// </summary>
+        /// <summary>Test/editor seam mirroring what the inspector Sync writes; null arguments leave that slice untouched.</summary>
         internal void SetManifest(AdoptEntry[] adopted, SectorSpawner[] spawners, SectorModule[] modules)
         {
             if (adopted != null) this.adopted = adopted;
