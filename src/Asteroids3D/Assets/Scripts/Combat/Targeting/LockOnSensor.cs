@@ -171,7 +171,7 @@ namespace Combat.Targeting
 
         private bool InLineOfSight(ITargetable t)
         {
-            return LineOfSight.IsClear(firePoint.position, t.TargetPoint.position, t.TargetPoint.root);
+            return LineOfSight.IsClear(firePoint.position, t.TargetPoint.position, t.TargetPoint);
         }
 
         private ITargetable FindBestTargetInCone()

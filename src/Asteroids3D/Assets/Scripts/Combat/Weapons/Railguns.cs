@@ -99,14 +99,13 @@ namespace Combat.Weapons
             var direction = firePoint.up;
             var end = origin + direction * range;
 
-            // The beam starts inside the firing ship, so take the nearest hit that is NOT the
-            // shooter's own hierarchy (mirrors the projectile same-root skip).
-            var shooterRoot = (shooter as Component)?.transform.root;
+            // The beam starts inside the firing ship, so skip the shooter's own body.
+            var shooterBody = shooter?.Body;
             var count = Physics.RaycastNonAlloc(origin, direction, beamHits, range, hitMask);
             var bestIndex = -1;
             for (var i = 0; i < count; i++)
             {
-                if (shooterRoot && beamHits[i].collider.transform.root == shooterRoot) continue;
+                if (shooterBody && beamHits[i].rigidbody == shooterBody) continue;
                 if (bestIndex < 0 || beamHits[i].distance < beamHits[bestIndex].distance)
                     bestIndex = i;
             }
