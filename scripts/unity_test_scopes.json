@@ -23,7 +23,7 @@
       "testFilter": "CollisionDamageUtilityTests|ForcesEditModeTests|FragneticsCalculatorEditModeTests"
     },
     "weapons": {
-      "testFilter": "HeatPlayMode|HeatOverheatStress|HeatEditModeTests|MissileGuidance|WeaponCommandDispatch"
+      "testFilter": "HeatOverheatStress|HeatEditModeTests|MissileGuidance|WeaponCommandDispatch|ParentedEntityIdentityPlayMode"
     },
     "targeting": {
       "testFilter": "LockOnRegistryWiring|LockOnRegressionEditModeTests"
@@ -32,7 +32,7 @@
       "testFilter": "KeyPickupObjective|ObjectiveTrackerEditModeTests|ObjectiveChannelEditModeTests"
     },
     "sectors": {
-      "testFilter": "SectorCompositionPlayMode|SectorLifecyclePlayMode|SectorManifestSyncEditModeTests|RespawnEditModeTests"
+      "testFilter": "SectorCompositionPlayMode|SectorLifecyclePlayMode|SectorManifestSyncEditModeTests|RespawnEditModeTests|MultiArenaSmokePlayMode"
     },
     "damage": {
       "testFilter": "ShipRespawnDamagePlayMode|CollisionDamageUtilityTests"
@@ -79,7 +79,7 @@
       ]
     },
     "combat": {
-      "testFilter": "HeatPlayMode|HeatOverheatStress|HeatEditModeTests|ChargeTimeEditModeTests|RoundsReloadEditModeTests|ConcussionGrenade|MissileGuidance|WeaponCommandDispatch|WeaponHardpointEditModeTests|WeaponTriggerSemanticsPlayMode|WeaponReequipPlayMode|LockOnRegistryWiring|LockOnRegressionEditModeTests",
+      "testFilter": "HeatOverheatStress|HeatEditModeTests|ChargeTimeEditModeTests|RoundsReloadEditModeTests|ConcussionGrenade|MissileGuidance|WeaponCommandDispatch|WeaponHardpointEditModeTests|WeaponTriggerSemanticsPlayMode|WeaponReequipPlayMode|LockOnRegistryWiring|LockOnRegressionEditModeTests|ParentedEntityIdentityPlayMode",
       "paths": [
         "src/Asteroids3D/Assets/Scripts/Combat/**",
         "src/Asteroids3D/Assets/Scripts/Ships/Weapons/**",
@@ -95,11 +95,12 @@
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/LockOnRegistryWiringPlayModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/WeaponCommandDispatchPlayModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/WeaponTriggerSemanticsPlayModeTests.cs*",
-        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/WeaponReequipPlayModeTests.cs*"
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/WeaponReequipPlayModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/ParentedEntityIdentityPlayModeTests.cs*"
       ]
     },
     "sectors": {
-      "testFilter": "SectorCompositionPlayMode|SectorLifecyclePlayMode|SectorManifestSyncEditModeTests|SectorActivationEditModeTests|SectorActivationLifecyclePlayMode|TriggerVolumeActivationPlayMode|EncounterLifecycle|ArenaEncounterPlacementPlayMode|RespawnEditModeTests|BootstrapContractsEditModeTests",
+      "testFilter": "SectorCompositionPlayMode|SectorLifecyclePlayMode|SectorManifestSyncEditModeTests|SectorActivationEditModeTests|SectorActivationLifecyclePlayMode|TriggerVolumeActivationPlayMode|EncounterLifecycle|ArenaEncounterPlacementPlayMode|MultiArenaSmokePlayMode|RespawnEditModeTests|BootstrapContractsEditModeTests",
       "paths": [
         "src/Asteroids3D/Assets/Scripts/Game/Sectors/**",
         "src/Asteroids3D/Assets/Scripts/Game/Encounters/**",
@@ -111,7 +112,8 @@
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/SectorLifecyclePlayModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/TriggerVolumeActivationPlayModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/EncounterLifecyclePlayModeTests.cs*",
-        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/ArenaEncounterPlacementPlayModeTests.cs*"
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/ArenaEncounterPlacementPlayModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/MultiArenaSmokePlayModeTests.cs*"
       ]
     },
     "objectives": {
