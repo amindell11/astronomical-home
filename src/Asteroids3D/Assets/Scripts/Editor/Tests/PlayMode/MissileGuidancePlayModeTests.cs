@@ -19,6 +19,7 @@ namespace Tests.PlayMode
         private class StubShooter : MonoBehaviour, IShooter
         {
             public Vector3 Velocity { get; set; }
+            public Rigidbody Body => GetComponent<Rigidbody>();
         }
 
         public override void TearDown()
@@ -51,10 +52,7 @@ namespace Tests.PlayMode
 
         private void LaunchAt(Missile m, Vector2 planeDir, IShooter shooter)
         {
-            // Align transform.up to the launch direction on the game plane,
-            // matching how WeaponBase.Fire() sets firePoint.rotation before Launch().
-            // KinematicsPoller reads transform.up to compute yaw/Forward, so without
-            // this the guidance system sees a wrong heading and cannot converge.
+            // KinematicsPoller derives heading from transform.up, so align it to the launch direction (as WeaponBase.Fire does) or guidance can't converge.
             var worldDir = GamePlane.PlaneDirToWorld(planeDir.normalized);
             m.transform.rotation = Quaternion.LookRotation(GamePlane.Normal, worldDir);
 
