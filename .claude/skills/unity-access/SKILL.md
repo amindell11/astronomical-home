@@ -35,6 +35,8 @@ Run commands from the repository root with PowerShell.
 
    The coordinator starts or reuses the shared MCP server and records the editor PID. Confirm that the returned status is `attached` and that `Status` identifies the expected lease before using MCP. A tracked editor only blocks work on its own project, but it holds the boot lane until the lane's TTL expires (~3 min), so other Unity launches queue briefly after an editor start.
 
+   **Instance pinning is mandatory whenever more than one editor may be connected to the MCP server** — `Status` shows a second editor-mode owner, or the user's untracked main editor is open beside yours. Batch test runs never register with MCP, but every connected editor does: list `mcpforunity://instances`, then pin with `set_active_instance` (or pass `unity_instance` per call) and verify the pinned instance's project path is your worktree before issuing any MCP command. Unpinned calls in a multi-editor situation route unpredictably.
+
 ## Queue and blockers
 
 - Use a unique, task-specific lease and the current pool slot (`agent-1` … `agent-5`).
