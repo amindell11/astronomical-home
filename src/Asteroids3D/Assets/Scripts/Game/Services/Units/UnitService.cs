@@ -25,8 +25,7 @@ namespace Game.Services
         public IShipRegistry Registry => ActiveRegistry;
         public ShipRegistry ActiveRegistry { get; } = new();
 
-        /// <summary>Assign the arena handle wired into each ship; one-shot so a stray re-compose can't
-        /// swap the arena out from under live ships.</summary>
+        /// <summary>Assign the arena handle wired into each ship; one-shot so a stray re-compose can't swap the arena out from under live ships.</summary>
         public void SetArena(ArenaContext context)
         {
             if (arena != null && !ReferenceEquals(arena, context))
@@ -66,7 +65,6 @@ namespace Game.Services
             // Re-home from the sector to the arena root so lifetime/Clear() matches a spawned ship.
             ship.transform.SetParent(transform, true);
 
-            // Use the pilot authored as a child of the ship, if present.
             var commander = ship.GetComponentInChildren<Commander>(true);
             if (commander)
                 ship.AdoptCommander(commander);
@@ -114,11 +112,7 @@ namespace Game.Services
 
         private int NextDecisionSeed(int team) => DeriveDecisionSeed(team, nextAgentIndex++);
 
-        /// <summary>
-        /// Stable per-agent decision seed derived from the deterministic spawn order, so a
-        /// reconstructed episode replays identically (unlike a <c>GetInstanceID</c>-derived seed).
-        /// Distinct per ship, nonzero.
-        /// </summary>
+        /// <summary>Per-agent decision seed derived from the deterministic spawn order (not <c>GetInstanceID</c>) so a reconstructed episode replays identically; distinct per ship, nonzero.</summary>
         private static int DeriveDecisionSeed(int team, int agentIndex)
         {
             const int arenaBaseSeed = 0; // 0 until S1b supplies per-arena seeds

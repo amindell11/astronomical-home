@@ -27,12 +27,7 @@ namespace Game.Bootstrap
     [RequireComponent(typeof(SessionHost))]
     public class GameDriver : MonoBehaviour
     {
-        /// <summary>
-        /// Session policy for what happens when the persistent player ship dies.
-        /// <see cref="None"/> = nothing, <see cref="RespawnInPlace"/> = revive via
-        /// <see cref="playerRespawn"/>, <see cref="RestartSector"/> = tear down and reload the active
-        /// sector (the rig persists).
-        /// </summary>
+        /// <summary>Session policy for what happens when the persistent player ship dies.</summary>
         public enum PlayerDeathBehavior { None, RespawnInPlace, RestartSector }
 
         [Header("Session")]
@@ -68,10 +63,8 @@ namespace Game.Bootstrap
 
         public event Action<GameState> OnGameStateChanged;
 
-        /// <summary>The active sector manager, if any.</summary>
         public Sector ActiveSector => session?.ActiveSector;
 
-        /// <summary>The service container for this game session.</summary>
         public IGameServices Services => session?.Services;
 
         private void Awake()
@@ -165,12 +158,7 @@ namespace Game.Bootstrap
             }
         }
 
-        /// <summary>
-        /// Between-run hangar step: show the hangar, let the player pick a loadout, and install it onto
-        /// the persistent ship before the sector loads. Runs before every sector — the first launch and
-        /// every restart. Runs the interactive screen when there is a player and presentation is on;
-        /// otherwise it applies the standing selection silently (headless/RL never blocks here).
-        /// </summary>
+        /// <summary>Between-run hangar step, run before every sector load (first launch and every restart).</summary>
         private IEnumerator HandleHangar()
         {
             if (session.Rig)
@@ -179,14 +167,7 @@ namespace Game.Bootstrap
             TransitionTo(GameState.LoadSector);
         }
 
-        /// <summary>
-        /// Run the between-run hangar: show the screen, wait for the player to Launch, then install the
-        /// chosen loadout via the rig. Skipped (standing selection applied silently) when there is no
-        /// player, no screen, or presentation is off (headless/RL) — so an automated run never blocks
-        /// on a click. Kept callable in isolation so the flow is testable without the state machine.
-        /// The loadout apply is a direct rig call (not routed through the host), so this flow needs no
-        /// SessionHost sibling.
-        /// </summary>
+        /// <summary>Interactive hangar flow; applies the standing loadout silently when headless (never blocks on a click) and stays callable without the state machine for tests.</summary>
         internal IEnumerator RunHangar(GameSession target)
         {
             var rig = target.Rig;

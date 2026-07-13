@@ -266,7 +266,7 @@ resolved each fork. This section supersedes the PR-B bullet's original wording.
 chokepoints, and they bifurcate cleanly: sites reading a *sector-child transform*
 (`SingleSpawner`, `RingSpawner`, asteroid-field origin, `PlayerStart` marker) inherit
 a root translation for free, while sites converting *authored plane-space constants*
-(`KeyPickupEncounter`/`ExtractionEncounter` — instantiated unparented,
+(the `KeyPickupEncounter`/`ExtractionEncounter` spawns,
 `SessionRig.playerSpawnPosition`, revive resolution) need explicit offset conversion.
 `ChaseBenchmarkModule`'s field-offset sweep is a working precedent for in-plane
 translation. NavField/MPC/asteroid-field *reads* are confirmed arena-invariant
@@ -288,6 +288,13 @@ claim above holds.
    outright** — `SetParent` across scenes already moves the child into the
    parent's scene, so adopting the sector into the arena root lands it in the
    root's persistent scene (never the swappable locale) with nothing to move.
+   *(Build outcome, Codex P1:)* the encounter bundle parents under its **module's
+   transform — inside the sector subtree — never the arena root**: hierarchy edge =
+   ownership/lifetime (the Objectives rethink's bundle convention), so
+   `TeardownSession`'s sector destroy (runTeardown:false) takes the running
+   encounter and its spawned key/zone with it instead of leaking them on the
+   (DDOL-in-production) arena root. With that, nothing outside composition needs
+   the root as a parent target, and `ArenaContext` exposes **no `Root` transform**.
 2. **PR-B0 prep PR — kill `transform.root` identity first.** Parenting ships under a
    shared root breaks the self-hit filters (`ProjectileBase`, `Railguns` compare
    `transform.root`; `LockOnSensor` passes `TargetPoint.root` to `LineOfSight`'s

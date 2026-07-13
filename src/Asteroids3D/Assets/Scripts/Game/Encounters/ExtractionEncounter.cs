@@ -25,10 +25,12 @@ namespace Game.Encounters
         {
             if (extractionZonePrefab)
             {
+                // Parented under the encounter so the spawn dies with its owner even when Teardown never runs.
                 extractionZoneInstance = Instantiate(
                     extractionZonePrefab,
                     Services.Arena.Place(extractionZonePosition),
-                    extractionZonePrefab.transform.rotation);
+                    extractionZonePrefab.transform.rotation,
+                    transform);
                 extractionZoneInstance.Initialize(chaser ? chaser.transform : null);
             }
 

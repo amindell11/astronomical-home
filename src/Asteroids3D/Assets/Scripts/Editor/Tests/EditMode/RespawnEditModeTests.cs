@@ -8,12 +8,7 @@ using World;
 
 namespace Tests.EditMode
 {
-    /// <summary>
-    /// EditMode tests for the producer-owned <see cref="RespawnPolicy"/> position resolution and the
-    /// <see cref="Respawn.Wire"/> guards. The full death→revive pipeline (real ship + UnitService
-    /// tick) is covered in PlayMode; here we verify the deterministic anchor math (radius 0) and that
-    /// a disabled/invalid policy wires nothing.
-    /// </summary>
+    /// <summary>Deterministic (radius 0) anchor math for <see cref="Respawn.Resolve"/> plus the <see cref="Respawn.Wire"/> guards; the full death→revive pipeline is covered in PlayMode.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class RespawnEditModeTests
@@ -21,7 +16,6 @@ namespace Tests.EditMode
         private GameObject _follower;
         private GameObject _arenaHost;
 
-        // ── Minimal service stubs (Resolve only touches EnvironmentService.WorldFollowerTransform) ──
         private class StubEnv : IEnvironmentService
         {
             public Transform follower;
@@ -100,7 +94,7 @@ namespace Tests.EditMode
             var policy = new RespawnPolicy
             {
                 origin = RespawnPolicy.Origin.FollowerRelative,
-                point = new Vector2(7, 3), // must be ignored
+                point = new Vector2(7, 3),
                 radius = 0f,
             };
 
@@ -132,7 +126,7 @@ namespace Tests.EditMode
             var offset = new Vector2(1000f, -250f);
             var services = Services(follower: null);
             services.ArenaCtx = new ArenaContext(offset, new Tests.Common.StubShipRegistry(),
-                _arenaHost.AddComponent<Movement.MPC.Field.NavFieldService>(), _arenaHost.transform);
+                _arenaHost.AddComponent<Movement.MPC.Field.NavFieldService>());
 
             var policy = new RespawnPolicy
             {

@@ -5,24 +5,14 @@ using Random = UnityEngine.Random;
 
 namespace Game.Sectors
 {
-    /// <summary>
-    /// Shared helper that wires a <see cref="RespawnPolicy"/> onto a ship: on death, queue a revive
-    /// (reposition + reset, NOT re-instantiate) via <c>UnitService.WaitAndRespawnShip</c>. Centralises
-    /// the respawn math the sector subclasses previously inlined, so producers (spawners, adopt
-    /// entries, the player field) own respawn declaratively.
-    /// </summary>
+    /// <summary>Wires a producer-owned <see cref="RespawnPolicy"/> onto a ship: on death, queue a revive (reposition + reset, NOT re-instantiate) via <c>UnitService.WaitAndRespawnShip</c>.</summary>
     public static class Respawn
     {
         /// <summary>
-        /// Subscribe a respawn to <paramref name="ship"/>'s death using <paramref name="policy"/>.
-        /// Returns true if a subscription was wired (false for a disabled policy / missing ship/services).
-        /// <para>
-        /// For <c>FixedPoint</c> the anchor is <b>producer-relative</b>: the producer's plane position is
-        /// snapshotted <b>now</b> (wire/spawn time) from <paramref name="origin"/> — defaulting to the
-        /// ship's own transform — and <c>policy.point</c> is an offset from it, so a default (zero) point
-        /// revives the ship exactly where it started rather than wherever it drifted to by death. For
-        /// <c>FollowerRelative</c> the anchor is resolved at death time (tracking the world follower).
-        /// </para>
+        /// Subscribe a revive to the ship's death; returns false when nothing was wired. FixedPoint
+        /// anchors are producer-relative, snapshotted at WIRE time from <paramref name="origin"/>
+        /// (default: the ship itself) so a zero point revives at the spawn position, not wherever the
+        /// ship drifted to by death; FollowerRelative resolves at death time (tracking the follower).
         /// </summary>
         public static bool Wire(Ship ship, RespawnPolicy policy, IGameServices services, Transform origin = null)
         {
@@ -36,12 +26,10 @@ namespace Game.Sectors
         }
 
         /// <summary>
-        /// Plane-space revive position for a policy: a random point within <c>radius</c> of the resolved
-        /// anchor. For <c>FixedPoint</c> the anchor is <paramref name="producerBase"/> plus the policy's
-        /// offset <c>point</c> (producer-relative). For <c>FollowerRelative</c> it is the world follower's
-        /// plane position, falling back to the arena origin when no follower exists. A caller with no
-        /// live producer transform (the driver's player policy) passes the arena offset as
-        /// <paramref name="producerBase"/> so an authored <c>point</c> resolves arena-relative.
+        /// Plane-space revive position: a random point within <c>radius</c> of the anchor —
+        /// FixedPoint = <paramref name="producerBase"/> + <c>point</c>; FollowerRelative = the world
+        /// follower's plane position, falling back to the arena origin. A caller with no live producer
+        /// transform (the driver's player policy) passes the arena offset as the base.
         /// </summary>
         public static Vector2 Resolve(RespawnPolicy policy, IGameServices services, Vector2 producerBase = default)
         {

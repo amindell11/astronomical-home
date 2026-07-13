@@ -37,11 +37,7 @@ namespace Game.Bootstrap
             navFieldService = GetComponent<NavFieldService>();
         }
 
-        /// <summary>
-        /// Compose a session: service container and optional player/camera/UI rig. Built once per
-        /// session; the rig persists across sector loads and is removed only by
-        /// <see cref="TeardownSession"/>.
-        /// </summary>
+        /// <summary>Compose the session's service container and optional rig — once per session; the rig persists across sector loads until <see cref="TeardownSession"/>.</summary>
         public IEnumerator ComposeSession(GameSession target)
         {
             // Runtime-only overrides so a headless/RL session never leaks into the saved preferences.
@@ -51,7 +47,7 @@ namespace Game.Bootstrap
             // The session root doubles as the arena root: placed at the profile offset before anything composes against it.
             transform.position = GamePlane.Origin + GamePlane.PlaneDirToWorld(target.Profile.offset);
 
-            var arena = new ArenaContext(target.Profile.offset, unitService.Registry, navFieldService, transform);
+            var arena = new ArenaContext(target.Profile.offset, unitService.Registry, navFieldService);
             unitService.SetArena(arena);
 
             target.Services = new GameServices(
@@ -71,10 +67,7 @@ namespace Game.Bootstrap
             }
         }
 
-        /// <summary>
-        /// Load the profile's sector into the session and subscribe the session's
-        /// <see cref="GameSession.OnSectorComplete"/> policy hook to it.
-        /// </summary>
+        /// <summary>Load the profile's sector and subscribe the session's <see cref="GameSession.OnSectorComplete"/> policy hook to it.</summary>
         public IEnumerator LoadSector(GameSession target)
         {
             var entry = target.Profile.sectorEntry;
@@ -111,11 +104,7 @@ namespace Game.Bootstrap
             Destroy(holder);
         }
 
-        /// <summary>
-        /// Unload the session's sector: cancel pending revives, run the sector's teardown phase,
-        /// destroy its content. The session rig and service registries persist — only sector
-        /// content cycles. Pair with <see cref="LoadSector"/> for a full episode reset.
-        /// </summary>
+        /// <summary>Unload the sector (run its teardown phase, destroy its content); the rig and registries persist — pair with <see cref="LoadSector"/> for an episode reset.</summary>
         public IEnumerator UnloadSector(GameSession target)
         {
             // Drop any queued player/NPC revives so a pending respawn can't fire into the torn-down sector.
@@ -124,10 +113,7 @@ namespace Game.Bootstrap
             yield return DestroyActiveSector(target, runTeardown: true);
         }
 
-        /// <summary>
-        /// Session exit: drop the sector (without running its teardown phase), tear down the
-        /// persistent rig, and wipe every registry.
-        /// </summary>
+        /// <summary>Session exit: drop the sector (without running its teardown phase), tear down the persistent rig, and wipe every registry.</summary>
         public IEnumerator TeardownSession(GameSession target)
         {
             yield return DestroyActiveSector(target, runTeardown: false);

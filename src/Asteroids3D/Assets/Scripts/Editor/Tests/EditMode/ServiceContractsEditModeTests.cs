@@ -12,10 +12,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>
-    /// EditMode tests validating the game service contracts and basic behavior.
-    /// No scene loading required. MonoBehaviour services use a temp GameObject.
-    /// </summary>
+    /// <summary>Game service contract-shape and basic-behavior tests; no scene loading required.</summary>
     [Category("Services")]
     public class ServiceContractsEditModeTests
     {
@@ -39,7 +36,6 @@ namespace Tests.EditMode
             return go.AddComponent<T>();
         }
 
-        // ── IGameServices shape ──────────────────────────────────────────────────
 
         [Test]
         public void IGameServices_Exposes_AllFourServices()
@@ -76,7 +72,6 @@ namespace Tests.EditMode
             Assert.Throws<ArgumentNullException>(() => new GameServices(unit, env, obj, cam, ui, null));
         }
 
-        // ── IUnitService shape ───────────────────────────────────────────────────
 
         [Test]
         public void IUnitService_HasRequiredMembers()
@@ -103,7 +98,6 @@ namespace Tests.EditMode
             Assert.IsNotNull(svc.ActiveRegistry);
         }
 
-        // ── IEnvironmentService shape ────────────────────────────────────────────
 
         [Test]
         public void IEnvironmentService_HasRequiredMembers()
@@ -131,7 +125,6 @@ namespace Tests.EditMode
             Assert.IsNull(svc.WorldFollowerTransform);
         }
 
-        // ── IObjectiveService shape ──────────────────────────────────────────────
 
         [Test]
         public void IObjectiveService_HasRequiredMembers()
@@ -185,7 +178,7 @@ namespace Tests.EditMode
             svc.OnStateChanged += (f, t) => transitions.Add((f, t));
 
             key.HasKey = true;
-            svc.CurrentTracker.Tick(0.1f); // Explore → KeyAcquired
+            svc.CurrentTracker.Tick(0.1f);
             Assert.AreEqual(1, transitions.Count);
             Assert.AreEqual(ObjectiveType.KeyAcquired, svc.CurrentState);
         }
@@ -219,7 +212,6 @@ namespace Tests.EditMode
             Assert.AreEqual(ObjectiveType.Explore, svc.CurrentState);
         }
 
-        // ── ICameraService shape ─────────────────────────────────────────────────
 
         [Test]
         public void ICameraService_HasRequiredMembers()
@@ -245,7 +237,6 @@ namespace Tests.EditMode
             Assert.IsEmpty(svc.Cameras);
         }
 
-        // ── GameServices.ClearAll ────────────────────────────────────────────────
 
         [Test]
         public void GameServices_ClearAll_ClearsAllServices()
@@ -260,7 +251,6 @@ namespace Tests.EditMode
             Assert.DoesNotThrow(() => services.ClearAll());
         }
 
-        // ── Test stubs ───────────────────────────────────────────────────────────
 
         private sealed class StubKeyTracker : IKeyTracker
         {
