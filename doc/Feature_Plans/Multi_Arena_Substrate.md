@@ -256,6 +256,99 @@ landed host seam stays untouched (host is externally driven, as designed).
 > stepper that exercises the substrate before the Academy exists; the
 > host + reset-driver structure is stable across both.
 
+## PR-B — resolved design (recon + grill 2026-07-12)
+
+Four parallel recon sweeps (placement sites, parenting/pool hazards, origin-anchored
+reads, 2-arena composition path) invalidated parts of the sketch above; the grill
+resolved each fork. This section supersedes the PR-B bullet's original wording.
+
+**Recon ground truth.** The "~5 placement sites" is really ~13 sites across 5
+chokepoints, and they bifurcate cleanly: sites reading a *sector-child transform*
+(`SingleSpawner`, `RingSpawner`, asteroid-field origin, `PlayerStart` marker) inherit
+a root translation for free, while sites converting *authored plane-space constants*
+(`KeyPickupEncounter`/`ExtractionEncounter` — instantiated unparented,
+`SessionRig.playerSpawnPosition`, revive resolution) need explicit offset conversion.
+`ChaseBenchmarkModule`'s field-offset sweep is a working precedent for in-plane
+translation. NavField/MPC/asteroid-field *reads* are confirmed arena-invariant
+(fields are target/self-anchored, cost math is difference-based) — the read-site
+claim above holds.
+
+**Decisions:**
+
+1. **Hybrid offset application.** The session-root GameObject (already
+   `SessionHost`+`UnitService`+`ObjectiveService`+`NavFieldService`) doubles as the
+   **arena root**, positioned at `GamePlane.PlaneDirToWorld(arena.Offset)`. The
+   sector, adopted/spawned ships, and `WorldRoot` parent under it — the
+   detach-to-null sites (`SessionHost.LoadSector`, `UnitService.AdoptShip`,
+   `EnvironmentService.AdoptWorld`) retarget to the arena root. Authored sector
+   content then inherits the offset by hierarchy (future content can't forget it);
+   `arena.Place(planePoint) = PlanePointToWorld(planePoint + Offset)` exists **only**
+   for the plane-constant sites: the two encounter spawns, the player initial spawn,
+   and revive resolution. *(Build outcome:)* `HomeToStableScene` was **deleted
+   outright** — `SetParent` across scenes already moves the child into the
+   parent's scene, so adopting the sector into the arena root lands it in the
+   root's persistent scene (never the swappable locale) with nothing to move.
+2. **PR-B0 prep PR — kill `transform.root` identity first.** Parenting ships under a
+   shared root breaks the self-hit filters (`ProjectileBase`, `Railguns` compare
+   `transform.root`; `LockOnSensor` passes `TargetPoint.root` to `LineOfSight`'s
+   IsChildOf transparency check — under a shared root, projectiles treat every
+   same-arena ship as "self" and LOS reads clear through same-arena asteroids).
+   Root fix (user-directed), two halves: the **self side is pure injection** —
+   `IShooter` (implemented by `Ship`, already injected into every projectile via
+   `Initialize`) gains the identity anchor `Rigidbody Body { get; }` (Ship's
+   Awake-cached rb), so projectiles/railguns compare against injected identity
+   instead of re-deriving it from hierarchy. The **hit side cannot be injected**
+   (physics callbacks hand a raw `Collider`) — collider→entity resolution uses the
+   engine's own map, `hit.attachedRigidbody == Shooter.Body`
+   (hierarchy-above-agnostic, null for static colliders → correct no-skip). A
+   collider-keyed ship registry is the fully-injected endgame (old board card) but
+   is wrong wiring for pooled projectiles — pools are process-global and
+   arena-blind, so they must not hold arena-scoped references. `LineOfSight` gets
+   the target ship's own transform (via `ITargetable`), not `.root`.
+   Behavior-identical under today's flat hierarchy; lands with a parented-ship
+   combat regression test; makes parenting safe permanently.
+3. **Latent origin bugs riding in PR-B** (all inside touched placement code):
+   `KeyPickup.SpawnKey` scatters on world X/Z but the frozen plane is X/Y — fix the
+   basis; player FixedPoint revive resolves raw `policy.point` with no producer base
+   — route through `Place`; `Respawn.FollowerAnchor` + `ObserverCam` `Vector2.zero`
+   fallbacks — route through `Place`. **Deferred (board):** `Gunner.HasTarget =>
+   Target != Vector3.zero` origin sentinel (only arena-0-at-origin can trip it;
+   pre-existing; AI code PR-B doesn't otherwise touch).
+4. **Smoke = two rig-less `SessionHost` roots** (`playerRig` unassigned,
+   presentation off — sidesteps the rig's unconditional WorldRoot/observer-cam and
+   the process-global `GameSettings` flags), each loading a real sector (field + AI
+   ships) at grid offsets. Asserts: per-arena provider reads, no cross-arena damage,
+   and (stretch) **mirror-determinism** — with `arenaBaseSeed` still 0, identically
+   seeded arenas must evolve identically iff isolated; tolerance-based, since float
+   math isn't translation-invariant. *(Build outcome:)* mirror-determinism was
+   implemented, run, and **dropped** — a twin diverged 39 plane units in 4 sim-
+   seconds at offset 1000 (float non-invariance + unordered physics-query results
+   feeding a chaotic closed-loop controller; global-`Random` consumers also
+   interleave across arenas). No stable threshold separates drift from leakage
+   over multi-second horizons — **do not re-attempt it as a gate in PR-2/PR-4**;
+   the smoke asserts deterministic leak-specific invariants instead (pairwise
+   placement offset, per-arena provider isolation, ships confined to their own
+   arena through live combat, cross-arena field queries empty). Lives in
+   `Tests.PlayMode` (not `Game.RLHarness.Editor` as first sketched — that asm has
+   no test-framework references; #132's own tests live in `Tests.PlayMode` too).
+5. **Per-arena seeds stay deferred** (S1b hook, consumer is PR-4 self-play) —
+   identical streams are what the mirror smoke *wants*.
+6. **Spacing: document + defer.** Formula recorded, not enforced: min spacing ≈
+   `2·(fieldRadius + maxSensorOrWeaponReach + margin)` ≈ **920** for the standard
+   400-radius field (~20k for BigField; float32 comfortable at standard scale, prefer
+   a square grid over a line for big fields at high N). The runtime arena *bound*
+   doesn't exist until roadmap PR-2, so there's nothing to enforce against yet; the
+   smoke hand-picks a safe spacing. **Deferred (board): arena-size dependency pass**
+   — inventory what actually depends on arena size before building the bound/layout
+   setup.
+7. **Known limitation recorded:** `GameSettings.PresentationEnabled`/`VfxEnabled`
+   are process-global (written per-compose) — mixed-presentation multi-arena is
+   unsupported until that's revisited; benign while all arenas share flags.
+8. **`SessionRig` cleave: deferred with evidence.** The rig-less smoke proves PR-B
+   needs no rig changes; the cleave becomes live only when RL composes arenas
+   *through* rigs (PR-2b/PR-4). The `worldPrefab`-move and `PlayerRig` rename riders
+   stay optional.
+
 ## PR sequence
 
 **Rethink-proof — behavior-identical in single-arena, land first, safe in parallel
@@ -280,11 +373,13 @@ with the in-flight single-arena RL interface work:**
 
 **Mechanism-specific — first actual N>1:**
 
-- **PR-B · Spatial-offset bring-up.** Wire the (already-present) offset live:
-  `arena.Place(...)` applies it at the ~5 placement sites, folding in parenting to an
-  arena root for scene organization (resolve the arena-root-as-detach-target question
-  for the `SetParent(null)` sites here); bounded grid layout with the `spacing`
-  assert; 2-arena headless smoke proving isolation. Keeps global `Physics.*`.
+- **PR-B0 · Entity-identity prep.** Replace `transform.root` self-hit/LOS identity
+  with `attachedRigidbody`/ship-transform identity (3 sites) + parented-ship combat
+  regression test. Behavior-identical; unblocks arena-root parenting.
+- **PR-B · Spatial-offset bring-up.** Session root = arena root at the offset;
+  detach sites retarget to it; `arena.Place(...)` at the plane-constant sites only;
+  latent origin bugs fixed in passing; 2-arena rig-less smoke with mirror-determinism
+  check. Keeps global `Physics.*`. Full resolved design in the PR-B section above.
 
 **Deferred / separate track:**
 
@@ -301,7 +396,9 @@ with the in-flight single-arena RL interface work:**
   one instance spawned by the rig), cameras/UI (RL arenas run presentation-off),
   and the player unit (RL builds agents, not "the player"). Cleave
   `SessionInfra`/`PlayerUnit` only if those answers diverge — don't split ahead
-  of the evidence. Two smaller items can ride any earlier PR touching this code:
+  of the evidence. **Resolved at the PR-B grill (2026-07-12): deferred** — the
+  rig-less smoke needs no rig changes; the decision point moves to whenever RL
+  composes arenas through rigs (PR-2b/PR-4). Two smaller items can ride any earlier PR touching this code:
   `worldPrefab` arguably belongs beside `GamePlane` on `SessionHost` (both are
   "universal world setup" — the same argument that moved `GamePlane` down), and
   the `PlayerRig.prefab` / `SessionHost.playerRig` naming residue is a
