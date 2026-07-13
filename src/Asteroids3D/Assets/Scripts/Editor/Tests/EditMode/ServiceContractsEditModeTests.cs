@@ -217,6 +217,52 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void ObjectiveService_AdapterEvents_FollowSpine_AcrossSpineCycles()
+        {
+            var svc = CreateMonoBehaviourService<ObjectiveService>();
+            var adapter = (IObjectiveTrackerAdapter)svc;
+
+            var transitions = 0;
+            adapter.OnStateChanged += (f, t) => transitions++;
+
+            var key = new StubKeyTracker(false);
+            svc.SetSpineObjective(MissionDefinition.CreateDefault(), BuildDefaultBuilders(key));
+            key.HasKey = true;
+            svc.SpineTracker.Tick(0.1f);
+            Assert.AreEqual(1, transitions);
+            Assert.AreEqual(ObjectiveType.KeyAcquired, adapter.CurrentState);
+
+            svc.ClearSpine();
+            Assert.AreEqual(ObjectiveType.Explore, adapter.CurrentState);
+
+            var nextKey = new StubKeyTracker(false);
+            svc.SetSpineObjective(MissionDefinition.CreateDefault(), BuildDefaultBuilders(nextKey));
+            nextKey.HasKey = true;
+            svc.SpineTracker.Tick(0.1f);
+            Assert.AreEqual(2, transitions,
+                "Adapter subscription must survive a ClearSpine/SetSpineObjective cycle.");
+        }
+
+        [Test]
+        public void ObjectiveService_ClearSpine_DetachesForwarder_FromOldTracker()
+        {
+            var svc = CreateMonoBehaviourService<ObjectiveService>();
+            var key = new StubKeyTracker(false);
+            svc.SetSpineObjective(MissionDefinition.CreateDefault(), BuildDefaultBuilders(key));
+            var oldTracker = svc.SpineTracker;
+
+            var raised = 0;
+            svc.OnSpineStateChanged += (f, t) => raised++;
+
+            svc.ClearSpine();
+            key.HasKey = true;
+            oldTracker.Tick(0.1f);
+
+            Assert.AreEqual(0, raised,
+                "A cleared spine tracker must be detached from the service forwarder.");
+        }
+
+        [Test]
         public void ICameraService_HasRequiredMembers()
         {
             var type = typeof(ICameraService);

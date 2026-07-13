@@ -193,6 +193,47 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void ClearAll_HandlerClosingAnotherLocal_MidSweep_StillEmpties()
+        {
+            var svc = NewService();
+            svc.OpenLocal(RunToDoneMission(), RunToDoneBuilders(new Flag()));
+            svc.OpenLocal(RunToDoneMission(), RunToDoneBuilders(new Flag()));
+            svc.OpenLocal(RunToDoneMission(), RunToDoneBuilders(new Flag()));
+
+            var closedOther = false;
+            svc.OnLocalsChanged += () =>
+            {
+                if (closedOther || svc.Locals.Count == 0) return;
+                closedOther = true;
+                svc.Locals[0].Close();
+            };
+
+            Assert.DoesNotThrow(() => svc.ClearAll());
+            Assert.AreEqual(0, svc.Locals.Count);
+        }
+
+        [Test]
+        public void ClearAll_HandlerOpeningNewLocal_MidSweep_NewLocalAlsoClosed()
+        {
+            var svc = NewService();
+            svc.OpenLocal(RunToDoneMission(), RunToDoneBuilders(new Flag()));
+
+            var openedOne = false;
+            LocalObjectiveHandle opened = null;
+            svc.OnLocalsChanged += () =>
+            {
+                if (openedOne) return;
+                openedOne = true;
+                opened = svc.OpenLocal(RunToDoneMission(), RunToDoneBuilders(new Flag()));
+            };
+
+            Assert.DoesNotThrow(() => svc.ClearAll());
+            Assert.IsNotNull(opened);
+            Assert.AreEqual(0, svc.Locals.Count,
+                "A local opened by a handler during ClearAll must be closed before ClearAll returns.");
+        }
+
+        [Test]
         public void ClearAll_ClosesLocalsAndSpine()
         {
             var svc = NewService();

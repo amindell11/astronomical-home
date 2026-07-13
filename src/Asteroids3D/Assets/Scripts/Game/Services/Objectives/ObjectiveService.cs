@@ -78,8 +78,9 @@ namespace Game.Services
 
         public void ClearAll()
         {
-            for (int i = locals.Count - 1; i >= 0; i--)
-                locals[i].Close();
+            // Drain until empty: OnLocalsChanged handlers may close other handles or open new ones mid-sweep.
+            while (locals.Count > 0)
+                locals[locals.Count - 1].Close();
             ClearSpine();
         }
 

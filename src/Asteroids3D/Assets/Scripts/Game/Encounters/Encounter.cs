@@ -52,6 +52,13 @@ namespace Game.Encounters
         private void HandleSpineStateChanged(Objectives.ObjectiveType from, Objectives.ObjectiveType to)
             => Services?.ObjectiveService?.SetSpineTarget(ObjectiveTarget);
 
+        // Session sweeps destroy sectors without running Teardown; a dead encounter must not stay subscribed.
+        private void OnDestroy()
+        {
+            if (Services?.ObjectiveService != null)
+                Services.ObjectiveService.OnSpineStateChanged -= HandleSpineStateChanged;
+        }
+
         public void Fail()
         {
             if (Phase == EncounterPhase.Running)
