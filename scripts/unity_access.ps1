@@ -314,6 +314,12 @@ function Get-Blockers {
     return $blockers
 }
 
+function Get-BlockedStatus {
+    param([object[]]$Blockers)
+    if (@($Blockers | Where-Object { $_.kind -eq "user_editor" }).Count -gt 0) { return "blocked_user_editor" }
+    return "blocked_unmanaged_unity"
+}
+
 function Get-StatusValue {
     $owners = @(Get-AllOwners)
     $tickets = @(Get-Tickets)
@@ -370,7 +376,7 @@ function Try-AcquireAccess {
 
     $blockers = @(Get-Blockers $ResolvedProject $Mode)
     if ($blockers.Count -gt 0) {
-        $status = if (@($blockers | Where-Object { $_.kind -eq "user_editor" }).Count -gt 0) { "blocked_user_editor" } else { "blocked_unmanaged_unity" }
+        $status = Get-BlockedStatus $blockers
         return [ordered]@{ status = $status; position = $position; blockers = $blockers }
     }
 
@@ -411,6 +417,10 @@ function Try-AcquireBoot {
     $owner = Find-OwnerByLease $Lease
     if ($null -eq $owner) { return [ordered]@{ status = "ownership_mismatch"; note = "BootAcquire requires holding a project owner lease." } }
 
+    # Heartbeat: a pid-less owner queued behind the boot lane must not age past OwnerTtlSeconds while it waits.
+    $owner.updatedAt = [datetime]::UtcNow.ToString("o")
+    Write-JsonFile (Join-Path (Join-Path $OwnersRoot ([string]$owner.projectKey)) "owner.json") $owner
+
     $boot = Get-BootOwner
     if ($null -ne $boot -and [string]$boot.lease -eq $Lease) {
         return [ordered]@{ status = "boot_acquired"; boot = $boot; renewed = $true }
@@ -419,7 +429,7 @@ function Try-AcquireBoot {
 
     $blockers = @(Get-Blockers ([string]$owner.projectPath) ([string]$owner.mode))
     if ($blockers.Count -gt 0) {
-        $status = if (@($blockers | Where-Object { $_.kind -eq "user_editor" }).Count -gt 0) { "blocked_user_editor" } else { "blocked_unmanaged_unity" }
+        $status = Get-BlockedStatus $blockers
         return [ordered]@{ status = $status; blockers = $blockers }
     }
 

@@ -69,7 +69,7 @@ try {
     $projA = Join-Path $Root "projA\src\Asteroids3D"
     $projB = Join-Path $Root "projB\src\Asteroids3D"
 
-    # --- same-project FIFO (project omitted -> shared "unknown" bucket) ---
+    # Leases with no -ProjectPath share the "unknown" project bucket, so they serialize FIFO.
     $first = Invoke-Coordinator -Action Acquire -Lease first
     Assert-Equal $first.code 0 "first acquire exit"
     Assert-Equal $first.value.status "acquired" "first acquire status"
@@ -98,7 +98,6 @@ try {
     [void](Invoke-Coordinator -Action Release -Lease alpha)
     [void](Invoke-Coordinator -Action Cancel -Lease beta)
 
-    # --- per-project run ownership: different projects overlap, same project serializes ---
     $ownA = Invoke-Coordinator -Action Acquire -Lease own-a -ProjectPath $projA
     Assert-Equal $ownA.value.status "acquired" "project A acquire"
     $ownB = Invoke-Coordinator -Action Acquire -Lease own-b -ProjectPath $projB
@@ -111,7 +110,6 @@ try {
     $statusBoth = Invoke-Coordinator -Action Status
     Assert-Equal @($statusBoth.value.owners).Count 2 "two concurrent project owners visible"
 
-    # --- boot lane: exclusive across projects, requires a held owner lease ---
     $bootA = Invoke-Coordinator -Action BootAcquire -Lease own-a -WaitSeconds 1
     Assert-Equal $bootA.code 0 "boot acquire exit"
     Assert-Equal $bootA.value.status "boot_acquired" "boot acquire status"
@@ -133,7 +131,33 @@ try {
     Assert-True ($null -eq $afterReleaseB.value.boot) "release frees a held boot lane"
     [void](Invoke-Coordinator -Action Release -Lease own-a)
 
-    # --- boot lane staleness: expired holds are reclaimed ---
+    function Backdate-Owner {
+        param([string]$Lease)
+        $ownerFile = @(Get-ChildItem (Join-Path $State "owners") -Recurse -Filter "owner.json" | Where-Object { (Get-Content $_.FullName -Raw | ConvertFrom-Json).lease -eq $Lease })[0]
+        $ownerJson = Get-Content $ownerFile.FullName -Raw | ConvertFrom-Json
+        $ownerJson.updatedAt = [datetime]::UtcNow.AddMinutes(-2).ToString("o")
+        [System.IO.File]::WriteAllText($ownerFile.FullName, ($ownerJson | ConvertTo-Json), $Utf8NoBom)
+    }
+    [void](Invoke-Coordinator -Action Acquire -Lease hb-holder -ProjectPath $projA)
+    [void](Invoke-Coordinator -Action BootAcquire -Lease hb-holder -WaitSeconds 1)
+    [void](Invoke-Coordinator -Action Acquire -Lease hb-waiter -ProjectPath $projB)
+    Backdate-Owner "hb-waiter"
+    $hbWait = Invoke-Coordinator -Action BootAcquire -Lease hb-waiter -WaitSeconds 1
+    Assert-Equal $hbWait.value.status "boot_waiting" "heartbeat waiter still queued"
+    $hbStatus = Invoke-Coordinator -Action Status
+    $hbOwner = Get-OwnerByLease $hbStatus "hb-waiter"
+    $hbAge = ([datetime]::UtcNow - [datetime]::Parse([string]$hbOwner.updatedAt).ToUniversalTime()).TotalSeconds
+    Assert-True ($hbAge -lt 60) "boot wait renews owner updatedAt"
+    Backdate-Owner "hb-holder"
+    $hbRenew = Invoke-Coordinator -Action BootAcquire -Lease hb-holder -WaitSeconds 1
+    Assert-Equal $hbRenew.value.status "boot_acquired" "heartbeat holder renews on re-acquire"
+    $hbStatus2 = Invoke-Coordinator -Action Status
+    $hbOwner2 = Get-OwnerByLease $hbStatus2 "hb-holder"
+    $hbAge2 = ([datetime]::UtcNow - [datetime]::Parse([string]$hbOwner2.updatedAt).ToUniversalTime()).TotalSeconds
+    Assert-True ($hbAge2 -lt 60) "boot re-acquire renews owner updatedAt"
+    [void](Invoke-Coordinator -Action Release -Lease hb-holder)
+    [void](Invoke-Coordinator -Action Release -Lease hb-waiter)
+
     $staleOwn = Invoke-Coordinator -Action Acquire -Lease stale-boot -ProjectPath $projA
     Assert-Equal $staleOwn.value.status "acquired" "stale-boot owner acquire"
     [void](Invoke-Coordinator -Action BootAcquire -Lease stale-boot -WaitSeconds 1)
@@ -148,7 +172,6 @@ try {
     [void](Invoke-Coordinator -Action Release -Lease reclaim)
     [void](Invoke-Coordinator -Action Release -Lease stale-boot)
 
-    # --- tracked editor lease no longer blocks cross-project batch ---
     $editorA = Invoke-Coordinator -Action Acquire -Lease editor-a -Mode editor -ProjectPath $projA
     Assert-Equal $editorA.value.status "acquired" "tracked editor acquire"
     $batchB = Invoke-Coordinator -Action Acquire -Lease batch-b -ProjectPath $projB
@@ -160,7 +183,6 @@ try {
     [void](Invoke-Coordinator -Action Release -Lease batch-b)
     [void](Invoke-Coordinator -Action Release -Lease editor-a)
 
-    # --- legacy single-owner state from old script copies is honored machine-wide ---
     $legacyDir = Join-Path $State "owner"
     New-Item -ItemType Directory -Force -Path $legacyDir | Out-Null
     $legacyOwner = [ordered]@{ lease = "old-script"; slot = "agent-9"; mode = "batch"; projectPath = $projB; processId = 0; acquiredAt = [datetime]::UtcNow.ToString("o"); updatedAt = [datetime]::UtcNow.ToString("o") }
@@ -174,7 +196,6 @@ try {
     Assert-Equal $legacyCleared.value.status "acquired" "acquire proceeds once legacy owner clears"
     [void](Invoke-Coordinator -Action Release -Lease legacy-blocked)
 
-    # --- untracked process blockers ---
     $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
     $commonGit = (& git -C $repoRoot rev-parse --path-format=absolute --git-common-dir | Select-Object -First 1)
     $mainProject = Join-Path (Split-Path -Parent $commonGit) "src\Asteroids3D"
@@ -209,7 +230,6 @@ try {
     Assert-Equal $sameProject.value.status "blocked_unmanaged_unity" "editor on the requested project blocks batch"
     [void](Invoke-Coordinator -Action Cancel -Lease same-project)
 
-    # --- untracked batch process also blocks the boot lane ---
     Write-Snapshot @()
     $bootBlockedOwn = Invoke-Coordinator -Action Acquire -Lease boot-blocked -ProjectPath $projA
     Assert-Equal $bootBlockedOwn.value.status "acquired" "boot-blocked owner acquire"
@@ -220,7 +240,6 @@ try {
     Write-Snapshot @()
     [void](Invoke-Coordinator -Action Release -Lease boot-blocked)
 
-    # --- stale tickets ---
     [void](Invoke-Coordinator -Action Request -Lease stale -TicketTtlSeconds 1)
     $ticketFile = Get-ChildItem (Join-Path $State "queue") -Filter "*.json" | Select-Object -First 1
     $ticket = Get-Content $ticketFile.FullName -Raw | ConvertFrom-Json
@@ -229,7 +248,6 @@ try {
     $staleStatus = Invoke-Coordinator -Action Status -TicketTtlSeconds 1
     Assert-Equal @($staleStatus.value.queue).Count 0 "stale ticket cleanup"
 
-    # --- attach ---
     $attachAcquire = Invoke-Coordinator -Action Acquire -Lease attach -ProjectPath $agentProject
     Assert-Equal $attachAcquire.value.status "acquired" "attach owner acquire"
     Write-Snapshot @([ordered]@{ processId = 41003; commandLine = "Unity.exe -batchMode -projectPath `"$agentProject`"" })
@@ -244,7 +262,6 @@ try {
     Write-Snapshot @()
     [void](Invoke-Coordinator -Action Release -Lease attach)
 
-    # --- RunBatch wraps owner + boot lane around the child ---
     $batchProbe = Join-Path $Root "batch-probe.ps1"
     [System.IO.File]::WriteAllText($batchProbe, "exit 7", $Utf8NoBom)
     $batchOutput = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action RunBatch -Lease batch-probe -Slot agent-1 -Mode batch -ProjectPath $agentProject -BatchScript $batchProbe -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
@@ -256,7 +273,6 @@ try {
     Assert-Equal @($afterBatch.value.owners).Count 0 "run batch releases owner"
     Assert-True ($null -eq $afterBatch.value.boot) "run batch releases boot lane"
 
-    # --- editor that refuses to close ---
     try {
         $stubbornAcquire = Invoke-Coordinator -Action Acquire -Lease stubborn-editor -Mode editor
         Assert-Equal $stubbornAcquire.value.status "acquired" "stubborn editor acquire"
