@@ -1,6 +1,5 @@
 using System;
 using Game;
-using Player;
 using UnityEngine;
 
 namespace Objectives
@@ -15,14 +14,17 @@ namespace Objectives
     [RequireComponent(typeof(Collider))]
     public class KeyPickup : MonoBehaviour, IKeyTracker
     {
-        [Header("Spawn")]
         [SerializeField] private float spawnRadius = 30f;
+
+        private Rigidbody playerBody;
 
         public bool PlayerHasKey { get; private set; }
 
         public Vector3 KeyPosition => transform.position;
 
         public event Action OnKeyCollected;
+
+        public void Initialize(Rigidbody playerBody) => this.playerBody = playerBody;
 
         /// <summary>Move to a random in-plane position within <see cref="spawnRadius"/> of center and reset collected state.</summary>
         public void SpawnKey(Vector3 center)
@@ -33,16 +35,10 @@ namespace Objectives
             gameObject.SetActive(true);
         }
 
-        /// <summary>Reset collected state and re-show (for restart).</summary>
-        public void ResetKey(Vector3 center)
-        {
-            SpawnKey(center);
-        }
-
         private void OnTriggerEnter(Collider other)
         {
             if (PlayerHasKey) return;
-            if (!other.GetComponentInParent<PlayerMarker>()) return;
+            if (!playerBody || other.attachedRigidbody != playerBody) return;
 
             PlayerHasKey = true;
             gameObject.SetActive(false);

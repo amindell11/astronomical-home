@@ -13,6 +13,7 @@ namespace Game.Services
 
         public ObjectiveTracker SpineTracker { get; private set; }
         public ObjectiveType? SpineState => SpineTracker?.CurrentState;
+        public string SpineStep => SpineTracker?.CurrentStep;
         public Transform SpineTarget { get; private set; }
         public IReadOnlyList<LocalObjectiveHandle> Locals => locals;
 
@@ -25,6 +26,7 @@ namespace Game.Services
         }
 
         public event Action<ObjectiveType, ObjectiveType> OnSpineStateChanged;
+        public event Action<string> OnSpineStepChanged;
         public event Action<Transform> OnSpineTargetChanged;
         public event Action OnLocalsChanged;
 
@@ -43,6 +45,8 @@ namespace Game.Services
 
             SpineTracker = new ObjectiveTracker(mission, builders);
             SpineTracker.OnStateChanged += ForwardSpineStateChanged;
+            SpineTracker.OnStepChanged += ForwardSpineStepChanged;
+            OnSpineStepChanged?.Invoke(SpineTracker.CurrentStep);
         }
 
         public void FailSpine()
@@ -60,6 +64,7 @@ namespace Game.Services
             if (SpineTracker != null)
             {
                 SpineTracker.OnStateChanged -= ForwardSpineStateChanged;
+                SpineTracker.OnStepChanged -= ForwardSpineStepChanged;
                 SpineTracker = null;
             }
             SetSpineTarget(null);
@@ -109,6 +114,11 @@ namespace Game.Services
         private void ForwardSpineStateChanged(ObjectiveType from, ObjectiveType to)
         {
             OnSpineStateChanged?.Invoke(from, to);
+        }
+
+        private void ForwardSpineStepChanged(string step)
+        {
+            OnSpineStepChanged?.Invoke(step);
         }
     }
 }

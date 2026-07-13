@@ -11,7 +11,9 @@ namespace Game.Services
 
         ObjectiveType? SpineState { get; }
 
-        // Producers (encounters) report the spine target; UI subscribers (the minimap marker) read it.
+        string SpineStep { get; }
+
+        // Producers (spine owners) report the spine target; UI subscribers (the minimap marker) read it.
         Transform SpineTarget { get; }
 
         void SetSpineTarget(Transform target);
@@ -27,6 +29,9 @@ namespace Game.Services
         void RestartSpine();
 
         event Action<ObjectiveType, ObjectiveType> OnSpineStateChanged;
+
+        // Step-level (string ids); fires for same-type step transitions and on install with the initial step.
+        event Action<string> OnSpineStepChanged;
 
         void ClearSpine();
 

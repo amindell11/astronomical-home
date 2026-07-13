@@ -1,5 +1,4 @@
 using System.Collections;
-using Player;
 using UnityEngine;
 
 namespace Game.Sectors
@@ -10,10 +9,15 @@ namespace Game.Sectors
     {
         [SerializeField] private string signalToken;
 
+        private readonly RigidbodyOccupancy occupancy = new();
         private SectorEventBus bus;
-        private bool playerInside;
+        private Rigidbody playerBody;
 
-        public void Configure(string token) => signalToken = token;
+        public void Configure(string token, Rigidbody player = null)
+        {
+            signalToken = token;
+            if (player) playerBody = player;
+        }
 
         public override IEnumerator Setup(SectorBuildContext ctx)
         {
@@ -23,9 +27,10 @@ namespace Game.Sectors
                 yield break;
             }
 
+            if (ctx.Player) playerBody = ctx.Player.Body;
             bus = ctx.Bus;
             // Trigger events can precede Setup (player parked in the volume at build) — push the buffered level.
-            bus?.Set(signalToken, playerInside);
+            bus?.Set(signalToken, occupancy.Contains(playerBody));
         }
 
         public override IEnumerator Teardown(SectorBuildContext ctx)
@@ -35,15 +40,18 @@ namespace Game.Sectors
             yield break;
         }
 
-        private void OnTriggerEnter(Collider other) => UpdateLevel(other, true);
-
-        private void OnTriggerExit(Collider other) => UpdateLevel(other, false);
-
-        private void UpdateLevel(Collider other, bool inside)
+        private void OnTriggerEnter(Collider other)
         {
-            if (!other.GetComponentInParent<PlayerMarker>()) return;
-            playerInside = inside;
-            bus?.Set(signalToken, inside);
+            occupancy.Enter(other.attachedRigidbody);
+            Publish();
         }
+
+        private void OnTriggerExit(Collider other)
+        {
+            occupancy.Exit(other.attachedRigidbody);
+            Publish();
+        }
+
+        private void Publish() => bus?.Set(signalToken, occupancy.Contains(playerBody));
     }
 }

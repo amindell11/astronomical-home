@@ -3,26 +3,21 @@ using System.Collections.Generic;
 
 namespace Objectives
 {
-    /// <summary>
-    /// Drives the sequential objective state machine for a single mission encounter.
-    /// Uses string step IDs and a builder dictionary instead of enum-keyed factory.
-    ///
-    /// Architecture: caller builds a Dictionary&lt;string, Func&lt;ObjectiveState&gt;&gt; with
-    /// closures capturing runtime refs. No god-class context or factory needed.
-    /// </summary>
+    /// <summary>Sequential objective state machine over string step IDs; callers supply per-step builder closures capturing their runtime refs.</summary>
     public class ObjectiveTracker
     {
         private ObjectiveState current;
         private string currentStep;
         private readonly MissionDefinition mission;
         private readonly IReadOnlyDictionary<string, Func<ObjectiveState>> builders;
-        /// <summary>Raised when the tracker transitions between states.</summary>
+
+        /// <summary>Fires on every step transition — unlike <see cref="OnStateChanged"/>, which suppresses transitions between steps sharing an ObjectiveType.</summary>
+        public event Action<string> OnStepChanged;
+
         public event Action<ObjectiveType, ObjectiveType> OnStateChanged;
 
-        /// <summary>The ObjectiveType of the active state (for UI/diagnostics).</summary>
         public ObjectiveType CurrentState => current.StateType;
 
-        /// <summary>The string step ID of the active state.</summary>
         public string CurrentStep => currentStep;
 
         public ObjectiveTracker(
@@ -37,10 +32,7 @@ namespace Objectives
             current.Enter();
         }
 
-        /// <summary>
-        /// Advance the state machine by one game tick.
-        /// No-op when in a terminal state (Extracted or Failed).
-        /// </summary>
+        /// <summary>Advances at most one step per call so UI/audio hooks see every intermediate state.</summary>
         public void Tick(float deltaTime)
         {
             if (IsTerminal(current.StateType))
@@ -58,21 +50,13 @@ namespace Objectives
                 TransitionTo(next);
         }
 
-        /// <summary>
-        /// Immediately transition to the "failed" step.
-        /// Use for event-driven failure (e.g. player death).
-        /// No-op if already in a terminal state.
-        /// </summary>
+        /// <summary>Event-driven failure (e.g. player death); no-op in a terminal state.</summary>
         public void Fail()
         {
             if (!IsTerminal(current.StateType))
                 TransitionTo("failed");
         }
 
-        /// <summary>
-        /// Restart the encounter from the initial state.
-        /// Safe to call from both Extracted and Failed terminal states.
-        /// </summary>
         public void Restart()
         {
             TransitionTo(mission.InitialStep);
@@ -86,6 +70,7 @@ namespace Objectives
             current = builders[nextStep]();
             current.Enter();
 
+            OnStepChanged?.Invoke(currentStep);
             if (previous != current.StateType)
                 OnStateChanged?.Invoke(previous, current.StateType);
         }

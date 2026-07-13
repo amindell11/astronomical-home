@@ -128,6 +128,7 @@ namespace Tests.EditMode
             var type = typeof(IObjectiveService);
             Assert.IsNotNull(type.GetProperty("SpineTracker"), "Missing SpineTracker");
             Assert.IsNotNull(type.GetProperty("SpineState"), "Missing SpineState");
+            Assert.IsNotNull(type.GetProperty("SpineStep"), "Missing SpineStep");
             Assert.IsNotNull(type.GetProperty("SpineTarget"), "Missing SpineTarget");
             Assert.IsNotNull(type.GetMethod("SetSpineTarget"), "Missing SetSpineTarget");
             Assert.IsNotNull(type.GetMethod("SetSpineObjective"), "Missing SetSpineObjective");
@@ -135,6 +136,7 @@ namespace Tests.EditMode
             Assert.IsNotNull(type.GetMethod("RestartSpine"), "Missing RestartSpine");
             Assert.IsNotNull(type.GetMethod("ClearSpine"), "Missing ClearSpine");
             Assert.IsNotNull(type.GetEvent("OnSpineStateChanged"), "Missing OnSpineStateChanged");
+            Assert.IsNotNull(type.GetEvent("OnSpineStepChanged"), "Missing OnSpineStepChanged");
             Assert.IsNotNull(type.GetEvent("OnSpineTargetChanged"), "Missing OnSpineTargetChanged");
             Assert.IsNotNull(type.GetMethod("OpenLocal"), "Missing OpenLocal");
             Assert.IsNotNull(type.GetProperty("Locals"), "Missing Locals");

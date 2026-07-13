@@ -7,18 +7,10 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>
-    /// EditMode unit tests for the ObjectiveTracker state machine.
-    /// All stubs are inline — no MonoBehaviours required, no scene loading.
-    /// Uses string-keyed builder dictionaries instead of ObjectiveStateFactory.
-    ///
-    /// One transition per Tick — ObjectiveTracker intentionally advances by at most one
-    /// state per call so UI/audio hooks see every intermediate state for at least one frame.
-    /// </summary>
+    /// <summary>ObjectiveTracker state machine; the tracker advances at most one step per Tick so UI/audio hooks see every intermediate state.</summary>
     [Category("Objectives")]
     public class ObjectiveTrackerEditModeTests
     {
-        // ── Factory helpers ───────────────────────────────────────────────────────
 
         private (ObjectiveTracker tracker, StubKeyTracker key, BoolRef alive, StubExtractionZone zone)
             BuildExploreTracker(bool playerInZone = false)
@@ -44,16 +36,12 @@ namespace Tests.EditMode
             return (tracker, key, alive, zone);
         }
 
-        // ── Initial state ─────────────────────────────────────────────────────────
-
         [Test]
         public void InitialState_IsExplore()
         {
             var (tracker, _, _, _) = BuildExploreTracker();
             Assert.AreEqual(ObjectiveType.Explore, tracker.CurrentState);
         }
-
-        // ── Explore → KeyAcquired (one Tick after key picked up) ─────────────────
 
         [Test]
         public void Explore_TransitionsToKeyAcquired_WhenKeyPickedUp()
@@ -68,8 +56,6 @@ namespace Tests.EditMode
             Assert.AreEqual(ObjectiveType.KeyAcquired, tracker.CurrentState);
         }
 
-        // ── KeyAcquired → ExtractionChallenge (next Tick) ────────────────────────
-
         [Test]
         public void KeyAcquired_TransitionsToExtractionChallenge_OnNextTick()
         {
@@ -82,8 +68,6 @@ namespace Tests.EditMode
             tracker.Tick(0.1f); // KeyAcquired.IsComplete=true → ExtractionChallenge
             Assert.AreEqual(ObjectiveType.ExtractionChallenge, tracker.CurrentState);
         }
-
-        // ── ExtractionChallenge → Extracted ───────────────────────────────────────
 
         [Test]
         public void ExtractionChallenge_TransitionsToExtracted_WhenPlayerEntersZone()
@@ -99,8 +83,6 @@ namespace Tests.EditMode
             tracker.Tick(0.1f); // → Extracted
             Assert.AreEqual(ObjectiveType.Extracted, tracker.CurrentState);
         }
-
-        // ── Failure: player destroyed ─────────────────────────────────────────────
 
         [Test]
         public void AnyState_TransitionsToFailed_WhenPlayerDies_DuringExplore()
@@ -126,8 +108,6 @@ namespace Tests.EditMode
             tracker.Tick(0.1f);
             Assert.AreEqual(ObjectiveType.Failed, tracker.CurrentState);
         }
-
-        // ── Terminal state guards ─────────────────────────────────────────────────
 
         [Test]
         public void Extracted_IsTerminal_IgnoresSubsequentTicks()
@@ -156,8 +136,6 @@ namespace Tests.EditMode
             tracker.Tick(9999f);
             Assert.AreEqual(ObjectiveType.Failed, tracker.CurrentState);
         }
-
-        // ── Event-driven Fail() ──────────────────────────────────────────────────
 
         [Test]
         public void Fail_TransitionsToFailed_FromAnyNonTerminalState()
@@ -195,8 +173,6 @@ namespace Tests.EditMode
             Assert.AreEqual(ObjectiveType.Extracted, tracker.CurrentState);
         }
 
-        // ── Restart ───────────────────────────────────────────────────────────────
-
         [Test]
         public void Restart_FromExtracted_ResetsToExplore_WithNoConsequences()
         {
@@ -227,8 +203,6 @@ namespace Tests.EditMode
             tracker.Restart();
             Assert.AreEqual(ObjectiveType.Explore, tracker.CurrentState);
         }
-
-        // ── OnStateChanged event ──────────────────────────────────────────────────
 
         [Test]
         public void OnStateChanged_FiresOncePerTransition_FullSuccessPath()
@@ -267,8 +241,6 @@ namespace Tests.EditMode
             Assert.AreEqual((ObjectiveType.Failed,  ObjectiveType.Explore), transitions[1]);
         }
 
-        // ── MissionDefinition ─────────────────────────────────────────────────────
-
         [Test]
         public void MissionDefinition_CreateDefault_HasExpectedTransitions()
         {
@@ -293,7 +265,6 @@ namespace Tests.EditMode
             tracker.Tick(0.1f); // → ExtractionChallenge
             Assert.AreEqual(ObjectiveType.ExtractionChallenge, tracker.CurrentState);
 
-            // Zone reports not in zone (blocked or out of range)
             zone.InZone = false;
             tracker.Tick(0.1f);
             Assert.AreEqual(ObjectiveType.ExtractionChallenge, tracker.CurrentState,
@@ -303,8 +274,6 @@ namespace Tests.EditMode
             tracker.Tick(0.1f);
             Assert.AreEqual(ObjectiveType.Extracted, tracker.CurrentState);
         }
-
-        // ── CurrentStep ───────────────────────────────────────────────────────────
 
         [Test]
         public void CurrentStep_ReflectsStringStepId()
@@ -320,7 +289,52 @@ namespace Tests.EditMode
             Assert.AreEqual("extraction", tracker.CurrentStep);
         }
 
-        // ── KeyPickup ─────────────────────────────────────────────────────────────
+        [Test]
+        public void OnStepChanged_FiresOncePerTransition_WithStepIds()
+        {
+            var (tracker, key, _, _) = BuildExploreTracker(playerInZone: true);
+
+            var steps = new List<string>();
+            tracker.OnStepChanged += steps.Add;
+
+            key.HasKey = true;
+            tracker.Tick(0.1f);
+            tracker.Tick(0.1f);
+            tracker.Tick(0.1f);
+
+            CollectionAssert.AreEqual(new[] { "key", "extraction", "extracted" }, steps);
+        }
+
+        [Test]
+        public void OnStepChanged_FiresForSameTypeStepTransition_WhereOnStateChangedStaysSilent()
+        {
+            var mission = new MissionDefinition("a", new Dictionary<string, string> { { "a", "b" } });
+            var builders = new Dictionary<string, Func<ObjectiveState>>
+            {
+                ["a"] = () => new AlwaysCompleteExploreState(),
+                ["b"] = () => new AlwaysCompleteExploreState()
+            };
+            var tracker = new ObjectiveTracker(mission, builders);
+
+            var steps = new List<string>();
+            var typeTransitions = 0;
+            tracker.OnStepChanged += steps.Add;
+            tracker.OnStateChanged += (_, _) => typeTransitions++;
+
+            tracker.Tick(0.1f);
+
+            CollectionAssert.AreEqual(new[] { "b" }, steps,
+                "Same-type step transitions must raise the step event.");
+            Assert.AreEqual(0, typeTransitions,
+                "Sanity: the type-level event suppresses same-type transitions.");
+        }
+
+        private sealed class AlwaysCompleteExploreState : ObjectiveState
+        {
+            public override ObjectiveType StateType => ObjectiveType.Explore;
+            public override void Tick(float deltaTime) { }
+            public override bool IsComplete => true;
+        }
 
         [Test]
         public void KeyPickup_SpawnKey_ResetsCollectedFlag()
@@ -340,7 +354,7 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void KeyPickup_ResetKey_RepositionsAndReactivates()
+        public void KeyPickup_SpawnKey_RepositionsAndReactivates()
         {
             var go = new GameObject("Key");
             go.AddComponent<SphereCollider>();
@@ -350,8 +364,8 @@ namespace Tests.EditMode
                 kp.SpawnKey(Vector3.zero);
                 go.SetActive(false);
 
-                kp.ResetKey(new Vector3(10f, 0f, 0f));
-                Assert.IsTrue(go.activeSelf, "ResetKey should reactivate the key");
+                kp.SpawnKey(new Vector3(10f, 0f, 0f));
+                Assert.IsTrue(go.activeSelf, "SpawnKey should reactivate the key");
                 Assert.IsFalse(kp.PlayerHasKey);
             }
             finally
@@ -366,15 +380,11 @@ namespace Tests.EditMode
             Assert.IsTrue(typeof(IKeyTracker).IsAssignableFrom(typeof(KeyPickup)));
         }
 
-        // ── ExtractionZone ────────────────────────────────────────────────────────
-
         [Test]
         public void ExtractionZone_Implements_IExtractionZone()
         {
             Assert.IsTrue(typeof(IExtractionZone).IsAssignableFrom(typeof(ExtractionZone)));
         }
-
-        // ── Stubs ─────────────────────────────────────────────────────────────────
 
         private sealed class StubKeyTracker : IKeyTracker
         {
