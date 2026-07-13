@@ -5,11 +5,7 @@ using UnityEngine.UI;
 
 namespace UI
 {
-    /// <summary>
-    /// Positions a UI icon over the minimap RawImage to mark the current objective's
-    /// world position. Place anywhere in the overlay; pass the minimap RectTransform
-    /// and camera via Initialize.
-    /// </summary>
+    /// <summary>Positions a UI icon over the minimap RawImage to mark the spine objective's world position.</summary>
     public class MinimapObjectiveMarker : MonoBehaviour
     {
         [SerializeField] private Image icon;
@@ -30,24 +26,20 @@ namespace UI
             if (icon) icon.enabled = false;
         }
 
-        /// <summary>
-        /// Bind to the objective service: subscribe to target changes and self-decide visibility by
-        /// the service's CurrentState. Replaces the sector acting as the marker's bridge.
-        /// </summary>
         public void BindObjectiveService(IObjectiveService service)
         {
-            if (objectives != null) objectives.OnTargetChanged -= OnObjectiveTargetChanged;
+            if (objectives != null) objectives.OnSpineTargetChanged -= OnSpineTargetChanged;
             objectives = service;
             if (objectives == null) return;
-            objectives.OnTargetChanged += OnObjectiveTargetChanged;
-            OnObjectiveTargetChanged(objectives.CurrentTarget);
+            objectives.OnSpineTargetChanged += OnSpineTargetChanged;
+            OnSpineTargetChanged(objectives.SpineTarget);
         }
 
-        private void OnObjectiveTargetChanged(Transform t) => target = t;
+        private void OnSpineTargetChanged(Transform t) => target = t;
 
         private void OnDestroy()
         {
-            if (objectives != null) objectives.OnTargetChanged -= OnObjectiveTargetChanged;
+            if (objectives != null) objectives.OnSpineTargetChanged -= OnSpineTargetChanged;
         }
 
         private static bool IsShowingState(ObjectiveType? state) =>
@@ -57,8 +49,7 @@ namespace UI
 
         private void LateUpdate()
         {
-            // Show the objective target only during objective states that have one.
-            var effective = IsShowingState(objectives?.CurrentState) ? target : null;
+            var effective = IsShowingState(objectives?.SpineState) ? target : null;
 
             if (!effective || !minimapCam || !icon)
             {

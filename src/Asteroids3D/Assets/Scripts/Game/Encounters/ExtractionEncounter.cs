@@ -34,8 +34,7 @@ namespace Game.Encounters
 
             if (chaser) chaser.gameObject.SetActive(true);
 
-            // Give physics a frame to process the new collider so OnTriggerEnter fires
-            // even if the player is already overlapping the zone at spawn.
+            // Physics needs a frame to process the new collider so OnTriggerEnter fires if the player already overlaps the zone.
             yield return null;
 
             var mission = new MissionDefinition(
@@ -54,17 +53,17 @@ namespace Game.Encounters
                     onEnter: () => CompleteEncounter(EncounterResult.Failed))
             };
 
-            Services.ObjectiveService.SetObjective(mission, builders);
+            Services.ObjectiveService.SetSpineObjective(mission, builders);
         }
 
         protected override void OnFail()
         {
-            Services.ObjectiveService.Fail();
+            Services.ObjectiveService.FailSpine();
         }
 
         protected override IEnumerator OnTeardown()
         {
-            Services.ObjectiveService.Clear();
+            Services.ObjectiveService.ClearSpine();
             if (extractionZoneInstance) Destroy(extractionZoneInstance.gameObject);
             if (chaser) chaser.gameObject.SetActive(false);
             extractionZoneInstance = null;

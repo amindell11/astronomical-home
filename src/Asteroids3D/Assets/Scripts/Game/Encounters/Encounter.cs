@@ -29,13 +29,11 @@ namespace Game.Encounters
             yield return OnSetup();
             Phase = EncounterPhase.Running;
 
-            // Report this encounter's objective target to the service channel. The objective state
-            // determines which transform ObjectiveTarget returns, so re-report on every state change.
-            // UI (the minimap marker) reads CurrentTarget and self-decides visibility by CurrentState.
+            // The spine state decides which transform ObjectiveTarget returns, so re-report on every state change.
             if (Services?.ObjectiveService != null)
             {
-                Services.ObjectiveService.OnStateChanged += HandleObjectiveStateChanged;
-                Services.ObjectiveService.SetTarget(ObjectiveTarget);
+                Services.ObjectiveService.OnSpineStateChanged += HandleSpineStateChanged;
+                Services.ObjectiveService.SetSpineTarget(ObjectiveTarget);
             }
         }
 
@@ -44,15 +42,22 @@ namespace Game.Encounters
             Phase = EncounterPhase.TearingDown;
             if (Services?.ObjectiveService != null)
             {
-                Services.ObjectiveService.OnStateChanged -= HandleObjectiveStateChanged;
-                Services.ObjectiveService.SetTarget(null);
+                Services.ObjectiveService.OnSpineStateChanged -= HandleSpineStateChanged;
+                Services.ObjectiveService.SetSpineTarget(null);
             }
             yield return OnTeardown();
             Phase = EncounterPhase.Disposed;
         }
 
-        private void HandleObjectiveStateChanged(Objectives.ObjectiveType from, Objectives.ObjectiveType to)
-            => Services?.ObjectiveService?.SetTarget(ObjectiveTarget);
+        private void HandleSpineStateChanged(Objectives.ObjectiveType from, Objectives.ObjectiveType to)
+            => Services?.ObjectiveService?.SetSpineTarget(ObjectiveTarget);
+
+        // Session sweeps destroy sectors without running Teardown; a dead encounter must not stay subscribed.
+        private void OnDestroy()
+        {
+            if (Services?.ObjectiveService != null)
+                Services.ObjectiveService.OnSpineStateChanged -= HandleSpineStateChanged;
+        }
 
         public void Fail()
         {
