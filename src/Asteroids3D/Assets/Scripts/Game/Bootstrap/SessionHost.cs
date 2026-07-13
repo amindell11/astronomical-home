@@ -37,23 +37,22 @@ namespace Game.Bootstrap
             navFieldService = GetComponent<NavFieldService>();
         }
 
-        /// <summary>
-        /// Compose a session: service container and optional player/camera/UI rig. Built once per
-        /// session; the rig persists across sector loads and is removed only by
-        /// <see cref="TeardownSession"/>.
-        /// </summary>
+        /// <summary>Compose the session's service container and optional rig — once per session; the rig persists across sector loads until <see cref="TeardownSession"/>.</summary>
         public IEnumerator ComposeSession(GameSession target)
         {
             // Runtime-only overrides so a headless/RL session never leaks into the saved preferences.
             GameSettings.SetVfxEnabled(target.Profile.vfx);
             GameSettings.SetPresentationEnabled(target.Profile.presentation);
 
+            // The session root doubles as the arena root: placed at the profile offset before anything composes against it.
+            transform.position = GamePlane.Origin + GamePlane.PlaneDirToWorld(target.Profile.offset);
+
             var arena = new ArenaContext(target.Profile.offset, unitService.Registry, navFieldService);
             unitService.SetArena(arena);
 
             target.Services = new GameServices(
                 unitService: unitService,
-                environmentService: new EnvironmentService(),
+                environmentService: new EnvironmentService(transform),
                 objectiveService: objectiveService,
                 cameraService: new CameraService(),
                 uiService: new UIService(),
@@ -63,34 +62,27 @@ namespace Game.Bootstrap
             if (playerRig)
             {
                 target.Rig = playerRig;
-                // Consume the driver-set hook; never overwrite it — a
-                // headless/RL driver supplies its own OnPlayerDeath before composing.
+                // Consume the driver-set OnPlayerDeath hook; never overwrite it.
                 yield return playerRig.Build(target.Services, target.Profile.buildPlayer, target.OnPlayerDeath);
             }
         }
 
-        /// <summary>
-        /// Load the profile's sector into the session and subscribe the session's
-        /// <see cref="GameSession.OnSectorComplete"/> policy hook to it.
-        /// </summary>
+        /// <summary>Load the profile's sector and subscribe the session's <see cref="GameSession.OnSectorComplete"/> policy hook to it.</summary>
         public IEnumerator LoadSector(GameSession target)
         {
             var entry = target.Profile.sectorEntry;
             if (!entry?.prefab)
                 throw new InvalidOperationException("No sector entry configured on the session profile.");
 
-            // Environment: make the sector's locale the active (lighting) scene before content builds.
-            // Skipped headless (no presentation) and no-op when the locale is unassigned or unchanged.
+            // Make the sector's locale the active (lighting) scene before content builds; skipped headless.
             if (target.Profile.presentation)
                 yield return target.Services.EnvironmentService.ApplyLocaleAsync(
                     entry.config ? entry.config.Locale?.SceneName : null);
 
-            // Instantiate the sector subtree under an inactive holder so authored content children
-            // do not Awake until services exist and adoption has wired each object. Setup runs
-            // while inert; then reparent out (world pose preserved) and drop the holder so children
-            // Awake post-wiring. Authoring stays WYSIWYG — only runtime instantiation is gated.
+            // Compose under an inactive holder at the arena root so authored children Awake only after adoption has wired them.
             var holder = new GameObject("SectorLoad") { hideFlags = HideFlags.HideAndDontSave };
             holder.SetActive(false);
+            holder.transform.SetParent(transform, false);
 
             var sector = Instantiate(entry.prefab, holder.transform);
             target.ActiveSector = sector;
@@ -100,27 +92,19 @@ namespace Game.Bootstrap
             if (target.OnSectorComplete != null)
                 sector.OnSectorComplete += target.OnSectorComplete;
 
-            // Entry reset: place the persistent player at the sector's declared start (plane-space,
-            // producer-relative to the sector so it's deterministic every load). The sector only
-            // DECLARES the start via PlayerStart; the session tier does the reset.
+            // The sector only DECLARES its start via PlayerStart; the session tier does the entry reset.
             if (target.Rig && target.Rig.Player)
                 target.Services.UnitService.RespawnShip(
                     target.Rig.Player.Id, sector.PlayerStart, 0f);
 
             yield return sector.Setup();
 
-            sector.transform.SetParent(null, true);
-            // Keep the sector — which runs the teardown coroutine — out of the swappable locale scene.
-            if (target.Profile.presentation)
-                target.Services.EnvironmentService.HomeToStableScene(sector.gameObject);
+            // Adopting into the arena root also moves the sector to the root's stable scene, keeping it out of the swappable locale scene.
+            sector.transform.SetParent(transform, true);
             Destroy(holder);
         }
 
-        /// <summary>
-        /// Unload the session's sector: cancel pending revives, run the sector's teardown phase,
-        /// destroy its content. The session rig and service registries persist — only sector
-        /// content cycles. Pair with <see cref="LoadSector"/> for a full episode reset.
-        /// </summary>
+        /// <summary>Unload the sector (run its teardown phase, destroy its content); the rig and registries persist — pair with <see cref="LoadSector"/> for an episode reset.</summary>
         public IEnumerator UnloadSector(GameSession target)
         {
             // Drop any queued player/NPC revives so a pending respawn can't fire into the torn-down sector.
@@ -129,10 +113,7 @@ namespace Game.Bootstrap
             yield return DestroyActiveSector(target, runTeardown: true);
         }
 
-        /// <summary>
-        /// Session exit: drop the sector (without running its teardown phase), tear down the
-        /// persistent rig, and wipe every registry.
-        /// </summary>
+        /// <summary>Session exit: drop the sector (without running its teardown phase), tear down the persistent rig, and wipe every registry.</summary>
         public IEnumerator TeardownSession(GameSession target)
         {
             yield return DestroyActiveSector(target, runTeardown: false);
@@ -141,8 +122,7 @@ namespace Game.Bootstrap
                 target.Rig.Teardown();
             target.Rig = null;
 
-            // Restore boot lighting + unload the locale after the rig is gone (the rig lives in the
-            // boot scene, so the unload never touches it).
+            // Restore boot lighting + unload the locale after the rig (a boot-scene object) is gone.
             if (target.Profile != null && target.Profile.presentation && target.Services != null)
                 yield return target.Services.EnvironmentService.RestoreBootEnvironmentAsync();
 

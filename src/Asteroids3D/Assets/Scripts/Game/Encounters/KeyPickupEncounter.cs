@@ -21,8 +21,9 @@ namespace Game.Encounters
         {
             if (keyPickupPrefab)
             {
-                var keyWorld = GamePlane.PlanePointToWorld(keySpawnPosition);
-                keyPickupInstance = Instantiate(keyPickupPrefab, keyWorld, keyPickupPrefab.transform.rotation);
+                var keyWorld = Services.Arena.Place(keySpawnPosition);
+                // Parented under the encounter so the spawn dies with its owner even when Teardown never runs.
+                keyPickupInstance = Instantiate(keyPickupPrefab, keyWorld, keyPickupPrefab.transform.rotation, transform);
                 keyPickupInstance.SpawnKey(keyWorld);
             }
 

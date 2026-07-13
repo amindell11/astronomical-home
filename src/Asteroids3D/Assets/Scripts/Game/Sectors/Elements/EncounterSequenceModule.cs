@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace Game.Sectors
 {
+    /// <summary>Runs the sector's <see cref="Encounter"/> templates one at a time, ending the sector when the sequence finishes or fails.</summary>
     public class EncounterSequenceModule : SectorModule
     {
         [Tooltip("Encounter templates, instantiated and run one at a time in order. NOT adopted.")]
@@ -48,7 +49,8 @@ namespace Game.Sectors
         private IEnumerator StartEncounter(int index)
         {
             _encounterIndex = index;
-            var encounter = Instantiate(encounters[index]);
+            // Parented under the module so the encounter bundle lives and dies with the sector subtree.
+            var encounter = Instantiate(encounters[index], transform);
             encounter.Initialize(_services, _player);
 
             if (encounter is ExtractionEncounter extraction)

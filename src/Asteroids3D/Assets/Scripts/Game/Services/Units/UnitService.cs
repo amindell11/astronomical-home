@@ -25,8 +25,7 @@ namespace Game.Services
         public IShipRegistry Registry => ActiveRegistry;
         public ShipRegistry ActiveRegistry { get; } = new();
 
-        /// <summary>Assign the arena handle wired into each ship; one-shot so a stray re-compose can't
-        /// swap the arena out from under live ships.</summary>
+        /// <summary>Assign the arena handle wired into each ship; one-shot so a stray re-compose can't swap the arena out from under live ships.</summary>
         public void SetArena(ArenaContext context)
         {
             if (arena != null && !ReferenceEquals(arena, context))
@@ -51,6 +50,7 @@ namespace Game.Services
                 position, rotation,
                 postInitialize: WireShipDependencies);
 
+            ship.transform.SetParent(transform, true);
             ActiveRegistry.ActiveShips.Add(ship);
             spawnedShips.Add(ship);
             OnShipSpawned?.Invoke(ship);
@@ -62,10 +62,9 @@ namespace Game.Services
             if (!ship)
                 return null;
 
-            // Detach from the sector so lifetime/Clear() matches a spawned ship.
-            ship.transform.SetParent(null, true);
+            // Re-home from the sector to the arena root so lifetime/Clear() matches a spawned ship.
+            ship.transform.SetParent(transform, true);
 
-            // Use the pilot authored as a child of the ship, if present.
             var commander = ship.GetComponentInChildren<Commander>(true);
             if (commander)
                 ship.AdoptCommander(commander);
@@ -81,9 +80,7 @@ namespace Game.Services
 
         public void DespawnShip(Ship ship)
         {
-            // Producer-owned teardown: destroy one service-owned ship (a spawner product or an adopted
-            // ship) without touching the rest. The session player is never passed here, so it survives
-            // a sector restart. Also drop any queued revive so it can't fire on the destroyed ship.
+            // The session player is never passed here, so it survives a sector restart.
             if (!ship) return;
             ActiveRegistry.ActiveShips.Remove(ship);
             spawnedShips.Remove(ship);
@@ -103,12 +100,9 @@ namespace Game.Services
 
             spawnedShips.Clear();
             pendingRespawns.Clear();
-            // Clear is the episode-reset boundary: restart the agent index so the next episode
-            // re-derives the same per-agent decision seeds (replay without reconstructing the service).
+            // Restart the agent index at the episode-reset boundary so the next episode re-derives the same decision seeds.
             nextAgentIndex = 0;
-            // Do NOT call ActiveRegistry.Dispose() here — that unsubscribes the OnAdd/OnRemove
-            // callbacks, which permanently breaks the registry for subsequent runs.
-            // Ships are already fully unregistered via ActiveShips.Remove() above.
+            // Never Dispose ActiveRegistry here — that unsubscribes OnAdd/OnRemove and permanently breaks the registry for later runs.
         }
 
         private void OnDestroy()
@@ -118,11 +112,7 @@ namespace Game.Services
 
         private int NextDecisionSeed(int team) => DeriveDecisionSeed(team, nextAgentIndex++);
 
-        /// <summary>
-        /// Stable per-agent decision seed derived from the deterministic spawn order, so a
-        /// reconstructed episode replays identically (unlike a <c>GetInstanceID</c>-derived seed).
-        /// Distinct per ship, nonzero.
-        /// </summary>
+        /// <summary>Per-agent decision seed derived from the deterministic spawn order (not <c>GetInstanceID</c>) so a reconstructed episode replays identically; distinct per ship, nonzero.</summary>
         private static int DeriveDecisionSeed(int team, int agentIndex)
         {
             const int arenaBaseSeed = 0; // 0 until S1b supplies per-arena seeds
