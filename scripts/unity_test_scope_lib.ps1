@@ -125,7 +125,38 @@ function ConvertTo-RepoSlashPath {
 function Test-AutoScopeIgnoredFile {
     param([string]$Path)
 
+    # -like '*' spans '/', so 'doc/*' deliberately covers the whole doc/ tree; these paths cannot affect Unity test outcomes.
     return ($Path -like '*.md' -or $Path -like 'doc/*' -or $Path -like '.claude/*')
+}
+
+function Get-AutoChangedFiles {
+    param([string]$RepoProbePath, [string]$BaseRef)
+
+    $repoRoot = [string](& git -C $RepoProbePath rev-parse --show-toplevel | Select-Object -First 1)
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($repoRoot)) {
+        throw "git rev-parse --show-toplevel failed under '$RepoProbePath'"
+    }
+
+    $mergeBase = [string](& git -C $repoRoot merge-base $BaseRef HEAD | Select-Object -First 1)
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($mergeBase)) {
+        throw "git merge-base $BaseRef HEAD failed"
+    }
+
+    # --no-renames: a rename must surface BOTH paths, or moving a file into a mapped dir could dodge the unmatched-file fallback.
+    $diffFiles = @(& git -C $repoRoot diff --no-renames --name-only $mergeBase)
+    if ($LASTEXITCODE -ne 0) {
+        throw "git diff --no-renames --name-only $mergeBase failed"
+    }
+
+    $untrackedFiles = @(& git -C $repoRoot ls-files --others --exclude-standard)
+    if ($LASTEXITCODE -ne 0) {
+        throw "git ls-files --others failed"
+    }
+
+    return [pscustomobject]@{
+        mergeBase = $mergeBase
+        files = @(@($diffFiles) + @($untrackedFiles) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique)
+    }
 }
 
 function Get-ModulePathGlobs {
@@ -169,19 +200,26 @@ function Resolve-AutoSelection {
     $selection = [ordered]@{
         mode = ""
         consideredFiles = @()
+        ignoredFiles = @()
         matchedModules = @()
         unmatchedFiles = @()
+        emptyFilterModules = @()
         testFilter = ""
     }
 
     $considered = @()
+    $ignored = @()
     foreach ($file in @($ChangedFiles)) {
         if ([string]::IsNullOrWhiteSpace($file)) { continue }
         $path = ConvertTo-RepoSlashPath $file
-        if (Test-AutoScopeIgnoredFile $path) { continue }
+        if (Test-AutoScopeIgnoredFile $path) {
+            $ignored += $path
+            continue
+        }
         $considered += $path
     }
     $selection.consideredFiles = $considered
+    $selection.ignoredFiles = $ignored
 
     if ($considered.Count -eq 0) {
         $selection.mode = "smoke"
@@ -226,22 +264,22 @@ function Resolve-AutoSelection {
     }
 
     $terms = New-Object System.Collections.Generic.List[string]
+    $emptyFilterModules = @()
     foreach ($moduleName in $matchedModules) {
         $moduleFilter = Resolve-ScopeFilter -ScopeMap $ScopeMap -ScopeType "Module" -ScopeName $moduleName
         if ([string]::IsNullOrWhiteSpace($moduleFilter)) {
-            # A matched module with no filter cannot be scope-tested; never under-test.
-            $selection.mode = "fallback"
-            $selection.unmatchedFiles = @($considered | Where-Object {
-                $matched = $false
-                foreach ($glob in $globsByModule[$moduleName]) {
-                    if ($_ -like $glob) { $matched = $true; break }
-                }
-                $matched
-            })
-            $selection.testFilter = Resolve-ScopeFilter -ScopeMap $ScopeMap -ScopeType "Workspace" -ScopeName ""
-            return [pscustomobject]$selection
+            $emptyFilterModules += $moduleName
+            continue
         }
         Add-UniqueFilterTerms -Terms $terms -Filter $moduleFilter
+    }
+
+    if ($emptyFilterModules.Count -gt 0) {
+        # A matched module with no filter cannot be scope-tested; never under-test.
+        $selection.mode = "fallback"
+        $selection.emptyFilterModules = $emptyFilterModules
+        $selection.testFilter = Resolve-ScopeFilter -ScopeMap $ScopeMap -ScopeType "Workspace" -ScopeName ""
+        return [pscustomobject]$selection
     }
 
     Add-UniqueFilterTerms -Terms $terms -Filter (Resolve-ScopeFilter -ScopeMap $ScopeMap -ScopeType "Smoke" -ScopeName "")

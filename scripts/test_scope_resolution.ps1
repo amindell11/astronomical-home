@@ -34,7 +34,7 @@ Assert-True (-not [string]::IsNullOrWhiteSpace((Resolve-ScopeFilter -ScopeMap $s
 Assert-Equal "" (Resolve-ScopeFilter -ScopeMap $scopeMap -ScopeType "Workspace" -ScopeName "") "Workspace resolves to empty filter"
 Assert-Equal "" (Resolve-ScopeFilter -ScopeMap $scopeMap -ScopeType "Feature" -ScopeName "nonexistent") "invalid feature resolves to empty filter (warning expected above)"
 
-$syntheticMap = @'
+$syntheticMapJson = @'
 {
   "smoke": { "testFilter": "SmokeA|SmokeB" },
   "features": {},
@@ -45,7 +45,8 @@ $syntheticMap = @'
     "workspace": { "testFilter": "" }
   }
 }
-'@ | ConvertFrom-Json
+'@
+$syntheticMap = $syntheticMapJson | ConvertFrom-Json
 
 Write-Host ""
 Write-Host "Auto: single module match unions module filter with smoke"
@@ -73,13 +74,24 @@ Write-Host "Auto: matched module with empty testFilter falls back (never under-t
 $auto = Resolve-AutoSelection -ScopeMap $syntheticMap -ChangedFiles @("src/Gamma/G.cs")
 Assert-Equal "fallback" $auto.mode "mode"
 Assert-Equal "" $auto.testFilter "fallback filter"
+Assert-Equal "gamma" (@($auto.emptyFilterModules) -join ",") "empty-filter module named (not blamed on globs)"
+Assert-Equal 0 (@($auto.unmatchedFiles).Count) "no files reported unmatched"
 
 Write-Host ""
-Write-Host "Auto: md/doc/.claude-only diffs run smoke only"
+Write-Host "Auto: md/doc/.claude-only diffs run smoke only, with the ignored files reported"
 $auto = Resolve-AutoSelection -ScopeMap $syntheticMap -ChangedFiles @("README.md", "doc/Feature_Plans/Plan.md", ".claude/settings.local.json", "doc/notes/raw.txt")
 Assert-Equal "smoke" $auto.mode "mode"
 Assert-Equal "SmokeA|SmokeB" $auto.testFilter "filter"
 Assert-Equal 0 (@($auto.consideredFiles).Count) "no files considered"
+Assert-Equal 4 (@($auto.ignoredFiles).Count) "all four files reported as ignored"
+
+Write-Host ""
+Write-Host "Auto: ignore list is surfaced, and non-excluded tooling files still force the fallback"
+$auto = Resolve-AutoSelection -ScopeMap $syntheticMap -ChangedFiles @(".claude/skills/x/tool.ps1", "README.md", "scripts/foo.ps1")
+Assert-Equal "fallback" $auto.mode "scripts/foo.ps1 is NOT ignored and forces full fallback"
+Assert-Equal "scripts/foo.ps1" (@($auto.unmatchedFiles) -join ",") "only the tooling file is unmatched"
+Assert-True (@($auto.ignoredFiles) -contains ".claude/skills/x/tool.ps1") "nested .claude file ignored by design"
+Assert-True (@($auto.ignoredFiles) -contains "README.md") "md file ignored by design"
 
 Write-Host ""
 Write-Host "Auto: no changed files at all runs smoke only"
@@ -111,6 +123,56 @@ Assert-Equal "fallback" $auto.mode "unmapped core source (Ships/Ship.cs) falls b
 
 $auto = Resolve-AutoSelection -ScopeMap $scopeMap -ChangedFiles @("scripts/unity_test_agent.ps1")
 Assert-Equal "fallback" $auto.mode "tooling script falls back to full suite"
+
+$tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("scope-auto-test-" + [guid]::NewGuid().ToString("N"))
+$repo = Join-Path $tempRoot "repo"
+New-Item -ItemType Directory -Force -Path (Join-Path $repo "src/Ships") | Out-Null
+try {
+    Write-Host ""
+    Write-Host "Auto: a git rename surfaces BOTH paths (--no-renames)"
+    & git init -q -b main $repo
+    Set-Content -LiteralPath (Join-Path $repo "src/Ships/Ship.cs") -Value "class Ship {}" -Encoding Ascii
+    & git -C $repo add .
+    & git -C $repo -c user.email=test@test -c user.name=test -c commit.gpgsign=false commit -q -m init
+    New-Item -ItemType Directory -Force -Path (Join-Path $repo "src/Alpha") | Out-Null
+    & git -C $repo mv src/Ships/Ship.cs src/Alpha/Ship.cs
+    $changed = Get-AutoChangedFiles -RepoProbePath $repo -BaseRef HEAD
+    Assert-True (@($changed.files) -contains "src/Ships/Ship.cs") "rename source path reported"
+    Assert-True (@($changed.files) -contains "src/Alpha/Ship.cs") "rename destination path reported"
+    $auto = Resolve-AutoSelection -ScopeMap $syntheticMap -ChangedFiles $changed.files
+    Assert-Equal "fallback" $auto.mode "moving an unmapped file into a mapped dir still falls back"
+
+    Write-Host ""
+    Write-Host "Runner: -ScopeType Auto rejects manual selection args"
+    $runner = Join-Path $PSScriptRoot "unity_test_agent.ps1"
+    $output = & cmd /c "powershell.exe -NoProfile -ExecutionPolicy Bypass -File $runner -ScopeType Auto -TestFilter Foo -SkipUnityAccess 2>&1"
+    Assert-True ($LASTEXITCODE -ne 0) "rejection exits nonzero"
+    Assert-True (($output -join ' ') -like '*cannot be combined with -TestFilter*') "rejection names the conflicting arg"
+    Assert-True (($output -join ' ') -notlike '*Auto scope resolution*') "rejected run never reaches resolution"
+    $output = & cmd /c "powershell.exe -NoProfile -ExecutionPolicy Bypass -File $runner -ScopeType Auto -RerunFailedFrom x.json -SkipUnityAccess 2>&1"
+    Assert-True ($LASTEXITCODE -ne 0 -and ($output -join ' ') -like '*-RerunFailedFrom*') "rejection also covers -RerunFailedFrom"
+
+    Write-Host ""
+    Write-Host "Runner: Auto fallback is a true full Workspace run end-to-end (stubbed Unity exe)"
+    $mapPath = Join-Path $tempRoot "map.json"
+    Set-Content -LiteralPath $mapPath -Value $syntheticMapJson -Encoding Ascii
+    $outDir = Join-Path $tempRoot "out"
+    $stubUnity = Join-Path $env:SystemRoot "System32\where.exe"
+    $output = & cmd /c "powershell.exe -NoProfile -ExecutionPolicy Bypass -File $runner -ScopeType Auto -DiffBase HEAD -Mode EditMode -SkipUnityAccess -UnityPath $stubUnity -ProjectPath $repo -ScopeMapPath $mapPath -OutDir $outDir 2>&1"
+    $joined = $output -join "`n"
+    Assert-True ($joined -like '*AUTO SCOPE FALLBACK*') "fallback banner printed"
+    Assert-True ($joined -like '*UNMATCHED*src/Ships/Ship.cs*') "rename source printed as unmatched"
+    $summary = Get-Content -LiteralPath (Join-Path $outDir "latest-summary.json") -Raw | ConvertFrom-Json
+    Assert-Equal "fallback" $summary.selection.auto.mode "summary records fallback"
+    Assert-Equal "" $summary.selection.testFilter "summary testFilter empty (full suite)"
+    Assert-Equal "" $summary.selection.testCategory "no category narrowing"
+    Assert-Equal "" $summary.selection.assemblyNames "no assembly narrowing"
+    Assert-Equal "" $summary.selection.orderedTestListFile "no ordered-list narrowing"
+    Assert-Equal "" $summary.selection.rerunFailedFrom "no rerun narrowing"
+}
+finally {
+    Remove-Item -LiteralPath $tempRoot -Recurse -Force -ErrorAction SilentlyContinue
+}
 
 Write-Host ""
 Write-Host "========================================"

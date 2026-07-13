@@ -52,7 +52,7 @@
   },
   "modules": {
     "ai": {
-      "testFilter": "AIIntegrationPlayMode|MpcNavigatorPlayMode|MpcSolverTests|MpcBoostEditModeTests|MpcCorrelatedNoiseTests|MpcObstacleCostTests|MpcCostRegroupEditModeTests|MpcVelocityReferenceEditModeTests|MultiSphereObstacleEditModeTests|ObstacleSelectionEditModeTests|NavigatorIdleGateEditModeTests|LosCostEditModeTests|ScannerPlayMode|AiDeterminismEditModeTests|AiCommanderDeterminismPlayMode|AgentDecisionSeedPlayMode|TacticalObservationEditModeTests",
+      "testFilter": "AIIntegrationPlayMode|MpcNavigatorPlayMode|MpcSolverTests|MpcBoostEditModeTests|MpcCorrelatedNoiseTests|MpcObstacleCostTests|MpcCostRegroupEditModeTests|MpcVelocityReferenceEditModeTests|MultiSphereObstacleEditModeTests|ObstacleSelectionEditModeTests|NavigatorIdleGateEditModeTests|LosCostEditModeTests|ScannerPlayMode|AiDeterminismEditModeTests|AiCommanderDeterminismPlayMode|AgentDecisionSeedPlayMode|TacticalObservationEditModeTests|ManeuverOraclePlayMode|TwoArenaIsolationEditModeTests",
       "paths": [
         "src/Asteroids3D/Assets/Scripts/AI/**",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/AiDeterminismEditModeTests.cs*",
@@ -64,7 +64,7 @@
       ]
     },
     "mpc": {
-      "testFilter": "MpcNavigatorPlayMode|MpcPerformancePlayModeTests|MpcSolverTests|MpcBoostEditModeTests|MpcCorrelatedNoiseTests|MpcObstacleCostTests|MpcCostRegroupEditModeTests|MpcVelocityReferenceEditModeTests|MultiSphereObstacleEditModeTests|ObstacleSelectionEditModeTests|NavigatorIdleGateEditModeTests|LosCostEditModeTests|NavFieldEditModeTests|NavFieldServicePlayMode",
+      "testFilter": "MpcNavigatorPlayMode|MpcPerformancePlayModeTests|MpcSolverTests|MpcBoostEditModeTests|MpcCorrelatedNoiseTests|MpcObstacleCostTests|MpcCostRegroupEditModeTests|MpcVelocityReferenceEditModeTests|MultiSphereObstacleEditModeTests|ObstacleSelectionEditModeTests|NavigatorIdleGateEditModeTests|LosCostEditModeTests|NavFieldEditModeTests|NavFieldServicePlayMode|ManeuverOraclePlayMode|TwoArenaIsolationEditModeTests",
       "paths": [
         "src/Asteroids3D/Assets/Scripts/AI/Navigation/**",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/Mpc*",
@@ -73,13 +73,15 @@
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/ObstacleSelectionEditModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/NavigatorIdleGateEditModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/NavFieldEditModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/TwoArenaIsolationEditModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/MpcNavigatorPlayModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/MpcPerformancePlayModeTests.cs*",
-        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/NavFieldServicePlayModeTests.cs*"
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/NavFieldServicePlayModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/ManeuverOraclePlayModeTests.cs*"
       ]
     },
     "combat": {
-      "testFilter": "HeatOverheatStress|HeatEditModeTests|ChargeTimeEditModeTests|RoundsReloadEditModeTests|ConcussionGrenade|MissileGuidance|WeaponCommandDispatch|WeaponHardpointEditModeTests|WeaponTriggerSemanticsPlayMode|WeaponReequipPlayMode|LockOnRegistryWiring|LockOnRegressionEditModeTests|ParentedEntityIdentityPlayMode",
+      "testFilter": "HeatOverheatStress|HeatEditModeTests|ChargeTimeEditModeTests|RoundsReloadEditModeTests|ConcussionGrenade|MissileGuidance|WeaponCommandDispatch|WeaponHardpointEditModeTests|WeaponTriggerSemanticsPlayMode|WeaponReequipPlayMode|LockOnRegistryWiring|LockOnRegressionEditModeTests|ParentedEntityIdentityPlayMode|WeaponHudBindingPlayMode|ShipReequipPlayMode",
       "paths": [
         "src/Asteroids3D/Assets/Scripts/Combat/**",
         "src/Asteroids3D/Assets/Scripts/Ships/Weapons/**",
@@ -100,7 +102,7 @@
       ]
     },
     "sectors": {
-      "testFilter": "SectorCompositionPlayMode|SectorLifecyclePlayMode|SectorManifestSyncEditModeTests|SectorActivationEditModeTests|SectorActivationLifecyclePlayMode|TriggerVolumeActivationPlayMode|EncounterLifecycle|ArenaEncounterPlacementPlayMode|MultiArenaSmokePlayMode|RespawnEditModeTests|BootstrapContractsEditModeTests",
+      "testFilter": "SectorCompositionPlayMode|SectorLifecyclePlayMode|SectorManifestSyncEditModeTests|SectorActivationEditModeTests|SectorActivationLifecyclePlayMode|TriggerVolumeActivationPlayMode|EncounterLifecycle|ArenaEncounterPlacementPlayMode|MultiArenaSmokePlayMode|EnvironmentLocalePlayMode|RespawnEditModeTests|BootstrapContractsEditModeTests",
       "paths": [
         "src/Asteroids3D/Assets/Scripts/Game/Sectors/**",
         "src/Asteroids3D/Assets/Scripts/Game/Encounters/**",
@@ -113,7 +115,9 @@
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/TriggerVolumeActivationPlayModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/EncounterLifecyclePlayModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/ArenaEncounterPlacementPlayModeTests.cs*",
-        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/MultiArenaSmokePlayModeTests.cs*"
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/MultiArenaSmokePlayModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/EnvironmentLocalePlayModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/RespawnEditModeTests.cs*"
       ]
     },
     "objectives": {
@@ -135,12 +139,13 @@
       ]
     },
     "ui": {
-      "testFilter": "UILifecyclePlayMode|EventDrivenRefactorEditModeTests|LoadingSplashEditModeTests|HangarPreviewFramingEditModeTests|HangarFlowPlayMode|HangarInputGatePlayMode|HangarShipSwapPlayMode|HangarWeaponRowsPlayMode|WeaponHudBindingPlayMode|ShipReequipPlayMode|WeaponReequipPlayMode",
+      "testFilter": "UILifecyclePlayMode|EventDrivenRefactorEditModeTests|LoadingSplashEditModeTests|MinimapLayerSetterEditModeTests|HangarPreviewFramingEditModeTests|HangarFlowPlayMode|HangarInputGatePlayMode|HangarShipSwapPlayMode|HangarWeaponRowsPlayMode|WeaponHudBindingPlayMode|ShipReequipPlayMode|WeaponReequipPlayMode",
       "paths": [
         "src/Asteroids3D/Assets/Scripts/UI/**",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/HangarPreviewFramingEditModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/LoadingSplashEditModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/EventDrivenRefactorEditModeTests.cs*",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/MinimapLayerSetterEditModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/Hangar*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/UILifecyclePlayModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/WeaponHudBindingPlayModeTests.cs*"

@@ -203,35 +203,6 @@ function Get-TopStackFrame {
     return ($first.Trim())
 }
 
-function Get-AutoChangedFiles {
-    param([string]$RepoProbePath, [string]$BaseRef)
-
-    $repoRoot = [string](& git -C $RepoProbePath rev-parse --show-toplevel | Select-Object -First 1)
-    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($repoRoot)) {
-        throw "git rev-parse --show-toplevel failed under '$RepoProbePath'"
-    }
-
-    $mergeBase = [string](& git -C $repoRoot merge-base $BaseRef HEAD | Select-Object -First 1)
-    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($mergeBase)) {
-        throw "git merge-base $BaseRef HEAD failed"
-    }
-
-    $diffFiles = @(& git -C $repoRoot diff --name-only $mergeBase)
-    if ($LASTEXITCODE -ne 0) {
-        throw "git diff --name-only $mergeBase failed"
-    }
-
-    $untrackedFiles = @(& git -C $repoRoot ls-files --others --exclude-standard)
-    if ($LASTEXITCODE -ne 0) {
-        throw "git ls-files --others failed"
-    }
-
-    return [pscustomobject]@{
-        mergeBase = $mergeBase
-        files = @(@($diffFiles) + @($untrackedFiles) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique)
-    }
-}
-
 function Write-AutoSelection {
     param([object]$Auto, [string]$BaseRef, [string]$MergeBase)
 
@@ -239,6 +210,12 @@ function Write-AutoSelection {
     Write-Host ("Changed files considered: {0}" -f @($Auto.consideredFiles).Count)
     foreach ($file in @($Auto.consideredFiles)) {
         Write-Host "  $file"
+    }
+    if (@($Auto.ignoredFiles).Count -gt 0) {
+        Write-Host ("Ignored as test-irrelevant by design (*.md, doc/**, .claude/**): {0}" -f @($Auto.ignoredFiles).Count)
+        foreach ($file in @($Auto.ignoredFiles)) {
+            Write-Host "  IGNORED: $file"
+        }
     }
 
     switch ($Auto.mode) {
@@ -253,6 +230,9 @@ function Write-AutoSelection {
             Write-Host "AUTO SCOPE FALLBACK -> FULL WORKSPACE SUITE (never under-test)."
             foreach ($file in @($Auto.unmatchedFiles)) {
                 Write-Host "  UNMATCHED (no module 'paths' glob in unity_test_scopes.json): $file"
+            }
+            foreach ($moduleName in @($Auto.emptyFilterModules)) {
+                Write-Host "  MODULE '$moduleName' matched but its testFilter is empty/invalid in unity_test_scopes.json"
             }
         }
     }
@@ -525,6 +505,20 @@ function Parse-UnityResultXml {
     return $base
 }
 
+if ($ScopeType -eq "Auto") {
+    $manualSelectionArgs = [ordered]@{
+        "-TestFilter" = $TestFilter
+        "-TestCategory" = $TestCategory
+        "-AssemblyNames" = $AssemblyNames
+        "-OrderedTestListFile" = $OrderedTestListFile
+        "-RerunFailedFrom" = $RerunFailedFrom
+    }
+    $conflicting = @($manualSelectionArgs.Keys | Where-Object { -not [string]::IsNullOrWhiteSpace($manualSelectionArgs[$_]) })
+    if ($conflicting.Count -gt 0) {
+        throw "-ScopeType Auto cannot be combined with $($conflicting -join ', '): Auto owns test selection so its full-suite fallback stays a true full Workspace run. Narrow with -ExcludeCategory, or drop -ScopeType Auto."
+    }
+}
+
 $unityExe = Resolve-FullPath $UnityPath
 $project = Resolve-FullPath $ProjectPath
 $outRoot = Resolve-FullPath $OutDir
@@ -560,8 +554,10 @@ if ([string]::IsNullOrWhiteSpace($TestFilter)) {
             $autoSelection = [pscustomobject]@{
                 mode = "fallback"
                 consideredFiles = @()
+                ignoredFiles = @()
                 matchedModules = @()
                 unmatchedFiles = @()
+                emptyFilterModules = @()
                 testFilter = Resolve-ScopeFilter -ScopeMap $scopeMap -ScopeType "Workspace" -ScopeName ""
             }
         }
@@ -575,6 +571,8 @@ if ([string]::IsNullOrWhiteSpace($TestFilter)) {
             mode = [string]$autoSelection.mode
             matchedModules = @($autoSelection.matchedModules)
             unmatchedFiles = @($autoSelection.unmatchedFiles)
+            ignoredFiles = @($autoSelection.ignoredFiles)
+            emptyFilterModules = @($autoSelection.emptyFilterModules)
         }
     }
     else {
