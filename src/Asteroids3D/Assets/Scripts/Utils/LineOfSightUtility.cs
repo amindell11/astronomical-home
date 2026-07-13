@@ -22,8 +22,7 @@ namespace Utils
             dir /= dist;
             var mask = occluderMask ?? Physics.DefaultRaycastLayers;
 
-            // Physics.Raycast returns the CLOSEST hit; an unordered NonAlloc query could return
-            // the target's own collider while an occluder sits in front of it.
+            // Physics.Raycast returns the CLOSEST hit; an unordered NonAlloc query could return the target's own collider while an occluder sits in front.
             if (!Physics.Raycast(origin, dir, out var hit, dist, mask, QueryTriggerInteraction.Ignore))
                 return true;
 
