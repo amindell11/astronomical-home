@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Game.Sectors;
 using NUnit.Framework;
 using Player;
@@ -99,6 +100,47 @@ namespace Tests.PlayMode
                 "Occupancy accumulated before Setup must be pushed onto the bus when Setup wires it.");
 
             yield return volume.Teardown(ctx);
+        }
+
+        [UnityTest]
+        public IEnumerator TimeRule_OnFrozenBus_NeverFires_WhileLiveBusRuleFires()
+        {
+            var frozenBus = new SectorEventBus();
+            var liveBus = new SectorEventBus();
+
+            var frozenRule = TrackGO(new GameObject("FrozenTimeRule")).AddComponent<ActivationRule>();
+            frozenRule.Configure(new[] { ActivationTerm.Time(0.05f) });
+            var liveRule = TrackGO(new GameObject("LiveTimeRule")).AddComponent<ActivationRule>();
+            liveRule.Configure(new[] { ActivationTerm.Time(0.05f) });
+
+            yield return frozenRule.Setup(new SectorBuildContext(null, null, null, frozenBus));
+            yield return liveRule.Setup(new SectorBuildContext(null, null, null, liveBus));
+            frozenBus.Freeze();
+
+            yield return new WaitForSeconds(0.3f);
+
+            Assert.IsTrue(liveRule.HasFired, "The live-bus time rule must fire past its threshold (control).");
+            Assert.IsFalse(frozenRule.HasFired, "No rule may fire once its bus is frozen.");
+        }
+
+        [UnityTest]
+        public IEnumerator BlankToken_Volume_LogsError_AndStaysInert()
+        {
+            var bus = new SectorEventBus();
+            var ctx = new SectorBuildContext(null, null, null, bus);
+            var volume = CreateVolume("");
+
+            LogAssert.Expect(LogType.Error, new Regex("TriggerVolume .*blank signal token.*inert"));
+            yield return volume.Setup(ctx);
+
+            var changes = 0;
+            bus.Changed += _ => changes++;
+
+            CreatePlayer(Vector3.zero);
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+
+            Assert.AreEqual(0, changes, "An inert volume must write nothing to the bus.");
         }
 
         [UnityTest]

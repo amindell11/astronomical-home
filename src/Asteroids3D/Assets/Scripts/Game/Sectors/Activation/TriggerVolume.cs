@@ -17,10 +17,15 @@ namespace Game.Sectors
 
         public override IEnumerator Setup(SectorBuildContext ctx)
         {
+            if (string.IsNullOrWhiteSpace(signalToken))
+            {
+                Debug.LogError($"TriggerVolume on '{name}' has a blank signal token — volume is inert.", this);
+                yield break;
+            }
+
             bus = ctx.Bus;
             // Trigger events can precede Setup (player parked in the volume at build) — push the buffered level.
             bus?.Set(signalToken, playerInside);
-            yield break;
         }
 
         public override IEnumerator Teardown(SectorBuildContext ctx)

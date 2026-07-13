@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Game.Sectors
 {
-    /// <summary>Per-sector named boolean signals: levels via Set, latched events via Latch; fresh instance per sector Setup.</summary>
+    /// <summary>Per-sector named boolean signals: levels via Set, latched events via Latch; fresh instance per sector Setup, frozen when teardown begins.</summary>
     public class SectorEventBus
     {
         private readonly Dictionary<string, bool> signals = new();
@@ -11,10 +11,15 @@ namespace Game.Sectors
 
         public event Action<string> Changed;
 
+        public bool Frozen { get; private set; }
+
+        public void Freeze() => Frozen = true;
+
         public bool Get(string token) => signals.TryGetValue(token, out var value) && value;
 
         public void Set(string token, bool value)
         {
+            if (Frozen) return;
             if (!value && latched.Contains(token)) return;
             if (Get(token) == value) return;
             signals[token] = value;
@@ -23,6 +28,7 @@ namespace Game.Sectors
 
         public void Latch(string token)
         {
+            if (Frozen) return;
             latched.Add(token);
             Set(token, true);
         }

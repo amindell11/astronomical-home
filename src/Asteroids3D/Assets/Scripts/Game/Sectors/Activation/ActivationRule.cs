@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Game.Sectors
 {
-    /// <summary>Fires exactly once when all terms hold, then publishes latched tokens so rules chain in data.</summary>
+    /// <summary>Fires exactly once when all terms hold, in causal order: OnFired (own effect) → Fired event → publish latched tokens, so downstream rules run strictly after this rule's effect.</summary>
     public class ActivationRule : SectorModule
     {
         [SerializeField] private ActivationTerm[] terms = Array.Empty<ActivationTerm>();
@@ -26,12 +26,17 @@ namespace Game.Sectors
 
         public override IEnumerator Setup(SectorBuildContext ctx)
         {
+            if (!HasValidTokens())
+            {
+                Debug.LogError($"ActivationRule on '{name}' has a blank signal token — rule is inert.", this);
+                yield break;
+            }
+
             bus = ctx.Bus;
             predicate = new ActivationPredicate(terms);
             setupTime = Time.time;
             if (bus != null) bus.Changed += OnBusChanged;
             EvaluateNow();
-            yield break;
         }
 
         public override IEnumerator Teardown(SectorBuildContext ctx)
@@ -40,6 +45,20 @@ namespace Game.Sectors
             bus = null;
             predicate = null;
             yield break;
+        }
+
+        /// <summary>Effect seam: a subclass IS the effect (no post-Setup binding race); runs before the Fired event and token publication.</summary>
+        protected virtual void OnFired() { }
+
+        private bool HasValidTokens()
+        {
+            foreach (var term in terms)
+                if (term.kind == ActivationTerm.TermKind.Signal && string.IsNullOrWhiteSpace(term.signalToken))
+                    return false;
+            foreach (var token in publishOnFired)
+                if (string.IsNullOrWhiteSpace(token))
+                    return false;
+            return true;
         }
 
         private void Update()
@@ -52,10 +71,12 @@ namespace Game.Sectors
 
         private void EvaluateNow()
         {
+            if (bus != null && bus.Frozen) return;
             if (!predicate.Evaluate(bus, Time.time - setupTime)) return;
+            OnFired();
+            Fired?.Invoke();
             foreach (var token in publishOnFired)
                 bus?.Latch(token);
-            Fired?.Invoke();
         }
     }
 }

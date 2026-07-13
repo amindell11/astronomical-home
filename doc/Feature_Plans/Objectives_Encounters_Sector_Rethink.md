@@ -182,6 +182,9 @@ above where they differ.
   and created **fresh on every `Setup()`** (handed to modules via
   `SectorBuildContext.Bus`), so a restart / RL episode reset never sees stale
   latched tokens — no static anywhere, per `Multi_Arena_Substrate.md`.
+  `Sector.Teardown()` calls `Freeze()` **before** module teardown: a frozen
+  bus ignores `Set`/`Latch` and never raises `Changed`, so no rule fires or
+  publishes while the sector dismantles (modules tear down sequentially).
 - **Spine stage rides the same bus.** The sector objective's stage is
   published as latched tokens (e.g. `spine:ready-to-extract`), so **state
   terms are just signal terms** — one term kind covers state + spatial +
@@ -241,6 +244,19 @@ above where they differ.
   `EncounterSequenceModule`** and the physics-frame hack. This is where the
   extraction gate becomes present-at-spawn and activation becomes a gated standing
   predicate.
+  - *Effect binding (decided in PR-1 review):* an encounter subclasses
+    `ActivationRule` and overrides `protected OnFired()` — the subclass IS the
+    effect, so there is no post-Setup binding race against an already-fired
+    (e.g. empty-term immediate) rule. Fire order is pinned: `OnFired` →
+    `Fired` event → publish `publishOnFired` tokens, so a rule's own effect
+    completes before any downstream rule runs. The public `Fired` event +
+    `HasFired` remain for external/late binders.
+  - *Spine-stage publisher needs a step-change seam (deferred from PR-2 #135
+    review):* `ObjectiveType`-based events are insufficient —
+    `ObjectiveTracker` suppresses transitions between string steps that share
+    an `ObjectiveType`, and objective set/clear emit no event. When PR-3
+    builds the bus publisher for spine-stage tokens, it must add a step-level
+    change signal on the objective service, not reuse the type-level event.
 - **PR-4 · Author a real overlapping/timed combat encounter (the original ask).**
   Now trivial: a combat encounter whose rule uses time/spatial terms, spawns waves
   that **overlap**, completion = cleared. Proves the model delivers what started
@@ -262,6 +278,12 @@ build design" above. Still open:
   (`CurrentTarget` becomes spine-target; locals need their own contextual markers).
 - **Migration of `EncounterSequenceModule` authored content** — audit which sectors
   reference it (Combat/Arena/Testbench prefabs) before deleting.
+
+Deferred test debt (from PR-1 review): a serialized `ActivationTerm[]`
+inspector round-trip test, and compound-collider `TriggerVolume` occupancy
+(multi-collider players can double-enter/exit; rides the
+PlayerMarker→rigidbody identity cleanup — memory
+`project_playermarker_identity_cleanup`).
 
 ## Related
 

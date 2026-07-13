@@ -1,8 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Game.Sectors;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Tests.EditMode
 {
@@ -31,6 +33,13 @@ namespace Tests.EditMode
         private static void Run(IEnumerator routine)
         {
             while (routine.MoveNext()) { }
+        }
+
+        private class LoggingRule : ActivationRule
+        {
+            public List<string> Log;
+            public string Id;
+            protected override void OnFired() => Log.Add($"{Id}:effect");
         }
 
         [Test]
@@ -136,6 +145,87 @@ namespace Tests.EditMode
 
             Run(a.Teardown(ctx));
             Run(b.Teardown(ctx));
+        }
+
+        [Test]
+        public void CausalOrder_EffectThenEvent_BeforeDownstreamRule()
+        {
+            var bus = new SectorEventBus();
+            var ctx = new SectorBuildContext(null, null, null, bus);
+            var log = new List<string>();
+
+            var a = NewGO("RuleA").AddComponent<LoggingRule>();
+            a.Log = log;
+            a.Id = "A";
+            a.Configure(new[] { ActivationTerm.Signal("go") }, new[] { "a-fired" });
+            a.Fired += () => log.Add("A:event");
+
+            var b = NewGO("RuleB").AddComponent<LoggingRule>();
+            b.Log = log;
+            b.Id = "B";
+            b.Configure(new[] { ActivationTerm.Signal("a-fired") });
+            b.Fired += () => log.Add("B:event");
+
+            Run(a.Setup(ctx));
+            Run(b.Setup(ctx));
+
+            bus.Set("go", true);
+
+            CollectionAssert.AreEqual(new[] { "A:effect", "A:event", "B:effect", "B:event" }, log,
+                "Fire order must be OnFired → Fired → publish, so A's effect completes before B runs.");
+        }
+
+        [Test]
+        public void FrozenBus_SetAndLatch_AreNoOps_AndNeverRaiseChanged()
+        {
+            var bus = new SectorEventBus();
+            bus.Set("x", true);
+            bus.Freeze();
+
+            var changes = 0;
+            bus.Changed += _ => changes++;
+
+            bus.Set("x", false);
+            bus.Set("y", true);
+            bus.Latch("z");
+
+            Assert.AreEqual(0, changes, "A frozen bus must never raise Changed.");
+            Assert.IsTrue(bus.Get("x"), "Pre-freeze values must stay readable.");
+            Assert.IsFalse(bus.Get("y"));
+            Assert.IsFalse(bus.Get("z"));
+        }
+
+        [Test]
+        public void BlankPublishToken_RuleLogsError_AndStaysInert()
+        {
+            var bus = new SectorEventBus();
+            var ctx = new SectorBuildContext(null, null, null, bus);
+            var rule = NewGO("BadPublishRule").AddComponent<ActivationRule>();
+            rule.Configure(new[] { ActivationTerm.Signal("go") }, new[] { " " });
+
+            LogAssert.Expect(LogType.Error, new Regex("ActivationRule .*BadPublishRule.*blank signal token.*inert"));
+            Run(rule.Setup(ctx));
+
+            var fired = 0;
+            rule.Fired += () => fired++;
+            bus.Set("go", true);
+
+            Assert.AreEqual(0, fired, "An invalid rule must be fully inert, not half-working.");
+            Assert.IsFalse(rule.HasFired);
+        }
+
+        [Test]
+        public void BlankSignalTermToken_RuleLogsError_AndStaysInert()
+        {
+            var bus = new SectorEventBus();
+            var ctx = new SectorBuildContext(null, null, null, bus);
+            var rule = NewGO("BadTermRule").AddComponent<ActivationRule>();
+            rule.Configure(new[] { ActivationTerm.Signal(null), ActivationTerm.Time(0f) });
+
+            LogAssert.Expect(LogType.Error, new Regex("ActivationRule .*BadTermRule.*blank signal token.*inert"));
+            Run(rule.Setup(ctx));
+
+            Assert.IsFalse(rule.HasFired, "An invalid rule must not arm at Setup.");
         }
 
         [Test]

@@ -82,6 +82,8 @@ namespace Game.Sectors
         public IEnumerator Teardown()
         {
             IsSetUp = false;
+            // Freeze before module teardown: modules dismantle sequentially and no rule may fire mid-teardown.
+            Context.Bus?.Freeze();
 
             for (var i = modules.Length - 1; i >= 0; i--)
             {
