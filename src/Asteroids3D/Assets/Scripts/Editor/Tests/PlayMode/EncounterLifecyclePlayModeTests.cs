@@ -7,33 +7,17 @@ using NUnit.Framework;
 using Objectives;
 using Objectives.States;
 using UnityEngine;
+using UnityEngine.TestTools;
+using Object = UnityEngine.Object;
 
-namespace Tests.EditMode
+namespace Tests.PlayMode
 {
-    // Destroy-without-teardown lives in the PlayMode suite: EditMode never awakens plain
-    // MonoBehaviours, and Unity skips OnDestroy on never-awakened components.
-    /// <summary>Encounter base subscription hygiene against the spine channel on the Teardown path.</summary>
-    [TestFixture]
+    // PlayMode because OnDestroy only runs on awakened components — EditMode never awakens
+    // plain MonoBehaviours, so the defensive unsubscribe is unobservable there.
+    /// <summary>Encounter base subscription hygiene when a sector is destroyed without running Teardown.</summary>
     [Category("Objectives")]
-    public class EncounterLifecycleEditModeTests
+    public class EncounterLifecyclePlayModeTests
     {
-        private readonly List<GameObject> _created = new();
-
-        [TearDown]
-        public void TearDown()
-        {
-            foreach (var go in _created)
-                if (go != null) UnityEngine.Object.DestroyImmediate(go);
-            _created.Clear();
-        }
-
-        private GameObject NewGO(string name)
-        {
-            var go = new GameObject(name);
-            _created.Add(go);
-            return go;
-        }
-
         private sealed class TargetReadCounter
         {
             public int Reads;
@@ -98,12 +82,14 @@ namespace Tests.EditMode
             while (routine.MoveNext()) { }
         }
 
-        [Test]
-        public void Encounter_Teardown_UnsubscribesFromSpine()
+        [UnityTest]
+        public IEnumerator Encounter_DestroyedWithoutTeardown_StopsReceivingSpineCallbacks()
         {
-            var svc = NewGO("ObjectiveService").AddComponent<ObjectiveService>();
+            var svcGo = new GameObject("ObjectiveService");
+            var svc = svcGo.AddComponent<ObjectiveService>();
             var counter = new TargetReadCounter();
-            var enc = NewGO("Encounter").AddComponent<ProbeEncounter>();
+            var encGo = new GameObject("Encounter");
+            var enc = encGo.AddComponent<ProbeEncounter>();
             enc.Counter = counter;
             enc.Initialize(new StubServices(svc), null);
             Run(enc.Setup());
@@ -116,16 +102,19 @@ namespace Tests.EditMode
             Assert.Greater(counter.Reads, readsBeforeTransition,
                 "Sanity: a live encounter re-reports its target on spine transitions.");
 
-            Run(enc.Teardown());
-            var readsAfterTeardown = counter.Reads;
+            Object.Destroy(encGo);
+            yield return null;
+            var readsAfterDestroy = counter.Reads;
 
             var nextFlag = new Flag();
             SetSpineRunToDone(svc, nextFlag);
             nextFlag.Done = true;
             svc.Tick(0.1f);
 
-            Assert.AreEqual(readsAfterTeardown, counter.Reads,
-                "A torn-down encounter must not receive spine callbacks.");
+            Assert.AreEqual(readsAfterDestroy, counter.Reads,
+                "An encounter destroyed without Teardown must not receive spine callbacks.");
+
+            Object.Destroy(svcGo);
         }
     }
 }
