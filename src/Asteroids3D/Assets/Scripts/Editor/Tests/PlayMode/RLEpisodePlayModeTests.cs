@@ -235,14 +235,17 @@ namespace Tests.PlayMode
         [Timeout(3600000)]
         public IEnumerator Characterization_WritesJsonl()
         {
-            if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RL_EPISODES")))
-                Assert.Ignore("Set RL_EPISODES=1 to run the ranger-vs-baseline characterization.");
+            var watchFlag = File.Exists(Path.Combine(
+                Application.dataPath, "..", "..", "..", "results", "rl-episodes", "watch.flag"));
+            if (!watchFlag && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RL_EPISODES")))
+                Assert.Ignore("Set RL_EPISODES=1 (or create results/rl-episodes/watch.flag) to run the ranger-vs-baseline characterization.");
 
             var trace = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RL_EPISODE_TRACE"));
-            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RL_WATCH")))
+            if (watchFlag || !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RL_WATCH")))
                 Time.timeScale = 1f;
             var spec = RewardSpec.Default;
-            var episodes = int.TryParse(Environment.GetEnvironmentVariable("RL_EPISODE_COUNT"), out var n) ? n : 20;
+            var episodes = int.TryParse(Environment.GetEnvironmentVariable("RL_EPISODE_COUNT"), out var n)
+                ? n : (watchFlag ? 3 : 20);
 
             SpawnPair(in spec, 0);
 
