@@ -43,7 +43,7 @@ namespace Game.Sectors
                 _activeEncounter = null;
             }
 
-            ctx.Services?.ObjectiveService?.Clear();
+            ctx.Services?.ObjectiveService?.ClearAll();
         }
 
         private IEnumerator StartEncounter(int index)

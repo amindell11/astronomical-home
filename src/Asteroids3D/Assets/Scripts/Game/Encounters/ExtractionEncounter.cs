@@ -55,17 +55,17 @@ namespace Game.Encounters
                     onEnter: () => CompleteEncounter(EncounterResult.Failed))
             };
 
-            Services.ObjectiveService.SetObjective(mission, builders);
+            Services.ObjectiveService.SetSpineObjective(mission, builders);
         }
 
         protected override void OnFail()
         {
-            Services.ObjectiveService.Fail();
+            Services.ObjectiveService.FailSpine();
         }
 
         protected override IEnumerator OnTeardown()
         {
-            Services.ObjectiveService.Clear();
+            Services.ObjectiveService.ClearSpine();
             if (extractionZoneInstance) Destroy(extractionZoneInstance.gameObject);
             if (chaser) chaser.gameObject.SetActive(false);
             extractionZoneInstance = null;
