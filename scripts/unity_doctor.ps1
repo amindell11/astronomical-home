@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   Preflight for the Unity-MCP + batch-test workflow.
 
@@ -88,8 +88,9 @@ function Get-EnterPlayModeState {
         elseif ($line -match 'm_EnterPlayModeOptions:\s*(\d+)') { $result.options = [int]$Matches[1] }
     }
     if ($null -ne $result.enabled) {
-        # DisableDomainReload = bit 0. Only a concern when fast-enter is enabled.
-        $result.domainReloadDisabled = ($result.enabled -eq 1 -and $null -ne $result.options -and (($result.options -band 1) -ne 0))
+        $disableDomainReloadBit = 1
+        $fastEnterEnabled = ($result.enabled -eq 1)
+        $result.domainReloadDisabled = ($fastEnterEnabled -and $null -ne $result.options -and (($result.options -band $disableDomainReloadBit) -ne 0))
     }
     return $result
 }
@@ -108,18 +109,25 @@ if (Test-Path -LiteralPath $unityAccessScript) {
     try {
         $accessJson = & powershell -NoProfile -ExecutionPolicy Bypass -File $unityAccessScript -Action Status -Json
         $unityAccess = $accessJson | ConvertFrom-Json
-        if ($null -ne $unityAccess.owner) {
-            Add-Check "unity-access" "INFO" "Lane owned by slot=$($unityAccess.owner.slot) mode=$($unityAccess.owner.mode) lease=$($unityAccess.owner.lease) pid=$($unityAccess.owner.processId)"
+        $owners = @($unityAccess.owners)
+        foreach ($owner in $owners) {
+            Add-Check "unity-access" "INFO" "Project owned: slot=$($owner.slot) mode=$($owner.mode) lease=$($owner.lease) pid=$($owner.processId) project=$($owner.projectPath)"
         }
-        elseif (@($unityAccess.blockers | Where-Object { $_.kind -eq "user_editor" }).Count -gt 0) {
+        if ($null -ne $unityAccess.legacyOwner) {
+            Add-Check "unity-access" "WARN" "Legacy machine-wide owner from an old script copy (slot=$($unityAccess.legacyOwner.slot) lease=$($unityAccess.legacyOwner.lease)); blocks all projects until it clears -- that session should pull main."
+        }
+        if ($null -ne $unityAccess.boot) {
+            Add-Check "unity-access" "INFO" "Boot lane held by lease=$($unityAccess.boot.lease) (a Unity process is starting up)."
+        }
+        if (@($unityAccess.blockers | Where-Object { $_.kind -eq "user_editor" }).Count -gt 0) {
             $userEditor = @($unityAccess.blockers | Where-Object { $_.kind -eq "user_editor" })[0]
-            Add-Check "unity-access" "WARN" "Untracked main-worktree editor is user-owned (pid=$($userEditor.processId)); agents must queue and ask the user to close it."
+            Add-Check "unity-access" "WARN" "Untracked main-worktree editor is user-owned (pid=$($userEditor.processId)); main-project and editor-mode requests queue behind it -- ask the user to close it."
         }
         elseif (@($unityAccess.blockers).Count -gt 0) {
-            Add-Check "unity-access" "WARN" "Unity lane is blocked by unmanaged Unity process(es): $((@($unityAccess.blockers | ForEach-Object { $_.processId })) -join ',')"
+            Add-Check "unity-access" "WARN" "Untracked Unity process(es) present: $((@($unityAccess.blockers | ForEach-Object { $_.processId })) -join ','). Batch requests block on untracked batch processes and same-project editors."
         }
-        else {
-            Add-Check "unity-access" "OK" "Unity lane is free."
+        elseif ($owners.Count -eq 0 -and $null -eq $unityAccess.legacyOwner) {
+            Add-Check "unity-access" "OK" "All Unity projects free."
         }
         if (@($unityAccess.queue).Count -gt 0) {
             Add-Check "unity-queue" "INFO" "$(@($unityAccess.queue).Count) queued request(s): $((@($unityAccess.queue | ForEach-Object { "$($_.position):$($_.slot)" })) -join ', ')"
@@ -130,7 +138,6 @@ if (Test-Path -LiteralPath $unityAccessScript) {
     }
 }
 
-# --- MCP HTTP server ---
 $mcpUp = Test-TcpPort -Port $McpPort
 if ($mcpUp) {
     Add-Check "mcp-http" "OK" "CoplayDev UnityMCP reachable at 127.0.0.1:$McpPort"
@@ -139,7 +146,6 @@ else {
     Add-Check "mcp-http" "WARN" "No listener on 127.0.0.1:$McpPort. Server down, on a different port, or bound to another editor instance. If it came up after session start, run /mcp to reconnect."
 }
 
-# --- mcp-for-unity server process ---
 try { $mcpProcs = @(Get-Process -Name "mcp-for-unity" -ErrorAction SilentlyContinue) } catch { $mcpProcs = @() }
 if ($mcpProcs.Count -gt 0) {
     Add-Check "mcp-server-proc" "INFO" "mcp-for-unity process running (pid $(( $mcpProcs | ForEach-Object { $_.Id }) -join ','))"
@@ -148,7 +154,6 @@ else {
     Add-Check "mcp-server-proc" "INFO" "No mcp-for-unity process. Plugin-spawned server dies on domain reload; start it manually to survive reloads (uvx --offline --from mcpforunityserver==10.0.0 ...)."
 }
 
-# --- interactive editor holding the project ---
 $editor = Find-InteractiveEditor -ProjectFullPath $project
 if ($null -eq $editor) {
     Add-Check "project-editor" "OK" "No interactive Unity editor holds this project; batch runner can run."
@@ -160,7 +165,6 @@ else {
     Add-Check "project-editor" "WARN" "Interactive Unity editor holds this project (pid $($editor.pid)). Batch runner will infra_error; close it before batch tests. MCP tools attach to this instance."
 }
 
-# --- EnterPlayModeOptions ---
 $epm = Get-EnterPlayModeState -ProjectFullPath $project
 if (-not $epm.found) {
     Add-Check "enter-playmode" "WARN" "EditorSettings.asset not found under $project"
@@ -172,7 +176,6 @@ else {
     Add-Check "enter-playmode" "OK" "Domain reload active (enabled=$($epm.enabled), options=$($epm.options)); safe for PlayMode tests."
 }
 
-# --- BurstCache ---
 $burst = Join-Path $project "Library/BurstCache"
 if (Test-Path -LiteralPath $burst) {
     Add-Check "burst-cache" "OK" "Library/BurstCache present (warm); first batch run won't pay full Burst compile."
@@ -181,7 +184,6 @@ else {
     Add-Check "burst-cache" "INFO" "No Library/BurstCache (cold). First batch run is slow and may time out perf-probe tests."
 }
 
-# --- output ---
 if ($Json.IsPresent) {
     $out = [ordered]@{
         projectPath   = $project

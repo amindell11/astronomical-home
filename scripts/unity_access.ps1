@@ -1,5 +1,5 @@
 param(
-    [ValidateSet("Status", "Request", "Acquire", "Wait", "Attach", "Release", "Cancel", "StartEditor", "RunBatch")]
+    [ValidateSet("Status", "Request", "Acquire", "Wait", "Attach", "Release", "Cancel", "BootAcquire", "BootRelease", "StartEditor", "RunBatch")]
     [string]$Action = "Status",
     [string]$Lease = "",
     [string]$Slot = "",
@@ -11,6 +11,7 @@ param(
     [int]$PollSeconds = 2,
     [int]$TicketTtlSeconds = 900,
     [int]$OwnerTtlSeconds = 300,
+    [int]$BootTtlSeconds = 180,
     [int]$EditorCloseWaitSeconds = 30,
     [string]$StateRoot = "",
     [string]$ProcessSnapshotPath = "",
@@ -49,6 +50,18 @@ function Normalize-Path {
     param([string]$Path)
     if ([string]::IsNullOrWhiteSpace($Path)) { return "" }
     return (Resolve-FullPath $Path).Replace('\', '/').TrimEnd('/').ToLowerInvariant()
+}
+
+function Get-ProjectKey {
+    param([string]$Path)
+    $normalized = Normalize-Path $Path
+    if ([string]::IsNullOrWhiteSpace($normalized)) { return "unknown" }
+    $sha1 = [System.Security.Cryptography.SHA1]::Create()
+    try { $digest = [BitConverter]::ToString($sha1.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($normalized))) }
+    finally { $sha1.Dispose() }
+    $tail = ($normalized -replace '[^a-z0-9]+', '-').Trim('-')
+    if ($tail.Length -gt 40) { $tail = $tail.Substring($tail.Length - 40).Trim('-') }
+    return "$tail-" + $digest.Replace("-", "").Substring(0, 8).ToLowerInvariant()
 }
 
 function Read-JsonFile {
@@ -202,35 +215,93 @@ function Ensure-Ticket {
     return [pscustomobject]@{ file = $path; data = [pscustomobject]$ticket }
 }
 
-function Get-Owner {
-    $path = Join-Path $OwnerRoot "owner.json"
-    $owner = Read-JsonFile $path
+function Test-OwnerStale {
+    param([object]$Owner)
+    if ([int]$Owner.processId -gt 0) {
+        return @(Get-RelevantUnityProcesses | Where-Object { $_.processId -eq [int]$Owner.processId }).Count -eq 0
+    }
+    return ([datetime]::UtcNow - (Get-DateValue $Owner.updatedAt)).TotalSeconds -gt $OwnerTtlSeconds
+}
+
+function Get-ProjectOwner {
+    param([string]$RequestedKey)
+    $ownerDir = Join-Path $OwnersRoot $RequestedKey
+    $owner = Read-JsonFile (Join-Path $ownerDir "owner.json")
     if ($null -eq $owner) {
-        if (Test-Path -LiteralPath $OwnerRoot) { Remove-Item -LiteralPath $OwnerRoot -Recurse -Force -ErrorAction SilentlyContinue }
+        if (Test-Path -LiteralPath $ownerDir) { Remove-Item -LiteralPath $ownerDir -Recurse -Force -ErrorAction SilentlyContinue }
         return $null
     }
-    $isStale = if ([int]$owner.processId -gt 0) {
-        @(Get-RelevantUnityProcesses | Where-Object { $_.processId -eq [int]$owner.processId }).Count -eq 0
-    }
-    else {
-        ([datetime]::UtcNow - (Get-DateValue $owner.updatedAt)).TotalSeconds -gt $OwnerTtlSeconds
-    }
-    if ($isStale) {
-        Remove-Item -LiteralPath $OwnerRoot -Recurse -Force
+    if (Test-OwnerStale $owner) {
+        Remove-Item -LiteralPath $ownerDir -Recurse -Force
         return $null
     }
     return $owner
 }
 
+function Get-AllOwners {
+    $owners = @()
+    foreach ($dir in @(Get-ChildItem -LiteralPath $OwnersRoot -Directory -ErrorAction SilentlyContinue)) {
+        $owner = Get-ProjectOwner $dir.Name
+        if ($null -ne $owner) { $owners += $owner }
+    }
+    return $owners
+}
+
+function Find-OwnerByLease {
+    param([string]$RequestedLease)
+    $matches = @(Get-AllOwners | Where-Object { [string]$_.lease -eq $RequestedLease })
+    if ($matches.Count -eq 0) { return $null }
+    return $matches[0]
+}
+
+# Single-owner state written by pre-two-tier script copies still in live sessions; honored as machine-wide until it clears.
+function Get-LegacyOwner {
+    $owner = Read-JsonFile (Join-Path $LegacyOwnerRoot "owner.json")
+    if ($null -eq $owner) {
+        if (Test-Path -LiteralPath $LegacyOwnerRoot) { Remove-Item -LiteralPath $LegacyOwnerRoot -Recurse -Force -ErrorAction SilentlyContinue }
+        return $null
+    }
+    if (Test-OwnerStale $owner) {
+        Remove-Item -LiteralPath $LegacyOwnerRoot -Recurse -Force
+        return $null
+    }
+    return $owner
+}
+
+function Get-BootOwner {
+    $boot = Read-JsonFile (Join-Path $BootRoot "boot.json")
+    if ($null -eq $boot) {
+        if (Test-Path -LiteralPath $BootRoot) { Remove-Item -LiteralPath $BootRoot -Recurse -Force -ErrorAction SilentlyContinue }
+        return $null
+    }
+    $stale = ([datetime]::UtcNow - (Get-DateValue $boot.acquiredAt)).TotalSeconds -gt $BootTtlSeconds
+    if (-not $stale -and [int]$boot.processId -gt 0) {
+        $stale = @(Get-RelevantUnityProcesses | Where-Object { $_.processId -eq [int]$boot.processId }).Count -eq 0
+    }
+    if ($stale) {
+        Remove-Item -LiteralPath $BootRoot -Recurse -Force
+        return $null
+    }
+    return $boot
+}
+
+function Get-TrackedPids {
+    $pids = @(Get-AllOwners | ForEach-Object { [int]$_.processId } | Where-Object { $_ -gt 0 })
+    $legacy = Get-LegacyOwner
+    if ($null -ne $legacy -and [int]$legacy.processId -gt 0) { $pids += [int]$legacy.processId }
+    return $pids
+}
+
 function Get-Blockers {
-    param([object]$Owner, [string]$BatchProject = "")
+    param([string]$RequestedProject = "", [string]$RequestedMode = "")
     $mainProject = Normalize-Path (Join-Path $PrimaryRoot "src/Asteroids3D")
-    $requested = Normalize-Path $BatchProject
+    $requested = Normalize-Path $RequestedProject
+    $tracked = @(Get-TrackedPids)
     $blockers = @()
     foreach ($process in @(Get-RelevantUnityProcesses)) {
-        if ($null -ne $Owner -and [int]$Owner.processId -eq $process.processId) { continue }
-        # For batch requests, an interactive editor on a DIFFERENT project cannot contend (lockfile/Library/caches are per-project; the observed deadlocks were concurrent batch startups - postmortem D6), so only same-project editors block.
-        if (-not [string]::IsNullOrWhiteSpace($requested) -and -not $process.batch -and $process.normalizedProjectPath -ne $requested) { continue }
+        if ($tracked -contains $process.processId) { continue }
+        # Untracked batch processes may be mid-boot (the D6 hazard) so they block everywhere; untracked editors are long-lived and only contend on their own project. Editor-mode requests stay machine-wide strict.
+        if ($RequestedMode -eq "batch" -and -not $process.batch -and -not [string]::IsNullOrWhiteSpace($requested) -and $process.normalizedProjectPath -ne $requested) { continue }
         $kind = "unmanaged_unity"
         if (-not $process.batch -and $process.normalizedProjectPath -eq $mainProject) { $kind = "user_editor" }
         $blockers += [ordered]@{
@@ -243,8 +314,14 @@ function Get-Blockers {
     return $blockers
 }
 
+function Get-BlockedStatus {
+    param([object[]]$Blockers)
+    if (@($Blockers | Where-Object { $_.kind -eq "user_editor" }).Count -gt 0) { return "blocked_user_editor" }
+    return "blocked_unmanaged_unity"
+}
+
 function Get-StatusValue {
-    $owner = Get-Owner
+    $owners = @(Get-AllOwners)
     $tickets = @(Get-Tickets)
     $queue = @()
     for ($i = 0; $i -lt $tickets.Count; $i++) {
@@ -253,53 +330,61 @@ function Get-StatusValue {
             lease = [string]$tickets[$i].data.lease
             slot = [string]$tickets[$i].data.slot
             mode = [string]$tickets[$i].data.mode
+            projectPath = [string]$tickets[$i].data.projectPath
             requestedAt = [string]$tickets[$i].data.requestedAt
         }
     }
     return [ordered]@{
         stateRoot = $AccessRoot
-        owner = $owner
+        owners = $owners
+        legacyOwner = Get-LegacyOwner
+        boot = Get-BootOwner
         queue = $queue
-        blockers = @(Get-Blockers $owner)
+        blockers = @(Get-Blockers)
     }
 }
 
 function Get-QueuePosition {
-    param([array]$Tickets, [string]$RequestedLease)
-    return 1 + [array]::IndexOf(@($Tickets | ForEach-Object { [string]$_.data.lease }), $RequestedLease)
+    param([string]$RequestedLease, [string]$RequestedKey)
+    $projectTickets = @(Get-Tickets | Where-Object { (Get-ProjectKey ([string]$_.data.projectPath)) -eq $RequestedKey })
+    return 1 + [array]::IndexOf(@($projectTickets | ForEach-Object { [string]$_.data.lease }), $RequestedLease)
 }
 
 function Request-Access {
     [void](Ensure-Ticket $Lease $Slot $Mode $ResolvedProject)
-    $position = Get-QueuePosition (Get-Tickets) $Lease
-    return [ordered]@{ status = "queued"; lease = $Lease; slot = $Slot; mode = $Mode; position = $position }
+    $position = Get-QueuePosition $Lease $ProjectKey
+    return [ordered]@{ status = "queued"; lease = $Lease; slot = $Slot; mode = $Mode; projectPath = $ResolvedProject; position = $position }
 }
 
 function Try-AcquireAccess {
-    $current = Get-Owner
+    $current = Get-ProjectOwner $ProjectKey
     if ($null -ne $current -and [string]$current.lease -eq $Lease) {
         $current.updatedAt = [datetime]::UtcNow.ToString("o")
-        Write-JsonFile (Join-Path $OwnerRoot "owner.json") $current
+        Write-JsonFile (Join-Path (Join-Path $OwnersRoot $ProjectKey) "owner.json") $current
         return [ordered]@{ status = "acquired"; owner = $current; renewed = $true }
     }
 
     [void](Request-Access)
-    $position = Get-QueuePosition (Get-Tickets) $Lease
+    $position = Get-QueuePosition $Lease $ProjectKey
+    $legacy = Get-LegacyOwner
+    if ($null -ne $legacy) {
+        return [ordered]@{ status = "waiting"; position = $position; owner = $legacy }
+    }
     if ($null -ne $current) {
         return [ordered]@{ status = "waiting"; position = $position; owner = $current }
     }
 
-    $batchProject = if ($Mode -eq "batch") { $ResolvedProject } else { "" }
-    $blockers = @(Get-Blockers $null $batchProject)
+    $blockers = @(Get-Blockers $ResolvedProject $Mode)
     if ($blockers.Count -gt 0) {
-        $status = if (@($blockers | Where-Object { $_.kind -eq "user_editor" }).Count -gt 0) { "blocked_user_editor" } else { "blocked_unmanaged_unity" }
+        $status = Get-BlockedStatus $blockers
         return [ordered]@{ status = $status; position = $position; blockers = $blockers }
     }
 
     if ($position -ne 1) { return [ordered]@{ status = "waiting"; position = $position; owner = $null } }
 
-    try { New-Item -ItemType Directory -Path $OwnerRoot -ErrorAction Stop | Out-Null }
-    catch { return [ordered]@{ status = "waiting"; position = $position; owner = Get-Owner } }
+    $ownerDir = Join-Path $OwnersRoot $ProjectKey
+    try { New-Item -ItemType Directory -Path $ownerDir -ErrorAction Stop | Out-Null }
+    catch { return [ordered]@{ status = "waiting"; position = $position; owner = Get-ProjectOwner $ProjectKey } }
 
     $now = [datetime]::UtcNow.ToString("o")
     $owner = [ordered]@{
@@ -307,11 +392,12 @@ function Try-AcquireAccess {
         slot = $Slot
         mode = $Mode
         projectPath = $ResolvedProject
+        projectKey = $ProjectKey
         processId = 0
         acquiredAt = $now
         updatedAt = $now
     }
-    Write-JsonFile (Join-Path $OwnerRoot "owner.json") $owner
+    Write-JsonFile (Join-Path $ownerDir "owner.json") $owner
     $ownTicket = Find-Ticket $Lease
     if ($null -ne $ownTicket) { Remove-Item -LiteralPath $ownTicket.file -Force }
     return [ordered]@{ status = "acquired"; owner = [pscustomobject]$owner; renewed = $false }
@@ -327,12 +413,68 @@ function Acquire-Access {
     } while ($true)
 }
 
+function Try-AcquireBoot {
+    $owner = Find-OwnerByLease $Lease
+    if ($null -eq $owner) { return [ordered]@{ status = "ownership_mismatch"; note = "BootAcquire requires holding a project owner lease." } }
+
+    # Heartbeat: a pid-less owner queued behind the boot lane must not age past OwnerTtlSeconds while it waits.
+    $owner.updatedAt = [datetime]::UtcNow.ToString("o")
+    Write-JsonFile (Join-Path (Join-Path $OwnersRoot ([string]$owner.projectKey)) "owner.json") $owner
+
+    $boot = Get-BootOwner
+    if ($null -ne $boot -and [string]$boot.lease -eq $Lease) {
+        return [ordered]@{ status = "boot_acquired"; boot = $boot; renewed = $true }
+    }
+    if ($null -ne $boot) { return [ordered]@{ status = "boot_waiting"; boot = $boot } }
+
+    $blockers = @(Get-Blockers ([string]$owner.projectPath) ([string]$owner.mode))
+    if ($blockers.Count -gt 0) {
+        $status = Get-BlockedStatus $blockers
+        return [ordered]@{ status = $status; blockers = $blockers }
+    }
+
+    try { New-Item -ItemType Directory -Path $BootRoot -ErrorAction Stop | Out-Null }
+    catch { return [ordered]@{ status = "boot_waiting"; boot = Get-BootOwner } }
+
+    $record = [ordered]@{
+        lease = $Lease
+        projectPath = [string]$owner.projectPath
+        processId = 0
+        acquiredAt = [datetime]::UtcNow.ToString("o")
+    }
+    Write-JsonFile (Join-Path $BootRoot "boot.json") $record
+    return [ordered]@{ status = "boot_acquired"; boot = [pscustomobject]$record; renewed = $false }
+}
+
+function Acquire-Boot {
+    $deadline = [datetime]::UtcNow.AddSeconds([Math]::Max(0, $WaitSeconds))
+    do {
+        $result = Try-AcquireBoot
+        if ($result.status -in @("boot_acquired", "ownership_mismatch")) { return $result }
+        if ([datetime]::UtcNow -ge $deadline) { return $result }
+        Start-Sleep -Seconds ([Math]::Max(1, $PollSeconds))
+    } while ($true)
+}
+
+function Release-Boot {
+    $boot = Get-BootOwner
+    if ($null -eq $boot) { return [ordered]@{ status = "boot_released"; alreadyFree = $true } }
+    if ([string]$boot.lease -ne $Lease) { return [ordered]@{ status = "ownership_mismatch"; boot = $boot } }
+    Remove-Item -LiteralPath $BootRoot -Recurse -Force
+    return [ordered]@{ status = "boot_released"; alreadyFree = $false }
+}
+
 function Attach-Process {
-    $owner = Get-Owner
-    if ($null -eq $owner -or [string]$owner.lease -ne $Lease) { return [ordered]@{ status = "ownership_mismatch" } }
+    $owner = Find-OwnerByLease $Lease
+    if ($null -eq $owner) { return [ordered]@{ status = "ownership_mismatch" } }
     $owner.processId = $ProcessId
     $owner.updatedAt = [datetime]::UtcNow.ToString("o")
-    Write-JsonFile (Join-Path $OwnerRoot "owner.json") $owner
+    Write-JsonFile (Join-Path (Join-Path $OwnersRoot ([string]$owner.projectKey)) "owner.json") $owner
+    $boot = Get-BootOwner
+    if ($null -ne $boot -and [string]$boot.lease -eq $Lease) {
+        $boot.processId = $ProcessId
+        Write-JsonFile (Join-Path $BootRoot "boot.json") $boot
+    }
     return [ordered]@{ status = "attached"; owner = $owner }
 }
 
@@ -343,9 +485,11 @@ function Cancel-Request {
 }
 
 function Release-Access {
-    $owner = Get-Owner
-    if ($null -eq $owner) { return [ordered]@{ status = "released"; alreadyFree = $true } }
-    if ([string]$owner.lease -ne $Lease) { return [ordered]@{ status = "ownership_mismatch"; owner = $owner } }
+    $owner = Find-OwnerByLease $Lease
+    if ($null -eq $owner) {
+        [void](Release-Boot)
+        return [ordered]@{ status = "released"; alreadyFree = $true }
+    }
 
     if ($CloseEditor.IsPresent -and [int]$owner.processId -gt 0) {
         $process = Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue
@@ -359,7 +503,8 @@ function Release-Access {
         }
     }
 
-    Remove-Item -LiteralPath $OwnerRoot -Recurse -Force
+    Remove-Item -LiteralPath (Join-Path $OwnersRoot ([string]$owner.projectKey)) -Recurse -Force
+    [void](Release-Boot)
     [void](Cancel-Request)
     return [ordered]@{ status = "released"; alreadyFree = $false }
 }
@@ -367,6 +512,11 @@ function Release-Access {
 function Start-TrackedEditor {
     $acquired = Acquire-Access
     if ($acquired.status -ne "acquired") { return $acquired }
+    $boot = Acquire-Boot
+    if ($boot.status -ne "boot_acquired") {
+        [void](Release-Access)
+        return $boot
+    }
     try {
         Ensure-McpServer
         $exe = Resolve-FullPath $UnityPath
@@ -378,6 +528,7 @@ function Start-TrackedEditor {
             if ($null -eq $previousEndpoint) { Remove-Item Env:\ASTRONOMICAL_UNITY_MCP_ENDPOINT -ErrorAction SilentlyContinue }
             else { $env:ASTRONOMICAL_UNITY_MCP_ENDPOINT = $previousEndpoint }
         }
+        # Interactive editors emit no coordinator-visible boot signal; the boot lane self-expires after BootTtlSeconds.
         $script:ProcessId = $process.Id
         return Attach-Process
     }
@@ -392,8 +543,14 @@ function Run-TrackedBatch {
     if ($acquired.status -ne "acquired") { return $acquired }
     try {
         if ([string]::IsNullOrWhiteSpace($BatchScript)) { throw "RunBatch requires -BatchScript." }
-        & powershell -NoProfile -ExecutionPolicy Bypass -File (Resolve-FullPath $BatchScript) @BatchArguments
-        $code = $LASTEXITCODE
+        $boot = Acquire-Boot
+        if ($boot.status -ne "boot_acquired") { return $boot }
+        # The child script is opaque to the coordinator, so the boot lane stays held for its whole run.
+        try {
+            & powershell -NoProfile -ExecutionPolicy Bypass -File (Resolve-FullPath $BatchScript) @BatchArguments
+            $code = $LASTEXITCODE
+        }
+        finally { [void](Release-Boot) }
         return [ordered]@{ status = "batch_complete"; exitCode = $code }
     }
     finally { [void](Release-Access) }
@@ -407,8 +564,13 @@ function Write-Result {
     param([object]$Result)
     if ($Json.IsPresent) { Write-Output ($Result | ConvertTo-Json -Depth 8 -Compress); return }
     if ($Action -eq "Status") {
-        if ($null -ne $Result.owner) { Write-Host "Unity lane: OWNED  $($Result.owner.slot) $($Result.owner.mode) lease=$($Result.owner.lease) pid=$($Result.owner.processId)" }
-        else { Write-Host "Unity lane: FREE" }
+        $owners = @($Result.owners)
+        if ($owners.Count -gt 0) {
+            foreach ($owner in $owners) { Write-Host "Unity owner: $($owner.slot) $($owner.mode) lease=$($owner.lease) pid=$($owner.processId) project=$($owner.projectPath)" }
+        }
+        else { Write-Host "Unity projects: all free" }
+        if ($null -ne $Result.legacyOwner) { Write-Host "LEGACY machine-wide owner (old script copy): $($Result.legacyOwner.slot) lease=$($Result.legacyOwner.lease)" }
+        if ($null -ne $Result.boot) { Write-Host "Boot lane: held by lease=$($Result.boot.lease)" } else { Write-Host "Boot lane: free" }
         if (@($Result.queue).Count -gt 0) { Write-Host "Queue: $((@($Result.queue) | ForEach-Object { "$($_.position):$($_.slot)" }) -join ', ')" }
         else { Write-Host "Queue: empty" }
         foreach ($blocker in @($Result.blockers)) { Write-Host "Blocker: $($blocker.kind) pid=$($blocker.processId) project=$($blocker.projectPath)" }
@@ -419,14 +581,18 @@ function Write-Result {
 
 $PrimaryRoot = Get-PrimaryRoot
 $AccessRoot = if ([string]::IsNullOrWhiteSpace($StateRoot)) { Join-Path $PrimaryRoot ".worktree-pool/unity-access" } else { Resolve-FullPath $StateRoot }
-$OwnerRoot = Join-Path $AccessRoot "owner"
+$LegacyOwnerRoot = Join-Path $AccessRoot "owner"
+$OwnersRoot = Join-Path $AccessRoot "owners"
+$BootRoot = Join-Path $AccessRoot "boot"
 $QueueRoot = Join-Path $AccessRoot "queue"
 New-Item -ItemType Directory -Force -Path $QueueRoot | Out-Null
+New-Item -ItemType Directory -Force -Path $OwnersRoot | Out-Null
 
 if ([string]::IsNullOrWhiteSpace($ProjectPath) -and -not [string]::IsNullOrWhiteSpace($Slot)) {
     $ProjectPath = Join-Path (Get-WorktreePath $Slot) "src/Asteroids3D"
 }
 $ResolvedProject = Resolve-FullPath $ProjectPath
+$ProjectKey = Get-ProjectKey $ResolvedProject
 
 $result = switch ($Action) {
     "Status" { Get-StatusValue }
@@ -436,6 +602,8 @@ $result = switch ($Action) {
     "Attach" { Require-Lease; if ($ProcessId -le 0) { throw "Attach requires -ProcessId." }; Attach-Process }
     "Release" { Require-Lease; Release-Access }
     "Cancel" { Require-Lease; Cancel-Request }
+    "BootAcquire" { Require-Lease; if ($WaitSeconds -le 0) { $WaitSeconds = 300 }; Acquire-Boot }
+    "BootRelease" { Require-Lease; Release-Boot }
     "StartEditor" { Require-Lease; $Mode = "editor"; Start-TrackedEditor }
     "RunBatch" { Require-Lease; $Mode = "batch"; Run-TrackedBatch }
 }
@@ -447,6 +615,7 @@ $statusExitCodes = @{
     editor_did_not_exit = $ExitIncomplete
     blocked_unmanaged_unity = $ExitUnmanaged
     waiting = $ExitWaiting
+    boot_waiting = $ExitWaiting
     blocked_user_editor = $ExitWaiting
 }
 exit ($(if ($statusExitCodes.ContainsKey($resultStatus)) { $statusExitCodes[$resultStatus] } else { 0 }))
