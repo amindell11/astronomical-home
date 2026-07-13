@@ -239,8 +239,10 @@ namespace Tests.PlayMode
                 Assert.Ignore("Set RL_EPISODES=1 to run the ranger-vs-baseline characterization.");
 
             var trace = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RL_EPISODE_TRACE"));
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RL_WATCH")))
+                Time.timeScale = 1f;
             var spec = RewardSpec.Default;
-            const int episodes = 20;
+            var episodes = int.TryParse(Environment.GetEnvironmentVariable("RL_EPISODE_COUNT"), out var n) ? n : 20;
 
             SpawnPair(in spec, 0);
 
