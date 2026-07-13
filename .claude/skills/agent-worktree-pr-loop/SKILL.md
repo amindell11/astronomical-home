@@ -44,10 +44,11 @@ user to close it. Never close it automatically. The durable MCP server on port
 - `./scripts/agent_worktree_pool.sh prepare <slot> origin/main`
 - `./scripts/agent_worktree_pool.sh run-tests <slot> <unity_test_agent.ps1 args>` (NO `--` — run-tests forwards args directly, e.g. `run-tests agent-4 -Mode Both -ScopeType Workspace`; the `--` separator is only for `submit`/`revise`, which take a base_ref first)
 - `./scripts/agent_worktree_pool.sh create-pr <slot>`
-- `./scripts/agent_worktree_pool.sh submit <slot> origin/main -- <test args>`
+- `./scripts/agent_worktree_pool.sh submit <slot> origin/main -- <test args>` — only a passing full run (`-Mode Both -ScopeType Workspace`, unfiltered) records merge-grade proof; scoped runs still open the PR but never satisfy the gate. `-ScopeType Auto` (landing in a sibling PR) is the recommended scope for iteration and submit runs.
 - `./scripts/agent_worktree_pool.sh review-comments <slot>`
 - `./scripts/agent_worktree_pool.sh revise <slot> -- <test args>`
-- `./scripts/agent_worktree_pool.sh merge <slot>` (only after explicit user go-ahead; re-tests against current main if it moved, then squash-merges — never call `gh pr merge` directly)
+- `./scripts/agent_worktree_pool.sh revise <slot> --no-test` — push without a test run and without recording proof; for pre-merge hygiene edits, so the gate does the single full run on the exact landing tree.
+- `./scripts/agent_worktree_pool.sh merge <slot>` (only after explicit user go-ahead; skips its re-test only on full-suite proof for the exact landing tree — scoped runs never count. Docs/markdown-only deltas since the proven tree extend proof with no run; C# comment/whitespace-only deltas take an EditMode Smoke compile refresh; anything else re-runs the full suite. Never call `gh pr merge` directly)
 - `./scripts/agent_worktree_pool.sh finalize <slot> origin/main`
 - `./scripts/agent_worktree_pool.sh release <slot>`
 
@@ -78,7 +79,10 @@ user to close it. Never close it automatically. The durable MCP server on port
 ```
 
    Only submit once tests are passing and you've self-verified the diff
-   (read it back, sanity-check it does what was scoped in step 0). Once the
+   (read it back, sanity-check it does what was scoped in step 0). A scoped
+   submit (e.g. `-ScopeType Auto`, landing in a sibling PR, or a Feature
+   scope) is fine for opening the PR — it just records no merge proof, so
+   the merge gate runs the full suite once on the landing tree. Once the
    PR is open, **flip the ledger row to `🔵 in-review` and record the PR
    number.**
 4. Report back to the user in the required reporting format below and hand
@@ -113,7 +117,9 @@ user to close it. Never close it automatically. The durable MCP server on port
       Since all three target the same worktree, avoid write collisions: have
       the agents report proposed edits (or partition the touched files
       between them), apply the results centrally on the slot branch, then do
-      **one** `revise` at the end instead of one per pass.
+      **one `revise agent-<n> --no-test`** at the end instead of one per
+      pass — hygiene edits don't need their own suite run; the merge gate
+      runs the single full suite on the exact tree that lands.
    c. Act on the triage: apply the trivial fixes; for involved comments, get
       the user's direction first.
    d. Only once no unaddressed comment remains — or the user has explicitly
@@ -130,7 +136,10 @@ user to close it. Never close it automatically. The durable MCP server on port
    param added under a test that predated it). `merge` checks whether
    `origin/main` is contained in the slot branch; if not, it merges main in,
    re-runs the full suite, pushes, and only then squash-merges — so the
-   tested tree is the tree that lands. Never call `gh pr merge` directly.
+   tested tree is the tree that lands. The gate's run is the **single full
+   run per merge**: scoped runs never satisfy it, and a docs-only or C#
+   comment-only delta since the last fully-tested tree skips or downgrades
+   the re-run automatically. Never call `gh pr merge` directly.
 
    Never merge without that explicit signal. Never force-push or skip the
    gate's test run to get there, and never merge past an unaddressed
@@ -181,7 +190,13 @@ own PR even when the same slot is reused.
   the task-specific remote branch automatically.
 - Do **not** run `prepare` during feedback rounds unless user explicitly asks to restart from main.
 - Do not run two agents in the same slot at once.
-- Prefer targeted/smoke tests during iteration; run broader scope before handoff when requested.
+- Prefer targeted/smoke tests during iteration (`-ScopeType Auto` once the
+  sibling PR lands, or Feature/Module scopes). Scoped runs never record
+  merge proof — only a passing `-Mode Both -ScopeType Workspace` unfiltered
+  run does — so the merge gate stays the one full run per merge.
+- Use `revise <slot> --no-test` for pre-merge hygiene edits (comment sweeps,
+  simplify-pass fixes); it pushes without burning a suite run and the gate
+  tests the exact landing tree.
 - Do not merge without an explicit user go-ahead in the conversation. A
   merged code review comment ("LGTM") is not itself a merge instruction
   unless the user says so.
