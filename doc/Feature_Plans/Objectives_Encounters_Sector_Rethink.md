@@ -1,6 +1,6 @@
 # Objectives / Encounters / Sector Rethink
 
-*Draft • 2026-07-12 • status: design agreed (design session), build not started*
+*Draft • 2026-07-12 • status: PR-1 built (activation substrate, dormant); PR-2+ not started*
 
 > Realizes the deferred `project_objectives_encounters_rethink`. The presenting
 > symptom was "combat encounters spawn one at a time instead of together," but the
@@ -158,23 +158,69 @@ Grounded in the existing sector grain (hand-placed children reconciled by
   maintaining an *in/out level*), publishing a named token to the sector bus.
   Generalizes what `KeyPickup`/`ExtractionZone` already do; a spatial **term
   source**, decoupled from any specific objective.
-- **Activation rule / encounter** — a placed child reconciled into a new manifest
-  slice (peer of `spawners[]`/`modules[]`), carrying a small serialized **term
-  list** (flavor + key/target + params) and an **effect** (content spawn-spec +
-  local-objective builder + on-complete event tokens). Terms reference fixtures /
-  volumes / spine-stage / event tokens by serialized reference or token.
-- **Sector event bus** — a per-`Sector` instance (owned like the build context),
-  tokens as a small typed enum or interned string keys for inspector authoring.
+- **Activation rule / encounter** — a placed child carrying a small serialized
+  **term list** (flavor + key/target + params) and an **effect** (content
+  spawn-spec + local-objective builder + on-complete event tokens). Terms
+  reference fixtures / volumes / spine-stage / event tokens by serialized
+  reference or token.
 - **Two-tier objective service** — spine API (`SetSectorObjective` / stage) +
   local-slot API (`OpenLocal` / `CloseLocal`) replacing the single
   `SetObjective` / `SetTarget`; HUD reads spine prominently + active locals
   contextually.
 
+### Resolved build design (2026-07-12)
+
+Locked with the user during the PR-1 build; supersedes the proposal bullets
+above where they differ.
+
+- **Unified boolean signal bus.** `SectorEventBus`
+  (`Game/Sectors/Activation/`) is a plain C# class carrying named boolean
+  signals: `Set(token, bool)` (level semantics — volumes), `Latch(token)`
+  (event semantics — true forever; `Set(false)` on a latched token is
+  ignored), `Get(token)`, and `Changed` (raised only on actual value change).
+  Tokens are **strings** for inspector authoring. The bus is **per-sector**
+  and created **fresh on every `Setup()`** (handed to modules via
+  `SectorBuildContext.Bus`), so a restart / RL episode reset never sees stale
+  latched tokens — no static anywhere, per `Multi_Arena_Substrate.md`.
+- **Spine stage rides the same bus.** The sector objective's stage is
+  published as latched tokens (e.g. `spine:ready-to-extract`), so **state
+  terms are just signal terms** — one term kind covers state + spatial +
+  event sources. Wired in PR-3; PR-1 ships `Signal` and `Time` term kinds
+  only.
+- **No new manifest slice.** `ActivationRule`, `TriggerVolume` (and PR-3's
+  encounter) are `SectorModule` subclasses and ride the existing `modules[]`
+  slice via `SectorManifestSync`'s module crawl. Rules chain in data:
+  `publishOnFired` tokens latched by rule A are signal terms of rule B.
+- **Bundle/authoring convention** — *hierarchy edge = ownership/lifetime;
+  serialized ref = binding*:
+  - A **thin rule sits directly ON the persistent fixture GO** it gates (the
+    extraction-gate case) — the rule component is the fixture's arming logic
+    and owns no content.
+  - A **fat encounter is a sector-level child** that *owns* its private
+    fixtures as children (spawn points, proximity volumes — they live and die
+    with it) and *binds* to shared fixtures by in-prefab serialized
+    reference.
+  - Worked demo tree:
+
+    ```text
+    CombatSector (Sector)
+    ├─ KeyPickup                      ← shared fixture, present at spawn
+    ├─ ExtractionGate                 ← shared fixture, present + inert
+    │   ├─ TriggerVolume  → "in-gate"
+    │   └─ ActivationRule ["spine:ready-to-extract" AND "in-gate"]
+    │        → start extraction challenge          ← thin rule ON the fixture
+    └─ AmbushEncounter                ← fat encounter, sector-level child
+        ├─ ActivationRule [time ≥ 30 AND "near-derelict"] → spawn waves
+        ├─ TriggerVolume → "near-derelict"          ← private fixture (owned child)
+        ├─ WaveSpawnPoint ×N                        ← private fixtures (owned children)
+        └─ gate ⇢ ExtractionGate (serialized ref)   ← binding, not ownership
+    ```
+
 ## PR sequence
 
 **Rethink-proof — behavior-identical until the payoff PR, land first:**
 
-- **PR-1 · Event bus + activation-rule engine + `TriggerVolume` (dormant).**
+- **PR-1 · Event bus + activation-rule engine + `TriggerVolume` (dormant). BUILT.**
   Introduce the per-sector bus, the `ActivationRule` primitive (terms →
   standing/latched predicate → effect), and `TriggerVolume` as a spatial term
   source. Nothing real consumes it yet. **Behavior-identical** (no wiring).
@@ -206,11 +252,9 @@ end-to-end test); PR-4 is pure authoring on the finished mechanism.
 
 ## Open questions (decide at build)
 
-- **Manifest plumbing** — do encounters/rules get their own `SectorManifestSync`
-  slice, or ride `modules[]`? `TriggerVolume`s and fixtures as placed children
-  referenced by rules — by serialized ref or by token?
-- **Bus token type** — typed enum (safe) vs interned strings (designer-authorable).
-  Scope is per-sector = per-arena; confirm no static leak vs `Multi_Arena_Substrate`.
+Manifest plumbing and bus token type were resolved in PR-1 — see "Resolved
+build design" above. Still open:
+
 - **Lazy-spawn ownership/teardown** — a rule's spawned content must despawn on
   sector teardown / episode reset (RL); who owns the handle (the rule, via the
   sector's teardown pass)?
