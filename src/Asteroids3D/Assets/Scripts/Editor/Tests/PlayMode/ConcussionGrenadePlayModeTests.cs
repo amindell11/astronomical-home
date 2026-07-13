@@ -47,6 +47,7 @@ namespace Tests.PlayMode
         private sealed class MovingShooter : MonoBehaviour, IShooter
         {
             public Vector3 Velocity { get; set; }
+            public Rigidbody Body => GetComponent<Rigidbody>();
         }
 
         private sealed class DamageRecorder : MonoBehaviour, IDamageable

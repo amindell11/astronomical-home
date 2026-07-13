@@ -145,6 +145,7 @@ namespace Tests.PlayMode
         private sealed class TestShooter : MonoBehaviour, IShooter
         {
             public Vector3 Velocity => Vector3.zero;
+            public Rigidbody Body => GetComponent<Rigidbody>();
         }
 
         private DamageRecorder CreateTarget(Vector3 position)
@@ -197,6 +198,7 @@ namespace Tests.PlayMode
             // beam must pass through its own hull and hit the enemy beyond it.
             var ship = new GameObject("OwnShip") { layer = LayerIds.Ship };
             spawned.Add(ship);
+            ship.AddComponent<Rigidbody>().isKinematic = true;
             ship.AddComponent<BoxCollider>().size = Vector3.one * 2f;
             ship.AddComponent<TestShooter>();
             var ownRecorder = ship.AddComponent<DamageRecorder>();
