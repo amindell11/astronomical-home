@@ -6,15 +6,7 @@ using UnityEngine;
 
 namespace Combat
 {
-    /// <summary>
-    /// Drives a single weapon's fire decision against a world-space target point.
-    /// Builds the <see cref="TargetingContext"/> from shared aiming geometry and defers
-    /// the actual "should I fire" policy to the weapon (<see cref="WeaponComponent.ShouldFire"/>).
-    ///
-    /// This is the firing half of targeting, decoupled from <em>who</em> supplies the target:
-    /// the AI <c>Gunner</c> feeds it an intercept point, while a static laser turret would feed
-    /// it a point from its own sensor. Neither needs to know the other exists.
-    /// </summary>
+    /// <summary>Builds the <see cref="TargetingContext"/> for one weapon against a world-space target point and defers the fire/envelope policy to the weapon — target-supplier-agnostic.</summary>
     public sealed class Gunsight
     {
         private readonly WeaponComponent weapon;
@@ -35,21 +27,30 @@ namespace Combat
         /// <summary>Returns whether the weapon should fire at the given world-space target this tick.</summary>
         public bool Evaluate(Vector3 targetWorld)
         {
-            if (!weapon) return false;
+            return weapon && weapon.ShouldFire(BuildContext(targetWorld));
+        }
 
+        /// <summary>Whether the target sits in the weapon's geometric envelope (readiness excluded).</summary>
+        public bool InEnvelope(Vector3 targetWorld)
+        {
+            if (!weapon) return false;
+            var context = BuildContext(targetWorld);
+            return weapon.InEnvelope(in context);
+        }
+
+        private TargetingContext BuildContext(Vector3 targetWorld)
+        {
             var k = pose();
             var targetPlane = GamePlane.WorldPointToPlane(targetWorld);
             var angle = TargetingMath.AngleTo(k, targetPlane);
 
-            var context = new TargetingContext
+            return new TargetingContext
             {
                 targetPosition = targetPlane,
                 distanceToTarget = TargetingMath.DistanceTo(k, targetPlane),
                 angleToTarget = angle,
                 hasLineOfSight = los.IsClear(FirePoint, targetWorld, angle),
             };
-
-            return weapon.ShouldFire(context);
         }
     }
 }

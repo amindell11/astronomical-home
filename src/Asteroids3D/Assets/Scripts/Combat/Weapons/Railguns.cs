@@ -7,12 +7,7 @@ using Utils;
 
 namespace Combat.Weapons
 {
-    /// <summary>
-    /// Charged railgun: hold to charge (full charge required — see the prefab's
-    /// <see cref="ChargeTime"/>), then the shot lands instantly along the fire point's aim as a
-    /// raycast. Hitscan, so <see cref="ProjectileSpeed"/> is 0: AI gunners aim at the target's
-    /// present position with no intercept lead.
-    /// </summary>
+    /// <summary>Charged hitscan railgun (<see cref="ProjectileSpeed"/> 0 — AI gunners aim with no intercept lead).</summary>
     public class Railguns : WeaponComponent
     {
         [Header("Beam")]
@@ -81,15 +76,13 @@ namespace Combat.Weapons
             return null;
         }
 
-        public override bool ShouldFire(TargetingContext context)
-        {
-            // The AI holds the trigger to charge; ChargeTime auto-fires at full.
-            if (!context.hasLineOfSight)
-                return false;
+        public override bool InEnvelope(in TargetingContext context) =>
+            context.hasLineOfSight
+            && context.distanceToTarget <= fireDistance
+            && context.angleToTarget <= fireAngleTolerance;
 
-            return context.distanceToTarget <= fireDistance
-                && context.angleToTarget <= fireAngleTolerance;
-        }
+        // The AI holds the trigger to charge; ChargeTime auto-fires at full, so readiness adds nothing here.
+        public override bool ShouldFire(TargetingContext context) => InEnvelope(in context);
 
         private static readonly RaycastHit[] beamHits = new RaycastHit[16];
 

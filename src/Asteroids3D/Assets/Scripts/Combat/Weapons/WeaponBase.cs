@@ -9,10 +9,7 @@ using Utils;
 
 namespace Combat.Weapons
 {
-    /// <summary>
-    /// Contextual data about a target used for weapon firing decisions
-    /// (the input to <see cref="WeaponComponent.ShouldFire"/>).
-    /// </summary>
+    /// <summary>Target geometry fed to <see cref="WeaponComponent.InEnvelope"/>/<see cref="WeaponComponent.ShouldFire"/>.</summary>
     public struct TargetingContext
     {
         public Vector2 targetPosition;
@@ -21,12 +18,7 @@ namespace Combat.Weapons
         public bool hasLineOfSight;
     }
 
-    /// <summary>
-    /// Marker for a weapon's displayable state contracts (heat, ammo, lock…). A weapon exposes
-    /// its readouts via <see cref="WeaponComponent.Readouts"/>; the HUD maps each readout
-    /// interface to a widget. Implementations are the sim objects themselves — the contract is
-    /// read-only and event-driven, so UI never touches sim internals.
-    /// </summary>
+    /// <summary>Marker for a weapon's displayable state contracts (heat, ammo, lock…) surfaced via <see cref="WeaponComponent.Readouts"/>.</summary>
     public interface IWeaponReadout
     {
     }
@@ -56,20 +48,10 @@ namespace Combat.Weapons
         /// <summary>Muzzle speed of this weapon's projectile, used for AI intercept lead. 0 if not applicable.</summary>
         public virtual float ProjectileSpeed => 0f;
 
-        /// <summary>
-        /// Whether the weapon repeats while the trigger is held (full-auto, paced by its cooldown),
-        /// or fires once per trigger press (semi-auto). Consumed by this weapon's own
-        /// <see cref="HandleTrigger"/> — commanders send raw trigger state and never interpret it.
-        /// </summary>
+        /// <summary>Full-auto repeats while held; semi-auto fires once per press. Only this weapon's <see cref="HandleTrigger"/> interprets it.</summary>
         public virtual bool AutoFire => true;
 
-        /// <summary>
-        /// Applies one step of trigger state; the weapon owns its firing semantics. Default:
-        /// full-auto fires while the trigger is held, semi-auto on each press (an AI commander
-        /// "mashes" — reports a press every step it wants fire — so semi-auto still paces by its
-        /// own conditions under sustained AI intent). Charge weapons override to accumulate while
-        /// held and fire on release or at full charge.
-        /// </summary>
+        /// <summary>Applies one step of trigger state; the weapon owns its firing semantics (charge weapons override to fire on release/full charge).</summary>
         public virtual void HandleTrigger(bool pressed, bool held)
         {
             if (AutoFire ? held : pressed)
@@ -86,19 +68,10 @@ namespace Combat.Weapons
             ? name.Replace("(Clone)", string.Empty).Trim()
             : displayName;
 
-        /// <summary>
-        /// Stat line shown when hovering this weapon in the hangar. The hangar reads it off the
-        /// prefab asset where Awake never runs, so overrides must use only serialized state.
-        /// </summary>
+        /// <summary>Hangar hover stat line; read off the prefab asset where Awake never runs, so overrides must use only serialized state.</summary>
         public virtual string HangarStats => DisplayName;
 
-        /// <summary>
-        /// The displayable state this weapon carries (conditions implementing
-        /// <see cref="IWeaponReadout"/> plus its <see cref="LockSource"/>), in display order.
-        /// Built lazily so subclasses can finish wiring their lock source in Awake first.
-        /// Before Awake (e.g. a mount instantiated under an inactive ship) nothing is wired yet —
-        /// return empty WITHOUT caching so the list builds correctly once the weapon wakes.
-        /// </summary>
+        /// <summary>Displayable state (readout conditions + lock source), built lazily post-Awake; pre-Awake returns empty WITHOUT caching.</summary>
         public IReadOnlyList<IWeaponReadout> Readouts
         {
             get
@@ -119,10 +92,10 @@ namespace Combat.Weapons
         /// <summary>The lock-state source driving this weapon's guidance UI, or null if it has none.</summary>
         public virtual ILockStateSource LockSource => null;
 
-        /// <summary>
-        /// Determines if this weapon should fire based on the given targeting context.
-        /// Override in derived classes to provide weapon-specific AI firing logic.
-        /// </summary>
+        /// <summary>Geometric firing envelope only (distance/angle/LOS) — readiness (heat/charge/lock/ammo) excluded.</summary>
+        public virtual bool InEnvelope(in TargetingContext context) => false;
+
+        /// <summary>AI fire decision: the geometric envelope gated by this weapon's readiness.</summary>
         public virtual bool ShouldFire(TargetingContext context)
         {
             return false;

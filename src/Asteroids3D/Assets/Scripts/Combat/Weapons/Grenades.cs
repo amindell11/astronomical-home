@@ -4,12 +4,7 @@ using UnityEngine;
 
 namespace Combat.Weapons
 {
-    /// <summary>
-    /// Concussion charge dropper. Semi-auto; the charge releases backward from the fire
-    /// direction (see <see cref="Grenade.Launch"/>), so the AI drops one when its target is
-    /// chasing close behind. Line of sight is ignored: <see cref="Combat.LosCache"/>
-    /// short-circuits to false beyond a small aim cone, so a behind-target never reports LOS.
-    /// </summary>
+    /// <summary>Concussion charge dropper: semi-auto, releases backward (see <see cref="Grenade.Launch"/>) at a close pursuer.</summary>
     public class Grenades : WeaponBase<Grenade>
     {
         [Header("AI Firing")]
@@ -42,9 +37,10 @@ namespace Combat.Weapons
             if (!rounds) rounds = GetComponent<Rounds>();
         }
 
-        public override bool ShouldFire(TargetingContext context)
-        {
-            return context.distanceToTarget <= dropRange && context.angleToTarget >= minDropAngle;
-        }
+        // Behind-arc drop: no LOS term by design — the charge releases backward at a pursuer.
+        public override bool InEnvelope(in TargetingContext context) =>
+            context.distanceToTarget <= dropRange && context.angleToTarget >= minDropAngle;
+
+        public override bool ShouldFire(TargetingContext context) => InEnvelope(in context);
     }
 }
