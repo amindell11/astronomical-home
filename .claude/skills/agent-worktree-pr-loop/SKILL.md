@@ -91,23 +91,29 @@ owners.
 
    a. Pull every unresolved comment:
       `./scripts/agent_worktree_pool.sh review-comments agent-<n>`.
-   b. For each unaddressed comment, decide and act:
-      - **Trivial** (typo, rename, comment hygiene, a one-line guard, obvious
-        cleanup) → just fix it on the slot branch and `revise`.
-      - **Involved** (behavior change, design question, non-obvious tradeoff,
-        anything you're unsure how the user wants resolved) → do **not**
-        silently merge over it. Surface it to the user with a one-line summary
-        of the comment and a concrete proposed fix, and get direction first.
-   c. **Run a simplification pass on the diff.** Invoke `/simplify` (or the
-      `code-simplifier` agent) scoped to the changed code to catch
-      reuse/simplification/altitude cleanups the review round-trip missed.
-      Fold its fixes into the slot branch and `revise`. This sits alongside
-      the comment-hygiene pass — strip changelog-style narration from
-      comments so `main` shows only what the current code does (see
-      `CLAUDE.md` → "Comment hygiene across the PR lifecycle"). Keep the pass
-      quality-only; it is not a bug hunt (`/code-review` is for that), and
-      surface anything non-trivial it turns up rather than silently reshaping
-      behavior right before merge.
+   b. **Fan the pre-merge passes out as parallel sub-agents** — do not run
+      them one after another. In a single message, launch concurrent Agent
+      calls for:
+      - **Comment triage**: classify each unresolved comment as trivial
+        (typo, rename, comment hygiene, a one-line guard, obvious cleanup —
+        propose the fix) or involved (behavior change, design question,
+        non-obvious tradeoff — summarize it with a concrete proposed fix for
+        the user; never silently merge over it).
+      - **Simplify pass**: `/simplify` (or the `code-simplifier` agent)
+        scoped to the changed code — reuse/simplification/altitude cleanups
+        the review round-trip missed. Quality-only; it is not a bug hunt
+        (`/code-review` is for that), and anything non-trivial it turns up
+        gets surfaced rather than silently reshaping behavior before merge.
+      - **Comment-hygiene sweep**: the whole-file de-comment ratchet over
+        every file the diff touched, stripping changelog-style narration so
+        `main` shows only what the current code does (see `CLAUDE.md` →
+        "Comment hygiene across the PR lifecycle").
+      Since all three target the same worktree, avoid write collisions: have
+      the agents report proposed edits (or partition the touched files
+      between them), apply the results centrally on the slot branch, then do
+      **one** `revise` at the end instead of one per pass.
+   c. Act on the triage: apply the trivial fixes; for involved comments, get
+      the user's direction first.
    d. Only once no unaddressed comment remains — or the user has explicitly
       waved the remaining ones through — and the simplify pass is folded in,
       squash-merge through the gate:
@@ -185,7 +191,8 @@ own PR even when the same slot is reused.
   directly and `revise`; for involved ones, flag them to the user with a
   proposed fix rather than merging over them silently. Also run a `/simplify`
   pass and the comment-hygiene strip on the diff as part of that pre-merge
-  sweep.
+  sweep — all three passes fanned out as parallel sub-agents in one message,
+  folded into a single `revise` (step 6b).
 - Keep the active-work ledger current: claim on acquire, `🔵 in-review` on PR
   open, `⛔ blocked`/`🅿️ parked` if work stalls, and clear the row after merge
   + main sync. It is the one place a concurrent agent or a later session can
