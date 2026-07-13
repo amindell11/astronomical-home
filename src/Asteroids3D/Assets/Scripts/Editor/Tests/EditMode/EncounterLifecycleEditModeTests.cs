@@ -10,8 +10,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    // Destroy-without-teardown lives in the PlayMode suite: EditMode never awakens plain
-    // MonoBehaviours, and Unity skips OnDestroy on never-awakened components.
+    // Destroy-without-teardown lives in the PlayMode suite: EditMode never awakens plain MonoBehaviours (no OnDestroy).
     /// <summary>Encounter base subscription hygiene against the spine channel on the Teardown path.</summary>
     [TestFixture]
     [Category("Objectives")]

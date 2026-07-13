@@ -12,8 +12,7 @@ using Object = UnityEngine.Object;
 
 namespace Tests.PlayMode
 {
-    // PlayMode because OnDestroy only runs on awakened components — EditMode never awakens
-    // plain MonoBehaviours, so the defensive unsubscribe is unobservable there.
+    // PlayMode because OnDestroy runs only on awakened components, which EditMode never does to plain MonoBehaviours.
     /// <summary>Encounter base subscription hygiene when a sector is destroyed without running Teardown.</summary>
     [Category("Objectives")]
     public class EncounterLifecyclePlayModeTests
