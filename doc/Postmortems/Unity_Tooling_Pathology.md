@@ -95,12 +95,26 @@ reload. The trap only bites the in-Editor MCP `run_tests` path.
 | # | Failure mode | Root cause | Status |
 |---|---|---|---|
 | D1 | `HangarShipSwapPlayModeTests` (3) fail in batch, pass in-Editor | `-nographics` URP render loop can't create camera RTs (`RenderTexture.Create failed`); NUnit treats the logged error as failure | **Quarantined (#95)** |
-| D2 | Interactive editor blocks batch verification | For batch requests the coordinator now blocks only on same-project untracked editors and on any untracked batch process — a cross-project interactive editor doesn't contend (lockfile/Library are per-project; D6's deadlocks were concurrent batch startups). Editor-mode requests keep the machine-wide rule | Relaxed; same-project editor: ask the user to close it |
+| D2 | Interactive editor blocks batch verification | For batch requests the coordinator blocks only on same-project untracked editors and on any untracked batch process — a cross-project interactive editor doesn't contend (lockfile/Library are per-project; D6's deadlocks were concurrent batch startups). Editor-mode requests keep the machine-wide rule for untracked processes. Since the two-tier lock, a **tracked** editor lease also stops blocking cross-project batch (it briefly cost a merge-gate re-test its lane during #130) | Relaxed twice (#129, two-tier) |
 | D3 | `FullLoop_NoEnemy_PatrolStateSelected` cited as a blocker | Actually already `[Ignore]`d in code — not a live blocker; the memory note was stale | Resolved (verify before citing) |
 | D4 | GamePlane test order-dependent flaky | A leaked **pooled** `ProjectileBase` from an earlier combat test ticks during an unconfigured frame | Fixed (#60) |
 | D4b | *Failed fix — do not retry* | Destroying leaked projectiles in `SetUp` breaks the pool ⇒ `MissingReferenceException` in later weapon tests | Documented dead-end |
 | D5 | Stale/cold Burst cache ⇒ wrong controls or slow first run | Struct-layout changes want a `Library/BurstCache` clear; a **cold** cache makes the first run minutes-long and can push perf-probe tests past their timeout | Doctor warns; clear before struct changes |
-| D6 | Concurrent multi-agent batch runs deadlock EditMode at boot | Licensing / global cache contention; force-kill then leaves a stale `Temp/UnityLockfile` ⇒ instant `infra_error` until cleared | Avoid concurrent batch; clear lockfile |
+| D6 | Concurrent multi-agent batch runs deadlock EditMode at boot | Licensing / global cache contention; force-kill then leaves a stale `Temp/UnityLockfile` ⇒ instant `infra_error` until cleared | Boot-lane serialized; concurrent runs allowed (see below) |
+
+**D6 re-probed (2026-07-12, Unity 6000.1.8f1):** three deliberate repro rounds
+with the lane bypassed — simultaneous EditMode, simultaneous PlayMode, and a
+5-second-staggered EditMode pair across two worktree projects — all completed
+green with no boot deadlock and no mid-run contention. The boot-time global
+state is real (both logs show the shared `LicenseClient-amind` IPC handshake
+and the UPM package-cache restore), but it serializes cleanly today. The
+coordinator therefore keeps a machine-wide **boot lane** held only during Unity
+startup (released when the log reaches `Application.AssetDatabase Initial
+Refresh Start`, i.e. per-project Library work has begun, or after a TTL) while
+**run ownership is per-project** — batch suites in different worktrees overlap
+for almost their whole duration. If a boot deadlock ever reappears, the boot
+lane is the knob: raise its TTL or move the release marker later; do not fall
+back to whole-run serialization.
 
 **D5 in the wild:** during PR #95 verification a full PlayMode run took 27 min
 (cold Burst) and `MpcEightShip_PerfProbe_LogsSolveCost` timed out at 180 s;
@@ -200,9 +214,11 @@ this section disagree, prefer this section (and re-verify against live state via
   DisableDomainReload bit, flip it to None for the run and restore after.
 - **Burst:** clear `Library/BurstCache` before testing after struct-layout
   changes; expect a cold cache to make the first run minutes-long.
-- **Don't run concurrent Unity processes** across agents. The batch runner and
-  tracked editors serialize through `scripts/unity_access.ps1`; if a process
-  is force-killed, clear the stale `Temp/UnityLockfile`.
+- **Concurrent Unity runs are fine across projects; startups are not.** The
+  coordinator gives each project its own owner and serializes only the boot
+  window through a machine-wide boot lane. Always go through
+  `scripts/unity_access.ps1`; if a process is force-killed, clear the stale
+  `Temp/UnityLockfile`.
 
 ---
 
@@ -214,9 +230,9 @@ this section disagree, prefer this section (and re-verify against live state via
   failures; the batch path is the gate.
 - **Suspect setup ordering before engine corruption** when tests fail as a
   class (Cluster F).
-- **One Unity lane, one shared MCP server** — `scripts/unity_access.ps1`
-  sequences interactive editors and batch testing. Prefer batch, treat an
-  untracked main editor as user-owned, and close tracked editors immediately
-  after verification.
+- **Per-project Unity ownership, one boot lane, one shared MCP server** —
+  `scripts/unity_access.ps1` lets runs on different projects overlap and
+  serializes only Unity startup. Prefer batch, treat an untracked main editor
+  as user-owned, and close tracked editors immediately after verification.
 - **Author agent-facing scripts ASCII-only** and validate parsing under Windows
   PowerShell 5.1.

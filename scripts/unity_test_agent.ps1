@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string]$UnityPath = "D:\Programs\Unity\Editor\6000.1.8f1\Editor\Unity.exe",
     [string]$ProjectPath = "src/Asteroids3D",
     [string]$OutDir = "results/unity-tests-agent",
@@ -30,6 +30,10 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 $Script:IsWindowsPlatform = ($env:OS -eq "Windows_NT")
 $Script:UnityAccessRunId = [guid]::NewGuid().ToString("N")
+# Boot window ends once licensing + global package-cache work is done and per-project Library work begins (postmortem D6).
+$Script:BootCompletePattern = 'Application\.AssetDatabase Initial Refresh Start'
+$Script:BootWatchTimeoutSec = 180
+$Script:BootAcquireWaitSec = 300
 
 function Resolve-FullPath {
     param([string]$Path)
@@ -54,12 +58,13 @@ function Get-UnityAccessSlot {
 }
 
 function Invoke-UnityAccess {
-    param([string]$Action, [string]$ProjectFullPath, [int]$ProcessId = 0)
+    param([string]$Action, [string]$ProjectFullPath, [int]$ProcessId = 0, [int]$WaitSecondsOverride = 0)
     if ($SkipUnityAccess.IsPresent) { return $null }
 
     $coordinator = Join-Path $PSScriptRoot "unity_access.ps1"
     $slot = Get-UnityAccessSlot $ProjectFullPath
     $lease = if ([string]::IsNullOrWhiteSpace($UnityAccessLease)) { "unity-tests-$slot-$Script:UnityAccessRunId" } else { $UnityAccessLease }
+    $waitSeconds = if ($WaitSecondsOverride -gt 0) { $WaitSecondsOverride } else { $UnityAccessWaitSec }
     $arguments = @(
         "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $coordinator,
         "-Action", $Action,
@@ -67,7 +72,7 @@ function Invoke-UnityAccess {
         "-Slot", $slot,
         "-Mode", "batch",
         "-ProjectPath", $ProjectFullPath,
-        "-WaitSeconds", $UnityAccessWaitSec,
+        "-WaitSeconds", $waitSeconds,
         "-Json"
     )
     if (-not [string]::IsNullOrWhiteSpace($UnityAccessStateRoot)) { $arguments += @("-StateRoot", $UnityAccessStateRoot) }
@@ -108,6 +113,26 @@ function Attach-UnityAccess {
 function Exit-UnityAccess {
     param([string]$ProjectFullPath)
     [void](Invoke-UnityAccess -Action "Release" -ProjectFullPath $ProjectFullPath)
+}
+
+function Enter-UnityBootLane {
+    param([string]$ProjectFullPath)
+    if ($SkipUnityAccess.IsPresent) { return $false }
+    [void](Invoke-UnityAccess -Action "BootAcquire" -ProjectFullPath $ProjectFullPath -WaitSecondsOverride $Script:BootAcquireWaitSec)
+    return $true
+}
+
+function Exit-UnityBootLane {
+    param([string]$ProjectFullPath)
+    # A TTL-expired boot hold may already belong to someone else; that is not a run failure.
+    try { [void](Invoke-UnityAccess -Action "BootRelease" -ProjectFullPath $ProjectFullPath) }
+    catch { Write-Warning "Boot lane release failed (continuing): $($_.Exception.Message)" }
+}
+
+function Test-UnityBootComplete {
+    param([string]$LogPath)
+    if ([string]::IsNullOrWhiteSpace($LogPath) -or -not (Test-Path -LiteralPath $LogPath)) { return $false }
+    return [bool](Select-String -LiteralPath $LogPath -Pattern $Script:BootCompletePattern -Quiet -ErrorAction SilentlyContinue)
 }
 
 function Get-ArgumentValue {
@@ -230,7 +255,6 @@ function Resolve-ScopeFilter {
     $lowerType = $ScopeType.ToLower()
     $lowerName = $ScopeName.ToLower()
 
-    # Special case: "Smoke" scope type
     if ($lowerType -eq "smoke") {
         if ($null -ne $ScopeMap.smoke -and $null -ne $ScopeMap.smoke.testFilter) {
             return [string]$ScopeMap.smoke.testFilter
@@ -238,7 +262,6 @@ function Resolve-ScopeFilter {
         return ""
     }
 
-    # "Workspace" scope type (empty filter = all tests)
     if ($lowerType -eq "workspace") {
         if ($null -ne $ScopeMap.modules -and $null -ne $ScopeMap.modules.workspace -and $null -ne $ScopeMap.modules.workspace.testFilter) {
             return [string]$ScopeMap.modules.workspace.testFilter
@@ -246,7 +269,6 @@ function Resolve-ScopeFilter {
         return ""
     }
 
-    # "Feature" scope type
     if ($lowerType -eq "feature") {
         if ([string]::IsNullOrWhiteSpace($lowerName)) {
             Write-Warning "ScopeType=Feature requires -ScopeName to be specified"
@@ -268,7 +290,6 @@ function Resolve-ScopeFilter {
         return ""
     }
 
-    # "Module" scope type
     if ($lowerType -eq "module") {
         if ([string]::IsNullOrWhiteSpace($lowerName)) {
             Write-Warning "ScopeType=Module requires -ScopeName to be specified"
@@ -302,15 +323,12 @@ function Test-ScopeFilterMatchesTests {
     )
 
     if ([string]::IsNullOrWhiteSpace($TestFilter)) {
-        # Empty filter means "all tests", which always matches
         return $true
     }
 
-    # Create temp directory for dry-run
     $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) ("unity-scope-validate-" + [System.Guid]::NewGuid().ToString("N"))
     New-Item -ItemType Directory -Force -Path $tempDir | Out-Null
 
-    $accessHeld = $false
     try {
         $xmlPath = Join-Path $tempDir "test-list.xml"
         $logPath = Join-Path $tempDir "test-list.log"
@@ -326,17 +344,8 @@ function Test-ScopeFilterMatchesTests {
             "-testFilter", $TestFilter
         )
 
-        Enter-UnityAccess -ProjectFullPath $ProjectPath
-        $accessHeld = $true
-        $proc = Start-Process -FilePath $UnityExe -ArgumentList $args -NoNewWindow -PassThru
-        Attach-UnityAccess -ProjectFullPath $ProjectPath -ProcessId $proc.Id
-        $proc.WaitForExit()
-        $exitCode = 0
-        if ($null -ne $proc -and $null -ne $proc.ExitCode) {
-            $exitCode = [int]$proc.ExitCode
-        }
+        [void](Invoke-UnityProcess -UnityExe $UnityExe -Arguments $args)
 
-        # Parse the XML to see if any tests were found
         if (Test-Path -LiteralPath $xmlPath) {
             [xml]$xml = Get-Content -LiteralPath $xmlPath -Raw
             $run = $xml.SelectSingleNode("/test-run")
@@ -347,11 +356,9 @@ function Test-ScopeFilterMatchesTests {
             }
         }
 
-        # If XML doesn't exist or parsing failed, assume no tests matched
         return $false
     }
     finally {
-        if ($accessHeld) { Exit-UnityAccess -ProjectFullPath $ProjectPath }
         if (Test-Path -LiteralPath $tempDir) {
             Remove-Item -LiteralPath $tempDir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -366,11 +373,14 @@ function Invoke-UnityProcess {
     )
 
     $processProject = Get-ArgumentValue -Arguments $Arguments -Name "-projectPath"
+    $processLog = Get-ArgumentValue -Arguments $Arguments -Name "-logFile"
     $accessHeld = $false
     Enter-UnityAccess -ProjectFullPath $processProject
     $accessHeld = $true
+    $bootHeld = $false
 
     try {
+        $bootHeld = Enter-UnityBootLane -ProjectFullPath $processProject
         $proc = Start-Process -FilePath $UnityExe -ArgumentList $Arguments -NoNewWindow -PassThru
         Attach-UnityAccess -ProjectFullPath $processProject -ProcessId $proc.Id
 
@@ -379,8 +389,18 @@ function Invoke-UnityProcess {
         }
 
         $deadline = (Get-Date).AddSeconds($TimeoutSec)
+        $bootDeadline = (Get-Date).AddSeconds($Script:BootWatchTimeoutSec)
+        $bootPollDue = Get-Date
 
         while (-not $proc.HasExited) {
+            if ($bootHeld -and (Get-Date) -ge $bootPollDue) {
+                if ((Get-Date) -ge $bootDeadline -or (Test-UnityBootComplete -LogPath $processLog)) {
+                    Exit-UnityBootLane -ProjectFullPath $processProject
+                    $bootHeld = $false
+                }
+                $bootPollDue = (Get-Date).AddSeconds(2)
+            }
+
             if ((Get-Date) -ge $deadline) {
                 if ($Script:IsWindowsPlatform -eq $true) {
                     & taskkill /PID $proc.Id /T /F *> $null
@@ -412,6 +432,7 @@ function Invoke-UnityProcess {
         }
     }
     finally {
+        if ($bootHeld) { Exit-UnityBootLane -ProjectFullPath $processProject }
         if ($accessHeld) { Exit-UnityAccess -ProjectFullPath $processProject }
     }
 }
@@ -575,7 +596,6 @@ if (-not (Test-Path -LiteralPath $project)) {
 
 New-Item -ItemType Directory -Force -Path $outRoot | Out-Null
 
-# Load scope map and resolve filter if not explicitly provided
 $scopeMap = Load-ScopeMap -Path $ScopeMapPath
 $resolvedFilter = $TestFilter
 $scopeResolved = $false
@@ -588,7 +608,6 @@ if ([string]::IsNullOrWhiteSpace($TestFilter)) {
     }
 }
 
-# Validate scope if requested
 if ($ValidateScope.IsPresent -and -not [string]::IsNullOrWhiteSpace($resolvedFilter)) {
     Write-Host "Validating scope filter matches at least one test..."
 
@@ -778,8 +797,6 @@ $summary = [ordered]@{
 $summaryPath = Join-Path $outRoot "$stamp-summary.json"
 $latestPath = Join-Path $outRoot "latest-summary.json"
 
-# Write UTF-8 JSON without BOM so strict JSON parsers (e.g., Node JSON.parse)
-# can read the summary files directly.
 $json = $summary | ConvertTo-Json -Depth 12
 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 [System.IO.File]::WriteAllText($summaryPath, $json, $utf8NoBom)

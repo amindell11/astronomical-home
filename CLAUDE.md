@@ -55,7 +55,13 @@ Summary of the loop (details in the skill file):
    rather than merging over them silently. As part of that same pre-merge
    sweep, run a `/simplify` pass on the diff (quality-only cleanup, not a bug
    hunt) alongside the comment-hygiene strip, and fold its fixes in before
-   merging. **For every one of these pre-merge passes (simplify,
+   merging. **Run these pre-merge passes as parallel sub-agents, not
+   sequentially:** launch the simplify pass, the comment-hygiene sweep, and
+   the unresolved-comment triage as concurrent Agent calls in one message.
+   To keep parallel edits from colliding, have them report proposed edits
+   rather than write, or partition the touched files between them; you apply
+   the results centrally, then do a single `revise` at the end. **For every
+   one of these pre-merge passes (simplify,
    comment-hygiene strip, unresolved-comment fixes), report back a short
    summary of what you changed and why** — unless you already discussed that
    specific change with the user. They should never find edits landing on the
