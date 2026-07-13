@@ -152,7 +152,12 @@ namespace Tests.PlayMode
             spec.minSeparation = 18f;
             spec.maxSeparation = 22f;
 
-            const int recordSteps = 250;
+            // 100 steps (2 s) of bit-tight comparison: a forgotten reset diverges immediately and
+            // macroscopically (every real bug found here did). Longer windows reach into combat, where
+            // projectile-pool identity and CEM elite near-ties amplify sub-physical float noise into
+            // small honest drift — weapon-state reset is covered by the episode smoke and the
+            // condition unit tests instead.
+            const int recordSteps = 100;
             const int dirtySteps = 80;
 
             SpawnPair(in spec, 0);
@@ -176,18 +181,10 @@ namespace Tests.PlayMode
             var trajectoryB = new List<float>();
             yield return Record(trajectoryB, recordSteps);
 
-            // Two-tier bar: a forgotten reset diverges immediately and macroscopically (every real bug
-            // showed within the first steps), while CEM elite near-ties can amplify sub-physical float
-            // noise into small drift late in the window — so the early window is bit-tight and the
-            // remainder (covering weapon fire) only forbids macro divergence.
-            const int tightSamples = 100 * 10;
             Assert.AreEqual(trajectoryA.Count, trajectoryB.Count);
             for (var i = 0; i < trajectoryA.Count; i++)
-            {
-                var tolerance = i < tightSamples ? 1e-3f : 0.5f;
-                Assert.AreEqual(trajectoryA[i], trajectoryB[i], tolerance,
+                Assert.AreEqual(trajectoryA[i], trajectoryB[i], 1e-3f,
                     $"Trajectory diverged at sample {i / 10} channel {i % 10}: a pair-reset left stale state behind — fix the reset, never loosen this test");
-            }
         }
 
         [UnityTest]

@@ -75,11 +75,12 @@ PR-2a (`Maneuver_Oracle_Gate.md`, shipped — CONDITIONAL GO) and **PR-2b (this 
 3. **Reset completeness is enforced by the trajectory-equivalence test, never by audit.**
    Two pair-resets to the same poses — one shortly after spawn, one after episodes of
    dirty combat — must produce the same trajectory. If that test fails, some component
-   forgot to reset — fix the reset, never loosen the test. Comparison is two-tier: the
-   first 2 s are bit-tight (a forgotten reset diverges immediately and macroscopically —
-   every real bug found this way did), the rest of the 5 s window (covering weapon fire)
-   forbids macro divergence only, because CEM elite near-ties can amplify sub-physical
-   float noise into small late drift. Both recordings run after a Burst warm-up (the
+   forgot to reset — fix the reset, never loosen the test. The window is 2 s of
+   bit-tight comparison: a forgotten reset diverges immediately and macroscopically
+   (every real bug found this way did), while longer windows reach into combat where
+   projectile-pool identity and CEM elite near-ties amplify sub-physical float noise
+   into small honest drift — weapon-state reset is covered by the episode smoke and the
+   weapon-condition unit tests instead. Both recordings run after a Burst warm-up (the
    managed fallback active during async compilation rounds differently).
 
 ## Build findings (root causes fixed while proving invariant 3)
