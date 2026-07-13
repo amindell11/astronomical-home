@@ -7,39 +7,38 @@ namespace Game.Services
 {
     public interface IObjectiveService
     {
-        /// <summary>The active tracker, or null if no objective is set.</summary>
-        ObjectiveTracker CurrentTracker { get; }
+        ObjectiveTracker SpineTracker { get; }
 
-        /// <summary>Current objective state, or null if inactive.</summary>
-        ObjectiveType? CurrentState { get; }
+        ObjectiveType? SpineState { get; }
 
-        /// <summary>
-        /// Transform the active objective points at (e.g. a key, an extraction zone), or null.
-        /// Producers (encounters) report it; UI subscribers (the minimap marker) read it.
-        /// </summary>
-        Transform CurrentTarget { get; }
+        // Producers (encounters) report the spine target; UI subscribers (the minimap marker) read it.
+        Transform SpineTarget { get; }
 
-        /// <summary>Set the current objective target, raising <see cref="OnTargetChanged"/> on change.</summary>
-        void SetTarget(Transform target);
+        void SetSpineTarget(Transform target);
 
-        /// <summary>Raised when <see cref="CurrentTarget"/> changes.</summary>
-        event Action<Transform> OnTargetChanged;
+        event Action<Transform> OnSpineTargetChanged;
 
-        /// <summary>Create and activate a new objective tracker for this sector.</summary>
-        void SetObjective(
+        void SetSpineObjective(
             MissionDefinition mission,
             IReadOnlyDictionary<string, Func<ObjectiveState>> builders);
 
-        /// <summary>Immediately fail the current objective (event-driven failure).</summary>
-        void Fail();
+        void FailSpine();
 
-        /// <summary>Restart the current objective from the initial state.</summary>
-        void Restart();
+        void RestartSpine();
 
-        /// <summary>Raised when the tracker transitions between states.</summary>
-        event Action<ObjectiveType, ObjectiveType> OnStateChanged;
+        event Action<ObjectiveType, ObjectiveType> OnSpineStateChanged;
 
-        /// <summary>Tear down the active tracker.</summary>
-        void Clear();
+        void ClearSpine();
+
+        LocalObjectiveHandle OpenLocal(
+            MissionDefinition mission,
+            IReadOnlyDictionary<string, Func<ObjectiveState>> builders,
+            Transform target = null);
+
+        IReadOnlyList<LocalObjectiveHandle> Locals { get; }
+
+        event Action OnLocalsChanged;
+
+        void ClearAll();
     }
 }

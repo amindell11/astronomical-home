@@ -32,7 +32,7 @@ namespace Game.Services
         {
             UnitService.Clear();
             EnvironmentService.Clear();
-            ObjectiveService.Clear();
+            ObjectiveService.ClearAll();
             CameraService.Clear();
             UIService.Clear();
         }

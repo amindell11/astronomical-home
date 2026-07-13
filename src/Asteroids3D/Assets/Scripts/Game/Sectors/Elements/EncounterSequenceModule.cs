@@ -6,15 +6,6 @@ using UnityEngine;
 
 namespace Game.Sectors
 {
-    /// <summary>
-    /// Behavior module that drives a Combat sector's encounter sequence: instantiate each
-    /// <see cref="Encounter"/> template one at a time, advance on completion, and end the sector when
-    /// the sequence finishes or fails. Relocated from <c>CombatSector</c>'s inline logic. The module
-    /// knows nothing of the sector's completion sink — it only raises <see cref="SectorModule.RequestSectorEnd"/>,
-    /// which the base sector auto-wires. The objective marker is driven by the Stage-3 objective-service
-    /// channel (the encounter reports its target via the <c>Encounter</c> base), so the module does
-    /// not touch the marker.
-    /// </summary>
     public class EncounterSequenceModule : SectorModule
     {
         [Tooltip("Encounter templates, instantiated and run one at a time in order. NOT adopted.")]
@@ -51,7 +42,7 @@ namespace Game.Sectors
                 _activeEncounter = null;
             }
 
-            ctx.Services?.ObjectiveService?.Clear();
+            ctx.Services?.ObjectiveService?.ClearAll();
         }
 
         private IEnumerator StartEncounter(int index)
