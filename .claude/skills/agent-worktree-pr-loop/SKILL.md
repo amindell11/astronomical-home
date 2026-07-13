@@ -25,15 +25,17 @@ For interactive exploration, suggest the user run `lazygit` in any worktree dire
 
 ## Shared Unity access
 
-Unity editors and batch test processes share one machine-wide FIFO lane managed
-by `scripts/unity_access.ps1`. Prefer batch tests; `unity_test_agent.ps1`
-acquires and releases the lane around every Unity process. Use
-`-Action StartEditor` only for graphics, interaction, or MCP verification that
-batch mode cannot cover, then `-Action Release -CloseEditor` as soon as the
-check finishes. An untracked editor on the primary worktree belongs to the
-user: report its PID and ask the user to close it. Never close it automatically.
-The durable MCP server on port 8081 is shared and remains running between lane
-owners.
+`scripts/unity_access.ps1` coordinates Unity with **per-project ownership**:
+batch test runs in different worktrees run in parallel, and only Unity
+**startup** serializes through a short machine-wide boot lane (concurrent
+boots were the D6 deadlock hazard). `unity_test_agent.ps1` drives the whole
+protocol automatically — you only queue when another run holds *your* project.
+Prefer batch tests; use `-Action StartEditor` only for graphics, interaction,
+or MCP verification that batch mode cannot cover, then
+`-Action Release -CloseEditor` as soon as the check finishes. An untracked
+editor on the primary worktree belongs to the user: report its PID and ask the
+user to close it. Never close it automatically. The durable MCP server on port
+8081 is shared and remains running between owners.
 
 ## Core commands
 
