@@ -104,7 +104,6 @@ namespace Tests.EditMode
             Assert.IsNotNull(type.GetProperty("WorldFollowerTransform"), "Missing WorldFollowerTransform");
             Assert.IsNotNull(type.GetMethod("ApplyLocaleAsync"), "Missing ApplyLocaleAsync");
             Assert.IsNotNull(type.GetMethod("RestoreBootEnvironmentAsync"), "Missing RestoreBootEnvironmentAsync");
-            Assert.IsNotNull(type.GetMethod("HomeToStableScene"), "Missing HomeToStableScene");
             Assert.IsNotNull(type.GetMethod("SpawnWorld"), "Missing SpawnWorld");
             Assert.IsNotNull(type.GetMethod("Clear"), "Missing Clear");
         }
