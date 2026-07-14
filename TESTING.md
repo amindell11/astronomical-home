@@ -101,7 +101,7 @@ shared; release only the editor session and lane.
 | `-ProjectPath`     | `src/Asteroids3D`                          | Unity project root                       |
 | `-OutDir`          | `results/unity-tests-agent`                | Output directory for XML + JSON          |
 | `-Mode`            | `Both`                                     | `Both`, `EditMode`, or `PlayMode`        |
-| `-ScopeType`       | `Workspace`                                | `Workspace`, `Feature`, `Module`, or `Smoke` |
+| `-ScopeType`       | `Workspace`                                | `Workspace`, `Feature`, `Module`, `Smoke`, or `Auto` |
 | `-ScopeName`       | *(empty)*                                  | Name of feature/module (required for Feature/Module) |
 | `-TestFilter`      | *(resolved from scope)*                    | NUnit filter string (overrides scope resolution) |
 | `-TestCategory`    | *(none)*                                   | NUnit category filter                    |
@@ -124,8 +124,9 @@ Instead of manually specifying test filters, you can run predefined test scopes:
 |-------------|-------------|------------------------|---------|
 | `Workspace` | All tests (empty filter) | No | `.\scripts\unity_test_agent.ps1` |
 | `Smoke`     | Fast sanity checks | No | `.\scripts\unity_test_agent.ps1 -ScopeType Smoke` |
-| `Feature`   | Feature-specific tests | **Yes** | `.\scripts\unity_test_agent.ps1 -ScopeType Feature -ScopeName camera` |
-| `Module`    | Module-specific tests | **Yes** | `.\scripts\unity_test_agent.ps1 -ScopeType Module -ScopeName ai` |
+| `Feature`   | Feature-specific tests (curated name-regex) | **Yes** | `.\scripts\unity_test_agent.ps1 -ScopeType Feature -ScopeName camera` |
+| `Module`    | A module's domain-category slice, derived from the fixtures its `paths` cover | **Yes** | `.\scripts\unity_test_agent.ps1 -ScopeType Module -ScopeName ai` |
+| `Auto`      | Diff-driven: changed files → modules → their fixtures' domain categories; any unmapped file falls back to full Workspace | No | `.\scripts\unity_test_agent.ps1 -ScopeType Auto -DiffBase origin/main` |
 
 ### Available Scopes
 
@@ -143,17 +144,23 @@ Instead of manually specifying test filters, you can run predefined test scopes:
 .\scripts\unity_test_agent.ps1 -ScopeType Feature -ScopeName navigation
 ```
 
-**Modules** — Broader system-level groupings:
-`ai`, `mpc`, `combat`, `sectors`, `objectives`, `utils`, `workspace`.
+**Modules** — Broader system-level groupings, defined by directory `paths`:
+`ai`, `mpc`, `combat`, `sectors`, `objectives`, `asteroids`, `ui`, `utils`,
+`workspace`. A module run selects tests by the **domain `[Category]` tags on the
+fixtures its `paths` cover** — not a hand-maintained name list — so a new fixture
+in an already-mapped domain is picked up automatically.
 
 ```powershell
 .\scripts\unity_test_agent.ps1 -ScopeType Module -ScopeName ai
 ```
 
-> Prefer `-TestCategory <Domain>` for zero-upkeep slicing — every fixture
-> carries a domain category, so it never goes stale the way name-regex scopes
-> can. See [NUnit Categories](#nunit-categories) below. The scope map is a
-> convenience layer for the friendly names above.
+**Auto** — Resolves the same way against the working-tree diff (see the `Auto`
+row above); this is the recommended scope for iteration and submit runs.
+
+> `-TestCategory <Domain>` is the zero-upkeep primitive underneath all of this:
+> every fixture carries a domain category, so category selection never goes stale
+> the way name-regex `Feature`/`Smoke` scopes can. See
+> [NUnit Categories](#nunit-categories) below.
 
 ### Scope Validation
 
@@ -189,15 +196,25 @@ If the filter matches **no tests**, the script exits with an error, indicating t
   },
   "modules": {
     "ai": {
-      "testFilter": "AIIntegrationPlayMode|MpcNavigatorPlayMode|MpcSolverTests|MpcBoostEditModeTests|LosCostEditModeTests|ScannerPlayMode"
+      "paths": [
+        "src/Asteroids3D/Assets/Scripts/AI/**",
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/ScannerPlayModeTests.cs*"
+      ]
     }
   }
 }
 ```
 
-**Filter syntax:** NUnit regex (pipe-separated class name patterns). Keep it in
-sync when renaming fixtures, or prefer `-TestCategory <Domain>` which needs no
-map upkeep.
+**Features** carry an NUnit name-regex `testFilter` (pipe-separated class-name
+patterns) — curated, human-picked, kept in sync by hand on rename. **Modules**
+carry only `paths` (repo-relative forward-slash globs): `-ScopeType Auto` maps
+changed files to modules and `-ScopeType Module <name>` names one, then both
+derive the run from the domain `[Category]` tags on the fixtures those paths
+cover, so a new fixture in a mapped domain needs no map edit. Speed/selector
+overlays (`Smoke`/`Slow`/`RequiresGraphics`/`ChaseBenchmark`) never seed a scope,
+and the `Smoke` category is always added. A changed file matching no module glob,
+or a matched module whose paths cover no tagged fixture, falls back to the full
+Workspace suite — so leaving ambiguous areas unmapped is safe.
 
 ### Examples
 
@@ -444,7 +461,7 @@ finer detail.
 | `UI`         | HUD/indicator lifecycle, event-driven UI/audio                |
 | `Damage`     | DamageController routing, respawn health/shield               |
 | `Physics`    | Forces, fragnetics, collision-damage math                     |
-| `Movement`   | Ship sim/kinematics contract (reserved — lands with sim tests)|
+| `Movement`   | Ship sim/kinematics contract (sim-invariance characterization) |
 | `Core`       | Foundational spatial/context plumbing (GamePlane, decoupling) |
 | `Services`   | Game service contracts                                        |
 | `Bootstrap`  | Bootstrap/wiring contracts                                    |

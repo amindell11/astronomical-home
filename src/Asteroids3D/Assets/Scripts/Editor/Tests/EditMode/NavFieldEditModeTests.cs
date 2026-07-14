@@ -7,7 +7,7 @@ using Unity.Mathematics;
 namespace Tests.EditMode
 {
     /// <summary>The Dijkstra cost-to-go core (Burst job form) and its terminal-cost sampling semantics; gradient-walk/RoutedCell tests are deliberately dropped.</summary>
-    [Category("Planning")]
+    [Category("MPC")]
     public class NavFieldEditModeTests
     {
         private static NativeArray<float3> Obstacles(params float3[] obs) =>

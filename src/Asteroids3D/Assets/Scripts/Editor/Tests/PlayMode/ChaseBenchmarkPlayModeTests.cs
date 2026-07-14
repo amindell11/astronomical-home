@@ -29,6 +29,7 @@ namespace Tests.PlayMode
     /// <c>scripts/unity_test_agent.ps1 -Mode PlayMode -TestCategory ChaseBenchmark</c>.
     /// </summary>
     [TestFixture]
+    [Category("AI")]
     [Category("ChaseBenchmark")]
     public class ChaseBenchmarkPlayModeTests
     {

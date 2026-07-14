@@ -6,7 +6,7 @@ The authoritative reference lives in the repo-root testing guide:
 Quick version: every fixture is tagged on two axes —
 - **Domain** (required, one per fixture): `AI`, `MPC`, `Sectors`, `Weapons`,
   `Targeting`, `Objectives`, `Camera`, `UI`, `Damage`, `Physics`, `Core`,
-  `Services`, `Bootstrap`, `Ships` (`Movement` reserved).
+  `Services`, `Bootstrap`, `Ships`, `Movement`.
 - **Speed** (optional overlay): `Smoke` (fast gating subset) and `Slow`.
 
 Run a slice with `-TestCategory <Domain>` — see the guide for details.
