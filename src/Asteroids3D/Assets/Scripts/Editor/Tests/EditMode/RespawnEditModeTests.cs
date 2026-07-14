@@ -8,19 +8,14 @@ using World;
 
 namespace Tests.EditMode
 {
-    /// <summary>
-    /// EditMode tests for the producer-owned <see cref="RespawnPolicy"/> position resolution and the
-    /// <see cref="Respawn.Wire"/> guards. The full death→revive pipeline (real ship + UnitService
-    /// tick) is covered in PlayMode; here we verify the deterministic anchor math (radius 0) and that
-    /// a disabled/invalid policy wires nothing.
-    /// </summary>
+    /// <summary>Deterministic (radius 0) anchor math for <see cref="Respawn.Resolve"/> plus the <see cref="Respawn.Wire"/> guards; the full death→revive pipeline is covered in PlayMode.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class RespawnEditModeTests
     {
         private GameObject _follower;
+        private GameObject _arenaHost;
 
-        // ── Minimal service stubs (Resolve only touches EnvironmentService.WorldFollowerTransform) ──
         private class StubEnv : IEnvironmentService
         {
             public Transform follower;
@@ -28,7 +23,6 @@ namespace Tests.EditMode
             public Transform WorldFollowerTransform => follower;
             public IEnumerator ApplyLocaleAsync(string localeSceneName) { yield break; }
             public IEnumerator RestoreBootEnvironmentAsync() { yield break; }
-            public void HomeToStableScene(GameObject go) { }
             public void SpawnWorld(WorldRoot prefab) { }
             public void AdoptWorld(WorldRoot existing) { }
             public void Clear() { }
@@ -37,12 +31,13 @@ namespace Tests.EditMode
         private class StubServices : IGameServices
         {
             public IEnvironmentService Env;
+            public ArenaContext ArenaCtx;
             public IUnitService UnitService => null;
             public IEnvironmentService EnvironmentService => Env;
             public IObjectiveService ObjectiveService => null;
             public ICameraService CameraService => null;
             public IUIService UIService => null;
-            public ArenaContext Arena => null;
+            public ArenaContext Arena => ArenaCtx;
         }
 
         [TearDown]
@@ -50,6 +45,8 @@ namespace Tests.EditMode
         {
             if (_follower) Object.DestroyImmediate(_follower);
             _follower = null;
+            if (_arenaHost) Object.DestroyImmediate(_arenaHost);
+            _arenaHost = null;
         }
 
         private StubServices Services(Transform follower = null) =>
@@ -97,7 +94,7 @@ namespace Tests.EditMode
             var policy = new RespawnPolicy
             {
                 origin = RespawnPolicy.Origin.FollowerRelative,
-                point = new Vector2(7, 3), // must be ignored
+                point = new Vector2(7, 3),
                 radius = 0f,
             };
 
@@ -120,6 +117,25 @@ namespace Tests.EditMode
 
             Assert.AreEqual(Vector2.zero, Respawn.Resolve(policy, Services(follower: null)),
                 "With no world follower, FollowerRelative anchors to zero.");
+        }
+
+        [Test]
+        public void Resolve_FollowerRelative_NoFollower_FallsBackToArenaOffset()
+        {
+            _arenaHost = new GameObject("Arena");
+            var offset = new Vector2(1000f, -250f);
+            var services = Services(follower: null);
+            services.ArenaCtx = new ArenaContext(offset, new Tests.Common.StubShipRegistry(),
+                _arenaHost.AddComponent<Movement.MPC.Field.NavFieldService>());
+
+            var policy = new RespawnPolicy
+            {
+                origin = RespawnPolicy.Origin.FollowerRelative,
+                radius = 0f,
+            };
+
+            Assert.AreEqual(offset, Respawn.Resolve(policy, services),
+                "With no world follower, FollowerRelative anchors to the arena origin, not the world origin.");
         }
 
         [Test]

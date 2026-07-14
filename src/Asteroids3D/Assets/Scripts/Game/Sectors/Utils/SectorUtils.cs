@@ -14,7 +14,7 @@ namespace Game.Sectors.Utils
                 playerTemplate,
                 playerCommander,
                 0,
-                GamePlane.PlanePointToWorld(playerSpawnPosition),
+                services.Arena.Place(playerSpawnPosition),
                 GamePlane.Rotation);
             player.tag = "Player";
             if (!player.GetComponent<PlayerMarker>())

@@ -25,7 +25,7 @@ namespace Game.Bootstrap
         public bool vfx = true;
 
         [Tooltip("This arena's in-plane world offset. Zero for the single-arena game; the RL harness " +
-                 "supplies a per-arena offset. Dormant until PR-B wires placement through it.")]
+                 "supplies a per-arena offset.")]
         public Vector2 offset;
     }
 }

@@ -7,11 +7,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>
-    /// The net-new behavioral guarantee of the ArenaContext hard-cut: two arenas each carry their own
-    /// obstacle-field provider, and a consumer wired to one reads only that arena's field — the frame
-    /// the process-wide <c>ObstacleFields.Active</c> static could never provide.
-    /// </summary>
+    /// <summary>The net-new guarantee of the ArenaContext hard-cut: a consumer wired to one arena reads only that arena's obstacle field.</summary>
     [Category("Core")]
     public class TwoArenaIsolationEditModeTests
     {
@@ -66,6 +62,19 @@ namespace Tests.EditMode
             arenaA.ObstacleField = null;
             scanner.Scan();
             Assert.AreEqual(0, scanner.DetectedCount, "a null arena field senses zero obstacles");
+        }
+
+        [Test]
+        public void Place_AppliesArenaOffset_ToAuthoredPlanePoints()
+        {
+            var host = Track(new GameObject("Arena"));
+            var offset = new Vector2(1000f, -250f);
+            var arena = new Game.Services.ArenaContext(offset, new StubShipRegistry(),
+                host.AddComponent<Movement.MPC.Field.NavFieldService>());
+
+            var authored = new Vector2(7f, 3f);
+            Assert.AreEqual(GamePlane.PlanePointToWorld(authored + offset), arena.Place(authored),
+                "Place must convert an authored plane point into the arena's offset world frame.");
         }
     }
 }

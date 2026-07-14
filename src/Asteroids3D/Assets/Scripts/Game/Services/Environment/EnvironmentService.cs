@@ -9,11 +9,13 @@ namespace Game.Services
     public class EnvironmentService : IEnvironmentService
     {
         private readonly Scene bootScene;
+        private readonly Transform arenaRoot;
         private string loadedLocaleName;
 
-        public EnvironmentService()
+        public EnvironmentService(Transform arenaRoot = null)
         {
             bootScene = SceneManager.GetActiveScene();
+            this.arenaRoot = arenaRoot;
         }
 
         public WorldRoot World { get; private set; }
@@ -54,8 +56,7 @@ namespace Game.Services
             if (string.IsNullOrEmpty(loadedLocaleName))
                 yield break;
 
-            // Restore the boot scene as active before unloading the locale so RenderSettings never
-            // resolve against a scene that is going away this frame.
+            // Re-activate boot BEFORE the unload so RenderSettings never resolve against a scene going away this frame.
             if (bootScene.IsValid() && bootScene.isLoaded)
                 MakeActive(bootScene);
 
@@ -63,24 +64,17 @@ namespace Game.Services
             loadedLocaleName = null;
         }
 
-        public void HomeToStableScene(GameObject go)
-        {
-            if (!go || !bootScene.IsValid() || !bootScene.isLoaded) return;
-            if (go.scene != bootScene)
-                SceneManager.MoveGameObjectToScene(go, bootScene);
-        }
-
         public void SpawnWorld(WorldRoot prefab)
         {
             if (!prefab) return;
-            World = UnityEngine.Object.Instantiate(prefab);
+            World = UnityEngine.Object.Instantiate(prefab, arenaRoot);
         }
 
         public void AdoptWorld(WorldRoot existing)
         {
             if (!existing) return;
             World = existing;
-            existing.transform.SetParent(null, true);
+            existing.transform.SetParent(arenaRoot, true);
         }
 
         public void Clear()
@@ -90,8 +84,7 @@ namespace Game.Services
             World = null;
         }
 
-        // SetActiveScene switches RenderSettings but does not recompute the skybox-derived
-        // ambient/reflection probe; refresh it so hulls light against the newly-active sky.
+        // SetActiveScene does not recompute the skybox-derived ambient/reflection probe; refresh it here.
         private static void MakeActive(Scene scene)
         {
             SceneManager.SetActiveScene(scene);

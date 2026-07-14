@@ -25,16 +25,18 @@ namespace Game.Encounters
         {
             if (extractionZonePrefab)
             {
+                // Parented under the encounter so the spawn dies with its owner even when Teardown never runs.
                 extractionZoneInstance = Instantiate(
                     extractionZonePrefab,
-                    GamePlane.PlanePointToWorld(extractionZonePosition),
-                    extractionZonePrefab.transform.rotation);
+                    Services.Arena.Place(extractionZonePosition),
+                    extractionZonePrefab.transform.rotation,
+                    transform);
                 extractionZoneInstance.Initialize(chaser ? chaser.transform : null);
             }
 
             if (chaser) chaser.gameObject.SetActive(true);
 
-            // Physics needs a frame to process the new collider so OnTriggerEnter fires if the player already overlaps the zone.
+            // A physics frame so OnTriggerEnter fires even if the player already overlaps the zone at spawn.
             yield return null;
 
             var mission = new MissionDefinition(
