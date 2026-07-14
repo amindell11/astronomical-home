@@ -1,5 +1,8 @@
 Set-StrictMode -Version Latest
 
+# Speed/selector overlays, never domains: they must not seed a scope, or a Slow/graphics tag would pull every such test across domains.
+$Script:AutoScopeOverlayCategories = @('Smoke', 'Slow', 'RequiresGraphics', 'ChaseBenchmark')
+
 function Resolve-FullPath {
     param([string]$Path)
 
@@ -88,27 +91,6 @@ function Resolve-ScopeFilter {
         return ""
     }
 
-    if ($lowerType -eq "module") {
-        if ([string]::IsNullOrWhiteSpace($lowerName)) {
-            Write-Warning "ScopeType=Module requires -ScopeName to be specified"
-            return ""
-        }
-
-        if ($null -ne $ScopeMap.modules) {
-            $modulesObj = $ScopeMap.modules
-            $members = $modulesObj | Get-Member -MemberType NoteProperty | Where-Object { $_.Name -eq $lowerName }
-            if ($members) {
-                $entry = $modulesObj.$lowerName
-                if ($null -ne $entry.testFilter) {
-                    return [string]$entry.testFilter
-                }
-            }
-        }
-
-        Write-Warning "Module '$lowerName' not found in scope map"
-        return ""
-    }
-
     return ""
 }
 
@@ -129,15 +111,22 @@ function Test-AutoScopeIgnoredFile {
     return ($Path -like '*.md' -or $Path -like 'doc/*' -or $Path -like '.claude/*')
 }
 
+function Get-RepoRoot {
+    param([string]$ProbePath)
+
+    # Collect full output THEN take [0]: piping git into Select-Object -First 1 stops the pipeline early, which can kill git mid-exit and leave $LASTEXITCODE -1 despite good output.
+    $lines = @(& git -C $ProbePath rev-parse --show-toplevel)
+    $root = [string]$lines[0]
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($root)) {
+        throw "git rev-parse --show-toplevel failed under '$ProbePath'"
+    }
+    return $root
+}
+
 function Get-AutoChangedFiles {
     param([string]$RepoProbePath, [string]$BaseRef)
 
-    # Collect full output THEN take [0]: piping git into Select-Object -First 1 stops the pipeline early, which can kill git mid-exit and leave $LASTEXITCODE -1 despite good output.
-    $repoRootLines = @(& git -C $RepoProbePath rev-parse --show-toplevel)
-    $repoRoot = [string]$repoRootLines[0]
-    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($repoRoot)) {
-        throw "git rev-parse --show-toplevel failed under '$RepoProbePath'"
-    }
+    $repoRoot = Get-RepoRoot -ProbePath $RepoProbePath
 
     $mergeBaseLines = @(& git -C $repoRoot merge-base $BaseRef HEAD)
     $mergeBase = [string]$mergeBaseLines[0]
@@ -157,6 +146,7 @@ function Get-AutoChangedFiles {
     }
 
     return [pscustomobject]@{
+        repoRoot = $repoRoot
         mergeBase = $mergeBase
         files = @(@($diffFiles) + @($untrackedFiles) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique)
     }
@@ -184,20 +174,86 @@ function Get-ModulePathGlobs {
     return $globsByModule
 }
 
-function Add-UniqueFilterTerms {
-    param([System.Collections.Generic.List[string]]$Terms, [string]$Filter)
+function Get-CategoriesFromContent {
+    param([string]$Content)
 
-    foreach ($term in ($Filter -split '\|')) {
-        if (-not [string]::IsNullOrWhiteSpace($term) -and -not $Terms.Contains($term)) {
-            $Terms.Add($term)
+    $cats = New-Object System.Collections.Generic.List[string]
+    if ([string]::IsNullOrWhiteSpace($Content)) { return @($cats) }
+
+    foreach ($match in [regex]::Matches($Content, '\[\s*Category\s*\(\s*"([^"]+)"\s*\)\s*\]')) {
+        $cat = $match.Groups[1].Value
+        if (-not [string]::IsNullOrWhiteSpace($cat) -and -not $cats.Contains($cat)) {
+            $cats.Add($cat)
         }
     }
+
+    return @($cats)
+}
+
+function Get-TestFileCategoryIndex {
+    param([string]$TestsRoot, [string]$RepoRoot)
+
+    $index = [ordered]@{}
+    if ([string]::IsNullOrWhiteSpace($TestsRoot) -or -not (Test-Path -LiteralPath $TestsRoot)) {
+        return $index
+    }
+
+    $repoPrefix = ""
+    if (-not [string]::IsNullOrWhiteSpace($RepoRoot)) {
+        $repoPrefix = (ConvertTo-RepoSlashPath (Resolve-FullPath $RepoRoot)).TrimEnd('/') + '/'
+    }
+
+    foreach ($file in @(Get-ChildItem -LiteralPath $TestsRoot -Recurse -File -Filter *.cs -ErrorAction SilentlyContinue)) {
+        $cats = Get-CategoriesFromContent -Content (Get-Content -LiteralPath $file.FullName -Raw)
+        if (@($cats).Count -eq 0) { continue }
+
+        $rel = ConvertTo-RepoSlashPath $file.FullName
+        # PS 5.1 has no Path.GetRelativePath; the tests tree always sits under the repo, so a prefix strip is exact.
+        if ($repoPrefix -ne "" -and $rel.StartsWith($repoPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+            $rel = $rel.Substring($repoPrefix.Length)
+        }
+        $index[$rel] = @($cats)
+    }
+
+    return $index
+}
+
+function Add-UniqueDomainCategories {
+    param([System.Collections.Generic.List[string]]$Domains, [string[]]$Categories)
+
+    foreach ($cat in @($Categories)) {
+        if ([string]::IsNullOrWhiteSpace($cat)) { continue }
+        if ($Script:AutoScopeOverlayCategories -contains $cat) { continue }
+        if (-not $Domains.Contains($cat)) { $Domains.Add($cat) }
+    }
+}
+
+function Get-ModuleDerivedCategories {
+    param([object]$ScopeMap, [string]$ModuleName, [System.Collections.IDictionary]$FileCategoryIndex)
+
+    $globsByModule = Get-ModulePathGlobs -ScopeMap $ScopeMap
+    if (-not $globsByModule.Contains($ModuleName)) { return @() }
+    $globs = @($globsByModule[$ModuleName])
+    if ($globs.Count -eq 0 -or $null -eq $FileCategoryIndex) { return @() }
+
+    $domains = New-Object System.Collections.Generic.List[string]
+    foreach ($file in @($FileCategoryIndex.Keys)) {
+        $matched = $false
+        foreach ($glob in $globs) {
+            if ($file -like $glob) { $matched = $true; break }
+        }
+        if (-not $matched) { continue }
+        Add-UniqueDomainCategories -Domains $domains -Categories $FileCategoryIndex[$file]
+    }
+
+    return @($domains)
 }
 
 function Resolve-AutoSelection {
     param(
         [object]$ScopeMap,
-        [string[]]$ChangedFiles
+        [string[]]$ChangedFiles,
+        [System.Collections.IDictionary]$FileCategoryIndex
     )
 
     $selection = [ordered]@{
@@ -206,8 +262,9 @@ function Resolve-AutoSelection {
         ignoredFiles = @()
         matchedModules = @()
         unmatchedFiles = @()
-        emptyFilterModules = @()
-        testFilter = ""
+        emptyCategoryModules = @()
+        categories = @()
+        testCategory = ""
     }
 
     $considered = @()
@@ -226,7 +283,8 @@ function Resolve-AutoSelection {
 
     if ($considered.Count -eq 0) {
         $selection.mode = "smoke"
-        $selection.testFilter = Resolve-ScopeFilter -ScopeMap $ScopeMap -ScopeType "Smoke" -ScopeName ""
+        $selection.categories = @("Smoke")
+        $selection.testCategory = "Smoke"
         return [pscustomobject]$selection
     }
 
@@ -262,32 +320,32 @@ function Resolve-AutoSelection {
 
     if ($unmatched.Count -gt 0) {
         $selection.mode = "fallback"
-        $selection.testFilter = Resolve-ScopeFilter -ScopeMap $ScopeMap -ScopeType "Workspace" -ScopeName ""
         return [pscustomobject]$selection
     }
 
-    $terms = New-Object System.Collections.Generic.List[string]
-    $emptyFilterModules = @()
+    $domains = New-Object System.Collections.Generic.List[string]
+    $emptyCategoryModules = @()
     foreach ($moduleName in $matchedModules) {
-        $moduleFilter = Resolve-ScopeFilter -ScopeMap $ScopeMap -ScopeType "Module" -ScopeName $moduleName
-        if ([string]::IsNullOrWhiteSpace($moduleFilter)) {
-            $emptyFilterModules += $moduleName
+        $moduleCategories = Get-ModuleDerivedCategories -ScopeMap $ScopeMap -ModuleName $moduleName -FileCategoryIndex $FileCategoryIndex
+        if (@($moduleCategories).Count -eq 0) {
+            $emptyCategoryModules += $moduleName
             continue
         }
-        Add-UniqueFilterTerms -Terms $terms -Filter $moduleFilter
+        Add-UniqueDomainCategories -Domains $domains -Categories $moduleCategories
     }
 
-    if ($emptyFilterModules.Count -gt 0) {
-        # A matched module with no filter cannot be scope-tested; never under-test.
+    if ($emptyCategoryModules.Count -gt 0) {
+        # A matched module whose paths cover no tagged fixture cannot be scope-tested; never under-test.
         $selection.mode = "fallback"
-        $selection.emptyFilterModules = $emptyFilterModules
-        $selection.testFilter = Resolve-ScopeFilter -ScopeMap $ScopeMap -ScopeType "Workspace" -ScopeName ""
+        $selection.emptyCategoryModules = $emptyCategoryModules
         return [pscustomobject]$selection
     }
 
-    Add-UniqueFilterTerms -Terms $terms -Filter (Resolve-ScopeFilter -ScopeMap $ScopeMap -ScopeType "Smoke" -ScopeName "")
+    if (-not $domains.Contains("Smoke")) { $domains.Add("Smoke") }
+    $sorted = @($domains | Sort-Object)
 
     $selection.mode = "modules"
-    $selection.testFilter = ($terms -join '|')
+    $selection.categories = $sorted
+    $selection.testCategory = ($sorted -join ';')
     return [pscustomobject]$selection
 }

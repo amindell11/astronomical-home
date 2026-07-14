@@ -15,8 +15,7 @@ namespace Tests.PlayMode
     /// Tests the ship presentation layer: a ship prefab carries its visual rig as an embedded child
     /// that self-binds its visuals to the ship, and damage-driven visuals behave across death/respawn.
     /// </summary>
-    [Category("Integration")]
-    [Category("Presentation")]
+    [Category("Ships")]
     public class ShipPresentationPlayModeTests : PlayModeWorldFixture
     {
         private const string Ship1Path = "Assets/Prefabs/Ships/Ship_1.prefab";
