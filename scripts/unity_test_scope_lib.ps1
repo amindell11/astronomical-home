@@ -132,12 +132,15 @@ function Test-AutoScopeIgnoredFile {
 function Get-AutoChangedFiles {
     param([string]$RepoProbePath, [string]$BaseRef)
 
-    $repoRoot = [string](& git -C $RepoProbePath rev-parse --show-toplevel | Select-Object -First 1)
+    # Collect full output THEN take [0]: piping git into Select-Object -First 1 stops the pipeline early, which can kill git mid-exit and leave $LASTEXITCODE -1 despite good output.
+    $repoRootLines = @(& git -C $RepoProbePath rev-parse --show-toplevel)
+    $repoRoot = [string]$repoRootLines[0]
     if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($repoRoot)) {
         throw "git rev-parse --show-toplevel failed under '$RepoProbePath'"
     }
 
-    $mergeBase = [string](& git -C $repoRoot merge-base $BaseRef HEAD | Select-Object -First 1)
+    $mergeBaseLines = @(& git -C $repoRoot merge-base $BaseRef HEAD)
+    $mergeBase = [string]$mergeBaseLines[0]
     if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($mergeBase)) {
         throw "git merge-base $BaseRef HEAD failed"
     }

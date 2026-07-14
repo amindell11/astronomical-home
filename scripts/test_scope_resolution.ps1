@@ -124,18 +124,26 @@ Assert-Equal "fallback" $auto.mode "unmapped core source (Ships/Ship.cs) falls b
 $auto = Resolve-AutoSelection -ScopeMap $scopeMap -ChangedFiles @("scripts/unity_test_agent.ps1")
 Assert-Equal "fallback" $auto.mode "tooling script falls back to full suite"
 
+function Invoke-GitSetup {
+    param([string[]]$GitArgs)
+    & git @GitArgs
+    if ($LASTEXITCODE -ne 0) {
+        throw "test setup: 'git $($GitArgs -join ' ')' exited $LASTEXITCODE"
+    }
+}
+
 $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("scope-auto-test-" + [guid]::NewGuid().ToString("N"))
 $repo = Join-Path $tempRoot "repo"
 New-Item -ItemType Directory -Force -Path (Join-Path $repo "src/Ships") | Out-Null
 try {
     Write-Host ""
     Write-Host "Auto: a git rename surfaces BOTH paths (--no-renames)"
-    & git init -q -b main $repo
+    Invoke-GitSetup @("init", "-q", $repo)
     Set-Content -LiteralPath (Join-Path $repo "src/Ships/Ship.cs") -Value "class Ship {}" -Encoding Ascii
-    & git -C $repo add .
-    & git -C $repo -c user.email=test@test -c user.name=test -c commit.gpgsign=false commit -q -m init
+    Invoke-GitSetup @("-C", $repo, "add", "src")
+    Invoke-GitSetup @("-C", $repo, "-c", "user.email=test@test", "-c", "user.name=test", "-c", "commit.gpgsign=false", "-c", "core.hooksPath=", "commit", "-q", "-m", "init")
     New-Item -ItemType Directory -Force -Path (Join-Path $repo "src/Alpha") | Out-Null
-    & git -C $repo mv src/Ships/Ship.cs src/Alpha/Ship.cs
+    Invoke-GitSetup @("-C", $repo, "mv", "src/Ships/Ship.cs", "src/Alpha/Ship.cs")
     $changed = Get-AutoChangedFiles -RepoProbePath $repo -BaseRef HEAD
     Assert-True (@($changed.files) -contains "src/Ships/Ship.cs") "rename source path reported"
     Assert-True (@($changed.files) -contains "src/Alpha/Ship.cs") "rename destination path reported"
