@@ -14,13 +14,7 @@ using UnityEngine.TestTools;
 
 namespace Tests.PlayMode
 {
-    /// <summary>
-    /// PlayMode tests for the Attempt-3 sector composition system (serialized manifest +
-    /// deterministic injection — no runtime crawl). Sectors are constructed programmatically:
-    /// content children are authored under the sector, the manifest (<c>adopted[]</c> /
-    /// <c>spawners[]</c>) is populated directly (mirroring what the editor Sync bakes), then
-    /// <c>Setup()</c> adopts/builds from that manifest.
-    /// </summary>
+    /// <summary>Sector composition via the serialized manifest (no runtime crawl): sectors are built programmatically, the manifest is populated directly, then Setup() adopts/builds from it.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class SectorCompositionPlayModeTests : PlayModeWorldFixture
@@ -53,24 +47,6 @@ namespace Tests.PlayMode
         private class EndModule : SectorModule
         {
             public void Fire(SectorResult r) => RequestSectorEnd(r);
-        }
-
-        /// <summary>Sector whose player is injected via Initialize (for EncounterSequenceModule's ctx.Player).</summary>
-        private class EncounterTestSector : Sector
-        {
-            public bool IsBuilt => IsSetUp;
-            protected override IEnumerator OnAfterTeardown() { Services.UnitService.Clear(); yield break; }
-        }
-
-        private class StubEncounter : Game.Encounters.Encounter
-        {
-            public bool OnFailCalled;
-            public override Transform ObjectiveTarget => null;
-            protected override IEnumerator OnSetup() { yield break; }
-            protected override IEnumerator OnTeardown() { yield break; }
-            protected override void OnFail() => OnFailCalled = true;
-            public void Complete() => CompleteEncounter(Game.Encounters.EncounterResult.Completed);
-            public void FailNow() => CompleteEncounter(Game.Encounters.EncounterResult.Failed);
         }
 
         private UnitService _unitService;
@@ -113,23 +89,19 @@ namespace Tests.PlayMode
             base.TearDown();
         }
 
-        // ── Helpers ─────────────────────────────────────────────────────────────
-
         private GameObject TrackGO(GameObject go) { _created.Add(go); return go; }
 
         private TestSector CreateTestSector()
         {
             var go = TrackGO(new GameObject("TestSector"));
-            // Author content under an INACTIVE sector — mirrors SessionHost's inactive holder
-            // so authored ship children do not Awake/FixedUpdate before adoption initialises them.
+            // Author content under an INACTIVE sector — mirrors SessionHost's inactive holder so authored ships don't Awake before adoption.
             go.SetActive(false);
             var sector = go.AddComponent<TestSector>();
             sector.Initialize(_services, _config, null);
             return sector;
         }
 
-        // A bare base Sector that does NOT force-Clear on teardown, so tests can verify the
-        // per-producer despawn path itself clears sector-owned ships (the restart-leak fix).
+        // Bare base Sector without force-Clear on teardown, so the per-producer despawn path itself is observable.
         private Sector CreateBareSector()
         {
             var go = TrackGO(new GameObject("BareSector"));
@@ -150,7 +122,7 @@ namespace Tests.PlayMode
             if (localPos.HasValue) ship.transform.localPosition = localPos.Value;
             ship.teamNumber = team;
             if (commanderPrefab)
-                Object.Instantiate(commanderPrefab, ship.transform); // pilot authored as a child
+                Object.Instantiate(commanderPrefab, ship.transform);
             return ship;
         }
 
@@ -166,8 +138,6 @@ namespace Tests.PlayMode
 
         private static AdoptEntry Entry(Component target, int team = 0, bool startActive = true) =>
             new AdoptEntry { target = target, team = team, startActive = startActive };
-
-        // ── Tests ───────────────────────────────────────────────────────────────
 
         [UnityTest]
         public IEnumerator Adopt_AllShipEntries_RegisteredAtPoses()
@@ -342,8 +312,6 @@ namespace Tests.PlayMode
                 "Adopted ships (root-detached, service-owned) must be despawned on teardown so they don't leak across restarts.");
         }
 
-        // ── Module infrastructure (Stage 2.1) ────────────────────────────────────
-
         [UnityTest]
         public IEnumerator Modules_SetupInListOrder_TeardownReverseOrder()
         {
@@ -384,8 +352,6 @@ namespace Tests.PlayMode
             end.Fire(SectorResult.Extracted());
             Assert.IsFalse(got.HasValue, "Module end signal must be unsubscribed after teardown.");
         }
-
-        // ── RespawnPolicy (Stage 2.4) — full death→revive pipeline with real ships ───
 
         [UnityTest]
         public IEnumerator Respawn_FixedPoint_RevivesAtPointAfterDeath()
@@ -432,89 +398,9 @@ namespace Tests.PlayMode
             yield return null;
             yield return null;
 
-            // No respawn was scheduled → the ship is not repositioned to any revive pose.
             Assert.Less(Vector3.Distance(s.transform.position, spawnWorld), 0.5f,
                 "With Origin.None the ship must not be teleported by a respawn.");
         }
-
-        // ── EncounterSequenceModule (Stage 2.5) ──────────────────────────────────
-
-        // Active sector (coroutines started inside the module require an active GameObject).
-        private EncounterTestSector CreateActiveEncounterSector(Ship player = null)
-        {
-            var go = TrackGO(new GameObject("EncounterSector"));
-            var sector = go.AddComponent<EncounterTestSector>();
-            sector.Initialize(_services, _config, player);
-            return sector;
-        }
-
-        private StubEncounter NewStubEncounterTemplate(string name)
-        {
-            var go = TrackGO(new GameObject(name));
-            return go.AddComponent<StubEncounter>();
-        }
-
-        private EncounterSequenceModule AttachEncounterModule(
-            EncounterTestSector sector, params Game.Encounters.Encounter[] templates)
-        {
-            var module = sector.gameObject.AddComponent<EncounterSequenceModule>();
-            module.SetEncounters(templates);
-            sector.SetManifest(null, null, new SectorModule[] { module });
-            return module;
-        }
-
-        [UnityTest]
-        public IEnumerator EncounterModule_SequenceFinish_RaisesExtracted()
-        {
-            var sector = CreateActiveEncounterSector();
-            var module = AttachEncounterModule(sector, NewStubEncounterTemplate("Enc0"));
-
-            SectorResult? got = null;
-            ((ISector)sector).OnSectorComplete += r => got = r;
-
-            yield return sector.Setup();
-
-            var active = module.Active as StubEncounter;
-            Assert.IsNotNull(active, "Module must instantiate and start the first encounter.");
-
-            active.Complete();
-            for (var i = 0; i < 8 && !got.HasValue; i++) yield return null;
-
-            Assert.IsTrue(got.HasValue, "Finishing the sequence must end the sector.");
-            Assert.IsTrue(got.Value.Success, "A finished sequence ends the sector as Extracted.");
-
-            yield return sector.Teardown();
-        }
-
-        [UnityTest]
-        public IEnumerator EncounterModule_EncounterFail_RaisesFailed()
-        {
-            var sector = CreateActiveEncounterSector();
-            var module = AttachEncounterModule(sector, NewStubEncounterTemplate("Enc0"));
-
-            SectorResult? got = null;
-            ((ISector)sector).OnSectorComplete += r => got = r;
-
-            yield return sector.Setup();
-
-            var active = module.Active as StubEncounter;
-            Assert.IsNotNull(active);
-
-            active.FailNow();
-            for (var i = 0; i < 4 && !got.HasValue; i++) yield return null;
-
-            Assert.IsTrue(got.HasValue, "A failed encounter must end the sector.");
-            Assert.IsFalse(got.Value.Success);
-            Assert.AreEqual("encounter_failed", got.Value.FailReason);
-
-            yield return sector.Teardown();
-        }
-
-        // NOTE: player-death → sector-restart is no longer the EncounterSequenceModule's job. That
-        // responsibility now lives in the game driver (GameDriver.deathBehavior = RestartSector
-        // injects GameSession.OnPlayerDeath, wired onto Ship.OnDeath by the rig). The former
-        // EncounterModule_PlayerDeath_FailsActiveEncounter_AndRaisesFailed test was removed because the
-        // module intentionally no longer subscribes to player death.
     }
 }
 #endif

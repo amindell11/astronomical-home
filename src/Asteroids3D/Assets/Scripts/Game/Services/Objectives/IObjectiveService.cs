@@ -11,24 +11,22 @@ namespace Game.Services
 
         ObjectiveType? SpineState { get; }
 
-        // Producers (encounters) report the spine target; UI subscribers (the minimap marker) read it.
-        Transform SpineTarget { get; }
+        string SpineStep { get; }
 
-        void SetSpineTarget(Transform target);
+        // The spine owner mutates the target through its handle; UI subscribers (the minimap marker) read it here.
+        Transform SpineTarget { get; }
 
         event Action<Transform> OnSpineTargetChanged;
 
-        void SetSpineObjective(
+        SpineObjectiveHandle SetSpineObjective(
             MissionDefinition mission,
-            IReadOnlyDictionary<string, Func<ObjectiveState>> builders);
-
-        void FailSpine();
-
-        void RestartSpine();
+            IReadOnlyDictionary<string, Func<ObjectiveState>> builders,
+            Transform target = null);
 
         event Action<ObjectiveType, ObjectiveType> OnSpineStateChanged;
 
-        void ClearSpine();
+        // Step-level (string ids); fires for same-type step transitions and on install with the initial step.
+        event Action<string> OnSpineStepChanged;
 
         LocalObjectiveHandle OpenLocal(
             MissionDefinition mission,

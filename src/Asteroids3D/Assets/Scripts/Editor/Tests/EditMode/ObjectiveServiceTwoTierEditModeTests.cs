@@ -237,8 +237,8 @@ namespace Tests.EditMode
         public void ClearAll_ClosesLocalsAndSpine()
         {
             var svc = NewService();
-            svc.SetSpineObjective(RunToDoneMission(), RunToDoneBuilders(new Flag()));
-            svc.SetSpineTarget(NewGO("SpineTarget").transform);
+            var spine = svc.SetSpineObjective(RunToDoneMission(), RunToDoneBuilders(new Flag()));
+            spine.Target = NewGO("SpineTarget").transform;
             svc.OpenLocal(RunToDoneMission(), RunToDoneBuilders(new Flag()));
             svc.OpenLocal(RunToDoneMission(), RunToDoneBuilders(new Flag()));
 
@@ -248,6 +248,44 @@ namespace Tests.EditMode
             Assert.IsNull(svc.SpineState);
             Assert.IsNull(svc.SpineTarget);
             Assert.AreEqual(0, svc.Locals.Count);
+        }
+
+        [Test]
+        public void SetSpineObjective_WithTarget_PublishesTargetOnInstall()
+        {
+            var svc = NewService();
+            var target = NewGO("Target").transform;
+
+            Transform seen = null;
+            ((IObjectiveService)svc).OnSpineTargetChanged += t => seen = t;
+
+            svc.SetSpineObjective(RunToDoneMission(), RunToDoneBuilders(new Flag()), target);
+
+            Assert.AreEqual(target, svc.SpineTarget);
+            Assert.AreEqual(target, seen);
+        }
+
+        [Test]
+        public void StaleSpineHandle_MutationsAreNoOps_OnSuccessorSpine()
+        {
+            var svc = NewService();
+            var first = svc.SetSpineObjective(RunToDoneMission(), RunToDoneBuilders(new Flag()));
+            var second = svc.SetSpineObjective(RunToDoneMission(), RunToDoneBuilders(new Flag()));
+
+            var target = NewGO("Target").transform;
+            second.Target = target;
+
+            first.Close();
+            Assert.AreSame(second.Tracker, svc.SpineTracker,
+                "A stale handle's Close must not clear the successor spine.");
+            Assert.AreEqual(target, svc.SpineTarget);
+
+            first.Target = NewGO("Other").transform;
+            Assert.AreEqual(target, svc.SpineTarget, "A stale handle's target-set must be a no-op.");
+            Assert.IsNull(first.Target, "A stale handle must not read the successor's target.");
+
+            second.Close();
+            Assert.IsNull(svc.SpineTracker);
         }
     }
 }
