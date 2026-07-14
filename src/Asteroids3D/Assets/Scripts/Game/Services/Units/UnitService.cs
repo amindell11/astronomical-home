@@ -50,6 +50,7 @@ namespace Game.Services
                 position, rotation,
                 postInitialize: WireShipDependencies);
 
+            ship.transform.SetParent(transform, true);
             ActiveRegistry.ActiveShips.Add(ship);
             spawnedShips.Add(ship);
             OnShipSpawned?.Invoke(ship);
@@ -61,8 +62,8 @@ namespace Game.Services
             if (!ship)
                 return null;
 
-            // Detach from the sector so lifetime/Clear() matches a spawned ship.
-            ship.transform.SetParent(null, true);
+            // Re-home from the sector to the arena root so lifetime/Clear() matches a spawned ship.
+            ship.transform.SetParent(transform, true);
 
             var commander = ship.GetComponentInChildren<Commander>(true);
             if (commander)
@@ -99,9 +100,9 @@ namespace Game.Services
 
             spawnedShips.Clear();
             pendingRespawns.Clear();
-            // Restart the agent index so the next run re-derives the same per-agent decision seeds.
+            // Restart the agent index at the episode-reset boundary so the next episode re-derives the same decision seeds.
             nextAgentIndex = 0;
-            // ActiveRegistry.Dispose() here would unsubscribe OnAdd/OnRemove and permanently break the registry for later runs.
+            // Never Dispose ActiveRegistry here — that unsubscribes OnAdd/OnRemove and permanently breaks the registry for later runs.
         }
 
         private void OnDestroy()
@@ -111,7 +112,7 @@ namespace Game.Services
 
         private int NextDecisionSeed(int team) => DeriveDecisionSeed(team, nextAgentIndex++);
 
-        /// <summary>Stable per-agent decision seed from the deterministic spawn order, so a reconstructed episode replays identically; distinct per ship, nonzero.</summary>
+        /// <summary>Per-agent decision seed derived from the deterministic spawn order (not <c>GetInstanceID</c>) so a reconstructed episode replays identically; distinct per ship, nonzero.</summary>
         private static int DeriveDecisionSeed(int team, int agentIndex)
         {
             const int arenaBaseSeed = 0; // 0 until S1b supplies per-arena seeds

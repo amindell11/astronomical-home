@@ -7,39 +7,36 @@ namespace Game.Services
 {
     public interface IObjectiveService
     {
-        /// <summary>The active tracker, or null if no objective is set.</summary>
-        ObjectiveTracker CurrentTracker { get; }
+        ObjectiveTracker SpineTracker { get; }
 
-        /// <summary>Current objective state, or null if inactive.</summary>
-        ObjectiveType? CurrentState { get; }
+        ObjectiveType? SpineState { get; }
 
-        /// <summary>
-        /// Transform the active objective points at (e.g. a key, an extraction zone), or null.
-        /// Producers (encounters) report it; UI subscribers (the minimap marker) read it.
-        /// </summary>
-        Transform CurrentTarget { get; }
+        string SpineStep { get; }
 
-        /// <summary>Set the current objective target, raising <see cref="OnTargetChanged"/> on change.</summary>
-        void SetTarget(Transform target);
+        // The spine owner mutates the target through its handle; UI subscribers (the minimap marker) read it here.
+        Transform SpineTarget { get; }
 
-        /// <summary>Raised when <see cref="CurrentTarget"/> changes.</summary>
-        event Action<Transform> OnTargetChanged;
+        event Action<Transform> OnSpineTargetChanged;
 
-        /// <summary>Create and activate a new objective tracker for this sector.</summary>
-        void SetObjective(
+        SpineObjectiveHandle SetSpineObjective(
             MissionDefinition mission,
-            IReadOnlyDictionary<string, Func<ObjectiveState>> builders);
+            IReadOnlyDictionary<string, Func<ObjectiveState>> builders,
+            Transform target = null);
 
-        /// <summary>Immediately fail the current objective (event-driven failure).</summary>
-        void Fail();
+        event Action<ObjectiveType, ObjectiveType> OnSpineStateChanged;
 
-        /// <summary>Restart the current objective from the initial state.</summary>
-        void Restart();
+        // Step-level (string ids); fires for same-type step transitions and on install with the initial step.
+        event Action<string> OnSpineStepChanged;
 
-        /// <summary>Raised when the tracker transitions between states.</summary>
-        event Action<ObjectiveType, ObjectiveType> OnStateChanged;
+        LocalObjectiveHandle OpenLocal(
+            MissionDefinition mission,
+            IReadOnlyDictionary<string, Func<ObjectiveState>> builders,
+            Transform target = null);
 
-        /// <summary>Tear down the active tracker.</summary>
-        void Clear();
+        IReadOnlyList<LocalObjectiveHandle> Locals { get; }
+
+        event Action OnLocalsChanged;
+
+        void ClearAll();
     }
 }

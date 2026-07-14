@@ -1,6 +1,6 @@
 # Objectives / Encounters / Sector Rethink
 
-*Draft • 2026-07-12 • status: design agreed (design session), build not started*
+*Draft • 2026-07-12 • status: PR-1 #134 + PR-2 #135 merged; PR-3 built (see "PR-3 — resolved scope" + "PR-3 — build decisions")*
 
 > Realizes the deferred `project_objectives_encounters_rethink`. The presenting
 > symptom was "combat encounters spawn one at a time instead of together," but the
@@ -158,23 +158,72 @@ Grounded in the existing sector grain (hand-placed children reconciled by
   maintaining an *in/out level*), publishing a named token to the sector bus.
   Generalizes what `KeyPickup`/`ExtractionZone` already do; a spatial **term
   source**, decoupled from any specific objective.
-- **Activation rule / encounter** — a placed child reconciled into a new manifest
-  slice (peer of `spawners[]`/`modules[]`), carrying a small serialized **term
-  list** (flavor + key/target + params) and an **effect** (content spawn-spec +
-  local-objective builder + on-complete event tokens). Terms reference fixtures /
-  volumes / spine-stage / event tokens by serialized reference or token.
-- **Sector event bus** — a per-`Sector` instance (owned like the build context),
-  tokens as a small typed enum or interned string keys for inspector authoring.
+- **Activation rule / encounter** — a placed child carrying a small serialized
+  **term list** (flavor + key/target + params) and an **effect** (content
+  spawn-spec + local-objective builder + on-complete event tokens). Terms
+  reference fixtures / volumes / spine-stage / event tokens by serialized
+  reference or token.
 - **Two-tier objective service** — spine API (`SetSectorObjective` / stage) +
   local-slot API (`OpenLocal` / `CloseLocal`) replacing the single
   `SetObjective` / `SetTarget`; HUD reads spine prominently + active locals
   contextually.
 
+### Resolved build design (2026-07-12)
+
+Locked with the user during the PR-1 build; supersedes the proposal bullets
+above where they differ.
+
+- **Unified boolean signal bus.** `SectorEventBus`
+  (`Game/Sectors/Activation/`) is a plain C# class carrying named boolean
+  signals: `Set(token, bool)` (level semantics — volumes), `Latch(token)`
+  (event semantics — true forever; `Set(false)` on a latched token is
+  ignored), `Get(token)`, and `Changed` (raised only on actual value change).
+  Tokens are **strings** for inspector authoring. The bus is **per-sector**
+  and created **fresh on every `Setup()`** (handed to modules via
+  `SectorBuildContext.Bus`), so a restart / RL episode reset never sees stale
+  latched tokens — no static anywhere, per `Multi_Arena_Substrate.md`.
+  `Sector.Teardown()` calls `Freeze()` **before** module teardown: a frozen
+  bus ignores `Set`/`Latch` and never raises `Changed`, so no rule fires or
+  publishes while the sector dismantles (modules tear down sequentially).
+- **Spine stage rides the same bus.** The sector objective's stage is
+  published as latched tokens (e.g. `spine:ready-to-extract`), so **state
+  terms are just signal terms** — one term kind covers state + spatial +
+  event sources. Wired in PR-3; PR-1 ships `Signal` and `Time` term kinds
+  only.
+- **No new manifest slice.** `ActivationRule`, `TriggerVolume` (and PR-3's
+  encounter) are `SectorModule` subclasses and ride the existing `modules[]`
+  slice via `SectorManifestSync`'s module crawl. Rules chain in data:
+  `publishOnFired` tokens latched by rule A are signal terms of rule B.
+- **Bundle/authoring convention** — *hierarchy edge = ownership/lifetime;
+  serialized ref = binding*:
+  - A **thin rule sits directly ON the persistent fixture GO** it gates (the
+    extraction-gate case) — the rule component is the fixture's arming logic
+    and owns no content.
+  - A **fat encounter is a sector-level child** that *owns* its private
+    fixtures as children (spawn points, proximity volumes — they live and die
+    with it) and *binds* to shared fixtures by in-prefab serialized
+    reference.
+  - Worked demo tree:
+
+    ```text
+    CombatSector (Sector)
+    ├─ KeyPickup                      ← shared fixture, present at spawn
+    ├─ ExtractionGate                 ← shared fixture, present + inert
+    │   ├─ TriggerVolume  → "in-gate"
+    │   └─ ActivationRule ["spine:ready-to-extract" AND "in-gate"]
+    │        → start extraction challenge          ← thin rule ON the fixture
+    └─ AmbushEncounter                ← fat encounter, sector-level child
+        ├─ ActivationRule [time ≥ 30 AND "near-derelict"] → spawn waves
+        ├─ TriggerVolume → "near-derelict"          ← private fixture (owned child)
+        ├─ WaveSpawnPoint ×N                        ← private fixtures (owned children)
+        └─ gate ⇢ ExtractionGate (serialized ref)   ← binding, not ownership
+    ```
+
 ## PR sequence
 
 **Rethink-proof — behavior-identical until the payoff PR, land first:**
 
-- **PR-1 · Event bus + activation-rule engine + `TriggerVolume` (dormant).**
+- **PR-1 · Event bus + activation-rule engine + `TriggerVolume` (dormant). BUILT.**
   Introduce the per-sector bus, the `ActivationRule` primitive (terms →
   standing/latched predicate → effect), and `TriggerVolume` as a spatial term
   source. Nothing real consumes it yet. **Behavior-identical** (no wiring).
@@ -195,6 +244,19 @@ Grounded in the existing sector grain (hand-placed children reconciled by
   `EncounterSequenceModule`** and the physics-frame hack. This is where the
   extraction gate becomes present-at-spawn and activation becomes a gated standing
   predicate.
+  - *Effect binding (decided in PR-1 review):* an encounter subclasses
+    `ActivationRule` and overrides `protected OnFired()` — the subclass IS the
+    effect, so there is no post-Setup binding race against an already-fired
+    (e.g. empty-term immediate) rule. Fire order is pinned: `OnFired` →
+    `Fired` event → publish `publishOnFired` tokens, so a rule's own effect
+    completes before any downstream rule runs. The public `Fired` event +
+    `HasFired` remain for external/late binders.
+  - *Spine-stage publisher needs a step-change seam (deferred from PR-2 #135
+    review):* `ObjectiveType`-based events are insufficient —
+    `ObjectiveTracker` suppresses transitions between string steps that share
+    an `ObjectiveType`, and objective set/clear emit no event. When PR-3
+    builds the bus publisher for spine-stage tokens, it must add a step-level
+    change signal on the objective service, not reuse the type-level event.
 - **PR-4 · Author a real overlapping/timed combat encounter (the original ask).**
   Now trivial: a combat encounter whose rule uses time/spatial terms, spawns waves
   that **overlap**, completion = cleared. Proves the model delivers what started
@@ -204,20 +266,137 @@ Grounded in the existing sector grain (hand-placed children reconciled by
 PR-3 is the single behavior-flipping change (well-covered by the demo as an
 end-to-end test); PR-4 is pure authoring on the finished mechanism.
 
+### PR-3 — resolved scope (grill 2026-07-13)
+
+Locked with the user before the build; supersedes the PR-3 bullet above where
+they differ. Ground truth from a full blast-radius sweep: `CombatSector.prefab`
+is the **only** YAML carrier of `EncounterSequenceModule`; the only objective UI
+consumer is the spine-only `MinimapObjectiveMarker`; nothing in production calls
+`OpenLocal` or `Encounter.Fail()`.
+
+- **Spine-only demo; zero locals.** The vault's spine IS `acquire Key →
+  Extract`, so the worked example's "local find-the-key objective" is treated as
+  a sketch artifact. The sector installs **one** unified spine mission
+  (`explore → key-acquired → extraction → completed` — the full tracker chain
+  `ObjectiveTrackerEditModeTests` already pins). Minimap untouched (same
+  `ObjectiveType`s). Locals get their first production consumer in PR-4.
+- **`Encounter` base + both subclasses + both encounter prefabs are DELETED in
+  PR-3**, not rebuilt. The new `Encounter : ActivationRule` bundle is deferred
+  to PR-4 so its API is designed against its first real consumer (the ambush),
+  not speculatively.
+- **New `SectorSpineModule`** (rides `modules[]`) is the queue module's
+  successor and the spine's single owner: serialized refs to the fixtures it
+  binds (`KeyPickup`, `ExtractionZone`), builds mission + state builders in
+  code, initializes fixtures with player identity from `ctx.Player`, publishes
+  spine steps as latched bus tokens (`spine:<step>`), maps spine terminal →
+  `RequestSectorEnd(Extracted/Failed)` (Failed path has no live trigger today —
+  future-proofing).
+- **Step-level service seam:** `ObjectiveTracker` + `IObjectiveService` gain a
+  step-change event (type-level `OnStateChanged` suppresses same-type step
+  transitions — confirmed at code level; the token publisher needs steps).
+- **CombatSector.prefab restructure:** `KeyPickup` + extraction gate become
+  authored present-at-spawn children (nesting the existing `Key Radio` /
+  `Station Extraction Zone` prefabs). The gate carries `ExtractionZone` +
+  `TriggerVolume`("in-gate") + a thin `ActivationRule` subclass whose `OnFired`
+  activates the serialized chaser ref.
+- **Chaser timing = key-acquired (behavior parity):** the thin rule's terms are
+  `[spine:ready-to-extract]` only — the chaser hunts the player en route, as
+  today. The in-gate volume exists and publishes but is not a term yet
+  (arrival-gated challenge is a later gameplay-tuning option). The
+  parked-then-qualified case is still exercised via the zone's polled
+  completion predicate.
+- **Key keeps `SpawnKey` scatter** at setup (behavior parity, per-run variety).
+- **PlayerMarker→rigidbody identity sweep rides in** (the three consumers are
+  exactly this PR's rewrite surface): delete `PlayerMarker` + the `SectorUtils`
+  runtime stamp; `KeyPickup`/`ExtractionZone`/`TriggerVolume` compare
+  `other.attachedRigidbody` against injected player identity. The `"Player"`
+  **tag stays** (`ShipVisualRig` consumer). Compound-collider occupancy test
+  debt rides along.
+- **Tests:** module/encounter tests die with their classes; replaced by an
+  end-to-end demo PlayMode test (key→extract via bus, incl. parked-in-gate-
+  then-get-key at the real gate) + `SectorSpineModule` lifecycle coverage
+  (destroy-without-teardown in PlayMode — `OnDestroy` only fires on awakened
+  components, the PR-2 lesson).
+- **Sequencing vs multi-arena #137:** five-file overlap
+  (`ExtractionEncounter`, `KeyPickupEncounter`, `EncounterSequenceModule`,
+  `SectorUtils`, `KeyPickup`). PR-3 branches **off #137's branch**
+  (`task/pr-b-spatial-offset`) and merges after it, adapting to
+  `arena.Place`/root-parenting as second mover — and likely deleting the two
+  encounter `Place` call sites, since authored fixtures inherit the arena
+  offset by hierarchy.
+- **Out of scope:** lazy-spawn ownership/teardown (PR-4 — no lazy content in
+  this demo; the chaser is pre-placed), locals UI, chaser-at-gate gameplay
+  variant, collider-keyed registry.
+
+### PR-3 — build decisions (2026-07-13)
+
+Decisions made during the build, within the locked scope:
+
+- **Spine step ids:** `explore → key-acquired → ready-to-extract → completed`
+  (+`failed`), constants on `SectorSpineModule`. The extraction-challenge step
+  is literally named `ready-to-extract` so the published token is
+  `spine:ready-to-extract` — the exact term the thin rule gates on; no
+  alias/mapping layer.
+- **Occupancy is a per-rigidbody level** (`RigidbodyOccupancy`, shared by
+  `TriggerVolume` and `ExtractionZone`): collider enter/exit counts per
+  `attachedRigidbody`. This kills the compound-collider double-enter/exit bug
+  AND lets player identity arrive *after* the player is already parked inside
+  (identity is compared against buffered physical truth, never against an
+  enter-edge) — which is what makes parked-in-gate-then-get-key work with no
+  physics-frame hack anywhere.
+- **`ExtractionZone.Initialize(Rigidbody player, Transform blocker = null)`:**
+  the spine module injects identity at Setup (occupancy must be tracked from
+  spawn); the rule re-calls it at fire time to bind the chaser blocker.
+  Initialize never resets occupancy — occupancy is physical truth owned by
+  trigger events.
+- **Step seam shape:** `ObjectiveTracker.OnStepChanged(string)` fires on every
+  transition; `IObjectiveService.OnSpineStepChanged` forwards it and also fires
+  on `SetSpineObjective` with the initial step (so the publisher latches
+  `spine:explore` without a special case). `SpineStep` property added
+  alongside `SpineState`.
+- **Key scatter home:** the module captures the fixture's authored position on
+  first Setup and scatters around it every (re)Setup — restarts don't drift
+  the scatter center.
+- **`ArenaEncounterPlacementPlayModeTests` deleted** with the encounter
+  classes it exercised; its arena-offset guarantee is inherited by hierarchy
+  (authored fixtures ride the sector root; no `Place` call sites left) and the
+  prefab wiring is pinned by `CombatSectorPrefabEditModeTests` (manifest
+  drift + fixture plane positions + rule terms), the demo flow by
+  `SectorSpineDemoPlayModeTests`.
+- **Codex review round (pre-merge):** `RigidbodyOccupancy` tracks the actual
+  colliders per rigidbody and prunes destroyed/disabled/inactive ones on read
+  (Unity fires no `OnTriggerExit` for a collider deactivated inside a trigger —
+  a dead ship must not hold a zone), and `TriggerVolume` re-publishes its level
+  each `FixedUpdate` so the bus follows the prune. `ExtractionZone` split into
+  `BindPlayer`/`Arm`/`Disarm`: unarmed reads as not-in-zone, so a missing or
+  mis-wired challenge rule can never complete extraction silently
+  (`ExtractionChallengeRule` validates both serialized refs and goes inert-with-
+  error like the spine module). Spine mutation moved behind
+  `SpineObjectiveHandle`, mirroring `LocalObjectiveHandle`: `SetSpineObjective`
+  returns the handle (with optional install-time target); ambient
+  `SetSpineTarget`/`FailSpine`/`RestartSpine`/`ClearSpine` removed from
+  `IObjectiveService`; mutation through a superseded handle is a no-op.
+- **PR-4 note:** fat encounters follow the ownership-handle pattern
+  (`OpenLocal`/`SetSpineObjective` handles own their teardown); never call
+  ambient `ClearAll` from encounter code — it belongs to session sweep only.
+
 ## Open questions (decide at build)
 
-- **Manifest plumbing** — do encounters/rules get their own `SectorManifestSync`
-  slice, or ride `modules[]`? `TriggerVolume`s and fixtures as placed children
-  referenced by rules — by serialized ref or by token?
-- **Bus token type** — typed enum (safe) vs interned strings (designer-authorable).
-  Scope is per-sector = per-arena; confirm no static leak vs `Multi_Arena_Substrate`.
-- **Lazy-spawn ownership/teardown** — a rule's spawned content must despawn on
-  sector teardown / episode reset (RL); who owns the handle (the rule, via the
-  sector's teardown pass)?
-- **Two-tier objective API surface** — exact spine/local methods + HUD contract
-  (`CurrentTarget` becomes spine-target; locals need their own contextual markers).
-- **Migration of `EncounterSequenceModule` authored content** — audit which sectors
-  reference it (Combat/Arena/Testbench prefabs) before deleting.
+Manifest plumbing and bus token type were resolved in PR-1; the spine/local API
+landed in PR-2; the migration audit is done (`CombatSector.prefab` is the sole
+carrier) and the PR-3 forks are locked above. Still open:
+
+- **Lazy-spawn ownership/teardown** (now a PR-4 question) — a rule's spawned
+  content must despawn on sector teardown / episode reset (RL); who owns the
+  handle (the rule, via the sector's teardown pass)?
+- **Locals HUD contract** (PR-4) — contextual markers for local objectives;
+  `MinimapObjectiveMarker` is spine-only today.
+
+Deferred test debt (from PR-1 review): a serialized `ActivationTerm[]`
+inspector round-trip test, and compound-collider `TriggerVolume` occupancy
+(multi-collider players can double-enter/exit; rides the
+PlayerMarker→rigidbody identity cleanup — memory
+`project_playermarker_identity_cleanup`).
 
 ## Related
 

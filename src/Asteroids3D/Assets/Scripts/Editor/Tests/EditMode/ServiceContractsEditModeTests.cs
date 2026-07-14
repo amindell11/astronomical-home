@@ -12,10 +12,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>
-    /// EditMode tests validating the game service contracts and basic behavior.
-    /// No scene loading required. MonoBehaviour services use a temp GameObject.
-    /// </summary>
+    /// <summary>Game service contract-shape and basic-behavior tests; no scene loading required.</summary>
     [Category("Services")]
     public class ServiceContractsEditModeTests
     {
@@ -38,8 +35,6 @@ namespace Tests.EditMode
             tempObjects.Add(go);
             return go.AddComponent<T>();
         }
-
-        // ── IGameServices shape ──────────────────────────────────────────────────
 
         [Test]
         public void IGameServices_Exposes_AllFourServices()
@@ -76,8 +71,6 @@ namespace Tests.EditMode
             Assert.Throws<ArgumentNullException>(() => new GameServices(unit, env, obj, cam, ui, null));
         }
 
-        // ── IUnitService shape ───────────────────────────────────────────────────
-
         [Test]
         public void IUnitService_HasRequiredMembers()
         {
@@ -103,8 +96,6 @@ namespace Tests.EditMode
             Assert.IsNotNull(svc.ActiveRegistry);
         }
 
-        // ── IEnvironmentService shape ────────────────────────────────────────────
-
         [Test]
         public void IEnvironmentService_HasRequiredMembers()
         {
@@ -113,7 +104,6 @@ namespace Tests.EditMode
             Assert.IsNotNull(type.GetProperty("WorldFollowerTransform"), "Missing WorldFollowerTransform");
             Assert.IsNotNull(type.GetMethod("ApplyLocaleAsync"), "Missing ApplyLocaleAsync");
             Assert.IsNotNull(type.GetMethod("RestoreBootEnvironmentAsync"), "Missing RestoreBootEnvironmentAsync");
-            Assert.IsNotNull(type.GetMethod("HomeToStableScene"), "Missing HomeToStableScene");
             Assert.IsNotNull(type.GetMethod("SpawnWorld"), "Missing SpawnWorld");
             Assert.IsNotNull(type.GetMethod("Clear"), "Missing Clear");
         }
@@ -132,18 +122,28 @@ namespace Tests.EditMode
             Assert.IsNull(svc.WorldFollowerTransform);
         }
 
-        // ── IObjectiveService shape ──────────────────────────────────────────────
-
         [Test]
         public void IObjectiveService_HasRequiredMembers()
         {
             var type = typeof(IObjectiveService);
-            Assert.IsNotNull(type.GetProperty("CurrentTracker"), "Missing CurrentTracker");
-            Assert.IsNotNull(type.GetProperty("CurrentState"), "Missing CurrentState");
-            Assert.IsNotNull(type.GetMethod("SetObjective"), "Missing SetObjective");
-            Assert.IsNotNull(type.GetMethod("Restart"), "Missing Restart");
-            Assert.IsNotNull(type.GetMethod("Clear"), "Missing Clear");
-            Assert.IsNotNull(type.GetEvent("OnStateChanged"), "Missing OnStateChanged");
+            Assert.IsNotNull(type.GetProperty("SpineTracker"), "Missing SpineTracker");
+            Assert.IsNotNull(type.GetProperty("SpineState"), "Missing SpineState");
+            Assert.IsNotNull(type.GetProperty("SpineStep"), "Missing SpineStep");
+            Assert.IsNotNull(type.GetProperty("SpineTarget"), "Missing SpineTarget");
+            Assert.IsNotNull(type.GetMethod("SetSpineObjective"), "Missing SetSpineObjective");
+            Assert.AreEqual(typeof(SpineObjectiveHandle), type.GetMethod("SetSpineObjective").ReturnType,
+                "Spine mutation must flow through the ownership handle.");
+            Assert.IsNull(type.GetMethod("SetSpineTarget"), "SetSpineTarget must not be ambient on the service.");
+            Assert.IsNull(type.GetMethod("FailSpine"), "FailSpine must not be ambient on the service.");
+            Assert.IsNull(type.GetMethod("RestartSpine"), "RestartSpine must not be ambient on the service.");
+            Assert.IsNull(type.GetMethod("ClearSpine"), "ClearSpine must not be ambient on the service.");
+            Assert.IsNotNull(type.GetEvent("OnSpineStateChanged"), "Missing OnSpineStateChanged");
+            Assert.IsNotNull(type.GetEvent("OnSpineStepChanged"), "Missing OnSpineStepChanged");
+            Assert.IsNotNull(type.GetEvent("OnSpineTargetChanged"), "Missing OnSpineTargetChanged");
+            Assert.IsNotNull(type.GetMethod("OpenLocal"), "Missing OpenLocal");
+            Assert.IsNotNull(type.GetProperty("Locals"), "Missing Locals");
+            Assert.IsNotNull(type.GetEvent("OnLocalsChanged"), "Missing OnLocalsChanged");
+            Assert.IsNotNull(type.GetMethod("ClearAll"), "Missing ClearAll");
         }
 
         [Test]
@@ -172,55 +172,100 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void ObjectiveService_SetObjective_CreatesTracker_AndForwardsEvents()
+        public void ObjectiveService_SetSpineObjective_CreatesTracker_AndForwardsEvents()
         {
             var svc = CreateMonoBehaviourService<ObjectiveService>();
             var key = new StubKeyTracker(false);
 
-            svc.SetObjective(MissionDefinition.CreateDefault(), BuildDefaultBuilders(key));
+            svc.SetSpineObjective(MissionDefinition.CreateDefault(), BuildDefaultBuilders(key));
 
-            Assert.IsNotNull(svc.CurrentTracker);
-            Assert.AreEqual(ObjectiveType.Explore, svc.CurrentState);
+            Assert.IsNotNull(svc.SpineTracker);
+            Assert.AreEqual(ObjectiveType.Explore, svc.SpineState);
 
             var transitions = new List<(ObjectiveType from, ObjectiveType to)>();
-            svc.OnStateChanged += (f, t) => transitions.Add((f, t));
+            svc.OnSpineStateChanged += (f, t) => transitions.Add((f, t));
 
             key.HasKey = true;
-            svc.CurrentTracker.Tick(0.1f); // Explore → KeyAcquired
+            svc.SpineTracker.Tick(0.1f);
             Assert.AreEqual(1, transitions.Count);
-            Assert.AreEqual(ObjectiveType.KeyAcquired, svc.CurrentState);
+            Assert.AreEqual(ObjectiveType.KeyAcquired, svc.SpineState);
         }
 
         [Test]
-        public void ObjectiveService_Clear_RemovesTracker()
+        public void ObjectiveService_HandleClose_RemovesTracker()
         {
             var svc = CreateMonoBehaviourService<ObjectiveService>();
-            Assert.IsNull(svc.CurrentTracker);
-            Assert.IsNull(svc.CurrentState);
+            Assert.IsNull(svc.SpineTracker);
+            Assert.IsNull(svc.SpineState);
 
-            svc.SetObjective(MissionDefinition.CreateDefault(), BuildDefaultBuilders());
-            Assert.IsNotNull(svc.CurrentTracker);
+            var handle = svc.SetSpineObjective(MissionDefinition.CreateDefault(), BuildDefaultBuilders());
+            Assert.IsNotNull(svc.SpineTracker);
+            Assert.AreSame(svc.SpineTracker, handle.Tracker);
 
-            svc.Clear();
-            Assert.IsNull(svc.CurrentTracker);
-            Assert.IsNull(svc.CurrentState);
+            handle.Close();
+            Assert.IsNull(svc.SpineTracker);
+            Assert.IsNull(svc.SpineState);
         }
 
         [Test]
-        public void ObjectiveService_Restart_DelegatesToTracker()
+        public void ObjectiveService_HandleFailAndRestart_DelegateToTracker()
         {
             var svc = CreateMonoBehaviourService<ObjectiveService>();
 
-            svc.SetObjective(MissionDefinition.CreateDefault(), BuildDefaultBuilders());
+            var handle = svc.SetSpineObjective(MissionDefinition.CreateDefault(), BuildDefaultBuilders());
 
-            svc.Fail();
-            Assert.AreEqual(ObjectiveType.Failed, svc.CurrentState);
+            handle.Fail();
+            Assert.AreEqual(ObjectiveType.Failed, svc.SpineState);
 
-            svc.Restart();
-            Assert.AreEqual(ObjectiveType.Explore, svc.CurrentState);
+            handle.Restart();
+            Assert.AreEqual(ObjectiveType.Explore, svc.SpineState);
         }
 
-        // ── ICameraService shape ─────────────────────────────────────────────────
+        [Test]
+        public void ObjectiveService_AdapterEvents_FollowSpine_AcrossSpineCycles()
+        {
+            var svc = CreateMonoBehaviourService<ObjectiveService>();
+            var adapter = (IObjectiveTrackerAdapter)svc;
+
+            var transitions = 0;
+            adapter.OnStateChanged += (f, t) => transitions++;
+
+            var key = new StubKeyTracker(false);
+            var handle = svc.SetSpineObjective(MissionDefinition.CreateDefault(), BuildDefaultBuilders(key));
+            key.HasKey = true;
+            svc.SpineTracker.Tick(0.1f);
+            Assert.AreEqual(1, transitions);
+            Assert.AreEqual(ObjectiveType.KeyAcquired, adapter.CurrentState);
+
+            handle.Close();
+            Assert.AreEqual(ObjectiveType.Explore, adapter.CurrentState);
+
+            var nextKey = new StubKeyTracker(false);
+            svc.SetSpineObjective(MissionDefinition.CreateDefault(), BuildDefaultBuilders(nextKey));
+            nextKey.HasKey = true;
+            svc.SpineTracker.Tick(0.1f);
+            Assert.AreEqual(2, transitions,
+                "Adapter subscription must survive a handle-close/SetSpineObjective cycle.");
+        }
+
+        [Test]
+        public void ObjectiveService_HandleClose_DetachesForwarder_FromOldTracker()
+        {
+            var svc = CreateMonoBehaviourService<ObjectiveService>();
+            var key = new StubKeyTracker(false);
+            var handle = svc.SetSpineObjective(MissionDefinition.CreateDefault(), BuildDefaultBuilders(key));
+            var oldTracker = svc.SpineTracker;
+
+            var raised = 0;
+            svc.OnSpineStateChanged += (f, t) => raised++;
+
+            handle.Close();
+            key.HasKey = true;
+            oldTracker.Tick(0.1f);
+
+            Assert.AreEqual(0, raised,
+                "A cleared spine tracker must be detached from the service forwarder.");
+        }
 
         [Test]
         public void ICameraService_HasRequiredMembers()
@@ -246,8 +291,6 @@ namespace Tests.EditMode
             Assert.IsEmpty(svc.Cameras);
         }
 
-        // ── GameServices.ClearAll ────────────────────────────────────────────────
-
         [Test]
         public void GameServices_ClearAll_ClearsAllServices()
         {
@@ -260,8 +303,6 @@ namespace Tests.EditMode
 
             Assert.DoesNotThrow(() => services.ClearAll());
         }
-
-        // ── Test stubs ───────────────────────────────────────────────────────────
 
         private sealed class StubKeyTracker : IKeyTracker
         {

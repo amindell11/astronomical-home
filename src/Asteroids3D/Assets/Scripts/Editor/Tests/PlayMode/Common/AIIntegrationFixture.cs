@@ -48,13 +48,12 @@ public abstract class AIIntegrationFixture : PlayModeWorldFixture
 
         trackedShips.Add(ship);
 
-        // Register in the real registry so collider → ship lookups work
         registry.ActiveShips.Add(ship);
 
         var cmdr = ship.GetComponentInChildren<AICommander>();
         Assert.IsNotNull(cmdr, "Ship missing AICommander component");
 
-        // SetArena triggers TryInitializeSystems on the commander.
+        // SetArena triggers TryInitializeSystems.
         cmdr.SetArena(arena);
 
         return (ship, cmdr);

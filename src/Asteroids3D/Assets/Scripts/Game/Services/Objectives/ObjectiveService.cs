@@ -5,68 +5,128 @@ using UnityEngine;
 
 namespace Game.Services
 {
-    /// <summary>
-    /// MonoBehaviour service that owns the active ObjectiveTracker.
-    /// Ticks itself via Update — sectors don't need to call Tick manually.
-    /// Implements IObjectiveTrackerAdapter so diagnostics can subscribe.
-    /// </summary>
+    /// <summary>Owns the spine tracker plus open local trackers and ticks them itself via Update.</summary>
     public class ObjectiveService : MonoBehaviour, IObjectiveService, IObjectiveTrackerAdapter
     {
-        public ObjectiveTracker CurrentTracker { get; private set; }
-        public ObjectiveType? CurrentState => CurrentTracker?.CurrentState;
+        private readonly List<LocalObjectiveHandle> locals = new();
+        private readonly List<LocalObjectiveHandle> tickBuffer = new();
+        private SpineObjectiveHandle currentSpine;
 
-        ObjectiveType IObjectiveTrackerAdapter.CurrentState => CurrentTracker?.CurrentState ?? ObjectiveType.Explore;
+        public ObjectiveTracker SpineTracker { get; private set; }
+        public ObjectiveType? SpineState => SpineTracker?.CurrentState;
+        public string SpineStep => SpineTracker?.CurrentStep;
+        public Transform SpineTarget { get; private set; }
+        public IReadOnlyList<LocalObjectiveHandle> Locals => locals;
 
-        public Transform CurrentTarget { get; private set; }
+        ObjectiveType IObjectiveTrackerAdapter.CurrentState => SpineTracker?.CurrentState ?? ObjectiveType.Explore;
 
-        public event Action<ObjectiveType, ObjectiveType> OnStateChanged;
-        public event Action<Transform> OnTargetChanged;
-
-        public void SetTarget(Transform target)
+        event Action<ObjectiveType, ObjectiveType> IObjectiveTrackerAdapter.OnStateChanged
         {
-            if (CurrentTarget == target) return;
-            CurrentTarget = target;
-            OnTargetChanged?.Invoke(target);
+            add { OnSpineStateChanged += value; }
+            remove { OnSpineStateChanged -= value; }
         }
 
-        public void SetObjective(
+        public event Action<ObjectiveType, ObjectiveType> OnSpineStateChanged;
+        public event Action<string> OnSpineStepChanged;
+        public event Action<Transform> OnSpineTargetChanged;
+        public event Action OnLocalsChanged;
+
+        public SpineObjectiveHandle SetSpineObjective(
             MissionDefinition mission,
-            IReadOnlyDictionary<string, Func<ObjectiveState>> builders)
+            IReadOnlyDictionary<string, Func<ObjectiveState>> builders,
+            Transform target = null)
         {
-            Clear();
+            CloseSpineCore();
 
-            CurrentTracker = new ObjectiveTracker(mission, builders);
-            CurrentTracker.OnStateChanged += ForwardStateChanged;
+            SpineTracker = new ObjectiveTracker(mission, builders);
+            SpineTracker.OnStateChanged += ForwardSpineStateChanged;
+            SpineTracker.OnStepChanged += ForwardSpineStepChanged;
+            currentSpine = new SpineObjectiveHandle(this, SpineTracker);
+            SetSpineTargetCore(target);
+            OnSpineStepChanged?.Invoke(SpineTracker.CurrentStep);
+            return currentSpine;
         }
 
-        private void Update()
+        internal bool IsCurrent(SpineObjectiveHandle handle) => currentSpine == handle;
+
+        internal void SetSpineTarget(SpineObjectiveHandle handle, Transform target)
         {
-            CurrentTracker?.Tick(Time.deltaTime);
+            if (IsCurrent(handle)) SetSpineTargetCore(target);
         }
 
-        public void Fail()
+        internal void CloseSpine(SpineObjectiveHandle handle)
         {
-            CurrentTracker?.Fail();
+            if (IsCurrent(handle)) CloseSpineCore();
         }
 
-        public void Restart()
+        public LocalObjectiveHandle OpenLocal(
+            MissionDefinition mission,
+            IReadOnlyDictionary<string, Func<ObjectiveState>> builders,
+            Transform target = null)
         {
-            CurrentTracker?.Restart();
+            var handle = new LocalObjectiveHandle(new ObjectiveTracker(mission, builders), target, CloseLocal);
+            locals.Add(handle);
+            OnLocalsChanged?.Invoke();
+            return handle;
         }
 
-        public void Clear()
+        public void ClearAll()
         {
-            if (CurrentTracker != null)
+            // Drain until empty: OnLocalsChanged handlers may close other handles or open new ones mid-sweep.
+            while (locals.Count > 0)
+                locals[locals.Count - 1].Close();
+            CloseSpineCore();
+        }
+
+        private void Update() => Tick(Time.deltaTime);
+
+        // Locals tick over a snapshot so a handle opening or closing mid-tick cannot corrupt iteration.
+        internal void Tick(float deltaTime)
+        {
+            SpineTracker?.Tick(deltaTime);
+
+            tickBuffer.AddRange(locals);
+            foreach (var local in tickBuffer)
             {
-                CurrentTracker.OnStateChanged -= ForwardStateChanged;
-                CurrentTracker = null;
+                if (locals.Contains(local))
+                    local.Tracker.Tick(deltaTime);
             }
-            SetTarget(null);
+            tickBuffer.Clear();
         }
 
-        private void ForwardStateChanged(ObjectiveType from, ObjectiveType to)
+        private void SetSpineTargetCore(Transform target)
         {
-            OnStateChanged?.Invoke(from, to);
+            if (SpineTarget == target) return;
+            SpineTarget = target;
+            OnSpineTargetChanged?.Invoke(target);
+        }
+
+        private void CloseSpineCore()
+        {
+            if (SpineTracker != null)
+            {
+                SpineTracker.OnStateChanged -= ForwardSpineStateChanged;
+                SpineTracker.OnStepChanged -= ForwardSpineStepChanged;
+                SpineTracker = null;
+            }
+            currentSpine = null;
+            SetSpineTargetCore(null);
+        }
+
+        private void CloseLocal(LocalObjectiveHandle handle)
+        {
+            if (locals.Remove(handle))
+                OnLocalsChanged?.Invoke();
+        }
+
+        private void ForwardSpineStateChanged(ObjectiveType from, ObjectiveType to)
+        {
+            OnSpineStateChanged?.Invoke(from, to);
+        }
+
+        private void ForwardSpineStepChanged(string step)
+        {
+            OnSpineStepChanged?.Invoke(step);
         }
     }
 }

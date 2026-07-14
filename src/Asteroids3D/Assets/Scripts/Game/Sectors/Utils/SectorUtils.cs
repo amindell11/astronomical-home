@@ -14,11 +14,9 @@ namespace Game.Sectors.Utils
                 playerTemplate,
                 playerCommander,
                 0,
-                GamePlane.PlanePointToWorld(playerSpawnPosition),
+                services.Arena.Place(playerSpawnPosition),
                 GamePlane.Rotation);
             player.tag = "Player";
-            if (!player.GetComponent<PlayerMarker>())
-                player.gameObject.AddComponent<PlayerMarker>();
             services.EnvironmentService.World.Follower?.SetTarget(player.transform);
             var observer = services.CameraService.GetCamera<ObserverCam>(CameraTag.Observer);
             if (!observer) return player;

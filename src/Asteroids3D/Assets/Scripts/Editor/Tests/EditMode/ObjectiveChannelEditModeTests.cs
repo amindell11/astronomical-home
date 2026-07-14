@@ -1,16 +1,16 @@
+using System;
 using System.Collections.Generic;
 using Game.Services;
 using NUnit.Framework;
+using Objectives;
+using Objectives.States;
 using UI;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Tests.EditMode
 {
-    /// <summary>
-    /// EditMode tests for the objective-marker channel (Stage 2.3a): the service carries a
-    /// CurrentTarget + OnTargetChanged event, and the minimap marker binds to it and self-decides
-    /// visibility. Pure C# / lightweight GameObjects — no sector or prefab construction.
-    /// </summary>
+    /// <summary>Spine target channel: the owner's handle drives SpineTarget + OnSpineTargetChanged and the minimap marker binds to it.</summary>
     [TestFixture]
     [Category("Objectives")]
     public class ObjectiveChannelEditModeTests
@@ -32,27 +32,33 @@ namespace Tests.EditMode
             return go;
         }
 
+        private static SpineObjectiveHandle InstallSpine(ObjectiveService svc) =>
+            svc.SetSpineObjective(
+                new MissionDefinition("run", new Dictionary<string, string>()),
+                new Dictionary<string, Func<ObjectiveState>> { ["run"] = () => new CompletedState() });
+
         [Test]
-        public void SetTarget_UpdatesCurrentTarget_AndRaisesOnChangeOnly()
+        public void HandleTargetSet_UpdatesSpineTarget_AndRaisesOnChangeOnly()
         {
             var svc = NewGO("ObjectiveService").AddComponent<ObjectiveService>();
+            var handle = InstallSpine(svc);
             var t = NewGO("Target").transform;
 
             var raised = 0;
             Transform last = null;
-            ((IObjectiveService)svc).OnTargetChanged += x => { raised++; last = x; };
+            ((IObjectiveService)svc).OnSpineTargetChanged += x => { raised++; last = x; };
 
-            svc.SetTarget(t);
-            Assert.AreEqual(t, svc.CurrentTarget);
+            handle.Target = t;
+            Assert.AreEqual(t, svc.SpineTarget);
+            Assert.AreEqual(t, handle.Target);
             Assert.AreEqual(1, raised);
             Assert.AreEqual(t, last);
 
-            // Same value → no re-raise.
-            svc.SetTarget(t);
-            Assert.AreEqual(1, raised, "Setting the same target must not re-raise OnTargetChanged.");
+            handle.Target = t;
+            Assert.AreEqual(1, raised, "Setting the same target must not re-raise OnSpineTargetChanged.");
 
-            svc.SetTarget(null);
-            Assert.IsNull(svc.CurrentTarget);
+            handle.Target = null;
+            Assert.IsNull(svc.SpineTarget);
             Assert.AreEqual(2, raised);
         }
 
@@ -60,16 +66,15 @@ namespace Tests.EditMode
         public void Marker_Bind_SubscribesToChannel_WithoutThrowing()
         {
             var svc = NewGO("ObjectiveService").AddComponent<ObjectiveService>();
+            var handle = InstallSpine(svc);
             var marker = NewGO("Marker").AddComponent<MinimapObjectiveMarker>();
             var t = NewGO("Target").transform;
 
-            // Binding subscribes the marker to the channel; subsequent target changes (and a
-            // re-bind, which must unsubscribe the prior handler) flow without error.
             Assert.DoesNotThrow(() =>
             {
                 marker.BindObjectiveService(svc);
-                svc.SetTarget(t);
-                svc.SetTarget(null);
+                handle.Target = t;
+                handle.Target = null;
                 marker.BindObjectiveService(svc);
             });
         }
