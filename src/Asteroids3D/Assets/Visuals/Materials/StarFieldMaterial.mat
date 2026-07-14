@@ -23,42 +23,29 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
-    - _AlphaTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _MaskTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _NormalMap:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _StarSprites:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _CullDistance: 50
-    - _EnableExternalAlpha: 0
-    - _GridDensity: 0.775
-    - _GridSize: 50
-    - _ParallaxStrength: 1
-    - _SizeVariation: 0.329
-    - _StarDensity: 0.061
-    - _StarSize: 0.0309
-    - _StarSpriteCount: 4
-    - _TwinkleSpeed: 0.44
+    - _Brightness: 1.5
+    - _CellScale: 0.8
+    - _HaloSize: 2
+    - _HaloStrength: 0.2
+    - _NearLayerShare: 0.35
+    - _ParallaxFar: 0.2
+    - _ParallaxNear: 0.9
+    - _PositionJitter: 0.5
+    - _Seed: 0
+    - _StarDensity: 0.12
+    - _StarSizeMax: 0.045
+    - _StarSizeMin: 0.012
+    - _TwinkleAmount: 0.2
+    - _TwinkleSpeed: 0.5
+    - _WarmColorShare: 0.25
     m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
-    - _StarColor: {r: 1, g: 1, b: 1, a: 1}
-    - _StartingOffset: {r: 0, g: 0, b: 0, a: 0}
+    - _ColorCool: {r: 0.65, g: 0.8, b: 1, a: 1}
+    - _ColorWarm: {r: 1, g: 0.82, b: 0.58, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
