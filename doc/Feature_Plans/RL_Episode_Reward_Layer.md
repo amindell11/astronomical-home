@@ -75,13 +75,15 @@ PR-2a (`Maneuver_Oracle_Gate.md`, shipped — CONDITIONAL GO) and **PR-2b (this 
 3. **Reset completeness is enforced by the trajectory-equivalence test, never by audit.**
    Two pair-resets to the same poses — one shortly after spawn, one after episodes of
    dirty combat — must produce the same trajectory. If that test fails, some component
-   forgot to reset — fix the reset, never loosen the test. The window is 2 s of
-   bit-tight comparison: a forgotten reset diverges immediately and macroscopically
-   (every real bug found this way did), while longer windows reach into combat where
-   projectile-pool identity and CEM elite near-ties amplify sub-physical float noise
-   into small honest drift — weapon-state reset is covered by the episode smoke and the
-   weapon-condition unit tests instead. Both recordings run after a Burst warm-up (the
-   managed fallback active during async compilation rounds differently).
+   forgot to reset — fix the reset, never loosen the test. The window is 2 s compared
+   at sub-physical tolerance (1e-3; the reset restores state to within float ulps, not
+   bit-exactly): a forgotten reset diverges immediately and macroscopically (every real
+   bug found this way did), while longer windows reach into combat where projectile-pool
+   identity and CEM elite near-ties amplify that ulp noise into small honest drift —
+   weapon-state reset is covered by the episode smoke and the weapon-condition unit
+   tests, and shield-regen phase reset by an EditMode unit. Both recordings run after a
+   Burst warm-up (the managed fallback active during async compilation rounds
+   differently).
 
 ## Build findings (root causes fixed while proving invariant 3)
 
@@ -97,6 +99,10 @@ PR-2a (`Maneuver_Oracle_Gate.md`, shipped — CONDITIONAL GO) and **PR-2b (this 
   `Time.time + fireRate` flips fire/boost timing by ±1 fixed step, so two identical
   resets pace differently. Both now run internal dt-driven clocks that zero on reset
   (the `Heat` precedent, and PR-S1a's "timers must be dt-driven" direction).
+- **Reward observation shared the firing path's LOS cache** — envelope queries mutated
+  the `Gunsight` cache the gunner's fire decision reads, so sampling the reward could
+  shift LOS raycast timing (reward must be read-only). Observation queries now use an
+  independent cache; an EditMode unit pins the isolation.
 - **The CEM sampler seed hashed raw position float bits**, so one ulp of pose noise
   selected a completely different noise stream — bit-level chaos by construction, which
   defeated "replayable for identical inputs". The seed now hashes the position quantized

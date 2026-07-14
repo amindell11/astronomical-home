@@ -13,8 +13,11 @@ namespace Movement
         }
 
         private void FixedUpdate() {
-            Kinematics = GetStateFrom3D();
+            Poll();
         }
+
+        /// <summary>On-demand refresh for teleports (respawn) so consumers never read a pre-teleport snapshot.</summary>
+        public void Poll() => Kinematics = GetStateFrom3D();
             
         private Kinematics GetStateFrom3D() {
             var pos = GamePlane.WorldPointToPlane(transform.position);

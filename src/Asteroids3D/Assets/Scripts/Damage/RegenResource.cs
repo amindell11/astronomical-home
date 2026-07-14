@@ -24,6 +24,13 @@ namespace Ships.Damage
             return damageAbsorbed;
         }
 
+        public override void Reset()
+        {
+            base.Reset();
+            clock = 0f;
+            lastDamageTime = -regenDelay;
+        }
+
         public void Update(float deltaTime)
         {
             clock += deltaTime;

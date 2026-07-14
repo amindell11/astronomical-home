@@ -109,8 +109,6 @@ namespace Tests.PlayMode
                 var poses = ResetPair(in spec, i);
                 Assert.AreEqual(0, ProjectileFlush.ActiveCount(),
                     $"Episode {i} must start with zero active projectiles");
-                yield return new WaitForFixedUpdate();
-
                 AssertPoseApplied(agent, poses.agentPos, $"agent episode {i}");
                 AssertPoseApplied(baseline, poses.baselinePos, $"baseline episode {i}");
 
@@ -143,8 +141,7 @@ namespace Tests.PlayMode
         [Timeout(600000)]
         public IEnumerator TrajectoryEquivalence_PairResetRestoresFreshSpawnState()
         {
-            // Locked frame pacing (1 fixed step per frame) removes Update/FixedUpdate phase noise,
-            // so the only remaining divergence source is state a component forgot to reset.
+            // Locked frame pacing (1 fixed step per frame) removes Update/FixedUpdate phase noise from the comparison.
             Time.timeScale = 1f;
             Time.captureDeltaTime = Time.fixedDeltaTime;
 
@@ -152,17 +149,12 @@ namespace Tests.PlayMode
             spec.minSeparation = 18f;
             spec.maxSeparation = 22f;
 
-            // 100 steps (2 s) of bit-tight comparison: a forgotten reset diverges immediately and
-            // macroscopically (every real bug found here did). Longer windows reach into combat, where
-            // projectile-pool identity and CEM elite near-ties amplify sub-physical float noise into
-            // small honest drift — weapon-state reset is covered by the episode smoke and the
-            // condition unit tests instead.
+            // 2 s at sub-physical tolerance: forgotten resets diverge immediately and macroscopically; longer windows reach combat, where pool identity and CEM near-ties amplify float noise into honest drift.
             const int recordSteps = 100;
             const int dirtySteps = 80;
 
             SpawnPair(in spec, 0);
-            // Warm-up combat before the first recording so both recordings run on Burst-compiled
-            // solver code — the managed fallback rounds differently and shifts the CEM elite cut.
+            // Warm-up so both recordings run on Burst-compiled solver code (the managed fallback rounds differently).
             for (var i = 0; i < dirtySteps; i++)
                 yield return new WaitForFixedUpdate();
 
@@ -198,7 +190,6 @@ namespace Tests.PlayMode
 
             SpawnPair(in spec, 0);
             ResetPair(in spec, 0);
-            yield return new WaitForFixedUpdate();
 
             var runner = new EpisodeRunner(agent, baseline, spec, 0, arena.Offset, tracePerDecision: true);
             yield return RunToCompletion(runner, spec);
@@ -244,8 +235,8 @@ namespace Tests.PlayMode
             if (watchFlag || !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RL_WATCH")))
                 Time.timeScale = 1f;
             var spec = RewardSpec.Default;
-            var episodes = int.TryParse(Environment.GetEnvironmentVariable("RL_EPISODE_COUNT"), out var n)
-                ? n : (watchFlag ? 3 : 20);
+            var episodes = Mathf.Max(1, int.TryParse(Environment.GetEnvironmentVariable("RL_EPISODE_COUNT"), out var n)
+                ? n : (watchFlag ? 3 : 20));
 
             SpawnPair(in spec, 0);
 
@@ -253,7 +244,6 @@ namespace Tests.PlayMode
             for (var i = 0; i < episodes; i++)
             {
                 ResetPair(in spec, i);
-                yield return new WaitForFixedUpdate();
                 var runner = new EpisodeRunner(agent, baseline, spec, i, arena.Offset, trace);
                 yield return RunToCompletion(runner, spec);
                 results.Add(runner.Result);

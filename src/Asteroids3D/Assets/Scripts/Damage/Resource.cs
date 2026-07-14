@@ -34,7 +34,7 @@ namespace Ships.Damage
             return damageAbsorbed;
         }
 
-        public void Reset()
+        public virtual void Reset()
         {
             var prev = CurrentValue;
             CurrentValue = MaxValue;

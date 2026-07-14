@@ -147,8 +147,14 @@ namespace Combat.Targeting
 
         public ITargetable ConsumeLock() => targetLock.ConsumeLock();
 
-        /// <summary>Drops any lock in progress or held (respawn reset).</summary>
-        public void ResetLock() => targetLock?.Cancel();
+        /// <summary>Drops any lock in progress or held and restarts the scan cadence (respawn reset); an inactive ship restarts via OnEnable instead.</summary>
+        public void ResetLock()
+        {
+            targetLock?.Cancel();
+            StopScanRoutine();
+            if (gameObject.activeInHierarchy)
+                StartScanRoutineIfNeeded();
+        }
 
         private void ScanForTarget()
         {

@@ -75,6 +75,7 @@ namespace Game.RLHarness
                     dynamics = target.Dynamics,
                     source = target.transform,
                 },
+                // Solely to route SetEnemyState for intercept-yaw aim; the tactical cost block stays off (goalMode-derived tacticalEnabled).
                 applyTacticalCosts = true,
                 projectileSpeed = projectileSpeed,
                 enableFiring = true,
