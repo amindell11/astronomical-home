@@ -125,33 +125,6 @@ namespace Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator KeyPickup_OnKeyCollected_FiresExactlyOnce()
-        {
-            var kp = CreateKeyPickup(radius: 2f);
-            var fireCount = 0;
-            kp.OnKeyCollected += () => fireCount++;
-
-            var player = CreatePlayerBody(Vector3.zero);
-            kp.Initialize(player);
-
-            yield return new WaitForFixedUpdate();
-            yield return new WaitForFixedUpdate();
-
-            Assert.AreEqual(1, fireCount, "OnKeyCollected must fire exactly once");
-
-            player.transform.position = new Vector3(100f, 0f, 0f);
-            yield return new WaitForFixedUpdate();
-            player.transform.position = Vector3.zero;
-            yield return new WaitForFixedUpdate();
-            yield return new WaitForFixedUpdate();
-
-            Assert.AreEqual(1, fireCount, "OnKeyCollected must not fire a second time");
-
-            Object.Destroy(player.gameObject);
-            Object.Destroy(kp.gameObject);
-        }
-
-        [UnityTest]
         public IEnumerator KeyPickup_PlayerOutsideRadius_DoesNotCollect()
         {
             var kp = CreateKeyPickup(radius: 1f);

@@ -3,25 +3,38 @@ using UnityEngine;
 
 namespace Game
 {
-    /// <summary>Per-rigidbody trigger occupancy: counts collider enters/exits so compound colliders on one body read as a single in/out level.</summary>
-    public class RigidbodyOccupancy
+    internal sealed class RigidbodyOccupancy
     {
-        private readonly Dictionary<Rigidbody, int> counts = new();
+        private readonly Dictionary<Rigidbody, HashSet<Collider>> occupants = new();
 
-        public bool Contains(Rigidbody body) => body && counts.ContainsKey(body);
-
-        public void Enter(Rigidbody body)
+        // Unity fires no OnTriggerExit for a collider disabled/destroyed inside the trigger — prune stale colliders on read.
+        public bool Contains(Rigidbody body)
         {
+            if (!body || !occupants.TryGetValue(body, out var colliders)) return false;
+            colliders.RemoveWhere(IsGone);
+            if (colliders.Count > 0) return true;
+            occupants.Remove(body);
+            return false;
+        }
+
+        public void Enter(Collider collider)
+        {
+            var body = collider ? collider.attachedRigidbody : null;
             if (!body) return;
-            counts.TryGetValue(body, out var count);
-            counts[body] = count + 1;
+            if (!occupants.TryGetValue(body, out var colliders))
+                occupants[body] = colliders = new HashSet<Collider>();
+            colliders.Add(collider);
         }
 
-        public void Exit(Rigidbody body)
+        public void Exit(Collider collider)
         {
-            if (!body || !counts.TryGetValue(body, out var count)) return;
-            if (count <= 1) counts.Remove(body);
-            else counts[body] = count - 1;
+            var body = collider ? collider.attachedRigidbody : null;
+            if (!body || !occupants.TryGetValue(body, out var colliders)) return;
+            colliders.Remove(collider);
+            if (colliders.Count == 0) occupants.Remove(body);
         }
+
+        private static bool IsGone(Collider collider) =>
+            !collider || !collider.enabled || !collider.gameObject.activeInHierarchy;
     }
 }

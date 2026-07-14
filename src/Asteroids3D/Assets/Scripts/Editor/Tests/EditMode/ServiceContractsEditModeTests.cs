@@ -130,11 +130,13 @@ namespace Tests.EditMode
             Assert.IsNotNull(type.GetProperty("SpineState"), "Missing SpineState");
             Assert.IsNotNull(type.GetProperty("SpineStep"), "Missing SpineStep");
             Assert.IsNotNull(type.GetProperty("SpineTarget"), "Missing SpineTarget");
-            Assert.IsNotNull(type.GetMethod("SetSpineTarget"), "Missing SetSpineTarget");
             Assert.IsNotNull(type.GetMethod("SetSpineObjective"), "Missing SetSpineObjective");
-            Assert.IsNotNull(type.GetMethod("FailSpine"), "Missing FailSpine");
-            Assert.IsNotNull(type.GetMethod("RestartSpine"), "Missing RestartSpine");
-            Assert.IsNotNull(type.GetMethod("ClearSpine"), "Missing ClearSpine");
+            Assert.AreEqual(typeof(SpineObjectiveHandle), type.GetMethod("SetSpineObjective").ReturnType,
+                "Spine mutation must flow through the ownership handle.");
+            Assert.IsNull(type.GetMethod("SetSpineTarget"), "SetSpineTarget must not be ambient on the service.");
+            Assert.IsNull(type.GetMethod("FailSpine"), "FailSpine must not be ambient on the service.");
+            Assert.IsNull(type.GetMethod("RestartSpine"), "RestartSpine must not be ambient on the service.");
+            Assert.IsNull(type.GetMethod("ClearSpine"), "ClearSpine must not be ambient on the service.");
             Assert.IsNotNull(type.GetEvent("OnSpineStateChanged"), "Missing OnSpineStateChanged");
             Assert.IsNotNull(type.GetEvent("OnSpineStepChanged"), "Missing OnSpineStepChanged");
             Assert.IsNotNull(type.GetEvent("OnSpineTargetChanged"), "Missing OnSpineTargetChanged");
@@ -190,31 +192,32 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void ObjectiveService_ClearSpine_RemovesTracker()
+        public void ObjectiveService_HandleClose_RemovesTracker()
         {
             var svc = CreateMonoBehaviourService<ObjectiveService>();
             Assert.IsNull(svc.SpineTracker);
             Assert.IsNull(svc.SpineState);
 
-            svc.SetSpineObjective(MissionDefinition.CreateDefault(), BuildDefaultBuilders());
+            var handle = svc.SetSpineObjective(MissionDefinition.CreateDefault(), BuildDefaultBuilders());
             Assert.IsNotNull(svc.SpineTracker);
+            Assert.AreSame(svc.SpineTracker, handle.Tracker);
 
-            svc.ClearSpine();
+            handle.Close();
             Assert.IsNull(svc.SpineTracker);
             Assert.IsNull(svc.SpineState);
         }
 
         [Test]
-        public void ObjectiveService_RestartSpine_DelegatesToTracker()
+        public void ObjectiveService_HandleFailAndRestart_DelegateToTracker()
         {
             var svc = CreateMonoBehaviourService<ObjectiveService>();
 
-            svc.SetSpineObjective(MissionDefinition.CreateDefault(), BuildDefaultBuilders());
+            var handle = svc.SetSpineObjective(MissionDefinition.CreateDefault(), BuildDefaultBuilders());
 
-            svc.FailSpine();
+            handle.Fail();
             Assert.AreEqual(ObjectiveType.Failed, svc.SpineState);
 
-            svc.RestartSpine();
+            handle.Restart();
             Assert.AreEqual(ObjectiveType.Explore, svc.SpineState);
         }
 
@@ -228,13 +231,13 @@ namespace Tests.EditMode
             adapter.OnStateChanged += (f, t) => transitions++;
 
             var key = new StubKeyTracker(false);
-            svc.SetSpineObjective(MissionDefinition.CreateDefault(), BuildDefaultBuilders(key));
+            var handle = svc.SetSpineObjective(MissionDefinition.CreateDefault(), BuildDefaultBuilders(key));
             key.HasKey = true;
             svc.SpineTracker.Tick(0.1f);
             Assert.AreEqual(1, transitions);
             Assert.AreEqual(ObjectiveType.KeyAcquired, adapter.CurrentState);
 
-            svc.ClearSpine();
+            handle.Close();
             Assert.AreEqual(ObjectiveType.Explore, adapter.CurrentState);
 
             var nextKey = new StubKeyTracker(false);
@@ -242,21 +245,21 @@ namespace Tests.EditMode
             nextKey.HasKey = true;
             svc.SpineTracker.Tick(0.1f);
             Assert.AreEqual(2, transitions,
-                "Adapter subscription must survive a ClearSpine/SetSpineObjective cycle.");
+                "Adapter subscription must survive a handle-close/SetSpineObjective cycle.");
         }
 
         [Test]
-        public void ObjectiveService_ClearSpine_DetachesForwarder_FromOldTracker()
+        public void ObjectiveService_HandleClose_DetachesForwarder_FromOldTracker()
         {
             var svc = CreateMonoBehaviourService<ObjectiveService>();
             var key = new StubKeyTracker(false);
-            svc.SetSpineObjective(MissionDefinition.CreateDefault(), BuildDefaultBuilders(key));
+            var handle = svc.SetSpineObjective(MissionDefinition.CreateDefault(), BuildDefaultBuilders(key));
             var oldTracker = svc.SpineTracker;
 
             var raised = 0;
             svc.OnSpineStateChanged += (f, t) => raised++;
 
-            svc.ClearSpine();
+            handle.Close();
             key.HasKey = true;
             oldTracker.Tick(0.1f);
 

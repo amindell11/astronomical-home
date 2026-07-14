@@ -8,7 +8,6 @@ using UnityEngine;
 
 namespace Game.Sectors
 {
-    /// <summary>Single owner of the sector's key→extract spine: installs the mission, publishes each step as a latched "spine:&lt;step&gt;" bus token, and ends the sector from the terminal states.</summary>
     public class SectorSpineModule : SectorModule
     {
         public const string TokenPrefix = "spine:";
@@ -22,6 +21,7 @@ namespace Game.Sectors
         [SerializeField] private ExtractionZone extractionZone;
 
         private IObjectiveService objectives;
+        private SpineObjectiveHandle spine;
         private SectorEventBus bus;
         private Vector3 keyHome;
         private bool keyHomeCaptured;
@@ -39,7 +39,7 @@ namespace Game.Sectors
 
             var playerBody = ctx.Player ? ctx.Player.Body : null;
             keyPickup.Initialize(playerBody);
-            extractionZone.Initialize(playerBody);
+            extractionZone.BindPlayer(playerBody);
 
             if (!keyHomeCaptured)
             {
@@ -70,23 +70,24 @@ namespace Game.Sectors
 
             // Subscribe before install so the initial step is published like every later one.
             objectives.OnSpineStepChanged += HandleSpineStepChanged;
-            objectives.SetSpineObjective(mission, builders);
+            spine = objectives.SetSpineObjective(mission, builders, TargetFor(StepExplore));
         }
 
         public override IEnumerator Teardown(SectorBuildContext ctx)
         {
-            Unbind(clearSpine: true);
+            Unbind(closeSpine: true);
             yield break;
         }
 
         // Session sweeps destroy sectors without running Teardown; a dead module must not stay subscribed.
-        private void OnDestroy() => Unbind(clearSpine: false);
+        private void OnDestroy() => Unbind(closeSpine: false);
 
-        private void Unbind(bool clearSpine)
+        private void Unbind(bool closeSpine)
         {
             if (objectives == null) return;
             objectives.OnSpineStepChanged -= HandleSpineStepChanged;
-            if (clearSpine) objectives.ClearSpine();
+            if (closeSpine) spine?.Close();
+            spine = null;
             objectives = null;
             bus = null;
         }
@@ -94,7 +95,7 @@ namespace Game.Sectors
         private void HandleSpineStepChanged(string step)
         {
             bus?.Latch(TokenPrefix + step);
-            objectives?.SetSpineTarget(TargetFor(step));
+            if (spine != null) spine.Target = TargetFor(step);
         }
 
         private Transform TargetFor(string step) => step switch
@@ -105,7 +106,6 @@ namespace Game.Sectors
         };
 
 #if UNITY_EDITOR
-        /// <summary>Test/editor seam mirroring the serialized fixture references.</summary>
         internal void Bind(KeyPickup key, ExtractionZone zone)
         {
             keyPickup = key;

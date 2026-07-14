@@ -5,34 +5,37 @@ using UnityEngine;
 
 namespace Game.Sectors
 {
-    /// <summary>Thin rule on the extraction gate fixture: on fire, binds the chaser as the zone's blocker and activates it.</summary>
     public class ExtractionChallengeRule : ActivationRule
     {
         [SerializeField] private ExtractionZone extractionZone;
         [SerializeField] private Ship chaser;
 
-        private Rigidbody playerBody;
-
         public override IEnumerator Setup(SectorBuildContext ctx)
         {
-            playerBody = ctx.Player ? ctx.Player.Body : null;
-            return base.Setup(ctx);
+            if (!extractionZone || !chaser)
+            {
+                Debug.LogError($"ExtractionChallengeRule on '{name}' is missing a fixture reference — rule is inert.", this);
+                yield break;
+            }
+
+            var setup = base.Setup(ctx);
+            while (setup.MoveNext()) yield return setup.Current;
         }
 
         public override IEnumerator Teardown(SectorBuildContext ctx)
         {
+            if (extractionZone) extractionZone.Disarm();
             if (chaser) chaser.gameObject.SetActive(false);
             return base.Teardown(ctx);
         }
 
         protected override void OnFired()
         {
-            if (extractionZone) extractionZone.Initialize(playerBody, chaser ? chaser.transform : null);
-            if (chaser) chaser.gameObject.SetActive(true);
+            extractionZone.Arm(chaser.transform);
+            chaser.gameObject.SetActive(true);
         }
 
 #if UNITY_EDITOR
-        /// <summary>Test/editor seam mirroring the serialized references.</summary>
         internal void Bind(ExtractionZone zone, Ship chaserShip)
         {
             extractionZone = zone;

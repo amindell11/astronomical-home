@@ -95,7 +95,7 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void FailSpine_LatchesFailedToken_AndEndsSectorFailed()
+        public void SpineFail_LatchesFailedToken_AndEndsSectorFailed()
         {
             var (module, svc, _, _, bus, ctx) = BuildSpine();
             Run(module.Setup(ctx));
@@ -103,7 +103,7 @@ namespace Tests.EditMode
             SectorResult? got = null;
             module.SectorEndRequested += r => got = r;
 
-            svc.FailSpine();
+            svc.SpineTracker.Fail();
             svc.Tick(0.1f);
 
             Assert.IsTrue(got.HasValue, "The failed terminal state must end the sector.");

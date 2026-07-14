@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System.Collections;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Game;
 using Game.Sectors;
 using Game.Services;
@@ -73,10 +74,11 @@ namespace Tests.PlayMode
             return ship;
         }
 
-        private (Sector sector, KeyPickup key, ExtractionZone zone, Ship player, Ship chaser) BuildDemoSector()
+        private (Sector sector, KeyPickup key, ExtractionZone zone, Ship player, Ship chaser) BuildDemoSector(
+            Vector2? chaserPlane = null, bool includeRule = true, bool bindChaser = true)
         {
             var player = SpawnKinematicShip(Vector2.zero);
-            var chaser = SpawnKinematicShip(new Vector2(300f, 300f));
+            var chaser = SpawnKinematicShip(chaserPlane ?? new Vector2(300f, 300f));
             chaser.gameObject.SetActive(false);
 
             var sectorGO = TrackGO(new GameObject("SpineDemoSector"));
@@ -99,15 +101,21 @@ namespace Tests.PlayMode
             var zone = gateGO.AddComponent<ExtractionZone>();
             var volume = gateGO.AddComponent<TriggerVolume>();
             volume.Configure("in-gate");
-            var rule = gateGO.AddComponent<ExtractionChallengeRule>();
-            rule.Configure(new[]
-                { ActivationTerm.Signal(SectorSpineModule.TokenPrefix + SectorSpineModule.StepReadyToExtract) });
-            rule.Bind(zone, chaser);
 
             var spine = sectorGO.AddComponent<SectorSpineModule>();
             spine.Bind(key, zone);
 
-            sector.SetManifest(null, null, new SectorModule[] { spine, volume, rule });
+            var modules = new List<SectorModule> { spine, volume };
+            if (includeRule)
+            {
+                var rule = gateGO.AddComponent<ExtractionChallengeRule>();
+                rule.Configure(new[]
+                    { ActivationTerm.Signal(SectorSpineModule.TokenPrefix + SectorSpineModule.StepReadyToExtract) });
+                rule.Bind(zone, bindChaser ? chaser : null);
+                modules.Add(rule);
+            }
+
+            sector.SetManifest(null, null, modules.ToArray());
             sector.Initialize(_services, _config, player);
             return (sector, key, zone, player, chaser);
         }
@@ -132,7 +140,7 @@ namespace Tests.PlayMode
             Assert.AreEqual(key.transform, _objectives.SpineTarget);
             Assert.IsFalse(chaser.gameObject.activeSelf, "The chaser must stay dormant until the rule fires.");
 
-            player.transform.position = key.KeyPosition;
+            player.transform.position = key.transform.position;
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
             Assert.IsTrue(key.PlayerHasKey, "Flying into the key must collect it.");
@@ -184,6 +192,92 @@ namespace Tests.PlayMode
                 "A player parked in the gate before qualifying must still extract — occupancy is a level, not an enter-edge.");
             Assert.IsTrue(got.Value.Success);
             Assert.IsTrue(chaser.gameObject.activeSelf, "The rule must still have fired on the way through ready-to-extract.");
+
+            yield return sector.Teardown();
+        }
+
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator ChaserWithinBlockDistance_BlocksExtraction_UntilChaserLeaves()
+        {
+            var (sector, key, _, player, chaser) = BuildDemoSector(chaserPlane: new Vector2(55f, 50f));
+            SectorResult? got = null;
+            ((ISector)sector).OnSectorComplete += r => got = r;
+
+            yield return sector.Setup();
+
+            player.transform.position = key.transform.position;
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+            yield return WaitFrames(() => _objectives.SpineStep == SectorSpineModule.StepReadyToExtract);
+            Assert.IsTrue(chaser.gameObject.activeSelf, "The rule must have activated the chaser.");
+
+            player.transform.position = GamePlane.PlanePointToWorld(GatePlane);
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+            yield return WaitFrames(() => got.HasValue, maxFrames: 30);
+            Assert.IsFalse(got.HasValue,
+                "A chaser within blockDistance must block extraction even with the player parked in the gate.");
+
+            chaser.transform.position = GamePlane.PlanePointToWorld(new Vector2(300f, 300f));
+            yield return WaitFrames(() => got.HasValue);
+            Assert.IsTrue(got.HasValue, "Moving the chaser out of blockDistance must unblock extraction.");
+            Assert.IsTrue(got.Value.Success, "The unblocked extraction must end the sector as Extracted.");
+
+            yield return sector.Teardown();
+        }
+
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator MissingChallengeRule_ZoneStaysUnarmed_AndExtractionNeverCompletes()
+        {
+            var (sector, key, _, player, _) = BuildDemoSector(includeRule: false);
+            SectorResult? got = null;
+            ((ISector)sector).OnSectorComplete += r => got = r;
+
+            yield return sector.Setup();
+
+            player.transform.position = key.transform.position;
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+            yield return WaitFrames(() => _objectives.SpineStep == SectorSpineModule.StepReadyToExtract);
+
+            player.transform.position = GamePlane.PlanePointToWorld(GatePlane);
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+            yield return WaitFrames(() => got.HasValue, maxFrames: 30);
+
+            Assert.IsFalse(got.HasValue,
+                "With no challenge rule the zone must stay unarmed — extraction must not complete silently.");
+            Assert.AreEqual(SectorSpineModule.StepReadyToExtract, _objectives.SpineStep);
+
+            yield return sector.Teardown();
+        }
+
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator RuleWithNullChaser_LogsError_AndExtractionStaysGated()
+        {
+            var (sector, key, _, player, _) = BuildDemoSector(bindChaser: false);
+            SectorResult? got = null;
+            ((ISector)sector).OnSectorComplete += r => got = r;
+
+            LogAssert.Expect(LogType.Error,
+                new Regex("ExtractionChallengeRule .*missing a fixture reference.*inert"));
+            yield return sector.Setup();
+
+            player.transform.position = key.transform.position;
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+            yield return WaitFrames(() => _objectives.SpineStep == SectorSpineModule.StepReadyToExtract);
+
+            player.transform.position = GamePlane.PlanePointToWorld(GatePlane);
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+            yield return WaitFrames(() => got.HasValue, maxFrames: 30);
+
+            Assert.IsFalse(got.HasValue,
+                "An inert rule (null chaser) must leave the zone unarmed — extraction must not complete.");
 
             yield return sector.Teardown();
         }

@@ -1,4 +1,3 @@
-using System;
 using Game;
 using UnityEngine;
 
@@ -20,17 +19,13 @@ namespace Objectives
 
         public bool PlayerHasKey { get; private set; }
 
-        public Vector3 KeyPosition => transform.position;
-
-        public event Action OnKeyCollected;
-
         public void Initialize(Rigidbody playerBody) => this.playerBody = playerBody;
 
         /// <summary>Move to a random in-plane position within <see cref="spawnRadius"/> of center and reset collected state.</summary>
         public void SpawnKey(Vector3 center)
         {
             PlayerHasKey = false;
-            var offset2D = UnityEngine.Random.insideUnitCircle * spawnRadius;
+            var offset2D = Random.insideUnitCircle * spawnRadius;
             transform.position = center + GamePlane.PlaneDirToWorld(offset2D);
             gameObject.SetActive(true);
         }
@@ -42,7 +37,6 @@ namespace Objectives
 
             PlayerHasKey = true;
             gameObject.SetActive(false);
-            OnKeyCollected?.Invoke();
         }
     }
 }

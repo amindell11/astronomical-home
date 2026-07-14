@@ -3,10 +3,8 @@ using UnityEngine;
 
 namespace Objectives
 {
-    /// <summary>Extraction zone check, testable without a MonoBehaviour.</summary>
     public interface IExtractionZone
     {
-        /// <summary>True when the player is inside the zone and not blocked.</summary>
         bool IsPlayerInZone { get; }
     }
 
@@ -19,26 +17,35 @@ namespace Objectives
         private readonly RigidbodyOccupancy occupancy = new();
         private Rigidbody playerBody;
         private Transform blocker;
+        private bool armed;
 
+        // Unarmed reads as not-in-zone: broken challenge wiring must never complete extraction silently.
         public bool IsPlayerInZone
         {
             get
             {
-                if (!occupancy.Contains(playerBody)) return false;
+                if (!armed || !occupancy.Contains(playerBody)) return false;
                 return !blocker ||
                        (blocker.position - playerBody.position).sqrMagnitude > blockDistance * blockDistance;
             }
         }
 
-        /// <summary>Null blocker means extraction is never blocked.</summary>
-        public void Initialize(Rigidbody playerBody, Transform blocker = null)
+        public void BindPlayer(Rigidbody playerBody) => this.playerBody = playerBody;
+
+        public void Arm(Transform blocker)
         {
-            this.playerBody = playerBody;
             this.blocker = blocker;
+            armed = true;
         }
 
-        private void OnTriggerEnter(Collider other) => occupancy.Enter(other.attachedRigidbody);
+        public void Disarm()
+        {
+            blocker = null;
+            armed = false;
+        }
 
-        private void OnTriggerExit(Collider other) => occupancy.Exit(other.attachedRigidbody);
+        private void OnTriggerEnter(Collider other) => occupancy.Enter(other);
+
+        private void OnTriggerExit(Collider other) => occupancy.Exit(other);
     }
 }

@@ -143,7 +143,8 @@ namespace Tests.PlayMode
             col.isTrigger = true;
             col.radius = 3f;
             var zone = zoneGO.AddComponent<ExtractionZone>();
-            zone.Initialize(player);
+            zone.BindPlayer(player);
+            zone.Arm(null);
 
             player.transform.position = Vector3.zero;
             yield return new WaitForFixedUpdate();
@@ -160,6 +161,87 @@ namespace Tests.PlayMode
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
             Assert.IsFalse(zone.IsPlayerInZone);
+        }
+
+        [UnityTest]
+        public IEnumerator TriggerVolume_PlayerDisabledInside_ClearsBusLevel_AndReactivationRedetects()
+        {
+            var player = CreatePlayerBody(new Vector3(100f, 0f, 0f));
+            var bus = new SectorEventBus();
+            var ctx = new SectorBuildContext(null, null, null, bus);
+            var volume = CreateVolume("in-zone", player);
+            yield return volume.Setup(ctx);
+
+            player.transform.position = Vector3.zero;
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+            Assert.IsTrue(bus.Get("in-zone"));
+
+            player.gameObject.SetActive(false);
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+            Assert.IsFalse(bus.Get("in-zone"),
+                "A player deactivated inside fires no exit event — the republished pruned level must still clear.");
+
+            player.gameObject.SetActive(true);
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+            Assert.IsTrue(bus.Get("in-zone"),
+                "Reactivating the player inside must re-detect via a fresh enter event.");
+
+            yield return volume.Teardown(ctx);
+        }
+
+        [UnityTest]
+        public IEnumerator ExtractionZone_PlayerDisabledInside_ReadsNotInZone_AndReactivationRedetects()
+        {
+            var player = CreatePlayerBody(new Vector3(100f, 0f, 0f));
+            var zoneGO = TrackGO(new GameObject("Zone"));
+            var col = zoneGO.AddComponent<SphereCollider>();
+            col.isTrigger = true;
+            col.radius = 3f;
+            var zone = zoneGO.AddComponent<ExtractionZone>();
+            zone.BindPlayer(player);
+            zone.Arm(null);
+
+            player.transform.position = Vector3.zero;
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+            Assert.IsTrue(zone.IsPlayerInZone);
+
+            player.gameObject.SetActive(false);
+            Assert.IsFalse(zone.IsPlayerInZone,
+                "A player deactivated inside fires no exit event — the lazy query must prune it immediately.");
+
+            player.gameObject.SetActive(true);
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+            Assert.IsTrue(zone.IsPlayerInZone, "Reactivating the player inside must re-detect.");
+        }
+
+        [UnityTest]
+        public IEnumerator ExtractionZone_Unarmed_NeverReadsInZone()
+        {
+            var player = CreatePlayerBody(new Vector3(100f, 0f, 0f));
+            var zoneGO = TrackGO(new GameObject("Zone"));
+            var col = zoneGO.AddComponent<SphereCollider>();
+            col.isTrigger = true;
+            col.radius = 3f;
+            var zone = zoneGO.AddComponent<ExtractionZone>();
+            zone.BindPlayer(player);
+
+            player.transform.position = Vector3.zero;
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+            Assert.IsFalse(zone.IsPlayerInZone, "An unarmed zone must read as not-in-zone even with the player inside.");
+
+            zone.Arm(null);
+            Assert.IsTrue(zone.IsPlayerInZone, "Arming must expose the already-buffered occupancy.");
+
+            zone.Disarm();
+            Assert.IsFalse(zone.IsPlayerInZone, "Disarming must gate the zone again.");
         }
 
         [UnityTest]

@@ -10,6 +10,7 @@ namespace Game.Services
     {
         private readonly List<LocalObjectiveHandle> locals = new();
         private readonly List<LocalObjectiveHandle> tickBuffer = new();
+        private SpineObjectiveHandle currentSpine;
 
         public ObjectiveTracker SpineTracker { get; private set; }
         public ObjectiveType? SpineState => SpineTracker?.CurrentState;
@@ -30,44 +31,32 @@ namespace Game.Services
         public event Action<Transform> OnSpineTargetChanged;
         public event Action OnLocalsChanged;
 
-        public void SetSpineTarget(Transform target)
-        {
-            if (SpineTarget == target) return;
-            SpineTarget = target;
-            OnSpineTargetChanged?.Invoke(target);
-        }
-
-        public void SetSpineObjective(
+        public SpineObjectiveHandle SetSpineObjective(
             MissionDefinition mission,
-            IReadOnlyDictionary<string, Func<ObjectiveState>> builders)
+            IReadOnlyDictionary<string, Func<ObjectiveState>> builders,
+            Transform target = null)
         {
-            ClearSpine();
+            CloseSpineCore();
 
             SpineTracker = new ObjectiveTracker(mission, builders);
             SpineTracker.OnStateChanged += ForwardSpineStateChanged;
             SpineTracker.OnStepChanged += ForwardSpineStepChanged;
+            currentSpine = new SpineObjectiveHandle(this, SpineTracker);
+            SetSpineTargetCore(target);
             OnSpineStepChanged?.Invoke(SpineTracker.CurrentStep);
+            return currentSpine;
         }
 
-        public void FailSpine()
+        internal bool IsCurrent(SpineObjectiveHandle handle) => currentSpine == handle;
+
+        internal void SetSpineTarget(SpineObjectiveHandle handle, Transform target)
         {
-            SpineTracker?.Fail();
+            if (currentSpine == handle) SetSpineTargetCore(target);
         }
 
-        public void RestartSpine()
+        internal void CloseSpine(SpineObjectiveHandle handle)
         {
-            SpineTracker?.Restart();
-        }
-
-        public void ClearSpine()
-        {
-            if (SpineTracker != null)
-            {
-                SpineTracker.OnStateChanged -= ForwardSpineStateChanged;
-                SpineTracker.OnStepChanged -= ForwardSpineStepChanged;
-                SpineTracker = null;
-            }
-            SetSpineTarget(null);
+            if (currentSpine == handle) CloseSpineCore();
         }
 
         public LocalObjectiveHandle OpenLocal(
@@ -86,7 +75,7 @@ namespace Game.Services
             // Drain until empty: OnLocalsChanged handlers may close other handles or open new ones mid-sweep.
             while (locals.Count > 0)
                 locals[locals.Count - 1].Close();
-            ClearSpine();
+            CloseSpineCore();
         }
 
         private void Update() => Tick(Time.deltaTime);
@@ -103,6 +92,25 @@ namespace Game.Services
                     local.Tracker.Tick(deltaTime);
             }
             tickBuffer.Clear();
+        }
+
+        private void SetSpineTargetCore(Transform target)
+        {
+            if (SpineTarget == target) return;
+            SpineTarget = target;
+            OnSpineTargetChanged?.Invoke(target);
+        }
+
+        private void CloseSpineCore()
+        {
+            if (SpineTracker != null)
+            {
+                SpineTracker.OnStateChanged -= ForwardSpineStateChanged;
+                SpineTracker.OnStepChanged -= ForwardSpineStepChanged;
+                SpineTracker = null;
+            }
+            currentSpine = null;
+            SetSpineTargetCore(null);
         }
 
         private void CloseLocal(LocalObjectiveHandle handle)

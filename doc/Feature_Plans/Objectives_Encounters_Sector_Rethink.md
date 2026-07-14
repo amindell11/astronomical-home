@@ -363,6 +363,22 @@ Decisions made during the build, within the locked scope:
   prefab wiring is pinned by `CombatSectorPrefabEditModeTests` (manifest
   drift + fixture plane positions + rule terms), the demo flow by
   `SectorSpineDemoPlayModeTests`.
+- **Codex review round (pre-merge):** `RigidbodyOccupancy` tracks the actual
+  colliders per rigidbody and prunes destroyed/disabled/inactive ones on read
+  (Unity fires no `OnTriggerExit` for a collider deactivated inside a trigger —
+  a dead ship must not hold a zone), and `TriggerVolume` re-publishes its level
+  each `FixedUpdate` so the bus follows the prune. `ExtractionZone` split into
+  `BindPlayer`/`Arm`/`Disarm`: unarmed reads as not-in-zone, so a missing or
+  mis-wired challenge rule can never complete extraction silently
+  (`ExtractionChallengeRule` validates both serialized refs and goes inert-with-
+  error like the spine module). Spine mutation moved behind
+  `SpineObjectiveHandle`, mirroring `LocalObjectiveHandle`: `SetSpineObjective`
+  returns the handle (with optional install-time target); ambient
+  `SetSpineTarget`/`FailSpine`/`RestartSpine`/`ClearSpine` removed from
+  `IObjectiveService`; mutation through a superseded handle is a no-op.
+- **PR-4 note:** fat encounters follow the ownership-handle pattern
+  (`OpenLocal`/`SetSpineObjective` handles own their teardown); never call
+  ambient `ClearAll` from encounter code — it belongs to session sweep only.
 
 ## Open questions (decide at build)
 

@@ -423,8 +423,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 05c1b82e5cb24a9bb6595b1b89a7249b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   keyPickup: {fileID: 2846034118237741204}
   extractionZone: {fileID: 5533221100446688304}
 --- !u!1001 &2846034118237741201
@@ -476,8 +476,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7c2a867afc270c5488634807f08c8688, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
 --- !u!1001 &5533221100446688301
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -541,8 +541,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: eace38077157e8144ac53239ee92c477, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
 --- !u!114 &5533221100446688305
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -566,8 +566,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 58e21db1e65044c4a20952d1ae579909, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   terms:
   - kind: 0
     signalToken: spine:ready-to-extract

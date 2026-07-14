@@ -96,7 +96,8 @@ namespace Tests.EditMode
             Assert.IsNotNull(chaser, "The rule must bind the prefab-internal chaser ship.");
             Assert.AreEqual(2, sector.Adopted.Count);
             Assert.AreSame(chaser, sector.Adopted[0].target,
-                "The chaser must be the dormant adopted ship (startActive=false).");
+                "The chaser must be the first adopted ship.");
+            Assert.IsFalse(sector.Adopted[0].startActive, "The chaser must be adopted dormant (startActive=false).");
         }
     }
 }

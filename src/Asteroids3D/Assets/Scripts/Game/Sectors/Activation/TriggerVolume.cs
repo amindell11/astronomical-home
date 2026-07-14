@@ -42,15 +42,18 @@ namespace Game.Sectors
 
         private void OnTriggerEnter(Collider other)
         {
-            occupancy.Enter(other.attachedRigidbody);
+            occupancy.Enter(other);
             Publish();
         }
 
         private void OnTriggerExit(Collider other)
         {
-            occupancy.Exit(other.attachedRigidbody);
+            occupancy.Exit(other);
             Publish();
         }
+
+        // Occupancy pruning of dead colliders only happens on read — republish each physics step so the bus follows it.
+        private void FixedUpdate() => Publish();
 
         private void Publish() => bus?.Set(signalToken, occupancy.Contains(playerBody));
     }
