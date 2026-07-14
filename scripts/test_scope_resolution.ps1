@@ -34,7 +34,6 @@ Assert-Equal "" (Resolve-ScopeFilter -ScopeMap $scopeMap -ScopeType "Workspace" 
 Assert-Equal "" (Resolve-ScopeFilter -ScopeMap $scopeMap -ScopeType "Feature" -ScopeName "nonexistent") "invalid feature resolves to empty filter (warning expected above)"
 Assert-Equal "" (Resolve-ScopeFilter -ScopeMap $scopeMap -ScopeType "Module" -ScopeName "ai") "Module no longer resolves via name-filter (derives categories instead)"
 
-# Modules carry paths only; category selection is derived from the fixtures those paths cover.
 $syntheticMapJson = @'
 {
   "smoke": { "testFilter": "SmokeA|SmokeB" },
@@ -49,7 +48,7 @@ $syntheticMapJson = @'
 '@
 $syntheticMap = $syntheticMapJson | ConvertFrom-Json
 
-# file (repo-relative) -> its [Category] tags. Overlays (Smoke/Slow) present to prove they never seed a scope.
+# Overlays (Smoke/Slow) included to prove they never seed a scope.
 $fakeIndex = [ordered]@{
     "src/Alpha/AlphaTests.cs"      = @("Weapons")
     "tests/AlphaFixture.cs"        = @("Weapons", "Slow")
@@ -124,7 +123,6 @@ Write-Host ""
 Write-Host "Get-ModuleDerivedCategories: unknown module -> empty"
 Assert-Equal 0 (@(Get-ModuleDerivedCategories -ScopeMap $syntheticMap -ModuleName "nope" -FileCategoryIndex $fakeIndex).Count) "unknown module derives nothing"
 
-# Fixture-category index built from real files on disk.
 $idxRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("scope-idx-" + [guid]::NewGuid().ToString("N"))
 $idxRepo = Join-Path $idxRoot "repo"
 $idxTests = Join-Path $idxRepo "src/Tests/EditMode"

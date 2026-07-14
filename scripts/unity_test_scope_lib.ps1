@@ -228,6 +228,15 @@ function Add-UniqueDomainCategories {
     }
 }
 
+function Test-PathMatchesGlobs {
+    param([string]$Path, [string[]]$Globs)
+
+    foreach ($glob in @($Globs)) {
+        if ($Path -like $glob) { return $true }
+    }
+    return $false
+}
+
 function Get-ModuleDerivedCategories {
     param([object]$ScopeMap, [string]$ModuleName, [System.Collections.IDictionary]$FileCategoryIndex)
 
@@ -238,11 +247,7 @@ function Get-ModuleDerivedCategories {
 
     $domains = New-Object System.Collections.Generic.List[string]
     foreach ($file in @($FileCategoryIndex.Keys)) {
-        $matched = $false
-        foreach ($glob in $globs) {
-            if ($file -like $glob) { $matched = $true; break }
-        }
-        if (-not $matched) { continue }
+        if (-not (Test-PathMatchesGlobs -Path $file -Globs $globs)) { continue }
         Add-UniqueDomainCategories -Domains $domains -Categories $FileCategoryIndex[$file]
     }
 
@@ -295,11 +300,8 @@ function Resolve-AutoSelection {
     foreach ($path in $considered) {
         $modulesForFile = @()
         foreach ($moduleName in @($globsByModule.Keys)) {
-            foreach ($glob in $globsByModule[$moduleName]) {
-                if ($path -like $glob) {
-                    $modulesForFile += $moduleName
-                    break
-                }
+            if (Test-PathMatchesGlobs -Path $path -Globs $globsByModule[$moduleName]) {
+                $modulesForFile += $moduleName
             }
         }
 
