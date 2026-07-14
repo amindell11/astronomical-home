@@ -3,6 +3,7 @@ set -euo pipefail
 
 # Anchor to the primary worktree: --show-toplevel is CWD-dependent, and a worktree-local lock dir holds dead leases (the WRONG-BRANCH hazard).
 ROOT="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOCK_ROOT="${WORKTREE_POOL_LOCK_ROOT:-$ROOT/.worktree-pool/locks}"
 # Locks go stale by AGE, not pid — each agent shell is ephemeral, so the acquiring pid is dead by the next call. TTL override for tests.
 LOCK_TTL_SECONDS="${WORKTREE_POOL_LOCK_TTL:-43200}"
@@ -45,14 +46,20 @@ Commands:
       Run tests, push to a task-specific remote branch (task/<lease>),
       and create PR — but keep the lock so the agent can respond to
       review feedback.  Test args after -- are passed to
-      unity_test_agent.ps1.
+      unity_test_agent.ps1. Only a passing FULL run (-Mode Both,
+      -ScopeType Workspace, unfiltered) records merge-grade proof;
+      scoped runs still open the PR but the merge gate will re-test.
 
   merge <slot> [base_ref] [-- unity_test_agent.ps1 args...]
       Gated squash-merge of the slot's open PR. Merges base (default:
-      origin/main) in if it moved, then re-runs tests unless the exact
-      resulting tree has a recorded passing run (written by
-      submit/revise/merge only after the runner exits 0) — so the tree
-      that lands on main is a tree that actually passed. The ONLY
+      origin/main) in if it moved, then re-runs the full suite unless
+      the exact resulting tree has recorded full-coverage proof — so
+      the tree that lands on main is a tree that actually passed
+      everything. Deltas since the proven tree that are markdown-only
+      (*.md) extend the proof without a run; C# comment/whitespace-only
+      deltas take an EditMode Smoke compile refresh instead of the
+      full suite. Runs test the working tree, so submit/revise/merge
+      refuse to start a proof-bearing run on a dirty worktree. The ONLY
       sanctioned merge path; do not call 'gh pr merge' directly.
 
   finalize <slot> [base_ref]
@@ -62,9 +69,11 @@ Commands:
   review-comments <slot> [base]
       Show open PR URL and unresolved review threads/comments for slot.
 
-  revise <slot> [-- unity_test_agent.ps1 args...]
+  revise <slot> [--no-test] [-- unity_test_agent.ps1 args...]
       Update existing slot branch for PR feedback: pull --rebase, run tests,
-      then push branch updates (no reset to main).
+      then push branch updates (no reset to main). With --no-test, skip the
+      test run and record no proof — for pre-merge hygiene edits; the merge
+      gate then runs the single full suite on the exact landing tree.
 
 Examples:
   scripts/agent_worktree_pool.sh status
@@ -76,6 +85,7 @@ Examples:
   scripts/agent_worktree_pool.sh create-pool-prs
   scripts/agent_worktree_pool.sh review-comments agent-1
   scripts/agent_worktree_pool.sh revise agent-1 -- -Mode EditMode -ScopeType Feature -ScopeName camera
+  scripts/agent_worktree_pool.sh revise agent-1 --no-test
   scripts/agent_worktree_pool.sh submit agent-1 origin/main -- -Mode Both -ScopeType Workspace
   scripts/agent_worktree_pool.sh merge agent-1
   scripts/agent_worktree_pool.sh finalize agent-1 origin/main
@@ -141,18 +151,258 @@ task_branch_for() {
   return 0
 }
 
-# Proof of testing is content-addressed: the tree hash recorded here only after the runner exits 0. A local base-merge commit alone is never evidence (a failed run after base integration must force a re-test on retry).
+SUMMARY_REL="results/unity-tests-agent/latest-summary.json"
+
+# Stale-summary hazard: an older run's summary could vouch for a run that never wrote one; proof-recording callers clear it before the runner starts.
+clear_run_summary() {
+  local path="$1"
+  rm -f "$path/$SUMMARY_REL"
+}
+
+FULL_COVERAGE_PY='
+import json, sys
+
+def canon_path(p):
+    return str(p or "").replace("\\", "/").rstrip("/").lower()
+
+def main():
+    try:
+        with open(sys.argv[1], encoding="utf-8-sig") as f:
+            summary = json.load(f)
+    except Exception:
+        print("partial|summary unreadable")
+        return
+    expected_project = canon_path(sys.argv[2])
+    sel = summary.get("selection")
+    if not isinstance(sel, dict):
+        print("partial|selection missing")
+        return
+    must_be_empty = ["testFilter", "testCategory", "assemblyNames", "orderedTestListFile", "rerunFailedFrom"]
+    for key in must_be_empty + ["scopeType", "excludeCategory"]:
+        if key not in sel:
+            print("partial|selection.%s missing" % key)
+            return
+    # A fully-green run with ignored tests reports NUnit result "Skipped:Ignored" -> per-run status "unknown", so gate on failed==0/total>0 instead of the status label.
+    def green_run(run):
+        if not isinstance(run, dict) or run.get("status") in ("failed", "infra_error"):
+            return False
+        try:
+            return int(run.get("failed")) == 0 and int(run.get("total")) > 0
+        except (TypeError, ValueError):
+            return False
+    runs = summary.get("runs")
+    runs_ok = isinstance(runs, list) and len(runs) > 0
+    passed_platforms = set()
+    if runs_ok:
+        for run in runs:
+            if not green_run(run):
+                runs_ok = False
+                break
+            passed_platforms.add(run.get("platform"))
+    exclude = {c.strip().lower() for c in str(sel.get("excludeCategory") or "").split(";") if c.strip()}
+    checks = [
+        (summary.get("status") == "passed", "status=%s" % summary.get("status")),
+        (summary.get("mode") == "Both", "mode=%s" % summary.get("mode")),
+        (expected_project != "" and canon_path(summary.get("projectPath")) == expected_project,
+         "projectPath=%s (expected %s)" % (summary.get("projectPath"), expected_project)),
+        (runs_ok and {"EditMode", "PlayMode"} <= passed_platforms, "runs lack passed EditMode+PlayMode"),
+        (str(sel.get("scopeType") or "").lower() == "workspace", "scopeType=%s" % sel.get("scopeType")),
+        (exclude <= {"requiresgraphics"}, "excludeCategory=%s" % sel.get("excludeCategory")),
+    ] + [(not str(sel.get(k) or "").strip(), "%s set" % k) for k in must_be_empty]
+    for ok, why in checks:
+        if not ok:
+            print("partial|" + why)
+            return
+    print("full|mode=Both scopeType=Workspace excludeCategory=%s" % (sel.get("excludeCategory") or ""))
+
+main()
+'
+
+FULL_COVERAGE_PS='
+function Canon($p) { return "$p".Replace("\", "/").TrimEnd("/").ToLower() }
+function Blank($v) { return [string]::IsNullOrWhiteSpace([string]$v) }
+try { $s = Get-Content -LiteralPath $env:POOL_SUMMARY_JSON -Raw | ConvertFrom-Json } catch { Write-Output "partial|summary unreadable"; exit 0 }
+$expected = Canon $env:POOL_EXPECTED_PROJECT
+$sel = $s.selection
+$mustBeEmpty = @("testFilter", "testCategory", "assemblyNames", "orderedTestListFile", "rerunFailedFrom")
+$why = $null
+if ($null -eq $sel) { $why = "selection missing" }
+if ($null -eq $why) {
+  $selKeys = @($sel.PSObject.Properties.Name)
+  foreach ($key in ($mustBeEmpty + @("scopeType", "excludeCategory"))) {
+    if ($selKeys -notcontains $key) { $why = "selection.$key missing"; break }
+  }
+}
+if ($null -eq $why) {
+  $runs = @($s.runs)
+  $passedPlatforms = @()
+  $runsOk = $runs.Count -gt 0
+  foreach ($run in $runs) {
+    if ($null -eq $run) { $runsOk = $false; break }
+    $st = [string]$run.status
+    if ($st -eq "failed" -or $st -eq "infra_error") { $runsOk = $false; break }
+    $failedN = -1
+    $totalN = 0
+    if (-not [int]::TryParse([string]$run.failed, [ref]$failedN)) { $runsOk = $false; break }
+    if (-not [int]::TryParse([string]$run.total, [ref]$totalN)) { $runsOk = $false; break }
+    if ($failedN -ne 0 -or $totalN -le 0) { $runsOk = $false; break }
+    $passedPlatforms += [string]$run.platform
+  }
+  $bad = @("$($sel.excludeCategory)".Split(";") | ForEach-Object { $_.Trim().ToLower() } | Where-Object { $_ -and $_ -ne "requiresgraphics" })
+  if ($s.status -ne "passed") { $why = "status=" + $s.status }
+  elseif ($s.mode -cne "Both") { $why = "mode=" + $s.mode }
+  elseif ($expected -eq "" -or (Canon $s.projectPath) -ne $expected) { $why = "projectPath=" + $s.projectPath + " (expected " + $expected + ")" }
+  elseif (-not ($runsOk -and $passedPlatforms -ccontains "EditMode" -and $passedPlatforms -ccontains "PlayMode")) { $why = "runs lack passed EditMode+PlayMode" }
+  elseif ("$($sel.scopeType)".ToLower() -ne "workspace") { $why = "scopeType=" + $sel.scopeType }
+  elseif ($bad.Count -gt 0) { $why = "excludeCategory=" + $sel.excludeCategory }
+  else {
+    foreach ($key in $mustBeEmpty) {
+      if (-not (Blank $sel.$key)) { $why = "$key set"; break }
+    }
+  }
+}
+if ($null -ne $why) { Write-Output ("partial|" + $why) }
+else { Write-Output ("full|mode=Both scopeType=Workspace excludeCategory=" + $sel.excludeCategory) }
+'
+
+# Prints "full|<detail>" or "partial|<reason>"; missing/unparseable summaries and dead parsers are all partial (fail closed).
+summary_coverage() {
+  local summary="$1" expected_project="$2" out="" interp
+  [[ -f "$summary" ]] || { echo "partial|no summary at $summary"; return 0; }
+  # A Windows Store python3 stub satisfies command -v yet fails on invocation; only a well-formed verdict counts, else fall through.
+  for interp in python3 python; do
+    command -v "$interp" >/dev/null 2>&1 || continue
+    out="$("$interp" -c "$FULL_COVERAGE_PY" "$summary" "$expected_project" 2>/dev/null || true)"
+    case "$out" in full\|*|partial\|*) printf '%s\n' "$out"; return 0 ;; esac
+  done
+  out="$(POOL_SUMMARY_JSON="$summary" POOL_EXPECTED_PROJECT="$expected_project" powershell.exe -NoProfile -Command "$FULL_COVERAGE_PS" 2>/dev/null || true)"
+  case "$out" in full\|*|partial\|*) printf '%s\n' "$out"; return 0 ;; esac
+  echo "partial|no working JSON parser (tried python3, python, powershell.exe)"
+  return 0
+}
+
+write_tested_scope() {
+  local ldir="$1" tree="$2" kind="$3" anchor="$4" detail="$5"
+  {
+    printf 'tree=%s\n' "$tree"
+    printf 'kind=%s\n' "$kind"
+    printf 'anchor=%s\n' "$anchor"
+    printf 'detail=%s\n' "$detail"
+    printf 'recordedAt=%s\n' "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+  } > "$ldir/tested_scope"
+}
+
+# Merge-grade proof = exact tree hash + provenance of a passing FULL run (Mode Both, ScopeType Workspace, unfiltered), recorded only after the runner exits 0; anything narrower records nothing so the gate re-tests (fail closed). A local base-merge commit alone is never evidence.
 record_tested_tree() {
   local slot="$1" path="$2"
-  local ldir
+  local ldir verdict detail tree
   ldir="$(lock_dir_for "$slot")"
   mkdir -p "$ldir"
-  git -C "$path" rev-parse 'HEAD^{tree}' > "$ldir/tested_tree"
+  verdict="$(summary_coverage "$path/$SUMMARY_REL" "$path/src/Asteroids3D")"
+  detail="${verdict#*|}"
+  verdict="${verdict%%|*}"
+  if [[ "$verdict" != "full" ]]; then
+    echo "No merge-grade proof recorded ($detail); the merge gate will run the full suite."
+    return 0
+  fi
+  tree="$(git -C "$path" rev-parse 'HEAD^{tree}')"
+  printf '%s\n' "$tree" > "$ldir/tested_tree"
+  write_tested_scope "$ldir" "$tree" "full-run" "$tree" "$detail"
 }
 
 tested_tree_for() {
   local slot="$1"
   cat "$(lock_dir_for "$slot")/tested_tree" 2>/dev/null || true
+}
+
+tested_scope_field() {
+  local slot="$1" key="$2"
+  sed -n "s/^${key}=//p" "$(lock_dir_for "$slot")/tested_scope" 2>/dev/null | head -n 1
+}
+
+# Only a provenance-corroborated tree counts: a bare tested_tree (legacy scoped-run recordings) is not merge evidence.
+verified_proof_tree() {
+  local slot="$1" tree
+  tree="$(tested_tree_for "$slot")"
+  if [[ -n "$tree" && "$(tested_scope_field "$slot" tree)" == "$tree" ]]; then
+    echo "$tree"
+  fi
+  return 0
+}
+
+extend_proof() {
+  local slot="$1" tree="$2" kind="$3" prior_tree="$4"
+  local ldir anchor
+  ldir="$(lock_dir_for "$slot")"
+  anchor="$(tested_scope_field "$slot" anchor)"
+  [[ -n "$anchor" ]] || anchor="$prior_tree"
+  mkdir -p "$ldir"
+  printf '%s\n' "$tree" > "$ldir/tested_tree"
+  write_tested_scope "$ldir" "$tree" "$kind" "$anchor" "inherited from fully-tested tree $prior_tree"
+}
+
+# The runner tests the WORKING TREE, so proof for the committed tree is a lie unless they match; also catches the recurring "submit doesn't commit" mistake.
+require_clean_slot() {
+  local slot="$1" path="$2" action="$3"
+  local dirty
+  dirty="$(git -C "$path" status --porcelain 2>/dev/null || echo "status-failed")"
+  [[ -z "$dirty" ]] && return 0
+  echo "$action: $slot worktree has uncommitted/untracked changes — tests would cover a tree that is not the committed one. Commit (or clean) first:" >&2
+  printf '%s\n' "$dirty" | head -n 20 >&2
+  return 1
+}
+
+# CallerLineNumber/CallerArgumentExpression et al. make comment/whitespace edits behavior-visible (line shifts, argument text); any use in Assets disables the .cs inert path for the merge.
+caller_info_attrs_present() {
+  local path="$1" tree="$2"
+  local rc=0
+  git -C "$path" grep -l -E 'CallerLineNumber|CallerArgumentExpression|CallerMemberName|CallerFilePath' "$tree" -- 'src/Asteroids3D/Assets/*.cs' >/dev/null 2>&1 || rc=$?
+  [[ "$rc" -ne 1 ]]
+}
+
+# Inert = provably unable to change compiled behavior: markdown (*.md) freely; modified .cs only when the string-literal-aware normalizer proves comment/whitespace-only. Everything else is code (fail closed).
+classify_diff_since_proof() {
+  local path="$1" old_tree="$2" new_tree="$3"
+  git -C "$path" rev-parse --verify -q "$old_tree^{tree}" >/dev/null 2>&1 || { echo "code"; return 0; }
+  git -C "$path" rev-parse --verify -q "$new_tree^{tree}" >/dev/null 2>&1 || { echo "code"; return 0; }
+  local diff_output diff_rc=0
+  diff_output="$(git -C "$path" diff --no-renames --name-status "$old_tree" "$new_tree" 2>/dev/null)" || diff_rc=$?
+  [[ "$diff_rc" -eq 0 ]] || { echo "code"; return 0; }
+  local classification="doc" status file
+  while IFS=$'\t' read -r status file; do
+    [[ -n "$file" ]] || continue
+    case "$file" in
+      '"'*) echo "code"; return 0 ;;
+      *.md) ;;
+      *.cs)
+        [[ "$status" == "M" ]] || { echo "code"; return 0; }
+        cs_diff_is_comment_only "$path" "$old_tree" "$new_tree" "$file" || { echo "code"; return 0; }
+        classification="comment"
+        ;;
+      *) echo "code"; return 0 ;;
+    esac
+  done <<< "$diff_output"
+  if [[ "$classification" == "comment" ]] && caller_info_attrs_present "$path" "$new_tree"; then
+    echo "Caller-info attributes present in Assets — .cs comment-only fast path disabled for this merge." >&2
+    classification="code"
+  fi
+  echo "$classification"
+}
+
+cs_diff_is_comment_only() {
+  local path="$1" old_tree="$2" new_tree="$3" file="$4"
+  local normalizer="$SCRIPT_DIR/inert_diff.ps1"
+  [[ -f "$normalizer" ]] || return 1
+  local old_blob new_blob rc=0
+  old_blob="$(mktemp)"
+  new_blob="$(mktemp)"
+  git -C "$path" show "$old_tree:$file" > "$old_blob" 2>/dev/null || rc=1
+  git -C "$path" show "$new_tree:$file" > "$new_blob" 2>/dev/null || rc=1
+  if [[ "$rc" -eq 0 ]]; then
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$normalizer" -OldPath "$old_blob" -NewPath "$new_blob" >/dev/null 2>&1 || rc=1
+  fi
+  rm -f "$old_blob" "$new_blob"
+  return "$rc"
 }
 
 write_lock() {
@@ -433,7 +683,9 @@ cmd_submit() {
   local path
   path="$(slot_path "$slot")"
   git -C "$path" checkout "$slot"
+  require_clean_slot "$slot" "$path" "submit" || return 1
 
+  clear_run_summary "$path"
   cmd_run_tests "$slot" "${test_args[@]}"
   record_tested_tree "$slot" "$path"
 
@@ -525,6 +777,7 @@ cmd_merge() {
 
   git -C "$path" fetch origin "$base_branch"
   git -C "$path" checkout "$slot"
+  require_clean_slot "$slot" "$path" "merge" || return 1
   # Gate against the freshly-fetched remote-tracking ref: a bare local name (e.g. 'main') can lag the remote and silently skip the re-test.
   base_ref="origin/$base_branch"
 
@@ -539,16 +792,40 @@ cmd_merge() {
     fi
   fi
 
-  # Skip the re-test only on recorded proof for this exact tree: ancestry alone is not evidence — a base-merge commit survives a failed test run, and a retry must re-test it.
-  local current_tree tested_tree
+  # Skip the re-test only on provenance-corroborated FULL-suite proof for this exact tree: scoped runs never count, and ancestry alone is not evidence — a base-merge commit survives a failed test run, and a retry must re-test it.
+  local current_tree proof_tree
   current_tree="$(git -C "$path" rev-parse "$slot^{tree}")"
-  tested_tree="$(tested_tree_for "$slot")"
-  if [[ -n "$tested_tree" && "$tested_tree" == "$current_tree" ]]; then
-    echo "Tree $current_tree already passed tests — skipping re-run."
+  proof_tree="$(verified_proof_tree "$slot")"
+  if [[ -n "$proof_tree" && "$proof_tree" == "$current_tree" ]]; then
+    echo "Tree $current_tree already passed the full suite — skipping re-run."
+  elif [[ -n "$proof_tree" ]]; then
+    case "$(classify_diff_since_proof "$path" "$proof_tree" "$current_tree")" in
+      doc)
+        echo "Markdown-only delta since fully-tested tree $proof_tree — extending proof without a run."
+        extend_proof "$slot" "$current_tree" "inherit-doc" "$proof_tree"
+        ;;
+      comment)
+        echo "C# comment/whitespace-only delta since fully-tested tree $proof_tree — compile-level smoke refresh."
+        clear_run_summary "$path"
+        cmd_run_tests "$slot" -Mode EditMode -ScopeType Smoke
+        extend_proof "$slot" "$current_tree" "inherit-smoke" "$proof_tree"
+        ;;
+      *)
+        echo "Code delta since fully-tested tree $proof_tree — running the full suite before merge."
+        clear_run_summary "$path"
+        cmd_run_tests "$slot" "${test_args[@]}"
+        record_tested_tree "$slot" "$path"
+        ;;
+    esac
   else
-    echo "No test proof for tree $current_tree — running tests before merge."
+    echo "No full-suite proof for tree $current_tree — running the full suite before merge."
+    clear_run_summary "$path"
     cmd_run_tests "$slot" "${test_args[@]}"
     record_tested_tree "$slot" "$path"
+  fi
+  if [[ "$(verified_proof_tree "$slot")" != "$current_tree" ]]; then
+    echo "merge: no full-coverage proof for landing tree $current_tree (scoped gate args?); not merging." >&2
+    return 1
   fi
   # Unconditional: gh merges the REMOTE branch, so any local-only commits must be on it before the squash.
   git -C "$path" push origin "$slot:refs/heads/$task_branch"
@@ -645,6 +922,12 @@ cmd_revise() {
   local slot="$1"
   shift || true
 
+  local no_test=0
+  if [[ ${1:-} == "--no-test" ]]; then
+    no_test=1
+    shift
+  fi
+
   local test_args=()
   if [[ ${1:-} == "--" ]]; then
     shift
@@ -671,8 +954,14 @@ cmd_revise() {
     git -C "$path" pull --rebase origin "$task_branch"
   fi
 
-  cmd_run_tests "$slot" "${test_args[@]}"
-  record_tested_tree "$slot" "$path"
+  if [[ "$no_test" -eq 1 ]]; then
+    echo "Skipping tests (--no-test): no proof recorded; the merge gate will test the landing tree."
+  else
+    require_clean_slot "$slot" "$path" "revise" || return 1
+    clear_run_summary "$path"
+    cmd_run_tests "$slot" "${test_args[@]}"
+    record_tested_tree "$slot" "$path"
+  fi
 
   git -C "$path" push origin "$slot:refs/heads/$task_branch"
   echo "Revised and pushed $slot -> $task_branch"
@@ -726,7 +1015,7 @@ main() {
       cmd_review_comments "$@"
       ;;
     revise)
-      [[ $# -ge 1 ]] || { echo "revise requires <slot> [-- test_args...]" >&2; exit 1; }
+      [[ $# -ge 1 ]] || { echo "revise requires <slot> [--no-test] [-- test_args...]" >&2; exit 1; }
       cmd_revise "$@"
       ;;
     -h|--help|help) usage ;;

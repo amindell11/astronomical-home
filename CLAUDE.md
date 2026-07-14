@@ -37,7 +37,10 @@ Summary of the loop (details in the skill file):
    primary worktree.
 3. **PR once green.** Once tests pass and the diff is self-verified, run
    `submit` to push and open a PR. Report back using the skill's required
-   reporting format.
+   reporting format. Scoped runs (e.g. `-ScopeType Auto`, the recommended
+   scope for iteration/submit) are fine here — they open the PR but record
+   no merge proof; only a passing full `-Mode Both -ScopeType Workspace`
+   run does, and the merge gate re-tests anything less.
 4. **Review round-trip.** Wait for the user's review. If they leave PR
    comments or ask for changes in chat, use `revise` to address them and
    re-push. Repeat until the user says it's good.
@@ -47,7 +50,11 @@ Summary of the loop (details in the skill file):
    through the gate: `./scripts/agent_worktree_pool.sh merge <slot>`. Never
    raw `gh pr merge`: the pool command re-tests against current main when
    main moved after the branch's last test run (a stale-based branch can be
-   green on its own base yet break main with zero textual conflict). Never
+   green on its own base yet break main with zero textual conflict). The
+   gate's run is the single full run per merge: it skips only on full-suite
+   proof for the exact landing tree, extends proof over docs-only deltas
+   with no run, and downgrades C# comment-only deltas to an EditMode Smoke
+   compile refresh. Never
    merge without that explicit signal, and never force-push or skip the
    gate's test run to get there. Before
    merging, sweep unresolved PR comments: fix trivial ones directly and
@@ -60,7 +67,9 @@ Summary of the loop (details in the skill file):
    the unresolved-comment triage as concurrent Agent calls in one message.
    To keep parallel edits from colliding, have them report proposed edits
    rather than write, or partition the touched files between them; you apply
-   the results centrally, then do a single `revise` at the end. **For every
+   the results centrally, then do a single `revise <slot> --no-test` at the
+   end — hygiene edits don't need their own suite run; the gate tests the
+   exact tree that lands. **For every
    one of these pre-merge passes (simplify,
    comment-hygiene strip, unresolved-comment fixes), report back a short
    summary of what you changed and why** — unless you already discussed that
