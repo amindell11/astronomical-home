@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Regression for the merge gate's proof chain: only passing FULL runs record merge-grade proof, a failed run after base integration forces a re-test on retry, and inert deltas (docs-only / .cs comment-only) extend proof without burning a full suite.
+# Regression for the merge gate's proof chain: only passing FULL runs on a clean worktree record merge-grade proof, a failed run after base integration forces a re-test on retry, and inert deltas (*.md / .cs comment-only) extend proof without burning a full suite.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 POOL="$SCRIPT_DIR/agent_worktree_pool.sh"
@@ -44,11 +44,22 @@ done
 ec="$(cat "$RUNNER_EXIT_FILE")"
 status=passed
 [[ "$ec" == 0 ]] || status=failed
+# pwd -W (Windows-style, git-bash) matches the canonical worktree path the pool script derives; plain $PWD is the mismatched MSYS view.
+project="${STUB_PROJECT_PATH:-$(pwd -W 2>/dev/null || pwd)/src/Asteroids3D}"
+failed=0
+[[ "$ec" == 0 ]] || failed=1
+if [[ "$mode" == "Both" ]]; then
+  runs="{\"platform\": \"EditMode\", \"status\": \"$status\", \"total\": 10, \"failed\": $failed}, {\"platform\": \"PlayMode\", \"status\": \"$status\", \"total\": 10, \"failed\": $failed}"
+else
+  runs="{\"platform\": \"$mode\", \"status\": \"$status\", \"total\": 10, \"failed\": $failed}"
+fi
 mkdir -p results/unity-tests-agent
 cat > results/unity-tests-agent/latest-summary.json <<JSON
 {
   "mode": "$mode",
   "status": "$status",
+  "projectPath": "$project",
+  "runs": [ $runs ],
   "selection": {
     "scopeType": "$scope",
     "scopeName": "",
@@ -90,7 +101,8 @@ git clone -q "$TMP/origin.git" "$TMP/primary"
 git -C "$TMP/primary" config user.email pool-test@example.test
 git -C "$TMP/primary" config user.name "Pool Test"
 echo base > "$TMP/primary/file.txt"
-git -C "$TMP/primary" add file.txt
+printf 'results/\n' > "$TMP/primary/.gitignore"
+git -C "$TMP/primary" add file.txt .gitignore
 git -C "$TMP/primary" commit -qm init
 git -C "$TMP/primary" push -q origin main
 git -C "$TMP/primary" worktree add -q -b agent-1 "$TMP/agent-1" main
@@ -223,5 +235,67 @@ if last_run_line | grep -q -- '-ScopeType Smoke'; then fail "code delta must not
 [[ "$(gh_merges)" == 7 ]] || fail "code delta merge should complete (got $(gh_merges))"
 [[ "$(recorded_tree)" == "$(slot_tree)" ]] || fail "code delta gate run should record proof"
 [[ "$(scope_field kind)" == "full-run" ]] || fail "code delta gate run should re-anchor as full-run"
+
+# Dirty worktree: proof-bearing runs refuse to start (the runner tests the working tree, not HEAD).
+echo "class Stray { }" > "$TMP/agent-1/stray.cs"
+if pool submit agent-1 origin/main >/dev/null 2>&1; then fail "submit must refuse a dirty worktree"; fi
+[[ "$(runner_runs)" == 8 ]] || fail "dirty submit must not invoke the runner (got $(runner_runs))"
+if pool merge agent-1 >/dev/null 2>&1; then fail "merge must refuse a dirty worktree"; fi
+[[ "$(runner_runs)" == 8 ]] || fail "dirty merge must not invoke the runner (got $(runner_runs))"
+[[ "$(gh_merges)" == 7 ]] || fail "dirty merge must not reach gh pr merge (got $(gh_merges))"
+rm "$TMP/agent-1/stray.cs"
+
+# A summary from the wrong project must not arm proof.
+echo change3 > "$TMP/agent-1/feature3.txt"
+git -C "$TMP/agent-1" add feature3.txt
+git -C "$TMP/agent-1" commit -qm "feature 3"
+STUB_PROJECT_PATH="/definitely/not/this/project" pool submit agent-1 origin/main >/dev/null
+[[ "$(runner_runs)" == 9 ]] || fail "wrong-project submit should still run tests (got $(runner_runs))"
+[[ "$(recorded_tree)" != "$(slot_tree)" ]] || fail "wrong-project summary must not arm proof"
+pool merge agent-1 >/dev/null
+[[ "$(runner_runs)" == 10 ]] || fail "merge after wrong-project submit must re-run the full suite (got $(runner_runs))"
+[[ "$(gh_merges)" == 8 ]] || fail "wrong-project recovery merge should complete (got $(gh_merges))"
+[[ "$(recorded_tree)" == "$(slot_tree)" ]] || fail "gate full run should arm proof after wrong-project summary"
+
+# Caller-info attributes in Assets disable the .cs comment-only fast path (line/argument-text sensitive).
+mkdir -p "$TMP/agent-1/src/Asteroids3D/Assets"
+cat > "$TMP/agent-1/src/Asteroids3D/Assets/CallerProbe.cs" <<'CS'
+using System.Runtime.CompilerServices;
+class CallerProbe {
+    static void Log(string message, [CallerLineNumber] int line = 0) { }
+}
+CS
+git -C "$TMP/agent-1" add src/Asteroids3D/Assets/CallerProbe.cs
+git -C "$TMP/agent-1" commit -qm "plant caller-info attribute"
+pool submit agent-1 origin/main >/dev/null
+[[ "$(runner_runs)" == 11 ]] || fail "caller-probe submit should run tests (got $(runner_runs))"
+[[ "$(recorded_tree)" == "$(slot_tree)" ]] || fail "caller-probe full submit should arm proof"
+sed -i 's/reworded comment/reworded again/' "$TMP/agent-1/code.cs"
+git -C "$TMP/agent-1" add code.cs
+git -C "$TMP/agent-1" commit -qm "comment-only edit under caller-info"
+pool merge agent-1 >/dev/null
+[[ "$(runner_runs)" == 12 ]] || fail "comment-only edit under caller-info must run the full suite (got $(runner_runs))"
+if last_run_line | grep -q -- '-ScopeType Smoke'; then fail "caller-info must disable the smoke downgrade"; fi
+[[ "$(gh_merges)" == 9 ]] || fail "caller-info merge should complete (got $(gh_merges))"
+[[ "$(scope_field kind)" == "full-run" ]] || fail "caller-info gate run should record full-run provenance"
+
+# The markdown fast path is unaffected by caller-info attributes.
+echo changelog > "$TMP/agent-1/CHANGES.md"
+git -C "$TMP/agent-1" add CHANGES.md
+git -C "$TMP/agent-1" commit -qm "md under caller-info"
+pool merge agent-1 >/dev/null
+[[ "$(runner_runs)" == 12 ]] || fail "md-only delta must stay run-free under caller-info (got $(runner_runs))"
+[[ "$(gh_merges)" == 10 ]] || fail "md-only merge under caller-info should complete (got $(gh_merges))"
+[[ "$(scope_field kind)" == "inherit-doc" ]] || fail "md-only delta should extend proof"
+
+# Non-markdown files under doc/ are not inert.
+mkdir -p "$TMP/agent-1/doc"
+echo "Write-Host tool" > "$TMP/agent-1/doc/tool.ps1"
+git -C "$TMP/agent-1" add doc/tool.ps1
+git -C "$TMP/agent-1" commit -qm "script under doc/"
+pool merge agent-1 >/dev/null
+[[ "$(runner_runs)" == 13 ]] || fail "doc/tool.ps1 must force the full suite (got $(runner_runs))"
+[[ "$(gh_merges)" == 11 ]] || fail "doc-script merge should complete (got $(gh_merges))"
+[[ "$(scope_field kind)" == "full-run" ]] || fail "doc-script gate run should record full-run provenance"
 
 echo "PASS: merge gate tested-tree proof + scope-aware proof + inert fast path"

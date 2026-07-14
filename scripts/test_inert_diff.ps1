@@ -124,6 +124,34 @@ Assert-Verdict "directive merged onto one line is not inert" `
     "#if DEBUG`nclass A { }`n#endif" `
     "#if DEBUG class A { } #endif" $DIFFERENT
 
+Assert-Verdict "interpolation format-clause whitespace is significant" `
+    'class A { string s = $"{x:00  00}"; }' `
+    'class A { string s = $"{x:00 00}"; }' $DIFFERENT
+
+Assert-Verdict "verbatim interpolation format-clause whitespace is significant" `
+    'class A { string s = $@"{x:00  00}"; }' `
+    'class A { string s = $@"{x:00 00}"; }' $DIFFERENT
+
+Assert-Verdict "interpolation hole whitespace is significant" `
+    'class A { string s = $"{x + 1}"; }' `
+    'class A { string s = $"{x +  1}"; }' $DIFFERENT
+
+Assert-Verdict "comment inside interpolation hole is doubt" `
+    'class A { string s = $"{x /* c */}"; }' `
+    'class A { string s = $"{x}"; }' $DOUBT
+
+Assert-Verdict "bare CR line terminator is doubt" `
+    ("class A { int x = 1; }`r// tail") `
+    ("class A { int x = 1; }`r// other") $DOUBT
+
+Assert-Verdict "U+2028 line terminator is doubt" `
+    ("class A { int x = 1; }" + [string][char]0x2028 + "// tail") `
+    ("class A { int x = 1; }" + [string][char]0x2028 + "// other") $DOUBT
+
+Assert-Verdict "CRLF file with comment edit is inert" `
+    ("class A {`r`n    // one`r`n    int x = 1;`r`n}`r`n") `
+    ("class A {`r`n    // two`r`n    int x = 1;`r`n}`r`n") $INERT
+
 Assert-Verdict "unterminated block comment is doubt" `
     "class A { int x = 1; }" `
     "class A { int x = 1; } /* oops" $DOUBT

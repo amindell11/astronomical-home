@@ -9,6 +9,16 @@ $ErrorActionPreference = "Stop"
 function Get-NormalizedCSharp {
     param([string]$Text)
 
+    # C# also treats U+0085/U+2028/U+2029 and bare CR as line terminators; only LF/CRLF are handled here, so anything else is doubt.
+    if ($Text.IndexOfAny([char[]]@([char]0x85, [char]0x2028, [char]0x2029)) -ge 0) {
+        throw "unsupported line terminator (U+0085/U+2028/U+2029)"
+    }
+    $crIndex = $Text.IndexOf([char]13)
+    while ($crIndex -ge 0) {
+        if ($crIndex + 1 -ge $Text.Length -or $Text[$crIndex + 1] -ne "`n") { throw "bare CR line terminator" }
+        $crIndex = $Text.IndexOf([char]13, $crIndex + 2)
+    }
+
     $sb = New-Object System.Text.StringBuilder
     $directiveMark = [string][char]1
     $n = $Text.Length
@@ -81,6 +91,12 @@ function Get-NormalizedCSharp {
         }
 
         if ([char]::IsWhiteSpace($c)) {
+            # Interpolation-hole content (incl. format clauses like {x:00 00}) is runtime data: emit verbatim, never collapse.
+            if ($holeStack.Count -gt 0) {
+                [void]$sb.Append($c)
+                $i++
+                continue
+            }
             if ($c -eq "`n") { $atLineStart = $true }
             $pending = $true
             $i++
@@ -101,12 +117,14 @@ function Get-NormalizedCSharp {
         }
 
         if ($c -eq '/' -and $i + 1 -lt $n -and $Text[$i + 1] -eq '/') {
-            while ($i -lt $n -and $Text[$i] -ne "`n") { $i++ }
+            if ($holeStack.Count -gt 0) { throw "comment inside interpolation hole" }
+            while ($i -lt $n -and $Text[$i] -ne "`n" -and $Text[$i] -ne "`r") { $i++ }
             $pending = $true
             continue
         }
 
         if ($c -eq '/' -and $i + 1 -lt $n -and $Text[$i + 1] -eq '*') {
+            if ($holeStack.Count -gt 0) { throw "comment inside interpolation hole" }
             $end = $Text.IndexOf("*/", $i + 2)
             if ($end -lt 0) { throw "unterminated block comment" }
             $i = $end + 2
