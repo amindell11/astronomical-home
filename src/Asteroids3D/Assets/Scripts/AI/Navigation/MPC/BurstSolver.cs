@@ -31,7 +31,7 @@ namespace Movement.MPC
 
             var rng = new Unity.Mathematics.Random(CandidateSeed(rngSeed, (uint)candidateIndex));
 
-            // Time-correlated noise: Gaussian draws at a few evenly spaced knots, interpolated between, so one draw can express a sustained maneuver instead of self-averaging per-step jitter.
+            // Correlated knots preserve sustained maneuvers instead of self-averaging into jitter.
             var knots = math.max(2, noiseKnots);
             var knotScale = (knots - 1) / (float)math.max(1, horizon - 1);
             var prevKnot = NextGaussian3(ref rng);
@@ -61,7 +61,6 @@ namespace Movement.MPC
             }
         }
 
-        // Hashes the solve seed with the candidate index into a scattered nonzero seed (Unity.Mathematics.Random rejects a zero seed). Inline, not SeedScope, to keep the Burst solver decoupled from the command layer.
         private static uint CandidateSeed(uint solveSeed, uint candidateIndex)
         {
             var h = solveSeed * 2654435761u;
@@ -113,7 +112,6 @@ namespace Movement.MPC
                 prevU = u;
             }
 
-            // Cost-to-go terminal hook: one field fetch per rollout at the final state; invalid field or wTerminal 0 contributes nothing.
             if (cfg.wTerminal > 0f && costInput.terminalField.isValid != 0)
                 totalCost += cfg.wTerminal * Field.TerminalFieldData.Sample(current.pos, costInput.terminalField);
 
@@ -124,6 +122,8 @@ namespace Movement.MPC
     /// <summary>Owns the NativeArray buffers for the Burst solver: create once, call Solve each frame, Dispose on teardown.</summary>
     public class SolverBuffers : System.IDisposable
     {
+        private const int CandidateBatchSize = 8;
+
         /// <summary>Optional global base-seed override (benchmark reproducibility): pins every ship to one base so a chase replays identically; null uses the injected per-ship seed. Interim world-scoped seam — see CLAUDE.md dependency philosophy.</summary>
         public static uint? SamplerSeedOverride;
 
@@ -148,7 +148,6 @@ namespace Movement.MPC
         public NativeArray<State> EnemyStates => enemyStates;
         public int LastEnemyStateCount { get; private set; }
 
-        // Editor visualization: read-only candidate sequences and costs from the most recent Solve(), valid until the next Solve() rewrites the buffers.
         public NativeArray<Control> Candidates => candidates;
         public NativeArray<float> Costs => costs;
         public int LastSampleCount { get; private set; }
@@ -170,7 +169,7 @@ namespace Movement.MPC
             LastSampleCount = samples;
             LastHorizon = horizon;
 
-            // The job safety system rejects uncreated NativeArray fields even when guarded by isValid, so an absent terminal field gets the never-read dummy buffers.
+            // Job safety validates NativeArray fields before the job's isValid guard can run.
             if (!terminalField.costToGo.IsCreated)
             {
                 terminalField.costToGo = dummyTerminalCost;
@@ -231,7 +230,7 @@ namespace Movement.MPC
 
             initialState.boostCooldownRemaining = boostCooldownRemaining;
 
-            // Per-ship stream, solve counter, and quantized position hash decorrelate ships/solves/poses while keeping the noise replayable across physically-identical states (raw float bits would make one ulp of pose noise pick a different stream).
+            // Quantization keeps physically identical poses replayable despite float noise.
             solveCount++;
             var baseSeed = SamplerSeedOverride ?? samplerSeed;
             var quantizedPos = (int2)math.round(initialState.pos * 8f);
@@ -246,7 +245,7 @@ namespace Movement.MPC
                 noiseKnots = noiseKnots,
                 boostSampleProbability = boostSampleProbability,
                 rngSeed = rngSeed
-            }.Schedule(samples, 1).Complete();
+            }.Schedule(samples, CandidateBatchSize).Complete();
 
             Evaluate(initialState, costInput, cfg, dynamics, lastControl, samples);
 
@@ -275,7 +274,7 @@ namespace Movement.MPC
                 cfg = cfg,
                 dynamics = dynamics,
                 lastControl = lastControl,
-            }.Schedule(samples, 1).Complete();
+            }.Schedule(samples, CandidateBatchSize).Complete();
         }
 
         private float EliteAverage(Control[] sequence, int horizon, int samples, float eliteFraction)
@@ -401,7 +400,7 @@ namespace Movement.MPC
             var rawCount = (scan.count > 0 && useObstacles) ? scan.count : 0;
             var invShipMass = shipMass > 0f ? 1f / shipMass : 1f;
 
-            // Expand elongated rocks into their tighter lobes when multi-sphere is on, admitting each rock atomically (all lobes or none) so the buffer never holds a partial obstacle; kill switch off writes one primary-circle row per rock.
+            // Admit all lobes atomically so the buffer never contains a partial obstacle.
             var written = 0;
             for (var i = 0; i < rawCount; i++)
             {

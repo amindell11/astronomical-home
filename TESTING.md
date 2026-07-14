@@ -545,6 +545,21 @@ rather than red (see `MissileGuidancePlayModeTests.Target90Degrees_Converges`).
 
 ---
 
+## Native Unity profiling
+
+Use the Development Player profiler harness for frame-time investigations:
+
+```powershell
+./scripts/unity_profile.ps1 -Label baseline -WarmupFrames 300 -SampleFrames 1200
+./scripts/unity_profile.ps1 -Label candidate -WarmupFrames 300 -SampleFrames 1200
+```
+
+`-ExtraShips 6` adds six fully wired enemies to the normal player-plus-enemy CombatSector workload. The harness coordinates Unity access, builds a temporary profiling scene without modifying the checked-in scene, records native `.raw` CPU/GPU/Rendering/Memory/Physics/UI data, and emits a JSON distribution and spike-marker summary under `results/profiling/`.
+
+Keep scenario, resolution, quality, warmup, frame count, and extra-ship count identical between baseline and candidate. Use tests as regression coverage, not as a substitute for the native frame capture.
+
+---
+
 ## Best practices
 
 Distilled from the test-suite cleanup. Rules of thumb, not laws.

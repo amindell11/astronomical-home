@@ -1,5 +1,7 @@
 # AI Performance Optimization Plan
 
+> **Profiling update (July 14, 2026):** The physics-first ordering below was a hypothesis, not a measured priority. Native Unity Profiler captures of the current eight-ship workload instead identify synchronous MPC candidate-job scheduling and main-thread completion fences as the active frame-drop source; GPU and physics were not the limiting stacks. See [Unity Profiler Frame-Drop Investigation](Unity_Profiler_Frame_Drops.md). Keep the remaining ideas as scale-out options and re-profile before implementing them.
+
 Below is a high-impact, staged roadmap for making the AI codebase scale to hundreds of simultaneous ships.
 
 ---
@@ -82,4 +84,4 @@ Use `NativeList` / pre-sized `NativeArray`s pooled centrally.
 ☑ Remove `Debug.Log` / string tag compares (minutes).  
 ☑ Object-pool remaining lists/arrays (≈1 hour).
 
-Implementing the shaded items above typically raises the cap from ~50 AI to 300+ at 60 fps on mid-range hardware, leaving headroom for visuals. 
+Implementing the shaded items above typically raises the cap from ~50 AI to 300+ at 60 fps on mid-range hardware, leaving headroom for visuals.
