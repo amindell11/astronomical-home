@@ -36,7 +36,7 @@ Shader "Custom/StarField"
         {
             "RenderPipeline" = "UniversalPipeline"
             "RenderType" = "Transparent"
-            "Queue" = "Background+50"
+            "Queue" = "Transparent-50"
         }
 
         Blend One One

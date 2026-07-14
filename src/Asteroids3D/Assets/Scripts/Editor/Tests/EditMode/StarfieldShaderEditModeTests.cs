@@ -25,7 +25,8 @@ namespace Tests.EditMode
             var material = LoadMaterial();
 
             Assert.AreEqual("Custom/StarField", material.shader.name);
-            Assert.AreEqual(1050, material.renderQueue);
+            Assert.AreEqual(2950, material.renderQueue,
+                "The starfield must render after the skybox and before ordinary transparent effects.");
 
             var properties = new[]
             {
