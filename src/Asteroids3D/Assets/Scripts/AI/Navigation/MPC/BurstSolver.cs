@@ -184,7 +184,6 @@ namespace Movement.MPC
 
             ConvertObstacles(scan, useObstacles, multiSphereObstacles, dynamics.mass);
 
-            // Roll out predicted enemy trajectory assuming maintained thrust along facing
             var hasEnemyRollout = !math.isnan(enemyYaw) && enemyDynamics.mass > 0f;
             var enemyStateCount = 0;
             if (hasEnemyRollout)
@@ -196,7 +195,6 @@ namespace Movement.MPC
                     yaw = enemyYaw,
                     yawRate = enemyYawRate,
                 };
-                // Estimate thrust and strafe from velocity projected onto body axes
                 var sin = math.sin(enemyYaw);
                 var cos = math.cos(enemyYaw);
                 var fwd = new float2(-sin, cos);

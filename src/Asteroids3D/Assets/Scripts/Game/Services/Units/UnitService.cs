@@ -64,7 +64,6 @@ namespace Game.Services
             // Detach from the sector so lifetime/Clear() matches a spawned ship.
             ship.transform.SetParent(null, true);
 
-            // Use the pilot authored as a child of the ship, if present.
             var commander = ship.GetComponentInChildren<Commander>(true);
             if (commander)
                 ship.AdoptCommander(commander);

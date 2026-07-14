@@ -6,7 +6,7 @@ namespace Ships.Damage
     {
         private float regenRate;
         private float regenDelay;
-        private float clock;            // internal time base, advanced by Update(dt)
+        private float clock;
         private float lastDamageTime;
 
         public RegenResource(float maxValue, float regenRate, float regenDelay) : base(maxValue)

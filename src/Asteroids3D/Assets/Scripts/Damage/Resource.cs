@@ -18,10 +18,7 @@ namespace Ships.Damage
             CurrentValue = MaxValue;
         }
 
-        /// <summary>
-        /// Applies damage to this resource and returns the amount absorbed.
-        /// </summary>
-        /// <returns>Amount of damage absorbed by this resource.</returns>
+        /// <summary>Returns the amount of damage absorbed by this resource.</summary>
         public virtual float ApplyDamage(float amount)
         {
             if (amount <= 0 || CurrentValue <= 0) return 0;

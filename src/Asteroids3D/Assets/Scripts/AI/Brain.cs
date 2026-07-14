@@ -62,7 +62,6 @@ namespace AI
         }
 
 #if UNITY_EDITOR
-        // Hot-reload the policy when stateProfiles or a profile asset changes during play.
         private void OnValidate() => RefreshStates();
 
         /// <summary>Editor-only: rebuild the state set from the current profiles. No-op before the brain is initialized (i.e. outside play).</summary>

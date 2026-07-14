@@ -74,8 +74,7 @@ namespace Ships.Weapons
         {
             if (current)
             {
-                // Detach before the deferred Destroy so same-frame hierarchy queries
-                // can't find the outgoing mount.
+                // Detach before the deferred Destroy so same-frame hierarchy queries can't find the outgoing mount.
                 current.transform.SetParent(null);
                 Destroy(current.gameObject);
             }
@@ -116,7 +115,6 @@ namespace Ships.Weapons
         /// <summary>The slot-keyed display view handed to the HUD (same object, UI-facing surface).</summary>
         public IWeaponReadouts ReadoutContext => context;
 
-        // ── IWeapons ──
         public void Fire(WeaponSlot slot, in WeaponCommand cmd)
         {
             if (!enabled) return;
@@ -190,7 +188,6 @@ namespace Ships.Weapons
                 _ => null,
             };
 
-            // ── IWeaponReadouts ──
             public string DisplayName(WeaponSlot slot) => owner.Mount(slot)?.DisplayName ?? string.Empty;
 
             public IReadOnlyList<IWeaponReadout> Readouts(WeaponSlot slot) =>

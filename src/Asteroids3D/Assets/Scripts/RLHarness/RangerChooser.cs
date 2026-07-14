@@ -7,12 +7,7 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>
-    /// Scripted PR-3 stand-in over the velocity interface: closes to weapon range on a live
-    /// target, holds, and gates fire on (PR-2a's Range maneuver against a real opponent). The
-    /// per-weapon Gunsight/ShouldFire still applies on top of the fire gate — that layering is
-    /// deliberate.
-    /// </summary>
+    /// <summary>Scripted stand-in policy over the velocity interface: closes to weapon range on a live target, holds, and gates fire on; the per-weapon Gunsight/ShouldFire deliberately still applies on top of the fire gate.</summary>
     public class RangerChooser : IIntentChooser
     {
         private const int RecomputeIntervalTicks = 10;

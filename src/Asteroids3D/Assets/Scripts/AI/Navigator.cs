@@ -70,7 +70,6 @@ namespace Movement.MPC
         public Waypoint CurrentWaypoint => currentWaypoint;
 
         [Header("Settings")]
-        // Prefabs serialize this under its former name "settings".
         [FormerlySerializedAs("settings")]
         public MpcSettings mpcSettings;
 

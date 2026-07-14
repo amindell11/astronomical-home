@@ -4,12 +4,7 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>
-    /// Host-agnostic 1v1 episode loop: the driver calls <see cref="Tick"/> once per fixed step;
-    /// the runner owns the decision-boundary clock (every K steps → snapshot, pay reward),
-    /// termination, and result assembly. Plain class so PR-3's training scene can host the
-    /// same object the PlayMode tests drive.
-    /// </summary>
+    /// <summary>Host-agnostic 1v1 episode loop: the driver calls <see cref="Tick"/> once per fixed step; the runner owns the decision-boundary clock (every K steps → snapshot, pay reward), termination, and result assembly. Plain class so a training scene and the PlayMode tests host the same object.</summary>
     public class EpisodeRunner
     {
         private readonly Ship agent;
