@@ -220,19 +220,19 @@ function Write-AutoSelection {
 
     switch ($Auto.mode) {
         "smoke" {
-            Write-Host "No test-relevant changed files -> running SMOKE scope only."
+            Write-Host "No test-relevant changed files -> running the SMOKE category only."
         }
         "modules" {
             Write-Host ("Matched modules: {0}" -f (@($Auto.matchedModules) -join ", "))
-            Write-Host ("Resolved filter (module union + smoke): {0}" -f $Auto.testFilter)
+            Write-Host ("Resolved categories (module fixtures + smoke): {0}" -f $Auto.testCategory)
         }
         "fallback" {
             Write-Host "AUTO SCOPE FALLBACK -> FULL WORKSPACE SUITE (never under-test)."
             foreach ($file in @($Auto.unmatchedFiles)) {
                 Write-Host "  UNMATCHED (no module 'paths' glob in unity_test_scopes.json): $file"
             }
-            foreach ($moduleName in @($Auto.emptyFilterModules)) {
-                Write-Host "  MODULE '$moduleName' matched but its testFilter is empty/invalid in unity_test_scopes.json"
+            foreach ($moduleName in @($Auto.emptyCategoryModules)) {
+                Write-Host "  MODULE '$moduleName' matched but its paths cover no [Category]-tagged fixture"
             }
         }
     }
@@ -537,8 +537,10 @@ New-Item -ItemType Directory -Force -Path $outRoot | Out-Null
 
 $scopeMap = Load-ScopeMap -Path $ScopeMapPath
 $resolvedFilter = $TestFilter
+$resolvedCategory = $TestCategory
 $scopeResolved = $false
 $autoSummary = $null
+$testsRoot = Join-Path $project "Assets/Scripts/Editor/Tests"
 
 if ([string]::IsNullOrWhiteSpace($TestFilter)) {
     if ($ScopeType -eq "Auto") {
@@ -547,7 +549,8 @@ if ([string]::IsNullOrWhiteSpace($TestFilter)) {
         try {
             $diff = Get-AutoChangedFiles -RepoProbePath $project -BaseRef $DiffBase
             $autoMergeBase = $diff.mergeBase
-            $autoSelection = Resolve-AutoSelection -ScopeMap $scopeMap -ChangedFiles $diff.files
+            $fileCategoryIndex = Get-TestFileCategoryIndex -TestsRoot $testsRoot -RepoRoot $diff.repoRoot
+            $autoSelection = Resolve-AutoSelection -ScopeMap $scopeMap -ChangedFiles $diff.files -FileCategoryIndex $fileCategoryIndex
         }
         catch {
             Write-Warning "AUTO SCOPE: git diff against '$DiffBase' failed ($($_.Exception.Message)). Falling back to the FULL Workspace suite."
@@ -557,14 +560,15 @@ if ([string]::IsNullOrWhiteSpace($TestFilter)) {
                 ignoredFiles = @()
                 matchedModules = @()
                 unmatchedFiles = @()
-                emptyFilterModules = @()
-                testFilter = Resolve-ScopeFilter -ScopeMap $scopeMap -ScopeType "Workspace" -ScopeName ""
+                emptyCategoryModules = @()
+                categories = @()
+                testCategory = ""
             }
         }
 
         Write-AutoSelection -Auto $autoSelection -BaseRef $DiffBase -MergeBase $autoMergeBase
-        $resolvedFilter = [string]$autoSelection.testFilter
-        $scopeResolved = -not [string]::IsNullOrWhiteSpace($resolvedFilter)
+        $resolvedCategory = [string]$autoSelection.testCategory
+        $scopeResolved = ($autoSelection.mode -ne "fallback")
         $autoSummary = [ordered]@{
             diffBase = $DiffBase
             mergeBase = $autoMergeBase
@@ -572,7 +576,22 @@ if ([string]::IsNullOrWhiteSpace($TestFilter)) {
             matchedModules = @($autoSelection.matchedModules)
             unmatchedFiles = @($autoSelection.unmatchedFiles)
             ignoredFiles = @($autoSelection.ignoredFiles)
-            emptyFilterModules = @($autoSelection.emptyFilterModules)
+            emptyCategoryModules = @($autoSelection.emptyCategoryModules)
+            categories = @($autoSelection.categories)
+        }
+    }
+    elseif ($ScopeType -eq "Module" -and [string]::IsNullOrWhiteSpace($TestCategory)) {
+        $repoRoot = Get-RepoRoot -ProbePath $project
+        $fileCategoryIndex = Get-TestFileCategoryIndex -TestsRoot $testsRoot -RepoRoot $repoRoot
+        $moduleCategories = @(Get-ModuleDerivedCategories -ScopeMap $scopeMap -ModuleName $ScopeName.ToLower() -FileCategoryIndex $fileCategoryIndex)
+        if ($moduleCategories.Count -eq 0) {
+            Write-Warning "Module '$ScopeName' resolved to no [Category]-tagged fixtures (unknown module, or its paths cover none). Running the full Workspace suite."
+        }
+        else {
+            if ($moduleCategories -notcontains "Smoke") { $moduleCategories += "Smoke" }
+            $resolvedCategory = (@($moduleCategories | Sort-Object) -join ';')
+            $scopeResolved = $true
+            Write-Host "Resolved scope (Module/$ScopeName) to categories: $resolvedCategory"
         }
     }
     else {
@@ -614,6 +633,7 @@ if ($ValidateScope.IsPresent -and -not [string]::IsNullOrWhiteSpace($resolvedFil
 }
 
 $TestFilter = $resolvedFilter
+$TestCategory = $resolvedCategory
 
 $includeCategories = @()
 if (-not [string]::IsNullOrWhiteSpace($TestCategory)) {

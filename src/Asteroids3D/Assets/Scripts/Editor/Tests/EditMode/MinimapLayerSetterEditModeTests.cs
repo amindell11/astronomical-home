@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    [Category("Ship")]
+    [Category("UI")]
     public class MinimapLayerSetterEditModeTests
     {
         private GameObject go;

@@ -8,7 +8,7 @@ using Unity.Mathematics;
 namespace Tests.EditMode
 {
     /// <summary>Mechanism proof that representing an elongated rock as its tighter baked lobe spheres frees the space beside the rod that a single fat circle blocked (fat-axis clearance unchanged). Also pins ConvertObstacles' expansion, kill-switch, and atomic-admit semantics.</summary>
-    [Category("Planning")]
+    [Category("MPC")]
     public class MultiSphereObstacleEditModeTests
     {
         // Rod geometry: two lobes on the x-axis at (±d,0), radius r; a gap opens along y that the single covering circle (center 0, radius d+r) still fills.
