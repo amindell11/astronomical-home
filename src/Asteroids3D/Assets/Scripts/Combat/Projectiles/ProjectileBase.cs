@@ -119,6 +119,9 @@ namespace Combat.Projectile
             return other is ProjectileBase { Shooter: not null } p && p.Shooter == Shooter;
         }
 
+        /// <summary>Immediately returns this projectile to its pool with no detonation or hit effects (episode/scene flush).</summary>
+        public void ReturnToPoolImmediate() => ReturnToPool();
+
         protected abstract void ReturnToPool();
 
         protected void RaiseReturnedToPool()

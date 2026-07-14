@@ -243,6 +243,7 @@ namespace Ships
             Weapons?.ResetSystem();
             Movement.ResetMovement();
             Damage.ResetDamageState();
+            KinematicsPoller?.Poll();
             gameObject.SetActive(true);
         }
     }

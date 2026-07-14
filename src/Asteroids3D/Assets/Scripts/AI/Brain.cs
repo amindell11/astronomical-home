@@ -7,17 +7,7 @@ using UnityEngine;
 
 namespace AI
 {
-    /// <summary>
-    /// The ship's decision host: a policy-agnostic component that composes a swappable
-    /// <see cref="IIntentChooser"/> (picked in the inspector) and exposes its per-tick
-    /// decision to <see cref="AICommander"/>. Swapping the policy — utility now, RL later —
-    /// is a change to the serialized <see cref="chooser"/> reference; the host, the commander,
-    /// and actuation are untouched.
-    ///
-    /// Brain owns the discrete behavior menu (<see cref="stateProfiles"/>) and builds it into the
-    /// policy. The commander only knows it has a Brain to ask for an intent — it never sees the
-    /// states themselves.
-    /// </summary>
+    /// <summary>Policy-agnostic decision host: composes a swappable <see cref="IIntentChooser"/> and owns the discrete behavior menu (<see cref="stateProfiles"/>) it builds into state-based policies.</summary>
     [DefaultExecutionOrder(-70)]
     public class Brain : MonoBehaviour
     {
@@ -37,10 +27,7 @@ namespace AI
         private Gunner gunner;
         private SeedScope strategyScope;
 
-        /// <summary>
-        /// Binds the actuators the discrete behaviors drive and builds the option set into the
-        /// policy. A continuous policy (raw <see cref="IIntentChooser"/>) ignores the profiles.
-        /// </summary>
+        /// <summary>Binds the actuators the discrete behaviors drive and builds the option set into the policy; a continuous policy ignores the profiles.</summary>
         public void Initialize(Navigator navigator, Gunner gunner, SeedScope strategyScope)
         {
             this.navigator = navigator;
@@ -67,17 +54,21 @@ namespace AI
         public NavigationIntent Decide(AIContext ctx, float dt) =>
             chooser?.Decide(ctx, dt) ?? NavigationIntent.None;
 
+        /// <summary>Restores the freshly-initialized policy: the chooser clears its state and rebuilds from the stored strategy scope, so its RNG streams replay from the spawn seed.</summary>
+        public void ResetState()
+        {
+            chooser?.Reset();
+            BuildStates();
+        }
+
 #if UNITY_EDITOR
-        // Hot-reload the policy when stateProfiles or a profile asset changes during play.
         private void OnValidate() => RefreshStates();
 
-        /// <summary>Editor-only: rebuild the state set from the current profiles and restart state
-        /// selection. No-op before the brain is initialized (i.e. outside play).</summary>
+        /// <summary>Editor-only: rebuild the state set from the current profiles. No-op before the brain is initialized (i.e. outside play).</summary>
         internal void RefreshStates()
         {
             if (navigator == null) return;
-            (chooser as UtilityChooser)?.ResetForTesting();
-            BuildStates();
+            ResetState();
         }
 #endif
     }

@@ -184,7 +184,6 @@ namespace Movement.MPC
 
             ConvertObstacles(scan, useObstacles, multiSphereObstacles, dynamics.mass);
 
-            // Roll out predicted enemy trajectory assuming maintained thrust along facing
             var hasEnemyRollout = !math.isnan(enemyYaw) && enemyDynamics.mass > 0f;
             var enemyStateCount = 0;
             if (hasEnemyRollout)
@@ -196,7 +195,6 @@ namespace Movement.MPC
                     yaw = enemyYaw,
                     yawRate = enemyYawRate,
                 };
-                // Estimate thrust and strafe from velocity projected onto body axes
                 var sin = math.sin(enemyYaw);
                 var cos = math.cos(enemyYaw);
                 var fwd = new float2(-sin, cos);
@@ -233,10 +231,11 @@ namespace Movement.MPC
 
             initialState.boostCooldownRemaining = boostCooldownRemaining;
 
-            // Per-ship stream, solve counter, and position hash together decorrelate ships/solves/poses while keeping the noise replayable for identical inputs.
+            // Per-ship stream, solve counter, and quantized position hash decorrelate ships/solves/poses while keeping the noise replayable across physically-identical states (raw float bits would make one ulp of pose noise pick a different stream).
             solveCount++;
             var baseSeed = SamplerSeedOverride ?? samplerSeed;
-            var rngSeed = baseSeed + solveCount * 7919u + (uint)initialState.pos.GetHashCode();
+            var quantizedPos = (int2)math.round(initialState.pos * 8f);
+            var rngSeed = baseSeed + solveCount * 7919u + math.hash(quantizedPos);
 
             new GenerateCandidatesJob
             {

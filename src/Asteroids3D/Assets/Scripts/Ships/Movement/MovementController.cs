@@ -71,10 +71,13 @@ namespace Ships.Movement
         {
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
+            booster.Reset();
+            currentCommand = default;
         }
 
         private void FixedUpdate()
         {
+            booster.Tick(Time.fixedDeltaTime);
             currentCommand.boost = booster.ProcessBoost(currentCommand.boost, settings.boostCooldown);
             var outs = Forces.ComputeOutputs(Kinematics, currentCommand, settings);
             ApplyForces(outs.thrust, outs.strafe, outs.boost, outs.yawTorque, outs.bank);
@@ -89,7 +92,6 @@ namespace Ships.Movement
             rb.AddForce(GamePlane.PlaneDirToWorld(boost), ForceMode.Impulse);
             rb.AddTorque(GamePlane.Normal * yawTorque, ForceMode.Force);
 
-            // Bank: damped spring torque toward target angle around the ship's heading axis.
             var bankError = (targetBank - Kinematics.bank) * Mathf.Deg2Rad;
             var bankRate = Vector3.Dot(rb.angularVelocity, transform.up);
             rb.AddTorque(transform.up * (bankError * settings.bankTorque - bankRate * settings.bankDamping), ForceMode.Force);
@@ -100,7 +102,6 @@ namespace Ships.Movement
         }
         private void ConstrainRotation()
         {
-            // Project transform.up onto the game plane to get the heading.
             var projectedUp = Vector3.ProjectOnPlane(transform.up, GamePlane.Normal);
             if (projectedUp.sqrMagnitude < 1e-6f)
             {

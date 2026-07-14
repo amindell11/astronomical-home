@@ -71,7 +71,7 @@ namespace Combat.Targeting
         {
             if (!isAcquired)
             {
-                CancelLock();
+                Cancel();
                 return;
             }
 
@@ -92,7 +92,7 @@ namespace Combat.Targeting
 
             if (lockExpired || !isAcquired)
             {
-                CancelLock();
+                Cancel();
             }
         }
 
@@ -102,7 +102,8 @@ namespace Combat.Targeting
                 SetState(LockState.Idle);
         }
 
-        private void CancelLock()
+        /// <summary>Drops any lock in progress or held and returns to Idle (also the respawn reset).</summary>
+        public void Cancel()
         {
             ResetLock();
             SetState(LockState.Idle);

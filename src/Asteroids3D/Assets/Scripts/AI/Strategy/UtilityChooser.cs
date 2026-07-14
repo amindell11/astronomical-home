@@ -7,11 +7,7 @@ using UnityEngine;
 
 namespace AI.Utility
 {
-    /// <summary>
-    /// Utility-based decision policy: orchestrates AI state lifecycle and transitions,
-    /// delegating utility evaluation and selection to <see cref="Sampler"/>. One
-    /// implementation of <see cref="IStateChooser"/>, hosted by <see cref="Brain"/>.
-    /// </summary>
+    /// <summary>Utility-based decision policy: orchestrates AI state lifecycle/transitions, delegating utility evaluation and selection to <see cref="Sampler"/>.</summary>
     [Serializable]
     public class UtilityChooser : IStateChooser
     {
@@ -66,8 +62,7 @@ namespace AI.Utility
             if (!ShouldTransition(selectedState, timeSinceChange))
                 return intent;
 
-            // Transitioning: the new state ticks next frame, so reset the actuators this
-            // frame (matching the old Exit→ResetNavigation behavior) by returning None.
+            // The new state ticks next frame; returning None resets the actuators for the transition frame.
             TransitionTo(selectedState, context);
             return NavigationIntent.None;
         }
@@ -100,17 +95,15 @@ namespace AI.Utility
             OnStateTransition?.Invoke(prev, newAIState);
         }
 
-#if UNITY_EDITOR
-        /// <summary>
-        /// Resets chooser state so Initialize() can register a new state set.
-        /// Editor/test-only — zero production impact.
-        /// </summary>
-        public void ResetForTesting()
+        /// <summary>Clears all selection state and drops the sampler so the next Initialize re-derives its RNG from the seed scope.</summary>
+        public void Reset()
         {
             CurrentAIState?.Exit();
             CurrentAIState = null;
             states.Clear();
+            sampler = null;
+            simTime = 0f;
+            stateChangeTime = 0f;
         }
-#endif
     }
 }
