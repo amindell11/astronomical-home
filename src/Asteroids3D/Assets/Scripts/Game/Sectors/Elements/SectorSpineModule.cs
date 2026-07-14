@@ -23,8 +23,7 @@ namespace Game.Sectors
         private IObjectiveService objectives;
         private SpineObjectiveHandle spine;
         private SectorEventBus bus;
-        private Vector3 keyHome;
-        private bool keyHomeCaptured;
+        private Vector3? keyHome;
 
         public override IEnumerator Setup(SectorBuildContext ctx)
         {
@@ -41,12 +40,8 @@ namespace Game.Sectors
             keyPickup.Initialize(playerBody);
             extractionZone.BindPlayer(playerBody);
 
-            if (!keyHomeCaptured)
-            {
-                keyHome = keyPickup.transform.position;
-                keyHomeCaptured = true;
-            }
-            keyPickup.SpawnKey(keyHome);
+            keyHome ??= keyPickup.transform.position;
+            keyPickup.SpawnKey(keyHome.Value);
 
             var mission = new MissionDefinition(
                 StepExplore,

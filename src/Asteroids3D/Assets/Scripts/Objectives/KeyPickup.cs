@@ -21,7 +21,6 @@ namespace Objectives
 
         public void Initialize(Rigidbody playerBody) => this.playerBody = playerBody;
 
-        /// <summary>Move to a random in-plane position within <see cref="spawnRadius"/> of center and reset collected state.</summary>
         public void SpawnKey(Vector3 center)
         {
             PlayerHasKey = false;

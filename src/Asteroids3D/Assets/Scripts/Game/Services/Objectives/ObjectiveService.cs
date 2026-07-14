@@ -51,12 +51,12 @@ namespace Game.Services
 
         internal void SetSpineTarget(SpineObjectiveHandle handle, Transform target)
         {
-            if (currentSpine == handle) SetSpineTargetCore(target);
+            if (IsCurrent(handle)) SetSpineTargetCore(target);
         }
 
         internal void CloseSpine(SpineObjectiveHandle handle)
         {
-            if (currentSpine == handle) CloseSpineCore();
+            if (IsCurrent(handle)) CloseSpineCore();
         }
 
         public LocalObjectiveHandle OpenLocal(
