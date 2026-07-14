@@ -111,6 +111,8 @@ PR-2a (`Maneuver_Oracle_Gate.md`, shipped — CONDITIONAL GO) and **PR-2b (this 
 
 ## Deferred
 
+- Scene-scan projectile flush → self-registering pool registry + live set (also deletes
+  the zero-caller `SimplePoolManager`): `SimplePool_Registry_And_Live_Flush.md`, own PR.
 - ML-Agents `Agent` hosting, observation wiring, and fire-gate action — PR-3.
 - Self-play / checkpoint league — PR-4.
 - Asteroid-field episodes (v1 is empty space; the field is a training-env question).

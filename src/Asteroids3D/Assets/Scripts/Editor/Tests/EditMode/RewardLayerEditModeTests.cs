@@ -1,4 +1,9 @@
+using AI;
+using Combat;
+using Combat.Weapons;
+using Game;
 using Game.RLHarness;
+using Movement;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -170,6 +175,43 @@ namespace Tests.EditMode
         {
             var spec = Spec;
             Assert.AreEqual(EpisodeOutcome.Unresolved, EpisodeRules.Evaluate(Snapshot(), in spec).outcome);
+        }
+
+        private sealed class NarrowConeWeapon : WeaponComponent
+        {
+            public override bool InEnvelope(in TargetingContext context) =>
+                context.hasLineOfSight
+                && context.distanceToTarget <= 30f
+                && context.angleToTarget <= 5f;
+
+            public override Combat.Projectile.ProjectileBase Fire() => null;
+        }
+
+        [Test]
+        public void Envelope_EvaluatesAtGunnerInterceptLead_NotTargetCenter()
+        {
+            var shooterPlanePos = new Vector2(500f, 500f);
+            var shooterGo = new GameObject("EnvelopeShooter");
+            try
+            {
+                shooterGo.transform.position = GamePlane.PlanePointToWorld(shooterPlanePos);
+                var weapon = shooterGo.AddComponent<NarrowConeWeapon>();
+                var pose = new Kinematics(shooterPlanePos, Vector2.zero, 0f, 0f, 0f);
+                var sight = new Gunsight(weapon, () => pose);
+
+                var targetPos = shooterPlanePos + new Vector2(-4f, 20f);
+                var targetVel = new Vector2(4f, 0f);
+                var lead = Gunner.AimPoint(in pose, targetPos, targetVel, projectileSpeed: 20f);
+
+                Assert.IsFalse(sight.InEnvelope(GamePlane.PlanePointToWorld(targetPos)),
+                    "A crossing target's CENTER sits outside the aim cone — center-testing must miss");
+                Assert.IsTrue(sight.InEnvelope(GamePlane.PlanePointToWorld(lead)),
+                    "The gunner fires at the intercept lead, which is on the nose — lead-testing must hit");
+            }
+            finally
+            {
+                Object.DestroyImmediate(shooterGo);
+            }
         }
 
         [Test]

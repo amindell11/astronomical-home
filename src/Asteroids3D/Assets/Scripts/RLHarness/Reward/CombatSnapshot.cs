@@ -1,4 +1,5 @@
 using System;
+using AI;
 using Ships;
 using UnityEngine;
 
@@ -63,11 +64,17 @@ namespace Game.RLHarness
             var weapons = shooter.Weapons ? shooter.Weapons.Context : null;
             if (weapons == null || !Alive(shooter) || !Alive(target)) return false;
 
-            var targetWorld = GamePlane.PlanePointToWorld(target.Kinematics.pos);
+            var shooterKin = shooter.Kinematics;
+            var targetKin = target.Kinematics;
             var slots = weapons.Slots;
             for (var i = 0; i < slots.Count; i++)
-                if (weapons.Sight(slots[i])?.InEnvelope(targetWorld) ?? false)
+            {
+                // Evaluate at the same per-slot intercept lead the gunner fires at, not the target's center.
+                var aimWorld = GamePlane.PlanePointToWorld(Gunner.AimPoint(
+                    in shooterKin, targetKin.pos, targetKin.vel, weapons.ProjectileSpeed(slots[i])));
+                if (weapons.Sight(slots[i])?.InEnvelope(aimWorld) ?? false)
                     return true;
+            }
             return false;
         }
     }

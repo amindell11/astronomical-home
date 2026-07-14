@@ -57,15 +57,19 @@ namespace AI
             }
         }
 
-        /// <summary>World-space aim point for a slot: intercept lead from its muzzle speed; non-positive speed = hitscan, aim at the present position.</summary>
+        /// <summary>The gunner's aim policy for one weapon: intercept lead from its muzzle speed; non-positive speed = hitscan, aim at the present position.</summary>
+        public static Vector2 AimPoint(in Kinematics shooterPose, Vector2 targetPos, Vector2 targetVel, float projectileSpeed) =>
+            projectileSpeed <= 0f
+                ? targetPos
+                : TargetingMath.PredictIntercept(in shooterPose, targetPos, targetVel, projectileSpeed);
+
         internal Vector3 AimPointFor(WeaponSlot slot)
         {
-            var speed = weapons.ProjectileSpeed(slot);
-            if (speed <= 0f || pose == null)
+            if (pose == null)
                 return GamePlane.PlanePointToWorld(enemyPos);
 
             return GamePlane.PlanePointToWorld(
-                TargetingMath.PredictIntercept(pose(), enemyPos, enemyVel, speed));
+                AimPoint(pose(), enemyPos, enemyVel, weapons.ProjectileSpeed(slot)));
         }
 
         /// <summary>Consumes the gunner slice of a <see cref="NavigationIntent"/> (mirrors <c>Navigator.ApplyIntent</c>): stores enemy kinematics for per-slot firing solutions.</summary>
