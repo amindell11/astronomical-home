@@ -5,9 +5,9 @@ using Game.RLHarness;
 using Game.Services;
 using NUnit.Framework;
 using Ships;
-using Ships.Command;
 using Tests.Common;
 using Unity.MLAgents;
+using Unity.MLAgents.Policies;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -71,13 +71,7 @@ namespace Tests.PlayMode
 
         private void Compose(in RewardSpec spec)
         {
-            pair = EpisodePair.Spawn(unitService, arena, in spec, (agentShip, baselineShip) =>
-            {
-                chooser = new AgentChooser();
-                chooser.Configure(baselineShip,
-                    agentShip.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary));
-                return chooser;
-            });
+            pair = EpisodePair.SpawnWithAgentChooser(unitService, arena, in spec, out chooser);
             agent = ShipAgentFactory.ComposeHeuristicOnly(pair, chooser, in spec, arena.Offset);
             Assert.IsNotNull(agent, "ShipAgent must be attachable (harness assembly is not editor-only)");
         }
@@ -114,23 +108,25 @@ namespace Tests.PlayMode
         [Timeout(600000)]
         public IEnumerator InferenceOnly_PinnedCheckpoint_DrivesAFullEpisode()
         {
-            const string onnxFixturePath = "Assets/Tests/Fixtures/ShipCombat-smoke.onnx";
-            if (UnityEditor.AssetDatabase.LoadMainAssetAtPath(onnxFixturePath) == null)
-                Assert.Ignore($"ONNX fixture pending — produce via the trainer smoke (training/rl/README.md) and commit it at {onnxFixturePath}");
+            if (UnityEditor.AssetDatabase.LoadMainAssetAtPath(ShipAgentFactory.SmokeFixturePath) == null)
+                Assert.Fail($"ONNX fixture missing at {ShipAgentFactory.SmokeFixturePath} — a binding merge gate; produce via the trainer smoke (training/rl/README.md) and commit it (LFS)");
 
             var spec = RewardSpec.Default;
             spec.timeoutDecisions = 40;
             spec.minSeparation = 18f;
             spec.maxSeparation = 24f;
 
-            pair = EpisodePair.Spawn(unitService, arena, in spec, (agentShip, baselineShip) =>
-            {
-                chooser = new AgentChooser();
-                chooser.Configure(baselineShip,
-                    agentShip.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary));
-                return chooser;
-            });
-            agent = ShipAgentFactory.ComposeInferenceOnly(pair, chooser, in spec, arena.Offset, onnxFixturePath);
+            pair = EpisodePair.SpawnWithAgentChooser(unitService, arena, in spec, out chooser);
+            agent = ShipAgentFactory.ComposeInferenceOnly(pair, chooser, in spec, arena.Offset,
+                ShipAgentFactory.SmokeFixturePath);
+
+            var behavior = agent.GetComponent<BehaviorParameters>();
+            Assert.AreEqual(BehaviorType.InferenceOnly, behavior.BehaviorType);
+            Assert.IsTrue(behavior.DeterministicInference,
+                "InferenceOnly alone samples stochastically — eval must pin DeterministicInference");
+            Assert.AreEqual(InferenceDevice.Burst, behavior.InferenceDevice,
+                "eval must pin the inference device (Default may change between releases)");
+
             var driver = new EpisodeLoopDriver(pair, agent, arena.Offset);
 
             yield return driver.RunEpisode(spec, 0);
@@ -138,6 +134,33 @@ namespace Tests.PlayMode
             Assert.AreNotEqual(EpisodeOutcome.Unresolved.ToString(), result.outcome);
             Assert.AreEqual(result.decisions, agent.DecisionsReceived);
             Assert.AreEqual(result.totalReward, driver.LastEpisodeCumulativeReward, 1e-3f);
+        }
+
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator CheckpointEvaluator_SmallRun_AggregatesOutcomesAndWritesArtifacts()
+        {
+            var spec = RewardSpec.Default;
+            spec.timeoutDecisions = 8;
+            spec.minSeparation = 50f;
+            spec.maxSeparation = 60f;
+
+            var seeds = new[] { EvalProtocol.HeldOutSeeds[0], EvalProtocol.HeldOutSeeds[1] };
+            CheckpointEvaluator.Summary summary = default;
+            yield return CheckpointEvaluator.Run(unitService, arena, ShipAgentFactory.SmokeFixturePath,
+                seeds, episodesPerSeed: 1, spec, "test-eval", s => summary = s);
+
+            Assert.AreEqual(2, summary.episodes);
+            Assert.AreEqual(summary.episodes, summary.wins + summary.losses + summary.draws,
+                "every episode must land in exactly one W/L/D bucket");
+            Assert.AreEqual(summary.wins / (float)summary.episodes, summary.winRate, 1e-6f,
+                "draws must count as non-wins");
+            Assert.AreEqual(EvalProtocol.WilsonLowerBound(summary.wins, summary.episodes),
+                summary.wilsonLowerBound95, 1e-6f);
+            Assert.AreEqual(seeds, summary.seeds);
+            Assert.IsTrue(System.IO.File.Exists(summary.episodesJsonl), "per-episode JSONL artifact missing");
+            Assert.IsTrue(System.IO.File.Exists(summary.episodesJsonl.Replace(".jsonl", "-summary.json")),
+                "summary artifact missing");
         }
 
         [UnityTest]

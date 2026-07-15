@@ -23,20 +23,18 @@ namespace Game.RLHarness
 
         public Ship Agent { get; }
         public Ship Baseline { get; }
-        public IIntentChooser Chooser { get; }
 
         private readonly UnitService units;
         private readonly Vector2 arenaCenter;
         private readonly MpcSettings agentSettings;
 
         private EpisodePair(UnitService units, Vector2 arenaCenter, Ship agent, Ship baseline,
-            IIntentChooser chooser, MpcSettings agentSettings)
+            MpcSettings agentSettings)
         {
             this.units = units;
             this.arenaCenter = arenaCenter;
             Agent = agent;
             Baseline = baseline;
-            Chooser = chooser;
             this.agentSettings = agentSettings;
         }
 
@@ -68,7 +66,23 @@ namespace Game.RLHarness
             if (baseline.GetComponentInChildren<AICommander>().CurrentStateName == "None")
                 throw new InvalidOperationException("Baseline brain must run a real state policy — check the UtilityPilot prefab's state profiles.");
 
-            return new EpisodePair(units, arena.Offset, agent, baseline, chooser, settings);
+            return new EpisodePair(units, arena.Offset, agent, baseline, settings);
+        }
+
+        /// <summary>The canonical ShipAgent composition: pair plus a configured <see cref="AgentChooser"/> (injected opponent, primary projectile speed) — the single recipe every agent host (training, eval, tests) shares.</summary>
+        public static EpisodePair SpawnWithAgentChooser(UnitService units, ArenaContext arena,
+            in RewardSpec spec, out AgentChooser chooser)
+        {
+            AgentChooser created = null;
+            var pair = Spawn(units, arena, in spec, (agentShip, baselineShip) =>
+            {
+                created = new AgentChooser();
+                created.Configure(baselineShip,
+                    agentShip.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary));
+                return created;
+            });
+            chooser = created;
+            return pair;
         }
 
         /// <summary>Atomic pair-reset to the (runSeed, episodeIndex) poses, flushing in-flight projectiles.</summary>

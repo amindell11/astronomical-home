@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System;
 using System.IO;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -9,6 +10,7 @@ namespace Game.RLHarness
     /// <summary>-executeMethod entry points for attaching mlagents-learn to a batch-mode editor (launch without -quit; the run ends the process externally). The signaled variant exists because an editor boot outlasts the trainer's 60 s handshake window: boot and arm first, start the trainer, then create the flag file to enter play.</summary>
     public static class TrainingBootstrap
     {
+        private const string EvalCandidateAssetPath = "Assets/Tests/Fixtures/EvalCandidate.onnx";
         public static readonly string StartFlagPath = Path.GetFullPath(Path.Combine(
             Application.dataPath, "..", "..", "..", "results", "rl-training", "start-play.flag"));
 
@@ -30,6 +32,30 @@ namespace Game.RLHarness
             EditorApplication.update -= EnterOnFlag;
             File.Delete(StartFlagPath);
             EnterTrainingPlayMode();
+        }
+
+        /// <summary>Held-out eval batch entry: RL_EVAL_ONNX names a checkpoint file to import (default: the committed smoke fixture), RL_EVAL_EPISODES_PER_SEED the per-seed episode count. EvalHost exits the editor with code 0 when the summary artifact is written.</summary>
+        public static void RunHeldOutEval()
+        {
+            var source = Environment.GetEnvironmentVariable("RL_EVAL_ONNX");
+            var assetPath = string.IsNullOrEmpty(source)
+                ? ShipAgentFactory.SmokeFixturePath
+                : ImportEvalCandidate(source);
+
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            var host = new GameObject("[EvalHost]").AddComponent<EvalHost>();
+            host.onnxAssetPath = assetPath;
+            if (int.TryParse(Environment.GetEnvironmentVariable("RL_EVAL_EPISODES_PER_SEED"), out var episodes))
+                host.episodesPerSeed = episodes;
+            EditorApplication.EnterPlaymode();
+        }
+
+        private static string ImportEvalCandidate(string sourceFile)
+        {
+            var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
+            File.Copy(Path.GetFullPath(sourceFile), Path.Combine(projectRoot, EvalCandidateAssetPath), overwrite: true);
+            AssetDatabase.ImportAsset(EvalCandidateAssetPath, ImportAssetOptions.ForceUpdate);
+            return EvalCandidateAssetPath;
         }
     }
 }

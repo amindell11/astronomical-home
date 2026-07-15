@@ -1,5 +1,6 @@
 using System;
 using Unity.InferenceEngine;
+using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Policies;
 using UnityEngine;
@@ -10,6 +11,7 @@ namespace Game.RLHarness
     public static class ShipAgentFactory
     {
         public const string BehaviorName = "ShipCombat";
+        public const string SmokeFixturePath = "Assets/Tests/Fixtures/ShipCombat-smoke.onnx";
 
         public static ShipAgent ComposeForTraining(EpisodePair pair, AgentChooser chooser,
             in RewardSpec spec, Vector2 arenaCenter, Transform parent = null) =>
@@ -19,11 +21,12 @@ namespace Game.RLHarness
             in RewardSpec spec, Vector2 arenaCenter, Transform parent = null) =>
             Compose(pair, chooser, in spec, arenaCenter, BehaviorType.HeuristicOnly, null, parent);
 
-        /// <summary>Held-out-seed eval path: pinned checkpoint, InferenceOnly, DeterministicInference (it defaults FALSE — InferenceOnly alone samples stochastically).</summary>
+        /// <summary>Held-out-seed eval path: pinned checkpoint, InferenceOnly, DeterministicInference (it defaults FALSE — InferenceOnly alone samples stochastically), pinned inference seed (Academy consumes it at the model runner's creation).</summary>
         public static ShipAgent ComposeInferenceOnly(EpisodePair pair, AgentChooser chooser,
             in RewardSpec spec, Vector2 arenaCenter, string onnxAssetPath, Transform parent = null)
         {
             var model = LoadModel(onnxAssetPath);
+            Academy.Instance.InferenceSeed = EvalProtocol.InferenceSeed;
             return Compose(pair, chooser, in spec, arenaCenter, BehaviorType.InferenceOnly, model, parent);
         }
 
@@ -40,6 +43,7 @@ namespace Game.RLHarness
             behavior.BrainParameters.VectorObservationSize = AgentObservations.Size;
             behavior.BrainParameters.ActionSpec = ActionSpec.MakeContinuous(AgentActions.Count);
             behavior.DeterministicInference = true;
+            behavior.InferenceDevice = InferenceDevice.Burst;
             if (model) behavior.Model = model;
 
             var agent = host.AddComponent<ShipAgent>();

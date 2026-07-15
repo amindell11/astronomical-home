@@ -87,3 +87,7 @@ crashlytics-build.properties
 # ML-Agents runtime stats residue (regenerated every editor training/inference run)
 /[Aa]ssets/ML-Agents/
 /[Aa]ssets/ML-Agents.meta
+
+# Transient eval-candidate checkpoint imported by TrainingBootstrap.RunHeldOutEval
+/[Aa]ssets/Tests/Fixtures/EvalCandidate.onnx
+/[Aa]ssets/Tests/Fixtures/EvalCandidate.onnx.meta
