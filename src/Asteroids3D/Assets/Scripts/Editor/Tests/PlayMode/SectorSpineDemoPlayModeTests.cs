@@ -364,6 +364,7 @@ namespace Tests.PlayMode
             private readonly IObjectiveService objectives;
             public StubServices(IObjectiveService objectives) => this.objectives = objectives;
             public IUnitService UnitService => null;
+            public IProjectileService Projectiles => null;
             public IEnvironmentService EnvironmentService => null;
             public IObjectiveService ObjectiveService => objectives;
             public ICameraService CameraService => null;
