@@ -32,8 +32,8 @@ namespace Tests.PlayMode
         private class TeardownStubSpawner : SectorSpawner
         {
             public bool ToreDown;
-            public override IEnumerator Build(SectorBuildContext ctx) { yield break; }
-            public override IEnumerator Teardown(SectorBuildContext ctx) { ToreDown = true; yield break; }
+            protected override IEnumerator Produce(SectorBuildContext ctx) { yield break; }
+            protected override IEnumerator OnTeardown(SectorBuildContext ctx) { ToreDown = true; yield break; }
         }
 
         private class ProbeModule : SectorModule

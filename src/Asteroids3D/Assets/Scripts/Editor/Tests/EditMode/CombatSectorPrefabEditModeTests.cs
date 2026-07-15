@@ -31,14 +31,58 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void Modules_AreSpineThenGateVolumeThenRuleThenChaserActivate()
+        public void Modules_AreSpineGateChaserActivateThenAmbush()
         {
             var sector = LoadSector();
-            Assert.AreEqual(4, sector.Modules.Count);
+            Assert.AreEqual(6, sector.Modules.Count);
             Assert.IsInstanceOf<SectorSpineModule>(sector.Modules[0]);
             Assert.IsInstanceOf<TriggerVolume>(sector.Modules[1]);
             Assert.IsInstanceOf<ExtractionChallengeRule>(sector.Modules[2]);
             Assert.IsInstanceOf<ActivateOnToken>(sector.Modules[3]);
+            Assert.IsInstanceOf<TriggerVolume>(sector.Modules[4]);
+            Assert.IsInstanceOf<AmbushEncounter>(sector.Modules[5]);
+        }
+
+        [Test]
+        public void Ambush_WiresAreaTokenToDelayedRule_AndTokenGatedWave()
+        {
+            var sector = LoadSector();
+            var volume = (TriggerVolume)sector.Modules[4];
+            var ambush = (AmbushEncounter)sector.Modules[5];
+
+            var areaToken = new SerializedObject(volume).FindProperty("signalToken").stringValue;
+            Assert.AreEqual("near-ambush", areaToken);
+
+            var rule = new SerializedObject(ambush);
+            var terms = rule.FindProperty("terms");
+            Assert.AreEqual(1, terms.arraySize, "The ambush must gate on the area token only.");
+            Assert.AreEqual(areaToken, terms.GetArrayElementAtIndex(0).FindPropertyRelative("signalToken").stringValue);
+            Assert.Greater(rule.FindProperty("fireDelaySeconds").floatValue, 0f,
+                "The ambush must fire on a delay after the area is entered.");
+
+            var published = rule.FindProperty("publishOnFired");
+            Assert.AreEqual(1, published.arraySize);
+            var startToken = published.GetArrayElementAtIndex(0).stringValue;
+            Assert.AreEqual("ambush-started", startToken);
+
+            Assert.AreEqual(1, rule.FindProperty("publishOnCleared").arraySize);
+            Assert.AreEqual("ambush-cleared",
+                rule.FindProperty("publishOnCleared").GetArrayElementAtIndex(0).stringValue);
+
+            Assert.AreEqual(2, sector.Spawners.Count);
+            var wave = sector.Spawners[1] as RingSpawner;
+            Assert.IsNotNull(wave, "The ambush wave must be the second authored spawner.");
+            Assert.AreSame(wave, rule.FindProperty("waveSpawner").objectReferenceValue,
+                "The rule must observe its own wave spawner.");
+            Assert.AreEqual(startToken, new SerializedObject(wave).FindProperty("activationToken").stringValue,
+                "The wave must be gated on the token the rule publishes.");
+            Assert.IsTrue(volume.transform.IsChildOf(ambush.transform),
+                "Hierarchy = ownership: the encounter owns its trigger.");
+            Assert.IsTrue(wave.transform.IsChildOf(ambush.transform),
+                "Hierarchy = ownership: the encounter owns its wave.");
+            Assert.AreEqual((int)RespawnPolicy.Origin.None,
+                new SerializedObject(wave).FindProperty("respawn").FindPropertyRelative("origin").enumValueIndex,
+                "Wave ships must not respawn.");
         }
 
         [Test]

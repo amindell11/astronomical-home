@@ -6,38 +6,82 @@ using UnityEngine;
 namespace Game.Sectors
 {
     /// <summary>
-    /// A polymorphic, hand-placed child GameObject that procedurally produces content at sector
-    /// setup. Production may be one-shot (e.g. a ring of AI ships, all created up front) or
-    /// continuous and internally managed (e.g. an asteroid field that keeps spawning over its
-    /// lifetime); either way <see cref="Build"/>/<see cref="Teardown"/> bracket its lifecycle.
-    /// Unlike adopt content — where the placed object is the runtime object — a spawner holds a
-    /// template + parameters and creates its own instances. Creating a new kind of spawner =
-    /// subclass this. The spawner's transform is its origin and <see cref="OnDrawGizmos"/> previews
-    /// the result in scene view before launch.
+    /// A polymorphic, hand-placed child GameObject that procedurally produces content — unlike adopt
+    /// content, it holds a template + parameters and creates its own instances. Subclasses implement
+    /// <see cref="Produce"/>/<see cref="OnTeardown"/>; <see cref="Build"/>/<see cref="Teardown"/> are the
+    /// sector-driven lifecycle and own the optional activation-token gate.
     /// </summary>
     public abstract class SectorSpawner : MonoBehaviour
     {
-        /// <summary>
-        /// Ships produced during the last <see cref="Build"/> call (for injection / wiring). Optional —
-        /// non-ship producers (e.g. an asteroid field) leave this empty.
-        /// </summary>
+        [Tooltip("Optional bus token gating production: empty = produce at Build; set = stay dormant and produce exactly once when the token goes true.")]
+        [SerializeField] private string activationToken;
+
+        private SectorBuildContext ctx;
+        private SectorEventBus bus;
+        private bool produced;
+
+        /// <summary>Ships produced during the last <see cref="Produce"/> run; non-ship producers leave this empty.</summary>
         public IReadOnlyList<Ship> Spawned { get; protected set; } = System.Array.Empty<Ship>();
 
-        /// <summary>Instantiate this spawner's content. Populate <see cref="Spawned"/>.</summary>
-        public abstract IEnumerator Build(SectorBuildContext ctx);
+        /// <summary>Sealed lifecycle entry: produces now, or arms the activation token and produces on its latch.</summary>
+        public IEnumerator Build(SectorBuildContext buildCtx)
+        {
+            ctx = buildCtx;
+            produced = false;
 
-        /// <summary>
-        /// Tear down the instances this spawner produced. The default despawns every ship in
-        /// <see cref="Spawned"/> (its products) via the unit service so restart starts from a clean
-        /// unit set — the session-tier player is never a spawner product, so it survives. Non-ship
-        /// producers (e.g. an asteroid field) override this to release their own loose instances.
-        /// </summary>
-        public virtual IEnumerator Teardown(SectorBuildContext ctx)
+            if (string.IsNullOrWhiteSpace(activationToken))
+            {
+                produced = true;
+                var produce = Produce(ctx);
+                while (produce.MoveNext()) yield return produce.Current;
+                yield break;
+            }
+
+            bus = ctx.Bus;
+            if (bus == null)
+            {
+                Debug.LogError($"SectorSpawner on '{name}' has an activation token but no bus — spawner is inert.", this);
+                yield break;
+            }
+            bus.Changed += OnBusChanged;
+            if (bus.Get(activationToken)) ProduceNow();
+        }
+
+        /// <summary>Sealed lifecycle exit: disarms the token gate, then runs <see cref="OnTeardown"/>.</summary>
+        public IEnumerator Teardown(SectorBuildContext teardownCtx)
+        {
+            if (bus != null) bus.Changed -= OnBusChanged;
+            bus = null;
+            var teardown = OnTeardown(teardownCtx);
+            while (teardown.MoveNext()) yield return teardown.Current;
+        }
+
+        public void Configure(string activationToken) => this.activationToken = activationToken;
+
+        /// <summary>Instantiate this spawner's content. Populate <see cref="Spawned"/>.</summary>
+        protected abstract IEnumerator Produce(SectorBuildContext ctx);
+
+        /// <summary>Tear down produced instances; the default despawns every ship in <see cref="Spawned"/> so restart starts from a clean unit set (the player is never a spawner product).</summary>
+        protected virtual IEnumerator OnTeardown(SectorBuildContext ctx)
         {
             foreach (var ship in Spawned)
                 if (ship) ctx.Services.UnitService.DespawnShip(ship);
             Spawned = System.Array.Empty<Ship>();
             yield break;
+        }
+
+        private void OnBusChanged(string token)
+        {
+            if (produced || token != activationToken || !bus.Get(activationToken)) return;
+            ProduceNow();
+        }
+
+        // Token-gated production drains synchronously — it must land in the same frame as the latch (parity with the eager path's same-Setup production).
+        private void ProduceNow()
+        {
+            produced = true;
+            var produce = Produce(ctx);
+            while (produce.MoveNext()) { }
         }
 
         /// <summary>Editor-only preview hook; concrete spawners draw placement gizmos here.</summary>

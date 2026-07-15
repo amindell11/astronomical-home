@@ -36,6 +36,7 @@ Transform:
   - {fileID: 2846034118237741202}
   - {fileID: 5533221100446688302}
   - {fileID: 4616641732839822846}
+  - {fileID: 8244661234500110002}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &6734031631238332472
@@ -69,11 +70,14 @@ MonoBehaviour:
       delay: 2
   spawners:
   - {fileID: 6809616338952782429}
+  - {fileID: 8244661234500110010}
   modules:
   - {fileID: 1122334455667788991}
   - {fileID: 5533221100446688305}
   - {fileID: 5533221100446688306}
   - {fileID: 5044555833373099145}
+  - {fileID: 8244661234500110007}
+  - {fileID: 8244661234500110003}
 --- !u!1001 &1647443509423964513
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -678,3 +682,183 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 8730741158887831457}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &8244661234500110001
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8244661234500110002}
+  - component: {fileID: 8244661234500110003}
+  m_Layer: 0
+  m_Name: Ambush
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8244661234500110002
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8244661234500110001}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -10, y: 25, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 8244661234500110005}
+  - {fileID: 8244661234500110009}
+  m_Father: {fileID: 8376058910363217357}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8244661234500110003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8244661234500110001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5763ffe6b5664281a83d9561207663c0, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  terms:
+  - kind: 0
+    signalToken: near-ambush
+    timeSeconds: 0
+  publishOnFired:
+  - ambush-started
+  fireDelaySeconds: 6
+  waveSpawner: {fileID: 8244661234500110010}
+  publishOnCleared:
+  - ambush-cleared
+--- !u!1 &8244661234500110004
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8244661234500110005}
+  - component: {fileID: 8244661234500110006}
+  - component: {fileID: 8244661234500110007}
+  m_Layer: 0
+  m_Name: Ambush Trigger
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8244661234500110005
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8244661234500110004}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8244661234500110002}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &8244661234500110006
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8244661234500110004}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 20
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &8244661234500110007
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8244661234500110004}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ddba32366471e444bc15b3ccb3028d7, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  signalToken: near-ambush
+--- !u!1 &8244661234500110008
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8244661234500110009}
+  - component: {fileID: 8244661234500110010}
+  m_Layer: 0
+  m_Name: Ambush Wave
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8244661234500110009
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8244661234500110008}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8244661234500110002}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8244661234500110010
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8244661234500110008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca3c5d86ca1eb664a83ba3c408ab0d61, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  activationToken: ambush-started
+  template: {fileID: 7184882482910536223, guid: c3c15225cb3a8fd42a87c756c1d2d884,
+    type: 3}
+  commander: {fileID: 1772957474756936600, guid: 08a3705197cc60842b107b8485d8ad25,
+    type: 3}
+  team: 1
+  count: 3
+  radius: 12
+  respawn:
+    origin: 0
+    point: {x: 0, y: 0}
+    radius: 5
+    delay: 2
