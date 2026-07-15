@@ -1,9 +1,3 @@
-# PPO config for the ShipCombat behavior (Tactical-AI PR-3).
-# Invariants pinned by Tests.EditMode/RLTrainerConfigEditModeTests:
-#   - reward_signals.extrinsic.gamma == RewardSpec.Default.gamma (Ng-shaping soundness)
-#   - engine_settings satisfy the pacing contract: capture_frame_rate x time_scale
-#     advances exactly one 50 Hz fixed step per rendered frame (TrainingHost also
-#     asserts this at runtime; the mlagents defaults time_scale 20 / capture 60 VIOLATE it).
 behaviors:
   ShipCombat:
     trainer_type: ppo
@@ -22,13 +16,14 @@ behaviors:
       num_layers: 2
     reward_signals:
       extrinsic:
-        gamma: 0.99
+        gamma: 0.99  # must equal RewardSpec.Default.gamma (Ng-shaping soundness); pinned by RLTrainerConfigEditModeTests
         strength: 1.0
     keep_checkpoints: 5
     checkpoint_interval: 100000
     max_steps: 2000000
     time_horizon: 64
     summary_freq: 6000
+# Pacing contract: one rendered frame advances exactly one 50 Hz fixed step (mlagents defaults time_scale 20 / capture 60 violate it); pinned by test + TrainingHost runtime assert.
 engine_settings:
   width: 320
   height: 240

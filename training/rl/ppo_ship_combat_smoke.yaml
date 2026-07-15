@@ -1,7 +1,4 @@
-# Trainer-connected smoke: proves the 4-continuous action path, terminal-vs-interrupted
-# flags, and the pacing contract end-to-end, and mints the tiny eval-fixture checkpoint.
-# Deliberately tiny buffers/steps — NOT a training config; gamma and engine_settings
-# must stay identical to ppo_ship_combat.yaml (same pins).
+# Trainer-connected smoke minting the eval-fixture checkpoint — tiny buffers/steps, NOT a training config; gamma and engine_settings must stay identical to ppo_ship_combat.yaml.
 behaviors:
   ShipCombat:
     trainer_type: ppo
@@ -20,7 +17,7 @@ behaviors:
       num_layers: 2
     reward_signals:
       extrinsic:
-        gamma: 0.99
+        gamma: 0.99  # must equal RewardSpec.Default.gamma (Ng-shaping soundness); pinned by RLTrainerConfigEditModeTests
         strength: 1.0
     keep_checkpoints: 2
     checkpoint_interval: 2000
