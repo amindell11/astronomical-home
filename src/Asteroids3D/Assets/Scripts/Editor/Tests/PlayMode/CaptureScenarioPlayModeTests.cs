@@ -4,44 +4,50 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Game;
+using Game.Bootstrap;
 using Game.Capture;
 using Game.RLHarness;
-using Game.Services;
 using NUnit.Framework;
-using Ships;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
+using Utils;
 
 namespace Tests.PlayMode
 {
-    /// <summary>Generic runner for capture scenarios: -captureScenario &lt;TypeName&gt; on Unity's command line (forwarded by unity_test_agent.ps1 -CaptureScenario) picks the CaptureScenario to run; without it the test ignores, so the suite stays green.</summary>
+    /// <summary>Generic runner for capture scenarios: -captureScenario &lt;TypeName&gt; on Unity's command line (forwarded by unity_test_agent.ps1 -CaptureScenario) picks the CaptureScenario to run; without it the test ignores, so the suite stays green. Composes a headless GameSession through the SessionHost primitives — scenarios get the real service container, arena, and UnitService spawn path.</summary>
     [TestFixture]
     [Category("Camera")]
     [Category("RequiresGraphics")]
     public class CaptureScenarioPlayModeTests : PlayModeWorldFixture
     {
-        private ShipRegistry registry;
-        private ArenaContext scenarioArena;
+        private GameObject sessionRoot;
+        private SessionHost host;
+        private GameSession session;
+        private bool savedVfx;
+        private bool savedPresentation;
 
         public override void SetUp()
         {
             base.SetUp();
-            registry = new ShipRegistry();
-            scenarioArena = new ArenaContext(Vector2.zero, registry, NavField);
+            savedVfx = GameSettings.VfxEnabled;
+            savedPresentation = GameSettings.PresentationEnabled;
         }
 
         public override void TearDown()
         {
-            foreach (var ship in UnityEngine.Object.FindObjectsByType<Ship>(FindObjectsSortMode.None))
-                UnityEngine.Object.DestroyImmediate(ship.gameObject);
+            // Crash-path net: spawned ships live under the session root, so destroying it unwinds a scenario the test never got to tear down.
+            DestroyTestObject(sessionRoot);
+            sessionRoot = null;
+            host = null;
+            session = null;
+
             ProjectileFlush.ReturnAllToPool();
             CaptureRecorder.SweepStranded();
 
-            registry?.Dispose();
-            registry = null;
-            scenarioArena = null;
+            // ComposeSession overrides these process-globals and TeardownSession does not restore them.
+            GameSettings.SetVfxEnabled(savedVfx);
+            GameSettings.SetPresentationEnabled(savedPresentation);
 
             base.TearDown();
         }
@@ -55,15 +61,32 @@ namespace Tests.PlayMode
                 Assert.Ignore("Run via unity_test_agent.ps1 -WithGraphics -CaptureScenario <TypeName> to capture a scenario.");
 
             var scenario = CreateScenario(typeName);
-            scenario.Arena = scenarioArena;
-            scenario.Registry = registry;
+
+            sessionRoot = new GameObject("CaptureScenarioSession");
+            host = sessionRoot.AddComponent<SessionHost>();
+            session = new GameSession
+            {
+                Profile = new SessionProfile
+                {
+                    sectorEntry = null,
+                    buildPlayer = false,
+                    presentation = true,
+                    vfx = true,
+                }
+            };
+            yield return host.ComposeSession(session);
+            scenario.Session = session;
 
             using var pacing = CapturePacing.Locked();
-            using var recorder = new CaptureRecorder(scenario.Config);
-            yield return scenario.Run(recorder);
+            using (var recorder = new CaptureRecorder(scenario.Config))
+            {
+                yield return scenario.Run(recorder);
 
-            Assert.Greater(recorder.FrameCount, 0, "Scenario completed without capturing a single frame — did it ever call recorder.Step?");
-            Debug.Log($"[Capture] {recorder.FrameCount} frames -> {recorder.FrameDir}");
+                Assert.Greater(recorder.FrameCount, 0, "Scenario completed without capturing a single frame — did it ever call recorder.Step?");
+                Debug.Log($"[Capture] {recorder.FrameCount} frames -> {recorder.FrameDir}");
+            }
+
+            yield return host.TeardownSession(session);
         }
 
         private static string CommandLineArg(string name)

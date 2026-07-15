@@ -80,6 +80,19 @@ required. It runs under `CapturePacing.Locked()`, asserts `FrameCount > 0`, and 
 the absolute frame dir. Without the arg it `Assert.Ignore`s, so the default suite stays
 green.
 
+**Scenario world = a real headless session.** The runner composes a `GameSession`
+through the `SessionHost` primitives (`sectorEntry: null, buildPlayer: false,
+presentation/vfx: true`) and hands it to the scenario; `SpawnUtilityShip` goes through
+`session.Services.UnitService.SpawnShip`, so scenario ships get the production wiring
+(`WireShipDependencies`), arena-root parenting, and spawn-order-derived decision seeds —
+no test-side registry or hand wiring. Teardown is `TeardownSession` plus a
+destroy-the-session-root crash net. One inherited seam debt handled locally: 
+`ComposeSession` sets the process-global `GameSettings` presentation/vfx flags and
+`TeardownSession` doesn't restore them, so the runner saves/restores them itself — a
+fixture-commons consolidation (rebasing `AIIntegrationFixture`/`RLEpisodePlayModeTests`
+onto the same session path, and fixing the restore in `TeardownSession`) is deferred to
+its own PR.
+
 ### Fail-closed `-WithGraphics`
 
 Graphics runs drop `-nographics` (rendering needs a device) and are deliberately
