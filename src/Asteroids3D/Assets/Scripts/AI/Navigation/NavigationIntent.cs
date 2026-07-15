@@ -18,7 +18,10 @@ namespace AI.States
         // Commanded world-plane velocity for GoalMode.VelocityReference (the tracker seam a learned goal-policy drives); ignored by the position-goal modes.
         public Vector2 velocityReference;
 
-        // One snapshot of the ship we're engaging: the gunner reads its kinematics for the firing solution; the navigator uses it for tactical MPC costs (when applyTacticalCosts) and obstacle exclusion (whenever hasTarget).
+        // Commands a boost impulse this tick in VelocityReference mode; one-shot pacing is the chooser's job, the Booster's cooldown makes an unready command a no-op.
+        public bool boost;
+
+        // One snapshot of the ship we're engaging: consumed by the gunner's firing solution, tactical MPC costs (applyTacticalCosts), and obstacle exclusion (hasTarget).
         public bool hasTarget;
         public EnemyTarget target;
         public bool applyTacticalCosts;
@@ -27,7 +30,6 @@ namespace AI.States
         // MPC weight overrides (sparse; absent weight = base ×1)
         public WeightOverride[] weightOverrides;
 
-        // Gunner — fire at the target; the Gunner resolves its own firing solution.
         public bool enableFiring;
 
         public static NavigationIntent None => new NavigationIntent { isValid = false };

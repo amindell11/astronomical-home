@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Reflection;
 using Tests.Common;
 using AI;
 using Game;
@@ -273,9 +272,7 @@ namespace Tests.PlayMode
             ranger = new RangerChooser();
             ranger.Configure(baseline, RangerHoldRange,
                 agent.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary));
-            var brain = cmdr.GetComponentInChildren<Brain>();
-            typeof(Brain).GetField("chooser", BindingFlags.NonPublic | BindingFlags.Instance)
-                .SetValue(brain, ranger);
+            cmdr.GetComponentInChildren<Brain>().InstallChooser(ranger);
 
             unitService.WireShipDependencies(agent);
             unitService.WireShipDependencies(baseline);

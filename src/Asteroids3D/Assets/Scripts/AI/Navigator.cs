@@ -35,6 +35,7 @@ namespace Movement.MPC
         protected float goalRangeTolerance;
         protected float2 velocityReference;
         protected bool hasVelocityReference;
+        private bool boostCommanded;
         protected float2 enemyPos;
         protected float2 enemyVel;
         protected float enemyYaw = float.NaN;
@@ -50,21 +51,21 @@ namespace Movement.MPC
         protected ArenaContext arena;
         public float arriveRadius = 2f;
 
-        // Terminal cost-to-go field: the chase target whose shared field the solver samples at rollout ends. Set only for enemy-anchored pursuit (MaintainRange).
+        // Chase target whose shared cost-to-go field the solver samples at rollout ends; set only for enemy-anchored pursuit (MaintainRange).
         private Transform terminalFieldTarget;
         private float selfMaxSpeed;
 
-        // Flee escape field: a per-ship, lazily-created self-anchored grid sampled through the terminal hook, active only while fleeing a live target.
+        // Per-ship self-anchored escape grid sampled through the terminal hook, active only while fleeing a live target.
         private Field.FieldBaker fleeFieldBaker;
         private bool hasFleeThreat;
         private float2 fleeThreat;
 
-        // Flee field geometry/policy — constants (mirroring NavFieldService's pursuit defaults) until benchmark evidence says a knob is worth exposing.
+        // Constants (mirroring NavFieldService's pursuit defaults) until benchmark evidence says a knob is worth exposing.
         private const int FleeFieldGridSize = 64;
         private const float FleeFieldCellSize = 3f;
         private const float FleeFieldShipRadiusBuffer = 2f;
         private const float FleeFieldRebuildInterval = 0.15f;
-        // Fraction of a grid crossing charged to the worst-bearing exit: 1 = fleeing past the threat costs as much as detouring the entire grid.
+        // Fraction of a grid crossing charged to the worst-bearing exit: 1 = fleeing past the threat costs a full-grid detour.
         private const float FleeThreatBias = 1f;
 
         public Waypoint CurrentWaypoint => currentWaypoint;
@@ -214,12 +215,12 @@ namespace Movement.MPC
             return fleeFieldBaker.TryGetData(selfMaxSpeed, out data);
         }
 
-        private void ApplyControl(in MpcResult r)
+        internal void ApplyControl(in MpcResult r)
         {
             currentCommand.thrust = r.thrust;
             currentCommand.strafe = r.strafe;
             currentCommand.yawTorque = r.yawTorque;
-            currentCommand.boost = r.boost;
+            currentCommand.boost = boostCommanded ? Mathf.Max(r.boost, 1f) : r.boost;
         }
 
         /// <summary>The single production entry point for driving the navigator, resetting every field each call so the result depends only on the intent, never on prior state or call order. An invalid intent resets to idle. Composes the granular Set*/Clear* seam below (which tests also drive directly).</summary>
@@ -239,6 +240,7 @@ namespace Movement.MPC
             fleeThreat = hasFleeThreat
                 ? new float2(intent.target.kinematics.pos.x, intent.target.kinematics.pos.y)
                 : default;
+            boostCommanded = intent.goalMode == GoalMode.VelocityReference && intent.boost;
 
             switch (intent.goalMode)
             {
@@ -280,6 +282,7 @@ namespace Movement.MPC
             terminalFieldTarget = null;
             hasFleeThreat = false;
             fleeThreat = default;
+            boostCommanded = false;
             ClearNavigationPoint();
             ClearGoalMode();
             ClearEnemyState();
