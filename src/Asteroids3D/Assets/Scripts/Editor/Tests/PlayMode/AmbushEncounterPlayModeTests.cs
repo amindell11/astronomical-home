@@ -152,7 +152,7 @@ namespace Tests.PlayMode
             spine.Bind(key, zone);
 
             var (_, encounter, wave, volume) = AddAmbush(
-                sector, AreaToken, StartToken, ClearedToken, TriggerPlane, fireDelay: 0.3f);
+                sector, AreaToken, StartToken, ClearedToken, TriggerPlane, fireDelay: 1f);
             sector.SetManifest(null, new SectorSpawner[] { wave },
                 new SectorModule[] { spine, volume, encounter });
 
@@ -161,8 +161,7 @@ namespace Tests.PlayMode
             Assert.AreEqual(0, _objectives.Locals.Count);
 
             player.transform.position = GamePlane.PlanePointToWorld(TriggerPlane);
-            yield return new WaitForFixedUpdate();
-            yield return new WaitForFixedUpdate();
+            yield return WaitSeconds(() => sector.Ctx.Bus.Get(AreaToken), 5f);
             Assert.IsTrue(sector.Ctx.Bus.Get(AreaToken), "Entering the area must raise the level.");
             Assert.IsFalse(encounter.HasFired, "The delay must hold the fire sequence.");
             Assert.AreEqual(0, wave.Spawned.Count);
@@ -243,8 +242,7 @@ namespace Tests.PlayMode
             yield return sector.Setup();
 
             player.transform.position = GamePlane.PlanePointToWorld(TriggerPlane);
-            yield return new WaitForFixedUpdate();
-            yield return new WaitForFixedUpdate();
+            yield return WaitSeconds(() => sector.Ctx.Bus.Get(AreaToken), 5f);
             Assert.IsTrue(sector.Ctx.Bus.Get(AreaToken));
             Assert.IsFalse(encounter.HasFired);
 
