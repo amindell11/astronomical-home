@@ -29,7 +29,6 @@ namespace Movement.MPC
                 var hasEnemy = !math.isnan(input.enemyYaw);
                 var anchored = cfg.goalMode.IsEnemyAnchored();
 
-                // Predicted enemy this step: pre-rolled trajectory if present, else linear extrapolation.
                 var haveTrack = input.enemyStates.IsCreated && step < input.enemyStateCount;
                 float2 enemyPos, enemyVel;
                 float enemyYaw;
@@ -118,7 +117,6 @@ namespace Movement.MPC
                 total += math.pow(t, cfg.terminalCurve) * cfg.terminalMultiplier * stateCost;
             }
 
-            // Collision is a hard constraint, flat across the horizon (un-ramped) — an early hit costs as much as a late one.
             return total + collisionCost;
         }
 
@@ -232,7 +230,7 @@ namespace Movement.MPC
         internal static float RangeBandCost(float2 pos, float2 goal, float desiredRange, float tolerance)
         {
             var dist = math.length(pos - goal);
-            var err = math.max(math.max(dist - (desiredRange + tolerance), (desiredRange - tolerance) - dist), 0f);
+            var err = math.max(math.abs(dist - desiredRange) - tolerance, 0f);
             var errSq = err * err;
             var tolSq = math.max(tolerance * tolerance, 1e-4f);
             return errSq / (errSq + tolSq);
@@ -342,7 +340,7 @@ namespace Movement.MPC
             float hullRadius, float maxLatAccel)
         {
             var speed = math.length(vel);
-            if (speed <= 1e-3f) return 0f; // no heading — nothing is being led into
+            if (speed <= 1e-3f) return 0f;
 
             var velDir = vel / speed;
             var halfLatAccel = 0.5f * math.max(maxLatAccel, 1e-4f);
@@ -355,16 +353,15 @@ namespace Movement.MPC
                 var corridor = obs.radius + hullRadius;
 
                 var along = math.dot(toObs, velDir);
-                if (along <= 0f) continue;                      // behind us — no cost
+                if (along <= 0f) continue;
 
                 var perp = math.length(toObs - along * velDir);
-                if (perp >= corridor) continue;                 // collision-course gate: passes clear
+                if (perp >= corridor) continue;
 
-                var dNeeded = corridor - perp;                  // extra lateral clearance to miss
-                var tAvail = along / speed;                     // time until we reach its plane
-                var dTurn = halfLatAccel * tAvail * tAvail;     // max sidestep before impact
-                // 0 when the sidestep covers the deficit; →1 as it falls short. Squaring gives C¹ zero.
-                var deficit = math.saturate(1f - dTurn / math.max(dNeeded, 1e-4f));
+                var lateralClearanceNeeded = corridor - perp;
+                var timeToObstaclePlane = along / speed;
+                var maxSidestepBeforeImpact = halfLatAccel * timeToObstaclePlane * timeToObstaclePlane;
+                var deficit = math.saturate(1f - maxSidestepBeforeImpact / math.max(lateralClearanceNeeded, 1e-4f));
                 worst = math.max(worst, deficit * deficit);
             }
             return worst;
@@ -416,7 +413,6 @@ namespace Movement.MPC
             var enemyFwd = new float2(-math.sin(enemyYaw), math.cos(enemyYaw));
             var cosAngle = math.dot(enemyFwd, dir);
 
-            // Angle from enemy's nose (0 = directly in front, π = behind)
             var angle = math.acos(math.clamp(cosAngle, -1f, 1f));
             var x = angle / math.max(width, 1e-4f);
             return math.exp(-x * x);
@@ -449,7 +445,6 @@ namespace Movement.MPC
             var tangentialSpeedSq = math.lengthsq(vel) - radialSpeed * radialSpeed;
             var missDistance = math.sqrt(math.max(0f, tangentialSpeedSq)) * tof;
 
-            // Banking shrinks the ship's profile: effective width = baseWidth * cos(bankAngle)
             var effectiveProfile = 0.5f * profileScale;
             return effectiveProfile / (missDistance + effectiveProfile);
         }
@@ -462,7 +457,7 @@ namespace Movement.MPC
             if (speedSq < 1e-4f || initSpeedSq < 1e-4f) return 0f;
 
             var cosAngle = math.dot(vel, initialVel) / (math.sqrt(speedSq) * math.sqrt(initSpeedSq));
-            return (1f - cosAngle) * 0.5f; // 0 = same direction, 0.5 = perpendicular, 1 = opposite
+            return (1f - cosAngle) * 0.5f;
         }
 
         internal static float WrapRadians(float angle)

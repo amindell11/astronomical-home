@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the shape of the MPC goal costs against their stated intent: a range-hold objective's argmin must be its band (never contact — the bug behind the ram-and-stall stalemate), and flee must strictly prefer distance. Sweeps every shipped StateProfile asset so a retuned or new profile that contradicts its own goal fails loudly.</summary>
+    /// <summary>Pins the shape of the MPC goal costs against their stated intent — a range-hold objective's argmin must be its band (never contact) and flee must strictly prefer distance — sweeping every shipped StateProfile so a profile that contradicts its own goal fails loudly.</summary>
     [Category("MPC")]
     public class MpcGoalCostShapeEditModeTests
     {
@@ -49,7 +49,7 @@ namespace Tests.EditMode
                 for (var dist = 0f; dist <= GridMax; dist += GridStep)
                     Assert.GreaterOrEqual(BandCostAt(dist, range, tol), 0f,
                         $"Range-hold must never REWARD leaving the band (dist {dist}, band {range}±{tol}) — " +
-                        "a negative branch here is what made every MaintainRange state dive to hull contact");
+                        "a negative branch here makes every MaintainRange state dive to hull contact");
         }
 
         [Test]
