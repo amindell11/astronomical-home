@@ -20,7 +20,7 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void Material_UsesStreamlinedProceduralShaderContract()
+        public void Material_MatchesProceduralShaderContract()
         {
             var material = LoadMaterial();
 
