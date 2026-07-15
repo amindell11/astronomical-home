@@ -112,6 +112,36 @@ namespace Tests.PlayMode
 
         [UnityTest]
         [Timeout(600000)]
+        public IEnumerator InferenceOnly_PinnedCheckpoint_DrivesAFullEpisode()
+        {
+            const string onnxFixturePath = "Assets/Tests/Fixtures/ShipCombat-smoke.onnx";
+            if (UnityEditor.AssetDatabase.LoadMainAssetAtPath(onnxFixturePath) == null)
+                Assert.Ignore($"ONNX fixture pending — produce via the trainer smoke (training/rl/README.md) and commit it at {onnxFixturePath}");
+
+            var spec = RewardSpec.Default;
+            spec.timeoutDecisions = 40;
+            spec.minSeparation = 18f;
+            spec.maxSeparation = 24f;
+
+            pair = EpisodePair.Spawn(unitService, arena, in spec, (agentShip, baselineShip) =>
+            {
+                chooser = new AgentChooser();
+                chooser.Configure(baselineShip,
+                    agentShip.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary));
+                return chooser;
+            });
+            agent = ShipAgentFactory.ComposeInferenceOnly(pair, chooser, in spec, arena.Offset, onnxFixturePath);
+            var driver = new EpisodeLoopDriver(pair, agent, arena.Offset);
+
+            yield return driver.RunEpisode(spec, 0);
+            var result = driver.Runner.Result;
+            Assert.AreNotEqual(EpisodeOutcome.Unresolved.ToString(), result.outcome);
+            Assert.AreEqual(result.decisions, agent.DecisionsReceived);
+            Assert.AreEqual(result.totalReward, driver.LastEpisodeCumulativeReward, 1e-3f);
+        }
+
+        [UnityTest]
+        [Timeout(600000)]
         public IEnumerator HeuristicOnly_Timeout_TruncatesAndSurvivesIntoTheNextEpisode()
         {
             var spec = RewardSpec.Default;
