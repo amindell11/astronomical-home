@@ -18,6 +18,7 @@
     [int]$LogTailLines = 40,
     [int]$UnityTimeoutSec = 1800,
     [string]$ExcludeCategory = "RequiresGraphics",
+    [switch]$WithGraphics,
     [switch]$IncludeStackTrace,
     [switch]$ValidateScope,
     [string]$ScopeMapPath = "",
@@ -689,13 +690,15 @@ foreach ($platform in $platforms) {
 
     $args = @(
         "-batchmode",
-        "-nographics",
         "-projectPath", $project,
         "-runTests",
         "-testPlatform", $platform,
         "-testResults", $xmlPath,
         "-logFile", $logPath
     )
+    if (-not $WithGraphics) {
+        $args = @($args[0], "-nographics") + $args[1..($args.Count - 1)]
+    }
 
     if (-not [string]::IsNullOrWhiteSpace($TestFilter)) {
         $args += @("-testFilter", $TestFilter)
