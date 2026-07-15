@@ -47,6 +47,24 @@ Without uv: install CPython 3.10.12, `py -3.10 -m venv .venv`, activate, then
 
 Resume with `--resume`, force a fresh run with `--force`.
 
+### Headless / batch-mode attach (trainer smoke)
+
+An editor boot outlasts the trainer's 60 s handshake window, so the batch flow
+arms first and enters play on a flag file:
+
+1. `Unity.exe -projectPath src/Asteroids3D -batchmode -nographics
+   -executeMethod Game.RLHarness.TrainingBootstrap.EnterTrainingPlayModeWhenSignaled
+   -logFile <log>` (no `-quit`), and wait for `[TrainingBootstrap] armed` in the log.
+2. Start `mlagents-learn ppo_ship_combat_smoke.yaml --force` and wait for
+   `Listening on port 5004`.
+3. Create `results/rl-training/start-play.flag` — the editor enters play and
+   connects. The smoke config completes by itself (max_steps 4000) and exports
+   `results/rl-training/ship_combat_smoke/ShipCombat.onnx`; kill the editor after.
+
+The eval fixture is that exported checkpoint committed (LFS) at
+`Assets/Tests/Fixtures/ShipCombat-smoke.onnx`, pinned by
+`RLAgentPlayModeTests.InferenceOnly_PinnedCheckpoint_DrivesAFullEpisode`.
+
 ## Python-free loop check
 
 `Tests.PlayMode/RLAgentPlayModeTests` runs the identical loop with the

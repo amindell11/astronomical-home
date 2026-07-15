@@ -3,5 +3,7 @@
 mlagents==1.1.0
 # mlagents imports pkg_resources, removed in setuptools >= 81.
 setuptools<81
-# CPU torch arrives as an mlagents dependency. For CUDA on Windows install first:
-#   pip install torch~=2.2.1 --index-url https://download.pytorch.org/whl/cu121
+# torch >= 2.9 routes torch.onnx.export through the dynamo/onnxscript path, which breaks
+# mlagents 1.1.0 checkpoint export; ~2.2.1 is the pairing named by the package docs.
+# For CUDA on Windows: pip install torch~=2.2.1 --index-url https://download.pytorch.org/whl/cu121
+torch~=2.2.1

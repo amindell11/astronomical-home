@@ -36,6 +36,9 @@ engine_settings:
   time_scale: 1
   target_frame_rate: -1
   capture_frame_rate: 50
+env_settings:
+  # Editor boot + play-mode domain reload (Burst) outlasts the 60 s default handshake window.
+  timeout_wait: 300
 checkpoint_settings:
   run_id: ship_combat
   results_dir: ../../results/rl-training
