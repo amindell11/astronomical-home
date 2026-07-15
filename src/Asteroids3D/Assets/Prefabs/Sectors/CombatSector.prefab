@@ -73,6 +73,7 @@ MonoBehaviour:
   - {fileID: 1122334455667788991}
   - {fileID: 5533221100446688305}
   - {fileID: 5533221100446688306}
+  - {fileID: 5044555833373099145}
 --- !u!1001 &1647443509423964513
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -307,8 +308,31 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 6954074523563434471}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5100611748941008240, guid: cffc6e37abd758f4191aef193abb1274,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5044555833373099145}
   m_SourcePrefab: {fileID: 100100000, guid: cffc6e37abd758f4191aef193abb1274, type: 3}
+--- !u!1 &5044555833373099144 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5100611748941008240, guid: cffc6e37abd758f4191aef193abb1274,
+    type: 3}
+  m_PrefabInstance: {fileID: 5044555833373099143}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &5044555833373099145
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5044555833373099144}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 383297d30cd9401fbf4b054277b01692, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  token: extraction-challenge-started
 --- !u!4 &6043965251031230171 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1576724491614118492, guid: cffc6e37abd758f4191aef193abb1274,
@@ -506,6 +530,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Extraction Gate
       objectReference: {fileID: 0}
+    - target: {fileID: 7546324037402026647, guid: 0908c9d6b2b5b25499cf01ffc8214c5a,
+        type: 3}
+      propertyPath: blocker
+      value:
+      objectReference: {fileID: 6043965251031230171}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -572,9 +601,9 @@ MonoBehaviour:
   - kind: 0
     signalToken: spine:ready-to-extract
     timeSeconds: 0
-  publishOnFired: []
+  publishOnFired:
+  - extraction-challenge-started
   extractionZone: {fileID: 5533221100446688304}
-  chaser: {fileID: 7742011771732502815}
 --- !u!1001 &8730741158887831457
 PrefabInstance:
   m_ObjectHideFlags: 0

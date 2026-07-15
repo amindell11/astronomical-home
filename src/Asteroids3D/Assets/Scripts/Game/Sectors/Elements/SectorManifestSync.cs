@@ -7,12 +7,7 @@ using World;
 
 namespace Game.Sectors
 {
-    /// <summary>
-    /// Edit-time bake: scoped crawl of a sector's child hierarchy plus reconcile of the serialized
-    /// manifest (<c>adopted[]</c> + <c>spawners[]</c>). This is the crawl that Attempt 2 ran at
-    /// runtime, moved to a button press so its output is serialized, diffable and inspectable —
-    /// the runtime NEVER crawls. Pure C# (no UnityEditor) so it is unit-testable in EditMode.
-    /// </summary>
+    /// <summary>Edit-time bake: scoped crawl of a sector's child hierarchy + manifest reconcile; the runtime never crawls. Pure C# (no UnityEditor) so it is unit-testable in EditMode.</summary>
     public static class SectorManifestSync
     {
         public readonly struct ReconcileResult
@@ -75,10 +70,7 @@ namespace Game.Sectors
             return null;
         }
 
-        /// <summary>
-        /// Collect recognised content components in hierarchy order, descending only through plain
-        /// container objects and STOPPING at each recognised node (it owns its subtree).
-        /// </summary>
+        /// <summary>Collect recognised content components in hierarchy order, descending only through plain containers and stopping at each recognised node (it owns its subtree).</summary>
         public static void Collect(Transform root, List<Component> result)
         {
             for (var i = 0; i < root.childCount; i++)
@@ -89,11 +81,7 @@ namespace Game.Sectors
             }
         }
 
-        /// <summary>
-        /// Reconcile the existing manifest against the live hierarchy. Preserves existing entries
-        /// (and their annotations + order) whose targets still exist, drops orphans, appends new
-        /// recognised children at the end.
-        /// </summary>
+        /// <summary>Reconcile the manifest against the live hierarchy: preserve existing entries (annotations + order), drop orphans, append new recognised children at the end.</summary>
         public static ReconcileResult Reconcile(
             Transform root, IReadOnlyList<AdoptEntry> existingAdopted, IReadOnlyList<SectorSpawner> existingSpawners,
             IReadOnlyList<SectorModule> existingModules = null)
@@ -200,12 +188,7 @@ namespace Game.Sectors
                 orphanedAdopt, orphanedSpawner, orphanedModule);
         }
 
-        /// <summary>
-        /// Modules live either as components on the sector root or — like spawners — as child
-        /// GameObjects. Collect both: root components first, then a scoped child crawl (descend
-        /// plain containers, STOP at recognised content nodes so we never dive into a ship/spawner
-        /// subtree). Order is root modules, then child modules in hierarchy order.
-        /// </summary>
+        /// <summary>Root modules first, then a scoped child crawl: modules ON a recognised content node (e.g. ActivateOnToken on an adopted ship) are collected, its subtree is not.</summary>
         private static List<SectorModule> CollectModules(Transform root)
         {
             var list = new List<SectorModule>();
@@ -220,17 +203,14 @@ namespace Game.Sectors
             for (var i = 0; i < parent.childCount; i++)
             {
                 var child = parent.GetChild(i);
-                if (IsRecognized(child)) continue; // content node owns its subtree — do NOT descend
                 child.GetComponents(scratch);
                 acc.AddRange(scratch);
-                CollectChildModules(child, acc);   // plain container — descend
+                if (IsRecognized(child)) continue; // content node owns its subtree — do NOT descend
+                CollectChildModules(child, acc);
             }
         }
 
-        /// <summary>
-        /// Read-only drift check (no mutation): how many recognised children are not yet in the
-        /// manifest, and how many manifest entries point at deleted/unrecognised targets.
-        /// </summary>
+        /// <summary>Read-only drift check: recognised children not yet in the manifest, and manifest entries pointing at deleted/unrecognised targets.</summary>
         public static DriftReport ComputeDrift(
             Transform root, IReadOnlyList<AdoptEntry> adopted, IReadOnlyList<SectorSpawner> spawners,
             IReadOnlyList<SectorModule> modules = null)

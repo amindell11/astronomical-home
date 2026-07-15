@@ -173,6 +173,31 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void Reconcile_CollectsModuleOnRecognizedNode_WithoutDescending()
+        {
+            var root = NewGO("Root");
+
+            // Module ON a recognised content node (e.g. ActivateOnToken on an adopted ship) — collected.
+            var spawner = AddSpawner("Spawner", root.transform);
+            var onNode = spawner.gameObject.AddComponent<StubModule>();
+
+            // Module INSIDE that node's subtree — still owned by the node, NOT collected.
+            var hidden = NewGO("Hidden", spawner.transform).AddComponent<StubModule>();
+
+            var result = SectorManifestSync.Reconcile(root.transform,
+                new AdoptEntry[0], new SectorSpawner[0], new SectorModule[0]);
+
+            CollectionAssert.Contains(result.Modules, onNode,
+                "A module carried by a recognised content node must be collected.");
+            CollectionAssert.DoesNotContain(result.Modules, hidden,
+                "The node's subtree stays owned — no descent.");
+
+            var drift = SectorManifestSync.ComputeDrift(root.transform,
+                new AdoptEntry[0], new SectorSpawner[] { spawner }, new SectorModule[] { onNode });
+            Assert.IsFalse(drift.HasDrift, "A synced on-node module must not read as drift.");
+        }
+
+        [Test]
         public void ComputeDrift_CountsModuleDrift()
         {
             var root = NewGO("Root");

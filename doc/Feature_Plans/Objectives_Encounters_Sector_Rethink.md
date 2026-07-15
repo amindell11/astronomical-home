@@ -258,9 +258,10 @@ above where they differ.
     builds the bus publisher for spine-stage tokens, it must add a step-level
     change signal on the objective service, not reuse the type-level event.
 - **PR-4 · Author a real overlapping/timed combat encounter (the original ask).**
-  Now trivial: a combat encounter whose rule uses time/spatial terms, spawns waves
-  that **overlap**, completion = cleared. Proves the model delivers what started
-  this — several things alive at once, each on its own schedule.
+  A combat encounter whose rule uses spatial + delay terms, lazily spawns its
+  wave, completion = cleared. Proves the model delivers what started this —
+  several things alive at once, each on its own schedule. **Split into PR-4a
+  (command-edge cleanup) + PR-4b (ambush) — see "PR-4 — decision brief".**
 
 **Scope claim:** PR-1/PR-2 are additive/behavior-preserving and land immediately;
 PR-3 is the single behavior-flipping change (well-covered by the demo as an
@@ -380,17 +381,115 @@ Decisions made during the build, within the locked scope:
   (`OpenLocal`/`SetSpineObjective` handles own their teardown); never call
   ambient `ClearAll` from encounter code — it belongs to session sweep only.
 
+### PR-4 — decision brief (pr-prep 2026-07-14)
+
+Frozen with the user; the implementing agent builds, it does not re-decide.
+PR-4 splits into **PR-4a** (behavior-identical cleanup) then **PR-4b** (the
+ambush encounter). Both branch off current main; no in-flight collisions
+(#143/#144/range-hold touch no sector/objectives files).
+
+**Standing rule adopted** (codified in root `CLAUDE.md` wiring philosophy §5
+and `feedback_dependency_wiring_philosophy`): *refs bind and observe; signals
+cause.* A serialized/held ref exists to bind (Initialize-style injection) or
+observe (poll state, read a target) — never so one peer can command another at
+runtime. Runtime causation between peers rides a bus token / event the actee
+subscribes to; command calls are legitimate only downward (owner→owned,
+caller→service) or during setup/teardown orchestration. A 2026-07-14 audit
+found the tree unanimous except `ExtractionChallengeRule.OnFired`. Rolling
+back PR-3 #141 was considered and **rejected** — the violator is two lines;
+the rest of #141 is the rule-following substrate itself.
+
+#### PR-4a — retire the command edge (behavior-identical)
+
+- New `ActivateOnToken : SectorModule` on the chaser GO: serialized token +
+  `Configure` test seam (mirror `TriggerVolume`); subscribes at Setup,
+  `SetActive(true)` on its **own** GameObject when the token goes true (the
+  actee subscribes — `KeyPickup` self-toggle precedent); Teardown restores
+  inactive. Works while the GO is inactive (module Setup is a plain iterator
+  call from `Sector`, not a Unity lifecycle event).
+- `ExtractionChallengeRule`: `publishOnFired` gains
+  `extraction-challenge-started`; the `chaser` field, both its command lines,
+  and the chaser half of the editor `Bind` seam die. `Arm` stays — the thin
+  rule is the fixture's co-located arming logic (ownership edge).
+- `ExtractionZone` gains a serialized blocker ref (in-prefab binding —
+  observation, sanctioned); `Arm()` drops its parameter.
+- Parity: the token latches in the same synchronous `EvaluateNow` chain the
+  direct `SetActive` ran in — the chaser wakes the same frame.
+- `CombatSectorPrefabEditModeTests` re-pin the token wiring (they currently
+  pin the violating ref — the ratchet working as intended).
+
+#### PR-4b — ambush encounter (the payoff)
+
+Forks (locked, with why):
+
+- **Bespoke `AmbushEncounter : ActivationRule`** — no base-class extraction,
+  no generic data-driven `CombatEncounter`; generalize only when a 2nd
+  encounter type exists (evidence gate; board card). *Why:* design against
+  the first real consumer; most of "an encounter" is already generic
+  substrate (rule terms, bus, spawner params, `OpenLocal`).
+- **Demo = one encounter, single wave: enter area → short timer → spawn.**
+  A second *instance* of the same class in PlayMode tests pins N-concurrency.
+  *Why:* proves sequencing + spine-concurrency + lazy spawn + first
+  production local with minimal authored surface.
+- **New `fireDelaySeconds` on `ActivationRule` (default 0):** the predicate
+  latches on first satisfaction (leaving the area does NOT cancel); the whole
+  fire sequence (`OnFired` → `Fired` → publish) runs as one unit after the
+  delay; Teardown/bus-freeze cancels a pending fire. *Why:* "enter, then
+  timer" is not expressible in the term algebra (Time terms count from
+  Setup); rule-level delay keeps the causal-order pin and composes in data.
+- **Lazy spawn = token-gated production.** `SectorSpawner.Build` becomes a
+  sealed template: capture ctx; empty serialized activation token → produce
+  now (default — behavior-identical for all existing spawners); token set →
+  subscribe, produce exactly once when it goes true. No public `Produce()`
+  command seam; the chain is data:
+  `TriggerVolume("near-derelict") → AmbushRule[near-derelict]+delay →
+  publishOnFired["ambush-started"] → RingSpawner(activation="ambush-started")`.
+  *Why:* the bus is the coupling seam; spawner already receives it via ctx;
+  teardown/despawn and restart ride the existing sector-owned paths
+  unchanged — the deferred "lazy-spawn ownership" question dissolves.
+- **Locals HUD deferred** (board card). Locals visualized by an editor-only
+  `[DrawGizmo]` static over `ObjectiveService` drawing live local targets
+  (editor-split recipe; no component attachment, so the parked
+  editor-viz-unattachable issue is moot).
+
+Assumptions (confirmed):
+
+1. Encounter = sector-level child owning its `TriggerVolume` + `RingSpawner`
+   as children (hierarchy = ownership); spawner bound by serialized ref for
+   **observation only** (completion predicate).
+2. `OnFired` opens the local via `OpenLocal`; the encounter closes its own
+   handle on completion; never ambient `ClearAll`.
+3. Completion = polled `ObjectiveState` over `spawner.Spawned` all-dead
+   (null-or-death-flagged), `ExploreState(IKeyTracker)` shape; fail-closed at
+   Setup (missing ref → loud error, inert rule).
+4. On cleared: latch serialized `publishOnCleared` tokens
+   (`ambush-cleared`) — completion-time signal, distinct from
+   `publishOnFired`.
+5. New `ObjectiveType.ClearHostiles` for the local; minimap spine whitelist
+   untouched by construction.
+6. Wave = existing `RingSpawner` (serialized team/commander; respawn None),
+   dormant via its activation token. Size/delay are authoring knobs
+   (~2-4 ships, ~5-10s) — implementer tunes.
+7. Coexists with the existing adopted live enemy; authored in
+   `CombatSector.prefab` in place (it is *the* shipped demo sector).
+8. Reset/teardown need nothing new: fresh bus per `Setup()`, freeze cancels
+   pending delay, spawner Teardown despawns products.
+9. Tests: PlayMode end-to-end (enter → delay → spawn → concurrent-with-spine
+   → clear → local closes → token latched) + two-instance concurrency +
+   EditMode prefab pins updated; `[Category("Sectors")]`.
+
 ## Open questions (decide at build)
 
 Manifest plumbing and bus token type were resolved in PR-1; the spine/local API
 landed in PR-2; the migration audit is done (`CombatSector.prefab` is the sole
-carrier) and the PR-3 forks are locked above. Still open:
+carrier); the PR-3 forks are locked above; the PR-4 forks are locked in its
+decision brief. Dispositions of the former PR-4 questions:
 
-- **Lazy-spawn ownership/teardown** (now a PR-4 question) — a rule's spawned
-  content must despawn on sector teardown / episode reset (RL); who owns the
-  handle (the rule, via the sector's teardown pass)?
-- **Locals HUD contract** (PR-4) — contextual markers for local objectives;
-  `MinimapObjectiveMarker` is spine-only today.
+- **Lazy-spawn ownership/teardown** — RESOLVED by token-gated spawner
+  production (PR-4 brief): the sector already owns product lifetime through
+  the existing spawner Build/Teardown paths; no new handle needed.
+- **Locals HUD contract** — DEFERRED to a board card; PR-4b ships an
+  editor-only locals gizmo instead. `MinimapObjectiveMarker` stays spine-only.
 
 Deferred test debt (from PR-1 review): a serialized `ActivationTerm[]`
 inspector round-trip test, and compound-collider `TriggerVolume` occupancy

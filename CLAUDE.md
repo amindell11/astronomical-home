@@ -223,3 +223,10 @@ dependency, and prefer zero new wiring over new seams:
 4. **The smell to catch mid-diff:** if wiring ONE new dependency touches
    bootstrap + a service interface + Commander/UnitService + the consuming
    component, stop and reclassify before pushing.
+5. **Refs bind and observe; signals cause.** A serialized/held reference
+   exists to bind (Initialize-style identity/config injection) or observe
+   (poll state, read a target) — never so one peer can command another at
+   runtime. Runtime causation between peers rides an event / sector-bus token
+   the actee subscribes to. Command calls are legitimate only downward
+   (owner→owned, caller→service) or during setup/teardown orchestration. The
+   smell: a ref whose only use is telling its target to *do* something.
