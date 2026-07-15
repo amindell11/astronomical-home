@@ -58,7 +58,7 @@ namespace Game.Sectors
             var visited = new HashSet<Component>();
             foreach (var node in model.Ports)
             {
-                if (!node.Publisher || IsDownstream(model, node.Publisher)) continue;
+                if (!node.Publisher || IsDownstream(model, node.Publisher) || visited.Contains(node.Publisher)) continue;
                 DrawPublisher(model, node.Publisher, visited);
             }
 
