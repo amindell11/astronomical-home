@@ -100,10 +100,10 @@ namespace Tests.EditMode
 
             var keyPlane = GamePlane.WorldPointToPlane(key.transform.position);
             var gatePlane = GamePlane.WorldPointToPlane(zone.transform.position);
-            Assert.Less((keyPlane - new Vector2(-25f, 50f)).magnitude, 0.01f,
-                $"Key must sit at the old authored plane position (-25,50), was {keyPlane}.");
-            Assert.Less((gatePlane - new Vector2(50f, 50f)).magnitude, 0.01f,
-                $"Gate must sit at the old authored plane position (50,50), was {gatePlane}.");
+            Assert.Less((keyPlane - new Vector2(-108.5f, 154.1f)).magnitude, 0.01f,
+                $"Key must sit at the authored plane position (-108.5,154.1), was {keyPlane}.");
+            Assert.Less((gatePlane - new Vector2(173.9f, 170.6f)).magnitude, 0.01f,
+                $"Gate must sit at the authored plane position (173.9,170.6), was {gatePlane}.");
         }
 
         [Test]
