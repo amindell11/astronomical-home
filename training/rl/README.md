@@ -16,16 +16,22 @@ PR-2b episode pair and drives runner-owned manual Academy stepping.
 
 ## Environment setup (uv)
 
+Installs come FROM the lock (`requirements.lock.txt`, a `pip freeze` of the
+working env); `requirements.txt` is the human-readable intent behind it.
+
 ```powershell
 cd training/rl
 uv venv                      # picks up .python-version (3.10.12)
-uv pip install -r requirements.txt
-uv pip freeze > requirements.lock.txt   # capture the resolved lock at setup
+uv pip install -r requirements.lock.txt
 .venv\Scripts\mlagents-learn --help     # sanity
 ```
 
 Without uv: install CPython 3.10.12, `py -3.10 -m venv .venv`, activate, then
-`pip install -r requirements.txt`.
+`pip install -r requirements.lock.txt`.
+
+To (re)resolve intentionally: `uv pip install -r requirements.txt`, verify a
+smoke run passes (below), then `uv pip freeze > requirements.lock.txt` and
+commit both files together.
 
 ## Training run
 
@@ -47,19 +53,23 @@ Without uv: install CPython 3.10.12, `py -3.10 -m venv .venv`, activate, then
 
 Resume with `--resume`, force a fresh run with `--force`.
 
-### Headless / batch-mode attach (trainer smoke)
+### Trainer smoke (asserting runner)
 
-An editor boot outlasts the trainer's 60 s handshake window, so the batch flow
-arms first and enters play on a flag file:
+```powershell
+cd training/rl
+.venv\Scripts\python run_smoke.py
+```
 
-1. `Unity.exe -projectPath src/Asteroids3D -batchmode -nographics
-   -executeMethod Game.RLHarness.TrainingBootstrap.EnterTrainingPlayModeWhenSignaled
-   -logFile <log>` (no `-quit`), and wait for `[TrainingBootstrap] armed` in the log.
-2. Start `mlagents-learn ppo_ship_combat_smoke.yaml --force` and wait for
-   `Listening on port 5004`.
-3. Create `results/rl-training/start-play.flag` — the editor enters play and
-   connects. The smoke config completes by itself (max_steps 4000) and exports
-   `results/rl-training/ship_combat_smoke/ShipCombat.onnx`; kill the editor after.
+`run_smoke.py` boots a batch-mode editor (armed via
+`TrainingBootstrap.EnterTrainingPlayModeWhenSignaled` — an editor boot outlasts
+the trainer's 60 s handshake window, so it enters play on
+`results/rl-training/start-play.flag`), runs
+`mlagents-learn ppo_ship_combat_smoke.yaml --force` with `RL_SMOKE=1`
+(tight-arena/short-clock spec so both end kinds occur), then **fails unless**
+the trainer exited 0, `ShipCombat.onnx` was exported, the editor log carries
+the `[PacingContract] holds` marker, and at least one terminal AND one
+truncation episode ran. It boots its own editor — coordinate access first
+(`skills/unity-access`).
 
 The eval fixture is that exported checkpoint committed (LFS) at
 `Assets/Tests/Fixtures/ShipCombat-smoke.onnx`, pinned by
@@ -73,13 +83,25 @@ Heuristic policy (inverse-mapped ranger) — no trainer needed. Set the scene's
 
 ## Eval (held-out seeds)
 
-`ShipAgentFactory.ComposeInferenceOnly(pair, chooser, spec, center, onnxPath)`
-pins `BehaviorType.InferenceOnly` + `DeterministicInference = true` (it
-defaults false — InferenceOnly alone samples stochastically). Arc-gate
-protocol (frozen in `doc/Feature_Plans/RL_MLAgents_Agent.md`): 20 pinned
-held-out seeds disjoint from training, Wilson 95% lower bound on win-rate
-> 50%, checkpoint selected on training-seed eval BEFORE the held-out set is
-opened; any RewardSpec change resets the protocol.
+`CheckpointEvaluator.Run` executes the frozen protocol
+(`doc/Feature_Plans/RL_MLAgents_Agent.md`): the 20 pinned held-out seeds
+(`EvalProtocol.HeldOutSeeds`, disjoint from training), W/L/D aggregation with
+the Wilson 95% lower bound on win-rate (draws are non-wins; gate: > 50%),
+artifacts under `results/rl-eval/`. Checkpoints are selected on training-seed
+eval BEFORE the held-out set is opened; any RewardSpec change resets the
+protocol. Batch entry:
+
+```powershell
+$env:RL_EVAL_ONNX = "results/rl-training/<run-id>/ShipCombat.onnx"   # default: the smoke fixture
+$env:RL_EVAL_EPISODES_PER_SEED = "5"
+Unity.exe -projectPath src/Asteroids3D -batchmode -nographics `
+  -executeMethod Game.RLHarness.TrainingBootstrap.RunHeldOutEval -logFile <log>
+```
+
+Under the hood `ShipAgentFactory.ComposeInferenceOnly` pins
+`BehaviorType.InferenceOnly`, `DeterministicInference = true` (it defaults
+false — InferenceOnly alone samples stochastically), `InferenceDevice.Burst`,
+and the `EvalProtocol.InferenceSeed` Academy inference seed.
 
 ## Characterization floor
 
