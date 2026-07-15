@@ -1,0 +1,5 @@
+# Paired with Unity package com.unity.ml-agents 4.0.3 (release_23) per its Installation.md.
+# Python must be 3.10.12 exactly (release-pair constraint is >=3.10.1,<=3.10.12) — see .python-version.
+mlagents==1.1.0
+# CPU torch arrives as an mlagents dependency. For CUDA on Windows install first:
+#   pip install torch~=2.2.1 --index-url https://download.pytorch.org/whl/cu121
