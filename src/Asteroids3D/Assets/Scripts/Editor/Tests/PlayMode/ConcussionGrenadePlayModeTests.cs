@@ -35,6 +35,10 @@ namespace Tests.PlayMode
             foreach (var wave in Object.FindObjectsByType<ConcussionWave>(FindObjectsSortMode.None))
                 Object.DestroyImmediate(wave.gameObject);
 
+            // Detonation bursts outlive their test and would trip the phantom-burst zero-VFX assertion.
+            foreach (var vfx in Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None))
+                Object.DestroyImmediate(vfx.gameObject);
+
             foreach (var proj in Object.FindObjectsByType<ProjectileBase>(FindObjectsSortMode.None))
                 Object.DestroyImmediate(proj.gameObject);
 
