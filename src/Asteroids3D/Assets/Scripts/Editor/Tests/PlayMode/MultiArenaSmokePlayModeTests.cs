@@ -26,8 +26,8 @@ namespace Tests.PlayMode
         private const float ArenaSpacing = 1000f;
         private const float PlacementTolerance = 1f;
         private const float SimSeconds = 4f;
-        // Combat liveness (first ship-vs-ship hit) is stochastic; keep simulating past SimSeconds until it lands.
-        private const float MaxSimSeconds = 30f;
+        // Combat liveness (first ship-vs-ship hit) is stochastic and slow-burn — range-holding AI closes to its band and waits for the 5° aim gate before firing; keep simulating past SimSeconds until it lands.
+        private const float MaxSimSeconds = 120f;
 
         private const string SectorPrefabPath = "Assets/Prefabs/Sectors/ArenaSector.prefab";
         private const string ConfigPath = "Assets/Settings/Game/DefaultSectorConfig.asset";
