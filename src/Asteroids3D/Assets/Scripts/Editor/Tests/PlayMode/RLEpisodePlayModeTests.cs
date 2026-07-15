@@ -226,17 +226,26 @@ namespace Tests.PlayMode
         [Timeout(3600000)]
         public IEnumerator Characterization_WritesJsonl()
         {
-            var watchFlag = File.Exists(Path.Combine(
-                Application.dataPath, "..", "..", "..", "results", "rl-episodes", "watch.flag"));
-            if (!watchFlag && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RL_EPISODES")))
-                Assert.Ignore("Set RL_EPISODES=1 (or create results/rl-episodes/watch.flag) to run the ranger-vs-baseline characterization.");
+            var resultsDir = Path.GetFullPath(Path.Combine(
+                Application.dataPath, "..", "..", "..", "results", "rl-episodes"));
+            var watchFlag = File.Exists(Path.Combine(resultsDir, "watch.flag"));
+            var recordFlag = File.Exists(Path.Combine(resultsDir, "record.flag"));
+            if (!watchFlag && !recordFlag && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RL_EPISODES")))
+                Assert.Ignore("Set RL_EPISODES=1 (or create results/rl-episodes/watch.flag or record.flag) to run the ranger-vs-baseline characterization.");
 
             var trace = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RL_EPISODE_TRACE"));
             if (watchFlag || !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RL_WATCH")))
                 Time.timeScale = 1f;
+            if (recordFlag && !watchFlag)
+            {
+                // Locked pacing (1 fixed step per frame) so a recorded seed replays identically; watch mode keeps real-time pacing instead.
+                Time.timeScale = 1f;
+                Time.captureDeltaTime = Time.fixedDeltaTime;
+            }
             var spec = RewardSpec.Default;
             var episodes = Mathf.Max(1, int.TryParse(Environment.GetEnvironmentVariable("RL_EPISODE_COUNT"), out var n)
-                ? n : (watchFlag ? 3 : 20));
+                ? n : (watchFlag || recordFlag ? 3 : 20));
+            var runStamp = DateTime.Now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
 
             SpawnPair(in spec, 0);
 
@@ -245,7 +254,8 @@ namespace Tests.PlayMode
             {
                 ResetPair(in spec, i);
                 var runner = new EpisodeRunner(agent, baseline, spec, i, arena.Offset, trace);
-                yield return RunToCompletion(runner, spec);
+                using var recorder = recordFlag ? new EpisodeRecorder(resultsDir, runStamp, i) : null;
+                yield return RunToCompletion(runner, spec, recorder);
                 results.Add(runner.Result);
             }
 
@@ -306,15 +316,21 @@ namespace Tests.PlayMode
             return poses;
         }
 
-        private IEnumerator RunToCompletion(EpisodeRunner runner, RewardSpec spec)
+        // 5 fixed steps = 0.1 s sim per frame, so assembled clips play real-time at 10 fps whatever the capture timescale.
+        private const int RecordEveryFixedSteps = 5;
+
+        private IEnumerator RunToCompletion(EpisodeRunner runner, RewardSpec spec, EpisodeRecorder recorder = null)
         {
             runner.Begin();
             var maxSimSeconds = spec.timeoutDecisions * spec.decisionIntervalSteps * Time.fixedDeltaTime;
             var deadline = Time.realtimeSinceStartup + 120f + maxSimSeconds;
+            var steps = 0;
             while (!runner.IsDone && Time.realtimeSinceStartup < deadline)
             {
                 yield return new WaitForFixedUpdate();
                 runner.Tick();
+                if (recorder != null && steps++ % RecordEveryFixedSteps == 0)
+                    recorder.CaptureFrame(agent, baseline);
             }
             Assert.IsTrue(runner.IsDone, "Episode wall-clock deadline exceeded before termination");
         }
