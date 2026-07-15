@@ -109,9 +109,12 @@ AI (gated) until a learned agent beats it.
   reset; headless episode runner (mirror `ChaseBenchmarkModule` + PlayMode driver +
   `Time.timeScale`).
 - **PR-3 · ML-Agents `Agent`.** Sensor = the merged `ObservationExtractor` (#107); action =
-  velocity reference + fire gate → PR-1's interface; reward/lifecycle = `AddReward`/`EndEpisode`.
-  Train vs frozen baseline. → **Gate: beats the scripted baseline on held-out seeds**
-  (lower-CI win-rate > 50%, no nav/collision regressions).
+  velocity reference + fire gate + boost (4 continuous, threshold-gated — 4.0.3 still rejects
+  hybrid specs in the trainer path) → PR-1's interface; reward/lifecycle = `AddReward`/
+  `EndEpisode`/`EpisodeInterrupted` riding PR-2b's `EpisodeRunner`. Train vs frozen baseline.
+  → **Gate: beats the scripted baseline on held-out seeds** (Wilson 95% lower-CI win-rate
+  > 50%, no nav/collision regressions). Frozen decision brief + full design:
+  `RL_MLAgents_Agent.md`.
 - **PR-4 · Self-play snapshots + eval league** (frozen baseline anchored as anti-forgetting).
 - **Later / conditional:** learned firing discipline; teams (CTDE); learn-V or
   Q(s,g)-ranking *iff* the horizon is proven the binding limit; native-sim port iff
