@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Tests.Common;
+using Tests.PlayMode.Common;
 using Game;
 using Game.Capture;
 using Game.RLHarness;
