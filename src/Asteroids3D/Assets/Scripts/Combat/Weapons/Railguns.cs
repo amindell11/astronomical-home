@@ -39,6 +39,8 @@ namespace Combat.Weapons
         // Hitscan: no muzzle speed, no intercept lead.
         public override float ProjectileSpeed => 0f;
 
+        public override float FireRange => fireDistance;
+
         public override string HangarStats
         {
             get

@@ -23,6 +23,7 @@ namespace Combat.Weapons
         [SerializeField] private ChargeTime charge;
 
         public override float ProjectileSpeed => projectilePrefab.LaserSpeed;
+        public override float FireRange => fireDistance;
         public ChargeTime Charge => charge;
 
         public override string HangarStats

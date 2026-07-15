@@ -48,6 +48,9 @@ namespace Combat.Weapons
         /// <summary>Muzzle speed of this weapon's projectile, used for AI intercept lead. 0 if not applicable.</summary>
         public virtual float ProjectileSpeed => 0f;
 
+        /// <summary>Max distance at which an AI gunner engages with this weapon, for diagnostics/telemetry. 0 if not distance-gated.</summary>
+        public virtual float FireRange => 0f;
+
         /// <summary>Full-auto repeats while held; semi-auto fires once per press. Only this weapon's <see cref="HandleTrigger"/> interprets it.</summary>
         public virtual bool AutoFire => true;
 
