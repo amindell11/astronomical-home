@@ -124,6 +124,14 @@ namespace Tests.PlayMode
                 yield return null;
         }
 
+        // Batch-mode frames are sub-millisecond — a fireDelaySeconds wait must be bounded by game time, not frames.
+        private static IEnumerator WaitSeconds(System.Func<bool> done, float maxSeconds)
+        {
+            var deadline = Time.time + maxSeconds;
+            while (Time.time < deadline && !done())
+                yield return null;
+        }
+
         [UnityTest]
         [Timeout(600000)]
         public IEnumerator EnterAreaThenLeave_DelayedWaveSpawns_LocalRunsBesideSpine_ClearLatchesToken()
@@ -164,7 +172,7 @@ namespace Tests.PlayMode
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
 
-            yield return WaitFrames(() => encounter.HasFired);
+            yield return WaitSeconds(() => encounter.HasFired, 5f);
             Assert.IsTrue(encounter.HasFired, "The latched delay must fire after fireDelaySeconds.");
             Assert.IsTrue(sector.Ctx.Bus.Get(StartToken));
             Assert.AreEqual(2, wave.Spawned.Count, "The token latch must produce the wave.");
