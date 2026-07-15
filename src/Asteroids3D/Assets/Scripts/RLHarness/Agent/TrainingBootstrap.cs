@@ -34,8 +34,8 @@ namespace Game.RLHarness
             EnterTrainingPlayMode();
         }
 
-        /// <summary>Held-out eval batch entry: RL_EVAL_ONNX names a checkpoint file to import (default: the committed smoke fixture), RL_EVAL_EPISODES_PER_SEED the per-seed episode count. EvalHost exits the editor with code 0 when the summary artifact is written.</summary>
-        public static void RunHeldOutEval()
+        /// <summary>Checkpoint-eval batch entry: RL_EVAL_ONNX names a checkpoint file to import (default: the committed smoke fixture), RL_EVAL_EPISODES_PER_SEED the per-seed episode count, RL_EVAL_SEEDS the seed selection ("held-out" default / "train" / comma list — see EvalProtocol.ResolveSeeds). EvalHost exits the editor with code 0 when the summary artifact is written.</summary>
+        public static void RunEval()
         {
             var source = Environment.GetEnvironmentVariable("RL_EVAL_ONNX");
             var assetPath = string.IsNullOrEmpty(source)
@@ -47,6 +47,8 @@ namespace Game.RLHarness
             host.onnxAssetPath = assetPath;
             if (int.TryParse(Environment.GetEnvironmentVariable("RL_EVAL_EPISODES_PER_SEED"), out var episodes))
                 host.episodesPerSeed = episodes;
+            host.seeds = EvalProtocol.ResolveSeeds(Environment.GetEnvironmentVariable("RL_EVAL_SEEDS"), out var tag);
+            host.seedsTag = tag;
             EditorApplication.EnterPlaymode();
         }
 

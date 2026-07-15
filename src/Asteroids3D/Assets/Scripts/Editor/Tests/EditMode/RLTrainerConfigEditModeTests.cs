@@ -34,6 +34,16 @@ namespace Tests.EditMode
         private static float FloatValue(string yamlPath, string key) =>
             float.Parse(Value(yamlPath, key), CultureInfo.InvariantCulture);
 
+        [Test]
+        public void ConfigFamily_CoversMainPilotAndSmoke()
+        {
+            var names = TrainerConfigs().Select(Path.GetFileName).ToArray();
+            CollectionAssert.IsSubsetOf(
+                new[] { "ppo_ship_combat.yaml", "ppo_ship_combat_pilot.yaml", "ppo_ship_combat_smoke.yaml" },
+                names,
+                "a renamed/deleted trainer config silently drops out of the per-file invariant tests");
+        }
+
         [TestCaseSource(nameof(TrainerConfigs))]
         public void TrainerGamma_EqualsRewardSpecGamma(string yamlPath)
         {

@@ -4,13 +4,13 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>Flattens the decision-boundary state into the fixed 23-float sensor vector (self token 8, hasTarget 1, target token 9, envelope bits 2, ego-frame arena-center 2, primary-weapon readiness 1). Distances/positions normalize by arenaRadius, velocities by MaxSpeed; the token pieces come from <see cref="ObservationExtractor"/> so their semantics stay single-sourced.</summary>
+    /// <summary>Flattens the decision-boundary state into the fixed 24-float sensor vector (self token 8, hasTarget 1, target token 9, envelope bits 2, ego-frame arena-center 2, primary-weapon readiness 1, self primary heat 1). Distances/positions normalize by arenaRadius, velocities by MaxSpeed; the token pieces come from <see cref="ObservationExtractor"/> so their semantics stay single-sourced.</summary>
     public static class AgentObservations
     {
-        public const int Size = 23;
+        public const int Size = 24;
 
         public static void Fill(float[] buffer, IShipStatus self, in TargetView target,
-            bool inMyEnvelope, bool inEnemyEnvelope, bool primaryWeaponReady,
+            bool inMyEnvelope, bool inEnemyEnvelope, bool primaryWeaponReady, float primaryHeatPct,
             Vector2 arenaCenterPlane, float arenaRadius)
         {
             var kin = self.Kinematics;
@@ -55,7 +55,8 @@ namespace Game.RLHarness
             buffer[i++] = centerEgo.x;
             buffer[i++] = centerEgo.y;
 
-            buffer[i] = primaryWeaponReady ? 1f : 0f;
+            buffer[i++] = primaryWeaponReady ? 1f : 0f;
+            buffer[i] = primaryHeatPct;
         }
     }
 }

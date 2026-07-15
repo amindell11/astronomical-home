@@ -1,3 +1,4 @@
+# ~200k-step pilot: measures real steps/sec + confirms learning signal before the full 2M run; identical to ppo_ship_combat.yaml except max_steps/run_id/keep_checkpoints.
 behaviors:
   ShipCombat:
     trainer_type: ppo
@@ -18,10 +19,9 @@ behaviors:
       extrinsic:
         gamma: 0.99  # must equal RewardSpec.Default.gamma (Ng-shaping soundness); pinned by RLTrainerConfigEditModeTests
         strength: 1.0
-    # 2M steps / 100k interval = 20 checkpoints + final: selection must cover the whole run, not the tail.
-    keep_checkpoints: 21
+    keep_checkpoints: 3
     checkpoint_interval: 100000
-    max_steps: 2000000
+    max_steps: 200000
     time_horizon: 64
     summary_freq: 6000
 # Pacing contract: one rendered frame advances exactly one 50 Hz fixed step (mlagents defaults time_scale 20 / capture 60 violate it); pinned by test + TrainingHost runtime assert.
@@ -36,5 +36,5 @@ env_settings:
   # Editor boot + play-mode domain reload (Burst) outlasts the 60 s default handshake window.
   timeout_wait: 300
 checkpoint_settings:
-  run_id: ship_combat
+  run_id: ship_combat_pilot
   results_dir: ../../results/rl-training
