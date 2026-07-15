@@ -20,9 +20,14 @@ namespace Game.RLHarness
         private int totalSteps;
         private bool begun;
         private EpisodeResult result;
+        private BoundaryResult lastBoundary;
 
         public bool IsDone { get; private set; }
         public EpisodeResult Result => result;
+        /// <summary>The reward decomposition of the most recently paid boundary; on the terminal boundary it carries the outcome reward and end kind.</summary>
+        public BoundaryResult LastBoundary => lastBoundary;
+        /// <summary>The snapshot captured at the most recent boundary (Begin pose, then each paid decision, including the terminal one) — the observation moment for a decision-synchronized sensor.</summary>
+        public CombatSnapshot BoundarySnapshot { get; private set; }
 
         public EpisodeRunner(Ship agent, Ship baseline, RewardSpec spec, int episodeIndex,
             Vector2 arenaCenter, bool tracePerDecision = false)
@@ -37,6 +42,7 @@ namespace Game.RLHarness
                 schema = EpisodeResult.SchemaId,
                 episodeIndex = episodeIndex,
                 outcome = EpisodeOutcome.Unresolved.ToString(),
+                endKind = EndKind.None.ToString(),
                 spec = spec,
                 trace = tracePerDecision ? new List<DecisionRow>() : null,
             };
@@ -46,6 +52,7 @@ namespace Game.RLHarness
         public void Begin()
         {
             prev = CombatSnapshotExtractor.Capture(agent, baseline, arenaCenter);
+            BoundarySnapshot = prev;
             phiEnvelopePrev = PotentialShaping.EnvelopePhi(in prev, in spec);
             phiBorderPrev = PotentialShaping.BorderPhi(in prev, in spec);
             result.startMyPool = prev.myPool;
@@ -55,9 +62,10 @@ namespace Game.RLHarness
             begun = true;
         }
 
-        public void Tick()
+        /// <summary>Advance one fixed step; returns true when a decision boundary was paid this tick (<see cref="LastBoundary"/> holds its result).</summary>
+        public bool Tick()
         {
-            if (!begun || IsDone) return;
+            if (!begun || IsDone) return false;
             totalSteps++;
             stepsSinceDecision++;
 
@@ -65,40 +73,49 @@ namespace Game.RLHarness
             var verdict = EpisodeRules.Evaluate(in next, in spec);
             var boundary = stepsSinceDecision >= spec.decisionIntervalSteps;
 
-            if (verdict.outcome == EpisodeOutcome.Unresolved
-                && boundary && result.decisions + 1 >= spec.timeoutDecisions)
+            var endKind = verdict.outcome != EpisodeOutcome.Unresolved ? EndKind.Terminal : EndKind.None;
+            if (endKind == EndKind.None && boundary && result.decisions + 1 >= spec.timeoutDecisions)
             {
+                endKind = EndKind.Truncation;
                 verdict.outcome = EpisodeOutcome.Draw;
                 result.timedOut = true;
             }
 
-            var terminal = verdict.outcome != EpisodeOutcome.Unresolved;
-            if (!terminal && !boundary) return;
+            if (endKind == EndKind.None && !boundary) return false;
 
-            PayDecision(in next, terminal);
+            PayDecision(in next, endKind);
             stepsSinceDecision = 0;
+            BoundarySnapshot = next;
 
-            if (terminal) Finish(verdict, in next);
+            if (endKind != EndKind.None) Finish(in verdict, in next, endKind);
             else prev = next;
+            return true;
         }
 
-        private void PayDecision(in CombatSnapshot next, bool terminal)
+        private void PayDecision(in CombatSnapshot next, EndKind endKind)
         {
             result.decisions++;
 
             var dense = RewardTerms.PoolDifferential(in prev, in next, spec.lambda);
             var phiEnvelopeNext = PotentialShaping.EnvelopePhi(in next, in spec);
             var phiBorderNext = PotentialShaping.BorderPhi(in next, in spec);
+            var terminal = endKind == EndKind.Terminal;
             var shapingEnvelope = PotentialShaping.Step(phiEnvelopePrev, phiEnvelopeNext, spec.gamma, terminal);
             var shapingBorder = PotentialShaping.Step(phiBorderPrev, phiBorderNext, spec.gamma, terminal);
 
             result.sumDense += dense;
             result.sumShapingEnvelope += shapingEnvelope;
             result.sumShapingBorder += shapingBorder;
-            if (!terminal)
+            switch (endKind)
             {
-                result.midPhiEnvelopeSum += phiEnvelopeNext;
-                result.midPhiBorderSum += phiBorderNext;
+                case EndKind.None:
+                    result.midPhiEnvelopeSum += phiEnvelopeNext;
+                    result.midPhiBorderSum += phiBorderNext;
+                    break;
+                case EndKind.Truncation:
+                    result.endPhiEnvelope = phiEnvelopeNext;
+                    result.endPhiBorder = phiBorderNext;
+                    break;
             }
 
             result.trace?.Add(new DecisionRow
@@ -111,13 +128,23 @@ namespace Game.RLHarness
                 phiBorder = terminal ? 0f : phiBorderNext,
             });
 
+            lastBoundary = new BoundaryResult
+            {
+                decision = result.decisions,
+                dense = dense,
+                shapingEnvelope = shapingEnvelope,
+                shapingBorder = shapingBorder,
+                endKind = endKind,
+            };
+
             phiEnvelopePrev = phiEnvelopeNext;
             phiBorderPrev = phiBorderNext;
         }
 
-        private void Finish(in EpisodeRules.Verdict verdict, in CombatSnapshot last)
+        private void Finish(in EpisodeRules.Verdict verdict, in CombatSnapshot last, EndKind endKind)
         {
             result.outcome = verdict.outcome.ToString();
+            result.endKind = endKind.ToString();
             result.mutualKill = verdict.mutualKill;
             result.agentExitedBounds = verdict.agentExitedBounds;
             result.baselineExitedBounds = verdict.baselineExitedBounds;
@@ -127,6 +154,7 @@ namespace Game.RLHarness
             result.outcomeReward = RewardTerms.Outcome(verdict.outcome);
             result.totalReward = result.sumDense + result.sumShapingEnvelope
                 + result.sumShapingBorder + result.outcomeReward;
+            lastBoundary.outcomeReward = result.outcomeReward;
             IsDone = true;
         }
     }

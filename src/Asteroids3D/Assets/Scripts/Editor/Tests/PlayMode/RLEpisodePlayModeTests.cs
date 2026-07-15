@@ -2,18 +2,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
 using Tests.Common;
-using AI;
 using Game;
 using Game.RLHarness;
 using Game.Services;
-using Movement.MPC;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
-using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -23,23 +18,18 @@ namespace Tests.PlayMode
     [Category("AI")]
     public class RLEpisodePlayModeTests
     {
-        private const float RangerWVelTrack = 50f;
         private const float RangerHoldRange = 15f;
-        // The production combat brain (utility chooser + state profiles); the default TestPilotMPC carries no profiles and would sit inert.
-        private const string BaselinePilotPath = "Assets/Prefabs/Pilots/UtilityPilot.prefab";
 
         private GameObject arenaHost;
         private UnitService unitService;
         private ArenaContext arena;
-        private readonly List<GameObject> createdObjects = new();
-        private readonly List<UnityEngine.Object> createdAssets = new();
         private float savedTimeScale;
         private float savedMaxDelta;
         private float savedCaptureDelta;
 
+        private EpisodePair pair;
         private Ship agent;
         private Ship baseline;
-        private RangerChooser ranger;
 
         [SetUp]
         public void SetUp()
@@ -67,19 +57,13 @@ namespace Tests.PlayMode
 
             ProjectileFlush.ReturnAllToPool();
 
-            foreach (var go in createdObjects)
-                if (go) UnityEngine.Object.DestroyImmediate(go);
-            createdObjects.Clear();
-
-            foreach (var asset in createdAssets)
-                if (asset) UnityEngine.Object.DestroyImmediate(asset);
-            createdAssets.Clear();
+            pair?.Dispose();
+            pair = null;
+            agent = null;
+            baseline = null;
 
             if (arenaHost) UnityEngine.Object.DestroyImmediate(arenaHost);
             arena = null;
-            agent = null;
-            baseline = null;
-            ranger = null;
 
             AudioListener.pause = false;
         }
@@ -101,11 +85,11 @@ namespace Tests.PlayMode
             spec.minSeparation = 18f;
             spec.maxSeparation = 24f;
 
-            SpawnPair(in spec, 0);
+            SpawnPair(in spec);
 
             for (var i = 0; i < 3; i++)
             {
-                var poses = ResetPair(in spec, i);
+                var poses = pair.Reset(in spec, i);
                 Assert.AreEqual(0, ProjectileFlush.ActiveCount(),
                     $"Episode {i} must start with zero active projectiles");
                 AssertPoseApplied(agent, poses.agentPos, $"agent episode {i}");
@@ -117,6 +101,8 @@ namespace Tests.PlayMode
                 var result = runner.Result;
                 Assert.AreNotEqual(EpisodeOutcome.Unresolved.ToString(), result.outcome,
                     $"Episode {i} did not terminate legally");
+                Assert.AreNotEqual(EndKind.None.ToString(), result.endKind,
+                    $"Episode {i} must report how it ended");
                 Assert.Greater(result.decisions, 0);
                 AssertFinite(result.sumDense, "sumDense");
                 AssertFinite(result.sumShapingEnvelope, "sumShapingEnvelope");
@@ -127,6 +113,7 @@ namespace Tests.PlayMode
                 var roundTrip = JsonUtility.FromJson<EpisodeResult>(line);
                 Assert.AreEqual(EpisodeResult.SchemaId, roundTrip.schema);
                 Assert.AreEqual(i, roundTrip.episodeIndex);
+                Assert.AreEqual(result.endKind, roundTrip.endKind);
                 Assert.AreEqual(spec.runSeed, roundTrip.spec.runSeed);
                 Assert.AreEqual(spec.decisionIntervalSteps, roundTrip.spec.decisionIntervalSteps);
             }
@@ -152,22 +139,22 @@ namespace Tests.PlayMode
             const int recordSteps = 100;
             const int dirtySteps = 80;
 
-            SpawnPair(in spec, 0);
+            SpawnPair(in spec);
             // Warm-up so both recordings run on Burst-compiled solver code (the managed fallback rounds differently).
             for (var i = 0; i < dirtySteps; i++)
                 yield return new WaitForFixedUpdate();
 
-            ResetPair(in spec, 0);
+            pair.Reset(in spec, 0);
             yield return null;
             var trajectoryA = new List<float>();
             yield return Record(trajectoryA, recordSteps);
 
-            ResetPair(in spec, 1);
+            pair.Reset(in spec, 1);
             yield return null;
             for (var i = 0; i < dirtySteps; i++)
                 yield return new WaitForFixedUpdate();
 
-            ResetPair(in spec, 0);
+            pair.Reset(in spec, 0);
             yield return null;
             var trajectoryB = new List<float>();
             yield return Record(trajectoryB, recordSteps);
@@ -187,8 +174,8 @@ namespace Tests.PlayMode
             spec.minSeparation = 18f;
             spec.maxSeparation = 24f;
 
-            SpawnPair(in spec, 0);
-            ResetPair(in spec, 0);
+            SpawnPair(in spec);
+            pair.Reset(in spec, 0);
 
             var runner = new EpisodeRunner(agent, baseline, spec, 0, arena.Offset, tracePerDecision: true);
             yield return RunToCompletion(runner, spec);
@@ -202,7 +189,83 @@ namespace Tests.PlayMode
             Assert.AreEqual(expectedDense, result.sumDense, 1e-3f,
                 "Delta-sampled dense contributions must telescope to the start-to-end pool differential");
 
-            float traceDense = 0f, traceMidPhiEnv = 0f, traceMidPhiBorder = 0f;
+            AssertShapingTelescopes(result);
+        }
+
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator Telescoping_TruncationKeepsFinalPotential()
+        {
+            var spec = RewardSpec.Default;
+            // Short clock, wide start: guarantees a timeout end so the truncation path (Φ kept, not forced to 0) is what telescopes.
+            spec.timeoutDecisions = 12;
+            spec.minSeparation = 50f;
+            spec.maxSeparation = 60f;
+
+            SpawnPair(in spec);
+            pair.Reset(in spec, 0);
+
+            var runner = new EpisodeRunner(agent, baseline, spec, 0, arena.Offset, tracePerDecision: true);
+            yield return RunToCompletion(runner, spec);
+            var result = runner.Result;
+
+            Assert.AreEqual(EndKind.Truncation.ToString(), result.endKind);
+            Assert.AreEqual(EpisodeOutcome.Draw.ToString(), result.outcome);
+            Assert.IsTrue(result.timedOut);
+            Assert.AreEqual(spec.timeoutDecisions, result.decisions);
+            Assert.AreEqual(EndKind.Truncation, runner.LastBoundary.endKind);
+            Assert.AreEqual(0f, runner.LastBoundary.outcomeReward);
+
+            AssertShapingTelescopes(result);
+        }
+
+        [UnityTest]
+        [Timeout(3600000)]
+        public IEnumerator Characterization_WritesJsonl()
+        {
+            var watchFlag = System.IO.File.Exists(System.IO.Path.Combine(
+                Application.dataPath, "..", "..", "..", "results", "rl-episodes", "watch.flag"));
+            if (!watchFlag && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RL_EPISODES")))
+                Assert.Ignore("Set RL_EPISODES=1 (or create results/rl-episodes/watch.flag) to run the ranger-vs-baseline characterization.");
+
+            var trace = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RL_EPISODE_TRACE"));
+            // The pacing contract (all RL runs share frame ≙ fixed-step sim semantics) replaces the old timescale-20 regime.
+            Time.timeScale = 1f;
+            Time.captureDeltaTime = Time.fixedDeltaTime;
+            var spec = RewardSpec.Default;
+            var episodes = Mathf.Max(1, int.TryParse(Environment.GetEnvironmentVariable("RL_EPISODE_COUNT"), out var n)
+                ? n : (watchFlag ? 3 : 20));
+
+            SpawnPair(in spec);
+
+            var path = EpisodeJsonl.NewRunPath("ranger-vs-baseline");
+            for (var i = 0; i < episodes; i++)
+            {
+                pair.Reset(in spec, i);
+                var runner = new EpisodeRunner(agent, baseline, spec, i, arena.Offset, trace);
+                yield return RunToCompletion(runner, spec);
+                EpisodeJsonl.Append(path, runner.Result);
+            }
+
+            Debug.Log($"[RLEpisode] wrote {episodes} rows to {path}");
+        }
+
+        private void SpawnPair(in RewardSpec spec)
+        {
+            pair = EpisodePair.Spawn(unitService, arena, in spec, (agentShip, baselineShip) =>
+            {
+                var ranger = new RangerChooser();
+                ranger.Configure(baselineShip, RangerHoldRange,
+                    agentShip.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary));
+                return ranger;
+            });
+            agent = pair.Agent;
+            baseline = pair.Baseline;
+        }
+
+        private static void AssertShapingTelescopes(in EpisodeResult result)
+        {
+            float traceMidPhiEnv = 0f, traceMidPhiBorder = 0f, traceDense = 0f;
             for (var i = 0; i < result.trace.Count; i++)
             {
                 traceDense += result.trace[i].dense;
@@ -214,93 +277,14 @@ namespace Tests.PlayMode
             }
             Assert.AreEqual(result.sumDense, traceDense, 1e-4f);
 
-            var expectedShapingEnv = -result.startPhiEnvelope + (spec.gamma - 1f) * traceMidPhiEnv;
-            var expectedShapingBorder = -result.startPhiBorder + (spec.gamma - 1f) * traceMidPhiBorder;
+            // −Φ(s₀) + (γ−1)·ΣΦ_mid + γ·Φ_end, where Φ_end is 0 on terminal and the kept final potential on truncation.
+            var expectedShapingEnv = -result.startPhiEnvelope
+                + (result.spec.gamma - 1f) * traceMidPhiEnv + result.spec.gamma * result.endPhiEnvelope;
+            var expectedShapingBorder = -result.startPhiBorder
+                + (result.spec.gamma - 1f) * traceMidPhiBorder + result.spec.gamma * result.endPhiBorder;
             Assert.AreEqual(expectedShapingEnv, result.sumShapingEnvelope, 1e-3f,
-                "Shaping must telescope to −Φ(s₀) + (γ−1)·ΣΦ_mid (terminal Φ forced to 0)");
+                "Shaping must telescope to −Φ(s₀) + (γ−1)·ΣΦ_mid + γ·Φ_end");
             Assert.AreEqual(expectedShapingBorder, result.sumShapingBorder, 1e-3f);
-        }
-
-        [UnityTest]
-        [Timeout(3600000)]
-        public IEnumerator Characterization_WritesJsonl()
-        {
-            var watchFlag = File.Exists(Path.Combine(
-                Application.dataPath, "..", "..", "..", "results", "rl-episodes", "watch.flag"));
-            if (!watchFlag && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RL_EPISODES")))
-                Assert.Ignore("Set RL_EPISODES=1 (or create results/rl-episodes/watch.flag) to run the ranger-vs-baseline characterization.");
-
-            var trace = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RL_EPISODE_TRACE"));
-            if (watchFlag || !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RL_WATCH")))
-                Time.timeScale = 1f;
-            var spec = RewardSpec.Default;
-            var episodes = Mathf.Max(1, int.TryParse(Environment.GetEnvironmentVariable("RL_EPISODE_COUNT"), out var n)
-                ? n : (watchFlag ? 3 : 20));
-
-            SpawnPair(in spec, 0);
-
-            var results = new List<EpisodeResult>();
-            for (var i = 0; i < episodes; i++)
-            {
-                ResetPair(in spec, i);
-                var runner = new EpisodeRunner(agent, baseline, spec, i, arena.Offset, trace);
-                yield return RunToCompletion(runner, spec);
-                results.Add(runner.Result);
-            }
-
-            WriteJsonl("ranger-vs-baseline", results);
-        }
-
-        private void SpawnPair(in RewardSpec spec, int episodeIndex)
-        {
-            var poses = EpisodePoses.Derive(in spec, episodeIndex, arena.Offset);
-            var rootScope = new SeedScope(spec.runSeed);
-
-            agent = SpawnLasersOnlyShip(TestAssets.LoadTestPilotMpc(),
-                poses.agentPos, poses.agentRotDeg, team: 0, decisionSeed: rootScope.Derive(101).ToSeed());
-            baseline = SpawnLasersOnlyShip(TestAssets.LoadCommanderPrefab(BaselinePilotPath),
-                poses.baselinePos, poses.baselineRotDeg, team: 1, decisionSeed: rootScope.Derive(202).ToSeed());
-
-            var cmdr = agent.GetComponentInChildren<AICommander>();
-            var nav = cmdr.Navigator;
-            var settings = UnityEngine.Object.Instantiate(
-                nav.mpcSettings ? nav.mpcSettings : ScriptableObject.CreateInstance<MpcSettings>());
-            settings.wVelTrack = RangerWVelTrack;
-            nav.mpcSettings = settings;
-            createdAssets.Add(settings);
-
-            ranger = new RangerChooser();
-            ranger.Configure(baseline, RangerHoldRange,
-                agent.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary));
-            cmdr.GetComponentInChildren<Brain>().InstallChooser(ranger);
-
-            unitService.WireShipDependencies(agent);
-            unitService.WireShipDependencies(baseline);
-            Assert.AreNotEqual("None", baseline.GetComponentInChildren<AICommander>().CurrentStateName,
-                "Baseline brain must run a real state policy");
-        }
-
-        private Ship SpawnLasersOnlyShip(AICommander pilotPrefab, Vector2 planePos, float rotDeg, int team, int decisionSeed)
-        {
-            Assert.IsNotNull(pilotPrefab, "Failed to load pilot prefab — check test asset paths");
-            var ship = ShipTestFactory.CreateShip(TestAssets.LoadShip2Prefab(), pilotPrefab,
-                team, GamePlane.PlanePointToWorld(planePos), PoseRotation(rotDeg), decisionSeed);
-            Assert.IsNotNull(ship, "Failed to create ship — check test asset paths");
-            createdObjects.Add(ship.gameObject);
-            unitService.ActiveRegistry.ActiveShips.Add(ship);
-
-            ship.Reequip(ship.Engine, ship.Shield, ship.Weapons.PrimaryMountPrefab, null);
-            Assert.AreEqual(1, ship.Weapons.Context.Slots.Count, "Episode loadout must be lasers-only");
-            return ship;
-        }
-
-        private SpawnPoses ResetPair(in RewardSpec spec, int episodeIndex)
-        {
-            var poses = EpisodePoses.Derive(in spec, episodeIndex, arena.Offset);
-            unitService.RespawnShip(agent.Id, poses.agentPos, poses.agentRotDeg);
-            unitService.RespawnShip(baseline.Id, poses.baselinePos, poses.baselineRotDeg);
-            ProjectileFlush.ReturnAllToPool();
-            return poses;
         }
 
         private IEnumerator RunToCompletion(EpisodeRunner runner, RewardSpec spec)
@@ -346,22 +330,6 @@ namespace Tests.PlayMode
         private static void AssertFinite(float value, string name)
         {
             Assert.IsFalse(float.IsNaN(value) || float.IsInfinity(value), $"{name} must be finite, was {value}");
-        }
-
-        private static Quaternion PoseRotation(float rotDeg) =>
-            GamePlane.Rotation * Quaternion.AngleAxis(rotDeg, Vector3.forward);
-
-        private static void WriteJsonl(string tag, List<EpisodeResult> results)
-        {
-            var repoRoot = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", ".."));
-            var dir = Path.Combine(repoRoot, "results", "rl-episodes");
-            Directory.CreateDirectory(dir);
-            var stamp = DateTime.Now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
-            var path = Path.Combine(dir, $"{stamp}-{tag}.jsonl");
-            using (var writer = new StreamWriter(path, false))
-                foreach (var result in results)
-                    writer.WriteLine(result.ToJsonLine());
-            Debug.Log($"[RLEpisode] wrote {results.Count} rows to {path}");
         }
     }
 }
