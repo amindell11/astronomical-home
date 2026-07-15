@@ -3,12 +3,7 @@ using UnityEngine;
 
 namespace Game.Sectors
 {
-    /// <summary>
-    /// Bridges the sector spawner lifecycle to an <see cref="Asteroids.Fields.AsteroidField"/> sibling
-    /// (the field already has a base class, so it cannot derive <see cref="SectorSpawner"/> itself).
-    /// Ordering hazard: the sector builds under an inactive holder, so the field's Awake has not run yet
-    /// during <see cref="Produce"/> — only pre-Awake-safe stashes happen here; wiring runs in the field's Start.
-    /// </summary>
+    /// <summary>Bridges the sector lifecycle to an <see cref="Asteroids.Fields.AsteroidField"/> sibling (its base class blocks deriving <see cref="SectorSpawner"/>); the sector builds under an inactive holder, so the field's Awake has not run during <see cref="Produce"/> — only pre-Awake-safe stashes here, wiring runs in the field's Start.</summary>
     public class AsteroidFieldSpawner : SectorSpawner
     {
         [SerializeField] private Asteroids.Fields.AsteroidField field;

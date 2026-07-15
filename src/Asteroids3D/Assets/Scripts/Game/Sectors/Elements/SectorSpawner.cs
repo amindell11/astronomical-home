@@ -5,12 +5,7 @@ using UnityEngine;
 
 namespace Game.Sectors
 {
-    /// <summary>
-    /// A polymorphic, hand-placed child GameObject that procedurally produces content — unlike adopt
-    /// content, it holds a template + parameters and creates its own instances. Subclasses implement
-    /// <see cref="Produce"/>/<see cref="OnTeardown"/>; <see cref="Build"/>/<see cref="Teardown"/> are the
-    /// sector-driven lifecycle and own the optional activation-token gate.
-    /// </summary>
+    /// <summary>Hand-placed procedural producer (template + parameters, creates its own instances — unlike adopt content); subclasses implement <see cref="Produce"/>/<see cref="OnTeardown"/>, while <see cref="Build"/>/<see cref="Teardown"/> own the sector lifecycle and the optional activation-token gate.</summary>
     public abstract class SectorSpawner : MonoBehaviour
     {
         [Tooltip("Optional bus token gating production: empty = produce at Build; set = stay dormant and produce exactly once when the token goes true.")]
@@ -18,7 +13,6 @@ namespace Game.Sectors
 
         private SectorBuildContext ctx;
         private SectorEventBus bus;
-        private bool produced;
 
         /// <summary>Ships produced during the last <see cref="Produce"/> run; non-ship producers leave this empty.</summary>
         public IReadOnlyList<Ship> Spawned { get; protected set; } = System.Array.Empty<Ship>();
@@ -27,11 +21,9 @@ namespace Game.Sectors
         public IEnumerator Build(SectorBuildContext buildCtx)
         {
             ctx = buildCtx;
-            produced = false;
 
             if (string.IsNullOrWhiteSpace(activationToken))
             {
-                produced = true;
                 var produce = Produce(ctx);
                 while (produce.MoveNext()) yield return produce.Current;
                 yield break;
@@ -72,14 +64,14 @@ namespace Game.Sectors
 
         private void OnBusChanged(string token)
         {
-            if (produced || token != activationToken || !bus.Get(activationToken)) return;
+            if (token != activationToken || !bus.Get(activationToken)) return;
             ProduceNow();
         }
 
         // Token-gated production drains synchronously — it must land in the same frame as the latch (parity with the eager path's same-Setup production).
         private void ProduceNow()
         {
-            produced = true;
+            bus.Changed -= OnBusChanged;
             var produce = Produce(ctx);
             while (produce.MoveNext()) { }
         }

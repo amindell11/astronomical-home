@@ -34,7 +34,7 @@ namespace Game.Sectors
 
         public override IEnumerator Setup(SectorBuildContext ctx)
         {
-            if (!waveSpawner || HasBlankClearedToken())
+            if (!waveSpawner || Array.Exists(publishOnCleared, string.IsNullOrWhiteSpace))
             {
                 Debug.LogError($"AmbushEncounter on '{name}' has a missing wave spawner or blank cleared token — encounter is inert.", this);
                 yield break;
@@ -71,14 +71,6 @@ namespace Game.Sectors
                 ctx.Bus?.Latch(token);
             local?.Close();
             local = null;
-        }
-
-        private bool HasBlankClearedToken()
-        {
-            foreach (var token in publishOnCleared)
-                if (string.IsNullOrWhiteSpace(token))
-                    return true;
-            return false;
         }
 
 #if UNITY_EDITOR
