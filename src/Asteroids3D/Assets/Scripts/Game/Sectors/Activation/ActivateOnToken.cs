@@ -23,7 +23,7 @@ namespace Game.Sectors
             bus = ctx.Bus;
             if (bus == null) yield break;
             bus.Changed += OnBusChanged;
-            if (bus.Get(token)) gameObject.SetActive(true);
+            OnBusChanged(token);
         }
 
         public override IEnumerator Teardown(SectorBuildContext ctx)

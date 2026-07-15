@@ -14,6 +14,7 @@ namespace Tests.EditMode
     public class CombatSectorPrefabEditModeTests
     {
         private const string PrefabPath = "Assets/Prefabs/Sectors/CombatSector.prefab";
+        private const string ChallengeToken = "extraction-challenge-started";
 
         private Sector LoadSector()
         {
@@ -90,7 +91,7 @@ namespace Tests.EditMode
 
             var published = rule.FindProperty("publishOnFired");
             Assert.AreEqual(1, published.arraySize, "The rule must publish the challenge-started token.");
-            Assert.AreEqual("extraction-challenge-started", published.GetArrayElementAtIndex(0).stringValue);
+            Assert.AreEqual(ChallengeToken, published.GetArrayElementAtIndex(0).stringValue);
 
             var zone = new SerializedObject(sector.Modules[0]).FindProperty("extractionZone").objectReferenceValue;
             Assert.AreSame(zone, rule.FindProperty("extractionZone").objectReferenceValue,
@@ -103,7 +104,7 @@ namespace Tests.EditMode
             var sector = LoadSector();
             var activate = (ActivateOnToken)sector.Modules[3];
 
-            Assert.AreEqual("extraction-challenge-started",
+            Assert.AreEqual(ChallengeToken,
                 new SerializedObject(activate).FindProperty("token").stringValue,
                 "The chaser's activate module must listen for the token the rule publishes.");
 

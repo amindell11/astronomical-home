@@ -76,8 +76,8 @@ namespace Game.Sectors
             for (var i = 0; i < root.childCount; i++)
             {
                 var child = root.GetChild(i);
-                if (IsRecognized(child)) result.Add(Recognized(child)); // owns subtree — do NOT descend
-                else Collect(child, result);                            // plain container — descend
+                if (IsRecognized(child)) result.Add(Recognized(child));
+                else Collect(child, result);
             }
         }
 
@@ -97,7 +97,6 @@ namespace Game.Sectors
                 else collectedAdopt.Add(c);
             }
 
-            // ── Adopt entries ──
             var keptAdopt = new List<AdoptEntry>();
             var referencedAdopt = new HashSet<Component>();
             var orphanedAdopt = 0;
@@ -128,7 +127,6 @@ namespace Game.Sectors
                 appendedAdopt++;
             }
 
-            // ── Spawner entries ──
             var keptSpawners = new List<SectorSpawner>();
             var referencedSpawners = new HashSet<Component>();
             var orphanedSpawner = 0;
@@ -155,7 +153,6 @@ namespace Game.Sectors
                 appendedSpawner++;
             }
 
-            // ── Modules (root components + child GameObjects) ──
             var liveModules = CollectModules(root);
             var keptModules = new List<SectorModule>();
             var referencedModules = new HashSet<SectorModule>();
@@ -205,8 +202,7 @@ namespace Game.Sectors
                 var child = parent.GetChild(i);
                 child.GetComponents(scratch);
                 acc.AddRange(scratch);
-                if (IsRecognized(child)) continue; // content node owns its subtree — do NOT descend
-                CollectChildModules(child, acc);
+                if (!IsRecognized(child)) CollectChildModules(child, acc);
             }
         }
 
