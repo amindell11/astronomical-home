@@ -1,6 +1,6 @@
 # Objectives / Encounters / Sector Rethink
 
-*Draft • 2026-07-12 • status: PR-1 #134 + PR-2 #135 merged; PR-3 built (see "PR-3 — resolved scope" + "PR-3 — build decisions")*
+*Draft • 2026-07-12 • status: PR-1..PR-4b (#134/#135/#141/#147/#153) all merged; PR-5 signal-port refactor in build (see "PR-5 — decision brief")*
 
 > Realizes the deferred `project_objectives_encounters_rethink`. The presenting
 > symptom was "combat encounters spawn one at a time instead of together," but the
@@ -501,6 +501,92 @@ Decisions made during the build, within the frozen brief:
 - **Authored knobs:** trigger radius 20 at plane (-10, 25), `near-ambush`
   token, 6 s fire delay, 3-ship wave at ring radius 12, team 1, respawn None,
   `ambush-started`/`ambush-cleared` tokens.
+
+### PR-5 — signal-port refactor decision brief (pr-prep 2026-07-15)
+
+Frozen with the user (Codex design consult + 24-mode adversarial round folded);
+the implementing agent builds, it does not re-decide. Seed:
+`feedback_token_authoring_fragility` — free-text bus tokens are the fragile
+seam; the user's bar was **foolproof, not validated**. Scope: free-string
+tokens die end-to-end; wiring becomes component-reference identity. Non-goals:
+no GraphView window (board card), no scene overlay, no locals HUD, no
+`MissionDefinition`/objective changes, no bus-lifecycle changes.
+
+Forks (locked, with why):
+
+- **Token identity = publisher-owned `SignalPort` component refs** (Codex
+  rank 1 of 7; strings+cross-check ranked 4). A `SignalPort` component IS the
+  signal; `SectorEventBus` keys on the port reference
+  (`Set/Latch/Get(SignalPort)` + `Changed(SignalPort)`); latch/level/
+  fresh-bus-per-Setup/freeze semantics unchanged. Publishers own **fixed
+  semantic ports**: `TriggerVolume`→inside, `ActivationRule`→fired,
+  `AmbushEncounter`→fired+cleared, `SectorSpineModule`→five step ports
+  (mapped from step strings by an exhaustive switch that errors on unknown;
+  `MissionDefinition` stays string-keyed; the `spine:` concat seam dies).
+  `publishOnFired`/`publishOnCleared` string arrays are **deleted** —
+  publishers latch their own ports; no publisher-side authored surface
+  remains (an authorable `SignalPort[]` would recreate the failure in ref
+  form). Consumers (`ActivationTerm`, `ActivateOnSignal` — renamed from
+  `ActivateOnToken` — and `SectorSpawner`) store only port refs; picker
+  restricted to ports under the same `Sector`. *Why:* typo, rename drift,
+  consumed-with-no-publisher, and cross-prefab wiring become structurally
+  impossible or collapse to a missing ref — the existing loud-inert idiom;
+  validation demotes to defense-in-depth.
+- **Graph model + validator + inspector causal-tree view ship in this PR;
+  node-graph EditorWindow deferred** (board card, evidence-gated on sectors
+  growing). Pure UnityEditor-free graph/validator beside `SectorManifestSync`
+  reading the **baked manifest** (what `Setup` actually runs — hierarchy gaps
+  stay the drift badge's job); `SectorEditor` renders the derived causal tree
+  (spine backbone, encounters hanging off their terms, locals + unconsumed
+  ports annotated) beside the Sync/drift UI. *Why:* the validator must build
+  this graph anyway, and hierarchy stays the sole source of truth so the view
+  can never drift — the user's mission-sequence-visibility ask lands as a
+  rendering, not a second representation.
+
+Blindsider resolutions:
+
+- **Ports are manually authored; zero editor magic.** Add the `SignalPort`
+  component and drag it into the publisher's serialized port field — the
+  exact recipe as the `waveSpawner`/`extractionZone`/`blocker` refs. No
+  ensure-button, no `OnValidate` self-heal (AddComponent is illegal there;
+  any regeneration churns fileIDs and orphans every consumer ref). Missing,
+  unclaimed, or deleted ports are caught three ways: validator badge,
+  all-sector sweep test, Setup loud-inert. **Nothing in the pipeline may ever
+  delete-and-recreate a port.** (Ensure-ports convenience = possible later
+  card if authoring grows tedious.)
+- **Inactive-publisher guard, cheap half only:** Setup-time loud-inert error
+  when a publisher that needs Unity messages (`TriggerVolume`, an
+  `ActivationRule` with `fireDelaySeconds > 0`) sits on an inactive GO; the
+  consumer-side `ActivateOnSignal` on the dormant chaser is exempt by design.
+  Runtime `OnDisable` policy deferred — no live deactivation path exists;
+  known un-guarded evolution path.
+
+Assumptions (confirmed):
+
+1. Pure graph/validator static class beside `SectorManifestSync`
+   (UnityEditor-free, EditMode-testable); picker drawer + causal-tree
+   rendering in `Game.Core.Editor` (`Scripts/Editor/Inspectors`), per
+   `SceneReferenceDrawer`/`SectorEditor` precedent.
+2. Validator input = baked manifest (`Sector.Modules`/`Spawners`), never a
+   fresh crawl.
+3. `SectorSpawner`: explicit `ActivationMode { Eager, Gated }`; `Gated` +
+   null port = loud inert. **Null never means eager.**
+4. Ports carry `Kind { Level, Latch }` shown in picker labels; no consumer
+   restricts by kind yet (terms legitimately consume both).
+5. Blank-token guards become null-ref + same-`Sector`-ownership guards at
+   Setup, same message shape.
+6. Multi-publisher same-token OR is lost (ports are single-owner); nothing
+   uses it — rule-of-three watch.
+7. Port components visible in the inspector but excluded from the Add
+   Component menu surface authors reach for by accident; created deliberately.
+8. Tests: `CombatSectorPrefabEditModeTests` re-pin ref wiring; `Configure`
+   seams take ports (`ConfigureEager()`/`ConfigureGated(port)` split on the
+   spawner); new EditMode suites for bus keying + graph model/validator; an
+   **all-sector-prefabs sweep** (unowned ports, gated-null, cross-sector
+   refs, cycles, publisher-field-unassigned) so future sectors are covered by
+   construction; `[Category("Sectors")]`; `SectorSpineDemoPlayModeTests`
+   proves behavior parity end-to-end.
+9. `CombatSector.prefab` rewired in canonical Unity serialization.
 
 ## Open questions (decide at build)
 

@@ -5,41 +5,54 @@ using UnityEngine;
 
 namespace Game.Sectors
 {
-    /// <summary>Hand-placed procedural producer (template + parameters, creates its own instances — unlike adopt content); subclasses implement <see cref="Produce"/>/<see cref="OnTeardown"/>, while <see cref="Build"/>/<see cref="Teardown"/> own the sector lifecycle and the optional activation-token gate.</summary>
+    /// <summary>Hand-placed procedural producer (template + parameters, creates its own instances — unlike adopt content); subclasses implement <see cref="Produce"/>/<see cref="OnTeardown"/>, while <see cref="Build"/>/<see cref="Teardown"/> own the sector lifecycle and the activation-mode gate.</summary>
     public abstract class SectorSpawner : MonoBehaviour
     {
-        [Tooltip("Optional bus token gating production: empty = produce at Build; set = stay dormant and produce exactly once when the token goes true.")]
-        [SerializeField] private string activationToken;
+        public enum ActivationMode
+        {
+            Eager,
+            Gated,
+        }
+
+        [Tooltip("Eager produces at Build; Gated stays dormant and produces exactly once when its activation signal first goes true.")]
+        [SerializeField] private ActivationMode activationMode = ActivationMode.Eager;
+
+        [SerializeField] private SignalPort activationSignal;
 
         private SectorBuildContext ctx;
         private SectorEventBus bus;
 
+        public ActivationMode Mode => activationMode;
+
+        public SignalPort ActivationSignal => activationSignal;
+
         /// <summary>Ships produced during the last <see cref="Produce"/> run; non-ship producers leave this empty.</summary>
         public IReadOnlyList<Ship> Spawned { get; protected set; } = System.Array.Empty<Ship>();
 
-        /// <summary>Sealed lifecycle entry: produces now, or arms the activation token and produces on its latch.</summary>
+        /// <summary>Sealed lifecycle entry: produces now, or arms the activation signal and produces on its latch.</summary>
         public IEnumerator Build(SectorBuildContext buildCtx)
         {
             ctx = buildCtx;
 
-            if (string.IsNullOrWhiteSpace(activationToken))
+            if (activationMode == ActivationMode.Eager)
             {
                 var produce = Produce(ctx);
                 while (produce.MoveNext()) yield return produce.Current;
                 yield break;
             }
 
+            if (!SignalPortGuards.ValidPortRef(this, activationSignal, "activation", ctx.Sector)) yield break;
             bus = ctx.Bus;
             if (bus == null)
             {
-                Debug.LogError($"SectorSpawner on '{name}' has an activation token but no bus — spawner is inert.", this);
+                Debug.LogError($"{GetType().Name} on '{name}' is signal-gated but has no bus — inert.", this);
                 yield break;
             }
             bus.Changed += OnBusChanged;
-            if (bus.Get(activationToken)) ProduceNow();
+            if (bus.Get(activationSignal)) ProduceNow();
         }
 
-        /// <summary>Sealed lifecycle exit: disarms the token gate, then runs <see cref="OnTeardown"/>.</summary>
+        /// <summary>Sealed lifecycle exit: disarms the signal gate, then runs <see cref="OnTeardown"/>.</summary>
         public IEnumerator Teardown(SectorBuildContext teardownCtx)
         {
             if (bus != null) bus.Changed -= OnBusChanged;
@@ -48,7 +61,17 @@ namespace Game.Sectors
             while (teardown.MoveNext()) yield return teardown.Current;
         }
 
-        public void Configure(string activationToken) => this.activationToken = activationToken;
+        public void ConfigureEager()
+        {
+            activationMode = ActivationMode.Eager;
+            activationSignal = null;
+        }
+
+        public void ConfigureGated(SignalPort signal)
+        {
+            activationMode = ActivationMode.Gated;
+            activationSignal = signal;
+        }
 
         /// <summary>Instantiate this spawner's content. Populate <see cref="Spawned"/>.</summary>
         protected abstract IEnumerator Produce(SectorBuildContext ctx);
@@ -62,13 +85,13 @@ namespace Game.Sectors
             yield break;
         }
 
-        private void OnBusChanged(string token)
+        private void OnBusChanged(SignalPort port)
         {
-            if (token != activationToken || !bus.Get(activationToken)) return;
+            if (port != activationSignal || !bus.Get(activationSignal)) return;
             ProduceNow();
         }
 
-        // Token-gated production drains synchronously — it must land in the same frame as the latch (parity with the eager path's same-Setup production).
+        // Gated production drains synchronously — it must land in the same frame as the latch (parity with the eager path's same-Setup production).
         private void ProduceNow()
         {
             bus.Changed -= OnBusChanged;

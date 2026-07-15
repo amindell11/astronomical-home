@@ -101,12 +101,16 @@ namespace Tests.PlayMode
             return go.AddComponent<T>();
         }
 
+        private static SignalPort AddPort(Component host) => host.gameObject.AddComponent<SignalPort>();
+
         [UnityTest]
         public IEnumerator SetupTeardownSetup_FreshUnfrozenBus_ClearedLatches_RuleRearmsAndFiresOnce()
         {
             var sector = CreateSector();
             var rule = AddModule<ActivationRule>(sector, "ChainRule");
-            rule.Configure(new[] { ActivationTerm.Signal("go") }, new[] { "done" });
+            var go = AddPort(rule);
+            var done = AddPort(rule);
+            rule.Configure(new[] { ActivationTerm.Signal(go) }, done);
             sector.SetManifest(null, null, new SectorModule[] { rule });
 
             var fired = 0;
@@ -117,9 +121,9 @@ namespace Tests.PlayMode
             Assert.IsNotNull(bus1);
             Assert.IsFalse(bus1.Frozen);
 
-            bus1.Set("go", true);
+            bus1.Set(go, true);
             Assert.AreEqual(1, fired);
-            Assert.IsTrue(bus1.Get("done"));
+            Assert.IsTrue(bus1.Get(done));
 
             yield return sector.Teardown();
             Assert.IsTrue(bus1.Frozen, "Teardown must freeze the cycle's bus.");
@@ -128,12 +132,12 @@ namespace Tests.PlayMode
             var bus2 = sector.Ctx.Bus;
             Assert.AreNotSame(bus1, bus2, "Each Setup must create a fresh bus.");
             Assert.IsFalse(bus2.Frozen, "The new cycle's bus must not inherit the frozen state.");
-            Assert.IsFalse(bus2.Get("done"), "Latched tokens must not leak across cycles.");
+            Assert.IsFalse(bus2.Get(done), "Latched ports must not leak across cycles.");
             Assert.IsFalse(rule.HasFired, "The rule must re-arm on the new cycle.");
 
-            bus2.Set("go", true);
+            bus2.Set(go, true);
             Assert.AreEqual(2, fired, "The rule must fire exactly once per cycle — no stale or duplicate subscriptions.");
-            Assert.IsTrue(bus2.Get("done"));
+            Assert.IsTrue(bus2.Get(done));
 
             yield return sector.Teardown();
         }
@@ -143,7 +147,7 @@ namespace Tests.PlayMode
         {
             var sector = CreateSector();
             var rule = AddModule<ActivationRule>(sector, "TimeRule");
-            rule.Configure(new[] { ActivationTerm.Time(0.1f) });
+            rule.Configure(new[] { ActivationTerm.Time(0.1f) }, AddPort(rule));
             var slow = AddModule<SlowTeardownModule>(sector, "SlowTeardown");
             var probe = AddModule<FreezeProbeModule>(sector, "FreezeProbe");
             // Reverse teardown order: probe and slow dismantle FIRST, leaving the rule live while time passes.

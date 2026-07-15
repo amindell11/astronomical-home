@@ -3,34 +3,34 @@ using System.Collections.Generic;
 
 namespace Game.Sectors
 {
-    /// <summary>Per-sector named boolean signals: levels via Set, latched events via Latch; fresh instance per sector Setup, frozen when teardown begins.</summary>
+    /// <summary>Per-sector boolean signals keyed on port identity: levels via Set, latched events via Latch; fresh instance per sector Setup, frozen when teardown begins.</summary>
     public class SectorEventBus
     {
-        private readonly Dictionary<string, bool> signals = new();
-        private readonly HashSet<string> latched = new();
+        private readonly Dictionary<SignalPort, bool> signals = new();
+        private readonly HashSet<SignalPort> latched = new();
 
-        public event Action<string> Changed;
+        public event Action<SignalPort> Changed;
 
         public bool Frozen { get; private set; }
 
         public void Freeze() => Frozen = true;
 
-        public bool Get(string token) => signals.TryGetValue(token, out var value) && value;
+        public bool Get(SignalPort port) => port && signals.TryGetValue(port, out var value) && value;
 
-        public void Set(string token, bool value)
+        public void Set(SignalPort port, bool value)
         {
-            if (Frozen) return;
-            if (!value && latched.Contains(token)) return;
-            if (Get(token) == value) return;
-            signals[token] = value;
-            Changed?.Invoke(token);
+            if (Frozen || !port) return;
+            if (!value && latched.Contains(port)) return;
+            if (Get(port) == value) return;
+            signals[port] = value;
+            Changed?.Invoke(port);
         }
 
-        public void Latch(string token)
+        public void Latch(SignalPort port)
         {
-            if (Frozen) return;
-            latched.Add(token);
-            Set(token, true);
+            if (Frozen || !port) return;
+            latched.Add(port);
+            Set(port, true);
         }
     }
 }

@@ -33,14 +33,16 @@ namespace Tests.PlayMode
             return go;
         }
 
-        private TriggerVolume CreateVolume(string token, Rigidbody player = null, float radius = 3f)
+        private SignalPort NewPort(string name) => TrackGO(new GameObject(name)).AddComponent<SignalPort>();
+
+        private TriggerVolume CreateVolume(SignalPort port, Rigidbody player = null, float radius = 3f)
         {
             var go = TrackGO(new GameObject("TriggerVolume"));
             var col = go.AddComponent<SphereCollider>();
             col.isTrigger = true;
             col.radius = radius;
             var volume = go.AddComponent<TriggerVolume>();
-            volume.Configure(token, player);
+            volume.Configure(port, player);
             return volume;
         }
 
@@ -69,20 +71,21 @@ namespace Tests.PlayMode
             var player = CreatePlayerBody(new Vector3(100f, 0f, 0f));
             var bus = new SectorEventBus();
             var ctx = new SectorBuildContext(null, null, null, bus);
-            var volume = CreateVolume("in-zone", player);
+            var inZone = NewPort("in-zone");
+            var volume = CreateVolume(inZone, player);
             yield return volume.Setup(ctx);
 
-            Assert.IsFalse(bus.Get("in-zone"));
+            Assert.IsFalse(bus.Get(inZone));
 
             player.transform.position = Vector3.zero;
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
-            Assert.IsTrue(bus.Get("in-zone"), "Player entering the volume must raise the bus level.");
+            Assert.IsTrue(bus.Get(inZone), "Player entering the volume must raise the bus level.");
 
             player.transform.position = new Vector3(100f, 0f, 0f);
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
-            Assert.IsFalse(bus.Get("in-zone"), "Player exiting the volume must clear the bus level.");
+            Assert.IsFalse(bus.Get(inZone), "Player exiting the volume must clear the bus level.");
 
             yield return volume.Teardown(ctx);
         }
@@ -91,16 +94,17 @@ namespace Tests.PlayMode
         public IEnumerator TriggerVolume_TriggerBeforeSetup_PushesBufferedLevelOnSetup()
         {
             var player = CreatePlayerBody(Vector3.zero);
-            var volume = CreateVolume("in-zone", player);
+            var inZone = NewPort("in-zone");
+            var volume = CreateVolume(inZone, player);
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
 
             var bus = new SectorEventBus();
             var ctx = new SectorBuildContext(null, null, null, bus);
-            Assert.IsFalse(bus.Get("in-zone"));
+            Assert.IsFalse(bus.Get(inZone));
 
             yield return volume.Setup(ctx);
-            Assert.IsTrue(bus.Get("in-zone"),
+            Assert.IsTrue(bus.Get(inZone),
                 "Occupancy accumulated before Setup must be pushed onto the bus when Setup wires it.");
 
             yield return volume.Teardown(ctx);
@@ -112,24 +116,25 @@ namespace Tests.PlayMode
             var player = CreatePlayerBody(new Vector3(100f, 0f, 0f), colliderCount: 2);
             var bus = new SectorEventBus();
             var ctx = new SectorBuildContext(null, null, null, bus);
-            var volume = CreateVolume("in-zone", player, radius: 3f);
+            var inZone = NewPort("in-zone");
+            var volume = CreateVolume(inZone, player, radius: 3f);
             yield return volume.Setup(ctx);
 
             player.transform.position = Vector3.zero;
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
-            Assert.IsTrue(bus.Get("in-zone"), "Both colliders inside must read as in.");
+            Assert.IsTrue(bus.Get(inZone), "Both colliders inside must read as in.");
 
             player.transform.position = new Vector3(2.7f, 0f, 0f);
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
-            Assert.IsTrue(bus.Get("in-zone"),
+            Assert.IsTrue(bus.Get(inZone),
                 "A compound collider straddling the boundary must still read as inside — occupancy is per rigidbody, not per collider.");
 
             player.transform.position = new Vector3(100f, 0f, 0f);
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
-            Assert.IsFalse(bus.Get("in-zone"), "All colliders out must clear the level.");
+            Assert.IsFalse(bus.Get(inZone), "All colliders out must clear the level.");
 
             yield return volume.Teardown(ctx);
         }
@@ -169,25 +174,26 @@ namespace Tests.PlayMode
             var player = CreatePlayerBody(new Vector3(100f, 0f, 0f));
             var bus = new SectorEventBus();
             var ctx = new SectorBuildContext(null, null, null, bus);
-            var volume = CreateVolume("in-zone", player);
+            var inZone = NewPort("in-zone");
+            var volume = CreateVolume(inZone, player);
             yield return volume.Setup(ctx);
 
             player.transform.position = Vector3.zero;
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
-            Assert.IsTrue(bus.Get("in-zone"));
+            Assert.IsTrue(bus.Get(inZone));
 
             player.gameObject.SetActive(false);
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
-            Assert.IsFalse(bus.Get("in-zone"),
+            Assert.IsFalse(bus.Get(inZone),
                 "A player deactivated inside fires no exit event — the republished pruned level must still clear.");
 
             player.gameObject.SetActive(true);
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
-            Assert.IsTrue(bus.Get("in-zone"),
+            Assert.IsTrue(bus.Get(inZone),
                 "Reactivating the player inside must re-detect via a fresh enter event.");
 
             yield return volume.Teardown(ctx);
@@ -251,9 +257,9 @@ namespace Tests.PlayMode
             var liveBus = new SectorEventBus();
 
             var frozenRule = TrackGO(new GameObject("FrozenTimeRule")).AddComponent<ActivationRule>();
-            frozenRule.Configure(new[] { ActivationTerm.Time(0.05f) });
+            frozenRule.Configure(new[] { ActivationTerm.Time(0.05f) }, NewPort("frozen-fired"));
             var liveRule = TrackGO(new GameObject("LiveTimeRule")).AddComponent<ActivationRule>();
-            liveRule.Configure(new[] { ActivationTerm.Time(0.05f) });
+            liveRule.Configure(new[] { ActivationTerm.Time(0.05f) }, NewPort("live-fired"));
 
             yield return frozenRule.Setup(new SectorBuildContext(null, null, null, frozenBus));
             yield return liveRule.Setup(new SectorBuildContext(null, null, null, liveBus));
@@ -266,14 +272,14 @@ namespace Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator BlankToken_Volume_LogsError_AndStaysInert()
+        public IEnumerator UnassignedPort_Volume_LogsError_AndStaysInert()
         {
             var player = CreatePlayerBody(new Vector3(100f, 0f, 0f));
             var bus = new SectorEventBus();
             var ctx = new SectorBuildContext(null, null, null, bus);
-            var volume = CreateVolume("", player);
+            var volume = CreateVolume(null, player);
 
-            LogAssert.Expect(LogType.Error, new Regex("TriggerVolume .*blank signal token.*inert"));
+            LogAssert.Expect(LogType.Error, new Regex("TriggerVolume .*unassigned inside port.*inert"));
             yield return volume.Setup(ctx);
 
             var changes = 0;
@@ -293,11 +299,14 @@ namespace Tests.PlayMode
             var bus = new SectorEventBus();
             var ctx = new SectorBuildContext(null, null, null, bus);
 
-            var volume = CreateVolume("in-gate", player);
+            var inGate = NewPort("in-gate");
+            var keyAcquired = NewPort("key-acquired");
+            var challengeStarted = NewPort("challenge-started");
+            var volume = CreateVolume(inGate, player);
             var rule = TrackGO(new GameObject("ExtractionRule")).AddComponent<ActivationRule>();
             rule.Configure(
-                new[] { ActivationTerm.Signal("in-gate"), ActivationTerm.Signal("key-acquired") },
-                new[] { "challenge-started" });
+                new[] { ActivationTerm.Signal(inGate), ActivationTerm.Signal(keyAcquired) },
+                challengeStarted);
 
             yield return volume.Setup(ctx);
             yield return rule.Setup(ctx);
@@ -308,13 +317,13 @@ namespace Tests.PlayMode
             player.transform.position = Vector3.zero;
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
-            Assert.IsTrue(bus.Get("in-gate"));
+            Assert.IsTrue(bus.Get(inGate));
             Assert.AreEqual(0, fired, "Parked in the gate without the key must not fire the rule.");
 
-            bus.Latch("key-acquired");
+            bus.Latch(keyAcquired);
             Assert.AreEqual(1, fired,
                 "The rule must fire for a player already parked inside when the latched term arrives — no enter-edge needed.");
-            Assert.IsTrue(bus.Get("challenge-started"), "Firing must publish the rule's latched tokens.");
+            Assert.IsTrue(bus.Get(challengeStarted), "Firing must latch the rule's fired port.");
 
             player.transform.position = new Vector3(100f, 0f, 0f);
             yield return new WaitForFixedUpdate();

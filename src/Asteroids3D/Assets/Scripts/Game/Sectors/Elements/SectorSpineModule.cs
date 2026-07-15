@@ -10,7 +10,6 @@ namespace Game.Sectors
 {
     public class SectorSpineModule : SectorModule
     {
-        public const string TokenPrefix = "spine:";
         public const string StepExplore = "explore";
         public const string StepKeyAcquired = "key-acquired";
         public const string StepReadyToExtract = "ready-to-extract";
@@ -19,11 +18,28 @@ namespace Game.Sectors
 
         [SerializeField] private KeyPickup keyPickup;
         [SerializeField] private ExtractionZone extractionZone;
+        [SerializeField] private SignalPort explore;
+        [SerializeField] private SignalPort keyAcquired;
+        [SerializeField] private SignalPort readyToExtract;
+        [SerializeField] private SignalPort completed;
+        [SerializeField] private SignalPort failed;
 
         private IObjectiveService objectives;
         private SpineObjectiveHandle spine;
         private SectorEventBus bus;
         private Vector3? keyHome;
+
+        public IEnumerable<(string Step, SignalPort Port)> StepPorts
+        {
+            get
+            {
+                yield return (StepExplore, explore);
+                yield return (StepKeyAcquired, keyAcquired);
+                yield return (StepReadyToExtract, readyToExtract);
+                yield return (StepCompleted, completed);
+                yield return (StepFailed, failed);
+            }
+        }
 
         public override IEnumerator Setup(SectorBuildContext ctx)
         {
@@ -32,6 +48,9 @@ namespace Game.Sectors
                 Debug.LogError($"SectorSpineModule on '{name}' is missing a fixture reference — spine is inert.", this);
                 yield break;
             }
+            foreach (var (step, port) in StepPorts)
+                if (!SignalPortGuards.ValidPortRef(this, port, step, ctx.Sector))
+                    yield break;
 
             objectives = ctx.Services.ObjectiveService;
             bus = ctx.Bus;
@@ -89,8 +108,23 @@ namespace Game.Sectors
 
         private void HandleSpineStepChanged(string step)
         {
-            bus?.Latch(TokenPrefix + step);
+            bus?.Latch(PortFor(step));
             if (spine != null) spine.Target = TargetFor(step);
+        }
+
+        private SignalPort PortFor(string step)
+        {
+            switch (step)
+            {
+                case StepExplore: return explore;
+                case StepKeyAcquired: return keyAcquired;
+                case StepReadyToExtract: return readyToExtract;
+                case StepCompleted: return completed;
+                case StepFailed: return failed;
+                default:
+                    Debug.LogError($"SectorSpineModule on '{name}' has no port for unknown spine step '{step}'.", this);
+                    return null;
+            }
         }
 
         private Transform TargetFor(string step) => step switch
@@ -101,10 +135,17 @@ namespace Game.Sectors
         };
 
 #if UNITY_EDITOR
-        internal void Bind(KeyPickup key, ExtractionZone zone)
+        internal void Bind(KeyPickup key, ExtractionZone zone,
+            SignalPort explore = null, SignalPort keyAcquired = null, SignalPort readyToExtract = null,
+            SignalPort completed = null, SignalPort failed = null)
         {
             keyPickup = key;
             extractionZone = zone;
+            this.explore = explore;
+            this.keyAcquired = keyAcquired;
+            this.readyToExtract = readyToExtract;
+            this.completed = completed;
+            this.failed = failed;
         }
 #endif
     }

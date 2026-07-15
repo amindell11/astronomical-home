@@ -185,7 +185,7 @@ namespace Game.Sectors
                 orphanedAdopt, orphanedSpawner, orphanedModule);
         }
 
-        /// <summary>Root modules first, then a scoped child crawl: modules ON a recognised content node (e.g. ActivateOnToken on an adopted ship) are collected, its subtree is not.</summary>
+        /// <summary>Root modules first, then a scoped child crawl: modules ON a recognised content node (e.g. ActivateOnSignal on an adopted ship) are collected, its subtree is not.</summary>
         private static List<SectorModule> CollectModules(Transform root)
         {
             var list = new List<SectorModule>();

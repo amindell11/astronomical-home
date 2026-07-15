@@ -14,19 +14,26 @@ using Object = UnityEngine.Object;
 
 namespace Tests.PlayMode
 {
-    /// <summary>End-to-end ambush encounter: enter area → latched delay → token-gated wave spawn → concurrent local objective beside the live spine → clear → local closes and the cleared token latches. Plus two-instance concurrency and pending-fire cancellation.</summary>
+    /// <summary>End-to-end ambush encounter: enter area → latched delay → gated wave spawn → concurrent local objective beside the live spine → clear → local closes and the cleared port latches. Plus two-instance concurrency and pending-fire cancellation.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class AmbushEncounterPlayModeTests : PlayModeWorldFixture
     {
-        private const string AreaToken = "near-ambush";
-        private const string StartToken = "ambush-started";
-        private const string ClearedToken = "ambush-cleared";
         private static readonly Vector2 TriggerPlane = new(-10f, 25f);
 
         private class BusProbeSector : Sector
         {
             public SectorBuildContext Ctx => Context;
+        }
+
+        private class AmbushRig
+        {
+            public AmbushEncounter Encounter;
+            public RingSpawner Wave;
+            public TriggerVolume Volume;
+            public SignalPort Area;
+            public SignalPort Started;
+            public SignalPort Cleared;
         }
 
         private UnitService _unitService;
@@ -81,33 +88,36 @@ namespace Tests.PlayMode
             return ship;
         }
 
-        private (GameObject encounterGO, AmbushEncounter encounter, RingSpawner wave, TriggerVolume volume)
-            AddAmbush(Sector sector, string areaToken, string startToken, string clearedToken,
-                      Vector2 plane, float fireDelay, int waveCount = 2)
+        private AmbushRig AddAmbush(Sector sector, Vector2 plane, float fireDelay, int waveCount = 2)
         {
+            var rig = new AmbushRig();
+
             var encounterGO = new GameObject("Ambush");
             encounterGO.transform.SetParent(sector.transform);
             encounterGO.transform.position = GamePlane.PlanePointToWorld(plane);
+            rig.Started = encounterGO.AddComponent<SignalPort>();
+            rig.Cleared = encounterGO.AddComponent<SignalPort>();
 
             var triggerGO = new GameObject("Ambush Trigger");
             triggerGO.transform.SetParent(encounterGO.transform, false);
             var col = triggerGO.AddComponent<SphereCollider>();
             col.isTrigger = true;
             col.radius = 5f;
-            var volume = triggerGO.AddComponent<TriggerVolume>();
-            volume.Configure(areaToken);
+            rig.Area = triggerGO.AddComponent<SignalPort>();
+            rig.Volume = triggerGO.AddComponent<TriggerVolume>();
+            rig.Volume.Configure(rig.Area);
 
             var waveGO = new GameObject("Ambush Wave");
             waveGO.transform.SetParent(encounterGO.transform, false);
-            var wave = waveGO.AddComponent<RingSpawner>();
-            wave.Configure(TestAssets.LoadShip2Prefab(), null, waveCount, radius: 10f, team: 1);
-            wave.Configure(startToken);
+            rig.Wave = waveGO.AddComponent<RingSpawner>();
+            rig.Wave.Configure(TestAssets.LoadShip2Prefab(), null, waveCount, radius: 10f, team: 1);
+            rig.Wave.ConfigureGated(rig.Started);
 
-            var encounter = encounterGO.AddComponent<AmbushEncounter>();
-            encounter.Configure(new[] { ActivationTerm.Signal(areaToken) }, new[] { startToken }, fireDelay);
-            encounter.Bind(wave, new[] { clearedToken });
+            rig.Encounter = encounterGO.AddComponent<AmbushEncounter>();
+            rig.Encounter.Configure(new[] { ActivationTerm.Signal(rig.Area) }, rig.Started, fireDelay);
+            rig.Encounter.Bind(rig.Wave, rig.Cleared);
 
-            return (encounterGO, encounter, wave, volume);
+            return rig;
         }
 
         private BusProbeSector CreateSector(Ship player)
@@ -134,7 +144,7 @@ namespace Tests.PlayMode
 
         [UnityTest]
         [Timeout(600000)]
-        public IEnumerator EnterAreaThenLeave_DelayedWaveSpawns_LocalRunsBesideSpine_ClearLatchesToken()
+        public IEnumerator EnterAreaThenLeave_DelayedWaveSpawns_LocalRunsBesideSpine_ClearLatchesPort()
         {
             var player = SpawnKinematicPlayer();
             var sector = CreateSector(player);
@@ -149,33 +159,35 @@ namespace Tests.PlayMode
             zoneGO.AddComponent<SphereCollider>().isTrigger = true;
             var zone = zoneGO.AddComponent<ExtractionZone>();
             var spine = sector.gameObject.AddComponent<SectorSpineModule>();
-            spine.Bind(key, zone);
+            spine.Bind(key, zone,
+                sector.gameObject.AddComponent<SignalPort>(), sector.gameObject.AddComponent<SignalPort>(),
+                sector.gameObject.AddComponent<SignalPort>(), sector.gameObject.AddComponent<SignalPort>(),
+                sector.gameObject.AddComponent<SignalPort>());
 
-            var (_, encounter, wave, volume) = AddAmbush(
-                sector, AreaToken, StartToken, ClearedToken, TriggerPlane, fireDelay: 1f);
-            sector.SetManifest(null, new SectorSpawner[] { wave },
-                new SectorModule[] { spine, volume, encounter });
+            var rig = AddAmbush(sector, TriggerPlane, fireDelay: 1f);
+            sector.SetManifest(null, new SectorSpawner[] { rig.Wave },
+                new SectorModule[] { spine, rig.Volume, rig.Encounter });
 
             yield return sector.Setup();
-            Assert.AreEqual(0, wave.Spawned.Count, "A token-gated wave must stay dormant at Build.");
+            Assert.AreEqual(0, rig.Wave.Spawned.Count, "A gated wave must stay dormant at Build.");
             Assert.AreEqual(0, _objectives.Locals.Count);
 
             player.transform.position = GamePlane.PlanePointToWorld(TriggerPlane);
-            yield return WaitSeconds(() => sector.Ctx.Bus.Get(AreaToken), 5f);
-            Assert.IsTrue(sector.Ctx.Bus.Get(AreaToken), "Entering the area must raise the level.");
-            Assert.IsFalse(encounter.HasFired, "The delay must hold the fire sequence.");
-            Assert.AreEqual(0, wave.Spawned.Count);
+            yield return WaitSeconds(() => sector.Ctx.Bus.Get(rig.Area), 5f);
+            Assert.IsTrue(sector.Ctx.Bus.Get(rig.Area), "Entering the area must raise the level.");
+            Assert.IsFalse(rig.Encounter.HasFired, "The delay must hold the fire sequence.");
+            Assert.AreEqual(0, rig.Wave.Spawned.Count);
 
             // Leaving the area must not cancel — the predicate latched on first satisfaction.
             player.transform.position = GamePlane.PlanePointToWorld(new Vector2(100f, 0f));
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
 
-            yield return WaitSeconds(() => encounter.HasFired, 5f);
-            Assert.IsTrue(encounter.HasFired, "The latched delay must fire after fireDelaySeconds.");
-            Assert.IsTrue(sector.Ctx.Bus.Get(StartToken));
-            Assert.AreEqual(2, wave.Spawned.Count, "The token latch must produce the wave.");
-            foreach (var ship in wave.Spawned)
+            yield return WaitSeconds(() => rig.Encounter.HasFired, 5f);
+            Assert.IsTrue(rig.Encounter.HasFired, "The latched delay must fire after fireDelaySeconds.");
+            Assert.IsTrue(sector.Ctx.Bus.Get(rig.Started));
+            Assert.AreEqual(2, rig.Wave.Spawned.Count, "The port latch must produce the wave.");
+            foreach (var ship in rig.Wave.Spawned)
                 Assert.IsTrue(ship && ship.gameObject.activeInHierarchy);
 
             Assert.AreEqual(1, _objectives.Locals.Count, "The encounter must open its local objective.");
@@ -183,11 +195,11 @@ namespace Tests.PlayMode
             Assert.AreEqual(SectorSpineModule.StepExplore, _objectives.SpineStep,
                 "The local must run beside the untouched spine — several things alive at once.");
 
-            foreach (var ship in wave.Spawned)
+            foreach (var ship in rig.Wave.Spawned)
                 ship.gameObject.SetActive(false);
             yield return WaitFrames(() => _objectives.Locals.Count == 0);
             Assert.AreEqual(0, _objectives.Locals.Count, "Clearing the wave must close the local.");
-            Assert.IsTrue(sector.Ctx.Bus.Get(ClearedToken), "Clearing must latch the cleared token.");
+            Assert.IsTrue(sector.Ctx.Bus.Get(rig.Cleared), "Clearing must latch the cleared port.");
             Assert.AreEqual(SectorSpineModule.StepExplore, _objectives.SpineStep);
 
             yield return sector.Teardown();
@@ -200,29 +212,28 @@ namespace Tests.PlayMode
             var player = SpawnKinematicPlayer();
             var sector = CreateSector(player);
 
-            var (_, encA, waveA, _) = AddAmbush(
-                sector, "near-a", "started-a", "cleared-a", new Vector2(-40f, 0f), fireDelay: 0f, waveCount: 1);
-            var (_, encB, waveB, _) = AddAmbush(
-                sector, "near-b", "started-b", "cleared-b", new Vector2(40f, 0f), fireDelay: 0f, waveCount: 1);
-            sector.SetManifest(null, new SectorSpawner[] { waveA, waveB }, new SectorModule[] { encA, encB });
+            var a = AddAmbush(sector, new Vector2(-40f, 0f), fireDelay: 0f, waveCount: 1);
+            var b = AddAmbush(sector, new Vector2(40f, 0f), fireDelay: 0f, waveCount: 1);
+            sector.SetManifest(null, new SectorSpawner[] { a.Wave, b.Wave },
+                new SectorModule[] { a.Encounter, b.Encounter });
 
             yield return sector.Setup();
 
-            sector.Ctx.Bus.Set("near-a", true);
-            sector.Ctx.Bus.Set("near-b", true);
-            Assert.AreEqual(1, waveA.Spawned.Count);
-            Assert.AreEqual(1, waveB.Spawned.Count);
+            sector.Ctx.Bus.Set(a.Area, true);
+            sector.Ctx.Bus.Set(b.Area, true);
+            Assert.AreEqual(1, a.Wave.Spawned.Count);
+            Assert.AreEqual(1, b.Wave.Spawned.Count);
             Assert.AreEqual(2, _objectives.Locals.Count, "Two instances must hold two concurrent locals.");
 
-            waveA.Spawned[0].gameObject.SetActive(false);
+            a.Wave.Spawned[0].gameObject.SetActive(false);
             yield return WaitFrames(() => _objectives.Locals.Count == 1);
-            Assert.IsTrue(sector.Ctx.Bus.Get("cleared-a"), "Clearing wave A must latch only A's token.");
-            Assert.IsFalse(sector.Ctx.Bus.Get("cleared-b"));
+            Assert.IsTrue(sector.Ctx.Bus.Get(a.Cleared), "Clearing wave A must latch only A's port.");
+            Assert.IsFalse(sector.Ctx.Bus.Get(b.Cleared));
             Assert.AreEqual(1, _objectives.Locals.Count, "B's local must survive A's completion.");
 
-            waveB.Spawned[0].gameObject.SetActive(false);
+            b.Wave.Spawned[0].gameObject.SetActive(false);
             yield return WaitFrames(() => _objectives.Locals.Count == 0);
-            Assert.IsTrue(sector.Ctx.Bus.Get("cleared-b"));
+            Assert.IsTrue(sector.Ctx.Bus.Get(b.Cleared));
 
             yield return sector.Teardown();
         }
@@ -234,23 +245,22 @@ namespace Tests.PlayMode
             var player = SpawnKinematicPlayer();
             var sector = CreateSector(player);
 
-            var (_, encounter, wave, volume) = AddAmbush(
-                sector, AreaToken, StartToken, ClearedToken, TriggerPlane, fireDelay: 30f);
-            sector.SetManifest(null, new SectorSpawner[] { wave },
-                new SectorModule[] { volume, encounter });
+            var rig = AddAmbush(sector, TriggerPlane, fireDelay: 30f);
+            sector.SetManifest(null, new SectorSpawner[] { rig.Wave },
+                new SectorModule[] { rig.Volume, rig.Encounter });
 
             yield return sector.Setup();
 
             player.transform.position = GamePlane.PlanePointToWorld(TriggerPlane);
-            yield return WaitSeconds(() => sector.Ctx.Bus.Get(AreaToken), 5f);
-            Assert.IsTrue(sector.Ctx.Bus.Get(AreaToken));
-            Assert.IsFalse(encounter.HasFired);
+            yield return WaitSeconds(() => sector.Ctx.Bus.Get(rig.Area), 5f);
+            Assert.IsTrue(sector.Ctx.Bus.Get(rig.Area));
+            Assert.IsFalse(rig.Encounter.HasFired);
 
             yield return sector.Teardown();
             yield return null;
 
-            Assert.IsFalse(encounter.HasFired, "Teardown must cancel the pending fire.");
-            Assert.AreEqual(0, wave.Spawned.Count, "No wave may spawn after teardown.");
+            Assert.IsFalse(rig.Encounter.HasFired, "Teardown must cancel the pending fire.");
+            Assert.AreEqual(0, rig.Wave.Spawned.Count, "No wave may spawn after teardown.");
             Assert.AreEqual(0, _objectives.Locals.Count);
         }
 
@@ -261,18 +271,17 @@ namespace Tests.PlayMode
             var player = SpawnKinematicPlayer();
             var sector = CreateSector(player);
 
-            var (_, encounter, wave, _) = AddAmbush(
-                sector, AreaToken, StartToken, ClearedToken, TriggerPlane, fireDelay: 0f);
-            encounter.Bind(null);
-            sector.SetManifest(null, new SectorSpawner[] { wave },
-                new SectorModule[] { encounter });
+            var rig = AddAmbush(sector, TriggerPlane, fireDelay: 0f);
+            rig.Encounter.Bind(null);
+            sector.SetManifest(null, new SectorSpawner[] { rig.Wave },
+                new SectorModule[] { rig.Encounter });
 
             LogAssert.Expect(LogType.Error,
                 new System.Text.RegularExpressions.Regex("AmbushEncounter .*inert"));
             yield return sector.Setup();
 
-            sector.Ctx.Bus.Set(AreaToken, true);
-            Assert.IsFalse(encounter.HasFired, "An inert encounter must never fire.");
+            sector.Ctx.Bus.Set(rig.Area, true);
+            Assert.IsFalse(rig.Encounter.HasFired, "An inert encounter must never fire.");
             Assert.AreEqual(0, _objectives.Locals.Count);
 
             yield return sector.Teardown();

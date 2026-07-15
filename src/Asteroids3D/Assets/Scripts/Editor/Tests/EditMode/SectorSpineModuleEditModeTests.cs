@@ -1,16 +1,18 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Game.Sectors;
 using Game.Services;
 using NUnit.Framework;
 using Objectives;
 using Objectives.States;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Tests.EditMode
 {
-    /// <summary>SectorSpineModule against the objective service and sector bus: step tokens, terminal mapping, teardown hygiene.</summary>
+    /// <summary>SectorSpineModule against the objective service and sector bus: step ports, terminal mapping, teardown hygiene.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class SectorSpineModuleEditModeTests
@@ -49,25 +51,47 @@ namespace Tests.EditMode
             while (routine.MoveNext()) { }
         }
 
-        private (SectorSpineModule module, ObjectiveService svc, KeyPickup key, ExtractionZone zone, SectorEventBus bus, SectorBuildContext ctx)
-            BuildSpine()
+        private sealed class SpineRig
         {
-            var svc = NewGO("ObjectiveService").AddComponent<ObjectiveService>();
+            public SectorSpineModule Module;
+            public ObjectiveService Svc;
+            public KeyPickup Key;
+            public ExtractionZone Zone;
+            public SectorEventBus Bus;
+            public SectorBuildContext Ctx;
+            public SignalPort Explore;
+            public SignalPort KeyAcquired;
+            public SignalPort ReadyToExtract;
+            public SignalPort Completed;
+            public SignalPort Failed;
+        }
+
+        private SpineRig BuildSpine()
+        {
+            var rig = new SpineRig();
+            rig.Svc = NewGO("ObjectiveService").AddComponent<ObjectiveService>();
 
             var keyGO = NewGO("Key");
             keyGO.AddComponent<SphereCollider>().isTrigger = true;
-            var key = keyGO.AddComponent<KeyPickup>();
+            rig.Key = keyGO.AddComponent<KeyPickup>();
 
             var zoneGO = NewGO("Zone");
             zoneGO.AddComponent<SphereCollider>().isTrigger = true;
-            var zone = zoneGO.AddComponent<ExtractionZone>();
+            rig.Zone = zoneGO.AddComponent<ExtractionZone>();
 
-            var module = NewGO("Spine").AddComponent<SectorSpineModule>();
-            module.Bind(key, zone);
+            var moduleGO = NewGO("Spine");
+            rig.Explore = moduleGO.AddComponent<SignalPort>();
+            rig.KeyAcquired = moduleGO.AddComponent<SignalPort>();
+            rig.ReadyToExtract = moduleGO.AddComponent<SignalPort>();
+            rig.Completed = moduleGO.AddComponent<SignalPort>();
+            rig.Failed = moduleGO.AddComponent<SignalPort>();
+            rig.Module = moduleGO.AddComponent<SectorSpineModule>();
+            rig.Module.Bind(rig.Key, rig.Zone,
+                rig.Explore, rig.KeyAcquired, rig.ReadyToExtract, rig.Completed, rig.Failed);
 
-            var bus = new SectorEventBus();
-            var ctx = new SectorBuildContext(new StubServices(svc), null, null, bus);
-            return (module, svc, key, zone, bus, ctx);
+            rig.Bus = new SectorEventBus();
+            rig.Ctx = new SectorBuildContext(new StubServices(rig.Svc), null, null, rig.Bus);
+            return rig;
         }
 
         private static void InstallPostSpineMission(ObjectiveService svc)
@@ -81,50 +105,77 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void Setup_InstallsSpine_AndPublishesInitialStepTokenAndTarget()
+        public void Setup_InstallsSpine_AndLatchesInitialStepPortAndTarget()
         {
-            var (module, svc, key, _, bus, ctx) = BuildSpine();
+            var rig = BuildSpine();
 
-            Run(module.Setup(ctx));
+            Run(rig.Module.Setup(rig.Ctx));
 
-            Assert.AreEqual(SectorSpineModule.StepExplore, svc.SpineStep);
-            Assert.IsTrue(bus.Get(SectorSpineModule.TokenPrefix + SectorSpineModule.StepExplore),
-                "The initial spine step must be latched on the bus.");
-            Assert.AreEqual(key.transform, svc.SpineTarget,
+            Assert.AreEqual(SectorSpineModule.StepExplore, rig.Svc.SpineStep);
+            Assert.IsTrue(rig.Bus.Get(rig.Explore), "The initial spine step must be latched on the bus.");
+            Assert.AreEqual(rig.Key.transform, rig.Svc.SpineTarget,
                 "The explore step must report the key as the spine target.");
         }
 
         [Test]
-        public void SpineFail_LatchesFailedToken_AndEndsSectorFailed()
+        public void Setup_WithUnassignedStepPort_LogsError_AndStaysInert()
         {
-            var (module, svc, _, _, bus, ctx) = BuildSpine();
-            Run(module.Setup(ctx));
+            var rig = BuildSpine();
+            rig.Module.Bind(rig.Key, rig.Zone,
+                rig.Explore, rig.KeyAcquired, null, rig.Completed, rig.Failed);
+
+            LogAssert.Expect(LogType.Error,
+                new Regex($"SectorSpineModule .*unassigned {SectorSpineModule.StepReadyToExtract} port.*inert"));
+            Run(rig.Module.Setup(rig.Ctx));
+
+            Assert.IsNull(rig.Svc.SpineTracker, "An inert spine must not install a mission.");
+            Assert.IsFalse(rig.Bus.Get(rig.Explore));
+        }
+
+        [Test]
+        public void SpineFail_LatchesFailedPort_AndEndsSectorFailed()
+        {
+            var rig = BuildSpine();
+            Run(rig.Module.Setup(rig.Ctx));
 
             SectorResult? got = null;
-            module.SectorEndRequested += r => got = r;
+            rig.Module.SectorEndRequested += r => got = r;
 
-            svc.SpineTracker.Fail();
-            svc.Tick(0.1f);
+            rig.Svc.SpineTracker.Fail();
+            rig.Svc.Tick(0.1f);
 
             Assert.IsTrue(got.HasValue, "The failed terminal state must end the sector.");
             Assert.IsFalse(got.Value.Success);
             Assert.AreEqual("spine_failed", got.Value.FailReason);
-            Assert.IsTrue(bus.Get(SectorSpineModule.TokenPrefix + SectorSpineModule.StepFailed));
+            Assert.IsTrue(rig.Bus.Get(rig.Failed));
+        }
+
+        [Test]
+        public void UnknownSpineStep_LogsError_InsteadOfSilentlySkippingThePort()
+        {
+            var rig = BuildSpine();
+            Run(rig.Module.Setup(rig.Ctx));
+
+            LogAssert.Expect(LogType.Error,
+                new Regex("SectorSpineModule .*no port for unknown spine step 'bogus'"));
+            rig.Svc.SetSpineObjective(
+                new MissionDefinition("bogus", new Dictionary<string, string>()),
+                new Dictionary<string, Func<ObjectiveState>> { ["bogus"] = () => new CompletedState() });
         }
 
         [Test]
         public void Teardown_ClearsSpine_AndUnsubscribesFromStepEvents()
         {
-            var (module, svc, _, _, bus, ctx) = BuildSpine();
-            Run(module.Setup(ctx));
+            var rig = BuildSpine();
+            Run(rig.Module.Setup(rig.Ctx));
 
-            Run(module.Teardown(ctx));
+            Run(rig.Module.Teardown(rig.Ctx));
 
-            Assert.IsNull(svc.SpineTracker, "Teardown must clear the spine.");
-            Assert.IsNull(svc.SpineTarget);
+            Assert.IsNull(rig.Svc.SpineTracker, "Teardown must clear the spine.");
+            Assert.IsNull(rig.Svc.SpineTarget);
 
-            InstallPostSpineMission(svc);
-            Assert.IsNull(svc.SpineTarget,
+            InstallPostSpineMission(rig.Svc);
+            Assert.IsNull(rig.Svc.SpineTarget,
                 "A torn-down module must not react to later spine installs (leaked step subscription).");
         }
 

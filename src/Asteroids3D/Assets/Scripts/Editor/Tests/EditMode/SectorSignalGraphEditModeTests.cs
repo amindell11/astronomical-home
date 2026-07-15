@@ -1,0 +1,197 @@
+using System.Collections.Generic;
+using System.Linq;
+using Game.Sectors;
+using NUnit.Framework;
+using UnityEditor;
+using UnityEngine;
+
+namespace Tests.EditMode
+{
+    /// <summary>Graph model + validator over the baked manifest: ownership, wiring, and cycle findings — plus the all-sector-prefabs sweep that keeps every shipped sector error-free by construction.</summary>
+    [TestFixture]
+    [Category("Sectors")]
+    public class SectorSignalGraphEditModeTests
+    {
+        private readonly List<GameObject> _created = new();
+
+        [TearDown]
+        public void TearDown()
+        {
+            foreach (var go in _created)
+                if (go != null) Object.DestroyImmediate(go);
+            _created.Clear();
+        }
+
+        private GameObject NewGO(string name, Transform parent = null)
+        {
+            var go = new GameObject(name);
+            if (parent) go.transform.SetParent(parent);
+            else _created.Add(go);
+            return go;
+        }
+
+        private Sector NewSector() => NewGO("Sector").AddComponent<Sector>();
+
+        private static List<string> Errors(SectorSignalGraph.Model model) =>
+            model.Findings.Where(f => f.Severity == SectorSignalGraph.Severity.Error)
+                .Select(f => f.Message).ToList();
+
+        private static List<string> Infos(SectorSignalGraph.Model model) =>
+            model.Findings.Where(f => f.Severity == SectorSignalGraph.Severity.Info)
+                .Select(f => f.Message).ToList();
+
+        private class StubSpawner : SectorSpawner
+        {
+            protected override System.Collections.IEnumerator Produce(SectorBuildContext ctx) { yield break; }
+        }
+
+        [Test]
+        public void CleanChain_HasNoErrors_AndPublishedButUnconsumedIsInfoOnly()
+        {
+            var sector = NewSector();
+            var volumeGO = NewGO("Volume", sector.transform);
+            volumeGO.AddComponent<SphereCollider>().isTrigger = true;
+            var inside = volumeGO.AddComponent<SignalPort>();
+            var volume = volumeGO.AddComponent<TriggerVolume>();
+            volume.Configure(inside);
+
+            var ruleGO = NewGO("Rule", sector.transform);
+            var fired = ruleGO.AddComponent<SignalPort>();
+            var rule = ruleGO.AddComponent<ActivationRule>();
+            rule.Configure(new[] { ActivationTerm.Signal(inside) }, fired);
+
+            var spawnerGO = NewGO("Spawner", sector.transform);
+            var spawner = spawnerGO.AddComponent<StubSpawner>();
+            spawner.ConfigureGated(fired);
+
+            var seamGO = NewGO("Seam", sector.transform);
+            var unconsumed = seamGO.AddComponent<SignalPort>();
+            var seamRule = seamGO.AddComponent<ActivationRule>();
+            seamRule.Configure(new[] { ActivationTerm.Signal(inside) }, unconsumed);
+
+            sector.SetManifest(null, new SectorSpawner[] { spawner },
+                new SectorModule[] { volume, rule, seamRule });
+
+            var model = SectorSignalGraph.Build(sector);
+            Assert.IsEmpty(Errors(model), "A fully wired chain must validate clean.");
+            Assert.AreEqual(1, Infos(model).Count, "A deliberate unconsumed seam is INFO, never an error.");
+            StringAssert.Contains("unconsumed", Infos(model)[0]);
+        }
+
+        [Test]
+        public void UnownedPort_IsError()
+        {
+            var sector = NewSector();
+            NewGO("FreeStanding", sector.transform).AddComponent<SignalPort>();
+            sector.SetManifest(null, System.Array.Empty<SectorSpawner>(), System.Array.Empty<SectorModule>());
+
+            var errors = Errors(SectorSignalGraph.Build(sector));
+            Assert.AreEqual(1, errors.Count);
+            StringAssert.Contains("no publisher", errors[0]);
+        }
+
+        [Test]
+        public void UnassignedPublisherPortField_IsError()
+        {
+            var sector = NewSector();
+            var volumeGO = NewGO("Volume", sector.transform);
+            volumeGO.AddComponent<SphereCollider>().isTrigger = true;
+            var volume = volumeGO.AddComponent<TriggerVolume>();
+            volume.Configure(null);
+            sector.SetManifest(null, System.Array.Empty<SectorSpawner>(), new SectorModule[] { volume });
+
+            var errors = Errors(SectorSignalGraph.Build(sector));
+            Assert.AreEqual(1, errors.Count);
+            StringAssert.Contains("unassigned inside port", errors[0]);
+        }
+
+        [Test]
+        public void GatedSpawnerWithNullSignal_IsError()
+        {
+            var sector = NewSector();
+            var spawner = NewGO("Spawner", sector.transform).AddComponent<StubSpawner>();
+            spawner.ConfigureGated(null);
+            sector.SetManifest(null, new SectorSpawner[] { spawner }, System.Array.Empty<SectorModule>());
+
+            var errors = Errors(SectorSignalGraph.Build(sector));
+            Assert.AreEqual(1, errors.Count);
+            StringAssert.Contains("unassigned activation port", errors[0]);
+        }
+
+        [Test]
+        public void CrossSectorRef_IsError()
+        {
+            var sector = NewSector();
+            var foreign = NewSector();
+            var foreignPort = NewGO("ForeignPort", foreign.transform).AddComponent<SignalPort>();
+
+            var ruleGO = NewGO("Rule", sector.transform);
+            var fired = ruleGO.AddComponent<SignalPort>();
+            var rule = ruleGO.AddComponent<ActivationRule>();
+            rule.Configure(new[] { ActivationTerm.Signal(foreignPort) }, fired);
+            sector.SetManifest(null, System.Array.Empty<SectorSpawner>(), new SectorModule[] { rule });
+
+            var errors = Errors(SectorSignalGraph.Build(sector));
+            Assert.AreEqual(1, errors.Count);
+            StringAssert.Contains("outside the sector", errors[0]);
+        }
+
+        [Test]
+        public void RuleCycle_IsError()
+        {
+            var sector = NewSector();
+            var aGO = NewGO("RuleA", sector.transform);
+            var aPort = aGO.AddComponent<SignalPort>();
+            var bGO = NewGO("RuleB", sector.transform);
+            var bPort = bGO.AddComponent<SignalPort>();
+
+            var a = aGO.AddComponent<ActivationRule>();
+            a.Configure(new[] { ActivationTerm.Signal(bPort) }, aPort);
+            var b = bGO.AddComponent<ActivationRule>();
+            b.Configure(new[] { ActivationTerm.Signal(aPort) }, bPort);
+            sector.SetManifest(null, System.Array.Empty<SectorSpawner>(), new SectorModule[] { a, b });
+
+            var errors = Errors(SectorSignalGraph.Build(sector));
+            Assert.AreEqual(1, errors.Count, "A two-rule deadlock must be reported exactly once.");
+            StringAssert.Contains("cycle", errors[0]);
+        }
+
+        [Test]
+        public void PortClaimedByTwoPublishers_IsError()
+        {
+            var sector = NewSector();
+            var port = NewGO("SharedPort", sector.transform).AddComponent<SignalPort>();
+
+            var a = NewGO("RuleA", sector.transform).AddComponent<ActivationRule>();
+            a.Configure(System.Array.Empty<ActivationTerm>(), port);
+            var b = NewGO("RuleB", sector.transform).AddComponent<ActivationRule>();
+            b.Configure(System.Array.Empty<ActivationTerm>(), port);
+            sector.SetManifest(null, System.Array.Empty<SectorSpawner>(), new SectorModule[] { a, b });
+
+            var errors = Errors(SectorSignalGraph.Build(sector));
+            Assert.AreEqual(1, errors.Count);
+            StringAssert.Contains("single-owner", errors[0]);
+        }
+
+        [Test]
+        public void AllSectorPrefabs_ValidateClean()
+        {
+            var checkedSectors = 0;
+            var errors = new List<string>();
+            foreach (var guid in AssetDatabase.FindAssets("t:Prefab"))
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guid);
+                var sector = AssetDatabase.LoadAssetAtPath<Sector>(path);
+                if (!sector) continue;
+                checkedSectors++;
+                errors.AddRange(
+                    SectorSignalGraph.Build(sector).Findings
+                        .Where(f => f.Severity == SectorSignalGraph.Severity.Error)
+                        .Select(f => $"{path}: {f.Message}"));
+            }
+
+            Assert.GreaterOrEqual(checkedSectors, 5, "Sanity: the sweep must actually find the shipped sector prefabs.");
+            Assert.IsEmpty(errors, "Every Sector prefab must validate clean:\n" + string.Join("\n", errors));
+        }
+    }
+}

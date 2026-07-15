@@ -1,14 +1,16 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Game.Sectors
 {
-    /// <summary>Fires exactly once when all terms hold, in causal order: OnFired (own effect) → Fired event → publish latched tokens, so downstream rules run strictly after this rule's effect.</summary>
+    /// <summary>Fires exactly once when all terms hold, in causal order: OnFired (own effect) → Fired event → latch the fired port, so downstream rules run strictly after this rule's effect.</summary>
     public class ActivationRule : SectorModule
     {
         [SerializeField] private ActivationTerm[] terms = Array.Empty<ActivationTerm>();
-        [SerializeField] private string[] publishOnFired = Array.Empty<string>();
+
+        [SerializeField] private SignalPort fired;
 
         [Tooltip("Delay between the terms first holding (latched — leaving the area does not cancel) and the fire sequence running. Teardown or bus freeze cancels a pending fire.")]
         [SerializeField] private float fireDelaySeconds;
@@ -17,24 +19,29 @@ namespace Game.Sectors
 
         public bool HasFired { get; private set; }
 
+        public IReadOnlyList<ActivationTerm> Terms => terms;
+
+        public SignalPort FiredPort => fired;
+
         private SectorEventBus bus;
         private ActivationPredicate predicate;
         private float setupTime;
         private bool firePending;
         private float fireAtTime;
 
-        public void Configure(ActivationTerm[] terms, string[] publishOnFired = null, float fireDelaySeconds = 0f)
+        public void Configure(ActivationTerm[] terms, SignalPort fired = null, float fireDelaySeconds = 0f)
         {
             this.terms = terms ?? Array.Empty<ActivationTerm>();
-            this.publishOnFired = publishOnFired ?? Array.Empty<string>();
+            this.fired = fired;
             this.fireDelaySeconds = fireDelaySeconds;
         }
 
         public override IEnumerator Setup(SectorBuildContext ctx)
         {
-            if (!HasValidTokens())
+            if (!PortsValid(ctx.Sector)) yield break;
+            if (fireDelaySeconds > 0f && !gameObject.activeInHierarchy)
             {
-                Debug.LogError($"ActivationRule on '{name}' has a blank signal token — rule is inert.", this);
+                Debug.LogError($"{GetType().Name} on '{name}' has a delayed fire but its GameObject is inactive — inert.", this);
                 yield break;
             }
 
@@ -56,16 +63,15 @@ namespace Game.Sectors
             yield break;
         }
 
-        /// <summary>Effect seam: a subclass IS the effect (no post-Setup binding race); runs before the Fired event and token publication.</summary>
+        /// <summary>Effect seam: a subclass IS the effect (no post-Setup binding race); runs before the Fired event and port latch.</summary>
         protected virtual void OnFired() { }
 
-        private bool HasValidTokens()
+        private bool PortsValid(Sector sector)
         {
+            if (!SignalPortGuards.ValidPortRef(this, fired, "fired", sector)) return false;
             foreach (var term in terms)
-                if (term.kind == ActivationTerm.TermKind.Signal && string.IsNullOrWhiteSpace(term.signalToken))
-                    return false;
-            foreach (var token in publishOnFired)
-                if (string.IsNullOrWhiteSpace(token))
+                if (term.kind == ActivationTerm.TermKind.Signal &&
+                    !SignalPortGuards.ValidPortRef(this, term.signal, "term", sector))
                     return false;
             return true;
         }
@@ -82,7 +88,7 @@ namespace Game.Sectors
             EvaluateNow();
         }
 
-        private void OnBusChanged(string token) => EvaluateNow();
+        private void OnBusChanged(SignalPort port) => EvaluateNow();
 
         private void EvaluateNow()
         {
@@ -104,8 +110,7 @@ namespace Game.Sectors
             HasFired = true;
             OnFired();
             Fired?.Invoke();
-            foreach (var token in publishOnFired)
-                bus?.Latch(token);
+            bus?.Latch(fired);
         }
     }
 }

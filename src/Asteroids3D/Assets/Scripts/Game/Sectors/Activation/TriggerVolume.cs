@@ -3,39 +3,42 @@ using UnityEngine;
 
 namespace Game.Sectors
 {
-    /// <summary>Mirrors the player's in/out occupancy of its trigger collider to a named bus signal.</summary>
+    /// <summary>Mirrors the player's in/out occupancy of its trigger collider to its inside port as a level.</summary>
     [RequireComponent(typeof(Collider))]
     public class TriggerVolume : SectorModule
     {
-        [SerializeField] private string signalToken;
+        [SerializeField] private SignalPort inside;
 
         private readonly RigidbodyOccupancy occupancy = new();
         private SectorEventBus bus;
         private Rigidbody playerBody;
 
-        public void Configure(string token, Rigidbody player = null)
+        public SignalPort InsidePort => inside;
+
+        public void Configure(SignalPort inside, Rigidbody player = null)
         {
-            signalToken = token;
+            this.inside = inside;
             if (player) playerBody = player;
         }
 
         public override IEnumerator Setup(SectorBuildContext ctx)
         {
-            if (string.IsNullOrWhiteSpace(signalToken))
+            if (!SignalPortGuards.ValidPortRef(this, inside, "inside", ctx.Sector)) yield break;
+            if (!gameObject.activeInHierarchy)
             {
-                Debug.LogError($"TriggerVolume on '{name}' has a blank signal token — volume is inert.", this);
+                Debug.LogError($"{GetType().Name} on '{name}' needs trigger messages but its GameObject is inactive — inert.", this);
                 yield break;
             }
 
             if (ctx.Player) playerBody = ctx.Player.Body;
             bus = ctx.Bus;
             // Trigger events can precede Setup (player parked in the volume at build) — push the buffered level.
-            bus?.Set(signalToken, occupancy.Contains(playerBody));
+            bus?.Set(inside, occupancy.Contains(playerBody));
         }
 
         public override IEnumerator Teardown(SectorBuildContext ctx)
         {
-            bus?.Set(signalToken, false);
+            bus?.Set(inside, false);
             bus = null;
             yield break;
         }
@@ -55,6 +58,6 @@ namespace Game.Sectors
         // Occupancy pruning of dead colliders only happens on read — republish each physics step so the bus follows it.
         private void FixedUpdate() => Publish();
 
-        private void Publish() => bus?.Set(signalToken, occupancy.Contains(playerBody));
+        private void Publish() => bus?.Set(inside, occupancy.Contains(playerBody));
     }
 }

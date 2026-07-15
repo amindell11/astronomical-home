@@ -8,17 +8,20 @@ using UnityEngine;
 
 namespace Game.Sectors
 {
-    /// <summary>Ambush encounter: fires on its terms (spatial + delay), opens a concurrent local clear-hostiles objective over its wave spawner (observation-only ref), and latches publishOnCleared when the wave is dead.</summary>
+    /// <summary>Ambush encounter: fires on its terms (spatial + delay), opens a concurrent local clear-hostiles objective over its wave spawner (observation-only ref), and latches its cleared port when the wave is dead.</summary>
     public class AmbushEncounter : ActivationRule, IHostileTracker
     {
         public const string StepClear = "clear-hostiles";
         public const string StepCleared = "cleared";
 
         [SerializeField] private SectorSpawner waveSpawner;
-        [SerializeField] private string[] publishOnCleared = Array.Empty<string>();
+
+        [SerializeField] private SignalPort cleared;
 
         private SectorBuildContext ctx;
         private LocalObjectiveHandle local;
+
+        public SignalPort ClearedPort => cleared;
 
         // An unspawned wave reads as not-cleared: a misconfigured spawner must never complete the local silently.
         public bool HostilesCleared
@@ -34,11 +37,12 @@ namespace Game.Sectors
 
         public override IEnumerator Setup(SectorBuildContext ctx)
         {
-            if (!waveSpawner || Array.Exists(publishOnCleared, string.IsNullOrWhiteSpace))
+            if (!waveSpawner)
             {
-                Debug.LogError($"AmbushEncounter on '{name}' has a missing wave spawner or blank cleared token — encounter is inert.", this);
+                Debug.LogError($"AmbushEncounter on '{name}' has no wave spawner — inert.", this);
                 yield break;
             }
+            if (!SignalPortGuards.ValidPortRef(this, cleared, "cleared", ctx.Sector)) yield break;
 
             this.ctx = ctx;
             var setup = base.Setup(ctx);
@@ -67,17 +71,16 @@ namespace Game.Sectors
 
         private void HandleCleared()
         {
-            foreach (var token in publishOnCleared)
-                ctx.Bus?.Latch(token);
+            ctx.Bus?.Latch(cleared);
             local?.Close();
             local = null;
         }
 
 #if UNITY_EDITOR
-        internal void Bind(SectorSpawner spawner, string[] publishOnCleared = null)
+        internal void Bind(SectorSpawner spawner, SignalPort cleared = null)
         {
             waveSpawner = spawner;
-            if (publishOnCleared != null) this.publishOnCleared = publishOnCleared;
+            if (cleared) this.cleared = cleared;
         }
 #endif
     }

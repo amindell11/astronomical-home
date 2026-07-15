@@ -74,20 +74,22 @@ namespace Tests.PlayMode
             return ship;
         }
 
-        private const string ChallengeToken = "extraction-challenge-started";
-
         private (Sector sector, KeyPickup key, ExtractionZone zone, Ship player, Ship chaser) BuildDemoSector(
             Vector2? chaserPlane = null, bool includeRule = true, bool bindZone = true,
-            string activateToken = ChallengeToken)
+            bool wireActivateSignal = true)
         {
             var player = SpawnKinematicShip(Vector2.zero);
             var chaser = SpawnKinematicShip(chaserPlane ?? new Vector2(300f, 300f));
             chaser.gameObject.SetActive(false);
-            var activate = chaser.gameObject.AddComponent<ActivateOnToken>();
-            activate.Configure(activateToken);
+            var activate = chaser.gameObject.AddComponent<ActivateOnSignal>();
 
             var sectorGO = TrackGO(new GameObject("SpineDemoSector"));
             var sector = sectorGO.AddComponent<Sector>();
+            var explorePort = sectorGO.AddComponent<SignalPort>();
+            var keyAcquiredPort = sectorGO.AddComponent<SignalPort>();
+            var readyPort = sectorGO.AddComponent<SignalPort>();
+            var completedPort = sectorGO.AddComponent<SignalPort>();
+            var failedPort = sectorGO.AddComponent<SignalPort>();
 
             var keyGO = new GameObject("Key");
             keyGO.transform.SetParent(sectorGO.transform);
@@ -105,19 +107,21 @@ namespace Tests.PlayMode
             gateCol.radius = 4f;
             var zone = gateGO.AddComponent<ExtractionZone>();
             zone.Bind(chaser.transform);
+            var inGatePort = gateGO.AddComponent<SignalPort>();
+            var challengePort = gateGO.AddComponent<SignalPort>();
             var volume = gateGO.AddComponent<TriggerVolume>();
-            volume.Configure("in-gate");
+            volume.Configure(inGatePort);
+
+            if (wireActivateSignal) activate.Configure(challengePort);
 
             var spine = sectorGO.AddComponent<SectorSpineModule>();
-            spine.Bind(key, zone);
+            spine.Bind(key, zone, explorePort, keyAcquiredPort, readyPort, completedPort, failedPort);
 
             var modules = new List<SectorModule> { spine, volume };
             if (includeRule)
             {
                 var rule = gateGO.AddComponent<ExtractionChallengeRule>();
-                rule.Configure(
-                    new[] { ActivationTerm.Signal(SectorSpineModule.TokenPrefix + SectorSpineModule.StepReadyToExtract) },
-                    new[] { ChallengeToken });
+                rule.Configure(new[] { ActivationTerm.Signal(readyPort) }, challengePort);
                 rule.Bind(bindZone ? zone : null);
                 modules.Add(rule);
             }
@@ -156,7 +160,7 @@ namespace Tests.PlayMode
             yield return WaitFrames(() => _objectives.SpineStep == SectorSpineModule.StepReadyToExtract);
             Assert.AreEqual(SectorSpineModule.StepReadyToExtract, _objectives.SpineStep);
             Assert.IsTrue(chaser.gameObject.activeSelf,
-                "Reaching ready-to-extract must fire the extraction rule and activate the chaser via the bus token.");
+                "Reaching ready-to-extract must fire the extraction rule and activate the chaser via the fired port.");
             Assert.AreEqual(zone.transform, _objectives.SpineTarget,
                 "The spine target must move to the gate for the extraction step.");
 
@@ -295,13 +299,13 @@ namespace Tests.PlayMode
 
         [UnityTest]
         [Timeout(600000)]
-        public IEnumerator ActivateWithBlankToken_LogsError_AndChaserStaysDormant()
+        public IEnumerator ActivateWithUnassignedSignal_LogsError_AndChaserStaysDormant()
         {
-            var (sector, key, _, player, chaser) = BuildDemoSector(activateToken: "");
+            var (sector, key, _, player, chaser) = BuildDemoSector(wireActivateSignal: false);
             SectorResult? got = null;
             ((ISector)sector).OnSectorComplete += r => got = r;
 
-            LogAssert.Expect(LogType.Error, new Regex("ActivateOnToken .*blank token.*inert"));
+            LogAssert.Expect(LogType.Error, new Regex("ActivateOnSignal .*unassigned activation port.*inert"));
             yield return sector.Setup();
 
             player.transform.position = key.transform.position;
@@ -339,7 +343,10 @@ namespace Tests.PlayMode
 
             var moduleGO = TrackGO(new GameObject("Spine"));
             var module = moduleGO.AddComponent<SectorSpineModule>();
-            module.Bind(key, zone);
+            module.Bind(key, zone,
+                moduleGO.AddComponent<SignalPort>(), moduleGO.AddComponent<SignalPort>(),
+                moduleGO.AddComponent<SignalPort>(), moduleGO.AddComponent<SignalPort>(),
+                moduleGO.AddComponent<SignalPort>());
 
             var ctx = new SectorBuildContext(new StubServices(svc), null, null, new SectorEventBus());
             yield return module.Setup(ctx);
