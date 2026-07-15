@@ -94,10 +94,8 @@ namespace Game.Capture
 
         internal void DisableAll()
         {
-            foreach (var line in lines) line.enabled = false;
-            foreach (var label in labels) label.GetComponent<MeshRenderer>().enabled = false;
-            lineCursor = 0;
-            labelCursor = 0;
+            BeginFrame();
+            DisableUnused();
         }
 
         internal void DisableUnused()

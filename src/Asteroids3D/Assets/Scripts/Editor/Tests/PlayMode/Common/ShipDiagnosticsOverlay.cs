@@ -70,9 +70,10 @@ public static class ShipDiagnosticsOverlay
     {
         var width = ctx.LineWidth;
         ctx.LineWidth = width * 1.6f;
+        // Scene-wide scan is acceptable on capture cadence only (mirrors ProjectileFlush).
         foreach (var projectile in Object.FindObjectsByType<ProjectileBase>(FindObjectsSortMode.None))
         {
-            var rb = projectile.GetComponentInParent<Rigidbody>();
+            var rb = projectile.rb;
             var dirWorld = rb && rb.linearVelocity.sqrMagnitude > 1e-4f
                 ? rb.linearVelocity
                 : projectile.transform.up;

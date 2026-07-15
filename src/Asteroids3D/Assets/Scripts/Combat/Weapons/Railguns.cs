@@ -36,7 +36,6 @@ namespace Combat.Weapons
 
         public ChargeTime Charge => charge;
 
-        // Hitscan: no muzzle speed, no intercept lead.
         public override float ProjectileSpeed => 0f;
 
         public override float FireRange => fireDistance;

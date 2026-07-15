@@ -147,7 +147,7 @@ namespace Game.Capture
             for (var i = 0; i < subjects.Count; i++)
             {
                 var s = subjects[i];
-                if (float.IsNaN(s.x) || float.IsNaN(s.y) || float.IsInfinity(s.x) || float.IsInfinity(s.y))
+                if (!float.IsFinite(s.x) || !float.IsFinite(s.y))
                     throw new ArgumentException($"[Capture] subject {i} is not finite ({s}) — was its source destroyed?");
             }
         }

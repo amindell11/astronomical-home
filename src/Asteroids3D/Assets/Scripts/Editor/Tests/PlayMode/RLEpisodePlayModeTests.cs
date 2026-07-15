@@ -323,11 +323,10 @@ namespace Tests.PlayMode
             return poses;
         }
 
-        private readonly Vector2[] captureSubjects = new Vector2[2];
-        private Action<CaptureDraw> drawOverlay;
-
         private IEnumerator RunToCompletion(EpisodeRunner runner, RewardSpec spec, CaptureRecorder recorder = null)
         {
+            var captureSubjects = new Vector2[2];
+            Action<CaptureDraw> drawOverlay = ctx => ShipDiagnosticsOverlay.Draw(ctx, agent, baseline);
             runner.Begin();
             var maxSimSeconds = spec.timeoutDecisions * spec.decisionIntervalSteps * Time.fixedDeltaTime;
             // Synchronous render/readback/PNG on captured steps eats wall clock; the sim-step timeout still bounds the episode itself.
@@ -341,7 +340,6 @@ namespace Tests.PlayMode
                 {
                     captureSubjects[0] = agent.Kinematics.pos;
                     captureSubjects[1] = baseline.Kinematics.pos;
-                    drawOverlay ??= ctx => ShipDiagnosticsOverlay.Draw(ctx, agent, baseline);
                     recorder.Step(captureSubjects, drawOverlay);
                 }
             }
