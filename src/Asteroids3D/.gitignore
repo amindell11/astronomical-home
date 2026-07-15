@@ -83,3 +83,7 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# Capture scratch staging (unity_test_agent.ps1 -CaptureScenario copies scenarios here per run)
+/Assets/Scripts/Editor/Tests/PlayMode/Scratch/*
+!/Assets/Scripts/Editor/Tests/PlayMode/Scratch/.gitkeep

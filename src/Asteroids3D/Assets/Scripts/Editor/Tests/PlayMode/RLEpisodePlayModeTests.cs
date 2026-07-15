@@ -4,10 +4,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Tests.Common;
 using AI;
 using Game;
+using Game.Capture;
 using Game.RLHarness;
 using Game.Services;
 using Movement.MPC;
@@ -226,17 +229,28 @@ namespace Tests.PlayMode
         [Timeout(3600000)]
         public IEnumerator Characterization_WritesJsonl()
         {
-            var watchFlag = File.Exists(Path.Combine(
-                Application.dataPath, "..", "..", "..", "results", "rl-episodes", "watch.flag"));
-            if (!watchFlag && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RL_EPISODES")))
-                Assert.Ignore("Set RL_EPISODES=1 (or create results/rl-episodes/watch.flag) to run the ranger-vs-baseline characterization.");
+            var resultsDir = Path.GetFullPath(Path.Combine(
+                Application.dataPath, "..", "..", "..", "results", "rl-episodes"));
+            var watchFlag = File.Exists(Path.Combine(resultsDir, "watch.flag"));
+            var recordPath = Path.Combine(resultsDir, "record.flag");
+            var record = File.Exists(recordPath) ? LoadRecordConfig(recordPath) : null;
+            if (!watchFlag && record == null && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RL_EPISODES")))
+                Assert.Ignore("Set RL_EPISODES=1 (or create results/rl-episodes/watch.flag or record.flag) to run the ranger-vs-baseline characterization.");
 
             var trace = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RL_EPISODE_TRACE"));
             if (watchFlag || !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RL_WATCH")))
                 Time.timeScale = 1f;
+            // Watch wins over record: a human watching needs real-time pacing; locked pacing is for reproducible clips.
+            using var pacing = record != null && !watchFlag ? CapturePacing.Locked() : null;
+
             var spec = RewardSpec.Default;
+            if (record != null)
+                spec.runSeed = record.runSeed;
             var episodes = Mathf.Max(1, int.TryParse(Environment.GetEnvironmentVariable("RL_EPISODE_COUNT"), out var n)
-                ? n : (watchFlag ? 3 : 20));
+                ? n : (watchFlag || record != null ? 3 : 20));
+            if (record?.episodes is { Length: > 0 })
+                episodes = Mathf.Max(episodes, record.episodes.Max() + 1);
+            var runStamp = DateTime.Now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
 
             SpawnPair(in spec, 0);
 
@@ -245,7 +259,10 @@ namespace Tests.PlayMode
             {
                 ResetPair(in spec, i);
                 var runner = new EpisodeRunner(agent, baseline, spec, i, arena.Offset, trace);
-                yield return RunToCompletion(runner, spec);
+                using var recorder = record != null && record.ShouldRecord(i)
+                    ? new CaptureRecorder(record.ClipConfig(i, runStamp))
+                    : null;
+                yield return RunToCompletion(runner, spec, recorder);
                 results.Add(runner.Result);
             }
 
@@ -306,15 +323,25 @@ namespace Tests.PlayMode
             return poses;
         }
 
-        private IEnumerator RunToCompletion(EpisodeRunner runner, RewardSpec spec)
+        private IEnumerator RunToCompletion(EpisodeRunner runner, RewardSpec spec, CaptureRecorder recorder = null)
         {
+            var captureSubjects = new Vector2[2];
+            Action<CaptureDraw> drawOverlay = ctx => ShipDiagnosticsOverlay.Draw(ctx, agent, baseline);
             runner.Begin();
             var maxSimSeconds = spec.timeoutDecisions * spec.decisionIntervalSteps * Time.fixedDeltaTime;
-            var deadline = Time.realtimeSinceStartup + 120f + maxSimSeconds;
+            // Synchronous render/readback/PNG on captured steps eats wall clock; the sim-step timeout still bounds the episode itself.
+            var wallClockScale = recorder != null ? 10f : 1f;
+            var deadline = Time.realtimeSinceStartup + 120f + maxSimSeconds * wallClockScale;
             while (!runner.IsDone && Time.realtimeSinceStartup < deadline)
             {
                 yield return new WaitForFixedUpdate();
                 runner.Tick();
+                if (recorder != null)
+                {
+                    captureSubjects[0] = agent.Kinematics.pos;
+                    captureSubjects[1] = baseline.Kinematics.pos;
+                    recorder.Step(captureSubjects, drawOverlay);
+                }
             }
             Assert.IsTrue(runner.IsDone, "Episode wall-clock deadline exceeded before termination");
         }
@@ -353,6 +380,63 @@ namespace Tests.PlayMode
 
         private static Quaternion PoseRotation(float rotDeg) =>
             GamePlane.Rotation * Quaternion.AngleAxis(rotDeg, Vector3.forward);
+
+        [Serializable]
+        private sealed class RecordConfig
+        {
+            public int runSeed;
+            public int[] episodes;
+            public int captureEveryFixedSteps = 5;
+            public int width = 960;
+            public int height = 540;
+
+            /// <summary>Empty/absent episodes list records every episode run.</summary>
+            public bool ShouldRecord(int episode) =>
+                episodes == null || episodes.Length == 0 || Array.IndexOf(episodes, episode) >= 0;
+
+            public CaptureConfig ClipConfig(int episode, string runStamp) => new()
+            {
+                outputRoot = "results/rl-episodes",
+                clipName = $"ep{episode:D2}",
+                runStamp = runStamp,
+                width = width,
+                height = height,
+                everyFixedSteps = captureEveryFixedSteps,
+            };
+        }
+
+        private static RecordConfig LoadRecordConfig(string path)
+        {
+            var json = File.ReadAllText(path);
+            var config = new RecordConfig { runSeed = RewardSpec.Default.runSeed };
+            if (string.IsNullOrWhiteSpace(json)) return config;
+
+            // FromJsonOverwrite silently ignores unknown keys — a typo'd key would quietly keep its default — so whitelist every key first.
+            var validKeys = new[] { "runSeed", "episodes", "captureEveryFixedSteps", "width", "height" };
+            foreach (Match match in Regex.Matches(json, "\"([^\"]+)\"\\s*:"))
+                if (Array.IndexOf(validKeys, match.Groups[1].Value) < 0)
+                    Assert.Fail($"record.flag: unknown key '{match.Groups[1].Value}' — valid keys: {string.Join(", ", validKeys)}");
+
+            try
+            {
+                JsonUtility.FromJsonOverwrite(json, config);
+            }
+            catch (Exception e)
+            {
+                Assert.Fail($"record.flag: malformed JSON — {e.Message}");
+            }
+
+            if (config.episodes != null)
+                for (var i = 0; i < config.episodes.Length; i++)
+                {
+                    if (config.episodes[i] < 0)
+                        Assert.Fail($"record.flag: negative episode index {config.episodes[i]}");
+                    if (Array.IndexOf(config.episodes, config.episodes[i]) != i)
+                        Assert.Fail($"record.flag: duplicate episode index {config.episodes[i]}");
+                }
+
+            return config;
+        }
 
         private static void WriteJsonl(string tag, List<EpisodeResult> results)
         {
