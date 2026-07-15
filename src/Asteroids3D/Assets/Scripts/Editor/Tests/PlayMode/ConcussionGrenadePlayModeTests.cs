@@ -5,6 +5,7 @@ using Combat.Projectile;
 using Combat.Weapons;
 using Damage;
 using Game;
+using Game.Services;
 using NUnit.Framework;
 using Tests.PlayMode.Common;
 using UnityEngine;
@@ -242,6 +243,27 @@ namespace Tests.PlayMode
             for (var i = 0; i < targetCount; i++)
                 Assert.Greater(targets[i].TotalDamage, 0f,
                     $"Target {i} was starved out of the sweep — every target inside the wave must be hit.");
+        }
+
+        [Test]
+        public void Detonation_CascadesTheWaveIntoTheProjectileTracker_AndFlushReturnsIt()
+        {
+            var weapon = MountWeapon(out _);
+            var tracker = new ProjectileService();
+            weapon.SetProjectiles(tracker);
+
+            var grenade = weapon.Fire() as Grenade;
+            Assert.AreEqual(1, tracker.ActiveCount, "the fired charge registers");
+
+            grenade.TakeDamage(1f, 0.1f, Vector3.zero, grenade.transform.position, null);
+            var wave = FindActiveWave();
+            Assert.IsNotNull(wave);
+            Assert.AreEqual(1, tracker.ActiveCount,
+                "the detonated charge deregisters and its announced wave registers in its place");
+
+            tracker.ReturnAllToPool();
+            Assert.AreEqual(0, tracker.ActiveCount);
+            Assert.IsFalse(wave.gameObject.activeSelf, "the flush returned the mid-sweep wave to its pool");
         }
 
         [UnityTest]

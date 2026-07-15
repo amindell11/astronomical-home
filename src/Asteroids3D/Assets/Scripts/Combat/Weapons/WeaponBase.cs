@@ -4,6 +4,7 @@ using System.Linq;
 using Combat.Conditions;
 using Combat.Projectile;
 using Combat.Targeting;
+using Game.Services;
 using UnityEngine;
 using Utils;
 
@@ -29,6 +30,7 @@ namespace Combat.Weapons
         [Tooltip("Name shown on this weapon's HUD readout panel. Empty = the prefab name.")]
         [SerializeField] private string displayName;
         protected IShooter shooter;
+        protected IProjectileService projectiles;
         protected WeaponCondition[] conditions;
         private List<IWeaponReadout> readouts;
         
@@ -44,6 +46,12 @@ namespace Combat.Weapons
         }
 
         public abstract ProjectileBase Fire();
+
+        /// <summary>Injected registry for fired projectiles; null-tolerant — an unwired weapon fires fine, just unregistered.</summary>
+        public void SetProjectiles(IProjectileService service)
+        {
+            projectiles = service;
+        }
 
         /// <summary>Muzzle speed of this weapon's projectile, used for AI intercept lead. 0 if not applicable.</summary>
         public virtual float ProjectileSpeed => 0f;
@@ -141,6 +149,7 @@ namespace Combat.Weapons
 
             var proj = SimplePool<TProj>.Get(projectilePrefab, firePoint.position, firePoint.rotation);
             proj.Initialize(shooter);
+            projectiles?.Register(proj, proj.ReturnToPoolImmediate);
             proj.Launch(firePoint.up);
             InvokeOnFire();
 

@@ -1,7 +1,6 @@
 using System;
 using System.Globalization;
 using System.IO;
-using Combat.Projectile;
 using Ships.Command;
 using UnityEngine;
 
@@ -33,21 +32,6 @@ namespace Game.RLHarness
                 baselineRotDeg = (float)(rng.NextDouble() * 360.0),
             };
         }
-    }
-
-    /// <summary>Episode-boundary projectile flush: returns every in-flight projectile to its pool (never Destroy — pooled instances outlive ship death).</summary>
-    public static class ProjectileFlush
-    {
-        public static int ReturnAllToPool()
-        {
-            var live = UnityEngine.Object.FindObjectsByType<ProjectileBase>(FindObjectsSortMode.None);
-            foreach (var projectile in live)
-                projectile.ReturnToPoolImmediate();
-            return live.Length;
-        }
-
-        public static int ActiveCount() =>
-            UnityEngine.Object.FindObjectsByType<ProjectileBase>(FindObjectsSortMode.None).Length;
     }
 
     /// <summary>Timestamped result sink under repo-root results/, shared by the tests and the RL hosts.</summary>

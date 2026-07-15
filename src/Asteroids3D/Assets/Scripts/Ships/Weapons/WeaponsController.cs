@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Combat;
 using Combat.Targeting;
 using Combat.Weapons;
+using Game.Services;
 using Movement;
 using Ships.Command;
 using UnityEngine;
@@ -37,6 +38,7 @@ namespace Ships.Weapons
         public LockOnSensor Sensor { get; private set; }
 
         private WeaponContext context;
+        private IProjectileService projectiles;
 
         private void Awake()
         {
@@ -67,7 +69,21 @@ namespace Ships.Weapons
             {
                 context?.Refresh();
                 Sensor = FindMountSensor();
+                PushProjectiles();
             }
+        }
+
+        /// <summary>Injected registry for the projectiles the mounts fire; pushed into every mount, current and future (<see cref="Reequip"/> re-pushes).</summary>
+        public void SetProjectiles(IProjectileService service)
+        {
+            projectiles = service;
+            PushProjectiles();
+        }
+
+        private void PushProjectiles()
+        {
+            if (Primary) Primary.SetProjectiles(projectiles);
+            if (Secondary) Secondary.SetProjectiles(projectiles);
         }
 
         private WeaponComponent ReplaceMount(WeaponComponent current, WeaponComponent prefab, WeaponSlot slot)

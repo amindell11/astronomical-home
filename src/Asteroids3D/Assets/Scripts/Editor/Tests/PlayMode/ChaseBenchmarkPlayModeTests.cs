@@ -55,7 +55,7 @@ namespace Tests.PlayMode
             var arena = Tests.Common.TestArena.On(unitServiceGO, unitService.Registry);
             unitService.SetArena(arena);
             services = new GameServices(
-                unitService, new EnvironmentService(), objectiveService,
+                unitService, new ProjectileService(), new EnvironmentService(), objectiveService,
                 new CameraService(), new UIService(), arena);
 
             sectorConfig = ScriptableObject.CreateInstance<SectorSettings>();

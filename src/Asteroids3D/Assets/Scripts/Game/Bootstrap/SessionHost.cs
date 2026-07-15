@@ -50,8 +50,12 @@ namespace Game.Bootstrap
             var arena = new ArenaContext(target.Profile.offset, unitService.Registry, navFieldService);
             unitService.SetArena(arena);
 
+            var projectiles = new ProjectileService();
+            unitService.SetProjectiles(projectiles);
+
             target.Services = new GameServices(
                 unitService: unitService,
+                projectiles: projectiles,
                 environmentService: new EnvironmentService(transform),
                 objectiveService: objectiveService,
                 cameraService: new CameraService(),

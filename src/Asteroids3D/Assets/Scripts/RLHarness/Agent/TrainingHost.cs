@@ -24,8 +24,8 @@ namespace Game.RLHarness
             if (Environment.GetEnvironmentVariable("RL_SMOKE") == "1")
                 spec = SmokeSpec(spec);
 
-            var (units, arena) = HarnessArena.Compose(gameObject);
-            var pair = EpisodePair.SpawnWithAgentChooser(units, arena, in spec, out var chooser);
+            var (units, arena, projectiles) = HarnessArena.Compose(gameObject);
+            var pair = EpisodePair.SpawnWithAgentChooser(units, arena, projectiles, in spec, out var chooser);
 
             var agent = behaviorType switch
             {

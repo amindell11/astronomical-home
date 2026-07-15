@@ -22,6 +22,7 @@ namespace Game.Services
         private readonly List<PendingRespawn> pendingRespawns = new();
         private int nextAgentIndex;
         private ArenaContext arena;
+        private IProjectileService projectiles;
         public IShipRegistry Registry => ActiveRegistry;
         public ShipRegistry ActiveRegistry { get; } = new();
 
@@ -31,6 +32,14 @@ namespace Game.Services
             if (arena != null && !ReferenceEquals(arena, context))
                 throw new InvalidOperationException("UnitService arena is already set to a different ArenaContext.");
             arena = context;
+        }
+
+        /// <summary>Assign the projectile registry wired into each ship's weapons; one-shot like <see cref="SetArena"/> so a stray re-compose can't split registration across services.</summary>
+        public void SetProjectiles(IProjectileService service)
+        {
+            if (projectiles != null && !ReferenceEquals(projectiles, service))
+                throw new InvalidOperationException("UnitService projectiles are already set to a different IProjectileService.");
+            projectiles = service;
         }
 
         public event Action<Ship> OnShipSpawned;
@@ -126,6 +135,7 @@ namespace Game.Services
             if (arena == null)
                 throw new InvalidOperationException("UnitService.SetArena must be called before wiring ships.");
             ship.Targeting?.SetRegistry(arena.Registry);
+            ship.Weapons?.SetProjectiles(projectiles);
             if (ship.Commander is AICommander aiCommander)
                 aiCommander.SetArena(arena);
         }

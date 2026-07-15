@@ -61,6 +61,7 @@ namespace Tests.PlayMode
             unitService.SetArena(arena);
             services = new GameServices(
                 unitService: unitService,
+                projectiles: new ProjectileService(),
                 environmentService: new EnvironmentService(),
                 objectiveService: objectiveService,
                 cameraService: new CameraService(),

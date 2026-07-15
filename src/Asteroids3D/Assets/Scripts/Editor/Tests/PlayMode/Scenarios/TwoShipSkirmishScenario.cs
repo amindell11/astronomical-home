@@ -23,7 +23,7 @@ namespace Tests.PlayMode.Scenarios
                 yield return new WaitForFixedUpdate();
                 subjects[0] = a.Kinematics.pos;
                 subjects[1] = b.Kinematics.pos;
-                recorder.Step(subjects, ctx => ShipDiagnosticsOverlay.Draw(ctx, a, b));
+                recorder.Step(subjects, ctx => ShipDiagnosticsOverlay.Draw(ctx, a, b, Session.Services.Projectiles));
             }
         }
     }

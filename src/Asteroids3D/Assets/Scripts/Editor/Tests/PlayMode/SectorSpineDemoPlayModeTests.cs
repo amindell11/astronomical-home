@@ -42,7 +42,7 @@ namespace Tests.PlayMode
             var arena = Tests.Common.TestArena.On(unitServiceGO, _unitService.Registry);
             _unitService.SetArena(arena);
             _services = new GameServices(
-                _unitService, new EnvironmentService(), _objectives,
+                _unitService, new ProjectileService(), new EnvironmentService(), _objectives,
                 new CameraService(), new UIService(), arena);
 
             _config = ScriptableObject.CreateInstance<SectorSettings>();

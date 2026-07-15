@@ -5,6 +5,7 @@ using Combat.Projectile;
 using Combat.Weapons;
 using Game;
 using Game.Capture;
+using Game.Services;
 using Ships;
 using Ships.Command;
 using UnityEngine;
@@ -26,12 +27,12 @@ public static class ShipDiagnosticsOverlay
     private static readonly Color LosBlocked = new(1f, 0.25f, 0.2f);
     private static readonly Color BoltColor = new(1f, 0.95f, 0.2f);
 
-    public static void Draw(CaptureDraw ctx, Ship a, Ship b)
+    public static void Draw(CaptureDraw ctx, Ship a, Ship b, IProjectileService projectiles)
     {
         DrawShip(ctx, a, b, ShipAColor);
         DrawShip(ctx, b, a, ShipBColor);
         DrawLos(ctx, a, b);
-        DrawProjectiles(ctx);
+        DrawProjectiles(ctx, projectiles);
     }
 
     private static void DrawShip(CaptureDraw ctx, Ship ship, Ship enemy, Color color)
@@ -66,20 +67,20 @@ public static class ShipDiagnosticsOverlay
         ctx.Line(from, to, clear ? LosClear : LosBlocked);
     }
 
-    private static void DrawProjectiles(CaptureDraw ctx)
+    private static void DrawProjectiles(CaptureDraw ctx, IProjectileService projectiles)
     {
         var width = ctx.LineWidth;
         ctx.LineWidth = width * 1.6f;
-        // Scene-wide scan is acceptable on capture cadence only (mirrors ProjectileFlush).
-        foreach (var projectile in Object.FindObjectsByType<ProjectileBase>(FindObjectsSortMode.None))
+        projectiles?.ForEachLive(live =>
         {
+            if (live is not ProjectileBase projectile) return;
             var rb = projectile.rb;
             var dirWorld = rb && rb.linearVelocity.sqrMagnitude > 1e-4f
                 ? rb.linearVelocity
                 : projectile.transform.up;
             ctx.Trail(GamePlane.WorldPointToPlane(projectile.transform.position),
                 GamePlane.WorldDirToPlane(dirWorld), ProjectileTrail, BoltColor);
-        }
+        });
         ctx.LineWidth = width;
     }
 }

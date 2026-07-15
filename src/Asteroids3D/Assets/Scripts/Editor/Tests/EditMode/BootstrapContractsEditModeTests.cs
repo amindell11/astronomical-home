@@ -84,12 +84,13 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void GameServices_ExposesAllFourServiceInterfaces()
+        public void GameServices_ExposesAllServiceInterfaces()
         {
             var props = typeof(IGameServices).GetProperties();
             var expected = new[]
             {
                 (nameof(IGameServices.UnitService), typeof(IUnitService)),
+                (nameof(IGameServices.Projectiles), typeof(IProjectileService)),
                 (nameof(IGameServices.EnvironmentService), typeof(IEnvironmentService)),
                 (nameof(IGameServices.ObjectiveService), typeof(IObjectiveService)),
                 (nameof(IGameServices.CameraService), typeof(ICameraService)),
@@ -108,7 +109,7 @@ namespace Tests.EditMode
         public void GameServices_Constructor_RejectsNullServices()
         {
             Assert.Throws<ArgumentNullException>(() =>
-                new GameServices(null, null, null, null, null, null),
+                new GameServices(null, null, null, null, null, null, null),
                 "GameServices constructor must reject null services");
         }
 

@@ -29,6 +29,7 @@ namespace Tests.PlayMode
         private GameObject arenaHost;
         private UnitService unitService;
         private ArenaContext arena;
+        private ProjectileService projectiles;
         private float savedTimeScale;
         private float savedMaxDelta;
         private float savedCaptureDelta;
@@ -45,6 +46,8 @@ namespace Tests.PlayMode
             unitService = arenaHost.AddComponent<UnitService>();
             arena = TestArena.On(arenaHost, unitService.ActiveRegistry);
             unitService.SetArena(arena);
+            projectiles = new ProjectileService();
+            unitService.SetProjectiles(projectiles);
             SweepForeignDebris();
 
             savedTimeScale = Time.timeScale;
@@ -61,7 +64,7 @@ namespace Tests.PlayMode
             Time.maximumDeltaTime = savedMaxDelta;
             Time.captureDeltaTime = savedCaptureDelta;
 
-            ProjectileFlush.ReturnAllToPool();
+            projectiles.ReturnAllToPool();
 
             pair?.Dispose();
             pair = null;
@@ -70,14 +73,16 @@ namespace Tests.PlayMode
 
             if (arenaHost) UnityEngine.Object.DestroyImmediate(arenaHost);
             arena = null;
+            projectiles = null;
 
             AudioListener.pause = false;
         }
 
-        // Debris leaked by earlier fixtures (drifting ships, live projectiles) enters scans and cover checks and varies between recordings, breaking trajectory equivalence.
-        private void SweepForeignDebris()
+        // Debris leaked by earlier fixtures (drifting ships, live projectiles) enters scans and cover checks and varies between recordings, breaking trajectory equivalence. Foreign projectiles are unregistered by definition, so this one fixture-entry sweep stays a scene scan.
+        private static void SweepForeignDebris()
         {
-            ProjectileFlush.ReturnAllToPool();
+            foreach (var projectile in UnityEngine.Object.FindObjectsByType<Combat.Projectile.ProjectileBase>(FindObjectsSortMode.None))
+                projectile.ReturnToPoolImmediate();
             foreach (var ship in UnityEngine.Object.FindObjectsByType<Ship>(FindObjectsSortMode.None))
                 UnityEngine.Object.DestroyImmediate(ship.gameObject);
         }
@@ -96,7 +101,7 @@ namespace Tests.PlayMode
             for (var i = 0; i < 3; i++)
             {
                 var poses = pair.Reset(in spec, i);
-                Assert.AreEqual(0, ProjectileFlush.ActiveCount(),
+                Assert.AreEqual(0, projectiles.ActiveCount,
                     $"Episode {i} must start with zero active projectiles");
                 AssertPoseApplied(agent, poses.agentPos, $"agent episode {i}");
                 AssertPoseApplied(baseline, poses.baselinePos, $"baseline episode {i}");
@@ -273,7 +278,7 @@ namespace Tests.PlayMode
 
         private void SpawnPair(in RewardSpec spec)
         {
-            pair = EpisodePair.Spawn(unitService, arena, in spec, (agentShip, baselineShip) =>
+            pair = EpisodePair.Spawn(unitService, arena, projectiles, in spec, (agentShip, baselineShip) =>
             {
                 var ranger = new RangerChooser();
                 ranger.Configure(baselineShip, RangerHoldRange,
@@ -311,7 +316,7 @@ namespace Tests.PlayMode
         private IEnumerator RunToCompletion(EpisodeRunner runner, RewardSpec spec, CaptureRecorder recorder = null)
         {
             var captureSubjects = new Vector2[2];
-            Action<CaptureDraw> drawOverlay = ctx => ShipDiagnosticsOverlay.Draw(ctx, agent, baseline);
+            Action<CaptureDraw> drawOverlay = ctx => ShipDiagnosticsOverlay.Draw(ctx, agent, baseline, projectiles);
             runner.Begin();
             var maxSimSeconds = spec.timeoutDecisions * spec.decisionIntervalSteps * Time.fixedDeltaTime;
             // Synchronous render/readback/PNG on captured steps eats wall clock; the sim-step timeout still bounds the episode itself.

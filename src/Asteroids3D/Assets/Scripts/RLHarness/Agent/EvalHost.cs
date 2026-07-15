@@ -12,8 +12,8 @@ namespace Game.RLHarness
         private IEnumerator Start()
         {
             PacingContract.Apply();
-            var (units, arena) = HarnessArena.Compose(gameObject);
-            yield return CheckpointEvaluator.Run(units, arena, onnxAssetPath,
+            var (units, arena, projectiles) = HarnessArena.Compose(gameObject);
+            yield return CheckpointEvaluator.Run(units, arena, projectiles, onnxAssetPath,
                 EvalProtocol.HeldOutSeeds, episodesPerSeed, RewardSpec.Default, "held-out", null);
 #if UNITY_EDITOR
             if (Application.isBatchMode) UnityEditor.EditorApplication.Exit(0);

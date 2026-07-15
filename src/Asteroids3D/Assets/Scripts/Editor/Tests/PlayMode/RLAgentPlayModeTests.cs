@@ -21,6 +21,7 @@ namespace Tests.PlayMode
         private GameObject arenaHost;
         private UnitService unitService;
         private ArenaContext arena;
+        private ProjectileService projectiles;
         private float savedTimeScale;
         private float savedMaxDelta;
         private float savedCaptureDelta;
@@ -37,7 +38,11 @@ namespace Tests.PlayMode
             unitService = arenaHost.AddComponent<UnitService>();
             arena = TestArena.On(arenaHost, unitService.ActiveRegistry);
             unitService.SetArena(arena);
-            ProjectileFlush.ReturnAllToPool();
+            projectiles = new ProjectileService();
+            unitService.SetProjectiles(projectiles);
+            // Foreign debris from earlier fixtures is unregistered by definition — fixture entry sweeps the scene once.
+            foreach (var projectile in UnityEngine.Object.FindObjectsByType<Combat.Projectile.ProjectileBase>(FindObjectsSortMode.None))
+                projectile.ReturnToPoolImmediate();
             foreach (var ship in UnityEngine.Object.FindObjectsByType<Ship>(FindObjectsSortMode.None))
                 UnityEngine.Object.DestroyImmediate(ship.gameObject);
 
@@ -55,7 +60,7 @@ namespace Tests.PlayMode
             Time.maximumDeltaTime = savedMaxDelta;
             Time.captureDeltaTime = savedCaptureDelta;
 
-            ProjectileFlush.ReturnAllToPool();
+            projectiles.ReturnAllToPool();
             if (agent) UnityEngine.Object.DestroyImmediate(agent.gameObject);
             agent = null;
             pair?.Dispose();
@@ -63,6 +68,7 @@ namespace Tests.PlayMode
             chooser = null;
             if (arenaHost) UnityEngine.Object.DestroyImmediate(arenaHost);
             arena = null;
+            projectiles = null;
 
             if (Academy.IsInitialized)
                 Academy.Instance.AutomaticSteppingEnabled = true;
@@ -71,7 +77,7 @@ namespace Tests.PlayMode
 
         private void Compose(in RewardSpec spec)
         {
-            pair = EpisodePair.SpawnWithAgentChooser(unitService, arena, in spec, out chooser);
+            pair = EpisodePair.SpawnWithAgentChooser(unitService, arena, projectiles, in spec, out chooser);
             agent = ShipAgentFactory.ComposeHeuristicOnly(pair, chooser, in spec, arena.Offset);
             Assert.IsNotNull(agent, "ShipAgent must be attachable (harness assembly is not editor-only)");
         }
@@ -116,7 +122,7 @@ namespace Tests.PlayMode
             spec.minSeparation = 18f;
             spec.maxSeparation = 24f;
 
-            pair = EpisodePair.SpawnWithAgentChooser(unitService, arena, in spec, out chooser);
+            pair = EpisodePair.SpawnWithAgentChooser(unitService, arena, projectiles, in spec, out chooser);
             agent = ShipAgentFactory.ComposeInferenceOnly(pair, chooser, in spec, arena.Offset,
                 ShipAgentFactory.SmokeFixturePath);
 
@@ -147,7 +153,7 @@ namespace Tests.PlayMode
 
             var seeds = new[] { EvalProtocol.HeldOutSeeds[0], EvalProtocol.HeldOutSeeds[1] };
             CheckpointEvaluator.Summary summary = default;
-            yield return CheckpointEvaluator.Run(unitService, arena, ShipAgentFactory.SmokeFixturePath,
+            yield return CheckpointEvaluator.Run(unitService, arena, projectiles, ShipAgentFactory.SmokeFixturePath,
                 seeds, episodesPerSeed: 1, spec, "test-eval", s => summary = s);
 
             Assert.AreEqual(2, summary.episodes);
