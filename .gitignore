@@ -82,6 +82,9 @@ crashlytics-build.properties
 /TestResults/
 /test-results/
 
+# Agent scratch space (capture scenarios are authored here, outside Assets)
+/scratch/
+
 # Agent worktree pool
 .worktree-pool/
 
