@@ -9,12 +9,7 @@ using UnityEngine;
 
 namespace Game.Sectors
 {
-    /// <summary>
-    /// Spawns a parametric ring of ships centred on this spawner's transform. Mirrors the ring
-    /// math used by the old <c>ArenaSector.SpawnTeam</c> but uses a full 2π circle (no side-sign),
-    /// so the spawner is self-contained: author one per team and place it where the team should
-    /// gather.
-    /// </summary>
+    /// <summary>Spawns a parametric full-circle ring of ships centred on this spawner's transform — author one per team and place it where the team should gather.</summary>
     public class RingSpawner : SectorSpawner
     {
         [SerializeField] private Ship template;
@@ -26,7 +21,6 @@ namespace Game.Sectors
         [Tooltip("Optional respawn rule applied to every ship this spawner produces (origin None = no respawn).")]
         [SerializeField] private RespawnPolicy respawn;
 
-        /// <summary>Configures the ring's template and layout at runtime (spawner setup / tuning).</summary>
         public void Configure(Ship template, Commander commander,
                               int count, float radius = 30f, int team = 0)
         {
@@ -37,7 +31,7 @@ namespace Game.Sectors
             this.team = team;
         }
 
-        public override IEnumerator Build(SectorBuildContext ctx)
+        protected override IEnumerator Produce(SectorBuildContext ctx)
         {
             var spawned = new List<Ship>();
             Spawned = spawned;

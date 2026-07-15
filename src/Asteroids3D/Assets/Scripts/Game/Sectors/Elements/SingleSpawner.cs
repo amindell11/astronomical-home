@@ -9,11 +9,7 @@ using UnityEngine;
 
 namespace Game.Sectors
 {
-    /// <summary>
-    /// Spawns a single ship at this spawner's transform pose. For one-off procedural content
-    /// where no hand-placed instance exists (use adopt content when the instance should be the
-    /// authored object itself).
-    /// </summary>
+    /// <summary>Spawns a single ship at this spawner's transform pose (use adopt content when the authored instance should be the runtime object).</summary>
     public class SingleSpawner : SectorSpawner
     {
         [SerializeField] private Ship template;
@@ -21,7 +17,7 @@ namespace Game.Sectors
         [SerializeField] private int team;
         [SerializeField] private bool startActive = true;
 
-        public override IEnumerator Build(SectorBuildContext ctx)
+        protected override IEnumerator Produce(SectorBuildContext ctx)
         {
             var spawned = new List<Ship>();
             Spawned = spawned;

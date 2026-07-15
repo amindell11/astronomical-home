@@ -478,6 +478,30 @@ Assumptions (confirmed):
    → clear → local closes → token latched) + two-instance concurrency +
    EditMode prefab pins updated; `[Category("Sectors")]`.
 
+### PR-4 — build decisions (2026-07-14)
+
+Decisions made during the build, within the frozen brief:
+
+- **Manifest crawl extension (PR-4a, brief-forced):** `SectorManifestSync`'s
+  child-module crawl skipped recognised content nodes entirely, so a module ON
+  the chaser (a `Ship`) read as an orphaned manifest entry. The crawl now
+  collects modules carried on a recognised node while still never descending
+  into its subtree; pinned by an EditMode test.
+- **`HasFired` = fire-sequence-ran (PR-4b):** with `fireDelaySeconds`,
+  predicate satisfaction and firing separate; `HasFired` is now a flag set by
+  the fire sequence (reset each Setup), not an alias of `predicate.Satisfied`.
+  All existing consumers hold under both readings for delay 0.
+- **Token-gated production drains `Produce` synchronously** so the wave lands
+  in the same frame as the latch (parity with the eager path producing inside
+  Setup). All shipped producers are synchronous iterators.
+- **`IHostileTracker` lives beside `ClearHostilesState`** (the `IKeyTracker`
+  precedent, co-located with its consumer); `AmbushEncounter` implements it —
+  the encounter polls its spawner, the state polls the encounter. Wave-not-yet-
+  spawned reads as not-cleared (fail-closed against a misconfigured spawner).
+- **Authored knobs:** trigger radius 20 at plane (-10, 25), `near-ambush`
+  token, 6 s fire delay, 3-ship wave at ring radius 12, team 1, respawn None,
+  `ambush-started`/`ambush-cleared` tokens.
+
 ## Open questions (decide at build)
 
 Manifest plumbing and bus token type were resolved in PR-1; the spine/local API

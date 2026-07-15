@@ -3,45 +3,27 @@ using UnityEngine;
 
 namespace Game.Sectors
 {
-    /// <summary>
-    /// Adapter that bridges the sector spawner lifecycle to an <see cref="Asteroids.Fields.AsteroidField"/>
-    /// sibling component. The field cannot itself derive <see cref="SectorSpawner"/> (it already derives
-    /// <see cref="Asteroids.Fields.AsteroidField"/> : MonoBehaviour), so this component sits alongside it
-    /// on the same hand-placed field element and forwards Build/Teardown.
-    /// <para>
-    /// Ordering hazard: the field element is a hand-placed child of the sector, and the sector is
-    /// instantiated under an inactive holder during <c>Setup</c>, so the field's own <c>Awake</c> has not
-    /// run yet when <see cref="Build"/> executes. <see cref="Build"/> therefore only stashes the player
-    /// anchor (safe pre-Awake); the world-anchor / culling-boundary wiring happens in the field's own
-    /// <c>Start</c>, which runs after its <c>Awake</c>.
-    /// </para>
-    /// </summary>
+    /// <summary>Bridges the sector lifecycle to an <see cref="Asteroids.Fields.AsteroidField"/> sibling (its base class blocks deriving <see cref="SectorSpawner"/>); the sector builds under an inactive holder, so the field's Awake has not run during <see cref="Produce"/> — only pre-Awake-safe stashes here, wiring runs in the field's Start.</summary>
     public class AsteroidFieldSpawner : SectorSpawner
     {
         [SerializeField] private Asteroids.Fields.AsteroidField field;
 
-        public override IEnumerator Build(SectorBuildContext ctx)
+        protected override IEnumerator Produce(SectorBuildContext ctx)
         {
             if (!field) field = GetComponent<Asteroids.Fields.AsteroidField>();
             if (field is Asteroids.Fields.UpdatingAsteroidField updating)
             {
-                // Anchor policy: this sector streams around the player when one is alive.
-                // Unity lifetime check, NOT `?.` — the context can hold a destroyed ship
-                // (player died before a rebuild), and the null-conditional would pass it
-                // through to .transform and throw MissingReferenceException.
+                // Unity lifetime check, NOT `?.` — the context can hold a destroyed ship and `?.` would pass it through to .transform.
                 updating.SetAnchor(ctx.Player ? ctx.Player.transform : null);
-                // Static authored start — declared even in spectator/headless
-                // runs so the layout is identical regardless of who is flying.
+                // Declared even in spectator/headless runs so the layout is identical regardless of who is flying.
                 if (ctx.Sector) updating.SetPlayerStart(ctx.Sector.PlayerStart);
-
-                // Publish the field into the arena's obstacle slot so AI ships query
-                // live asteroids directly (deterministic) instead of physics-scanning.
+                // Arena obstacle slot: AI queries live asteroids directly (deterministic) instead of physics-scanning.
                 ctx.Services.Arena.ObstacleField = updating;
             }
             yield break;
         }
 
-        public override IEnumerator Teardown(SectorBuildContext ctx)
+        protected override IEnumerator OnTeardown(SectorBuildContext ctx)
         {
             if (field is AI.Scanning.IObstacleField of
                 && ReferenceEquals(ctx.Services.Arena.ObstacleField, of))
