@@ -2,6 +2,7 @@ using System.Linq;
 using Game;
 using Game.Sectors;
 using NUnit.Framework;
+using Objectives;
 using Ships;
 using UnityEditor;
 using UnityEngine;
