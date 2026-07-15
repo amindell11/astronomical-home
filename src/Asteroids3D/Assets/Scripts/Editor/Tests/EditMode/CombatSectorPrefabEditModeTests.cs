@@ -14,6 +14,7 @@ namespace Tests.EditMode
     public class CombatSectorPrefabEditModeTests
     {
         private const string PrefabPath = "Assets/Prefabs/Sectors/CombatSector.prefab";
+        private const string ChallengeToken = "extraction-challenge-started";
 
         private Sector LoadSector()
         {
@@ -30,13 +31,14 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void Modules_AreSpineThenGateVolumeThenRule()
+        public void Modules_AreSpineThenGateVolumeThenRuleThenChaserActivate()
         {
             var sector = LoadSector();
-            Assert.AreEqual(3, sector.Modules.Count);
+            Assert.AreEqual(4, sector.Modules.Count);
             Assert.IsInstanceOf<SectorSpineModule>(sector.Modules[0]);
             Assert.IsInstanceOf<TriggerVolume>(sector.Modules[1]);
             Assert.IsInstanceOf<ExtractionChallengeRule>(sector.Modules[2]);
+            Assert.IsInstanceOf<ActivateOnToken>(sector.Modules[3]);
         }
 
         [Test]
@@ -75,7 +77,7 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void ExtractionRule_GatesOnReadyToExtract_AndBindsChaserAndZone()
+        public void ExtractionRule_GatesOnReadyToExtract_AndPublishesChallengeToken()
         {
             var sector = LoadSector();
             var rule = new SerializedObject(sector.Modules[2]);
@@ -86,18 +88,44 @@ namespace Tests.EditMode
             Assert.AreEqual((int)ActivationTerm.TermKind.Signal, term.FindPropertyRelative("kind").enumValueIndex);
             Assert.AreEqual(SectorSpineModule.TokenPrefix + SectorSpineModule.StepReadyToExtract,
                 term.FindPropertyRelative("signalToken").stringValue);
-            Assert.AreEqual(0, rule.FindProperty("publishOnFired").arraySize);
+
+            var published = rule.FindProperty("publishOnFired");
+            Assert.AreEqual(1, published.arraySize, "The rule must publish the challenge-started token.");
+            Assert.AreEqual(ChallengeToken, published.GetArrayElementAtIndex(0).stringValue);
 
             var zone = new SerializedObject(sector.Modules[0]).FindProperty("extractionZone").objectReferenceValue;
             Assert.AreSame(zone, rule.FindProperty("extractionZone").objectReferenceValue,
                 "The rule must bind the same zone fixture as the spine module.");
+        }
 
-            var chaser = rule.FindProperty("chaser").objectReferenceValue as Ship;
-            Assert.IsNotNull(chaser, "The rule must bind the prefab-internal chaser ship.");
+        [Test]
+        public void ChaserActivate_ListensForChallengeToken_OnTheDormantAdoptedChaser()
+        {
+            var sector = LoadSector();
+            var activate = (ActivateOnToken)sector.Modules[3];
+
+            Assert.AreEqual(ChallengeToken,
+                new SerializedObject(activate).FindProperty("token").stringValue,
+                "The chaser's activate module must listen for the token the rule publishes.");
+
             Assert.AreEqual(2, sector.Adopted.Count);
-            Assert.AreSame(chaser, sector.Adopted[0].target,
-                "The chaser must be the first adopted ship.");
+            var chaser = sector.Adopted[0].target as Ship;
+            Assert.IsNotNull(chaser, "The first adopted ship must be the chaser.");
+            Assert.AreSame(chaser.gameObject, activate.gameObject,
+                "The activate module must sit on the chaser itself — the actee subscribes.");
             Assert.IsFalse(sector.Adopted[0].startActive, "The chaser must be adopted dormant (startActive=false).");
+        }
+
+        [Test]
+        public void ExtractionZone_BindsChaserAsSerializedBlocker()
+        {
+            var sector = LoadSector();
+            var zone = new SerializedObject(sector.Modules[0]).FindProperty("extractionZone")
+                .objectReferenceValue as ExtractionZone;
+            var chaser = sector.Adopted[0].target as Ship;
+
+            Assert.AreSame(chaser.transform, new SerializedObject(zone).FindProperty("blocker").objectReferenceValue,
+                "The zone must observe the chaser as its serialized blocker.");
         }
     }
 }
