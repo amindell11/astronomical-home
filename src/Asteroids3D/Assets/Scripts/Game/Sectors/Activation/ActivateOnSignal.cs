@@ -3,20 +3,20 @@ using UnityEngine;
 
 namespace Game.Sectors
 {
-    /// <summary>Activates its own (dormant) GameObject when the referenced port goes true — the actee subscribes; no peer commands it.</summary>
+    /// <summary>Activates its own (dormant) GameObject when the referenced signal goes true — the actee subscribes; no peer commands it.</summary>
     public class ActivateOnSignal : SectorModule
     {
-        [SerializeField] private SignalPort signal;
+        [SerializeField] private SignalRef signal;
 
         private SectorEventBus bus;
 
-        public SignalPort Signal => signal;
+        public SignalRef Signal => signal;
 
-        public void Configure(SignalPort signal) => this.signal = signal;
+        public void Configure(SignalRef signal) => this.signal = signal;
 
         public override IEnumerator Setup(SectorBuildContext ctx)
         {
-            if (!SignalPortGuards.ValidPortRef(this, signal, "activation", ctx.Sector)) yield break;
+            if (!SignalGuards.ValidRef(this, signal, "activation", ctx.Sector)) yield break;
 
             bus = ctx.Bus;
             if (bus == null) yield break;
@@ -32,9 +32,9 @@ namespace Game.Sectors
             yield break;
         }
 
-        private void OnBusChanged(SignalPort changed)
+        private void OnBusChanged(SignalRef changed)
         {
-            if (changed == signal && bus.Get(signal)) gameObject.SetActive(true);
+            if (changed.Equals(signal) && bus.Get(signal)) gameObject.SetActive(true);
         }
     }
 }

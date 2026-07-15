@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Game.Sectors
 {
-    public class SectorSpineModule : SectorModule
+    public class SectorSpineModule : SectorModule, ISignalSource
     {
         public const string StepExplore = "explore";
         public const string StepKeyAcquired = "key-acquired";
@@ -16,28 +16,23 @@ namespace Game.Sectors
         public const string StepCompleted = "completed";
         public const string StepFailed = "failed";
 
+        private static readonly string[] Steps =
+            { StepExplore, StepKeyAcquired, StepReadyToExtract, StepCompleted, StepFailed };
+
         [SerializeField] private KeyPickup keyPickup;
         [SerializeField] private ExtractionZone extractionZone;
-        [SerializeField] private SignalPort explore;
-        [SerializeField] private SignalPort keyAcquired;
-        [SerializeField] private SignalPort readyToExtract;
-        [SerializeField] private SignalPort completed;
-        [SerializeField] private SignalPort failed;
 
         private IObjectiveService objectives;
         private SpineObjectiveHandle spine;
         private SectorEventBus bus;
         private Vector3? keyHome;
 
-        public IEnumerable<(string Step, SignalPort Port)> StepPorts
+        public IEnumerable<SignalOutput> Outputs
         {
             get
             {
-                yield return (StepExplore, explore);
-                yield return (StepKeyAcquired, keyAcquired);
-                yield return (StepReadyToExtract, readyToExtract);
-                yield return (StepCompleted, completed);
-                yield return (StepFailed, failed);
+                foreach (var step in Steps)
+                    yield return new SignalOutput(step, SignalKind.Latch);
             }
         }
 
@@ -48,9 +43,6 @@ namespace Game.Sectors
                 Debug.LogError($"SectorSpineModule on '{name}' is missing a fixture reference — spine is inert.", this);
                 yield break;
             }
-            foreach (var (step, port) in StepPorts)
-                if (!SignalPortGuards.ValidPortRef(this, port, step, ctx.Sector))
-                    yield break;
 
             objectives = ctx.Services.ObjectiveService;
             bus = ctx.Bus;
@@ -108,23 +100,11 @@ namespace Game.Sectors
 
         private void HandleSpineStepChanged(string step)
         {
-            bus?.Latch(PortFor(step));
+            if (Array.IndexOf(Steps, step) < 0)
+                Debug.LogError($"SectorSpineModule on '{name}' has no output for unknown spine step '{step}'.", this);
+            else
+                bus?.Latch(new SignalRef(this, step));
             if (spine != null) spine.Target = TargetFor(step);
-        }
-
-        private SignalPort PortFor(string step)
-        {
-            switch (step)
-            {
-                case StepExplore: return explore;
-                case StepKeyAcquired: return keyAcquired;
-                case StepReadyToExtract: return readyToExtract;
-                case StepCompleted: return completed;
-                case StepFailed: return failed;
-                default:
-                    Debug.LogError($"SectorSpineModule on '{name}' has no port for unknown spine step '{step}'.", this);
-                    return null;
-            }
         }
 
         private Transform TargetFor(string step) => step switch
@@ -135,17 +115,10 @@ namespace Game.Sectors
         };
 
 #if UNITY_EDITOR
-        internal void Bind(KeyPickup key, ExtractionZone zone,
-            SignalPort explore = null, SignalPort keyAcquired = null, SignalPort readyToExtract = null,
-            SignalPort completed = null, SignalPort failed = null)
+        internal void Bind(KeyPickup key, ExtractionZone zone)
         {
             keyPickup = key;
             extractionZone = zone;
-            this.explore = explore;
-            this.keyAcquired = keyAcquired;
-            this.readyToExtract = readyToExtract;
-            this.completed = completed;
-            this.failed = failed;
         }
 #endif
     }

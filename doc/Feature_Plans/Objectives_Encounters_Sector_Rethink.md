@@ -1,6 +1,6 @@
 # Objectives / Encounters / Sector Rethink
 
-*Draft • 2026-07-12 • status: PR-1..PR-4b (#134/#135/#141/#147/#153) all merged; PR-5 signal-port refactor in build (see "PR-5 — decision brief")*
+*Draft • 2026-07-12 • status: PR-1..PR-4b (#134/#135/#141/#147/#153) all merged; PR-5 signal refactor in build, v2 shape (see "PR-5 v2 — publisher-output collapse")*
 
 > Realizes the deferred `project_objectives_encounters_rethink`. The presenting
 > symptom was "combat encounters spawn one at a time instead of together," but the
@@ -502,7 +502,11 @@ Decisions made during the build, within the frozen brief:
   token, 6 s fire delay, 3-ship wave at ring radius 12, team 1, respawn None,
   `ambush-started`/`ambush-cleared` tokens.
 
-### PR-5 — signal-port refactor decision brief (pr-prep 2026-07-15)
+### PR-5 — signal-port refactor decision brief (pr-prep 2026-07-15) — SUPERSEDED by v2 below
+
+Kept for history. The v1 built from this brief shipped green on the branch;
+the user's review pivoted the design (see "PR-5 v2"), replacing the
+`SignalPort` component with code-declared publisher outputs.
 
 Frozen with the user (Codex design consult + 24-mode adversarial round folded);
 the implementing agent builds, it does not re-decide. Seed:
@@ -613,6 +617,63 @@ Decisions made during the build, within the frozen brief:
   residual).
 - **Picker labels use the division-slash ("Owner ∕ role (Kind)")** — a literal
   `/` in a Unity popup entry creates a submenu.
+
+### PR-5 v2 — publisher-output collapse (user pivot 2026-07-15)
+
+The user reviewed the v1 build and rejected its shape, not its goal: the
+`SignalPort` components are anonymous, mutually identical, pure wiring
+overhead — ten of them in one demo prefab, each needing manual authoring,
+fileID discipline, drag-wiring on the publisher side, and their own
+inspector/drawer/graph plumbing. Verdict: convoluted, PR too big, expect
+**net-less code**. v2 folds a structural collapse into the same PR.
+
+**The signal IS (publisher component, code-declared output).** No component
+represents a signal; publishers declare their outputs in code via
+`ISignalSource { IEnumerable<SignalOutput> Outputs }` where a `SignalOutput`
+is an id + `SignalKind { Level, Latch }`:
+
+- `TriggerVolume` → `inside` (Level) — const `OutputInside`
+- `ActivationRule` → `fired` (Latch) — const `OutputFired`; `Outputs` is
+  virtual so subclasses extend
+- `AmbushEncounter` → + `cleared` (Latch) — const `OutputCleared`
+- `SectorSpineModule` → the five step ids themselves (`explore`,
+  `key-acquired`, `ready-to-extract`, `completed`, `failed`), all Latch;
+  unknown spine steps still error loudly (checked against the declared list)
+
+What died relative to v1 (structurally, code and tests deleted):
+
+- `SignalPort` component + its 10 prefab instances + `SignalPortEditor` +
+  the authored `Kind` enum (kind now lives in the code declaration)
+- every publisher-side serialized port field (`inside`, `fired`, `cleared`,
+  the spine's five) and the guards over them — a publisher can no longer
+  reference the wrong port, because it references nothing
+- validator error classes: unowned ports, unassigned publisher port fields,
+  duplicate owners — unrepresentable in v2
+
+What survived, reshaped:
+
+- Consumers (`ActivationTerm`, `ActivateOnSignal`, `SectorSpawner`) serialize
+  one `SignalRef { Component source; string output; }`; `SignalRefDrawer`
+  renders it as a single popup of same-sector `ISignalSource` publishers ×
+  their outputs, "Owner ∕ output (Kind)" (division-slash rule carried over)
+- `SectorEventBus` keys on `SignalRef` (equality = source ref + output id);
+  Set/Latch/Get/Changed, fresh-per-Setup, freeze — semantics unchanged
+- Setup guards (loud-inert): unassigned ref, cross-sector source, and NEW —
+  output id not among the source's declared outputs (catches code-seam
+  injection); inactive-GO publisher guard unchanged; dormant-chaser
+  `ActivateOnSignal` consumer stays exempt
+- `SectorSignalGraph` nodes are (publisher, output) pairs derived from the
+  manifest publishers' declarations; remaining error classes: unassigned
+  consumer refs, cross-sector refs, undeclared output ids (also covers refs
+  to publishers missing from the manifest), gated-null, cycles;
+  published-but-unconsumed stays INFO; causal tree renders unchanged
+  (root-publisher dedupe kept)
+- All-sector-prefabs sweep, prefab identity pins (wrong-but-valid copy/paste
+  refs pinned by component identity), behavior-parity PlayMode suites
+
+Trade accepted: the consumer ref regains a string half (the output id), but
+it is chosen from a popup of code-declared ids and validated at Setup and in
+the validator — the authored free-text surface stays dead.
 
 ## Open questions (decide at build)
 

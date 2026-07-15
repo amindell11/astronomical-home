@@ -8,20 +8,26 @@ using UnityEngine;
 
 namespace Game.Sectors
 {
-    /// <summary>Ambush encounter: fires on its terms (spatial + delay), opens a concurrent local clear-hostiles objective over its wave spawner (observation-only ref), and latches its cleared port when the wave is dead.</summary>
+    /// <summary>Ambush encounter: fires on its terms (spatial + delay), opens a concurrent local clear-hostiles objective over its wave spawner (observation-only ref), and latches its cleared output when the wave is dead.</summary>
     public class AmbushEncounter : ActivationRule, IHostileTracker
     {
         public const string StepClear = "clear-hostiles";
         public const string StepCleared = "cleared";
+        public const string OutputCleared = "cleared";
 
         [SerializeField] private SectorSpawner waveSpawner;
-
-        [SerializeField] private SignalPort cleared;
 
         private SectorBuildContext ctx;
         private LocalObjectiveHandle local;
 
-        public SignalPort ClearedPort => cleared;
+        public override IEnumerable<SignalOutput> Outputs
+        {
+            get
+            {
+                foreach (var output in base.Outputs) yield return output;
+                yield return new SignalOutput(OutputCleared, SignalKind.Latch);
+            }
+        }
 
         // An unspawned wave reads as not-cleared: a misconfigured spawner must never complete the local silently.
         public bool HostilesCleared
@@ -42,7 +48,6 @@ namespace Game.Sectors
                 Debug.LogError($"AmbushEncounter on '{name}' has no wave spawner — inert.", this);
                 yield break;
             }
-            if (!SignalPortGuards.ValidPortRef(this, cleared, "cleared", ctx.Sector)) yield break;
 
             this.ctx = ctx;
             var setup = base.Setup(ctx);
@@ -71,17 +76,13 @@ namespace Game.Sectors
 
         private void HandleCleared()
         {
-            ctx.Bus?.Latch(cleared);
+            ctx.Bus?.Latch(new SignalRef(this, OutputCleared));
             local?.Close();
             local = null;
         }
 
 #if UNITY_EDITOR
-        internal void Bind(SectorSpawner spawner, SignalPort cleared = null)
-        {
-            waveSpawner = spawner;
-            if (cleared) this.cleared = cleared;
-        }
+        internal void Bind(SectorSpawner spawner) => waveSpawner = spawner;
 #endif
     }
 }

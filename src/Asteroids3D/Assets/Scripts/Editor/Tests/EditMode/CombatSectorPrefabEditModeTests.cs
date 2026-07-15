@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the authored CombatSector.prefab wiring: present-at-spawn fixtures, spine module refs, and the port-identity signal chain.</summary>
+    /// <summary>Pins the authored CombatSector.prefab wiring: present-at-spawn fixtures, spine module refs, and the (publisher, output) signal chain.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class CombatSectorPrefabEditModeTests
@@ -54,31 +54,19 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void Ambush_WiresAreaPortToDelayedRule_AndGatedWave()
+        public void Ambush_WiresAreaLevelToDelayedRule_AndGatedWave()
         {
             var sector = LoadSector();
             var volume = (TriggerVolume)sector.Modules[4];
             var ambush = (AmbushEncounter)sector.Modules[5];
 
-            var area = volume.InsidePort;
-            Assert.IsNotNull(area, "The ambush trigger must own an inside port.");
-            Assert.AreEqual(SignalPort.PortKind.Level, area.Kind);
-            Assert.AreSame(volume.gameObject, area.gameObject,
-                "The inside port must sit on the trigger that publishes it.");
-
-            Assert.AreEqual(1, ambush.Terms.Count, "The ambush must gate on the area port only.");
+            Assert.AreEqual(1, ambush.Terms.Count, "The ambush must gate on the area signal only.");
             Assert.AreEqual(ActivationTerm.TermKind.Signal, ambush.Terms[0].kind);
-            Assert.AreSame(area, ambush.Terms[0].signal,
-                "The ambush term must reference the exact port the trigger publishes — identity, not a name.");
+            Assert.AreSame(volume, ambush.Terms[0].signal.source,
+                "The ambush term must reference the exact trigger component — identity, not a name.");
+            Assert.AreEqual(TriggerVolume.OutputInside, ambush.Terms[0].signal.output);
             Assert.Greater(new SerializedObject(ambush).FindProperty("fireDelaySeconds").floatValue, 0f,
                 "The ambush must fire on a delay after the area is entered.");
-
-            Assert.IsNotNull(ambush.FiredPort);
-            Assert.AreEqual(SignalPort.PortKind.Latch, ambush.FiredPort.Kind);
-            Assert.IsNotNull(ambush.ClearedPort);
-            Assert.AreEqual(SignalPort.PortKind.Latch, ambush.ClearedPort.Kind);
-            Assert.AreNotSame(ambush.FiredPort, ambush.ClearedPort,
-                "Fired and cleared are distinct signals and must be distinct ports.");
 
             Assert.AreEqual(2, sector.Spawners.Count);
             var wave = sector.Spawners[1] as RingSpawner;
@@ -86,8 +74,9 @@ namespace Tests.EditMode
             Assert.AreSame(wave, new SerializedObject(ambush).FindProperty("waveSpawner").objectReferenceValue,
                 "The rule must observe its own wave spawner.");
             Assert.AreEqual(SectorSpawner.ActivationMode.Gated, wave.Mode, "The wave must be explicitly Gated.");
-            Assert.AreSame(ambush.FiredPort, wave.ActivationSignal,
-                "The wave must be gated on the exact port the rule latches.");
+            Assert.AreSame(ambush, wave.ActivationSignal.source,
+                "The wave must be gated on the exact encounter that latches fired.");
+            Assert.AreEqual(ActivationRule.OutputFired, wave.ActivationSignal.output);
             Assert.IsTrue(volume.transform.IsChildOf(ambush.transform),
                 "Hierarchy = ownership: the encounter owns its trigger.");
             Assert.IsTrue(wave.transform.IsChildOf(ambush.transform),
@@ -119,25 +108,6 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void SpineModule_OwnsFiveDistinctLatchStepPorts_OnTheSectorRoot()
-        {
-            var sector = LoadSector();
-            var spine = (SectorSpineModule)sector.Modules[0];
-
-            var ports = spine.StepPorts.ToList();
-            Assert.AreEqual(5, ports.Count);
-            foreach (var (step, port) in ports)
-            {
-                Assert.IsNotNull(port, $"Spine step '{step}' must have an authored port.");
-                Assert.AreEqual(SignalPort.PortKind.Latch, port.Kind, $"Spine step '{step}' must be a latch.");
-                Assert.AreSame(sector.gameObject, port.gameObject,
-                    $"Spine step port '{step}' must sit on the spine module's own GameObject.");
-            }
-            Assert.AreEqual(5, ports.Select(p => p.Port).Distinct().Count(),
-                "Copy/paste hazard: each spine step must reference a distinct port.");
-        }
-
-        [Test]
         public void Gate_CarriesZoneVolumeAndRule_OnOneFixture()
         {
             var sector = LoadSector();
@@ -148,29 +118,20 @@ namespace Tests.EditMode
 
             Assert.AreSame(zone.gameObject, volume.gameObject);
             Assert.AreSame(zone.gameObject, rule.gameObject);
-            Assert.IsNotNull(volume.InsidePort, "The gate volume must own an inside port.");
-            Assert.AreEqual(SignalPort.PortKind.Level, volume.InsidePort.Kind);
-            Assert.AreSame(zone.gameObject, volume.InsidePort.gameObject);
         }
 
         [Test]
-        public void ExtractionRule_GatesOnReadyToExtractPort_AndOwnsAFiredPort()
+        public void ExtractionRule_GatesOnTheSpinesReadyToExtractOutput()
         {
             var sector = LoadSector();
             var spine = (SectorSpineModule)sector.Modules[0];
             var rule = (ExtractionChallengeRule)sector.Modules[2];
 
-            var readyToExtract = spine.StepPorts
-                .First(p => p.Step == SectorSpineModule.StepReadyToExtract).Port;
-
-            Assert.AreEqual(1, rule.Terms.Count, "The thin rule must gate on the spine port only.");
+            Assert.AreEqual(1, rule.Terms.Count, "The thin rule must gate on the spine signal only.");
             Assert.AreEqual(ActivationTerm.TermKind.Signal, rule.Terms[0].kind);
-            Assert.AreSame(readyToExtract, rule.Terms[0].signal,
-                "The rule must reference the exact ready-to-extract port the spine latches.");
-
-            Assert.IsNotNull(rule.FiredPort, "The rule must own a fired port.");
-            Assert.AreEqual(SignalPort.PortKind.Latch, rule.FiredPort.Kind);
-            Assert.AreSame(rule.gameObject, rule.FiredPort.gameObject);
+            Assert.AreSame(spine, rule.Terms[0].signal.source,
+                "The rule must reference the exact spine module that latches the step — identity, not a name.");
+            Assert.AreEqual(SectorSpineModule.StepReadyToExtract, rule.Terms[0].signal.output);
 
             var zone = new SerializedObject(sector.Modules[0]).FindProperty("extractionZone").objectReferenceValue;
             Assert.AreSame(zone, new SerializedObject(rule).FindProperty("extractionZone").objectReferenceValue,
@@ -178,14 +139,15 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void ChaserActivate_ListensToTheRulesFiredPort_OnTheDormantAdoptedChaser()
+        public void ChaserActivate_ListensToTheRulesFiredOutput_OnTheDormantAdoptedChaser()
         {
             var sector = LoadSector();
             var rule = (ExtractionChallengeRule)sector.Modules[2];
             var activate = (ActivateOnSignal)sector.Modules[3];
 
-            Assert.AreSame(rule.FiredPort, activate.Signal,
-                "The chaser's activate module must listen to the exact port the rule latches.");
+            Assert.AreSame(rule, activate.Signal.source,
+                "The chaser's activate module must listen to the exact rule that latches fired.");
+            Assert.AreEqual(ActivationRule.OutputFired, activate.Signal.output);
 
             Assert.AreEqual(2, sector.Adopted.Count);
             var chaser = sector.Adopted[0].target as Ship;

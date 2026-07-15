@@ -8,7 +8,7 @@ using UnityEngine.TestTools;
 
 namespace Tests.EditMode
 {
-    /// <summary>Spawner activation modes: Eager produces at Build, Gated defers production to exactly one latch of its signal, Gated+null is loud inert (null never means eager), and Teardown disarms the gate.</summary>
+    /// <summary>Spawner activation modes: Eager produces at Build, Gated defers production to exactly one latch of its signal, Gated+unassigned is loud inert (unassigned never means eager), and Teardown disarms the gate.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class SectorSpawnerActivationEditModeTests
@@ -30,19 +30,17 @@ namespace Tests.EditMode
             _created.Clear();
         }
 
-        private CountingSpawner NewSpawner()
-        {
-            var go = new GameObject("Spawner");
-            _created.Add(go);
-            return go.AddComponent<CountingSpawner>();
-        }
-
-        private SignalPort NewPort(string name)
+        private GameObject NewGO(string name)
         {
             var go = new GameObject(name);
             _created.Add(go);
-            return go.AddComponent<SignalPort>();
+            return go;
         }
+
+        private CountingSpawner NewSpawner() => NewGO("Spawner").AddComponent<CountingSpawner>();
+
+        private SignalRef NewSignal(string name) =>
+            new SignalRef(NewGO(name).AddComponent<ActivationRule>(), ActivationRule.OutputFired);
 
         private static void Drive(IEnumerator it)
         {
@@ -61,15 +59,15 @@ namespace Tests.EditMode
         public void Gated_DefersProduction_ToExactlyOneLatch()
         {
             var spawner = NewSpawner();
-            var go = NewPort("go");
-            var other = NewPort("other");
+            var go = NewSignal("go");
+            var other = NewSignal("other");
             spawner.ConfigureGated(go);
             var bus = new SectorEventBus();
             Drive(spawner.Build(new SectorBuildContext(null, null, null, bus)));
             Assert.AreEqual(0, spawner.ProduceCalls, "A gated spawner must stay dormant at Build.");
 
             bus.Set(other, true);
-            Assert.AreEqual(0, spawner.ProduceCalls, "Unrelated ports must not produce.");
+            Assert.AreEqual(0, spawner.ProduceCalls, "Unrelated signals must not produce.");
 
             bus.Latch(go);
             Assert.AreEqual(1, spawner.ProduceCalls, "The signal latch must produce, synchronously.");
@@ -83,7 +81,7 @@ namespace Tests.EditMode
         public void Gated_SignalAlreadyTrueAtBuild_ProducesImmediately()
         {
             var spawner = NewSpawner();
-            var go = NewPort("go");
+            var go = NewSignal("go");
             spawner.ConfigureGated(go);
             var bus = new SectorEventBus();
             bus.Latch(go);
@@ -95,7 +93,7 @@ namespace Tests.EditMode
         public void Teardown_DisarmsTheGate()
         {
             var spawner = NewSpawner();
-            var go = NewPort("go");
+            var go = NewSignal("go");
             spawner.ConfigureGated(go);
             var bus = new SectorEventBus();
             var ctx = new SectorBuildContext(null, null, null, bus);
@@ -107,23 +105,38 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void Gated_WithNullSignal_LogsError_AndStaysInert()
+        public void Gated_WithUnassignedSignal_LogsError_AndStaysInert()
         {
             var spawner = NewSpawner();
-            spawner.ConfigureGated(null);
+            spawner.ConfigureGated(default);
             var bus = new SectorEventBus();
 
-            LogAssert.Expect(LogType.Error, new Regex("CountingSpawner .*unassigned activation port.*inert"));
+            LogAssert.Expect(LogType.Error, new Regex("CountingSpawner .*unassigned activation signal.*inert"));
             Drive(spawner.Build(new SectorBuildContext(null, null, null, bus)));
 
-            Assert.AreEqual(0, spawner.ProduceCalls, "Gated with a null signal must be loud-inert — null never means eager.");
+            Assert.AreEqual(0, spawner.ProduceCalls, "Gated with an unassigned signal must be loud-inert — unassigned never means eager.");
+        }
+
+        [Test]
+        public void Gated_WithUndeclaredOutput_LogsError_AndStaysInert()
+        {
+            var spawner = NewSpawner();
+            var donor = NewGO("Donor").AddComponent<ActivationRule>();
+            spawner.ConfigureGated(new SignalRef(donor, "bogus"));
+            var bus = new SectorEventBus();
+
+            LogAssert.Expect(LogType.Error, new Regex("CountingSpawner .*'bogus'.*does not declare.*inert"));
+            Drive(spawner.Build(new SectorBuildContext(null, null, null, bus)));
+
+            bus.Set(new SignalRef(donor, "bogus"), true);
+            Assert.AreEqual(0, spawner.ProduceCalls, "A gate injected with an undeclared output id must be inert.");
         }
 
         [Test]
         public void ConfigureEager_AfterGated_ProducesAtBuild()
         {
             var spawner = NewSpawner();
-            spawner.ConfigureGated(NewPort("go"));
+            spawner.ConfigureGated(NewSignal("go"));
             spawner.ConfigureEager();
             Drive(spawner.Build(new SectorBuildContext(null, null, null, new SectorEventBus())));
             Assert.AreEqual(1, spawner.ProduceCalls);
@@ -133,7 +146,7 @@ namespace Tests.EditMode
         public void Gated_WithNoBus_LogsError_AndStaysInert()
         {
             var spawner = NewSpawner();
-            spawner.ConfigureGated(NewPort("go"));
+            spawner.ConfigureGated(NewSignal("go"));
             LogAssert.Expect(LogType.Error, new Regex("CountingSpawner .*no bus.*inert"));
             Drive(spawner.Build(new SectorBuildContext(null, null)));
             Assert.AreEqual(0, spawner.ProduceCalls);

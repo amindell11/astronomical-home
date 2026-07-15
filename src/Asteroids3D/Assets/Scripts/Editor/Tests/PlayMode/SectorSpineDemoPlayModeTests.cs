@@ -85,11 +85,6 @@ namespace Tests.PlayMode
 
             var sectorGO = TrackGO(new GameObject("SpineDemoSector"));
             var sector = sectorGO.AddComponent<Sector>();
-            var explorePort = sectorGO.AddComponent<SignalPort>();
-            var keyAcquiredPort = sectorGO.AddComponent<SignalPort>();
-            var readyPort = sectorGO.AddComponent<SignalPort>();
-            var completedPort = sectorGO.AddComponent<SignalPort>();
-            var failedPort = sectorGO.AddComponent<SignalPort>();
 
             var keyGO = new GameObject("Key");
             keyGO.transform.SetParent(sectorGO.transform);
@@ -107,24 +102,20 @@ namespace Tests.PlayMode
             gateCol.radius = 4f;
             var zone = gateGO.AddComponent<ExtractionZone>();
             zone.Bind(chaser.transform);
-            var inGatePort = gateGO.AddComponent<SignalPort>();
-            var challengePort = gateGO.AddComponent<SignalPort>();
             var volume = gateGO.AddComponent<TriggerVolume>();
-            volume.Configure(inGatePort);
-
-            if (wireActivateSignal) activate.Configure(challengePort);
 
             var spine = sectorGO.AddComponent<SectorSpineModule>();
-            spine.Bind(key, zone, explorePort, keyAcquiredPort, readyPort, completedPort, failedPort);
+            spine.Bind(key, zone);
+
+            // The rule component always exists (a valid activate target); includeRule gates only its manifest membership — an un-setup rule is exactly the missing-rule failure mode.
+            var rule = gateGO.AddComponent<ExtractionChallengeRule>();
+            rule.Configure(new[] { ActivationTerm.Signal(spine, SectorSpineModule.StepReadyToExtract) });
+            rule.Bind(bindZone ? zone : null);
+
+            if (wireActivateSignal) activate.Configure(new SignalRef(rule, ActivationRule.OutputFired));
 
             var modules = new List<SectorModule> { spine, volume };
-            if (includeRule)
-            {
-                var rule = gateGO.AddComponent<ExtractionChallengeRule>();
-                rule.Configure(new[] { ActivationTerm.Signal(readyPort) }, challengePort);
-                rule.Bind(bindZone ? zone : null);
-                modules.Add(rule);
-            }
+            if (includeRule) modules.Add(rule);
             modules.Add(activate);
 
             sector.SetManifest(null, null, modules.ToArray());
@@ -305,7 +296,7 @@ namespace Tests.PlayMode
             SectorResult? got = null;
             ((ISector)sector).OnSectorComplete += r => got = r;
 
-            LogAssert.Expect(LogType.Error, new Regex("ActivateOnSignal .*unassigned activation port.*inert"));
+            LogAssert.Expect(LogType.Error, new Regex("ActivateOnSignal .*unassigned activation signal.*inert"));
             yield return sector.Setup();
 
             player.transform.position = key.transform.position;
@@ -343,10 +334,7 @@ namespace Tests.PlayMode
 
             var moduleGO = TrackGO(new GameObject("Spine"));
             var module = moduleGO.AddComponent<SectorSpineModule>();
-            module.Bind(key, zone,
-                moduleGO.AddComponent<SignalPort>(), moduleGO.AddComponent<SignalPort>(),
-                moduleGO.AddComponent<SignalPort>(), moduleGO.AddComponent<SignalPort>(),
-                moduleGO.AddComponent<SignalPort>());
+            module.Bind(key, zone);
 
             var ctx = new SectorBuildContext(new StubServices(svc), null, null, new SectorEventBus());
             yield return module.Setup(ctx);

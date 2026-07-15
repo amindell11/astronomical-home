@@ -31,9 +31,9 @@ namespace Tests.PlayMode
             public AmbushEncounter Encounter;
             public RingSpawner Wave;
             public TriggerVolume Volume;
-            public SignalPort Area;
-            public SignalPort Started;
-            public SignalPort Cleared;
+            public SignalRef Area;
+            public SignalRef Started;
+            public SignalRef Cleared;
         }
 
         private UnitService _unitService;
@@ -95,17 +95,17 @@ namespace Tests.PlayMode
             var encounterGO = new GameObject("Ambush");
             encounterGO.transform.SetParent(sector.transform);
             encounterGO.transform.position = GamePlane.PlanePointToWorld(plane);
-            rig.Started = encounterGO.AddComponent<SignalPort>();
-            rig.Cleared = encounterGO.AddComponent<SignalPort>();
+            rig.Encounter = encounterGO.AddComponent<AmbushEncounter>();
+            rig.Started = new SignalRef(rig.Encounter, ActivationRule.OutputFired);
+            rig.Cleared = new SignalRef(rig.Encounter, AmbushEncounter.OutputCleared);
 
             var triggerGO = new GameObject("Ambush Trigger");
             triggerGO.transform.SetParent(encounterGO.transform, false);
             var col = triggerGO.AddComponent<SphereCollider>();
             col.isTrigger = true;
             col.radius = 5f;
-            rig.Area = triggerGO.AddComponent<SignalPort>();
             rig.Volume = triggerGO.AddComponent<TriggerVolume>();
-            rig.Volume.Configure(rig.Area);
+            rig.Area = new SignalRef(rig.Volume, TriggerVolume.OutputInside);
 
             var waveGO = new GameObject("Ambush Wave");
             waveGO.transform.SetParent(encounterGO.transform, false);
@@ -113,9 +113,8 @@ namespace Tests.PlayMode
             rig.Wave.Configure(TestAssets.LoadShip2Prefab(), null, waveCount, radius: 10f, team: 1);
             rig.Wave.ConfigureGated(rig.Started);
 
-            rig.Encounter = encounterGO.AddComponent<AmbushEncounter>();
-            rig.Encounter.Configure(new[] { ActivationTerm.Signal(rig.Area) }, rig.Started, fireDelay);
-            rig.Encounter.Bind(rig.Wave, rig.Cleared);
+            rig.Encounter.Configure(new[] { ActivationTerm.Signal(rig.Area) }, fireDelay);
+            rig.Encounter.Bind(rig.Wave);
 
             return rig;
         }
@@ -159,10 +158,7 @@ namespace Tests.PlayMode
             zoneGO.AddComponent<SphereCollider>().isTrigger = true;
             var zone = zoneGO.AddComponent<ExtractionZone>();
             var spine = sector.gameObject.AddComponent<SectorSpineModule>();
-            spine.Bind(key, zone,
-                sector.gameObject.AddComponent<SignalPort>(), sector.gameObject.AddComponent<SignalPort>(),
-                sector.gameObject.AddComponent<SignalPort>(), sector.gameObject.AddComponent<SignalPort>(),
-                sector.gameObject.AddComponent<SignalPort>());
+            spine.Bind(key, zone);
 
             var rig = AddAmbush(sector, TriggerPlane, fireDelay: 1f);
             sector.SetManifest(null, new SectorSpawner[] { rig.Wave },

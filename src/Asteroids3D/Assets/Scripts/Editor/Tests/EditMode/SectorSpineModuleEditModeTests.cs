@@ -12,7 +12,7 @@ using UnityEngine.TestTools;
 
 namespace Tests.EditMode
 {
-    /// <summary>SectorSpineModule against the objective service and sector bus: step ports, terminal mapping, teardown hygiene.</summary>
+    /// <summary>SectorSpineModule against the objective service and sector bus: step outputs, terminal mapping, teardown hygiene.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class SectorSpineModuleEditModeTests
@@ -59,11 +59,8 @@ namespace Tests.EditMode
             public ExtractionZone Zone;
             public SectorEventBus Bus;
             public SectorBuildContext Ctx;
-            public SignalPort Explore;
-            public SignalPort KeyAcquired;
-            public SignalPort ReadyToExtract;
-            public SignalPort Completed;
-            public SignalPort Failed;
+
+            public SignalRef Step(string step) => new SignalRef(Module, step);
         }
 
         private SpineRig BuildSpine()
@@ -79,15 +76,8 @@ namespace Tests.EditMode
             zoneGO.AddComponent<SphereCollider>().isTrigger = true;
             rig.Zone = zoneGO.AddComponent<ExtractionZone>();
 
-            var moduleGO = NewGO("Spine");
-            rig.Explore = moduleGO.AddComponent<SignalPort>();
-            rig.KeyAcquired = moduleGO.AddComponent<SignalPort>();
-            rig.ReadyToExtract = moduleGO.AddComponent<SignalPort>();
-            rig.Completed = moduleGO.AddComponent<SignalPort>();
-            rig.Failed = moduleGO.AddComponent<SignalPort>();
-            rig.Module = moduleGO.AddComponent<SectorSpineModule>();
-            rig.Module.Bind(rig.Key, rig.Zone,
-                rig.Explore, rig.KeyAcquired, rig.ReadyToExtract, rig.Completed, rig.Failed);
+            rig.Module = NewGO("Spine").AddComponent<SectorSpineModule>();
+            rig.Module.Bind(rig.Key, rig.Zone);
 
             rig.Bus = new SectorEventBus();
             rig.Ctx = new SectorBuildContext(new StubServices(rig.Svc), null, null, rig.Bus);
@@ -105,35 +95,41 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void Setup_InstallsSpine_AndLatchesInitialStepPortAndTarget()
+        public void DeclaredOutputs_AreTheFiveDistinctLatchSteps()
+        {
+            var rig = BuildSpine();
+            var outputs = new List<SignalOutput>(((ISignalSource)rig.Module).Outputs);
+
+            Assert.AreEqual(5, outputs.Count);
+            CollectionAssert.AreEqual(
+                new[]
+                {
+                    SectorSpineModule.StepExplore, SectorSpineModule.StepKeyAcquired,
+                    SectorSpineModule.StepReadyToExtract, SectorSpineModule.StepCompleted,
+                    SectorSpineModule.StepFailed
+                },
+                outputs.ConvertAll(o => o.Id),
+                "The spine must declare exactly the five mission steps as outputs.");
+            foreach (var output in outputs)
+                Assert.AreEqual(SignalKind.Latch, output.Kind, $"Spine step '{output.Id}' must be a latch.");
+        }
+
+        [Test]
+        public void Setup_InstallsSpine_AndLatchesInitialStepAndTarget()
         {
             var rig = BuildSpine();
 
             Run(rig.Module.Setup(rig.Ctx));
 
             Assert.AreEqual(SectorSpineModule.StepExplore, rig.Svc.SpineStep);
-            Assert.IsTrue(rig.Bus.Get(rig.Explore), "The initial spine step must be latched on the bus.");
+            Assert.IsTrue(rig.Bus.Get(rig.Step(SectorSpineModule.StepExplore)),
+                "The initial spine step must be latched on the bus.");
             Assert.AreEqual(rig.Key.transform, rig.Svc.SpineTarget,
                 "The explore step must report the key as the spine target.");
         }
 
         [Test]
-        public void Setup_WithUnassignedStepPort_LogsError_AndStaysInert()
-        {
-            var rig = BuildSpine();
-            rig.Module.Bind(rig.Key, rig.Zone,
-                rig.Explore, rig.KeyAcquired, null, rig.Completed, rig.Failed);
-
-            LogAssert.Expect(LogType.Error,
-                new Regex($"SectorSpineModule .*unassigned {SectorSpineModule.StepReadyToExtract} port.*inert"));
-            Run(rig.Module.Setup(rig.Ctx));
-
-            Assert.IsNull(rig.Svc.SpineTracker, "An inert spine must not install a mission.");
-            Assert.IsFalse(rig.Bus.Get(rig.Explore));
-        }
-
-        [Test]
-        public void SpineFail_LatchesFailedPort_AndEndsSectorFailed()
+        public void SpineFail_LatchesFailedOutput_AndEndsSectorFailed()
         {
             var rig = BuildSpine();
             Run(rig.Module.Setup(rig.Ctx));
@@ -147,17 +143,17 @@ namespace Tests.EditMode
             Assert.IsTrue(got.HasValue, "The failed terminal state must end the sector.");
             Assert.IsFalse(got.Value.Success);
             Assert.AreEqual("spine_failed", got.Value.FailReason);
-            Assert.IsTrue(rig.Bus.Get(rig.Failed));
+            Assert.IsTrue(rig.Bus.Get(rig.Step(SectorSpineModule.StepFailed)));
         }
 
         [Test]
-        public void UnknownSpineStep_LogsError_InsteadOfSilentlySkippingThePort()
+        public void UnknownSpineStep_LogsError_InsteadOfSilentlyDroppingTheSignal()
         {
             var rig = BuildSpine();
             Run(rig.Module.Setup(rig.Ctx));
 
             LogAssert.Expect(LogType.Error,
-                new Regex("SectorSpineModule .*no port for unknown spine step 'bogus'"));
+                new Regex("SectorSpineModule .*no output for unknown spine step 'bogus'"));
             rig.Svc.SetSpineObjective(
                 new MissionDefinition("bogus", new Dictionary<string, string>()),
                 new Dictionary<string, Func<ObjectiveState>> { ["bogus"] = () => new CompletedState() });

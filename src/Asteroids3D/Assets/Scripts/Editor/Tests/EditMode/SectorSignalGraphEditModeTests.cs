@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>Graph model + validator over the baked manifest: ownership, wiring, and cycle findings — plus the all-sector-prefabs sweep that keeps every shipped sector error-free by construction.</summary>
+    /// <summary>Graph model + validator over the baked manifest: declared outputs, wiring, and cycle findings — plus the all-sector-prefabs sweep that keeps every shipped sector error-free by construction.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class SectorSignalGraphEditModeTests
@@ -51,71 +51,50 @@ namespace Tests.EditMode
             var sector = NewSector();
             var volumeGO = NewGO("Volume", sector.transform);
             volumeGO.AddComponent<SphereCollider>().isTrigger = true;
-            var inside = volumeGO.AddComponent<SignalPort>();
             var volume = volumeGO.AddComponent<TriggerVolume>();
-            volume.Configure(inside);
 
-            var ruleGO = NewGO("Rule", sector.transform);
-            var fired = ruleGO.AddComponent<SignalPort>();
-            var rule = ruleGO.AddComponent<ActivationRule>();
-            rule.Configure(new[] { ActivationTerm.Signal(inside) }, fired);
+            var rule = NewGO("Rule", sector.transform).AddComponent<ActivationRule>();
+            rule.Configure(new[] { ActivationTerm.Signal(volume, TriggerVolume.OutputInside) });
 
-            var spawnerGO = NewGO("Spawner", sector.transform);
-            var spawner = spawnerGO.AddComponent<StubSpawner>();
-            spawner.ConfigureGated(fired);
+            var spawner = NewGO("Spawner", sector.transform).AddComponent<StubSpawner>();
+            spawner.ConfigureGated(new SignalRef(rule, ActivationRule.OutputFired));
 
-            var seamGO = NewGO("Seam", sector.transform);
-            var unconsumed = seamGO.AddComponent<SignalPort>();
-            var seamRule = seamGO.AddComponent<ActivationRule>();
-            seamRule.Configure(new[] { ActivationTerm.Signal(inside) }, unconsumed);
+            var seamRule = NewGO("Seam", sector.transform).AddComponent<ActivationRule>();
+            seamRule.Configure(new[] { ActivationTerm.Signal(volume, TriggerVolume.OutputInside) });
 
             sector.SetManifest(null, new SectorSpawner[] { spawner },
                 new SectorModule[] { volume, rule, seamRule });
 
             var model = SectorSignalGraph.Build(sector);
             Assert.IsEmpty(Errors(model), "A fully wired chain must validate clean.");
-            Assert.AreEqual(1, Infos(model).Count, "A deliberate unconsumed seam is INFO, never an error.");
+            Assert.AreEqual(1, Infos(model).Count, "A deliberate unconsumed output is INFO, never an error.");
             StringAssert.Contains("unconsumed", Infos(model)[0]);
         }
 
         [Test]
-        public void UnownedPort_IsError()
+        public void UnassignedConsumerRef_IsError()
         {
             var sector = NewSector();
-            NewGO("FreeStanding", sector.transform).AddComponent<SignalPort>();
-            sector.SetManifest(null, System.Array.Empty<SectorSpawner>(), System.Array.Empty<SectorModule>());
+            var rule = NewGO("Rule", sector.transform).AddComponent<ActivationRule>();
+            rule.Configure(new[] { ActivationTerm.Signal(default) });
+            sector.SetManifest(null, System.Array.Empty<SectorSpawner>(), new SectorModule[] { rule });
 
             var errors = Errors(SectorSignalGraph.Build(sector));
             Assert.AreEqual(1, errors.Count);
-            StringAssert.Contains("no publisher", errors[0]);
+            StringAssert.Contains("unassigned term signal", errors[0]);
         }
 
         [Test]
-        public void UnassignedPublisherPortField_IsError()
-        {
-            var sector = NewSector();
-            var volumeGO = NewGO("Volume", sector.transform);
-            volumeGO.AddComponent<SphereCollider>().isTrigger = true;
-            var volume = volumeGO.AddComponent<TriggerVolume>();
-            volume.Configure(null);
-            sector.SetManifest(null, System.Array.Empty<SectorSpawner>(), new SectorModule[] { volume });
-
-            var errors = Errors(SectorSignalGraph.Build(sector));
-            Assert.AreEqual(1, errors.Count);
-            StringAssert.Contains("unassigned inside port", errors[0]);
-        }
-
-        [Test]
-        public void GatedSpawnerWithNullSignal_IsError()
+        public void GatedSpawnerWithUnassignedSignal_IsError()
         {
             var sector = NewSector();
             var spawner = NewGO("Spawner", sector.transform).AddComponent<StubSpawner>();
-            spawner.ConfigureGated(null);
+            spawner.ConfigureGated(default);
             sector.SetManifest(null, new SectorSpawner[] { spawner }, System.Array.Empty<SectorModule>());
 
             var errors = Errors(SectorSignalGraph.Build(sector));
             Assert.AreEqual(1, errors.Count);
-            StringAssert.Contains("unassigned activation port", errors[0]);
+            StringAssert.Contains("unassigned activation signal", errors[0]);
         }
 
         [Test]
@@ -123,12 +102,10 @@ namespace Tests.EditMode
         {
             var sector = NewSector();
             var foreign = NewSector();
-            var foreignPort = NewGO("ForeignPort", foreign.transform).AddComponent<SignalPort>();
+            var foreignRule = NewGO("ForeignRule", foreign.transform).AddComponent<ActivationRule>();
 
-            var ruleGO = NewGO("Rule", sector.transform);
-            var fired = ruleGO.AddComponent<SignalPort>();
-            var rule = ruleGO.AddComponent<ActivationRule>();
-            rule.Configure(new[] { ActivationTerm.Signal(foreignPort) }, fired);
+            var rule = NewGO("Rule", sector.transform).AddComponent<ActivationRule>();
+            rule.Configure(new[] { ActivationTerm.Signal(foreignRule, ActivationRule.OutputFired) });
             sector.SetManifest(null, System.Array.Empty<SectorSpawner>(), new SectorModule[] { rule });
 
             var errors = Errors(SectorSignalGraph.Build(sector));
@@ -137,40 +114,46 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void UndeclaredOutputRef_IsError()
+        {
+            var sector = NewSector();
+            var donor = NewGO("Donor", sector.transform).AddComponent<ActivationRule>();
+            var rule = NewGO("Rule", sector.transform).AddComponent<ActivationRule>();
+            rule.Configure(new[] { ActivationTerm.Signal(donor, "bogus") });
+            sector.SetManifest(null, System.Array.Empty<SectorSpawner>(), new SectorModule[] { donor, rule });
+
+            var errors = Errors(SectorSignalGraph.Build(sector));
+            Assert.AreEqual(1, errors.Count);
+            StringAssert.Contains("no sector publisher declares", errors[0]);
+        }
+
+        [Test]
+        public void RefToPublisherOutsideTheManifest_IsError()
+        {
+            var sector = NewSector();
+            var stray = NewGO("Stray", sector.transform).AddComponent<ActivationRule>();
+            var rule = NewGO("Rule", sector.transform).AddComponent<ActivationRule>();
+            rule.Configure(new[] { ActivationTerm.Signal(stray, ActivationRule.OutputFired) });
+            sector.SetManifest(null, System.Array.Empty<SectorSpawner>(), new SectorModule[] { rule });
+
+            var errors = Errors(SectorSignalGraph.Build(sector));
+            Assert.AreEqual(1, errors.Count, "A ref to an in-hierarchy publisher missing from the manifest must be loud — Setup never runs it.");
+            StringAssert.Contains("no sector publisher declares", errors[0]);
+        }
+
+        [Test]
         public void RuleCycle_IsError()
         {
             var sector = NewSector();
-            var aGO = NewGO("RuleA", sector.transform);
-            var aPort = aGO.AddComponent<SignalPort>();
-            var bGO = NewGO("RuleB", sector.transform);
-            var bPort = bGO.AddComponent<SignalPort>();
-
-            var a = aGO.AddComponent<ActivationRule>();
-            a.Configure(new[] { ActivationTerm.Signal(bPort) }, aPort);
-            var b = bGO.AddComponent<ActivationRule>();
-            b.Configure(new[] { ActivationTerm.Signal(aPort) }, bPort);
+            var a = NewGO("RuleA", sector.transform).AddComponent<ActivationRule>();
+            var b = NewGO("RuleB", sector.transform).AddComponent<ActivationRule>();
+            a.Configure(new[] { ActivationTerm.Signal(b, ActivationRule.OutputFired) });
+            b.Configure(new[] { ActivationTerm.Signal(a, ActivationRule.OutputFired) });
             sector.SetManifest(null, System.Array.Empty<SectorSpawner>(), new SectorModule[] { a, b });
 
             var errors = Errors(SectorSignalGraph.Build(sector));
             Assert.AreEqual(1, errors.Count, "A two-rule deadlock must be reported exactly once.");
             StringAssert.Contains("cycle", errors[0]);
-        }
-
-        [Test]
-        public void PortClaimedByTwoPublishers_IsError()
-        {
-            var sector = NewSector();
-            var port = NewGO("SharedPort", sector.transform).AddComponent<SignalPort>();
-
-            var a = NewGO("RuleA", sector.transform).AddComponent<ActivationRule>();
-            a.Configure(System.Array.Empty<ActivationTerm>(), port);
-            var b = NewGO("RuleB", sector.transform).AddComponent<ActivationRule>();
-            b.Configure(System.Array.Empty<ActivationTerm>(), port);
-            sector.SetManifest(null, System.Array.Empty<SectorSpawner>(), new SectorModule[] { a, b });
-
-            var errors = Errors(SectorSignalGraph.Build(sector));
-            Assert.AreEqual(1, errors.Count);
-            StringAssert.Contains("single-owner", errors[0]);
         }
 
         [Test]

@@ -45,7 +45,7 @@ namespace Game.Sectors
         private static void DrawSignalGraph(Sector sector)
         {
             var model = SectorSignalGraph.Build(sector);
-            if (model.Ports.Count == 0 && model.Findings.Count == 0) return;
+            if (model.Outputs.Count == 0 && model.Findings.Count == 0) return;
 
             EditorGUILayout.Space();
             showSignalGraph = EditorGUILayout.Foldout(showSignalGraph, "Signal Graph", toggleOnLabelClick: true);
@@ -56,22 +56,18 @@ namespace Game.Sectors
                     finding.Severity == SectorSignalGraph.Severity.Error ? MessageType.Error : MessageType.Info);
 
             var visited = new HashSet<Component>();
-            foreach (var node in model.Ports)
+            foreach (var node in model.Outputs)
             {
-                if (!node.Publisher || IsDownstream(model, node.Publisher) || visited.Contains(node.Publisher)) continue;
+                if (IsDownstream(model, node.Publisher) || visited.Contains(node.Publisher)) continue;
                 DrawPublisher(model, node.Publisher, visited);
             }
-
-            foreach (var node in model.Ports)
-                if (!node.Publisher)
-                    EditorGUILayout.LabelField($"◌ SignalPort on '{node.Port.name}' ({node.Port.Kind}) — unowned");
         }
 
-        /// <summary>A publisher is downstream when it consumes any owned port — it renders under its source, not as a root.</summary>
+        /// <summary>A publisher is downstream when it consumes any declared output — it renders under its source, not as a root.</summary>
         private static bool IsDownstream(SectorSignalGraph.Model model, Component publisher)
         {
-            foreach (var node in model.Ports)
-                if (node.Publisher && node.Consumers.Contains(publisher))
+            foreach (var node in model.Outputs)
+                if (node.Consumers.Contains(publisher))
                     return true;
             return false;
         }
@@ -86,11 +82,11 @@ namespace Game.Sectors
 
             EditorGUILayout.LabelField($"● {publisher.GetType().Name} '{publisher.name}'");
             EditorGUI.indentLevel++;
-            foreach (var node in model.Ports)
+            foreach (var node in model.Outputs)
             {
                 if (node.Publisher != publisher) continue;
                 var unconsumed = node.Consumers.Count == 0 ? " — unconsumed" : "";
-                EditorGUILayout.LabelField($"◇ {node.Role} ({node.Port.Kind}){unconsumed}");
+                EditorGUILayout.LabelField($"◇ {node.Output.Id} ({node.Output.Kind}){unconsumed}");
                 EditorGUI.indentLevel++;
                 foreach (var consumer in node.Consumers)
                 {
@@ -104,7 +100,7 @@ namespace Game.Sectors
 
         private static bool PublishesAnything(SectorSignalGraph.Model model, Component component)
         {
-            foreach (var node in model.Ports)
+            foreach (var node in model.Outputs)
                 if (node.Publisher == component)
                     return true;
             return false;

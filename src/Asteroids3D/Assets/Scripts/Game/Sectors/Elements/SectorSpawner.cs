@@ -17,14 +17,14 @@ namespace Game.Sectors
         [Tooltip("Eager produces at Build; Gated stays dormant and produces exactly once when its activation signal first goes true.")]
         [SerializeField] private ActivationMode activationMode = ActivationMode.Eager;
 
-        [SerializeField] private SignalPort activationSignal;
+        [SerializeField] private SignalRef activationSignal;
 
         private SectorBuildContext ctx;
         private SectorEventBus bus;
 
         public ActivationMode Mode => activationMode;
 
-        public SignalPort ActivationSignal => activationSignal;
+        public SignalRef ActivationSignal => activationSignal;
 
         /// <summary>Ships produced during the last <see cref="Produce"/> run; non-ship producers leave this empty.</summary>
         public IReadOnlyList<Ship> Spawned { get; protected set; } = System.Array.Empty<Ship>();
@@ -41,7 +41,7 @@ namespace Game.Sectors
                 yield break;
             }
 
-            if (!SignalPortGuards.ValidPortRef(this, activationSignal, "activation", ctx.Sector)) yield break;
+            if (!SignalGuards.ValidRef(this, activationSignal, "activation", ctx.Sector)) yield break;
             bus = ctx.Bus;
             if (bus == null)
             {
@@ -64,10 +64,10 @@ namespace Game.Sectors
         public void ConfigureEager()
         {
             activationMode = ActivationMode.Eager;
-            activationSignal = null;
+            activationSignal = default;
         }
 
-        public void ConfigureGated(SignalPort signal)
+        public void ConfigureGated(SignalRef signal)
         {
             activationMode = ActivationMode.Gated;
             activationSignal = signal;
@@ -85,9 +85,9 @@ namespace Game.Sectors
             yield break;
         }
 
-        private void OnBusChanged(SignalPort port)
+        private void OnBusChanged(SignalRef changed)
         {
-            if (port != activationSignal || !bus.Get(activationSignal)) return;
+            if (!changed.Equals(activationSignal) || !bus.Get(activationSignal)) return;
             ProduceNow();
         }
 

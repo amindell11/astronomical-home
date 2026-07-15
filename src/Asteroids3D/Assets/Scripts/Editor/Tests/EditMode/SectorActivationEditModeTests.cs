@@ -30,7 +30,8 @@ namespace Tests.EditMode
             return go;
         }
 
-        private SignalPort NewPort(string name) => NewGO(name).AddComponent<SignalPort>();
+        private SignalRef NewSignal(string name) =>
+            new SignalRef(NewGO(name).AddComponent<ActivationRule>(), ActivationRule.OutputFired);
 
         private static void Run(IEnumerator routine)
         {
@@ -48,8 +49,8 @@ namespace Tests.EditMode
         public void SignalAndSignal_FiresOnce_WhenBothHold()
         {
             var bus = new SectorEventBus();
-            var a = NewPort("a");
-            var b = NewPort("b");
+            var a = NewSignal("a");
+            var b = NewSignal("b");
             var predicate = new ActivationPredicate(new[]
                 { ActivationTerm.Signal(a), ActivationTerm.Signal(b) });
 
@@ -68,8 +69,8 @@ namespace Tests.EditMode
         public void ParkedThenQualified_LevelAlreadyTrue_Fires()
         {
             var bus = new SectorEventBus();
-            var inZone = NewPort("in-zone");
-            var keyAcquired = NewPort("key-acquired");
+            var inZone = NewSignal("in-zone");
+            var keyAcquired = NewSignal("key-acquired");
             var predicate = new ActivationPredicate(new[]
                 { ActivationTerm.Signal(inZone), ActivationTerm.Signal(keyAcquired) });
 
@@ -85,7 +86,7 @@ namespace Tests.EditMode
         public void Latch_AfterFiring_DropAndReraiseTerm_DoesNotRefire()
         {
             var bus = new SectorEventBus();
-            var inZone = NewPort("in-zone");
+            var inZone = NewSignal("in-zone");
             var predicate = new ActivationPredicate(new[] { ActivationTerm.Signal(inZone) });
 
             bus.Set(inZone, true);
@@ -98,17 +99,17 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void EventTerm_LatchedPort_SatisfiesPermanently()
+        public void EventTerm_LatchedSignal_SatisfiesPermanently()
         {
             var bus = new SectorEventBus();
-            var boom = NewPort("boom");
+            var boom = NewSignal("boom");
             var term = ActivationTerm.Signal(boom);
 
             bus.Latch(boom);
             Assert.IsTrue(term.IsSatisfied(bus, 0f));
 
             bus.Set(boom, false);
-            Assert.IsTrue(bus.Get(boom), "A latched port must never clear.");
+            Assert.IsTrue(bus.Get(boom), "A latched signal must never clear.");
             Assert.IsTrue(term.IsSatisfied(bus, 0f));
         }
 
@@ -123,18 +124,16 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void Chaining_RuleAFiredPort_SatisfiesRuleB_AndRulesFireOnce()
+        public void Chaining_RuleAFiredOutput_SatisfiesRuleB_AndRulesFireOnce()
         {
             var bus = new SectorEventBus();
             var ctx = new SectorBuildContext(null, null, null, bus);
-            var go = NewPort("go");
-            var aPort = NewPort("a-fired");
-            var bPort = NewPort("b-fired");
+            var go = NewSignal("go");
 
             var a = NewGO("RuleA").AddComponent<ActivationRule>();
-            a.Configure(new[] { ActivationTerm.Signal(go) }, aPort);
+            a.Configure(new[] { ActivationTerm.Signal(go) });
             var b = NewGO("RuleB").AddComponent<ActivationRule>();
-            b.Configure(new[] { ActivationTerm.Signal(aPort) }, bPort);
+            b.Configure(new[] { ActivationTerm.Signal(a, ActivationRule.OutputFired) });
 
             Run(a.Setup(ctx));
             Run(b.Setup(ctx));
@@ -146,8 +145,8 @@ namespace Tests.EditMode
 
             bus.Set(go, true);
             Assert.AreEqual(1, aFired, "Rule A must fire when its term holds.");
-            Assert.AreEqual(1, bFired, "Rule A's latched fired port must chain into rule B's signal term.");
-            Assert.IsTrue(bus.Get(aPort));
+            Assert.AreEqual(1, bFired, "Rule A's latched fired output must chain into rule B's signal term.");
+            Assert.IsTrue(bus.Get(new SignalRef(a, ActivationRule.OutputFired)));
 
             bus.Set(go, false);
             bus.Set(go, true);
@@ -164,20 +163,18 @@ namespace Tests.EditMode
             var bus = new SectorEventBus();
             var ctx = new SectorBuildContext(null, null, null, bus);
             var log = new List<string>();
-            var go = NewPort("go");
-            var aPort = NewPort("a-fired");
-            var bPort = NewPort("b-fired");
+            var go = NewSignal("go");
 
             var a = NewGO("RuleA").AddComponent<LoggingRule>();
             a.Log = log;
             a.Id = "A";
-            a.Configure(new[] { ActivationTerm.Signal(go) }, aPort);
+            a.Configure(new[] { ActivationTerm.Signal(go) });
             a.Fired += () => log.Add("A:event");
 
             var b = NewGO("RuleB").AddComponent<LoggingRule>();
             b.Log = log;
             b.Id = "B";
-            b.Configure(new[] { ActivationTerm.Signal(aPort) }, bPort);
+            b.Configure(new[] { ActivationTerm.Signal(a, ActivationRule.OutputFired) });
             b.Fired += () => log.Add("B:event");
 
             Run(a.Setup(ctx));
@@ -193,9 +190,9 @@ namespace Tests.EditMode
         public void FrozenBus_SetAndLatch_AreNoOps_AndNeverRaiseChanged()
         {
             var bus = new SectorEventBus();
-            var x = NewPort("x");
-            var y = NewPort("y");
-            var z = NewPort("z");
+            var x = NewSignal("x");
+            var y = NewSignal("y");
+            var z = NewSignal("z");
             bus.Set(x, true);
             bus.Freeze();
 
@@ -213,57 +210,53 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void UnassignedFiredPort_RuleLogsError_AndStaysInert()
-        {
-            var bus = new SectorEventBus();
-            var ctx = new SectorBuildContext(null, null, null, bus);
-            var go = NewPort("go");
-            var rule = NewGO("BadPublishRule").AddComponent<ActivationRule>();
-            rule.Configure(new[] { ActivationTerm.Signal(go) });
-
-            LogAssert.Expect(LogType.Error, new Regex("ActivationRule .*BadPublishRule.*unassigned fired port.*inert"));
-            Run(rule.Setup(ctx));
-
-            var fired = 0;
-            rule.Fired += () => fired++;
-            bus.Set(go, true);
-
-            Assert.AreEqual(0, fired, "An invalid rule must be fully inert, not half-working.");
-            Assert.IsFalse(rule.HasFired);
-        }
-
-        [Test]
-        public void UnassignedSignalTermPort_RuleLogsError_AndStaysInert()
+        public void UnassignedSignalTerm_RuleLogsError_AndStaysInert()
         {
             var bus = new SectorEventBus();
             var ctx = new SectorBuildContext(null, null, null, bus);
             var rule = NewGO("BadTermRule").AddComponent<ActivationRule>();
-            rule.Configure(new[] { ActivationTerm.Signal(null), ActivationTerm.Time(0f) }, NewPort("fired"));
+            rule.Configure(new[] { ActivationTerm.Signal(default), ActivationTerm.Time(0f) });
 
-            LogAssert.Expect(LogType.Error, new Regex("ActivationRule .*BadTermRule.*unassigned term port.*inert"));
+            LogAssert.Expect(LogType.Error, new Regex("ActivationRule .*BadTermRule.*unassigned term signal.*inert"));
             Run(rule.Setup(ctx));
 
             Assert.IsFalse(rule.HasFired, "An invalid rule must not arm at Setup.");
         }
 
         [Test]
-        public void CrossSectorTermPort_RuleLogsError_AndStaysInert()
+        public void UndeclaredOutputTerm_RuleLogsError_AndStaysInert()
+        {
+            var bus = new SectorEventBus();
+            var ctx = new SectorBuildContext(null, null, null, bus);
+            var donor = NewGO("Donor").AddComponent<ActivationRule>();
+            var rule = NewGO("BogusOutputRule").AddComponent<ActivationRule>();
+            rule.Configure(new[] { ActivationTerm.Signal(donor, "bogus") });
+
+            LogAssert.Expect(LogType.Error, new Regex("ActivationRule .*BogusOutputRule.*'bogus'.*does not declare.*inert"));
+            Run(rule.Setup(ctx));
+
+            bus.Set(new SignalRef(donor, "bogus"), true);
+            Assert.IsFalse(rule.HasFired, "A term injected with an undeclared output id must be inert.");
+        }
+
+        [Test]
+        public void CrossSectorTerm_RuleLogsError_AndStaysInert()
         {
             var bus = new SectorEventBus();
             var home = NewGO("HomeSector").AddComponent<Sector>();
             var foreign = NewGO("ForeignSector").AddComponent<Sector>();
-            var foreignPort = foreign.gameObject.AddComponent<SignalPort>();
+            var foreignRule = foreign.gameObject.AddComponent<ActivationRule>();
+            var foreignSignal = new SignalRef(foreignRule, ActivationRule.OutputFired);
 
             var ruleGO = NewGO("Rule");
             ruleGO.transform.SetParent(home.transform);
-            var homePort = ruleGO.AddComponent<SignalPort>();
             var rule = ruleGO.AddComponent<ActivationRule>();
-            rule.Configure(new[] { ActivationTerm.Signal(foreignPort) }, homePort);
+            rule.Configure(new[] { ActivationTerm.Signal(foreignSignal) });
 
             LogAssert.Expect(LogType.Error, new Regex("ActivationRule .*outside its own sector.*inert"));
             Run(rule.Setup(new SectorBuildContext(null, home, null, bus)));
 
-            bus.Set(foreignPort, true);
+            bus.Set(foreignSignal, true);
             Assert.IsFalse(rule.HasFired, "A rule wired across sectors through a code seam must be inert.");
         }
 
@@ -272,10 +265,10 @@ namespace Tests.EditMode
         {
             var bus = new SectorEventBus();
             var ctx = new SectorBuildContext(null, null, null, bus);
-            var go = NewPort("go");
+            var go = NewSignal("go");
             var ruleGO = NewGO("DormantDelayedRule");
             var rule = ruleGO.AddComponent<ActivationRule>();
-            rule.Configure(new[] { ActivationTerm.Signal(go) }, NewPort("fired"), fireDelaySeconds: 1f);
+            rule.Configure(new[] { ActivationTerm.Signal(go) }, fireDelaySeconds: 1f);
             ruleGO.SetActive(false);
 
             LogAssert.Expect(LogType.Error, new Regex("ActivationRule .*delayed fire.*inactive.*inert"));
@@ -293,7 +286,6 @@ namespace Tests.EditMode
             var volumeGO = NewGO("DormantVolume");
             volumeGO.AddComponent<SphereCollider>().isTrigger = true;
             var volume = volumeGO.AddComponent<TriggerVolume>();
-            volume.Configure(NewPort("inside"));
             volumeGO.SetActive(false);
 
             LogAssert.Expect(LogType.Error, new Regex("TriggerVolume .*trigger messages.*inactive.*inert"));
@@ -304,12 +296,12 @@ namespace Tests.EditMode
         public void BusChanged_RaisedOnlyOnActualValueChanges()
         {
             var bus = new SectorEventBus();
-            var x = NewPort("x");
-            var changes = new List<SignalPort>();
+            var x = NewSignal("x");
+            var changes = new List<SignalRef>();
             bus.Changed += changes.Add;
 
             bus.Set(x, false);
-            Assert.IsEmpty(changes, "Set(false) on an unset port must not raise Changed.");
+            Assert.IsEmpty(changes, "Set(false) on an unset signal must not raise Changed.");
 
             bus.Set(x, true);
             CollectionAssert.AreEqual(new[] { x }, changes);
@@ -326,22 +318,39 @@ namespace Tests.EditMode
             bus.Latch(x);
             bus.Set(x, false);
             CollectionAssert.AreEqual(new[] { x, x, x }, changes,
-                "Re-latching or Set(false) on a latched port must not raise Changed.");
+                "Re-latching or Set(false) on a latched signal must not raise Changed.");
             Assert.IsTrue(bus.Get(x));
         }
 
         [Test]
-        public void Bus_NullPort_ReadsFalse_AndWritesAreNoOps()
+        public void Bus_UnassignedRef_ReadsFalse_AndWritesAreNoOps()
         {
             var bus = new SectorEventBus();
             var changes = 0;
             bus.Changed += _ => changes++;
 
-            bus.Set(null, true);
-            bus.Latch(null);
+            bus.Set(default, true);
+            bus.Latch(default);
+            bus.Set(new SignalRef(NewGO("NoOutput").transform, null), true);
 
-            Assert.IsFalse(bus.Get(null));
-            Assert.AreEqual(0, changes, "A null port must never enter the bus.");
+            Assert.IsFalse(bus.Get(default));
+            Assert.AreEqual(0, changes, "An unassigned ref must never enter the bus.");
+        }
+
+        [Test]
+        public void SameSourceDifferentOutputs_AreDistinctBusKeys()
+        {
+            var bus = new SectorEventBus();
+            var ambush = NewGO("Ambush").AddComponent<AmbushEncounter>();
+            var fired = new SignalRef(ambush, ActivationRule.OutputFired);
+            var cleared = new SignalRef(ambush, AmbushEncounter.OutputCleared);
+
+            bus.Latch(fired);
+            Assert.IsTrue(bus.Get(fired));
+            Assert.IsFalse(bus.Get(cleared), "Outputs of one publisher must be independent signals.");
+
+            bus.Latch(cleared);
+            Assert.IsTrue(bus.Get(cleared));
         }
     }
 }

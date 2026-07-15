@@ -101,16 +101,15 @@ namespace Tests.PlayMode
             return go.AddComponent<T>();
         }
 
-        private static SignalPort AddPort(Component host) => host.gameObject.AddComponent<SignalPort>();
-
         [UnityTest]
         public IEnumerator SetupTeardownSetup_FreshUnfrozenBus_ClearedLatches_RuleRearmsAndFiresOnce()
         {
             var sector = CreateSector();
+            var donor = AddModule<ActivationRule>(sector, "Donor");
             var rule = AddModule<ActivationRule>(sector, "ChainRule");
-            var go = AddPort(rule);
-            var done = AddPort(rule);
-            rule.Configure(new[] { ActivationTerm.Signal(go) }, done);
+            var go = new SignalRef(donor, ActivationRule.OutputFired);
+            var done = new SignalRef(rule, ActivationRule.OutputFired);
+            rule.Configure(new[] { ActivationTerm.Signal(go) });
             sector.SetManifest(null, null, new SectorModule[] { rule });
 
             var fired = 0;
@@ -147,7 +146,7 @@ namespace Tests.PlayMode
         {
             var sector = CreateSector();
             var rule = AddModule<ActivationRule>(sector, "TimeRule");
-            rule.Configure(new[] { ActivationTerm.Time(0.1f) }, AddPort(rule));
+            rule.Configure(new[] { ActivationTerm.Time(0.1f) });
             var slow = AddModule<SlowTeardownModule>(sector, "SlowTeardown");
             var probe = AddModule<FreezeProbeModule>(sector, "FreezeProbe");
             // Reverse teardown order: probe and slow dismantle FIRST, leaving the rule live while time passes.

@@ -11,11 +11,6 @@ GameObject:
   - component: {fileID: 8376058910363217357}
   - component: {fileID: 6734031631238332472}
   - component: {fileID: 1122334455667788991}
-  - component: {fileID: 7100000000000000001}
-  - component: {fileID: 7100000000000000002}
-  - component: {fileID: 7100000000000000003}
-  - component: {fileID: 7100000000000000004}
-  - component: {fileID: 7100000000000000005}
   m_Layer: 0
   m_Name: CombatSector
   m_TagString: Untagged
@@ -97,76 +92,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   keyPickup: {fileID: 6425324032026563410}
   extractionZone: {fileID: 2625632652895766202}
-  explore: {fileID: 7100000000000000001}
-  keyAcquired: {fileID: 7100000000000000002}
-  readyToExtract: {fileID: 7100000000000000003}
-  completed: {fileID: 7100000000000000004}
-  failed: {fileID: 7100000000000000005}
---- !u!114 &7100000000000000001
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1718666969227981958}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 330e75c2072442eba98b7b05482123c7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  kind: 1
---- !u!114 &7100000000000000002
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1718666969227981958}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 330e75c2072442eba98b7b05482123c7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  kind: 1
---- !u!114 &7100000000000000003
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1718666969227981958}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 330e75c2072442eba98b7b05482123c7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  kind: 1
---- !u!114 &7100000000000000004
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1718666969227981958}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 330e75c2072442eba98b7b05482123c7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  kind: 1
---- !u!114 &7100000000000000005
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1718666969227981958}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 330e75c2072442eba98b7b05482123c7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  kind: 1
 --- !u!1 &8244661234500110001
 GameObject:
   m_ObjectHideFlags: 0
@@ -177,8 +102,6 @@ GameObject:
   m_Component:
   - component: {fileID: 8244661234500110002}
   - component: {fileID: 8244661234500110003}
-  - component: {fileID: 7100000000000000009}
-  - component: {fileID: 7100000000000000010}
   m_Layer: 0
   m_Name: Ambush
   m_TagString: Untagged
@@ -217,38 +140,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   terms:
   - kind: 0
-    signal: {fileID: 7100000000000000008}
+    signal:
+      source: {fileID: 8244661234500110007}
+      output: inside
     timeSeconds: 0
-  fired: {fileID: 7100000000000000009}
   fireDelaySeconds: 6
   waveSpawner: {fileID: 8244661234500110010}
-  cleared: {fileID: 7100000000000000010}
---- !u!114 &7100000000000000009
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8244661234500110001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 330e75c2072442eba98b7b05482123c7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  kind: 1
---- !u!114 &7100000000000000010
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8244661234500110001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 330e75c2072442eba98b7b05482123c7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  kind: 1
 --- !u!1 &8244661234500110004
 GameObject:
   m_ObjectHideFlags: 0
@@ -260,7 +157,6 @@ GameObject:
   - component: {fileID: 8244661234500110005}
   - component: {fileID: 8244661234500110006}
   - component: {fileID: 8244661234500110007}
-  - component: {fileID: 7100000000000000008}
   m_Layer: 0
   m_Name: Ambush Trigger
   m_TagString: Untagged
@@ -316,20 +212,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ddba32366471e444bc15b3ccb3028d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  inside: {fileID: 7100000000000000008}
---- !u!114 &7100000000000000008
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8244661234500110004}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 330e75c2072442eba98b7b05482123c7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  kind: 0
 --- !u!1 &8244661234500110008
 GameObject:
   m_ObjectHideFlags: 0
@@ -375,7 +257,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   activationMode: 1
-  activationSignal: {fileID: 7100000000000000009}
+  activationSignal:
+    source: {fileID: 8244661234500110003}
+    output: fired
   template: {fileID: 7184882482910536223, guid: c3c15225cb3a8fd42a87c756c1d2d884,
     type: 3}
   commander: {fileID: 1772957474756936600, guid: 08a3705197cc60842b107b8485d8ad25,
@@ -767,7 +651,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 383297d30cd9401fbf4b054277b01692, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  signal: {fileID: 7100000000000000007}
+  signal:
+    source: {fileID: 5533221100446688306}
+    output: fired
 --- !u!4 &6043965251031230171 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1576724491614118492, guid: cffc6e37abd758f4191aef193abb1274,
@@ -856,14 +742,6 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 5533221100446688306}
-    - targetCorrespondingSourceObject: {fileID: 4353083856392313041, guid: 0908c9d6b2b5b25499cf01ffc8214c5a,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 7100000000000000006}
-    - targetCorrespondingSourceObject: {fileID: 4353083856392313041, guid: 0908c9d6b2b5b25499cf01ffc8214c5a,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 7100000000000000007}
   m_SourcePrefab: {fileID: 100100000, guid: 0908c9d6b2b5b25499cf01ffc8214c5a, type: 3}
 --- !u!114 &2625632652895766202 stripped
 MonoBehaviour:
@@ -901,33 +779,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ddba32366471e444bc15b3ccb3028d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  inside: {fileID: 7100000000000000006}
---- !u!114 &7100000000000000006
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8115682183107214588}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 330e75c2072442eba98b7b05482123c7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  kind: 0
---- !u!114 &7100000000000000007
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8115682183107214588}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 330e75c2072442eba98b7b05482123c7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  kind: 1
 --- !u!114 &5533221100446688306
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -942,9 +793,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   terms:
   - kind: 0
-    signal: {fileID: 7100000000000000003}
+    signal:
+      source: {fileID: 1122334455667788991}
+      output: ready-to-extract
     timeSeconds: 0
-  fired: {fileID: 7100000000000000007}
   fireDelaySeconds: 0
   extractionZone: {fileID: 2625632652895766202}
 --- !u!1001 &6815441784401514499

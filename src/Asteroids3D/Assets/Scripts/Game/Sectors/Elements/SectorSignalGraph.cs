@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Game.Sectors
 {
-    /// <summary>Derived signal-wiring graph + validation over a sector's baked manifest (ports themselves are hierarchy components, not manifest entities). Pure C# (no UnityEditor) so it is unit-testable in EditMode.</summary>
+    /// <summary>Derived signal-wiring graph + validation over a sector's baked manifest: nodes are the manifest publishers' code-declared outputs, edges the consumers' serialized refs. Pure C# (no UnityEditor) so it is unit-testable in EditMode.</summary>
     public static class SectorSignalGraph
     {
         public enum Severity
@@ -26,17 +26,16 @@ namespace Game.Sectors
             }
         }
 
-        public class PortNode
+        public class OutputNode
         {
-            public SignalPort Port;
             public Component Publisher;
-            public string Role;
+            public SignalOutput Output;
             public readonly List<Component> Consumers = new();
         }
 
         public class Model
         {
-            public readonly List<PortNode> Ports = new();
+            public readonly List<OutputNode> Outputs = new();
             public readonly List<Finding> Findings = new();
 
             public bool HasErrors
@@ -49,10 +48,11 @@ namespace Game.Sectors
                 }
             }
 
-            public PortNode NodeFor(SignalPort port)
+            public OutputNode NodeFor(SignalRef signal)
             {
-                foreach (var node in Ports)
-                    if (node.Port == port) return node;
+                foreach (var node in Outputs)
+                    if (node.Publisher == signal.source && node.Output.Id == signal.output)
+                        return node;
                 return null;
             }
         }
@@ -60,25 +60,17 @@ namespace Game.Sectors
         public static Model Build(Sector sector)
         {
             var builder = new Builder(sector);
-            foreach (var port in sector.GetComponentsInChildren<SignalPort>(true))
-                builder.NodeFor(port);
+
+            foreach (var module in sector.Modules)
+                builder.Declare(module);
+            foreach (var spawner in sector.Spawners)
+                builder.Declare(spawner);
 
             foreach (var module in sector.Modules)
             {
                 switch (module)
                 {
-                    case null: break;
-                    case TriggerVolume volume:
-                        builder.Claim(volume, "inside", volume.InsidePort);
-                        break;
-                    case SectorSpineModule spine:
-                        foreach (var (step, port) in spine.StepPorts)
-                            builder.Claim(spine, step, port);
-                        break;
                     case ActivationRule rule:
-                        builder.Claim(rule, "fired", rule.FiredPort);
-                        if (rule is AmbushEncounter ambush)
-                            builder.Claim(ambush, "cleared", ambush.ClearedPort);
                         foreach (var term in rule.Terms)
                             if (term.kind == ActivationTerm.TermKind.Signal)
                                 builder.Consume(rule, "term", term.signal);
@@ -102,71 +94,50 @@ namespace Game.Sectors
             public readonly Model Model = new();
 
             private readonly Sector sector;
-            private readonly Dictionary<SignalPort, PortNode> nodes = new();
 
             public Builder(Sector sector) => this.sector = sector;
 
-            public PortNode NodeFor(SignalPort port)
+            public void Declare(Component publisher)
             {
-                if (nodes.TryGetValue(port, out var node)) return node;
-                node = new PortNode { Port = port };
-                nodes[port] = node;
-                Model.Ports.Add(node);
-                return node;
+                if (publisher is not ISignalSource source) return;
+                foreach (var output in source.Outputs)
+                    Model.Outputs.Add(new OutputNode { Publisher = publisher, Output = output });
             }
 
-            public void Claim(Component publisher, string role, SignalPort port)
+            public void Consume(Component consumer, string role, SignalRef signal)
             {
-                if (!ValidRef(publisher, role, port)) return;
-                var node = NodeFor(port);
-                if (node.Publisher)
+                if (!signal.IsAssigned)
                 {
-                    Error($"Port '{port.name}' is claimed by both {Describe(node.Publisher)} ({node.Role}) and {Describe(publisher)} ({role}) — ports are single-owner.", port);
+                    Error($"{Describe(consumer)} has an unassigned {role} signal.", consumer);
                     return;
                 }
-                node.Publisher = publisher;
-                node.Role = role;
-            }
-
-            public void Consume(Component consumer, string role, SignalPort port)
-            {
-                if (!ValidRef(consumer, role, port)) return;
-                NodeFor(port).Consumers.Add(consumer);
+                if (!signal.source.transform.IsChildOf(sector.transform))
+                {
+                    Error($"{Describe(consumer)} references {role} signal '{signal.output}' outside the sector.", consumer);
+                    return;
+                }
+                var node = Model.NodeFor(signal);
+                if (node == null)
+                {
+                    Error($"{Describe(consumer)} references {role} output '{signal.output}' that no sector publisher declares — check the source's declared outputs and the manifest.", consumer);
+                    return;
+                }
+                node.Consumers.Add(consumer);
             }
 
             public void FinishFindings()
             {
-                foreach (var node in Model.Ports)
-                {
-                    if (!node.Publisher)
-                        Error($"SignalPort on '{node.Port.name}' has no publisher — nothing can ever raise it.", node.Port);
-                    else if (node.Consumers.Count == 0)
-                        Info($"Port '{node.Port.name}' ({node.Role}) is published but unconsumed.", node.Port);
-                }
+                foreach (var node in Model.Outputs)
+                    if (node.Consumers.Count == 0)
+                        Info($"Output '{node.Output.Id}' of {Describe(node.Publisher)} is published but unconsumed.", node.Publisher);
                 FindCycles();
-            }
-
-            private bool ValidRef(Component owner, string role, SignalPort port)
-            {
-                if (!port)
-                {
-                    Error($"{Describe(owner)} has an unassigned {role} port.", owner);
-                    return false;
-                }
-                if (!port.transform.IsChildOf(sector.transform))
-                {
-                    Error($"{Describe(owner)} references {role} port '{port.name}' outside the sector.", owner);
-                    return false;
-                }
-                return true;
             }
 
             private void FindCycles()
             {
                 var edges = new Dictionary<Component, List<Component>>();
-                foreach (var node in Model.Ports)
+                foreach (var node in Model.Outputs)
                 {
-                    if (!node.Publisher) continue;
                     foreach (var consumer in node.Consumers)
                     {
                         if (!edges.TryGetValue(node.Publisher, out var list))

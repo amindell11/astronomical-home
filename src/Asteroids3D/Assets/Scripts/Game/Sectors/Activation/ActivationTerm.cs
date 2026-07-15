@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace Game.Sectors
 {
@@ -12,11 +13,14 @@ namespace Game.Sectors
         }
 
         public TermKind kind;
-        public SignalPort signal;
+        public SignalRef signal;
         public float timeSeconds;
 
-        public static ActivationTerm Signal(SignalPort port) =>
-            new ActivationTerm { kind = TermKind.Signal, signal = port };
+        public static ActivationTerm Signal(SignalRef signal) =>
+            new ActivationTerm { kind = TermKind.Signal, signal = signal };
+
+        public static ActivationTerm Signal(Component source, string output) =>
+            Signal(new SignalRef(source, output));
 
         public static ActivationTerm Time(float seconds) =>
             new ActivationTerm { kind = TermKind.Time, timeSeconds = seconds };

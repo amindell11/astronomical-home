@@ -5,12 +5,12 @@ using UnityEngine;
 
 namespace Game.Sectors
 {
-    /// <summary>Fires exactly once when all terms hold, in causal order: OnFired (own effect) → Fired event → latch the fired port, so downstream rules run strictly after this rule's effect.</summary>
-    public class ActivationRule : SectorModule
+    /// <summary>Fires exactly once when all terms hold, in causal order: OnFired (own effect) → Fired event → latch the fired output, so downstream rules run strictly after this rule's effect.</summary>
+    public class ActivationRule : SectorModule, ISignalSource
     {
-        [SerializeField] private ActivationTerm[] terms = Array.Empty<ActivationTerm>();
+        public const string OutputFired = "fired";
 
-        [SerializeField] private SignalPort fired;
+        [SerializeField] private ActivationTerm[] terms = Array.Empty<ActivationTerm>();
 
         [Tooltip("Delay between the terms first holding (latched — leaving the area does not cancel) and the fire sequence running. Teardown or bus freeze cancels a pending fire.")]
         [SerializeField] private float fireDelaySeconds;
@@ -21,7 +21,10 @@ namespace Game.Sectors
 
         public IReadOnlyList<ActivationTerm> Terms => terms;
 
-        public SignalPort FiredPort => fired;
+        public virtual IEnumerable<SignalOutput> Outputs
+        {
+            get { yield return new SignalOutput(OutputFired, SignalKind.Latch); }
+        }
 
         private SectorEventBus bus;
         private ActivationPredicate predicate;
@@ -29,16 +32,15 @@ namespace Game.Sectors
         private bool firePending;
         private float fireAtTime;
 
-        public void Configure(ActivationTerm[] terms, SignalPort fired = null, float fireDelaySeconds = 0f)
+        public void Configure(ActivationTerm[] terms, float fireDelaySeconds = 0f)
         {
             this.terms = terms ?? Array.Empty<ActivationTerm>();
-            this.fired = fired;
             this.fireDelaySeconds = fireDelaySeconds;
         }
 
         public override IEnumerator Setup(SectorBuildContext ctx)
         {
-            if (!PortsValid(ctx.Sector)) yield break;
+            if (!TermsValid(ctx.Sector)) yield break;
             if (fireDelaySeconds > 0f && !gameObject.activeInHierarchy)
             {
                 Debug.LogError($"{GetType().Name} on '{name}' has a delayed fire but its GameObject is inactive — inert.", this);
@@ -63,15 +65,14 @@ namespace Game.Sectors
             yield break;
         }
 
-        /// <summary>Effect seam: a subclass IS the effect (no post-Setup binding race); runs before the Fired event and port latch.</summary>
+        /// <summary>Effect seam: a subclass IS the effect (no post-Setup binding race); runs before the Fired event and output latch.</summary>
         protected virtual void OnFired() { }
 
-        private bool PortsValid(Sector sector)
+        private bool TermsValid(Sector sector)
         {
-            if (!SignalPortGuards.ValidPortRef(this, fired, "fired", sector)) return false;
             foreach (var term in terms)
                 if (term.kind == ActivationTerm.TermKind.Signal &&
-                    !SignalPortGuards.ValidPortRef(this, term.signal, "term", sector))
+                    !SignalGuards.ValidRef(this, term.signal, "term", sector))
                     return false;
             return true;
         }
@@ -88,7 +89,7 @@ namespace Game.Sectors
             EvaluateNow();
         }
 
-        private void OnBusChanged(SignalPort port) => EvaluateNow();
+        private void OnBusChanged(SignalRef signal) => EvaluateNow();
 
         private void EvaluateNow()
         {
@@ -110,7 +111,7 @@ namespace Game.Sectors
             HasFired = true;
             OnFired();
             Fired?.Invoke();
-            bus?.Latch(fired);
+            bus?.Latch(new SignalRef(this, OutputFired));
         }
     }
 }
