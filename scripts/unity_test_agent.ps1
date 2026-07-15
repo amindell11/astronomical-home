@@ -18,6 +18,8 @@
     [int]$LogTailLines = 40,
     [int]$UnityTimeoutSec = 1800,
     [string]$ExcludeCategory = "RequiresGraphics",
+    [switch]$WithGraphics,
+    [string]$CaptureScenario = "",
     [switch]$IncludeStackTrace,
     [switch]$ValidateScope,
     [string]$ScopeMapPath = "",
@@ -30,6 +32,27 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "unity_test_scope_lib.ps1")
+
+if ($WithGraphics.IsPresent) {
+    if ($Mode -ne "PlayMode") {
+        throw "-WithGraphics requires -Mode PlayMode: graphics runs are for filtered capture/render tests, never the merge-gate suite."
+    }
+    if ([string]::IsNullOrWhiteSpace($TestFilter)) {
+        throw "-WithGraphics requires an explicit -TestFilter so a graphics run can never widen into the full suite."
+    }
+    if (-not $PSBoundParameters.ContainsKey('ExcludeCategory')) {
+        $ExcludeCategory = ""
+    }
+}
+if (-not [string]::IsNullOrWhiteSpace($CaptureScenario)) {
+    if (-not $WithGraphics.IsPresent) {
+        throw "-CaptureScenario requires -WithGraphics: frame capture needs a graphics device."
+    }
+    if ($CaptureScenario -notmatch '^[A-Za-z0-9_]+$') {
+        throw "-CaptureScenario must be a plain scenario type name (its .cs file name), got '$CaptureScenario'."
+    }
+}
+
 $Script:IsWindowsPlatform = ($env:OS -eq "Windows_NT")
 $Script:UnityAccessRunId = [guid]::NewGuid().ToString("N")
 # Boot window ends once licensing + global package-cache work is done and per-project Library work begins (postmortem D6).
@@ -542,6 +565,33 @@ $scopeResolved = $false
 $autoSummary = $null
 $testsRoot = Join-Path $project "Assets/Scripts/Editor/Tests"
 
+# Scratch staging is gitignored inside Assets/, so slot-prepare's `git clean -fd` preserves it:
+# a stranded scenario from a killed run would silently break the next agent's compile. Sweep every run.
+$scratchStagingDir = Join-Path $testsRoot "PlayMode/Scratch"
+if (Test-Path -LiteralPath $scratchStagingDir) {
+    Get-ChildItem -LiteralPath $scratchStagingDir -File |
+        Where-Object { $_.Name -like "*.cs" -or $_.Name -like "*.cs.meta" } |
+        Remove-Item -Force
+}
+$stagedScenarioPath = ""
+if (-not [string]::IsNullOrWhiteSpace($CaptureScenario)) {
+    $repoRoot = Get-RepoRoot -ProbePath $PSScriptRoot
+    $scratchSource = Join-Path $repoRoot "scratch/capture/$CaptureScenario.cs"
+    $committedSource = Join-Path $testsRoot "PlayMode/Scenarios/$CaptureScenario.cs"
+    if (Test-Path -LiteralPath $scratchSource) {
+        New-Item -ItemType Directory -Force -Path $scratchStagingDir | Out-Null
+        $stagedScenarioPath = Join-Path $scratchStagingDir "$CaptureScenario.cs"
+        Copy-Item -LiteralPath $scratchSource -Destination $stagedScenarioPath -Force
+        Write-Host "Staged scratch scenario: $scratchSource"
+    }
+    elseif (Test-Path -LiteralPath $committedSource) {
+        Write-Host "Using committed scenario: $committedSource"
+    }
+    else {
+        throw "-CaptureScenario ${CaptureScenario}: no $CaptureScenario.cs in scratch/capture/ (repo root) or committed under Tests/PlayMode/Scenarios/."
+    }
+}
+
 if ([string]::IsNullOrWhiteSpace($TestFilter)) {
     if ($ScopeType -eq "Auto") {
         $autoMergeBase = ""
@@ -679,62 +729,78 @@ $selection = [ordered]@{
     orderedTestListFile = $orderedListPath
     rerunFailedFrom = $rerunSummaryPath
     auto = $autoSummary
+    withGraphics = $WithGraphics.IsPresent
+    captureScenario = $CaptureScenario
 }
 
 $runs = @()
 
-foreach ($platform in $platforms) {
-    $xmlPath = Join-Path $outRoot "$stamp-$platform.xml"
-    $logPath = Join-Path $outRoot "$stamp-$platform.log"
+try {
+    foreach ($platform in $platforms) {
+        $xmlPath = Join-Path $outRoot "$stamp-$platform.xml"
+        $logPath = Join-Path $outRoot "$stamp-$platform.log"
 
-    $args = @(
-        "-batchmode",
-        "-nographics",
-        "-projectPath", $project,
-        "-runTests",
-        "-testPlatform", $platform,
-        "-testResults", $xmlPath,
-        "-logFile", $logPath
-    )
+        $args = @(
+            "-batchmode",
+            "-projectPath", $project,
+            "-runTests",
+            "-testPlatform", $platform,
+            "-testResults", $xmlPath,
+            "-logFile", $logPath
+        )
+        if (-not $WithGraphics.IsPresent) {
+            $args = @($args[0], "-nographics") + $args[1..($args.Count - 1)]
+        }
 
-    if (-not [string]::IsNullOrWhiteSpace($TestFilter)) {
-        $args += @("-testFilter", $TestFilter)
+        if (-not [string]::IsNullOrWhiteSpace($TestFilter)) {
+            $args += @("-testFilter", $TestFilter)
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($categoryFilter)) {
+            $args += @("-testCategory", $categoryFilter)
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($AssemblyNames)) {
+            $args += @("-assemblyNames", $AssemblyNames)
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($orderedListPath)) {
+            $args += @("-orderedTestListFile", $orderedListPath)
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($CaptureScenario)) {
+            $args += @("-captureScenario", $CaptureScenario)
+        }
+
+        Write-Host "Running Unity $platform tests..."
+
+        $invoke = Invoke-UnityProcess -UnityExe $unityExe -Arguments $args -TimeoutSec $UnityTimeoutSec
+        $unityExit = [int]$invoke.exitCode
+
+        $parsed = Parse-UnityResultXml `
+            -XmlPath $xmlPath `
+            -Platform $platform `
+            -LogPath $logPath `
+            -UnityExitCode $unityExit `
+            -FailureLimit $MaxFailures `
+            -MessageLimit $MaxMessageLength `
+            -WithStackTrace:$IncludeStackTrace `
+            -TailLines $LogTailLines `
+            -Selection $selection
+
+        if ($invoke.timedOut) {
+            $parsed.status = "infra_error"
+            $parsed.note = "Unity test run timed out after $UnityTimeoutSec seconds and was terminated (pid=$($invoke.pid))."
+        }
+
+        $runs += $parsed
     }
-
-    if (-not [string]::IsNullOrWhiteSpace($categoryFilter)) {
-        $args += @("-testCategory", $categoryFilter)
+}
+finally {
+    if (-not [string]::IsNullOrWhiteSpace($stagedScenarioPath)) {
+        Remove-Item -LiteralPath $stagedScenarioPath -Force -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath "$stagedScenarioPath.meta" -Force -ErrorAction SilentlyContinue
     }
-
-    if (-not [string]::IsNullOrWhiteSpace($AssemblyNames)) {
-        $args += @("-assemblyNames", $AssemblyNames)
-    }
-
-    if (-not [string]::IsNullOrWhiteSpace($orderedListPath)) {
-        $args += @("-orderedTestListFile", $orderedListPath)
-    }
-
-    Write-Host "Running Unity $platform tests..."
-
-    $invoke = Invoke-UnityProcess -UnityExe $unityExe -Arguments $args -TimeoutSec $UnityTimeoutSec
-    $unityExit = [int]$invoke.exitCode
-
-    $parsed = Parse-UnityResultXml `
-        -XmlPath $xmlPath `
-        -Platform $platform `
-        -LogPath $logPath `
-        -UnityExitCode $unityExit `
-        -FailureLimit $MaxFailures `
-        -MessageLimit $MaxMessageLength `
-        -WithStackTrace:$IncludeStackTrace `
-        -TailLines $LogTailLines `
-        -Selection $selection
-
-    if ($invoke.timedOut) {
-        $parsed.status = "infra_error"
-        $parsed.note = "Unity test run timed out after $UnityTimeoutSec seconds and was terminated (pid=$($invoke.pid))."
-    }
-
-    $runs += $parsed
 }
 
 $total = 0
@@ -755,9 +821,14 @@ foreach ($run in $runs) {
     }
 }
 
+$zeroTestGraphicsRun = ($WithGraphics.IsPresent -and $total -eq 0)
+if ($zeroTestGraphicsRun) {
+    Write-Host "[FAIL] -WithGraphics run executed zero tests: the filter matched nothing, so no frame was ever rendered."
+}
+
 $overallStatus = if ($hasInfraError) {
     "infra_error"
-} elseif ($failed -gt 0) {
+} elseif ($failed -gt 0 -or $zeroTestGraphicsRun) {
     "failed"
 } else {
     "passed"
