@@ -34,12 +34,16 @@ namespace AI
             pose = poseFunc;
         }
 
-        /// <summary>
-        /// Evaluates each equipped weapon independently — aiming with <em>that slot's</em>
-        /// ballistics — and pushes a per-slot <see cref="WeaponCommand"/> to the actuator. The AI
-        /// re-decides every step, so it reports both a press and a hold each step it wants fire
-        /// ("mashing"); each weapon's own trigger semantics and conditions pace the actual shots.
-        /// </summary>
+        /// <summary>Drops the tracked enemy and aim point, restoring the freshly-initialized gunner.</summary>
+        public void ResetState()
+        {
+            hasEnemy = false;
+            enemyPos = default;
+            enemyVel = default;
+            ClearTarget();
+        }
+
+        /// <summary>Evaluates each equipped slot with its own ballistics and pushes press+hold each step it wants fire; the weapons' own trigger semantics pace the shots.</summary>
         public void Fire()
         {
             if (weapons == null || actuator == null) return;
@@ -53,26 +57,22 @@ namespace AI
             }
         }
 
-        /// <summary>
-        /// The world-space aim point for a slot: an intercept lead computed from the slot's own
-        /// muzzle speed; a non-positive speed means hitscan — aim at the target's present position.
-        /// </summary>
+        /// <summary>The gunner's aim policy for one weapon: intercept lead from its muzzle speed; non-positive speed = hitscan, aim at the present position.</summary>
+        public static Vector2 AimPoint(in Kinematics shooterPose, Vector2 targetPos, Vector2 targetVel, float projectileSpeed) =>
+            projectileSpeed <= 0f
+                ? targetPos
+                : TargetingMath.PredictIntercept(in shooterPose, targetPos, targetVel, projectileSpeed);
+
         internal Vector3 AimPointFor(WeaponSlot slot)
         {
-            var speed = weapons.ProjectileSpeed(slot);
-            if (speed <= 0f || pose == null)
+            if (pose == null)
                 return GamePlane.PlanePointToWorld(enemyPos);
 
             return GamePlane.PlanePointToWorld(
-                TargetingMath.PredictIntercept(pose(), enemyPos, enemyVel, speed));
+                AimPoint(pose(), enemyPos, enemyVel, weapons.ProjectileSpeed(slot)));
         }
 
-        /// <summary>
-        /// Consumes the gunner slice of a <see cref="NavigationIntent"/>, mirroring
-        /// <c>Navigator.ApplyIntent</c>. Stores the enemy kinematics for per-slot firing
-        /// solutions; the cached <see cref="Target"/> is the primary weapon's lead (diagnostics
-        /// and navigator consumers).
-        /// </summary>
+        /// <summary>Consumes the gunner slice of a <see cref="NavigationIntent"/> (mirrors <c>Navigator.ApplyIntent</c>): stores enemy kinematics for per-slot firing solutions.</summary>
         public void ApplyIntent(in NavigationIntent intent)
         {
             if (!intent.isValid) return;

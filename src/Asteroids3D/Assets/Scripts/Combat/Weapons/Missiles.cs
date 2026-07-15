@@ -69,22 +69,31 @@ namespace Combat.Weapons
             return proj;
         }
 
+        // Honest geometry: the sensor's lock cone (with LOS) or the unguided dumbfire window (no LOS, matching ShouldFire's fallback).
+        public override bool InEnvelope(in TargetingContext context) =>
+            InLockCone(in context) || InFallbackEnvelope(in context);
+
+        private bool InLockCone(in TargetingContext context) =>
+            targetingComputer
+            && context.hasLineOfSight
+            && context.distanceToTarget <= targetingComputer.maxLockDistance
+            && context.angleToTarget <= targetingComputer.lockOnConeAngle * 0.5f;
+
+        private bool InFallbackEnvelope(in TargetingContext context) =>
+            context.distanceToTarget <= fallbackRange && context.angleToTarget <= fallbackAngleTolerance;
+
+        // Not a strict InEnvelope && readiness factorization: a held lock fires regardless of current geometry.
         public override bool ShouldFire(TargetingContext context)
         {
             if (!Rounds || Rounds.AmmoCount <= 0)
                 return false;
 
-            switch (lockProvider?.State ?? LockState.Idle)
+            return (lockProvider?.State ?? LockState.Idle) switch
             {
-                case LockState.Locked:
-                    return true;
-                case LockState.Idle:
-                case LockState.Locking:
-                    return context.distanceToTarget <= fallbackRange && context.angleToTarget <= fallbackAngleTolerance;
-                case LockState.Cooldown:
-                default:
-                    return false;
-            }
+                LockState.Locked => true,
+                LockState.Idle or LockState.Locking => InFallbackEnvelope(in context),
+                _ => false,
+            };
         }
     }
 }

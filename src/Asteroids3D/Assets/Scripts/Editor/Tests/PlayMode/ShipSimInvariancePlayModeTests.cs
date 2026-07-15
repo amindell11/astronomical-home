@@ -23,7 +23,6 @@ namespace Tests.PlayMode
     /// physics step, bypassing the AI). We use the Ship_1 prefab specifically because it carries the
     /// full presentation footprint being refactored.
     /// </summary>
-    [Category("Integration")]
     [Category("Movement")]
     public class ShipSimInvariancePlayModeTests : PlayModeWorldFixture
     {

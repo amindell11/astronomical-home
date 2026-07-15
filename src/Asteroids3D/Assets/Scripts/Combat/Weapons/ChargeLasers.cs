@@ -4,11 +4,7 @@ using UnityEngine;
 
 namespace Combat.Weapons
 {
-    /// <summary>
-    /// Hold-to-charge laser: charge accumulates while the trigger is held (see
-    /// <see cref="ChargeTime"/>) and the shot's damage scales with the charge spent — release
-    /// early above the minimum for a weak snap shot, or hold to full for maximum damage.
-    /// </summary>
+    /// <summary>Hold-to-charge laser: damage scales with the <see cref="ChargeTime"/> charge spent on release.</summary>
     public class ChargeLasers : WeaponBase<Laser>
     {
         [Header("Charge Damage")]
@@ -27,6 +23,7 @@ namespace Combat.Weapons
         [SerializeField] private ChargeTime charge;
 
         public override float ProjectileSpeed => projectilePrefab.LaserSpeed;
+        public override float FireRange => fireDistance;
         public ChargeTime Charge => charge;
 
         public override string HangarStats
@@ -64,14 +61,12 @@ namespace Combat.Weapons
             return proj;
         }
 
-        public override bool ShouldFire(TargetingContext context)
-        {
-            // The AI holds the trigger to charge; ChargeTime auto-fires at full.
-            if (!context.hasLineOfSight)
-                return false;
+        public override bool InEnvelope(in TargetingContext context) =>
+            context.hasLineOfSight
+            && context.distanceToTarget <= fireDistance
+            && context.angleToTarget <= fireAngleTolerance;
 
-            return context.distanceToTarget <= fireDistance
-                && context.angleToTarget <= fireAngleTolerance;
-        }
+        // The AI holds the trigger to charge; ChargeTime auto-fires at full, so readiness adds nothing here.
+        public override bool ShouldFire(TargetingContext context) => InEnvelope(in context);
     }
 }

@@ -4,10 +4,7 @@ using UnityEngine;
 
 namespace Combat.Weapons
 {
-    /// <summary>
-    /// Ballistic autocannon: magazine-fed (<see cref="Rounds"/> with a timed reload), no heat.
-    /// Fires the same straight-line projectile class as the laser from a slug-tuned prefab.
-    /// </summary>
+    /// <summary>Ballistic autocannon: magazine-fed (<see cref="Rounds"/>), no heat, laser-class straight-line slugs.</summary>
     public class Rippers : WeaponBase<Laser>
     {
         [Header("AI Firing")]
@@ -21,6 +18,7 @@ namespace Combat.Weapons
         [SerializeField] private Cooldown cooldown;
 
         public override float ProjectileSpeed => projectilePrefab.LaserSpeed;
+        public override float FireRange => fireDistance;
         public Rounds Rounds => rounds;
 
         public override string HangarStats
@@ -44,15 +42,12 @@ namespace Combat.Weapons
             if (!cooldown) cooldown = GetComponent<Cooldown>();
         }
 
-        public override bool ShouldFire(TargetingContext context)
-        {
-            if (!Rounds || !Rounds.CanFire() || !context.hasLineOfSight)
-                return false;
+        public override bool InEnvelope(in TargetingContext context) =>
+            context.hasLineOfSight
+            && context.distanceToTarget <= fireDistance
+            && context.angleToTarget <= fireAngleTolerance;
 
-            var isInRange = context.distanceToTarget <= fireDistance;
-            var isInAngle = context.angleToTarget <= fireAngleTolerance;
-
-            return isInRange && isInAngle;
-        }
+        public override bool ShouldFire(TargetingContext context) =>
+            Rounds && Rounds.CanFire() && InEnvelope(in context);
     }
 }

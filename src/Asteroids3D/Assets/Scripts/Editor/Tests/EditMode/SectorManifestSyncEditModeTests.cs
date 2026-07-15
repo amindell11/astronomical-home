@@ -6,19 +6,14 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>
-    /// EditMode tests for the edit-time bake (<see cref="SectorManifestSync"/>): the scoped crawl
-    /// (descend plain containers, stop at recognised nodes) and reconcile rules (append new, drop
-    /// orphans, preserve order). Uses lightweight <see cref="SectorSpawner"/> stubs as the
-    /// recognised nodes so no heavy Ship/World construction is needed.
-    /// </summary>
+    /// <summary>Edit-time bake (<see cref="SectorManifestSync"/>) tests — scoped crawl + reconcile rules — using stub spawners/modules so no heavy Ship/World construction is needed.</summary>
     [TestFixture]
     [Category("Sectors")]
     public class SectorManifestSyncEditModeTests
     {
         private class StubSpawner : SectorSpawner
         {
-            public override IEnumerator Build(SectorBuildContext ctx) { yield break; }
+            protected override IEnumerator Produce(SectorBuildContext ctx) { yield break; }
         }
 
         private class StubModule : SectorModule { }
@@ -52,15 +47,9 @@ namespace Tests.EditMode
         {
             var root = NewGO("Root");
 
-            // Recognised node directly under root.
             var direct = AddSpawner("Direct", root.transform);
-
-            // Recognised node NESTED inside another recognised node — must NOT be collected
-            // (the outer node owns its subtree; scoped crawl stops at it).
             AddSpawner("NestedInsideRecognized", direct.transform);
 
-            // Plain container with a recognised node inside — container is transparent, so the
-            // inner node IS collected.
             var container = NewGO("PlainContainer", root.transform);
             var inContainer = AddSpawner("InContainer", container.transform);
 
@@ -95,7 +84,6 @@ namespace Tests.EditMode
             var root = NewGO("Root");
             var a = AddSpawner("A", root.transform);
 
-            // Existing manifest references a spawner that is NOT in the hierarchy → orphan.
             var detached = NewGO("Detached").AddComponent<StubSpawner>();
 
             var result = SectorManifestSync.Reconcile(root.transform,
@@ -111,12 +99,10 @@ namespace Tests.EditMode
         public void Reconcile_PreservesExistingOrder_AppendsNewAtEnd()
         {
             var root = NewGO("Root");
-            // Hierarchy order: A, B, C.
             var a = AddSpawner("A", root.transform);
             var b = AddSpawner("B", root.transform);
             var c = AddSpawner("C", root.transform);
 
-            // Existing manifest order is intentionally different: C, A. (B is new.)
             var result = SectorManifestSync.Reconcile(root.transform,
                 new AdoptEntry[0], new SectorSpawner[] { c, a });
 
@@ -132,18 +118,15 @@ namespace Tests.EditMode
         public void Reconcile_CollectsRootModules_AppendsNew_PreservesOrder_DropsOrphans()
         {
             var root = NewGO("Root");
-            // Modules live as components on the sector ROOT, not as crawled children.
             var a = root.AddComponent<StubModule>();
             var b = root.AddComponent<StubModule>();
 
-            // Existing manifest references an orphan module on a detached object.
             var detached = NewGO("Detached").AddComponent<StubModule>();
 
             var result = SectorManifestSync.Reconcile(root.transform,
                 new AdoptEntry[0], new SectorSpawner[0],
                 new SectorModule[] { b, detached });
 
-            // b kept (still on root, preserves position 0), detached dropped, a appended.
             Assert.AreEqual(1, result.AppendedModule, "Module 'a' is new and must be appended.");
             Assert.AreEqual(1, result.OrphanedModule, "Detached module entry must be reported as orphan.");
             Assert.AreEqual(2, result.Modules.Length);
@@ -156,11 +139,9 @@ namespace Tests.EditMode
         {
             var root = NewGO("Root");
 
-            // Module authored as a child GameObject (under a plain container) — must be collected.
             var container = NewGO("ModuleHolder", root.transform);
             var child = container.AddComponent<StubModule>();
 
-            // Module nested INSIDE a recognised content node — must NOT be collected (scoped stop).
             var spawner = AddSpawner("Spawner", root.transform);
             var hidden = NewGO("Hidden", spawner.transform).AddComponent<StubModule>();
 
@@ -173,12 +154,35 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void Reconcile_CollectsModuleOnRecognizedNode_WithoutDescending()
+        {
+            var root = NewGO("Root");
+
+            var spawner = AddSpawner("Spawner", root.transform);
+            var onNode = spawner.gameObject.AddComponent<StubModule>();
+
+            var hidden = NewGO("Hidden", spawner.transform).AddComponent<StubModule>();
+
+            var result = SectorManifestSync.Reconcile(root.transform,
+                new AdoptEntry[0], new SectorSpawner[0], new SectorModule[0]);
+
+            CollectionAssert.Contains(result.Modules, onNode,
+                "A module carried by a recognised content node must be collected.");
+            CollectionAssert.DoesNotContain(result.Modules, hidden,
+                "The node's subtree stays owned — no descent.");
+
+            var drift = SectorManifestSync.ComputeDrift(root.transform,
+                new AdoptEntry[0], new SectorSpawner[] { spawner }, new SectorModule[] { onNode });
+            Assert.IsFalse(drift.HasDrift, "A synced on-node module must not read as drift.");
+        }
+
+        [Test]
         public void ComputeDrift_CountsModuleDrift()
         {
             var root = NewGO("Root");
-            var a = root.AddComponent<StubModule>(); // in manifest
-            root.AddComponent<StubModule>();         // unsynced (not in manifest)
-            var detached = NewGO("Detached").AddComponent<StubModule>(); // orphan entry
+            var a = root.AddComponent<StubModule>();
+            root.AddComponent<StubModule>();
+            var detached = NewGO("Detached").AddComponent<StubModule>();
 
             var drift = SectorManifestSync.ComputeDrift(root.transform,
                 new AdoptEntry[0], new SectorSpawner[0],
@@ -193,10 +197,10 @@ namespace Tests.EditMode
         public void ComputeDrift_CountsUnsyncedAndOrphaned()
         {
             var root = NewGO("Root");
-            var a = AddSpawner("A", root.transform);   // in hierarchy
-            AddSpawner("B", root.transform);           // in hierarchy, unsynced
+            var a = AddSpawner("A", root.transform);
+            AddSpawner("B", root.transform);
 
-            var detached = NewGO("Detached").AddComponent<StubSpawner>(); // orphan entry
+            var detached = NewGO("Detached").AddComponent<StubSpawner>();
 
             var drift = SectorManifestSync.ComputeDrift(root.transform,
                 new AdoptEntry[0], new SectorSpawner[] { a, detached });

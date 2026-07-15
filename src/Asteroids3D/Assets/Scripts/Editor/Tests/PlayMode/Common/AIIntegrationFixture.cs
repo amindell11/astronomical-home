@@ -12,7 +12,7 @@ using UnityEngine;
 namespace Tests.PlayMode.Common
 {
 
-/// <summary>Fixture for multi-ship AI integration tests; carries a real ShipRegistry so CombatTracker can acquire enemies.</summary>
+/// <summary>Base fixture for multi-ship AI integration tests (full scan → utility → nav/gunner loop); provides a real ShipRegistry so CombatTracker can acquire enemies.</summary>
 public abstract class AIIntegrationFixture : PlayModeWorldFixture
 {
     protected ShipRegistry registry;
@@ -61,16 +61,16 @@ public abstract class AIIntegrationFixture : PlayModeWorldFixture
 
     protected void InitializeWithStates(AICommander cmdr, params AIState[] states)
     {
-        cmdr.UtilityChooser.ResetForTesting();
+        cmdr.UtilityChooser.Reset();
         cmdr.UtilityChooser.Initialize(states, new SeedScope(0));
     }
 
-    /// <summary>Shield absorbs first — to reduce health, deal more than shield capacity + desired health damage.</summary>
+    /// <summary>Deals raw damage; shield absorbs first, so exceed shield capacity to touch health.</summary>
     protected void DealDamage(Ship target, float amount)
     {
         target.Damage.TakeDamage(amount, 0f, Vector3.zero, Vector3.zero, null);
     }
 }
 
-} // namespace Tests.PlayMode.Common
+}
 #endif

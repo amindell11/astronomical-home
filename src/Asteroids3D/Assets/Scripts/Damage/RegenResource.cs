@@ -6,7 +6,7 @@ namespace Ships.Damage
     {
         private float regenRate;
         private float regenDelay;
-        private float clock;            // internal time base, advanced by Update(dt)
+        private float clock;
         private float lastDamageTime;
 
         public RegenResource(float maxValue, float regenRate, float regenDelay) : base(maxValue)
@@ -22,6 +22,13 @@ namespace Ships.Damage
             if (damageAbsorbed > 0)
                 lastDamageTime = clock;
             return damageAbsorbed;
+        }
+
+        public override void Reset()
+        {
+            base.Reset();
+            clock = 0f;
+            lastDamageTime = -regenDelay;
         }
 
         public void Update(float deltaTime)

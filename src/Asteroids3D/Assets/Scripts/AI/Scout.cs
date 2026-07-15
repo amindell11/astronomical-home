@@ -10,10 +10,7 @@ using Utils;
 
 namespace AI
 {
-    /// <summary>
-    /// Orchestrates all scanning subsystems.
-    /// Performs scans each frame and provides cached results to consumers.
-    /// </summary>
+    /// <summary>Orchestrates all scanning subsystems: scans each frame and provides cached results to consumers.</summary>
     [DefaultExecutionOrder(-80)]
     public class Scout : MonoBehaviour
     {
@@ -37,9 +34,7 @@ namespace AI
         private Dynamics shipDynamics;
         private IShipStatus shipContext;
 
-        // Combined obstacle buffer: static obstacles from obstacleScanner + 360° ship detections from shipScanner.
-        // The sphere obstacle scanner focuses on static asteroids; merging the dedicated ship scanner
-        // ensures the MPC sees every nearby ship regardless of bearing.
+        // Merged buffer: static obstacles + 360° ship detections, so the MPC sees nearby ships regardless of bearing.
         private DetectedObstacle[] mergedObstacles = new DetectedObstacle[128];
         private int mergedObstacleCount;
 
@@ -52,11 +47,16 @@ namespace AI
             this.shipContext = shipContext;
             shipScanner = new ShipScanner(origin, nearbyShipRadius, shipId, arena.Registry);
             coverSensor = new SphereSensor(origin, asteroidCoverRadius, asteroidMask, bufferSize: 8);
-            // ShipScanner handles ships in a full sphere; the obstacle scanner queries the
-            // arena's deterministic asteroid field and owns its (fixed, worst-case) query
-            // envelope — Scout only hands it the dynamics it derives the envelope from.
             var maxAccel = Mathf.Sqrt(shipDynamics.forwardAcc * shipDynamics.forwardAcc + shipDynamics.maxStrafeAcc * shipDynamics.maxStrafeAcc) / shipDynamics.mass;
             obstacleScanner = new ObstacleScanner(origin, shipDynamics.maxSpeed, maxAccel, obstacleLookaheadTime, arena);
+        }
+
+        /// <summary>Clears cached scan outputs to their pre-first-scan state; the next Update rebuilds them from the live world.</summary>
+        public void ResetState()
+        {
+            Contacts = ContactSummary.Empty;
+            HasNearbyCover = false;
+            mergedObstacleCount = 0;
         }
 
         private void Update()
@@ -76,7 +76,6 @@ namespace AI
         {
             mergedObstacleCount = 0;
 
-            // Static obstacles (asteroids etc.) from the obstacle scanner.
             if (obstacleScanner != null)
             {
                 var src = obstacleScanner.DetectedBuffer;
@@ -85,8 +84,6 @@ namespace AI
                     mergedObstacles[mergedObstacleCount++] = src[i];
             }
 
-            // Other ships from the 360° ship scanner — covers blind spots of the forward obstacle
-            // scanner so the MPC actually sees ships approaching from the side.
             if (shipScanner == null || Registry == null) return;
             {
                 var scan = shipScanner.LastResult;
@@ -109,8 +106,7 @@ namespace AI
         public ContactSummary Contacts { get; private set; } = ContactSummary.Empty;
         public bool HasNearbyCover { get; private set; }
 
-        // Exclusion is a no-op now that obstacles come from the deterministic field query
-        // (which never includes ships). Kept so Navigator still compiles.
+        // No-op: obstacles come from the deterministic field query, which never includes ships.
         public void SetObstacleExclusion(Transform root) { }
         public void ClearObstacleExclusion() { }
     }

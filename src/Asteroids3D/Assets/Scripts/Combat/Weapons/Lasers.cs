@@ -17,6 +17,7 @@ namespace Combat.Weapons
         [SerializeField] private Cooldown cooldown;
 
         public override float ProjectileSpeed => projectilePrefab.LaserSpeed;
+        public override float FireRange => fireDistance;
         public Heat Heat => heat;
 
         public override string HangarStats
@@ -39,18 +40,12 @@ namespace Combat.Weapons
             if (!cooldown) cooldown = GetComponent<Cooldown>();
         }
 
-        public override bool ShouldFire(TargetingContext context)
-        {
-            if (!Heat || !context.hasLineOfSight)
-                return false;
+        public override bool InEnvelope(in TargetingContext context) =>
+            context.hasLineOfSight
+            && context.distanceToTarget <= fireDistance
+            && context.angleToTarget <= fireAngleTolerance;
 
-            if (Heat.WouldOverheatOnNextShot())
-                return false;
-
-            var isInRange = context.distanceToTarget <= fireDistance;
-            var isInAngle = context.angleToTarget <= fireAngleTolerance;
-
-            return isInRange && isInAngle;
-        }
+        public override bool ShouldFire(TargetingContext context) =>
+            Heat && !Heat.WouldOverheatOnNextShot() && InEnvelope(in context);
     }
 }

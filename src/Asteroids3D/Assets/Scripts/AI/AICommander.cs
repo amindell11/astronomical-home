@@ -82,6 +82,17 @@ namespace AI
             systemsInitialized = true;
         }
 
+        /// <summary>Resets the parts this commander composed, mirroring the Initialize cascade; RNG streams re-derive from the spawn seed.</summary>
+        public override void ResetState()
+        {
+            if (!systemsInitialized) return;
+            Scout.ResetState();
+            Navigator.ResetState();
+            if (Gunner) Gunner.ResetState();
+            context = new AIContext(control.Ship, Scout, combatExitDelay);
+            Brain.ResetState();
+        }
+
         protected virtual void FixedUpdate()
         {
             if (!systemsInitialized) return;

@@ -74,12 +74,17 @@ namespace Tests.PlayMode
             return ship;
         }
 
+        private const string ChallengeToken = "extraction-challenge-started";
+
         private (Sector sector, KeyPickup key, ExtractionZone zone, Ship player, Ship chaser) BuildDemoSector(
-            Vector2? chaserPlane = null, bool includeRule = true, bool bindChaser = true)
+            Vector2? chaserPlane = null, bool includeRule = true, bool bindZone = true,
+            string activateToken = ChallengeToken)
         {
             var player = SpawnKinematicShip(Vector2.zero);
             var chaser = SpawnKinematicShip(chaserPlane ?? new Vector2(300f, 300f));
             chaser.gameObject.SetActive(false);
+            var activate = chaser.gameObject.AddComponent<ActivateOnToken>();
+            activate.Configure(activateToken);
 
             var sectorGO = TrackGO(new GameObject("SpineDemoSector"));
             var sector = sectorGO.AddComponent<Sector>();
@@ -99,6 +104,7 @@ namespace Tests.PlayMode
             gateCol.isTrigger = true;
             gateCol.radius = 4f;
             var zone = gateGO.AddComponent<ExtractionZone>();
+            zone.Bind(chaser.transform);
             var volume = gateGO.AddComponent<TriggerVolume>();
             volume.Configure("in-gate");
 
@@ -109,11 +115,13 @@ namespace Tests.PlayMode
             if (includeRule)
             {
                 var rule = gateGO.AddComponent<ExtractionChallengeRule>();
-                rule.Configure(new[]
-                    { ActivationTerm.Signal(SectorSpineModule.TokenPrefix + SectorSpineModule.StepReadyToExtract) });
-                rule.Bind(zone, bindChaser ? chaser : null);
+                rule.Configure(
+                    new[] { ActivationTerm.Signal(SectorSpineModule.TokenPrefix + SectorSpineModule.StepReadyToExtract) },
+                    new[] { ChallengeToken });
+                rule.Bind(bindZone ? zone : null);
                 modules.Add(rule);
             }
+            modules.Add(activate);
 
             sector.SetManifest(null, null, modules.ToArray());
             sector.Initialize(_services, _config, player);
@@ -161,6 +169,7 @@ namespace Tests.PlayMode
             Assert.IsTrue(got.Value.Success, "The completed spine must end the sector as Extracted.");
 
             yield return sector.Teardown();
+            Assert.IsFalse(chaser.gameObject.activeSelf, "Teardown must restore the chaser dormant.");
         }
 
         [UnityTest]
@@ -256,9 +265,9 @@ namespace Tests.PlayMode
 
         [UnityTest]
         [Timeout(600000)]
-        public IEnumerator RuleWithNullChaser_LogsError_AndExtractionStaysGated()
+        public IEnumerator RuleWithNullZone_LogsError_AndExtractionStaysGated()
         {
-            var (sector, key, _, player, _) = BuildDemoSector(bindChaser: false);
+            var (sector, key, _, player, chaser) = BuildDemoSector(bindZone: false);
             SectorResult? got = null;
             ((ISector)sector).OnSectorComplete += r => got = r;
 
@@ -277,7 +286,38 @@ namespace Tests.PlayMode
             yield return WaitFrames(() => got.HasValue, maxFrames: 30);
 
             Assert.IsFalse(got.HasValue,
-                "An inert rule (null chaser) must leave the zone unarmed — extraction must not complete.");
+                "An inert rule (null zone) must leave the zone unarmed — extraction must not complete.");
+            Assert.IsFalse(chaser.gameObject.activeSelf,
+                "An inert rule never publishes, so the chaser must stay dormant.");
+
+            yield return sector.Teardown();
+        }
+
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator ActivateWithBlankToken_LogsError_AndChaserStaysDormant()
+        {
+            var (sector, key, _, player, chaser) = BuildDemoSector(activateToken: "");
+            SectorResult? got = null;
+            ((ISector)sector).OnSectorComplete += r => got = r;
+
+            LogAssert.Expect(LogType.Error, new Regex("ActivateOnToken .*blank token.*inert"));
+            yield return sector.Setup();
+
+            player.transform.position = key.transform.position;
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+            yield return WaitFrames(() => _objectives.SpineStep == SectorSpineModule.StepReadyToExtract);
+
+            player.transform.position = GamePlane.PlanePointToWorld(GatePlane);
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+            yield return WaitFrames(() => got.HasValue);
+
+            Assert.IsTrue(got.HasValue,
+                "The rule and zone are wired — extraction must still complete past a broken activation listener.");
+            Assert.IsFalse(chaser.gameObject.activeSelf,
+                "An inert listener must fail closed: the chaser never activates.");
 
             yield return sector.Teardown();
         }

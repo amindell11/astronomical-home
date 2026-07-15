@@ -70,7 +70,6 @@ namespace Movement.MPC
         public Waypoint CurrentWaypoint => currentWaypoint;
 
         [Header("Settings")]
-        // Prefabs serialize this under its former name "settings".
         [FormerlySerializedAs("settings")]
         public MpcSettings mpcSettings;
 
@@ -79,17 +78,31 @@ namespace Movement.MPC
 
         private Mpc mpc;
         private Dynamics dynamics; // consumed by the editor/gizmo partial
+        private SeedScope navScope;
 
         public void Initialize(IShipStatus shipContext, Dynamics dynamics, Scout scout, SeedScope navScope, ArenaContext arena)
         {
             context = shipContext;
             this.scout = scout;
             this.dynamics = dynamics;
+            this.navScope = navScope;
             this.arena = arena;
             selfMaxSpeed = dynamics.maxSpeed;
             currentWaypoint = new Waypoint { isValid = false };
             if (!mpcSettings)
                 mpcSettings = ScriptableObject.CreateInstance<MpcSettings>();
+            mpc = new Mpc(mpcSettings, dynamics, navScope.Derive(MpcSamplerStream).ToUint());
+        }
+
+        /// <summary>Restores the freshly-initialized navigator: clears every override and rebuilds the solver so its warm-start plan and RNG stream replay from the spawn seed.</summary>
+        public void ResetState()
+        {
+            ResetNavigation();
+            facingOverride = false;
+            currentCommand = default;
+            fleeFieldBaker?.Dispose();
+            fleeFieldBaker = null;
+            mpc?.Dispose();
             mpc = new Mpc(mpcSettings, dynamics, navScope.Derive(MpcSamplerStream).ToUint());
         }
 

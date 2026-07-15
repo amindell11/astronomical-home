@@ -19,8 +19,7 @@ namespace Tests.PlayMode
     /// Asserted against the prefab asset, not a spawned instance: a live ship also carries runtime-spawned
     /// <i>weapon</i> models/audio (a separate subsystem), unrelated to the ship's own visual rig.
     /// </summary>
-    [Category("Integration")]
-    [Category("Presentation")]
+    [Category("Ships")]
     public class ShipPresentationFootprintPlayModeTests : PlayModeWorldFixture
     {
         private const string Ship1Path = "Assets/Prefabs/Ships/Ship_1.prefab";

@@ -47,8 +47,8 @@ MonoBehaviour:
     - rid: 7421252954394460938
       type: {class: TrackEnemyGoal, ns: AI.States, asm: Game.Core}
       data:
-        desiredRange: 23
-        rangeTolerance: 17
+        desiredRange: 15
+        rangeTolerance: 5
     - rid: 7421252954394460939
       type: {class: CurveFactor, ns: AI.States, asm: Game.Core}
       data:

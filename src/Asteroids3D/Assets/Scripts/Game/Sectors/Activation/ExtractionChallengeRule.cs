@@ -1,6 +1,5 @@
 using System.Collections;
 using Objectives;
-using Ships;
 using UnityEngine;
 
 namespace Game.Sectors
@@ -8,11 +7,10 @@ namespace Game.Sectors
     public class ExtractionChallengeRule : ActivationRule
     {
         [SerializeField] private ExtractionZone extractionZone;
-        [SerializeField] private Ship chaser;
 
         public override IEnumerator Setup(SectorBuildContext ctx)
         {
-            if (!extractionZone || !chaser)
+            if (!extractionZone)
             {
                 Debug.LogError($"ExtractionChallengeRule on '{name}' is missing a fixture reference — rule is inert.", this);
                 yield break;
@@ -25,22 +23,13 @@ namespace Game.Sectors
         public override IEnumerator Teardown(SectorBuildContext ctx)
         {
             if (extractionZone) extractionZone.Disarm();
-            if (chaser) chaser.gameObject.SetActive(false);
             return base.Teardown(ctx);
         }
 
-        protected override void OnFired()
-        {
-            extractionZone.Arm(chaser.transform);
-            chaser.gameObject.SetActive(true);
-        }
+        protected override void OnFired() => extractionZone.Arm();
 
 #if UNITY_EDITOR
-        internal void Bind(ExtractionZone zone, Ship chaserShip)
-        {
-            extractionZone = zone;
-            chaser = chaserShip;
-        }
+        internal void Bind(ExtractionZone zone) => extractionZone = zone;
 #endif
     }
 }

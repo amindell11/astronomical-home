@@ -144,7 +144,7 @@ namespace Tests.PlayMode
             col.radius = 3f;
             var zone = zoneGO.AddComponent<ExtractionZone>();
             zone.BindPlayer(player);
-            zone.Arm(null);
+            zone.Arm();
 
             player.transform.position = Vector3.zero;
             yield return new WaitForFixedUpdate();
@@ -203,7 +203,7 @@ namespace Tests.PlayMode
             col.radius = 3f;
             var zone = zoneGO.AddComponent<ExtractionZone>();
             zone.BindPlayer(player);
-            zone.Arm(null);
+            zone.Arm();
 
             player.transform.position = Vector3.zero;
             yield return new WaitForFixedUpdate();
@@ -237,7 +237,7 @@ namespace Tests.PlayMode
             yield return new WaitForFixedUpdate();
             Assert.IsFalse(zone.IsPlayerInZone, "An unarmed zone must read as not-in-zone even with the player inside.");
 
-            zone.Arm(null);
+            zone.Arm();
             Assert.IsTrue(zone.IsPlayerInZone, "Arming must expose the already-buffered occupancy.");
 
             zone.Disarm();

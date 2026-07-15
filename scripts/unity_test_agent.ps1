@@ -18,6 +18,8 @@
     [int]$LogTailLines = 40,
     [int]$UnityTimeoutSec = 1800,
     [string]$ExcludeCategory = "RequiresGraphics",
+    [switch]$WithGraphics,
+    [string]$CaptureScenario = "",
     [switch]$IncludeStackTrace,
     [switch]$ValidateScope,
     [string]$ScopeMapPath = "",
@@ -30,6 +32,27 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "unity_test_scope_lib.ps1")
+
+if ($WithGraphics.IsPresent) {
+    if ($Mode -ne "PlayMode") {
+        throw "-WithGraphics requires -Mode PlayMode: graphics runs are for filtered capture/render tests, never the merge-gate suite."
+    }
+    if ([string]::IsNullOrWhiteSpace($TestFilter)) {
+        throw "-WithGraphics requires an explicit -TestFilter so a graphics run can never widen into the full suite."
+    }
+    if (-not $PSBoundParameters.ContainsKey('ExcludeCategory')) {
+        $ExcludeCategory = ""
+    }
+}
+if (-not [string]::IsNullOrWhiteSpace($CaptureScenario)) {
+    if (-not $WithGraphics.IsPresent) {
+        throw "-CaptureScenario requires -WithGraphics: frame capture needs a graphics device."
+    }
+    if ($CaptureScenario -notmatch '^[A-Za-z0-9_]+$') {
+        throw "-CaptureScenario must be a plain scenario type name (its .cs file name), got '$CaptureScenario'."
+    }
+}
+
 $Script:IsWindowsPlatform = ($env:OS -eq "Windows_NT")
 $Script:UnityAccessRunId = [guid]::NewGuid().ToString("N")
 # Boot window ends once licensing + global package-cache work is done and per-project Library work begins (postmortem D6).
@@ -220,19 +243,19 @@ function Write-AutoSelection {
 
     switch ($Auto.mode) {
         "smoke" {
-            Write-Host "No test-relevant changed files -> running SMOKE scope only."
+            Write-Host "No test-relevant changed files -> running the SMOKE category only."
         }
         "modules" {
             Write-Host ("Matched modules: {0}" -f (@($Auto.matchedModules) -join ", "))
-            Write-Host ("Resolved filter (module union + smoke): {0}" -f $Auto.testFilter)
+            Write-Host ("Resolved categories (module fixtures + smoke): {0}" -f $Auto.testCategory)
         }
         "fallback" {
             Write-Host "AUTO SCOPE FALLBACK -> FULL WORKSPACE SUITE (never under-test)."
             foreach ($file in @($Auto.unmatchedFiles)) {
                 Write-Host "  UNMATCHED (no module 'paths' glob in unity_test_scopes.json): $file"
             }
-            foreach ($moduleName in @($Auto.emptyFilterModules)) {
-                Write-Host "  MODULE '$moduleName' matched but its testFilter is empty/invalid in unity_test_scopes.json"
+            foreach ($moduleName in @($Auto.emptyCategoryModules)) {
+                Write-Host "  MODULE '$moduleName' matched but its paths cover no [Category]-tagged fixture"
             }
         }
     }
@@ -537,184 +560,248 @@ New-Item -ItemType Directory -Force -Path $outRoot | Out-Null
 
 $scopeMap = Load-ScopeMap -Path $ScopeMapPath
 $resolvedFilter = $TestFilter
+$resolvedCategory = $TestCategory
 $scopeResolved = $false
 $autoSummary = $null
+$testsRoot = Join-Path $project "Assets/Scripts/Editor/Tests"
 
-if ([string]::IsNullOrWhiteSpace($TestFilter)) {
-    if ($ScopeType -eq "Auto") {
-        $autoMergeBase = ""
-        $autoSelection = $null
-        try {
-            $diff = Get-AutoChangedFiles -RepoProbePath $project -BaseRef $DiffBase
-            $autoMergeBase = $diff.mergeBase
-            $autoSelection = Resolve-AutoSelection -ScopeMap $scopeMap -ChangedFiles $diff.files
-        }
-        catch {
-            Write-Warning "AUTO SCOPE: git diff against '$DiffBase' failed ($($_.Exception.Message)). Falling back to the FULL Workspace suite."
-            $autoSelection = [pscustomobject]@{
-                mode = "fallback"
-                consideredFiles = @()
-                ignoredFiles = @()
-                matchedModules = @()
-                unmatchedFiles = @()
-                emptyFilterModules = @()
-                testFilter = Resolve-ScopeFilter -ScopeMap $scopeMap -ScopeType "Workspace" -ScopeName ""
-            }
-        }
-
-        Write-AutoSelection -Auto $autoSelection -BaseRef $DiffBase -MergeBase $autoMergeBase
-        $resolvedFilter = [string]$autoSelection.testFilter
-        $scopeResolved = -not [string]::IsNullOrWhiteSpace($resolvedFilter)
-        $autoSummary = [ordered]@{
-            diffBase = $DiffBase
-            mergeBase = $autoMergeBase
-            mode = [string]$autoSelection.mode
-            matchedModules = @($autoSelection.matchedModules)
-            unmatchedFiles = @($autoSelection.unmatchedFiles)
-            ignoredFiles = @($autoSelection.ignoredFiles)
-            emptyFilterModules = @($autoSelection.emptyFilterModules)
-        }
+# Slot-prepare's `git clean -fd` preserves this gitignored staging dir, so a stranded scenario from a killed run would break the next compile — sweep every run.
+$scratchStagingDir = Join-Path $testsRoot "PlayMode/Scratch"
+if (Test-Path -LiteralPath $scratchStagingDir) {
+    Get-ChildItem -LiteralPath $scratchStagingDir -File |
+        Where-Object { $_.Name -like "*.cs" -or $_.Name -like "*.cs.meta" } |
+        Remove-Item -Force
+}
+$stagedScenarioPath = ""
+if (-not [string]::IsNullOrWhiteSpace($CaptureScenario)) {
+    $repoRoot = Get-RepoRoot -ProbePath $PSScriptRoot
+    $scratchSource = Join-Path $repoRoot "scratch/capture/$CaptureScenario.cs"
+    $committedSource = Join-Path $testsRoot "PlayMode/Scenarios/$CaptureScenario.cs"
+    if (Test-Path -LiteralPath $scratchSource) {
+        New-Item -ItemType Directory -Force -Path $scratchStagingDir | Out-Null
+        $stagedScenarioPath = Join-Path $scratchStagingDir "$CaptureScenario.cs"
+        Copy-Item -LiteralPath $scratchSource -Destination $stagedScenarioPath -Force
+        Write-Host "Staged scratch scenario: $scratchSource"
+    }
+    elseif (Test-Path -LiteralPath $committedSource) {
+        Write-Host "Using committed scenario: $committedSource"
     }
     else {
-        $resolvedFilter = Resolve-ScopeFilter -ScopeMap $scopeMap -ScopeType $ScopeType -ScopeName $ScopeName
-        if (-not [string]::IsNullOrWhiteSpace($resolvedFilter)) {
-            $scopeResolved = $true
-            Write-Host "Resolved scope ($ScopeType$(if ($ScopeName) { "/$ScopeName" })) to filter: $resolvedFilter"
-        }
+        throw "-CaptureScenario ${CaptureScenario}: no $CaptureScenario.cs in scratch/capture/ (repo root) or committed under Tests/PlayMode/Scenarios/."
     }
 }
 
-if ($ValidateScope.IsPresent -and -not [string]::IsNullOrWhiteSpace($resolvedFilter)) {
-    Write-Host "Validating scope filter matches at least one test..."
+# Everything below can throw (scope resolution/validation, Unity runs); the finally must always unstage the scratch scenario.
+try {
 
-    $platformsToValidate = switch ($Mode) {
+    if ([string]::IsNullOrWhiteSpace($TestFilter)) {
+        if ($ScopeType -eq "Auto") {
+            $autoMergeBase = ""
+            $autoSelection = $null
+            try {
+                $diff = Get-AutoChangedFiles -RepoProbePath $project -BaseRef $DiffBase
+                $autoMergeBase = $diff.mergeBase
+                $fileCategoryIndex = Get-TestFileCategoryIndex -TestsRoot $testsRoot -RepoRoot $diff.repoRoot
+                $autoSelection = Resolve-AutoSelection -ScopeMap $scopeMap -ChangedFiles $diff.files -FileCategoryIndex $fileCategoryIndex
+            }
+            catch {
+                Write-Warning "AUTO SCOPE: git diff against '$DiffBase' failed ($($_.Exception.Message)). Falling back to the FULL Workspace suite."
+                $autoSelection = [pscustomobject]@{
+                    mode = "fallback"
+                    consideredFiles = @()
+                    ignoredFiles = @()
+                    matchedModules = @()
+                    unmatchedFiles = @()
+                    emptyCategoryModules = @()
+                    categories = @()
+                    testCategory = ""
+                }
+            }
+
+            Write-AutoSelection -Auto $autoSelection -BaseRef $DiffBase -MergeBase $autoMergeBase
+            $resolvedCategory = [string]$autoSelection.testCategory
+            $scopeResolved = ($autoSelection.mode -ne "fallback")
+            $autoSummary = [ordered]@{
+                diffBase = $DiffBase
+                mergeBase = $autoMergeBase
+                mode = [string]$autoSelection.mode
+                matchedModules = @($autoSelection.matchedModules)
+                unmatchedFiles = @($autoSelection.unmatchedFiles)
+                ignoredFiles = @($autoSelection.ignoredFiles)
+                emptyCategoryModules = @($autoSelection.emptyCategoryModules)
+                categories = @($autoSelection.categories)
+            }
+        }
+        elseif ($ScopeType -eq "Module" -and [string]::IsNullOrWhiteSpace($TestCategory)) {
+            $repoRoot = Get-RepoRoot -ProbePath $project
+            $fileCategoryIndex = Get-TestFileCategoryIndex -TestsRoot $testsRoot -RepoRoot $repoRoot
+            $moduleCategories = @(Get-ModuleDerivedCategories -ScopeMap $scopeMap -ModuleName $ScopeName.ToLower() -FileCategoryIndex $fileCategoryIndex)
+            if ($moduleCategories.Count -eq 0) {
+                Write-Warning "Module '$ScopeName' resolved to no [Category]-tagged fixtures (unknown module, or its paths cover none). Running the full Workspace suite."
+            }
+            else {
+                if ($moduleCategories -notcontains "Smoke") { $moduleCategories += "Smoke" }
+                $resolvedCategory = (@($moduleCategories | Sort-Object) -join ';')
+                $scopeResolved = $true
+                Write-Host "Resolved scope (Module/$ScopeName) to categories: $resolvedCategory"
+            }
+        }
+        else {
+            $resolvedFilter = Resolve-ScopeFilter -ScopeMap $scopeMap -ScopeType $ScopeType -ScopeName $ScopeName
+            if (-not [string]::IsNullOrWhiteSpace($resolvedFilter)) {
+                $scopeResolved = $true
+                Write-Host "Resolved scope ($ScopeType$(if ($ScopeName) { "/$ScopeName" })) to filter: $resolvedFilter"
+            }
+        }
+    }
+
+    if ($ValidateScope.IsPresent -and -not [string]::IsNullOrWhiteSpace($resolvedFilter)) {
+        Write-Host "Validating scope filter matches at least one test..."
+
+        $platformsToValidate = switch ($Mode) {
+            "Both" { @("EditMode", "PlayMode") }
+            default { @($Mode) }
+        }
+
+        $anyMatches = $false
+        foreach ($platform in $platformsToValidate) {
+            Write-Host "  Checking $platform..."
+            $matches = Test-ScopeFilterMatchesTests -UnityExe $unityExe -ProjectPath $project -Platform $platform -TestFilter $resolvedFilter
+
+            if ($matches) {
+                Write-Host "  [OK] ${platform}: Filter matches tests"
+                $anyMatches = $true
+            }
+            else {
+                Write-Host "  [FAIL] ${platform}: Filter matches NO tests"
+            }
+        }
+
+        if (-not $anyMatches) {
+            throw "SCOPE VALIDATION FAILED: Filter '$resolvedFilter' (from $ScopeType$(if ($ScopeName) { "/$ScopeName" })) matched NO tests in any platform. The scope definition may be stale or incorrect."
+        }
+
+        Write-Host "[OK] Scope validation passed"
+    }
+
+    $TestFilter = $resolvedFilter
+    $TestCategory = $resolvedCategory
+
+    $includeCategories = @()
+    if (-not [string]::IsNullOrWhiteSpace($TestCategory)) {
+        $includeCategories = @($TestCategory -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" })
+    }
+    $excludeCategories = @()
+    if (-not [string]::IsNullOrWhiteSpace($ExcludeCategory)) {
+        $excludeCategories = @($ExcludeCategory -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" -and $includeCategories -notcontains $_ })
+    }
+    $categoryFilter = (@($includeCategories) + @($excludeCategories | ForEach-Object { "!$_" })) -join ";"
+    if (-not [string]::IsNullOrWhiteSpace($categoryFilter)) {
+        Write-Host "Test category filter: $categoryFilter"
+    }
+
+    $platforms = switch ($Mode) {
         "Both" { @("EditMode", "PlayMode") }
         default { @($Mode) }
     }
 
-    $anyMatches = $false
-    foreach ($platform in $platformsToValidate) {
-        Write-Host "  Checking $platform..."
-        $matches = Test-ScopeFilterMatchesTests -UnityExe $unityExe -ProjectPath $project -Platform $platform -TestFilter $resolvedFilter
+    $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
 
-        if ($matches) {
-            Write-Host "  [OK] ${platform}: Filter matches tests"
-            $anyMatches = $true
+    if (
+        [string]::IsNullOrWhiteSpace($orderedListPath) -and
+        -not [string]::IsNullOrWhiteSpace($rerunSummaryPath) -and
+        [string]::IsNullOrWhiteSpace($TestFilter)
+    ) {
+        $failedNames = Get-FailedFullNamesFromSummary -SummaryPath $rerunSummaryPath
+        if ($failedNames.Count -gt 0) {
+            $orderedListPath = Join-Path $outRoot "$stamp-rerun-tests.txt"
+            $failedNames | Set-Content -LiteralPath $orderedListPath -Encoding UTF8
         }
-        else {
-            Write-Host "  [FAIL] ${platform}: Filter matches NO tests"
+    }
+
+    $selection = [ordered]@{
+        scopeType = $ScopeType
+        scopeName = $ScopeName
+        scopeResolved = $scopeResolved
+        testFilter = $TestFilter
+        testCategory = $TestCategory
+        excludeCategory = $ExcludeCategory
+        categoryFilter = $categoryFilter
+        assemblyNames = $AssemblyNames
+        orderedTestListFile = $orderedListPath
+        rerunFailedFrom = $rerunSummaryPath
+        auto = $autoSummary
+        withGraphics = $WithGraphics.IsPresent
+        captureScenario = $CaptureScenario
+    }
+
+    $runs = @()
+
+    foreach ($platform in $platforms) {
+        $xmlPath = Join-Path $outRoot "$stamp-$platform.xml"
+        $logPath = Join-Path $outRoot "$stamp-$platform.log"
+
+        $args = @("-batchmode")
+        if (-not $WithGraphics.IsPresent) {
+            $args += "-nographics"
         }
-    }
+        $args += @(
+            "-projectPath", $project,
+            "-runTests",
+            "-testPlatform", $platform,
+            "-testResults", $xmlPath,
+            "-logFile", $logPath
+        )
 
-    if (-not $anyMatches) {
-        throw "SCOPE VALIDATION FAILED: Filter '$resolvedFilter' (from $ScopeType$(if ($ScopeName) { "/$ScopeName" })) matched NO tests in any platform. The scope definition may be stale or incorrect."
-    }
+        if (-not [string]::IsNullOrWhiteSpace($TestFilter)) {
+            $args += @("-testFilter", $TestFilter)
+        }
 
-    Write-Host "[OK] Scope validation passed"
+        if (-not [string]::IsNullOrWhiteSpace($categoryFilter)) {
+            $args += @("-testCategory", $categoryFilter)
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($AssemblyNames)) {
+            $args += @("-assemblyNames", $AssemblyNames)
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($orderedListPath)) {
+            $args += @("-orderedTestListFile", $orderedListPath)
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($CaptureScenario)) {
+            $args += @("-captureScenario", $CaptureScenario)
+        }
+
+        Write-Host "Running Unity $platform tests..."
+
+        $invoke = Invoke-UnityProcess -UnityExe $unityExe -Arguments $args -TimeoutSec $UnityTimeoutSec
+        $unityExit = [int]$invoke.exitCode
+
+        $parsed = Parse-UnityResultXml `
+            -XmlPath $xmlPath `
+            -Platform $platform `
+            -LogPath $logPath `
+            -UnityExitCode $unityExit `
+            -FailureLimit $MaxFailures `
+            -MessageLimit $MaxMessageLength `
+            -WithStackTrace:$IncludeStackTrace `
+            -TailLines $LogTailLines `
+            -Selection $selection
+
+        if ($invoke.timedOut) {
+            $parsed.status = "infra_error"
+            $parsed.note = "Unity test run timed out after $UnityTimeoutSec seconds and was terminated (pid=$($invoke.pid))."
+        }
+
+        $runs += $parsed
+    }
 }
-
-$TestFilter = $resolvedFilter
-
-$includeCategories = @()
-if (-not [string]::IsNullOrWhiteSpace($TestCategory)) {
-    $includeCategories = @($TestCategory -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" })
-}
-$excludeCategories = @()
-if (-not [string]::IsNullOrWhiteSpace($ExcludeCategory)) {
-    $excludeCategories = @($ExcludeCategory -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" -and $includeCategories -notcontains $_ })
-}
-$categoryFilter = (@($includeCategories) + @($excludeCategories | ForEach-Object { "!$_" })) -join ";"
-if (-not [string]::IsNullOrWhiteSpace($categoryFilter)) {
-    Write-Host "Test category filter: $categoryFilter"
-}
-
-$platforms = switch ($Mode) {
-    "Both" { @("EditMode", "PlayMode") }
-    default { @($Mode) }
-}
-
-$stamp = Get-Date -Format "yyyyMMdd-HHmmss"
-
-if (
-    [string]::IsNullOrWhiteSpace($orderedListPath) -and
-    -not [string]::IsNullOrWhiteSpace($rerunSummaryPath) -and
-    [string]::IsNullOrWhiteSpace($TestFilter)
-) {
-    $failedNames = Get-FailedFullNamesFromSummary -SummaryPath $rerunSummaryPath
-    if ($failedNames.Count -gt 0) {
-        $orderedListPath = Join-Path $outRoot "$stamp-rerun-tests.txt"
-        $failedNames | Set-Content -LiteralPath $orderedListPath -Encoding UTF8
+finally {
+    if (-not [string]::IsNullOrWhiteSpace($stagedScenarioPath)) {
+        Remove-Item -LiteralPath $stagedScenarioPath -Force -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath "$stagedScenarioPath.meta" -Force -ErrorAction SilentlyContinue
     }
-}
-
-$selection = [ordered]@{
-    scopeType = $ScopeType
-    scopeName = $ScopeName
-    scopeResolved = $scopeResolved
-    testFilter = $TestFilter
-    testCategory = $TestCategory
-    excludeCategory = $ExcludeCategory
-    categoryFilter = $categoryFilter
-    assemblyNames = $AssemblyNames
-    orderedTestListFile = $orderedListPath
-    rerunFailedFrom = $rerunSummaryPath
-    auto = $autoSummary
-}
-
-$runs = @()
-
-foreach ($platform in $platforms) {
-    $xmlPath = Join-Path $outRoot "$stamp-$platform.xml"
-    $logPath = Join-Path $outRoot "$stamp-$platform.log"
-
-    $args = @(
-        "-batchmode",
-        "-nographics",
-        "-projectPath", $project,
-        "-runTests",
-        "-testPlatform", $platform,
-        "-testResults", $xmlPath,
-        "-logFile", $logPath
-    )
-
-    if (-not [string]::IsNullOrWhiteSpace($TestFilter)) {
-        $args += @("-testFilter", $TestFilter)
-    }
-
-    if (-not [string]::IsNullOrWhiteSpace($categoryFilter)) {
-        $args += @("-testCategory", $categoryFilter)
-    }
-
-    if (-not [string]::IsNullOrWhiteSpace($AssemblyNames)) {
-        $args += @("-assemblyNames", $AssemblyNames)
-    }
-
-    if (-not [string]::IsNullOrWhiteSpace($orderedListPath)) {
-        $args += @("-orderedTestListFile", $orderedListPath)
-    }
-
-    Write-Host "Running Unity $platform tests..."
-
-    $invoke = Invoke-UnityProcess -UnityExe $unityExe -Arguments $args -TimeoutSec $UnityTimeoutSec
-    $unityExit = [int]$invoke.exitCode
-
-    $parsed = Parse-UnityResultXml `
-        -XmlPath $xmlPath `
-        -Platform $platform `
-        -LogPath $logPath `
-        -UnityExitCode $unityExit `
-        -FailureLimit $MaxFailures `
-        -MessageLimit $MaxMessageLength `
-        -WithStackTrace:$IncludeStackTrace `
-        -TailLines $LogTailLines `
-        -Selection $selection
-
-    if ($invoke.timedOut) {
-        $parsed.status = "infra_error"
-        $parsed.note = "Unity test run timed out after $UnityTimeoutSec seconds and was terminated (pid=$($invoke.pid))."
-    }
-
-    $runs += $parsed
 }
 
 $total = 0
@@ -735,9 +822,14 @@ foreach ($run in $runs) {
     }
 }
 
+$zeroTestGraphicsRun = ($WithGraphics.IsPresent -and $total -eq 0)
+if ($zeroTestGraphicsRun) {
+    Write-Host "[FAIL] -WithGraphics run executed zero tests: the filter matched nothing, so no frame was ever rendered."
+}
+
 $overallStatus = if ($hasInfraError) {
     "infra_error"
-} elseif ($failed -gt 0) {
+} elseif ($failed -gt 0 -or $zeroTestGraphicsRun) {
     "failed"
 } else {
     "passed"

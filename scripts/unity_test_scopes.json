@@ -1,5 +1,5 @@
 {
-  "_comment": "Friendly scope-name -> test-name regex map for unity_test_agent.ps1 (-ScopeType Feature/Module -ScopeName <key>). Module entries also carry 'paths': repo-relative forward-slash globs used by -ScopeType Auto to map changed files to modules; a changed file matching no glob makes Auto fall back to the full Workspace suite, so leaving ambiguous areas unmapped is safe. Kept in sync by hand. For zero-upkeep slicing prefer '-TestCategory <Domain>' (see Assets/Scripts/Editor/Tests/TEST_CATEGORIES.md); every fixture carries a domain category.",
+  "_comment": "Scope-name -> test-selection map for unity_test_agent.ps1. FEATURES resolve to a friendly name-regex (-ScopeType Feature -ScopeName <key>); curated, human-picked, may go stale on rename. MODULES carry only 'paths' (repo-relative forward-slash globs): -ScopeType Auto maps changed files to modules and -ScopeType Module <name> names one, then BOTH derive the run from the domain [Category] tags on the fixtures those paths cover (see Assets/Scripts/Editor/Tests/TEST_CATEGORIES.md) rather than a hand-maintained test-name list -- so a new fixture in an already-mapped domain is picked up with zero map upkeep. A changed file matching no module glob, or a matched module whose paths cover no tagged fixture, makes Auto fall back to the full Workspace suite, so leaving ambiguous areas unmapped is safe. Speed/selector overlays (Smoke/Slow/RequiresGraphics/ChaseBenchmark) never seed a scope; the Smoke category is always added.",
   "smoke": {
     "testFilter": "CameraUtilsEditModeTests|CollisionDamageUtilityTests|GamePlanePlayMode|ForcesEditModeTests"
   },
@@ -52,7 +52,6 @@
   },
   "modules": {
     "ai": {
-      "testFilter": "AIIntegrationPlayMode|MpcNavigatorPlayMode|MpcSolverTests|MpcBoostEditModeTests|MpcCorrelatedNoiseTests|MpcObstacleCostTests|MpcCostRegroupEditModeTests|MpcVelocityReferenceEditModeTests|MultiSphereObstacleEditModeTests|ObstacleSelectionEditModeTests|NavigatorIdleGateEditModeTests|LosCostEditModeTests|ScannerPlayMode|AiDeterminismEditModeTests|AiCommanderDeterminismPlayMode|AgentDecisionSeedPlayMode|TacticalObservationEditModeTests|ManeuverOraclePlayMode|TwoArenaIsolationEditModeTests",
       "paths": [
         "src/Asteroids3D/Assets/Scripts/AI/**",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/AiDeterminismEditModeTests.cs*",
@@ -64,7 +63,6 @@
       ]
     },
     "mpc": {
-      "testFilter": "MpcNavigatorPlayMode|MpcPerformancePlayModeTests|MpcSolverTests|MpcBoostEditModeTests|MpcCorrelatedNoiseTests|MpcObstacleCostTests|MpcCostRegroupEditModeTests|MpcVelocityReferenceEditModeTests|MultiSphereObstacleEditModeTests|ObstacleSelectionEditModeTests|NavigatorIdleGateEditModeTests|LosCostEditModeTests|NavFieldEditModeTests|NavFieldServicePlayMode|ManeuverOraclePlayMode|TwoArenaIsolationEditModeTests",
       "paths": [
         "src/Asteroids3D/Assets/Scripts/AI/Navigation/**",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/Mpc*",
@@ -81,7 +79,6 @@
       ]
     },
     "combat": {
-      "testFilter": "HeatOverheatStress|HeatEditModeTests|ChargeTimeEditModeTests|RoundsReloadEditModeTests|ConcussionGrenade|MissileGuidance|WeaponCommandDispatch|WeaponHardpointEditModeTests|WeaponTriggerSemanticsPlayMode|WeaponReequipPlayMode|LockOnRegistryWiring|LockOnRegressionEditModeTests|ParentedEntityIdentityPlayMode|WeaponHudBindingPlayMode|ShipReequipPlayMode",
       "paths": [
         "src/Asteroids3D/Assets/Scripts/Combat/**",
         "src/Asteroids3D/Assets/Scripts/Ships/Weapons/**",
@@ -102,7 +99,6 @@
       ]
     },
     "sectors": {
-      "testFilter": "SectorCompositionPlayMode|SectorLifecyclePlayMode|SectorManifestSyncEditModeTests|SectorActivationEditModeTests|SectorActivationLifecyclePlayMode|TriggerVolumeActivationPlayMode|EncounterLifecycle|ArenaEncounterPlacementPlayMode|MultiArenaSmokePlayMode|EnvironmentLocalePlayMode|RespawnEditModeTests|BootstrapContractsEditModeTests",
       "paths": [
         "src/Asteroids3D/Assets/Scripts/Game/Sectors/**",
         "src/Asteroids3D/Assets/Scripts/Game/Encounters/**",
@@ -121,7 +117,6 @@
       ]
     },
     "objectives": {
-      "testFilter": "KeyPickupObjective|ObjectiveTrackerEditModeTests|ObjectiveChannelEditModeTests|ObjectiveServiceTwoTierEditModeTests",
       "paths": [
         "src/Asteroids3D/Assets/Scripts/Objectives/**",
         "src/Asteroids3D/Assets/Scripts/Game/Services/Objectives/**",
@@ -130,7 +125,6 @@
       ]
     },
     "asteroids": {
-      "testFilter": "AsteroidAttributeRollerEditModeTests|AsteroidFieldCoreEditModeTests|AsteroidFieldTuningEditModeTests|AsteroidLobeBakerEditModeTests|AsteroidRadiusEditModeTests|ObstacleFieldQueryPlayMode|FragneticsCalculatorEditModeTests|MpcObstacleCostTests|MultiSphereObstacleEditModeTests",
       "paths": [
         "src/Asteroids3D/Assets/Scripts/Asteroids/**",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/Asteroid*",
@@ -139,7 +133,6 @@
       ]
     },
     "ui": {
-      "testFilter": "UILifecyclePlayMode|EventDrivenRefactorEditModeTests|LoadingSplashEditModeTests|MinimapLayerSetterEditModeTests|HangarPreviewFramingEditModeTests|HangarFlowPlayMode|HangarInputGatePlayMode|HangarShipSwapPlayMode|HangarWeaponRowsPlayMode|WeaponHudBindingPlayMode|ShipReequipPlayMode|WeaponReequipPlayMode",
       "paths": [
         "src/Asteroids3D/Assets/Scripts/UI/**",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/HangarPreviewFramingEditModeTests.cs*",
@@ -152,7 +145,6 @@
       ]
     },
     "utils": {
-      "testFilter": "CollisionDamageUtilityTests|CameraUtilsEditModeTests|FragneticsCalculatorEditModeTests|ForcesEditModeTests",
       "paths": [
         "src/Asteroids3D/Assets/Scripts/Utils/CollisionDamageUtility.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/CollisionDamageUtilityTests.cs*",

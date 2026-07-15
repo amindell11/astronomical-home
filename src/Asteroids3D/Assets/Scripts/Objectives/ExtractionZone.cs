@@ -14,9 +14,11 @@ namespace Objectives
     {
         [SerializeField] private float blockDistance = 20f;
 
+        [Tooltip("Optional hostile whose proximity blocks extraction while the zone is armed (observation-only binding).")]
+        [SerializeField] private Transform blocker;
+
         private readonly RigidbodyOccupancy occupancy = new();
         private Rigidbody playerBody;
-        private Transform blocker;
         private bool armed;
 
         // Unarmed reads as not-in-zone: broken challenge wiring must never complete extraction silently.
@@ -32,17 +34,13 @@ namespace Objectives
 
         public void BindPlayer(Rigidbody playerBody) => this.playerBody = playerBody;
 
-        public void Arm(Transform blocker)
-        {
-            this.blocker = blocker;
-            armed = true;
-        }
+        public void Arm() => armed = true;
 
-        public void Disarm()
-        {
-            blocker = null;
-            armed = false;
-        }
+        public void Disarm() => armed = false;
+
+#if UNITY_EDITOR
+        internal void Bind(Transform blocker) => this.blocker = blocker;
+#endif
 
         private void OnTriggerEnter(Collider other) => occupancy.Enter(other);
 
