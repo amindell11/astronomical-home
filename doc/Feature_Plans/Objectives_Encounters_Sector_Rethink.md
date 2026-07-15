@@ -588,6 +588,32 @@ Assumptions (confirmed):
    proves behavior parity end-to-end.
 9. `CombatSector.prefab` rewired in canonical Unity serialization.
 
+### PR-5 — build decisions (2026-07-15)
+
+Decisions made during the build, within the frozen brief:
+
+- **Port `Kind` is a picker/tree label, not a semantic switch.** Bus semantics
+  stay call-driven (`Set` = level, `Latch` = latch), exactly as before, keyed
+  on port identity. No publisher validates its port's authored kind — per
+  assumption 4 no consumer restricts by kind either.
+- **Unowned-port detection enumerates `SignalPort` components by hierarchy**
+  (`GetComponentsInChildren`, include-inactive): ports are not manifest
+  entities, so a free-standing port is invisible to `Modules`/`Spawners` by
+  construction. Modules and spawners still come strictly from the baked
+  manifest.
+- **Duplicate-owner is a validator error** (two publishers claiming one port):
+  implied by the locked single-owner invariant, needed to make the
+  copy/paste-on-the-publisher-side failure loud.
+- **Every `ActivationRule` requires an assigned `fired` port** (Setup
+  loud-inert, validator error) — the port ref IS the publisher's identity;
+  published-but-unconsumed stays INFO.
+- **Inactive-GO guard covers `TriggerVolume` and delayed rules only**, per the
+  brief's cheap-half list. A time-term rule on an inactive GO would be the
+  same failure class but is NOT guarded (brief names the two; noted as a
+  residual).
+- **Picker labels use the division-slash ("Owner ∕ role (Kind)")** — a literal
+  `/` in a Unity popup entry creates a submenu.
+
 ## Open questions (decide at build)
 
 Manifest plumbing and bus token type were resolved in PR-1; the spine/local API
