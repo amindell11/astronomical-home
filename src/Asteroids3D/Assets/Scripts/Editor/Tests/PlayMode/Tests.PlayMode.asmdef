@@ -9,6 +9,7 @@
         "GUID:3ba9d43214e04d738b22b5e448da986d",
         "Unity.Mathematics",
         "Game.RLHarness.Editor",
+        "Unity.ML-Agents",
         "Game.Capture.Editor"
     ],
     "includePlatforms": [

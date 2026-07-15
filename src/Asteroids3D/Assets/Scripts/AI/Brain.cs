@@ -51,6 +51,13 @@ namespace AI
             stateChooser.Initialize(states, strategyScope.Derive(UtilitySamplerStream));
         }
 
+        /// <summary>Harness/test seam: swap the decision policy; rebuilds the option set when already initialized.</summary>
+        internal void InstallChooser(IIntentChooser next)
+        {
+            chooser = next;
+            if (navigator != null) BuildStates();
+        }
+
         public NavigationIntent Decide(AIContext ctx, float dt) =>
             chooser?.Decide(ctx, dt) ?? NavigationIntent.None;
 

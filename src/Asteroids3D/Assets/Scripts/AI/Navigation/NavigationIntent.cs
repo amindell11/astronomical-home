@@ -15,10 +15,12 @@ namespace AI.States
         public float desiredRange;
         public float rangeTolerance;
 
-        // Commanded world-plane velocity for GoalMode.VelocityReference (the tracker seam a learned goal-policy drives); ignored by the position-goal modes.
+        // World-plane frame; read only in GoalMode.VelocityReference.
         public Vector2 velocityReference;
 
-        // One snapshot of the ship we're engaging: the gunner reads its kinematics for the firing solution; the navigator uses it for tactical MPC costs (when applyTacticalCosts) and obstacle exclusion (whenever hasTarget).
+        // Boost impulse this tick, VelocityReference mode only; one-shot pacing and availability gating are the chooser's job (the Booster's cooldown backstops an unready command into a no-op).
+        public bool boost;
+
         public bool hasTarget;
         public EnemyTarget target;
         public bool applyTacticalCosts;
@@ -27,7 +29,6 @@ namespace AI.States
         // MPC weight overrides (sparse; absent weight = base ×1)
         public WeightOverride[] weightOverrides;
 
-        // Gunner — fire at the target; the Gunner resolves its own firing solution.
         public bool enableFiring;
 
         public static NavigationIntent None => new NavigationIntent { isValid = false };

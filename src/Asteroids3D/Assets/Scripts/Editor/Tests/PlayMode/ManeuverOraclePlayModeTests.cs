@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Reflection;
 using AI;
 using Game;
 using Game.RLHarness;
@@ -208,8 +207,7 @@ namespace Tests.PlayMode
             var chooser = new ManeuverChooser();
             chooser.Configure(dummy, cfg.maneuver, cfg.orbitRadius, cfg.desiredRange,
                 cfg.orbitSpeedFraction, cfg.freeYaw);
-            typeof(Brain).GetField("chooser", BindingFlags.NonPublic | BindingFlags.Instance)
-                .SetValue(brain, chooser);
+            brain.InstallChooser(chooser);
 
             cmdr.SetArena(arena);
 

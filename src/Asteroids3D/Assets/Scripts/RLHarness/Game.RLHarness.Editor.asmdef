@@ -2,7 +2,9 @@
     "name": "Game.RLHarness.Editor",
     "rootNamespace": "",
     "references": [
-        "Game.Core"
+        "Game.Core",
+        "Unity.ML-Agents",
+        "Unity.InferenceEngine"
     ],
     "includePlatforms": [
         "Editor",

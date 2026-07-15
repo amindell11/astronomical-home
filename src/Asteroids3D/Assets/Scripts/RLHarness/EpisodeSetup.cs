@@ -1,4 +1,6 @@
 using System;
+using System.Globalization;
+using System.IO;
 using Combat.Projectile;
 using Ships.Command;
 using UnityEngine;
@@ -46,5 +48,21 @@ namespace Game.RLHarness
 
         public static int ActiveCount() =>
             UnityEngine.Object.FindObjectsByType<ProjectileBase>(FindObjectsSortMode.None).Length;
+    }
+
+    /// <summary>Timestamped result sink under repo-root results/, shared by the tests and the RL hosts.</summary>
+    public static class EpisodeJsonl
+    {
+        public static string NewRunPath(string tag, string folder = "rl-episodes")
+        {
+            var repoRoot = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", ".."));
+            var dir = Path.Combine(repoRoot, "results", folder);
+            Directory.CreateDirectory(dir);
+            var stamp = DateTime.Now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
+            return Path.Combine(dir, $"{stamp}-{tag}.jsonl");
+        }
+
+        public static void Append(string path, in EpisodeResult result) =>
+            File.AppendAllText(path, result.ToJsonLine() + "\n");
     }
 }

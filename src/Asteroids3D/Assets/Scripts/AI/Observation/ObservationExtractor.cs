@@ -4,8 +4,7 @@ using UnityEngine;
 
 namespace AI.Observation
 {
-    /// <summary>The observer's plane-space egocentric frame: origin at the ship, +Y along its
-    /// forward, +X to its right. Maps plane-space points/directions into that frame and back.</summary>
+    /// <summary>The observer's plane-space egocentric frame (origin at the ship, +Y forward, +X right): maps plane-space points/directions into that frame and back.</summary>
     public readonly struct EgoFrame
     {
         private readonly Vector2 origin;
@@ -29,8 +28,7 @@ namespace AI.Observation
         public Vector2 PlaneDirection(Vector2 egoDir) => right * egoDir.x + forward * egoDir.y;
     }
 
-    /// <summary>Plane-space snapshot of the primary enemy handed to the extractor, decoupling it
-    /// from <see cref="Context.EnemyTracker"/> so the transform math stays unit-testable.</summary>
+    /// <summary>Plane-space snapshot of the primary enemy handed to the extractor, decoupling it from <see cref="Context.EnemyTracker"/> so the transform math stays unit-testable.</summary>
     public readonly struct TargetView
     {
         public readonly bool has;
@@ -53,11 +51,7 @@ namespace AI.Observation
         public static readonly TargetView None = new(false, default, default, default, 0f, 0f);
     }
 
-    /// <summary>
-    /// Builds a <see cref="TacticalObservation"/> from a ship's live views. Pure over its inputs
-    /// (no scanning, no side effects) so the frame math is directly testable; the physics scans it
-    /// consumes are owned upstream (Scout, <see cref="ThreatScanner"/>).
-    /// </summary>
+    /// <summary>Builds a <see cref="TacticalObservation"/> from a ship's live views; pure over its inputs so the frame math is directly testable — the physics scans it consumes are owned upstream (Scout, <see cref="ThreatScanner"/>).</summary>
     public static class ObservationExtractor
     {
         public static void Populate(
@@ -114,7 +108,7 @@ namespace AI.Observation
             obs.obstacles.Add(new ObstacleToken(relPos, relPos.magnitude, radius));
         }
 
-        private static SelfToken BuildSelf(IShipStatus self, EgoFrame frame)
+        internal static SelfToken BuildSelf(IShipStatus self, EgoFrame frame)
         {
             var kin = self.Kinematics;
             var speedPct = self.MaxSpeed > 0f ? Mathf.Clamp01(kin.Speed / self.MaxSpeed) : 0f;
@@ -128,7 +122,7 @@ namespace AI.Observation
                 self.BoostAvailable ? 1f : 0f, boostCooldownPct);
         }
 
-        private static TargetToken BuildTarget(EgoFrame frame, Vector2 selfVel, in TargetView target)
+        internal static TargetToken BuildTarget(EgoFrame frame, Vector2 selfVel, in TargetView target)
         {
             var relPos = frame.Point(target.pos);
             return new TargetToken(
