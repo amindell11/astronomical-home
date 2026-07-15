@@ -229,7 +229,7 @@ namespace Tests.PlayMode
                 Assert.Ignore("Set RL_EPISODES=1 (or create results/rl-episodes/watch.flag) to run the ranger-vs-baseline characterization.");
 
             var trace = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RL_EPISODE_TRACE"));
-            // The pacing contract (all RL runs share frame ≙ fixed-step sim semantics) replaces the old timescale-20 regime.
+            // Pacing contract: all RL runs (characterization included) share frame ≙ fixed-step sim semantics.
             Time.timeScale = 1f;
             Time.captureDeltaTime = Time.fixedDeltaTime;
             var spec = RewardSpec.Default;
