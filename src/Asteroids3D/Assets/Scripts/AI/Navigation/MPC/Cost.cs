@@ -207,7 +207,7 @@ namespace Movement.MPC
             switch (cfg.goalMode)
             {
                 case GoalMode.MaintainRange:
-                    return RangeBandCost(pos, goal, cfg.desiredRange, cfg.rangeTolerance, cfg.positionCurve);
+                    return RangeBandCost(pos, goal, cfg.desiredRange, cfg.rangeTolerance);
                 case GoalMode.Flee:
                     return FleeCost(pos, goal, cfg.positionCurve);
                 default:
@@ -228,26 +228,14 @@ namespace Movement.MPC
 
         private const float FleeEpsilon = 1f;
 
-        internal static float RangeBandCost(float2 pos, float2 goal, float desiredRange, float tolerance, float curve)
+        // Symmetric Lorentzian urgency in [0, 1), half-saturating at err = tolerance: the band is the argmin — a range-hold objective must never reward closing to contact (aim pressure belongs to the Facing cost).
+        internal static float RangeBandCost(float2 pos, float2 goal, float desiredRange, float tolerance)
         {
             var dist = math.length(pos - goal);
-            var inner = desiredRange - tolerance;
-            var outer = desiredRange + tolerance;
-
-            if (dist >= inner && dist <= outer) return 0f;
-
-            if (dist > outer)
-            {
-                // Too far: Lorentzian-saturated urgency in [0, 1), half-saturating at err = tolerance.
-                var err = dist - outer;
-                var errSq = err * err;
-                var tolSq = math.max(tolerance * tolerance, 1e-4f);
-                return errSq / (errSq + tolSq);
-            }
-
-            // Too close: negative (reward), approaching -1 as dist→0 — closer is better for aiming, with a soft floor.
-            var t = dist / math.max(inner, 1e-4f); // 1 at inner edge, 0 at enemy
-            return -(1f - t * t);
+            var err = math.max(math.max(dist - (desiredRange + tolerance), (desiredRange - tolerance) - dist), 0f);
+            var errSq = err * err;
+            var tolSq = math.max(tolerance * tolerance, 1e-4f);
+            return errSq / (errSq + tolSq);
         }
 
         internal static float FleeCost(float2 pos, float2 goal, float curve)
