@@ -18,7 +18,7 @@ namespace Tests.EditMode
     {
         private class StubSpawner : SectorSpawner
         {
-            public override IEnumerator Build(SectorBuildContext ctx) { yield break; }
+            protected override IEnumerator Produce(SectorBuildContext ctx) { yield break; }
         }
 
         private class StubModule : SectorModule { }
