@@ -34,6 +34,14 @@ Meanwhile the pool already half-tracks what we need: `InstanceToKey` records eve
 ever created, and all instances stay parented under the per-type `Pool_<T>` root. The episode
 flush was asking the scene for information whose rightful owner is the pool.
 
+**Consumers as of #154 (game capture):** the same scan now has three call sites that all
+migrate to the registry when it lands — `ProjectileFlush.ReturnAllToPool()`/`ActiveCount()`
+(`RLHarness/EpisodeSetup.cs`), `ShipDiagnosticsOverlay.DrawProjectiles`
+(`Editor/Tests/PlayMode/Common/ShipDiagnosticsOverlay.cs`, per-captured-frame trail markup —
+flagged by Codex on #154 and accepted pending this PR), and the capture runner's teardown
+flush (`CaptureScenarioPlayModeTests`, via `ProjectileFlush`). The overlay wants
+`ForEachLive` read-only enumeration, not the flush.
+
 ## Design
 
 1. **Non-generic `SimplePools` registry** (same file). Each `SimplePool<T>` self-registers a
@@ -73,4 +81,6 @@ flush was asking the scene for information whose rightful owner is the pool.
 
 - `Utils/SimplePool.cs` — `SimplePools` registry, `Live` set, delete `SimplePoolManager`.
 - `RLHarness/EpisodeSetup.cs` — `ProjectileFlush` swaps scan → registry.
+- `Editor/Tests/PlayMode/Common/ShipDiagnosticsOverlay.cs` — `DrawProjectiles` swaps scan →
+  `ForEachLive` (drop the one-line scan-justification comment there when doing so).
 - `Editor/Tests/EditMode/` — registry/live-set units.

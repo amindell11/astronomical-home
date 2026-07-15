@@ -18,6 +18,7 @@ namespace Combat.Weapons
         [SerializeField] private Cooldown cooldown;
 
         public override float ProjectileSpeed => projectilePrefab.LaserSpeed;
+        public override float FireRange => fireDistance;
         public Rounds Rounds => rounds;
 
         public override string HangarStats

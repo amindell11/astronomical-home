@@ -104,7 +104,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 38e2583dda8537e49b0fc34ac70f3cf0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  offset: {x: 0, y: -10, z: 0}
+  offset: {x: 0, y: 0, z: 0}
   smoothSpeed: 10
 --- !u!114 &4478678954348364341
 MonoBehaviour:
@@ -144,8 +144,8 @@ Transform:
   m_GameObject: {fileID: 6330564016194998357}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -4, z: 0}
-  m_LocalScale: {x: 40, y: 24, z: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 90, y: 90, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 23423398906809346}
