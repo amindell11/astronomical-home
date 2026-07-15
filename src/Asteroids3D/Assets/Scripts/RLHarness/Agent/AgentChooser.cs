@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>The policy end of the intent seam: holds the decision-boundary action (world-plane velocity + fire gate + one-shot boost) and rebuilds the intent every Decide with a fresh aim/target snapshot from the INJECTED opponent (Ranger precedent — Scout's 30 m radius is blind past the 25–60 m spawn band). Boost emits on exactly one tick; an unready Booster makes it a no-op (spend-now-if-ready).</summary>
+    /// <summary>The policy end of the intent seam: holds the decision-boundary action (world-plane velocity + fire gate + one-shot boost) and rebuilds the intent every Decide with a fresh aim/target snapshot from the INJECTED opponent (Ranger precedent — Scout's 30 m radius is blind past the 25–60 m spawn band). Boost emits on exactly one tick and only if it was available as observed at the boundary (spend-now-if-ready — a cooldown expiring mid-interval must not fire a boost the policy saw as unavailable).</summary>
     public sealed class AgentChooser : IIntentChooser
     {
         private Ship opponent;
@@ -25,11 +25,11 @@ namespace Game.RLHarness
             Reset();
         }
 
-        public void SetAction(Vector2 worldVelocity, bool fire, bool boost)
+        public void SetAction(Vector2 worldVelocity, bool fire, bool boost, bool boostAvailable)
         {
             this.worldVelocity = worldVelocity;
             this.fire = fire;
-            boostPending = boost;
+            boostPending = boost && boostAvailable;
             hasAction = true;
         }
 

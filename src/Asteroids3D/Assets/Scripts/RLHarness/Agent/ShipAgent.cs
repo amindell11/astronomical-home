@@ -60,7 +60,7 @@ namespace Game.RLHarness
             var action = AgentActions.Map(continuous[0], continuous[1], continuous[2], continuous[3]);
             var worldVelocity = AgentActions.ToWorldVelocity(
                 action.velocityEgo, self.Kinematics.Forward, self.MaxSpeed);
-            chooser.SetAction(worldVelocity, action.fire, action.boost);
+            chooser.SetAction(worldVelocity, action.fire, action.boost, self.BoostAvailable);
             DecisionsReceived++;
         }
 

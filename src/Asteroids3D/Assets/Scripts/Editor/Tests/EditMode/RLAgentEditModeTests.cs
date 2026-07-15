@@ -133,7 +133,7 @@ namespace Tests.EditMode
                 var chooser = new AgentChooser();
                 chooser.Configure(opponent, 40f);
 
-                chooser.SetAction(new Vector2(4f, 0f), fire: true, boost: true);
+                chooser.SetAction(new Vector2(4f, 0f), fire: true, boost: true, boostAvailable: true);
 
                 var first = chooser.Decide(null, 0.02f);
                 Assert.IsTrue(first.isValid);
@@ -154,6 +154,30 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void AgentChooser_BoostCommandedWhileUnavailable_StaysANoOp()
+        {
+            var opponentGo = new GameObject("Opponent");
+            try
+            {
+                var opponent = opponentGo.AddComponent<Ship>();
+                var chooser = new AgentChooser();
+                chooser.Configure(opponent, 40f);
+
+                chooser.SetAction(new Vector2(4f, 0f), fire: false, boost: true, boostAvailable: false);
+
+                var first = chooser.Decide(null, 0.02f);
+                Assert.IsTrue(first.isValid);
+                Assert.IsFalse(first.boost,
+                    "boost observed unavailable at the boundary must stay a no-op even if the cooldown expires before the next tick");
+                Assert.IsFalse(chooser.Decide(null, 0.02f).boost);
+            }
+            finally
+            {
+                Object.DestroyImmediate(opponentGo);
+            }
+        }
+
+        [Test]
         public void AgentChooser_NoActionOrReset_ReturnsNone()
         {
             var opponentGo = new GameObject("Opponent");
@@ -165,7 +189,7 @@ namespace Tests.EditMode
 
                 Assert.IsFalse(chooser.Decide(null, 0.02f).isValid, "no action yet → idle");
 
-                chooser.SetAction(Vector2.right, fire: false, boost: false);
+                chooser.SetAction(Vector2.right, fire: false, boost: false, boostAvailable: true);
                 Assert.IsTrue(chooser.Decide(null, 0.02f).isValid);
 
                 chooser.Reset();
