@@ -1,232 +1,71 @@
 # CLAUDE.md
 
-See also `AGENTS.md` for Obsidian/design-doc conventions and test-artifact standards.
+See `AGENTS.md` for Obsidian/design-doc conventions and test-artifact standards.
+Rules here are the always-loaded universal core; workflow detail lives in `.claude/skills/`. Add a rule here only after a repeated observed failure — the same evidence bar code scaffolding must meet.
 
-## Root-cause discipline
+## Fix ladder
 
-When addressing feedback or fixing a bug, **always chase the root cause — do not
-stop at the surface symptom.** Follow the failure all the way to its source, and
-then one step further: ask whether the bug reveals something wrong with the
-*underlying organization* of the code — a leaky abstraction, a fragile seam, a
-missing invariant, state reaching code the wrong way. If it does, propose a
-wider-scoped fix that makes the whole *class* of bug impossible (or at least
-loud) going forward, not just the single instance in front of you.
+Chase every failure to its root cause before writing anything. Then classify it:
 
-It's not about winning the one battle — patch the symptom and move on — it's
-about winning the next one, and the one after that, and the war overall. When a
-narrow fix and a structural fix diverge, surface both to the user with the
-trade-off rather than silently taking the quick patch. Capture any structural
-insight in the relevant plan doc or memory so the lesson outlives the fix.
+**Operating error** — bad input at an untrusted boundary (user, file, network, serialized/inspector data): parse, don't validate. Check once at the boundary, convert to a trusted type, proceed on trust inside. Never a fallback default.
 
-## Default workflow: agent-worktree PR loop
+**Programmer error** — our own code or wiring violates an invariant: climb this ladder. Enter it only for an observed failure or an explicit user pull — a speculative finding (review comment about a hypothetical, a "could happen") gets a written reply, not code.
 
-For **any new coding task** in this repo (bug fix, feature, refactor — not pure
-Q&A or read-only exploration), the default execution path is the pooled
-worktree + PR loop, not direct edits in the main working tree. Load and follow
-`.claude/skills/agent-worktree-pr-loop/SKILL.md`.
+1. **Unrepresentable.** Restructure so the mistake cannot compile or cannot be authored (types, Initialize-injection, sealed construction). Take this rung when the encoding is natural; don't contort the design to reach it.
+2. **Earliest deterministic failure.** Constructor/Initialize throw, `OnValidate`, bootstrap validation — this is the top rung that *exists* for anything the compiler can't see (serialized fields, scene data).
+3. **Cost gate.** If rungs 1–2 exceed the current change's scope, stop — present narrow vs structural with the trade-off and let the user pick fix-now or defer. Never downgrade silently.
+4. **Loud failure at use.** A throw that halts and names the violated invariant. Log-and-continue is not loud — it's a guard wearing a costume.
+5. **Guards** — a check that absorbs a bad state and keeps running: prohibited for programmer errors.
 
-Summary of the loop (details in the skill file):
+One rung per fix. A structural fix does not also get guards or hypothetical-edge tests; if you believe a fix needs two rungs, that's a budget question — ask.
 
-1. **Scope first.** Before acquiring a worktree slot, restate the task back to
-   the user in a few sentences — what will change, which files/systems are
-   touched, what's out of scope — and get explicit confirmation. Always do
-   this, even for tasks that look small; skipping it is the main failure mode
-   this workflow is meant to prevent.
-2. **Build in a warm worktree.** Acquire an `agent-N` slot and do the
-   implementation and testing there (optionally via a sub-agent), not in the
-   primary worktree.
-3. **PR once green.** Once tests pass and the diff is self-verified, run
-   `submit` to push and open a PR. Report back using the skill's required
-   reporting format. Scoped runs (e.g. `-ScopeType Auto`, the recommended
-   scope for iteration/submit) are fine here — they open the PR but record
-   no merge proof; only a passing full `-Mode Both -ScopeType Workspace`
-   run does, and the merge gate re-tests anything less.
-4. **Review round-trip.** Wait for the user's review. If they leave PR
-   comments or ask for changes in chat, use `revise` to address them and
-   re-push. Repeat until the user says it's good.
-5. **Merge on explicit approval.** Only after the user gives an explicit go
-   (e.g. "merge it", "ship it", "looks good") — not just "looks good" about
-   the code with no merge instruction implied elsewhere — squash-merge the PR
-   through the gate: `./scripts/agent_worktree_pool.sh merge <slot>`. Never
-   raw `gh pr merge`: the pool command re-tests against current main when
-   main moved after the branch's last test run (a stale-based branch can be
-   green on its own base yet break main with zero textual conflict). The
-   gate's run is the single full run per merge: it skips only on full-suite
-   proof for the exact landing tree, extends proof over docs-only deltas
-   with no run, and downgrades C# comment-only deltas to an EditMode Smoke
-   compile refresh. Never
-   merge without that explicit signal, and never force-push or skip the
-   gate's test run to get there. Before
-   merging, sweep unresolved PR comments: fix trivial ones directly and
-   re-push; for involved ones, flag them to the user with a proposed fix
-   rather than merging over them silently. As part of that same pre-merge
-   sweep, run a `/simplify` pass on the diff (quality-only cleanup, not a bug
-   hunt) alongside the comment-hygiene strip, and fold its fixes in before
-   merging. **Run these pre-merge passes as parallel sub-agents, not
-   sequentially:** launch the simplify pass, the comment-hygiene sweep, and
-   the unresolved-comment triage as concurrent Agent calls in one message.
-   To keep parallel edits from colliding, have them report proposed edits
-   rather than write, or partition the touched files between them; you apply
-   the results centrally, then do a single `revise <slot> --no-test` at the
-   end — hygiene edits don't need their own suite run; the gate tests the
-   exact tree that lands. **For every
-   one of these pre-merge passes (simplify,
-   comment-hygiene strip, unresolved-comment fixes), report back a short
-   summary of what you changed and why** — unless you already discussed that
-   specific change with the user. They should never find edits landing on the
-   PR just before merge that they can't account for.
-6. **Finalize.** After merge, run
-   `./scripts/agent_worktree_pool.sh finalize <slot> origin/main` to reset the
-   slot to main and release the lock, then pull `origin/main` into the local
-   primary worktree (`git checkout main && git pull`) so local main matches.
+When proposing any fix, name the root cause and the rung you chose; when narrow and structural diverge, present both.
 
-This applies by default — the user doesn't need to say "use the worktree
-pool" or name a slot for it to kick in. Exceptions: trivial doc/comment-only
-edits the user explicitly asks to be made directly, or explicit instruction
-to work in place instead.
+## Scope conservation
 
-## Comments & self-documenting code
+The scoped statement bounds the diff, not just the intent. Prefer the smallest diff that satisfies it.
+Before submit, re-read the scope against the diff: anything a reader of the scope wouldn't expect either comes out or gets flagged for confirmation at the same bar as the original scoping.
+No features beyond what was asked. No abstractions for single-use code. No error handling for scenarios that cannot occur. Touch only what you must.
+If the diff grows to a multiple of what the scope implies, stop and reclassify before pushing.
 
-**Comments are strongly discouraged. Make the code self-documenting instead —
-always.** A comment is a last resort, justified only when the code genuinely
-cannot carry the meaning on its own. Before writing one, remove the need for it:
-a clearer name, a named local or constant instead of a magic value, a small
-well-named helper, a simpler structure. Write a comment only when it is
-**absolutely necessary** to understand the code — and then keep it to **one
-line**. More than one line is a rare escape hatch, justified only when the *why*
-is genuinely irreducible (e.g. a documented external-bug workaround) and you can
-say why it won't collapse to a single line.
+## Comments
 
-The only legitimate (rare) case is a non-obvious ***why*** the code itself can't
-express: a workaround for an external/engine bug, a deliberately chosen
-invariant, a subtle ordering or timing requirement, a unit/coordinate-frame
-gotcha. Never comment the ***what*** the code already states plainly. Delete
-narration, section-banner comments, restated method signatures,
-`// TODO`-as-comment, and commented-out code.
+Code is self-documenting; a comment is a last resort for a non-obvious *why* the code cannot express.
+One line means ≤ ~15 words. No `<summary>` on self-naming members. Never narrate *what*, never past-state framing, never commented-out code.
+Ratchet: apply the standing rule to the hunks you touch. Whole-file sweeps happen only in dedicated hygiene PRs — never fold them into feature PRs.
+Review/build narration belongs in the PR description, not the code.
 
-**Active cleanup campaign (ratchet):** the codebase has accumulated excessive
-comments. Until that is tamed, **every PR fully de-comments each file its diff
-touches — the whole file, not just the changed hunks.** For every file you open
-to edit, run the standing rule over *all* its comments (added, pre-existing,
-near or far from your change), in order: (1) does the code already say it? →
-**delete.** (2) is it explaining *what* rather than a non-obvious *why*? →
-**delete.** (3) a genuine non-obvious *why*? → **collapse to one line.** Scope
-stays at the files you're already editing — not a repo-wide sweep — so the
-backlog drains one touched file at a time. See memory
-[[feedback-comments-self-documenting]].
+## Default workflow
 
-### Comment hygiene across the PR lifecycle
-
-Explanatory narration — the bug you fixed, before/after reasoning, "why this
-change" — is **review scaffolding, and its home is the PR description and
-review-reply threads, not the code.** Put it there by default. If a note truly
-must sit inline for the reviewer, keep it to a single, clearly-temporary line —
-never a block.
-
-Enforce the cleanup campaign above as a **hard gate before you squash-merge:**
-re-run that whole-file sweep over every file your diff touched, and additionally
-strip any past-state framing from surviving comments ("was 10f, now…", "fixed
-the leak by…"). The bar to keep a comment at merge is exactly the bar to write
-one fresh: absolutely necessary, one line, *why* not *what*. **A multi-line
-explanatory block is a defect to fix here — whether or not it mentions the
-past.** The one escape hatch is a comment longer than one line for an
-irreducible *why* (e.g. a documented external-bug workaround) that you can
-justify not collapsing. A reader of `main` should never meet a comment framed
-around a past state, nor a block restating what the code already does.
+`.claude/skills/agent-worktree-pr-loop/SKILL.md` is the single authority for the coding-task loop. Invariants:
+- Scope is confirmed with the user before building.
+- Build and test in a pooled worktree, never the primary tree.
+- PR when green.
+- Merge ONLY via `./scripts/agent_worktree_pool.sh merge <slot>`, and only on an explicit user merge instruction (definition in the skill).
+- Finalize the slot after merge.
 
 ## Cross-agent work ledger
 
-To keep parallel work visible — both concurrent worktree slots and successive
-sessions — maintain a shared, live ledger of in-flight tasks at this fixed
-**absolute** path:
+`C:\Users\amind\.claude\projects\D--amind-git-astronomical-home\memory\active_work_ledger.md` — worktree agents must use this exact absolute path.
+Read it at session start and before acquiring a slot; write on claim, PR-open, block, and merge.
+Rows are one line, claims only — merged rows are deleted; their story lives in the PR description and memory topic files.
 
-`C:\Users\amind\.claude\projects\D--amind-git-astronomical-home\memory\active_work_ledger.md`
+## Deferrals & project board
 
-It lives in the primary session's auto-memory, so the primary session loads it
-automatically via `MEMORY.md`. But that memory dir is keyed by working-tree
-path: an agent running in an `agent-N` worktree gets a *different* memory dir
-and will **not** auto-load it. Worktree agents must therefore read and write
-**this exact absolute path**, not their own memory dir.
-
-**Read the ledger:**
-- At the start of any coding session, before scoping new work — so you know
-  what's in-progress, in-review, blocked, or parked, and don't collide with it.
-- Again immediately before acquiring a worktree slot.
-
-**Write to the ledger (re-read it right before each edit so concurrent edits
-merge cleanly):**
-- **Before acquiring a slot / starting a task:** add a row (or flip an existing
-  one) to `🟡 in-progress` with the slot·branch and a link to the plan file
-  (`doc/Feature_Plans/*.md`) or the driving memory.
-- **On PR open:** status `🔵 in-review`, record the PR number.
-- **On block or park:** `⛔ blocked` / `🅿️ parked` with a one-line reason.
-- **On merge + local-main sync:** status `✅ merged`, then delete the row (or
-  move it to the ledger's Archive) once local `main` reflects the merge.
-
-The ledger is *live state*, not project history — durable narrative still lives
-in the `Active Work` section of `MEMORY.md`. When they disagree about what is
-happening right now, the ledger wins. Keep rows short and self-contained; one
-row per task.
-
-## Deferrals & the project board
-
-When the user says to **defer / punt / park** something, record it on the
-Obsidian **project board** — it is a first-class, agent-writable tracking
-artifact, not a read-only reference:
-
-`D:/amind/Documents/Obsidian Vault/Astronomical/Engineering/Project Board.md`
-
-- Write the board item as an **extremely short kanban card — a title only, no
-  description.** A few words the user can scan at a glance (e.g. `- [ ] PlayerRig
-  decomposition`), with the right `#Tags` and a link to where the detail lives.
-  **Never** write a sentence, rationale, or file-level detail onto the card
-  itself — if you're tempted to add "— because…" or a clause explaining it, that
-  text belongs in the linked memory/plan doc, not the card. Match the Kanban
-  markdown (`- [ ]` under a `## Column`, tab-indented sub-items) in the
-  appropriate column — a Dev Pool, `To Do`, or nested under its parent item —
-  and leave unrelated items and the `%% kanban:settings %%` block untouched.
-- Put **all context** — rationale, trade-offs, file-level detail, what was
-  tried — in the linked agent memory or plan doc, never on the card. **Link the
-  two**: the card carries a link to the memory file / plan doc, and the memory
-  file names the board item.
-
-Three tracking surfaces, don't conflate them:
-- **Active-work ledger** (memory) — live, right-now claims/locks; per-worktree.
-- **Project board** (Obsidian) — backlog, deferrals, and status across the
-  project; title-only cards, detail linked out.
-- **Agent memory** — the durable *why/how* behind board items and decisions.
-
-Full board conventions: `AGENTS.md` → "Design docs & work tracking".
+Deferrals go on the Obsidian board `D:/amind/Documents/Obsidian Vault/Astronomical/Engineering/Project Board.md` as title-only cards linking to a memory/plan doc.
+All context lives in the linked doc, never on the card. Conventions: `AGENTS.md` → "Design docs & work tracking".
 
 ## Dependency & wiring philosophy
 
-How state reaches code in this project — follow these when adding any new
-dependency, and prefer zero new wiring over new seams:
+Follow these when adding any new dependency; prefer zero new wiring over new seams:
 
-1. **Per-ship dependencies enter a component exactly once, through
-   `Initialize(...)` parameters** (see `Scout.Initialize`, `Navigator.Initialize`).
-   Never add ad-hoc `Set<Thing>()` setters per feature — if a component needs a
-   new per-ship dependency, extend its Initialize signature.
-2. **Keep knowledge at its abstraction level.** A composer (Scout, AICommander)
-   only instantiates and sequences its parts; domain math and configuration
-   (scan envelopes, cost shapes, query extents) live inside the part that uses
-   them. If a field on a high-level object only exists to be forwarded
-   downward, it belongs downward.
-3. **Do not thread world/session-scoped state through per-ship wiring**
-   (Commander/UnitService pass-throughs, service-interface additions) just to
-   hand it to a component. How world-scoped state SHOULD reach consumers is a
-   deliberately open question — multiple arena instances per process are
-   planned (RL training), so process-wide statics are equally suspect long-term.
-   Until that design lands: keep any such seam as narrow as possible, mark it
-   interim (see `ObstacleFields`), don't copy it to new systems, and raise the
-   question with the user rather than inventing a pattern.
-4. **The smell to catch mid-diff:** if wiring ONE new dependency touches
-   bootstrap + a service interface + Commander/UnitService + the consuming
-   component, stop and reclassify before pushing.
-5. **Refs bind and observe; signals cause.** A serialized/held reference
-   exists to bind (Initialize-style identity/config injection) or observe
-   (poll state, read a target) — never so one peer can command another at
-   runtime. Runtime causation between peers rides an event / sector-bus token
-   the actee subscribes to. Command calls are legitimate only downward
-   (owner→owned, caller→service) or during setup/teardown orchestration. The
-   smell: a ref whose only use is telling its target to *do* something.
+1. **Per-ship dependencies enter a component exactly once, through `Initialize(...)` parameters** (see `Scout.Initialize`, `Navigator.Initialize`) — never ad-hoc `Set<Thing>()` setters per feature; a new per-ship dependency extends the Initialize signature.
+2. **Keep knowledge at its abstraction level.** A composer (Scout, AICommander) only instantiates and sequences its parts; domain math and configuration (scan envelopes, cost shapes, query extents) live inside the part that uses them. A field that exists only to be forwarded downward belongs downward.
+3. **Do not thread world/session-scoped state through per-ship wiring** (Commander/UnitService pass-throughs, service-interface additions) just to hand it to a component. How world-scoped state should reach consumers is deliberately open — multiple arena instances per process are planned (RL training), so process-wide statics are equally suspect. Until that design lands: keep any such seam as narrow as possible, mark it interim (see `ObstacleFields`), don't copy it to new systems, and raise the question with the user rather than inventing a pattern.
+4. **The smell to catch mid-diff:** if wiring ONE new dependency touches bootstrap + a service interface + Commander/UnitService + the consuming component, stop and reclassify before pushing.
+5. **Refs bind and observe; signals cause.** A serialized/held reference exists to bind (Initialize-style identity/config injection) or observe (poll state, read a target) — never so one peer can command another at runtime. Runtime causation between peers rides an event / sector-bus token the actee subscribes to; command calls are legitimate only downward (owner→owned, caller→service) or during setup/teardown orchestration. The smell: a ref whose only use is telling its target to *do* something.
+
+## Session hygiene
+
+Approvals are per-action and never stretch into standing authorization — re-ask at each consequential step (merge, long-running or expensive launches).
+Past heavy context (~300k tokens), do not merge: write the handoff and let a fresh session drive the merge.
