@@ -2,133 +2,179 @@ Shader "Custom/StarField"
 {
     Properties
     {
-        _MainTex ("Texture", 2D) = "white" {}
-        _StarColor ("Star Color", Color) = (1,1,1,1)
-        _StarDensity ("Star Density", Range(0, 1)) = 0.5
-        _StarSize ("Star Size", Range(0, 0.1)) = 0.01
-        _SizeVariation ("Size Variation", Range(0, 1)) = 0.5
-        _TwinkleSpeed ("Twinkle Speed", Range(0, 10)) = 1
-        _CullDistance ("Cull Distance", Float) = 50
-        _GridDensity ("Grid Density", Range(0.01, 1)) = 0.2
-        _ParallaxStrength ("Parallax Strength", Range(0, 1)) = 0.5
-        _StartingOffset ("Starting Offset", Vector) = (0.2,0.2,0,0)
+        [HideInInspector][PerRendererData] _MainTex ("Sprite Texture", 2D) = "white" {}
+
+        [Header(Pattern)]
+        _Seed ("Seed", Float) = 0
+        _StarDensity ("Total Star Density", Range(0, 1)) = 0.12
+        _CellScale ("Cells Per World Unit", Range(0.05, 4)) = 0.8
+        _StarSizeMin ("Minimum Star Radius", Range(0.002, 0.15)) = 0.012
+        _StarSizeMax ("Maximum Star Radius", Range(0.002, 0.2)) = 0.045
+        _PositionJitter ("Position Jitter", Range(0, 0.6)) = 0.5
+
+        [Header(Depth)]
+        _ParallaxFar ("Far Parallax", Range(0, 2)) = 0.2
+        _ParallaxNear ("Near Parallax", Range(0, 2)) = 0.9
+        _NearLayerShare ("Near Layer Share", Range(0, 1)) = 0.35
+
+        [Header(Appearance)]
+        [HDR] _ColorCool ("Cool Star Color", Color) = (0.65, 0.8, 1, 1)
+        [HDR] _ColorWarm ("Warm Star Color", Color) = (1, 0.82, 0.58, 1)
+        _WarmColorShare ("Warm Color Share", Range(0, 1)) = 0.25
+        _Brightness ("Brightness", Range(0, 8)) = 1.5
+        _HaloSize ("Halo Size", Range(1, 4)) = 2
+        _HaloStrength ("Halo Strength", Range(0, 1)) = 0.2
+
+        [Header(Motion)]
+        _TwinkleAmount ("Twinkle Amount", Range(0, 1)) = 0.2
+        _TwinkleSpeed ("Twinkle Speed", Range(0, 10)) = 0.5
     }
-    
+
     SubShader
     {
-        Tags { "RenderType"="Transparent" "Queue"="Transparent" }
-        Blend SrcAlpha OneMinusSrcAlpha
+        Tags
+        {
+            "RenderPipeline" = "UniversalPipeline"
+            "RenderType" = "Transparent"
+            "Queue" = "Transparent-50"
+        }
+
+        Blend One One
+        Cull Off
+        ZTest LEqual
         ZWrite Off
-        
+
         Pass
         {
-            CGPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
-            #include "UnityCG.cginc"
+            Name "StarField"
+            Tags { "LightMode" = "UniversalForward" }
 
-            struct appdata
+            HLSLPROGRAM
+            #pragma target 3.5
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+            struct Attributes
             {
-                float4 vertex : POSITION;
-                float2 uv : TEXCOORD0;
+                float3 positionOS : POSITION;
             };
 
-            struct v2f
+            struct Varyings
             {
-                float2 uv : TEXCOORD0;
-                float4 vertex : SV_POSITION;
-                float4 worldPos : TEXCOORD1;
-                float4 screenPos : TEXCOORD2;
+                float4 positionHCS : SV_POSITION;
+                float3 positionWS : TEXCOORD0;
             };
 
-            sampler2D _MainTex;
-            float4 _MainTex_ST;
-            float4 _StarColor;
-            float _StarDensity;
-            float _StarSize;
-            float _SizeVariation;
-            float _TwinkleSpeed;
-            float _CullDistance;
-            float _GridDensity;
-            float _ParallaxStrength;
-            float4 _StartingOffset;
+            CBUFFER_START(UnityPerMaterial)
+                float _Seed;
+                float _StarDensity;
+                float _CellScale;
+                float _StarSizeMin;
+                float _StarSizeMax;
+                float _PositionJitter;
+                float _ParallaxFar;
+                float _ParallaxNear;
+                float _NearLayerShare;
+                float4 _ColorCool;
+                float4 _ColorWarm;
+                float _WarmColorShare;
+                float _Brightness;
+                float _HaloSize;
+                float _HaloStrength;
+                float _TwinkleAmount;
+                float _TwinkleSpeed;
+            CBUFFER_END
 
-            // Improved hash function for better distribution
-            float hash(float2 p)
+            float4 Hash42(float2 value)
             {
-                p = 50.0 * frac(p * 0.3183099 + float2(0.71, 0.113));
-                return -1.0 + 2.0 * frac(p.x * p.y * (p.x + p.y));
+                float4 p = frac(value.xyxy * float4(0.1031, 0.1030, 0.0973, 0.1099));
+                p += dot(p, p.wzxy + 33.33);
+                return frac((p.xxyz + p.yzzw) * p.zywx);
             }
 
-            v2f vert (appdata v)
+            float3 EvaluateLayer(
+                float2 planePosition,
+                float2 cameraPosition,
+                float parallax,
+                float density,
+                float sizeScale,
+                float layerSeed)
             {
-                v2f o;
-                o.vertex = UnityObjectToClipPos(v.vertex);
-                o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-                o.worldPos = mul(unity_ObjectToWorld, v.vertex);
-                o.screenPos = ComputeScreenPos(o.vertex);
-                return o;
+                float2 fieldPosition = (planePosition + cameraPosition * parallax) * _CellScale;
+                float2 cell = floor(fieldPosition);
+                float4 random = Hash42(cell + float2(_Seed * 37.0 + layerSeed, _Seed * 91.0 - layerSeed));
+
+                if (random.x >= density)
+                    return 0;
+
+                float2 center = 0.5 + (random.yz - 0.5) * _PositionJitter;
+                float radius = lerp(_StarSizeMin, max(_StarSizeMin, _StarSizeMax), random.w) * sizeScale;
+                float distanceToCenter = length(frac(fieldPosition) - center);
+                float antialiasWidth = max(fwidth(distanceToCenter), 0.0001);
+                float core = 1.0 - smoothstep(radius - antialiasWidth, radius + antialiasWidth, distanceToCenter);
+                float haloRadius = radius * _HaloSize;
+                float halo = 1.0 - smoothstep(haloRadius - antialiasWidth, haloRadius + antialiasWidth, distanceToCenter);
+                float intensity = core + halo * _HaloStrength;
+
+                if (intensity <= 0)
+                    return 0;
+
+                float phase = random.y * TWO_PI;
+                float twinkleWave = sin(_Time.y * _TwinkleSpeed + phase) * 0.5 + 0.5;
+                float twinkle = lerp(1.0 - _TwinkleAmount, 1.0, twinkleWave);
+                float warmBlend = _WarmColorShare > 0
+                    ? smoothstep(1.0 - _WarmColorShare, 1.0, random.z)
+                    : 0;
+                float3 color = lerp(_ColorCool.rgb, _ColorWarm.rgb, warmBlend);
+                return color * intensity * twinkle * _Brightness;
             }
 
-            fixed4 frag (v2f i) : SV_Target
+            Varyings Vert(Attributes input)
             {
-                // Early exit if pixel is outside screen
-                float2 screenUV = i.screenPos.xy / i.screenPos.w;
-                if (screenUV.x < 0 || screenUV.x > 1 || screenUV.y < 0 || screenUV.y > 1)
-                    return fixed4(0,0,0,0);
-
-                // Project into the StarField object's local plane basis so orientation
-                // follows transform rotation (instead of being hardwired to world XZ).
-                float3 planeRight = normalize(float3(unity_ObjectToWorld._m00, unity_ObjectToWorld._m10, unity_ObjectToWorld._m20));
-                float3 planeUp = normalize(float3(unity_ObjectToWorld._m01, unity_ObjectToWorld._m11, unity_ObjectToWorld._m21));
-                float2 worldPos = float2(dot(i.worldPos.xyz, planeRight), dot(i.worldPos.xyz, planeUp));
-                float2 cameraPos = float2(dot(_WorldSpaceCameraPos.xyz, planeRight), dot(_WorldSpaceCameraPos.xyz, planeUp));
-                
-                // Early exit if too far from camera
-                float distFromCamera = length(worldPos - cameraPos);
-                if (distFromCamera > _CullDistance)
-                    return fixed4(0,0,0,0);
-                
-                // Create a more complex grid pattern to avoid visible repetition
-                float2 grid = floor(worldPos * _GridDensity);
-                float2 gridUV = frac(worldPos * _GridDensity);
-                
-                // Generate a single random value for the current grid cell
-                half random = hash(grid);
-
-                // Early discard for pixels that won't contain a star – this avoids
-                // running the rest of the fragment logic for the vast majority of
-                // fragments and significantly reduces ALU/VGPR usage.
-                clip(_StarDensity - random);
-                
-                // Generate size variation
-                float sizeRandom = hash(grid + float2(0.5, 0.5)); // Different seed for size
-                float sizeVariation = lerp(1.0 - _SizeVariation, 1.0 + _SizeVariation, sizeRandom);
-                float finalStarSize = _StarSize * sizeVariation;
-                
-                // Calculate parallax offset based on star size
-                float parallaxFactor = 1.0 - (finalStarSize / (_StarSize * (1.0 + _SizeVariation))); // Smaller stars move slower
-                float2 cameraOffset = (cameraPos + _StartingOffset.xy) * _ParallaxStrength * parallaxFactor;
-                
-                // Apply parallax and starting offset to grid position
-                float2 finalPos = worldPos + cameraOffset;
-                grid = floor(finalPos * _GridDensity);
-                gridUV = frac(finalPos * _GridDensity);
-                
-                // Create star shape with soft edges
-                float2 center = float2(0.5, 0.5);
-                float dist = length(gridUV - center);
-                float starShape = smoothstep(finalStarSize, 0, dist);
-                
-                // Add twinkling effect
-                float twinkle = sin(_Time.y * _TwinkleSpeed + random * 10) * 0.5 + 0.5;
-                
-                // Combine everything (the presence check is already handled by the clip above)
-                float finalStar = starShape * twinkle;
-                
-                return float4(_StarColor.rgb, finalStar * _StarColor.a);
+                Varyings output;
+                output.positionWS = TransformObjectToWorld(input.positionOS);
+                output.positionHCS = TransformWorldToHClip(output.positionWS);
+                return output;
             }
-            ENDCG
+
+            half4 Frag(Varyings input) : SV_Target
+            {
+                float3 planeRight = normalize(float3(
+                    unity_ObjectToWorld._m00,
+                    unity_ObjectToWorld._m10,
+                    unity_ObjectToWorld._m20));
+                float3 planeUp = normalize(float3(
+                    unity_ObjectToWorld._m01,
+                    unity_ObjectToWorld._m11,
+                    unity_ObjectToWorld._m21));
+                float2 planePosition = float2(dot(input.positionWS, planeRight), dot(input.positionWS, planeUp));
+                float3 cameraPositionWS = GetCameraPositionWS();
+                float2 cameraPosition = float2(
+                    dot(cameraPositionWS, planeRight),
+                    dot(cameraPositionWS, planeUp));
+
+                float nearDensity = _StarDensity * _NearLayerShare;
+                float farDensity = _StarDensity * (1.0 - _NearLayerShare);
+                float3 farStars = EvaluateLayer(
+                    planePosition,
+                    cameraPosition,
+                    _ParallaxFar,
+                    farDensity,
+                    0.8,
+                    19.19);
+                float3 nearStars = EvaluateLayer(
+                    planePosition,
+                    cameraPosition,
+                    _ParallaxNear,
+                    nearDensity,
+                    1.25,
+                    73.73);
+
+                return half4(farStars + nearStars, 0);
+            }
+            ENDHLSL
         }
     }
-} 
+}

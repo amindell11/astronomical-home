@@ -20,8 +20,8 @@ namespace Tests.PlayMode
     /// <summary>
     /// While the hangar screen is open the player's commander must be disabled — Fire1 shares
     /// mouse 0 with UI clicks, so an enabled commander turns every hangar button press into a
-    /// weapon shot on the live ship behind the screen. Launch must restore it. The gate now lives
-    /// in the driver's <see cref="GameDriver.RunHangar"/>, so the flow is driven there.
+    /// weapon shot on the live ship behind the screen. Launch must restore it. The gate lives in
+    /// <see cref="GameDriver.RunHangar"/>, so the flow is driven there.
     /// </summary>
     [Category("RequiresGraphics")]
     public class HangarInputGatePlayModeTests : PlayModeWorldFixture
@@ -59,8 +59,11 @@ namespace Tests.PlayMode
             var objectiveService = servicesGo.AddComponent<ObjectiveService>();
             var arena = Tests.Common.TestArena.On(servicesGo, unitService.Registry);
             unitService.SetArena(arena);
+            var projectiles = new ProjectileService(servicesGo.transform);
+            unitService.SetProjectiles(projectiles);
             services = new GameServices(
                 unitService: unitService,
+                projectiles: projectiles,
                 environmentService: new EnvironmentService(),
                 objectiveService: objectiveService,
                 cameraService: new CameraService(),
@@ -75,8 +78,7 @@ namespace Tests.PlayMode
             Assert.IsNotNull(rig.Player.Commander, "player has a commander");
             Assert.IsTrue(rig.Player.Commander.enabled, "test premise: commander starts enabled");
 
-            // The hangar screen + catalog live on the driver now; supply them to an inactive driver
-            // (its Awake/state-machine never runs) and drive the flow coroutine on the active rig.
+            // Supply screen + catalog to an inactive driver (Awake/state-machine never runs) and drive the flow coroutine on the active rig.
             driverGo = new GameObject("TestDriver");
             driverGo.SetActive(false);
             var driver = driverGo.AddComponent<GameDriver>();

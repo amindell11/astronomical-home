@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Reflection;
 using AI;
 using Game;
 using Game.RLHarness;
@@ -26,6 +25,7 @@ namespace Tests.PlayMode
         private ShipRegistry registry;
         private GameObject arenaHost;
         private ArenaContext arena;
+        private ProjectileService projectiles;
         private readonly List<GameObject> createdObjects = new();
         private readonly List<UnityEngine.Object> createdAssets = new();
         private float savedTimeScale;
@@ -38,6 +38,7 @@ namespace Tests.PlayMode
             registry = new ShipRegistry();
             arenaHost = new GameObject("[OracleArena]");
             arena = TestArena.On(arenaHost, registry);
+            projectiles = new ProjectileService(arenaHost.transform);
 
             savedTimeScale = Time.timeScale;
             savedMaxDelta = Time.maximumDeltaTime;
@@ -55,6 +56,7 @@ namespace Tests.PlayMode
             registry = null;
             if (arenaHost) UnityEngine.Object.DestroyImmediate(arenaHost);
             arena = null;
+            projectiles = null;
 
             foreach (var go in createdObjects)
                 if (go) UnityEngine.Object.DestroyImmediate(go);
@@ -185,7 +187,7 @@ namespace Tests.PlayMode
             var startPlane = StartPlanePosition(cfg);
             var shipWorld = GamePlane.PlanePointToWorld(startPlane);
 
-            var ship = ShipTestFactory.CreateDefaultShipAt(shipWorld, GamePlane.Rotation);
+            var ship = ShipTestFactory.CreateDefaultShipAt(shipWorld, GamePlane.Rotation, projectiles);
             Assert.IsNotNull(ship, "Failed to create ship — check test asset paths");
             createdObjects.Add(ship.gameObject);
             registry.ActiveShips.Add(ship);
@@ -208,8 +210,7 @@ namespace Tests.PlayMode
             var chooser = new ManeuverChooser();
             chooser.Configure(dummy, cfg.maneuver, cfg.orbitRadius, cfg.desiredRange,
                 cfg.orbitSpeedFraction, cfg.freeYaw);
-            typeof(Brain).GetField("chooser", BindingFlags.NonPublic | BindingFlags.Instance)
-                .SetValue(brain, chooser);
+            brain.InstallChooser(chooser);
 
             cmdr.SetArena(arena);
 

@@ -8,15 +8,7 @@ using UnityEngine.TestTools;
 
 namespace Tests.PlayMode
 {
-    /// <summary>
-    /// PlayMode residue for ship death/respawn that genuinely needs a real ship or the real prefab:
-    /// ShipId attribution on damage/death — needs real ships (hull-smoke presentation moved to
-    /// ShipPresentationPlayModeTests with the visual rig attached).
-    ///
-    /// The pure damage-routing / reset / regen / invulnerability logic previously duplicated here now
-    /// lives fast in <c>Tests.EditMode/DamageControllerEditModeTests</c> (constructed via the production
-    /// <see cref="DamageController.PopulateSettings"/> path — no prefab, no play mode).
-    /// </summary>
+    /// <summary>ShipId attribution on damage/death — the residue that needs real ships; pure damage-routing/reset/regen logic lives in Tests.EditMode/DamageControllerEditModeTests, hull-smoke presentation in ShipPresentationPlayModeTests.</summary>
     [Category("Damage")]
     [Category("Slow")]
     public class ShipRespawnDamagePlayModeTests : PlayModeWorldFixture
@@ -31,12 +23,13 @@ namespace Tests.PlayMode
             base.SetUp();
 
 #if UNITY_EDITOR
-            playerShip = ShipTestFactory.CreateDefaultShip(team: 0);
+            playerShip = ShipTestFactory.CreateDefaultShip(Projectiles, team: 0);
             playerDamage = playerShip.Damage;
 
             enemyShip = ShipTestFactory.CreateDefaultShipAt(
                 new Vector3(10, 0, 0),
                 Quaternion.identity,
+                Projectiles,
                 team: 1);
 
             Assert.IsNotNull(playerShip, "Player ship failed to instantiate");
@@ -55,11 +48,7 @@ namespace Tests.PlayMode
             base.TearDown();
         }
 
-        /// <summary>
-        /// LastAttackerId is set from a real attacking ship and cleared after ResetShip(). The
-        /// clear-in-isolation path is also covered in EditMode; this exercises the set-from-enemy-ship
-        /// round-trip, which needs real ships and their ids.
-        /// </summary>
+        /// <summary>LastAttackerId set from a real attacking ship and cleared by ResetShip — the round-trip that needs real ships and ids.</summary>
         [UnityTest]
         public IEnumerator AfterReset_LastAttackerIdIsCleared()
         {

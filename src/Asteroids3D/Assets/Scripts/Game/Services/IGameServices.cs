@@ -3,6 +3,7 @@ namespace Game.Services
     public interface IGameServices
     {
         IUnitService UnitService { get; }
+        IProjectileService Projectiles { get; }
         IEnvironmentService EnvironmentService { get; }
         IObjectiveService ObjectiveService { get; }
         ICameraService CameraService { get; }

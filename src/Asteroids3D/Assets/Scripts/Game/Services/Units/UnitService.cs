@@ -22,6 +22,7 @@ namespace Game.Services
         private readonly List<PendingRespawn> pendingRespawns = new();
         private int nextAgentIndex;
         private ArenaContext arena;
+        private IProjectileService projectiles;
         public IShipRegistry Registry => ActiveRegistry;
         public ShipRegistry ActiveRegistry { get; } = new();
 
@@ -31,6 +32,13 @@ namespace Game.Services
             if (arena != null && !ReferenceEquals(arena, context))
                 throw new InvalidOperationException("UnitService arena is already set to a different ArenaContext.");
             arena = context;
+        }
+
+        public void SetProjectiles(IProjectileService projectiles)
+        {
+            if (this.projectiles != null && !ReferenceEquals(this.projectiles, projectiles))
+                throw new InvalidOperationException("UnitService projectiles are already set to a different IProjectileService.");
+            this.projectiles = projectiles;
         }
 
         public event Action<Ship> OnShipSpawned;
@@ -46,7 +54,7 @@ namespace Game.Services
                 throw new ArgumentNullException(nameof(template));
 
             var ship = ShipFactory.CreateShip(
-                template, commander, team, NextDecisionSeed(team),
+                template, commander, team, NextDecisionSeed(team), projectiles,
                 position, rotation,
                 postInitialize: WireShipDependencies);
 
@@ -69,7 +77,7 @@ namespace Game.Services
             if (commander)
                 ship.AdoptCommander(commander);
 
-            ship.Initialize(ship.teamNumber, NextDecisionSeed(ship.teamNumber));
+            ship.Initialize(ship.teamNumber, NextDecisionSeed(ship.teamNumber), projectiles);
 
             ActiveRegistry.ActiveShips.Add(ship);
             spawnedShips.Add(ship);

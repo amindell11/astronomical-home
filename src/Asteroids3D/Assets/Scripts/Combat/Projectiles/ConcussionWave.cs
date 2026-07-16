@@ -7,13 +7,7 @@ using Utils;
 
 namespace Combat.Projectile
 {
-    /// <summary>
-    /// An expanding concussion wavefront: the radius grows at <see cref="expandSpeed"/> and each
-    /// damageable is hit exactly once, when the frontier first overlaps it, with damage and an
-    /// outward impulse scaled by <see cref="Falloff"/> at that radius. Deliberately hits
-    /// everything — shooter included — so the dropper must outrun their own blast; the shooter
-    /// is kept only for kill attribution.
-    /// </summary>
+    /// <summary>Expanding concussion wavefront: each damageable is hit exactly once as the frontier first overlaps it, damage/impulse scaled by <see cref="Falloff"/>; deliberately hits everything — shooter included (kept only for kill attribution) — so the dropper must outrun their own blast.</summary>
     public class ConcussionWave : MonoBehaviour
     {
         [Header("Wave")]
@@ -44,6 +38,9 @@ namespace Combat.Projectile
         /// <summary>Raised by <see cref="Begin"/> — a live detonation, unlike OnEnable, which pool warmup also triggers.</summary>
         public event Action Begun;
 
+        /// <summary>Raised just before every pool return (spent frontier or flush), so trackers never hold a stale registration for an alive-but-pooled wave.</summary>
+        public event Action Released;
+
         /// <summary>Starts a sweep from this transform's position, attributing damage to <paramref name="attacker"/>.</summary>
         public void Begin(GameObject attacker)
         {
@@ -60,16 +57,21 @@ namespace Combat.Projectile
             Sweep();
 
             if (radius >= maxRadius)
-                SimplePool<ConcussionWave>.Release(this);
+                ReturnToPoolImmediate();
+        }
+
+        /// <summary>Immediately returns this wave to its pool, ending the sweep (episode/scene flush).</summary>
+        public void ReturnToPoolImmediate()
+        {
+            Released?.Invoke();
+            SimplePool<ConcussionWave>.Release(this);
         }
 
         private void Sweep()
         {
             var falloff = Falloff(radius, maxRadius);
 
-            // Already-swept inner colliders stay inside the growing sphere and would permanently
-            // crowd a fixed-size result, starving newly reached outer targets — regrow until the
-            // query fits.
+            // Already-swept inner colliders would crowd a fixed-size result and starve newly reached outer targets — regrow until the query fits.
             var buffer = PhysicsBuffers.GetColliderBuffer(64);
             var hitCount = Physics.OverlapSphereNonAlloc(transform.position, radius, buffer, sweepMask);
             while (hitCount == buffer.Length)

@@ -1,6 +1,7 @@
 using AI;
 using AI.Context;
 using AI.States;
+using Movement;
 using Movement.MPC;
 using Ships;
 using UnityEngine;
@@ -46,17 +47,22 @@ namespace Game.RLHarness
             return cachedIntent;
         }
 
-        private NavigationIntent BuildIntent(AIContext ctx)
+        /// <summary>The pure hold-range velocity law (close, hold, damp along the LOS) — also the agent Heuristic's inverse-mapped source policy.</summary>
+        public static Vector2 HoldRangeVelocity(in Kinematics self, in Kinematics enemy, float desiredRange, float maxSpeed)
         {
-            var self = ctx.Self.Kinematics;
-            var enemy = target.Kinematics;
-
             var los = enemy.pos - self.pos;
             var r = los.magnitude;
             var losHat = r > 1e-4f ? los / r : Vector2.up;
             var closing = RangeGain * (r - desiredRange) * losHat;
             var damping = RangeDamping * Vector2.Dot(self.vel, losHat) * losHat;
-            var vRef = Vector2.ClampMagnitude(closing - damping, ctx.Self.Dynamics.maxSpeed);
+            return Vector2.ClampMagnitude(closing - damping, maxSpeed);
+        }
+
+        private NavigationIntent BuildIntent(AIContext ctx)
+        {
+            var self = ctx.Self.Kinematics;
+            var enemy = target.Kinematics;
+            var vRef = HoldRangeVelocity(in self, in enemy, desiredRange, ctx.Self.Dynamics.maxSpeed);
 
             return new NavigationIntent
             {

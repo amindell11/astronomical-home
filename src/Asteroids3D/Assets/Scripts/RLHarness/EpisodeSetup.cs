@@ -1,5 +1,6 @@
 using System;
-using Combat.Projectile;
+using System.Globalization;
+using System.IO;
 using Ships.Command;
 using UnityEngine;
 
@@ -33,18 +34,19 @@ namespace Game.RLHarness
         }
     }
 
-    /// <summary>Episode-boundary projectile flush: returns every in-flight projectile to its pool (never Destroy — pooled instances outlive ship death).</summary>
-    public static class ProjectileFlush
+    /// <summary>Timestamped result sink under repo-root results/, shared by the tests and the RL hosts.</summary>
+    public static class EpisodeJsonl
     {
-        public static int ReturnAllToPool()
+        public static string NewRunPath(string tag, string folder = "rl-episodes")
         {
-            var live = UnityEngine.Object.FindObjectsByType<ProjectileBase>(FindObjectsSortMode.None);
-            foreach (var projectile in live)
-                projectile.ReturnToPoolImmediate();
-            return live.Length;
+            var repoRoot = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", ".."));
+            var dir = Path.Combine(repoRoot, "results", folder);
+            Directory.CreateDirectory(dir);
+            var stamp = DateTime.Now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
+            return Path.Combine(dir, $"{stamp}-{tag}.jsonl");
         }
 
-        public static int ActiveCount() =>
-            UnityEngine.Object.FindObjectsByType<ProjectileBase>(FindObjectsSortMode.None).Length;
+        public static void Append(string path, in EpisodeResult result) =>
+            File.AppendAllText(path, result.ToJsonLine() + "\n");
     }
 }

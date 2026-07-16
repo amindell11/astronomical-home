@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using Combat;
-using Combat.Projectile;
 using Combat.Weapons;
 using Damage;
 using NUnit.Framework;
@@ -30,9 +29,6 @@ namespace Tests.PlayMode
         [TearDown]
         public override void TearDown()
         {
-            foreach (var proj in Object.FindObjectsByType<ProjectileBase>(FindObjectsSortMode.None))
-                Object.DestroyImmediate(proj.gameObject);
-
             foreach (var go in spawned)
                 if (go) Object.DestroyImmediate(go);
             spawned.Clear();
@@ -108,7 +104,7 @@ namespace Tests.PlayMode
             var railgun = MountWeapon<Railguns>(RailgunPrefabPath, ship);
 
             railgun.Charge.Configure(chargeTime: Time.fixedDeltaTime, minChargeToFire: 1f, autoFireAtFull: true);
-            railgun.HandleTrigger(pressed: false, held: true);
+            railgun.HandleTrigger(pressed: false, held: true, Projectiles);
 
             Assert.AreEqual(0f, ownRecorder.TotalDamage, 0.001f, "Never hit the ship that fired.");
             Assert.Greater(enemy.TotalDamage, 0f, "A same-parented enemy is not 'self'.");
@@ -123,7 +119,7 @@ namespace Tests.PlayMode
             var enemy = CreateEnemy(arena, ship.transform.position + Vector3.up * 5f);
             var ripper = MountWeapon<Rippers>(RippersPrefabPath, ship);
 
-            ripper.HandleTrigger(pressed: false, held: true);
+            ripper.HandleTrigger(pressed: false, held: true, Projectiles);
 
             for (var i = 0; i < 120 && enemy.TotalDamage <= 0f; i++)
                 yield return new WaitForFixedUpdate();

@@ -33,6 +33,7 @@ namespace Tests.EditMode
             public IEnvironmentService Env;
             public ArenaContext ArenaCtx;
             public IUnitService UnitService => null;
+            public IProjectileService Projectiles => null;
             public IEnvironmentService EnvironmentService => Env;
             public IObjectiveService ObjectiveService => null;
             public ICameraService CameraService => null;

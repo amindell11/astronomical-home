@@ -84,6 +84,14 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
+# ML-Agents runtime stats residue (regenerated every editor training/inference run)
+/[Aa]ssets/ML-Agents/
+/[Aa]ssets/ML-Agents.meta
+
+# Transient eval-candidate checkpoint imported by TrainingBootstrap.RunEval
+/[Aa]ssets/Tests/Fixtures/EvalCandidate.onnx
+/[Aa]ssets/Tests/Fixtures/EvalCandidate.onnx.meta
+
 # Capture scratch staging (unity_test_agent.ps1 -CaptureScenario copies scenarios here per run)
 /Assets/Scripts/Editor/Tests/PlayMode/Scratch/*
 !/Assets/Scripts/Editor/Tests/PlayMode/Scratch/.gitkeep

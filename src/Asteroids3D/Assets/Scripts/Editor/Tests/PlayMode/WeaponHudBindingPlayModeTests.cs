@@ -36,10 +36,6 @@ namespace Tests.PlayMode
         [TearDown]
         public override void TearDown()
         {
-            // Destroy in-flight projectiles before their shooters (see WeaponCommandDispatch).
-            foreach (var proj in Object.FindObjectsByType<ProjectileBase>(FindObjectsSortMode.None))
-                Object.DestroyImmediate(proj.gameObject);
-
             foreach (var go in spawned)
                 if (go) Object.DestroyImmediate(go);
             spawned.Clear();
@@ -236,7 +232,7 @@ namespace Tests.PlayMode
             weapon.OnFire += () => fired++;
             var startingAmmo = weapon.Rounds.AmmoCount;
 
-            var proj = weapon.Fire();
+            var proj = weapon.Fire(Projectiles);
 
             Assert.IsNotNull(proj, "Ripper failed to fire from a full magazine.");
             Assert.IsInstanceOf<Laser>(proj);

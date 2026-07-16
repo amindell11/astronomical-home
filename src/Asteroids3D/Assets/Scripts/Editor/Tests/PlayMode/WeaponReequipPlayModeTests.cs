@@ -52,7 +52,7 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator Reequip_Weapons_ReplacesMounts_AndContextSurvivesInPlace()
         {
-            ship = ShipTestFactory.CreateDefaultShip();
+            ship = ShipTestFactory.CreateDefaultShip(Projectiles);
             Assert.IsNotNull(ship, "ship created");
             yield return null;
 
@@ -89,7 +89,7 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator Reequip_TargetingCache_FollowsTheMissileMount()
         {
-            ship = ShipTestFactory.CreateDefaultShip();
+            ship = ShipTestFactory.CreateDefaultShip(Projectiles);
             Assert.IsNotNull(ship, "ship created");
             yield return null;
 
@@ -112,7 +112,7 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator Reequip_EmptyWeaponSlots_IsAValidBuild()
         {
-            ship = ShipTestFactory.CreateDefaultShip();
+            ship = ShipTestFactory.CreateDefaultShip(Projectiles);
             Assert.IsNotNull(ship, "ship created");
             yield return null;
 
@@ -127,7 +127,7 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator Reequip_UnchangedModules_KeepsMountInstances()
         {
-            ship = ShipTestFactory.CreateDefaultShip();
+            ship = ShipTestFactory.CreateDefaultShip(Projectiles);
             Assert.IsNotNull(ship, "ship created");
             yield return null;
 
@@ -149,12 +149,11 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator Reequip_WhileInactive_AwakesCleanlyOnRevive()
         {
-            ship = ShipTestFactory.CreateDefaultShip();
+            ship = ShipTestFactory.CreateDefaultShip(Projectiles);
             Assert.IsNotNull(ship, "ship created");
             yield return null;
 
-            // Death path: the ship is deactivated on death, THEN the hangar applies a new loadout,
-            // so the fresh mounts instantiate under an inactive parent (Awake deferred).
+            // Death path: the ship is deactivated on death, THEN the hangar applies a new loadout, so the fresh mounts instantiate under an inactive parent (Awake deferred).
             ship.gameObject.SetActive(false);
 
             var rippers = LoadWeapon<Rippers>(RippersPrefabPath);
@@ -165,8 +164,7 @@ namespace Tests.PlayMode
             Assert.AreEqual(0, ship.Weapons.ReadoutContext.Readouts(WeaponSlot.Primary).Count,
                 "pre-Awake readouts read empty rather than throwing");
 
-            // The production revive path — resets weapons BEFORE reactivating, so it must
-            // tolerate never-awakened mounts.
+            // The production revive path resets weapons BEFORE reactivating, so it must tolerate never-awakened mounts.
             ship.ResetShip();
             yield return null;
 
@@ -183,7 +181,7 @@ namespace Tests.PlayMode
             var junkerPrefab = TestAssets.LoadShipPrefab(JunkerPrefabPath);
             Assert.IsNotNull(junkerPrefab, "junker prefab loaded");
             ship = Object.Instantiate(junkerPrefab);
-            ship.Initialize(0, 0); // commander-less; wires movement like Factory.CreateShip does
+            ship.Initialize(0, 0, Projectiles); // commander-less; wires movement like Factory.CreateShip does
             yield return null;
 
             Assert.IsNull(ship.Weapons, "junker carries no WeaponsController");

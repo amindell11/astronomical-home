@@ -37,10 +37,11 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void IGameServices_Exposes_AllFourServices()
+        public void IGameServices_Exposes_AllServices()
         {
             var type = typeof(IGameServices);
             Assert.IsNotNull(type.GetProperty("UnitService"), "Missing UnitService");
+            Assert.IsNotNull(type.GetProperty("Projectiles"), "Missing Projectiles");
             Assert.IsNotNull(type.GetProperty("EnvironmentService"), "Missing EnvironmentService");
             Assert.IsNotNull(type.GetProperty("ObjectiveService"), "Missing ObjectiveService");
             Assert.IsNotNull(type.GetProperty("CameraService"), "Missing CameraService");
@@ -61,14 +62,16 @@ namespace Tests.EditMode
             var cam = new CameraService();
 
             var ui = new UIService();
+            var proj = new ProjectileService(unit.transform);
             var arena = TestArena.On(CreateMonoBehaviourService<NavFieldService>().gameObject);
 
-            Assert.Throws<ArgumentNullException>(() => new GameServices(null, env, obj, cam, ui, arena));
-            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, null, obj, cam, ui, arena));
-            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, env, null, cam, ui, arena));
-            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, env, obj, null, ui, arena));
-            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, env, obj, cam, null, arena));
-            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, env, obj, cam, ui, null));
+            Assert.Throws<ArgumentNullException>(() => new GameServices(null, proj, env, obj, cam, ui, arena));
+            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, null, env, obj, cam, ui, arena));
+            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, proj, null, obj, cam, ui, arena));
+            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, proj, env, null, cam, ui, arena));
+            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, proj, env, obj, null, ui, arena));
+            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, proj, env, obj, cam, null, arena));
+            Assert.Throws<ArgumentNullException>(() => new GameServices(unit, proj, env, obj, cam, ui, null));
         }
 
         [Test]
@@ -78,6 +81,7 @@ namespace Tests.EditMode
             Assert.IsNotNull(type.GetProperty("Registry"), "Missing Registry");
             Assert.IsNotNull(type.GetProperty("ActiveRegistry"), "Missing ActiveRegistry");
             Assert.IsNotNull(type.GetMethod("SpawnShip"), "Missing SpawnShip");
+            Assert.IsNotNull(type.GetMethod("SetProjectiles"), "Missing SetProjectiles");
             Assert.IsNotNull(type.GetMethod("Clear"), "Missing Clear");
             Assert.IsNotNull(type.GetEvent("OnShipSpawned"), "Missing OnShipSpawned");
         }
@@ -299,7 +303,7 @@ namespace Tests.EditMode
             var obj = CreateMonoBehaviourService<ObjectiveService>();
             var cam = new CameraService();
             var arena = TestArena.On(CreateMonoBehaviourService<NavFieldService>().gameObject);
-            var services = new GameServices(unit, env, obj, cam, new UIService(), arena);
+            var services = new GameServices(unit, new ProjectileService(unit.transform), env, obj, cam, new UIService(), arena);
 
             Assert.DoesNotThrow(() => services.ClearAll());
         }

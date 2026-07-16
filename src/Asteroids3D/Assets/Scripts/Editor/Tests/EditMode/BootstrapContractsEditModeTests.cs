@@ -15,21 +15,19 @@ namespace Tests.EditMode
     [Category("Bootstrap")]
     public class BootstrapContractsEditModeTests
     {
-        // --- ISectorManager interface shape ---
-
         [Test]
-        public void ISectorManager_HasOnSectorCompleteEvent()
+        public void ISector_HasOnSectorCompleteEvent()
         {
             var ev = typeof(ISector).GetEvent("OnSectorComplete");
-            Assert.IsNotNull(ev, "ISectorManager must declare OnSectorComplete event");
+            Assert.IsNotNull(ev, "ISector must declare OnSectorComplete event");
             Assert.AreEqual(typeof(Action<SectorResult>), ev.EventHandlerType);
         }
 
         [Test]
-        public void ISectorManager_HasInitializeMethod()
+        public void ISector_HasInitializeMethod()
         {
             var method = typeof(ISector).GetMethod("Initialize");
-            Assert.IsNotNull(method, "ISectorManager must declare Initialize method");
+            Assert.IsNotNull(method, "ISector must declare Initialize method");
 
             var parameters = method.GetParameters();
             Assert.AreEqual(3, parameters.Length);
@@ -40,41 +38,37 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void ISectorManager_HasSetupAndTeardownCoroutines()
+        public void ISector_HasSetupAndTeardownCoroutines()
         {
             var setup = typeof(ISector).GetMethod("Setup");
-            Assert.IsNotNull(setup, "ISectorManager must declare Setup");
+            Assert.IsNotNull(setup, "ISector must declare Setup");
             Assert.AreEqual(typeof(IEnumerator), setup.ReturnType);
 
             var teardown = typeof(ISector).GetMethod("Teardown");
-            Assert.IsNotNull(teardown, "ISectorManager must declare Teardown");
+            Assert.IsNotNull(teardown, "ISector must declare Teardown");
             Assert.AreEqual(typeof(IEnumerator), teardown.ReturnType);
         }
-
-        // --- Sector is the single concrete play-sector and implements ISector ---
 
         [Test]
         public void Sector_IsConcrete()
         {
             Assert.IsFalse(typeof(Sector).IsAbstract,
-                "Sector is now the single concrete play-sector (Combat/Arena/Testbench are prefabs of it)");
+                "Sector is the single concrete play-sector (Combat/Arena/Testbench are prefabs of it)");
         }
 
         [Test]
-        public void SectorManager_ImplementsISectorManager()
+        public void Sector_ImplementsISector()
         {
             Assert.IsTrue(typeof(ISector).IsAssignableFrom(typeof(Sector)),
-                "SectorManager must implement ISectorManager");
+                "Sector must implement ISector");
         }
 
         [Test]
-        public void SectorManager_IsMonoBehaviour()
+        public void Sector_IsMonoBehaviour()
         {
             Assert.IsTrue(typeof(MonoBehaviour).IsAssignableFrom(typeof(Sector)),
-                "SectorManager must extend MonoBehaviour");
+                "Sector must extend MonoBehaviour");
         }
-
-        // --- GameServices ---
 
         [Test]
         public void GameServices_ImplementsIGameServices()
@@ -84,12 +78,13 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void GameServices_ExposesAllFourServiceInterfaces()
+        public void GameServices_ExposesAllServiceInterfaces()
         {
             var props = typeof(IGameServices).GetProperties();
             var expected = new[]
             {
                 (nameof(IGameServices.UnitService), typeof(IUnitService)),
+                (nameof(IGameServices.Projectiles), typeof(IProjectileService)),
                 (nameof(IGameServices.EnvironmentService), typeof(IEnvironmentService)),
                 (nameof(IGameServices.ObjectiveService), typeof(IObjectiveService)),
                 (nameof(IGameServices.CameraService), typeof(ICameraService)),
@@ -108,29 +103,25 @@ namespace Tests.EditMode
         public void GameServices_Constructor_RejectsNullServices()
         {
             Assert.Throws<ArgumentNullException>(() =>
-                new GameServices(null, null, null, null, null, null),
+                new GameServices(null, null, null, null, null, null, null),
                 "GameServices constructor must reject null services");
         }
 
-        // --- SectorConfigSO ---
-
         [Test]
-        public void SectorConfigSO_IsScriptableObject()
+        public void SectorSettings_IsScriptableObject()
         {
             Assert.IsTrue(typeof(ScriptableObject).IsAssignableFrom(typeof(SectorSettings)),
-                "SectorConfigSO must extend ScriptableObject");
+                "SectorSettings must extend ScriptableObject");
         }
 
         [Test]
-        public void SectorConfigSO_HasExpectedProperties()
+        public void SectorSettings_HasExpectedProperties()
         {
             var type = typeof(SectorSettings);
             Assert.IsNotNull(type.GetProperty("DisplayName"), "Must have DisplayName");
             Assert.IsNotNull(type.GetProperty("DifficultySeed"), "Must have DifficultySeed");
             Assert.IsNotNull(type.GetProperty("Locale"), "Must have Locale");
         }
-
-        // --- SectorResult ---
 
         [Test]
         public void SectorResult_Extracted_IsSuccess()
@@ -148,8 +139,6 @@ namespace Tests.EditMode
             Assert.AreEqual("hull breach", result.FailReason);
         }
 
-        // --- GameState enum ---
-
         [Test]
         public void GameState_HasExpectedValues()
         {
@@ -161,8 +150,6 @@ namespace Tests.EditMode
             CollectionAssert.Contains(names, "Restart");
             CollectionAssert.Contains(names, "Exit");
         }
-
-        // --- GameDriver (above-seam) / SessionHost (below-seam) ---
 
         [Test]
         public void GameDriver_IsMonoBehaviour()
@@ -193,8 +180,6 @@ namespace Tests.EditMode
             Assert.IsNotNull(ev, "GameDriver must declare OnGameStateChanged event");
         }
 
-        // --- Lifecycle primitives (the driver-agnostic seam, below on SessionHost) ---
-
         [Test]
         public void SessionHost_ImplementsSessionPrimitivesSeam()
         {
@@ -205,8 +190,7 @@ namespace Tests.EditMode
         [Test]
         public void SessionHost_ExposesDriverAgnosticLifecyclePrimitives()
         {
-            // The primitives are the seam an RL/headless driver reuses; each coroutine takes the explicit
-            // per-session container (not a process singleton). ApplyLoadout is the one non-coroutine.
+            // These primitives are the seam an RL/headless driver reuses.
             var flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
             foreach (var name in new[] { "ComposeSession", "LoadSector", "UnloadSector", "TeardownSession" })
             {
@@ -236,8 +220,7 @@ namespace Tests.EditMode
             Assert.IsNotNull(type.GetProperty("Services"), "GameSession must expose Services");
             Assert.IsNotNull(type.GetProperty("ActiveSector"), "GameSession must expose ActiveSector");
             Assert.IsNotNull(type.GetProperty("Rig"), "GameSession must expose Rig");
-            // Presentation is no longer per-session state: it's a global GameSettings.PresentationEnabled
-            // toggle applied at load, and each ship's embedded rig self-gates on it.
+            // Presentation is a global GameSettings.PresentationEnabled toggle, not per-session state.
 
             var hook = type.GetProperty("OnSectorComplete");
             Assert.IsNotNull(hook, "GameSession must expose the OnSectorComplete policy hook");
@@ -248,8 +231,7 @@ namespace Tests.EditMode
         [Test]
         public void ComposeSession_CarriesNoResetPolicy()
         {
-            // Composition is policy-free: the reset trigger is injected via GameSession.OnPlayerDeath
-            // (built by the driver, wired by the rig at spawn), never passed as a compose parameter.
+            // Reset policy lives on GameSession.OnPlayerDeath instead.
             var method = typeof(SessionHost).GetMethod("ComposeSession",
                 BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
             Assert.IsNotNull(method, "SessionHost must expose ComposeSession");
@@ -262,10 +244,8 @@ namespace Tests.EditMode
         [Test]
         public void SessionRig_TakesInjectedDeathCallback_NoRestartEvent()
         {
-            // The rig holds zero death policy: no RestartRequested event. The driver injects the
-            // player-death behavior as a callback via Build, and the rig wires it onto the player.
             Assert.IsNull(typeof(SessionRig).GetEvent("RestartRequested"),
-                "SessionRig must no longer declare a RestartRequested event");
+                "SessionRig must not declare a RestartRequested event");
 
             var hook = typeof(GameSession).GetProperty("OnPlayerDeath");
             Assert.IsNotNull(hook, "GameSession must expose the OnPlayerDeath policy hook");
@@ -285,9 +265,6 @@ namespace Tests.EditMode
         [Test]
         public void SessionHost_DoesNotLookUpSiblingServicesOutsideAwake()
         {
-            // Injection hygiene (plan §A): the sibling MonoBehaviour services are cached in Awake;
-            // no GetComponent calls mid-lifecycle. The only lookups allowed in the file are the
-            // Awake cache assignments — all on the host below the seam.
             var source = System.IO.File.ReadAllText(System.IO.Path.Combine(
                 Application.dataPath, "Scripts", "Game", "Bootstrap", "SessionHost.cs"));
             StringAssert.Contains("unitService = GetComponent<UnitService>();", source);
@@ -301,8 +278,6 @@ namespace Tests.EditMode
         [Test]
         public void SessionHost_DoesNotReferenceTheDriver()
         {
-            // Seam direction: the dependency points UP only. The below-seam host must never name any
-            // driver — a driver references the host, not the reverse.
             var source = System.IO.File.ReadAllText(System.IO.Path.Combine(
                 Application.dataPath, "Scripts", "Game", "Bootstrap", "SessionHost.cs"));
             StringAssert.DoesNotContain("GameDriver", source,
@@ -312,7 +287,6 @@ namespace Tests.EditMode
         [Test]
         public void GameDriver_Awake_CallsDontDestroyOnLoad()
         {
-            // Source-level verification: Awake method body exists on the driver.
             var method = typeof(GameDriver).GetMethod("Awake",
                 BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
             Assert.IsNotNull(method, "GameDriver must have an Awake method");
