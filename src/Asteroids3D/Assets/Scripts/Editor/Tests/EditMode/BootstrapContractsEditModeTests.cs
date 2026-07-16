@@ -16,18 +16,18 @@ namespace Tests.EditMode
     public class BootstrapContractsEditModeTests
     {
         [Test]
-        public void ISectorManager_HasOnSectorCompleteEvent()
+        public void ISector_HasOnSectorCompleteEvent()
         {
             var ev = typeof(ISector).GetEvent("OnSectorComplete");
-            Assert.IsNotNull(ev, "ISectorManager must declare OnSectorComplete event");
+            Assert.IsNotNull(ev, "ISector must declare OnSectorComplete event");
             Assert.AreEqual(typeof(Action<SectorResult>), ev.EventHandlerType);
         }
 
         [Test]
-        public void ISectorManager_HasInitializeMethod()
+        public void ISector_HasInitializeMethod()
         {
             var method = typeof(ISector).GetMethod("Initialize");
-            Assert.IsNotNull(method, "ISectorManager must declare Initialize method");
+            Assert.IsNotNull(method, "ISector must declare Initialize method");
 
             var parameters = method.GetParameters();
             Assert.AreEqual(3, parameters.Length);
@@ -38,14 +38,14 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void ISectorManager_HasSetupAndTeardownCoroutines()
+        public void ISector_HasSetupAndTeardownCoroutines()
         {
             var setup = typeof(ISector).GetMethod("Setup");
-            Assert.IsNotNull(setup, "ISectorManager must declare Setup");
+            Assert.IsNotNull(setup, "ISector must declare Setup");
             Assert.AreEqual(typeof(IEnumerator), setup.ReturnType);
 
             var teardown = typeof(ISector).GetMethod("Teardown");
-            Assert.IsNotNull(teardown, "ISectorManager must declare Teardown");
+            Assert.IsNotNull(teardown, "ISector must declare Teardown");
             Assert.AreEqual(typeof(IEnumerator), teardown.ReturnType);
         }
 
@@ -57,17 +57,17 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void SectorManager_ImplementsISectorManager()
+        public void Sector_ImplementsISector()
         {
             Assert.IsTrue(typeof(ISector).IsAssignableFrom(typeof(Sector)),
-                "SectorManager must implement ISectorManager");
+                "Sector must implement ISector");
         }
 
         [Test]
-        public void SectorManager_IsMonoBehaviour()
+        public void Sector_IsMonoBehaviour()
         {
             Assert.IsTrue(typeof(MonoBehaviour).IsAssignableFrom(typeof(Sector)),
-                "SectorManager must extend MonoBehaviour");
+                "Sector must extend MonoBehaviour");
         }
 
         [Test]
@@ -108,14 +108,14 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void SectorConfigSO_IsScriptableObject()
+        public void SectorSettings_IsScriptableObject()
         {
             Assert.IsTrue(typeof(ScriptableObject).IsAssignableFrom(typeof(SectorSettings)),
-                "SectorConfigSO must extend ScriptableObject");
+                "SectorSettings must extend ScriptableObject");
         }
 
         [Test]
-        public void SectorConfigSO_HasExpectedProperties()
+        public void SectorSettings_HasExpectedProperties()
         {
             var type = typeof(SectorSettings);
             Assert.IsNotNull(type.GetProperty("DisplayName"), "Must have DisplayName");
@@ -266,7 +266,6 @@ namespace Tests.EditMode
         [Test]
         public void SessionHost_DoesNotLookUpSiblingServicesOutsideAwake()
         {
-            // Injection hygiene: the only GetComponent calls allowed in SessionHost are the three Awake cache assignments.
             var source = System.IO.File.ReadAllText(System.IO.Path.Combine(
                 Application.dataPath, "Scripts", "Game", "Bootstrap", "SessionHost.cs"));
             StringAssert.Contains("unitService = GetComponent<UnitService>();", source);
@@ -280,7 +279,6 @@ namespace Tests.EditMode
         [Test]
         public void SessionHost_DoesNotReferenceTheDriver()
         {
-            // Seam direction: the dependency points UP only — a driver references the host, never the reverse.
             var source = System.IO.File.ReadAllText(System.IO.Path.Combine(
                 Application.dataPath, "Scripts", "Game", "Bootstrap", "SessionHost.cs"));
             StringAssert.DoesNotContain("GameDriver", source,
