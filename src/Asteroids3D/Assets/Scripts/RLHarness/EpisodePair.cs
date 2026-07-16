@@ -11,7 +11,7 @@ using UnityEditor;
 
 namespace Game.RLHarness
 {
-    /// <summary>The canonical 1v1 episode composition (PR-2b scenario): agent ship on the inert TestPilotMPC host with an injected chooser and a private MpcSettings clone (wVelTrack raised, boost sampling zeroed — boost is policy-owned), versus the full production UtilityPilot baseline; both lasers-only. Hosts (tests, training scene) share this so the scenario cannot drift between them.</summary>
+    /// <summary>The canonical 1v1 episode composition: agent ship on the inert TestPilotMPC host with an injected chooser and a private MpcSettings clone (wVelTrack raised, boost sampling zeroed — boost is policy-owned), versus the full production UtilityPilot baseline; both lasers-only. Hosts (tests, training scene) share this so the scenario cannot drift between them.</summary>
     public sealed class EpisodePair : IDisposable
     {
         public const float AgentWVelTrack = 50f;

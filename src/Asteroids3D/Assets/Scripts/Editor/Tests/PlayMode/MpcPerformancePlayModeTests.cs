@@ -37,7 +37,7 @@ public class MpcPerformancePlayModeTests : PlayModeWorldFixture
             var spawnPos = new Vector3(Mathf.Cos(angle) * SpawnRadius, Mathf.Sin(angle) * SpawnRadius, 0f);
             var targetPos = new Vector2(-spawnPos.x, -spawnPos.y);
 
-            var ship = ShipTestFactory.CreateDefaultShipAt(spawnPos, Quaternion.identity, Projectiles, useMpcPilot: true, team: i);
+            var ship = ShipTestFactory.CreateDefaultShipAt(spawnPos, Quaternion.identity, Projectiles, team: i);
             Assert.That(ship, Is.Not.Null, $"Failed to create MPC test ship {i}");
 
             var cmdr = ship.Commander as AICommander;
@@ -116,9 +116,7 @@ public class MpcPerformancePlayModeTests : PlayModeWorldFixture
             $"avgShipSolveMs={avgShipSolveMs:F3} avgFrameSolveMs={avgFrameSolveMs:F3} " +
             $"maxShipSolveMs={maxShipSolveMs:F3} maxFrameSolveMs={maxFrameSolveMs:F3} movedShips={movedShips}/{ShipCount}");
 
-        // Generous absolute budget — not a tight perf target but a catastrophic-regression guard
-        // (e.g. Burst disabled, or an O(n^2) blow-up in the solver). Kept loose so it does not
-        // flake on slower CI hardware; real solve cost is well under these ceilings.
+        // Generous budget: a catastrophic-regression guard (Burst off, O(n^2) solver blow-up), kept loose so slower CI hardware never flakes.
         const float budgetAvgShipMs = 10f;
         const float budgetMaxFrameMs = 100f;
 
@@ -131,4 +129,4 @@ public class MpcPerformancePlayModeTests : PlayModeWorldFixture
     }
 }
 
-} // namespace Tests.PlayMode
+}

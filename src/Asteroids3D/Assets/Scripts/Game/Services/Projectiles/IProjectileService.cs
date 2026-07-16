@@ -3,13 +3,7 @@ using UnityEngine;
 
 namespace Game.Services
 {
-    /// <summary>
-    /// Live-transient registry for damage-dealing pooled objects (projectiles, concussion waves):
-    /// the arena-scoped answer to "what's checked out right now", so episode resets and sector
-    /// transitions flush in-flight transients without scanning the scene. Registrants never hold
-    /// the service — the firing weapon registers them, and their own return-to-pool events
-    /// deregister them.
-    /// </summary>
+    /// <summary>Live-transient registry for damage-dealing pooled objects (projectiles, concussion waves): the arena-scoped answer to "what's checked out right now", so episode resets and sector transitions flush in-flight transients without scanning the scene. Registrants never hold the service — the firing weapon registers them, and their own return-to-pool events deregister them.</summary>
     public interface IProjectileService
     {
         /// <summary>Track a live instance with the action that returns it to its pool through its domain return path (never a raw pool release).</summary>

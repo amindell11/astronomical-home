@@ -12,28 +12,7 @@ using UnityEngine.UI;
 
 namespace Tests.PlayMode
 {
-    /// <summary>
-    /// PlayMode characterization tests for child component state across ship deactivation/reactivation.
-    /// 
-    /// BUG SYMPTOM: LockOnIndicator, Shield UI, and primary weapon GameObject can disable unexpectedly.
-    /// Source: User report via task request.
-    /// 
-    /// Expected behavior:
-    /// - When a ship is killed, HandleShipDeath() calls gameObject.SetActive(false)
-    /// - This triggers OnDisable on all child components
-    /// - When ResetShip() calls gameObject.SetActive(true), all child components should re-enable properly
-    /// - Child components (LockOnIndicator, ShieldUI, WeaponsController) should remain functional
-    /// 
-    /// Potential issues:
-    /// - Child components might unsubscribe from events in OnDisable and fail to resubscribe in OnEnable
-    /// - Child GameObjects might be destroyed or disabled independently
-    /// - Child references might become null after parent deactivation
-    /// 
-    /// This test suite characterizes:
-    /// 1. Whether child objects disable due to parent ship deactivation (expected)
-    /// 2. Whether child objects re-enable properly after parent reactivation (expected)
-    /// 3. Whether direct child deactivation causes different behavior (unexpected edge case)
-    /// </summary>
+    /// <summary>Child components (LockOnIndicator, ShieldUI, WeaponsController) deactivate with the ship on death and come back functional — still firing, still event-subscribed — after reset, across repeated cycles.</summary>
     [Category("Ships")]
     public class ShipChildComponentStatePlayModeTests : PlayModeWorldFixture
     {
@@ -41,7 +20,6 @@ namespace Tests.PlayMode
         private Ship combatShip;
         private Ship enemyShip;
         
-        // Toggle for diagnostic logging (set to true to enable detailed logs)
         private const bool ENABLE_DIAGNOSTICS = false;
 
         [SetUp]
@@ -50,7 +28,6 @@ namespace Tests.PlayMode
             base.SetUp();
 
 #if UNITY_EDITOR
-            // Create test ship with all UI and weapon components
             var shipPrefab = TestAssets.LoadShipPrefab("Assets/Prefabs/Ships/Ship_1.prefab"); // Ship_1 has UI components
             var commanderPrefab = TestAssets.LoadTestPilotMpc();
 
@@ -62,7 +39,6 @@ namespace Tests.PlayMode
             Assert.IsNotNull(testShip, "Test ship failed to instantiate");
             Assert.IsNotNull(combatShip.Weapons, "Test ship should be armed (WeaponsController present)");
 
-            // Create enemy for damage attribution
             enemyShip = ShipTestFactory.CreateDefaultShipAt(
                 new Vector3(10, 0, 0),
                 Quaternion.identity,
@@ -87,9 +63,6 @@ namespace Tests.PlayMode
             base.TearDown();
         }
 
-        /// <summary>
-        /// STEP 1: Baseline characterization - verify child components exist and are enabled initially.
-        /// </summary>
         [UnityTest]
         public IEnumerator NewShip_ChildComponentsAreEnabled()
         {
@@ -128,10 +101,6 @@ namespace Tests.PlayMode
             LogDiagnostic("Baseline check passed - all found child components are active");
         }
 
-        /// <summary>
-        /// STEP 2: Characterize parent deactivation behavior.
-        /// When ship is killed and parent GameObject is deactivated, verify child components also deactivate.
-        /// </summary>
         [UnityTest]
         public IEnumerator ShipDeath_DeactivatesParent_ChildComponentsAlsoDeactivate()
         {
@@ -144,18 +113,15 @@ namespace Tests.PlayMode
             LogDiagnostic($"Before death - Ship active: {testShip.gameObject.activeSelf}, " +
                          $"Weapons active: {weaponsController.gameObject.activeSelf}");
 
-            // Deal lethal damage to kill ship
             TestDamage.Kill(testShip, enemyShip.gameObject);
             yield return null;
 
-            // Verify ship is deactivated
             Assert.IsFalse(testShip.gameObject.activeSelf,
                 "Ship GameObject should be inactive after death");
 
             LogDiagnostic($"After death - Ship active: {testShip.gameObject.activeSelf}, " +
                          $"Weapons active: {weaponsController.gameObject.activeSelf}");
 
-            // Verify child components are also deactivated (expected due to parent deactivation)
             Assert.IsFalse(weaponsController.gameObject.activeInHierarchy,
                 "WeaponsController should be inactive when parent ship is inactive");
 
@@ -172,10 +138,6 @@ namespace Tests.PlayMode
             }
         }
 
-        /// <summary>
-        /// STEP 3: BUG REPRODUCTION - Characterize reactivation behavior.
-        /// After ship reset, verify child components reactivate properly and remain functional.
-        /// </summary>
         [UnityTest]
         public IEnumerator ShipReset_ReactivatesParent_ChildComponentsShouldReactivate()
         {
@@ -185,13 +147,11 @@ namespace Tests.PlayMode
             var shieldUI = testShip.GetComponentInChildren<ShieldUI>(includeInactive: true);
             var lockOnIndicator = testShip.GetComponentInChildren<LockOnIndicator>(includeInactive: true);
 
-            // Kill ship
             TestDamage.Kill(testShip, enemyShip.gameObject);
             yield return null;
 
             LogDiagnostic($"Before reset - Ship active: {testShip.gameObject.activeSelf}");
 
-            // Reset ship (simulates respawn)
             testShip.ResetShip();
             yield return null;
 
@@ -199,12 +159,10 @@ namespace Tests.PlayMode
                          $"Weapons active: {weaponsController.gameObject.activeSelf}, " +
                          $"Weapons object null: {weaponsController == null}");
 
-            // BUG REPRODUCTION: Verify ship is reactivated
             Assert.IsTrue(testShip.gameObject.activeSelf,
                 "Ship GameObject should be active after ResetShip()");
 
-            // BUG REPRODUCTION: Verify child components are reactivated
-            Assert.IsNotNull(weaponsController, 
+            Assert.IsNotNull(weaponsController,
                 "WeaponsController reference should not be null after reset");
             
             Assert.IsTrue(weaponsController.gameObject.activeSelf,
@@ -229,30 +187,23 @@ namespace Tests.PlayMode
                     "LockOnIndicator GameObject should be active after ship reset");
             }
 
-            // Verify primary weapon GameObject is still accessible
             Assert.IsNotNull(weaponsController.Primary,
                 "Primary weapon reference should not be null after reset");
             Assert.IsTrue(weaponsController.Primary.gameObject.activeInHierarchy,
                 "Primary weapon GameObject should be active after ship reset");
         }
 
-        /// <summary>
-        /// STEP 4: Characterize weapon functionality after reset.
-        /// Verify primary weapon can still fire after ship death and reset.
-        /// </summary>
         [UnityTest]
         public IEnumerator AfterShipReset_PrimaryWeaponCanFire()
         {
             yield return null;
 
-            // Kill and reset ship
             TestDamage.Kill(testShip, enemyShip.gameObject);
             yield return null;
 
             testShip.ResetShip();
             yield return null;
 
-            // Verify weapon can fire
             var weaponsController = combatShip.Weapons;
             Assert.IsNotNull(weaponsController, "WeaponsController should exist after reset");
             Assert.IsNotNull(weaponsController.Primary, "Primary weapon should exist after reset");
@@ -262,22 +213,16 @@ namespace Tests.PlayMode
 
             LogDiagnostic($"Before fire attempt - CanFire: {weaponsController.Primary.CanFire()}");
 
-            // Attempt to fire
             weaponsController.Arm(Projectiles).Fire(Ships.Command.WeaponSlot.Primary,
                 new Ships.Command.WeaponCommand { pressed = true, held = true });
             yield return new WaitForFixedUpdate();
 
-            // BUG REPRODUCTION: Weapon should be able to fire after reset
             Assert.Greater(fireCount, 0,
                 "Primary weapon should fire successfully after ship reset. " +
                 $"CanFire: {weaponsController.Primary.CanFire()}, " +
                 $"GameObject active: {weaponsController.Primary.gameObject.activeInHierarchy}");
         }
 
-        /// <summary>
-        /// STEP 5: Characterize ShieldUI event subscription after reset.
-        /// Verify ShieldUI responds to shield damage after ship death and reset.
-        /// </summary>
         [UnityTest]
         public IEnumerator AfterShipReset_ShieldUIRespondsToShieldDamage()
         {
@@ -290,24 +235,19 @@ namespace Tests.PlayMode
                 yield break;
             }
 
-            // Kill and reset ship
             TestDamage.Kill(testShip, enemyShip.gameObject);
             yield return null;
 
             testShip.ResetShip();
             yield return null;
 
-            // Get fresh reference after reset
             shieldUI = testShip.GetComponentInChildren<ShieldUI>(includeInactive: true);
             Assert.IsNotNull(shieldUI, "ShieldUI should exist after reset");
             Assert.IsTrue(shieldUI.enabled, "ShieldUI component should be enabled after reset");
 
             LogDiagnostic($"ShieldUI after reset - enabled: {shieldUI.enabled}, active: {shieldUI.gameObject.activeInHierarchy}");
 
-            // ShieldUI's radial fill (Image.fillAmount on its own GameObject) is driven by
-            // DamageController.Shield.OnValueChanged. Asserting the fill tracks the post-damage
-            // shield fraction proves the UI actually re-subscribed across the death→reset cycle
-            // — not merely that dispatching the event threw no exception.
+            // Fill tracking the post-damage shield fraction proves ShieldUI re-subscribed across death→reset, not merely that dispatch didn't throw.
             var ring = shieldUI.GetComponent<Image>();
             Assert.IsNotNull(ring, "ShieldUI requires an Image to render its fill");
             var maxShield = testShip.Damage.Shield.MaxValue;
@@ -323,10 +263,6 @@ namespace Tests.PlayMode
                 "ShieldUI fill should track the current shield fraction after reset (event re-subscribed)");
         }
 
-        /// <summary>
-        /// STEP 6: Characterize LockOnIndicator event subscription after reset.
-        /// Verify LockOnIndicator responds to lock events after ship death and reset.
-        /// </summary>
         [UnityTest]
         public IEnumerator AfterShipReset_LockOnIndicatorRespondsToLockEvents()
         {
@@ -339,14 +275,12 @@ namespace Tests.PlayMode
                 yield break;
             }
 
-            // Kill and reset ship
             TestDamage.Kill(testShip, enemyShip.gameObject);
             yield return null;
 
             testShip.ResetShip();
             yield return null;
 
-            // Get fresh reference after reset
             lockOnIndicator = testShip.GetComponentInChildren<LockOnIndicator>(includeInactive: true);
             Assert.IsNotNull(lockOnIndicator, "LockOnIndicator should exist after reset");
             Assert.IsTrue(lockOnIndicator.enabled, "LockOnIndicator component should be enabled after reset");
@@ -356,9 +290,7 @@ namespace Tests.PlayMode
             var targetable = testShip as ITargetable;
             Assert.IsNotNull(targetable, "Ship should implement ITargetable");
 
-            // LockOnIndicator drives its CanvasGroup.alpha from the Lock channel (1 on progress,
-            // 0 on release). Asserting alpha follows those events proves it re-subscribed across
-            // the death→reset cycle — not merely that dispatch threw no exception.
+            // Alpha tracking the lock progress/release events proves LockOnIndicator re-subscribed across death→reset, not merely that dispatch didn't throw.
             var canvasGroup = lockOnIndicator.GetComponent<CanvasGroup>();
             Assert.IsNotNull(canvasGroup, "LockOnIndicator requires a CanvasGroup");
 
@@ -373,11 +305,7 @@ namespace Tests.PlayMode
                 "LockOnIndicator should hide (alpha 0) on lock release after reset");
         }
 
-        /// <summary>
-        /// STEP 7: Edge case - Direct child deactivation vs parent deactivation.
-        /// Characterize whether directly disabling a child component causes different behavior
-        /// than parent deactivation.
-        /// </summary>
+        /// <summary>Direct child deactivation vs parent deactivation must not diverge.</summary>
         [UnityTest]
         public IEnumerator DirectChildDeactivation_VsParentDeactivation_BehaviorDifference()
         {
@@ -388,7 +316,6 @@ namespace Tests.PlayMode
 
             LogDiagnostic($"Test setup - Weapons originally active: {originalActive}");
 
-            // Scenario A: Direct child deactivation
             weaponsController.gameObject.SetActive(false);
             yield return null;
 
@@ -405,7 +332,6 @@ namespace Tests.PlayMode
 
             LogDiagnostic("Scenario A (direct child toggle) passed");
 
-            // Scenario B: Parent deactivation
             testShip.gameObject.SetActive(false);
             yield return null;
 
@@ -427,9 +353,6 @@ namespace Tests.PlayMode
             LogDiagnostic("Scenario B (parent toggle) passed - no behavioral difference detected");
         }
 
-        /// <summary>
-        /// STEP 8: Multiple death/reset cycles - verify stability.
-        /// </summary>
         [UnityTest]
         public IEnumerator MultipleDeathResetCycles_ChildComponentsRemainStable()
         {
@@ -445,18 +368,15 @@ namespace Tests.PlayMode
                 var shieldUI = testShip.GetComponentInChildren<ShieldUI>(includeInactive: true);
                 var lockOnIndicator = testShip.GetComponentInChildren<LockOnIndicator>(includeInactive: true);
 
-                // Kill ship
                 TestDamage.Kill(testShip, enemyShip.gameObject);
                 yield return null;
 
                 Assert.IsFalse(testShip.gameObject.activeSelf,
                     $"Cycle {cycle}: Ship should be inactive after death");
 
-                // Reset ship
                 testShip.ResetShip();
                 yield return null;
 
-                // Verify stability
                 Assert.IsTrue(testShip.gameObject.activeSelf,
                     $"Cycle {cycle}: Ship should be active after reset");
 

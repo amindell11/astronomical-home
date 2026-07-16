@@ -56,8 +56,6 @@ namespace Tests.PlayMode
 #endif
         }
 
-        // ── Trigger semantics ──
-
         [Test]
         public void AutoWeapon_FiresOnHeld_WithoutAPress()
         {
@@ -125,8 +123,6 @@ namespace Tests.PlayMode
             Assert.AreEqual(expected, bolts[bolts.Length - 1].DamageScale, 0.02f);
         }
 
-        // ── Railgun hitscan ──
-
         private sealed class DamageRecorder : MonoBehaviour, IDamageable
         {
             public float TotalDamage { get; private set; }
@@ -173,8 +169,7 @@ namespace Tests.PlayMode
         [Test]
         public void Railgun_PrefabAuthoredChargeTime_ReachesFullAndFires()
         {
-            // Drives the prefab's own serialized values (no Configure) with real fixed steps —
-            // the live repro of the pinned-just-below-full float regression.
+            // Drives the prefab's serialized values with real fixed steps, guarding the pinned-just-below-full float case.
             var railgun = InstantiateWeapon<Railguns>(RailgunPrefabPath);
             var target = CreateTarget(railgun.transform.position + Vector3.up * 5f);
             var fired = 0;
@@ -219,8 +214,6 @@ namespace Tests.PlayMode
             Assert.AreEqual(0f, ownRecorder.TotalDamage, 0.001f, "Never hit the ship that fired.");
             Assert.AreEqual(45f, enemy.TotalDamage, 0.001f, "Beam continues past its own hull.");
         }
-
-        // ── Per-slot AI aim ──
 
         private sealed class FakeWeaponContext : IWeaponContext
         {

@@ -32,7 +32,7 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
         base.SetUp();
 
 #if UNITY_EDITOR
-        ship = ShipTestFactory.CreateDefaultShip(Projectiles, useMpcPilot: true);
+        ship = ShipTestFactory.CreateDefaultShip(Projectiles);
         cmdr = ship.Commander as AICommander;
         mpc  = cmdr.Navigator as Navigator;
 
@@ -236,4 +236,4 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
     }
 }
 
-} // namespace Tests.PlayMode
+}

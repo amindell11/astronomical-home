@@ -16,18 +16,7 @@ using UnityEngine.TestTools;
 
 namespace Tests.PlayMode
 {
-    /// <summary>
-    /// Headless entry point for the two-AI chase benchmark (Track B1). Drives the same
-    /// ChaseBenchmarkSector prefab a human can watch in-editor, sweeps (field seed x start
-    /// offset) episodes, and writes one JSONL row per episode to
-    /// <c>results/chase-benchmark/</c> at the repo root.
-    ///
-    /// The always-on smoke test runs one short episode so the harness stays verified by the
-    /// default Workspace suite. The full sweep is opt-in (it takes minutes):
-    /// set CHASE_BENCH=1 (optionally CHASE_BENCH_TAG / CHASE_BENCH_SEEDS /
-    /// CHASE_BENCH_OFFSETS / CHASE_BENCH_DURATION) and run
-    /// <c>scripts/unity_test_agent.ps1 -Mode PlayMode -TestCategory ChaseBenchmark</c>.
-    /// </summary>
+    /// <summary>Headless two-AI chase benchmark: sweeps (field seed x start offset) episodes and writes JSONL to results/chase-benchmark/. The smoke test always runs one episode; the full sweep is opt-in via CHASE_BENCH=1 (see scripts/unity_test_agent.ps1).</summary>
     [TestFixture]
     [Category("AI")]
     [Category("ChaseBenchmark")]
@@ -91,20 +80,15 @@ namespace Tests.PlayMode
             return go;
         }
 
-        // ── Episode driver ──────────────────────────────────────────────────────
-
         private IEnumerator RunEpisode(ChaseRunConfig cfg, List<ChaseRunResult> results)
         {
-            // LoadMainAssetAtPath, not LoadAssetAtPath<GameObject>: with nested prefab
-            // instances the typed loader may return an arbitrary GameObject SUB-asset
-            // (enumeration order is not stable across imports) instead of the root.
+            // LoadMainAssetAtPath: the typed loader may return an arbitrary GameObject sub-asset of a nested prefab, not the root.
             var prefab = AssetDatabase.LoadMainAssetAtPath(SectorPrefabPath) as GameObject;
             Assert.IsNotNull(prefab, $"Missing benchmark sector prefab at {SectorPrefabPath}");
 
             ChaseBenchmarkModule.PendingConfig = cfg;
 
-            // Mirror SessionHost.LoadSector: instantiate under an inactive holder so content
-            // does not Awake before adoption wires it.
+            // Mirror SessionHost.LoadSector: instantiate under an inactive holder so content doesn't Awake before adoption wires it.
             var holder = new GameObject("SectorLoad") { hideFlags = HideFlags.HideAndDontSave };
             holder.SetActive(false);
             var sectorGO = UnityEngine.Object.Instantiate(prefab, holder.transform);
@@ -152,8 +136,6 @@ namespace Tests.PlayMode
             return path;
         }
 
-        // ── Tests ───────────────────────────────────────────────────────────────
-
         /// <summary>Always-on harness check: one short episode must complete with sane metrics.</summary>
         [UnityTest]
         [Timeout(600000)]
@@ -180,11 +162,7 @@ namespace Tests.PlayMode
                 "Sampler seed override must be cleared by module teardown");
         }
 
-        /// <summary>
-        /// Full statistical sweep (opt-in via CHASE_BENCH=1). Field seeds x start offsets,
-        /// one JSONL row per episode. Aggregate/compare offline with
-        /// scripts/chase-benchmark/compare_chase_benchmark.py.
-        /// </summary>
+        /// <summary>Full statistical sweep (opt-in via CHASE_BENCH=1): field seeds x start offsets, one JSONL row per episode; aggregate offline with scripts/chase-benchmark/compare_chase_benchmark.py.</summary>
         [UnityTest]
         [Timeout(3600000)]
         public IEnumerator Benchmark_SeedSweep_WritesJsonl()
@@ -197,8 +175,7 @@ namespace Tests.PlayMode
             var offsetCount = EnvInt("CHASE_BENCH_OFFSETS", 2);
             var duration = EnvFloat("CHASE_BENCH_DURATION", 40f);
 
-            // Non-chunk-aligned plane translations of the field: same seed, different local layout
-            // under the (fixed) ship starts.
+            // Non-chunk-aligned plane translations of the field: same seed, different local layout under the (fixed) ship starts.
             var offsets = new[]
             {
                 Vector2.zero,

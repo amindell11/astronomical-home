@@ -40,11 +40,7 @@ namespace Tests.PlayMode
             unitService.SetArena(arena);
             projectiles = new ProjectileService(arenaHost.transform);
             unitService.SetProjectiles(projectiles);
-            // Registration is mandatory and transients die with their fixture root — foreign debris means a leaking fixture to FIX, so assert, never sweep.
-            Assert.AreEqual(0, UnityEngine.Object.FindObjectsByType<Combat.Projectile.ProjectileBase>(FindObjectsSortMode.None).Length,
-                "A previous fixture leaked live projectiles — its transients escaped their registry/root");
-            Assert.AreEqual(0, UnityEngine.Object.FindObjectsByType<Ship>(FindObjectsSortMode.None).Length,
-                "A previous fixture leaked ships — fix its teardown");
+            AssertNoForeignDebris();
 
             savedTimeScale = Time.timeScale;
             savedMaxDelta = Time.maximumDeltaTime;
@@ -73,6 +69,15 @@ namespace Tests.PlayMode
             if (Academy.IsInitialized)
                 Academy.Instance.AutomaticSteppingEnabled = true;
             AudioListener.pause = false;
+        }
+
+        // Registration is mandatory and transients die with their fixture root — foreign debris means a leaking fixture to FIX, so assert, never sweep.
+        private static void AssertNoForeignDebris()
+        {
+            Assert.AreEqual(0, UnityEngine.Object.FindObjectsByType<Combat.Projectile.ProjectileBase>(FindObjectsSortMode.None).Length,
+                "A previous fixture leaked live projectiles — its transients escaped their registry/root");
+            Assert.AreEqual(0, UnityEngine.Object.FindObjectsByType<Ship>(FindObjectsSortMode.None).Length,
+                "A previous fixture leaked ships — fix its teardown");
         }
 
         private void Compose(in RewardSpec spec)

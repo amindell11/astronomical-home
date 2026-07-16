@@ -1,5 +1,4 @@
 using System.Collections;
-using Combat.Projectile;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
@@ -9,15 +8,7 @@ using UnityEngine.TestTools;
 
 namespace Tests.PlayMode
 {
-    /// <summary>
-    /// BUG REPRODUCTION: Both ships cannot fire weapons (player + AI) and no errors are emitted.
-    /// Source of truth: Project Board + user report.
-    ///
-    /// Characterization intent:
-    /// - If a commander continuously requests primary/secondary fire,
-    ///   the ship should dispatch those commands to WeaponsController and trigger OnFire.
-    /// - Current regression: command bits are present but weapon fire is never invoked.
-    /// </summary>
+    /// <summary>A commander pushing fire commands each FixedUpdate reaches the mounted weapons: Ship dispatches to WeaponsController and OnFire is raised for both slots.</summary>
     [Category("Weapons")]
     public class WeaponCommandDispatchPlayModeTests : PlayModeWorldFixture
     {
@@ -99,8 +90,7 @@ namespace Tests.PlayMode
             }
 
             Assert.Greater(fireCount, 0,
-                "Expected primary weapon OnFire to be raised when primaryFire command is true. " +
-                "Regression likely in Ship command -> WeaponsController dispatch path.");
+                "Primary OnFire must be raised while the commander holds primaryFire.");
         }
 
         [UnityTest]
@@ -122,8 +112,7 @@ namespace Tests.PlayMode
             }
 
             Assert.Greater(fireCount, 0,
-                "Expected secondary weapon OnFire to be raised when secondaryFire command is true. " +
-                "Regression likely in Ship command -> WeaponsController dispatch path.");
+                "Secondary OnFire must be raised while the commander holds secondaryFire.");
         }
     }
 }

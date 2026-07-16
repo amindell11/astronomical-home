@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using Combat;
-using Combat.Projectile;
 using Combat.Weapons;
 using Damage;
 using NUnit.Framework;

@@ -34,12 +34,11 @@ namespace Game.Services
             arena = context;
         }
 
-        /// <summary>Assign the projectile registry each spawned ship arms its weapons with; required before spawning armed ships, one-shot like <see cref="SetArena"/> so a stray re-compose can't split registration across services.</summary>
-        public void SetProjectiles(IProjectileService service)
+        public void SetProjectiles(IProjectileService projectiles)
         {
-            if (projectiles != null && !ReferenceEquals(projectiles, service))
+            if (this.projectiles != null && !ReferenceEquals(this.projectiles, projectiles))
                 throw new InvalidOperationException("UnitService projectiles are already set to a different IProjectileService.");
-            projectiles = service;
+            this.projectiles = projectiles;
         }
 
         public event Action<Ship> OnShipSpawned;

@@ -17,8 +17,7 @@ namespace Game.Services
         /// before the first spawn; one-shot (a conflicting re-assign throws).</summary>
         void SetArena(ArenaContext arena);
 
-        /// <summary>Assign the projectile registry each spawned ship arms its weapons with. Required
-        /// before spawning armed ships (arming throws without it); one-shot (a conflicting re-assign throws).</summary>
+        /// <summary>Assign the projectile registry each spawned ship arms its weapons with; required before spawning armed ships (arming throws without it), one-shot (a conflicting re-assign throws).</summary>
         void SetProjectiles(IProjectileService projectiles);
 
         /// <summary>Spawn a ship, wire its dependencies, and register it.</summary>
@@ -47,7 +46,7 @@ namespace Game.Services
         /// <summary>Drop all queued (delayed) respawns without reviving their ships.</summary>
         public void CancelPendingRespawns();
 
-        /// <summary>(Re-)push world-scoped dependencies into a ship's world-facing parts; idempotent, runs at spawn/adopt, re-run after a loadout reequip swaps in parts needing wiring. Interim seam: public only because the lock sensor rides a swappable mount — hulling the sensor (weapon-types PR 3 deferral) retreats this to private spawn wiring.</summary>
+        /// <summary>(Re-)push world-scoped dependencies into a ship's world-facing parts; idempotent, runs at spawn/adopt, re-run after a loadout reequip swaps in parts needing wiring. Interim seam: public only because the lock sensor rides a swappable mount.</summary>
         void WireShipDependencies(Ship ship);
     }
 }

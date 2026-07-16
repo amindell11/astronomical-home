@@ -71,7 +71,7 @@ public static class ShipDiagnosticsOverlay
     {
         var width = ctx.LineWidth;
         ctx.LineWidth = width * 1.6f;
-        projectiles?.ForEachLive(live =>
+        projectiles.ForEachLive(live =>
         {
             if (live is not ProjectileBase projectile) return;
             var rb = projectile.rb;
@@ -85,5 +85,5 @@ public static class ShipDiagnosticsOverlay
     }
 }
 
-} // namespace Tests.PlayMode.Common
+}
 #endif

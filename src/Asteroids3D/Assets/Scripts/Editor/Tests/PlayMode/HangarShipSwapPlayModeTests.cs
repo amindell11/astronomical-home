@@ -53,11 +53,11 @@ namespace Tests.PlayMode
             var objectiveService = servicesGo.AddComponent<ObjectiveService>();
             var arena = Tests.Common.TestArena.On(servicesGo, unitService.Registry);
             unitService.SetArena(arena);
-            var projectileService = new ProjectileService(servicesGo.transform);
-            unitService.SetProjectiles(projectileService);
+            var projectiles = new ProjectileService(servicesGo.transform);
+            unitService.SetProjectiles(projectiles);
             services = new GameServices(
                 unitService: unitService,
-                projectiles: projectileService,
+                projectiles: projectiles,
                 environmentService: new EnvironmentService(),
                 objectiveService: objectiveService,
                 cameraService: new CameraService(),
@@ -123,9 +123,7 @@ namespace Tests.PlayMode
             rig.Loadout.Shield = ship1.Shield;
             rig.ApplyLoadout();
 
-            // Lethal damage on the NEW ship must fire the injected death callback (re-wired across the
-            // rebuild). Damage applies to shield OR hull per hit (overflow discarded), so two hits:
-            // one to drop the shield, one to kill the hull.
+            // Lethal damage on the NEW ship must fire the re-wired death callback; damage hits shield OR hull per hit, so two hits.
             var lethal = rig.Player.Stats.maxShield + rig.Player.Stats.maxHealth + 100f;
             rig.Player.Damage.TakeDamage(lethal, 0f, Vector3.zero, rig.Player.transform.position, null);
             rig.Player.Damage.TakeDamage(lethal, 0f, Vector3.zero, rig.Player.transform.position, null);

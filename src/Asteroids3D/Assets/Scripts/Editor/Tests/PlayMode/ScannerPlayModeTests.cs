@@ -75,4 +75,4 @@ public class ScannerPlayModeTests : PlayModeWorldFixture
     }
 }
 
-} // namespace Tests.PlayMode
+}

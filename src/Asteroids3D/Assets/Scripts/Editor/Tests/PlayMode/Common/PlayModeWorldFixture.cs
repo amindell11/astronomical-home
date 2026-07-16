@@ -8,20 +8,10 @@ using UnityEngine;
 namespace Tests.PlayMode.Common
 {
 
-/// <summary>
-/// Shared PlayMode test fixture that ensures deterministic world state,
-/// proper isolation between tests, and centralized cleanup of global/static state.
-/// Inherit from this class to get automatic setup/teardown of:
-/// - Test arena (registry + NavField sibling)
-/// - AudioListener pause/unpause
-/// - TestSceneBuilder cleanup
-/// </summary>
+/// <summary>Per-test world fixture: arena (registry + NavField), projectile registry, audio pause, and TestSceneBuilder cleanup.</summary>
 public abstract class PlayModeWorldFixture
 {
-    /// <summary>
-    /// Whether to pause the AudioListener during tests (default: true).
-    /// Override in derived classes if audio is needed for the test.
-    /// </summary>
+    /// <summary>Override false if a test needs audio.</summary>
     protected virtual bool PauseAudio => true;
 
     private GameObject arenaHost;
@@ -35,10 +25,7 @@ public abstract class PlayModeWorldFixture
     /// <summary>Per-test projectile registry rooted at the arena host: pass it wherever firing needs a registry (ship spawns, direct <c>Fire</c>/<c>HandleTrigger</c> calls) and every transient dies with the fixture.</summary>
     protected ProjectileService Projectiles { get; private set; }
 
-    /// <summary>
-    /// Called before each test. Creates the test arena and pauses audio.
-    /// Override this method if you need additional setup, but remember to call base.SetUp().
-    /// </summary>
+    /// <summary>Overrides must call base.SetUp().</summary>
     [SetUp]
     public virtual void SetUp()
     {
@@ -53,10 +40,7 @@ public abstract class PlayModeWorldFixture
         Projectiles = new ProjectileService(arenaHost.transform);
     }
 
-    /// <summary>
-    /// Called after each test. Cleans up the arena and unpauses audio.
-    /// Override this method if you need additional cleanup, but remember to call base.TearDown().
-    /// </summary>
+    /// <summary>Overrides must call base.TearDown().</summary>
     [TearDown]
     public virtual void TearDown()
     {
@@ -71,20 +55,14 @@ public abstract class PlayModeWorldFixture
             AudioListener.pause = false;
     }
 
-    /// <summary>
-    /// Destroys a GameObject immediately, handling null gracefully.
-    /// Use this helper to clean up test objects in derived class TearDown methods.
-    /// </summary>
+    /// <summary>Destroys a GameObject immediately, null-tolerant (for derived TearDowns).</summary>
     protected void DestroyTestObject(GameObject obj)
     {
         if (obj != null)
             Object.DestroyImmediate(obj);
     }
 
-    /// <summary>
-    /// Destroys a Component's GameObject immediately, handling null gracefully.
-    /// Use this helper to clean up test components in derived class TearDown methods.
-    /// </summary>
+    /// <summary>Destroys a Component's GameObject immediately, null-tolerant (for derived TearDowns).</summary>
     protected void DestroyTestObject(Component comp)
     {
         if (comp != null && comp.gameObject != null)
@@ -92,4 +70,4 @@ public abstract class PlayModeWorldFixture
     }
 }
 
-} // namespace Tests.PlayMode.Common
+}

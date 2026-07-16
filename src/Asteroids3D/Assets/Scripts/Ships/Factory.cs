@@ -5,11 +5,7 @@ using UnityEngine;
 
 namespace Ships
 {
-    /// <summary>
-    /// Centralised factory responsible for spawning and wiring up <see cref="Ship"/> instances.
-    /// This removes all runtime GetComponent look-ups from the gameplay code and gives callers
-    /// full control over how a ship is composed.
-    /// </summary>
+    /// <summary>Centralised factory for spawning and wiring <see cref="Ship"/> instances; callers control composition and no gameplay code does runtime GetComponent look-ups.</summary>
     public static class Factory
     {
         public static Ship CreateShip(

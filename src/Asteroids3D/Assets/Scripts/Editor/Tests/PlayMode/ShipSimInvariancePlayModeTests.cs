@@ -8,28 +8,13 @@ using UnityEngine.TestTools;
 
 namespace Tests.PlayMode
 {
-    /// <summary>
-    /// Step 0 characterization of the ship <b>sim contract</b> — the movement/kinematics behavior that
-    /// the visual-layer decoupling program (light/shadow strip + visual-rig split, and the later
-    /// per-subsystem PRs) must leave <b>byte-for-byte unchanged</b>.
-    ///
-    /// These tests exist so "no functionality changed" is provable rather than asserted: they run
-    /// against the current build to lock behavior, and must keep passing after presentation is moved
-    /// off the sim ship. Damage / death / respawn is already covered by
-    /// <see cref="ShipRespawnDamagePlayModeTests"/> and is deliberately not duplicated here.
-    ///
-    /// The ship is created <b>without a commander</b> so the piloting command is fully deterministic
-    /// (we push <see cref="PilotCommand"/> straight into <see cref="MovementController.Drive"/> each
-    /// physics step, bypassing the AI). We use the Ship_1 prefab specifically because it carries the
-    /// full presentation footprint being refactored.
-    /// </summary>
+    /// <summary>Pins the ship sim contract (movement/kinematics) so refactors are provably behavior-preserving. Commander-less ships: PilotCommand goes straight into MovementController.Drive each physics step, so input is fully deterministic; Ship_1 carries the full presentation footprint.</summary>
     [Category("Movement")]
     public class ShipSimInvariancePlayModeTests : PlayModeWorldFixture
     {
         private const string Ship1Path = "Assets/Prefabs/Ships/Ship_1.prefab";
 
-        // Physics settle margin before recording a start state: KinematicsPoller (order -100) fills the
-        // snapshot and MovementController (order 50) snaps the orientation onto the game plane.
+        // Settle margin before recording a start state: KinematicsPoller (order -100) fills the snapshot and MovementController (order 50) snaps the orientation onto the game plane.
         private const int SettleSteps = 3;
 
         private Ship ship;
@@ -142,11 +127,7 @@ namespace Tests.PlayMode
             Assert.Less(translation, 1.5f, "Pure yaw should not meaningfully translate the ship");
         }
 
-        /// <summary>
-        /// The sim is deterministic: two identical ships fed an identical command sequence produce the
-        /// same trajectory (relative to each ship's own start). This guards against nondeterminism
-        /// creeping in and makes cross-commit golden comparison meaningful for the refactor.
-        /// </summary>
+        /// <summary>Two identical ships fed identical commands produce identical relative trajectories — the determinism golden comparisons rely on.</summary>
         [UnityTest]
         public IEnumerator IdenticalDriveSequence_IsDeterministic()
         {
@@ -154,11 +135,7 @@ namespace Tests.PlayMode
             Assert.Ignore("Requires the Unity Editor.");
             yield break;
 #else
-            // Spawn a second ship offset from the first — far enough that their colliders never touch
-            // (~22x the ship radius), but NOT far from the origin: this test compares the two ships'
-            // displacements within a tight 1e-3 tolerance, and float32 precision degrades with world
-            // distance (ULP ~1.7e-4 at 1000+ units), which would swamp the determinism signal with
-            // position-precision noise rather than measuring real nondeterminism.
+            // Offset far enough that colliders never touch but near the origin: float32 ULP at 1000+ units (~1.7e-4) would swamp the 1e-3 determinism tolerance.
             var shipB = CreateUnpilotedShip(new Vector3(30f, 0f, 0f), Quaternion.identity);
             Assert.IsNotNull(shipB, "Second ship failed to instantiate");
 
@@ -193,8 +170,6 @@ namespace Tests.PlayMode
             }
 #endif
         }
-
-        // ── helpers ──────────────────────────────────────────────────────────
 
         private static PilotCommand ScriptedCommand(int i) => new()
         {

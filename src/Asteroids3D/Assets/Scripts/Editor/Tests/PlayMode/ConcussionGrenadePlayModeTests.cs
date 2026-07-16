@@ -95,8 +95,6 @@ namespace Tests.PlayMode
             return waves.Length > 0 ? waves[0] : null;
         }
 
-        // ── Pool warmup ──
-
         [Test]
         public void EquippingTheWeapon_WarmsPoolsWithoutAPhantomBurst()
         {
@@ -106,8 +104,6 @@ namespace Tests.PlayMode
             Assert.AreEqual(0, Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None).Length,
                 "Pool warmup must not fire the detonation burst (it activates the pooled wave once).");
         }
-
-        // ── Drop ──
 
         [Test]
         public void Grenade_DropsBackward_FromTheShooterVelocity()
@@ -123,8 +119,6 @@ namespace Tests.PlayMode
             Assert.Less((velocity - expected).magnitude, 0.01f,
                 "The charge inherits the shooter's velocity minus the backward push.");
         }
-
-        // ── Detonation paths ──
 
         [UnityTest]
         public IEnumerator Grenade_FuseExpiry_SpawnsTheWave()
@@ -151,8 +145,6 @@ namespace Tests.PlayMode
             Assert.IsFalse(grenade.gameObject.activeSelf, "A shot charge detonates on the spot.");
             Assert.IsNotNull(FindActiveWave(), "The full wave still happens.");
         }
-
-        // ── Wave behavior ──
 
         [UnityTest]
         public IEnumerator Wave_HitsEverythingOnce_ShooterIncluded_WithRimFalloff()
@@ -212,8 +204,7 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator Wave_SweepsMoreTargetsThanTheQueryBuffer()
         {
-            // Swept inner colliders stay inside the growing sphere; with a fixed 64-slot query
-            // they'd crowd out newly reached outer targets. 70 targets pins the regrow path.
+            // 70 targets pins the query-regrow path: swept inner colliders would crowd a fixed 64-slot buffer.
             var weapon = MountWeapon(out _);
             weapon.transform.root.position = new Vector3(80f, 0f, 80f);
 

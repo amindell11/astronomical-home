@@ -153,8 +153,7 @@ namespace Tests.PlayMode
             Assert.IsNotNull(ship, "ship created");
             yield return null;
 
-            // Death path: the ship is deactivated on death, THEN the hangar applies a new loadout,
-            // so the fresh mounts instantiate under an inactive parent (Awake deferred).
+            // Death path: the ship is deactivated on death, THEN the hangar applies a new loadout, so the fresh mounts instantiate under an inactive parent (Awake deferred).
             ship.gameObject.SetActive(false);
 
             var rippers = LoadWeapon<Rippers>(RippersPrefabPath);
@@ -165,8 +164,7 @@ namespace Tests.PlayMode
             Assert.AreEqual(0, ship.Weapons.ReadoutContext.Readouts(WeaponSlot.Primary).Count,
                 "pre-Awake readouts read empty rather than throwing");
 
-            // The production revive path — resets weapons BEFORE reactivating, so it must
-            // tolerate never-awakened mounts.
+            // The production revive path resets weapons BEFORE reactivating, so it must tolerate never-awakened mounts.
             ship.ResetShip();
             yield return null;
 
