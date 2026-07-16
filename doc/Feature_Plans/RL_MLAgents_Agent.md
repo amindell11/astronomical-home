@@ -221,3 +221,78 @@ is frame-rate-bound (~5–10× real time in-editor, vsync off) instead of timesc
 - Shipping inference / in-game learned chooser — post-arc-gate, own design.
 - Hybrid action space — re-check if a future ml-agents release removes the
   communicator/inference `CheckAllContinuousOrDiscrete` rejection.
+
+---
+
+# Full training run — frozen decision brief (2026-07-15, pr-prep)
+
+The arc-gate run itself: long PPO training → checkpoint selection on training
+seeds → one sealed held-out eval → findings. Mostly operational; the code diff
+is small and enabling. Scoped with the user; ready for implementation hand-off.
+
+## Scope
+
+**In:** `heatPct` observation (self heat only, via `IHeatReadout.HeatPct`; obs
+23→24, readiness bit stays) + re-minted smoke ONNX fixture (`run_smoke.py`) +
+obs-size/flattening test updates; training-seed eval entry point (parameterize
+seeds + checkpoint path on `CheckpointEvaluator`/`TrainingBootstrap` —
+`RunHeldOutEval` hardcodes the held-out list today); `keep_checkpoints` bump so
+selection covers the whole run; asserting `run_training.py` (armed batch editor
++ start-flag, long timeouts, `--resume`-aware, kills the editor when the
+trainer exits); pilot run ≈200k steps (wall-clock forecast + learning-signal
+check) → full 2M run; checkpoint selection on training-seed eval BEFORE the
+held-out set opens; one held-out eval per candidate protocol; findings +
+runbook updates; best checkpoint committed via LFS.
+
+**Out (check-in first):** env changes (heat relax/removal, shield-regen tuning)
+— the heat-free ablation was considered and REJECTED for this PR; new reward
+terms (per-step time cost); multi-pair/throughput harness work (only if the
+pilot forecasts >24 h for 2M); PR-4 self-play; shipping inference.
+
+## Fork resolutions (with why)
+
+1. **Staging — pilot then full run, batch-mode, pooled slot.** ~200k-step pilot
+   measures real steps/sec (training is frame-rate-bound under the pacing
+   contract; 2M decisions = 20M fixed steps) and confirms learning signal at
+   real arena scale (the smoke's tiny-arena config proved plumbing, not
+   learning). Batch editor via the armed bootstrap; runs execute from a pooled
+   slot so the primary project's Unity lane stays free.
+2. **Heat — mechanic stays; visibility fixed instead.** The policy cannot
+   overheat (`Lasers.ShouldFire` gates on `WouldOverheatOnNextShot`), so what it
+   lacks is heat *visibility*: the readiness bit (`CanFire` = cooldown +
+   `!Overheated`) is nearly constant-1 and the 0–100 gauge is hidden —
+   under-delivering decision 3's stated intent for that channel. Fix: append
+   continuous self `heatPct`. Asset math (damage 20/shot, 4-shot cold burst,
+   sustained ~0.75 shots/s ≈ 15 DPS-if-hitting vs shield regen 20/s **with a
+   5 s damage-interrupt delay**) says hit *rate*, not heat, is the binding
+   constraint — one landed hit per 5 s freezes regen; ~13 s of pressure kills
+   inside the 120 s clock. Heat-free ablation (cooldown-limited 5 shots/s =
+   100 DPS) rejected by the user for this PR: symmetric env change, weakens the
+   arc-gate claim, resets the protocol.
+3. **Knob policy — existing knobs only, reported.** RewardSpec fields (λ,
+   timeoutDecisions, separation) + PPO YAML hypers are in-scope, each turn
+   reported with before/after evidence; any RewardSpec change re-measures the
+   characterization floor and resets the protocol (held-out stays sealed). New
+   reward terms and env changes check in first.
+4. **Merge semantics — PR merges on findings, gate or not.** The arc gate stays
+   the ARC's gate; a failed Wilson gate yields a follow-up run, not a stalled
+   branch. Gate math for honesty: 20 seeds × 5 eps = 100 episodes; Wilson 95%
+   LB > 50% needs ~60/100 wins (scripted-ranger floor: 4W/0L/16D).
+5. **Best checkpoint committed via LFS** (like the smoke fixture): the eval
+   result stays reproducible from the repo and PR-4 gets a frozen opponent.
+
+## Assumptions (user-reviewed)
+
+- Pooled slot agent-1/agent-2 (agent-5 reserved for the recorder handoff),
+  ledger row per protocol; unity-access coordination for every editor boot.
+- Pilot wall-clock forecast >24 h for 2M ⇒ check in before throughput work.
+- Training runSeed stays 1 (`EvalProtocol.TrainingRunSeed`); episode variety
+  via per-episode pose derivation. Run-id hygiene: distinct `--run-id` per run.
+- Monitoring: TensorBoard + episode JSONL; curve reported at checkpoint
+  intervals. Torch stays CPU (2×256 MLP; the env is the bottleneck).
+- JSONL schema unchanged (rows embed RewardSpec, not observations).
+- Characterization floor is scripted-vs-scripted → unaffected by the obs
+  change; only RewardSpec/env changes re-measure it.
+- Operational: long runs peg CPU for hours — start times coordinated with the
+  user; concurrent merge-gate suites on the same machine risk flaking
+  timing-sensitive PlayMode tests (#129 caveat).

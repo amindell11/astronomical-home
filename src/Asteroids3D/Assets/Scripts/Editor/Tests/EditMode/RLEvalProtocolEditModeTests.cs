@@ -5,10 +5,24 @@ using NUnit.Framework;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the frozen eval protocol: held-out seed set shape/disjointness and the Wilson 95% lower-bound math the arc gate reads.</summary>
+    /// <summary>Pins the frozen eval protocol: held-out seed set shape/disjointness, seed-selection resolution (train vs held-out vs explicit), and the Wilson 95% lower-bound math the arc gate reads.</summary>
     [Category("AI")]
     public class RLEvalProtocolEditModeTests
     {
+        [Test]
+        public void ResolveSeeds_DefaultsToHeldOutAndDistinguishesTags()
+        {
+            Assert.AreEqual(EvalProtocol.HeldOutSeeds, EvalProtocol.ResolveSeeds(null, out var defaultTag));
+            Assert.AreEqual("held-out", defaultTag);
+            Assert.AreEqual(EvalProtocol.HeldOutSeeds, EvalProtocol.ResolveSeeds("held-out", out _));
+
+            Assert.AreEqual(new[] { EvalProtocol.TrainingRunSeed }, EvalProtocol.ResolveSeeds("train", out var trainTag));
+            Assert.AreEqual("train", trainTag);
+
+            Assert.AreEqual(new[] { 7, 42, 99 }, EvalProtocol.ResolveSeeds("7, 42,99", out var customTag));
+            Assert.AreEqual("custom", customTag);
+        }
+
         [Test]
         public void HeldOutSeeds_AreTwentyDistinctAndDisjointFromTraining()
         {

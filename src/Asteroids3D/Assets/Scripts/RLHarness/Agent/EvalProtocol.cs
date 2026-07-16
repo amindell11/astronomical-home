@@ -1,3 +1,4 @@
+using System.Globalization;
 using UnityEngine;
 
 namespace Game.RLHarness
@@ -13,6 +14,28 @@ namespace Game.RLHarness
             1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009, 1010,
             1011, 1012, 1013, 1014, 1015, 1016, 1017, 1018, 1019, 1020,
         };
+
+        /// <summary>"train" exists for checkpoint selection on the training seed BEFORE the held-out set opens; the tag labels the run's artifacts so train and held-out evals can never be confused.</summary>
+        public static int[] ResolveSeeds(string selector, out string tag)
+        {
+            if (string.IsNullOrEmpty(selector) || selector == "held-out")
+            {
+                tag = "held-out";
+                return HeldOutSeeds;
+            }
+            if (selector == "train")
+            {
+                tag = "train";
+                return new[] { TrainingRunSeed };
+            }
+
+            var parts = selector.Split(',');
+            var seeds = new int[parts.Length];
+            for (var i = 0; i < parts.Length; i++)
+                seeds[i] = int.Parse(parts[i].Trim(), CultureInfo.InvariantCulture);
+            tag = "custom";
+            return seeds;
+        }
 
         /// <summary>Wilson 95% lower confidence bound on a binomial proportion; callers count draws as non-wins.</summary>
         public static float WilsonLowerBound(int successes, int trials)

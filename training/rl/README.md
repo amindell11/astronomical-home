@@ -53,6 +53,28 @@ commit both files together.
 
 Resume with `--resume`, force a fresh run with `--force`.
 
+### Pilot → full run (asserting runner)
+
+`run_training.py` is `run_smoke.py`'s long-run sibling: same armed-batch-editor +
+start-flag structure, but it drives a real config, passes `--resume`/`--force`
+through, and asserts trainer exit 0 + the pacing marker + the exported ONNX
+before printing where checkpoints and TensorBoard summaries landed.
+
+```powershell
+cd training/rl
+.venv\Scripts\python run_training.py --config ppo_ship_combat_pilot.yaml   # ~200k-step pilot
+.venv\Scripts\python run_training.py                                       # full 2M-step run
+.venv\Scripts\python run_training.py --resume                              # continue an interrupted run
+```
+
+Run the pilot first: it measures real steps/sec (training is frame-rate-bound
+under the pacing contract) and confirms a learning signal at real arena scale
+before committing to the 2M wall-clock. `--force` overwrites a run id's
+results; `--run-timeout` (seconds) caps the wait, default 48 h.
+`ppo_ship_combat.yaml` keeps `keep_checkpoints: 21` (2M steps / 100k interval
+= 20 checkpoints + final) so checkpoint selection covers the whole run, not
+the tail.
+
 ### Trainer smoke (asserting runner)
 
 ```powershell
@@ -81,7 +103,7 @@ The eval fixture is that exported checkpoint committed (LFS) at
 Heuristic policy (inverse-mapped ranger) — no trainer needed. Set the scene's
 `TrainingHost.behaviorType` to `HeuristicOnly` to watch the same thing live.
 
-## Eval (held-out seeds)
+## Eval (training seeds, then held-out)
 
 `CheckpointEvaluator.Run` executes the frozen protocol
 (`doc/Feature_Plans/RL_MLAgents_Agent.md`): the 20 pinned held-out seeds
@@ -94,9 +116,14 @@ protocol. Batch entry:
 ```powershell
 $env:RL_EVAL_ONNX = "results/rl-training/<run-id>/ShipCombat.onnx"   # default: the smoke fixture
 $env:RL_EVAL_EPISODES_PER_SEED = "5"
+$env:RL_EVAL_SEEDS = "train"   # checkpoint selection; omit (or "held-out") for the sealed set, or pass "7,42,99"
 Unity.exe -projectPath src/Asteroids3D -batchmode -nographics `
-  -executeMethod Game.RLHarness.TrainingBootstrap.RunHeldOutEval -logFile <log>
+  -executeMethod Game.RLHarness.TrainingBootstrap.RunEval -logFile <log>
 ```
+
+The seed selection tags the run's JSONL/summary artifacts (`train` /
+`held-out` / `custom`), so training-seed selection runs can never be mistaken
+for the sealed held-out eval.
 
 Under the hood `ShipAgentFactory.ComposeInferenceOnly` pins
 `BehaviorType.InferenceOnly`, `DeterministicInference = true` (it defaults

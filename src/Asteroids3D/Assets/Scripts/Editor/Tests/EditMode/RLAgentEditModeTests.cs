@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the pure agent maps: action thresholds/clamps, the one-time ego→world conversion, the 23-float observation layout, and the chooser's one-shot boost semantics.</summary>
+    /// <summary>Pins the pure agent maps: action thresholds/clamps, the one-time ego→world conversion, the 24-float observation layout, and the chooser's one-shot boost semantics.</summary>
     [Category("AI")]
     public class RLAgentEditModeTests
     {
@@ -85,7 +85,7 @@ namespace Tests.EditMode
             var buffer = new float[AgentObservations.Size];
 
             AgentObservations.Fill(buffer, self, in target,
-                inMyEnvelope: true, inEnemyEnvelope: false, primaryWeaponReady: true,
+                inMyEnvelope: true, inEnemyEnvelope: false, primaryWeaponReady: true, primaryHeatPct: 0.6f,
                 arenaCenterPlane: new Vector2(5f, 65f), arenaRadius: ArenaRadius);
 
             var expected = new[]
@@ -104,6 +104,7 @@ namespace Tests.EditMode
                 1f, 0f,              // inMyEnvelope, inEnemyEnvelope
                 0f, 60f / ArenaRadius,   // arena center ego / R
                 1f,                  // primary weapon ready
+                0.6f,                // self primary heat pct
             };
             Assert.AreEqual(AgentObservations.Size, expected.Length);
             for (var i = 0; i < expected.Length; i++)
@@ -116,7 +117,7 @@ namespace Tests.EditMode
             var self = new StubStatus { kinematics = new Kinematics(Vector2.zero, Vector2.zero, 0f, 0f, 0f) };
             var buffer = new float[AgentObservations.Size];
             AgentObservations.Fill(buffer, self, TargetView.None,
-                inMyEnvelope: false, inEnemyEnvelope: false, primaryWeaponReady: false,
+                inMyEnvelope: false, inEnemyEnvelope: false, primaryWeaponReady: false, primaryHeatPct: 0f,
                 arenaCenterPlane: Vector2.zero, arenaRadius: ArenaRadius);
 
             for (var i = 8; i < 18; i++)
