@@ -9,14 +9,7 @@ using UnityEngine.TestTools;
 
 namespace Tests.PlayMode
 {
-    /// <summary>
-    /// Thin PlayMode smoke: a weapon overheats and then recovers through the <b>real</b> fire path
-    /// (Commander → WeaponsController → Heat), and its GameObject stays active throughout.
-    ///
-    /// The detailed overheat / cooldown / no-heat-debt / hysteresis logic is covered fast and
-    /// deterministically in <c>Tests.EditMode/HeatEditModeTests</c> via <see cref="Heat.Configure"/> +
-    /// <see cref="Heat.Tick"/>, so this suite is deliberately a single wiring check.
-    /// </summary>
+    /// <summary>Thin smoke: overheat and recovery through the real fire path; detailed heat logic is pinned in Tests.EditMode/HeatEditModeTests.</summary>
     [Category("Weapons")]
     [Category("Slow")]
     public class HeatOverheatStressPlayModeTests : PlayModeWorldFixture
@@ -48,7 +41,7 @@ namespace Tests.PlayMode
             Assert.IsNotNull(shipPrefab, "Ship_2 prefab failed to load");
 
             commanderPrefab = new GameObject("ContinuousFireCommanderPrefab").AddComponent<ContinuousFireCommander>();
-            ship = Factory.CreateShip(shipPrefab, commanderPrefab, team: 0, decisionSeed: 0,
+            ship = Factory.CreateShip(shipPrefab, commanderPrefab, team: 0, decisionSeed: 0, projectiles: Projectiles,
                                       position: Vector3.zero, rotation: Quaternion.identity);
             combatShip = ship;
 
@@ -79,7 +72,6 @@ namespace Tests.PlayMode
             Assert.IsNotNull(commander, "Commander cast failed");
             var weaponGo = combatShip.Weapons.Primary.gameObject;
 
-            // Fire through the real command flow until the weapon overheats.
             commander.enablePrimaryFire = true;
             var elapsed = 0f;
             while (!primaryHeat.Overheated && elapsed < 4f)

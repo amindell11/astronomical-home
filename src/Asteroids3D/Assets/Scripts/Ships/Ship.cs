@@ -2,6 +2,7 @@ using System;
 using Combat;
 using Combat.Targeting;
 using Combat.Weapons;
+using Game.Services;
 using Ships.Command;
 using Ships.Damage;
 using Ships.Movement;
@@ -82,6 +83,7 @@ namespace Ships
         public float ShipRadius => Stats?.shipRadius ?? 1f;
 
         private bool isInitialized = false;
+        private IProjectileService projectiles;
 
         protected virtual void Awake()
         {
@@ -165,11 +167,13 @@ namespace Ships
             subShield = null;
         }
 
-        public virtual void Initialize(int team, int decisionSeed)
+        /// <summary>The registry may be null only for a ship that never arms a commander (unarmed or commander-less); arming demands it.</summary>
+        public virtual void Initialize(int team, int decisionSeed, IProjectileService projectiles)
         {
             if (isInitialized) return;
             teamNumber = team;
             DecisionSeed = decisionSeed;
+            this.projectiles = projectiles;
             Resolve();
             Movement.Initialize(Stats, ()=>KinematicsPoller.Kinematics);
             Damage?.PopulateSettings(Stats);
@@ -205,7 +209,7 @@ namespace Ships
 
         private ShipControl BuildShipControl() =>
             Weapons
-                ? new(this, Movement, new SeedScope(DecisionSeed), Weapons.Context, Weapons)
+                ? new(this, Movement, new SeedScope(DecisionSeed), Weapons.Context, Weapons.Arm(projectiles))
                 : new(this, Movement, new SeedScope(DecisionSeed));
 
         private void SetCommander(Commander commander)

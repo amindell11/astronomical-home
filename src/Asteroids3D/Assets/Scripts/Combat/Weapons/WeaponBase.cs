@@ -4,6 +4,7 @@ using System.Linq;
 using Combat.Conditions;
 using Combat.Projectile;
 using Combat.Targeting;
+using Game.Services;
 using UnityEngine;
 using Utils;
 
@@ -43,7 +44,8 @@ namespace Combat.Weapons
                 condition.Initialize(this);
         }
 
-        public abstract ProjectileBase Fire();
+        /// <summary>Fires one shot. The live-projectile registry is a per-call capability, never stored — a call site without one in hand cannot compile.</summary>
+        public abstract ProjectileBase Fire(IProjectileService projectiles);
 
         /// <summary>Muzzle speed of this weapon's projectile, used for AI intercept lead. 0 if not applicable.</summary>
         public virtual float ProjectileSpeed => 0f;
@@ -55,10 +57,10 @@ namespace Combat.Weapons
         public virtual bool AutoFire => true;
 
         /// <summary>Applies one step of trigger state; the weapon owns its firing semantics (charge weapons override to fire on release/full charge).</summary>
-        public virtual void HandleTrigger(bool pressed, bool held)
+        public virtual void HandleTrigger(bool pressed, bool held, IProjectileService projectiles)
         {
             if (AutoFire ? held : pressed)
-                Fire();
+                Fire(projectiles);
         }
 
         public virtual bool CanFire()
@@ -129,11 +131,13 @@ namespace Combat.Weapons
             if (projectilePrefab)
                 SimplePool<TProj>.Warm(projectilePrefab);
         }
-        
+
         public override bool CanFire() => projectilePrefab && base.CanFire();
-        
-        public override ProjectileBase Fire()
+
+        public override ProjectileBase Fire(IProjectileService projectiles)
         {
+            // An untracked projectile could outlive its context; a deliberate null is refused before conditions consume charge/ammo.
+            if (projectiles == null) throw new ArgumentNullException(nameof(projectiles));
             if (!CanFire()) return null;
 
             foreach (var condition in conditions)
@@ -141,6 +145,7 @@ namespace Combat.Weapons
 
             var proj = SimplePool<TProj>.Get(projectilePrefab, firePoint.position, firePoint.rotation);
             proj.Initialize(shooter);
+            projectiles.Register(proj, proj.ReturnToPoolImmediate);
             proj.Launch(firePoint.up);
             InvokeOnFire();
 

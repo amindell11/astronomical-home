@@ -6,13 +6,8 @@ using Utils;
 
 namespace Combat.Projectile
 {
-    /// <summary>
-    /// A drop-behind concussion charge: released with the shooter's velocity minus a backward
-    /// push, parked near the drop point by rigidbody damping, then detonated by fuse expiry,
-    /// armed contact, or being shot. Detonation spawns a <see cref="ConcussionWave"/>; the
-    /// grenade itself never applies damage.
-    /// </summary>
-    public class Grenade : Projectile<Grenade>, IDamageable
+    /// <summary>Drop-behind concussion charge, detonated by fuse expiry, armed contact, or being shot: detonation spawns a <see cref="ConcussionWave"/> — the grenade itself never applies damage.</summary>
+    public class Grenade : Projectile<Grenade>, IDamageable, ITransientSpawner
     {
         [Header("Charge")]
         [SerializeField, Min(0f)] private float fuseSeconds = 2.5f;
@@ -28,6 +23,9 @@ namespace Combat.Projectile
         private bool detonated;
 
         public event Action<Vector3> OnDetonated;
+
+        /// <summary>Announces the detonation's wave so whoever tracks this grenade tracks the wave too (<see cref="ITransientSpawner"/>).</summary>
+        public event Action<MonoBehaviour, Action> Spawned;
 
         public bool Armed => aliveTime >= armingSeconds;
 
@@ -91,8 +89,9 @@ namespace Combat.Projectile
             {
                 var shooterComponent = Shooter as Component;
                 var attacker = shooterComponent ? shooterComponent.gameObject : null;
-                SimplePool<ConcussionWave>.Get(wavePrefab, transform.position, Quaternion.identity)
-                    .Begin(attacker);
+                var wave = SimplePool<ConcussionWave>.Get(wavePrefab, transform.position, Quaternion.identity);
+                wave.Begin(attacker);
+                Spawned?.Invoke(wave, wave.ReturnToPoolImmediate);
             }
 
             OnDetonated?.Invoke(transform.position);

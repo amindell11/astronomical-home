@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Combat;
 using Combat.Targeting;
 using Combat.Weapons;
+using Game.Services;
 using Movement;
 using Ships.Command;
 using UnityEngine;
@@ -10,7 +11,7 @@ using UnityEngine;
 namespace Ships.Weapons
 {
     [DefaultExecutionOrder(-95)]
-    public class WeaponsController : MonoBehaviour, IWeapons
+    public class WeaponsController : MonoBehaviour
     {
         [SerializeField] internal WeaponComponent primaryMount;
         [SerializeField] internal WeaponComponent secondaryMount;
@@ -70,6 +71,28 @@ namespace Ships.Weapons
             }
         }
 
+        /// <summary>The only firing surface: producing an <see cref="IWeapons"/> actuator demands the live-projectile registry, so a fire path without one cannot compile. The actuator reads mounts through this controller, staying current across <see cref="Reequip"/>.</summary>
+        public IWeapons Arm(IProjectileService projectiles) => new ArmedWeapons(this, projectiles);
+
+        private sealed class ArmedWeapons : IWeapons
+        {
+            private readonly WeaponsController owner;
+            private readonly IProjectileService projectiles;
+
+            public ArmedWeapons(WeaponsController owner, IProjectileService projectiles)
+            {
+                this.owner = owner;
+                this.projectiles = projectiles ?? throw new ArgumentNullException(nameof(projectiles),
+                    $"{owner.name}: arming weapons requires the live-projectile registry (composition supplies it at spawn).");
+            }
+
+            public void Fire(WeaponSlot slot, in WeaponCommand cmd)
+            {
+                if (!owner || !owner.enabled) return;
+                owner.Mount(slot)?.HandleTrigger(cmd.pressed, cmd.held, projectiles);
+            }
+        }
+
         private WeaponComponent ReplaceMount(WeaponComponent current, WeaponComponent prefab, WeaponSlot slot)
         {
             if (current)
@@ -114,12 +137,6 @@ namespace Ships.Weapons
 
         /// <summary>The slot-keyed display view handed to the HUD (same object, UI-facing surface).</summary>
         public IWeaponReadouts ReadoutContext => context;
-
-        public void Fire(WeaponSlot slot, in WeaponCommand cmd)
-        {
-            if (!enabled) return;
-            Mount(slot)?.HandleTrigger(cmd.pressed, cmd.held);
-        }
 
         private WeaponComponent Mount(WeaponSlot slot) => slot switch
         {

@@ -1,5 +1,6 @@
 using Combat.Conditions;
 using Combat.Projectile;
+using Game.Services;
 using UnityEngine;
 
 namespace Combat.Weapons
@@ -44,18 +45,18 @@ namespace Combat.Weapons
             if (!charge) charge = GetComponent<ChargeTime>();
         }
 
-        public override void HandleTrigger(bool pressed, bool held)
+        public override void HandleTrigger(bool pressed, bool held, IProjectileService projectiles)
         {
             if (Charge && Charge.HandleTrigger(held, Time.fixedDeltaTime))
-                Fire();
+                Fire(projectiles);
         }
 
-        public override ProjectileBase Fire()
+        public override ProjectileBase Fire(IProjectileService projectiles)
         {
             // Captured before firing: ProcessFire consumes the charge.
             var charge = Charge ? Charge.ChargePct : 1f;
 
-            var proj = base.Fire();
+            var proj = base.Fire(projectiles);
             if (proj != null)
                 proj.SetDamageScale(Mathf.Lerp(minChargeDamageScale, fullChargeDamageScale, charge));
             return proj;

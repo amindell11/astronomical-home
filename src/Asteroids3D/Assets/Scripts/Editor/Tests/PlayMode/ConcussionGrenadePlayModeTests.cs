@@ -31,11 +31,9 @@ namespace Tests.PlayMode
         [TearDown]
         public override void TearDown()
         {
-            foreach (var wave in Object.FindObjectsByType<ConcussionWave>(FindObjectsSortMode.None))
-                Object.DestroyImmediate(wave.gameObject);
-
-            foreach (var proj in Object.FindObjectsByType<ProjectileBase>(FindObjectsSortMode.None))
-                Object.DestroyImmediate(proj.gameObject);
+            // Detonation bursts (PooledVFX, untracked by design) outlive their test and would trip the phantom-burst zero-VFX assertion.
+            foreach (var vfx in Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None))
+                Object.DestroyImmediate(vfx.gameObject);
 
             foreach (var go in spawned)
                 if (go) Object.DestroyImmediate(go);
@@ -97,8 +95,6 @@ namespace Tests.PlayMode
             return waves.Length > 0 ? waves[0] : null;
         }
 
-        // ── Pool warmup ──
-
         [Test]
         public void EquippingTheWeapon_WarmsPoolsWithoutAPhantomBurst()
         {
@@ -109,15 +105,13 @@ namespace Tests.PlayMode
                 "Pool warmup must not fire the detonation burst (it activates the pooled wave once).");
         }
 
-        // ── Drop ──
-
         [Test]
         public void Grenade_DropsBackward_FromTheShooterVelocity()
         {
             var weapon = MountWeapon(out var shooter);
             shooter.Velocity = GamePlane.PlaneDirToWorld(new Vector2(0f, 10f));
 
-            var grenade = weapon.Fire() as Grenade;
+            var grenade = weapon.Fire(Projectiles) as Grenade;
 
             Assert.IsNotNull(grenade, "Firing releases a charge.");
             var velocity = grenade.GetComponent<Rigidbody>().linearVelocity;
@@ -126,13 +120,11 @@ namespace Tests.PlayMode
                 "The charge inherits the shooter's velocity minus the backward push.");
         }
 
-        // ── Detonation paths ──
-
         [UnityTest]
         public IEnumerator Grenade_FuseExpiry_SpawnsTheWave()
         {
             var weapon = MountWeapon(out _);
-            var grenade = weapon.Fire() as Grenade;
+            var grenade = weapon.Fire(Projectiles) as Grenade;
             grenade.Configure(fuseSeconds: Time.fixedDeltaTime * 2f, armingSeconds: 0f);
 
             for (var i = 0; i < 4; i++)
@@ -146,15 +138,13 @@ namespace Tests.PlayMode
         public void Grenade_ShotBeforeTheFuse_DetonatesImmediately()
         {
             var weapon = MountWeapon(out _);
-            var grenade = weapon.Fire() as Grenade;
+            var grenade = weapon.Fire(Projectiles) as Grenade;
 
             grenade.TakeDamage(1f, 0.1f, Vector3.zero, grenade.transform.position, null);
 
             Assert.IsFalse(grenade.gameObject.activeSelf, "A shot charge detonates on the spot.");
             Assert.IsNotNull(FindActiveWave(), "The full wave still happens.");
         }
-
-        // ── Wave behavior ──
 
         [UnityTest]
         public IEnumerator Wave_HitsEverythingOnce_ShooterIncluded_WithRimFalloff()
@@ -168,7 +158,7 @@ namespace Tests.PlayMode
             var near = CreateTarget(origin + GamePlane.PlaneDirToWorld(new Vector2(0f, 3f)), "NearTarget");
             var far = CreateTarget(origin + GamePlane.PlaneDirToWorld(new Vector2(0f, 9f)), "FarTarget");
 
-            var grenade = weapon.Fire() as Grenade;
+            var grenade = weapon.Fire(Projectiles) as Grenade;
             grenade.transform.position = origin;
             grenade.TakeDamage(1f, 0.1f, Vector3.zero, origin, null);
 
@@ -193,10 +183,10 @@ namespace Tests.PlayMode
             var weapon = MountWeapon(out _);
             weapon.transform.root.position = new Vector3(50f, 0f, 50f);
 
-            var first = weapon.Fire() as Grenade;
+            var first = weapon.Fire(Projectiles) as Grenade;
             first.transform.position = Vector3.zero;
             weapon.Reset();
-            var second = weapon.Fire() as Grenade;
+            var second = weapon.Fire(Projectiles) as Grenade;
             second.transform.position = GamePlane.PlanePointToWorld(new Vector2(0f, 4f));
             second.Configure(fuseSeconds: 999f, armingSeconds: 0f);
 
@@ -214,8 +204,7 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator Wave_SweepsMoreTargetsThanTheQueryBuffer()
         {
-            // Swept inner colliders stay inside the growing sphere; with a fixed 64-slot query
-            // they'd crowd out newly reached outer targets. 70 targets pins the regrow path.
+            // 70 targets pins the query-regrow path: swept inner colliders would crowd a fixed 64-slot buffer.
             var weapon = MountWeapon(out _);
             weapon.transform.root.position = new Vector3(80f, 0f, 80f);
 
@@ -229,7 +218,7 @@ namespace Tests.PlayMode
                     GamePlane.PlanePointToWorld(new Vector2(Mathf.Cos(angle) * ring, Mathf.Sin(angle) * ring)), $"SwarmTarget{i}"));
             }
 
-            var grenade = weapon.Fire() as Grenade;
+            var grenade = weapon.Fire(Projectiles) as Grenade;
             grenade.transform.position = Vector3.zero;
             grenade.TakeDamage(1f, 0.1f, Vector3.zero, Vector3.zero, null);
 
@@ -244,11 +233,30 @@ namespace Tests.PlayMode
                     $"Target {i} was starved out of the sweep — every target inside the wave must be hit.");
         }
 
+        [Test]
+        public void Detonation_CascadesTheWaveIntoTheProjectileTracker_AndFlushReturnsIt()
+        {
+            var weapon = MountWeapon(out _);
+
+            var grenade = weapon.Fire(Projectiles) as Grenade;
+            Assert.AreEqual(1, Projectiles.ActiveCount, "the fired charge registers");
+
+            grenade.TakeDamage(1f, 0.1f, Vector3.zero, grenade.transform.position, null);
+            var wave = FindActiveWave();
+            Assert.IsNotNull(wave);
+            Assert.AreEqual(1, Projectiles.ActiveCount,
+                "the detonated charge deregisters and its announced wave registers in its place");
+
+            Projectiles.ReturnAllToPool();
+            Assert.AreEqual(0, Projectiles.ActiveCount);
+            Assert.IsFalse(wave.gameObject.activeSelf, "the flush returned the mid-sweep wave to its pool");
+        }
+
         [UnityTest]
         public IEnumerator Grenade_ContactBeforeArming_DoesNotDetonate()
         {
             var weapon = MountWeapon(out _);
-            var grenade = weapon.Fire() as Grenade;
+            var grenade = weapon.Fire(Projectiles) as Grenade;
             grenade.Configure(fuseSeconds: 999f, armingSeconds: 999f);
 
             var bumper = CreateTarget(grenade.transform.position, "Bumper");

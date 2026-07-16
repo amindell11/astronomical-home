@@ -37,7 +37,7 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator Reequip_Engine_ReResolvesStatsDynamicsAndMovement()
         {
-            ship = ShipTestFactory.CreateDefaultShip();
+            ship = ShipTestFactory.CreateDefaultShip(Projectiles);
             Assert.IsNotNull(ship, "ship created");
             yield return null; // let Awake/Initialize/Start settle
 
@@ -70,7 +70,7 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator Reequip_Shield_UpdatesResolvedShieldCap()
         {
-            ship = ShipTestFactory.CreateDefaultShip();
+            ship = ShipTestFactory.CreateDefaultShip(Projectiles);
             Assert.IsNotNull(ship, "ship created");
             yield return null;
 

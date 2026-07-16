@@ -14,8 +14,8 @@ namespace Game.RLHarness
         {
             PacingContract.Apply();
             var seeds = EvalProtocol.ResolveSeeds(seedSelector, out var tag);
-            var (units, arena) = HarnessArena.Compose(gameObject);
-            yield return CheckpointEvaluator.Run(units, arena, onnxAssetPath,
+            var (units, arena, projectiles) = HarnessArena.Compose(gameObject);
+            yield return CheckpointEvaluator.Run(units, arena, projectiles, onnxAssetPath,
                 seeds, episodesPerSeed, RewardSpec.Default, tag, null);
 #if UNITY_EDITOR
             if (Application.isBatchMode) UnityEditor.EditorApplication.Exit(0);

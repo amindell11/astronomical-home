@@ -41,8 +41,10 @@ namespace Tests.PlayMode
 
             var arena = Tests.Common.TestArena.On(unitServiceGO, _unitService.Registry);
             _unitService.SetArena(arena);
+            var projectiles = new ProjectileService(unitServiceGO.transform);
+            _unitService.SetProjectiles(projectiles);
             _services = new GameServices(
-                _unitService, new EnvironmentService(), _objectives,
+                _unitService, projectiles, new EnvironmentService(), _objectives,
                 new CameraService(), new UIService(), arena);
 
             _config = ScriptableObject.CreateInstance<SectorSettings>();
@@ -364,6 +366,7 @@ namespace Tests.PlayMode
             private readonly IObjectiveService objectives;
             public StubServices(IObjectiveService objectives) => this.objectives = objectives;
             public IUnitService UnitService => null;
+            public IProjectileService Projectiles => null;
             public IEnvironmentService EnvironmentService => null;
             public IObjectiveService ObjectiveService => objectives;
             public ICameraService CameraService => null;

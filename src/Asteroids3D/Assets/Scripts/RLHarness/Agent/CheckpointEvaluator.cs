@@ -27,9 +27,9 @@ namespace Game.RLHarness
             public string episodesJsonl;
         }
 
-        public static IEnumerator Run(UnitService units, ArenaContext arena, string onnxAssetPath,
-            IReadOnlyList<int> seeds, int episodesPerSeed, RewardSpec baseSpec, string tag,
-            Action<Summary> onDone)
+        public static IEnumerator Run(UnitService units, ArenaContext arena, IProjectileService projectiles,
+            string onnxAssetPath, IReadOnlyList<int> seeds, int episodesPerSeed, RewardSpec baseSpec,
+            string tag, Action<Summary> onDone)
         {
             var jsonlPath = EpisodeJsonl.NewRunPath(tag, ResultsFolder);
             var summary = new Summary
@@ -45,7 +45,7 @@ namespace Game.RLHarness
             {
                 var spec = baseSpec;
                 spec.runSeed = seed;
-                var pair = EpisodePair.SpawnWithAgentChooser(units, arena, in spec, out var chooser);
+                var pair = EpisodePair.SpawnWithAgentChooser(units, arena, projectiles, in spec, out var chooser);
                 var agent = ShipAgentFactory.ComposeInferenceOnly(pair, chooser, in spec, arena.Offset, onnxAssetPath);
                 var driver = new EpisodeLoopDriver(pair, agent, arena.Offset);
 
@@ -59,7 +59,7 @@ namespace Game.RLHarness
 
                 UnityEngine.Object.DestroyImmediate(agent.gameObject);
                 pair.Dispose();
-                ProjectileFlush.ReturnAllToPool();
+                projectiles.ReturnAllToPool();
             }
 
             summary.episodes = summary.wins + summary.losses + summary.draws;

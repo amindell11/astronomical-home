@@ -1,6 +1,7 @@
 using Combat.Conditions;
 using Combat.Projectile;
 using Combat.Targeting;
+using Game.Services;
 using UnityEngine;
 using Missile = Combat.Projectile.Missile;
 
@@ -56,9 +57,9 @@ namespace Combat.Weapons
             lockProvider = provider;
         }
 
-        public override ProjectileBase Fire()
+        public override ProjectileBase Fire(IProjectileService projectiles)
         {
-            var proj = base.Fire() as Missile;
+            var proj = base.Fire(projectiles) as Missile;
             if (!proj)
                 return null;
 

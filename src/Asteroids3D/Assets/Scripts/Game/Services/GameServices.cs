@@ -5,6 +5,7 @@ namespace Game.Services
     public class GameServices : IGameServices
     {
         public IUnitService UnitService { get; }
+        public IProjectileService Projectiles { get; }
         public IEnvironmentService EnvironmentService { get; }
         public IObjectiveService ObjectiveService { get; }
         public ICameraService CameraService { get; }
@@ -13,6 +14,7 @@ namespace Game.Services
 
         public GameServices(
             IUnitService unitService,
+            IProjectileService projectiles,
             IEnvironmentService environmentService,
             IObjectiveService objectiveService,
             ICameraService cameraService,
@@ -20,6 +22,7 @@ namespace Game.Services
             ArenaContext arena)
         {
             UnitService = unitService ?? throw new ArgumentNullException(nameof(unitService));
+            Projectiles = projectiles ?? throw new ArgumentNullException(nameof(projectiles));
             EnvironmentService = environmentService ?? throw new ArgumentNullException(nameof(environmentService));
             ObjectiveService = objectiveService ?? throw new ArgumentNullException(nameof(objectiveService));
             CameraService = cameraService ?? throw new ArgumentNullException(nameof(cameraService));
@@ -30,6 +33,7 @@ namespace Game.Services
         /// <summary>Clear all service registries between sectors. Arena holds refs, not owned state, so it is untouched.</summary>
         public void ClearAll()
         {
+            Projectiles.ReturnAllToPool();
             UnitService.Clear();
             EnvironmentService.Clear();
             ObjectiveService.ClearAll();
