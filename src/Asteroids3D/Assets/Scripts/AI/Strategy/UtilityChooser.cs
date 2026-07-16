@@ -12,7 +12,6 @@ namespace AI.Utility
     [Serializable]
     public class UtilityChooser : IStateChooser
     {
-        [Header("State Profiles")]
         [Tooltip("Discrete behaviors this policy chooses among; each entry becomes a selectable state.")]
         [SerializeField] private StateProfile[] stateProfiles;
 
@@ -37,11 +36,10 @@ namespace AI.Utility
         public IReadOnlyList<AIState> RegisteredStates => states;
         public UtilitySelectorSettings Config => config;
         internal Sampler Sampler => sampler;
+        internal IReadOnlyList<StateProfile> StateProfiles => stateProfiles;
 
         /// <summary>Fired on state transitions: (fromState, toState). Null fromState on first entry.</summary>
         public event Action<AIState, AIState> OnStateTransition;
-
-        internal IReadOnlyList<StateProfile> StateProfiles => stateProfiles;
 
         public void Initialize(Navigator navigator, Gunner gunner, SeedScope strategyScope)
         {
@@ -117,7 +115,7 @@ namespace AI.Utility
             OnStateTransition?.Invoke(prev, newAIState);
         }
 
-        /// <summary>Clears all selection state and drops the sampler so the next Initialize re-derives its RNG from the seed scope.</summary>
+        /// <summary>Drops the sampler so the next Initialize re-derives its RNG from the seed scope.</summary>
         public void Reset()
         {
             CurrentAIState?.Exit();

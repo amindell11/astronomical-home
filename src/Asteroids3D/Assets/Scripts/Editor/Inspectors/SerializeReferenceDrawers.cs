@@ -6,7 +6,6 @@ using UnityEngine;
 
 namespace AI.States.Editor
 {
-    /// <summary>Draws registered [SerializeReference] fields with an explicit type-picker dropdown.</summary>
     [CustomPropertyDrawer(typeof(GoalStrategy), true)]
     [CustomPropertyDrawer(typeof(UtilityFactor), true)]
     [CustomPropertyDrawer(typeof(IIntentChooser), true)]

@@ -8,15 +8,7 @@ using UnityEngine;
 
 namespace Tools.Editor
 {
-    /// <summary>
-    /// Rebuilds <c>Assets/Prefabs/Sectors/ChaseBenchmarkSector.prefab</c> programmatically
-    /// through Unity's prefab API. The original was hand-authored YAML whose nested prefab
-    /// instances did not survive import (the imported main asset degenerated to the pilot
-    /// rig with no children); regenerating through PrefabUtility guarantees a well-formed
-    /// asset and gives future edits a reproducible source of truth.
-    /// Menu: Tools ▸ Chase Benchmark ▸ Rebuild Sector Prefab, or headless via
-    /// <c>-executeMethod Tools.Editor.ChaseBenchmarkSectorBuilder.Build</c>.
-    /// </summary>
+    /// <summary>Rebuilds ChaseBenchmarkSector.prefab through PrefabUtility: hand-authored YAML with nested prefab instances does not survive import.</summary>
     public static class ChaseBenchmarkSectorBuilder
     {
         private const string OutputPath = "Assets/Prefabs/Sectors/ChaseBenchmarkSector.prefab";
@@ -40,7 +32,6 @@ namespace Tools.Editor
             var root = new GameObject("ChaseBenchmarkSector");
             try
             {
-                // ── Content children (nested prefab instances) ──
                 var fieldGo = Instantiate(fieldPrefab, root.transform, "AsteroidField", Vector3.zero);
                 var pursuerGo = Instantiate(ship2, root.transform, "Pursuer", new Vector3(0f, -8f, 0f));
                 var evaderGo = Instantiate(ship1, root.transform, "Evader", new Vector3(0f, 8f, 0f));
@@ -55,7 +46,6 @@ namespace Tools.Editor
                 var field = fieldGo.GetComponentInChildren<UpdatingAsteroidField>();
                 var fieldSpawner = fieldGo.GetComponentInChildren<AsteroidFieldSpawner>();
 
-                // ── Sector manifest ──
                 var sector = root.AddComponent<Sector>();
                 var so = new SerializedObject(sector);
                 var adopted = so.FindProperty("adopted");
@@ -66,7 +56,6 @@ namespace Tools.Editor
                 spawners.arraySize = 1;
                 spawners.GetArrayElementAtIndex(0).objectReferenceValue = fieldSpawner;
 
-                // ── Benchmark module ──
                 var module = root.AddComponent<ChaseBenchmarkModule>();
                 var mo = new SerializedObject(module);
                 mo.FindProperty("pursuer").objectReferenceValue = pursuerShip;

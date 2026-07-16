@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System;
 using System.Linq;
 using AI;
 using AI.States;
@@ -20,7 +21,7 @@ namespace Tests.EditMode
             return root.GetComponentsInChildren<Brain>(true)
                 .Select(b => b.Chooser)
                 .OfType<UtilityChooser>()
-                .SelectMany(c => c.StateProfiles ?? System.Array.Empty<StateProfile>())
+                .SelectMany(c => c.StateProfiles ?? Array.Empty<StateProfile>())
                 .Select(p => p ? p.name : "<null>")
                 .ToArray();
         }

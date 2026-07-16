@@ -34,7 +34,7 @@ namespace AI
                 stateChooser.Initialize(navigator, gunner, strategyScope);
         }
 
-        /// <summary>Harness/test seam: swap the decision policy; initializes it when the brain is already bound.</summary>
+        /// <summary>Harness/test seam for swapping the decision policy.</summary>
         internal void InstallChooser(IIntentChooser next)
         {
             chooser = next;
@@ -44,7 +44,7 @@ namespace AI
         public NavigationIntent Decide(AIContext ctx, float dt) =>
             chooser?.Decide(ctx, dt) ?? NavigationIntent.None;
 
-        /// <summary>Restores the freshly-initialized policy: the chooser clears its state and rebuilds from the stored strategy scope, so its RNG streams replay from the spawn seed.</summary>
+        /// <summary>Rebuilds the policy from the stored scope so its RNG streams replay from the spawn seed.</summary>
         public void ResetState()
         {
             chooser?.Reset();
@@ -54,7 +54,6 @@ namespace AI
 #if UNITY_EDITOR
         private void OnValidate() => RefreshStates();
 
-        /// <summary>Editor-only: re-initialize the policy from the current authored data. No-op before the brain is initialized (i.e. outside play).</summary>
         internal void RefreshStates()
         {
             if (navigator == null) return;

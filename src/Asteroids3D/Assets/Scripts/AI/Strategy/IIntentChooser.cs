@@ -11,7 +11,7 @@ namespace AI
         /// <summary>Decide this tick's action; return <see cref="NavigationIntent.None"/> to idle/reset (no decision available, or mid-transition).</summary>
         NavigationIntent Decide(AIContext ctx, float dt);
 
-        /// <summary>Discard accumulated decision state so the next Decide behaves as freshly initialized (stateless policies need not override).</summary>
+        /// <summary>Discard accumulated decision state so the next Decide behaves as freshly initialized.</summary>
         void Reset() { }
     }
 
