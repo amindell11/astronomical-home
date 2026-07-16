@@ -35,17 +35,23 @@ Commands:
       Run Unity tests in that slot with standardized outDir:
       results/unity-tests-agent
 
-  create-pr <slot> [base]
+  create-pr <slot> [base] --title "<text>" (--body "<text>" | --body-file <path>)
       Push slot branch and create a PR with gh (default base: main).
-      If an open PR already exists for that head/base, prints URL.
+      An explicit --title and exactly one of --body/--body-file are
+      REQUIRED — the PR must describe the change, not echo the last
+      commit subject. If an open PR already exists for that head/base,
+      prints URL.
 
   create-pool-prs [base]
       Create PRs for all agent-* slots that are ahead of base.
+      (Each PR needs its own --title/--body, so this fails per slot
+      until invoked via create-pr with explicit flags.)
 
-  submit <slot> [base_ref] [-- unity_test_agent.ps1 args...]
+  submit <slot> [base_ref] --title "<text>" (--body "<text>" | --body-file <path>) [-- unity_test_agent.ps1 args...]
       Run tests, push to a task-specific remote branch (task/<lease>),
       and create PR — but keep the lock so the agent can respond to
-      review feedback.  Test args after -- are passed to
+      review feedback. An explicit --title and exactly one of
+      --body/--body-file are REQUIRED. Test args after -- are passed to
       unity_test_agent.ps1. Only a passing FULL run (-Mode Both,
       -ScopeType Workspace, unfiltered) records merge-grade proof;
       scoped runs still open the PR but the merge gate will re-test.
@@ -81,12 +87,12 @@ Examples:
   scripts/agent_worktree_pool.sh acquire task-123 agent-4
   scripts/agent_worktree_pool.sh prepare agent-1 origin/main
   scripts/agent_worktree_pool.sh run-tests agent-1 -Mode EditMode -ScopeType Smoke
-  scripts/agent_worktree_pool.sh create-pr agent-1
+  scripts/agent_worktree_pool.sh create-pr agent-1 --title "feat(x): add y" --body "## Summary\n..."
   scripts/agent_worktree_pool.sh create-pool-prs
   scripts/agent_worktree_pool.sh review-comments agent-1
   scripts/agent_worktree_pool.sh revise agent-1 -- -Mode EditMode -ScopeType Feature -ScopeName camera
   scripts/agent_worktree_pool.sh revise agent-1 --no-test
-  scripts/agent_worktree_pool.sh submit agent-1 origin/main -- -Mode Both -ScopeType Workspace
+  scripts/agent_worktree_pool.sh submit agent-1 origin/main --title "fix(nav): clamp turn rate" --body-file pr_body.md -- -Mode Both -ScopeType Workspace
   scripts/agent_worktree_pool.sh merge agent-1
   scripts/agent_worktree_pool.sh finalize agent-1 origin/main
   scripts/agent_worktree_pool.sh release agent-1
@@ -609,9 +615,63 @@ cmd_run_tests() {
   )
 }
 
+require_pr_title_body() {
+  local cmd="$1" title="$2" body="$3" body_file="$4"
+  if [[ -z "$title" ]]; then
+    echo "$cmd: missing required --title \"<text>\"" >&2
+    return 1
+  fi
+  if [[ -n "$body" && -n "$body_file" ]]; then
+    echo "$cmd: --body and --body-file are mutually exclusive — pass exactly one" >&2
+    return 1
+  fi
+  if [[ -z "$body" && -z "$body_file" ]]; then
+    echo "$cmd: missing required --body \"<text>\" or --body-file <path>" >&2
+    return 1
+  fi
+  if [[ -n "$body_file" && ! -f "$body_file" ]]; then
+    echo "$cmd: --body-file not found: $body_file" >&2
+    return 1
+  fi
+}
+
+resolve_pr_body() {
+  local body="$1" body_file="$2"
+  if [[ -n "$body_file" ]]; then
+    cat "$body_file"
+  else
+    printf '%s' "$body"
+  fi
+}
+
 cmd_create_pr() {
   local slot="$1"
-  local base="${2:-main}"
+  shift || true
+
+  local base="main"
+  if [[ -n "${1:-}" && "${1:-}" != --* ]]; then
+    base="$1"
+    shift
+  fi
+
+  local title="" body="" body_file=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --title)
+        [[ -n "${2:-}" ]] || { echo "create-pr: --title requires a value" >&2; return 1; }
+        title="$2"; shift 2 ;;
+      --body)
+        [[ -n "${2:-}" ]] || { echo "create-pr: --body requires a value" >&2; return 1; }
+        body="$2"; shift 2 ;;
+      --body-file)
+        [[ -n "${2:-}" ]] || { echo "create-pr: --body-file requires a path" >&2; return 1; }
+        body_file="$2"; shift 2 ;;
+      *)
+        echo "create-pr: unknown argument: $1" >&2
+        return 1 ;;
+    esac
+  done
+  require_pr_title_body "create-pr" "$title" "$body" "$body_file" || return 1
 
   command -v gh >/dev/null 2>&1 || {
     echo "gh CLI not found in PATH" >&2
@@ -636,23 +696,8 @@ cmd_create_pr() {
     return 0
   fi
 
-  local title body
-  title="$(git -C "$ROOT" log --format=%s -n 1 "$base..$slot" 2>/dev/null || true)"
-  [[ -n "$title" ]] || title="agent update: $slot"
-
-  body=$(cat <<EOF
-## Summary
-Automated PR from warm worktree slot.
-
-- slot: $slot
-- branch: $slot
-
-This PR was created via \`scripts/agent_worktree_pool.sh create-pr\`.
-EOF
-)
-
   local url
-  url="$(gh pr create --base "$base" --head "$slot" --title "$title" --body "$body")"
+  url="$(gh pr create --base "$base" --head "$slot" --title "$title" --body "$(resolve_pr_body "$body" "$body_file")")"
   echo "$slot PR created: $url"
 }
 
@@ -665,16 +710,40 @@ cmd_create_pool_prs() {
 
 cmd_submit() {
   local slot="$1"
-  local base_ref="${2:-origin/main}"
-  shift 2 || true
+  shift || true
 
-  local test_args=()
-  if [[ ${1:-} == "--" ]]; then
+  local base_ref="origin/main"
+  if [[ -n "${1:-}" && "${1:-}" != --* ]]; then
+    base_ref="$1"
     shift
-    test_args=("$@")
-  elif [[ $# -gt 0 ]]; then
-    test_args=("$@")
   fi
+
+  local title="" body="" body_file=""
+  local test_args=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --title)
+        [[ -n "${2:-}" ]] || { echo "submit: --title requires a value" >&2; return 1; }
+        title="$2"; shift 2 ;;
+      --body)
+        [[ -n "${2:-}" ]] || { echo "submit: --body requires a value" >&2; return 1; }
+        body="$2"; shift 2 ;;
+      --body-file)
+        [[ -n "${2:-}" ]] || { echo "submit: --body-file requires a path" >&2; return 1; }
+        body_file="$2"; shift 2 ;;
+      --)
+        shift
+        test_args=("$@")
+        break ;;
+      --*)
+        echo "submit: unknown flag '$1' before '--' — test-runner args go after '--'" >&2
+        return 1 ;;
+      *)
+        test_args+=("$1"); shift ;;
+    esac
+  done
+  # Validate PR flags before the test run so a missing flag fails in seconds, not after a full suite.
+  require_pr_title_body "submit" "$title" "$body" "$body_file" || return 1
 
   local base_branch
   base_branch="${base_ref#origin/}"
@@ -716,24 +785,8 @@ cmd_submit() {
   if [[ -n "$existing" ]]; then
     echo "$slot PR already open: $existing"
   else
-    local title body
-    title="$(git -C "$path" log --format=%s -n 1 "origin/$base_branch..$slot" 2>/dev/null || true)"
-    [[ -n "$title" ]] || title="agent update: $task_branch"
-
-    body=$(cat <<EOF
-## Summary
-Automated PR from warm worktree slot.
-
-- slot: $slot
-- lease: $lease
-- branch: $task_branch
-
-This PR was created via \`scripts/agent_worktree_pool.sh submit\`.
-EOF
-)
-
     local url
-    url="$(gh pr create --base "$base_branch" --head "$task_branch" --title "$title" --body "$body")"
+    url="$(gh pr create --base "$base_branch" --head "$task_branch" --title "$title" --body "$(resolve_pr_body "$body" "$body_file")")"
     echo "$slot PR created: $url"
   fi
 
@@ -992,14 +1045,14 @@ main() {
       cmd_run_tests "$@"
       ;;
     create-pr)
-      [[ $# -ge 1 ]] || { echo "create-pr requires <slot> [base]" >&2; exit 1; }
+      [[ $# -ge 1 ]] || { echo "create-pr requires <slot> [base] --title \"<text>\" (--body \"<text>\" | --body-file <path>)" >&2; exit 1; }
       cmd_create_pr "$@"
       ;;
     create-pool-prs)
       cmd_create_pool_prs "$@"
       ;;
     submit)
-      [[ $# -ge 1 ]] || { echo "submit requires <slot> [base_ref] [-- test_args...]" >&2; exit 1; }
+      [[ $# -ge 1 ]] || { echo "submit requires <slot> [base_ref] --title \"<text>\" (--body \"<text>\" | --body-file <path>) [-- test_args...]" >&2; exit 1; }
       cmd_submit "$@"
       ;;
     merge)
