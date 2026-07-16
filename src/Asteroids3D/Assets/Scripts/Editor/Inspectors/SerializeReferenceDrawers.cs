@@ -6,12 +6,10 @@ using UnityEngine;
 
 namespace AI.States.Editor
 {
-    /// <summary>
-    /// Draws [SerializeReference] fields for GoalStrategy and UtilityFactor
-    /// with an explicit type picker dropdown.
-    /// </summary>
+    /// <summary>Draws registered [SerializeReference] fields with an explicit type-picker dropdown.</summary>
     [CustomPropertyDrawer(typeof(GoalStrategy), true)]
     [CustomPropertyDrawer(typeof(UtilityFactor), true)]
+    [CustomPropertyDrawer(typeof(IIntentChooser), true)]
     public class SerializeReferenceTypeDrawer : PropertyDrawer
     {
         private static readonly Dictionary<Type, Type[]> typeCache = new();
@@ -19,7 +17,7 @@ namespace AI.States.Editor
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            var height = EditorGUIUtility.singleLineHeight; // dropdown
+            var height = EditorGUIUtility.singleLineHeight;
 
             if (property.managedReferenceValue != null)
             {
@@ -54,7 +52,6 @@ namespace AI.States.Editor
             var currentType = property.managedReferenceValue?.GetType();
             var currentIndex = currentType != null ? Array.IndexOf(concreteTypes, currentType) : -1;
 
-            // Type picker dropdown
             var dropdownRect = new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight);
             var newIndex = EditorGUI.Popup(dropdownRect, label.text, currentIndex, typeNames);
 
@@ -64,7 +61,7 @@ namespace AI.States.Editor
                 property.serializedObject.ApplyModifiedProperties();
             }
 
-            // Draw child fields indented below using a copy to avoid corrupting the iterator
+            // Iterate a copy: drawing child fields must not advance the caller's property iterator.
             if (property.managedReferenceValue != null)
             {
                 EditorGUI.indentLevel++;
@@ -101,7 +98,7 @@ namespace AI.States.Editor
                     try { return a.GetTypes(); }
                     catch { return Array.Empty<Type>(); }
                 })
-                .Where(t => t.IsClass && !t.IsAbstract && baseType.IsAssignableFrom(t))
+                .Where(t => t.IsClass && !t.IsAbstract && t.IsSerializable && baseType.IsAssignableFrom(t))
                 .OrderBy(t => t.Name)
                 .ToArray();
 
