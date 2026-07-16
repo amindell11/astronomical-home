@@ -190,7 +190,7 @@ namespace Tests.EditMode
         [Test]
         public void SessionHost_ExposesDriverAgnosticLifecyclePrimitives()
         {
-            // The primitives are the seam an RL/headless driver reuses; each takes the explicit per-session container (not a process singleton), ApplyLoadout being the one non-coroutine.
+            // These primitives are the seam an RL/headless driver reuses.
             var flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
             foreach (var name in new[] { "ComposeSession", "LoadSector", "UnloadSector", "TeardownSession" })
             {
@@ -231,7 +231,7 @@ namespace Tests.EditMode
         [Test]
         public void ComposeSession_CarriesNoResetPolicy()
         {
-            // Reset policy is injected via GameSession.OnPlayerDeath, never passed as a compose parameter.
+            // Reset policy lives on GameSession.OnPlayerDeath instead.
             var method = typeof(SessionHost).GetMethod("ComposeSession",
                 BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
             Assert.IsNotNull(method, "SessionHost must expose ComposeSession");
@@ -244,7 +244,6 @@ namespace Tests.EditMode
         [Test]
         public void SessionRig_TakesInjectedDeathCallback_NoRestartEvent()
         {
-            // Death policy is injected as a callback via Build; the rig wires it onto the player.
             Assert.IsNull(typeof(SessionRig).GetEvent("RestartRequested"),
                 "SessionRig must not declare a RestartRequested event");
 
