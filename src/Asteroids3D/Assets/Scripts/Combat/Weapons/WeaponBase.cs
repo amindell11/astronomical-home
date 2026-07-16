@@ -30,7 +30,6 @@ namespace Combat.Weapons
         [Tooltip("Name shown on this weapon's HUD readout panel. Empty = the prefab name.")]
         [SerializeField] private string displayName;
         protected IShooter shooter;
-        protected IProjectileService projectiles;
         protected WeaponCondition[] conditions;
         private List<IWeaponReadout> readouts;
         
@@ -47,10 +46,9 @@ namespace Combat.Weapons
 
         public abstract ProjectileBase Fire();
 
-        /// <summary>Injected registry for fired projectiles; null-tolerant — an unwired weapon fires fine, just unregistered.</summary>
-        public void SetProjectiles(IProjectileService service)
+        /// <summary>Injected registry for fired projectiles; only projectile-launching weapons store it.</summary>
+        public virtual void SetProjectiles(IProjectileService service)
         {
-            projectiles = service;
         }
 
         /// <summary>Muzzle speed of this weapon's projectile, used for AI intercept lead. 0 if not applicable.</summary>
@@ -131,25 +129,39 @@ namespace Combat.Weapons
         [Header("Launcher Settings")]
         [SerializeField] internal TProj projectilePrefab;
 
+        private IProjectileService projectiles;
+
+        public override void SetProjectiles(IProjectileService service)
+        {
+            projectiles = service;
+        }
+
         protected override void Awake()
         {
             base.Awake();
             if (projectilePrefab)
                 SimplePool<TProj>.Warm(projectilePrefab);
         }
-        
+
         public override bool CanFire() => projectilePrefab && base.CanFire();
-        
+
         public override ProjectileBase Fire()
         {
             if (!CanFire()) return null;
+
+            // Loud + inert: an untracked projectile could outlive its context, so an unwired weapon must not spawn one.
+            if (projectiles == null)
+            {
+                Debug.LogError($"{name} fired with no projectile registry wired — shot suppressed. Wire SetProjectiles (ship wiring does this) before firing.", this);
+                return null;
+            }
 
             foreach (var condition in conditions)
                 condition.ProcessFire();
 
             var proj = SimplePool<TProj>.Get(projectilePrefab, firePoint.position, firePoint.rotation);
             proj.Initialize(shooter);
-            projectiles?.Register(proj, proj.ReturnToPoolImmediate);
+            projectiles.Register(proj, proj.ReturnToPoolImmediate);
             proj.Launch(firePoint.up);
             InvokeOnFire();
 

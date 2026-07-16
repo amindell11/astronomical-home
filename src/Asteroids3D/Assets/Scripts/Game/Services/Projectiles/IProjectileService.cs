@@ -24,14 +24,4 @@ namespace Game.Services
         /// <summary>Read-only visit of every live tracked instance (diagnostics overlays).</summary>
         void ForEachLive(Action<MonoBehaviour> visit);
     }
-
-    /// <summary>
-    /// A registrant that spawns further transients (a grenade's concussion wave) announces them
-    /// here; the service auto-registers announced children under the same rule, recursively, so
-    /// spawners never know the service exists.
-    /// </summary>
-    public interface ITransientSpawner
-    {
-        event Action<MonoBehaviour, Action> Spawned;
-    }
 }

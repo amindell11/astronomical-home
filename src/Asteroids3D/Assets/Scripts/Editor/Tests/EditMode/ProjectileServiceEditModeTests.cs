@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Combat.Projectile;
 using Game.Services;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Tests.EditMode
 {
@@ -11,12 +13,15 @@ namespace Tests.EditMode
     public class ProjectileServiceEditModeTests
     {
         private readonly List<GameObject> tempObjects = new();
+        private GameObject liveRoot;
         private ProjectileService service;
 
         [SetUp]
         public void SetUp()
         {
-            service = new ProjectileService();
+            liveRoot = new GameObject("LiveRoot");
+            tempObjects.Add(liveRoot);
+            service = new ProjectileService(liveRoot.transform);
         }
 
         [TearDown]
@@ -57,13 +62,15 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void RegisteredProjectiles_AreLive_AndFlushReturnsThemAll()
+        public void RegisteredProjectiles_AreLive_ParentedUnderTheRoot_AndFlushReturnsThemAll()
         {
             var a = Create<TestProjectile>("A");
             var b = Create<TestProjectile>("B");
             service.Register(a, a.ReturnToPoolImmediate);
             service.Register(b, b.ReturnToPoolImmediate);
             Assert.AreEqual(2, service.ActiveCount);
+            Assert.AreSame(liveRoot.transform, a.transform.parent,
+                "live transients ride the context root so they die with it");
 
             service.ReturnAllToPool();
 
@@ -87,11 +94,12 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void ReRegisteringALiveInstance_ReplacesItsFlushAction_WithoutDoubleReturn()
+        public void ReRegisteringALiveInstance_IsSurfacedAsPoolCorruption_AndReplacesTheFlushAction()
         {
             var projectile = Create<TestProjectile>();
             var replacementCalls = 0;
             service.Register(projectile, projectile.ReturnToPoolImmediate);
+            LogAssert.Expect(LogType.Error, new Regex("registered while already live"));
             service.Register(projectile, () => { replacementCalls++; projectile.ReturnToPoolImmediate(); });
             Assert.AreEqual(1, service.ActiveCount);
 
@@ -99,6 +107,18 @@ namespace Tests.EditMode
 
             Assert.AreEqual(1, replacementCalls);
             Assert.AreEqual(1, projectile.Returns);
+        }
+
+        [Test]
+        public void DestroyingTheContextRoot_TakesLiveTransientsWithIt()
+        {
+            var projectile = Create<TestProjectile>();
+            service.Register(projectile, projectile.ReturnToPoolImmediate);
+
+            UnityEngine.Object.DestroyImmediate(liveRoot);
+
+            Assert.IsTrue(projectile == null, "a live transient must not outlive its context root");
+            Assert.AreEqual(0, service.ActiveCount);
         }
 
         [Test]

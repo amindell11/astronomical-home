@@ -38,13 +38,13 @@ namespace Tests.PlayMode
             unitService = arenaHost.AddComponent<UnitService>();
             arena = TestArena.On(arenaHost, unitService.ActiveRegistry);
             unitService.SetArena(arena);
-            projectiles = new ProjectileService();
+            projectiles = new ProjectileService(arenaHost.transform);
             unitService.SetProjectiles(projectiles);
-            // Foreign debris from earlier fixtures is unregistered by definition — fixture entry sweeps the scene once.
-            foreach (var projectile in UnityEngine.Object.FindObjectsByType<Combat.Projectile.ProjectileBase>(FindObjectsSortMode.None))
-                projectile.ReturnToPoolImmediate();
-            foreach (var ship in UnityEngine.Object.FindObjectsByType<Ship>(FindObjectsSortMode.None))
-                UnityEngine.Object.DestroyImmediate(ship.gameObject);
+            // Registration is mandatory and transients die with their fixture root — foreign debris means a leaking fixture to FIX, so assert, never sweep.
+            Assert.AreEqual(0, UnityEngine.Object.FindObjectsByType<Combat.Projectile.ProjectileBase>(FindObjectsSortMode.None).Length,
+                "A previous fixture leaked live projectiles — its transients escaped their registry/root");
+            Assert.AreEqual(0, UnityEngine.Object.FindObjectsByType<Ship>(FindObjectsSortMode.None).Length,
+                "A previous fixture leaked ships — fix its teardown");
 
             savedTimeScale = Time.timeScale;
             savedMaxDelta = Time.maximumDeltaTime;
@@ -60,7 +60,7 @@ namespace Tests.PlayMode
             Time.maximumDeltaTime = savedMaxDelta;
             Time.captureDeltaTime = savedCaptureDelta;
 
-            projectiles.ReturnAllToPool();
+            projectiles?.ReturnAllToPool();
             if (agent) UnityEngine.Object.DestroyImmediate(agent.gameObject);
             agent = null;
             pair?.Dispose();

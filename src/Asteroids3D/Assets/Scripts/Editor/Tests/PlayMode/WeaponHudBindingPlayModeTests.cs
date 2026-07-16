@@ -36,10 +36,6 @@ namespace Tests.PlayMode
         [TearDown]
         public override void TearDown()
         {
-            // Destroy in-flight projectiles before their shooters (see WeaponCommandDispatch).
-            foreach (var proj in Object.FindObjectsByType<ProjectileBase>(FindObjectsSortMode.None))
-                Object.DestroyImmediate(proj.gameObject);
-
             foreach (var go in spawned)
                 if (go) Object.DestroyImmediate(go);
             spawned.Clear();
@@ -69,6 +65,7 @@ namespace Tests.PlayMode
             controller.primaryMount = primary;
             controller.secondaryMount = secondary;
             go.SetActive(true);
+            controller.SetProjectiles(Projectiles);
             controller.Initialize(() => default);
             return controller;
         }
@@ -231,6 +228,7 @@ namespace Tests.PlayMode
         {
             var weapon = Object.Instantiate(LoadWeaponPrefab<Rippers>(RippersPrefabPath));
             spawned.Add(weapon.gameObject);
+            weapon.SetProjectiles(Projectiles);
 
             var fired = 0;
             weapon.OnFire += () => fired++;

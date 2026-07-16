@@ -48,6 +48,7 @@ public abstract class AIIntegrationFixture : PlayModeWorldFixture
 
         trackedShips.Add(ship);
 
+        ship.Weapons?.SetProjectiles(Projectiles);
         registry.ActiveShips.Add(ship);
 
         var cmdr = ship.GetComponentInChildren<AICommander>();

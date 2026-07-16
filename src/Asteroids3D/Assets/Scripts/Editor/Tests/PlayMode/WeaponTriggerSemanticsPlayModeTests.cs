@@ -35,9 +35,6 @@ namespace Tests.PlayMode
         [TearDown]
         public override void TearDown()
         {
-            foreach (var proj in Object.FindObjectsByType<ProjectileBase>(FindObjectsSortMode.None))
-                Object.DestroyImmediate(proj.gameObject);
-
             foreach (var go in spawned)
                 if (go) Object.DestroyImmediate(go);
             spawned.Clear();
@@ -52,6 +49,7 @@ namespace Tests.PlayMode
             Assert.IsNotNull(prefab, $"Failed to load weapon prefab at {path}");
             var weapon = Object.Instantiate(prefab);
             spawned.Add(weapon.gameObject);
+            weapon.SetProjectiles(Projectiles);
             return weapon;
 #else
             Assert.Ignore("Requires Unity Editor assets.");

@@ -32,6 +32,9 @@ public abstract class PlayModeWorldFixture
     /// <summary>The NavField sibling backing <see cref="Arena"/>, for tests that drive it directly.</summary>
     protected NavFieldService NavField { get; private set; }
 
+    /// <summary>Per-test projectile registry rooted at the arena host: wire it into anything that fires (<c>weapon.SetProjectiles</c> / <c>ship.Weapons.SetProjectiles</c>) and every transient dies with the fixture.</summary>
+    protected ProjectileService Projectiles { get; private set; }
+
     /// <summary>
     /// Called before each test. Creates the test arena and pauses audio.
     /// Override this method if you need additional setup, but remember to call base.SetUp().
@@ -47,6 +50,7 @@ public abstract class PlayModeWorldFixture
         arenaHost = new GameObject("[TestArena]");
         Arena = TestArena.On(arenaHost);
         NavField = Arena.NavField;
+        Projectiles = new ProjectileService(arenaHost.transform);
     }
 
     /// <summary>
@@ -59,6 +63,7 @@ public abstract class PlayModeWorldFixture
         if (arenaHost) Object.DestroyImmediate(arenaHost);
         Arena = null;
         NavField = null;
+        Projectiles = null;
 
         TestSceneBuilder.CleanupTestArena();
 

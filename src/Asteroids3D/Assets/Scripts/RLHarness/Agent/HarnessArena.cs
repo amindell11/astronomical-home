@@ -13,7 +13,7 @@ namespace Game.RLHarness
             var navField = host.AddComponent<NavFieldService>();
             var arena = new ArenaContext(Vector2.zero, units.ActiveRegistry, navField);
             units.SetArena(arena);
-            var projectiles = new ProjectileService();
+            var projectiles = new ProjectileService(host.transform);
             units.SetProjectiles(projectiles);
             return (units, arena, projectiles);
         }

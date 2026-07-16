@@ -189,9 +189,30 @@ service owns it.
   (`EpisodePair.Spawn(units, arena, projectiles, …)`, `CheckpointEvaluator.Run(units, arena, projectiles, …)`)
   rather than exposed off `UnitService` — no service pass-through seam. `HarnessArena.Compose` creates and
   wires it for the RL host scenes; PlayMode fixtures create + `SetProjectiles` their own beside `SetArena`.
-- **`SweepForeignDebris` keeps its scene scan** (RL fixture entry, once per SetUp): debris leaked by earlier
-  non-RL fixtures is unregistered by definition, so no registry can see it. The per-reset and per-frame scans
-  the brief targets are gone.
 - Naming: `IGameServices.Projectiles`; `UnitService.SetProjectiles` is one-shot, mirroring `SetArena`
   (same wrong-arena hazard). `ConcussionWave` gets a public `ReturnToPoolImmediate()` (raises `Released`,
   then releases) used by both its self-release and the flush action `Grenade` announces.
+
+## v2 (user directive + adversarial review, 2026-07-15): make orphan debris IMPOSSIBLE — supersedes Assumption 4
+
+User rejected debris sweeps as symptom-treatment ("don't make that mistake possible"). Two invariants
+replace the null-tolerant wiring assumption:
+
+1. **Registration is mandatory.** `WeaponBase<TProj>.Fire()` with no service wired is **loud + inert**
+   (error + no spawn, before conditions consume charge/ammo) — an unregistered projectile cannot exist.
+   Production is always wired (`WireShipDependencies`); Unity's test runner fails on the error, so a
+   fixture that forgets wiring fails instead of leaking. Assumption 4 ("unwired ship fires fine") is dead.
+2. **Live transients ride their context root.** `ProjectileService(Transform liveRoot)` reparents each
+   instance under the root at `Register` (session root in production, arena/fixture host in tests, must be
+   a non-moving root). Destroying the context physically destroys its in-flight transients — cross-fixture
+   and cross-session leakage is structurally impossible, at the cost of pooled instances no longer being
+   shared across contexts (corpse guards on both sides absorb that).
+
+Consequences: `PlayModeWorldFixture` owns a per-test `Projectiles` service rooted at its arena host;
+firing fixtures wire it in one line; all foreign-debris **sweeps became assertions** (a leak is a fixture
+bug to fix at its source, never swept — and the scene-truth assertions restore the falsifiability the
+registry-count assertion alone had lost). Review fixes folded in: `SessionHost.UnloadSector` now flushes
+(the sector-transition leak Blindsider 2 promised to fix), flush snapshots are per-call (nested-flush
+safe), re-registering a live instance logs an error (the only observable signature of a pool double-checkout),
+the service field lives on `WeaponBase<TProj>` (hitscan weapons carry a no-op setter only), and
+`ITransientSpawner` moved to `Combat.Projectile` (registrants stay ignorant of `Game.Services`).

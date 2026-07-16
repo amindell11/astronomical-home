@@ -119,6 +119,8 @@ namespace Game.RLHarness
             var ship = Factory.CreateShip(shipPrefab, pilotPrefab, team, decisionSeed,
                 GamePlane.PlanePointToWorld(planePos),
                 GamePlane.Rotation * Quaternion.AngleAxis(rotDeg, Vector3.forward));
+            // Home the pair under the service like SpawnShip does, so a crash-path host teardown can't strand it.
+            ship.transform.SetParent(units.transform, true);
             units.ActiveRegistry.ActiveShips.Add(ship);
 
             ship.Reequip(ship.Engine, ship.Shield, ship.Weapons.PrimaryMountPrefab, null);

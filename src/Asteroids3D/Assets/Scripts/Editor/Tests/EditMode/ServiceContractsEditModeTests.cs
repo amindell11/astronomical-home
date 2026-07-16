@@ -62,7 +62,7 @@ namespace Tests.EditMode
             var cam = new CameraService();
 
             var ui = new UIService();
-            var proj = new ProjectileService();
+            var proj = new ProjectileService(unit.transform);
             var arena = TestArena.On(CreateMonoBehaviourService<NavFieldService>().gameObject);
 
             Assert.Throws<ArgumentNullException>(() => new GameServices(null, proj, env, obj, cam, ui, arena));
@@ -303,7 +303,7 @@ namespace Tests.EditMode
             var obj = CreateMonoBehaviourService<ObjectiveService>();
             var cam = new CameraService();
             var arena = TestArena.On(CreateMonoBehaviourService<NavFieldService>().gameObject);
-            var services = new GameServices(unit, new ProjectileService(), env, obj, cam, new UIService(), arena);
+            var services = new GameServices(unit, new ProjectileService(unit.transform), env, obj, cam, new UIService(), arena);
 
             Assert.DoesNotThrow(() => services.ClearAll());
         }

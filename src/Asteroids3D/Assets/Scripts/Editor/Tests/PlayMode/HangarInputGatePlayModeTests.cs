@@ -59,9 +59,11 @@ namespace Tests.PlayMode
             var objectiveService = servicesGo.AddComponent<ObjectiveService>();
             var arena = Tests.Common.TestArena.On(servicesGo, unitService.Registry);
             unitService.SetArena(arena);
+            var projectileService = new ProjectileService(servicesGo.transform);
+            unitService.SetProjectiles(projectileService);
             services = new GameServices(
                 unitService: unitService,
-                projectiles: new ProjectileService(),
+                projectiles: projectileService,
                 environmentService: new EnvironmentService(),
                 objectiveService: objectiveService,
                 cameraService: new CameraService(),

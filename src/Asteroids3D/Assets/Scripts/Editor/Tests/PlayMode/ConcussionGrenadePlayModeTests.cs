@@ -5,7 +5,6 @@ using Combat.Projectile;
 using Combat.Weapons;
 using Damage;
 using Game;
-using Game.Services;
 using NUnit.Framework;
 using Tests.PlayMode.Common;
 using UnityEngine;
@@ -32,15 +31,9 @@ namespace Tests.PlayMode
         [TearDown]
         public override void TearDown()
         {
-            foreach (var wave in Object.FindObjectsByType<ConcussionWave>(FindObjectsSortMode.None))
-                Object.DestroyImmediate(wave.gameObject);
-
-            // Detonation bursts outlive their test and would trip the phantom-burst zero-VFX assertion.
+            // Detonation bursts (PooledVFX, untracked by design) outlive their test and would trip the phantom-burst zero-VFX assertion.
             foreach (var vfx in Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None))
                 Object.DestroyImmediate(vfx.gameObject);
-
-            foreach (var proj in Object.FindObjectsByType<ProjectileBase>(FindObjectsSortMode.None))
-                Object.DestroyImmediate(proj.gameObject);
 
             foreach (var go in spawned)
                 if (go) Object.DestroyImmediate(go);
@@ -80,6 +73,7 @@ namespace Tests.PlayMode
             Assert.IsNotNull(prefab, $"Failed to load weapon prefab at {GrenadesPrefabPath}");
             var weapon = Object.Instantiate(prefab, ship.transform);
             spawned.Add(weapon.gameObject);
+            weapon.SetProjectiles(Projectiles);
             return weapon;
 #else
             Assert.Ignore("Requires Unity Editor assets.");
@@ -253,20 +247,18 @@ namespace Tests.PlayMode
         public void Detonation_CascadesTheWaveIntoTheProjectileTracker_AndFlushReturnsIt()
         {
             var weapon = MountWeapon(out _);
-            var tracker = new ProjectileService();
-            weapon.SetProjectiles(tracker);
 
             var grenade = weapon.Fire() as Grenade;
-            Assert.AreEqual(1, tracker.ActiveCount, "the fired charge registers");
+            Assert.AreEqual(1, Projectiles.ActiveCount, "the fired charge registers");
 
             grenade.TakeDamage(1f, 0.1f, Vector3.zero, grenade.transform.position, null);
             var wave = FindActiveWave();
             Assert.IsNotNull(wave);
-            Assert.AreEqual(1, tracker.ActiveCount,
+            Assert.AreEqual(1, Projectiles.ActiveCount,
                 "the detonated charge deregisters and its announced wave registers in its place");
 
-            tracker.ReturnAllToPool();
-            Assert.AreEqual(0, tracker.ActiveCount);
+            Projectiles.ReturnAllToPool();
+            Assert.AreEqual(0, Projectiles.ActiveCount);
             Assert.IsFalse(wave.gameObject.activeSelf, "the flush returned the mid-sweep wave to its pool");
         }
 

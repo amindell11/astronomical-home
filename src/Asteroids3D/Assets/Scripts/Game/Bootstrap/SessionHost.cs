@@ -50,7 +50,7 @@ namespace Game.Bootstrap
             var arena = new ArenaContext(target.Profile.offset, unitService.Registry, navFieldService);
             unitService.SetArena(arena);
 
-            var projectiles = new ProjectileService();
+            var projectiles = new ProjectileService(transform);
             unitService.SetProjectiles(projectiles);
 
             target.Services = new GameServices(
@@ -113,6 +113,8 @@ namespace Game.Bootstrap
         {
             // Drop any queued player/NPC revives so a pending respawn can't fire into the torn-down sector.
             target.Services.UnitService.CancelPendingRespawns();
+            // Old-sector transients must not survive into the next sector (they live under the session root, not the sector).
+            target.Services.Projectiles.ReturnAllToPool();
 
             yield return DestroyActiveSector(target, runTeardown: true);
         }

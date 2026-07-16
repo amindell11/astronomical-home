@@ -13,8 +13,14 @@ namespace Game.Services
             public Action OnReturned;
         }
 
+        private readonly Transform liveRoot;
         private readonly Dictionary<MonoBehaviour, Entry> live = new();
-        private readonly List<KeyValuePair<MonoBehaviour, Entry>> flushSnapshot = new();
+
+        /// <summary>Tracked instances are parented under <paramref name="liveRoot"/> (a non-moving context root: session, arena, or fixture host), so destroying the context destroys its in-flight transients — debris cannot outlive its owner.</summary>
+        public ProjectileService(Transform liveRoot)
+        {
+            this.liveRoot = liveRoot ? liveRoot : throw new ArgumentNullException(nameof(liveRoot));
+        }
 
         public void Register(MonoBehaviour instance, Action returnToPool)
         {
@@ -23,6 +29,8 @@ namespace Game.Services
 
             if (live.TryGetValue(instance, out var existing))
             {
+                // Unreachable unless a pool handed out an instance that never raised its return event — surface the corruption instead of absorbing it.
+                Debug.LogError($"ProjectileService: {instance.name} registered while already live — pool return path skipped its event?", instance);
                 existing.ReturnToPool = returnToPool;
                 return;
             }
@@ -30,6 +38,7 @@ namespace Game.Services
             var entry = new Entry { ReturnToPool = returnToPool };
             entry.OnReturned = () => Deregister(instance, entry);
             live.Add(instance, entry);
+            instance.transform.SetParent(liveRoot, true);
             SubscribeReturn(instance, entry.OnReturned);
             if (instance is ITransientSpawner spawner)
                 spawner.Spawned += Register;
@@ -37,13 +46,10 @@ namespace Game.Services
 
         public void ReturnAllToPool()
         {
-            flushSnapshot.Clear();
-            foreach (var pair in live)
-                flushSnapshot.Add(pair);
-
-            foreach (var (instance, entry) in flushSnapshot)
+            // Local snapshot: return events mutate the set mid-flush, and a nested flush must not corrupt this one's iteration.
+            var snapshot = new List<KeyValuePair<MonoBehaviour, Entry>>(live);
+            foreach (var (instance, entry) in snapshot)
             {
-                // A return event earlier in this flush may already have deregistered it.
                 if (!live.TryGetValue(instance, out var current) || current != entry) continue;
                 if (!instance)
                 {
@@ -52,7 +58,6 @@ namespace Game.Services
                 }
                 entry.ReturnToPool();
             }
-            flushSnapshot.Clear();
         }
 
         public int ActiveCount
@@ -100,8 +105,7 @@ namespace Game.Services
             }
         }
 
-        // Pooled instances can be destroyed out from under their registration (scene transitions,
-        // test teardown) without raising a return event; skip and drop those corpses.
+        // Pooled instances can be destroyed out from under their registration (context teardown) without raising a return event; skip and drop those corpses.
         private void PruneCorpses()
         {
             List<KeyValuePair<MonoBehaviour, Entry>> corpses = null;

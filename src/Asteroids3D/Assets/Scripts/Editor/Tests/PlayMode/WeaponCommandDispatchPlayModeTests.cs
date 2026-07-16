@@ -59,6 +59,7 @@ namespace Tests.PlayMode
 
             ship = Factory.CreateShip(shipPrefab, commanderPrefab, team: 0, decisionSeed: 0, position: Vector3.zero, rotation: Quaternion.identity);
             combatShip = ship;
+            ship.Weapons?.SetProjectiles(Projectiles);
             Assert.IsNotNull(ship, "Ship failed to instantiate");
             Assert.IsNotNull(combatShip.Weapons, "Ship must be armed (WeaponsController present)");
             Assert.IsNotNull(combatShip.Weapons.Primary, "Primary weapon mount not instantiated");
@@ -71,14 +72,6 @@ namespace Tests.PlayMode
         [TearDown]
         public override void TearDown()
         {
-            // Destroy any in-flight projectiles before the ship so they cannot
-            // trigger collisions against a half-destroyed Shooter reference.
-            // Without this, deferred Object.Destroy of the ship lets lingering
-            // projectiles fire OnTriggerEnter with a destroyed IShooter,
-            // causing MissingReferenceException in ApplySplashDamage.
-            foreach (var proj in Object.FindObjectsByType<ProjectileBase>(FindObjectsSortMode.None))
-                Object.DestroyImmediate(proj.gameObject);
-
             if (ship != null)
                 Object.DestroyImmediate(ship.gameObject);
 

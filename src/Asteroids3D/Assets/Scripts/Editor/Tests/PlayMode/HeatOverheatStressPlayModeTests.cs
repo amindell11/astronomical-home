@@ -51,6 +51,7 @@ namespace Tests.PlayMode
             ship = Factory.CreateShip(shipPrefab, commanderPrefab, team: 0, decisionSeed: 0,
                                       position: Vector3.zero, rotation: Quaternion.identity);
             combatShip = ship;
+            ship.Weapons?.SetProjectiles(Projectiles);
 
             Assert.IsNotNull(combatShip.Weapons, "Ship must be armed (WeaponsController present)");
             Assert.IsNotNull(combatShip.Weapons?.Primary, "Primary weapon not instantiated");

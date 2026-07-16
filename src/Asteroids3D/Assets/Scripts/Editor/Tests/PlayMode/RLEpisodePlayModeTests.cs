@@ -46,9 +46,9 @@ namespace Tests.PlayMode
             unitService = arenaHost.AddComponent<UnitService>();
             arena = TestArena.On(arenaHost, unitService.ActiveRegistry);
             unitService.SetArena(arena);
-            projectiles = new ProjectileService();
+            projectiles = new ProjectileService(arenaHost.transform);
             unitService.SetProjectiles(projectiles);
-            SweepForeignDebris();
+            AssertNoForeignDebris();
 
             savedTimeScale = Time.timeScale;
             savedMaxDelta = Time.maximumDeltaTime;
@@ -64,7 +64,7 @@ namespace Tests.PlayMode
             Time.maximumDeltaTime = savedMaxDelta;
             Time.captureDeltaTime = savedCaptureDelta;
 
-            projectiles.ReturnAllToPool();
+            projectiles?.ReturnAllToPool();
 
             pair?.Dispose();
             pair = null;
@@ -78,13 +78,13 @@ namespace Tests.PlayMode
             AudioListener.pause = false;
         }
 
-        // Debris leaked by earlier fixtures (drifting ships, live projectiles) enters scans and cover checks and varies between recordings, breaking trajectory equivalence. Foreign projectiles are unregistered by definition, so this one fixture-entry sweep stays a scene scan.
-        private static void SweepForeignDebris()
+        // Debris leaked by earlier fixtures (drifting ships, live projectiles) enters scans and cover checks and varies between recordings, breaking trajectory equivalence. Registration is mandatory and transients die with their fixture root, so debris here is a leaking fixture to FIX — assert, never sweep.
+        private static void AssertNoForeignDebris()
         {
-            foreach (var projectile in UnityEngine.Object.FindObjectsByType<Combat.Projectile.ProjectileBase>(FindObjectsSortMode.None))
-                projectile.ReturnToPoolImmediate();
-            foreach (var ship in UnityEngine.Object.FindObjectsByType<Ship>(FindObjectsSortMode.None))
-                UnityEngine.Object.DestroyImmediate(ship.gameObject);
+            Assert.AreEqual(0, UnityEngine.Object.FindObjectsByType<Combat.Projectile.ProjectileBase>(FindObjectsSortMode.None).Length,
+                "A previous fixture leaked live projectiles — its transients escaped their registry/root");
+            Assert.AreEqual(0, UnityEngine.Object.FindObjectsByType<Ship>(FindObjectsSortMode.None).Length,
+                "A previous fixture leaked ships — fix its teardown");
         }
 
         [UnityTest]
