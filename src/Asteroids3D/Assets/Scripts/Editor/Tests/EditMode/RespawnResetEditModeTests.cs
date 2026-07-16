@@ -66,7 +66,7 @@ namespace Tests.EditMode
                 return context.hasLineOfSight;
             }
 
-            public override Combat.Projectile.ProjectileBase Fire() => null;
+            public override Combat.Projectile.ProjectileBase Fire(Game.Services.IProjectileService projectiles) => null;
         }
 
         [Test]

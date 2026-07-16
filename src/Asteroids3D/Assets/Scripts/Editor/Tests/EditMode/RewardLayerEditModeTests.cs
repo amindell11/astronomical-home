@@ -184,7 +184,7 @@ namespace Tests.EditMode
                 && context.distanceToTarget <= 30f
                 && context.angleToTarget <= 5f;
 
-            public override Combat.Projectile.ProjectileBase Fire() => null;
+            public override Combat.Projectile.ProjectileBase Fire(Game.Services.IProjectileService projectiles) => null;
         }
 
         [Test]
