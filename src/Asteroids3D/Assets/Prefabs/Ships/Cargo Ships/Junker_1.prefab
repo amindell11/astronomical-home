@@ -39875,7 +39875,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4478262572537416997, guid: 08a3705197cc60842b107b8485d8ad25,
         type: 3}
-      propertyPath: 'stateProfiles.Array.data[0]'
+      propertyPath: managedReferences[1937986634179674114].stateProfiles.Array.data[0]
       value: 
       objectReference: {fileID: 11400000, guid: d90063e255dead04198763c69f2e8ba4,
         type: 2}

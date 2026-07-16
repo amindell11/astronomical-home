@@ -100,7 +100,7 @@ namespace Tools.Editor
         private static void ConfigurePilot(GameObject pilotGo, Object stateProfile)
         {
             var brain = new SerializedObject(pilotGo.GetComponent<Brain>());
-            var profiles = brain.FindProperty("stateProfiles");
+            var profiles = brain.FindProperty("chooser").FindPropertyRelative("stateProfiles");
             profiles.arraySize = 1;
             profiles.GetArrayElementAtIndex(0).objectReferenceValue = stateProfile;
             brain.ApplyModifiedPropertiesWithoutUndo();

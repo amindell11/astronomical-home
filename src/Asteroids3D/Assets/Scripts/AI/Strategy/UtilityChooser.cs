@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using AI.Context;
 using AI.States;
+using Movement.MPC;
 using Ships.Command;
 using UnityEngine;
 
@@ -11,6 +12,10 @@ namespace AI.Utility
     [Serializable]
     public class UtilityChooser : IStateChooser
     {
+        [Header("State Profiles")]
+        [Tooltip("Discrete behaviors this policy chooses among; each entry becomes a selectable state.")]
+        [SerializeField] private StateProfile[] stateProfiles;
+
         [SerializeField] private UtilitySelectorSettings config;
 
         [Header("Instance Weights")]
@@ -21,6 +26,9 @@ namespace AI.Utility
         private Sampler sampler;
         private float simTime;
         private float stateChangeTime;
+
+        private const uint UtilitySamplerStream = 1;
+        private const uint GoalStream = 2;
 
         public AIState CurrentAIState { get; private set; }
         public AIContext Context { get; private set; }
@@ -33,7 +41,21 @@ namespace AI.Utility
         /// <summary>Fired on state transitions: (fromState, toState). Null fromState on first entry.</summary>
         public event Action<AIState, AIState> OnStateTransition;
 
-        public void Initialize(IReadOnlyList<AIState> statesToAdd, SeedScope samplerScope)
+        internal IReadOnlyList<StateProfile> StateProfiles => stateProfiles;
+
+        public void Initialize(Navigator navigator, Gunner gunner, SeedScope strategyScope)
+        {
+            var built = new List<AIState>();
+            if (stateProfiles != null)
+            {
+                var goalScope = strategyScope.Derive(GoalStream);
+                foreach (var profile in stateProfiles)
+                    if (profile) built.Add(new AIState(profile, navigator, gunner, goalScope));
+            }
+            Initialize(built, strategyScope.Derive(UtilitySamplerStream));
+        }
+
+        internal void Initialize(IReadOnlyList<AIState> statesToAdd, SeedScope samplerScope)
         {
             sampler ??= new Sampler(config, instanceUtilityWeights, samplerScope.ToSeed());
             stateChangeTime = simTime;

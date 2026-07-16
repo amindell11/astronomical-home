@@ -251,7 +251,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4478262572537416997, guid: 08a3705197cc60842b107b8485d8ad25,
         type: 3}
-      propertyPath: 'stateProfiles.Array.data[0]'
+      propertyPath: managedReferences[1937986634179674114].stateProfiles.Array.data[0]
       value: 
       objectReference: {fileID: 11400000, guid: 7ea2a8044c4c46a9a708dcce689e4057,
         type: 2}
@@ -348,7 +348,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4478262572537416997, guid: 08a3705197cc60842b107b8485d8ad25,
         type: 3}
-      propertyPath: 'stateProfiles.Array.data[0]'
+      propertyPath: managedReferences[1937986634179674114].stateProfiles.Array.data[0]
       value: 
       objectReference: {fileID: 11400000, guid: 07a7f1f9ee5a486a91bea8b408364134,
         type: 2}
