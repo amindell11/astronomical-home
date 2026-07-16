@@ -21,8 +21,8 @@ directly, or explicit instruction to work in place.
 - `./scripts/agent_worktree_pool.sh acquire <lease-id> [slot]` — name a slot when you have a reason (warm Unity Library from related work, the ledger/dashboard shows affinity, or avoiding a slot with an open editor); a named slot that isn't free fails rather than falling back, so pick from the dashboard, don't guess. Omit for auto-pick (free slots before stale reclaims).
 - `./scripts/agent_worktree_pool.sh prepare <slot> origin/main` — never during feedback rounds unless the user explicitly asks to restart from main.
 - `./scripts/agent_worktree_pool.sh run-tests <slot> <unity_test_agent.ps1 args>` (NO `--` — run-tests forwards args directly, e.g. `run-tests agent-4 -Mode Both -ScopeType Workspace`; the `--` separator is only for `submit`/`revise`, which take a base_ref first)
-- `./scripts/agent_worktree_pool.sh create-pr <slot>`
-- `./scripts/agent_worktree_pool.sh submit <slot> origin/main -- <test args>` — only a passing full run (`-Mode Both -ScopeType Workspace`, unfiltered) records merge-grade proof; scoped runs still open the PR but never satisfy the gate. `-ScopeType Auto` is the recommended scope for iteration and submit runs.
+- `./scripts/agent_worktree_pool.sh create-pr <slot> --title "<text>" (--body "<text>" | --body-file <path>)` — title/body are required (validated before anything runs).
+- `./scripts/agent_worktree_pool.sh submit <slot> origin/main --title "<text>" (--body "<text>" | --body-file <path>) -- <test args>` — same required flags; only a passing full run (`-Mode Both -ScopeType Workspace`, unfiltered) records merge-grade proof; scoped runs still open the PR but never satisfy the gate. `-ScopeType Auto` is the recommended scope for iteration and submit runs.
 - `./scripts/agent_worktree_pool.sh review-comments <slot>`
 - `./scripts/agent_worktree_pool.sh revise <slot> -- <test args>` — pull/rebase + tests + push. Valid `-Mode` values are `Both`/`EditMode`/`PlayMode` (`Smoke` is a `-ScopeType`, not a mode).
 - `./scripts/agent_worktree_pool.sh revise <slot> --no-test` — push without a test run and without recording proof; the gate then does the single full run on the exact landing tree.
@@ -100,6 +100,12 @@ the PR number.
 
 ## Step 5 — Review round-trip
 
+The review bot posts its round a few minutes after the PR opens and re-reviews
+on every push. Wait for the round and triage it BEFORE requesting the user's
+review — the user reviews a tree that already carries the round's outcomes and
+its disposition table. Never request merge approval while a review round is in
+flight.
+
 Run EVERY review comment (bot or human) through the CLAUDE.md fix ladder —
 its entry gate is the triage:
 - **Speculative** → rebut with an on-thread reply, no code.
@@ -120,6 +126,12 @@ to merge ("merge it", "ship it", "land it"); praise of the code ("looks
 good", "LGTM") is NOT consent. Approval binds the tree: record the branch
 HEAD at the moment of consent; if ANYTHING lands on the branch after that
 (including hygiene), present the delta and re-confirm before merging.
+
+Immediately before merging, re-check for unresolved comments (revise pushes
+trigger bot re-reviews; comments can arrive late). Triage newcomers as in
+Step 5: rebut/defer outcomes proceed (reply + table row — the tree is
+unchanged, approval stands); a fix outcome changes the tree and reopens
+approval.
 
 Merge exclusively via `./scripts/agent_worktree_pool.sh merge <slot>` — never
 raw `gh pr merge`, never force-push, never skip the gate's test run. The gate
