@@ -8,243 +8,143 @@ metadata:
 
 # Agent Worktree + PR Loop
 
-This is the **default** implementation workflow for this repo (see
-`CLAUDE.md`). Use it for new coding tasks even if the user doesn't mention
-"worktree", "agent-1/2/3", or "PR" — those are implementation details, not
-prerequisites for using this flow. It also covers the narrower flows (PR
-feedback, ad hoc slot use) described below.
+## Applicability
 
-## Visibility commands
+Default for ANY coding task (bug fix, feature, refactor — not pure Q&A or
+read-only exploration), without the user naming the pool, a slot, or "PR".
+Exceptions: trivial doc/comment-only edits the user explicitly asks to be made
+directly, or explicit instruction to work in place.
 
-Before starting work or when reporting status, use the dashboard for a full overview:
-
-- `./scripts/worktree_dashboard.sh` — rich view of all slots: lock status, branch, changed files, PRs, ahead/behind main
-- `./scripts/worktree_dashboard.sh --watch` — auto-refresh every 5s (suggest to user for monitoring)
-
-For interactive exploration, suggest the user run `lazygit` in any worktree directory. Press `w` in lazygit to see all worktrees and switch between them.
-
-## Shared Unity access
-
-`scripts/unity_access.ps1` coordinates Unity with **per-project ownership**:
-batch test runs in different worktrees run in parallel, and only Unity
-**startup** serializes through a short machine-wide boot lane (concurrent
-boots were the D6 deadlock hazard). `unity_test_agent.ps1` drives the whole
-protocol automatically — you only queue when another run holds *your* project.
-Prefer batch tests; use `-Action StartEditor` only for graphics, interaction,
-or MCP verification that batch mode cannot cover, then
-`-Action Release -CloseEditor` as soon as the check finishes. An untracked
-editor on the primary worktree belongs to the user: report its PID and ask the
-user to close it. Never close it automatically. The durable MCP server on port
-8081 is shared and remains running between owners.
-
-## Core commands
+## Pool commands
 
 - `./scripts/agent_worktree_pool.sh status`
 - `./scripts/agent_worktree_pool.sh acquire <lease-id> [slot]` — name a slot when you have a reason (warm Unity Library from related work, the ledger/dashboard shows affinity, or avoiding a slot with an open editor); a named slot that isn't free fails rather than falling back, so pick from the dashboard, don't guess. Omit for auto-pick (free slots before stale reclaims).
-- `./scripts/agent_worktree_pool.sh prepare <slot> origin/main`
+- `./scripts/agent_worktree_pool.sh prepare <slot> origin/main` — never during feedback rounds unless the user explicitly asks to restart from main.
 - `./scripts/agent_worktree_pool.sh run-tests <slot> <unity_test_agent.ps1 args>` (NO `--` — run-tests forwards args directly, e.g. `run-tests agent-4 -Mode Both -ScopeType Workspace`; the `--` separator is only for `submit`/`revise`, which take a base_ref first)
 - `./scripts/agent_worktree_pool.sh create-pr <slot>`
-- `./scripts/agent_worktree_pool.sh submit <slot> origin/main -- <test args>` — only a passing full run (`-Mode Both -ScopeType Workspace`, unfiltered) records merge-grade proof; scoped runs still open the PR but never satisfy the gate. `-ScopeType Auto` (landing in a sibling PR) is the recommended scope for iteration and submit runs.
+- `./scripts/agent_worktree_pool.sh submit <slot> origin/main -- <test args>` — only a passing full run (`-Mode Both -ScopeType Workspace`, unfiltered) records merge-grade proof; scoped runs still open the PR but never satisfy the gate. `-ScopeType Auto` is the recommended scope for iteration and submit runs.
 - `./scripts/agent_worktree_pool.sh review-comments <slot>`
-- `./scripts/agent_worktree_pool.sh revise <slot> -- <test args>`
-- `./scripts/agent_worktree_pool.sh revise <slot> --no-test` — push without a test run and without recording proof; for pre-merge hygiene edits, so the gate does the single full run on the exact landing tree.
-- `./scripts/agent_worktree_pool.sh merge <slot>` (only after explicit user go-ahead; skips its re-test only on full-suite proof for the exact landing tree — scoped runs never count. Docs/markdown-only deltas since the proven tree extend proof with no run; C# comment/whitespace-only deltas take an EditMode Smoke compile refresh; anything else re-runs the full suite. Never call `gh pr merge` directly)
+- `./scripts/agent_worktree_pool.sh revise <slot> -- <test args>` — pull/rebase + tests + push. Valid `-Mode` values are `Both`/`EditMode`/`PlayMode` (`Smoke` is a `-ScopeType`, not a mode).
+- `./scripts/agent_worktree_pool.sh revise <slot> --no-test` — push without a test run and without recording proof; the gate then does the single full run on the exact landing tree.
+- `./scripts/agent_worktree_pool.sh merge <slot>` — the ONLY merge path; see Step 6.
 - `./scripts/agent_worktree_pool.sh finalize <slot> origin/main`
 - `./scripts/agent_worktree_pool.sh release <slot>`
 
-## Two distinct flows
+Branch naming: each task gets its own remote branch `task/<lease-id>` and its
+own PR. The local worktree stays on the `agent-N` branch; `submit` pushes to
+the task-specific remote branch automatically. Never run two agents in the
+same slot at once.
 
-### A) New task flow (from main) — the default
-
-0. **Scope with the user first.** Before touching a worktree, restate the
-   task in a few sentences: what will change, which files/systems are
-   affected, and what's explicitly out of scope. Get an explicit go-ahead.
-   Do this every time, even for tasks that look small — this step is what
-   prevents building the wrong thing in an agent's context before a human
-   ever sees it. If the task is ambiguous, ask before proceeding (use
-   AskUserQuestion for concrete decision points). **Read the active-work
-   ledger** (see `CLAUDE.md` → "Cross-agent work ledger", absolute path in
-   the primary session's memory dir) so you don't collide with in-flight work.
-1. Acquire a free slot: `./scripts/agent_worktree_pool.sh acquire <lease-id>`.
-   Then **claim it in the ledger**: add a `🟡 in-progress` row with the
-   slot·branch and a link to the plan file / driving memory (re-read the
-   ledger right before editing so concurrent edits merge cleanly).
-2. Implement changes in that slot worktree — directly, or by delegating to a
-   sub-agent (Agent tool) scoped to that worktree path when the task is large
-   enough to benefit from an isolated context.
-3. Run `submit` to run tests and create PR (**lock is kept**):
+Visibility: `./scripts/worktree_dashboard.sh` (add `--watch` for auto-refresh)
+shows all slots — lock status, branch, changed files, PRs, ahead/behind main.
+For interactive review suggest `lazygit -p D:/amind/git/agent-<n>` (press `w`
+to switch worktrees). For non-interactive diff reporting:
 
 ```bash
-./scripts/agent_worktree_pool.sh submit agent-<n> origin/main -- -Mode Both -ScopeType Workspace
+git -C <slot-path> diff --stat origin/main   # summary vs main
+git -C <slot-path> diff origin/main          # full diff
+git -C <slot-path> log --oneline origin/main..HEAD
 ```
 
-   Only submit once tests are passing and you've self-verified the diff
-   (read it back, sanity-check it does what was scoped in step 0). A scoped
-   submit (e.g. `-ScopeType Auto`, landing in a sibling PR, or a Feature
-   scope) is fine for opening the PR — it just records no merge proof, so
-   the merge gate runs the full suite once on the landing tree. Once the
-   PR is open, **flip the ledger row to `🔵 in-review` and record the PR
-   number.**
-4. Report back to the user in the required reporting format below and hand
-   off for review.
-5. **Review round-trip.** Wait for the user's review. If they leave PR
-   comments or ask for changes in chat, use `review-comments` and `revise`
-   (flow B) as needed. Repeat until they're satisfied.
-6. **Sweep open comments, then merge only on explicit approval.** Once the
-   user gives an explicit go-ahead to merge (e.g. "merge it", "ship it", "go
-   ahead") — not merely approving the code with no merge instruction — do a
-   final comment sweep *before* merging so nothing gets buried:
+## Shared Unity access
 
-   a. Pull every unresolved comment:
-      `./scripts/agent_worktree_pool.sh review-comments agent-<n>`.
-   b. **Fan the pre-merge passes out as parallel sub-agents** — do not run
-      them one after another. In a single message, launch concurrent Agent
-      calls for:
-      - **Comment triage**: classify each unresolved comment as trivial
-        (typo, rename, comment hygiene, a one-line guard, obvious cleanup —
-        propose the fix) or involved (behavior change, design question,
-        non-obvious tradeoff — summarize it with a concrete proposed fix for
-        the user; never silently merge over it).
-      - **Simplify pass**: `/simplify` (or the `code-simplifier` agent)
-        scoped to the changed code — reuse/simplification/altitude cleanups
-        the review round-trip missed. Quality-only; it is not a bug hunt
-        (`/code-review` is for that), and anything non-trivial it turns up
-        gets surfaced rather than silently reshaping behavior before merge.
-      - **Comment-hygiene sweep**: the whole-file de-comment ratchet over
-        every file the diff touched, stripping changelog-style narration so
-        `main` shows only what the current code does (see `CLAUDE.md` →
-        "Comment hygiene across the PR lifecycle").
-      Since all three target the same worktree, avoid write collisions: have
-      the agents report proposed edits (or partition the touched files
-      between them), apply the results centrally on the slot branch, then do
-      **one `revise agent-<n> --no-test`** at the end instead of one per
-      pass — hygiene edits don't need their own suite run; the merge gate
-      runs the single full suite on the exact tree that lands.
-   c. Act on the triage: apply the trivial fixes; for involved comments, get
-      the user's direction first.
-   d. Only once no unaddressed comment remains — or the user has explicitly
-      waved the remaining ones through — and the simplify pass is folded in,
-      squash-merge through the gate:
+`scripts/unity_access.ps1` coordinates Unity with per-project ownership: batch
+test runs in different worktrees run in parallel; only Unity **startup**
+serializes through a short machine-wide boot lane (concurrent boots were the
+D6 deadlock hazard). `unity_test_agent.ps1` drives the whole protocol
+automatically — you only queue when another run holds *your* project. Prefer
+batch tests; use `-Action StartEditor` only for graphics, interaction, or MCP
+verification that batch mode cannot cover, then `-Action Release -CloseEditor`
+as soon as the check finishes. An untracked editor on the primary worktree
+belongs to the user: report its PID and ask them to close it — never close it
+automatically. The durable MCP server on port 8081 is shared and remains
+running between owners.
 
-```bash
-./scripts/agent_worktree_pool.sh merge agent-<n>
-```
+## Step 1 — Scope
 
-   The gate exists because `submit`/`revise` test the branch on the base it
-   last synced to — if main moved since, two individually-green PRs can land
-   a broken main with no textual conflict (see #105/#106: a required ctor
-   param added under a test that predated it). `merge` checks whether
-   `origin/main` is contained in the slot branch; if not, it merges main in,
-   re-runs the full suite, pushes, and only then squash-merges — so the
-   tested tree is the tree that lands. The gate's run is the **single full
-   run per merge**: scoped runs never satisfy it, and a docs-only or C#
-   comment-only delta since the last fully-tested tree skips or downgrades
-   the re-run automatically. Never call `gh pr merge` directly.
+Restate the task to the user: what changes, which files/systems are touched,
+what's out of scope. Get explicit confirmation — always, even for tasks that
+look small. Anti-churn gate: if the build is estimated over ~300 changed
+lines, additionally confirm the FINAL shape before building v1, and the
+presented options must include do-nothing/defer.
 
-   Never merge without that explicit signal. Never force-push or skip the
-   gate's test run to get there, and never merge past an unaddressed
-   non-trivial comment without flagging it.
-7. Finalize: reset the slot to base and release the lock:
+## Step 2 — Build
 
-```bash
-./scripts/agent_worktree_pool.sh finalize agent-<n> origin/main
-```
+Read the work ledger before acquiring
+(`C:\Users\amind\.claude\projects\D--amind-git-astronomical-home\memory\active_work_ledger.md`
+— worktree agents must use this exact absolute path) and claim a row. Acquire
+a slot; build and test there — directly, or via a sub-agent scoped to the
+slot's worktree path when the task is large enough to benefit from an isolated
+context. Clear `src/Asteroids3D/Library/BurstCache/` before test runs. Iterate
+with scoped runs (`-ScopeType Auto`, or Feature/Module scopes).
 
-8. Sync local main so the primary worktree reflects the merge:
+## Step 3 — Pre-review quality pass
 
-```bash
-git checkout main && git pull
-```
+Once tests are green and BEFORE the PR is presented for review, run ONE
+combined quality sub-agent over the diff with this charter:
+(a) simplification/reuse/efficiency fixes — flag only what affects correctness
+or the stated scope, no new abstractions, no bug-hunting, no speculative
+findings; (b) comment hygiene on TOUCHED HUNKS ONLY per CLAUDE.md's comment
+rules. Its edits become part of the tree the user reviews. Summarize its
+changes in the PR body.
 
-9. **Clear the ledger row.** Once local `main` reflects the merge, mark the
-   row `✅ merged` and delete it (or move it to the ledger's Archive).
+## Step 4 — Submit
 
-### B) PR feedback flow (no reset)
+`submit` with an explicit `--title` (conventional-commit style; it must
+describe the actual payload) and a real `--body`. The PR body carries the
+build story: what changed and why, test proof, quality-pass changes, and a
+scope-conservation check — read the diff back against the Step-1 scope
+statement; anything a scope-reader wouldn't expect either comes out or is
+flagged in the body for confirmation. Flip the ledger row to in-review with
+the PR number.
 
-1. Inspect unresolved comments:
+## Step 5 — Review round-trip
 
-```bash
-./scripts/agent_worktree_pool.sh review-comments agent-<n>
-```
+Run EVERY review comment (bot or human) through the CLAUDE.md fix ladder —
+its entry gate is the triage:
+- **Speculative** → rebut with an on-thread reply, no code.
+- **Real but outside this change's scope** → defer (board card + on-thread reply).
+- **Real and in scope** → fix at the rung the ladder selects, escalating to
+  the user at the cost gate.
 
-2. Implement requested changes on same slot branch.
-3. Push updates with `revise` (pull/rebase + tests + push). Valid `-Mode`
-   values are `Both`/`EditMode`/`PlayMode` (`Smoke` is a `-ScopeType`, not a
-   mode):
+After each round, post ONE PR comment containing a disposition table —
+`| # | Comment | Disposition | Where |` — with a row for every comment in the
+round (dispositions: Fixed (rung N) / Rebutted / Deferred; Where = commit
+hash, thread reply, or board card). No comment may lack a row. Use `revise`
+to re-push fixes.
 
-```bash
-./scripts/agent_worktree_pool.sh revise agent-<n> -- -Mode Both -ScopeType Workspace
-```
+## Step 6 — Merge
 
-## Branch naming
+Only on an explicit user merge instruction. Consent = an explicit instruction
+to merge ("merge it", "ship it", "land it"); praise of the code ("looks
+good", "LGTM") is NOT consent. Approval binds the tree: record the branch
+HEAD at the moment of consent; if ANYTHING lands on the branch after that
+(including hygiene), present the delta and re-confirm before merging.
 
-Each task gets its own remote branch: `task/<lease-id>`.
-The local worktree stays on the `agent-N` branch; `submit` pushes to the
-task-specific remote branch automatically. This ensures each task has its
-own PR even when the same slot is reused.
+Merge exclusively via `./scripts/agent_worktree_pool.sh merge <slot>` — never
+raw `gh pr merge`, never force-push, never skip the gate's test run. The gate
+re-tests against current main when main moved after the branch's last test
+run; it skips only on full-suite proof for the exact landing tree; it extends
+proof over docs-only deltas with no run; it downgrades C#-comment-only deltas
+to an EditMode Smoke compile refresh. Scoped runs (`-ScopeType Auto`) are fine
+for iteration but record no merge proof.
 
-## Guardrails
+## Step 7 — Finalize
 
-- Each task gets its own remote branch (`task/<lease-id>`) and PR.
-  The local worktree stays on the `agent-N` branch; `submit` pushes to
-  the task-specific remote branch automatically.
-- Do **not** run `prepare` during feedback rounds unless user explicitly asks to restart from main.
-- Do not run two agents in the same slot at once.
-- Prefer targeted/smoke tests during iteration (`-ScopeType Auto` once the
-  sibling PR lands, or Feature/Module scopes). Scoped runs never record
-  merge proof — only a passing `-Mode Both -ScopeType Workspace` unfiltered
-  run does — so the merge gate stays the one full run per merge.
-- Use `revise <slot> --no-test` for pre-merge hygiene edits (comment sweeps,
-  simplify-pass fixes); it pushes without burning a suite run and the gate
-  tests the exact landing tree.
-- Do not merge without an explicit user go-ahead in the conversation. A
-  merged code review comment ("LGTM") is not itself a merge instruction
-  unless the user says so.
-- Merge ONLY via `./scripts/agent_worktree_pool.sh merge <slot>` — never raw
-  `gh pr merge`. The pool command is the compile/test gate on main: it
-  re-tests against current main when main moved after the branch's last test
-  run, which raw `gh pr merge` silently skips.
-- Before merging, sweep unresolved PR comments (step 6): fix trivial ones
-  directly and `revise`; for involved ones, flag them to the user with a
-  proposed fix rather than merging over them silently. Also run a `/simplify`
-  pass and the comment-hygiene strip on the diff as part of that pre-merge
-  sweep — all three passes fanned out as parallel sub-agents in one message,
-  folded into a single `revise` (step 6b).
-- Keep the active-work ledger current: claim on acquire, `🔵 in-review` on PR
-  open, `⛔ blocked`/`🅿️ parked` if work stalls, and clear the row after merge
-  + main sync. It is the one place a concurrent agent or a later session can
-  see this slot is taken.
+`./scripts/agent_worktree_pool.sh finalize <slot> origin/main`, then pull
+`origin/main` in the primary worktree (`git checkout main && git pull`).
+Delete the ledger row — the story lives in the PR body and the memory topic
+file, not the ledger.
 
-## Viewing diffs and history
+## Preconditions & known hazards
 
-For non-interactive contexts (agent reporting), use:
-```bash
-# Summary of what changed vs main
-git -C "$(slot_path)" diff --stat origin/main
-# Full diff
-git -C "$(slot_path)" diff origin/main
-# Commit log for the slot
-git -C "$(slot_path)" log --oneline origin/main..HEAD
-```
-
-For interactive review, suggest the user open lazygit in the worktree:
-```bash
-lazygit -p D:/amind/git/agent-<n>
-```
-
-## Required reporting format
-
-When completing a slot task, respond with:
-
-- **Slot:** `<agent-n>`
-- **Flow:** `new-task` or `review-revision`
-- **PR:** `<url or existing/open status>`
-- **Comments addressed:** `<count or bullets>`
-- **Files changed:** `<paths>`
-- **Tests:** `<command(s)>` + `passed/failed summary`
-- **Unknowns/Risks:** `<explicit bullets>`
-
-When starting or finishing, always run the dashboard and include its output:
-```bash
-./scripts/worktree_dashboard.sh
-```
+- `revise` cannot rebase a branch carrying a merge commit (it replays main's
+  commits and resurrects resolved conflicts) → manual `git push` + `merge`
+  (the gate runs tests itself).
+- `-SkipUnityAccess` is acceptable only when the lane is blocked by a
+  cross-project interactive editor — never to dodge concurrent batch startup.
+- When two slot branches conflict, the second merger adapts.
+- After an asmdef-restructuring merge, do a clean recompile
+  (`rm -rf Library/ScriptAssemblies Library/Bee Library/BurstCache`) before
+  trusting any test result.
+- `submit` does not commit — commit in the slot first.
