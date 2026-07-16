@@ -15,7 +15,7 @@ namespace Game.RLHarness
             1011, 1012, 1013, 1014, 1015, 1016, 1017, 1018, 1019, 1020,
         };
 
-        /// <summary>Seed-list selection for eval runs ("train" = checkpoint selection on the training seed BEFORE the held-out set opens): empty/"held-out" → the pinned list, "train" → the training run seed, else an explicit comma list. The tag labels the run's artifacts so train and held-out evals can never be confused.</summary>
+        /// <summary>"train" exists for checkpoint selection on the training seed BEFORE the held-out set opens; the tag labels the run's artifacts so train and held-out evals can never be confused.</summary>
         public static int[] ResolveSeeds(string selector, out string tag)
         {
             if (string.IsNullOrEmpty(selector) || selector == "held-out")

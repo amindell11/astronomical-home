@@ -38,9 +38,7 @@ namespace Game.RLHarness
         /// <summary>Resolved once at compose time — the lasers-only loadout is an episode constant, so the mount (and its Heat) never changes under a live agent.</summary>
         private static IHeatReadout ResolvePrimaryHeat(Ship ship)
         {
-            var primary = ship.Weapons.Primary;
-            if (!primary) return null;
-            foreach (var readout in primary.Readouts)
+            foreach (var readout in ship.Weapons.ReadoutContext.Readouts(WeaponSlot.Primary))
                 if (readout is IHeatReadout heat)
                     return heat;
             return null;

@@ -47,8 +47,8 @@ namespace Game.RLHarness
             host.onnxAssetPath = assetPath;
             if (int.TryParse(Environment.GetEnvironmentVariable("RL_EVAL_EPISODES_PER_SEED"), out var episodes))
                 host.episodesPerSeed = episodes;
-            host.seeds = EvalProtocol.ResolveSeeds(Environment.GetEnvironmentVariable("RL_EVAL_SEEDS"), out var tag);
-            host.seedsTag = tag;
+            var selector = Environment.GetEnvironmentVariable("RL_EVAL_SEEDS");
+            if (!string.IsNullOrEmpty(selector)) host.seedSelector = selector;
             EditorApplication.EnterPlaymode();
         }
 

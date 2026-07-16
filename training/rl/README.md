@@ -69,7 +69,7 @@ cd training/rl
 
 Run the pilot first: it measures real steps/sec (training is frame-rate-bound
 under the pacing contract) and confirms a learning signal at real arena scale
-before committing to the 2M wall-clock. `--fresh` overwrites a run id's
+before committing to the 2M wall-clock. `--force` overwrites a run id's
 results; `--run-timeout` (seconds) caps the wait, default 48 h.
 `ppo_ship_combat.yaml` keeps `keep_checkpoints: 21` (2M steps / 100k interval
 = 20 checkpoints + final) so checkpoint selection covers the whole run, not

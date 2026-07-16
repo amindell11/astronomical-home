@@ -6,6 +6,7 @@ the venv set up (README.md); coordinate editor access first (skills/unity-access
 boots its own editor and pegs the CPU for the run's whole wall-clock.
 """
 import argparse
+import os
 import re
 import subprocess
 import sys
@@ -60,13 +61,13 @@ def main() -> None:
     parser.add_argument("--config", type=Path, default=RL_DIR / "ppo_ship_combat.yaml", help="trainer YAML (default: the full 2M-step config; use ppo_ship_combat_pilot.yaml for the pilot)")
     parser.add_argument("--run-id", default=None, help="mlagents run id (default: the config's checkpoint_settings run_id)")
     parser.add_argument("--resume", action="store_true", help="resume the run id's existing checkpoints")
-    parser.add_argument("--fresh", action="store_true", help="overwrite the run id's existing results (mlagents --force)")
+    parser.add_argument("--force", action="store_true", help="overwrite the run id's existing results")
     parser.add_argument("--unity", type=Path, default=None, help="Unity.exe path (default: derived from ProjectVersion.txt)")
     parser.add_argument("--boot-timeout", type=float, default=1800.0, help="seconds to wait for the editor to arm")
     parser.add_argument("--run-timeout", type=float, default=172800.0, help="seconds to wait for the trainer to finish (default 48h; training is frame-rate-bound)")
     args = parser.parse_args()
-    if args.resume and args.fresh:
-        parser.error("--resume and --fresh are mutually exclusive")
+    if args.resume and args.force:
+        parser.error("--resume and --force are mutually exclusive")
 
     unity = args.unity or default_unity_exe()
     run_id = args.run_id or config_run_id(args.config)
@@ -76,10 +77,13 @@ def main() -> None:
     editor_log = RESULTS / f"{run_id}-editor.log"
     editor_log.unlink(missing_ok=True)
 
+    # An inherited RL_SMOKE=1 would silently shrink TrainingHost to the smoke arena/clock.
+    editor_env = {k: v for k, v in os.environ.items() if k != "RL_SMOKE"}
     editor = subprocess.Popen(
         [str(unity), "-projectPath", str(PROJECT), "-batchmode", "-nographics",
          "-executeMethod", "Game.RLHarness.TrainingBootstrap.EnterTrainingPlayModeWhenSignaled",
-         "-logFile", str(editor_log)])
+         "-logFile", str(editor_log)],
+        env=editor_env)
     trainer = None
     try:
         wait_for(lambda: log_contains(editor_log, ARMED_MARKER), "editor to arm", args.boot_timeout)
@@ -88,7 +92,7 @@ def main() -> None:
                        str(args.config), "--run-id", run_id]
         if args.resume:
             trainer_cmd.append("--resume")
-        if args.fresh:
+        if args.force:
             trainer_cmd.append("--force")
 
         trainer_log = RESULTS / f"{run_id}-trainer.log"
