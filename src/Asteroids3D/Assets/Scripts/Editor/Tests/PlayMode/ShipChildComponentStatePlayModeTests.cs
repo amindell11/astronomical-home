@@ -59,6 +59,7 @@ namespace Tests.PlayMode
 
             testShip = ShipTestFactory.CreateShip(shipPrefab, commanderPrefab, team: 0);
             combatShip = testShip;
+            testShip.Weapons?.SetProjectiles(Projectiles);
             Assert.IsNotNull(testShip, "Test ship failed to instantiate");
             Assert.IsNotNull(combatShip.Weapons, "Test ship should be armed (WeaponsController present)");
 
