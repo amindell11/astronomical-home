@@ -215,8 +215,8 @@ namespace Tests.PlayMode
             var prefab = TestAssets.LoadShipPrefab(Ship1Path);
             if (prefab == null) return null;
 
-            // Null commander → deterministic manual piloting via MovementController.Drive.
-            return Factory.CreateShip(prefab, null, 0, 0, position, rotation);
+            // Null commander → deterministic manual piloting via MovementController.Drive; never arms, so no registry.
+            return Factory.CreateShip(prefab, null, 0, 0, projectiles: null, position, rotation);
 #else
             return null;
 #endif

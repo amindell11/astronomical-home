@@ -73,7 +73,6 @@ namespace Tests.PlayMode
             Assert.IsNotNull(prefab, $"Failed to load weapon prefab at {GrenadesPrefabPath}");
             var weapon = Object.Instantiate(prefab, ship.transform);
             spawned.Add(weapon.gameObject);
-            weapon.SetProjectiles(Projectiles);
             return weapon;
 #else
             Assert.Ignore("Requires Unity Editor assets.");
@@ -116,7 +115,7 @@ namespace Tests.PlayMode
             var weapon = MountWeapon(out var shooter);
             shooter.Velocity = GamePlane.PlaneDirToWorld(new Vector2(0f, 10f));
 
-            var grenade = weapon.Fire() as Grenade;
+            var grenade = weapon.Fire(Projectiles) as Grenade;
 
             Assert.IsNotNull(grenade, "Firing releases a charge.");
             var velocity = grenade.GetComponent<Rigidbody>().linearVelocity;
@@ -131,7 +130,7 @@ namespace Tests.PlayMode
         public IEnumerator Grenade_FuseExpiry_SpawnsTheWave()
         {
             var weapon = MountWeapon(out _);
-            var grenade = weapon.Fire() as Grenade;
+            var grenade = weapon.Fire(Projectiles) as Grenade;
             grenade.Configure(fuseSeconds: Time.fixedDeltaTime * 2f, armingSeconds: 0f);
 
             for (var i = 0; i < 4; i++)
@@ -145,7 +144,7 @@ namespace Tests.PlayMode
         public void Grenade_ShotBeforeTheFuse_DetonatesImmediately()
         {
             var weapon = MountWeapon(out _);
-            var grenade = weapon.Fire() as Grenade;
+            var grenade = weapon.Fire(Projectiles) as Grenade;
 
             grenade.TakeDamage(1f, 0.1f, Vector3.zero, grenade.transform.position, null);
 
@@ -167,7 +166,7 @@ namespace Tests.PlayMode
             var near = CreateTarget(origin + GamePlane.PlaneDirToWorld(new Vector2(0f, 3f)), "NearTarget");
             var far = CreateTarget(origin + GamePlane.PlaneDirToWorld(new Vector2(0f, 9f)), "FarTarget");
 
-            var grenade = weapon.Fire() as Grenade;
+            var grenade = weapon.Fire(Projectiles) as Grenade;
             grenade.transform.position = origin;
             grenade.TakeDamage(1f, 0.1f, Vector3.zero, origin, null);
 
@@ -192,10 +191,10 @@ namespace Tests.PlayMode
             var weapon = MountWeapon(out _);
             weapon.transform.root.position = new Vector3(50f, 0f, 50f);
 
-            var first = weapon.Fire() as Grenade;
+            var first = weapon.Fire(Projectiles) as Grenade;
             first.transform.position = Vector3.zero;
             weapon.Reset();
-            var second = weapon.Fire() as Grenade;
+            var second = weapon.Fire(Projectiles) as Grenade;
             second.transform.position = GamePlane.PlanePointToWorld(new Vector2(0f, 4f));
             second.Configure(fuseSeconds: 999f, armingSeconds: 0f);
 
@@ -228,7 +227,7 @@ namespace Tests.PlayMode
                     GamePlane.PlanePointToWorld(new Vector2(Mathf.Cos(angle) * ring, Mathf.Sin(angle) * ring)), $"SwarmTarget{i}"));
             }
 
-            var grenade = weapon.Fire() as Grenade;
+            var grenade = weapon.Fire(Projectiles) as Grenade;
             grenade.transform.position = Vector3.zero;
             grenade.TakeDamage(1f, 0.1f, Vector3.zero, Vector3.zero, null);
 
@@ -248,7 +247,7 @@ namespace Tests.PlayMode
         {
             var weapon = MountWeapon(out _);
 
-            var grenade = weapon.Fire() as Grenade;
+            var grenade = weapon.Fire(Projectiles) as Grenade;
             Assert.AreEqual(1, Projectiles.ActiveCount, "the fired charge registers");
 
             grenade.TakeDamage(1f, 0.1f, Vector3.zero, grenade.transform.position, null);
@@ -266,7 +265,7 @@ namespace Tests.PlayMode
         public IEnumerator Grenade_ContactBeforeArming_DoesNotDetonate()
         {
             var weapon = MountWeapon(out _);
-            var grenade = weapon.Fire() as Grenade;
+            var grenade = weapon.Fire(Projectiles) as Grenade;
             grenade.Configure(fuseSeconds: 999f, armingSeconds: 999f);
 
             var bumper = CreateTarget(grenade.transform.position, "Bumper");

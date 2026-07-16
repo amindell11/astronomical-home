@@ -47,9 +47,9 @@ namespace Game.RLHarness
             var poses = EpisodePoses.Derive(in spec, 0, arena.Offset);
             var rootScope = new SeedScope(spec.runSeed);
 
-            var agent = SpawnLasersOnlyShip(units, AgentPilotPath,
+            var agent = SpawnLasersOnlyShip(units, projectiles, AgentPilotPath,
                 poses.agentPos, poses.agentRotDeg, team: 0, rootScope.Derive(AgentSeedStream).ToSeed());
-            var baseline = SpawnLasersOnlyShip(units, BaselinePilotPath,
+            var baseline = SpawnLasersOnlyShip(units, projectiles, BaselinePilotPath,
                 poses.baselinePos, poses.baselineRotDeg, team: 1, rootScope.Derive(BaselineSeedStream).ToSeed());
 
             var commander = agent.GetComponentInChildren<AICommander>();
@@ -111,12 +111,12 @@ namespace Game.RLHarness
             UnityEngine.Object.DestroyImmediate(ship.gameObject);
         }
 
-        private static Ship SpawnLasersOnlyShip(UnitService units, string pilotPath,
-            Vector2 planePos, float rotDeg, int team, int decisionSeed)
+        private static Ship SpawnLasersOnlyShip(UnitService units, IProjectileService projectiles,
+            string pilotPath, Vector2 planePos, float rotDeg, int team, int decisionSeed)
         {
             var shipPrefab = Load<Ship>(ShipPrefabPath);
             var pilotPrefab = Load<AICommander>(pilotPath);
-            var ship = Factory.CreateShip(shipPrefab, pilotPrefab, team, decisionSeed,
+            var ship = Factory.CreateShip(shipPrefab, pilotPrefab, team, decisionSeed, projectiles,
                 GamePlane.PlanePointToWorld(planePos),
                 GamePlane.Rotation * Quaternion.AngleAxis(rotDeg, Vector3.forward));
             // Home the pair under the service like SpawnShip does, so a crash-path host teardown can't strand it.

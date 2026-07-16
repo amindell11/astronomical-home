@@ -1,4 +1,5 @@
 using AI;
+using Game.Services;
 using Ships;
 using UnityEngine;
 
@@ -14,12 +15,13 @@ public static class ShipTestFactory
     /// <summary>
     /// Creates a ship with default test settings at the origin.
     /// </summary>
+    /// <param name="projectiles">Registry the ship arms its weapons with (a fixture's <c>Projectiles</c>).</param>
     /// <param name="useMpcPilot">Retained for call-site compatibility; the MPC pilot is the only pilot now.</param>
     /// <param name="team">Team ID for the ship (default: 0)</param>
     /// <returns>Created ship instance, or null if asset loading fails</returns>
-    public static Ship CreateDefaultShip(bool useMpcPilot = true, int team = 0, int decisionSeed = 0)
+    public static Ship CreateDefaultShip(IProjectileService projectiles, bool useMpcPilot = true, int team = 0, int decisionSeed = 0)
     {
-        return CreateDefaultShipAt(Vector3.zero, Quaternion.identity, useMpcPilot, team, decisionSeed);
+        return CreateDefaultShipAt(Vector3.zero, Quaternion.identity, projectiles, useMpcPilot, team, decisionSeed);
     }
 
     /// <summary>
@@ -27,10 +29,11 @@ public static class ShipTestFactory
     /// </summary>
     /// <param name="position">World position</param>
     /// <param name="rotation">World rotation</param>
+    /// <param name="projectiles">Registry the ship arms its weapons with (a fixture's <c>Projectiles</c>).</param>
     /// <param name="useMpcPilot">Retained for call-site compatibility; the MPC pilot is the only pilot now.</param>
     /// <param name="team">Team ID for the ship (default: 0)</param>
     /// <returns>Created ship instance, or null if asset loading fails</returns>
-    public static Ship CreateDefaultShipAt(Vector3 position, Quaternion rotation, bool useMpcPilot = true, int team = 0, int decisionSeed = 0)
+    public static Ship CreateDefaultShipAt(Vector3 position, Quaternion rotation, IProjectileService projectiles, bool useMpcPilot = true, int team = 0, int decisionSeed = 0)
     {
         var shipPrefab = TestAssets.LoadShip2Prefab();
         var cmdrPrefab = TestAssets.LoadTestPilotMpc();
@@ -41,7 +44,7 @@ public static class ShipTestFactory
             return null;
         }
 
-        return Factory.CreateShip(shipPrefab, cmdrPrefab, team, decisionSeed, position, rotation);
+        return Factory.CreateShip(shipPrefab, cmdrPrefab, team, decisionSeed, projectiles, position, rotation);
     }
 
     /// <summary>
@@ -49,6 +52,7 @@ public static class ShipTestFactory
     /// </summary>
     /// <param name="shipPrefab">Ship prefab to instantiate</param>
     /// <param name="cmdrPrefab">AI commander prefab</param>
+    /// <param name="projectiles">Registry the ship arms its weapons with (a fixture's <c>Projectiles</c>).</param>
     /// <param name="team">Team ID for the ship (default: 0)</param>
     /// <param name="position">World position (default: origin)</param>
     /// <param name="rotation">World rotation (default: identity)</param>
@@ -56,6 +60,7 @@ public static class ShipTestFactory
     public static Ship CreateShip(
         Ship shipPrefab,
         AICommander cmdrPrefab,
+        IProjectileService projectiles,
         int team = 0,
         Vector3? position = null,
         Quaternion? rotation = null,
@@ -66,6 +71,7 @@ public static class ShipTestFactory
             cmdrPrefab,
             team,
             decisionSeed,
+            projectiles,
             position ?? Vector3.zero,
             rotation ?? Quaternion.identity);
     }

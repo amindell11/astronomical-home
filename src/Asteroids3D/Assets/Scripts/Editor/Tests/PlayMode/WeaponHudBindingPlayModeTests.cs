@@ -65,7 +65,6 @@ namespace Tests.PlayMode
             controller.primaryMount = primary;
             controller.secondaryMount = secondary;
             go.SetActive(true);
-            controller.SetProjectiles(Projectiles);
             controller.Initialize(() => default);
             return controller;
         }
@@ -228,13 +227,12 @@ namespace Tests.PlayMode
         {
             var weapon = Object.Instantiate(LoadWeaponPrefab<Rippers>(RippersPrefabPath));
             spawned.Add(weapon.gameObject);
-            weapon.SetProjectiles(Projectiles);
 
             var fired = 0;
             weapon.OnFire += () => fired++;
             var startingAmmo = weapon.Rounds.AmmoCount;
 
-            var proj = weapon.Fire();
+            var proj = weapon.Fire(Projectiles);
 
             Assert.IsNotNull(proj, "Ripper failed to fire from a full magazine.");
             Assert.IsInstanceOf<Laser>(proj);

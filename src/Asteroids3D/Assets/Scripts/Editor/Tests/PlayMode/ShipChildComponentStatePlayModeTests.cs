@@ -57,9 +57,8 @@ namespace Tests.PlayMode
             Assert.IsNotNull(shipPrefab, "Ship_1 prefab failed to load");
             Assert.IsNotNull(commanderPrefab, "TestPilotMPC prefab failed to load");
 
-            testShip = ShipTestFactory.CreateShip(shipPrefab, commanderPrefab, team: 0);
+            testShip = ShipTestFactory.CreateShip(shipPrefab, commanderPrefab, Projectiles, team: 0);
             combatShip = testShip;
-            testShip.Weapons?.SetProjectiles(Projectiles);
             Assert.IsNotNull(testShip, "Test ship failed to instantiate");
             Assert.IsNotNull(combatShip.Weapons, "Test ship should be armed (WeaponsController present)");
 
@@ -67,6 +66,7 @@ namespace Tests.PlayMode
             enemyShip = ShipTestFactory.CreateDefaultShipAt(
                 new Vector3(10, 0, 0),
                 Quaternion.identity,
+                Projectiles,
                 team: 1);
             Assert.IsNotNull(enemyShip, "Enemy ship failed to instantiate");
 
@@ -263,7 +263,7 @@ namespace Tests.PlayMode
             LogDiagnostic($"Before fire attempt - CanFire: {weaponsController.Primary.CanFire()}");
 
             // Attempt to fire
-            weaponsController.Fire(Ships.Command.WeaponSlot.Primary,
+            weaponsController.Arm(Projectiles).Fire(Ships.Command.WeaponSlot.Primary,
                 new Ships.Command.WeaponCommand { pressed = true, held = true });
             yield return new WaitForFixedUpdate();
 

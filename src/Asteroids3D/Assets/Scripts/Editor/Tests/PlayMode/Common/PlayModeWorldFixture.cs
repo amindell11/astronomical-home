@@ -32,7 +32,7 @@ public abstract class PlayModeWorldFixture
     /// <summary>The NavField sibling backing <see cref="Arena"/>, for tests that drive it directly.</summary>
     protected NavFieldService NavField { get; private set; }
 
-    /// <summary>Per-test projectile registry rooted at the arena host: wire it into anything that fires (<c>weapon.SetProjectiles</c> / <c>ship.Weapons.SetProjectiles</c>) and every transient dies with the fixture.</summary>
+    /// <summary>Per-test projectile registry rooted at the arena host: pass it wherever firing needs a registry (ship spawns, direct <c>Fire</c>/<c>HandleTrigger</c> calls) and every transient dies with the fixture.</summary>
     protected ProjectileService Projectiles { get; private set; }
 
     /// <summary>

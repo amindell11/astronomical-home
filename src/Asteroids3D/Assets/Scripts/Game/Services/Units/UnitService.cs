@@ -34,7 +34,7 @@ namespace Game.Services
             arena = context;
         }
 
-        /// <summary>Assign the projectile registry wired into each ship's weapons; one-shot like <see cref="SetArena"/> so a stray re-compose can't split registration across services.</summary>
+        /// <summary>Assign the projectile registry each spawned ship arms its weapons with; required before spawning armed ships, one-shot like <see cref="SetArena"/> so a stray re-compose can't split registration across services.</summary>
         public void SetProjectiles(IProjectileService service)
         {
             if (projectiles != null && !ReferenceEquals(projectiles, service))
@@ -55,7 +55,7 @@ namespace Game.Services
                 throw new ArgumentNullException(nameof(template));
 
             var ship = ShipFactory.CreateShip(
-                template, commander, team, NextDecisionSeed(team),
+                template, commander, team, NextDecisionSeed(team), projectiles,
                 position, rotation,
                 postInitialize: WireShipDependencies);
 
@@ -78,7 +78,7 @@ namespace Game.Services
             if (commander)
                 ship.AdoptCommander(commander);
 
-            ship.Initialize(ship.teamNumber, NextDecisionSeed(ship.teamNumber));
+            ship.Initialize(ship.teamNumber, NextDecisionSeed(ship.teamNumber), projectiles);
 
             ActiveRegistry.ActiveShips.Add(ship);
             spawnedShips.Add(ship);
@@ -135,7 +135,6 @@ namespace Game.Services
             if (arena == null)
                 throw new InvalidOperationException("UnitService.SetArena must be called before wiring ships.");
             ship.Targeting?.SetRegistry(arena.Registry);
-            ship.Weapons?.SetProjectiles(projectiles);
             if (ship.Commander is AICommander aiCommander)
                 aiCommander.SetArena(arena);
         }

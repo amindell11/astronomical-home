@@ -43,12 +43,11 @@ public abstract class AIIntegrationFixture : PlayModeWorldFixture
 
     protected (Ship ship, AICommander cmdr) CreateAIShip(Vector3 position, int team, int decisionSeed = 0)
     {
-        var ship = ShipTestFactory.CreateDefaultShipAt(position, Quaternion.identity, useMpcPilot: true, team: team, decisionSeed: decisionSeed);
+        var ship = ShipTestFactory.CreateDefaultShipAt(position, Quaternion.identity, Projectiles, useMpcPilot: true, team: team, decisionSeed: decisionSeed);
         Assert.IsNotNull(ship, "Failed to create AI ship — check test asset paths");
 
         trackedShips.Add(ship);
 
-        ship.Weapons?.SetProjectiles(Projectiles);
         registry.ActiveShips.Add(ship);
 
         var cmdr = ship.GetComponentInChildren<AICommander>();

@@ -25,7 +25,7 @@ public class ScannerPlayModeTests : PlayModeWorldFixture
         base.SetUp();
 
 #if UNITY_EDITOR
-        ship = ShipTestFactory.CreateDefaultShip();
+        ship = ShipTestFactory.CreateDefaultShip(Projectiles);
         cmdr = ship.Commander as AICommander;
 
         // Scout.Initialize() (and therefore obstacleScanner) is gated on an arena being

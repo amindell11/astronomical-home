@@ -2,6 +2,7 @@ using System;
 using Combat.Conditions;
 using Combat.Projectile;
 using Damage;
+using Game.Services;
 using UnityEngine;
 using Utils;
 
@@ -57,13 +58,14 @@ namespace Combat.Weapons
                 hitMask = LayerIds.Mask(LayerIds.Ship, LayerIds.Asteroid);
         }
 
-        public override void HandleTrigger(bool pressed, bool held)
+        public override void HandleTrigger(bool pressed, bool held, IProjectileService projectiles)
         {
             if (Charge && Charge.HandleTrigger(held, Time.fixedDeltaTime))
-                Fire();
+                Fire(projectiles);
         }
 
-        public override ProjectileBase Fire()
+        // Hitscan: the registry is part of the uniform firing surface but there is never a projectile to track.
+        public override ProjectileBase Fire(IProjectileService projectiles)
         {
             if (!CanFire()) return null;
 

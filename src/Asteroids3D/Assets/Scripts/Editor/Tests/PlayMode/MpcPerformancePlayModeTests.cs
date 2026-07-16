@@ -37,7 +37,7 @@ public class MpcPerformancePlayModeTests : PlayModeWorldFixture
             var spawnPos = new Vector3(Mathf.Cos(angle) * SpawnRadius, Mathf.Sin(angle) * SpawnRadius, 0f);
             var targetPos = new Vector2(-spawnPos.x, -spawnPos.y);
 
-            var ship = ShipTestFactory.CreateDefaultShipAt(spawnPos, Quaternion.identity, useMpcPilot: true, team: i);
+            var ship = ShipTestFactory.CreateDefaultShipAt(spawnPos, Quaternion.identity, Projectiles, useMpcPilot: true, team: i);
             Assert.That(ship, Is.Not.Null, $"Failed to create MPC test ship {i}");
 
             var cmdr = ship.Commander as AICommander;

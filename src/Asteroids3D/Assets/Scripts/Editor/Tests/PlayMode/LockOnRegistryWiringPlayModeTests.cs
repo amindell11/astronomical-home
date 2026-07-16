@@ -67,6 +67,7 @@ namespace Tests.PlayMode
                 testPilot,
                 team: 0,
                 decisionSeed: 0,
+                projectiles: Projectiles,
                 position: Vector3.zero,
                 rotation: Quaternion.identity,
                 postInitialize: null);
@@ -111,6 +112,7 @@ namespace Tests.PlayMode
                 testPilot,
                 team: 0,
                 decisionSeed: 0,
+                projectiles: Projectiles,
                 position: Vector3.zero,
                 rotation: Quaternion.identity,
                 postInitialize: s => s.Targeting?.SetRegistry(stubRegistry));
@@ -156,6 +158,7 @@ namespace Tests.PlayMode
                 testPilot,
                 team: 0,
                 decisionSeed: 0,
+                projectiles: Projectiles,
                 position: Vector3.zero,
                 rotation: Quaternion.identity,
                 postInitialize: null);

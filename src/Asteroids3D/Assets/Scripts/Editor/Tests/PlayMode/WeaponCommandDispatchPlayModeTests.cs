@@ -57,9 +57,8 @@ namespace Tests.PlayMode
             var commanderGo = new GameObject("AlwaysFireCommanderPrefab");
             commanderPrefab = commanderGo.AddComponent<AlwaysFireCommander>();
 
-            ship = Factory.CreateShip(shipPrefab, commanderPrefab, team: 0, decisionSeed: 0, position: Vector3.zero, rotation: Quaternion.identity);
+            ship = Factory.CreateShip(shipPrefab, commanderPrefab, team: 0, decisionSeed: 0, projectiles: Projectiles, position: Vector3.zero, rotation: Quaternion.identity);
             combatShip = ship;
-            ship.Weapons?.SetProjectiles(Projectiles);
             Assert.IsNotNull(ship, "Ship failed to instantiate");
             Assert.IsNotNull(combatShip.Weapons, "Ship must be armed (WeaponsController present)");
             Assert.IsNotNull(combatShip.Weapons.Primary, "Primary weapon mount not instantiated");

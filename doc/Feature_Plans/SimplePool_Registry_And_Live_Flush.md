@@ -214,5 +214,26 @@ bug to fix at its source, never swept — and the scene-truth assertions restore
 registry-count assertion alone had lost). Review fixes folded in: `SessionHost.UnloadSector` now flushes
 (the sector-transition leak Blindsider 2 promised to fix), flush snapshots are per-call (nested-flush
 safe), re-registering a live instance logs an error (the only observable signature of a pool double-checkout),
-the service field lives on `WeaponBase<TProj>` (hitscan weapons carry a no-op setter only), and
-`ITransientSpawner` moved to `Combat.Projectile` (registrants stay ignorant of `Game.Services`).
+and `ITransientSpawner` moved to `Combat.Projectile` (registrants stay ignorant of `Game.Services`).
+
+## v3 (user directive): compile-time enforcement — firing is a capability, supersedes F1b's setter wiring
+
+User challenged v2's runtime loud+inert guard: don't detect the unwired-fire mistake, make it
+**unwritable**. A MonoBehaviour can't demand a constructor dependency, so the fire capability moved
+off the components into a constructed value:
+
+- **`WeaponsController.Arm(IProjectileService) → IWeapons`** is the only firing surface. The controller
+  no longer implements `IWeapons`; its ambient `Fire(slot, cmd)` is gone. The armed actuator (plain class,
+  ctor throws on null registry) reads mounts through the controller, so it survives `Reequip` untouched.
+- **Weapons take the registry per call** (`Fire(IProjectileService)` / `HandleTrigger(pressed, held,
+  projectiles)`) and **store nothing** — no field, no staleness on pooled reuse, no re-push machinery.
+  The whole `SetProjectiles` chain (WeaponComponent/WeaponsController, F1b's setter seam) is deleted.
+- **The registry threads through composition**: `Factory.CreateShip(..., projectiles, ...)` →
+  `Ship.Initialize(team, seed, projectiles)` → `BuildShipControl` arms the actuator commanders receive
+  via `ShipControl.WeaponActuator`. `UnitService.SetProjectiles` (one-shot) remains the composition-root
+  seam; `WireShipDependencies` no longer touches weapons. Null registry is legal only for ships that
+  never arm a commander (unarmed/commander-less); arming without one throws at spawn, not at first shot.
+
+What compile-time still can't see (unchanged from v2): a registry from the *wrong context* — guarded by
+the one-shot `SetArena`/`SetProjectiles` throws and live-root parenting. `WeaponArmingEditModeTests`
+pins the design (controller is not an `IWeapons`; `Arm(null)` throws).

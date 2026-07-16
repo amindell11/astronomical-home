@@ -31,12 +31,13 @@ namespace Tests.PlayMode
             base.SetUp();
 
 #if UNITY_EDITOR
-            playerShip = ShipTestFactory.CreateDefaultShip(team: 0);
+            playerShip = ShipTestFactory.CreateDefaultShip(Projectiles, team: 0);
             playerDamage = playerShip.Damage;
 
             enemyShip = ShipTestFactory.CreateDefaultShipAt(
                 new Vector3(10, 0, 0),
                 Quaternion.identity,
+                Projectiles,
                 team: 1);
 
             Assert.IsNotNull(playerShip, "Player ship failed to instantiate");

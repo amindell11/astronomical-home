@@ -11,7 +11,7 @@ using UnityEngine;
 namespace Ships.Weapons
 {
     [DefaultExecutionOrder(-95)]
-    public class WeaponsController : MonoBehaviour, IWeapons
+    public class WeaponsController : MonoBehaviour
     {
         [SerializeField] internal WeaponComponent primaryMount;
         [SerializeField] internal WeaponComponent secondaryMount;
@@ -38,7 +38,6 @@ namespace Ships.Weapons
         public LockOnSensor Sensor { get; private set; }
 
         private WeaponContext context;
-        private IProjectileService projectiles;
 
         private void Awake()
         {
@@ -69,21 +68,29 @@ namespace Ships.Weapons
             {
                 context?.Refresh();
                 Sensor = FindMountSensor();
-                PushProjectiles();
             }
         }
 
-        /// <summary>Injected registry for the projectiles the mounts fire; pushed into every mount, current and future (<see cref="Reequip"/> re-pushes).</summary>
-        public void SetProjectiles(IProjectileService service)
-        {
-            projectiles = service;
-            PushProjectiles();
-        }
+        /// <summary>The only firing surface: producing an <see cref="IWeapons"/> actuator demands the live-projectile registry, so a fire path without one cannot compile. The actuator reads mounts through this controller, staying current across <see cref="Reequip"/>.</summary>
+        public IWeapons Arm(IProjectileService projectiles) => new ArmedWeapons(this, projectiles);
 
-        private void PushProjectiles()
+        private sealed class ArmedWeapons : IWeapons
         {
-            if (Primary) Primary.SetProjectiles(projectiles);
-            if (Secondary) Secondary.SetProjectiles(projectiles);
+            private readonly WeaponsController owner;
+            private readonly IProjectileService projectiles;
+
+            public ArmedWeapons(WeaponsController owner, IProjectileService projectiles)
+            {
+                this.owner = owner;
+                this.projectiles = projectiles ?? throw new ArgumentNullException(nameof(projectiles),
+                    $"{owner.name}: arming weapons requires the live-projectile registry (composition supplies it at spawn).");
+            }
+
+            public void Fire(WeaponSlot slot, in WeaponCommand cmd)
+            {
+                if (!owner || !owner.enabled) return;
+                owner.Mount(slot)?.HandleTrigger(cmd.pressed, cmd.held, projectiles);
+            }
         }
 
         private WeaponComponent ReplaceMount(WeaponComponent current, WeaponComponent prefab, WeaponSlot slot)
@@ -130,12 +137,6 @@ namespace Ships.Weapons
 
         /// <summary>The slot-keyed display view handed to the HUD (same object, UI-facing surface).</summary>
         public IWeaponReadouts ReadoutContext => context;
-
-        public void Fire(WeaponSlot slot, in WeaponCommand cmd)
-        {
-            if (!enabled) return;
-            Mount(slot)?.HandleTrigger(cmd.pressed, cmd.held);
-        }
 
         private WeaponComponent Mount(WeaponSlot slot) => slot switch
         {

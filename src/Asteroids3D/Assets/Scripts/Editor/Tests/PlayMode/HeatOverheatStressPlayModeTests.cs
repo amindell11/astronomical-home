@@ -48,10 +48,9 @@ namespace Tests.PlayMode
             Assert.IsNotNull(shipPrefab, "Ship_2 prefab failed to load");
 
             commanderPrefab = new GameObject("ContinuousFireCommanderPrefab").AddComponent<ContinuousFireCommander>();
-            ship = Factory.CreateShip(shipPrefab, commanderPrefab, team: 0, decisionSeed: 0,
+            ship = Factory.CreateShip(shipPrefab, commanderPrefab, team: 0, decisionSeed: 0, projectiles: Projectiles,
                                       position: Vector3.zero, rotation: Quaternion.identity);
             combatShip = ship;
-            ship.Weapons?.SetProjectiles(Projectiles);
 
             Assert.IsNotNull(combatShip.Weapons, "Ship must be armed (WeaponsController present)");
             Assert.IsNotNull(combatShip.Weapons?.Primary, "Primary weapon not instantiated");

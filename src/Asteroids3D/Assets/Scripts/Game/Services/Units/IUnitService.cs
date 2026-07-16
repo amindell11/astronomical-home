@@ -17,8 +17,8 @@ namespace Game.Services
         /// before the first spawn; one-shot (a conflicting re-assign throws).</summary>
         void SetArena(ArenaContext arena);
 
-        /// <summary>Assign the projectile registry wired into each ship's weapons; optional (an unwired
-        /// ship fires fine, just unregistered), one-shot (a conflicting re-assign throws).</summary>
+        /// <summary>Assign the projectile registry each spawned ship arms its weapons with. Required
+        /// before spawning armed ships (arming throws without it); one-shot (a conflicting re-assign throws).</summary>
         void SetProjectiles(IProjectileService projectiles);
 
         /// <summary>Spawn a ship, wire its dependencies, and register it.</summary>
