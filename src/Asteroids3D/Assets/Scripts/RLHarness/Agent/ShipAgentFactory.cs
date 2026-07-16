@@ -10,7 +10,7 @@ namespace Game.RLHarness
     /// <summary>Composes the ShipAgent GameObject with its BehaviorParameters fully configured before the Agent component enables (the policy captures them at first use). Keeps ML-Agents/InferenceEngine types out of the test assemblies via the mode-specific entry points.</summary>
     public static class ShipAgentFactory
     {
-        public const string BehaviorName = "ShipCombat";
+        public const string BehaviorName = ShipCombatPolicy.BehaviorName;
         public const string SmokeFixturePath = "Assets/Tests/Fixtures/ShipCombat-smoke.onnx";
 
         public static ShipAgent ComposeForTraining(EpisodePair pair, AgentChooser chooser,

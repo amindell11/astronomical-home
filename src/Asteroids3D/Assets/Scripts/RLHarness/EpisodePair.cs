@@ -1,7 +1,6 @@
 using System;
 using AI;
 using Game.Services;
-using Movement.MPC;
 using Ships;
 using Ships.Command;
 using UnityEngine;
@@ -11,10 +10,9 @@ using UnityEditor;
 
 namespace Game.RLHarness
 {
-    /// <summary>The canonical 1v1 episode composition: agent ship on the inert TestPilotMPC host with an injected chooser and a private MpcSettings clone (wVelTrack raised, boost sampling zeroed — boost is policy-owned), versus the full production UtilityPilot baseline; both lasers-only. Hosts (tests, training scene) share this so the scenario cannot drift between them.</summary>
+    /// <summary>The canonical 1v1 episode composition: agent ship on the inert TestPilotMPC host (its Navigator authors MpcSettings_AgentPilot — the policy-matched tracker config) with an injected chooser, versus the full production UtilityPilot baseline; both lasers-only. Hosts (tests, training scene) share this so the scenario cannot drift between them.</summary>
     public sealed class EpisodePair : IDisposable
     {
-        public const float AgentWVelTrack = 50f;
         private const string ShipPrefabPath = "Assets/Prefabs/Ships/Ship_2.prefab";
         private const string AgentPilotPath = "Assets/Prefabs/Pilots/TestPilotMPC.prefab";
         private const string BaselinePilotPath = "Assets/Prefabs/Pilots/UtilityPilot.prefab";
@@ -27,17 +25,15 @@ namespace Game.RLHarness
         private readonly UnitService units;
         private readonly IProjectileService projectiles;
         private readonly Vector2 arenaCenter;
-        private readonly MpcSettings agentSettings;
 
         private EpisodePair(UnitService units, IProjectileService projectiles, Vector2 arenaCenter,
-            Ship agent, Ship baseline, MpcSettings agentSettings)
+            Ship agent, Ship baseline)
         {
             this.units = units;
             this.projectiles = projectiles;
             this.arenaCenter = arenaCenter;
             Agent = agent;
             Baseline = baseline;
-            this.agentSettings = agentSettings;
         }
 
         /// <summary>Spawns the pair at the (runSeed, episode 0) poses; the chooser factory sees both live ships so it can configure itself (injected opponent, projectile speed) before the commanders initialize.</summary>
@@ -53,13 +49,6 @@ namespace Game.RLHarness
                 poses.baselinePos, poses.baselineRotDeg, team: 1, rootScope.Derive(BaselineSeedStream).ToSeed());
 
             var commander = agent.GetComponentInChildren<AICommander>();
-            var navigator = commander.Navigator;
-            var settings = UnityEngine.Object.Instantiate(
-                navigator.mpcSettings ? navigator.mpcSettings : ScriptableObject.CreateInstance<MpcSettings>());
-            settings.wVelTrack = AgentWVelTrack;
-            settings.boostSampleProbability = 0f;
-            navigator.mpcSettings = settings;
-
             var chooser = chooserFactory(agent, baseline);
             commander.GetComponentInChildren<Brain>().InstallChooser(chooser);
 
@@ -68,7 +57,7 @@ namespace Game.RLHarness
             if (baseline.GetComponentInChildren<AICommander>().CurrentStateName == "None")
                 throw new InvalidOperationException("Baseline brain must run a real state policy — check the UtilityPilot prefab's state profiles.");
 
-            return new EpisodePair(units, projectiles, arena.Offset, agent, baseline, settings);
+            return new EpisodePair(units, projectiles, arena.Offset, agent, baseline);
         }
 
         /// <summary>The canonical ShipAgent composition: pair plus a configured <see cref="AgentChooser"/> (injected opponent, primary projectile speed) — the single recipe every agent host (training, eval, tests) shares.</summary>
@@ -101,7 +90,6 @@ namespace Game.RLHarness
         {
             Remove(Agent);
             Remove(Baseline);
-            if (agentSettings) UnityEngine.Object.DestroyImmediate(agentSettings);
         }
 
         private void Remove(Ship ship)

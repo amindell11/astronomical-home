@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 606810096680689649}
   - component: {fileID: 4478262572537416997}
   m_Layer: 7
-  m_Name: TestPilotMPC
+  m_Name: AgentPilot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -47,9 +47,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4b8ea6c63245a6e4197204a7a6f71112, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  difficulty: 0.513
+  m_Name:
+  m_EditorClassIdentifier:
+  difficulty: 1
   combatExitDelay: 3
   debugSettings: {fileID: 0}
 --- !u!114 &-1070365238870678526
@@ -62,8 +62,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5d4ac4b3b484be947a21a1f6bdfd3dae, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   lockedLocalPosition: {x: 0, y: 0, z: 0}
   lockRotation: 1
   lockScale: 1
@@ -77,8 +77,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f0f9ac3a41558b64f9a98d4dd5dbddb2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   labelStep: 5
   showCostBreakdown: 1
   costBreakdownMode: 0
@@ -105,8 +105,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 672451d8ba1d1c24b95ea05b1fea1e71, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
 --- !u!114 &606810096680689649
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -117,9 +117,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3358d33db4de47449a05f34455161639, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  nearbyShipRadius: 30
+  m_Name:
+  m_EditorClassIdentifier:
+  nearbyShipRadius: 300
   asteroidCoverRadius: 15
   asteroidMask:
     serializedVersion: 2
@@ -135,16 +135,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e74b596751aefc842ad51157fcb57ee7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   chooser:
-    rid: 1937986634179674124
+    rid: 1937986634179674200
   references:
     version: 2
     RefIds:
-    - rid: 1937986634179674124
-      type: {class: UtilityChooser, ns: AI.Utility, asm: Game.Core}
+    - rid: 1937986634179674200
+      type: {class: InferenceChooser, ns: Game.RLHarness, asm: Game.RLHarness.Runtime}
       data:
-        config: {fileID: 11400000, guid: 2953629aea9c0114d9f56764e09bca98, type: 2}
-        instanceUtilityWeights: {fileID: 11400000, guid: 36dd1f0bf1188b246b6b19c1160602bc,
-          type: 2}
+        model: {fileID: 11400000, guid: 5b9e4d27a1c8f3064e7b2a9c5d18f640, type: 3}
+        leashRadius: 120

@@ -1,24 +1,18 @@
 {
-    "name": "Game.RLHarness.Editor",
+    "name": "Game.RLHarness.Runtime",
     "rootNamespace": "",
     "references": [
         "Game.Core",
-        "Game.RLHarness.Runtime",
         "Unity.ML-Agents",
         "Unity.InferenceEngine"
     ],
-    "includePlatforms": [
-        "Editor",
-        "WindowsStandalone64"
-    ],
+    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": false,
-    "defineConstraints": [
-        "UNITY_INCLUDE_TESTS"
-    ],
+    "defineConstraints": [],
     "versionDefines": [],
     "noEngineReferences": false
 }
