@@ -136,8 +136,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e74b596751aefc842ad51157fcb57ee7, type: 3}
   m_Name:
   m_EditorClassIdentifier:
-  stateProfiles:
-  - {fileID: 11400000, guid: 810eec9f0227d5f45a38f462c537a795, type: 2}
   chooser:
     rid: 1937986634179674114
   references:
@@ -146,6 +144,8 @@ MonoBehaviour:
     - rid: 1937986634179674114
       type: {class: UtilityChooser, ns: AI.Utility, asm: Game.Core}
       data:
+        stateProfiles:
+        - {fileID: 11400000, guid: 810eec9f0227d5f45a38f462c537a795, type: 2}
         config: {fileID: 11400000, guid: 2953629aea9c0114d9f56764e09bca98, type: 2}
         instanceUtilityWeights: {fileID: 11400000, guid: 36dd1f0bf1188b246b6b19c1160602bc,
           type: 2}
