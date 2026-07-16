@@ -9,7 +9,7 @@ Chase every failure to its root cause before writing anything. Then classify it:
 
 **Operating error** — bad input at an untrusted boundary (user, file, network, serialized/inspector data): parse, don't validate. Check once at the boundary, convert to a trusted type, proceed on trust inside. Never a fallback default.
 
-**Programmer error** — our own code or wiring violates an invariant: climb this ladder. Enter it only for an observed failure or an explicit user pull — a speculative finding (review comment about a hypothetical, a "could happen") gets a written reply, not code.
+**Programmer error** — our own code or wiring violates an invariant: climb this ladder. Enter it only for an observed failure or an explicit user pull. A speculative finding (review comment about a hypothetical, a "could happen") gets a written reply, not code; a real finding outside the current change's scope gets a deferral (board card + reply), not folded in.
 
 1. **Unrepresentable.** Restructure so the mistake cannot compile or cannot be authored (types, Initialize-injection, sealed construction). Take this rung when the encoding is natural; don't contort the design to reach it.
 2. **Earliest deterministic failure.** Constructor/Initialize throw, `OnValidate`, bootstrap validation — this is the top rung that *exists* for anything the compiler can't see (serialized fields, scene data).
