@@ -735,6 +735,9 @@ cmd_submit() {
         shift
         test_args=("$@")
         break ;;
+      --*)
+        echo "submit: unknown flag '$1' before '--' — test-runner args go after '--'" >&2
+        return 1 ;;
       *)
         test_args+=("$1"); shift ;;
     esac

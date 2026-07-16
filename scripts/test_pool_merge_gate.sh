@@ -114,6 +114,9 @@ echo change > "$TMP/agent-1/feature.txt"
 git -C "$TMP/agent-1" add feature.txt
 git -C "$TMP/agent-1" commit -qm feature
 
+if pool submit agent-1 origin/main --title "test PR" --body "test body" --bogus >/dev/null 2>&1; then fail "submit must reject unknown --flags before the -- separator"; fi
+[[ "$(runner_runs)" == 0 ]] || fail "rejected submit must not start a test run (got $(runner_runs))"
+
 pool submit agent-1 origin/main --title "test PR" --body "test body" >/dev/null
 [[ "$(runner_runs)" == 1 ]] || fail "submit should run tests once (got $(runner_runs))"
 [[ "$(recorded_tree)" == "$(slot_tree)" ]] || fail "submit should record the tested tree"
