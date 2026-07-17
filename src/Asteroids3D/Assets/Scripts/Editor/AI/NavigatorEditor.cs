@@ -17,7 +17,7 @@ namespace Movement.MPC
                 Repaint();
         }
 
-        // Clickable Handles.Button at each visible candidate's terminal point; toggles the navigator's selected candidate.
+        // Lives in OnSceneGUI, not the gizmo pass: Handles.Button needs SceneView input access.
         private static bool DrawCandidateSelectionHandles(Navigator nav)
         {
             if (!nav.showCandidateTrajectories || nav.solver == null) return false;
@@ -49,7 +49,6 @@ namespace Movement.MPC
             return changed;
         }
 
-        // Null if no selection or the solver buffers are stale.
         private static CostBreakdown? GetSelectedCandidateBreakdown(Navigator nav)
         {
             if (nav.selectedCandidateIndex < 0 || nav.solver == null) return null;

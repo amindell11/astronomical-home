@@ -33,7 +33,8 @@ namespace AI.Utility
             product *= Mathf.Pow(clamped, weight);
             totalWeight += weight;
 #if UNITY_EDITOR || DEBUG
-            TrackBreakdown(name, clamped);
+            if (trackBreakdown)
+                breakdown.Add((name, clamped));
 #endif
             return this;
         }
@@ -61,7 +62,7 @@ namespace AI.Utility
             if (totalWeight <= 0f) return 0f;
             var result = Mathf.Clamp(Mathf.Pow(product, 1f / totalWeight), 0f, 2f);
 #if UNITY_EDITOR || DEBUG
-            LogBreakdown();
+            Result = Mathf.Pow(product, 1f / totalWeight);
 #endif
             return result;
         }
@@ -76,7 +77,7 @@ namespace AI.Utility
             product = 1f;
             totalWeight = 0f;
 #if UNITY_EDITOR || DEBUG
-            ClearBreakdown();
+            breakdown.Clear();
 #endif
         }
 
@@ -89,22 +90,6 @@ namespace AI.Utility
 
         /// <summary>Final geometric-mean result after Build(). Zero before Build() is called.</summary>
         public float Result { get; private set; }
-
-        private void TrackBreakdown(string name, float value)
-        {
-            if (trackBreakdown)
-                breakdown.Add((name, value));
-        }
-
-        private void ClearBreakdown()
-        {
-            breakdown.Clear();
-        }
-
-        private void LogBreakdown()
-        {
-            Result = totalWeight > 0f ? Mathf.Pow(product, 1f / totalWeight) : 0f;
-        }
 
         public string GetBreakdown()
         {
