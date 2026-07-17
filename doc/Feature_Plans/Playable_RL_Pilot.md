@@ -21,8 +21,10 @@ require a new user decision.
 3. **No enemy → `NavigationIntent.None`** (ship coasts dormant). Scout
    `nearbyShipRadius` authored to 300 on the prefab. Peacetime behavior is
    out-of-distribution cosmetics; revisit only when RL pilots ship in encounters.
-4. **Border obs = spawn-point leash.** Center captured at compose, radius
-   serialized (default 120 = training value). Author a huge radius for no leash.
+4. **Border obs = spawn-point leash.** Center captured at compose and
+   re-anchored on the first tick after Reset (a respawn/revive re-leashes at
+   the new position — Codex P2, post-review). Radius serialized (default 120 =
+   training value); author a huge radius for no leash.
    Parked: anchor leash to player position someday.
 5. **Chooser-owned boundary stepping.** `AutomaticSteppingEnabled = false`;
    every 10th fixed tick (training `decisionIntervalSteps`) with a live enemy:

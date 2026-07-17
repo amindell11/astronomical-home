@@ -27,6 +27,7 @@ namespace Game.RLHarness
         private Ship self;
         private Ship enemy;
         private Vector2 leashCenter;
+        private bool reanchorLeash;
         private int ticksUntilDecision;
         private bool composeFailed;
 
@@ -46,6 +47,13 @@ namespace Game.RLHarness
             if (!agent && !TryCompose(ctx))
                 return NavigationIntent.None;
 
+            // Deferred to the first post-reset tick: Reset fires before a respawn teleport lands.
+            if (reanchorLeash)
+            {
+                leashCenter = self.Kinematics.pos;
+                reanchorLeash = false;
+            }
+
             Retarget(ctx.Combat.Enemy);
 
             if (enemy && enemy.gameObject.activeInHierarchy && --ticksUntilDecision <= 0)
@@ -63,6 +71,7 @@ namespace Game.RLHarness
         {
             mailbox.Reset();
             ticksUntilDecision = 0;
+            reanchorLeash = true;
         }
 
         private void Retarget(Ship next)
