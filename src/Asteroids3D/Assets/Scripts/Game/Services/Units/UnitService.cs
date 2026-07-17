@@ -26,18 +26,13 @@ namespace Game.Services
         public IShipRegistry Registry => ActiveRegistry;
         public ShipRegistry ActiveRegistry { get; } = new();
 
-        /// <summary>Assign the arena handle wired into each ship; one-shot so a stray re-compose can't swap the arena out from under live ships.</summary>
         public void SetArena(ArenaContext context)
         {
-            if (arena != null && !ReferenceEquals(arena, context))
-                throw new InvalidOperationException("UnitService arena is already set to a different ArenaContext.");
             arena = context;
         }
 
         public void SetProjectiles(IProjectileService projectiles)
         {
-            if (this.projectiles != null && !ReferenceEquals(this.projectiles, projectiles))
-                throw new InvalidOperationException("UnitService projectiles are already set to a different IProjectileService.");
             this.projectiles = projectiles;
         }
 
