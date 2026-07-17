@@ -158,7 +158,7 @@ task_branch_for() {
   return 0
 }
 
-# Single task-branch mint/record path for every PR-opening command, so merge/revise (task_branch_for) always resolve the head that was actually pushed.
+# Every PR-opener mints/records here so merge/revise (task_branch_for) resolve the pushed head.
 ensure_task_branch() {
   local slot="$1"
   local lease task_branch ldir
@@ -167,7 +167,7 @@ ensure_task_branch() {
     lease="task-$(date +%Y%m%d-%H%M%S)"
   fi
   task_branch="task/$lease"
-  # mkdir -p: recreate the lock dir if a stale-reclaim removed it, so the task_branch write never dies.
+  # A stale-reclaim may have removed the lock dir; the task_branch write must not die.
   ldir="$(lock_dir_for "$slot")"
   mkdir -p "$ldir"
   printf '%s\n' "$task_branch" > "$ldir/task_branch"
