@@ -95,7 +95,9 @@ describe the actual payload) and a real `--body`. The PR body carries the
 build story: what changed and why, test proof, quality-pass changes, and a
 scope-conservation check — read the diff back against the Step-1 scope
 statement; anything a scope-reader wouldn't expect either comes out or is
-flagged in the body for confirmation. Flip the ledger row to in-review with
+flagged in the body for confirmation. An arc-completing PR also settles its
+plan doc — delete the transient brief, or update the living doc's STATUS
+header (convention in `AGENTS.md`). Flip the ledger row to in-review with
 the PR number.
 
 ## Step 5 — Review round-trip

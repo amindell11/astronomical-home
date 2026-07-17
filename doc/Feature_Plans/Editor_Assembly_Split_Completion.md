@@ -1,5 +1,7 @@
 # Editor Assembly Split — Completion
 
+> STATUS: live arc — PR-B5 in flight on agent-3
+
 Finish what PR #115 started: PR #115 created the editor-only `Game.Core.Editor`
 assembly and moved `Assets/Scripts/Editor/` into it, but an audit found **16
 nested `Editor/` folders elsewhere under `Assets/Scripts/`** whose contents

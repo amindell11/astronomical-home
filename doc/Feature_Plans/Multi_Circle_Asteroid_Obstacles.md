@@ -12,6 +12,8 @@ related:
 
 # Multi-Circle Asteroid Obstacles
 
+> STATUS: live arc — asteroid env + obstacle tokens is the tactical-AI next step
+
 Tighter obstacle geometry for the MPC solver: represent elongated asteroids as
 **2–4 baked covering circles** instead of a single mean-radius circle, so
 stretched rocks stop contributing phantom berth across their thin axes. Reuses

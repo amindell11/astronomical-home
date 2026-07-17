@@ -1,5 +1,7 @@
 # Tactical AI — System Audit & Roadmap
 
+> STATUS: living — tactical-AI roadmap; arcs check in here
+
 **Date:** 2026-07-08 (direction decided 2026-07-09; **pivoted 2026-07-11** — see the v2 banner below)
 **Status:** Direction **pivoted 2026-07-11** via grill — committed to a *learned goal-policy + MPC-as-tracker* (§3′/§4′). The §3/§4 learn-V plan is demoted to a conditional later upgrade. PR-S1a (#106) in review; PR-S2 (#107) merged.
 **Goal:** With AI navigation in a good place, use it as a baseline to build a more

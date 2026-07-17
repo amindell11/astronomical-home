@@ -1,5 +1,7 @@
 # RL ML-Agents Agent — PR-3 Decision Brief & Implementation Plan
 
+> STATUS: living — RL agent design reference (obs/action/reward contract); runbook in training/rl/README.md
+
 **Date:** 2026-07-15 (scoped via pr-prep with the user; Codex adversarial review folded)
 **Parent:** `Tactical_AI_Audit_And_Roadmap.md` §3′/§4′ PR-3. Builds on PR-1 #122
 (velocity-reference interface), PR-2a #132 (maneuver-oracle gate), PR-2b #138

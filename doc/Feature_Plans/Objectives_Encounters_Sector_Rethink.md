@@ -1,5 +1,7 @@
 # Objectives / Encounters / Sector Rethink
 
+> STATUS: live arc — next objectives PR opens with token-authoring design; converge superseded sections then
+
 *Draft • 2026-07-12 • status: PR-1 #134 + PR-2 #135 merged; PR-3 built (see "PR-3 — resolved scope" + "PR-3 — build decisions")*
 
 > Realizes the deferred `project_objectives_encounters_rethink`. The presenting
