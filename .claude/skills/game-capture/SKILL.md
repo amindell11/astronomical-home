@@ -3,7 +3,6 @@ name: game-capture
 description: Record footage of any game situation with per-investigation diagnostic markup (lines, vectors, rings, labels) and hand the user a clip. Use when footage is the deliverable — showing a behavior, visually diagnosing a sim bug, demoing a feature, or recording RL episodes.
 metadata:
   project: astronomical-home
-  plan-doc: doc/Feature_Plans/Game_Capture.md
 ---
 
 # Game Capture
@@ -83,11 +82,20 @@ shrink. mp4 needs `pip install imageio-ffmpeg` once (wheel bundles ffmpeg).
 ## Hard-won constraints (violate = silent garbage)
 
 - **Gizmos/Handles never render into offscreen captures.** Only `CaptureDraw`
-  primitives show up. That's why the overlay exists.
-- **`-WithGraphics` is for filtered runs only** (it requires PlayMode + an explicit
-  `-TestFilter`, and fails on zero tests executed). Never the merge-gate suite.
+  primitives show up — they're real renderers (LineRenderers); URP
+  `RenderPipelineManager` GL hooks are unreliable for manual `camera.Render()`.
+- **Batch runs are `-nographics` by default; `-WithGraphics` is for filtered runs
+  only** (it requires PlayMode + an explicit `-TestFilter`, and fails on zero tests
+  executed). Never the merge-gate suite — never record merge-gate proof from a
+  graphics run.
 - **Never call `Gunsight.Evaluate()` from an overlay** — it mutates the firing path's
   LOS cache (observer effect on the sim). `InEnvelope()` only.
+- **Recorded runs lock frame pacing** (`Time.timeScale=1` +
+  `Time.captureDeltaTime=Time.fixedDeltaTime`) so a recorded seed replays
+  identically; `watch.flag` wins if both flags exist.
+- **Aim visuals use the public `Gunner.AimPoint(...)` static** — the same lead the
+  AI uses. RLHarness has no internals access to GameCore; `AssemblyInfo.cs` is the
+  unlock if ever needed.
 - **Eyeball a mid-clip PNG (Read the file) before claiming success** — compile-green
   says nothing about render output; v1's overlay failed only at render time. For label
   checks, confirm the label *changes* across frames.

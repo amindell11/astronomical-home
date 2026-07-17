@@ -1,5 +1,7 @@
 # Playable RL Pilot — frozen decision brief (2026-07-16)
 
+> STATUS: live arc — building on agent-1 (#163)
+
 Goal: the trained checkpoint becomes an editor-authorable opponent you can fly
 against in a real sector. Grilled and locked with the user; deviations below
 require a new user decision.

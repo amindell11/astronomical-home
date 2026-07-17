@@ -49,6 +49,21 @@ How to use them to track work:
   *what / for-when*; memory says *why / how*. (Live in-flight claims are a third
   thing — those go in the active-work ledger, see `CLAUDE.md`.)
 
+### Doc lifecycle
+
+`doc/Feature_Plans/` holds two kinds of docs. **Transient briefs** (the
+default): decision briefs and plans for a single arc; the PR that completes
+the arc DELETES its brief — git history is the archive, the PR body carries
+the build story, the memory topic file the arc narrative. **Living docs**
+(the exception): roadmaps and standing design references; each carries,
+directly under its title, a line `> STATUS: living — <one-line why this
+outlives its arc>` (live-arc briefs carry `> STATUS: live arc — <what's in
+flight>`). A doc with no STATUS line is a transient brief by definition.
+Shelved arcs: the brief travels on the preserved branch, not main. Session
+handoffs are memory material (the memory directory), never repo docs; the
+consuming session deletes them. Header ratchet: an agent absorbing a doc
+whose STATUS contradicts reality fixes the header (header only) in its PR.
+
 ## Agent memory
 
 This repo is backed by a persistent, file-based agent memory — durable facts,

@@ -1,5 +1,7 @@
 # Multi-Arena RL Substrate
 
+> STATUS: living — multi-arena design reference; warns PR-4 off mirror-determinism gates
+
 *Draft • 2026-07-12 • status: design agreed (two grill sessions + Codex consult), PR-A1 starting*
 
 > Realizes the deferred `project_multi_arena_rethink`. Builds on the landed
