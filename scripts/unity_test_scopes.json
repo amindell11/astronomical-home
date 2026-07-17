@@ -105,7 +105,6 @@
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/SectorActivationEditModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/SectorManifestSyncEditModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/EncounterLifecycleEditModeTests.cs*",
-        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/SectorActivationLifecyclePlayModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/SectorCompositionPlayModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/SectorLifecyclePlayModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/TriggerVolumeActivationPlayModeTests.cs*",

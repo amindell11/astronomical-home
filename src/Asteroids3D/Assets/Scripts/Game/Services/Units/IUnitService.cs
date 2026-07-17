@@ -13,11 +13,10 @@ namespace Game.Services
         /// <summary>All ships currently in play.</summary>
         ShipRegistry ActiveRegistry { get; }
 
-        /// <summary>Assign the per-arena handle the service injects into each ship it wires. Required
-        /// before the first spawn; one-shot (a conflicting re-assign throws).</summary>
+        /// <summary>Arena handle injected into each spawned ship; required before the first spawn.</summary>
         void SetArena(ArenaContext arena);
 
-        /// <summary>Assign the projectile registry each spawned ship arms its weapons with; required before spawning armed ships (arming throws without it), one-shot (a conflicting re-assign throws).</summary>
+        /// <summary>Projectile registry ships arm their weapons with; arming throws while unset.</summary>
         void SetProjectiles(IProjectileService projectiles);
 
         /// <summary>Spawn a ship, wire its dependencies, and register it.</summary>
