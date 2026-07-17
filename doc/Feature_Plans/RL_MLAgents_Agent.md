@@ -296,3 +296,38 @@ pilot forecasts >24 h for 2M); PR-4 self-play; shipping inference.
 - Operational: long runs peg CPU for hours — start times coordinated with the
   user; concurrent merge-gate suites on the same machine risk flaking
   timing-sensitive PlayMode tests (#129 caveat).
+
+## Pilot findings & arc outcome (2026-07-15, run id `ship_combat_pilot`)
+
+**Result: the learned policy decisively beats the AttackAggressive baseline in
+the prototype arena; the user accepted the pilot as sufficient and closed the
+arc without the full 2M run or the formal held-out gate.**
+
+- **Learning signal:** mean reward −0.205 → +1.93 over 200k decisions,
+  monotone, σ 1.37 → 0.11; plateau ≈1.9 from ~step 120k. Throughput 56.8
+  decisions/s under the pacing contract (2M forecast ≈9.8 h, never spent).
+- **Outcomes:** 2035 W / 159 L / **0 draws** across 2,194 training episodes —
+  every episode ended in a kill, vs the scripted ranger floor of 4W/0L/16D.
+  The pre-registered stalemate levers (heat/regen/timeout) were never needed.
+- **2M run:** launched then ABORTED at user instruction before any training
+  step ran (curve had converged by 120k; prototype arena doesn't justify 10 h
+  of polish). Config + `--resume` remain if ever wanted.
+- **Formal gate: waived for the prototype** (user decision). Basis instead:
+  pilot curve + outcome mix, a recorded InferenceOnly episode, and a live
+  in-editor eval session the user watched. If a defensible beat-the-baseline
+  claim is ever needed, run the rigor ladder on FRESH seeds (this decision
+  deliberately spends none of 1001–1020, which remain sealed).
+- **Deterministic-inference check (live eval, 2026-07-16):** `InferenceOnly` +
+  `DeterministicInference` vs the baseline on seed 7: **7/7 wins across two
+  in-editor eval runs (5/5 clean-run artifact:
+  `results/rl-eval/20260715-234947-custom-summary.json`, winRate 1.0, Wilson
+  LB95 0.566; plus 2/2 in a partial run)** — all terminal kills, agent hull
+  untouched, kill times 39–101 s. The earlier seed-1 recorded draw reads as an
+  outlier, not a systematic stochastic→argmax gap.
+- **Committed artifact:** final checkpoint `ShipCombat-199974.onnx` lands via
+  LFS as `Assets/Tests/Fixtures/ShipCombat-pilot.onnx` (frozen opponent seed
+  for PR-4 self-play; reproducible eval). Raw run artifacts stay untracked
+  under `results/rl-training/ship_combat_pilot/`.
+- **Next (per pivot):** asteroid-field episodes + obstacle observation tokens
+  (the environment step, board-carded), then PR-4 self-play — training hours
+  buy something there, not here.

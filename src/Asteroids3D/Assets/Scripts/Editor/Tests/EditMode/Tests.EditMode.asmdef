@@ -9,7 +9,9 @@
         "Unity.Mathematics",
         "Unity.Collections",
         "Tests.Common",
-        "Game.RLHarness.Editor"
+        "Game.RLHarness.Editor",
+        "Game.RLHarness.Runtime",
+        "Unity.InferenceEngine"
     ],
     "includePlatforms": [
         "Editor"
