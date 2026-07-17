@@ -144,6 +144,8 @@ namespace Combat.Projectile
     {
         protected sealed override void ReturnToPool()
         {
+            // One physics step can deliver several death callbacks; honor only the first return per activation.
+            if (!gameObject.activeSelf) return;
             OnReturnToPool();
             ResetState();
             RaiseReturnedToPool();
