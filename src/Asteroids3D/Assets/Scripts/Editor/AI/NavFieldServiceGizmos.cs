@@ -1,30 +1,22 @@
-#if UNITY_EDITOR
 using Game;
+using UnityEditor;
 using UnityEngine;
 
 namespace Movement.MPC.Field
 {
-    /// <summary>
-    /// Editor-only visualization for the terminal cost-to-go fields, following the MPC
-    /// editor-partial pattern (Navigator.Editor). Select the runtime [NavFieldService]
-    /// object and enable the toggle to see blocked cells (red) and a cost heatmap
-    /// (green near the target, yellow/orange far).
-    /// </summary>
-    public partial class NavFieldService
+    /// <summary>Terminal cost-to-go field visualization: select the runtime [NavFieldService] object and enable its gizmo toggle.</summary>
+    internal static class NavFieldServiceGizmos
     {
-        [Header("Debug (editor only)")]
-        [SerializeField] private bool drawFieldGizmos;
-
-        private void OnDrawGizmos()
+        [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected, typeof(NavFieldService))]
+        private static void Draw(NavFieldService service, GizmoType gizmoType)
         {
-            if (!drawFieldGizmos) return;
+            if (!service.drawFieldGizmos) return;
 
-            foreach (var kvp in fields)
+            foreach (var kvp in service.fields)
                 DrawField(kvp.Value.Front);
         }
 
-        /// <summary>Blocked cells red, cost heatmap green (cheap) → orange (far). Shared by
-        /// every gizmo that visualizes a solved field (service registry, Navigator flee field).</summary>
+        /// <summary>Blocked cells red, cost heatmap green (cheap) → orange (far); shared by every gizmo that visualizes a solved field (service registry, Navigator flee field).</summary>
         internal static void DrawField(NavField field)
         {
             if (field == null || !field.HasSolution) return;
@@ -64,4 +56,3 @@ namespace Movement.MPC.Field
         }
     }
 }
-#endif

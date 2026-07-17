@@ -1,4 +1,8 @@
 using UnityEngine;
+#if UNITY_EDITOR || DEBUG
+using System.Collections.Generic;
+using System.Text;
+#endif
 
 namespace AI.Utility
 {
@@ -17,7 +21,7 @@ namespace AI.Utility
         public FactorRange Inverted => new FactorRange(atHigh, atLow);
     }
     
-    public partial class UtilityBuilder
+    public class UtilityBuilder
     {
         private float product = 1f;
         private float totalWeight = 0f;
@@ -28,7 +32,10 @@ namespace AI.Utility
             if (weight <= 0f) return this;
             product *= Mathf.Pow(clamped, weight);
             totalWeight += weight;
-            TrackBreakdown(name, clamped);
+#if UNITY_EDITOR || DEBUG
+            if (trackBreakdown)
+                breakdown.Add((name, clamped));
+#endif
             return this;
         }
 
@@ -54,7 +61,9 @@ namespace AI.Utility
         {
             if (totalWeight <= 0f) return 0f;
             var result = Mathf.Clamp(Mathf.Pow(product, 1f / totalWeight), 0f, 2f);
-            LogBreakdown();
+#if UNITY_EDITOR || DEBUG
+            Result = Mathf.Pow(product, 1f / totalWeight);
+#endif
             return result;
         }
 
@@ -67,12 +76,35 @@ namespace AI.Utility
         {
             product = 1f;
             totalWeight = 0f;
-            ClearBreakdown();
+#if UNITY_EDITOR || DEBUG
+            breakdown.Clear();
+#endif
         }
 
-        // Partial methods for editor-only functionality
-        partial void TrackBreakdown(string name, float value);
-        partial void ClearBreakdown();
-        partial void LogBreakdown();
+#if UNITY_EDITOR || DEBUG
+        private readonly List<(string name, float value)> breakdown = new();
+        private bool trackBreakdown = true;
+
+        /// <summary>Factor breakdown for logging/analysis: each entry is (factorName, clampedValue) as fed into the geometric mean.</summary>
+        public IReadOnlyList<(string name, float value)> Factors => breakdown;
+
+        /// <summary>Final geometric-mean result after Build(). Zero before Build() is called.</summary>
+        public float Result { get; private set; }
+
+        public string GetBreakdown()
+        {
+            if (!trackBreakdown || breakdown.Count == 0)
+                return $"Total: {(totalWeight > 0f ? Mathf.Pow(product, 1f / totalWeight) : 0f):F3}";
+
+            var sb = new StringBuilder();
+            foreach (var (name, value) in breakdown)
+            {
+                sb.Append($"{name}:{value:F2} | ");
+            }
+            var result = totalWeight > 0f ? Mathf.Pow(product, 1f / totalWeight) : 0f;
+            sb.Append($"= {result:F3} (geomean, w={totalWeight:F1})");
+            return sb.ToString();
+        }
+#endif
     }
 }

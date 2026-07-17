@@ -3,7 +3,7 @@ using Movement;
 
 namespace Movement.MPC
 {
-    public static partial class Model
+    public static class Model
     {
         public static State Step(State s, Control u, Config cfg, Dynamics shp)
         {
@@ -62,17 +62,12 @@ namespace Movement.MPC
         {
             var torqueAlpha = shp.yawTorque * yawInput / shp.yawInertia;
 
-            // Bank coupling: the bank spring-damper torque is applied around transform.up,
-            // which is tilted by the bank angle. Its yaw-axis projection adds a cross-coupled
-            // yaw torque that the MPC must account for to match Unity physics.
+            // Bank coupling: the bank spring-damper acts around the bank-tilted transform.up, so its yaw-axis projection adds a cross-coupled yaw torque the MPC must mirror to match Unity physics.
             if (shp.maxBankAngleRad > 0f)
             {
                 var bankAngle = -strafeInput * shp.maxBankAngleRad;
                 var sinBank = math.sin(bankAngle);
-                // Bank restoring torque = bankError * bankTorque - bankRate * bankDamping.
-                // At steady state the target bank equals the current estimated bank,
-                // so bankError ≈ 0 and the dominant term is the rate damping.
-                // The yaw-rate component projected through the bank tilt is yawRate * sinBank.
+                // At steady state bankError ≈ 0, so the spring-damper reduces to rate damping; its yaw projection through the bank tilt is yawRate * sinBank.
                 var bankYawTorque = -yawRate * sinBank * shp.bankDamping;
                 torqueAlpha += bankYawTorque / shp.yawInertia;
             }
