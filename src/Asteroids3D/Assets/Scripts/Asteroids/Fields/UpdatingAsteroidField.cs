@@ -34,6 +34,8 @@ namespace Asteroids.Fields
 
         private Transform streamAnchor;
         private Vector2? playerStartPlane;
+        private float densityScale = 1f;
+        private ExclusionVolume[] hostExclusionsPlane;
         internal ChunkStreamer streamer;
         internal Vector2 fieldOriginPlane;
         internal bool initialized;
@@ -95,6 +97,28 @@ namespace Asteroids.Fields
         /// </summary>
         public void SetLayoutSeed(int value) => seed = value;
 
+        /// <summary>
+        /// Runtime multiplier on the authored per-cell density (1 = the settings asset as
+        /// authored). Same pre-rebuild contract as <see cref="SetLayoutSeed"/>: takes effect
+        /// on the next <c>InitializeField</c>/<see cref="RebuildField"/>.
+        /// </summary>
+        public void SetDensityScale(float value)
+        {
+            if (!(value > 0f) || float.IsInfinity(value))
+                throw new ArgumentOutOfRangeException(nameof(value), value, "Density scale must be a positive finite multiplier.");
+            densityScale = value;
+        }
+
+        /// <summary>
+        /// Host-declared no-spawn clearings (absolute plane space, like
+        /// <see cref="SetPlayerStart"/>; converted to field-relative at build time). Same
+        /// pre-rebuild contract as <see cref="SetLayoutSeed"/>. Callers that derive centers
+        /// from runtime occupancy must rebuild the whole layout afterwards — a partial bake
+        /// of dynamic state into a live baseline would break streaming determinism.
+        /// </summary>
+        public void SetExclusionVolumes(ExclusionVolume[] absolutePlaneVolumes) =>
+            hostExclusionsPlane = absolutePlaneVolumes;
+
         protected override void CacheSettings()
         {
             base.CacheSettings();
@@ -130,26 +154,19 @@ namespace Asteroids.Fields
             fieldOriginPlane = GamePlane.WorldPointToPlane(transform.position);
 
             var genParams = settings.BuildGenerationParams();
+            genParams.AverageAsteroidsPerCell *= densityScale;
             genParams.MeshVolumes = meshVolumes;
             genParams.MeshDensity = spawnSettings.density;
             genParams.MassScaleRange = spawnSettings.massScaleRange;
             genParams.VelocityRange = spawnSettings.velocityRange;
             genParams.SpinRange = spawnSettings.spinRange;
-
-            // The player start is static and authored, so it is safe to bake as
-            // a generation-time cull (a persistent clearing). Spec positions are
-            // field-relative; the start arrives in absolute plane space.
-            if (playerStartPlane.HasValue && settings.startClearRadius > 0f)
-                genParams.ExclusionVolumes = new[]
-                {
-                    new ExclusionVolume { Center = playerStartPlane.Value - fieldOriginPlane, Radius = settings.startClearRadius }
-                };
+            genParams.ExclusionVolumes = BuildExclusionVolumes();
 
             var layout = new AsteroidFieldLayout(seed, genParams);
             Model = new AsteroidFieldModel(layout);
             streamer = new ChunkStreamer(settings.chunkSize, loadRadius, unloadRadius);
 
-            AsteroidSpawner.PreSizePool(settings.WorstCaseLoadedCount());
+            AsteroidSpawner.PreSizePool(Mathf.CeilToInt(settings.WorstCaseLoadedCount() * densityScale));
             AsteroidSpawner.OnFragmentSpawned -= HandleFragmentSpawned;
             AsteroidSpawner.OnFragmentSpawned += HandleFragmentSpawned;
             appliedSettingsVersion = settings.Version;
@@ -158,6 +175,30 @@ namespace Asteroids.Fields
 
             // Initial fill is synchronous (unbudgeted), like the old field's Start-time spawn burst.
             StepStreaming(int.MaxValue);
+        }
+
+        /// <summary>
+        /// The player start is static and authored, so it is safe to bake as a
+        /// generation-time cull (a persistent clearing); host clearings ride the
+        /// same mechanism. Spec positions are field-relative; both sources
+        /// arrive in absolute plane space.
+        /// </summary>
+        private ExclusionVolume[] BuildExclusionVolumes()
+        {
+            var startCount = playerStartPlane.HasValue && settings.startClearRadius > 0f ? 1 : 0;
+            var hostCount = hostExclusionsPlane?.Length ?? 0;
+            if (startCount + hostCount == 0) return null;
+
+            var volumes = new ExclusionVolume[startCount + hostCount];
+            if (startCount > 0)
+                volumes[0] = new ExclusionVolume { Center = playerStartPlane.Value - fieldOriginPlane, Radius = settings.startClearRadius };
+            for (var i = 0; i < hostCount; i++)
+                volumes[startCount + i] = new ExclusionVolume
+                {
+                    Center = hostExclusionsPlane[i].Center - fieldOriginPlane,
+                    Radius = hostExclusionsPlane[i].Radius
+                };
+            return volumes;
         }
 
         /// <summary>
