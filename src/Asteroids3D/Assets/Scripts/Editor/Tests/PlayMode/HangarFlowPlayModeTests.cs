@@ -14,6 +14,7 @@ namespace Tests.PlayMode
     /// <see cref="GameDriver.RunHangar"/> step must apply the standing loadout and finish on its
     /// own — never instantiate the screen or block waiting for a Launch click.
     /// </summary>
+    [Category("UI")]
     public class HangarFlowPlayModeTests : PlayModeWorldFixture
     {
         private GameObject driverGo;
