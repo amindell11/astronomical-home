@@ -174,7 +174,7 @@ pool revise agent-1 --no-test >/dev/null
 cat > "$TMP/agent-1/code.cs" <<'CS'
 class Gate {
     // seed comment
-    string url = "http://example.test"; /* block */
+    string url = "http://example.test";
     void Run() { }
 }
 CS
@@ -206,8 +206,7 @@ cat > "$TMP/agent-1/code.cs" <<'CS'
 class Gate {
     // reworded comment
     string url = "http://example.test";
-    void Run() {
-    }
+    void Run() { }
 }
 CS
 git -C "$TMP/agent-1" add code.cs
@@ -226,8 +225,7 @@ cat > "$TMP/agent-1/code.cs" <<'CS'
 class Gate {
     // reworded comment
     string url = "http://other.example";
-    void Run() {
-    }
+    void Run() { }
 }
 CS
 git -C "$TMP/agent-1" add code.cs

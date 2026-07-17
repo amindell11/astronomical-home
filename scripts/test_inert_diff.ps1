@@ -32,25 +32,29 @@ Assert-Verdict "identical files" `
     "class A { int x = 1; }" `
     "class A { int x = 1; }" $INERT
 
-Assert-Verdict "line comment added" `
-    "class A { int x = 1; }" `
-    "class A { int x = 1; } // init" $INERT
+Assert-Verdict "full-line comment added" `
+    "class A {`n    int x = 1;`n}" `
+    "class A {`n    // init`n    int x = 1;`n}" $INERT
 
-Assert-Verdict "line comment removed" `
+Assert-Verdict "full-line comment removed" `
     "class A {`n    // remove me`n    int x = 1;`n}" `
     "class A {`n    int x = 1;`n}" $INERT
 
-Assert-Verdict "line comment text changed" `
+Assert-Verdict "full-line comment reworded" `
     "class A {`n    // old wording`n    int x = 1;`n}" `
     "class A {`n    // new wording`n    int x = 1;`n}" $INERT
 
-Assert-Verdict "block comment removed mid-token-stream" `
-    "class A { int/*mid*/x = 1; }" `
-    "class A { int x = 1; }" $INERT
+Assert-Verdict "blank line inserted and removed" `
+    "class A {`n`n    int x = 1;`n}" `
+    "class A {`n    int x = 1;`n`n}" $INERT
 
-Assert-Verdict "block comment spanning lines removed" `
-    "class A {`n/* a`n   b */`n    int x = 1;`n}" `
-    "class A {`n    int x = 1;`n}" $INERT
+Assert-Verdict "CRLF file with full-line comment edit" `
+    ("class A {`r`n    // one`r`n    int x = 1;`r`n}`r`n") `
+    ("class A {`r`n    // two`r`n    int x = 1;`r`n}`r`n") $INERT
+
+Assert-Verdict "indentation-only change on comment line" `
+    "class A {`n    // note`n    int x = 1;`n}" `
+    "class A {`n        // note`n    int x = 1;`n}" $INERT
 
 Assert-Verdict "code change" `
     "class A { int x = 1; }" `
@@ -60,109 +64,50 @@ Assert-Verdict "double-slash inside string is code, not comment" `
     'class A { string u = "http://a.example"; }' `
     'class A { string u = "http://b.example"; }' $DIFFERENT
 
-Assert-Verdict "double-slash inside string survives comment edit" `
-    ('class A { string u = "http://a.example"; }' + "`n// note") `
-    ('class A { string u = "http://a.example"; }' + "`n// other note") $INERT
+Assert-Verdict "trailing comment appended to code line (false negative by design)" `
+    "class A { int x = 1; }" `
+    "class A { int x = 1; } // note" $DIFFERENT
 
-Assert-Verdict "escaped quote in string then comment change" `
-    ('class A { string s = "say \"hi\" // x"; } // one') `
-    ('class A { string s = "say \"hi\" // x"; } // two') $INERT
+Assert-Verdict "trailing comment reworded (false negative by design)" `
+    "class A { int x = 1; } // one" `
+    "class A { int x = 1; } // two" $DIFFERENT
 
-Assert-Verdict "verbatim string content change" `
-    'class A { string p = @"C:\a // x"; }' `
-    'class A { string p = @"C:\b // x"; }' $DIFFERENT
-
-Assert-Verdict "verbatim string with doubled quotes survives comment edit" `
-    ('class A { string s = @"say ""hi"" now"; } // one') `
-    ('class A { string s = @"say ""hi"" now"; } // two') $INERT
-
-Assert-Verdict "multiline verbatim string whitespace is significant" `
-    ("class A { string s = @`"line1`n  line2`"; }") `
-    ("class A { string s = @`"line1`n line2`"; }") $DIFFERENT
-
-Assert-Verdict "interpolated string hole code change" `
-    'class A { string s = $"v={x}"; }' `
-    'class A { string s = $"v={y}"; }' $DIFFERENT
-
-Assert-Verdict "interpolated string with nested literal survives comment edit" `
-    ('class A { string s = $"v={(ok ? "y" : "n")}"; } // one') `
-    ('class A { string s = $"v={(ok ? "y" : "n")}"; } // two') $INERT
-
-Assert-Verdict "verbatim interpolated string content change" `
-    'class A { string s = $@"p={x} \raw"; }' `
-    'class A { string s = $@"q={x} \raw"; }' $DIFFERENT
-
-Assert-Verdict "whitespace-only reformat" `
-    "class A {`n    void M() { int x = 1;`n        Run(x); }`n}" `
-    "class A`n{`n    void M()`n    {`n        int x = 1;`n        Run(x);`n    }`n}" $INERT
-
-Assert-Verdict "whitespace removal that joins tokens" `
-    "class A { int y = a - -b; }" `
-    "class A { int y = a --b; }" $DIFFERENT
-
-Assert-Verdict "string-internal whitespace change" `
-    'class A { string s = "a  b"; }' `
-    'class A { string s = "a b"; }' $DIFFERENT
-
-Assert-Verdict "char literal change" `
-    "class A { char c = 'a'; }" `
-    "class A { char c = 'b'; }" $DIFFERENT
-
-Assert-Verdict "escaped-quote char literal survives reformat" `
-    "class A { char q = '\'';  char s = '\\'; }" `
-    "class A {`n    char q = '\'';`n    char s = '\\';`n}" $INERT
-
-Assert-Verdict "comment edit in file with preprocessor directives" `
-    "#if DEBUG`nclass A { int x = 1; } // one`n#endif" `
-    "#if DEBUG`nclass A { int x = 1; } // two`n#endif" $INERT
+Assert-Verdict "whitespace reformat that splits a line (false negative by design)" `
+    "class A { void M() { Run(); } }" `
+    "class A {`n    void M() { Run(); }`n}" $DIFFERENT
 
 Assert-Verdict "preprocessor directive change" `
     "#if DEBUG`nclass A { int x = 1; }`n#endif" `
     "#if UNITY_EDITOR`nclass A { int x = 1; }`n#endif" $DIFFERENT
 
-Assert-Verdict "directive merged onto one line is not inert" `
-    "#if DEBUG`nclass A { }`n#endif" `
-    "#if DEBUG class A { } #endif" $DIFFERENT
+Assert-Verdict "verbatim string is doubt" `
+    'class A { string p = @"C:\a"; }' `
+    'class A { string p = @"C:\a"; }' $DOUBT
 
-Assert-Verdict "interpolation format-clause whitespace is significant" `
-    'class A { string s = $"{x:00  00}"; }' `
-    'class A { string s = $"{x:00 00}"; }' $DIFFERENT
+Assert-Verdict "interpolated verbatim string is doubt" `
+    'class A { string s = $@"v={x}"; }' `
+    'class A { string s = $@"v={x}"; }' $DOUBT
 
-Assert-Verdict "verbatim interpolation format-clause whitespace is significant" `
-    'class A { string s = $@"{x:00  00}"; }' `
-    'class A { string s = $@"{x:00 00}"; }' $DIFFERENT
-
-Assert-Verdict "interpolation hole whitespace is significant" `
-    'class A { string s = $"{x + 1}"; }' `
-    'class A { string s = $"{x +  1}"; }' $DIFFERENT
-
-Assert-Verdict "comment inside interpolation hole is doubt" `
-    'class A { string s = $"{x /* c */}"; }' `
-    'class A { string s = $"{x}"; }' $DOUBT
-
-Assert-Verdict "bare CR line terminator is doubt" `
-    ("class A { int x = 1; }`r// tail") `
-    ("class A { int x = 1; }`r// other") $DOUBT
-
-Assert-Verdict "U+2028 line terminator is doubt" `
-    ("class A { int x = 1; }" + [string][char]0x2028 + "// tail") `
-    ("class A { int x = 1; }" + [string][char]0x2028 + "// other") $DOUBT
-
-Assert-Verdict "CRLF file with comment edit is inert" `
-    ("class A {`r`n    // one`r`n    int x = 1;`r`n}`r`n") `
-    ("class A {`r`n    // two`r`n    int x = 1;`r`n}`r`n") $INERT
-
-Assert-Verdict "unterminated block comment is doubt" `
-    "class A { int x = 1; }" `
-    "class A { int x = 1; } /* oops" $DOUBT
+Assert-Verdict "verbatim interpolated (at-dollar) string is doubt" `
+    'class A { string s = @$"v={x}"; }' `
+    'class A { string s = @$"v={x}"; }' $DOUBT
 
 Assert-Verdict "raw string literal is doubt" `
     "class A { int x = 1; }" `
     ('class A { string s = """raw"""; }') $DOUBT
 
-Assert-Verdict "trailing comment without newline at EOF" `
-    "class A { int x = 1; }" `
-    "class A { int x = 1; } // tail" $INERT
+Assert-Verdict "block comment is doubt even when inert-looking" `
+    "class A { /* a */ int x = 1; }" `
+    "class A { int x = 1; }" $DOUBT
+
+& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $inertDiff -OldPath (Join-Path $tmp "absent-old.cs") -NewPath (Join-Path $tmp "absent-new.cs") | Out-Null
+if ($LASTEXITCODE -eq $DOUBT) {
+    Write-Host "PASS: missing file is doubt"
+}
+else {
+    Write-Host ("FAIL: missing file is doubt (expected exit {0}, got {1})" -f $DOUBT, $LASTEXITCODE)
+    $script:failures++
+}
 
 Remove-Item -LiteralPath $tmp -Recurse -Force -ErrorAction SilentlyContinue
 
@@ -170,5 +115,5 @@ if ($script:failures -gt 0) {
     Write-Host ("{0} failing case(s)" -f $script:failures)
     exit 1
 }
-Write-Host "PASS: inert_diff normalizer"
+Write-Host "PASS: inert_diff line heuristic"
 exit 0
