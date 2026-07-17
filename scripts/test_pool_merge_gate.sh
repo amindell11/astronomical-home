@@ -114,7 +114,10 @@ echo change > "$TMP/agent-1/feature.txt"
 git -C "$TMP/agent-1" add feature.txt
 git -C "$TMP/agent-1" commit -qm feature
 
-pool submit agent-1 origin/main >/dev/null
+if pool submit agent-1 origin/main --title "test PR" --body "test body" --bogus >/dev/null 2>&1; then fail "submit must reject unknown --flags before the -- separator"; fi
+[[ "$(runner_runs)" == 0 ]] || fail "rejected submit must not start a test run (got $(runner_runs))"
+
+pool submit agent-1 origin/main --title "test PR" --body "test body" >/dev/null
 [[ "$(runner_runs)" == 1 ]] || fail "submit should run tests once (got $(runner_runs))"
 [[ "$(recorded_tree)" == "$(slot_tree)" ]] || fail "submit should record the tested tree"
 
@@ -146,7 +149,7 @@ scope_field() { sed -n "s/^$1=//p" "$WORKTREE_POOL_LOCK_ROOT/agent-1.lock/tested
 echo change2 > "$TMP/agent-1/feature2.txt"
 git -C "$TMP/agent-1" add feature2.txt
 git -C "$TMP/agent-1" commit -qm "feature 2"
-pool submit agent-1 origin/main -- -Mode EditMode -ScopeType Feature -ScopeName camera >/dev/null
+pool submit agent-1 origin/main --title "test PR" --body "test body" -- -Mode EditMode -ScopeType Feature -ScopeName camera >/dev/null
 [[ "$(runner_runs)" == 4 ]] || fail "scoped submit should still run tests (got $(runner_runs))"
 [[ "$(recorded_tree)" != "$(slot_tree)" ]] || fail "scoped submit must not record merge-grade proof"
 pool merge agent-1 >/dev/null
@@ -177,7 +180,7 @@ class Gate {
 CS
 git -C "$TMP/agent-1" add code.cs
 git -C "$TMP/agent-1" commit -qm "add code.cs"
-pool submit agent-1 origin/main >/dev/null
+pool submit agent-1 origin/main --title "test PR" --body "test body" >/dev/null
 [[ "$(runner_runs)" == 6 ]] || fail "full submit should run tests (got $(runner_runs))"
 [[ "$(recorded_tree)" == "$(slot_tree)" ]] || fail "full submit should record proof"
 full_tree="$(recorded_tree)"
@@ -238,7 +241,7 @@ if last_run_line | grep -q -- '-ScopeType Smoke'; then fail "code delta must not
 
 # Dirty worktree: proof-bearing runs refuse to start (the runner tests the working tree, not HEAD).
 echo "class Stray { }" > "$TMP/agent-1/stray.cs"
-if pool submit agent-1 origin/main >/dev/null 2>&1; then fail "submit must refuse a dirty worktree"; fi
+if pool submit agent-1 origin/main --title "test PR" --body "test body" >/dev/null 2>&1; then fail "submit must refuse a dirty worktree"; fi
 [[ "$(runner_runs)" == 8 ]] || fail "dirty submit must not invoke the runner (got $(runner_runs))"
 if pool merge agent-1 >/dev/null 2>&1; then fail "merge must refuse a dirty worktree"; fi
 [[ "$(runner_runs)" == 8 ]] || fail "dirty merge must not invoke the runner (got $(runner_runs))"
@@ -249,7 +252,7 @@ rm "$TMP/agent-1/stray.cs"
 echo change3 > "$TMP/agent-1/feature3.txt"
 git -C "$TMP/agent-1" add feature3.txt
 git -C "$TMP/agent-1" commit -qm "feature 3"
-STUB_PROJECT_PATH="/definitely/not/this/project" pool submit agent-1 origin/main >/dev/null
+STUB_PROJECT_PATH="/definitely/not/this/project" pool submit agent-1 origin/main --title "test PR" --body "test body" >/dev/null
 [[ "$(runner_runs)" == 9 ]] || fail "wrong-project submit should still run tests (got $(runner_runs))"
 [[ "$(recorded_tree)" != "$(slot_tree)" ]] || fail "wrong-project summary must not arm proof"
 pool merge agent-1 >/dev/null
@@ -267,7 +270,7 @@ class CallerProbe {
 CS
 git -C "$TMP/agent-1" add src/Asteroids3D/Assets/CallerProbe.cs
 git -C "$TMP/agent-1" commit -qm "plant caller-info attribute"
-pool submit agent-1 origin/main >/dev/null
+pool submit agent-1 origin/main --title "test PR" --body "test body" >/dev/null
 [[ "$(runner_runs)" == 11 ]] || fail "caller-probe submit should run tests (got $(runner_runs))"
 [[ "$(recorded_tree)" == "$(slot_tree)" ]] || fail "caller-probe full submit should arm proof"
 sed -i 's/reworded comment/reworded again/' "$TMP/agent-1/code.cs"
