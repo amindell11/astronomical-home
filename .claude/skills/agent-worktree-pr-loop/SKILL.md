@@ -102,11 +102,10 @@ the PR number.
 
 ## Step 5 — Review round-trip
 
-The review bot posts its round a few minutes after the PR opens and re-reviews
-on every push. Wait for the round and triage it BEFORE requesting the user's
-review — the user reviews a tree that already carries the round's outcomes and
-its disposition table. Never request merge approval while a review round is in
-flight.
+The automated review bot is currently DISABLED — do not wait for a bot round;
+present the PR for the user's review as soon as submit is green. (If the bot
+is re-enabled, restore the old protocol: wait for and triage its round before
+requesting user review, and never request merge approval mid-round.)
 
 Run EVERY review comment (bot or human) through the CLAUDE.md fix ladder —
 its entry gate is the triage:
@@ -129,8 +128,8 @@ good", "LGTM") is NOT consent. Approval binds the tree: record the branch
 HEAD at the moment of consent; if ANYTHING lands on the branch after that
 (including hygiene), present the delta and re-confirm before merging.
 
-Immediately before merging, re-check for unresolved comments (revise pushes
-trigger bot re-reviews; comments can arrive late). Triage newcomers as in
+Immediately before merging, re-check for unresolved comments (they can land
+between approval and merge). Triage newcomers as in
 Step 5: rebut/defer outcomes proceed (reply + table row — the tree is
 unchanged, approval stands); a fix outcome changes the tree and reopens
 approval.
