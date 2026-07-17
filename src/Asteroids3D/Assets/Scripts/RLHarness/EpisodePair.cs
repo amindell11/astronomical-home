@@ -14,7 +14,7 @@ namespace Game.RLHarness
     public sealed class EpisodePair : IDisposable
     {
         private const string ShipPrefabPath = "Assets/Prefabs/Ships/Ship_2.prefab";
-        private const string AgentPilotPath = "Assets/Prefabs/Pilots/TestPilotMPC.prefab";
+        internal const string AgentPilotPath = "Assets/Prefabs/Pilots/TestPilotMPC.prefab";
         private const string BaselinePilotPath = "Assets/Prefabs/Pilots/UtilityPilot.prefab";
         private const uint AgentSeedStream = 101;
         private const uint BaselineSeedStream = 202;
@@ -99,7 +99,8 @@ namespace Game.RLHarness
             UnityEngine.Object.DestroyImmediate(ship.gameObject);
         }
 
-        private static Ship SpawnLasersOnlyShip(UnitService units, IProjectileService projectiles,
+        /// <summary>Also the traversal probe's single-ship recipe — probe crossings fly the exact combat-episode airframe/loadout.</summary>
+        internal static Ship SpawnLasersOnlyShip(UnitService units, IProjectileService projectiles,
             string pilotPath, Vector2 planePos, float rotDeg, int team, int decisionSeed)
         {
             var shipPrefab = Load<Ship>(ShipPrefabPath);

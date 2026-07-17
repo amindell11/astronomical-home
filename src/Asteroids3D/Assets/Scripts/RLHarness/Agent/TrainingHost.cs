@@ -25,6 +25,9 @@ namespace Game.RLHarness
                 spec = SmokeSpec(spec);
 
             var (units, arena, projectiles) = HarnessArena.Compose(gameObject);
+            var field = spec.useAsteroidField
+                ? HarnessField.Spawn(arena, spec.fieldDensityScale, transform)
+                : null;
             var pair = EpisodePair.SpawnWithAgentChooser(units, arena, projectiles, in spec, out var chooser);
 
             var agent = behaviorType switch
@@ -35,7 +38,7 @@ namespace Game.RLHarness
                     $"TrainingHost supports Default (trainer) and HeuristicOnly; {behaviorType} checkpoint eval runs through CheckpointEvaluator."),
             };
 
-            var driver = new EpisodeLoopDriver(pair, agent, arena.Offset);
+            var driver = new EpisodeLoopDriver(pair, agent, arena.Offset, field);
             var jsonlPath = EpisodeJsonl.NewRunPath("training");
             var terminals = 0;
             var truncations = 0;
