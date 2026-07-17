@@ -36,11 +36,12 @@ Commands:
       results/unity-tests-agent
 
   create-pr <slot> [base] --title "<text>" (--body "<text>" | --body-file <path>)
-      Push slot branch and create a PR with gh (default base: main).
-      An explicit --title and exactly one of --body/--body-file are
-      REQUIRED — the PR must describe the change, not echo the last
-      commit subject. If an open PR already exists for that head/base,
-      prints URL.
+      Push the slot's work to its task branch (task/<lease>, recorded
+      for merge/revise like submit) and create a PR with gh (default
+      base: main) — submit without the test run. An explicit --title
+      and exactly one of --body/--body-file are REQUIRED — the PR must
+      describe the change, not echo the last commit subject. If an open
+      PR already exists for that head/base, prints URL.
 
   create-pool-prs [base]
       Create PRs for all agent-* slots that are ahead of base.
@@ -155,6 +156,22 @@ task_branch_for() {
   fi
   # Always succeed: a failing last line would poison callers' command substitution under set -e.
   return 0
+}
+
+# Single task-branch mint/record path for every PR-opening command, so merge/revise (task_branch_for) always resolve the head that was actually pushed.
+ensure_task_branch() {
+  local slot="$1"
+  local lease task_branch ldir
+  lease="$(lease_for "$slot")"
+  if [[ -z "$lease" ]]; then
+    lease="task-$(date +%Y%m%d-%H%M%S)"
+  fi
+  task_branch="task/$lease"
+  # mkdir -p: recreate the lock dir if a stale-reclaim removed it, so the task_branch write never dies.
+  ldir="$(lock_dir_for "$slot")"
+  mkdir -p "$ldir"
+  printf '%s\n' "$task_branch" > "$ldir/task_branch"
+  echo "$task_branch"
 }
 
 SUMMARY_REL="results/unity-tests-agent/latest-summary.json"
@@ -687,17 +704,20 @@ cmd_create_pr() {
     return 0
   fi
 
-  git -C "$ROOT" push -u origin "$slot" >/dev/null
+  local task_branch
+  task_branch="$(ensure_task_branch "$slot")"
+
+  git -C "$ROOT" push -u origin "$slot:refs/heads/$task_branch" >/dev/null
 
   local existing
-  existing="$(gh pr list --head "$slot" --base "$base" --state open --json url --jq '.[0].url' 2>/dev/null || true)"
+  existing="$(gh pr list --head "$task_branch" --base "$base" --state open --json url --jq '.[0].url' 2>/dev/null || true)"
   if [[ -n "$existing" ]]; then
     echo "$slot PR already open: $existing"
     return 0
   fi
 
   local url
-  url="$(gh pr create --base "$base" --head "$slot" --title "$title" --body "$(resolve_pr_body "$body" "$body_file")")"
+  url="$(gh pr create --base "$base" --head "$task_branch" --title "$title" --body "$(resolve_pr_body "$body" "$body_file")")"
   echo "$slot PR created: $url"
 }
 
@@ -758,18 +778,8 @@ cmd_submit() {
   cmd_run_tests "$slot" "${test_args[@]}"
   record_tested_tree "$slot" "$path"
 
-  local lease task_branch
-  lease="$(lease_for "$slot")"
-  if [[ -z "$lease" ]]; then
-    lease="task-$(date +%Y%m%d-%H%M%S)"
-  fi
-  task_branch="task/$lease"
-
-  # mkdir -p: recreate the lock dir if a stale-reclaim removed it, so submit never dies on the task_branch write.
-  local ldir
-  ldir="$(lock_dir_for "$slot")"
-  mkdir -p "$ldir"
-  printf '%s\n' "$task_branch" > "$ldir/task_branch"
+  local task_branch
+  task_branch="$(ensure_task_branch "$slot")"
 
   git -C "$path" push -u origin "$slot:refs/heads/$task_branch" >/dev/null
 

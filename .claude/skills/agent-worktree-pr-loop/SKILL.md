@@ -21,7 +21,7 @@ directly, or explicit instruction to work in place.
 - `./scripts/agent_worktree_pool.sh acquire <lease-id> [slot]` — name a slot when you have a reason (warm Unity Library from related work, the ledger/dashboard shows affinity, or avoiding a slot with an open editor); a named slot that isn't free fails rather than falling back, so pick from the dashboard, don't guess. Omit for auto-pick (free slots before stale reclaims).
 - `./scripts/agent_worktree_pool.sh prepare <slot> origin/main` — never during feedback rounds unless the user explicitly asks to restart from main.
 - `./scripts/agent_worktree_pool.sh run-tests <slot> <unity_test_agent.ps1 args>` (NO `--` — run-tests forwards args directly, e.g. `run-tests agent-4 -Mode Both -ScopeType Workspace`; the `--` separator is only for `submit`/`revise`, which take a base_ref first)
-- `./scripts/agent_worktree_pool.sh create-pr <slot> --title "<text>" (--body "<text>" | --body-file <path>)` — title/body are required (validated before anything runs).
+- `./scripts/agent_worktree_pool.sh create-pr <slot> --title "<text>" (--body "<text>" | --body-file <path>)` — title/body are required (validated before anything runs); pushes to the same `task/<lease>` branch as `submit`, just without a test run.
 - `./scripts/agent_worktree_pool.sh submit <slot> origin/main --title "<text>" (--body "<text>" | --body-file <path>) -- <test args>` — same required flags; only a passing full run (`-Mode Both -ScopeType Workspace`, unfiltered) records merge-grade proof; scoped runs still open the PR but never satisfy the gate. `-ScopeType Auto` is the recommended scope for iteration and submit runs.
 - `./scripts/agent_worktree_pool.sh review-comments <slot>`
 - `./scripts/agent_worktree_pool.sh revise <slot> -- <test args>` — pull/rebase + tests + push. Valid `-Mode` values are `Both`/`EditMode`/`PlayMode` (`Smoke` is a `-ScopeType`, not a mode).
@@ -31,9 +31,9 @@ directly, or explicit instruction to work in place.
 - `./scripts/agent_worktree_pool.sh release <slot>`
 
 Branch naming: each task gets its own remote branch `task/<lease-id>` and its
-own PR. The local worktree stays on the `agent-N` branch; `submit` pushes to
-the task-specific remote branch automatically. Never run two agents in the
-same slot at once.
+own PR. The local worktree stays on the `agent-N` branch; `submit` and
+`create-pr` push to the task-specific remote branch automatically. Never run
+two agents in the same slot at once.
 
 Visibility: `./scripts/worktree_dashboard.sh` (add `--watch` for auto-refresh)
 shows all slots — lock status, branch, changed files, PRs, ahead/behind main.
