@@ -47,6 +47,13 @@ namespace Utils
         {
             if (!instance) return;
 
+            // Inactive-self ⇔ already pooled: a duplicate push would deal the same instance out to two callers.
+            if (!instance.gameObject.activeSelf)
+            {
+                Debug.LogError($"SimplePool<{typeof(T).Name}>: {instance.name} released while already inactive — double release; refusing duplicate pool push.", instance);
+                return;
+            }
+
             instance.gameObject.SetActive(false);
 
             if (!InstanceToKey.TryGetValue(instance, out var key))
