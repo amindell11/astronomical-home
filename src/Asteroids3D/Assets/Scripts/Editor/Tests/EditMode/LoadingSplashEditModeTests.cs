@@ -8,6 +8,7 @@ namespace Tests.EditMode
     /// The splash must cover exactly the non-interactive states: visible while the game boots,
     /// composes the session, or cycles a sector — hidden in the hangar and during live play.
     /// </summary>
+    [Category("UI")]
     public class LoadingSplashEditModeTests
     {
         [TestCase(GameState.Loading, true)]
