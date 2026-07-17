@@ -26,7 +26,7 @@ namespace Game.RLHarness
             envelopeK2 = 0.1f,
             borderKb = 0.5f,
             gamma = 0.99f,
-            decisionIntervalSteps = 10,
+            decisionIntervalSteps = ShipCombatPolicy.DecisionIntervalSteps,
             timeoutDecisions = 600,
             arenaRadius = 120f,
             borderSoftFraction = 0.8f,
