@@ -13,6 +13,7 @@ related:
 # Multi-Circle Asteroid Obstacles
 
 > STATUS: live arc — asteroid env + obstacle tokens is the tactical-AI next step
+> Salvage candidate: origin/task/asteroid-noise-profile-stale tip 2585bff5 — unshipped noise-profile field shapes (+335/−65, 2026-07-03); predates the #87/#88/#90 re-pivot, needs rework not rebase.
 
 Tighter obstacle geometry for the MPC solver: represent elongated asteroids as
 **2–4 baked covering circles** instead of a single mean-radius circle, so
