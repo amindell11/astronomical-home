@@ -3,7 +3,8 @@ param(
     [Parameter(Mandatory=$true)][string]$NewPath
 )
 
-# Verdict for the merge gate's inert-diff fast path: exit 0 = full-line-comment/blank-line-only delta, 1 = code change, 2 = doubt (callers treat as code). Conservative line heuristic: constructs that can span lines or hide code shape (verbatim/raw strings, block comments) are doubt; false negatives merely cost a test run.
+# Verdict for the merge gate's inert-diff fast path: exit 0 = full-line-comment/blank-line-only delta, 1 = code change, 2 = doubt (callers treat as code).
+# Conservative line heuristic: anything that can span lines or hide code shape is doubt; false negatives merely cost a test run.
 $ErrorActionPreference = "Stop"
 
 function Get-SignificantLines {
@@ -14,6 +15,9 @@ function Get-SignificantLines {
     foreach ($marker in @('@"', '$@"', '@$"', '"""', '/*')) {
         if ($text.Contains($marker)) { throw ("unsupported construct: " + $marker) }
     }
+    # C# ends // comments at U+0085/U+2028/U+2029 and bare CR too; unsplit, they hide code behind a comment prefix.
+    if ($text.IndexOfAny([char[]]@([char]0x85, [char]0x2028, [char]0x2029)) -ge 0) { throw "unsupported line terminator" }
+    if ($text -match '\r(?!\n)') { throw "bare CR line terminator" }
     $lines = $text -split "`r?`n" | ForEach-Object { $_.Trim() } |
         Where-Object { $_ -ne "" -and -not $_.StartsWith("//") }
     return @($lines) -join "`n"

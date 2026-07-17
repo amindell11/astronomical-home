@@ -100,6 +100,14 @@ Assert-Verdict "block comment is doubt even when inert-looking" `
     "class A { /* a */ int x = 1; }" `
     "class A { int x = 1; }" $DOUBT
 
+Assert-Verdict "bare CR line terminator is doubt" `
+    "class A {`r    // one`r    int x = 1;`r}" `
+    "class A {`r    // two`r    int x = 1;`r}" $DOUBT
+
+Assert-Verdict "U+2028 line separator is doubt" `
+    ("class A { // one" + [char]0x2028 + "Run(); }") `
+    ("class A { // two" + [char]0x2028 + "Run(); }") $DOUBT
+
 & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $inertDiff -OldPath (Join-Path $tmp "absent-old.cs") -NewPath (Join-Path $tmp "absent-new.cs") | Out-Null
 if ($LASTEXITCODE -eq $DOUBT) {
     Write-Host "PASS: missing file is doubt"
