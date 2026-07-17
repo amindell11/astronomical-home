@@ -129,7 +129,9 @@ HEAD at the moment of consent; if ANYTHING lands on the branch after that
 (including hygiene), present the delta and re-confirm before merging.
 
 Immediately before merging, re-check for unresolved comments (they can land
-between approval and merge). Triage newcomers as in
+between approval and merge). One check, not a wait: an empty result is clear
+to merge — never poll or delay waiting for comments to appear. Triage
+newcomers as in
 Step 5: rebut/defer outcomes proceed (reply + table row — the tree is
 unchanged, approval stands); a fix outcome changes the tree and reopens
 approval.
