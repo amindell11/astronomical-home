@@ -11,7 +11,7 @@ namespace Movement.MPC.Field
     /// <see cref="FieldBaker"/>. Reached per-arena via <see cref="Game.Services.ArenaContext.NavField"/>.
     /// </summary>
     [DefaultExecutionOrder(-90)]
-    public partial class NavFieldService : MonoBehaviour
+    public class NavFieldService : MonoBehaviour
     {
         [Header("Grid")]
         [Tooltip("Cells per side. Extent = gridSize * cellSize, centered on the target.")]
@@ -31,7 +31,12 @@ namespace Movement.MPC.Field
         [Tooltip("Rebuild at least this often regardless of motion (drifting rocks).")]
         [SerializeField] private float maxStaleness = 1f;
 
-        private readonly Dictionary<Transform, FieldBaker> fields = new();
+#if UNITY_EDITOR
+        [Header("Debug (editor only)")]
+        [SerializeField] internal bool drawFieldGizmos;
+#endif
+
+        internal readonly Dictionary<Transform, FieldBaker> fields = new();
         private readonly List<Transform> stale = new();
 
         private void OnDestroy()
@@ -40,12 +45,7 @@ namespace Movement.MPC.Field
             fields.Clear();
         }
 
-        /// <summary>
-        /// Sampling view of the target's field. Returns false while nothing is solved yet
-        /// (first frames) — the caller's terminal hook then contributes 0. Kicks the rebuild
-        /// machinery as a side effect. <paramref name="field"/> is B2's live obstacle source
-        /// (may be null between sectors, in which case the field bakes with no obstacles).
-        /// </summary>
+        /// <summary>Sampling view of the target's field; false while nothing is solved yet (the caller's terminal hook then contributes 0). Kicks the rebuild machinery as a side effect; a null <paramref name="field"/> bakes with no obstacles.</summary>
         public bool TryGetData(Transform target, float2 targetPlanePos, float nominalSpeed,
             IObstacleField field, out TerminalFieldData data)
         {

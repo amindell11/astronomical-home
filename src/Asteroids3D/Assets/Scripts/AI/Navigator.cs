@@ -13,9 +13,17 @@ using UnityEngine;
 using UnityEngine.Serialization;
 namespace Movement.MPC
 {
+#if UNITY_EDITOR
+    public enum CostBreakdownMode
+    {
+        CurrentState,
+        Trajectory,
+    }
+#endif
+
     /// <summary>Turns a <see cref="NavigationIntent"/> into per-frame movement commands: owns the control surface (waypoints, goals, enemy state, weight overrides) and drives an <see cref="Mpc"/> solver, holding no solver state or MPC math itself.</summary>
     [DefaultExecutionOrder(-60)]
-    public partial class Navigator : MonoBehaviour
+    public class Navigator : MonoBehaviour
     {
         private const uint MpcSamplerStream = 1;
 
@@ -36,11 +44,11 @@ namespace Movement.MPC
         protected float2 velocityReference;
         protected bool hasVelocityReference;
         private bool boostCommanded;
-        protected float2 enemyPos;
-        protected float2 enemyVel;
-        protected float enemyYaw = float.NaN;
-        protected float enemyYawRate;
-        protected float projectileSpeed;
+        protected internal float2 enemyPos;
+        protected internal float2 enemyVel;
+        protected internal float enemyYaw = float.NaN;
+        protected internal float enemyYawRate;
+        protected internal float projectileSpeed;
         protected Dynamics enemyDynamics;
         protected WeightOverride[] weightOverrides = Array.Empty<WeightOverride>();
 
@@ -56,7 +64,7 @@ namespace Movement.MPC
         private float selfMaxSpeed;
 
         // Per-ship self-anchored escape grid sampled through the terminal hook, active only while fleeing a live target.
-        private Field.FieldBaker fleeFieldBaker;
+        internal Field.FieldBaker fleeFieldBaker;
         private bool hasFleeThreat;
         private float2 fleeThreat;
 
@@ -77,8 +85,8 @@ namespace Movement.MPC
         [Header("Obstacle Avoidance")]
         public bool enableObstacleAvoidance = true;
 
-        private Mpc mpc;
-        private Dynamics dynamics; // consumed by the editor/gizmo partial
+        internal Mpc mpc;
+        internal Dynamics dynamics;
         private SeedScope navScope;
 
         public void Initialize(IShipStatus shipContext, Dynamics dynamics, Scout scout, SeedScope navScope, ArenaContext arena)
@@ -161,7 +169,7 @@ namespace Movement.MPC
             sw.Stop();
             lastSolveTimeMs = (float)sw.Elapsed.TotalMilliseconds;
             lastCostBreakdown = EvaluateBreakdown(mpc.LastInitialState);
-            RunComparisonRollouts(mpc.LastInitialState, scan);
+            RunComparisonRollouts(mpc.LastInitialState);
             LogSolverPerformanceIfNeeded();
 #endif
 
@@ -195,8 +203,8 @@ namespace Movement.MPC
             return !(Mathf.Abs(yawErr) > 5f);
         }
 
-        private float2 GoalPos() => new(currentWaypoint.position.x, currentWaypoint.position.y);
-        private float2 GoalVel() => new(currentWaypoint.velocity.x, currentWaypoint.velocity.y);
+        internal float2 GoalPos() => new(currentWaypoint.position.x, currentWaypoint.position.y);
+        internal float2 GoalVel() => new(currentWaypoint.velocity.x, currentWaypoint.velocity.y);
 
         /// <summary>Pump + rebake + sample the per-ship escape field (timer-only, since the anchor is this ship). False while the first bake is in flight, so the terminal hook contributes 0 like pursuit's warm-up.</summary>
         private bool GetFleeField(float2 selfPos, out Field.TerminalFieldData data)
@@ -389,8 +397,149 @@ namespace Movement.MPC
             fleeFieldBaker?.Dispose();
         }
 
-        partial void RunComparisonRollouts(State mpcState, ObstacleScan scan);
-        partial void StoreDebugObstacles(ObstacleScan scan);
-        partial void LogSolverPerformanceIfNeeded();
+#if UNITY_EDITOR
+        [Header("Debug Visualization")]
+        [Tooltip("Horizontal prediction step for labels")]
+        public int labelStep = 5;
+        [Tooltip("Show cost breakdown in Inspector")]
+        public bool showCostBreakdown = true;
+        [Tooltip("Which cost to display: current ship state or full trajectory")]
+        public CostBreakdownMode costBreakdownMode = CostBreakdownMode.CurrentState;
+        [Tooltip("Log solver performance once per second")]
+        public bool logSolverPerformance = false;
+
+        [Header("Scene Gizmo Sub-Toggles")]
+        public bool showObstacleCosts = true;
+        public bool showTrajectoryCosts = true;
+        public bool showControlInputs = true;
+        [Tooltip("Render a random sampling of MPC candidate trajectories with rank-based alpha. " +
+                 "Click a terminal-point handle in the scene view to inspect that candidate's breakdown.")]
+        public bool showCandidateTrajectories = false;
+        [Tooltip("Render this ship's flee escape field (cost heatmap + blocked cells) while fleeing.")]
+        public bool showFleeField = false;
+        [Range(1, 256)]
+        [Tooltip("How many of the (up to) 256 candidates to render. Subsample is reseeded each frame.")]
+        public int candidateSampleCount = 32;
+        [Range(0f, 5f)]
+        [Tooltip("Visibility falloff with cost rank. 0 = all rendered candidates equally bright, " +
+                 "higher = sharper focus on top-ranked. Default 2 ≈ worst-shown at ~13% of best's alpha.")]
+        public float candidateAlphaFalloff = 2f;
+        [Tooltip("World-space offset from ship for the control input panel")]
+        public Vector3 controlPanelOffset = new(0f, 2.5f, 0f);
+
+        [Header("Comparison Rollouts")]
+        [Tooltip("State profiles to run comparison rollouts for. Each gets its own trajectory drawn in a unique color.")]
+        public StateProfile[] comparisonProfiles;
+
+        [NonSerialized] public int selectedCandidateIndex = -1;
+        // Candidate subsample drawn this frame, sorted by cost ascending; shared scratch between the gizmo pass and the scene-view selection handles.
+        internal int[] visibleCandidateIndices;
+        internal int visibleCount;
+
+        private float nextLogTime;
+        internal DetectedObstacle[] dbgObstacles;
+        internal int dbgObstacleCount;
+        public CostBreakdown lastCostBreakdown;
+        public float lastSolveTimeMs;
+
+        internal SolverBuffers solver => mpc?.Solver;
+        internal Config config => mpc != null ? mpc.Config : default;
+        internal Control[] bestSequence => mpc?.BestSequence;
+        internal State[] predictedStates => mpc?.PredictedStates;
+        internal State lastInitialState => mpc != null ? mpc.LastInitialState : default;
+        internal Control lastControl => mpc != null ? mpc.LastControl : default;
+        internal float lastBestCost => mpc != null ? mpc.LastBestCost : 0f;
+
+        internal struct ComparisonResult
+        {
+            public StateProfile profile;
+            public Control[] sequence;
+            public State[] trajectory;
+            public float cost;
+        }
+        internal ComparisonResult[] comparisonResults;
+
+        private void RunComparisonRollouts(State mpcState)
+        {
+            if (comparisonProfiles == null || comparisonProfiles.Length == 0)
+            {
+                comparisonResults = null;
+                return;
+            }
+
+            if (comparisonResults == null || comparisonResults.Length != comparisonProfiles.Length)
+                comparisonResults = new ComparisonResult[comparisonProfiles.Length];
+
+            var costInput = solver.BuildCostInput(GoalPos(), GoalVel(),
+                enemyPos, enemyVel, enemyYaw, enemyYawRate, projectileSpeed, mpcState.vel);
+
+            for (var p = 0; p < comparisonProfiles.Length; p++)
+            {
+                var profile = comparisonProfiles[p];
+                if (!profile) continue;
+
+                var goal = profile.goal;
+                var gm = goal?.GoalMode ?? GoalMode.Waypoint;
+                var desiredRange = 0f;
+                var rangeTolerance = 0f;
+                if (goal is TrackEnemyGoal track)
+                {
+                    desiredRange = track.desiredRange;
+                    rangeTolerance = track.rangeTolerance;
+                }
+                var facingRad = facingOverride ? facingAngle * Mathf.Deg2Rad : float.NaN;
+                var compConfig = mpcSettings.ToConfig(facingRad, gm, desiredRange, rangeTolerance);
+                compConfig.ApplyDynamics(dynamics);
+                profile.weightOverrides.Apply(ref compConfig);
+
+                var horizon = compConfig.horizon;
+                if (comparisonResults[p].sequence == null || comparisonResults[p].sequence.Length != horizon)
+                {
+                    comparisonResults[p].sequence = new Control[horizon];
+                    comparisonResults[p].trajectory = new State[horizon];
+                }
+
+                var seq = comparisonResults[p].sequence;
+                comparisonResults[p].cost = solver.Rescore(mpcState, seq,
+                    compConfig, dynamics, costInput, lastControl,
+                    mpcSettings.samples, mpcSettings.eliteFraction);
+
+                var current = mpcState;
+                var traj = comparisonResults[p].trajectory;
+                for (var i = 0; i < horizon; i++)
+                {
+                    current = Model.Step(current, seq[i], compConfig, dynamics);
+                    traj[i] = current;
+                }
+
+                comparisonResults[p].profile = profile;
+            }
+        }
+
+        private void StoreDebugObstacles(ObstacleScan scan)
+        {
+            if (dbgObstacles == null || dbgObstacles.Length < scan.count)
+                dbgObstacles = new DetectedObstacle[Mathf.Max(scan.count, 32)];
+
+            dbgObstacleCount = scan.count;
+            for (var i = 0; i < scan.count; i++)
+                dbgObstacles[i] = scan.buffer[i];
+        }
+
+        private CostBreakdown EvaluateBreakdown(State mpcState)
+        {
+            var input = solver.BuildCostInput(GoalPos(), GoalVel(), enemyPos, enemyVel, enemyYaw, enemyYawRate, projectileSpeed, mpcState.vel);
+            if (costBreakdownMode == CostBreakdownMode.CurrentState)
+                return Cost.EvaluateBreakdown(mpcState, bestSequence[0], lastControl, input, config, false);
+            return Cost.EvaluateTrajectoryBreakdown(mpcState, bestSequence, input, config, dynamics, lastControl);
+        }
+
+        private void LogSolverPerformanceIfNeeded()
+        {
+            if (!logSolverPerformance || !(Time.time > nextLogTime)) return;
+            UnityEngine.Debug.Log($"[MPC] {gameObject.name} | Solve: {lastSolveTimeMs:F2}ms | Cost: {lastBestCost:F1}");
+            nextLogTime = Time.time + 1f;
+        }
+#endif
     }
 }

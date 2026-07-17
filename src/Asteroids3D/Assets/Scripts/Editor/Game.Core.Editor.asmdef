@@ -2,7 +2,9 @@
     "name": "Game.Core.Editor",
     "rootNamespace": "",
     "references": [
-        "Game.Core"
+        "Game.Core",
+        "Unity.Mathematics",
+        "Unity.Collections"
     ],
     "includePlatforms": [
         "Editor"

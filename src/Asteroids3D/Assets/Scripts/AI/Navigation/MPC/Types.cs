@@ -203,10 +203,9 @@ namespace Movement.MPC
 
         /// <summary>Pre-rolled enemy trajectory over the horizon. If valid, overrides linear extrapolation.</summary>
         public NativeArray<State> enemyStates;
-        /// <summary>Number of valid entries in enemyStates.</summary>
         public int enemyStateCount;
 
-        /// <summary>Ship velocity at the start of the rollout. Used by momentum cost to reward maintaining direction.</summary>
+        /// <summary>Ship velocity at the start of the rollout, the momentum cost's reference direction.</summary>
         public float2 initialVel;
 
         /// <summary>Cost-to-go field sampled once per rollout at the terminal state; isValid == 0 (the default) makes the hook contribute 0.</summary>
@@ -214,20 +213,67 @@ namespace Movement.MPC
 
     }
 
-    internal readonly partial struct EditorProfilingScope : System.IDisposable
+    internal readonly struct EditorProfilingScope : System.IDisposable
     {
         public static EditorProfilingScope Begin(string sampleName)
         {
-            BeginSample(sampleName);
+#if UNITY_EDITOR
+            UnityEngine.Profiling.Profiler.BeginSample(sampleName);
+#endif
             return new EditorProfilingScope();
         }
 
         public void Dispose()
         {
-            EndSample();
+#if UNITY_EDITOR
+            UnityEngine.Profiling.Profiler.EndSample();
+#endif
         }
-
-        static partial void BeginSample(string sampleName);
-        static partial void EndSample();
     }
+
+#if UNITY_EDITOR
+    public struct CostBreakdown
+    {
+        public float pos;
+        public float vel;
+        public float closing;
+        public float heading;
+        public float velocityTrack;
+        public float facing;
+        public float yawRate;
+        public float obstacle;
+        public float collision;
+        public float los;
+        public float exposure;
+        public float tangential;
+        public float missDistance;
+        public float momentum;
+        public float effort;
+        public float boostEffort;
+        public float smoothness;
+        public float total;
+
+        public void Add(CostBreakdown other)
+        {
+            pos += other.pos;
+            vel += other.vel;
+            closing += other.closing;
+            heading += other.heading;
+            velocityTrack += other.velocityTrack;
+            facing += other.facing;
+            yawRate += other.yawRate;
+            obstacle += other.obstacle;
+            collision += other.collision;
+            los += other.los;
+            exposure += other.exposure;
+            tangential += other.tangential;
+            missDistance += other.missDistance;
+            momentum += other.momentum;
+            effort += other.effort;
+            boostEffort += other.boostEffort;
+            smoothness += other.smoothness;
+            total += other.total;
+        }
+    }
+#endif
 }
