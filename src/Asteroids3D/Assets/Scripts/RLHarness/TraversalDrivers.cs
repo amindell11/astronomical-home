@@ -29,10 +29,15 @@ namespace Game.RLHarness
         }
     }
 
-    /// <summary>The legacy comparator: the same crossing through the old goal-mode path — MaintainRange(0) onto a static target at the far edge, which engages the shared nav/terminal field (Navigator routes MaintainRange-with-target to NavFieldService) plus the position-goal cost stack.</summary>
+    /// <summary>The legacy comparator: the same crossing through the old goal-mode path's NAV identity — MaintainRange onto a marker past the far edge, which routes the shared nav/terminal-field bake (Navigator keys it on MaintainRange-with-target) plus the position/closing/obstacle cost stack. Tactical costs stay OFF: with them on, the marker is treated as an armed enemy and exposure-avoid + tangential-strafe fight the closing gradient — combat jinking against a phantom, not traversal.</summary>
     public class LegacyNavTraversalChooser : IIntentChooser
     {
         public const string DriverTag = "legacy-nav";
+
+        public const float DesiredRange = 15f;
+        public const float RangeTolerance = 5f;
+        /// <summary>Place the goal marker this far past the crossing exit so the whole range-hold band lies beyond the finish line — the ship cannot settle short of it.</summary>
+        public const float GoalStandoff = DesiredRange + RangeTolerance;
 
         private DummyTarget destination;
 
@@ -47,8 +52,8 @@ namespace Game.RLHarness
                 isValid = true,
                 goalMode = GoalMode.MaintainRange,
                 goalPosition = destPlane,
-                desiredRange = 0f,
-                rangeTolerance = 0f,
+                desiredRange = DesiredRange,
+                rangeTolerance = RangeTolerance,
                 hasTarget = true,
                 target = new EnemyTarget
                 {
@@ -56,8 +61,7 @@ namespace Game.RLHarness
                     dynamics = ctx.Self.Dynamics,
                     source = destination.transform,
                 },
-                // Routes SetEnemyState so the terminal-field bake centers on the destination; the phantom "enemy" is static and unarmed, so the tactical block sees a benign anchor — this IS the production chase stack the comparator measures.
-                applyTacticalCosts = true,
+                applyTacticalCosts = false,
             };
         }
     }

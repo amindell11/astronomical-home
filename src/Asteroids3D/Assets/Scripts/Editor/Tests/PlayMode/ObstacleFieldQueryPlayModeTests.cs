@@ -104,6 +104,7 @@ public class ObstacleFieldQueryPlayModeTests : PlayModeWorldFixture
         var field = SpawnHarnessField();
         field.SetDensityScale(0.5f);
         yield return new WaitForFixedUpdate();
+        yield return new WaitForFixedUpdate();
 
         var sparseCount = CountAll(field);
         Assert.Greater(sparseCount, 0, "Half-density field should still generate asteroids");
@@ -119,6 +120,7 @@ public class ObstacleFieldQueryPlayModeTests : PlayModeWorldFixture
     public IEnumerator HostExclusionVolumes_CarveClearings_AtRebuild()
     {
         var field = SpawnHarnessField();
+        yield return new WaitForFixedUpdate();
         yield return new WaitForFixedUpdate();
 
         var baselineCount = CountAll(field);
