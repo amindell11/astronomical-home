@@ -93,6 +93,8 @@ namespace Game.RLHarness
         public float endPhiBorder;
 
         public RewardSpec spec;
+        // Empty archetype = no roster configured (the default single-opponent path).
+        public OpponentDraw opponent;
         public List<DecisionRow> trace;
 
         public const string SchemaId = "rl-episode-v2";

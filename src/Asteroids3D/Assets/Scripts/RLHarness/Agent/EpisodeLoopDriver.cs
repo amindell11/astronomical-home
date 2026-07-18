@@ -11,18 +11,21 @@ namespace Game.RLHarness
         private readonly ShipAgent agent;
         private readonly Vector2 arenaCenter;
         private readonly HarnessField field;
+        private readonly OpponentRoster roster;
         private readonly WaitForFixedUpdate waitFixed = new();
 
         public EpisodeRunner Runner { get; private set; }
         /// <summary>The agent-side cumulative reward captured just before EndEpisode cleared it — must equal the runner's totalReward.</summary>
         public float LastEpisodeCumulativeReward { get; private set; }
 
-        public EpisodeLoopDriver(EpisodePair pair, ShipAgent agent, Vector2 arenaCenter, HarnessField field = null)
+        public EpisodeLoopDriver(EpisodePair pair, ShipAgent agent, Vector2 arenaCenter, HarnessField field = null,
+            OpponentRoster roster = null)
         {
             this.pair = pair;
             this.agent = agent;
             this.arenaCenter = arenaCenter;
             this.field = field;
+            this.roster = roster;
             Academy.Instance.AutomaticSteppingEnabled = false;
         }
 
@@ -33,8 +36,11 @@ namespace Game.RLHarness
                     "spec.useAsteroidField requires a HarnessField — the JSONL would claim asteroid episodes that ran in an empty arena.");
             // Field first: the episode's poses become generation-time clearings, so ships respawn onto carved ground.
             field?.Reset(in spec, episodeIndex, EpisodePoses.Derive(in spec, episodeIndex, arenaCenter));
+            // Install before the pair-reset: the respawn re-inits the installed chooser (traversal-probe ordering).
+            var draw = roster?.Install(in spec, episodeIndex, arenaCenter);
             pair.Reset(in spec, episodeIndex);
             Runner = new EpisodeRunner(pair.Agent, pair.Baseline, spec, episodeIndex, arenaCenter, tracePerDecision);
+            if (draw.HasValue) Runner.RecordOpponent(draw.Value);
             Runner.Begin();
             agent.BindEpisode(Runner);
             agent.RequestDecision();
