@@ -9,6 +9,7 @@ using Game.Services;
 using Movement.MPC;
 using NUnit.Framework;
 using Ships;
+using Ships.Command;
 using Tests.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -115,7 +116,7 @@ namespace Tests.PlayMode
             spec.driver = LegacyNavTraversalChooser.DriverTag;
             spec.densityScale = 0.5f;
             spec.speedFraction = 0.9f;
-            // The legacy stack cruises a weak-gradient ~4 u/s at long range (#145 closing-reward regime), so the crossing needs a legacy-scaled budget; the sweep's speed curves report the gap.
+            // Generous budget: the comparator's speed is an authored-asset property (Pursuit regime), not the probe's to assume; the sweep's speed curves report it.
             spec.timeoutFactor = 12f;
 
             TraversalResult result = default;
@@ -221,7 +222,8 @@ namespace Tests.PlayMode
                     destinationMarker.Configure(destination + LegacyNavTraversalChooser.GoalStandoff * dir,
                         -dir, aim: false, aimRateDegPerSec: 0f);
                     var legacyChooser = new LegacyNavTraversalChooser();
-                    legacyChooser.Configure(destinationMarker);
+                    legacyChooser.Configure(destinationMarker,
+                        ship.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary));
                     brain.InstallChooser(legacyChooser);
                     break;
                 default:
