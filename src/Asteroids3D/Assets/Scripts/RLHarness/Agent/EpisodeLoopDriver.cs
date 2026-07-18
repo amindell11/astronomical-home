@@ -28,6 +28,9 @@ namespace Game.RLHarness
 
         public IEnumerator RunEpisode(RewardSpec spec, int episodeIndex, bool tracePerDecision = false)
         {
+            if (spec.useAsteroidField && field == null)
+                throw new System.InvalidOperationException(
+                    "spec.useAsteroidField requires a HarnessField — the JSONL would claim asteroid episodes that ran in an empty arena.");
             // Field first: the episode's poses become generation-time clearings, so ships respawn onto carved ground.
             field?.Reset(in spec, episodeIndex, EpisodePoses.Derive(in spec, episodeIndex, arenaCenter));
             pair.Reset(in spec, episodeIndex);

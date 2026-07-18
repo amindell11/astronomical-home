@@ -197,9 +197,6 @@ namespace Tests.PlayMode
             var nav = ship.GetComponentInChildren<AICommander>().Navigator;
             settingsClone = UnityEngine.Object.Instantiate(nav.mpcSettings);
             nav.mpcSettings = settingsClone;
-
-            var markerGo = new GameObject("[TraversalDestination]");
-            destinationMarker = markerGo.AddComponent<DummyTarget>();
         }
 
         private IEnumerator RunCrossing(TraversalSpec spec, int episodeIndex, Action<TraversalResult> onComplete)
@@ -218,6 +215,9 @@ namespace Tests.PlayMode
                     brain.InstallChooser(velocityChooser);
                     break;
                 case LegacyNavTraversalChooser.DriverTag:
+                    // Fresh marker per crossing: NavFieldService caches bakers by target Transform, so a reused marker would serve the prior crossing's field until rebake.
+                    if (destinationMarker) UnityEngine.Object.DestroyImmediate(destinationMarker.gameObject);
+                    destinationMarker = new GameObject("[TraversalDestination]").AddComponent<DummyTarget>();
                     destinationMarker.Configure(destination + LegacyNavTraversalChooser.GoalStandoff * dir,
                         -dir, aim: false, aimRateDegPerSec: 0f);
                     var legacyChooser = new LegacyNavTraversalChooser();
