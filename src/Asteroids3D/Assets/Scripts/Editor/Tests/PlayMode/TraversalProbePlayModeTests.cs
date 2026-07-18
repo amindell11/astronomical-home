@@ -9,7 +9,6 @@ using Game.Services;
 using Movement.MPC;
 using NUnit.Framework;
 using Ships;
-using Ships.Command;
 using Tests.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -32,7 +31,6 @@ namespace Tests.PlayMode
         private HarnessField field;
         private Ship ship;
         private MpcSettings settingsClone;
-        private DummyTarget destinationMarker;
 
         [SetUp]
         public void SetUp()
@@ -68,8 +66,6 @@ namespace Tests.PlayMode
             ship = null;
             if (settingsClone) UnityEngine.Object.DestroyImmediate(settingsClone);
             settingsClone = null;
-            if (destinationMarker) UnityEngine.Object.DestroyImmediate(destinationMarker.gameObject);
-            destinationMarker = null;
 
             if (arenaHost) UnityEngine.Object.DestroyImmediate(arenaHost);
             arena = null;
@@ -107,7 +103,7 @@ namespace Tests.PlayMode
 
         [UnityTest]
         [Timeout(600000)]
-        public IEnumerator Smoke_LegacyDriver_EngagesNavFieldAndCrosses()
+        public IEnumerator Smoke_LegacyDriver_CrossesViaAuthoredWaypointRegime()
         {
             PacingContract.Apply();
             ComposeProbe(maxDensityScale: 0.5f);
@@ -116,22 +112,15 @@ namespace Tests.PlayMode
             spec.driver = LegacyNavTraversalChooser.DriverTag;
             spec.densityScale = 0.5f;
             spec.speedFraction = 0.9f;
-            // Generous budget: the comparator's speed is an authored-asset property (Pursuit regime), not the probe's to assume; the sweep's speed curves report it.
+            // Generous budget: the comparator's speed is an authored-asset property, not the probe's to assume; the sweep's speed curves report it.
             spec.timeoutFactor = 12f;
 
             TraversalResult result = default;
             yield return RunCrossing(spec, 0, r => result = r);
 
-            // Checked first so a stall diagnoses its layer: the nav/terminal field must actually bake in the harness composition (no sector scene machinery). MaintainRange-with-target routes the bake through NavFieldService; wTerminal > 0 consumes it.
-            Assert.IsTrue(arena.NavField.fields.ContainsKey(destinationMarker.transform),
-                "Legacy driver never requested a terminal-field bake for its destination target");
-            Assert.IsTrue(arena.NavField.TryGetData(destinationMarker.transform, destinationMarker.PlanePosition,
-                    ship.Dynamics.maxSpeed, arena.ObstacleField, out _),
-                "Terminal-field bake never completed in the harness composition");
-
             Assert.AreNotEqual(TraversalOutcome.Unresolved.ToString(), result.outcome);
             Assert.Greater(result.alongTrack, 0.5f * spec.crossingRadius,
-                "Legacy goal-mode stack made no meaningful crossing progress");
+                "Legacy waypoint stack made no meaningful crossing progress");
         }
 
         [UnityTest]
@@ -216,14 +205,9 @@ namespace Tests.PlayMode
                     brain.InstallChooser(velocityChooser);
                     break;
                 case LegacyNavTraversalChooser.DriverTag:
-                    // Fresh marker per crossing: NavFieldService caches bakers by target Transform, so a reused marker would serve the prior crossing's field until rebake.
-                    if (destinationMarker) UnityEngine.Object.DestroyImmediate(destinationMarker.gameObject);
-                    destinationMarker = new GameObject("[TraversalDestination]").AddComponent<DummyTarget>();
-                    destinationMarker.Configure(destination + LegacyNavTraversalChooser.GoalStandoff * dir,
-                        -dir, aim: false, aimRateDegPerSec: 0f);
                     var legacyChooser = new LegacyNavTraversalChooser();
-                    legacyChooser.Configure(destinationMarker,
-                        ship.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary));
+                    // Waypoint a full crossing-radius past the exit: arrival deceleration stays outside the measured segment.
+                    legacyChooser.Configure(destination + spec.crossingRadius * dir);
                     brain.InstallChooser(legacyChooser);
                     break;
                 default:

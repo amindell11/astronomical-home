@@ -33,71 +33,44 @@ namespace Game.RLHarness
         }
     }
 
-    /// <summary>The legacy comparator: the same crossing through the authored pursuit regime — the Pursuit state profile's own goal params, weight overrides (momentum-dominant, facing-free), and tactical flag, aimed at a marker past the far edge (nav/terminal-field bake still keys on MaintainRange-with-target). Reading the asset keeps the comparator honest: bare base-weight MaintainRange is a configuration no authored state ever runs.</summary>
+    /// <summary>The legacy comparator: the authored stack's TRAVERSAL identity — Waypoint mode (the wPos gradient patrol flight rides) with the Patrol profile's own weight overrides, aimed far past the crossing exit so arrival deceleration never enters the measured segment. Answers "how fast can the authored stack cross the field"; the MaintainRange closing regimes crawl regardless of overrides (measured on #173) and measure pursuit, not traversal.</summary>
     public class LegacyNavTraversalChooser : IIntentChooser
     {
-        public const string DriverTag = "legacy-nav";
-        public const string PursuitProfilePath = "Assets/Settings/AI/StateProfiles/Pursuit.asset";
+        public const string DriverTag = "legacy-waypoint";
+        public const string PatrolProfilePath = "Assets/Settings/AI/StateProfiles/Patrol.asset";
 
-        private static StateProfile pursuitProfile;
-        private static TrackEnemyGoal PursuitGoal =>
-            (PursuitProfile.goal as TrackEnemyGoal)
-            ?? throw new InvalidOperationException("Pursuit profile's goal must be a TrackEnemyGoal");
-
-        public static StateProfile PursuitProfile
+        private static StateProfile patrolProfile;
+        public static StateProfile PatrolProfile
         {
             get
             {
 #if UNITY_EDITOR
-                if (!pursuitProfile)
+                if (!patrolProfile)
                 {
-                    pursuitProfile = AssetDatabase.LoadAssetAtPath<StateProfile>(PursuitProfilePath);
-                    if (!pursuitProfile)
-                        throw new InvalidOperationException($"Failed to load {PursuitProfilePath} — check probe asset paths.");
+                    patrolProfile = AssetDatabase.LoadAssetAtPath<StateProfile>(PatrolProfilePath);
+                    if (!patrolProfile)
+                        throw new InvalidOperationException($"Failed to load {PatrolProfilePath} — check probe asset paths.");
                 }
-                return pursuitProfile;
+                return patrolProfile;
 #else
-                throw new NotSupportedException("The legacy comparator loads the Pursuit profile via AssetDatabase (editor only).");
+                throw new NotSupportedException("The legacy comparator loads the Patrol profile via AssetDatabase (editor only).");
 #endif
             }
         }
 
-        /// <summary>Place the goal marker this far past the crossing exit so the whole range-hold band lies beyond the finish line — the ship cannot settle short of it.</summary>
-        public static float GoalStandoff => PursuitGoal.desiredRange + PursuitGoal.rangeTolerance;
+        private Vector2 waypoint;
 
-        private DummyTarget destination;
-        private float projectileSpeed;
-
-        public void Configure(DummyTarget destination, float projectileSpeed)
-        {
-            this.destination = destination;
-            this.projectileSpeed = projectileSpeed;
-        }
+        public void Configure(Vector2 waypoint) => this.waypoint = waypoint;
 
         public NavigationIntent Decide(AIContext ctx, float dt)
         {
-            if (destination == null || ctx?.Self == null) return NavigationIntent.None;
-            var profile = PursuitProfile;
-            var goal = PursuitGoal;
-            var destPlane = destination.PlanePosition;
+            if (ctx?.Self == null) return NavigationIntent.None;
             return new NavigationIntent
             {
                 isValid = true,
-                goalMode = goal.GoalMode,
-                goalPosition = destPlane,
-                desiredRange = goal.desiredRange,
-                rangeTolerance = goal.rangeTolerance,
-                weightOverrides = profile.weightOverrides,
-                enableFiring = profile.enableFiring,
-                hasTarget = true,
-                target = new EnemyTarget
-                {
-                    kinematics = new Kinematics(destPlane, Vector2.zero, 0f, 0f, 0f),
-                    dynamics = ctx.Self.Dynamics,
-                    source = destination.transform,
-                },
-                applyTacticalCosts = profile.enableTacticalCosts,
-                projectileSpeed = profile.enableTacticalCosts ? projectileSpeed : 0f,
+                goalMode = GoalMode.Waypoint,
+                goalPosition = waypoint,
+                weightOverrides = PatrolProfile.weightOverrides,
             };
         }
     }
