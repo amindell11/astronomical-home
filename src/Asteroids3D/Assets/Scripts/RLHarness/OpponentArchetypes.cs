@@ -11,7 +11,7 @@ namespace Game.RLHarness
     /// <summary>Deterministic border handling for the scripted opponent archetypes, as one pure velocity-law post-step (the <see cref="RangerChooser.HoldRangeVelocity"/> style).</summary>
     public static class ArchetypeSteering
     {
-        // Full tangent at half depth: at maxSpeed 25 with ~18 u/s² braking, radial overshoot past the tangent point is ~17 u, so it must sit well inside the border.
+        // At maxSpeed 25 with ~18 u/s² braking the tangent-point overshoot is ~17 u — stay well inside.
         public const float BorderMargin = 60f;
 
         /// <summary>Inside the edge margin, rotates an outward-bound commanded velocity toward the border tangent — full tangent at half the margin depth, bending on toward inward by the border itself (momentum headroom) — preserving speed; inward-bound commands pass through.</summary>

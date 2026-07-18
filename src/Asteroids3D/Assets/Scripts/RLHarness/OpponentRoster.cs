@@ -36,14 +36,14 @@ namespace Game.RLHarness
         private const float KiterWeight = 0.15f;
         private const float DummyWeight = 0.1f;
 
-        // Authored jitter ranges, tuned during the degeneracy gate. The laser envelope is 20 u — orbit and hold ranges stay inside it so fire-capable archetypes actually shoot.
+        // The laser envelope is 20 u — orbit and hold ranges stay inside it so fire-capable archetypes shoot.
         private const float MinSpeedFraction = 0.7f;
         private const float MaxSpeedFraction = 1.0f;
         private const float MinJukePeriod = 0.6f;
         private const float MaxJukePeriod = 1.8f;
         private const float MinOrbitRadius = 10f;
         private const float MaxOrbitRadius = 18f;
-        // Centripetally feasible band: above ~0.6 the required v²/R exceeds thrust authority at these radii and the orbit slides outside the envelope (observed in the gate).
+        // Above ~0.6 the required v²/R exceeds thrust authority at these radii — the orbit slides outside the envelope.
         private const float MinOrbitSpeedFraction = 0.4f;
         private const float MaxOrbitSpeedFraction = 0.6f;
         private const float MinKiteRange = 14f;
