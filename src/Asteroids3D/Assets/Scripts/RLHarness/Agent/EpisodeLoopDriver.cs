@@ -10,22 +10,29 @@ namespace Game.RLHarness
         private readonly EpisodePair pair;
         private readonly ShipAgent agent;
         private readonly Vector2 arenaCenter;
+        private readonly HarnessField field;
         private readonly WaitForFixedUpdate waitFixed = new();
 
         public EpisodeRunner Runner { get; private set; }
         /// <summary>The agent-side cumulative reward captured just before EndEpisode cleared it — must equal the runner's totalReward.</summary>
         public float LastEpisodeCumulativeReward { get; private set; }
 
-        public EpisodeLoopDriver(EpisodePair pair, ShipAgent agent, Vector2 arenaCenter)
+        public EpisodeLoopDriver(EpisodePair pair, ShipAgent agent, Vector2 arenaCenter, HarnessField field = null)
         {
             this.pair = pair;
             this.agent = agent;
             this.arenaCenter = arenaCenter;
+            this.field = field;
             Academy.Instance.AutomaticSteppingEnabled = false;
         }
 
         public IEnumerator RunEpisode(RewardSpec spec, int episodeIndex, bool tracePerDecision = false)
         {
+            if (spec.useAsteroidField && field == null)
+                throw new System.InvalidOperationException(
+                    "spec.useAsteroidField requires a HarnessField — the JSONL would claim asteroid episodes that ran in an empty arena.");
+            // Field first: the episode's poses become generation-time clearings, so ships respawn onto carved ground.
+            field?.Reset(in spec, episodeIndex, EpisodePoses.Derive(in spec, episodeIndex, arenaCenter));
             pair.Reset(in spec, episodeIndex);
             Runner = new EpisodeRunner(pair.Agent, pair.Baseline, spec, episodeIndex, arenaCenter, tracePerDecision);
             Runner.Begin();

@@ -37,6 +37,7 @@ namespace Tests.PlayMode
         private EpisodePair pair;
         private Ship agent;
         private Ship baseline;
+        private HarnessField field;
 
         [SetUp]
         public void SetUp()
@@ -66,6 +67,8 @@ namespace Tests.PlayMode
 
             projectiles?.ReturnAllToPool();
 
+            field?.Dispose();
+            field = null;
             pair?.Dispose();
             pair = null;
             agent = null;
@@ -174,6 +177,98 @@ namespace Tests.PlayMode
             for (var i = 0; i < trajectoryA.Count; i++)
                 Assert.AreEqual(trajectoryA[i], trajectoryB[i], 1e-3f,
                     $"Trajectory diverged at sample {i / 10} channel {i % 10}: a pair-reset left stale state behind — fix the reset, never loosen this test");
+        }
+
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator TrajectoryEquivalence_FieldEnabled_PairResetRestoresFreshFieldAndSpawnState()
+        {
+            Time.timeScale = 1f;
+            Time.captureDeltaTime = Time.fixedDeltaTime;
+
+            var spec = RewardSpec.Default;
+            spec.minSeparation = 18f;
+            spec.maxSeparation = 22f;
+            spec.useAsteroidField = true;
+
+            const int recordSteps = 100;
+            const int dirtySteps = 80;
+
+            field = HarnessField.Spawn(arena, spec.fieldDensityScale, arenaHost.transform);
+            SpawnPair(in spec);
+            for (var i = 0; i < dirtySteps; i++)
+                yield return new WaitForFixedUpdate();
+
+            ResetWithField(in spec, 0);
+            var digestA = CaptureFieldDigest(in spec);
+            Assert.Greater(digestA.Count, 1, "Field-enabled episode must actually contain asteroids");
+            AssertSpawnClearings(in spec, 0);
+            yield return null;
+            var trajectoryA = new List<float>();
+            yield return Record(trajectoryA, recordSteps);
+
+            ResetWithField(in spec, 1);
+            yield return null;
+            for (var i = 0; i < dirtySteps; i++)
+                yield return new WaitForFixedUpdate();
+
+            ResetWithField(in spec, 0);
+            var digestB = CaptureFieldDigest(in spec);
+            yield return null;
+            var trajectoryB = new List<float>();
+            yield return Record(trajectoryB, recordSteps);
+
+            Assert.AreEqual(digestA.Count, digestB.Count,
+                "Field rebuild returned a different asteroid set — the layout is not a pure function of (runSeed, episodeIndex)");
+            for (var i = 0; i < digestA.Count; i++)
+                Assert.AreEqual(digestA[i], digestB[i],
+                    $"Field digest diverged at channel {i}: a rebuild left stale field state behind — fix the reset, never loosen this test");
+
+            Assert.AreEqual(trajectoryA.Count, trajectoryB.Count);
+            for (var i = 0; i < trajectoryA.Count; i++)
+                Assert.AreEqual(trajectoryA[i], trajectoryB[i], 1e-3f,
+                    $"Trajectory diverged at sample {i / 10} channel {i % 10}: a pair-reset left stale state behind — fix the reset, never loosen this test");
+        }
+
+        /// <summary>The episode-boundary contract in host order: field rebuild first (poses become clearings), then the pair-reset onto the carved ground.</summary>
+        private void ResetWithField(in RewardSpec spec, int episodeIndex)
+        {
+            var poses = EpisodePoses.Derive(in spec, episodeIndex, arena.Offset);
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            field.Reset(in spec, episodeIndex, in poses);
+            sw.Stop();
+            Debug.Log($"[FieldReset] episode {episodeIndex}: RebuildField took {sw.Elapsed.TotalMilliseconds:F1} ms");
+            pair.Reset(in spec, episodeIndex);
+        }
+
+        /// <summary>The full loaded-asteroid set (count + positions + radii) via the same QueryObstacles the MPC scans, captured synchronously after the rebuild so it reflects generation, not drift.</summary>
+        private List<float> CaptureFieldDigest(in RewardSpec spec)
+        {
+            var buffer = new AI.Scanning.DetectedObstacle[1024];
+            var count = arena.ObstacleField.QueryObstacles(arena.Offset, spec.arenaRadius + 40f, buffer);
+            Assert.Less(count, buffer.Length, "Digest buffer saturated — it must hold the FULL loaded set");
+            var digest = new List<float>(1 + count * 3) { count };
+            for (var i = 0; i < count; i++)
+            {
+                digest.Add(buffer[i].position.x);
+                digest.Add(buffer[i].position.y);
+                digest.Add(buffer[i].radius);
+            }
+            return digest;
+        }
+
+        private void AssertSpawnClearings(in RewardSpec spec, int episodeIndex)
+        {
+            var poses = EpisodePoses.Derive(in spec, episodeIndex, arena.Offset);
+            var buffer = new AI.Scanning.DetectedObstacle[1024];
+            var count = arena.ObstacleField.QueryObstacles(arena.Offset, spec.arenaRadius + 40f, buffer);
+            for (var i = 0; i < count; i++)
+            {
+                Assert.Greater((buffer[i].position - poses.agentPos).magnitude, HarnessField.SpawnClearRadius,
+                    "Generation must carve a clearing around the agent spawn");
+                Assert.Greater((buffer[i].position - poses.baselinePos).magnitude, HarnessField.SpawnClearRadius,
+                    "Generation must carve a clearing around the baseline spawn");
+            }
         }
 
         [UnityTest]

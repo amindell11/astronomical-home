@@ -18,6 +18,9 @@ namespace Game.RLHarness
         public float minSeparation;
         public float maxSeparation;
         public int runSeed;
+        // Asteroid-field episodes (default OFF: an empty arena, byte-identical to the pre-field harness).
+        public bool useAsteroidField;
+        public float fieldDensityScale;
 
         public static RewardSpec Default => new()
         {
@@ -33,6 +36,8 @@ namespace Game.RLHarness
             minSeparation = 25f,
             maxSeparation = 60f,
             runSeed = 1,
+            useAsteroidField = false,
+            fieldDensityScale = 1f,
         };
     }
 }
