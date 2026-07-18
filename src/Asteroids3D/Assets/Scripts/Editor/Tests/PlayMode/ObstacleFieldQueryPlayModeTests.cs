@@ -99,7 +99,7 @@ public class ObstacleFieldQueryPlayModeTests : PlayModeWorldFixture
     }
 
     [UnityTest]
-    public IEnumerator DensityScale_ScalesGeneratedCount_AndRadiusStaysBounded()
+    public IEnumerator DensityScale_ScalesGeneratedCount()
     {
         var field = SpawnHarnessField();
         field.SetDensityScale(0.5f);
@@ -149,7 +149,6 @@ public class ObstacleFieldQueryPlayModeTests : PlayModeWorldFixture
                 "No asteroid home may survive inside a host-passed exclusion volume");
         }
 
-        // Cleared volumes restore the untouched layout: the API is inert at its default.
         field.SetExclusionVolumes(null);
         field.RebuildField();
         Assert.AreEqual(baselineCount, CountAll(field),

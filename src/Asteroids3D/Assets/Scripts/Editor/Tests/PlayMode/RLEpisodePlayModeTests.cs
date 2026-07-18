@@ -230,7 +230,7 @@ namespace Tests.PlayMode
                     $"Trajectory diverged at sample {i / 10} channel {i % 10}: a pair-reset left stale state behind — fix the reset, never loosen this test");
         }
 
-        /// <summary>The episode-boundary contract in host order: field rebuild first (poses become clearings), then the pair-reset onto the carved ground. Logs the measured rebuild cost.</summary>
+        /// <summary>The episode-boundary contract in host order: field rebuild first (poses become clearings), then the pair-reset onto the carved ground.</summary>
         private void ResetWithField(in RewardSpec spec, int episodeIndex)
         {
             var poses = EpisodePoses.Derive(in spec, episodeIndex, arena.Offset);

@@ -115,13 +115,13 @@ namespace Tests.PlayMode
             spec.driver = LegacyNavTraversalChooser.DriverTag;
             spec.densityScale = 0.5f;
             spec.speedFraction = 0.9f;
-            // The legacy stack cruises a weak-gradient ~4 u/s at long range (confirmed #145 closing-reward regime — the deficiency the velocity arc replaces), so the crossing needs a legacy-scaled budget; the sweep's speed curves report the gap.
+            // The legacy stack cruises a weak-gradient ~4 u/s at long range (#145 closing-reward regime), so the crossing needs a legacy-scaled budget; the sweep's speed curves report the gap.
             spec.timeoutFactor = 12f;
 
             TraversalResult result = default;
             yield return RunCrossing(spec, 0, r => result = r);
 
-            // The flagged risk from the brief, checked first so a stall diagnoses its layer: the nav/terminal field must actually bake in the harness composition (no sector scene machinery). MaintainRange-with-target routes the bake through NavFieldService; wTerminal > 0 consumes it.
+            // Checked first so a stall diagnoses its layer: the nav/terminal field must actually bake in the harness composition (no sector scene machinery). MaintainRange-with-target routes the bake through NavFieldService; wTerminal > 0 consumes it.
             Assert.IsTrue(arena.NavField.fields.ContainsKey(destinationMarker.transform),
                 "Legacy driver never requested a terminal-field bake for its destination target");
             Assert.IsTrue(arena.NavField.TryGetData(destinationMarker.transform, destinationMarker.PlanePosition,
@@ -235,9 +235,7 @@ namespace Tests.PlayMode
 
             var runner = new TraversalRunner(ship, in spec, episodeIndex, start, dir);
             runner.Begin();
-            var maxSimSeconds = spec.timeoutFactor * 2f * spec.crossingRadius
-                / (spec.speedFraction * ship.Dynamics.maxSpeed);
-            var deadline = Time.realtimeSinceStartup + 120f + maxSimSeconds * 2f;
+            var deadline = Time.realtimeSinceStartup + 120f + runner.MaxSimSeconds * 2f;
             while (!runner.IsDone && Time.realtimeSinceStartup < deadline)
             {
                 yield return new WaitForFixedUpdate();

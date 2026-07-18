@@ -150,6 +150,7 @@ namespace Game.RLHarness
 
         public bool IsDone { get; private set; }
         public TraversalResult Result => result;
+        public float MaxSimSeconds => maxSimSeconds;
 
         public TraversalRunner(Ship ship, in TraversalSpec spec, int episodeIndex, Vector2 start, Vector2 dir)
         {
