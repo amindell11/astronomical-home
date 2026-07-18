@@ -186,12 +186,15 @@ namespace Asteroids
             PlaneConstraints.ConstrainPosition(transform);
 
             if (!meshCollider) return;
-            if (!worldFollowTransform) return;
-            var distSqr = (GamePlane.ProjectOntoPlane(worldFollowTransform.position) - GamePlane.ProjectOntoPlane(transform.position)).sqrMagnitude;
-            var shouldEnable = distSqr < detailedColliderEnableDistance * detailedColliderEnableDistance;
+            // No anchor = no collider LOD: full physics, never ghosts (harness/spectator/benchmark fields).
+            var shouldEnable = true;
+            if (worldFollowTransform)
+            {
+                var distSqr = (GamePlane.ProjectOntoPlane(worldFollowTransform.position) - GamePlane.ProjectOntoPlane(transform.position)).sqrMagnitude;
+                shouldEnable = distSqr < detailedColliderEnableDistance * detailedColliderEnableDistance;
+            }
             if (meshCollider.enabled != shouldEnable)
                 meshCollider.enabled = shouldEnable;
-
         }
     }
 }
