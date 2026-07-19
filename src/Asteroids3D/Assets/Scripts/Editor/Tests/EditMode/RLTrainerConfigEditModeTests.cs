@@ -73,17 +73,21 @@ namespace Tests.EditMode
             return block.ToString();
         }
 
-        private static float LessonZeroValue(string block, string key)
+        private static float LessonValue(string block, string key, bool final)
         {
             var param = Regex.Match(block, $@"^  {key}:(.*)$((\r?\n(?:    .*)?)*)", RegexOptions.Multiline);
             Assert.IsTrue(param.Success, $"{key} not found under environment_parameters");
             var scalar = Regex.Match(param.Groups[1].Value, @"([^\s#]+)");
             if (scalar.Success)
                 return float.Parse(scalar.Groups[1].Value, CultureInfo.InvariantCulture);
-            var lessonZero = Regex.Match(param.Groups[2].Value, @"value:\s*([^\s#]+)");
-            Assert.IsTrue(lessonZero.Success, $"{key} has neither a scalar value nor a curriculum lesson value");
-            return float.Parse(lessonZero.Groups[1].Value, CultureInfo.InvariantCulture);
+            var lessons = Regex.Matches(param.Groups[2].Value, @"value:\s*([^\s#]+)");
+            Assert.Greater(lessons.Count, 0, $"{key} has neither a scalar value nor a curriculum lesson value");
+            return float.Parse(lessons[final ? lessons.Count - 1 : 0].Groups[1].Value, CultureInfo.InvariantCulture);
         }
+
+        private static float LessonZeroValue(string block, string key) => LessonValue(block, key, final: false);
+
+        private static float LessonFinalValue(string block, string key) => LessonValue(block, key, final: true);
 
         [Test]
         public void EnvironmentParameters_KeysMatchOverlayConsts()
@@ -111,6 +115,22 @@ namespace Tests.EditMode
             Assert.AreEqual(defaults.weightEvader, LessonZeroValue(block, EnvParamOverlay.OpponentWeightEvader), 1e-6f);
             Assert.AreEqual(defaults.weightOrbiter, LessonZeroValue(block, EnvParamOverlay.OpponentWeightOrbiter), 1e-6f);
             Assert.AreEqual(defaults.weightKiter, LessonZeroValue(block, EnvParamOverlay.OpponentWeightKiter), 1e-6f);
+        }
+
+        [Test]
+        public void CanonicalEvalEnv_MatchesCurriculumTerminalLesson()
+        {
+            var block = EnvironmentParametersBlock();
+            var evalSpec = EvalProtocol.EvalSpec(EvalProtocol.CanonicalFieldDensityScale);
+            Assert.IsTrue(evalSpec.useAsteroidField);
+            Assert.AreEqual(1f, LessonFinalValue(block, EnvParamOverlay.UseAsteroidField), 1e-6f,
+                "eval runs field-on; the YAML must keep the field on through the terminal lesson");
+            Assert.AreEqual(LessonFinalValue(block, EnvParamOverlay.FieldDensityScale),
+                evalSpec.fieldDensityScale, 1e-6f,
+                "checkpoint eval must run at the density the curriculum trains toward — a drifted ramp endpoint invalidates every selection");
+            Assert.AreEqual(LessonFinalValue(block, EnvParamOverlay.CollisionLethality),
+                evalSpec.collisionLethality, 1e-6f,
+                "eval inherits RewardSpec.Default lethality — it must equal the ramp's terminal lesson");
         }
     }
 }

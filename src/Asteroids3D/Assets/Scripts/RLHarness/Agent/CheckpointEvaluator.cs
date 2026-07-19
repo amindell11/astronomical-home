@@ -39,6 +39,8 @@ namespace Game.RLHarness
             public string checkpoint;
             public int[] seeds;
             public int episodesPerSeed;
+            public bool useAsteroidField;
+            public float fieldDensityScale;
             public ArchetypeSummary[] archetypes;
             public string episodesJsonl;
         }
@@ -53,6 +55,8 @@ namespace Game.RLHarness
                 checkpoint = onnxAssetPath,
                 seeds = new int[seeds.Count],
                 episodesPerSeed = episodesPerSeed,
+                useAsteroidField = baseSpec.useAsteroidField,
+                fieldDensityScale = baseSpec.fieldDensityScale,
                 episodesJsonl = jsonlPath,
             };
             for (var i = 0; i < seeds.Count; i++) summary.seeds[i] = seeds[i];

@@ -9,6 +9,18 @@ namespace Game.RLHarness
         public const int TrainingRunSeed = 1;
         public const int InferenceSeed = 20260715;
 
+        /// <summary>The training curriculum's terminal density (ppo_ship_combat.yaml density_full); pinned by RLTrainerConfigEditModeTests so the eval env cannot silently drift from where training ends.</summary>
+        public const float CanonicalFieldDensityScale = 2f;
+
+        /// <summary>The canonical eval environment: RewardSpec.Default with the asteroid field ON — Default's lethality and mixture weights already equal the terminal lesson (weights are unused under the stratified pinned install).</summary>
+        public static RewardSpec EvalSpec(float fieldDensityScale)
+        {
+            var spec = RewardSpec.Default;
+            spec.useAsteroidField = true;
+            spec.fieldDensityScale = fieldDensityScale;
+            return spec;
+        }
+
         public static readonly int[] HeldOutSeeds =
         {
             1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009, 1010,

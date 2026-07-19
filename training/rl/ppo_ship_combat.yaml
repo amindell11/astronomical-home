@@ -25,8 +25,9 @@ behaviors:
     time_horizon: 64
     summary_freq: 6000
 # Curriculum. Param names ↔ EnvParamOverlay consts and lesson-0 values are pinned by
-# RLTrainerConfigEditModeTests. All completion thresholds are PROVISIONAL — finalized from pilot
-# TensorBoard reward curves at run launch; staging order rides the ascending thresholds
+# RLTrainerConfigEditModeTests. Thresholds finalized 2026-07-19 from the pilot's reward curve
+# (crosses 0.3 ~20k steps, plateau 1.9; ladder tops out at ~55% of plateau to absorb
+# mixture-opponent + asteroid depression); staging order rides the ascending thresholds
 # (dummy decay → lethality ramp → density ramp).
 environment_parameters:
   use_asteroid_field: 1.0
@@ -38,7 +39,7 @@ environment_parameters:
           behavior: ShipCombat
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0.4  # PROVISIONAL
+          threshold: 0.6
         value: 1.0
       - name: density_mid
         completion_criteria:
@@ -46,7 +47,7 @@ environment_parameters:
           behavior: ShipCombat
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0.7  # PROVISIONAL
+          threshold: 1.05
         value: 1.5
       - name: density_full
         value: 2.0
@@ -58,7 +59,7 @@ environment_parameters:
           behavior: ShipCombat
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0.3  # PROVISIONAL
+          threshold: 0.45
         value: 0.25
       - name: lethality_mid
         completion_criteria:
@@ -66,7 +67,7 @@ environment_parameters:
           behavior: ShipCombat
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0.6  # PROVISIONAL
+          threshold: 0.9
         value: 0.5
       - name: lethality_full
         value: 1.0
@@ -82,7 +83,7 @@ environment_parameters:
           behavior: ShipCombat
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0.2  # PROVISIONAL
+          threshold: 0.3
         value: 0.4
       - name: dummy_mid
         completion_criteria:
@@ -90,7 +91,7 @@ environment_parameters:
           behavior: ShipCombat
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0.5  # PROVISIONAL
+          threshold: 0.75
         value: 0.25
       - name: dummy_final
         value: 0.1

@@ -117,13 +117,20 @@ protocol. Batch entry:
 $env:RL_EVAL_ONNX = "results/rl-training/<run-id>/ShipCombat.onnx"   # default: the smoke fixture
 $env:RL_EVAL_EPISODES_PER_SEED = "5"
 $env:RL_EVAL_SEEDS = "train"   # checkpoint selection; omit (or "held-out") for the sealed set, or pass "7,42,99"
+$env:RL_EVAL_DENSITY = "3.0"   # stretch/diagnostic only; omit for the canonical eval env (training's terminal lesson)
 Unity.exe -projectPath src/Asteroids3D -batchmode -nographics `
   -executeMethod Game.RLHarness.TrainingBootstrap.RunEval -logFile <log>
 ```
 
+The eval environment defaults to `EvalProtocol.EvalSpec` — asteroid field on at
+the curriculum's terminal density, pinned against `ppo_ship_combat.yaml` by
+`RLTrainerConfigEditModeTests` so eval cannot silently drift from where
+training ends.
+
 The seed selection tags the run's JSONL/summary artifacts (`train` /
 `held-out` / `custom`), so training-seed selection runs can never be mistaken
-for the sealed held-out eval.
+for the sealed held-out eval; a density-overridden run suffixes the tag
+(e.g. `train-d3`) and records its env in the summary JSON.
 
 Under the hood `ShipAgentFactory.ComposeInferenceOnly` pins
 `BehaviorType.InferenceOnly`, `DeterministicInference = true` (it defaults
