@@ -99,7 +99,7 @@ namespace Tests.EditMode
         {
             var block = EnvironmentParametersBlock();
             var defaults = RewardSpec.Default;
-            // Schedule starts frozen by the PR-D brief; the rest must not drift from RewardSpec.Default.
+            // Curriculum ramps deliberately start off-default; everything else must not drift from RewardSpec.Default.
             Assert.AreEqual(1f, LessonZeroValue(block, EnvParamOverlay.UseAsteroidField), 1e-6f,
                 "asteroid episodes are on for the whole curriculum run");
             Assert.AreEqual(0.25f, LessonZeroValue(block, EnvParamOverlay.CollisionLethality), 1e-6f,

@@ -24,7 +24,7 @@ behaviors:
     max_steps: 2000000
     time_horizon: 64
     summary_freq: 6000
-# Curriculum (env PR-D). Param names ↔ EnvParamOverlay consts and lesson-0 values are pinned by
+# Curriculum. Param names ↔ EnvParamOverlay consts and lesson-0 values are pinned by
 # RLTrainerConfigEditModeTests. All completion thresholds are PROVISIONAL — finalized from pilot
 # TensorBoard reward curves at run launch; staging order rides the ascending thresholds
 # (dummy decay → lethality ramp → density ramp).
