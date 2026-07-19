@@ -1,3 +1,4 @@
+using AI;
 using AI.Observation;
 using Combat.Conditions;
 using Ships;
@@ -20,18 +21,20 @@ namespace Game.RLHarness
         private RewardSpec spec;
         private Vector2 arenaCenter;
         private IHeatReadout primaryHeat;
+        private Scout scout;
         private EpisodeRunner runner;
         private readonly float[] observationBuffer = new float[AgentObservations.Size];
 
         public int DecisionsReceived { get; private set; }
 
-        public void Configure(Ship self, Ship opponent, AgentChooser chooser, in RewardSpec spec, Vector2 arenaCenter)
+        public void Configure(Ship self, Ship opponent, AgentChooser chooser, in RewardSpec spec, Vector2 arenaCenter, Scout scout)
         {
             this.self = self;
             this.opponent = opponent;
             this.chooser = chooser;
             this.spec = spec;
             this.arenaCenter = arenaCenter;
+            this.scout = scout;
             primaryHeat = ResolvePrimaryHeat(self);
         }
 
@@ -61,7 +64,7 @@ namespace Game.RLHarness
                 snapshot.inMyEnvelope, snapshot.inEnemyEnvelope,
                 self.Weapons.Context.IsReady(WeaponSlot.Primary),
                 primaryHeat?.HeatPct ?? 0f,
-                arenaCenter, spec.arenaRadius);
+                arenaCenter, spec.arenaRadius, scout.AsteroidScan);
 
             for (var i = 0; i < observationBuffer.Length; i++)
                 sensor.AddObservation(observationBuffer[i]);

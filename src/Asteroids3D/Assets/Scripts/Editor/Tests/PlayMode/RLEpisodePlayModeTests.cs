@@ -6,6 +6,8 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using AI;
+using AI.Observation;
 using Tests.Common;
 using Tests.PlayMode.Common;
 using Game;
@@ -252,6 +254,47 @@ namespace Tests.PlayMode
                 Assert.IsTrue(mesh.enabled,
                     $"Anchorless asteroid '{controller.name}' has a disabled MeshCollider — ships fly through it");
             }
+        }
+
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator ObstacleTokens_FieldEnabled_FillProducesSortedNonZeroTokens()
+        {
+            var spec = RewardSpec.Default;
+            spec.useAsteroidField = true;
+
+            field = HarnessField.Spawn(arena, spec.fieldDensityScale, arenaHost.transform);
+            SpawnPair(in spec);
+            ResetWithField(in spec, 0);
+            yield return null; // frame 1: the field's Start runs the staged build
+            yield return null; // frame 2: Scout.Update scans the live field
+
+            var scout = agent.GetComponentInChildren<AICommander>().Scout;
+            var scan = scout.AsteroidScan;
+            Assert.Greater(scan.count, 0, "Scout must see asteroids in a field-enabled episode");
+
+            var enemyKin = baseline.Kinematics;
+            var target = new TargetView(true, enemyKin.pos, enemyKin.vel, enemyKin.Forward,
+                baseline.HealthPct, baseline.ShieldPct);
+            var buffer = new float[AgentObservations.Size];
+            AgentObservations.Fill(buffer, agent, in target,
+                inMyEnvelope: false, inEnemyEnvelope: false, primaryWeaponReady: false, primaryHeatPct: 0f,
+                arena.Offset, spec.arenaRadius, scan);
+
+            var occupied = Mathf.Min(AgentObservations.ObstacleTokenCount, scan.count);
+            Assert.Greater(occupied, 0);
+            var previousDistance = 0f;
+            for (var s = 0; s < occupied; s++)
+            {
+                var b = 24 + s * AgentObservations.ObstacleTokenFloats;
+                Assert.Greater(buffer[b + 5], 0f, $"occupied slot {s} must carry a real radius");
+                Assert.Greater(buffer[b + 2], previousDistance, $"slot {s} must sort ascending by distance");
+                previousDistance = buffer[b + 2];
+            }
+            for (var s = occupied; s < AgentObservations.ObstacleTokenCount; s++)
+                for (var c = 0; c < AgentObservations.ObstacleTokenFloats; c++)
+                    Assert.AreEqual(0f, buffer[24 + s * AgentObservations.ObstacleTokenFloats + c],
+                        $"slot {s} channel {c} must zero-pad");
         }
 
         /// <summary>The episode-boundary contract in host order: field rebuild first (poses become clearings), then the pair-reset onto the carved ground.</summary>

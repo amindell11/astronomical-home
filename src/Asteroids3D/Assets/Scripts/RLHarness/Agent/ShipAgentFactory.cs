@@ -1,4 +1,5 @@
 using System;
+using AI;
 using Unity.InferenceEngine;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
@@ -47,7 +48,8 @@ namespace Game.RLHarness
             if (model) behavior.Model = model;
 
             var agent = host.AddComponent<ShipAgent>();
-            agent.Configure(pair.Agent, pair.Baseline, chooser, in spec, arenaCenter);
+            var scout = ((AICommander)pair.Agent.Commander).Scout;
+            agent.Configure(pair.Agent, pair.Baseline, chooser, in spec, arenaCenter, scout);
             host.SetActive(true);
             return agent;
         }

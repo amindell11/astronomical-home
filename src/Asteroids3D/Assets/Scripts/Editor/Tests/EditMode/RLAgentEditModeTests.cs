@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using AI.Observation;
+using AI.Scanning;
 using Game.RLHarness;
 using Movement;
 using NUnit.Framework;
@@ -9,7 +10,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the pure agent maps: action thresholds/clamps, the one-time ego→world conversion, the 24-float observation layout, and the chooser's one-shot boost semantics.</summary>
+    /// <summary>Pins the pure agent maps: action thresholds/clamps, the one-time ego→world conversion, the 72-float observation layout (24 combat channels + 8 obstacle tokens × 6), and the chooser's one-shot boost semantics.</summary>
     [Category("AI")]
     public class RLAgentEditModeTests
     {
@@ -82,11 +83,15 @@ namespace Tests.EditMode
             };
             var target = new TargetView(true, new Vector2(5f, 15f), new Vector2(3f, 5f),
                 new Vector2(0f, -1f), 0.7f, 0.2f);
+            var scan = new ObstacleScan(new[]
+            {
+                new DetectedObstacle(new Vector3(8f, 5f, 0f), 2f, null, new Vector2(1f, 0f)),
+            }, 1);
             var buffer = new float[AgentObservations.Size];
 
             AgentObservations.Fill(buffer, self, in target,
                 inMyEnvelope: true, inEnemyEnvelope: false, primaryWeaponReady: true, primaryHeatPct: 0.6f,
-                arenaCenterPlane: new Vector2(5f, 65f), arenaRadius: ArenaRadius);
+                arenaCenterPlane: new Vector2(5f, 65f), arenaRadius: ArenaRadius, in scan);
 
             var expected = new[]
             {
@@ -105,10 +110,16 @@ namespace Tests.EditMode
                 0f, 60f / ArenaRadius,   // arena center ego / R
                 1f,                  // primary weapon ready
                 0.6f,                // self primary heat pct
+                3f / ArenaRadius, 0f,    // token 0 relPos ego / R
+                3f / ArenaRadius,        // token 0 distance / R
+                -0.2f, 0f,           // token 0 relVel ego / MaxSpeed
+                2f / AgentObservations.SpawnSettingsMaxAsteroidRadius, // token 0 radius
             };
-            Assert.AreEqual(AgentObservations.Size, expected.Length);
+            Assert.AreEqual(AgentObservations.Size, expected.Length + 7 * 6, "8 tokens × 6 floats after channel 23");
             for (var i = 0; i < expected.Length; i++)
                 Assert.AreEqual(expected[i], buffer[i], 1e-4f, $"channel {i}");
+            for (var i = expected.Length; i < buffer.Length; i++)
+                Assert.AreEqual(0f, buffer[i], $"unused token slots must zero-pad (channel {i})");
         }
 
         [Test]
@@ -118,10 +129,49 @@ namespace Tests.EditMode
             var buffer = new float[AgentObservations.Size];
             AgentObservations.Fill(buffer, self, TargetView.None,
                 inMyEnvelope: false, inEnemyEnvelope: false, primaryWeaponReady: false, primaryHeatPct: 0f,
-                arenaCenterPlane: Vector2.zero, arenaRadius: ArenaRadius);
+                arenaCenterPlane: Vector2.zero, arenaRadius: ArenaRadius, default);
 
             for (var i = 8; i < 18; i++)
                 Assert.AreEqual(0f, buffer[i], $"hasTarget flag and target block must zero (channel {i})");
+            for (var i = 24; i < buffer.Length; i++)
+                Assert.AreEqual(0f, buffer[i], $"a default scan must zero the whole token block (channel {i})");
+        }
+
+        [Test]
+        public void Fill_ObstacleTokens_EgoTransformsSortsByDistanceAndZeroPads()
+        {
+            var self = new StubStatus
+            {
+                // yaw 90 → forward (-1,0), right (0,1): a real rotation, not the identity frame.
+                kinematics = new Kinematics(Vector2.zero, new Vector2(0f, 2f), 90f, 0f, 0f),
+            };
+            // Deliberately unsorted: distances 10, 20, 4.
+            var scan = new ObstacleScan(new[]
+            {
+                new DetectedObstacle(new Vector3(0f, 10f, 0f), 1f, null, Vector2.zero),
+                new DetectedObstacle(new Vector3(0f, -20f, 0f), 0.5f, null, new Vector2(0f, 4f)),
+                new DetectedObstacle(new Vector3(-4f, 0f, 0f), 2f, null, new Vector2(1f, 2f)),
+            }, 3);
+            var buffer = new float[AgentObservations.Size];
+
+            AgentObservations.Fill(buffer, self, TargetView.None,
+                inMyEnvelope: false, inEnemyEnvelope: false, primaryWeaponReady: false, primaryHeatPct: 0f,
+                arenaCenterPlane: Vector2.zero, arenaRadius: ArenaRadius, in scan);
+
+            const float maxR = AgentObservations.SpawnSettingsMaxAsteroidRadius;
+            var expectedTokens = new[]
+            {
+                // nearest first: (-4,0) d=4 → ego relPos (0,4); relVel (1,0) → ego (0,-1).
+                0f, 4f / ArenaRadius, 4f / ArenaRadius, 0f, -0.1f, 2f / maxR,
+                // (0,10) d=10 → ego (10,0); relVel (0,-2) → ego (-2,0).
+                10f / ArenaRadius, 0f, 10f / ArenaRadius, -0.2f, 0f, 1f / maxR,
+                // (0,-20) d=20 → ego (-20,0); relVel (0,2) → ego (2,0).
+                -20f / ArenaRadius, 0f, 20f / ArenaRadius, 0.2f, 0f, 0.5f / maxR,
+            };
+            for (var i = 0; i < expectedTokens.Length; i++)
+                Assert.AreEqual(expectedTokens[i], buffer[24 + i], 1e-4f, $"token channel {24 + i}");
+            for (var i = 24 + expectedTokens.Length; i < buffer.Length; i++)
+                Assert.AreEqual(0f, buffer[i], $"empty slot channels must zero (radius 0 ⇔ empty) (channel {i})");
         }
 
         [Test]
