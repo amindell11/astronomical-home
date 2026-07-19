@@ -164,7 +164,7 @@ namespace Game.RLHarness
             endRange = range;
             if ((pos - arenaCenter).magnitude > borderHugRadius) borderHugSteps++;
             if (Mathf.Abs(range - draw.desiredRange) <= RangeBand) rangeBandSteps++;
-            orbitErrorSum += Mathf.Abs(range - draw.orbitRadius);
+            if (draw.orbitRadius > 0f) orbitErrorSum += Mathf.Abs(range - draw.orbitRadius);
             maxDisplacementSq = Mathf.Max(maxDisplacementSq, (pos - spawnPos).sqrMagnitude);
         }
 
