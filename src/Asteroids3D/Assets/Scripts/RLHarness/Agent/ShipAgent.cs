@@ -1,3 +1,4 @@
+using AI;
 using AI.Observation;
 using Combat.Conditions;
 using Ships;
@@ -20,6 +21,7 @@ namespace Game.RLHarness
         private RewardSpec spec;
         private Vector2 arenaCenter;
         private IHeatReadout primaryHeat;
+        private Scout scout;
         private EpisodeRunner runner;
         private readonly float[] observationBuffer = new float[AgentObservations.Size];
 
@@ -33,6 +35,7 @@ namespace Game.RLHarness
             this.spec = spec;
             this.arenaCenter = arenaCenter;
             primaryHeat = ResolvePrimaryHeat(self);
+            scout = self.GetComponentInChildren<AICommander>().Scout;
         }
 
         /// <summary>Resolved once at compose time — the lasers-only loadout is an episode constant, so the mount (and its Heat) never changes under a live agent.</summary>
@@ -61,7 +64,7 @@ namespace Game.RLHarness
                 snapshot.inMyEnvelope, snapshot.inEnemyEnvelope,
                 self.Weapons.Context.IsReady(WeaponSlot.Primary),
                 primaryHeat?.HeatPct ?? 0f,
-                arenaCenter, spec.arenaRadius);
+                arenaCenter, spec.arenaRadius, scout.AsteroidScan);
 
             for (var i = 0; i < observationBuffer.Length; i++)
                 sensor.AddObservation(observationBuffer[i]);

@@ -491,9 +491,10 @@ namespace Asteroids.Fields
         /// </summary>
         private static AI.Scanning.DetectedObstacle BuildObstacle(AsteroidController ast)
         {
+            var velocity = GamePlane.WorldDirToPlane(ast.Rb.linearVelocity);
             var lobes = ast.Lobes;
             if (lobes is not { Length: > 1 })
-                return new AI.Scanning.DetectedObstacle(ast.transform.position, ast.Radius, ast.SimpleCollider);
+                return new AI.Scanning.DetectedObstacle(ast.transform.position, ast.Radius, ast.SimpleCollider, velocity);
 
             var n = Mathf.Min(lobes.Length, 3);
             var t = ast.transform;
@@ -501,7 +502,7 @@ namespace Asteroids.Fields
             var c0 = ProjectLobe(t, lobes[0], scale);
             var c1 = ProjectLobe(t, lobes[1], scale);
             var c2 = n > 2 ? ProjectLobe(t, lobes[2], scale) : default;
-            return new AI.Scanning.DetectedObstacle(t.position, ast.Radius, ast.SimpleCollider, c0, c1, c2, n);
+            return new AI.Scanning.DetectedObstacle(t.position, ast.Radius, ast.SimpleCollider, c0, c1, c2, n, velocity);
         }
 
         private static AI.Scanning.DetectedObstacle.PlaneCircle ProjectLobe(

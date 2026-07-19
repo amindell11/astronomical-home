@@ -95,12 +95,14 @@ namespace AI
                     if (!col) continue;
                     var radius = ship.Stats != null ? ship.ShipRadius : col.bounds.extents.magnitude * 0.5f;
                     mergedObstacles[mergedObstacleCount++] =
-                        new DetectedObstacle(ship.transform.position, radius, col);
+                        new DetectedObstacle(ship.transform.position, radius, col, ship.Kinematics.vel);
                 }
             }
         }
 
         public ObstacleScan ObstacleScan => new(mergedObstacles, mergedObstacleCount);
+        /// <summary>Raw asteroid-only scanner view (no ship detections) — the RL obstacle-token source.</summary>
+        public ObstacleScan AsteroidScan => new(obstacleScanner.DetectedBuffer, obstacleScanner.DetectedCount);
         public ShipScanResult? ShipScan => shipScanner?.LastResult;
         /// <summary>Cached per-tick contact summary (nearest enemy + force balance).</summary>
         public ContactSummary Contacts { get; private set; } = ContactSummary.Empty;
