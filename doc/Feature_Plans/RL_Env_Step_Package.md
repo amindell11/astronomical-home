@@ -138,3 +138,85 @@ occupies the long-horizon slot the learned value function was originally aimed a
   loaded-asteroid set (positions + radii via `QueryObstacles` over the arena) once per
   reset and compare across the reset cycle; existing per-step ship channels catch
   behavioral divergence. Never loosened.
+
+---
+
+# PR-C — Decision brief (frozen 2026-07-18, pr-prep)
+
+## Scope
+
+**In:** opponent archetype roster for harness episodes — aggressor (existing UtilityPilot
+baseline, untouched) · evader (scripted flee + juke) · orbiter (scripted live-target
+orbit, firing) · kiter (scripted hold-long-range + fire) · passive dummy (zero-velocity
+chooser on the ship airframe); per-episode archetype selection + parameter jitter via an
+`OpponentRoster` consulted by the episode loop; opponent-side install through
+`EpisodePair`'s chooser seam via `Brain.InstallChooser` (no respawn); archetype tag +
+jitter draw recorded per JSONL row (additive); per-archetype degeneracy watch-lane gate
+(opt-in fixture: `RL_ARCHETYPES` env / `results/rl-archetypes/watch.flag`; JSONL +
+per-archetype summaries; human go/no-go per archetype before any training hours).
+
+**Out (non-goals):** mixture-weight curriculum + env-param wiring (PR-D); per-archetype
+eval reporting (PR-D); frozen-checkpoint (`ShipCombat-pilot.onnx`) opponent — deferred to
+PR-D/PR-4; any training; obs changes (PR-B); weapons; asteroid-field coupling (archetype
+checks run in empty arenas — the PR-A field composition stays off).
+
+## Fork resolutions (with why)
+
+1. **Substrate = mixed, scripted-leaning.** Aggressor stays the production UtilityPilot
+   (its chooser runs a single `AttackAggressive` profile — it already *is* the
+   archetype); evader/orbiter/kiter are scripted `IIntentChooser`s over the velocity
+   interface in the harness (`RangerChooser`'s hold-range law and `ManeuverChooser`'s
+   orbit law are the parents); dummy is a pinned zero-velocity chooser. *Why:* each
+   archetype provably does its one job (the degeneracy gate's premise); juke doesn't
+   exist in the utility path (`FleeEnemyGoal` has no params — the SO route would force a
+   Game.Core goal change); jitter = seeded `Configure` params, no SO-clone machinery;
+   zero runtime change.
+2. **Checkpoint kiter flavor deferred to PR-D/PR-4.** `InferenceChooser` owns Academy
+   stepping (disables automatic stepping, calls `EnvironmentStep` itself); the training
+   runner already owns that clock for the agent — two manual steppers break the pacing
+   contract. Scripted kiter ships now; stepping ownership gets its own change alongside
+   the curriculum/league work that actually needs the checkpoint opponent.
+3. **Per-episode selection lives in an `OpponentRoster` owned by the episode loop** —
+   spec-configured (fixed weights in PR-C; PR-D turns the weights into ML-Agents env
+   params), consulted each episode to pick + jitter an archetype, installing via
+   `Brain.InstallChooser` on the opponent ship before `pair.Reset` (install-then-respawn
+   ordering per the traversal-probe precedent — respawn re-inits the installed chooser).
+   The degeneracy gate pins the roster to a single archetype per run.
+
+## Assumptions (user-reviewed)
+
+- Jitter + selection draws from `SeedScope(runSeed).Derive(episodeIndex).Derive(<new
+  stream id>)` — replayable, pose/spawn streams untouched.
+- Archetype tag + jitter params ride each JSONL row additively (schema stays
+  `rl-episode-v2`).
+- Dummy = the ship airframe + pinned zero-velocity `VelocityReference` intent (not
+  `NavigationIntent.None`, for determinism; not `DummyTarget` — episodes need a killable
+  `Ship` for reward/obs), no rotation, no fire: the curriculum floor.
+- Jitter ranges are authored consts per archetype in the harness (desired range, orbit
+  radius/direction, juke cadence, speed fraction), tuned during the degeneracy gate.
+- New scripted choosers live beside `RangerChooser` in `Game.RLHarness` (editor asm);
+  `ManeuverChooser` and the PR-2a oracle tests are untouched.
+- Fire-capable archetypes: aggressor, kiter, orbiter. Never fire: evader, dummy.
+- Tests headless (no RequiresGraphics); `-ScopeType Auto` iteration; worktree loop.
+
+## Blindsider resolutions
+
+- **Border handling:** shared scripted-archetype steering blend — inside an edge margin,
+  rotate the commanded velocity toward the border tangent (deterministic, no randomness);
+  the degeneracy gate verifies no border-pinning.
+  *(Amended 2026-07-18, user directive — bloat/seam guard.)* The blend is ONE static pure
+  function (a velocity-law post-step in the `RangerChooser.HoldRangeVelocity` style):
+  `(planePos, commandedVel, arenaCenter, borderRadius, margin) → steered velocity`, called
+  as the final step of each chooser's intent build. Arena bounds enter each chooser once
+  through `Configure` as plain floats (episode-constant), sourced by the roster/host from
+  constants already in the episode composition. Explicitly NOT: a base-class obligation, a
+  new interface or service, `ArenaContext`/component refs inside choosers, or any runtime
+  lookup. A shared base may *call* the function if one exists for other reasons; the
+  function is the unit.
+- **Orbiter fires** — a non-firing orbiter lets the policy park inside the orbit circle
+  and farm free damage (a degenerate lesson); firing keeps pressure honest while the
+  geometry stays distinct from the kiter.
+- **Degeneracy-gate reference opponent = the `RangerChooser` stand-in on the agent side**
+  (deterministic close-hold-fire pressure, the PR-2b/3 pattern) — one comparable
+  reference across all archetypes; the production aggressor's utility-state stochasticity
+  would muddy degeneracy attribution.

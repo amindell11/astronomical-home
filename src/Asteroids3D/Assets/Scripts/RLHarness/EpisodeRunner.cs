@@ -48,6 +48,8 @@ namespace Game.RLHarness
             };
         }
 
+        public void RecordOpponent(in OpponentDraw draw) => result.opponent = draw;
+
         /// <summary>Re-baselines the reward snapshot at the episode's start pose; call after the pair-reset, before the first Tick.</summary>
         public void Begin()
         {
