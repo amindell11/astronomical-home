@@ -283,7 +283,6 @@ plan); training, curriculum, mixture wiring (PR-D); re-minting `ShipCombat-pilot
 
 (None survived the post-lock pass — all candidates resolved to code-grounded
 assumptions above.)
-assumptions above.)
 
 ---
 
@@ -382,3 +381,66 @@ smoke/pilot YAML changes; smoke-fixture re-mint (obs unchanged); weapons; renami
   an episode boundary (rebuilds are synchronous between episodes — never mid-episode) and
   the pool stays grown. Ceiling pre-size rejected (max-density memory held all run for a
   one-off boundary burst).
+
+---
+
+# Eval-env mirror — Decision brief (frozen 2026-07-19, pr-prep)
+
+Follow-up to PR-D (codex P1 on #176, board card "Eval env must mirror training
+curriculum"). Root cause: `EvalHost` hands `CheckpointEvaluator.Run` a bare
+`RewardSpec.Default` (field off, density 1.0) while training terminates at field-on
+density 2.0 — the PR-D mechanism (spec-driven field spawn, per-episode
+`HarnessField.Reset` density/lethality) is complete; only the eval entry's spec
+authoring is wrong. Blocks trusting any checkpoint selection.
+
+## Scope
+
+**In:** canonical eval-env authoring at the eval entry — `EvalProtocol` pins the
+canonical eval spec values (field ON, density = the YAML curriculum's final lesson);
+`EvalHost` authors its spec from them via serialized fields; `RunEval` maps an optional
+`RL_EVAL_DENSITY` env var onto them (stretch/diagnostic runs); pin test in
+`RLTrainerConfigEditModeTests` asserting canonical density == the YAML `density_full`
+final-lesson value; `Summary` gains additive eval-env fields; density-overridden runs
+suffix the artifact tag; README batch-entry doc line.
+
+**Out (non-goals):** any evaluator-mechanism change (density grid runs as separate
+batch invocations — B1); field-OFF eval (the empty-arena eval IS the bug; no env var
+resurrects it); seed-protocol changes (selection on "train", sealed held-out final gate,
+unchanged); mixture-weight handling (dead in eval — pinned `Install` bypasses `Pick`);
+threshold finalization and the training run itself.
+
+## Fork resolutions (with why)
+
+1. **A3 — hybrid pin + override.** `EvalProtocol` pins the canonical values with a
+   YAML-final-lesson pin test (the exact mirror of the lesson-0 pin); `RL_EVAL_DENSITY`
+   overrides for the 3.0 stretch. *Why:* the defect WAS silent training/eval env drift —
+   env-var defaults alone (A2) recreate it one layer down; a pin alone (A1) can't express
+   the stretch the probe GO bought. The pin makes drift fail a test; the override keeps
+   the grid expressible without touching the evaluator.
+2. **B1 — density grid outside the evaluator.** One density per batch invocation,
+   separately tagged artifacts. *Why:* selection protocol runs train-seed eval per
+   checkpoint with the stretch reserved for finalists, so in-run iteration (B2) reopens
+   the frozen evaluator + summary schema to save boots that mostly don't happen.
+
+## Assumptions (user-reviewed)
+
+- Only spec authoring changes; `CheckpointEvaluator`/`EpisodeLoopDriver`/`HarnessField`
+  untouched.
+- Canonical env = field on + density 2.0; lethality 1.0 already equals the final lesson;
+  weights stay Default (unused under pinned install).
+- Spec authored directly at the entry, never via Academy (PR-D fork 1 stands).
+- Pin test needs a `LessonFinalValue` parser (last `value:` in the param block; analog of
+  `LessonZeroValue`).
+- `EvalHost` serialized fields default to the canonical values (`onnxAssetPath`
+  precedent); `RL_EVAL_DENSITY` parsed invariant-culture at the boundary, throw on
+  garbage.
+- README batch entry gains the `RL_EVAL_DENSITY` line.
+- Tests headless EditMode; `-ScopeType Auto`; worktree loop.
+
+## Blindsider resolutions
+
+- **Artifact marking for overridden runs:** `Summary` gains `useAsteroidField` +
+  `fieldDensityScale` (additive; summary JSON is an artifact, not a pinned stream), and
+  the filename tag is suffixed only when density is overridden (e.g. `held-out-d3`) — a
+  stretch run can never masquerade as the canonical eval in a folder listing or in its
+  own summary.

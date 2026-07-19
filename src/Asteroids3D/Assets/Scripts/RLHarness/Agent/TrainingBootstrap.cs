@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System;
+using System.Globalization;
 using System.IO;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -34,7 +35,7 @@ namespace Game.RLHarness
             EnterTrainingPlayMode();
         }
 
-        /// <summary>Checkpoint-eval batch entry: RL_EVAL_ONNX names a checkpoint file to import (default: the committed smoke fixture), RL_EVAL_EPISODES_PER_SEED the per-seed episode count, RL_EVAL_SEEDS the seed selection ("held-out" default / "train" / comma list — see EvalProtocol.ResolveSeeds). EvalHost exits the editor with code 0 when the summary artifact is written.</summary>
+        /// <summary>Checkpoint-eval batch entry: RL_EVAL_ONNX names a checkpoint file to import (default: the committed smoke fixture), RL_EVAL_EPISODES_PER_SEED the per-seed episode count, RL_EVAL_SEEDS the seed selection ("held-out" default / "train" / comma list — see EvalProtocol.ResolveSeeds), RL_EVAL_DENSITY a field-density override for stretch/diagnostic runs (default: the canonical eval env). EvalHost exits the editor with code 0 when the summary artifact is written.</summary>
         public static void RunEval()
         {
             var source = Environment.GetEnvironmentVariable("RL_EVAL_ONNX");
@@ -49,6 +50,9 @@ namespace Game.RLHarness
                 host.episodesPerSeed = episodes;
             var selector = Environment.GetEnvironmentVariable("RL_EVAL_SEEDS");
             if (!string.IsNullOrEmpty(selector)) host.seedSelector = selector;
+            var density = Environment.GetEnvironmentVariable("RL_EVAL_DENSITY");
+            if (!string.IsNullOrEmpty(density))
+                host.fieldDensityScale = float.Parse(density, CultureInfo.InvariantCulture);
             EditorApplication.EnterPlaymode();
         }
 
