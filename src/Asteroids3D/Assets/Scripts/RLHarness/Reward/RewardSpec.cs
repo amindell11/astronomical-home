@@ -21,6 +21,13 @@ namespace Game.RLHarness
         // Asteroid-field episodes (default OFF: an empty arena, byte-identical to the pre-field harness).
         public bool useAsteroidField;
         public float fieldDensityScale;
+        public float collisionLethality;
+        // Opponent mixture weights (relative — OpponentRoster.Pick normalizes implicitly).
+        public float weightAggressor;
+        public float weightEvader;
+        public float weightOrbiter;
+        public float weightKiter;
+        public float weightDummy;
 
         public static RewardSpec Default => new()
         {
@@ -38,6 +45,12 @@ namespace Game.RLHarness
             runSeed = 1,
             useAsteroidField = false,
             fieldDensityScale = 1f,
+            collisionLethality = 1f,
+            weightAggressor = 0.4f,
+            weightEvader = 0.2f,
+            weightOrbiter = 0.15f,
+            weightKiter = 0.15f,
+            weightDummy = 0.1f,
         };
     }
 }

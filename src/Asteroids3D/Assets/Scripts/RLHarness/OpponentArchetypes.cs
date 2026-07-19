@@ -137,6 +137,10 @@ namespace Game.RLHarness
     public class OrbiterChooser : OpponentArchetypeChooser
     {
         private const float RadialGain = 0.6f;
+        // A tangential-only rotating command needs a standing radius error ∝ v²/r to supply
+        // the centripetal demand through the P-term — feed it forward instead (Kff in seconds).
+        private const float CentripetalKff = 2.5f;
+        private const float MinCentripetalRange = 1f;
 
         private float orbitRadius;
         private int orbitDirection = 1;
@@ -161,8 +165,10 @@ namespace Game.RLHarness
             var r = los.magnitude;
             var losHat = r > 1e-4f ? los / r : Vector2.up;
             var tangent = orbitDirection * new Vector2(-losHat.y, losHat.x);
-            var radial = RadialGain * (orbitRadius - r) * -losHat;
-            var vRef = Vector2.ClampMagnitude(speedFraction * maxSpeed * tangent + radial, maxSpeed);
+            var vTan = speedFraction * maxSpeed;
+            var centripetal = CentripetalKff * vTan * vTan / Mathf.Max(r, MinCentripetalRange);
+            var radial = (RadialGain * (orbitRadius - r) - centripetal) * -losHat;
+            var vRef = Vector2.ClampMagnitude(vTan * tangent + radial, maxSpeed);
 
             return new NavigationIntent
             {

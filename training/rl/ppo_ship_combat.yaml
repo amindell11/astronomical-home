@@ -24,6 +24,76 @@ behaviors:
     max_steps: 2000000
     time_horizon: 64
     summary_freq: 6000
+# Curriculum. Param names ↔ EnvParamOverlay consts and lesson-0 values are pinned by
+# RLTrainerConfigEditModeTests. All completion thresholds are PROVISIONAL — finalized from pilot
+# TensorBoard reward curves at run launch; staging order rides the ascending thresholds
+# (dummy decay → lethality ramp → density ramp).
+environment_parameters:
+  use_asteroid_field: 1.0
+  field_density_scale:
+    curriculum:
+      - name: density_baseline
+        completion_criteria:
+          measure: reward
+          behavior: ShipCombat
+          signal_smoothing: true
+          min_lesson_length: 100
+          threshold: 0.4  # PROVISIONAL
+        value: 1.0
+      - name: density_mid
+        completion_criteria:
+          measure: reward
+          behavior: ShipCombat
+          signal_smoothing: true
+          min_lesson_length: 100
+          threshold: 0.7  # PROVISIONAL
+        value: 1.5
+      - name: density_full
+        value: 2.0
+  collision_lethality:
+    curriculum:
+      - name: lethality_soft
+        completion_criteria:
+          measure: reward
+          behavior: ShipCombat
+          signal_smoothing: true
+          min_lesson_length: 100
+          threshold: 0.3  # PROVISIONAL
+        value: 0.25
+      - name: lethality_mid
+        completion_criteria:
+          measure: reward
+          behavior: ShipCombat
+          signal_smoothing: true
+          min_lesson_length: 100
+          threshold: 0.6  # PROVISIONAL
+        value: 0.5
+      - name: lethality_full
+        value: 1.0
+  opponent_weight_aggressor: 0.4
+  opponent_weight_evader: 0.2
+  opponent_weight_orbiter: 0.15
+  opponent_weight_kiter: 0.15
+  opponent_weight_dummy:
+    curriculum:
+      - name: dummy_floor
+        completion_criteria:
+          measure: reward
+          behavior: ShipCombat
+          signal_smoothing: true
+          min_lesson_length: 100
+          threshold: 0.2  # PROVISIONAL
+        value: 0.4
+      - name: dummy_mid
+        completion_criteria:
+          measure: reward
+          behavior: ShipCombat
+          signal_smoothing: true
+          min_lesson_length: 100
+          threshold: 0.5  # PROVISIONAL
+        value: 0.25
+      - name: dummy_final
+        value: 0.1
 # Pacing contract: one rendered frame advances exactly one 50 Hz fixed step (mlagents defaults time_scale 20 / capture 60 violate it); pinned by test + TrainingHost runtime assert.
 engine_settings:
   width: 320

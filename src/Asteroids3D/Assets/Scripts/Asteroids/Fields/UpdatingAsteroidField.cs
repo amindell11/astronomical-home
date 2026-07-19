@@ -35,6 +35,7 @@ namespace Asteroids.Fields
         private Transform streamAnchor;
         private Vector2? playerStartPlane;
         private float densityScale = 1f;
+        private float lethalityScale = 1f;
         private ExclusionVolume[] hostExclusionsPlane;
         internal ChunkStreamer streamer;
         internal Vector2 fieldOriginPlane;
@@ -110,6 +111,19 @@ namespace Asteroids.Fields
         }
 
         /// <summary>
+        /// Runtime multiplier on ship-collision damage (1 = the AsteroidDamage tuning as
+        /// authored). Same pre-rebuild contract as <see cref="SetLayoutSeed"/>; applied
+        /// through the spawn chain so layout spawns, pool reuse, and mid-episode fragments
+        /// all receive it.
+        /// </summary>
+        public void SetLethalityScale(float value)
+        {
+            if (!(value > 0f) || float.IsInfinity(value))
+                throw new ArgumentOutOfRangeException(nameof(value), value, "Lethality scale must be a positive finite multiplier.");
+            lethalityScale = value;
+        }
+
+        /// <summary>
         /// Host-declared no-spawn clearings (absolute plane space, like
         /// <see cref="SetPlayerStart"/>; converted to field-relative at build time). Same
         /// pre-rebuild contract as <see cref="SetLayoutSeed"/>. Callers that derive centers
@@ -167,6 +181,7 @@ namespace Asteroids.Fields
             streamer = new ChunkStreamer(settings.chunkSize, loadRadius, unloadRadius);
 
             AsteroidSpawner.PreSizePool(Mathf.CeilToInt(settings.WorstCaseLoadedCount() * densityScale));
+            AsteroidSpawner.SetLethalityScale(lethalityScale);
             AsteroidSpawner.OnFragmentSpawned -= HandleFragmentSpawned;
             AsteroidSpawner.OnFragmentSpawned += HandleFragmentSpawned;
             appliedSettingsVersion = settings.Version;

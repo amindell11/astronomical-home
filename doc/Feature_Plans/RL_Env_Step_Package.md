@@ -283,3 +283,102 @@ plan); training, curriculum, mixture wiring (PR-D); re-minting `ShipCombat-pilot
 
 (None survived the post-lock pass — all candidates resolved to code-grounded
 assumptions above.)
+assumptions above.)
+
+---
+
+# PR-D — Decision brief (frozen 2026-07-19, pr-prep)
+
+## Scope
+
+**In:** ML-Agents environment-parameter wiring for the curriculum — per-episode overlay
+of env params onto `RewardSpec` in `TrainingHost` (pure overlay function, param names as
+C# consts); mixture weights move from `OpponentRoster` consts to spec fields (defaults =
+today's .4/.2/.15/.15/.1); collision-lethality knob `UpdatingAsteroidField.SetLethalityScale`
+flowing through the spawn chain into `AsteroidDamage.Initialize(volume, lethality)`
+(default 1, folds into `CalcDamage`); per-episode density applied in `HarnessField.Reset`;
+roster wired into `TrainingHost` (mixture live in training from episode 0) and
+`CheckpointEvaluator`; per-archetype stratified eval — pinned archetype blocks, per-archetype
+W/L/D + Wilson lower bound, **no blended number anywhere in the summary** — plus spec-driven
+optional field spawn in eval (density-3.0 stretch); `environment_parameters` + curriculum
+lessons in `ppo_ship_combat.yaml` (`use_asteroid_field`=1 constant; density 1.0→1.5→2.0;
+lethality 0.25→1.0; dummy-weight decay ≈0.4→0.1; reward-keyed, provisional thresholds);
+YAML-keys ↔ C#-consts ↔ defaults pin test; orbiter centripetal feed-forward fix +
+watch-lane verification.
+
+**Out (non-goals):** the training run itself (a run, not a PR — launch is a separate
+spend approval; thresholds finalized then from pilot TensorBoard); frozen-checkpoint
+kiter opponent → PR-4 (`ShipCombat-pilot.onnx` is obs-24, incompatible since PR-B's
+24→72); `StatsRecorder`/TensorBoard code (lessons key on mlagents' own reward measure);
+smoke/pilot YAML changes; smoke-fixture re-mint (obs unchanged); weapons; renaming
+`RewardSpec`.
+
+## Fork resolutions (with why)
+
+1. **Curriculum values flow through `RewardSpec`, overlaid per episode in TrainingHost.**
+   *Why:* every downstream consumer already takes the spec (`HarnessField.Reset`,
+   `OpponentRoster.Install`); the spec embeds verbatim in each JSONL row, so effective
+   per-episode curriculum values are recorded for free (self-description preserved);
+   eval/tests keep authoring specs directly, never touching Academy; the overlay is pure →
+   EditMode-testable. Push-setters (values bypass the recorded spec) and consumers-read-
+   Academy (spreads the ML-Agents dependency) rejected.
+2. **Lethality = field-level knob through the spawn choke point.** `SetLethalityScale`
+   beside `SetDensityScale` (same staged pre-rebuild API family); value rides
+   `AsteroidSpawner.Spawn → AsteroidController.Initialize → AsteroidDamage.Initialize`.
+   *Why:* the one choke point covers layout spawns, pool reuse, and mid-episode fragments;
+   Initialize-injection philosophy verbatim; PR-A's domain-honest field-capability
+   precedent. Static multiplier rejected (multi-arena), harness-side sweep rejected
+   (misses fragments).
+3. **Schedule: dummy-only mixture decay; density 1.0→1.5→2.0; lethality 0.25→1.0;
+   independent reward-keyed lessons staged by ascending thresholds.** *Why:* `Pick`
+   normalizes weights implicitly, so only weights that change need lessons; probe GO
+   fixed the density endpoints (3.0 is eval stretch, not a lesson); thresholds ship
+   provisional — the run launch owns final values.
+4. **Eval = stratified pinned blocks.** *Why:* equal n per archetype (mixture sampling
+   starves exactly the low-weight archetypes of episodes); the pinned
+   `Install(archetype, …)` overload + degeneracy-gate precedent already exist; "never a
+   blended number" taken literally — the summary carries no aggregate win rate.
+5. **Orbiter fix = centripetal feed-forward**: one inward `Kff·v²/r` term in
+   `OrbiterChooser`'s radial component. *Why (root cause):* the law commands a purely
+   tangential rotating velocity — dynamically inconsistent with circular motion — and the
+   P-only radial term needs a standing radius error (∝ v²/r) to supply the centripetal
+   demand; the feed-forward matches the disturbance's shape, killing both bias and
+   jitter compression across the draw range. `Kff` tuned via the orbiter watch lane
+   (`meanOrbitRadiusError` already measured). Gain-raise (residual shape remains,
+   oscillation risk), constant bias (draw-dependent scatter remains), and widened drawn
+   range (compression untouched) rejected.
+
+## Assumptions (user-reviewed)
+
+- Weights are five flat `RewardSpec` fields; `Pick` reads them from the spec it already
+  receives; the burn-the-selection-roll contract is preserved (pinned/mixture jitter
+  draws stay aligned).
+- Overlay reads via an injected getter; TrainingHost passes
+  `Academy.Instance.EnvironmentParameters.GetWithDefault`; EditMode tests feed a
+  dictionary.
+- Pin test (RLTrainerConfigEditModeTests style): YAML env-param keys ↔ C# consts, and
+  lesson-0 values ↔ `RewardSpec.Default` — closes `GetWithDefault`'s
+  silent-fallback-on-typo trap.
+- Weight sum ≤ 0 from YAML throws at the overlay boundary (operating error, checked once).
+- `use_asteroid_field` rides as a 0/1 env param (>0.5 parse at the boundary) so the YAML
+  fully describes the run; `RewardSpec.Default` stays `false` — tests and smoke
+  byte-identical when no trainer is attached.
+- TrainingHost constructs the roster at composition (opponent still on its prefab-default
+  chooser — the ctor precondition) and passes it via the existing optional driver param.
+  Every training row now records `OpponentDraw` — free offline per-archetype analysis.
+- CheckpointEvaluator constructs/disposes a roster per seed block (fresh pair per seed
+  already); eval cost grows ~5× (archetypes × seeds × episodesPerSeed) — accepted.
+- JSONL schema stays `rl-episode-v2` (spec additions ride additively); eval summary JSON
+  gains the per-archetype array (artifact, not a pinned stream).
+- Orbiter jitter range 10–18 stays as drawn; fix verified by rerunning the opt-in
+  orbiter watch lane until `meanOrbitRadiusError` flattens across draws.
+- Tests headless, `-ScopeType Auto` iteration (known wart: RLHarness-only diffs fall back
+  to the full suite); worktree loop, slot agent-3 (warm Library post-#175).
+
+## Blindsider resolutions
+
+- **Pool pre-size vs density ramp: accept mid-run growth.** The pool pre-sizes at field
+  spawn (lesson-0 density); the first 2.0-density rebuild instantiates the shortfall at
+  an episode boundary (rebuilds are synchronous between episodes — never mid-episode) and
+  the pool stays grown. Ceiling pre-size rejected (max-density memory held all run for a
+  one-off boundary burst).

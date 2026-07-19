@@ -29,6 +29,7 @@ namespace Asteroids.Spawning
         private int poolMaxSizeHint;
         private Transform worldAnchor;
         private Fragger fragger;
+        private float lethalityScale = 1f;
 
         // Created lazily so the field can pre-size it (from the computed
         // worst-case loaded count) before the first spawn, regardless of
@@ -38,6 +39,12 @@ namespace Asteroids.Spawning
         public void SetWorldAnchor(Transform anchor)
         {
             worldAnchor = anchor;
+        }
+
+        /// <summary>Collision-damage multiplier for every later spawn, fragments included; staged by the owning field.</summary>
+        public void SetLethalityScale(float value)
+        {
+            lethalityScale = value;
         }
 
         /// <summary>
@@ -78,7 +85,7 @@ namespace Asteroids.Spawning
         public AsteroidController Spawn(Pose pose, in AsteroidAttributes attrs)
         {
             var ast = SpawnAtPose(pose);
-            ast.Initialize(this, fragger, attrs.MeshInfo, attrs.Mass, attrs.Scale, attrs.Velocity, attrs.AngularVelocity);
+            ast.Initialize(this, fragger, attrs.MeshInfo, attrs.Mass, attrs.Scale, attrs.Velocity, attrs.AngularVelocity, lethalityScale);
             registry.Register(ast);
             return ast;
         }

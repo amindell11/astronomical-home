@@ -44,9 +44,13 @@ namespace Game.RLHarness
             return new HarnessField(arena, root, field);
         }
 
-        /// <summary>Per-episode reset for combat episodes: poses derive first, both spawn positions become generation-time clearings, and the layout seed re-derives from (runSeed, episodeIndex). The rebuild's overlay wipe IS the reset — destruction never leaks across episodes.</summary>
-        public void Reset(in RewardSpec spec, int episodeIndex, in SpawnPoses poses) =>
+        /// <summary>Per-episode reset for combat episodes: the spec's density and lethality stage first (curriculum values move between episodes), poses derive, both spawn positions become generation-time clearings, and the layout seed re-derives from (runSeed, episodeIndex). The rebuild's overlay wipe IS the reset — destruction never leaks across episodes.</summary>
+        public void Reset(in RewardSpec spec, int episodeIndex, in SpawnPoses poses)
+        {
+            Field.SetDensityScale(spec.fieldDensityScale);
+            Field.SetLethalityScale(spec.collisionLethality);
             Rebuild(DeriveLayoutSeed(spec.runSeed, episodeIndex), poses.agentPos, poses.baselinePos);
+        }
 
         /// <summary>Seed-explicit rebuild with clearings carved at the given absolute plane positions (the traversal probe sweeps layout seeds directly).</summary>
         public void Rebuild(int layoutSeed, params Vector2[] clearings)

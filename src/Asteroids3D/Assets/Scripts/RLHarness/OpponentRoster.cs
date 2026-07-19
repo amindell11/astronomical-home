@@ -21,7 +21,7 @@ namespace Game.RLHarness
         public float desiredRange;
     }
 
-    /// <summary>Per-episode opponent policy source for the episode loop: consulted BEFORE each pair-reset (respawn re-inits the installed chooser — the traversal-probe ordering), it draws an archetype + jitter params on their own seed stream and installs through <see cref="Brain.InstallChooser"/>. Aggressor re-installs the prefab-default utility chooser captured at construction. Mixture weights are fixed in PR-C; PR-D turns them into ML-Agents environment parameters.</summary>
+    /// <summary>Per-episode opponent policy source for the episode loop: consulted BEFORE each pair-reset (respawn re-inits the installed chooser — the traversal-probe ordering), it draws an archetype + jitter params on their own seed stream and installs through <see cref="Brain.InstallChooser"/>. Aggressor re-installs the prefab-default utility chooser captured at construction. Mixture weights ride the spec (curriculum-driven via <see cref="EnvParamOverlay"/>).</summary>
     public sealed class OpponentRoster : IDisposable
     {
         private const uint ArchetypeStream = 505;
@@ -29,12 +29,6 @@ namespace Game.RLHarness
 
         /// <summary>The harness-standard velocity-mode tracker weight (PR-3's policy-matched interface). The opponent airframe's production settings never author it (the utility path never drives velocity mode; the script default is too loose to hold a reference — the dummy random-walks tens of units). Velocity-mode-only cost, so the aggressor's goal-mode behavior is untouched.</summary>
         private const float ScriptedWVelTrack = 50f;
-
-        private const float AggressorWeight = 0.4f;
-        private const float EvaderWeight = 0.2f;
-        private const float OrbiterWeight = 0.15f;
-        private const float KiterWeight = 0.15f;
-        private const float DummyWeight = 0.1f;
 
         // The laser envelope is 20 u — orbit and hold ranges stay inside it so fire-capable archetypes shoot.
         private const float MinSpeedFraction = 0.7f;
@@ -81,11 +75,11 @@ namespace Game.RLHarness
             if (settingsClone) UnityEngine.Object.DestroyImmediate(settingsClone);
         }
 
-        /// <summary>Mixture draw: picks an archetype by the fixed weights, then jitters and installs it.</summary>
+        /// <summary>Mixture draw: picks an archetype by the spec's weights, then jitters and installs it.</summary>
         public OpponentDraw Install(in RewardSpec spec, int episodeIndex, Vector2 arenaCenter)
         {
             var scope = Scope(spec.runSeed, episodeIndex);
-            return Install(Pick(new System.Random(scope.ToSeed())), in spec, episodeIndex, arenaCenter);
+            return Install(Pick(new System.Random(scope.ToSeed()), in spec), in spec, episodeIndex, arenaCenter);
         }
 
         /// <summary>Pinned draw for the degeneracy gate: jitters and installs the given archetype.</summary>
@@ -94,7 +88,7 @@ namespace Game.RLHarness
         {
             var scope = Scope(spec.runSeed, episodeIndex);
             var rng = new System.Random(scope.ToSeed());
-            Pick(rng); // burn the selection roll so jitter draws match between mixture and pinned runs
+            Pick(rng, in spec); // burn the selection roll so jitter draws match between mixture and pinned runs
             var draw = new OpponentDraw { archetype = archetype.ToString() };
 
             switch (archetype)
@@ -142,14 +136,14 @@ namespace Game.RLHarness
         private static float Draw(System.Random rng, float min, float max) =>
             min + (max - min) * (float)rng.NextDouble();
 
-        private static OpponentArchetype Pick(System.Random rng)
+        internal static OpponentArchetype Pick(System.Random rng, in RewardSpec spec)
         {
             var roll = (float)rng.NextDouble()
-                * (AggressorWeight + EvaderWeight + OrbiterWeight + KiterWeight + DummyWeight);
-            if ((roll -= AggressorWeight) < 0f) return OpponentArchetype.Aggressor;
-            if ((roll -= EvaderWeight) < 0f) return OpponentArchetype.Evader;
-            if ((roll -= OrbiterWeight) < 0f) return OpponentArchetype.Orbiter;
-            if (roll - KiterWeight < 0f) return OpponentArchetype.Kiter;
+                * (spec.weightAggressor + spec.weightEvader + spec.weightOrbiter + spec.weightKiter + spec.weightDummy);
+            if ((roll -= spec.weightAggressor) < 0f) return OpponentArchetype.Aggressor;
+            if ((roll -= spec.weightEvader) < 0f) return OpponentArchetype.Evader;
+            if ((roll -= spec.weightOrbiter) < 0f) return OpponentArchetype.Orbiter;
+            if (roll - spec.weightKiter < 0f) return OpponentArchetype.Kiter;
             return OpponentArchetype.Dummy;
         }
     }
