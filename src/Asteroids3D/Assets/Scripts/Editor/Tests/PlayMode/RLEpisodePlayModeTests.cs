@@ -230,6 +230,30 @@ namespace Tests.PlayMode
                     $"Trajectory diverged at sample {i / 10} channel {i % 10}: a pair-reset left stale state behind — fix the reset, never loosen this test");
         }
 
+        // Anchorless fields ran collision-less for a full gate sweep before this pin existed (2026-07-18) — never loosen it.
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator FieldColliders_AnchorlessFieldKeepsDetailedCollidersLive()
+        {
+            var spec = RewardSpec.Default;
+            spec.useAsteroidField = true;
+
+            field = HarnessField.Spawn(arena, spec.fieldDensityScale, arenaHost.transform);
+            field.Reset(in spec, 0, EpisodePoses.Derive(in spec, 0, arena.Offset));
+            yield return null; // frame 1: the field's Start runs the staged build
+            yield return null; // frame 2: LateUpdate applies the no-anchor collider default
+
+            var controllers = field.Field.GetComponentsInChildren<Asteroids.AsteroidController>();
+            Assert.Greater(controllers.Length, 0, "Field-enabled episode must actually contain asteroids");
+            foreach (var controller in controllers)
+            {
+                var mesh = controller.GetComponent<MeshCollider>();
+                if (!mesh) continue;
+                Assert.IsTrue(mesh.enabled,
+                    $"Anchorless asteroid '{controller.name}' has a disabled MeshCollider — ships fly through it");
+            }
+        }
+
         /// <summary>The episode-boundary contract in host order: field rebuild first (poses become clearings), then the pair-reset onto the carved ground.</summary>
         private void ResetWithField(in RewardSpec spec, int episodeIndex)
         {
