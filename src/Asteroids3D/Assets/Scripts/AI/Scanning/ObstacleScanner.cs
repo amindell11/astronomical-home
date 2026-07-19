@@ -142,5 +142,8 @@ namespace AI.Scanning
             var centerPlane = GamePlane.WorldPointToPlane(origin.position);
             DetectedCount = field.QueryObstacles(centerPlane, HalfExtent, DetectedBuffer);
         }
+
+        /// <summary>Back to the pre-first-scan state; stale results must not outlive a reset (episode boundaries rebuild the field).</summary>
+        public void Clear() => DetectedCount = 0;
     }
 }

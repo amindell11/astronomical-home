@@ -27,15 +27,15 @@ namespace Game.RLHarness
 
         public int DecisionsReceived { get; private set; }
 
-        public void Configure(Ship self, Ship opponent, AgentChooser chooser, in RewardSpec spec, Vector2 arenaCenter)
+        public void Configure(Ship self, Ship opponent, AgentChooser chooser, in RewardSpec spec, Vector2 arenaCenter, Scout scout)
         {
             this.self = self;
             this.opponent = opponent;
             this.chooser = chooser;
             this.spec = spec;
             this.arenaCenter = arenaCenter;
+            this.scout = scout;
             primaryHeat = ResolvePrimaryHeat(self);
-            scout = self.GetComponentInChildren<AICommander>().Scout;
         }
 
         /// <summary>Resolved once at compose time — the lasers-only loadout is an episode constant, so the mount (and its Heat) never changes under a live agent.</summary>

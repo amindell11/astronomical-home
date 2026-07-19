@@ -57,6 +57,7 @@ namespace AI
             Contacts = ContactSummary.Empty;
             HasNearbyCover = false;
             mergedObstacleCount = 0;
+            obstacleScanner?.Clear();
         }
 
         private void Update()
