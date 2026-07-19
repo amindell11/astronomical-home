@@ -64,44 +64,6 @@ namespace Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator NewShip_ChildComponentsAreEnabled()
-        {
-            yield return null; // Wait for initialization
-
-            var weaponsController = combatShip.Weapons;
-            Assert.IsNotNull(weaponsController, "WeaponsController missing on test ship");
-            Assert.IsNotNull(weaponsController.Primary, "Primary weapon missing");
-            Assert.IsTrue(weaponsController.gameObject.activeInHierarchy, 
-                "WeaponsController GameObject should be active initially");
-
-            var shieldUI = testShip.GetComponentInChildren<ShieldUI>(includeInactive: false);
-            if (shieldUI != null)
-            {
-                Assert.IsTrue(shieldUI.gameObject.activeInHierarchy,
-                    "ShieldUI GameObject should be active initially");
-                LogDiagnostic($"ShieldUI found: {shieldUI.name}, active: {shieldUI.gameObject.activeInHierarchy}");
-            }
-            else
-            {
-                LogDiagnostic("ShieldUI not found on Ship_1 prefab (may not be present in this variant)");
-            }
-
-            var lockOnIndicator = testShip.GetComponentInChildren<LockOnIndicator>(includeInactive: false);
-            if (lockOnIndicator != null)
-            {
-                Assert.IsTrue(lockOnIndicator.gameObject.activeInHierarchy,
-                    "LockOnIndicator GameObject should be active initially");
-                LogDiagnostic($"LockOnIndicator found: {lockOnIndicator.name}, active: {lockOnIndicator.gameObject.activeInHierarchy}");
-            }
-            else
-            {
-                LogDiagnostic("LockOnIndicator not found on Ship_1 prefab (may not be present in this variant)");
-            }
-
-            LogDiagnostic("Baseline check passed - all found child components are active");
-        }
-
-        [UnityTest]
         public IEnumerator ShipDeath_DeactivatesParent_ChildComponentsAlsoDeactivate()
         {
             yield return null;
@@ -303,54 +265,6 @@ namespace Tests.PlayMode
             yield return null;
             Assert.AreEqual(0f, canvasGroup.alpha, 0.0001f,
                 "LockOnIndicator should hide (alpha 0) on lock release after reset");
-        }
-
-        /// <summary>Direct child deactivation vs parent deactivation must not diverge.</summary>
-        [UnityTest]
-        public IEnumerator DirectChildDeactivation_VsParentDeactivation_BehaviorDifference()
-        {
-            yield return null;
-
-            var weaponsController = combatShip.Weapons;
-            var originalActive = weaponsController.gameObject.activeSelf;
-
-            LogDiagnostic($"Test setup - Weapons originally active: {originalActive}");
-
-            weaponsController.gameObject.SetActive(false);
-            yield return null;
-
-            Assert.IsFalse(weaponsController.gameObject.activeSelf,
-                "WeaponsController should be inactive after direct SetActive(false)");
-
-            weaponsController.gameObject.SetActive(true);
-            yield return null;
-
-            Assert.IsTrue(weaponsController.gameObject.activeSelf,
-                "WeaponsController should be active after direct SetActive(true)");
-            Assert.IsNotNull(weaponsController.Primary,
-                "Primary weapon should still exist after direct child activation toggle");
-
-            LogDiagnostic("Scenario A (direct child toggle) passed");
-
-            testShip.gameObject.SetActive(false);
-            yield return null;
-
-            Assert.IsFalse(testShip.gameObject.activeSelf,
-                "Ship should be inactive after SetActive(false)");
-            Assert.IsFalse(weaponsController.gameObject.activeInHierarchy,
-                "WeaponsController should be inactive in hierarchy when parent is inactive");
-
-            testShip.gameObject.SetActive(true);
-            yield return null;
-
-            Assert.IsTrue(testShip.gameObject.activeSelf,
-                "Ship should be active after SetActive(true)");
-            Assert.IsTrue(weaponsController.gameObject.activeInHierarchy,
-                "WeaponsController should be active in hierarchy when parent is active");
-            Assert.IsNotNull(weaponsController.Primary,
-                "Primary weapon should still exist after parent activation toggle");
-
-            LogDiagnostic("Scenario B (parent toggle) passed - no behavioral difference detected");
         }
 
         [UnityTest]

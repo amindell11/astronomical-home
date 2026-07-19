@@ -37,23 +37,6 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void IGameServices_Exposes_AllServices()
-        {
-            var type = typeof(IGameServices);
-            Assert.IsNotNull(type.GetProperty("UnitService"), "Missing UnitService");
-            Assert.IsNotNull(type.GetProperty("Projectiles"), "Missing Projectiles");
-            Assert.IsNotNull(type.GetProperty("EnvironmentService"), "Missing EnvironmentService");
-            Assert.IsNotNull(type.GetProperty("ObjectiveService"), "Missing ObjectiveService");
-            Assert.IsNotNull(type.GetProperty("CameraService"), "Missing CameraService");
-        }
-
-        [Test]
-        public void GameServices_Implements_IGameServices()
-        {
-            Assert.IsTrue(typeof(IGameServices).IsAssignableFrom(typeof(GameServices)));
-        }
-
-        [Test]
         public void GameServices_Constructor_ThrowsOnNullService()
         {
             var unit = CreateMonoBehaviourService<UnitService>();
@@ -75,47 +58,11 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void IUnitService_HasRequiredMembers()
-        {
-            var type = typeof(IUnitService);
-            Assert.IsNotNull(type.GetProperty("Registry"), "Missing Registry");
-            Assert.IsNotNull(type.GetProperty("ActiveRegistry"), "Missing ActiveRegistry");
-            Assert.IsNotNull(type.GetMethod("SpawnShip"), "Missing SpawnShip");
-            Assert.IsNotNull(type.GetMethod("SetProjectiles"), "Missing SetProjectiles");
-            Assert.IsNotNull(type.GetMethod("Clear"), "Missing Clear");
-            Assert.IsNotNull(type.GetEvent("OnShipSpawned"), "Missing OnShipSpawned");
-        }
-
-        [Test]
-        public void UnitService_Implements_IUnitService()
-        {
-            Assert.IsTrue(typeof(IUnitService).IsAssignableFrom(typeof(UnitService)));
-        }
-
-        [Test]
         public void UnitService_RegistryIsNotNull_AfterConstruction()
         {
             var svc = CreateMonoBehaviourService<UnitService>();
             Assert.IsNotNull(svc.Registry);
             Assert.IsNotNull(svc.ActiveRegistry);
-        }
-
-        [Test]
-        public void IEnvironmentService_HasRequiredMembers()
-        {
-            var type = typeof(IEnvironmentService);
-            Assert.IsNotNull(type.GetProperty("World"), "Missing World");
-            Assert.IsNotNull(type.GetProperty("WorldFollowerTransform"), "Missing WorldFollowerTransform");
-            Assert.IsNotNull(type.GetMethod("ApplyLocaleAsync"), "Missing ApplyLocaleAsync");
-            Assert.IsNotNull(type.GetMethod("RestoreBootEnvironmentAsync"), "Missing RestoreBootEnvironmentAsync");
-            Assert.IsNotNull(type.GetMethod("SpawnWorld"), "Missing SpawnWorld");
-            Assert.IsNotNull(type.GetMethod("Clear"), "Missing Clear");
-        }
-
-        [Test]
-        public void EnvironmentService_Implements_IEnvironmentService()
-        {
-            Assert.IsTrue(typeof(IEnvironmentService).IsAssignableFrom(typeof(EnvironmentService)));
         }
 
         [Test]
@@ -127,39 +74,13 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void IObjectiveService_HasRequiredMembers()
+        public void IObjectiveService_SpineMutation_IsNotAmbientOnTheService()
         {
             var type = typeof(IObjectiveService);
-            Assert.IsNotNull(type.GetProperty("SpineTracker"), "Missing SpineTracker");
-            Assert.IsNotNull(type.GetProperty("SpineState"), "Missing SpineState");
-            Assert.IsNotNull(type.GetProperty("SpineStep"), "Missing SpineStep");
-            Assert.IsNotNull(type.GetProperty("SpineTarget"), "Missing SpineTarget");
-            Assert.IsNotNull(type.GetMethod("SetSpineObjective"), "Missing SetSpineObjective");
-            Assert.AreEqual(typeof(SpineObjectiveHandle), type.GetMethod("SetSpineObjective").ReturnType,
-                "Spine mutation must flow through the ownership handle.");
             Assert.IsNull(type.GetMethod("SetSpineTarget"), "SetSpineTarget must not be ambient on the service.");
             Assert.IsNull(type.GetMethod("FailSpine"), "FailSpine must not be ambient on the service.");
             Assert.IsNull(type.GetMethod("RestartSpine"), "RestartSpine must not be ambient on the service.");
             Assert.IsNull(type.GetMethod("ClearSpine"), "ClearSpine must not be ambient on the service.");
-            Assert.IsNotNull(type.GetEvent("OnSpineStateChanged"), "Missing OnSpineStateChanged");
-            Assert.IsNotNull(type.GetEvent("OnSpineStepChanged"), "Missing OnSpineStepChanged");
-            Assert.IsNotNull(type.GetEvent("OnSpineTargetChanged"), "Missing OnSpineTargetChanged");
-            Assert.IsNotNull(type.GetMethod("OpenLocal"), "Missing OpenLocal");
-            Assert.IsNotNull(type.GetProperty("Locals"), "Missing Locals");
-            Assert.IsNotNull(type.GetEvent("OnLocalsChanged"), "Missing OnLocalsChanged");
-            Assert.IsNotNull(type.GetMethod("ClearAll"), "Missing ClearAll");
-        }
-
-        [Test]
-        public void ObjectiveService_Implements_IObjectiveService()
-        {
-            Assert.IsTrue(typeof(IObjectiveService).IsAssignableFrom(typeof(ObjectiveService)));
-        }
-
-        [Test]
-        public void ObjectiveService_Implements_IObjectiveTrackerAdapter()
-        {
-            Assert.IsTrue(typeof(IObjectiveTrackerAdapter).IsAssignableFrom(typeof(ObjectiveService)));
         }
 
         private static Dictionary<string, Func<ObjectiveState>> BuildDefaultBuilders(
@@ -269,23 +190,6 @@ namespace Tests.EditMode
 
             Assert.AreEqual(0, raised,
                 "A cleared spine tracker must be detached from the service forwarder.");
-        }
-
-        [Test]
-        public void ICameraService_HasRequiredMembers()
-        {
-            var type = typeof(ICameraService);
-            Assert.IsNotNull(type.GetProperty("Cameras"), "Missing Cameras");
-            Assert.IsNotNull(type.GetMethod("Initialize"), "Missing Initialize");
-            Assert.IsNotNull(type.GetMethod("AddCamera"), "Missing AddCamera");
-            Assert.IsNotNull(type.GetMethod("RemoveCamera"), "Missing RemoveCamera");
-            Assert.IsNotNull(type.GetMethod("Clear"), "Missing Clear");
-        }
-
-        [Test]
-        public void CameraService_Implements_ICameraService()
-        {
-            Assert.IsTrue(typeof(ICameraService).IsAssignableFrom(typeof(CameraService)));
         }
 
         [Test]

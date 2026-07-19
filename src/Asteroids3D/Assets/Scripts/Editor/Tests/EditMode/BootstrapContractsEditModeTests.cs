@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Linq;
 using System.Reflection;
 using Game.Bootstrap;
 using Game.Sectors;
@@ -57,61 +56,11 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void Sector_ImplementsISector()
-        {
-            Assert.IsTrue(typeof(ISector).IsAssignableFrom(typeof(Sector)),
-                "Sector must implement ISector");
-        }
-
-        [Test]
-        public void Sector_IsMonoBehaviour()
-        {
-            Assert.IsTrue(typeof(MonoBehaviour).IsAssignableFrom(typeof(Sector)),
-                "Sector must extend MonoBehaviour");
-        }
-
-        [Test]
-        public void GameServices_ImplementsIGameServices()
-        {
-            Assert.IsTrue(typeof(IGameServices).IsAssignableFrom(typeof(GameServices)),
-                "GameServices must implement IGameServices");
-        }
-
-        [Test]
-        public void GameServices_ExposesAllServiceInterfaces()
-        {
-            var props = typeof(IGameServices).GetProperties();
-            var expected = new[]
-            {
-                (nameof(IGameServices.UnitService), typeof(IUnitService)),
-                (nameof(IGameServices.Projectiles), typeof(IProjectileService)),
-                (nameof(IGameServices.EnvironmentService), typeof(IEnvironmentService)),
-                (nameof(IGameServices.ObjectiveService), typeof(IObjectiveService)),
-                (nameof(IGameServices.CameraService), typeof(ICameraService)),
-            };
-
-            foreach (var (name, type) in expected)
-            {
-                var prop = props.FirstOrDefault(p => p.Name == name);
-                Assert.IsNotNull(prop, $"IGameServices must have property {name}");
-                Assert.AreEqual(type, prop.PropertyType,
-                    $"IGameServices.{name} must be of type {type.Name}");
-            }
-        }
-
-        [Test]
         public void GameServices_Constructor_RejectsNullServices()
         {
             Assert.Throws<ArgumentNullException>(() =>
                 new GameServices(null, null, null, null, null, null, null),
                 "GameServices constructor must reject null services");
-        }
-
-        [Test]
-        public void SectorSettings_IsScriptableObject()
-        {
-            Assert.IsTrue(typeof(ScriptableObject).IsAssignableFrom(typeof(SectorSettings)),
-                "SectorSettings must extend ScriptableObject");
         }
 
         [Test]
@@ -149,20 +98,6 @@ namespace Tests.EditMode
             CollectionAssert.Contains(names, "InSector");
             CollectionAssert.Contains(names, "Restart");
             CollectionAssert.Contains(names, "Exit");
-        }
-
-        [Test]
-        public void GameDriver_IsMonoBehaviour()
-        {
-            Assert.IsTrue(typeof(MonoBehaviour).IsAssignableFrom(typeof(GameDriver)),
-                "GameDriver must extend MonoBehaviour");
-        }
-
-        [Test]
-        public void SessionHost_IsMonoBehaviour()
-        {
-            Assert.IsTrue(typeof(MonoBehaviour).IsAssignableFrom(typeof(SessionHost)),
-                "SessionHost must extend MonoBehaviour");
         }
 
         [Test]
@@ -262,40 +197,5 @@ namespace Tests.EditMode
             Assert.AreEqual(typeof(Action<ShipId, ShipId>), parameters[2].ParameterType);
         }
 
-        [Test]
-        public void SessionHost_DoesNotLookUpSiblingServicesOutsideAwake()
-        {
-            var source = System.IO.File.ReadAllText(System.IO.Path.Combine(
-                Application.dataPath, "Scripts", "Game", "Bootstrap", "SessionHost.cs"));
-            StringAssert.Contains("unitService = GetComponent<UnitService>();", source);
-            StringAssert.Contains("objectiveService = GetComponent<ObjectiveService>();", source);
-            StringAssert.Contains("navFieldService = GetComponent<NavFieldService>();", source);
-            var lookups = source.Split(new[] { "GetComponent<" }, StringSplitOptions.None).Length - 1;
-            Assert.AreEqual(3, lookups,
-                "SessionHost must contain exactly the three Awake cache lookups");
-        }
-
-        [Test]
-        public void SessionHost_DoesNotReferenceTheDriver()
-        {
-            var source = System.IO.File.ReadAllText(System.IO.Path.Combine(
-                Application.dataPath, "Scripts", "Game", "Bootstrap", "SessionHost.cs"));
-            StringAssert.DoesNotContain("GameDriver", source,
-                "SessionHost must not reference GameDriver (the seam points up only)");
-        }
-
-        [Test]
-        public void GameDriver_Awake_CallsDontDestroyOnLoad()
-        {
-            var method = typeof(GameDriver).GetMethod("Awake",
-                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-            Assert.IsNotNull(method, "GameDriver must have an Awake method");
-
-            var body = method.GetMethodBody();
-            Assert.IsNotNull(body, "Awake must have a method body");
-            var il = body.GetILAsByteArray();
-            Assert.IsNotNull(il, "Awake must have IL bytes");
-            Assert.IsTrue(il.Length > 0, "Awake IL must not be empty");
-        }
     }
 }

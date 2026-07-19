@@ -1,7 +1,6 @@
 using UnityEngine;
 #if UNITY_EDITOR || DEBUG
 using System.Collections.Generic;
-using System.Text;
 #endif
 
 namespace AI.Utility
@@ -67,11 +66,6 @@ namespace AI.Utility
             return result;
         }
 
-        public float BuildRaw()
-        {
-            return totalWeight <= 0f ? 0f : Mathf.Pow(product, 1f / totalWeight);
-        }
-
         public void Clear()
         {
             product = 1f;
@@ -90,21 +84,6 @@ namespace AI.Utility
 
         /// <summary>Final geometric-mean result after Build(). Zero before Build() is called.</summary>
         public float Result { get; private set; }
-
-        public string GetBreakdown()
-        {
-            if (!trackBreakdown || breakdown.Count == 0)
-                return $"Total: {(totalWeight > 0f ? Mathf.Pow(product, 1f / totalWeight) : 0f):F3}";
-
-            var sb = new StringBuilder();
-            foreach (var (name, value) in breakdown)
-            {
-                sb.Append($"{name}:{value:F2} | ");
-            }
-            var result = totalWeight > 0f ? Mathf.Pow(product, 1f / totalWeight) : 0f;
-            sb.Append($"= {result:F3} (geomean, w={totalWeight:F1})");
-            return sb.ToString();
-        }
 #endif
     }
 }

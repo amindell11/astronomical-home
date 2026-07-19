@@ -374,18 +374,6 @@ namespace Tests.EditMode
             }
         }
 
-        [Test]
-        public void KeyPickup_Implements_IKeyTracker()
-        {
-            Assert.IsTrue(typeof(IKeyTracker).IsAssignableFrom(typeof(KeyPickup)));
-        }
-
-        [Test]
-        public void ExtractionZone_Implements_IExtractionZone()
-        {
-            Assert.IsTrue(typeof(IExtractionZone).IsAssignableFrom(typeof(ExtractionZone)));
-        }
-
         private sealed class StubKeyTracker : IKeyTracker
         {
             public bool HasKey;

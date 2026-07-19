@@ -52,11 +52,6 @@ namespace Combat.Weapons
             lockProvider = targetingComputer;
         }
 
-        public void SetLockProvider(ILockProvider provider)
-        {
-            lockProvider = provider;
-        }
-
         public override ProjectileBase Fire(IProjectileService projectiles)
         {
             var proj = base.Fire(projectiles) as Missile;
