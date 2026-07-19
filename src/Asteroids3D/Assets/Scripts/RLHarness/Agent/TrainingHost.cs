@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using Unity.MLAgents;
 using Unity.MLAgents.Policies;
 using UnityEngine;
 
@@ -14,6 +15,8 @@ namespace Game.RLHarness
         [Tooltip("Default = trainer when connected, else heuristic. HeuristicOnly for a Python-free loop check. Checkpoint eval goes through CheckpointEvaluator, not this host.")]
         [SerializeField] private BehaviorType behaviorType = BehaviorType.Default;
 
+        private OpponentRoster roster;
+
         private IEnumerator Start()
         {
             PacingContract.Apply();
@@ -23,12 +26,15 @@ namespace Game.RLHarness
             spec.runSeed = runSeed;
             if (Environment.GetEnvironmentVariable("RL_SMOKE") == "1")
                 spec = SmokeSpec(spec);
+            Func<string, float, float> envParams = Academy.Instance.EnvironmentParameters.GetWithDefault;
+            spec = EnvParamOverlay.Apply(spec, envParams);
 
             var (units, arena, projectiles) = HarnessArena.Compose(gameObject);
             var field = spec.useAsteroidField
                 ? HarnessField.Spawn(arena, spec.fieldDensityScale, transform)
                 : null;
             var pair = EpisodePair.SpawnWithAgentChooser(units, arena, projectiles, in spec, out var chooser);
+            roster = new OpponentRoster(pair.Baseline, pair.Agent);
 
             var agent = behaviorType switch
             {
@@ -38,14 +44,16 @@ namespace Game.RLHarness
                     $"TrainingHost supports Default (trainer) and HeuristicOnly; {behaviorType} checkpoint eval runs through CheckpointEvaluator."),
             };
 
-            var driver = new EpisodeLoopDriver(pair, agent, arena.Offset, field);
+            var driver = new EpisodeLoopDriver(pair, agent, arena.Offset, field, roster);
             var jsonlPath = EpisodeJsonl.NewRunPath("training");
             var terminals = 0;
             var truncations = 0;
 
             for (var i = 0; episodes <= 0 || i < episodes; i++)
             {
-                yield return driver.RunEpisode(spec, i);
+                // Re-read per episode: curriculum lessons move density/lethality/weights mid-run.
+                var episodeSpec = EnvParamOverlay.Apply(spec, envParams);
+                yield return driver.RunEpisode(episodeSpec, i);
                 var result = driver.Runner.Result;
                 EpisodeJsonl.Append(jsonlPath, in result);
                 if (result.endKind == EndKind.Terminal.ToString()) terminals++;
@@ -70,6 +78,8 @@ namespace Game.RLHarness
             spec.maxSeparation = 24f;
             return spec;
         }
+
+        private void OnDestroy() => roster?.Dispose();
 
         private IEnumerator PacingWatchdog()
         {

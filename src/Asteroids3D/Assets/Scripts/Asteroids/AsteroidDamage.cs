@@ -27,6 +27,7 @@ namespace Asteroids
 
         private AsteroidController controller;
         private bool isDestroyed;
+        private float lethality = 1f;
 
         public float Health { get; private set; }
         public float MaxHealth { get; private set; }
@@ -36,9 +37,10 @@ namespace Asteroids
             controller = GetComponent<AsteroidController>();
         }
 
-        public void Initialize(float volume)
+        public void Initialize(float volume, float lethality = 1f)
         {
             isDestroyed = false;
+            this.lethality = lethality;
             MaxHealth = volume * healthPerUnitVolume;
             Health = MaxHealth;
         }
@@ -89,12 +91,17 @@ namespace Asteroids
         {
             var asteroidNormalVelocity = Vector3.Project(controller.Rb.linearVelocity, impact.normal);
             var shipNormalVelocity = Vector3.Project(shipVel, impact.normal);
+            return CalcDamage(controller.Mass, asteroidNormalVelocity, shipMass, shipNormalVelocity);
+        }
+
+        internal float CalcDamage(float asteroidMass, Vector3 asteroidNormalVelocity, float shipMass, Vector3 shipNormalVelocity)
+        {
             var damage = CollisionDamageUtility.ComputeDamage(
-                controller.Mass,
+                asteroidMass,
                 asteroidNormalVelocity,
                 shipMass,
                 shipNormalVelocity,
-                energyToDamageScale);
+                energyToDamageScale * lethality);
             return ApplySoftCap(damage);
         }
 

@@ -161,13 +161,21 @@ namespace Tests.PlayMode
             yield return CheckpointEvaluator.Run(unitService, arena, projectiles, ShipAgentFactory.SmokeFixturePath,
                 seeds, episodesPerSeed: 1, spec, "test-eval", s => summary = s);
 
-            Assert.AreEqual(2, summary.episodes);
-            Assert.AreEqual(summary.episodes, summary.wins + summary.losses + summary.draws,
-                "every episode must land in exactly one W/L/D bucket");
-            Assert.AreEqual(summary.wins / (float)summary.episodes, summary.winRate, 1e-6f,
-                "draws must count as non-wins");
-            Assert.AreEqual(EvalProtocol.WilsonLowerBound(summary.wins, summary.episodes),
-                summary.wilsonLowerBound95, 1e-6f);
+            // Stratified eval: one standalone block per archetype, and no blended aggregate anywhere.
+            CollectionAssert.AreEquivalent(
+                new[] { "Aggressor", "Evader", "Orbiter", "Kiter", "Dummy" },
+                System.Array.ConvertAll(summary.archetypes, a => a.archetype));
+            foreach (var block in summary.archetypes)
+            {
+                Assert.AreEqual(seeds.Length, block.episodes,
+                    $"{block.archetype}: episodesPerSeed × seeds episodes per archetype block");
+                Assert.AreEqual(block.episodes, block.wins + block.losses + block.draws,
+                    "every episode must land in exactly one W/L/D bucket");
+                Assert.AreEqual(block.wins / (float)block.episodes, block.winRate, 1e-6f,
+                    "draws must count as non-wins");
+                Assert.AreEqual(EvalProtocol.WilsonLowerBound(block.wins, block.episodes),
+                    block.wilsonLowerBound95, 1e-6f);
+            }
             Assert.AreEqual(seeds, summary.seeds);
             Assert.IsTrue(System.IO.File.Exists(summary.episodesJsonl), "per-episode JSONL artifact missing");
             Assert.IsTrue(System.IO.File.Exists(summary.episodesJsonl.Replace(".jsonl", "-summary.json")),

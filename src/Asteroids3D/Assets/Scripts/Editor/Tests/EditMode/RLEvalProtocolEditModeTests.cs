@@ -48,6 +48,34 @@ namespace Tests.EditMode
             Assert.Less(EvalProtocol.WilsonLowerBound(10, 20), EvalProtocol.WilsonLowerBound(100, 200));
             Assert.Less(EvalProtocol.WilsonLowerBound(100, 200), 0.5f);
         }
+
+        [Test]
+        public void EvaluatorSummarize_AggregatesPerArchetypeWithoutABlend()
+        {
+            var win = EpisodeOutcome.Win.ToString();
+            var loss = EpisodeOutcome.Loss.ToString();
+            var draw = EpisodeOutcome.Draw.ToString();
+            var summaries = CheckpointEvaluator.Summarize(new[]
+            {
+                ("Aggressor", win), ("Dummy", win),
+                ("Aggressor", loss), ("Dummy", win),
+                ("Aggressor", draw), ("Dummy", win),
+            });
+
+            Assert.AreEqual(2, summaries.Length, "one entry per archetype, nothing blended");
+            Assert.AreEqual("Aggressor", summaries[0].archetype);
+            Assert.AreEqual(3, summaries[0].episodes);
+            Assert.AreEqual(1, summaries[0].wins);
+            Assert.AreEqual(1, summaries[0].losses);
+            Assert.AreEqual(1, summaries[0].draws, "draws are non-wins, tallied separately");
+            Assert.AreEqual(1f / 3f, summaries[0].winRate, 1e-6f);
+            Assert.AreEqual(EvalProtocol.WilsonLowerBound(1, 3), summaries[0].wilsonLowerBound95, 1e-6f);
+
+            Assert.AreEqual("Dummy", summaries[1].archetype);
+            Assert.AreEqual(3, summaries[1].wins);
+            Assert.AreEqual(1f, summaries[1].winRate, 1e-6f);
+            Assert.AreEqual(EvalProtocol.WilsonLowerBound(3, 3), summaries[1].wilsonLowerBound95, 1e-6f);
+        }
     }
 }
 #endif

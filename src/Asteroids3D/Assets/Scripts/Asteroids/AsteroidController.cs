@@ -67,7 +67,8 @@ namespace Asteroids
             float mass,
             float scale,
             Vector3 velocity,
-            Vector3 angularVelocity
+            Vector3 angularVelocity,
+            float lethality = 1f
         )
         {
             var prevAutoSync = Physics.autoSyncTransforms;
@@ -113,7 +114,7 @@ namespace Asteroids
             initialVelocity = velocity;
             initialAngularVelocity = angularVelocity;
 
-            damage?.Initialize(Volume);
+            damage?.Initialize(Volume, lethality);
 
             Physics.SyncTransforms();
             Physics.autoSyncTransforms = prevAutoSync;
