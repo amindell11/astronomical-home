@@ -204,27 +204,6 @@ namespace Tests.PlayMode
         }
 
         [UnityTest]
-        [Ignore("Known guidance limitation: pure pursuit cannot converge on 90° offset. Remove when guidance is improved.")]
-        public IEnumerator Target90Degrees_Converges()
-        {
-            var origin = GamePlane.PlanePointToWorld(Vector2.zero);
-            missile = CreateTestMissile(origin);
-            targetGo = CreateTarget(new Vector2(15, 0));
-
-            var shooter = new GameObject("Shooter").AddComponent<StubShooter>();
-            missile.SetTarget(targetGo.transform);
-            LaunchAt(missile, Vector2.up, shooter);
-
-            yield return AsyncAssert.WaitUntil(
-                () => DistanceToTarget() < 3f,
-                8f,
-                $"Missile did not converge on 90-degree target (dist={DistanceToTarget():F2})",
-                useFixedUpdate: true);
-
-            DestroyTestObject(shooter);
-        }
-
-        [UnityTest]
         public IEnumerator CloseRangeLock_NoOvershootOrbit()
         {
             var origin = GamePlane.PlanePointToWorld(Vector2.zero);

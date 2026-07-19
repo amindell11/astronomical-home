@@ -4,14 +4,6 @@ using UnityEngine;
 
 namespace AI.Observation
 {
-    public enum TokenKind
-    {
-        Self = 0,
-        Target = 1,
-        Threat = 2,
-        Obstacle = 3,
-    }
-
     /// <summary>Own kinematics and resources. Egocentric origin, so position is implicitly (0,0)
     /// and heading implicitly +Y — only velocity and resource scalars are carried.</summary>
     public readonly struct SelfToken

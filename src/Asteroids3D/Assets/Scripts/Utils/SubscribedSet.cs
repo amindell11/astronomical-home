@@ -44,16 +44,5 @@ namespace Utils
             var removedItems = this.Where(item => match(item)).ToList();
             return removedItems.Count(Remove);
         }
-        public void Consolidate()
-        {
-            RemoveWhere(item => item == null);
-        }
-
-        public void AddAll(IEnumerable<T> items)
-        {
-            foreach (var i in items)
-                if (i != null) Add(i);
-        }
-        
     }
 }

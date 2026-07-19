@@ -16,10 +16,6 @@ namespace UI
         [SerializeField] float shimmerFreq = 20f;    // Hz of scale flicker
         [SerializeField] float shimmerAmp  = 0.08f;  // 8 % size wobble
 
-        [Header("Fill & Color")]
-        [Tooltip("Optional gradient to tint ring based on remaining shield")]
-        [SerializeField] Gradient shieldColors;
-
         private IDamageEvents source;   // injected: the ship whose shield flashes
         private bool subscribed;
 

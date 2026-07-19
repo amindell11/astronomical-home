@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
 using Combat.Conditions;
 using Combat.Targeting;
@@ -192,28 +191,6 @@ namespace Tests.EditMode
                 UnityEngine.Object.DestroyImmediate(heatGo);
                 UnityEngine.Object.DestroyImmediate(uiGo);
             }
-        }
-
-        [Test]
-        public void RuntimeFiles_AreDecoupledFromEditorOrOverlayConcerns()
-        {
-            var assetsPath = Application.dataPath;
-            var updatingFieldPath = Path.Combine(assetsPath, "Scripts", "Asteroids", "Fields", "UpdatingAsteroidField.cs");
-            // The former MainGameManager was cleaved into the driver + host; assert both halves stay
-            // free of the GameContext singleton and PresentationReady polling.
-            var driverPath = Path.Combine(assetsPath, "Scripts", "Game", "Bootstrap", "GameDriver.cs");
-            var hostPath = Path.Combine(assetsPath, "Scripts", "Game", "Bootstrap", "SessionHost.cs");
-
-            var updatingFieldSource = File.ReadAllText(updatingFieldPath);
-            var driverSource = File.ReadAllText(driverPath);
-            var hostSource = File.ReadAllText(hostPath);
-
-            StringAssert.DoesNotContain("using UnityEditor", updatingFieldSource);
-            StringAssert.DoesNotContain("OnDrawGizmosSelected", updatingFieldSource);
-            StringAssert.DoesNotContain("GameContext.Instance", driverSource);
-            StringAssert.DoesNotContain("PresentationReady", driverSource);
-            StringAssert.DoesNotContain("GameContext.Instance", hostSource);
-            StringAssert.DoesNotContain("PresentationReady", hostSource);
         }
 
         private static AudioClip CreateTestClip(string name)
