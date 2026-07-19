@@ -113,7 +113,7 @@ namespace Game.RLHarness
             behavior.Model = model;
 
             agent = host.AddComponent<LivePilotAgent>();
-            agent.Bind(mailbox);
+            agent.Bind(mailbox, ctx.Scout);
             host.SetActive(true);
 
             Academy.Instance.AutomaticSteppingEnabled = false;

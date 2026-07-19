@@ -24,6 +24,9 @@ namespace AI.Scanning
         public readonly float radius;
         public readonly Collider collider;
 
+        // Plane-projected linear velocity (units/s); zero for static sources. MPC solver inputs never read it.
+        public readonly Vector2 velocity;
+
         // Up to three tighter covering circles for an elongated obstacle. lobeCount == 0 means
         // "use the primary circle only" (every non-lobe ctor), so ships and legacy callers are
         // unchanged. When lobeCount > 1 a multi-sphere-aware consumer may prefer these.
@@ -37,6 +40,7 @@ namespace AI.Scanning
             this.collider = collider;
             position = GamePlane.WorldPointToPlane(collider.transform.position);
             radius = Mathf.Max(collider.bounds.extents.x, collider.bounds.extents.z);
+            velocity = Vector2.zero;
             lobe0 = default;
             lobe1 = default;
             lobe2 = default;
@@ -46,11 +50,12 @@ namespace AI.Scanning
         // Used for non-static obstacles (e.g. other ships) where the relevant world
         // position is the ship's transform, not necessarily a child collider's local origin,
         // and radius comes from ship settings rather than collider bounds.
-        public DetectedObstacle(Vector3 worldPos, float radius, Collider collider)
+        public DetectedObstacle(Vector3 worldPos, float radius, Collider collider, Vector2 velocity = default)
         {
             this.collider = collider;
             position = GamePlane.WorldPointToPlane(worldPos);
             this.radius = radius;
+            this.velocity = velocity;
             lobe0 = default;
             lobe1 = default;
             lobe2 = default;
@@ -60,11 +65,12 @@ namespace AI.Scanning
         // Multi-lobe overload: primary circle (fallback / selection key) plus up to three
         // pre-projected plane lobes. lobeCount clamps to [0,3].
         public DetectedObstacle(Vector3 worldPos, float radius, Collider collider,
-            PlaneCircle lobe0, PlaneCircle lobe1, PlaneCircle lobe2, int lobeCount)
+            PlaneCircle lobe0, PlaneCircle lobe1, PlaneCircle lobe2, int lobeCount, Vector2 velocity = default)
         {
             this.collider = collider;
             position = GamePlane.WorldPointToPlane(worldPos);
             this.radius = radius;
+            this.velocity = velocity;
             this.lobe0 = lobe0;
             this.lobe1 = lobe1;
             this.lobe2 = lobe2;
@@ -136,5 +142,8 @@ namespace AI.Scanning
             var centerPlane = GamePlane.WorldPointToPlane(origin.position);
             DetectedCount = field.QueryObstacles(centerPlane, HalfExtent, DetectedBuffer);
         }
+
+        /// <summary>Back to the pre-first-scan state; stale results must not outlive a reset (episode boundaries rebuild the field).</summary>
+        public void Clear() => DetectedCount = 0;
     }
 }

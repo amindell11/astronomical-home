@@ -220,3 +220,66 @@ checks run in empty arenas — the PR-A field composition stays off).
   (deterministic close-hold-fire pressure, the PR-2b/3 pattern) — one comparable
   reference across all archetypes; the production aggressor's utility-state stochasticity
   would muddy degeneracy attribution.
+
+---
+
+# PR-B — Decision brief (frozen 2026-07-19, pr-prep)
+
+## Scope
+
+**In:** obstacle-token observation extension 24 → 72: k=8 nearest-asteroid tokens × 6
+floats appended to the shared `AgentObservations.Fill`; `DetectedObstacle` gains a
+plane-projected velocity captured at the field query; `Scout.AsteroidScan` accessor
+(asteroid-only raw scanner view); re-mint `ShipCombat-smoke.onnx` at the new size;
+layout-pin tests moved to 72 + token semantics.
+
+**Out (non-goals):** any MPC/avoidance behavior change (Burst converter ignores the new
+velocity field — byte-identical solver inputs); BufferSensor/attention (flat vector per
+plan); training, curriculum, mixture wiring (PR-D); re-minting `ShipCombat-pilot.onnx`
+(checkpoint break accepted — stale, null-check tests only); weapons/threat tokens.
+
+## Fork resolutions (with why)
+
+1. **Token source = asteroids-only** (raw `ObstacleScanner` buffer via a new
+   `Scout.AsteroidScan`, mirroring the merged `ObstacleScan` property). *Why:* the
+   opponent already has a rich block (ch 9–17) — the merged buffer would represent it
+   twice and burn a token slot in close combat; policy's asteroid skill is terrain
+   routing, ship avoidance stays the MPC's job.
+2. **Velocity rides the obstacle pipeline** — `DetectedObstacle.velocity` (plane-projected),
+   captured in `UpdatingAsteroidField.BuildObstacle` from the asteroid's rigidbody; the
+   Scout ship-append site populates it from ship kinematics; Burst `ObstacleData`
+   unchanged. *Why (user directive):* the scan result carries its own data — consumers
+   dereferencing collider→rigidbody at obs time is the reach-into-the-object pattern this
+   codebase forbids; the extra field on the shared path is cheap and never half-initialized.
+3. **k=8, token = `relPos.xy, distance, relVel.xy, radius`** (obs 72). *Why:* mirrors the
+   target block (relPos + explicit distance + relVel) and internal `ObstacleToken`
+   (relPos/distance/radius); k=8 covers routing-relevant blockers at training densities
+   1.0–2.0. Bearing-scalar variant rejected (±π wraparound discontinuity; continuous
+   encoding = sin/cos = the same two floats).
+
+## Assumptions (user-reviewed)
+
+- Flat `VectorSensor`; `AgentObservations.Size` 24→72 auto-propagates to both hosts
+  (`ShipAgentFactory`, `InferenceChooser` set size from the const); no prefab/YAML edits
+  (`normalize: false` — magnitudes matter).
+- Token block appended after ch 23 inside the shared `Fill`; scan enters as a parameter
+  (no lookups inside `Fill`); both hosts pass their ship's Scout, cached at composition —
+  never per-decision `GetComponent`.
+- Freshness: `Scout.Update` scans every frame in all modes; obs reads the latest buffer.
+- Ego math reuses `EgoFrame`; relVel = (asteroid − self) ego-rotated (target-block
+  convention); distance center-to-center (radius is its own channel).
+- Normalization: relPos + distance / arenaRadius (120); relVel / ship MaxSpeed (1e-3
+  floor); radius / const pinned from spawn settings' max asteroid radius at build time.
+- PR sorts ascending by distance itself (`KeepNearest` only sorts on overflow); zero-pad
+  tail; empty/no-field arena → all-zero block; radius 0 ⇔ empty slot (no presence flag).
+- Smoke fixture re-mint via `training/rl/run_smoke.py` (unity-access coordination), LFS
+  commit; `RLAgentEditModeTests` layout pins updated; focused EditMode token-math test
+  (frame, sort, pad) + PlayMode case with a live PR-A field (`useAsteroidField` on).
+- Tests headless; `-ScopeType Auto` iteration; worktree loop, slot agent-1
+  (lease `rl-env-prb-ktokens`); user editor open on agent-1 (PID 38380) — coordinate
+  batch runs via unity-access, never close it.
+
+## Blindsider resolutions
+
+(None survived the post-lock pass — all candidates resolved to code-grounded
+assumptions above.)

@@ -12,6 +12,7 @@ namespace Game.RLHarness
     public sealed class LivePilotAgent : Agent
     {
         private AgentChooser mailbox;
+        private AI.Scout scout;
         private Ship self;
         private Ship target;
         private UnityEngine.Vector2 leashCenter;
@@ -22,7 +23,11 @@ namespace Game.RLHarness
 
         public int DecisionsReceived { get; private set; }
 
-        public void Bind(AgentChooser mailbox) => this.mailbox = mailbox;
+        public void Bind(AgentChooser mailbox, AI.Scout scout)
+        {
+            this.mailbox = mailbox;
+            this.scout = scout;
+        }
 
         public void CaptureBoundary(Ship self, Ship target, UnityEngine.Vector2 leashCenter, float leashRadius)
         {
@@ -52,7 +57,7 @@ namespace Game.RLHarness
                 boundary.inMyEnvelope, boundary.inEnemyEnvelope,
                 self.Weapons.Context.IsReady(WeaponSlot.Primary),
                 primaryHeat?.HeatPct ?? 0f,
-                leashCenter, leashRadius);
+                leashCenter, leashRadius, scout.AsteroidScan);
 
             for (var i = 0; i < observationBuffer.Length; i++)
                 sensor.AddObservation(observationBuffer[i]);
