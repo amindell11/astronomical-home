@@ -10,7 +10,7 @@ namespace Game.RLHarness
         public float envelopeK1;
         public float envelopeK2;
         public float borderKb;
-        // Flat cost per paid decision: a timeout draw nets −timeCostPerDecision·timeoutDecisions, so waiting is never free.
+        // A timeout draw nets −timeCostPerDecision·timeoutDecisions — waiting is never free.
         public float timeCostPerDecision;
         public float gamma;
         public int decisionIntervalSteps;
