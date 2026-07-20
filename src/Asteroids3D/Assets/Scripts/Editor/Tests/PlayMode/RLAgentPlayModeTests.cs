@@ -180,6 +180,17 @@ namespace Tests.PlayMode
             Assert.IsTrue(System.IO.File.Exists(summary.episodesJsonl), "per-episode JSONL artifact missing");
             Assert.IsTrue(System.IO.File.Exists(summary.episodesJsonl.Replace(".jsonl", "-summary.json")),
                 "summary artifact missing");
+
+            // The teacher scorecard rides alongside the W/L/D tally, one behavior block per archetype in the same order.
+            CollectionAssert.AreEqual(
+                System.Array.ConvertAll(summary.archetypes, a => a.archetype),
+                System.Array.ConvertAll(summary.behavior, b => b.archetype));
+            foreach (var b in summary.behavior)
+            {
+                Assert.AreEqual(seeds.Length, b.episodes, $"{b.archetype}: one behavior row per episode");
+                Assert.AreEqual(b.episodes, b.survived + b.died, "every episode: opponent survived xor died");
+            }
+            Assert.IsTrue(System.IO.File.Exists(summary.behaviorJsonl), "per-episode behavior JSONL artifact missing");
         }
 
         [UnityTest]
