@@ -33,8 +33,10 @@ directly, or explicit instruction to work in place.
 Branch naming: each task gets its own remote branch `task/<lease-id>` and its
 own PR. The local worktree stays on the `agent-N` branch; `submit` and
 `create-pr` push to the task-specific remote branch automatically. Never run
-two agents in the same slot at once. `submit`/`create-pr` take an optional base
-after the slot (`submit <slot> origin/<base>`), honored as the PR base.
+two agents in the same slot at once. Both take an optional base after the slot:
+`submit` normalizes an `origin/` prefix (`submit <slot> origin/main`), but
+`create-pr` passes the base straight to `gh --base`, so give it a plain branch
+name (`create-pr <slot> main`).
 
 Visibility: `./scripts/worktree_dashboard.sh` (add `--watch` for auto-refresh)
 shows all slots — lock status, branch, changed files, PRs, ahead/behind main.
