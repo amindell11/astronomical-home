@@ -361,6 +361,8 @@ namespace Tests.PlayMode
                                 - spec.lambda * (result.startMyPool - result.endMyPool) / myMaxPool;
             Assert.AreEqual(expectedDense, result.sumDense, 1e-3f,
                 "Delta-sampled dense contributions must telescope to the start-to-end pool differential");
+            Assert.AreEqual(-spec.timeCostPerDecision * result.decisions, result.sumTimeCost, 1e-6f,
+                "Every paid decision pays the flat time cost");
 
             AssertShapingTelescopes(result);
         }
@@ -388,6 +390,8 @@ namespace Tests.PlayMode
             Assert.AreEqual(spec.timeoutDecisions, result.decisions);
             Assert.AreEqual(EndKind.Truncation, runner.LastBoundary.endKind);
             Assert.AreEqual(0f, runner.LastBoundary.outcomeReward);
+            Assert.AreEqual(-spec.timeCostPerDecision * spec.timeoutDecisions, result.sumTimeCost, 1e-6f,
+                "A full-clock draw nets the whole time-cost drag — waiting is never free");
 
             AssertShapingTelescopes(result);
         }

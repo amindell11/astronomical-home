@@ -104,10 +104,12 @@ namespace Game.RLHarness
             var terminal = endKind == EndKind.Terminal;
             var shapingEnvelope = PotentialShaping.Step(phiEnvelopePrev, phiEnvelopeNext, spec.gamma, terminal);
             var shapingBorder = PotentialShaping.Step(phiBorderPrev, phiBorderNext, spec.gamma, terminal);
+            var timeCost = -spec.timeCostPerDecision;
 
             result.sumDense += dense;
             result.sumShapingEnvelope += shapingEnvelope;
             result.sumShapingBorder += shapingBorder;
+            result.sumTimeCost += timeCost;
             switch (endKind)
             {
                 case EndKind.None:
@@ -136,6 +138,7 @@ namespace Game.RLHarness
                 dense = dense,
                 shapingEnvelope = shapingEnvelope,
                 shapingBorder = shapingBorder,
+                timeCost = timeCost,
                 endKind = endKind,
             };
 
@@ -155,7 +158,7 @@ namespace Game.RLHarness
             result.endEnemyPool = last.enemyPool;
             result.outcomeReward = RewardTerms.Outcome(verdict.outcome);
             result.totalReward = result.sumDense + result.sumShapingEnvelope
-                + result.sumShapingBorder + result.outcomeReward;
+                + result.sumShapingBorder + result.sumTimeCost + result.outcomeReward;
             lastBoundary.outcomeReward = result.outcomeReward;
             IsDone = true;
         }

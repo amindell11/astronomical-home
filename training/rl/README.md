@@ -49,7 +49,7 @@ commit both files together.
 
 3. Checkpoints + TensorBoard summaries land under `results/rl-training/<run-id>/`
    (untracked). `TrainingHost` also appends per-episode JSONL rows
-   (`rl-episode-v2` schema) under `results/rl-episodes/`.
+   (`rl-episode-v3` schema) under `results/rl-episodes/`.
 
 Resume with `--resume`, force a fresh run with `--force`.
 
