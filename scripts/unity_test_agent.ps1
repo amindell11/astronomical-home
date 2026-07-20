@@ -864,6 +864,24 @@ Write-Host ("UNITY_TEST_SUMMARY_JSON={0}" -f $summaryPath)
 Write-Host ("STATUS={0} total={1} passed={2} failed={3} skipped={4}" -f $overallStatus, $total, $passed, $failed, $skipped)
 
 if ($overallStatus -eq "infra_error") {
+    # No tests ran — surface the cause (usually a compile failure) inline so callers don't have to spelunk the log.
+    Write-Host "INFRA ERROR: no tests executed (compile failure or Unity launch problem, not a test failure)."
+    foreach ($run in $runs) {
+        if ($run.status -ne "infra_error") { continue }
+        $note = if ($run.Contains('note')) { [string]$run.note } else { "" }
+        Write-Host ("  [{0}] {1}" -f $run.platform, $note)
+        $diag = @()
+        $logPath = [string]$run.logPath
+        if ($logPath -and (Test-Path -LiteralPath $logPath)) {
+            $diag = @(Select-String -LiteralPath $logPath -Pattern 'error CS\d+|Aborting batchmode due to failure|Scripts have compiler errors' |
+                      Select-Object -ExpandProperty Line -First 15)
+        }
+        if ($diag.Count -eq 0 -and $run.Contains('logTail') -and $run.logTail) {
+            $diag = @([string]$run.logTail -split "`r?`n" | Select-Object -Last 12)
+        }
+        foreach ($line in $diag) { Write-Host ("    " + $line.Trim()) }
+        if ($logPath) { Write-Host ("    (full log: {0})" -f $logPath) }
+    }
     exit 2
 }
 if ($overallStatus -eq "failed") {

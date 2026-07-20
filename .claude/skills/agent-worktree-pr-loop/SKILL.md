@@ -20,11 +20,11 @@ directly, or explicit instruction to work in place.
 - `./scripts/agent_worktree_pool.sh status`
 - `./scripts/agent_worktree_pool.sh acquire <lease-id> [slot]` — name a slot when you have a reason (warm Unity Library from related work, the ledger/dashboard shows affinity, or avoiding a slot with an open editor); a named slot that isn't free fails rather than falling back, so pick from the dashboard, don't guess. Omit for auto-pick (free slots before stale reclaims).
 - `./scripts/agent_worktree_pool.sh prepare <slot> origin/main` — never during feedback rounds unless the user explicitly asks to restart from main.
-- `./scripts/agent_worktree_pool.sh run-tests <slot> <unity_test_agent.ps1 args>` (NO `--` — run-tests forwards args directly, e.g. `run-tests agent-4 -Mode Both -ScopeType Workspace`; the `--` separator is only for `submit`/`revise`, which take a base_ref first)
+- `./scripts/agent_worktree_pool.sh run-tests <slot> <test args>` — forwards args straight to the runner (no `--`; see the cheat-sheet)
 - `./scripts/agent_worktree_pool.sh create-pr <slot> --title "<text>" (--body "<text>" | --body-file <path>)` — title/body are required (validated before anything runs); pushes to the same `task/<lease>` branch as `submit`, just without a test run.
 - `./scripts/agent_worktree_pool.sh submit <slot> origin/main --title "<text>" (--body "<text>" | --body-file <path>) -- <test args>` — same required flags; only a passing full run (`-Mode Both -ScopeType Workspace`, unfiltered) records merge-grade proof; scoped runs still open the PR but never satisfy the gate. `-ScopeType Auto` is the recommended scope for iteration and submit runs.
 - `./scripts/agent_worktree_pool.sh review-comments <slot>`
-- `./scripts/agent_worktree_pool.sh revise <slot> -- <test args>` — pull/rebase + tests + push. Valid `-Mode` values are `Both`/`EditMode`/`PlayMode` (`Smoke` is a `-ScopeType`, not a mode).
+- `./scripts/agent_worktree_pool.sh revise <slot> -- <test args>` — pull/rebase + tests + push.
 - `./scripts/agent_worktree_pool.sh revise <slot> --no-test` — push without a test run and without recording proof; the gate then does the single full run on the exact landing tree.
 - `./scripts/agent_worktree_pool.sh merge <slot>` — the ONLY merge path; see Step 6.
 - `./scripts/agent_worktree_pool.sh finalize <slot> origin/main`
@@ -33,7 +33,8 @@ directly, or explicit instruction to work in place.
 Branch naming: each task gets its own remote branch `task/<lease-id>` and its
 own PR. The local worktree stays on the `agent-N` branch; `submit` and
 `create-pr` push to the task-specific remote branch automatically. Never run
-two agents in the same slot at once.
+two agents in the same slot at once. `submit`/`create-pr` take an optional base
+after the slot (`submit <slot> origin/<base>`), honored as the PR base.
 
 Visibility: `./scripts/worktree_dashboard.sh` (add `--watch` for auto-refresh)
 shows all slots — lock status, branch, changed files, PRs, ahead/behind main.
@@ -45,6 +46,43 @@ git -C <slot-path> diff --stat origin/main   # summary vs main
 git -C <slot-path> diff origin/main          # full diff
 git -C <slot-path> log --oneline origin/main..HEAD
 ```
+
+## Invocation & args cheat-sheet
+
+- **Bash tool only.** The pool script is bash — never run it through the
+  PowerShell tool (`CantActivateDocumentInPipeline`), never pipe it into
+  `Select-Object`. The Bash tool's cwd resets between calls, so start every
+  pool call with `cd D:/amind/git/astronomical-home &&` (or the absolute script
+  path); a bare `./scripts/...` fails `exit 127`.
+- **Long runs go in the background.** A full `-Mode Both` run outlives the Bash
+  tool's 2-minute default and is killed (`exit 143`). Run `run-tests`,
+  `submit`, `revise`, and `merge` with `run_in_background: true` (or `timeout`
+  ≥ 1800s).
+- **Test args are two independent axes:** `-Mode {Both|EditMode|PlayMode}` and
+  `-ScopeType {Workspace|Feature|Module|Smoke|Auto}`. `Smoke` is a **ScopeType,
+  never a Mode** — a smoke run is `-Mode EditMode -ScopeType Smoke`. Also:
+  `-ScopeName`, `-TestFilter`, `-TestCategory`, `-AssemblyNames`.
+- **Where `--` goes:** `submit`/`revise` take `-- <test args>` *after* their
+  base_ref; `run-tests` forwards test args **directly, no `--`**.
+- **BurstCache before a run:**
+  `rm -rf D:/amind/git/<slot>/src/Asteroids3D/Library/BurstCache/`.
+
+## When a pool/test command fails
+
+| Symptom | Cause | Recovery |
+|---|---|---|
+| `STATUS=infra_error total=0` | Compile failure — no tests ran | The runner prints the `error CS…` lines inline; fix and re-run. After a main-fold, suspect a dropped source file. |
+| runner: `parameter name '' is ambiguous` | A stray `--` reached `run-tests` | Drop it — `run-tests` takes args directly. |
+| runner: `Cannot validate argument on parameter 'Mode' … "Smoke"` | `-Mode Smoke` | Smoke is a `-ScopeType`; use `-Mode EditMode -ScopeType Smoke`. |
+| `REFUSING to prepare … uncommitted change(s)` on a lone `ProjectSettings.asset` / editor noise | Not real work | `git -C <slot> checkout -- <file>`, then re-`prepare` — don't push+`--force`. |
+| `revise`/`prepare` trips on `Assets/InitTestScene*.unity` | Scaffold from a killed run | `rm` the `InitTestScene*.unity*` and re-run — never real work. |
+| merge: `CONFLICT (content) … .unity`/`.prefab` | Gate merged main; Unity YAML doesn't auto-merge | Resolve in the slot, `revise` (re-test+push), re-`merge`. |
+| merge prints "…moved since… merging it in" then exits non-zero | Concurrent merge re-synced main | Re-run `merge <slot>` until it prints "squash-merged" — a mid-sequence exit is a re-sync, not a failure. |
+| `create-pr` push `! [rejected] … non-fast-forward` | Stale remote slot branch | `finalize`/`release` the slot (or `submit`, which re-preps) and retry. |
+| Child PR silently `CLOSED`, can't reopen/retarget | It was stacked on a task branch that got squash-merged + deleted | Retarget the child to `main` **before** merging its base, or `create-pr` a fresh one. |
+| `git checkout main` → `'main' is already used by worktree` | You're inside an `agent-N` worktree | Sync from the primary tree: `cd D:/amind/git/astronomical-home && git checkout main && git pull`. |
+| post-merge `pull --ff-only` aborts on an untracked file | A merged PR made a primary-tree untracked file tracked | Diff it vs `origin/main:<path>`; if identical, remove the untracked copy and pull. |
+| parsing `results/.../*-summary.json` → `UnicodeDecodeError` | UTF-8 file with non-ASCII test messages | Open with `encoding='utf-8'`. |
 
 ## Shared Unity access
 

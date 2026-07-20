@@ -35,12 +35,14 @@ Run commands from the repository root with PowerShell.
 
    The coordinator starts or reuses the shared MCP server and records the editor PID. Confirm that the returned status is `attached` and that `Status` identifies the expected lease before using MCP. A tracked editor only blocks work on its own project, but it holds the boot lane until the lane's TTL expires (~3 min), so other Unity launches queue briefly after an editor start.
 
+   If `StartEditor` throws "Unity MCP server did not bind port 8081", read the named `.err.log`: a `uvx`/`uv` "No solution found when resolving tool dependencies" line is an MCP-bringup/environment problem (offline or a registry hiccup), not a usage error — retry when connectivity is back.
+
    **Instance pinning is mandatory whenever more than one editor may be connected to the MCP server** — `Status` shows a second editor-mode owner, or the user's untracked main editor is open beside yours. Batch test runs never register with MCP, but every connected editor does: list `mcpforunity://instances`, then pin with `set_active_instance` (or pass `unity_instance` per call) and verify the pinned instance's project path is your worktree before issuing any MCP command. Unpinned calls in a multi-editor situation route unpredictably.
 
 ## Queue and blockers
 
 - Use a unique, task-specific lease and the current pool slot (`agent-1` … `agent-5`).
-- Use `Wait` with a bounded timeout instead of hand polling:
+- Use `Wait` with a bounded timeout instead of hand polling (never a `Start-Sleep` loop to wait on the lane/editor — the harness blocks chained sleeps):
 
   ```powershell
   .\scripts\unity_access.ps1 -Action Wait -Lease <unique-lease> -Slot <slot> -Mode batch -WaitSeconds 60 -Json
@@ -49,6 +51,8 @@ Run commands from the repository root with PowerShell.
 - Exit code `20` means the request is still queued (project owned, boot lane held, or a legacy owner present). Preserve the ticket if continuing later; otherwise cancel it.
 - `blocked_user_editor` means an untracked editor on the main worktree belongs to the user. Report its PID and ask the user to close it. Never terminate or attach to it. Batch requests hit this only when they target the main project itself; editor-mode requests block on any untracked Unity process.
 - `blocked_unmanaged_unity` means an untracked Unity process contends: for batch requests, an untracked batch process on any project (it may be mid-boot) or an untracked editor on the requested project. Do not close it; wait for it to exit or identify its owner.
+- **Recovering from `blocked_unmanaged_unity` / `ownership_mismatch`:** the JSON names the blocker's `processId` and `projectPath`. Check whether it's alive (`Get-Process -Id <pid>`). If it's **dead**, the record is stale — re-run `Acquire` (dead owners self-prune on the next call); if it still blocks, report it. If it's **alive and it's your own editor** that outlived its lease (see the long-running-launch rule below), there is currently **no clean re-adopt** — `Attach` returns `ownership_mismatch` once the owner record is gone. Options: `Stop-Process -Id <pid>` then re-`Acquire` if its work is disposable, or leave it running and don't batch-test *its* project concurrently (an untracked editor only blocks batch acquires on its own project). Never hand-edit `owner.json`.
+- **Long-running external launches (RL training, anything the coordinator didn't start):** a pid-less owner lease ages out mid-run and the editor becomes `unmanaged_unity`, blocking every batch acquire on that project with no adopt path. Immediately after the editor boots, `Attach -ProcessId <editor pid>` — a pid-backed owner stays valid as long as the process lives.
 - `BootAcquire`/`BootRelease` exist for launchers (`unity_test_agent.ps1` drives them); you rarely call them directly. `BootAcquire` requires already holding a project owner lease.
 - Never bypass the coordinator, jump the FIFO queue, or use the Unity MCP window's **Stop Server** action. The MCP server on port 8081 is shared independently of any lease.
 
