@@ -620,6 +620,11 @@ cmd_prepare() {
 cmd_run_tests() {
   local slot="$1"
   shift || true
+  # run-tests forwards args straight to the runner; a leading '--' (the submit/revise separator) would reach PowerShell as an ambiguous empty parameter, so drop it with a hint.
+  if [[ "${1:-}" == "--" ]]; then
+    echo "run-tests: ignoring stray '--' — run-tests forwards test args directly; '--' is only for submit/revise." >&2
+    shift
+  fi
   local path
   path="$(slot_path "$slot")"
 
