@@ -73,6 +73,7 @@ git -C <slot-path> log --oneline origin/main..HEAD
 
 | Symptom | Cause | Recovery |
 |---|---|---|
+| A pool command reports exit 0 but clearly didn't finish | You piped it through `tee`/`head`/`tail` — a pipeline's exit code is the last stage's, not the command's | Redirect to a file (`> log 2>&1`) or run it in the background; never pipe a pool command whose exit code you rely on. |
 | `STATUS=infra_error total=0` | Compile failure — no tests ran | The runner prints the `error CS…` lines inline; fix and re-run. After a main-fold, suspect a dropped source file. |
 | runner: `parameter name '' is ambiguous` | A stray `--` reached `run-tests` | Drop it — `run-tests` takes args directly. |
 | runner: `Cannot validate argument on parameter 'Mode' … "Smoke"` | `-Mode Smoke` | Smoke is a `-ScopeType`; use `-Mode EditMode -ScopeType Smoke`. |
