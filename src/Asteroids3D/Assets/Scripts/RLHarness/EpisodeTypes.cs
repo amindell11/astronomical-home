@@ -16,10 +16,11 @@ namespace Game.RLHarness
         public float dense;
         public float shapingEnvelope;
         public float shapingBorder;
+        public float timeCost;
         public float outcomeReward;
         public EndKind endKind;
 
-        public float Total => dense + shapingEnvelope + shapingBorder + outcomeReward;
+        public float Total => dense + shapingEnvelope + shapingBorder + timeCost + outcomeReward;
     }
 
     /// <summary>Pure termination rules over one snapshot: first death (mutual kill = loss), agent out-of-bounds = loss, baseline out-of-bounds = draw + anomaly.</summary>
@@ -77,6 +78,7 @@ namespace Game.RLHarness
         public float sumDense;
         public float sumShapingEnvelope;
         public float sumShapingBorder;
+        public float sumTimeCost;
         public float outcomeReward;
         public float totalReward;
 
@@ -97,7 +99,7 @@ namespace Game.RLHarness
         public OpponentDraw opponent;
         public List<DecisionRow> trace;
 
-        public const string SchemaId = "rl-episode-v2";
+        public const string SchemaId = "rl-episode-v3";
 
         public string ToJsonLine() => JsonUtility.ToJson(this);
     }

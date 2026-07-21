@@ -10,6 +10,9 @@ behaviors:
       lambd: 0.95
       num_epoch: 3
       learning_rate_schedule: linear
+      # Unset, beta inherits the linear LR schedule and anneals to ~0 — run 1's late policy
+      # collapse onto the passive mean. Held constant so exploration never fully closes.
+      beta_schedule: constant
     network_settings:
       normalize: false
       hidden_units: 256
@@ -25,10 +28,11 @@ behaviors:
     time_horizon: 64
     summary_freq: 6000
 # Curriculum. Param names ↔ EnvParamOverlay consts and lesson-0 values are pinned by
-# RLTrainerConfigEditModeTests. Thresholds finalized 2026-07-19 from the pilot's reward curve
-# (crosses 0.3 ~20k steps, plateau 1.9; ladder tops out at ~55% of plateau to absorb
-# mixture-opponent + asteroid depression); staging order rides the ascending thresholds
-# (dummy decay → lethality ramp → density ramp).
+# RLTrainerConfigEditModeTests. Thresholds re-grounded 2026-07-20 for the time-cost reward
+# (RewardSpec.timeCostPerDecision drags every episode −0.1..−0.6): the 2026-07-19 ladder
+# rescaled ×0.65 so the top gate clears the estimated post-cost density-1.5 band (~0.85) —
+# a stalled gate strands the run, an early gate just adds terminal-env consolidation.
+# Staging order rides the ascending thresholds (dummy decay → lethality ramp → density ramp).
 environment_parameters:
   use_asteroid_field: 1.0
   field_density_scale:
@@ -39,7 +43,7 @@ environment_parameters:
           behavior: ShipCombat
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0.6
+          threshold: 0.4
         value: 1.0
       - name: density_mid
         completion_criteria:
@@ -47,7 +51,7 @@ environment_parameters:
           behavior: ShipCombat
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 1.05
+          threshold: 0.7
         value: 1.5
       - name: density_full
         value: 2.0
@@ -59,7 +63,7 @@ environment_parameters:
           behavior: ShipCombat
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0.45
+          threshold: 0.3
         value: 0.25
       - name: lethality_mid
         completion_criteria:
@@ -67,7 +71,7 @@ environment_parameters:
           behavior: ShipCombat
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0.9
+          threshold: 0.6
         value: 0.5
       - name: lethality_full
         value: 1.0
@@ -83,7 +87,7 @@ environment_parameters:
           behavior: ShipCombat
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0.3
+          threshold: 0.2
         value: 0.4
       - name: dummy_mid
         completion_criteria:
@@ -91,7 +95,7 @@ environment_parameters:
           behavior: ShipCombat
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0.75
+          threshold: 0.5
         value: 0.25
       - name: dummy_final
         value: 0.1

@@ -10,6 +10,8 @@ namespace Game.RLHarness
         public float envelopeK1;
         public float envelopeK2;
         public float borderKb;
+        // A timeout draw nets −timeCostPerDecision·timeoutDecisions — waiting is never free.
+        public float timeCostPerDecision;
         public float gamma;
         public int decisionIntervalSteps;
         public int timeoutDecisions;
@@ -35,6 +37,7 @@ namespace Game.RLHarness
             envelopeK1 = 0.1f,
             envelopeK2 = 0.1f,
             borderKb = 0.5f,
+            timeCostPerDecision = 5e-4f,
             gamma = 0.99f,
             decisionIntervalSteps = ShipCombatPolicy.DecisionIntervalSteps,
             timeoutDecisions = 600,

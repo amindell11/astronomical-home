@@ -126,7 +126,7 @@ namespace Tests.PlayMode
                 Assert.AreEqual(row.outcome, gateRoundTrip.outcome);
                 Assert.AreEqual(row.opponent.archetype, gateRoundTrip.opponent.archetype);
 
-                // The archetype draw rides the standard episode row additively (schema stays rl-episode-v2).
+                // The archetype draw rides the standard episode row additively.
                 var episodeRoundTrip = JsonUtility.FromJson<EpisodeResult>(runner.Result.ToJsonLine());
                 Assert.AreEqual(EpisodeResult.SchemaId, episodeRoundTrip.schema);
                 Assert.AreEqual(archetype.ToString(), episodeRoundTrip.opponent.archetype);
