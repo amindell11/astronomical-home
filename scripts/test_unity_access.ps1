@@ -333,6 +333,56 @@ try {
         Write-Snapshot @()
     }
 
+    # Adopt seizes an untracked live batch editor (the RL orphan) into pid-backed ownership; batch is NOT refused.
+    Write-Snapshot @([ordered]@{ processId = 42001; commandLine = "Unity.exe -batchMode -projectPath `"$projB`"" })
+    $adopt = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Adopt -Lease adopt-orphan -Slot agent-1 -ProcessId 42001 -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+    Assert-Equal $LASTEXITCODE 0 "adopt untracked batch exit"
+    $adoptResult = [string](@($adopt | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
+    Assert-Equal $adoptResult.status "adopted" "adopt untracked batch status"
+    Assert-Equal $adoptResult.owner.processId 42001 "adopted owner pid"
+    Assert-Equal $adoptResult.owner.mode "batch" "adopted batch orphan keeps batch mode"
+    $adoptStatus = Invoke-Coordinator -Action Status
+    $adoptOwner = Get-OwnerByLease $adoptStatus "adopt-orphan"
+    Assert-Equal $adoptOwner.processId 42001 "adopted owner visible in status"
+    [void](Invoke-Coordinator -Action Release -Lease adopt-orphan)
+
+    # Adopt refuses the hand-opened dev editor (non-batch on the primary project).
+    Write-Snapshot @([ordered]@{ processId = 42002; commandLine = "Unity.exe -projectPath `"$mainProject`"" })
+    $adoptUser = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Adopt -Lease adopt-user -Slot agent-1 -ProcessId 42002 -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+    Assert-Equal $LASTEXITCODE 24 "adopt user_editor refused exit"
+    $adoptUserResult = [string](@($adoptUser | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
+    Assert-Equal $adoptUserResult.status "adopt_refused_user_editor" "adopt refuses the user editor"
+
+    # Adopt refuses to clobber a project that already has a different owner (lease-theft guard).
+    [void](Invoke-Coordinator -Action Acquire -Lease adopt-incumbent -ProjectPath $projA)
+    Write-Snapshot @([ordered]@{ processId = 42010; commandLine = "Unity.exe -batchMode -projectPath `"$projA`"" })
+    $adoptOwned = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Adopt -Lease adopt-thief -Slot agent-1 -ProcessId 42010 -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+    Assert-Equal $LASTEXITCODE 24 "adopt project-owned refused exit"
+    $adoptOwnedResult = [string](@($adoptOwned | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
+    Assert-Equal $adoptOwnedResult.status "adopt_project_owned" "adopt refuses to clobber an owned project"
+    $ownedStatus = Invoke-Coordinator -Action Status
+    $incumbent = Get-OwnerByLease $ownedStatus "adopt-incumbent"
+    Assert-Equal $incumbent.lease "adopt-incumbent" "incumbent owner lease survives an adopt attempt"
+    [void](Invoke-Coordinator -Action Release -Lease adopt-incumbent)
+    Write-Snapshot @()
+
+    # Adopt refuses a PID the coordinator already tracks.
+    [void](Invoke-Coordinator -Action Acquire -Lease adopt-track-owner -ProjectPath $agentProject)
+    Write-Snapshot @([ordered]@{ processId = 42003; commandLine = "Unity.exe -batchMode -projectPath `"$agentProject`"" })
+    [void](& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Attach -Lease adopt-track-owner -Slot agent-1 -Mode batch -ProcessId 42003 -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+    $adoptTracked = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Adopt -Lease adopt-steal -Slot agent-1 -ProcessId 42003 -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+    Assert-Equal $LASTEXITCODE 24 "adopt already-tracked refused exit"
+    $adoptTrackedResult = [string](@($adoptTracked | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
+    Assert-Equal $adoptTrackedResult.status "adopt_already_tracked" "adopt refuses a tracked pid"
+    [void](Invoke-Coordinator -Action Release -Lease adopt-track-owner)
+
+    # Adopt errors on a PID with no matching live Unity process.
+    Write-Snapshot @()
+    $adoptGhost = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Adopt -Lease adopt-ghost -Slot agent-1 -ProcessId 49999 -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+    Assert-Equal $LASTEXITCODE 24 "adopt non-existent pid exit"
+    $adoptGhostResult = [string](@($adoptGhost | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
+    Assert-Equal $adoptGhostResult.status "adopt_no_process" "adopt errors on unknown pid"
+
     Write-Host "UNITY_ACCESS_TESTS_PASSED assertions=$Assertions"
 }
 finally {
