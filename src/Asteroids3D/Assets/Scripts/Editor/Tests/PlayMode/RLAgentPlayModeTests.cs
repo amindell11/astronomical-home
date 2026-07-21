@@ -22,6 +22,7 @@ namespace Tests.PlayMode
         private UnitService unitService;
         private ArenaContext arena;
         private ProjectileService projectiles;
+        private HarnessAssets assets;
         private float savedTimeScale;
         private float savedMaxDelta;
         private float savedCaptureDelta;
@@ -39,6 +40,8 @@ namespace Tests.PlayMode
             arena = TestArena.On(arenaHost, unitService.ActiveRegistry);
             unitService.SetArena(arena);
             projectiles = new ProjectileService(arenaHost.transform);
+            assets = UnityEditor.AssetDatabase.LoadAssetAtPath<HarnessAssets>(HarnessAssets.AssetPath);
+            Assert.IsNotNull(assets, $"HarnessAssets missing at {HarnessAssets.AssetPath}");
             unitService.SetProjectiles(projectiles);
             AssertNoForeignDebris();
 
@@ -82,7 +85,7 @@ namespace Tests.PlayMode
 
         private void Compose(in RewardSpec spec)
         {
-            pair = EpisodePair.SpawnWithAgentChooser(unitService, arena, projectiles, in spec, out chooser);
+            pair = EpisodePair.SpawnWithAgentChooser(unitService, arena, projectiles, in spec, assets, out chooser);
             agent = ShipAgentFactory.ComposeHeuristicOnly(pair, chooser, in spec, arena.Offset);
             Assert.IsNotNull(agent, "ShipAgent must be attachable (harness assembly is not editor-only)");
         }
@@ -127,7 +130,7 @@ namespace Tests.PlayMode
             spec.minSeparation = 18f;
             spec.maxSeparation = 24f;
 
-            pair = EpisodePair.SpawnWithAgentChooser(unitService, arena, projectiles, in spec, out chooser);
+            pair = EpisodePair.SpawnWithAgentChooser(unitService, arena, projectiles, in spec, assets, out chooser);
             agent = ShipAgentFactory.ComposeInferenceOnly(pair, chooser, in spec, arena.Offset,
                 ShipAgentFactory.SmokeFixturePath);
 
@@ -158,7 +161,7 @@ namespace Tests.PlayMode
 
             var seeds = new[] { EvalProtocol.HeldOutSeeds[0], EvalProtocol.HeldOutSeeds[1] };
             CheckpointEvaluator.Summary summary = default;
-            yield return CheckpointEvaluator.Run(unitService, arena, projectiles, ShipAgentFactory.SmokeFixturePath,
+            yield return CheckpointEvaluator.Run(unitService, arena, projectiles, assets, ShipAgentFactory.SmokeFixturePath,
                 seeds, episodesPerSeed: 1, spec, "test-eval", s => summary = s);
 
             // Stratified eval: one standalone block per archetype, and no blended aggregate anywhere.

@@ -34,6 +34,7 @@ namespace Tests.PlayMode
         private UnitService unitService;
         private ArenaContext arena;
         private ProjectileService projectiles;
+        private HarnessAssets assets;
         private float savedTimeScale;
         private float savedMaxDelta;
         private float savedCaptureDelta;
@@ -50,6 +51,8 @@ namespace Tests.PlayMode
             arena = TestArena.On(arenaHost, unitService.ActiveRegistry);
             unitService.SetArena(arena);
             projectiles = new ProjectileService(arenaHost.transform);
+            assets = UnityEditor.AssetDatabase.LoadAssetAtPath<HarnessAssets>(HarnessAssets.AssetPath);
+            Assert.IsNotNull(assets, $"HarnessAssets missing at {HarnessAssets.AssetPath}");
             unitService.SetProjectiles(projectiles);
 
             savedTimeScale = Time.timeScale;
@@ -187,7 +190,7 @@ namespace Tests.PlayMode
                 ranger.Configure(baselineShip, RangerHoldRange,
                     agentShip.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary));
                 return ranger;
-            });
+            }, assets);
             roster = new OpponentRoster(pair.Baseline, pair.Agent);
         }
 

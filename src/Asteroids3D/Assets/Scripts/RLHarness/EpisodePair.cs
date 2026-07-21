@@ -4,18 +4,12 @@ using Game.Services;
 using Ships;
 using Ships.Command;
 using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace Game.RLHarness
 {
     /// <summary>The canonical 1v1 episode composition: agent ship on the inert TestPilotMPC host (its Navigator authors MpcSettings_AgentPilot — the policy-matched tracker config) with an injected chooser, versus the full production UtilityPilot baseline; both lasers-only. Hosts (tests, training scene) share this so the scenario cannot drift between them.</summary>
     public sealed class EpisodePair : IDisposable
     {
-        private const string ShipPrefabPath = "Assets/Prefabs/Ships/Ship_2.prefab";
-        internal const string AgentPilotPath = "Assets/Prefabs/Pilots/TestPilotMPC.prefab";
-        private const string BaselinePilotPath = "Assets/Prefabs/Pilots/UtilityPilot.prefab";
         private const uint AgentSeedStream = 101;
         private const uint BaselineSeedStream = 202;
 
@@ -38,14 +32,14 @@ namespace Game.RLHarness
 
         /// <summary>Spawns the pair at the (runSeed, episode 0) poses; the chooser factory sees both live ships so it can configure itself (injected opponent, projectile speed) before the commanders initialize.</summary>
         public static EpisodePair Spawn(UnitService units, ArenaContext arena, IProjectileService projectiles,
-            in RewardSpec spec, Func<Ship, Ship, IIntentChooser> chooserFactory)
+            in RewardSpec spec, Func<Ship, Ship, IIntentChooser> chooserFactory, HarnessAssets assets)
         {
             var poses = EpisodePoses.Derive(in spec, 0, arena.Offset);
             var rootScope = new SeedScope(spec.runSeed);
 
-            var agent = SpawnLasersOnlyShip(units, projectiles, AgentPilotPath,
+            var agent = SpawnLasersOnlyShip(units, projectiles, assets.ShipPrefab, assets.AgentPilot,
                 poses.agentPos, poses.agentRotDeg, team: 0, rootScope.Derive(AgentSeedStream).ToSeed());
-            var baseline = SpawnLasersOnlyShip(units, projectiles, BaselinePilotPath,
+            var baseline = SpawnLasersOnlyShip(units, projectiles, assets.ShipPrefab, assets.BaselinePilot,
                 poses.baselinePos, poses.baselineRotDeg, team: 1, rootScope.Derive(BaselineSeedStream).ToSeed());
 
             var commander = agent.GetComponentInChildren<AICommander>();
@@ -62,7 +56,7 @@ namespace Game.RLHarness
 
         /// <summary>The canonical ShipAgent composition: pair plus a configured <see cref="AgentChooser"/> (injected opponent, primary projectile speed) — the single recipe every agent host (training, eval, tests) shares.</summary>
         public static EpisodePair SpawnWithAgentChooser(UnitService units, ArenaContext arena,
-            IProjectileService projectiles, in RewardSpec spec, out AgentChooser chooser)
+            IProjectileService projectiles, in RewardSpec spec, HarnessAssets assets, out AgentChooser chooser)
         {
             AgentChooser created = null;
             var pair = Spawn(units, arena, projectiles, in spec, (agentShip, baselineShip) =>
@@ -71,7 +65,7 @@ namespace Game.RLHarness
                 created.Configure(baselineShip,
                     agentShip.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary));
                 return created;
-            });
+            }, assets);
             chooser = created;
             return pair;
         }
@@ -101,11 +95,9 @@ namespace Game.RLHarness
 
         /// <summary>Also the traversal probe's single-ship recipe — probe crossings fly the exact combat-episode airframe/loadout.</summary>
         internal static Ship SpawnLasersOnlyShip(UnitService units, IProjectileService projectiles,
-            string pilotPath, Vector2 planePos, float rotDeg, int team, int decisionSeed)
+            Ship shipPrefab, AICommander pilot, Vector2 planePos, float rotDeg, int team, int decisionSeed)
         {
-            var shipPrefab = Load<Ship>(ShipPrefabPath);
-            var pilotPrefab = Load<AICommander>(pilotPath);
-            var ship = Factory.CreateShip(shipPrefab, pilotPrefab, team, decisionSeed, projectiles,
+            var ship = Factory.CreateShip(shipPrefab, pilot, team, decisionSeed, projectiles,
                 GamePlane.PlanePointToWorld(planePos),
                 GamePlane.Rotation * Quaternion.AngleAxis(rotDeg, Vector3.forward));
             // Home the pair under the service like SpawnShip does, so a crash-path host teardown can't strand it.
@@ -116,18 +108,6 @@ namespace Game.RLHarness
             if (ship.Weapons.Context.Slots.Count != 1)
                 throw new InvalidOperationException("Episode loadout must be lasers-only.");
             return ship;
-        }
-
-        private static T Load<T>(string assetPath) where T : UnityEngine.Object
-        {
-#if UNITY_EDITOR
-            var asset = AssetDatabase.LoadAssetAtPath<T>(assetPath);
-            if (!asset)
-                throw new InvalidOperationException($"Failed to load {assetPath} — check episode asset paths.");
-            return asset;
-#else
-            throw new NotSupportedException("EpisodePair composition loads prefabs via AssetDatabase (editor only).");
-#endif
         }
     }
 }

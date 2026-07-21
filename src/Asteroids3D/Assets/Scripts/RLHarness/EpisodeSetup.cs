@@ -39,8 +39,11 @@ namespace Game.RLHarness
     {
         public static string NewRunPath(string tag, string folder = "rl-episodes")
         {
-            var repoRoot = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", ".."));
-            var dir = Path.Combine(repoRoot, "results", folder);
+            // In a player Application.dataPath is the exe's Data dir, not the repo tree the editor layout climbs to.
+            var baseDir = Application.isEditor
+                ? Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", ".."))
+                : Application.persistentDataPath;
+            var dir = Path.Combine(baseDir, "results", folder);
             Directory.CreateDirectory(dir);
             var stamp = DateTime.Now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
             return Path.Combine(dir, $"{stamp}-{tag}.jsonl");

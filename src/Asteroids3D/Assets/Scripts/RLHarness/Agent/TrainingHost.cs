@@ -14,11 +14,15 @@ namespace Game.RLHarness
         [SerializeField] private int runSeed = EvalProtocol.TrainingRunSeed;
         [Tooltip("Default = trainer when connected, else heuristic. HeuristicOnly for a Python-free loop check. Checkpoint eval goes through CheckpointEvaluator, not this host.")]
         [SerializeField] private BehaviorType behaviorType = BehaviorType.Default;
+        [SerializeField] private HarnessAssets assets;
 
         private OpponentRoster roster;
 
         private IEnumerator Start()
         {
+            if (!assets)
+                throw new InvalidOperationException("TrainingHost.assets is unset — assign the HarnessAssets catalog on the RLTraining scene's [TrainingHost].");
+
             PacingContract.Apply();
             StartCoroutine(PacingWatchdog());
 
@@ -31,9 +35,9 @@ namespace Game.RLHarness
 
             var (units, arena, projectiles) = HarnessArena.Compose(gameObject);
             var field = spec.useAsteroidField
-                ? HarnessField.Spawn(arena, spec.fieldDensityScale, transform)
+                ? HarnessField.Spawn(arena, assets, spec.fieldDensityScale, transform)
                 : null;
-            var pair = EpisodePair.SpawnWithAgentChooser(units, arena, projectiles, in spec, out var chooser);
+            var pair = EpisodePair.SpawnWithAgentChooser(units, arena, projectiles, in spec, assets, out var chooser);
             roster = new OpponentRoster(pair.Baseline, pair.Agent);
 
             var agent = behaviorType switch

@@ -45,6 +45,7 @@ namespace Game.RLHarness
 
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             var host = new GameObject("[EvalHost]").AddComponent<EvalHost>();
+            host.assets = AssetDatabase.LoadAssetAtPath<HarnessAssets>(HarnessAssets.AssetPath);
             host.onnxAssetPath = assetPath;
             if (int.TryParse(Environment.GetEnvironmentVariable("RL_EVAL_EPISODES_PER_SEED"), out var episodes))
                 host.episodesPerSeed = episodes;

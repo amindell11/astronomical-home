@@ -49,8 +49,8 @@ namespace Game.RLHarness
         }
 
         public static IEnumerator Run(UnitService units, ArenaContext arena, IProjectileService projectiles,
-            string onnxAssetPath, IReadOnlyList<int> seeds, int episodesPerSeed, RewardSpec baseSpec,
-            string tag, Action<Summary> onDone)
+            HarnessAssets assets, string onnxAssetPath, IReadOnlyList<int> seeds, int episodesPerSeed,
+            RewardSpec baseSpec, string tag, Action<Summary> onDone)
         {
             var jsonlPath = EpisodeJsonl.NewRunPath(tag, ResultsFolder);
             var behaviorPath = jsonlPath.Replace(".jsonl", "-behavior.jsonl");
@@ -69,13 +69,13 @@ namespace Game.RLHarness
             var outcomes = new List<(string archetype, string outcome)>();
             var behaviorRows = new Dictionary<OpponentArchetype, List<ArchetypeGateRow>>();
             foreach (var a in EvalArchetypes) behaviorRows[a] = new List<ArchetypeGateRow>();
-            var field = baseSpec.useAsteroidField ? HarnessField.Spawn(arena, baseSpec.fieldDensityScale) : null;
+            var field = baseSpec.useAsteroidField ? HarnessField.Spawn(arena, assets, baseSpec.fieldDensityScale) : null;
 
             foreach (var seed in seeds)
             {
                 var spec = baseSpec;
                 spec.runSeed = seed;
-                var pair = EpisodePair.SpawnWithAgentChooser(units, arena, projectiles, in spec, out var chooser);
+                var pair = EpisodePair.SpawnWithAgentChooser(units, arena, projectiles, in spec, assets, out var chooser);
                 var roster = new OpponentRoster(pair.Baseline, pair.Agent);
                 var agent = ShipAgentFactory.ComposeInferenceOnly(pair, chooser, in spec, arena.Offset, onnxAssetPath);
                 var driver = new EpisodeLoopDriver(pair, agent, arena.Offset, field);
