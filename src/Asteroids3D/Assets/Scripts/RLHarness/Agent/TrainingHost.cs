@@ -15,8 +15,10 @@ namespace Game.RLHarness
         [Tooltip("Default = trainer when connected, else heuristic. HeuristicOnly for a Python-free loop check. Checkpoint eval goes through CheckpointEvaluator, not this host.")]
         [SerializeField] private BehaviorType behaviorType = BehaviorType.Default;
         [SerializeField] private HarnessAssets assets;
+        [Tooltip("Self-play: opponent is a second team-1 ShipCombat agent (parameter-shared) instead of the scripted roster.")]
+        [SerializeField] private bool selfPlay;
 
-        private OpponentRoster roster;
+        private IEpisodeComposition composition;
 
         private IEnumerator Start()
         {
@@ -33,22 +35,10 @@ namespace Game.RLHarness
             Func<string, float, float> envParams = Academy.Instance.EnvironmentParameters.GetWithDefault;
             spec = EnvParamOverlay.Apply(spec, envParams);
 
-            var (units, arena, projectiles) = HarnessArena.Compose(gameObject);
-            var field = spec.useAsteroidField
-                ? HarnessField.Spawn(arena, assets, spec.fieldDensityScale, transform)
-                : null;
-            var pair = EpisodePair.SpawnWithAgentChooser(units, arena, projectiles, in spec, assets, out var chooser);
-            roster = new OpponentRoster(pair.Baseline, pair.Agent);
-
-            var agent = behaviorType switch
-            {
-                BehaviorType.Default => ShipAgentFactory.ComposeForTraining(pair, chooser, in spec, arena.Offset, transform),
-                BehaviorType.HeuristicOnly => ShipAgentFactory.ComposeHeuristicOnly(pair, chooser, in spec, arena.Offset, transform),
-                _ => throw new NotSupportedException(
-                    $"TrainingHost supports Default (trainer) and HeuristicOnly; {behaviorType} checkpoint eval runs through CheckpointEvaluator."),
-            };
-
-            var driver = new EpisodeLoopDriver(pair, agent, arena.Offset, field, roster);
+            composition = selfPlay || Environment.GetEnvironmentVariable("RL_SELFPLAY") == "1"
+                ? new SelfPlayComposition(gameObject, in spec, behaviorType, assets)
+                : (IEpisodeComposition)new ScriptedRosterComposition(gameObject, in spec, behaviorType, assets);
+            var driver = composition.Driver;
             var jsonlPath = EpisodeJsonl.NewRunPath("training");
             var terminals = 0;
             var truncations = 0;
@@ -83,7 +73,7 @@ namespace Game.RLHarness
             return spec;
         }
 
-        private void OnDestroy() => roster?.Dispose();
+        private void OnDestroy() => composition?.Dispose();
 
         private IEnumerator PacingWatchdog()
         {

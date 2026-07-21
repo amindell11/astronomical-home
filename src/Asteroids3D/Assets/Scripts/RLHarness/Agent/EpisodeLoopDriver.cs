@@ -9,6 +9,7 @@ namespace Game.RLHarness
     {
         private readonly EpisodePair pair;
         private readonly ShipAgent agent;
+        private readonly ShipAgent opponentAgent;
         private readonly Vector2 arenaCenter;
         private readonly HarnessField field;
         private readonly OpponentRoster roster;
@@ -17,12 +18,16 @@ namespace Game.RLHarness
         public EpisodeRunner Runner { get; private set; }
         /// <summary>The agent-side cumulative reward captured just before EndEpisode cleared it — must equal the runner's totalReward.</summary>
         public float LastEpisodeCumulativeReward { get; private set; }
+        /// <summary>Self-play only: the team-1 agent's mirror runner and its cumulative reward, captured before its EndEpisode (null/0 single-agent).</summary>
+        public EpisodeRunner OpponentRunner { get; private set; }
+        public float LastOpponentEpisodeCumulativeReward { get; private set; }
 
         public EpisodeLoopDriver(EpisodePair pair, ShipAgent agent, Vector2 arenaCenter, HarnessField field = null,
-            OpponentRoster roster = null)
+            OpponentRoster roster = null, ShipAgent opponentAgent = null)
         {
             this.pair = pair;
             this.agent = agent;
+            this.opponentAgent = opponentAgent;
             this.arenaCenter = arenaCenter;
             this.field = field;
             this.roster = roster;
@@ -46,30 +51,55 @@ namespace Game.RLHarness
             Runner.Begin();
             onBegin?.Invoke();
             agent.BindEpisode(Runner);
+
+            EpisodeRunner opponentRunner = null;
+            if (opponentAgent != null)
+            {
+                opponentRunner = new EpisodeRunner(pair.Baseline, pair.Agent, spec, episodeIndex, arenaCenter, tracePerDecision);
+                opponentRunner.Begin();
+                opponentAgent.BindEpisode(opponentRunner);
+            }
+            OpponentRunner = opponentRunner;
+
+            // self_play: trainer serves the team-1 ghost; both agents request, one EnvironmentStep drives both.
             agent.RequestDecision();
+            opponentAgent?.RequestDecision();
             Academy.Instance.EnvironmentStep();
 
             while (!Runner.IsDone)
             {
                 yield return waitFixed;
                 var boundaryReached = Runner.Tick();
+                opponentRunner?.Tick();
                 onFixedStep?.Invoke();
                 if (!boundaryReached) continue;
 
                 var boundary = Runner.LastBoundary;
                 agent.AddReward(boundary.Total);
+                if (opponentRunner != null) opponentAgent.AddReward(opponentRunner.LastBoundary.Total);
                 switch (boundary.endKind)
                 {
                     case EndKind.Terminal:
                         LastEpisodeCumulativeReward = agent.GetCumulativeReward();
                         agent.EndEpisode();
+                        if (opponentAgent != null)
+                        {
+                            LastOpponentEpisodeCumulativeReward = opponentAgent.GetCumulativeReward();
+                            opponentAgent.EndEpisode();
+                        }
                         break;
                     case EndKind.Truncation:
                         LastEpisodeCumulativeReward = agent.GetCumulativeReward();
                         agent.EpisodeInterrupted();
+                        if (opponentAgent != null)
+                        {
+                            LastOpponentEpisodeCumulativeReward = opponentAgent.GetCumulativeReward();
+                            opponentAgent.EpisodeInterrupted();
+                        }
                         break;
                     default:
                         agent.RequestDecision();
+                        opponentAgent?.RequestDecision();
                         Academy.Instance.EnvironmentStep();
                         break;
                 }

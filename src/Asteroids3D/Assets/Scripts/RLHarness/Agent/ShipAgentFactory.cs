@@ -1,5 +1,6 @@
 using System;
 using AI;
+using Ships;
 using Unity.InferenceEngine;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
@@ -16,11 +17,13 @@ namespace Game.RLHarness
 
         public static ShipAgent ComposeForTraining(EpisodePair pair, AgentChooser chooser,
             in RewardSpec spec, Vector2 arenaCenter, Transform parent = null) =>
-            Compose(pair, chooser, in spec, arenaCenter, BehaviorType.Default, null, parent);
+            Compose(pair.Agent, pair.Baseline, chooser, in spec, arenaCenter,
+                BehaviorType.Default, null, teamId: 0, parent);
 
         public static ShipAgent ComposeHeuristicOnly(EpisodePair pair, AgentChooser chooser,
             in RewardSpec spec, Vector2 arenaCenter, Transform parent = null) =>
-            Compose(pair, chooser, in spec, arenaCenter, BehaviorType.HeuristicOnly, null, parent);
+            Compose(pair.Agent, pair.Baseline, chooser, in spec, arenaCenter,
+                BehaviorType.HeuristicOnly, null, teamId: 0, parent);
 
         /// <summary>Held-out-seed eval path: pinned checkpoint, InferenceOnly, DeterministicInference (it defaults FALSE — InferenceOnly alone samples stochastically), pinned inference seed (Academy consumes it at the model runner's creation).</summary>
         public static ShipAgent ComposeInferenceOnly(EpisodePair pair, AgentChooser chooser,
@@ -28,11 +31,24 @@ namespace Game.RLHarness
         {
             var model = LoadModel(onnxAssetPath);
             Academy.Instance.InferenceSeed = EvalProtocol.InferenceSeed;
-            return Compose(pair, chooser, in spec, arenaCenter, BehaviorType.InferenceOnly, model, parent);
+            return Compose(pair.Agent, pair.Baseline, chooser, in spec, arenaCenter,
+                BehaviorType.InferenceOnly, model, teamId: 0, parent);
         }
 
-        private static ShipAgent Compose(EpisodePair pair, AgentChooser chooser, in RewardSpec spec,
-            Vector2 arenaCenter, BehaviorType behaviorType, ModelAsset model, Transform parent)
+        /// <summary>Both episode ships as parameter-shared agents: A on team 0 (self=Agent, primary/logged), B on team 1 (self=Baseline) — native ML-Agents self_play trains one policy against its own mirror.</summary>
+        public static (ShipAgent agentA, ShipAgent agentB) ComposeSelfPlayPair(EpisodePair pair,
+            AgentChooser chooserA, AgentChooser chooserB, in RewardSpec spec, Vector2 arenaCenter,
+            BehaviorType behaviorType, Transform parent = null)
+        {
+            var agentA = Compose(pair.Agent, pair.Baseline, chooserA, in spec, arenaCenter,
+                behaviorType, null, teamId: 0, parent);
+            var agentB = Compose(pair.Baseline, pair.Agent, chooserB, in spec, arenaCenter,
+                behaviorType, null, teamId: 1, parent);
+            return (agentA, agentB);
+        }
+
+        private static ShipAgent Compose(Ship self, Ship opponent, AgentChooser chooser, in RewardSpec spec,
+            Vector2 arenaCenter, BehaviorType behaviorType, ModelAsset model, int teamId, Transform parent)
         {
             var host = new GameObject("[ShipAgent]");
             if (parent) host.transform.SetParent(parent, false);
@@ -40,6 +56,7 @@ namespace Game.RLHarness
 
             var behavior = host.AddComponent<BehaviorParameters>();
             behavior.BehaviorName = BehaviorName;
+            behavior.TeamId = teamId;
             behavior.BehaviorType = behaviorType;
             behavior.BrainParameters.VectorObservationSize = AgentObservations.Size;
             behavior.BrainParameters.ActionSpec = ActionSpec.MakeContinuous(AgentActions.Count);
@@ -48,8 +65,8 @@ namespace Game.RLHarness
             if (model) behavior.Model = model;
 
             var agent = host.AddComponent<ShipAgent>();
-            var scout = ((AICommander)pair.Agent.Commander).Scout;
-            agent.Configure(pair.Agent, pair.Baseline, chooser, in spec, arenaCenter, scout);
+            var scout = ((AICommander)self.Commander).Scout;
+            agent.Configure(self, opponent, chooser, in spec, arenaCenter, scout);
             host.SetActive(true);
             return agent;
         }
