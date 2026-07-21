@@ -16,7 +16,7 @@ namespace Game.RLHarness
         [SerializeField] private BehaviorType behaviorType = BehaviorType.Default;
         [SerializeField] private HarnessAssets assets;
 
-        private OpponentRoster roster;
+        private ScriptedRosterComposition composition;
 
         private IEnumerator Start()
         {
@@ -33,22 +33,8 @@ namespace Game.RLHarness
             Func<string, float, float> envParams = Academy.Instance.EnvironmentParameters.GetWithDefault;
             spec = EnvParamOverlay.Apply(spec, envParams);
 
-            var (units, arena, projectiles) = HarnessArena.Compose(gameObject);
-            var field = spec.useAsteroidField
-                ? HarnessField.Spawn(arena, assets, spec.fieldDensityScale, transform)
-                : null;
-            var pair = EpisodePair.SpawnWithAgentChooser(units, arena, projectiles, in spec, assets, out var chooser);
-            roster = new OpponentRoster(pair.Baseline, pair.Agent);
-
-            var agent = behaviorType switch
-            {
-                BehaviorType.Default => ShipAgentFactory.ComposeForTraining(pair, chooser, in spec, arena.Offset, transform),
-                BehaviorType.HeuristicOnly => ShipAgentFactory.ComposeHeuristicOnly(pair, chooser, in spec, arena.Offset, transform),
-                _ => throw new NotSupportedException(
-                    $"TrainingHost supports Default (trainer) and HeuristicOnly; {behaviorType} checkpoint eval runs through CheckpointEvaluator."),
-            };
-
-            var driver = new EpisodeLoopDriver(pair, agent, arena.Offset, field, roster);
+            composition = new ScriptedRosterComposition(gameObject, in spec, behaviorType, assets);
+            var driver = composition.Driver;
             var jsonlPath = EpisodeJsonl.NewRunPath("training");
             var terminals = 0;
             var truncations = 0;
@@ -83,7 +69,7 @@ namespace Game.RLHarness
             return spec;
         }
 
-        private void OnDestroy() => roster?.Dispose();
+        private void OnDestroy() => composition?.Dispose();
 
         private IEnumerator PacingWatchdog()
         {
