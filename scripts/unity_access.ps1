@@ -1,5 +1,5 @@
 param(
-    [ValidateSet("Status", "Request", "Acquire", "Wait", "Attach", "Release", "Cancel", "BootAcquire", "BootRelease", "StartEditor", "RunBatch")]
+    [ValidateSet("Status", "Request", "Acquire", "Wait", "Attach", "Adopt", "Release", "Cancel", "BootAcquire", "BootRelease", "StartEditor", "RunBatch")]
     [string]$Action = "Status",
     [string]$Lease = "",
     [string]$Slot = "",
@@ -18,6 +18,8 @@ param(
     [string]$UnityPath = "D:\Programs\Unity\Editor\6000.1.8f1\Editor\Unity.exe",
     [int]$McpPort = 8081,
     [switch]$CloseEditor,
+    [string[]]$EditorArgs = @(),
+    [switch]$SkipMcp,
     [string]$BatchScript = "",
     [string[]]$BatchArguments = @(),
     [switch]$Json
@@ -30,6 +32,7 @@ $ExitWaiting = 20
 $ExitUnmanaged = 21
 $ExitOwnership = 22
 $ExitIncomplete = 23
+$ExitAdoptRefused = 24
 $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
 function Resolve-FullPath {
@@ -478,6 +481,38 @@ function Attach-Process {
     return [ordered]@{ status = "attached"; owner = $owner }
 }
 
+# Operator-invoked recovery for an orphaned untracked editor; guards stay minimal because the PID is supplied explicitly.
+function Adopt-Process {
+    $target = @(Get-RelevantUnityProcesses | Where-Object { $_.processId -eq $ProcessId })
+    if ($target.Count -eq 0) { return [ordered]@{ status = "adopt_no_process"; processId = $ProcessId } }
+    if (@(Get-TrackedPids) -contains $ProcessId) { return [ordered]@{ status = "adopt_already_tracked"; processId = $ProcessId } }
+    $found = $target[0]
+    $mainProject = Normalize-Path (Join-Path $PrimaryRoot "src/Asteroids3D")
+    if (-not $found.batch -and $found.normalizedProjectPath -eq $mainProject) {
+        return [ordered]@{ status = "adopt_refused_user_editor"; processId = $ProcessId; projectPath = $found.projectPath }
+    }
+    $adoptKey = Get-ProjectKey $found.projectPath
+    $existing = Get-ProjectOwner $adoptKey
+    if ($null -ne $existing -and [string]$existing.lease -ne $Lease) {
+        return [ordered]@{ status = "adopt_project_owned"; processId = $ProcessId; owner = $existing }
+    }
+    $ownerDir = Join-Path $OwnersRoot $adoptKey
+    New-Item -ItemType Directory -Force -Path $ownerDir | Out-Null
+    $now = [datetime]::UtcNow.ToString("o")
+    $owner = [ordered]@{
+        lease = $Lease
+        slot = $Slot
+        mode = if ($found.batch) { "batch" } else { "editor" }
+        projectPath = $found.projectPath
+        projectKey = $adoptKey
+        processId = $ProcessId
+        acquiredAt = $now
+        updatedAt = $now
+    }
+    Write-JsonFile (Join-Path $ownerDir "owner.json") $owner
+    return [ordered]@{ status = "adopted"; owner = [pscustomobject]$owner }
+}
+
 function Cancel-Request {
     $ticket = Find-Ticket $Lease
     if ($null -ne $ticket) { Remove-Item -LiteralPath $ticket.file -Force }
@@ -494,11 +529,23 @@ function Release-Access {
     if ($CloseEditor.IsPresent -and [int]$owner.processId -gt 0) {
         $process = Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue
         if ($null -ne $process) {
-            [void]$process.CloseMainWindow()
-            $deadline = [datetime]::UtcNow.AddSeconds([Math]::Max(0, $EditorCloseWaitSeconds))
-            while ($null -ne (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue) -and [datetime]::UtcNow -lt $deadline) { Start-Sleep -Milliseconds 500 }
-            if ($null -ne (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue)) {
-                return [ordered]@{ status = "editor_did_not_exit"; owner = $owner }
+            $closed = $false
+            if ($process.MainWindowHandle -ne [IntPtr]::Zero) {
+                [void]$process.CloseMainWindow()
+                $deadline = [datetime]::UtcNow.AddSeconds([Math]::Max(0, $EditorCloseWaitSeconds))
+                while ($null -ne (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue) -and [datetime]::UtcNow -lt $deadline) { Start-Sleep -Milliseconds 500 }
+                $closed = $null -eq (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue)
+            }
+            # Kill only a still-live, coordinator-relevant Unity PID — never a bare/recycled one.
+            if (-not $closed) {
+                if (@(Get-RelevantUnityProcesses | Where-Object { $_.processId -eq [int]$owner.processId }).Count -gt 0) {
+                    Stop-Process -Id ([int]$owner.processId) -Force -ErrorAction SilentlyContinue
+                    $deadline = [datetime]::UtcNow.AddSeconds([Math]::Max(0, $EditorCloseWaitSeconds))
+                    while ($null -ne (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue) -and [datetime]::UtcNow -lt $deadline) { Start-Sleep -Milliseconds 500 }
+                }
+                if ($null -ne (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue)) {
+                    return [ordered]@{ status = "editor_did_not_exit"; owner = $owner }
+                }
             }
         }
     }
@@ -518,17 +565,24 @@ function Start-TrackedEditor {
         return $boot
     }
     try {
-        Ensure-McpServer
         $exe = Resolve-FullPath $UnityPath
         if (-not (Test-Path -LiteralPath $exe)) { throw "Unity executable not found: $exe" }
-        $previousEndpoint = $env:ASTRONOMICAL_UNITY_MCP_ENDPOINT
-        $env:ASTRONOMICAL_UNITY_MCP_ENDPOINT = "http://127.0.0.1:$McpPort"
-        try { $process = Start-Process -FilePath $exe -ArgumentList @("-projectPath", $ResolvedProject) -PassThru }
-        finally {
-            if ($null -eq $previousEndpoint) { Remove-Item Env:\ASTRONOMICAL_UNITY_MCP_ENDPOINT -ErrorAction SilentlyContinue }
-            else { $env:ASTRONOMICAL_UNITY_MCP_ENDPOINT = $previousEndpoint }
+        # Caller-supplied args (RL batch launches) win verbatim; empty falls back to today's interactive open.
+        $launchArgs = if ($EditorArgs.Count -gt 0) { $EditorArgs } else { @("-projectPath", $ResolvedProject) }
+        if ($SkipMcp.IsPresent) {
+            $process = Start-Process -FilePath $exe -ArgumentList $launchArgs -PassThru
         }
-        # Interactive editors emit no coordinator-visible boot signal; the boot lane self-expires after BootTtlSeconds.
+        else {
+            Ensure-McpServer
+            $previousEndpoint = $env:ASTRONOMICAL_UNITY_MCP_ENDPOINT
+            $env:ASTRONOMICAL_UNITY_MCP_ENDPOINT = "http://127.0.0.1:$McpPort"
+            try { $process = Start-Process -FilePath $exe -ArgumentList $launchArgs -PassThru }
+            finally {
+                if ($null -eq $previousEndpoint) { Remove-Item Env:\ASTRONOMICAL_UNITY_MCP_ENDPOINT -ErrorAction SilentlyContinue }
+                else { $env:ASTRONOMICAL_UNITY_MCP_ENDPOINT = $previousEndpoint }
+            }
+        }
+        # Editors emit no coordinator-visible boot signal; the boot lane self-expires after BootTtlSeconds.
         $script:ProcessId = $process.Id
         return Attach-Process
     }
@@ -600,6 +654,7 @@ $result = switch ($Action) {
     "Acquire" { Require-Lease; Acquire-Access }
     "Wait" { Require-Lease; if ($WaitSeconds -le 0) { $WaitSeconds = 60 }; Acquire-Access }
     "Attach" { Require-Lease; if ($ProcessId -le 0) { throw "Attach requires -ProcessId." }; Attach-Process }
+    "Adopt" { Require-Lease; if ($ProcessId -le 0) { throw "Adopt requires -ProcessId." }; Adopt-Process }
     "Release" { Require-Lease; Release-Access }
     "Cancel" { Require-Lease; Cancel-Request }
     "BootAcquire" { Require-Lease; if ($WaitSeconds -le 0) { $WaitSeconds = 300 }; Acquire-Boot }
@@ -617,5 +672,9 @@ $statusExitCodes = @{
     waiting = $ExitWaiting
     boot_waiting = $ExitWaiting
     blocked_user_editor = $ExitWaiting
+    adopt_no_process = $ExitAdoptRefused
+    adopt_already_tracked = $ExitAdoptRefused
+    adopt_refused_user_editor = $ExitAdoptRefused
+    adopt_project_owned = $ExitAdoptRefused
 }
 exit ($(if ($statusExitCodes.ContainsKey($resultStatus)) { $statusExitCodes[$resultStatus] } else { 0 }))

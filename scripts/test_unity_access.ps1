@@ -273,24 +273,115 @@ try {
     Assert-Equal @($afterBatch.value.owners).Count 0 "run batch releases owner"
     Assert-True ($null -eq $afterBatch.value.boot) "run batch releases boot lane"
 
+    # StartEditor -EditorArgs launches the caller's args verbatim (RL batch path) and attaches the pid.
+    Write-Snapshot @()
+    $edSentinel = Join-Path $Root "editorargs-sentinel.txt"
+    if (Test-Path -LiteralPath $edSentinel) { Remove-Item -LiteralPath $edSentinel -Force }
+    $env:UA_TEST_SENTINEL = $edSentinel
     try {
-        $stubbornAcquire = Invoke-Coordinator -Action Acquire -Lease stubborn-editor -Mode editor
-        Assert-Equal $stubbornAcquire.value.status "acquired" "stubborn editor acquire"
-        $stubbornAttach = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Attach -Lease stubborn-editor -Slot agent-1 -Mode editor -ProcessId $PID -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
-        Assert-Equal $LASTEXITCODE 0 "stubborn editor attach exit"
-        Write-Snapshot @([ordered]@{ processId = $PID; commandLine = "Unity.exe -projectPath `"$agentProject`"" })
-        $stubbornRelease = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Release -Lease stubborn-editor -CloseEditor -EditorCloseWaitSeconds 0 -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
-        Assert-Equal $LASTEXITCODE 23 "incomplete editor release exit"
-        $stubbornResult = [string](@($stubbornRelease | Select-Object -Last 1)[0]) | ConvertFrom-Json
-        Assert-Equal $stubbornResult.status "editor_did_not_exit" "incomplete editor release status"
-        $stubbornStatus = Invoke-Coordinator -Action Status
-        $stubbornOwner = Get-OwnerByLease $stubbornStatus "stubborn-editor"
-        Assert-Equal $stubbornOwner.lease "stubborn-editor" "incomplete editor release retains owner"
+        $stubExe = (Get-Command powershell).Source
+        $edLiteral = "@('-NoProfile','-Command','[IO.File]::WriteAllText(`$env:UA_TEST_SENTINEL, ''armed'')')"
+        $startInner = "& '$Coordinator' -Action StartEditor -Lease edargs -Slot agent-1 -ProjectPath '$projA' -UnityPath '$stubExe' -SkipMcp -StateRoot '$State' -ProcessSnapshotPath '$Snapshot' -WaitSeconds 1 -Json -EditorArgs $edLiteral"
+        $startOut = @(& powershell -NoProfile -ExecutionPolicy Bypass -Command $startInner 2>&1)
+        Assert-Equal $LASTEXITCODE 0 "StartEditor -EditorArgs exit"
+        $startResult = [string](@($startOut | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
+        Assert-Equal $startResult.status "attached" "StartEditor -EditorArgs attaches"
+        Assert-True ([int]$startResult.owner.processId -gt 0) "StartEditor -EditorArgs records a pid"
+        $sw = [System.Diagnostics.Stopwatch]::StartNew()
+        while (-not (Test-Path -LiteralPath $edSentinel) -and $sw.Elapsed.TotalSeconds -lt 15) { Start-Sleep -Milliseconds 200 }
+        Assert-True (Test-Path -LiteralPath $edSentinel) "StartEditor launches the exe with the passed EditorArgs"
     }
     finally {
+        Remove-Item Env:\UA_TEST_SENTINEL -ErrorAction SilentlyContinue
         Write-Snapshot @()
-        [void](Invoke-Coordinator -Action Release -Lease stubborn-editor)
+        [void](Invoke-Coordinator -Action Release -Lease edargs)
     }
+
+    # Release -CloseEditor kills a live, coordinator-relevant, windowless (batch) owner.
+    $killProc = Start-Process powershell -ArgumentList @("-NoProfile", "-Command", "Start-Sleep -Seconds 120") -WindowStyle Hidden -PassThru
+    try {
+        $killAcq = Invoke-Coordinator -Action Acquire -Lease closekill -ProjectPath $projA
+        Assert-Equal $killAcq.value.status "acquired" "closekill acquire"
+        [void](& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Attach -Lease closekill -Slot agent-1 -Mode editor -ProcessId $killProc.Id -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+        Assert-Equal $LASTEXITCODE 0 "closekill attach exit"
+        Write-Snapshot @([ordered]@{ processId = $killProc.Id; commandLine = "Unity.exe -batchMode -projectPath `"$projA`"" })
+        $killRel = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Release -Lease closekill -Slot agent-1 -CloseEditor -EditorCloseWaitSeconds 20 -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+        Assert-Equal $LASTEXITCODE 0 "closekill release exit"
+        $killResult = [string](@($killRel | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
+        Assert-Equal $killResult.status "released" "Release -CloseEditor releases the owner"
+        Assert-True ($null -eq (Get-Process -Id $killProc.Id -ErrorAction SilentlyContinue)) "Release -CloseEditor kills the windowless owner process"
+    }
+    finally {
+        if ($null -ne (Get-Process -Id $killProc.Id -ErrorAction SilentlyContinue)) { Stop-Process -Id $killProc.Id -Force -ErrorAction SilentlyContinue }
+        Write-Snapshot @()
+    }
+
+    # Release -CloseEditor never kills a live owner PID that is not a coordinator-relevant Unity process.
+    $safeProc = Start-Process powershell -ArgumentList @("-NoProfile", "-Command", "Start-Sleep -Seconds 120") -WindowStyle Hidden -PassThru
+    try {
+        [void](Invoke-Coordinator -Action Acquire -Lease closesafe -ProjectPath $projA)
+        [void](& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Attach -Lease closesafe -Slot agent-1 -Mode editor -ProcessId $safeProc.Id -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+        Write-Snapshot @()
+        $safeRel = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Release -Lease closesafe -Slot agent-1 -CloseEditor -EditorCloseWaitSeconds 5 -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+        Assert-Equal $LASTEXITCODE 0 "closesafe release exit"
+        $safeResult = [string](@($safeRel | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
+        Assert-Equal $safeResult.status "released" "Release -CloseEditor releases a stale-owner lease"
+        Assert-True ($null -ne (Get-Process -Id $safeProc.Id -ErrorAction SilentlyContinue)) "Release -CloseEditor leaves a non-Unity PID alive"
+    }
+    finally {
+        Stop-Process -Id $safeProc.Id -Force -ErrorAction SilentlyContinue
+        Write-Snapshot @()
+    }
+
+    # Adopt seizes an untracked live batch editor (the RL orphan) into pid-backed ownership; batch is NOT refused.
+    Write-Snapshot @([ordered]@{ processId = 42001; commandLine = "Unity.exe -batchMode -projectPath `"$projB`"" })
+    $adopt = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Adopt -Lease adopt-orphan -Slot agent-1 -ProcessId 42001 -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+    Assert-Equal $LASTEXITCODE 0 "adopt untracked batch exit"
+    $adoptResult = [string](@($adopt | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
+    Assert-Equal $adoptResult.status "adopted" "adopt untracked batch status"
+    Assert-Equal $adoptResult.owner.processId 42001 "adopted owner pid"
+    Assert-Equal $adoptResult.owner.mode "batch" "adopted batch orphan keeps batch mode"
+    $adoptStatus = Invoke-Coordinator -Action Status
+    $adoptOwner = Get-OwnerByLease $adoptStatus "adopt-orphan"
+    Assert-Equal $adoptOwner.processId 42001 "adopted owner visible in status"
+    [void](Invoke-Coordinator -Action Release -Lease adopt-orphan)
+
+    # Adopt refuses the hand-opened dev editor (non-batch on the primary project).
+    Write-Snapshot @([ordered]@{ processId = 42002; commandLine = "Unity.exe -projectPath `"$mainProject`"" })
+    $adoptUser = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Adopt -Lease adopt-user -Slot agent-1 -ProcessId 42002 -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+    Assert-Equal $LASTEXITCODE 24 "adopt user_editor refused exit"
+    $adoptUserResult = [string](@($adoptUser | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
+    Assert-Equal $adoptUserResult.status "adopt_refused_user_editor" "adopt refuses the user editor"
+
+    # Adopt refuses to clobber a project that already has a different owner (lease-theft guard).
+    [void](Invoke-Coordinator -Action Acquire -Lease adopt-incumbent -ProjectPath $projA)
+    Write-Snapshot @([ordered]@{ processId = 42010; commandLine = "Unity.exe -batchMode -projectPath `"$projA`"" })
+    $adoptOwned = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Adopt -Lease adopt-thief -Slot agent-1 -ProcessId 42010 -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+    Assert-Equal $LASTEXITCODE 24 "adopt project-owned refused exit"
+    $adoptOwnedResult = [string](@($adoptOwned | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
+    Assert-Equal $adoptOwnedResult.status "adopt_project_owned" "adopt refuses to clobber an owned project"
+    $ownedStatus = Invoke-Coordinator -Action Status
+    $incumbent = Get-OwnerByLease $ownedStatus "adopt-incumbent"
+    Assert-Equal $incumbent.lease "adopt-incumbent" "incumbent owner lease survives an adopt attempt"
+    [void](Invoke-Coordinator -Action Release -Lease adopt-incumbent)
+    Write-Snapshot @()
+
+    # Adopt refuses a PID the coordinator already tracks.
+    [void](Invoke-Coordinator -Action Acquire -Lease adopt-track-owner -ProjectPath $agentProject)
+    Write-Snapshot @([ordered]@{ processId = 42003; commandLine = "Unity.exe -batchMode -projectPath `"$agentProject`"" })
+    [void](& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Attach -Lease adopt-track-owner -Slot agent-1 -Mode batch -ProcessId 42003 -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+    $adoptTracked = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Adopt -Lease adopt-steal -Slot agent-1 -ProcessId 42003 -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+    Assert-Equal $LASTEXITCODE 24 "adopt already-tracked refused exit"
+    $adoptTrackedResult = [string](@($adoptTracked | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
+    Assert-Equal $adoptTrackedResult.status "adopt_already_tracked" "adopt refuses a tracked pid"
+    [void](Invoke-Coordinator -Action Release -Lease adopt-track-owner)
+
+    # Adopt errors on a PID with no matching live Unity process.
+    Write-Snapshot @()
+    $adoptGhost = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action Adopt -Lease adopt-ghost -Slot agent-1 -ProcessId 49999 -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+    Assert-Equal $LASTEXITCODE 24 "adopt non-existent pid exit"
+    $adoptGhostResult = [string](@($adoptGhost | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
+    Assert-Equal $adoptGhostResult.status "adopt_no_process" "adopt errors on unknown pid"
 
     Write-Host "UNITY_ACCESS_TESTS_PASSED assertions=$Assertions"
 }
