@@ -29,7 +29,9 @@ namespace Game.RLHarness
             Academy.Instance.AutomaticSteppingEnabled = false;
         }
 
-        public IEnumerator RunEpisode(RewardSpec spec, int episodeIndex, bool tracePerDecision = false)
+        /// <summary><paramref name="onBegin"/> fires once after Begin (spawn pose settled) and <paramref name="onFixedStep"/> once per fixed step after Tick — the hooks a per-step behavioral sampler (eval scorecard) rides, matching the archetype gate's construct-then-sample ordering.</summary>
+        public IEnumerator RunEpisode(RewardSpec spec, int episodeIndex, bool tracePerDecision = false,
+            System.Action onBegin = null, System.Action onFixedStep = null)
         {
             if (spec.useAsteroidField && field == null)
                 throw new System.InvalidOperationException(
@@ -42,6 +44,7 @@ namespace Game.RLHarness
             Runner = new EpisodeRunner(pair.Agent, pair.Baseline, spec, episodeIndex, arenaCenter, tracePerDecision);
             if (draw.HasValue) Runner.RecordOpponent(draw.Value);
             Runner.Begin();
+            onBegin?.Invoke();
             agent.BindEpisode(Runner);
             agent.RequestDecision();
             Academy.Instance.EnvironmentStep();
@@ -49,7 +52,9 @@ namespace Game.RLHarness
             while (!Runner.IsDone)
             {
                 yield return waitFixed;
-                if (!Runner.Tick()) continue;
+                var boundaryReached = Runner.Tick();
+                onFixedStep?.Invoke();
+                if (!boundaryReached) continue;
 
                 var boundary = Runner.LastBoundary;
                 agent.AddReward(boundary.Total);

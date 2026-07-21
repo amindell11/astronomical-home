@@ -11,6 +11,7 @@ namespace Game.RLHarness
     public struct ArchetypeGateRow
     {
         public string schema;
+        public int seed;
         public int episodeIndex;
         public OpponentDraw opponent;
         public string outcome;
@@ -30,7 +31,7 @@ namespace Game.RLHarness
         public float meanOrbitRadiusError;
         public float maxDisplacement;
 
-        public const string SchemaId = "rl-archetype-gate-v1";
+        public const string SchemaId = "rl-archetype-gate-v2";
 
         public string ToJsonLine() => JsonUtility.ToJson(this);
     }
@@ -171,6 +172,7 @@ namespace Game.RLHarness
         public ArchetypeGateRow ToRow(in EpisodeResult result) => new()
         {
             schema = ArchetypeGateRow.SchemaId,
+            seed = result.spec.runSeed,
             episodeIndex = result.episodeIndex,
             opponent = draw,
             outcome = result.outcome,
