@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Game.RLHarness
 {
     /// <summary>The scripted-roster training composition: arena + optional asteroid field + agent-vs-scripted-baseline pair + opponent roster + ShipAgent, wired into an EpisodeLoopDriver. Built once from the initial spec; the host owns the per-episode loop and env-param overlay. PR-4b's self-play pair is the sibling composition the generic host will select between.</summary>
-    internal sealed class ScriptedRosterComposition : IDisposable
+    internal sealed class ScriptedRosterComposition : IEpisodeComposition
     {
         public EpisodeLoopDriver Driver { get; }
         private readonly OpponentRoster roster;

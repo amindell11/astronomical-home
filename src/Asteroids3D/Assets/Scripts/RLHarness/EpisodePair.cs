@@ -70,6 +70,36 @@ namespace Game.RLHarness
             return pair;
         }
 
+        /// <summary>The self-play composition: BOTH ships on the agent pilot (TestPilotMPC), each driven by its own <see cref="AgentChooser"/> injected with the OTHER ship as opponent. Poses/seeds derive exactly as <see cref="Spawn"/> (agent = team 0 / stream 101, baseline slot = team 1 / stream 202), so the mirror ship starts from the canonical baseline pose. No baseline-state-policy assert — both ships are agent-driven, not scripted.</summary>
+        public static EpisodePair SpawnSelfPlayPair(UnitService units, ArenaContext arena,
+            IProjectileService projectiles, in RewardSpec spec, HarnessAssets assets,
+            out AgentChooser chooserA, out AgentChooser chooserB)
+        {
+            var poses = EpisodePoses.Derive(in spec, 0, arena.Offset);
+            var rootScope = new SeedScope(spec.runSeed);
+
+            var shipA = SpawnLasersOnlyShip(units, projectiles, assets.ShipPrefab, assets.AgentPilot,
+                poses.agentPos, poses.agentRotDeg, team: 0, rootScope.Derive(AgentSeedStream).ToSeed());
+            var shipB = SpawnLasersOnlyShip(units, projectiles, assets.ShipPrefab, assets.AgentPilot,
+                poses.baselinePos, poses.baselineRotDeg, team: 1, rootScope.Derive(BaselineSeedStream).ToSeed());
+
+            chooserA = InstallAgentChooser(shipA, opponent: shipB);
+            chooserB = InstallAgentChooser(shipB, opponent: shipA);
+
+            units.WireShipDependencies(shipA);
+            units.WireShipDependencies(shipB);
+            return new EpisodePair(units, projectiles, arena.Offset, shipA, shipB);
+        }
+
+        private static AgentChooser InstallAgentChooser(Ship ship, Ship opponent)
+        {
+            var chooser = new AgentChooser();
+            chooser.Configure(opponent, ship.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary));
+            var commander = ship.GetComponentInChildren<AICommander>();
+            commander.GetComponentInChildren<Brain>().InstallChooser(chooser);
+            return chooser;
+        }
+
         /// <summary>Atomic pair-reset to the (runSeed, episodeIndex) poses, flushing in-flight projectiles.</summary>
         public SpawnPoses Reset(in RewardSpec spec, int episodeIndex)
         {

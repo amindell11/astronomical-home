@@ -1,0 +1,50 @@
+# Trainer-connected self-play smoke: proves native self_play trains with two team_ids under the
+# runner's manual Academy stepping. Tiny buffers/steps, NOT a training config; gamma and
+# engine_settings must stay identical to ppo_ship_combat.yaml. Empty arena (RL_SMOKE + RL_SELFPLAY).
+behaviors:
+  ShipCombat:
+    trainer_type: ppo
+    hyperparameters:
+      batch_size: 256
+      buffer_size: 1024
+      learning_rate: 3.0e-4
+      beta: 5.0e-3
+      epsilon: 0.2
+      lambd: 0.95
+      num_epoch: 3
+      learning_rate_schedule: linear
+      beta_schedule: constant
+    network_settings:
+      normalize: false
+      hidden_units: 256
+      num_layers: 2
+    reward_signals:
+      extrinsic:
+        gamma: 0.99  # must equal RewardSpec.Default.gamma (Ng-shaping soundness); pinned by RLTrainerConfigEditModeTests
+        strength: 1.0
+    keep_checkpoints: 2
+    checkpoint_interval: 2000
+    max_steps: 4000
+    time_horizon: 64
+    summary_freq: 500
+    # Small save/swap so a snapshot save + team swap both exercise inside the 4000-step smoke.
+    self_play:
+      save_steps: 500
+      team_change: 1000
+      swap_steps: 500
+      window: 3
+      play_against_latest_model_ratio: 0.5
+      initial_elo: 1200.0
+engine_settings:
+  width: 320
+  height: 240
+  quality_level: 1
+  time_scale: 1
+  target_frame_rate: -1
+  capture_frame_rate: 50
+env_settings:
+  # Editor boot + play-mode domain reload (Burst) outlasts the 60 s default handshake window.
+  timeout_wait: 300
+checkpoint_settings:
+  run_id: ship_combat_selfplay_smoke
+  results_dir: ../../results/rl-training

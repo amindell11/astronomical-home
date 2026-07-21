@@ -118,6 +118,32 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void SelfPlayConfig_SelfPlayBlock_ConstantGraduationEnv_NoRoster()
+        {
+            var path = TrainerConfigs().Single(p => Path.GetFileName(p) == "ppo_ship_combat_selfplay.yaml");
+            var yaml = File.ReadAllText(path);
+
+            Assert.IsTrue(Regex.IsMatch(yaml, @"^\s*self_play:", RegexOptions.Multiline),
+                "the self-play run must carry a self_play block");
+            foreach (var key in new[] { "save_steps", "team_change", "swap_steps", "window",
+                "play_against_latest_model_ratio", "initial_elo" })
+                Assert.IsTrue(Regex.IsMatch(yaml, $@"^\s*{key}:", RegexOptions.Multiline),
+                    $"self_play block missing {key}");
+
+            Assert.AreEqual(RewardSpec.Default.gamma, FloatValue(path, "gamma"), 1e-6f,
+                "self-play trainer γ must equal RewardSpec.gamma (Ng-shaping soundness)");
+
+            // Graduation env held constant — no curriculum ramp in self-play.
+            Assert.AreEqual(1f, FloatValue(path, "use_asteroid_field"), 1e-6f);
+            Assert.AreEqual(2f, FloatValue(path, "field_density_scale"), 1e-6f);
+            Assert.AreEqual(1f, FloatValue(path, "collision_lethality"), 1e-6f);
+            StringAssert.DoesNotContain("curriculum:", yaml,
+                "self-play trains at the terminal lesson as plain constants, not a ramp");
+            Assert.IsFalse(Regex.IsMatch(yaml, @"^\s*opponent_weight_", RegexOptions.Multiline),
+                "the scripted roster is unused in self-play — no opponent_weight_ params");
+        }
+
+        [Test]
         public void CanonicalEvalEnv_MatchesCurriculumTerminalLesson()
         {
             var block = EnvironmentParametersBlock();

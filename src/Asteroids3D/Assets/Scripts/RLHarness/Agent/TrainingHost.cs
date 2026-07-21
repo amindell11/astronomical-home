@@ -15,8 +15,10 @@ namespace Game.RLHarness
         [Tooltip("Default = trainer when connected, else heuristic. HeuristicOnly for a Python-free loop check. Checkpoint eval goes through CheckpointEvaluator, not this host.")]
         [SerializeField] private BehaviorType behaviorType = BehaviorType.Default;
         [SerializeField] private HarnessAssets assets;
+        [Tooltip("Self-play: opponent is a second team-1 ShipCombat agent (parameter-shared) instead of the scripted roster.")]
+        [SerializeField] private bool selfPlay;
 
-        private ScriptedRosterComposition composition;
+        private IEpisodeComposition composition;
 
         private IEnumerator Start()
         {
@@ -33,7 +35,9 @@ namespace Game.RLHarness
             Func<string, float, float> envParams = Academy.Instance.EnvironmentParameters.GetWithDefault;
             spec = EnvParamOverlay.Apply(spec, envParams);
 
-            composition = new ScriptedRosterComposition(gameObject, in spec, behaviorType, assets);
+            composition = selfPlay || Environment.GetEnvironmentVariable("RL_SELFPLAY") == "1"
+                ? new SelfPlayComposition(gameObject, in spec, behaviorType, assets)
+                : (IEpisodeComposition)new ScriptedRosterComposition(gameObject, in spec, behaviorType, assets);
             var driver = composition.Driver;
             var jsonlPath = EpisodeJsonl.NewRunPath("training");
             var terminals = 0;

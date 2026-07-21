@@ -1,0 +1,25 @@
+using Unity.MLAgents.Policies;
+using UnityEngine;
+
+namespace Game.RLHarness
+{
+    /// <summary>The symmetric self-play composition: arena + optional asteroid field + a two-agent EpisodePair where both ships are parameter-shared ShipCombat agents (team 0 and team 1), wired into an EpisodeLoopDriver that steps both. Team 0 is the primary (logged); the team-1 ghost trains off the mirror runner. The sibling of ScriptedRosterComposition the generic host selects between.</summary>
+    internal sealed class SelfPlayComposition : IEpisodeComposition
+    {
+        public EpisodeLoopDriver Driver { get; }
+
+        public SelfPlayComposition(GameObject host, in RewardSpec spec, BehaviorType behaviorType, HarnessAssets assets)
+        {
+            var (units, arena, projectiles) = HarnessArena.Compose(host);
+            var field = spec.useAsteroidField
+                ? HarnessField.Spawn(arena, assets, spec.fieldDensityScale, host.transform)
+                : null;
+            var pair = EpisodePair.SpawnSelfPlayPair(units, arena, projectiles, in spec, assets, out var chooserA, out var chooserB);
+            var (agentA, agentB) = ShipAgentFactory.ComposeSelfPlayPair(
+                pair, chooserA, chooserB, in spec, arena.Offset, behaviorType, host.transform);
+            Driver = new EpisodeLoopDriver(pair, agentA, arena.Offset, field, roster: null, opponentAgent: agentB);
+        }
+
+        public void Dispose() { }
+    }
+}
