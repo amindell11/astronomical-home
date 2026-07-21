@@ -42,7 +42,10 @@ namespace Game.RLHarness
             public bool useAsteroidField;
             public float fieldDensityScale;
             public ArchetypeSummary[] archetypes;
+            // The per-archetype tuning signal a W/L/D tally hides (archetypes[] holds the tally).
+            public ArchetypeGateSummary[] behavior;
             public string episodesJsonl;
+            public string behaviorJsonl;
         }
 
         public static IEnumerator Run(UnitService units, ArenaContext arena, IProjectileService projectiles,
@@ -50,6 +53,7 @@ namespace Game.RLHarness
             string tag, Action<Summary> onDone)
         {
             var jsonlPath = EpisodeJsonl.NewRunPath(tag, ResultsFolder);
+            var behaviorPath = jsonlPath.Replace(".jsonl", "-behavior.jsonl");
             var summary = new Summary
             {
                 checkpoint = onnxAssetPath,
@@ -58,10 +62,13 @@ namespace Game.RLHarness
                 useAsteroidField = baseSpec.useAsteroidField,
                 fieldDensityScale = baseSpec.fieldDensityScale,
                 episodesJsonl = jsonlPath,
+                behaviorJsonl = behaviorPath,
             };
             for (var i = 0; i < seeds.Count; i++) summary.seeds[i] = seeds[i];
 
             var outcomes = new List<(string archetype, string outcome)>();
+            var behaviorRows = new Dictionary<OpponentArchetype, List<ArchetypeGateRow>>();
+            foreach (var a in EvalArchetypes) behaviorRows[a] = new List<ArchetypeGateRow>();
             var field = baseSpec.useAsteroidField ? HarnessField.Spawn(arena, baseSpec.fieldDensityScale) : null;
 
             foreach (var seed in seeds)
@@ -79,11 +86,19 @@ namespace Game.RLHarness
                     {
                         // Pinned install before RunEpisode's pair-reset (the respawn re-inits the chooser).
                         var draw = roster.Install(archetype, in spec, episode, arena.Offset);
-                        yield return driver.RunEpisode(spec, episode);
+                        ArchetypeGateProbe probe = null;
+                        yield return driver.RunEpisode(spec, episode,
+                            onBegin: () => probe = new ArchetypeGateProbe(pair.Baseline, pair.Agent,
+                                arena.Offset, spec.arenaRadius, in draw),
+                            onFixedStep: () => probe.Sample());
                         driver.Runner.RecordOpponent(in draw);
                         var result = driver.Runner.Result;
                         EpisodeJsonl.Append(jsonlPath, in result);
                         outcomes.Add((archetype.ToString(), result.outcome));
+                        var row = probe.ToRow(in result);
+                        behaviorRows[archetype].Add(row);
+                        File.AppendAllText(behaviorPath, row.ToJsonLine() + "\n");
+                        probe.Dispose();
                     }
                 }
 
@@ -95,6 +110,10 @@ namespace Game.RLHarness
 
             field?.Dispose();
             summary.archetypes = Summarize(outcomes);
+            summary.behavior = new ArchetypeGateSummary[EvalArchetypes.Length];
+            for (var i = 0; i < EvalArchetypes.Length; i++)
+                summary.behavior[i] = ArchetypeGateSummary.Summarize(
+                    EvalArchetypes[i].ToString(), behaviorRows[EvalArchetypes[i]]);
 
             var summaryPath = jsonlPath.Replace(".jsonl", "-summary.json");
             File.WriteAllText(summaryPath, JsonUtility.ToJson(summary, prettyPrint: true));
@@ -102,6 +121,12 @@ namespace Game.RLHarness
                 Debug.Log($"[CheckpointEvaluator] {onnxAssetPath} vs {a.archetype}: episodes={a.episodes} "
                     + $"W/L/D={a.wins}/{a.losses}/{a.draws} "
                     + $"winRate={a.winRate:F3} wilsonLB95={a.wilsonLowerBound95:F3}");
+            // Teacher scorecard: the challenge lever is agentPoolLost (damage the archetype deals); borderHug/displacement flag a degenerate cheese.
+            foreach (var b in summary.behavior)
+                Debug.Log($"[CheckpointEvaluator] {b.archetype} teacher: agentHPlost={b.meanAgentPoolLostPct:P0} "
+                    + $"oppHPlost={b.meanOpponentPoolLostPct:P0} oppShots={b.meanShotsFired:F1} "
+                    + $"meanRange={b.meanRange:F1} borderHug={b.meanBorderHugFraction:P0} "
+                    + $"maxDisp={b.maxDisplacement:F0} survived={b.survived}/{b.episodes}");
             Debug.Log($"[CheckpointEvaluator] {onnxAssetPath}: summary → {summaryPath}");
             onDone?.Invoke(summary);
         }
