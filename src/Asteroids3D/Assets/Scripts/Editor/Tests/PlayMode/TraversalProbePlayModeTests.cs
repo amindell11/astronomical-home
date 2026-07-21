@@ -24,6 +24,7 @@ namespace Tests.PlayMode
         private UnitService unitService;
         private ArenaContext arena;
         private ProjectileService projectiles;
+        private HarnessAssets assets;
         private float savedTimeScale;
         private float savedMaxDelta;
         private float savedCaptureDelta;
@@ -41,6 +42,8 @@ namespace Tests.PlayMode
             arena = TestArena.On(arenaHost, unitService.ActiveRegistry);
             unitService.SetArena(arena);
             projectiles = new ProjectileService(arenaHost.transform);
+            assets = UnityEditor.AssetDatabase.LoadAssetAtPath<HarnessAssets>(HarnessAssets.AssetPath);
+            Assert.IsNotNull(assets, $"HarnessAssets missing at {HarnessAssets.AssetPath}");
             unitService.SetProjectiles(projectiles);
 
             savedTimeScale = Time.timeScale;
@@ -178,9 +181,9 @@ namespace Tests.PlayMode
         /// <summary>Single-ship composition: field + arena + the combat-episode airframe on the inert TestPilotMPC host. Field pool pre-sizes for the densest sweep cell (the pool cap is fixed at first spawn).</summary>
         private void ComposeProbe(float maxDensityScale)
         {
-            field = HarnessField.Spawn(arena, maxDensityScale, arenaHost.transform);
+            field = HarnessField.Spawn(arena, assets, maxDensityScale, arenaHost.transform);
 
-            ship = EpisodePair.SpawnLasersOnlyShip(unitService, projectiles, EpisodePair.AgentPilotPath,
+            ship = EpisodePair.SpawnLasersOnlyShip(unitService, projectiles, assets.ShipPrefab, assets.AgentPilot,
                 Vector2.zero, 0f, team: 0, decisionSeed: 1234567);
             unitService.WireShipDependencies(ship);
 

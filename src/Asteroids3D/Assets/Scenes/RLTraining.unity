@@ -166,6 +166,7 @@ MonoBehaviour:
   episodes: 0
   runSeed: 1
   behaviorType: 0
+  assets: {fileID: 11400000, guid: 71313b16b450421789f98b1d3644a5e7, type: 2}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

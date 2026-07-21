@@ -32,6 +32,7 @@ namespace Tests.PlayMode
         private UnitService unitService;
         private ArenaContext arena;
         private ProjectileService projectiles;
+        private HarnessAssets assets;
         private float savedTimeScale;
         private float savedMaxDelta;
         private float savedCaptureDelta;
@@ -50,6 +51,8 @@ namespace Tests.PlayMode
             arena = TestArena.On(arenaHost, unitService.ActiveRegistry);
             unitService.SetArena(arena);
             projectiles = new ProjectileService(arenaHost.transform);
+            assets = UnityEditor.AssetDatabase.LoadAssetAtPath<HarnessAssets>(HarnessAssets.AssetPath);
+            Assert.IsNotNull(assets, $"HarnessAssets missing at {HarnessAssets.AssetPath}");
             unitService.SetProjectiles(projectiles);
             AssertNoForeignDebris();
 
@@ -196,7 +199,7 @@ namespace Tests.PlayMode
             const int recordSteps = 100;
             const int dirtySteps = 80;
 
-            field = HarnessField.Spawn(arena, spec.fieldDensityScale, arenaHost.transform);
+            field = HarnessField.Spawn(arena, assets, spec.fieldDensityScale, arenaHost.transform);
             SpawnPair(in spec);
             for (var i = 0; i < dirtySteps; i++)
                 yield return new WaitForFixedUpdate();
@@ -240,7 +243,7 @@ namespace Tests.PlayMode
             var spec = RewardSpec.Default;
             spec.useAsteroidField = true;
 
-            field = HarnessField.Spawn(arena, spec.fieldDensityScale, arenaHost.transform);
+            field = HarnessField.Spawn(arena, assets, spec.fieldDensityScale, arenaHost.transform);
             field.Reset(in spec, 0, EpisodePoses.Derive(in spec, 0, arena.Offset));
             yield return null; // frame 1: the field's Start runs the staged build
             yield return null; // frame 2: LateUpdate applies the no-anchor collider default
@@ -263,7 +266,7 @@ namespace Tests.PlayMode
             var spec = RewardSpec.Default;
             spec.useAsteroidField = true;
 
-            field = HarnessField.Spawn(arena, spec.fieldDensityScale, arenaHost.transform);
+            field = HarnessField.Spawn(arena, assets, spec.fieldDensityScale, arenaHost.transform);
             SpawnPair(in spec);
             ResetWithField(in spec, 0);
             yield return null; // frame 1: the field's Start runs the staged build
@@ -450,7 +453,7 @@ namespace Tests.PlayMode
                 ranger.Configure(baselineShip, RangerHoldRange,
                     agentShip.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary));
                 return ranger;
-            });
+            }, assets);
             agent = pair.Agent;
             baseline = pair.Baseline;
         }

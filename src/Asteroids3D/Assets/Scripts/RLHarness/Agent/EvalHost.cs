@@ -11,6 +11,7 @@ namespace Game.RLHarness
         [SerializeField] internal int episodesPerSeed = 5;
         [SerializeField] internal string seedSelector = "held-out";
         [SerializeField] internal float fieldDensityScale = EvalProtocol.CanonicalFieldDensityScale;
+        [SerializeField] internal HarnessAssets assets;
 
         private IEnumerator Start()
         {
@@ -20,7 +21,7 @@ namespace Game.RLHarness
             if (!Mathf.Approximately(fieldDensityScale, EvalProtocol.CanonicalFieldDensityScale))
                 tag += "-d" + fieldDensityScale.ToString("0.##", CultureInfo.InvariantCulture).Replace('.', '_');
             var (units, arena, projectiles) = HarnessArena.Compose(gameObject);
-            yield return CheckpointEvaluator.Run(units, arena, projectiles, onnxAssetPath,
+            yield return CheckpointEvaluator.Run(units, arena, projectiles, assets, onnxAssetPath,
                 seeds, episodesPerSeed, EvalProtocol.EvalSpec(fieldDensityScale), tag, null);
 #if UNITY_EDITOR
             if (Application.isBatchMode) UnityEditor.EditorApplication.Exit(0);
