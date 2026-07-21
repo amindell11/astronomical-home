@@ -136,7 +136,7 @@ namespace Game.RLHarness
     /// <summary>Circles the live target at a jittered radius (<see cref="ManeuverChooser"/>'s orbit law generalized to a moving center), firing from inside the envelope.</summary>
     public class OrbiterChooser : OpponentArchetypeChooser
     {
-        private const float RadialGain = 0.6f;
+        private const float RadialGain = 0.9f;
         // A tangential-only rotating command needs a standing radius error ∝ v²/r to supply
         // the centripetal demand through the P-term — feed it forward instead (Kff in seconds).
         private const float CentripetalKff = 2.5f;
@@ -190,8 +190,8 @@ namespace Game.RLHarness
         }
     }
 
-    /// <summary>The anti-exploit flavor: holds a jittered long range on the LOS (<see cref="RangerChooser.HoldRangeVelocity"/> capped to the jittered speed) and fires from the envelope edge.</summary>
-    public class KiterChooser : OpponentArchetypeChooser
+    /// <summary>Velocity-interface hold-range-and-fire pursuit: closes to a jittered range on the LOS (<see cref="RangerChooser.HoldRangeVelocity"/> capped to the jittered speed) and fires with intercept-lead aim. Serves the Kiter (long stand-off) and the Aggressor (short brawl) archetypes.</summary>
+    public class HoldRangeFireChooser : OpponentArchetypeChooser
     {
         private float desiredRange;
         private float projectileSpeed;

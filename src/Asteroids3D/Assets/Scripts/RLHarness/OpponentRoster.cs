@@ -21,13 +21,13 @@ namespace Game.RLHarness
         public float desiredRange;
     }
 
-    /// <summary>Per-episode opponent policy source for the episode loop: consulted BEFORE each pair-reset (respawn re-inits the installed chooser — the traversal-probe ordering), it draws an archetype + jitter params on their own seed stream and installs through <see cref="Brain.InstallChooser"/>. Aggressor re-installs the prefab-default utility chooser captured at construction. Mixture weights ride the spec (curriculum-driven via <see cref="EnvParamOverlay"/>).</summary>
+    /// <summary>Per-episode opponent policy source for the episode loop: consulted BEFORE each pair-reset (respawn re-inits the installed chooser — the traversal-probe ordering), it draws an archetype + jitter params on their own seed stream and installs through <see cref="Brain.InstallChooser"/>. Every archetype drives the velocity interface (the goal-mode utility path is twitchy in the asteroid field). Mixture weights ride the spec (curriculum-driven via <see cref="EnvParamOverlay"/>).</summary>
     public sealed class OpponentRoster : IDisposable
     {
         private const uint ArchetypeStream = 505;
         private const uint JukeSeedStream = 1;
 
-        /// <summary>The harness-standard velocity-mode tracker weight (PR-3's policy-matched interface). The opponent airframe's production settings never author it (the utility path never drives velocity mode; the script default is too loose to hold a reference — the dummy random-walks tens of units). Velocity-mode-only cost, so the aggressor's goal-mode behavior is untouched.</summary>
+        /// <summary>The harness-standard velocity-mode tracker weight (PR-3's policy-matched interface). The opponent airframe's production settings never author it (the utility path never drove velocity mode; the script default is too loose to hold a reference — the dummy random-walks tens of units).</summary>
         private const float ScriptedWVelTrack = 50f;
 
         // The laser envelope is 20 u — orbit and hold ranges stay inside it so fire-capable archetypes shoot.
@@ -35,16 +35,18 @@ namespace Game.RLHarness
         private const float MaxSpeedFraction = 1.0f;
         private const float MinJukePeriod = 0.6f;
         private const float MaxJukePeriod = 1.8f;
-        private const float MinOrbitRadius = 10f;
+        private const float MinOrbitRadius = 14f;
         private const float MaxOrbitRadius = 18f;
         // Above ~0.6 the required v²/R exceeds thrust authority at these radii — the orbit slides outside the envelope.
         private const float MinOrbitSpeedFraction = 0.4f;
         private const float MaxOrbitSpeedFraction = 0.6f;
         private const float MinKiteRange = 14f;
         private const float MaxKiteRange = 18f;
+        // The brawl band sits well inside the 20 u laser envelope so the aggressor fights up close.
+        private const float MinAggroRange = 8f;
+        private const float MaxAggroRange = 12f;
 
         private readonly Brain brain;
-        private readonly IIntentChooser aggressorChooser;
         private readonly Ship enemy;
         private readonly float projectileSpeed;
         private readonly Navigator navigator;
@@ -55,10 +57,6 @@ namespace Game.RLHarness
         {
             this.enemy = enemy;
             brain = opponent.GetComponentInChildren<Brain>();
-            aggressorChooser = brain.Chooser;
-            if (aggressorChooser is not IStateChooser)
-                throw new InvalidOperationException(
-                    "OpponentRoster must be constructed while the opponent still runs its prefab-default utility chooser — a scripted archetype is already installed.");
             projectileSpeed = opponent.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary);
 
             // Traversal-probe precedent: the next respawn re-creates the solver from the clone.
@@ -94,7 +92,12 @@ namespace Game.RLHarness
             switch (archetype)
             {
                 case OpponentArchetype.Aggressor:
-                    brain.InstallChooser(aggressorChooser);
+                    draw.speedFraction = Draw(rng, MinSpeedFraction, MaxSpeedFraction);
+                    draw.desiredRange = Draw(rng, MinAggroRange, MaxAggroRange);
+                    var aggressor = new HoldRangeFireChooser();
+                    aggressor.Configure(enemy, draw.desiredRange, draw.speedFraction, projectileSpeed,
+                        arenaCenter, spec.arenaRadius);
+                    brain.InstallChooser(aggressor);
                     break;
                 case OpponentArchetype.Evader:
                     draw.speedFraction = Draw(rng, MinSpeedFraction, MaxSpeedFraction);
@@ -116,7 +119,7 @@ namespace Game.RLHarness
                 case OpponentArchetype.Kiter:
                     draw.speedFraction = Draw(rng, MinSpeedFraction, MaxSpeedFraction);
                     draw.desiredRange = Draw(rng, MinKiteRange, MaxKiteRange);
-                    var kiter = new KiterChooser();
+                    var kiter = new HoldRangeFireChooser();
                     kiter.Configure(enemy, draw.desiredRange, draw.speedFraction, projectileSpeed,
                         arenaCenter, spec.arenaRadius);
                     brain.InstallChooser(kiter);
