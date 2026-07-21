@@ -18,6 +18,8 @@ param(
     [string]$UnityPath = "D:\Programs\Unity\Editor\6000.1.8f1\Editor\Unity.exe",
     [int]$McpPort = 8081,
     [switch]$CloseEditor,
+    [string[]]$EditorArgs = @(),
+    [switch]$SkipMcp,
     [string]$BatchScript = "",
     [string[]]$BatchArguments = @(),
     [switch]$Json
@@ -494,11 +496,23 @@ function Release-Access {
     if ($CloseEditor.IsPresent -and [int]$owner.processId -gt 0) {
         $process = Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue
         if ($null -ne $process) {
-            [void]$process.CloseMainWindow()
-            $deadline = [datetime]::UtcNow.AddSeconds([Math]::Max(0, $EditorCloseWaitSeconds))
-            while ($null -ne (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue) -and [datetime]::UtcNow -lt $deadline) { Start-Sleep -Milliseconds 500 }
-            if ($null -ne (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue)) {
-                return [ordered]@{ status = "editor_did_not_exit"; owner = $owner }
+            $closed = $false
+            if ($process.MainWindowHandle -ne [IntPtr]::Zero) {
+                [void]$process.CloseMainWindow()
+                $deadline = [datetime]::UtcNow.AddSeconds([Math]::Max(0, $EditorCloseWaitSeconds))
+                while ($null -ne (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue) -and [datetime]::UtcNow -lt $deadline) { Start-Sleep -Milliseconds 500 }
+                $closed = $null -eq (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue)
+            }
+            # Kill only a still-live, coordinator-relevant Unity PID — never a bare/recycled one.
+            if (-not $closed) {
+                if (@(Get-RelevantUnityProcesses | Where-Object { $_.processId -eq [int]$owner.processId }).Count -gt 0) {
+                    Stop-Process -Id ([int]$owner.processId) -Force -ErrorAction SilentlyContinue
+                    $deadline = [datetime]::UtcNow.AddSeconds([Math]::Max(0, $EditorCloseWaitSeconds))
+                    while ($null -ne (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue) -and [datetime]::UtcNow -lt $deadline) { Start-Sleep -Milliseconds 500 }
+                }
+                if ($null -ne (Get-Process -Id ([int]$owner.processId) -ErrorAction SilentlyContinue)) {
+                    return [ordered]@{ status = "editor_did_not_exit"; owner = $owner }
+                }
             }
         }
     }
@@ -518,17 +532,24 @@ function Start-TrackedEditor {
         return $boot
     }
     try {
-        Ensure-McpServer
         $exe = Resolve-FullPath $UnityPath
         if (-not (Test-Path -LiteralPath $exe)) { throw "Unity executable not found: $exe" }
-        $previousEndpoint = $env:ASTRONOMICAL_UNITY_MCP_ENDPOINT
-        $env:ASTRONOMICAL_UNITY_MCP_ENDPOINT = "http://127.0.0.1:$McpPort"
-        try { $process = Start-Process -FilePath $exe -ArgumentList @("-projectPath", $ResolvedProject) -PassThru }
-        finally {
-            if ($null -eq $previousEndpoint) { Remove-Item Env:\ASTRONOMICAL_UNITY_MCP_ENDPOINT -ErrorAction SilentlyContinue }
-            else { $env:ASTRONOMICAL_UNITY_MCP_ENDPOINT = $previousEndpoint }
+        # Caller-supplied args (RL batch launches) win verbatim; empty falls back to today's interactive open.
+        $launchArgs = if ($EditorArgs.Count -gt 0) { $EditorArgs } else { @("-projectPath", $ResolvedProject) }
+        if ($SkipMcp.IsPresent) {
+            $process = Start-Process -FilePath $exe -ArgumentList $launchArgs -PassThru
         }
-        # Interactive editors emit no coordinator-visible boot signal; the boot lane self-expires after BootTtlSeconds.
+        else {
+            Ensure-McpServer
+            $previousEndpoint = $env:ASTRONOMICAL_UNITY_MCP_ENDPOINT
+            $env:ASTRONOMICAL_UNITY_MCP_ENDPOINT = "http://127.0.0.1:$McpPort"
+            try { $process = Start-Process -FilePath $exe -ArgumentList $launchArgs -PassThru }
+            finally {
+                if ($null -eq $previousEndpoint) { Remove-Item Env:\ASTRONOMICAL_UNITY_MCP_ENDPOINT -ErrorAction SilentlyContinue }
+                else { $env:ASTRONOMICAL_UNITY_MCP_ENDPOINT = $previousEndpoint }
+            }
+        }
+        # Editors emit no coordinator-visible boot signal; the boot lane self-expires after BootTtlSeconds.
         $script:ProcessId = $process.Id
         return Attach-Process
     }
