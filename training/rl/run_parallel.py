@@ -38,6 +38,18 @@ def worker_logs(k: int) -> set:
     return set(JSONL_DIR.glob(f"*-training-w{k}.jsonl"))
 
 
+def terminate_tree(trainer: subprocess.Popen) -> None:
+    # On timeout the trainer has spawned the N RLTraining.exe workers; on Windows a killed
+    # parent doesn't take its children down, so kill the whole tree or the headless workers
+    # keep holding ports/CPU (CLAUDE.md session-hygiene orphan-lock hazard).
+    if trainer.poll() is not None:
+        return
+    if os.name == "nt":
+        subprocess.run(["taskkill", "/F", "/T", "/PID", str(trainer.pid)], capture_output=True)
+    else:
+        trainer.kill()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -105,8 +117,8 @@ def main() -> None:
                 sys.exit(f"FAIL: timed out after {args.run_timeout:.0f}s waiting for the trainer (see {trainer_log})")
             time.sleep(10.0)
     finally:
-        if trainer and trainer.poll() is None:
-            trainer.kill()
+        if trainer:
+            terminate_tree(trainer)
     if trainer.returncode != 0:
         sys.exit(f"FAIL: mlagents-learn exited {trainer.returncode} (see {trainer_log})")
 
