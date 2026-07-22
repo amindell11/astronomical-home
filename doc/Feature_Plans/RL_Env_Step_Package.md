@@ -176,6 +176,8 @@ checks run in empty arenas — the PR-A field composition stays off).
    runner already owns that clock for the agent — two manual steppers break the pacing
    contract. Scripted kiter ships now; stepping ownership gets its own change alongside
    the curriculum/league work that actually needs the checkpoint opponent.
+   *(Resolved by the stepping-migration arc: `RL_Stepping_Migration.md` PR-2 moved
+   `InferenceChooser` onto the Academy auto-clock — no manual steppers remain.)*
 3. **Per-episode selection lives in an `OpponentRoster` owned by the episode loop** —
    spec-configured (fixed weights in PR-C; PR-D turns the weights into ML-Agents env
    params), consulted each episode to pick + jitter an archetype, installing via
