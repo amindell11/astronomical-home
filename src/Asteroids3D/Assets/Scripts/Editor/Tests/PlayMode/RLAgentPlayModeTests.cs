@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System.Collections;
+using System.Collections.Generic;
 using Game;
 using Game.RLHarness;
 using Game.Services;
@@ -13,7 +14,7 @@ using UnityEngine.TestTools;
 
 namespace Tests.PlayMode
 {
-    /// <summary>Python-free proof of the whole ML-Agents loop: manual Academy stepping through the EpisodeLoopDriver with the Heuristic policy, headless. The agent's accumulated reward must equal the runner's — one reward channel, no drift.</summary>
+    /// <summary>Python-free proof of the whole ML-Agents loop: the Academy auto-steps while the EpisodeLoopDriver paces the Heuristic policy, headless. The agent's accumulated reward must equal the runner's — one reward channel, no drift.</summary>
     [TestFixture]
     [Category("AI")]
     public class RLAgentPlayModeTests
@@ -50,6 +51,10 @@ namespace Tests.PlayMode
             savedCaptureDelta = Time.captureDeltaTime;
             Time.maximumDeltaTime = 1f;
             PacingContract.Apply();
+
+            // An InferenceChooser test earlier in the suite leaves auto-stepping off.
+            if (Academy.IsInitialized)
+                Academy.Instance.AutomaticSteppingEnabled = true;
         }
 
         [TearDown]
@@ -116,6 +121,38 @@ namespace Tests.PlayMode
                 Assert.AreEqual(result.totalReward, driver.LastEpisodeCumulativeReward, 1e-3f,
                     "the agent must accumulate exactly the runner's reward");
             }
+        }
+
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator AutoStep_PrimedBoundaryAction_MovesAgentExactlyOneTickLater()
+        {
+            // The permanent zero-latency guard (PR-0 finding). Under auto-stepping the primed boundary action must
+            // move the agent on the FIRST fixed step (t+1) — the AICommander-after-the-stepper ordering. A one-tick
+            // regression (AICommander back before the stepper) delays first motion to step 2. Integer step index, not
+            // a float golden: the stepping move changes WHEN the step fires, never the action values.
+            var spec = RewardSpec.Default;
+            spec.timeoutDecisions = 10;
+            spec.minSeparation = 18f;
+            spec.maxSeparation = 24f;
+
+            Compose(in spec);
+            var driver = new EpisodeLoopDriver(pair, agent, arena.Offset);
+
+            var speeds = new List<float>();
+            var academyBefore = Academy.Instance.TotalStepCount;
+            yield return driver.RunEpisode(spec, 0,
+                onFixedStep: () => speeds.Add(pair.Agent.Kinematics.vel.magnitude));
+            var academyStepped = Academy.Instance.TotalStepCount - academyBefore;
+
+            // Instrument validity: the Academy must actually have auto-stepped, else the motion timing is meaningless.
+            Assert.Greater(academyStepped, speeds.Count / 2,
+                "Academy did not auto-step — AutomaticSteppingEnabled never engaged, so latency cannot be measured");
+
+            Assert.Less(speeds[0], 1e-3f, "the agent must be at rest before the primed action lands");
+            var firstMotion = speeds.FindIndex(v => v > 1e-3f);
+            Assert.AreEqual(1, firstMotion,
+                $"the boundary action must first move the agent at t+1 (step 1); first motion at step {firstMotion} is a decision-latency regression");
         }
 
         [UnityTest]

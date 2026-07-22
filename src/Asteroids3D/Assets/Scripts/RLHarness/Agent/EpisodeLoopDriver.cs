@@ -1,10 +1,9 @@
 using System.Collections;
-using Unity.MLAgents;
 using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>The step & reset ordering contract, in one place. Runner-owned manual stepping on the WaitForFixedUpdate phase (the same phase the PlayMode tests use): prime the first decision after Begin so no step runs under a default action; at each paid boundary AddReward → RequestDecision → EnvironmentStep (zero decision latency — observe s_t, act on [t, t+K)); on episode end AddReward → EndEpisode/EpisodeInterrupted BEFORE the next pair-reset so the terminal observation reflects the end state.</summary>
+    /// <summary>The decision & reset ordering contract, in one place. The Academy auto-steps every FixedUpdate (this driver no longer owns the step); it only paces decisions: prime the first RequestDecision after Begin so the opening step runs under a real action, and RequestDecision again at each paid boundary. Zero decision latency holds because AICommander (which reads the action) is ordered after the AcademyFixedUpdateStepper, so a boundary's action is applied the same FixedUpdate it is produced. On episode end AddReward → EndEpisode/EpisodeInterrupted BEFORE the next pair-reset so the terminal observation reflects the end state.</summary>
     public sealed class EpisodeLoopDriver
     {
         private readonly EpisodePair pair;
@@ -31,7 +30,6 @@ namespace Game.RLHarness
             this.arenaCenter = arenaCenter;
             this.field = field;
             this.roster = roster;
-            Academy.Instance.AutomaticSteppingEnabled = false;
         }
 
         /// <summary><paramref name="onBegin"/> fires once after Begin (spawn pose settled) and <paramref name="onFixedStep"/> once per fixed step after Tick — the hooks a per-step behavioral sampler (eval scorecard) rides, matching the archetype gate's construct-then-sample ordering.</summary>
@@ -61,10 +59,9 @@ namespace Game.RLHarness
             }
             OpponentRunner = opponentRunner;
 
-            // self_play: trainer serves the team-1 ghost; both agents request, one EnvironmentStep drives both.
+            // self_play: trainer serves the team-1 ghost; both agents request, the Academy auto-steps both.
             agent.RequestDecision();
             opponentAgent?.RequestDecision();
-            Academy.Instance.EnvironmentStep();
 
             while (!Runner.IsDone)
             {
@@ -100,7 +97,6 @@ namespace Game.RLHarness
                     default:
                         agent.RequestDecision();
                         opponentAgent?.RequestDecision();
-                        Academy.Instance.EnvironmentStep();
                         break;
                 }
             }
