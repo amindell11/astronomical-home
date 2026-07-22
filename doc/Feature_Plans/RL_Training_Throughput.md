@@ -1,8 +1,9 @@
 # RL Training Throughput — headless player + `--num-envs`
 
-> STATUS: living — RL training throughput design reference (pr-prep 2026-07-21): PR-1
-> player-buildable (this), PR-2 `--num-envs`; in-process M arenas = Path A (deferred).
-> Supersedes the *in-process* multi-arena framing as the near-term throughput play.
+> STATUS: living — RL training throughput design reference. PR-1 player-buildable SHIPPED
+> #185; PR-2 `--num-envs` decorrelation + `run_parallel.py` implemented (this PR; e2e
+> `--num-envs 2` liveness gate is a coordinated follow-up run). In-process M arenas = Path A
+> (deferred). Supersedes the *in-process* multi-arena framing as the near-term throughput play.
 
 **Driver:** the curriculum retrain (`handoff_2026-07-20_reward_fix_retrain.md`) is
 frame-rate-bound in a single batch-mode editor at one arena. The user chose a multi-arena
