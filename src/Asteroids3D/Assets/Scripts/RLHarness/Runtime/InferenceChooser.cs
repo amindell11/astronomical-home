@@ -28,7 +28,6 @@ namespace Game.RLHarness
         private Vector2 leashCenter;
         private bool reanchorLeash;
         private int ticksUntilDecision;
-        private bool composeFailed;
 
         public InferenceChooser() { }
 
@@ -43,8 +42,8 @@ namespace Game.RLHarness
 
         public NavigationIntent Decide(AIContext ctx, float dt)
         {
-            if (!agent && !TryCompose(ctx))
-                return NavigationIntent.None;
+            if (!agent)
+                Compose(ctx);
 
             // Deferred to the first post-reset tick: Reset fires before a respawn teleport lands.
             if (reanchorLeash)
@@ -83,19 +82,13 @@ namespace Game.RLHarness
                 mailbox.Reset();
         }
 
-        private bool TryCompose(AIContext ctx)
+        private void Compose(AIContext ctx)
         {
-            if (composeFailed) return false;
-
             self = ctx.Self as Ship;
-            if (!self || !model)
-            {
-                composeFailed = true;
-                Debug.LogError(!model
-                    ? "InferenceChooser has no ModelAsset assigned — pilot stays inert."
-                    : "InferenceChooser needs a Ship context — pilot stays inert.", self);
-                return false;
-            }
+            if (!self)
+                throw new InvalidOperationException("InferenceChooser requires a Ship context.");
+            if (!model)
+                throw new InvalidOperationException($"InferenceChooser on '{self.name}' has no ModelAsset assigned.");
 
             var host = new GameObject("[InferencePilot]");
             host.transform.SetParent(self.transform, false);
@@ -116,7 +109,6 @@ namespace Game.RLHarness
 
             leashCenter = self.Kinematics.pos;
             ticksUntilDecision = 0;
-            return true;
         }
     }
 }
