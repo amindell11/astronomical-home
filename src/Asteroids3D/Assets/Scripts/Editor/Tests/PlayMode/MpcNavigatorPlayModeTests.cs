@@ -16,7 +16,6 @@ namespace Tests.PlayMode
 
 // Closed-loop integration tests: drive the navigator with the public "go here" command and assert on the ship's emergent motion. Solver-decision behavior is covered more cheaply at the unit level in Tests.EditMode/MpcSolverTests.
 [Category("MPC")]
-[Category("Slow")]
 public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
 {
     private Ship ship;
@@ -25,6 +24,8 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
 
     private const float YawTimeoutSec  = 8f;
     private const float NavTimeoutSec  = 20f;
+
+    protected override bool AccelerateTime => true;
 
     [SetUp]
     public override void SetUp()
@@ -74,13 +75,14 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
         mpc.SetVelocityReference(command);
 
         var rb = ship.GetComponent<Rigidbody>();
-        var deadline = Time.realtimeSinceStartup + NavTimeoutSec;
+        var elapsed = 0f;
         var vel = Vector2.zero;
-        while (Time.realtimeSinceStartup < deadline)
+        while (elapsed < NavTimeoutSec)
         {
             vel = GamePlane.WorldDirToPlane(rb.linearVelocity);
             if (Vector2.Dot(vel, command.normalized) > 0.6f * command.magnitude) break;
             yield return new WaitForFixedUpdate();
+            elapsed += Time.fixedDeltaTime;
         }
 
         Assert.That(Vector2.Dot(vel, command.normalized), Is.GreaterThan(0.5f * command.magnitude),
@@ -131,13 +133,14 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
         var targetPos = new Vector2(10, 0);
         mpc.SetNavigationPoint(targetPos);
 
-        var deadline = Time.realtimeSinceStartup + 10f;
-        while (Time.realtimeSinceStartup < deadline)
+        var elapsed = 0f;
+        while (elapsed < 10f)
         {
             float t = Time.time;
             targetPos = new Vector2(Mathf.Cos(t) * 10f, Mathf.Sin(t) * 10f);
             mpc.SetNavigationPoint(targetPos);
             yield return new WaitForFixedUpdate();
+            elapsed += Time.fixedDeltaTime;
         }
 
         float dist = TestUtilities.DistanceToPlaneTarget(ship.transform, targetPos);
@@ -175,10 +178,10 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
         var obstaclePos2D = new Vector2(10, 10);
         mpc.SetNavigationPoint(targetPos);
 
-        var deadline           = Time.realtimeSinceStartup + NavTimeoutSec;
+        var elapsed             = 0f;
         float minDistToObstacle = float.MaxValue;
 
-        while (Time.realtimeSinceStartup < deadline)
+        while (elapsed < NavTimeoutSec)
         {
             var shipPos2D = GamePlane.WorldPointToPlane(ship.transform.position);
             minDistToObstacle = Mathf.Min(minDistToObstacle, Vector2.Distance(shipPos2D, obstaclePos2D));
@@ -187,6 +190,7 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
                 break;
 
             yield return new WaitForFixedUpdate();
+            elapsed += Time.fixedDeltaTime;
         }
 
         var finalDistToTarget = TestUtilities.DistanceToPlaneTarget(ship.transform, targetPos);
@@ -212,12 +216,15 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
 
         float accumulatedYComponent = 0f;
         int samples = 0;
-        var deadline = Time.realtimeSinceStartup + 4f;
+        var elapsed = 0f;
 
         for (var i = 0; i < 20; i++)
+        {
             yield return new WaitForFixedUpdate();
+            elapsed += Time.fixedDeltaTime;
+        }
 
-        while (Time.realtimeSinceStartup < deadline)
+        while (elapsed < 4f)
         {
             var vel = GamePlane.WorldDirToPlane(ship.GetComponent<Rigidbody>().linearVelocity);
             if (vel.sqrMagnitude > 0.5f)
@@ -226,6 +233,7 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
                 samples++;
             }
             yield return new WaitForFixedUpdate();
+            elapsed += Time.fixedDeltaTime;
         }
 
         Assert.That(samples, Is.GreaterThan(10), "Ship should have measurable velocity during test");
