@@ -419,9 +419,6 @@ namespace Tests.PlayMode
             else if (record == null)
                 PacingContract.Apply();
 
-            var spec = RewardSpec.Default;
-            if (record != null)
-                spec.runSeed = record.runSeed;
             var episodes = Mathf.Max(1, int.TryParse(Environment.GetEnvironmentVariable("RL_EPISODE_COUNT"), out var n)
                 ? n : (watchFlag || record != null ? 3 : 20));
             if (record?.episodes is { Length: > 0 })
@@ -434,6 +431,9 @@ namespace Tests.PlayMode
                 yield break;
             }
 
+            var spec = RewardSpec.Default;
+            if (record != null)
+                spec.runSeed = record.runSeed;
             SpawnPair(in spec);
 
             var path = EpisodeJsonl.NewRunPath("ranger-vs-baseline");
@@ -451,7 +451,7 @@ namespace Tests.PlayMode
             Debug.Log($"[RLEpisode] wrote {episodes} rows to {path}");
         }
 
-        // The eval composition (CheckpointEvaluator.Run) grafted onto the record lane: canonical eval env, pinned archetype, frames per fixed step.
+        // CheckpointEvaluator.Run's eval composition grafted onto the record lane — keep them in lockstep.
         private IEnumerator RecordCheckpointEpisodes(RecordConfig record, int episodes, string runStamp)
         {
             var assetPath = record.checkpoint.StartsWith("Assets/", StringComparison.Ordinal)
@@ -654,7 +654,8 @@ namespace Tests.PlayMode
 
             if (config.FilmsCheckpoint != !string.IsNullOrEmpty(config.opponent))
                 Assert.Fail("record.flag: 'checkpoint' and 'opponent' come together — the inference lane needs both");
-            if (config.FilmsCheckpoint && !Enum.TryParse<OpponentArchetype>(config.opponent, out _))
+            // Name whitelist, not Enum.TryParse — TryParse accepts numeric strings, deferring the blowup past this boundary.
+            if (config.FilmsCheckpoint && Array.IndexOf(Enum.GetNames(typeof(OpponentArchetype)), config.opponent) < 0)
                 Assert.Fail($"record.flag: unknown opponent '{config.opponent}' — valid: {string.Join(", ", Enum.GetNames(typeof(OpponentArchetype)))}");
 
             return config;
