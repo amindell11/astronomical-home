@@ -77,6 +77,10 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
+# Blender backup files
+*.blend1
+*.blend1.meta
+
 # Generated test/run artifacts
 /results/
 /TestResults/
