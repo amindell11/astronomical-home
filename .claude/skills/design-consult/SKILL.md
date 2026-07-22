@@ -25,8 +25,9 @@ Assemble these four parts, in order, into one self-contained document:
    - plus this one line of project context: "solo-developer project; machinery
      must earn its place; simpler means fewer moving parts, not more elegant
      abstraction."
-4. **The question** — exactly one of the two modes below, including its output
-   contract, stated in the packet so the consultant knows the required shape.
+4. **The question** — exactly one of the modes below (A, B, or C), including
+   its output contract, stated in the packet so the consultant knows the
+   required shape.
 
 ## 2. Mode A — design consult (default)
 
@@ -71,6 +72,12 @@ location, per-CLI auth status, and Windows notes live in memory
   exist in the server's `config.yaml` `model_registry` or the call is
   schema-rejected.
 - **working_directory** (required) — the repo root, so critics can read code.
+
+Output contract, stated in the packet: each participant gives
+1. a position on the fork — one of the named options, no new alternatives;
+2. its strongest argument and the strongest objection to the rival position;
+3. what evidence would change its mind.
+Votes ride the tool's structured voting; the packet does not restate them.
 
 Reading the result: a failed leg returns `[ERROR: ...]` as its response and
 is counted as an ABSTAIN vote, which can flip `voting_result` — judge from
