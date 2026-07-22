@@ -101,4 +101,7 @@ crashlytics-build.properties
 # Claude session-local state
 .claude/scheduled_tasks.lock
 
+# ai-counsel MCP writes debate transcripts here
+/transcripts/
+
 nul
