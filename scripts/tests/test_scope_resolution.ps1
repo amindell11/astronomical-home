@@ -154,8 +154,8 @@ $auto = Resolve-AutoSelection -ScopeMap $scopeMap -ChangedFiles @("src/Asteroids
 Assert-Equal "modules" $auto.mode "MPC source file resolves to modules"
 Assert-True (@($auto.matchedModules) -contains "mpc") "MPC source maps to mpc"
 Assert-True (@($auto.matchedModules) -contains "ai") "MPC source maps to ai"
-Assert-True (@($auto.categories) -contains "MPC") "derived categories include MPC (incl. retagged NavField/MultiSphere)"
-Assert-True (@($auto.categories) -contains "AI") "derived categories include AI (NavFieldService lives under mpc paths)"
+Assert-True (@($auto.categories) -contains "MPC") "derived categories include MPC (incl. retagged MultiSphere)"
+Assert-True (@($auto.categories) -contains "AI") "derived categories include AI"
 Assert-True (@($auto.categories) -contains "Smoke") "smoke category always added"
 Assert-True (@($auto.categories) -notcontains "Planning") "retagged: Planning no longer appears"
 

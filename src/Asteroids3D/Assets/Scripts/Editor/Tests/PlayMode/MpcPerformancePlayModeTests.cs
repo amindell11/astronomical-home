@@ -35,7 +35,8 @@ public class MpcPerformancePlayModeTests : PlayModeWorldFixture
         {
             var angle = (Mathf.PI * 2f * i) / ShipCount;
             var spawnPos = new Vector3(Mathf.Cos(angle) * SpawnRadius, Mathf.Sin(angle) * SpawnRadius, 0f);
-            var targetPos = new Vector2(-spawnPos.x, -spawnPos.y);
+            // Command each ship across the ring so all solvers stay actively navigating.
+            var commandedVelocity = new Vector2(-spawnPos.x, -spawnPos.y).normalized * 8f;
 
             var ship = ShipTestFactory.CreateDefaultShipAt(spawnPos, Quaternion.identity, Projectiles, team: i);
             Assert.That(ship, Is.Not.Null, $"Failed to create MPC test ship {i}");
@@ -49,7 +50,7 @@ public class MpcPerformancePlayModeTests : PlayModeWorldFixture
             var navigator = cmdr.Navigator as Navigator;
             Assert.That(navigator, Is.Not.Null, $"Ship {i} navigator should be a Navigator");
 
-            navigator.SetNavigationPoint(targetPos);
+            navigator.SetVelocityReference(commandedVelocity);
 
             ships[i] = ship;
             navigators[i] = navigator;

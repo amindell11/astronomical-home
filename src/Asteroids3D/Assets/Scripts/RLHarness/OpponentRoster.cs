@@ -21,7 +21,7 @@ namespace Game.RLHarness
         public float desiredRange;
     }
 
-    /// <summary>Per-episode opponent policy source for the episode loop: consulted BEFORE each pair-reset (respawn re-inits the installed chooser — the traversal-probe ordering), it draws an archetype + jitter params on their own seed stream and installs through <see cref="Brain.InstallChooser"/>. Every archetype drives the velocity interface (the goal-mode utility path is twitchy in the asteroid field). Mixture weights ride the spec (curriculum-driven via <see cref="EnvParamOverlay"/>).</summary>
+    /// <summary>Per-episode opponent policy source for the episode loop: consulted BEFORE each pair-reset (respawn re-inits the installed chooser — the traversal-probe ordering), it draws an archetype + jitter params on their own seed stream and installs through <see cref="Brain.InstallChooser"/>. Every archetype drives the velocity interface. Mixture weights ride the spec (curriculum-driven via <see cref="EnvParamOverlay"/>).</summary>
     public sealed class OpponentRoster : IDisposable
     {
         private const uint ArchetypeStream = 505;

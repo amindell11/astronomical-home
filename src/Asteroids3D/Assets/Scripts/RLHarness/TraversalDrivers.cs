@@ -1,7 +1,6 @@
 using AI;
 using AI.Context;
 using AI.States;
-using Movement.MPC;
 using UnityEngine;
 
 namespace Game.RLHarness
@@ -22,7 +21,6 @@ namespace Game.RLHarness
             return new NavigationIntent
             {
                 isValid = true,
-                goalMode = GoalMode.VelocityReference,
                 velocityReference = velocityReference,
             };
         }

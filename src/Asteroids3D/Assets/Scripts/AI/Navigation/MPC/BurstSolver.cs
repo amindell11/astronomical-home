@@ -107,15 +107,10 @@ namespace Movement.MPC
             for (var i = 0; i < horizon; i++)
             {
                 var u = candidates[offset + i];
-                var isTerminal = i == horizon - 1;
-                totalCost += Cost.Evaluate(current, u, prevU, costInput, cfg, isTerminal, i);
+                totalCost += Cost.Evaluate(current, u, prevU, costInput, cfg, i);
                 current = Model.Step(current, u, cfg, dynamics);
                 prevU = u;
             }
-
-            // Cost-to-go terminal hook: one field fetch per rollout at the final state; invalid field or wTerminal 0 contributes nothing.
-            if (cfg.wTerminal > 0f && costInput.terminalField.isValid != 0)
-                totalCost += cfg.wTerminal * Field.TerminalFieldData.Sample(current.pos, costInput.terminalField);
 
             costs[candidateIndex] = totalCost;
         }
@@ -138,8 +133,6 @@ namespace Movement.MPC
         private NativeArray<Control> result;
         private NativeArray<ObstacleData> obstacles;
         private NativeArray<State> enemyStates;
-        private NativeArray<float> dummyTerminalCost;
-        private NativeArray<byte> dummyTerminalBlocked;
         private bool allocated;
         private int lastObstacleCount;
 
@@ -157,27 +150,17 @@ namespace Movement.MPC
         public float Solve(State initialState, Control[] sequence,
             Config cfg, Dynamics dynamics,
             AI.Scanning.ObstacleScan scan, bool useObstacles, bool multiSphereObstacles,
-            float2 goalPos, float2 goalVel, float2 velocityReference,
+            float2 velocityReference,
             float2 enemyPos, float2 enemyVel, float enemyYaw, float enemyYawRate,
             Dynamics enemyDynamics, float projectileSpeed,
             int samples, float noiseStd, int noiseKnots, Control lastControl,
             float boostCooldownRemaining = 0f, float boostSampleProbability = 0.15f,
-            float eliteFraction = 0.1f,
-            Field.TerminalFieldData terminalField = default)
+            float eliteFraction = 0.1f)
         {
             var horizon = cfg.horizon;
             EnsureBuffers(horizon, samples);
             LastSampleCount = samples;
             LastHorizon = horizon;
-
-            // The job safety system rejects uncreated NativeArray fields even when guarded by isValid, so an absent terminal field gets the never-read dummy buffers.
-            if (!terminalField.costToGo.IsCreated)
-            {
-                terminalField.costToGo = dummyTerminalCost;
-                terminalField.blocked = dummyTerminalBlocked;
-                terminalField.isValid = 0;
-                terminalField.gridSize = 1;
-            }
 
             for (var i = 0; i < horizon; i++)
                 warmStart[i] = sequence[i];
@@ -213,8 +196,6 @@ namespace Movement.MPC
 
             var costInput = new CostInput
             {
-                goalPos = goalPos,
-                goalVel = goalVel,
                 velocityReference = velocityReference,
                 obstacles = obstacles,
                 obstacleCount = lastObstacleCount,
@@ -226,7 +207,6 @@ namespace Movement.MPC
                 enemyStates = enemyStates,
                 enemyStateCount = enemyStateCount,
                 initialVel = initialState.vel,
-                terminalField = terminalField,
             };
 
             initialState.boostCooldownRemaining = boostCooldownRemaining;
@@ -250,16 +230,6 @@ namespace Movement.MPC
 
             Evaluate(initialState, costInput, cfg, dynamics, lastControl, samples);
 
-            return EliteAverage(sequence, cfg.horizon, samples, eliteFraction);
-        }
-
-        /// <summary>Re-evaluate the last Solve()'s candidates with a different config (same sequences, only cost/elite selection differ). Must be called after Solve() while buffers are still valid.</summary>
-        public float Rescore(State initialState, Control[] sequence,
-            Config cfg, Dynamics dynamics, CostInput costInput,
-            Control lastControl, int samples, float eliteFraction = 0.1f)
-        {
-            if (!allocated) return float.MaxValue;
-            Evaluate(initialState, costInput, cfg, dynamics, lastControl, samples);
             return EliteAverage(sequence, cfg.horizon, samples, eliteFraction);
         }
 
@@ -366,15 +336,14 @@ namespace Movement.MPC
             }
         }
 
-        public CostInput BuildCostInput(float2 goalPos, float2 goalVel = default,
+        public CostInput BuildCostInput(float2 velocityReference,
             float2 enemyPos = default, float2 enemyVel = default,
             float enemyYaw = float.NaN, float enemyYawRate = 0f, float projectileSpeed = 0f,
             float2 initialVel = default)
         {
             return new CostInput
             {
-                goalPos = goalPos,
-                goalVel = goalVel,
+                velocityReference = velocityReference,
                 obstacles = obstacles,
                 obstacleCount = lastObstacleCount,
                 enemyPos = enemyPos,
@@ -385,13 +354,6 @@ namespace Movement.MPC
                 enemyStates = enemyStates.IsCreated ? enemyStates : default,
                 enemyStateCount = enemyStates.IsCreated ? enemyStates.Length : 0,
                 initialVel = initialVel,
-                terminalField = new Field.TerminalFieldData
-                {
-                    costToGo = dummyTerminalCost,
-                    blocked = dummyTerminalBlocked,
-                    gridSize = 1,
-                    isValid = 0,
-                },
             };
         }
 
@@ -450,8 +412,6 @@ namespace Movement.MPC
             obstacles = new NativeArray<ObstacleData>(96, Allocator.Persistent);
             enemyStates = new NativeArray<State>(horizon, Allocator.Persistent);
             result = new NativeArray<Control>(horizon, Allocator.Persistent);
-            dummyTerminalCost = new NativeArray<float>(1, Allocator.Persistent);
-            dummyTerminalBlocked = new NativeArray<byte>(1, Allocator.Persistent);
             allocated = true;
         }
 
@@ -464,8 +424,6 @@ namespace Movement.MPC
             obstacles.Dispose();
             enemyStates.Dispose();
             result.Dispose();
-            dummyTerminalCost.Dispose();
-            dummyTerminalBlocked.Dispose();
             allocated = false;
         }
     }

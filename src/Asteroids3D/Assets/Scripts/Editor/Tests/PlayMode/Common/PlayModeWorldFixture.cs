@@ -1,6 +1,5 @@
 using Game;
 using Game.Services;
-using Movement.MPC.Field;
 using NUnit.Framework;
 using Tests.Common;
 using UnityEngine;
@@ -8,7 +7,7 @@ using UnityEngine;
 namespace Tests.PlayMode.Common
 {
 
-/// <summary>Per-test world fixture: arena (registry + NavField), projectile registry, audio pause, and TestSceneBuilder cleanup.</summary>
+/// <summary>Per-test world fixture: arena (registry), projectile registry, audio pause, and TestSceneBuilder cleanup.</summary>
 public abstract class PlayModeWorldFixture
 {
     /// <summary>Override false if a test needs audio.</summary>
@@ -21,11 +20,9 @@ public abstract class PlayModeWorldFixture
     private float savedTimeScale;
     private float savedMaxDelta;
 
-    /// <summary>The per-test world-frame handle wired into AI ships (registry + NavField sibling).</summary>
+    /// <summary>The per-test world-frame handle wired into AI ships.</summary>
     protected ArenaContext Arena { get; private set; }
 
-    /// <summary>The NavField sibling backing <see cref="Arena"/>, for tests that drive it directly.</summary>
-    protected NavFieldService NavField { get; private set; }
 
     /// <summary>Per-test projectile registry rooted at the arena host: pass it wherever firing needs a registry (ship spawns, direct <c>Fire</c>/<c>HandleTrigger</c> calls) and every transient dies with the fixture.</summary>
     protected ProjectileService Projectiles { get; private set; }
@@ -49,7 +46,6 @@ public abstract class PlayModeWorldFixture
 
         arenaHost = new GameObject("[TestArena]");
         Arena = TestArena.On(arenaHost);
-        NavField = Arena.NavField;
         Projectiles = new ProjectileService(arenaHost.transform);
     }
 
@@ -59,7 +55,6 @@ public abstract class PlayModeWorldFixture
     {
         if (arenaHost) Object.DestroyImmediate(arenaHost);
         Arena = null;
-        NavField = null;
         Projectiles = null;
 
         TestSceneBuilder.CleanupTestArena();

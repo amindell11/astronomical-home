@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the boost command seam: a VelocityReference intent's boost ORs into the drive command over the solver's own boost, other modes and resets never leak it. ApplyIntent/ApplyControl read only the control surface, so no solve runs.</summary>
+    /// <summary>Pins the boost command seam: an intent's boost ORs into the drive command over the solver's own boost, and resets never leak it. ApplyIntent/ApplyControl read only the control surface, so no solve runs.</summary>
     [Category("MPC")]
     public class NavigatorBoostPassThroughEditModeTests
     {
@@ -52,7 +52,6 @@ namespace Tests.EditMode
         private static NavigationIntent VelocityIntent(bool boost) => new()
         {
             isValid = true,
-            goalMode = GoalMode.VelocityReference,
             velocityReference = new Vector2(3f, 0f),
             boost = boost,
         };
@@ -71,22 +70,6 @@ namespace Tests.EditMode
             nav.ApplyIntent(VelocityIntent(boost: false));
             nav.ApplyControl(new MpcResult { boost = 1f });
             Assert.AreEqual(1f, nav.CurrentCommand.boost);
-        }
-
-        [Test]
-        public void PositionGoalMode_BoostFlag_IsIgnored()
-        {
-            var intent = new NavigationIntent
-            {
-                isValid = true,
-                goalMode = GoalMode.MaintainRange,
-                desiredRange = 20f,
-                rangeTolerance = 5f,
-                boost = true,
-            };
-            nav.ApplyIntent(intent);
-            nav.ApplyControl(new MpcResult { boost = 0f });
-            Assert.AreEqual(0f, nav.CurrentCommand.boost);
         }
 
         [Test]

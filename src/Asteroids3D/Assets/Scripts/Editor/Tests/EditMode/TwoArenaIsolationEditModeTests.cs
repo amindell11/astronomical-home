@@ -67,10 +67,8 @@ namespace Tests.EditMode
         [Test]
         public void Place_AppliesArenaOffset_ToAuthoredPlanePoints()
         {
-            var host = Track(new GameObject("Arena"));
             var offset = new Vector2(1000f, -250f);
-            var arena = new Game.Services.ArenaContext(offset, new StubShipRegistry(),
-                host.AddComponent<Movement.MPC.Field.NavFieldService>());
+            var arena = new Game.Services.ArenaContext(offset, new StubShipRegistry());
 
             var authored = new Vector2(7f, 3f);
             Assert.AreEqual(GamePlane.PlanePointToWorld(authored + offset), arena.Place(authored),

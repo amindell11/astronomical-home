@@ -11,12 +11,7 @@ namespace Movement.MPC
     {
         public Kinematics kinematics;
         public float boostCooldown;
-        public float2 goalPos;
-        public float2 goalVel;
-        public float2 velocityReference;   // commanded planar velocity for GoalMode.VelocityReference
-        public GoalMode goalMode;
-        public float goalDesiredRange;
-        public float goalRangeTolerance;
+        public float2 velocityReference;   // commanded planar velocity
         public float facingRad;            // NaN = no facing override
         public float2 enemyPos;
         public float2 enemyVel;
@@ -27,8 +22,6 @@ namespace Movement.MPC
         public WeightOverride[] weightOverrides;
         public ObstacleScan obstacleScan;
         public bool enableObstacleAvoidance;
-        /// <summary>Terminal cost-to-go field view (Track B3); default/invalid = hook off.</summary>
-        public Field.TerminalFieldData terminalField;
     }
 
     /// <summary>The control output of a single MPC solve.</summary>
@@ -84,13 +77,12 @@ namespace Movement.MPC
                 lastBestCost = solver.Solve(mpcState, bestSequence,
                     config, dynamics,
                     inputs.obstacleScan, inputs.enableObstacleAvoidance, settings.multiSphereObstacles,
-                    inputs.goalPos, inputs.goalVel, inputs.velocityReference,
+                    inputs.velocityReference,
                     inputs.enemyPos, inputs.enemyVel, inputs.enemyYaw, inputs.enemyYawRate,
                     inputs.enemyDynamics, inputs.projectileSpeed,
                     settings.samples, settings.noiseStd, settings.noiseKnots, lastControl,
                     boostCooldown, boostProb,
-                    settings.eliteFraction,
-                    inputs.terminalField);
+                    settings.eliteFraction);
             }
 
             UpdatePredictedStates(mpcState);
@@ -133,7 +125,7 @@ namespace Movement.MPC
 
         private void RefreshConfig(in MpcInputs inputs)
         {
-            config = settings.ToConfig(inputs.facingRad, inputs.goalMode, inputs.goalDesiredRange, inputs.goalRangeTolerance);
+            config = settings.ToConfig(inputs.facingRad);
             config.ApplyDynamics(in dynamics);
             inputs.weightOverrides.Apply(ref config);
 

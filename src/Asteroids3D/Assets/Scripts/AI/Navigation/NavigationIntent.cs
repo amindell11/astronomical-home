@@ -9,21 +9,16 @@ namespace AI.States
     {
         public bool isValid;
 
-        public GoalMode goalMode;
-        public Vector2 goalPosition;
-        public Vector2 goalVelocity;
-        public float desiredRange;
-        public float rangeTolerance;
-
-        // World-plane frame; read only in GoalMode.VelocityReference.
+        // World-plane frame.
         public Vector2 velocityReference;
 
-        // Boost impulse this tick, VelocityReference mode only; one-shot pacing and availability gating are the chooser's job (the Booster's cooldown backstops an unready command into a no-op).
+        // Boost impulse this tick; one-shot pacing and availability gating are the chooser's job (the Booster's cooldown backstops an unready command into a no-op).
         public bool boost;
 
         public bool hasTarget;
         public EnemyTarget target;
-        public bool applyTacticalCosts;
+        // Routes the target into the solver's intercept-facing geometry (aim), independent of firing.
+        public bool aimAtTarget;
         public float projectileSpeed;   // OUR weapon's projectile speed (intercept geometry)
 
         // MPC weight overrides (sparse; absent weight = base ×1)

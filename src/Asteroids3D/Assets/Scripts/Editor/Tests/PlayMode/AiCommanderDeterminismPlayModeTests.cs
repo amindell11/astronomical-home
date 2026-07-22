@@ -21,7 +21,7 @@ namespace Tests.PlayMode
     [Category("Slow")]
     public class AiCommanderDeterminismPlayModeTests : AIIntegrationFixture
     {
-        private static readonly Vector2 Goal = new(30f, 12f);
+        private static readonly Vector2 CommandedVelocity = new(6f, 3f);
         private const int SolvesPerPlan = 5;
 
         private static bool CommandsEqual(IReadOnlyList<PilotCommand> a, IReadOnlyList<PilotCommand> b)
@@ -39,7 +39,7 @@ namespace Tests.PlayMode
         private PilotCommand[] CapturePlan(int decisionSeed)
         {
             var (_, cmdr) = CreateAIShip(Vector3.zero, team: 0, decisionSeed: decisionSeed);
-            cmdr.Navigator.SetNavigationPoint(Goal);
+            cmdr.Navigator.SetVelocityReference(CommandedVelocity);
             var plan = new PilotCommand[SolvesPerPlan];
             for (var i = 0; i < SolvesPerPlan; i++)
                 plan[i] = cmdr.Navigator.ComputeCommand();

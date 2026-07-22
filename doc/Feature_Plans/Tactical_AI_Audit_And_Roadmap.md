@@ -1,3 +1,9 @@
+> **HISTORICAL (2026-07-22):** the goal-mode/tactical MPC path and utility brain this document
+> audits were deleted by the rip-out arc (#203/#204/PR-3) — the shipped AI stack is now
+> policy/velocity choosers over the MPC feasibility tracker. Kept as the design record of how
+> the stack got here; §1–2's seam analysis remains accurate, the systems in §1's DECIDE column
+> and the nav-layer cost inventory no longer exist.
+
 # Tactical AI — System Audit & Roadmap
 
 > STATUS: living — tactical-AI roadmap; arcs check in here
