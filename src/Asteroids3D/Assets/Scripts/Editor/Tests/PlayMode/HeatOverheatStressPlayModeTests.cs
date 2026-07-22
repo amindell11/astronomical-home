@@ -11,9 +11,10 @@ namespace Tests.PlayMode
 {
     /// <summary>Thin smoke: overheat and recovery through the real fire path; detailed heat logic is pinned in Tests.EditMode/HeatEditModeTests.</summary>
     [Category("Weapons")]
-    [Category("Slow")]
     public class HeatOverheatStressPlayModeTests : PlayModeWorldFixture
     {
+        protected override bool AccelerateTime => true;
+
         private Ship ship;
         private Ship combatShip;
         private Commander commanderPrefab;
