@@ -428,6 +428,12 @@ namespace Tests.PlayMode
                 episodes = Mathf.Max(episodes, record.episodes.Max() + 1);
             var runStamp = DateTime.Now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
 
+            if (record is { FilmsCheckpoint: true })
+            {
+                yield return RecordCheckpointEpisodes(record, episodes, runStamp);
+                yield break;
+            }
+
             SpawnPair(in spec);
 
             var path = EpisodeJsonl.NewRunPath("ranger-vs-baseline");
@@ -443,6 +449,56 @@ namespace Tests.PlayMode
             }
 
             Debug.Log($"[RLEpisode] wrote {episodes} rows to {path}");
+        }
+
+        // The eval composition (CheckpointEvaluator.Run) grafted onto the record lane: canonical eval env, pinned archetype, frames per fixed step.
+        private IEnumerator RecordCheckpointEpisodes(RecordConfig record, int episodes, string runStamp)
+        {
+            var assetPath = record.checkpoint.StartsWith("Assets/", StringComparison.Ordinal)
+                ? record.checkpoint
+                : TrainingBootstrap.ImportEvalCandidate(record.checkpoint);
+            var archetype = (OpponentArchetype)Enum.Parse(typeof(OpponentArchetype), record.opponent);
+            var spec = EvalProtocol.EvalSpec(record.fieldDensityScale);
+            spec.runSeed = record.runSeed;
+
+            field = HarnessField.Spawn(arena, assets, spec.fieldDensityScale);
+            pair = EpisodePair.SpawnWithAgentChooser(unitService, arena, projectiles, in spec, assets, out var chooser);
+            agent = pair.Agent;
+            baseline = pair.Baseline;
+            using var roster = new OpponentRoster(pair.Baseline, pair.Agent);
+            var shipAgent = ShipAgentFactory.ComposeInferenceOnly(pair, chooser, in spec, arena.Offset, assetPath);
+            var driver = new EpisodeLoopDriver(pair, shipAgent, arena.Offset, field);
+
+            var path = EpisodeJsonl.NewRunPath($"checkpoint-vs-{record.opponent}");
+            var captureSubjects = new Vector2[2];
+            try
+            {
+                for (var i = 0; i < episodes; i++)
+                {
+                    var draw = roster.Install(archetype, in spec, i, arena.Offset);
+                    using var recorder = record.ShouldRecord(i)
+                        ? new CaptureRecorder(record.ClipConfig(i, runStamp))
+                        : null;
+                    Action onFixedStep = recorder == null
+                        ? null
+                        : () =>
+                        {
+                            captureSubjects[0] = agent.Kinematics.pos;
+                            captureSubjects[1] = baseline.Kinematics.pos;
+                            recorder.Step(captureSubjects,
+                                ctx => ShipDiagnosticsOverlay.Draw(ctx, agent, baseline, projectiles));
+                        };
+                    yield return driver.RunEpisode(spec, i, onFixedStep: onFixedStep);
+                    driver.Runner.RecordOpponent(in draw);
+                    EpisodeJsonl.Append(path, driver.Runner.Result);
+                }
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(shipAgent.gameObject);
+            }
+
+            Debug.Log($"[RLEpisode] wrote {episodes} checkpoint rows to {path}");
         }
 
         private void SpawnPair(in RewardSpec spec)
@@ -545,6 +601,11 @@ namespace Tests.PlayMode
             public int captureEveryFixedSteps = 5;
             public int width = 960;
             public int height = 540;
+            public string checkpoint;
+            public string opponent;
+            public float fieldDensityScale = EvalProtocol.CanonicalFieldDensityScale;
+
+            public bool FilmsCheckpoint => !string.IsNullOrEmpty(checkpoint);
 
             /// <summary>Empty/absent episodes list records every episode run.</summary>
             public bool ShouldRecord(int episode) =>
@@ -568,7 +629,7 @@ namespace Tests.PlayMode
             if (string.IsNullOrWhiteSpace(json)) return config;
 
             // FromJsonOverwrite silently ignores unknown keys — a typo'd key would quietly keep its default — so whitelist every key first.
-            var validKeys = new[] { "runSeed", "episodes", "captureEveryFixedSteps", "width", "height" };
+            var validKeys = new[] { "runSeed", "episodes", "captureEveryFixedSteps", "width", "height", "checkpoint", "opponent", "fieldDensityScale" };
             foreach (Match match in Regex.Matches(json, "\"([^\"]+)\"\\s*:"))
                 if (Array.IndexOf(validKeys, match.Groups[1].Value) < 0)
                     Assert.Fail($"record.flag: unknown key '{match.Groups[1].Value}' — valid keys: {string.Join(", ", validKeys)}");
@@ -590,6 +651,11 @@ namespace Tests.PlayMode
                     if (Array.IndexOf(config.episodes, config.episodes[i]) != i)
                         Assert.Fail($"record.flag: duplicate episode index {config.episodes[i]}");
                 }
+
+            if (config.FilmsCheckpoint != !string.IsNullOrEmpty(config.opponent))
+                Assert.Fail("record.flag: 'checkpoint' and 'opponent' come together — the inference lane needs both");
+            if (config.FilmsCheckpoint && !Enum.TryParse<OpponentArchetype>(config.opponent, out _))
+                Assert.Fail($"record.flag: unknown opponent '{config.opponent}' — valid: {string.Join(", ", Enum.GetNames(typeof(OpponentArchetype)))}");
 
             return config;
         }

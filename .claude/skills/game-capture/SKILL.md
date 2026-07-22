@@ -22,7 +22,12 @@ reading a mid-clip PNG yourself and handing the user the clip path.
 - **RL episodes** → drop `record.flag` in `<slot>/results/rl-episodes/` (empty = 3
   episodes, all recorded; or JSON
   `{ "runSeed": 7, "episodes": [0], "captureEveryFixedSteps": 5, "width": 960, "height": 540 }` —
-  unknown keys fail loudly). Run the `RLEpisodePlayModeTests` filter with
+  unknown keys fail loudly). Add `"checkpoint": "<path or Assets/....onnx>"` +
+  `"opponent": "Aggressor|Evader|Orbiter|Kiter|Dummy"` (both or neither; optional
+  `"fieldDensityScale"`, default the canonical 2.0) to film that policy vs a pinned
+  archetype in the eval env instead of the scripted characterization pair; an
+  absolute checkpoint path is imported via the `EvalCandidate.onnx` seam
+  automatically. Run the `RLEpisodePlayModeTests` filter with
   `-WithGraphics`. **Delete the flag after use** — a forgotten flag turns every later
   RL run into a recording session.
 
