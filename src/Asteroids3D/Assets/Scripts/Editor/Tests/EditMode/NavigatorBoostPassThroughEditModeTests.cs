@@ -38,7 +38,7 @@ namespace Tests.EditMode
             var host = new GameObject("NavigatorBoost");
             var scout = host.AddComponent<Scout>();
             nav = host.AddComponent<Navigator>();
-            nav.Initialize(new StubStatus(), default, scout, new SeedScope(1), TestArena.On(host));
+            nav.Initialize(new StubStatus(), default, scout, new SeedScope(1));
             createdSettings = nav.mpcSettings;
         }
 
