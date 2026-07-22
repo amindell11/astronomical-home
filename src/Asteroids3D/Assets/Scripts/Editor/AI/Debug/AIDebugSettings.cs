@@ -8,12 +8,9 @@ namespace AI.Debug
     {
         None       = 0,
         Targeting  = 1 << 0,
-        Utility    = 1 << 1,
         Steering   = 1 << 2,
         Scanning   = 1 << 3,
-        StateDetail = 1 << 4,
         Info       = 1 << 5,
-        Logging    = 1 << 6,
         Observation = 1 << 7,
     }
 

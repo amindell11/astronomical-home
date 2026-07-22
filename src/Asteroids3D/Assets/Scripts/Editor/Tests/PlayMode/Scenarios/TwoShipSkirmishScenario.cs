@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Tests.PlayMode.Scenarios
 {
-    /// <summary>Committed sample scenario (runner + render smoke, and the living doc for authoring new ones): two UtilityPilot ships skirmish for a few seconds under the standard ship diagnostics overlay.</summary>
+    /// <summary>Committed sample scenario (runner + render smoke, and the living doc for authoring new ones): two policy-pilot ships skirmish for a few seconds under the standard ship diagnostics overlay.</summary>
     public sealed class TwoShipSkirmishScenario : CaptureScenario
     {
         private const float SimSeconds = 8f;

@@ -1,18 +1,17 @@
 #if UNITY_EDITOR
 using System.Collections.Generic;
 using AI;
-using AI.States;
 using Game;
+using Game.RLHarness;
 using Game.Services;
 using NUnit.Framework;
 using Ships;
-using Ships.Command;
 using UnityEngine;
 
 namespace Tests.PlayMode.Common
 {
 
-/// <summary>Base fixture for multi-ship AI integration tests (full scan → utility → nav/gunner loop); provides a real ShipRegistry so CombatTracker can acquire enemies.</summary>
+/// <summary>Base fixture for multi-ship AI integration tests (full scan → decide → nav/gunner loop); provides a real ShipRegistry so the combat tracker can acquire enemies.</summary>
 public abstract class AIIntegrationFixture : PlayModeWorldFixture
 {
     protected ShipRegistry registry;
@@ -53,16 +52,13 @@ public abstract class AIIntegrationFixture : PlayModeWorldFixture
         var cmdr = ship.GetComponentInChildren<AICommander>();
         Assert.IsNotNull(cmdr, "Ship missing AICommander component");
 
+        // The stripped test pilot authors no chooser; ticking commanders need one installed.
+        cmdr.GetComponentInChildren<Brain>().InstallChooser(new DummyChooser());
+
         // SetArena triggers TryInitializeSystems.
         cmdr.SetArena(arena);
 
         return (ship, cmdr);
-    }
-
-    protected void InitializeWithStates(AICommander cmdr, params AIState[] states)
-    {
-        cmdr.UtilityChooser.Reset();
-        cmdr.UtilityChooser.Initialize(states, new SeedScope(0));
     }
 
     /// <summary>Deals raw damage; shield absorbs first, so exceed shield capacity to touch health.</summary>

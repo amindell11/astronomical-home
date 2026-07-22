@@ -31,6 +31,8 @@ public class ScannerPlayModeTests : PlayModeWorldFixture
         // Scout.Initialize() (and therefore obstacleScanner) is gated on an arena being
         // present. Supply the fixture arena so AI systems fully initialise without a real game world.
         cmdr.SetArena(Arena);
+        // Scanning only: the stripped test pilot authors no chooser, and Decide throws without one.
+        cmdr.Brain.enabled = false;
 #else
         Assert.Ignore("ScannerPlayModeTests requires the Unity Editor (uses AssetDatabase).");
 #endif

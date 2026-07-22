@@ -122,7 +122,7 @@ namespace Tests.PlayMode
             var speedFractions = watchFlag ? new[] { 0.9f } : new[] { 0.5f, 0.9f };
             var layoutSeeds = watchFlag ? new[] { 1 } : new[] { 1, 2, 3 };
             var wVelTracks = new[] { 50f };
-            var drivers = new[] { VelocityTraversalChooser.DriverTag, LegacyNavTraversalChooser.DriverTag };
+            var drivers = new[] { VelocityTraversalChooser.DriverTag };
 
             ComposeProbe(maxDensityScale: densities[densities.Length - 1]);
 
@@ -138,7 +138,6 @@ namespace Tests.PlayMode
                 cell.densityScale = density;
                 cell.speedFraction = speedFraction;
                 cell.wVelTrack = wVelTrack;
-                if (driver == LegacyNavTraversalChooser.DriverTag) cell.timeoutFactor = 12f;
 
                 var rows = new List<TraversalResult>();
                 foreach (var layoutSeed in layoutSeeds)
@@ -184,12 +183,6 @@ namespace Tests.PlayMode
                     var velocityChooser = new VelocityTraversalChooser();
                     velocityChooser.Configure(dir, spec.speedFraction * ship.Dynamics.maxSpeed);
                     brain.InstallChooser(velocityChooser);
-                    break;
-                case LegacyNavTraversalChooser.DriverTag:
-                    var legacyChooser = new LegacyNavTraversalChooser();
-                    // Waypoint a full crossing-radius past the exit: arrival deceleration stays outside the measured segment.
-                    legacyChooser.Configure(destination + spec.crossingRadius * dir);
-                    brain.InstallChooser(legacyChooser);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(spec), spec.driver, "Unknown traversal driver tag");

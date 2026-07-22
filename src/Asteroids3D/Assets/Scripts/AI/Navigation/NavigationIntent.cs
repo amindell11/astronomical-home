@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace AI.States
 {
-    /// <summary>Declarative description of what the navigator should do this frame, produced by AIState.Tick and consumed by Navigator.ApplyIntent.</summary>
+    /// <summary>Declarative description of what the navigator should do this frame, produced by an <see cref="IIntentChooser"/> and consumed by Navigator.ApplyIntent.</summary>
     public struct NavigationIntent
     {
         public bool isValid;

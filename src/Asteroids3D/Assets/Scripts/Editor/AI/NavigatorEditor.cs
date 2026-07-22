@@ -113,19 +113,6 @@ namespace Movement.MPC
                 }
             }
 
-            if (nav.comparisonResults != null && nav.comparisonResults.Length > 0)
-            {
-                EditorGUILayout.Space();
-                EditorGUILayout.LabelField("Comparison Rollouts", EditorStyles.boldLabel);
-                for (var i = 0; i < nav.comparisonResults.Length; i++)
-                {
-                    var result = nav.comparisonResults[i];
-                    if (result.profile == null) continue;
-                    var color = NavigatorSteeringGizmos.ComparisonColors[i % NavigatorSteeringGizmos.ComparisonColors.Length];
-                    var style = new GUIStyle(EditorStyles.label) { normal = { textColor = color } };
-                    EditorGUILayout.LabelField($"  {result.profile.name}: {result.cost:F1}", style);
-                }
-            }
 
             Repaint();
         }

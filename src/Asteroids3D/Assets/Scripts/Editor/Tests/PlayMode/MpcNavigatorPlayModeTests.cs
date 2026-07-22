@@ -40,8 +40,6 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
         // Navigator.Initialize() is gated on arena != null — supply the fixture arena so all AI systems are fully initialized before tests run.
         cmdr.SetArena(Arena);
         cmdr.Brain.enabled = false;
-        // Clear any goal/weight state the utility chooser's first state applied during init.
-        mpc.ResetNavigation();
 #else
         Assert.Ignore("MpcNavigatorPlayModeTests requires the Unity Editor (uses AssetDatabase).");
 #endif

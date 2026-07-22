@@ -67,38 +67,38 @@ namespace Tests.PlayMode
             var (enemy, _) = CreateAIShip(new Vector3(12f, 0f, 0f), team: 1);
 
             var deadline = Time.realtimeSinceStartup + 5f;
-            while (cmdr.UtilityChooser.Context?.Combat.HasEnemy != true &&
+            while (cmdr.context?.Combat.HasEnemy != true &&
                    Time.realtimeSinceStartup < deadline)
                 yield return new WaitForFixedUpdate();
 
-            var ctx = cmdr.UtilityChooser.Context;
+            var ctx = cmdr.context;
             Assert.IsTrue(ctx?.Combat.HasEnemy == true, "Enemy was not acquired within timeout.");
 
             // Freeze the real loop so only the dt we feed advances sim-time.
             cmdr.enabled = false;
             enemy.gameObject.SetActive(false);
 
-            ctx.UpdateAssessment(0.05f);
+            ctx.Update(0.05f);
             Assert.IsFalse(ctx.Combat.HasEnemy, "Deactivated enemy must drop HasEnemy.");
             var afterLoss = ctx.Combat.TimeSinceCombat;
 
             // Pause: dt == 0 must freeze the timer. A wall-clock timer would keep growing here.
-            for (var i = 0; i < 30; i++) ctx.UpdateAssessment(0f);
+            for (var i = 0; i < 30; i++) ctx.Update(0f);
             Assert.AreEqual(afterLoss, ctx.Combat.TimeSinceCombat, 1e-4f,
                 "TimeSinceCombat must not advance while dt is 0 (proves sim-time, not wall-clock).");
 
             // Fed dt accumulates exactly.
-            ctx.UpdateAssessment(0.5f);
+            ctx.Update(0.5f);
             Assert.AreEqual(afterLoss + 0.5f, ctx.Combat.TimeSinceCombat, 1e-3f,
                 "TimeSinceCombat must accumulate the fed dt exactly.");
 
             // Enough accumulated sim-time exits combat regardless of the configured delay.
-            ctx.UpdateAssessment(1000f);
+            ctx.Update(1000f);
             Assert.IsFalse(ctx.Combat.InCombat, "Large accumulated sim-time must exit combat.");
 
             // Re-acquiring the enemy resets the grace timer.
             enemy.gameObject.SetActive(true);
-            ctx.UpdateAssessment(0.05f);
+            ctx.Update(0.05f);
             Assert.IsTrue(ctx.Combat.HasEnemy, "Re-activated enemy must be re-acquired.");
             Assert.AreEqual(0f, ctx.Combat.TimeSinceCombat, "Re-acquisition must reset TimeSinceCombat.");
             Assert.IsTrue(ctx.Combat.InCombat, "Re-acquired enemy must be in combat.");
