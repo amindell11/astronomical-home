@@ -1,6 +1,6 @@
 ---
 name: design-consult
-description: Hand a decision brief, design, or risky diff to a fresh second-opinion agent (codex CLI, an Opus/Fable subagent, or another session) for design feedback or a targeted adversarial pass, and route the results back through the fix-ladder triage. Use when the user asks for a codex/second-opinion/design review or a consult on a plan or diff.
+description: Hand a decision brief, design, or risky diff to a fresh second-opinion agent (codex CLI, an Opus/Fable subagent, or another session) for design feedback or a targeted adversarial pass, and route the results back through the fix-ladder triage. Use when the user asks for a codex/second-opinion/design review or a consult on a plan or diff, or asks for a multi-model debate/panel on a contested fork.
 ---
 
 # Design consult
@@ -54,7 +54,34 @@ Output contract, stated in the packet: a findings list capped at 5, each with
 
 Overflow is handled by requesting another round, never a bigger batch.
 
-## 4. Backends
+## 4. Mode C — panel debate (escalation only)
+
+Enter only when (a) two independent consults materially disagree on a
+consequential fork, or (b) the user explicitly asks for a debate/panel.
+One deliberation per fork — never a standing default.
+
+Delivery: `mcp__ai-counsel__deliberate` (user-scope MCP server; install
+location, per-CLI auth status, and Windows notes live in memory
+`reference_ai_counsel.md`). Call shape:
+
+- **question** — the full consult packet (all four parts), with the fork
+  stated as an explicit choice between the named positions.
+- **mode** — `"conference"` (multi-round; critics see and rebut each other).
+- **participants** — 2–3, cross-family where CLI auth allows; model ids must
+  exist in the server's `config.yaml` `model_registry` or the call is
+  schema-rejected.
+- **working_directory** (required) — the repo root, so critics can read code.
+
+Reading the result: a failed leg returns `[ERROR: ...]` as its response and
+is counted as an ABSTAIN vote, which can flip `voting_result` — judge from
+`full_debate` (or the transcript in `<working_directory>/transcripts/`),
+never from the tally alone.
+
+Return path unchanged (section 6): final positions and votes are consultant
+output — fix-ladder triage, disposition table, decision terminates at the
+user.
+
+## 5. Backends (Modes A/B)
 
 | Backend | Delivery |
 |---|---|
@@ -62,7 +89,7 @@ Overflow is handled by requesting another round, never a bigger batch.
 | Fresh Claude subagent | Spawn via the Agent tool, optionally with a model override (e.g. opus / fable). The packet goes in the prompt verbatim; the subagent gets NO other conversation context — fresh eyes are the point. |
 | Manual handoff | Write the packet to a file the user can paste into any session, and tell the user where it was written. |
 
-## 5. Return path (hard rules)
+## 6. Return path (hard rules)
 
 - Every consultant output routes through the CLAUDE.md fix-ladder triage,
   exactly like PR review comments. Produce the same disposition table —
