@@ -75,6 +75,32 @@ results; `--run-timeout` (seconds) caps the wait, default 48 h.
 = 20 checkpoints + final) so checkpoint selection covers the whole run, not
 the tail.
 
+### Parallel workers (`--num-envs`, asserting runner)
+
+`run_parallel.py` is the throughput driver: instead of one editor at one arena
+it runs `mlagents-learn --env <player exe> --num-envs N`, launching N headless
+copies of the `RLTraining` standalone player under one trainer (build the exe
+first — `RLTrainingPlayerBuild`, below). Each worker derives an independent run
+seed from its ML-Agents port offset against `--harness-base-port`, so the N
+copies produce decorrelated experience rather than N identical rollouts. It does
+**not** boot an editor or route through unity-access (headless player exes touch
+neither the shared editor nor MCP), and asserts trainer exit 0 + an exported
+checkpoint + every worker's `-w{k}` episode JSONL present and non-empty.
+
+```powershell
+cd training/rl
+# build the player once (headless StandaloneWindows64):
+Unity.exe -projectPath ../../src/Asteroids3D -batchmode -nographics `
+  -executeMethod Game.RLHarness.RLTrainingPlayerBuild.Build -logFile build.log
+.venv\Scripts\python run_parallel.py --num-envs 8               # full config, 8 workers
+.venv\Scripts\python run_parallel.py --smoke --num-envs 2 --force   # 2-env liveness gate
+```
+
+`--base-port` (default 5006) is passed to both `mlagents-learn --base-port` and
+the workers' `--harness-base-port`; the two must match. Worker 0 (`k=0`) keeps
+today's `runSeed`, so a `--num-envs 1` run reproduces the single-env editor run.
+The JSONL dir is launcher-owned (`results/rl-episodes/`, `-w{k}`-suffixed).
+
 ### Trainer smoke (asserting runner)
 
 ```powershell
