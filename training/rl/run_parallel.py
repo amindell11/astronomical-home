@@ -2,8 +2,10 @@
 launching N headless copies of PR-1's RLTraining standalone player under one trainer. Each
 worker derives an independent run seed from its ML-Agents port offset against the launcher's
 --harness-base-port (see TrainingHost.ResolveWorkerIndex), so the N copies produce
-decorrelated experience instead of near-duplicate rollouts. FAILS unless the trainer exits 0,
-a checkpoint is exported, and every worker's -w{k} episode JSONL is present and non-empty.
+decorrelated experience instead of near-duplicate rollouts. --num-arenas M > 1 additionally
+fans each worker out to M in-process arenas (TrainingHost --harness-num-arenas), each writing
+its own -w{k}-a{j} JSONL. FAILS unless the trainer exits 0, a checkpoint is exported, and
+every expected episode JSONL (-w{k}, or -w{k}-a{j} when M > 1) is present and non-empty.
 
 Build the --env exe first with RLTrainingPlayerBuild (see README). Unlike run_training.py /
 run_smoke.py this does NOT boot an editor and does NOT route through unity-access — headless
@@ -34,8 +36,14 @@ def config_run_id(config: Path) -> str:
     return match.group(1)
 
 
-def worker_logs(k: int) -> set:
-    return set(JSONL_DIR.glob(f"*-training-w{k}.jsonl"))
+def episode_logs(suffix: str) -> set:
+    return set(JSONL_DIR.glob(f"*-training{suffix}.jsonl"))
+
+
+def log_suffixes(num_envs: int, num_arenas: int) -> list:
+    if num_arenas > 1:
+        return [f"-w{k}-a{j}" for k in range(num_envs) for j in range(num_arenas)]
+    return [f"-w{k}" for k in range(num_envs)]
 
 
 def terminate_tree(trainer: subprocess.Popen) -> None:
@@ -56,6 +64,8 @@ def main() -> None:
     parser.add_argument("--env", type=Path, default=REPO_ROOT / "build" / "rl-training" / "RLTraining.exe",
                         help="headless player built by RLTrainingPlayerBuild")
     parser.add_argument("--num-envs", type=int, default=2, help="parallel worker copies under one trainer")
+    parser.add_argument("--num-arenas", type=int, default=1,
+                        help="in-process arenas per worker (TrainingHost --harness-num-arenas)")
     parser.add_argument("--config", type=Path, default=None,
                         help="trainer YAML (default: the smoke config under --smoke, else the full 2M config)")
     parser.add_argument("--run-id", default=None, help="mlagents run id (default: the config's run_id)")
@@ -72,6 +82,8 @@ def main() -> None:
         parser.error("--resume and --force are mutually exclusive")
     if args.num_envs < 1:
         parser.error("--num-envs must be >= 1")
+    if args.num_arenas < 1:
+        parser.error("--num-arenas must be >= 1")
     if not args.env.exists():
         sys.exit(f"FAIL: player exe not found at {args.env}; build it first (RLTrainingPlayerBuild — see README)")
 
@@ -80,7 +92,8 @@ def main() -> None:
     onnx = RESULTS / run_id / "ShipCombat.onnx"
     RESULTS.mkdir(parents=True, exist_ok=True)
     JSONL_DIR.mkdir(parents=True, exist_ok=True)
-    before = {k: worker_logs(k) for k in range(args.num_envs)}
+    suffixes = log_suffixes(args.num_envs, args.num_arenas)
+    before = {s: episode_logs(s) for s in suffixes}
 
     # mlagents-learn spawns each worker as a subprocess inheriting this env, so RL_SMOKE reaches them all.
     env = dict(os.environ)
@@ -102,7 +115,8 @@ def main() -> None:
     # --env-args must trail: mlagents-learn forwards the remainder to every worker's argv, alongside --mlagents-port.
     trainer_cmd += ["--env-args",
                     "--harness-base-port", str(args.base_port),
-                    "--harness-jsonl-dir", str(JSONL_DIR)]
+                    "--harness-jsonl-dir", str(JSONL_DIR),
+                    "--harness-num-arenas", str(args.num_arenas)]
 
     trainer_log = RESULTS / f"{run_id}-parallel-trainer.log"
     print(f"launching {args.num_envs} worker(s): {args.env}")
@@ -125,12 +139,12 @@ def main() -> None:
     failures = []
     if not onnx.exists():
         failures.append(f"no checkpoint exported at {onnx}")
-    for k in range(args.num_envs):
-        fresh = [p for p in (worker_logs(k) - before[k]) if p.stat().st_size > 0]
+    for s in suffixes:
+        fresh = [p for p in (episode_logs(s) - before[s]) if p.stat().st_size > 0]
         if not fresh:
-            failures.append(f"worker {k}: no non-empty -w{k} episode JSONL under {JSONL_DIR}")
+            failures.append(f"{s}: no non-empty {s} episode JSONL under {JSONL_DIR}")
         else:
-            print(f"worker {k}: {fresh[0].name} ({fresh[0].stat().st_size} bytes)")
+            print(f"{s}: {fresh[0].name} ({fresh[0].stat().st_size} bytes)")
 
     if failures:
         sys.exit("FAIL:\n  " + "\n  ".join(failures))

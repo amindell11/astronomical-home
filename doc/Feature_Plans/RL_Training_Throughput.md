@@ -151,3 +151,94 @@ sequential `EpisodeLoopDriver` coroutine into a central per-tick stepper driving
 state machines (the substrate doc's "Academy is the clock" model), plus per-arena seeding
 (same derivation as PR-2). Revisit only if Path B's throughput proves insufficient or memory
 per process becomes the bottleneck.
+
+> **Superseded 2026-07-22:** the stepping cost above was paid by the stepping-migration arc
+> (#188/#197 — the Academy auto-clock is now the sole stepper), unblocking Path A. The frozen
+> decision brief below is the shape actually built.
+
+---
+
+# Path A — M-arena harness fan-out — Decision brief (frozen 2026-07-22, pr-prep)
+
+> Grounds against post-#197 `main`. The Academy auto-clock is the sole stepper; the harness
+> is already arena-local below `HarnessArena.Compose` (per-arena `UnitService`/
+> `NavFieldService`/`ProjectileService`/`ArenaContext`; poses + field placement parameterized
+> on `arena.Offset`). **Plan-vs-code correction:** the substrate doc's session-root /
+> `UnloadSector`-reset `RLDriver` model targets *game sectors* and predates the harness's
+> current shape — post-#197 `EpisodeLoopDriver` already *is* the reset-only driver. The whole
+> single-arena hardwiring is: `HarnessArena.cs:14` `Offset = Vector2.zero`, one composition +
+> driver per process, `TrainingHost`'s single sequential episode loop, one JSONL path, no
+> per-arena seed stream.
+
+## Scope
+
+**In:** M in-process arenas in the training harness — `TrainingHost` spawns M child
+GameObjects, each composed via `HarnessArena.Compose(host, offset_j)` (signature gains the
+offset; both compositions thread it) with its own composition object + `EpisodeLoopDriver`;
+M **async** per-arena episode-loop coroutines (curriculum overlay → `RunEpisode` → JSONL →
+repeat; no cross-arena barrier); per-arena seed derivation (`ArenaSeedStream`, arena-0
+identity); per-arena JSONL suffix `-a{j}` composing with `-w{k}`; `numArenas` serialized +
+`--harness-num-arenas` CLI contract; `run_parallel.py --num-arenas` plumbing + smoke-gate
+glob update; EditMode seed pin + PlayMode M=2 isolation/decorrelation test; self-play trainer
+smoke at 2 arenas as the heavy merge gate.
+
+**Out (non-goals):** eval parallelism (`CheckpointEvaluator`/`EvalHost` stay M=1);
+editor-attach `run_training.py` changes (M=1 default reaches it untouched); any game-side /
+substrate code (`SessionHost`, sectors, `UnitService.arenaBaseSeed` TODO — game path only);
+`PhysicsScene`-per-arena (substrate PR-C, escalation only on an observed leak); the
+throughput benchmark itself (a run, not a PR: post-merge sweep M ∈ {1,2,4,8} on the rebuilt
+exe decides real-run M).
+
+## Fork resolutions (with why)
+
+1. **Arena unit = harness-native fan-out** (M × `HarnessArena.Compose` at offsets), NOT
+   migration onto the SessionHost/sector substrate. *Why:* everything below the compose call
+   is already arena-local and offset-aware, so fan-out is "call the existing composition M
+   times" — near-zero new wiring, zero game-side diff; substrate adoption would drag
+   sector/rig machinery (the deferred SessionRig cleave comes due) into a deliberately
+   minimal training composition for no throughput gain. `ArenaContext` is the shared seam and
+   both paths already go through it. User blessed the deviation from the substrate doc's
+   sketch explicitly.
+2. **Loop model = M independent async per-arena coroutines**; `episodes` budget is
+   per-arena. *Why:* lockstep wastes exactly the throughput this buys (fast arenas idle at a
+   barrier) and correlates boundaries; the driver/runner are instance-scoped already; dense
+   per-arena episodeIndex is required anyway (poses/field/archetype streams derive from it).
+
+## Assumptions (user-reviewed 2026-07-22)
+
+- `ArenaSeedStream = 707` sibling of `WorkerSeedStream = 606`:
+  `arenaSeed_j = j==0 ? workerSeed : SeedScope(workerSeed).Derive(707).Derive((uint)j)`,
+  applied base → worker → arena. Arena-0 identity ⇒ **M=1 byte-identical to today** (all
+  pins/fixtures/evals untouched, no re-mints; existing full suite is the parity proof).
+  Decision seeds (101/202), field (303), poses, archetype (505) fan from `spec.runSeed` →
+  decorrelate downstream for free (the PR-2 argument).
+- M knob: serialized `numArenas` default 1 + `--harness-num-arenas` override, parsed once at
+  Start; present-but-garbage throws loud, never a silent 1 (PR-2 boundary rule).
+- `run_parallel.py` owns the launcher contract (`--num-arenas` via trailing `--env-args`);
+  its smoke-gate file assertions widen to the `-a{j}` glob. Rides in this PR (CLAUDE.md #6
+  corollary).
+- Fan-out: M child GameObjects under the host; compositions thread the offset; `EvalHost`
+  passes zero. Scripted-vs-selfPlay stays a process-wide choice; `PacingContract` stays
+  host-owned, applied once.
+- Spacing: arenas on a line, spacing ≥ 2·`arenaRadius` + laser `maxDistance` + drift margin;
+  exact constant computed from the shipped prefab during build. OOB episode termination
+  (`EpisodeTypes.cs:45-48`) already bounds ship excursion.
+- Self-play at M>1 = M parameter-shared team-0/1 pairs under one behavior (standard
+  ML-Agents multi-area topology); proven behaviorally by the smoke gate.
+- Tests: EditMode arena-seed pin (j=0 identity; j0 ≠ j1; deterministic) mirroring
+  `RLWorkerSeedEditModeTests`; PlayMode M=2 with deterministic leak-specific asserts
+  (per-arena field-handle isolation, episode-0 poses differ across arenas, ships confined to
+  their own half, both arenas complete episodes) — never mirror-determinism (substrate
+  postmortem). Headless, `-ScopeType Auto`, worktree loop, unity-access coordination.
+
+## Blindsider resolutions
+
+- **JSONL = per-arena files `-w{k}-a{j}`** (mirrors the worker-suffix precedent; zero schema
+  change; downstream gates widen their glob). Single-file-plus-arenaIndex-field rejected —
+  touches the schema and every consumer for file-count aesthetics.
+- **Ghost-rock hazard accepted with margin + documentation:** a rock drifting from arena A
+  past the gap is invisible to B's handle-scoped obstacle scan but physically collidable.
+  Drift is bounded per episode (field rebuilds every reset); the spacing margin covers
+  worst-case drift. `PhysicsScene`-per-arena stays the escalation if a leak is ever
+  observed. Field-culls-beyond-radius rejected — new field API surface for an unobserved
+  hazard.
