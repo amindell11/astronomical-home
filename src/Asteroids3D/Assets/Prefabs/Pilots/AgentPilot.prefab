@@ -145,5 +145,5 @@ MonoBehaviour:
     - rid: 1937986634179674200
       type: {class: InferenceChooser, ns: Game.RLHarness, asm: Game.RLHarness.Runtime}
       data:
-        model: {fileID: 11400000, guid: 5b9e4d27a1c8f3064e7b2a9c5d18f640, type: 3}
+        model: {fileID: 5022602860645237092, guid: e95ef7ec5a294b65b00ed869079a6940, type: 3}
         leashRadius: 120
