@@ -1,7 +1,7 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-. (Join-Path $PSScriptRoot "unity_test_scope_lib.ps1")
+. (Join-Path $PSScriptRoot "..\unity_test_scope_lib.ps1")
 
 $script:testCount = 0
 $script:failCount = 0
@@ -24,7 +24,7 @@ function Assert-Equal {
 }
 
 Write-Host "Scope map loading and name-filter resolution (features/smoke/workspace)"
-$scopeMap = Load-ScopeMap -Path (Join-Path $PSScriptRoot "unity_test_scopes.json")
+$scopeMap = Load-ScopeMap -Path (Join-Path $PSScriptRoot "..\unity_test_scopes.json")
 Assert-True ($null -ne $scopeMap) "scope map loads"
 
 $smokeFilter = Resolve-ScopeFilter -ScopeMap $scopeMap -ScopeType "Smoke" -ScopeName ""
@@ -199,7 +199,7 @@ try {
 
     Write-Host ""
     Write-Host "Runner: -ScopeType Auto rejects manual selection args"
-    $runner = Join-Path $PSScriptRoot "unity_test_agent.ps1"
+    $runner = Join-Path $PSScriptRoot "..\unity_test_agent.ps1"
     $output = & cmd /c "powershell.exe -NoProfile -ExecutionPolicy Bypass -File $runner -ScopeType Auto -TestFilter Foo -SkipUnityAccess 2>&1"
     Assert-True ($LASTEXITCODE -ne 0) "rejection exits nonzero"
     Assert-True (($output -join ' ') -like '*cannot be combined with -TestFilter*') "rejection names the conflicting arg"

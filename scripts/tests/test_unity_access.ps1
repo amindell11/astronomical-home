@@ -1,7 +1,7 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$Coordinator = Join-Path $PSScriptRoot "unity_access.ps1"
+$Coordinator = Join-Path $PSScriptRoot "..\unity_access.ps1"
 $Root = Join-Path $env:TEMP ("unity-access-tests-" + [guid]::NewGuid().ToString("N"))
 $State = Join-Path $Root "state"
 $Snapshot = Join-Path $Root "processes.json"
@@ -196,7 +196,7 @@ try {
     Assert-Equal $legacyCleared.value.status "acquired" "acquire proceeds once legacy owner clears"
     [void](Invoke-Coordinator -Action Release -Lease legacy-blocked)
 
-    $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+    $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
     $commonGit = (& git -C $repoRoot rev-parse --path-format=absolute --git-common-dir | Select-Object -First 1)
     $mainProject = Join-Path (Split-Path -Parent $commonGit) "src\Asteroids3D"
     $agentProject = Join-Path $repoRoot "src\Asteroids3D"

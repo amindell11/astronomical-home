@@ -340,6 +340,30 @@ claim above holds.
    arena through live combat, cross-arena field queries empty). Lives in
    `Tests.PlayMode` (not `Game.RLHarness.Editor` as first sketched — that asm has
    no test-framework references; #132's own tests live in `Tests.PlayMode` too).
+   *(Amended 2026-07-22, pr-prep):* the "wait until live combat lands damage in
+   both arenas" loop was the suite's largest and most variable cost (60–105s,
+   ~55% of the merge gate) — the same stochastic-emergent proof style the
+   mirror-determinism postmortem above rejected. Replaced per the same principle
+   (deterministic leak-specific asserts): the sim window is a flat `SimSeconds`;
+   liveness = an arranged scan probe per arena (relocate a ship beside an
+   in-arena hostile *before* the window — emergent acquisition proved
+   patrol-bound, >30 sim-sec on a measured run — pair invulnerable so a kill
+   can't drop the acquisition) asserted at window end, with every acquired
+   `EnemyPos` confined to its own half; attribution = one sub-lethal inline
+   `TakeDamage(attacker)` per arena through the real `DamageController` path
+   into the same CombatLog (kill was rejected — death side effects pollute the
+   isolation asserts; a scripted real-weapon shot was rejected — the armed
+   `IWeapons` actuator is commander-internal and a test seam would violate
+   zero-new-wiring). CombatLog stays armed all window, so incidental real
+   combat still feeds the cross-arena check. Displacement asserted in both
+   arenas (was A-only). Test-only change; real projectile flight stays covered
+   by the single-arena suites. Build lesson: never leave a frame-count-bound
+   phase (probe wait, teardown) at timeScale 20 or a permissive
+   `maximumDeltaTime` — every rendered frame then drags a multi-step 16-ship
+   fixed batch and editor frame pacing makes the cost unpredictable; clamp to
+   1× with `maximumDeltaTime = fixedDeltaTime` once the sim window ends.
+   Result: 60–105s stochastic → ~10s deterministic (two consecutive runs 9.8s
+   / 10.0s).
 5. **Per-arena seeds stay deferred** (S1b hook, consumer is PR-4 self-play) —
    identical streams are what the mirror smoke *wants*.
 6. **Spacing: document + defer.** Formula recorded, not enforced: min spacing ≈

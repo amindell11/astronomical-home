@@ -135,8 +135,6 @@ Claude Code is the active agent tool for this repo.
 - **Skills** live under `.claude/skills/`. That is the canonical home — do not
   duplicate a skill's body into another tool's folder; if a second tool needs
   discovery, leave a one-line pointer, not a copy.
-- **`.cursor/`** holds Cursor IDE rules only and reads this file for shared
-  conventions.
 - Offline AI-behavior analysis scripts live in `scripts/ai-analysis/`
   (`analyze_utility.py`, `find_patterns.py`) — they read the JSONL that
   `UtilityLogger` (`Assets/Scripts/AI/Editor/UtilityLogger.Editor.cs`) writes.
