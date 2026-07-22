@@ -83,8 +83,8 @@ def main() -> None:
     editor_env = {k: v for k, v in os.environ.items() if k != "RL_SMOKE"}
     lease = f"rl-{run_id}"
     editor_pid = start_editor(
-        lease,
-        ["-projectPath", str(PROJECT), "-batchmode", "-nographics",
+        lease, PROJECT,
+        ["-batchmode", "-nographics",
          "-executeMethod", "Game.RLHarness.TrainingBootstrap.EnterTrainingPlayModeWhenSignaled",
          "-logFile", str(editor_log)],
         unity, editor_env)
@@ -112,7 +112,7 @@ def main() -> None:
     finally:
         if trainer and trainer.poll() is None:
             trainer.kill()
-        release_editor(lease, editor_env)
+        release_editor(lease, PROJECT, editor_env)
 
     failures = []
     if not onnx.exists():

@@ -23,10 +23,10 @@ def _coordinator_json(proc: subprocess.CompletedProcess) -> dict:
     sys.exit(f"FAIL: no JSON from unity-access coordinator (exit {proc.returncode})\n{proc.stdout}\n{proc.stderr}")
 
 
-def start_editor(lease: str, editor_args, unity: Path, env) -> int:
-    args_literal = ",".join(_ps_literal(a) for a in editor_args)
+def start_editor(lease: str, project: Path, editor_args, unity: Path, env) -> int:
+    args_literal = ",".join(_ps_literal(a) for a in ["-projectPath", str(project), *editor_args])
     inner = (f"& {_ps_literal(COORDINATOR)} -Action StartEditor -Lease {_ps_literal(lease)} "
-             f"-Slot main -UnityPath {_ps_literal(unity)} -SkipMcp -WaitSeconds 15 -Json "
+             f"-ProjectPath {_ps_literal(project)} -UnityPath {_ps_literal(unity)} -SkipMcp -WaitSeconds 15 -Json "
              f"-EditorArgs @({args_literal})")
     proc = subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", inner],
                           capture_output=True, text=True, env=env)
@@ -36,8 +36,8 @@ def start_editor(lease: str, editor_args, unity: Path, env) -> int:
     return int(result["owner"]["processId"])
 
 
-def release_editor(lease: str, env) -> None:
+def release_editor(lease: str, project: Path, env) -> None:
     inner = (f"& {_ps_literal(COORDINATOR)} -Action Release -Lease {_ps_literal(lease)} "
-             f"-Slot main -CloseEditor -Json")
+             f"-ProjectPath {_ps_literal(project)} -CloseEditor -Json")
     subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", inner],
                    capture_output=True, text=True, env=env)
