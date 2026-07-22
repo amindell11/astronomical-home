@@ -128,17 +128,112 @@ parallelizes it for free.
 
 ---
 
-# PR-2 — `--num-envs` throughput (scope sketch, prep when PR-1 lands)
+# PR-2 — `--num-envs` throughput — Decision brief (frozen 2026-07-21, pr-prep)
 
-**In:** `run_training.py` gains an `--env <exe> --num-envs N` path launching N player copies
-under one trainer; per-worker seed decorrelation (parse `--mlagents-port` → worker offset
-`k` → `runSeed = derive(baseSeed, k)`, so worker seeds are `N`-independent and reproducible;
-editor-attach = worker 0 = today's seed); per-worker JSONL filename suffixing; a `--num-envs 2`
-player smoke proving two *decorrelated* envs both train (the merge gate).
+## Scope
 
-**Why decorrelation is required, not optional:** poses / field layout / opponent-archetype
-selection all derive from `runSeed`; N copies on one seed share identical initial conditions
-per episode index, so the throughput buys near-duplicate experience.
+**In:** a new `training/rl/run_parallel.py` that runs `mlagents-learn --env <exe> --num-envs N`
+against PR-1's headless player build, launching N worker copies under one trainer; per-worker
+**seed decorrelation** so the N copies produce independent experience; per-worker JSONL
+suffixing so their episode logs don't collide; an EditMode test pinning the seed-derive math;
+and a `--num-envs 2` player smoke as the merge gate.
+
+**Why decorrelation is required, not optional:** poses (`EpisodePoses.Derive`), field layout
+(`HarnessField.DeriveLayoutSeed`), and opponent archetype+jitter (`OpponentRoster.Scope`) all
+fan out from `SeedScope(spec.runSeed)`. N copies on one `runSeed` share identical initial
+conditions per episode index → the throughput buys near-duplicate experience. The one hard
+constraint: the only per-worker-varying input a worker receives is `--mlagents-port`
+(ML-Agents `--env-args` are identical across workers), so `k` must be *derived*, not passed.
+
+**Out (non-goals):** in-process M arenas / `ArenaContext` offset (Path A follow-up);
+retiring the editor-attach path (`run_parallel.py` is a sibling now — see Fork 2's long-term
+note); eval parallelism (`CheckpointEvaluator`/`EvalHost` stay editor-only, single-env);
+building the exe (a prerequisite from PR-1's `RLTrainingPlayerBuild`, passed as `--env`);
+routing player workers through unity-access (they touch neither the shared editor nor MCP).
+
+## Fork resolutions (with why)
+
+1. **Worker-index recovery = explicit base-port contract.** `run_parallel.py` passes the base
+   port to every worker via `--env-args --harness-base-port <P>` (matching the `--base-port P`
+   it gives `mlagents-learn`); the worker computes `k = mlagentsPort − harnessBasePort`. No
+   `--mlagents-port` (editor/manual) → `k = 0`. *Why:* a wrong `k` silently reintroduces the
+   exact duplicate-experience bug this PR exists to kill — so `k` must be un-guessable, not
+   reverse-engineered from an ML-Agents internal default. `k` cannot be passed directly
+   (`--env-args` are identical across workers), so deriving from the port is forced; the base
+   port is the one thing that makes the derivation robust to a `--base-port` override.
+2. **Launch topology = new `run_parallel.py` sibling** (not a branch inside `run_training.py`).
+   *Why:* the `--env` path is a different animal — the trainer *owns* the N processes, so there
+   is no editor boot, no `start-play.flag`, no unity-access lease, and N player logs instead of
+   one editor log. A branch would be mostly `if env_mode:` forks around a different skeleton;
+   a sibling keeps the shipped editor-attach runner untouched and mirrors the existing
+   `run_smoke.py`/`run_training.py` split. **Long-term note (user):** the `--env` path should
+   become the *primary* training driver and editor-attach retreat to dev iteration / single-env
+   parity — sibling now, consolidation later (own follow-up, not this PR).
+3. **Decorrelation gate = EditMode unit test (math) + e2e liveness (smoke).** An EditMode test
+   pins the seed-derive function directly (`k=0` identity == today's `runSeed`; `k=0 != k=1`;
+   deterministic across calls); `run_parallel.py --num-envs 2` asserts operational liveness
+   (trainer exit 0, checkpoint exported, both `-w0` and `-w1` JSONL present and non-empty).
+   *Why:* prove the decorrelation *math* fast and deterministically in-editor where it belongs;
+   the e2e proves the two workers really ran and wrote independently — without a brittle
+   cross-file pose-diff parse coupled to JSONL schema and cross-process episode-index alignment.
+
+## Assumptions (user-reviewed)
+
+- Seed derive reuses `SeedScope`, `k=0` is identity:
+  `runSeed_k = k==0 ? baseSeed : SeedScope(baseSeed).Derive(WorkerSeedStream).Derive((uint)k).ToSeed()`,
+  a new fixed stream constant sibling to `FieldSeedStream=303`/`ArchetypeStream=505`. `k=0`
+  identity keeps worker 0 == today's `runSeed` (`EvalProtocol.TrainingRunSeed=1`), so every
+  pin/fixture/eval stays byte-identical; decorrelating `runSeed` decorrelates poses/field/
+  opponent downstream for free.
+- `k` is resolved **once** at `TrainingHost.Start` (reading `--mlagents-port` via
+  `Environment.GetCommandLineArgs()` — precedent: `CaptureScenarioPlayModeTests.CommandLineArg`)
+  and threaded to both `spec.runSeed` and the JSONL path.
+- **JSONL location is launcher-owned** (blindsider B1, corrected): `run_parallel.py` passes
+  `--harness-jsonl-dir <abs repo results/rl-episodes>` via `--env-args`; all workers write
+  there, `-w{k}` prevents collision, and the gate reads the same dir it named. `EpisodeJsonl`
+  uses the CLI dir when given, else PR-1's `persistentDataPath` (editor/non-parallel unchanged).
+  *Rejected* the alternative (Python gate reconstructs the player's `persistentDataPath`) — it
+  duplicates a producer-owned path derivation, i.e. builds a parallel path beside the owner.
+- Per-worker JSONL suffix keyed on "is a launched worker" (port present) → `-w0`/`-w1`/…;
+  editor (no port) keeps today's unsuffixed name.
+- `run_parallel.py` does **not** route through unity-access (headless player exes touch neither
+  the shared editor nor MCP) and does **not** build the exe (PR-1 prerequisite, passed as
+  `--env`). It pegs cores like `run_training.py`; CPU contention with other slots is scheduling,
+  not wiring.
+- `RL_SMOKE=1` for the 2-env gate, set in `run_parallel.py`'s environment; `mlagents-learn`
+  spawns each worker as a subprocess inheriting it → tight-arena/short-clock smoke spec.
+- `--base-port` and `--harness-base-port` set to the same explicit value (e.g. 5006, to dodge a
+  stray editor on 5004/5005); the two must match.
+- Tests: new EditMode seed test (headless, `-ScopeType Auto`); the `--num-envs 2` gate is a
+  coordinated e2e (built exe + venv + trainer), not part of the standard suite — a manual/gate
+  run like the self_play smoke.
+
+## Blindsider resolutions
+
+- **B1 — gate reads player output, not repo tree:** corrected into an assumption above
+  (launcher owns the JSONL dir via `--harness-jsonl-dir`); no `persistentDataPath`
+  reconstruction. This overturned the initial "smallest diff" recommendation — see the
+  CLAUDE.md `#6` corollary this session added.
+- **B2 — boundary parsing (fix-ladder rung 4):** `--mlagents-port` **absent** → `k=0`
+  (legitimate editor/manual). Present-but-unparseable, or present without `--harness-base-port`,
+  → **throw loud**; never default to `k=0` (a silent `k=0` re-correlates the experience). Parse
+  once at the boundary, trust after.
+- **B3 — `--env-args` ordering:** `--harness-base-port`/`--harness-jsonl-dir` must be the
+  trailing args to `mlagents-learn` (`--env-args` consumes the remainder); they arrive at each
+  worker's argv alongside `--mlagents-port`.
+- **B4 — Unity `Player.log` is N-way clobbered** (all copies of one exe share it; `--env-args`
+  can't give per-worker `-logFile`). Non-issue for the gate — diagnostics live in the `-w{k}`
+  JSONL and the trainer log. Documented, not fixed.
+- **Bonus — `run_parallel.py --num-envs 1` *is* PR-1's deferred `--env` parity follow-up**
+  (worker 0 → `k=0` → identity seed → same episodes as the editor run). This PR subsumes it as
+  its degenerate case.
+
+## Interaction with in-flight PR-4 (#184, self-play)
+
+PR-4 **merged 2026-07-21 (#184, main `ea859319`)** — it edits `TrainingHost.Start` (adds the
+`selfPlay`/`RL_SELFPLAY` branch), so PR-2 builds on that shape: the `k`-resolution slots ahead
+of the `selfPlay` branch — no logical conflict (both only read args and set `spec.runSeed`), and
+decorrelation benefits self-play for free (both teams derive from `runSeed`).
 
 ---
 
