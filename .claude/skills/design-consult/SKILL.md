@@ -55,11 +55,20 @@ Output contract, stated in the packet: a findings list capped at 5, each with
 
 Overflow is handled by requesting another round, never a bigger batch.
 
-## 4. Mode C — panel debate (escalation only)
+## 4. Mode C — panel debate (fork-shaped questions)
 
-Enter only when (a) two independent consults materially disagree on a
-consequential fork, or (b) the user explicitly asks for a debate/panel.
-One deliberation per fork — never a standing default.
+Mode choice is by question shape, not sequence:
+
+- **Review-shaped** ("is this design sound", "find how X breaks") →
+  Mode A/B. A panel adds little over one consultant there.
+- **Fork-shaped** — named alternatives, consequential, and our own analysis
+  yields no dominant option → start at Mode C directly.
+- **Escalation** — a Mode A/B consult unexpectedly surfaces a fork, or the
+  user explicitly asks for a debate/panel.
+
+Never run consults to manufacture a disagreement precondition, and never
+re-run a settled consult as a debate. One deliberation per fork — never a
+standing default.
 
 Delivery: `mcp__ai-counsel__deliberate` (user-scope MCP server; install
 location, per-CLI auth status, and Windows notes live in memory
