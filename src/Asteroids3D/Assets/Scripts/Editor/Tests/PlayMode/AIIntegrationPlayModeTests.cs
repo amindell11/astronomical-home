@@ -134,12 +134,12 @@ public class AIIntegrationPlayModeTests : AIIntegrationFixture
         var (_, cmdrA) = CreateAIShip(Vector3.zero, team: 0);
         CreateAIShip(new Vector3(100f, 0f, 0f), team: 1);
 
-        yield return AsyncAssert.WaitAndAssertRemainsFalse(
+        // Scanning is frame-driven (Scout.Update): 60 undetected frames prove the envelope.
+        yield return AsyncAssert.AssertRemainsFalseForFrames(
             () => cmdrA.UtilityChooser.Context != null &&
                   cmdrA.UtilityChooser.Context.Combat.HasEnemy,
-            waitSec: 2f,
-            failureMessage: "Distant enemy should not be detected",
-            useFixedUpdate: true);
+            frames: 60,
+            failureMessage: "Distant enemy should not be detected");
     }
 
     // ──────────────────────────────────────────────────────────

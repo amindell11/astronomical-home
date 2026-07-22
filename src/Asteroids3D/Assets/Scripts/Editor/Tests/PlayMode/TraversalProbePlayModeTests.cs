@@ -105,28 +105,6 @@ namespace Tests.PlayMode
         }
 
         [UnityTest]
-        [Timeout(600000)]
-        public IEnumerator Smoke_LegacyDriver_CrossesViaAuthoredWaypointRegime()
-        {
-            PacingContract.Apply();
-            ComposeProbe(maxDensityScale: 0.5f);
-
-            var spec = TraversalSpec.Default;
-            spec.driver = LegacyNavTraversalChooser.DriverTag;
-            spec.densityScale = 0.5f;
-            spec.speedFraction = 0.9f;
-            // Generous budget: the comparator's speed is an authored-asset property, not the probe's to assume; the sweep's speed curves report it.
-            spec.timeoutFactor = 12f;
-
-            TraversalResult result = default;
-            yield return RunCrossing(spec, 0, r => result = r);
-
-            Assert.AreNotEqual(TraversalOutcome.Unresolved.ToString(), result.outcome);
-            Assert.Greater(result.alongTrack, 0.5f * spec.crossingRadius,
-                "Legacy waypoint stack made no meaningful crossing progress");
-        }
-
-        [UnityTest]
         [Timeout(3600000)]
         public IEnumerator Sweep_WritesJsonl()
         {

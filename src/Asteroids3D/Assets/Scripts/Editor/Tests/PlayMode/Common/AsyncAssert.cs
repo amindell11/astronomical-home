@@ -78,34 +78,20 @@ public static class AsyncAssert
     }
 
     /// <summary>
-    /// Waits for a specified duration and then asserts that a condition remains false.
-    /// Useful for testing that something does NOT happen.
+    /// Frame-counted negative proof for frame-driven behaviour (camera follow, scanning):
+    /// N frames of non-occurrence prove as much as a wall-clock wait at a fraction of the cost.
     /// </summary>
-    /// <param name="condition">Condition that should remain false</param>
-    /// <param name="waitSec">Duration to wait in seconds</param>
-    /// <param name="failureMessage">Custom assertion message if condition becomes true</param>
-    /// <param name="useFixedUpdate">If true, uses WaitForFixedUpdate; otherwise yields null (default)</param>
-    /// <returns>IEnumerator for use in UnityTest</returns>
-    public static IEnumerator WaitAndAssertRemainsFalse(
+    public static IEnumerator AssertRemainsFalseForFrames(
         Func<bool> condition,
-        float waitSec,
-        string failureMessage = "Condition unexpectedly became true",
-        bool useFixedUpdate = false)
+        int frames,
+        string failureMessage = "Condition unexpectedly became true")
     {
-        var deadline = Time.realtimeSinceStartup + waitSec;
-        
-        while (Time.realtimeSinceStartup < deadline)
+        for (var i = 0; i < frames; i++)
         {
             if (condition())
                 Assert.Fail(failureMessage);
-
-            if (useFixedUpdate)
-                yield return new WaitForFixedUpdate();
-            else
-                yield return null;
+            yield return null;
         }
-
-        Assert.Pass();
     }
 
     /// <summary>
