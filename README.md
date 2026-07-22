@@ -8,6 +8,7 @@ A 3D space-combat game built in Unity 6 — asteroid fields, utility-AI enemy sh
 - `training/rl/` — Python ML-Agents training harness (configs, runners, Unity-access coordination). See `training/rl/README.md`.
 - `scripts/` — agent tooling: worktree pool, Unity test runner, Unity access coordinator.
 - `doc/` — feature plans (`doc/Feature_Plans/`, lifecycle conventions in `AGENTS.md`) and postmortems.
+- `art/` — WIP Blender sources and downloaded asset archives, kept outside `Assets/` so Unity never imports them.
 - `tools/` — standalone utilities.
 
 ## Key docs
