@@ -66,7 +66,7 @@ namespace AI
             var seed = control.DecisionSeed;
 
             Scout.Initialize(self.Transform, self.Id, self.Dynamics, self, arena);
-            Navigator.Initialize(self, self.Dynamics, Scout, seed.Derive(NavStream), arena);
+            Navigator.Initialize(self, self.Dynamics, Scout, seed.Derive(NavStream));
             if (Gunner && control.IsArmed)
                 Gunner.Initialize(control.Weapons, control.WeaponActuator, pose);
 

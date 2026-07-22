@@ -60,7 +60,7 @@ namespace Movement.MPC
 
             ObstacleCosts(s, input, cfg, profileScale, out var collisionCost, out var obstacleCost);
 
-            // Terminal ramp up-weights terminal STATE cost. Control effort (a function of u) and the velocity tracker (regulation, not reaching) stay per-step, outside the ramp.
+            // Control effort (a function of u) and the velocity tracker (regulation, not reaching) stay outside the terminal ramp.
             var stateCost = Aim(s, ctx, cfg)
                 + StateRegularizers(s, input, cfg, obstacleCost);
 
@@ -77,7 +77,7 @@ namespace Movement.MPC
             return total + collisionCost;
         }
 
-        /// <summary>Intercept-facing geometry (aiming is not an authored tactic). Ramped; 0 when no facing target is set.</summary>
+        /// <summary>Intercept-facing geometry. Ramped; 0 when no facing target is set.</summary>
         internal static float Aim(State s, in EvalContext ctx, in Config cfg)
             => FacingCost(s.yaw, ctx.facingTarget, cfg.facingWidth) * cfg.wFacing;
 

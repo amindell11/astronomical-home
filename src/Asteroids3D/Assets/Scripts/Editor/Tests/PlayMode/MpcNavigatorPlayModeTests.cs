@@ -36,7 +36,7 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
         cmdr = ship.Commander as AICommander;
         mpc  = cmdr.Navigator as Navigator;
 
-        // Navigator.Initialize() is gated on arena != null — supply the fixture arena so all AI systems are fully initialized before tests run.
+        // AICommander.TryInitializeSystems is gated on an arena — supply the fixture arena so all AI systems initialize.
         cmdr.SetArena(Arena);
         cmdr.Brain.enabled = false;
 #else

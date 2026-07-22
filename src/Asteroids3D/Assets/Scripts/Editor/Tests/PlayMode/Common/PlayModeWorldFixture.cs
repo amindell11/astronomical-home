@@ -23,7 +23,6 @@ public abstract class PlayModeWorldFixture
     /// <summary>The per-test world-frame handle wired into AI ships.</summary>
     protected ArenaContext Arena { get; private set; }
 
-
     /// <summary>Per-test projectile registry rooted at the arena host: pass it wherever firing needs a registry (ship spawns, direct <c>Fire</c>/<c>HandleTrigger</c> calls) and every transient dies with the fixture.</summary>
     protected ProjectileService Projectiles { get; private set; }
 

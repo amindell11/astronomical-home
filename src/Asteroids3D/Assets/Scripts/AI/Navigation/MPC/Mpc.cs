@@ -34,7 +34,7 @@ namespace Movement.MPC
         public float cost;
     }
 
-    /// <summary>Model-predictive control solver owning the rollout buffers, warm-start, and per-tick config refresh. The <see cref="Navigator"/> drives it via <see cref="Plan"/>; it knows nothing of waypoints, intents, or the component graph.</summary>
+    /// <summary>Model-predictive control solver owning the rollout buffers, warm-start, and per-tick config refresh. The <see cref="Navigator"/> drives it via <see cref="Plan"/>; it knows nothing of intents or the component graph.</summary>
     public class Mpc : IDisposable
     {
         private readonly MpcSettings settings;

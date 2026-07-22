@@ -3,11 +3,7 @@ using AI;
 using AI.Context;
 using AI.Scanning;
 using AI.States;
-using Game;
-using Game.Services;
-using Ships;
 using Ships.Command;
-using Movement;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -45,7 +41,6 @@ namespace Movement.MPC
         public PilotCommand CurrentCommand => currentCommand;
 
         protected IShipStatus context;
-        protected ArenaContext arena;
 
         [Header("Settings")]
         [FormerlySerializedAs("settings")]
@@ -58,13 +53,12 @@ namespace Movement.MPC
         internal Dynamics dynamics;
         private SeedScope navScope;
 
-        public void Initialize(IShipStatus shipContext, Dynamics dynamics, Scout scout, SeedScope navScope, ArenaContext arena)
+        public void Initialize(IShipStatus shipContext, Dynamics dynamics, Scout scout, SeedScope navScope)
         {
             context = shipContext;
             this.scout = scout;
             this.dynamics = dynamics;
             this.navScope = navScope;
-            this.arena = arena;
             if (!mpcSettings)
                 mpcSettings = ScriptableObject.CreateInstance<MpcSettings>();
             mpc = new Mpc(mpcSettings, dynamics, navScope.Derive(MpcSamplerStream).ToUint());
