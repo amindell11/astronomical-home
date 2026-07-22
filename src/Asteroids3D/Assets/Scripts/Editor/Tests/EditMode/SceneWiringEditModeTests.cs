@@ -1,5 +1,4 @@
 using Game.Bootstrap;
-using Movement.MPC.Field;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -34,8 +33,6 @@ namespace Tests.EditMode
                 Assert.IsNotNull(driver, $"{scenePath} must contain a GameDriver");
                 Assert.IsNotNull(driver.GetComponent<SessionHost>(),
                     $"{scenePath}: the GameDriver's GameObject must also carry a SessionHost sibling");
-                Assert.IsNotNull(driver.GetComponent<NavFieldService>(),
-                    $"{scenePath}: the SessionHost's GameObject must carry a NavFieldService sibling");
             }
             finally
             {

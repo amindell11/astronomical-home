@@ -589,6 +589,8 @@ if (-not [string]::IsNullOrWhiteSpace($CaptureScenario)) {
     else {
         throw "-CaptureScenario ${CaptureScenario}: no $CaptureScenario.cs in scratch/capture/ (repo root) or committed under Tests/PlayMode/Scenarios/."
     }
+    # Agents redirect pre-run logs into results/capture; a missing dir kills that redirect before Unity launches.
+    New-Item -ItemType Directory -Force -Path (Join-Path $repoRoot "results/capture") | Out-Null
 }
 
 # Everything below can throw (scope resolution/validation, Unity runs); the finally must always unstage the scratch scenario.
@@ -737,6 +739,69 @@ try {
 
     $runs = @()
 
+    # Single boot for the plain Both-mode (gate) shape: GateTestRunner drives EditMode then PlayMode
+    # through one editor session (the UTF CLI would boot per platform, ~25s overhead each).
+    # Ordered-list/rerun runs stay on the stock path (ExecutionSettings.orderedTestNames is internal-only).
+    $singleBoot = ($Mode -eq "Both" -and
+                   -not $WithGraphics.IsPresent -and
+                   [string]::IsNullOrWhiteSpace($CaptureScenario) -and
+                   [string]::IsNullOrWhiteSpace($orderedListPath))
+
+    if ($singleBoot) {
+        $xmlEdit = Join-Path $outRoot "$stamp-EditMode.xml"
+        $xmlPlay = Join-Path $outRoot "$stamp-PlayMode.xml"
+        $logPath = Join-Path $outRoot "$stamp-Both.log"
+
+        $args = @(
+            "-batchmode",
+            "-nographics",
+            "-projectPath", $project,
+            "-executeMethod", "Tests.EditMode.GateTestRunner.Run",
+            "-gateEditResults", $xmlEdit,
+            "-gatePlayResults", $xmlPlay,
+            "-logFile", $logPath
+        )
+        if (-not [string]::IsNullOrWhiteSpace($TestFilter)) {
+            $args += @("-testFilter", $TestFilter)
+        }
+        if (-not [string]::IsNullOrWhiteSpace($categoryFilter)) {
+            $args += @("-testCategory", $categoryFilter)
+        }
+        if (-not [string]::IsNullOrWhiteSpace($AssemblyNames)) {
+            $args += @("-assemblyNames", $AssemblyNames)
+        }
+
+        Write-Host "Running Unity EditMode+PlayMode tests (single boot)..."
+
+        $invoke = Invoke-UnityProcess -UnityExe $unityExe -Arguments $args -TimeoutSec $UnityTimeoutSec
+        $unityExit = [int]$invoke.exitCode
+
+        foreach ($entry in @(@{ platform = "EditMode"; xml = $xmlEdit }, @{ platform = "PlayMode"; xml = $xmlPlay })) {
+            # Exit 2 means both phases completed and the XMLs carry the failures; feeding 2 into the
+            # per-platform parse would misread a passing phase (exit!=0 + failed==0) as infra_error.
+            $phaseExit = if ($unityExit -eq 2) { 0 } else { $unityExit }
+
+            $parsed = Parse-UnityResultXml `
+                -XmlPath $entry.xml `
+                -Platform $entry.platform `
+                -LogPath $logPath `
+                -UnityExitCode $phaseExit `
+                -FailureLimit $MaxFailures `
+                -MessageLimit $MaxMessageLength `
+                -WithStackTrace:$IncludeStackTrace `
+                -TailLines $LogTailLines `
+                -Selection $selection
+
+            if ($invoke.timedOut) {
+                $parsed.status = "infra_error"
+                $parsed.note = "Unity test run timed out after $UnityTimeoutSec seconds and was terminated (pid=$($invoke.pid))."
+            }
+
+            $runs += $parsed
+        }
+    }
+    else {
+
     foreach ($platform in $platforms) {
         $xmlPath = Join-Path $outRoot "$stamp-$platform.xml"
         $logPath = Join-Path $outRoot "$stamp-$platform.log"
@@ -795,6 +860,8 @@ try {
         }
 
         $runs += $parsed
+    }
+
     }
 }
 finally {

@@ -11,7 +11,6 @@ namespace Movement.MPC
         {
             "terminalCurve",
             "facingWidth",
-            "exposureWidth",
         };
 
         public override void OnInspectorGUI()
@@ -28,45 +27,16 @@ namespace Movement.MPC
 
                 switch (prop.name)
                 {
-                    case "positionCurve":
-                        DrawPositionCurve(settings.positionCurve, settings.positionSaturationDistance);
-                        break;
                     case "terminalCurve":
                         DrawTerminalRampCurve(settings.terminalMultiplier, settings.terminalCurve, settings.Horizon);
                         break;
                     case "facingWidth":
                         DrawFacingCurve(settings.facingWidth);
                         break;
-                    case "exposureWidth":
-                        DrawExposureCurve(settings.exposureWidth);
-                        break;
                 }
             }
 
             serializedObject.ApplyModifiedProperties();
-        }
-
-        private static void DrawPositionCurve(float curve, float satDistance)
-        {
-            var animCurve = new AnimationCurve();
-            const int steps = 64;
-            var maxDist = satDistance > 0f ? Mathf.Max(50f, satDistance * 2.5f) : 50f;
-            var maxCost = satDistance > 0f ? 1f : Mathf.Pow(maxDist, curve);
-            var satMax = satDistance > 0f ? Mathf.Pow(satDistance, curve) : 0f;
-
-            for (var i = 0; i <= steps; i++)
-            {
-                var dist = maxDist * i / steps;
-                var raw = Mathf.Pow(dist, curve);
-                var cost = satDistance > 0f ? raw / (raw + satMax) : raw;
-                animCurve.AddKey(new Keyframe(dist, cost) { weightedMode = WeightedMode.None });
-            }
-
-            EditorGUI.BeginDisabledGroup(true);
-            EditorGUILayout.CurveField(animCurve, Color.green,
-                new Rect(0, 0, maxDist, maxCost),
-                GUILayout.Height(50));
-            EditorGUI.EndDisabledGroup();
         }
 
         private static void DrawTerminalRampCurve(float multiplier, float curve, int horizon)
@@ -108,29 +78,6 @@ namespace Movement.MPC
             EditorGUI.BeginDisabledGroup(true);
             EditorGUILayout.CurveField(curve, Color.cyan,
                 new Rect(-maxInput, 0, 2f * maxInput, maxCost),
-                GUILayout.Height(50));
-            EditorGUI.EndDisabledGroup();
-        }
-
-        internal static void DrawExposureCurve(float width)
-        {
-            var curve = new AnimationCurve();
-            const int steps = 64;
-            var maxAngle = Mathf.PI;
-            var w = Mathf.Max(width, 1e-4f);
-
-            for (var i = 0; i <= steps; i++)
-            {
-                var t = (float)i / steps;
-                var angle = -maxAngle + t * 2f * maxAngle;
-                var x = angle / w;
-                var cost = Mathf.Exp(-x * x);
-                curve.AddKey(new Keyframe(angle, cost) { weightedMode = WeightedMode.None });
-            }
-
-            EditorGUI.BeginDisabledGroup(true);
-            EditorGUILayout.CurveField(curve, Color.cyan,
-                new Rect(-maxAngle, 0, 2f * maxAngle, 1f),
                 GUILayout.Height(50));
             EditorGUI.EndDisabledGroup();
         }

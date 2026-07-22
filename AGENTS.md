@@ -116,6 +116,20 @@ in the primary session's memory directory:
   `Smoke`/`Slow`; run a feature slice with `-TestCategory <Domain>` instead of
   the whole suite. Give new fixtures exactly one domain tag.
 
+## Unity code conventions
+
+- **Expensive lookups in `Awake()` only** — `GetComponent*`, `GameObject.Find*`,
+  `Camera.main` never run in `Start`/`OnEnable`/`Initialize`/update loops or any
+  runtime path. Cache in `Awake`; `Initialize(...)` only assigns injected
+  references (see `CLAUDE.md` → dependency wiring).
+- **Unity null checks use the engine's lifetime-aware operators** — `if (obj)`,
+  `obj != null`, `?.`/`??` on `UnityEngine.Object` types; never `is null` /
+  `is not null` on them (bypasses the destroyed-object check). Plain C# types
+  may use `is null` freely.
+- **Prefer early returns** (inverted ifs) over nested blocks.
+- `[SerializeField]` tooltips are documentation for the inspector, not code
+  comments — the comments policy in `CLAUDE.md` does not apply to them.
+
 ## Workflow
 
 - The agent-worktree PR loop (`.claude/skills/agent-worktree-pr-loop/SKILL.md`)
@@ -135,8 +149,6 @@ Claude Code is the active agent tool for this repo.
 - **Skills** live under `.claude/skills/`. That is the canonical home — do not
   duplicate a skill's body into another tool's folder; if a second tool needs
   discovery, leave a one-line pointer, not a copy.
-- **`.cursor/`** holds Cursor IDE rules only and reads this file for shared
-  conventions.
 - Offline AI-behavior analysis scripts live in `scripts/ai-analysis/`
   (`analyze_utility.py`, `find_patterns.py`) — they read the JSONL that
   `UtilityLogger` (`Assets/Scripts/AI/Editor/UtilityLogger.Editor.cs`) writes.

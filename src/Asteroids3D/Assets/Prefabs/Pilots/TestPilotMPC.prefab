@@ -91,8 +91,6 @@ MonoBehaviour:
   candidateSampleCount: 32
   candidateAlphaFalloff: 2
   controlPanelOffset: {x: 0, y: 2.5, z: 0}
-  comparisonProfiles: []
-  arriveRadius: 2.66
   mpcSettings: {fileID: 11400000, guid: a3f18c2d94b6e7054a2c8f1d6b3e0972, type: 2}
   enableObstacleAvoidance: 1
 --- !u!114 &2056539076943524747
@@ -138,13 +136,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   chooser:
-    rid: 1937986634179674124
+    rid: -2
   references:
     version: 2
-    RefIds:
-    - rid: 1937986634179674124
-      type: {class: UtilityChooser, ns: AI.Utility, asm: Game.Core}
-      data:
-        config: {fileID: 11400000, guid: 2953629aea9c0114d9f56764e09bca98, type: 2}
-        instanceUtilityWeights: {fileID: 11400000, guid: 36dd1f0bf1188b246b6b19c1160602bc,
-          type: 2}
+    RefIds: []

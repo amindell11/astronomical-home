@@ -23,7 +23,8 @@ namespace Tests.EditMode
 
             var chooser = pilot.GetComponent<Brain>().Chooser as InferenceChooser;
             Assert.IsNotNull(chooser, "AgentPilot's Brain must author an InferenceChooser");
-            Assert.IsNotNull(chooser.Model, "InferenceChooser must reference the trained checkpoint");
+            // Unity-null comparison: a broken asset ref deserializes as a fake-null wrapper Assert.IsNotNull cannot see.
+            Assert.IsTrue(chooser.Model != null, "InferenceChooser must reference a resolvable trained checkpoint");
         }
 
         [TestCase(AgentPilotPath)]

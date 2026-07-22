@@ -1,11 +1,18 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/xMPsSW77)
-[![Open in Visual Studio Code](https://classroom.github.com/assets/open-in-vscode-2e0aaae1b6195c2367325f4f02e2d04e9abb55f0b24a779b69b11b9e10269abc.svg)](https://classroom.github.com/online_ide?assignment_repo_id=19718943&assignment_repo_type=AssignmentRepo)
-# CMSI-5998 Final Project
-Show Us Your Moves!
+# Astronomical
 
-** PLACE GROUP MEMBERS' NAMES HERE **
+A 3D space-combat game built in Unity 6 — asteroid fields, utility-AI enemy ships driven by an MPC (model-predictive control) pilot, and a reinforcement-learning training pipeline (Unity ML-Agents + PPO self-play) for learned combat policies.
 
-Next Steps:
-1. Upload your Approved Proposal to the /doc/ subdirectory
-2. Upload your entire project (with the attached .gitignore in the /src/ folder) into the /src/ subdirectory
-3. Upload your final project presentation to the /doc/ subdirectory
+## Layout
+
+- `src/Asteroids3D/` — the Unity project (single `GameCore` assembly).
+- `training/rl/` — Python ML-Agents training harness (configs, runners, Unity-access coordination). See `training/rl/README.md`.
+- `scripts/` — agent tooling: worktree pool, Unity test runner, Unity access coordinator.
+- `doc/` — feature plans (`doc/Feature_Plans/`, lifecycle conventions in `AGENTS.md`) and postmortems.
+- `art/` — WIP Blender sources and downloaded asset archives, kept outside `Assets/` so Unity never imports them.
+- `tools/` — standalone utilities.
+
+## Key docs
+
+- `TESTING.md` — test suite guide and runner usage.
+- `AGENTS.md` — design-doc conventions and work-tracking.
+- `CLAUDE.md` — agent workflow rules (worktree/PR loop, fix ladder).

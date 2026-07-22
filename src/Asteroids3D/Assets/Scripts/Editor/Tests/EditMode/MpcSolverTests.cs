@@ -12,15 +12,14 @@ namespace Tests.EditMode
 {
     /// <summary>
     /// Solver-level tests for the extracted <see cref="Mpc"/> planner. These drive
-    /// <c>Mpc.Plan(in MpcInputs)</c> directly — no ship, physics, or NavigationIntent — which
-    /// is the unit the old MpcEnemyProjection PlayMode tests were really probing through
-    /// expensive closed-loop motion. Assertions are differential (compare two configurations)
-    /// so they're robust to the sampler's stochasticity.
+    /// <c>Mpc.Plan(in MpcInputs)</c> directly — no ship, physics, or NavigationIntent.
+    /// Assertions are differential (compare two configurations) so they're robust to the
+    /// sampler's stochasticity.
     /// </summary>
     [Category("MPC")]
     public class MpcSolverTests
     {
-        private const string MpcSettingsPath = "Assets/Settings/AI/MPC/MpcSettings.asset";
+        private const string MpcSettingsPath = "Assets/Settings/AI/MPC/MpcSettings_AgentPilot.asset";
         private const string ShipPrefabPath = "Assets/Prefabs/Ships/Ship_1.prefab";
 
         private MpcSettings settings;
@@ -36,14 +35,12 @@ namespace Tests.EditMode
             dynamics = ship.ResolveStats().Dynamics;
         }
 
-        private static MpcInputs WaypointInputs(float2 goalPos, float2 goalVel = default) => new()
+        private static MpcInputs VelocityInputs(float2 velocityReference) => new()
         {
-            kinematics = default,                 // ship at rest at origin, yaw 0
-            goalPos = goalPos,
-            goalVel = goalVel,
-            goalMode = GoalMode.Waypoint,
+            kinematics = default,                 // ship at rest at origin, yaw 0 (nose +Y)
+            velocityReference = velocityReference,
             facingRad = float.NaN,
-            enemyYaw = float.NaN,                 // no enemy (NaN == no tactical target)
+            enemyYaw = float.NaN,                 // no enemy
             weightOverrides = Array.Empty<WeightOverride>(),
             obstacleScan = default,
             enableObstacleAvoidance = false,
@@ -57,15 +54,17 @@ namespace Tests.EditMode
             for (var i = 0; i < warmup; i++) mpc.Plan(in inputs);
 
             float2 posSum = default;
-            float yawSum = 0f;
+            float2 velSum = default;
+            var yawSum = 0f;
             for (var i = 0; i < average; i++)
             {
                 mpc.Plan(in inputs);
                 var terminal = mpc.PredictedStates[^1];
                 posSum += terminal.pos;
+                velSum += terminal.vel;
                 yawSum += terminal.yaw;
             }
-            return new State { pos = posSum / average, yaw = yawSum / average };
+            return new State { pos = posSum / average, vel = velSum / average, yaw = yawSum / average };
         }
 
         private Control[] SolveSequence(int seed, MpcInputs inputs, int solves = 6)
@@ -102,7 +101,7 @@ namespace Tests.EditMode
         [Test]
         public void Plan_SameSeedAndInputs_ReplaysIdenticalControls()
         {
-            var inputs = WaypointInputs(new float2(30f, 12f));
+            var inputs = VelocityInputs(new float2(6f, 3f));
             var first = SolveSequence(1234, inputs);
             var second = SolveSequence(1234, inputs);
 
@@ -113,7 +112,7 @@ namespace Tests.EditMode
         [Test]
         public void Plan_SameSeed_SamplesIdenticalCandidateNoise()
         {
-            var inputs = WaypointInputs(new float2(30f, 12f));
+            var inputs = VelocityInputs(new float2(6f, 3f));
             Assert.That(SequencesEqual(SolveCandidates(1234, inputs), SolveCandidates(1234, inputs)), Is.True,
                 "A fixed seed must reproduce the same candidate noise.");
         }
@@ -121,39 +120,31 @@ namespace Tests.EditMode
         [Test]
         public void Plan_DifferentSeeds_SampleDifferentCandidateNoise()
         {
-            var inputs = WaypointInputs(new float2(30f, 12f));
+            var inputs = VelocityInputs(new float2(6f, 3f));
             Assert.That(SequencesEqual(SolveCandidates(1, inputs), SolveCandidates(2, inputs)), Is.False,
                 "Two ships with different seeds must sample different candidate noise.");
         }
 
         [Test]
-        public void Plan_HeadsTowardGoal()
+        public void Plan_TracksCommandedVelocity()
         {
-            var terminal = SolveTerminal(WaypointInputs(new float2(30f, 0f)));
+            const float speed = 6f;
+            var terminal = SolveTerminal(VelocityInputs(new float2(0f, speed)));
 
-            Assert.That(terminal.pos.x, Is.GreaterThan(1f),
-                "Planned trajectory should advance toward an eastward goal");
-            Assert.That(Mathf.Abs(terminal.pos.y), Is.LessThan(terminal.pos.x),
-                "Planned trajectory should stay roughly on the axis toward the goal");
-        }
-
-        [Test]
-        public void Plan_GoalVelocity_LeadsInTravelDirection()
-        {
-            // Same stationary goal position, opposite goal velocities.
-            var north = SolveTerminal(WaypointInputs(new float2(30f, 0f), new float2(0f, 6f)));
-            var south = SolveTerminal(WaypointInputs(new float2(30f, 0f), new float2(0f, -6f)));
-
-            Assert.That(north.pos.y, Is.GreaterThan(south.pos.y),
-                "Goal-velocity projection should lead the trajectory in the goal's travel direction");
+            Assert.That(terminal.vel.y, Is.GreaterThan(0.2f * speed),
+                "Planned trajectory should accelerate toward the commanded velocity");
+            Assert.That(terminal.vel.y, Is.GreaterThan(math.abs(terminal.vel.x)),
+                "Planned velocity should track the commanded axis, not drift sideways");
+            Assert.That(terminal.pos.y, Is.GreaterThan(1f),
+                "Tracking the command should carry the ship along the commanded direction");
         }
 
         [Test]
         public void Plan_FacingOverride_SteersYawTowardRequestedHeading()
         {
-            var left = WaypointInputs(float2.zero);
+            var left = VelocityInputs(float2.zero);
             left.facingRad = 0.5f * Mathf.PI;          // +90°
-            var right = WaypointInputs(float2.zero);
+            var right = VelocityInputs(float2.zero);
             right.facingRad = -0.5f * Mathf.PI;        // -90°
 
             var yawLeft = SolveTerminal(left).yaw;
@@ -164,11 +155,9 @@ namespace Tests.EditMode
         }
 
         // NOTE: A projectile-lead facing test (enemy moving, projectileSpeed > 0 shifts the
-        // planned facing toward the intercept) belongs here, but base-weight facing/exposure
-        // authority was intentionally collapsed in the MPC retune (authority moved to per-state
-        // weight multipliers). At base weights the shift is sub-degree, so it isn't meaningfully
-        // assertable yet — same reason the old EnemyState_WithProjectileSpeed PlayMode test is
-        // [Ignore]d. Revive with amplified facing weightOverrides after the reward refactor.
+        // planned facing toward the intercept) belongs here, but at base facing weights the
+        // shift is sub-degree, so it isn't meaningfully assertable. Revive with amplified
+        // facing weightOverrides.
     }
 }
 #endif

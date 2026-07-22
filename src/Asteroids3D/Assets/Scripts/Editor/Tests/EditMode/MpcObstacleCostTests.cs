@@ -66,8 +66,8 @@ namespace Tests.EditMode
                 var input = new CostInput { obstacles = obstacles, obstacleCount = obstacles.Length, enemyYaw = float.NaN };
                 var state = new State(); // ship at the gap center, at rest
 
-                var unbanked = Cost.Evaluate(state, new Control(), new Control(), input, cfg, false);
-                var banked = Cost.Evaluate(state, new Control { strafe = 1f }, new Control(), input, cfg, false);
+                var unbanked = Cost.Evaluate(state, new Control(), new Control(), input, cfg);
+                var banked = Cost.Evaluate(state, new Control { strafe = 1f }, new Control(), input, cfg);
 
                 Assert.That(unbanked, Is.GreaterThanOrEqualTo(CollisionPenalty),
                     "Unbanked hull overlaps the gap walls — the collision penalty must fire");
@@ -87,7 +87,7 @@ namespace Tests.EditMode
                 var input = new CostInput { obstacles = obstacles, obstacleCount = obstacles.Length, enemyYaw = float.NaN };
                 var fast = new State { vel = new float2(0f, 25f) }; // flying along the gap axis
 
-                var banked = Cost.Evaluate(fast, new Control { strafe = 1f }, new Control(), input, cfg, false);
+                var banked = Cost.Evaluate(fast, new Control { strafe = 1f }, new Control(), input, cfg);
                 Assert.That(banked, Is.LessThan(CollisionPenalty),
                     "Speed must not inflate the collision boundary (that feedback loop was the " +
                     "threshold cost's failure mode)");
@@ -183,9 +183,9 @@ namespace Tests.EditMode
             {
                 var input = new CostInput { obstacles = obstacles, obstacleCount = obstacles.Length, enemyYaw = float.NaN };
 
-                var overlapping = Cost.Evaluate(new State(), new Control(), new Control(), input, cfg, false);
+                var overlapping = Cost.Evaluate(new State(), new Control(), new Control(), input, cfg);
                 var closingFast = Cost.Evaluate(new State { pos = new float2(0f, -8f), vel = new float2(0f, 30f) },
-                    new Control(), new Control(), input, cfg, false);
+                    new Control(), new Control(), input, cfg);
 
                 Assert.That(overlapping, Is.GreaterThanOrEqualTo(CollisionPenalty));
                 Assert.That(closingFast, Is.LessThanOrEqualTo(cfg.wObstacle + 1f),

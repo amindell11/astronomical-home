@@ -18,16 +18,8 @@ MonoBehaviour:
   noiseStd: 0.75
   noiseKnots: 5
   eliteFraction: 0.113
-  wPos: 50
-  wVel: 0
   wVelTrack: 50
-  wClosing: 1
-  closingFadeDistance: 10
-  wYaw: 1
-  wYawDistanceScale: 1
   wYawRate: 1
-  positionCurve: 2
-  positionSaturationDistance: 35
   terminalMultiplier: 10
   terminalCurve: 1
   wEffort: 0.1
@@ -39,16 +31,7 @@ MonoBehaviour:
   boostSampleProbability: 0
   wFacing: 1
   facingWidth: 1.5
-  wLos: 1
-  wExposure: 1
-  exposureWidth: 0.5
-  wTangential: 1
-  wMissDistance: 0
   wObstacle: 5
   collisionPenalty: 10000
   collisionSafetyMargin: 0.3
   multiSphereObstacles: 1
-  wTerminal: 1
-  arrivalDistance: 4
-  arrivalVelScale: 5
-  arrivalYawScale: 0.1

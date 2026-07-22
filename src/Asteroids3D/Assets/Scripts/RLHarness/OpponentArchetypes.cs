@@ -2,7 +2,6 @@ using AI;
 using AI.Context;
 using AI.States;
 using Movement;
-using Movement.MPC;
 using Ships;
 using UnityEngine;
 
@@ -127,7 +126,6 @@ namespace Game.RLHarness
             return new NavigationIntent
             {
                 isValid = true,
-                goalMode = GoalMode.VelocityReference,
                 velocityReference = Steered(self.pos, speedFraction * ctx.Self.Dynamics.maxSpeed * dir),
             };
         }
@@ -173,7 +171,6 @@ namespace Game.RLHarness
             return new NavigationIntent
             {
                 isValid = true,
-                goalMode = GoalMode.VelocityReference,
                 velocityReference = Steered(self.pos, vRef),
                 hasTarget = true,
                 target = new EnemyTarget
@@ -182,8 +179,7 @@ namespace Game.RLHarness
                     dynamics = target.Dynamics,
                     source = target.transform,
                 },
-                // Solely to route SetEnemyState for intercept-yaw aim; the tactical cost block stays off (goalMode-derived tacticalEnabled).
-                applyTacticalCosts = true,
+                aimAtTarget = true,
                 projectileSpeed = projectileSpeed,
                 enableFiring = true,
             };
@@ -214,7 +210,6 @@ namespace Game.RLHarness
             return new NavigationIntent
             {
                 isValid = true,
-                goalMode = GoalMode.VelocityReference,
                 velocityReference = Steered(self.pos, vRef),
                 hasTarget = true,
                 target = new EnemyTarget
@@ -223,7 +218,7 @@ namespace Game.RLHarness
                     dynamics = target.Dynamics,
                     source = target.transform,
                 },
-                applyTacticalCosts = true,
+                aimAtTarget = true,
                 projectileSpeed = projectileSpeed,
                 enableFiring = true,
             };
@@ -239,7 +234,6 @@ namespace Game.RLHarness
                 : new NavigationIntent
                 {
                     isValid = true,
-                    goalMode = GoalMode.VelocityReference,
                     velocityReference = Vector2.zero,
                 };
     }

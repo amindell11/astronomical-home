@@ -2,6 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using AI;
+using AI.Context;
 using AI.Scanning;
 using Game;
 using Game.Bootstrap;
@@ -26,8 +28,6 @@ namespace Tests.PlayMode
         private const float ArenaSpacing = 1000f;
         private const float PlacementTolerance = 1f;
         private const float SimSeconds = 4f;
-        // Combat liveness (first ship-vs-ship hit) is stochastic and slow-burn — range-holding AI closes to its band and waits for the 5° aim gate before firing; keep simulating past SimSeconds until it lands.
-        private const float MaxSimSeconds = 120f;
 
         private const string SectorPrefabPath = "Assets/Prefabs/Sectors/ArenaSector.prefab";
         private const string ConfigPath = "Assets/Settings/Game/DefaultSectorConfig.asset";
@@ -150,36 +150,45 @@ namespace Tests.PlayMode
             Assert.Greater(a.ShipsInSpawnOrder.Count, 0, "Arena A composed no ships");
             Assert.AreEqual(a.ShipsInSpawnOrder.Count, b.ShipsInSpawnOrder.Count);
 
-            var spawnPlane = new Vector2[a.ShipsInSpawnOrder.Count];
-            for (var i = 0; i < a.ShipsInSpawnOrder.Count; i++)
-                spawnPlane[i] = GamePlane.WorldPointToPlane(a.ShipsInSpawnOrder[i].transform.position);
+            // Arranged pre-window so the sim window's steps double as the scan cadence.
+            var probeA = ArrangeScanProbe(a);
+            var probeB = ArrangeScanProbe(b);
+
+            var spawnPlaneA = RecordSpawnPositions(a);
+            var spawnPlaneB = RecordSpawnPositions(b);
 
             var combat = new CombatLog(a, b);
 
             // Both arenas take their first simulated step together.
             Time.timeScale = 20f;
             var elapsed = 0f;
-            while (elapsed < SimSeconds || (!combat.BothArenasDamaged && elapsed < MaxSimSeconds))
+            while (elapsed < SimSeconds)
             {
                 yield return new WaitForFixedUpdate();
                 elapsed += Time.fixedDeltaTime;
             }
+            // Teardown is frame-bound: at 20x (or with a permissive maximumDeltaTime) every rendered frame drags a multi-step 16-ship fixed batch.
+            Time.timeScale = 1f;
+            Time.maximumDeltaTime = Time.fixedDeltaTime;
+
+            AssertShipsDisplaced(a, spawnPlaneA);
+            AssertShipsDisplaced(b, spawnPlaneB);
+
+            Assert.IsTrue(HasAcquired(probeA),
+                "An arena-A ship in scanner range of a hostile all window never acquired one — the scan/targeting stack is dead in the composition.");
+            Assert.IsTrue(HasAcquired(probeB),
+                "An arena-B ship in scanner range of a hostile all window never acquired one — the scan/targeting stack is dead in the composition.");
+            AssertAcquiredEnemiesInOwnHalf(a);
+            AssertAcquiredEnemiesInOwnHalf(b);
+
+            ApplySameArenaDamage(a);
+            ApplySameArenaDamage(b);
             combat.Unsubscribe();
 
-            var maxDisplacement = 0f;
-            for (var i = 0; i < a.ShipsInSpawnOrder.Count; i++)
-            {
-                var ship = a.ShipsInSpawnOrder[i];
-                if (!ship) continue;
-                maxDisplacement = Mathf.Max(maxDisplacement,
-                    (GamePlane.WorldPointToPlane(ship.transform.position) - spawnPlane[i]).magnitude);
-            }
-            Assert.Greater(maxDisplacement, 1f, "No arena-A ship moved — the composed AI ships never simulated.");
-
             Assert.Greater(combat.CombatDamageIn(a), 0,
-                "No ship-vs-ship damage landed in arena A within the sim window — combat never went live.");
+                "Arena-A ship-vs-ship damage was not recorded — attribution never reached the arena's CombatLog.");
             Assert.Greater(combat.CombatDamageIn(b), 0,
-                "No ship-vs-ship damage landed in arena B within the sim window — combat never went live.");
+                "Arena-B ship-vs-ship damage was not recorded — attribution never reached the arena's CombatLog.");
             Assert.IsEmpty(combat.CrossArenaHits,
                 "Every attacker must belong to its victim's own arena:\n" + string.Join("\n", combat.CrossArenaHits));
 
@@ -220,7 +229,6 @@ namespace Tests.PlayMode
                 foreach (var ship in b.ShipsInSpawnOrder) Subscribe(ship, own: b, other: a);
             }
 
-            public bool BothArenasDamaged => combatDamage.Values.All(count => count > 0);
             public int CombatDamageIn(ArenaUnderTest arena) => combatDamage[arena];
 
             public void Unsubscribe()
@@ -247,6 +255,69 @@ namespace Tests.PlayMode
                 damage.OnDamaged += Handler;
                 subscriptions.Add((damage, Handler));
             }
+        }
+
+        private static Vector2[] RecordSpawnPositions(ArenaUnderTest arena)
+        {
+            var positions = new Vector2[arena.ShipsInSpawnOrder.Count];
+            for (var i = 0; i < positions.Length; i++)
+                positions[i] = GamePlane.WorldPointToPlane(arena.ShipsInSpawnOrder[i].transform.position);
+            return positions;
+        }
+
+        private static void AssertShipsDisplaced(ArenaUnderTest arena, Vector2[] spawnPlane)
+        {
+            var maxDisplacement = 0f;
+            for (var i = 0; i < arena.ShipsInSpawnOrder.Count; i++)
+            {
+                var ship = arena.ShipsInSpawnOrder[i];
+                if (!ship) continue;
+                maxDisplacement = Mathf.Max(maxDisplacement,
+                    (GamePlane.WorldPointToPlane(ship.transform.position) - spawnPlane[i]).magnitude);
+            }
+            Assert.Greater(maxDisplacement, 1f,
+                $"No {arena.Root.name} ship moved — the composed AI ships never simulated.");
+        }
+
+        private static IEnumerable<EnemyTracker> AcquiredTrackers(ArenaUnderTest arena) =>
+            arena.ShipsInSpawnOrder
+                .Where(ship => ship)
+                .Select(ship => (ship.Commander as AICommander)?.context?.Combat)
+                .Where(combat => combat != null && combat.HasEnemy);
+
+        private static AICommander ArrangeScanProbe(ArenaUnderTest arena)
+        {
+            var live = arena.ShipsInSpawnOrder.Where(ship => ship).ToArray();
+            var scout = live.FirstOrDefault(ship => ship.Commander is AICommander);
+            Assert.IsNotNull(scout, $"{arena.Root.name} has no live AI ship for the scan probe.");
+            var hostile = live.FirstOrDefault(ship => ship.teamNumber != scout.teamNumber);
+            Assert.IsNotNull(hostile, $"{arena.Root.name} has no live hostile for the scan probe.");
+
+            var beside = hostile.transform.position + GamePlane.PlaneDirToWorld(Vector2.right) * 8f;
+            scout.Rigidbody.position = beside;
+            scout.transform.position = beside;
+            // Invulnerable so a mid-window kill cannot drop the acquisition being asserted.
+            scout.Damage.SetInvulnerability(SimSeconds * 4f);
+            hostile.Damage.SetInvulnerability(SimSeconds * 4f);
+
+            return (AICommander)scout.Commander;
+        }
+
+        private static bool HasAcquired(AICommander cmdr) => cmdr.context?.Combat?.HasEnemy == true;
+
+        private static void AssertAcquiredEnemiesInOwnHalf(ArenaUnderTest arena)
+        {
+            foreach (var tracker in AcquiredTrackers(arena))
+                Assert.Less((tracker.EnemyPos - arena.Offset).magnitude, ArenaSpacing / 2f,
+                    $"A {arena.Root.name} ship acquired an enemy outside its own arena half — targeting leaked across arenas.");
+        }
+
+        private static void ApplySameArenaDamage(ArenaUnderTest arena)
+        {
+            var live = arena.ShipsInSpawnOrder.Where(ship => ship && ship.Damage).Take(2).ToArray();
+            Assert.AreEqual(2, live.Length, $"{arena.Root.name} needs two live ships for the attribution probe.");
+            live[0].Damage.SetInvulnerability(0f);
+            live[0].Damage.TakeDamage(1f, 0f, Vector3.zero, Vector3.zero, live[1].gameObject);
         }
 
         private static void AssertShipsStayInOwnHalf(ArenaUnderTest arena)

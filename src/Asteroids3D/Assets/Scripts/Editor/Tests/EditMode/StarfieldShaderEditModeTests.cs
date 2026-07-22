@@ -8,7 +8,7 @@ namespace Tests.EditMode
     [Category("Sectors")]
     public class StarfieldShaderEditModeTests
     {
-        private const string MaterialPath = "Assets/Visuals/Materials/StarFieldMaterial.mat";
+        private const string MaterialPath = "Assets/Visuals/Environment/Sky/StarFieldMaterial.mat";
         private const string WorldPrefabPath = "Assets/Prefabs/World/World.prefab";
         private const string StandalonePrefabPath = "Assets/Prefabs/MiscObjects/StarField.prefab";
 

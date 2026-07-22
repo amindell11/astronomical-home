@@ -5,14 +5,13 @@ using AI.States;
 using Ships;
 using Ships.Command;
 using Unity.InferenceEngine;
-using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Policies;
 using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>Editor-authorable trained policy: self-hosts a <see cref="LivePilotAgent"/> in InferenceOnly mode on first Decide, targets the context's tracked enemy, and owns decision pacing (chooser-driven Academy stepping — see the Playable_RL_Pilot brief).</summary>
+    /// <summary>Editor-authorable trained policy: self-hosts a <see cref="LivePilotAgent"/> in InferenceOnly mode on first Decide, targets the context's tracked enemy, and paces boundary RequestDecision calls on the Academy auto-clock.</summary>
     [Serializable]
     public sealed class InferenceChooser : IIntentChooser
     {
@@ -29,7 +28,6 @@ namespace Game.RLHarness
         private Vector2 leashCenter;
         private bool reanchorLeash;
         private int ticksUntilDecision;
-        private bool composeFailed;
 
         public InferenceChooser() { }
 
@@ -44,8 +42,8 @@ namespace Game.RLHarness
 
         public NavigationIntent Decide(AIContext ctx, float dt)
         {
-            if (!agent && !TryCompose(ctx))
-                return NavigationIntent.None;
+            if (!agent)
+                Compose(ctx);
 
             // Deferred to the first post-reset tick: Reset fires before a respawn teleport lands.
             if (reanchorLeash)
@@ -60,7 +58,6 @@ namespace Game.RLHarness
             {
                 agent.CaptureBoundary(self, enemy, leashCenter, leashRadius);
                 agent.RequestDecision();
-                Academy.Instance.EnvironmentStep();
                 ticksUntilDecision = ShipCombatPolicy.DecisionIntervalSteps;
             }
 
@@ -85,19 +82,13 @@ namespace Game.RLHarness
                 mailbox.Reset();
         }
 
-        private bool TryCompose(AIContext ctx)
+        private void Compose(AIContext ctx)
         {
-            if (composeFailed) return false;
-
             self = ctx.Self as Ship;
-            if (!self || !model)
-            {
-                composeFailed = true;
-                Debug.LogError(!model
-                    ? "InferenceChooser has no ModelAsset assigned — pilot stays inert."
-                    : "InferenceChooser needs a Ship context — pilot stays inert.", self);
-                return false;
-            }
+            if (!self)
+                throw new InvalidOperationException("InferenceChooser requires a Ship context.");
+            if (!model)
+                throw new InvalidOperationException($"InferenceChooser on '{self.name}' has no ModelAsset assigned.");
 
             var host = new GameObject("[InferencePilot]");
             host.transform.SetParent(self.transform, false);
@@ -116,10 +107,8 @@ namespace Game.RLHarness
             agent.Bind(mailbox, ctx.Scout);
             host.SetActive(true);
 
-            Academy.Instance.AutomaticSteppingEnabled = false;
             leashCenter = self.Kinematics.pos;
             ticksUntilDecision = 0;
-            return true;
         }
     }
 }

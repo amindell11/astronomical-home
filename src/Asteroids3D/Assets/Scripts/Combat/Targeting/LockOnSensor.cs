@@ -166,7 +166,9 @@ namespace Combat.Targeting
         private bool IsAcquired(ITargetable t) =>
             IsValid(t) && InRange(t) && InCone(t) && InLineOfSight(t);
 
-        private static bool IsValid(ITargetable t) => t != null && t.TargetPoint;
+        // Destroyed MonoBehaviours pass the interface null-check; liveness must test the underlying Object.
+        private static bool IsValid(ITargetable t) =>
+            (t is UnityEngine.Object obj ? obj : t != null) && t.TargetPoint;
 
         private bool InRange(ITargetable t)
         {

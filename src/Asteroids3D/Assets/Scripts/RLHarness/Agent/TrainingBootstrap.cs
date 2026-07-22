@@ -57,7 +57,7 @@ namespace Game.RLHarness
             EditorApplication.EnterPlaymode();
         }
 
-        private static string ImportEvalCandidate(string sourceFile)
+        public static string ImportEvalCandidate(string sourceFile)
         {
             var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
             File.Copy(Path.GetFullPath(sourceFile), Path.Combine(projectRoot, EvalCandidateAssetPath), overwrite: true);

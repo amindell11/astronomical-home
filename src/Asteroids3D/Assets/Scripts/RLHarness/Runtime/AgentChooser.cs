@@ -1,7 +1,6 @@
 using AI;
 using AI.Context;
 using AI.States;
-using Movement.MPC;
 using Ships;
 using UnityEngine;
 
@@ -52,7 +51,6 @@ namespace Game.RLHarness
             return new NavigationIntent
             {
                 isValid = true,
-                goalMode = GoalMode.VelocityReference,
                 velocityReference = worldVelocity,
                 boost = boost,
                 hasTarget = true,
@@ -62,8 +60,7 @@ namespace Game.RLHarness
                     dynamics = opponent.Dynamics,
                     source = opponent.transform,
                 },
-                // Solely to route SetEnemyState for intercept-yaw aim; the tactical cost block stays off (goalMode-derived tacticalEnabled).
-                applyTacticalCosts = true,
+                aimAtTarget = true,
                 projectileSpeed = projectileSpeed,
                 enableFiring = fire,
             };

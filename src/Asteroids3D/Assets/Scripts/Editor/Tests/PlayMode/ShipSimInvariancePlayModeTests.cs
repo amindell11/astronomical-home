@@ -19,6 +19,8 @@ namespace Tests.PlayMode
 
         private Ship ship;
 
+        protected override bool AccelerateTime => true;
+
         [SetUp]
         public override void SetUp()
         {

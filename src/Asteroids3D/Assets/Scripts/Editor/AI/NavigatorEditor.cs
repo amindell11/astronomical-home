@@ -1,4 +1,3 @@
-using AI;
 using Game;
 using UnityEditor;
 using UnityEngine;
@@ -61,7 +60,7 @@ namespace Movement.MPC
             for (var i = 0; i < horizon; i++)
                 seq[i] = candidates[nav.selectedCandidateIndex * horizon + i];
 
-            var input = nav.solver.BuildCostInput(nav.GoalPos(), nav.GoalVel(),
+            var input = nav.solver.BuildCostInput(nav.velocityReference,
                 nav.enemyPos, nav.enemyVel, nav.enemyYaw, nav.enemyYawRate,
                 nav.projectileSpeed, nav.lastInitialState.vel);
             return Cost.EvaluateTrajectoryBreakdown(nav.lastInitialState, seq, input, nav.config, nav.dynamics, nav.lastControl);
@@ -113,39 +112,17 @@ namespace Movement.MPC
                 }
             }
 
-            if (nav.comparisonResults != null && nav.comparisonResults.Length > 0)
-            {
-                EditorGUILayout.Space();
-                EditorGUILayout.LabelField("Comparison Rollouts", EditorStyles.boldLabel);
-                for (var i = 0; i < nav.comparisonResults.Length; i++)
-                {
-                    var result = nav.comparisonResults[i];
-                    if (result.profile == null) continue;
-                    var color = NavigatorSteeringGizmos.ComparisonColors[i % NavigatorSteeringGizmos.ComparisonColors.Length];
-                    var style = new GUIStyle(EditorStyles.label) { normal = { textColor = color } };
-                    EditorGUILayout.LabelField($"  {result.profile.name}: {result.cost:F1}", style);
-                }
-            }
-
             Repaint();
         }
 
         private void RenderBreakdownBars(MpcSettings s, CostBreakdown breakdown)
         {
             var total = breakdown.total;
-            DrawCostBar("Position", breakdown.pos, s.wPos, total, Color.green);
             DrawCostBar("Velocity Track", breakdown.velocityTrack, s.wVelTrack, total, new Color(0.5f, 1f, 0.5f));
-            DrawCostBar("Heading", breakdown.heading, s.wYaw, total, Color.yellow);
             DrawCostBar("Facing", breakdown.facing, s.wFacing, total, Color.cyan);
-            DrawCostBar("Velocity", breakdown.vel, s.wVel, total, Color.blue);
-            DrawCostBar("Closing", breakdown.closing, s.wClosing, total, new Color(0.4f, 0.9f, 0.7f));
             DrawCostBar("Yaw Rate", breakdown.yawRate, s.wYawRate, total, Color.magenta);
             DrawCostBar("Obstacle", breakdown.obstacle, s.wObstacle, total, Color.red);
             DrawCostBar("Collision", breakdown.collision, s.collisionPenalty, total, new Color(1f, 0f, 0.5f));
-            DrawCostBar("LOS", breakdown.los, s.wLos, total, new Color(1f, 0.5f, 0f));
-            DrawCostBar("Exposure", breakdown.exposure, s.wExposure, total, new Color(1f, 0.3f, 0.3f));
-            DrawCostBar("Tangential", breakdown.tangential, s.wTangential, total, new Color(0.3f, 0.8f, 1f));
-            DrawCostBar("Miss Distance", breakdown.missDistance, s.wMissDistance, total, new Color(1f, 0.8f, 0.2f));
             DrawCostBar("Momentum", breakdown.momentum, s.wMomentum, total, new Color(0.6f, 1f, 0.6f));
             DrawCostBar("Effort", breakdown.effort, s.wEffort, total, Color.gray);
             DrawCostBar("Boost Effort", breakdown.boostEffort, s.wBoostEffort, total, new Color(1f, 0.6f, 0f));

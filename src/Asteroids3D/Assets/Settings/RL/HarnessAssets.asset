@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   shipPrefab: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274, type: 3}
   agentPilot: {fileID: 1772957474756936600, guid: fec4107545af8044dbabfd5ed006fc11, type: 3}
-  baselinePilot: {fileID: 1772957474756936600, guid: 08a3705197cc60842b107b8485d8ad25, type: 3}
+  baselinePilot: {fileID: 1772957474756936600, guid: fec4107545af8044dbabfd5ed006fc11, type: 3}
   fieldPrefab: {fileID: 1000000000000000001, guid: 879cf50579cf427e92263e9128467293, type: 3}
