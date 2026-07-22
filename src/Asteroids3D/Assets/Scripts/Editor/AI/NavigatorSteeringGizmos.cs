@@ -1,14 +1,13 @@
 using AI.Debug;
 using Game;
 using Movement.MPC;
-using Movement.MPC.Field;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 
 namespace AI
 {
-    /// <summary>Scene gizmos for the MPC navigator behind the Steering debug channel: trajectories (predicted, candidate, enemy), obstacle rings, flee field, goal, and the control-input panel.</summary>
+    /// <summary>Scene gizmos for the MPC navigator behind the Steering debug channel: trajectories (predicted, candidate, enemy), obstacle rings, and the control-input panel.</summary>
     internal static class NavigatorSteeringGizmos
     {
         [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected, typeof(Navigator))]
@@ -18,19 +17,11 @@ namespace AI
             if (nav.mpc == null) return;
 
             DrawShipRadius(nav);
-            DrawFleeField(nav);
             DrawCandidateTrajectories(nav);
             DrawPredictedTrajectory(nav);
             DrawEnemyRollout(nav);
-            DrawGoal(nav);
             DrawObstacleDebugInfo(nav);
             DrawControlInputs(nav);
-        }
-
-        private static void DrawFleeField(Navigator nav)
-        {
-            if (!nav.showFleeField || nav.fleeFieldBaker == null) return;
-            NavFieldServiceGizmos.DrawField(nav.fleeFieldBaker.Front);
         }
 
         private static void DrawCandidateTrajectories(Navigator nav)
@@ -113,7 +104,7 @@ namespace AI
             var config = nav.config;
             var prevPos = GamePlane.PlanePointToWorld(new Vector2(predictedStates[0].pos.x, predictedStates[0].pos.y));
             var prevU = bestSequence[0];
-            var input = nav.solver.BuildCostInput(nav.GoalPos(), nav.GoalVel(),
+            var input = nav.solver.BuildCostInput(nav.velocityReference,
                 nav.enemyPos, nav.enemyVel, nav.enemyYaw, nav.enemyYawRate, nav.projectileSpeed, predictedStates[0].vel);
 
             for (var i = 1; i < predictedStates.Length; i++)
@@ -122,8 +113,7 @@ namespace AI
                 var u = bestSequence[i];
                 var pos = GamePlane.PlanePointToWorld(new Vector2(state.pos.x, state.pos.y));
 
-                var isTerminal = i == predictedStates.Length - 1;
-                var stepBreakdown = Cost.EvaluateBreakdown(state, u, prevU, input, config, isTerminal, i);
+                var stepBreakdown = Cost.EvaluateBreakdown(state, u, prevU, input, config, i);
 
                 var obstacleSeverity = stepBreakdown.collision > 0f ? 5f
                     : config.wObstacle > 0f ? stepBreakdown.obstacle / config.wObstacle : 0f;
@@ -140,7 +130,7 @@ namespace AI
                 if (i % nav.labelStep == 0)
                 {
                     Handles.Label(pos + Vector3.up * 0.2f,
-                        $"Cost: {stepBreakdown.total:F1}\n(P:{stepBreakdown.pos:F1} O:{stepBreakdown.obstacle + stepBreakdown.collision:F1})",
+                        $"Cost: {stepBreakdown.total:F1}\n(O:{stepBreakdown.obstacle + stepBreakdown.collision:F1})",
                         new GUIStyle { normal = { textColor = Color.white }, fontSize = 10 });
                 }
 
@@ -176,13 +166,6 @@ namespace AI
 
                 prevPos = pos;
             }
-        }
-
-        private static void DrawGoal(Navigator nav)
-        {
-            if (!nav.CurrentWaypoint.isValid) return;
-            Gizmos.color = Color.green;
-            Gizmos.DrawWireSphere(GamePlane.PlanePointToWorld(nav.CurrentWaypoint.position), nav.arriveRadius);
         }
 
         private static void DrawObstacleDebugInfo(Navigator nav)

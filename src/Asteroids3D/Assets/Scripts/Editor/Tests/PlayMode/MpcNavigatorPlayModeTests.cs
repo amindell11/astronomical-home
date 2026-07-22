@@ -8,13 +8,12 @@ using Tests.Common;
 using Tests.PlayMode.Common;
 using UnityEngine;
 using UnityEngine.TestTools;
-using UnityEngine.TestTools.Utils;
 using AICommander = AI.AICommander;
 
 namespace Tests.PlayMode
 {
 
-// Closed-loop integration tests: drive the navigator with the public "go here" command and assert on the ship's emergent motion. Solver-decision behavior is covered more cheaply at the unit level in Tests.EditMode/MpcSolverTests.
+// Closed-loop integration tests: drive the navigator with the public velocity-reference command and assert on the ship's emergent motion. Solver-decision behavior is covered more cheaply at the unit level in Tests.EditMode/MpcSolverTests.
 [Category("MPC")]
 public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
 {
@@ -37,7 +36,7 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
         cmdr = ship.Commander as AICommander;
         mpc  = cmdr.Navigator as Navigator;
 
-        // Navigator.Initialize() is gated on arena != null — supply the fixture arena so all AI systems are fully initialized before tests run.
+        // AICommander.TryInitializeSystems is gated on an arena — supply the fixture arena so all AI systems initialize.
         cmdr.SetArena(Arena);
         cmdr.Brain.enabled = false;
 #else
@@ -54,21 +53,9 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
 
     [UnityTest]
     [Category("Smoke")]
-    public IEnumerator SetNavigationPoint_WaypointBecomesValid()
-    {
-        // Exercises base-Navigator waypoint plumbing (not MPC-specific behaviour).
-        cmdr.Navigator.SetNavigationPoint(new Vector2(10, 10));
-        Assert.That(cmdr.Navigator.CurrentWaypoint.isValid, Is.True);
-        Assert.That(cmdr.Navigator.CurrentWaypoint.position,
-            Is.EqualTo(new Vector2(10, 10)).Using(new Vector2EqualityComparer(0.01f)));
-        yield return null;
-    }
-
-    [UnityTest]
-    [Category("Smoke")]
     public IEnumerator SetVelocityReference_ShipVelocityTrendsToCommand()
     {
-        // The velocity-tracker seam: a commanded planar velocity with no waypoint drives a real hull, and ShouldIdle keeps the MPC running without one.
+        // The velocity-tracker seam: a commanded planar velocity drives a real hull toward the reference.
         var command = new Vector2(0f, 8f); // +Y, along the ship's initial nose
         mpc.SetVelocityReference(command);
 
@@ -93,7 +80,8 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
     [Category("Smoke")]
     public IEnumerator MpcYawOnly_ShipRotatesToFacingOverride()
     {
-        mpc.SetNavigationPoint(Vector2.zero);
+        // A zero reference is a valid "stop", keeping the MPC running while only the facing override acts.
+        mpc.SetVelocityReference(Vector2.zero);
         mpc.SetFacingOverride(90f);
 
         yield return AsyncAssert.WaitUntilThen(
@@ -108,41 +96,6 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
                     "Ship should remain stationary while only yawing");
             },
             useFixedUpdate: true);
-    }
-
-    [UnityTest]
-    public IEnumerator MpcFixedWaypoint_ShipArrivesWithinTimeout()
-    {
-        var targetPos = new Vector2(15, 15);
-        mpc.SetNavigationPoint(targetPos);
-
-        yield return AsyncAssert.WaitForVector2NearTarget(
-            () => GamePlane.WorldPointToPlane(ship.transform.position),
-            targetPos,
-            mpc.arriveRadius,
-            NavTimeoutSec,
-            $"MPC should reach waypoint {targetPos} within {NavTimeoutSec}s",
-            useFixedUpdate: true);
-    }
-
-    [UnityTest]
-    public IEnumerator MpcMovingWaypoint_ShipFollowsTarget()
-    {
-        var targetPos = new Vector2(10, 0);
-        mpc.SetNavigationPoint(targetPos);
-
-        var elapsed = 0f;
-        while (elapsed < 10f)
-        {
-            float t = Time.time;
-            targetPos = new Vector2(Mathf.Cos(t) * 10f, Mathf.Sin(t) * 10f);
-            mpc.SetNavigationPoint(targetPos);
-            yield return new WaitForFixedUpdate();
-            elapsed += Time.fixedDeltaTime;
-        }
-
-        float dist = TestUtilities.DistanceToPlaneTarget(ship.transform, targetPos);
-        Assert.That(dist, Is.LessThan(16f), "Ship should follow a moving waypoint");
     }
 
     /// <summary>Feeds a hand-placed obstacle through the obstacle-field seam (there is no physics scan for primitive colliders).</summary>
@@ -160,7 +113,7 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
     }
 
     [UnityTest]
-    public IEnumerator MpcObstacleAvoidance_ShipReachesTargetWithoutColliding()
+    public IEnumerator MpcObstacleAvoidance_ShipTracksCommandWithoutColliding()
     {
         mpc.enableObstacleAvoidance = true;
 
@@ -172,11 +125,14 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
             collider = obstacle.GetComponent<Collider>(),
         };
         Arena.ObstacleField = stubField;
-        var targetPos  = new Vector2(20, 20);
+
+        // Commanded velocity leads straight through the obstacle; the solver must divert around it while keeping progress.
+        var direction = new Vector2(1f, 1f).normalized;
         var obstaclePos2D = new Vector2(10, 10);
-        mpc.SetNavigationPoint(targetPos);
+        mpc.SetVelocityReference(direction * 8f);
 
         var elapsed             = 0f;
+        var progress            = 0f;
         float minDistToObstacle = float.MaxValue;
 
         while (elapsed < NavTimeoutSec)
@@ -184,16 +140,15 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
             var shipPos2D = GamePlane.WorldPointToPlane(ship.transform.position);
             minDistToObstacle = Mathf.Min(minDistToObstacle, Vector2.Distance(shipPos2D, obstaclePos2D));
 
-            if (TestUtilities.DistanceToPlaneTarget(ship.transform, targetPos) < mpc.arriveRadius)
-                break;
+            progress = Vector2.Dot(shipPos2D, direction);
+            if (progress > 25f) break;
 
             yield return new WaitForFixedUpdate();
             elapsed += Time.fixedDeltaTime;
         }
 
-        var finalDistToTarget = TestUtilities.DistanceToPlaneTarget(ship.transform, targetPos);
-        Assert.That(finalDistToTarget, Is.LessThan(mpc.arriveRadius + 1f),
-            "MPC should reach waypoint while avoiding obstacle");
+        Assert.That(progress, Is.GreaterThan(18f),
+            "Ship should keep tracking the commanded direction past the obstacle");
         // Obstacle radius is 1 (half of size 2); ship should not enter it.
         Assert.That(minDistToObstacle, Is.GreaterThan(1.5f),
             "MPC should maintain clearance from obstacle center");
@@ -201,44 +156,6 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
         Arena.ObstacleField = null;
         Object.Destroy(obstacle);
         yield return null;
-    }
-
-    [UnityTest]
-    public IEnumerator GoalVelocity_ShipLeadsMovingWaypoint()
-    {
-        // Waypoint at (15,0) moving north at 5 u/s: the ship should head northeast (positive Y), not due east.
-        var waypointPos = new Vector2(15f, 0f);
-        var waypointVel = new Vector2(0f, 5f);
-
-        mpc.SetNavigationPoint(waypointPos, false, waypointVel);
-
-        float accumulatedYComponent = 0f;
-        int samples = 0;
-        var elapsed = 0f;
-
-        for (var i = 0; i < 20; i++)
-        {
-            yield return new WaitForFixedUpdate();
-            elapsed += Time.fixedDeltaTime;
-        }
-
-        while (elapsed < 4f)
-        {
-            var vel = GamePlane.WorldDirToPlane(ship.GetComponent<Rigidbody>().linearVelocity);
-            if (vel.sqrMagnitude > 0.5f)
-            {
-                accumulatedYComponent += vel.normalized.y;
-                samples++;
-            }
-            yield return new WaitForFixedUpdate();
-            elapsed += Time.fixedDeltaTime;
-        }
-
-        Assert.That(samples, Is.GreaterThan(10), "Ship should have measurable velocity during test");
-
-        var avgYComponent = accumulatedYComponent / samples;
-        Assert.That(avgYComponent, Is.GreaterThan(0.05f),
-            $"Ship velocity should have positive Y component (leading the moving goal). Avg Y: {avgYComponent:F3}");
     }
 }
 

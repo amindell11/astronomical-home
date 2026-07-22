@@ -3,22 +3,6 @@ using Unity.Collections;
 using Unity.Mathematics;
 namespace Movement.MPC
 {
-    public enum GoalMode
-    {
-        Waypoint = 0,
-        MaintainRange = 1,
-        Flee = 2,
-        // Commanded planar velocity instead of a position goal — the feasibility-tracker a learned goal-policy drives. Not enemy-anchored.
-        VelocityReference = 3
-    }
-
-    public static class GoalModeExtensions
-    {
-        /// <summary>The enemy-relative goal modes, whose positional target is the tracked enemy rather than an absolute waypoint — the explicit "the goal is the enemy" indicator.</summary>
-        public static bool IsEnemyAnchored(this GoalMode mode) =>
-            mode == GoalMode.MaintainRange || mode == GoalMode.Flee;
-    }
-
     [StructLayout(LayoutKind.Sequential)]
     public struct State
     {
@@ -45,15 +29,7 @@ namespace Movement.MPC
         public float invDt;
         public int horizon;
 
-        public float wPos;
-        public float wVel;
-        public float wClosing;
-        public float closingFadeDistance;
-        public float wYaw;
-        public float wYawDistanceScale;
         public float wYawRate;
-        public float positionCurve;
-        public float positionSaturationDistance;
         public float terminalMultiplier;
         public float terminalCurve;
 
@@ -66,20 +42,10 @@ namespace Movement.MPC
         public float wFacing;
         public float facingTarget;
         public float facingWidth;
-        public float wLos;
-        public float wExposure;
-        public float exposureWidth;
-        public float wTangential;
-        public float wMissDistance;
 
         public float wObstacle;
         public float collisionPenalty;
         public float collisionSafetyMargin;
-
-        public float arrivalDistance;
-        public float arrivalDistanceSq;
-        public float arrivalVelScale;
-        public float arrivalYawScale;
 
         public float wBoostEffort;
 
@@ -89,18 +55,8 @@ namespace Movement.MPC
         public float shipRadius;
         public float maxLatAccel;    // Best-case lateral (strafe) acceleration (m/s²) for turn-away admissibility
 
-        public GoalMode goalMode;
-        public float desiredRange;
-        public float rangeTolerance;
-
-        // Authored combat tactics — on for the scripted controller, off in the velocity-tracker where the reward teaches those behaviors.
-        public bool tacticalEnabled;
-
-        // Velocity-track weight — the VelocityReference objective. Unused by other modes.
+        // Velocity-track weight — the tracking objective's gain.
         public float wVelTrack;
-
-        // Weight on the per-rollout terminal cost-to-go sample, in stage-cost units; 0 disables the hook.
-        public float wTerminal;
     }
 
     public static class ConfigExtensions
@@ -117,16 +73,16 @@ namespace Movement.MPC
         }
     }
 
-    /// <summary>Identifies a single MPC weight (or width) a per-state override can scale; states list only the weights they change (absent = base ×1), avoiding an all-zero serialization footgun.</summary>
+    /// <summary>Identifies a single MPC weight (or width) a per-ship override can scale; callers list only the weights they change (absent = base ×1), avoiding an all-zero serialization footgun.</summary>
     public enum MpcWeight
     {
-        Pos, Vel, Yaw, YawRate,
+        YawRate,
         Effort, SmoothnessThrust, SmoothnessStrafe, SmoothnessYaw, Momentum,
-        Facing, FacingWidth, Los, Exposure, ExposureWidth, Tangential, MissDistance,
-        Obstacle, BoostEffort, Terminal,
+        Facing, FacingWidth,
+        Obstacle, BoostEffort,
     }
 
-    /// <summary>A single per-state multiplier applied to one base MPC weight.</summary>
+    /// <summary>A single multiplier applied to one base MPC weight.</summary>
     [System.Serializable]
     public struct WeightOverride
     {
@@ -145,9 +101,6 @@ namespace Movement.MPC
                 var m = overrides[i].multiplier;
                 switch (overrides[i].weight)
                 {
-                    case MpcWeight.Pos:               cfg.wPos *= m; break;
-                    case MpcWeight.Vel:               cfg.wVel *= m; break;
-                    case MpcWeight.Yaw:               cfg.wYaw *= m; break;
                     case MpcWeight.YawRate:           cfg.wYawRate *= m; break;
                     case MpcWeight.Effort:            cfg.wEffort *= m; break;
                     case MpcWeight.SmoothnessThrust:  cfg.wSmoothnessThrust *= m; break;
@@ -156,14 +109,8 @@ namespace Movement.MPC
                     case MpcWeight.Momentum:          cfg.wMomentum *= m; break;
                     case MpcWeight.Facing:            cfg.wFacing *= m; break;
                     case MpcWeight.FacingWidth:       cfg.facingWidth *= m; break;
-                    case MpcWeight.Los:               cfg.wLos *= m; break;
-                    case MpcWeight.Exposure:          cfg.wExposure *= m; break;
-                    case MpcWeight.ExposureWidth:     cfg.exposureWidth *= m; break;
-                    case MpcWeight.Tangential:        cfg.wTangential *= m; break;
-                    case MpcWeight.MissDistance:      cfg.wMissDistance *= m; break;
                     case MpcWeight.Obstacle:          cfg.wObstacle *= m; break;
                     case MpcWeight.BoostEffort:       cfg.wBoostEffort *= m; break;
-                    case MpcWeight.Terminal:          cfg.wTerminal *= m; break;
                 }
             }
         }
@@ -177,20 +124,17 @@ namespace Movement.MPC
         public float weight;
     }
 
-    /// <summary>Read-only world data for cost evaluation; extend it to add tactical inputs without changing Cost.Evaluate's signature or touching the Burst job.</summary>
+    /// <summary>Read-only world data for cost evaluation; extend it to add inputs without changing Cost.Evaluate's signature or touching the Burst job.</summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct CostInput
     {
-        public float2 goalPos;
-        public float2 goalVel;
-
-        /// <summary>Commanded world-plane velocity for GoalMode.VelocityReference (objective ‖s.vel − velocityReference‖²); ignored by the position-goal modes.</summary>
+        /// <summary>Commanded world-plane velocity (objective ‖s.vel − velocityReference‖²).</summary>
         public float2 velocityReference;
 
         public NativeArray<ObstacleData> obstacles;
         public int obstacleCount;
 
-        /// <summary>Tracked enemy position/velocity (linear fallback when no rollout exists), independent of the goal — tactical costs always reference the enemy.</summary>
+        /// <summary>Tracked enemy position/velocity (linear fallback when no rollout exists) — feeds intercept-facing.</summary>
         public float2 enemyPos;
         public float2 enemyVel;
 
@@ -207,10 +151,6 @@ namespace Movement.MPC
 
         /// <summary>Ship velocity at the start of the rollout, the momentum cost's reference direction.</summary>
         public float2 initialVel;
-
-        /// <summary>Cost-to-go field sampled once per rollout at the terminal state; isValid == 0 (the default) makes the hook contribute 0.</summary>
-        public Field.TerminalFieldData terminalField;
-
     }
 
     internal readonly struct EditorProfilingScope : System.IDisposable
@@ -234,19 +174,11 @@ namespace Movement.MPC
 #if UNITY_EDITOR
     public struct CostBreakdown
     {
-        public float pos;
-        public float vel;
-        public float closing;
-        public float heading;
         public float velocityTrack;
         public float facing;
         public float yawRate;
         public float obstacle;
         public float collision;
-        public float los;
-        public float exposure;
-        public float tangential;
-        public float missDistance;
         public float momentum;
         public float effort;
         public float boostEffort;
@@ -255,19 +187,11 @@ namespace Movement.MPC
 
         public void Add(CostBreakdown other)
         {
-            pos += other.pos;
-            vel += other.vel;
-            closing += other.closing;
-            heading += other.heading;
             velocityTrack += other.velocityTrack;
             facing += other.facing;
             yawRate += other.yawRate;
             obstacle += other.obstacle;
             collision += other.collision;
-            los += other.los;
-            exposure += other.exposure;
-            tangential += other.tangential;
-            missDistance += other.missDistance;
             momentum += other.momentum;
             effort += other.effort;
             boostEffort += other.boostEffort;

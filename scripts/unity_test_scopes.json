@@ -68,11 +68,9 @@
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/MultiSphereObstacleEditModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/ObstacleSelectionEditModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/NavigatorIdleGateEditModeTests.cs*",
-        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/NavFieldEditModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/TwoArenaIsolationEditModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/MpcNavigatorPlayModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/MpcPerformancePlayModeTests.cs*",
-        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/NavFieldServicePlayModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/ManeuverOraclePlayModeTests.cs*"
       ]
     },
