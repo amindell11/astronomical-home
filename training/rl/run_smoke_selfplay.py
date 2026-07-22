@@ -22,7 +22,7 @@ START_FLAG = RESULTS / "start-play.flag"
 SMOKE_ONNX = RESULTS / "ship_combat_selfplay_smoke" / "ShipCombat.onnx"
 ARMED_MARKER = "[TrainingBootstrap] armed"
 PACING_MARKER = "[PacingContract] holds"
-EPISODE_LINE = re.compile(r"\[TrainingHost\] episode \d+:.*terminals=(\d+) truncations=(\d+)")
+EPISODE_LINE = re.compile(r"\[TrainingHost\] arena (\d+) episode \d+:.*terminals=(\d+) truncations=(\d+)")
 
 
 def default_unity_exe() -> Path:
@@ -56,7 +56,10 @@ def main() -> None:
     parser.add_argument("--unity", type=Path, default=None, help="Unity.exe path (default: derived from ProjectVersion.txt)")
     parser.add_argument("--boot-timeout", type=float, default=1800.0, help="seconds to wait for the editor to arm")
     parser.add_argument("--run-timeout", type=float, default=3600.0, help="seconds to wait for the trainer to finish")
+    parser.add_argument("--num-arenas", type=int, default=1, help="in-process arenas (--harness-num-arenas to the editor)")
     args = parser.parse_args()
+    if args.num_arenas < 1:
+        sys.exit(f"FAIL: --num-arenas must be >= 1 (got {args.num_arenas})")
 
     unity = args.unity or default_unity_exe()
     RESULTS.mkdir(parents=True, exist_ok=True)
@@ -70,7 +73,8 @@ def main() -> None:
         lease, PROJECT,
         ["-batchmode", "-nographics",
          "-executeMethod", "Game.RLHarness.TrainingBootstrap.EnterTrainingPlayModeWhenSignaled",
-         "-logFile", str(editor_log)],
+         "-logFile", str(editor_log),
+         "--harness-num-arenas", str(args.num_arenas)],
         unity, env)
     print(f"editor pid {editor_pid} (owned by unity-access lease {lease})")
     trainer = None
@@ -104,8 +108,12 @@ def main() -> None:
     if not episode_lines:
         failures.append(f"no [TrainingHost] episode lines in {editor_log}")
     else:
-        terminals, truncations = (int(n) for n in episode_lines[-1])
+        arena, terminals, truncations = (int(n) for n in episode_lines[-1])
         print(f"episodes={len(episode_lines)} terminals={terminals} truncations={truncations}")
+        arenas_seen = {int(line[0]) for line in episode_lines}
+        missing = set(range(args.num_arenas)) - arenas_seen
+        if missing:
+            failures.append(f"arenas {sorted(missing)} completed no episodes (saw {sorted(arenas_seen)})")
 
     if failures:
         sys.exit("FAIL:\n  " + "\n  ".join(failures))
