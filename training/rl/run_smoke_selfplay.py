@@ -1,8 +1,8 @@
 """Asserting self-play smoke: the same trainer-connected boot as run_smoke.py but with
 RL_SELFPLAY=1, so the opponent ship is a second team-1 ShipCombat agent. Proves native
-mlagents self_play trains two team_ids under the runner's manual Academy stepping and
-exports a checkpoint. Run from training/rl with the venv (README.md); coordinate editor
-access first (skills/unity-access) - this boots its own editor and binds trainer port 5004.
+mlagents self_play trains two team_ids under automatic Academy stepping and exports a
+checkpoint. Run from training/rl with the venv (README.md); coordinate editor access
+first (skills/unity-access) - this boots its own editor and binds trainer port 5004.
 """
 import argparse
 import os
