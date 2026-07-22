@@ -20,8 +20,7 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
     // Deterministic timeout — camera follow should settle well within this.
     private const float FollowTimeoutSec = 3f;
     private const float FollowThreshold  = 0.1f;
-    // Follow moves the camera every frame, so frames are the proof unit for its absence.
-    private const int NegativeProofFrames = 60;
+    private const int NegativeProofFrames = 30;
 
     [SetUp]
     public override void SetUp()
@@ -89,14 +88,16 @@ public class CameraFollowPlayModeTests : PlayModeWorldFixture
         subject.SetActive(false);
         subject.transform.position = GamePlane.Forward * 10;
 
-        yield return AsyncAssert.AssertRemainsFalseForFrames(
+        // Follow is SmoothDamp over unscaled time (smoothTime 0.15): 0.35s ≈ 90% closure if regressed.
+        yield return AsyncAssert.AssertRemainsFalseFor(
             () =>
             {
                 var camPos2D = GamePlane.WorldPointToPlane(cam.transform.position);
                 return Vector2.Distance(camPos2D, initialCamPos2D) > FollowThreshold;
             },
-            NegativeProofFrames,
-            "Camera moved when subject was inactive");
+            "Camera moved when subject was inactive",
+            minFrames: NegativeProofFrames,
+            minUnscaledSeconds: 0.35f);
 
         var finalCamPos2D     = GamePlane.WorldPointToPlane(cam.transform.position);
         var finalSubjectPos2D = GamePlane.WorldPointToPlane(subject.transform.position);

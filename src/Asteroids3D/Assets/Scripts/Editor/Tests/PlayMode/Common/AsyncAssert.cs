@@ -78,20 +78,32 @@ public static class AsyncAssert
     }
 
     /// <summary>
-    /// Frame-counted negative proof for frame-driven behaviour (camera follow, scanning):
-    /// N frames of non-occurrence prove as much as a wall-clock wait at a fraction of the cost.
+    /// Negative proof that spans every cadence the observed behaviour runs on: the wait ends only
+    /// once ALL requested minimums (rendered frames, fixed steps, unscaled seconds) are covered.
+    /// Batch frames can be sub-millisecond, so a bare frame count may cover zero fixed steps
+    /// and near-zero unscaled time — callers pin the cadences that matter and pay only for those.
     /// </summary>
-    public static IEnumerator AssertRemainsFalseForFrames(
+    public static IEnumerator AssertRemainsFalseFor(
         Func<bool> condition,
-        int frames,
-        string failureMessage = "Condition unexpectedly became true")
+        string failureMessage,
+        int minFrames = 0,
+        int minFixedSteps = 0,
+        float minUnscaledSeconds = 0f)
     {
-        for (var i = 0; i < frames; i++)
+        var frames = 0;
+        var startFixedTime = Time.fixedTime;
+        var startUnscaledTime = Time.unscaledTime;
+        while (frames < minFrames
+               || Time.fixedTime - startFixedTime < minFixedSteps * Time.fixedDeltaTime
+               || Time.unscaledTime - startUnscaledTime < minUnscaledSeconds)
         {
             if (condition())
                 Assert.Fail(failureMessage);
             yield return null;
+            frames++;
         }
+        if (condition())
+            Assert.Fail(failureMessage);
     }
 
     /// <summary>
