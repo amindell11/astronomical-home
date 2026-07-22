@@ -78,7 +78,7 @@ namespace Tests.PlayMode
             // Composition tests observe spawn lifecycle only; the stripped test pilot authors no chooser, and a ticking Brain throws.
             _unitService.OnShipSpawned += s =>
             {
-                var brain = s.GetComponentInChildren<Brain>(true);
+                var brain = (s.Commander as AICommander)?.Brain;
                 if (brain) brain.enabled = false;
             };
         }

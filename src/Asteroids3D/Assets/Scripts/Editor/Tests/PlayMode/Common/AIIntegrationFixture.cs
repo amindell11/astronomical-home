@@ -53,7 +53,7 @@ public abstract class AIIntegrationFixture : PlayModeWorldFixture
         Assert.IsNotNull(cmdr, "Ship missing AICommander component");
 
         // The stripped test pilot authors no chooser; ticking commanders need one installed.
-        cmdr.GetComponentInChildren<Brain>().InstallChooser(new DummyChooser());
+        cmdr.Brain.InstallChooser(new DummyChooser());
 
         // SetArena triggers TryInitializeSystems.
         cmdr.SetArena(arena);
