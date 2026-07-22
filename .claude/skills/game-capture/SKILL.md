@@ -29,8 +29,7 @@ reading a mid-clip PNG yourself and handing the user the clip path.
   absolute checkpoint path is imported via the `EvalCandidate.onnx` seam
   automatically. Run the `RLEpisodePlayModeTests` filter with
   `-WithGraphics`. **Delete the flag after use** — a forgotten flag turns every later
-  RL run into a recording session. This lane films the built-in characterization
-  opponent only — for a trained checkpoint, see "Film a trained checkpoint" below.
+  RL run into a recording session.
 
 ## Author a scenario
 
@@ -73,8 +72,9 @@ overlay fresh per frame. Override `Config` to change clip name/size/cadence.
 
 ## Film a trained checkpoint (policy vs archetype)
 
-`record.flag` can't select a policy or opponent, so author a scratch scenario
-mirroring `CheckpointEvaluator.Run`'s composition: copy the `.onnx` to
+The `record.flag` `checkpoint`/`opponent` keys cover the standard case. For
+compositions they can't express (custom overlays, non-archetype opponents), author a
+scratch scenario mirroring `CheckpointEvaluator.Run`'s composition: copy the `.onnx` to
 `Assets/Tests/Fixtures/EvalCandidate.onnx` (models load via AssetDatabase — an
 absolute file path won't), then `EpisodePair.SpawnWithAgentChooser` →
 `OpponentRoster` (pinned `Install` per archetype) →
