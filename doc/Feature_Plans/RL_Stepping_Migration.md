@@ -1,6 +1,6 @@
 # RL Stepping Migration — retire runner-owned `EnvironmentStep`
 
-> STATUS: arc plan (drafted 2026-07-21, this session). Design agreed at the arc level;
+> STATUS: live arc — stepping-migration record (drafted 2026-07-21). Design agreed at the arc level;
 > PR-0 is a gating spike whose result reshapes PR-1/PR-2. Per-PR briefs get pr-prep'd
 > when reached. Decoupled from — and orthogonal to — the headless-player throughput PR.
 

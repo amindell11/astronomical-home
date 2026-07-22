@@ -514,7 +514,7 @@ winner, canonical terminal env density 2.0 / lethality 1.0, no `opponent_weight_
 `gamma`-pin honored); a **two-team `self_play` smoke** as the merge gate; **L1 eval-league**
 = trainer ELO (in-run progress signal) + scheduled **per-archetype reality-check** via the
 existing `CheckpointEvaluator`/`RunEval` across self-play checkpoints, with the
-**evasive-trio win/draw rate as the collapse tripwire**.
+**evasive-trio scorecard engagement metrics (win/draw + damage/discipline/border-hug) as the collapse tripwire** (#179 upgrade).
 
 **Out (non-goals):** the self-play training run itself (separate spend approval — launch +
 final hypers own it, like PR-D); the reward reshape (upstream PR); teams /
@@ -578,7 +578,7 @@ policy in-game.
   construction (no `SimpleMultiAgentGroup` yet).
 - Eval reuses `CheckpointEvaluator`/`EvalProtocol` unchanged; the "league" is a run-script
   loop watching the checkpoint dir + batch `RunEval` across self-play checkpoints. No new
-  schema. Evasive-trio win/draw rate is the tripwire, not ELO.
+  schema. The evasive-trio scorecard (win/draw + engagement metrics, #179) is the tripwire, not ELO.
 - `Gunner.AimPoint` is a **pure static function** (not shared mutable state); two `Gunner`
   instances already coexist today (agent vs baseline) → two firing agents introduce no
   cross-contamination. No single-learner-assuming static exists in RLHarness.
@@ -613,7 +613,7 @@ policy in-game.
 
 Even with the reward fix, symmetric self-play in a **lasers-only attrition regime** may
 still converge to a low-engagement Nash (mutual passivity/kiting). Detector = the L1
-evasive-trio win/draw-rate tripwire + the scripted-anchor reality-check ("better than the
+evasive-trio scorecard tripwire + the scripted-anchor reality-check ("better than the
 old AI, not just its mirror"). Documented re-entry if the ceiling proves structural =
 weapon asymmetry (missiles ≈ counter to kiting), judged after this run, not before.
 
