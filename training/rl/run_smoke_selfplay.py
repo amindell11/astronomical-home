@@ -12,6 +12,8 @@ import sys
 import time
 from pathlib import Path
 
+from unity_access import release_editor, start_editor
+
 RL_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RL_DIR.parent.parent
 PROJECT = REPO_ROOT / "src" / "Asteroids3D"
@@ -63,11 +65,14 @@ def main() -> None:
     editor_log.unlink(missing_ok=True)
 
     env = dict(os.environ, RL_SMOKE="1", RL_SELFPLAY="1")
-    editor = subprocess.Popen(
-        [str(unity), "-projectPath", str(PROJECT), "-batchmode", "-nographics",
+    lease = "rl-selfplay-smoke"
+    editor_pid = start_editor(
+        lease,
+        ["-projectPath", str(PROJECT), "-batchmode", "-nographics",
          "-executeMethod", "Game.RLHarness.TrainingBootstrap.EnterTrainingPlayModeWhenSignaled",
          "-logFile", str(editor_log)],
-        env=env)
+        unity, env)
+    print(f"editor pid {editor_pid} (owned by unity-access lease {lease})")
     trainer = None
     try:
         wait_for(lambda: log_contains(editor_log, ARMED_MARKER), "editor to arm", args.boot_timeout)
@@ -87,8 +92,7 @@ def main() -> None:
     finally:
         if trainer and trainer.poll() is None:
             trainer.kill()
-        editor.kill()
-        editor.wait()
+        release_editor(lease, env)
 
     failures = []
     if not SMOKE_ONNX.exists():
