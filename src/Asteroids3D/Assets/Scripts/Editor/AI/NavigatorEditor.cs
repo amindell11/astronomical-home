@@ -1,4 +1,3 @@
-using AI;
 using Game;
 using UnityEditor;
 using UnityEngine;
@@ -112,7 +111,6 @@ namespace Movement.MPC
                     RenderBreakdownBars(nav.mpcSettings, sb);
                 }
             }
-
 
             Repaint();
         }

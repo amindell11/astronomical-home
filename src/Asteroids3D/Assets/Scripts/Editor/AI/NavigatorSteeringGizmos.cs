@@ -11,7 +11,6 @@ namespace AI
     /// <summary>Scene gizmos for the MPC navigator behind the Steering debug channel: trajectories (predicted, candidate, enemy), obstacle rings, flee field, goal, and the control-input panel.</summary>
     internal static class NavigatorSteeringGizmos
     {
-
         [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected, typeof(Navigator))]
         private static void Draw(Navigator nav, GizmoType gizmoType)
         {
@@ -149,7 +148,6 @@ namespace AI
                 prevU = u;
             }
         }
-
 
         private static void DrawEnemyRollout(Navigator nav)
         {

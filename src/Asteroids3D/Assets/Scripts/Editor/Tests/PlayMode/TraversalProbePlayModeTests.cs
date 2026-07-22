@@ -15,7 +15,7 @@ using UnityEngine.TestTools;
 
 namespace Tests.PlayMode
 {
-    /// <summary>The asteroid-traversal probe: diameter crossings of the harness field on the combat-episode airframe, per-density completion/speed/collision curves. The gate before any asteroid-curriculum training spend, and a durable MPC-tuning instrument — the driver is an <see cref="IIntentChooser"/> seam (scripted velocity reference vs the legacy nav/terminal-field goal-mode stack; a learned policy slots in post-PR-B).</summary>
+    /// <summary>The asteroid-traversal probe: diameter crossings of the harness field on the combat-episode airframe, per-density completion/speed/collision curves. The gate before any asteroid-curriculum training spend, and a durable MPC-tuning instrument — the driver is an <see cref="IIntentChooser"/> seam (scripted velocity reference today; a learned policy slots in post-PR-B).</summary>
     [TestFixture]
     [Category("AI")]
     public class TraversalProbePlayModeTests

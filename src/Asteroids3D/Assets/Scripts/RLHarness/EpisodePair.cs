@@ -74,7 +74,7 @@ namespace Game.RLHarness
             return pair;
         }
 
-        /// <summary>The self-play composition: BOTH ships on the agent pilot (TestPilotMPC), each driven by its own <see cref="AgentChooser"/> injected with the OTHER ship as opponent. Poses/seeds derive exactly as <see cref="Spawn"/> (agent = team 0 / stream 101, baseline slot = team 1 / stream 202), so the mirror ship starts from the canonical baseline pose. No baseline-state-policy assert — both ships are agent-driven, not scripted.</summary>
+        /// <summary>The self-play composition: BOTH ships on the agent pilot (TestPilotMPC), each driven by its own <see cref="AgentChooser"/> injected with the OTHER ship as opponent. Poses/seeds derive exactly as <see cref="Spawn"/> (agent = team 0 / stream 101, baseline slot = team 1 / stream 202), so the mirror ship starts from the canonical baseline pose. No scripted baseline — both ships are agent-driven.</summary>
         public static EpisodePair SpawnSelfPlayPair(UnitService units, ArenaContext arena,
             IProjectileService projectiles, in RewardSpec spec, HarnessAssets assets,
             out AgentChooser chooserA, out AgentChooser chooserB)

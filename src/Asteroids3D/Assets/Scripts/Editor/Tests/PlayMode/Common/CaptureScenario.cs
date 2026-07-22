@@ -27,7 +27,7 @@ public abstract class CaptureScenario
     public abstract IEnumerator Run(CaptureRecorder recorder);
 
     /// <summary>Spawns a Ship2 running the production policy-pilot combat brain through the session's UnitService — full game wiring, arena-root parenting, spawn-order-derived decision seed; torn down with the session.</summary>
-    protected (Ship ship, AICommander cmdr) SpawnUtilityShip(Vector2 planePos, float rotDeg, int team)
+    protected (Ship ship, AICommander cmdr) SpawnCombatShip(Vector2 planePos, float rotDeg, int team)
     {
         var pilot = TestAssets.LoadCommanderPrefab(CombatPilotPath);
         Assert.IsNotNull(pilot, "Failed to load the combat pilot prefab — check test asset paths");
