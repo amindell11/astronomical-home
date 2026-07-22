@@ -10,9 +10,9 @@ namespace Game.RLHarness
         public EpisodeLoopDriver Driver { get; }
         private readonly OpponentRoster roster;
 
-        public ScriptedRosterComposition(GameObject host, in RewardSpec spec, BehaviorType behaviorType, HarnessAssets assets)
+        public ScriptedRosterComposition(GameObject host, in RewardSpec spec, BehaviorType behaviorType, HarnessAssets assets, Vector2 offset)
         {
-            var (units, arena, projectiles) = HarnessArena.Compose(host);
+            var (units, arena, projectiles) = HarnessArena.Compose(host, offset);
             var field = spec.useAsteroidField
                 ? HarnessField.Spawn(arena, assets, spec.fieldDensityScale, host.transform)
                 : null;

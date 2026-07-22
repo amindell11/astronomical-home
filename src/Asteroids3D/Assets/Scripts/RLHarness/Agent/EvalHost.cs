@@ -20,7 +20,7 @@ namespace Game.RLHarness
             // A non-canonical density (the 3.0 stretch) marks its artifacts so it can never pass as the canonical eval.
             if (!Mathf.Approximately(fieldDensityScale, EvalProtocol.CanonicalFieldDensityScale))
                 tag += "-d" + fieldDensityScale.ToString("0.##", CultureInfo.InvariantCulture).Replace('.', '_');
-            var (units, arena, projectiles) = HarnessArena.Compose(gameObject);
+            var (units, arena, projectiles) = HarnessArena.Compose(gameObject, Vector2.zero);
             yield return CheckpointEvaluator.Run(units, arena, projectiles, assets, onnxAssetPath,
                 seeds, episodesPerSeed, EvalProtocol.EvalSpec(fieldDensityScale), tag, null);
 #if UNITY_EDITOR
