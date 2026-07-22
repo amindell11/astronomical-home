@@ -18,17 +18,21 @@ namespace Game.RLHarness
             var outDir = Path.Combine(repoRoot, "build", "rl-training");
             Directory.CreateDirectory(outDir);
 
+            // Training builds pay for profiler instrumentation and full Debug.Log stack traces on
+            // every fixed step; RL_BUILD_DEVELOPMENT=1 buys them back for a profiling session.
+            var development = Environment.GetEnvironmentVariable("RL_BUILD_DEVELOPMENT") == "1";
+
             var options = new BuildPlayerOptions
             {
                 scenes = new[] { Scene },
                 locationPathName = Path.Combine(outDir, "RLTraining.exe"),
                 target = BuildTarget.StandaloneWindows64,
-                options = BuildOptions.Development,
+                options = development ? BuildOptions.Development : BuildOptions.None,
             };
 
             var summary = BuildPipeline.BuildPlayer(options).summary;
             Debug.Log($"[RLTrainingPlayerBuild] result={summary.result} out={options.locationPathName} "
-                + $"size={summary.totalSize} errors={summary.totalErrors} warnings={summary.totalWarnings}");
+                + $"development={development} size={summary.totalSize} errors={summary.totalErrors} warnings={summary.totalWarnings}");
 
             var ok = summary.result == BuildResult.Succeeded;
             if (Application.isBatchMode)

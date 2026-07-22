@@ -41,6 +41,11 @@ def config_run_id(config: Path) -> str:
     return match.group(1)
 
 
+def trainer_log_path(run_id: str) -> Path:
+    """Where this launcher writes the trainer's stdout; consumers import this rather than rebuild it."""
+    return RESULTS / f"{run_id}-parallel-trainer.log"
+
+
 def episode_logs(suffix: str) -> set:
     return set(JSONL_DIR.glob(f"*-training{suffix}.jsonl"))
 
@@ -130,7 +135,7 @@ def main() -> None:
                     "--harness-jsonl-dir", str(JSONL_DIR),
                     "--harness-num-arenas", str(args.num_arenas)]
 
-    trainer_log = RESULTS / f"{run_id}-parallel-trainer.log"
+    trainer_log = trainer_log_path(run_id)
     print(f"launching {args.num_envs} worker(s): {args.env}")
     print(f"  base-port {args.base_port}  jsonl {JSONL_DIR}  run-id {run_id}")
     trainer = None
