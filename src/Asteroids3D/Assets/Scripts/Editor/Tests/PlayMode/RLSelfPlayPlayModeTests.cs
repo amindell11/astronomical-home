@@ -13,7 +13,7 @@ using UnityEngine.TestTools;
 
 namespace Tests.PlayMode
 {
-    /// <summary>Python-free proof of the symmetric self-play loop: both ships are ShipCombat agents (team 0/1) driven by one manual EnvironmentStep per boundary, headless. Each agent must accumulate exactly its own mirror runner's reward — two independent reward channels off one clock.</summary>
+    /// <summary>Python-free proof of the symmetric self-play loop: both ships are ShipCombat agents (team 0/1) requesting on the shared boundary clock, headless, while the Academy auto-steps. Each agent must accumulate exactly its own mirror runner's reward — two independent reward channels off one clock.</summary>
     [TestFixture]
     [Category("AI")]
     public class RLSelfPlayPlayModeTests
@@ -51,6 +51,10 @@ namespace Tests.PlayMode
             savedCaptureDelta = Time.captureDeltaTime;
             Time.maximumDeltaTime = 1f;
             PacingContract.Apply();
+
+            // An InferenceChooser test earlier in the suite leaves auto-stepping off.
+            if (Academy.IsInitialized)
+                Academy.Instance.AutomaticSteppingEnabled = true;
         }
 
         [TearDown]
@@ -116,7 +120,7 @@ namespace Tests.PlayMode
                 Assert.AreEqual(result.decisions, agentA.DecisionsReceived,
                     "team 0 decisions must equal the primary runner's paid count");
                 Assert.AreEqual(result.decisions, agentB.DecisionsReceived,
-                    "team 1 steps in lockstep under the single EnvironmentStep");
+                    "team 1 steps in lockstep on the shared auto-step clock");
                 Assert.AreEqual(result.decisions, driver.OpponentRunner.Result.decisions,
                     "both perspectives share the termination clock");
 

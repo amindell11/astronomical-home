@@ -14,7 +14,8 @@ namespace AI
     [RequireComponent(typeof(Scout))]
     [RequireComponent(typeof(Brain))]
 
-    [DefaultExecutionOrder(-40)]
+    // After the ML-Agents Academy stepper (0) — reads the RL boundary action same-tick; before MovementController (50).
+    [DefaultExecutionOrder(10)]
     public class AICommander : Commander
     {
         private const uint NavStream = 1;
