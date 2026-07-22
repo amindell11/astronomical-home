@@ -589,6 +589,8 @@ if (-not [string]::IsNullOrWhiteSpace($CaptureScenario)) {
     else {
         throw "-CaptureScenario ${CaptureScenario}: no $CaptureScenario.cs in scratch/capture/ (repo root) or committed under Tests/PlayMode/Scenarios/."
     }
+    # Agents redirect pre-run logs into results/capture; a missing dir kills that redirect before Unity launches.
+    New-Item -ItemType Directory -Force -Path (Join-Path $repoRoot "results/capture") | Out-Null
 }
 
 # Everything below can throw (scope resolution/validation, Unity runs); the finally must always unstage the scratch scenario.

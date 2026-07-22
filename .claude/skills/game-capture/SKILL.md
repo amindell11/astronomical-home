@@ -22,9 +22,15 @@ reading a mid-clip PNG yourself and handing the user the clip path.
 - **RL episodes** → drop `record.flag` in `<slot>/results/rl-episodes/` (empty = 3
   episodes, all recorded; or JSON
   `{ "runSeed": 7, "episodes": [0], "captureEveryFixedSteps": 5, "width": 960, "height": 540 }` —
-  unknown keys fail loudly). Run the `RLEpisodePlayModeTests` filter with
+  unknown keys fail loudly). Add `"checkpoint": "<path or Assets/....onnx>"` +
+  `"opponent": "Aggressor|Evader|Orbiter|Kiter|Dummy"` (both or neither; optional
+  `"fieldDensityScale"`, default the canonical 2.0) to film that policy vs a pinned
+  archetype in the eval env instead of the scripted characterization pair; an
+  absolute checkpoint path is imported via the `EvalCandidate.onnx` seam
+  automatically. Run the `RLEpisodePlayModeTests` filter with
   `-WithGraphics`. **Delete the flag after use** — a forgotten flag turns every later
-  RL run into a recording session.
+  RL run into a recording session. This lane films the built-in characterization
+  opponent only — for a trained checkpoint, see "Film a trained checkpoint" below.
 
 ## Author a scenario
 
@@ -65,6 +71,20 @@ public sealed class MyProbe : CaptureScenario
 `LineWidth` knob. Anything not redrawn in a captured step disappears — compose the
 overlay fresh per frame. Override `Config` to change clip name/size/cadence.
 
+## Film a trained checkpoint (policy vs archetype)
+
+`record.flag` can't select a policy or opponent, so author a scratch scenario
+mirroring `CheckpointEvaluator.Run`'s composition: copy the `.onnx` to
+`Assets/Tests/Fixtures/EvalCandidate.onnx` (models load via AssetDatabase — an
+absolute file path won't), then `EpisodePair.SpawnWithAgentChooser` →
+`OpponentRoster` (pinned `Install` per archetype) →
+`ShipAgentFactory.ComposeInferenceOnly` → `EpisodeLoopDriver`, pumping the episode
+enumerator and calling `recorder.Step` per fixed step. Gotcha: `Session.Services`
+exposes interfaces but the spawn seams take concretes — cast
+`(UnitService)Session.Services.UnitService`, or it's a boot-cycle-wasting CS1503.
+Delete the staged `.onnx` + `.meta` with the scratch file — a leftover under
+`Assets/` re-imports on every editor boot.
+
 ## Run + assemble (one command each)
 
 ```powershell
@@ -73,11 +93,21 @@ python scripts/capture/assemble.py <slot-path>/results/capture/frames/<stamp>-My
 ```
 
 The runner prints the absolute frame dir. `assemble.py` defaults fps/dims from the
-frame dir's `manifest.json`; `--format gif` for chat-friendly clips, `--scale 0.5` to
-shrink. mp4 needs `pip install imageio-ffmpeg` once (wheel bundles ffmpeg).
+frame dir's `manifest.json`; `--step N` drops to every Nth frame. `suggestedFps`
+replays real time — pass `--fps` at 3–4× for a watchable multi-episode clip. mp4
+needs imageio-ffmpeg, and the venvs here are uv-managed with no pip module:
+`uv pip install --python <venv-python> imageio-ffmpeg` (once per venv/worktree).
 
-**Report the slot's absolute output path** — `results/` is worktree-local, so
-`results/capture/...` in agent-N is NOT the primary tree's `results/`.
+## Deliver
+
+- **Report the slot's absolute output path** — `results/` is worktree-local, so
+  `results/capture/...` in agent-N is NOT the primary tree's `results/`.
+- For a remote/chat user a path is not a deliverable, and mp4 has failed to render
+  there both as a file attachment and as an artifact data-URI `<video>`. Proven:
+  `--web` mp4 (≤5 MB) via SendUserFile, or `--format gif --scale 0.4 --step 2`
+  embedded as an `<img>` data URI in an artifact.
+- Note the delivered clip's absolute path in the ledger row / topic file — the next
+  session otherwise greps every worktree hunting for it.
 
 ## Hard-won constraints (violate = silent garbage)
 
@@ -104,3 +134,12 @@ shrink. mp4 needs `pip install imageio-ffmpeg` once (wheel bundles ffmpeg).
   there yourself.
 - Capture asserts loudly on empty/NaN subjects and a reused frame dir — fix the
   scenario, don't catch the exception.
+- **Never call `recorder.Step` on the spawn frame** — capture only after the first
+  `WaitForFixedUpdate` yield, or URP dies in `ForwardLights` ("Render Graph
+  Execution error").
+- **Never run a capture/eval play session while an ML-Agents trainer is attached on
+  this machine** — every Academy play mode touches the trainer's port-5004 handshake
+  and can sever the live training connection (killed the 2026-07-20 run mid-flight
+  at 534k). Record from checkpoints after the run ends. If it happens anyway: the
+  trainer survives — kill the orphaned editor and relaunch with `--resume`; zero
+  steps lost.

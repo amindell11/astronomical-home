@@ -8,7 +8,10 @@ Nth frame while keeping real-time playback.
 
     python scripts/capture/assemble.py results/capture/frames/<stamp>-* [--format gif] [--scale 0.5]
 
-mp4 needs the imageio-ffmpeg wheel (bundles ffmpeg): pip install imageio-ffmpeg
+--web is the chat/artifact preset: mp4 downscaled to <=854 px wide at crf 30.
+
+mp4 needs the imageio-ffmpeg wheel (bundles ffmpeg). The repo venvs are
+uv-managed with no pip module: uv pip install --python <venv-python> imageio-ffmpeg
 """
 import argparse
 import glob
@@ -17,14 +20,17 @@ import os
 import subprocess
 import sys
 
+WEB_MAX_WIDTH = 854
+WEB_CRF = 30
 
-def load_suggested_fps(frame_dir):
+
+def load_manifest(frame_dir):
     manifest_path = os.path.join(frame_dir, "manifest.json")
     try:
         with open(manifest_path, encoding="utf-8") as f:
-            return float(json.load(f)["suggestedFps"])
-    except (OSError, KeyError, ValueError):
-        return None
+            return json.load(f)
+    except (OSError, ValueError):
+        return {}
 
 
 def assemble_mp4(frame_dir, frames, out_fps, scale, crf):
@@ -80,12 +86,22 @@ def assemble(frame_dir, args):
         print(f"skip {frame_dir}: no frames", file=sys.stderr)
         return
 
-    fps = args.fps or load_suggested_fps(frame_dir) or 10.0
+    manifest = load_manifest(frame_dir)
+    fps = args.fps or manifest.get("suggestedFps") or 10.0
     out_fps = fps / args.step
+    scale, crf = args.scale, args.crf
+    if args.web:
+        if scale is None:
+            width = manifest.get("width")
+            scale = min(1.0, WEB_MAX_WIDTH / width) if width else 0.5
+        if crf is None:
+            crf = WEB_CRF
+    scale = 1.0 if scale is None else scale
+    crf = 20 if crf is None else crf
     if args.format == "mp4":
-        out_path = assemble_mp4(frame_dir, frames, out_fps, args.scale, args.crf)
+        out_path = assemble_mp4(frame_dir, frames, out_fps, scale, crf)
     else:
-        out_path = assemble_gif(frame_dir, frames, out_fps, args.scale, args.colors)
+        out_path = assemble_gif(frame_dir, frames, out_fps, scale, args.colors)
     print(f"{out_path}  {os.path.getsize(out_path) / 1e6:.1f} MB  {len(frames)} frames @ {out_fps:g} fps")
 
 
@@ -98,12 +114,18 @@ def main():
                         help="playback fps of the full capture cadence (default: manifest suggestedFps)")
     parser.add_argument("--step", type=int, default=1,
                         help="use every Nth frame; playback stays real-time")
-    parser.add_argument("--scale", type=float, default=1.0)
-    parser.add_argument("--crf", type=int, default=20, help="mp4 quality (lower = better)")
+    parser.add_argument("--scale", type=float, default=None,
+                        help="resize factor (default 1.0; --web derives it from manifest width)")
+    parser.add_argument("--crf", type=int, default=None,
+                        help="mp4 quality, lower = better (default 20, or 30 with --web)")
     parser.add_argument("--colors", type=int, default=128, help="gif palette size")
+    parser.add_argument("--web", action="store_true",
+                        help=f"chat/artifact preset: mp4 <= {WEB_MAX_WIDTH} px wide at crf {WEB_CRF}")
     args = parser.parse_args()
     if args.step < 1:
         parser.error("--step must be >= 1")
+    if args.web and args.format == "gif":
+        parser.error("--web is an mp4 preset; use --format gif with --scale/--step instead")
 
     expanded = []
     for pattern in args.frame_dirs:
