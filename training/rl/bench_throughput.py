@@ -161,7 +161,9 @@ def main() -> None:
     parser.add_argument("--num-envs", type=int, default=4)
     parser.add_argument("--num-arenas", type=int, default=1)
     parser.add_argument("--steps", type=int, default=24000, help="trainer steps to run (max_steps)")
-    parser.add_argument("--config", type=Path, default=RL_DIR / "ppo_ship_combat_selfplay.yaml")
+    parser.add_argument("--config", type=Path, default=RL_DIR / "ppo_ship_combat.yaml",
+                        help="trainer YAML; defaults to the scripted-roster config because that is what "
+                             "the harness composes without RL_SELFPLAY — a self-play YAML would mislabel the row")
     parser.add_argument("--initialize-from", metavar="RUN_ID", default=None,
                         help="warm-start run id; hold constant across an A/B")
     parser.add_argument("--env", type=Path, default=None, help="player exe (defaults to run_parallel's)")

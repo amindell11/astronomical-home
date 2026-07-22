@@ -19,6 +19,12 @@ compounding term.
 Main `0925ecda`, Mono **development** player build, scripted-roster composition,
 Intel Ultra 7 155H (6 P + 8 E + 2 LP-E = 16 physical / 22 logical), 31.5 GB.
 
+> **EXPIRED as a comparison base.** `10b3849a` (#204, utility brain deleted) and `6df1f325`
+> (#206, velocity-only MPC — goal modes, tactical costs, and the terminal field gone) both
+> landed after these rows were taken. #206 in particular reshapes the solve that Phase 2
+> measured at ~63% of per-step cost. Every row records its own `git_sha`, so the data stands;
+> re-run the bench on current main before A/B-ing anything against these numbers.
+
 | config | steps/s | cores (total) | cores/worker |
 | --- | --- | --- | --- |
 | N=1, M=1 | 37.8 | 5.0 | 5.0 |
@@ -144,9 +150,11 @@ tracked separately); anything altering obs/action shape.
 
 ## Coordination
 
-- **agent-1, MPC rip-out PR-2** deletes the utility/tactical layer and touches
-  `HarnessAssets`/`EpisodePair`. Phase 3 sequences after it; Phase 1b may contend over ship
-  prefabs.
+- **MPC rip-out PR-2 (#204) and PR-3 (#206) have both merged** — Phase 3's precondition is
+  clear, and its first act is re-measuring, not retuning: #206 deleted the tactical/goal-mode
+  costs that Phase 2's `samples 512→128` result was taken against. Phase 1b may still contend
+  over ship prefabs.
 - Re-measure under **self-play** composition once the `RL_SELFPLAY` blocker is fixed — the
-  baseline above is the scripted roster. Per-step levers are composition-independent, so
-  Phase 1 conclusions carry, but absolute steps/s will move.
+  baseline above is the scripted roster, which is why `--config` defaults to
+  `ppo_ship_combat.yaml`. Per-step levers are composition-independent, so Phase 1 conclusions
+  carry, but absolute steps/s will move.
