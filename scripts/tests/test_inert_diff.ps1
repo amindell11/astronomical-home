@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 $scriptDir = Split-Path -Parent $PSCommandPath
-$inertDiff = Join-Path $scriptDir "inert_diff.ps1"
+$inertDiff = Join-Path $scriptDir "..\inert_diff.ps1"
 $tmp = Join-Path ([System.IO.Path]::GetTempPath()) ("inert-diff-tests-" + [guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Path $tmp | Out-Null
 $script:failures = 0
