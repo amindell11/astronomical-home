@@ -11,6 +11,11 @@ Build the --env exe first with RLTrainingPlayerBuild (see README). Unlike run_tr
 run_smoke.py this does NOT boot an editor and does NOT route through unity-access — headless
 player exes touch neither the shared editor nor MCP. Run from training/rl with the venv set up.
 
+--initialize-from RUN_ID warm-starts a fresh run from another run's weights (self-play
+graduation seeds from the curriculum winner). mlagents resolves it as
+<results_dir>/RUN_ID/<behavior>/checkpoint.pt, so an archived run must be staged under
+results/rl-training/ first; a path that doesn't resolve throws before any worker boots.
+
 Merge gate (2-env liveness smoke):
     python run_parallel.py --smoke --num-envs 2 --force
 """
@@ -73,6 +78,8 @@ def main() -> None:
                         help="base ML-Agents port; passed to both --base-port and the workers' --harness-base-port")
     parser.add_argument("--smoke", action="store_true",
                         help="RL_SMOKE=1 tight-arena/short-clock gate spec; also defaults --config to the smoke YAML")
+    parser.add_argument("--initialize-from", metavar="RUN_ID", default=None,
+                        help="warm-start fresh weights from another run id under results/rl-training")
     parser.add_argument("--resume", action="store_true", help="resume the run id's existing checkpoints")
     parser.add_argument("--force", action="store_true", help="overwrite the run id's existing results")
     parser.add_argument("--run-timeout", type=float, default=172800.0,
@@ -80,6 +87,9 @@ def main() -> None:
     args = parser.parse_args()
     if args.resume and args.force:
         parser.error("--resume and --force are mutually exclusive")
+    # mlagents only warns and silently drops --resume in this combination; refuse it at the boundary.
+    if args.resume and args.initialize_from:
+        parser.error("--resume and --initialize-from are mutually exclusive")
     if args.num_envs < 1:
         parser.error("--num-envs must be >= 1")
     if args.num_arenas < 1:
@@ -112,6 +122,8 @@ def main() -> None:
         trainer_cmd.append("--resume")
     if args.force:
         trainer_cmd.append("--force")
+    if args.initialize_from:
+        trainer_cmd += ["--initialize-from", args.initialize_from]
     # --env-args must trail: mlagents-learn forwards the remainder to every worker's argv, alongside --mlagents-port.
     trainer_cmd += ["--env-args",
                     "--harness-base-port", str(args.base_port),
