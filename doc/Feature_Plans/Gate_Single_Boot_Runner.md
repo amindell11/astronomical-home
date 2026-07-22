@@ -72,6 +72,23 @@ of the pre-change script driving it; the landing tree's runner is what future ru
 ## Build-time checklist
 
 - Verify which summary-JSON/STATUS fields `agent_worktree_pool.sh` reads for gate
-  proof — schema must stay identical.
+  proof — schema must stay identical. *(Verified: `mode: Both`, both platforms green
+  in `runs`, empty selection filters — all preserved.)*
 - Verify the editor assembly containing `Editor/Tools` references
   `UnityEditor.TestRunner` (Tests assembly does; Tools may need the asmdef ref).
+
+## Build deviations (surfaced per brief-freeze discipline)
+
+- **Home**: `Editor/Tests/EditMode/GateTestRunner.cs` (Tests.EditMode assembly), not
+  `Editor/Tools` — only test assemblies reference `UnityEditor.TestRunner`, and adding
+  that reference to the broad `Game.Core.Editor` assembly for one file is the worse
+  wiring; the runner is test infrastructure.
+- **Completion signal**: phase transition and exit poll the internal
+  `TestRunnerApi.IsRunActive` via reflection — the CLI's own exit gate
+  (`Executer.ExitIfRunIsCompleted`) uses exactly this check, and no public equivalent
+  exists. `RunFinished` fires mid-job, before UTF's cleanup tasks; the first proof run
+  exited on `isPlayingOrWillChangePlaymode` and leaked the `InitTestScene` bootstrap.
+  If a UTF upgrade removes the internal, `Run()` throws at startup (loud, immediate).
+- **Not a runner artifact**: `ProjectSettings.asset` drift after runs is the Inference
+  Engine package stamping `SENTIS_ANALYTICS_ENABLED` on editor load — pre-existing
+  chronic noise (also on the primary tree), already covered by the pool's hazard table.
