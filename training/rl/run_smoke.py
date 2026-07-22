@@ -5,7 +5,6 @@ and a truncation (EpisodeInterrupted) occurred. Run from training/rl with the ve
 (README.md); coordinate editor access first (skills/unity-access) - this boots its own editor.
 """
 import argparse
-import json
 import os
 import re
 import subprocess
@@ -13,10 +12,11 @@ import sys
 import time
 from pathlib import Path
 
+from unity_access import release_editor, start_editor
+
 RL_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RL_DIR.parent.parent
 PROJECT = REPO_ROOT / "src" / "Asteroids3D"
-COORDINATOR = REPO_ROOT / "scripts" / "unity_access.ps1"
 RESULTS = REPO_ROOT / "results" / "rl-training"
 START_FLAG = RESULTS / "start-play.flag"
 SMOKE_ONNX = RESULTS / "ship_combat_smoke" / "ShipCombat.onnx"
@@ -51,39 +51,6 @@ def log_contains(log_path: Path, needle: str) -> bool:
     return log_path.exists() and needle in log_path.read_text(errors="replace")
 
 
-def _ps_literal(value) -> str:
-    return "'" + str(value).replace("'", "''") + "'"
-
-
-def _coordinator_json(proc: subprocess.CompletedProcess) -> dict:
-    for line in reversed(proc.stdout.splitlines()):
-        line = line.strip()
-        if line.startswith("{"):
-            return json.loads(line)
-    sys.exit(f"FAIL: no JSON from unity-access coordinator (exit {proc.returncode})\n{proc.stdout}\n{proc.stderr}")
-
-
-def start_editor(lease: str, editor_args, unity: Path, env) -> int:
-    """Boot a batch editor through the Unity-access coordinator so it owns the PID from birth."""
-    args_literal = ",".join(_ps_literal(a) for a in editor_args)
-    inner = (f"& {_ps_literal(COORDINATOR)} -Action StartEditor -Lease {_ps_literal(lease)} "
-             f"-Slot main -UnityPath {_ps_literal(unity)} -SkipMcp -WaitSeconds 15 -Json "
-             f"-EditorArgs @({args_literal})")
-    proc = subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", inner],
-                          capture_output=True, text=True, env=env)
-    result = _coordinator_json(proc)
-    if result.get("status") != "attached":
-        sys.exit(f"FAIL: project busy: {result.get('status', 'unknown')} (unity-access coordinator; see skills/unity-access)")
-    return int(result["owner"]["processId"])
-
-
-def release_editor(lease: str, env) -> None:
-    inner = (f"& {_ps_literal(COORDINATOR)} -Action Release -Lease {_ps_literal(lease)} "
-             f"-Slot main -CloseEditor -Json")
-    subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", inner],
-                   capture_output=True, text=True, env=env)
-
-
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--unity", type=Path, default=None, help="Unity.exe path (default: derived from ProjectVersion.txt)")
@@ -100,8 +67,8 @@ def main() -> None:
     env = dict(os.environ, RL_SMOKE="1")
     lease = "rl-smoke"
     editor_pid = start_editor(
-        lease,
-        ["-projectPath", str(PROJECT), "-batchmode", "-nographics",
+        lease, PROJECT,
+        ["-batchmode", "-nographics",
          "-executeMethod", "Game.RLHarness.TrainingBootstrap.EnterTrainingPlayModeWhenSignaled",
          "-logFile", str(editor_log)],
         unity, env)
@@ -125,7 +92,7 @@ def main() -> None:
     finally:
         if trainer and trainer.poll() is None:
             trainer.kill()
-        release_editor(lease, env)
+        release_editor(lease, PROJECT, env)
 
     failures = []
     if not SMOKE_ONNX.exists():

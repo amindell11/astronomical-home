@@ -4,7 +4,7 @@ set -euo pipefail
 # Regression for the merge gate's proof chain: only passing FULL runs on a clean worktree record merge-grade proof, a failed run after base integration forces a re-test on retry, and inert deltas (*.md / .cs comment-only) extend proof without burning a full suite.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-POOL="$SCRIPT_DIR/agent_worktree_pool.sh"
+POOL="$SCRIPT_DIR/../agent_worktree_pool.sh"
 # Via bash: the pool script is tracked non-executable (mode 100644), so direct exec fails on Unix checkouts.
 pool() { bash "$POOL" "$@"; }
 
