@@ -15,7 +15,7 @@ namespace Tests.PlayMode.Common
 /// <summary>Base class for capture scenarios driven by CaptureScenarioPlayModeTests: set up a situation inside the runner-composed headless session, then Step the recorder each fixed step with the subjects to frame and an optional diagnostic draw. Author scratch scenarios in repo-root scratch/capture/; promote by moving the file to Tests/PlayMode/Scenarios/.</summary>
 public abstract class CaptureScenario
 {
-    private const string UtilityPilotPath = "Assets/Prefabs/Pilots/UtilityPilot.prefab";
+    private const string CombatPilotPath = "Assets/Prefabs/Pilots/AgentPilot.prefab";
 
     /// <summary>The headless session the runner composed via SessionHost — real services, arena, UnitService.</summary>
     public GameSession Session { get; internal set; }
@@ -26,11 +26,11 @@ public abstract class CaptureScenario
 
     public abstract IEnumerator Run(CaptureRecorder recorder);
 
-    /// <summary>Spawns a Ship2 running the production UtilityPilot combat brain through the session's UnitService — full game wiring, arena-root parenting, spawn-order-derived decision seed; torn down with the session.</summary>
-    protected (Ship ship, AICommander cmdr) SpawnUtilityShip(Vector2 planePos, float rotDeg, int team)
+    /// <summary>Spawns a Ship2 running the production policy-pilot combat brain through the session's UnitService — full game wiring, arena-root parenting, spawn-order-derived decision seed; torn down with the session.</summary>
+    protected (Ship ship, AICommander cmdr) SpawnCombatShip(Vector2 planePos, float rotDeg, int team)
     {
-        var pilot = TestAssets.LoadCommanderPrefab(UtilityPilotPath);
-        Assert.IsNotNull(pilot, "Failed to load the UtilityPilot prefab — check test asset paths");
+        var pilot = TestAssets.LoadCommanderPrefab(CombatPilotPath);
+        Assert.IsNotNull(pilot, "Failed to load the combat pilot prefab — check test asset paths");
 
         var ship = Session.Services.UnitService.SpawnShip(
             TestAssets.LoadShip2Prefab(), pilot, team,

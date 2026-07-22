@@ -169,7 +169,6 @@ namespace Movement.MPC
             sw.Stop();
             lastSolveTimeMs = (float)sw.Elapsed.TotalMilliseconds;
             lastCostBreakdown = EvaluateBreakdown(mpc.LastInitialState);
-            RunComparisonRollouts(mpc.LastInitialState);
             LogSolverPerformanceIfNeeded();
 #endif
 
@@ -427,10 +426,6 @@ namespace Movement.MPC
         [Tooltip("World-space offset from ship for the control input panel")]
         public Vector3 controlPanelOffset = new(0f, 2.5f, 0f);
 
-        [Header("Comparison Rollouts")]
-        [Tooltip("State profiles to run comparison rollouts for. Each gets its own trajectory drawn in a unique color.")]
-        public StateProfile[] comparisonProfiles;
-
         [NonSerialized] public int selectedCandidateIndex = -1;
         // Candidate subsample drawn this frame, sorted by cost ascending; shared scratch between the gizmo pass and the scene-view selection handles.
         internal int[] visibleCandidateIndices;
@@ -449,72 +444,6 @@ namespace Movement.MPC
         internal State lastInitialState => mpc != null ? mpc.LastInitialState : default;
         internal Control lastControl => mpc != null ? mpc.LastControl : default;
         internal float lastBestCost => mpc != null ? mpc.LastBestCost : 0f;
-
-        internal struct ComparisonResult
-        {
-            public StateProfile profile;
-            public Control[] sequence;
-            public State[] trajectory;
-            public float cost;
-        }
-        internal ComparisonResult[] comparisonResults;
-
-        private void RunComparisonRollouts(State mpcState)
-        {
-            if (comparisonProfiles == null || comparisonProfiles.Length == 0)
-            {
-                comparisonResults = null;
-                return;
-            }
-
-            if (comparisonResults == null || comparisonResults.Length != comparisonProfiles.Length)
-                comparisonResults = new ComparisonResult[comparisonProfiles.Length];
-
-            var costInput = solver.BuildCostInput(GoalPos(), GoalVel(),
-                enemyPos, enemyVel, enemyYaw, enemyYawRate, projectileSpeed, mpcState.vel);
-
-            for (var p = 0; p < comparisonProfiles.Length; p++)
-            {
-                var profile = comparisonProfiles[p];
-                if (!profile) continue;
-
-                var goal = profile.goal;
-                var gm = goal?.GoalMode ?? GoalMode.Waypoint;
-                var desiredRange = 0f;
-                var rangeTolerance = 0f;
-                if (goal is TrackEnemyGoal track)
-                {
-                    desiredRange = track.desiredRange;
-                    rangeTolerance = track.rangeTolerance;
-                }
-                var facingRad = facingOverride ? facingAngle * Mathf.Deg2Rad : float.NaN;
-                var compConfig = mpcSettings.ToConfig(facingRad, gm, desiredRange, rangeTolerance);
-                compConfig.ApplyDynamics(dynamics);
-                profile.weightOverrides.Apply(ref compConfig);
-
-                var horizon = compConfig.horizon;
-                if (comparisonResults[p].sequence == null || comparisonResults[p].sequence.Length != horizon)
-                {
-                    comparisonResults[p].sequence = new Control[horizon];
-                    comparisonResults[p].trajectory = new State[horizon];
-                }
-
-                var seq = comparisonResults[p].sequence;
-                comparisonResults[p].cost = solver.Rescore(mpcState, seq,
-                    compConfig, dynamics, costInput, lastControl,
-                    mpcSettings.samples, mpcSettings.eliteFraction);
-
-                var current = mpcState;
-                var traj = comparisonResults[p].trajectory;
-                for (var i = 0; i < horizon; i++)
-                {
-                    current = Model.Step(current, seq[i], compConfig, dynamics);
-                    traj[i] = current;
-                }
-
-                comparisonResults[p].profile = profile;
-            }
-        }
 
         private void StoreDebugObstacles(ObstacleScan scan)
         {

@@ -15,7 +15,7 @@ using UnityEngine.TestTools;
 
 namespace Tests.PlayMode
 {
-    /// <summary>The asteroid-traversal probe: diameter crossings of the harness field on the combat-episode airframe, per-density completion/speed/collision curves. The gate before any asteroid-curriculum training spend, and a durable MPC-tuning instrument — the driver is an <see cref="IIntentChooser"/> seam (scripted velocity reference vs the legacy nav/terminal-field goal-mode stack; a learned policy slots in post-PR-B).</summary>
+    /// <summary>The asteroid-traversal probe: diameter crossings of the harness field on the combat-episode airframe, per-density completion/speed/collision curves. The gate before any asteroid-curriculum training spend, and a durable MPC-tuning instrument — the driver is an <see cref="IIntentChooser"/> seam (scripted velocity reference today; a learned policy slots in post-PR-B).</summary>
     [TestFixture]
     [Category("AI")]
     public class TraversalProbePlayModeTests
@@ -122,7 +122,7 @@ namespace Tests.PlayMode
             var speedFractions = watchFlag ? new[] { 0.9f } : new[] { 0.5f, 0.9f };
             var layoutSeeds = watchFlag ? new[] { 1 } : new[] { 1, 2, 3 };
             var wVelTracks = new[] { 50f };
-            var drivers = new[] { VelocityTraversalChooser.DriverTag, LegacyNavTraversalChooser.DriverTag };
+            var drivers = new[] { VelocityTraversalChooser.DriverTag };
 
             ComposeProbe(maxDensityScale: densities[densities.Length - 1]);
 
@@ -138,7 +138,6 @@ namespace Tests.PlayMode
                 cell.densityScale = density;
                 cell.speedFraction = speedFraction;
                 cell.wVelTrack = wVelTrack;
-                if (driver == LegacyNavTraversalChooser.DriverTag) cell.timeoutFactor = 12f;
 
                 var rows = new List<TraversalResult>();
                 foreach (var layoutSeed in layoutSeeds)
@@ -184,12 +183,6 @@ namespace Tests.PlayMode
                     var velocityChooser = new VelocityTraversalChooser();
                     velocityChooser.Configure(dir, spec.speedFraction * ship.Dynamics.maxSpeed);
                     brain.InstallChooser(velocityChooser);
-                    break;
-                case LegacyNavTraversalChooser.DriverTag:
-                    var legacyChooser = new LegacyNavTraversalChooser();
-                    // Waypoint a full crossing-radius past the exit: arrival deceleration stays outside the measured segment.
-                    legacyChooser.Configure(destination + spec.crossingRadius * dir);
-                    brain.InstallChooser(legacyChooser);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(spec), spec.driver, "Unknown traversal driver tag");

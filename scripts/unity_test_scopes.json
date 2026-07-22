@@ -1,5 +1,5 @@
 {
-  "_comment": "Scope-name -> test-selection map for unity_test_agent.ps1. FEATURES resolve to a friendly name-regex (-ScopeType Feature -ScopeName <key>); curated, human-picked, may go stale on rename. MODULES carry only 'paths' (repo-relative forward-slash globs): -ScopeType Auto maps changed files to modules and -ScopeType Module <name> names one, then BOTH derive the run from the domain [Category] tags on the fixtures those paths cover (see Assets/Scripts/Editor/Tests/TEST_CATEGORIES.md) rather than a hand-maintained test-name list -- so a new fixture in an already-mapped domain is picked up with zero map upkeep. A changed file matching no module glob, or a matched module whose paths cover no tagged fixture, makes Auto fall back to the full Workspace suite, so leaving ambiguous areas unmapped is safe. Speed/selector overlays (Smoke/Slow/RequiresGraphics/ChaseBenchmark) never seed a scope; the Smoke category is always added.",
+  "_comment": "Scope-name -> test-selection map for unity_test_agent.ps1. FEATURES resolve to a friendly name-regex (-ScopeType Feature -ScopeName <key>); curated, human-picked, may go stale on rename. MODULES carry only 'paths' (repo-relative forward-slash globs): -ScopeType Auto maps changed files to modules and -ScopeType Module <name> names one, then BOTH derive the run from the domain [Category] tags on the fixtures those paths cover (see Assets/Scripts/Editor/Tests/TEST_CATEGORIES.md) rather than a hand-maintained test-name list -- so a new fixture in an already-mapped domain is picked up with zero map upkeep. A changed file matching no module glob, or a matched module whose paths cover no tagged fixture, makes Auto fall back to the full Workspace suite, so leaving ambiguous areas unmapped is safe. Speed/selector overlays (Smoke/Slow/RequiresGraphics) never seed a scope; the Smoke category is always added.",
   "smoke": {
     "testFilter": "CameraUtilsEditModeTests|CollisionDamageUtilityTests|GamePlanePlayMode|ForcesEditModeTests"
   },
@@ -17,7 +17,7 @@
       "testFilter": "ScannerPlayMode"
     },
     "ai": {
-      "testFilter": "AIIntegrationPlayMode|ScannerPlayMode"
+      "testFilter": "AiCommanderDeterminismPlayMode|ScannerPlayMode"
     },
     "physics": {
       "testFilter": "CollisionDamageUtilityTests|ForcesEditModeTests|FragneticsCalculatorEditModeTests"
@@ -54,9 +54,7 @@
     "ai": {
       "paths": [
         "src/Asteroids3D/Assets/Scripts/AI/**",
-        "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/AiDeterminismEditModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/TacticalObservationEditModeTests.cs*",
-        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/AIIntegrationPlayModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/AiCommanderDeterminismPlayModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/AgentDecisionSeedPlayModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/ScannerPlayModeTests.cs*"

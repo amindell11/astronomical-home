@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>The canonical 1v1 episode composition: agent ship on the inert TestPilotMPC host (its Navigator authors MpcSettings_AgentPilot — the policy-matched tracker config) with an injected chooser, versus the full production UtilityPilot baseline; both lasers-only. Hosts (tests, training scene) share this so the scenario cannot drift between them.</summary>
+    /// <summary>The canonical 1v1 episode composition: agent ship on the inert TestPilotMPC host (its Navigator authors MpcSettings_AgentPilot — the policy-matched tracker config) with an injected chooser, versus a fixed mid-band brawler baseline (<see cref="HoldRangeFireChooser"/>); both lasers-only. Hosts (tests, training scene) share this so the scenario cannot drift between them.</summary>
     public sealed class EpisodePair : IDisposable
     {
         private const uint AgentSeedStream = 101;
@@ -46,10 +46,14 @@ namespace Game.RLHarness
             var chooser = chooserFactory(agent, baseline);
             commander.GetComponentInChildren<Brain>().InstallChooser(chooser);
 
+            // Fixed mid-band Aggressor draw: the deterministic default opponent; roster episodes re-install per draw.
+            var baselineChooser = new HoldRangeFireChooser();
+            baselineChooser.Configure(agent, desiredRange: 10f, speedFraction: 0.85f,
+                baseline.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary), arena.Offset, spec.arenaRadius);
+            baseline.GetComponentInChildren<Brain>().InstallChooser(baselineChooser);
+
             units.WireShipDependencies(agent);
             units.WireShipDependencies(baseline);
-            if (baseline.GetComponentInChildren<AICommander>().CurrentStateName == "None")
-                throw new InvalidOperationException("Baseline brain must run a real state policy — check the UtilityPilot prefab's state profiles.");
 
             return new EpisodePair(units, projectiles, arena.Offset, agent, baseline);
         }
@@ -70,7 +74,7 @@ namespace Game.RLHarness
             return pair;
         }
 
-        /// <summary>The self-play composition: BOTH ships on the agent pilot (TestPilotMPC), each driven by its own <see cref="AgentChooser"/> injected with the OTHER ship as opponent. Poses/seeds derive exactly as <see cref="Spawn"/> (agent = team 0 / stream 101, baseline slot = team 1 / stream 202), so the mirror ship starts from the canonical baseline pose. No baseline-state-policy assert — both ships are agent-driven, not scripted.</summary>
+        /// <summary>The self-play composition: BOTH ships on the agent pilot (TestPilotMPC), each driven by its own <see cref="AgentChooser"/> injected with the OTHER ship as opponent. Poses/seeds derive exactly as <see cref="Spawn"/> (agent = team 0 / stream 101, baseline slot = team 1 / stream 202), so the mirror ship starts from the canonical baseline pose. No scripted baseline — both ships are agent-driven.</summary>
         public static EpisodePair SpawnSelfPlayPair(UnitService units, ArenaContext arena,
             IProjectileService projectiles, in RewardSpec spec, HarnessAssets assets,
             out AgentChooser chooserA, out AgentChooser chooserB)

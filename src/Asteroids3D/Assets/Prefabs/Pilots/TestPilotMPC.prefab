@@ -138,13 +138,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   chooser:
-    rid: 1937986634179674124
+    rid: -2
   references:
     version: 2
-    RefIds:
-    - rid: 1937986634179674124
-      type: {class: UtilityChooser, ns: AI.Utility, asm: Game.Core}
-      data:
-        config: {fileID: 11400000, guid: 2953629aea9c0114d9f56764e09bca98, type: 2}
-        instanceUtilityWeights: {fileID: 11400000, guid: 36dd1f0bf1188b246b6b19c1160602bc,
-          type: 2}
+    RefIds: []
