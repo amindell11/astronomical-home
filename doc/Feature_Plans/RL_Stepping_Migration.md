@@ -1,10 +1,21 @@
 # RL Stepping Migration — retire runner-owned `EnvironmentStep`
 
-> STATUS: live arc — stepping-migration record (drafted 2026-07-21). Design agreed at the arc level;
-> PR-0 is a gating spike whose result reshapes PR-1/PR-2. Per-PR briefs get pr-prep'd
-> when reached. Decoupled from — and orthogonal to — the headless-player throughput PR.
+> STATUS: living — the PR-0 ordering finding (auto-step costs exactly one tick; an execution-order
+> pin restores it) is durable evidence Path A and any future stepping work must not re-derive.
+> The migration arc itself is CLOSED.
 
-**Date:** 2026-07-21.
+**Arc outcome (closed 2026-07-22).** All manual stepping is gone; the Academy auto-clock is the
+sole stepper.
+
+- **PR-0** — ordering spike, verdict RECOVERABLE (finding below; nothing merged).
+- **PR-1** — #188: `EpisodeLoopDriver` onto the auto-clock, plus the one-line pin
+  (`AICommander` → `[DefaultExecutionOrder(10)]`, after the ML-Agents stepper).
+- **PR-2** — #197: `InferenceChooser` onto the auto-clock. Fork resolved *against*
+  `DecisionRequester` — the manual K-tick counter stayed. No manual steppers remain.
+
+Path A (in-process M-arenas) was the point of the arc; it shipped on top of this in #201.
+
+**Date:** 2026-07-21 (drafted); closed 2026-07-22.
 **Parent:** `Multi_Arena_Substrate.md` §"N-arena stepping model" (the already-blessed target:
 Academy is the clock, per-arena driver collapses to reset-only); `RL_Training_Throughput.md`
 §"Path A" (names the manual global step as Path A's whole cost).
@@ -93,7 +104,7 @@ accepting bounded latency (fine in-game, must be re-pinned in the determinism te
 
 ## PR slicing
 
-### PR-0 — ordering spike (the gate; no product change)
+### PR-0 — ordering spike (the gate; no product change) — DONE, verdict RECOVERABLE
 
 **In:** in one PlayMode harness path, flip to `AutomaticSteppingEnabled = true` + boundary-only
 `RequestDecision()` with no manual `EnvironmentStep()`, and measure against the existing
@@ -106,9 +117,9 @@ vs. execution-order pinning), not merged product code.
 **Out:** touching `InferenceChooser`; multi-arena wiring; deleting the manual path in `main`
 (the spike is measured on a branch/throwaway path). No training run.
 
-**Gate:** the finding decides PR-1's mechanism. Do not scope PR-1 until this lands.
+**Gate:** the finding decided PR-1's mechanism (fork P1-2, "recoverable").
 
-### PR-1 — migrate `EpisodeLoopDriver` to auto-step
+### PR-1 — migrate `EpisodeLoopDriver` to auto-step — SHIPPED #188
 
 **In:** drop `AutomaticSteppingEnabled = false` and both manual `EnvironmentStep()` calls; keep
 the priming + boundary `RequestDecision()`; whatever ordering primitive PR-0 blessed; re-green the
@@ -123,7 +134,7 @@ this unblocks).
 auto-steps" — strictly simpler, still one arena. This migration does not conflict with in-flight
 PR-4; it removes the manual-step half of PR-4's generalization.
 
-### PR-2 — migrate `InferenceChooser` (the shipped in-game pilot)
+### PR-2 — migrate `InferenceChooser` (the shipped in-game pilot) — SHIPPED #197
 
 **In:** the in-game trained pilot stops owning the Academy clock — `RequestDecision()` on its
 K-cadence (or a `DecisionRequester` on `LivePilotAgent`), read the action when it arrives, no
@@ -133,17 +144,15 @@ Academy batches them, instead of fighting over `AutomaticSteppingEnabled`.
 
 **Out:** obs/policy changes; re-minting checkpoints (stepping is orthogonal to the model).
 
-**Fork to resolve at pr-prep:** manual `RequestDecision` on the existing tick (smallest diff,
-mirrors today's `ticksUntilDecision`) vs. a `DecisionRequester` component (idiomatic, moves the
-cadence out of the chooser). PR-0's latency finding informs whether the in-game pilot can accept
-a one-tick action delay (almost certainly yes — it is not determinism-pinned like training).
+**Fork — RESOLVED (ai-counsel, #197):** kept the **manual K-tick counter** on the existing tick;
+`DecisionRequester` rejected. The in-game pilot tolerates the one-tick delay (it is not
+determinism-pinned like training), so the idiomatic component bought nothing over the smaller diff.
 
-### After the arc — Path A stepping model (separate, now unblocked)
+### After the arc — Path A stepping model — SHIPPED #201
 
-With no manual global step, `Multi_Arena_Substrate.md`'s N-arena model is reachable as written:
-per-arena **reset-only `RLDriver`**, the Academy as sole clock batching all arenas' agents. That
-is the throughput/teams payoff and its own arc (needs per-arena seeding + the reset-driver seam);
-this migration is its precondition, not its whole.
+With no manual global step, `Multi_Arena_Substrate.md`'s N-arena model became reachable as written:
+per-arena **reset-only `RLDriver`**, the Academy as sole clock batching all arenas' agents. That was
+the throughput/teams payoff and its own arc; this migration was its precondition, not its whole.
 
 ## Risks / watch-items
 
@@ -157,22 +166,13 @@ this migration is its precondition, not its whole.
   `InferencePilotPlayModeTests` decision-cadence assertion (`~1 decision / DecisionIntervalSteps`)
   plus a live-fire smoke.
 
-## Interaction with in-flight work
+## How it composed with neighboring work (settled)
 
-- **Headless-player throughput PR (Path B):** orthogonal. Path B was chosen *specifically to
-  avoid* this refactor (each player runs the unchanged single-arena scene); this arc neither
-  accelerates nor blocks it. They compose later (in-process-M-arena players under `--num-envs`).
-- **PR-4 self-play (unpushed, agent-1):** compatible — see PR-1 note. If PR-4 lands first, PR-1
-  rebases onto its N-agent request loop and deletes the manual step; if this lands first, PR-4
-  inherits the auto-step loop.
-- **Unity contention:** PR-0/1/2 need PlayMode runs + unity-access coordination; sequence behind
-  the live editor on agent-1, never race it.
-
-## Hand-off
-
-Start at PR-0 — it is cheap, non-contended-in-scope-once-scheduled, and gates everything. When its
-finding lands, pr-prep PR-1 against that recommendation, build via the agent-worktree-pr-loop from
-`main`. PR-2 follows PR-1. Path A stepping model is a later arc seeded by this one.
+- **Path B headless players (#185/#187):** orthogonal, as predicted — Path B was chosen
+  *specifically to avoid* this refactor. They compose in Path A players under `--num-envs`.
+- **PR-4 self-play (#184):** landed first, so PR-1 rebased onto its N-agent request loop and
+  deleted the manual step. The self-play *training run* remains parked — on the `RL_SELFPLAY`
+  launcher gap, not on anything stepping-related.
 
 ## Related
 
@@ -350,7 +350,7 @@ unwarranted; order control restores the invariant.
 
 ---
 
-# PR-1 — Decision brief (frozen 2026-07-21, pr-prep)
+# PR-1 — Decision brief (frozen 2026-07-21, pr-prep) — executed as #188
 
 > **Two gates (hard):** (1) PR-0's finding selects the mechanism (fork P1-2); (2) lands **after
 > #184** (PR-4) — it migrates the *post-#184* N-agent driver. Ground against post-#184 `main`.
