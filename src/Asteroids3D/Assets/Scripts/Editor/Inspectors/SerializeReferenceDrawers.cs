@@ -6,8 +6,6 @@ using UnityEngine;
 
 namespace AI.States.Editor
 {
-    [CustomPropertyDrawer(typeof(GoalStrategy), true)]
-    [CustomPropertyDrawer(typeof(UtilityFactor), true)]
     [CustomPropertyDrawer(typeof(IIntentChooser), true)]
     public class SerializeReferenceTypeDrawer : PropertyDrawer
     {

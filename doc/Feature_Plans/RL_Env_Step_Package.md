@@ -446,3 +446,179 @@ threshold finalization and the training run itself.
   the filename tag is suffixed only when density is overridden (e.g. `held-out-d3`) — a
   stretch run can never masquerade as the canonical eval in a folder listing or in its
   own summary.
+
+---
+
+# PR-4 — Self-play snapshots + eval league — Decision brief (frozen 2026-07-20, pr-prep)
+
+> The graduation phase: retire the scripted utility priors and let symmetric self-play
+> produce emergent tactics. Grounded via pr-prep with the user; the mechanism fork was
+> re-decided against the initial pr-prep lean on trajectory grounds (see fork 1).
+
+## Precondition (hard, upstream — PR-4 does not branch until both clear)
+
+Draws-are-free makes passivity *rational*; **draws-free + self-play ⇒ mutual-avoidance
+equilibrium** (`handoff_2026-07-20_reward_fix_retrain.md`; the first 2M run's final
+checkpoint scored 0/15 vs the evasive trio — full-clock draws, never engages). PR-4
+branches only AFTER (1) the **reward-reshape PR** (draws cost + entropy floor +
+re-grounded curriculum ladder) merges, and (2) the **second 2M curriculum run** completes
+and its checkpoint is selected. **Frozen anchor = that retrain winner** (obs-72, committed
+via LFS as the pilot was); interim reference during design = `1.5M ShipCombat-1499938`.
+The obs-24 `ShipCombat-pilot.onnx` stays dead (incompatible, referenced by no code).
+
+## Refresh 2026-07-20 (post-#178 reward fix + #179 teacher pass — forks hold, assumptions updated)
+
+Landed after the freeze; the four fork resolutions are unchanged (and reinforced), only the
+assumptions below shift:
+- **#178** shipped the reward fix as a **per-decision time cost** (`RewardSpec.timeCostPerDecision
+  = 5e-4`, applied every paid boundary in `EpisodeRunner.PayDecision`) + **constant-β entropy
+  floor** + **×0.65-rescaled ladder** (0.2/0.3/0.4/0.5/0.6/0.7). JSONL schema **rl-episode-v2 →
+  v3** (`sumTimeCost`). *Bonus for PR-4:* a per-decision (not terminal-draw) cost bleeds BOTH
+  self-play agents every boundary the episode drags — continuous pressure against a mutual-stall
+  Nash, a stronger mitigation of the residual risk than a draw penalty would have been.
+- **#179** made the scripted roster **uniformly velocity-mode**: Aggressor migrated off the
+  production utility brain to a `HoldRangeFireChooser` (8–12 u brawler); `KiterChooser`
+  generalized → `HoldRangeFireChooser` (shared by Aggressor + Kiter); Orbiter tuned (radius floor
+  14, RadialGain 0.9); the roster's `IStateChooser` capture/assert is **dropped**. The production
+  utility AI is no longer an opponent (still the shipped game AI; rip-out board-carded).
+  `CheckpointEvaluator` gained a **per-archetype behavioral scorecard** (`ArchetypeGateSummary`:
+  damage each side, shots, range/orbit discipline, border-hug, displacement) + a sibling
+  `-behavior.jsonl`; `EpisodeLoopDriver.RunEpisode` gained `onBegin`/`onFixedStep` hooks.
+- **Assumption deltas:** schema is **v3**; "aggressor = production UtilityPilot" is void (the
+  baseline *airframe* is still `UtilityPilot.prefab` but it always runs a velocity-mode scripted
+  chooser); the L1 **reality-check opponent is the scripted teacher roster** (velocity-mode), and
+  the production utility AI is a separate optional "vs the shipped game AI" comparison; L1's
+  **collapse tripwire upgrades from raw evasive win/draw rate to the scorecard's engagement
+  metrics** (`agentPoolLost`/damage/border-hug) — richer, already built, no pull toward L2/L3.
+- **Precondition is now staged:** the retrain is a **≈500k diagnostic run** (Tier-1 wiring check
+  ≈50k, eval @500k, **re-ground the 1.5M baseline vs #179's harder opponents** — the old 5/15 is
+  stale) → conditional resume to 2M. Frozen anchor = the winner of that re-grounded selection.
+- **Strategic watch-item (revisit after the retrain eval):** #179 sharpens the scripted teachers
+  and #178 penalizes stalling — if the curriculum run alone now reaches strong pursuit + low
+  draws, self-play's marginal role shifts from "break the pursuit ceiling" toward "emergent
+  tactics + the teams/CTDE on-ramp." That reweights PR-4's *urgency*, not its design; judge it
+  when the retrain eval lands.
+
+## Scope
+
+**In:** native ML-Agents `self_play` as the graduation phase — the opponent ship becomes a
+second **parameter-shared `ShipAgent`** (`team_id` 0/1, one behavior `"ShipCombat"`),
+mutually target-injected, on the shared `TestPilotMPC` airframe (symmetric pair); a
+**composition-provider seam** (`ScriptedRoster` = the existing curriculum path refactored
+out of `TrainingHost`; `SelfPlayPair` = new) delegated to by one generic host, with the
+shared `EpisodeLoopDriver` as sole loop/pacing/single-`EnvironmentStep` authority
+(generalized 1→N agents: `RequestDecision` on all, then one step); a **mirrored second
+`EpisodeRunner`** supplying the opponent agent's per-agent reward; a new
+`ppo_ship_combat_selfplay.yaml` (`self_play:` block, `--initialize-from` the retrain
+winner, canonical terminal env density 2.0 / lethality 1.0, no `opponent_weight_*` params,
+`gamma`-pin honored); a **two-team `self_play` smoke** as the merge gate; **L1 eval-league**
+= trainer ELO (in-run progress signal) + scheduled **per-archetype reality-check** via the
+existing `CheckpointEvaluator`/`RunEval` across self-play checkpoints, with the
+**evasive-trio scorecard engagement metrics (win/draw + damage/discipline/border-hug) as the collapse tripwire** (#179 upgrade).
+
+**Out (non-goals):** the self-play training run itself (separate spend approval — launch +
+final hypers own it, like PR-D); the reward reshape (upstream PR); teams /
+`SimpleMultiAgentGroup` / CTDE (§3.7 later phase — but `team_id` + per-agent reward is
+team-ready by construction); neural-vs-neural in-Unity eval / round-robin win-matrix /
+in-Unity ELO (L2/L3 — deferred; their deferral dissolves the two-neural-in-Unity stepping
+fork entirely); weapons; obs changes; re-minting the obs-24 pilot; shipping the learned
+policy in-game.
+
+## Fork resolutions (with why)
+
+1. **Self-play mechanism = native ML-Agents `self_play`** (`team_id`, trainer-managed
+   snapshot pool), NOT an in-house snapshot-pool-as-roster-archetype league. *Why:* teams
+   is the destination and `team_id` + parameter sharing is the on-ramp to
+   `SimpleMultiAgentGroup`/CTDE (§3.6/§3.7) — the opponent-becomes-an-Agent surgery is on
+   the critical path, not throwaway; the goal is to *leave the scripted utility priors
+   behind*, so preserving them as pool anchors (the in-house case's main virtue) is
+   backwards — the scripted roster was the curriculum **bootstrap** (done), self_play is
+   the **graduation** warm-started from its checkpoint; the trainer supplies snapshot pool
+   + swap + ELO + anti-collapse windowing for free; and under L1 the eval league needs no
+   in-house dual inference, so the in-house route's one saving grace evaporates. (This
+   overrode the initial pr-prep lean toward the in-house pool — the user's trajectory
+   argument won: native arch, less bespoke infra, team-ready.)
+2. **Composition = modular provider seam in one generic host** (not a `behaviorType`
+   mode-branch, not two full sibling hosts by default). *Why:* exactly two real
+   compositions today (scripted-curriculum, self-play) — not speculative abstraction; keeps
+   the hard-won `EpisodeLoopDriver` ordering/pacing contract single-sourced rather than
+   duplicated. Sibling-host fallback only if the two strategy bodies diverge enough that
+   the seam leaks — flag at the seam, don't force the abstraction.
+3. **Opponent reward = mirrored second `EpisodeRunner`** (not a symmetric rewrite of the
+   runner). *Why:* reuses the tested single-perspective runner verbatim instead of
+   reopening its PR-2b/PR-3 single-owner contract; each agent binds its own runner and
+   reads its own boundary snapshot; boundaries coincide (shared `decisionIntervalSteps`).
+4. **Eval-league scope = L1** (trainer ELO + scheduled per-archetype reality-check; no new
+   Unity inference). *Why:* the passivity upset proved a pure-ELO view hides mutual-draw
+   collapse (ELO plateaus, doesn't crash) — the **per-archetype-vs-scripted eval** is what
+   exposes it, and it is already built (`CheckpointEvaluator`); L2/L3 build a dual-inference
+   Unity subsystem to reproduce a progress signal the trainer already emits, and their real
+   payoff (arbitrary checkpoint-vs-checkpoint offline scoring) is a post-hoc-analysis need
+   that earns its own follow-up iff ELO + the reality-check ever prove insufficient.
+   **Dissolves the two-neural-in-Unity stepping fork** (Fork 4 never fires in PR-4).
+
+## Assumptions (user-reviewed)
+
+- `ppo_ship_combat_selfplay.yaml`: `self_play:` block + `--initialize-from` the retrain
+  winner; field ON at canonical terminal env (density 2.0 / lethality 1.0, no re-curriculum
+  — the policy already mastered that ladder); no `opponent_weight_*` params (no scripted
+  roster in self-play); `gamma 0.99` (the `RLTrainerConfigEditModeTests` pin still applies).
+- Self_play hypers (`save_steps`/`swap_steps`/`team_change`/`window`/
+  `play_against_latest_model_ratio`/`initial_elo`) ship **provisional, tuned at run launch**
+  (curriculum-threshold discipline); mental model = alternating learner/ghost under one
+  parameter-shared behavior.
+- Symmetric pair: both ships `TestPilotMPC` + `AgentChooser` + `ShipAgent`, `team_id` 0/1,
+  mutually injected as each other's target (the `AgentChooser.Configure(opponent)`
+  precedent, now bidirectional); the `UtilityPilot` baseline stays only in the curriculum
+  run + eval.
+- **No reward redesign in PR-4** — the reshaped `RewardSpec` from the upstream reward-fix PR
+  is inherited as-is; the mirror runner applies the same spec from the opponent's side.
+- `EpisodeLoopDriver` generalizes 1→N agents (request on all, then one `EnvironmentStep`).
+- 1v1 only; teams deferred (§3.7); `team_id` + per-agent reward is team-ready by
+  construction (no `SimpleMultiAgentGroup` yet).
+- Eval reuses `CheckpointEvaluator`/`EvalProtocol` unchanged; the "league" is a run-script
+  loop watching the checkpoint dir + batch `RunEval` across self-play checkpoints. No new
+  schema. The evasive-trio scorecard (win/draw + engagement metrics, #179) is the tripwire, not ELO.
+- `Gunner.AimPoint` is a **pure static function** (not shared mutable state); two `Gunner`
+  instances already coexist today (agent vs baseline) → two firing agents introduce no
+  cross-contamination. No single-learner-assuming static exists in RLHarness.
+- Both agents each get their own `wVelTrack=50` + boost-zeroed `MpcSettings` clone (extend
+  `EpisodePair.SpawnWithAgentChooser` to both sides).
+- Symmetric spawn poses (neither `team_id` positionally privileged).
+- JSONL records the learner-team (`team_id` 0) perspective as the canonical row; the mirror
+  runner exists only to feed the opponent's `AddReward`, not a second JSONL stream.
+- Existing single-agent training (scripted-roster provider), eval (`CheckpointEvaluator`,
+  one `InferenceOnly` agent), and gameplay (`InferenceChooser`) paths are **unaffected** —
+  the self_play `.onnx` export is still a single parameter-shared policy, loadable by
+  `ComposeInferenceOnly` as-is.
+- Merge gate = infra green + a two-team `self_play` smoke (the training run is separate
+  spend). Tests headless EditMode (composition-provider unit, two-runner reward mirror,
+  `team_id` config, YAML self_play-keys pin) + PlayMode `HeuristicOnly` two-agent loop;
+  `-ScopeType Auto`; worktree loop.
+
+## Blindsider resolutions
+
+- **`self_play` × runner-owned manual `Academy` stepping:** trainer-side (Python) feature,
+  transparent to how Unity drives `EnvironmentStep` (steps are steps; swap/save counts
+  accrue regardless). De-risked by making the merge-gate smoke a **real two-team
+  `self_play` `mlagents-learn` run** (extends `run_smoke`) so integration surprises surface
+  before the ~14 h run.
+- **Two-agent episode-start priming / boundary ordering:** clean generalization — both
+  runners share the boundary counter and begin together; contract = "`RequestDecision` on
+  all agents, then one `EnvironmentStep`." Contract detail, not an open question.
+- **Shared/single-learner state with two firing agents:** none found (`Gunner.AimPoint`
+  pure; no RLHarness singleton) — see assumptions.
+
+## Headline residual risk (logged, not a blocker)
+
+Even with the reward fix, symmetric self-play in a **lasers-only attrition regime** may
+still converge to a low-engagement Nash (mutual passivity/kiting). Detector = the L1
+evasive-trio scorecard tripwire + the scripted-anchor reality-check ("better than the
+old AI, not just its mirror"). Documented re-entry if the ceiling proves structural =
+weapon asymmetry (missiles ≈ counter to kiting), judged after this run, not before.
+
+## Hand-off
+
+Blocked on the precondition. When the reward-fix PR has merged and the second-run checkpoint
+is selected, hand the implementing agent this brief + the plan; build via the
+agent-worktree-pr-loop from `main`.

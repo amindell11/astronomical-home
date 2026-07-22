@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Game.Services;
-using Movement.MPC.Field;
 using NUnit.Framework;
 using Objectives;
 using Objectives.States;
@@ -36,6 +35,13 @@ namespace Tests.EditMode
             return go.AddComponent<T>();
         }
 
+        private GameObject TrackedArenaHost()
+        {
+            var go = new GameObject("Test_ArenaHost");
+            tempObjects.Add(go);
+            return go;
+        }
+
         [Test]
         public void GameServices_Constructor_ThrowsOnNullService()
         {
@@ -46,7 +52,7 @@ namespace Tests.EditMode
 
             var ui = new UIService();
             var proj = new ProjectileService(unit.transform);
-            var arena = TestArena.On(CreateMonoBehaviourService<NavFieldService>().gameObject);
+            var arena = TestArena.On(TrackedArenaHost());
 
             Assert.Throws<ArgumentNullException>(() => new GameServices(null, proj, env, obj, cam, ui, arena));
             Assert.Throws<ArgumentNullException>(() => new GameServices(unit, null, env, obj, cam, ui, arena));
@@ -206,7 +212,7 @@ namespace Tests.EditMode
             var env = new EnvironmentService();
             var obj = CreateMonoBehaviourService<ObjectiveService>();
             var cam = new CameraService();
-            var arena = TestArena.On(CreateMonoBehaviourService<NavFieldService>().gameObject);
+            var arena = TestArena.On(TrackedArenaHost());
             var services = new GameServices(unit, new ProjectileService(unit.transform), env, obj, cam, new UIService(), arena);
 
             Assert.DoesNotThrow(() => services.ClearAll());

@@ -1,5 +1,4 @@
 using Game.Services;
-using Movement.MPC.Field;
 using UnityEngine;
 
 namespace Game.RLHarness
@@ -10,8 +9,7 @@ namespace Game.RLHarness
         public static (UnitService units, ArenaContext arena, ProjectileService projectiles) Compose(GameObject host, Vector2 offset)
         {
             var units = host.AddComponent<UnitService>();
-            var navField = host.AddComponent<NavFieldService>();
-            var arena = new ArenaContext(offset, units.ActiveRegistry, navField);
+            var arena = new ArenaContext(offset, units.ActiveRegistry);
             units.SetArena(arena);
             var projectiles = new ProjectileService(host.transform);
             units.SetProjectiles(projectiles);

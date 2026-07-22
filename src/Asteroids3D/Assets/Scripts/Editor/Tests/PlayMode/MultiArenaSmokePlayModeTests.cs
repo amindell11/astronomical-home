@@ -282,7 +282,7 @@ namespace Tests.PlayMode
         private static IEnumerable<EnemyTracker> AcquiredTrackers(ArenaUnderTest arena) =>
             arena.ShipsInSpawnOrder
                 .Where(ship => ship)
-                .Select(ship => (ship.Commander as AICommander)?.UtilityChooser?.Context?.Combat)
+                .Select(ship => (ship.Commander as AICommander)?.context?.Combat)
                 .Where(combat => combat != null && combat.HasEnemy);
 
         private static AICommander ArrangeScanProbe(ArenaUnderTest arena)
@@ -303,8 +303,7 @@ namespace Tests.PlayMode
             return (AICommander)scout.Commander;
         }
 
-        // UtilityChooser.Context is created lazily on the Brain's first tick, after probe arrangement.
-        private static bool HasAcquired(AICommander cmdr) => cmdr.UtilityChooser?.Context?.Combat?.HasEnemy == true;
+        private static bool HasAcquired(AICommander cmdr) => cmdr.context?.Combat?.HasEnemy == true;
 
         private static void AssertAcquiredEnemiesInOwnHalf(ArenaUnderTest arena)
         {

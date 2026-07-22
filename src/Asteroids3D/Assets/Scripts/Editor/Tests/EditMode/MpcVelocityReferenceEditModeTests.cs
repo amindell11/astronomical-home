@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>Validates the VelocityReference objective: closed-form unit tests of <see cref="Cost.VelocityTrackCost"/> (and its inertness in position-goal modes), plus a tracking-fidelity test driving <c>Mpc.Plan</c> directly to confirm the solver converges velocity onto the command — tight on-axis, within a characterized strafe-authority envelope off-axis.</summary>
+    /// <summary>Validates the VelocityReference objective: closed-form unit tests of <see cref="Cost.VelocityTrackCost"/>, plus a tracking-fidelity test driving <c>Mpc.Plan</c> directly to confirm the solver converges velocity onto the command — tight on-axis, within a characterized strafe-authority envelope off-axis.</summary>
     [Category("MPC")]
     public class MpcVelocityReferenceEditModeTests
     {
@@ -42,27 +42,7 @@ namespace Tests.EditMode
             Assert.That(plus, Is.EqualTo(minus).Within(1e-5f), "Error is symmetric about the reference.");
         }
 
-        [Test]
-        public void VelocityReference_IgnoredByPositionGoalModes()
-        {
-            // In a position-goal mode the objective dispatches to the position bundle, so the commanded velocity must not touch the cost.
-            var cfg = new Config
-            {
-                dt = 0.1f, invDt = 10f, horizon = 17,
-                wPos = 1f, wVel = 0.5f, positionCurve = 2f, positionSaturationDistance = 35f,
-                maxSpeedSq = 900f, wVelTrack = 5f,
-                goalMode = GoalMode.Waypoint, tacticalEnabled = true, facingTarget = float.NaN,
-            };
-            var state = new State { pos = new float2(3f, 4f), vel = new float2(2f, 1f) };
-            var a = new CostInput { goalPos = new float2(20f, 0f), enemyYaw = float.NaN, velocityReference = new float2(9f, -9f) };
-            var b = a; b.velocityReference = new float2(-4f, 7f);
-
-            Assert.That(Cost.Evaluate(state, default, default, a, cfg, false),
-                Is.EqualTo(Cost.Evaluate(state, default, default, b, cfg, false)),
-                "Waypoint-mode cost must not depend on velocityReference.");
-        }
-
-        private const string MpcSettingsPath = "Assets/Settings/AI/MPC/MpcSettings.asset";
+        private const string MpcSettingsPath = "Assets/Settings/AI/MPC/MpcSettings_AgentPilot.asset";
         private const string ShipPrefabPath = "Assets/Prefabs/Ships/Ship_1.prefab";
 
         private MpcSettings settings;
@@ -82,7 +62,6 @@ namespace Tests.EditMode
         private MpcInputs VelocityInputs(float2 vRef, float facingRad) => new()
         {
             kinematics = default,
-            goalMode = GoalMode.VelocityReference,
             velocityReference = vRef,
             facingRad = facingRad,
             enemyYaw = float.NaN,
@@ -95,7 +74,7 @@ namespace Tests.EditMode
         private float2 ClosedLoopFinalVelocity(float2 vRef, float facingRad, float2 initialVel = default, int steps = 100)
         {
             using var mpc = new Mpc(settings, dynamics, 0u);
-            var cfg = settings.ToConfig(facingRad, GoalMode.VelocityReference);
+            var cfg = settings.ToConfig(facingRad);
             cfg.ApplyDynamics(in dynamics);
 
             var state = new State { vel = initialVel }; // origin, nose +Y (yaw 0)

@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using Game.Sectors;
 using Game.Services;
-using Movement.MPC.Field;
 using Player;
 using UnityEngine;
 using Utils;
@@ -19,7 +18,6 @@ namespace Game.Bootstrap
     /// </summary>
     [RequireComponent(typeof(ObjectiveService))]
     [RequireComponent(typeof(UnitService))]
-    [RequireComponent(typeof(NavFieldService))]
     public class SessionHost : MonoBehaviour, ISessionPrimitives
     {
         [Header("Session Rig")]
@@ -28,13 +26,11 @@ namespace Game.Bootstrap
 
         private UnitService unitService;
         private ObjectiveService objectiveService;
-        private NavFieldService navFieldService;
 
         private void Awake()
         {
             unitService = GetComponent<UnitService>();
             objectiveService = GetComponent<ObjectiveService>();
-            navFieldService = GetComponent<NavFieldService>();
         }
 
         /// <summary>Compose the session's service container and optional rig — once per session; the rig persists across sector loads until <see cref="TeardownSession"/>.</summary>
@@ -47,7 +43,7 @@ namespace Game.Bootstrap
             // The session root doubles as the arena root: placed at the profile offset before anything composes against it.
             transform.position = GamePlane.Origin + GamePlane.PlaneDirToWorld(target.Profile.offset);
 
-            var arena = new ArenaContext(target.Profile.offset, unitService.Registry, navFieldService);
+            var arena = new ArenaContext(target.Profile.offset, unitService.Registry);
             unitService.SetArena(arena);
 
             var projectiles = new ProjectileService(transform);

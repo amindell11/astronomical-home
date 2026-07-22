@@ -113,7 +113,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   template: {fileID: 7184882482910536223, guid: c3c15225cb3a8fd42a87c756c1d2d884,
     type: 3}
-  commander: {fileID: 1772957474756936600, guid: 08a3705197cc60842b107b8485d8ad25,
+  commander: {fileID: 1772957474756936600, guid: 1c6f3a82d5b9e4074a8d2c6f9b350e17,
     type: 3}
   settings: {fileID: 11400000, guid: d13d1fbc6c8e4f6686f856197f2b6fc9, type: 2}
   team: 1
@@ -170,7 +170,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   template: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,
     type: 3}
-  commander: {fileID: 1772957474756936600, guid: 08a3705197cc60842b107b8485d8ad25,
+  commander: {fileID: 1772957474756936600, guid: 1c6f3a82d5b9e4074a8d2c6f9b350e17,
     type: 3}
   settings: {fileID: 11400000, guid: d13d1fbc6c8e4f6686f856197f2b6fc9, type: 2}
   team: 0

@@ -1,10 +1,8 @@
 using AI.Context;
-using AI.Utility;
 using System;
 using Game.Services;
 using Movement;
 using Movement.MPC;
-using Ships;
 using Ships.Command;
 using UnityEngine;
 
@@ -19,7 +17,6 @@ namespace AI
     public class AICommander : Commander
     {
         private const uint NavStream = 1;
-        private const uint StrategyStream = 2;
 
         [Header("Difficulty")]
         [Tooltip("Bot skill level, typically set by curriculum (0.0 to 1.0)")]
@@ -40,9 +37,6 @@ namespace AI
         // Gunner is optional: an unarmed (peaceful) ship has no Gunner component.
         public Gunner Gunner { get; private set; }
         public Brain Brain { get; private set; }
-        // Editor/diagnostics convenience: the active policy when it is the utility chooser.
-        public UtilityChooser UtilityChooser => Brain ? Brain.Chooser as UtilityChooser : null;
-        public string CurrentStateName => UtilityChooser?.CurrentStateName ?? "None";
 
         protected virtual void Awake()
         {
@@ -72,13 +66,11 @@ namespace AI
             var seed = control.DecisionSeed;
 
             Scout.Initialize(self.Transform, self.Id, self.Dynamics, self, arena);
-            Navigator.Initialize(self, self.Dynamics, Scout, seed.Derive(NavStream), arena);
+            Navigator.Initialize(self, self.Dynamics, Scout, seed.Derive(NavStream));
             if (Gunner && control.IsArmed)
                 Gunner.Initialize(control.Weapons, control.WeaponActuator, pose);
 
             context = new AIContext(self, Scout, combatExitDelay);
-
-            Brain.Initialize(Navigator, Gunner, seed.Derive(StrategyStream));
 
             systemsInitialized = true;
         }
@@ -101,7 +93,7 @@ namespace AI
             if (Brain && Brain.isActiveAndEnabled)
             {
                 var dt = Time.fixedDeltaTime;
-                context.UpdateAssessment(dt);
+                context.Update(dt);
                 var intent = Brain.Decide(context, dt);
                 Navigator.ApplyIntent(intent);
                 if (Gunner) Gunner.ApplyIntent(intent);

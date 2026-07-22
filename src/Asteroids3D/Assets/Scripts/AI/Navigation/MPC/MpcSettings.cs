@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Movement.MPC
 {
@@ -25,41 +24,16 @@ namespace Movement.MPC
         [Range(0.01f, 0.5f)]
         public float eliteFraction = 0.1f;
 
-        [Header("Navigation")]
-        [Tooltip("Position cost weight. Drives the ship toward the goal (Waypoint mode), " +
-                 "into the range band (MaintainRange), or away from the target (Flee).")]
-        public float wPos = 1.0f;
-        [Tooltip("Velocity cost weight. Penalizes residual speed; scaled up near the goal for clean stops.")]
-        public float wVel = 0.5f;
-        [Tooltip("Closing velocity reward weight. Rewards velocity component pointing at the goal " +
-                 "(Lyapunov-style gradient). Provides a continuous escape signal from spinning local " +
-                 "optima. Smoothstep-gated to zero within closingFadeDistance so it doesn't fight arrival.")]
-        public float wClosing = 1f;
-        [Tooltip("Distance below which the closing-velocity reward fades smoothly to zero. " +
-                 "Lets the velocity-damping arrival logic take over near the goal without overshooting.")]
-        public float closingFadeDistance = 10f;
-        [Tooltip("Heading cost weight. Aligns the ship's nose toward the goal when no facing override is set. " +
-                 "Disabled when a facing override is active.")]
-        public float wYaw = 0.5f;
-        [Tooltip("Distance scaling for heading cost: heading_cost *= 1 + wYawDistanceScale * dist. " +
-                 "Keeps the heading signal visible against position cost at long range (matches " +
-                 "∂PositionCost/∂heading for positionCurve=2). 0 = current behavior, 1 = full physical scaling.")]
-        public float wYawDistanceScale = 1f;
+        [Header("Tracking")]
+        [Tooltip("Weight on the velocity-tracking objective: cost = wVelTrack * ‖vel - velocityReference‖² / maxSpeed². " +
+                 "Per-step (un-ramped) so tracking is uniform across the horizon rather than terminal-weighted.")]
+        public float wVelTrack = 5f;
         [Tooltip("Yaw rate cost weight. Penalizes spinning; keeps rotations smooth.")]
         public float wYawRate = 0.1f;
-        [Tooltip("Position cost distance exponent. 2 = quadratic (default), 1 = linear, 1.5 = compromise. " +
-                 "Lower values keep facing/heading costs relevant at long range.")]
-        public float positionCurve = 2f;
-        [Tooltip("Distance at which position cost half-saturates (Lorentzian cap). 0 = no cap (current behavior). " +
-                 "Past this distance, position cost flattens toward an asymptote — preventing far-distance " +
-                 "position cost from drowning out heading/closing/yaw signals. Closing-velocity reward " +
-                 "provides the urgency that quadratic position cost used to.")]
-        public float positionSaturationDistance = 35f;
         [Tooltip("Peak multiplier for state costs at the end of the horizon. " +
                  "Ramps up from 0 at step 0 to this value at the final step, shaped by terminalCurve.")]
         public float terminalMultiplier = 10f;
-        [Tooltip("Exponent shaping the terminal ramp. 1 = linear, >1 = late ramp (convex), <1 = early ramp (concave). " +
-                 "High values approximate the old step-function behavior.")]
+        [Tooltip("Exponent shaping the terminal ramp. 1 = linear, >1 = late ramp (convex), <1 = early ramp (concave).")]
         public float terminalCurve = 1f;
 
         [Header("Control")]
@@ -79,23 +53,11 @@ namespace Movement.MPC
         [Range(0f, 1f)]
         public float boostSampleProbability = 0.15f;
 
-        [Header("Tactical")]
-        [Tooltip("Facing override weight. Steers the nose toward a specific angle (e.g. lead target in Attack). " +
-                 "Only active when a facing override is set.")]
+        [Header("Aim")]
+        [Tooltip("Facing weight. Steers the nose toward the intercept-lead angle (or an explicit facing override).")]
         public float wFacing = 1.0f;
         [Tooltip("Facing Huber dead-zone width in radians. Errors within this range get a gentle quadratic penalty; beyond it cost grows linearly.")]
         public float facingWidth = 0.5f;
-        [Tooltip("Line-of-sight cost weight. Penalizes positions where obstacles block the view to the enemy.")]
-        public float wLos = 1f;
-        [Tooltip("Exposure cost weight. Penalizes being in the enemy's forward weapon arc.")]
-        public float wExposure = 1f;
-        [Tooltip("Exposure Gaussian width in radians. Smaller = narrower danger cone in front of enemy.")]
-        public float exposureWidth = 0.5f;
-        [Tooltip("Tangential velocity cost weight. Rewards lateral movement relative to enemy, making the ship harder to track.")]
-        public float wTangential = 1f;
-        [Tooltip("Miss distance cost weight. Penalizes being easy to hit by computing how far a projectile would miss " +
-                 "given the ship's lateral velocity and range. Naturally captures speed, evasive movement, and distance.")]
-        public float wMissDistance = 0f;
 
         [Header("Obstacle Avoidance")]
         [Tooltip("Admissibility (turn-away) weight. Penalizes rollout states whose velocity leads " +
@@ -117,47 +79,16 @@ namespace Movement.MPC
                  "pre-multi-sphere behaviour). Rocks with ≤1 baked lobe are unaffected either way.")]
         public bool multiSphereObstacles = true;
 
-        [Header("Velocity Reference (feasibility tracker)")]
-        [Tooltip("Weight on the velocity-tracking objective in GoalMode.VelocityReference: " +
-                 "cost = wVelTrack * ‖vel - velocityReference‖² / maxSpeed². Per-step (un-ramped) " +
-                 "so tracking is uniform across the horizon rather than terminal-weighted. Unused " +
-                 "by the position-goal modes.")]
-        public float wVelTrack = 5f;
-
-        [Header("Terminal Field (cost-to-go)")]
-        [Tooltip("Weight on the per-rollout terminal cost-to-go sample (time-to-go seconds, " +
-                 "stage-cost units — keep near 1; under-weighting re-creates horizon myopia). " +
-                 "0 disables the terminal hook.")]
-        public float wTerminal = 1f;
-
-        [Header("Arrival Stabilization")]
-        [Tooltip("Distance to goal at which arrival stabilization begins ramping up.")]
-        public float arrivalDistance = 3.0f;
-        [Tooltip("Velocity cost multiplier at the goal center. Ramps from 1x at arrivalDistance to this value at 0.")]
-        public float arrivalVelScale = 5.0f;
-        [Tooltip("Yaw cost multiplier at the goal center. Ramps down near the goal so the ship prioritizes stopping over turning.")]
-        public float arrivalYawScale = 0.1f;
-
         public int Horizon => Mathf.CeilToInt(horizonSeconds / rolloutDt);
 
-        public Config ToConfig(float facingTargetRad = float.NaN,
-            GoalMode goalMode = GoalMode.Waypoint,
-            float desiredRange = 0f, float rangeTolerance = 0f)
+        public Config ToConfig(float facingTargetRad = float.NaN)
         {
             return new Config
             {
                 dt = rolloutDt,
                 invDt = rolloutDt > 0f ? 1f / rolloutDt : 0f,
                 horizon = Horizon,
-                wPos = wPos,
-                wVel = wVel,
-                wClosing = wClosing,
-                closingFadeDistance = closingFadeDistance,
-                wYaw = wYaw,
-                wYawDistanceScale = wYawDistanceScale,
                 wYawRate = wYawRate,
-                positionCurve = positionCurve,
-                positionSaturationDistance = positionSaturationDistance,
                 terminalMultiplier = terminalMultiplier,
                 terminalCurve = terminalCurve,
                 wEffort = wEffort,
@@ -169,25 +100,10 @@ namespace Movement.MPC
                 wFacing = wFacing,
                 facingWidth = facingWidth,
                 facingTarget = facingTargetRad,
-                wLos = wLos,
-                wExposure = wExposure,
-                exposureWidth = exposureWidth,
-                wTangential = wTangential,
-                wMissDistance = wMissDistance,
                 wObstacle = wObstacle,
                 collisionPenalty = collisionPenalty,
                 collisionSafetyMargin = collisionSafetyMargin,
-                arrivalDistance = arrivalDistance,
-                arrivalDistanceSq = arrivalDistance * arrivalDistance,
-                arrivalVelScale = arrivalVelScale,
-                arrivalYawScale = arrivalYawScale,
-                goalMode = goalMode,
-                desiredRange = desiredRange,
-                rangeTolerance = rangeTolerance,
-                // The velocity-tracker drops the authored combat tactics (the reward teaches those); position-goal modes keep them.
-                tacticalEnabled = goalMode != GoalMode.VelocityReference,
                 wVelTrack = wVelTrack,
-                wTerminal = wTerminal,
             };
         }
     }

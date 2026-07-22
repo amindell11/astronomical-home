@@ -91,8 +91,6 @@ MonoBehaviour:
   candidateSampleCount: 32
   candidateAlphaFalloff: 2
   controlPanelOffset: {x: 0, y: 2.5, z: 0}
-  comparisonProfiles: []
-  arriveRadius: 2.66
   mpcSettings: {fileID: 11400000, guid: a3f18c2d94b6e7054a2c8f1d6b3e0972, type: 2}
   enableObstacleAvoidance: 1
 --- !u!114 &2056539076943524747
@@ -145,5 +143,5 @@ MonoBehaviour:
     - rid: 1937986634179674200
       type: {class: InferenceChooser, ns: Game.RLHarness, asm: Game.RLHarness.Runtime}
       data:
-        model: {fileID: 11400000, guid: 5b9e4d27a1c8f3064e7b2a9c5d18f640, type: 3}
+        model: {fileID: 5022602860645237092, guid: e95ef7ec5a294b65b00ed869079a6940, type: 3}
         leashRadius: 120

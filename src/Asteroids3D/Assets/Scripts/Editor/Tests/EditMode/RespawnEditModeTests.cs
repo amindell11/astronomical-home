@@ -126,8 +126,7 @@ namespace Tests.EditMode
             _arenaHost = new GameObject("Arena");
             var offset = new Vector2(1000f, -250f);
             var services = Services(follower: null);
-            services.ArenaCtx = new ArenaContext(offset, new Tests.Common.StubShipRegistry(),
-                _arenaHost.AddComponent<Movement.MPC.Field.NavFieldService>());
+            services.ArenaCtx = new ArenaContext(offset, new Tests.Common.StubShipRegistry());
 
             var policy = new RespawnPolicy
             {

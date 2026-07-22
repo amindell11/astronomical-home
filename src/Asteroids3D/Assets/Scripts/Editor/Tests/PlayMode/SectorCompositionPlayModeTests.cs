@@ -74,6 +74,13 @@ namespace Tests.PlayMode
                 new CameraService(), new UIService(), arena);
 
             _config = ScriptableObject.CreateInstance<SectorSettings>();
+
+            // Composition tests observe spawn lifecycle only; the stripped test pilot authors no chooser, and a ticking Brain throws.
+            _unitService.OnShipSpawned += s =>
+            {
+                var brain = (s.Commander as AICommander)?.Brain;
+                if (brain) brain.enabled = false;
+            };
         }
 
         [TearDown]

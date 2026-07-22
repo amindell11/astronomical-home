@@ -2,7 +2,6 @@ using AI;
 using AI.Context;
 using AI.States;
 using Movement;
-using Movement.MPC;
 using UnityEngine;
 
 namespace Game.RLHarness
@@ -74,12 +73,11 @@ namespace Game.RLHarness
             return new NavigationIntent
             {
                 isValid = true,
-                goalMode = GoalMode.VelocityReference,
                 velocityReference = ClampSpeed(vRef, maxSpeed),
                 hasTarget = true,
                 target = BuildTarget(ctx, d),
-                // Nose-on-target aim feeds SetEnemyState so intercept-yaw engages; freeYaw leaves the enemy state cleared so the solver yaws to exploit forward thrust. The tactical cost block stays off either way (goalMode-derived).
-                applyTacticalCosts = !freeYaw,
+                // freeYaw leaves the enemy state cleared so the solver yaws to exploit forward thrust.
+                aimAtTarget = !freeYaw,
                 projectileSpeed = ProjectileSpeed,
             };
         }
