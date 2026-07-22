@@ -14,7 +14,12 @@ public abstract class PlayModeWorldFixture
     /// <summary>Override false if a test needs audio.</summary>
     protected virtual bool PauseAudio => true;
 
+    /// <summary>Override true for accelerated simulation; test time budgets must be simulated-time, not wall-clock.</summary>
+    protected virtual bool AccelerateTime => false;
+
     private GameObject arenaHost;
+    private float savedTimeScale;
+    private float savedMaxDelta;
 
     /// <summary>The per-test world-frame handle wired into AI ships (registry + NavField sibling).</summary>
     protected ArenaContext Arena { get; private set; }
@@ -31,6 +36,14 @@ public abstract class PlayModeWorldFixture
     {
         if (PauseAudio)
             AudioListener.pause = true;
+
+        if (AccelerateTime)
+        {
+            savedTimeScale = Time.timeScale;
+            savedMaxDelta = Time.maximumDeltaTime;
+            Time.timeScale = 20f;
+            Time.maximumDeltaTime = 1f;
+        }
 
         TestSceneBuilder.CreateTestArena();
 
@@ -50,6 +63,12 @@ public abstract class PlayModeWorldFixture
         Projectiles = null;
 
         TestSceneBuilder.CleanupTestArena();
+
+        if (AccelerateTime)
+        {
+            Time.timeScale = savedTimeScale;
+            Time.maximumDeltaTime = savedMaxDelta;
+        }
 
         if (PauseAudio)
             AudioListener.pause = false;

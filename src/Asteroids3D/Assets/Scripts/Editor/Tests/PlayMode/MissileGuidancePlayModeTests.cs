@@ -10,11 +10,12 @@ using UnityEngine.TestTools;
 namespace Tests.PlayMode
 {
     [Category("Weapons")]
-    [Category("Slow")]
     public class MissileGuidancePlayModeTests : PlayModeWorldFixture
     {
         private Missile missile;
         private GameObject targetGo;
+
+        protected override bool AccelerateTime => true;
 
         private class StubShooter : MonoBehaviour, IShooter
         {
