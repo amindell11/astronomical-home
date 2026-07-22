@@ -5,14 +5,13 @@ using AI.States;
 using Ships;
 using Ships.Command;
 using Unity.InferenceEngine;
-using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Policies;
 using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>Editor-authorable trained policy: self-hosts a <see cref="LivePilotAgent"/> in InferenceOnly mode on first Decide, targets the context's tracked enemy, and owns decision pacing (chooser-driven Academy stepping — see the Playable_RL_Pilot brief).</summary>
+    /// <summary>Editor-authorable trained policy: self-hosts a <see cref="LivePilotAgent"/> in InferenceOnly mode on first Decide, targets the context's tracked enemy, and paces boundary RequestDecision calls on the Academy auto-clock.</summary>
     [Serializable]
     public sealed class InferenceChooser : IIntentChooser
     {
@@ -60,7 +59,6 @@ namespace Game.RLHarness
             {
                 agent.CaptureBoundary(self, enemy, leashCenter, leashRadius);
                 agent.RequestDecision();
-                Academy.Instance.EnvironmentStep();
                 ticksUntilDecision = ShipCombatPolicy.DecisionIntervalSteps;
             }
 
@@ -116,7 +114,6 @@ namespace Game.RLHarness
             agent.Bind(mailbox, ctx.Scout);
             host.SetActive(true);
 
-            Academy.Instance.AutomaticSteppingEnabled = false;
             leashCenter = self.Kinematics.pos;
             ticksUntilDecision = 0;
             return true;

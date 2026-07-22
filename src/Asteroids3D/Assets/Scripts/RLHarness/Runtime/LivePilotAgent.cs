@@ -8,7 +8,7 @@ using Unity.MLAgents.Sensors;
 
 namespace Game.RLHarness
 {
-    /// <summary>Gameplay inference host for one ship: observes the boundary state its <see cref="InferenceChooser"/> captured and pushes each decision into the chooser's mailbox. The chooser owns pacing and Academy stepping; MaxStep stays 0 and OnEpisodeBegin stays a no-op.</summary>
+    /// <summary>Gameplay inference host for one ship: observes the boundary state its <see cref="InferenceChooser"/> captured and pushes each decision into the chooser's mailbox. The chooser owns pacing on the Academy auto-clock; MaxStep stays 0 and OnEpisodeBegin stays a no-op.</summary>
     public sealed class LivePilotAgent : Agent
     {
         private AgentChooser mailbox;
