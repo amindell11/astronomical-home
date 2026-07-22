@@ -34,6 +34,9 @@ namespace Tests.EditMode
             {
                 if (string.IsNullOrEmpty(Arg("-gateEditResults")) || string.IsNullOrEmpty(Arg("-gatePlayResults")))
                     throw new ArgumentException("GateTestRunner requires -gateEditResults and -gatePlayResults paths");
+                if (s_IsRunActive == null)
+                    throw new MissingMethodException(
+                        "TestRunnerApi.IsRunActive is gone (UTF upgrade?) — GateTestRunner cannot observe run completion");
 
                 SessionState.SetString(PhaseKey, PhaseEdit);
                 SessionState.SetInt(FailedKey, 0);
@@ -75,34 +78,48 @@ namespace Tests.EditMode
                     {
                         TestRunnerApi.SaveResultToFile(result, Arg("-gateEditResults"));
                         SessionState.SetString(PhaseKey, PhasePlay);
-                        // Not from inside the callback: the finishing job is still tearing down.
-                        EditorApplication.delayCall += () => Execute(TestMode.PlayMode);
+                        WhenRunIdle(() => Execute(TestMode.PlayMode));
                     }
                     else
                     {
                         TestRunnerApi.SaveResultToFile(result, Arg("-gatePlayResults"));
                         SessionState.SetString(PhaseKey, "");
-                        ExitWhenIdle(SessionState.GetInt(FailedKey, 0) > 0 ? 2 : 0);
+                        var code = SessionState.GetInt(FailedKey, 0) > 0 ? 2 : 0;
+                        WhenRunIdle(() => EditorApplication.Exit(code));
                     }
                 }
                 catch (Exception e)
                 {
                     Debug.LogError($"[GateTestRunner] phase completion failed: {e}");
                     SessionState.SetString(PhaseKey, "");
-                    ExitWhenIdle(3);
+                    WhenRunIdle(() => EditorApplication.Exit(3));
                 }
             }
         }
 
-        private static void ExitWhenIdle(int code)
+        // The CLI's own exit gate (Executer.ExitIfRunIsCompleted) polls internal TestRunnerApi.IsRunActive:
+        // RunFinished fires mid-job, before UTF's cleanup tasks (restore project settings, delete the
+        // InitTestScene bootstrap) — acting on any earlier signal races them and leaks their artifacts.
+        private static readonly Func<bool> s_IsRunActive = BuildIsRunActive();
+
+        private static Func<bool> BuildIsRunActive()
+        {
+            var method = typeof(TestRunnerApi).GetMethod(
+                "IsRunActive", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+            if (method == null)
+                return null;
+            return () => (bool)method.Invoke(null, null);
+        }
+
+        private static void WhenRunIdle(Action action)
         {
             EditorApplication.CallbackFunction poll = null;
             poll = () =>
             {
-                if (EditorApplication.isPlayingOrWillChangePlaymode)
+                if (s_IsRunActive())
                     return;
                 EditorApplication.update -= poll;
-                EditorApplication.Exit(code);
+                action();
             };
             EditorApplication.update += poll;
         }
