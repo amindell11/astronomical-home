@@ -113,8 +113,7 @@ def main() -> None:
                 (True, False): "ppo_ship_combat_selfplay.yaml",
                 (True, True): "ppo_ship_combat_selfplay_smoke.yaml"}
     config = args.config or RL_DIR / defaults[(args.self_play, args.smoke)]
-    # A self-play env with a non-self-play trainer (or the reverse) trains the wrong thing while
-    # looking healthy — the trainer YAML and the flag must agree before anything boots.
+    # A flag/YAML mismatch trains the wrong thing while looking healthy — fail before boot.
     if args.self_play and not config_has_self_play(config):
         parser.error(f"--self-play passed but {config.name} has no self_play: block — "
                      "the trainer would run without a ghost league")
@@ -128,8 +127,7 @@ def main() -> None:
     suffixes = log_suffixes(args.num_envs, args.num_arenas)
     before = {s: episode_logs(s) for s in suffixes}
 
-    # mlagents-learn spawns each worker as a subprocess inheriting this env, so these reach them
-    # all. The pops are load-bearing: an inherited flag would bypass the config cross-check above.
+    # mlagents-learn workers inherit this env; the pops stop an inherited RL_SELFPLAY bypassing the cross-check.
     env = dict(os.environ)
     if args.smoke:
         env["RL_SMOKE"] = "1"

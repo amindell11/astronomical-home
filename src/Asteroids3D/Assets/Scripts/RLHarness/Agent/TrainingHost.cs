@@ -47,8 +47,7 @@ namespace Game.RLHarness
             Func<string, float, float> envParams = Academy.Instance.EnvironmentParameters.GetWithDefault;
             spec = EnvParamOverlay.Apply(spec, envParams);
             var selfPlayRun = Environment.GetEnvironmentVariable("RL_SELFPLAY") == "1";
-            // The scripted path fingerprints itself in episode JSONL (opponent.archetype); the
-            // self-play path leaves none, so the composition must be loud at boot.
+            // Self-play leaves no fingerprint in episode JSONL (scripted does), so be loud at boot.
             Debug.Log($"[TrainingHost] composition={(selfPlayRun ? nameof(SelfPlayComposition) : nameof(ScriptedRosterComposition))}");
 
             for (var j = 0; j < arenaCount; j++)

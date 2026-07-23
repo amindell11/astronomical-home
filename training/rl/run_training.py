@@ -78,8 +78,7 @@ def main() -> None:
 
     unity = args.unity or default_unity_exe()
     config = args.config or RL_DIR / ("ppo_ship_combat_selfplay.yaml" if args.self_play else "ppo_ship_combat.yaml")
-    # A self-play env with a non-self-play trainer (or the reverse) trains the wrong thing while
-    # looking healthy — the trainer YAML and the flag must agree before anything boots.
+    # A flag/YAML mismatch trains the wrong thing while looking healthy — fail before boot.
     if args.self_play and not config_has_self_play(config):
         parser.error(f"--self-play passed but {config.name} has no self_play: block — "
                      "the trainer would run without a ghost league")
@@ -93,8 +92,7 @@ def main() -> None:
     editor_log = RESULTS / f"{run_id}-editor.log"
     editor_log.unlink(missing_ok=True)
 
-    # Inherited flags must not leak past the cross-check: RL_SMOKE=1 would silently shrink
-    # TrainingHost to the smoke arena/clock, RL_SELFPLAY=1 would swap the composition.
+    # An inherited RL_SMOKE would silently shrink the run; an inherited RL_SELFPLAY would bypass the cross-check.
     editor_env = {k: v for k, v in os.environ.items() if k not in ("RL_SMOKE", "RL_SELFPLAY")}
     if args.self_play:
         editor_env["RL_SELFPLAY"] = "1"
