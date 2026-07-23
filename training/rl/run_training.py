@@ -22,7 +22,7 @@ RESULTS = REPO_ROOT / "results" / "rl-training"
 START_FLAG = RESULTS / "start-play.flag"
 ARMED_MARKER = "[TrainingBootstrap] armed"
 PACING_MARKER = "[PacingContract] holds"
-EPISODE_LINE = re.compile(r"\[TrainingHost\] episode \d+:.*terminals=(\d+) truncations=(\d+)")
+EPISODE_LINE = re.compile(r"\[TrainingHost\] arena \d+ episode \d+:.*terminals=(\d+) truncations=(\d+)")
 
 
 def default_unity_exe() -> Path:

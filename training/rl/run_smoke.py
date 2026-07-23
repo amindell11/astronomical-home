@@ -22,7 +22,7 @@ START_FLAG = RESULTS / "start-play.flag"
 SMOKE_ONNX = RESULTS / "ship_combat_smoke" / "ShipCombat.onnx"
 ARMED_MARKER = "[TrainingBootstrap] armed"
 PACING_MARKER = "[PacingContract] holds"
-EPISODE_LINE = re.compile(r"\[TrainingHost\] episode \d+:.*terminals=(\d+) truncations=(\d+)")
+EPISODE_LINE = re.compile(r"\[TrainingHost\] arena \d+ episode \d+:.*terminals=(\d+) truncations=(\d+)")
 
 
 def default_unity_exe() -> Path:

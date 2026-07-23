@@ -65,6 +65,7 @@ namespace Game.RLHarness
     public struct EpisodeResult
     {
         public string schema;
+        public int observationSize;
         public int episodeIndex;
         public string outcome;
         public string endKind;
@@ -99,7 +100,7 @@ namespace Game.RLHarness
         public OpponentDraw opponent;
         public List<DecisionRow> trace;
 
-        public const string SchemaId = "rl-episode-v3";
+        public const string SchemaId = "rl-episode-v4";
 
         public string ToJsonLine() => JsonUtility.ToJson(this);
     }

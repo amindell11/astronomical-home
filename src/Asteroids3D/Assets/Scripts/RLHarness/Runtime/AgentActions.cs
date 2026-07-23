@@ -6,31 +6,42 @@ namespace Game.RLHarness
     public readonly struct AgentAction
     {
         public readonly Vector2 velocityEgo;
+        public readonly Vector2 facingEgo;
         public readonly bool fire;
         public readonly bool boost;
 
-        public AgentAction(Vector2 velocityEgo, bool fire, bool boost)
+        public AgentAction(Vector2 velocityEgo, Vector2 facingEgo, bool fire, bool boost)
         {
             this.velocityEgo = velocityEgo;
+            this.facingEgo = facingEgo;
             this.fire = fire;
             this.boost = boost;
         }
     }
 
-    /// <summary>Pure mapping between the 4-continuous action vector [vx, vy, fire, boost] ∈ [−1,1] and game-frame commands (fire/boost are threshold-gated at 0 — 4.0.3 rejects hybrid specs in the trainer path). Ego→world conversion happens ONCE per decision at the boundary; re-rotating per tick would feed live yaw back into the reference.</summary>
+    /// <summary>Pure mapping between the 6-continuous action vector [vx, vy, fire, boost, fx, fy] ∈ [−1,1] and game-frame commands (fire/boost are threshold-gated at 0 — 4.0.3 rejects hybrid specs in the trainer path; fx/fy are a facing direction, consumed via <see cref="ToFacingRad"/> so magnitude is irrelevant). Ego→world conversion happens ONCE per decision at the boundary; re-rotating per tick would feed live yaw back into the reference.</summary>
     public static class AgentActions
     {
-        public const int Count = 4;
+        public const int Count = 6;
         public const float TriggerThreshold = 0f;
 
-        public static AgentAction Map(float vx, float vy, float fire, float boost) => new(
+        public static AgentAction Map(float vx, float vy, float fire, float boost, float fx, float fy) => new(
             new Vector2(Mathf.Clamp(vx, -1f, 1f), Mathf.Clamp(vy, -1f, 1f)),
+            new Vector2(fx, fy),
             fire > TriggerThreshold,
             boost > TriggerThreshold);
 
         public static Vector2 ToWorldVelocity(Vector2 velocityEgo, Vector2 forwardPlane, float maxSpeed) =>
             Vector2.ClampMagnitude(
                 new EgoFrame(Vector2.zero, forwardPlane).PlaneDirection(velocityEgo) * maxSpeed, maxSpeed);
+
+        /// <summary>Ego facing direction → commanded world-plane yaw in the MPC convention (fwd = (−sin, cos)). A degenerate direction holds the current nose.</summary>
+        public static float ToFacingRad(Vector2 facingEgo, Vector2 forwardPlane)
+        {
+            var world = new EgoFrame(Vector2.zero, forwardPlane).PlaneDirection(facingEgo);
+            if (world.sqrMagnitude < 1e-6f) world = forwardPlane;
+            return Mathf.Atan2(-world.x, world.y);
+        }
 
         /// <summary>Inverse of <see cref="ToWorldVelocity"/> for the heuristic: a world-plane velocity within maxSpeed maps back inside the [−1,1] action box.</summary>
         public static Vector2 ToEgoAction(Vector2 worldVelocity, Vector2 forwardPlane, float maxSpeed) =>

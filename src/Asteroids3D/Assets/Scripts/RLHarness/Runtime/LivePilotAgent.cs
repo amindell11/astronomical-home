@@ -8,7 +8,7 @@ using Unity.MLAgents.Sensors;
 
 namespace Game.RLHarness
 {
-    /// <summary>Gameplay inference host for one ship: observes the boundary state its <see cref="InferenceChooser"/> captured and pushes each decision into the chooser's mailbox. The chooser owns pacing on the Academy auto-clock; MaxStep stays 0 and OnEpisodeBegin stays a no-op.</summary>
+    /// <summary>Gameplay inference host for one ship: observes the boundary state its <see cref="InferenceChooser"/> captured and pushes each decision into the chooser's mailbox. The chooser owns pacing on the Academy auto-clock; MaxStep stays 0 and OnEpisodeBegin stays a no-op. Runs the <see cref="LegacyAgentObservations"/> 72/4 surface until a manual-aim checkpoint ships to production.</summary>
     public sealed class LivePilotAgent : Agent
     {
         private AgentChooser mailbox;
@@ -19,7 +19,7 @@ namespace Game.RLHarness
         private float leashRadius;
         private CombatSnapshot boundary;
         private IHeatReadout primaryHeat;
-        private readonly float[] observationBuffer = new float[AgentObservations.Size];
+        private readonly float[] observationBuffer = new float[LegacyAgentObservations.Size];
 
         public int DecisionsReceived { get; private set; }
 
@@ -53,7 +53,7 @@ namespace Game.RLHarness
             var view = new TargetView(true, enemyKin.pos, enemyKin.vel, enemyKin.Forward,
                 target.HealthPct, target.ShieldPct);
 
-            AgentObservations.Fill(observationBuffer, self, in view,
+            LegacyAgentObservations.Fill(observationBuffer, self, in view,
                 boundary.inMyEnvelope, boundary.inEnemyEnvelope,
                 self.Weapons.Context.IsReady(WeaponSlot.Primary),
                 primaryHeat?.HeatPct ?? 0f,
@@ -66,10 +66,10 @@ namespace Game.RLHarness
         public override void OnActionReceived(ActionBuffers actions)
         {
             var continuous = actions.ContinuousActions;
-            var action = AgentActions.Map(continuous[0], continuous[1], continuous[2], continuous[3]);
+            var action = LegacyAgentObservations.Map(continuous[0], continuous[1], continuous[2], continuous[3]);
             var worldVelocity = AgentActions.ToWorldVelocity(
                 action.velocityEgo, self.Kinematics.Forward, self.MaxSpeed);
-            mailbox.SetAction(worldVelocity, action.fire, action.boost, self.BoostAvailable);
+            mailbox.SetLegacyAction(worldVelocity, action.fire, action.boost, self.BoostAvailable);
             DecisionsReceived++;
         }
 

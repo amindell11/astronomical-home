@@ -1,5 +1,4 @@
 using System;
-using AI;
 using AI.Observation;
 using AI.Scanning;
 using Ships.Command;
@@ -7,20 +6,28 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>Flattens the decision-boundary state into the fixed 82-float sensor vector (self token 8, hasTarget 1, target token 9, envelope bits 2, ego-frame arena-center 2, primary-weapon readiness 1, self primary heat 1, ego-frame intercept-lead direction 2, then 8 nearest-asteroid tokens × 7). Distances/positions normalize by arenaRadius, velocities by MaxSpeed; the token pieces come from <see cref="ObservationExtractor"/> and the lead from <see cref="Gunner.AimPoint"/> so their semantics stay single-sourced.</summary>
-    public static class AgentObservations
+    /// <summary>LEGACY production-inference shim: the frozen 72-float obs fill and 4-action map the shipped 72-obs/4-action checkpoint was trained against. Used ONLY by the gameplay inference path (<see cref="InferenceChooser"/>/<see cref="LivePilotAgent"/>); training/eval run the live 82/6 surface. DELETE this file, <see cref="AgentChooser.SetLegacyAction"/>, and the LivePilotAgent references when a manual-aim checkpoint ships to production.</summary>
+    public static class LegacyAgentObservations
     {
-        public const int CombatChannels = 26;
         public const int ObstacleTokenCount = 8;
-        public const int ObstacleTokenFloats = 7;
-        public const int Size = CombatChannels + ObstacleTokenCount * ObstacleTokenFloats;
+        public const int ObstacleTokenFloats = 6;
+        public const int Size = 24 + ObstacleTokenCount * ObstacleTokenFloats;
+        public const int ActionCount = 4;
 
-        // SpawnSettings.asset ceiling: largest mesh volume 121.41 at massScale 2.5 → radius ≈ 4.17.
-        public const float SpawnSettingsMaxAsteroidRadius = 4.17f;
+        /// <summary>Pre-manual-aim smoke checkpoint kept alive to exercise this shim's inference path in tests; deleted with the shim.</summary>
+        public const string SmokeFixturePath = "Assets/Tests/Fixtures/ShipCombat-smoke-legacy72.onnx";
+
+        public const float SpawnSettingsMaxAsteroidRadius = AgentObservations.SpawnSettingsMaxAsteroidRadius;
+
+        public static AgentAction Map(float vx, float vy, float fire, float boost) => new(
+            new Vector2(Mathf.Clamp(vx, -1f, 1f), Mathf.Clamp(vy, -1f, 1f)),
+            Vector2.zero,
+            fire > AgentActions.TriggerThreshold,
+            boost > AgentActions.TriggerThreshold);
 
         public static void Fill(float[] buffer, IShipStatus self, in TargetView target,
             bool inMyEnvelope, bool inEnemyEnvelope, bool primaryWeaponReady, float primaryHeatPct,
-            float primaryProjectileSpeed, Vector2 arenaCenterPlane, float arenaRadius, in ObstacleScan asteroids)
+            Vector2 arenaCenterPlane, float arenaRadius, in ObstacleScan asteroids)
         {
             var kin = self.Kinematics;
             var frame = new EgoFrame(kin.pos, kin.Forward);
@@ -67,20 +74,9 @@ namespace Game.RLHarness
             buffer[i++] = primaryWeaponReady ? 1f : 0f;
             buffer[i++] = primaryHeatPct;
 
-            // Manual aim's target picture: the unit ego direction toward the primary weapon's intercept point (the same lead truth the gunsight/envelope evaluate at).
-            var lead = Vector2.zero;
-            if (target.has)
-            {
-                var leadEgo = frame.Point(Gunner.AimPoint(in kin, target.pos, target.vel, primaryProjectileSpeed));
-                if (leadEgo.sqrMagnitude > 1e-8f) lead = leadEgo.normalized;
-            }
-            buffer[i++] = lead.x;
-            buffer[i++] = lead.y;
-
             FillObstacleTokens(buffer, i, in frame, kin.pos, kin.vel, maxSpeed, radius, in asteroids);
         }
 
-        /// <summary>Appends the k-nearest-asteroid token block: per slot relPos.xy, distance, relVel.xy, radius, healthPct — ego frame, ascending by distance (the scan is unordered), zero-padded tail (radius 0 ⇔ empty slot).</summary>
         private static void FillObstacleTokens(float[] buffer, int i, in EgoFrame frame,
             Vector2 selfPos, Vector2 selfVel, float maxSpeed, float arenaRadius, in ObstacleScan asteroids)
         {
@@ -117,7 +113,6 @@ namespace Game.RLHarness
                 buffer[i++] = relVel.x / maxSpeed;
                 buffer[i++] = relVel.y / maxSpeed;
                 buffer[i++] = o.radius / SpawnSettingsMaxAsteroidRadius;
-                buffer[i++] = o.healthPct;
             }
 
             for (var s = slots; s < ObstacleTokenCount; s++)

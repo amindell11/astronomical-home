@@ -26,6 +26,14 @@ namespace AI.States
 
         public bool enableFiring;
 
+        // Commanded nose heading (world-plane yaw, radians, MPC convention fwd = (−sin, cos)), gated by hasFacing.
+        public bool hasFacing;
+        public float facingRad;
+
+        // Manual trigger authority: the commander pushes primaryHeld to the weapon actuator and skips the Gunner.
+        public bool manualFire;
+        public bool primaryHeld;
+
         public static NavigationIntent None => new NavigationIntent { isValid = false };
     }
 }

@@ -282,21 +282,22 @@ namespace Tests.PlayMode
             var buffer = new float[AgentObservations.Size];
             AgentObservations.Fill(buffer, agent, in target,
                 inMyEnvelope: false, inEnemyEnvelope: false, primaryWeaponReady: false, primaryHeatPct: 0f,
-                arena.Offset, spec.arenaRadius, scan);
+                primaryProjectileSpeed: 0f, arena.Offset, spec.arenaRadius, scan);
 
             var occupied = Mathf.Min(AgentObservations.ObstacleTokenCount, scan.count);
             Assert.Greater(occupied, 0);
             var previousDistance = 0f;
             for (var s = 0; s < occupied; s++)
             {
-                var b = 24 + s * AgentObservations.ObstacleTokenFloats;
+                var b = AgentObservations.CombatChannels + s * AgentObservations.ObstacleTokenFloats;
                 Assert.Greater(buffer[b + 5], 0f, $"occupied slot {s} must carry a real radius");
+                Assert.Greater(buffer[b + 6], 0f, $"occupied slot {s} must carry a live healthPct");
                 Assert.Greater(buffer[b + 2], previousDistance, $"slot {s} must sort ascending by distance");
                 previousDistance = buffer[b + 2];
             }
             for (var s = occupied; s < AgentObservations.ObstacleTokenCount; s++)
                 for (var c = 0; c < AgentObservations.ObstacleTokenFloats; c++)
-                    Assert.AreEqual(0f, buffer[24 + s * AgentObservations.ObstacleTokenFloats + c],
+                    Assert.AreEqual(0f, buffer[AgentObservations.CombatChannels + s * AgentObservations.ObstacleTokenFloats + c],
                         $"slot {s} channel {c} must zero-pad");
         }
 

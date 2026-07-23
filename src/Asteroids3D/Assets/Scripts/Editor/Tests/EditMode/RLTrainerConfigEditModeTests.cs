@@ -110,7 +110,6 @@ namespace Tests.EditMode
                 "lethality ramp starts soft (0.25 → 1.0)");
             Assert.AreEqual(0.4f, LessonZeroValue(block, EnvParamOverlay.OpponentWeightDummy), 1e-6f,
                 "dummy weight starts at the curriculum floor (0.4 → 0.1)");
-            Assert.AreEqual(defaults.fieldDensityScale, LessonZeroValue(block, EnvParamOverlay.FieldDensityScale), 1e-6f);
             Assert.AreEqual(defaults.weightAggressor, LessonZeroValue(block, EnvParamOverlay.OpponentWeightAggressor), 1e-6f);
             Assert.AreEqual(defaults.weightEvader, LessonZeroValue(block, EnvParamOverlay.OpponentWeightEvader), 1e-6f);
             Assert.AreEqual(defaults.weightOrbiter, LessonZeroValue(block, EnvParamOverlay.OpponentWeightOrbiter), 1e-6f);
@@ -144,6 +143,29 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void FieldDensity_UniformSamplerRange_ContainsTheCanonicalEvalDensity()
+        {
+            var param = Regex.Match(EnvironmentParametersBlock(),
+                $@"^  {EnvParamOverlay.FieldDensityScale}:.*$((\r?\n(?:    .*)?)*)", RegexOptions.Multiline);
+            Assert.IsTrue(param.Success, "field_density_scale not found under environment_parameters");
+            StringAssert.Contains("sampler_type: uniform", param.Value,
+                "stage (i)′ trains density as a per-episode uniform sampler, not a curriculum ramp");
+            var min = SamplerBound(param.Value, "min_value");
+            var max = SamplerBound(param.Value, "max_value");
+            Assert.AreEqual(0.5f, min, 1e-6f);
+            Assert.AreEqual(2.5f, max, 1e-6f);
+            Assert.That(EvalProtocol.CanonicalFieldDensityScale, Is.InRange(min, max),
+                "checkpoint eval must run inside the density band training samples from — an out-of-band eval env invalidates every selection");
+        }
+
+        private static float SamplerBound(string samplerBlock, string key)
+        {
+            var match = Regex.Match(samplerBlock, $@"{key}:\s*([^\s#]+)");
+            Assert.IsTrue(match.Success, $"{key} not found in the sampler block");
+            return float.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
+        }
+
+        [Test]
         public void CanonicalEvalEnv_MatchesCurriculumTerminalLesson()
         {
             var block = EnvironmentParametersBlock();
@@ -151,9 +173,6 @@ namespace Tests.EditMode
             Assert.IsTrue(evalSpec.useAsteroidField);
             Assert.AreEqual(1f, LessonFinalValue(block, EnvParamOverlay.UseAsteroidField), 1e-6f,
                 "eval runs field-on; the YAML must keep the field on through the terminal lesson");
-            Assert.AreEqual(LessonFinalValue(block, EnvParamOverlay.FieldDensityScale),
-                evalSpec.fieldDensityScale, 1e-6f,
-                "checkpoint eval must run at the density the curriculum trains toward — a drifted ramp endpoint invalidates every selection");
             Assert.AreEqual(LessonFinalValue(block, EnvParamOverlay.CollisionLethality),
                 evalSpec.collisionLethality, 1e-6f,
                 "eval inherits RewardSpec.Default lethality — it must equal the ramp's terminal lesson");

@@ -21,6 +21,7 @@ namespace Game.RLHarness
         private RewardSpec spec;
         private Vector2 arenaCenter;
         private IHeatReadout primaryHeat;
+        private float primaryProjectileSpeed;
         private Scout scout;
         private EpisodeRunner runner;
         private readonly float[] observationBuffer = new float[AgentObservations.Size];
@@ -36,6 +37,7 @@ namespace Game.RLHarness
             this.arenaCenter = arenaCenter;
             this.scout = scout;
             primaryHeat = ResolvePrimaryHeat(self);
+            primaryProjectileSpeed = self.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary);
         }
 
         /// <summary>Resolved once at compose time — the lasers-only loadout is an episode constant, so the mount (and its Heat) never changes under a live agent.</summary>
@@ -63,7 +65,7 @@ namespace Game.RLHarness
             AgentObservations.Fill(observationBuffer, self, in target,
                 snapshot.inMyEnvelope, snapshot.inEnemyEnvelope,
                 self.Weapons.Context.IsReady(WeaponSlot.Primary),
-                primaryHeat?.HeatPct ?? 0f,
+                primaryHeat?.HeatPct ?? 0f, primaryProjectileSpeed,
                 arenaCenter, spec.arenaRadius, scout.AsteroidScan);
 
             for (var i = 0; i < observationBuffer.Length; i++)
@@ -73,10 +75,13 @@ namespace Game.RLHarness
         public override void OnActionReceived(ActionBuffers actions)
         {
             var continuous = actions.ContinuousActions;
-            var action = AgentActions.Map(continuous[0], continuous[1], continuous[2], continuous[3]);
+            var action = AgentActions.Map(continuous[0], continuous[1], continuous[2],
+                continuous[3], continuous[4], continuous[5]);
+            var selfKin = self.Kinematics;
             var worldVelocity = AgentActions.ToWorldVelocity(
-                action.velocityEgo, self.Kinematics.Forward, self.MaxSpeed);
-            chooser.SetAction(worldVelocity, action.fire, action.boost, self.BoostAvailable);
+                action.velocityEgo, selfKin.Forward, self.MaxSpeed);
+            var facingRad = AgentActions.ToFacingRad(action.facingEgo, selfKin.Forward);
+            chooser.SetAction(worldVelocity, facingRad, action.fire, action.boost, self.BoostAvailable);
             DecisionsReceived++;
         }
 
@@ -87,10 +92,15 @@ namespace Game.RLHarness
             var world = RangerChooser.HoldRangeVelocity(
                 in selfKin, opponent.Kinematics, HeuristicHoldRange, self.MaxSpeed);
             var ego = AgentActions.ToEgoAction(world, selfKin.Forward, self.MaxSpeed);
+            var bearingEgo = new EgoFrame(Vector2.zero, selfKin.Forward)
+                .Direction(opponent.Kinematics.pos - selfKin.pos);
+            bearingEgo = bearingEgo.sqrMagnitude > 1e-8f ? bearingEgo.normalized : Vector2.up;
             continuous[0] = ego.x;
             continuous[1] = ego.y;
             continuous[2] = 1f;
             continuous[3] = -1f;
+            continuous[4] = bearingEgo.x;
+            continuous[5] = bearingEgo.y;
         }
 
         // The hosting loop is the single reset owner; a policy-triggered begin here would race the pair-reset.
