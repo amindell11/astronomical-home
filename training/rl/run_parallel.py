@@ -46,6 +46,10 @@ def trainer_log_path(run_id: str) -> Path:
     return RESULTS / f"{run_id}-parallel-trainer.log"
 
 
+def config_has_self_play(config: Path) -> bool:
+    return re.search(r"^\s*self_play:", config.read_text(), re.MULTILINE) is not None
+
+
 def episode_logs(suffix: str) -> set:
     return set(JSONL_DIR.glob(f"*-training{suffix}.jsonl"))
 
@@ -83,6 +87,8 @@ def main() -> None:
                         help="base ML-Agents port; passed to both --base-port and the workers' --harness-base-port")
     parser.add_argument("--smoke", action="store_true",
                         help="RL_SMOKE=1 tight-arena/short-clock gate spec; also defaults --config to the smoke YAML")
+    parser.add_argument("--self-play", action="store_true",
+                        help="RL_SELFPLAY=1 ghost-league composition; also defaults --config to the selfplay YAML")
     parser.add_argument("--initialize-from", metavar="RUN_ID", default=None,
                         help="warm-start fresh weights from another run id under results/rl-training")
     parser.add_argument("--resume", action="store_true", help="resume the run id's existing checkpoints")
@@ -102,7 +108,19 @@ def main() -> None:
     if not args.env.exists():
         sys.exit(f"FAIL: player exe not found at {args.env}; build it first (RLTrainingPlayerBuild — see README)")
 
-    config = args.config or (RL_DIR / ("ppo_ship_combat_smoke.yaml" if args.smoke else "ppo_ship_combat.yaml"))
+    defaults = {(False, False): "ppo_ship_combat.yaml",
+                (False, True): "ppo_ship_combat_smoke.yaml",
+                (True, False): "ppo_ship_combat_selfplay.yaml",
+                (True, True): "ppo_ship_combat_selfplay_smoke.yaml"}
+    config = args.config or RL_DIR / defaults[(args.self_play, args.smoke)]
+    # A self-play env with a non-self-play trainer (or the reverse) trains the wrong thing while
+    # looking healthy — the trainer YAML and the flag must agree before anything boots.
+    if args.self_play and not config_has_self_play(config):
+        parser.error(f"--self-play passed but {config.name} has no self_play: block — "
+                     "the trainer would run without a ghost league")
+    if config_has_self_play(config) and not args.self_play:
+        parser.error(f"{config.name} has a self_play: block but --self-play was not passed — "
+                     "the harness would compose the scripted roster")
     run_id = args.run_id or config_run_id(config)
     onnx = RESULTS / run_id / "ShipCombat.onnx"
     RESULTS.mkdir(parents=True, exist_ok=True)
@@ -110,12 +128,17 @@ def main() -> None:
     suffixes = log_suffixes(args.num_envs, args.num_arenas)
     before = {s: episode_logs(s) for s in suffixes}
 
-    # mlagents-learn spawns each worker as a subprocess inheriting this env, so RL_SMOKE reaches them all.
+    # mlagents-learn spawns each worker as a subprocess inheriting this env, so these reach them
+    # all. The pops are load-bearing: an inherited flag would bypass the config cross-check above.
     env = dict(os.environ)
     if args.smoke:
         env["RL_SMOKE"] = "1"
     else:
         env.pop("RL_SMOKE", None)
+    if args.self_play:
+        env["RL_SELFPLAY"] = "1"
+    else:
+        env.pop("RL_SELFPLAY", None)
 
     trainer_cmd = [str(MLAGENTS), str(config),
                    "--run-id", run_id,

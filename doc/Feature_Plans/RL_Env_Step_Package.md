@@ -622,3 +622,89 @@ weapon asymmetry (missiles ≈ counter to kiting), judged after this run, not be
 Blocked on the precondition. When the reward-fix PR has merged and the second-run checkpoint
 is selected, hand the implementing agent this brief + the plan; build via the
 agent-worktree-pr-loop from `main`.
+
+---
+
+# PR-4 blocker — `--self-play` launcher flag — Decision brief (frozen 2026-07-22, pr-prep)
+
+> STATUS: SHIPPED 2026-07-22 (the PR that landed this brief) — flag + YAML cross-check on both
+> launchers, bench passthrough, dead `selfPlay` bool deleted, composition boot log. PR-4
+> launch unblocked.
+
+> PR-4 cannot launch until this lands. `run_parallel.py` and `run_training.py` never set
+> `RL_SELFPLAY`, `TrainingHost.cs:51` gates `SelfPlayComposition` on it, and `selfPlay` is
+> unserialized in `RLTraining.unity` — so a PR-4 run through either launcher silently trains
+> `ScriptedRosterComposition` for 6+ hours while reporting ELO and exporting checkpoints.
+> Proven from probe JSONL carrying `opponent.archetype` + roster weights.
+
+## Scope
+
+**In:** an explicit `--self-play` flag on `run_parallel.py` and `run_training.py` that sets
+`RL_SELFPLAY=1`, hard-fails when it disagrees with the config's `self_play:` block, and
+defaults `--config` accordingly; deletion of the dead `selfPlay` serialized bool; one boot
+log line naming the chosen composition.
+
+**Out (non-goals):** the `RL_SMOKE` mismatch of the same shape (deferred — see below);
+`run_smoke.py` / `run_smoke_selfplay.py`; any Python test infrastructure; the PR-4 run itself.
+
+## Fork resolutions (with why)
+
+- **Seam = explicit `--self-play` flag** (over deriving `RL_SELFPLAY` from the YAML, or an
+  `environment_parameters` key read by `TrainingHost`). The env-param option was the only one
+  that also fixes a bare `mlagents-learn` invocation (`README.md:115` documents that path) and
+  was recommended on fix-ladder rung 1; **user chose the explicit flag** — the regime is
+  visible in the invocation, and the diff stays Python-side plus one deletion. The residual
+  gap: a hand-run `mlagents-learn` against an armed editor is still silently scripted-roster.
+- **The flag hard-fails against the YAML.** `--self-play` with a config lacking `self_play:`,
+  or its absence with a config carrying one, is a `parser.error` before anything boots. CLI
+  args + a config file are an **untrusted boundary**, so this is CLAUDE.md's *parse, don't
+  validate* — a boundary check, not a rung-5 guard. This is what buys back most of what the
+  flag-only option gives up.
+- **Delete the `selfPlay` serialized bool** (`TrainingHost.cs:21`). One consumer
+  (`TrainingHost.cs:59-61`), unserialized, permanently `false`; `RLSelfPlayPlayModeTests`
+  bypasses the host entirely via `EpisodePair.SpawnSelfPlayPair`. It is half the root cause —
+  `selfPlay || RL_SELFPLAY == "1"` *reads* as though the scene authors it, which is why the
+  gap survived review. Behavior-preserving; no scene edit.
+- **`RL_SMOKE` deferred, not folded in.** Same mismatch shape, but no observed failure (fix-
+  ladder entry gate), and unlike `self_play:` it is detectable only by *filename convention* —
+  a symmetric cross-check there would be fragile in a way this one is not.
+
+## Assumptions (user-reviewed)
+
+- `--self-play` mirrors `--smoke` exactly: sets `env["RL_SELFPLAY"]="1"`, else
+  `env.pop("RL_SELFPLAY", None)` — matching `run_parallel.py:111-113`. The pop is load-bearing:
+  an inherited `RL_SELFPLAY=1` would otherwise bypass the cross-check, which inspects the flag.
+- `run_training.py:83` already strips `RL_SMOKE` from `editor_env` for that reason;
+  `RL_SELFPLAY` joins that filter, then is set when the flag is passed.
+- Config-default matrix in `run_parallel.py:100` becomes 2×2: none→`ppo_ship_combat.yaml`,
+  `--smoke`→`_smoke`, `--self-play`→`_selfplay`, both→`_selfplay_smoke`. All four exist, so
+  defaults satisfy the cross-check by construction. `run_training.py:63` gains the
+  `--self-play`→`_selfplay` default.
+- Cross-check regex is `^\s*self_play:` multiline — presence detection only, no value
+  extraction, so **no pyyaml**. Mirrors `RLTrainerConfigEditModeTests.cs:126` and the `run_id:`
+  regex already in both launchers (`run_parallel.py:37`, `run_training.py:54`).
+- `TrainingHost` keeps `Environment.GetEnvironmentVariable("RL_SELFPLAY") == "1"` as its sole
+  read, exact-`"1"` match, per the `RL_SMOKE` convention at `TrainingHost.cs:47`.
+- `run_smoke.py` and `run_smoke_selfplay.py` are untouched — fixed-purpose, hardcoded YAML plus
+  hardcoded env (`run_smoke_selfplay.py:70`), already self-consistent.
+
+## Blindsider resolutions
+
+- **No positive evidence of self-play exists in the artifacts.** `EpisodeTypes.cs:99` documents
+  `opponent` as *"Empty archetype = no roster configured"* — so a self-play row and a
+  no-roster scripted row are indistinguishable. The scripted path leaves a fingerprint; the
+  self-play path leaves none. → **One `Debug.Log` at `TrainingHost.Start` naming the chosen
+  composition**, landing in the editor/player log the launchers already grep for markers.
+  Rejected as over-scope: an `EpisodeResult` field + `rl-episode-v4` schema bump.
+- **Proof strategy, given zero Python tests in the repo.** → Both hard-fail directions
+  demonstrated with no Unity (`--self-play --config ppo_ship_combat.yaml` exits before boot),
+  plus the standard merge-gate suite covering the C# deletion. The positive path is *not*
+  covered by `run_smoke_selfplay.py` (it does not use the flag); it gets proven by the PR-4
+  run's own first minutes, where a wrong composition is now loud. An end-to-end
+  `--smoke --self-play --num-envs 2` was considered and declined (needs a player rebuild).
+
+## Hand-off
+
+Standalone PR in `agent-4` or `agent-5` (both free). Both this and **#205** touch
+`run_parallel.py` — rebase after #205 merges. Independent of #204. Build via the
+agent-worktree-pr-loop.

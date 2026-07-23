@@ -17,8 +17,6 @@ namespace Game.RLHarness
         [Tooltip("Default = trainer when connected, else heuristic. HeuristicOnly for a Python-free loop check. Checkpoint eval goes through CheckpointEvaluator, not this host.")]
         [SerializeField] private BehaviorType behaviorType = BehaviorType.Default;
         [SerializeField] private HarnessAssets assets;
-        [Tooltip("Self-play: opponent is a second team-1 ShipCombat agent (parameter-shared) instead of the scripted roster.")]
-        [SerializeField] private bool selfPlay;
         [Tooltip("In-process arenas fanned out at spatial offsets; --harness-num-arenas overrides.")]
         [SerializeField] private int numArenas = 1;
 
@@ -48,7 +46,10 @@ namespace Game.RLHarness
                 spec = SmokeSpec(spec);
             Func<string, float, float> envParams = Academy.Instance.EnvironmentParameters.GetWithDefault;
             spec = EnvParamOverlay.Apply(spec, envParams);
-            var selfPlayRun = selfPlay || Environment.GetEnvironmentVariable("RL_SELFPLAY") == "1";
+            var selfPlayRun = Environment.GetEnvironmentVariable("RL_SELFPLAY") == "1";
+            // The scripted path fingerprints itself in episode JSONL (opponent.archetype); the
+            // self-play path leaves none, so the composition must be loud at boot.
+            Debug.Log($"[TrainingHost] composition={(selfPlayRun ? nameof(SelfPlayComposition) : nameof(ScriptedRosterComposition))}");
 
             for (var j = 0; j < arenaCount; j++)
             {
