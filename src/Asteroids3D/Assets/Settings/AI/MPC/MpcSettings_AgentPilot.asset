@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   horizonSeconds: 1.7
   rolloutDt: 0.1
-  samples: 512
+  samples: 128
   noiseStd: 0.75
   noiseKnots: 5
   eliteFraction: 0.113
