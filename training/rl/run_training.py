@@ -58,9 +58,14 @@ def config_run_id(config: Path) -> str:
     return match.group(1)
 
 
+def config_has_self_play(config: Path) -> bool:
+    return re.search(r"^\s*self_play:", config.read_text(), re.MULTILINE) is not None
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--config", type=Path, default=RL_DIR / "ppo_ship_combat.yaml", help="trainer YAML (default: the full 2M-step config; use ppo_ship_combat_pilot.yaml for the pilot)")
+    parser.add_argument("--config", type=Path, default=None, help="trainer YAML (default: the full 2M-step config, or the selfplay config under --self-play; use ppo_ship_combat_pilot.yaml for the pilot)")
+    parser.add_argument("--self-play", action="store_true", help="RL_SELFPLAY=1 ghost-league composition; also defaults --config to the selfplay YAML")
     parser.add_argument("--run-id", default=None, help="mlagents run id (default: the config's checkpoint_settings run_id)")
     parser.add_argument("--resume", action="store_true", help="resume the run id's existing checkpoints")
     parser.add_argument("--force", action="store_true", help="overwrite the run id's existing results")
@@ -72,15 +77,25 @@ def main() -> None:
         parser.error("--resume and --force are mutually exclusive")
 
     unity = args.unity or default_unity_exe()
-    run_id = args.run_id or config_run_id(args.config)
+    config = args.config or RL_DIR / ("ppo_ship_combat_selfplay.yaml" if args.self_play else "ppo_ship_combat.yaml")
+    # A flag/YAML mismatch trains the wrong thing while looking healthy — fail before boot.
+    if args.self_play and not config_has_self_play(config):
+        parser.error(f"--self-play passed but {config.name} has no self_play: block — "
+                     "the trainer would run without a ghost league")
+    if config_has_self_play(config) and not args.self_play:
+        parser.error(f"{config.name} has a self_play: block but --self-play was not passed — "
+                     "the harness would compose the scripted roster")
+    run_id = args.run_id or config_run_id(config)
     onnx = RESULTS / run_id / "ShipCombat.onnx"
     RESULTS.mkdir(parents=True, exist_ok=True)
     START_FLAG.unlink(missing_ok=True)
     editor_log = RESULTS / f"{run_id}-editor.log"
     editor_log.unlink(missing_ok=True)
 
-    # An inherited RL_SMOKE=1 would silently shrink TrainingHost to the smoke arena/clock.
-    editor_env = {k: v for k, v in os.environ.items() if k != "RL_SMOKE"}
+    # An inherited RL_SMOKE would silently shrink the run; an inherited RL_SELFPLAY would bypass the cross-check.
+    editor_env = {k: v for k, v in os.environ.items() if k not in ("RL_SMOKE", "RL_SELFPLAY")}
+    if args.self_play:
+        editor_env["RL_SELFPLAY"] = "1"
     lease = f"rl-{run_id}"
     editor_pid = start_editor(
         lease, PROJECT,
@@ -94,7 +109,7 @@ def main() -> None:
         wait_for(lambda: log_contains(editor_log, ARMED_MARKER), "editor to arm", args.boot_timeout)
 
         trainer_cmd = [str(RL_DIR / ".venv" / "Scripts" / "mlagents-learn.exe"),
-                       str(args.config), "--run-id", run_id]
+                       str(config), "--run-id", run_id]
         if args.resume:
             trainer_cmd.append("--resume")
         if args.force:

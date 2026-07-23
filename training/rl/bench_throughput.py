@@ -161,9 +161,11 @@ def main() -> None:
     parser.add_argument("--num-envs", type=int, default=4)
     parser.add_argument("--num-arenas", type=int, default=1)
     parser.add_argument("--steps", type=int, default=24000, help="trainer steps to run (max_steps)")
-    parser.add_argument("--config", type=Path, default=RL_DIR / "ppo_ship_combat.yaml",
-                        help="trainer YAML; defaults to the scripted-roster config because that is what "
-                             "the harness composes without RL_SELFPLAY — a self-play YAML would mislabel the row")
+    parser.add_argument("--config", type=Path, default=None,
+                        help="trainer YAML (default: the scripted-roster config, or the selfplay "
+                             "config under --self-play)")
+    parser.add_argument("--self-play", action="store_true",
+                        help="passed through to run_parallel.py (RL_SELFPLAY=1 ghost-league composition)")
     parser.add_argument("--initialize-from", metavar="RUN_ID", default=None,
                         help="warm-start run id; hold constant across an A/B")
     parser.add_argument("--env", type=Path, default=None, help="player exe (defaults to run_parallel's)")
@@ -177,12 +179,15 @@ def main() -> None:
         parser.error("--label is required (it names the bench row)")
 
     run_id = f"bench-{args.label}"
-    config = bench_config(args.config, args.steps, run_id)
+    source = args.config or RL_DIR / ("ppo_ship_combat_selfplay.yaml" if args.self_play else "ppo_ship_combat.yaml")
+    config = bench_config(source, args.steps, run_id)
     cmd = [sys.executable, str(RL_DIR / "run_parallel.py"),
            "--config", str(config),
            "--num-envs", str(args.num_envs),
            "--num-arenas", str(args.num_arenas),
            "--force"]
+    if args.self_play:
+        cmd.append("--self-play")
     if args.initialize_from:
         cmd += ["--initialize-from", args.initialize_from]
     if args.env:
@@ -213,7 +218,7 @@ def main() -> None:
         "num_envs": args.num_envs,
         "num_arenas": args.num_arenas,
         "steps": args.steps,
-        "config": args.config.name,
+        "config": source.name,
         "initialize_from": args.initialize_from,
         "steps_per_second": round(rate, 2),
         "spread": round(spread, 2),
