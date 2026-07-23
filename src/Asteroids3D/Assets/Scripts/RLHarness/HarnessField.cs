@@ -28,13 +28,15 @@ namespace Game.RLHarness
         }
 
         /// <summary>Instantiates the field at the arena center and stages <paramref name="densityScale"/> before the field's own Start builds (the pool pre-size hint reads it). Episode 0 may see one extra build (Start auto-init + first reset rebuild) — accepted.</summary>
-        public static HarnessField Spawn(ArenaContext arena, HarnessAssets assets, float densityScale = 1f, Transform parent = null)
+        public static HarnessField Spawn(ArenaContext arena, HarnessAssets assets, float densityScale = 1f, Transform parent = null,
+            bool presentationEnabled = true)
         {
             var root = UnityEngine.Object.Instantiate(
                 assets.FieldPrefab, GamePlane.PlanePointToWorld(arena.Offset), Quaternion.identity, parent);
             var field = root.GetComponent<UpdatingAsteroidField>();
             field.SetAnchor(null); // streams around its own transform: the whole field stays loaded
             field.SetDensityScale(densityScale);
+            field.SetPresentation(presentationEnabled);
             arena.ObstacleField = field;
             return new HarnessField(arena, root, field);
         }

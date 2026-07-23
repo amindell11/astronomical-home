@@ -69,7 +69,9 @@ namespace Game.RLHarness
             var outcomes = new List<(string archetype, string outcome)>();
             var behaviorRows = new Dictionary<OpponentArchetype, List<ArchetypeGateRow>>();
             foreach (var a in EvalArchetypes) behaviorRows[a] = new List<ArchetypeGateRow>();
-            var field = baseSpec.useAsteroidField ? HarnessField.Spawn(arena, assets, baseSpec.fieldDensityScale) : null;
+            var field = baseSpec.useAsteroidField
+                ? HarnessField.Spawn(arena, assets, baseSpec.fieldDensityScale, presentationEnabled: false)
+                : null;
 
             foreach (var seed in seeds)
             {

@@ -11,6 +11,7 @@ namespace Game.Sectors
         protected override IEnumerator Produce(SectorBuildContext ctx)
         {
             if (!field) field = GetComponent<Asteroids.Fields.AsteroidField>();
+            if (field) field.SetPresentation(ctx.Services.PresentationEnabled);
             if (field is Asteroids.Fields.UpdatingAsteroidField updating)
             {
                 // Unity lifetime check, NOT `?.` — the context can hold a destroyed ship and `?.` would pass it through to .transform.

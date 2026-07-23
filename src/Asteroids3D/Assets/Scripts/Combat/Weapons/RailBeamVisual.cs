@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using Utils;
 
 namespace Combat.Weapons
 {
@@ -22,6 +23,10 @@ namespace Combat.Weapons
             weapon = GetComponent<Railguns>();
             line = GetComponent<LineRenderer>();
             line.enabled = false;
+            // Weapon-mounted presentation on a per-arena-persistent object: same Awake self-gate as
+            // ShipVisualRig (interim process-wide flag until per-arena policy reaches ship wiring).
+            if (!GameSettings.PresentationEnabled)
+                enabled = false;
         }
 
         private void OnEnable() => weapon.OnBeamFired += ShowBeam;

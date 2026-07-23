@@ -11,6 +11,7 @@ namespace Game.Services
         public ICameraService CameraService { get; }
         public IUIService UIService { get; }
         public ArenaContext Arena { get; }
+        public bool PresentationEnabled { get; }
 
         public GameServices(
             IUnitService unitService,
@@ -19,7 +20,8 @@ namespace Game.Services
             IObjectiveService objectiveService,
             ICameraService cameraService,
             IUIService uiService,
-            ArenaContext arena)
+            ArenaContext arena,
+            bool presentationEnabled = true)
         {
             UnitService = unitService ?? throw new ArgumentNullException(nameof(unitService));
             Projectiles = projectiles ?? throw new ArgumentNullException(nameof(projectiles));
@@ -28,6 +30,7 @@ namespace Game.Services
             CameraService = cameraService ?? throw new ArgumentNullException(nameof(cameraService));
             UIService = uiService ?? throw new ArgumentNullException(nameof(uiService));
             Arena = arena ?? throw new ArgumentNullException(nameof(arena));
+            PresentationEnabled = presentationEnabled;
         }
 
         /// <summary>Clear all service registries between sectors. Arena holds refs, not owned state, so it is untouched.</summary>

@@ -372,6 +372,7 @@ namespace Tests.PlayMode
             public ICameraService CameraService => null;
             public IUIService UIService => null;
             public ArenaContext Arena => null;
+            public bool PresentationEnabled => true;
         }
     }
 }
