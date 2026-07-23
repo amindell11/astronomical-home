@@ -10,9 +10,9 @@ namespace Game.RLHarness
 
         public SelfPlayComposition(GameObject host, in RewardSpec spec, BehaviorType behaviorType, HarnessAssets assets, Vector2 offset)
         {
-            var (units, arena, projectiles) = HarnessArena.Compose(host, offset);
+            var (units, arena, projectiles) = HarnessArena.Compose(host, offset, presentationEnabled: false);
             var field = spec.useAsteroidField
-                ? HarnessField.Spawn(arena, assets, spec.fieldDensityScale, host.transform)
+                ? HarnessField.Spawn(arena, assets, spec.fieldDensityScale, host.transform, presentationEnabled: false)
                 : null;
             var pair = EpisodePair.SpawnSelfPlayPair(units, arena, projectiles, in spec, assets, out var chooserA, out var chooserB);
             var (agentA, agentB) = ShipAgentFactory.ComposeSelfPlayPair(

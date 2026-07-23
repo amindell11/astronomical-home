@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Combat.Projectile;
+using Game.Presentation;
 using UnityEngine;
 
 namespace Game.Services
@@ -14,12 +15,17 @@ namespace Game.Services
         }
 
         private readonly Transform liveRoot;
+        private readonly bool presentationEnabled;
         private readonly Dictionary<MonoBehaviour, Entry> live = new();
+        // Pooled instances are process-wide and cross sessions, so presentation is re-applied on every
+        // checkout — a headless session may hand a darkened instance back to a presenting one.
+        private readonly Dictionary<MonoBehaviour, PresentationApplier.Parts> presentationParts = new();
 
         /// <summary>Tracked instances are parented under <paramref name="liveRoot"/> (a non-moving context root: session, arena, or fixture host), so destroying the context destroys its in-flight transients — debris cannot outlive its owner.</summary>
-        public ProjectileService(Transform liveRoot)
+        public ProjectileService(Transform liveRoot, bool presentationEnabled = true)
         {
             this.liveRoot = liveRoot ? liveRoot : throw new ArgumentNullException(nameof(liveRoot));
+            this.presentationEnabled = presentationEnabled;
         }
 
         public void Register(MonoBehaviour instance, Action returnToPool)
@@ -39,6 +45,7 @@ namespace Game.Services
             entry.OnReturned = () => Deregister(instance, entry);
             live.Add(instance, entry);
             instance.transform.SetParent(liveRoot, true);
+            ApplyPresentation(instance);
             SubscribeReturn(instance, entry.OnReturned);
             if (instance is ITransientSpawner spawner)
                 spawner.Spawned += Register;
@@ -75,6 +82,16 @@ namespace Game.Services
             PruneCorpses();
             foreach (var instance in live.Keys)
                 visit(instance);
+        }
+
+        private void ApplyPresentation(MonoBehaviour instance)
+        {
+            if (!presentationParts.TryGetValue(instance, out var parts))
+            {
+                parts = PresentationApplier.Capture(instance.gameObject);
+                presentationParts[instance] = parts;
+            }
+            PresentationApplier.Apply(parts, presentationEnabled);
         }
 
         private void Deregister(MonoBehaviour instance, Entry entry)

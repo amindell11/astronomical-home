@@ -8,10 +8,13 @@ namespace Asteroids.Spawning
         private readonly AsteroidController prefab;
         private readonly ObjectPool<AsteroidController> pool;
         private readonly Transform parent;
-        
-        public SpawnPool(AsteroidSpawnSettings settings, Transform parentTransform, int maxSizeHint = 0){
+        private readonly System.Action<AsteroidController> onCreated;
+
+        public SpawnPool(AsteroidSpawnSettings settings, Transform parentTransform, int maxSizeHint = 0,
+            System.Action<AsteroidController> onCreated = null){
             prefab = settings.asteroidPrefab;
             parent = parentTransform;
+            this.onCreated = onCreated;
             pool = new ObjectPool<AsteroidController>(
                 CreatePooledAsteroid,
                 OnAsteroidRetrieved,
@@ -35,7 +38,12 @@ namespace Asteroids.Spawning
         private static void OnAsteroidRetrieved(AsteroidController ast) => ast.gameObject.SetActive(true);
         private static void OnAsteroidReleased(AsteroidController ast) => ast.gameObject.SetActive(false);
         private static void OnAsteroidDestroyed(AsteroidController ast)=> Object.Destroy(ast);
-        private AsteroidController CreatePooledAsteroid() => Object.Instantiate(prefab, Vector3.zero, Quaternion.identity, parent);
+        private AsteroidController CreatePooledAsteroid()
+        {
+            var ast = Object.Instantiate(prefab, Vector3.zero, Quaternion.identity, parent);
+            onCreated?.Invoke(ast);
+            return ast;
+        }
         public AsteroidController Get() => pool.Get();
     }
 }

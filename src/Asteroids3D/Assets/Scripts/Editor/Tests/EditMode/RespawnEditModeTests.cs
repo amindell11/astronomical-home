@@ -39,6 +39,7 @@ namespace Tests.EditMode
             public ICameraService CameraService => null;
             public IUIService UIService => null;
             public ArenaContext Arena => ArenaCtx;
+            public bool PresentationEnabled => true;
         }
 
         [TearDown]

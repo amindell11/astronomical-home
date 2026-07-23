@@ -1,10 +1,15 @@
+using Game.Presentation;
 using UnityEngine;
 
 namespace Combat.Projectile.Visual
 {
     [RequireComponent(typeof(Laser))]
-    public class LaserVisual : MonoBehaviour
+    public class LaserVisual : MonoBehaviour, IPresentationPart
     {
+        // Written to both common main-color names so one block serves either shader family; the unused id is ignored.
+        private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+        private static readonly int ColorId = Shader.PropertyToID("_Color");
+
         [Header("Fade Settings")]
         [SerializeField] private AnimationCurve fadeCurve = new(
             new Keyframe(0f, 0f),
@@ -14,25 +19,22 @@ namespace Combat.Projectile.Visual
 
         private Laser laser;
         private Renderer[] renderers;
-        private Material[] materials;
         private Color[] originalColors;
+        private MaterialPropertyBlock block;
 
         private void Awake()
         {
             laser = GetComponent<Laser>();
             renderers = GetComponentsInChildren<Renderer>();
-            if (renderers == null || renderers.Length == 0) return;
+            block = new MaterialPropertyBlock();
 
             var count = renderers.Length;
-            materials = new Material[count];
             originalColors = new Color[count];
             for (var i = 0; i < count; i++)
             {
                 var renderer = renderers[i];
-                if (!renderer) continue;
-                var material = renderer.material;
-                materials[i] = material;
-                originalColors[i] = material.color;
+                if (renderer && renderer.sharedMaterial)
+                    originalColors[i] = renderer.sharedMaterial.color;
             }
         }
 
@@ -48,6 +50,8 @@ namespace Combat.Projectile.Visual
             ResetColors();
         }
 
+        public void ApplyPresentation(bool visible) => enabled = visible;
+
         private void Update()
         {
             if (!laser || renderers == null || renderers.Length == 0) return;
@@ -61,28 +65,23 @@ namespace Combat.Projectile.Visual
 
         private void ApplyFade(float alphaFactor)
         {
-            if (materials == null || originalColors == null) return;
-            var count = materials.Length;
-            for (var i = 0; i < count; i++)
+            for (var i = 0; i < renderers.Length; i++)
             {
-                var material = materials[i];
-                if (!material) continue;
+                var renderer = renderers[i];
+                if (!renderer) continue;
                 var color = originalColors[i];
                 color.a *= alphaFactor;
-                material.color = color;
+                block.SetColor(BaseColorId, color);
+                block.SetColor(ColorId, color);
+                renderer.SetPropertyBlock(block);
             }
         }
 
         private void ResetColors()
         {
-            if (materials == null || originalColors == null) return;
-            var count = materials.Length;
-            for (var i = 0; i < count; i++)
-            {
-                var material = materials[i];
-                if (!material) continue;
-                material.color = originalColors[i];
-            }
+            if (renderers == null) return;
+            foreach (var renderer in renderers)
+                if (renderer) renderer.SetPropertyBlock(null);
         }
     }
 }

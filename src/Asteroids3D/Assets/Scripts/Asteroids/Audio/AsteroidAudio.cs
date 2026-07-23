@@ -1,9 +1,10 @@
+using Game.Presentation;
 using UnityEngine;
 
 namespace Asteroids.Audio
 {
     [RequireComponent(typeof(AsteroidController))]
-    public sealed class AsteroidAudio : MonoBehaviour
+    public sealed class AsteroidAudio : MonoBehaviour, IPresentationPart
     {
         [SerializeField] private AudioClip explosionSound;
         [SerializeField, Range(0f, 1f)] private float explosionVolume = 0.7f;
@@ -26,6 +27,8 @@ namespace Asteroids.Audio
             if (!asteroid) return;
             asteroid.OnDestroyed -= HandleDestroyed;
         }
+
+        public void ApplyPresentation(bool visible) => enabled = visible;
 
         private void HandleDestroyed(Vector3 position)
         {

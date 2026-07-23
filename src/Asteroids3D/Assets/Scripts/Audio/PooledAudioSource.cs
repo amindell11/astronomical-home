@@ -27,6 +27,9 @@ namespace Audio
         public static void PlayClipAtPoint(AudioClip clip, Vector3 position, float volume = 1f)
         {
             if (clip == null) return;
+            // Interim process-wide backstop (this static seam has no session identity): a headless
+            // session plays no one-shots even from callers the spawn seams don't cover.
+            if (!GameSettings.PresentationEnabled) return;
 
             // Lazily create a single hidden prefab that will be cloned by the pool.
             if (_prefab == null)

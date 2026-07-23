@@ -1,10 +1,11 @@
+using Game.Presentation;
 using UnityEngine;
 using Utils;
 
 namespace Asteroids.Visual
 {
     [RequireComponent(typeof(AsteroidController))]
-    public sealed class AsteroidVisual : MonoBehaviour
+    public sealed class AsteroidVisual : MonoBehaviour, IPresentationPart
     {
         [SerializeField] private GameObject explosionPrefab;
 
@@ -31,6 +32,8 @@ namespace Asteroids.Visual
             if (!asteroid) return;
             asteroid.OnDestroyed -= HandleDestroyed;
         }
+
+        public void ApplyPresentation(bool visible) => enabled = visible;
 
         private void HandleDestroyed(Vector3 position)
         {

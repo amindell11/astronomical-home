@@ -1,9 +1,10 @@
+using Game.Presentation;
 using UnityEngine;
 
 namespace Combat.Projectile.Audio
 {
     [RequireComponent(typeof(Missile), typeof(AudioSource))]
-    public class MissileAudio : MonoBehaviour
+    public class MissileAudio : MonoBehaviour, IPresentationPart
     {
         [Header("Audio")]
         [SerializeField] private AudioClip launchClip;
@@ -55,6 +56,8 @@ namespace Combat.Projectile.Audio
             StopEngine();
             ResetAudio();
         }
+
+        public void ApplyPresentation(bool visible) => enabled = visible;
 
         private void Update()
         {

@@ -1,10 +1,11 @@
+using Game.Presentation;
 using UnityEngine;
 using Utils;
 
 namespace Combat.Projectile.Visual
 {
     [RequireComponent(typeof(Missile))]
-    public sealed class MissileVisual : MonoBehaviour
+    public sealed class MissileVisual : MonoBehaviour, IPresentationPart
     {
         [SerializeField] private PooledVFX explosionPrefab;
 
@@ -24,6 +25,8 @@ namespace Combat.Projectile.Visual
         {
             missile.OnDetonated -= HandleDetonated;
         }
+
+        public void ApplyPresentation(bool visible) => enabled = visible;
 
         private void HandleDetonated(Vector3 position)
         {

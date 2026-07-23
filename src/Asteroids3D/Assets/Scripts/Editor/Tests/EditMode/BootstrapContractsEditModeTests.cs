@@ -155,7 +155,8 @@ namespace Tests.EditMode
             Assert.IsNotNull(type.GetProperty("Services"), "GameSession must expose Services");
             Assert.IsNotNull(type.GetProperty("ActiveSector"), "GameSession must expose ActiveSector");
             Assert.IsNotNull(type.GetProperty("Rig"), "GameSession must expose Rig");
-            // Presentation is a global GameSettings.PresentationEnabled toggle, not per-session state.
+            // Presentation policy rides SessionProfile → GameServices/spawn seams (plus the interim
+            // GameSettings.PresentationEnabled global for ship rigs), never GameSession state.
 
             var hook = type.GetProperty("OnSectorComplete");
             Assert.IsNotNull(hook, "GameSession must expose the OnSectorComplete policy hook");

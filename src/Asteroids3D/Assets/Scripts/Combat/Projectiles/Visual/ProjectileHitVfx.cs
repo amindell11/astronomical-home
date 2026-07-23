@@ -1,11 +1,12 @@
 using Damage;
+using Game.Presentation;
 using UnityEngine;
 using Utils;
 
 namespace Combat.Projectile.Visual
 {
     [RequireComponent(typeof(ProjectileBase))]
-    public class ProjectileHitVfx : MonoBehaviour
+    public class ProjectileHitVfx : MonoBehaviour, IPresentationPart
     {
         [SerializeField] private GameObject hitEffect;
 
@@ -29,6 +30,8 @@ namespace Combat.Projectile.Visual
             if (!projectile) return;
             projectile.Hit -= HandleHit;
         }
+
+        public void ApplyPresentation(bool visible) => enabled = visible;
 
         private void HandleHit(Vector3 position, IDamageable _)
         {

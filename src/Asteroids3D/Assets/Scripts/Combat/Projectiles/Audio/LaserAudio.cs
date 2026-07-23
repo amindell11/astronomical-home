@@ -1,10 +1,11 @@
 using Damage;
+using Game.Presentation;
 using UnityEngine;
 
 namespace Combat.Projectile.Audio
 {
     [RequireComponent(typeof(Laser))]
-    public class LaserAudio : MonoBehaviour
+    public class LaserAudio : MonoBehaviour, IPresentationPart
     {
         [Header("Audio")]
         [SerializeField] private AudioClip[] hitClips;
@@ -27,6 +28,8 @@ namespace Combat.Projectile.Audio
         {
             if (laser) laser.Hit -= HandleHit;
         }
+
+        public void ApplyPresentation(bool visible) => enabled = visible;
 
         private void HandleHit(Vector3 position, IDamageable _)
         {

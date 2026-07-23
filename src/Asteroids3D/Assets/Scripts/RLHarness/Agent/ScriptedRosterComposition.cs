@@ -12,9 +12,9 @@ namespace Game.RLHarness
 
         public ScriptedRosterComposition(GameObject host, in RewardSpec spec, BehaviorType behaviorType, HarnessAssets assets, Vector2 offset)
         {
-            var (units, arena, projectiles) = HarnessArena.Compose(host, offset);
+            var (units, arena, projectiles) = HarnessArena.Compose(host, offset, presentationEnabled: false);
             var field = spec.useAsteroidField
-                ? HarnessField.Spawn(arena, assets, spec.fieldDensityScale, host.transform)
+                ? HarnessField.Spawn(arena, assets, spec.fieldDensityScale, host.transform, presentationEnabled: false)
                 : null;
             var pair = EpisodePair.SpawnWithAgentChooser(units, arena, projectiles, in spec, assets, out var chooser);
             roster = new OpponentRoster(pair.Baseline, pair.Agent);

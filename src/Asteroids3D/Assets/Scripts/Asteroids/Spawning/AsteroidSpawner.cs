@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Asteroids.Fragnetics;
+using Game.Presentation;
 using UnityEngine;
 
 namespace Asteroids.Spawning
@@ -30,16 +31,26 @@ namespace Asteroids.Spawning
         private Transform worldAnchor;
         private Fragger fragger;
         private float lethalityScale = 1f;
+        private bool presentationEnabled = true;
 
         // Created lazily so the field can pre-size it (from the computed
         // worst-case loaded count) before the first spawn, regardless of
         // sibling Awake ordering.
-        private SpawnPool Pool => pool ??= new SpawnPool(settings, transform, poolMaxSizeHint);
+        private SpawnPool Pool => pool ??= new SpawnPool(settings, transform, poolMaxSizeHint, ApplyPresentation);
 
         public void SetWorldAnchor(Transform anchor)
         {
             worldAnchor = anchor;
         }
+
+        /// <summary>Session presentation policy for every later spawn; staged by the owning field before the first spawn. The pool is arena-local, so applying once per created instance covers all reuse.</summary>
+        public void SetPresentation(bool enabled)
+        {
+            presentationEnabled = enabled;
+        }
+
+        private void ApplyPresentation(AsteroidController ast) =>
+            PresentationApplier.Apply(ast.gameObject, presentationEnabled);
 
         /// <summary>Collision-damage multiplier for every later spawn, fragments included; staged by the owning field.</summary>
         public void SetLethalityScale(float value)

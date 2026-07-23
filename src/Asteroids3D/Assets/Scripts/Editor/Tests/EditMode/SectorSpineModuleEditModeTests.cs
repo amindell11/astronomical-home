@@ -43,6 +43,7 @@ namespace Tests.EditMode
             public ICameraService CameraService => null;
             public IUIService UIService => null;
             public ArenaContext Arena => null;
+            public bool PresentationEnabled => true;
         }
 
         private static void Run(IEnumerator routine)

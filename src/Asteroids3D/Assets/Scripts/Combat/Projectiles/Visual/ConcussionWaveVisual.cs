@@ -1,4 +1,5 @@
 using Game;
+using Game.Presentation;
 using UnityEngine;
 using Utils;
 
@@ -10,7 +11,7 @@ namespace Combat.Projectile.Visual
     /// the transform).
     /// </summary>
     [RequireComponent(typeof(ConcussionWave), typeof(LineRenderer))]
-    public sealed class ConcussionWaveVisual : MonoBehaviour
+    public sealed class ConcussionWaveVisual : MonoBehaviour, IPresentationPart
     {
         [SerializeField] private PooledVFX burstPrefab;
         [SerializeField, Min(8)] private int segments = 64;
@@ -42,6 +43,8 @@ namespace Combat.Projectile.Visual
         {
             wave.Begun -= SpawnBurst;
         }
+
+        public void ApplyPresentation(bool visible) => enabled = visible;
 
         /// <summary>On Begin, not OnEnable — pool warmup activates the instance once without a detonation.</summary>
         private void SpawnBurst()

@@ -15,12 +15,16 @@ namespace Game.RLHarness
 
         private IEnumerator Start()
         {
+            // Before any ship spawns — embedded visual rigs self-gate on these at Awake.
+            Utils.GameSettings.SetPresentationEnabled(false);
+            Utils.GameSettings.SetVfxEnabled(false);
+
             PacingContract.Apply();
             var seeds = EvalProtocol.ResolveSeeds(seedSelector, out var tag);
             // A non-canonical density (the 3.0 stretch) marks its artifacts so it can never pass as the canonical eval.
             if (!Mathf.Approximately(fieldDensityScale, EvalProtocol.CanonicalFieldDensityScale))
                 tag += "-d" + fieldDensityScale.ToString("0.##", CultureInfo.InvariantCulture).Replace('.', '_');
-            var (units, arena, projectiles) = HarnessArena.Compose(gameObject, Vector2.zero);
+            var (units, arena, projectiles) = HarnessArena.Compose(gameObject, Vector2.zero, presentationEnabled: false);
             yield return CheckpointEvaluator.Run(units, arena, projectiles, assets, onnxAssetPath,
                 seeds, episodesPerSeed, EvalProtocol.EvalSpec(fieldDensityScale), tag, null);
 #if UNITY_EDITOR
