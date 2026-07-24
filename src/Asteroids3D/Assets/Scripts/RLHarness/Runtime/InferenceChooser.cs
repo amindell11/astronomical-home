@@ -97,8 +97,9 @@ namespace Game.RLHarness
             var behavior = host.AddComponent<BehaviorParameters>();
             behavior.BehaviorName = ShipCombatPolicy.BehaviorName;
             behavior.BehaviorType = BehaviorType.InferenceOnly;
-            behavior.BrainParameters.VectorObservationSize = AgentObservations.Size;
-            behavior.BrainParameters.ActionSpec = ActionSpec.MakeContinuous(AgentActions.Count);
+            // Legacy 72/4 spec — must match the shipped checkpoint until a manual-aim model replaces it (see LegacyAgentObservations).
+            behavior.BrainParameters.VectorObservationSize = LegacyAgentObservations.Size;
+            behavior.BrainParameters.ActionSpec = ActionSpec.MakeContinuous(LegacyAgentObservations.ActionCount);
             behavior.DeterministicInference = true;
             behavior.InferenceDevice = InferenceDevice.Burst;
             behavior.Model = model;

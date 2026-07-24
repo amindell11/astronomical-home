@@ -6,14 +6,16 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>The policy end of the intent seam: holds the decision-boundary action (world-plane velocity + fire gate + one-shot boost) and rebuilds the intent every Decide with a fresh aim/target snapshot from the INJECTED opponent (Ranger precedent — Scout's 30 m radius is blind past the 25–60 m spawn band). Boost emits on exactly one tick and only if it was available as observed at the boundary (spend-now-if-ready — a cooldown expiring mid-interval must not fire a boost the policy saw as unavailable).</summary>
+    /// <summary>The policy end of the intent seam: holds the decision-boundary action (world-plane velocity + facing + trigger + one-shot boost) and rebuilds the intent every Decide with a fresh target snapshot from the INJECTED opponent (Ranger precedent — Scout's 30 m radius is blind past the 25–60 m spawn band). The policy owns aim and trigger: the intent carries a facing override and manual fire, never aimAtTarget/projectileSpeed, so the MPC intercept override stays dormant. Boost emits on exactly one tick and only if it was available as observed at the boundary (spend-now-if-ready — a cooldown expiring mid-interval must not fire a boost the policy saw as unavailable).</summary>
     public sealed class AgentChooser : IIntentChooser
     {
         private Ship opponent;
         private float projectileSpeed;
 
         private bool hasAction;
+        private bool legacyAimFire;
         private Vector2 worldVelocity;
+        private float facingRad;
         private bool fire;
         private bool boostPending;
 
@@ -24,18 +26,32 @@ namespace Game.RLHarness
             Reset();
         }
 
-        public void SetAction(Vector2 worldVelocity, bool fire, bool boost, bool boostAvailable)
+        public void SetAction(Vector2 worldVelocity, float facingRad, bool fire, bool boost, bool boostAvailable)
+        {
+            this.worldVelocity = worldVelocity;
+            this.facingRad = facingRad;
+            this.fire = fire;
+            boostPending = boost && boostAvailable;
+            legacyAimFire = false;
+            hasAction = true;
+        }
+
+        /// <summary>LEGACY aim/fire mode for the shipped 72-obs/4-action checkpoint: intercept-facing via aimAtTarget/projectileSpeed and Gunner auto-fire via enableFiring. Dies with <see cref="LegacyAgentObservations"/> when a manual-aim checkpoint ships to production.</summary>
+        public void SetLegacyAction(Vector2 worldVelocity, bool fire, bool boost, bool boostAvailable)
         {
             this.worldVelocity = worldVelocity;
             this.fire = fire;
             boostPending = boost && boostAvailable;
+            legacyAimFire = true;
             hasAction = true;
         }
 
         public void Reset()
         {
             hasAction = false;
+            legacyAimFire = false;
             worldVelocity = default;
+            facingRad = 0f;
             fire = false;
             boostPending = false;
         }
@@ -48,7 +64,7 @@ namespace Game.RLHarness
             var boost = boostPending;
             boostPending = false;
 
-            return new NavigationIntent
+            var intent = new NavigationIntent
             {
                 isValid = true,
                 velocityReference = worldVelocity,
@@ -60,10 +76,23 @@ namespace Game.RLHarness
                     dynamics = opponent.Dynamics,
                     source = opponent.transform,
                 },
-                aimAtTarget = true,
-                projectileSpeed = projectileSpeed,
-                enableFiring = fire,
             };
+
+            if (legacyAimFire)
+            {
+                intent.aimAtTarget = true;
+                intent.projectileSpeed = projectileSpeed;
+                intent.enableFiring = fire;
+            }
+            else
+            {
+                intent.hasFacing = true;
+                intent.facingRad = facingRad;
+                intent.manualFire = true;
+                intent.primaryHeld = fire;
+            }
+
+            return intent;
         }
     }
 }

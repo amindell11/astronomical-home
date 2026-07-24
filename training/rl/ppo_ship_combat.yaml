@@ -27,34 +27,22 @@ behaviors:
     max_steps: 2000000
     time_horizon: 64
     summary_freq: 6000
-# Curriculum. Param names ↔ EnvParamOverlay consts and lesson-0 values are pinned by
-# RLTrainerConfigEditModeTests. Thresholds re-grounded 2026-07-20 for the time-cost reward
-# (RewardSpec.timeCostPerDecision drags every episode −0.1..−0.6): the 2026-07-19 ladder
-# rescaled ×0.65 so the top gate clears the estimated post-cost density-1.5 band (~0.85) —
-# a stalled gate strands the run, an early gate just adds terminal-env consolidation.
-# Staging order rides the ascending thresholds (dummy decay → lethality ramp → density ramp).
+# Curriculum. Param names ↔ EnvParamOverlay consts, lesson-0 values, and the density sampler
+# range are pinned by RLTrainerConfigEditModeTests. Thresholds re-grounded 2026-07-20 for the
+# time-cost reward (RewardSpec.timeCostPerDecision drags every episode −0.1..−0.6): the
+# 2026-07-19 ladder rescaled ×0.65 so the top gate clears the estimated post-cost
+# density-1.5 band (~0.85) — a stalled gate strands the run, an early gate just adds
+# terminal-env consolidation. Staging order rides the ascending thresholds
+# (dummy decay → lethality ramp). Density is a per-episode uniform sampler from step 0
+# (stage (i)′ decision: the ramp's strict recipe-cloning purpose died with the manual-aim
+# interface change; a spread trains one policy across the whole density band).
 environment_parameters:
   use_asteroid_field: 1.0
   field_density_scale:
-    curriculum:
-      - name: density_baseline
-        completion_criteria:
-          measure: reward
-          behavior: ShipCombat
-          signal_smoothing: true
-          min_lesson_length: 100
-          threshold: 0.4
-        value: 1.0
-      - name: density_mid
-        completion_criteria:
-          measure: reward
-          behavior: ShipCombat
-          signal_smoothing: true
-          min_lesson_length: 100
-          threshold: 0.7
-        value: 1.5
-      - name: density_full
-        value: 2.0
+    sampler_type: uniform
+    sampler_parameters:
+      min_value: 0.5
+      max_value: 2.5
   collision_lethality:
     curriculum:
       - name: lethality_soft

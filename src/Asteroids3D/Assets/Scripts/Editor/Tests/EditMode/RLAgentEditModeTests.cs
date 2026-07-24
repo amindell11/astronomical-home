@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the pure agent maps: action thresholds/clamps, the one-time ego→world conversion, the 72-float observation layout (24 combat channels + 8 obstacle tokens × 6), and the chooser's one-shot boost semantics.</summary>
+    /// <summary>Pins the pure agent maps: action thresholds/clamps, the one-time ego→world conversions (velocity and facing), the 82-float observation layout (26 combat channels + 8 obstacle tokens × 7), and the chooser's intent shapes (manual aim/fire vs the legacy aimbot mode) and one-shot boost semantics.</summary>
     [Category("AI")]
     public class RLAgentEditModeTests
     {
@@ -35,12 +35,13 @@ namespace Tests.EditMode
         [Test]
         public void Map_ClampsVelocityAndThresholdsTriggers()
         {
-            var a = AgentActions.Map(2f, -3f, 0.01f, -0.01f);
+            var a = AgentActions.Map(2f, -3f, 0.01f, -0.01f, 0.4f, -0.9f);
             Assert.AreEqual(new Vector2(1f, -1f), a.velocityEgo);
+            Assert.AreEqual(new Vector2(0.4f, -0.9f), a.facingEgo);
             Assert.IsTrue(a.fire);
             Assert.IsFalse(a.boost);
 
-            var atThreshold = AgentActions.Map(0f, 0f, 0f, 0f);
+            var atThreshold = AgentActions.Map(0f, 0f, 0f, 0f, 0f, 0f);
             Assert.IsFalse(atThreshold.fire, "fire gates on strictly positive");
             Assert.IsFalse(atThreshold.boost, "boost gates on strictly positive");
         }
@@ -74,6 +75,31 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void ToFacingRad_MapsEgoDirectionToMpcYaw()
+        {
+            // MPC yaw convention: fwd = (−sin, cos), so world +Y ⇒ 0 and world +X ⇒ −π/2.
+            Assert.AreEqual(0f, AgentActions.ToFacingRad(new Vector2(0f, 1f), Vector2.up), 1e-4f,
+                "ego-forward with the nose on +Y stays yaw 0");
+            Assert.AreEqual(-0.5f * Mathf.PI,
+                AgentActions.ToFacingRad(new Vector2(0f, 1f), Vector2.right), 1e-4f,
+                "ego-forward with the nose on +X is yaw −π/2");
+            Assert.AreEqual(-0.5f * Mathf.PI,
+                AgentActions.ToFacingRad(new Vector2(1f, 0f), Vector2.up), 1e-4f,
+                "ego-right from a +Y nose points at world +X");
+            Assert.AreEqual(AgentActions.ToFacingRad(new Vector2(0f, 0.1f), Vector2.right),
+                AgentActions.ToFacingRad(new Vector2(0f, 1f), Vector2.right), 1e-4f,
+                "facing is a direction — magnitude must not change the commanded yaw");
+        }
+
+        [Test]
+        public void ToFacingRad_DegenerateDirection_HoldsTheCurrentNose()
+        {
+            Assert.AreEqual(-0.5f * Mathf.PI,
+                AgentActions.ToFacingRad(Vector2.zero, Vector2.right), 1e-4f,
+                "a zero direction must resolve to the current forward, never to yaw 0");
+        }
+
+        [Test]
         public void Fill_LaysOutAllChannels()
         {
             var self = new StubStatus
@@ -91,6 +117,7 @@ namespace Tests.EditMode
 
             AgentObservations.Fill(buffer, self, in target,
                 inMyEnvelope: true, inEnemyEnvelope: false, primaryWeaponReady: true, primaryHeatPct: 0.6f,
+                primaryProjectileSpeed: 0f, // hitscan lead: aim point = target position
                 arenaCenterPlane: new Vector2(5f, 65f), arenaRadius: ArenaRadius, in scan);
 
             var expected = new[]
@@ -110,12 +137,14 @@ namespace Tests.EditMode
                 0f, 60f / ArenaRadius,   // arena center ego / R
                 1f,                  // primary weapon ready
                 0.6f,                // self primary heat pct
+                0f, 1f,              // intercept-lead direction ego (hitscan → dead-ahead bearing)
                 3f / ArenaRadius, 0f,    // token 0 relPos ego / R
                 3f / ArenaRadius,        // token 0 distance / R
                 -0.2f, 0f,           // token 0 relVel ego / MaxSpeed
                 2f / AgentObservations.SpawnSettingsMaxAsteroidRadius, // token 0 radius
+                1f,                  // token 0 healthPct (undamaged)
             };
-            Assert.AreEqual(AgentObservations.Size, expected.Length + 7 * 6, "8 tokens × 6 floats after channel 23");
+            Assert.AreEqual(AgentObservations.Size, expected.Length + 7 * 7, "8 tokens × 7 floats after channel 25");
             for (var i = 0; i < expected.Length; i++)
                 Assert.AreEqual(expected[i], buffer[i], 1e-4f, $"channel {i}");
             for (var i = expected.Length; i < buffer.Length; i++)
@@ -123,17 +152,41 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void Fill_NoTarget_ZeroesTheTargetBlock()
+        public void Fill_LeadDirection_LeadsAMovingTargetOnTheMotionSide()
+        {
+            var self = new StubStatus
+            {
+                kinematics = new Kinematics(Vector2.zero, Vector2.zero, 0f, 0f, 0f),
+            };
+            // Target dead ahead moving ego-right; a finite projectile speed must pull the lead off the bearing toward the motion.
+            var target = new TargetView(true, new Vector2(0f, 10f), new Vector2(5f, 0f),
+                new Vector2(0f, -1f), 1f, 1f);
+            var buffer = new float[AgentObservations.Size];
+
+            AgentObservations.Fill(buffer, self, in target,
+                inMyEnvelope: false, inEnemyEnvelope: false, primaryWeaponReady: true, primaryHeatPct: 0f,
+                primaryProjectileSpeed: 10f, arenaCenterPlane: Vector2.zero, arenaRadius: ArenaRadius, default);
+
+            var lead = new Vector2(buffer[24], buffer[25]);
+            Assert.AreEqual(1f, lead.magnitude, 1e-4f, "the lead channels carry a unit direction");
+            Assert.Greater(lead.x, 0.1f, "lead must sit on the target's motion side of the bearing");
+            Assert.Greater(lead.y, 0.5f, "lead must still point substantially at the target");
+        }
+
+        [Test]
+        public void Fill_NoTarget_ZeroesTheTargetBlockAndLead()
         {
             var self = new StubStatus { kinematics = new Kinematics(Vector2.zero, Vector2.zero, 0f, 0f, 0f) };
             var buffer = new float[AgentObservations.Size];
             AgentObservations.Fill(buffer, self, TargetView.None,
                 inMyEnvelope: false, inEnemyEnvelope: false, primaryWeaponReady: false, primaryHeatPct: 0f,
-                arenaCenterPlane: Vector2.zero, arenaRadius: ArenaRadius, default);
+                primaryProjectileSpeed: 40f, arenaCenterPlane: Vector2.zero, arenaRadius: ArenaRadius, default);
 
             for (var i = 8; i < 18; i++)
                 Assert.AreEqual(0f, buffer[i], $"hasTarget flag and target block must zero (channel {i})");
-            for (var i = 24; i < buffer.Length; i++)
+            Assert.AreEqual(0f, buffer[24], "lead x must zero with no target");
+            Assert.AreEqual(0f, buffer[25], "lead y must zero with no target");
+            for (var i = AgentObservations.CombatChannels; i < buffer.Length; i++)
                 Assert.AreEqual(0f, buffer[i], $"a default scan must zero the whole token block (channel {i})");
         }
 
@@ -145,33 +198,89 @@ namespace Tests.EditMode
                 // yaw 90 → forward (-1,0), right (0,1): a real rotation, not the identity frame.
                 kinematics = new Kinematics(Vector2.zero, new Vector2(0f, 2f), 90f, 0f, 0f),
             };
-            // Deliberately unsorted: distances 10, 20, 4.
+            // Deliberately unsorted: distances 10, 20, 4. The nearest carries battle damage (healthPct 0.25).
             var scan = new ObstacleScan(new[]
             {
                 new DetectedObstacle(new Vector3(0f, 10f, 0f), 1f, null, Vector2.zero),
                 new DetectedObstacle(new Vector3(0f, -20f, 0f), 0.5f, null, new Vector2(0f, 4f)),
-                new DetectedObstacle(new Vector3(-4f, 0f, 0f), 2f, null, new Vector2(1f, 2f)),
+                new DetectedObstacle(new Vector3(-4f, 0f, 0f), 2f, null, new Vector2(1f, 2f), healthPct: 0.25f),
             }, 3);
             var buffer = new float[AgentObservations.Size];
 
             AgentObservations.Fill(buffer, self, TargetView.None,
                 inMyEnvelope: false, inEnemyEnvelope: false, primaryWeaponReady: false, primaryHeatPct: 0f,
-                arenaCenterPlane: Vector2.zero, arenaRadius: ArenaRadius, in scan);
+                primaryProjectileSpeed: 0f, arenaCenterPlane: Vector2.zero, arenaRadius: ArenaRadius, in scan);
 
             const float maxR = AgentObservations.SpawnSettingsMaxAsteroidRadius;
+            const int tokenBase = AgentObservations.CombatChannels;
             var expectedTokens = new[]
             {
-                // nearest first: (-4,0) d=4 → ego relPos (0,4); relVel (1,0) → ego (0,-1).
-                0f, 4f / ArenaRadius, 4f / ArenaRadius, 0f, -0.1f, 2f / maxR,
+                // nearest first: (-4,0) d=4 → ego relPos (0,4); relVel (1,0) → ego (0,-1); chipped to 0.25 health.
+                0f, 4f / ArenaRadius, 4f / ArenaRadius, 0f, -0.1f, 2f / maxR, 0.25f,
                 // (0,10) d=10 → ego (10,0); relVel (0,-2) → ego (-2,0).
-                10f / ArenaRadius, 0f, 10f / ArenaRadius, -0.2f, 0f, 1f / maxR,
+                10f / ArenaRadius, 0f, 10f / ArenaRadius, -0.2f, 0f, 1f / maxR, 1f,
                 // (0,-20) d=20 → ego (-20,0); relVel (0,2) → ego (2,0).
-                -20f / ArenaRadius, 0f, 20f / ArenaRadius, 0.2f, 0f, 0.5f / maxR,
+                -20f / ArenaRadius, 0f, 20f / ArenaRadius, 0.2f, 0f, 0.5f / maxR, 1f,
             };
             for (var i = 0; i < expectedTokens.Length; i++)
-                Assert.AreEqual(expectedTokens[i], buffer[24 + i], 1e-4f, $"token channel {24 + i}");
-            for (var i = 24 + expectedTokens.Length; i < buffer.Length; i++)
+                Assert.AreEqual(expectedTokens[i], buffer[tokenBase + i], 1e-4f, $"token channel {tokenBase + i}");
+            for (var i = tokenBase + expectedTokens.Length; i < buffer.Length; i++)
                 Assert.AreEqual(0f, buffer[i], $"empty slot channels must zero (radius 0 ⇔ empty) (channel {i})");
+        }
+
+        [Test]
+        public void AgentChooser_ManualAction_CarriesFacingAndManualFire_NeverTheAimbot()
+        {
+            var opponentGo = new GameObject("Opponent");
+            try
+            {
+                var opponent = opponentGo.AddComponent<Ship>();
+                var chooser = new AgentChooser();
+                chooser.Configure(opponent, 40f);
+
+                chooser.SetAction(new Vector2(4f, 0f), facingRad: 1.2f, fire: true, boost: false, boostAvailable: true);
+
+                var intent = chooser.Decide(null, 0.02f);
+                Assert.IsTrue(intent.isValid);
+                Assert.IsTrue(intent.hasTarget, "the target snapshot stays (obstacle exclusion keys on it)");
+                Assert.IsTrue(intent.hasFacing);
+                Assert.AreEqual(1.2f, intent.facingRad, 1e-6f);
+                Assert.IsTrue(intent.manualFire);
+                Assert.IsTrue(intent.primaryHeld);
+                Assert.IsFalse(intent.aimAtTarget, "manual aim must leave the MPC intercept override dormant");
+                Assert.AreEqual(0f, intent.projectileSpeed, "no aim-purpose projectile speed on the manual path");
+                Assert.IsFalse(intent.enableFiring, "the Gunner path must stay cold on the manual path");
+            }
+            finally
+            {
+                Object.DestroyImmediate(opponentGo);
+            }
+        }
+
+        [Test]
+        public void AgentChooser_LegacyAction_KeepsTheAimbotIntentShape()
+        {
+            var opponentGo = new GameObject("Opponent");
+            try
+            {
+                var opponent = opponentGo.AddComponent<Ship>();
+                var chooser = new AgentChooser();
+                chooser.Configure(opponent, 40f);
+
+                chooser.SetLegacyAction(new Vector2(4f, 0f), fire: true, boost: false, boostAvailable: true);
+
+                var intent = chooser.Decide(null, 0.02f);
+                Assert.IsTrue(intent.isValid);
+                Assert.IsTrue(intent.aimAtTarget);
+                Assert.AreEqual(40f, intent.projectileSpeed);
+                Assert.IsTrue(intent.enableFiring);
+                Assert.IsFalse(intent.hasFacing);
+                Assert.IsFalse(intent.manualFire);
+            }
+            finally
+            {
+                Object.DestroyImmediate(opponentGo);
+            }
         }
 
         [Test]
@@ -184,12 +293,12 @@ namespace Tests.EditMode
                 var chooser = new AgentChooser();
                 chooser.Configure(opponent, 40f);
 
-                chooser.SetAction(new Vector2(4f, 0f), fire: true, boost: true, boostAvailable: true);
+                chooser.SetAction(new Vector2(4f, 0f), facingRad: 0f, fire: true, boost: true, boostAvailable: true);
 
                 var first = chooser.Decide(null, 0.02f);
                 Assert.IsTrue(first.isValid);
                 Assert.IsTrue(first.boost, "boundary tick spends the boost");
-                Assert.IsTrue(first.enableFiring);
+                Assert.IsTrue(first.primaryHeld);
                 Assert.AreEqual(new Vector2(4f, 0f), first.velocityReference);
 
                 var second = chooser.Decide(null, 0.02f);
@@ -214,7 +323,7 @@ namespace Tests.EditMode
                 var chooser = new AgentChooser();
                 chooser.Configure(opponent, 40f);
 
-                chooser.SetAction(new Vector2(4f, 0f), fire: false, boost: true, boostAvailable: false);
+                chooser.SetAction(new Vector2(4f, 0f), facingRad: 0f, fire: false, boost: true, boostAvailable: false);
 
                 var first = chooser.Decide(null, 0.02f);
                 Assert.IsTrue(first.isValid);
@@ -240,7 +349,7 @@ namespace Tests.EditMode
 
                 Assert.IsFalse(chooser.Decide(null, 0.02f).isValid, "no action yet → idle");
 
-                chooser.SetAction(Vector2.right, fire: false, boost: false, boostAvailable: true);
+                chooser.SetAction(Vector2.right, facingRad: 0f, fire: false, boost: false, boostAvailable: true);
                 Assert.IsTrue(chooser.Decide(null, 0.02f).isValid);
 
                 chooser.Reset();

@@ -25,7 +25,7 @@ namespace Movement.MPC
 
         protected Scout scout;
         protected bool facingOverride;
-        protected float facingAngle;
+        protected float facingRadOverride;
         protected internal float2 velocityReference;
         protected bool hasVelocityReference;
         private bool boostCommanded;
@@ -68,7 +68,6 @@ namespace Movement.MPC
         public void ResetState()
         {
             ResetNavigation();
-            facingOverride = false;
             currentCommand = default;
             mpc?.Dispose();
             mpc = new Mpc(mpcSettings, dynamics, navScope.Derive(MpcSamplerStream).ToUint());
@@ -88,7 +87,7 @@ namespace Movement.MPC
                 kinematics = kin,
                 boostCooldown = context.BoostCooldownRemaining,
                 velocityReference = velocityReference,
-                facingRad = facingOverride ? facingAngle * Mathf.Deg2Rad : float.NaN,
+                facingRad = facingOverride ? facingRadOverride : float.NaN,
                 enemyPos = enemyPos,
                 enemyVel = enemyVel,
                 enemyYaw = enemyYaw,
@@ -141,6 +140,11 @@ namespace Movement.MPC
             boostCommanded = intent.boost;
             SetVelocityReference(intent.velocityReference);
 
+            if (intent.hasFacing)
+                SetFacingOverride(intent.facingRad);
+            else
+                ClearFacingOverride();
+
             if (intent.aimAtTarget && intent.hasTarget)
                 SetEnemyState(intent.target, intent.projectileSpeed);
             else
@@ -160,6 +164,7 @@ namespace Movement.MPC
             boostCommanded = false;
             hasVelocityReference = false;
             velocityReference = default;
+            ClearFacingOverride();
             ClearEnemyState();
             ClearObstacleExclusion();
             ClearWeightOverrides();
@@ -172,10 +177,15 @@ namespace Movement.MPC
             hasVelocityReference = true;
         }
 
-        public void SetFacingOverride(float angle)
+        public void SetFacingOverride(float facingRad)
         {
             facingOverride = true;
-            facingAngle = angle;
+            facingRadOverride = facingRad;
+        }
+
+        public void ClearFacingOverride()
+        {
+            facingOverride = false;
         }
 
         // Converts the enemy snapshot to MPC inputs; the MPC yaw convention (fwd = (-sin, cos)) lives here at the boundary, not in the policy layer.

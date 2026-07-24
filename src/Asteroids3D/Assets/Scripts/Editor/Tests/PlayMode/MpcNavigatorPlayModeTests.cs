@@ -82,7 +82,7 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
     {
         // A zero reference is a valid "stop", keeping the MPC running while only the facing override acts.
         mpc.SetVelocityReference(Vector2.zero);
-        mpc.SetFacingOverride(90f);
+        mpc.SetFacingOverride(90f * Mathf.Deg2Rad);
 
         yield return AsyncAssert.WaitUntilThen(
             () => TestUtilities.AngleDeltaToTarget(ship.transform, 90f) < 5f,

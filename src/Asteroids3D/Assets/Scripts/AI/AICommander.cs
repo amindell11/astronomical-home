@@ -30,6 +30,11 @@ namespace AI
         protected ArenaContext arena;
         protected bool systemsInitialized;
 
+        // Manual trigger authority, latched from the last valid intent; the press edge derives from prevPrimaryHeld (PlayerCommander precedent).
+        private bool manualFire;
+        private bool primaryHeld;
+        private bool prevPrimaryHeld;
+
         internal AIContext context;
 
         public Scout Scout { get; private set; }
@@ -82,6 +87,9 @@ namespace AI
             Scout.ResetState();
             Navigator.ResetState();
             if (Gunner) Gunner.ResetState();
+            manualFire = false;
+            primaryHeld = false;
+            prevPrimaryHeld = false;
             context = new AIContext(control.Ship, Scout, combatExitDelay);
             Brain.ResetState();
         }
@@ -96,11 +104,22 @@ namespace AI
                 context.Update(dt);
                 var intent = Brain.Decide(context, dt);
                 Navigator.ApplyIntent(intent);
-                if (Gunner) Gunner.ApplyIntent(intent);
+                manualFire = intent.isValid && intent.manualFire;
+                primaryHeld = manualFire && intent.primaryHeld;
+                if (Gunner && !manualFire) Gunner.ApplyIntent(intent);
             }
 
             control.Pilot.Drive(Navigator.ComputeCommand());
-            if (Gunner) Gunner.Fire();
+            if (manualFire) FireManualPrimary();
+            else if (Gunner) Gunner.Fire();
+        }
+
+        // Raw trigger facts, PlayerCommander.FireSlot precedent: the weapon interprets its own firing semantics.
+        private void FireManualPrimary()
+        {
+            control.WeaponActuator.Fire(WeaponSlot.Primary,
+                new WeaponCommand { held = primaryHeld, pressed = primaryHeld && !prevPrimaryHeld });
+            prevPrimaryHeld = primaryHeld;
         }
     }
 }
