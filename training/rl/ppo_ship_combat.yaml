@@ -35,32 +35,33 @@ behaviors:
 # Manual-aim staging (2026-07-24): dummy-ignition → archetype ladder in an EMPTY arena →
 # field arrives sparse at +0.55 → density band + lethality ramp to the terminal spread.
 environment_parameters:
-  # Phase gates ride the ascending reward thresholds: master the full archetype mix in an
-  # EMPTY arena first (field off through +0.55), then the field arrives sparse and the
-  # density band + lethality ramp to the terminal spread.
+  # Env lanes are SCHEDULED (measure: progress, fraction of max_steps), not reward-gated:
+  # every reward gate reads the same global mean, and a dummy-heavy phase inflates it past
+  # any env threshold (observed twice — the gates tripped in minutes regardless of window).
+  # Opponent lanes stay reward-adaptive; the env follows the intended timetable: empty arena
+  # for the first 30%, then the field arrives sparse and density/lethality ramp, staggered.
   use_asteroid_field:
     curriculum:
       - name: field_off
         completion_criteria:
-          measure: reward
+          measure: progress
           behavior: ShipCombat
-          signal_smoothing: true
+          signal_smoothing: false
           min_lesson_length: 300
-          threshold: 0.55
+          threshold: 0.30
         value: 0.0
       - name: field_on
         value: 1.0
   field_density_scale:
     curriculum:
-      # Lesson values are samplers (mlagents Lesson.value = ParameterRandomizationSettings):
-      # band widens after the field arrives; terminal band is the full training spread.
+      # Lesson values are samplers (mlagents Lesson.value = ParameterRandomizationSettings).
       - name: density_sparse
         completion_criteria:
-          measure: reward
+          measure: progress
           behavior: ShipCombat
-          signal_smoothing: true
+          signal_smoothing: false
           min_lesson_length: 300
-          threshold: 0.6
+          threshold: 0.45
         value:
           sampler_type: uniform
           sampler_parameters:
@@ -68,11 +69,11 @@ environment_parameters:
             max_value: 1.0
       - name: density_mid
         completion_criteria:
-          measure: reward
+          measure: progress
           behavior: ShipCombat
-          signal_smoothing: true
+          signal_smoothing: false
           min_lesson_length: 300
-          threshold: 0.65
+          threshold: 0.60
         value:
           sampler_type: uniform
           sampler_parameters:
@@ -86,22 +87,21 @@ environment_parameters:
             max_value: 2.5
   collision_lethality:
     curriculum:
-      # Staggered off the density gates so density and lethality never bump on one summary.
       - name: lethality_soft
         completion_criteria:
-          measure: reward
+          measure: progress
           behavior: ShipCombat
-          signal_smoothing: true
+          signal_smoothing: false
           min_lesson_length: 300
-          threshold: 0.625
+          threshold: 0.50
         value: 0.25
       - name: lethality_mid
         completion_criteria:
-          measure: reward
+          measure: progress
           behavior: ShipCombat
-          signal_smoothing: true
+          signal_smoothing: false
           min_lesson_length: 300
-          threshold: 0.675
+          threshold: 0.65
         value: 0.5
       - name: lethality_full
         value: 1.0
