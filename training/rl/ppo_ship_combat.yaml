@@ -69,6 +69,17 @@ environment_parameters:
   opponent_weight_kiter: 0.15
   opponent_weight_dummy:
     curriculum:
+      # Weights normalize by sum (OpponentRoster.Pick): 8.0 vs the armed 0.9 ≈ 90% Dummy.
+      # Ignition lesson for the manual-aim gradient chain — the 500k gate run fired 0 shots
+      # at a stationary Dummy; approach→aim→fire→hit must first pay against a harmless target.
+      - name: dummy_bootstrap
+        completion_criteria:
+          measure: reward
+          behavior: ShipCombat
+          signal_smoothing: true
+          min_lesson_length: 100
+          threshold: 0.2
+        value: 8.0
       - name: dummy_floor
         completion_criteria:
           measure: reward

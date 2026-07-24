@@ -108,8 +108,8 @@ namespace Tests.EditMode
                 "asteroid episodes are on for the whole curriculum run");
             Assert.AreEqual(0.25f, LessonZeroValue(block, EnvParamOverlay.CollisionLethality), 1e-6f,
                 "lethality ramp starts soft (0.25 → 1.0)");
-            Assert.AreEqual(0.4f, LessonZeroValue(block, EnvParamOverlay.OpponentWeightDummy), 1e-6f,
-                "dummy weight starts at the curriculum floor (0.4 → 0.1)");
+            Assert.AreEqual(8f, LessonZeroValue(block, EnvParamOverlay.OpponentWeightDummy), 1e-6f,
+                "dummy weight starts at the ignition lesson (~90% Dummy under sum-normalization; 8.0 → 0.1)");
             Assert.AreEqual(defaults.weightAggressor, LessonZeroValue(block, EnvParamOverlay.OpponentWeightAggressor), 1e-6f);
             Assert.AreEqual(defaults.weightEvader, LessonZeroValue(block, EnvParamOverlay.OpponentWeightEvader), 1e-6f);
             Assert.AreEqual(defaults.weightOrbiter, LessonZeroValue(block, EnvParamOverlay.OpponentWeightOrbiter), 1e-6f);
