@@ -46,7 +46,9 @@ environment_parameters:
   field_density_scale:
     curriculum:
       # Lesson values are samplers (mlagents Lesson.value = ParameterRandomizationSettings).
-      # density_empty IS the fieldless phase: field composed, zero rocks.
+      # density_empty IS the fieldless phase: field composed, zero rocks. Expressed as a
+      # degenerate sampler: a constant lesson mixed into a sampler-valued curriculum breaks
+      # the env handshake at boot (bisect-proven 2026-07-24).
       - name: density_empty
         completion_criteria:
           measure: progress
@@ -54,7 +56,11 @@ environment_parameters:
           signal_smoothing: false
           min_lesson_length: 300
           threshold: 0.30
-        value: 0.0
+        value:
+          sampler_type: uniform
+          sampler_parameters:
+            min_value: 0.0
+            max_value: 0.0001
       - name: density_sparse
         completion_criteria:
           measure: progress
