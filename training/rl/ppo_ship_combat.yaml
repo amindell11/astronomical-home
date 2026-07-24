@@ -40,9 +40,14 @@ environment_parameters:
   # any env threshold (observed twice — the gates tripped in minutes regardless of window).
   # Opponent lanes stay reward-adaptive; the env follows the intended timetable: empty arena
   # for the first 30%, then the field arrives sparse and density/lethality ramp, staggered.
-  use_asteroid_field:
+  # NEVER curriculum this flag: field composition is boot-frozen (TrainingHost composes once;
+  # a mid-run flip wedges every worker — observed twice). The empty-arena phase is density 0.
+  use_asteroid_field: 1.0
+  field_density_scale:
     curriculum:
-      - name: field_off
+      # Lesson values are samplers (mlagents Lesson.value = ParameterRandomizationSettings).
+      # density_empty IS the fieldless phase: field composed, zero rocks.
+      - name: density_empty
         completion_criteria:
           measure: progress
           behavior: ShipCombat
@@ -50,11 +55,6 @@ environment_parameters:
           min_lesson_length: 300
           threshold: 0.30
         value: 0.0
-      - name: field_on
-        value: 1.0
-  field_density_scale:
-    curriculum:
-      # Lesson values are samplers (mlagents Lesson.value = ParameterRandomizationSettings).
       - name: density_sparse
         completion_criteria:
           measure: progress

@@ -104,8 +104,8 @@ namespace Tests.EditMode
             var block = EnvironmentParametersBlock();
             var defaults = RewardSpec.Default;
             // Curriculum ramps deliberately start off-default; everything else must not drift from RewardSpec.Default.
-            Assert.AreEqual(0f, LessonZeroValue(block, EnvParamOverlay.UseAsteroidField), 1e-6f,
-                "the field stays OFF until the full archetype mix is beaten (field_off → field_on at +0.55)");
+            Assert.AreEqual(1f, LessonZeroValue(block, EnvParamOverlay.UseAsteroidField), 1e-6f,
+                "the field flag is constant — composition is boot-frozen, so the empty-arena phase is density_empty (0.0), never a flag flip");
             Assert.AreEqual(0.25f, LessonZeroValue(block, EnvParamOverlay.CollisionLethality), 1e-6f,
                 "lethality ramp starts soft (0.25 → 1.0)");
             Assert.AreEqual(8f, LessonZeroValue(block, EnvParamOverlay.OpponentWeightDummy), 1e-6f,
