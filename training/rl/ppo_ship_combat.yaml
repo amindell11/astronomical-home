@@ -27,31 +27,73 @@ behaviors:
     max_steps: 2000000
     time_horizon: 64
     summary_freq: 6000
-# Curriculum. Param names ↔ EnvParamOverlay consts, lesson-0 values, and the density sampler
-# range are pinned by RLTrainerConfigEditModeTests. Thresholds re-grounded 2026-07-20 for the
-# time-cost reward (RewardSpec.timeCostPerDecision drags every episode −0.1..−0.6): the
-# 2026-07-19 ladder rescaled ×0.65 so the top gate clears the estimated post-cost
-# density-1.5 band (~0.85) — a stalled gate strands the run, an early gate just adds
-# terminal-env consolidation. Staging order rides the ascending thresholds
-# (dummy decay → lethality ramp). Density is a per-episode uniform sampler from step 0
-# (stage (i)′ decision: the ramp's strict recipe-cloning purpose died with the manual-aim
-# interface change; a spread trains one policy across the whole density band).
+# Curriculum. Param names ↔ EnvParamOverlay consts, lesson-0 values, and the terminal density
+# band are pinned by RLTrainerConfigEditModeTests. Thresholds re-grounded 2026-07-20 for the
+# time-cost reward (RewardSpec.timeCostPerDecision drags every episode −0.1..−0.6); ceiling
+# calibration: sustained post-cost reward ~0.85 at density 1.5, so every gate below ~0.7 is
+# reachable — a stalled gate strands the run, an early gate just adds consolidation.
+# Manual-aim staging (2026-07-24): dummy-ignition → archetype ladder in an EMPTY arena →
+# field arrives sparse at +0.55 → density band + lethality ramp to the terminal spread.
 environment_parameters:
-  use_asteroid_field: 1.0
+  # Phase gates ride the ascending reward thresholds: master the full archetype mix in an
+  # EMPTY arena first (field off through +0.55), then the field arrives sparse and the
+  # density band + lethality ramp to the terminal spread.
+  use_asteroid_field:
+    curriculum:
+      - name: field_off
+        completion_criteria:
+          measure: reward
+          behavior: ShipCombat
+          signal_smoothing: true
+          min_lesson_length: 100
+          threshold: 0.55
+        value: 0.0
+      - name: field_on
+        value: 1.0
   field_density_scale:
-    sampler_type: uniform
-    sampler_parameters:
-      min_value: 0.5
-      max_value: 2.5
+    curriculum:
+      # Lesson values are samplers (mlagents Lesson.value = ParameterRandomizationSettings):
+      # band widens after the field arrives; terminal band is the full training spread.
+      - name: density_sparse
+        completion_criteria:
+          measure: reward
+          behavior: ShipCombat
+          signal_smoothing: true
+          min_lesson_length: 100
+          threshold: 0.6
+        value:
+          sampler_type: uniform
+          sampler_parameters:
+            min_value: 0.0
+            max_value: 1.0
+      - name: density_mid
+        completion_criteria:
+          measure: reward
+          behavior: ShipCombat
+          signal_smoothing: true
+          min_lesson_length: 100
+          threshold: 0.65
+        value:
+          sampler_type: uniform
+          sampler_parameters:
+            min_value: 0.25
+            max_value: 1.75
+      - name: density_full
+        value:
+          sampler_type: uniform
+          sampler_parameters:
+            min_value: 0.5
+            max_value: 2.5
   collision_lethality:
     curriculum:
+      # Staggered off the density gates so density and lethality never bump on one summary.
       - name: lethality_soft
         completion_criteria:
           measure: reward
           behavior: ShipCombat
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0.3
+          threshold: 0.625
         value: 0.25
       - name: lethality_mid
         completion_criteria:
@@ -59,7 +101,7 @@ environment_parameters:
           behavior: ShipCombat
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0.6
+          threshold: 0.675
         value: 0.5
       - name: lethality_full
         value: 1.0
@@ -86,7 +128,7 @@ environment_parameters:
           behavior: ShipCombat
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0.2
+          threshold: 0.3
         value: 0.4
       - name: dummy_mid
         completion_criteria:
