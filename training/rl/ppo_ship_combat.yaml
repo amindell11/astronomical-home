@@ -45,7 +45,7 @@ environment_parameters:
           measure: reward
           behavior: ShipCombat
           signal_smoothing: true
-          min_lesson_length: 100
+          min_lesson_length: 300
           threshold: 0.55
         value: 0.0
       - name: field_on
@@ -59,7 +59,7 @@ environment_parameters:
           measure: reward
           behavior: ShipCombat
           signal_smoothing: true
-          min_lesson_length: 100
+          min_lesson_length: 300
           threshold: 0.6
         value:
           sampler_type: uniform
@@ -71,7 +71,7 @@ environment_parameters:
           measure: reward
           behavior: ShipCombat
           signal_smoothing: true
-          min_lesson_length: 100
+          min_lesson_length: 300
           threshold: 0.65
         value:
           sampler_type: uniform
@@ -92,7 +92,7 @@ environment_parameters:
           measure: reward
           behavior: ShipCombat
           signal_smoothing: true
-          min_lesson_length: 100
+          min_lesson_length: 300
           threshold: 0.625
         value: 0.25
       - name: lethality_mid
@@ -100,7 +100,7 @@ environment_parameters:
           measure: reward
           behavior: ShipCombat
           signal_smoothing: true
-          min_lesson_length: 100
+          min_lesson_length: 300
           threshold: 0.675
         value: 0.5
       - name: lethality_full
@@ -119,7 +119,7 @@ environment_parameters:
           measure: reward
           behavior: ShipCombat
           signal_smoothing: true
-          min_lesson_length: 100
+          min_lesson_length: 300
           threshold: 0.2
         value: 8.0
       - name: dummy_floor
@@ -127,7 +127,7 @@ environment_parameters:
           measure: reward
           behavior: ShipCombat
           signal_smoothing: true
-          min_lesson_length: 100
+          min_lesson_length: 300
           threshold: 0.3
         value: 0.4
       - name: dummy_mid
@@ -135,7 +135,7 @@ environment_parameters:
           measure: reward
           behavior: ShipCombat
           signal_smoothing: true
-          min_lesson_length: 100
+          min_lesson_length: 300
           threshold: 0.5
         value: 0.25
       - name: dummy_final
