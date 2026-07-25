@@ -21,10 +21,13 @@ behaviors:
       extrinsic:
         gamma: 0.99  # must equal RewardSpec.Default.gamma (Ng-shaping soundness); pinned by RLTrainerConfigEditModeTests
         strength: 1.0
-    # 2M steps / 100k interval = 20 checkpoints + final: selection must cover the whole run, not the tail.
-    keep_checkpoints: 21
+    # 3.5M steps / 100k interval = 35 checkpoints + final: selection must cover the whole run, not the tail.
+    keep_checkpoints: 36
     checkpoint_interval: 100000
-    max_steps: 2000000
+    # 2M landed mid-learning-curve (eval 33/60 at 2M → 57/60 by 3.4M on this recipe). The extra
+    # budget must buy TERMINAL consolidation, not a longer curriculum, so every progress
+    # threshold below is scaled by 2/3.5 and keeps the absolute step it had under the 2M cap.
+    max_steps: 3500000
     time_horizon: 64
     summary_freq: 6000
 # Curriculum. Param names ↔ EnvParamOverlay consts, lesson-0 values, and the terminal density
@@ -39,7 +42,9 @@ environment_parameters:
   # every reward gate reads the same global mean, and a dummy-heavy phase inflates it past
   # any env threshold (observed twice — the gates tripped in minutes regardless of window).
   # Opponent lanes stay reward-adaptive; the env follows the intended timetable: empty arena
-  # for the first 30%, then the field arrives sparse and density/lethality ramp, staggered.
+  # for the first 600k steps, then the field arrives sparse and density/lethality ramp, staggered.
+  # Thresholds are annotated in absolute steps — they are anchored there, not to round fractions;
+  # if max_steps moves again, rescale them all so the absolute timetable survives.
   # NEVER curriculum this flag: field composition is boot-frozen (TrainingHost composes once;
   # a mid-run flip wedges every worker — observed twice). The empty-arena phase is density 0.
   use_asteroid_field: 1.0
@@ -55,7 +60,7 @@ environment_parameters:
           behavior: ShipCombat
           signal_smoothing: false
           min_lesson_length: 300
-          threshold: 0.30
+          threshold: 0.171  # 600k steps
         value:
           sampler_type: uniform
           sampler_parameters:
@@ -67,7 +72,7 @@ environment_parameters:
           behavior: ShipCombat
           signal_smoothing: false
           min_lesson_length: 300
-          threshold: 0.45
+          threshold: 0.257  # 900k steps
         value:
           sampler_type: uniform
           sampler_parameters:
@@ -79,7 +84,7 @@ environment_parameters:
           behavior: ShipCombat
           signal_smoothing: false
           min_lesson_length: 300
-          threshold: 0.60
+          threshold: 0.343  # 1.2M steps
         value:
           sampler_type: uniform
           sampler_parameters:
@@ -99,7 +104,7 @@ environment_parameters:
           behavior: ShipCombat
           signal_smoothing: false
           min_lesson_length: 300
-          threshold: 0.50
+          threshold: 0.286  # 1.0M steps
         value: 0.25
       - name: lethality_mid
         completion_criteria:
@@ -107,7 +112,7 @@ environment_parameters:
           behavior: ShipCombat
           signal_smoothing: false
           min_lesson_length: 300
-          threshold: 0.65
+          threshold: 0.371  # 1.3M steps
         value: 0.5
       - name: lethality_full
         value: 1.0
