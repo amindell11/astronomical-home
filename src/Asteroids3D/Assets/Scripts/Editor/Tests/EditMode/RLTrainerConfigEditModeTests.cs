@@ -105,11 +105,11 @@ namespace Tests.EditMode
             var defaults = RewardSpec.Default;
             // Curriculum ramps deliberately start off-default; everything else must not drift from RewardSpec.Default.
             Assert.AreEqual(1f, LessonZeroValue(block, EnvParamOverlay.UseAsteroidField), 1e-6f,
-                "asteroid episodes are on for the whole curriculum run");
+                "the field flag is constant — composition is boot-frozen, so the empty-arena phase is density_empty (0.0), never a flag flip");
             Assert.AreEqual(0.25f, LessonZeroValue(block, EnvParamOverlay.CollisionLethality), 1e-6f,
                 "lethality ramp starts soft (0.25 → 1.0)");
-            Assert.AreEqual(0.4f, LessonZeroValue(block, EnvParamOverlay.OpponentWeightDummy), 1e-6f,
-                "dummy weight starts at the curriculum floor (0.4 → 0.1)");
+            Assert.AreEqual(8f, LessonZeroValue(block, EnvParamOverlay.OpponentWeightDummy), 1e-6f,
+                "dummy weight starts at the ignition lesson (~90% Dummy under sum-normalization; 8.0 → 0.1)");
             Assert.AreEqual(defaults.weightAggressor, LessonZeroValue(block, EnvParamOverlay.OpponentWeightAggressor), 1e-6f);
             Assert.AreEqual(defaults.weightEvader, LessonZeroValue(block, EnvParamOverlay.OpponentWeightEvader), 1e-6f);
             Assert.AreEqual(defaults.weightOrbiter, LessonZeroValue(block, EnvParamOverlay.OpponentWeightOrbiter), 1e-6f);
@@ -149,20 +149,20 @@ namespace Tests.EditMode
                 $@"^  {EnvParamOverlay.FieldDensityScale}:.*$((\r?\n(?:    .*)?)*)", RegexOptions.Multiline);
             Assert.IsTrue(param.Success, "field_density_scale not found under environment_parameters");
             StringAssert.Contains("sampler_type: uniform", param.Value,
-                "stage (i)′ trains density as a per-episode uniform sampler, not a curriculum ramp");
-            var min = SamplerBound(param.Value, "min_value");
-            var max = SamplerBound(param.Value, "max_value");
+                "density trains as per-episode uniform sampler bands, ramped by curriculum lesson");
+            var min = SamplerBound(param.Value, "min_value", final: true);
+            var max = SamplerBound(param.Value, "max_value", final: true);
             Assert.AreEqual(0.5f, min, 1e-6f);
             Assert.AreEqual(2.5f, max, 1e-6f);
             Assert.That(EvalProtocol.CanonicalFieldDensityScale, Is.InRange(min, max),
-                "checkpoint eval must run inside the density band training samples from — an out-of-band eval env invalidates every selection");
+                "checkpoint eval must run inside the terminal density band training samples from — an out-of-band eval env invalidates every selection");
         }
 
-        private static float SamplerBound(string samplerBlock, string key)
+        private static float SamplerBound(string samplerBlock, string key, bool final = false)
         {
-            var match = Regex.Match(samplerBlock, $@"{key}:\s*([^\s#]+)");
-            Assert.IsTrue(match.Success, $"{key} not found in the sampler block");
-            return float.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
+            var matches = Regex.Matches(samplerBlock, $@"{key}:\s*([^\s#]+)");
+            Assert.Greater(matches.Count, 0, $"{key} not found in the sampler block");
+            return float.Parse(matches[final ? matches.Count - 1 : 0].Groups[1].Value, CultureInfo.InvariantCulture);
         }
 
         [Test]
