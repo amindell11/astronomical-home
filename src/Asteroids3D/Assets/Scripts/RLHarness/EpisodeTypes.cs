@@ -66,6 +66,9 @@ namespace Game.RLHarness
     {
         public string schema;
         public int observationSize;
+        // Attention-buffer shape carried alongside the flat vector size so every row records the full obs geometry.
+        public int obstacleTokenCap;
+        public int obstacleTokenFloats;
         public int episodeIndex;
         public string outcome;
         public string endKind;
@@ -100,7 +103,7 @@ namespace Game.RLHarness
         public OpponentDraw opponent;
         public List<DecisionRow> trace;
 
-        public const string SchemaId = "rl-episode-v4";
+        public const string SchemaId = "rl-episode-v5";
 
         public string ToJsonLine() => JsonUtility.ToJson(this);
     }

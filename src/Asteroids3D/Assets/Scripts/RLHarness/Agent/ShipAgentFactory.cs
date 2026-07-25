@@ -5,6 +5,7 @@ using Unity.InferenceEngine;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Policies;
+using Unity.MLAgents.Sensors;
 using UnityEngine;
 
 namespace Game.RLHarness
@@ -58,15 +59,21 @@ namespace Game.RLHarness
             behavior.BehaviorName = BehaviorName;
             behavior.TeamId = teamId;
             behavior.BehaviorType = behaviorType;
-            behavior.BrainParameters.VectorObservationSize = AgentObservations.Size;
+            behavior.BrainParameters.VectorObservationSize = AgentObservations.CombatChannels;
             behavior.BrainParameters.ActionSpec = ActionSpec.MakeContinuous(AgentActions.Count);
             behavior.DeterministicInference = true;
             behavior.InferenceDevice = InferenceDevice.Burst;
             if (model) behavior.Model = model;
 
+            // Asteroids ride an entity-attention buffer, not the flat vector; the Agent discovers it as a sensor on enable.
+            var obstacleBuffer = host.AddComponent<BufferSensorComponent>();
+            obstacleBuffer.SensorName = "AsteroidBuffer";
+            obstacleBuffer.ObservableSize = AgentObservations.ObstacleTokenFloats;
+            obstacleBuffer.MaxNumObservables = AgentObservations.ObstacleTokenCap;
+
             var agent = host.AddComponent<ShipAgent>();
             var scout = ((AICommander)self.Commander).Scout;
-            agent.Configure(self, opponent, chooser, in spec, arenaCenter, scout);
+            agent.Configure(self, opponent, chooser, in spec, arenaCenter, scout, obstacleBuffer);
             host.SetActive(true);
             return agent;
         }

@@ -34,7 +34,9 @@ namespace Game.RLHarness
         public static RewardSpec Default => new()
         {
             lambda = 1f,
-            envelopeK1 = 0.1f,
+            // Pursuit-ramp magnitude (Φ_env k₁): the stage-(ii) first tuning lever, raised 5× from the
+            // old binary 0.1 — spread over distance the closing signal must clear the ±1 outcome spine.
+            envelopeK1 = 0.5f,
             envelopeK2 = 0.1f,
             borderKb = 0.5f,
             timeCostPerDecision = 5e-4f,

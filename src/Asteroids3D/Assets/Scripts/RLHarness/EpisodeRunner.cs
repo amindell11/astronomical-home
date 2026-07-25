@@ -40,7 +40,9 @@ namespace Game.RLHarness
             result = new EpisodeResult
             {
                 schema = EpisodeResult.SchemaId,
-                observationSize = AgentObservations.Size,
+                observationSize = AgentObservations.CombatChannels,
+                obstacleTokenCap = AgentObservations.ObstacleTokenCap,
+                obstacleTokenFloats = AgentObservations.ObstacleTokenFloats,
                 episodeIndex = episodeIndex,
                 outcome = EpisodeOutcome.Unresolved.ToString(),
                 endKind = EndKind.None.ToString(),

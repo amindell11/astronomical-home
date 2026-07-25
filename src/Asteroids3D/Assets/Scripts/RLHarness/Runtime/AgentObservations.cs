@@ -7,20 +7,22 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>Flattens the decision-boundary state into the fixed 82-float sensor vector (self token 8, hasTarget 1, target token 9, envelope bits 2, ego-frame arena-center 2, primary-weapon readiness 1, self primary heat 1, ego-frame intercept-lead direction 2, then 8 nearest-asteroid tokens × 7). Distances/positions normalize by arenaRadius, velocities by MaxSpeed; the token pieces come from <see cref="ObservationExtractor"/> and the lead from <see cref="Gunner.AimPoint"/> so their semantics stay single-sourced.</summary>
+    /// <summary>Flattens the decision-boundary state into the fixed 26-float combat vector (self token 8, hasTarget 1, target token 9, envelope bits 2, ego-frame arena-center 2, primary-weapon readiness 1, self primary heat 1, ego-frame intercept-lead direction 2). Asteroids ride a separate variable-length attention buffer via <see cref="BuildObstacleTokens"/>. Distances/positions normalize by arenaRadius, velocities by MaxSpeed; the token pieces come from <see cref="ObservationExtractor"/> and the lead from <see cref="Gunner.AimPoint"/> so their semantics stay single-sourced.</summary>
     public static class AgentObservations
     {
         public const int CombatChannels = 26;
-        public const int ObstacleTokenCount = 8;
         public const int ObstacleTokenFloats = 7;
-        public const int Size = CombatChannels + ObstacleTokenCount * ObstacleTokenFloats;
+        // BufferSensor capacity, baked into the ONNX at export. Sized to cover the obstacle scan-box occupancy
+        // at max training density (2.5): true P95 ≈ 108, but Scout.ObstacleScanner delivers at most 64 tokens
+        // (its buffer ceiling), so 64 covers everything the obs pipeline can present. See the occupancy probe (PR body).
+        public const int ObstacleTokenCap = 64;
 
         // SpawnSettings.asset ceiling: largest mesh volume 121.41 at massScale 2.5 → radius ≈ 4.17.
         public const float SpawnSettingsMaxAsteroidRadius = 4.17f;
 
         public static void Fill(float[] buffer, IShipStatus self, in TargetView target,
             bool inMyEnvelope, bool inEnemyEnvelope, bool primaryWeaponReady, float primaryHeatPct,
-            float primaryProjectileSpeed, Vector2 arenaCenterPlane, float arenaRadius, in ObstacleScan asteroids)
+            float primaryProjectileSpeed, Vector2 arenaCenterPlane, float arenaRadius)
         {
             var kin = self.Kinematics;
             var frame = new EgoFrame(kin.pos, kin.Forward);
@@ -76,16 +78,21 @@ namespace Game.RLHarness
             }
             buffer[i++] = lead.x;
             buffer[i++] = lead.y;
-
-            FillObstacleTokens(buffer, i, in frame, kin.pos, kin.vel, maxSpeed, radius, in asteroids);
         }
 
-        /// <summary>Appends the k-nearest-asteroid token block: per slot relPos.xy, distance, relVel.xy, radius, healthPct — ego frame, ascending by distance (the scan is unordered), zero-padded tail (radius 0 ⇔ empty slot).</summary>
-        private static void FillObstacleTokens(float[] buffer, int i, in EgoFrame frame,
-            Vector2 selfPos, Vector2 selfVel, float maxSpeed, float arenaRadius, in ObstacleScan asteroids)
+        /// <summary>Selects the nearest <paramref name="maxTokens"/> asteroids and writes their 7-float tokens (ego relPos.xy, distance, ego relVel.xy, radius, healthPct — normalized) contiguously into <paramref name="dest"/>, returning the token count. No ordering guarantee beyond nearest-N selection and no zero-pad: the attention buffer is variable-length, so absence is the mask, not a sentinel.</summary>
+        public static int BuildObstacleTokens(float[] dest, int maxTokens, IShipStatus self,
+            float arenaRadius, in ObstacleScan asteroids)
         {
+            var kin = self.Kinematics;
+            var frame = new EgoFrame(kin.pos, kin.Forward);
+            var maxSpeed = Mathf.Max(self.MaxSpeed, 1e-3f);
+            var radius = Mathf.Max(arenaRadius, 1e-3f);
+
             var scan = asteroids.buffer;
             var count = scan == null ? 0 : Mathf.Min(asteroids.count, scan.Length);
+            var emit = Mathf.Min(maxTokens, count);
+
             Span<int> order = stackalloc int[64];
             Span<float> distance = stackalloc float[64];
             if (count > order.Length)
@@ -96,12 +103,13 @@ namespace Game.RLHarness
             for (var n = 0; n < count; n++)
             {
                 order[n] = n;
-                distance[n] = (scan[n].position - selfPos).magnitude;
+                distance[n] = (scan[n].position - kin.pos).magnitude;
             }
 
-            var slots = Mathf.Min(ObstacleTokenCount, count);
-            for (var s = 0; s < slots; s++)
+            var w = 0;
+            for (var s = 0; s < emit; s++)
             {
+                // Partial selection sort to emit slots: nearest-N without fully ordering the rest.
                 var best = s;
                 for (var n = s + 1; n < count; n++)
                     if (distance[order[n]] < distance[order[best]])
@@ -110,19 +118,16 @@ namespace Game.RLHarness
 
                 var o = scan[order[s]];
                 var relPos = frame.Point(o.position);
-                var relVel = frame.Direction(o.velocity - selfVel);
-                buffer[i++] = relPos.x / arenaRadius;
-                buffer[i++] = relPos.y / arenaRadius;
-                buffer[i++] = distance[order[s]] / arenaRadius;
-                buffer[i++] = relVel.x / maxSpeed;
-                buffer[i++] = relVel.y / maxSpeed;
-                buffer[i++] = o.radius / SpawnSettingsMaxAsteroidRadius;
-                buffer[i++] = o.healthPct;
+                var relVel = frame.Direction(o.velocity - kin.vel);
+                dest[w++] = relPos.x / radius;
+                dest[w++] = relPos.y / radius;
+                dest[w++] = distance[order[s]] / radius;
+                dest[w++] = relVel.x / maxSpeed;
+                dest[w++] = relVel.y / maxSpeed;
+                dest[w++] = o.radius / SpawnSettingsMaxAsteroidRadius;
+                dest[w++] = o.healthPct;
             }
-
-            for (var s = slots; s < ObstacleTokenCount; s++)
-                for (var z = 0; z < ObstacleTokenFloats; z++)
-                    buffer[i++] = 0f;
+            return emit;
         }
     }
 }

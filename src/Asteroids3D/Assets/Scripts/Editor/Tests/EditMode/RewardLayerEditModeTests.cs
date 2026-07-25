@@ -20,7 +20,8 @@ namespace Tests.EditMode
             float myMaxPool = 200f, float enemyMaxPool = 200f,
             bool myAlive = true, bool enemyAlive = true,
             bool inMyEnvelope = false, bool inEnemyEnvelope = false,
-            float myDistFromCenter = 0f, float enemyDistFromCenter = 0f) => new()
+            float myDistFromCenter = 0f, float enemyDistFromCenter = 0f,
+            float distanceToTarget = 200f, float fireDistance = 20f) => new()
         {
             myPool = myPool,
             enemyPool = enemyPool,
@@ -32,6 +33,8 @@ namespace Tests.EditMode
             inEnemyEnvelope = inEnemyEnvelope,
             myDistFromCenter = myDistFromCenter,
             enemyDistFromCenter = enemyDistFromCenter,
+            distanceToTarget = distanceToTarget,
+            fireDistance = fireDistance,
         };
 
         [Test]
@@ -70,15 +73,49 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void EnvelopePhi_SignsFollowSeekAndDeny()
+        public void EnvelopePhi_PursuitRampSeeks_DenyStaysBinary()
+        {
+            var spec = Spec; // arenaRadius 120
+            // Saturated inside fire range → full pursuit magnitude k₁.
+            Assert.AreEqual(spec.envelopeK1,
+                PotentialShaping.EnvelopePhi(Snapshot(distanceToTarget: 10f, fireDistance: 20f), in spec), 1e-6f);
+            // Beyond the arena → zero pursuit term.
+            Assert.AreEqual(0f,
+                PotentialShaping.EnvelopePhi(Snapshot(distanceToTarget: 120f, fireDistance: 20f), in spec), 1e-6f);
+            // In the enemy's envelope subtracts a flat k₂ on top of the pursuit term.
+            Assert.AreEqual(spec.envelopeK1 - spec.envelopeK2,
+                PotentialShaping.EnvelopePhi(Snapshot(distanceToTarget: 10f, fireDistance: 20f, inEnemyEnvelope: true), in spec), 1e-6f);
+            // A dead target zeroes pursuit (gated on a live enemy); only the deny penalty survives.
+            Assert.AreEqual(-spec.envelopeK2,
+                PotentialShaping.EnvelopePhi(Snapshot(distanceToTarget: 10f, fireDistance: 20f, enemyAlive: false, inEnemyEnvelope: true), in spec), 1e-6f);
+        }
+
+        [Test]
+        public void PursuitRamp_SaturatesInsideFireRange_ZeroBeyondArena_LinearMonotoneBetween()
+        {
+            const float fire = 20f, arena = 120f;
+            Assert.AreEqual(1f, PotentialShaping.PursuitRamp(0f, fire, arena), 1e-6f);
+            Assert.AreEqual(1f, PotentialShaping.PursuitRamp(fire, fire, arena), 1e-6f, "saturates flat at the fire distance");
+            Assert.AreEqual(0f, PotentialShaping.PursuitRamp(arena, fire, arena), 1e-6f);
+            Assert.AreEqual(0f, PotentialShaping.PursuitRamp(200f, fire, arena), 1e-6f);
+            Assert.AreEqual(0.5f, PotentialShaping.PursuitRamp(70f, fire, arena), 1e-6f, "linear midpoint");
+            Assert.Greater(PotentialShaping.PursuitRamp(40f, fire, arena), PotentialShaping.PursuitRamp(80f, fire, arena),
+                "closing (smaller distance) must raise the ramp");
+        }
+
+        [Test]
+        public void EnvelopePhi_ClosingSequence_ShapingTelescopes()
         {
             var spec = Spec;
-            Assert.AreEqual(spec.envelopeK1,
-                PotentialShaping.EnvelopePhi(Snapshot(inMyEnvelope: true), in spec), 1e-6f);
-            Assert.AreEqual(-spec.envelopeK2,
-                PotentialShaping.EnvelopePhi(Snapshot(inEnemyEnvelope: true), in spec), 1e-6f);
-            Assert.AreEqual(spec.envelopeK1 - spec.envelopeK2,
-                PotentialShaping.EnvelopePhi(Snapshot(inMyEnvelope: true, inEnemyEnvelope: true), in spec), 1e-6f);
+            var s0 = Snapshot(distanceToTarget: 100f, fireDistance: 20f);
+            var s1 = Snapshot(distanceToTarget: 60f, fireDistance: 20f);
+            var s2 = Snapshot(distanceToTarget: 20f, fireDistance: 20f);
+            float Phi(CombatSnapshot s) => PotentialShaping.EnvelopePhi(in s, in spec);
+
+            var stepped = PotentialShaping.Step(Phi(s0), Phi(s1), spec.gamma, terminal: false)
+                          + PotentialShaping.Step(Phi(s1), Phi(s2), spec.gamma, terminal: true);
+            // Terminal forces Φ(s₂)=0, so the sum telescopes to −Φ(s₀) + (γ−1)·Φ(s₁).
+            Assert.AreEqual(-Phi(s0) + (spec.gamma - 1f) * Phi(s1), stepped, 1e-6f);
         }
 
         [Test]

@@ -261,7 +261,7 @@ namespace Tests.PlayMode
 
         [UnityTest]
         [Timeout(600000)]
-        public IEnumerator ObstacleTokens_FieldEnabled_FillProducesSortedNonZeroTokens()
+        public IEnumerator ObstacleTokens_FieldEnabled_BuildProducesNearestNonZeroTokens()
         {
             var spec = RewardSpec.Default;
             spec.useAsteroidField = true;
@@ -276,29 +276,22 @@ namespace Tests.PlayMode
             var scan = scout.AsteroidScan;
             Assert.Greater(scan.count, 0, "Scout must see asteroids in a field-enabled episode");
 
-            var enemyKin = baseline.Kinematics;
-            var target = new TargetView(true, enemyKin.pos, enemyKin.vel, enemyKin.Forward,
-                baseline.HealthPct, baseline.ShieldPct);
-            var buffer = new float[AgentObservations.Size];
-            AgentObservations.Fill(buffer, agent, in target,
-                inMyEnvelope: false, inEnemyEnvelope: false, primaryWeaponReady: false, primaryHeatPct: 0f,
-                primaryProjectileSpeed: 0f, arena.Offset, spec.arenaRadius, scan);
+            var dest = new float[AgentObservations.ObstacleTokenCap * AgentObservations.ObstacleTokenFloats];
+            var n = AgentObservations.BuildObstacleTokens(
+                dest, AgentObservations.ObstacleTokenCap, agent, spec.arenaRadius, scan);
 
-            var occupied = Mathf.Min(AgentObservations.ObstacleTokenCount, scan.count);
-            Assert.Greater(occupied, 0);
+            Assert.AreEqual(Mathf.Min(AgentObservations.ObstacleTokenCap, scan.count), n,
+                "emits the nearest min(cap, occupancy) tokens");
             var previousDistance = 0f;
-            for (var s = 0; s < occupied; s++)
+            for (var s = 0; s < n; s++)
             {
-                var b = AgentObservations.CombatChannels + s * AgentObservations.ObstacleTokenFloats;
-                Assert.Greater(buffer[b + 5], 0f, $"occupied slot {s} must carry a real radius");
-                Assert.Greater(buffer[b + 6], 0f, $"occupied slot {s} must carry a live healthPct");
-                Assert.Greater(buffer[b + 2], previousDistance, $"slot {s} must sort ascending by distance");
-                previousDistance = buffer[b + 2];
+                var b = s * AgentObservations.ObstacleTokenFloats;
+                Assert.Greater(dest[b + 5], 0f, $"token {s} must carry a real radius");
+                Assert.Greater(dest[b + 6], 0f, $"token {s} must carry a live healthPct");
+                Assert.GreaterOrEqual(dest[b + 2] + 1e-5f, previousDistance,
+                    $"nearest-N selection emits in non-decreasing distance order (token {s})");
+                previousDistance = dest[b + 2];
             }
-            for (var s = occupied; s < AgentObservations.ObstacleTokenCount; s++)
-                for (var c = 0; c < AgentObservations.ObstacleTokenFloats; c++)
-                    Assert.AreEqual(0f, buffer[AgentObservations.CombatChannels + s * AgentObservations.ObstacleTokenFloats + c],
-                        $"slot {s} channel {c} must zero-pad");
         }
 
         /// <summary>The episode-boundary contract in host order: field rebuild first (poses become clearings), then the pair-reset onto the carved ground.</summary>
