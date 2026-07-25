@@ -1,3 +1,4 @@
+using System;
 using AI;
 using AI.Observation;
 using Combat.Conditions;
@@ -24,11 +25,14 @@ namespace Game.RLHarness
         private float primaryProjectileSpeed;
         private Scout scout;
         private EpisodeRunner runner;
-        private readonly float[] observationBuffer = new float[AgentObservations.Size];
+        private BufferSensorComponent obstacleBuffer;
+        private readonly float[] observationBuffer = new float[AgentObservations.CombatChannels];
+        private readonly float[] tokenScratch = new float[AgentObservations.ObstacleTokenCap * AgentObservations.ObstacleTokenFloats];
+        private readonly float[] token = new float[AgentObservations.ObstacleTokenFloats];
 
         public int DecisionsReceived { get; private set; }
 
-        public void Configure(Ship self, Ship opponent, AgentChooser chooser, in RewardSpec spec, Vector2 arenaCenter, Scout scout)
+        public void Configure(Ship self, Ship opponent, AgentChooser chooser, in RewardSpec spec, Vector2 arenaCenter, Scout scout, BufferSensorComponent obstacleBuffer)
         {
             this.self = self;
             this.opponent = opponent;
@@ -36,6 +40,7 @@ namespace Game.RLHarness
             this.spec = spec;
             this.arenaCenter = arenaCenter;
             this.scout = scout;
+            this.obstacleBuffer = obstacleBuffer;
             primaryHeat = ResolvePrimaryHeat(self);
             primaryProjectileSpeed = self.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary);
         }
@@ -66,10 +71,18 @@ namespace Game.RLHarness
                 snapshot.inMyEnvelope, snapshot.inEnemyEnvelope,
                 self.Weapons.Context.IsReady(WeaponSlot.Primary),
                 primaryHeat?.HeatPct ?? 0f, primaryProjectileSpeed,
-                arenaCenter, spec.arenaRadius, scout.AsteroidScan);
+                arenaCenter, spec.arenaRadius);
 
             for (var i = 0; i < observationBuffer.Length; i++)
                 sensor.AddObservation(observationBuffer[i]);
+
+            var tokens = AgentObservations.BuildObstacleTokens(
+                tokenScratch, AgentObservations.ObstacleTokenCap, self, spec.arenaRadius, scout.AsteroidScan);
+            for (var t = 0; t < tokens; t++)
+            {
+                Array.Copy(tokenScratch, t * AgentObservations.ObstacleTokenFloats, token, 0, AgentObservations.ObstacleTokenFloats);
+                obstacleBuffer.AppendObservation(token);
+            }
         }
 
         public override void OnActionReceived(ActionBuffers actions)

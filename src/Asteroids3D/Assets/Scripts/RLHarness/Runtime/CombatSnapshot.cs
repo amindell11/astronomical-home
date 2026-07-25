@@ -23,6 +23,9 @@ namespace Game.RLHarness
         public bool inEnemyEnvelope;
         public float myDistFromCenter;
         public float enemyDistFromCenter;
+        public float distanceToTarget;
+        // Primary weapon's envelope max range — the pursuit-ramp saturation radius, read here (the only live-ship touch) so the reward math never reaches into the weapon.
+        public float fireDistance;
     }
 
     /// <summary>The only reward-layer piece that touches live ships: reads pools, kinematics, and geometric weapon envelopes into a <see cref="CombatSnapshot"/>.</summary>
@@ -48,7 +51,15 @@ namespace Game.RLHarness
                 inEnemyEnvelope = AnySlotInEnvelope(enemy, self),
                 myDistFromCenter = (myKin.pos - arenaCenter).magnitude,
                 enemyDistFromCenter = (enemyKin.pos - arenaCenter).magnitude,
+                distanceToTarget = (enemyKin.pos - myKin.pos).magnitude,
+                fireDistance = PrimaryFireRange(self),
             };
+        }
+
+        private static float PrimaryFireRange(Ship ship)
+        {
+            var primary = ship.Weapons ? ship.Weapons.Primary : null;
+            return primary ? primary.FireRange : 0f;
         }
 
         private static float Pool(Ship ship) =>

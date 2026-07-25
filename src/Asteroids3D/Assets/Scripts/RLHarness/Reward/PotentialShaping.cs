@@ -3,10 +3,18 @@ namespace Game.RLHarness
     /// <summary>Potential-based shaping (Ng et al. 1999). <see cref="Step"/> is the ONE place γ·Φ(s′) − Φ(s) is applied, and it forces terminal Φ = 0.</summary>
     public static class PotentialShaping
     {
-        /// <summary>Φ_env(s) = k₁·[enemy in my firing envelope] − k₂·[I'm in the enemy's].</summary>
+        /// <summary>Φ_env(s) = k₁·pursuit(distanceToTarget) − k₂·[I'm in the enemy's envelope]. The pursuit term is a continuous closing ramp gated on a live target; k₂ stays binary — a symmetric ramp would add a repulsion gradient and recreate mutual standoff.</summary>
         public static float EnvelopePhi(in CombatSnapshot s, in RewardSpec spec) =>
-            spec.envelopeK1 * (s.inMyEnvelope ? 1f : 0f)
+            spec.envelopeK1 * (s.enemyAlive ? PursuitRamp(s.distanceToTarget, s.fireDistance, spec.arenaRadius) : 0f)
             - spec.envelopeK2 * (s.inEnemyEnvelope ? 1f : 0f);
+
+        /// <summary>Linear closing ramp: 1 at range ≤ fireDistance (saturated flat inside the envelope), 0 at range ≥ arenaRadius, linear between — monotone decreasing in distance, so closing raises Φ while saturation keeps close-range shaping from paying a dive to contact.</summary>
+        public static float PursuitRamp(float distanceToTarget, float fireDistance, float arenaRadius)
+        {
+            if (distanceToTarget <= fireDistance) return 1f;
+            if (distanceToTarget >= arenaRadius || arenaRadius <= fireDistance) return 0f;
+            return (arenaRadius - distanceToTarget) / (arenaRadius - fireDistance);
+        }
 
         /// <summary>Φ_border(s) = −k_b·ramp(r): zero inside softFraction·R, sharp rise toward R.</summary>
         public static float BorderPhi(in CombatSnapshot s, in RewardSpec spec) =>
