@@ -34,12 +34,21 @@ behaviors:
       window: 10
       play_against_latest_model_ratio: 0.5
       initial_elo: 1200.0
-# The graduation env is the curriculum's terminal lesson, held constant (no curriculum ramp):
-# asteroid field on at density 2.0 / lethality 1.0. Param names <-> EnvParamOverlay consts, pinned by test.
+# The graduation env is the curriculum's terminal lesson: asteroid field on, density sampled across
+# the terminal band 0.5-2.5, lethality 1.0. Param names <-> EnvParamOverlay consts, pinned by test.
 # No opponent_weight_* params: the scripted roster is not used in self-play (the opponent is the mirror agent).
 environment_parameters:
   use_asteroid_field: 1.0
-  field_density_scale: 2.0
+  # Density SAMPLES the curriculum's terminal band per episode rather than sitting at one point:
+  # graduating at a single density overfits it, and the scripted run that feeds this one trained
+  # across the whole band. Never includes 0 — an empty obstacle BufferSensor teaches the attention
+  # layer an occupancy bias and collapses the policy when rocks appear (measured 2026-07-25).
+  # A sampler, never a curriculum ramp: the graduation env must not move under the league.
+  field_density_scale:
+    sampler_type: uniform
+    sampler_parameters:
+      min_value: 0.5
+      max_value: 2.5
   collision_lethality: 1.0
 # Pacing contract: one rendered frame advances exactly one 50 Hz fixed step (mlagents defaults time_scale 20 / capture 60 violate it); pinned by test + TrainingHost runtime assert.
 engine_settings:

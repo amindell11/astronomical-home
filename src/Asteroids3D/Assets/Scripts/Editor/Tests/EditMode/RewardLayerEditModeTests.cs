@@ -112,22 +112,29 @@ namespace Tests.EditMode
             var s2 = Snapshot(distanceToTarget: 20f, fireDistance: 20f);
             float Phi(CombatSnapshot s) => PotentialShaping.EnvelopePhi(in s, in spec);
 
-            var stepped = PotentialShaping.Step(Phi(s0), Phi(s1), spec.gamma, terminal: false)
-                          + PotentialShaping.Step(Phi(s1), Phi(s2), spec.gamma, terminal: true);
-            // Terminal forces Φ(s₂)=0, so the sum telescopes to −Φ(s₀) + (γ−1)·Φ(s₁).
-            Assert.AreEqual(-Phi(s0) + (spec.gamma - 1f) * Phi(s1), stepped, 1e-6f);
+            var stepped = PotentialShaping.Step(Phi(s0), Phi(s1), terminal: false)
+                          + PotentialShaping.Step(Phi(s1), Phi(s2), terminal: true);
+            // Undiscounted, so the intermediate Φ(s₁) cancels exactly: terminal forces Φ(s₂)=0.
+            Assert.AreEqual(-Phi(s0), stepped, 1e-6f);
         }
 
         [Test]
-        public void ShapingStep_IsGammaPhiNextMinusPhiPrev()
+        public void ShapingStep_HoldingAPotentialCostsNothing()
         {
-            Assert.AreEqual(0.99f * 0.3f - 0.5f, PotentialShaping.Step(0.5f, 0.3f, 0.99f, terminal: false), 1e-6f);
+            Assert.AreEqual(0f, PotentialShaping.Step(0.5f, 0.5f, terminal: false), 1e-6f,
+                "the drain that paid the agent to disengage was (γ−1)·Φ per decision — holding must be free");
+        }
+
+        [Test]
+        public void ShapingStep_IsPhiNextMinusPhiPrev()
+        {
+            Assert.AreEqual(0.3f - 0.5f, PotentialShaping.Step(0.5f, 0.3f, terminal: false), 1e-6f);
         }
 
         [Test]
         public void ShapingStep_TerminalForcesPhiNextToZero()
         {
-            Assert.AreEqual(-0.5f, PotentialShaping.Step(0.5f, 123f, 0.99f, terminal: true), 1e-6f);
+            Assert.AreEqual(-0.5f, PotentialShaping.Step(0.5f, 123f, terminal: true), 1e-6f);
         }
 
         [Test]

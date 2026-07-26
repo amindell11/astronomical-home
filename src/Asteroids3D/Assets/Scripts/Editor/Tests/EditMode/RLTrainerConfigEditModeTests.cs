@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the cross-language invariants between every runnable trainer YAML and the Unity side: trainer γ must equal RewardSpec's shaping γ (Ng-shaping soundness), and engine_settings must satisfy the pacing contract (frame ≙ fixed step).</summary>
+    /// <summary>Pins the cross-language invariants between every runnable trainer YAML and the Unity side: trainer γ must equal RewardSpec.gamma (the reward scale is calibrated against it; shaping telescopes undiscounted), and engine_settings must satisfy the pacing contract (frame ≙ fixed step).</summary>
     [Category("AI")]
     public class RLTrainerConfigEditModeTests
     {
@@ -48,7 +48,7 @@ namespace Tests.EditMode
         public void TrainerGamma_EqualsRewardSpecGamma(string yamlPath)
         {
             Assert.AreEqual(RewardSpec.Default.gamma, FloatValue(yamlPath, "gamma"), 1e-6f,
-                "Trainer discount must equal RewardSpec.gamma — potential-based shaping is only policy-invariant at the trainer's γ");
+                "Trainer discount must equal RewardSpec.gamma — the reward scale was calibrated against this γ (shaping itself telescopes undiscounted, see PotentialShaping.Step)");
         }
 
         [TestCaseSource(nameof(TrainerConfigs))]
@@ -105,7 +105,7 @@ namespace Tests.EditMode
             var defaults = RewardSpec.Default;
             // Curriculum ramps deliberately start off-default; everything else must not drift from RewardSpec.Default.
             Assert.AreEqual(1f, LessonZeroValue(block, EnvParamOverlay.UseAsteroidField), 1e-6f,
-                "the field flag is constant — composition is boot-frozen, so the empty-arena phase is density_empty (0.0), never a flag flip");
+                "the field flag is constant — composition is boot-frozen, so the early phase is low density (0.1-0.3), never a flag flip");
             Assert.AreEqual(0.25f, LessonZeroValue(block, EnvParamOverlay.CollisionLethality), 1e-6f,
                 "lethality ramp starts soft (0.25 → 1.0)");
             Assert.AreEqual(8f, LessonZeroValue(block, EnvParamOverlay.OpponentWeightDummy), 1e-6f,
@@ -117,7 +117,7 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void SelfPlayConfig_SelfPlayBlock_ConstantGraduationEnv_NoRoster()
+        public void SelfPlayConfig_SelfPlayBlock_TerminalBandGraduationEnv_NoRoster()
         {
             var path = TrainerConfigs().Single(p => Path.GetFileName(p) == "ppo_ship_combat_selfplay.yaml");
             var yaml = File.ReadAllText(path);
@@ -130,14 +130,22 @@ namespace Tests.EditMode
                     $"self_play block missing {key}");
 
             Assert.AreEqual(RewardSpec.Default.gamma, FloatValue(path, "gamma"), 1e-6f,
-                "self-play trainer γ must equal RewardSpec.gamma (Ng-shaping soundness)");
+                "self-play trainer γ must equal RewardSpec.gamma (same reward calibration as the scripted-roster run)");
 
-            // Graduation env held constant — no curriculum ramp in self-play.
             Assert.AreEqual(1f, FloatValue(path, "use_asteroid_field"), 1e-6f);
-            Assert.AreEqual(2f, FloatValue(path, "field_density_scale"), 1e-6f);
             Assert.AreEqual(1f, FloatValue(path, "collision_lethality"), 1e-6f);
+
+            // Density samples the terminal band per episode — graduating at one density overfits it —
+            // but the band must never reach 0: an empty obstacle BufferSensor collapses the policy.
+            var density = Regex.Match(yaml, @"^  field_density_scale:.*$((\r?\n(?:    .*)?)*)", RegexOptions.Multiline);
+            Assert.IsTrue(density.Success, "field_density_scale not found under environment_parameters");
+            StringAssert.Contains("sampler_type: uniform", density.Value);
+            var min = SamplerBound(density.Value, "min_value");
+            Assert.AreEqual(0.5f, min, 1e-6f);
+            Assert.AreEqual(2.5f, SamplerBound(density.Value, "max_value"), 1e-6f);
+            Assert.Greater(min, 0f, "a zero-density episode leaves the attention buffer empty");
             StringAssert.DoesNotContain("curriculum:", yaml,
-                "self-play trains at the terminal lesson as plain constants, not a ramp");
+                "self-play graduates at the terminal band as a sampler — never a ramp that moves under the league");
             Assert.IsFalse(Regex.IsMatch(yaml, @"^\s*opponent_weight_", RegexOptions.Multiline),
                 "the scripted roster is unused in self-play — no opponent_weight_ params");
         }
