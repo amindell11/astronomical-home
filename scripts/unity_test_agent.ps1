@@ -317,7 +317,11 @@ function Invoke-UnityProcess {
     param(
         [string]$UnityExe,
         [string[]]$Arguments,
-        [int]$TimeoutSec = 1800
+        [int]$TimeoutSec = 1800,
+        # Files whose existence means the run is decided; past the grace window a still-alive
+        # editor is a shutdown hang (observed 24 min to never), not progress.
+        [string[]]$CompletionFiles = @(),
+        [int]$CompletionGraceSec = 120
     )
 
     $processProject = Get-ArgumentValue -Arguments $Arguments -Name "-projectPath"
@@ -339,6 +343,7 @@ function Invoke-UnityProcess {
         $deadline = (Get-Date).AddSeconds($TimeoutSec)
         $bootDeadline = (Get-Date).AddSeconds($Script:BootWatchTimeoutSec)
         $bootPollDue = Get-Date
+        $completionSeenAt = $null
 
         while (-not $proc.HasExited) {
             if ($bootHeld -and (Get-Date) -ge $bootPollDue) {
@@ -349,7 +354,18 @@ function Invoke-UnityProcess {
                 $bootPollDue = (Get-Date).AddSeconds(2)
             }
 
-            if ((Get-Date) -ge $deadline) {
+            if ($CompletionFiles.Count -gt 0 -and $null -eq $completionSeenAt) {
+                $allExist = $true
+                foreach ($file in $CompletionFiles) {
+                    if (-not (Test-Path -LiteralPath $file)) { $allExist = $false; break }
+                }
+                if ($allExist) { $completionSeenAt = Get-Date }
+            }
+
+            $hungAfterResults = ($null -ne $completionSeenAt -and
+                                 (Get-Date) -ge $completionSeenAt.AddSeconds($CompletionGraceSec))
+
+            if ($hungAfterResults -or (Get-Date) -ge $deadline) {
                 if ($Script:IsWindowsPlatform -eq $true) {
                     & taskkill /PID $proc.Id /T /F *> $null
                 }
@@ -360,7 +376,8 @@ function Invoke-UnityProcess {
                 Start-Sleep -Milliseconds 300
                 return [ordered]@{
                     exitCode = 124
-                    timedOut = $true
+                    timedOut = -not $hungAfterResults
+                    killedAfterResults = $hungAfterResults
                     pid = [int]$proc.Id
                 }
             }
@@ -376,6 +393,7 @@ function Invoke-UnityProcess {
         return [ordered]@{
             exitCode = $exitCode
             timedOut = $false
+            killedAfterResults = $false
             pid = [int]$proc.Id
         }
     }
@@ -773,13 +791,19 @@ try {
 
         Write-Host "Running Unity EditMode+PlayMode tests (single boot)..."
 
-        $invoke = Invoke-UnityProcess -UnityExe $unityExe -Arguments $args -TimeoutSec $UnityTimeoutSec
+        $invoke = Invoke-UnityProcess -UnityExe $unityExe -Arguments $args -TimeoutSec $UnityTimeoutSec `
+            -CompletionFiles @($xmlEdit, $xmlPlay)
         $unityExit = [int]$invoke.exitCode
+
+        # A killed process with both gate XMLs on disk is a decided run wearing a shutdown hang:
+        # the XMLs carry the verdict, so parse them as truth instead of voiding a green run.
+        $processKilled = $invoke.timedOut -or $invoke.killedAfterResults
+        $resultsComplete = (Test-Path -LiteralPath $xmlEdit) -and (Test-Path -LiteralPath $xmlPlay)
 
         foreach ($entry in @(@{ platform = "EditMode"; xml = $xmlEdit }, @{ platform = "PlayMode"; xml = $xmlPlay })) {
             # Exit 2 means both phases completed and the XMLs carry the failures; feeding 2 into the
             # per-platform parse would misread a passing phase (exit!=0 + failed==0) as infra_error.
-            $phaseExit = if ($unityExit -eq 2) { 0 } else { $unityExit }
+            $phaseExit = if ($unityExit -eq 2 -or ($processKilled -and $resultsComplete)) { 0 } else { $unityExit }
 
             $parsed = Parse-UnityResultXml `
                 -XmlPath $entry.xml `
@@ -792,9 +816,18 @@ try {
                 -TailLines $LogTailLines `
                 -Selection $selection
 
-            if ($invoke.timedOut) {
-                $parsed.status = "infra_error"
-                $parsed.note = "Unity test run timed out after $UnityTimeoutSec seconds and was terminated (pid=$($invoke.pid))."
+            if ($processKilled) {
+                if ($resultsComplete -and $parsed.status -ne "infra_error") {
+                    $parsed.note = if ($invoke.killedAfterResults) {
+                        "Unity editor hung after writing results and was killed by the watchdog (pid=$($invoke.pid)); results parsed from XML. A killed cleanup can leave Assets/InitTestScene*.unity scaffold."
+                    } else {
+                        "Unity test run hit the ${UnityTimeoutSec}s timeout with complete results on disk (pid=$($invoke.pid)); results parsed from XML."
+                    }
+                }
+                else {
+                    $parsed.status = "infra_error"
+                    $parsed.note = "Unity test run timed out after $UnityTimeoutSec seconds and was terminated (pid=$($invoke.pid))."
+                }
             }
 
             $runs += $parsed
