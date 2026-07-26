@@ -23,7 +23,9 @@ MonoBehaviour:
   - m_enabled: 1
     m_path: Assets/Scenes/InitScene.unity
   - m_enabled: 1
-    m_path: Assets/Scenes/BasicWorld.unity
+    m_path: Assets/Scenes/Environments/Environment_1.unity
+  - m_enabled: 1
+    m_path: Assets/Scenes/Environments/Environment_2.unity
   m_ScriptingDefines: []
   m_PlayerSettingsYaml:
     m_Settings: []
