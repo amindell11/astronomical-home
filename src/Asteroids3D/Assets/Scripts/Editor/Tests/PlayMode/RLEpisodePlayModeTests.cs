@@ -510,25 +510,16 @@ namespace Tests.PlayMode
 
         private static void AssertShapingTelescopes(in EpisodeResult result)
         {
-            float traceMidPhiEnv = 0f, traceMidPhiBorder = 0f, traceDense = 0f;
-            for (var i = 0; i < result.trace.Count; i++)
-            {
-                traceDense += result.trace[i].dense;
-                if (i < result.trace.Count - 1)
-                {
-                    traceMidPhiEnv += result.trace[i].phiEnvelope;
-                    traceMidPhiBorder += result.trace[i].phiBorder;
-                }
-            }
+            var traceDense = 0f;
+            for (var i = 0; i < result.trace.Count; i++) traceDense += result.trace[i].dense;
             Assert.AreEqual(result.sumDense, traceDense, 1e-4f);
 
-            // −Φ(s₀) + (γ−1)·ΣΦ_mid + γ·Φ_end, where Φ_end is 0 on terminal and the kept final potential on truncation.
-            var expectedShapingEnv = -result.startPhiEnvelope
-                + (result.spec.gamma - 1f) * traceMidPhiEnv + result.spec.gamma * result.endPhiEnvelope;
-            var expectedShapingBorder = -result.startPhiBorder
-                + (result.spec.gamma - 1f) * traceMidPhiBorder + result.spec.gamma * result.endPhiBorder;
+            // Undiscounted: every intermediate Φ cancels, so the sum is exactly −Φ(s₀) + Φ_end,
+            // where Φ_end is 0 on terminal and the kept final potential on truncation.
+            var expectedShapingEnv = -result.startPhiEnvelope + result.endPhiEnvelope;
+            var expectedShapingBorder = -result.startPhiBorder + result.endPhiBorder;
             Assert.AreEqual(expectedShapingEnv, result.sumShapingEnvelope, 1e-3f,
-                "Shaping must telescope to −Φ(s₀) + (γ−1)·ΣΦ_mid + γ·Φ_end");
+                "Shaping must telescope to −Φ(s₀) + Φ_end");
             Assert.AreEqual(expectedShapingBorder, result.sumShapingBorder, 1e-3f);
         }
 

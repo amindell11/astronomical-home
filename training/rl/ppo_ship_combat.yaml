@@ -35,56 +35,89 @@ behaviors:
 # time-cost reward (RewardSpec.timeCostPerDecision drags every episode −0.1..−0.6); ceiling
 # calibration: sustained post-cost reward ~0.85 at density 1.5, so every gate below ~0.7 is
 # reachable — a stalled gate strands the run, an early gate just adds consolidation.
-# Manual-aim staging (2026-07-24): dummy-ignition → archetype ladder in an EMPTY arena →
-# field arrives sparse at +0.55 → density band + lethality ramp to the terminal spread.
+# Staging (2026-07-25): dummy-ignition → archetype ladder at LOW density → consolidation hold
+# → density band + lethality ramp to the terminal spread. Every phase keeps rocks on the field.
 environment_parameters:
-  # Env lanes are SCHEDULED (measure: progress, fraction of max_steps), not reward-gated:
-  # every reward gate reads the same global mean, and a dummy-heavy phase inflates it past
-  # any env threshold (observed twice — the gates tripped in minutes regardless of window).
-  # Opponent lanes stay reward-adaptive; the env follows the intended timetable: empty arena
-  # for the first 600k steps, then the field arrives sparse and density/lethality ramp, staggered.
-  # Thresholds are annotated in absolute steps — they are anchored there, not to round fractions;
-  # if max_steps moves again, rescale them all so the absolute timetable survives.
   # NEVER curriculum this flag: field composition is boot-frozen (TrainingHost composes once;
-  # a mid-run flip wedges every worker — observed twice). The empty-arena phase is density 0.
+  # a mid-run flip wedges every worker — observed twice).
   use_asteroid_field: 1.0
+  # DENSITY NEVER REACHES ZERO (2026-07-25). The stage (ii) obstacle BufferSensor makes an
+  # empty arena actively harmful: 600k steps with zero observables taught the attention layer
+  # a single "buffer is non-empty" bias instead of how to read tokens, and populating it at
+  # 600k collapsed the policy across every archetype — damage vs the STATIONARY dummy fell
+  # 85.3 → 6.1 with zero collisions taken. ONNX probe on that checkpoint: 8 rocks at the arena
+  # edge moved the action vector ~2× harder than losing the target entirely (mean |Δ| 0.207 vs
+  # 0.108), while 1 rock vs 32 was noise (0.029) — occupancy, not content. The low-density
+  # teacher phase replaces the old empty phase: few enough rocks that fights stay clean,
+  # never so few that attention sees nothing.
+  #
+  # Lanes gate on REWARD with a min_lesson_length floor, not on absolute steps. Steps failed
+  # in the other direction: the density lane was anchored at 600k assuming warm-start ignition
+  # (<50k), cold-start ignition took 558k, and the teacher phase got squeezed to 42k.
+  # min_lesson_length is the anti-squeeze floor (episodes since the last lesson change on ANY
+  # lane — the buffer clears globally, trainer_controller.py:220); the reward threshold only
+  # blocks advancing while the policy is broken, so it is set LOW on purpose. Do not raise it
+  # toward the ~0.7 reachable ceiling: the global mean is composition-polluted (a dummy-heavy
+  # phase inflates it, Evader draws at ~-2.0 drag it down), so a high gate strands the run.
+  #
+  # min_lesson_length IS GLOBAL, NOT PER-LANE. get_minimum_reward_buffer_size() takes the MAX
+  # across every lane's lessons and makes that the reward deque's maxlen; need_increment then
+  # averages the WHOLE deque. So the largest min_lesson_length here sets the averaging window
+  # for EVERY gate. Observed 2026-07-25: a 2400 on lethality_soft held the dummy lane at the
+  # ignition lesson while recent episodes averaged +0.73, because the 2400-episode window still
+  # carried the run's early -3.0 episodes (806-ep mean -0.449 vs last-150 mean +0.748).
+  # Keep the max here near the longest hold you actually want (1200), never far above it.
   field_density_scale:
     curriculum:
-      # Lesson values are samplers (mlagents Lesson.value = ParameterRandomizationSettings).
-      # density_empty IS the fieldless phase: field composed, zero rocks. Expressed as a
-      # degenerate sampler: a constant lesson mixed into a sampler-valued curriculum breaks
-      # the env handshake at boot (bisect-proven 2026-07-24).
-      - name: density_empty
+      # Lesson values are samplers (mlagents Lesson.value = ParameterRandomizationSettings);
+      # a constant lesson mixed into a sampler-valued curriculum breaks the env handshake at
+      # boot (bisect-proven 2026-07-24), so every lesson here stays a sampler.
+      - name: density_low_teacher
         completion_criteria:
-          measure: progress
+          measure: reward
           behavior: ShipCombat
           signal_smoothing: false
           min_lesson_length: 300
-          threshold: 0.171  # 600k steps
+          threshold: 0.25
         value:
           sampler_type: uniform
           sampler_parameters:
-            min_value: 0.0
-            max_value: 0.0001
+            min_value: 0.1
+            max_value: 0.3
+      # Same density as above: holds ~1200 episodes PAST the competence threshold, so the
+      # archetype ladder consolidates before the field thickens (the #215 lesson — the 33/60
+      # → 57/60 gain came from consolidating after reaching a level, not from reaching it).
+      - name: density_low_hold
+        completion_criteria:
+          measure: reward
+          behavior: ShipCombat
+          signal_smoothing: false
+          min_lesson_length: 1200
+          threshold: 0.25
+        value:
+          sampler_type: uniform
+          sampler_parameters:
+            min_value: 0.1
+            max_value: 0.3
       - name: density_sparse
         completion_criteria:
-          measure: progress
+          measure: reward
           behavior: ShipCombat
           signal_smoothing: false
-          min_lesson_length: 300
-          threshold: 0.257  # 900k steps
+          min_lesson_length: 900
+          threshold: 0.30
         value:
           sampler_type: uniform
           sampler_parameters:
-            min_value: 0.0
+            min_value: 0.1
             max_value: 1.0
       - name: density_mid
         completion_criteria:
-          measure: progress
+          measure: reward
           behavior: ShipCombat
           signal_smoothing: false
-          min_lesson_length: 300
-          threshold: 0.343  # 1.2M steps
+          min_lesson_length: 900
+          threshold: 0.35
         value:
           sampler_type: uniform
           sampler_parameters:
@@ -96,23 +129,26 @@ environment_parameters:
           sampler_parameters:
             min_value: 0.5
             max_value: 2.5
+  # Staggered behind density by a longer floor, same reward-gate reasoning. The floor must
+  # stay strictly above density_sparse's 900: the buffer clears on any lane's advance, so an
+  # equal floor+threshold makes both lanes fire on the same gate check (observed co-fire).
   collision_lethality:
     curriculum:
       - name: lethality_soft
         completion_criteria:
-          measure: progress
+          measure: reward
           behavior: ShipCombat
           signal_smoothing: false
-          min_lesson_length: 300
-          threshold: 0.286  # 1.0M steps
+          min_lesson_length: 1200
+          threshold: 0.30
         value: 0.25
       - name: lethality_mid
         completion_criteria:
-          measure: progress
+          measure: reward
           behavior: ShipCombat
           signal_smoothing: false
-          min_lesson_length: 300
-          threshold: 0.371  # 1.3M steps
+          min_lesson_length: 1200
+          threshold: 0.35
         value: 0.5
       - name: lethality_full
         value: 1.0

@@ -29,8 +29,9 @@ namespace Game.RLHarness
             return x * x;
         }
 
-        /// <summary>One shaping contribution: γ·Φ(s′) − Φ(s), with Φ(s′) ≡ 0 on the terminal transition so the sum telescopes to −Φ(s₀) + (γ−1)·ΣΦ_mid.</summary>
-        public static float Step(float phiPrev, float phiNext, float gamma, bool terminal) =>
-            (terminal ? 0f : gamma * phiNext) - phiPrev;
+        /// <summary>One shaping contribution: Φ(s′) − Φ(s), UNDISCOUNTED, with Φ(s′) ≡ 0 on the terminal transition so the sum telescopes to exactly −Φ(s₀) + Φ_end.
+        /// Deliberately not Ng's γ·Φ(s′) − Φ(s): at γ=0.99 that form leaks (γ−1)·Φ every decision, a drain proportional to how close the agent is. In episodes that end fast it is negligible (−0.56 over a 23s kill), but across a 600-decision stalemate it dominates (−1.57, 80% of the penalty) and pays roughly +2.0 to disengage from a target the agent cannot finish — measured 2026-07-25 as 150 consecutive Evader draws with a flat closing rate. Policy-invariance is traded for a pursuit gradient that points at the target.</summary>
+        public static float Step(float phiPrev, float phiNext, bool terminal) =>
+            (terminal ? 0f : phiNext) - phiPrev;
     }
 }

@@ -36,15 +36,22 @@ namespace Game.RLHarness
                 BehaviorType.InferenceOnly, model, teamId: 0, parent);
         }
 
-        /// <summary>Both episode ships as parameter-shared agents: A on team 0 (self=Agent, primary/logged), B on team 1 (self=Baseline) — native ML-Agents self_play trains one policy against its own mirror.</summary>
+        /// <summary>Both episode ships as parameter-shared agents: A on team 0 (self=Agent, primary/logged), B on team 1 (self=Baseline) — native ML-Agents self_play trains one policy against its own mirror.
+        /// <paramref name="onnxAssetPath"/> null keeps the training path (the trainer supplies the policy); supplying it drives BOTH sides from one frozen checkpoint, which is the only way to observe a mirror match offline (capture/replay) — the training path never needs it because the trainer is attached.</summary>
         public static (ShipAgent agentA, ShipAgent agentB) ComposeSelfPlayPair(EpisodePair pair,
             AgentChooser chooserA, AgentChooser chooserB, in RewardSpec spec, Vector2 arenaCenter,
-            BehaviorType behaviorType, Transform parent = null)
+            BehaviorType behaviorType, Transform parent = null, string onnxAssetPath = null)
         {
+            ModelAsset model = null;
+            if (!string.IsNullOrEmpty(onnxAssetPath))
+            {
+                model = LoadModel(onnxAssetPath);
+                Academy.Instance.InferenceSeed = EvalProtocol.InferenceSeed;
+            }
             var agentA = Compose(pair.Agent, pair.Baseline, chooserA, in spec, arenaCenter,
-                behaviorType, null, teamId: 0, parent);
+                behaviorType, model, teamId: 0, parent);
             var agentB = Compose(pair.Baseline, pair.Agent, chooserB, in spec, arenaCenter,
-                behaviorType, null, teamId: 1, parent);
+                behaviorType, model, teamId: 1, parent);
             return (agentA, agentB);
         }
 

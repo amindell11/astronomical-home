@@ -105,8 +105,8 @@ namespace Game.RLHarness
             var phiEnvelopeNext = PotentialShaping.EnvelopePhi(in next, in spec);
             var phiBorderNext = PotentialShaping.BorderPhi(in next, in spec);
             var terminal = endKind == EndKind.Terminal;
-            var shapingEnvelope = PotentialShaping.Step(phiEnvelopePrev, phiEnvelopeNext, spec.gamma, terminal);
-            var shapingBorder = PotentialShaping.Step(phiBorderPrev, phiBorderNext, spec.gamma, terminal);
+            var shapingEnvelope = PotentialShaping.Step(phiEnvelopePrev, phiEnvelopeNext, terminal);
+            var shapingBorder = PotentialShaping.Step(phiBorderPrev, phiBorderNext, terminal);
             var timeCost = -spec.timeCostPerDecision;
 
             result.sumDense += dense;
