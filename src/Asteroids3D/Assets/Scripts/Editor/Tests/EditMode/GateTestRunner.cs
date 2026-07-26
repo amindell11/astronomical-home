@@ -16,16 +16,24 @@ namespace Tests.EditMode
     public static class GateTestRunner
     {
         // Play-mode domain reloads kill both the registered callbacks and this class's statics;
-        // SessionState survives them, so it carries the run's phase and failure tally.
+        // SessionState survives them, so it carries the run's phase, failure tally, and pending
+        // idle-action (UTF's post-run cleanup can ForceDomainReload after RunFinished, wiping an
+        // armed EditorApplication.update poll).
         private const string PhaseKey = "GateTestRunner.Phase";
         private const string FailedKey = "GateTestRunner.FailedCount";
+        private const string PendingKey = "GateTestRunner.Pending";
         private const string PhaseEdit = "EditMode";
         private const string PhasePlay = "PlayMode";
+        private const string PendingPlay = "play";
+        private const string PendingExit = "exit";
+        private const string PendingAbort = "abort";
 
         static GateTestRunner()
         {
             if (!string.IsNullOrEmpty(SessionState.GetString(PhaseKey, "")))
                 TestRunnerApi.RegisterTestCallback(new Callbacks());
+            if (!string.IsNullOrEmpty(SessionState.GetString(PendingKey, "")))
+                ArmPending();
         }
 
         public static void Run()
@@ -40,6 +48,7 @@ namespace Tests.EditMode
 
                 SessionState.SetString(PhaseKey, PhaseEdit);
                 SessionState.SetInt(FailedKey, 0);
+                SessionState.SetString(PendingKey, "");
                 TestRunnerApi.RegisterTestCallback(new Callbacks());
                 Execute(TestMode.EditMode);
             }
@@ -78,22 +87,22 @@ namespace Tests.EditMode
                     {
                         TestRunnerApi.SaveResultToFile(result, Arg("-gateEditResults"));
                         SessionState.SetString(PhaseKey, PhasePlay);
-                        WhenRunIdle(() => Execute(TestMode.PlayMode));
+                        SessionState.SetString(PendingKey, PendingPlay);
                     }
                     else
                     {
                         TestRunnerApi.SaveResultToFile(result, Arg("-gatePlayResults"));
                         SessionState.SetString(PhaseKey, "");
-                        var code = SessionState.GetInt(FailedKey, 0) > 0 ? 2 : 0;
-                        WhenRunIdle(() => EditorApplication.Exit(code));
+                        SessionState.SetString(PendingKey, PendingExit);
                     }
                 }
                 catch (Exception e)
                 {
                     Debug.LogError($"[GateTestRunner] phase completion failed: {e}");
                     SessionState.SetString(PhaseKey, "");
-                    WhenRunIdle(() => EditorApplication.Exit(3));
+                    SessionState.SetString(PendingKey, PendingAbort);
                 }
+                ArmPending();
             }
         }
 
@@ -111,7 +120,9 @@ namespace Tests.EditMode
             return () => (bool)method.Invoke(null, null);
         }
 
-        private static void WhenRunIdle(Action action)
+        // The pending key clears only when the action actually fires, so a reload that lands
+        // between arming and firing re-arms from the static ctor instead of losing the action.
+        private static void ArmPending()
         {
             EditorApplication.CallbackFunction poll = null;
             poll = () =>
@@ -119,7 +130,20 @@ namespace Tests.EditMode
                 if (s_IsRunActive())
                     return;
                 EditorApplication.update -= poll;
-                action();
+                var pending = SessionState.GetString(PendingKey, "");
+                SessionState.SetString(PendingKey, "");
+                switch (pending)
+                {
+                    case PendingPlay:
+                        Execute(TestMode.PlayMode);
+                        break;
+                    case PendingExit:
+                        EditorApplication.Exit(SessionState.GetInt(FailedKey, 0) > 0 ? 2 : 0);
+                        break;
+                    case PendingAbort:
+                        EditorApplication.Exit(3);
+                        break;
+                }
             };
             EditorApplication.update += poll;
         }
