@@ -16,10 +16,9 @@ namespace Tests.EditMode
     public static class GateTestRunner
     {
         // Play-mode domain reloads kill both the registered callbacks and this class's statics;
-        // SessionState survives them, so it carries the run's phase, failure tally, and any
-        // idle-action still waiting to fire (UTF's post-run cleanup can ForceDomainReload after
-        // RunFinished, wiping an armed EditorApplication.update poll — the pending key lets the
-        // next domain re-arm it instead of idling forever).
+        // SessionState survives them, so it carries the run's phase, failure tally, and pending
+        // idle-action (UTF's post-run cleanup can ForceDomainReload after RunFinished, wiping an
+        // armed EditorApplication.update poll).
         private const string PhaseKey = "GateTestRunner.Phase";
         private const string FailedKey = "GateTestRunner.FailedCount";
         private const string PendingKey = "GateTestRunner.Pending";

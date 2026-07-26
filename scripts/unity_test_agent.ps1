@@ -318,9 +318,8 @@ function Invoke-UnityProcess {
         [string]$UnityExe,
         [string[]]$Arguments,
         [int]$TimeoutSec = 1800,
-        # Result files whose existence means the run is decided; once all exist, a Unity process
-        # still alive after the grace window is a shutdown hang and gets killed (observed 24 min to
-        # never — the XMLs on disk are the truth either way).
+        # Files whose existence means the run is decided; past the grace window a still-alive
+        # editor is a shutdown hang (observed 24 min to never), not progress.
         [string[]]$CompletionFiles = @(),
         [int]$CompletionGraceSec = 120
     )
