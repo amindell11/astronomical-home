@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the cross-language invariants between every runnable trainer YAML and the Unity side: trainer γ must equal RewardSpec's shaping γ (Ng-shaping soundness), and engine_settings must satisfy the pacing contract (frame ≙ fixed step).</summary>
+    /// <summary>Pins the cross-language invariants between every runnable trainer YAML and the Unity side: trainer γ must equal RewardSpec.gamma (the reward scale is calibrated against it; shaping telescopes undiscounted), and engine_settings must satisfy the pacing contract (frame ≙ fixed step).</summary>
     [Category("AI")]
     public class RLTrainerConfigEditModeTests
     {

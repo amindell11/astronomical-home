@@ -58,7 +58,7 @@ def trainer_state(run_id):
             continue
         if FAIL_RE.search(ln):
             out["failures"].append(ln.strip()[:220])
-    for ln in lines:
+            continue
         if "max_steps:" in ln:
             try:
                 out["max_steps"] = int(ln.split("max_steps:")[1].strip())
@@ -317,7 +317,7 @@ episodes file group {html.escape(stamp or '-')}</div>
         chips = "".join(f'<span class="chip">{html.escape(k)}: <b>{html.escape(v[0])}</b> = '
                         f'{html.escape(v[1])}</span>' for k, v in sorted(t["lessons"].items()))
         p.append(f'<div class="wide"><div class="k">'
-                 f'{"Graduation env (constant, no ramp)" if selfplay else "Current curriculum lessons"}</div>'
+                 f'{"Graduation env (no ramp)" if selfplay else "Current curriculum lessons"}</div>'
                  f'<div class="lessons">{chips or "-"}</div></div>')
 
         if selfplay:
