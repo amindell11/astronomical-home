@@ -62,7 +62,7 @@ class Score(NamedTuple):
 
 
 def degraded_reasons(score: Score) -> list:
-    """The B1 degradation predicate, spelled out so the report names what tripped."""
+    """The degradation predicate, spelled out so the report names what tripped."""
     reasons = []
     if score.evader_wins <= ALERT_EVADER_WINS:
         reasons.append(f"Evader {score.evader_wins}/{EVADER_EPISODES} <= {ALERT_EVADER_WINS}")
@@ -80,24 +80,17 @@ def verdict(scores) -> str:
     return ALERT
 
 
-def checkpoint_step(path: Path):
-    match = CHECKPOINT.match(path.name)
-    return int(match.group(1)) if match else None
-
-
 def discover_checkpoints(behavior_dir: Path) -> list:
-    steps = ((checkpoint_step(p), p) for p in behavior_dir.glob("ShipCombat-*.onnx"))
-    return sorted(((s, p) for s, p in steps if s is not None), key=lambda pair: pair[0])
+    matches = ((CHECKPOINT.match(p.name), p) for p in behavior_dir.glob("ShipCombat-*.onnx"))
+    return sorted((int(m.group(1)), p) for m, p in matches if m)
 
 
 def read_score(summary_path: Path, step: int) -> Score:
     summary = json.loads(summary_path.read_text())
-    tally = {a["archetype"]: a for a in summary["archetypes"]}
-    if EVADER not in tally:
+    wins = {a["archetype"]: int(a["wins"]) for a in summary["archetypes"]}
+    if EVADER not in wins:
         sys.exit(f"FAIL: no {EVADER} block in {summary_path}; the gate rule has nothing to read")
-    return Score(step=step,
-                 evader_wins=int(tally[EVADER]["wins"]),
-                 total_wins=sum(int(a["wins"]) for a in summary["archetypes"]))
+    return Score(step=step, evader_wins=wins[EVADER], total_wins=sum(wins.values()))
 
 
 def summary_in(out_dir: Path) -> Path:
@@ -130,7 +123,7 @@ def run_eval(args, unity: Path, checkpoint: Path, out_dir: Path) -> Path:
                RL_EVAL_SEEDS=args.seeds,
                RL_EVAL_EPISODES_PER_SEED=str(args.episodes_per_seed),
                RL_EVAL_OUT_DIR=str(out_dir))
-    # An inherited density would silently move the eval off the canonical env the thresholds were set on.
+    # An inherited density would move the eval off the canonical env the thresholds assume.
     env.pop("RL_EVAL_DENSITY", None)
     code = run_batch(args.lease, args.project, EVAL_CHILD, env, wait_seconds=args.lease_wait)
     if code != 0:
@@ -175,7 +168,6 @@ def main() -> None:
     if args.episodes_per_seed < 1:
         parser.error("--episodes-per-seed must be >= 1")
     seed_count = len([s for s in args.seeds.split(",") if s.strip()])
-    # The B1 thresholds are absolute counts, so a differently shaped eval would compare against nothing.
     if seed_count * args.episodes_per_seed != EVADER_EPISODES:
         parser.error(f"--seeds x --episodes-per-seed must be {EVADER_EPISODES} episodes per archetype "
                      f"({TOTAL_EPISODES} total) for the gate thresholds to mean anything; "
@@ -198,12 +190,11 @@ def main() -> None:
     print(f"[gate] eval project {args.project}  seeds {args.seeds} x {args.episodes_per_seed}  artifacts {gate_dir}")
 
     scores = []
-    seen = set()
     while True:
+        done = {s.step for s in scores}
         pending = [(s, p) for s, p in discover_checkpoints(behavior_dir)
-                   if s > args.from_step and s not in seen]
+                   if s > args.from_step and s not in done]
         for step, checkpoint in pending:
-            seen.add(step)
             out_dir = gate_dir / f"step-{step}"
             summary_path = run_eval(args, unity, checkpoint, out_dir)
             score = read_score(summary_path, step)

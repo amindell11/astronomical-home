@@ -66,9 +66,7 @@ def log_suffixes(num_envs: int, num_arenas: int) -> list:
 
 
 def terminate_pid_tree(pid: int) -> None:
-    # The trainer has spawned the N RLTraining.exe workers; on Windows a killed parent doesn't
-    # take its children down, so kill the whole tree or the headless workers keep holding
-    # ports/CPU (CLAUDE.md session-hygiene orphan-lock hazard).
+    # On Windows a killed parent leaves its workers holding ports/CPU (CLAUDE.md orphan-lock hazard).
     if os.name == "nt":
         subprocess.run(["taskkill", "/F", "/T", "/PID", str(pid)], capture_output=True)
     else:
