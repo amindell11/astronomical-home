@@ -51,7 +51,8 @@ def run_batch(lease: str, project: Path, batch_script: Path, env, batch_args=(),
                           capture_output=True, text=True, env=env)
     result = _coordinator_json(proc)
     if result.get("status") != "batch_complete":
-        sys.exit(f"FAIL: project busy: {result.get('status', 'unknown')} (unity-access coordinator; see skills/unity-access)")
+        sys.exit(f"FAIL: batch did not run: {result.get('status', 'unknown')} "
+                 f"(unity-access coordinator; see skills/unity-access)")
     return int(result["exitCode"])
 
 
