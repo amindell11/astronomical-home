@@ -89,6 +89,9 @@ def main() -> None:
                         help="RL_SMOKE=1 tight-arena/short-clock gate spec; also defaults --config to the smoke YAML")
     parser.add_argument("--self-play", action="store_true",
                         help="RL_SELFPLAY=1 ghost-league composition; also defaults --config to the selfplay YAML")
+    parser.add_argument("--hybrid-scripted-workers", type=int, default=None, metavar="K",
+                        help="first K workers boot the scripted roster instead of the mirror league "
+                             "(RL_HYBRID_SCRIPTED_WORKERS; requires --self-play)")
     parser.add_argument("--initialize-from", metavar="RUN_ID", default=None,
                         help="warm-start fresh weights from another run id under results/rl-training")
     parser.add_argument("--resume", action="store_true", help="resume the run id's existing checkpoints")
@@ -103,6 +106,11 @@ def main() -> None:
         parser.error("--resume and --initialize-from are mutually exclusive")
     if args.num_envs < 1:
         parser.error("--num-envs must be >= 1")
+    if args.hybrid_scripted_workers is not None:
+        if not args.self_play:
+            parser.error("--hybrid-scripted-workers only splits a self-play league; pass --self-play")
+        if args.hybrid_scripted_workers < 0:
+            parser.error("--hybrid-scripted-workers must be >= 0")
     if args.num_arenas < 1:
         parser.error("--num-arenas must be >= 1")
     if not args.env.exists():
@@ -137,6 +145,10 @@ def main() -> None:
         env["RL_SELFPLAY"] = "1"
     else:
         env.pop("RL_SELFPLAY", None)
+    if args.hybrid_scripted_workers is not None:
+        env["RL_HYBRID_SCRIPTED_WORKERS"] = str(args.hybrid_scripted_workers)
+    else:
+        env.pop("RL_HYBRID_SCRIPTED_WORKERS", None)
 
     trainer_cmd = [str(MLAGENTS), str(config),
                    "--run-id", run_id,

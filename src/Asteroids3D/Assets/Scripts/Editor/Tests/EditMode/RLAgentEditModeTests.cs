@@ -3,6 +3,7 @@ using AI.Observation;
 using AI.Scanning;
 using Game.RLHarness;
 using Movement;
+using Movement.MPC;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
@@ -97,6 +98,19 @@ namespace Tests.EditMode
             Assert.AreEqual(-0.5f * Mathf.PI,
                 AgentActions.ToFacingRad(Vector2.zero, Vector2.right), 1e-4f,
                 "a zero direction must resolve to the current forward, never to yaw 0");
+        }
+
+        [Test]
+        public void ToFacingWeight_IsTheClampedMagnitude()
+        {
+            Assert.AreEqual(0f, AgentActions.ToFacingWeight(Vector2.zero), 1e-6f,
+                "a zero vector expresses don't-care — zero facing authority");
+            Assert.AreEqual(1f, AgentActions.ToFacingWeight(Vector2.up), 1e-6f,
+                "a unit direction (the heuristic's normalized bearing) is full authority");
+            Assert.AreEqual(1f, AgentActions.ToFacingWeight(new Vector2(1f, 1f)), 1e-6f,
+                "the action-box corner clamps to 1 — authority never exceeds the settings ceiling");
+            Assert.AreEqual(0.3f, AgentActions.ToFacingWeight(new Vector2(0.3f, 0f)), 1e-6f,
+                "a small vector keeps its magnitude — no deadzone");
         }
 
         [Test]
@@ -255,18 +269,45 @@ namespace Tests.EditMode
                 var chooser = new AgentChooser();
                 chooser.Configure(opponent, 40f);
 
-                chooser.SetAction(new Vector2(4f, 0f), facingRad: 1.2f, fire: true, boost: false, boostAvailable: true);
+                chooser.SetAction(new Vector2(4f, 0f), facingRad: 1.2f, facingWeight: 0.4f, fire: true, boost: false, boostAvailable: true);
 
                 var intent = chooser.Decide(null, 0.02f);
                 Assert.IsTrue(intent.isValid);
                 Assert.IsTrue(intent.hasTarget, "the target snapshot stays (obstacle exclusion keys on it)");
                 Assert.IsTrue(intent.hasFacing);
                 Assert.AreEqual(1.2f, intent.facingRad, 1e-6f);
+                Assert.AreEqual(1, intent.weightOverrides.Length, "manual aim carries exactly the Facing authority override");
+                Assert.AreEqual(MpcWeight.Facing, intent.weightOverrides[0].weight);
+                Assert.AreEqual(0.4f, intent.weightOverrides[0].multiplier, 1e-6f,
+                    "the override multiplier is the |fx,fy| facing authority from the boundary");
                 Assert.IsTrue(intent.manualFire);
                 Assert.IsTrue(intent.primaryHeld);
                 Assert.IsFalse(intent.aimAtTarget, "manual aim must leave the MPC intercept override dormant");
                 Assert.AreEqual(0f, intent.projectileSpeed, "no aim-purpose projectile speed on the manual path");
                 Assert.IsFalse(intent.enableFiring, "the Gunner path must stay cold on the manual path");
+            }
+            finally
+            {
+                Object.DestroyImmediate(opponentGo);
+            }
+        }
+
+        [Test]
+        public void AgentChooser_FullFacingMagnitude_EmitsUnityMultiplier()
+        {
+            var opponentGo = new GameObject("Opponent");
+            try
+            {
+                var opponent = opponentGo.AddComponent<Ship>();
+                var chooser = new AgentChooser();
+                chooser.Configure(opponent, 40f);
+
+                chooser.SetAction(new Vector2(4f, 0f), facingRad: 0f, facingWeight: 1f, fire: false, boost: false, boostAvailable: true);
+
+                var intent = chooser.Decide(null, 0.02f);
+                Assert.IsTrue(intent.isValid);
+                Assert.AreEqual(1f, intent.weightOverrides[0].multiplier, 1e-6f,
+                    "full magnitude is ×1 — the settings asset's wFacing stays the authority ceiling");
             }
             finally
             {
@@ -292,6 +333,7 @@ namespace Tests.EditMode
                 Assert.AreEqual(40f, intent.projectileSpeed);
                 Assert.IsTrue(intent.enableFiring);
                 Assert.IsFalse(intent.hasFacing);
+                Assert.IsNull(intent.weightOverrides, "the legacy aimbot path carries no weight overrides");
                 Assert.IsFalse(intent.manualFire);
             }
             finally
@@ -310,7 +352,7 @@ namespace Tests.EditMode
                 var chooser = new AgentChooser();
                 chooser.Configure(opponent, 40f);
 
-                chooser.SetAction(new Vector2(4f, 0f), facingRad: 0f, fire: true, boost: true, boostAvailable: true);
+                chooser.SetAction(new Vector2(4f, 0f), facingRad: 0f, facingWeight: 1f, fire: true, boost: true, boostAvailable: true);
 
                 var first = chooser.Decide(null, 0.02f);
                 Assert.IsTrue(first.isValid);
@@ -340,7 +382,7 @@ namespace Tests.EditMode
                 var chooser = new AgentChooser();
                 chooser.Configure(opponent, 40f);
 
-                chooser.SetAction(new Vector2(4f, 0f), facingRad: 0f, fire: false, boost: true, boostAvailable: false);
+                chooser.SetAction(new Vector2(4f, 0f), facingRad: 0f, facingWeight: 1f, fire: false, boost: true, boostAvailable: false);
 
                 var first = chooser.Decide(null, 0.02f);
                 Assert.IsTrue(first.isValid);
@@ -366,7 +408,7 @@ namespace Tests.EditMode
 
                 Assert.IsFalse(chooser.Decide(null, 0.02f).isValid, "no action yet → idle");
 
-                chooser.SetAction(Vector2.right, facingRad: 0f, fire: false, boost: false, boostAvailable: true);
+                chooser.SetAction(Vector2.right, facingRad: 0f, facingWeight: 1f, fire: false, boost: false, boostAvailable: true);
                 Assert.IsTrue(chooser.Decide(null, 0.02f).isValid);
 
                 chooser.Reset();

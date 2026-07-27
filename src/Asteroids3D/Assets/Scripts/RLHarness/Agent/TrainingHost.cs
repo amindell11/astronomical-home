@@ -51,8 +51,13 @@ namespace Game.RLHarness
             Func<string, float, float> envParams = Academy.Instance.EnvironmentParameters.GetWithDefault;
             spec = EnvParamOverlay.Apply(spec, envParams);
             var selfPlayRun = Environment.GetEnvironmentVariable("RL_SELFPLAY") == "1";
+            var hybridScriptedWorkers = ResolveHybridScriptedWorkers(
+                Environment.GetEnvironmentVariable("RL_HYBRID_SCRIPTED_WORKERS"));
+            var scriptedRoster = SelectsScriptedRoster(selfPlayRun, workerIndex ?? 0, hybridScriptedWorkers);
             // Self-play leaves no fingerprint in episode JSONL (scripted does), so be loud at boot.
-            Debug.Log($"[TrainingHost] composition={(selfPlayRun ? nameof(SelfPlayComposition) : nameof(ScriptedRosterComposition))}");
+            Debug.Log($"[TrainingHost] worker={workerIndex?.ToString() ?? "null(0)"} "
+                + $"hybridScriptedWorkers={hybridScriptedWorkers} "
+                + $"composition={(scriptedRoster ? nameof(ScriptedRosterComposition) : nameof(SelfPlayComposition))}");
 
             for (var j = 0; j < arenaCount; j++)
             {
@@ -60,9 +65,9 @@ namespace Game.RLHarness
                 arenaHost.transform.SetParent(transform, false);
                 var arenaSpec = spec;
                 arenaSpec.runSeed = DeriveArenaSeed(spec.runSeed, j);
-                var composition = selfPlayRun
-                    ? new SelfPlayComposition(arenaHost, in arenaSpec, behaviorType, assets, ArenaOffset(j))
-                    : (IEpisodeComposition)new ScriptedRosterComposition(arenaHost, in arenaSpec, behaviorType, assets, ArenaOffset(j));
+                var composition = scriptedRoster
+                    ? new ScriptedRosterComposition(arenaHost, in arenaSpec, behaviorType, assets, ArenaOffset(j))
+                    : (IEpisodeComposition)new SelfPlayComposition(arenaHost, in arenaSpec, behaviorType, assets, ArenaOffset(j));
                 compositions.Add(composition);
                 var jsonlPath = EpisodeJsonl.NewRunPath("training",
                     dirOverride: CommandLineArg("--harness-jsonl-dir"),
@@ -138,6 +143,20 @@ namespace Game.RLHarness
             if (!int.TryParse(arg, out var m) || m < 1)
                 throw new InvalidOperationException($"--harness-num-arenas '{arg}' must be an integer >= 1");
             return m;
+        }
+
+        /// <summary>Per-worker composition choice for hybrid self-play: the first hybridScriptedWorkers workers keep the scripted roster so pursuit retains a gradient (a mirror league never flees). Outside self-play every worker is scripted regardless of the knob.</summary>
+        public static bool SelectsScriptedRoster(bool selfPlayRun, int workerIndex, int hybridScriptedWorkers) =>
+            !selfPlayRun || workerIndex < hybridScriptedWorkers;
+
+        /// <summary>Scripted-worker count from RL_HYBRID_SCRIPTED_WORKERS; absent ⇒ 0 (pure mirror league), present-but-invalid throws — a silently dropped k would quietly train without the pursuit gradient the hybrid run exists to buy.</summary>
+        public static int ResolveHybridScriptedWorkers(string raw)
+        {
+            if (raw == null)
+                return 0;
+            if (!int.TryParse(raw, out var k) || k < 0)
+                throw new InvalidOperationException($"RL_HYBRID_SCRIPTED_WORKERS '{raw}' must be an integer >= 0");
+            return k;
         }
 
         /// <summary>Worker index from the ML-Agents port offset. No --mlagents-port ⇒ null (editor/manual single env). Present ⇒ --harness-base-port is required and both must parse to a non-negative offset, else throw — a silent k=0 would re-correlate every worker's experience.</summary>

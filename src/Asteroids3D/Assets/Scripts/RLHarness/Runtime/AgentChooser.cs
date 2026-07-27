@@ -1,6 +1,7 @@
 using AI;
 using AI.Context;
 using AI.States;
+using Movement.MPC;
 using Ships;
 using UnityEngine;
 
@@ -16,8 +17,11 @@ namespace Game.RLHarness
         private bool legacyAimFire;
         private Vector2 worldVelocity;
         private float facingRad;
+        private float facingWeight;
         private bool fire;
         private bool boostPending;
+        // Reused across decisions — the intent seam runs per fixed step, a fresh array would allocate per decision.
+        private readonly WeightOverride[] facingOverride = { new() { weight = MpcWeight.Facing } };
 
         public void Configure(Ship opponent, float projectileSpeed)
         {
@@ -26,10 +30,11 @@ namespace Game.RLHarness
             Reset();
         }
 
-        public void SetAction(Vector2 worldVelocity, float facingRad, bool fire, bool boost, bool boostAvailable)
+        public void SetAction(Vector2 worldVelocity, float facingRad, float facingWeight, bool fire, bool boost, bool boostAvailable)
         {
             this.worldVelocity = worldVelocity;
             this.facingRad = facingRad;
+            this.facingWeight = facingWeight;
             this.fire = fire;
             boostPending = boost && boostAvailable;
             legacyAimFire = false;
@@ -52,6 +57,8 @@ namespace Game.RLHarness
             legacyAimFire = false;
             worldVelocity = default;
             facingRad = 0f;
+            facingWeight = 0f;
+            facingOverride[0].multiplier = 0f;
             fire = false;
             boostPending = false;
         }
@@ -88,6 +95,9 @@ namespace Game.RLHarness
             {
                 intent.hasFacing = true;
                 intent.facingRad = facingRad;
+                // ×1 at full magnitude: the settings asset's wFacing stays the authority ceiling.
+                facingOverride[0].multiplier = facingWeight;
+                intent.weightOverrides = facingOverride;
                 intent.manualFire = true;
                 intent.primaryHeld = fire;
             }

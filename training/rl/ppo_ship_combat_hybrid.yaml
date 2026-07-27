@@ -1,0 +1,78 @@
+# Hybrid self-play league (stage iii): mirror self-play PLUS scripted-roster workers.
+# Launch with --self-play --hybrid-scripted-workers 2 (of --num-envs 6): workers 0-1 boot
+# ScriptedRosterComposition and consume the opponent_weight_* params below (Evader-dominant),
+# the remaining 4 run the mirror league and ignore them. Why: a pure mirror league has no
+# pursuit gradient — two aggressive brawlers close immediately, nothing ever flees, and the
+# Evader capability the stage (ii) arc bought erodes monotonically while ELO still rises
+# (see doc/Feature_Plans/RL_Stage2_Shaping_SelfPlay_Findings.md, "Self-play erodes pursuit").
+behaviors:
+  ShipCombat:
+    trainer_type: ppo
+    hyperparameters:
+      batch_size: 1024
+      buffer_size: 10240
+      learning_rate: 3.0e-4
+      beta: 5.0e-3
+      epsilon: 0.2
+      lambd: 0.95
+      num_epoch: 3
+      learning_rate_schedule: linear
+      beta_schedule: constant
+    network_settings:
+      normalize: false
+      hidden_units: 256
+      num_layers: 2
+    reward_signals:
+      extrinsic:
+        gamma: 0.99  # must equal RewardSpec.Default.gamma (Ng-shaping soundness); pinned by RLTrainerConfigEditModeTests
+        strength: 1.0
+    keep_checkpoints: 21
+    checkpoint_interval: 100000
+    max_steps: 1500000  # hybrid phase budget (brief B3), with the eval gate armed
+    time_horizon: 64
+    summary_freq: 6000
+    # Symmetric 1v1 self-play: opponent ship = a second ShipCombat agent (team_id 1), parameter-shared.
+    # Warm-start from the curriculum winner at launch via --initialize-from (not a YAML key).
+    # Values provisional — tuned at run launch from the ELO/draw curve (curriculum-threshold discipline).
+    self_play:
+      save_steps: 20000
+      team_change: 100000
+      swap_steps: 20000
+      window: 10
+      play_against_latest_model_ratio: 0.5
+      initial_elo: 1200.0
+# The graduation env is the curriculum's terminal lesson: asteroid field on, density sampled across
+# the terminal band 0.5-2.5, lethality 1.0. Param names <-> EnvParamOverlay consts, pinned by test.
+environment_parameters:
+  use_asteroid_field: 1.0
+  # Density SAMPLES the curriculum's terminal band per episode rather than sitting at one point:
+  # graduating at a single density overfits it, and the scripted run that feeds this one trained
+  # across the whole band. Never includes 0 — an empty obstacle BufferSensor teaches the attention
+  # layer an occupancy bias and collapses the policy when rocks appear (measured 2026-07-25).
+  # A sampler, never a curriculum ramp: the graduation env must not move under the league.
+  field_density_scale:
+    sampler_type: uniform
+    sampler_parameters:
+      min_value: 0.5
+      max_value: 2.5
+  collision_lethality: 1.0
+  # Scripted-worker roster mix, Evader-dominant: pursuit is the capability the hybrid split protects.
+  opponent_weight_evader: 0.5
+  opponent_weight_aggressor: 0.2
+  opponent_weight_orbiter: 0.15
+  opponent_weight_kiter: 0.15
+  opponent_weight_dummy: 0.0
+# Pacing contract: one rendered frame advances exactly one 50 Hz fixed step (mlagents defaults time_scale 20 / capture 60 violate it); pinned by test + TrainingHost runtime assert.
+engine_settings:
+  width: 320
+  height: 240
+  quality_level: 1
+  time_scale: 1
+  target_frame_rate: -1
+  capture_frame_rate: 50
+env_settings:
+  # Editor boot + play-mode domain reload (Burst) outlasts the 60 s default handshake window.
+  timeout_wait: 300
+checkpoint_settings:
+  run_id: ship_combat_hybrid
+  results_dir: ../../results/rl-training

@@ -151,6 +151,34 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void HybridConfig_SelfPlayBlock_TerminalBand_EvaderDominantRoster()
+        {
+            var path = TrainerConfigs().Single(p => Path.GetFileName(p) == "ppo_ship_combat_hybrid.yaml");
+            var yaml = File.ReadAllText(path);
+
+            Assert.IsTrue(Regex.IsMatch(yaml, @"^\s*self_play:", RegexOptions.Multiline),
+                "the hybrid run is still a self-play run — the mirror workers need the ghost league");
+            Assert.AreEqual(RewardSpec.Default.gamma, FloatValue(path, "gamma"), 1e-6f,
+                "hybrid trainer γ must equal RewardSpec.gamma (same reward calibration as every other run)");
+
+            var density = Regex.Match(yaml, @"^  field_density_scale:.*$((\r?\n(?:    .*)?)*)", RegexOptions.Multiline);
+            Assert.IsTrue(density.Success, "field_density_scale not found under environment_parameters");
+            StringAssert.Contains("sampler_type: uniform", density.Value);
+            var min = SamplerBound(density.Value, "min_value");
+            Assert.AreEqual(0.5f, min, 1e-6f);
+            Assert.AreEqual(2.5f, SamplerBound(density.Value, "max_value"), 1e-6f);
+            Assert.Greater(min, 0f, "a zero-density episode leaves the attention buffer empty");
+            Assert.AreEqual(1f, FloatValue(path, "collision_lethality"), 1e-6f);
+
+            // Only the scripted workers read the roster mix; Evader dominance is the split's whole point.
+            var evader = FloatValue(path, EnvParamOverlay.OpponentWeightEvader);
+            foreach (var key in new[] { EnvParamOverlay.OpponentWeightAggressor, EnvParamOverlay.OpponentWeightOrbiter,
+                EnvParamOverlay.OpponentWeightKiter, EnvParamOverlay.OpponentWeightDummy })
+                Assert.Greater(evader, FloatValue(path, key),
+                    $"Evader must dominate {key} — pursuit is the capability the scripted workers protect");
+        }
+
+        [Test]
         public void FieldDensity_UniformSamplerRange_ContainsTheCanonicalEvalDensity()
         {
             var param = Regex.Match(EnvironmentParametersBlock(),
