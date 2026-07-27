@@ -140,8 +140,8 @@ damping costs no performance: 70/71/73 of 75, all within noise.)
 **Fork RESOLVED 2026-07-26 — the churn is in the command (hypothesis 1).** Two hypotheses made
 opposite predictions:
 1. The nose faithfully tracks a churning command → fix is an **override weight**. The action space
-   already carries one: `fx/fy` magnitude is currently discarded by `ToFacingRad`, so the policy
-   cannot express "I don't care", and near-zero vectors have wildly unstable angles. Scaling
+   already carries one: `fx/fy` magnitude was discarded by `ToFacingRad`, so the policy
+   could not express "I don't care", and near-zero vectors have wildly unstable angles. Scaling
    `wFacing` by `|fx,fy|` adds no action dimensions. Needs a retrain (semantics change).
 2. The facing command is being *ignored* — `wFacing: 1` vs `wVelTrack: 50` is 1/50th authority, so
    the nose may be swinging to serve velocity. Then the fix is raising `wFacing` first.

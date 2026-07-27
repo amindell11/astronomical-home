@@ -135,15 +135,7 @@ namespace Tests.EditMode
             Assert.AreEqual(1f, FloatValue(path, "use_asteroid_field"), 1e-6f);
             Assert.AreEqual(1f, FloatValue(path, "collision_lethality"), 1e-6f);
 
-            // Density samples the terminal band per episode — graduating at one density overfits it —
-            // but the band must never reach 0: an empty obstacle BufferSensor collapses the policy.
-            var density = Regex.Match(yaml, @"^  field_density_scale:.*$((\r?\n(?:    .*)?)*)", RegexOptions.Multiline);
-            Assert.IsTrue(density.Success, "field_density_scale not found under environment_parameters");
-            StringAssert.Contains("sampler_type: uniform", density.Value);
-            var min = SamplerBound(density.Value, "min_value");
-            Assert.AreEqual(0.5f, min, 1e-6f);
-            Assert.AreEqual(2.5f, SamplerBound(density.Value, "max_value"), 1e-6f);
-            Assert.Greater(min, 0f, "a zero-density episode leaves the attention buffer empty");
+            AssertTerminalDensityBandSampler(yaml);
             StringAssert.DoesNotContain("curriculum:", yaml,
                 "self-play graduates at the terminal band as a sampler — never a ramp that moves under the league");
             Assert.IsFalse(Regex.IsMatch(yaml, @"^\s*opponent_weight_", RegexOptions.Multiline),
@@ -161,13 +153,7 @@ namespace Tests.EditMode
             Assert.AreEqual(RewardSpec.Default.gamma, FloatValue(path, "gamma"), 1e-6f,
                 "hybrid trainer γ must equal RewardSpec.gamma (same reward calibration as every other run)");
 
-            var density = Regex.Match(yaml, @"^  field_density_scale:.*$((\r?\n(?:    .*)?)*)", RegexOptions.Multiline);
-            Assert.IsTrue(density.Success, "field_density_scale not found under environment_parameters");
-            StringAssert.Contains("sampler_type: uniform", density.Value);
-            var min = SamplerBound(density.Value, "min_value");
-            Assert.AreEqual(0.5f, min, 1e-6f);
-            Assert.AreEqual(2.5f, SamplerBound(density.Value, "max_value"), 1e-6f);
-            Assert.Greater(min, 0f, "a zero-density episode leaves the attention buffer empty");
+            AssertTerminalDensityBandSampler(yaml);
             Assert.AreEqual(1f, FloatValue(path, "collision_lethality"), 1e-6f);
 
             // Only the scripted workers read the roster mix; Evader dominance is the split's whole point.
@@ -192,6 +178,19 @@ namespace Tests.EditMode
             Assert.AreEqual(2.5f, max, 1e-6f);
             Assert.That(EvalProtocol.CanonicalFieldDensityScale, Is.InRange(min, max),
                 "checkpoint eval must run inside the terminal density band training samples from — an out-of-band eval env invalidates every selection");
+        }
+
+        // Density samples the terminal band per episode — graduating at one density overfits it —
+        // but the band must never reach 0: an empty obstacle BufferSensor collapses the policy.
+        private static void AssertTerminalDensityBandSampler(string yaml)
+        {
+            var density = Regex.Match(yaml, @"^  field_density_scale:.*$((\r?\n(?:    .*)?)*)", RegexOptions.Multiline);
+            Assert.IsTrue(density.Success, "field_density_scale not found under environment_parameters");
+            StringAssert.Contains("sampler_type: uniform", density.Value);
+            var min = SamplerBound(density.Value, "min_value");
+            Assert.AreEqual(0.5f, min, 1e-6f);
+            Assert.AreEqual(2.5f, SamplerBound(density.Value, "max_value"), 1e-6f);
+            Assert.Greater(min, 0f, "a zero-density episode leaves the attention buffer empty");
         }
 
         private static float SamplerBound(string samplerBlock, string key, bool final = false)
