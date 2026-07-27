@@ -156,6 +156,9 @@ namespace Tests.EditMode
             AssertTerminalDensityBandSampler(yaml);
             Assert.AreEqual(1f, FloatValue(path, "collision_lethality"), 1e-6f);
 
+            Assert.Greater(FloatValue(path, "team_change"), FloatValue(path, "max_steps"),
+                "team_change must outlast the run — scripted workers are team-0-only, so a learner swap ghosts them");
+
             // Only the scripted workers read the roster mix; Evader dominance is the split's whole point.
             var evader = FloatValue(path, EnvParamOverlay.OpponentWeightEvader);
             foreach (var key in new[] { EnvParamOverlay.OpponentWeightAggressor, EnvParamOverlay.OpponentWeightOrbiter,

@@ -115,6 +115,10 @@ def main() -> None:
             parser.error("--hybrid-scripted-workers only splits a self-play league; pass --self-play")
         if args.hybrid_scripted_workers < 0:
             parser.error("--hybrid-scripted-workers must be >= 0")
+        # At K == num_envs every worker boots scripted: a self-play config with no ghost league at all.
+        if args.hybrid_scripted_workers >= args.num_envs:
+            parser.error(f"--hybrid-scripted-workers {args.hybrid_scripted_workers} leaves no mirror worker "
+                         f"of --num-envs {args.num_envs}; the hybrid split needs both sides")
     if args.num_arenas < 1:
         parser.error("--num-arenas must be >= 1")
     if not args.env.exists():

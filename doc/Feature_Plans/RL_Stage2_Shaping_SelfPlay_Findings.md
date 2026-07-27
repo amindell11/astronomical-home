@@ -1,5 +1,7 @@
 # Stage (ii) retrain — shaping, self-play, and the pursuit hole (2026-07-25/26)
 
+> STATUS: live arc — carries the stage (iii) decision brief; PR-2 (eval gate) and both training launches outstanding
+
 Findings from the stage (ii) training arc. Three defects were root-caused and fixed mid-arc; the
 headline result is that the **Evader pursuit hole is solved** and that **self-play erodes it again**.
 

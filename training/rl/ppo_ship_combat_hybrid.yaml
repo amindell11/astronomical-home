@@ -36,7 +36,10 @@ behaviors:
     # Values provisional — tuned at run launch from the ELO/draw curve (curriculum-threshold discipline).
     self_play:
       save_steps: 20000
-      team_change: 100000
+      # Pinned above max_steps: scripted workers carry only team-0 agents, so any interval with
+      # team 1 learning runs them on the frozen ghost — no PPO updates and ghost-polluted JSONL.
+      # Symmetric shared-parameter self-play does not need the learner swap.
+      team_change: 2000000
       swap_steps: 20000
       window: 10
       play_against_latest_model_ratio: 0.5
