@@ -94,7 +94,8 @@ namespace Game.RLHarness
             var worldVelocity = AgentActions.ToWorldVelocity(
                 action.velocityEgo, selfKin.Forward, self.MaxSpeed);
             var facingRad = AgentActions.ToFacingRad(action.facingEgo, selfKin.Forward);
-            chooser.SetAction(worldVelocity, facingRad, action.fire, action.boost, self.BoostAvailable);
+            var facingWeight = AgentActions.ToFacingWeight(action.facingEgo);
+            chooser.SetAction(worldVelocity, facingRad, facingWeight, action.fire, action.boost, self.BoostAvailable);
             DecisionsReceived++;
         }
 

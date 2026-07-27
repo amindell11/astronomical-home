@@ -1,5 +1,7 @@
 # Stage (ii) retrain — shaping, self-play, and the pursuit hole (2026-07-25/26)
 
+> STATUS: live arc — carries the stage (iii) decision brief; PR-2 (eval gate) and both training launches outstanding
+
 Findings from the stage (ii) training arc. Three defects were root-caused and fixed mid-arc; the
 headline result is that the **Evader pursuit hole is solved** and that **self-play erodes it again**.
 
@@ -137,16 +139,20 @@ Direct thrash A/B (mirror probe counting yaw-rate sign flips):
 the commanded target, not the controller's tracking. (An outcome-only eval sweep separately showed
 damping costs no performance: 70/71/73 of 75, all within noise.)
 
-**Open fork, unresolved.** Two hypotheses make opposite predictions:
+**Fork RESOLVED 2026-07-26 — the churn is in the command (hypothesis 1).** Two hypotheses made
+opposite predictions:
 1. The nose faithfully tracks a churning command → fix is an **override weight**. The action space
-   already carries one: `fx/fy` magnitude is currently discarded by `ToFacingRad`, so the policy
-   cannot express "I don't care", and near-zero vectors have wildly unstable angles. Scaling
+   already carries one: `fx/fy` magnitude was discarded by `ToFacingRad`, so the policy
+   could not express "I don't care", and near-zero vectors have wildly unstable angles. Scaling
    `wFacing` by `|fx,fy|` adds no action dimensions. Needs a retrain (semantics change).
 2. The facing command is being *ignored* — `wFacing: 1` vs `wVelTrack: 50` is 1/50th authority, so
    the nose may be swinging to serve velocity. Then the fix is raising `wFacing` first.
 
-**Next probe:** measure commanded-vs-actual facing error per decision. Large → hypothesis 2; small →
-hypothesis 1. Run this before spending a retrain.
+The facing probe measured both: cmdDelta mean 48°/decision ≈ tracking error 50.9° (n=2080) — the
+commanded target moves per decision about as much as the nose lags it. A `wFacing` ×1/×5/×15 sweep
+ruled out authority (hypothesis 2): error fell only 50.6° → 45.5° while reversals/s **rose**
+2.70 → 3.69. Fix = the stage (iii) package's F1 below: `|fx,fy|` becomes the MPC facing authority,
+so the policy can express "don't care" instead of emitting churning near-zero angles.
 
 ## Methodology notes
 
@@ -165,3 +171,78 @@ hypothesis 1. Run this before spending a retrain.
 (steps/ETA/throughput, curriculum lessons, per-archetype table, failure signatures). Self-play mode
 swaps in an ELO card and a density-band table. Episode groups are bound to the run's active window,
 since JSONL groups are named by wall-clock and a live run otherwise leaks into a finished run's view.
+
+## Stage (iii) retrain package — decision brief (2026-07-26)
+
+Frozen at pr-prep 2026-07-26; the implementing PR builds it, it does not re-decide. Seeded by the
+findings above plus the facing probe (cmdDelta 48°/decision ≈ tracking error 50.9°; the wFacing ×15
+sweep ruled out authority — summaries in `results/rl-eval/20260726-16*-facing-probe-summary.json`).
+
+### Scope
+
+1. `|fx,fy|` magnitude → MPC facing authority (policy expresses "don't care"; kills command churn).
+2. Hybrid self-play league: per-worker scripted/mirror split so pursuit keeps a gradient.
+3. Automated absolute eval gate so erosion is visible without ELO.
+
+**Non-goals:** heat curriculum, obstacle token cap, production legacy-shim replacement,
+rock-shooting incentives, per-episode ghost mixing, evaluator archetype weighting.
+
+### Locked forks (with why)
+
+- **F1 = 1a, action boundary.** `facingWeight = clamp01(|fx,fy|)` computed at the decision
+  boundary (`ShipAgent`/`AgentActions`, where action semantics are single-sourced);
+  `AgentChooser.SetAction` gains the param; chooser emits the existing
+  `WeightOverride{MpcWeight.Facing, ×w}` on the intent (cache the array; mutate in place).
+  MPC/Navigator untouched. Full magnitude = ×1: the settings asset's `wFacing` stays the
+  authority ceiling (post-train tunable without retrain). Plain clamp01, NO deadzone
+  (a deadzone re-adds a discontinuity; near-zero magnitude already ≈ zero weight).
+- **F2 = 2a, fresh full run.** Phase A: fresh 3.5M curriculum (`ppo_ship_combat.yaml`, #218
+  fixes) under the new semantics; also first end-to-end validation of the repaired yaml.
+  Phase B: hybrid self-play from phase A's final checkpoint (`--initialize-from`).
+  Why: clean semantics from ignition; the 74/75 seed's value is partly voided by the
+  semantics change; mlagents' squashed actions start near-saturated |v| ⇒ full authority at
+  init, no behavior cliff.
+- **F3 = 3a, per-worker split.** `TrainingHost` already derives worker index from the port
+  offset; new env knob `RL_HYBRID_SCRIPTED_WORKERS=k` ⇒ workers k'<k boot
+  `ScriptedRosterComposition`, rest `SelfPlayComposition`. Boot-frozen invariant preserved;
+  launcher flag in `run_parallel.py` sets the var. Why: smallest principled wiring; ratio
+  needs no runtime adaptivity for a first hybrid run.
+- **F4 = 4a, automated sidecar gate.** Script (home: `training/rl/`, beside run_parallel)
+  watches checkpoint exports; per ~200k-step checkpoint runs the standard deterministic
+  75-ep scripted eval on a pool slot via the coordinator (acquire per eval, release after).
+  Alert + stop rule below. Why: selfplay3's erosion was invisible until manual eval; ELO is
+  a treadmill.
+
+### Blindsider resolutions
+
+- **B1:** gate signal = standard 75-ep eval + **two-consecutive-checkpoints rule** (≈30
+  Evader episodes per decision); evaluator untouched.
+- **B2:** **2 of 6 workers scripted** (~33% pursuit-gradient experience).
+- **B3:** hybrid phase budget **1.5M steps** with the gate armed.
+
+### Assumptions (confirmed)
+
+1. Action spec stays 6-continuous; observations unchanged (ONNX shape identical).
+2. New `ppo_ship_combat_hybrid.yaml`: self_play block + density sampler band (0.5–2.5, min>0)
+   + lethality 1.0 + `opponent_weight_*` present, Evader-dominant ≈ {Evader 0.5, Aggressor
+   0.2, Orbiter 0.15, Kiter 0.15, Dummy 0.0–0.05}; config-family EditMode tests extended
+   (the selfplay yaml's roster-free assertion stays selfplay-specific by filename).
+3. Stop rule numbers: alert at Evader ≤10/15; stop on two consecutive checkpoints Evader
+   ≤10/15 OR total <55/75. Baseline: seed-class policies score Evader 12–14/15, total ~70–74.
+4. Fleet mechanics per the run-mechanics memory runbook: parallel players `--num-envs 6`,
+   base-port 5006 single-occupancy, rebuild exe after the code merge, clear BurstCache.
+5. `ToFacingRad` degenerate handling unchanged (weight ~0 makes the angle moot); heuristic's
+   unit bearing = full authority — both existing tests stay valid.
+6. Acceptance test for F1: re-apply `training/archive/patches/facing-probe-scratch.patch`
+   (extend to log emitted |fx,fy| via the chooser's stored weight) — expect low-|v| commands
+   while maneuvering, high while aiming, reversals/s well under 2.7, and kill-time no worse.
+7. **Smoke-verify before any spend:** `run_parallel.py --smoke` in hybrid mode must prove the
+   ghost trainer tolerates scripted workers emitting team-0-only trajectories. If it chokes,
+   F3 is void — stop and redesign, do not work around silently.
+8. Production shim untouched; shipping to gameplay is a separate arc.
+
+### Sequencing
+
+PR-1 (code): F1 seam + F3 TrainingHost/launcher + hybrid yaml + tests + this brief into the
+findings doc. PR-2 (tooling, may fold into PR-1): F4 gate script. Then: rebuild exe → hybrid
+smoke → Phase A launch (user approval = spend) → Phase B launch (user approval = spend).

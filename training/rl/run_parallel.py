@@ -50,6 +50,10 @@ def config_has_self_play(config: Path) -> bool:
     return re.search(r"^\s*self_play:", config.read_text(), re.MULTILINE) is not None
 
 
+def config_has_roster_weights(config: Path) -> bool:
+    return re.search(r"^\s*opponent_weight_", config.read_text(), re.MULTILINE) is not None
+
+
 def episode_logs(suffix: str) -> set:
     return set(JSONL_DIR.glob(f"*-training{suffix}.jsonl"))
 
@@ -89,6 +93,9 @@ def main() -> None:
                         help="RL_SMOKE=1 tight-arena/short-clock gate spec; also defaults --config to the smoke YAML")
     parser.add_argument("--self-play", action="store_true",
                         help="RL_SELFPLAY=1 ghost-league composition; also defaults --config to the selfplay YAML")
+    parser.add_argument("--hybrid-scripted-workers", type=int, default=None, metavar="K",
+                        help="first K workers boot the scripted roster instead of the mirror league "
+                             "(RL_HYBRID_SCRIPTED_WORKERS; requires --self-play)")
     parser.add_argument("--initialize-from", metavar="RUN_ID", default=None,
                         help="warm-start fresh weights from another run id under results/rl-training")
     parser.add_argument("--resume", action="store_true", help="resume the run id's existing checkpoints")
@@ -103,6 +110,15 @@ def main() -> None:
         parser.error("--resume and --initialize-from are mutually exclusive")
     if args.num_envs < 1:
         parser.error("--num-envs must be >= 1")
+    if args.hybrid_scripted_workers is not None:
+        if not args.self_play:
+            parser.error("--hybrid-scripted-workers only splits a self-play league; pass --self-play")
+        if args.hybrid_scripted_workers < 0:
+            parser.error("--hybrid-scripted-workers must be >= 0")
+        # At K == num_envs every worker boots scripted: a self-play config with no ghost league at all.
+        if args.hybrid_scripted_workers >= args.num_envs:
+            parser.error(f"--hybrid-scripted-workers {args.hybrid_scripted_workers} leaves no mirror worker "
+                         f"of --num-envs {args.num_envs}; the hybrid split needs both sides")
     if args.num_arenas < 1:
         parser.error("--num-arenas must be >= 1")
     if not args.env.exists():
@@ -112,6 +128,11 @@ def main() -> None:
                 (False, True): "ppo_ship_combat_smoke.yaml",
                 (True, False): "ppo_ship_combat_selfplay.yaml",
                 (True, True): "ppo_ship_combat_selfplay_smoke.yaml"}
+    hybrid = bool(args.hybrid_scripted_workers)
+    if hybrid and not args.smoke:
+        # Hybrid takes precedence over the plain selfplay default; the smoke gate keeps the
+        # short-max_steps smoke YAML (a hybrid smoke proves worker composition, not the roster mix).
+        defaults[(True, False)] = "ppo_ship_combat_hybrid.yaml"
     config = args.config or RL_DIR / defaults[(args.self_play, args.smoke)]
     # A flag/YAML mismatch trains the wrong thing while looking healthy — fail before boot.
     if args.self_play and not config_has_self_play(config):
@@ -120,6 +141,9 @@ def main() -> None:
     if config_has_self_play(config) and not args.self_play:
         parser.error(f"{config.name} has a self_play: block but --self-play was not passed — "
                      "the harness would compose the scripted roster")
+    if hybrid and args.config and not config_has_roster_weights(config):
+        parser.error(f"--hybrid-scripted-workers passed but {config.name} has no opponent_weight_ params — "
+                     "the scripted workers would silently fall back to RewardSpec's default roster mix")
     run_id = args.run_id or config_run_id(config)
     onnx = RESULTS / run_id / "ShipCombat.onnx"
     RESULTS.mkdir(parents=True, exist_ok=True)
@@ -137,6 +161,10 @@ def main() -> None:
         env["RL_SELFPLAY"] = "1"
     else:
         env.pop("RL_SELFPLAY", None)
+    if args.hybrid_scripted_workers is not None:
+        env["RL_HYBRID_SCRIPTED_WORKERS"] = str(args.hybrid_scripted_workers)
+    else:
+        env.pop("RL_HYBRID_SCRIPTED_WORKERS", None)
 
     trainer_cmd = [str(MLAGENTS), str(config),
                    "--run-id", run_id,

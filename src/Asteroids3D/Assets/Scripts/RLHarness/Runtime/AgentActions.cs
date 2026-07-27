@@ -19,7 +19,7 @@ namespace Game.RLHarness
         }
     }
 
-    /// <summary>Pure mapping between the 6-continuous action vector [vx, vy, fire, boost, fx, fy] ∈ [−1,1] and game-frame commands (fire/boost are threshold-gated at 0 — 4.0.3 rejects hybrid specs in the trainer path; fx/fy are a facing direction, consumed via <see cref="ToFacingRad"/> so magnitude is irrelevant). Ego→world conversion happens ONCE per decision at the boundary; re-rotating per tick would feed live yaw back into the reference.</summary>
+    /// <summary>Pure mapping between the 6-continuous action vector [vx, vy, fire, boost, fx, fy] ∈ [−1,1] and game-frame commands (fire/boost are threshold-gated at 0 — 4.0.3 rejects hybrid specs in the trainer path; fx/fy are a facing direction whose angle is consumed via <see cref="ToFacingRad"/> and whose magnitude is the facing authority via <see cref="ToFacingWeight"/>). Ego→world conversion happens ONCE per decision at the boundary; re-rotating per tick would feed live yaw back into the reference.</summary>
     public static class AgentActions
     {
         public const int Count = 6;
@@ -42,6 +42,9 @@ namespace Game.RLHarness
             if (world.sqrMagnitude < 1e-6f) world = forwardPlane;
             return Mathf.Atan2(-world.x, world.y);
         }
+
+        /// <summary>Facing authority from the ego direction's magnitude: scales the MPC facing weight so the policy can express "don't care" (near-zero vectors have unstable angles AND near-zero weight). Plain clamp, no deadzone — a deadzone would re-add a discontinuity.</summary>
+        public static float ToFacingWeight(Vector2 facingEgo) => Mathf.Clamp01(facingEgo.magnitude);
 
         /// <summary>Inverse of <see cref="ToWorldVelocity"/> for the heuristic: a world-plane velocity within maxSpeed maps back inside the [−1,1] action box.</summary>
         public static Vector2 ToEgoAction(Vector2 worldVelocity, Vector2 forwardPlane, float maxSpeed) =>
