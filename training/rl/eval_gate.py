@@ -101,6 +101,13 @@ def summary_in(out_dir: Path) -> Path:
     return summaries[0]
 
 
+def evaluated_summary(out_dir: Path):
+    """A step already evaluated replays instead of re-running: a restarted gate rebuilds its streak
+    history in step order and never writes a second summary into a step dir."""
+    summaries = sorted(out_dir.glob("*-summary.json"))
+    return summaries[0] if len(summaries) == 1 else None
+
+
 def default_unity_exe(project: Path) -> Path:
     version = re.search(r"m_EditorVersion: (\S+)",
                         (project / "ProjectSettings" / "ProjectVersion.txt").read_text()).group(1)
@@ -159,7 +166,9 @@ def main() -> None:
     parser.add_argument("--from-step", type=int, default=0, help="ignore checkpoints at or below this step")
     parser.add_argument("--max-checkpoints", type=int, default=0, help="stop after N evals (0 = unbounded)")
     parser.add_argument("--once", action="store_true", help="evaluate the checkpoints present now, then exit")
-    parser.add_argument("--lease", default="rl-eval-gate", help="unity-access lease name")
+    # Per-run by default: the coordinator keys ownership on the lease, so two gates sharing one
+    # lease name would renew each other's ownership instead of queueing.
+    parser.add_argument("--lease", default=None, help="unity-access lease name (default: rl-eval-gate-<run-id>)")
     parser.add_argument("--lease-wait", type=int, default=1800,
                         help="seconds the coordinator may wait for the project/boot lane per eval")
     parser.add_argument("--auto-stop-pid", type=int, default=None, metavar="PID",
@@ -183,6 +192,7 @@ def main() -> None:
     if not EVAL_CHILD.exists():
         sys.exit(f"FAIL: batch child missing at {EVAL_CHILD}")
 
+    args.lease = args.lease or f"rl-eval-gate-{args.run_id}"
     unity = args.unity or default_unity_exe(args.project)
     behavior_dir = args.results_dir / args.run_id / "ShipCombat"
     gate_dir = args.out_root / args.run_id
@@ -196,7 +206,10 @@ def main() -> None:
                    if s > args.from_step and s not in done]
         for step, checkpoint in pending:
             out_dir = gate_dir / f"step-{step}"
-            summary_path = run_eval(args, unity, checkpoint, out_dir)
+            replayed = evaluated_summary(out_dir)
+            if replayed:
+                print(f"[gate] step {step}: replaying {replayed.name}")
+            summary_path = replayed or run_eval(args, unity, checkpoint, out_dir)
             score = read_score(summary_path, step)
             scores.append(score)
             current = verdict(scores)

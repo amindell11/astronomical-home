@@ -3,9 +3,11 @@
     cd training/rl
     .venv\\Scripts\\python -m unittest test_eval_gate -v
 """
+import tempfile
 import unittest
+from pathlib import Path
 
-from eval_gate import ALERT, CONTINUE, STOP, Score, degraded_reasons, verdict
+from eval_gate import ALERT, CONTINUE, STOP, Score, degraded_reasons, evaluated_summary, verdict
 
 
 def healthy(step: int) -> Score:
@@ -50,6 +52,26 @@ class VerdictRuleTests(unittest.TestCase):
         self.assertEqual(1, len(degraded_reasons(Score(1, evader_wins=10, total_wins=55))))
         self.assertEqual(1, len(degraded_reasons(Score(1, evader_wins=11, total_wins=54))))
         self.assertEqual(2, len(degraded_reasons(Score(1, evader_wins=10, total_wins=54))))
+
+
+class EvaluatedSummary(unittest.TestCase):
+    """A restarted gate must replay finished steps, not re-run them into the same directory."""
+
+    def setUp(self):
+        self.dir = Path(tempfile.mkdtemp())
+
+    def test_unevaluated_step_runs(self):
+        self.assertIsNone(evaluated_summary(self.dir))
+        self.assertIsNone(evaluated_summary(self.dir / "never-created"))
+
+    def test_finished_step_replays(self):
+        (self.dir / "20260726-120000-gate-summary.json").write_text("{}")
+        self.assertIsNotNone(evaluated_summary(self.dir))
+
+    def test_ambiguous_dir_does_not_replay(self):
+        (self.dir / "20260726-120000-gate-summary.json").write_text("{}")
+        (self.dir / "20260726-130000-gate-summary.json").write_text("{}")
+        self.assertIsNone(evaluated_summary(self.dir))
 
 
 if __name__ == "__main__":
