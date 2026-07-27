@@ -50,9 +50,9 @@ namespace Game.RLHarness
 
         public static IEnumerator Run(UnitService units, ArenaContext arena, IProjectileService projectiles,
             HarnessAssets assets, string onnxAssetPath, IReadOnlyList<int> seeds, int episodesPerSeed,
-            RewardSpec baseSpec, string tag, Action<Summary> onDone)
+            RewardSpec baseSpec, string tag, Action<Summary> onDone, string outDirOverride = null)
         {
-            var jsonlPath = EpisodeJsonl.NewRunPath(tag, ResultsFolder);
+            var jsonlPath = EpisodeJsonl.NewRunPath(tag, ResultsFolder, outDirOverride);
             var behaviorPath = jsonlPath.Replace(".jsonl", "-behavior.jsonl");
             var summary = new Summary
             {

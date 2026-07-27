@@ -1,11 +1,12 @@
 #if UNITY_EDITOR
+using System.IO;
 using System.Linq;
 using Game.RLHarness;
 using NUnit.Framework;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the frozen eval protocol: held-out seed set shape/disjointness, seed-selection resolution (train vs held-out vs explicit), and the Wilson 95% lower-bound math the arc gate reads.</summary>
+    /// <summary>Pins the frozen eval protocol: held-out seed set shape/disjointness, seed-selection resolution (train vs held-out vs explicit), the Wilson 95% lower-bound math the arc gate reads, and the caller-owned artifact-dir override the eval gate names.</summary>
     [Category("AI")]
     public class RLEvalProtocolEditModeTests
     {
@@ -47,6 +48,23 @@ namespace Tests.EditMode
         {
             Assert.Less(EvalProtocol.WilsonLowerBound(10, 20), EvalProtocol.WilsonLowerBound(100, 200));
             Assert.Less(EvalProtocol.WilsonLowerBound(100, 200), 0.5f);
+        }
+
+        [Test]
+        public void NewRunPath_HonorsDirOverrideSoTheCallerReadsBackWhatItNamed()
+        {
+            var dir = Path.Combine(Path.GetTempPath(), "rl-eval-out-" + Path.GetRandomFileName());
+            try
+            {
+                var path = EpisodeJsonl.NewRunPath("held-out", CheckpointEvaluator.ResultsFolder, dir);
+                Assert.AreEqual(dir, Path.GetDirectoryName(path));
+                Assert.IsTrue(Directory.Exists(dir));
+                Assert.IsTrue(Path.GetFileName(path).EndsWith("-held-out.jsonl"));
+            }
+            finally
+            {
+                if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+            }
         }
 
         [Test]
