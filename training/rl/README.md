@@ -144,6 +144,7 @@ $env:RL_EVAL_ONNX = "results/rl-training/<run-id>/ShipCombat.onnx"   # default: 
 $env:RL_EVAL_EPISODES_PER_SEED = "5"
 $env:RL_EVAL_SEEDS = "train"   # checkpoint selection; omit (or "held-out") for the sealed set, or pass "7,42,99"
 $env:RL_EVAL_DENSITY = "3.0"   # stretch/diagnostic only; omit for the canonical eval env (training's terminal lesson)
+$env:RL_EVAL_OUT_DIR = "..."   # caller-owned artifact dir; omit for results/rl-eval/
 Unity.exe -projectPath src/Asteroids3D -batchmode -nographics `
   -executeMethod Game.RLHarness.TrainingBootstrap.RunEval -logFile <log>
 ```
@@ -162,6 +163,28 @@ Under the hood `ShipAgentFactory.ComposeInferenceOnly` pins
 `BehaviorType.InferenceOnly`, `DeterministicInference = true` (it defaults
 false — InferenceOnly alone samples stochastically), `InferenceDevice.Burst`,
 and the `EvalProtocol.InferenceSeed` Academy inference seed.
+
+### Automated eval gate (during a run)
+
+`eval_gate.py` watches a live run's checkpoint exports and evals each new one so
+erosion shows up while the run is going, not after it. Per checkpoint it runs the
+75-episode scripted eval (5 archetypes × 5 seeds × 3 episodes) through the
+unity-access coordinator (`-Action RunBatch` + `eval_child.ps1`, boot lane held for
+the child's run), then applies the two-consecutive-checkpoints rule: **ALERT** on one
+checkpoint with Evader ≤ 10/15 or total < 55/75, **STOP** on two consecutive.
+
+```powershell
+cd training/rl
+.venv\Scripts\python eval_gate.py --run-id <run-id> --project ../../../agent-2/src/Asteroids3D
+.venv\Scripts\python eval_gate.py --run-id <run-id> --once     # drain the backlog and exit
+.venv\Scripts\python -m unittest test_eval_gate                 # verdict-rule unit tests
+```
+
+Point `--project` at a free pool slot; the eval boots an editor there. The gate names
+each eval's output dir and passes it as `RL_EVAL_OUT_DIR`, so it reads back exactly
+what it named (artifacts + `verdict.json` under `results/rl-eval/gate/<run-id>/step-<N>/`).
+It reports and exits 2 on STOP; it kills the trainer only with the opt-in
+`--auto-stop-pid <trainer pid>`.
 
 ## Characterization floor
 

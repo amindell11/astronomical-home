@@ -22,6 +22,7 @@ Merge gate (2-env liveness smoke):
 import argparse
 import os
 import re
+import signal
 import subprocess
 import sys
 import time
@@ -64,16 +65,17 @@ def log_suffixes(num_envs: int, num_arenas: int) -> list:
     return [f"-w{k}" for k in range(num_envs)]
 
 
-def terminate_tree(trainer: subprocess.Popen) -> None:
-    # On timeout the trainer has spawned the N RLTraining.exe workers; on Windows a killed
-    # parent doesn't take its children down, so kill the whole tree or the headless workers
-    # keep holding ports/CPU (CLAUDE.md session-hygiene orphan-lock hazard).
-    if trainer.poll() is not None:
-        return
+def terminate_pid_tree(pid: int) -> None:
+    # On Windows a killed parent leaves its workers holding ports/CPU (CLAUDE.md orphan-lock hazard).
     if os.name == "nt":
-        subprocess.run(["taskkill", "/F", "/T", "/PID", str(trainer.pid)], capture_output=True)
+        subprocess.run(["taskkill", "/F", "/T", "/PID", str(pid)], capture_output=True)
     else:
-        trainer.kill()
+        os.kill(pid, signal.SIGKILL)
+
+
+def terminate_tree(trainer: subprocess.Popen) -> None:
+    if trainer.poll() is None:
+        terminate_pid_tree(trainer.pid)
 
 
 def main() -> None:
