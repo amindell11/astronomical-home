@@ -11,10 +11,8 @@ namespace Game.RLHarness
     public sealed class AgentChooser : IIntentChooser
     {
         private Ship opponent;
-        private float projectileSpeed;
 
         private bool hasAction;
-        private bool legacyAimFire;
         private Vector2 worldVelocity;
         private float facingRad;
         private float facingWeight;
@@ -23,10 +21,9 @@ namespace Game.RLHarness
         // Reused across decisions — the intent seam runs per fixed step, a fresh array would allocate per decision.
         private readonly WeightOverride[] facingOverride = { new() { weight = MpcWeight.Facing } };
 
-        public void Configure(Ship opponent, float projectileSpeed)
+        public void Configure(Ship opponent)
         {
             this.opponent = opponent;
-            this.projectileSpeed = projectileSpeed;
             Reset();
         }
 
@@ -37,24 +34,12 @@ namespace Game.RLHarness
             this.facingWeight = facingWeight;
             this.fire = fire;
             boostPending = boost && boostAvailable;
-            legacyAimFire = false;
-            hasAction = true;
-        }
-
-        /// <summary>LEGACY aim/fire mode for the shipped 72-obs/4-action checkpoint: intercept-facing via aimAtTarget/projectileSpeed and Gunner auto-fire via enableFiring. Dies with <see cref="LegacyAgentObservations"/> when a manual-aim checkpoint ships to production.</summary>
-        public void SetLegacyAction(Vector2 worldVelocity, bool fire, bool boost, bool boostAvailable)
-        {
-            this.worldVelocity = worldVelocity;
-            this.fire = fire;
-            boostPending = boost && boostAvailable;
-            legacyAimFire = true;
             hasAction = true;
         }
 
         public void Reset()
         {
             hasAction = false;
-            legacyAimFire = false;
             worldVelocity = default;
             facingRad = 0f;
             facingWeight = 0f;
@@ -85,22 +70,13 @@ namespace Game.RLHarness
                 },
             };
 
-            if (legacyAimFire)
-            {
-                intent.aimAtTarget = true;
-                intent.projectileSpeed = projectileSpeed;
-                intent.enableFiring = fire;
-            }
-            else
-            {
-                intent.hasFacing = true;
-                intent.facingRad = facingRad;
-                // ×1 at full magnitude: the settings asset's wFacing stays the authority ceiling.
-                facingOverride[0].multiplier = facingWeight;
-                intent.weightOverrides = facingOverride;
-                intent.manualFire = true;
-                intent.primaryHeld = fire;
-            }
+            intent.hasFacing = true;
+            intent.facingRad = facingRad;
+            // ×1 at full magnitude: the settings asset's wFacing stays the authority ceiling.
+            facingOverride[0].multiplier = facingWeight;
+            intent.weightOverrides = facingOverride;
+            intent.manualFire = true;
+            intent.primaryHeld = fire;
 
             return intent;
         }

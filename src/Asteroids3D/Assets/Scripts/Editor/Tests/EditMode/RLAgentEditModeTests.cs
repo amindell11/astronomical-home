@@ -267,7 +267,7 @@ namespace Tests.EditMode
             {
                 var opponent = opponentGo.AddComponent<Ship>();
                 var chooser = new AgentChooser();
-                chooser.Configure(opponent, 40f);
+                chooser.Configure(opponent);
 
                 chooser.SetAction(new Vector2(4f, 0f), facingRad: 1.2f, facingWeight: 0.4f, fire: true, boost: false, boostAvailable: true);
 
@@ -300,7 +300,7 @@ namespace Tests.EditMode
             {
                 var opponent = opponentGo.AddComponent<Ship>();
                 var chooser = new AgentChooser();
-                chooser.Configure(opponent, 40f);
+                chooser.Configure(opponent);
 
                 chooser.SetAction(new Vector2(4f, 0f), facingRad: 0f, facingWeight: 1f, fire: false, boost: false, boostAvailable: true);
 
@@ -316,33 +316,6 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void AgentChooser_LegacyAction_KeepsTheAimbotIntentShape()
-        {
-            var opponentGo = new GameObject("Opponent");
-            try
-            {
-                var opponent = opponentGo.AddComponent<Ship>();
-                var chooser = new AgentChooser();
-                chooser.Configure(opponent, 40f);
-
-                chooser.SetLegacyAction(new Vector2(4f, 0f), fire: true, boost: false, boostAvailable: true);
-
-                var intent = chooser.Decide(null, 0.02f);
-                Assert.IsTrue(intent.isValid);
-                Assert.IsTrue(intent.aimAtTarget);
-                Assert.AreEqual(40f, intent.projectileSpeed);
-                Assert.IsTrue(intent.enableFiring);
-                Assert.IsFalse(intent.hasFacing);
-                Assert.IsNull(intent.weightOverrides, "the legacy aimbot path carries no weight overrides");
-                Assert.IsFalse(intent.manualFire);
-            }
-            finally
-            {
-                Object.DestroyImmediate(opponentGo);
-            }
-        }
-
-        [Test]
         public void AgentChooser_BoostEmitsOnExactlyOneDecide()
         {
             var opponentGo = new GameObject("Opponent");
@@ -350,7 +323,7 @@ namespace Tests.EditMode
             {
                 var opponent = opponentGo.AddComponent<Ship>();
                 var chooser = new AgentChooser();
-                chooser.Configure(opponent, 40f);
+                chooser.Configure(opponent);
 
                 chooser.SetAction(new Vector2(4f, 0f), facingRad: 0f, facingWeight: 1f, fire: true, boost: true, boostAvailable: true);
 
@@ -380,7 +353,7 @@ namespace Tests.EditMode
             {
                 var opponent = opponentGo.AddComponent<Ship>();
                 var chooser = new AgentChooser();
-                chooser.Configure(opponent, 40f);
+                chooser.Configure(opponent);
 
                 chooser.SetAction(new Vector2(4f, 0f), facingRad: 0f, facingWeight: 1f, fire: false, boost: true, boostAvailable: false);
 
@@ -404,7 +377,7 @@ namespace Tests.EditMode
             {
                 var opponent = opponentGo.AddComponent<Ship>();
                 var chooser = new AgentChooser();
-                chooser.Configure(opponent, 40f);
+                chooser.Configure(opponent);
 
                 Assert.IsFalse(chooser.Decide(null, 0.02f).isValid, "no action yet → idle");
 
