@@ -17,9 +17,8 @@ namespace Tests.PlayMode
         [UnityTest]
         public IEnumerator InferenceChooser_SelfHosts_AndDecidesAtTrainedCadence()
         {
-            // The production chooser runs the legacy 72/4 shim until a manual-aim checkpoint ships — its fixture must match that spec.
-            var model = AssetDatabase.LoadAssetAtPath<ModelAsset>(LegacyAgentObservations.SmokeFixturePath);
-            Assert.IsNotNull(model, "Legacy smoke fixture missing");
+            var model = AssetDatabase.LoadAssetAtPath<ModelAsset>(ShipAgentFactory.SmokeFixturePath);
+            Assert.IsNotNull(model, "Smoke fixture missing");
             var chooser = new InferenceChooser(model, 120f);
 
             var (_, cmdrA) = CreateAIShip(Vector3.zero, team: 0);

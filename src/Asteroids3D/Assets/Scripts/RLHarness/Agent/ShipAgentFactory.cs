@@ -74,7 +74,7 @@ namespace Game.RLHarness
 
             // Asteroids ride an entity-attention buffer, not the flat vector; the Agent discovers it as a sensor on enable.
             var obstacleBuffer = host.AddComponent<BufferSensorComponent>();
-            obstacleBuffer.SensorName = "AsteroidBuffer";
+            obstacleBuffer.SensorName = AgentObservations.ObstacleSensorName;
             obstacleBuffer.ObservableSize = AgentObservations.ObstacleTokenFloats;
             obstacleBuffer.MaxNumObservables = AgentObservations.ObstacleTokenCap;
 

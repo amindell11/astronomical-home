@@ -7,6 +7,7 @@ using Ships.Command;
 using Unity.InferenceEngine;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Policies;
+using Unity.MLAgents.Sensors;
 using UnityEngine;
 
 namespace Game.RLHarness
@@ -77,7 +78,7 @@ namespace Game.RLHarness
             enemy = next;
             ticksUntilDecision = 0;
             if (enemy)
-                mailbox.Configure(enemy, self.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary));
+                mailbox.Configure(enemy);
             else
                 mailbox.Reset();
         }
@@ -97,15 +98,20 @@ namespace Game.RLHarness
             var behavior = host.AddComponent<BehaviorParameters>();
             behavior.BehaviorName = ShipCombatPolicy.BehaviorName;
             behavior.BehaviorType = BehaviorType.InferenceOnly;
-            // Legacy 72/4 spec — must match the shipped checkpoint until a manual-aim model replaces it (see LegacyAgentObservations).
-            behavior.BrainParameters.VectorObservationSize = LegacyAgentObservations.Size;
-            behavior.BrainParameters.ActionSpec = ActionSpec.MakeContinuous(LegacyAgentObservations.ActionCount);
+            behavior.BrainParameters.VectorObservationSize = AgentObservations.CombatChannels;
+            behavior.BrainParameters.ActionSpec = ActionSpec.MakeContinuous(AgentActions.Count);
             behavior.DeterministicInference = true;
             behavior.InferenceDevice = InferenceDevice.Burst;
             behavior.Model = model;
 
+            // Mirrors ShipAgentFactory's composition — asteroids ride an entity-attention buffer, not the flat vector.
+            var obstacleBuffer = host.AddComponent<BufferSensorComponent>();
+            obstacleBuffer.SensorName = AgentObservations.ObstacleSensorName;
+            obstacleBuffer.ObservableSize = AgentObservations.ObstacleTokenFloats;
+            obstacleBuffer.MaxNumObservables = AgentObservations.ObstacleTokenCap;
+
             agent = host.AddComponent<LivePilotAgent>();
-            agent.Bind(mailbox, ctx.Scout);
+            agent.Bind(mailbox, ctx.Scout, obstacleBuffer);
             host.SetActive(true);
 
             leashCenter = self.Kinematics.pos;

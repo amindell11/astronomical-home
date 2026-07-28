@@ -17,6 +17,10 @@ namespace Game.RLHarness
         // (its buffer ceiling), so 64 covers everything the obs pipeline can present. See the occupancy probe (PR body).
         public const int ObstacleTokenCap = 64;
 
+        // Also baked into the ONNX at export: a host that names the buffer differently gets a rejected model,
+        // so training and gameplay read it from here rather than each spelling it out.
+        public const string ObstacleSensorName = "AsteroidBuffer";
+
         // SpawnSettings.asset ceiling: largest mesh volume 121.41 at massScale 2.5 → radius ≈ 4.17.
         public const float SpawnSettingsMaxAsteroidRadius = 4.17f;
 

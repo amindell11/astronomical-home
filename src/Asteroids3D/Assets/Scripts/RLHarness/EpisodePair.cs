@@ -58,7 +58,7 @@ namespace Game.RLHarness
             return new EpisodePair(units, projectiles, arena.Offset, agent, baseline);
         }
 
-        /// <summary>The canonical ShipAgent composition: pair plus a configured <see cref="AgentChooser"/> (injected opponent, primary projectile speed) — the single recipe every agent host (training, eval, tests) shares.</summary>
+        /// <summary>The canonical ShipAgent composition: pair plus a configured <see cref="AgentChooser"/> (injected opponent) — the single recipe every agent host (training, eval, tests) shares.</summary>
         public static EpisodePair SpawnWithAgentChooser(UnitService units, ArenaContext arena,
             IProjectileService projectiles, in RewardSpec spec, HarnessAssets assets, out AgentChooser chooser)
         {
@@ -66,8 +66,7 @@ namespace Game.RLHarness
             var pair = Spawn(units, arena, projectiles, in spec, (agentShip, baselineShip) =>
             {
                 created = new AgentChooser();
-                created.Configure(baselineShip,
-                    agentShip.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary));
+                created.Configure(baselineShip);
                 return created;
             }, assets);
             chooser = created;
@@ -98,7 +97,7 @@ namespace Game.RLHarness
         private static AgentChooser InstallAgentChooser(Ship ship, Ship opponent)
         {
             var chooser = new AgentChooser();
-            chooser.Configure(opponent, ship.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary));
+            chooser.Configure(opponent);
             var commander = ship.GetComponentInChildren<AICommander>();
             commander.GetComponentInChildren<Brain>().InstallChooser(chooser);
             return chooser;
