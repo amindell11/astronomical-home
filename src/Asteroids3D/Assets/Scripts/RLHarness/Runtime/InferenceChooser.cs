@@ -7,6 +7,7 @@ using Ships.Command;
 using Unity.InferenceEngine;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Policies;
+using Unity.MLAgents.Sensors;
 using UnityEngine;
 
 namespace Game.RLHarness
@@ -17,6 +18,9 @@ namespace Game.RLHarness
     {
         [Tooltip("Trained ShipCombat checkpoint (ONNX).")]
         [SerializeField] private ModelAsset model;
+
+        [Tooltip("The observation/action contract the checkpoint above was exported for. Must match the model or ML-Agents rejects it on load.")]
+        [SerializeField] private PolicySurface surface = PolicySurface.Legacy72;
 
         [Tooltip("Radius of the border observation's leash, centered on the compose-time position; the trained policy avoids the edge. Author a huge value for no leash. 120 matches training.")]
         [SerializeField] private float leashRadius = 120f;
@@ -31,10 +35,12 @@ namespace Game.RLHarness
 
         public InferenceChooser() { }
 
-        internal InferenceChooser(ModelAsset model, float leashRadius)
+        internal InferenceChooser(ModelAsset model, float leashRadius,
+            PolicySurface surface = PolicySurface.Legacy72)
         {
             this.model = model;
             this.leashRadius = leashRadius;
+            this.surface = surface;
         }
 
         internal ModelAsset Model => model;
@@ -94,18 +100,31 @@ namespace Game.RLHarness
             host.transform.SetParent(self.transform, false);
             host.SetActive(false);
 
+            var legacy = surface == PolicySurface.Legacy72;
+
             var behavior = host.AddComponent<BehaviorParameters>();
             behavior.BehaviorName = ShipCombatPolicy.BehaviorName;
             behavior.BehaviorType = BehaviorType.InferenceOnly;
-            // Legacy 72/4 spec — must match the shipped checkpoint until a manual-aim model replaces it (see LegacyAgentObservations).
-            behavior.BrainParameters.VectorObservationSize = LegacyAgentObservations.Size;
-            behavior.BrainParameters.ActionSpec = ActionSpec.MakeContinuous(LegacyAgentObservations.ActionCount);
+            behavior.BrainParameters.VectorObservationSize =
+                legacy ? LegacyAgentObservations.Size : AgentObservations.CombatChannels;
+            behavior.BrainParameters.ActionSpec = ActionSpec.MakeContinuous(
+                legacy ? LegacyAgentObservations.ActionCount : AgentActions.Count);
             behavior.DeterministicInference = true;
             behavior.InferenceDevice = InferenceDevice.Burst;
             behavior.Model = model;
 
+            // Mirrors ShipAgentFactory's composition — asteroids ride an entity-attention buffer, not the flat vector.
+            BufferSensorComponent obstacleBuffer = null;
+            if (!legacy)
+            {
+                obstacleBuffer = host.AddComponent<BufferSensorComponent>();
+                obstacleBuffer.SensorName = AgentObservations.ObstacleSensorName;
+                obstacleBuffer.ObservableSize = AgentObservations.ObstacleTokenFloats;
+                obstacleBuffer.MaxNumObservables = AgentObservations.ObstacleTokenCap;
+            }
+
             agent = host.AddComponent<LivePilotAgent>();
-            agent.Bind(mailbox, ctx.Scout);
+            agent.Bind(mailbox, ctx.Scout, surface, obstacleBuffer);
             host.SetActive(true);
 
             leashCenter = self.Kinematics.pos;
