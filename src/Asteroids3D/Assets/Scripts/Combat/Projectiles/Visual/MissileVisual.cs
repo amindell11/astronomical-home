@@ -30,7 +30,7 @@ namespace Combat.Projectile.Visual
 
         private void HandleDetonated(Vector3 position)
         {
-            if (!GameSettings.VfxEnabled || !explosionPrefab) return;
+            if (!GameSettings.PresentationEnabled || !explosionPrefab) return;
             SimplePool<PooledVFX>.Get(explosionPrefab, position, Quaternion.identity);
         }
     }

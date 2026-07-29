@@ -8,23 +8,15 @@ namespace Utils
     /// </summary>
     public static class GameSettings
     {
-        public static bool VfxEnabled { get; private set; } = true;
-
         /// <summary>
-        /// Off makes every ship's embedded visual rig self-disable — renderer-, audio- and
-        /// particle-free while the ship remains fully simulated.
+        /// Off makes every ship's embedded visual rig self-disable and suppresses one-shot effects —
+        /// renderer-, audio- and particle-free while the ship remains fully simulated.
         /// </summary>
         public static bool PresentationEnabled { get; private set; } = true;
 
         // Statics outlive editor play sessions, so restore defaults before any scene loads.
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetToSessionDefaults()
-        {
-            VfxEnabled = true;
-            PresentationEnabled = true;
-        }
-
-        public static void SetVfxEnabled(bool enabled) => VfxEnabled = enabled;
+        private static void ResetToSessionDefaults() => PresentationEnabled = true;
 
         public static void SetPresentationEnabled(bool enabled) => PresentationEnabled = enabled;
     }

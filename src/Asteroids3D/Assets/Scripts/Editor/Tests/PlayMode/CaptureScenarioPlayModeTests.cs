@@ -22,13 +22,11 @@ namespace Tests.PlayMode
     {
         private GameObject sessionRoot;
         private GameSession session;
-        private bool savedVfx;
         private bool savedPresentation;
 
         public override void SetUp()
         {
             base.SetUp();
-            savedVfx = GameSettings.VfxEnabled;
             savedPresentation = GameSettings.PresentationEnabled;
         }
 
@@ -42,8 +40,7 @@ namespace Tests.PlayMode
             session = null;
             CaptureRecorder.SweepStranded();
 
-            // ComposeSession overrides these process-globals and TeardownSession does not restore them.
-            GameSettings.SetVfxEnabled(savedVfx);
+            // ComposeSession overrides this process-global and TeardownSession does not restore it.
             GameSettings.SetPresentationEnabled(savedPresentation);
 
             base.TearDown();
@@ -68,7 +65,6 @@ namespace Tests.PlayMode
                     sectorEntry = null,
                     buildPlayer = false,
                     presentation = true,
-                    vfx = true,
                 }
             };
             yield return host.ComposeSession(session);
