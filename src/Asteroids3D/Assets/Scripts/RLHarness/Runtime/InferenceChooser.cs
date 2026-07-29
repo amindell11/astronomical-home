@@ -14,7 +14,7 @@ namespace Game.RLHarness
 {
     /// <summary>Editor-authorable trained policy: self-hosts a <see cref="LivePilotAgent"/> in InferenceOnly mode on first Decide, targets the context's tracked enemy, and paces boundary RequestDecision calls on the Academy auto-clock.</summary>
     [Serializable]
-    public sealed class InferenceChooser : IIntentChooser
+    public sealed class InferenceChooser : IIntentChooser, IPolicyReadout
     {
         [Tooltip("Trained ShipCombat checkpoint (ONNX).")]
         [SerializeField] private ModelAsset model;
@@ -40,6 +40,9 @@ namespace Game.RLHarness
 
         internal ModelAsset Model => model;
         internal LivePilotAgent Agent => agent;
+
+        public int Count => mailbox.Count;
+        public PolicyAction ActionFromNewest(int index) => mailbox.ActionFromNewest(index);
 
         public NavigationIntent Decide(AIContext ctx, float dt)
         {
