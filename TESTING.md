@@ -70,7 +70,7 @@ To avoid repeated Unity re-import/build cost in fresh worktrees, use the persist
 
 # During PR review loop: inspect unresolved feedback, then revise branch
 ./scripts/agent_worktree_pool.sh review-comments agent-1
-./scripts/agent_worktree_pool.sh revise agent-1 -- -Mode Smoke -ScopeType Feature -ScopeName camera
+./scripts/agent_worktree_pool.sh revise agent-1 -- -Mode Both -ScopeType Feature -ScopeName camera
 
 # Release lock when done
 ./scripts/agent_worktree_pool.sh release agent-1
