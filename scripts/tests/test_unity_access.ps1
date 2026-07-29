@@ -23,7 +23,8 @@ function Invoke-Coordinator {
         [string]$ProjectPath = "",
         [int]$WaitSeconds = 0,
         [int]$TicketTtlSeconds = 900,
-        [int]$BootTtlSeconds = 180
+        [int]$BootTtlSeconds = 180,
+        [int]$OwnerTtlSeconds = 300
     )
     $arguments = @(
         "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $Coordinator,
@@ -32,6 +33,7 @@ function Invoke-Coordinator {
         "-ProcessSnapshotPath", $Snapshot,
         "-TicketTtlSeconds", $TicketTtlSeconds,
         "-BootTtlSeconds", $BootTtlSeconds,
+        "-OwnerTtlSeconds", $OwnerTtlSeconds,
         "-Json"
     )
     if (-not [string]::IsNullOrWhiteSpace($Lease)) { $arguments += @("-Lease", $Lease, "-Slot", $Slot, "-Mode", $Mode) }
@@ -284,49 +286,43 @@ try {
         }
         return $null
     }
-    function Get-OwnerAgeSeconds {
-        param([string]$Lease)
-        $json = Read-OwnerJson $Lease
-        if ($null -eq $json) { return [double]::MaxValue }
-        return ([datetime]::UtcNow - [datetime]::Parse([string]$json.updatedAt).ToUniversalTime()).TotalSeconds
-    }
-
     Write-Snapshot @()
     $sleepProbe = Join-Path $Root "batch-sleep.ps1"
     [System.IO.File]::WriteAllText($sleepProbe, "Start-Sleep -Seconds 25`r`nexit 3`r`n", $Utf8NoBom)
     $liveOut = Join-Path $Root "batch-live.out"
-    # BootTtl far above the batch boot window, so a freed lane can only mean an explicit release.
+    # OwnerTtl well below the child's run and BootTtl well above the boot window, so a surviving
+    # owner can only mean holder-backing and a freed lane can only mean an explicit release.
     $liveRunner = Start-Process powershell -PassThru -NoNewWindow -RedirectStandardOutput $liveOut -ArgumentList @(
         "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $Coordinator,
         "-Action", "RunBatch", "-Lease", "batch-live", "-Slot", "agent-1", "-Mode", "batch",
         "-ProjectPath", $projA, "-BatchScript", $sleepProbe,
         "-StateRoot", $State, "-ProcessSnapshotPath", $Snapshot,
-        "-BootTtlSeconds", "600", "-BatchBootSeconds", "2", "-PollSeconds", "1", "-Json")
+        "-OwnerTtlSeconds", "5", "-BootTtlSeconds", "600", "-BatchBootSeconds", "2",
+        "-PollSeconds", "1", "-Json")
     try {
         $sw = [System.Diagnostics.Stopwatch]::StartNew()
         while ($null -eq (Read-OwnerJson "batch-live") -and $sw.Elapsed.TotalSeconds -lt 30) { Start-Sleep -Milliseconds 200 }
         Assert-True ($null -ne (Read-OwnerJson "batch-live")) "RunBatch takes a project owner lease"
+        Assert-True ([int](Read-OwnerJson "batch-live").holderProcessId -gt 0) "the batch owner records its holding coordinator"
 
         $sw.Restart()
         $laneFree = $false
         while (-not $laneFree -and -not $liveRunner.HasExited -and $sw.Elapsed.TotalSeconds -lt 30) {
             Start-Sleep -Milliseconds 500
-            $laneFree = $null -eq (Invoke-Coordinator -Action Status -BootTtlSeconds 600).value.boot
+            $laneFree = $null -eq (Invoke-Coordinator -Action Status -BootTtlSeconds 600 -OwnerTtlSeconds 5).value.boot
         }
         Assert-True $laneFree "RunBatch releases the boot lane once the startup window closes"
         Assert-True (-not $liveRunner.HasExited) "the boot lane is freed while the child is still running"
-        Assert-True ($null -ne (Read-OwnerJson "batch-live")) "releasing the boot lane keeps the owner lease"
 
-        # The coordinator rewrites owner.json on its poll cadence, so the backdate can lose a race.
-        $sw.Restart()
-        $backdated = $false
-        while (-not $backdated -and $sw.Elapsed.TotalSeconds -lt 15) {
-            try { Backdate-Owner "batch-live"; $backdated = $true } catch { Start-Sleep -Milliseconds 200 }
-        }
-        Assert-True $backdated "backdated the running batch owner"
-        $sw.Restart()
-        while ((Get-OwnerAgeSeconds "batch-live") -gt 60 -and $sw.Elapsed.TotalSeconds -lt 30) { Start-Sleep -Milliseconds 500 }
-        Assert-True ((Get-OwnerAgeSeconds "batch-live") -lt 60) "RunBatch renews the owner lease while the child runs"
+        # Past OwnerTtl: a pid-less owner would be reaped by any reader; a holder-backed one is not.
+        Start-Sleep -Seconds 8
+        Assert-True (-not $liveRunner.HasExited) "the child is still running past the owner TTL"
+        $aged = Invoke-Coordinator -Action Status -OwnerTtlSeconds 5 -BootTtlSeconds 600
+        Assert-Equal @($aged.value.owners | Where-Object { $_.lease -eq "batch-live" }).Count 1 `
+            "the owner lease outlives OwnerTtlSeconds while its coordinator runs"
+        $contend = Invoke-Coordinator -Action Acquire -Lease batch-thief -ProjectPath $projA -TicketTtlSeconds 900
+        Assert-Equal $contend.value.status "waiting" "a running batch child still owns its project past the TTL"
+        [void](Invoke-Coordinator -Action Cancel -Lease batch-thief)
     }
     finally {
         if (-not $liveRunner.HasExited) { [void]$liveRunner.WaitForExit(120000) }

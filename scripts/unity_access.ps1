@@ -223,11 +223,20 @@ function Ensure-Ticket {
     return [pscustomobject]@{ file = $path; data = [pscustomobject]$ticket }
 }
 
+function Get-MemberValue {
+    param([object]$Object, [string]$Name)
+    if ($null -eq $Object -or $null -eq $Object.PSObject.Properties[$Name]) { return $null }
+    return $Object.PSObject.Properties[$Name].Value
+}
+
 function Test-OwnerStale {
     param([object]$Owner)
     if ([int]$Owner.processId -gt 0) {
         return @(Get-RelevantUnityProcesses | Where-Object { $_.processId -eq [int]$Owner.processId }).Count -eq 0
     }
+    # A lease whose holding coordinator is still running is busy, however long its opaque child runs.
+    $holder = [int](Get-MemberValue $Owner "holderProcessId")
+    if ($holder -gt 0 -and $null -ne (Get-Process -Id $holder -ErrorAction SilentlyContinue)) { return $false }
     return ([datetime]::UtcNow - (Get-DateValue $Owner.updatedAt)).TotalSeconds -gt $OwnerTtlSeconds
 }
 
@@ -367,8 +376,7 @@ function Request-Access {
 function Try-AcquireAccess {
     $current = Get-ProjectOwner $ProjectKey
     if ($null -ne $current -and [string]$current.lease -eq $Lease) {
-        $current.updatedAt = [datetime]::UtcNow.ToString("o")
-        Write-JsonFile (Join-Path (Join-Path $OwnersRoot $ProjectKey) "owner.json") $current
+        Write-OwnerHeartbeat $current
         return [ordered]@{ status = "acquired"; owner = $current; renewed = $true }
     }
 
@@ -402,6 +410,7 @@ function Try-AcquireAccess {
         projectPath = $ResolvedProject
         projectKey = $ProjectKey
         processId = 0
+        holderProcessId = $PID
         acquiredAt = $now
         updatedAt = $now
     }
@@ -424,14 +433,34 @@ function Acquire-Access {
 # A pid-less owner ages out on OwnerTtlSeconds alone; anything longer-lived must keep it fresh.
 function Write-OwnerHeartbeat {
     param([object]$Owner)
+    # Renewing hands the lease to whoever renewed it; a dead holder falls back to the TTL.
+    $Owner | Add-Member -NotePropertyName holderProcessId -NotePropertyValue $PID -Force
     $Owner.updatedAt = [datetime]::UtcNow.ToString("o")
     Write-JsonFile (Join-Path (Join-Path $OwnersRoot ([string]$Owner.projectKey)) "owner.json") $Owner
 }
 
-function Test-BootComplete {
-    param([string]$LogPath)
-    if ([string]::IsNullOrWhiteSpace($LogPath) -or -not (Test-Path -LiteralPath $LogPath)) { return $false }
-    return [bool](Select-String -LiteralPath $LogPath -Pattern $BootCompletePattern -Quiet -ErrorAction SilentlyContinue)
+# Frees the machine-wide lane once the caller's declared log shows startup is past the contention
+# window, so an opaque child only serializes its boot. Runs beside the blocking child, then exits.
+function Start-BootLaneSidecar {
+    $settings = @{
+        coordinator = $PSCommandPath
+        lease = $Lease
+        stateRoot = $AccessRoot
+        logPath = $BatchLogPath
+        pattern = $BootCompletePattern
+        pollSeconds = [Math]::Max(1, $PollSeconds)
+        deadline = ([datetime]::UtcNow.AddSeconds($(if ($BatchBootSeconds -gt 0) { $BatchBootSeconds } else { $BootTtlSeconds }))).ToString("o")
+    }
+    return Start-Job -ScriptBlock {
+        param($s)
+        while ([datetime]::UtcNow -lt [datetime]::Parse($s.deadline).ToUniversalTime()) {
+            if (-not [string]::IsNullOrWhiteSpace($s.logPath) -and (Test-Path -LiteralPath $s.logPath) -and
+                (Select-String -LiteralPath $s.logPath -Pattern $s.pattern -Quiet -ErrorAction SilentlyContinue)) { break }
+            Start-Sleep -Seconds $s.pollSeconds
+        }
+        & powershell -NoProfile -ExecutionPolicy Bypass -File $s.coordinator -Action BootRelease `
+            -Lease $s.lease -StateRoot $s.stateRoot -Json | Out-Null
+    } -ArgumentList $settings
 }
 
 function Try-AcquireBoot {
@@ -616,27 +645,20 @@ function Run-TrackedBatch {
         if ([string]::IsNullOrWhiteSpace($BatchScript)) { throw "RunBatch requires -BatchScript." }
         $boot = Acquire-Boot
         if ($boot.status -ne "boot_acquired") { return $boot }
-        $bootHeld = $true
+        # A Unity child launched through Start-Process reports HasExited long before Unity is done,
+        # so the child stays a blocking call and the lane is freed from beside it.
+        $sidecar = Start-BootLaneSidecar
         try {
-            $childArgs = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", (Resolve-FullPath $BatchScript)) + $BatchArguments
-            $child = Start-Process -FilePath "powershell" -ArgumentList $childArgs -NoNewWindow -PassThru
-            # Touching Handle keeps ExitCode readable after the child exits.
-            $null = $child.Handle
-            # The child is opaque, so the lane covers startup only: caller's declared log, else a timed fallback.
-            $bootWindow = if ($BatchBootSeconds -gt 0) { $BatchBootSeconds } else { $BootTtlSeconds }
-            $bootDeadline = [datetime]::UtcNow.AddSeconds($bootWindow)
-            while (-not $child.HasExited) {
-                if ($bootHeld -and ([datetime]::UtcNow -ge $bootDeadline -or (Test-BootComplete $BatchLogPath))) {
-                    [void](Release-Boot)
-                    $bootHeld = $false
-                }
-                Write-OwnerHeartbeat $acquired.owner
-                Start-Sleep -Seconds ([Math]::Max(1, $PollSeconds))
-            }
-            $child.WaitForExit()
-            $code = $child.ExitCode
+            & powershell -NoProfile -ExecutionPolicy Bypass -File (Resolve-FullPath $BatchScript) @BatchArguments
+            $code = $LASTEXITCODE
         }
-        finally { if ($bootHeld) { [void](Release-Boot) } }
+        finally {
+            if ($null -ne $sidecar) {
+                Stop-Job $sidecar -ErrorAction SilentlyContinue
+                Remove-Job $sidecar -Force -ErrorAction SilentlyContinue
+            }
+            [void](Release-Boot)
+        }
         return [ordered]@{ status = "batch_complete"; exitCode = $code }
     }
     finally { [void](Release-Access) }
