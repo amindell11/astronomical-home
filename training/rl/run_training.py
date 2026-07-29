@@ -7,12 +7,12 @@ boots its own editor and pegs the CPU for the run's whole wall-clock.
 """
 import argparse
 import os
-import re
 import subprocess
 import sys
-import time
 from pathlib import Path
 
+from driver_common import (ARMED_MARKER, PACING_MARKER, config_has_self_play, config_run_id,
+                           default_unity_exe, episode_rows, log_contains, wait_for)
 from unity_access import release_editor, start_editor
 
 RL_DIR = Path(__file__).resolve().parent
@@ -20,46 +20,6 @@ REPO_ROOT = RL_DIR.parent.parent
 PROJECT = REPO_ROOT / "src" / "Asteroids3D"
 RESULTS = REPO_ROOT / "results" / "rl-training"
 START_FLAG = RESULTS / "start-play.flag"
-ARMED_MARKER = "[TrainingBootstrap] armed"
-PACING_MARKER = "[PacingContract] holds"
-EPISODE_LINE = re.compile(r"\[TrainingHost\] arena \d+ episode \d+:.*terminals=(\d+) truncations=(\d+)")
-
-
-def default_unity_exe() -> Path:
-    version = re.search(r"m_EditorVersion: (\S+)",
-                        (PROJECT / "ProjectSettings" / "ProjectVersion.txt").read_text()).group(1)
-    candidates = [
-        Path(rf"D:\Programs\Unity\Editor\{version}\Editor\Unity.exe"),
-        Path(rf"C:\Program Files\Unity\Hub\Editor\{version}\Editor\Unity.exe"),
-    ]
-    for c in candidates:
-        if c.exists():
-            return c
-    sys.exit(f"FAIL: Unity {version} not found; pass --unity (tried {[str(c) for c in candidates]})")
-
-
-def wait_for(predicate, what: str, timeout_s: float, poll_s: float = 2.0):
-    deadline = time.monotonic() + timeout_s
-    while time.monotonic() < deadline:
-        if predicate():
-            return
-        time.sleep(poll_s)
-    sys.exit(f"FAIL: timed out after {timeout_s:.0f}s waiting for {what}")
-
-
-def log_contains(log_path: Path, needle: str) -> bool:
-    return log_path.exists() and needle in log_path.read_text(errors="replace")
-
-
-def config_run_id(config: Path) -> str:
-    match = re.search(r"^\s*run_id:\s*(\S+)", config.read_text(), re.MULTILINE)
-    if not match:
-        sys.exit(f"FAIL: no checkpoint_settings run_id in {config}; pass --run-id")
-    return match.group(1)
-
-
-def config_has_self_play(config: Path) -> bool:
-    return re.search(r"^\s*self_play:", config.read_text(), re.MULTILINE) is not None
 
 
 def main() -> None:
@@ -76,7 +36,7 @@ def main() -> None:
     if args.resume and args.force:
         parser.error("--resume and --force are mutually exclusive")
 
-    unity = args.unity or default_unity_exe()
+    unity = args.unity or default_unity_exe(PROJECT)
     config = args.config or RL_DIR / ("ppo_ship_combat_selfplay.yaml" if args.self_play else "ppo_ship_combat.yaml")
     # A flag/YAML mismatch trains the wrong thing while looking healthy — fail before boot.
     if args.self_play and not config_has_self_play(config):
@@ -135,10 +95,10 @@ def main() -> None:
     log_text = editor_log.read_text(errors="replace")
     if PACING_MARKER not in log_text:
         failures.append(f"pacing-contract marker '{PACING_MARKER}' missing from {editor_log}")
-    episode_lines = EPISODE_LINE.findall(log_text)
-    if episode_lines:
-        terminals, truncations = (int(n) for n in episode_lines[-1])
-        print(f"episodes={len(episode_lines)} terminals={terminals} truncations={truncations}")
+    rows = episode_rows(log_text)
+    if rows:
+        _, terminals, truncations = rows[-1]
+        print(f"episodes={len(rows)} terminals={terminals} truncations={truncations}")
 
     if failures:
         sys.exit("FAIL:\n  " + "\n  ".join(failures))

@@ -1,5 +1,5 @@
 param(
-    [ValidateSet("Status", "Request", "Acquire", "Wait", "Attach", "Adopt", "Release", "Cancel", "BootAcquire", "BootRelease", "StartEditor", "RunBatch")]
+    [ValidateSet("Status", "Request", "Acquire", "Wait", "Attach", "AttachBatchChild", "Adopt", "Release", "Cancel", "BootAcquire", "BootRelease", "StartEditor", "RunBatch")]
     [string]$Action = "Status",
     [string]$Lease = "",
     [string]$Slot = "",
@@ -22,6 +22,8 @@ param(
     [switch]$SkipMcp,
     [string]$BatchScript = "",
     [string[]]$BatchArguments = @(),
+    [string]$BatchLogPath = "",
+    [int]$BatchBootSeconds = 0,
     [switch]$Json
 )
 
@@ -34,6 +36,9 @@ $ExitOwnership = 22
 $ExitIncomplete = 23
 $ExitAdoptRefused = 24
 $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+# Boot ends once licensing + global package-cache work gives way to per-project Library work
+# (postmortem D6). Sibling copy in scripts/unity_test_agent.ps1, which drives the lane itself.
+$BootCompletePattern = 'Application\.AssetDatabase Initial Refresh Start'
 
 function Resolve-FullPath {
     param([string]$Path, [string]$Base = (Get-Location).Path)
@@ -218,8 +223,18 @@ function Ensure-Ticket {
     return [pscustomobject]@{ file = $path; data = [pscustomobject]$ticket }
 }
 
+function Get-MemberValue {
+    param([object]$Object, [string]$Name)
+    if ($null -eq $Object -or $null -eq $Object.PSObject.Properties[$Name]) { return $null }
+    return $Object.PSObject.Properties[$Name].Value
+}
+
 function Test-OwnerStale {
     param([object]$Owner)
+    # A lease whose holding coordinator still runs is busy, whatever its opaque child is doing —
+    # checked first so a child that exits just before the release does not open a reap window.
+    $holder = [int](Get-MemberValue $Owner "holderProcessId")
+    if ($holder -gt 0 -and $null -ne (Get-Process -Id $holder -ErrorAction SilentlyContinue)) { return $false }
     if ([int]$Owner.processId -gt 0) {
         return @(Get-RelevantUnityProcesses | Where-Object { $_.processId -eq [int]$Owner.processId }).Count -eq 0
     }
@@ -362,8 +377,7 @@ function Request-Access {
 function Try-AcquireAccess {
     $current = Get-ProjectOwner $ProjectKey
     if ($null -ne $current -and [string]$current.lease -eq $Lease) {
-        $current.updatedAt = [datetime]::UtcNow.ToString("o")
-        Write-JsonFile (Join-Path (Join-Path $OwnersRoot $ProjectKey) "owner.json") $current
+        Write-OwnerHeartbeat $current
         return [ordered]@{ status = "acquired"; owner = $current; renewed = $true }
     }
 
@@ -397,6 +411,7 @@ function Try-AcquireAccess {
         projectPath = $ResolvedProject
         projectKey = $ProjectKey
         processId = 0
+        holderProcessId = $PID
         acquiredAt = $now
         updatedAt = $now
     }
@@ -416,13 +431,57 @@ function Acquire-Access {
     } while ($true)
 }
 
+# A pid-less owner ages out on OwnerTtlSeconds alone; anything longer-lived must keep it fresh.
+function Write-OwnerHeartbeat {
+    param([object]$Owner)
+    # Renewing hands the lease to whoever renewed it; a dead holder falls back to the TTL.
+    $Owner | Add-Member -NotePropertyName holderProcessId -NotePropertyValue $PID -Force
+    $Owner.updatedAt = [datetime]::UtcNow.ToString("o")
+    Write-JsonFile (Join-Path (Join-Path $OwnersRoot ([string]$Owner.projectKey)) "owner.json") $Owner
+}
+
+# Claims the child's Unity, then frees the machine-wide lane once the caller's declared log shows
+# startup is past the contention window. Runs beside the blocking child and exits on its own.
+# Both halves matter: an unclaimed child blocks every project no matter who holds the lane.
+function Start-BootLaneSidecar {
+    $settings = @{
+        coordinator = $PSCommandPath
+        lease = $Lease
+        stateRoot = $AccessRoot
+        snapshot = $ProcessSnapshotPath
+        logPath = $BatchLogPath
+        pattern = $BootCompletePattern
+        pollSeconds = [Math]::Max(1, $PollSeconds)
+        deadline = ([datetime]::UtcNow.AddSeconds($(if ($BatchBootSeconds -gt 0) { $BatchBootSeconds } else { $BootTtlSeconds }))).ToString("o")
+    }
+    return Start-Job -ScriptBlock {
+        param($s)
+        $common = @("-Lease", $s.lease, "-StateRoot", $s.stateRoot, "-Json")
+        if (-not [string]::IsNullOrWhiteSpace($s.snapshot)) { $common += @("-ProcessSnapshotPath", $s.snapshot) }
+        $attached = $false
+        while ($true) {
+            if (-not $attached) {
+                $out = & powershell -NoProfile -ExecutionPolicy Bypass -File $s.coordinator `
+                    -Action AttachBatchChild @common 2>&1
+                $attached = [bool]([string]$out -match '"status":"attached"')
+            }
+            $bootDone = [datetime]::UtcNow -ge [datetime]::Parse($s.deadline).ToUniversalTime()
+            if (-not $bootDone -and -not [string]::IsNullOrWhiteSpace($s.logPath) -and (Test-Path -LiteralPath $s.logPath)) {
+                $bootDone = [bool](Select-String -LiteralPath $s.logPath -Pattern $s.pattern -Quiet -ErrorAction SilentlyContinue)
+            }
+            if ($bootDone) { break }
+            Start-Sleep -Seconds $s.pollSeconds
+        }
+        & powershell -NoProfile -ExecutionPolicy Bypass -File $s.coordinator -Action BootRelease @common | Out-Null
+    } -ArgumentList $settings
+}
+
 function Try-AcquireBoot {
     $owner = Find-OwnerByLease $Lease
     if ($null -eq $owner) { return [ordered]@{ status = "ownership_mismatch"; note = "BootAcquire requires holding a project owner lease." } }
 
-    # Heartbeat: a pid-less owner queued behind the boot lane must not age past OwnerTtlSeconds while it waits.
-    $owner.updatedAt = [datetime]::UtcNow.ToString("o")
-    Write-JsonFile (Join-Path (Join-Path $OwnersRoot ([string]$owner.projectKey)) "owner.json") $owner
+    # A pid-less owner queued behind the boot lane must not age out while it waits.
+    Write-OwnerHeartbeat $owner
 
     $boot = Get-BootOwner
     if ($null -ne $boot -and [string]$boot.lease -eq $Lease) {
@@ -479,6 +538,21 @@ function Attach-Process {
         Write-JsonFile (Join-Path $BootRoot "boot.json") $boot
     }
     return [ordered]@{ status = "attached"; owner = $owner }
+}
+
+# A batch child's Unity names itself to nobody, so the owner stays pid-less and its own child reads
+# as an unmanaged process that blocks every project. Claim it as soon as it appears.
+function Attach-BatchChild {
+    $owner = Find-OwnerByLease $Lease
+    if ($null -eq $owner) { return [ordered]@{ status = "ownership_mismatch" } }
+    if ([int]$owner.processId -gt 0) { return [ordered]@{ status = "attached"; owner = $owner } }
+    $target = Normalize-Path ([string]$owner.projectPath)
+    $tracked = @(Get-TrackedPids)
+    $match = @(Get-RelevantUnityProcesses | Where-Object {
+        $_.batch -and $_.normalizedProjectPath -eq $target -and $tracked -notcontains $_.processId })
+    if ($match.Count -eq 0) { return [ordered]@{ status = "batch_child_absent" } }
+    $script:ProcessId = [int]$match[0].processId
+    return Attach-Process
 }
 
 # Operator-invoked recovery for an orphaned untracked editor; guards stay minimal because the PID is supplied explicitly.
@@ -567,8 +641,8 @@ function Start-TrackedEditor {
     try {
         $exe = Resolve-FullPath $UnityPath
         if (-not (Test-Path -LiteralPath $exe)) { throw "Unity executable not found: $exe" }
-        # Caller-supplied args (RL batch launches) win verbatim; empty falls back to today's interactive open.
-        $launchArgs = if ($EditorArgs.Count -gt 0) { $EditorArgs } else { @("-projectPath", $ResolvedProject) }
+        # The editor must open the project whose lease it holds, so caller args compose after -projectPath.
+        $launchArgs = @("-projectPath", $ResolvedProject) + $EditorArgs
         if ($SkipMcp.IsPresent) {
             $process = Start-Process -FilePath $exe -ArgumentList $launchArgs -PassThru
         }
@@ -599,12 +673,20 @@ function Run-TrackedBatch {
         if ([string]::IsNullOrWhiteSpace($BatchScript)) { throw "RunBatch requires -BatchScript." }
         $boot = Acquire-Boot
         if ($boot.status -ne "boot_acquired") { return $boot }
-        # The child script is opaque to the coordinator, so the boot lane stays held for its whole run.
+        # A Unity child launched through Start-Process reports HasExited long before Unity is done,
+        # so the child stays a blocking call and the lane is freed from beside it.
+        $sidecar = Start-BootLaneSidecar
         try {
             & powershell -NoProfile -ExecutionPolicy Bypass -File (Resolve-FullPath $BatchScript) @BatchArguments
             $code = $LASTEXITCODE
         }
-        finally { [void](Release-Boot) }
+        finally {
+            if ($null -ne $sidecar) {
+                Stop-Job $sidecar -ErrorAction SilentlyContinue
+                Remove-Job $sidecar -Force -ErrorAction SilentlyContinue
+            }
+            [void](Release-Boot)
+        }
         return [ordered]@{ status = "batch_complete"; exitCode = $code }
     }
     finally { [void](Release-Access) }
@@ -654,6 +736,7 @@ $result = switch ($Action) {
     "Acquire" { Require-Lease; Acquire-Access }
     "Wait" { Require-Lease; if ($WaitSeconds -le 0) { $WaitSeconds = 60 }; Acquire-Access }
     "Attach" { Require-Lease; if ($ProcessId -le 0) { throw "Attach requires -ProcessId." }; Attach-Process }
+    "AttachBatchChild" { Require-Lease; Attach-BatchChild }
     "Adopt" { Require-Lease; if ($ProcessId -le 0) { throw "Adopt requires -ProcessId." }; Adopt-Process }
     "Release" { Require-Lease; Release-Access }
     "Cancel" { Require-Lease; Cancel-Request }

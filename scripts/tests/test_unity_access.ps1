@@ -23,7 +23,8 @@ function Invoke-Coordinator {
         [string]$ProjectPath = "",
         [int]$WaitSeconds = 0,
         [int]$TicketTtlSeconds = 900,
-        [int]$BootTtlSeconds = 180
+        [int]$BootTtlSeconds = 180,
+        [int]$OwnerTtlSeconds = 300
     )
     $arguments = @(
         "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $Coordinator,
@@ -32,6 +33,7 @@ function Invoke-Coordinator {
         "-ProcessSnapshotPath", $Snapshot,
         "-TicketTtlSeconds", $TicketTtlSeconds,
         "-BootTtlSeconds", $BootTtlSeconds,
+        "-OwnerTtlSeconds", $OwnerTtlSeconds,
         "-Json"
     )
     if (-not [string]::IsNullOrWhiteSpace($Lease)) { $arguments += @("-Lease", $Lease, "-Slot", $Slot, "-Mode", $Mode) }
@@ -273,15 +275,97 @@ try {
     Assert-Equal @($afterBatch.value.owners).Count 0 "run batch releases owner"
     Assert-True ($null -eq $afterBatch.value.boot) "run batch releases boot lane"
 
-    # StartEditor -EditorArgs launches the caller's args verbatim (RL batch path) and attaches the pid.
+    # RunBatch renews the owner lease for the child's whole run but frees the boot lane at startup.
+    function Read-OwnerJson {
+        param([string]$Lease)
+        $dir = Join-Path $State "owners"
+        if (-not (Test-Path -LiteralPath $dir)) { return $null }
+        foreach ($file in @(Get-ChildItem $dir -Recurse -Filter "owner.json" -ErrorAction SilentlyContinue)) {
+            try { $json = Get-Content $file.FullName -Raw | ConvertFrom-Json } catch { continue }
+            if ([string]$json.lease -eq $Lease) { return $json }
+        }
+        return $null
+    }
+    Write-Snapshot @()
+    $sleepProbe = Join-Path $Root "batch-sleep.ps1"
+    [System.IO.File]::WriteAllText($sleepProbe, "Start-Sleep -Seconds 25`r`nexit 3`r`n", $Utf8NoBom)
+    $liveOut = Join-Path $Root "batch-live.out"
+    # OwnerTtl well below the child's run and BootTtl well above the boot window, so a surviving
+    # owner can only mean holder-backing and a freed lane can only mean an explicit release.
+    $liveRunner = Start-Process powershell -PassThru -NoNewWindow -RedirectStandardOutput $liveOut -ArgumentList @(
+        "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $Coordinator,
+        "-Action", "RunBatch", "-Lease", "batch-live", "-Slot", "agent-1", "-Mode", "batch",
+        "-ProjectPath", $projA, "-BatchScript", $sleepProbe,
+        "-StateRoot", $State, "-ProcessSnapshotPath", $Snapshot,
+        "-OwnerTtlSeconds", "5", "-BootTtlSeconds", "600", "-BatchBootSeconds", "2",
+        "-PollSeconds", "1", "-Json")
+    try {
+        $sw = [System.Diagnostics.Stopwatch]::StartNew()
+        while ($null -eq (Read-OwnerJson "batch-live") -and $sw.Elapsed.TotalSeconds -lt 30) { Start-Sleep -Milliseconds 200 }
+        Assert-True ($null -ne (Read-OwnerJson "batch-live")) "RunBatch takes a project owner lease"
+        Assert-True ([int](Read-OwnerJson "batch-live").holderProcessId -gt 0) "the batch owner records its holding coordinator"
+
+        $sw.Restart()
+        $laneFree = $false
+        while (-not $laneFree -and -not $liveRunner.HasExited -and $sw.Elapsed.TotalSeconds -lt 30) {
+            Start-Sleep -Milliseconds 500
+            $laneFree = $null -eq (Invoke-Coordinator -Action Status -BootTtlSeconds 600 -OwnerTtlSeconds 5).value.boot
+        }
+        Assert-True $laneFree "RunBatch releases the boot lane once the startup window closes"
+        Assert-True (-not $liveRunner.HasExited) "the boot lane is freed while the child is still running"
+
+        # Past OwnerTtl: a pid-less owner would be reaped by any reader; a holder-backed one is not.
+        Start-Sleep -Seconds 8
+        Assert-True (-not $liveRunner.HasExited) "the child is still running past the owner TTL"
+        $aged = Invoke-Coordinator -Action Status -OwnerTtlSeconds 5 -BootTtlSeconds 600
+        Assert-Equal @($aged.value.owners | Where-Object { $_.lease -eq "batch-live" }).Count 1 `
+            "the owner lease outlives OwnerTtlSeconds while its coordinator runs"
+        $contend = Invoke-Coordinator -Action Acquire -Lease batch-thief -ProjectPath $projA -TicketTtlSeconds 900
+        Assert-Equal $contend.value.status "waiting" "a running batch child still owns its project past the TTL"
+        [void](Invoke-Coordinator -Action Cancel -Lease batch-thief)
+    }
+    finally {
+        if (-not $liveRunner.HasExited) { [void]$liveRunner.WaitForExit(120000) }
+        Write-Snapshot @()
+    }
+    $liveJson = [string](@(Get-Content -LiteralPath $liveOut | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
+    Assert-Equal $liveJson.status "batch_complete" "long-running RunBatch completes"
+    Assert-Equal $liveJson.exitCode 3 "long-running RunBatch returns the child exit code"
+    $afterLive = Invoke-Coordinator -Action Status
+    Assert-Equal @($afterLive.value.owners).Count 0 "long-running RunBatch releases its owner"
+
+    # AttachBatchChild claims the child's Unity, so a batch owner's own child stops reading as an
+    # unmanaged process blocking every other project (codex P1 on #224).
+    Write-Snapshot @()
+    [void](Invoke-Coordinator -Action Acquire -Lease child-claim -ProjectPath $agentProject)
+    $absent = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action AttachBatchChild -Lease child-claim -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+    $absentResult = [string](@($absent | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
+    Assert-Equal $absentResult.status "batch_child_absent" "no child yet is not an error"
+
+    Write-Snapshot @([ordered]@{ processId = 43001; commandLine = "Unity.exe -batchMode -projectPath `"$agentProject`"" })
+    $blockedBefore = Invoke-Coordinator -Action Acquire -Lease child-rival -ProjectPath $projB
+    Assert-Equal $blockedBefore.value.status "blocked_unmanaged_unity" "an unclaimed batch child blocks other projects"
+    [void](Invoke-Coordinator -Action Cancel -Lease child-rival)
+
+    $claimed = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action AttachBatchChild -Lease child-claim -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+    $claimResult = [string](@($claimed | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
+    Assert-Equal $claimResult.status "attached" "AttachBatchChild claims the project's batch Unity"
+    Assert-Equal $claimResult.owner.processId 43001 "the claimed pid lands on the owner record"
+    $freeAfter = Invoke-Coordinator -Action Acquire -Lease child-rival2 -ProjectPath $projB
+    Assert-Equal $freeAfter.value.status "acquired" "a claimed child no longer blocks other projects"
+    [void](Invoke-Coordinator -Action Release -Lease child-rival2)
+    Write-Snapshot @()
+    [void](Invoke-Coordinator -Action Release -Lease child-claim)
+
+    # StartEditor composes caller args after the injected -projectPath, so owner and editor can't diverge.
     Write-Snapshot @()
     $edSentinel = Join-Path $Root "editorargs-sentinel.txt"
     if (Test-Path -LiteralPath $edSentinel) { Remove-Item -LiteralPath $edSentinel -Force }
+    $recorder = Join-Path $Root "launch-recorder.cmd"
+    [System.IO.File]::WriteAllText($recorder, "@echo off`r`necho %* > `"%UA_TEST_SENTINEL%`"`r`n", $Utf8NoBom)
     $env:UA_TEST_SENTINEL = $edSentinel
     try {
-        $stubExe = (Get-Command powershell).Source
-        $edLiteral = "@('-NoProfile','-Command','[IO.File]::WriteAllText(`$env:UA_TEST_SENTINEL, ''armed'')')"
-        $startInner = "& '$Coordinator' -Action StartEditor -Lease edargs -Slot agent-1 -ProjectPath '$projA' -UnityPath '$stubExe' -SkipMcp -StateRoot '$State' -ProcessSnapshotPath '$Snapshot' -WaitSeconds 1 -Json -EditorArgs $edLiteral"
+        $startInner = "& '$Coordinator' -Action StartEditor -Lease edargs -Slot agent-1 -ProjectPath '$projA' -UnityPath '$recorder' -SkipMcp -StateRoot '$State' -ProcessSnapshotPath '$Snapshot' -WaitSeconds 1 -Json -EditorArgs @('-batchmode','-nographics')"
         $startOut = @(& powershell -NoProfile -ExecutionPolicy Bypass -Command $startInner 2>&1)
         Assert-Equal $LASTEXITCODE 0 "StartEditor -EditorArgs exit"
         $startResult = [string](@($startOut | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
@@ -290,6 +374,9 @@ try {
         $sw = [System.Diagnostics.Stopwatch]::StartNew()
         while (-not (Test-Path -LiteralPath $edSentinel) -and $sw.Elapsed.TotalSeconds -lt 15) { Start-Sleep -Milliseconds 200 }
         Assert-True (Test-Path -LiteralPath $edSentinel) "StartEditor launches the exe with the passed EditorArgs"
+        $launched = [string](Get-Content -LiteralPath $edSentinel -Raw)
+        Assert-True ($launched -match [regex]::Escape([System.IO.Path]::GetFullPath($projA))) "the launch carries the coordinator's leased project path"
+        Assert-True ($launched.IndexOf("-projectPath") -ge 0 -and $launched.IndexOf("-projectPath") -lt $launched.IndexOf("-batchmode")) "caller args compose after the injected -projectPath"
     }
     finally {
         Remove-Item Env:\UA_TEST_SENTINEL -ErrorAction SilentlyContinue
