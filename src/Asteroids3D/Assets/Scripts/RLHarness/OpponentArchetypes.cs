@@ -131,7 +131,7 @@ namespace Game.RLHarness
         }
     }
 
-    /// <summary>Circles the live target at a jittered radius (<see cref="ManeuverChooser"/>'s orbit law generalized to a moving center), firing from inside the envelope.</summary>
+    /// <summary>Circles the live target at a jittered radius, firing from inside the envelope.</summary>
     public class OrbiterChooser : OpponentArchetypeChooser
     {
         private const float RadialGain = 0.9f;

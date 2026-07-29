@@ -35,7 +35,7 @@ namespace Combat.Projectile.Visual
 
         private void HandleHit(Vector3 position, IDamageable _)
         {
-            if (!hitEffect || !GameSettings.VfxEnabled) return;
+            if (!hitEffect || !GameSettings.PresentationEnabled) return;
             if (pooledHitEffect) SimplePool<PooledVFX>.Get(pooledHitEffect, position, Quaternion.identity);
             else Instantiate(hitEffect, position, Quaternion.identity);
         }

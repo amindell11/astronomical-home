@@ -48,7 +48,6 @@ namespace Tests.PlayMode
         private float savedMaxDelta;
         private bool savedAudioPause;
         private bool savedPresentation;
-        private bool savedVfx;
 
         [SetUp]
         public void SetUp()
@@ -57,7 +56,6 @@ namespace Tests.PlayMode
             savedMaxDelta = Time.maximumDeltaTime;
             savedAudioPause = AudioListener.pause;
             savedPresentation = GameSettings.PresentationEnabled;
-            savedVfx = GameSettings.VfxEnabled;
 
             AudioListener.pause = true;
             // Frozen during composition so arena A cannot simulate ahead while arena B still composes.
@@ -76,7 +74,6 @@ namespace Tests.PlayMode
             Time.maximumDeltaTime = savedMaxDelta;
             AudioListener.pause = savedAudioPause;
             GameSettings.SetPresentationEnabled(savedPresentation);
-            GameSettings.SetVfxEnabled(savedVfx);
         }
 
         [UnityTest]
@@ -348,7 +345,6 @@ namespace Tests.PlayMode
                     sectorEntry = new SectorEntry { prefab = sectorPrefab, config = config },
                     buildPlayer = false,
                     presentation = false,
-                    vfx = false,
                     offset = arena.Offset
                 }
             };

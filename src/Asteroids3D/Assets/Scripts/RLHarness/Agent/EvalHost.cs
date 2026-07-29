@@ -16,9 +16,8 @@ namespace Game.RLHarness
 
         private IEnumerator Start()
         {
-            // Before any ship spawns — embedded visual rigs self-gate on these at Awake.
+            // Before any ship spawns — embedded visual rigs self-gate on this at Awake.
             Utils.GameSettings.SetPresentationEnabled(false);
-            Utils.GameSettings.SetVfxEnabled(false);
 
             PacingContract.Apply();
             var seeds = EvalProtocol.ResolveSeeds(seedSelector, out var tag);

@@ -78,11 +78,6 @@ namespace Combat.Projectile
             OnHit(dmg);
         }
 
-        protected void OnTriggerExit(Collider other)
-        {
-            if (other.CompareTag(TagNames.Boundary)) ReturnToPool();
-        }
-
         protected virtual void ResetState()
         {
             Shooter = null;

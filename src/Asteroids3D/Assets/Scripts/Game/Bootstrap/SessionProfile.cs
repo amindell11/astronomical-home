@@ -16,13 +16,9 @@ namespace Game.Bootstrap
         [Tooltip("When false, no player ship is built (spectator/headless).")]
         public bool buildPlayer = true;
 
-        [Tooltip("When false, ship visual rigs + HUD/UI are disabled (headless/RL) — ships stay " +
-                 "renderer/audio/particle-free while fully simulated.")]
+        [Tooltip("When false, ship visual rigs, HUD/UI and one-shot VFX are disabled (headless/RL) — " +
+                 "ships stay renderer/audio/particle-free while fully simulated.")]
         public bool presentation = true;
-
-        [Tooltip("Global VFX toggle applied at compose — gates the not-yet-rig-migrated " +
-                 "weapon/projectile/asteroid explosion effects. Runtime-only.")]
-        public bool vfx = true;
 
         [Tooltip("This arena's in-plane world offset. Zero for the single-arena game; the RL harness " +
                  "supplies a per-arena offset.")]
