@@ -3,65 +3,35 @@ using UnityEngine;
 namespace Utils
 {
     /// <summary>
-    /// Global static class for game-wide settings like graphics, audio, etc.
-    /// Loads settings from PlayerPrefs on startup.
+    /// Global game-wide presentation settings. Every value is a per-session policy composed by a
+    /// game-tier caller (<c>SessionHost</c>, or an RL host for a headless run) and is never persisted —
+    /// so a headless/RL session cannot leak into the next play session.
     /// </summary>
     public static class GameSettings
     {
-        /// <summary>Global toggle for all visual effects (VFX).</summary>
-        public static bool VfxEnabled { get; private set; }
+        /// <summary>Global toggle for all visual effects (VFX). A sub-capability of presentation.</summary>
+        public static bool VfxEnabled { get; private set; } = true;
 
         /// <summary>
         /// Global toggle for ship visual presentation (each ship prefab's embedded visual rig). A
-        /// per-session policy — a headless/RL session turns it off so every ship's rig self-disables
-        /// and stays renderer-, audio- and particle-free while the ship remains fully simulated.
-        /// Defaults on; runtime-only (never persisted).
+        /// headless/RL session turns it off so every ship's rig self-disables and stays renderer-,
+        /// audio- and particle-free while the ship remains fully simulated.
         /// </summary>
         public static bool PresentationEnabled { get; private set; } = true;
 
         /// <summary>
-        /// This method is called by Unity when the game engine starts,
-        /// before any scene has loaded. It ensures our settings are loaded right away.
+        /// Statics survive domain reloads between editor play sessions, so the defaults are restored
+        /// before any scene loads rather than left carrying the previous session's policy.
         /// </summary>
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void OnSubsystemRegistration()
+        private static void ResetToSessionDefaults()
         {
-            LoadSettings();
-        }
-
-        /// <summary>
-        /// Loads settings from PlayerPrefs. Defaults to 'true' (enabled) if not found.
-        /// </summary>
-        public static void LoadSettings()
-        {
-            // Get the "VFX_ENABLED" value from storage, defaulting to 1 (true).
-            VfxEnabled = PlayerPrefs.GetInt("VFX_ENABLED", 1) == 1;
-
-            // Presentation is a per-session policy, not a saved preference: default it on each load and
-            // let a game-tier caller (SessionHost) turn it off for a headless/RL session.
+            VfxEnabled = true;
             PresentationEnabled = true;
         }
 
-        /// <summary>
-        /// Sets the global VFX toggle. By default this is a runtime-only override (does NOT persist),
-        /// which is what a game-tier caller like <c>SessionHost</c> wants — a headless/RL session
-        /// disabling VFX must not leak into the player's saved preference. Pass <paramref name="persist"/>
-        /// = true (e.g. from a settings menu) to also write it to PlayerPrefs for future sessions.
-        /// </summary>
-        public static void SetVfxEnabled(bool enabled, bool persist = false)
-        {
-            VfxEnabled = enabled;
-            if (persist)
-            {
-                PlayerPrefs.SetInt("VFX_ENABLED", enabled ? 1 : 0);
-                PlayerPrefs.Save(); // Immediately write to disk
-            }
-        }
+        public static void SetVfxEnabled(bool enabled) => VfxEnabled = enabled;
 
-        /// <summary>
-        /// Set the runtime presentation toggle (session policy — a headless/RL session turns it off).
-        /// Runtime-only: never persisted, so a headless run can't leak into the player's saved prefs.
-        /// </summary>
         public static void SetPresentationEnabled(bool enabled) => PresentationEnabled = enabled;
     }
-} 
+}

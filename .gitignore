@@ -90,7 +90,9 @@ crashlytics-build.properties
 /build/
 
 # Durable RL run archive (checkpoints/eval summaries; kept out of git, NOT disposable — see memory rl_training_run_mechanics)
-/training/archive/
+/training/archive/*
+# Parked source rather than run output: small enough to track, and losing it is what parking prevents.
+!/training/archive/ram-bench-harness/
 
 # Agent scratch space (capture scenarios are authored here, outside Assets)
 /scratch/

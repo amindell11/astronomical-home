@@ -70,8 +70,7 @@
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/NavigatorIdleGateEditModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/EditMode/TwoArenaIsolationEditModeTests.cs*",
         "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/MpcNavigatorPlayModeTests.cs*",
-        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/MpcPerformancePlayModeTests.cs*",
-        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/ManeuverOraclePlayModeTests.cs*"
+        "src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/MpcPerformancePlayModeTests.cs*"
       ]
     },
     "combat": {

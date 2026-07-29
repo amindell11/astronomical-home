@@ -34,14 +34,47 @@ namespace Tests.EditMode
         private static float FloatValue(string yamlPath, string key) =>
             float.Parse(Value(yamlPath, key), CultureInfo.InvariantCulture);
 
+        private const string ReferenceConfig = "ppo_ship_combat.yaml";
+
+        private static readonly string[] FamilyConfigs =
+        {
+            ReferenceConfig, "ppo_ship_combat_pilot.yaml", "ppo_ship_combat_smoke.yaml",
+            "ppo_ship_combat_hybrid.yaml", "ppo_ship_combat_selfplay.yaml", "ppo_ship_combat_selfplay_smoke.yaml",
+        };
+
+        /// <summary>Algorithm shape: every run in the family must share these, so runs stay rankable against each other.</summary>
+        private static readonly string[] SharedHyperparameters =
+        {
+            "learning_rate", "beta", "epsilon", "lambd", "num_epoch", "learning_rate_schedule", "beta_schedule",
+        };
+
+        /// <summary>Sample budget: the smokes deliberately shrink these; every real run must not.</summary>
+        private static readonly string[] FullRunHyperparameters = { "batch_size", "buffer_size" };
+
+        private static bool IsSmoke(string yamlPath) => Path.GetFileName(yamlPath).Contains("smoke");
+
         [Test]
-        public void ConfigFamily_CoversMainPilotAndSmoke()
+        public void ConfigFamily_CoversEveryRunnableConfig()
         {
             var names = TrainerConfigs().Select(Path.GetFileName).ToArray();
-            CollectionAssert.IsSubsetOf(
-                new[] { "ppo_ship_combat.yaml", "ppo_ship_combat_pilot.yaml", "ppo_ship_combat_smoke.yaml" },
-                names,
+            CollectionAssert.IsSubsetOf(FamilyConfigs, names,
                 "a renamed/deleted trainer config silently drops out of the per-file invariant tests");
+        }
+
+        // Hybrid ran lambd 0.95 against the main config's 0.98 for a whole 1.5M-step phase before anyone
+        // noticed, which makes its gate series unrankable against the run it warm-started from.
+        [TestCaseSource(nameof(TrainerConfigs))]
+        public void Hyperparameters_MatchTheFamilyRecipe(string yamlPath)
+        {
+            var reference = TrainerConfigs().Single(p => Path.GetFileName(p) == ReferenceConfig);
+            foreach (var key in SharedHyperparameters)
+                Assert.AreEqual(Value(reference, key), Value(yamlPath, key),
+                    $"{key} drifted from {ReferenceConfig} — a run on a different algorithm shape cannot be compared to any other run");
+
+            if (IsSmoke(yamlPath)) return;
+            foreach (var key in FullRunHyperparameters)
+                Assert.AreEqual(Value(reference, key), Value(yamlPath, key),
+                    $"{key} drifted from {ReferenceConfig}; only the smokes may shrink the sample budget");
         }
 
         [TestCaseSource(nameof(TrainerConfigs))]
