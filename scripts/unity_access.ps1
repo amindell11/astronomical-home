@@ -22,6 +22,8 @@ param(
     [switch]$SkipMcp,
     [string]$BatchScript = "",
     [string[]]$BatchArguments = @(),
+    [string]$BatchLogPath = "",
+    [int]$BatchBootSeconds = 0,
     [switch]$Json
 )
 
@@ -34,6 +36,9 @@ $ExitOwnership = 22
 $ExitIncomplete = 23
 $ExitAdoptRefused = 24
 $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+# Boot ends once licensing + global package-cache work gives way to per-project Library work
+# (postmortem D6). Sibling copy in scripts/unity_test_agent.ps1, which drives the lane itself.
+$BootCompletePattern = 'Application\.AssetDatabase Initial Refresh Start'
 
 function Resolve-FullPath {
     param([string]$Path, [string]$Base = (Get-Location).Path)
@@ -416,13 +421,25 @@ function Acquire-Access {
     } while ($true)
 }
 
+# A pid-less owner ages out on OwnerTtlSeconds alone, so anything that outlives that window must keep it fresh.
+function Write-OwnerHeartbeat {
+    param([object]$Owner)
+    $Owner.updatedAt = [datetime]::UtcNow.ToString("o")
+    Write-JsonFile (Join-Path (Join-Path $OwnersRoot ([string]$Owner.projectKey)) "owner.json") $Owner
+}
+
+function Test-BootComplete {
+    param([string]$LogPath)
+    if ([string]::IsNullOrWhiteSpace($LogPath) -or -not (Test-Path -LiteralPath $LogPath)) { return $false }
+    return [bool](Select-String -LiteralPath $LogPath -Pattern $BootCompletePattern -Quiet -ErrorAction SilentlyContinue)
+}
+
 function Try-AcquireBoot {
     $owner = Find-OwnerByLease $Lease
     if ($null -eq $owner) { return [ordered]@{ status = "ownership_mismatch"; note = "BootAcquire requires holding a project owner lease." } }
 
-    # Heartbeat: a pid-less owner queued behind the boot lane must not age past OwnerTtlSeconds while it waits.
-    $owner.updatedAt = [datetime]::UtcNow.ToString("o")
-    Write-JsonFile (Join-Path (Join-Path $OwnersRoot ([string]$owner.projectKey)) "owner.json") $owner
+    # A pid-less owner queued behind the boot lane must not age out while it waits.
+    Write-OwnerHeartbeat $owner
 
     $boot = Get-BootOwner
     if ($null -ne $boot -and [string]$boot.lease -eq $Lease) {
@@ -567,8 +584,9 @@ function Start-TrackedEditor {
     try {
         $exe = Resolve-FullPath $UnityPath
         if (-not (Test-Path -LiteralPath $exe)) { throw "Unity executable not found: $exe" }
-        # Caller-supplied args (RL batch launches) win verbatim; empty falls back to today's interactive open.
-        $launchArgs = if ($EditorArgs.Count -gt 0) { $EditorArgs } else { @("-projectPath", $ResolvedProject) }
+        # The coordinator owns -projectPath: the launched editor must open the project whose lease it
+        # holds, so caller args (RL batch launches) compose after it instead of replacing it.
+        $launchArgs = @("-projectPath", $ResolvedProject) + $EditorArgs
         if ($SkipMcp.IsPresent) {
             $process = Start-Process -FilePath $exe -ArgumentList $launchArgs -PassThru
         }
@@ -599,12 +617,27 @@ function Run-TrackedBatch {
         if ([string]::IsNullOrWhiteSpace($BatchScript)) { throw "RunBatch requires -BatchScript." }
         $boot = Acquire-Boot
         if ($boot.status -ne "boot_acquired") { return $boot }
-        # The child script is opaque to the coordinator, so the boot lane stays held for its whole run.
+        $bootHeld = $true
         try {
-            & powershell -NoProfile -ExecutionPolicy Bypass -File (Resolve-FullPath $BatchScript) @BatchArguments
-            $code = $LASTEXITCODE
+            $childArgs = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", (Resolve-FullPath $BatchScript)) + $BatchArguments
+            $child = Start-Process -FilePath "powershell" -ArgumentList $childArgs -NoNewWindow -PassThru
+            # Touching Handle keeps the process object able to report ExitCode after the child exits.
+            $null = $child.Handle
+            # The child stays opaque: the coordinator watches only the log path the caller declared and
+            # falls back to a timed window, so the machine-wide lane covers startup, not the whole run.
+            $bootDeadline = [datetime]::UtcNow.AddSeconds($(if ($BatchBootSeconds -gt 0) { $BatchBootSeconds } else { $BootTtlSeconds }))
+            while (-not $child.HasExited) {
+                if ($bootHeld -and ([datetime]::UtcNow -ge $bootDeadline -or (Test-BootComplete $BatchLogPath))) {
+                    [void](Release-Boot)
+                    $bootHeld = $false
+                }
+                Write-OwnerHeartbeat $acquired.owner
+                Start-Sleep -Seconds ([Math]::Max(1, $PollSeconds))
+            }
+            $child.WaitForExit()
+            $code = $child.ExitCode
         }
-        finally { [void](Release-Boot) }
+        finally { if ($bootHeld) { [void](Release-Boot) } }
         return [ordered]@{ status = "batch_complete"; exitCode = $code }
     }
     finally { [void](Release-Access) }

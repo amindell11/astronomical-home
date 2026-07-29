@@ -1,8 +1,14 @@
-# RL training home (Tactical-AI PR-3)
+# RL training home
 
 Python side of the ML-Agents loop. Unity side: `Assets/Scenes/RLTraining.unity`
 hosting `TrainingHost` (`Assets/Scripts/RLHarness/Agent/`), which composes the
-PR-2b episode pair and drives runner-owned manual Academy stepping.
+episode pair per arena and drives runner-owned Academy stepping.
+
+Every driver here is an **asserting runner**: it launches what it needs, waits on
+log markers, and fails loudly if the run did not produce what it promised. Shared
+plumbing (Unity discovery, marker constants, log polling, trainer-config reads)
+lives in `driver_common.py`; the unity-access coordinator protocol lives in
+`unity_access.py` and nowhere else.
 
 ## Version pins (do not drift)
 
@@ -33,95 +39,127 @@ To (re)resolve intentionally: `uv pip install -r requirements.txt`, verify a
 smoke run passes (below), then `uv pip freeze > requirements.lock.txt` and
 commit both files together.
 
-## Training run
+## Which driver
 
-1. Start the trainer (it waits for the editor):
+| Driver | Boots | Use it for |
+| --- | --- | --- |
+| `run_smoke.py` | one batch editor, via unity-access | liveness: does the whole loop still run end to end |
+| `run_training.py` | one batch editor, via unity-access | a single-env run (pilot or full) against a real config |
+| `run_parallel.py` | N headless player exes, no editor | every real training run — the throughput path |
+| `bench_throughput.py` | wraps `run_parallel.py` | steps/s and CPU cost of a configuration |
+| `eval_gate.py` | one batch child per checkpoint, via unity-access | scoring checkpoints while a run is still going |
 
-   ```powershell
-   cd training/rl
-   .venv\Scripts\mlagents-learn ppo_ship_combat.yaml --run-id <run-id>
-   ```
+**Editor-booting drivers go through the coordinator.** `run_smoke.py`,
+`run_training.py`, and `eval_gate.py` all launch Unity through
+`scripts/unity_access.ps1` (`unity_access.py` is the client), so the editor is
+owner-tracked from birth and its startup serializes through the machine-wide
+boot lane. Never launch Unity beside the coordinator — see `skills/unity-access`.
+`run_parallel.py` is the deliberate exception: headless player exes touch neither
+the shared editor nor MCP, so it launches them directly.
 
-2. Open `Assets/Scenes/RLTraining.unity` in the Unity editor and enter play
-   mode within 30 s. `TrainingHost` (BehaviorType `Default`) connects, and
-   training proceeds at frame-rate-bound speed (the pacing contract trades
-   timescale for per-fixed-step Update semantics).
-
-3. Checkpoints + TensorBoard summaries land under `results/rl-training/<run-id>/`
-   (untracked). `TrainingHost` also appends per-episode JSONL rows
-   (`rl-episode-v4` schema) under `results/rl-episodes/`.
-
-Resume with `--resume`, force a fresh run with `--force`.
-
-### Pilot → full run (asserting runner)
-
-`run_training.py` is `run_smoke.py`'s long-run sibling: same armed-batch-editor +
-start-flag structure, but it drives a real config, passes `--resume`/`--force`
-through, and asserts trainer exit 0 + the pacing marker + the exported ONNX
-before printing where checkpoints and TensorBoard summaries landed.
-
-```powershell
-cd training/rl
-.venv\Scripts\python run_training.py --config ppo_ship_combat_pilot.yaml   # ~200k-step pilot
-.venv\Scripts\python run_training.py                                       # full 2M-step run
-.venv\Scripts\python run_training.py --resume                              # continue an interrupted run
-```
-
-Run the pilot first: it measures real steps/sec (training is frame-rate-bound
-under the pacing contract) and confirms a learning signal at real arena scale
-before committing to the 2M wall-clock. `--force` overwrites a run id's
-results; `--run-timeout` (seconds) caps the wait, default 48 h.
-`ppo_ship_combat.yaml` keeps `keep_checkpoints: 21` (2M steps / 100k interval
-= 20 checkpoints + final) so checkpoint selection covers the whole run, not
-the tail.
-
-### Parallel workers (`--num-envs`, asserting runner)
-
-`run_parallel.py` is the throughput driver: instead of one editor at one arena
-it runs `mlagents-learn --env <player exe> --num-envs N`, launching N headless
-copies of the `RLTraining` standalone player under one trainer (build the exe
-first — `RLTrainingPlayerBuild`, below). Each worker derives an independent run
-seed from its ML-Agents port offset against `--harness-base-port`, so the N
-copies produce decorrelated experience rather than N identical rollouts. It does
-**not** boot an editor or route through unity-access (headless player exes touch
-neither the shared editor nor MCP), and asserts trainer exit 0 + an exported
-checkpoint + every worker's `-w{k}` episode JSONL present and non-empty.
-
-```powershell
-cd training/rl
-# build the player once (headless StandaloneWindows64):
-Unity.exe -projectPath ../../src/Asteroids3D -batchmode -nographics `
-  -executeMethod Game.RLHarness.RLTrainingPlayerBuild.Build -logFile build.log
-.venv\Scripts\python run_parallel.py --num-envs 8               # full config, 8 workers
-.venv\Scripts\python run_parallel.py --smoke --num-envs 2 --force   # 2-env liveness gate
-```
-
-`--base-port` (default 5006) is passed to both `mlagents-learn --base-port` and
-the workers' `--harness-base-port`; the two must match. Worker 0 (`k=0`) keeps
-today's `runSeed`, so a `--num-envs 1` run reproduces the single-env editor run.
-The JSONL dir is launcher-owned (`results/rl-episodes/`, `-w{k}`-suffixed).
-
-### Trainer smoke (asserting runner)
+## Trainer smoke (start here)
 
 ```powershell
 cd training/rl
 .venv\Scripts\python run_smoke.py
+.venv\Scripts\python run_smoke.py --self-play --num-arenas 2   # mirror composition, fanned out
 ```
 
-`run_smoke.py` boots a batch-mode editor (armed via
-`TrainingBootstrap.EnterTrainingPlayModeWhenSignaled` — an editor boot outlasts
-the trainer's 60 s handshake window, so it enters play on
-`results/rl-training/start-play.flag`), runs
-`mlagents-learn ppo_ship_combat_smoke.yaml --force` with `RL_SMOKE=1`
-(tight-arena/short-clock spec so both end kinds occur), then **fails unless**
-the trainer exited 0, `ShipCombat.onnx` was exported, the editor log carries
-the `[PacingContract] holds` marker, and at least one terminal AND one
-truncation episode ran. It boots its own editor — coordinate access first
-(`skills/unity-access`).
+`run_smoke.py` boots a batch-mode editor armed by
+`TrainingBootstrap.EnterTrainingPlayModeWhenSignaled` (an editor boot outlasts the
+trainer's 60 s handshake window, so it enters play on
+`results/rl-training/start-play.flag`), runs the smoke config with `RL_SMOKE=1`
+(tight-arena/short-clock spec so both end kinds occur), then **fails unless** the
+trainer exited 0, `ShipCombat.onnx` was exported, the editor log carries
+`[PacingContract] holds`, at least one terminal AND one truncation episode ran,
+and every requested arena produced episodes.
+
+`--self-play` swaps in `RL_SELFPLAY=1` and the self-play smoke config: the
+opponent becomes a second team-1 `ShipCombat` agent, which is the proof that
+native mlagents `self_play` trains two team_ids under automatic Academy stepping.
 
 The eval fixture is that exported checkpoint committed (LFS) at
 `Assets/Tests/Fixtures/ShipCombat-smoke.onnx`, pinned by
 `RLAgentPlayModeTests.InferenceOnly_PinnedCheckpoint_DrivesAFullEpisode`.
+
+## Parallel workers — the real training path
+
+`run_parallel.py` runs `mlagents-learn --env <player exe> --num-envs N`,
+launching N headless copies of the `RLTraining` standalone player under one
+trainer. Each worker derives an independent run seed from its ML-Agents port
+offset against `--harness-base-port` (`TrainingHost.ResolveWorkerIndex`), so the
+N copies produce decorrelated experience rather than N identical rollouts.
+`--num-arenas M > 1` additionally fans each worker out to M in-process arenas.
+
+```powershell
+cd training/rl
+.venv\Scripts\python run_parallel.py --num-envs 6                   # full config
+.venv\Scripts\python run_parallel.py --self-play --num-envs 6 --hybrid-scripted-workers 2
+.venv\Scripts\python run_parallel.py --smoke --num-envs 2 --force   # 2-env liveness gate
+```
+
+Build the `--env` exe first with `Game.RLHarness.RLTrainingPlayerBuild.Build`
+(headless StandaloneWindows64, lands at `build/rl-training/RLTraining.exe`). That
+is a Unity launch like any other, so it runs as a coordinator batch child —
+`eval_child.ps1` is the shape to copy: a self-exiting `-batchmode -nographics
+-executeMethod ... -logFile <log>` handed to `unity_access.ps1 -Action RunBatch`.
+
+`run_parallel.py` asserts trainer exit 0, an exported checkpoint, and one
+non-empty episode JSONL per expected worker/arena. `--base-port` (default 5006)
+is passed to both `mlagents-learn --base-port` and the workers'
+`--harness-base-port`; the two must match, and **base port 5006 is
+single-occupancy across sessions** — a second concurrent run collides
+(`UnityWorkerInUseException`) and corrupts both runs' numbers. Worker 0 keeps
+today's `runSeed`, so `--num-envs 1 --num-arenas 1` reproduces the single-env
+editor run.
+
+The JSONL dir is launcher-owned (`results/rl-episodes/`, passed down as
+`--harness-jsonl-dir`). The `-w{k}` / `-w{k}-a{j}` filename suffix is owned by
+`TrainingHost.ComposeSuffix` on the C# side; `run_parallel.py` only reads it back,
+and `RLDriverContractEditModeTests` pins the two together.
+
+`--initialize-from RUN_ID` warm-starts fresh weights from another run's
+checkpoint (self-play graduation seeds from the curriculum winner). mlagents
+resolves it as `<results_dir>/RUN_ID/<behavior>/checkpoint.pt`, so an archived run
+must be staged under `results/rl-training/` first.
+
+## Single-env run (pilot or full)
+
+`run_training.py` is `run_smoke.py`'s long-run sibling: same armed-batch-editor +
+start-flag structure, but it drives a real config, passes `--resume`/`--force`
+through, and asserts trainer exit 0 + the pacing marker + the exported ONNX.
+
+```powershell
+cd training/rl
+.venv\Scripts\python run_training.py --config ppo_ship_combat_pilot.yaml   # ~200k-step pilot
+.venv\Scripts\python run_training.py                                       # full run
+.venv\Scripts\python run_training.py --resume                              # continue an interrupted run
+```
+
+One arena at frame-rate-bound pace makes this a diagnostic path, not the way to
+spend a real training budget — use `run_parallel.py` for that.
+`ppo_ship_combat.yaml` runs 3.5M steps and keeps `keep_checkpoints: 36` against
+its 100k `checkpoint_interval` (35 + final), so checkpoint selection covers the
+whole run rather than the tail. `--self-play` and the config's `self_play:` block
+must agree — a mismatch is refused before boot, because it would train the wrong
+composition while looking healthy.
+
+Checkpoints and TensorBoard summaries land under `results/rl-training/<run-id>/`
+(untracked); `TrainingHost` also appends per-episode JSONL rows (`rl-episode-v5`
+schema, `EpisodeResult.SchemaId`) under `results/rl-episodes/`.
+
+## Throughput bench
+
+```powershell
+.venv\Scripts\python bench_throughput.py --num-envs 6 --label baseline
+.venv\Scripts\python bench_throughput.py --report
+```
+
+Runs a short job through `run_parallel.py` with `max_steps` cut to `--steps` and
+reports steady-state steps/s plus worker cores and peak RSS. Repeat runs of one
+config land within ~4% on a loaded desktop, so it resolves effects above roughly
+10% and cannot adjudicate smaller ones; comparisons are only meaningful between
+rows sharing a config, `--steps`, and `--initialize-from`.
 
 ## Python-free loop check
 
@@ -137,7 +175,10 @@ Heuristic policy (inverse-mapped ranger) — no trainer needed. Set the scene's
 the Wilson 95% lower bound on win-rate (draws are non-wins; gate: > 50%),
 artifacts under `results/rl-eval/`. Checkpoints are selected on training-seed
 eval BEFORE the held-out set is opened; any RewardSpec change resets the
-protocol. Batch entry:
+protocol.
+
+It runs as a coordinator batch child (`eval_child.ps1`, which carries the
+environment into `-executeMethod Game.RLHarness.TrainingBootstrap.RunEval`):
 
 ```powershell
 $env:RL_EVAL_ONNX = "results/rl-training/<run-id>/ShipCombat.onnx"   # default: the smoke fixture
@@ -145,8 +186,6 @@ $env:RL_EVAL_EPISODES_PER_SEED = "5"
 $env:RL_EVAL_SEEDS = "train"   # checkpoint selection; omit (or "held-out") for the sealed set, or pass "7,42,99"
 $env:RL_EVAL_DENSITY = "3.0"   # stretch/diagnostic only; omit for the canonical eval env (training's terminal lesson)
 $env:RL_EVAL_OUT_DIR = "..."   # caller-owned artifact dir; omit for results/rl-eval/
-Unity.exe -projectPath src/Asteroids3D -batchmode -nographics `
-  -executeMethod Game.RLHarness.TrainingBootstrap.RunEval -logFile <log>
 ```
 
 The eval environment defaults to `EvalProtocol.EvalSpec` — asteroid field on at
@@ -169,8 +208,7 @@ and the `EvalProtocol.InferenceSeed` Academy inference seed.
 `eval_gate.py` watches a live run's checkpoint exports and evals each new one so
 erosion shows up while the run is going, not after it. Per checkpoint it runs the
 75-episode scripted eval (5 archetypes × 5 seeds × 3 episodes) through the
-unity-access coordinator (`-Action RunBatch` + `eval_child.ps1`, boot lane held for
-the child's run), then applies the two-consecutive-checkpoints rule: **ALERT** on one
+coordinator, then applies the two-consecutive-checkpoints rule: **ALERT** on one
 checkpoint with Evader ≤ 10/15 or total < 55/75, **STOP** on two consecutive.
 
 ```powershell
@@ -191,5 +229,4 @@ It reports and exits 2 on STOP; it kills the trainer only with the opt-in
 `RLEpisodePlayModeTests.Characterization_WritesJsonl` (env `RL_EPISODES=1`,
 optional `RL_EPISODE_COUNT`) re-measures the scripted ranger-vs-baseline
 floor under the current harness (boost sampling zeroed on the agent's MPC
-clone, contract pacing). PR-3's merge floor: win-rate > 5% with fewer
-timeouts than the ranger.
+clone, contract pacing).

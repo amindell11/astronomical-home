@@ -24,7 +24,8 @@ def _coordinator_json(proc: subprocess.CompletedProcess) -> dict:
 
 
 def start_editor(lease: str, project: Path, editor_args, unity: Path, env) -> int:
-    args_literal = ",".join(_ps_literal(a) for a in ["-projectPath", str(project), *editor_args])
+    # -projectPath is the coordinator's to inject; it composes these args after it.
+    args_literal = ",".join(_ps_literal(a) for a in editor_args)
     inner = (f"& {_ps_literal(COORDINATOR)} -Action StartEditor -Lease {_ps_literal(lease)} "
              f"-ProjectPath {_ps_literal(project)} -UnityPath {_ps_literal(unity)} -SkipMcp -WaitSeconds 15 -Json "
              f"-EditorArgs @({args_literal})")
@@ -36,17 +37,22 @@ def start_editor(lease: str, project: Path, editor_args, unity: Path, env) -> in
     return int(result["owner"]["processId"])
 
 
-def run_batch(lease: str, project: Path, batch_script: Path, env, batch_args=(), wait_seconds: int = 900) -> int:
-    """Run a self-exiting batch child under the coordinator, which holds the boot lane for its whole run.
+def run_batch(lease: str, project: Path, batch_script: Path, env, batch_args=(), wait_seconds: int = 900,
+              log_path: Path = None) -> int:
+    """Run a self-exiting batch child under the coordinator, which renews the owner lease for the
+    child's whole run and holds the machine-wide boot lane only across its startup.
 
     The child is opaque to the coordinator, so it must exit on its own (Unity -batchmode with an
-    -executeMethod that calls EditorApplication.Exit). Returns the child's exit code.
+    -executeMethod that calls EditorApplication.Exit). log_path is the child's Unity -logFile: the
+    coordinator watches it to know when startup is past the contention window; without it the lane
+    falls back to a timed release. Returns the child's exit code.
     """
     args_literal = ",".join(_ps_literal(a) for a in batch_args)
     batch_arguments = f" -BatchArguments @({args_literal})" if args_literal else ""
+    batch_log = f" -BatchLogPath {_ps_literal(log_path)}" if log_path else ""
     inner = (f"& {_ps_literal(COORDINATOR)} -Action RunBatch -Lease {_ps_literal(lease)} "
              f"-ProjectPath {_ps_literal(project)} -BatchScript {_ps_literal(batch_script)} "
-             f"-WaitSeconds {int(wait_seconds)} -Json{batch_arguments}")
+             f"-WaitSeconds {int(wait_seconds)} -Json{batch_arguments}{batch_log}")
     proc = subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", inner],
                           capture_output=True, text=True, env=env)
     result = _coordinator_json(proc)

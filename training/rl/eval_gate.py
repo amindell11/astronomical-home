@@ -33,6 +33,7 @@ import time
 from pathlib import Path
 from typing import NamedTuple
 
+from driver_common import default_unity_exe
 from run_parallel import terminate_pid_tree
 from unity_access import run_batch
 
@@ -108,19 +109,6 @@ def evaluated_summary(out_dir: Path):
     return summaries[0] if len(summaries) == 1 else None
 
 
-def default_unity_exe(project: Path) -> Path:
-    version = re.search(r"m_EditorVersion: (\S+)",
-                        (project / "ProjectSettings" / "ProjectVersion.txt").read_text()).group(1)
-    candidates = [
-        Path(rf"D:\Programs\Unity\Editor\{version}\Editor\Unity.exe"),
-        Path(rf"C:\Program Files\Unity\Hub\Editor\{version}\Editor\Unity.exe"),
-    ]
-    for c in candidates:
-        if c.exists():
-            return c
-    sys.exit(f"FAIL: Unity {version} not found; pass --unity (tried {[str(c) for c in candidates]})")
-
-
 def run_eval(args, unity: Path, checkpoint: Path, out_dir: Path) -> Path:
     out_dir.mkdir(parents=True, exist_ok=True)
     log = out_dir / "editor.log"
@@ -132,7 +120,8 @@ def run_eval(args, unity: Path, checkpoint: Path, out_dir: Path) -> Path:
                RL_EVAL_OUT_DIR=str(out_dir))
     # An inherited density would move the eval off the canonical env the thresholds assume.
     env.pop("RL_EVAL_DENSITY", None)
-    code = run_batch(args.lease, args.project, EVAL_CHILD, env, wait_seconds=args.lease_wait)
+    code = run_batch(args.lease, args.project, EVAL_CHILD, env, wait_seconds=args.lease_wait,
+                     log_path=log)
     if code != 0:
         sys.exit(f"FAIL: eval of {checkpoint.name} exited {code} (see {log})")
     return summary_in(out_dir)

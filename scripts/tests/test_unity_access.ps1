@@ -273,15 +273,82 @@ try {
     Assert-Equal @($afterBatch.value.owners).Count 0 "run batch releases owner"
     Assert-True ($null -eq $afterBatch.value.boot) "run batch releases boot lane"
 
-    # StartEditor -EditorArgs launches the caller's args verbatim (RL batch path) and attaches the pid.
+    # RunBatch keeps the pid-less owner lease alive for the child's whole run while handing the
+    # machine-wide boot lane back as soon as the startup window closes.
+    function Read-OwnerJson {
+        param([string]$Lease)
+        $dir = Join-Path $State "owners"
+        if (-not (Test-Path -LiteralPath $dir)) { return $null }
+        foreach ($file in @(Get-ChildItem $dir -Recurse -Filter "owner.json" -ErrorAction SilentlyContinue)) {
+            try { $json = Get-Content $file.FullName -Raw | ConvertFrom-Json } catch { continue }
+            if ([string]$json.lease -eq $Lease) { return $json }
+        }
+        return $null
+    }
+    function Get-OwnerAgeSeconds {
+        param([string]$Lease)
+        $json = Read-OwnerJson $Lease
+        if ($null -eq $json) { return [double]::MaxValue }
+        return ([datetime]::UtcNow - [datetime]::Parse([string]$json.updatedAt).ToUniversalTime()).TotalSeconds
+    }
+
+    Write-Snapshot @()
+    $sleepProbe = Join-Path $Root "batch-sleep.ps1"
+    [System.IO.File]::WriteAllText($sleepProbe, "Start-Sleep -Seconds 25`r`nexit 3`r`n", $Utf8NoBom)
+    $liveOut = Join-Path $Root "batch-live.out"
+    # BootTtl far above the batch boot window, so a freed lane can only mean an explicit release.
+    $liveRunner = Start-Process powershell -PassThru -NoNewWindow -RedirectStandardOutput $liveOut -ArgumentList @(
+        "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $Coordinator,
+        "-Action", "RunBatch", "-Lease", "batch-live", "-Slot", "agent-1", "-Mode", "batch",
+        "-ProjectPath", $projA, "-BatchScript", $sleepProbe,
+        "-StateRoot", $State, "-ProcessSnapshotPath", $Snapshot,
+        "-BootTtlSeconds", "600", "-BatchBootSeconds", "2", "-PollSeconds", "1", "-Json")
+    try {
+        $sw = [System.Diagnostics.Stopwatch]::StartNew()
+        while ($null -eq (Read-OwnerJson "batch-live") -and $sw.Elapsed.TotalSeconds -lt 30) { Start-Sleep -Milliseconds 200 }
+        Assert-True ($null -ne (Read-OwnerJson "batch-live")) "RunBatch takes a project owner lease"
+
+        $sw.Restart()
+        $laneFree = $false
+        while (-not $laneFree -and -not $liveRunner.HasExited -and $sw.Elapsed.TotalSeconds -lt 30) {
+            Start-Sleep -Milliseconds 500
+            $laneFree = $null -eq (Invoke-Coordinator -Action Status -BootTtlSeconds 600).value.boot
+        }
+        Assert-True $laneFree "RunBatch releases the boot lane once the startup window closes"
+        Assert-True (-not $liveRunner.HasExited) "the boot lane is freed while the child is still running"
+        Assert-True ($null -ne (Read-OwnerJson "batch-live")) "releasing the boot lane keeps the owner lease"
+
+        # The coordinator rewrites owner.json on its poll cadence, so the backdate can lose a race.
+        $sw.Restart()
+        $backdated = $false
+        while (-not $backdated -and $sw.Elapsed.TotalSeconds -lt 15) {
+            try { Backdate-Owner "batch-live"; $backdated = $true } catch { Start-Sleep -Milliseconds 200 }
+        }
+        Assert-True $backdated "backdated the running batch owner"
+        $sw.Restart()
+        while ((Get-OwnerAgeSeconds "batch-live") -gt 60 -and $sw.Elapsed.TotalSeconds -lt 30) { Start-Sleep -Milliseconds 500 }
+        Assert-True ((Get-OwnerAgeSeconds "batch-live") -lt 60) "RunBatch renews the owner lease while the child runs"
+    }
+    finally {
+        if (-not $liveRunner.HasExited) { [void]$liveRunner.WaitForExit(120000) }
+        Write-Snapshot @()
+    }
+    $liveJson = [string](@(Get-Content -LiteralPath $liveOut | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
+    Assert-Equal $liveJson.status "batch_complete" "long-running RunBatch completes"
+    Assert-Equal $liveJson.exitCode 3 "long-running RunBatch returns the child exit code"
+    $afterLive = Invoke-Coordinator -Action Status
+    Assert-Equal @($afterLive.value.owners).Count 0 "long-running RunBatch releases its owner"
+
+    # StartEditor composes the caller's args after the coordinator-injected -projectPath, so the
+    # owner record can never name a different project than the editor opens.
     Write-Snapshot @()
     $edSentinel = Join-Path $Root "editorargs-sentinel.txt"
     if (Test-Path -LiteralPath $edSentinel) { Remove-Item -LiteralPath $edSentinel -Force }
+    $recorder = Join-Path $Root "launch-recorder.cmd"
+    [System.IO.File]::WriteAllText($recorder, "@echo off`r`necho %* > `"%UA_TEST_SENTINEL%`"`r`n", $Utf8NoBom)
     $env:UA_TEST_SENTINEL = $edSentinel
     try {
-        $stubExe = (Get-Command powershell).Source
-        $edLiteral = "@('-NoProfile','-Command','[IO.File]::WriteAllText(`$env:UA_TEST_SENTINEL, ''armed'')')"
-        $startInner = "& '$Coordinator' -Action StartEditor -Lease edargs -Slot agent-1 -ProjectPath '$projA' -UnityPath '$stubExe' -SkipMcp -StateRoot '$State' -ProcessSnapshotPath '$Snapshot' -WaitSeconds 1 -Json -EditorArgs $edLiteral"
+        $startInner = "& '$Coordinator' -Action StartEditor -Lease edargs -Slot agent-1 -ProjectPath '$projA' -UnityPath '$recorder' -SkipMcp -StateRoot '$State' -ProcessSnapshotPath '$Snapshot' -WaitSeconds 1 -Json -EditorArgs @('-batchmode','-nographics')"
         $startOut = @(& powershell -NoProfile -ExecutionPolicy Bypass -Command $startInner 2>&1)
         Assert-Equal $LASTEXITCODE 0 "StartEditor -EditorArgs exit"
         $startResult = [string](@($startOut | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
@@ -290,6 +357,9 @@ try {
         $sw = [System.Diagnostics.Stopwatch]::StartNew()
         while (-not (Test-Path -LiteralPath $edSentinel) -and $sw.Elapsed.TotalSeconds -lt 15) { Start-Sleep -Milliseconds 200 }
         Assert-True (Test-Path -LiteralPath $edSentinel) "StartEditor launches the exe with the passed EditorArgs"
+        $launched = [string](Get-Content -LiteralPath $edSentinel -Raw)
+        Assert-True ($launched -match [regex]::Escape([System.IO.Path]::GetFullPath($projA))) "the launch carries the coordinator's leased project path"
+        Assert-True ($launched.IndexOf("-projectPath") -ge 0 -and $launched.IndexOf("-projectPath") -lt $launched.IndexOf("-batchmode")) "caller args compose after the injected -projectPath"
     }
     finally {
         Remove-Item Env:\UA_TEST_SENTINEL -ErrorAction SilentlyContinue

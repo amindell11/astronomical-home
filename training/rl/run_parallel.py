@@ -28,27 +28,23 @@ import sys
 import time
 from pathlib import Path
 
+from driver_common import config_has_self_play, config_run_id
+
 RL_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RL_DIR.parent.parent
 RESULTS = REPO_ROOT / "results" / "rl-training"
 JSONL_DIR = REPO_ROOT / "results" / "rl-episodes"
 MLAGENTS = RL_DIR / ".venv" / "Scripts" / "mlagents-learn.exe"
 
-
-def config_run_id(config: Path) -> str:
-    match = re.search(r"^\s*run_id:\s*(\S+)", config.read_text(), re.MULTILINE)
-    if not match:
-        sys.exit(f"FAIL: no checkpoint_settings run_id in {config}; pass --run-id")
-    return match.group(1)
+# TrainingHost.ComposeSuffix (C#) owns this filename format; this launcher only consumes it.
+# RLDriverContractEditModeTests pins the pair — edit neither side alone.
+WORKER_SUFFIX = "-w{k}"
+ARENA_SUFFIX = "-a{j}"
 
 
 def trainer_log_path(run_id: str) -> Path:
     """Where this launcher writes the trainer's stdout; consumers import this rather than rebuild it."""
     return RESULTS / f"{run_id}-parallel-trainer.log"
-
-
-def config_has_self_play(config: Path) -> bool:
-    return re.search(r"^\s*self_play:", config.read_text(), re.MULTILINE) is not None
 
 
 def config_has_roster_weights(config: Path) -> bool:
@@ -60,9 +56,11 @@ def episode_logs(suffix: str) -> set:
 
 
 def log_suffixes(num_envs: int, num_arenas: int) -> list:
+    # The arena part appears only when fanning out, so M=1 filenames stay byte-identical.
     if num_arenas > 1:
-        return [f"-w{k}-a{j}" for k in range(num_envs) for j in range(num_arenas)]
-    return [f"-w{k}" for k in range(num_envs)]
+        return [WORKER_SUFFIX.format(k=k) + ARENA_SUFFIX.format(j=j)
+                for k in range(num_envs) for j in range(num_arenas)]
+    return [WORKER_SUFFIX.format(k=k) for k in range(num_envs)]
 
 
 def terminate_pid_tree(pid: int) -> None:
