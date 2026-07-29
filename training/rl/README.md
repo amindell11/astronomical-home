@@ -156,10 +156,10 @@ schema, `EpisodeResult.SchemaId`) under `results/rl-episodes/`.
 ```
 
 Runs a short job through `run_parallel.py` with `max_steps` cut to `--steps` and
-reports steady-state steps/s plus worker cores and peak RSS. Repeat runs of one
-config land within ~4% on a loaded desktop, so it resolves effects above roughly
-10% and cannot adjudicate smaller ones; comparisons are only meaningful between
-rows sharing a config, `--steps`, and `--initialize-from`.
+reports steady-state steps/s plus worker cores and peak RSS. Comparisons are only
+meaningful between rows sharing a config, `--steps`, and `--initialize-from`. Its
+resolution is coarse and its documented repeatability is contested against
+observation — read the docstring before trusting a small delta.
 
 ## Python-free loop check
 
