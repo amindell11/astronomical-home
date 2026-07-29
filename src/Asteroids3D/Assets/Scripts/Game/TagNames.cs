@@ -9,7 +9,6 @@ namespace Utils
         public const string World = "World";
         public const string Projectile = "Projectile";
         public const string Missile = "Missile";
-        public const string Boundary = "Boundary";
         public const string ReferencePlane = "ReferencePlane";
         public const string UICam = "UICam";
     }
