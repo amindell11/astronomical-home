@@ -334,6 +334,29 @@ try {
     $afterLive = Invoke-Coordinator -Action Status
     Assert-Equal @($afterLive.value.owners).Count 0 "long-running RunBatch releases its owner"
 
+    # AttachBatchChild claims the child's Unity, so a batch owner's own child stops reading as an
+    # unmanaged process blocking every other project (codex P1 on #224).
+    Write-Snapshot @()
+    [void](Invoke-Coordinator -Action Acquire -Lease child-claim -ProjectPath $agentProject)
+    $absent = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action AttachBatchChild -Lease child-claim -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+    $absentResult = [string](@($absent | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
+    Assert-Equal $absentResult.status "batch_child_absent" "no child yet is not an error"
+
+    Write-Snapshot @([ordered]@{ processId = 43001; commandLine = "Unity.exe -batchMode -projectPath `"$agentProject`"" })
+    $blockedBefore = Invoke-Coordinator -Action Acquire -Lease child-rival -ProjectPath $projB
+    Assert-Equal $blockedBefore.value.status "blocked_unmanaged_unity" "an unclaimed batch child blocks other projects"
+    [void](Invoke-Coordinator -Action Cancel -Lease child-rival)
+
+    $claimed = @(& powershell -NoProfile -ExecutionPolicy Bypass -File $Coordinator -Action AttachBatchChild -Lease child-claim -StateRoot $State -ProcessSnapshotPath $Snapshot -Json 2>&1)
+    $claimResult = [string](@($claimed | Where-Object { [string]$_ -match '^\s*[\{]' } | Select-Object -Last 1)) | ConvertFrom-Json
+    Assert-Equal $claimResult.status "attached" "AttachBatchChild claims the project's batch Unity"
+    Assert-Equal $claimResult.owner.processId 43001 "the claimed pid lands on the owner record"
+    $freeAfter = Invoke-Coordinator -Action Acquire -Lease child-rival2 -ProjectPath $projB
+    Assert-Equal $freeAfter.value.status "acquired" "a claimed child no longer blocks other projects"
+    [void](Invoke-Coordinator -Action Release -Lease child-rival2)
+    Write-Snapshot @()
+    [void](Invoke-Coordinator -Action Release -Lease child-claim)
+
     # StartEditor composes caller args after the injected -projectPath, so owner and editor can't diverge.
     Write-Snapshot @()
     $edSentinel = Join-Path $Root "editorargs-sentinel.txt"

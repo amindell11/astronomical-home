@@ -1,5 +1,5 @@
 param(
-    [ValidateSet("Status", "Request", "Acquire", "Wait", "Attach", "Adopt", "Release", "Cancel", "BootAcquire", "BootRelease", "StartEditor", "RunBatch")]
+    [ValidateSet("Status", "Request", "Acquire", "Wait", "Attach", "AttachBatchChild", "Adopt", "Release", "Cancel", "BootAcquire", "BootRelease", "StartEditor", "RunBatch")]
     [string]$Action = "Status",
     [string]$Lease = "",
     [string]$Slot = "",
@@ -231,12 +231,13 @@ function Get-MemberValue {
 
 function Test-OwnerStale {
     param([object]$Owner)
+    # A lease whose holding coordinator still runs is busy, whatever its opaque child is doing —
+    # checked first so a child that exits just before the release does not open a reap window.
+    $holder = [int](Get-MemberValue $Owner "holderProcessId")
+    if ($holder -gt 0 -and $null -ne (Get-Process -Id $holder -ErrorAction SilentlyContinue)) { return $false }
     if ([int]$Owner.processId -gt 0) {
         return @(Get-RelevantUnityProcesses | Where-Object { $_.processId -eq [int]$Owner.processId }).Count -eq 0
     }
-    # A lease whose holding coordinator is still running is busy, however long its opaque child runs.
-    $holder = [int](Get-MemberValue $Owner "holderProcessId")
-    if ($holder -gt 0 -and $null -ne (Get-Process -Id $holder -ErrorAction SilentlyContinue)) { return $false }
     return ([datetime]::UtcNow - (Get-DateValue $Owner.updatedAt)).TotalSeconds -gt $OwnerTtlSeconds
 }
 
@@ -439,13 +440,15 @@ function Write-OwnerHeartbeat {
     Write-JsonFile (Join-Path (Join-Path $OwnersRoot ([string]$Owner.projectKey)) "owner.json") $Owner
 }
 
-# Frees the machine-wide lane once the caller's declared log shows startup is past the contention
-# window, so an opaque child only serializes its boot. Runs beside the blocking child, then exits.
+# Claims the child's Unity, then frees the machine-wide lane once the caller's declared log shows
+# startup is past the contention window. Runs beside the blocking child and exits on its own.
+# Both halves matter: an unclaimed child blocks every project no matter who holds the lane.
 function Start-BootLaneSidecar {
     $settings = @{
         coordinator = $PSCommandPath
         lease = $Lease
         stateRoot = $AccessRoot
+        snapshot = $ProcessSnapshotPath
         logPath = $BatchLogPath
         pattern = $BootCompletePattern
         pollSeconds = [Math]::Max(1, $PollSeconds)
@@ -453,13 +456,23 @@ function Start-BootLaneSidecar {
     }
     return Start-Job -ScriptBlock {
         param($s)
-        while ([datetime]::UtcNow -lt [datetime]::Parse($s.deadline).ToUniversalTime()) {
-            if (-not [string]::IsNullOrWhiteSpace($s.logPath) -and (Test-Path -LiteralPath $s.logPath) -and
-                (Select-String -LiteralPath $s.logPath -Pattern $s.pattern -Quiet -ErrorAction SilentlyContinue)) { break }
+        $common = @("-Lease", $s.lease, "-StateRoot", $s.stateRoot, "-Json")
+        if (-not [string]::IsNullOrWhiteSpace($s.snapshot)) { $common += @("-ProcessSnapshotPath", $s.snapshot) }
+        $attached = $false
+        while ($true) {
+            if (-not $attached) {
+                $out = & powershell -NoProfile -ExecutionPolicy Bypass -File $s.coordinator `
+                    -Action AttachBatchChild @common 2>&1
+                $attached = [bool]([string]$out -match '"status":"attached"')
+            }
+            $bootDone = [datetime]::UtcNow -ge [datetime]::Parse($s.deadline).ToUniversalTime()
+            if (-not $bootDone -and -not [string]::IsNullOrWhiteSpace($s.logPath) -and (Test-Path -LiteralPath $s.logPath)) {
+                $bootDone = [bool](Select-String -LiteralPath $s.logPath -Pattern $s.pattern -Quiet -ErrorAction SilentlyContinue)
+            }
+            if ($bootDone) { break }
             Start-Sleep -Seconds $s.pollSeconds
         }
-        & powershell -NoProfile -ExecutionPolicy Bypass -File $s.coordinator -Action BootRelease `
-            -Lease $s.lease -StateRoot $s.stateRoot -Json | Out-Null
+        & powershell -NoProfile -ExecutionPolicy Bypass -File $s.coordinator -Action BootRelease @common | Out-Null
     } -ArgumentList $settings
 }
 
@@ -525,6 +538,21 @@ function Attach-Process {
         Write-JsonFile (Join-Path $BootRoot "boot.json") $boot
     }
     return [ordered]@{ status = "attached"; owner = $owner }
+}
+
+# A batch child's Unity names itself to nobody, so the owner stays pid-less and its own child reads
+# as an unmanaged process that blocks every project. Claim it as soon as it appears.
+function Attach-BatchChild {
+    $owner = Find-OwnerByLease $Lease
+    if ($null -eq $owner) { return [ordered]@{ status = "ownership_mismatch" } }
+    if ([int]$owner.processId -gt 0) { return [ordered]@{ status = "attached"; owner = $owner } }
+    $target = Normalize-Path ([string]$owner.projectPath)
+    $tracked = @(Get-TrackedPids)
+    $match = @(Get-RelevantUnityProcesses | Where-Object {
+        $_.batch -and $_.normalizedProjectPath -eq $target -and $tracked -notcontains $_.processId })
+    if ($match.Count -eq 0) { return [ordered]@{ status = "batch_child_absent" } }
+    $script:ProcessId = [int]$match[0].processId
+    return Attach-Process
 }
 
 # Operator-invoked recovery for an orphaned untracked editor; guards stay minimal because the PID is supplied explicitly.
@@ -708,6 +736,7 @@ $result = switch ($Action) {
     "Acquire" { Require-Lease; Acquire-Access }
     "Wait" { Require-Lease; if ($WaitSeconds -le 0) { $WaitSeconds = 60 }; Acquire-Access }
     "Attach" { Require-Lease; if ($ProcessId -le 0) { throw "Attach requires -ProcessId." }; Attach-Process }
+    "AttachBatchChild" { Require-Lease; Attach-BatchChild }
     "Adopt" { Require-Lease; if ($ProcessId -le 0) { throw "Adopt requires -ProcessId." }; Adopt-Process }
     "Release" { Require-Lease; Release-Access }
     "Cancel" { Require-Lease; Cancel-Request }

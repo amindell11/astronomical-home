@@ -112,6 +112,8 @@ def evaluated_summary(out_dir: Path):
 def run_eval(args, unity: Path, checkpoint: Path, out_dir: Path) -> Path:
     out_dir.mkdir(parents=True, exist_ok=True)
     log = out_dir / "editor.log"
+    # A retried step's leftover log still carries a boot marker, which would free the lane at once.
+    log.unlink(missing_ok=True)
     env = dict(os.environ,
                EVAL_UNITY=str(unity), EVAL_PROJ=str(args.project), EVAL_LOG=str(log),
                RL_EVAL_ONNX=str(checkpoint),
