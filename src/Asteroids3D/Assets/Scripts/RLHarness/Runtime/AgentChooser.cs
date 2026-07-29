@@ -8,8 +8,10 @@ using UnityEngine;
 namespace Game.RLHarness
 {
     /// <summary>The policy end of the intent seam: holds the decision-boundary action (world-plane velocity + facing + trigger + one-shot boost) and rebuilds the intent every Decide with a fresh target snapshot from the INJECTED opponent (Ranger precedent — Scout's 30 m radius is blind past the 25–60 m spawn band). The policy owns aim and trigger: the intent carries a facing override and manual fire, never aimAtTarget/projectileSpeed, so the MPC intercept override stays dormant. Boost emits on exactly one tick and only if it was available as observed at the boundary (spend-now-if-ready — a cooldown expiring mid-interval must not fire a boost the policy saw as unavailable).</summary>
-    public sealed class AgentChooser : IIntentChooser
+    public sealed class AgentChooser : IIntentChooser, IPolicyReadout
     {
+        private const int RingCapacity = 16;
+
         private Ship opponent;
 
         private bool hasAction;
@@ -20,6 +22,12 @@ namespace Game.RLHarness
         private bool boostPending;
         // Reused across decisions — the intent seam runs per fixed step, a fresh array would allocate per decision.
         private readonly WeightOverride[] facingOverride = { new() { weight = MpcWeight.Facing } };
+
+        // Debug-gizmo readout only — never consulted by Decide. Fixed-size, no allocation past construction.
+        private readonly PolicyAction[] ring = new PolicyAction[RingCapacity];
+        private int ringHead;
+
+        public int Count { get; private set; }
 
         public void Configure(Ship opponent)
         {
@@ -35,7 +43,13 @@ namespace Game.RLHarness
             this.fire = fire;
             boostPending = boost && boostAvailable;
             hasAction = true;
+
+            ring[ringHead] = new PolicyAction(worldVelocity, facingRad, facingWeight);
+            ringHead = (ringHead + 1) % RingCapacity;
+            if (Count < RingCapacity) Count++;
         }
+
+        public PolicyAction ActionFromNewest(int index) => ring[(ringHead - 1 - index + RingCapacity) % RingCapacity];
 
         public void Reset()
         {
@@ -46,6 +60,9 @@ namespace Game.RLHarness
             facingOverride[0].multiplier = 0f;
             fire = false;
             boostPending = false;
+
+            ringHead = 0;
+            Count = 0;
         }
 
         public NavigationIntent Decide(AIContext ctx, float dt)
