@@ -1,6 +1,6 @@
 # RL Infrastructure Paydown Pass
 
-> STATUS: live arc — PR-1 (hygiene) + PR-2 (drivers/coordinator) building in parallel; PR-3 (eval/capture host unification) in pr-prep; PR-4 (statistical eval) designs after PR-3 freezes; bench-hardening item HELD pending user discussion
+> STATUS: live arc — PR-1 (hygiene) + PR-2 (drivers/coordinator) building in parallel; PR-3 GREW INTO ITS OWN ARC, design FROZEN 2026-07-29 → `RL_Harness_Lane_Unification.md` (slices A–F); PR-4 (statistical eval) designs against that frozen doc; bench-hardening item HELD pending user discussion
 
 *Draft • 2026-07-28 • seeded by a four-lane parallel review (run history + results artifacts, code audit, PR trail #130–#222, board/deferral sweep) run in the coordinating session on 2026-07-28.*
 
@@ -133,23 +133,18 @@ Scope:
 Out of scope: eval_gate verdict logic, phase-aware thresholds (PR-4);
 any C# harness restructuring (PR-3).
 
-## PR-3 — eval/capture host unification (pr-prep first; build after freeze)
+## PR-3 — GREW INTO ITS OWN ARC; design FROZEN 2026-07-29
 
-Goals: one parameterized batch host lane replacing the per-type
-bootstrap+child+wrapper triple; capture promoted out of the test file; probes
-become pluggable instead of patch-fossils. Known forks for the pr-prep:
-
-- Shape of the parameterized entry (opponent-source: archetype roster | second
-  checkpoint; recording on/off; probe selection) vs separate hosts.
-- Second ONNX import slot design (enables policy-vs-policy: offline ELO, ram
-  bench, mirror eval).
-- `CheckpointEvaluator` split line: episode loop vs archetype summary.
-- CaptureHost boundary: shared composition with eval; `record.flag` lifecycle
-  (self-cleaning); mirror lane first-class.
-- Probe lane: rebuild the blocked facing probe (ledger row) as the first
-  client; carries rock-shooting probe + heat-telemetry read (parking lot).
-- Ram bench absorption (user decision above).
-- eval_gate watch-loop vs verdict-rule extraction (boundary with PR-4).
+Scoping showed this is an arc, not a PR. All forks resolved with the user;
+authority is now **`RL_Harness_Lane_Unification.md`** (slices A–F: substrate +
+eval migration → capture/painters · slot 2 · probe clients in parallel →
+bench client → Python surface). Headlines: one host + typed SessionSpec;
+composition + RunBlock primitives with clients as protocol coroutines; probe
+interface/registry (facing probe = first client, resolves the ledger BLOCKED
+row); painter/canvas contract for live+capture markup; `record.flag` deleted;
+ram bench split into contact probe + regression client; eval summary schema
+v2 (`opponents` rename + schema id + provenance). Playtest / profiler /
+throughput lanes designed-for, not built. Do not re-decide here.
 
 ## PR-4 — statistical eval layer (design after PR-3 freezes)
 
