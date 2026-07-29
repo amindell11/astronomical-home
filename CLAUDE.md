@@ -35,6 +35,14 @@ One line means ≤ ~15 words. No `<summary>` on self-naming members. Never narra
 Ratchet: apply the standing rule to the hunks you touch. Whole-file sweeps happen only in dedicated hygiene PRs — never fold them into feature PRs.
 Review/build narration belongs in the PR description, not the code.
 
+## Vocabulary
+
+`doc/Glossary.md` is the authority for this project's coined terms; coining or shifting one updates it in the same PR.
+Always qualify a collision-table word: "eval gate", not "gate"; "worktree slot", not "slot". A bare collision word in a title is always wrong.
+Vocab ratchet: fix deprecated forms in the hunks you touch; whole-file sweeps only in hygiene PRs.
+**Definition at first use.** Before deploying a new term anywhere — brief, design discussion, one-off fix — define it inline in the simplest concise form, using existing terms and general concepts. Define downward: never define a new term by way of another new term.
+**Re-orientation.** Recast cosmetic drift silently. State the reading you took for any collision-table word, even when the parse feels certain. Ask when genuinely ambiguous, or when the divergence would change what you do next. Always frame it as your interpretation, never as the other person's error; max one explicit flag per message. Repair symmetric misreads before proceeding. After roughly three recasts of the same form, propose making that form canonical — once.
+
 ## Default workflow
 
 `.claude/skills/agent-worktree-pr-loop/SKILL.md` is the single authority for the coding-task loop. Invariants:
