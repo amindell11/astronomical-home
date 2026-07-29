@@ -40,6 +40,7 @@ Review/build narration belongs in the PR description, not the code.
 `.claude/skills/agent-worktree-pr-loop/SKILL.md` is the single authority for the coding-task loop. Invariants:
 - Scope is confirmed with the user before building.
 - Build and test in a pooled worktree, never the primary tree.
+- Design docs land on main before the work they govern builds (`AGENTS.md` → Doc lifecycle).
 - PR when green.
 - Merge ONLY via `./scripts/agent_worktree_pool.sh merge <slot>`, and only on an explicit user merge instruction (definition in the skill).
 - Finalize the slot after merge.

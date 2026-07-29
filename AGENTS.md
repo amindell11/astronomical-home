@@ -64,6 +64,13 @@ handoffs are memory material (the memory directory), never repo docs; the
 consuming session deletes them. Header ratchet: an agent absorbing a doc
 whose STATUS contradicts reality fixes the header (header only) in its PR.
 
+**Landing.** A doc lands on main *before* the work it governs builds. An arc
+doc governing several PRs lands as its own docs-only PR, merged before the
+first implementing slot is acquired; a brief scoped to exactly one PR may ride
+that PR's first commit. Never author either in the primary worktree — a doc
+written there is invisible to the branch that needs it, and the copy that
+reaches a slot is an untracked twin with no merge base.
+
 ## Agent memory
 
 This repo is backed by a persistent, file-based agent memory — durable facts,
