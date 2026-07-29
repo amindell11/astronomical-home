@@ -26,7 +26,6 @@ namespace Game.RLHarness
         // Debug-gizmo readout only — never consulted by Decide. Fixed-size, no allocation past construction.
         private readonly PolicyAction[] ring = new PolicyAction[RingCapacity];
         private int ringHead;
-        private int nextDecisionIndex;
 
         public int Count { get; private set; }
 
@@ -45,7 +44,7 @@ namespace Game.RLHarness
             boostPending = boost && boostAvailable;
             hasAction = true;
 
-            ring[ringHead] = new PolicyAction(worldVelocity, facingRad, facingWeight, fire, nextDecisionIndex++);
+            ring[ringHead] = new PolicyAction(worldVelocity, facingRad, facingWeight);
             ringHead = (ringHead + 1) % RingCapacity;
             if (Count < RingCapacity) Count++;
         }
@@ -63,7 +62,6 @@ namespace Game.RLHarness
             boostPending = false;
 
             ringHead = 0;
-            nextDecisionIndex = 0;
             Count = 0;
         }
 

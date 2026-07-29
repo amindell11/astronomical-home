@@ -8,16 +8,12 @@ namespace AI
         public readonly Vector2 worldVelocity;
         public readonly float facingRad;
         public readonly float facingWeight;
-        public readonly bool fire;
-        public readonly int decisionIndex;
 
-        public PolicyAction(Vector2 worldVelocity, float facingRad, float facingWeight, bool fire, int decisionIndex)
+        public PolicyAction(Vector2 worldVelocity, float facingRad, float facingWeight)
         {
             this.worldVelocity = worldVelocity;
             this.facingRad = facingRad;
             this.facingWeight = facingWeight;
-            this.fire = fire;
-            this.decisionIndex = decisionIndex;
         }
     }
 

@@ -6,7 +6,7 @@ using UnityEngine;
 namespace AI
 {
     /// <summary>Visualizes the RL policy's commanded velocity/facing against the ship's actual
-    /// nose, to test whether facing thrash tracks range (see the 2026-07-28 handoff).</summary>
+    /// nose, to check whether facing-command churn tracks engagement range.</summary>
     internal static class PolicyGizmos
     {
         private const float VelocityScale = 0.4f;
@@ -41,7 +41,8 @@ namespace AI
 
         private static void DrawFan(Vector3 shipWorld, IPolicyReadout readout)
         {
-            var fanDepth = AIDebugContext.Settings ? AIDebugContext.Settings.policyFanDepth : 0;
+            var settings = AIDebugContext.Settings;
+            var fanDepth = settings ? settings.policyFanDepth : 0;
             var fanCount = Mathf.Min(fanDepth, readout.Count);
             if (fanCount <= 0) return;
 
