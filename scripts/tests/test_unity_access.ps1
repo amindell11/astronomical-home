@@ -273,8 +273,7 @@ try {
     Assert-Equal @($afterBatch.value.owners).Count 0 "run batch releases owner"
     Assert-True ($null -eq $afterBatch.value.boot) "run batch releases boot lane"
 
-    # RunBatch keeps the pid-less owner lease alive for the child's whole run while handing the
-    # machine-wide boot lane back as soon as the startup window closes.
+    # RunBatch renews the owner lease for the child's whole run but frees the boot lane at startup.
     function Read-OwnerJson {
         param([string]$Lease)
         $dir = Join-Path $State "owners"
@@ -339,8 +338,7 @@ try {
     $afterLive = Invoke-Coordinator -Action Status
     Assert-Equal @($afterLive.value.owners).Count 0 "long-running RunBatch releases its owner"
 
-    # StartEditor composes the caller's args after the coordinator-injected -projectPath, so the
-    # owner record can never name a different project than the editor opens.
+    # StartEditor composes caller args after the injected -projectPath, so owner and editor can't diverge.
     Write-Snapshot @()
     $edSentinel = Join-Path $Root "editorargs-sentinel.txt"
     if (Test-Path -LiteralPath $edSentinel) { Remove-Item -LiteralPath $edSentinel -Force }

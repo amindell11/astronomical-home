@@ -421,7 +421,7 @@ function Acquire-Access {
     } while ($true)
 }
 
-# A pid-less owner ages out on OwnerTtlSeconds alone, so anything that outlives that window must keep it fresh.
+# A pid-less owner ages out on OwnerTtlSeconds alone; anything longer-lived must keep it fresh.
 function Write-OwnerHeartbeat {
     param([object]$Owner)
     $Owner.updatedAt = [datetime]::UtcNow.ToString("o")
@@ -584,8 +584,7 @@ function Start-TrackedEditor {
     try {
         $exe = Resolve-FullPath $UnityPath
         if (-not (Test-Path -LiteralPath $exe)) { throw "Unity executable not found: $exe" }
-        # The coordinator owns -projectPath: the launched editor must open the project whose lease it
-        # holds, so caller args (RL batch launches) compose after it instead of replacing it.
+        # The editor must open the project whose lease it holds, so caller args compose after -projectPath.
         $launchArgs = @("-projectPath", $ResolvedProject) + $EditorArgs
         if ($SkipMcp.IsPresent) {
             $process = Start-Process -FilePath $exe -ArgumentList $launchArgs -PassThru
@@ -621,11 +620,11 @@ function Run-TrackedBatch {
         try {
             $childArgs = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", (Resolve-FullPath $BatchScript)) + $BatchArguments
             $child = Start-Process -FilePath "powershell" -ArgumentList $childArgs -NoNewWindow -PassThru
-            # Touching Handle keeps the process object able to report ExitCode after the child exits.
+            # Touching Handle keeps ExitCode readable after the child exits.
             $null = $child.Handle
-            # The child stays opaque: the coordinator watches only the log path the caller declared and
-            # falls back to a timed window, so the machine-wide lane covers startup, not the whole run.
-            $bootDeadline = [datetime]::UtcNow.AddSeconds($(if ($BatchBootSeconds -gt 0) { $BatchBootSeconds } else { $BootTtlSeconds }))
+            # The child is opaque, so the lane covers startup only: caller's declared log, else a timed fallback.
+            $bootWindow = if ($BatchBootSeconds -gt 0) { $BatchBootSeconds } else { $BootTtlSeconds }
+            $bootDeadline = [datetime]::UtcNow.AddSeconds($bootWindow)
             while (-not $child.HasExited) {
                 if ($bootHeld -and ([datetime]::UtcNow -ge $bootDeadline -or (Test-BootComplete $BatchLogPath))) {
                     [void](Release-Boot)

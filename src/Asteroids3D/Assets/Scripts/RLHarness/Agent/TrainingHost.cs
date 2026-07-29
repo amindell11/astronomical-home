@@ -123,7 +123,8 @@ namespace Game.RLHarness
                 ? workerSeed
                 : new SeedScope(workerSeed).Derive(ArenaSeedStream).Derive((uint)arenaIndex).ToSeed();
 
-        /// <summary>Composed JSONL suffix: worker part when launched under a trainer port, arena part only when fanning out — M=1 filenames stay byte-identical to today's. This side owns the format; run_parallel.py reads these files back, and RLDriverContractEditModeTests pins the pair.</summary>
+        // Arena part only when fanning out, so single-arena filenames stay byte-identical.
+        // This side owns the format; run_parallel.py reads it back, RLDriverContractEditModeTests pins both.
         public static string ComposeSuffix(int? workerIndex, int arenaIndex, int arenaCount)
         {
             var suffix = (workerIndex is int k ? $"-w{k}" : "") + (arenaCount > 1 ? $"-a{arenaIndex}" : "");

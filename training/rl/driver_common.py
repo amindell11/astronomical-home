@@ -1,7 +1,7 @@
-"""Shared plumbing for the training/eval drivers: Unity discovery, log-marker polling, and the
-trainer-config reads every driver does the same way. Import it rather than re-deriving — the
-markers and the episode-line shape are Unity-side formats (TrainingBootstrap, PacingContract,
-TrainingHost), so one copy keeps a C#-side rename from rotting four drivers independently.
+"""Shared plumbing for the training/eval drivers: Unity discovery, log-marker polling, and
+trainer-config reads. The markers and the episode-line shape are Unity-side formats
+(TrainingBootstrap, PacingContract, TrainingHost), so one copy keeps a C#-side rename from
+rotting four drivers independently.
 """
 import re
 import sys
@@ -10,7 +10,6 @@ from pathlib import Path
 
 ARMED_MARKER = "[TrainingBootstrap] armed"
 PACING_MARKER = "[PacingContract] holds"
-# TrainingHost.ArenaLoop logs the arena index on every line; drivers that don't care ignore group 1.
 EPISODE_LINE = re.compile(
     r"\[TrainingHost\] arena (\d+) episode \d+:.*terminals=(\d+) truncations=(\d+)")
 

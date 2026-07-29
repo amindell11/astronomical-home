@@ -41,11 +41,15 @@ def main() -> None:
     if args.num_arenas < 1:
         parser.error("--num-arenas must be >= 1")
 
-    kind = "selfplay-smoke" if args.self_play else "smoke"
-    config = RL_DIR / ("ppo_ship_combat_selfplay_smoke.yaml" if args.self_play
-                       else "ppo_ship_combat_smoke.yaml")
-    onnx = RESULTS / ("ship_combat_selfplay_smoke" if args.self_play
-                      else "ship_combat_smoke") / "ShipCombat.onnx"
+    if args.self_play:
+        kind = "selfplay-smoke"
+        config = RL_DIR / "ppo_ship_combat_selfplay_smoke.yaml"
+        onnx = RESULTS / "ship_combat_selfplay_smoke" / "ShipCombat.onnx"
+    else:
+        kind = "smoke"
+        config = RL_DIR / "ppo_ship_combat_smoke.yaml"
+        onnx = RESULTS / "ship_combat_smoke" / "ShipCombat.onnx"
+
     unity = args.unity or default_unity_exe(PROJECT)
     RESULTS.mkdir(parents=True, exist_ok=True)
     START_FLAG.unlink(missing_ok=True)

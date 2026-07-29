@@ -36,8 +36,7 @@ RESULTS = REPO_ROOT / "results" / "rl-training"
 JSONL_DIR = REPO_ROOT / "results" / "rl-episodes"
 MLAGENTS = RL_DIR / ".venv" / "Scripts" / "mlagents-learn.exe"
 
-# TrainingHost.ComposeSuffix (C#) owns this filename format; this launcher only consumes it.
-# RLDriverContractEditModeTests pins the pair — edit neither side alone.
+# TrainingHost.ComposeSuffix (C#) owns this format; RLDriverContractEditModeTests pins the pair.
 WORKER_SUFFIX = "-w{k}"
 ARENA_SUFFIX = "-a{j}"
 
