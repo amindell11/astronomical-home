@@ -42,16 +42,19 @@ namespace Tests.EditMode
             "ppo_ship_combat_hybrid.yaml", "ppo_ship_combat_selfplay.yaml", "ppo_ship_combat_selfplay_smoke.yaml",
         };
 
-        /// <summary>Algorithm shape: every run in the family must share these, so runs stay rankable against each other.</summary>
+        // Algorithm shape: a run that differs here is unrankable against the rest of the family.
         private static readonly string[] SharedHyperparameters =
         {
             "learning_rate", "beta", "epsilon", "lambd", "num_epoch", "learning_rate_schedule", "beta_schedule",
         };
 
-        /// <summary>Sample budget: the smokes deliberately shrink these; every real run must not.</summary>
+        // Sample budget: only the smokes may shrink these.
         private static readonly string[] FullRunHyperparameters = { "batch_size", "buffer_size" };
 
         private static bool IsSmoke(string yamlPath) => Path.GetFileName(yamlPath).Contains("smoke");
+
+        private static string ConfigPath(string fileName) =>
+            TrainerConfigs().Single(p => Path.GetFileName(p) == fileName);
 
         [Test]
         public void ConfigFamily_CoversEveryRunnableConfig()
@@ -61,12 +64,10 @@ namespace Tests.EditMode
                 "a renamed/deleted trainer config silently drops out of the per-file invariant tests");
         }
 
-        // Hybrid ran lambd 0.95 against the main config's 0.98 for a whole 1.5M-step phase before anyone
-        // noticed, which makes its gate series unrankable against the run it warm-started from.
         [TestCaseSource(nameof(TrainerConfigs))]
         public void Hyperparameters_MatchTheFamilyRecipe(string yamlPath)
         {
-            var reference = TrainerConfigs().Single(p => Path.GetFileName(p) == ReferenceConfig);
+            var reference = ConfigPath(ReferenceConfig);
             foreach (var key in SharedHyperparameters)
                 Assert.AreEqual(Value(reference, key), Value(yamlPath, key),
                     $"{key} drifted from {ReferenceConfig} — a run on a different algorithm shape cannot be compared to any other run");
@@ -95,8 +96,7 @@ namespace Tests.EditMode
 
         private static string EnvironmentParametersBlock()
         {
-            var mainConfig = TrainerConfigs().Single(p => Path.GetFileName(p) == "ppo_ship_combat.yaml");
-            var lines = File.ReadAllLines(mainConfig);
+            var lines = File.ReadAllLines(ConfigPath(ReferenceConfig));
             var start = System.Array.IndexOf(lines, "environment_parameters:");
             Assert.GreaterOrEqual(start, 0, "ppo_ship_combat.yaml must carry the curriculum's environment_parameters block");
             var block = new System.Text.StringBuilder();
@@ -152,7 +152,7 @@ namespace Tests.EditMode
         [Test]
         public void SelfPlayConfig_SelfPlayBlock_TerminalBandGraduationEnv_NoRoster()
         {
-            var path = TrainerConfigs().Single(p => Path.GetFileName(p) == "ppo_ship_combat_selfplay.yaml");
+            var path = ConfigPath("ppo_ship_combat_selfplay.yaml");
             var yaml = File.ReadAllText(path);
 
             Assert.IsTrue(Regex.IsMatch(yaml, @"^\s*self_play:", RegexOptions.Multiline),
@@ -178,7 +178,7 @@ namespace Tests.EditMode
         [Test]
         public void HybridConfig_SelfPlayBlock_TerminalBand_EvaderDominantRoster()
         {
-            var path = TrainerConfigs().Single(p => Path.GetFileName(p) == "ppo_ship_combat_hybrid.yaml");
+            var path = ConfigPath("ppo_ship_combat_hybrid.yaml");
             var yaml = File.ReadAllText(path);
 
             Assert.IsTrue(Regex.IsMatch(yaml, @"^\s*self_play:", RegexOptions.Multiline),

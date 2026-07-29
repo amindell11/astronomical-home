@@ -1,7 +1,6 @@
-# Coordinated checkpoint-eval launcher for the teacher-tuning loop.
-# Runs Game.RLHarness.TrainingBootstrap.RunEval against a frozen checkpoint under
-# unity_access RunBatch (owner + boot-lane acquire/release, no stale leases), then
-# prints the newest summary JSON. Env RL_EVAL_* is inherited by the batch child -> Unity.
+# Coordinated checkpoint-eval launcher: runs Game.RLHarness.TrainingBootstrap.RunEval against a
+# frozen checkpoint under unity_access RunBatch, so the owner + boot lane are acquired and released.
+# RL_EVAL_* travels as environment because the batch child, not this script, launches Unity.
 param(
     [Parameter(Mandatory)][string]$Onnx,          # absolute path to the .onnx checkpoint
     [Parameter(Mandatory)][string]$Seeds,         # e.g. "2001,2002,...,2020" (keep disjoint from held-out 1001-1020)
@@ -12,14 +11,15 @@ param(
     [string]$Tag = ""
 )
 $ErrorActionPreference = "Stop"
-$repo = "D:\amind\git\astronomical-home"
-$proj = "D:\amind\git\$Slot\src\Asteroids3D"
-$ts   = Get-Date -Format "yyyyMMdd-HHmmss"
-$log  = "D:\amind\git\$Slot\results\rl-eval\eval-$ts$Tag.editor.log"
-New-Item -ItemType Directory -Force (Split-Path $log) | Out-Null
+$repo     = "D:\amind\git\astronomical-home"
+$slotRoot = "D:\amind\git\$Slot"
+$evalDir  = "$slotRoot\results\rl-eval"
+$ts       = Get-Date -Format "yyyyMMdd-HHmmss"
+$log      = "$evalDir\eval-$ts$Tag.editor.log"
+New-Item -ItemType Directory -Force $evalDir | Out-Null
 
 $env:EVAL_UNITY = "D:\Programs\Unity\Editor\6000.1.8f1\Editor\Unity.exe"
-$env:EVAL_PROJ  = $proj
+$env:EVAL_PROJ  = "$slotRoot\src\Asteroids3D"
 $env:EVAL_LOG   = $log
 $env:RL_EVAL_ONNX = $Onnx
 $env:RL_EVAL_SEEDS = $Seeds
@@ -31,9 +31,11 @@ Write-Host "Eval: onnx=$Onnx"
 Write-Host "      seeds=$Seeds ep/seed=$EpisodesPerSeed density=$densLabel"
 Write-Host "      log=$log"
 
+$started = Get-Date
 & "$repo\scripts\unity_access.ps1" -Action RunBatch -Lease $Lease -Slot $Slot `
-    -BatchScript "D:\amind\git\$Slot\training\rl\eval_child.ps1" -Json
+    -BatchScript "$slotRoot\training\rl\eval_child.ps1" -Json
 
-$summary = Get-ChildItem "D:\amind\git\$Slot\results\rl-eval\*-summary.json" -ErrorAction SilentlyContinue |
-    Sort-Object LastWriteTime | Select-Object -Last 1
+# Filter by start time, or a run that wrote nothing reports the previous run's summary as its own.
+$summary = Get-ChildItem "$evalDir\*-summary.json" -ErrorAction SilentlyContinue |
+    Where-Object LastWriteTime -ge $started | Sort-Object LastWriteTime | Select-Object -Last 1
 if ($summary) { Write-Host "SUMMARY=$($summary.FullName)" } else { Write-Host "SUMMARY=(none written - check $log)" }

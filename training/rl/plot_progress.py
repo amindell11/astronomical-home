@@ -19,7 +19,7 @@ PANELS = [
     ("Policy/Entropy", "Entropy"),
 ]
 
-# Curriculum threshold ladder, drawn on the reward panel as a progress reference.
+# The curriculum's lesson-advance thresholds, as a progress reference on the reward panel.
 REWARD_THRESHOLDS = (0.3, 0.45, 0.6, 0.75, 0.9, 1.05)
 
 
@@ -37,6 +37,12 @@ def parse_args():
 def run_label(run_dir: Path) -> str:
     """The event files sit under <run_id>/<behavior>, so the run's identity is the parent."""
     return run_dir.parent.name or run_dir.name
+
+
+def trailing_mean(vals, window_count=20):
+    """Window scales with the series so the overlay reads the same at 200k steps and at 3M."""
+    k = max(len(vals) // window_count, 2)
+    return [sum(w) / len(w) for w in (vals[max(0, i - k):i + 1] for i in range(len(vals)))]
 
 
 def main():
@@ -58,30 +64,29 @@ def main():
             vals = [e.value for e in events]
             last_step = max(last_step, steps[-1] if steps else 0)
             ax.plot(steps, vals, linewidth=1.2)
-            if len(vals) >= 20:  # smoothed overlay
-                k = max(len(vals) // 20, 2)
-                sm = [sum(vals[max(0, i - k):i + 1]) / len(vals[max(0, i - k):i + 1]) for i in range(len(vals))]
-                ax.plot(steps, sm, linewidth=2.0)
+            if len(vals) >= 20:
+                ax.plot(steps, trailing_mean(vals), linewidth=2.0)
         else:
             ax.text(0.5, 0.5, "no data yet", ha="center", va="center", transform=ax.transAxes)
         ax.set_title(title)
         ax.grid(alpha=0.3)
 
-    ax = axes[6]
-    for t in lesson_tags:
-        events = acc.Scalars(t)
-        ax.step([e.step for e in events], [e.value for e in events], where="post",
-                label=t.split("/")[-1])
-    ax.set_title("Curriculum lesson index")
-    ax.grid(alpha=0.3)
+    lesson_ax = axes[len(PANELS)]
+    for tag in lesson_tags:
+        events = acc.Scalars(tag)
+        lesson_ax.step([e.step for e in events], [e.value for e in events], where="post",
+                       label=tag.split("/")[-1])
+    lesson_ax.set_title("Curriculum lesson index")
+    lesson_ax.grid(alpha=0.3)
     if lesson_tags:
-        ax.legend(fontsize=7)
+        lesson_ax.legend(fontsize=7)
 
     if "Environment/Cumulative Reward" in tags:
-        for thr in REWARD_THRESHOLDS:
-            axes[0].axhline(thr, color="gray", linewidth=0.5, linestyle="--", alpha=0.6)
+        for threshold in REWARD_THRESHOLDS:
+            axes[0].axhline(threshold, color="gray", linewidth=0.5, linestyle="--", alpha=0.6)
 
-    axes[7].axis("off")
+    for spare in axes[len(PANELS) + 1:]:
+        spare.axis("off")
 
     fig.suptitle(f"{run_label(args.run_dir)} — step {last_step:,}", fontsize=14)
     fig.tight_layout(rect=(0, 0, 1, 0.96))
