@@ -1,0 +1,33 @@
+{
+    "schema": "rl-ram-bench-v1",
+    "scenario": "flank-ram",
+    "contactRange": 3.8789525032043459,
+    "agentShipRadius": 1.0,
+    "victimShipRadius": 0.8789524435997009,
+    "pinned": {
+        "friction": 0.6000000238418579,
+        "ttk": 26.1199893951416,
+        "yawSumInContact": 9792.9306640625,
+        "contactSteps": 81,
+        "meanYawRateInContact": 120.90037536621094,
+        "minRange": 2.1113343238830568,
+        "victimShots": 13,
+        "victimHpLostPct": 0.2666666805744171,
+        "mutualKill": false,
+        "outcome": "Loss"
+    },
+    "free": {
+        "friction": 0.0,
+        "ttk": 10.01999568939209,
+        "yawSumInContact": 14487.5166015625,
+        "contactSteps": 144,
+        "meanYawRateInContact": 100.60775756835938,
+        "minRange": 2.445300579071045,
+        "victimShots": 7,
+        "victimHpLostPct": 1.0,
+        "mutualKill": false,
+        "outcome": "Win"
+    },
+    "yawRateFreeMinusPinned": -20.292617797851564,
+    "ttkFreeMinusPinned": -16.099994659423829
+}

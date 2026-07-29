@@ -115,7 +115,67 @@ Sample count is also not the only axis: `horizonSeconds`/`rolloutDt` (17 steps) 
 `noiseKnots 5` trade against tracking differently, and one may buy the same time at lower
 fidelity cost. Sweep them rather than assuming `samples` is the right knob.
 
+### Phase 2b — RUN 2026-07-22, verdict: samples 512→128 is fidelity-free; don't touch rolloutDt
+
+Method: the three oracle scenarios (on-axis converge, off-axis strafe, brake-to-zero) run
+closed-loop (100 re-plans, `Mpc.Plan` + `Model.Step`, sim always stepped at the baseline
+dt 0.1 config so rolloutDt sweeps stay comparable) as continuous ratios, via `execute_code`
+in an editor on main `dfda3f15` against the real `MpcSettings_AgentPilot` asset. 21 configs
+× 3 scenarios × 5 seeds, plus a 15-seed confirmation on the headline pair. Metrics normalized
+by the commanded speed (0.5 × maxSpeed): `fwd` = achieved forward / commanded, `strafe` =
+achieved strafe / commanded, `brake` = residual speed / initial. `planMs` = mean main-thread
+`Plan` wall time (editor, warm Burst).
+
+**There is no knee — every config down to samples 32 passes every oracle threshold on every
+seed.** The grid's spread on `fwd` is 0.91–1.02, `strafe` 0.70–0.81, `brake` 0.03–0.11
+(threshold 0.5). What does move:
+
+| axis | effect |
+| --- | --- |
+| `samples` 512→128 | **fidelity-flat.** 15 seeds: fwd 0.956±0.029 vs 0.959±0.027, strafe 0.796±0.029 vs 0.780±0.015, brake 0.069±0.034 vs 0.078±0.019. Solve 0.288→0.116 ms = **2.5× on the solve**. |
+| `samples` below 128 | still passes, but seed-variance grows (fwd ±0.073 at 64) and `planMs` hits a fixed-overhead floor (~0.096 ms at 32, only 1.2× below 128) — **no throughput reason to go under 128**. |
+| `rolloutDt` 0.1→0.17/0.2 | the one real degradation: strafe authority drops ~8–10% (0.78→0.70–0.72). **Keep dt 0.1.** |
+| `horizonSeconds` 1.7→1.2/0.8 | roughly neutral (fwd −2–3%, braking actually improves); buys little on top of the samples cut (0.133→0.104 ms at s128). Optional, not needed. |
+| `noiseKnots` 5→3/2 | fidelity-neutral-to-slightly-better on fwd, more drift; no cost win (knots don't change the budget). Leave at 5. |
+
+**Recommendation for Phase 3: cut `samples` 512→128 on both assets, change nothing else.**
+Raw rows + sweep harness archived at `training/archive/mpc_fidelity_sweep_2026-07-22/`
+(`rows_A/B/C/D.jsonl`, `sweep_body.cs`); rerun is ~2 min in any editor via `execute_code`.
+
+### Obstacle addendum (user pull: "was the oracle run with asteroids?") — verdict unchanged
+
+The open-space sweep matched the oracle's `enableObstacleAvoidance=false`; avoidance is the
+multimodal regime where budget could actually bite, so three asteroid scenarios were added
+(same closed loop, avoidance on, hand-built `ObstacleScan`, 150 steps, 10 seeds): **head-on**
+(one r=3 rock on the commanded path), **gap** (two r=3 rocks, 3-unit gap centered on the
+path), **slalom** (three staggered rocks). Metrics: min hull clearance over the trajectory,
+collision steps, progress = displacement along the command / (speed × time). Configs: samples
+512/256/128/64 at baseline horizon, plus 512/128 at horizonSeconds 1.2
+(`rows_O1/O2.jsonl`, `sweep_obst.cs`).
+
+**Zero collisions in all 180 runs; min clearance never below 0.33** (the 0.3 safety margin
+held everywhere). s128 vs s512 at baseline: progress 0.835/0.751 vs 0.845/0.766
+(head-on/slalom) — no avoidance degradation attributable to the samples cut, down to 64.
+
+**Separate finding (budget-independent, pre-existing):** at the stock horizon 1.7 the tight
+gap is bimodal across CEM seeds — the ship either threads (~0.77 progress) or balks and
+stalls in front of it (~0.12). More samples do NOT fix it (s512 threads 3/10, s128 5/10);
+horizon 1.2 threads 10/10 (~0.83, near-zero variance). Long-horizon collision-cost mass makes
+the gap look expensive and the solver stalls at the wall. Not a regression and not this arc's
+scope — noted for the tactical-AI backlog; it is additional evidence the budget is not the
+binding term in avoidance behavior. Ship decision still needs the Phase 3 rebuild +
+bench re-measure on current main (post-#206 baseline 100.5 steps/s) and explicit user
+sign-off (env shift for any warm-started checkpoint).
+
 ## Phase 3 — MPC CEM budget for velocity mode (semantics-changing)
+
+> **SHIPPED #209 2026-07-22 (main `e0318cd1`): `samples 512→128`, nothing else.** User-approved
+> on the Phase 2b evidence. Bench A/B vs `post-206-baseline` (100.53 steps/s, N=4 M=1 24k
+> warm-started, exe the only variable): **181.4 / 178.3 (repeat) = ~1.79×**. Worker CPU fell
+> from 14.66-core saturation to well below — the loop went latency-bound at N=4. N-probe
+> (same exe/config): **N=6 = 212.4, N=8 = 213.0 steps/s — plateau at N=6** (+18% over N=4,
+> ~13–14 cores again; N=8 buys nothing for +400 MB). **Use `--num-envs 6`.** Arc total
+> ~2.5× (83–87 → 213 steps/s); a 2M run ≈ 2.6 h. Rows in `results/rl-bench/bench.jsonl`.
 
 `MpcSettings_AgentPilot` (`samples 512`, `horizonSeconds 1.7` / `rolloutDt 0.1` = 17 steps,
 `noiseKnots 5`) was sized for the **full tactical planner**. In velocity-reference mode
@@ -131,7 +191,37 @@ several times more than needed.
   tactical costs that justified the budget. Sequence after that arc's PR-2.
 - **Risk:** any surviving checkpoint warm-starts into a shifted env. Needs explicit sign-off.
 
-## Phase 4 — structural candidates (not scoped; evidence first)
+## Profiling pass 2026-07-23 — the fixed step decomposed (post-samples-128)
+
+Dev player (`RL_BUILD_DEVELOPMENT=1`, main `e0318cd1`), N=1 scripted-roster training load,
+profiler attached from a tracked editor, 300 main-thread frames aggregated by self-time
+(raw table: `training/archive/mpc_fidelity_sweep_2026-07-22/profile_fixedstep_2026-07-23.txt`).
+Main thread ≈ 1.9 ms/frame (dev instrumentation inflates managed markers somewhat):
+
+| bucket | ms/300f | share | notes |
+| --- | --- | --- | --- |
+| ML-Agents decision path (`root.DecideAction`) | 164 | **~29%** | fires every 10th step ⇒ ~5.5 ms/decision: obs collection + gRPC round-trip + action apply — the latency-bound term |
+| MPC solve (128 samples: jobs + waits) | 97 | ~17% | `WaitForJobGroupID` 45 + `EvaluateCandidatesJob` 42 + gen/complete 10 |
+| PhysX simulate + pipeline | ~86 | ~15% | Phase 4 territory (unpruned matrix, no sleeping) |
+| AI perception/command (`AICommander.FixedUpdate` 32, `Scout.Update` 23) | 55 | ~10% | Scout scans every frame — 1c-adjacent candidate |
+| Presentation + audio + UI (particles, canvas, audio, audibility) | ~25 | **~5%** | **Phase 1b's assumed big win is small — below bench resolution; DEPRIORITIZED** |
+| Asteroid field maintenance | 16 | ~3% | |
+
+Implications: (1) **Phase 1b is not worth its design fork** at ~5%. (2) The top term is the
+per-decision round-trip — per-fixed-step Unity cuts don't shrink it. (3) MPC at 17% would
+yield only ~9% more from a further 128→64 cut — not worth re-opening.
+Bonus rows: dev-build N=1 = 62.0 steps/s (vs 37.8 at samples-512 dev = 1.64× per-worker).
+
+**Trainer-CPU probe (same day, user pull):** instrumented N=6 bench with a 5 s sampler on the
+mlagents process (`trainer_cpu_n6_2026-07-23.csv` in the archive dir). Trainer = **0.71 cores
+steady** — real (the old "0.00 cores" datum is obsolete at 2.4× the decision rate) but NOT
+saturated, so the single-trainer-cap theory is unconfirmed; the N=6/8 plateau reads as the
+machine's practical ~14-core aggregate budget (workers 12.86 + trainer 0.71 + system).
+Trainer pins ~1.0 core around ~260 steps/s, so env-side wins >~25% will hit it — check
+trainer CPU again after any such win. Run-to-run: this run 184.9 steps/s vs the probes'
+212–213 (spread ~60 at these rates ⇒ single runs swing ±15%; the N=6≈N=8 plateau stands).
+**Arc closed 2026-07-23** — remaining candidates (PhysX ~15%, trainer-side) are sub-15%
+items; nothing left above the bench's noise floor without new evidence.
 
 - **IL2CPP for Standalone.** `ProjectSettings.asset` sets `scriptingBackend` only for Android,
   so Standalone falls through to Mono. Would not touch Burst-compiled MPC. Determinism pins

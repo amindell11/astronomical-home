@@ -54,8 +54,7 @@ namespace Tests.PlayMode
                 {
                     sectorEntry = null,
                     buildPlayer = true,
-                    presentation = false,
-                    vfx = false
+                    presentation = false
                 }
             };
 

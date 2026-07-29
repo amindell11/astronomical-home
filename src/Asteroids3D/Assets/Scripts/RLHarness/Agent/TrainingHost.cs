@@ -35,9 +35,8 @@ namespace Game.RLHarness
             if (!assets)
                 throw new InvalidOperationException("TrainingHost.assets is unset — assign the HarnessAssets catalog on the RLTraining scene's [TrainingHost].");
 
-            // Before any ship spawns — embedded visual rigs self-gate on these at Awake.
+            // Before any ship spawns — embedded visual rigs self-gate on this at Awake.
             Utils.GameSettings.SetPresentationEnabled(false);
-            Utils.GameSettings.SetVfxEnabled(false);
 
             PacingContract.Apply();
             StartCoroutine(PacingWatchdog());
@@ -123,8 +122,9 @@ namespace Game.RLHarness
                 ? workerSeed
                 : new SeedScope(workerSeed).Derive(ArenaSeedStream).Derive((uint)arenaIndex).ToSeed();
 
-        /// <summary>Composed JSONL suffix: worker part when launched under a trainer port, arena part only when fanning out — M=1 filenames stay byte-identical to today's.</summary>
-        private static string ComposeSuffix(int? workerIndex, int arenaIndex, int arenaCount)
+        // Arena part only when fanning out, so single-arena filenames stay byte-identical.
+        // This side owns the format; run_parallel.py reads it back, RLDriverContractEditModeTests pins both.
+        public static string ComposeSuffix(int? workerIndex, int arenaIndex, int arenaCount)
         {
             var suffix = (workerIndex is int k ? $"-w{k}" : "") + (arenaCount > 1 ? $"-a{arenaIndex}" : "");
             return suffix.Length == 0 ? null : suffix;
