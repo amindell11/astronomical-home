@@ -34,14 +34,48 @@ namespace Tests.EditMode
         private static float FloatValue(string yamlPath, string key) =>
             float.Parse(Value(yamlPath, key), CultureInfo.InvariantCulture);
 
+        private const string ReferenceConfig = "ppo_ship_combat.yaml";
+
+        private static readonly string[] FamilyConfigs =
+        {
+            ReferenceConfig, "ppo_ship_combat_pilot.yaml", "ppo_ship_combat_smoke.yaml",
+            "ppo_ship_combat_hybrid.yaml", "ppo_ship_combat_selfplay.yaml", "ppo_ship_combat_selfplay_smoke.yaml",
+        };
+
+        // Algorithm shape: a run that differs here is unrankable against the rest of the family.
+        private static readonly string[] SharedHyperparameters =
+        {
+            "learning_rate", "beta", "epsilon", "lambd", "num_epoch", "learning_rate_schedule", "beta_schedule",
+        };
+
+        // Sample budget: only the smokes may shrink these.
+        private static readonly string[] FullRunHyperparameters = { "batch_size", "buffer_size" };
+
+        private static bool IsSmoke(string yamlPath) => Path.GetFileName(yamlPath).Contains("smoke");
+
+        private static string ConfigPath(string fileName) =>
+            TrainerConfigs().Single(p => Path.GetFileName(p) == fileName);
+
         [Test]
-        public void ConfigFamily_CoversMainPilotAndSmoke()
+        public void ConfigFamily_CoversEveryRunnableConfig()
         {
             var names = TrainerConfigs().Select(Path.GetFileName).ToArray();
-            CollectionAssert.IsSubsetOf(
-                new[] { "ppo_ship_combat.yaml", "ppo_ship_combat_pilot.yaml", "ppo_ship_combat_smoke.yaml" },
-                names,
+            CollectionAssert.IsSubsetOf(FamilyConfigs, names,
                 "a renamed/deleted trainer config silently drops out of the per-file invariant tests");
+        }
+
+        [TestCaseSource(nameof(TrainerConfigs))]
+        public void Hyperparameters_MatchTheFamilyRecipe(string yamlPath)
+        {
+            var reference = ConfigPath(ReferenceConfig);
+            foreach (var key in SharedHyperparameters)
+                Assert.AreEqual(Value(reference, key), Value(yamlPath, key),
+                    $"{key} drifted from {ReferenceConfig} — a run on a different algorithm shape cannot be compared to any other run");
+
+            if (IsSmoke(yamlPath)) return;
+            foreach (var key in FullRunHyperparameters)
+                Assert.AreEqual(Value(reference, key), Value(yamlPath, key),
+                    $"{key} drifted from {ReferenceConfig}; only the smokes may shrink the sample budget");
         }
 
         [TestCaseSource(nameof(TrainerConfigs))]
@@ -62,8 +96,7 @@ namespace Tests.EditMode
 
         private static string EnvironmentParametersBlock()
         {
-            var mainConfig = TrainerConfigs().Single(p => Path.GetFileName(p) == "ppo_ship_combat.yaml");
-            var lines = File.ReadAllLines(mainConfig);
+            var lines = File.ReadAllLines(ConfigPath(ReferenceConfig));
             var start = System.Array.IndexOf(lines, "environment_parameters:");
             Assert.GreaterOrEqual(start, 0, "ppo_ship_combat.yaml must carry the curriculum's environment_parameters block");
             var block = new System.Text.StringBuilder();
@@ -119,7 +152,7 @@ namespace Tests.EditMode
         [Test]
         public void SelfPlayConfig_SelfPlayBlock_TerminalBandGraduationEnv_NoRoster()
         {
-            var path = TrainerConfigs().Single(p => Path.GetFileName(p) == "ppo_ship_combat_selfplay.yaml");
+            var path = ConfigPath("ppo_ship_combat_selfplay.yaml");
             var yaml = File.ReadAllText(path);
 
             Assert.IsTrue(Regex.IsMatch(yaml, @"^\s*self_play:", RegexOptions.Multiline),
@@ -145,7 +178,7 @@ namespace Tests.EditMode
         [Test]
         public void HybridConfig_SelfPlayBlock_TerminalBand_EvaderDominantRoster()
         {
-            var path = TrainerConfigs().Single(p => Path.GetFileName(p) == "ppo_ship_combat_hybrid.yaml");
+            var path = ConfigPath("ppo_ship_combat_hybrid.yaml");
             var yaml = File.ReadAllText(path);
 
             Assert.IsTrue(Regex.IsMatch(yaml, @"^\s*self_play:", RegexOptions.Multiline),

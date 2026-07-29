@@ -36,9 +36,6 @@ namespace Game.Bootstrap
         /// <summary>Compose the session's service container and optional rig — once per session; the rig persists across sector loads until <see cref="TeardownSession"/>.</summary>
         public IEnumerator ComposeSession(GameSession target)
         {
-            // Runtime-only overrides so a headless/RL session never leaks into the saved preferences.
-            // VFX is a sub-capability of presentation: no presentation ⇒ no VFX, whatever the profile says.
-            GameSettings.SetVfxEnabled(target.Profile.vfx && target.Profile.presentation);
             GameSettings.SetPresentationEnabled(target.Profile.presentation);
 
             // The session root doubles as the arena root: placed at the profile offset before anything composes against it.

@@ -172,7 +172,6 @@ MonoBehaviour:
       prefab: {fileID: 6734031631238332472, guid: 47426a24cc9026e408695399dc81c107, type: 3}
     buildPlayer: 1
     presentation: 1
-    vfx: 1
   splashPrefab: {fileID: 4900000000000000005, guid: 29caef627551652e1ae46b2ea099953e,
     type: 3}
   hangarScreenPrefab: {fileID: 5835161239343422082, guid: d115d32348e1b3342a7379b8b1c74681,
