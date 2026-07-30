@@ -82,3 +82,4 @@ Follow these when adding any new dependency; prefer zero new wiring over new sea
 Approvals are per-action and never stretch into standing authorization — re-ask at each consequential step (merge, long-running or expensive launches).
 Past heavy context (~300k tokens), do not merge: write the handoff and let a fresh session drive the merge.
 Stopping a background monitor orphans its tail.exe/grep.exe children on Windows, and they keep tailed files locked (WinError 32 on delete/rename). taskkill the orphans before relaunching anything that recreates those logs.
+`core.hooksPath` belongs to `scripts/install_hooks.sh` (→ `.githooks`) — never override it, and never reach for `-c core.hooksPath=/dev/null` to skip a hook. git-lfs installs its hooks into whatever that path names, so off Git Bash the value resolves repo-relative and materializes a junk `dev/null/` directory in the tree.
