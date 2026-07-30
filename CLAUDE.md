@@ -38,7 +38,7 @@ Review/build narration belongs in the PR description, not the code.
 ## Vocabulary
 
 `doc/Glossary.md` is the authority for this project's coined terms; coining or shifting one updates it in the same PR.
-Always qualify a collision-table word: "eval gate", not "gate"; "worktree slot", not "slot". A bare collision word in a title is always wrong.
+Always qualify a collision-table word ("eval gate", not "gate") unless that word's glossary row grants a bare reading in the context you're writing in. In a title, qualify regardless.
 Vocab ratchet: fix deprecated forms in the hunks you touch; whole-file sweeps only in hygiene PRs.
 One home per term: the glossary carries only what the code cannot say — a constraint, a decision, a gotcha. Where code answers "what is this?", the entry points at the symbol instead of restating it.
 **Definition at first use.** Before deploying a new term anywhere — brief, design discussion, one-off fix — define it inline in the simplest concise form, using existing terms and general concepts. Define downward: never define a new term by way of another new term.
