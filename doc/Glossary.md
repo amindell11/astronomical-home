@@ -16,6 +16,12 @@ reads like it might mean two things.
 2. **Words, not tenses.** This file settles competing *words* for one thing.
    Inflections of a settled root are all canonical and need no entry of their
    own: grill / grilled / grilling / grill session / grill-settled are one term.
+3. **One home per term.** An entry carries only what the code cannot tell you —
+   a constraint, a decision, a gotcha, or a concept spanning several symbols.
+   Where the code already answers "what is this?", point at the symbol instead
+   of restating it. Two copies of one definition is the drift this file exists
+   to prevent, and a symbol that needs a line of its own gets it at the symbol
+   (that line is a non-obvious *why*, so the comments policy already allows it).
 
 **Definition at first use.** Before deploying a new term anywhere — brief,
 design discussion, one-off bug fix — define it inline in the simplest concise
@@ -194,8 +200,9 @@ Format: **term** — definition. *(authority)*
   only; hybrid league = a per-worker split of scripted roster and snapshots.
 - **roster** — the weighted scripted-opponent mixture. It is simultaneously a
   training mixture, an eval instrument, and a tuning lever — always say which.
-- **opponent archetype** — one scripted behavior doing exactly one job:
-  Aggressor, Evader, Orbiter, Kiter, Dummy. *(OpponentRoster.cs)*
+- **opponent archetype** — a scripted opponent held to exactly one job, so a
+  per-archetype result isolates one capability. The constraint is the point; the
+  cast list is in the code. *(OpponentRoster.cs)*
 - **teacher** — an archetype in its pedagogical role; the scripted roster as
   curriculum bootstrap.
 - **hole** — a per-archetype capability deficit. **Evader hole** is the specific,
@@ -206,9 +213,9 @@ Format: **term** — definition. *(authority)*
 - **mirror-brawlers** — the stage-(iii) diagnosis in one phrase: a league of
   mirror-brawlers has no pursuit gradient, because every opponent already wants
   the same close-range fight the policy does.
-- **eval gate** — `eval_gate.py`, the sidecar running the deterministic
-  75-episode scripted eval per checkpoint and applying the two-consecutive
-  ALERT/STOP rule. It reports; it does not kill unless `--auto-stop-pid`.
+- **eval gate** — the deterministic scripted eval run per checkpoint, as a
+  **sidecar**: it reports and does not kill the trainer unless explicitly armed
+  to. Treating it as an automatic stop is the recurring misread. *(eval_gate.py)*
 - **gate score** — the eval total (5 archetypes × 15 = X/75; older runs X/60).
   Not comparable across a rules change.
 - **noise floor** — eval re-run variance. ⚠ The widely-quoted ±4/75 figure is
@@ -233,9 +240,9 @@ Format: **term** — definition. *(authority)*
   "yaw-thrash". Not to be confused with **twitch**, reserved for the MPC
   obstacle×tactical defect, or **chatter**, a metric that provably does not
   capture thrash.)
-- **facing authority** — `clamp01(|fx,fy|)` scaling the MPC facing cost — the
-  policy expressing "facing doesn't matter right now". An action-semantics
-  change; old checkpoints do not warm-start across it.
+- **facing authority** — the policy's way of saying "facing doesn't matter right
+  now", by scaling down the MPC facing cost. It changed the **action semantics**,
+  so checkpoints from before it cannot warm-start across the boundary.
 - **shaping / Φ / undiscounted telescoping** — potential shaping deliberately
   telescoped *undiscounted* (Φ′ − Φ), trading Ng policy-invariance for a pursuit
   gradient. The discounted form leaks a per-decision drain that pays the agent to
@@ -248,8 +255,9 @@ Format: **term** — definition. *(authority)*
 - **boot-frozen composition** — a worker's episode composition (scripted vs
   mirror) is decided at boot and never changes mid-run; mid-run flips wedge all
   workers (observed twice).
-- **worker / fleet** — one player process under `--num-envs` (k = port offset,
-  JSONL `-w{k}`) / the set of live training processes.
+- **worker / fleet** — one player process under `--num-envs` / the set of live
+  training processes. Workers are addressed by index everywhere (ports, JSONL
+  names), so "worker 3" is the same 3 across every surface.
 - **screening ladder** — cheapest-falsifier-first evaluation of a rules change:
   Tier 0 arithmetic/scripted → Tier 1 frozen-policy A/B (screens, never
   certifies) → Tier 2 ~500k best-response probe → Tier 3 full retrain for
@@ -266,8 +274,10 @@ Format: **term** — definition. *(authority)*
 
 ### Game & sim
 
-- **sector** — a bounded open-space field of POIs, built deterministically from a
-  serialized manifest; one concrete class, prefab-configured. *(Sector.cs)*
+- **sector** — a bounded open-space field of POIs. The load-bearing decisions:
+  it builds **deterministically** from a serialized manifest, and there is **one
+  concrete class**, configured by prefab — variation never arrives as a subclass.
+  *(Sector.cs)*
 - **sector spine** — the sector's main objective chain; step names ARE the bus
   tokens (`spine:ready-to-extract`). Distinct from the **reward spine**, the
   sparse ±1 outcome term. *(SectorSpineModule.cs)*
@@ -281,36 +291,40 @@ Format: **term** — definition. *(authority)*
   encounter.
 - **sector fixture** — a world object present at spawn, sector-owned, independent
   of encounter state.
-- **signal / SignalPort** — the bus coupling seam. ⚠ **Designed, not built**:
-  publisher-owned port components are the intended replacement for free-string
-  tokens, but the code is still `ActivateOnToken`.
+- **signal / SignalPort** — the bus coupling seam. ⚠ **Designed, not built** —
+  publisher-owned ports are the intended replacement for free-string tokens, so
+  a doc describing them is describing the plan; the code is still
+  `ActivateOnToken`.
 - **adopt vs spawn** (sector) — the placed child IS the runtime object, versus
   spawner-produced. Variation lives in the object or in the spawner type.
 - **locale** — the per-sector environment *scene* (skybox, light, ambience).
   Environment is a scene; gameplay is a prefab.
 - **GamePlane** — the frozen 2.5D convention. Production is `PlaneAxis.Z` (the XY
   plane); never reshape toward Y. *(GamePlane.cs)*
-- **arena** — the RL isolation unit: a spatial offset in one scene sharing one
-  PhysicsScene. `ArenaContext` is the per-arena handle. Isolation-by-distance;
-  **ghost rock** is the accepted cross-arena physical leakage.
-- **firing envelope** — nose-in-cone + range + LOS. Use `InEnvelope()` for
-  observation, never `Gunsight.Evaluate()` — the latter mutates the firing path's
-  LOS cache.
+- **arena** — the RL isolation unit. Isolation is **by distance, not by scene**:
+  arenas are offsets sharing one PhysicsScene, and **ghost rock** — cross-arena
+  physical leakage — is a known, accepted consequence rather than a bug.
+  *(ArenaContext is the per-arena handle)*
+- **firing envelope** — whether a shot is currently takeable (nose cone, range,
+  LOS). ⚠ Read it with `InEnvelope()`, never `Gunsight.Evaluate()` — the latter
+  mutates the firing path's LOS cache, so observing changes behaviour.
 - **the trigger is a decision, not a permission** — the acting policy owns the
   firing instant; no subsystem vetoes it. Sibling: **aim is a service, not a veto**.
 - **velocity reference / feasibility tracker** — the RL↔MPC boundary: the policy
   emits a planar velocity and MPC is demoted to a ~2s tracker (feasibility, aim,
   velocity-track).
-- **brain / chooser / intent** — `Brain` hosts a swappable `IIntentChooser`
-  emitting an idempotent `NavigationIntent` per decision. ("Intent" is
-  acknowledged stale — it also carries fire and boost; rename carded.)
+- **brain / chooser / intent** — the swappable-decision seam. The contract worth
+  knowing: an intent is **idempotent per decision**, so re-applying one is safe.
+  ⚠ "Intent" is acknowledged stale — it also carries fire and boost, which the
+  name denies; rename carded. *(Brain, IIntentChooser)*
 - **presentation** — the per-session axis deciding whether visuals and audio
-  exist, applied by the owning spawn seams rather than per-component globals.
-  **Not** the same axis as the deleted `vfx` flag, which it was historically
-  confused with.
-- **chassis / module / loadout / hangar / sidegrade** — ship stats on the prefab /
-  Engine-Shield SOs and weapon prefabs / the equipped set / the between-run gap /
-  a lateral option.
+  exist. Two things a reader needs: it is applied by the owning spawn seams,
+  never by per-component globals; and it is **not** the same axis as the deleted
+  `vfx` flag, which it has been confused with three separate times.
+- **chassis / module / loadout / hangar / sidegrade** — the ship-customization
+  naming key, in order of containment: the hull's own stats / the swappable parts
+  / the equipped set / the between-run screen where you change it / an option
+  that trades rather than upgrades.
 - **lane clearing** — shooting asteroids to open a firing lane. Currently
   inexpressible: the firing-envelope check vetoes it, so the policy learned that
   asteroids are walls.
@@ -332,8 +346,9 @@ Format: **term** — definition. *(authority)*
   ownership. Refuses the user's hand-opened editor.
 - **tracked vs user editor** — coordinator-owned versus user-owned. A user editor
   is never terminated, only asked about.
-- **single-boot mode** — `-Mode Both`: EditMode and PlayMode in one editor boot.
-  A mode, not a pass/fail check. (Retired: "single-boot gate".)
+- **single-boot mode** — running EditMode and PlayMode in one editor boot
+  (`-Mode Both`). It is a **mode, not a pass/fail check** — which is why the old
+  name was wrong. (Retired: "single-boot gate".)
 - **watchdog note field** — a non-empty `note` in the test summary means the
   editor hung; empty means healthy.
 - **scratch → promote → park** — gitignored investigation code → committed →
