@@ -10,9 +10,13 @@ reads like it might mean two things.
 
 **Two standing rules.**
 
-1. **Never bare.** Every word in the collision table carries a qualifier —
-   "eval gate", "worktree slot", "command churn". A bare collision word in a
-   doc title or a heading is always wrong.
+1. **Never bare — unless the row grants it.** Every word in the collision table
+   carries a qualifier by default: "eval gate", "worktree slot", "command
+   churn". Some rows name exactly one context where the bare word is legal
+   (bare "envelope" = firing envelope, "harness" = RL harness, "seed" = RNG
+   seed, "arc" = the work sense, "slot" = worktree slot in workflow text). The
+   exception belongs to the row, not to the writer — if the row grants none,
+   qualify. In a doc title or heading, always qualify regardless.
 2. **Words, not tenses.** This file settles competing *words* for one thing.
    Inflections of a settled root are all canonical and need no entry of their
    own: grill / grilled / grilling / grill session / grill-settled are one term.
@@ -33,7 +37,7 @@ define a new term by way of another new term.
 - Cosmetic drift (a deprecated synonym, unambiguous): recast silently — the
   canonical term simply appears in the reply.
 - Any collision-table word: state the reading you took, even when the parse
-  feels certain — "(taking 'gate' as the eval score here)".
+  feels certain — "(taking 'gate' as the gate score here)".
 - Genuine ambiguity, or a divergence that would change what happens next:
   **ask** rather than assume — "which roster, the training mixture or the eval
   instrument?"
@@ -218,9 +222,12 @@ Format: **term** — definition. *(authority)*
   to. Treating it as an automatic stop is the recurring misread. *(eval_gate.py)*
 - **gate score** — the eval total (5 archetypes × 15 = X/75; older runs X/60).
   Not comparable across a rules change.
-- **noise floor** — eval re-run variance. ⚠ The widely-quoted ±4/75 figure is
-  **superseded**: the stage-(iii) results measured a 16-point per-checkpoint
-  spread. Cite the measured spread, not ±4.
+- **noise floor** — eval re-run variance, and ⚠ **currently unknown**. The
+  quoted ±4/75 is an n=2 estimate. The 16-point span (58–74) across Phase B's 14
+  checkpoints is *not* a substitute for it: no checkpoint has been evaluated more
+  than twice, so policy variance and eval variance are confounded in that range.
+  Treat both figures as provisional until a checkpoint is replicated, and do not
+  size an effect against either. *(RL_Infra_Paydown_Pass.md, finding 1)*
 - **ELO treadmill** — snapshots inherit `current_elo`, so ELO measures
   improvement against recent selves and cannot see absolute capability loss. The
   gate score is the absolute yardstick.
@@ -266,8 +273,11 @@ Format: **term** — definition. *(authority)*
   full retrain; production and training share one spec.
 - **seed checkpoint / warm start** — the `--initialize-from` origin. Distinct
   from an RNG seed.
-- **held-out seeds (sealed)** — seeds 1001–1020, never used, reserved for a
-  defensible claim; training and eval use 2001+.
+- **seed sets** — three roles, do not mix them: training runs at **runSeed 1**
+  (`EvalProtocol.TrainingRunSeed`); routine checkpoint eval defaults to
+  **2001–2005** (`eval_gate.py`); **1001–1020 is the sealed held-out set** —
+  never spent, reserved for one defensible final claim, and a knob change resets
+  the protocol rather than re-opening it.
 - **brawl** — the degenerate equilibrium where optimal range is provably ~0, so
   the game prices no decision. The motivation for the rules change.
 - **passivity rot** — the policy ceasing to engage; visible only per-archetype.
