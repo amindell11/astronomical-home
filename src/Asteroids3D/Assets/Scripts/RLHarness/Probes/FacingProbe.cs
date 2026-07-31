@@ -167,7 +167,7 @@ namespace Game.RLHarness
             {
                 lastTotalDecisions = total;
                 var newest = readout.ActionFromNewest(0);
-                var cmdDeg = newest.facingRad * Mathf.Rad2Deg;
+                var cmdDeg = newest.facingOffsetRad * Mathf.Rad2Deg;
                 weights.Add(newest.facingWeight);
                 if (weights.Count > 1)
                 {

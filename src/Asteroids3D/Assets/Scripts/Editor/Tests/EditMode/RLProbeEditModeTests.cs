@@ -21,7 +21,7 @@ namespace Tests.EditMode
             public PolicyAction ActionFromNewest(int index) => actions[actions.Count - 1 - index];
 
             public void Decide(float cmdDeg, float weight) =>
-                actions.Add(new PolicyAction(Vector2.zero, cmdDeg * Mathf.Deg2Rad, weight));
+                actions.Add(new PolicyAction(cmdDeg * Mathf.Deg2Rad, weight, 0f, 0f, 0f));
         }
 
         private static Kinematics Kin(float yaw, float yawRate) =>
