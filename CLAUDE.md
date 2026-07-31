@@ -51,7 +51,7 @@ One home per term: the glossary carries only what the code cannot say — a cons
 - Build and test in a pooled worktree, never the primary tree.
 - Design docs land on main before the work they govern builds (`AGENTS.md` → Doc lifecycle).
 - PR when green.
-- Merge ONLY via `./scripts/agent_worktree_pool.sh merge <slot>`, and only on an explicit user merge instruction (definition in the skill).
+- Merge ONLY via `./scripts/agent_worktree_pool.sh merge <slot>`, and only on an explicit user merge instruction (definition in the skill). Sole exception: user-approved docs-only changes may commit directly to main (skill → "Docs-only landing").
 - Finalize the slot after merge.
 
 ## Cross-agent work ledger
