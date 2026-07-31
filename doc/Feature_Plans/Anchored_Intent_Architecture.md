@@ -339,6 +339,102 @@ enemy state + `projectileSpeed`, waking the dormant enemy rollout.
   GUID** — no script owns it. Scripting it during K1-4 is in-scope (wiring
   rule 6 corollary: producer owns the location consumers read).
 
+### K1-1 decision brief — anchored-seam (FROZEN 2026-07-31)
+
+Prepped via pr-prep; user-ruled. The implementing agent builds from this without
+re-deciding. Scope: the K1-1 row of the slice table — intent anchored fields,
+`CostInput` anchored terms, per-step resolution, weight-0 priors,
+`MpcWeight.VelTrack`, EditMode cost tests. Lands on main, additive, dormant in
+production. Non-goals: no action decode (K1-3), no archetype driving (K1-2), no
+probe, no `AgentChooser` change, no settings-asset value changes (dormancy =
+zeros in `MpcSettings_AgentPilot`).
+
+**Fork rulings:**
+
+1. **Weight-0 prior mechanism: DUAL-TERM.** Per channel: anchored term scaled by
+   its authority weight (the shipped #219 pattern) plus an always-on low-weight
+   prior. Velocity prior = the existing dormant `MomentumCost`/`wMomentum`
+   (verbatim — direction-only cosine vs `initialVel`, speed-gated; stays in its
+   ramped state-regularizer home). Facing prior = new
+   `FacingCost(yaw − velocityAlignedYaw)` term with new settings field
+   `wFacingPrior` (default 0), speed-gated like `MomentumCost`. *Why:* blend-target
+   makes w=0 a full-stiffness command to the prior and mid-w a full-force pull to
+   an invented midpoint, and it would replace #219's shipped, gizmo-validated
+   w-scales-cost semantics; dual-term extends what already ships.
+2. **Anchored-weight plumbing: `CostInput` fields, ceiling pattern.** Weights ride
+   as data in the anchored block; effective weight = settings ceiling × intent
+   weight (`wFacing × fw`, `wVelTrack × vw`). *Why:* the shared `facingOverride`
+   array aliasing must not widen (2026-07-31 corrections); `CostInput` exists for
+   signature-stable input extension. `MpcWeight.VelTrack` + switch arm still land
+   (settings-level tuning arm — a different consumer).
+3. **Anchored velocity term: PER-STEP, un-ramped.** The anchored vRef replaces the
+   reference inside the existing `VelocityTrackCost` slot (mode-switched, never
+   both references at once). *Why:* a step-varying reference is still regulation,
+   not reaching; keeps `wVelTrack = 50`'s tuned meaning and the 699941 baseline
+   comparison valid. Accepted asymmetry: the velocity *prior* (`MomentumCost`)
+   stays ramped — its shipped home; moving it is out of scope.
+
+**Blindsider rulings:**
+
+- **B1 — both `facingRad` and anchored facing set: THROW at `ApplyIntent`.** No
+  real non-error case exists (grep-verified: only `AgentChooser` sets `hasFacing`,
+  never `aimAtTarget`); explicit user pull. This also covers the old
+  `hasFacing`+`aimAtTarget` combo, which today resolves by silent precedence.
+- **B2 — anchored intent with `hasTarget == false`: COLLAPSE to prior-only.**
+  User-reclassified as a legitimate domain state (future target acquisition will
+  produce target-less windows), so the collapse is boundary handling, not a
+  guard: anchored terms drop, config-gated priors keep steering, navigator stays
+  armed (coasting delegation).
+- **B3 — resolved vRef may exceed maxSpeed: NO CLAMP.** Best-effort tracking is
+  the honest semantics; normalized cost may exceed 1.
+- **B4 — near-zero range: ε-gate to velocity match.** Below ε both polar
+  components drop and vRef = `enemyVel`, mirroring `InterceptYaw`'s ε-gate;
+  facing already falls to bearing. Stateless.
+
+**Assumptions (user-reviewed):**
+
+- **Relative reading of the enemy frame:**
+  `vRef(step) = enemyVel(step) + vr·losHat(step) + vt·tangentHat(step)` — the
+  "vr > 0 closes" pin is only unconditionally true relative, and
+  Orbiter-vs-moving-enemy requires it. `tangentHat = (losHat.y, −losHat.x)`
+  (vt > 0 = CCW around the enemy, consistent with the `fwd = (−sin, cos)` yaw
+  convention; positive facing offset likewise CCW from intercept).
+- Legacy `aimAtTarget` maps to anchored offset-0 weight-1 at `ApplyIntent` —
+  bit-exact (`InterceptYaw + 0f`); the silent precedence at `Cost.cs`
+  `EvalContext.Create` is deleted.
+- Per-step resolution reuses `EvalContext.Create`'s existing enemy projection
+  (`enemyStates[step]` track + linear-extrapolation fallback both already
+  handled; rolled ship pos `s.pos` already in hand).
+- Navigator feeds enemy state for anchored intents regardless of `aimAtTarget`;
+  hitscan (`projectileSpeed ≤ 0`) anchors facing to pure bearing.
+- Intent units: vr/vt in m/s (matching `velocityReference`); weights [0,1];
+  [−1,1]×maxSpeed normalization is K1-3's decode contract. No clamps in cost
+  math — decode clamps (`ToFacingWeight` precedent).
+- The anchored block rides as ONE nested struct through `MpcInputs` → `Solve` →
+  `CostInput`; the editor `EvaluateBreakdown`/`BuildCostInput` path gets the
+  same block, and `CostBreakdown` gains the anchored/prior fields so the mirror
+  cannot drift.
+- Arming: an anchored-velocity intent arms the navigator (`ShouldIdle`) without
+  a legacy `velocityReference`; the legacy reference is unused in anchored
+  velocity mode.
+- `EvalContext` gains `[StructLayout(Sequential)]` (preventive Burst hygiene).
+- Priors are config-gated (`weight > 0`), mode-independent — `wMomentum`'s
+  shipped shape; dormancy holds via asset zeros. No speculative
+  `MpcWeight.FacingPrior` member (deliberate omission; probe configs set the
+  settings field).
+- Shared `facingOverride` array untouched; anchored intents leave
+  `weightOverrides` empty (test-pinned) so ceiling × weight never double-scales.
+- Tests: new `MpcAnchoredIntentEditModeTests.cs` (`Category("MPC")`, headless,
+  `MpcVelocityReferenceEditModeTests` pattern). Pins: offset-0 ≡ intercept;
+  offset/vt CCW signs; vr closes; per-step re-resolution; weight-0 → prior-only;
+  B1 throw; B2 collapse; B4 ε-gate; dormancy (default anchored block ⇒ legacy
+  cost path unchanged).
+- Glossary same-PR: anchor collision row gains the anchored-intent sense;
+  entries for *anchored intent* + the sign pins; add *terminal ramp*.
+- Sequencing: no ledger/file overlap with harness slices D/F. The teacher
+  fire-gate boundary fix remains a hard gate before K1-4's run, not this PR's
+  cargo.
+
 ### Code-grounding corrections (2026-07-31 seam maps)
 
 - `EvalContext.Create` already runs per rollout step per candidate (~128×17 ≈
