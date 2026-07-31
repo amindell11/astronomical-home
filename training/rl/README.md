@@ -226,26 +226,48 @@ and the `EvalProtocol.InferenceSeed` Academy inference seed.
 ### Automated eval gate (during a run)
 
 `eval_gate.py` watches a live run's checkpoint exports and evals each new one so
-erosion shows up while the run is going, not after it. Per checkpoint it runs the
-75-episode scripted eval at the gate shape (5 archetypes × 5 seeds × 3 episodes)
-through the coordinator, then applies the two-consecutive-checkpoints rule:
-**ALERT** on one checkpoint with Evader ≤ 10/15 or total < 55/75, **STOP** on two
-consecutive. It composes the two lane libraries: `eval_lane.py` launches each
-eval, `checkpoint_watch.py` owns discovery and replay-instead-of-re-run of
-finished `step-<N>/` dirs; the verdict rules live in the gate itself.
+erosion shows up while the run is going, not after it. Verdicts follow the
+**calibration bundle** (`eval_bundle_v1.json` — seed set, thresholds, replicate
+counts, execution mode; every `verdict.json` records the bundle id): one watch
+replicate per checkpoint; while armed, a degraded read (Evader ≤ 10/15 or total
+< 55/75) triggers confirmation replicates of the same checkpoint and a pooled
+re-verdict over the replicate cells with Wilson intervals. **ALERT** is a
+CONFIRMED degraded checkpoint, **STOP** two consecutive. The gate is report-only
+until a checkpoint first reads healthy (auto-arm), so a fresh run's untrained
+checkpoints cannot false-STOP. It composes the two lane libraries: `eval_lane.py`
+launches each replicate, `checkpoint_watch.py` owns discovery and replay of
+finished `step-<N>/rep-<k>/` dirs (one run dir = one sample); the verdict rules
+live in the gate itself.
 
 ```powershell
 cd training/rl
 .venv\Scripts\python eval_gate.py --run-id <run-id> --project ../../../agent-2/src/Asteroids3D
 .venv\Scripts\python eval_gate.py --run-id <run-id> --once     # drain the backlog and exit
-.venv\Scripts\python -m unittest test_eval_gate                 # verdict-rule unit tests
+.venv\Scripts\python -m unittest                                # verdict/stats/bundle/bank unit tests
 ```
 
 Point `--project` at a free pool slot; the eval boots an editor there. The gate names
-each eval's output dir and passes it as `RL_HARNESS_OUT_DIR`, so it reads back exactly
-what it named (artifacts + `verdict.json` under `results/rl-eval/gate/<run-id>/step-<N>/`).
-It reports and exits 2 on STOP; it kills the trainer only with the opt-in
-`--auto-stop-pid <trainer pid>`.
+each replicate's output dir and passes it as `RL_HARNESS_OUT_DIR`, so it reads back exactly
+what it named (artifacts under `results/rl-eval/gate/<run-id>/step-<N>/rep-<k>/`,
+`verdict.json` at the step root). It reports and exits 2 on STOP; it kills the trainer
+only with the opt-in `--auto-stop-pid <trainer pid>`. Resume convention: after a trainer
+`--resume`, restart the gate with `--from-step` set to the last step already judged —
+pre-resume checkpoints keep their verdicts and are never re-judged.
+
+### Banking a checkpoint
+
+`eval_bank.py` produces promotion-grade evidence for one candidate: the bundle's
+K_bank replicates on the canonical seeds, and with `--incumbent` the paired A/B
+reading (exact per-episode McNemar over shared (seed, opponent, episodeIndex)
+identities plus the mean difference over replicate totals — the instrument that
+reads a 74-vs-67 single-draw gap as noise). `--draw-held-out` is OPT-IN, spends
+one draw of the sealed held-out set (interval-reported only, never judged against
+the canonical thresholds), and appends to the auditable usage registry
+`heldout_draws.jsonl`.
+
+```powershell
+.venv\Scripts\python eval_bank.py --candidate <ckpt.onnx> --incumbent <banked.onnx> --project <pool-slot>
+```
 
 ## Characterization floor
 
