@@ -6,7 +6,8 @@ namespace Movement.MPC
     {
         private const float TwoPi = 2f * math.PI;
 
-        /// <summary>Preprocessed per-step context shared by Evaluate and EvaluateBreakdown: the predicted enemy this step and the resolved facing target.</summary>
+        /// <summary>Preprocessed per-step context shared by Evaluate and EvaluateBreakdown: the predicted enemy this step, the resolved facing target, and the resolved velocity reference with their authority scales (×1 on the legacy world-frame path).</summary>
+        [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
         internal struct EvalContext
         {
             public float2 enemyPos;
@@ -14,6 +15,9 @@ namespace Movement.MPC
             public float enemyYaw;
             public bool hasEnemy;
             public float facingTarget;
+            public float facingWeightScale;
+            public float2 velocityRef;
+            public float velTrackScale;
 
             internal static EvalContext Create(State s, CostInput input, Config cfg, int step)
             {
@@ -37,9 +41,35 @@ namespace Movement.MPC
                     enemyYaw = hasEnemy ? input.enemyYaw + input.enemyYawRate * stepTime : input.enemyYaw;
                 }
 
-                var facingTarget = cfg.facingTarget;
-                if (input.projectileSpeed > 0f && hasEnemy)
-                    facingTarget = InterceptYaw(s.pos, enemyPos, enemyVel, input.projectileSpeed);
+                var anchored = input.anchored;
+
+                float facingTarget, facingWeightScale;
+                if (anchored.hasFacing)
+                {
+                    // Anchored with no enemy collapses to NaN (FacingCost 0) — the priors carry delegation.
+                    facingTarget = hasEnemy
+                        ? WrapRadians(AnchorYaw(s.pos, enemyPos, enemyVel, input.projectileSpeed) + anchored.facingOffsetRad)
+                        : float.NaN;
+                    facingWeightScale = anchored.facingWeight;
+                }
+                else
+                {
+                    facingTarget = cfg.facingTarget;
+                    facingWeightScale = 1f;
+                }
+
+                float2 velocityRef;
+                float velTrackScale;
+                if (anchored.hasVelocity)
+                {
+                    velocityRef = hasEnemy ? AnchoredVelocityRef(s.pos, enemyPos, enemyVel, anchored) : default;
+                    velTrackScale = hasEnemy ? anchored.velocityWeight : 0f;
+                }
+                else
+                {
+                    velocityRef = input.velocityReference;
+                    velTrackScale = 1f;
+                }
 
                 return new EvalContext
                 {
@@ -48,8 +78,30 @@ namespace Movement.MPC
                     enemyYaw = enemyYaw,
                     hasEnemy = hasEnemy,
                     facingTarget = facingTarget,
+                    facingWeightScale = facingWeightScale,
+                    velocityRef = velocityRef,
+                    velTrackScale = velTrackScale,
                 };
             }
+        }
+
+        /// <summary>Facing resolver for the enemy anchor: intercept lead when a projectile speed exists, pure bearing for hitscan.</summary>
+        internal static float AnchorYaw(float2 shipPos, float2 targetPos, float2 targetVel, float projectileSpeed)
+        {
+            if (projectileSpeed > 0f) return InterceptYaw(shipPos, targetPos, targetVel, projectileSpeed);
+            var toTarget = targetPos - shipPos;
+            return math.atan2(-toTarget.x, toTarget.y);
+        }
+
+        /// <summary>World velocity reference for the anchored polar command, relative to the enemy's motion so signs keep their meaning against a moving anchor (vr > 0 closes, vt > 0 CCW). Below ε range the polar directions are undefined and the reference is a pure velocity match. Deliberately unclamped: an unreachable reference stays the honest command.</summary>
+        internal static float2 AnchoredVelocityRef(float2 shipPos, float2 enemyPos, float2 enemyVel, in AnchoredIntent anchored)
+        {
+            var toEnemy = enemyPos - shipPos;
+            var dist = math.length(toEnemy);
+            if (dist < 1e-4f) return enemyVel;
+            var losHat = toEnemy / dist;
+            var tangentHat = new float2(losHat.y, -losHat.x);
+            return enemyVel + anchored.radialSpeed * losHat + anchored.tangentialSpeed * tangentHat;
         }
 
         public static float Evaluate(State s, Control u, Control prevU,
@@ -62,10 +114,11 @@ namespace Movement.MPC
 
             // Control effort (a function of u) and the velocity tracker (regulation, not reaching) stay outside the terminal ramp.
             var stateCost = Aim(s, ctx, cfg)
+                + FacingPriorCost(s.yaw, s.vel, cfg)
                 + StateRegularizers(s, input, cfg, obstacleCost);
 
             var perStepCost = ControlCost(u, prevU, cfg)
-                + VelocityTrackCost(s.vel, input.velocityReference, cfg.maxSpeedSq) * cfg.wVelTrack;
+                + VelocityTrackCost(s.vel, ctx.velocityRef, cfg.maxSpeedSq) * cfg.wVelTrack * ctx.velTrackScale;
 
             var total = stateCost + perStepCost;
             if (cfg.terminalMultiplier > 0f && cfg.horizon > 1)
@@ -77,9 +130,16 @@ namespace Movement.MPC
             return total + collisionCost;
         }
 
-        /// <summary>Intercept-facing geometry. Ramped; 0 when no facing target is set.</summary>
+        /// <summary>Intercept-facing geometry. Ramped; 0 when no facing target is set; scaled by the anchored authority (×1 on the legacy path).</summary>
         internal static float Aim(State s, in EvalContext ctx, in Config cfg)
-            => FacingCost(s.yaw, ctx.facingTarget, cfg.facingWidth) * cfg.wFacing;
+            => FacingCost(s.yaw, ctx.facingTarget, cfg.facingWidth) * cfg.wFacing * ctx.facingWeightScale;
+
+        /// <summary>Velocity-aligned facing prior — the weight-0 delegation floor (nose eases toward the direction of travel instead of drifting). Speed-gated so a near-rest ship's nose is free. Ramped alongside the facing term.</summary>
+        internal static float FacingPriorCost(float yaw, float2 vel, in Config cfg)
+        {
+            if (cfg.wFacingPrior <= 0f || math.lengthsq(vel) < 1e-4f) return 0f;
+            return FacingCost(yaw, math.atan2(-vel.x, vel.y), cfg.facingWidth) * cfg.wFacingPrior;
+        }
 
         /// <summary>State regularizers (obstacle turn-away, yaw-rate damping, momentum) — state functions that ride the terminal ramp; always on. Takes the pre-resolved <paramref name="obstacleCost"/> from <see cref="ObstacleCosts"/>.</summary>
         internal static float StateRegularizers(State s, in CostInput input, in Config cfg, float obstacleCost)
@@ -238,8 +298,9 @@ namespace Movement.MPC
 
             var breakdown = new CostBreakdown
             {
-                velocityTrack = VelocityTrackCost(s.vel, input.velocityReference, cfg.maxSpeedSq) * cfg.wVelTrack,
-                facing = FacingCost(s.yaw, ctx.facingTarget, cfg.facingWidth) * cfg.wFacing,
+                velocityTrack = VelocityTrackCost(s.vel, ctx.velocityRef, cfg.maxSpeedSq) * cfg.wVelTrack * ctx.velTrackScale,
+                facing = Aim(s, ctx, cfg),
+                facingPrior = FacingPriorCost(s.yaw, s.vel, cfg),
                 yawRate = YawRateCost(s.yawRate, cfg.maxYawRateSq) * cfg.wYawRate,
                 obstacle = obstacle,
                 collision = collision,
@@ -251,8 +312,8 @@ namespace Movement.MPC
                 smoothness = SmoothnessCost(u, prevU, cfg)
             };
 
-            // Mirrors Cost.Evaluate: the ramp applies to state cost (facing + regularizers); the tracker and control terms stay per-step.
-            var stateCost = breakdown.facing + breakdown.yawRate + breakdown.obstacle + breakdown.momentum;
+            // Mirrors Cost.Evaluate: the ramp applies to state cost (facing + prior + regularizers); the tracker and control terms stay per-step.
+            var stateCost = breakdown.facing + breakdown.facingPrior + breakdown.yawRate + breakdown.obstacle + breakdown.momentum;
             var total = stateCost + breakdown.effort + breakdown.boostEffort +
                         breakdown.smoothness + breakdown.velocityTrack;
 

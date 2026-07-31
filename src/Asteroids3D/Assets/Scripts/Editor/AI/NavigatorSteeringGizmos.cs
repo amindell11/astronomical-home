@@ -105,7 +105,7 @@ namespace AI
             var prevPos = GamePlane.PlanePointToWorld(new Vector2(predictedStates[0].pos.x, predictedStates[0].pos.y));
             var prevU = bestSequence[0];
             var input = nav.solver.BuildCostInput(nav.velocityReference,
-                nav.enemyPos, nav.enemyVel, nav.enemyYaw, nav.enemyYawRate, nav.projectileSpeed, predictedStates[0].vel);
+                nav.enemyPos, nav.enemyVel, nav.enemyYaw, nav.enemyYawRate, nav.projectileSpeed, predictedStates[0].vel, nav.anchored);
 
             for (var i = 1; i < predictedStates.Length; i++)
             {

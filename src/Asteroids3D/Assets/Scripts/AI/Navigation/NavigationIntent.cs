@@ -30,6 +30,9 @@ namespace AI.States
         public bool hasFacing;
         public float facingRad;
 
+        // Enemy-anchored channels, re-resolved by the MPC every rollout step (see AnchoredIntent). Requires hasTarget; a targetless anchored intent collapses to the delegation priors.
+        public AnchoredIntent anchored;
+
         // Manual trigger authority: the commander pushes primaryHeld to the weapon actuator and skips the Gunner.
         public bool manualFire;
         public bool primaryHeld;

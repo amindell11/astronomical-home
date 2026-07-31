@@ -435,6 +435,129 @@ zeros in `MpcSettings_AgentPilot`).
   fire-gate boundary fix remains a hard gate before K1-4's run, not this PR's
   cargo.
 
+### K1-2 decision brief — mechanical velocity rebase probe (FROZEN 2026-07-31)
+
+Descriptive label: `velrebase`. Prepped via pr-prep; user-approved. The
+implementing agent builds from this without re-deciding. Lands on **main**,
+additive, probe lane only; production roster untouched.
+
+**Scope:** re-express the scripted archetype *velocity* laws through the K1-1
+anchored velocity channel in a measurement-only harness composition, and measure
+velocity-command churn + velocity/position tracking against a paired legacy
+drive of the same laws. Ladder rung 3 — the go/no-go on the anchoring hypothesis
+before the K1-3/K1-4 retrain spend.
+
+**Reframing that scopes the whole slice:** K1-1 already routes archetype
+*facing* through the anchored channel (`aimAtTarget` → anchored offset-0 at
+`ApplyIntent`), behaviorally matching the pre-K1-1 silent-intercept path. So
+K1-2 changes **nothing** about archetype facing; it activates the untested half
+of the seam — **anchored velocity** (`anchored.hasVelocity`, no production caller
+today). The instrument therefore centers on *velocity*-command churn and
+velocity/position tracking, not facing reversals (which read identically across
+arms — that identity is a sanity check, not the signal).
+
+**Non-goals:** no policy/ONNX change; no `AgentChooser`/`InferenceChooser`
+change; no production `BuildIntent` behavior change (legacy world-vRef path stays
+byte-identical); no roster/`OpponentRoster` production-path change; no MPC cost
+change (K1-1 seam consumed as-is); no facing metrics as the primary signal; not
+K1-3 (action decode) or K1-4 (the run).
+
+**Fork rulings:**
+
+1. **Measurement design — open-loop clean-pairing composition (Fork A).** New
+   harness composition: measured ship = archetype-under-test (legacy or anchored
+   drive), enemy = a deterministic non-reactive mover (new minimal fixed-path
+   chooser — constant-velocity drift or scripted circle; `DummyChooser` is
+   zero-velocity and gives radial archetypes no moving bearing). Both arms share
+   the same seed ⇒ identical enemy path + identical Evader juke sequence ⇒ clean
+   paired delta on the single changed variable (drive frame). *Why not measure
+   the existing opponent slot:* the policy agent reacts to the opponent, so
+   changing its drive diverges the arms and breaks pairing. New `SessionSpec`
+   surface to install an archetype on the measured slot; a tiny command-readout
+   on the archetype chooser (last emitted command + monotonic decision count)
+   supplies the probe (`IPolicyReadout` lives on `AgentChooser`, not archetypes).
+2. **New velocity probe, not a facing-probe reuse (Fork A cont.).** Register a new
+   probe (working name `velrebase`) reusing the facing probe's proven machinery
+   (decision-counter watch, ceil-rank percentile pooling, JSONL + `-probe.json`
+   sidecar). It measures velocity churn from **actual ship kinematics**
+   (velocity-heading reversals/s, mean |lateral accel|) + **per-step tracking
+   error** against the intended reference, binned by range (3–8 u annulus vs
+   < 3 u). *Why kinematics:* legacy (world-vector) and anchored (polar) commands
+   live in different spaces and are not directly comparable, and resolving the
+   polar at the 5 Hz boundary would falsely re-introduce churn — the point is
+   50 Hz resolution. Kinematics are drive-agnostic and honest.
+3. **Re-expression mechanism — shared-core extraction (Fork B).** Extract each
+   law's LOS-frame polar core to a method returning native
+   `(radialSpeed, tangentialSpeed)`; the legacy path packs it to a world
+   `velocityReference` byte-identically (production untouched), an anchored-emit
+   path packs the same numbers into `AnchoredIntent`. *Why over parallel
+   choosers:* the law stays single-sourced (wiring philosophy); parallel choosers
+   would fork the law into two copies for a smaller production-file blast radius —
+   principle wins.
+4. **Scope — Orbiter, HoldRange (Aggressor+Kiter, one class), Evader (Fork B).**
+   Dummy excluded (zero-velocity, no law to rebase).
+5. **Border dropped on both arms; law math verbatim (Fork C).**
+   `BorderTangentSteer` is a world-frame post-process with no anchored equivalent;
+   keeping it would confound only the legacy arm. Dropped on both (arena sized so
+   it never triggers); production roster keeps `Steered`. Law math kept verbatim
+   including Orbiter's centripetal feed-forward — churn is a smooth function of
+   range and does not churn, so centripetal barely moves the result, and dropping
+   it changes two variables at once. Anchored-arm overshoot (if any) is a finding
+   to note, not a confound to pre-remove.
+6. **Comparison — paired delta primary; mirror as loose context (Fork D).**
+   Per-archetype legacy-vs-anchored delta, same seed / same enemy path, binned by
+   range; d2.0 (obstacles cancel in the pairing under identical fields), seeds
+   2001–2005 ×3. The 699941 facing baseline is loose context, not a gate
+   (different quantity). **PASS:** velocity churn → ~0 for constant-relation
+   archetypes in the anchored arm; annulus (3–8 u) tracking error drops toward the
+   actuation floor; no improvement required inside 3 u (yaw wall); facing metrics
+   unchanged across arms. **FAIL:** churn not reduced, or annulus tracking
+   degraded (MPC cannot stably resolve the polar command).
+
+**Blindsider rulings:**
+
+- **Churn metric is kinematics-based + per-step tracking error** (see Fork ruling
+  2) — never a delta in the command's native space.
+- **Readout decision counter bumps at 5 Hz** — increment inside the
+  `tickCounter % RecomputeIntervalTicks == 0` recompute branch, not every
+  `Decide`, so the counter matches the decision cadence.
+- **`wVelTrack = 50` clone replicated on the measured slot.** `OpponentRoster`
+  clones `MpcSettings` with `ScriptedWVelTrack = 50f` so scripted archetypes drive
+  the velocity interface tightly; the open-loop composition applies the same on the
+  measured ship, both arms, or the velocity-tracking weight differs across arms.
+- **One-facing-source throw not tripped.** Aiming archetypes set `aimAtTarget`
+  (→ anchored facing offset-0) *and* the probe sets `anchored.hasVelocity`;
+  velocity is not a facing source, so the `ApplyIntent` count stays 1 —
+  velocity + intercept-aim coexist. Evader sets no facing (nose delegates to the
+  `wFacingPrior = 0` prior; Evader's signal is velocity, not nose).
+- **Enemy needs a mover.** `DummyChooser` is zero-velocity; a new minimal
+  fixed-path chooser (non-reactive) is the trackable target. Optional
+  stationary-enemy secondary condition if churn-alone isolation is wanted later
+  (removes the anchored arm's automatic enemy-velocity lead).
+
+**Assumptions (user-approved batch):**
+
+- Lands on main, additive; production roster + `BuildIntent` legacy paths
+  byte-identical; new probe integrates into the `RL_HARNESS_PROBES` registry +
+  paren grammar (`SessionProbes.Factories`, known-keys validated).
+- Output under `results/rl-eval/` via `EpisodeJsonl.NewRunPath` +
+  `HarnessSessionHost.ProbePath` (per-episode `-{name}.jsonl` +
+  `-{name}-probe.json` sidecar), same convention as facing/contact.
+- Reps mirror the baseline protocol: seeds 2001–2005 ×3, d2.0.
+- Anchored velocity reference is enemy-relative
+  (`enemyVel + vr·losHat + vt·tangentHat`, K1-1 `AnchoredVelocityRef`); the
+  anchored arm's enemy-velocity lead is kept as legitimate anchored semantics.
+- Glossary: register `velrebase` (probe) and the K1-2 sense of *mechanical
+  rebase* at brief-freeze if not already covered by the K1-1 anchored entries.
+
+**Sequencing / in-flight collision:** agent-4's live `combat-telemetry` slice
+adds a `combat` probe touching the same `ParseProbes` default / `SessionProbes`
+registry / lane-smoke / README hunks the new velocity probe touches. K1-2 build
+rebases over `combat-telemetry` once it lands (or coordinates the registry hunk);
+flag in the ledger claim. No overlap with K1-1 (#243, merged) or harness slices
+D/F (merged). Teacher fire-gate boundary fix remains a hard gate before K1-4, not
+this PR's cargo. Clear `src/Asteroids3D/Library/BurstCache/` before testing.
+
 ### Code-grounding corrections (2026-07-31 seam maps)
 
 - `EvalContext.Create` already runs per rollout step per candidate (~128×17 ≈
@@ -518,17 +641,17 @@ zeros in `MpcSettings_AgentPilot`).
 
 ## Open items
 
-1. **Hybrid ActionSpec claim REFUTED in source (2026-07-29); e2e smoke pending.**
-   Both council legs independently verified it: the pinned trainer's
-   `action_model.py` builds Gaussian + MultiCategorical heads whenever both
-   sizes are nonzero, and the communicator's capability check
-   (`GrpcExtensions.cs:175`) only restricts when the trainer lacks hybrid
-   support. The `AgentActions.cs:22` doc comment is stale and is actively
-   shaping the action space (fire/boost as threshold-gated continuous). Ladder
-   step 1 (smoke) confirms the full train→export→Sentis path; the comment dies
-   with it and fire/boost move to a discrete branch at the K=1 retrain. **Now
-   slice K1-0; fallback ruled 2026-07-31: on smoke failure fire/boost stay
-   threshold-gated continuous and the arc proceeds.**
+1. **RESOLVED — K1-0 smoke PASSED 2026-07-31.** The hybrid rejection claim was
+   refuted in source (2026-07-29: `action_model.py` builds Gaussian +
+   MultiCategorical heads whenever both sizes are nonzero; the communicator
+   check at `GrpcExtensions.cs:175` only restricts when the trainer lacks
+   hybrid support) and the e2e smoke confirmed the full train→export→Sentis
+   path: trainer accepted 4-continuous + 2×2-discrete, ONNX exported dual
+   action heads, checkpoint drove a 600-decision episode via
+   `ComposeInferenceOnly` (artifacts:
+   `results/rl-eval/k1-0-hybrid-smoke-2026-07-31/`). The stale
+   `AgentActions.cs:22` clause died with it; fire/boost move to discrete
+   branches at K1-3. The on-failure fallback ruling is moot.
 2. Weight-0 priors: velocity-aligned facing / momentum velocity — confirm
    shapes. **Ruled 2026-07-31: mechanism (blend-target vs dual-term) decided in
    K1-1's pr-prep with a cost-shape sketch in hand.**
