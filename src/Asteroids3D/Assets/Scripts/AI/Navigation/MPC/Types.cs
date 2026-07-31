@@ -128,7 +128,7 @@ namespace Movement.MPC
         public float weight;
     }
 
-    /// <summary>Enemy-anchored intent channels: a facing offset around the intercept anchor and a polar velocity in the enemy frame, each with its own authority weight. The MPC re-resolves both against the predicted enemy every rollout step, so the command stays correct as the world moves. Sign pins (doc/Glossary.md → anchored intent): positive offset and positive tangential are CCW; positive radial closes along +losHat.</summary>
+    /// <summary>Enemy-anchored intent channels: a facing offset around the intercept anchor and a polar velocity in the enemy frame, each with its own authority weight. The MPC re-resolves both against the predicted enemy every rollout step, so the command stays correct as the world moves (sign pins: doc/Glossary.md → anchored intent).</summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct AnchoredIntent
     {

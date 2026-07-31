@@ -238,7 +238,7 @@ namespace Tests.EditMode
         [Test]
         public void TargetlessAnchored_CollapsesToThePriors()
         {
-            // B2: no enemy (yaw NaN) with anchored channels set — anchored terms drop instead of throwing or tracking garbage.
+            // No enemy (yaw NaN) with anchored channels set — anchored terms drop instead of throwing or tracking garbage.
             var input = new CostInput
             {
                 enemyYaw = float.NaN,
