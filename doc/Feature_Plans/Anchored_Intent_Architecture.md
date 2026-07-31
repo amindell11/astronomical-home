@@ -558,6 +558,140 @@ flag in the ledger claim. No overlap with K1-1 (#243, merged) or harness slices
 D/F (merged). Teacher fire-gate boundary fix remains a hard gate before K1-4, not
 this PR's cargo. Clear `src/Asteroids3D/Library/BurstCache/` before testing.
 
+### K1-3 decision brief — schema break (FROZEN 2026-07-31)
+
+Descriptive label: `schemabreak` (positional K1-3). Prepped via pr-prep;
+user-ruled. The implementing agent builds from this without re-deciding. Lands on
+a **long-lived branch** (`task/k1-3-schema`), never on main until K1-4's atomic
+gate. Baseline reads stay gate-score vs gate-score (rules + roster unchanged).
+
+**Scope:** new **5-continuous + 2-discrete** ActionSpec decoding to the K1-1
+anchored seam; **enemy weapon-state obs riders**; consolidate the two
+comment-synced ActionSpec/obs-size sites into one helper; golden-test +
+fixture-pinned-test rewrites; smoke-fixture regen; training smoke on the new
+schema.
+
+**Non-goals:** no MPC cost change (K1-1 seam consumed as-is); no archetype driving
+(K1-2); no projectile tokens (bigger break, out); no rules/weapon change (both
+balance packages HELD → self weapon stays heat-lasers, #237 full lockout); no
+K1-4 training run / checkpoint staging; no richer anchored-gizmo redesign
+(deferred to a diagnostics slice).
+
+**The action interface (5 continuous + 2 discrete branches, 2 choices each):**
+Continuous `[ox, oy, vr, vt, vw]`; discrete `[fire, boost]`. Decode contract
+(owned by `AgentActions`, MPC-type-free):
+- `facingOffsetRad = atan2(ox, oy)`, `facingWeight = clamp01(hypot(ox, oy))` —
+  `(0,+1)` = aim at intercept (offset 0), `(0,−1)` = face away (π); CCW-positive.
+- `radialSpeed = vr · maxSpeed`, `tangentialSpeed = vt · maxSpeed`,
+  `velocityWeight = clamp01(vw)`.
+- `fire = discrete[0] == 1`, `boost = discrete[1] == 1`.
+
+**Fork rulings:**
+
+1. **Decode seam — middle-ground split (Fork A).** `AgentActions.Map(...)` returns
+   the *decoded scalars* in the RL-owned `AgentAction` struct (fields become
+   `facingOffsetRad, facingWeight, radialSpeed, tangentialSpeed, velocityWeight,
+   fire, boost` — all primitives; atan2/×maxSpeed/clamp01 done here). `AgentChooser`
+   already imports `Movement.MPC`, so `Decide` copies the scalars into
+   `AnchoredIntent` (`hasFacing`/`hasVelocity` = true) — a field copy, no decode
+   logic moves. *Why:* keeps the decode math single-sourced in the decode home
+   without coupling `AgentActions` to `MPC.Types` (the user's explicit discomfort);
+   the assembly lives where MPC coupling already is.
+2. **Obs layout — append (Fork B).** Enemy `{ready, heatPct}` at indices **26-27**,
+   target-conditional (zero when `!target.has`), obs size **26 → 28**. Self weapon
+   channels (ready idx 22, heatPct idx 23) unchanged. *Why:* rules held ⇒ heat-laser
+   with full lockout ⇒ `ready` is NOT derivable from `heatPct`, so both self and
+   enemy carry both channels; append is the smallest diff over a free rewrite; lead
+   (24-25) stays put.
+3. **Branch management — dedicated branch + merge-main (Fork C).** Long-lived
+   `task/k1-3-schema` persists in git; acquire an `agent-N` slot per build session
+   and release it between sessions; `git merge main` into the branch periodically;
+   cut from a main that already contains `combat-telemetry` + `velrebase`. Final
+   atomic squash-merge is K1-4's gate (already locked). *Why:* respects
+   pool-capacity (no days-long slot hold); merge (not rebase) is safe over the LFS
+   ONNX churn and the multi-session lifetime.
+
+**Blindsider rulings:**
+
+- **① projectileSpeed → intent, injected at `Configure`.** The anchored facing is
+  `AnchorYaw(…, input.projectileSpeed) + facingOffsetRad`, and `AnchorYaw` collapses
+  to un-led **bearing** when `projectileSpeed ≤ 0` (Cost.cs:51,89-91).
+  `AgentChooser.Configure` gains self's `primaryProjectileSpeed` (static per-ship,
+  like the opponent); `Decide` sets `intent.projectileSpeed` from it. This wakes the
+  dormant enemy rollout, as the plan anticipated. (Both agents already resolve
+  `primaryProjectileSpeed` for the obs.)
+- **② `PolicyAction` repurposed to anchored.** Struct →
+  `{facingOffsetRad, facingWeight, radialSpeed, tangentialSpeed, velocityWeight}`;
+  `PolicyPainter`, `FacingProbe`, and `RLProbeEditModeTests` updated to compile/read
+  it. *Why over resolve-at-boundary:* keeps the resolution formula single-sourced in
+  the MPC (wiring rule #2) instead of duplicating `AnchorYaw`/polar math in the
+  chooser for a readout. `PolicyPainter`'s world-velocity line degrades (enemy-frame
+  or dropped); richer anchored-gizmo work is deferred.
+- **③ `velocityWeight = clamp01(vw)`.** Matches K1-1's stated `ToFacingWeight`
+  precedent; init≈0 ⇒ weight≈0 ⇒ residual-policy start delegating to the velocity
+  prior. The dead negative half is representational, not incorrect.
+- **One decode seam, not two.** `LivePilotAgent.mailbox` *is* an `AgentChooser`
+  (same type `ShipAgent` uses) — both agents route through `AgentChooser.SetAction`,
+  so Fork A covers the harness and in-game paths together.
+- **Enemy-heat readout resolved at bind, not once-for-lifetime.** Self heat is
+  resolved once (fixed loadout); the enemy readout re-resolves where the enemy is
+  bound — `ShipAgent.Configure` (opponent injected once) and
+  `LivePilotAgent.CaptureBoundary` (target can re-capture). Absent readout ⇒
+  channels 0.
+
+**Assumptions (user-reviewed batch):**
+
+- Action consts: `AgentActions.Count` 6→5; add `DiscreteBranches = 2`,
+  `ChoicesPerBranch = 2` (K1-0 scratch names); delete `TriggerThreshold`.
+  `ActionSpec(Count, new[] { ChoicesPerBranch, ChoicesPerBranch })` (K1-0 pattern).
+- `hasFacing`/`hasVelocity` always true for the policy (opponent always injected);
+  K1-1's B2 targetless-collapse is not reachable here.
+- Compose-site consolidation: one shared static owning the schema-shape bits (obs
+  size, ActionSpec, obstacle buffer dims), called by both `ShipAgentFactory` and
+  `InferenceChooser`; behavior-name/type/model stay per-site. Home: co-located with
+  the obs consts in `AgentObservations`.
+- `EpisodeResult.SchemaId` `rl-episode-v5` → `v6`.
+- `AgentObservations.Fill` gains `bool enemyWeaponReady, float enemyHeatPct`; both
+  agents read `opponent.Weapons.Context.IsReady(Primary)` + an opponent-side
+  `IHeatReadout` (mirror of `ResolvePrimaryHeat`).
+- Dead ego↔world helpers (`ToWorldVelocity`, `ToFacingRad`, `ToEgoAction`) deleted
+  with their tests; `clamp01(magnitude)` retained inline for `facingWeight`.
+- `AgentChooser` drops the `facingOverride[]` `WeightOverride` array and world-frame
+  `worldVelocity`/`facingRad` fields; `weightOverrides` left empty in anchored mode
+  (K1-1 pin: ceiling × weight never double-scales). `FacingAuthorityScale` sweep hook
+  moves to scale `anchored.facingWeight`.
+- `SetAction` carries the `AgentAction` struct (+ boostAvailable); `intent.hasFacing`
+  stays false (only `anchored.hasFacing` true) — no K1-1 B1 throw. Test-pin this.
+- Golden/index tests rewritten on-branch: `expected[]` → 28 (enemy 26-27, lead
+  24-25 unchanged); `Map` test → 5-continuous+2-discrete signature; no-target
+  zero-region extends. Hardcoded `continuous[0..4]`/`discrete[0..1]` indices updated
+  by hand in both agents' `OnActionReceived` + `ShipAgent.Heuristic`.
+- Heuristic emits aim-at-intercept `(ox,oy)=(0,1)`, closing radial toward the
+  hold-range band, `vt=0`, weights 1, `discrete=[1,0]` (may reuse velrebase's
+  shared-core polar extraction, which lands before the branch cut).
+- Smoke fixture regenerated on-branch (short trainer smoke → export
+  `ShipCombat-smoke.onnx` → LFS commit); fixture-pinned tests updated.
+  `ShipCombat-699941.onnx` stays referenced-but-unrun on-branch
+  (`AgentPilotAuthoring`'s `Model != null` is a reference check; the pinned-checkpoint
+  PlayMode test loads the *smoke* fixture). Main's gameplay prefab untouched.
+- No YAML change (shapes ride the gRPC handshake). No new glossary terms (design uses
+  existing *anchored intent* / *delegation prior* / sign-pin entries).
+- Tests headless EditMode for obs/action contracts (`RLAgentEditModeTests`),
+  PlayMode for the fixture-load pin; scoped runs for iteration, merge gate re-tests.
+
+**Sequencing / in-flight collision:** cut the branch after `combat-telemetry` (#245)
+and `velrebase` (K1-2) land — it inherits their `AgentChooser` / probe-registry
+changes rather than colliding. Ledger: claim a row only when a build session is
+active (branch, not a standing slot hold). No live obs/action collisions once cut.
+Clear `src/Asteroids3D/Library/BurstCache/` before testing.
+
+**Definition of done:** branch compiles + full scoped suite green with rewritten
+contracts; training smoke (short run) through export → Sentis load → episode on the
+NEW schema; obs riders in and pinned; **K1-4 handoff checklist written** — post-lockout
+699941 re-baseline ≥4 reps on main (#237 merged, runnable any time); slot-2
+head-to-head via #238; gameplay-checkpoint staging (manual GUID-bound copy) scripted
+in K1-4 per wiring rule 6 corollary.
+
 ### Code-grounding corrections (2026-07-31 seam maps)
 
 - `EvalContext.Create` already runs per rollout step per candidate (~128×17 ≈
