@@ -31,7 +31,14 @@ directly, or explicit instruction to work in place.
 - `./scripts/agent_worktree_pool.sh release <slot>`
 
 Branch naming: each task gets its own remote branch `task/<lease-id>` and its
-own PR. The local worktree stays on the `agent-N` branch; `submit` and
+own PR. Lease ids are the arc path — descriptive, branch-style names, one or
+two words per level (`vocab`, `vocab-docfix`), so the arc is inside the
+identifier rather than assumed from context. A positional number appears only
+at the leaf, only when one named unit spans several PRs (`vocab-docfix-1`), and
+only at build time — plans hold names, never numbers. Max three levels. Arcs
+numbered before 2026-07-29 keep their numbers; nothing is retrofitted. See
+`doc/Glossary.md` → *arc & PR naming*.
+The local worktree stays on the `agent-N` branch; `submit` and
 `create-pr` push to the task-specific remote branch automatically. Never run
 two agents in the same slot at once. Both take an optional base after the slot:
 `submit` normalizes an `origin/` prefix (`submit <slot> origin/main`), but
@@ -138,8 +145,9 @@ scope-conservation check — read the diff back against the Step-1 scope
 statement; anything a scope-reader wouldn't expect either comes out or is
 flagged in the body for confirmation. An arc-completing PR also settles its
 plan doc — delete the transient brief, or update the living doc's STATUS
-header (convention in `AGENTS.md`). Flip the ledger row to in-review with
-the PR number.
+header (convention in `AGENTS.md`). The body also carries one bookkeeping line,
+`Vocab: <new/changed terms | none>`; anything but `none` means `doc/Glossary.md`
+moves in this same PR. Flip the ledger row to in-review with the PR number.
 
 ## Step 5 — Review round-trip
 

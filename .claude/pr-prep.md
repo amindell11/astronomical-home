@@ -5,10 +5,13 @@ these concrete bindings on top of the generic phases.
 
 ## Where things live
 
-- **Plans** — `doc/Feature_Plans/*.md`. Most plans sequence their PRs (PR-1,
-  PR-2, …); "pull a PR off the plan" means one of those numbered slices. Cross-
-  reference the driving memory (`MEMORY.md` → Active Work / topic files) for the
-  latest status, which often supersedes the plan doc.
+- **Plans** — `doc/Feature_Plans/*.md`. A plan sequences its arc's slices;
+  "pull a PR off the plan" means one of those slices. New arcs name their slices
+  descriptively (`vocab-docfix`) rather than numbering them — see
+  `doc/Glossary.md` → *arc & PR naming*; arcs written before 2026-07-29 still
+  use PR-N, so read the plan's own scheme rather than assuming. Cross-reference
+  the driving memory (`MEMORY.md` → Active Work / topic files) for the latest
+  status, which often supersedes the plan doc.
 - **In-flight work** — read the active-work ledger at
   `C:\Users\amind\.claude\projects\D--amind-git-astronomical-home\memory\active_work_ledger.md`
   during Phase 3's "interaction with in-flight work" lens, so the PR you're
@@ -23,6 +26,24 @@ these concrete bindings on top of the generic phases.
     not a no-brainer — surface it.
   - *Root-cause discipline* — when a plan's PR patches a symptom, one of your
     forks is often "narrow fix vs structural fix that kills the class." Raise it.
+
+## Vocabulary — a first-class brief section
+
+Treat vocabulary as a section of the brief alongside forks, assumptions, and
+blindsiders, not as a stylistic afterthought. A PR description reaching the user
+after the fact is **not** enough: the point is to refresh the user's mental
+schema *before* the design discussion leans on a term.
+
+- **Terms this design leans on** — presented with the Phase 4 design map: a
+  one-line refresher for each non-obvious existing term the forks are about to
+  use. Pull the wording from `doc/Glossary.md`; if a term the design needs isn't
+  there, that absence is itself worth saying.
+- **New terms** — every term this design coins, defined at first use per root
+  `CLAUDE.md` (simplest concise form, existing terms only, define downward).
+  Registered into `doc/Glossary.md` when the brief freezes at Phase 6.
+- **Naming lens (Phase 3)** — a name that collides with `doc/Glossary.md`'s
+  collision table is a fork, not bikeshed: pick the qualifier deliberately or
+  pick a different word.
 
 ## Where the frozen brief goes (Phase 7)
 
