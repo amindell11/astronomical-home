@@ -53,6 +53,7 @@ namespace Game.RLHarness
             string[] knownKeys)> Factories = new()
         {
             [ArchetypeGateProbe.ProbeName] = (_ => new ArchetypeGateProbe(), Array.Empty<string>()),
+            [CombatTelemetryProbe.ProbeName] = (_ => new CombatTelemetryProbe(), Array.Empty<string>()),
             [ContactProbe.ProbeName] = (_ => new ContactProbe(), Array.Empty<string>()),
             [FacingProbe.ProbeName] = (parameters => new FacingProbe(parameters),
                 new[] { FacingProbe.AuthorityScaleKey }),
