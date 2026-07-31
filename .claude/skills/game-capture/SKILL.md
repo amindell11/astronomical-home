@@ -19,17 +19,18 @@ reading a mid-clip PNG yourself and handing the user the clip path.
 - **Repeatable scenario** → promote: move the file to
   `src/Asteroids3D/Assets/Scripts/Editor/Tests/PlayMode/Scenarios/`, commit with its
   generated `.meta`. Sample/living doc: `TwoShipSkirmishScenario.cs`.
-- **RL episodes** → drop `record.flag` in `<slot>/results/rl-episodes/` (empty = 3
-  episodes, all recorded; or JSON
-  `{ "runSeed": 7, "episodes": [0], "captureEveryFixedSteps": 5, "width": 960, "height": 540 }` —
-  unknown keys fail loudly). Add `"checkpoint": "<path or Assets/....onnx>"` +
-  `"opponent": "Aggressor|Evader|Orbiter|Kiter|Dummy"` (both or neither; optional
-  `"fieldDensityScale"`, default the canonical 2.0) to film that policy vs a pinned
-  archetype in the eval env instead of the scripted characterization pair; an
-  absolute checkpoint path is imported via the `EvalCandidate.onnx` seam
-  automatically. Run the `RLEpisodePlayModeTests` filter with
-  `-WithGraphics`. **Delete the flag after use** — a forgotten flag turns every later
-  RL run into a recording session.
+- **RL episodes / trained checkpoints** → the **harness capture lane** (env-configured,
+  not a test flag). Set `RL_HARNESS_LANE=capture` + `RL_HARNESS_RECORD=all` (or
+  comma indices), one seed (`RL_HARNESS_SEEDS`), and one opponent block
+  (`RL_HARNESS_OPPONENT=aggressor|mirror|<ckpt>.onnx` — `roster` is refused: five
+  archetype films are five sessions). `RL_HARNESS_ONNX` names the candidate
+  checkpoint (default: the smoke fixture); `RL_HARNESS_PAINTERS` picks the markup
+  (default `ship-diagnostics`; add `policy` for the facing fan). Full `RL_HARNESS_*`
+  grammar in `training/rl/README.md`. The session
+  needs a graphics device, so it runs **without** `-nographics` — never the merge
+  gate. Clips land beside their JSONL under `RL_HARNESS_OUT_DIR` (or
+  `results/rl-capture/`). A one-command `eval_lane.py` capture preset is a later
+  leaf; for now set the env and run the harness batch through the coordinator.
 
 ## Author a scenario
 
@@ -39,6 +40,7 @@ reading a mid-clip PNG yourself and handing the user the clip path.
 #if UNITY_EDITOR
 using System.Collections;
 using Game.Capture;
+using Game.Diagnostics;
 using Tests.PlayMode.Common;
 using UnityEngine;
 
@@ -57,7 +59,7 @@ public sealed class MyProbe : CaptureScenario
             subjects[1] = b.Kinematics.pos;
             recorder.Step(subjects, ctx =>
             {
-                ShipDiagnosticsOverlay.Draw(ctx, a, b);   // standard two-ship markup
+                ShipDiagnosticsPainter.Draw(ctx, a, b, Session.Services.Projectiles);  // standard two-ship markup
                 ctx.Label(subjects[0], $"step {i}", Color.white);  // plus whatever this investigation needs
             });
         }
@@ -72,18 +74,17 @@ overlay fresh per frame. Override `Config` to change clip name/size/cadence.
 
 ## Film a trained checkpoint (policy vs archetype)
 
-The `record.flag` `checkpoint`/`opponent` keys cover the standard case. For
-compositions they can't express (custom overlays, non-archetype opponents), author a
-scratch scenario mirroring `CheckpointEvaluator.Run`'s composition: copy the `.onnx` to
-`Assets/Tests/Fixtures/EvalCandidate.onnx` (models load via AssetDatabase — an
-absolute file path won't), then `EpisodePair.SpawnWithAgentChooser` →
-`OpponentRoster` (pinned `Install` per archetype) →
-`ShipAgentFactory.ComposeInferenceOnly` → `EpisodeLoopDriver`, pumping the episode
-enumerator and calling `recorder.Step` per fixed step. Gotcha: `Session.Services`
-exposes interfaces but the spawn seams take concretes — cast
-`(UnitService)Session.Services.UnitService`, or it's a boot-cycle-wasting CS1503.
-Delete the staged `.onnx` + `.meta` with the scratch file — a leftover under
-`Assets/` re-imports on every editor boot.
+The harness capture lane (above) covers the standard case: `RL_HARNESS_LANE=capture`
+with `RL_HARNESS_ONNX=<ckpt>.onnx` and `RL_HARNESS_OPPONENT=<archetype|mirror|ckpt>`,
+`RL_HARNESS_PAINTERS=ship-diagnostics,policy`. An absolute checkpoint path is imported
+into the fixture slot automatically. For compositions the lane can't express (bespoke
+overlays, non-archetype opponents), author a scratch scenario mirroring
+`CaptureClient`'s composition: `host.NewComposition` (or `EpisodePair.SpawnWithAgentChooser`
+→ `ShipAgentFactory.ComposeInferenceOnly` → `EpisodeLoopDriver`), pumping the episode
+enumerator and calling `recorder.Step` per fixed step with the active painters. New
+diagnostics are **painters** (`Game.Diagnostics.IDiagnosticPainter`), written once over
+the `IDiagnosticCanvas` contract so they render in both clips and live editor gizmos —
+never a capture-only overlay.
 
 ## Run + assemble (one command each)
 
@@ -121,8 +122,12 @@ needs imageio-ffmpeg, and the venvs here are uv-managed with no pip module:
 - **Never call `Gunsight.Evaluate()` from an overlay** — it mutates the firing path's
   LOS cache (observer effect on the sim). `InEnvelope()` only.
 - **Recorded runs lock frame pacing** (`Time.timeScale=1` +
-  `Time.captureDeltaTime=Time.fixedDeltaTime`) so a recorded seed replays
-  identically; `watch.flag` wins if both flags exist.
+  `Time.captureDeltaTime=Time.fixedDeltaTime`, the harness `PacingContract`) so a
+  recorded seed replays identically.
+- **A recording harness session holds the machine-wide boot lane ~10× longer**
+  than a headless eval — synchronous PNG render/readback runs at wall clock, not
+  the sped-up sim. Expect a capture lane to occupy Unity access far longer than
+  the same eval; plan the coordinator lease accordingly.
 - **Aim visuals use the public `Gunner.AimPoint(...)` static** — the same lead the
   AI uses. RLHarness has no internals access to GameCore; `AssemblyInfo.cs` is the
   unlock if ever needed.
