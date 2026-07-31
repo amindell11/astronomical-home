@@ -41,9 +41,12 @@ be painted into a corner.
 3. **Action surface: all-continuous, per-slot triggers, selection is emergent.**
    `[vx, vy, boost, trigger_slot0, trigger_slot1]` — each trigger float
    threshold-maps to `held`; `pressed` is derived at the actuator boundary on the
-   rising edge. No discrete weapon-select action (dodges the verified ML-Agents
-   4.0.3 hybrid-spec rejection); "selection" = firing neither, either, or both.
-   No pulse channel, no selector service, no mount router.
+   rising edge. No discrete weapon-select action; "selection" = firing neither,
+   either, or both. No pulse channel, no selector service, no mount router.
+   *(The original "dodges the verified 4.0.3 hybrid-spec rejection" rationale
+   was refuted by the K1-0 smoke, 2026-07-31 — hybrid specs train, export, and
+   load end-to-end. The no-selector shape may still stand on simplicity;
+   re-weigh discrete triggers when this section builds.)*
 
 4. **Aim service informs; it never fires.** Intercept/ballistics math survives as
    one shared fire-control service feeding shot placement, the player's gunsight
