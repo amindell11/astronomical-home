@@ -608,7 +608,7 @@ re-fires `BroadcastDeath` — pre-existing, unchanged here.
 
 ---
 
-## Combat telemetry PR (pr-prep decision brief, frozen 2026-07-31)
+## Combat telemetry PR — PR-2 (pr-prep decision brief, frozen 2026-07-31)
 
 Resolves the rules-change handoff's open fork 6 (the telemetry surface). Second
 in the locked landing order (overkill #235 → **telemetry** → rules branch): it
