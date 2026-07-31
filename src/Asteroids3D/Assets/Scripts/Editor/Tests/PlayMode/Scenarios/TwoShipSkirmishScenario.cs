@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System.Collections;
 using Game.Capture;
+using Game.Diagnostics;
 using Tests.PlayMode.Common;
 using UnityEngine;
 
@@ -23,7 +24,7 @@ namespace Tests.PlayMode.Scenarios
                 yield return new WaitForFixedUpdate();
                 subjects[0] = a.Kinematics.pos;
                 subjects[1] = b.Kinematics.pos;
-                recorder.Step(subjects, ctx => ShipDiagnosticsOverlay.Draw(ctx, a, b, Session.Services.Projectiles));
+                recorder.Step(subjects, ctx => ShipDiagnosticsPainter.Draw(ctx, a, b, Session.Services.Projectiles));
             }
         }
     }

@@ -4,6 +4,7 @@
     "references": [
         "Game.Core",
         "Game.RLHarness.Runtime",
+        "Game.Capture.Editor",
         "Unity.ML-Agents",
         "Unity.InferenceEngine"
     ],

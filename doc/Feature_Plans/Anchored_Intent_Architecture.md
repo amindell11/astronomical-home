@@ -339,6 +339,359 @@ enemy state + `projectileSpeed`, waking the dormant enemy rollout.
   GUID** — no script owns it. Scripting it during K1-4 is in-scope (wiring
   rule 6 corollary: producer owns the location consumers read).
 
+### K1-1 decision brief — anchored-seam (FROZEN 2026-07-31)
+
+Prepped via pr-prep; user-ruled. The implementing agent builds from this without
+re-deciding. Scope: the K1-1 row of the slice table — intent anchored fields,
+`CostInput` anchored terms, per-step resolution, weight-0 priors,
+`MpcWeight.VelTrack`, EditMode cost tests. Lands on main, additive, dormant in
+production. Non-goals: no action decode (K1-3), no archetype driving (K1-2), no
+probe, no `AgentChooser` change, no settings-asset value changes (dormancy =
+zeros in `MpcSettings_AgentPilot`).
+
+**Fork rulings:**
+
+1. **Weight-0 prior mechanism: DUAL-TERM.** Per channel: anchored term scaled by
+   its authority weight (the shipped #219 pattern) plus an always-on low-weight
+   prior. Velocity prior = the existing dormant `MomentumCost`/`wMomentum`
+   (verbatim — direction-only cosine vs `initialVel`, speed-gated; stays in its
+   ramped state-regularizer home). Facing prior = new
+   `FacingCost(yaw − velocityAlignedYaw)` term with new settings field
+   `wFacingPrior` (default 0), speed-gated like `MomentumCost`. *Why:* blend-target
+   makes w=0 a full-stiffness command to the prior and mid-w a full-force pull to
+   an invented midpoint, and it would replace #219's shipped, gizmo-validated
+   w-scales-cost semantics; dual-term extends what already ships.
+2. **Anchored-weight plumbing: `CostInput` fields, ceiling pattern.** Weights ride
+   as data in the anchored block; effective weight = settings ceiling × intent
+   weight (`wFacing × fw`, `wVelTrack × vw`). *Why:* the shared `facingOverride`
+   array aliasing must not widen (2026-07-31 corrections); `CostInput` exists for
+   signature-stable input extension. `MpcWeight.VelTrack` + switch arm still land
+   (settings-level tuning arm — a different consumer).
+3. **Anchored velocity term: PER-STEP, un-ramped.** The anchored vRef replaces the
+   reference inside the existing `VelocityTrackCost` slot (mode-switched, never
+   both references at once). *Why:* a step-varying reference is still regulation,
+   not reaching; keeps `wVelTrack = 50`'s tuned meaning and the 699941 baseline
+   comparison valid. Accepted asymmetry: the velocity *prior* (`MomentumCost`)
+   stays ramped — its shipped home; moving it is out of scope.
+
+**Blindsider rulings:**
+
+- **B1 — both `facingRad` and anchored facing set: THROW at `ApplyIntent`.** No
+  real non-error case exists (grep-verified: only `AgentChooser` sets `hasFacing`,
+  never `aimAtTarget`); explicit user pull. This also covers the old
+  `hasFacing`+`aimAtTarget` combo, which today resolves by silent precedence.
+- **B2 — anchored intent with `hasTarget == false`: COLLAPSE to prior-only.**
+  User-reclassified as a legitimate domain state (future target acquisition will
+  produce target-less windows), so the collapse is boundary handling, not a
+  guard: anchored terms drop, config-gated priors keep steering, navigator stays
+  armed (coasting delegation).
+- **B3 — resolved vRef may exceed maxSpeed: NO CLAMP.** Best-effort tracking is
+  the honest semantics; normalized cost may exceed 1.
+- **B4 — near-zero range: ε-gate to velocity match.** Below ε both polar
+  components drop and vRef = `enemyVel`, mirroring `InterceptYaw`'s ε-gate;
+  facing already falls to bearing. Stateless.
+
+**Assumptions (user-reviewed):**
+
+- **Relative reading of the enemy frame:**
+  `vRef(step) = enemyVel(step) + vr·losHat(step) + vt·tangentHat(step)` — the
+  "vr > 0 closes" pin is only unconditionally true relative, and
+  Orbiter-vs-moving-enemy requires it. `tangentHat = (losHat.y, −losHat.x)`
+  (vt > 0 = CCW around the enemy, consistent with the `fwd = (−sin, cos)` yaw
+  convention; positive facing offset likewise CCW from intercept).
+- Legacy `aimAtTarget` maps to anchored offset-0 weight-1 at `ApplyIntent` —
+  bit-exact (`InterceptYaw + 0f`); the silent precedence at `Cost.cs`
+  `EvalContext.Create` is deleted.
+- Per-step resolution reuses `EvalContext.Create`'s existing enemy projection
+  (`enemyStates[step]` track + linear-extrapolation fallback both already
+  handled; rolled ship pos `s.pos` already in hand).
+- Navigator feeds enemy state for anchored intents regardless of `aimAtTarget`;
+  hitscan (`projectileSpeed ≤ 0`) anchors facing to pure bearing.
+- Intent units: vr/vt in m/s (matching `velocityReference`); weights [0,1];
+  [−1,1]×maxSpeed normalization is K1-3's decode contract. No clamps in cost
+  math — decode clamps (`ToFacingWeight` precedent).
+- The anchored block rides as ONE nested struct through `MpcInputs` → `Solve` →
+  `CostInput`; the editor `EvaluateBreakdown`/`BuildCostInput` path gets the
+  same block, and `CostBreakdown` gains the anchored/prior fields so the mirror
+  cannot drift.
+- Arming: an anchored-velocity intent arms the navigator (`ShouldIdle`) without
+  a legacy `velocityReference`; the legacy reference is unused in anchored
+  velocity mode.
+- `EvalContext` gains `[StructLayout(Sequential)]` (preventive Burst hygiene).
+- Priors are config-gated (`weight > 0`), mode-independent — `wMomentum`'s
+  shipped shape; dormancy holds via asset zeros. No speculative
+  `MpcWeight.FacingPrior` member (deliberate omission; probe configs set the
+  settings field).
+- Shared `facingOverride` array untouched; anchored intents leave
+  `weightOverrides` empty (test-pinned) so ceiling × weight never double-scales.
+- Tests: new `MpcAnchoredIntentEditModeTests.cs` (`Category("MPC")`, headless,
+  `MpcVelocityReferenceEditModeTests` pattern). Pins: offset-0 ≡ intercept;
+  offset/vt CCW signs; vr closes; per-step re-resolution; weight-0 → prior-only;
+  B1 throw; B2 collapse; B4 ε-gate; dormancy (default anchored block ⇒ legacy
+  cost path unchanged).
+- Glossary same-PR: anchor collision row gains the anchored-intent sense;
+  entries for *anchored intent* + the sign pins; add *terminal ramp*.
+- Sequencing: no ledger/file overlap with harness slices D/F. The teacher
+  fire-gate boundary fix remains a hard gate before K1-4's run, not this PR's
+  cargo.
+
+### K1-2 decision brief — mechanical velocity rebase probe (FROZEN 2026-07-31)
+
+Descriptive label: `velrebase`. Prepped via pr-prep; user-approved. The
+implementing agent builds from this without re-deciding. Lands on **main**,
+additive, probe lane only; production roster untouched.
+
+**Scope:** re-express the scripted archetype *velocity* laws through the K1-1
+anchored velocity channel in a measurement-only harness composition, and measure
+velocity-command churn + velocity/position tracking against a paired legacy
+drive of the same laws. Ladder rung 3 — the go/no-go on the anchoring hypothesis
+before the K1-3/K1-4 retrain spend.
+
+**Reframing that scopes the whole slice:** K1-1 already routes archetype
+*facing* through the anchored channel (`aimAtTarget` → anchored offset-0 at
+`ApplyIntent`), behaviorally matching the pre-K1-1 silent-intercept path. So
+K1-2 changes **nothing** about archetype facing; it activates the untested half
+of the seam — **anchored velocity** (`anchored.hasVelocity`, no production caller
+today). The instrument therefore centers on *velocity*-command churn and
+velocity/position tracking, not facing reversals (which read identically across
+arms — that identity is a sanity check, not the signal).
+
+**Non-goals:** no policy/ONNX change; no `AgentChooser`/`InferenceChooser`
+change; no production `BuildIntent` behavior change (legacy world-vRef path stays
+byte-identical); no roster/`OpponentRoster` production-path change; no MPC cost
+change (K1-1 seam consumed as-is); no facing metrics as the primary signal; not
+K1-3 (action decode) or K1-4 (the run).
+
+**Fork rulings:**
+
+1. **Measurement design — open-loop clean-pairing composition (Fork A).** New
+   harness composition: measured ship = archetype-under-test (legacy or anchored
+   drive), enemy = a deterministic non-reactive mover (new minimal fixed-path
+   chooser — constant-velocity drift or scripted circle; `DummyChooser` is
+   zero-velocity and gives radial archetypes no moving bearing). Both arms share
+   the same seed ⇒ identical enemy path + identical Evader juke sequence ⇒ clean
+   paired delta on the single changed variable (drive frame). *Why not measure
+   the existing opponent slot:* the policy agent reacts to the opponent, so
+   changing its drive diverges the arms and breaks pairing. New `SessionSpec`
+   surface to install an archetype on the measured slot; a tiny command-readout
+   on the archetype chooser (last emitted command + monotonic decision count)
+   supplies the probe (`IPolicyReadout` lives on `AgentChooser`, not archetypes).
+2. **New velocity probe, not a facing-probe reuse (Fork A cont.).** Register a new
+   probe (working name `velrebase`) reusing the facing probe's proven machinery
+   (decision-counter watch, ceil-rank percentile pooling, JSONL + `-probe.json`
+   sidecar). It measures velocity churn from **actual ship kinematics**
+   (velocity-heading reversals/s, mean |lateral accel|) + **per-step tracking
+   error** against the intended reference, binned by range (3–8 u annulus vs
+   < 3 u). *Why kinematics:* legacy (world-vector) and anchored (polar) commands
+   live in different spaces and are not directly comparable, and resolving the
+   polar at the 5 Hz boundary would falsely re-introduce churn — the point is
+   50 Hz resolution. Kinematics are drive-agnostic and honest.
+3. **Re-expression mechanism — shared-core extraction (Fork B).** Extract each
+   law's LOS-frame polar core to a method returning native
+   `(radialSpeed, tangentialSpeed)`; the legacy path packs it to a world
+   `velocityReference` byte-identically (production untouched), an anchored-emit
+   path packs the same numbers into `AnchoredIntent`. *Why over parallel
+   choosers:* the law stays single-sourced (wiring philosophy); parallel choosers
+   would fork the law into two copies for a smaller production-file blast radius —
+   principle wins.
+4. **Scope — Orbiter, HoldRange (Aggressor+Kiter, one class), Evader (Fork B).**
+   Dummy excluded (zero-velocity, no law to rebase).
+5. **Border dropped on both arms; law math verbatim (Fork C).**
+   `BorderTangentSteer` is a world-frame post-process with no anchored equivalent;
+   keeping it would confound only the legacy arm. Dropped on both (arena sized so
+   it never triggers); production roster keeps `Steered`. Law math kept verbatim
+   including Orbiter's centripetal feed-forward — churn is a smooth function of
+   range and does not churn, so centripetal barely moves the result, and dropping
+   it changes two variables at once. Anchored-arm overshoot (if any) is a finding
+   to note, not a confound to pre-remove.
+6. **Comparison — paired delta primary; mirror as loose context (Fork D).**
+   Per-archetype legacy-vs-anchored delta, same seed / same enemy path, binned by
+   range; d2.0 (obstacles cancel in the pairing under identical fields), seeds
+   2001–2005 ×3. The 699941 facing baseline is loose context, not a gate
+   (different quantity). **PASS:** velocity churn → ~0 for constant-relation
+   archetypes in the anchored arm; annulus (3–8 u) tracking error drops toward the
+   actuation floor; no improvement required inside 3 u (yaw wall); facing metrics
+   unchanged across arms. **FAIL:** churn not reduced, or annulus tracking
+   degraded (MPC cannot stably resolve the polar command).
+
+**Blindsider rulings:**
+
+- **Churn metric is kinematics-based + per-step tracking error** (see Fork ruling
+  2) — never a delta in the command's native space.
+- **Readout decision counter bumps at 5 Hz** — increment inside the
+  `tickCounter % RecomputeIntervalTicks == 0` recompute branch, not every
+  `Decide`, so the counter matches the decision cadence.
+- **`wVelTrack = 50` clone replicated on the measured slot.** `OpponentRoster`
+  clones `MpcSettings` with `ScriptedWVelTrack = 50f` so scripted archetypes drive
+  the velocity interface tightly; the open-loop composition applies the same on the
+  measured ship, both arms, or the velocity-tracking weight differs across arms.
+- **One-facing-source throw not tripped.** Aiming archetypes set `aimAtTarget`
+  (→ anchored facing offset-0) *and* the probe sets `anchored.hasVelocity`;
+  velocity is not a facing source, so the `ApplyIntent` count stays 1 —
+  velocity + intercept-aim coexist. Evader sets no facing (nose delegates to the
+  `wFacingPrior = 0` prior; Evader's signal is velocity, not nose).
+- **Enemy needs a mover.** `DummyChooser` is zero-velocity; a new minimal
+  fixed-path chooser (non-reactive) is the trackable target. Optional
+  stationary-enemy secondary condition if churn-alone isolation is wanted later
+  (removes the anchored arm's automatic enemy-velocity lead).
+
+**Assumptions (user-approved batch):**
+
+- Lands on main, additive; production roster + `BuildIntent` legacy paths
+  byte-identical; new probe integrates into the `RL_HARNESS_PROBES` registry +
+  paren grammar (`SessionProbes.Factories`, known-keys validated).
+- Output under `results/rl-eval/` via `EpisodeJsonl.NewRunPath` +
+  `HarnessSessionHost.ProbePath` (per-episode `-{name}.jsonl` +
+  `-{name}-probe.json` sidecar), same convention as facing/contact.
+- Reps mirror the baseline protocol: seeds 2001–2005 ×3, d2.0.
+- Anchored velocity reference is enemy-relative
+  (`enemyVel + vr·losHat + vt·tangentHat`, K1-1 `AnchoredVelocityRef`); the
+  anchored arm's enemy-velocity lead is kept as legitimate anchored semantics.
+- Glossary: register `velrebase` (probe) and the K1-2 sense of *mechanical
+  rebase* at brief-freeze if not already covered by the K1-1 anchored entries.
+
+**Sequencing / in-flight collision:** agent-4's live `combat-telemetry` slice
+adds a `combat` probe touching the same `ParseProbes` default / `SessionProbes`
+registry / lane-smoke / README hunks the new velocity probe touches. K1-2 build
+rebases over `combat-telemetry` once it lands (or coordinates the registry hunk);
+flag in the ledger claim. No overlap with K1-1 (#243, merged) or harness slices
+D/F (merged). Teacher fire-gate boundary fix remains a hard gate before K1-4, not
+this PR's cargo. Clear `src/Asteroids3D/Library/BurstCache/` before testing.
+
+### K1-3 decision brief — schema break (FROZEN 2026-07-31)
+
+Descriptive label: `schemabreak` (positional K1-3). Prepped via pr-prep;
+user-ruled. The implementing agent builds from this without re-deciding. Lands on
+a **long-lived branch** (`task/k1-3-schema`), never on main until K1-4's atomic
+gate. Baseline reads stay gate-score vs gate-score (rules + roster unchanged).
+
+**Scope:** new **5-continuous + 2-discrete** ActionSpec decoding to the K1-1
+anchored seam; **enemy weapon-state obs riders**; consolidate the two
+comment-synced ActionSpec/obs-size sites into one helper; golden-test +
+fixture-pinned-test rewrites; smoke-fixture regen; training smoke on the new
+schema.
+
+**Non-goals:** no MPC cost change (K1-1 seam consumed as-is); no archetype driving
+(K1-2); no projectile tokens (bigger break, out); no rules/weapon change (both
+balance packages HELD → self weapon stays heat-lasers, #237 full lockout); no
+K1-4 training run / checkpoint staging; no richer anchored-gizmo redesign
+(deferred to a diagnostics slice).
+
+**The action interface (5 continuous + 2 discrete branches, 2 choices each):**
+Continuous `[ox, oy, vr, vt, vw]`; discrete `[fire, boost]`. Decode contract
+(owned by `AgentActions`, MPC-type-free):
+- `facingOffsetRad = atan2(ox, oy)`, `facingWeight = clamp01(hypot(ox, oy))` —
+  `(0,+1)` = aim at intercept (offset 0), `(0,−1)` = face away (π); CCW-positive.
+- `radialSpeed = vr · maxSpeed`, `tangentialSpeed = vt · maxSpeed`,
+  `velocityWeight = clamp01(vw)`.
+- `fire = discrete[0] == 1`, `boost = discrete[1] == 1`.
+
+**Fork rulings:**
+
+1. **Decode seam — middle-ground split (Fork A).** `AgentActions.Map(...)` returns
+   the *decoded scalars* in the RL-owned `AgentAction` struct (fields become
+   `facingOffsetRad, facingWeight, radialSpeed, tangentialSpeed, velocityWeight,
+   fire, boost` — all primitives; atan2/×maxSpeed/clamp01 done here). `AgentChooser`
+   already imports `Movement.MPC`, so `Decide` copies the scalars into
+   `AnchoredIntent` (`hasFacing`/`hasVelocity` = true) — a field copy, no decode
+   logic moves. *Why:* keeps the decode math single-sourced in the decode home
+   without coupling `AgentActions` to `MPC.Types` (the user's explicit discomfort);
+   the assembly lives where MPC coupling already is.
+2. **Obs layout — append (Fork B).** Enemy `{ready, heatPct}` at indices **26-27**,
+   target-conditional (zero when `!target.has`), obs size **26 → 28**. Self weapon
+   channels (ready idx 22, heatPct idx 23) unchanged. *Why:* rules held ⇒ heat-laser
+   with full lockout ⇒ `ready` is NOT derivable from `heatPct`, so both self and
+   enemy carry both channels; append is the smallest diff over a free rewrite; lead
+   (24-25) stays put.
+3. **Branch management — dedicated branch + merge-main (Fork C).** Long-lived
+   `task/k1-3-schema` persists in git; acquire an `agent-N` slot per build session
+   and release it between sessions; `git merge main` into the branch periodically;
+   cut from a main that already contains `combat-telemetry` + `velrebase`. Final
+   atomic squash-merge is K1-4's gate (already locked). *Why:* respects
+   pool-capacity (no days-long slot hold); merge (not rebase) is safe over the LFS
+   ONNX churn and the multi-session lifetime.
+
+**Blindsider rulings:**
+
+- **① projectileSpeed → intent, injected at `Configure`.** The anchored facing is
+  `AnchorYaw(…, input.projectileSpeed) + facingOffsetRad`, and `AnchorYaw` collapses
+  to un-led **bearing** when `projectileSpeed ≤ 0` (Cost.cs:51,89-91).
+  `AgentChooser.Configure` gains self's `primaryProjectileSpeed` (static per-ship,
+  like the opponent); `Decide` sets `intent.projectileSpeed` from it. This wakes the
+  dormant enemy rollout, as the plan anticipated. (Both agents already resolve
+  `primaryProjectileSpeed` for the obs.)
+- **② `PolicyAction` repurposed to anchored.** Struct →
+  `{facingOffsetRad, facingWeight, radialSpeed, tangentialSpeed, velocityWeight}`;
+  `PolicyPainter`, `FacingProbe`, and `RLProbeEditModeTests` updated to compile/read
+  it. *Why over resolve-at-boundary:* keeps the resolution formula single-sourced in
+  the MPC (wiring rule #2) instead of duplicating `AnchorYaw`/polar math in the
+  chooser for a readout. `PolicyPainter`'s world-velocity line degrades (enemy-frame
+  or dropped); richer anchored-gizmo work is deferred.
+- **③ `velocityWeight = clamp01(vw)`.** Matches K1-1's stated `ToFacingWeight`
+  precedent; init≈0 ⇒ weight≈0 ⇒ residual-policy start delegating to the velocity
+  prior. The dead negative half is representational, not incorrect.
+- **One decode seam, not two.** `LivePilotAgent.mailbox` *is* an `AgentChooser`
+  (same type `ShipAgent` uses) — both agents route through `AgentChooser.SetAction`,
+  so Fork A covers the harness and in-game paths together.
+- **Enemy-heat readout resolved at bind, not once-for-lifetime.** Self heat is
+  resolved once (fixed loadout); the enemy readout re-resolves where the enemy is
+  bound — `ShipAgent.Configure` (opponent injected once) and
+  `LivePilotAgent.CaptureBoundary` (target can re-capture). Absent readout ⇒
+  channels 0.
+
+**Assumptions (user-reviewed batch):**
+
+- Action consts: `AgentActions.Count` 6→5; add `DiscreteBranches = 2`,
+  `ChoicesPerBranch = 2` (K1-0 scratch names); delete `TriggerThreshold`.
+  `ActionSpec(Count, new[] { ChoicesPerBranch, ChoicesPerBranch })` (K1-0 pattern).
+- `hasFacing`/`hasVelocity` always true for the policy (opponent always injected);
+  K1-1's B2 targetless-collapse is not reachable here.
+- Compose-site consolidation: one shared static owning the schema-shape bits (obs
+  size, ActionSpec, obstacle buffer dims), called by both `ShipAgentFactory` and
+  `InferenceChooser`; behavior-name/type/model stay per-site. Home: co-located with
+  the obs consts in `AgentObservations`.
+- `EpisodeResult.SchemaId` `rl-episode-v5` → `v6`.
+- `AgentObservations.Fill` gains `bool enemyWeaponReady, float enemyHeatPct`; both
+  agents read `opponent.Weapons.Context.IsReady(Primary)` + an opponent-side
+  `IHeatReadout` (mirror of `ResolvePrimaryHeat`).
+- Dead ego↔world helpers (`ToWorldVelocity`, `ToFacingRad`, `ToEgoAction`) deleted
+  with their tests; `clamp01(magnitude)` retained inline for `facingWeight`.
+- `AgentChooser` drops the `facingOverride[]` `WeightOverride` array and world-frame
+  `worldVelocity`/`facingRad` fields; `weightOverrides` left empty in anchored mode
+  (K1-1 pin: ceiling × weight never double-scales). `FacingAuthorityScale` sweep hook
+  moves to scale `anchored.facingWeight`.
+- `SetAction` carries the `AgentAction` struct (+ boostAvailable); `intent.hasFacing`
+  stays false (only `anchored.hasFacing` true) — no K1-1 B1 throw. Test-pin this.
+- Golden/index tests rewritten on-branch: `expected[]` → 28 (enemy 26-27, lead
+  24-25 unchanged); `Map` test → 5-continuous+2-discrete signature; no-target
+  zero-region extends. Hardcoded `continuous[0..4]`/`discrete[0..1]` indices updated
+  by hand in both agents' `OnActionReceived` + `ShipAgent.Heuristic`.
+- Heuristic emits aim-at-intercept `(ox,oy)=(0,1)`, closing radial toward the
+  hold-range band, `vt=0`, weights 1, `discrete=[1,0]` (may reuse velrebase's
+  shared-core polar extraction, which lands before the branch cut).
+- Smoke fixture regenerated on-branch (short trainer smoke → export
+  `ShipCombat-smoke.onnx` → LFS commit); fixture-pinned tests updated.
+  `ShipCombat-699941.onnx` stays referenced-but-unrun on-branch
+  (`AgentPilotAuthoring`'s `Model != null` is a reference check; the pinned-checkpoint
+  PlayMode test loads the *smoke* fixture). Main's gameplay prefab untouched.
+- No YAML change (shapes ride the gRPC handshake). No new glossary terms (design uses
+  existing *anchored intent* / *delegation prior* / sign-pin entries).
+- Tests headless EditMode for obs/action contracts (`RLAgentEditModeTests`),
+  PlayMode for the fixture-load pin; scoped runs for iteration, merge gate re-tests.
+
+**Sequencing / in-flight collision:** cut the branch after `combat-telemetry` (#245)
+and `velrebase` (K1-2) land — it inherits their `AgentChooser` / probe-registry
+changes rather than colliding. Ledger: claim a row only when a build session is
+active (branch, not a standing slot hold). No live obs/action collisions once cut.
+Clear `src/Asteroids3D/Library/BurstCache/` before testing.
+
+**Definition of done:** branch compiles + full scoped suite green with rewritten
+contracts; training smoke (short run) through export → Sentis load → episode on the
+NEW schema; obs riders in and pinned; **K1-4 handoff checklist written** — post-lockout
+699941 re-baseline ≥4 reps on main (#237 merged, runnable any time); slot-2
+head-to-head via #238; gameplay-checkpoint staging (manual GUID-bound copy) scripted
+in K1-4 per wiring rule 6 corollary.
+
 ### Code-grounding corrections (2026-07-31 seam maps)
 
 - `EvalContext.Create` already runs per rollout step per candidate (~128×17 ≈
@@ -422,17 +775,17 @@ enemy state + `projectileSpeed`, waking the dormant enemy rollout.
 
 ## Open items
 
-1. **Hybrid ActionSpec claim REFUTED in source (2026-07-29); e2e smoke pending.**
-   Both council legs independently verified it: the pinned trainer's
-   `action_model.py` builds Gaussian + MultiCategorical heads whenever both
-   sizes are nonzero, and the communicator's capability check
-   (`GrpcExtensions.cs:175`) only restricts when the trainer lacks hybrid
-   support. The `AgentActions.cs:22` doc comment is stale and is actively
-   shaping the action space (fire/boost as threshold-gated continuous). Ladder
-   step 1 (smoke) confirms the full train→export→Sentis path; the comment dies
-   with it and fire/boost move to a discrete branch at the K=1 retrain. **Now
-   slice K1-0; fallback ruled 2026-07-31: on smoke failure fire/boost stay
-   threshold-gated continuous and the arc proceeds.**
+1. **RESOLVED — K1-0 smoke PASSED 2026-07-31.** The hybrid rejection claim was
+   refuted in source (2026-07-29: `action_model.py` builds Gaussian +
+   MultiCategorical heads whenever both sizes are nonzero; the communicator
+   check at `GrpcExtensions.cs:175` only restricts when the trainer lacks
+   hybrid support) and the e2e smoke confirmed the full train→export→Sentis
+   path: trainer accepted 4-continuous + 2×2-discrete, ONNX exported dual
+   action heads, checkpoint drove a 600-decision episode via
+   `ComposeInferenceOnly` (artifacts:
+   `results/rl-eval/k1-0-hybrid-smoke-2026-07-31/`). The stale
+   `AgentActions.cs:22` clause died with it; fire/boost move to discrete
+   branches at K1-3. The on-failure fallback ruling is moot.
 2. Weight-0 priors: velocity-aligned facing / momentum velocity — confirm
    shapes. **Ruled 2026-07-31: mechanism (blend-target vs dual-term) decided in
    K1-1's pr-prep with a cost-shape sketch in hand.**

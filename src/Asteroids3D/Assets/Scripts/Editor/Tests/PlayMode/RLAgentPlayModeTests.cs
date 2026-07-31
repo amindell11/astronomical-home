@@ -203,7 +203,13 @@ namespace Tests.PlayMode
                 seeds = seeds,
                 tag = "test-eval",
                 episodesPerSeed = 1,
-                probes = new[] { ArchetypeGateProbe.ProbeName },
+                probes = new[]
+                {
+                    ProbeSpec.Named(ArchetypeGateProbe.ProbeName),
+                    ProbeSpec.Named(CombatTelemetryProbe.ProbeName),
+                    ProbeSpec.Named(ContactProbe.ProbeName),
+                    ProbeSpec.Named(FacingProbe.ProbeName),
+                },
             };
             CheckpointEvaluator.Summary summary = default;
             yield return CheckpointEvaluator.Run(NewHost(sessionSpec), sessionSpec, spec, s => summary = s);
@@ -229,13 +235,22 @@ namespace Tests.PlayMode
             Assert.IsTrue(System.IO.File.Exists(summary.episodesJsonl.Replace(".jsonl", "-summary.json")),
                 "summary artifact missing");
 
-            // The teacher scorecard rides as a per-probe sidecar the summary points at.
-            Assert.AreEqual(1, summary.probes.Length);
-            Assert.AreEqual(ArchetypeGateProbe.ProbeName, summary.probes[0].name);
-            Assert.IsTrue(System.IO.File.Exists(summary.probes[0].jsonl), "probe JSONL sidecar missing");
-            Assert.IsTrue(System.IO.File.Exists(summary.probes[0].summary), "probe summary sidecar missing");
-            Assert.AreEqual(seeds.Length * 5, System.IO.File.ReadAllLines(summary.probes[0].jsonl).Length,
-                "one probe row per episode");
+            // Each selected probe rides as its own sidecar pair the summary points at.
+            Assert.AreEqual(4, summary.probes.Length);
+            Assert.AreEqual(
+                new[]
+                {
+                    ArchetypeGateProbe.ProbeName, CombatTelemetryProbe.ProbeName,
+                    ContactProbe.ProbeName, FacingProbe.ProbeName,
+                },
+                System.Array.ConvertAll(summary.probes, p => p.name));
+            foreach (var probe in summary.probes)
+            {
+                Assert.IsTrue(System.IO.File.Exists(probe.jsonl), $"{probe.name} probe JSONL sidecar missing");
+                Assert.IsTrue(System.IO.File.Exists(probe.summary), $"{probe.name} probe summary sidecar missing");
+                Assert.AreEqual(seeds.Length * 5, System.IO.File.ReadAllLines(probe.jsonl).Length,
+                    $"{probe.name}: one probe row per episode");
+            }
 
             // Mirror block: same substrate, checkpoint vs itself, self-fingerprinted rows.
             var mirrorSpec = new SessionSpec
@@ -245,7 +260,7 @@ namespace Tests.PlayMode
                 tag = "test-eval-mirror",
                 episodesPerSeed = 1,
                 opponentKind = OpponentKind.Mirror,
-                probes = new string[0],
+                probes = new ProbeSpec[0],
             };
             CheckpointEvaluator.Summary mirrorSummary = default;
             yield return CheckpointEvaluator.Run(NewHost(mirrorSpec), mirrorSpec, spec, s => mirrorSummary = s);
@@ -272,7 +287,7 @@ namespace Tests.PlayMode
                 seeds = new[] { seeds[0] },
                 tag = "test-eval-slot2",
                 episodesPerSeed = 1,
-                probes = new string[0],
+                probes = new ProbeSpec[0],
             };
             CheckpointEvaluator.Summary slot2Summary = default;
             yield return CheckpointEvaluator.Run(NewHost(slot2Spec), slot2Spec, spec, s => slot2Summary = s);
