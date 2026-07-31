@@ -62,7 +62,7 @@ namespace Game.RLHarness
                     spec.onnxAssetPath, field),
             };
 
-        /// <summary>Episodes 0..N-1 against one opponent config — the index restarts per block, so blocks on one seed are a controlled comparison over the same poses and field layouts. When the spec records, each selected episode films through a per-episode recorder wired here (decision 2: no RunBlock parameter, spec-driven internally).</summary>
+        /// <summary>Episodes 0..N-1 against one opponent config — the index restarts per block, so blocks on one seed are a controlled comparison over the same poses and field layouts. When the spec records, each selected episode films through a per-episode recorder wired here.</summary>
         internal IEnumerator RunBlock(ISessionComposition composition, OpponentSpec opponent, int episodes,
             RewardSpec episodeSpec, string jsonlPath, Action<EpisodeResult> onEpisode)
         {
