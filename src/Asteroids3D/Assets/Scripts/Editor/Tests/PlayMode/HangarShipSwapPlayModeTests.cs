@@ -123,7 +123,6 @@ namespace Tests.PlayMode
             rig.Loadout.Shield = ship1.Shield;
             rig.ApplyLoadout();
 
-            // Lethal damage on the NEW ship must fire the re-wired death callback.
             var lethal = rig.Player.Stats.maxShield + rig.Player.Stats.maxHealth + 100f;
             rig.Player.Damage.TakeDamage(lethal, 0f, Vector3.zero, rig.Player.transform.position, null);
 

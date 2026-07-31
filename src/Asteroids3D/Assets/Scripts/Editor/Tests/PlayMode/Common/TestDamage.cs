@@ -11,8 +11,7 @@ namespace Tests.PlayMode.Common
 public static class TestDamage
 {
     /// <summary>
-    /// Kills a ship deterministically: clears invulnerability, then hits until health reaches zero
-    /// (one overkill hit bleeds through the shield; the loop guards against future damage layers).
+    /// Kills a ship deterministically; the loop covers damage rules where a single hit cannot kill.
     /// </summary>
     /// <param name="ship">Ship to kill (no-op if null).</param>
     /// <param name="instigator">
