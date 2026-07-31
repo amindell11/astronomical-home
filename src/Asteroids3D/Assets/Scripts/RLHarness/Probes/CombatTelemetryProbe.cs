@@ -31,6 +31,7 @@ namespace Game.RLHarness
     public struct CombatTelemetryRow
     {
         public string schema;
+        public int seed;
         public int episodeIndex;
         public OpponentDraw opponent;
         public string opponentLabel;
@@ -334,6 +335,7 @@ namespace Game.RLHarness
             return new CombatTelemetryRow
             {
                 schema = CombatTelemetryRow.SchemaId,
+                seed = result.spec.runSeed,
                 episodeIndex = result.episodeIndex,
                 opponent = draw,
                 opponentLabel = opponentLabel,
