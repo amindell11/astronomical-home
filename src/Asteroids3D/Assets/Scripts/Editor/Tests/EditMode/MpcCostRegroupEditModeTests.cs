@@ -34,7 +34,7 @@ namespace Tests.EditMode
         private static readonly Control PrevU = new() { thrust = 0.2f, strafe = -0.1f, yawTorque = 0.1f, boost = 0f };
         private const int Step = 8;   // mid-horizon → terminal ramp active (t = 0.5)
 
-        // Enemy well clear of the ship; projectileSpeed > 0 arms intercept-facing; initialVel off the velocity axis keeps momentum live.
+        // Enemy well clear of the ship; the anchored facing channel (offset 0, full authority) arms intercept-facing; initialVel off the velocity axis keeps momentum live.
         private static void WithInput(ObstacleData[] obstacleData, System.Action<CostInput> body)
         {
             var obstacles = new NativeArray<ObstacleData>(obstacleData, Allocator.Temp);
@@ -51,6 +51,7 @@ namespace Tests.EditMode
                     enemyYawRate = 0.2f,
                     projectileSpeed = 50f,
                     initialVel = new float2(2f, -1f),
+                    anchored = new AnchoredIntent { hasFacing = true, facingOffsetRad = 0f, facingWeight = 1f },
                 });
             }
             finally
