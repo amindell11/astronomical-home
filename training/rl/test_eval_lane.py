@@ -91,5 +91,62 @@ class LauncherEnvComposition(unittest.TestCase):
                                         lease="test-lease", out_dir=self.out_dir, seeds="2001")
 
 
+class PlayerLaneComposition(unittest.TestCase):
+    """--exec player splits the session: a leased convert child owns ONNX→bundle, the lease-free
+    player exe owns the sim and reads RL_HARNESS_BUNDLE alongside the shared grammar."""
+
+    def setUp(self):
+        self.out_dir = Path(tempfile.mkdtemp())
+        self.captured = {}
+
+    def fake_run_batch(self, lease, project, batch_script, env, wait_seconds, log_path):
+        self.captured.update(batch_script=batch_script, env=env)
+        return 0
+
+    def test_convert_step_runs_the_convert_child_with_bundle_inputs(self):
+        with mock.patch.object(eval_lane, "run_batch", self.fake_run_batch):
+            bundle = eval_lane.run_convert_step(project=Path("proj"), unity=Path("unity.exe"),
+                                                lease="test-lease", out_dir=self.out_dir,
+                                                onnx="ckpt/ShipCombat-42.onnx", opponent="mirror")
+
+        self.assertEqual(eval_lane.CONVERT_CHILD, self.captured["batch_script"])
+        env = self.captured["env"]
+        self.assertEqual("ckpt/ShipCombat-42.onnx", env["RL_HARNESS_ONNX"])
+        self.assertEqual("mirror", env["RL_HARNESS_OPPONENT"])
+        self.assertEqual(str(self.out_dir), env["RL_HARNESS_OUT_DIR"])
+        self.assertEqual(self.out_dir / "eval-models.bundle", bundle)
+
+    def test_player_launch_is_lease_free_and_carries_the_bundle_var(self):
+        def fake_run(cmd, env):
+            self.captured.update(cmd=cmd, env=env)
+            (self.out_dir / "20260731-120000-heldout-summary.json").write_text("{}")
+            return mock.Mock(returncode=0)
+
+        with mock.patch.object(eval_lane.subprocess, "run", fake_run):
+            summary = eval_lane.run_player_eval(exe=Path("RLHarnessEval.exe"),
+                                                bundle=self.out_dir / "eval-models.bundle",
+                                                out_dir=self.out_dir, onnx="ckpt/ShipCombat-42.onnx",
+                                                seeds="2001,2002")
+
+        self.assertEqual(["RLHarnessEval.exe", "-batchmode", "-nographics",
+                          "-logFile", str(self.out_dir / "player.log")], self.captured["cmd"])
+        env = self.captured["env"]
+        self.assertEqual(str(self.out_dir / "eval-models.bundle"), env["RL_HARNESS_BUNDLE"])
+        self.assertEqual("ckpt/ShipCombat-42.onnx", env["RL_HARNESS_ONNX"])
+        self.assertEqual("2001,2002", env["RL_HARNESS_SEEDS"])
+        self.assertEqual(str(self.out_dir), env["RL_HARNESS_OUT_DIR"])
+        self.assertNotIn("HARNESS_UNITY", env, "editor-child plumbing must not reach the player")
+        self.assertEqual(self.out_dir / "20260731-120000-heldout-summary.json", summary)
+
+    def test_player_nonzero_exit_fails_loud(self):
+        with mock.patch.object(eval_lane.subprocess, "run",
+                               lambda cmd, env: mock.Mock(returncode=1)):
+            with self.assertRaises(SystemExit):
+                eval_lane.run_player_eval(exe=Path("RLHarnessEval.exe"),
+                                          bundle=self.out_dir / "eval-models.bundle",
+                                          out_dir=self.out_dir, onnx="ckpt/ShipCombat-42.onnx",
+                                          seeds="2001")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -35,6 +35,8 @@ namespace Game.RLHarness
             yield return RunLane();
 #if UNITY_EDITOR
             if (Application.isBatchMode) UnityEditor.EditorApplication.Exit(0);
+#else
+            Application.Quit(0);
 #endif
         }
 
@@ -55,11 +57,11 @@ namespace Game.RLHarness
             opponent switch
             {
                 OpponentKind.Mirror => new PolicyPairComposition(units, Arena, Projectiles, assets, in seedSpec,
-                    spec.onnxAssetPath, spec.onnxAssetPath, field),
+                    spec.model, spec.model, field),
                 OpponentKind.Checkpoint => new PolicyPairComposition(units, Arena, Projectiles, assets, in seedSpec,
-                    spec.onnxAssetPath, spec.opponentOnnxAssetPath, field),
+                    spec.model, spec.opponentModel, field),
                 _ => new InferenceRosterComposition(units, Arena, Projectiles, assets, in seedSpec,
-                    spec.onnxAssetPath, field),
+                    spec.model, field),
             };
 
         internal ISessionComposition NewOpenLoopComposition(in RewardSpec seedSpec, HarnessField field) =>
@@ -175,9 +177,11 @@ namespace Game.RLHarness
         private static void ExitOnException(string condition, string stackTrace, LogType type)
         {
             if (type != LogType.Exception || !Application.isBatchMode) return;
-#if UNITY_EDITOR
             Debug.LogError($"[HarnessSessionHost] fatal: {condition}\n{stackTrace}");
+#if UNITY_EDITOR
             UnityEditor.EditorApplication.Exit(1);
+#else
+            Application.Quit(1);
 #endif
         }
 

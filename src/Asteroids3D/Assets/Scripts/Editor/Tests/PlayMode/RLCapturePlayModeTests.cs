@@ -65,7 +65,8 @@ namespace Tests.PlayMode
             var spec = new SessionSpec
             {
                 lane = SessionLane.Capture,
-                onnxAssetPath = ShipAgentFactory.SmokeFixturePath,
+                model = UnityEditor.AssetDatabase.LoadAssetAtPath<Unity.InferenceEngine.ModelAsset>(
+                    ShipAgentFactory.SmokeFixturePath),
                 seeds = new[] { EvalProtocol.HeldOutSeeds[0] },
                 tag = "capture-test",
                 episodesPerSeed = 2,

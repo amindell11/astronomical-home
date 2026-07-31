@@ -10,17 +10,55 @@ namespace Tests.EditMode
     [Category("AI")]
     public class RLSessionSpecEditModeTests
     {
-        private const string ImportedCandidatePath = "Assets/Tests/Fixtures/EvalCandidate.onnx";
-        private const string ImportedOpponentPath = "Assets/Tests/Fixtures/EvalOpponent.onnx";
+        private bool candidateResolved;
+        private string candidateSource;
+        private string opponentSource;
+        private readonly List<(string bundle, string asset)> bundleLoads = new();
 
-        private static SessionSpec Parse(params string[] keyValuePairs) => Parse(true, keyValuePairs);
+        [SetUp]
+        public void SetUp()
+        {
+            candidateResolved = false;
+            candidateSource = null;
+            opponentSource = null;
+            bundleLoads.Clear();
+        }
 
-        private static SessionSpec Parse(bool hasGraphics, params string[] keyValuePairs)
+        private SessionSpec Parse(params string[] keyValuePairs) => Parse(true, keyValuePairs);
+
+        private SessionSpec Parse(bool hasGraphics, params string[] keyValuePairs)
+        {
+            var env = ToEnv(keyValuePairs);
+            return SessionSpec.ParseEval(k => env.TryGetValue(k, out var v) ? v : null,
+                s =>
+                {
+                    candidateResolved = true;
+                    candidateSource = s;
+                    return null;
+                },
+                s =>
+                {
+                    opponentSource = s;
+                    return null;
+                }, () => hasGraphics);
+        }
+
+        private SessionSpec ParsePlayer(params string[] keyValuePairs)
+        {
+            var env = ToEnv(keyValuePairs);
+            return SessionSpec.ParsePlayerEval(k => env.TryGetValue(k, out var v) ? v : null,
+                (bundle, asset) =>
+                {
+                    bundleLoads.Add((bundle, asset));
+                    return null;
+                }, () => false);
+        }
+
+        private static Dictionary<string, string> ToEnv(string[] keyValuePairs)
         {
             var env = new Dictionary<string, string>();
             for (var i = 0; i < keyValuePairs.Length; i += 2) env[keyValuePairs[i]] = keyValuePairs[i + 1];
-            return SessionSpec.ParseEval(k => env.TryGetValue(k, out var v) ? v : null,
-                _ => ImportedCandidatePath, _ => ImportedOpponentPath, () => hasGraphics);
+            return env;
         }
 
         private static string[] Names(ProbeSpec[] probes) => Array.ConvertAll(probes, p => p.name);
@@ -31,7 +69,9 @@ namespace Tests.EditMode
             var spec = Parse();
 
             Assert.AreEqual(SessionLane.Eval, spec.lane);
-            Assert.AreEqual(ShipAgentFactory.SmokeFixturePath, spec.onnxAssetPath, "no RL_HARNESS_ONNX: the smoke fixture");
+            Assert.IsTrue(candidateResolved && candidateSource == null,
+                "no RL_HARNESS_ONNX: the boundary resolves a null source (the smoke fixture)");
+            Assert.AreEqual("ShipCombat-smoke", spec.CandidateStem);
             Assert.IsNull(spec.onnxSourcePath);
             Assert.AreEqual(EvalProtocol.HeldOutSeeds, spec.seeds);
             Assert.AreEqual("held-out", spec.tag);
@@ -44,13 +84,15 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void CheckpointSource_IsImportedAndRecorded()
+        public void CheckpointSource_IsResolvedAndRecorded()
         {
             var spec = Parse("RL_HARNESS_ONNX", "results/rl-training/run/ShipCombat-42.onnx");
 
-            Assert.AreEqual(ImportedCandidatePath, spec.onnxAssetPath);
+            Assert.AreEqual("results/rl-training/run/ShipCombat-42.onnx", candidateSource,
+                "the boundary resolver receives the source it must import");
             Assert.AreEqual("results/rl-training/run/ShipCombat-42.onnx", spec.onnxSourcePath,
-                "the summary carries provenance the imported path erases");
+                "the summary carries provenance the resolved asset erases");
+            Assert.AreEqual("ShipCombat-42", spec.CandidateStem, "Python keys on the stem");
         }
 
         [Test]
@@ -79,9 +121,9 @@ namespace Tests.EditMode
 
             Assert.AreEqual(OpponentKind.Checkpoint, spec.opponentKind);
             Assert.AreEqual("frozen/ShipCombat-999950.onnx", spec.opponentOnnxSourcePath,
-                "the summary carries slot-2 provenance the imported path erases");
-            Assert.AreEqual(ImportedOpponentPath, spec.opponentOnnxAssetPath,
-                "the opponent must land in its own fixture slot, never the candidate's");
+                "the summary carries slot-2 provenance the resolved asset erases");
+            Assert.AreEqual("frozen/ShipCombat-999950.onnx", opponentSource,
+                "the opponent resolver must receive the opponent source, never the candidate's");
             Assert.AreEqual("ShipCombat-999950", spec.opponentLabel, "summary blocks are labeled by the stem");
         }
 
@@ -301,6 +343,54 @@ namespace Tests.EditMode
             Assert.Throws<ArgumentException>(() =>
                     Parse("RL_HARNESS_LANE", "capture", "RL_HARNESS_SEEDS", "2001", "RL_HARNESS_OPPONENT", "roster"),
                 "capture forbids explicit roster too");
+        }
+
+        [Test]
+        public void BundleVar_InAnEditorSessionThrowsAtParse()
+        {
+            var thrown = Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_BUNDLE", "run/eval-models.bundle"),
+                "RL_HARNESS_BUNDLE must never silently shift meaning inside an editor session");
+            StringAssert.Contains("player", thrown.Message);
+        }
+
+        [Test]
+        public void PlayerParse_RequiresBothBundleVars()
+        {
+            Assert.Throws<ArgumentException>(() => ParsePlayer(), "no bundle vars at all");
+            Assert.Throws<ArgumentException>(() => ParsePlayer("RL_HARNESS_BUNDLE", "run/eval-models.bundle"),
+                "RL_HARNESS_ONNX missing: a player has no smoke default");
+            Assert.Throws<ArgumentException>(() => ParsePlayer("RL_HARNESS_ONNX", "run/ShipCombat-42.onnx"),
+                "RL_HARNESS_BUNDLE missing: the player has nothing to resolve models from");
+        }
+
+        [Test]
+        public void PlayerParse_ResolvesModelsFromTheBundleUnderFixedNames()
+        {
+            var spec = ParsePlayer("RL_HARNESS_BUNDLE", "run/eval-models.bundle",
+                "RL_HARNESS_ONNX", "run/ShipCombat-42.onnx");
+
+            Assert.AreEqual(new[] { ("run/eval-models.bundle", "candidate") }, bundleLoads,
+                "a roster eval resolves exactly the candidate slot");
+            Assert.AreEqual("run/ShipCombat-42.onnx", spec.onnxSourcePath, "provenance rides the env, not the bundle");
+            Assert.AreEqual("ShipCombat-42", spec.CandidateStem);
+
+            bundleLoads.Clear();
+            var slot2 = ParsePlayer("RL_HARNESS_BUNDLE", "run/eval-models.bundle",
+                "RL_HARNESS_ONNX", "run/ShipCombat-42.onnx",
+                "RL_HARNESS_OPPONENT", "frozen/ShipCombat-999950.onnx");
+            Assert.AreEqual(new[] { ("run/eval-models.bundle", "candidate"), ("run/eval-models.bundle", "opponent") },
+                bundleLoads);
+            Assert.AreEqual(OpponentKind.Checkpoint, slot2.opponentKind);
+            Assert.AreEqual("ShipCombat-999950", slot2.opponentLabel);
+        }
+
+        [Test]
+        public void PlayerParse_RefusesEditorOnlyLanes()
+        {
+            Assert.Throws<ArgumentException>(() => ParsePlayer("RL_HARNESS_BUNDLE", "run/eval-models.bundle",
+                "RL_HARNESS_ONNX", "run/ShipCombat-42.onnx", "RL_HARNESS_LANE", "capture"), "capture lane");
+            Assert.Throws<ArgumentException>(() => ParsePlayer("RL_HARNESS_BUNDLE", "run/eval-models.bundle",
+                "RL_HARNESS_ONNX", "run/ShipCombat-42.onnx", "RL_HARNESS_OPENLOOP", "all"), "open-loop lane");
         }
 
         [Test]

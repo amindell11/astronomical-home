@@ -10,9 +10,15 @@ As a CLI this is the manual scripted eval at the gate shape (it replaced rl_eval
 
     cd training/rl
     .venv\\Scripts\\python eval_lane.py --onnx <ckpt.onnx> --seeds 2001,2002,2003,2004,2005
+
+--exec player moves the sim off the shared editors: a leased editor convert step builds the
+session's model bundle, then the dedicated headless eval player (no unity-access lease —
+run_parallel.py precedent) runs the same protocol. Player scores are an uncalibrated
+executionMode until bundle v2; the editor stays the verdict-bearing reference.
 """
 import argparse
 import os
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -24,6 +30,10 @@ RL_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RL_DIR.parent.parent
 PROJECT = REPO_ROOT / "src" / "Asteroids3D"
 HARNESS_CHILD = RL_DIR / "harness_child.ps1"
+CONVERT_CHILD = RL_DIR / "convert_child.ps1"
+PLAYER_EXE = REPO_ROOT / "build" / "rl-harness" / "RLHarnessEval.exe"
+# EvalModelBundle owns the fixed name; the convert step writes it into the caller-named out dir.
+BUNDLE_NAME = "eval-models.bundle"
 # Staging discipline: manual artifacts land in the primary tree, never slot-only.
 MANUAL_ROOT = Path(r"D:\amind\git\astronomical-home") / "results" / "rl-eval" / "manual"
 SMOKE_FIXTURE_STEM = "ShipCombat-smoke"
@@ -42,10 +52,14 @@ def summary_in(out_dir: Path) -> Path:
     return summaries[0]
 
 
+def stripped_parent_env() -> dict:
+    """Explicit params only: every inherited RL_HARNESS_* and retired RL_EVAL_* name dies here."""
+    return {k: v for k, v in os.environ.items()
+            if not k.startswith("RL_HARNESS_") and not k.startswith("RL_EVAL_")}
+
+
 def compose_child_env(unity: Path, project: Path, log: Path, values: dict) -> dict:
-    """Explicit params only: strip every inherited RL_HARNESS_* and retired RL_EVAL_* name, set what was passed."""
-    env = {k: v for k, v in os.environ.items()
-           if not k.startswith("RL_HARNESS_") and not k.startswith("RL_EVAL_")}
+    env = stripped_parent_env()
     env.update(HARNESS_UNITY=str(unity), HARNESS_PROJ=str(project), HARNESS_LOG=str(log))
     env.update({name: str(value) for name, value in values.items() if value is not None})
     return env
@@ -80,6 +94,47 @@ def run_eval_lane(*, project: Path, unity: Path, lease: str, out_dir: Path,
     return summary_in(out_dir)
 
 
+def run_convert_step(*, project: Path, unity: Path, lease: str, out_dir: Path,
+                     onnx, opponent=None, lease_wait: int = 1800) -> Path:
+    """The player eval lane's editor tollbooth (ONNX→ModelAsset is editor-only): one leased
+    batch child imports the checkpoint(s) and builds the session's model bundle into out_dir."""
+    out_dir.mkdir(parents=True, exist_ok=True)
+    log = out_dir / "convert.log"
+    log.unlink(missing_ok=True)
+    env = compose_child_env(unity, project, log, {
+        "RL_HARNESS_ONNX": onnx,
+        "RL_HARNESS_OPPONENT": opponent,
+        "RL_HARNESS_OUT_DIR": out_dir,
+    })
+    code = run_batch(lease, project, CONVERT_CHILD, env, wait_seconds=lease_wait, log_path=log)
+    if code != 0:
+        sys.exit(f"FAIL: model-bundle convert of {Path(onnx).name} exited {code} (see {log})")
+    return out_dir / BUNDLE_NAME
+
+
+def run_player_eval(*, exe: Path, bundle: Path, out_dir: Path, onnx, seeds=None,
+                    episodes_per_seed=None, density=None, opponent=None, probes=None) -> Path:
+    """One eval-lane session in the dedicated headless player — no unity-access lease
+    (players aren't shared editors); returns the summary path read back from out_dir."""
+    log = out_dir / "player.log"
+    env = stripped_parent_env()
+    env.update({name: str(value) for name, value in {
+        "RL_HARNESS_BUNDLE": bundle,
+        "RL_HARNESS_ONNX": onnx,
+        "RL_HARNESS_SEEDS": seeds,
+        "RL_HARNESS_EPISODES_PER_SEED": episodes_per_seed,
+        "RL_HARNESS_DENSITY": density,
+        "RL_HARNESS_OPPONENT": opponent,
+        "RL_HARNESS_PROBES": probes,
+        "RL_HARNESS_OUT_DIR": out_dir,
+    }.items() if value is not None})
+    code = subprocess.run([str(exe), "-batchmode", "-nographics", "-logFile", str(log)],
+                          env=env).returncode
+    if code != 0:
+        sys.exit(f"FAIL: player eval of {Path(onnx).name} exited {code} (see {log})")
+    return summary_in(out_dir)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -94,6 +149,10 @@ def main() -> None:
     parser.add_argument("--open-loop", default=None,
                         help="RL_HARNESS_OPENLOOP: run the K1-2 velrebase lane on this archetype (or \"all\") "
                              "instead of a checkpoint eval")
+    parser.add_argument("--exec", dest="exec_mode", choices=("editor", "player"), default="editor",
+                        help="editor: the calibrated reference protocol, sim in the leased batch child; "
+                             "player: leased convert step, then the sim in the dedicated headless exe "
+                             "(uncalibrated executionMode until bundle v2)")
     parser.add_argument("--project", type=Path, default=PROJECT,
                         help="Unity project the eval boots in (point at a free pool slot, not the tree you work in)")
     parser.add_argument("--unity", type=Path, default=None,
@@ -110,6 +169,15 @@ def main() -> None:
         parser.error(f"--onnx {args.onnx} does not exist")
     if not HARNESS_CHILD.exists():
         sys.exit(f"FAIL: batch child missing at {HARNESS_CHILD}")
+    if args.exec_mode == "player":
+        if args.onnx is None:
+            parser.error("--exec player requires an explicit --onnx (a player has no smoke default)")
+        if args.open_loop:
+            parser.error("--open-loop is editor-only; the open-loop lane has no player")
+        # Freshness is the operator's (run_parallel.py precedent) — no staleness oracle here.
+        if not PLAYER_EXE.exists():
+            sys.exit(f"FAIL: eval player exe missing at {PLAYER_EXE}; build it first "
+                     "(-executeMethod Game.RLHarness.RLEvalPlayerBuild.Build via unity_access RunBatch)")
 
     unity = args.unity or default_unity_exe(args.project)
     if args.open_loop:
@@ -117,11 +185,18 @@ def main() -> None:
     else:
         stem = args.onnx.stem if args.onnx else SMOKE_FIXTURE_STEM
     out_dir = args.out_root / f"{stem}-{time.strftime('%Y%m%d-%H%M%S')}"
-    print(f"[eval-lane] project {args.project}  seeds {args.seeds}  artifacts {out_dir}")
-    summary = run_eval_lane(project=args.project, unity=unity, lease=args.lease, out_dir=out_dir,
-                            onnx=args.onnx, seeds=args.seeds, episodes_per_seed=args.episodes_per_seed,
-                            density=args.density, opponent=args.opponent, probes=args.probes,
-                            open_loop=args.open_loop, lease_wait=args.lease_wait)
+    print(f"[eval-lane] exec {args.exec_mode}  project {args.project}  seeds {args.seeds}  artifacts {out_dir}")
+    if args.exec_mode == "player":
+        bundle = run_convert_step(project=args.project, unity=unity, lease=args.lease, out_dir=out_dir,
+                                  onnx=args.onnx, opponent=args.opponent, lease_wait=args.lease_wait)
+        summary = run_player_eval(exe=PLAYER_EXE, bundle=bundle, out_dir=out_dir, onnx=args.onnx,
+                                  seeds=args.seeds, episodes_per_seed=args.episodes_per_seed,
+                                  density=args.density, opponent=args.opponent, probes=args.probes)
+    else:
+        summary = run_eval_lane(project=args.project, unity=unity, lease=args.lease, out_dir=out_dir,
+                                onnx=args.onnx, seeds=args.seeds, episodes_per_seed=args.episodes_per_seed,
+                                density=args.density, opponent=args.opponent, probes=args.probes,
+                                open_loop=args.open_loop, lease_wait=args.lease_wait)
     print(f"[eval-lane] summary {summary}")
 
 
