@@ -39,7 +39,7 @@ namespace Tests.EditMode
             Assert.AreEqual(EvalProtocol.CanonicalFieldDensityScale, spec.fieldDensityScale);
             Assert.AreEqual(OpponentKind.Roster, spec.opponentKind);
             Assert.IsNull(spec.opponentOnnxSourcePath);
-            Assert.AreEqual(new[] { ArchetypeGateProbe.ProbeName }, Names(spec.probes));
+            Assert.AreEqual(new[] { ArchetypeGateProbe.ProbeName, CombatTelemetryProbe.ProbeName }, Names(spec.probes));
             Assert.IsNull(spec.outDir);
         }
 

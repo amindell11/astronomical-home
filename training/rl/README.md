@@ -190,8 +190,8 @@ $env:RL_HARNESS_EPISODES_PER_SEED = "5"
 $env:RL_HARNESS_SEEDS = "train"   # checkpoint selection; omit (or "held-out") for the sealed set, or pass "7,42,99"
 $env:RL_HARNESS_DENSITY = "3.0"   # stretch/diagnostic only; omit for the canonical eval env (training's terminal lesson)
 $env:RL_HARNESS_OPPONENT = "mirror"   # "roster" (default: stratified archetype blocks) / an archetype name / "mirror" (checkpoint vs itself) / a path ending .onnx (checkpoint vs checkpoint; blocks labeled by its stem)
-$env:RL_HARNESS_PROBES = "gate,facing(wFacing=5)"   # comma-separated "name" or "name(key=value,...)" probe tokens writing per-probe sidecars; "" for none; omit for the default "gate"
-                                                    # registered: gate, contact, facing (wFacing >= 0 scales the measured agent's facing authority; default 1)
+$env:RL_HARNESS_PROBES = "gate,facing(wFacing=5)"   # comma-separated "name" or "name(key=value,...)" probe tokens writing per-probe sidecars; "" for none; omit for the default "gate,combat"
+                                                    # registered: gate, combat, contact, facing (wFacing >= 0 scales the measured agent's facing authority; default 1)
 $env:RL_HARNESS_LANE = "capture"   # "eval" (default: scripted/roster W/L/D + summary) / "capture" (film one seed against one opponent block, no summary)
 $env:RL_HARNESS_RECORD = "all"   # omit/"" = off; "all" or comma indices (0-based, < episodes/seed) select which episodes film. Recording forces a graphics device — the batch child drops -nographics
 $env:RL_HARNESS_RECORD_SIZE = "960x540"   # clip WxH, positive + even (yuv420p); omit for 960x540

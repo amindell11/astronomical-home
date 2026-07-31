@@ -292,7 +292,12 @@ namespace Game.RLHarness
         /// <summary>Grammar: comma-separated `name` or `name(key=value,…)` tokens — the split is paren-aware, so commas inside parens separate params, not probes.</summary>
         private static ProbeSpec[] ParseProbes(string value)
         {
-            if (value == null) return new[] { ProbeSpec.Named(ArchetypeGateProbe.ProbeName) };
+            if (value == null)
+                return new[]
+                {
+                    ProbeSpec.Named(ArchetypeGateProbe.ProbeName),
+                    ProbeSpec.Named(CombatTelemetryProbe.ProbeName),
+                };
             var entries = new List<ProbeSpec>();
             var depth = 0;
             var start = 0;
