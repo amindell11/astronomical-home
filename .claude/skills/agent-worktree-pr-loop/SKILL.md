@@ -125,22 +125,28 @@ Chat titles surface each session's phase in the sessions list, so the user
 sees "blocked on #234" without opening the chat. A session cannot retitle
 itself; a standing **Title concierge** chat does it on request.
 
-Retitle at every transition that writes the ledger (claim, PR-open, block,
-merge/finalize):
+Every lifecycle-tracked chat uses ONE template — same slots, same order:
 
-| Phase | Title |
+`[icon] <stage> <arc-name>: <detail>`
+
+The stage word is always present and always leads; only the attention states
+carry an icon (⛔ blocked, 🔀 merging, ✅ merged). `<arc-name>` is the
+lease/arc name; `<detail>` is the topic unless the stage row says otherwise.
+A title starting with none of the stage words below is a design-discussion
+chat — those never retitle.
+
+| Stage | Title |
 |---|---|
-| prepping (pr-prep) | `pr-prep <arc-name>: <topic>` |
-| building (Step 2) | `🟡 build <arc-name>: <topic>` |
-| in review (Step 4) | `🔵 PR #<n> <arc-name>: <topic>` |
-| blocked | `⛔ <arc-name>: waiting on <blocker>` — name the blocker (a PR, a user decision, a run) |
-| merge gate running (Step 6) | `merging <arc-name>` |
-| merged + finalized (Step 7) | `✅ merged #<n> <arc-name>` |
+| prepping | `prep <arc-name>: <topic>` (brief frozen, build not started → `prep <arc-name>: brief frozen`) |
+| building (Step 2) | `build <arc-name>: <topic>` |
+| in review (Step 4) | `review <arc-name>: PR #<n> — <topic>` |
+| blocked | `⛔ blocked <arc-name>: waiting on <blocker>` — name the blocker (a PR, a user decision, a run) |
+| merge gate running (Step 6) | `🔀 merging <arc-name>: PR #<n>` |
+| merged + finalized (Step 7) | `✅ merged <arc-name>: PR #<n>` |
 | arc orchestrator | `arc <arc-name>: <happening now> → next <next step>` |
 
-Design-discussion chats keep plain topical titles and never retitle. Status
-glyphs are the ledger legend's; the leading token doubles as visual grouping
-in the sessions list.
+Retitle at every transition that writes the ledger (claim, PR-open, block,
+merge/finalize).
 
 Requesting a retitle:
 1. Your session id is the UUID in your scratchpad directory path, prefixed

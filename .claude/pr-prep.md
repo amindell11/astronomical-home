@@ -84,11 +84,12 @@ open the PR. Don't start editing in the primary worktree.
 The worktree-loop skill's *Chat title lifecycle* section is the authority
 (title grammar + Title-concierge retitle protocol). Prep-session stages:
 
-- prepping: `pr-prep <arc-name>: <topic>` — the launch title; keep the shape.
-- brief frozen, build not started: `pr-prep✓ <arc-name>: frozen → next build`.
+- prepping: `prep <arc-name>: <topic>` — request this retitle when prep
+  starts (launch titles are freeform).
+- brief frozen, build not started: `prep <arc-name>: brief frozen`.
 - the chat stays open tracking the whole arc: retitle to
-  `arc <arc-name>: <happening now> → next <next step>` and refresh it whenever
-  the tracked state moves.
+  `arc <arc-name>: <happening now> → next <next step>` and refresh it
+  whenever the tracked state moves.
 
 ## Test-strategy lens (Phase 3)
 
