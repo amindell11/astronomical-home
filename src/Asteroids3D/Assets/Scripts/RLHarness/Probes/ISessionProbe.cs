@@ -46,7 +46,7 @@ namespace Game.RLHarness
         public string summary;
     }
 
-    /// <summary>The probe name registry — the selection grammar behind RL_EVAL_PROBES. Each entry pairs its factory (taking the per-probe key→float param map) with the param keys it accepts, so the parse can refuse an unknown key before play mode.</summary>
+    /// <summary>The probe name registry — the selection grammar behind RL_HARNESS_PROBES. Each entry pairs its factory (taking the per-probe key→float param map) with the param keys it accepts, so the parse can refuse an unknown key before play mode.</summary>
     public static class SessionProbes
     {
         private static readonly Dictionary<string, (Func<IReadOnlyDictionary<string, float>, ISessionProbe> factory,

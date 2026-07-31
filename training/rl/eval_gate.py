@@ -1,9 +1,9 @@
 """Automated scripted-eval gate: makes pursuit erosion visible DURING a run instead of after it.
 
 Watches a training run's checkpoint exports (results/rl-training/<run-id>/ShipCombat/
-ShipCombat-<step>.onnx) and, per new checkpoint, runs the standard deterministic 75-episode
-scripted eval (5 archetypes x 5 seeds x 3 episodes) through the unity-access coordinator on a
-pool slot, then applies the two-consecutive-checkpoints rule:
+ShipCombat-<step>.onnx) and, per new checkpoint, runs the standard 75-episode scripted eval
+at the gate shape (5 archetypes x 5 seeds x 3 episodes) through the unity-access coordinator
+on a pool slot, then applies the two-consecutive-checkpoints rule:
 
     ALERT  one checkpoint with Evader <= 10/15 or total < 55/75
     STOP   two CONSECUTIVE such checkpoints (~30 Evader episodes carry the decision)
@@ -16,9 +16,10 @@ the underlying signal is noisy, so auto-stop is opt-in: pass --auto-stop-pid <tr
 STOP verdict the gate writes its artifact and exits 2 either way (further evals would only burn
 pool slots on a policy already judged).
 
-Each eval gets its own gate-named output dir; RL_EVAL_OUT_DIR carries that name into Unity
+Each eval gets its own gate-named output dir; RL_HARNESS_OUT_DIR carries that name into Unity
 (EpisodeJsonl.NewRunPath dirOverride), so the gate reads back exactly what it named rather than
-reconstructing where CheckpointEvaluator wrote.
+reconstructing where CheckpointEvaluator wrote. The lane launcher (eval_lane) owns the launch;
+the checkpoint watch (checkpoint_watch) owns discovery and replay; this file owns the verdict.
 
     cd training/rl
     .venv\\Scripts\\python eval_gate.py --run-id ship_combat_hybrid --project ../../../agent-2/src/Asteroids3D
@@ -26,24 +27,20 @@ reconstructing where CheckpointEvaluator wrote.
 """
 import argparse
 import json
-import os
-import re
 import sys
-import time
 from pathlib import Path
 from typing import NamedTuple
 
+from checkpoint_watch import watch_checkpoints
 from driver_common import default_unity_exe
+from eval_lane import HARNESS_CHILD, run_eval_lane
 from run_parallel import terminate_pid_tree
-from unity_access import run_batch
 
 RL_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RL_DIR.parent.parent
 RESULTS = REPO_ROOT / "results" / "rl-training"
 GATE_ROOT = REPO_ROOT / "results" / "rl-eval" / "gate"
 PROJECT = REPO_ROOT / "src" / "Asteroids3D"
-EVAL_CHILD = RL_DIR / "eval_child.ps1"
-CHECKPOINT = re.compile(r"^ShipCombat-(\d+)\.onnx$")
 
 EVADER = "Evader"
 EVADER_EPISODES = 15
@@ -81,11 +78,6 @@ def verdict(scores) -> str:
     return ALERT
 
 
-def discover_checkpoints(behavior_dir: Path) -> list:
-    matches = ((CHECKPOINT.match(p.name), p) for p in behavior_dir.glob("ShipCombat-*.onnx"))
-    return sorted((int(m.group(1)), p) for m, p in matches if m)
-
-
 SUMMARY_SCHEMA = "rl-eval-summary-v2"
 
 
@@ -100,43 +92,6 @@ def read_score(summary_path: Path, step: int) -> Score:
     if EVADER not in wins:
         sys.exit(f"FAIL: no {EVADER} block in {summary_path}; the gate rule has nothing to read")
     return Score(step=step, evader_wins=wins[EVADER], total_wins=sum(wins.values()))
-
-
-def summary_in(out_dir: Path) -> Path:
-    """The gate named out_dir, so exactly one summary belongs to it; anything else is a broken contract."""
-    summaries = sorted(out_dir.glob("*-summary.json"))
-    if len(summaries) != 1:
-        sys.exit(f"FAIL: expected exactly one *-summary.json in the gate-named {out_dir}, found {len(summaries)}")
-    return summaries[0]
-
-
-def evaluated_summary(out_dir: Path):
-    """A step already evaluated replays instead of re-running: a restarted gate rebuilds its streak
-    history in step order and never writes a second summary into a step dir."""
-    summaries = sorted(out_dir.glob("*-summary.json"))
-    return summaries[0] if len(summaries) == 1 else None
-
-
-def run_eval(args, unity: Path, checkpoint: Path, out_dir: Path) -> Path:
-    out_dir.mkdir(parents=True, exist_ok=True)
-    log = out_dir / "editor.log"
-    # A retried step's leftover log still carries a boot marker, which would free the lane at once.
-    log.unlink(missing_ok=True)
-    env = dict(os.environ,
-               EVAL_UNITY=str(unity), EVAL_PROJ=str(args.project), EVAL_LOG=str(log),
-               RL_EVAL_ONNX=str(checkpoint),
-               RL_EVAL_SEEDS=args.seeds,
-               RL_EVAL_EPISODES_PER_SEED=str(args.episodes_per_seed),
-               RL_EVAL_OUT_DIR=str(out_dir))
-    # Inherited overrides would move the eval off the canonical 75-episode roster protocol the
-    # thresholds assume (a pinned opponent shrinks a "total" to one 15-episode block).
-    for leaked in ("RL_EVAL_DENSITY", "RL_EVAL_OPPONENT", "RL_EVAL_PROBES"):
-        env.pop(leaked, None)
-    code = run_batch(args.lease, args.project, EVAL_CHILD, env, wait_seconds=args.lease_wait,
-                     log_path=log)
-    if code != 0:
-        sys.exit(f"FAIL: eval of {checkpoint.name} exited {code} (see {log})")
-    return summary_in(out_dir)
 
 
 def report(score: Score, checkpoint: Path, current: str, reasons) -> None:
@@ -161,8 +116,8 @@ def main() -> None:
     parser.add_argument("--unity", type=Path, default=None, help="Unity.exe path (default: derived from ProjectVersion.txt)")
     parser.add_argument("--results-dir", type=Path, default=RESULTS, help="mlagents results root")
     parser.add_argument("--out-root", type=Path, default=GATE_ROOT, help="gate-owned artifact root")
-    parser.add_argument("--seeds", default="2001,2002,2003,2004,2005", help="RL_EVAL_SEEDS selection")
-    parser.add_argument("--episodes-per-seed", type=int, default=3, help="RL_EVAL_EPISODES_PER_SEED")
+    parser.add_argument("--seeds", default="2001,2002,2003,2004,2005", help="RL_HARNESS_SEEDS selection")
+    parser.add_argument("--episodes-per-seed", type=int, default=3, help="RL_HARNESS_EPISODES_PER_SEED")
     parser.add_argument("--poll-seconds", type=float, default=120.0, help="checkpoint-dir poll interval")
     parser.add_argument("--from-step", type=int, default=0, help="ignore checkpoints at or below this step")
     parser.add_argument("--max-checkpoints", type=int, default=0, help="stop after N evals (0 = unbounded)")
@@ -190,8 +145,8 @@ def main() -> None:
         parser.error("--auto-stop-pid must be a live trainer pid")
     if not args.project.exists():
         parser.error(f"--project {args.project} does not exist")
-    if not EVAL_CHILD.exists():
-        sys.exit(f"FAIL: batch child missing at {EVAL_CHILD}")
+    if not HARNESS_CHILD.exists():
+        sys.exit(f"FAIL: batch child missing at {HARNESS_CHILD}")
 
     args.lease = args.lease or f"rl-eval-gate-{args.run_id}"
     unity = args.unity or default_unity_exe(args.project)
@@ -201,46 +156,41 @@ def main() -> None:
     print(f"[gate] eval project {args.project}  seeds {args.seeds} x {args.episodes_per_seed}  artifacts {gate_dir}")
 
     scores = []
-    while True:
-        done = {s.step for s in scores}
-        pending = [(s, p) for s, p in discover_checkpoints(behavior_dir)
-                   if s > args.from_step and s not in done]
-        for step, checkpoint in pending:
-            out_dir = gate_dir / f"step-{step}"
-            replayed = evaluated_summary(out_dir)
-            if replayed:
-                print(f"[gate] step {step}: replaying {replayed.name}")
-            summary_path = replayed or run_eval(args, unity, checkpoint, out_dir)
-            score = read_score(summary_path, step)
-            scores.append(score)
-            current = verdict(scores)
-            reasons = degraded_reasons(score)
-            (out_dir / "verdict.json").write_text(json.dumps({
-                "runId": args.run_id,
-                "step": step,
-                "checkpoint": str(checkpoint),
-                "summary": str(summary_path),
-                "evaderWins": score.evader_wins,
-                "evaderEpisodes": EVADER_EPISODES,
-                "totalWins": score.total_wins,
-                "totalEpisodes": TOTAL_EPISODES,
-                "verdict": current,
-                "reasons": reasons,
-                "history": [s._asdict() for s in scores],
-            }, indent=2))
-            report(score, checkpoint, current, reasons)
-            if current == STOP:
-                if args.auto_stop_pid:
-                    print(f"[gate] --auto-stop-pid {args.auto_stop_pid}: killing the trainer tree")
-                    terminate_pid_tree(args.auto_stop_pid)
-                sys.exit(2)
-            if args.max_checkpoints and len(scores) >= args.max_checkpoints:
-                print(f"[gate] reached --max-checkpoints {args.max_checkpoints}")
-                return
-        if args.once:
-            print(f"[gate] --once: evaluated {len(scores)} checkpoint(s)")
+    for pending in watch_checkpoints(behavior_dir, gate_dir, from_step=args.from_step,
+                                     poll_seconds=args.poll_seconds, once=args.once):
+        if pending.replay:
+            print(f"[gate] step {pending.step}: replaying {pending.replay.name}")
+        summary_path = pending.replay or run_eval_lane(
+            project=args.project, unity=unity, lease=args.lease, out_dir=pending.out_dir,
+            onnx=pending.checkpoint, seeds=args.seeds,
+            episodes_per_seed=args.episodes_per_seed, lease_wait=args.lease_wait)
+        score = read_score(summary_path, pending.step)
+        scores.append(score)
+        current = verdict(scores)
+        reasons = degraded_reasons(score)
+        (pending.out_dir / "verdict.json").write_text(json.dumps({
+            "runId": args.run_id,
+            "step": pending.step,
+            "checkpoint": str(pending.checkpoint),
+            "summary": str(summary_path),
+            "evaderWins": score.evader_wins,
+            "evaderEpisodes": EVADER_EPISODES,
+            "totalWins": score.total_wins,
+            "totalEpisodes": TOTAL_EPISODES,
+            "verdict": current,
+            "reasons": reasons,
+            "history": [s._asdict() for s in scores],
+        }, indent=2))
+        report(score, pending.checkpoint, current, reasons)
+        if current == STOP:
+            if args.auto_stop_pid:
+                print(f"[gate] --auto-stop-pid {args.auto_stop_pid}: killing the trainer tree")
+                terminate_pid_tree(args.auto_stop_pid)
+            sys.exit(2)
+        if args.max_checkpoints and len(scores) >= args.max_checkpoints:
+            print(f"[gate] reached --max-checkpoints {args.max_checkpoints}")
             return
-        time.sleep(args.poll_seconds)
+    print(f"[gate] --once: evaluated {len(scores)} checkpoint(s)")
 
 
 if __name__ == "__main__":

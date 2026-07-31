@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using UnityEngine;
 
 namespace Game.RLHarness
@@ -8,22 +9,31 @@ namespace Game.RLHarness
     /// <summary>Which lane client the host runs; every other axis of a session is a spec field.</summary>
     public enum SessionLane { Eval }
 
-    public enum OpponentKind { Roster, Archetype, Mirror }
+    public enum OpponentKind { Roster, Archetype, Mirror, Checkpoint }
 
-    /// <summary>One block's opponent: a pinned scripted archetype, or the checkpoint's own mirror.</summary>
+    /// <summary>One block's opponent: a pinned scripted archetype, the candidate's own mirror, or a second frozen checkpoint.</summary>
     public struct OpponentSpec
     {
         public const string MirrorLabel = "Mirror";
 
         public OpponentKind kind;
         public OpponentArchetype archetype;
+        public string checkpointStem;
 
         public static readonly OpponentSpec Mirror = new() { kind = OpponentKind.Mirror };
 
         public static OpponentSpec Pinned(OpponentArchetype archetype) =>
             new() { kind = OpponentKind.Archetype, archetype = archetype };
 
-        public string Label => kind == OpponentKind.Mirror ? MirrorLabel : archetype.ToString();
+        public static OpponentSpec Checkpoint(string stem) =>
+            new() { kind = OpponentKind.Checkpoint, checkpointStem = stem };
+
+        public string Label => kind switch
+        {
+            OpponentKind.Mirror => MirrorLabel,
+            OpponentKind.Checkpoint => checkpointStem,
+            _ => archetype.ToString(),
+        };
     }
 
     /// <summary>One selected probe with its parsed params — parallel key/value arrays because Dictionary is not Unity-serializable.</summary>
@@ -63,32 +73,52 @@ namespace Game.RLHarness
         public float fieldDensityScale;
         public OpponentKind opponentKind;
         public OpponentArchetype opponentArchetype;
+        public string opponentOnnxAssetPath;
+        public string opponentOnnxSourcePath;
+        public string opponentLabel;
         public ProbeSpec[] probes;
         public string outDir;
 
-        /// <summary>Parses the eval lane's environment. <paramref name="importCheckpoint"/> imports RL_EVAL_ONNX into the fixture slot and returns its asset path (AssetDatabase work the parse itself stays free of).</summary>
-        public static SessionSpec ParseEval(Func<string, string> getEnv, Func<string, string> importCheckpoint)
+        private static readonly string[] RetiredNames =
         {
-            var source = getEnv("RL_EVAL_ONNX");
+            "RL_EVAL_ONNX", "RL_EVAL_SEEDS", "RL_EVAL_EPISODES_PER_SEED", "RL_EVAL_DENSITY",
+            "RL_EVAL_OPPONENT", "RL_EVAL_PROBES", "RL_EVAL_OUT_DIR",
+        };
+
+        /// <summary>Parses the eval lane's environment. <paramref name="importCandidate"/> and <paramref name="importOpponent"/> each import a checkpoint file into their fixture slot and return its asset path (AssetDatabase work the parse itself stays free of).</summary>
+        public static SessionSpec ParseEval(Func<string, string> getEnv, Func<string, string> importCandidate,
+            Func<string, string> importOpponent)
+        {
+            ThrowOnRetiredNames(getEnv);
+            var source = getEnv("RL_HARNESS_ONNX");
             var spec = new SessionSpec
             {
                 lane = SessionLane.Eval,
                 onnxSourcePath = source,
                 onnxAssetPath = string.IsNullOrEmpty(source)
                     ? ShipAgentFactory.SmokeFixturePath
-                    : importCheckpoint(source),
-                episodesPerSeed = ParseEpisodes(getEnv("RL_EVAL_EPISODES_PER_SEED")),
-                fieldDensityScale = ParseDensity(getEnv("RL_EVAL_DENSITY")),
-                probes = ParseProbes(getEnv("RL_EVAL_PROBES")),
-                outDir = getEnv("RL_EVAL_OUT_DIR"),
+                    : importCandidate(source),
+                episodesPerSeed = ParseEpisodes(getEnv("RL_HARNESS_EPISODES_PER_SEED")),
+                fieldDensityScale = ParseDensity(getEnv("RL_HARNESS_DENSITY")),
+                probes = ParseProbes(getEnv("RL_HARNESS_PROBES")),
+                outDir = getEnv("RL_HARNESS_OUT_DIR"),
             };
-            spec.seeds = ParseSeeds(getEnv("RL_EVAL_SEEDS"), out var tag);
+            spec.seeds = ParseSeeds(getEnv("RL_HARNESS_SEEDS"), out var tag);
             // A non-canonical density (the 3.0 stretch) marks its artifacts so it can never pass as the canonical eval.
             spec.tag = Mathf.Approximately(spec.fieldDensityScale, EvalProtocol.CanonicalFieldDensityScale)
                 ? tag
                 : tag + "-d" + spec.fieldDensityScale.ToString("0.##", CultureInfo.InvariantCulture).Replace('.', '_');
-            spec.ParseOpponent(getEnv("RL_EVAL_OPPONENT"));
+            spec.ParseOpponent(getEnv("RL_HARNESS_OPPONENT"), importOpponent);
             return spec;
+        }
+
+        // A stale script setting a retired name would otherwise silently eval the smoke fixture.
+        private static void ThrowOnRetiredNames(Func<string, string> getEnv)
+        {
+            foreach (var retired in RetiredNames)
+                if (getEnv(retired) != null)
+                    throw new ArgumentException(
+                        $"{retired} is retired; set RL_HARNESS_{retired.Substring("RL_EVAL_".Length)} instead.");
         }
 
         private static int ParseEpisodes(string value)
@@ -96,7 +126,7 @@ namespace Game.RLHarness
             if (string.IsNullOrEmpty(value)) return DefaultEpisodesPerSeed;
             if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var episodes)
                 || episodes < 1)
-                throw new ArgumentException($"RL_EVAL_EPISODES_PER_SEED='{value}' is not a positive episode count.");
+                throw new ArgumentException($"RL_HARNESS_EPISODES_PER_SEED='{value}' is not a positive episode count.");
             return episodes;
         }
 
@@ -104,7 +134,7 @@ namespace Game.RLHarness
         {
             if (string.IsNullOrEmpty(value)) return EvalProtocol.CanonicalFieldDensityScale;
             if (!float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var density))
-                throw new ArgumentException($"RL_EVAL_DENSITY='{value}' is not a number.");
+                throw new ArgumentException($"RL_HARNESS_DENSITY='{value}' is not a number.");
             return density;
         }
 
@@ -117,7 +147,7 @@ namespace Game.RLHarness
             catch (FormatException inner)
             {
                 throw new ArgumentException(
-                    $"RL_EVAL_SEEDS='{selector}' is not \"held-out\", \"train\", or a comma-separated seed list.", inner);
+                    $"RL_HARNESS_SEEDS='{selector}' is not \"held-out\", \"train\", or a comma-separated seed list.", inner);
             }
         }
 
@@ -183,9 +213,9 @@ namespace Game.RLHarness
         }
 
         private static ArgumentException ProbeError(string token, string reason) =>
-            new($"RL_EVAL_PROBES token '{token.Trim()}': {reason}.");
+            new($"RL_HARNESS_PROBES token '{token.Trim()}': {reason}.");
 
-        private void ParseOpponent(string token)
+        private void ParseOpponent(string token, Func<string, string> importOpponent)
         {
             if (string.IsNullOrEmpty(token) || Matches(token, RosterToken)) return;
             if (Matches(token, MirrorToken))
@@ -194,11 +224,16 @@ namespace Game.RLHarness
                 return;
             }
             if (token.EndsWith(".onnx", StringComparison.OrdinalIgnoreCase))
-                throw new ArgumentException(
-                    $"RL_EVAL_OPPONENT='{token}': the second checkpoint slot lands in slice C.");
+            {
+                opponentKind = OpponentKind.Checkpoint;
+                opponentOnnxSourcePath = token;
+                opponentOnnxAssetPath = importOpponent(token);
+                opponentLabel = Path.GetFileNameWithoutExtension(token);
+                return;
+            }
             if (!Enum.TryParse<OpponentArchetype>(token, ignoreCase: true, out var archetype))
-                throw new ArgumentException($"RL_EVAL_OPPONENT='{token}' is not \"{RosterToken}\", \"{MirrorToken}\", "
-                    + $"or one of {string.Join(", ", Enum.GetNames(typeof(OpponentArchetype)))}.");
+                throw new ArgumentException($"RL_HARNESS_OPPONENT='{token}' is not \"{RosterToken}\", \"{MirrorToken}\", "
+                    + $"a checkpoint path ending .onnx, or one of {string.Join(", ", Enum.GetNames(typeof(OpponentArchetype)))}.");
             opponentKind = OpponentKind.Archetype;
             opponentArchetype = archetype;
         }

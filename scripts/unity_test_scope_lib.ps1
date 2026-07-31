@@ -108,7 +108,7 @@ function Test-AutoScopeIgnoredFile {
     param([string]$Path)
 
     # -like '*' spans '/', so 'doc/*' deliberately covers the whole doc/ tree; these paths cannot affect Unity test outcomes.
-    return ($Path -like '*.md' -or $Path -like 'doc/*' -or $Path -like '.claude/*')
+    return ($Path -like '*.md' -or $Path -like 'doc/*' -or $Path -like '.claude/*' -or $Path -like '*.gitignore')
 }
 
 function Get-RepoRoot {

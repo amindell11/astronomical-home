@@ -105,6 +105,47 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void Overheated_PersistsUntilHeatReachesZero()
+        {
+            var heat = NewConfiguredHeat();
+            try
+            {
+                heat.ProcessFire();
+                heat.ProcessFire();
+                Assert.IsTrue(heat.Overheated);
+
+                var cooldownStarted = false;
+                heat.OnCooldownStart += () => cooldownStarted = true;
+
+                // Below max - perShot, the point a hysteresis exit would release the lockout.
+                var guard = 0f;
+                while (heat.CurrentHeat > 4f && guard < 2f)
+                {
+                    heat.Tick(0.02f);
+                    guard += 0.02f;
+                }
+
+                Assert.Less(heat.CurrentHeat, heat.MaxHeat - heat.HeatPerShot,
+                    "Setup failed to cool below the hysteresis-exit point");
+                Assert.Greater(heat.CurrentHeat, 0f);
+                Assert.IsTrue(heat.Overheated, "Lockout must persist while any heat remains");
+                Assert.IsFalse(heat.CanFire());
+                Assert.IsFalse(cooldownStarted);
+
+                TickUntilNotOverheated(heat);
+
+                Assert.AreEqual(0f, heat.CurrentHeat, "Lockout exits only at zero heat");
+                Assert.IsFalse(heat.Overheated);
+                Assert.IsTrue(heat.CanFire());
+                Assert.IsTrue(cooldownStarted, "OnCooldownStart marks the zero-heat exit");
+            }
+            finally
+            {
+                if (heat) Object.DestroyImmediate(heat.gameObject);
+            }
+        }
+
+        [Test]
         public void SpammingProcessFireWhileOverheated_ClampsAtMax_AndRecoversWhenSpamStops()
         {
             var heat = NewConfiguredHeat();

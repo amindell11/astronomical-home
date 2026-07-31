@@ -38,8 +38,11 @@ namespace Game.RLHarness
         {
             public string schema;
             public string checkpoint;
-            /// <summary>The file RL_EVAL_ONNX named — provenance the imported asset path erases.</summary>
+            /// <summary>The file RL_HARNESS_ONNX named — provenance the imported asset path erases.</summary>
             public string checkpointSource;
+            /// <summary>Slot-2 provenance; empty unless the opponent is a checkpoint.</summary>
+            public string opponentCheckpoint;
+            public string opponentCheckpointSource;
             public int[] seeds;
             public int episodesPerSeed;
             public bool useAsteroidField;
@@ -62,6 +65,8 @@ namespace Game.RLHarness
                 schema = SchemaId,
                 checkpoint = sessionSpec.onnxAssetPath,
                 checkpointSource = sessionSpec.onnxSourcePath,
+                opponentCheckpoint = sessionSpec.opponentOnnxAssetPath,
+                opponentCheckpointSource = sessionSpec.opponentOnnxSourcePath,
                 seeds = (int[])sessionSpec.seeds.Clone(),
                 episodesPerSeed = sessionSpec.episodesPerSeed,
                 useAsteroidField = baseSpec.useAsteroidField,
@@ -105,12 +110,13 @@ namespace Game.RLHarness
             onDone?.Invoke(summary);
         }
 
-        /// <summary>The block sequence one seed's composition runs: the roster stratifies into equal per-archetype blocks; a pinned archetype or the mirror is a single block.</summary>
+        /// <summary>The block sequence one seed's composition runs: the roster stratifies into equal per-archetype blocks; a pinned archetype, the mirror, or the checkpoint opponent is a single block.</summary>
         private static OpponentSpec[] Blocks(SessionSpec spec) => spec.opponentKind switch
         {
             OpponentKind.Roster => Array.ConvertAll(EvalArchetypes, OpponentSpec.Pinned),
             OpponentKind.Archetype => new[] { OpponentSpec.Pinned(spec.opponentArchetype) },
             OpponentKind.Mirror => new[] { OpponentSpec.Mirror },
+            OpponentKind.Checkpoint => new[] { OpponentSpec.Checkpoint(spec.opponentLabel) },
             _ => throw new ArgumentOutOfRangeException(nameof(spec), spec.opponentKind, null),
         };
 

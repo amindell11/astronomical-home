@@ -16,10 +16,11 @@ orientation, not a plan summary.
 ## Where things live
 
 - **Plans** — `doc/Feature_Plans/*.md`. A plan sequences its arc's slices;
-  "pull a PR off the plan" means one of those slices. New arcs name their slices
-  descriptively (`vocab-docfix`) rather than numbering them — see
-  `doc/Glossary.md` → *arc & PR naming*; arcs written before 2026-07-29 still
-  use PR-N, so read the plan's own scheme rather than assuming. Cross-reference
+  "pull a PR off the plan" means one of those slices. Slices carry both a
+  descriptive name (`vocab-docfix`) and a positional label (`Slice-C`, `PR-4`)
+  — see `doc/Glossary.md` → *arc & PR naming*; older plans may have only one
+  form, so read the plan's own scheme, and add the missing label when you prep
+  a slice that lacks one. Cross-reference
   the driving memory (`MEMORY.md` → Active Work / topic files) for the latest
   status, which often supersedes the plan doc.
 - **In-flight work** — read the active-work ledger at
@@ -84,12 +85,13 @@ open the PR. Don't start editing in the primary worktree.
 The worktree-loop skill's *Chat title lifecycle* section is the authority
 (title grammar + Title-concierge retitle protocol). Prep-session stages:
 
-- prepping: `prep <arc-name>: <topic>` — request this retitle when prep
-  starts (launch titles are freeform).
-- brief frozen, build not started: `prep <arc-name>: brief frozen`.
+- prepping: `prep | <Slice-X or PR-N> | <word-id>` — a broken-out prep chat is
+  born with this title (whoever spawns it titles it so); if launched freeform,
+  request the retitle as soon as prep starts.
+- brief frozen, build not started: append ` — brief frozen`.
 - the chat stays open tracking the whole arc: retitle to
-  `arc <arc-name>: <happening now> → next <next step>` and refresh it
-  whenever the tracked state moves.
+  `<stage> | Arc | <arc-name> — <happening now> → next <next step>` and
+  refresh it whenever the tracked state moves.
 
 ## Test-strategy lens (Phase 3)
 

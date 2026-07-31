@@ -235,7 +235,7 @@ function Write-AutoSelection {
         Write-Host "  $file"
     }
     if (@($Auto.ignoredFiles).Count -gt 0) {
-        Write-Host ("Ignored as test-irrelevant by design (*.md, doc/**, .claude/**): {0}" -f @($Auto.ignoredFiles).Count)
+        Write-Host ("Ignored as test-irrelevant by design (*.md, doc/**, .claude/**, *.gitignore): {0}" -f @($Auto.ignoredFiles).Count)
         foreach ($file in @($Auto.ignoredFiles)) {
             Write-Host "  IGNORED: $file"
         }
