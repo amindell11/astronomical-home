@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using Game.RLHarness;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace Tests.EditMode
 {
@@ -68,7 +69,7 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void EvaluatorSummarize_AggregatesPerArchetypeWithoutABlend()
+        public void EvaluatorSummarize_AggregatesPerOpponentWithoutABlend()
         {
             var win = EpisodeOutcome.Win.ToString();
             var loss = EpisodeOutcome.Loss.ToString();
@@ -80,8 +81,8 @@ namespace Tests.EditMode
                 ("Aggressor", draw), ("Dummy", win),
             });
 
-            Assert.AreEqual(2, summaries.Length, "one entry per archetype, nothing blended");
-            Assert.AreEqual("Aggressor", summaries[0].archetype);
+            Assert.AreEqual(2, summaries.Length, "one entry per opponent, nothing blended");
+            Assert.AreEqual("Aggressor", summaries[0].opponent);
             Assert.AreEqual(3, summaries[0].episodes);
             Assert.AreEqual(1, summaries[0].wins);
             Assert.AreEqual(1, summaries[0].losses);
@@ -89,10 +90,19 @@ namespace Tests.EditMode
             Assert.AreEqual(1f / 3f, summaries[0].winRate, 1e-6f);
             Assert.AreEqual(EvalProtocol.WilsonLowerBound(1, 3), summaries[0].wilsonLowerBound95, 1e-6f);
 
-            Assert.AreEqual("Dummy", summaries[1].archetype);
+            Assert.AreEqual("Dummy", summaries[1].opponent);
             Assert.AreEqual(3, summaries[1].wins);
             Assert.AreEqual(1f, summaries[1].winRate, 1e-6f);
             Assert.AreEqual(EvalProtocol.WilsonLowerBound(3, 3), summaries[1].wilsonLowerBound95, 1e-6f);
+        }
+
+        [Test]
+        public void EvalSummarySchema_IsV2SoAPreRenameReaderCannotSilentlyMisparseIt()
+        {
+            Assert.AreEqual("rl-eval-summary-v2", CheckpointEvaluator.SchemaId);
+            var json = JsonUtility.ToJson(new CheckpointEvaluator.Summary { schema = CheckpointEvaluator.SchemaId });
+            StringAssert.Contains("\"opponents\"", json, "eval_gate.read_score reads opponents[], not archetypes[]");
+            StringAssert.Contains("\"probes\"", json, "probe sidecars replaced the embedded behavior[] blocks");
         }
     }
 }

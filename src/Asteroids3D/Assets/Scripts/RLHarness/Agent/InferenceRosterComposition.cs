@@ -1,0 +1,35 @@
+using Game.Services;
+using UnityEngine;
+
+namespace Game.RLHarness
+{
+    /// <summary>Checkpoint-vs-scripted-roster composition: the canonical pair driven by a pinned checkpoint InferenceOnly, against an <see cref="OpponentRoster"/> the caller installs per episode. The arena, projectile service and asteroid field are the host's — unlike the training compositions, one eval session composes them once and only the pair per seed.</summary>
+    internal sealed class InferenceRosterComposition : ISessionComposition
+    {
+        public EpisodeLoopDriver Driver { get; }
+        public EpisodePair Pair { get; }
+
+        private readonly OpponentRoster roster;
+        private readonly ShipAgent agent;
+
+        public InferenceRosterComposition(UnitService units, ArenaContext arena, IProjectileService projectiles,
+            HarnessAssets assets, in RewardSpec spec, string onnxAssetPath, HarnessField field)
+        {
+            Pair = EpisodePair.SpawnWithAgentChooser(units, arena, projectiles, in spec, assets, out var chooser);
+            roster = new OpponentRoster(Pair.Baseline, Pair.Agent);
+            agent = ShipAgentFactory.ComposeInferenceOnly(Pair, chooser, in spec, arena.Offset, onnxAssetPath);
+            Driver = new EpisodeLoopDriver(Pair, agent, arena.Offset, field);
+        }
+
+        public OpponentDraw InstallOpponent(in OpponentSpec opponent, in RewardSpec spec, int episodeIndex,
+            Vector2 arenaCenter) =>
+            roster.Install(opponent.archetype, in spec, episodeIndex, arenaCenter);
+
+        public void Dispose()
+        {
+            roster.Dispose();
+            if (agent) Object.DestroyImmediate(agent.gameObject);
+            Pair.Dispose();
+        }
+    }
+}

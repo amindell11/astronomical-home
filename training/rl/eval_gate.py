@@ -86,9 +86,17 @@ def discover_checkpoints(behavior_dir: Path) -> list:
     return sorted((int(m.group(1)), p) for m, p in matches if m)
 
 
+SUMMARY_SCHEMA = "rl-eval-summary-v2"
+
+
 def read_score(summary_path: Path, step: int) -> Score:
     summary = json.loads(summary_path.read_text())
-    wins = {a["archetype"]: int(a["wins"]) for a in summary["archetypes"]}
+    schema = summary.get("schema")
+    if schema != SUMMARY_SCHEMA:
+        # A replayed pre-v2 step dir must die here, not be misread as zero wins.
+        sys.exit(f"FAIL: {summary_path} has schema {schema!r}, expected {SUMMARY_SCHEMA!r}; "
+                 f"a pre-v2 step dir cannot be replayed — restart the gate into a fresh --out-root")
+    wins = {o["opponent"]: int(o["wins"]) for o in summary["opponents"]}
     if EVADER not in wins:
         sys.exit(f"FAIL: no {EVADER} block in {summary_path}; the gate rule has nothing to read")
     return Score(step=step, evader_wins=wins[EVADER], total_wins=sum(wins.values()))
@@ -120,8 +128,10 @@ def run_eval(args, unity: Path, checkpoint: Path, out_dir: Path) -> Path:
                RL_EVAL_SEEDS=args.seeds,
                RL_EVAL_EPISODES_PER_SEED=str(args.episodes_per_seed),
                RL_EVAL_OUT_DIR=str(out_dir))
-    # An inherited density would move the eval off the canonical env the thresholds assume.
-    env.pop("RL_EVAL_DENSITY", None)
+    # Inherited overrides would move the eval off the canonical 75-episode roster protocol the
+    # thresholds assume (a pinned opponent shrinks a "total" to one 15-episode block).
+    for leaked in ("RL_EVAL_DENSITY", "RL_EVAL_OPPONENT", "RL_EVAL_PROBES"):
+        env.pop(leaked, None)
     code = run_batch(args.lease, args.project, EVAL_CHILD, env, wait_seconds=args.lease_wait,
                      log_path=log)
     if code != 0:

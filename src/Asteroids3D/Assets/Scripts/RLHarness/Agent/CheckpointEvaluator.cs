@@ -2,15 +2,15 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using Game.Services;
 using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>Executable eval protocol: runs a checkpoint InferenceOnly over a pinned seed list (a fresh pair per seed so every RNG stream replays from that seed), stratified per opponent archetype — equal episode blocks through the pinned roster install, per-archetype W/L/D with the Wilson 95% lower bound on win-rate (draws are non-wins), deliberately NO blended aggregate — and writes per-episode JSONL plus a summary artifact under results/rl-eval/.</summary>
+    /// <summary>The eval lane client: sequences the host's primitives over the frozen eval protocol — a fresh composition per seed so every RNG stream replays from that seed, then one equal episode block per opponent (the roster's five archetypes by default, stratification being sequencing rather than a mixture draw) — and aggregates per-opponent W/L/D with the Wilson 95% lower bound on win-rate (draws are non-wins, deliberately NO blended aggregate). Writes per-episode JSONL plus a summary artifact under results/rl-eval/; the spec's probes write their own sidecars alongside.</summary>
     public static class CheckpointEvaluator
     {
         public const string ResultsFolder = "rl-eval";
+        public const string SchemaId = "rl-eval-summary-v2";
 
         private static readonly OpponentArchetype[] EvalArchetypes =
         {
@@ -22,9 +22,9 @@ namespace Game.RLHarness
         };
 
         [Serializable]
-        public struct ArchetypeSummary
+        public struct OpponentSummary
         {
-            public string archetype;
+            public string opponent;
             public int episodes;
             public int wins;
             public int losses;
@@ -36,123 +36,104 @@ namespace Game.RLHarness
         [Serializable]
         public struct Summary
         {
+            public string schema;
             public string checkpoint;
+            /// <summary>The file RL_EVAL_ONNX named — provenance the imported asset path erases.</summary>
+            public string checkpointSource;
             public int[] seeds;
             public int episodesPerSeed;
             public bool useAsteroidField;
             public float fieldDensityScale;
-            public ArchetypeSummary[] archetypes;
-            // The per-archetype tuning signal a W/L/D tally hides (archetypes[] holds the tally).
-            public ArchetypeGateSummary[] behavior;
+            public OpponentSummary[] opponents;
             public string episodesJsonl;
-            public string behaviorJsonl;
+            public ProbeArtifacts[] probes;
         }
 
-        public static IEnumerator Run(UnitService units, ArenaContext arena, IProjectileService projectiles,
-            HarnessAssets assets, string onnxAssetPath, IReadOnlyList<int> seeds, int episodesPerSeed,
-            RewardSpec baseSpec, string tag, Action<Summary> onDone, string outDirOverride = null)
+        /// <summary>The host's lane entry: the canonical eval environment (training's terminal lesson), then the protocol.</summary>
+        public static IEnumerator RunLane(HarnessSessionHost host, SessionSpec spec) =>
+            Run(host, spec, EvalProtocol.EvalSpec(spec.fieldDensityScale));
+
+        public static IEnumerator Run(HarnessSessionHost host, SessionSpec sessionSpec, RewardSpec baseSpec,
+            Action<Summary> onDone = null)
         {
-            var jsonlPath = EpisodeJsonl.NewRunPath(tag, ResultsFolder, outDirOverride);
-            var behaviorPath = jsonlPath.Replace(".jsonl", "-behavior.jsonl");
+            var jsonlPath = EpisodeJsonl.NewRunPath(sessionSpec.tag, ResultsFolder, sessionSpec.outDir);
             var summary = new Summary
             {
-                checkpoint = onnxAssetPath,
-                seeds = new int[seeds.Count],
-                episodesPerSeed = episodesPerSeed,
+                schema = SchemaId,
+                checkpoint = sessionSpec.onnxAssetPath,
+                checkpointSource = sessionSpec.onnxSourcePath,
+                seeds = (int[])sessionSpec.seeds.Clone(),
+                episodesPerSeed = sessionSpec.episodesPerSeed,
                 useAsteroidField = baseSpec.useAsteroidField,
                 fieldDensityScale = baseSpec.fieldDensityScale,
                 episodesJsonl = jsonlPath,
-                behaviorJsonl = behaviorPath,
             };
-            for (var i = 0; i < seeds.Count; i++) summary.seeds[i] = seeds[i];
 
-            var outcomes = new List<(string archetype, string outcome)>();
-            var behaviorRows = new Dictionary<OpponentArchetype, List<ArchetypeGateRow>>();
-            foreach (var a in EvalArchetypes) behaviorRows[a] = new List<ArchetypeGateRow>();
+            var blocks = Blocks(sessionSpec);
+            var outcomes = new List<(string opponent, string outcome)>();
             var field = baseSpec.useAsteroidField
-                ? HarnessField.Spawn(arena, assets, baseSpec.fieldDensityScale, presentationEnabled: false)
+                ? HarnessField.Spawn(host.Arena, host.Assets, baseSpec.fieldDensityScale, presentationEnabled: false)
                 : null;
 
-            foreach (var seed in seeds)
+            foreach (var seed in sessionSpec.seeds)
             {
                 var spec = baseSpec;
                 spec.runSeed = seed;
-                var pair = EpisodePair.SpawnWithAgentChooser(units, arena, projectiles, in spec, assets, out var chooser);
-                var roster = new OpponentRoster(pair.Baseline, pair.Agent);
-                var agent = ShipAgentFactory.ComposeInferenceOnly(pair, chooser, in spec, arena.Offset, onnxAssetPath);
-                var driver = new EpisodeLoopDriver(pair, agent, arena.Offset, field);
-
-                foreach (var archetype in EvalArchetypes)
+                var composition = host.NewComposition(in spec, sessionSpec.opponentKind, field);
+                foreach (var block in blocks)
                 {
-                    for (var episode = 0; episode < episodesPerSeed; episode++)
-                    {
-                        // Pinned install before RunEpisode's pair-reset (the respawn re-inits the chooser).
-                        var draw = roster.Install(archetype, in spec, episode, arena.Offset);
-                        ArchetypeGateProbe probe = null;
-                        yield return driver.RunEpisode(spec, episode,
-                            onBegin: () => probe = new ArchetypeGateProbe(pair.Baseline, pair.Agent,
-                                arena.Offset, spec.arenaRadius, in draw),
-                            onFixedStep: () => probe.Sample());
-                        driver.Runner.RecordOpponent(in draw);
-                        var result = driver.Runner.Result;
-                        EpisodeJsonl.Append(jsonlPath, in result);
-                        outcomes.Add((archetype.ToString(), result.outcome));
-                        var row = probe.ToRow(in result);
-                        behaviorRows[archetype].Add(row);
-                        File.AppendAllText(behaviorPath, row.ToJsonLine() + "\n");
-                        probe.Dispose();
-                    }
+                    var label = block.Label;
+                    yield return host.RunBlock(composition, block, sessionSpec.episodesPerSeed, spec, jsonlPath,
+                        result => outcomes.Add((label, result.outcome)));
                 }
 
-                roster.Dispose();
-                UnityEngine.Object.DestroyImmediate(agent.gameObject);
-                pair.Dispose();
-                projectiles.ReturnAllToPool();
+                composition.Dispose();
+                host.Projectiles.ReturnAllToPool();
             }
 
             field?.Dispose();
-            summary.archetypes = Summarize(outcomes);
-            summary.behavior = new ArchetypeGateSummary[EvalArchetypes.Length];
-            for (var i = 0; i < EvalArchetypes.Length; i++)
-                summary.behavior[i] = ArchetypeGateSummary.Summarize(
-                    EvalArchetypes[i].ToString(), behaviorRows[EvalArchetypes[i]]);
+            summary.opponents = Summarize(outcomes);
+            summary.probes = host.SummarizeProbes(jsonlPath);
 
             var summaryPath = jsonlPath.Replace(".jsonl", "-summary.json");
             File.WriteAllText(summaryPath, JsonUtility.ToJson(summary, prettyPrint: true));
-            foreach (var a in summary.archetypes)
-                Debug.Log($"[CheckpointEvaluator] {onnxAssetPath} vs {a.archetype}: episodes={a.episodes} "
-                    + $"W/L/D={a.wins}/{a.losses}/{a.draws} "
-                    + $"winRate={a.winRate:F3} wilsonLB95={a.wilsonLowerBound95:F3}");
-            // Teacher scorecard: the challenge lever is agentPoolLost (damage the archetype deals); borderHug/displacement flag a degenerate cheese.
-            foreach (var b in summary.behavior)
-                Debug.Log($"[CheckpointEvaluator] {b.archetype} teacher: agentHPlost={b.meanAgentPoolLostPct:P0} "
-                    + $"oppHPlost={b.meanOpponentPoolLostPct:P0} oppShots={b.meanShotsFired:F1} "
-                    + $"meanRange={b.meanRange:F1} borderHug={b.meanBorderHugFraction:P0} "
-                    + $"maxDisp={b.maxDisplacement:F0} survived={b.survived}/{b.episodes}");
-            Debug.Log($"[CheckpointEvaluator] {onnxAssetPath}: summary → {summaryPath}");
+            foreach (var o in summary.opponents)
+                Debug.Log($"[CheckpointEvaluator] {sessionSpec.onnxAssetPath} vs {o.opponent}: episodes={o.episodes} "
+                    + $"W/L/D={o.wins}/{o.losses}/{o.draws} "
+                    + $"winRate={o.winRate:F3} wilsonLB95={o.wilsonLowerBound95:F3}");
+            Debug.Log($"[CheckpointEvaluator] {sessionSpec.onnxAssetPath}: summary → {summaryPath}");
             onDone?.Invoke(summary);
         }
 
-        /// <summary>Per-archetype aggregation in first-appearance order; each entry stands alone — no blended win rate exists.</summary>
-        internal static ArchetypeSummary[] Summarize(IReadOnlyList<(string archetype, string outcome)> episodes)
+        /// <summary>The block sequence one seed's composition runs: the roster stratifies into equal per-archetype blocks; a pinned archetype or the mirror is a single block.</summary>
+        private static OpponentSpec[] Blocks(SessionSpec spec) => spec.opponentKind switch
+        {
+            OpponentKind.Roster => Array.ConvertAll(EvalArchetypes, OpponentSpec.Pinned),
+            OpponentKind.Archetype => new[] { OpponentSpec.Pinned(spec.opponentArchetype) },
+            OpponentKind.Mirror => new[] { OpponentSpec.Mirror },
+            _ => throw new ArgumentOutOfRangeException(nameof(spec), spec.opponentKind, null),
+        };
+
+        /// <summary>Per-opponent aggregation in first-appearance order; each entry stands alone — no blended win rate exists.</summary>
+        internal static OpponentSummary[] Summarize(IReadOnlyList<(string opponent, string outcome)> episodes)
         {
             var order = new List<string>();
-            var tally = new Dictionary<string, ArchetypeSummary>();
-            foreach (var (archetype, outcome) in episodes)
+            var tally = new Dictionary<string, OpponentSummary>();
+            foreach (var (opponent, outcome) in episodes)
             {
-                if (!tally.TryGetValue(archetype, out var entry))
+                if (!tally.TryGetValue(opponent, out var entry))
                 {
-                    entry = new ArchetypeSummary { archetype = archetype };
-                    order.Add(archetype);
+                    entry = new OpponentSummary { opponent = opponent };
+                    order.Add(opponent);
                 }
                 entry.episodes++;
                 if (outcome == EpisodeOutcome.Win.ToString()) entry.wins++;
                 else if (outcome == EpisodeOutcome.Loss.ToString()) entry.losses++;
                 else entry.draws++;
-                tally[archetype] = entry;
+                tally[opponent] = entry;
             }
 
-            var result = new ArchetypeSummary[order.Count];
+            var result = new OpponentSummary[order.Count];
             for (var i = 0; i < order.Count; i++)
             {
                 var entry = tally[order[i]];
