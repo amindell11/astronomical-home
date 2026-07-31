@@ -76,9 +76,11 @@ namespace Combat.Conditions
             return !Overheated;
         }
 
+        private bool WouldBeOverheated(float heat) => heat >= maxHeat;
+
         public bool WouldOverheatOnNextShot(float extraHeatMargin = 0f)
         {
-            return CurrentHeat + heatPerShot + extraHeatMargin > maxHeat;
+            return WouldBeOverheated(CurrentHeat + heatPerShot + extraHeatMargin);
         }
 
         public override void ProcessFire()
@@ -89,7 +91,7 @@ namespace Combat.Conditions
             CurrentHeat = Mathf.Min(CurrentHeat, maxHeat);
             PublishHeatChangedIfNeeded(previousHeat);
 
-            if (!(CurrentHeat >= maxHeat) || Overheated) return;
+            if (!WouldBeOverheated(CurrentHeat) || Overheated) return;
             Overheated = true;
             OnOverheat?.Invoke();
         }

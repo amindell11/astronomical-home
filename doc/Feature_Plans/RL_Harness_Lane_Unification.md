@@ -1,14 +1,16 @@
 # RL Harness Lane Unification (the "PR-3 arc")
 
-> STATUS: design FROZEN 2026-07-29 (pr-prep session, all forks user-resolved).
-> **Slice E CLOSED 2026-07-31 — will not build** (user call at its pr-prep;
-> closure note under decision 6). Slice A SHIPPED #231 (`4a602c9c`,
-> 2026-07-31). Slice F brief FROZEN
-> 2026-07-31 (§Slice F brief below; F builds right after the taxonomy move PR,
-> not arc-final). Slice D brief FROZEN 2026-07-31 (§Slice D brief below;
-> taxonomy move #236 landed, D is buildable). Each remaining slice gets a short
-> pr-prep of its own before building, but re-deciding anything in this doc is
-> out of bounds.
+> STATUS: **ARC COMPLETE 2026-07-31.** All slices SHIPPED — A #231
+> (substrate + eval) · taxonomy move #236 · C #238 (slot 2) · D #239
+> (facing + contact probes) · F #240 (Python surface) · B #246
+> (capture + painters); slice E CLOSED unbuilt (closure note under
+> decision 6). Design FROZEN 2026-07-29; the slice briefs below are the
+> per-slice record. Post-arc three-lane audit 2026-07-31: net-improvement
+> confirmed; one spec reduction recorded at B assumption 6 (painter
+> pairing); efficiency/test follow-ups delegated to a hygiene PR
+> (§Post-arc hygiene brief — frozen 2026-07-31). First
+> external consumer already landed: #245's combat-telemetry probe rode the
+> registry at a one-line integration cost.
 
 Spun out of `RL_Infra_Paydown_Pass.md` §PR-3 when scoping showed it is an arc,
 not a PR. Context: `handoff_2026-07-27_stage3_results.md` (why eval
@@ -217,10 +219,18 @@ child-script graphics conditional lands on the child script F renames.
 
 - Gizmo migration + "observation environments": migrate the ~15 legacy gizmo
   files onto painters; named preset sets, nothing-on-by-default. Parallel arc
-  any time after B.
+  any time after B. **Pricing note (2026-07-31 audit): NOT mechanical** — the
+  5-verb canvas vocabulary lacks the legacy files' 3D shapes (wire
+  spheres/cubes, cost-bar charts), and non-pair subjects (asteroid fields,
+  observer cam) don't fit the pair-shaped `PainterContext`; expect per-file
+  redesign judgment plus canvas/context growth.
 - Playtest lane: axis A=human input wiring in the harness arena; inherits
   probes/telemetry/recording for measured playtests (rules-change fork 6's
-  instrument).
+  instrument). **Friction note (2026-07-31 audit):** pacing/presentation
+  axes are comment-reserved in code, but `EpisodeLoopDriver.RunEpisode`
+  calls the team-0 agent's `RequestDecision()` unguarded — a human pair has
+  no `ShipAgent`, so the agent slot goes nullable (two guards; the opponent
+  slot already is).
 - Profiler lane: ProfilerRecorder counter probe + `Profiler.logFile` raw
   capture flag; first customer = shelved frame-drops investigation.
 - Heat-read + rock-shooting probes: ~50-line registry additions when their
@@ -929,6 +939,13 @@ summary.
    painter-name resolution checks the painter registry first, then the
    session's active probes. Zero implementers in B (user-approved; D's
    probes are the named consumers).
+   **AUDIT CORRECTION 2026-07-31: only registry-first resolution landed.**
+   No capability interface and no probe-source fallback exist in code —
+   `SessionSpec.ParsePainters` consults `DiagnosticPainters` alone. Build
+   the pairing mechanism WITH the first painter-bearing probe. Two code
+   comments citing "slice D" as the future implementer are stale (D shipped
+   painterless, correctly per its non-goals); their fix rides the post-arc
+   hygiene PR.
 7. Recording env/fields (mined from the deleted `RecordConfig`):
    `RL_HARNESS_RECORD` unset/empty → off, `all`, or per-block indices
    (non-negative, unique, < episodesPerSeed — throw otherwise);
@@ -1030,3 +1047,123 @@ summary.
   the merge gate): a small capture-lane session on the smoke fixture
   asserting frames > 0, manifest present, clip dirs under the out dir, and
   the JSONL row count.
+
+## Post-arc hygiene brief (`harness-hygiene`)
+
+> STATUS: brief FROZEN 2026-07-31 (pr-prep session). Not a slice — the
+> follow-up PR the post-arc three-lane audit delegated. Doc/board truthing
+> already landed with the audit; this PR is **code-only**. Build in parallel
+> with #247 (user ruling); whoever lands second resolves the fold.
+
+**Goal.** Clear the cleanup debt the completed arc left behind: one duplicated
+per-step computation in the default probe set, one per-frame component lookup
+in capture, one test gap that lets a detached event hook pass green, and three
+comments naming slices that never shipped what they promise.
+
+**Scope (bounds the diff).** Four items, in audit order:
+
+1. **Snapshot dedup (efficiency; rung 1 — structural).** `CombatTelemetrySampler.Sample`
+   ([CombatTelemetryProbe.cs:307](../../src/Asteroids3D/Assets/Scripts/RLHarness/Probes/CombatTelemetryProbe.cs))
+   re-derives `CombatSnapshotExtractor.Capture(agent, baseline, arenaCenter)` — the
+   exact call `EpisodeRunner.Tick` already made that step
+   ([EpisodeRunner.cs:77](../../src/Asteroids3D/Assets/Scripts/RLHarness/Episodes/EpisodeRunner.cs)).
+   The combat probe is in the default set, so every eval pays it twice. Root
+   cause: a second caller re-deriving what the producer already computed
+   (CLAUDE.md wiring #6).
+2. **Cache the label renderer (efficiency; codified-rule adherence).**
+   `CaptureDraw` calls `GetComponent<MeshRenderer>()` per label per captured
+   frame ([CaptureDraw.cs:82,105,112](../../src/Asteroids3D/Assets/Scripts/Capture/CaptureDraw.cs)),
+   against the cache-refs-in-Awake rule. Fill a parallel `List<MeshRenderer>`
+   in `CreateLabel`. Capture-only cost.
+3. **Non-degenerate probe assertions (test gap).** `RLAgentPlayModeTests`
+   asserts probe sidecars exist and row counts match, never a probe *value* —
+   a silently-detached `WeaponComponent.OnFire` / `Shield.OnValueChanged` /
+   boost-edge hook still passes green. One assertion per default probe on a
+   field that cannot be degenerate in a live episode. Assert non-degeneracy,
+   never exact values (eval is not run-to-run reproducible —
+   `project_eval_sim_nondeterminism`).
+4. **Three stale comments (truthing).** `ContactProbe.cs:83` justifies its
+   public surface by slice E's regression client (E CLOSED unbuilt) —
+   re-justify against the archived bench + carded tournament, or drop the
+   clause. `SessionSpec.cs:165` and `DiagnosticPainters.cs:23` cite slice D as
+   the future implementer of probe-sourced painters; D shipped painterless —
+   repoint both to "the first painter-bearing probe" per this doc's AUDIT
+   CORRECTION at Slice B assumption 6.
+
+Plus the **comment ratchet, discriminating safe-delete only** (below).
+
+**Non-goals** (audited and deliberately excluded — do not fold in): the
+four-way probe grouping duplication (absorb when the next probe lands);
+`ArchetypeGateSampler`'s per-episode weapon walk (that file isn't touched); an
+`eval_lane.py` capture preset (documented deferral); the probe-painter pairing
+mechanism (builds with its first real probe); any threshold, schema, behavior,
+or doc/board change.
+
+### Forks (resolved, with why)
+
+1. **Item 1's seam → driver-backed snapshot source on `ProbeContext`.**
+   `EpisodeRunner` exposes the per-step snapshot it already captures; the probe
+   reads it through a minimal source handed in via `ProbeContext` at `Begin`.
+   `ISessionProbe.Sample()` stays parameterless, so gate/contact/facing are
+   untouched. Rejected: widening `Sample(in CombatSnapshot)` (puts a
+   combat-only parameter on the shared interface — the arc's own chip asked to
+   keep `ISessionProbe` clean); a host-held snapshot field (same effect, extra
+   indirection, no gain). Matches wiring #1 (deps enter through the
+   construction context) and #5 (a probe observes; it never commands).
+2. **Comment ratchet → discriminating safe-delete only.** The audit's
+   code-quality lens explicitly checked ≤15-word one-liners and judged the arc's
+   files clean, yet 136 single-line `<summary>` blocks exceed 15 words across
+   66 files. Spot-checking shows these are load-bearing *why*/contract docs on
+   public types (e.g. `EpisodeLoopDriver`'s ordering contract) — the category
+   the policy exempts and code-bloat G carves out. So: strip `<summary>` on
+   genuinely self-naming members and any what-narration or decorative lines;
+   do **not** shorten load-bearing why-docs. **This pass may legitimately come
+   back empty** — if it does, the PR carries no comment section and says so.
+   Manufacturing edits to justify a scope line is the failure mode here.
+   Rejected: a full ≤15-word rewrite (strips information from contract docs on
+   code that shipped days ago).
+
+### Assumptions (locked; code-grounded)
+
+1. **The snapshot source is driver-backed, not runner-backed.** `EpisodeRunner`
+   is constructed fresh per episode ([EpisodeLoopDriver.cs:48]) *after*
+   `ProbeContext` is built ([HarnessSessionHost.cs:78]) — a context holding the
+   runner instance would capture null or the previous episode's. The source
+   forwards to `Driver.Runner`, the idiom the host already uses two lines later
+   (`composition.Driver.Runner.Result`).
+2. `ProbeContext` has exactly one construction site (`HarnessSessionHost.cs:78`),
+   so the new field is a one-site change; probes only read it.
+3. **The captures are argument-identical** — the chip's mandatory
+   verification, discharged at prep: `EpisodeLoopDriver` runs
+   `Runner.Tick()` → `onFixedStep` → `SampleProbes` back-to-back with no
+   physics step between (lines 70–72), and the runner captures every fixed step
+   (line 77, for the termination verdict), not only at decision boundaries.
+   Same args, same sim instant. Prove equivalence at the call-site/unit level,
+   never by diffing two runs.
+4. **No staleness window.** `Tick()`'s early-return guard (`!begun || IsDone`)
+   cannot fire inside a loop iteration — `Begin()` precedes the loop and
+   `while (!Runner.IsDone)` gates entry — so every `SampleProbes` reads a
+   snapshot captured that same step, including the terminal one.
+5. **Self-play consumes `Runner`, never `OpponentRunner`.** `Runner` is built
+   agent-perspective (`pair.Agent, pair.Baseline`), matching the combat
+   sampler's own `Capture(agent, baseline, …)`; `OpponentRunner` is the mirror.
+6. **The open-loop lane is unaffected** — the runner exists even with a null
+   agent ([EpisodeLoopDriver.cs:24]), and the combat probe is not in that
+   lane's default probe set.
+7. Probe rows must be value-identical before/after item 1. If the two captures
+   ever prove to differ in any input, this is not a dedup — stop and report
+   rather than change probe output.
+8. No new glossary terms: `StepSnapshot` and the source interface are symbols
+   the code defines, and per *one home per term* the code is their home.
+
+### Coordination
+
+**#247 merged first** (`c35f583c`, 2026-07-31T22:26Z), so the build starts on a
+tree that already contains the velrebase probe and open-loop lane — no fold to
+resolve, and this brief's line cites are grounded against that tree. The live
+neighbour is instead agent-1's `k1-3-schema` **long-lived branch**, which does
+not merge until K1-4's atomic gate; per "the second merger adapts", it absorbs
+this PR rather than the reverse.
+Verification: clear BurstCache, scoped run (`-ScopeType Auto`) plus the lane
+PlayMode smoke; item 2 is capture-only and rides the graphics-filtered lane,
+not the merge gate. Name each item's root cause and rung in the PR body.

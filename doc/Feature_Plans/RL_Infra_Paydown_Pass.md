@@ -1,6 +1,6 @@
 # RL Infrastructure Paydown Pass
 
-> STATUS: live arc — PR-1 SHIPPED #223, PR-2 SHIPPED #224; PR-3 GREW INTO ITS OWN ARC → `RL_Harness_Lane_Unification.md` (A #231 / C #238 / D #239 / F #240 shipped, B #246 in review); **PR-4 SHIPPED #244** (`959ab4f3`, 2026-07-31); PR-5 `player-eval` ADDED 2026-07-31 (stub below, prep pending); bench-hardening item HELD pending user discussion
+> STATUS: live arc — PR-1 SHIPPED #223, PR-2 SHIPPED #224; PR-3 GREW INTO ITS OWN ARC → `RL_Harness_Lane_Unification.md` — **ARC COMPLETE 2026-07-31** (A #231 / move #236 / C #238 / D #239 / F #240 / B #246 all shipped; slice E closed unbuilt); **PR-4 SHIPPED #244** (`959ab4f3`, 2026-07-31); PR-5 `player-eval` design FROZEN 2026-07-31 (§PR-5 brief below, building); bench-hardening item HELD pending user discussion
 
 *Draft • 2026-07-28 • seeded by a four-lane parallel review (run history + results artifacts, code audit, PR trail #130–#222, board/deferral sweep) run in the coordinating session on 2026-07-28.*
 
@@ -142,7 +142,8 @@ bench client → Python surface). Headlines: one host + typed SessionSpec;
 composition + RunBlock primitives with clients as protocol coroutines; probe
 interface/registry (facing probe = first client, resolves the ledger BLOCKED
 row); painter/canvas contract for live+capture markup; `record.flag` deleted;
-ram bench split into contact probe + regression client; eval summary schema
+ram bench split into contact probe + regression client (client later CLOSED
+unbuilt — arc doc decision 6 closure note); eval summary schema
 v2 (`opponents` rename + schema id + provenance). Playtest / profiler /
 throughput lanes designed-for, not built. Do not re-decide here.
 
@@ -154,25 +155,6 @@ throughput lanes designed-for, not built. Do not re-decide here.
 > on the PR). Wilson bounds are computed and quoted but deliberately NOT the
 > decision cutoff — bound-based verdicts wait for bundle v2 (threshold
 > recalibration at the rules change). Brief retained as the design record.
-
-## PR-5 — player-build eval lane (`player-eval`)
-
-> STATUS: added 2026-07-31 (user decision); pr-prep pending — brief lands here
-> when it freezes.
-
-Move checkpoint evals off mid-run editors onto the #187 player path
-(`RLTraining.exe` precedent) — the structural fix for the editor-beside-fleet
-fragility class (observed casualties: editor OOM silent death during the
-variance experiment, mid-eval lease TTL expiry ×2, boot-lane dir vanish, run 1
-killed by a second Unity session). Interim policy already in force
-(run-mechanics runbook): mid-run evals OFF by default while prototyping; the
-eval gate runs as post-run backfill (`--once`), which #244's verdict machinery
-supports natively. Prep's feasibility gate: whether Sentis loads ONNX at
-runtime in a player build, or the design needs an editor-side
-convert-to-`.sentis` step. Note for the design: a player-mode eval is a NEW
-measurement mode (calibration bundle `executionMode`) with an expected
-distribution shift — the jobs-off precedent (§PR-4 calibration evidence) makes
-mode comparability a fork, not a footnote.
 
 **Scope.** Verdict machinery that consumes measured uncertainty: replicate
 protocol + interval verdicts in the gate loop, auto-arming, a banking CLI,
@@ -290,6 +272,103 @@ enters `doc/Glossary.md` (one full protocol re-execution, fresh boot, identical
 inputs; differs only by mechanical sim nondeterminism — NOT a new seed draw, NOT
 a cross-tree re-eval). The variance dataset and the four golden baselines
 (`results/rl-eval/golden-main-d61b31cc/`) are the calibration provenance.
+
+## PR-5 — player-build eval lane (`player-eval`)
+
+> STATUS: design FROZEN 2026-07-31 (pr-prep session; feasibility consult:
+> codex `gpt-5.6-sol` xhigh, verdict folded — disposition in the prep chat).
+> The brief below is the authority; the implementing agent re-decides nothing.
+
+Move checkpoint evals off mid-run editors onto the #187 player path
+(`RLTraining.exe` precedent) — the structural fix for the editor-beside-fleet
+fragility class (observed casualties: editor OOM silent death during the
+variance experiment, mid-eval lease TTL expiry ×2, boot-lane dir vanish, run 1
+killed by a second Unity session). Interim policy already in force
+(run-mechanics runbook): mid-run evals OFF by default while prototyping; the
+eval gate runs as post-run backfill (`--once`), which #244's verdict machinery
+supports natively.
+
+**Feasibility gate — resolved.** A player cannot parse `.onnx` at runtime
+(`ONNXModelConverter` is editor-only; Unity staff confirm runtime serialization
+is unsupported), and ML-Agents ingests ONLY a `ModelAsset` — no public
+`Model`→`ModelAsset` exists and runtime `ModelLoader.Load` returns `Model`. So
+the editor stays as a short per-checkpoint conversion tollbooth; what moves to
+the player is the sim (all of the wall-clock). Transport = AssetBundle: the
+convert step builds a genuine `ModelAsset` the supported way and the player
+loads it via `AssetBundle.LoadFromFile` — ML-Agents and the packages stay
+untouched.
+
+**Scope.** A dedicated headless eval player (new scene + build method + exe at
+`build/rl-harness/`); an editor convert step (import candidate — and opponent,
+when the opponent is a checkpoint — then build one single-session AssetBundle
+into the caller-named out dir); the typed `ModelAsset` composition seam;
+`eval_lane.py --exec player` orchestration (leased convert → lease-free player
+sim → summary read-back); player exit paths. Editor eval unchanged as the
+reference protocol and the verdict-bearing gate. **Non-goals:** gate/banking
+rewiring onto player mode (waits for bundle v2 at the rules change); capture /
+OpenLoop lanes in the player; any threshold or calibration change; an exe
+staleness oracle.
+
+### Forks (resolved, with why)
+
+1. **Measurement-mode rollout → opt-in tool now; gate stays editor.** Player
+   scores are a NEW uncalibrated `executionMode` with an expected shift (the
+   jobs-off precedent: +1.9, tighter SD); recalibration is locked to bundle v2.
+   The runbook's interim policy already shields the fleet, so capability lands
+   now without calibration debt; player becomes the calibrated default at v2.
+2. **Exe topology → dedicated eval scene + build method + exe** (rejected: an
+   `RLTraining.exe` boot-mode switch). Training boot (arm-and-wait for the
+   trainer handshake) and eval boot (parse-run-exit) differ genuinely; a shared
+   entry adds a mode-flip failure surface to every training fleet worker.
+3. **Composition seam → typed `ModelAsset`, resolved at each boot boundary**
+   (editor: `AssetDatabase` in `TrainingBootstrap`; player:
+   `AssetBundle.LoadAsset` in the new bootstrap). `ShipAgentFactory.LoadModel`
+   and its `#if UNITY_EDITOR` are deleted; composition signatures take
+   `ModelAsset`. Rung 1: player-side `AssetDatabase` use becomes
+   unrepresentable. Bundle contract: one bundle per session, candidate +
+   optional opponent under fixed names; mirror = same asset both sides.
+
+### Assumptions (locked)
+
+1. Convert step = batch editor `-executeMethod`, an editor sibling of
+   `RLTrainingPlayerBuild` reusing `TrainingBootstrap.Import`; explicit
+   `AssetBundleBuild[]` (no persistent bundle tags enter the project);
+   `StandaloneWindows64`.
+2. Convert runs through `unity_access.run_batch` (coordinator rule 6); the
+   player launch takes NO unity-access lease (players aren't shared editors —
+   `run_parallel.py` precedent).
+3. Player exit: `Application.Quit(0/1)` mirroring both editor
+   `EditorApplication.Exit` sites in `HarnessSessionHost`.
+4. `HarnessAssets` reaches the player scene-serialized (`TrainingHost`
+   precedent).
+5. Capture + OpenLoop lanes stay editor-only (record⇒graphics throws headless;
+   OpenLoop has no player demand).
+6. Summary provenance logs the source stem, not the asset path (Python keys on
+   the stem).
+7. Test strategy: EditMode coverage for the new parse grammar + boundary
+   throws; e2e proof = convert + player run on the committed smoke-fixture
+   `.onnx` (explicit path) producing a schema-v2 summary + exit 0, plus one
+   real-checkpoint run reported in the PR body.
+
+### Blindsider resolutions
+
+1. **Player-mode env grammar:** new `RL_HARNESS_BUNDLE` (bundle path) alongside
+   `RL_HARNESS_ONNX` (kept for stem/tag/provenance). `RL_HARNESS_BUNDLE` set in
+   an editor session throws at parse — retired-names rigor, no silent
+   context-dependent meaning shift.
+2. **Smoke default dies in player mode:** `--exec player` requires an explicit
+   `--onnx`; the parse throws on incomplete bundle vars. (The editor smoke
+   default is a test convenience, not a lane feature.)
+3. **Missing exe fails loud** naming the rebuild command; NO staleness
+   detection (`run_parallel.py` precedent — freshness is the operator's).
+
+### Coordination
+
+Touches RLHarness hosts/compositions + `eval_lane.py`. The `ShipAgentFactory`
+signature surface is shared with the in-flight K1 arc — second merger adapts.
+Vocab: player execution is NOT a new `SessionLane`; the glossary entry (rides
+the implementation PR) qualifies "player eval lane" as the eval lane under
+player `executionMode`.
 
 ## Held
 
