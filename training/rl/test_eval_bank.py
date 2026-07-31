@@ -7,10 +7,15 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
-from eval_bank import episode_outcomes, paired_discordance, record_draw, side_stats
+import eval_bank
+from eval_bank import (draw_held_out, episode_outcomes, paired_discordance, record_draw,
+                       run_side, side_stats)
+from eval_bundle import load_bundle
 from eval_gate import SUMMARY_SCHEMA
 
+BUNDLE = load_bundle()
 SEEDS = (2001, 2002)
 ARCHETYPES = ("Aggressor", "Evader")
 
@@ -130,12 +135,64 @@ class SideStats(unittest.TestCase):
 
 
 class HeldOutRegistry(unittest.TestCase):
+    def setUp(self):
+        root = Path(tempfile.mkdtemp())
+        self.registry = root / "heldout_draws.jsonl"
+        self.out_dir = root / "held-out" / "rep-1"
+
+    def registry_lines(self):
+        if not self.registry.exists():
+            return []
+        return [json.loads(line) for line in self.registry.read_text().splitlines()]
+
     def test_every_draw_appends_one_auditable_line(self):
-        registry = Path(tempfile.mkdtemp()) / "heldout_draws.jsonl"
-        record_draw(registry, {"candidate": "a.onnx"})
-        record_draw(registry, {"candidate": "b.onnx"})
-        lines = [json.loads(line) for line in registry.read_text().splitlines()]
-        self.assertEqual(["a.onnx", "b.onnx"], [line["candidate"] for line in lines])
+        record_draw(self.registry, {"candidate": "a.onnx"})
+        record_draw(self.registry, {"candidate": "b.onnx"})
+        self.assertEqual(["a.onnx", "b.onnx"], [line["candidate"] for line in self.registry_lines()])
+
+    def test_exposure_is_logged_before_the_draw_runs(self):
+        def crashing_launch(out_dir, onnx, seeds):
+            raise RuntimeError("editor died mid-draw")
+
+        with mock.patch.object(eval_bank, "REGISTRY", self.registry):
+            with self.assertRaises(RuntimeError):
+                draw_held_out(Path("cand.onnx"), self.out_dir, BUNDLE, crashing_launch)
+        lines = self.registry_lines()
+        self.assertEqual(1, len(lines), "a crashed draw must still be a recorded exposure")
+        self.assertEqual("cand.onnx", lines[0]["candidate"])
+        self.assertEqual(str(self.out_dir), lines[0]["outDir"])
+
+    def test_replayed_draw_logs_no_new_exposure(self):
+        write_replicate(self.out_dir, grid())
+
+        def forbidden_launch(out_dir, onnx, seeds):
+            self.fail("a summarized draw must replay, not re-run")
+
+        with mock.patch.object(eval_bank, "REGISTRY", self.registry):
+            block = draw_held_out(Path("cand.onnx"), self.out_dir, BUNDLE, forbidden_launch)
+        self.assertEqual([], self.registry_lines(), "replay is not a second exposure")
+        self.assertEqual(2, len(block["opponents"]))
+
+
+class RunSideResume(unittest.TestCase):
+    def test_resume_runs_only_the_missing_replicates(self):
+        side_dir = Path(tempfile.mkdtemp()) / "candidate"
+        for k in (1, 2, 4):
+            d = side_dir / f"rep-{k}"
+            d.mkdir(parents=True)
+            (d / f"20260731-00000{k}-custom-summary.json").write_text("{}")
+        launched = []
+
+        def launch(out_dir, onnx, seeds):
+            launched.append(out_dir.name)
+            out_dir.mkdir(parents=True, exist_ok=True)
+            path = out_dir / "20260731-000009-custom-summary.json"
+            path.write_text("{}")
+            return path
+
+        summaries = run_side("candidate", Path("cand.onnx"), side_dir, BUNDLE, launch)
+        self.assertEqual(["rep-3", "rep-5"], launched)
+        self.assertEqual(BUNDLE.k_bank, len(summaries))
 
 
 if __name__ == "__main__":

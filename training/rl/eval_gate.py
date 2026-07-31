@@ -244,6 +244,27 @@ def report(read, checkpoint: Path, current: str, reasons, armed: bool) -> None:
     sys.stdout.flush()
 
 
+def bundle_protocol(bundle, seeds_arg=None, episodes_per_seed_arg=None):
+    """The calibration bundle is the seed authority: the legacy flags may only restate its
+    protocol — an off-bundle value would silently detach verdicts from the bundle id they
+    record. Returns (seeds_csv, episodes_per_seed); the escape hatch is authoring a new
+    bundle file, never a flag."""
+    if seeds_arg:
+        try:
+            requested = sorted(int(s.strip()) for s in seeds_arg.split(",") if s.strip())
+        except ValueError:
+            sys.exit(f"FAIL: --seeds {seeds_arg!r} is not a comma-separated seed list")
+        if requested != sorted(bundle.seeds):
+            sys.exit(f"FAIL: --seeds {seeds_arg} differs from calibration bundle {bundle.bundle_id}'s "
+                     f"seed set {','.join(str(s) for s in bundle.seeds)}; the bundle is the seed "
+                     f"authority — author a new bundle instead of overriding the flag")
+    if episodes_per_seed_arg is not None and episodes_per_seed_arg != bundle.episodes_per_seed:
+        sys.exit(f"FAIL: --episodes-per-seed {episodes_per_seed_arg} differs from calibration bundle "
+                 f"{bundle.bundle_id}'s {bundle.episodes_per_seed}; the bundle is the authority "
+                 f"— author a new bundle instead of overriding the flag")
+    return ",".join(str(s) for s in bundle.seeds), bundle.episodes_per_seed
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -255,9 +276,10 @@ def main() -> None:
     parser.add_argument("--out-root", type=Path, default=GATE_ROOT, help="gate-owned artifact root")
     parser.add_argument("--bundle", type=Path, default=BUNDLE_V1,
                         help="calibration bundle judging every verdict (default: v1)")
-    parser.add_argument("--seeds", default=None, help="RL_HARNESS_SEEDS selection (default: the bundle's seed set)")
+    parser.add_argument("--seeds", default=None,
+                        help="may only restate the bundle's seed set (compat; the bundle is the seed authority)")
     parser.add_argument("--episodes-per-seed", type=int, default=None,
-                        help="RL_HARNESS_EPISODES_PER_SEED (default: the bundle's)")
+                        help="may only restate the bundle's episodes/seed (compat; the bundle is the authority)")
     parser.add_argument("--poll-seconds", type=float, default=120.0, help="checkpoint-dir poll interval")
     parser.add_argument("--from-step", type=int, default=0, help="ignore checkpoints at or below this step")
     parser.add_argument("--max-checkpoints", type=int, default=0, help="stop after N checkpoints (0 = unbounded)")
@@ -271,15 +293,7 @@ def main() -> None:
                         help="OPT-IN: kill this trainer process tree on a STOP verdict (default: report only)")
     args = parser.parse_args()
     bundle = load_bundle(args.bundle)
-    seeds = args.seeds or ",".join(str(s) for s in bundle.seeds)
-    episodes_per_seed = args.episodes_per_seed if args.episodes_per_seed is not None else bundle.episodes_per_seed
-    if episodes_per_seed < 1:
-        parser.error("--episodes-per-seed must be >= 1")
-    seed_count = len([s for s in seeds.split(",") if s.strip()])
-    if seed_count * episodes_per_seed != bundle.thresholds.evader_episodes:
-        parser.error(f"--seeds x --episodes-per-seed must be {bundle.thresholds.evader_episodes} episodes per "
-                     f"archetype for {bundle.bundle_id}'s thresholds to mean anything; "
-                     f"got {seed_count} x {episodes_per_seed}")
+    seeds, episodes_per_seed = bundle_protocol(bundle, args.seeds, args.episodes_per_seed)
     if args.poll_seconds <= 0:
         parser.error("--poll-seconds must be > 0")
     if args.max_checkpoints < 0:

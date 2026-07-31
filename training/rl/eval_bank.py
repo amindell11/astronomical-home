@@ -26,7 +26,7 @@ from checkpoint_watch import discover_reps, rep_dir
 from driver_common import default_unity_exe
 from eval_bundle import BUNDLE_V1, load_bundle
 from eval_gate import read_opponents
-from eval_lane import HARNESS_CHILD, PROJECT, run_eval_lane
+from eval_lane import HARNESS_CHILD, PROJECT, run_eval_lane, summaries_in
 from eval_stats import mcnemar_exact_p, mean_difference, wilson_interval
 
 RL_DIR = Path(__file__).resolve().parent
@@ -130,16 +130,26 @@ def record_draw(registry: Path, entry: dict) -> None:
 
 def draw_held_out(candidate: Path, out_dir: Path, bundle, launch) -> dict:
     """One sealed-set draw, interval-reported ONLY — the held-out seeds answer
-    generalization and are never judged against the canonical thresholds."""
-    summary_path = launch(out_dir, candidate, HELD_OUT_SELECTOR)
+    generalization and are never judged against the canonical thresholds. Exposure is
+    logged write-ahead, BEFORE the draw runs, so a crash or a rejected summary can never
+    leave the sealed set spent but unrecorded; a draw already summarized on disk replays
+    without a new registry entry (its exposure was logged when it launched)."""
+    existing = summaries_in(out_dir) if out_dir.exists() else []
+    if len(existing) > 1:
+        sys.exit(f"FAIL: {out_dir} holds {len(existing)} summaries; one run dir is one sample")
+    if existing:
+        print(f"[bank] held-out: replaying {existing[0]}")
+        summary_path = existing[0]
+    else:
+        record_draw(REGISTRY, {"timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
+                               "candidate": str(candidate),
+                               "bundleId": bundle.bundle_id,
+                               "episodesPerSeed": bundle.episodes_per_seed,
+                               "outDir": str(out_dir)})
+        summary_path = launch(out_dir, candidate, HELD_OUT_SELECTOR)
     opponents = [{"opponent": o["opponent"], "wins": int(o["wins"]), "episodes": int(o["episodes"]),
                   "wilson95": list(wilson_interval(int(o["wins"]), int(o["episodes"])))}
                  for o in read_opponents(summary_path)]
-    record_draw(REGISTRY, {"timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
-                           "candidate": str(candidate),
-                           "bundleId": bundle.bundle_id,
-                           "episodesPerSeed": bundle.episodes_per_seed,
-                           "summary": str(summary_path)})
     return {"summary": str(summary_path), "opponents": opponents, "registry": str(REGISTRY)}
 
 
@@ -159,6 +169,8 @@ def main() -> None:
                         help="Unity.exe path (default: derived from ProjectVersion.txt)")
     parser.add_argument("--out-root", type=Path, default=BANK_ROOT,
                         help="artifact root; each banking event gets its own dir")
+    parser.add_argument("--event-dir", type=Path, default=None,
+                        help="resume an existing banking event dir (replicates already summarized replay)")
     parser.add_argument("--lease", default="rl-eval-bank", help="unity-access lease name")
     parser.add_argument("--lease-wait", type=int, default=1800,
                         help="seconds the coordinator may wait for the project/boot lane per eval")
@@ -176,7 +188,7 @@ def main() -> None:
     canonical_seeds = ",".join(str(s) for s in bundle.seeds)
     unity = args.unity or default_unity_exe(args.project)
     tag = f"{args.candidate.stem}-vs-{args.incumbent.stem}" if args.incumbent else args.candidate.stem
-    out = args.out_root / f"{tag}-{time.strftime('%Y%m%d-%H%M%S')}"
+    out = args.event_dir or args.out_root / f"{tag}-{time.strftime('%Y%m%d-%H%M%S')}"
     print(f"[bank] bundle {bundle.bundle_id}  project {args.project}  artifacts {out}")
 
     def launch(out_dir, onnx, seeds):

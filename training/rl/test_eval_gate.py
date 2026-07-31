@@ -11,8 +11,8 @@ from pathlib import Path
 from checkpoint_watch import PendingStep, discover_reps, rep_dir
 from eval_bundle import load_bundle
 from eval_gate import (ALERT, CONTINUE, STOP, SUMMARY_SCHEMA, CheckpointRead, GateState, Score,
-                       degraded_reasons, judge_checkpoint, pool_scores, process_step, read_score,
-                       verdict)
+                       bundle_protocol, degraded_reasons, judge_checkpoint, pool_scores,
+                       process_step, read_score, verdict)
 
 # Loading the committed v1 file here doubles as a pin test on its frozen values.
 BUNDLE = load_bundle()
@@ -98,6 +98,30 @@ class DegradedPredicate(unittest.TestCase):
     def test_pool_scores_sums_replicate_cells(self):
         pooled = pool_scores(7, [score(7, 9, 64), score(7, 11, 70), score(7, 10, 66)])
         self.assertEqual(Score(7, 30, 45, 200, 225), pooled)
+
+
+class BundleProtocol(unittest.TestCase):
+    """The bundle is the seed authority; the legacy flags may only restate its protocol."""
+
+    def test_defaults_come_from_the_bundle(self):
+        self.assertEqual(("2001,2002,2003,2004,2005", 3), bundle_protocol(BUNDLE))
+
+    def test_restating_the_bundle_is_allowed_in_any_order(self):
+        seeds, eps = bundle_protocol(BUNDLE, "2005,2001,2002,2003,2004", 3)
+        self.assertEqual("2001,2002,2003,2004,2005", seeds)
+        self.assertEqual(3, eps)
+
+    def test_off_bundle_seeds_fail_loud(self):
+        with self.assertRaises(SystemExit):
+            bundle_protocol(BUNDLE, "3001,3002,3003,3004,3005", None)
+
+    def test_off_bundle_episodes_per_seed_fails_loud(self):
+        with self.assertRaises(SystemExit):
+            bundle_protocol(BUNDLE, None, 5)
+
+    def test_garbage_seed_list_fails_loud(self):
+        with self.assertRaises(SystemExit):
+            bundle_protocol(BUNDLE, "2001,evader,2003", None)
 
 
 class ReadScore(unittest.TestCase):
