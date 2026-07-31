@@ -188,7 +188,7 @@ namespace Game.RLHarness
                     + "\"mirror\", or a checkpoint path (roster stratification is an eval concept).");
         }
 
-        /// <summary>Comma-separated painter names; default the ship-diagnostics overlay. Resolution checks the painter registry first; the first painter-bearing probe builds the second source.</summary>
+        /// <summary>Comma-separated painter names; default the ship-diagnostics overlay. Names resolve through <see cref="DiagnosticPainters"/>.</summary>
         private static string[] ParsePainters(string value)
         {
             if (value == null) return new[] { DiagnosticPainters.ShipDiagnostics };
