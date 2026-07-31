@@ -1,7 +1,7 @@
 # RL training home
 
 Python side of the ML-Agents loop. Unity side: `Assets/Scenes/RLTraining.unity`
-hosting `TrainingHost` (`Assets/Scripts/RLHarness/Agent/`), which composes the
+hosting `TrainingHost` (`Assets/Scripts/RLHarness/Hosts/`), which composes the
 episode pair per arena and drives runner-owned Academy stepping.
 
 Every driver here is an **asserting runner**: it launches what it needs, waits on

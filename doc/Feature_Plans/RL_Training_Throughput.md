@@ -78,7 +78,9 @@ renaming `Game.RLHarness.Editor` (cosmetic; defer).
    asmdef in a build only when a built scene reaches its types, so it lands in the `RLTraining`
    player build but **never in the shipped game build**; reachability already does what the
    test-gate did. `com.unity.test-framework` is in the manifest, so the editor always defines
-   the symbol regardless. Verified: all six editor-API-touching files in the asm
+   the symbol regardless. Verified at gate-drop time (of the six, `EvalHost` has since
+   become `HarnessSessionHost` (#231) and `TraversalDrivers` is retired (#236)): all six
+   editor-API-touching files in the asm
    (`EvalHost`, `ShipAgentFactory`, `TrainingBootstrap`, `EpisodePair`, `HarnessField`,
    `TraversalDrivers`) already wrap their `UnityEditor` usage in `#if UNITY_EDITOR`, so the asm
    compiles clean for `StandaloneWindows64` once the gate drops — no file-wrapping needed. The
