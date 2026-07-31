@@ -282,7 +282,7 @@ namespace Tests.PlayMode
                 seeds = new[] { seeds[0] },
                 tag = "test-eval-slot2",
                 episodesPerSeed = 1,
-                probes = new string[0],
+                probes = new ProbeSpec[0],
             };
             CheckpointEvaluator.Summary slot2Summary = default;
             yield return CheckpointEvaluator.Run(NewHost(slot2Spec), slot2Spec, spec, s => slot2Summary = s);

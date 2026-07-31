@@ -101,20 +101,13 @@ namespace Tests.EditMode
         [Test]
         public void ProbeSelection_IsByNameAndAnEmptyListMeansNone()
         {
-<<<<<<< HEAD
             Assert.AreEqual(new[] { ArchetypeGateProbe.ProbeName }, Names(Parse("RL_HARNESS_PROBES", "gate").probes));
             Assert.IsEmpty(Parse("RL_HARNESS_PROBES", "").probes, "an explicit empty selection runs no probes");
             Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_PROBES", "heat"),
-=======
-            Assert.AreEqual(new[] { ArchetypeGateProbe.ProbeName }, Parse("RL_HARNESS_PROBES", "gate").probes);
-            Assert.IsEmpty(Parse("RL_HARNESS_PROBES", "").probes, "an explicit empty selection runs no probes");
-            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_PROBES", "facing"),
->>>>>>> origin/main
                 "an unregistered probe must fail at the boundary, not run an eval with no instrument");
         }
 
         [Test]
-<<<<<<< HEAD
         public void ProbeParams_ParseInlineAndSurviveWhitespace()
         {
             var probes = Parse("RL_HARNESS_PROBES", "gate, facing( wFacing = 5 )").probes;
@@ -157,13 +150,14 @@ namespace Tests.EditMode
                 new Dictionary<string, float> { [FacingProbe.AuthorityScaleKey] = -1f }));
             Assert.Throws<ArgumentException>(() => SessionProbes.Create(FacingProbe.ProbeName,
                 new Dictionary<string, float> { [FacingProbe.AuthorityScaleKey] = float.NaN }));
-=======
+        }
+
+        [Test]
         public void RetiredEnvName_ThrowsNamingItsReplacement()
         {
             var thrown = Assert.Throws<ArgumentException>(() => Parse("RL_EVAL_ONNX", "stale-script.onnx"),
                 "a stale script's retired name must not silently eval the smoke fixture");
             StringAssert.Contains("RL_HARNESS_ONNX", thrown.Message);
->>>>>>> origin/main
         }
 
         [Test]
