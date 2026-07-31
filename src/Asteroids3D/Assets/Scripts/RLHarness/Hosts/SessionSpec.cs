@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
 
@@ -25,6 +26,26 @@ namespace Game.RLHarness
         public string Label => kind == OpponentKind.Mirror ? MirrorLabel : archetype.ToString();
     }
 
+    /// <summary>One selected probe with its parsed params — parallel key/value arrays because Dictionary is not Unity-serializable.</summary>
+    [Serializable]
+    public struct ProbeSpec
+    {
+        public string name;
+        public string[] keys;
+        public float[] values;
+
+        public static ProbeSpec Named(string name) =>
+            new() { name = name, keys = Array.Empty<string>(), values = Array.Empty<float>() };
+
+        internal IReadOnlyDictionary<string, float> ToParameters()
+        {
+            if (keys == null || keys.Length == 0) return null;
+            var parameters = new Dictionary<string, float>(keys.Length);
+            for (var i = 0; i < keys.Length; i++) parameters[keys[i]] = values[i];
+            return parameters;
+        }
+    }
+
     /// <summary>A harness session's fully-resolved configuration, parsed from the environment ONCE at the batch boundary — before play mode — so a malformed value fails there instead of inside a running episode loop. Carried into play mode as a serialized field on <see cref="HarnessSessionHost"/>.</summary>
     [Serializable]
     public sealed class SessionSpec
@@ -42,7 +63,7 @@ namespace Game.RLHarness
         public float fieldDensityScale;
         public OpponentKind opponentKind;
         public OpponentArchetype opponentArchetype;
-        public string[] probes;
+        public ProbeSpec[] probes;
         public string outDir;
 
         /// <summary>Parses the eval lane's environment. <paramref name="importCheckpoint"/> imports RL_EVAL_ONNX into the fixture slot and returns its asset path (AssetDatabase work the parse itself stays free of).</summary>
@@ -100,19 +121,68 @@ namespace Game.RLHarness
             }
         }
 
-        private static string[] ParseProbes(string value)
+        /// <summary>Grammar: comma-separated `name` or `name(key=value,…)` tokens — the split is paren-aware, so commas inside parens separate params, not probes.</summary>
+        private static ProbeSpec[] ParseProbes(string value)
         {
-            if (value == null) return new[] { ArchetypeGateProbe.ProbeName };
-            var names = value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-            for (var i = 0; i < names.Length; i++)
+            if (value == null) return new[] { ProbeSpec.Named(ArchetypeGateProbe.ProbeName) };
+            var entries = new List<ProbeSpec>();
+            var depth = 0;
+            var start = 0;
+            for (var i = 0; i <= value.Length; i++)
             {
-                names[i] = names[i].Trim();
-                if (!SessionProbes.IsRegistered(names[i]))
-                    throw new ArgumentException(
-                        $"RL_EVAL_PROBES names '{names[i]}'; registered probes: {SessionProbes.RegisteredNames}.");
+                if (i < value.Length && value[i] == '(') depth++;
+                else if (i < value.Length && value[i] == ')' && --depth < 0)
+                    throw ProbeError(value, "unbalanced ')'");
+                if (i < value.Length && (value[i] != ',' || depth > 0)) continue;
+                if (i > start) AddProbeToken(entries, value.Substring(start, i - start));
+                start = i + 1;
             }
-            return names;
+            if (depth != 0) throw ProbeError(value, "unbalanced '('");
+            return entries.ToArray();
         }
+
+        private static void AddProbeToken(List<ProbeSpec> entries, string rawToken)
+        {
+            var entry = ParseProbeToken(rawToken);
+            foreach (var existing in entries)
+                if (existing.name == entry.name)
+                    throw ProbeError(rawToken, $"duplicate probe '{entry.name}'");
+            entries.Add(entry);
+        }
+
+        private static ProbeSpec ParseProbeToken(string rawToken)
+        {
+            var token = rawToken.Trim();
+            var open = token.IndexOf('(');
+            var name = (open < 0 ? token : token.Substring(0, open)).Trim();
+            if (!SessionProbes.IsRegistered(name))
+                throw ProbeError(rawToken, $"registered probes: {SessionProbes.RegisteredNames}");
+            if (open < 0) return ProbeSpec.Named(name);
+            if (token[token.Length - 1] != ')')
+                throw ProbeError(rawToken, "expected 'name(key=value,…)'");
+            var knownKeys = SessionProbes.KnownKeys(name);
+            var keys = new List<string>();
+            var values = new List<float>();
+            foreach (var parameter in token.Substring(open + 1, token.Length - open - 2).Split(','))
+            {
+                var eq = parameter.IndexOf('=');
+                var key = (eq < 0 ? parameter : parameter.Substring(0, eq)).Trim();
+                if (eq < 0 || key.Length == 0)
+                    throw ProbeError(rawToken, "expected 'key=value'");
+                if (Array.IndexOf(knownKeys, key) < 0)
+                    throw ProbeError(rawToken, $"'{name}' takes "
+                        + (knownKeys.Length == 0 ? "no params" : $"keys: {string.Join(", ", knownKeys)}"));
+                var valueText = parameter.Substring(eq + 1).Trim();
+                if (!float.TryParse(valueText, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed))
+                    throw ProbeError(rawToken, $"'{key}={valueText}' is not a number");
+                keys.Add(key);
+                values.Add(parsed);
+            }
+            return new ProbeSpec { name = name, keys = keys.ToArray(), values = values.ToArray() };
+        }
+
+        private static ArgumentException ProbeError(string token, string reason) =>
+            new($"RL_EVAL_PROBES token '{token.Trim()}': {reason}.");
 
         private void ParseOpponent(string token)
         {

@@ -46,22 +46,30 @@ namespace Game.RLHarness
         public string summary;
     }
 
-    /// <summary>The probe name registry — the selection grammar behind RL_EVAL_PROBES. Factories take the per-probe key→float param map (decision 4); the env grammar that fills it arrives with its first parameterized probe (slice D).</summary>
+    /// <summary>The probe name registry — the selection grammar behind RL_EVAL_PROBES. Each entry pairs its factory (taking the per-probe key→float param map) with the param keys it accepts, so the parse can refuse an unknown key before play mode.</summary>
     public static class SessionProbes
     {
-        private static readonly Dictionary<string, Func<IReadOnlyDictionary<string, float>, ISessionProbe>> Factories =
-            new()
-            {
-                [ArchetypeGateProbe.ProbeName] = _ => new ArchetypeGateProbe(),
-            };
+        private static readonly Dictionary<string, (Func<IReadOnlyDictionary<string, float>, ISessionProbe> factory,
+            string[] knownKeys)> Factories = new()
+        {
+            [ArchetypeGateProbe.ProbeName] = (_ => new ArchetypeGateProbe(), Array.Empty<string>()),
+            [ContactProbe.ProbeName] = (_ => new ContactProbe(), Array.Empty<string>()),
+            [FacingProbe.ProbeName] = (parameters => new FacingProbe(parameters),
+                new[] { FacingProbe.AuthorityScaleKey }),
+        };
 
         public static string RegisteredNames => string.Join(", ", Factories.Keys);
 
         public static bool IsRegistered(string name) => name != null && Factories.ContainsKey(name);
 
+        public static string[] KnownKeys(string name) =>
+            Factories.TryGetValue(name, out var entry)
+                ? entry.knownKeys
+                : throw new ArgumentException($"No probe named '{name}'; registered probes: {RegisteredNames}.");
+
         public static ISessionProbe Create(string name, IReadOnlyDictionary<string, float> parameters = null) =>
-            Factories.TryGetValue(name, out var factory)
-                ? factory(parameters)
+            Factories.TryGetValue(name, out var entry)
+                ? entry.factory(parameters)
                 : throw new ArgumentException($"No probe named '{name}'; registered probes: {RegisteredNames}.");
     }
 }

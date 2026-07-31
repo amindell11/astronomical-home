@@ -19,6 +19,8 @@ namespace Tests.EditMode
             return SessionSpec.ParseEval(k => env.TryGetValue(k, out var v) ? v : null, _ => ImportedPath);
         }
 
+        private static string[] Names(ProbeSpec[] probes) => Array.ConvertAll(probes, p => p.name);
+
         [Test]
         public void Defaults_AreTodaysEvalLane()
         {
@@ -32,7 +34,7 @@ namespace Tests.EditMode
             Assert.AreEqual(SessionSpec.DefaultEpisodesPerSeed, spec.episodesPerSeed);
             Assert.AreEqual(EvalProtocol.CanonicalFieldDensityScale, spec.fieldDensityScale);
             Assert.AreEqual(OpponentKind.Roster, spec.opponentKind);
-            Assert.AreEqual(new[] { ArchetypeGateProbe.ProbeName }, spec.probes);
+            Assert.AreEqual(new[] { ArchetypeGateProbe.ProbeName }, Names(spec.probes));
             Assert.IsNull(spec.outDir);
         }
 
@@ -83,10 +85,50 @@ namespace Tests.EditMode
         [Test]
         public void ProbeSelection_IsByNameAndAnEmptyListMeansNone()
         {
-            Assert.AreEqual(new[] { ArchetypeGateProbe.ProbeName }, Parse("RL_EVAL_PROBES", "gate").probes);
+            Assert.AreEqual(new[] { ArchetypeGateProbe.ProbeName }, Names(Parse("RL_EVAL_PROBES", "gate").probes));
             Assert.IsEmpty(Parse("RL_EVAL_PROBES", "").probes, "an explicit empty selection runs no probes");
-            Assert.Throws<ArgumentException>(() => Parse("RL_EVAL_PROBES", "facing"),
+            Assert.Throws<ArgumentException>(() => Parse("RL_EVAL_PROBES", "heat"),
                 "an unregistered probe must fail at the boundary, not run an eval with no instrument");
+        }
+
+        [Test]
+        public void ProbeParams_ParseInlineAndSurviveWhitespace()
+        {
+            var probes = Parse("RL_EVAL_PROBES", "gate, facing( wFacing = 5 )").probes;
+
+            Assert.AreEqual(new[] { ArchetypeGateProbe.ProbeName, FacingProbe.ProbeName }, Names(probes));
+            Assert.AreEqual(new[] { FacingProbe.AuthorityScaleKey }, probes[1].keys);
+            Assert.AreEqual(new[] { 5f }, probes[1].values);
+            Assert.IsEmpty(probes[0].keys);
+        }
+
+        [Test]
+        public void ProbeParams_CommasInsideParensSeparateParamsNotProbes()
+        {
+            var probes = Parse("RL_EVAL_PROBES", "facing(wFacing=1,wFacing=2),gate").probes;
+
+            Assert.AreEqual(new[] { FacingProbe.ProbeName, ArchetypeGateProbe.ProbeName }, Names(probes));
+            Assert.AreEqual(new[] { FacingProbe.AuthorityScaleKey, FacingProbe.AuthorityScaleKey }, probes[0].keys);
+            Assert.AreEqual(new[] { 1f, 2f }, probes[0].values);
+        }
+
+        [Test]
+        public void ProbeParams_MalformedTokensThrowAtTheBoundary()
+        {
+            var unknownKey = Assert.Throws<ArgumentException>(() => Parse("RL_EVAL_PROBES", "facing(wFacig=5)"));
+            StringAssert.Contains(FacingProbe.AuthorityScaleKey, unknownKey.Message,
+                "an unknown param key must name the legal set");
+
+            Assert.Throws<ArgumentException>(() => Parse("RL_EVAL_PROBES", "gate,gate"), "duplicate probe name");
+            Assert.Throws<ArgumentException>(() => Parse("RL_EVAL_PROBES", "facing(wFacing=abc)"), "non-float value");
+            Assert.Throws<ArgumentException>(() => Parse("RL_EVAL_PROBES", "facing("), "unbalanced paren");
+        }
+
+        [Test]
+        public void FacingProbe_RefusesANegativeAuthorityScaleAtCreation()
+        {
+            Assert.Throws<ArgumentException>(() => SessionProbes.Create(FacingProbe.ProbeName,
+                new Dictionary<string, float> { [FacingProbe.AuthorityScaleKey] = -1f }));
         }
 
         [Test]
