@@ -152,8 +152,11 @@ threshold recalibration (locked: waits for the rules change).
    unattainable by any refactor and was over-specified.**
 5. Pacing/presentation combos validated at parse; locked pacing +
    presentation-off for measurement lanes; real-time reserved for watch.
-6. Placement: host machinery in `RLHarness/Agent/`; canvas + painters
-   runtime-side (single asmdef → folder taxonomy); Gizmo backend in Editor asm.
+6. Placement (re-decided 2026-07-31, `harness-taxonomy-move` — user-authorized):
+   the `AGENTS.md` folder taxonomy governs — host machinery in
+   `RLHarness/Hosts/`, probe contract + probes in `Probes/`, compositions in
+   `Episodes/Compositions/`; canvas + painters runtime-side; Gizmo backend in
+   Editor asm.
 7. Tests: EditMode for spec parsing (incl. illegal-combo throws) and
    summarizers; one PlayMode lane smoke on `ShipCombat-smoke.onnx` in the
    merge gate; capture graphics-gated; bench by explicit invocation only.
@@ -212,7 +215,7 @@ child-script graphics conditional lands on the child script F renames.
 (hook seam) · `IEpisodeComposition` + `ScriptedRosterComposition` /
 `SelfPlayComposition` (composition family) · `ShipAgentFactory` (compose
 recipes; per-side models land here) · `OpponentRoster` (pinned install) ·
-`ArchetypeGate.cs` (probe precedent) · `RLEpisodePlayModeTests.cs` ~380–650
+`Probes/ArchetypeGateProbe.cs` (probe precedent) · `RLEpisodePlayModeTests.cs` ~380–650
 (capture lane to delete) · `CaptureDraw`/`CaptureRecorder` (canvas backend) ·
 `training/archive/ram-bench-harness/` (bench to rebuild; API-rotted) ·
 `eval_gate.py` + `eval_child.ps1` (Python seams).

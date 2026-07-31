@@ -482,7 +482,7 @@ fork 1 — deferred, benchmark-gated).
 - New choosers `Rammer` + `StationaryFireVictim` implement `IIntentChooser` in the **test
   assembly** (benchmark-only; NOT added to the `OpponentArchetype` enum/roster → never
   enter training). Aim/fire block copied from `HoldRangeFireChooser`
-  (`OpponentArchetypes.cs:210-224`).
+  (`Opponents/HoldRangeFireChooser.cs`).
 - Deterministic head-on/flank poses set explicitly, bypassing the random-facing
   `EpisodePoses.Derive`; each condition runs from a fresh `EpisodePair.Reset` with the
   same seed. Spawn/arena rig reuses `OpponentArchetypePlayModeTests.SetUp`.
