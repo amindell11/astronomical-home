@@ -78,7 +78,9 @@ The frozen brief feeds directly into the repo's default execution path: the
 Step 1 ("Scope first"). Once the brief is locked and the user has confirmed
 scope, proceed into the worktree loop — acquire an `agent-N` slot, build there
 (optionally via the fresh implementing subagent, handed the plan + brief), and
-open the PR. Don't start editing in the primary worktree.
+open the PR. Don't start editing in the primary worktree. If every slot holds a
+live claim, the loop skill's pool-growth rule applies (self-serve agent-6/7) —
+don't queue the build behind a full pool.
 
 ## Chat title lifecycle
 

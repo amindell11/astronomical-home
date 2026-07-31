@@ -30,6 +30,7 @@ the PR ceremony added review the session had already performed.)
 
 - `./scripts/agent_worktree_pool.sh status`
 - `./scripts/agent_worktree_pool.sh acquire <lease-id> [slot]` — name a slot when you have a reason (warm Unity Library from related work, the ledger/dashboard shows affinity, or avoiding a slot with an open editor); a named slot that isn't free fails rather than falling back, so pick from the dashboard, don't guess. Omit for auto-pick (free slots before stale reclaims).
+- Pool growth: when ALL existing slots hold live claims (per the ledger — a stale lock is reclaimable by plain `acquire` and needs no new slot), self-serve agent-6 then agent-7: `git worktree add -b agent-<n> D:/amind/git/agent-<n> origin/main` — slots are discovered by the `agent-N` branch pattern, so `status`/`acquire` pick the new one up immediately. Never grow past agent-7 without asking the user. A fresh slot is Unity-cold: the first test run pays full import + Burst compile.
 - `./scripts/agent_worktree_pool.sh prepare <slot> origin/main` — never during feedback rounds unless the user explicitly asks to restart from main.
 - `./scripts/agent_worktree_pool.sh run-tests <slot> <test args>` — forwards args straight to the runner (no `--`; see the cheat-sheet)
 - `./scripts/agent_worktree_pool.sh create-pr <slot> --title "<text>" (--body "<text>" | --body-file <path>)` — title/body are required (validated before anything runs); pushes to the same `task/<lease>` branch as `submit`, just without a test run.
