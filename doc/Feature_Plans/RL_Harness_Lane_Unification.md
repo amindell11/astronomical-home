@@ -1,8 +1,10 @@
 # RL Harness Lane Unification (the "PR-3 arc")
 
 > STATUS: design FROZEN 2026-07-29 (pr-prep session, all forks user-resolved).
-> Build NOT started. Slices A–F below; each slice gets a short pr-prep of its
-> own before building, but re-deciding anything in this doc is out of bounds.
+> Slice A SHIPPED #231 (`4a602c9c`, 2026-07-31). Slice F brief FROZEN
+> 2026-07-31 (§Slice F brief below; F builds right after the taxonomy move PR,
+> not arc-final). Each remaining slice gets a short pr-prep of its own before
+> building, but re-deciding anything in this doc is out of bounds.
 
 Spun out of `RL_Infra_Paydown_Pass.md` §PR-3 when scoping showed it is an arc,
 not a PR. Context: `handoff_2026-07-27_stage3_results.md` (why eval
@@ -125,7 +127,9 @@ threshold recalibration (locked: waits for the rules change).
   root (producer-owns-outputs corollary applied to film).
 - **Env naming:** existing `RL_EVAL_*` names keep working through A–E
   (eval_gate compat); new axes join the family; slice F may rationalize the
-  prefix atomically with the child script + entry rename.
+  prefix atomically with the child script + entry rename. → RESOLVED
+  2026-07-31: renamed to `RL_HARNESS_*` in F (§Slice F brief, fork 4) — B–E
+  author their new axes under the new family.
 - **No episode watchdog added:** truncation (`timeoutDecisions`) bounds
   episodes, as today; a genuine hang is a programmer error surfaced by the
   fast-fail wrapper above, not absorbed by a timer.
@@ -167,9 +171,12 @@ threshold recalibration (locked: waits for the rules change).
 | C | Second ONNX slot | Slot-parameterized import; per-side models; path grammar value; opponent-stem labels. Small. | A |
 | D | Probe clients | Facing probe rebuilt (summary schema, wFacing param) — resolves ledger BLOCKED row, confirms #219 behaviorally; contact probe extracted. | A |
 | E | Ram-bench regression client | Condition loop, committed margins, verdict + nonzero exit; candidate-vs-rammer via slot 2. | C, D |
-| F | Python surface | Launcher on driver_common; watch extraction; eval_gate re-plumb; retire rl_eval.ps1; optional auto-assemble for capture runs. | PR-2, A (B for capture ergonomics) |
+| F | Python surface | Launcher (`eval_lane.py`) + watch extraction (`checkpoint_watch.py`); eval_gate re-plumb; retire rl_eval.ps1; `RL_EVAL_*` → `RL_HARNESS_*` rename. Brief FROZEN 2026-07-31 (§Slice F brief). | PR-2, A |
 
-B, C, D parallel after A (mostly file-disjoint).
+B, C, D parallel after A (mostly file-disjoint). F also builds right after A
+and the taxonomy move PR (§Slice F brief, fork 3 — unblocks PR-4);
+auto-assemble for capture runs moved out of F to B or a post-B leaf, and B's
+child-script graphics conditional lands on the child script F renames.
 
 ## Coordination constraints
 
@@ -402,3 +409,148 @@ Four baseline runs exist on main @ `d61b31cc` (2× default, 2×
   self-fingerprint) rather than a new fixture. Stays in the merge gate.
 - **Python** — `test_eval_gate.py` gains a `read_score` test (valid v2 summary,
   and schema mismatch → `SystemExit`). `read_score` is untested today.
+
+## Slice F brief
+
+> FROZEN 2026-07-31 (slice-local pr-prep; forks, assumptions and blindsiders
+> all user-resolved). The implementing agent builds from this plus the doc
+> above and re-decides neither. Designed against the #231 branch, which merged
+> as `4a602c9c` during this prep — F's base is main. **Build sequencing:** the
+> taxonomy MOVE PR (`harness-taxonomy-move`, ledger) git-mvs/splits the
+> RLHarness files F's rename touches (`SessionSpec.cs`, `TrainingBootstrap.cs`,
+> the EditMode tests) — F builds AFTER it lands, like B/C/D. **PR-4 landing
+> state at this freeze:** the PR-4 brief (`RL_Infra_Paydown_Pass.md` §PR-4,
+> FROZEN 2026-07-31) is LANDED on main (`958a6c26`) — both authorities are
+> unambiguous.
+
+**Scope.** The Python surface plus the reserved atomic rename:
+`training/rl/eval_lane.py` (lane launcher library + `__main__` manual-eval
+CLI) and `training/rl/checkpoint_watch.py` (the discover → per-step-dir →
+replay-or-run loop) extracted from `eval_gate.py`, which shrinks to CLI +
+verdict rules composing the two libraries; `rl_eval.ps1` deleted; env family
+`RL_EVAL_*` → `RL_HARNESS_*` with `TrainingBootstrap.RunEval` →
+`RunHarnessSession` and `eval_child.ps1` → `harness_child.ps1`, plus a
+retired-name tripwire in `SessionSpec.Parse`; README eval-section rewrite;
+`doc/Glossary.md` registers **lane launcher** (the Python library that
+composes a lane's env, runs the batch child through the coordinator, and reads
+artifacts back from the dir it named) and **checkpoint watch** (the extracted
+replay-or-run loop). Eval-gate behavior — episode sequence, artifacts,
+`verdict.json`, prints, exit codes — stays identical; only the env names
+change, atomically with their single C# authority.
+
+**Non-goals.** No verdict-rule changes and no rep-awareness in the watch
+(`step-N/rep-k/` dirs, pooling, banking are PR-4's; F draws the three-home
+seam — launcher / watch / verdict rules — and does not cross it). No capture
+or bench lane presets (they join `eval_lane.py` at their slices —
+consolidation at the second caller, as slice A did with `ISessionClient`). No
+auto-assemble (left F with the ordering fork; lands with B or a post-B leaf).
+No cross-language env *pinning* — the tripwire is a retirement notice for dead
+names, not a mirror of the grammar; C# remains the single authority and value
+errors still fail loud at parse. No C# behavior change beyond the rename.
+
+### Forks (resolved, with why)
+
+1. **Module topology → two new modules; verdicts stay in `eval_gate.py`.**
+   `eval_lane.py` + `checkpoint_watch.py`; eval_gate keeps CLI + verdict rules
+   + `verdict.json` writing. PR-4's frozen brief assumes three separable homes
+   (banking CLI imports the launcher without the watch; replicate orchestration
+   extends the watch; the verdict module guts eval_gate) — one combined module
+   softens that seam, and folding the launcher into `driver_common` breaks its
+   deliberately narrow marker/format charter.
+2. **Launcher shape → eval-surface now, `__main__` CLI on the module.** One
+   typed function (onnx, seeds, episodes-per-seed, out-dir; optional opponent /
+   probes / density; project / unity / lease plumbing) returning the summary
+   path. A generic `run_lane` core would have exactly one realized user and
+   would guess B's child-script conditional. The CLI replaces `rl_eval.ps1`'s
+   manual checkpoint-scan role and fixes its three defects in passing: it
+   always names a fresh out dir (killing the newest-summary-by-mtime
+   read-back), derives Unity from `ProjectVersion.txt`, and takes
+   project/lease as arguments instead of agent-3 hardcodes.
+3. **Ordering → F builds immediately after A merges, not arc-final.**
+   Everything F needs is in A; PR-4 — the reason the seams are load-bearing —
+   waits on A+F only. B's child-script graphics conditional later touches the
+   child F renames: sequential, one file; B's pr-prep reads this brief.
+4. **Env rename → do it, to `RL_HARNESS_*`.** Post-A the family is the whole
+   session grid's grammar, not an eval prefix; with F building before B–E this
+   is the historic cost minimum (7 names, one method, one 6-line child) and
+   B–E author new axes under the new family. Bare "harness" = RL harness is
+   glossary-granted and `--harness-num-arenas` is existing precedent
+   (`RL_SESSION_*` lost: no glossary row, brushes the game-side `SessionHost`
+   family). Because env vars have no unknown-name detection, a stale script
+   setting `RL_EVAL_ONNX` would silently eval the smoke fixture — so
+   `SessionSpec.Parse` throws on any retired name present, naming the
+   replacement.
+
+### Assumptions (locked; code-grounded)
+
+1. Both new modules live in `training/rl/` beside the drivers, importing
+   `driver_common.default_unity_exe` and `unity_access.run_batch` — the
+   coordinator stays the only launch path (wiring #6).
+2. The launcher composes the child env from explicit params only: start from
+   `os.environ`, strip every `RL_HARNESS_*` AND retired `RL_EVAL_*` name, set
+   what was passed. Generalizes the gate's targeted three-var pop into making
+   the inherited-override leak class unrepresentable. Values pass through as
+   strings; the launcher never validates grammar.
+3. The "find the one `*-summary.json` in the dir I named" primitive moves into
+   `eval_lane` (producer-owns-outputs); `checkpoint_watch`'s replay check
+   builds on that primitive — one copy of the glob, not two.
+4. Verdict rules stay in `eval_gate.py` byte-identical: `Score`,
+   `degraded_reasons`, `verdict`, thresholds, `read_score` + the v2 schema
+   guard, `verdict.json`, exit codes, prints.
+5. Watch extraction preserves semantics exactly: per-step dirs,
+   replay-before-run, streak rebuild in step order, ambiguous-dir refusal.
+   `test_eval_gate.py` bodies unchanged; imports re-point to the new homes (no
+   re-export shims — A already touched these imports).
+6. Replay compatibility holds: F changes no artifact content, so post-A gate
+   step dirs replay cleanly through the new code (unlike A's schema guard,
+   which invalidated pre-A dirs).
+7. Rename blast radius (verified by grep on the #231 branch): C# `RL_EVAL_*`
+   only in `SessionSpec.cs`, `TrainingBootstrap.cs`, two comments,
+   `RLSessionSpecEditModeTests`; Python only in `eval_gate.py` + README;
+   `rl_eval.ps1` dies anyway. `RL_EPISODES` / `RL_SELFPLAY` / `RL_SMOKE` are
+   different families, untouched. The child's private
+   `EVAL_UNITY/EVAL_PROJ/EVAL_LOG` trio renames to `HARNESS_*` with the child.
+8. No shim keeps `RunEval` alive; `harness_child.ps1` carries the new
+   `-executeMethod` string. The tripwire gets one new EditMode case.
+9. Manual CLI defaults: out-root `results/rl-eval/manual/` in the primary tree
+   (staging discipline — never slot-only artifacts), dir
+   `<ckpt-stem>-<timestamp>`, `--project` defaulting like the gate's with the
+   same "point at a free pool slot" help, default lease `rl-eval-manual`.
+10. README: F rewrites the eval section (new env family, CLI replaces
+    `rl_eval.ps1`, child rename) — producer owns its contract's docs, same
+    justification as A's two lines. Frozen decision text above is NOT
+    rewritten for the rename; this brief supersedes the names.
+11. Stdlib only; no new Python deps.
+12. Post-merge record upkeep: the runbook memory
+    (`rl_training_run_mechanics.md`) and paydown/topic references to
+    `rl_eval.ps1` / `RL_EVAL_*` update at merge, not in-repo.
+
+### Blindsider resolutions
+
+1. **The false "deterministic" docstring claim drops in F.** The rewritten
+   docstrings say "scripted eval at the gate shape" without the determinism
+   claim (comment ratchet: a freshly written docstring does not repeat a
+   known-false statement); the nondeterminism BUGS card keeps the
+   investigation itself. User-resolved — not silently folded.
+
+### Verification
+
+- `test_eval_gate.py` green, plus a new subprocess-free unit test for the
+  launcher's env composition (fake `run_batch`; assert composed and stripped
+  env, including retired-name stripping).
+- `eval_gate.py --once` replaying an existing post-A step dir — exercises
+  watch + read_score + verdict with no Unity boot.
+- One live gate-shape smoke run (`ShipCombat-smoke.onnx`, seeds 2001–2005 × 3)
+  through the new CLI, checked with `golden_compare.py`'s deterministic mask
+  against `results/rl-eval/golden-main-d61b31cc/` — a lost env value changes
+  the episode stream, so the mask catches name-wiring mistakes the unit tests
+  cannot.
+
+### Tests
+
+- **Python** — the env-composition unit test above; existing verdict/replay
+  tests unchanged in body.
+- **EditMode** — `RLSessionSpecEditModeTests` string updates for the rename +
+  one retired-name-throw case.
+- **PlayMode** — none new; the slice-A lane smoke already covers the C# path,
+  which F does not change behaviorally.
