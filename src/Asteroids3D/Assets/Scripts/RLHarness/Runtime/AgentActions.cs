@@ -19,7 +19,7 @@ namespace Game.RLHarness
         }
     }
 
-    /// <summary>Pure mapping between the 6-continuous action vector [vx, vy, fire, boost, fx, fy] ∈ [−1,1] and game-frame commands (fire/boost are threshold-gated at 0 — 4.0.3 rejects hybrid specs in the trainer path; fx/fy are a facing direction whose angle is consumed via <see cref="ToFacingRad"/> and whose magnitude is the facing authority via <see cref="ToFacingWeight"/>). Ego→world conversion happens ONCE per decision at the boundary; re-rotating per tick would feed live yaw back into the reference.</summary>
+    /// <summary>Pure mapping between the 6-continuous action vector [vx, vy, fire, boost, fx, fy] ∈ [−1,1] and game-frame commands (fire/boost are threshold-gated at 0; fx/fy are a facing direction whose angle is consumed via <see cref="ToFacingRad"/> and whose magnitude is the facing authority via <see cref="ToFacingWeight"/>). Ego→world conversion happens ONCE per decision at the boundary; re-rotating per tick would feed live yaw back into the reference.</summary>
     public static class AgentActions
     {
         public const int Count = 6;
