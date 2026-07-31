@@ -82,7 +82,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **composition** | `IEpisodeComposition` · composition root (DI) · prefab-vs-runtime composition · capture-scene composition | Always qualified. |
 | **envelope** | firing envelope · kinematic envelope · scan envelope · MPC travel envelope | Bare "envelope" = firing envelope; qualify the others. |
 | **guard** | the prohibited runtime check (fix-ladder rung 5, pejorative) · a benign regression/test guard · infra guard | The pejorative sense wins in fix-ladder context. Tests say "regression test", not "guard". |
-| **anchor** | `--initialize-from` checkpoint · field world anchor / null anchor · archive anchors (file locations) · arena root | Always qualified. |
+| **anchor** | `--initialize-from` checkpoint · field world anchor / null anchor · archive anchors (file locations) · arena root · anchored intent / enemy anchor (the MPC-resolved frame reference) | Always qualified. |
 
 ---
 
@@ -344,6 +344,21 @@ Format: **term** — definition. *(authority)*
 - **velocity reference / feasibility tracker** — the RL↔MPC boundary: the policy
   emits a planar velocity and MPC is demoted to a ~2s tracker (feasibility, aim,
   velocity-track).
+- **anchored intent** — an intent channel expressed as frame + relation +
+  authority instead of a world-frame value: a facing offset around the enemy
+  intercept anchor, and a polar velocity in the enemy frame, each with a [0,1]
+  weight. The MPC re-resolves both against the predicted enemy every rollout
+  step, so the command never goes stale. **Sign pins:** radial > 0 closes along
+  +losHat; tangential > 0 and positive facing offsets are CCW; the polar
+  velocity is *relative to the enemy's motion*; the action-side mapping is
+  [−1,1] × maxSpeed. *(AnchoredIntent, Cost.EvalContext)*
+- **delegation prior** — the low-weight, config-gated fallback that steers a
+  channel when its anchored authority is 0: facing eases to the velocity-aligned
+  pose (`wFacingPrior`), velocity keeps course (`wMomentum`). Weight-0 reads as
+  competent coasting, never drift. *(Cost.FacingPriorCost, Cost.MomentumCost)*
+- **terminal ramp** — the MPC multiplier that scales *state* costs up toward the
+  horizon end (reaching semantics); control terms and the velocity tracker
+  deliberately sit outside it (regulation semantics). *(Cost.Evaluate)*
 - **brain / chooser / intent** — the swappable-decision seam. The contract worth
   knowing: an intent is **idempotent per decision**, so re-applying one is safe.
   ⚠ "Intent" is acknowledged stale — it also carries fire and boost, which the

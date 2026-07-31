@@ -58,6 +58,10 @@ namespace Movement.MPC
         public float wFacing = 1.0f;
         [Tooltip("Facing Huber dead-zone width in radians. Errors within this range get a gentle quadratic penalty; beyond it cost grows linearly.")]
         public float facingWidth = 0.5f;
+        [Tooltip("Velocity-aligned facing prior weight — the weight-0 delegation floor: with facing authority at 0 " +
+                 "the nose eases toward the direction of travel instead of drifting. Keep well below wFacing so it " +
+                 "only wins when the commanded facing abstains. 0 disables (production default).")]
+        public float wFacingPrior = 0f;
 
         [Header("Obstacle Avoidance")]
         [Tooltip("Admissibility (turn-away) weight. Penalizes rollout states whose velocity leads " +
@@ -100,6 +104,7 @@ namespace Movement.MPC
                 wFacing = wFacing,
                 facingWidth = facingWidth,
                 facingTarget = facingTargetRad,
+                wFacingPrior = wFacingPrior,
                 wObstacle = wObstacle,
                 collisionPenalty = collisionPenalty,
                 collisionSafetyMargin = collisionSafetyMargin,

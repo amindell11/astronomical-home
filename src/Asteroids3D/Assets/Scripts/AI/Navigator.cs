@@ -35,6 +35,7 @@ namespace Movement.MPC
         protected internal float enemyYawRate;
         protected internal float projectileSpeed;
         protected Dynamics enemyDynamics;
+        protected internal AnchoredIntent anchored;
         protected WeightOverride[] weightOverrides = Array.Empty<WeightOverride>();
 
         protected PilotCommand currentCommand;
@@ -94,6 +95,7 @@ namespace Movement.MPC
                 enemyYawRate = enemyYawRate,
                 projectileSpeed = projectileSpeed,
                 enemyDynamics = enemyDynamics,
+                anchored = anchored,
                 weightOverrides = weightOverrides,
                 obstacleScan = scan,
                 enableObstacleAvoidance = enableObstacleAvoidance,
@@ -137,6 +139,12 @@ namespace Movement.MPC
                 return;
             }
 
+            // Two facing sources in one intent is a contradiction, not a precedence question.
+            var facingSources = (intent.hasFacing ? 1 : 0) + (intent.anchored.hasFacing ? 1 : 0) + (intent.aimAtTarget ? 1 : 0);
+            if (facingSources > 1)
+                throw new InvalidOperationException(
+                    "NavigationIntent carries more than one facing source (facingRad / anchored facing / aimAtTarget) — a chooser must pick exactly one.");
+
             boostCommanded = intent.boost;
             SetVelocityReference(intent.velocityReference);
 
@@ -145,10 +153,19 @@ namespace Movement.MPC
             else
                 ClearFacingOverride();
 
+            anchored = intent.anchored;
+            // Legacy intercept aim IS the enemy anchor at offset 0, full authority — the one facing-target rule lives in the cost model.
             if (intent.aimAtTarget && intent.hasTarget)
+            {
+                anchored.hasFacing = true;
+                anchored.facingOffsetRad = 0f;
+                anchored.facingWeight = 1f;
+            }
+
+            if ((anchored.hasFacing || anchored.hasVelocity) && intent.hasTarget)
                 SetEnemyState(intent.target, intent.projectileSpeed);
             else
-                ClearEnemyState();
+                ClearEnemyState();   // targetless anchored channels collapse to the delegation priors
 
             SetWeightOverrides(intent.weightOverrides);
 
@@ -164,6 +181,7 @@ namespace Movement.MPC
             boostCommanded = false;
             hasVelocityReference = false;
             velocityReference = default;
+            anchored = default;
             ClearFacingOverride();
             ClearEnemyState();
             ClearObstacleExclusion();
@@ -295,7 +313,7 @@ namespace Movement.MPC
 
         private CostBreakdown EvaluateBreakdown(State mpcState)
         {
-            var input = solver.BuildCostInput(velocityReference, enemyPos, enemyVel, enemyYaw, enemyYawRate, projectileSpeed, mpcState.vel);
+            var input = solver.BuildCostInput(velocityReference, enemyPos, enemyVel, enemyYaw, enemyYawRate, projectileSpeed, mpcState.vel, anchored);
             if (costBreakdownMode == CostBreakdownMode.CurrentState)
                 return Cost.EvaluateBreakdown(mpcState, bestSequence[0], lastControl, input, config);
             return Cost.EvaluateTrajectoryBreakdown(mpcState, bestSequence, input, config, dynamics, lastControl);

@@ -19,6 +19,7 @@ namespace Movement.MPC
         public float enemyYawRate;
         public Dynamics enemyDynamics;
         public float projectileSpeed;
+        public AnchoredIntent anchored;
         public WeightOverride[] weightOverrides;
         public ObstacleScan obstacleScan;
         public bool enableObstacleAvoidance;
@@ -79,7 +80,7 @@ namespace Movement.MPC
                     inputs.obstacleScan, inputs.enableObstacleAvoidance, settings.multiSphereObstacles,
                     inputs.velocityReference,
                     inputs.enemyPos, inputs.enemyVel, inputs.enemyYaw, inputs.enemyYawRate,
-                    inputs.enemyDynamics, inputs.projectileSpeed,
+                    inputs.enemyDynamics, inputs.projectileSpeed, inputs.anchored,
                     settings.samples, settings.noiseStd, settings.noiseKnots, lastControl,
                     boostCooldown, boostProb,
                     settings.eliteFraction);

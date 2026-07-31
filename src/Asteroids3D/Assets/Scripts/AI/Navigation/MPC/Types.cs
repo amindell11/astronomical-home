@@ -42,6 +42,7 @@ namespace Movement.MPC
         public float wFacing;
         public float facingTarget;
         public float facingWidth;
+        public float wFacingPrior;
 
         public float wObstacle;
         public float collisionPenalty;
@@ -80,6 +81,8 @@ namespace Movement.MPC
         Effort, SmoothnessThrust, SmoothnessStrafe, SmoothnessYaw, Momentum,
         Facing, FacingWidth,
         Obstacle, BoostEffort,
+        // Appended: WeightOverride serializes this enum by value in .asset files.
+        VelTrack,
     }
 
     /// <summary>A single multiplier applied to one base MPC weight.</summary>
@@ -111,6 +114,7 @@ namespace Movement.MPC
                     case MpcWeight.FacingWidth:       cfg.facingWidth *= m; break;
                     case MpcWeight.Obstacle:          cfg.wObstacle *= m; break;
                     case MpcWeight.BoostEffort:       cfg.wBoostEffort *= m; break;
+                    case MpcWeight.VelTrack:          cfg.wVelTrack *= m; break;
                 }
             }
         }
@@ -122,6 +126,20 @@ namespace Movement.MPC
         public float2 position;
         public float radius;
         public float weight;
+    }
+
+    /// <summary>Enemy-anchored intent channels: a facing offset around the intercept anchor and a polar velocity in the enemy frame, each with its own authority weight. The MPC re-resolves both against the predicted enemy every rollout step, so the command stays correct as the world moves. Sign pins (doc/Glossary.md → anchored intent): positive offset and positive tangential are CCW; positive radial closes along +losHat.</summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public struct AnchoredIntent
+    {
+        public bool hasFacing;
+        public float facingOffsetRad;    // CCW offset from the intercept yaw
+        public float facingWeight;       // [0,1] authority × the config's wFacing ceiling
+
+        public bool hasVelocity;
+        public float radialSpeed;        // m/s; > 0 closes along +losHat
+        public float tangentialSpeed;    // m/s; > 0 orbits CCW around the enemy
+        public float velocityWeight;     // [0,1] authority × the config's wVelTrack ceiling
     }
 
     /// <summary>Read-only world data for cost evaluation; extend it to add inputs without changing Cost.Evaluate's signature or touching the Burst job.</summary>
@@ -151,6 +169,9 @@ namespace Movement.MPC
 
         /// <summary>Ship velocity at the start of the rollout, the momentum cost's reference direction.</summary>
         public float2 initialVel;
+
+        /// <summary>Enemy-anchored channels; default = both channels off (legacy world-frame path, bit-unchanged).</summary>
+        public AnchoredIntent anchored;
     }
 
     internal readonly struct EditorProfilingScope : System.IDisposable
@@ -176,6 +197,7 @@ namespace Movement.MPC
     {
         public float velocityTrack;
         public float facing;
+        public float facingPrior;
         public float yawRate;
         public float obstacle;
         public float collision;
@@ -189,6 +211,7 @@ namespace Movement.MPC
         {
             velocityTrack += other.velocityTrack;
             facing += other.facing;
+            facingPrior += other.facingPrior;
             yawRate += other.yawRate;
             obstacle += other.obstacle;
             collision += other.collision;
