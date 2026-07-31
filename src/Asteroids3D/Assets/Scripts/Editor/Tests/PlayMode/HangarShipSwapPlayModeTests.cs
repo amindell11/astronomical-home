@@ -123,9 +123,8 @@ namespace Tests.PlayMode
             rig.Loadout.Shield = ship1.Shield;
             rig.ApplyLoadout();
 
-            // Lethal damage on the NEW ship must fire the re-wired death callback; damage hits shield OR hull per hit, so two hits.
+            // Lethal damage on the NEW ship must fire the re-wired death callback.
             var lethal = rig.Player.Stats.maxShield + rig.Player.Stats.maxHealth + 100f;
-            rig.Player.Damage.TakeDamage(lethal, 0f, Vector3.zero, rig.Player.transform.position, null);
             rig.Player.Damage.TakeDamage(lethal, 0f, Vector3.zero, rig.Player.transform.position, null);
 
             Assert.IsTrue(died, "injected death callback re-armed on the rebuilt player");
