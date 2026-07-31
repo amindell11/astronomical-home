@@ -223,12 +223,19 @@ Format: **term** — definition. *(authority)*
   to. Treating it as an automatic stop is the recurring misread. *(eval_gate.py)*
 - **gate score** — the eval total (5 archetypes × 15 = X/75; older runs X/60).
   Not comparable across a rules change.
-- **noise floor** — eval re-run variance, and ⚠ **currently unknown**. The
-  quoted ±4/75 is an n=2 estimate. The 16-point span (58–74) across Phase B's 14
-  checkpoints is *not* a substitute for it: no checkpoint has been evaluated more
-  than twice, so policy variance and eval variance are confounded in that range.
-  Treat both figures as provisional until a checkpoint is replicated, and do not
-  size an effect against either. *(RL_Infra_Paydown_Pass.md, finding 1)*
+- **noise floor** — eval re-run variance, **measured 2026-07-30** (34-eval
+  variance experiment): run-jitter SD ≈ 1.2–2.5 on gate totals — so ±4/75 holds
+  as a ~2σ bound — mechanical in origin ([[project-eval-sim-nondeterminism]])
+  and policy-dependent. A different seed set adds another SD ≈ 2 on top.
+  Per-archetype cells are proportionally noisier than totals; never read a
+  single cell against a threshold without an interval.
+  *(RL_Infra_Paydown_Pass.md §PR-4 calibration evidence)*
+- **replicate** — one complete re-execution of the identical eval protocol
+  (same checkpoint, seed set, episodes/seed, density, tree) in a fresh boot,
+  differing only by mechanical sim nondeterminism; the unit of measurement for
+  one checkpoint. NOT a new seed draw (that samples different episodes) and NOT
+  a cross-tree re-eval (that confounds code drift with draw luck).
+  *(RL_Infra_Paydown_Pass.md §PR-4)*
 - **ELO treadmill** — snapshots inherit `current_elo`, so ELO measures
   improvement against recent selves and cannot see absolute capability loss. The
   gate score is the absolute yardstick.

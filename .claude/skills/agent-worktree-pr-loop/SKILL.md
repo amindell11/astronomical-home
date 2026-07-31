@@ -15,6 +15,17 @@ read-only exploration), without the user naming the pool, a slot, or "PR".
 Exceptions: trivial doc/comment-only edits the user explicitly asks to be made
 directly, or explicit instruction to work in place.
 
+**Docs-only landing (direct-to-main, no PR).** A change may skip this loop and
+be committed/pushed to main directly when ALL of: (1) the diff touches only
+documentation paths (`doc/**`, `*.md`, `.claude/**.md` — no code, no assets,
+nothing that executes); (2) the content was explicitly user-approved in the
+session landing it — that approval IS the review; (3) the commit message
+carries the story a PR body would have. Verify (1) mechanically
+(`git diff --cached --stat`) before pushing. These landings are cited by
+commit SHA, not PR number. Anything touching code takes the full loop.
+(Decided 2026-07-31: the merge gate never ran tests on docs-only deltas, so
+the PR ceremony added review the session had already performed.)
+
 ## Pool commands
 
 - `./scripts/agent_worktree_pool.sh status`

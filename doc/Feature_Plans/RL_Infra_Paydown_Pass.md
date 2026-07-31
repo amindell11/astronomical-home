@@ -1,6 +1,6 @@
 # RL Infrastructure Paydown Pass
 
-> STATUS: live arc — PR-1 (hygiene) + PR-2 (drivers/coordinator) building in parallel; PR-3 GREW INTO ITS OWN ARC, design FROZEN 2026-07-29 → `RL_Harness_Lane_Unification.md` (slices A–F); PR-4 (statistical eval) designs against that frozen doc; bench-hardening item HELD pending user discussion
+> STATUS: live arc — PR-1 SHIPPED #223, PR-2 SHIPPED #224; PR-3 GREW INTO ITS OWN ARC, design FROZEN 2026-07-29 → `RL_Harness_Lane_Unification.md` (slices A–F, slice A building); PR-4 (statistical eval) design FROZEN 2026-07-31 (§PR-4 brief below), builds after slices A+F; bench-hardening item HELD pending user discussion
 
 *Draft • 2026-07-28 • seeded by a four-lane parallel review (run history + results artifacts, code audit, PR trail #130–#222, board/deferral sweep) run in the coordinating session on 2026-07-28.*
 
@@ -146,12 +146,130 @@ ram bench split into contact probe + regression client; eval summary schema
 v2 (`opponents` rename + schema id + provenance). Playtest / profiler /
 throughput lanes designed-for, not built. Do not re-decide here.
 
-## PR-4 — statistical eval layer (design after PR-3 freezes)
+## PR-4 — statistical eval layer
 
-N-replicate eval protocol (separate eval vs policy variance empirically, once);
-interval reporting in summaries/verdicts (read the Wilson bounds already
-computed); phase-aware gate arming (no more false STOP on fresh curricula).
-Threshold recalibration explicitly deferred to the rules change.
+> STATUS: design FROZEN 2026-07-31 (pr-prep session; all forks user-resolved).
+> One PR, not an arc (the tournament layer that would have split it is deferred).
+> Implements AFTER harness-lane slices A (schema v2) and F (watch/launcher/verdict
+> split) — both assumed present; the brief below is the authority and the
+> implementing agent re-decides nothing.
+
+**Scope.** Verdict machinery that consumes measured uncertainty: replicate
+protocol + interval verdicts in the gate loop, auto-arming, a banking CLI,
+paired A/B checkpoint comparison, calibration bundle as versioned config.
+All Python; C# untouched. **Non-goals:** threshold *recalibration* (locked:
+waits for the rules change — bundle v2 is authored then); tournament/rating
+machinery (deferred, carded); sim-determinism root-cause (separate BUGS card);
+any C# schema or `EvalProtocol` change.
+
+### Calibration evidence (prep-time variance experiment, 2026-07-30)
+
+34 replicate gate-shape evals on current main (`results/rl-eval/variance-2026-07-29/`):
+
+| Checkpoint | n | mean | SD | range | historic single draw |
+|---|---|---|---|---|---|
+| `699941` (banked) | 10 | 71.0 | 2.0 | 69–75 | 74 |
+| `1500020` (final) | 8 | 70.1 | 1.2 | 68–72 | 67 |
+| `399945` (outlier) | 8 | 61.1 | 2.5 | 57–65 | 58 |
+| `699941` jobs-off | 5 | 73.0 | 1.0 | 72–74 | — |
+| `699941` alt seed sets | 4×1 | 68.5 | ~2.9 obs | 65–72 | — |
+
+Findings the design rests on: run-jitter SD ≈ 1.2–2.5 on totals (±4/75 folklore
+≈ 2σ, now measured); the banked-vs-final "74 vs 67" gap is noise (true means
+71.0 vs 70.1) while the 400k dip is real (>4σ) — replication separates exactly
+these; per-cell noise brushes the ALERT threshold on healthy policies (an
+Evader 11 observed from a ~13.5-true policy); seed-set effect SD ≈ 2 —
+comparable to jitter, larger at cell level (an Orbiter 8 from a never-below-11
+policy); jobs-off mode is tighter (SD 1.0) but *shifted* (+1.9) — execution
+mode is part of the measurement. Caveat: historic draws ran on the Phase-B
+tree; historic-vs-today gaps confound code drift with draw luck — only
+within-experiment spread cleanly measures jitter.
+
+### Forks (resolved, with why)
+
+1. **Variance experiment → ran at prep time.** Fork 2's architecture depended
+   on the magnitude; it also delivered slice A's acceptance calibration.
+2. **Replicate/verdict architecture → adaptive confirmation.** `K_watch=1`; a
+   degraded read (cell ≤ threshold or total < min, Wilson bounds finally read)
+   triggers +2 confirmation replicates of the same checkpoint and a pooled
+   re-verdict (cells n=45); ALERT means *confirmed* degraded; STOP stays the
+   two-consecutive-confirmed streak. No formal alpha-spending — confirmation +
+   streak IS the sequential rule; the gate reports to a human. Banking:
+   `K_bank=5` on canonical seeds (SE≈0.9), paired A/B vs the incumbent
+   (per-episode McNemar on shared seeds + mean-diff on replicate totals — the
+   instrument that catches 74-vs-67 as noise), one held-out draw
+   (interval-reported; answers generalization, never canonical thresholds).
+   Rejected: fixed K=3 (3× watch cost for rarely-needed confirmation), sliding
+   windows (confound policy drift with noise; smear real single-checkpoint dips).
+3. **Gate semantics → erosion detector with auto-arm.** Report-only until a
+   checkpoint first passes the healthy predicate, then armed; armed state +
+   arming step in `verdict.json`; `--from-step` stays as escape hatch. Closes
+   the `--min-step` board card (operator-knob shape rejected: misuse = the
+   observed false-STOP failure mode). Curriculum-aware arming rejected
+   (re-parses trainer-owned state).
+4. **Seed regime → calibration bundle.** `{seed set, eps/seed, thresholds,
+   arming predicate, K_watch/K_confirm/K_bank, executionMode}` versioned as one
+   config; v1 = today's values, `executionMode: parallel`. Watch stays
+   2001–2005×3 (pairing anchor); rotation rejected (destroys paired-test
+   power); held-out 1001–1020 unseals ONLY at banking, one draw per event
+   (verified never drawn to date). Jobs-off recorded as candidate v2 change at
+   the rules-change break — never mixed into the parallel-mode series.
+5. **Offline ELO → pairwise only; tournament deferred.** Head-to-head A-vs-B is
+   slice C config + the same two-proportion verdict code; round-robin + rating
+   fit carded, gated on its first real consumer (post-rules-change candidate
+   selection).
+6. **Math home → all Python.** Cross-run inference needs multiple summaries;
+   C# sees one run. C# per-run Wilson stays informational.
+7. **Replicate orchestration → Python loop, separate boots, `step-N/rep-k/`
+   dirs.** Cross-boot replicates are what the historical series measures (Burst
+   compile timing is a live jitter suspect); in-session replicates would
+   under-measure. Replay contract becomes rep-aware (blindsider 4).
+8. **Sample identity → one run dir = one sample**, enforced and surfaced by an
+   evidence-provenance block in `verdict.json`. No C# id field.
+9. **Resume window → documented convention** (`--from-step` after resume, in
+   gate docstring + README). Mechanism ungrounded in code; below the fix-ladder
+   entry bar.
+
+### Assumptions (locked)
+
+1. Stats are stdlib-Python (Wilson, pooled intervals, exact McNemar via
+   binomial); no scipy/numpy.
+2. Python recomputes intervals for pooled data; C# `wilsonLowerBound95` unchanged.
+3. `EvalProtocol` constants untouched (arc approved assumption 3).
+4. Builds on slice A's `opponents[]`/schema-id summaries and slice F's
+   extracted watch/launcher library; verdict rules land in the post-F verdict
+   module.
+5. Bundle v1 is a config file in `training/rl/`; every verdict artifact records
+   the bundle id that judged it. The `seeds × eps = 15` CLI hardcode moves into
+   bundle validation.
+6. `verdict.json` schema evolves freely (armed state, confirmation, provenance)
+   — no programmatic readers exist.
+7. Existing gate CLI flags keep working; new behavior is additive.
+8. No blended aggregate; bench margins stay deterministic and out of scope.
+9. Paired A/B reads per-episode outcomes from the episode JSONL (rows carry
+   seed/episodeIndex/opponent), pairing on (seed, opponent, episodeIndex).
+
+### Blindsider resolutions
+
+1. **Pooled Wilson used as-is under seed clustering**, caveat documented —
+   thresholds are calibrated on the same clustered structure, so the mild
+   interval understatement is absorbed by calibration.
+2. **Banking = separate small CLI** on the slice-F launcher library, not an
+   `eval_gate` mode.
+3. **Held-out draws require an explicit flag AND append to a usage registry
+   file** — exposure of the sealed set stays auditable.
+4. **Replay rule:** verdict re-derived from all reps present in a step dir;
+   missing confirmation reps run only if the pooled state is
+   degraded-unconfirmed. Deterministic and resumable.
+
+### Coordination
+
+Touches `eval_gate.py`/`test_eval_gate.py` and adds the bundle + banking CLI +
+stats module — all post-slice-F files; zero overlap with slices B–E. "Replicate"
+enters `doc/Glossary.md` (one full protocol re-execution, fresh boot, identical
+inputs; differs only by mechanical sim nondeterminism — NOT a new seed draw, NOT
+a cross-tree re-eval). The variance dataset and the four golden baselines
+(`results/rl-eval/golden-main-d61b31cc/`) are the calibration provenance.
 
 ## Held
 

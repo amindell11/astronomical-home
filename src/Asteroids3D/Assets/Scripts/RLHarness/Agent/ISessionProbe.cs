@@ -1,0 +1,67 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace Game.RLHarness
+{
+    /// <summary>What a probe is handed at the start of each episode in a block.</summary>
+    public readonly struct ProbeContext
+    {
+        public readonly EpisodePair pair;
+        public readonly Vector2 arenaCenter;
+        public readonly RewardSpec spec;
+        public readonly int episodeIndex;
+        public readonly OpponentDraw draw;
+        public readonly string opponentLabel;
+
+        public ProbeContext(EpisodePair pair, Vector2 arenaCenter, in RewardSpec spec, int episodeIndex,
+            in OpponentDraw draw, string opponentLabel)
+        {
+            this.pair = pair;
+            this.arenaCenter = arenaCenter;
+            this.spec = spec;
+            this.episodeIndex = episodeIndex;
+            this.draw = draw;
+            this.opponentLabel = opponentLabel;
+        }
+    }
+
+    /// <summary>A session-scoped instrument selected by name (see <see cref="SessionProbes"/>): the host drives one Begin/Sample*/End cycle per episode and appends the returned row, then the lane client asks for the run's summary sidecar.</summary>
+    public interface ISessionProbe : IDisposable
+    {
+        string Name { get; }
+        void Begin(in ProbeContext context);
+        void Sample();
+        /// <summary>The episode's JSONL row; the host owns where it lands.</summary>
+        string End(in EpisodeResult result);
+        void Summarize(string summaryPath);
+    }
+
+    /// <summary>Where one probe's artifacts landed, carried by the run summary.</summary>
+    [Serializable]
+    public struct ProbeArtifacts
+    {
+        public string name;
+        public string jsonl;
+        public string summary;
+    }
+
+    /// <summary>The probe name registry — the selection grammar behind RL_EVAL_PROBES. Factories take the per-probe key→float param map (decision 4); the env grammar that fills it arrives with its first parameterized probe (slice D).</summary>
+    public static class SessionProbes
+    {
+        private static readonly Dictionary<string, Func<IReadOnlyDictionary<string, float>, ISessionProbe>> Factories =
+            new()
+            {
+                [ArchetypeGateProbe.ProbeName] = _ => new ArchetypeGateProbe(),
+            };
+
+        public static string RegisteredNames => string.Join(", ", Factories.Keys);
+
+        public static bool IsRegistered(string name) => name != null && Factories.ContainsKey(name);
+
+        public static ISessionProbe Create(string name, IReadOnlyDictionary<string, float> parameters = null) =>
+            Factories.TryGetValue(name, out var factory)
+                ? factory(parameters)
+                : throw new ArgumentException($"No probe named '{name}'; registered probes: {RegisteredNames}.");
+    }
+}

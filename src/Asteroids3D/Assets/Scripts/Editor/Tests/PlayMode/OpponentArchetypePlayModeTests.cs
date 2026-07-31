@@ -97,7 +97,7 @@ namespace Tests.PlayMode
             {
                 var draw = roster.Install(archetype, in spec, 0, arena.Offset);
                 pair.Reset(in spec, 0);
-                using var probe = new ArchetypeGateProbe(pair.Baseline, pair.Agent, arena.Offset,
+                using var probe = new ArchetypeGateSampler(pair.Baseline, pair.Agent, arena.Offset,
                     spec.arenaRadius, in draw);
                 var runner = new EpisodeRunner(pair.Agent, pair.Baseline, spec, 0, arena.Offset);
                 runner.RecordOpponent(in draw);
@@ -166,7 +166,7 @@ namespace Tests.PlayMode
                 {
                     var draw = roster.Install(archetype, in spec, i, arena.Offset);
                     pair.Reset(in spec, i);
-                    using var probe = new ArchetypeGateProbe(pair.Baseline, pair.Agent, arena.Offset,
+                    using var probe = new ArchetypeGateSampler(pair.Baseline, pair.Agent, arena.Offset,
                         spec.arenaRadius, in draw);
                     var runner = new EpisodeRunner(pair.Agent, pair.Baseline, spec, i, arena.Offset);
                     yield return RunToCompletion(runner, spec, probe);
@@ -194,7 +194,7 @@ namespace Tests.PlayMode
             roster = new OpponentRoster(pair.Baseline, pair.Agent);
         }
 
-        private IEnumerator RunToCompletion(EpisodeRunner runner, RewardSpec spec, ArchetypeGateProbe probe)
+        private IEnumerator RunToCompletion(EpisodeRunner runner, RewardSpec spec, ArchetypeGateSampler probe)
         {
             runner.Begin();
             var maxSimSeconds = spec.timeoutDecisions * spec.decisionIntervalSteps * Time.fixedDeltaTime;

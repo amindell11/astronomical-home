@@ -52,11 +52,13 @@ plan doc (or the driving topic memory if the plan doc is historical). Capture an
 structural insight there too, per root `CLAUDE.md`. Keep it to the locked
 decisions + one-line rationale for each fork — detail, not narration.
 
-Write it in a pool slot and **land it before the build starts** (`AGENTS.md` →
-Doc lifecycle → Landing). A brief scoped to the one PR being prepped may instead
-ride that PR's first commit; a doc that grew into an arc governing several PRs
-lands on its own, because tying it to any one slice makes the authority for the
-rest hostage to that slice.
+**Land it before the build starts** (`AGENTS.md` → Doc lifecycle → Landing).
+Since the brief was user-approved in the prep session, it qualifies for the
+worktree-loop skill's docs-only direct-to-main landing — no PR needed. A brief
+scoped to the one PR being prepped may instead ride that PR's first commit; a
+doc that grew into an arc governing several PRs lands on its own either way,
+because tying it to any one slice makes the authority for the rest hostage to
+that slice.
 
 ## Hand-off to implementation
 
