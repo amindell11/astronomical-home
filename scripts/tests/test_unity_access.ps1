@@ -174,6 +174,37 @@ try {
     [void](Invoke-Coordinator -Action Release -Lease reclaim)
     [void](Invoke-Coordinator -Action Release -Lease stale-boot)
 
+    # A boot dir deleted out from under the coordinator self-heals: the lane is simply free again.
+    [void](Invoke-Coordinator -Action Acquire -Lease heal -ProjectPath $projA)
+    [void](Invoke-Coordinator -Action BootAcquire -Lease heal -WaitSeconds 1)
+    Remove-Item -LiteralPath (Join-Path $State "boot") -Recurse -Force
+    $healed = Invoke-Coordinator -Action BootAcquire -Lease heal -WaitSeconds 1
+    Assert-Equal $healed.code 0 "boot re-acquire after dir deletion exit"
+    Assert-Equal $healed.value.status "boot_acquired" "a deleted boot dir self-heals on acquire"
+    [void](Invoke-Coordinator -Action Release -Lease heal)
+
+    # An unowned boot dir that cleanup cannot remove is a wedged lane (the 2026-07-29 incident shape).
+    [void](Invoke-Coordinator -Action Acquire -Lease wedge -ProjectPath $projA)
+    $wedgeDir = Join-Path $State "boot"
+    New-Item -ItemType Directory -Force -Path $wedgeDir | Out-Null
+    $locker = Start-Process powershell -PassThru -WindowStyle Hidden -WorkingDirectory $wedgeDir -ArgumentList @("-NoProfile", "-Command", "Start-Sleep -Seconds 120")
+    try {
+        $wedged = Invoke-Coordinator -Action BootAcquire -Lease wedge -WaitSeconds 1
+        Assert-Equal $wedged.code 25 "wedged boot acquire exit"
+        Assert-Equal $wedged.value.status "boot_lane_wedged" "undeletable unowned boot dir reports wedged"
+        Assert-True (-not [string]::IsNullOrWhiteSpace([string]$wedged.value.error)) "wedged result carries the underlying error"
+        $wedgeStatus = Invoke-Coordinator -Action Status
+        Assert-True ($null -eq $wedgeStatus.value.boot) "wedged lane has no owner"
+        Assert-True ([bool]$wedgeStatus.value.bootWedged) "Status reports the wedged lane instead of free"
+    }
+    finally {
+        Stop-Process -Id $locker.Id -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Seconds 1
+    }
+    $unwedged = Invoke-Coordinator -Action BootAcquire -Lease wedge -WaitSeconds 1
+    Assert-Equal $unwedged.value.status "boot_acquired" "the lane recovers once the locking process exits"
+    [void](Invoke-Coordinator -Action Release -Lease wedge)
+
     $editorA = Invoke-Coordinator -Action Acquire -Lease editor-a -Mode editor -ProjectPath $projA
     Assert-Equal $editorA.value.status "acquired" "tracked editor acquire"
     $batchB = Invoke-Coordinator -Action Acquire -Lease batch-b -ProjectPath $projB
