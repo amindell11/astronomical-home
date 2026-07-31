@@ -21,6 +21,7 @@ namespace Game.RLHarness
         public EpisodeRunner OpponentRunner { get; private set; }
         public float LastOpponentEpisodeCumulativeReward { get; private set; }
 
+        /// <summary>A null <paramref name="agent"/> is the scripted-vs-scripted measurement composition (open-loop lane): the runner still owns boundaries and termination, but no decision requests or rewards flow anywhere.</summary>
         public EpisodeLoopDriver(EpisodePair pair, ShipAgent agent, Vector2 arenaCenter, HarnessField field = null,
             OpponentRoster roster = null, ShipAgent opponentAgent = null)
         {
@@ -48,7 +49,7 @@ namespace Game.RLHarness
             if (draw.HasValue) Runner.RecordOpponent(draw.Value);
             Runner.Begin();
             onBegin?.Invoke();
-            agent.BindEpisode(Runner);
+            agent?.BindEpisode(Runner);
 
             EpisodeRunner opponentRunner = null;
             if (opponentAgent != null)
@@ -60,7 +61,7 @@ namespace Game.RLHarness
             OpponentRunner = opponentRunner;
 
             // self_play: trainer serves the team-1 ghost; both agents request, the Academy auto-steps both.
-            agent.RequestDecision();
+            agent?.RequestDecision();
             opponentAgent?.RequestDecision();
 
             while (!Runner.IsDone)
@@ -72,13 +73,16 @@ namespace Game.RLHarness
                 if (!boundaryReached) continue;
 
                 var boundary = Runner.LastBoundary;
-                agent.AddReward(boundary.Total);
+                agent?.AddReward(boundary.Total);
                 if (opponentRunner != null) opponentAgent.AddReward(opponentRunner.LastBoundary.Total);
                 switch (boundary.endKind)
                 {
                     case EndKind.Terminal:
-                        LastEpisodeCumulativeReward = agent.GetCumulativeReward();
-                        agent.EndEpisode();
+                        if (agent != null)
+                        {
+                            LastEpisodeCumulativeReward = agent.GetCumulativeReward();
+                            agent.EndEpisode();
+                        }
                         if (opponentAgent != null)
                         {
                             LastOpponentEpisodeCumulativeReward = opponentAgent.GetCumulativeReward();
@@ -86,8 +90,11 @@ namespace Game.RLHarness
                         }
                         break;
                     case EndKind.Truncation:
-                        LastEpisodeCumulativeReward = agent.GetCumulativeReward();
-                        agent.EpisodeInterrupted();
+                        if (agent != null)
+                        {
+                            LastEpisodeCumulativeReward = agent.GetCumulativeReward();
+                            agent.EpisodeInterrupted();
+                        }
                         if (opponentAgent != null)
                         {
                             LastOpponentEpisodeCumulativeReward = opponentAgent.GetCumulativeReward();
@@ -95,7 +102,7 @@ namespace Game.RLHarness
                         }
                         break;
                     default:
-                        agent.RequestDecision();
+                        agent?.RequestDecision();
                         opponentAgent?.RequestDecision();
                         break;
                 }

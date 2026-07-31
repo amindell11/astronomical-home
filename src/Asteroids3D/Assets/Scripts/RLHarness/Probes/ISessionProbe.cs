@@ -57,6 +57,7 @@ namespace Game.RLHarness
             [ContactProbe.ProbeName] = (_ => new ContactProbe(), Array.Empty<string>()),
             [FacingProbe.ProbeName] = (parameters => new FacingProbe(parameters),
                 new[] { FacingProbe.AuthorityScaleKey }),
+            [VelRebaseProbe.ProbeName] = (_ => new VelRebaseProbe(), Array.Empty<string>()),
         };
 
         public static string RegisteredNames => string.Join(", ", Factories.Keys);

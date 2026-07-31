@@ -155,6 +155,56 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void OpenLoopGrammar_SelectsTheLaneAndItsMeasuredArchetypes()
+        {
+            var all = Parse("RL_HARNESS_OPENLOOP", "all");
+            Assert.AreEqual(SessionLane.OpenLoop, all.lane);
+            Assert.AreEqual(new[]
+            {
+                OpponentArchetype.Aggressor, OpponentArchetype.Evader,
+                OpponentArchetype.Orbiter, OpponentArchetype.Kiter,
+            }, all.openLoopArchetypes);
+            StringAssert.StartsWith("velrebase-", all.tag, "open-loop artifacts must never pass as an eval");
+
+            var single = Parse("RL_HARNESS_OPENLOOP", "orbiter");
+            Assert.AreEqual(new[] { OpponentArchetype.Orbiter }, single.openLoopArchetypes);
+        }
+
+        [Test]
+        public void OpenLoopLane_DefaultsToTheVelRebaseProbe()
+        {
+            Assert.AreEqual(new[] { VelRebaseProbe.ProbeName },
+                Names(Parse("RL_HARNESS_OPENLOOP", "all").probes),
+                "the eval-lane default probes would throw on a composition with no policy agent");
+            Assert.AreEqual(new[] { ArchetypeGateProbe.ProbeName, CombatTelemetryProbe.ProbeName },
+                Names(Parse().probes), "the eval-lane default is unchanged");
+        }
+
+        [Test]
+        public void OpenLoopGrammar_RefusesDummyUnknownsAndConflictingSelectors()
+        {
+            var dummy = Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_OPENLOOP", "dummy"));
+            StringAssert.Contains("no velocity law", dummy.Message);
+            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_OPENLOOP", "brawler"));
+            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_OPENLOOP", ""));
+            Assert.Throws<ArgumentException>(() =>
+                Parse("RL_HARNESS_OPENLOOP", "all", "RL_HARNESS_ONNX", "ckpt.onnx"));
+            Assert.Throws<ArgumentException>(() =>
+                Parse("RL_HARNESS_OPENLOOP", "all", "RL_HARNESS_OPPONENT", "mirror"));
+        }
+
+        [Test]
+        public void OpenLoopBlockLabels_CarryTheArm()
+        {
+            Assert.AreEqual("Orbiter-legacy",
+                OpponentSpec.OpenLoop(OpponentArchetype.Orbiter, ArchetypeDrive.OpenLoopLegacy).Label);
+            Assert.AreEqual("Orbiter-anchored",
+                OpponentSpec.OpenLoop(OpponentArchetype.Orbiter, ArchetypeDrive.OpenLoopAnchored).Label);
+            Assert.AreEqual("Orbiter", OpponentSpec.Pinned(OpponentArchetype.Orbiter).Label,
+                "eval-lane labels are unchanged");
+        }
+
+        [Test]
         public void RetiredEnvName_ThrowsNamingItsReplacement()
         {
             var thrown = Assert.Throws<ArgumentException>(() => Parse("RL_EVAL_ONNX", "stale-script.onnx"),

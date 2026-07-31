@@ -80,9 +80,9 @@ namespace Game.RLHarness
             return Install(Pick(new System.Random(scope.ToSeed()), in spec), in spec, episodeIndex, arenaCenter);
         }
 
-        /// <summary>Pinned draw for the degeneracy gate: jitters and installs the given archetype.</summary>
+        /// <summary>Pinned draw for the degeneracy gate: jitters and installs the given archetype. <paramref name="drive"/> selects the K1-2 open-loop probe arms; the default is the production path.</summary>
         public OpponentDraw Install(OpponentArchetype archetype, in RewardSpec spec, int episodeIndex,
-            Vector2 arenaCenter)
+            Vector2 arenaCenter, ArchetypeDrive drive = ArchetypeDrive.Production)
         {
             var scope = Scope(spec.runSeed, episodeIndex);
             var rng = new System.Random(scope.ToSeed());
@@ -96,7 +96,7 @@ namespace Game.RLHarness
                     draw.desiredRange = Draw(rng, MinAggroRange, MaxAggroRange);
                     var aggressor = new HoldRangeFireChooser();
                     aggressor.Configure(enemy, draw.desiredRange, draw.speedFraction, projectileSpeed,
-                        arenaCenter, spec.arenaRadius);
+                        arenaCenter, spec.arenaRadius, drive);
                     brain.InstallChooser(aggressor);
                     break;
                 case OpponentArchetype.Evader:
@@ -104,7 +104,7 @@ namespace Game.RLHarness
                     draw.jukePeriod = Draw(rng, MinJukePeriod, MaxJukePeriod);
                     var evader = new EvaderChooser();
                     evader.Configure(enemy, draw.speedFraction, draw.jukePeriod,
-                        scope.Derive(JukeSeedStream).ToSeed(), arenaCenter, spec.arenaRadius);
+                        scope.Derive(JukeSeedStream).ToSeed(), arenaCenter, spec.arenaRadius, drive);
                     brain.InstallChooser(evader);
                     break;
                 case OpponentArchetype.Orbiter:
@@ -113,7 +113,7 @@ namespace Game.RLHarness
                     draw.orbitDirection = rng.Next(2) == 0 ? -1 : 1;
                     var orbiter = new OrbiterChooser();
                     orbiter.Configure(enemy, draw.orbitRadius, draw.orbitDirection, draw.speedFraction,
-                        projectileSpeed, arenaCenter, spec.arenaRadius);
+                        projectileSpeed, arenaCenter, spec.arenaRadius, drive);
                     brain.InstallChooser(orbiter);
                     break;
                 case OpponentArchetype.Kiter:
@@ -121,7 +121,7 @@ namespace Game.RLHarness
                     draw.desiredRange = Draw(rng, MinKiteRange, MaxKiteRange);
                     var kiter = new HoldRangeFireChooser();
                     kiter.Configure(enemy, draw.desiredRange, draw.speedFraction, projectileSpeed,
-                        arenaCenter, spec.arenaRadius);
+                        arenaCenter, spec.arenaRadius, drive);
                     brain.InstallChooser(kiter);
                     break;
                 case OpponentArchetype.Dummy:

@@ -1,5 +1,6 @@
 using AI.Context;
 using AI.States;
+using Movement;
 using Ships;
 using UnityEngine;
 
@@ -19,20 +20,19 @@ namespace Game.RLHarness
         private float projectileSpeed;
 
         public void Configure(Ship target, float orbitRadius, int orbitDirection, float speedFraction,
-            float projectileSpeed, Vector2 arenaCenter, float borderRadius)
+            float projectileSpeed, Vector2 arenaCenter, float borderRadius,
+            ArchetypeDrive drive = ArchetypeDrive.Production)
         {
             this.orbitRadius = orbitRadius;
             this.orbitDirection = orbitDirection >= 0 ? 1 : -1;
             this.projectileSpeed = projectileSpeed;
-            Bind(target, speedFraction, arenaCenter, borderRadius);
+            Bind(target, speedFraction, arenaCenter, borderRadius, drive);
         }
 
-        protected override NavigationIntent BuildIntent(AIContext ctx)
+        /// <summary>The pure orbit law: tangential command at the jittered speed plus a radial P-term with the centripetal feed-forward.</summary>
+        internal static Vector2 OrbitVelocity(in Kinematics self, in Kinematics enemy, float orbitRadius,
+            int orbitDirection, float speedFraction, float maxSpeed)
         {
-            var self = ctx.Self.Kinematics;
-            var enemy = target.Kinematics;
-            var maxSpeed = ctx.Self.Dynamics.maxSpeed;
-
             var los = enemy.pos - self.pos;
             var r = los.magnitude;
             var losHat = r > 1e-4f ? los / r : Vector2.up;
@@ -40,12 +40,19 @@ namespace Game.RLHarness
             var vTan = speedFraction * maxSpeed;
             var centripetal = CentripetalKff * vTan * vTan / Mathf.Max(r, MinCentripetalRange);
             var radial = (RadialGain * (orbitRadius - r) - centripetal) * -losHat;
-            var vRef = Vector2.ClampMagnitude(vTan * tangent + radial, maxSpeed);
+            return Vector2.ClampMagnitude(vTan * tangent + radial, maxSpeed);
+        }
 
-            return new NavigationIntent
+        protected override NavigationIntent BuildIntent(AIContext ctx)
+        {
+            var self = ctx.Self.Kinematics;
+            var enemy = target.Kinematics;
+            var vRef = OrbitVelocity(in self, in enemy, orbitRadius, orbitDirection, speedFraction,
+                ctx.Self.Dynamics.maxSpeed);
+
+            return Pack(new NavigationIntent
             {
                 isValid = true,
-                velocityReference = Steered(self.pos, vRef),
                 hasTarget = true,
                 target = new EnemyTarget
                 {
@@ -56,7 +63,7 @@ namespace Game.RLHarness
                 aimAtTarget = true,
                 projectileSpeed = projectileSpeed,
                 enableFiring = true,
-            };
+            }, self.pos, vRef);
         }
     }
 }

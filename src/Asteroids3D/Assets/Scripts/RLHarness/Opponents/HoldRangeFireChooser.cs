@@ -12,11 +12,11 @@ namespace Game.RLHarness
         private float projectileSpeed;
 
         public void Configure(Ship target, float desiredRange, float speedFraction, float projectileSpeed,
-            Vector2 arenaCenter, float borderRadius)
+            Vector2 arenaCenter, float borderRadius, ArchetypeDrive drive = ArchetypeDrive.Production)
         {
             this.desiredRange = desiredRange;
             this.projectileSpeed = projectileSpeed;
-            Bind(target, speedFraction, arenaCenter, borderRadius);
+            Bind(target, speedFraction, arenaCenter, borderRadius, drive);
         }
 
         protected override NavigationIntent BuildIntent(AIContext ctx)
@@ -26,10 +26,9 @@ namespace Game.RLHarness
             var vRef = RangerChooser.HoldRangeVelocity(in self, in enemy, desiredRange,
                 speedFraction * ctx.Self.Dynamics.maxSpeed);
 
-            return new NavigationIntent
+            return Pack(new NavigationIntent
             {
                 isValid = true,
-                velocityReference = Steered(self.pos, vRef),
                 hasTarget = true,
                 target = new EnemyTarget
                 {
@@ -40,7 +39,7 @@ namespace Game.RLHarness
                 aimAtTarget = true,
                 projectileSpeed = projectileSpeed,
                 enableFiring = true,
-            };
+            }, self.pos, vRef);
         }
     }
 }

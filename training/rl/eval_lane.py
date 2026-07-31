@@ -53,7 +53,7 @@ def compose_child_env(unity: Path, project: Path, log: Path, values: dict) -> di
 
 def run_eval_lane(*, project: Path, unity: Path, lease: str, out_dir: Path,
                   onnx=None, seeds=None, episodes_per_seed=None, density=None,
-                  opponent=None, probes=None, lease_wait: int = 1800) -> Path:
+                  opponent=None, probes=None, open_loop=None, lease_wait: int = 1800) -> Path:
     """One eval-lane session through the coordinator; returns the summary path read back from out_dir.
 
     Every parameter besides the plumbing maps 1:1 onto an RL_HARNESS_* variable; None means
@@ -70,6 +70,7 @@ def run_eval_lane(*, project: Path, unity: Path, lease: str, out_dir: Path,
         "RL_HARNESS_DENSITY": density,
         "RL_HARNESS_OPPONENT": opponent,
         "RL_HARNESS_PROBES": probes,
+        "RL_HARNESS_OPENLOOP": open_loop,
         "RL_HARNESS_OUT_DIR": out_dir,
     })
     code = run_batch(lease, project, HARNESS_CHILD, env, wait_seconds=lease_wait, log_path=log)
@@ -90,6 +91,9 @@ def main() -> None:
     parser.add_argument("--density", default=None, help="RL_HARNESS_DENSITY (omit for the canonical eval env)")
     parser.add_argument("--opponent", default=None, help="RL_HARNESS_OPPONENT (omit for the roster)")
     parser.add_argument("--probes", default=None, help="RL_HARNESS_PROBES (omit for the default probe set)")
+    parser.add_argument("--open-loop", default=None,
+                        help="RL_HARNESS_OPENLOOP: run the K1-2 velrebase lane on this archetype (or \"all\") "
+                             "instead of a checkpoint eval")
     parser.add_argument("--project", type=Path, default=PROJECT,
                         help="Unity project the eval boots in (point at a free pool slot, not the tree you work in)")
     parser.add_argument("--unity", type=Path, default=None,
@@ -108,13 +112,16 @@ def main() -> None:
         sys.exit(f"FAIL: batch child missing at {HARNESS_CHILD}")
 
     unity = args.unity or default_unity_exe(args.project)
-    stem = args.onnx.stem if args.onnx else SMOKE_FIXTURE_STEM
+    if args.open_loop:
+        stem = f"velrebase-{args.open_loop.lower()}"
+    else:
+        stem = args.onnx.stem if args.onnx else SMOKE_FIXTURE_STEM
     out_dir = args.out_root / f"{stem}-{time.strftime('%Y%m%d-%H%M%S')}"
     print(f"[eval-lane] project {args.project}  seeds {args.seeds}  artifacts {out_dir}")
     summary = run_eval_lane(project=args.project, unity=unity, lease=args.lease, out_dir=out_dir,
                             onnx=args.onnx, seeds=args.seeds, episodes_per_seed=args.episodes_per_seed,
                             density=args.density, opponent=args.opponent, probes=args.probes,
-                            lease_wait=args.lease_wait)
+                            open_loop=args.open_loop, lease_wait=args.lease_wait)
     print(f"[eval-lane] summary {summary}")
 
 
