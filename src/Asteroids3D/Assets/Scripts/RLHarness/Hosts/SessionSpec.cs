@@ -173,8 +173,9 @@ namespace Game.RLHarness
                     throw ProbeError(rawToken, $"'{name}' takes "
                         + (knownKeys.Length == 0 ? "no params" : $"keys: {string.Join(", ", knownKeys)}"));
                 var valueText = parameter.Substring(eq + 1).Trim();
-                if (!float.TryParse(valueText, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed))
-                    throw ProbeError(rawToken, $"'{key}={valueText}' is not a number");
+                if (!float.TryParse(valueText, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed)
+                    || !float.IsFinite(parsed))
+                    throw ProbeError(rawToken, $"'{key}={valueText}' is not a finite number");
                 keys.Add(key);
                 values.Add(parsed);
             }

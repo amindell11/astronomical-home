@@ -156,6 +156,7 @@ namespace Game.RLHarness
         private readonly Dictionary<string, List<ContactRow>> rowsByOpponent = new();
         private ContactSampler sampler;
         private string label;
+        private Ship agent;
         private float contactRange;
 
         public string Name => ProbeName;
@@ -163,7 +164,12 @@ namespace Game.RLHarness
         public void Begin(in ProbeContext context)
         {
             label = context.opponentLabel;
-            contactRange = 2f * BumperWorldRadius(context.pair.Agent) + ContactEpsilon;
+            // Bumper radius survives respawns; re-derive only when a new composition's pair arrives.
+            if (context.pair.Agent != agent)
+            {
+                agent = context.pair.Agent;
+                contactRange = 2f * BumperWorldRadius(agent) + ContactEpsilon;
+            }
             sampler = new ContactSampler(context.pair, contactRange);
         }
 

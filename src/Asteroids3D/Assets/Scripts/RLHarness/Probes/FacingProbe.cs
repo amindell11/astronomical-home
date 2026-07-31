@@ -250,6 +250,7 @@ namespace Game.RLHarness
         private readonly Dictionary<string, FacingPool> poolsByOpponent = new();
         private FacingSampler sampler;
         private Ship agent;
+        private IPolicyReadout readout;
         private AgentChooser scaledChooser;
         private string label;
 
@@ -258,8 +259,9 @@ namespace Game.RLHarness
             authorityScale = parameters != null && parameters.TryGetValue(AuthorityScaleKey, out var value)
                 ? value
                 : 1f;
-            if (authorityScale < 0f)
-                throw new ArgumentException($"{ProbeName} probe: {AuthorityScaleKey}={authorityScale} must be >= 0.");
+            if (!float.IsFinite(authorityScale) || authorityScale < 0f)
+                throw new ArgumentException(
+                    $"{ProbeName} probe: {AuthorityScaleKey}={authorityScale} must be a finite value >= 0.");
         }
 
         public string Name => ProbeName;
@@ -267,17 +269,19 @@ namespace Game.RLHarness
         public void Begin(in ProbeContext context)
         {
             label = context.opponentLabel;
-            agent = context.pair.Agent;
-            var chooser = agent.GetComponentInChildren<AICommander>().Brain.Chooser;
-            if (chooser is not IPolicyReadout readout)
-                throw new InvalidOperationException(
-                    $"{ProbeName} probe requires an IPolicyReadout chooser; got {chooser?.GetType().Name ?? "null"}.");
-            if (authorityScale != 1f)
+            // Chooser identity survives respawns; re-resolve only when a new composition's pair arrives.
+            if (context.pair.Agent != agent)
             {
-                scaledChooser = chooser as AgentChooser ?? throw new InvalidOperationException(
-                    $"{ProbeName} probe: {AuthorityScaleKey} needs an AgentChooser; got {chooser.GetType().Name}.");
-                scaledChooser.FacingAuthorityScale = authorityScale;
+                agent = context.pair.Agent;
+                var chooser = agent.GetComponentInChildren<AICommander>().Brain.Chooser;
+                readout = chooser as IPolicyReadout ?? throw new InvalidOperationException(
+                    $"{ProbeName} probe requires an IPolicyReadout chooser; got {chooser?.GetType().Name ?? "null"}.");
+                scaledChooser = authorityScale != 1f
+                    ? chooser as AgentChooser ?? throw new InvalidOperationException(
+                        $"{ProbeName} probe: {AuthorityScaleKey} needs an AgentChooser; got {chooser.GetType().Name}.")
+                    : null;
             }
+            if (scaledChooser != null) scaledChooser.FacingAuthorityScale = authorityScale;
             sampler = new FacingSampler(readout);
         }
 

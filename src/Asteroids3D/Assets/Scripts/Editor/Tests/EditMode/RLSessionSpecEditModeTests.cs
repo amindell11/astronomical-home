@@ -122,13 +122,18 @@ namespace Tests.EditMode
             Assert.Throws<ArgumentException>(() => Parse("RL_EVAL_PROBES", "gate,gate"), "duplicate probe name");
             Assert.Throws<ArgumentException>(() => Parse("RL_EVAL_PROBES", "facing(wFacing=abc)"), "non-float value");
             Assert.Throws<ArgumentException>(() => Parse("RL_EVAL_PROBES", "facing("), "unbalanced paren");
+            Assert.Throws<ArgumentException>(() => Parse("RL_EVAL_PROBES", "facing(wFacing=NaN)"), "non-finite value");
+            Assert.Throws<ArgumentException>(() => Parse("RL_EVAL_PROBES", "facing(wFacing=Infinity)"),
+                "non-finite value");
         }
 
         [Test]
-        public void FacingProbe_RefusesANegativeAuthorityScaleAtCreation()
+        public void FacingProbe_RefusesANonFiniteOrNegativeAuthorityScaleAtCreation()
         {
             Assert.Throws<ArgumentException>(() => SessionProbes.Create(FacingProbe.ProbeName,
                 new Dictionary<string, float> { [FacingProbe.AuthorityScaleKey] = -1f }));
+            Assert.Throws<ArgumentException>(() => SessionProbes.Create(FacingProbe.ProbeName,
+                new Dictionary<string, float> { [FacingProbe.AuthorityScaleKey] = float.NaN }));
         }
 
         [Test]
