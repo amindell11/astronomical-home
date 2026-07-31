@@ -79,6 +79,17 @@ scope, proceed into the worktree loop — acquire an `agent-N` slot, build there
 (optionally via the fresh implementing subagent, handed the plan + brief), and
 open the PR. Don't start editing in the primary worktree.
 
+## Chat title lifecycle
+
+The worktree-loop skill's *Chat title lifecycle* section is the authority
+(title grammar + Title-concierge retitle protocol). Prep-session stages:
+
+- prepping: `pr-prep <arc-name>: <topic>` — the launch title; keep the shape.
+- brief frozen, build not started: `pr-prep✓ <arc-name>: frozen → next build`.
+- the chat stays open tracking the whole arc: retitle to
+  `arc <arc-name>: <happening now> → next <next step>` and refresh it whenever
+  the tracked state moves.
+
 ## Test-strategy lens (Phase 3)
 
 Unity project: PlayMode/EditMode split matters. When triaging the **test
