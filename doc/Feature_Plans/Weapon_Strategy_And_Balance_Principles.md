@@ -521,7 +521,7 @@ self-play of the trained ramming policy, not a hand-scripted rammer.**
 - **Rammer = victim = the trained self-play checkpoint** `ShipCombat-999950` (selfplay2
   best-on-record; the policy that rams). Mirror self-play = the exact condition the exploit
   emerged in. Locate the `.onnx` (`results/rl-training/ship_combat_selfplay2/…` or agent-3
-  tree); run via the eval/inference path (`CheckpointEvaluator` / `RL_EVAL_ONNX` through the
+  tree); run via the eval/inference path (`eval_lane.py` / `RL_HARNESS_ONNX` through the
   Unity-access coordinator), NOT a scripted-chooser PlayMode sweep.
 - **B3 honesty bound:** a FROZEN policy is *screening*, not acceptance — this proves the
   **mechanic** (does the same learned ramming behavior still pin?), NOT that ramming is
