@@ -51,72 +51,90 @@ namespace UI
         public void Initialize(IHeatReadout heat)
         {
             if (this.heat != null)
-                this.heat.OnHeatChanged -= OnHeatChanged;
+                Unsubscribe();
 
             this.heat = heat;
             if (this.heat == null)
             {
-                ApplyHeatVisuals(0f);
+                ApplyHeatVisuals(0f, lockedOut: false);
                 return;
             }
 
             if (isActiveAndEnabled)
-                this.heat.OnHeatChanged += OnHeatChanged;
-            ApplyHeatVisuals(this.heat.HeatPct);
+                Subscribe();
+            ApplyHeatVisuals(this.heat.HeatPct, this.heat.Overheated);
+        }
+
+        private void Subscribe()
+        {
+            heat.OnHeatChanged += OnHeatChanged;
+            heat.OnOverheat += OnLockoutChanged;
+            heat.OnCooldownStart += OnLockoutChanged;
+        }
+
+        private void Unsubscribe()
+        {
+            heat.OnHeatChanged -= OnHeatChanged;
+            heat.OnOverheat -= OnLockoutChanged;
+            heat.OnCooldownStart -= OnLockoutChanged;
         }
 
         private void OnEnable()
         {
-            if (heat != null)
-                heat.OnHeatChanged += OnHeatChanged;
+            if (heat == null) return;
+            Subscribe();
+            ApplyHeatVisuals(heat.HeatPct, heat.Overheated);
         }
 
         private void OnDisable()
         {
             if (heat != null)
-                heat.OnHeatChanged -= OnHeatChanged;
-            ApplyHeatVisuals(0f);
+                Unsubscribe();
+            ApplyHeatVisuals(0f, lockedOut: false);
         }
 
         private void OnDestroy()
         {
             if (heat != null)
-                heat.OnHeatChanged -= OnHeatChanged;
+                Unsubscribe();
         }
 
         private void OnHeatChanged(float current, float max)
         {
             var pct = max > 0f ? current / max : 0f;
-            ApplyHeatVisuals(pct);
+            ApplyHeatVisuals(pct, heat.Overheated);
         }
 
-        private void ApplyHeatVisuals(float pct)
+        private void OnLockoutChanged() => ApplyHeatVisuals(heat.HeatPct, heat.Overheated);
+
+        // The flash tracks the lockout state, not a full bar: overheat now persists until heat
+        // fully cools to zero, so "locked out, cooling down" must stay visually distinct.
+        private void ApplyHeatVisuals(float pct, bool lockedOut)
         {
             if (fillImage)
                 fillImage.fillAmount = pct;
 
             if (animator)
             {
-                animator.SetBool("overheated", pct >= 1f);
+                animator.SetBool("overheated", lockedOut);
                 animator.SetFloat("heat", pct);
             }
 
             if (glowController)
             {
-                var isOverheated = pct >= 1f;
-                if (isOverheated && !wasOverheated)
+                if (lockedOut && !wasOverheated)
                 {
                     glowController.SetEmissionColor(overheatGlowColor);
                     glowController.SetFlashing(true);
                     glowController.FlashSpeed = overheatFlashSpeed;
                 }
-                else if (!isOverheated && wasOverheated)
+                else if (!lockedOut && wasOverheated)
                 {
                     glowController.SetFlashing(false);
                     glowController.SetEmissionColor(normalGlowColor);
                     glowController.FlashSpeed = defaultFlashSpeed;
                 }
-                wasOverheated = isOverheated;
+                wasOverheated = lockedOut;
             }
         }
     }

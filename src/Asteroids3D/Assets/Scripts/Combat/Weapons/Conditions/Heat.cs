@@ -12,6 +12,7 @@ namespace Combat.Conditions
     public interface IHeatReadout : IWeaponReadout
     {
         float HeatPct { get; }
+        bool Overheated { get; }
         event Action<float, float> OnHeatChanged;
         event Action OnOverheat;
         event Action OnCooldownStart;
@@ -64,9 +65,8 @@ namespace Combat.Conditions
             CurrentHeat = Mathf.Max(0, CurrentHeat);
             PublishHeatChangedIfNeeded(previousHeat);
 
-            // Hysteresis: require cooling below (maxHeat - heatPerShot) to exit overheat, preventing a
-            // flicker loop where the weapon re-fires the instant heat cools to ~99.99%.
-            if (!Overheated || CurrentHeat >= maxHeat - heatPerShot) return;
+            // Overheat is a full lockout: it exits only at zero heat, never on a partial top-off.
+            if (!Overheated || CurrentHeat > 0f) return;
             Overheated = false;
             OnCooldownStart?.Invoke();
         }
