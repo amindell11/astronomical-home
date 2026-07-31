@@ -32,7 +32,7 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void WouldOverheatOnNextShot_WhenNextShotReachesExactlyMax_ReturnsFalse()
+        public void WouldOverheatOnNextShot_WhenNextShotReachesExactlyMax_ReturnsTrue()
         {
             var go = new GameObject("HeatTest");
             try
@@ -44,9 +44,9 @@ namespace Tests.EditMode
                     heat.ProcessFire();
                 }
 
-                // Default setup is 100 max / 25 per shot. At 75, next shot reaches exactly 100.
-                // Expected behavior: reaching max is allowed; only subsequent shots should be blocked.
-                Assert.IsFalse(heat.WouldOverheatOnNextShot());
+                // Default setup is 100 max / 25 per shot. At 75, the next shot reaches exactly
+                // 100 — the same boundary ProcessFire overheats on, so the gate must block it.
+                Assert.IsTrue(heat.WouldOverheatOnNextShot());
             }
             finally
             {
