@@ -6,8 +6,8 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>Shared skeleton for the scripted opponent archetypes: live-target validity, the 5 Hz recompute cache, and the border tangent-steer post-step. Arena bounds enter once through Configure as plain floats.</summary>
-    public abstract class OpponentArchetypeChooser : IIntentChooser
+    /// <summary>Shared skeleton for the scripted opponent archetypes: live-target validity, the 5 Hz recompute cache, the border tangent-steer post-step, and the per-drive velocity pack (production world reference vs the K1-2 open-loop arms). Arena bounds enter once through Configure as plain floats.</summary>
+    public abstract class OpponentArchetypeChooser : IIntentChooser, IScriptedVelocityReadout
     {
         protected const int RecomputeIntervalTicks = 10;
 
@@ -15,16 +15,25 @@ namespace Game.RLHarness
         protected float speedFraction;
         private Vector2 arenaCenter;
         private float borderRadius;
+        private ArchetypeDrive drive;
 
         private int tickCounter;
         private NavigationIntent cachedIntent = NavigationIntent.None;
+        private int totalDecisions;
+        private ScriptedVelocityCommand lastCommand;
 
-        protected void Bind(Ship target, float speedFraction, Vector2 arenaCenter, float borderRadius)
+        public ArchetypeDrive Drive => drive;
+        public int TotalDecisions => totalDecisions;
+        public ScriptedVelocityCommand LastCommand => lastCommand;
+
+        protected void Bind(Ship target, float speedFraction, Vector2 arenaCenter, float borderRadius,
+            ArchetypeDrive drive)
         {
             this.target = target;
             this.speedFraction = speedFraction;
             this.arenaCenter = arenaCenter;
             this.borderRadius = borderRadius;
+            this.drive = drive;
             Reset();
         }
 
@@ -46,6 +55,41 @@ namespace Game.RLHarness
         }
 
         protected abstract NavigationIntent BuildIntent(AIContext ctx);
+
+        /// <summary>Emits the law's velocity through the bound drive and captures the readout (one bump per 5 Hz recompute). Production keeps the border-steered world reference byte-for-byte; the open-loop arms drop the steer, suppress fire (a hit would perturb the paired enemy path), and always target-tag the intent so both arms share one obstacle-exclusion state — the anchored arm packing the same law numbers into the enemy-polar channel.</summary>
+        protected NavigationIntent Pack(NavigationIntent intent, Vector2 planePos, Vector2 lawVelocity)
+        {
+            switch (drive)
+            {
+                case ArchetypeDrive.Production:
+                    intent.velocityReference = Steered(planePos, lawVelocity);
+                    break;
+                case ArchetypeDrive.OpenLoopLegacy:
+                    intent.velocityReference = lawVelocity;
+                    break;
+                case ArchetypeDrive.OpenLoopAnchored:
+                    intent.anchored = VelocityRebase.ToAnchored(lawVelocity, planePos, target.Kinematics.pos);
+                    break;
+            }
+            if (drive != ArchetypeDrive.Production)
+            {
+                intent.enableFiring = false;
+                if (!intent.hasTarget)
+                {
+                    intent.hasTarget = true;
+                    intent.target = new EnemyTarget
+                    {
+                        kinematics = target.Kinematics,
+                        dynamics = target.Dynamics,
+                        source = target.transform,
+                    };
+                }
+            }
+            totalDecisions++;
+            lastCommand = new ScriptedVelocityCommand(intent.velocityReference,
+                intent.anchored.radialSpeed, intent.anchored.tangentialSpeed);
+            return intent;
+        }
 
         protected Vector2 Steered(Vector2 planePos, Vector2 commandedVel) =>
             ArchetypeSteering.BorderTangentSteer(planePos, commandedVel, arenaCenter, borderRadius,

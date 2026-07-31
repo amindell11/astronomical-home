@@ -19,11 +19,11 @@ namespace Game.RLHarness
         private int jukeEveryRecomputes = 1;
 
         public void Configure(Ship threat, float speedFraction, float jukePeriodSeconds, int jukeSeed,
-            Vector2 arenaCenter, float borderRadius)
+            Vector2 arenaCenter, float borderRadius, ArchetypeDrive drive = ArchetypeDrive.Production)
         {
             this.jukePeriodSeconds = jukePeriodSeconds;
             this.jukeSeed = jukeSeed;
-            Bind(threat, speedFraction, arenaCenter, borderRadius);
+            Bind(threat, speedFraction, arenaCenter, borderRadius, drive);
         }
 
         public override void Reset()
@@ -36,21 +36,25 @@ namespace Game.RLHarness
                 jukePeriodSeconds / (RecomputeIntervalTicks * Time.fixedDeltaTime)));
         }
 
+        /// <summary>The pure flee law: away from the threat, blended with the seeded tangential juke.</summary>
+        internal static Vector2 FleeVelocity(Vector2 selfPos, Vector2 threatPos, int jukeSign, float speed)
+        {
+            var away = selfPos - threatPos;
+            var fleeHat = away.sqrMagnitude > 1e-8f ? away.normalized : Vector2.up;
+            var dir = (fleeHat + JukeBlend * jukeSign * new Vector2(-fleeHat.y, fleeHat.x)).normalized;
+            return speed * dir;
+        }
+
         protected override NavigationIntent BuildIntent(AIContext ctx)
         {
             if (recomputes++ % jukeEveryRecomputes == 0)
                 jukeSign = rng.Next(2) == 0 ? -1 : 1;
 
             var self = ctx.Self.Kinematics;
-            var away = self.pos - target.Kinematics.pos;
-            var fleeHat = away.sqrMagnitude > 1e-8f ? away.normalized : Vector2.up;
-            var dir = (fleeHat + JukeBlend * jukeSign * new Vector2(-fleeHat.y, fleeHat.x)).normalized;
+            var vRef = FleeVelocity(self.pos, target.Kinematics.pos, jukeSign,
+                speedFraction * ctx.Self.Dynamics.maxSpeed);
 
-            return new NavigationIntent
-            {
-                isValid = true,
-                velocityReference = Steered(self.pos, speedFraction * ctx.Self.Dynamics.maxSpeed * dir),
-            };
+            return Pack(new NavigationIntent { isValid = true }, self.pos, vRef);
         }
     }
 }

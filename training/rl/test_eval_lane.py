@@ -48,8 +48,13 @@ class LauncherEnvComposition(unittest.TestCase):
 
         env = self.captured["env"]
         for absent in ("RL_HARNESS_ONNX", "RL_HARNESS_EPISODES_PER_SEED", "RL_HARNESS_DENSITY",
-                       "RL_HARNESS_OPPONENT", "RL_HARNESS_PROBES"):
+                       "RL_HARNESS_OPPONENT", "RL_HARNESS_PROBES", "RL_HARNESS_OPENLOOP"):
             self.assertNotIn(absent, env)
+
+    def test_open_loop_param_becomes_harness_env(self):
+        self.launch(seeds="2001", open_loop="all")
+
+        self.assertEqual("all", self.captured["env"]["RL_HARNESS_OPENLOOP"])
 
     def test_inherited_harness_and_retired_eval_names_are_stripped(self):
         inherited = {

@@ -8,7 +8,7 @@ using UnityEngine;
 namespace Game.RLHarness
 {
     /// <summary>Which lane client the host runs; every other axis of a session is a spec field.</summary>
-    public enum SessionLane { Eval, Capture }
+    public enum SessionLane { Eval, Capture, OpenLoop }
 
     /// <summary>The recording axis, parsed once at the batch boundary. Off by default; enabled records every episode (<see cref="all"/>) or the listed per-block indices. Carried into play mode as a serialized field on the spec.</summary>
     [Serializable]
@@ -27,7 +27,7 @@ namespace Game.RLHarness
 
     public enum OpponentKind { Roster, Archetype, Mirror, Checkpoint }
 
-    /// <summary>One block's opponent: a pinned scripted archetype, the candidate's own mirror, or a second frozen checkpoint.</summary>
+    /// <summary>One block's opponent config: a pinned scripted archetype (production drive, or one K1-2 open-loop arm), the candidate's own mirror, or a second frozen checkpoint.</summary>
     public struct OpponentSpec
     {
         public const string MirrorLabel = "Mirror";
@@ -35,11 +35,15 @@ namespace Game.RLHarness
         public OpponentKind kind;
         public OpponentArchetype archetype;
         public string checkpointStem;
+        public ArchetypeDrive drive;
 
         public static readonly OpponentSpec Mirror = new() { kind = OpponentKind.Mirror };
 
         public static OpponentSpec Pinned(OpponentArchetype archetype) =>
             new() { kind = OpponentKind.Archetype, archetype = archetype };
+
+        public static OpponentSpec OpenLoop(OpponentArchetype archetype, ArchetypeDrive drive) =>
+            new() { kind = OpponentKind.Archetype, archetype = archetype, drive = drive };
 
         public static OpponentSpec Checkpoint(string stem) =>
             new() { kind = OpponentKind.Checkpoint, checkpointStem = stem };
@@ -48,6 +52,8 @@ namespace Game.RLHarness
         {
             OpponentKind.Mirror => MirrorLabel,
             OpponentKind.Checkpoint => checkpointStem,
+            _ when drive == ArchetypeDrive.OpenLoopLegacy => archetype + "-legacy",
+            _ when drive == ArchetypeDrive.OpenLoopAnchored => archetype + "-anchored",
             _ => archetype.ToString(),
         };
     }
@@ -102,6 +108,8 @@ namespace Game.RLHarness
         public string[] painters;
         public RecordPlan record;
         public string outDir;
+        /// <summary>OpenLoop lane only: the measured archetypes, each run as a paired legacy+anchored block pair.</summary>
+        public OpponentArchetype[] openLoopArchetypes;
 
         /// <summary>Visuals and audio exist for this session iff it records — no separate env var until a watch/playtest lane needs one.</summary>
         public bool Presentation => record.enabled;
@@ -117,17 +125,27 @@ namespace Game.RLHarness
             Func<string, string> importOpponent, Func<bool> hasGraphicsDevice)
         {
             ThrowOnRetiredNames(getEnv);
+            var openLoop = getEnv("RL_HARNESS_OPENLOOP");
             var source = getEnv("RL_HARNESS_ONNX");
+            if (openLoop != null && source != null)
+                throw new ArgumentException(
+                    "RL_HARNESS_OPENLOOP measures scripted archetypes; RL_HARNESS_ONNX has no role in the open-loop lane.");
+            if (openLoop != null && getEnv("RL_HARNESS_OPPONENT") != null)
+                throw new ArgumentException(
+                    "The measured archetype rides RL_HARNESS_OPENLOOP; RL_HARNESS_OPPONENT selects eval-lane opponents.");
+            if (openLoop != null && getEnv("RL_HARNESS_LANE") != null)
+                throw new ArgumentException(
+                    "RL_HARNESS_OPENLOOP implies its own lane; RL_HARNESS_LANE selects the eval/capture lanes.");
             var spec = new SessionSpec
             {
-                lane = ParseLane(getEnv("RL_HARNESS_LANE")),
+                lane = openLoop != null ? SessionLane.OpenLoop : ParseLane(getEnv("RL_HARNESS_LANE")),
                 onnxSourcePath = source,
                 onnxAssetPath = string.IsNullOrEmpty(source)
                     ? ShipAgentFactory.SmokeFixturePath
                     : importCandidate(source),
                 episodesPerSeed = ParseEpisodes(getEnv("RL_HARNESS_EPISODES_PER_SEED")),
                 fieldDensityScale = ParseDensity(getEnv("RL_HARNESS_DENSITY")),
-                probes = ParseProbes(getEnv("RL_HARNESS_PROBES")),
+                probes = ParseProbes(getEnv("RL_HARNESS_PROBES"), openLoop != null),
                 painters = ParsePainters(getEnv("RL_HARNESS_PAINTERS")),
                 outDir = getEnv("RL_HARNESS_OUT_DIR"),
             };
@@ -136,7 +154,15 @@ namespace Game.RLHarness
             spec.tag = Mathf.Approximately(spec.fieldDensityScale, EvalProtocol.CanonicalFieldDensityScale)
                 ? tag
                 : tag + "-d" + spec.fieldDensityScale.ToString("0.##", CultureInfo.InvariantCulture).Replace('.', '_');
-            spec.ParseOpponent(getEnv("RL_HARNESS_OPPONENT"), importOpponent);
+            if (openLoop != null)
+            {
+                spec.ParseOpenLoop(openLoop);
+                spec.tag = "velrebase-" + spec.tag;
+            }
+            else
+            {
+                spec.ParseOpponent(getEnv("RL_HARNESS_OPPONENT"), importOpponent);
+            }
             spec.record = ParseRecord(getEnv, spec.episodesPerSeed, hasGraphicsDevice);
             spec.ValidateLane();
             return spec;
@@ -250,6 +276,26 @@ namespace Game.RLHarness
             return every;
         }
 
+        private static readonly OpponentArchetype[] RebasableArchetypes =
+        {
+            OpponentArchetype.Aggressor, OpponentArchetype.Evader, OpponentArchetype.Orbiter, OpponentArchetype.Kiter,
+        };
+
+        /// <summary>Grammar: "all" (the four velocity-law archetypes) or one archetype name; Dummy has no law to rebase.</summary>
+        private void ParseOpenLoop(string token)
+        {
+            if (Matches(token, "all"))
+            {
+                openLoopArchetypes = (OpponentArchetype[])RebasableArchetypes.Clone();
+                return;
+            }
+            if (!Enum.TryParse<OpponentArchetype>(token, ignoreCase: true, out var archetype)
+                || archetype == OpponentArchetype.Dummy)
+                throw new ArgumentException($"RL_HARNESS_OPENLOOP='{token}' is not \"all\" or one of "
+                    + $"{string.Join(", ", RebasableArchetypes)} (Dummy has no velocity law to rebase).");
+            openLoopArchetypes = new[] { archetype };
+        }
+
         // A stale script setting a retired name would otherwise silently eval the smoke fixture.
         private static void ThrowOnRetiredNames(Func<string, string> getEnv)
         {
@@ -289,15 +335,17 @@ namespace Game.RLHarness
             }
         }
 
-        /// <summary>Grammar: comma-separated `name` or `name(key=value,…)` tokens — the split is paren-aware, so commas inside parens separate params, not probes.</summary>
-        private static ProbeSpec[] ParseProbes(string value)
+        /// <summary>Grammar: comma-separated `name` or `name(key=value,…)` tokens — the split is paren-aware, so commas inside parens separate params, not probes. The default set is per-lane: the open-loop lane's policy-side probes would just throw.</summary>
+        private static ProbeSpec[] ParseProbes(string value, bool openLoop)
         {
             if (value == null)
-                return new[]
-                {
-                    ProbeSpec.Named(ArchetypeGateProbe.ProbeName),
-                    ProbeSpec.Named(CombatTelemetryProbe.ProbeName),
-                };
+                return openLoop
+                    ? new[] { ProbeSpec.Named(VelRebaseProbe.ProbeName) }
+                    : new[]
+                    {
+                        ProbeSpec.Named(ArchetypeGateProbe.ProbeName),
+                        ProbeSpec.Named(CombatTelemetryProbe.ProbeName),
+                    };
             var entries = new List<ProbeSpec>();
             var depth = 0;
             var start = 0;
@@ -311,6 +359,12 @@ namespace Game.RLHarness
                 start = i + 1;
             }
             if (depth != 0) throw ProbeError(value, "unbalanced '('");
+            // The open-loop arms carry no policy chooser; a policy-side probe would die at Begin, so fail at the boundary.
+            if (openLoop)
+                foreach (var entry in entries)
+                    if (entry.name != VelRebaseProbe.ProbeName)
+                        throw ProbeError(entry.name,
+                            $"only '{VelRebaseProbe.ProbeName}' runs in the open-loop lane (no policy chooser to read)");
             return entries.ToArray();
         }
 
