@@ -3,6 +3,16 @@
 Companion to the global `pr-prep` skill. When `/pr-prep` runs in this repo, apply
 these concrete bindings on top of the generic phases.
 
+## Open with the goal, in plain language
+
+(Also in the global skill; repeated here so it's versioned with the repo.)
+Your first message to the user — before any design discussion — states the
+high-level goal of the PR in the simplest terms possible, assuming **no prior
+knowledge of the plan**: what problem it solves and what is different once it
+lands. Define every key term inline at first use, in the simplest concise form.
+One paragraph, two at most. Conciseness and clarity are the bar — this is
+orientation, not a plan summary.
+
 ## Where things live
 
 - **Plans** — `doc/Feature_Plans/*.md`. A plan sequences its arc's slices;
