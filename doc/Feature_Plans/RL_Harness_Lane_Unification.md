@@ -3,8 +3,10 @@
 > STATUS: design FROZEN 2026-07-29 (pr-prep session, all forks user-resolved).
 > Slice A SHIPPED #231 (`4a602c9c`, 2026-07-31). Slice F brief FROZEN
 > 2026-07-31 (§Slice F brief below; F builds right after the taxonomy move PR,
-> not arc-final). Each remaining slice gets a short pr-prep of its own before
-> building, but re-deciding anything in this doc is out of bounds.
+> not arc-final). Slice D brief FROZEN 2026-07-31 (§Slice D brief below;
+> taxonomy move #236 landed, D is buildable). Each remaining slice gets a short
+> pr-prep of its own before building, but re-deciding anything in this doc is
+> out of bounds.
 
 Spun out of `RL_Infra_Paydown_Pass.md` §PR-3 when scoping showed it is an arc,
 not a PR. Context: `handoff_2026-07-27_stage3_results.md` (why eval
@@ -557,3 +559,242 @@ errors still fail loud at parse. No C# behavior change beyond the rename.
   one retired-name-throw case.
 - **PlayMode** — none new; the slice-A lane smoke already covers the C# path,
   which F does not change behaviorally.
+
+## Slice C brief
+
+> FROZEN 2026-07-31 (slice-local pr-prep; the one fork user-resolved,
+> assumptions approved as a batch). Verified against main post-#231
+> (`4a602c9c`). **Build sequencing:** C branches only after the taxonomy MOVE
+> PR (`harness-taxonomy-move`) lands — post-move homes are `Hosts/`
+> (TrainingBootstrap, HarnessSessionHost, CheckpointEvaluator, SessionSpec) and
+> `Episodes/Compositions/` (ShipAgentFactory, the composition family).
+> **C↔F overlap:** F's env rename touches the same three files
+> (`SessionSpec.cs`, `TrainingBootstrap.cs`, `RLSessionSpecEditModeTests`);
+> whichever lands second carries a trivial rebase — C's grammar extends the
+> opponent variable's VALUE, which is name-independent (`RL_EVAL_OPPONENT`
+> pre-F / `RL_HARNESS_OPPONENT` post-F; this brief names the var by role).
+
+**Scope.** The second ONNX import slot: checkpoint import parameterized to two
+fixed gitignored fixture paths (`EvalCandidate.onnx` + new
+`EvalOpponent.onnx`); the opponent grammar's `.onnx` path value →
+`OpponentKind.Checkpoint` (replacing A's placeholder throw);
+`ComposeSelfPlayPair` gains per-side models (candidate team 0, opponent
+team 1); `MirrorComposition` generalized into **PolicyPairComposition** — one
+composition where both ships run frozen checkpoints InferenceOnly, mirror
+being the same-path degenerate; summary rows labeled with the opponent
+checkpoint stem (`ShipCombat-999950`) and slot-2 source recorded for
+provenance.
+
+**Non-goals.** No rating/ELO math (PR-4), no recording (B), no probe work
+(D), no ram-bench client (E — it *consumes* this slice's grammar + slots +
+factory params as-is, as does the carded offline tournament).
+`InferenceRosterComposition`, `RunBlock`, `EpisodeJsonl`, `EvalProtocol`, and
+`eval_gate.py` untouched; summary schema id unchanged (below).
+
+### Fork (resolved, with why)
+
+1. **Composition shape → generalize `MirrorComposition`, renamed
+   `PolicyPairComposition`.** The sibling-class option was the composition-
+   scale copy of the lockstep-duplication pattern decision 1 rejected at host
+   scale (two ~37-line classes differing in a ctor arg and a label). The
+   degenerate case is exact, not approximate: same asset path → AssetDatabase
+   returns the same `ModelAsset` instance → ML-Agents shares one ModelRunner —
+   byte-for-byte today's mirror. `OpponentKind.Mirror` stays a distinct kind;
+   the concept survives in the grid, not in a class boundary.
+
+### Assumptions (locked; code-grounded)
+
+1. Grammar: `.onnx`-suffixed value → `OpponentKind.Checkpoint`;
+   `ParseOpponent` records `opponentOnnxSourcePath` (raw value),
+   `opponentOnnxAssetPath` (import result), `opponentLabel` = filename stem.
+2. `OpponentSpec` gains a `checkpointStem` field + `Checkpoint(stem)` factory;
+   `Label` returns it for the new kind; `CheckpointEvaluator.Blocks` gains the
+   single-block case (mirror precedent).
+3. `TrainingBootstrap`: private `Import(sourceFile, assetPath)` core (the
+   arc's "parameterized by slot") behind two named entries —
+   `ImportEvalCandidate` keeps its public name/signature (the
+   `RLEpisodePlayModeTests` record lane calls it; that lane is B's to delete,
+   not C's to break) plus new `ImportEvalOpponent` →
+   `Assets/Tests/Fixtures/EvalOpponent.onnx`.
+4. `SessionSpec.ParseEval` gains a second import-func parameter (sole
+   production caller is the eval entry; the EditMode helper stubs both). A
+   missing opponent file fails at parse via `File.Copy`'s
+   `FileNotFoundException` — the candidate slot's existing boundary behavior.
+5. `src/Asteroids3D/.gitignore` gains the sibling pair (`EvalOpponent.onnx` +
+   `.meta`) beside the candidate's entries.
+6. `ComposeSelfPlayPair` speaks A/B, not candidate/opponent:
+   `(..., string onnxAssetPathA = null, string onnxAssetPathB = null)`;
+   team 0 = A, team 1 = B; the candidate→A / opponent→B mapping lives in the
+   composition (wiring #2). Existing callers pass neither — unchanged.
+   Exactly-one-path has no consumer → throw (rung 2).
+7. `NewComposition` routes Mirror as `(candidate, candidate)` and Checkpoint
+   as `(candidate, slot-2 path)`; `InstallOpponent` returns
+   `{ archetype = opponent.Label }` — Mirror's fingerprint and the stem label
+   fall out of one line.
+8. JSONL row shape unchanged: the stem writes into `OpponentDraw.archetype`
+   (A's Mirror precedent); renaming the field would bump `rl-episode-v5` and
+   break the golden mask for zero gain.
+9. Summary gains `opponentCheckpoint` + `opponentCheckpointSource` mirroring
+   the candidate pair; empty on non-checkpoint runs (JsonUtility default).
+   **Schema id stays `rl-eval-summary-v2`**: additive fields cannot misread
+   `read_score` (schema + `opponents[].wins` only) and a bump would break gate
+   replay compat for zero reader benefit.
+10. Determinism: the factory keeps pinning `Academy.Instance.InferenceSeed`
+    once when any model is supplied; each ModelRunner picks it up at creation
+    and `DeterministicInference = true` is per-BehaviorParameters, covering
+    both sides. Two distinct assets → two runners in one Academy session —
+    exercised by the PlayMode test.
+11. Docs: the README opponent-variable line and the eval entry's doc comment
+    gain the path form (producer-owns-contract, A's rationale), in whatever
+    env-name form the file has at build time (see C↔F note).
+12. `PolicyPairComposition` gets no glossary row — the class doc answers
+    "what is this"; this brief defines the term at first use.
+13. Ownership vs parallel slices: C owns `ParseOpponent` + the import slots +
+    the factory model params + the composition; D owns `ParseProbes`/param
+    grammar (same file, disjoint methods); B owns `RunBlock` hooks + the
+    record lane.
+
+### Blindsider resolutions
+
+The post-lock pass surfaced only wrinkles the code already answered — folded
+above rather than asked: mixed one-model factory calls throw (6), uppercase
+`.ONNX` already matches (`OrdinalIgnoreCase`), missing-file failure shape is
+the candidate slot's (4), a stem colliding with an archetype name is
+impossible within a run (one block per checkpoint eval). None survived to a
+user question.
+
+### Verification
+
+- Merge-gate suite + the new tests below. **No golden-mask re-run**: the
+  roster path is untouched. Per the nondeterminism card, nothing asserts
+  outcome identity anywhere — the checkpoint-vs-checkpoint smoke asserts
+  *plumbing* identity (labels, block structure, provenance), never behavior
+  bytes.
+
+### Tests
+
+- **EditMode** — `RLSessionSpecEditModeTests`: the slice-C-placeholder test
+  becomes the routing test (Checkpoint kind, source + label recorded, the
+  *opponent* import stub invoked — not the candidate's); missing-file throw
+  against the real `ImportEvalOpponent`.
+- **PlayMode** — a checkpoint-opponent block folds into the existing
+  `CheckpointEvaluator_SmallRun_AggregatesOutcomesAndWritesArtifacts` (A's
+  mirror-fold precedent), importing the smoke fixture's file into the opponent
+  slot so the two sides are DISTINCT assets → two ModelRunners genuinely
+  exercised; asserts stem label, single block, summary provenance fields.
+
+## Slice D brief
+
+> FROZEN 2026-07-31 (slice-local pr-prep; forks, assumptions and blindsiders
+> all user-resolved). The implementing agent builds from this plus the doc
+> above and re-decides neither. Grounded against main @ `9206e24e` (post-#231
+> substrate, post-#236 taxonomy move — all paths below are post-move).
+
+**Scope.** The two probe clients plus the params grammar decision 4 reserved
+for D: `facing` rebuilt (the scratch probe is gone — probes that live only as
+patches do not exist) and `contact` extracted from the parked ram bench;
+registry roster grows to gate/contact/facing; the `name(k=v,…)` probe-params
+grammar into `SessionSpec`; the `wFacing` sweep seam on `AgentChooser`; the
+mirror proof run that resolves the ledger's ⛔ facing row and confirms #219
+behaviorally.
+
+**Non-goals.** No bench regression client (E), no painters/canvas (B — the
+probe name is the painter identity when B lands), no second ONNX slot (C), no
+env-family rename (F), no `RunBlock` or `ShipAgentFactory` edits (B's/C's
+regions). Default probe set stays `gate`; eval-gate artifacts and summary
+schema v2 untouched.
+
+### Forks (resolved, with why)
+
+1. **Params grammar → inline in the probes variable:
+   `RL_EVAL_PROBES="gate,facing(wFacing=5)"`.** Selection and config parse at
+   the one boundary into a serializable per-probe entry (name + parallel
+   key/value arrays — `Dictionary` is not Unity-serializable). No new env var
+   is born, so F renames the *variable* wholesale and never meets D's value
+   grammar; a param without its probe is unrepresentable. (If F lands first,
+   D's README/example lines write `RL_HARNESS_PROBES`.)
+2. **wFacing injection → chooser-side authority scale, measured agent only.**
+   `AgentChooser` gains a scale field (default 1) folded into the existing
+   per-Decide override write (`multiplier = facingWeight × scale`); the facing
+   probe sets it at `Begin` via pair.Agent → AICommander → `Brain.Chooser`
+   (the PolicyGizmos access path) and restores 1 on `Dispose`. Overrides are
+   read per Decide, so the effect is immediate; a compose-time MpcSettings
+   clone (the roster precedent) would miss episode 0 (`onBegin` fires
+   post-reset; the solver re-creates on respawn) and would thread probe
+   knowledge through four seams (wiring #4). This is the old scratch's
+   semantics minus the process-wide static. Mirror runs scale the measured
+   agent only — a controlled comparison; departure from the archived
+   both-sides arms is recorded via the row's `authorityScale` field.
+3. **Metrics → reconstructed definitions, both reversal senses, acceptance
+   gates on the nose.** The archived aggregation code is unrecoverable and
+   #219 changed action semantics, so the 2026-07-26 numbers are anchors, not
+   thresholds. Row records: commanded-vs-actual facing error
+   |DeltaAngle(cmdDeg, kin.yaw)| mean/median/p90 (per fixed step);
+   per-decision |cmd delta| mean/median/p90 + decision count; reversals/s
+   BOTH as nose yaw-rate sign flips per sim-second AND commanded-delta sign
+   alternations per decision; mean abs yaw rate; mean episode seconds; NEW
+   facing-weight distribution (mean/p10/median/p90 + low-authority fraction)
+   — the direct test of #219's purpose, unmeasurable pre-#219. Acceptance:
+   nose reversals/s clearly under the 2.70 anchor; weight distribution
+   non-degenerate (not pinned at 1); high-weight facing error well under the
+   archived ~50°; kill time comparable (~13.8 s) within the measured noise
+   floor. Ambiguous numbers → the PR reports them faithfully and the ledger
+   row stays open with the measurement attached; the probe PR is complete
+   either way.
+
+### Assumptions (locked; code-grounded)
+
+1. New files `RLHarness/Probes/FacingProbe.cs` + `ContactProbe.cs`; satellite
+   row/summary/sampler types in-file with their owner (`ArchetypeGateProbe.cs`
+   precedent; taxonomy satellite rule).
+2. Registry roster after D: gate, contact, facing (decision 4's list).
+3. `ContactSampler` extracted math-unchanged from
+   `training/archive/ram-bench-harness/`, public beside its probe for slice
+   E's client; its row keeps ttk/mutualKill/hp fields (free from
+   `EpisodeResult`; E's condition deltas need them without a JSONL join).
+4. Contact range = 2 × bumper world radius + 0.5 ε computed at `Begin`;
+   missing bumper sphere throws.
+5. Schemas `rl-facing-probe-v1` / `rl-contact-probe-v1`; sidecars group by
+   opponent label (gate shape); facing percentiles pool per-sample lists (no
+   mean-of-means); facing rows record `authorityScale`; W/L/D lives in the
+   eval summary only.
+6. Facing probe reads pair.Agent's chooser as `IPolicyReadout`; a non-readout
+   chooser throws at `Begin`.
+7. `IPolicyReadout` gains a monotonic total-decisions counter (the ring's
+   `Count` saturates at 16); both implementers updated — the one D change
+   outside the RLHarness folders.
+8. Authority scale: internal, default 1, re-applied every `Begin`
+   (post-reset), restored on `Dispose`;
+   `InternalsVisibleTo("Game.RLHarness.Editor")` already grants access.
+9. `SessionSpec.probes` becomes the serializable per-probe entry array;
+   malformed params throw at parse (`ParseEpisodes` precedent);
+   `HarnessSessionHost.Initialize` passes each map to `SessionProbes.Create`
+   (the parameter already exists).
+10. Duplicate probe names throw at parse (latent in A's bare list; D touches
+    that hunk). Param *values* validate in the probe factory at boot (parse
+    owns structure; the domain owner owns ranges). Zero-decision episodes
+    zero-fill their fields (gate ternary precedent).
+11. README documents the grammar + both new names at the existing probes line
+    (~3 lines; producer-owns-docs, A blindsider 5).
+12. Tests: EditMode params-grammar cases (valid single/multi, malformed,
+    duplicate, unknown key) beside the existing spec tests, plus summarizer
+    math on synthetic rows for both probes; the PlayMode lane smoke's probe
+    set becomes `gate,contact,facing` asserting the new sidecar pairs — same
+    episodes, no new fixture, merge-gate cost flat.
+13. Proof run (build slot, through unity-access):
+    `RL_EVAL_ONNX=results/rl-training/ship_combat_hybrid/ShipCombat/ShipCombat-699941.onnx`,
+    `RL_EVAL_OPPONENT=mirror`, seeds 2001–2005, 3 episodes/seed, density 2.0,
+    `RL_EVAL_PROBES="facing,contact"`. Aggregates-only comparison against the
+    two archived 2026-07-26 summaries in the PR body (eval nondeterminism
+    rule — never single-run identity). On acceptance the ledger ⛔ facing row
+    is deleted; ambiguous → the row stays with the measurement linked.
+14. No new glossary entries — every new name here is code-answerable.
+
+### Blindsider resolutions
+
+1. **Unknown param keys fail at parse.** Registry entries carry a known-keys
+   set; `ParseProbes` validates keys beside the unknown-name throw — earliest
+   deterministic failure, before play mode.
+2. **This brief lands direct to main** (docs-only, user-approved — the F/PR-4
+   route), not riding D's first commit: the B and F preps append to this same
+   doc in parallel, and PR-riding briefs would conflict at merge.
