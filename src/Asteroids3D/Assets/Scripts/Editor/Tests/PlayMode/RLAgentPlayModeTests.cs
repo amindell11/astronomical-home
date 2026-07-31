@@ -206,6 +206,7 @@ namespace Tests.PlayMode
                 probes = new[]
                 {
                     ProbeSpec.Named(ArchetypeGateProbe.ProbeName),
+                    ProbeSpec.Named(CombatTelemetryProbe.ProbeName),
                     ProbeSpec.Named(ContactProbe.ProbeName),
                     ProbeSpec.Named(FacingProbe.ProbeName),
                 },
@@ -235,9 +236,13 @@ namespace Tests.PlayMode
                 "summary artifact missing");
 
             // Each selected probe rides as its own sidecar pair the summary points at.
-            Assert.AreEqual(3, summary.probes.Length);
+            Assert.AreEqual(4, summary.probes.Length);
             Assert.AreEqual(
-                new[] { ArchetypeGateProbe.ProbeName, ContactProbe.ProbeName, FacingProbe.ProbeName },
+                new[]
+                {
+                    ArchetypeGateProbe.ProbeName, CombatTelemetryProbe.ProbeName,
+                    ContactProbe.ProbeName, FacingProbe.ProbeName,
+                },
                 System.Array.ConvertAll(summary.probes, p => p.name));
             foreach (var probe in summary.probes)
             {
