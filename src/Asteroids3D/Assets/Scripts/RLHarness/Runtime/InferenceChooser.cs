@@ -42,6 +42,7 @@ namespace Game.RLHarness
         internal LivePilotAgent Agent => agent;
 
         public int Count => mailbox.Count;
+        public int TotalDecisions => mailbox.TotalDecisions;
         public PolicyAction ActionFromNewest(int index) => mailbox.ActionFromNewest(index);
 
         public NavigationIntent Decide(AIContext ctx, float dt)

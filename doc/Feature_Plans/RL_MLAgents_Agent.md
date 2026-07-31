@@ -71,21 +71,23 @@ encoders; `NavigationIntent` rename (deferred, board).
    mismatch. JSONL schema bumps to `rl-episode-v2` with an `endKind` field
    (terminal/truncation) since truncation rows now carry non-zero final Φ; telescoping
    test gains the truncation case.
-5. **Action space — 4 continuous, threshold-gated discrete semantics.** `[vx, vy, fire,
-   boost]` ∈ [−1,1] (explicit clamp). Velocity pair = ego-frame reference scaled by
-   `MaxSpeed`, converted to a world-plane vector **once at the decision boundary** (the
-   cached WORLD vector is held for the interval; re-rotating per tick with live yaw
-   would feed heading back into the reference). Fire = `a₃ > 0` → `intent.enableFiring`
-   (`Gunsight.ShouldFire` still gates on top). Boost = `a₄ > 0`, **one-shot
-   spend-now-if-ready at the boundary tick** (commanded while on cooldown = no-op;
-   availability is observed, so the policy can learn timing — sharper credit than a
-   held window that fires mid-interval on cooldown expiry). *Why not hybrid:* verified
-   2026-07-15 against ml-agents source at package 4.0.3 — `ActionSpec` *constructs*
-   mixed spaces but `CheckAllContinuousOrDiscrete()` still throws in the trainer
-   communicator path (`GrpcExtensions.cs:178`) and inference path (`TensorApplier`);
-   the earlier "hybrid works in 4.0" memory note was ctor-signature-only and is
-   corrected. Continuous thresholds are the supported encoding; the capacity/chatter
-   cost is accepted (Gunsight masks fire chatter; spend-if-ready masks boost chatter).
+5. **Action space — 6 continuous, threshold-gated discrete semantics.** `[vx, vy, fire,
+   boost, fx, fy]` ∈ [−1,1] (explicit clamp; fx/fy — the manual-aim facing direction
+   whose magnitude is the facing authority — joined at #219). Velocity pair = ego-frame
+   reference scaled by `MaxSpeed`, converted to a world-plane vector **once at the
+   decision boundary** (the cached WORLD vector is held for the interval; re-rotating
+   per tick with live yaw would feed heading back into the reference). Fire = `a₃ > 0`
+   → `intent.enableFiring` (`Gunsight.ShouldFire` still gates on top). Boost = `a₄ > 0`,
+   **one-shot spend-now-if-ready at the boundary tick** (commanded while on cooldown =
+   no-op; availability is observed, so the policy can learn timing — sharper credit
+   than a held window that fires mid-interval on cooldown expiry). *Hybrid:* the
+   2026-07-15 "4.0.3 rejects hybrid specs" reading was wrong — the communicator check
+   (`GrpcExtensions.cs:175`) only restricts when the trainer lacks hybrid support, and
+   the K1-0 smoke (2026-07-31) confirmed the full hybrid train→export→Sentis path
+   end-to-end (artifacts: `results/rl-eval/k1-0-hybrid-smoke-2026-07-31/`). Continuous
+   thresholds remain the shipped encoding until the K=1 schema break moves fire/boost
+   to discrete branches; the capacity/chatter cost is accepted until then (Gunsight
+   masks fire chatter; spend-if-ready masks boost chatter).
    *Why boost at all:* a 3 s-cooldown impulse is a beyond-horizon resource the 1.5 s
    MPC cannot value (today it samples boost stochastically at 0.15/step); reserve/spend
    is the learner's job; obs already carries availability + cooldown; the model already
@@ -110,7 +112,7 @@ encoders; `NavigationIntent` rename (deferred, board).
    weakened to **equality pinned by a repo test** that parses the YAML and asserts
    `gamma == RewardSpec` default (0.99) — loud on drift, no generator machinery for one
    value. Env setup includes a **trainer-connected smoke**: a short `mlagents-learn`
-   run asserting the 4-continuous action shape end-to-end, terminal-vs-interrupted
+   run asserting the action shape end-to-end, terminal-vs-interrupted
    flags, and the pacing assertion. Turning existing `RewardSpec` knobs (timeout, λ)
    against the stalemate is in-scope and reported; *adding* reward terms (per-step time
    cost) needs a check-in first. The 2025 residue (`results/CommanderCurriculum_v2/`,
@@ -221,8 +223,9 @@ is frame-rate-bound (~5–10× real time in-editor, vsync off) instead of timesc
 - Standalone headless training build (+ the asmdef `UNITY_INCLUDE_TESTS` constraint
   revisit) — iff in-editor throughput bites.
 - Shipping inference / in-game learned chooser — post-arc-gate, own design.
-- Hybrid action space — re-check if a future ml-agents release removes the
-  communicator/inference `CheckAllContinuousOrDiscrete` rejection.
+- Hybrid action space — RESOLVED 2026-07-31: the K1-0 smoke confirmed hybrid
+  train→export→Sentis end-to-end; fire/boost move to discrete branches at the
+  K=1 schema break.
 
 ---
 

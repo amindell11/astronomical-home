@@ -45,7 +45,8 @@ namespace Game.RLHarness
             Arena = arena;
             Projectiles = projectiles;
             probes = new ISessionProbe[sessionSpec.probes.Length];
-            for (var i = 0; i < probes.Length; i++) probes[i] = SessionProbes.Create(sessionSpec.probes[i]);
+            for (var i = 0; i < probes.Length; i++)
+                probes[i] = SessionProbes.Create(sessionSpec.probes[i].name, sessionSpec.probes[i].ToParameters());
         }
 
         internal ISessionComposition NewComposition(in RewardSpec seedSpec, OpponentKind opponent, HarnessField field) =>

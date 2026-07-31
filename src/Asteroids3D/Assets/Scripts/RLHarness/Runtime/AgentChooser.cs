@@ -28,6 +28,10 @@ namespace Game.RLHarness
         private int ringHead;
 
         public int Count { get; private set; }
+        public int TotalDecisions { get; private set; }
+
+        // Facing-authority sweep seam: the owning probe re-applies each Begin and restores 1 on Dispose.
+        internal float FacingAuthorityScale { get; set; } = 1f;
 
         public void Configure(Ship opponent)
         {
@@ -47,6 +51,7 @@ namespace Game.RLHarness
             ring[ringHead] = new PolicyAction(worldVelocity, facingRad, facingWeight);
             ringHead = (ringHead + 1) % RingCapacity;
             if (Count < RingCapacity) Count++;
+            TotalDecisions++;
         }
 
         public PolicyAction ActionFromNewest(int index) => ring[(ringHead - 1 - index + RingCapacity) % RingCapacity];
@@ -63,6 +68,7 @@ namespace Game.RLHarness
 
             ringHead = 0;
             Count = 0;
+            TotalDecisions = 0;
         }
 
         public NavigationIntent Decide(AIContext ctx, float dt)
@@ -89,8 +95,8 @@ namespace Game.RLHarness
 
             intent.hasFacing = true;
             intent.facingRad = facingRad;
-            // ×1 at full magnitude: the settings asset's wFacing stays the authority ceiling.
-            facingOverride[0].multiplier = facingWeight;
+            // At scale 1 the settings asset's wFacing stays the authority ceiling.
+            facingOverride[0].multiplier = facingWeight * FacingAuthorityScale;
             intent.weightOverrides = facingOverride;
             intent.manualFire = true;
             intent.primaryHeld = fire;

@@ -518,17 +518,17 @@ zeros in `MpcSettings_AgentPilot`).
 
 ## Open items
 
-1. **Hybrid ActionSpec claim REFUTED in source (2026-07-29); e2e smoke pending.**
-   Both council legs independently verified it: the pinned trainer's
-   `action_model.py` builds Gaussian + MultiCategorical heads whenever both
-   sizes are nonzero, and the communicator's capability check
-   (`GrpcExtensions.cs:175`) only restricts when the trainer lacks hybrid
-   support. The `AgentActions.cs:22` doc comment is stale and is actively
-   shaping the action space (fire/boost as threshold-gated continuous). Ladder
-   step 1 (smoke) confirms the full train→export→Sentis path; the comment dies
-   with it and fire/boost move to a discrete branch at the K=1 retrain. **Now
-   slice K1-0; fallback ruled 2026-07-31: on smoke failure fire/boost stay
-   threshold-gated continuous and the arc proceeds.**
+1. **RESOLVED — K1-0 smoke PASSED 2026-07-31.** The hybrid rejection claim was
+   refuted in source (2026-07-29: `action_model.py` builds Gaussian +
+   MultiCategorical heads whenever both sizes are nonzero; the communicator
+   check at `GrpcExtensions.cs:175` only restricts when the trainer lacks
+   hybrid support) and the e2e smoke confirmed the full train→export→Sentis
+   path: trainer accepted 4-continuous + 2×2-discrete, ONNX exported dual
+   action heads, checkpoint drove a 600-decision episode via
+   `ComposeInferenceOnly` (artifacts:
+   `results/rl-eval/k1-0-hybrid-smoke-2026-07-31/`). The stale
+   `AgentActions.cs:22` clause died with it; fire/boost move to discrete
+   branches at K1-3. The on-failure fallback ruling is moot.
 2. Weight-0 priors: velocity-aligned facing / momentum velocity — confirm
    shapes. **Ruled 2026-07-31: mechanism (blend-target vs dual-term) decided in
    K1-1's pr-prep with a cost-shape sketch in hand.**
