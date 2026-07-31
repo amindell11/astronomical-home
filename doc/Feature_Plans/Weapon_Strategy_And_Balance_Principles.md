@@ -566,3 +566,42 @@ feel before merge.** Minimal-churn decomposition:
 - **Merge gate = human playtest** (feel: ship-ship bump + asteroid threading). Levers:
   sphere radius + bounciness. NO merge until user feel-approval; clips (old pin vs clean)
   after.
+
+---
+
+## Shield-break overkill bleed-through PR (pr-prep decision brief, frozen 2026-07-31)
+
+Implements §C3's council-red-flagged pre-decision, resolved by the user in the
+2026-07-28 rules-change session: **bleed-through** (remainder on the shield-breaking
+hit carries into hull), over absorb-with-tell. Lands on main first, on its own,
+before the telemetry PR and the rules branch; deliberately independent of the
+reopened weapon-identity design.
+
+**Change:** `DamageController.TakeDamage` — branchless: shield absorbs first,
+`Resource.ApplyDamage`'s absorbed-amount return routes the remainder into hull.
+Exact because both empty-path behaviors were already correct: an empty shield
+early-outs returning 0 (no event, no regen-delay reset — `RegenResource` resets
+its delay only when `damageAbsorbed > 0`), so the shield-empty path is
+bit-identical to the old rule.
+
+**Locked decisions:**
+- Single `OnDamaged` per hit carrying total absorbed; shield-vs-hull consumers
+  already use the per-resource `OnValueChanged` events, so the breaking hit gets
+  shield flash + hull sparks with no presentation work.
+- Every damage source inherits the rule (all routes go through `TakeDamage`) —
+  kills the §C3 sequencing exploit for all weapons at once.
+- No `DamageInfo`/damage-typing vehicle (§E's "natural vehicle" note): the user's
+  sequencing ruling (land first, alone, cheapest-ever) resolved this toward the
+  minimal fix; damage typing stays deferred catalog.
+- No retrain: no obs/action schema change; `ShipCombat-699941` stays valid.
+- Old-rule test `TakeDamage_NoOverflow_ExcessOverShieldDoesNotHitHealth` inverted
+  to bleed-through; new pin tests: single-hit kill-through (event reports total
+  absorbed capped at shield+hull) and hull-only-damage-does-not-postpone-regen
+  (the exact seam the branchless rewrite leans on).
+- Evidence per §C3: arithmetic shots-to-kill delta table (PR body, from current
+  asset values) + seeded deterministic-stream eval before/after vs the
+  `golden-main-d61b31cc` baselines (valid before-side: slice A verified main
+  matches them).
+
+**Noted, not entered** (fix-ladder: speculative): hitting an already-dead ship
+re-fires `BroadcastDeath` — pre-existing, unchanged here.

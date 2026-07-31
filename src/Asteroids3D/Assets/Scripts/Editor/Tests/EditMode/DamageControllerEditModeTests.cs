@@ -72,15 +72,48 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void TakeDamage_NoOverflow_ExcessOverShieldDoesNotHitHealth()
+        public void TakeDamage_BleedThrough_RemainderOverShieldHitsHealth()
         {
-            var dc = NewDamage(maxShield: 50f);
+            var dc = NewDamage(maxHealth: 100f, maxShield: 50f);
             Damage(dc, 35f);         // shield 50 -> 15
             Damage(dc, 15f + 30f);   // exceeds remaining shield by 30
 
             Assert.AreEqual(0f, dc.Shield.CurrentValue, 0.001f, "Shield fully depleted");
-            Assert.AreEqual(dc.Health.MaxValue, dc.Health.CurrentValue, 0.001f,
-                "Per design, damage exceeding shield is absorbed, not spilled into hull");
+            Assert.AreEqual(70f, dc.Health.CurrentValue, 0.001f,
+                "Remainder over the shield bleeds into hull (council §C3)");
+        }
+
+        [Test]
+        public void TakeDamage_BleedThrough_SingleHitCanKillThroughShield()
+        {
+            var dc = NewDamage(maxHealth: 100f, maxShield: 50f);
+            var eventDamage = 0f;
+            dc.OnDamaged += (dmg, _) => eventDamage = dmg;
+            var died = false;
+            dc.OnDeath += (_, _) => died = true;
+
+            Damage(dc, 200f); // 50 shield + 100 hull absorbed; 50 lost past the hull floor
+
+            Assert.AreEqual(0f, dc.Shield.CurrentValue, 0.001f);
+            Assert.AreEqual(0f, dc.Health.CurrentValue, 0.001f);
+            Assert.IsTrue(died, "A single hit exceeding shield + hull kills");
+            Assert.AreEqual(150f, eventDamage, 0.001f,
+                "OnDamaged reports total absorbed, capped at shield + hull");
+        }
+
+        [Test]
+        public void HullOnlyDamage_DoesNotPostponeShieldRegen()
+        {
+            var dc = NewDamage(maxHealth: 100f, maxShield: 50f, regenRate: 10f, regenDelay: 0.5f);
+            Damage(dc, 50f);        // shield -> 0 exactly; delay clock starts
+            dc.Shield.Update(0.2f); // inside the delay window, shield still 0
+
+            Damage(dc, 10f);        // hull-only: shield absorbs nothing
+            Assert.AreEqual(90f, dc.Health.CurrentValue, 0.001f, "Hull takes the full hit");
+
+            dc.Shield.Update(0.4f); // clock 0.6 > 0.5: regen due from the FIRST hit's delay
+            Assert.Greater(dc.Shield.CurrentValue, 0f,
+                "A hit the shield absorbed none of must not reset the regen delay");
         }
 
         [Test]

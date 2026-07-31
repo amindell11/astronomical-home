@@ -3,6 +3,16 @@
 Companion to the global `pr-prep` skill. When `/pr-prep` runs in this repo, apply
 these concrete bindings on top of the generic phases.
 
+## Open with the goal, in plain language
+
+(Also in the global skill; repeated here so it's versioned with the repo.)
+Your first message to the user — before any design discussion — states the
+high-level goal of the PR in the simplest terms possible, assuming **no prior
+knowledge of the plan**: what problem it solves and what is different once it
+lands. Define every key term inline at first use, in the simplest concise form.
+One paragraph, two at most. Conciseness and clarity are the bar — this is
+orientation, not a plan summary.
+
 ## Where things live
 
 - **Plans** — `doc/Feature_Plans/*.md`. A plan sequences its arc's slices;
@@ -68,6 +78,17 @@ Step 1 ("Scope first"). Once the brief is locked and the user has confirmed
 scope, proceed into the worktree loop — acquire an `agent-N` slot, build there
 (optionally via the fresh implementing subagent, handed the plan + brief), and
 open the PR. Don't start editing in the primary worktree.
+
+## Chat title lifecycle
+
+The worktree-loop skill's *Chat title lifecycle* section is the authority
+(title grammar + Title-concierge retitle protocol). Prep-session stages:
+
+- prepping: `pr-prep <arc-name>: <topic>` — the launch title; keep the shape.
+- brief frozen, build not started: `pr-prep✓ <arc-name>: frozen → next build`.
+- the chat stays open tracking the whole arc: retitle to
+  `arc <arc-name>: <happening now> → next <next step>` and refresh it whenever
+  the tracked state moves.
 
 ## Test-strategy lens (Phase 3)
 

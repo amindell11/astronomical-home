@@ -346,8 +346,9 @@ Format: **term** — definition. *(authority)*
 - **lane clearing** — shooting asteroids to open a firing lane. Currently
   inexpressible: the firing-envelope check vetoes it, so the policy learned that
   asteroids are walls.
-- **bleed-through** — letting a damage remainder cross a shield break; currently
-  discarded, which is a hidden alpha-weapon tax.
+- **bleed-through** — letting a damage remainder cross a shield break into hull.
+  The live rule since the §C3 overkill PR; the old discard rule was a hidden
+  alpha-weapon tax.
 
 ### Infra & tooling
 

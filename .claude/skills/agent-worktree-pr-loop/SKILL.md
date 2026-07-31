@@ -119,6 +119,38 @@ belongs to the user: report its PID and ask them to close it — never close it
 automatically. The durable MCP server on port 8081 is shared and remains
 running between owners.
 
+## Chat title lifecycle
+
+Chat titles surface each session's phase in the sessions list, so the user
+sees "blocked on #234" without opening the chat. A session cannot retitle
+itself; a standing **Title concierge** chat does it on request.
+
+Retitle at every transition that writes the ledger (claim, PR-open, block,
+merge/finalize):
+
+| Phase | Title |
+|---|---|
+| prepping (pr-prep) | `pr-prep <arc-name>: <topic>` |
+| building (Step 2) | `🟡 build <arc-name>: <topic>` |
+| in review (Step 4) | `🔵 PR #<n> <arc-name>: <topic>` |
+| blocked | `⛔ <arc-name>: waiting on <blocker>` — name the blocker (a PR, a user decision, a run) |
+| merge gate running (Step 6) | `merging <arc-name>` |
+| merged + finalized (Step 7) | `✅ merged #<n> <arc-name>` |
+| arc orchestrator | `arc <arc-name>: <happening now> → next <next step>` |
+
+Design-discussion chats keep plain topical titles and never retitle. Status
+glyphs are the ledger legend's; the leading token doubles as visual grouping
+in the sessions list.
+
+Requesting a retitle:
+1. Your session id is the UUID in your scratchpad directory path, prefixed
+   `local_`.
+2. Find the concierge via `list_sessions` (title starts `Title concierge`).
+3. `send_message` it one line: `RETITLE local_<id> → <new title>`.
+
+No concierge found, or session tools unavailable (subagents, unattended runs)
+→ skip silently; titles never block or delay work.
+
 ## Step 1 — Scope
 
 Restate the task to the user: what changes, which files/systems are touched,

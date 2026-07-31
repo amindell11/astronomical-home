@@ -42,7 +42,8 @@ namespace Ships.Damage
         { 
             if (damage <= 0 || IsInvulnerable) return; 
             UpdateAttacker(attacker);
-            var appliedDamage = Shield.CurrentValue <= 0 ? Health.ApplyDamage(damage) : Shield.ApplyDamage(damage);
+            var shieldAbsorbed = Shield.ApplyDamage(damage);
+            var appliedDamage = shieldAbsorbed + Health.ApplyDamage(damage - shieldAbsorbed);
             if (appliedDamage > 0)
             {
                 OnDamaged?.Invoke(appliedDamage, hitPoint);
