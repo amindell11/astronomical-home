@@ -1,10 +1,13 @@
 # Anchored Intent Architecture — policy↔MPC facing & velocity interface
 
-**STATUS: DESIGN EXPLORATION (2026-07-29). No implementation, no PR slices yet.**
+**STATUS: K=1 ARC PLAN FROZEN 2026-07-31 (§"K=1 arc plan" below).** Slices
+K1-0…K1-4, forks user-ruled, seams code-grounded (three-way seam map,
+2026-07-31 session). Each slice still gets a short pr-prep before building;
+re-deciding the frozen rulings is out of bounds. The endpoint sections remain
+design exploration behind their entry gate.
 Consumed by the combat rules-change retrain bundle (see the 2026-07-28 rules-change
 handoff memory). Origin: the facing-thrash investigation, live-eyeballed with the
-Policy debug gizmos (PR #222). Empirical appendix below is PENDING the gizmo
-observations.
+Policy debug gizmos (PR #222).
 
 **Infra council (2026-07-29):** two-model consult (Fable + GPT-5.6 Sol, both
 xhigh effort, repo-grounded) on the long-term-policy infrastructure, followed by
@@ -73,8 +76,10 @@ closed loop — it is what makes an orbit an orbit.
 ## Scaling: standing vs focal, and the per-entity endpoint
 
 Multiplicity (teams, multiple enemies, projectiles) scales through **class
-machinery, not per-entity intent dims** — `wObstacle` already composes 64 anchored
-avoidance terms per rollout step without the policy naming any of them.
+machinery, not per-entity intent dims** — `wObstacle` already composes up to 96
+anchored avoidance rows per rollout step (64-slot scan → 128 merged with ship
+contacts → 96 solver rows after multi-sphere expansion; max-composed, worst wins)
+without the policy naming any of them.
 
 - **Standing classes** (MPC cost, always on, resolved at 50 Hz over N entities):
   threat avoidance (asteroids; projectiles are fast obstacles — `TurnAwayCost` is
@@ -262,7 +267,103 @@ resolved anyway; the K=1 arc is identical under both readings.
    per-token-count PPO ratio/entropy statistics (Fable red-flag 3 — a
    hypothetical; one measurement, no preemptive fix).
 
-## Priors (the shortlist worth reading, one line each on what transfers)
+## K=1 arc plan (FROZEN 2026-07-31)
+
+Operationalizes ladder rungs 1, 3, 4 (2, 5, 6, 7 are endpoint-side). Grounded in
+the 2026-07-31 three-way seam map (command path, MPC cost, obs/action surface).
+
+**User rulings (2026-07-31):**
+- **Build first; both lanes open with short smokes.** K=1 and the rules change
+  each start as short smoke runs; retrain bundling is decided at launch time by
+  what is actually ready (counsel item 9's one-bundled-retrain is the preference
+  if both are).
+- **Schema riders ride the K=1 break:** enemy primary resource obs
+  (lockout/ready + heatPct — exact channels in K1-3's pr-prep; under the full
+  lockout rule `ready` is NOT derivable from `heatPct` alone) plus the locked
+  self-channel swap. No projectile tokens — that is a bigger break, out.
+- **Checkpoint fate: replaces `ShipCombat-699941` on gate pass** — atomic
+  branch merge per the locked rules-change merge strategy.
+- **Roster stays legacy.** Scripted archetypes keep world-vRef at 5 Hz; anchored
+  drive is probe-only until after the run. This preserves the yardstick: same
+  rules + same roster ⇒ K=1 candidate gate scores read directly against the
+  post-lockout 699941 baseline (unlike a rules change, the 75-point scale keeps
+  its meaning across this break).
+- **Facing action = `(ox, oy)`:** offset angle around the intercept anchor via
+  atan2, magnitude = authority weight — the #219 pattern, gizmo-validated.
+- **Weight-0 prior mechanism: deferred to K1-1's pr-prep** (blend-target vs
+  dual-term, decided with a cost-shape sketch in hand; note `wMomentum` exists
+  unused as a candidate velocity prior).
+- **Hybrid fallback: proceed continuous.** If K1-0 fails, fire/boost stay
+  threshold-gated continuous — the discrete branch is a rider, not the cargo.
+
+### The K=1 interface
+
+Action space: **5 continuous + 2 discrete branches** (fire, boost; pending K1-0):
+- **Facing `(ox, oy)`** — angle = offset around `InterceptYaw` in the enemy
+  frame, magnitude = weight. `(0,+1)` = aim at intercept; `(0,−1)` = face away.
+- **Velocity `(vr, vt, vw)`** — radial/tangential speeds in the enemy frame,
+  normalized to maxSpeed, plus an explicit weight. Sign pin (glossary-bound at
+  K1-1): `vr > 0` closes along `+losHat`; `vt > 0` is CCW.
+
+Anchor is **fixed Enemy(intercept)** — no anchor-selection dims.
+`{radial, tangential}` spans every direction, so the enemy-polar frame is a
+complete basis at K=1; escaping the frame is what weight→0 is for. This keeps
+the arc identical under both action-domain readings, as the fork requires.
+
+MPC changes: `CostInput` gains anchored mode + facing offset + `(vr, vt)`;
+`facingTarget = InterceptYaw(step) + offset`, replacing today's silent
+intercept-overrides-`facingRad` precedence (which dies by construction);
+anchored `vRef(step)` resolved per rollout step from the rolled ship pos and
+`enemyStates[step]` — the first step-varying reference besides facing;
+`MpcWeight.VelTrack` added (not overridable today); the policy path re-enables
+enemy state + `projectileSpeed`, waking the dormant enemy rollout.
+
+### Slices
+
+| Slice | Lands | Content / gate |
+|---|---|---|
+| **K1-0 hybrid smoke** | scratch; comment fix on main | Ladder 1. Short hybrid-spec train → export → Sentis load through `ComposeInferenceOnly`. Kills the stale `AgentActions.cs:22` claim AND `RL_MLAgents_Agent.md`'s doubly stale 4-continuous section. |
+| **K1-1 anchored seam + MPC** | **main** (additive, dormant in production) | Intent anchored fields, `CostInput` terms, per-step resolution, weight-0 priors (mechanism per its pr-prep), `MpcWeight.VelTrack`, EditMode cost tests pinning frame/relation/weight/sign/normalization semantics. |
+| **K1-2 mechanical rebase probe** | **main** (probe lane; roster untouched) | Ladder 3. Archetype laws driven through the anchored channel in a harness probe config; facing probe (harness slice D) measures churn + tracking in the trackable annulus. **Go/no-go on the behavioral hypothesis.** |
+| **K1-3 schema break** | **long-lived branch** | New ActionSpec, `AgentActions` rewrite, obs riders, compose-site consolidation (one shared helper for `ShipAgentFactory`/`InferenceChooser` — today two comment-synced sites), golden-test updates, smoke-fixture regen, training smoke. |
+| **K1-4 the run** | branch → atomic merge | Ladder 4: stock-PPO vs the unchanged gate roster, no care vector, no self-play changes. Staged checkpoint; merge replaces 699941 on pass, on explicit user call. |
+
+### Baseline protocol
+
+- Re-baseline 699941 on post-lockout main, **≥4 reps** (±4/75 per-run floor),
+  before reading any K=1 score.
+- The branch cannot load 699941 (schema); comparison is gate-score vs
+  gate-score, valid because rules and roster are unchanged.
+- The atomic-merge checklist must hand-stage the gameplay copy: staging into
+  `Assets/Settings/AI/Models/` is a **manual copy bound only by a prefab
+  GUID** — no script owns it. Scripting it during K1-4 is in-scope (wiring
+  rule 6 corollary: producer owns the location consumers read).
+
+### Code-grounding corrections (2026-07-31 seam maps)
+
+- `EvalContext.Create` already runs per rollout step per candidate (~128×17 ≈
+  2.2k calls/solve) with a step-indexed enemy rollout (`enemyStates`, propagated
+  once per solve via `Model.Step`, constant-control assumption). Per-step
+  anchored resolution is existing machinery; the change is *what* resolves.
+- `wVelTrack` is absent from the `MpcWeight` override enum — the velocity
+  weight channel is gated on adding it.
+- Enemy-anchored `vRef(step)` is the first horizon-varying reference besides
+  facing; `velocityReference` today is a horizon constant.
+- `EnemyTarget` is a per-tick value snapshot, not a live ref; liveness comes
+  from `AgentChooser` re-reading `opponent.Kinematics` every `Decide`. The
+  archetypes cache the whole intent (incl. the snapshot) at 5 Hz while the
+  policy path refreshes per tick — two staleness contracts behind one struct;
+  K1-1 should not add a third.
+- The shared mutable `facingOverride` array is aliased into every intent
+  (`Navigator.SetWeightOverrides` stores the reference) — extending the
+  override set at K1-1 must not widen that aliasing hazard.
+- The real obs contract is the golden 26-float vector in
+  `RLAgentEditModeTests.Fill_LaysOutTheCombatChannels`, not
+  `RLDriverContractEditModeTests` (which pins Python log-suffix templates —
+  the *pattern* to copy for cross-language pins, not the obs pin itself).
+- No YAML change for the schema break — shapes ride the gRPC handshake; the
+  only Python-side edit would be `trainer_type` if/when the plugin trainer
+  lands (endpoint-side, not K=1).
 
 - **ML-Agents' own attention stack** (`torch_entities/attention.py`:
   `EntityEmbedding` + `ResidualSelfAttention`) — copy verbatim; its operators
@@ -329,8 +430,12 @@ resolved anyway; the K=1 arc is identical under both readings.
    support. The `AgentActions.cs:22` doc comment is stale and is actively
    shaping the action space (fire/boost as threshold-gated continuous). Ladder
    step 1 (smoke) confirms the full train→export→Sentis path; the comment dies
-   with it and fire/boost move to a discrete branch at the K=1 retrain.
-2. Weight-0 priors: velocity-aligned facing / momentum velocity — confirm shapes.
+   with it and fire/boost move to a discrete branch at the K=1 retrain. **Now
+   slice K1-0; fallback ruled 2026-07-31: on smoke failure fire/boost stay
+   threshold-gated continuous and the arc proceeds.**
+2. Weight-0 priors: velocity-aligned facing / momentum velocity — confirm
+   shapes. **Ruled 2026-07-31: mechanism (blend-target vs dual-term) decided in
+   K1-1's pr-prep with a cost-shape sketch in hand.**
 3. Velocity authority dim: DEFERRED until an observed failure pulls it —
    aim-vs-mobility knob symmetry is not evidence (`facingWeight` earned its
    place via observed nose-drift; this one hasn't).
