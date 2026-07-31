@@ -605,3 +605,100 @@ bit-identical to the old rule.
 
 **Noted, not entered** (fix-ladder: speculative): hitting an already-dead ship
 re-fires `BroadcastDeath` — pre-existing, unchanged here.
+
+---
+
+## Combat telemetry PR — PR-2 (pr-prep decision brief, frozen 2026-07-31)
+
+Resolves the rules-change handoff's open fork 6 (the telemetry surface). Second
+in the locked landing order (overkill #235 → **telemetry** → rules branch): it
+lands before any rules work so the escape-viability probe and every screening
+tier read one instrument instead of growing parallel measurement paths.
+
+**Scope.** A new `combat` registry probe (`RLHarness/Probes/`): per-episode rows
+carrying normalized range-band occupancy, TTK inputs (simSeconds +
+outcome/endKind), engage/disengage cycles with per-engagement resource states,
+shield-regen events, per-side shot counts, and boost usage; standard probe
+sidecars; the default probe set becomes `gate,combat`.
+
+**Non-goals.** No Tier-0 screening runner (screening runs are consumers of the
+rows, not contents of this PR); no scripted-vs-scripted composition (the escape
+probe's own scope); no Game.Core changes — the game side already emits every
+event needed; no probe params (`combat` takes none; the grammar is slice D's);
+no distribution/statistics math (PR-4's); the gate probe and its schema
+untouched.
+
+**Build sequencing.** After harness-lane slice D lands: D reshapes
+`SessionSpec.probes` (params grammar, known-key sets, duplicate-name throw) and
+owns the same hunks this PR touches (`ParseProbes` default, the probe registry,
+the PlayMode lane smoke, the README probes line). Slice C/F overlaps are
+textual only. D's "default probe set stays `gate`" is a D-scope statement;
+this PR is the deliberate change of that default.
+
+**Locked decisions (forks):**
+1. **Home → harness-side registry probe.** The frozen harness-lane arc reserved
+   the probe seam for rules-change telemetry (its decision 6; the deferred
+   playtest lane inherits probes for measured playtests); every consumer
+   (screening tiers, eval gate, escape probe, PR-4) is a harness session; all
+   sidecar/summary/reader machinery exists and is owned there. Game-first
+   governs what the metrics *judge*, not where the recorder runs — and no
+   game-side change is needed at all, since the probe subscribes to existing
+   game events (gate-sampler pattern). Rejected: a Game.Core recorder — a new
+   parallel output path (wiring §6), and `UnitService.OnShipSpawned` never
+   fires in harness sessions, so the first customer would need adapter wiring
+   anyway.
+2. **Engagement = envelope-based with exit hysteresis.** Engaged while either
+   ship's firing envelope is valid (`CombatSnapshot.inMyEnvelope` /
+   `inEnemyEnvelope`, intercept-lead + LOS); the engagement ends when neither
+   has been valid for τ = 3 s (probe constant; `EnemyTracker.combatExitDelay`
+   semantics). Why: LOS-aware, so cover-breaks register as disengagement — the
+   escape probe's core need; purely geometric, so mutual heat lockouts at close
+   range don't fake cycles (shot-recency would bias exactly the long-lockout
+   rules candidates). Rejected: range-only (cover-blind), shot-recency (lockout
+   bias), union (a second knob with no identified consumer).
+3. **Range bands normalized to the subject's own primary `FireRange`** —
+   quarter-envelope bins to 2.0× plus overflow (9 floats); absolute
+   mean/min/max range and the normalizer value recorded per row. Why: the
+   brawl diagnosis lives on the relative axis; histogram *shape* stays
+   comparable across the coming weapon-range change; derivation-framework
+   philosophy (key off the weapon's own reach, never hand-tuned absolutes).
+4. **Sibling probe, not a gate extension.** The gate row is a frozen regression
+   surface (golden comparator + scorecard log); the registry is deliberately
+   many narrow probes. A few duplicated sampling lines are cheaper than
+   coupling the exploratory instrument to the tripwire.
+
+**Blindsider resolutions:**
+- **Default-on** (`gate,combat`): the instrument is always warm and screening
+  runs cannot forget to attach it. Artifact-set growth in eval/gate step dirs
+  accepted; the lane smoke asserts the new sidecars.
+- **Boost usage recorded** per engagement and per gap (activation edges polled
+  via `IShipStatus`): covers the second of the two escape mechanisms (cover,
+  boost) — beyond fork 6's literal metric list, added deliberately.
+
+**Assumptions (code-grounded):** one file `CombatTelemetryProbe.cs`
+(row/summary/sampler/probe in-file, plus a pure `EngagementTracker` state
+machine); registration matches the registry shape on main at build time
+(post-D: empty known-keys set); the probe is a pure observer — per-tick
+`CombatSnapshotExtractor.Capture` through the Gunsight *observation* LOS cache,
+so telemetry reads cannot mutate the firing path and the episode stream is
+untouched; row schema `rl-combat-telemetry-v1` (episodeIndex, opponent draw +
+label, outcome, endKind, simSeconds, occupancy bins, range absolutes,
+fireDistance, per-side shots via `WeaponComponent.OnFire`,
+`List<EngagementRow>` with entry sim-time + both ships' shield/heat/pool pct at
+entry, regen events split engaged/disengaged, boost counts); regen events
+edge-detected from `Shield.OnValueChanged` rising ticks — no `RegenResource`
+change; heat via the `IHeatReadout` readout-iteration precedent; `Begin` throws
+on `FireRange ≤ 0` (normalizer invariant, earliest deterministic point); an
+engagement open at episode end closes and counts; zero-engagement episodes
+serialize empty lists; TTK distribution math stays reader-side (the sidecar
+summary carries per-opponent means/counts only — blended-metrics ban; PR-4
+owns statistics); contact metrics stay slice D's `ContactSampler` (physical
+touching, ram bench) — no overlap.
+
+**Tests.** EditMode on the pure pieces: band binning, engagement hysteresis
+machine (enter/exit/τ/episode-end), regen edge detection, boost edge counting.
+PlayMode: the existing lane smoke's probe set gains `combat`, asserting its
+sidecar pair (merge-gate cost flat; D's precedent). Headless.
+
+**Vocabulary.** Coins **combat telemetry** and the telemetry sense of
+**engagement**; both registered in `doc/Glossary.md` with this brief.

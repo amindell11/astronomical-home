@@ -141,14 +141,17 @@ Format: **term** — definition. *(authority)*
 - **slice** — a sub-unit of an arc, each getting its own short pr-prep.
 - **pass** — a bounded one-shot sweep with no successor (hygiene pass, texture
   pass). Retired for this sense: "program", "package", "series".
-- **arc & PR naming** — arcs and slices carry descriptive, branch-style names
-  (`vocab`, `vocab-docfix`); the PR branch is that path (`task/vocab-seed`). A
-  **positional number appears only at the leaf**, only when one named unit spans
-  several PRs (`vocab-docfix-1..3`), and only once you are building it — plans
-  hold names, never numbers. Once a PR merges, its number is a historical fact
-  and never renumbers. Max three levels; a fourth means you have two arcs.
-  (Retired: "PR-N" as an identifier. Arcs numbered before 2026-07-29 keep their
-  numbers — nothing is retrofitted.)
+- **arc & PR naming** — arcs and slices carry BOTH a descriptive, branch-style
+  name (`vocab`, `vocab-docfix`) and a positional label within their plan
+  (`Slice-C`, `PR-4`): the word name is the identity, the label is the rank.
+  Plans assign both; chat titles show both. Branches and leases use only the
+  word path (`task/vocab-seed`) — labels never appear in git refs. A leaf
+  number for one named unit spanning several PRs (`vocab-docfix-1..3`) still
+  appears only at build time. Once a PR merges, its GitHub number is a
+  historical fact and never renumbers. Max three levels; a fourth means you
+  have two arcs. (Amended 2026-07-31: positional labels un-retired — the
+  2026-07-29 word-only ruling left slices without a quick rank/order handle.
+  Plans written under it gain labels lazily, as their slices are next touched.)
 - **SHIPPED / CLOSED** (arc status) — every planned PR merged, nothing left over /
   the arc ended deliberately with residuals deferred, named on the same line.
   (Retired: "COMPLETE".)
@@ -248,6 +251,16 @@ Format: **term** — definition. *(authority)*
   eval, `--resume` losslessly. *(runbook)*
 - **scorecard / tripwire** — per-archetype W/L/D plus behavior metrics / the
   subset watched purely as a collapse detector.
+- **combat telemetry** — the offline balance instrument: the `combat` registry
+  probe's per-episode measurement surface (range-band occupancy, TTK inputs,
+  engagement cycles, resource-at-engagement, regen events, boost usage). Lands
+  ahead of the rules branch so every screening consumer reads one instrument.
+  *(Weapon_Strategy_And_Balance_Principles.md → combat telemetry brief)*
+- **engagement** (telemetry) — the interval while either ship's firing envelope
+  is valid, ended by a 3 s exit hysteresis; the predicate behind
+  engage/disengage metrics. Definition lives at `EngagementTracker`
+  (`CombatTelemetryProbe.cs`); LOS-aware by construction so cover-breaks count
+  as disengagement, geometric so heat lockouts do not.
 - **command churn** — commanded facing movement per decision (measured 48°)
   exceeding the **slew budget** (yaw rate × decision period = 36°/decision). The
   cause.
