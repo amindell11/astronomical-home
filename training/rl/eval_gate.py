@@ -94,12 +94,6 @@ def read_score(summary_path: Path, step: int) -> Score:
     return Score(step=step, evader_wins=wins[EVADER], total_wins=sum(wins.values()))
 
 
-def run_eval(args, unity: Path, checkpoint: Path, out_dir: Path) -> Path:
-    return run_eval_lane(project=args.project, unity=unity, lease=args.lease, out_dir=out_dir,
-                         onnx=checkpoint, seeds=args.seeds,
-                         episodes_per_seed=args.episodes_per_seed, lease_wait=args.lease_wait)
-
-
 def report(score: Score, checkpoint: Path, current: str, reasons) -> None:
     print(f"[gate] {checkpoint.name}: Evader {score.evader_wins}/{EVADER_EPISODES}  "
           f"total {score.total_wins}/{TOTAL_EPISODES}  -> {current}")
@@ -166,7 +160,10 @@ def main() -> None:
                                      poll_seconds=args.poll_seconds, once=args.once):
         if pending.replay:
             print(f"[gate] step {pending.step}: replaying {pending.replay.name}")
-        summary_path = pending.replay or run_eval(args, unity, pending.checkpoint, pending.out_dir)
+        summary_path = pending.replay or run_eval_lane(
+            project=args.project, unity=unity, lease=args.lease, out_dir=pending.out_dir,
+            onnx=pending.checkpoint, seeds=args.seeds,
+            episodes_per_seed=args.episodes_per_seed, lease_wait=args.lease_wait)
         score = read_score(summary_path, pending.step)
         scores.append(score)
         current = verdict(scores)
