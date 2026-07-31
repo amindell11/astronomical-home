@@ -259,13 +259,18 @@ namespace Tests.PlayMode
             // reproducible, so no value here is a golden.
             foreach (var row in Rows<ArchetypeGateRow>(probeRows[ArchetypeGateProbe.ProbeName]))
                 Assert.Greater(row.meanRange, 0f, "gate: the opponent-range statistic must be live");
+            var shotsAcrossBatch = 0;
             foreach (var row in Rows<CombatTelemetryRow>(probeRows[CombatTelemetryProbe.ProbeName]))
             {
                 var occupancy = 0f;
                 foreach (var band in row.rangeOccupancy) occupancy += band;
                 Assert.AreEqual(1f, occupancy, 1e-3f,
                     "combat: range-band occupancy sums to 1 only when the sampler stepped");
+                shotsAcrossBatch += row.agentShots + row.oppShots;
             }
+            // Occupancy stays green with OnFire detached; shots are that hook's own output.
+            Assert.Greater(shotsAcrossBatch, 0,
+                "combat: no shot counted across the batch — WeaponComponent.OnFire is detached");
             foreach (var row in Rows<ContactRow>(probeRows[ContactProbe.ProbeName]))
                 Assert.Greater(row.minRange, 0f, "contact: an unsampled episode reports a zero minimum range");
             foreach (var row in Rows<FacingRow>(probeRows[FacingProbe.ProbeName]))
