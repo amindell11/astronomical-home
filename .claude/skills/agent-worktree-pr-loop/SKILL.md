@@ -157,6 +157,11 @@ A title starting with none of the stage words is a design-discussion chat —
 those never retitle. Retitle at every transition that writes the ledger
 (claim, PR-open, block, merge/finalize).
 
+Fresh chats are born titled: when breaking out a new session for a slice —
+a spawn chip, a handoff, a launch prompt you draft for the user — give it its
+lifecycle title from the start (`prep | <slot-label> | <word-id>`) instead of
+a freeform title plus a later retitle.
+
 Requesting a retitle:
 1. Your session id is the UUID in your scratchpad directory path, prefixed
    `local_`.

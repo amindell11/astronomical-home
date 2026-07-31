@@ -85,8 +85,9 @@ open the PR. Don't start editing in the primary worktree.
 The worktree-loop skill's *Chat title lifecycle* section is the authority
 (title grammar + Title-concierge retitle protocol). Prep-session stages:
 
-- prepping: `prep | <Slice-X or PR-N> | <word-id>` — request this retitle when
-  prep starts (launch titles are freeform).
+- prepping: `prep | <Slice-X or PR-N> | <word-id>` — a broken-out prep chat is
+  born with this title (whoever spawns it titles it so); if launched freeform,
+  request the retitle as soon as prep starts.
 - brief frozen, build not started: append ` — brief frozen`.
 - the chat stays open tracking the whole arc: retitle to
   `<stage> | Arc | <arc-name> — <happening now> → next <next step>` and
