@@ -1,6 +1,6 @@
 # RL Infrastructure Paydown Pass
 
-> STATUS: live arc — PR-1 SHIPPED #223, PR-2 SHIPPED #224; PR-3 GREW INTO ITS OWN ARC, design FROZEN 2026-07-29 → `RL_Harness_Lane_Unification.md` (slices A–F, slice A building); PR-4 (statistical eval) design FROZEN 2026-07-31 (§PR-4 brief below), builds after slices A+F; bench-hardening item HELD pending user discussion
+> STATUS: live arc — PR-1 SHIPPED #223, PR-2 SHIPPED #224; PR-3 GREW INTO ITS OWN ARC → `RL_Harness_Lane_Unification.md` (A #231 / C #238 / D #239 / F #240 shipped, B #246 in review); **PR-4 SHIPPED #244** (`959ab4f3`, 2026-07-31); PR-5 `player-eval` ADDED 2026-07-31 (stub below, prep pending); bench-hardening item HELD pending user discussion
 
 *Draft • 2026-07-28 • seeded by a four-lane parallel review (run history + results artifacts, code audit, PR trail #130–#222, board/deferral sweep) run in the coordinating session on 2026-07-28.*
 
@@ -148,11 +148,31 @@ throughput lanes designed-for, not built. Do not re-decide here.
 
 ## PR-4 — statistical eval layer
 
-> STATUS: design FROZEN 2026-07-31 (pr-prep session; all forks user-resolved).
-> One PR, not an arc (the tournament layer that would have split it is deferred).
-> Implements AFTER harness-lane slices A (schema v2) and F (watch/launcher/verdict
-> split) — both assumed present; the brief below is the authority and the
-> implementing agent re-decides nothing.
+> STATUS: **SHIPPED #244** (`959ab4f3`, 2026-07-31; landing-tree gate 671/673).
+> Built exactly to the brief below plus one review round (write-ahead held-out
+> registry, bundle seed authority, resumable banking events — disposition table
+> on the PR). Wilson bounds are computed and quoted but deliberately NOT the
+> decision cutoff — bound-based verdicts wait for bundle v2 (threshold
+> recalibration at the rules change). Brief retained as the design record.
+
+## PR-5 — player-build eval lane (`player-eval`)
+
+> STATUS: added 2026-07-31 (user decision); pr-prep pending — brief lands here
+> when it freezes.
+
+Move checkpoint evals off mid-run editors onto the #187 player path
+(`RLTraining.exe` precedent) — the structural fix for the editor-beside-fleet
+fragility class (observed casualties: editor OOM silent death during the
+variance experiment, mid-eval lease TTL expiry ×2, boot-lane dir vanish, run 1
+killed by a second Unity session). Interim policy already in force
+(run-mechanics runbook): mid-run evals OFF by default while prototyping; the
+eval gate runs as post-run backfill (`--once`), which #244's verdict machinery
+supports natively. Prep's feasibility gate: whether Sentis loads ONNX at
+runtime in a player build, or the design needs an editor-side
+convert-to-`.sentis` step. Note for the design: a player-mode eval is a NEW
+measurement mode (calibration bundle `executionMode`) with an expected
+distribution shift — the jobs-off precedent (§PR-4 calibration evidence) makes
+mode comparability a fork, not a footnote.
 
 **Scope.** Verdict machinery that consumes measured uncertainty: replicate
 protocol + interval verdicts in the gate loop, auto-arming, a banking CLI,
