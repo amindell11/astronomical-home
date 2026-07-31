@@ -65,7 +65,7 @@ namespace Combat.Conditions
             CurrentHeat = Mathf.Max(0, CurrentHeat);
             PublishHeatChangedIfNeeded(previousHeat);
 
-            // Overheat is a full lockout: it exits only at zero heat, never on a partial top-off.
+            // Full lockout by design: partial cooling never re-enables fire.
             if (!Overheated || CurrentHeat > 0f) return;
             Overheated = false;
             OnCooldownStart?.Invoke();

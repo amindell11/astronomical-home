@@ -107,7 +107,7 @@ namespace Tests.EditMode
         [Test]
         public void Overheated_PersistsUntilHeatReachesZero()
         {
-            var heat = NewConfiguredHeat(); // max 10, perShot 5
+            var heat = NewConfiguredHeat();
             try
             {
                 heat.ProcessFire();
@@ -117,8 +117,7 @@ namespace Tests.EditMode
                 var cooldownStarted = false;
                 heat.OnCooldownStart += () => cooldownStarted = true;
 
-                // Cool below the pre-lockout hysteresis band (max - perShot = 5) without reaching zero:
-                // the lockout must hold — partial cooling never re-enables fire.
+                // Below max - perShot, the point a hysteresis exit would release the lockout.
                 var guard = 0f;
                 while (heat.CurrentHeat > 4f && guard < 2f)
                 {
@@ -126,6 +125,8 @@ namespace Tests.EditMode
                     guard += 0.02f;
                 }
 
+                Assert.Less(heat.CurrentHeat, heat.MaxHeat - heat.HeatPerShot,
+                    "Setup failed to cool below the hysteresis-exit point");
                 Assert.Greater(heat.CurrentHeat, 0f);
                 Assert.IsTrue(heat.Overheated, "Lockout must persist while any heat remains");
                 Assert.IsFalse(heat.CanFire());

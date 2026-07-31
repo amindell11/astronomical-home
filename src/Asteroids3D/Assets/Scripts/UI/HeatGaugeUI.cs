@@ -107,8 +107,7 @@ namespace UI
 
         private void OnLockoutChanged() => ApplyHeatVisuals(heat.HeatPct, heat.Overheated);
 
-        // The flash tracks the lockout state, not a full bar: overheat now persists until heat
-        // fully cools to zero, so "locked out, cooling down" must stay visually distinct.
+        // Flash keys on lockout, not bar fullness: the bar drains while fire stays locked.
         private void ApplyHeatVisuals(float pct, bool lockedOut)
         {
             if (fillImage)
