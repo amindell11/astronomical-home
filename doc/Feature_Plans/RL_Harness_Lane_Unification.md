@@ -1,7 +1,9 @@
 # RL Harness Lane Unification (the "PR-3 arc")
 
 > STATUS: design FROZEN 2026-07-29 (pr-prep session, all forks user-resolved).
-> Slice A SHIPPED #231 (`4a602c9c`, 2026-07-31). Slice F brief FROZEN
+> **Slice E CLOSED 2026-07-31 — will not build** (user call at its pr-prep;
+> closure note under decision 6). Slice A SHIPPED #231 (`4a602c9c`,
+> 2026-07-31). Slice F brief FROZEN
 > 2026-07-31 (§Slice F brief below; F builds right after the taxonomy move PR,
 > not arc-final). Slice D brief FROZEN 2026-07-31 (§Slice D brief below;
 > taxonomy move #236 landed, D is buildable). Each remaining slice gets a short
@@ -95,6 +97,20 @@ threshold recalibration (locked: waits for the rules change).
    exit on regression; NUnit form retires. Deterministic committed margins ≠
    PR-4's statistical verdicts — no boundary collision. Late slice: needs
    slot 2 to become candidate-vs-frozen-rammer (`ShipCombat-999950`).
+   **CLOSURE (2026-07-31): the regression client will NOT be built** — user
+   call at slice E's pr-prep. The split's first half shipped (D's
+   `ContactProbe`/`ContactSampler`), and engagement/contact telemetry of
+   current policies is already free via the mirror lane
+   (`eval_lane.py --opponent mirror --probes "gate,contact"`). The residual —
+   a positive-control physics A/B guard replaying the frozen rammer — was
+   judged not worth building: the layer-split fix is shipped and stable.
+   Re-raise from scratch only if chassis/collision churn revives the pin
+   risk. Notes: the archived NUnit bench stays parked at
+   `training/archive/ram-bench-harness/` as the historical record (its
+   deletion was contingent on absorption); the exploiter checkpoint
+   `ShipCombat-999950` remains machine-local in gitignored
+   `results/rl-training/ship_combat_selfplay2/` and is exposed to retention
+   sweeps — it was never committed anywhere.
 7. **Python surface: launcher + watch extraction (arc-final slice).** One
    lane launcher on PR-2's `driver_common` (compose env → `run_batch` →
    read back from caller-named out dir). eval_gate's checkpoint-watch loop
@@ -175,7 +191,7 @@ threshold recalibration (locked: waits for the rules change).
 | B | Capture + painters | Canvas interface + both backends; painter identity; overlay + PolicyGizmos as painters; recording axis + recorder in RunBlock; child-script graphics conditional; record.flag deleted. Mirror capture = config. | A, #222 |
 | C | Second ONNX slot | Slot-parameterized import; per-side models; path grammar value; opponent-stem labels. Small. | A |
 | D | Probe clients | Facing probe rebuilt (summary schema, wFacing param) — resolves ledger BLOCKED row, confirms #219 behaviorally; contact probe extracted. | A |
-| E | Ram-bench regression client | Condition loop, committed margins, verdict + nonzero exit; candidate-vs-rammer via slot 2. | C, D |
+| E | ~~Ram-bench regression client~~ | **CLOSED 2026-07-31, not built** — user call at pr-prep; closure note under decision 6. | — |
 | F | Python surface | Launcher (`eval_lane.py`) + watch extraction (`checkpoint_watch.py`); eval_gate re-plumb; retire rl_eval.ps1; `RL_EVAL_*` → `RL_HARNESS_*` rename. Brief FROZEN 2026-07-31 (§Slice F brief). | PR-2, A |
 
 B, C, D parallel after A (mostly file-disjoint). F also builds right after A
@@ -798,3 +814,219 @@ schema v2 untouched.
 2. **This brief lands direct to main** (docs-only, user-approved — the F/PR-4
    route), not riding D's first commit: the B and F preps append to this same
    doc in parallel, and PR-riding briefs would conflict at merge.
+
+## Slice B brief
+
+> FROZEN 2026-07-31 (slice-local pr-prep; forks, assumptions and blindsiders
+> all user-resolved). The implementing agent builds from this plus the doc
+> above and re-decides neither. Grounded against main @ `b74612ea` (post-#231
+> substrate, post-#236 taxonomy move — paths below are post-move). **Build
+> sequencing:** F (agent-3), C (agent-1) and D (agent-4) were all building
+> when this froze; B branches from whatever main it gets a slot on and joins
+> the standing convention: env vars are named BY ROLE (new axes are
+> `RL_HARNESS_*` outright; pre-existing axes wear whatever name the tree has
+> at build time), the batch-child conditional lands on whatever the child
+> script is named at build time (`harness_child.ps1` post-F), and whichever
+> slice lands second carries the trivial rebase on `SessionSpec.cs` /
+> `RLSessionSpecEditModeTests`.
+
+**Goal (plain language).** Today the only way to film an RL episode is a
+magic flag file (`record.flag`) that reconfigures a PlayMode test, and the
+diagnostic markup drawn onto those clips (velocity vectors, aim lines, range
+rings) lives in the test assembly where the live editor can never show it —
+while the editor's gizmo diagnostics can never appear in clips, because
+Gizmos/Handles don't render into offscreen captures. After B, filming is an
+ordinary axis of any harness session — env-var config like every other axis —
+and each diagnostic view is written once, as a **painter** (a named drawing
+routine over a **canvas**, the drawing-surface contract), then rendered by
+whichever backend is active: offscreen capture or live editor gizmos.
+
+**Scope.** The canvas/painter contract (decision 8): `IDiagnosticCanvas`
+carrying `CaptureDraw`'s vocabulary, with `CaptureDraw` and a new editor-side
+`GizmoCanvas` as its two backends; painters `ship-diagnostics` (the overlay,
+moved runtime-side) and `policy` (#222's `PolicyGizmos` rewritten); a painter
+registry + `RL_HARNESS_PAINTERS` selection; the recording axis on
+`SessionSpec` (`RL_HARNESS_RECORD` / `_RECORD_SIZE` / `_RECORD_EVERY`,
+record⇒graphics at parse); recorder + painters wired inside `RunBlock`;
+presentation derived from recording and driven through the existing spawn
+seams; `SessionLane.Capture` + the capture client selected by
+`RL_HARNESS_LANE`; `ISessionClient` extracted at this second client (slice-A
+fork 3); the batch child's graphics conditional; `record.flag` +
+`RecordConfig` + `RecordCheckpointEpisodes` deleted (~250 lines); README +
+game-capture skill updated; glossary registers **painter** and **canvas**.
+Mirror capture = `lane=capture` + `opponent=mirror` — the "Mirror/self-play
+capture first-class" board card resolves here.
+
+**Non-goals.** No migration of the ~15 legacy `AIDebugChannel` gizmo files
+(carded parallel arc; two identity systems, deliberately temporary). No
+second ONNX slot (C), no probe implementations or params grammar (D), no env
+renames or Python surface (F; a capture preset joins `eval_lane.py` at a
+later leaf). No auto-assemble — clips remain PNG frames + manifest,
+`scripts/capture/assemble.py` runs by hand (post-B leaf if pulled).
+`watch.flag` + the `RL_EPISODES` characterization lane stay test-side
+untouched; `CaptureScenario` + its runner untouched beyond one call-site
+re-point. Eval summary schema stays v2 — no recording fields enter the
+summary.
+
+### Forks (resolved, with why)
+
+1. **Painter subject binding → bound instances + per-world composers.** A
+   painter's drawing core is a pure public static over explicit subjects
+   (what the overlay already is); the runtime class binds subjects at
+   construction and implements `IDiagnosticPainter { Name; Paint(canvas) }`.
+   The harness composes painters from spec names via a `SessionProbes`-style
+   registry (`name → factory(PainterContext)`; context = pair + projectile
+   service); the live editor keeps its `[DrawGizmo]` per-subject shims,
+   shrunk to gating + `GizmoCanvas` + core call. Rejected: self-discovering
+   painters (collapses for pairwise diagnostics — which two of N ships?) and
+   live-instance registration (nothing constructs painters in the plain
+   game, killing the live use #222 exists for).
+2. **Recording is orthogonal to lane.** `RunBlock` films whatever client is
+   running when the spec says record — a filmed eval is expressible for
+   free (the rules-change telemetry instrument). Episode selection is
+   per-block (indices restart per block — `RunBlock`'s existing contract).
+   The capture client stays the frozen "once" protocol: exactly one seed
+   (throw otherwise), one opponent block (`roster` throws — stratification
+   is an eval-protocol concept; five archetype films = five sessions or one
+   filmed eval), JSONL rows kept (they fingerprint the clips), no summary
+   machinery.
+3. **B↔F ordering → resolved by events + role naming.** F/C/D were already
+   building at freeze; rather than encode an order, the brief names env vars
+   by role and targets files as they exist at build time (the C/D
+   convention). The brief itself lands direct to main docs-only (D
+   blindsider-2 route).
+
+### Assumptions (locked; code-grounded)
+
+1. `IDiagnosticCanvas`: `Line / Vector / Ring / Trail / Label(pos, text,
+   color, size)` + the `LineWidth` get/set knob (the overlay's projectile
+   emphasis uses it). `CaptureDraw` implements it directly; its
+   `BeginFrame`/`DisableUnused`/`SetVisible` lifecycle stays internal to the
+   capture backend.
+2. Placement: new runtime folder `Scripts/Diagnostics/` (namespace
+   `Game.Diagnostics`) — interface, `DiagnosticPainters` registry,
+   `PainterContext`, `ShipDiagnosticsPainter`, `PolicyPainter`; `Capture/`
+   keeps its two classes; editor side gets
+   `Scripts/Editor/Diagnostics/GizmoCanvas.cs` while `Editor/AI/
+   PolicyGizmos.cs` stays put as the shrunk shim. (Everything-under-Capture/
+   rejected: the live-gizmo path isn't capture; domain folders per the
+   AGENTS.md structure guideline.)
+3. `ShipDiagnosticsPainter.Draw(canvas, a, b, projectiles)` is today's
+   overlay body verbatim (parameter type swapped to the interface); the
+   test-assembly file and its `#if UNITY_EDITOR` die;
+   `TwoShipSkirmishScenario` re-points (one line).
+4. `PolicyPainter.Draw(canvas, commander, fanDepth)` is PolicyGizmos' body on
+   canvas primitives (rays become `Line`s; the label becomes `Label`). The
+   editor shim keeps `[DrawGizmo(typeof(AICommander))]` +
+   `AIDebugChannel.Policy` gating unchanged and passes
+   `settings.policyFanDepth`; capture-side fanDepth defaults to 10 (the SO's
+   default — the SO itself is editor-assembly-only).
+5. Harness policy painting covers each pair ship whose chooser is
+   `IPolicyReadout` (the agent always; the opponent on mirror/checkpoint
+   compositions); commanders are cached at painter construction.
+6. The probe-painter pairing seam ships per decision 4: a probe implementing
+   the capability interface exposes a painter under its own name;
+   painter-name resolution checks the painter registry first, then the
+   session's active probes. Zero implementers in B (user-approved; D's
+   probes are the named consumers).
+7. Recording env/fields (mined from the deleted `RecordConfig`):
+   `RL_HARNESS_RECORD` unset/empty → off, `all`, or per-block indices
+   (non-negative, unique, < episodesPerSeed — throw otherwise);
+   `RL_HARNESS_RECORD_SIZE` = `WxH`, default `960x540` (positive, even — the
+   recorder's yuv420p rule enforced at the boundary);
+   `RL_HARNESS_RECORD_EVERY` default 5 (> 0).
+8. `RL_HARNESS_LANE` = `eval` (default) | `capture` selects the client.
+   record⇒graphics throws at parse with the graphics-device state injected
+   (`ParseEval`'s existing injection style) so EditMode covers both paths.
+   `RL_HARNESS_PAINTERS` defaults to `ship-diagnostics`; an unknown name
+   throws naming the registered set.
+9. `spec.presentation` is derived (= recording on) — no separate env var
+   until a watch/playtest lane exists — and drives the three currently
+   hardcoded seams: the host's `SetPresentationEnabled` +
+   `HarnessArena.Compose` args, and both field-spawn sites (the evaluator's
+   `presentationEnabled: false` becomes spec-driven).
+10. Pacing untouched: `PacingContract.Apply()` already sets exactly
+    `CapturePacing.Locked()`'s two values, so recorded sessions ride the
+    existing contract; `CapturePacing` stays for the test-side scenario lane.
+11. Recorder inside `RunBlock`: per-episode `using var recorder` when the
+    episode is selected; `CaptureConfig.outputRoot` = the session's artifact
+    dir (dirname of the JSONL — caller-named `outDir` when set), `runStamp` =
+    the JSONL stem so clips sit beside their rows, `clipName` =
+    `s{seed}-{opponentLabel}-ep{NN}` — unique across blocks (the old flat
+    `ep{NN}` naming would trip the recorder's reused-dir throw on any
+    multi-block run). Subjects = the pair's two positions per captured step
+    (reused buffer); draw = the active painters in order. **No new `RunBlock`
+    parameter**: recorder + painters are spec-wired internally (decision 2);
+    `extraHooks` still has no caller and stays unadded — supersedes
+    A-blindsider-3's expectation that the recorder would be its first caller.
+12. Capture client (in `Hosts/`): one composition, one block,
+    episodesPerSeed episodes; JSONL via
+    `EpisodeJsonl.NewRunPath("capture-vs-<label>", "rl-capture",
+    spec.outDir)`; no summary artifact — nothing named `*-summary.json` is
+    ever written, so the eval gate's glob stays unambiguous.
+13. `ISessionClient` = `internal interface { IEnumerator Run(host, spec) }`;
+    the serialized `SessionLane` enum stays the reload-surviving identity;
+    `RunLane`'s switch maps enum → client instance. `CheckpointEvaluator`
+    keeps its name, file, static `Run` and static `Summarize` (the test
+    surfaces); the instance implements the interface by delegating.
+14. Batch-child conditional: record env set → omit `-nographics`, keep
+    `-batchmode` — the test runner's proven graphics shape
+    (`unity_test_agent.ps1` composes args exactly this way).
+15. Deletion set in `RLEpisodePlayModeTests`: the record.flag branch of
+    `Characterization_WritesJsonl`, `RecordCheckpointEpisodes`,
+    `RecordConfig`, `LoadRecordConfig`, and `RunToCompletion`'s recorder
+    parameter + capture block; the watch/`RL_EPISODES`/`RL_WATCH` paths stay.
+    C's compat note stands: `ImportEvalCandidate` keeps its public name — B
+    merely removes this caller.
+16. Docs: README gains the new env lines beside the existing probes line
+    (producer-owns-docs); the game-capture skill's "RL episodes" lane and
+    film-a-checkpoint section are rewritten to the harness capture lane;
+    `doc/Glossary.md` registers **painter** and **canvas** in B's PR (both
+    span symbols; canvas is qualified "diagnostic canvas" in prose — Unity's
+    UI `Canvas` collides); the board card is checked off at merge; the
+    A-brief's stale "keep in lockstep" comment dies with the lane.
+
+### Blindsider resolutions
+
+1. **Spawn-frame URP crash structurally avoided:** `RunEpisode` fires
+   `onFixedStep` only after the first `WaitForFixedUpdate` post-reset, so the
+   recorder never captures the spawn frame (the crash the capture skill
+   documents).
+2. **Record-index bound:** an index ≥ episodesPerSeed would silently film
+   nothing (the old lane auto-widened the episode count instead — test-side
+   behavior that dies with it); parse throws.
+3. **Known cosmetic issue rides along:** offscreen capture renders asteroid
+   detail material magenta (carded — `project_capture_magenta_asteroids`);
+   field-enabled clips inherit it; not B's to fix.
+4. **Recorded runs hold the machine-wide boot lane longer** (synchronous PNG
+   readback ≈ 10× wall clock on captured episodes, the old lane's measured
+   scale): an operator note in the skill doc, not a watchdog (the arc's
+   no-watchdog resolution stands).
+5. **GizmoCanvas fidelity:** `Label` → `Handles.Label` (approximate size
+   mapping), `Ring` → `Handles.DrawWireDisc`, lines/vectors/trails →
+   `Gizmos.DrawLine`; `LineWidth` is an editor-side no-op. Cosmetic parity
+   across backends is a non-goal; one source of truth is the goal.
+
+### Verification
+
+- Merge-gate suite green headless — the refactored `RunBlock`/client seam is
+  exercised recording-off by the existing lane smoke. No golden-mask re-run:
+  protocol, JSONL rows and summary are untouched when recording is off.
+- One graphics capture run (capture lane, smoke fixture, one archetype + one
+  mirror) with a mid-clip PNG eyeballed per the capture skill's standing
+  rule; clips confirmed under a caller-named out dir.
+
+### Tests
+
+- **EditMode** (`RLSessionSpecEditModeTests`): record grammar — off / all /
+  indices; garbage, odd dims, zero cadence, out-of-range index throws;
+  record-without-graphics throw (injected device state); lane selector +
+  capture-lane constraints (multi-seed throw, roster throw); painter-name
+  validation.
+- **PlayMode headless** (merge gate): the existing lane smoke, unchanged —
+  covers the `ISessionClient` extraction and `RunBlock` internals with
+  recording off.
+- **PlayMode `[Category("RequiresGraphics")]`** (filtered runs only, never
+  the merge gate): a small capture-lane session on the smoke fixture
+  asserting frames > 0, manifest present, clip dirs under the out dir, and
+  the JSONL row count.
