@@ -251,6 +251,16 @@ Format: **term** — definition. *(authority)*
   eval, `--resume` losslessly. *(runbook)*
 - **scorecard / tripwire** — per-archetype W/L/D plus behavior metrics / the
   subset watched purely as a collapse detector.
+- **combat telemetry** — the offline balance instrument: the `combat` registry
+  probe's per-episode measurement surface (range-band occupancy, TTK inputs,
+  engagement cycles, resource-at-engagement, regen events, boost usage). Lands
+  ahead of the rules branch so every screening consumer reads one instrument.
+  *(Weapon_Strategy_And_Balance_Principles.md → combat telemetry brief)*
+- **engagement** (telemetry) — the interval while either ship's firing envelope
+  is valid, ended by a 3 s exit hysteresis; the predicate behind
+  engage/disengage metrics. Definition lives at `EngagementTracker`
+  (`CombatTelemetryProbe.cs`); LOS-aware by construction so cover-breaks count
+  as disengagement, geometric so heat lockouts do not.
 - **command churn** — commanded facing movement per decision (measured 48°)
   exceeding the **slew budget** (yaw rate × decision period = 36°/decision). The
   cause.
