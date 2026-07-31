@@ -185,7 +185,7 @@ $env:RL_EVAL_ONNX = "results/rl-training/<run-id>/ShipCombat.onnx"   # default: 
 $env:RL_EVAL_EPISODES_PER_SEED = "5"
 $env:RL_EVAL_SEEDS = "train"   # checkpoint selection; omit (or "held-out") for the sealed set, or pass "7,42,99"
 $env:RL_EVAL_DENSITY = "3.0"   # stretch/diagnostic only; omit for the canonical eval env (training's terminal lesson)
-$env:RL_EVAL_OPPONENT = "mirror"   # "roster" (default: stratified archetype blocks) / an archetype name / "mirror" (checkpoint vs itself)
+$env:RL_EVAL_OPPONENT = "mirror"   # "roster" (default: stratified archetype blocks) / an archetype name / "mirror" (checkpoint vs itself) / a path ending .onnx (checkpoint vs checkpoint; blocks labeled by its stem)
 $env:RL_EVAL_PROBES = "gate"   # comma-separated probe selection writing per-probe sidecars; "" for none; omit for the default "gate"
 $env:RL_EVAL_OUT_DIR = "..."   # caller-owned artifact dir; omit for results/rl-eval/
 ```

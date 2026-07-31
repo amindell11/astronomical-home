@@ -258,6 +258,35 @@ namespace Tests.PlayMode
             var mirrorRow = JsonUtility.FromJson<EpisodeResult>(mirrorRows[0]);
             Assert.AreEqual("Mirror", mirrorRow.opponent.archetype,
                 "mirror episodes must self-fingerprint in the JSONL row");
+
+            // Checkpoint-opponent block: the smoke fixture imported into the second slot is a DISTINCT
+            // asset, so both per-side ModelRunners genuinely exist in this one Academy session.
+            var opponentAssetPath = TrainingBootstrap.ImportEvalOpponent(ShipAgentFactory.SmokeFixturePath);
+            var slot2Spec = new SessionSpec
+            {
+                onnxAssetPath = ShipAgentFactory.SmokeFixturePath,
+                opponentKind = OpponentKind.Checkpoint,
+                opponentOnnxAssetPath = opponentAssetPath,
+                opponentOnnxSourcePath = ShipAgentFactory.SmokeFixturePath,
+                opponentLabel = "ShipCombat-smoke",
+                seeds = new[] { seeds[0] },
+                tag = "test-eval-slot2",
+                episodesPerSeed = 1,
+                probes = new string[0],
+            };
+            CheckpointEvaluator.Summary slot2Summary = default;
+            yield return CheckpointEvaluator.Run(NewHost(slot2Spec), slot2Spec, spec, s => slot2Summary = s);
+
+            Assert.AreEqual(1, slot2Summary.opponents.Length, "a checkpoint eval is a single opponent block");
+            Assert.AreEqual("ShipCombat-smoke", slot2Summary.opponents[0].opponent,
+                "checkpoint blocks are labeled by the opponent checkpoint's stem");
+            Assert.AreEqual(opponentAssetPath, slot2Summary.opponentCheckpoint);
+            Assert.AreEqual(ShipAgentFactory.SmokeFixturePath, slot2Summary.opponentCheckpointSource,
+                "slot-2 provenance must survive into the summary");
+            var slot2Row = JsonUtility.FromJson<EpisodeResult>(
+                System.IO.File.ReadAllLines(slot2Summary.episodesJsonl)[0]);
+            Assert.AreEqual("ShipCombat-smoke", slot2Row.opponent.archetype,
+                "checkpoint episodes must fingerprint the opponent stem in the JSONL row");
         }
 
         /// <summary>Host on an inactive GameObject so its Start never fires — the test composes the arena and drives the client coroutine itself.</summary>

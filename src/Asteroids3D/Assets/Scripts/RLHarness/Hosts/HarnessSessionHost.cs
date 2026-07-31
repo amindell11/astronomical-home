@@ -49,10 +49,15 @@ namespace Game.RLHarness
         }
 
         internal ISessionComposition NewComposition(in RewardSpec seedSpec, OpponentKind opponent, HarnessField field) =>
-            opponent == OpponentKind.Mirror
-                ? new MirrorComposition(units, Arena, Projectiles, assets, in seedSpec, spec.onnxAssetPath, field)
-                : new InferenceRosterComposition(units, Arena, Projectiles, assets, in seedSpec, spec.onnxAssetPath,
-                    field);
+            opponent switch
+            {
+                OpponentKind.Mirror => new PolicyPairComposition(units, Arena, Projectiles, assets, in seedSpec,
+                    spec.onnxAssetPath, spec.onnxAssetPath, field),
+                OpponentKind.Checkpoint => new PolicyPairComposition(units, Arena, Projectiles, assets, in seedSpec,
+                    spec.onnxAssetPath, spec.opponentOnnxAssetPath, field),
+                _ => new InferenceRosterComposition(units, Arena, Projectiles, assets, in seedSpec,
+                    spec.onnxAssetPath, field),
+            };
 
         /// <summary>Episodes 0..N-1 against one opponent config — the index restarts per block, so blocks on one seed are a controlled comparison over the same poses and field layouts.</summary>
         internal IEnumerator RunBlock(ISessionComposition composition, OpponentSpec opponent, int episodes,

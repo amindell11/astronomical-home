@@ -10,13 +10,15 @@ namespace Tests.EditMode
     [Category("AI")]
     public class RLSessionSpecEditModeTests
     {
-        private const string ImportedPath = "Assets/Tests/Fixtures/EvalCandidate.onnx";
+        private const string ImportedCandidatePath = "Assets/Tests/Fixtures/EvalCandidate.onnx";
+        private const string ImportedOpponentPath = "Assets/Tests/Fixtures/EvalOpponent.onnx";
 
         private static SessionSpec Parse(params string[] keyValuePairs)
         {
             var env = new Dictionary<string, string>();
             for (var i = 0; i < keyValuePairs.Length; i += 2) env[keyValuePairs[i]] = keyValuePairs[i + 1];
-            return SessionSpec.ParseEval(k => env.TryGetValue(k, out var v) ? v : null, _ => ImportedPath);
+            return SessionSpec.ParseEval(k => env.TryGetValue(k, out var v) ? v : null,
+                _ => ImportedCandidatePath, _ => ImportedOpponentPath);
         }
 
         [Test]
@@ -32,6 +34,7 @@ namespace Tests.EditMode
             Assert.AreEqual(SessionSpec.DefaultEpisodesPerSeed, spec.episodesPerSeed);
             Assert.AreEqual(EvalProtocol.CanonicalFieldDensityScale, spec.fieldDensityScale);
             Assert.AreEqual(OpponentKind.Roster, spec.opponentKind);
+            Assert.IsNull(spec.opponentOnnxSourcePath);
             Assert.AreEqual(new[] { ArchetypeGateProbe.ProbeName }, spec.probes);
             Assert.IsNull(spec.outDir);
         }
@@ -41,7 +44,7 @@ namespace Tests.EditMode
         {
             var spec = Parse("RL_EVAL_ONNX", "results/rl-training/run/ShipCombat-42.onnx");
 
-            Assert.AreEqual(ImportedPath, spec.onnxAssetPath);
+            Assert.AreEqual(ImportedCandidatePath, spec.onnxAssetPath);
             Assert.AreEqual("results/rl-training/run/ShipCombat-42.onnx", spec.onnxSourcePath,
                 "the summary carries provenance the imported path erases");
         }
@@ -66,10 +69,23 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void OpponentGrammar_RefusesASecondCheckpointUntilItsSlice()
+        public void OpponentGrammar_RoutesACheckpointPathToTheSecondSlot()
         {
-            var thrown = Assert.Throws<ArgumentException>(() => Parse("RL_EVAL_OPPONENT", "frozen/rammer.onnx"));
-            StringAssert.Contains("slice C", thrown.Message);
+            var spec = Parse("RL_EVAL_OPPONENT", "frozen/ShipCombat-999950.onnx");
+
+            Assert.AreEqual(OpponentKind.Checkpoint, spec.opponentKind);
+            Assert.AreEqual("frozen/ShipCombat-999950.onnx", spec.opponentOnnxSourcePath,
+                "the summary carries slot-2 provenance the imported path erases");
+            Assert.AreEqual(ImportedOpponentPath, spec.opponentOnnxAssetPath,
+                "the opponent must land in its own fixture slot, never the candidate's");
+            Assert.AreEqual("ShipCombat-999950", spec.opponentLabel, "summary blocks are labeled by the stem");
+        }
+
+        [Test]
+        public void OpponentCheckpointImport_MissingFileFailsAtTheBoundary()
+        {
+            Assert.Throws<System.IO.FileNotFoundException>(() =>
+                TrainingBootstrap.ImportEvalOpponent("missing-opponent.onnx"));
         }
 
         [Test]

@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.IO;
 using UnityEngine;
 
 namespace Game.RLHarness
@@ -7,22 +8,31 @@ namespace Game.RLHarness
     /// <summary>Which lane client the host runs; every other axis of a session is a spec field.</summary>
     public enum SessionLane { Eval }
 
-    public enum OpponentKind { Roster, Archetype, Mirror }
+    public enum OpponentKind { Roster, Archetype, Mirror, Checkpoint }
 
-    /// <summary>One block's opponent: a pinned scripted archetype, or the checkpoint's own mirror.</summary>
+    /// <summary>One block's opponent: a pinned scripted archetype, the candidate's own mirror, or a second frozen checkpoint.</summary>
     public struct OpponentSpec
     {
         public const string MirrorLabel = "Mirror";
 
         public OpponentKind kind;
         public OpponentArchetype archetype;
+        public string checkpointStem;
 
         public static readonly OpponentSpec Mirror = new() { kind = OpponentKind.Mirror };
 
         public static OpponentSpec Pinned(OpponentArchetype archetype) =>
             new() { kind = OpponentKind.Archetype, archetype = archetype };
 
-        public string Label => kind == OpponentKind.Mirror ? MirrorLabel : archetype.ToString();
+        public static OpponentSpec Checkpoint(string stem) =>
+            new() { kind = OpponentKind.Checkpoint, checkpointStem = stem };
+
+        public string Label => kind switch
+        {
+            OpponentKind.Mirror => MirrorLabel,
+            OpponentKind.Checkpoint => checkpointStem,
+            _ => archetype.ToString(),
+        };
     }
 
     /// <summary>A harness session's fully-resolved configuration, parsed from the environment ONCE at the batch boundary — before play mode — so a malformed value fails there instead of inside a running episode loop. Carried into play mode as a serialized field on <see cref="HarnessSessionHost"/>.</summary>
@@ -42,11 +52,15 @@ namespace Game.RLHarness
         public float fieldDensityScale;
         public OpponentKind opponentKind;
         public OpponentArchetype opponentArchetype;
+        public string opponentOnnxAssetPath;
+        public string opponentOnnxSourcePath;
+        public string opponentLabel;
         public string[] probes;
         public string outDir;
 
-        /// <summary>Parses the eval lane's environment. <paramref name="importCheckpoint"/> imports RL_EVAL_ONNX into the fixture slot and returns its asset path (AssetDatabase work the parse itself stays free of).</summary>
-        public static SessionSpec ParseEval(Func<string, string> getEnv, Func<string, string> importCheckpoint)
+        /// <summary>Parses the eval lane's environment. <paramref name="importCandidate"/> and <paramref name="importOpponent"/> each import a checkpoint file into their fixture slot and return its asset path (AssetDatabase work the parse itself stays free of).</summary>
+        public static SessionSpec ParseEval(Func<string, string> getEnv, Func<string, string> importCandidate,
+            Func<string, string> importOpponent)
         {
             var source = getEnv("RL_EVAL_ONNX");
             var spec = new SessionSpec
@@ -55,7 +69,7 @@ namespace Game.RLHarness
                 onnxSourcePath = source,
                 onnxAssetPath = string.IsNullOrEmpty(source)
                     ? ShipAgentFactory.SmokeFixturePath
-                    : importCheckpoint(source),
+                    : importCandidate(source),
                 episodesPerSeed = ParseEpisodes(getEnv("RL_EVAL_EPISODES_PER_SEED")),
                 fieldDensityScale = ParseDensity(getEnv("RL_EVAL_DENSITY")),
                 probes = ParseProbes(getEnv("RL_EVAL_PROBES")),
@@ -66,7 +80,7 @@ namespace Game.RLHarness
             spec.tag = Mathf.Approximately(spec.fieldDensityScale, EvalProtocol.CanonicalFieldDensityScale)
                 ? tag
                 : tag + "-d" + spec.fieldDensityScale.ToString("0.##", CultureInfo.InvariantCulture).Replace('.', '_');
-            spec.ParseOpponent(getEnv("RL_EVAL_OPPONENT"));
+            spec.ParseOpponent(getEnv("RL_EVAL_OPPONENT"), importOpponent);
             return spec;
         }
 
@@ -114,7 +128,7 @@ namespace Game.RLHarness
             return names;
         }
 
-        private void ParseOpponent(string token)
+        private void ParseOpponent(string token, Func<string, string> importOpponent)
         {
             if (string.IsNullOrEmpty(token) || Matches(token, RosterToken)) return;
             if (Matches(token, MirrorToken))
@@ -123,11 +137,16 @@ namespace Game.RLHarness
                 return;
             }
             if (token.EndsWith(".onnx", StringComparison.OrdinalIgnoreCase))
-                throw new ArgumentException(
-                    $"RL_EVAL_OPPONENT='{token}': the second checkpoint slot lands in slice C.");
+            {
+                opponentKind = OpponentKind.Checkpoint;
+                opponentOnnxSourcePath = token;
+                opponentOnnxAssetPath = importOpponent(token);
+                opponentLabel = Path.GetFileNameWithoutExtension(token);
+                return;
+            }
             if (!Enum.TryParse<OpponentArchetype>(token, ignoreCase: true, out var archetype))
                 throw new ArgumentException($"RL_EVAL_OPPONENT='{token}' is not \"{RosterToken}\", \"{MirrorToken}\", "
-                    + $"or one of {string.Join(", ", Enum.GetNames(typeof(OpponentArchetype)))}.");
+                    + $"a checkpoint path ending .onnx, or one of {string.Join(", ", Enum.GetNames(typeof(OpponentArchetype)))}.");
             opponentKind = OpponentKind.Archetype;
             opponentArchetype = archetype;
         }

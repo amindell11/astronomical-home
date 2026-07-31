@@ -36,22 +36,27 @@ namespace Game.RLHarness
                 BehaviorType.InferenceOnly, model, teamId: 0, parent);
         }
 
-        /// <summary>Both episode ships as parameter-shared agents: A on team 0 (self=Agent, primary/logged), B on team 1 (self=Baseline) — native ML-Agents self_play trains one policy against its own mirror.
-        /// <paramref name="onnxAssetPath"/> null keeps the training path (the trainer supplies the policy); supplying it drives BOTH sides from one frozen checkpoint — the only way to observe a mirror match offline (capture/replay).</summary>
+        /// <summary>Both episode ships as agents on one behavior: A on team 0 (self=Agent, primary/logged), B on team 1 (self=Baseline) — native ML-Agents self_play trains one policy against its own mirror.
+        /// Null paths keep the training path (the trainer supplies the policy); supplying both drives each side from its own frozen checkpoint — the same path on both sides is the parameter-shared mirror (one ModelRunner), distinct paths a checkpoint-vs-checkpoint match.</summary>
         public static (ShipAgent agentA, ShipAgent agentB) ComposeSelfPlayPair(EpisodePair pair,
             AgentChooser chooserA, AgentChooser chooserB, in RewardSpec spec, Vector2 arenaCenter,
-            BehaviorType behaviorType, Transform parent = null, string onnxAssetPath = null)
+            BehaviorType behaviorType, Transform parent = null, string onnxAssetPathA = null,
+            string onnxAssetPathB = null)
         {
-            ModelAsset model = null;
-            if (!string.IsNullOrEmpty(onnxAssetPath))
+            if (string.IsNullOrEmpty(onnxAssetPathA) != string.IsNullOrEmpty(onnxAssetPathB))
+                throw new ArgumentException(
+                    "Per-side checkpoints come in pairs: supply both onnx asset paths or neither.");
+            ModelAsset modelA = null, modelB = null;
+            if (!string.IsNullOrEmpty(onnxAssetPathA))
             {
-                model = LoadModel(onnxAssetPath);
+                modelA = LoadModel(onnxAssetPathA);
+                modelB = LoadModel(onnxAssetPathB);
                 Academy.Instance.InferenceSeed = EvalProtocol.InferenceSeed;
             }
             var agentA = Compose(pair.Agent, pair.Baseline, chooserA, in spec, arenaCenter,
-                behaviorType, model, teamId: 0, parent);
+                behaviorType, modelA, teamId: 0, parent);
             var agentB = Compose(pair.Baseline, pair.Agent, chooserB, in spec, arenaCenter,
-                behaviorType, model, teamId: 1, parent);
+                behaviorType, modelB, teamId: 1, parent);
             return (agentA, agentB);
         }
 
