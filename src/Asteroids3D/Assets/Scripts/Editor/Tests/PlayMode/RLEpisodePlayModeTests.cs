@@ -2,16 +2,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
 using AI;
 using AI.Observation;
 using Tests.Common;
-using Tests.PlayMode.Common;
 using Game;
-using Game.Capture;
 using Game.RLHarness;
 using Game.Services;
 using NUnit.Framework;
@@ -400,34 +395,20 @@ namespace Tests.PlayMode
             var resultsDir = Path.GetFullPath(Path.Combine(
                 Application.dataPath, "..", "..", "..", "results", "rl-episodes"));
             var watchFlag = File.Exists(Path.Combine(resultsDir, "watch.flag"));
-            var recordPath = Path.Combine(resultsDir, "record.flag");
-            var record = File.Exists(recordPath) ? LoadRecordConfig(recordPath) : null;
-            if (!watchFlag && record == null && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RL_EPISODES")))
-                Assert.Ignore("Set RL_EPISODES=1 (or create results/rl-episodes/watch.flag or record.flag) to run the ranger-vs-baseline characterization.");
+            if (!watchFlag && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RL_EPISODES")))
+                Assert.Ignore("Set RL_EPISODES=1 (or create results/rl-episodes/watch.flag) to run the ranger-vs-baseline characterization.");
 
             var trace = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RL_EPISODE_TRACE"));
-            // Watch (human real-time eyeball) is the one unlocked mode; record and measurement runs keep the pacing contract.
-            using var pacing = record != null && !watchFlag ? CapturePacing.Locked() : null;
+            // Watch (human real-time eyeball) is the one unlocked mode; measurement runs keep the pacing contract.
             if (watchFlag || !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RL_WATCH")))
                 Time.timeScale = 1f;
-            else if (record == null)
+            else
                 PacingContract.Apply();
 
             var episodes = Mathf.Max(1, int.TryParse(Environment.GetEnvironmentVariable("RL_EPISODE_COUNT"), out var n)
-                ? n : (watchFlag || record != null ? 3 : 20));
-            if (record?.episodes is { Length: > 0 })
-                episodes = Mathf.Max(episodes, record.episodes.Max() + 1);
-            var runStamp = DateTime.Now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
-
-            if (record is { FilmsCheckpoint: true })
-            {
-                yield return RecordCheckpointEpisodes(record, episodes, runStamp);
-                yield break;
-            }
+                ? n : (watchFlag ? 3 : 20));
 
             var spec = RewardSpec.Default;
-            if (record != null)
-                spec.runSeed = record.runSeed;
             SpawnPair(in spec);
 
             var path = EpisodeJsonl.NewRunPath("ranger-vs-baseline");
@@ -435,64 +416,11 @@ namespace Tests.PlayMode
             {
                 pair.Reset(in spec, i);
                 var runner = new EpisodeRunner(agent, baseline, spec, i, arena.Offset, trace);
-                using var recorder = record != null && record.ShouldRecord(i)
-                    ? new CaptureRecorder(record.ClipConfig(i, runStamp))
-                    : null;
-                yield return RunToCompletion(runner, spec, recorder);
+                yield return RunToCompletion(runner, spec);
                 EpisodeJsonl.Append(path, runner.Result);
             }
 
             Debug.Log($"[RLEpisode] wrote {episodes} rows to {path}");
-        }
-
-        // CheckpointEvaluator.Run's eval composition grafted onto the record lane — keep them in lockstep.
-        private IEnumerator RecordCheckpointEpisodes(RecordConfig record, int episodes, string runStamp)
-        {
-            var assetPath = record.checkpoint.StartsWith("Assets/", StringComparison.Ordinal)
-                ? record.checkpoint
-                : TrainingBootstrap.ImportEvalCandidate(record.checkpoint);
-            var archetype = (OpponentArchetype)Enum.Parse(typeof(OpponentArchetype), record.opponent);
-            var spec = EvalProtocol.EvalSpec(record.fieldDensityScale);
-            spec.runSeed = record.runSeed;
-
-            field = HarnessField.Spawn(arena, assets, spec.fieldDensityScale);
-            pair = EpisodePair.SpawnWithAgentChooser(unitService, arena, projectiles, in spec, assets, out var chooser);
-            agent = pair.Agent;
-            baseline = pair.Baseline;
-            using var roster = new OpponentRoster(pair.Baseline, pair.Agent);
-            var shipAgent = ShipAgentFactory.ComposeInferenceOnly(pair, chooser, in spec, arena.Offset, assetPath);
-            var driver = new EpisodeLoopDriver(pair, shipAgent, arena.Offset, field);
-
-            var path = EpisodeJsonl.NewRunPath($"checkpoint-vs-{record.opponent}");
-            var captureSubjects = new Vector2[2];
-            try
-            {
-                for (var i = 0; i < episodes; i++)
-                {
-                    var draw = roster.Install(archetype, in spec, i, arena.Offset);
-                    using var recorder = record.ShouldRecord(i)
-                        ? new CaptureRecorder(record.ClipConfig(i, runStamp))
-                        : null;
-                    Action onFixedStep = recorder == null
-                        ? null
-                        : () =>
-                        {
-                            captureSubjects[0] = agent.Kinematics.pos;
-                            captureSubjects[1] = baseline.Kinematics.pos;
-                            recorder.Step(captureSubjects,
-                                ctx => ShipDiagnosticsOverlay.Draw(ctx, agent, baseline, projectiles));
-                        };
-                    yield return driver.RunEpisode(spec, i, onFixedStep: onFixedStep);
-                    driver.Runner.RecordOpponent(in draw);
-                    EpisodeJsonl.Append(path, driver.Runner.Result);
-                }
-            }
-            finally
-            {
-                UnityEngine.Object.DestroyImmediate(shipAgent.gameObject);
-            }
-
-            Debug.Log($"[RLEpisode] wrote {episodes} checkpoint rows to {path}");
         }
 
         private void SpawnPair(in RewardSpec spec)
@@ -523,25 +451,15 @@ namespace Tests.PlayMode
             Assert.AreEqual(expectedShapingBorder, result.sumShapingBorder, 1e-3f);
         }
 
-        private IEnumerator RunToCompletion(EpisodeRunner runner, RewardSpec spec, CaptureRecorder recorder = null)
+        private IEnumerator RunToCompletion(EpisodeRunner runner, RewardSpec spec)
         {
-            var captureSubjects = new Vector2[2];
-            Action<CaptureDraw> drawOverlay = ctx => ShipDiagnosticsOverlay.Draw(ctx, agent, baseline, projectiles);
             runner.Begin();
             var maxSimSeconds = spec.timeoutDecisions * spec.decisionIntervalSteps * Time.fixedDeltaTime;
-            // Synchronous render/readback/PNG on captured steps eats wall clock; the sim-step timeout still bounds the episode itself.
-            var wallClockScale = recorder != null ? 10f : 1f;
-            var deadline = Time.realtimeSinceStartup + 120f + maxSimSeconds * wallClockScale;
+            var deadline = Time.realtimeSinceStartup + 120f + maxSimSeconds;
             while (!runner.IsDone && Time.realtimeSinceStartup < deadline)
             {
                 yield return new WaitForFixedUpdate();
                 runner.Tick();
-                if (recorder != null)
-                {
-                    captureSubjects[0] = agent.Kinematics.pos;
-                    captureSubjects[1] = baseline.Kinematics.pos;
-                    recorder.Step(captureSubjects, drawOverlay);
-                }
             }
             Assert.IsTrue(runner.IsDone, "Episode wall-clock deadline exceeded before termination");
         }
@@ -576,74 +494,6 @@ namespace Tests.PlayMode
         private static void AssertFinite(float value, string name)
         {
             Assert.IsFalse(float.IsNaN(value) || float.IsInfinity(value), $"{name} must be finite, was {value}");
-        }
-
-        [Serializable]
-        private sealed class RecordConfig
-        {
-            public int runSeed;
-            public int[] episodes;
-            public int captureEveryFixedSteps = 5;
-            public int width = 960;
-            public int height = 540;
-            public string checkpoint;
-            public string opponent;
-            public float fieldDensityScale = EvalProtocol.CanonicalFieldDensityScale;
-
-            public bool FilmsCheckpoint => !string.IsNullOrEmpty(checkpoint);
-
-            /// <summary>Empty/absent episodes list records every episode run.</summary>
-            public bool ShouldRecord(int episode) =>
-                episodes == null || episodes.Length == 0 || Array.IndexOf(episodes, episode) >= 0;
-
-            public CaptureConfig ClipConfig(int episode, string runStamp) => new()
-            {
-                outputRoot = "results/rl-episodes",
-                clipName = $"ep{episode:D2}",
-                runStamp = runStamp,
-                width = width,
-                height = height,
-                everyFixedSteps = captureEveryFixedSteps,
-            };
-        }
-
-        private static RecordConfig LoadRecordConfig(string path)
-        {
-            var json = File.ReadAllText(path);
-            var config = new RecordConfig { runSeed = RewardSpec.Default.runSeed };
-            if (string.IsNullOrWhiteSpace(json)) return config;
-
-            // FromJsonOverwrite silently ignores unknown keys — a typo'd key would quietly keep its default — so whitelist every key first.
-            var validKeys = new[] { "runSeed", "episodes", "captureEveryFixedSteps", "width", "height", "checkpoint", "opponent", "fieldDensityScale" };
-            foreach (Match match in Regex.Matches(json, "\"([^\"]+)\"\\s*:"))
-                if (Array.IndexOf(validKeys, match.Groups[1].Value) < 0)
-                    Assert.Fail($"record.flag: unknown key '{match.Groups[1].Value}' — valid keys: {string.Join(", ", validKeys)}");
-
-            try
-            {
-                JsonUtility.FromJsonOverwrite(json, config);
-            }
-            catch (Exception e)
-            {
-                Assert.Fail($"record.flag: malformed JSON — {e.Message}");
-            }
-
-            if (config.episodes != null)
-                for (var i = 0; i < config.episodes.Length; i++)
-                {
-                    if (config.episodes[i] < 0)
-                        Assert.Fail($"record.flag: negative episode index {config.episodes[i]}");
-                    if (Array.IndexOf(config.episodes, config.episodes[i]) != i)
-                        Assert.Fail($"record.flag: duplicate episode index {config.episodes[i]}");
-                }
-
-            if (config.FilmsCheckpoint != !string.IsNullOrEmpty(config.opponent))
-                Assert.Fail("record.flag: 'checkpoint' and 'opponent' come together — the inference lane needs both");
-            // Name whitelist, not Enum.TryParse — TryParse accepts numeric strings, deferring the blowup past this boundary.
-            if (config.FilmsCheckpoint && Array.IndexOf(Enum.GetNames(typeof(OpponentArchetype)), config.opponent) < 0)
-                Assert.Fail($"record.flag: unknown opponent '{config.opponent}' — valid: {string.Join(", ", Enum.GetNames(typeof(OpponentArchetype)))}");
-
-            return config;
         }
     }
 }

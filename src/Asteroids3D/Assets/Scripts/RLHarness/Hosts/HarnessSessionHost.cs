@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.IO;
+using Game.Capture;
+using Game.Diagnostics;
 using Game.Services;
 using UnityEngine;
 
@@ -21,14 +23,14 @@ namespace Game.RLHarness
 
         private IEnumerator Start()
         {
-            // Before any ship spawns — embedded visual rigs self-gate on this at Awake.
-            Utils.GameSettings.SetPresentationEnabled(false);
+            // Before any ship spawns — embedded visual rigs self-gate on this at Awake. Presentation exists only when recording.
+            Utils.GameSettings.SetPresentationEnabled(spec.Presentation);
             PacingContract.Apply();
             // An exception inside a nested coroutine kills it silently; the batch would then hang until the caller's lease expires.
             Application.logMessageReceived += ExitOnException;
 
             var (composedUnits, arena, projectiles) = HarnessArena.Compose(gameObject, Vector2.zero,
-                presentationEnabled: false);
+                presentationEnabled: spec.Presentation);
             Initialize(spec, assets, composedUnits, arena, projectiles);
             yield return RunLane();
 #if UNITY_EDITOR
@@ -60,18 +62,33 @@ namespace Game.RLHarness
                     spec.onnxAssetPath, field),
             };
 
-        /// <summary>Episodes 0..N-1 against one opponent config — the index restarts per block, so blocks on one seed are a controlled comparison over the same poses and field layouts.</summary>
+        /// <summary>Episodes 0..N-1 against one opponent config — the index restarts per block, so blocks on one seed are a controlled comparison over the same poses and field layouts. When the spec records, each selected episode films through a per-episode recorder wired here.</summary>
         internal IEnumerator RunBlock(ISessionComposition composition, OpponentSpec opponent, int episodes,
             RewardSpec episodeSpec, string jsonlPath, Action<EpisodeResult> onEpisode)
         {
+            var drawPainters = BuildPainterDraw(composition);
+            var subjects = new Vector2[2];
             for (var episode = 0; episode < episodes; episode++)
             {
                 // Pinned install before RunEpisode's pair-reset (the respawn re-inits the chooser).
                 var draw = composition.InstallOpponent(in opponent, in episodeSpec, episode, Arena.Offset);
                 var context = new ProbeContext(composition.Pair, Arena.Offset, in episodeSpec, episode, in draw,
                     opponent.Label);
+                using var recorder = spec.record.Records(episode)
+                    ? new CaptureRecorder(ClipConfig(episodeSpec.runSeed, opponent.Label, episode, jsonlPath))
+                    : null;
+                var pair = composition.Pair;
+                Action onFixedStep = recorder == null
+                    ? SampleProbes
+                    : () =>
+                    {
+                        SampleProbes();
+                        subjects[0] = pair.Agent.Kinematics.pos;
+                        subjects[1] = pair.Baseline.Kinematics.pos;
+                        recorder.Step(subjects, drawPainters);
+                    };
                 yield return composition.Driver.RunEpisode(episodeSpec, episode,
-                    onBegin: () => BeginProbes(context), onFixedStep: SampleProbes);
+                    onBegin: () => BeginProbes(context), onFixedStep: onFixedStep);
                 // The trailing record is what puts the draw in the episode's JSONL row.
                 composition.Driver.Runner.RecordOpponent(in draw);
                 var result = composition.Driver.Runner.Result;
@@ -80,6 +97,30 @@ namespace Game.RLHarness
                 EndProbes(in result, jsonlPath);
             }
         }
+
+        // Painters bind the pair's ships at construction; a null draw when recording is off costs nothing.
+        private Action<CaptureDraw> BuildPainterDraw(ISessionComposition composition)
+        {
+            if (!spec.record.enabled) return null;
+            var context = new PainterContext(composition.Pair.Agent, composition.Pair.Baseline, Projectiles);
+            var painters = new IDiagnosticPainter[spec.painters.Length];
+            for (var i = 0; i < painters.Length; i++)
+                painters[i] = DiagnosticPainters.Create(spec.painters[i], in context);
+            return canvas =>
+            {
+                foreach (var painter in painters) painter.Paint(canvas);
+            };
+        }
+
+        private CaptureConfig ClipConfig(int seed, string label, int episode, string jsonlPath) => new()
+        {
+            outputRoot = Path.GetDirectoryName(jsonlPath),
+            runStamp = Path.GetFileNameWithoutExtension(jsonlPath),
+            clipName = $"s{seed}-{label}-ep{episode:D2}",
+            width = spec.record.width,
+            height = spec.record.height,
+            everyFixedSteps = spec.record.everyFixedSteps,
+        };
 
         internal ProbeArtifacts[] SummarizeProbes(string jsonlPath)
         {
@@ -99,10 +140,13 @@ namespace Game.RLHarness
             return artifacts;
         }
 
-        private IEnumerator RunLane() => spec.lane switch
+        private IEnumerator RunLane() => Client(spec.lane).Run(this, spec);
+
+        private static ISessionClient Client(SessionLane lane) => lane switch
         {
-            SessionLane.Eval => CheckpointEvaluator.RunLane(this, spec),
-            _ => throw new NotSupportedException($"No lane client for {spec.lane}."),
+            SessionLane.Eval => new CheckpointEvaluator(),
+            SessionLane.Capture => new CaptureClient(),
+            _ => throw new NotSupportedException($"No lane client for {lane}."),
         };
 
         private void BeginProbes(ProbeContext context)

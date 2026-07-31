@@ -7,8 +7,10 @@ using UnityEngine;
 namespace Game.RLHarness
 {
     /// <summary>The eval lane client: sequences the host's primitives over the frozen eval protocol — a fresh composition per seed so every RNG stream replays from that seed, then one equal episode block per opponent (the roster's five archetypes by default, stratification being sequencing rather than a mixture draw) — and aggregates per-opponent W/L/D with the Wilson 95% lower bound on win-rate (draws are non-wins, deliberately NO blended aggregate). Writes per-episode JSONL plus a summary artifact under results/rl-eval/; the spec's probes write their own sidecars alongside.</summary>
-    public static class CheckpointEvaluator
+    public sealed class CheckpointEvaluator : ISessionClient
     {
+        IEnumerator ISessionClient.Run(HarnessSessionHost host, SessionSpec spec) => RunLane(host, spec);
+
         public const string ResultsFolder = "rl-eval";
         public const string SchemaId = "rl-eval-summary-v2";
 
@@ -77,7 +79,8 @@ namespace Game.RLHarness
             var blocks = Blocks(sessionSpec);
             var outcomes = new List<(string opponent, string outcome)>();
             var field = baseSpec.useAsteroidField
-                ? HarnessField.Spawn(host.Arena, host.Assets, baseSpec.fieldDensityScale, presentationEnabled: false)
+                ? HarnessField.Spawn(host.Arena, host.Assets, baseSpec.fieldDensityScale,
+                    presentationEnabled: sessionSpec.Presentation)
                 : null;
 
             foreach (var seed in sessionSpec.seeds)
