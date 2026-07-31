@@ -254,7 +254,9 @@ here.
    `HarnessHost` loses to `TrainingHost` ambiguity; `SessionHost` collides with
    `Game.Bootstrap.SessionHost`.
 2. **Probe artifacts → per-probe sidecars.** Each probe writes
-   `<base>-<name>.jsonl` + `<base>-<name>-summary.json`; the eval summary carries
+   `<base>-<name>.jsonl` + `<base>-<name>-probe.json` (NOT `-summary.json` — the
+   gate globs `*-summary.json` expecting exactly the one eval summary; Codex
+   review catch on #231); the eval summary carries
    a `probes[]` pointer list instead of a typed `behavior[]`. Embedding would
    force the client to know the gate probe concretely (JsonUtility can't
    serialize heterogeneous blocks), leaving `Summarize()` unexercised until D and

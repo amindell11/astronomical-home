@@ -128,8 +128,10 @@ def run_eval(args, unity: Path, checkpoint: Path, out_dir: Path) -> Path:
                RL_EVAL_SEEDS=args.seeds,
                RL_EVAL_EPISODES_PER_SEED=str(args.episodes_per_seed),
                RL_EVAL_OUT_DIR=str(out_dir))
-    # An inherited density would move the eval off the canonical env the thresholds assume.
-    env.pop("RL_EVAL_DENSITY", None)
+    # Inherited overrides would move the eval off the canonical 75-episode roster protocol the
+    # thresholds assume (a pinned opponent shrinks a "total" to one 15-episode block).
+    for leaked in ("RL_EVAL_DENSITY", "RL_EVAL_OPPONENT", "RL_EVAL_PROBES"):
+        env.pop(leaked, None)
     code = run_batch(args.lease, args.project, EVAL_CHILD, env, wait_seconds=args.lease_wait,
                      log_path=log)
     if code != 0:

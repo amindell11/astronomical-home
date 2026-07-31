@@ -80,7 +80,8 @@ namespace Game.RLHarness
             var artifacts = new ProbeArtifacts[probes.Length];
             for (var i = 0; i < probes.Length; i++)
             {
-                var summaryPath = ProbePath(jsonlPath, probes[i].Name, "-summary.json");
+                // Not "-summary.json": eval_gate globs *-summary.json expecting exactly the one eval summary.
+                var summaryPath = ProbePath(jsonlPath, probes[i].Name, "-probe.json");
                 probes[i].Summarize(summaryPath);
                 artifacts[i] = new ProbeArtifacts
                 {
