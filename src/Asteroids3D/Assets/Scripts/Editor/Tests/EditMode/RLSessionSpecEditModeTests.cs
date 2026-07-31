@@ -13,12 +13,14 @@ namespace Tests.EditMode
         private const string ImportedCandidatePath = "Assets/Tests/Fixtures/EvalCandidate.onnx";
         private const string ImportedOpponentPath = "Assets/Tests/Fixtures/EvalOpponent.onnx";
 
-        private static SessionSpec Parse(params string[] keyValuePairs)
+        private static SessionSpec Parse(params string[] keyValuePairs) => Parse(true, keyValuePairs);
+
+        private static SessionSpec Parse(bool hasGraphics, params string[] keyValuePairs)
         {
             var env = new Dictionary<string, string>();
             for (var i = 0; i < keyValuePairs.Length; i += 2) env[keyValuePairs[i]] = keyValuePairs[i + 1];
             return SessionSpec.ParseEval(k => env.TryGetValue(k, out var v) ? v : null,
-                _ => ImportedCandidatePath, _ => ImportedOpponentPath);
+                _ => ImportedCandidatePath, _ => ImportedOpponentPath, () => hasGraphics);
         }
 
         private static string[] Names(ProbeSpec[] probes) => Array.ConvertAll(probes, p => p.name);
@@ -167,6 +169,100 @@ namespace Tests.EditMode
             Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_EPISODES_PER_SEED", "0"));
             Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_DENSITY", "dense"));
             Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_SEEDS", "1001,oops"));
+        }
+
+        [Test]
+        public void RecordGrammar_OffAllAndIndices()
+        {
+            Assert.IsFalse(Parse().record.enabled, "no RL_HARNESS_RECORD: recording off");
+            Assert.IsFalse(Parse("RL_HARNESS_RECORD", "").record.enabled, "empty RL_HARNESS_RECORD: recording off");
+
+            var all = Parse("RL_HARNESS_RECORD", "all").record;
+            Assert.IsTrue(all.enabled);
+            Assert.IsTrue(all.all);
+            Assert.IsTrue(all.Records(0) && all.Records(4), "\"all\" records every episode");
+
+            var indices = Parse("RL_HARNESS_EPISODES_PER_SEED", "5", "RL_HARNESS_RECORD", "0,2").record;
+            Assert.IsTrue(indices.enabled);
+            Assert.IsFalse(indices.all);
+            Assert.IsTrue(indices.Records(0));
+            Assert.IsFalse(indices.Records(1));
+            Assert.IsTrue(indices.Records(2));
+        }
+
+        [Test]
+        public void RecordSizeAndCadence_DefaultAndOverride()
+        {
+            var def = Parse("RL_HARNESS_RECORD", "all").record;
+            Assert.AreEqual(SessionSpec.DefaultRecordWidth, def.width);
+            Assert.AreEqual(SessionSpec.DefaultRecordHeight, def.height);
+            Assert.AreEqual(SessionSpec.DefaultRecordEvery, def.everyFixedSteps);
+
+            var custom = Parse("RL_HARNESS_RECORD", "all", "RL_HARNESS_RECORD_SIZE", "1280x720",
+                "RL_HARNESS_RECORD_EVERY", "3").record;
+            Assert.AreEqual(1280, custom.width);
+            Assert.AreEqual(720, custom.height);
+            Assert.AreEqual(3, custom.everyFixedSteps);
+        }
+
+        [Test]
+        public void RecordGrammar_MalformedValuesThrowAtTheBoundary()
+        {
+            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_RECORD", "garbage"), "non-index token");
+            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_EPISODES_PER_SEED", "3", "RL_HARNESS_RECORD", "5"),
+                "index out of range for episodesPerSeed");
+            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_RECORD", "0,0"), "duplicate index");
+            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_RECORD", "all", "RL_HARNESS_RECORD_SIZE", "961x540"),
+                "odd width rejected (yuv420p)");
+            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_RECORD", "all", "RL_HARNESS_RECORD_SIZE", "960"),
+                "not WxH");
+            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_RECORD", "all", "RL_HARNESS_RECORD_EVERY", "0"),
+                "zero cadence");
+        }
+
+        [Test]
+        public void RecordWithoutGraphics_ThrowsAtParse()
+        {
+            var thrown = Assert.Throws<ArgumentException>(() => Parse(false, "RL_HARNESS_RECORD", "all"),
+                "recording headless can never render — the parse refuses it");
+            StringAssert.Contains("graphics", thrown.Message);
+            Assert.DoesNotThrow(() => Parse(false), "a non-recording run is legal headless");
+        }
+
+        [Test]
+        public void LaneSelector_DefaultsEvalAndSelectsCapture()
+        {
+            Assert.AreEqual(SessionLane.Eval, Parse().lane);
+            Assert.AreEqual(SessionLane.Eval, Parse("RL_HARNESS_LANE", "eval").lane);
+            Assert.AreEqual(SessionLane.Capture,
+                Parse("RL_HARNESS_LANE", "capture", "RL_HARNESS_SEEDS", "2001", "RL_HARNESS_OPPONENT", "aggressor").lane);
+            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_LANE", "film"), "unknown lane");
+        }
+
+        [Test]
+        public void CaptureLane_RefusesMultiSeedAndRoster()
+        {
+            Assert.Throws<ArgumentException>(() =>
+                    Parse("RL_HARNESS_LANE", "capture", "RL_HARNESS_SEEDS", "2001,2002", "RL_HARNESS_OPPONENT", "mirror"),
+                "capture films exactly one seed");
+            Assert.Throws<ArgumentException>(() =>
+                    Parse("RL_HARNESS_LANE", "capture", "RL_HARNESS_SEEDS", "2001"),
+                "capture forbids the default roster (single block only)");
+            Assert.Throws<ArgumentException>(() =>
+                    Parse("RL_HARNESS_LANE", "capture", "RL_HARNESS_SEEDS", "2001", "RL_HARNESS_OPPONENT", "roster"),
+                "capture forbids explicit roster too");
+        }
+
+        [Test]
+        public void PainterSelection_DefaultsShipDiagnosticsAndValidatesNames()
+        {
+            Assert.AreEqual(new[] { Game.Diagnostics.DiagnosticPainters.ShipDiagnostics }, Parse().painters);
+            Assert.AreEqual(
+                new[] { Game.Diagnostics.DiagnosticPainters.ShipDiagnostics, Game.Diagnostics.DiagnosticPainters.Policy },
+                Parse("RL_HARNESS_PAINTERS", "ship-diagnostics,policy").painters);
+            var thrown = Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_PAINTERS", "heatmap"),
+                "an unknown painter must fail at the boundary naming the registered set");
+            StringAssert.Contains(Game.Diagnostics.DiagnosticPainters.ShipDiagnostics, thrown.Message);
         }
     }
 }

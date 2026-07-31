@@ -2,12 +2,28 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using Game.Diagnostics;
 using UnityEngine;
 
 namespace Game.RLHarness
 {
     /// <summary>Which lane client the host runs; every other axis of a session is a spec field.</summary>
-    public enum SessionLane { Eval }
+    public enum SessionLane { Eval, Capture }
+
+    /// <summary>The recording axis, parsed once at the batch boundary. Off by default; enabled records every episode (<see cref="all"/>) or the listed per-block indices. Carried into play mode as a serialized field on the spec.</summary>
+    [Serializable]
+    public struct RecordPlan
+    {
+        public bool enabled;
+        public bool all;
+        public int[] episodes;
+        public int width;
+        public int height;
+        public int everyFixedSteps;
+
+        public bool Records(int episode) =>
+            enabled && (all || (episodes != null && Array.IndexOf(episodes, episode) >= 0));
+    }
 
     public enum OpponentKind { Roster, Archetype, Mirror, Checkpoint }
 
@@ -62,7 +78,13 @@ namespace Game.RLHarness
     {
         public const string RosterToken = "roster";
         public const string MirrorToken = "mirror";
+        public const string EvalLaneToken = "eval";
+        public const string CaptureLaneToken = "capture";
+        public const string RecordAllToken = "all";
         public const int DefaultEpisodesPerSeed = 5;
+        public const int DefaultRecordWidth = 960;
+        public const int DefaultRecordHeight = 540;
+        public const int DefaultRecordEvery = 5;
 
         public SessionLane lane;
         public string onnxAssetPath;
@@ -77,7 +99,12 @@ namespace Game.RLHarness
         public string opponentOnnxSourcePath;
         public string opponentLabel;
         public ProbeSpec[] probes;
+        public string[] painters;
+        public RecordPlan record;
         public string outDir;
+
+        /// <summary>Visuals and audio exist for this session iff it records — no separate env var until a watch/playtest lane needs one.</summary>
+        public bool Presentation => record.enabled;
 
         private static readonly string[] RetiredNames =
         {
@@ -85,15 +112,15 @@ namespace Game.RLHarness
             "RL_EVAL_OPPONENT", "RL_EVAL_PROBES", "RL_EVAL_OUT_DIR",
         };
 
-        /// <summary>Parses the eval lane's environment. <paramref name="importCandidate"/> and <paramref name="importOpponent"/> each import a checkpoint file into their fixture slot and return its asset path (AssetDatabase work the parse itself stays free of).</summary>
+        /// <summary>Parses a harness session's environment. <paramref name="importCandidate"/> and <paramref name="importOpponent"/> each import a checkpoint file into their fixture slot and return its asset path (AssetDatabase work the parse itself stays free of); <paramref name="hasGraphicsDevice"/> reports whether the editor booted with a graphics device (injected so the record⇒graphics check is EditMode-testable).</summary>
         public static SessionSpec ParseEval(Func<string, string> getEnv, Func<string, string> importCandidate,
-            Func<string, string> importOpponent)
+            Func<string, string> importOpponent, Func<bool> hasGraphicsDevice)
         {
             ThrowOnRetiredNames(getEnv);
             var source = getEnv("RL_HARNESS_ONNX");
             var spec = new SessionSpec
             {
-                lane = SessionLane.Eval,
+                lane = ParseLane(getEnv("RL_HARNESS_LANE")),
                 onnxSourcePath = source,
                 onnxAssetPath = string.IsNullOrEmpty(source)
                     ? ShipAgentFactory.SmokeFixturePath
@@ -101,6 +128,7 @@ namespace Game.RLHarness
                 episodesPerSeed = ParseEpisodes(getEnv("RL_HARNESS_EPISODES_PER_SEED")),
                 fieldDensityScale = ParseDensity(getEnv("RL_HARNESS_DENSITY")),
                 probes = ParseProbes(getEnv("RL_HARNESS_PROBES")),
+                painters = ParsePainters(getEnv("RL_HARNESS_PAINTERS")),
                 outDir = getEnv("RL_HARNESS_OUT_DIR"),
             };
             spec.seeds = ParseSeeds(getEnv("RL_HARNESS_SEEDS"), out var tag);
@@ -109,7 +137,117 @@ namespace Game.RLHarness
                 ? tag
                 : tag + "-d" + spec.fieldDensityScale.ToString("0.##", CultureInfo.InvariantCulture).Replace('.', '_');
             spec.ParseOpponent(getEnv("RL_HARNESS_OPPONENT"), importOpponent);
+            spec.record = ParseRecord(getEnv, spec.episodesPerSeed, hasGraphicsDevice);
+            spec.ValidateLane();
             return spec;
+        }
+
+        private static SessionLane ParseLane(string value)
+        {
+            if (string.IsNullOrEmpty(value) || Matches(value, EvalLaneToken)) return SessionLane.Eval;
+            if (Matches(value, CaptureLaneToken)) return SessionLane.Capture;
+            throw new ArgumentException($"RL_HARNESS_LANE='{value}' is not \"{EvalLaneToken}\" or \"{CaptureLaneToken}\".");
+        }
+
+        // The capture client is the frozen "once" protocol: one seed, one opponent block. Roster stratification is an eval concept.
+        private void ValidateLane()
+        {
+            if (lane != SessionLane.Capture) return;
+            if (seeds.Length != 1)
+                throw new ArgumentException(
+                    $"RL_HARNESS_LANE=capture films exactly one seed; RL_HARNESS_SEEDS resolved to {seeds.Length}.");
+            if (opponentKind == OpponentKind.Roster)
+                throw new ArgumentException(
+                    "RL_HARNESS_LANE=capture needs a single opponent block; set RL_HARNESS_OPPONENT to an archetype, "
+                    + "\"mirror\", or a checkpoint path (roster stratification is an eval concept).");
+        }
+
+        /// <summary>Comma-separated painter names; default the ship-diagnostics overlay. Resolution checks the painter registry first (a probe exposing a painter under its own name — slice D — is the future second source).</summary>
+        private static string[] ParsePainters(string value)
+        {
+            if (value == null) return new[] { DiagnosticPainters.ShipDiagnostics };
+            var names = new List<string>();
+            foreach (var raw in value.Split(','))
+            {
+                var name = raw.Trim();
+                if (name.Length == 0) continue;
+                if (!DiagnosticPainters.IsRegistered(name))
+                    throw new ArgumentException(
+                        $"RL_HARNESS_PAINTERS name '{name}' is not a registered painter: {DiagnosticPainters.RegisteredNames}.");
+                names.Add(name);
+            }
+            return names.ToArray();
+        }
+
+        private static RecordPlan ParseRecord(Func<string, string> getEnv, int episodesPerSeed,
+            Func<bool> hasGraphicsDevice)
+        {
+            var plan = new RecordPlan
+            {
+                width = DefaultRecordWidth,
+                height = DefaultRecordHeight,
+                everyFixedSteps = DefaultRecordEvery,
+            };
+            var value = getEnv("RL_HARNESS_RECORD");
+            if (string.IsNullOrEmpty(value)) return plan;
+
+            plan.enabled = true;
+            if (Matches(value, RecordAllToken)) plan.all = true;
+            else plan.episodes = ParseRecordIndices(value, episodesPerSeed);
+
+            ParseRecordSize(getEnv("RL_HARNESS_RECORD_SIZE"), ref plan);
+            plan.everyFixedSteps = ParseRecordEvery(getEnv("RL_HARNESS_RECORD_EVERY"));
+
+            // Offscreen capture needs a real camera render; -nographics leaves the device Null and would film nothing.
+            if (!hasGraphicsDevice())
+                throw new ArgumentException(
+                    "RL_HARNESS_RECORD needs a graphics device — the batch child must drop -nographics for a recording run.");
+            return plan;
+        }
+
+        private static int[] ParseRecordIndices(string value, int episodesPerSeed)
+        {
+            var indices = new List<int>();
+            foreach (var raw in value.Split(','))
+            {
+                var text = raw.Trim();
+                if (text.Length == 0) continue;
+                if (!int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var index) || index < 0)
+                    throw new ArgumentException(
+                        $"RL_HARNESS_RECORD='{value}': '{text}' is not \"all\" or a non-negative episode index.");
+                if (index >= episodesPerSeed)
+                    throw new ArgumentException(
+                        $"RL_HARNESS_RECORD index {index} is out of range for {episodesPerSeed} episodes/seed.");
+                if (indices.Contains(index))
+                    throw new ArgumentException($"RL_HARNESS_RECORD='{value}': duplicate episode index {index}.");
+                indices.Add(index);
+            }
+            if (indices.Count == 0)
+                throw new ArgumentException(
+                    $"RL_HARNESS_RECORD='{value}' selected no episodes; use \"all\" or comma-separated indices.");
+            return indices.ToArray();
+        }
+
+        private static void ParseRecordSize(string value, ref RecordPlan plan)
+        {
+            if (string.IsNullOrEmpty(value)) return;
+            var parts = value.Split('x', 'X');
+            if (parts.Length != 2
+                || !int.TryParse(parts[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out var width)
+                || !int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out var height))
+                throw new ArgumentException($"RL_HARNESS_RECORD_SIZE='{value}' is not \"WxH\".");
+            if (width <= 0 || height <= 0 || width % 2 != 0 || height % 2 != 0)
+                throw new ArgumentException($"RL_HARNESS_RECORD_SIZE='{value}' must be positive and even (yuv420p).");
+            plan.width = width;
+            plan.height = height;
+        }
+
+        private static int ParseRecordEvery(string value)
+        {
+            if (string.IsNullOrEmpty(value)) return DefaultRecordEvery;
+            if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var every) || every <= 0)
+                throw new ArgumentException($"RL_HARNESS_RECORD_EVERY='{value}' is not a positive step cadence.");
+            return every;
         }
 
         // A stale script setting a retired name would otherwise silently eval the smoke fixture.

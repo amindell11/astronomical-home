@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
+using Game.Diagnostics;
 using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace Game.Capture
 {
     /// <summary>Immediate-mode diagnostic drawing for captured frames, in GamePlane plane-space. Primitives exist only for the frame they are drawn in — anything not redrawn next capture is invisible. Rendered with LineRenderer/TextMesh because editor Gizmos/Handles never appear in offscreen camera renders.</summary>
-    public sealed class CaptureDraw
+    public sealed class CaptureDraw : IDiagnosticCanvas
     {
         private const float LiftAbovePlane = 3f;
         private const int RingSegments = 48;

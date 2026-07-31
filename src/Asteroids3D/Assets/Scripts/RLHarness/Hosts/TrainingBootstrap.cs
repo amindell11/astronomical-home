@@ -39,7 +39,7 @@ namespace Game.RLHarness
         public static void RunHarnessSession()
         {
             var spec = SessionSpec.ParseEval(Environment.GetEnvironmentVariable, ImportEvalCandidate,
-                ImportEvalOpponent);
+                ImportEvalOpponent, () => SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null);
 
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             var host = new GameObject("[HarnessSessionHost]").AddComponent<HarnessSessionHost>();
