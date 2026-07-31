@@ -30,7 +30,6 @@ namespace Game.RLHarness
     public static class AgentActions
     {
         public const int Count = 5;
-        public const int DiscreteBranches = 2;
         public const int ChoicesPerBranch = 2;
 
         public static AgentAction Map(float ox, float oy, float vr, float vt, float vw,

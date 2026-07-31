@@ -5,7 +5,6 @@ using AI.States;
 using Ships;
 using Ships.Command;
 using Unity.InferenceEngine;
-using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Policies;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
