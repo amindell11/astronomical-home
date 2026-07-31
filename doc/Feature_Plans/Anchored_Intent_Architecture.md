@@ -300,9 +300,9 @@ resolved anyway; the K=1 arc is identical under both readings.
 - **Raise decision rate** (interval < 10): fixes staleness only, never the yaw
   wall; taxes trainer load linearly (≈ ship count); γ/shaping retune. The anchored
   design makes 5 Hz sufficient — intent changes slowly, geometry is the MPC's.
-  Cheap diagnostic kept: run the FROZEN checkpoint at interval 2–5 — smooth
-  commands ⇒ the obs→action map is smooth and churn was bearing-sampling; jitter
-  ⇒ intrinsic dither.
+  (The interval-2–5 frozen-checkpoint diagnostic once kept here is RETIRED:
+  the 2026-07-30 gizmo session showed churn scaling with 1/range — bearing-
+  sampling, not intrinsic dither. See appendix.)
 - **First-order hold** (emit facing rate, +1 dim): fixes staleness, fully learned,
   subsumed by anchoring (an anchored frame IS the correct first-order model).
 - **MPC smoothness regularization**: complementary, not competing.
@@ -335,17 +335,29 @@ resolved anyway; the K=1 arc is identical under both readings.
    aim-vs-mobility knob symmetry is not evidence (`facingWeight` earned its
    place via observed nose-drift; this one hasn't).
 4. Care-vector discipline: every exposed gain owes an answer to "what situation
-   makes its optimal value differ from 1?" — a gain nothing rewards will pin at
-   saturation (the facingWeight lesson, pending confirmation below). Now the
-   ENTRY BAR for the demoted care-vector rung, not just a review question.
+   makes its optimal value differ from 1?" Now the ENTRY BAR for the demoted
+   care-vector rung, not just a review question. (Gizmo session 2026-07-30:
+   facingWeight itself passes the bar — it modulates in-brawl rather than
+   pinning at saturation; see appendix.)
 5. Action-domain fork (see OPEN FORK section): resolve at the endpoint entry
    gate, alongside the actor-population cap.
 
-## Empirical appendix (PENDING — Policy gizmo session, PR #222)
+## Empirical appendix (OBSERVED 2026-07-30 — Policy gizmo session, PR #222)
 
-- [ ] `facingWeight` label during a brawl: pinned ≥ ~0.9 (authority channel
-      unused ⇒ ranked-alternative 2 confirmed dead) or genuinely modulating?
-- [ ] Churn number at ~20 u vs ~3 u: does churn scale as 1/range?
-- [ ] Pause/step through one 200 ms hold window: nose slews monotonically toward
-      the frozen command (healthy saturated tracker) or hunts/overshoots (MPC
-      chatter — would elevate the smoothness-sweep priority)?
+- [x] `facingWeight` during a brawl: **genuinely modulates** — the authority
+      channel is used, not pinned. The delegation mechanism is live and
+      learnable; the "gain nothing rewards pins at saturation" failure did NOT
+      materialize for facingWeight. The care-vector demotion stands on the
+      council's grounds (not endpoint infrastructure; per-gain entry bar), not
+      on a saturation observation.
+- [x] Churn vs range: **churn decreases as range increases** — consistent with
+      1/range bearing-rate scaling. The staleness mechanism is CONFIRMED: churn
+      is the policy re-sampling a moving bearing at 5 Hz, not intrinsic dither.
+      Anchoring attacks the right disease.
+- [x] Hold-window step-through: **nose is slow to react to a new facing order,
+      then slews monotonically** — a healthy saturated tracker rate-limited by
+      the yaw-slew budget (36°/decision vs 48°/decision commands), no
+      intra-window hunting. No MPC chatter: the smoothness sweep stays
+      complementary/deprioritized, not a pre-retrain blocker. The reaction lag
+      is the slew wall itself, which anchoring removes by moving tracking into
+      the MPC's 50 Hz loop.
