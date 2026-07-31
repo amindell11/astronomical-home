@@ -44,11 +44,11 @@ the PR ceremony added review the session had already performed.)
 Branch naming: each task gets its own remote branch `task/<lease-id>` and its
 own PR. Lease ids are the arc path — descriptive, branch-style names, one or
 two words per level (`vocab`, `vocab-docfix`), so the arc is inside the
-identifier rather than assumed from context. A positional number appears only
-at the leaf, only when one named unit spans several PRs (`vocab-docfix-1`), and
-only at build time — plans hold names, never numbers. Max three levels. Arcs
-numbered before 2026-07-29 keep their numbers; nothing is retrofitted. See
-`doc/Glossary.md` → *arc & PR naming*.
+identifier rather than assumed from context. Slices additionally carry a
+positional label in their plan (`Slice-C`, `PR-4`) — used in chat titles and
+references, never in git refs. A leaf number appears only when one named unit
+spans several PRs (`vocab-docfix-1`), and only at build time. Max three
+levels. See `doc/Glossary.md` → *arc & PR naming*.
 The local worktree stays on the `agent-N` branch; `submit` and
 `create-pr` push to the task-specific remote branch automatically. Never run
 two agents in the same slot at once. Both take an optional base after the slot:
@@ -127,26 +127,35 @@ itself; a standing **Title concierge** chat does it on request.
 
 Every lifecycle-tracked chat uses ONE template — same slots, same order:
 
-`[icon] <stage> <arc-name>: <detail>`
+`[icon] <stage> | <slot-label> | <word-id> | #<pr>`
 
-The stage word is always present and always leads; only the attention states
-carry an icon (⛔ blocked, 🔀 merging, ✅ merged). `<arc-name>` is the
-lease/arc name; `<detail>` is the topic unless the stage row says otherwise.
-A title starting with none of the stage words below is a design-discussion
-chat — those never retitle.
+- `<stage>` — always present, always leads; icons only on the attention
+  states (⛔ blocked, 🔀 merging, ✅ merged). Stage words: `prep`, `build`,
+  `review`, `blocked`, `merging`, `merged`.
+- `<slot-label>` — the plan's positional label (`Slice-C`, `PR-4`); the
+  literal `Arc` for an arc-orchestrator chat.
+- `<word-id>` — the descriptive branch-style name (`probe-clients`,
+  `harness-lane`).
+- `#<pr>` — the GitHub PR number; this slot appears once a PR exists.
+- An optional trailing ` — <detail>` carries what the stage needs said:
+  the blocker for ⛔ blocked (mandatory — name the PR, user decision, or run
+  being waited on), `<now> → next <step>` for Arc chats (mandatory),
+  `brief frozen` when prep locks before build.
 
-| Stage | Title |
-|---|---|
-| prepping | `prep <arc-name>: <topic>` (brief frozen, build not started → `prep <arc-name>: brief frozen`) |
-| building (Step 2) | `build <arc-name>: <topic>` |
-| in review (Step 4) | `review <arc-name>: PR #<n> — <topic>` |
-| blocked | `⛔ blocked <arc-name>: waiting on <blocker>` — name the blocker (a PR, a user decision, a run) |
-| merge gate running (Step 6) | `🔀 merging <arc-name>: PR #<n>` |
-| merged + finalized (Step 7) | `✅ merged <arc-name>: PR #<n>` |
-| arc orchestrator | `arc <arc-name>: <happening now> → next <next step>` |
+Stage examples:
+- `prep | Slice-C | onnx-slot`
+- `prep | Slice-C | onnx-slot — brief frozen`
+- `build | Slice-D | probe-clients`
+- `review | Slice-B | capture-painters | #237`
+- `⛔ blocked | Slice-D | probe-clients — waiting on #236 merge`
+- `🔀 merging | Slice-B | capture-painters | #237`
+- `✅ merged | Slice-B | capture-painters | #237`
+- `build | Arc | harness-lane — B/C/D building → next PR-4`
+  (an Arc chat's stage word is the arc's current overall stage)
 
-Retitle at every transition that writes the ledger (claim, PR-open, block,
-merge/finalize).
+A title starting with none of the stage words is a design-discussion chat —
+those never retitle. Retitle at every transition that writes the ledger
+(claim, PR-open, block, merge/finalize).
 
 Requesting a retitle:
 1. Your session id is the UUID in your scratchpad directory path, prefixed
