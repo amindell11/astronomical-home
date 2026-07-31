@@ -351,7 +351,9 @@ Format: **term** — definition. *(authority)*
   paths. *(CLAUDE.md §6 corollary)*
 - **owner lease / boot lane / two-tier lock** — a per-project run claim / the
   machine-wide startup-only lock / their combination. Pid-backed leases survive
-  TTL; pid-less ones expire and orphan live editors.
+  TTL; pid-less ones expire and orphan live editors. A **wedged** boot lane — an
+  unowned boot dir the cleanup cannot delete — reports `boot_lane_wedged`
+  (exit 25), never free.
 - **coordinator Adopt** — seize an untracked live Unity process into fresh
   ownership. Refuses the user's hand-opened editor.
 - **tracked vs user editor** — coordinator-owned versus user-owned. A user editor

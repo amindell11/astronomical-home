@@ -35,6 +35,7 @@ $ExitUnmanaged = 21
 $ExitOwnership = 22
 $ExitIncomplete = 23
 $ExitAdoptRefused = 24
+$ExitBootWedged = 25
 $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 # Boot ends once licensing + global package-cache work gives way to per-project Library work
 # (postmortem D6). Sibling copy in scripts/unity_test_agent.ps1, which drives the lane itself.
@@ -297,7 +298,9 @@ function Get-BootOwner {
         $stale = @(Get-RelevantUnityProcesses | Where-Object { $_.processId -eq [int]$boot.processId }).Count -eq 0
     }
     if ($stale) {
-        Remove-Item -LiteralPath $BootRoot -Recurse -Force
+        # A concurrent reader may reap the same stale record first; an undeletable leftover
+        # surfaces as boot_lane_wedged at the next acquire rather than killing this call.
+        Remove-Item -LiteralPath $BootRoot -Recurse -Force -ErrorAction SilentlyContinue
         return $null
     }
     return $boot
@@ -352,11 +355,14 @@ function Get-StatusValue {
             requestedAt = [string]$tickets[$i].data.requestedAt
         }
     }
+    $boot = Get-BootOwner
     return [ordered]@{
         stateRoot = $AccessRoot
         owners = $owners
         legacyOwner = Get-LegacyOwner
-        boot = Get-BootOwner
+        boot = $boot
+        # Get-BootOwner just tried to reap any unowned boot dir; one that survives is wedged.
+        bootWedged = ($null -eq $boot -and (Test-Path -LiteralPath $BootRoot))
         queue = $queue
         blockers = @(Get-Blockers)
     }
@@ -496,7 +502,13 @@ function Try-AcquireBoot {
     }
 
     try { New-Item -ItemType Directory -Path $BootRoot -ErrorAction Stop | Out-Null }
-    catch { return [ordered]@{ status = "boot_waiting"; boot = Get-BootOwner } }
+    catch {
+        $reason = $_.Exception.Message
+        $boot = Get-BootOwner
+        if ($null -ne $boot) { return [ordered]@{ status = "boot_waiting"; boot = $boot } }
+        # The dir is unowned yet undeletable (stray handle/CWD holds it); waiting would never end.
+        return [ordered]@{ status = "boot_lane_wedged"; error = $reason; bootRoot = $BootRoot }
+    }
 
     $record = [ordered]@{
         lease = $Lease
@@ -511,6 +523,8 @@ function Try-AcquireBoot {
 function Acquire-Boot {
     $deadline = [datetime]::UtcNow.AddSeconds([Math]::Max(0, $WaitSeconds))
     do {
+        # boot_lane_wedged retries too: the empty-dir window between a winner's mkdir and its
+        # boot.json write reads as wedged for one poll; only a persistent wedge reaches the caller.
         $result = Try-AcquireBoot
         if ($result.status -in @("boot_acquired", "ownership_mismatch")) { return $result }
         if ([datetime]::UtcNow -ge $deadline) { return $result }
@@ -522,7 +536,13 @@ function Release-Boot {
     $boot = Get-BootOwner
     if ($null -eq $boot) { return [ordered]@{ status = "boot_released"; alreadyFree = $true } }
     if ([string]$boot.lease -ne $Lease) { return [ordered]@{ status = "ownership_mismatch"; boot = $boot } }
-    Remove-Item -LiteralPath $BootRoot -Recurse -Force
+    try { Remove-Item -LiteralPath $BootRoot -Recurse -Force -ErrorAction Stop }
+    catch {
+        # Missing already (a concurrent reaper won) is a successful release; a still-present dir is not.
+        if (Test-Path -LiteralPath $BootRoot) {
+            return [ordered]@{ status = "boot_lane_wedged"; error = $_.Exception.Message; bootRoot = $BootRoot }
+        }
+    }
     return [ordered]@{ status = "boot_released"; alreadyFree = $false }
 }
 
@@ -706,7 +726,9 @@ function Write-Result {
         }
         else { Write-Host "Unity projects: all free" }
         if ($null -ne $Result.legacyOwner) { Write-Host "LEGACY machine-wide owner (old script copy): $($Result.legacyOwner.slot) lease=$($Result.legacyOwner.lease)" }
-        if ($null -ne $Result.boot) { Write-Host "Boot lane: held by lease=$($Result.boot.lease)" } else { Write-Host "Boot lane: free" }
+        if ($null -ne $Result.boot) { Write-Host "Boot lane: held by lease=$($Result.boot.lease)" }
+        elseif ($Result.bootWedged) { Write-Host "Boot lane: WEDGED - unowned boot dir could not be removed; find and kill whatever holds $BootRoot" }
+        else { Write-Host "Boot lane: free" }
         if (@($Result.queue).Count -gt 0) { Write-Host "Queue: $((@($Result.queue) | ForEach-Object { "$($_.position):$($_.slot)" }) -join ', ')" }
         else { Write-Host "Queue: empty" }
         foreach ($blocker in @($Result.blockers)) { Write-Host "Blocker: $($blocker.kind) pid=$($blocker.processId) project=$($blocker.projectPath)" }
@@ -754,6 +776,7 @@ $statusExitCodes = @{
     blocked_unmanaged_unity = $ExitUnmanaged
     waiting = $ExitWaiting
     boot_waiting = $ExitWaiting
+    boot_lane_wedged = $ExitBootWedged
     blocked_user_editor = $ExitWaiting
     adopt_no_process = $ExitAdoptRefused
     adopt_already_tracked = $ExitAdoptRefused
