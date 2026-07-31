@@ -1158,9 +1158,12 @@ or doc/board change.
 
 ### Coordination
 
-Parallel with **#247** (`task/velrebase`, agent-4, open): overlap is
-`SessionSpec` (a comment line here vs #247's new env axis), the probes folder,
-and the episode tier. Small and textual — second-to-land resolves the fold.
+**#247 merged first** (`c35f583c`, 2026-07-31T22:26Z), so the build starts on a
+tree that already contains the velrebase probe and open-loop lane — no fold to
+resolve, and this brief's line cites are grounded against that tree. The live
+neighbour is instead agent-1's `k1-3-schema` **long-lived branch**, which does
+not merge until K1-4's atomic gate; per "the second merger adapts", it absorbs
+this PR rather than the reverse.
 Verification: clear BurstCache, scoped run (`-ScopeType Auto`) plus the lane
 PlayMode smoke; item 2 is capture-only and rides the graphics-filtered lane,
 not the merge gate. Name each item's root cause and rung in the PR body.
