@@ -11,6 +11,7 @@ namespace Game.RLHarness
     public static class TrainingBootstrap
     {
         private const string EvalCandidateAssetPath = "Assets/Tests/Fixtures/EvalCandidate.onnx";
+        private const string EvalOpponentAssetPath = "Assets/Tests/Fixtures/EvalOpponent.onnx";
         public static readonly string StartFlagPath = Path.GetFullPath(Path.Combine(
             Application.dataPath, "..", "..", "..", "results", "rl-training", "start-play.flag"));
 
@@ -34,10 +35,11 @@ namespace Game.RLHarness
             EnterTrainingPlayMode();
         }
 
-        /// <summary>Checkpoint-eval batch entry: RL_EVAL_ONNX names a checkpoint file to import (default: the committed smoke fixture), RL_EVAL_EPISODES_PER_SEED the per-seed episode count, RL_EVAL_SEEDS the seed selection ("held-out" default / "train" / comma list — see EvalProtocol.ResolveSeeds), RL_EVAL_DENSITY a field-density override for stretch/diagnostic runs (default: the canonical eval env), RL_EVAL_OPPONENT the opponent grammar ("roster" default / an archetype name / "mirror"), RL_EVAL_PROBES the comma-separated probe selection (default: "gate"), RL_EVAL_OUT_DIR the caller-owned absolute artifact dir (the eval gate names it, then reads back the summary from it). The environment parses HERE so a malformed value fails before play mode; HarnessSessionHost exits the editor with code 0 when the summary artifact is written.</summary>
+        /// <summary>Checkpoint-eval batch entry: RL_EVAL_ONNX names a checkpoint file to import (default: the committed smoke fixture), RL_EVAL_EPISODES_PER_SEED the per-seed episode count, RL_EVAL_SEEDS the seed selection ("held-out" default / "train" / comma list — see EvalProtocol.ResolveSeeds), RL_EVAL_DENSITY a field-density override for stretch/diagnostic runs (default: the canonical eval env), RL_EVAL_OPPONENT the opponent grammar ("roster" default / an archetype name / "mirror" / a checkpoint path ending .onnx, imported into the second fixture slot), RL_EVAL_PROBES the comma-separated probe selection (default: "gate"), RL_EVAL_OUT_DIR the caller-owned absolute artifact dir (the eval gate names it, then reads back the summary from it). The environment parses HERE so a malformed value fails before play mode; HarnessSessionHost exits the editor with code 0 when the summary artifact is written.</summary>
         public static void RunEval()
         {
-            var spec = SessionSpec.ParseEval(Environment.GetEnvironmentVariable, ImportEvalCandidate);
+            var spec = SessionSpec.ParseEval(Environment.GetEnvironmentVariable, ImportEvalCandidate,
+                ImportEvalOpponent);
 
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             var host = new GameObject("[HarnessSessionHost]").AddComponent<HarnessSessionHost>();
@@ -46,12 +48,16 @@ namespace Game.RLHarness
             EditorApplication.EnterPlaymode();
         }
 
-        public static string ImportEvalCandidate(string sourceFile)
+        public static string ImportEvalCandidate(string sourceFile) => Import(sourceFile, EvalCandidateAssetPath);
+
+        public static string ImportEvalOpponent(string sourceFile) => Import(sourceFile, EvalOpponentAssetPath);
+
+        private static string Import(string sourceFile, string assetPath)
         {
             var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
-            File.Copy(Path.GetFullPath(sourceFile), Path.Combine(projectRoot, EvalCandidateAssetPath), overwrite: true);
-            AssetDatabase.ImportAsset(EvalCandidateAssetPath, ImportAssetOptions.ForceUpdate);
-            return EvalCandidateAssetPath;
+            File.Copy(Path.GetFullPath(sourceFile), Path.Combine(projectRoot, assetPath), overwrite: true);
+            AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
+            return assetPath;
         }
     }
 }

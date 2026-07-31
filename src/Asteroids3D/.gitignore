@@ -88,9 +88,11 @@ crashlytics-build.properties
 /[Aa]ssets/ML-Agents/
 /[Aa]ssets/ML-Agents.meta
 
-# Transient eval-candidate checkpoint imported by TrainingBootstrap.RunEval
+# Transient eval checkpoints imported by TrainingBootstrap.RunEval (candidate + slot-2 opponent)
 /[Aa]ssets/Tests/Fixtures/EvalCandidate.onnx
 /[Aa]ssets/Tests/Fixtures/EvalCandidate.onnx.meta
+/[Aa]ssets/Tests/Fixtures/EvalOpponent.onnx
+/[Aa]ssets/Tests/Fixtures/EvalOpponent.onnx.meta
 
 # Capture scratch staging (unity_test_agent.ps1 -CaptureScenario copies scenarios here per run)
 /Assets/Scripts/Editor/Tests/PlayMode/Scratch/*
