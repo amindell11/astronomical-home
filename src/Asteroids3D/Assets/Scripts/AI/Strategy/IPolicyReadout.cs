@@ -24,6 +24,9 @@ namespace AI
         /// <summary>Actions currently held, 0..capacity.</summary>
         int Count { get; }
 
+        /// <summary>Monotonic decisions since the last reset — unlike <see cref="Count"/>, never saturates at the ring capacity.</summary>
+        int TotalDecisions { get; }
+
         /// <summary>The i-th most recent action; 0 = newest, Count-1 = oldest.</summary>
         PolicyAction ActionFromNewest(int index);
     }
