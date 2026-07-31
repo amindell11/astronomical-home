@@ -285,10 +285,10 @@ namespace Game.RLHarness
                     $"{CombatTelemetryProbe.ProbeName} probe: agent primary FireRange must be > 0 — it is the range-band normalizer.");
             agentHeat = ResolvePrimaryHeat(agent);
             oppHeat = ResolvePrimaryHeat(baseline);
-            agentWeapons = agent.GetComponentsInChildren<WeaponComponent>();
+            agentWeapons = Mounts(agent);
             foreach (var weapon in agentWeapons)
                 weapon.OnFire += CountAgentShot;
-            oppWeapons = baseline.GetComponentsInChildren<WeaponComponent>();
+            oppWeapons = Mounts(baseline);
             foreach (var weapon in oppWeapons)
                 weapon.OnFire += CountOppShot;
             agent.Damage.Shield.OnValueChanged += OnAgentShieldChanged;
@@ -405,6 +405,14 @@ namespace Game.RLHarness
 
         private void CountAgentShot() => agentShots++;
         private void CountOppShot() => oppShots++;
+
+        private static WeaponComponent[] Mounts(Ship ship)
+        {
+            var mounts = new List<WeaponComponent>(2);
+            if (ship.Weapons.Primary) mounts.Add(ship.Weapons.Primary);
+            if (ship.Weapons.Secondary) mounts.Add(ship.Weapons.Secondary);
+            return mounts.ToArray();
+        }
 
         private static IHeatReadout ResolvePrimaryHeat(Ship ship)
         {
