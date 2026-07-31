@@ -8,8 +8,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from checkpoint_watch import evaluated_summary
 from eval_gate import (ALERT, CONTINUE, STOP, SUMMARY_SCHEMA, Score, degraded_reasons,
-                       evaluated_summary, read_score, verdict)
+                       read_score, verdict)
 
 
 def healthy(step: int) -> Score:

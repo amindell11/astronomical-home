@@ -88,7 +88,7 @@ crashlytics-build.properties
 /[Aa]ssets/ML-Agents/
 /[Aa]ssets/ML-Agents.meta
 
-# Transient eval checkpoints imported by TrainingBootstrap.RunEval (candidate + slot-2 opponent)
+# Transient eval checkpoints imported by TrainingBootstrap.RunHarnessSession (candidate + slot-2 opponent)
 /[Aa]ssets/Tests/Fixtures/EvalCandidate.onnx
 /[Aa]ssets/Tests/Fixtures/EvalCandidate.onnx.meta
 /[Aa]ssets/Tests/Fixtures/EvalOpponent.onnx

@@ -38,7 +38,7 @@ namespace Game.RLHarness
         {
             public string schema;
             public string checkpoint;
-            /// <summary>The file RL_EVAL_ONNX named — provenance the imported asset path erases.</summary>
+            /// <summary>The file RL_HARNESS_ONNX named — provenance the imported asset path erases.</summary>
             public string checkpointSource;
             /// <summary>Slot-2 provenance; empty unless the opponent is a checkpoint.</summary>
             public string opponentCheckpoint;
