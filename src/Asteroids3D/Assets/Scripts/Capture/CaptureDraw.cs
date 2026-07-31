@@ -19,6 +19,7 @@ namespace Game.Capture
         private readonly Font labelFont;
         private readonly List<LineRenderer> lines = new();
         private readonly List<TextMesh> labels = new();
+        private readonly List<MeshRenderer> labelRenderers = new();
         private int lineCursor;
         private int labelCursor;
 
@@ -77,9 +78,10 @@ namespace Game.Capture
 
         public void Label(Vector2 pos, string text, Color color, float size = 4f)
         {
-            var label = labelCursor < labels.Count ? labels[labelCursor] : CreateLabel();
+            if (labelCursor == labels.Count) CreateLabel();
+            var label = labels[labelCursor];
+            labelRenderers[labelCursor].enabled = true;
             labelCursor++;
-            label.GetComponent<MeshRenderer>().enabled = true;
             label.text = text;
             label.color = color;
             label.characterSize = size * 10f / LabelFontSize;
@@ -102,14 +104,14 @@ namespace Game.Capture
         internal void DisableUnused()
         {
             for (var i = lineCursor; i < lines.Count; i++) lines[i].enabled = false;
-            for (var i = labelCursor; i < labels.Count; i++) labels[i].GetComponent<MeshRenderer>().enabled = false;
+            for (var i = labelCursor; i < labelRenderers.Count; i++) labelRenderers[i].enabled = false;
         }
 
         /// <summary>Overlay renderers stay force-hidden except inside the capture render submit, so diagnostics never leak into the main camera or scene view.</summary>
         internal void SetVisible(bool visible)
         {
             foreach (var line in lines) line.forceRenderingOff = !visible;
-            foreach (var label in labels) label.GetComponent<MeshRenderer>().forceRenderingOff = !visible;
+            foreach (var labelRenderer in labelRenderers) labelRenderer.forceRenderingOff = !visible;
         }
 
         internal void Dispose()
@@ -146,7 +148,7 @@ namespace Game.Capture
             return line;
         }
 
-        private TextMesh CreateLabel()
+        private void CreateLabel()
         {
             var go = new GameObject($"label{labels.Count}");
             go.transform.SetParent(root, false);
@@ -161,7 +163,7 @@ namespace Game.Capture
             renderer.receiveShadows = false;
             renderer.forceRenderingOff = true;
             labels.Add(label);
-            return label;
+            labelRenderers.Add(renderer);
         }
 
         // Diagnostics must never be occluded by scene geometry: depth test always passes, no depth writes.

@@ -13,9 +13,10 @@ namespace Game.RLHarness
         public readonly int episodeIndex;
         public readonly OpponentDraw draw;
         public readonly string opponentLabel;
+        public readonly IStepSnapshotSource snapshots;
 
         public ProbeContext(EpisodePair pair, Vector2 arenaCenter, in RewardSpec spec, int episodeIndex,
-            in OpponentDraw draw, string opponentLabel)
+            in OpponentDraw draw, string opponentLabel, IStepSnapshotSource snapshots)
         {
             this.pair = pair;
             this.arenaCenter = arenaCenter;
@@ -23,6 +24,7 @@ namespace Game.RLHarness
             this.episodeIndex = episodeIndex;
             this.draw = draw;
             this.opponentLabel = opponentLabel;
+            this.snapshots = snapshots;
         }
     }
 
