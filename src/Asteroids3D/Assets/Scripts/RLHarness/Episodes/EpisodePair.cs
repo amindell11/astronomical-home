@@ -126,8 +126,7 @@ namespace Game.RLHarness
             UnityEngine.Object.DestroyImmediate(ship.gameObject);
         }
 
-        /// <summary>Also the traversal probe's single-ship recipe — probe crossings fly the exact combat-episode airframe/loadout.</summary>
-        internal static Ship SpawnLasersOnlyShip(UnitService units, IProjectileService projectiles,
+        private static Ship SpawnLasersOnlyShip(UnitService units, IProjectileService projectiles,
             Ship shipPrefab, AICommander pilot, Vector2 planePos, float rotDeg, int team, int decisionSeed)
         {
             var ship = Factory.CreateShip(shipPrefab, pilot, team, decisionSeed, projectiles,
