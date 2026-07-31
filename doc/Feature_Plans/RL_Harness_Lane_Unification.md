@@ -140,7 +140,12 @@ threshold recalibration (locked: waits for the rules change).
    canonical density 2.0, Wilson) — PR-4's territory.
 4. Slice A is behavior-identical: same episode sequence + JSONL rows as
    today's evaluator on same inputs; summary differs only by schema change.
-   Verified against a golden pre-A run.
+   Verified against a golden pre-A run. **AMENDED 2026-07-29: identity is
+   gated at the seeded-protocol layer — see §Slice A brief → Verification.
+   The pre-A eval itself is not run-to-run bit-reproducible (sim-level,
+   threading-independent; carded: board BUGS + memory
+   project_eval_sim_nondeterminism), so full-row byte-identity is
+   unattainable by any refactor and was over-specified.**
 5. Pacing/presentation combos validated at parse; locked pacing +
    presentation-off for measurement lanes; real-time reserved for watch.
 6. Placement: host machinery in `RLHarness/Agent/`; canvas + painters
@@ -354,22 +359,32 @@ here.
    documentation; four slices of undocumented user-facing env is worse than a
    two-line touch of a file whose owner (PR-2) has landed.
 
-### Verification — golden pre-A run
+### Verification — golden pre-A run (AMENDED 2026-07-29)
 
-On a clean pooled worktree at main, through the real path (`unity_access.ps1
-RunBatch` + `eval_child.ps1`, `RL_EVAL_OUT_DIR` to scratch), on the committed
-`ShipCombat-smoke.onnx`, at the gate's shape
-(`RL_EVAL_SEEDS=2001,2002,2003,2004,2005`, `RL_EVAL_EPISODES_PER_SEED=3` = 75
-episodes, ~2 min per the PR-2 e2e):
+The original criterion — full-row byte-identity — is unattainable: the pre-A
+eval is not run-to-run bit-reproducible (rollout drift at identical seeds;
+threading ruled out by a `-job-worker-count 0` A/B; evidence in memory
+`project_eval_sim_nondeterminism` + board BUGS card). Discovered by this
+slice's own baseline runs; predates slice A. The criterion below gates
+everything the refactor can actually break — the seeded protocol layer, which
+is 75/75 reproducible across all four baselines.
 
-1. Run **twice pre-A** and diff — proves pre-A determinism, so a later mismatch is
-   unambiguous rather than a coin flip.
-2. Run once post-A and diff the JSONL bodies **byte-for-byte** (filenames are
-   timestamped; `EpisodeResult` rows carry no wall-clock, so contents are stable).
-   The probe rows compare old `-behavior.jsonl` against new `-gate.jsonl` by
-   content.
-3. Compare summary numbers by hand — the summary is the one artifact allowed to
-   differ, and only by schema.
+Four baseline runs exist on main @ `d61b31cc` (2× default, 2×
+`-job-worker-count 0`), 75 episodes each, archived with the comparator at
+`results/rl-eval/golden-main-d61b31cc/`.
+
+1. **Deterministic-mask identity (gated).** `golden_compare.py` computes the
+   mask = fields identical across ALL FOUR baselines at every episode (18
+   episode + 8 probe fields; must contain the protocol fields — spec, opponent
+   draw, episodeIndex, startRange, schema/geometry constants — or the
+   comparator refuses). The post-A run must match baseline run 1 on every mask
+   field, 75/75, both streams.
+2. **Structure (gated).** 75 + 75 rows; seed-major, `EvalArchetypes`-order
+   blocks; per-block episode indices 0..N−1; tag `custom`; artifact set per
+   fork 2 (probe sidecars).
+3. **Stochastic fields (reported, not gated).** decisions, simSeconds, ranges,
+   rewards, outcome — paired per episode in the PR body; their drift is the
+   carded sim bug, not this refactor.
 
 ### Tests
 

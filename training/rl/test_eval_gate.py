@@ -3,11 +3,13 @@
     cd training/rl
     .venv\\Scripts\\python -m unittest test_eval_gate -v
 """
+import json
 import tempfile
 import unittest
 from pathlib import Path
 
-from eval_gate import ALERT, CONTINUE, STOP, Score, degraded_reasons, evaluated_summary, verdict
+from eval_gate import (ALERT, CONTINUE, STOP, SUMMARY_SCHEMA, Score, degraded_reasons,
+                       evaluated_summary, read_score, verdict)
 
 
 def healthy(step: int) -> Score:
@@ -52,6 +54,35 @@ class VerdictRuleTests(unittest.TestCase):
         self.assertEqual(1, len(degraded_reasons(Score(1, evader_wins=10, total_wins=55))))
         self.assertEqual(1, len(degraded_reasons(Score(1, evader_wins=11, total_wins=54))))
         self.assertEqual(2, len(degraded_reasons(Score(1, evader_wins=10, total_wins=54))))
+
+
+class ReadScore(unittest.TestCase):
+    """The gate's only summary consumer: reads the v2 opponents[] blocks and refuses anything else."""
+
+    def setUp(self):
+        self.path = Path(tempfile.mkdtemp()) / "20260729-120000-custom-summary.json"
+
+    def write(self, payload) -> Path:
+        self.path.write_text(json.dumps(payload))
+        return self.path
+
+    def test_reads_evader_and_total_wins_from_a_v2_summary(self):
+        path = self.write({"schema": SUMMARY_SCHEMA, "opponents": [
+            {"opponent": "Aggressor", "wins": 14},
+            {"opponent": "Evader", "wins": 12},
+            {"opponent": "Dummy", "wins": 15},
+        ]})
+        self.assertEqual(Score(step=200_000, evader_wins=12, total_wins=41), read_score(path, 200_000))
+
+    def test_pre_v2_summary_fails_loud_instead_of_reading_zero_wins(self):
+        path = self.write({"archetypes": [{"archetype": "Evader", "wins": 12}]})
+        with self.assertRaises(SystemExit):
+            read_score(path, 200_000)
+
+    def test_missing_evader_block_fails(self):
+        path = self.write({"schema": SUMMARY_SCHEMA, "opponents": [{"opponent": "Dummy", "wins": 15}]})
+        with self.assertRaises(SystemExit):
+            read_score(path, 200_000)
 
 
 class EvaluatedSummary(unittest.TestCase):

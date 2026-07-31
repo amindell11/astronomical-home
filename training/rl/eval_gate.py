@@ -86,9 +86,17 @@ def discover_checkpoints(behavior_dir: Path) -> list:
     return sorted((int(m.group(1)), p) for m, p in matches if m)
 
 
+SUMMARY_SCHEMA = "rl-eval-summary-v2"
+
+
 def read_score(summary_path: Path, step: int) -> Score:
     summary = json.loads(summary_path.read_text())
-    wins = {a["archetype"]: int(a["wins"]) for a in summary["archetypes"]}
+    schema = summary.get("schema")
+    if schema != SUMMARY_SCHEMA:
+        # A replayed pre-v2 step dir must die here, not be misread as zero wins.
+        sys.exit(f"FAIL: {summary_path} has schema {schema!r}, expected {SUMMARY_SCHEMA!r}; "
+                 f"a pre-v2 step dir cannot be replayed — restart the gate into a fresh --out-root")
+    wins = {o["opponent"]: int(o["wins"]) for o in summary["opponents"]}
     if EVADER not in wins:
         sys.exit(f"FAIL: no {EVADER} block in {summary_path}; the gate rule has nothing to read")
     return Score(step=step, evader_wins=wins[EVADER], total_wins=sum(wins.values()))

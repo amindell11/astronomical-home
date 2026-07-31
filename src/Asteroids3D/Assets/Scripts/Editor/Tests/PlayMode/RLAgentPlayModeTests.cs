@@ -197,18 +197,26 @@ namespace Tests.PlayMode
             spec.maxSeparation = 60f;
 
             var seeds = new[] { EvalProtocol.HeldOutSeeds[0], EvalProtocol.HeldOutSeeds[1] };
+            var sessionSpec = new SessionSpec
+            {
+                onnxAssetPath = ShipAgentFactory.SmokeFixturePath,
+                seeds = seeds,
+                tag = "test-eval",
+                episodesPerSeed = 1,
+                probes = new[] { ArchetypeGateProbe.ProbeName },
+            };
             CheckpointEvaluator.Summary summary = default;
-            yield return CheckpointEvaluator.Run(unitService, arena, projectiles, assets, ShipAgentFactory.SmokeFixturePath,
-                seeds, episodesPerSeed: 1, spec, "test-eval", s => summary = s);
+            yield return CheckpointEvaluator.Run(NewHost(sessionSpec), sessionSpec, spec, s => summary = s);
 
-            // Stratified eval: one standalone block per archetype, and no blended aggregate anywhere.
+            Assert.AreEqual(CheckpointEvaluator.SchemaId, summary.schema);
+            // Stratified eval: one standalone block per opponent, and no blended aggregate anywhere.
             CollectionAssert.AreEquivalent(
                 new[] { "Aggressor", "Evader", "Orbiter", "Kiter", "Dummy" },
-                System.Array.ConvertAll(summary.archetypes, a => a.archetype));
-            foreach (var block in summary.archetypes)
+                System.Array.ConvertAll(summary.opponents, o => o.opponent));
+            foreach (var block in summary.opponents)
             {
                 Assert.AreEqual(seeds.Length, block.episodes,
-                    $"{block.archetype}: episodesPerSeed × seeds episodes per archetype block");
+                    $"{block.opponent}: episodesPerSeed × seeds episodes per opponent block");
                 Assert.AreEqual(block.episodes, block.wins + block.losses + block.draws,
                     "every episode must land in exactly one W/L/D bucket");
                 Assert.AreEqual(block.wins / (float)block.episodes, block.winRate, 1e-6f,
@@ -221,16 +229,46 @@ namespace Tests.PlayMode
             Assert.IsTrue(System.IO.File.Exists(summary.episodesJsonl.Replace(".jsonl", "-summary.json")),
                 "summary artifact missing");
 
-            // The teacher scorecard rides alongside the W/L/D tally, one behavior block per archetype in the same order.
-            CollectionAssert.AreEqual(
-                System.Array.ConvertAll(summary.archetypes, a => a.archetype),
-                System.Array.ConvertAll(summary.behavior, b => b.archetype));
-            foreach (var b in summary.behavior)
+            // The teacher scorecard rides as a per-probe sidecar the summary points at.
+            Assert.AreEqual(1, summary.probes.Length);
+            Assert.AreEqual(ArchetypeGateProbe.ProbeName, summary.probes[0].name);
+            Assert.IsTrue(System.IO.File.Exists(summary.probes[0].jsonl), "probe JSONL sidecar missing");
+            Assert.IsTrue(System.IO.File.Exists(summary.probes[0].summary), "probe summary sidecar missing");
+            Assert.AreEqual(seeds.Length * 5, System.IO.File.ReadAllLines(summary.probes[0].jsonl).Length,
+                "one probe row per episode");
+
+            // Mirror block: same substrate, checkpoint vs itself, self-fingerprinted rows.
+            var mirrorSpec = new SessionSpec
             {
-                Assert.AreEqual(seeds.Length, b.episodes, $"{b.archetype}: one behavior row per episode");
-                Assert.AreEqual(b.episodes, b.survived + b.died, "every episode: opponent survived xor died");
-            }
-            Assert.IsTrue(System.IO.File.Exists(summary.behaviorJsonl), "per-episode behavior JSONL artifact missing");
+                onnxAssetPath = ShipAgentFactory.SmokeFixturePath,
+                seeds = new[] { seeds[0] },
+                tag = "test-eval-mirror",
+                episodesPerSeed = 1,
+                opponentKind = OpponentKind.Mirror,
+                probes = new string[0],
+            };
+            CheckpointEvaluator.Summary mirrorSummary = default;
+            yield return CheckpointEvaluator.Run(NewHost(mirrorSpec), mirrorSpec, spec, s => mirrorSummary = s);
+
+            Assert.AreEqual(1, mirrorSummary.opponents.Length, "a mirror eval is a single opponent block");
+            Assert.AreEqual("Mirror", mirrorSummary.opponents[0].opponent);
+            Assert.AreEqual(1, mirrorSummary.opponents[0].episodes);
+            var mirrorRows = System.IO.File.ReadAllLines(mirrorSummary.episodesJsonl);
+            Assert.AreEqual(1, mirrorRows.Length);
+            var mirrorRow = JsonUtility.FromJson<EpisodeResult>(mirrorRows[0]);
+            Assert.AreEqual("Mirror", mirrorRow.opponent.archetype,
+                "mirror episodes must self-fingerprint in the JSONL row");
+        }
+
+        /// <summary>Host on an inactive GameObject so its Start never fires — the test composes the arena and drives the client coroutine itself.</summary>
+        private HarnessSessionHost NewHost(SessionSpec sessionSpec)
+        {
+            var hostObject = new GameObject("[HarnessSessionHost]");
+            hostObject.transform.SetParent(arenaHost.transform, false);
+            hostObject.SetActive(false);
+            var host = hostObject.AddComponent<HarnessSessionHost>();
+            host.Initialize(sessionSpec, assets, unitService, arena, projectiles);
+            return host;
         }
 
         [UnityTest]

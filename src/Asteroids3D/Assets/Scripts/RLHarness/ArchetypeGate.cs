@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Combat.Weapons;
 using Ships;
 using UnityEngine;
@@ -109,7 +110,7 @@ namespace Game.RLHarness
     }
 
     /// <summary>Per-fixed-step opponent-behavior sampler for one gate episode: range statistics, border-hug and range-band occupancy, both sides' shots (via <see cref="WeaponComponent.OnFire"/>), and displacement from spawn. Construct after the pair-reset (it baselines on the spawn pose); dispose to unhook the fire counters.</summary>
-    public sealed class ArchetypeGateProbe : IDisposable
+    public sealed class ArchetypeGateSampler : IDisposable
     {
         /// <summary>Kiter band half-width around its drawn hold range.</summary>
         private const float RangeBand = 4f;
@@ -136,7 +137,7 @@ namespace Game.RLHarness
         private int shotsFired;
         private int agentShotsFired;
 
-        public ArchetypeGateProbe(Ship opponent, Ship agent, Vector2 arenaCenter, float arenaRadius,
+        public ArchetypeGateSampler(Ship opponent, Ship agent, Vector2 arenaCenter, float arenaRadius,
             in OpponentDraw draw)
         {
             this.opponent = opponent;
@@ -207,5 +208,64 @@ namespace Game.RLHarness
         private void CountAgentShot() => agentShotsFired++;
 
         private float Range() => (opponent.Kinematics.pos - agent.Kinematics.pos).magnitude;
+    }
+
+    /// <summary>The gate instrument as a session probe: one <see cref="ArchetypeGateSampler"/> per episode, rows grouped by the block's opponent label, and a per-opponent aggregate as the summary sidecar.</summary>
+    public sealed class ArchetypeGateProbe : ISessionProbe
+    {
+        public const string ProbeName = "gate";
+
+        [Serializable]
+        private struct Sidecar
+        {
+            public ArchetypeGateSummary[] opponents;
+        }
+
+        private readonly List<string> order = new();
+        private readonly Dictionary<string, List<ArchetypeGateRow>> rowsByOpponent = new();
+        private ArchetypeGateSampler sampler;
+        private string label;
+
+        public string Name => ProbeName;
+
+        public void Begin(in ProbeContext context)
+        {
+            label = context.opponentLabel;
+            sampler = new ArchetypeGateSampler(context.pair.Baseline, context.pair.Agent, context.arenaCenter,
+                context.spec.arenaRadius, in context.draw);
+        }
+
+        public void Sample() => sampler.Sample();
+
+        public string End(in EpisodeResult result)
+        {
+            var row = sampler.ToRow(in result);
+            if (!rowsByOpponent.TryGetValue(label, out var rows))
+            {
+                rows = new List<ArchetypeGateRow>();
+                rowsByOpponent[label] = rows;
+                order.Add(label);
+            }
+            rows.Add(row);
+            sampler.Dispose();
+            sampler = null;
+            return row.ToJsonLine();
+        }
+
+        public void Summarize(string summaryPath)
+        {
+            var sidecar = new Sidecar { opponents = new ArchetypeGateSummary[order.Count] };
+            for (var i = 0; i < order.Count; i++)
+                sidecar.opponents[i] = ArchetypeGateSummary.Summarize(order[i], rowsByOpponent[order[i]]);
+            File.WriteAllText(summaryPath, JsonUtility.ToJson(sidecar, prettyPrint: true));
+            // Teacher scorecard: the challenge lever is agentPoolLost (damage the opponent deals); borderHug/displacement flag a degenerate cheese.
+            foreach (var b in sidecar.opponents)
+                Debug.Log($"[ArchetypeGateProbe] {b.archetype} teacher: agentHPlost={b.meanAgentPoolLostPct:P0} "
+                    + $"oppHPlost={b.meanOpponentPoolLostPct:P0} oppShots={b.meanShotsFired:F1} "
+                    + $"meanRange={b.meanRange:F1} borderHug={b.meanBorderHugFraction:P0} "
+                    + $"maxDisp={b.maxDisplacement:F0} survived={b.survived}/{b.episodes}");
+        }
+
+        public void Dispose() => sampler?.Dispose();
     }
 }
