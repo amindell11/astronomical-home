@@ -5,6 +5,7 @@ using Game.RLHarness;
 using Movement;
 using NUnit.Framework;
 using Ships;
+using Ships.Command;
 using UnityEngine;
 
 namespace Tests.EditMode
