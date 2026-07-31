@@ -47,10 +47,11 @@ commit both files together.
 | `run_training.py` | one batch editor, via unity-access | a single-env run (pilot or full) against a real config |
 | `run_parallel.py` | N headless player exes, no editor | every real training run — the throughput path |
 | `bench_throughput.py` | wraps `run_parallel.py` | steps/s and CPU cost of a configuration |
+| `eval_lane.py` | one batch child, via unity-access | a manual scripted eval of one checkpoint |
 | `eval_gate.py` | one batch child per checkpoint, via unity-access | scoring checkpoints while a run is still going |
 
 **Editor-booting drivers go through the coordinator.** `run_smoke.py`,
-`run_training.py`, and `eval_gate.py` all launch Unity through
+`run_training.py`, `eval_lane.py`, and `eval_gate.py` all launch Unity through
 `scripts/unity_access.ps1` (`unity_access.py` is the client), so the editor is
 owner-tracked from birth and its startup serializes through the machine-wide
 boot lane. Never launch Unity beside the coordinator — see `skills/unity-access`.
@@ -101,7 +102,7 @@ cd training/rl
 Build the `--env` exe first with `Game.RLHarness.RLTrainingPlayerBuild.Build`
 (headless StandaloneWindows64, lands at `build/rl-training/RLTraining.exe`). That
 is a Unity launch like any other, so it runs as a coordinator batch child —
-`eval_child.ps1` is the shape to copy: a self-exiting `-batchmode -nographics
+`harness_child.ps1` is the shape to copy: a self-exiting `-batchmode -nographics
 -executeMethod ... -logFile <log>` handed to `unity_access.ps1 -Action RunBatch`.
 
 `run_parallel.py` asserts trainer exit 0, an exported checkpoint, and one
@@ -177,18 +178,35 @@ artifacts under `results/rl-eval/`. Checkpoints are selected on training-seed
 eval BEFORE the held-out set is opened; any RewardSpec change resets the
 protocol.
 
-It runs as a coordinator batch child (`eval_child.ps1`, which carries the
-environment into `-executeMethod Game.RLHarness.TrainingBootstrap.RunEval`):
+It runs as a coordinator batch child (`harness_child.ps1`, which carries the
+environment into `-executeMethod Game.RLHarness.TrainingBootstrap.RunHarnessSession`).
+The `RL_HARNESS_*` family is the session grammar, parsed once by `SessionSpec` (C#)
+at the batch boundary — a retired `RL_EVAL_*` name present in the environment
+throws there, naming its replacement:
 
 ```powershell
-$env:RL_EVAL_ONNX = "results/rl-training/<run-id>/ShipCombat.onnx"   # default: the smoke fixture
-$env:RL_EVAL_EPISODES_PER_SEED = "5"
-$env:RL_EVAL_SEEDS = "train"   # checkpoint selection; omit (or "held-out") for the sealed set, or pass "7,42,99"
-$env:RL_EVAL_DENSITY = "3.0"   # stretch/diagnostic only; omit for the canonical eval env (training's terminal lesson)
-$env:RL_EVAL_OPPONENT = "mirror"   # "roster" (default: stratified archetype blocks) / an archetype name / "mirror" (checkpoint vs itself) / a path ending .onnx (checkpoint vs checkpoint; blocks labeled by its stem)
-$env:RL_EVAL_PROBES = "gate"   # comma-separated probe selection writing per-probe sidecars; "" for none; omit for the default "gate"
-$env:RL_EVAL_OUT_DIR = "..."   # caller-owned artifact dir; omit for results/rl-eval/
+$env:RL_HARNESS_ONNX = "results/rl-training/<run-id>/ShipCombat.onnx"   # default: the smoke fixture
+$env:RL_HARNESS_EPISODES_PER_SEED = "5"
+$env:RL_HARNESS_SEEDS = "train"   # checkpoint selection; omit (or "held-out") for the sealed set, or pass "7,42,99"
+$env:RL_HARNESS_DENSITY = "3.0"   # stretch/diagnostic only; omit for the canonical eval env (training's terminal lesson)
+$env:RL_HARNESS_OPPONENT = "mirror"   # "roster" (default: stratified archetype blocks) / an archetype name / "mirror" (checkpoint vs itself) / a path ending .onnx (checkpoint vs checkpoint; blocks labeled by its stem)
+$env:RL_HARNESS_PROBES = "gate"   # comma-separated probe selection writing per-probe sidecars; "" for none; omit for the default "gate"
+$env:RL_HARNESS_OUT_DIR = "..."   # caller-owned artifact dir; omit for results/rl-eval/
 ```
+
+Setting the environment by hand is the exception; `eval_lane.py` is the lane
+launcher — it composes the child env from its arguments alone (stripping every
+inherited `RL_HARNESS_*` and retired `RL_EVAL_*` variable first), runs the batch
+child through the coordinator, and reads the summary back from the out dir it
+named under `results/rl-eval/manual/` in the primary tree:
+
+```powershell
+cd training/rl
+.venv\Scripts\python eval_lane.py --onnx <ckpt.onnx> --seeds 2001,2002,2003,2004,2005 --episodes-per-seed 3
+```
+
+Point `--project` at a free pool slot (like the eval gate); values pass through
+as strings — `SessionSpec` is the single grammar authority.
 
 The eval environment defaults to `EvalProtocol.EvalSpec` — asteroid field on at
 the curriculum's terminal density, pinned against `ppo_ship_combat.yaml` by
@@ -209,9 +227,12 @@ and the `EvalProtocol.InferenceSeed` Academy inference seed.
 
 `eval_gate.py` watches a live run's checkpoint exports and evals each new one so
 erosion shows up while the run is going, not after it. Per checkpoint it runs the
-75-episode scripted eval (5 archetypes × 5 seeds × 3 episodes) through the
-coordinator, then applies the two-consecutive-checkpoints rule: **ALERT** on one
-checkpoint with Evader ≤ 10/15 or total < 55/75, **STOP** on two consecutive.
+75-episode scripted eval at the gate shape (5 archetypes × 5 seeds × 3 episodes)
+through the coordinator, then applies the two-consecutive-checkpoints rule:
+**ALERT** on one checkpoint with Evader ≤ 10/15 or total < 55/75, **STOP** on two
+consecutive. It composes the two lane libraries: `eval_lane.py` launches each
+eval, `checkpoint_watch.py` owns discovery and replay-instead-of-re-run of
+finished `step-<N>/` dirs; the verdict rules live in the gate itself.
 
 ```powershell
 cd training/rl
@@ -221,7 +242,7 @@ cd training/rl
 ```
 
 Point `--project` at a free pool slot; the eval boots an editor there. The gate names
-each eval's output dir and passes it as `RL_EVAL_OUT_DIR`, so it reads back exactly
+each eval's output dir and passes it as `RL_HARNESS_OUT_DIR`, so it reads back exactly
 what it named (artifacts + `verdict.json` under `results/rl-eval/gate/<run-id>/step-<N>/`).
 It reports and exits 2 on STOP; it kills the trainer only with the opt-in
 `--auto-stop-pid <trainer pid>`.
