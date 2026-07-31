@@ -371,6 +371,12 @@ Format: **term** — definition. *(authority)*
 - **producer-owns-outputs** — when one tool's output is another's input, the
   location and format are the producer's contract; consumers never re-derive
   paths. *(CLAUDE.md §6 corollary)*
+- **lane launcher** — the Python library that composes a lane's env, runs the
+  batch child through the coordinator, and reads artifacts back from the dir it
+  named. *(eval_lane.py)*
+- **checkpoint watch** — the discover → per-step-dir → replay-or-run loop
+  extracted from the eval gate; a finished step dir replays instead of
+  re-running. *(checkpoint_watch.py)*
 - **owner lease / boot lane / two-tier lock** — a per-project run claim / the
   machine-wide startup-only lock / their combination. Pid-backed leases survive
   TTL; pid-less ones expire and orphan live editors. A **wedged** boot lane — an

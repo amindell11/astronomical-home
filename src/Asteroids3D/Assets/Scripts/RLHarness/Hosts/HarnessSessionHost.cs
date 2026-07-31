@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>Scene entry point for offline harness sessions, composed by TrainingBootstrap.RunEval in batch mode. It owns the measurement arena and two primitives — <see cref="NewComposition"/> (one per seed, so every RNG stream replays from that seed) and <see cref="RunBlock"/> (N consecutive episodes against one opponent config) — and the spec's lane client sequences them.</summary>
+    /// <summary>Scene entry point for offline harness sessions, composed by TrainingBootstrap.RunHarnessSession in batch mode. It owns the measurement arena and two primitives — <see cref="NewComposition"/> (one per seed, so every RNG stream replays from that seed) and <see cref="RunBlock"/> (N consecutive episodes against one opponent config) — and the spec's lane client sequences them.</summary>
     public sealed class HarnessSessionHost : MonoBehaviour
     {
         [SerializeField] internal SessionSpec spec;

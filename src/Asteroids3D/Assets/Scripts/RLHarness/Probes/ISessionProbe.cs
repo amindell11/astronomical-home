@@ -46,7 +46,7 @@ namespace Game.RLHarness
         public string summary;
     }
 
-    /// <summary>The probe name registry — the selection grammar behind RL_EVAL_PROBES. Factories take the per-probe key→float param map (decision 4); the env grammar that fills it arrives with its first parameterized probe (slice D).</summary>
+    /// <summary>The probe name registry — the selection grammar behind RL_HARNESS_PROBES. Factories take the per-probe key→float param map (decision 4); the env grammar that fills it arrives with its first parameterized probe (slice D).</summary>
     public static class SessionProbes
     {
         private static readonly Dictionary<string, Func<IReadOnlyDictionary<string, float>, ISessionProbe>> Factories =

@@ -27,7 +27,7 @@ namespace Tests.EditMode
             var spec = Parse();
 
             Assert.AreEqual(SessionLane.Eval, spec.lane);
-            Assert.AreEqual(ShipAgentFactory.SmokeFixturePath, spec.onnxAssetPath, "no RL_EVAL_ONNX: the smoke fixture");
+            Assert.AreEqual(ShipAgentFactory.SmokeFixturePath, spec.onnxAssetPath, "no RL_HARNESS_ONNX: the smoke fixture");
             Assert.IsNull(spec.onnxSourcePath);
             Assert.AreEqual(EvalProtocol.HeldOutSeeds, spec.seeds);
             Assert.AreEqual("held-out", spec.tag);
@@ -42,7 +42,7 @@ namespace Tests.EditMode
         [Test]
         public void CheckpointSource_IsImportedAndRecorded()
         {
-            var spec = Parse("RL_EVAL_ONNX", "results/rl-training/run/ShipCombat-42.onnx");
+            var spec = Parse("RL_HARNESS_ONNX", "results/rl-training/run/ShipCombat-42.onnx");
 
             Assert.AreEqual(ImportedCandidatePath, spec.onnxAssetPath);
             Assert.AreEqual("results/rl-training/run/ShipCombat-42.onnx", spec.onnxSourcePath,
@@ -52,18 +52,18 @@ namespace Tests.EditMode
         [Test]
         public void NonCanonicalDensity_MarksTheArtifactTag()
         {
-            Assert.AreEqual("custom-d3", Parse("RL_EVAL_SEEDS", "7,8", "RL_EVAL_DENSITY", "3.0").tag);
-            Assert.AreEqual("held-out", Parse("RL_EVAL_DENSITY", "2.0").tag, "the canonical density never suffixes");
+            Assert.AreEqual("custom-d3", Parse("RL_HARNESS_SEEDS", "7,8", "RL_HARNESS_DENSITY", "3.0").tag);
+            Assert.AreEqual("held-out", Parse("RL_HARNESS_DENSITY", "2.0").tag, "the canonical density never suffixes");
         }
 
         [Test]
         public void OpponentGrammar_ResolvesRosterArchetypeAndMirror()
         {
             Assert.AreEqual(OpponentKind.Roster, Parse().opponentKind);
-            Assert.AreEqual(OpponentKind.Roster, Parse("RL_EVAL_OPPONENT", "roster").opponentKind);
-            Assert.AreEqual(OpponentKind.Mirror, Parse("RL_EVAL_OPPONENT", "mirror").opponentKind);
+            Assert.AreEqual(OpponentKind.Roster, Parse("RL_HARNESS_OPPONENT", "roster").opponentKind);
+            Assert.AreEqual(OpponentKind.Mirror, Parse("RL_HARNESS_OPPONENT", "mirror").opponentKind);
 
-            var pinned = Parse("RL_EVAL_OPPONENT", "evader");
+            var pinned = Parse("RL_HARNESS_OPPONENT", "evader");
             Assert.AreEqual(OpponentKind.Archetype, pinned.opponentKind);
             Assert.AreEqual(OpponentArchetype.Evader, pinned.opponentArchetype);
         }
@@ -71,7 +71,7 @@ namespace Tests.EditMode
         [Test]
         public void OpponentGrammar_RoutesACheckpointPathToTheSecondSlot()
         {
-            var spec = Parse("RL_EVAL_OPPONENT", "frozen/ShipCombat-999950.onnx");
+            var spec = Parse("RL_HARNESS_OPPONENT", "frozen/ShipCombat-999950.onnx");
 
             Assert.AreEqual(OpponentKind.Checkpoint, spec.opponentKind);
             Assert.AreEqual("frozen/ShipCombat-999950.onnx", spec.opponentOnnxSourcePath,
@@ -91,7 +91,7 @@ namespace Tests.EditMode
         [Test]
         public void OpponentGrammar_RefusesAnUnknownTokenNamingTheLegalSet()
         {
-            var thrown = Assert.Throws<ArgumentException>(() => Parse("RL_EVAL_OPPONENT", "brawler"));
+            var thrown = Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_OPPONENT", "brawler"));
             StringAssert.Contains("Aggressor", thrown.Message);
             StringAssert.Contains("mirror", thrown.Message);
         }
@@ -99,19 +99,27 @@ namespace Tests.EditMode
         [Test]
         public void ProbeSelection_IsByNameAndAnEmptyListMeansNone()
         {
-            Assert.AreEqual(new[] { ArchetypeGateProbe.ProbeName }, Parse("RL_EVAL_PROBES", "gate").probes);
-            Assert.IsEmpty(Parse("RL_EVAL_PROBES", "").probes, "an explicit empty selection runs no probes");
-            Assert.Throws<ArgumentException>(() => Parse("RL_EVAL_PROBES", "facing"),
+            Assert.AreEqual(new[] { ArchetypeGateProbe.ProbeName }, Parse("RL_HARNESS_PROBES", "gate").probes);
+            Assert.IsEmpty(Parse("RL_HARNESS_PROBES", "").probes, "an explicit empty selection runs no probes");
+            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_PROBES", "facing"),
                 "an unregistered probe must fail at the boundary, not run an eval with no instrument");
+        }
+
+        [Test]
+        public void RetiredEnvName_ThrowsNamingItsReplacement()
+        {
+            var thrown = Assert.Throws<ArgumentException>(() => Parse("RL_EVAL_ONNX", "stale-script.onnx"),
+                "a stale script's retired name must not silently eval the smoke fixture");
+            StringAssert.Contains("RL_HARNESS_ONNX", thrown.Message);
         }
 
         [Test]
         public void GarbageValues_ThrowAtTheBoundaryInsteadOfBeingIgnored()
         {
-            Assert.Throws<ArgumentException>(() => Parse("RL_EVAL_EPISODES_PER_SEED", "abc"));
-            Assert.Throws<ArgumentException>(() => Parse("RL_EVAL_EPISODES_PER_SEED", "0"));
-            Assert.Throws<ArgumentException>(() => Parse("RL_EVAL_DENSITY", "dense"));
-            Assert.Throws<ArgumentException>(() => Parse("RL_EVAL_SEEDS", "1001,oops"));
+            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_EPISODES_PER_SEED", "abc"));
+            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_EPISODES_PER_SEED", "0"));
+            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_DENSITY", "dense"));
+            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_SEEDS", "1001,oops"));
         }
     }
 }
