@@ -2,6 +2,9 @@
 
 > STATUS: living — arc opened 2026-07-22 after the PR-4 launch prep measured the real
 > per-step cost. Driver: many training runs are planned, so per-step cost compounds.
+> Pass 1 closed 2026-07-23 at the core-saturation ceiling; **Pass 2 opened 2026-07-31**
+> (§Pass 2) — the K1-3 schema break lifts the no-obs/action-change constraint the
+> closure was taken under.
 
 **Parent:** `RL_Training_Throughput.md` (Path A/B delivery mechanisms — this arc is about
 the cost of a step, not how many step in parallel).
@@ -237,6 +240,83 @@ items; nothing left above the bench's noise floor without new evidence.
 
 The PR-4 self-play run itself (parked); the `RL_SELFPLAY` launcher blocker (a correctness fix,
 tracked separately); anything altering obs/action shape.
+
+> Pass 2 note: the obs/action non-goal was a Pass-1 constraint (protecting warm-started
+> checkpoints), not a property of the problem. It is lifted for Pass 2 — see below.
+
+## Pass 2 — profile before the K1 retrain (opened 2026-07-31)
+
+Pass 1 closed with "nothing left above the noise floor" — but that verdict was taken
+under a hard constraint: no obs/action changes, because surviving checkpoints
+warm-start into the env. That constraint walled off the three largest terms in the
+decomposition — the ML-Agents decision path (~29%), AI perception/Scout (~10%), and the
+decision interval itself. The K1-3 schema break (obs 28, 5-cont + 2-disc actions;
+`Anchored_Intent_Architecture.md`) invalidates every existing checkpoint anyway, so the
+next run is from-scratch and the walled-off levers ride along at zero marginal retrain
+cost. That — not re-running the exhausted safe levers — is what Pass 2 is for.
+
+Also genuinely new since the closure: the entire Pass-1 profile was scripted-roster
+(self-play "re-measure" was flagged and never run), and the code has moved (#210
+headless hosts, #231/#238/#239/#240/#246 harness-lane arc, #247 velrebase).
+
+**Metric correction.** The bench reports fixed-steps/s, but PPO consumes *decisions*
+(= steps / `DecisionIntervalSteps` 10), and wall-clock-to-trained-policy =
+decisions/s × samples-needed. The two only move together while the decision interval
+is fixed — the moment it becomes a lever, optimize decisions/s, never steps/s. All
+Pass-2 stages report both.
+
+### Stage 0 — re-baseline (mandatory first)
+
+Rebuild the exe on current main; `bench_throughput.py` N=6, ≥2 runs per config (single
+N=6 runs swing ±15% — nothing inside that band is attributable). Deliverable: does
+~213 steps/s hold post-drift? This is the A/B floor for everything below.
+
+Arms: **A** = main + warm-start (comparable to the historical 213), **A′** = main +
+scratch-init (the bridge, since K1-4 trains from scratch), **B** = K1-3 branch + scratch
+(the real Stage-2 floor — it prices the new obs/action schema). The self-play arm is
+DROPPED: K1-4 is locked as "stock-PPO vs the gate roster, no self-play changes"
+(`Anchored_Intent_Architecture.md`), so scripted-roster is the composition that ships.
+
+> **Stage 0's first finding had nothing to do with throughput: the player build was
+> broken on main and had been for 8 days.** `Game.Capture.Editor.asmdef` (Slice-B #246)
+> carried `defineConstraints: [UNITY_INCLUDE_TESTS]`, so player builds silently dropped
+> the whole Capture assembly while `Game.RLHarness.Editor` still referenced
+> `CaptureDraw`/`CaptureConfig` — CS0246, Build Failure. Editor gates never see it; the
+> merge gate never builds a player. Same failure mode #185 fixed on the RLHarness
+> asmdef. **Fixed + shipped #251 (`a1319f04`).** It blocked the K1-4 run itself
+> (`run_parallel` launches that exe) and PR-5 player-eval, not just this bench.
+> Follow-up carded: the gate needs a player-build tripwire, or the next 8-day
+> invisible break is only a matter of time.
+
+### Stage 1 — re-decompose under self-play
+
+Profiler-attach on an N=1 training load, refresh the Pass-1 bucket table under
+self-play. The critical split Pass 1 never made: inside the ~29% decision path, how
+much is core-consuming obs-build/action-apply vs non-core gRPC wall-time? That split
+routes Stage 2 — core-bound obs cost says "trim obs", wall-time latency says "decision
+interval / more workers".
+
+### Stage 2 — one lever per bucket, A/B'd separately
+
+- **Safe (no semantics):** PhysX config — prune the all-ffff collision matrix, raise
+  `m_SleepThreshold` off 0.005, fix `m_WorldBounds` ±250 vs 400 arena spacing.
+  Semantics-adjacent: re-verify determinism pins.
+- **Schema-riders (free only because the K1 retrain is from-scratch):**
+  - *Decision interval* — direction non-obvious: lowering trades sim-ticks-per-sample
+    against round-trip count; measure in decisions/s, expect the MDP to shift.
+  - *Obs/Scout trim* — Scout scans every frame (~10%) and obs-build sits inside the
+    29%. Must ride a schema-break window (K1-4 or later) — K1-3's brief is frozen and
+    building; nothing folds into it.
+
+**Sequencing / coordination.** heat-gate #248 (`53368b6a`) cleared the pre-launch
+tripwire. Stage 0 needs exclusive base-port 5006 + a quiet ~14-core machine — it queues
+behind the in-flight K1-3 build (agent-1) and any concurrent bench. Open fork (user
+call pending): run Stage 1 against the K1-3 branch while it's in review — which keeps
+the obs-trim option alive for K1-4's window — or wait for the K1-4 merge and accept
+obs-trim slips to a later break. Baseline note: pre-#248 numbers were taken against
+overheating teachers; the fix raises sustained teacher fire rate (~0.7 → ~1.2 shots/s),
+so projectile/physics load shifts slightly — one more reason Stage 0 re-baselines
+rather than trusting the 213.
 
 ## Coordination
 
