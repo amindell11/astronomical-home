@@ -244,13 +244,37 @@ namespace Tests.PlayMode
                     ContactProbe.ProbeName, FacingProbe.ProbeName,
                 },
                 System.Array.ConvertAll(summary.probes, p => p.name));
+            var probeRows = new Dictionary<string, string[]>();
             foreach (var probe in summary.probes)
             {
                 Assert.IsTrue(System.IO.File.Exists(probe.jsonl), $"{probe.name} probe JSONL sidecar missing");
                 Assert.IsTrue(System.IO.File.Exists(probe.summary), $"{probe.name} probe summary sidecar missing");
-                Assert.AreEqual(seeds.Length * 5, System.IO.File.ReadAllLines(probe.jsonl).Length,
+                probeRows[probe.name] = System.IO.File.ReadAllLines(probe.jsonl);
+                Assert.AreEqual(seeds.Length * 5, probeRows[probe.name].Length,
                     $"{probe.name}: one probe row per episode");
             }
+
+            // Row counts alone pass green with every sampler hook silently detached, so each probe also asserts one
+            // field that cannot be degenerate in a live episode. Non-degeneracy only — eval is not run-to-run
+            // reproducible, so no value here is a golden.
+            foreach (var row in Rows<ArchetypeGateRow>(probeRows[ArchetypeGateProbe.ProbeName]))
+                Assert.Greater(row.meanRange, 0f, "gate: the opponent-range statistic must be live");
+            var shotsAcrossBatch = 0;
+            foreach (var row in Rows<CombatTelemetryRow>(probeRows[CombatTelemetryProbe.ProbeName]))
+            {
+                var occupancy = 0f;
+                foreach (var band in row.rangeOccupancy) occupancy += band;
+                Assert.AreEqual(1f, occupancy, 1e-3f,
+                    "combat: range-band occupancy sums to 1 only when the sampler stepped");
+                shotsAcrossBatch += row.agentShots + row.oppShots;
+            }
+            // Occupancy stays green with OnFire detached; shots are that hook's own output.
+            Assert.Greater(shotsAcrossBatch, 0,
+                "combat: no shot counted across the batch — WeaponComponent.OnFire is detached");
+            foreach (var row in Rows<ContactRow>(probeRows[ContactProbe.ProbeName]))
+                Assert.Greater(row.minRange, 0f, "contact: an unsampled episode reports a zero minimum range");
+            foreach (var row in Rows<FacingRow>(probeRows[FacingProbe.ProbeName]))
+                Assert.Greater(row.decisions, 0, "facing: a detached IPolicyReadout observes no decisions");
 
             // Mirror block: same substrate, checkpoint vs itself, self-fingerprinted rows.
             var mirrorSpec = new SessionSpec
@@ -302,6 +326,11 @@ namespace Tests.PlayMode
                 System.IO.File.ReadAllLines(slot2Summary.episodesJsonl)[0]);
             Assert.AreEqual("ShipCombat-smoke", slot2Row.opponent.archetype,
                 "checkpoint episodes must fingerprint the opponent stem in the JSONL row");
+        }
+
+        private static IEnumerable<T> Rows<T>(string[] lines)
+        {
+            foreach (var line in lines) yield return JsonUtility.FromJson<T>(line);
         }
 
         /// <summary>Host on an inactive GameObject so its Start never fires — the test composes the arena and drives the client coroutine itself.</summary>

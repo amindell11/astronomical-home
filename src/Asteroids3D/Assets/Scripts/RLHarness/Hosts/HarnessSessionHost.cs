@@ -76,7 +76,7 @@ namespace Game.RLHarness
                 // Pinned install before RunEpisode's pair-reset (the respawn re-inits the chooser).
                 var draw = composition.InstallOpponent(in opponent, in episodeSpec, episode, Arena.Offset);
                 var context = new ProbeContext(composition.Pair, Arena.Offset, in episodeSpec, episode, in draw,
-                    opponent.Label);
+                    opponent.Label, composition.Driver);
                 using var recorder = spec.record.Records(episode)
                     ? new CaptureRecorder(ClipConfig(episodeSpec.runSeed, opponent.Label, episode, jsonlPath))
                     : null;

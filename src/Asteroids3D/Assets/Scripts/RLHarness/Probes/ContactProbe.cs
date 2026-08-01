@@ -80,7 +80,7 @@ namespace Game.RLHarness
         }
     }
 
-    /// <summary>Per-fixed-step ship-ship contact sampler: longest contiguous in-contact run (sustained contact), overall in-contact fraction, and relative angular velocity (tumble) while touching. Contact = centers within the summed bumper-sphere radii + epsilon. Public so slice E's regression client can drive it directly.</summary>
+    /// <summary>Per-fixed-step ship-ship contact sampler: longest contiguous in-contact run (sustained contact), overall in-contact fraction, and relative angular velocity (tumble) while touching. Contact = centers within the summed bumper-sphere radii + epsilon.</summary>
     public sealed class ContactSampler
     {
         private readonly Ship a;

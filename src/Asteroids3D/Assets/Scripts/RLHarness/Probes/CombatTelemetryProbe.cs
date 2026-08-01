@@ -242,12 +242,12 @@ namespace Game.RLHarness
         }
     }
 
-    /// <summary>Per-fixed-step combat sampler for one episode — a pure observer over <see cref="CombatSnapshotExtractor.Capture"/>, both sides' <see cref="WeaponComponent.OnFire"/>, Shield.OnValueChanged, and polled boost availability. Construct after the pair-reset (the reset's shield refill must not read as regen); dispose to unhook.</summary>
+    /// <summary>Per-fixed-step combat sampler for one episode — a pure observer over the episode loop's <see cref="IStepSnapshotSource"/>, both sides' <see cref="WeaponComponent.OnFire"/>, Shield.OnValueChanged, and polled boost availability. Construct after the pair-reset (the reset's shield refill must not read as regen); dispose to unhook.</summary>
     public sealed class CombatTelemetrySampler : IDisposable
     {
         private readonly Ship agent;
         private readonly Ship baseline;
-        private readonly Vector2 arenaCenter;
+        private readonly IStepSnapshotSource snapshots;
         private readonly OpponentDraw draw;
         private readonly float fireDistance;
         private readonly IHeatReadout agentHeat;
@@ -272,11 +272,11 @@ namespace Game.RLHarness
         private int agentBoostsGap;
         private int oppBoostsGap;
 
-        public CombatTelemetrySampler(EpisodePair pair, Vector2 arenaCenter, in OpponentDraw draw)
+        public CombatTelemetrySampler(EpisodePair pair, IStepSnapshotSource snapshots, in OpponentDraw draw)
         {
             agent = pair.Agent;
             baseline = pair.Baseline;
-            this.arenaCenter = arenaCenter;
+            this.snapshots = snapshots;
             this.draw = draw;
             var primary = agent.Weapons ? agent.Weapons.Primary : null;
             fireDistance = primary ? primary.FireRange : 0f;
@@ -304,7 +304,7 @@ namespace Game.RLHarness
         {
             if (!agent || !baseline) return;
             steps++;
-            var snapshot = CombatSnapshotExtractor.Capture(agent, baseline, arenaCenter);
+            var snapshot = snapshots.StepSnapshot;
             var range = snapshot.distanceToTarget;
             rangeSum += range;
             if (range < minRange) minRange = range;
@@ -444,7 +444,7 @@ namespace Game.RLHarness
         public void Begin(in ProbeContext context)
         {
             label = context.opponentLabel;
-            sampler = new CombatTelemetrySampler(context.pair, context.arenaCenter, in context.draw);
+            sampler = new CombatTelemetrySampler(context.pair, context.snapshots, in context.draw);
         }
 
         public void Sample() => sampler.Sample();
