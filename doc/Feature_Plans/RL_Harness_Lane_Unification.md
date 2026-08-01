@@ -1087,8 +1087,14 @@ comments naming slices that never shipped what they promise.
    re-justify against the archived bench + carded tournament, or drop the
    clause. `SessionSpec.cs:165` and `DiagnosticPainters.cs:23` cite slice D as
    the future implementer of probe-sourced painters; D shipped painterless —
-   repoint both to "the first painter-bearing probe" per this doc's AUDIT
+   repoint to "the first painter-bearing probe" per this doc's AUDIT
    CORRECTION at Slice B assumption 6.
+   **AMENDED at build (user ruling):** the brief said repoint *both*, which
+   would have duplicated one fact across two files. `DiagnosticPainters` owns
+   the registry and therefore the resolution story; `ParsePainters`' summary
+   keeps only the env grammar it owns and defers resolution to that type. The
+   quality pass raised this against the frozen wording and was right —
+   *one home per term* outranks the brief's literal text.
 
 Plus the **comment ratchet, discriminating safe-delete only** (below).
 

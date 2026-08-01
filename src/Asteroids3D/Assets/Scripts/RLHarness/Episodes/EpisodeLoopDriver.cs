@@ -3,8 +3,14 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
+    /// <summary>Read access to the combat snapshot the episode loop captured this fixed step, so a per-step observer never re-derives it.</summary>
+    public interface IStepSnapshotSource
+    {
+        CombatSnapshot StepSnapshot { get; }
+    }
+
     /// <summary>The decision & reset ordering contract, in one place. The Academy auto-steps every FixedUpdate (this driver no longer owns the step); it only paces decisions: prime the first RequestDecision after Begin so the opening step runs under a real action, and RequestDecision again at each paid boundary. Zero decision latency holds because AICommander (which reads the action) is ordered after the AcademyFixedUpdateStepper, so a boundary's action is applied the same FixedUpdate it is produced. On episode end AddReward → EndEpisode/EpisodeInterrupted BEFORE the next pair-reset so the terminal observation reflects the end state.</summary>
-    public sealed class EpisodeLoopDriver
+    public sealed class EpisodeLoopDriver : IStepSnapshotSource
     {
         private readonly EpisodePair pair;
         private readonly ShipAgent agent;
@@ -15,6 +21,8 @@ namespace Game.RLHarness
         private readonly WaitForFixedUpdate waitFixed = new();
 
         public EpisodeRunner Runner { get; private set; }
+        /// <summary>Forwarded, never cached: the runner is rebuilt per episode, so an observer bound before RunEpisode must read through the driver.</summary>
+        public CombatSnapshot StepSnapshot => Runner.StepSnapshot;
         /// <summary>The agent-side cumulative reward captured just before EndEpisode cleared it — must equal the runner's totalReward.</summary>
         public float LastEpisodeCumulativeReward { get; private set; }
         /// <summary>Self-play only: the team-1 agent's mirror runner and its cumulative reward, captured before its EndEpisode (null/0 single-agent).</summary>

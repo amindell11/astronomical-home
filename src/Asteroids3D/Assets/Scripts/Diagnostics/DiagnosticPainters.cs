@@ -20,7 +20,7 @@ namespace Game.Diagnostics
         }
     }
 
-    /// <summary>The painter name registry — the selection grammar behind RL_HARNESS_PAINTERS. A probe may later expose a painter under its own name (D); resolution checks this registry first.</summary>
+    /// <summary>The painter name registry — the selection grammar behind RL_HARNESS_PAINTERS. Only this registry resolves today; the first painter-bearing probe adds probe-sourced painters beside it.</summary>
     public static class DiagnosticPainters
     {
         public const string ShipDiagnostics = "ship-diagnostics";

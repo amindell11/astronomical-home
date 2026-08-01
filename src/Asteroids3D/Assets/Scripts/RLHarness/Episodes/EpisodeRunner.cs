@@ -28,6 +28,8 @@ namespace Game.RLHarness
         public BoundaryResult LastBoundary => lastBoundary;
         /// <summary>The snapshot captured at the most recent boundary (Begin pose, then each paid decision, including the terminal one) — the observation moment for a decision-synchronized sensor.</summary>
         public CombatSnapshot BoundarySnapshot { get; private set; }
+        /// <summary>The snapshot captured this fixed step (Begin pose before the first Tick) — what a per-step observer reads instead of re-deriving the same capture.</summary>
+        public CombatSnapshot StepSnapshot { get; private set; }
 
         public EpisodeRunner(Ship agent, Ship baseline, RewardSpec spec, int episodeIndex,
             Vector2 arenaCenter, bool tracePerDecision = false)
@@ -58,6 +60,7 @@ namespace Game.RLHarness
         {
             prev = CombatSnapshotExtractor.Capture(agent, baseline, arenaCenter);
             BoundarySnapshot = prev;
+            StepSnapshot = prev;
             phiEnvelopePrev = PotentialShaping.EnvelopePhi(in prev, in spec);
             phiBorderPrev = PotentialShaping.BorderPhi(in prev, in spec);
             result.startMyPool = prev.myPool;
@@ -75,6 +78,7 @@ namespace Game.RLHarness
             stepsSinceDecision++;
 
             var next = CombatSnapshotExtractor.Capture(agent, baseline, arenaCenter);
+            StepSnapshot = next;
             var verdict = EpisodeRules.Evaluate(in next, in spec);
             var boundary = stepsSinceDecision >= spec.decisionIntervalSteps;
 
