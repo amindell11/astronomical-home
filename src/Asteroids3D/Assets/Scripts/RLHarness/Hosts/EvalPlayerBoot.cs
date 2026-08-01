@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>Scene entry point of the player eval lane: parse the environment, resolve ModelAssets from the convert step's model bundle, compose <see cref="HarnessSessionHost"/> and let its exit paths finish. A boot failure quits 1 here — a player has no -executeMethod boundary to fail for it.</summary>
+    /// <summary>Scene entry point of the player eval lane — the boot boundary that resolves ModelAssets out of the convert step's model bundle, then hands <see cref="HarnessSessionHost"/> the spec. A boot failure quits 1 here: a player has no -executeMethod boundary to fail for it.</summary>
     public sealed class EvalPlayerBoot : MonoBehaviour
     {
         [SerializeField] private HarnessAssets assets;

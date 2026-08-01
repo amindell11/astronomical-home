@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>Composes the ShipAgent GameObject with its BehaviorParameters fully configured before the Agent component enables (the policy captures them at first use). Keeps ML-Agents/InferenceEngine types out of the test assemblies via the mode-specific entry points. Checkpoints arrive as resolved ModelAssets — each boot boundary (editor AssetDatabase, player AssetBundle) resolves its own.</summary>
+    /// <summary>Composes the ShipAgent GameObject with its BehaviorParameters fully configured before the Agent component enables (the policy captures them at first use). Checkpoints arrive as resolved ModelAssets — each boot boundary (editor AssetDatabase, player AssetBundle) resolves its own.</summary>
     public static class ShipAgentFactory
     {
         public const string BehaviorName = ShipCombatPolicy.BehaviorName;
