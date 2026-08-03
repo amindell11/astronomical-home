@@ -193,8 +193,8 @@ namespace Tests.PlayMode
         {
             var spec = RewardSpec.Default;
             spec.timeoutDecisions = 8;
-            spec.minSeparation = 50f;
-            spec.maxSeparation = 60f;
+            spec.minSeparation = 18f;
+            spec.maxSeparation = 24f;
 
             var seeds = new[] { EvalProtocol.HeldOutSeeds[0], EvalProtocol.HeldOutSeeds[1] };
             var sessionSpec = new SessionSpec
