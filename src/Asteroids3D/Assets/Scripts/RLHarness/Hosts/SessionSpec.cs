@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using Game.Diagnostics;
+using Unity.InferenceEngine;
 using UnityEngine;
 
 namespace Game.RLHarness
@@ -93,7 +94,7 @@ namespace Game.RLHarness
         public const int DefaultRecordEvery = 5;
 
         public SessionLane lane;
-        public string onnxAssetPath;
+        public ModelAsset model;
         public string onnxSourcePath;
         public int[] seeds;
         public string tag;
@@ -101,7 +102,7 @@ namespace Game.RLHarness
         public float fieldDensityScale;
         public OpponentKind opponentKind;
         public OpponentArchetype opponentArchetype;
-        public string opponentOnnxAssetPath;
+        public ModelAsset opponentModel;
         public string opponentOnnxSourcePath;
         public string opponentLabel;
         public ProbeSpec[] probes;
@@ -114,19 +115,50 @@ namespace Game.RLHarness
         /// <summary>Visuals and audio exist for this session iff it records — no separate env var until a watch/playtest lane needs one.</summary>
         public bool Presentation => record.enabled;
 
+        // Preserve the source stem because imported asset paths erase it.
+        public string CandidateStem => Path.GetFileNameWithoutExtension(
+            string.IsNullOrEmpty(onnxSourcePath) ? ShipAgentFactory.SmokeFixturePath : onnxSourcePath);
+
         private static readonly string[] RetiredNames =
         {
             "RL_EVAL_ONNX", "RL_EVAL_SEEDS", "RL_EVAL_EPISODES_PER_SEED", "RL_EVAL_DENSITY",
             "RL_EVAL_OPPONENT", "RL_EVAL_PROBES", "RL_EVAL_OUT_DIR",
         };
 
-        /// <summary>Parses a harness session's environment. <paramref name="importCandidate"/> and <paramref name="importOpponent"/> each import a checkpoint file into their fixture slot and return its asset path (AssetDatabase work the parse itself stays free of); <paramref name="hasGraphicsDevice"/> reports whether the editor booted with a graphics device (injected so the record⇒graphics check is EditMode-testable).</summary>
-        public static SessionSpec ParseEval(Func<string, string> getEnv, Func<string, string> importCandidate,
-            Func<string, string> importOpponent, Func<bool> hasGraphicsDevice)
+        // A null source selects the smoke fixture; graphics detection is injected for tests.
+        public static SessionSpec ParseEval(Func<string, string> getEnv, Func<string, ModelAsset> resolveCandidate,
+            Func<string, ModelAsset> resolveOpponent, Func<bool> hasGraphicsDevice)
+        {
+            // Retired-names rigor: the variable must never shift meaning with the session kind it lands in.
+            if (getEnv("RL_HARNESS_BUNDLE") != null)
+                throw new ArgumentException(
+                    "RL_HARNESS_BUNDLE names the player eval boot's model bundle; an editor session resolves RL_HARNESS_ONNX itself — unset it.");
+            return Parse(getEnv, resolveCandidate, resolveOpponent, hasGraphicsDevice, player: false);
+        }
+
+        // Player eval requires explicit checkpoint provenance and resolves bundle assets at boot.
+        public static SessionSpec ParsePlayerEval(Func<string, string> getEnv,
+            Func<string, string, ModelAsset> loadBundleAsset, Func<bool> hasGraphicsDevice)
+        {
+            var bundlePath = getEnv("RL_HARNESS_BUNDLE");
+            if (string.IsNullOrEmpty(bundlePath) || string.IsNullOrEmpty(getEnv("RL_HARNESS_ONNX")))
+                throw new ArgumentException(
+                    "A player eval boot needs both RL_HARNESS_BUNDLE (the convert step's model bundle) and RL_HARNESS_ONNX (checkpoint provenance).");
+            return Parse(getEnv,
+                _ => loadBundleAsset(bundlePath, EvalModelBundle.CandidateAsset),
+                _ => loadBundleAsset(bundlePath, EvalModelBundle.OpponentAsset),
+                hasGraphicsDevice, player: true);
+        }
+
+        private static SessionSpec Parse(Func<string, string> getEnv, Func<string, ModelAsset> resolveCandidate,
+            Func<string, ModelAsset> resolveOpponent, Func<bool> hasGraphicsDevice, bool player)
         {
             ThrowOnRetiredNames(getEnv);
             var openLoop = getEnv("RL_HARNESS_OPENLOOP");
             var source = getEnv("RL_HARNESS_ONNX");
+            if (player && openLoop != null)
+                throw new ArgumentException(
+                    "The open-loop lane is editor-only; a player boot takes no RL_HARNESS_OPENLOOP.");
             if (openLoop != null && source != null)
                 throw new ArgumentException(
                     "RL_HARNESS_OPENLOOP measures scripted archetypes; RL_HARNESS_ONNX has no role in the open-loop lane.");
@@ -140,9 +172,7 @@ namespace Game.RLHarness
             {
                 lane = openLoop != null ? SessionLane.OpenLoop : ParseLane(getEnv("RL_HARNESS_LANE")),
                 onnxSourcePath = source,
-                onnxAssetPath = string.IsNullOrEmpty(source)
-                    ? ShipAgentFactory.SmokeFixturePath
-                    : importCandidate(source),
+                model = resolveCandidate(source),
                 episodesPerSeed = ParseEpisodes(getEnv("RL_HARNESS_EPISODES_PER_SEED")),
                 fieldDensityScale = ParseDensity(getEnv("RL_HARNESS_DENSITY")),
                 probes = ParseProbes(getEnv("RL_HARNESS_PROBES"), openLoop != null),
@@ -154,6 +184,9 @@ namespace Game.RLHarness
             spec.tag = Mathf.Approximately(spec.fieldDensityScale, EvalProtocol.CanonicalFieldDensityScale)
                 ? tag
                 : tag + "-d" + spec.fieldDensityScale.ToString("0.##", CultureInfo.InvariantCulture).Replace('.', '_');
+            if (player && spec.lane != SessionLane.Eval)
+                throw new ArgumentException(
+                    "The capture lane is editor-only; a player boot runs the eval lane (leave RL_HARNESS_LANE unset).");
             if (openLoop != null)
             {
                 spec.ParseOpenLoop(openLoop);
@@ -161,7 +194,7 @@ namespace Game.RLHarness
             }
             else
             {
-                spec.ParseOpponent(getEnv("RL_HARNESS_OPPONENT"), importOpponent);
+                spec.ParseOpponent(getEnv("RL_HARNESS_OPPONENT"), resolveOpponent);
             }
             spec.record = ParseRecord(getEnv, spec.episodesPerSeed, hasGraphicsDevice);
             spec.ValidateLane();
@@ -412,7 +445,7 @@ namespace Game.RLHarness
         private static ArgumentException ProbeError(string token, string reason) =>
             new($"RL_HARNESS_PROBES token '{token.Trim()}': {reason}.");
 
-        private void ParseOpponent(string token, Func<string, string> importOpponent)
+        private void ParseOpponent(string token, Func<string, ModelAsset> resolveOpponent)
         {
             if (string.IsNullOrEmpty(token) || Matches(token, RosterToken)) return;
             if (Matches(token, MirrorToken))
@@ -424,7 +457,7 @@ namespace Game.RLHarness
             {
                 opponentKind = OpponentKind.Checkpoint;
                 opponentOnnxSourcePath = token;
-                opponentOnnxAssetPath = importOpponent(token);
+                opponentModel = resolveOpponent(token);
                 opponentLabel = Path.GetFileNameWithoutExtension(token);
                 return;
             }
