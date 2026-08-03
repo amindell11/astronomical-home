@@ -68,11 +68,8 @@ namespace Tests.PlayMode
 
         private Ship SpawnKinematicShip(Vector2 planePos)
         {
-            var prefab = TestAssets.LoadShip2Prefab();
-            if (!prefab) Assert.Ignore("Required test assets not found.");
-            var ship = _unitService.SpawnShip(
-                prefab, null, 0, GamePlane.PlanePointToWorld(planePos), GamePlane.Rotation);
-            ship.Body.isKinematic = true;
+            var ship = ShipTestFactory.CreateKinematicPrimitiveShipAt(planePos);
+            TrackGO(ship.gameObject);
             return ship;
         }
 
@@ -150,7 +147,7 @@ namespace Tests.PlayMode
             Assert.AreEqual(key.transform, _objectives.SpineTarget);
             Assert.IsFalse(chaser.gameObject.activeSelf, "The chaser must stay dormant until the rule fires.");
 
-            player.transform.position = key.transform.position;
+            ShipTestFactory.MoveKinematicShip(player, key.transform.position);
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
             Assert.IsTrue(key.PlayerHasKey, "Flying into the key must collect it.");
@@ -162,7 +159,7 @@ namespace Tests.PlayMode
             Assert.AreEqual(zone.transform, _objectives.SpineTarget,
                 "The spine target must move to the gate for the extraction step.");
 
-            player.transform.position = GamePlane.PlanePointToWorld(GatePlane);
+            ShipTestFactory.MoveKinematicShip(player, GamePlane.PlanePointToWorld(GatePlane));
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
             yield return WaitFrames(() => got.HasValue);
@@ -184,7 +181,7 @@ namespace Tests.PlayMode
 
             yield return sector.Setup();
 
-            player.transform.position = GamePlane.PlanePointToWorld(GatePlane);
+            ShipTestFactory.MoveKinematicShip(player, GamePlane.PlanePointToWorld(GatePlane));
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
             Assert.AreEqual(SectorSpineModule.StepExplore, _objectives.SpineStep,
@@ -217,20 +214,21 @@ namespace Tests.PlayMode
 
             yield return sector.Setup();
 
-            player.transform.position = key.transform.position;
+            ShipTestFactory.MoveKinematicShip(player, key.transform.position);
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
             yield return WaitFrames(() => _objectives.SpineStep == SectorSpineModule.StepReadyToExtract);
             Assert.IsTrue(chaser.gameObject.activeSelf, "The rule must have activated the chaser.");
 
-            player.transform.position = GamePlane.PlanePointToWorld(GatePlane);
+            ShipTestFactory.MoveKinematicShip(player, GamePlane.PlanePointToWorld(GatePlane));
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
             yield return WaitFrames(() => got.HasValue, maxFrames: 30);
             Assert.IsFalse(got.HasValue,
                 "A chaser within blockDistance must block extraction even with the player parked in the gate.");
 
-            chaser.transform.position = GamePlane.PlanePointToWorld(new Vector2(300f, 300f));
+            ShipTestFactory.MoveKinematicShip(
+                chaser, GamePlane.PlanePointToWorld(new Vector2(300f, 300f)));
             yield return WaitFrames(() => got.HasValue);
             Assert.IsTrue(got.HasValue, "Moving the chaser out of blockDistance must unblock extraction.");
             Assert.IsTrue(got.Value.Success, "The unblocked extraction must end the sector as Extracted.");
@@ -248,12 +246,12 @@ namespace Tests.PlayMode
 
             yield return sector.Setup();
 
-            player.transform.position = key.transform.position;
+            ShipTestFactory.MoveKinematicShip(player, key.transform.position);
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
             yield return WaitFrames(() => _objectives.SpineStep == SectorSpineModule.StepReadyToExtract);
 
-            player.transform.position = GamePlane.PlanePointToWorld(GatePlane);
+            ShipTestFactory.MoveKinematicShip(player, GamePlane.PlanePointToWorld(GatePlane));
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
             yield return WaitFrames(() => got.HasValue, maxFrames: 30);
@@ -277,12 +275,12 @@ namespace Tests.PlayMode
                 new Regex("ExtractionChallengeRule .*missing a fixture reference.*inert"));
             yield return sector.Setup();
 
-            player.transform.position = key.transform.position;
+            ShipTestFactory.MoveKinematicShip(player, key.transform.position);
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
             yield return WaitFrames(() => _objectives.SpineStep == SectorSpineModule.StepReadyToExtract);
 
-            player.transform.position = GamePlane.PlanePointToWorld(GatePlane);
+            ShipTestFactory.MoveKinematicShip(player, GamePlane.PlanePointToWorld(GatePlane));
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
             yield return WaitFrames(() => got.HasValue, maxFrames: 30);
@@ -306,12 +304,12 @@ namespace Tests.PlayMode
             LogAssert.Expect(LogType.Error, new Regex("ActivateOnToken .*blank token.*inert"));
             yield return sector.Setup();
 
-            player.transform.position = key.transform.position;
+            ShipTestFactory.MoveKinematicShip(player, key.transform.position);
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
             yield return WaitFrames(() => _objectives.SpineStep == SectorSpineModule.StepReadyToExtract);
 
-            player.transform.position = GamePlane.PlanePointToWorld(GatePlane);
+            ShipTestFactory.MoveKinematicShip(player, GamePlane.PlanePointToWorld(GatePlane));
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
             yield return WaitFrames(() => got.HasValue);
