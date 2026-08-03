@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>Composes the ShipAgent GameObject with its BehaviorParameters fully configured before the Agent component enables (the policy captures them at first use). Checkpoints arrive as resolved ModelAssets — each boot boundary (editor AssetDatabase, player AssetBundle) resolves its own.</summary>
+    // Boot boundaries resolve ModelAssets before composition.
     public static class ShipAgentFactory
     {
         public const string BehaviorName = ShipCombatPolicy.BehaviorName;
@@ -35,8 +35,7 @@ namespace Game.RLHarness
                 BehaviorType.InferenceOnly, model, teamId: 0, parent);
         }
 
-        /// <summary>Both episode ships as agents on one behavior: A on team 0 (self=Agent, primary/logged), B on team 1 (self=Baseline) — native ML-Agents self_play trains one policy against its own mirror.
-        /// Null models keep the training path (the trainer supplies the policy); supplying both drives each side from its own frozen checkpoint — the same asset on both sides is the parameter-shared mirror (one ModelRunner), distinct assets a checkpoint-vs-checkpoint match.</summary>
+        // Null models use the trainer; identical assets share one inference runner.
         public static (ShipAgent agentA, ShipAgent agentB) ComposeSelfPlayPair(EpisodePair pair,
             AgentChooser chooserA, AgentChooser chooserB, in RewardSpec spec, Vector2 arenaCenter,
             BehaviorType behaviorType, Transform parent = null, ModelAsset modelA = null,

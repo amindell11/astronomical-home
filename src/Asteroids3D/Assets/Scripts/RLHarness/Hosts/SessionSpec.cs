@@ -115,7 +115,7 @@ namespace Game.RLHarness
         /// <summary>Visuals and audio exist for this session iff it records — no separate env var until a watch/playtest lane needs one.</summary>
         public bool Presentation => record.enabled;
 
-        /// <summary>Summary provenance: the source checkpoint's stem — Python keys on stems, which any imported asset path erases.</summary>
+        // Preserve the source stem because imported asset paths erase it.
         public string CandidateStem => Path.GetFileNameWithoutExtension(
             string.IsNullOrEmpty(onnxSourcePath) ? ShipAgentFactory.SmokeFixturePath : onnxSourcePath);
 
@@ -125,7 +125,7 @@ namespace Game.RLHarness
             "RL_EVAL_OPPONENT", "RL_EVAL_PROBES", "RL_EVAL_OUT_DIR",
         };
 
-        /// <summary>Editor batch boundary: parses a harness session's environment. <paramref name="resolveCandidate"/> and <paramref name="resolveOpponent"/> each resolve a checkpoint source path to a ModelAsset (a null candidate source means the committed smoke fixture — a test convenience); <paramref name="hasGraphicsDevice"/> reports whether the session booted with a graphics device (injected so the record⇒graphics check is EditMode-testable).</summary>
+        // A null source selects the smoke fixture; graphics detection is injected for tests.
         public static SessionSpec ParseEval(Func<string, string> getEnv, Func<string, ModelAsset> resolveCandidate,
             Func<string, ModelAsset> resolveOpponent, Func<bool> hasGraphicsDevice)
         {
@@ -136,7 +136,7 @@ namespace Game.RLHarness
             return Parse(getEnv, resolveCandidate, resolveOpponent, hasGraphicsDevice, player: false);
         }
 
-        /// <summary>Player boot boundary: the eval lane only, no smoke default. <paramref name="loadBundleAsset"/> resolves (bundlePath, assetName) out of the convert step's AssetBundle; RL_HARNESS_ONNX rides along purely as stem/tag provenance.</summary>
+        // Player eval requires explicit checkpoint provenance and resolves bundle assets at boot.
         public static SessionSpec ParsePlayerEval(Func<string, string> getEnv,
             Func<string, string, ModelAsset> loadBundleAsset, Func<bool> hasGraphicsDevice)
         {

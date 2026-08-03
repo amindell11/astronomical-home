@@ -5,7 +5,6 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>Checkpoint-vs-checkpoint composition: both ships driven by frozen checkpoints InferenceOnly. The mirror is the same-asset degenerate — one shared ModelRunner, exactly the parameter-shared pair. There is nothing to install per episode, so the draw exists purely to fingerprint the JSONL row (<c>Mirror</c>, or the opponent checkpoint's stem).</summary>
     internal sealed class PolicyPairComposition : ISessionComposition
     {
         public EpisodeLoopDriver Driver { get; }

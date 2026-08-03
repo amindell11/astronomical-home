@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>-executeMethod convert tollbooth for the player eval lane: import the candidate (and the checkpoint opponent, when RL_HARNESS_OPPONENT names one) into the eval fixture slots, then build the single-session model bundle into RL_HARNESS_OUT_DIR. Editor-only because ONNX→ModelAsset conversion is; the sim wall-clock moves to the player.</summary>
+    // ONNX conversion is editor-only; player simulation is not.
     public static class RLEvalModelConvert
     {
         public static void Convert()
@@ -14,16 +14,21 @@ namespace Game.RLHarness
             var source = Environment.GetEnvironmentVariable("RL_HARNESS_ONNX")
                 ?? throw new InvalidOperationException(
                     "RL_HARNESS_ONNX is unset — the convert step needs the candidate checkpoint file.");
-            var outDir = Environment.GetEnvironmentVariable("RL_HARNESS_OUT_DIR")
+            var bundlePath = Environment.GetEnvironmentVariable("RL_HARNESS_BUNDLE")
                 ?? throw new InvalidOperationException(
-                    "RL_HARNESS_OUT_DIR is unset — the caller names the dir the bundle lands in.");
+                    "RL_HARNESS_BUNDLE is unset — the caller names the bundle output path.");
+            bundlePath = Path.GetFullPath(bundlePath);
+            var outDir = Path.GetDirectoryName(bundlePath);
+            var bundleName = Path.GetFileName(bundlePath);
+            if (string.IsNullOrEmpty(outDir) || string.IsNullOrEmpty(bundleName))
+                throw new ArgumentException($"RL_HARNESS_BUNDLE does not name a bundle file: {bundlePath}");
             var opponent = Environment.GetEnvironmentVariable("RL_HARNESS_OPPONENT");
             var checkpointOpponent = opponent != null && opponent.EndsWith(".onnx", StringComparison.OrdinalIgnoreCase);
 
             // Explicit build list only — no persistent bundle tags enter the project.
             var build = new AssetBundleBuild
             {
-                assetBundleName = EvalModelBundle.FileName,
+                assetBundleName = bundleName,
                 assetNames = checkpointOpponent
                     ? new[] { TrainingBootstrap.ImportEvalCandidate(source), TrainingBootstrap.ImportEvalOpponent(opponent) }
                     : new[] { TrainingBootstrap.ImportEvalCandidate(source) },
@@ -37,7 +42,7 @@ namespace Game.RLHarness
 
             var ok = manifest != null;
             Debug.Log($"[RLEvalModelConvert] result={(ok ? "ok" : "FAILED")} "
-                + $"bundle={Path.Combine(outDir, EvalModelBundle.FileName)} opponentIncluded={checkpointOpponent}");
+                + $"bundle={bundlePath} opponentIncluded={checkpointOpponent}");
             if (Application.isBatchMode)
                 EditorApplication.Exit(ok ? 0 : 1);
             else if (!ok)

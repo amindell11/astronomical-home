@@ -32,7 +32,6 @@ PROJECT = REPO_ROOT / "src" / "Asteroids3D"
 HARNESS_CHILD = RL_DIR / "harness_child.ps1"
 CONVERT_CHILD = RL_DIR / "convert_child.ps1"
 PLAYER_EXE = REPO_ROOT / "build" / "rl-harness" / "RLHarnessEval.exe"
-# EvalModelBundle owns the fixed name; the convert step writes it into the caller-named out dir.
 BUNDLE_NAME = "eval-models.bundle"
 # Staging discipline: manual artifacts land in the primary tree, never slot-only.
 MANUAL_ROOT = Path(r"D:\amind\git\astronomical-home") / "results" / "rl-eval" / "manual"
@@ -53,7 +52,6 @@ def summary_in(out_dir: Path) -> Path:
 
 
 def stripped_parent_env() -> dict:
-    """Explicit params only: every inherited RL_HARNESS_* and retired RL_EVAL_* name dies here."""
     return {k: v for k, v in os.environ.items()
             if not k.startswith("RL_HARNESS_") and not k.startswith("RL_EVAL_")}
 
@@ -96,26 +94,25 @@ def run_eval_lane(*, project: Path, unity: Path, lease: str, out_dir: Path,
 
 def run_convert_step(*, project: Path, unity: Path, lease: str, out_dir: Path,
                      onnx, opponent=None, lease_wait: int = 1800) -> Path:
-    """The player eval lane's editor tollbooth (ONNX→ModelAsset is editor-only): one leased
-    batch child imports the checkpoint(s) and builds the session's model bundle into out_dir."""
+    """Run the editor-only ONNX conversion under a Unity lease."""
     out_dir.mkdir(parents=True, exist_ok=True)
     log = out_dir / "convert.log"
+    bundle = (out_dir / BUNDLE_NAME).resolve()
     log.unlink(missing_ok=True)
     env = compose_child_env(unity, project, log, {
         "RL_HARNESS_ONNX": onnx,
         "RL_HARNESS_OPPONENT": opponent,
-        "RL_HARNESS_OUT_DIR": out_dir,
+        "RL_HARNESS_BUNDLE": bundle,
     })
     code = run_batch(lease, project, CONVERT_CHILD, env, wait_seconds=lease_wait, log_path=log)
     if code != 0:
         sys.exit(f"FAIL: model-bundle convert of {Path(onnx).name} exited {code} (see {log})")
-    return out_dir / BUNDLE_NAME
+    return bundle
 
 
 def run_player_eval(*, exe: Path, bundle: Path, out_dir: Path, onnx, seeds=None,
                     episodes_per_seed=None, density=None, opponent=None, probes=None) -> Path:
-    """One eval-lane session in the dedicated headless player — no unity-access lease
-    (players aren't shared editors); returns the summary path read back from out_dir."""
+    """Run the player simulation without a Unity-access lease."""
     log = out_dir / "player.log"
     env = stripped_parent_env()
     env.update({name: str(value) for name, value in {

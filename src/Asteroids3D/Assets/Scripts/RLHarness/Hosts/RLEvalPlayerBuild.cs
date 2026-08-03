@@ -7,7 +7,6 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>-executeMethod entry that builds the headless StandaloneWindows64 eval player (the RLHarnessEval scene only), so eval_lane.py --exec player can run checkpoint evals off the shared editors. Exits nonzero on any build error.</summary>
     public static class RLEvalPlayerBuild
     {
         private const string Scene = "Assets/Scenes/RLHarnessEval.unity";

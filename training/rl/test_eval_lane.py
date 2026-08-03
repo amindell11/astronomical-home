@@ -92,8 +92,7 @@ class LauncherEnvComposition(unittest.TestCase):
 
 
 class PlayerLaneComposition(unittest.TestCase):
-    """--exec player splits the session: a leased convert child owns ONNX→bundle, the lease-free
-    player exe owns the sim and reads RL_HARNESS_BUNDLE alongside the shared grammar."""
+    """Player mode leases conversion, then runs the simulation lease-free."""
 
     def setUp(self):
         self.out_dir = Path(tempfile.mkdtemp())
@@ -113,8 +112,9 @@ class PlayerLaneComposition(unittest.TestCase):
         env = self.captured["env"]
         self.assertEqual("ckpt/ShipCombat-42.onnx", env["RL_HARNESS_ONNX"])
         self.assertEqual("mirror", env["RL_HARNESS_OPPONENT"])
-        self.assertEqual(str(self.out_dir), env["RL_HARNESS_OUT_DIR"])
-        self.assertEqual(self.out_dir / "eval-models.bundle", bundle)
+        expected = self.out_dir / "eval-models.bundle"
+        self.assertEqual(str(expected), env["RL_HARNESS_BUNDLE"])
+        self.assertEqual(expected, bundle)
 
     def test_player_launch_is_lease_free_and_carries_the_bundle_var(self):
         def fake_run(cmd, env):

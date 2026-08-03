@@ -39,11 +39,11 @@ namespace Game.RLHarness
         public struct Summary
         {
             public string schema;
-            /// <summary>The candidate's source stem — Python keys on stems, never on where a boot resolved the asset.</summary>
+            // Source stem used as the Python checkpoint key.
             public string checkpoint;
-            /// <summary>The file RL_HARNESS_ONNX named — provenance the stem alone erases.</summary>
+            // Original ONNX path retained for provenance.
             public string checkpointSource;
-            /// <summary>Slot-2 source stem; empty unless the opponent is a checkpoint.</summary>
+            // Source stem for checkpoint opponents; otherwise empty.
             public string opponentCheckpoint;
             public string opponentCheckpointSource;
             public int[] seeds;
