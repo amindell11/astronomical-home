@@ -1,6 +1,6 @@
 # RL Infrastructure Paydown Pass
 
-> STATUS: live arc — PR-1 SHIPPED #223, PR-2 SHIPPED #224; PR-3 GREW INTO ITS OWN ARC → `RL_Harness_Lane_Unification.md` — **ARC COMPLETE 2026-07-31** (A #231 / move #236 / C #238 / D #239 / F #240 / B #246 all shipped; slice E closed unbuilt); **PR-4 SHIPPED #244** (`959ab4f3`, 2026-07-31); PR-5 `player-eval` design FROZEN 2026-07-31 (§PR-5 brief below, building); bench-hardening item HELD pending user discussion
+> STATUS: live arc — PR-1 SHIPPED #223, PR-2 SHIPPED #224; PR-3 GREW INTO ITS OWN ARC → `RL_Harness_Lane_Unification.md` — **ARC COMPLETE 2026-07-31** (A #231 / move #236 / C #238 / D #239 / F #240 / B #246 all shipped; slice E closed unbuilt); **PR-4 SHIPPED #244** (`959ab4f3`, 2026-07-31); **PR-5 BUILT / IN REVIEW #252** (`player-eval`, 2026-08-02); bench-hardening item HELD pending user discussion
 
 *Draft • 2026-07-28 • seeded by a four-lane parallel review (run history + results artifacts, code audit, PR trail #130–#222, board/deferral sweep) run in the coordinating session on 2026-07-28.*
 
