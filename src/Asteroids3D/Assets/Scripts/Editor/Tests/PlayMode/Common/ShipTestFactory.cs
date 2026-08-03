@@ -1,5 +1,7 @@
 using AI;
+using Game;
 using Game.Services;
+using Movement;
 using Ships;
 using UnityEngine;
 
@@ -9,6 +11,32 @@ namespace Tests.PlayMode.Common
 /// <summary>Creates ships with common PlayMode-test configurations.</summary>
 public static class ShipTestFactory
 {
+    public static Ship CreateKinematicPrimitiveShipAt(Vector2 planePosition)
+    {
+        var go = new GameObject("Kinematic Primitive Test Ship");
+        go.transform.SetPositionAndRotation(
+            GamePlane.PlanePointToWorld(planePosition), GamePlane.Rotation);
+
+        var body = go.AddComponent<Rigidbody>();
+        body.isKinematic = true;
+        body.useGravity = false;
+        go.AddComponent<SphereCollider>().radius = 0.5f;
+        go.AddComponent<KinematicsPoller>();
+
+        var ship = go.AddComponent<Ship>();
+        ship.Movement.enabled = false;
+        return ship;
+    }
+
+    public static void MoveKinematicShip(Ship ship, Vector3 position)
+    {
+        if (!ship) throw new System.ArgumentNullException(nameof(ship));
+
+        ship.transform.position = position;
+        Physics.SyncTransforms();
+        ship.Body.position = position;
+    }
+
     /// <summary>Creates a ship with default test settings at the origin.</summary>
     /// <param name="projectiles">Registry the ship arms its weapons with (a fixture's <c>Projectiles</c>).</param>
     public static Ship CreateDefaultShip(IProjectileService projectiles, int team = 0, int decisionSeed = 0)
