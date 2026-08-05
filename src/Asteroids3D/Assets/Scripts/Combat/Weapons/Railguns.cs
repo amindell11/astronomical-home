@@ -120,8 +120,8 @@ namespace Combat.Weapons
             var damageable = hit.collider.GetComponentInParent<IDamageable>();
             if (damageable == null) return;
 
-            var shooterGameObject = (shooter as Component)?.gameObject;
-            damageable.TakeDamage(damage, impactMass, firePoint.up * impactSpeed, hit.point, shooterGameObject);
+            damageable.TakeDamage(new DamageInfo(damage, DamageKind.Railgun, shooter?.Id ?? Ships.ShipId.Invalid,
+                impactMass, firePoint.up * impactSpeed, hit.point));
         }
     }
 }

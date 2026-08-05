@@ -126,12 +126,10 @@ namespace Tests.PlayMode
         private sealed class DamageRecorder : MonoBehaviour, IDamageable
         {
             public float TotalDamage { get; private set; }
-            public GameObject LastAttacker { get; private set; }
 
-            public void TakeDamage(float damage, float hitMass, Vector3 hitVelocity, Vector3 hitPoint, GameObject attacker)
+            public void TakeDamage(in Damage.DamageInfo hit)
             {
-                TotalDamage += damage;
-                LastAttacker = attacker;
+                TotalDamage += hit.Amount;
             }
         }
 
@@ -139,6 +137,7 @@ namespace Tests.PlayMode
         {
             public Vector3 Velocity => Vector3.zero;
             public Rigidbody Body => GetComponent<Rigidbody>();
+            public Ships.ShipId Id => Ships.ShipId.Invalid;
         }
 
         private DamageRecorder CreateTarget(Vector3 position)

@@ -389,6 +389,14 @@ Format: **term** — definition. *(authority)*
 - **bleed-through** — letting a damage remainder cross a shield break into hull.
   The live rule since the §C3 overkill PR; the old discard rule was a hidden
   alpha-weapon tax.
+- **DamageInfo** — the per-hit context struct (amount, damage kind, attacker
+  ShipId, hit point/mass/velocity) every damage producer builds at its call site
+  and every damage event carries. The non-obvious bits: producer-side `Amount`
+  is the incoming damage, event-side it is the *applied* damage (absorbed by
+  shield + hull, the locked bleed-through reading); `AttackerId` is
+  `ShipId.Invalid` when no ship caused the hit (asteroid collision); `OnDeath`
+  carries the killing blow and is latched to fire once per life.
+  *(DamageInfo, DamageController)*
 - **painter** — a named diagnostic view (velocity vectors, aim lines, the policy
   facing fan) written once as a drawing routine over a diagnostic canvas, then
   rendered by whichever backend is active — offscreen capture or live editor

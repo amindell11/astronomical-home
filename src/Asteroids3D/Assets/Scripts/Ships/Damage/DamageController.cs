@@ -6,8 +6,8 @@ namespace Ships.Damage
 {
     public class DamageController : MonoBehaviour, IDamageable, IDamageEvents
     {
-        public event Action<float, Vector3> OnDamaged; // dmg, hitPoint
-        public event Action<ShipId, ShipId> OnDeath; // victimId, killerId
+        public event Action<DamageInfo> OnDamaged; // amount = applied (absorbed by shield + hull)
+        public event Action<ShipId, DamageInfo> OnDeath; // victimId, killing blow
 
         public float maxHealth = 100f;
         public float maxShield = 100f;
@@ -16,9 +16,9 @@ namespace Ships.Damage
 
         public Resource Health { get; private set; }
         public RegenResource Shield { get; private set; }
-        
-        public ShipId LastAttackerId { get; private set; } = ShipId.Invalid;
+
         private Ship myShip;
+        private bool deathFired;
 
         private float invulnerableUntil;
         public bool IsInvulnerable { get; private set; }
@@ -38,34 +38,29 @@ namespace Ships.Damage
             Shield.Update(Time.deltaTime);
         }
 
-        public void TakeDamage(float damage, float hitMass, Vector3 hitVelocity, Vector3 hitPoint, GameObject attacker)
-        { 
-            if (damage <= 0 || IsInvulnerable) return; 
-            UpdateAttacker(attacker);
-            var shieldAbsorbed = Shield.ApplyDamage(damage);
-            var appliedDamage = shieldAbsorbed + Health.ApplyDamage(damage - shieldAbsorbed);
+        public void TakeDamage(in DamageInfo hit)
+        {
+            if (hit.Amount <= 0 || IsInvulnerable) return;
+            var shieldAbsorbed = Shield.ApplyDamage(hit.Amount);
+            var appliedDamage = shieldAbsorbed + Health.ApplyDamage(hit.Amount - shieldAbsorbed);
             if (appliedDamage > 0)
             {
-                OnDamaged?.Invoke(appliedDamage, hitPoint);
+                OnDamaged?.Invoke(hit.WithAmount(appliedDamage));
             }
 
-            if (Health.CurrentValue <= 0f) 
+            if (Health.CurrentValue <= 0f)
             {
-                BroadcastDeath();
+                BroadcastDeath(hit.WithAmount(appliedDamage));
             }
         }
 
-        private void UpdateAttacker(GameObject attacker)
+        private void BroadcastDeath(in DamageInfo killingBlow)
         {
-            if (!attacker) return;
-            var attackShip = attacker.GetComponentInParent<Ship>();
-            if (attackShip) LastAttackerId = attackShip.Id;
-        }
-        
-        private void BroadcastDeath()
-        {
+            // One physics step can deliver several lethal hits; only the first is the killing blow.
+            if (deathFired) return;
+            deathFired = true;
             var victimId = myShip ? myShip.Id : ShipId.Invalid;
-            OnDeath?.Invoke(victimId, LastAttackerId);
+            OnDeath?.Invoke(victimId, killingBlow);
         }
    
         /// <summary>
@@ -84,7 +79,7 @@ namespace Ships.Damage
             Health.Reset();
             Shield.Reset();
             SetInvulnerability(0f);
-            LastAttackerId = ShipId.Invalid;
+            deathFired = false;
         }
         
         public void PopulateSettings(ResolvedShipStats s)

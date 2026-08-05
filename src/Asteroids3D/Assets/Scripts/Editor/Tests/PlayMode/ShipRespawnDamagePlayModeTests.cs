@@ -1,4 +1,5 @@
 using System.Collections;
+using Damage;
 using NUnit.Framework;
 using Ships;
 using Ships.Damage;
@@ -48,42 +49,49 @@ namespace Tests.PlayMode
             base.TearDown();
         }
 
-        /// <summary>LastAttackerId set from a real attacking ship and cleared by ResetShip — the round-trip that needs real ships and ids.</summary>
+        private static DamageInfo Hit(float amount, Ship attacker) =>
+            new(amount, DamageKind.Laser, attacker ? attacker.Id : ShipId.Invalid,
+                1f, Vector3.zero, Vector3.zero);
+
+        /// <summary>Death latch re-arms across ResetShip — a second life's death fires OnDeath again.</summary>
         [UnityTest]
-        public IEnumerator AfterReset_LastAttackerIdIsCleared()
+        public IEnumerator AfterReset_DeathLatchRearms_OnDeathFiresAgain()
         {
             yield return null;
 
-            playerDamage.TakeDamage(10f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
-            yield return null;
+            var deaths = 0;
+            void HandleDeath(ShipId _victim, DamageInfo _blow) => deaths++;
+            playerDamage.OnDeath += HandleDeath;
 
-            Assert.IsTrue(playerDamage.LastAttackerId.IsValid,
-                "LastAttackerId should be set after taking damage");
-            Assert.AreEqual(enemyShip.Id, playerDamage.LastAttackerId,
-                "LastAttackerId should match the enemy ship id");
+            TestDamage.Kill(playerShip, enemyShip);
+            yield return null;
+            Assert.AreEqual(1, deaths, "First life should fire OnDeath once");
 
             playerShip.ResetShip();
             yield return null;
 
-            Assert.AreEqual(ShipId.Invalid, playerDamage.LastAttackerId,
-                "LastAttackerId should be ShipId.Invalid after ResetShip()");
+            TestDamage.Kill(playerShip, enemyShip);
+            yield return null;
+
+            playerDamage.OnDeath -= HandleDeath;
+            Assert.AreEqual(2, deaths, "OnDeath should fire again after ResetShip re-arms the latch");
         }
 
-        /// <summary>Death event should publish ShipId payloads (victim + killer) — needs real ships.</summary>
+        /// <summary>Death event should publish the victim id and the killing blow's attacker — needs real ships.</summary>
         [UnityTest]
-        public IEnumerator OnDeath_PublishesVictimAndKillerShipIds()
+        public IEnumerator OnDeath_PublishesVictimAndKillingBlow()
         {
             yield return null;
 
             ShipId victimId = ShipId.Invalid;
-            ShipId killerId = ShipId.Invalid;
+            DamageInfo killingBlow = default;
             var eventRaised = false;
 
-            void HandleDeath(ShipId victim, ShipId killer)
+            void HandleDeath(ShipId victim, DamageInfo blow)
             {
                 eventRaised = true;
                 victimId = victim;
-                killerId = killer;
+                killingBlow = blow;
             }
 
             playerDamage.OnDeath += HandleDeath;
@@ -91,16 +99,19 @@ namespace Tests.PlayMode
             var maxShield = playerDamage.Shield.MaxValue;
             var maxHealth = playerDamage.Health.MaxValue;
 
-            playerDamage.TakeDamage(maxShield + 100f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
+            playerDamage.TakeDamage(Hit(maxShield + 100f, enemyShip));
             yield return null;
-            playerDamage.TakeDamage(maxHealth + 100f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
+            playerDamage.TakeDamage(Hit(maxHealth + 100f, enemyShip));
             yield return null;
 
             playerDamage.OnDeath -= HandleDeath;
 
             Assert.IsTrue(eventRaised, "OnDeath should be raised when ship health reaches zero");
             Assert.AreEqual(playerShip.Id, victimId, "OnDeath victim id should match the damaged ship id");
-            Assert.AreEqual(enemyShip.Id, killerId, "OnDeath killer id should match the attacking ship id");
+            Assert.AreEqual(enemyShip.Id, killingBlow.AttackerId,
+                "The killing blow's attacker should be the attacking ship id");
+            Assert.AreEqual(DamageKind.Laser, killingBlow.Kind,
+                "The killing blow should preserve the producer's damage kind");
         }
 
     }

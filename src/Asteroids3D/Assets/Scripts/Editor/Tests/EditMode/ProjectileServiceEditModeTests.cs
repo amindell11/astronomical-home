@@ -36,6 +36,8 @@ namespace Tests.EditMode
         /// <summary>Pool-free ProjectileBase: the domain return path raises the event without touching SimplePool statics.</summary>
         private class TestProjectile : ProjectileBase
         {
+            protected override global::Damage.DamageKind Kind => global::Damage.DamageKind.Laser;
+
             public int Returns { get; private set; }
             public Action OnReturning;
 

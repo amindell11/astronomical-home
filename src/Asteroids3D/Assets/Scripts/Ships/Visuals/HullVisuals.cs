@@ -1,3 +1,4 @@
+using Damage;
 using Ships.Damage;
 using Ships.Presentation;
 using UnityEngine;
@@ -81,7 +82,7 @@ namespace Ships.Visuals
             subscribed = false;
         }
 
-        private void OnDeath(ShipId _victimId, ShipId _killerId)
+        private void OnDeath(ShipId _victimId, DamageInfo _killingBlow)
         {
             if (!explosionPrefab) return;
             var pooled = explosionPrefab.GetComponent<PooledVFX>();
@@ -116,16 +117,16 @@ namespace Ships.Visuals
                 smoke.gameObject.SetActive(showSmoke);
         }
 
-        private void SpawnSparks(float dmg, Vector3 hitPt)
+        private void SpawnSparks(DamageInfo hit)
         {
-            if (!sparksPrefab || dmg <= 0f) return;
+            if (!sparksPrefab || hit.Amount <= 0f) return;
 
-            SimplePool<PooledVFX>.Get(sparksPrefab, hitPt, Quaternion.identity);
+            SimplePool<PooledVFX>.Get(sparksPrefab, hit.HitPoint, Quaternion.identity);
         }
 
-        private void TriggerFlash(float dmg, Vector3 _)
+        private void TriggerFlash(DamageInfo hit)
         {
-            if (dmg <= 0f || !hull) return;
+            if (hit.Amount <= 0f || !hull) return;
             flashActive = true;
             flashElapsed = 0f;
             ApplyFlashColor(0f);

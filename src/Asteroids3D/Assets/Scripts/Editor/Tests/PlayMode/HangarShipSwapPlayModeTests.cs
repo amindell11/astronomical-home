@@ -46,7 +46,7 @@ namespace Tests.PlayMode
             base.TearDown();
         }
 
-        private IEnumerator BuildRig(System.Action<ShipId, ShipId> onPlayerDeath = null)
+        private IEnumerator BuildRig(System.Action<ShipId, Damage.DamageInfo> onPlayerDeath = null)
         {
             servicesGo = new GameObject("TestServices");
             var unitService = servicesGo.AddComponent<UnitService>();
@@ -124,7 +124,8 @@ namespace Tests.PlayMode
             rig.ApplyLoadout();
 
             var lethal = rig.Player.Stats.maxShield + rig.Player.Stats.maxHealth + 100f;
-            rig.Player.Damage.TakeDamage(lethal, 0f, Vector3.zero, rig.Player.transform.position, null);
+            rig.Player.Damage.TakeDamage(new Damage.DamageInfo(lethal, Damage.DamageKind.Laser,
+                Ships.ShipId.Invalid, 0f, Vector3.zero, rig.Player.transform.position));
 
             Assert.IsTrue(died, "injected death callback re-armed on the rebuilt player");
         }
