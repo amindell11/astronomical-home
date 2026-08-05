@@ -143,6 +143,15 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void OpponentGrammar_RefusesAHostileCheckpointStemBeforeResolving()
+        {
+            var thrown = Assert.Throws<ArgumentException>(() =>
+                Parse("RL_HARNESS_OPPONENT", "frozen/Ship Combat.v2.onnx"));
+            StringAssert.Contains("Ship Combat.v2", thrown.Message);
+            Assert.IsNull(opponentSource, "a hostile stem must fail before the opponent import runs");
+        }
+
+        [Test]
         public void ProbeSelection_IsByNameAndAnEmptyListMeansNone()
         {
             Assert.AreEqual(new[] { ArchetypeGateProbe.ProbeName }, Names(Parse("RL_HARNESS_PROBES", "gate").probes));

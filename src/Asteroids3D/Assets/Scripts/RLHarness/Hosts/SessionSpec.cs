@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using Game.Capture;
 using Game.Diagnostics;
 using Unity.InferenceEngine;
 using UnityEngine;
@@ -455,10 +456,15 @@ namespace Game.RLHarness
             }
             if (token.EndsWith(".onnx", StringComparison.OrdinalIgnoreCase))
             {
+                var stem = Path.GetFileNameWithoutExtension(token);
+                if (!CaptureRecorder.IsSafeName(stem))
+                    throw new ArgumentException(
+                        $"RL_HARNESS_OPPONENT checkpoint stem '{stem}' must be filesystem-safe [A-Za-z0-9_-] "
+                        + "(it names clip dirs and artifact files) — rename the checkpoint.");
                 opponentKind = OpponentKind.Checkpoint;
                 opponentOnnxSourcePath = token;
                 opponentModel = resolveOpponent(token);
-                opponentLabel = Path.GetFileNameWithoutExtension(token);
+                opponentLabel = stem;
                 return;
             }
             if (!Enum.TryParse<OpponentArchetype>(token, ignoreCase: true, out var archetype))
