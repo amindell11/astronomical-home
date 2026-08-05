@@ -21,6 +21,7 @@ namespace Game.RLHarness
         private float leashRadius;
         private CombatSnapshot boundary;
         private IHeatReadout primaryHeat;
+        private IHeatReadout enemyHeat;
         private float primaryProjectileSpeed;
         private bool loadoutResolved;
         private readonly float[] observationBuffer = new float[AgentObservations.CombatChannels];
@@ -49,6 +50,8 @@ namespace Game.RLHarness
             this.leashRadius = leashRadius;
             boundary = CombatSnapshotExtractor.Capture(self, target, leashCenter);
             ResolveLoadout(self);
+            // The target can re-capture, so the enemy readout re-resolves per boundary — not under the self-loadout once-guard.
+            enemyHeat = ResolvePrimaryHeat(target);
         }
 
         /// <summary>The lasers-only loadout is fixed for a pilot's lifetime, so the mount and its Heat are read once rather than per decision.</summary>
@@ -78,7 +81,8 @@ namespace Game.RLHarness
                 boundary.inMyEnvelope, boundary.inEnemyEnvelope,
                 self.Weapons.Context.IsReady(WeaponSlot.Primary),
                 primaryHeat?.HeatPct ?? 0f, primaryProjectileSpeed,
-                leashCenter, leashRadius);
+                leashCenter, leashRadius,
+                target.Weapons.Context.IsReady(WeaponSlot.Primary), enemyHeat?.HeatPct ?? 0f);
 
             for (var i = 0; i < observationBuffer.Length; i++)
                 sensor.AddObservation(observationBuffer[i]);
@@ -96,16 +100,11 @@ namespace Game.RLHarness
         public override void OnActionReceived(ActionBuffers actions)
         {
             var continuous = actions.ContinuousActions;
-            var forward = self.Kinematics.Forward;
+            var discrete = actions.DiscreteActions;
             var action = AgentActions.Map(continuous[0], continuous[1], continuous[2],
-                continuous[3], continuous[4], continuous[5]);
+                continuous[3], continuous[4], discrete[0], discrete[1], self.MaxSpeed);
 
-            mailbox.SetAction(
-                AgentActions.ToWorldVelocity(action.velocityEgo, forward, self.MaxSpeed),
-                AgentActions.ToFacingRad(action.facingEgo, forward),
-                AgentActions.ToFacingWeight(action.facingEgo),
-                action.fire, action.boost, self.BoostAvailable);
-
+            mailbox.SetAction(in action, self.BoostAvailable);
             DecisionsReceived++;
         }
 

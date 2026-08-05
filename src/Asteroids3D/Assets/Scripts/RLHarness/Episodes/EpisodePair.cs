@@ -66,7 +66,7 @@ namespace Game.RLHarness
             var pair = Spawn(units, arena, projectiles, in spec, (agentShip, baselineShip) =>
             {
                 created = new AgentChooser();
-                created.Configure(baselineShip);
+                created.Configure(baselineShip, agentShip.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary));
                 return created;
             }, assets);
             chooser = created;
@@ -97,7 +97,7 @@ namespace Game.RLHarness
         private static AgentChooser InstallAgentChooser(Ship ship, Ship opponent)
         {
             var chooser = new AgentChooser();
-            chooser.Configure(opponent);
+            chooser.Configure(opponent, ship.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary));
             var commander = ship.GetComponentInChildren<AICommander>();
             commander.GetComponentInChildren<Brain>().InstallChooser(chooser);
             return chooser;

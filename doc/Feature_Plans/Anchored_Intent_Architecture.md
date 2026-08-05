@@ -585,6 +585,10 @@ Continuous `[ox, oy, vr, vt, vw]`; discrete `[fire, boost]`. Decode contract
 - `radialSpeed = vr · maxSpeed`, `tangentialSpeed = vt · maxSpeed`,
   `velocityWeight = clamp01(vw)`.
 - `fire = discrete[0] == 1`, `boost = discrete[1] == 1`.
+- ⚠ `vr`/`vt` are intentionally **unclamped** (ruled 2026-08-05): training-time
+  exploration samples can exceed [−1,1] while clipped ONNX inference cannot — the
+  shipped K1-4 checkpoint trained unclamped, so clamping is a retrain-scale
+  change, not a decode fix.
 
 **Fork rulings:**
 
