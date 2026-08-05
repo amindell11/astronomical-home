@@ -1,3 +1,4 @@
+using Damage;
 using NUnit.Framework;
 using Ships;
 using Ships.Damage;
@@ -10,8 +11,8 @@ namespace Tests.EditMode
     /// slow PlayMode tests (ShipRespawnDamage) that spun up a full ship through the factory. The
     /// routing is Time-free and configured through the production <see cref="ResolvedShipStats"/> path
     /// (<see cref="DamageController.PopulateSettings"/>), so it runs here without play mode, physics,
-    /// or a prefab. Behaviour that genuinely needs a real ship — LastAttackerId from an enemy ship,
-    /// OnDeath victim/killer ids — and presentation (hull smoke) stay in PlayMode.
+    /// or a prefab. Behaviour that genuinely needs a real ship — OnDeath victim/killing-blow ids
+    /// from an enemy ship — and presentation (hull smoke) stay in PlayMode.
     /// </summary>
     [Category("Damage")]
     public class DamageControllerEditModeTests
@@ -41,8 +42,12 @@ namespace Tests.EditMode
             _go = null;
         }
 
+        private static DamageInfo Hit(float amount,
+            DamageKind kind = DamageKind.Laser, ShipId attackerId = default) =>
+            new(amount, kind, attackerId, 0f, Vector3.zero, Vector3.zero);
+
         private static void Damage(DamageController dc, float amount) =>
-            dc.TakeDamage(amount, 0f, Vector3.zero, Vector3.zero, null);
+            dc.TakeDamage(Hit(amount));
 
         [Test]
         public void NewController_StartsWithFullHealthAndShield()
@@ -88,7 +93,7 @@ namespace Tests.EditMode
         {
             var dc = NewDamage(maxHealth: 100f, maxShield: 50f);
             var eventDamage = 0f;
-            dc.OnDamaged += (dmg, _) => eventDamage = dmg;
+            dc.OnDamaged += hit => eventDamage = hit.Amount;
             var died = false;
             dc.OnDeath += (_, _) => died = true;
 
@@ -165,20 +170,37 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void NonShipAttacker_DoesNotSetLastAttackerId()
+        public void OnDeath_CarriesTheKillingBlow_AttackerAndKind()
         {
-            var dc = NewDamage();
-            var attacker = new GameObject("NonShipAttacker");
-            try
-            {
-                dc.TakeDamage(10f, 0f, Vector3.zero, Vector3.zero, attacker);
-                Assert.AreEqual(ShipId.Invalid, dc.LastAttackerId,
-                    "An attacker with no Ship component must not set LastAttackerId");
-            }
-            finally
-            {
-                Object.DestroyImmediate(attacker);
-            }
+            var dc = NewDamage(maxHealth: 100f, maxShield: 50f);
+            var attackerId = new ShipId(7);
+            DamageInfo killingBlow = default;
+            dc.OnDeath += (_, blow) => killingBlow = blow;
+
+            dc.TakeDamage(Hit(500f, DamageKind.Collision, attackerId));
+
+            Assert.AreEqual(attackerId, killingBlow.AttackerId,
+                "The killing blow must carry the producer's attacker id");
+            Assert.AreEqual(DamageKind.Collision, killingBlow.Kind,
+                "The killing blow must carry the producer's damage kind");
+            Assert.AreEqual(150f, killingBlow.Amount, 0.001f,
+                "The killing blow's amount is the applied damage, capped at shield + hull");
+        }
+
+        [Test]
+        public void OnDeath_FiresOncePerLife_ResetRearms()
+        {
+            var dc = NewDamage(maxHealth: 100f, maxShield: 50f);
+            var deaths = 0;
+            dc.OnDeath += (_, _) => deaths++;
+
+            Damage(dc, 500f);
+            Damage(dc, 500f); // second lethal hit in the same life must not re-fire
+            Assert.AreEqual(1, deaths, "OnDeath fires once per life");
+
+            dc.ResetDamageState();
+            Damage(dc, 500f);
+            Assert.AreEqual(2, deaths, "ResetDamageState re-arms the death latch");
         }
 
         [Test]

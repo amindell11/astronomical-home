@@ -46,19 +46,21 @@ namespace Tests.PlayMode
         {
             public Vector3 Velocity { get; set; }
             public Rigidbody Body => GetComponent<Rigidbody>();
+            public Ships.ShipId Id => Ships.ShipId.Invalid;
         }
 
         private sealed class DamageRecorder : MonoBehaviour, IDamageable
         {
             public float TotalDamage { get; private set; }
-            public GameObject LastAttacker { get; private set; }
 
-            public void TakeDamage(float damage, float hitMass, Vector3 hitVelocity, Vector3 hitPoint, GameObject attacker)
+            public void TakeDamage(in DamageInfo hit)
             {
-                TotalDamage += damage;
-                LastAttacker = attacker;
+                TotalDamage += hit.Amount;
             }
         }
+
+        private static DamageInfo Shot(Vector3 point) =>
+            new(1f, DamageKind.Laser, Ships.ShipId.Invalid, 0.1f, Vector3.zero, point);
 
         /// <summary>A shooter root with the weapon mounted as a child, nose along the plane's forward axis.</summary>
         private Grenades MountWeapon(out MovingShooter shooter)
@@ -140,7 +142,7 @@ namespace Tests.PlayMode
             var weapon = MountWeapon(out _);
             var grenade = weapon.Fire(Projectiles) as Grenade;
 
-            grenade.TakeDamage(1f, 0.1f, Vector3.zero, grenade.transform.position, null);
+            grenade.TakeDamage(Shot(grenade.transform.position));
 
             Assert.IsFalse(grenade.gameObject.activeSelf, "A shot charge detonates on the spot.");
             Assert.IsNotNull(FindActiveWave(), "The full wave still happens.");
@@ -160,7 +162,7 @@ namespace Tests.PlayMode
 
             var grenade = weapon.Fire(Projectiles) as Grenade;
             grenade.transform.position = origin;
-            grenade.TakeDamage(1f, 0.1f, Vector3.zero, origin, null);
+            grenade.TakeDamage(Shot(origin));
 
             var wave = FindActiveWave();
             Assert.IsNotNull(wave);
@@ -190,7 +192,7 @@ namespace Tests.PlayMode
             second.transform.position = GamePlane.PlanePointToWorld(new Vector2(0f, 4f));
             second.Configure(fuseSeconds: 999f, armingSeconds: 0f);
 
-            first.TakeDamage(1f, 0.1f, Vector3.zero, Vector3.zero, null);
+            first.TakeDamage(Shot(Vector3.zero));
 
             for (var i = 0; i < 20 && second.gameObject.activeSelf; i++)
                 yield return new WaitForFixedUpdate();
@@ -220,7 +222,7 @@ namespace Tests.PlayMode
 
             var grenade = weapon.Fire(Projectiles) as Grenade;
             grenade.transform.position = Vector3.zero;
-            grenade.TakeDamage(1f, 0.1f, Vector3.zero, Vector3.zero, null);
+            grenade.TakeDamage(Shot(Vector3.zero));
 
             var wave = FindActiveWave();
             Assert.IsNotNull(wave);
@@ -241,7 +243,7 @@ namespace Tests.PlayMode
             var grenade = weapon.Fire(Projectiles) as Grenade;
             Assert.AreEqual(1, Projectiles.ActiveCount, "the fired charge registers");
 
-            grenade.TakeDamage(1f, 0.1f, Vector3.zero, grenade.transform.position, null);
+            grenade.TakeDamage(Shot(grenade.transform.position));
             var wave = FindActiveWave();
             Assert.IsNotNull(wave);
             Assert.AreEqual(1, Projectiles.ActiveCount,

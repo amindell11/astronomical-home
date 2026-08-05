@@ -61,16 +61,16 @@ namespace Asteroids
             Health = MaxHealth * Mathf.Clamp01(fraction);
         }
 
-        public void TakeDamage(float damage, float hitMass, Vector3 hitVelocity, Vector3 hitPoint, GameObject attacker)
+        public void TakeDamage(in DamageInfo hit)
         {
             if (!controller) return;
             if (isDestroyed) return;
 
-            Health -= damage;
+            Health -= hit.Amount;
             if (Health > 0f) return;
 
             isDestroyed = true;
-            controller.HandleDestroyed(new HitData(hitMass, hitVelocity, hitPoint));
+            controller.HandleDestroyed(new HitData(hit.HitMass, hit.HitVelocity, hit.HitPoint));
         }
 
         public void HandleCollision(Collision collision)
@@ -84,7 +84,8 @@ namespace Asteroids
             var impact = collision.GetContact(0);
             var damage = CalcDamage(otherRb.mass, otherRb.linearVelocity, impact);
             var damageable = collision.gameObject.GetComponent<IDamageable>();
-            damageable?.TakeDamage(damage, controller.Mass, controller.Rb.linearVelocity, impact.point, gameObject);
+            damageable?.TakeDamage(new DamageInfo(damage, DamageKind.Collision, Ships.ShipId.Invalid,
+                controller.Mass, controller.Rb.linearVelocity, impact.point));
         }
 
         private float CalcDamage(float shipMass, Vector3 shipVel, ContactPoint impact)

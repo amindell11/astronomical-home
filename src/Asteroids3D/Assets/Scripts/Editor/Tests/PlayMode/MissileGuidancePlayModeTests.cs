@@ -21,6 +21,7 @@ namespace Tests.PlayMode
         {
             public Vector3 Velocity { get; set; }
             public Rigidbody Body => GetComponent<Rigidbody>();
+            public Ships.ShipId Id => Ships.ShipId.Invalid;
         }
 
         public override void TearDown()

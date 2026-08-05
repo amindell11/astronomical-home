@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Combat.Projectile;
+using Damage;
 using Game.Services;
 using NUnit.Framework;
 using UnityEngine;
@@ -36,6 +37,8 @@ namespace Tests.EditMode
         /// <summary>Pool-free ProjectileBase: the domain return path raises the event without touching SimplePool statics.</summary>
         private class TestProjectile : ProjectileBase
         {
+            protected override DamageKind Kind => DamageKind.Laser;
+
             public int Returns { get; private set; }
             public Action OnReturning;
 

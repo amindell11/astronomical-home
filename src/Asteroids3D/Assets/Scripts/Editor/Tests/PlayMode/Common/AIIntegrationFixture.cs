@@ -64,7 +64,8 @@ public abstract class AIIntegrationFixture : PlayModeWorldFixture
     /// <summary>Deals raw damage; shield absorbs first, so exceed shield capacity to touch health.</summary>
     protected void DealDamage(Ship target, float amount)
     {
-        target.Damage.TakeDamage(amount, 0f, Vector3.zero, Vector3.zero, null);
+        target.Damage.TakeDamage(new Damage.DamageInfo(amount, Damage.DamageKind.Laser,
+            ShipId.Invalid, 0f, Vector3.zero, Vector3.zero));
     }
 }
 

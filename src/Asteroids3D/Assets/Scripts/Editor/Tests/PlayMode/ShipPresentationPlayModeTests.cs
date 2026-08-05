@@ -75,16 +75,16 @@ namespace Tests.PlayMode
             Assert.IsFalse(smoke.activeSelf, "Smoke should start hidden at full health");
 
             // Deplete shield, then drop health below the smoke threshold.
-            damage.TakeDamage(damage.Shield.CurrentValue + 25f, 1f, Vector3.zero, Vector3.zero, null);
+            damage.TakeDamage(Hit(damage.Shield.CurrentValue + 25f));
             yield return null;
-            damage.TakeDamage(damage.Health.MaxValue * 0.6f, 1f, Vector3.zero, Vector3.zero, null);
+            damage.TakeDamage(Hit(damage.Health.MaxValue * 0.6f));
             yield return null;
 
             Assert.Less(damage.Health.Pct, 0.5f, "Health should be below 50%");
             Assert.IsTrue(smoke.activeSelf, "Smoke should be visible below 50% health");
 
             // Kill + respawn.
-            damage.TakeDamage(damage.Health.MaxValue + 25f, 1f, Vector3.zero, Vector3.zero, null);
+            damage.TakeDamage(Hit(damage.Health.MaxValue + 25f));
             yield return null;
             Assert.IsFalse(ship.gameObject.activeSelf, "Ship should be inactive after lethal damage");
 
@@ -94,6 +94,9 @@ namespace Tests.PlayMode
             Assert.AreEqual(1f, damage.Health.Pct, 0.01f, "Health should be restored after reset");
             Assert.IsFalse(smoke.activeSelf, "Smoke should be hidden again after respawn");
         }
+
+        private static Damage.DamageInfo Hit(float amount) =>
+            new(amount, Damage.DamageKind.Laser, ShipId.Invalid, 1f, Vector3.zero, Vector3.zero);
 
         private static GameObject GetSmokeObject(Ship ship)
         {

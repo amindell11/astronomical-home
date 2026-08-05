@@ -75,7 +75,7 @@ namespace Tests.PlayMode
             LogDiagnostic($"Before death - Ship active: {testShip.gameObject.activeSelf}, " +
                          $"Weapons active: {weaponsController.gameObject.activeSelf}");
 
-            TestDamage.Kill(testShip, enemyShip.gameObject);
+            TestDamage.Kill(testShip, enemyShip);
             yield return null;
 
             Assert.IsFalse(testShip.gameObject.activeSelf,
@@ -109,7 +109,7 @@ namespace Tests.PlayMode
             var shieldUI = testShip.GetComponentInChildren<ShieldUI>(includeInactive: true);
             var lockOnIndicator = testShip.GetComponentInChildren<LockOnIndicator>(includeInactive: true);
 
-            TestDamage.Kill(testShip, enemyShip.gameObject);
+            TestDamage.Kill(testShip, enemyShip);
             yield return null;
 
             LogDiagnostic($"Before reset - Ship active: {testShip.gameObject.activeSelf}");
@@ -160,7 +160,7 @@ namespace Tests.PlayMode
         {
             yield return null;
 
-            TestDamage.Kill(testShip, enemyShip.gameObject);
+            TestDamage.Kill(testShip, enemyShip);
             yield return null;
 
             testShip.ResetShip();
@@ -197,7 +197,7 @@ namespace Tests.PlayMode
                 yield break;
             }
 
-            TestDamage.Kill(testShip, enemyShip.gameObject);
+            TestDamage.Kill(testShip, enemyShip);
             yield return null;
 
             testShip.ResetShip();
@@ -215,7 +215,8 @@ namespace Tests.PlayMode
             var maxShield = testShip.Damage.Shield.MaxValue;
 
             var shieldBefore = testShip.Damage.Shield.CurrentValue;
-            testShip.Damage.TakeDamage(10f, 1f, Vector3.zero, Vector3.zero, enemyShip.gameObject);
+            testShip.Damage.TakeDamage(new Damage.DamageInfo(
+                10f, Damage.DamageKind.Laser, enemyShip.Id, 1f, Vector3.zero, Vector3.zero));
             yield return null;
 
             var shieldAfter = testShip.Damage.Shield.CurrentValue;
@@ -237,7 +238,7 @@ namespace Tests.PlayMode
                 yield break;
             }
 
-            TestDamage.Kill(testShip, enemyShip.gameObject);
+            TestDamage.Kill(testShip, enemyShip);
             yield return null;
 
             testShip.ResetShip();
@@ -282,7 +283,7 @@ namespace Tests.PlayMode
                 var shieldUI = testShip.GetComponentInChildren<ShieldUI>(includeInactive: true);
                 var lockOnIndicator = testShip.GetComponentInChildren<LockOnIndicator>(includeInactive: true);
 
-                TestDamage.Kill(testShip, enemyShip.gameObject);
+                TestDamage.Kill(testShip, enemyShip);
                 yield return null;
 
                 Assert.IsFalse(testShip.gameObject.activeSelf,

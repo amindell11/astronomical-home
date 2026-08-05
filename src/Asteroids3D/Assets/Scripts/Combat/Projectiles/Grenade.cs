@@ -22,6 +22,8 @@ namespace Combat.Projectile
         private float aliveTime;
         private bool detonated;
 
+        protected override DamageKind Kind => DamageKind.ConcussionWave;
+
         public event Action<Vector3> OnDetonated;
 
         /// <summary>Announces the detonation's wave so whoever tracks this grenade tracks the wave too (<see cref="ITransientSpawner"/>).</summary>
@@ -75,7 +77,7 @@ namespace Combat.Projectile
             Detonate();
         }
 
-        public void TakeDamage(float damage, float hitMass, Vector3 hitVelocity, Vector3 hitPoint, GameObject attacker)
+        public void TakeDamage(in DamageInfo hit)
         {
             Detonate();
         }
@@ -87,10 +89,8 @@ namespace Combat.Projectile
 
             if (wavePrefab)
             {
-                var shooterComponent = Shooter as Component;
-                var attacker = shooterComponent ? shooterComponent.gameObject : null;
                 var wave = SimplePool<ConcussionWave>.Get(wavePrefab, transform.position, Quaternion.identity);
-                wave.Begin(attacker);
+                wave.Begin(Shooter?.Id ?? Ships.ShipId.Invalid);
                 Spawned?.Invoke(wave, wave.ReturnToPoolImmediate);
             }
 

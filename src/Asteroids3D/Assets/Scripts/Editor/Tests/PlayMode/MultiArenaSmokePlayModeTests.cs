@@ -211,11 +211,11 @@ namespace Tests.PlayMode
             yield return TeardownArena(b);
         }
 
-        // Records ship-vs-ship damage per arena via the existing OnDamaged event; LastAttackerId is updated before it fires.
+        // Records ship-vs-ship damage per arena via the OnDamaged payload's attacker id.
         private sealed class CombatLog
         {
             private readonly Dictionary<ArenaUnderTest, int> combatDamage = new();
-            private readonly List<(DamageController damage, System.Action<float, Vector3> handler)> subscriptions = new();
+            private readonly List<(DamageController damage, System.Action<Damage.DamageInfo> handler)> subscriptions = new();
             public readonly List<string> CrossArenaHits = new();
 
             public CombatLog(ArenaUnderTest a, ArenaUnderTest b)
@@ -240,9 +240,9 @@ namespace Tests.PlayMode
                 if (!victim || !victim.Damage) return;
                 var damage = victim.Damage;
                 var otherRegistry = other.Arena.Registry;
-                void Handler(float _, Vector3 __)
+                void Handler(Damage.DamageInfo hit)
                 {
-                    var attackerId = damage.LastAttackerId;
+                    var attackerId = hit.AttackerId;
                     if (!attackerId.IsValid) return;
                     combatDamage[own]++;
                     if (otherRegistry.TryGetShip(attackerId, out var attacker))
@@ -314,7 +314,8 @@ namespace Tests.PlayMode
             var live = arena.ShipsInSpawnOrder.Where(ship => ship && ship.Damage).Take(2).ToArray();
             Assert.AreEqual(2, live.Length, $"{arena.Root.name} needs two live ships for the attribution probe.");
             live[0].Damage.SetInvulnerability(0f);
-            live[0].Damage.TakeDamage(1f, 0f, Vector3.zero, Vector3.zero, live[1].gameObject);
+            live[0].Damage.TakeDamage(new Damage.DamageInfo(
+                1f, Damage.DamageKind.Laser, live[1].Id, 0f, Vector3.zero, Vector3.zero));
         }
 
         private static void AssertShipsStayInOwnHalf(ArenaUnderTest arena)

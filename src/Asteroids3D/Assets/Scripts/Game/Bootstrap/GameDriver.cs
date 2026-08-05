@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using Damage;
 using Game.Sectors;
 using Game.Services;
 using Player;
@@ -138,7 +139,7 @@ namespace Game.Bootstrap
         }
 
         // Services are read from the session at death time, after composition has populated them.
-        private Action<ShipId, ShipId> BuildDeathCallback(GameSession target)
+        private Action<ShipId, DamageInfo> BuildDeathCallback(GameSession target)
         {
             switch (deathBehavior)
             {

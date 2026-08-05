@@ -17,6 +17,7 @@ namespace Combat.Projectile
         protected Vector3 startPosition;
 
         public IShooter Shooter { get; private set; }
+        protected abstract DamageKind Kind { get; }
         public float Damage => damage;
         public float MaxDistance => maxDistance;
         public float DistanceTraveled => Vector3.Distance(startPosition, transform.position);
@@ -100,8 +101,9 @@ namespace Combat.Projectile
         private void ApplyDirectDamage(IDamageable other)
         {
             var impactVelocity = rb ? rb.linearVelocity : Vector3.zero;
-            var shooterGameObject = (Shooter as Component)?.gameObject;
-            other?.TakeDamage(damage * damageScale, mass, impactVelocity, transform.position, shooterGameObject);
+            var attackerId = Shooter?.Id ?? Ships.ShipId.Invalid;
+            other?.TakeDamage(new DamageInfo(damage * damageScale, Kind, attackerId,
+                mass, impactVelocity, transform.position));
         }
 
         protected bool IsFriendly(IDamageable other)

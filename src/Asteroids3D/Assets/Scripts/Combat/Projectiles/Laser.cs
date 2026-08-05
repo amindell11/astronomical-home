@@ -1,3 +1,4 @@
+using Damage;
 using UnityEngine;
 
 namespace Combat.Projectile
@@ -6,6 +7,8 @@ namespace Combat.Projectile
     {
         [Header("Laser Properties")]
         [SerializeField] private float laserSpeed = 20f;
+
+        protected override DamageKind Kind => DamageKind.Laser;
 
         public float LaserSpeed => laserSpeed;
 
