@@ -32,6 +32,8 @@ namespace Game.RLHarness
         public const int Count = 5;
         public const int ChoicesPerBranch = 2;
 
+        // vr/vt stay unclamped: training-time exploration samples beyond [-1,1] while clipped ONNX
+        // inference cannot — the shipped checkpoint trained unclamped, so clamping requires a retrain.
         public static AgentAction Map(float ox, float oy, float vr, float vt, float vw,
             int fire, int boost, float maxSpeed) => new(
             Mathf.Atan2(ox, oy),
