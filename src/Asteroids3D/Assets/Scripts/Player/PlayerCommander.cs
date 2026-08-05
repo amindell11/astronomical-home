@@ -68,7 +68,8 @@ namespace Player
             thrustInput = playerInput.Thrust;
             strafeInput = playerInput.Strafe;
             rotationInput = playerInput.Rotation;
-            boostInput = playerInput.BoostDown;
+            // Latched, not overwritten: the edge must survive render frames with no fixed step.
+            boostInput |= playerInput.BoostDown;
             primaryHeld = playerInput.PrimaryFire;
             secondaryHeld = playerInput.SecondaryFire;
             wantsRotate = playerInput.WantsToRotate;
@@ -116,6 +117,7 @@ namespace Player
                     ? (wantsRotate ? GetMouseRotationTorque() : 0f)
                     : rotationInput,
             };
+            boostInput = false;
             pilot.Drive(cmd);
 
             if (weapons != null)
