@@ -84,11 +84,13 @@ ignore-case. Emit the flag in exactly the canonical casing.
 ## 4. Behavior / observation / action schema — C#-owned
 
 The arc never changes this schema; it freezes the record the export and any
-future identity tests are written against. **Reference = whichever tree is
-production when stage 1a lands** (main today; K1-3 addendum below if #250's
-atomic gate merges first).
+future identity tests are written against. **Reference = production main,
+which since #250's atomic merge (`659861da`, 2026-08-05) carries the K1-3
+schema**: the base record below with the K1-3 delta applied. The pre-K1
+values stay recorded — they describe every archived checkpoint
+(`ShipCombat-699941`, `ship_combat_500k`, …).
 
-### Current main
+### Base record (audited at `cd7c9898`, pre-#250 values)
 
 - Behavior name **`"ShipCombat"`** (`ShipCombatPolicy.cs:6`); YAML
   `behaviors:` key and every curriculum `completion_criteria.behavior` must
@@ -122,7 +124,7 @@ atomic gate merges first).
   runtime must honor done vs max_step_reached distinctly** — PPO
   bootstrapping through truncation is the reason the distinction exists.
 
-### K1-3 addendum (applies if/when #250's atomic gate merges)
+### K1-3 delta — PRODUCTION since #250 merged (`659861da`, 2026-08-05)
 
 Obs 26 → **28** (enemy `{ready, heatPct}` at 26-27, target-conditional);
 actions → **5 continuous `[ox, oy, vr, vt, vw]` + 2 discrete branches × 2
