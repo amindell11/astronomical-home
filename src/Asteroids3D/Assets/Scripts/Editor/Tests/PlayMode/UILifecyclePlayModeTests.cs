@@ -39,6 +39,7 @@ namespace Tests.PlayMode
             public float MaxSpeed => 10f;
             public float MaxYawRate => 90f;
         }
+
         /// <summary>
         /// Rig visuals are wired by injection (<see cref="IShipVisual.Bind"/>), not parent discovery:
         /// once a LockChannel is injected, the indicator responds to lock progress, and it re-subscribes

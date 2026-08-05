@@ -135,6 +135,6 @@ When you're done debugging, you can:
 - Tests: `Assets/Scripts/Editor/Tests/PlayMode/ShipChildComponentStatePlayModeTests.cs`
 - Components under test:
   - `Assets/Scripts/UI/LockOnIndicator.cs`
-  - `Assets/Scripts/UI/StatusRingUI.cs`
+  - `Assets/Scripts/UI/PlayerState/StatusRingUI.cs`
   - `Assets/Scripts/Ships/Weapons/WeaponsController.cs`
   - `Assets/Scripts/Ships/Ship.cs`

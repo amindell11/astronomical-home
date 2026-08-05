@@ -26,7 +26,7 @@ namespace UI
         [SerializeField] float shimmerFreq = 20f;    // Hz of scale flicker
         [SerializeField] float shimmerAmp  = 0.08f;  // 8 % size wobble
 
-        private Resource source;   // injected: the tracked resource of the ship this ring displays
+        private Resource source;
         private bool subscribed;
 
         Image   ring;
