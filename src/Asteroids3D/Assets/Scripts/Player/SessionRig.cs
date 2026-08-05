@@ -53,6 +53,9 @@ namespace Player
         /// </summary>
         public ShipLoadout Loadout { get; private set; }
 
+        /// <summary>Per-life damage rows for the death recap; re-bound to each player the rig builds.</summary>
+        public DamageLedger Ledger { get; } = new();
+
         // Session services captured at Build so the hangar can rebuild the player between runs.
         private IGameServices services;
 
@@ -98,6 +101,7 @@ namespace Player
             currentTemplate = playerTemplate;
 
             WirePlayerDeath();
+            Ledger.Bind(Player.Damage, services.UnitService.Registry);
 
             // Seed the pending loadout from the ship's authored build so an unedited hangar is a no-op.
             Loadout = new ShipLoadout(playerTemplate, Player.Engine, Player.Shield,
@@ -144,6 +148,7 @@ namespace Player
         {
             TeardownDebugOverlay();
             UnwirePlayerDeath();
+            Ledger.Bind(null, null);
             Player = null;
             services = null;
         }
@@ -158,6 +163,9 @@ namespace Player
         public void ApplyLoadout()
         {
             if (!Player || Loadout == null) return;
+
+            // A new run starts here; the previous life's recap has already consumed the rows.
+            Ledger.Clear();
 
             // A dead player reaches the hangar deactivated (death disables the ship GameObject).
             // Revive it before applying so swapped-in weapon mounts instantiate active and Awake-wire
@@ -196,6 +204,7 @@ namespace Player
             currentTemplate = newTemplate;
 
             WirePlayerDeath();
+            Ledger.Bind(Player.Damage, services.UnitService.Registry);
         }
 
         // The overlay instance persists across player rebuilds and loadout changes; re-Initialize

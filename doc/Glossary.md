@@ -403,6 +403,14 @@ Format: **term** — definition. *(authority)*
   `ShipId.Invalid` when no ship caused the hit (asteroid collision); `OnDeath`
   carries the killing blow and is latched to fire once per life.
   *(DamageInfo, DamageController)*
+- **damage ledger** — per-life accumulation of the player's received DamageInfo
+  rows, aggregated per source — consumer-side recorder owned by the session rig,
+  never sim state. Source names are captured at event time because the attacker
+  may despawn before the recap reads the row. *(DamageLedger)*
+- **death recap** — the post-death summary panel rendered from the damage ledger
+  at the driver-owned `GameState.DeathRecap` hold, between death and the restart
+  flow; presentation-gated, so headless drivers fall straight through to Restart.
+  *(DeathRecapScreen, GameDriver.HandleDeathRecap)*
 - **painter** — a named diagnostic view (velocity vectors, aim lines, the policy
   facing fan) written once as a drawing routine over a diagnostic canvas, then
   rendered by whichever backend is active — offscreen capture or live editor
