@@ -48,8 +48,9 @@ namespace UI
             layout.childControlHeight = true;
             layout.childForceExpandWidth = false;
             layout.childForceExpandHeight = false;
-            panel.GetComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            panel.GetComponent<ContentSizeFitter>().horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+            var fitter = panel.GetComponent<ContentSizeFitter>();
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
 
             AddText(panel.transform, "Title", "SHIP DESTROYED", font, 34,
                 new Color(1f, 0.45f, 0.35f), FontStyle.Bold);
@@ -137,14 +138,15 @@ namespace UI
             return text;
         }
 
-        private void AddContinueButton(Transform parent, Font font, Action onContinue)
+        private static void AddContinueButton(Transform parent, Font font, Action onContinue)
         {
             var go = new GameObject("Continue", typeof(RectTransform), typeof(Image), typeof(Button),
                 typeof(LayoutElement));
             go.transform.SetParent(parent, false);
             go.GetComponent<Image>().color = new Color(0.20f, 0.55f, 0.95f, 1f);
-            go.GetComponent<LayoutElement>().preferredWidth = 220f;
-            go.GetComponent<LayoutElement>().preferredHeight = 44f;
+            var size = go.GetComponent<LayoutElement>();
+            size.preferredWidth = 220f;
+            size.preferredHeight = 44f;
             var label = AddText(go.transform, "Label", "CONTINUE", font, 20, Color.white, FontStyle.Bold);
             var rect = (RectTransform)label.transform;
             rect.anchorMin = Vector2.zero;

@@ -36,7 +36,7 @@ namespace Player
 
         public IReadOnlyList<Row> Rows => rows;
 
-        /// <summary>Re-bindable across player rebuilds; unsubscribes the previous source.</summary>
+        /// <summary>Re-bindable across player rebuilds.</summary>
         public void Bind(IDamageEvents damage, IShipRegistry shipRegistry)
         {
             if (source != null) source.OnDamaged -= Record;

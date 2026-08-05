@@ -31,6 +31,14 @@ namespace Tests.EditMode
             return dc;
         }
 
+        private DamageLedger NewBoundLedger(out DamageController dc)
+        {
+            dc = NewDamage();
+            var ledger = new DamageLedger();
+            ledger.Bind(dc, null);
+            return ledger;
+        }
+
         [TearDown]
         public void TearDown()
         {
@@ -44,9 +52,7 @@ namespace Tests.EditMode
         [Test]
         public void Rows_AggregatePerAttackerAndKind()
         {
-            var dc = NewDamage();
-            var ledger = new DamageLedger();
-            ledger.Bind(dc, null);
+            var ledger = NewBoundLedger(out var dc);
 
             dc.TakeDamage(Hit(10f, DamageKind.Laser, 7));
             dc.TakeDamage(Hit(15f, DamageKind.Laser, 7));
@@ -62,9 +68,7 @@ namespace Tests.EditMode
         [Test]
         public void Rows_RecordAppliedDamage_NotIncoming()
         {
-            var dc = NewDamage();
-            var ledger = new DamageLedger();
-            ledger.Bind(dc, null);
+            var ledger = NewBoundLedger(out var dc);
 
             dc.TakeDamage(Hit(500f, DamageKind.Railgun, 7)); // 50 shield + 100 hull absorbed
 
@@ -75,9 +79,7 @@ namespace Tests.EditMode
         [Test]
         public void NameFallback_CollisionIsAsteroid_UnresolvedShipIsUnknown()
         {
-            var dc = NewDamage();
-            var ledger = new DamageLedger();
-            ledger.Bind(dc, null);
+            var ledger = NewBoundLedger(out var dc);
 
             dc.TakeDamage(new DamageInfo(5f, DamageKind.Collision, ShipId.Invalid,
                 0f, Vector3.zero, Vector3.zero));
@@ -90,9 +92,7 @@ namespace Tests.EditMode
         [Test]
         public void Clear_EmptiesRows_BindingSurvives()
         {
-            var dc = NewDamage();
-            var ledger = new DamageLedger();
-            ledger.Bind(dc, null);
+            var ledger = NewBoundLedger(out var dc);
 
             dc.TakeDamage(Hit(10f, DamageKind.Laser, 7));
             ledger.Clear();
@@ -105,9 +105,7 @@ namespace Tests.EditMode
         [Test]
         public void Rebind_StopsRecordingFromTheOldSource()
         {
-            var dc = NewDamage();
-            var ledger = new DamageLedger();
-            ledger.Bind(dc, null);
+            var ledger = NewBoundLedger(out var dc);
             ledger.Bind(null, null);
 
             dc.TakeDamage(Hit(10f, DamageKind.Laser, 7));
@@ -125,9 +123,7 @@ namespace Tests.EditMode
         [Test]
         public void CauseLine_ShipKill_NamesTheKillerFromItsRow()
         {
-            var dc = NewDamage();
-            var ledger = new DamageLedger();
-            ledger.Bind(dc, null);
+            var ledger = NewBoundLedger(out var dc);
             dc.TakeDamage(Hit(500f, DamageKind.Missile, 7));
 
             var blow = Hit(500f, DamageKind.Missile, 7);
@@ -138,9 +134,7 @@ namespace Tests.EditMode
         [Test]
         public void RowsBlock_SortsByTotal_AndCountsHits()
         {
-            var dc = NewDamage();
-            var ledger = new DamageLedger();
-            ledger.Bind(dc, null);
+            var ledger = NewBoundLedger(out var dc);
             dc.TakeDamage(Hit(5f, DamageKind.Laser, 7));
             dc.TakeDamage(Hit(30f, DamageKind.Missile, 9));
 
