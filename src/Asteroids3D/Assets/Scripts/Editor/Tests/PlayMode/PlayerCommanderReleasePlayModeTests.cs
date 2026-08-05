@@ -42,6 +42,7 @@ namespace Tests.PlayMode
             public float ShieldPct => 1f;
             public bool BoostAvailable => false;
             public float BoostCooldownRemaining => 0f;
+            public float BoostCooldownPct => 0f;
             public float MaxSpeed => 0f;
             public float MaxYawRate => 0f;
         }

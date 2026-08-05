@@ -30,6 +30,7 @@ namespace Tests.EditMode
             public float ShieldPct { get; set; } = 1f;
             public bool BoostAvailable { get; set; } = true;
             public float BoostCooldownRemaining { get; set; }
+            public float BoostCooldownPct { get; set; }
             public float MaxSpeed { get; set; } = 10f;
             public float MaxYawRate { get; set; } = 90f;
         }

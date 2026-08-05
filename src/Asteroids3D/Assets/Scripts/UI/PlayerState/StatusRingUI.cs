@@ -6,9 +6,19 @@ using UnityEngine.UI;
 
 namespace UI
 {
+    /// <summary>
+    /// Ship-space status ring: a radial fill tracking one damage resource (shield or health),
+    /// with a shimmer flash on loss. Bound per ship via <see cref="IShipVisual"/>; fill seeds
+    /// from the bound resource so the ring reads correctly before the first damage event.
+    /// </summary>
     [RequireComponent(typeof(Image))]
-    public class ShieldUI : MonoBehaviour, IShipVisual
+    public class StatusRingUI : MonoBehaviour, IShipVisual
     {
+        public enum TrackedResource { Shield, Health }
+
+        [Tooltip("Which damage resource this ring displays.")]
+        [SerializeField] TrackedResource tracked = TrackedResource.Shield;
+
         [Header("Timing (seconds)")]
         [SerializeField] float linger  = 0.30f;      // visible while it "shimmers"
 
@@ -16,32 +26,35 @@ namespace UI
         [SerializeField] float shimmerFreq = 20f;    // Hz of scale flicker
         [SerializeField] float shimmerAmp  = 0.08f;  // 8 % size wobble
 
-        private IDamageEvents source;   // injected: the ship whose shield flashes
+        private Resource source;   // injected: the tracked resource of the ship this ring displays
         private bool subscribed;
 
         Image   ring;
-        Color   baseColor;       // original tint without alpha
         bool flashActive;
         float flashElapsed;
         Vector3 baseScale;
 
+        internal TrackedResource Tracked { get => tracked; set => tracked = value; }
+
         void Awake()
         {
-            ring       = GetComponent<Image>();
-            baseColor  = ring.color;
-            baseScale  = transform.localScale;
-            ring.canvasRenderer.SetAlpha(1f);
+            ring      = GetComponent<Image>();
+            baseScale = transform.localScale;
         }
 
         public void Bind(in ShipView view)
         {
-            source = view.Damage;
+            source = view.Damage == null ? null
+                : tracked == TrackedResource.Shield ? view.Damage.Shield : view.Damage.Health;
             if (isActiveAndEnabled) Subscribe();
+            SeedFill();
         }
 
         private void OnEnable()
         {
-            if (source != null) Subscribe();
+            if (source == null) return;
+            Subscribe();
+            SeedFill();
         }
 
         void OnDisable()
@@ -54,32 +67,36 @@ namespace UI
         private void Subscribe()
         {
             if (subscribed || source == null) return;
-            source.Shield.OnValueChanged += OnShieldChanged;
+            source.OnValueChanged += OnResourceChanged;
             subscribed = true;
         }
 
         private void Unsubscribe()
         {
             if (!subscribed || source == null) return;
-            source.Shield.OnValueChanged -= OnShieldChanged;
+            source.OnValueChanged -= OnResourceChanged;
             subscribed = false;
+        }
+
+        private void SeedFill()
+        {
+            if (ring && source != null)
+                ring.fillAmount = source.Pct;
         }
 
         void LateUpdate()
         {
-            if (ring && ring.canvasRenderer.GetAlpha() <= 0f) return;
             transform.rotation = GamePlane.Rotation;
         }
 
-
-        void OnShieldChanged(float current, float previous, float max)
+        void OnResourceChanged(float current, float previous, float max)
         {
             if (!ring || max <= 0f) return;
 
             ring.fillAmount = current / max;
-            if(current<previous) TriggerFlash();
-
+            if (current < previous) TriggerFlash();
         }
+
         void TriggerFlash()
         {
             flashActive = true;
@@ -101,6 +118,5 @@ namespace UI
             var wobble = 1f + Mathf.Sin(flashElapsed * shimmerFreq * Mathf.PI * 2) * shimmerAmp;
             transform.localScale = baseScale * wobble;
         }
-
     }
 }
