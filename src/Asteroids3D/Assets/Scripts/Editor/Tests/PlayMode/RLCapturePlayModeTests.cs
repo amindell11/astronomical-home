@@ -16,6 +16,7 @@ using Utils;
 namespace Tests.PlayMode
 {
     /// <summary>Graphics-gated proof that the capture lane films: a small capture-lane session on the smoke fixture writes PNG frames, a manifest, one clip dir per episode under the caller-named out dir, and one JSONL row per episode (no summary). Excluded from the merge gate — offscreen capture needs a real graphics device.</summary>
+    [Category("AI")]
     [Category("RequiresGraphics")]
     public class RLCapturePlayModeTests
     {
