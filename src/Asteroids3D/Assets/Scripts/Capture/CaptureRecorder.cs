@@ -29,6 +29,9 @@ namespace Game.Capture
         private const float CameraHeight = 60f;
         private static readonly Regex SafeName = new("^[A-Za-z0-9_-]+$");
 
+        /// <summary>The recorder's naming contract, for callers that must reject a hostile name at their own boundary.</summary>
+        public static bool IsSafeName(string name) => SafeName.IsMatch(name);
+
         private readonly CaptureConfig config;
         private readonly string frameDir;
         private readonly GameObject rig;
