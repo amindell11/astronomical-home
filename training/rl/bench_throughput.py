@@ -24,7 +24,6 @@ final update and model export); it is kept because both arms of a comparison pay
 """
 import argparse
 import json
-import re
 import statistics
 import subprocess
 import sys
@@ -36,10 +35,10 @@ from pathlib import Path
 import yaml
 
 from run_parallel import REPO_ROOT, RESULTS, RL_DIR, trainer_log_path
+from trainer_runtime.contract import manifest_path, read_manifest, read_summaries, summaries_path
 
 BENCH_DIR = REPO_ROOT / "results" / "rl-bench"
 RESULTS_JSONL = BENCH_DIR / "bench.jsonl"
-SUMMARY_RE = re.compile(r"Step:\s*(\d+)\.\s*Time Elapsed:\s*([\d.]+)\s*s")
 # Enough summaries that discarding the first still leaves several intervals to average.
 TARGET_SUMMARIES = 6
 
@@ -122,11 +121,8 @@ def bench_config(source: Path, steps: int, run_id: str) -> Path:
     return out
 
 
-def parse_summaries(log: Path) -> list:
-    if not log.exists():
-        return []
-    return [(int(m.group(1)), float(m.group(2)))
-            for m in SUMMARY_RE.finditer(log.read_text(errors="replace"))]
+def parse_summaries(path: Path) -> list:
+    return [(summary.step, summary.elapsed_seconds) for summary in read_summaries(path)]
 
 
 def steady_steps_per_second(summaries: list) -> tuple:
@@ -185,6 +181,7 @@ def main() -> None:
            "--config", str(config),
            "--num-envs", str(args.num_envs),
            "--num-arenas", str(args.num_arenas),
+           "--trainer-runtime", "owned",
            "--force"]
     if args.self_play:
         cmd.append("--self-play")
@@ -205,7 +202,9 @@ def main() -> None:
     if proc.returncode != 0:
         sys.exit(f"FAIL: run_parallel exited {proc.returncode}; see {trainer_log_path(run_id)}")
 
-    summaries = parse_summaries(trainer_log_path(run_id))
+    manifest = read_manifest(manifest_path(RESULTS, run_id))
+    summaries_file = summaries_path(manifest.run_dir)
+    summaries = parse_summaries(summaries_file)
     rate, spread, intervals = steady_steps_per_second(summaries)
     if intervals < 2:
         sys.exit(f"FAIL: only {len(summaries)} trainer summaries — raise --steps for a steady-state read")
@@ -219,6 +218,8 @@ def main() -> None:
         "num_arenas": args.num_arenas,
         "steps": args.steps,
         "config": source.name,
+        "config_hash": manifest.config_hash,
+        "trainer_runtime": "owned",
         "initialize_from": args.initialize_from,
         "steps_per_second": round(rate, 2),
         "spread": round(spread, 2),
