@@ -43,14 +43,15 @@ namespace Ships.Damage
             if (hit.Amount <= 0 || IsInvulnerable) return;
             var shieldAbsorbed = Shield.ApplyDamage(hit.Amount);
             var appliedDamage = shieldAbsorbed + Health.ApplyDamage(hit.Amount - shieldAbsorbed);
+            var applied = hit.WithAmount(appliedDamage);
             if (appliedDamage > 0)
             {
-                OnDamaged?.Invoke(hit.WithAmount(appliedDamage));
+                OnDamaged?.Invoke(applied);
             }
 
             if (Health.CurrentValue <= 0f)
             {
-                BroadcastDeath(hit.WithAmount(appliedDamage));
+                BroadcastDeath(applied);
             }
         }
 

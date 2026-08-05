@@ -9,9 +9,6 @@ namespace Damage
         /// </summary>
         GameObject gameObject { get; }
 
-        /// <summary>
-        /// Apply damage to this object
-        /// </summary>
         void TakeDamage(in DamageInfo hit);
     }
 }

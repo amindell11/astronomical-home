@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Combat.Projectile;
+using Damage;
 using Game.Presentation;
 using Game.Services;
 using NUnit.Framework;
@@ -89,7 +90,7 @@ namespace Tests.EditMode
         /// <summary>Pool-free ProjectileBase so Register works without touching SimplePool statics.</summary>
         private class TestProjectile : ProjectileBase
         {
-            protected override global::Damage.DamageKind Kind => global::Damage.DamageKind.Laser;
+            protected override DamageKind Kind => DamageKind.Laser;
 
             protected override void ReturnToPool()
             {

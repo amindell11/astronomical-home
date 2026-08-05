@@ -65,7 +65,7 @@ public abstract class AIIntegrationFixture : PlayModeWorldFixture
     protected void DealDamage(Ship target, float amount)
     {
         target.Damage.TakeDamage(new Damage.DamageInfo(amount, Damage.DamageKind.Laser,
-            Ships.ShipId.Invalid, 0f, Vector3.zero, Vector3.zero));
+            ShipId.Invalid, 0f, Vector3.zero, Vector3.zero));
     }
 }
 

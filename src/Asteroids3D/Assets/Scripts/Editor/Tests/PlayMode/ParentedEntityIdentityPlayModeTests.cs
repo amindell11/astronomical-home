@@ -47,7 +47,7 @@ namespace Tests.PlayMode
         {
             public float TotalDamage { get; private set; }
 
-            public void TakeDamage(in Damage.DamageInfo hit)
+            public void TakeDamage(in DamageInfo hit)
             {
                 TotalDamage += hit.Amount;
             }

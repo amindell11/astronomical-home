@@ -53,7 +53,7 @@ namespace Tests.PlayMode
             new(amount, DamageKind.Laser, attacker ? attacker.Id : ShipId.Invalid,
                 1f, Vector3.zero, Vector3.zero);
 
-        /// <summary>Death latch re-arms across ResetShip — a second life's death fires OnDeath again.</summary>
+        /// <summary>Covers the full Ship.ResetShip path, not just ResetDamageState (the EditMode re-arm test).</summary>
         [UnityTest]
         public IEnumerator AfterReset_DeathLatchRearms_OnDeathFiresAgain()
         {
@@ -77,7 +77,7 @@ namespace Tests.PlayMode
             Assert.AreEqual(2, deaths, "OnDeath should fire again after ResetShip re-arms the latch");
         }
 
-        /// <summary>Death event should publish the victim id and the killing blow's attacker — needs real ships.</summary>
+        /// <summary>Victim and attacker ids need real ships with registered ids.</summary>
         [UnityTest]
         public IEnumerator OnDeath_PublishesVictimAndKillingBlow()
         {

@@ -215,7 +215,7 @@ namespace Tests.PlayMode
         private sealed class CombatLog
         {
             private readonly Dictionary<ArenaUnderTest, int> combatDamage = new();
-            private readonly List<(DamageController damage, System.Action<global::Damage.DamageInfo> handler)> subscriptions = new();
+            private readonly List<(DamageController damage, System.Action<Damage.DamageInfo> handler)> subscriptions = new();
             public readonly List<string> CrossArenaHits = new();
 
             public CombatLog(ArenaUnderTest a, ArenaUnderTest b)
@@ -240,7 +240,7 @@ namespace Tests.PlayMode
                 if (!victim || !victim.Damage) return;
                 var damage = victim.Damage;
                 var otherRegistry = other.Arena.Registry;
-                void Handler(global::Damage.DamageInfo hit)
+                void Handler(Damage.DamageInfo hit)
                 {
                     var attackerId = hit.AttackerId;
                     if (!attackerId.IsValid) return;
@@ -314,8 +314,8 @@ namespace Tests.PlayMode
             var live = arena.ShipsInSpawnOrder.Where(ship => ship && ship.Damage).Take(2).ToArray();
             Assert.AreEqual(2, live.Length, $"{arena.Root.name} needs two live ships for the attribution probe.");
             live[0].Damage.SetInvulnerability(0f);
-            live[0].Damage.TakeDamage(new global::Damage.DamageInfo(
-                1f, global::Damage.DamageKind.Laser, live[1].Id, 0f, Vector3.zero, Vector3.zero));
+            live[0].Damage.TakeDamage(new Damage.DamageInfo(
+                1f, Damage.DamageKind.Laser, live[1].Id, 0f, Vector3.zero, Vector3.zero));
         }
 
         private static void AssertShipsStayInOwnHalf(ArenaUnderTest arena)

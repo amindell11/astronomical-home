@@ -125,7 +125,7 @@ namespace Tests.PlayMode
 
             var lethal = rig.Player.Stats.maxShield + rig.Player.Stats.maxHealth + 100f;
             rig.Player.Damage.TakeDamage(new Damage.DamageInfo(lethal, Damage.DamageKind.Laser,
-                Ships.ShipId.Invalid, 0f, Vector3.zero, rig.Player.transform.position));
+                ShipId.Invalid, 0f, Vector3.zero, rig.Player.transform.position));
 
             Assert.IsTrue(died, "injected death callback re-armed on the rebuilt player");
         }
