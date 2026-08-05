@@ -1,6 +1,8 @@
 # CLAUDE.md
 
-See `AGENTS.md` for Obsidian/design-doc conventions and test-artifact standards.
+See `AGENTS.md` for Unity code conventions (lookups, null checks, folder taxonomy),
+Obsidian/design-doc conventions, and test-artifact standards — read its
+`## Unity code conventions` before writing Unity code.
 Rules here are the always-loaded universal core; workflow detail lives in `.claude/skills/`. Add a rule here only after a repeated observed failure — the same evidence bar code scaffolding must meet.
 
 ## Fix ladder
