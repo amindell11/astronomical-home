@@ -1,7 +1,8 @@
 # RL Trainer Runtime Takeover
 
-> STATUS: live arc — opened 2026-08-05; next = slice 0 precursors + slice 1
-> wire-contract freeze; stages 3+ are entry-gated, not committed.
+> STATUS: live arc — opened 2026-08-05; slice 0(b) player-build tripwire landed
+> (`PlayerBuildTripwireEditModeTests`); next = slice 1 wire-contract freeze;
+> stages 3+ are entry-gated, not committed.
 
 *Seeded 2026-08-05 by a four-lane grounding review run in the arc-opening
 session (ml-agents feature-usage inventory, C#↔Python wire-contract map,

@@ -10,7 +10,7 @@ namespace Game.RLHarness
     /// <summary>-executeMethod entry that builds the headless StandaloneWindows64 training player (the RLTraining scene only), so ML-Agents can launch it with --env. Exits nonzero on any build error.</summary>
     public static class RLTrainingPlayerBuild
     {
-        private const string Scene = "Assets/Scenes/RLTraining.unity";
+        public const string Scene = "Assets/Scenes/RLTraining.unity";
 
         public static void Build()
         {
