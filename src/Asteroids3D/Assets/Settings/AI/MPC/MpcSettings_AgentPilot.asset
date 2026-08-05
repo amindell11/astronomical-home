@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 59f7f77675d38994397e19301aaef807, type: 3}
   m_Name: MpcSettings_AgentPilot
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   horizonSeconds: 1.7
   rolloutDt: 0.1
   samples: 128
@@ -25,12 +25,13 @@ MonoBehaviour:
   wEffort: 0.1
   wSmoothnessThrust: 0
   wSmoothnessStrafe: 0
-  wSmoothnessYaw: 0
+  wSmoothnessYaw: 0.2
   wMomentum: 0
   wBoostEffort: 1
   boostSampleProbability: 0
   wFacing: 1
   facingWidth: 1.5
+  wFacingPrior: 0
   wObstacle: 5
   collisionPenalty: 10000
   collisionSafetyMargin: 0.3

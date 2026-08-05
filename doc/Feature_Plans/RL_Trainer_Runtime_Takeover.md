@@ -61,8 +61,15 @@ update phases, not cores).
 2. **Stage-gated takeover.** Stages 1–2 are committed now; every later stage
    opens only through its written entry gate. A full ml-agents reimpl is NOT
    the committed end state.
-3. **Layered equivalence.** Behavioral gates at every stage; math gates arm
-   exactly when a stage re-owns the corresponding math (§Equivalence gates).
+3. **Layered equivalence.** Cheap behavioral gates at every stage; the full
+   paired-run gate concentrates at cutover; math gates arm exactly when a
+   stage re-owns the corresponding math (§Equivalence gates — amended
+   2026-08-05, user ruling).
+4. **1a/1b split + cadence contract** (2026-08-05). Stage 1 splits into a
+   zero-risk entry wrapper (1a) and the scheduler re-own (1b); the arc
+   advances only in quiet-lane increments so it never blocks other feature
+   threads (§Cadence contract). Wire-contract freeze stays full-depth (a
+   depth trim was offered and not taken).
 
 Standing assumptions (noted, not asked): the two runtimes coexist behind a
 `run_parallel.py` runtime selector, with stock `mlagents-learn` remaining the
@@ -72,28 +79,41 @@ builds.
 
 ## The ladder
 
-**Stage 1 — owned entry point + ready-environment scheduler (committed).**
-Replaces the `mlagents-learn` entry, `learn.py` run loop, and
-`SubprocessEnvManager` scheduling with project code. Retains, as imported
-libraries at the pinned version: `mlagents_envs` (communicator + side
-channels), and ml-agents' `TorchPolicy` / `TorchPPOOptimizer` / buffer /
-`GhostTrainer` / curriculum-manager classes — the update math is inherited,
-not ported. Cost stated honestly: the owned entry imports ml-agents
-*internals*, so upgrading ml-agents gets harder; acceptable because the
-toolchain is pinned anyway. The seam inversions land here (run manifest,
-structured summary stream, explicit worker-index argv, atomic checkpoint
-publish). Gates: behavioral (§Equivalence).
+**Stage 1a — owned entry wrapper (committed; split ruled 2026-08-05).** A
+project-owned entry that parses the CLI/YAML, writes the run manifest,
+registers an ADDITIVE stats-writer plugin (`[mlagents.stats_writer]` — a
+supported ml-agents seam; tfevents keep flowing, `plot_progress.py`
+untouched) emitting `summaries.jsonl`, refuses `--resume` +
+`--initialize-from` loudly, then delegates the entire loop to stock
+`learn.main()` (wrapper mechanics proven by the 2026-08-03 torch-thread
+experiment). The launcher grows its runtime selector here; dashboard + bench
+repoint to manifest/summaries in the same slice. Lands the manifest- and
+summary-side seam inversions with the loop untouched — semantic risk ≈
+zero. Gates: smoke only (ghost-swap canary + one 4k parallel smoke).
+
+**Stage 1b — ready-environment scheduler re-own (committed).** Replaces the
+`learn.py` run loop and `SubprocessEnvManager` scheduling with project code.
+Retains, as imported libraries at the pinned version: `mlagents_envs`
+(communicator + side channels), and ml-agents' `TorchPolicy` /
+`TorchPPOOptimizer` / buffer / `GhostTrainer` / curriculum-manager classes —
+the update math is inherited, not ported. Cost stated honestly: this imports
+ml-agents *internals*, so upgrading ml-agents gets harder; acceptable
+because the toolchain is pinned anyway. Lands the remaining inversions
+(explicit worker-index argv, atomic checkpoint publish + checkpoint
+manifest). Gates: cheap tier (§Equivalence gates) — stage 1 alone never
+becomes the production path.
 
 **Stage 2 — cross-worker microbatch inference (committed).** Collect ready
 workers inside a sub-millisecond window and run one vectorized policy forward
 instead of sequential per-worker forwards. Estimated 190–240 steps/s. Gates:
-behavioral, plus one sim-free identity proof (batched inference ≡ sequential
-inference given identical weights and observations).
+cheap tier + the batched ≡ sequential identity proof; the committed scope's
+single full paired run fires at this stage's cutover.
 
 **Stage 3 — GPU PPO updates (entry-gated).** Entry gate: stages 1–2 shipped
 and the update phase still ≥~25% of wall time. Requires a CUDA torch build
-(isolated env or a relaxed pin — first stack-freedom bite). Gates: behavioral
-+ frozen-buffer CPU-vs-GPU equivalence within float tolerance.
+(isolated env or a relaxed pin — first stack-freedom bite). Gates: cheap tier
++ frozen-buffer CPU-vs-GPU tolerance + a re-armed full paired run at its own
+cutover (§Equivalence gates, re-arm rule).
 
 **Stage 4 — local actors + rollout barriers (entry-gated).** Inference moves
 into Unity (Sentis) with weight sync at update boundaries — this changes the
@@ -108,18 +128,39 @@ suite arms. Not committed.
 
 ## Equivalence gates (frozen)
 
-**Behavioral — every stage, before it becomes the production path:**
+**Cheap tier — every stage; hours, not nights:**
 
 - *Paired throughput bench*: existing `bench_throughput.py` protocol — 24k
   steps, N=6/M=1, ≥2 quiet replicates per arm, same tree + config SHA-256,
   ml-agents runtime vs owned runtime. >5% replicate gap → third run, don't
   interpret unstable pairs. This is the stage's throughput claim.
-- *Paired training run judged by the eval gate*: one full from-scratch run
-  per runtime, same tree/config/composition; final checkpoints judged with
-  the #244 machinery (K=5 gate replicates on canonical seeds, per-episode
-  McNemar paired A/B on shared seeds). Pass = within the measured noise floor
-  (replicate SD ≈ 1.2–2.5 on /75 totals). This is the semantics claim:
-  scheduling and batching changes must not change what gets learned.
+- *Curriculum canary*: full production config, ~300k steps per arm — far
+  enough to cross the first lesson advance (K1-4 crossed at ~222k). Assert
+  the transition fires at a comparable step; overlay loss/entropy for gross
+  divergence; check mechanical invariants (updates per N steps,
+  checkpoint/summary cadence, one JSONL per worker).
+- *Ghost-swap canary*: `ppo_ship_combat_selfplay_smoke.yaml` under the owned
+  runtime — swap/team/ELO mechanics exercised in seconds.
+- *Stage-specific sim-free proofs* — see the table.
+
+**Cutover gate — once for the committed scope.** When the owned runtime
+becomes the production path (post-stage-2): one full from-scratch run per
+runtime, same tree/config/composition; final checkpoints judged with the
+#244 machinery (K=5 gate replicates on canonical seeds, per-episode McNemar
+paired A/B on shared seeds). Pass = within the measured noise floor
+(replicate SD ≈ 1.2–2.5 on /75 totals). It certifies the combined
+stage-1+2 delta at once. Preferred vehicle: piggyback the next needed
+production retrain — run it on the owned runtime, so the stock reference arm
+on the same tree is the only marginal run; flag at ledger-claim time that a
+gate failure sends that retrain back to stock (the piggybacked thread
+carries the schedule risk). Bisection if it fails: microbatch window = 1
+reproduces sequential scheduling — an internal A/B knob separating stage 2's
+contribution from stage 1's.
+
+**Re-arm rule.** Every entry-gated stage that changes update math or
+synchronization semantics (GPU updates, `threaded`-style overlap, local
+actors, PPO re-ownership) re-arms the full paired-run gate at its own
+cutover.
 
 Why behavior-level while the math is inherited: the sim is not run-to-run
 reproducible ([[project-eval-sim-nondeterminism]]; the golden-mask history),
@@ -142,13 +183,13 @@ strength".
   identical weights via both paths; Sentis imports both; identical inference
   outputs on a fixed observation batch.
 
-| Stage | Behavioral | Math |
-|---|---|---|
-| 1 entry + scheduler | bench + paired run | none (math untouched) |
-| 2 microbatch | bench + paired run | batched ≡ sequential proof |
-| 3 GPU updates | bench + paired run | frozen-buffer CPU-vs-GPU tolerance |
-| 4 local actors | bench + paired run + sample-efficiency guard | export identity |
-| 5 PPO re-ownership | bench + paired run before cutover | full suite |
+| Stage | Cheap tier | Sim-free proof | Full paired run |
+|---|---|---|---|
+| 1 entry + scheduler | bench + canaries | — | covered at cutover |
+| 2 microbatch | bench + canaries | batched ≡ sequential | **cutover gate** (combined 1+2) |
+| 3 GPU updates | bench + canaries | frozen-buffer CPU-vs-GPU tolerance | re-armed at its cutover |
+| 4 local actors | bench + canaries + sample-efficiency guard | export identity | re-armed at its cutover |
+| 5 PPO re-ownership | bench + canaries | full math suite | re-armed before cutover |
 
 ## Compatibility requirements (hard core)
 
@@ -203,23 +244,25 @@ lands is the reference.
 The substrate sweep found consumers re-deriving runtime-owned facts (wiring
 rule 6 corollary violations). Stage 1 inverts the ones in its layer:
 
-- **Run manifest** (owned runtime writes `{runId, behavior, resultsDir,
-  startedAt, maxSteps, mode, configHash}` at launch) replaces: behavior name
-  hardcoded in `eval_gate.py:310` (V3), results root hardcoded ×5 (V4),
-  run-start inferred from dir ctime (V7), self-play inferred from ELO's
-  presence in a log line (V6).
-- **Checkpoint manifest + atomic publish** (write-then-rename; manifest line
-  `{step, onnx, pt, completedAt}` after fsync) replaces: step regex'd from
-  filenames (V1), completeness inferred from glob visibility (V2).
-- **Structured summary stream** (`summaries.jsonl`) replaces stdout scraping
-  by two different regexes (V5) — human log stays human. Consumers
-  (`dev/rl-status/server.py`, `bench_throughput.py`) repoint in the same
-  slice; stdout markers stay emitted until then (compat item 7).
-- **Explicit `--harness-worker-index k`** in per-worker argv replaces the
-  port-arithmetic derivation (V9); `TrainingHost` keeps the throw-on-mismatch
-  as a cross-check.
-- **Fail loud on `--resume` + `--initialize-from`** (V11) — the launcher's
-  boundary guard stops being load-bearing.
+- **Run manifest** *(stage 1a)* — owned entry writes `{runId, behavior,
+  resultsDir, startedAt, maxSteps, mode, configHash}` at launch; replaces:
+  behavior name hardcoded in `eval_gate.py:310` (V3), results root hardcoded
+  ×5 (V4), run-start inferred from dir ctime (V7), self-play inferred from
+  ELO's presence in a log line (V6).
+- **Structured summary stream** *(stage 1a)* — `summaries.jsonl` via the
+  additive stats-writer plugin replaces stdout scraping by two different
+  regexes (V5); human log stays human. Consumers (`dev/rl-status/server.py`,
+  `bench_throughput.py`) repoint in the same slice; stdout markers stay
+  emitted until then (compat item 7).
+- **Fail loud on `--resume` + `--initialize-from`** *(stage 1a)* (V11) — the
+  launcher's boundary guard stops being load-bearing.
+- **Checkpoint manifest + atomic publish** *(stage 1b)* — write-then-rename;
+  manifest line `{step, onnx, pt, completedAt}` after fsync; replaces: step
+  regex'd from filenames (V1), completeness inferred from glob visibility
+  (V2).
+- **Explicit `--harness-worker-index k`** *(stage 1b)* in per-worker argv
+  replaces the port-arithmetic derivation (V9); `TrainingHost` keeps the
+  throw-on-mismatch as a cross-check.
 - Kept as-is: `RLDriverContractEditModeTests`' cross-language pin (V10) — the
   direction is right; it extends to the owned launcher constants.
 
@@ -241,10 +284,25 @@ rule 6 corollary violations). Stage 1 inverts the ones in its layer:
   ActionSpec, ONNX tensor names/opset/version, results layout + checkpoint
   grammar, stdout markers, CLI surface, env-var pass-through. Seed: the
   contract-map lane report's freeze checklist (arc-opening session).
-- **Slice 2 — stage 1 build** (pr-prep first; adversarial atomicity round
-  mandatory — checkpoint/manifest/resume writes are its whole surface).
-- **Slice 3 — stage 2 build** (pr-prep first).
+- **Slice 2 — stage 1a wrapper build** (light pr-prep; consumer repoints
+  reviewed with it).
+- **Slice 3 — stage 1b scheduler build** (pr-prep first; adversarial
+  atomicity round mandatory — checkpoint/manifest/resume writes are its
+  whole surface).
+- **Slice 4 — stage 2 build** (pr-prep first).
 - Later slices open only through their entry gates (§The ladder).
+
+## Cadence contract (locked 2026-08-05)
+
+The arc advances only in quiet-lane increments: docs + Python + unit tests
+(no Unity assemblies; subprocess-free test lanes). Per-increment machine
+footprint: a minutes-scale bench claim plus at most one ~2h canary block on
+base-port 5006, evening-schedulable via ledger claims. The arc originates NO
+dedicated full runs while a piggyback vehicle is plausible — the cutover
+gate rides the next needed production retrain (§Equivalence gates); only if
+none materializes by stage-2 readiness does the arc schedule its own pair.
+Worktree slots are held only for the duration of a build; arc code lives in
+`training/rl/`, so C#-side feature threads see no file-conflict surface.
 
 ## Non-goals
 

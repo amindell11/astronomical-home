@@ -5,7 +5,6 @@ using AI.States;
 using Ships;
 using Ships.Command;
 using Unity.InferenceEngine;
-using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Policies;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
@@ -82,7 +81,7 @@ namespace Game.RLHarness
             enemy = next;
             ticksUntilDecision = 0;
             if (enemy)
-                mailbox.Configure(enemy);
+                mailbox.Configure(enemy, self.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary));
             else
                 mailbox.Reset();
         }
@@ -102,17 +101,13 @@ namespace Game.RLHarness
             var behavior = host.AddComponent<BehaviorParameters>();
             behavior.BehaviorName = ShipCombatPolicy.BehaviorName;
             behavior.BehaviorType = BehaviorType.InferenceOnly;
-            behavior.BrainParameters.VectorObservationSize = AgentObservations.CombatChannels;
-            behavior.BrainParameters.ActionSpec = ActionSpec.MakeContinuous(AgentActions.Count);
             behavior.DeterministicInference = true;
             behavior.InferenceDevice = InferenceDevice.Burst;
             behavior.Model = model;
 
             // Mirrors ShipAgentFactory's composition — asteroids ride an entity-attention buffer, not the flat vector.
             var obstacleBuffer = host.AddComponent<BufferSensorComponent>();
-            obstacleBuffer.SensorName = AgentObservations.ObstacleSensorName;
-            obstacleBuffer.ObservableSize = AgentObservations.ObstacleTokenFloats;
-            obstacleBuffer.MaxNumObservables = AgentObservations.ObstacleTokenCap;
+            AgentObservations.ApplySchema(behavior, obstacleBuffer);
 
             agent = host.AddComponent<LivePilotAgent>();
             agent.Bind(mailbox, ctx.Scout, obstacleBuffer);

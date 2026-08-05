@@ -21,7 +21,7 @@ namespace Tests.EditMode
             public PolicyAction ActionFromNewest(int index) => actions[actions.Count - 1 - index];
 
             public void Decide(float cmdDeg, float weight) =>
-                actions.Add(new PolicyAction(Vector2.zero, cmdDeg * Mathf.Deg2Rad, weight));
+                actions.Add(new PolicyAction(cmdDeg * Mathf.Deg2Rad, weight, 0f, 0f, 0f));
         }
 
         private static Kinematics Kin(float yaw, float yawRate) =>
@@ -46,17 +46,16 @@ namespace Tests.EditMode
             var readout = new FakeReadout();
             var sampler = new FacingSampler(readout);
 
-            // No decision yet: nose motion accumulates, facing error must not.
-            sampler.Sample(Kin(yaw: 0f, yawRate: 30f));
+            sampler.Sample(Kin(yaw: 0f, yawRate: 30f), anchorYawRad: 0f);
 
             readout.Decide(cmdDeg: 90f, weight: 1f);
-            sampler.Sample(Kin(yaw: 10f, yawRate: -30f));   // nose flip 1; error |90−10| = 80
+            sampler.Sample(Kin(yaw: 10f, yawRate: -30f), anchorYawRad: 0f);
 
-            readout.Decide(cmdDeg: 30f, weight: 0.1f);      // delta −60
-            sampler.Sample(Kin(yaw: 20f, yawRate: 0f));     // zero keeps the − sign; error 10
+            readout.Decide(cmdDeg: 30f, weight: 0.1f);
+            sampler.Sample(Kin(yaw: 20f, yawRate: 0f), anchorYawRad: 0f);
 
-            readout.Decide(cmdDeg: 80f, weight: 0.5f);      // delta +50 → command flip 1
-            sampler.Sample(Kin(yaw: 30f, yawRate: 40f));    // nose flip 2 (last sign −); error 50
+            readout.Decide(cmdDeg: 80f, weight: 0.5f);
+            sampler.Sample(Kin(yaw: 30f, yawRate: 40f), anchorYawRad: 0f);
 
             var result = new EpisodeResult { simSeconds = 2f, outcome = "Win" };
             var row = sampler.ToRow(in result, "Aggressor", authorityScale: 1f);
@@ -70,6 +69,28 @@ namespace Tests.EditMode
             Assert.AreEqual(55f, row.meanCmdDeltaDeg, 1e-4f);
             Assert.AreEqual(50f, row.medianCmdDeltaDeg, 1e-4f);
             Assert.AreEqual(1f / 3f, row.lowAuthorityFraction, 1e-5f, "one decision under the 0.2 threshold");
+        }
+
+        [Test]
+        public void FacingSampler_ResolvesOffsetAgainstTheCurrentAnchor()
+        {
+            var readout = new FakeReadout();
+            var sampler = new FacingSampler(readout);
+
+            readout.Decide(cmdDeg: 0f, weight: 1f);
+            sampler.Sample(Kin(yaw: 90f, yawRate: 0f), anchorYawRad: 90f * Mathf.Deg2Rad);
+            sampler.Sample(Kin(yaw: -90f, yawRate: 0f), anchorYawRad: -90f * Mathf.Deg2Rad);
+
+            readout.Decide(cmdDeg: 30f, weight: 1f);
+            sampler.Sample(Kin(yaw: -60f, yawRate: 0f), anchorYawRad: -90f * Mathf.Deg2Rad);
+
+            var result = new EpisodeResult { simSeconds = 1f };
+            var row = sampler.ToRow(in result, "Orbiter", authorityScale: 1f);
+
+            Assert.AreEqual(0f, row.meanFacingErrorDeg, 1e-4f,
+                "anchor motion must re-resolve facing between policy decisions");
+            Assert.AreEqual(30f, row.meanCmdDeltaDeg, 1e-4f,
+                "command churn measures policy offsets, not anchor motion");
         }
 
         [Test]
@@ -94,15 +115,15 @@ namespace Tests.EditMode
 
             var first = new FacingSampler(readout);
             readout.Decide(cmdDeg: 0f, weight: 1f);
-            first.Sample(Kin(yaw: 100f, yawRate: 0f));      // error 100
+            first.Sample(Kin(yaw: 100f, yawRate: 0f), anchorYawRad: 0f);
             var resultA = new EpisodeResult { simSeconds = 1f };
             first.DrainInto(pool, in resultA);
 
             var second = new FacingSampler(readout);
             readout.Decide(cmdDeg: 0f, weight: 1f);
-            second.Sample(Kin(yaw: 10f, yawRate: 0f));      // errors 10, 20, 30
-            second.Sample(Kin(yaw: 20f, yawRate: 0f));
-            second.Sample(Kin(yaw: 30f, yawRate: 0f));
+            second.Sample(Kin(yaw: 10f, yawRate: 0f), anchorYawRad: 0f);
+            second.Sample(Kin(yaw: 20f, yawRate: 0f), anchorYawRad: 0f);
+            second.Sample(Kin(yaw: 30f, yawRate: 0f), anchorYawRad: 0f);
             var resultB = new EpisodeResult { simSeconds = 3f };
             second.DrainInto(pool, in resultB);
 

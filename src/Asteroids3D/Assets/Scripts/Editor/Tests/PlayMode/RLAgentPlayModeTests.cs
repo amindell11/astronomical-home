@@ -196,8 +196,10 @@ namespace Tests.PlayMode
         {
             var spec = RewardSpec.Default;
             spec.timeoutDecisions = 8;
-            spec.minSeparation = 50f;
-            spec.maxSeparation = 60f;
+            // 18-24 m spawn keeps the barely-trained smoke fixture in weapons range so the
+            // shots-across-batch assertion below observes live fire within the 8-decision cap.
+            spec.minSeparation = 18f;
+            spec.maxSeparation = 24f;
 
             var seeds = new[] { EvalProtocol.HeldOutSeeds[0], EvalProtocol.HeldOutSeeds[1] };
             var sessionSpec = new SessionSpec
