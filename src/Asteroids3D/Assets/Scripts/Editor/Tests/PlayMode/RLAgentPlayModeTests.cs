@@ -32,6 +32,9 @@ namespace Tests.PlayMode
         private AgentChooser chooser;
         private ShipAgent agent;
 
+        private static Unity.InferenceEngine.ModelAsset LoadModel(string assetPath) =>
+            UnityEditor.AssetDatabase.LoadAssetAtPath<Unity.InferenceEngine.ModelAsset>(assetPath);
+
         [SetUp]
         public void SetUp()
         {
@@ -169,7 +172,7 @@ namespace Tests.PlayMode
 
             pair = EpisodePair.SpawnWithAgentChooser(unitService, arena, projectiles, in spec, assets, out chooser);
             agent = ShipAgentFactory.ComposeInferenceOnly(pair, chooser, in spec, arena.Offset,
-                ShipAgentFactory.SmokeFixturePath);
+                LoadModel(ShipAgentFactory.SmokeFixturePath));
 
             var behavior = agent.GetComponent<BehaviorParameters>();
             Assert.AreEqual(BehaviorType.InferenceOnly, behavior.BehaviorType);
@@ -199,7 +202,7 @@ namespace Tests.PlayMode
             var seeds = new[] { EvalProtocol.HeldOutSeeds[0], EvalProtocol.HeldOutSeeds[1] };
             var sessionSpec = new SessionSpec
             {
-                onnxAssetPath = ShipAgentFactory.SmokeFixturePath,
+                model = LoadModel(ShipAgentFactory.SmokeFixturePath),
                 seeds = seeds,
                 tag = "test-eval",
                 episodesPerSeed = 1,
@@ -279,7 +282,7 @@ namespace Tests.PlayMode
             // Mirror block: same substrate, checkpoint vs itself, self-fingerprinted rows.
             var mirrorSpec = new SessionSpec
             {
-                onnxAssetPath = ShipAgentFactory.SmokeFixturePath,
+                model = LoadModel(ShipAgentFactory.SmokeFixturePath),
                 seeds = new[] { seeds[0] },
                 tag = "test-eval-mirror",
                 episodesPerSeed = 1,
@@ -303,9 +306,9 @@ namespace Tests.PlayMode
             var opponentAssetPath = TrainingBootstrap.ImportEvalOpponent(ShipAgentFactory.SmokeFixturePath);
             var slot2Spec = new SessionSpec
             {
-                onnxAssetPath = ShipAgentFactory.SmokeFixturePath,
+                model = LoadModel(ShipAgentFactory.SmokeFixturePath),
                 opponentKind = OpponentKind.Checkpoint,
-                opponentOnnxAssetPath = opponentAssetPath,
+                opponentModel = LoadModel(opponentAssetPath),
                 opponentOnnxSourcePath = ShipAgentFactory.SmokeFixturePath,
                 opponentLabel = "ShipCombat-smoke",
                 seeds = new[] { seeds[0] },
@@ -319,7 +322,8 @@ namespace Tests.PlayMode
             Assert.AreEqual(1, slot2Summary.opponents.Length, "a checkpoint eval is a single opponent block");
             Assert.AreEqual("ShipCombat-smoke", slot2Summary.opponents[0].opponent,
                 "checkpoint blocks are labeled by the opponent checkpoint's stem");
-            Assert.AreEqual(opponentAssetPath, slot2Summary.opponentCheckpoint);
+            Assert.AreEqual("ShipCombat-smoke", slot2Summary.opponentCheckpoint,
+                "the summary logs the source stem Python keys on, never a resolved asset path");
             Assert.AreEqual(ShipAgentFactory.SmokeFixturePath, slot2Summary.opponentCheckpointSource,
                 "slot-2 provenance must survive into the summary");
             var slot2Row = JsonUtility.FromJson<EpisodeResult>(

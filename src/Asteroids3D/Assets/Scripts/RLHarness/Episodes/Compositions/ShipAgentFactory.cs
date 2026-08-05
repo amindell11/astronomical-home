@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>Composes the ShipAgent GameObject with its BehaviorParameters fully configured before the Agent component enables (the policy captures them at first use). Keeps ML-Agents/InferenceEngine types out of the test assemblies via the mode-specific entry points.</summary>
+    // Boot boundaries resolve ModelAssets before composition.
     public static class ShipAgentFactory
     {
         public const string BehaviorName = ShipCombatPolicy.BehaviorName;
@@ -27,31 +27,24 @@ namespace Game.RLHarness
 
         /// <summary>Held-out-seed eval path: pinned checkpoint, InferenceOnly, DeterministicInference (it defaults FALSE — InferenceOnly alone samples stochastically), pinned inference seed (Academy consumes it at the model runner's creation).</summary>
         public static ShipAgent ComposeInferenceOnly(EpisodePair pair, AgentChooser chooser,
-            in RewardSpec spec, Vector2 arenaCenter, string onnxAssetPath, Transform parent = null)
+            in RewardSpec spec, Vector2 arenaCenter, ModelAsset model, Transform parent = null)
         {
-            var model = LoadModel(onnxAssetPath);
             Academy.Instance.InferenceSeed = EvalProtocol.InferenceSeed;
             return Compose(pair.Agent, pair.Baseline, chooser, in spec, arenaCenter,
                 BehaviorType.InferenceOnly, model, teamId: 0, parent);
         }
 
-        /// <summary>Both episode ships as agents on one behavior: A on team 0 (self=Agent, primary/logged), B on team 1 (self=Baseline) — native ML-Agents self_play trains one policy against its own mirror.
-        /// Null paths keep the training path (the trainer supplies the policy); supplying both drives each side from its own frozen checkpoint — the same path on both sides is the parameter-shared mirror (one ModelRunner), distinct paths a checkpoint-vs-checkpoint match.</summary>
+        // Null models use the trainer; identical assets share one inference runner.
         public static (ShipAgent agentA, ShipAgent agentB) ComposeSelfPlayPair(EpisodePair pair,
             AgentChooser chooserA, AgentChooser chooserB, in RewardSpec spec, Vector2 arenaCenter,
-            BehaviorType behaviorType, Transform parent = null, string onnxAssetPathA = null,
-            string onnxAssetPathB = null)
+            BehaviorType behaviorType, Transform parent = null, ModelAsset modelA = null,
+            ModelAsset modelB = null)
         {
-            if (string.IsNullOrEmpty(onnxAssetPathA) != string.IsNullOrEmpty(onnxAssetPathB))
+            if (!modelA != !modelB)
                 throw new ArgumentException(
-                    "Per-side checkpoints come in pairs: supply both onnx asset paths or neither.");
-            ModelAsset modelA = null, modelB = null;
-            if (!string.IsNullOrEmpty(onnxAssetPathA))
-            {
-                modelA = LoadModel(onnxAssetPathA);
-                modelB = LoadModel(onnxAssetPathB);
+                    "Per-side checkpoints come in pairs: supply both ModelAssets or neither.");
+            if (modelA)
                 Academy.Instance.InferenceSeed = EvalProtocol.InferenceSeed;
-            }
             var agentA = Compose(pair.Agent, pair.Baseline, chooserA, in spec, arenaCenter,
                 behaviorType, modelA, teamId: 0, parent);
             var agentB = Compose(pair.Baseline, pair.Agent, chooserB, in spec, arenaCenter,
@@ -83,18 +76,6 @@ namespace Game.RLHarness
             agent.Configure(self, opponent, chooser, in spec, arenaCenter, scout, obstacleBuffer);
             host.SetActive(true);
             return agent;
-        }
-
-        private static ModelAsset LoadModel(string assetPath)
-        {
-#if UNITY_EDITOR
-            var model = UnityEditor.AssetDatabase.LoadAssetAtPath<ModelAsset>(assetPath);
-            if (!model)
-                throw new InvalidOperationException($"Failed to load ONNX model at {assetPath}.");
-            return model;
-#else
-            throw new NotSupportedException("ShipAgentFactory loads checkpoints via AssetDatabase (editor only).");
-#endif
         }
     }
 }

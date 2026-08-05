@@ -33,6 +33,7 @@ namespace Tests.PlayMode
         private GameServices _services;
         private ObjectiveService _objectives;
         private SectorSettings _config;
+        private Ship _waveTemplate;
         private readonly List<GameObject> _created = new();
 
         [SetUp]
@@ -55,6 +56,8 @@ namespace Tests.PlayMode
                 new CameraService(), new UIService(), arena);
 
             _config = ScriptableObject.CreateInstance<SectorSettings>();
+            _waveTemplate = ShipTestFactory.CreateKinematicPrimitiveShipAt(new Vector2(1000f, 1000f));
+            TrackGO(_waveTemplate.gameObject);
         }
 
         [TearDown]
@@ -75,11 +78,8 @@ namespace Tests.PlayMode
 
         private Ship SpawnKinematicPlayer()
         {
-            var prefab = TestAssets.LoadShip2Prefab();
-            if (!prefab) Assert.Ignore("Required test assets not found.");
-            var ship = _unitService.SpawnShip(
-                prefab, null, 0, GamePlane.PlanePointToWorld(Vector2.zero), GamePlane.Rotation);
-            ship.Body.isKinematic = true;
+            var ship = ShipTestFactory.CreateKinematicPrimitiveShipAt(Vector2.zero);
+            TrackGO(ship.gameObject);
             return ship;
         }
 
@@ -102,7 +102,7 @@ namespace Tests.PlayMode
             var waveGO = new GameObject("Ambush Wave");
             waveGO.transform.SetParent(encounterGO.transform, false);
             var wave = waveGO.AddComponent<RingSpawner>();
-            wave.Configure(TestAssets.LoadShip2Prefab(), null, waveCount, radius: 10f, team: 1);
+            wave.Configure(_waveTemplate, null, waveCount, radius: 10f, team: 1);
             wave.Configure(startToken);
 
             var encounter = encounterGO.AddComponent<AmbushEncounter>();
@@ -162,14 +162,15 @@ namespace Tests.PlayMode
             Assert.AreEqual(0, wave.Spawned.Count, "A token-gated wave must stay dormant at Build.");
             Assert.AreEqual(0, _objectives.Locals.Count);
 
-            player.transform.position = GamePlane.PlanePointToWorld(TriggerPlane);
+            ShipTestFactory.MoveKinematicShip(player, GamePlane.PlanePointToWorld(TriggerPlane));
             yield return WaitSeconds(() => sector.Ctx.Bus.Get(AreaToken), 5f);
             Assert.IsTrue(sector.Ctx.Bus.Get(AreaToken), "Entering the area must raise the level.");
             Assert.IsFalse(encounter.HasFired, "The delay must hold the fire sequence.");
             Assert.AreEqual(0, wave.Spawned.Count);
 
             // Leaving the area must not cancel — the predicate latched on first satisfaction.
-            player.transform.position = GamePlane.PlanePointToWorld(new Vector2(100f, 0f));
+            ShipTestFactory.MoveKinematicShip(
+                player, GamePlane.PlanePointToWorld(new Vector2(100f, 0f)));
             yield return new WaitForFixedUpdate();
             yield return new WaitForFixedUpdate();
 
@@ -243,7 +244,7 @@ namespace Tests.PlayMode
 
             yield return sector.Setup();
 
-            player.transform.position = GamePlane.PlanePointToWorld(TriggerPlane);
+            ShipTestFactory.MoveKinematicShip(player, GamePlane.PlanePointToWorld(TriggerPlane));
             yield return WaitSeconds(() => sector.Ctx.Bus.Get(AreaToken), 5f);
             Assert.IsTrue(sector.Ctx.Bus.Get(AreaToken));
             Assert.IsFalse(encounter.HasFired);

@@ -410,6 +410,11 @@ Format: **term** — definition. *(authority)*
 - **lane launcher** — the Python library that composes a lane's env, runs the
   batch child through the coordinator, and reads artifacts back from the dir it
   named. *(eval_lane.py)*
+- **player eval lane** — the eval lane under player executionMode (a leased
+  editor convert step builds the session's model bundle, the dedicated headless
+  exe runs the sim lease-free), NOT a new `SessionLane`. Player scores are an
+  uncalibrated executionMode until bundle v2; the editor eval stays the
+  verdict-bearing reference. *(eval_lane.py --exec player, EvalPlayerBoot)*
 - **checkpoint watch** — the discover → per-step-dir → replay-or-run loop
   extracted from the eval gate; a finished step dir replays instead of
   re-running. *(checkpoint_watch.py)*

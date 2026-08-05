@@ -39,10 +39,11 @@ namespace Game.RLHarness
         public struct Summary
         {
             public string schema;
+            // Source stem used as the Python checkpoint key.
             public string checkpoint;
-            /// <summary>The file RL_HARNESS_ONNX named — provenance the imported asset path erases.</summary>
+            // Original ONNX path retained for provenance.
             public string checkpointSource;
-            /// <summary>Slot-2 provenance; empty unless the opponent is a checkpoint.</summary>
+            // Source stem for checkpoint opponents; otherwise empty.
             public string opponentCheckpoint;
             public string opponentCheckpointSource;
             public int[] seeds;
@@ -65,9 +66,9 @@ namespace Game.RLHarness
             var summary = new Summary
             {
                 schema = SchemaId,
-                checkpoint = sessionSpec.onnxAssetPath,
+                checkpoint = sessionSpec.CandidateStem,
                 checkpointSource = sessionSpec.onnxSourcePath,
-                opponentCheckpoint = sessionSpec.opponentOnnxAssetPath,
+                opponentCheckpoint = sessionSpec.opponentLabel,
                 opponentCheckpointSource = sessionSpec.opponentOnnxSourcePath,
                 seeds = (int[])sessionSpec.seeds.Clone(),
                 episodesPerSeed = sessionSpec.episodesPerSeed,
@@ -106,10 +107,10 @@ namespace Game.RLHarness
             var summaryPath = jsonlPath.Replace(".jsonl", "-summary.json");
             File.WriteAllText(summaryPath, JsonUtility.ToJson(summary, prettyPrint: true));
             foreach (var o in summary.opponents)
-                Debug.Log($"[CheckpointEvaluator] {sessionSpec.onnxAssetPath} vs {o.opponent}: episodes={o.episodes} "
+                Debug.Log($"[CheckpointEvaluator] {summary.checkpoint} vs {o.opponent}: episodes={o.episodes} "
                     + $"W/L/D={o.wins}/{o.losses}/{o.draws} "
                     + $"winRate={o.winRate:F3} wilsonLB95={o.wilsonLowerBound95:F3}");
-            Debug.Log($"[CheckpointEvaluator] {sessionSpec.onnxAssetPath}: summary → {summaryPath}");
+            Debug.Log($"[CheckpointEvaluator] {summary.checkpoint}: summary → {summaryPath}");
             onDone?.Invoke(summary);
         }
 

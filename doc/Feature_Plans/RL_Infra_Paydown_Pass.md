@@ -1,6 +1,6 @@
 # RL Infrastructure Paydown Pass
 
-> STATUS: live arc — PR-1 SHIPPED #223, PR-2 SHIPPED #224; PR-3 GREW INTO ITS OWN ARC → `RL_Harness_Lane_Unification.md` — **ARC COMPLETE 2026-07-31** (A #231 / move #236 / C #238 / D #239 / F #240 / B #246 all shipped; slice E closed unbuilt); **PR-4 SHIPPED #244** (`959ab4f3`, 2026-07-31); PR-5 `player-eval` design FROZEN 2026-07-31 (§PR-5 brief below, building); bench-hardening item HELD pending user discussion
+> STATUS: **PASS CLOSED 2026-08-04** — PR-1 #223 · PR-2 #224 · harness-lane arc COMPLETE 2026-07-31 (`RL_Harness_Lane_Unification.md`: A #231 / move #236 / C #238 / D #239 / F #240 / B #246; E closed unbuilt) · PR-4 #244 · post-arc hygiene #249 · **PR-5 SHIPPED #252** (`3635cc65`, 2026-08-03). Bench-hardening HELD item superseded by Throughput Pass 2 (`b2b8a8d1`). Retrospective + record corrections: §Pass close-out.
 
 *Draft • 2026-07-28 • seeded by a four-lane parallel review (run history + results artifacts, code audit, PR trail #130–#222, board/deferral sweep) run in the coordinating session on 2026-07-28.*
 
@@ -372,9 +372,82 @@ player `executionMode`.
 
 ## Held
 
-- Bench hardening + adjudicating throughput run — user discussion first.
+- Bench hardening + adjudicating throughput run — SUPERSEDED: throughput
+  reopened as Pass 2 scoped to the K1 schema break (`b2b8a8d1`); Stage 0 ran
+  2026-08-03 (M 161.185 vs K 139.195 steps/s). Pass 2's own scoping owns
+  benching now; the held discussion is moot.
 - Combat-sector validation of the shipped policy + #222 gizmos: separate
   existing thread (agent-1), not part of this pass.
+
+## Pass close-out (2026-08-04)
+
+Two-lane retrospective at completion (PR-trail review of #231/#236/#238/#239/
+#240/#244/#246/#249/#251/#252 against the frozen briefs; artifact verification
+of every posted result). Full reports live in the coordinating session's
+transcript; verdicts and corrections here.
+
+**Verdict.** Contract fidelity was high across all 11 PRs — zero silent
+deviations; every departure was flagged in the PR body or user-ruled as an
+amendment. The pass's strongest habit: calibrating the instrument before
+trusting it (slice A discovered the sim nondeterminism via its own baselines
+and amended to the deterministic mask; #239 reported its falsified facing
+acceptance rather than rescuing it; #244 ran the variance experiment before
+designing verdicts on top of it).
+
+**Record corrections (from artifact recount; conclusions unchanged):**
+variance experiment = **35** evals, not 34; jobs-off shift **+2.0**, not +1.9;
+golden row-identity range **18–24**/75, not 18–21. Two unrecorded nuances:
+(a) the banked arm's best replicate (75/75) came from the one run that failed
+at teardown after writing its summary — excluding it moves the banked mean
+71.0 → 69.4; (b) held-out seeds 1001–1002 are exercised routinely by the
+test-eval fixture lane (smoke model only, so no selection leak), meaning
+"sealed" holds at the candidate/banking layer but that exposure is invisible
+to `heldout_draws.jsonl`.
+
+**Still-standing defects — the two undispositioned codex rounds (#246/#240):**
+`RLCapturePlayModeTests` missing its domain category (AGENTS.md violation);
+unsanitized checkpoint stem can reach `CaptureRecorder.Validate` and abort a
+capture; `eval_lane.py` manual out-dir uses second-precision timestamps
+(collision window). Process finding behind them: #246 merged 17 minutes after
+a 2×P1 review with no disposition — the sole break in an otherwise universal
+disposition-table norm, at peak merge parallelism. Fix is procedural: no merge
+with an undispositioned review thread; a one-line below-bar reply counts,
+silence does not.
+
+**Operational notes:** `eval_bank.py` has never banked a real run (BANK_ROOT
+never created) — first real use is its e2e. Capture producers still leak raw
+frames (K1-4 left 945 PNGs beside finished mp4s); the retention board card
+stays open — the pass only bought the one-time 2.4 → 1.4 GB cleanup.
+Recurring review classes worth making structural: runtime component lookups
+(×3 in one week) and structure-ratchet placement (×3) — both always caught by
+the adversarial lens, never in-house.
+
+**Seeds for the next pass — RL trainer Python reimpl (new thread):**
+1. Freeze the C#↔Python wire contract (obs/action schema, checkpoint/ONNX
+   format, handshake grammar, JSONL/summary schemas) as its own brief-grade
+   doc before porting — the arc's freeze→build→flag loop, applied to the
+   boundary the trainer lives on.
+2. Define trainer-equivalence gates BEFORE porting: fixed-seed update math on
+   synthetic batches vs the ml-agents reference, gradient/loss traces on a
+   frozen buffer. The golden-mask lesson: byte-identity against a live sim
+   fails; know which layer is gateable first.
+3. Fund #251's player-build tripwire first — the merge gate never builds a
+   player (the identical asmdef break sat invisible 8 days) and the trainer
+   arc lives entirely on that blind side, consuming the player exe, env
+   grammar, and JSONL schemas.
+4. Route persistence/resume PRs through the adversarial lens with an
+   atomicity checklist — crash-window/authority shapes (#244's write-ahead
+   registry, resume addressability) were codex's uniquely-caught class, and a
+   trainer is made of them (checkpoint writes, registries, partial batches).
+5. Python test shape to carry forward: #244's stdlib known-value tests +
+   fake lane launcher, #240's subprocess-free env-composition tests — pure
+   functions plus fakes at the process boundary, no Unity boot.
+6. Existing anchors: ml-agents 3.0 has no mixed continuous+discrete actions
+   (`Tactical_AI_Audit_And_Roadmap.md`; K1-3's 5+2 ActionSpec rides the
+   custom-trainer-plugin seam, `Anchored_Intent_Architecture.md`
+   §Infrastructure); Throughput Pass 2 owns the perf motive; the run-mechanics
+   runbook, `eval_bundle_v1.json`, and the player-eval lane are the
+   operational substrate the new trainer must slot into.
 
 ## References
 
