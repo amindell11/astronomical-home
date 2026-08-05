@@ -61,8 +61,10 @@ update phases, not cores).
 2. **Stage-gated takeover.** Stages 1–2 are committed now; every later stage
    opens only through its written entry gate. A full ml-agents reimpl is NOT
    the committed end state.
-3. **Layered equivalence.** Behavioral gates at every stage; math gates arm
-   exactly when a stage re-owns the corresponding math (§Equivalence gates).
+3. **Layered equivalence.** Cheap behavioral gates at every stage; the full
+   paired-run gate concentrates at cutover; math gates arm exactly when a
+   stage re-owns the corresponding math (§Equivalence gates — amended
+   2026-08-05, user ruling).
 
 Standing assumptions (noted, not asked): the two runtimes coexist behind a
 `run_parallel.py` runtime selector, with stock `mlagents-learn` remaining the
@@ -82,18 +84,20 @@ not ported. Cost stated honestly: the owned entry imports ml-agents
 *internals*, so upgrading ml-agents gets harder; acceptable because the
 toolchain is pinned anyway. The seam inversions land here (run manifest,
 structured summary stream, explicit worker-index argv, atomic checkpoint
-publish). Gates: behavioral (§Equivalence).
+publish). Gates: cheap tier only (§Equivalence gates) — stage 1 alone never
+becomes the production path.
 
 **Stage 2 — cross-worker microbatch inference (committed).** Collect ready
 workers inside a sub-millisecond window and run one vectorized policy forward
 instead of sequential per-worker forwards. Estimated 190–240 steps/s. Gates:
-behavioral, plus one sim-free identity proof (batched inference ≡ sequential
-inference given identical weights and observations).
+cheap tier + the batched ≡ sequential identity proof; the committed scope's
+single full paired run fires at this stage's cutover.
 
 **Stage 3 — GPU PPO updates (entry-gated).** Entry gate: stages 1–2 shipped
 and the update phase still ≥~25% of wall time. Requires a CUDA torch build
-(isolated env or a relaxed pin — first stack-freedom bite). Gates: behavioral
-+ frozen-buffer CPU-vs-GPU equivalence within float tolerance.
+(isolated env or a relaxed pin — first stack-freedom bite). Gates: cheap tier
++ frozen-buffer CPU-vs-GPU tolerance + a re-armed full paired run at its own
+cutover (§Equivalence gates, re-arm rule).
 
 **Stage 4 — local actors + rollout barriers (entry-gated).** Inference moves
 into Unity (Sentis) with weight sync at update boundaries — this changes the
@@ -108,18 +112,39 @@ suite arms. Not committed.
 
 ## Equivalence gates (frozen)
 
-**Behavioral — every stage, before it becomes the production path:**
+**Cheap tier — every stage; hours, not nights:**
 
 - *Paired throughput bench*: existing `bench_throughput.py` protocol — 24k
   steps, N=6/M=1, ≥2 quiet replicates per arm, same tree + config SHA-256,
   ml-agents runtime vs owned runtime. >5% replicate gap → third run, don't
   interpret unstable pairs. This is the stage's throughput claim.
-- *Paired training run judged by the eval gate*: one full from-scratch run
-  per runtime, same tree/config/composition; final checkpoints judged with
-  the #244 machinery (K=5 gate replicates on canonical seeds, per-episode
-  McNemar paired A/B on shared seeds). Pass = within the measured noise floor
-  (replicate SD ≈ 1.2–2.5 on /75 totals). This is the semantics claim:
-  scheduling and batching changes must not change what gets learned.
+- *Curriculum canary*: full production config, ~300k steps per arm — far
+  enough to cross the first lesson advance (K1-4 crossed at ~222k). Assert
+  the transition fires at a comparable step; overlay loss/entropy for gross
+  divergence; check mechanical invariants (updates per N steps,
+  checkpoint/summary cadence, one JSONL per worker).
+- *Ghost-swap canary*: `ppo_ship_combat_selfplay_smoke.yaml` under the owned
+  runtime — swap/team/ELO mechanics exercised in seconds.
+- *Stage-specific sim-free proofs* — see the table.
+
+**Cutover gate — once for the committed scope.** When the owned runtime
+becomes the production path (post-stage-2): one full from-scratch run per
+runtime, same tree/config/composition; final checkpoints judged with the
+#244 machinery (K=5 gate replicates on canonical seeds, per-episode McNemar
+paired A/B on shared seeds). Pass = within the measured noise floor
+(replicate SD ≈ 1.2–2.5 on /75 totals). It certifies the combined
+stage-1+2 delta at once. Preferred vehicle: piggyback the next needed
+production retrain — run it on the owned runtime, so the stock reference arm
+on the same tree is the only marginal run; flag at ledger-claim time that a
+gate failure sends that retrain back to stock (the piggybacked thread
+carries the schedule risk). Bisection if it fails: microbatch window = 1
+reproduces sequential scheduling — an internal A/B knob separating stage 2's
+contribution from stage 1's.
+
+**Re-arm rule.** Every entry-gated stage that changes update math or
+synchronization semantics (GPU updates, `threaded`-style overlap, local
+actors, PPO re-ownership) re-arms the full paired-run gate at its own
+cutover.
 
 Why behavior-level while the math is inherited: the sim is not run-to-run
 reproducible ([[project-eval-sim-nondeterminism]]; the golden-mask history),
@@ -142,13 +167,13 @@ strength".
   identical weights via both paths; Sentis imports both; identical inference
   outputs on a fixed observation batch.
 
-| Stage | Behavioral | Math |
-|---|---|---|
-| 1 entry + scheduler | bench + paired run | none (math untouched) |
-| 2 microbatch | bench + paired run | batched ≡ sequential proof |
-| 3 GPU updates | bench + paired run | frozen-buffer CPU-vs-GPU tolerance |
-| 4 local actors | bench + paired run + sample-efficiency guard | export identity |
-| 5 PPO re-ownership | bench + paired run before cutover | full suite |
+| Stage | Cheap tier | Sim-free proof | Full paired run |
+|---|---|---|---|
+| 1 entry + scheduler | bench + canaries | — | covered at cutover |
+| 2 microbatch | bench + canaries | batched ≡ sequential | **cutover gate** (combined 1+2) |
+| 3 GPU updates | bench + canaries | frozen-buffer CPU-vs-GPU tolerance | re-armed at its cutover |
+| 4 local actors | bench + canaries + sample-efficiency guard | export identity | re-armed at its cutover |
+| 5 PPO re-ownership | bench + canaries | full math suite | re-armed before cutover |
 
 ## Compatibility requirements (hard core)
 
