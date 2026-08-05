@@ -68,7 +68,6 @@ namespace Player
             thrustInput = playerInput.Thrust;
             strafeInput = playerInput.Strafe;
             rotationInput = playerInput.Rotation;
-            // Latched, not overwritten: the edge must survive render frames with no fixed step.
             boostInput |= playerInput.BoostDown;
             primaryHeld = playerInput.PrimaryFire;
             secondaryHeld = playerInput.SecondaryFire;
