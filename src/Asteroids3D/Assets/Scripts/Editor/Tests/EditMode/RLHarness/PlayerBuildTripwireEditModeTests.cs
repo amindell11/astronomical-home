@@ -14,6 +14,7 @@ namespace Tests.EditMode
 {
     // The merge gate never builds a player, so an asmdef edit can drop an assembly from
     // player builds while every editor gate stays green (#185, #251 — 8 days invisible).
+    [Category("AI")]
     [Category("Smoke")]
     public class PlayerBuildTripwireEditModeTests
     {
