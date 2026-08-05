@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: BigFieldSettings
   m_EditorClassIdentifier:
   chunkSize: 9.64
-  noiseFrequency: -0.22
-  averageAsteroidsPerCell: 3.99
-  densityMultiplierRange: {x: 0.13, y: 0.25}
+  noiseFrequency: 0.06
+  averageAsteroidsPerCell: 2
+  densityMultiplierRange: {x: 0.05, y: 0.7}
   fieldRadius: 10000
   ambientDrift: 1
   packingMargin: 0
@@ -25,8 +25,8 @@ MonoBehaviour:
   noiseLacunarity: 1.25
   noisePersistence: 0.21
   ridgedNoise: 1
-  noiseContrast: 5.41
-  densityFloor: 0.195
+  noiseContrast: 3.2
+  densityFloor: 0.22
   warpStrength: 2.15
   warpFrequency: 0.63
   loadRadius: 87.5
