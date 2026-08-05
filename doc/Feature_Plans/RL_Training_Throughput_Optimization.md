@@ -265,20 +265,94 @@ decisions/s × samples-needed. The two only move together while the decision int
 is fixed — the moment it becomes a lever, optimize decisions/s, never steps/s. All
 Pass-2 stages report both.
 
-### Stage 0 — re-baseline (mandatory first)
+### Stage 0 — scratch-path correctness + re-baseline (mandatory first)
 
-Rebuild the exe on current main; `bench_throughput.py` N=6, ≥2 runs per config (single
-N=6 runs swing ±15% — nothing inside that band is attributable). Deliverable: does
-~213 steps/s hold post-drift? This is the A/B floor for everything below.
+**2026-08-03 ruling — retire the legacy bridge.** The original warm-start arm is
+invalid. `ship_combat_500k` exports one 72-float observation and 4 continuous actions;
+current main expects entity observations `[64,7]` plus 26 core observations and 6
+continuous actions. ML-Agents rejects the seed's Policy, value optimizer, and critic,
+then silently initializes them from scratch. It therefore cannot bridge current main to
+the historical ~213 steps/s result.
 
-Arms: **A** = main + warm-start (comparable to the historical 213), **A′** = main +
-scratch-init (the bridge, since K1-4 trains from scratch), **B** = K1-3 branch + scratch
-(the real Stage-2 floor — it prices the new obs/action schema). The self-play arm is
-DROPPED: K1-4 is locked as "stock-PPO vs the gate roster, no self-play changes"
-(`Anchored_Intent_Architecture.md`), so scripted-roster is the composition that ships.
+The historical absolute rate is also not a current acceptance threshold. That bench began
+at density 1.0 with Dummy weight 0.4; the current full curriculum begins at density
+0.1–0.3 with Dummy weight 8.0 (roughly 90% Dummy after normalization). Code, policy work
+mix, and environment load all moved. Keep 213 as archaeology only — never a pass/fail line.
 
-> **Stage 0's first finding had nothing to do with throughput: the player build was
-> broken on main and had been for 8 days.** `Game.Capture.Editor.asmdef` (Slice-B #246)
+#### Stage 0C — full-config scratch correctness gate
+
+Correctness precedes timing. Build a non-development player from finalized pre-K1 main,
+then run the production `ppo_ship_combat.yaml` from scratch at N=6, M=1, scripted roster,
+base port 5006. Start with a 4k-step canary. Require trainer exit 0, a checkpoint/ONNX,
+six fresh worker JSONLs, and no surviving trainer/player process. A throughput number from
+an incomplete fleet is not a degraded result; it is no result.
+
+The first clean attempt on main `b2b8a8d1` exposed the current blocker: workers 0 and 3
+each wrote a 600-decision random-vs-Dummy timeout, then stopped answering during/after the
+episode boundary. ML-Agents aborted at step 1968 with `Workers {0, 3} stuck in waiting
+state`; no bench row was appended.
+
+**Resolved 2026-08-03 — invalid LFS-pointer player build, no runtime fix.** The worktree's
+Git LFS assets were unresolved pointer files when that player was built. All six player
+logs showed repeated `ArgumentNullException` from
+`AsteroidController.MeanVertexRadius(meshInfo.mesh)`: the ten asteroid FBXs had imported
+as null mesh references, four workers exited, and ML-Agents' failure-drain path reported
+the two survivors as stuck. Hydrating those ten FBXs and rebuilding the same tree produced
+a successful non-development player. A full-config scratch canary then reached step 4000
+at N=6, M=1 with six fresh field-enabled JSONLs, an exported ONNX, no matching exception
+in any player log, and no surviving process. The experimental cached-radius patch was
+reverted; hiding unresolved render/collider assets would have preserved an invalid build.
+
+Player-build preflight now includes verifying every training-required LFS asset is a real
+payload, not a pointer. A Unity `Succeeded` build receipt alone does not prove this. Stage
+0C first went green on the hydrated `b2b8a8d1` tree/build; the fully hydrated measured
+trees and Stage 0M result follow.
+
+#### Stage 0M — scratch-to-scratch matrix
+
+Only after Stage 0C is green:
+
+| Arm | Tree | Init | Purpose |
+|---|---|---|---|
+| **M** | finalized pre-K1 main | scratch | current production-schema/full-curriculum floor |
+| **K** | K1 branch containing that exact main | scratch | prices the K1 obs/action and anchored-policy path |
+
+Both arms use the same frozen `ppo_ship_combat.yaml`, N=6, M=1, 24k steps, and scripted
+roster; neither passes `--initialize-from`, `--self-play`, or hybrid-worker flags. Rebuild
+the non-development player per tree and record tree SHA, config SHA-256, and successful
+player-build receipt with every row. Any later source/config merge invalidates both players.
+
+Run ≥2 quiet-machine replicates per arm. If `abs(r1-r2) / mean(r1,r2) > 5%`, add a third
+run and do not interpret the unstable pair. Report both fixed-steps/s and decisions/s
+(`DecisionIntervalSteps` is 10); the bench's existing ~10–15% resolution remains the
+attribution floor. Deliverable: the replicated M floor and K-vs-M delta — not whether an
+obsolete 213 holds.
+
+**2026-08-03 result — Stage 0 complete.** Both worktrees had all 309 LFS payloads
+hydrated before their accepted builds. M is current main `3635cc65`; K is local-only
+merge `49687e74` (K1 `48a0cbee` plus that exact main). Both used
+`ppo_ship_combat.yaml` SHA-256
+`DC13C81D887AFA1B65F4CEB192931164639A9178BC2F9B64915A3F5AB18E6855`.
+Their non-development build receipts reported `Succeeded`, zero errors, and near-identical
+payload size (~225.64 MB).
+
+| Arm | r1 steps/s | r2 steps/s | mean steps/s | mean decisions/s | replicate gap |
+|---|---:|---:|---:|---:|---:|
+| **M** `3635cc65` | 160.92 | 161.45 | **161.185** | **16.119** | 0.329% |
+| **K** `49687e74` | 139.33 | 139.06 | **139.195** | **13.920** | 0.194% |
+
+Neither arm triggered a third replicate. K is **21.99 steps/s / 2.199 decisions/s slower
+than M (-13.643%)**. The repeats are exceptionally stable, but the magnitude sits inside
+the bench's historical 10–15% attribution band. Treat it as a likely material regression
+at the resolution boundary, not a causal bucket assignment; Stage 1 decides which K path
+owns it.
+
+A future schema-compatible warm arm may diagnose policy-dependent episode mix, but it is
+not part of Stage 0 and must never serve as the scratch K1 comparator. The self-play arm
+remains DROPPED: K1-4 is locked as stock PPO against the scripted gate roster.
+
+> **Closed setup finding — the player build was broken on main for 8 days.**
+> `Game.Capture.Editor.asmdef` (Slice-B #246)
 > carried `defineConstraints: [UNITY_INCLUDE_TESTS]`, so player builds silently dropped
 > the whole Capture assembly while `Game.RLHarness.Editor` still referenced
 > `CaptureDraw`/`CaptureConfig` — CS0246, Build Failure. Editor gates never see it; the
@@ -288,15 +362,82 @@ DROPPED: K1-4 is locked as "stock-PPO vs the gate roster, no self-play changes"
 > Follow-up carded: the gate needs a player-build tripwire, or the next 8-day
 > invisible break is only a matter of time.
 
-### Stage 1 — re-decompose under self-play
+### Stage 1 — re-decompose on the K1 scripted-roster path
 
-Profiler-attach on an N=1 training load, refresh the Pass-1 bucket table under
-self-play. The critical split Pass 1 never made: inside the ~29% decision path, how
+Profiler-attach on an N=1 K-tree training load using K1-4's locked scripted roster; do not
+substitute self-play. Refresh the Pass-1 bucket table under the composition that will
+actually retrain. The critical split Pass 1 never made: inside the ~29% decision path, how
 much is core-consuming obs-build/action-apply vs non-core gRPC wall-time? That split
 routes Stage 2 — core-bound obs cost says "trim obs", wall-time latency says "decision
 interval / more workers".
 
+**2026-08-03 result — Stage 1 complete; do not hold K1-4 for obs trim.** Profiled the
+unmodified measured K tree `49687e74` with a development player, N=1/M=1, the production
+`ppo_ship_combat.yaml`, and the locked scripted roster. The profiling-only run reached
+6,026 steps and exported normally. A bounded raw capture retained the last 300 main-thread
+frames; ML-Agents' own hierarchical timers covered 60,226 fixed frames / 6,027 substantive
+decisions. Do not treat this development/profile run as a throughput row.
+
+| K main-thread bucket (300 frames) | self ms | share | Pass-1 comparison |
+|---|---:|---:|---|
+| synchronous ML-Agents exchange (`root.DecideAction`) | **152.2** | **47.2%** | 164 ms; absolute latency is essentially unchanged |
+| obs-build + serialization + action apply | **~2.1** | **~0.6%** | previously hidden inside the decision parent |
+| MPC jobs + waits | **~57.5** | **~17.8%** | 97 ms / 17%; same share, much less absolute work |
+| PhysX + physics queries/pipeline | **~31.8** | **~9.9%** | ~86 ms / 15% |
+| AI command + Scout scan | **~27.4** | **~8.5%** | 55 ms / 10% |
+| presentation/audio/UI | **~9.1** | **~2.8%** | ~25 ms / 5%; still not a lever |
+| asteroid maintenance | **~3.3** | **~1.0%** | 16 ms / 3% |
+| other/profiler overhead | **~39.5** | **~12.2%** | residual |
+| **main thread** | **322.8** | **100%** | 573.6 ms in Pass 1 |
+
+The causal split is decisive. Across 6,027 decisions, `AgentSendState` (collection,
+serialization, and masks) used 0.354 s and `AgentAct` used 0.028 s: **~0.063 ms per
+decision interval combined**. The synchronous exchange used 29.130 s: **~4.833 ms per
+decision, 98.7% of the complete ML-Agents decision path**. Even deleting all core
+obs/action work would recover under 1% of this main-thread capture. The K1 observation
+shape is therefore not the Stage-0 regression's actionable throughput cause, and trimming
+it cannot justify another schema edit before K1-4.
+
+**Route:** close the pre-K1-4 fork and proceed without obs trim. Preserve observation
+changes for a later schema break only if they have a learning/semantic reason. A future
+throughput experiment must attack the latency term directly (decision interval, batching,
+or trainer/communicator scheduling), with the MDP-shift warning on decision interval and
+decisions/s as the primary measure. PhysX remains a separate semantics-adjacent A/B, not
+an explanation for the decision-path result.
+
 ### Stage 2 — one lever per bucket, A/B'd separately
+
+**2026-08-03 result — existing batching and Torch thread-count levers closed; keep
+N=6/M=1 and four Torch threads.** User-authorized matrix reused exact K `49687e74`, the
+same config SHA-256 and scratch scripted roster, a fresh non-development player build,
+24k steps, and two quiet replicates per interpreted arm. A temporary repository-side
+entry wrapper changed only `torch.set_num_threads`; every trainer log recorded requested
+and actual thread count, and the wrapper/venv junction were removed after capture.
+
+| Arm | r1 steps/s | r2 steps/s | mean steps/s | decisions/s | gap | vs N6/M1/T4 |
+|---|---:|---:|---:|---:|---:|---:|
+| **N=6/M=1, Torch 4** (accepted Stage-0 K floor) | 139.33 | 139.06 | **139.195** | **13.920** | 0.194% | — |
+| **N=3/M=2, Torch 4** | 137.86 | 137.16 | **137.510** | **13.751** | 0.509% | **-1.211%** |
+| **N=6/M=1, Torch 1** | 104.23 | 103.92 | **104.075** | **10.408** | 0.298% | **-25.231%** |
+| **N=6/M=1, Torch 2** | 127.56 | 129.69 | **128.625** | **12.862** | 1.656% | **-7.594%** |
+
+No arm triggered a third run. N=3/M=2 is a stable tie inside resolution, not a throughput
+win. It halves player RSS (~590 vs ~1,170 MB) and improves worker steps/core ~9%, but
+two arenas share a Unity main thread and their episode boundaries desynchronize: policy
+evaluation still fired ~21–23k times instead of collapsing toward ~12k. Keep M>1 as the
+memory/CTDE topology, not the K1-4 throughput topology.
+
+The thread result is causal, not noise. Four-thread Stage-0 PPO updates averaged 64.5 s;
+two threads raised them to 94.8 s and one thread to 160.2 s. Policy evaluation did not
+compensate: ~3.89 ms/call at four threads, ~3.82 at two, and ~4.31 at one. The Stage-1
+N=1 profile stopped at 6k, below the 10,240-step PPO buffer, so it correctly decomposed
+the base exchange but could not expose these update stalls; the full 24k matrix does.
+
+**Ruling:** ship no topology or thread override. Existing ML-Agents defaults already win
+on wall throughput. A future trainer-side lever must either batch ready *processes* before
+`TorchPolicy.evaluate` or overlap PPO updates (`threaded: true`, explicitly relaxing strict
+on-policy collection). Neither is required before K1-4 and neither starts without a new
+learning-semantics decision.
 
 - **Safe (no semantics):** PhysX config — prune the all-ffff collision matrix, raise
   `m_SleepThreshold` off 0.005, fix `m_WorldBounds` ±250 vs 400 arena spacing.
@@ -304,19 +445,16 @@ interval / more workers".
 - **Schema-riders (free only because the K1 retrain is from-scratch):**
   - *Decision interval* — direction non-obvious: lowering trades sim-ticks-per-sample
     against round-trip count; measure in decisions/s, expect the MDP to shift.
-  - *Obs/Scout trim* — Scout scans every frame (~10%) and obs-build sits inside the
-    29%. Must ride a schema-break window (K1-4 or later) — K1-3's brief is frozen and
-    building; nothing folds into it.
+  - *Scout trim* — Scout scans remain ~8.5% with AI command, but this is per-step semantics
+    and below the bench attribution floor. Observation trim is CLOSED by Stage 1.
 
 **Sequencing / coordination.** heat-gate #248 (`53368b6a`) cleared the pre-launch
-tripwire. Stage 0 needs exclusive base-port 5006 + a quiet ~14-core machine — it queues
-behind the in-flight K1-3 build (agent-1) and any concurrent bench. Open fork (user
-call pending): run Stage 1 against the K1-3 branch while it's in review — which keeps
-the obs-trim option alive for K1-4's window — or wait for the K1-4 merge and accept
-obs-trim slips to a later break. Baseline note: pre-#248 numbers were taken against
+tripwire, and Stages 0–2 completed on the exact K tree above. The pre-K1-4 fork is closed:
+Stage 1 rules out obs trim as a throughput lever, so it does not block the locked scripted-
+roster K1-4 retrain. Baseline note: pre-#248 numbers were taken against
 overheating teachers; the fix raises sustained teacher fire rate (~0.7 → ~1.2 shots/s),
-so projectile/physics load shifts slightly — one more reason Stage 0 re-baselines
-rather than trusting the 213.
+so projectile/physics load shifts. Stage 0 now measures only the frozen scratch-vs-scratch
+M/K pair above; legacy absolute rates are context, not gates.
 
 ## Coordination
 
@@ -324,7 +462,6 @@ rather than trusting the 213.
   clear, and its first act is re-measuring, not retuning: #206 deleted the tactical/goal-mode
   costs that Phase 2's `samples 512→128` result was taken against. Phase 1b may still contend
   over ship prefabs.
-- Re-measure under **self-play** composition once the `RL_SELFPLAY` blocker is fixed — the
-  baseline above is the scripted roster, which is why `--config` defaults to
-  `ppo_ship_combat.yaml`. Per-step levers are composition-independent, so Phase 1 conclusions
-  carry, but absolute steps/s will move.
+- Self-play is not part of the K1-4 throughput gate. Re-measure it only when a future arc
+  actually selects a ghost-league composition; the accepted Stage-0 baseline and Stage-1
+  profile deliberately use K1-4's scripted roster and `ppo_ship_combat.yaml`.
