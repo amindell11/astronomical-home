@@ -20,7 +20,7 @@ import argparse
 import os
 import subprocess
 import sys
-import time
+from datetime import datetime
 from pathlib import Path
 
 from driver_common import default_unity_exe
@@ -181,7 +181,8 @@ def main() -> None:
         stem = f"velrebase-{args.open_loop.lower()}"
     else:
         stem = args.onnx.stem if args.onnx else SMOKE_FIXTURE_STEM
-    out_dir = args.out_root / f"{stem}-{time.strftime('%Y%m%d-%H%M%S')}"
+    # Microseconds: two manual launches in the same second must not share a dir.
+    out_dir = args.out_root / f"{stem}-{datetime.now().strftime('%Y%m%d-%H%M%S-%f')}"
     print(f"[eval-lane] exec {args.exec_mode}  project {args.project}  seeds {args.seeds}  artifacts {out_dir}")
     if args.exec_mode == "player":
         bundle = run_convert_step(project=args.project, unity=unity, lease=args.lease, out_dir=out_dir,
