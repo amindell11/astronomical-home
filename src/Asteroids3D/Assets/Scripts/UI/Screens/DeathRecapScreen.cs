@@ -21,10 +21,11 @@ namespace UI
 
         public static DeathRecapScreen Create()
         {
-            var go = new GameObject("DeathRecapScreen", typeof(Canvas), typeof(GraphicRaycaster));
-            var canvas = go.GetComponent<Canvas>();
+            var go = new GameObject("DeathRecapScreen");
+            var canvas = go.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.sortingOrder = 100;
+            go.AddComponent<GraphicRaycaster>();
             return go.AddComponent<DeathRecapScreen>();
         }
 
@@ -36,11 +37,10 @@ namespace UI
 
             var dim = AddStretchedImage(transform, "Dim", new Color(0f, 0f, 0f, 0.65f));
 
-            var panel = new GameObject("Panel", typeof(RectTransform), typeof(VerticalLayoutGroup),
-                typeof(ContentSizeFitter), typeof(Image));
+            var panel = new GameObject("Panel", typeof(RectTransform));
             panel.transform.SetParent(dim.transform, false);
-            panel.GetComponent<Image>().color = new Color(0.06f, 0.07f, 0.10f, 0.9f);
-            var layout = panel.GetComponent<VerticalLayoutGroup>();
+            panel.AddComponent<Image>().color = new Color(0.06f, 0.07f, 0.10f, 0.9f);
+            var layout = panel.AddComponent<VerticalLayoutGroup>();
             layout.padding = new RectOffset(36, 36, 24, 24);
             layout.spacing = 12f;
             layout.childAlignment = TextAnchor.UpperCenter;
@@ -48,7 +48,7 @@ namespace UI
             layout.childControlHeight = true;
             layout.childForceExpandWidth = false;
             layout.childForceExpandHeight = false;
-            var fitter = panel.GetComponent<ContentSizeFitter>();
+            var fitter = panel.AddComponent<ContentSizeFitter>();
             fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
             fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
 
@@ -102,14 +102,14 @@ namespace UI
 
         private static GameObject AddStretchedImage(Transform parent, string name, Color color)
         {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Image));
+            var go = new GameObject(name, typeof(RectTransform));
             go.transform.SetParent(parent, false);
             var rect = (RectTransform)go.transform;
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.one;
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
-            go.GetComponent<Image>().color = color;
+            go.AddComponent<Image>().color = color;
 
             // Center anchor for children laid out inside the stretched dim.
             var center = go.AddComponent<VerticalLayoutGroup>();
@@ -124,9 +124,9 @@ namespace UI
         private static Text AddText(Transform parent, string name, string content, Font font,
             int size, Color color, FontStyle style = FontStyle.Normal)
         {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Text));
+            var go = new GameObject(name, typeof(RectTransform));
             go.transform.SetParent(parent, false);
-            var text = go.GetComponent<Text>();
+            var text = go.AddComponent<Text>();
             text.font = font;
             text.fontSize = size;
             text.fontStyle = style;
@@ -140,11 +140,10 @@ namespace UI
 
         private static void AddContinueButton(Transform parent, Font font, Action onContinue)
         {
-            var go = new GameObject("Continue", typeof(RectTransform), typeof(Image), typeof(Button),
-                typeof(LayoutElement));
+            var go = new GameObject("Continue", typeof(RectTransform));
             go.transform.SetParent(parent, false);
-            go.GetComponent<Image>().color = new Color(0.20f, 0.55f, 0.95f, 1f);
-            var size = go.GetComponent<LayoutElement>();
+            go.AddComponent<Image>().color = new Color(0.20f, 0.55f, 0.95f, 1f);
+            var size = go.AddComponent<LayoutElement>();
             size.preferredWidth = 220f;
             size.preferredHeight = 44f;
             var label = AddText(go.transform, "Label", "CONTINUE", font, 20, Color.white, FontStyle.Bold);
@@ -153,7 +152,7 @@ namespace UI
             rect.anchorMax = Vector2.one;
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
-            go.GetComponent<Button>().onClick.AddListener(() => onContinue?.Invoke());
+            go.AddComponent<Button>().onClick.AddListener(() => onContinue?.Invoke());
         }
 
         private static void EnsureEventSystem()
