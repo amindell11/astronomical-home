@@ -84,6 +84,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **envelope** | firing envelope · kinematic envelope · scan envelope · MPC travel envelope | Bare "envelope" = firing envelope; qualify the others. |
 | **guard** | the prohibited runtime check (fix-ladder rung 5, pejorative) · a benign regression/test guard · infra guard | The pejorative sense wins in fix-ladder context. Tests say "regression test", not "guard". |
 | **anchor** | `--initialize-from` checkpoint · field world anchor / null anchor · archive anchors (file locations) · arena root · anchored intent / enemy anchor (the MPC-resolved frame reference) | Always qualified. |
+| **trainer** | ml-agents trainer runtime (`mlagents-learn`) · owned trainer runtime (takeover arc) · custom-trainer plugin seam · trainer config (`ppo_*.yaml`) · `RLTrainerConfigEditModeTests` | Always qualified. Bare "the trainer" is legal only in RL-run operational context (= the run's trainer-runtime process), never in a title. |
 
 ---
 
@@ -222,9 +223,14 @@ Format: **term** — definition. *(authority)*
 - **mirror-brawlers** — the stage-(iii) diagnosis in one phrase: a league of
   mirror-brawlers has no pursuit gradient, because every opponent already wants
   the same close-range fight the policy does.
+- **trainer runtime** — the Python process owning environment scheduling, PPO
+  updates, checkpointing, and stats for a training run: stock `mlagents-learn`
+  (the *ml-agents runtime*) today, replaced stage-by-stage by the project-owned
+  *owned runtime*. *(RL_Trainer_Runtime_Takeover.md)*
 - **eval gate** — the deterministic scripted eval run per checkpoint, as a
-  **sidecar**: it reports and does not kill the trainer unless explicitly armed
-  to. Treating it as an automatic stop is the recurring misread. *(eval_gate.py)*
+  **sidecar**: it reports and does not kill the trainer runtime unless
+  explicitly armed to. Treating it as an automatic stop is the recurring
+  misread. *(eval_gate.py)*
 - **gate score** — the eval total (5 archetypes × 15 = X/75; older runs X/60).
   Not comparable across a rules change.
 - **noise floor** — eval re-run variance, **measured 2026-07-30** (34-eval
@@ -389,6 +395,14 @@ Format: **term** — definition. *(authority)*
 - **bleed-through** — letting a damage remainder cross a shield break into hull.
   The live rule since the §C3 overkill PR; the old discard rule was a hidden
   alpha-weapon tax.
+- **DamageInfo** — the per-hit context struct (amount, damage kind, attacker
+  ShipId, hit point/mass/velocity) every damage producer builds at its call site
+  and every damage event carries. The non-obvious bits: producer-side `Amount`
+  is the incoming damage, event-side it is the *applied* damage (absorbed by
+  shield + hull, the locked bleed-through reading); `AttackerId` is
+  `ShipId.Invalid` when no ship caused the hit (asteroid collision); `OnDeath`
+  carries the killing blow and is latched to fire once per life.
+  *(DamageInfo, DamageController)*
 - **painter** — a named diagnostic view (velocity vectors, aim lines, the policy
   facing fan) written once as a drawing routine over a diagnostic canvas, then
   rendered by whichever backend is active — offscreen capture or live editor

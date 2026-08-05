@@ -1,3 +1,4 @@
+using Ships;
 using UnityEngine;
 
 namespace Combat
@@ -13,5 +14,8 @@ namespace Combat
 
         /// <summary>Self-hit identity anchor: the entity's rigidbody, immune to hierarchy above it.</summary>
         Rigidbody Body { get; }
+
+        /// <summary>Damage-attribution identity; <see cref="ShipId.Invalid"/> for non-ship shooters.</summary>
+        ShipId Id { get; }
     }
 }

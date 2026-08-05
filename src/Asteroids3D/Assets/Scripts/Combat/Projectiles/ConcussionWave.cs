@@ -23,7 +23,7 @@ namespace Combat.Projectile
         private readonly HashSet<Collider> resolved = new();
         private readonly HashSet<IDamageable> swept = new();
         private float radius;
-        private GameObject attacker;
+        private Ships.ShipId attackerId;
 
         public float Radius => radius;
         public float MaxRadius => maxRadius;
@@ -41,10 +41,10 @@ namespace Combat.Projectile
         /// <summary>Raised just before every pool return (spent frontier or flush), so trackers never hold a stale registration for an alive-but-pooled wave.</summary>
         public event Action Released;
 
-        /// <summary>Starts a sweep from this transform's position, attributing damage to <paramref name="attacker"/>.</summary>
-        public void Begin(GameObject attacker)
+        /// <summary>Starts a sweep from this transform's position, attributing damage to <paramref name="attackerId"/>.</summary>
+        public void Begin(Ships.ShipId attackerId)
         {
-            this.attacker = attacker;
+            this.attackerId = attackerId;
             radius = 0f;
             resolved.Clear();
             swept.Clear();
@@ -90,8 +90,8 @@ namespace Combat.Projectile
 
                 var outward = OutwardDirection(target.gameObject.transform.position);
                 Push(buffer[i].attachedRigidbody, outward, falloff);
-                target.TakeDamage(maxDamage * falloff, waveMass, outward * expandSpeed,
-                    buffer[i].ClosestPoint(transform.position), attacker);
+                target.TakeDamage(new DamageInfo(maxDamage * falloff, DamageKind.ConcussionWave, attackerId,
+                    waveMass, outward * expandSpeed, buffer[i].ClosestPoint(transform.position)));
             }
         }
 

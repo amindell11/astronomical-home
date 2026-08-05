@@ -12,11 +12,11 @@ namespace Ships.Damage
     /// </summary>
     public interface IDamageEvents
     {
-        /// <summary>Applied damage amount and world hit point.</summary>
-        event Action<float, Vector3> OnDamaged;
+        /// <summary>Per-hit context; <see cref="DamageInfo.Amount"/> is the applied damage (absorbed by shield + hull).</summary>
+        event Action<DamageInfo> OnDamaged;
 
-        /// <summary>Victim id, killer id.</summary>
-        event Action<ShipId, ShipId> OnDeath;
+        /// <summary>Victim id and the killing blow. Fires once per life.</summary>
+        event Action<ShipId, DamageInfo> OnDeath;
 
         Resource Health { get; }
         RegenResource Shield { get; }

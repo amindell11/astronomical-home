@@ -1,5 +1,6 @@
 using System.Collections;
 using Cameras;
+using Damage;
 using Game.Bootstrap;
 using Game.Sectors;
 using Game.Sectors.Utils;
@@ -57,7 +58,7 @@ namespace Player
 
         // Driver-supplied player-death behavior, stored at Build and wired onto every player the rig
         // builds (re-wired across RebuildPlayer). The rig owns no death policy — only this callback.
-        private System.Action<ShipId, ShipId> onPlayerDeath;
+        private System.Action<ShipId, DamageInfo> onPlayerDeath;
 
         // The prefab the current Player instance was built from — a hangar ship change is detected
         // against this (the prefab is the archetype; see ShipLoadout.Ship).
@@ -71,7 +72,7 @@ namespace Player
         /// (before any yield), so a spawn-frame death already has a subscriber.
         /// </summary>
         public IEnumerator Build(IGameServices services, bool buildPlayer,
-            System.Action<ShipId, ShipId> onPlayerDeath)
+            System.Action<ShipId, DamageInfo> onPlayerDeath)
         {
             this.services = services;
             this.onPlayerDeath = onPlayerDeath;

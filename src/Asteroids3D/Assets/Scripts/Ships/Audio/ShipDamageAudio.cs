@@ -1,3 +1,4 @@
+using Damage;
 using Ships;
 using Ships.Damage;
 using Ships.Presentation;
@@ -80,7 +81,7 @@ namespace Ships.Audio
             if (current < previous) PlayHullHit();
         }
 
-        private void HandleDeath(ShipId _victimId, ShipId _killerId)
+        private void HandleDeath(ShipId _victimId, DamageInfo _killingBlow)
         {
             if (deathClip)
                 global::Audio.PooledAudioSource.PlayClipAtPoint(deathClip, transform.position, deathVolume);

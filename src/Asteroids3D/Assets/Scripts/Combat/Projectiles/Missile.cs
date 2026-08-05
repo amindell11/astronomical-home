@@ -34,6 +34,8 @@ namespace Combat.Projectile
 
         public void SetTarget(Transform tgt) => target = tgt;
 
+        protected override DamageKind Kind => DamageKind.Missile;
+
         public float SplashDamage => splashDamage;
 
         /// <summary>
@@ -156,7 +158,7 @@ namespace Combat.Projectile
             base.OnHit(other);
         }
 
-        public void TakeDamage(float damage, float hitMass, Vector3 hitVelocity, Vector3 hitPoint, GameObject attacker)
+        public void TakeDamage(in DamageInfo hit)
         {
             Explode(null);
             Dispose();
@@ -167,16 +169,14 @@ namespace Combat.Projectile
             var buffer = PhysicsBuffers.GetColliderBuffer(64);
             var hitCount = Physics.OverlapSphereNonAlloc(pos, radius, buffer, layerMask);
             var velocity = rb ? rb.linearVelocity : Vector3.zero;
+            var attackerId = Shooter?.Id ?? Ships.ShipId.Invalid;
             for (var i = 0; i < hitCount; i++)
             {
                 var obj = buffer[i].GetComponentInParent<IDamageable>();
                 if (obj == null || obj == directHitTarget || IsFriendly(obj)) continue;
 
-                // Unity "fake null": a destroyed shooter is non-null in C# but throws on member
-                // access, so guard with the UnityEngine.Object bool operator, not ?..
-                var shooterComponent = Shooter as Component;
-                var shooterGameObject = shooterComponent ? shooterComponent.gameObject : null;
-                obj.TakeDamage(splashDamage, mass, velocity, buffer[i].ClosestPoint(transform.position), shooterGameObject);
+                obj.TakeDamage(new DamageInfo(splashDamage, DamageKind.Missile, attackerId,
+                    mass, velocity, buffer[i].ClosestPoint(transform.position)));
             }
         }
 

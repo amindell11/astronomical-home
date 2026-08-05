@@ -185,7 +185,7 @@ namespace Tests.EditMode
 
             var hook = typeof(GameSession).GetProperty("OnPlayerDeath");
             Assert.IsNotNull(hook, "GameSession must expose the OnPlayerDeath policy hook");
-            Assert.AreEqual(typeof(Action<ShipId, ShipId>), hook.PropertyType);
+            Assert.AreEqual(typeof(Action<ShipId, Damage.DamageInfo>), hook.PropertyType);
             Assert.IsTrue(hook.CanWrite, "OnPlayerDeath is the driver-settable policy seam");
 
             var build = typeof(SessionRig).GetMethod("Build");
@@ -195,7 +195,7 @@ namespace Tests.EditMode
                 "Build must take (services, buildPlayer, onPlayerDeath)");
             Assert.AreEqual(typeof(IGameServices), parameters[0].ParameterType);
             Assert.AreEqual(typeof(bool), parameters[1].ParameterType);
-            Assert.AreEqual(typeof(Action<ShipId, ShipId>), parameters[2].ParameterType);
+            Assert.AreEqual(typeof(Action<ShipId, Damage.DamageInfo>), parameters[2].ParameterType);
         }
 
     }

@@ -1,4 +1,5 @@
 using System;
+using Damage;
 using Game.Sectors;
 using Game.Services;
 using Player;
@@ -41,6 +42,6 @@ namespace Game.Bootstrap
         /// injects it onto the player at Build — the rig wires it onto <c>Ship.Damage.OnDeath</c>
         /// synchronously at spawn and re-wires it across a player rebuild; mechanism-only below.
         /// </summary>
-        public Action<ShipId, ShipId> OnPlayerDeath { get; set; }
+        public Action<ShipId, DamageInfo> OnPlayerDeath { get; set; }
     }
 }

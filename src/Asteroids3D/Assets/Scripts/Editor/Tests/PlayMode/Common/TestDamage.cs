@@ -1,3 +1,4 @@
+using Damage;
 using Ships;
 using UnityEngine;
 
@@ -15,16 +16,18 @@ public static class TestDamage
     /// </summary>
     /// <param name="ship">Ship to kill (no-op if null).</param>
     /// <param name="instigator">
-    /// Optional attacker GameObject; pass an enemy ship's GameObject when the test asserts on
-    /// kill attribution (LastAttackerId / OnDeath killer). Null leaves the attacker unset.
+    /// Optional attacker; pass an enemy ship when the test asserts on kill attribution
+    /// (OnDeath killing blow). Null leaves the attacker invalid.
     /// </param>
-    public static void Kill(Ship ship, GameObject instigator = null)
+    public static void Kill(Ship ship, Ship instigator = null)
     {
         if (ship == null) return;
 
         ship.Damage.SetInvulnerability(0f);
+        var hit = new DamageInfo(99999f, DamageKind.Laser,
+            instigator ? instigator.Id : ShipId.Invalid, 0f, Vector3.zero, Vector3.zero);
         for (var i = 0; i < 8 && ship.Damage.Health.CurrentValue > 0f; i++)
-            ship.Damage.TakeDamage(99999f, 0f, Vector3.zero, Vector3.zero, instigator);
+            ship.Damage.TakeDamage(hit);
     }
 }
 
