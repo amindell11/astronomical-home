@@ -11,7 +11,7 @@ Chase every failure to its root cause before writing anything. Then classify it:
 
 **Operating error** — bad input at an untrusted boundary (user, file, network, serialized/inspector data): parse, don't validate. Check once at the boundary, convert to a trusted type, proceed on trust inside. Never a fallback default.
 
-**Programmer error** — our own code or wiring violates an invariant: climb this ladder. Enter it only for an observed failure or an explicit user pull. A speculative finding (review comment about a hypothetical, a "could happen") gets a written reply, not code; a real finding outside the current change's scope gets a deferral (board card + reply), not folded in.
+**Programmer error** — our own code or wiring violates an invariant: climb this ladder. Enter it only for an observed failure or an explicit user pull. A speculative finding (review comment about a hypothetical, a "could happen") gets a written reply, not code; a real finding outside the current change's scope gets a deferral (tracker issue + reply), not folded in.
 
 1. **Unrepresentable.** Restructure so the mistake cannot compile or cannot be authored (types, Initialize-injection, sealed construction). Take this rung when the encoding is natural; don't contort the design to reach it.
 2. **Earliest deterministic failure.** Constructor/Initialize throw, `OnValidate`, bootstrap validation — this is the top rung that *exists* for anything the compiler can't see (serialized fields, scene data).
@@ -48,7 +48,7 @@ One home per term: the glossary carries only what the code cannot say — a cons
 
 ## Design & agent-doc ratchets
 
-The `codebase-design` user skill's vocabulary — module, interface, seam, adapter, depth — is canonical for design discussion; `doc/Glossary.md` rows point at it. In hunks you touch, name seams and interfaces with this vocabulary. A shallow pass-through or single-adapter seam met in touched code gets a board card per deferral conventions — never an in-place restructure inside a feature PR; deepening happens in dedicated PRs.
+The `codebase-design` user skill's vocabulary — module, interface, seam, adapter, depth — is canonical for design discussion; `doc/Glossary.md` rows point at it. In hunks you touch, name seams and interfaces with this vocabulary. A shallow pass-through or single-adapter seam met in touched code gets a tracker issue per deferral conventions — never an in-place restructure inside a feature PR; deepening happens in dedicated PRs.
 When editing agent-consumed docs (CLAUDE.md, AGENTS.md, skills, memory index), apply the `writing-for-agents` user skill to the sections touched: hunt no-ops, prune sediment, sharpen pointers. Whole-doc sweeps only in dedicated hygiene PRs.
 
 ## Default workflow
@@ -68,10 +68,11 @@ When editing agent-consumed docs (CLAUDE.md, AGENTS.md, skills, memory index), a
 Read it at session start and before acquiring a slot; write on claim, PR-open, block, and merge.
 Rows are one line, claims only — merged rows are deleted; their story lives in the PR description and memory topic files.
 
-## Deferrals & project board
+## Deferrals & issue tracker
 
-Deferrals go on the Obsidian board `D:/amind/Documents/Obsidian Vault/Astronomical/Engineering/Project Board.md` as title-only cards linking to a memory/plan doc.
-All context lives in the linked doc, never on the card. Conventions: `AGENTS.md` → "Design docs & work tracking".
+Deferrals go on GitHub Issues (this repo) as thin title-plus-link issues linking to a memory/plan doc.
+All context lives in the linked doc, never in the issue body — the repo is public.
+Conventions and label vocabulary: `AGENTS.md` → "Design docs & work tracking". The Obsidian board is retired to history (`Done`/`Archive` only).
 
 ## Dependency & wiring philosophy
 
