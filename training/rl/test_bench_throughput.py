@@ -2,6 +2,7 @@
 
     .venv\\Scripts\\python -m unittest test_bench_throughput -v
 """
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -62,11 +63,41 @@ class ArmSelectionTests(unittest.TestCase):
 
     def test_runtime_flag_reaches_the_launcher_command(self):
         args = SimpleNamespace(num_envs=6, num_arenas=1, trainer_runtime="ml-agents",
-                               self_play=False, initialize_from=None, env=None)
+                               self_play=False, initialize_from=None, env=None,
+                               microbatch_worker_cap=6)
         cmd = bench_throughput.launch_command(args, Path("bench-x.yaml"))
         self.assertIn("ml-agents", bench_throughput.TRAINER_RUNTIMES)
         runtime_at = cmd.index("--trainer-runtime")
         self.assertEqual("ml-agents", cmd[runtime_at + 1])
+        self.assertNotIn("--microbatch-worker-cap", cmd)
+
+    def test_owned_cap_reaches_the_launcher_command(self):
+        args = SimpleNamespace(num_envs=6, num_arenas=1, trainer_runtime="owned",
+                               self_play=False, initialize_from=None, env=None,
+                               microbatch_worker_cap=6)
+        cmd = bench_throughput.launch_command(args, Path("bench-x.yaml"))
+        cap_at = cmd.index("--microbatch-worker-cap")
+        self.assertEqual("6", cmd[cap_at + 1])
+
+    def test_reads_microbatch_fill_from_owned_timers(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            original = bench_throughput.RESULTS
+            bench_throughput.RESULTS = Path(tmp)
+            run_logs = Path(tmp) / "run" / "run_logs"
+            run_logs.mkdir(parents=True)
+            metadata = {
+                key: "1.5" if "mean" in key else "6"
+                for key in bench_throughput.MICROBATCH_TIMER_FIELDS
+            }
+            (run_logs / "timers.json").write_text(
+                json.dumps({"metadata": metadata}), encoding="utf-8"
+            )
+            try:
+                metrics = bench_throughput.collect_microbatch_metrics("owned", "run")
+            finally:
+                bench_throughput.RESULTS = original
+        self.assertEqual(1.5, metrics["microbatch_mean_workers_per_forward"])
+        self.assertEqual(6, metrics["microbatch_policy_forward_count"])
 
 
 if __name__ == "__main__":

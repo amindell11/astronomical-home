@@ -32,6 +32,8 @@ from mlagents_envs.timers import (
     timed,
 )
 
+from trainer_runtime.microbatch import InferenceMicrobatch, MicrobatchSettings
+
 logger = logging_util.get_logger(__name__)
 WORKER_SHUTDOWN_TIMEOUT_S = 10
 
@@ -283,6 +285,7 @@ class SubprocessEnvScheduler(EnvironmentScheduler):
         run_options: RunOptions,
         n_env: int = 1,
         worker_factory: Optional[Callable] = None,
+        microbatch_settings: Optional[MicrobatchSettings] = None,
     ):
         super().__init__()
         self.env_workers = []
@@ -294,11 +297,18 @@ class SubprocessEnvScheduler(EnvironmentScheduler):
         self.recent_restart_timestamps = [[] for _ in range(n_env)]
         self.restart_counts = [0] * n_env
         self.worker_factory = worker_factory or self.create_worker
+        self.microbatch = InferenceMicrobatch(
+            microbatch_settings or MicrobatchSettings.create(1, n_env)
+        )
         for worker_id in range(n_env):
             self.env_workers.append(
                 self.worker_factory(worker_id, self.step_queue, env_factory, run_options)
             )
             self.workers_alive += 1
+
+    def set_policy(self, behavior_name: BehaviorName, policy) -> None:
+        self.microbatch.register_policy(policy)
+        super().set_policy(behavior_name, policy)
 
     @staticmethod
     def create_worker(worker_id, step_queue, env_factory, run_options) -> UnityEnvWorker:
@@ -318,10 +328,16 @@ class SubprocessEnvScheduler(EnvironmentScheduler):
         return UnityEnvWorker(child_process, worker_id, parent_conn)
 
     def _queue_steps(self) -> None:
-        for env_worker in self.env_workers:
-            if env_worker.waiting:
-                continue
-            actions = self._take_step(env_worker.previous_step)
+        ready_workers = [worker for worker in self.env_workers if not worker.waiting]
+        actions_by_worker = self.microbatch.actions_for_workers(
+            [
+                (worker.worker_id, worker.previous_step.current_all_step_result)
+                for worker in ready_workers
+            ],
+            self.policies,
+        )
+        for env_worker in ready_workers:
+            actions = actions_by_worker[env_worker.worker_id]
             env_worker.previous_all_action_info = actions
             env_worker.send(EnvironmentCommand.STEP, actions)
             env_worker.waiting = True
@@ -395,22 +411,42 @@ class SubprocessEnvScheduler(EnvironmentScheduler):
         self._queue_steps()
         responses = []
         response_workers: Set[int] = set()
-        while not responses:
+        deadline = None
+        while True:
             try:
-                while True:
-                    response = self.step_queue.get_nowait()
-                    if response.cmd == EnvironmentCommand.ENV_EXITED:
-                        self._restart_failed_workers(response)
-                        responses.clear()
-                        response_workers.clear()
-                        self._queue_steps()
-                    elif response.worker_id not in response_workers:
-                        self.env_workers[response.worker_id].waiting = False
-                        responses.append(response)
-                        response_workers.add(response.worker_id)
+                response = self.step_queue.get_nowait()
             except EmptyQueueException:
-                pass
-        return self._postprocess_steps(responses)
+                if responses and (
+                    self.microbatch.settings.effective_worker_cap == 1
+                    or not any(worker.waiting for worker in self.env_workers)
+                    or time.perf_counter() >= deadline
+                ):
+                    return self._postprocess_steps(responses)
+                continue
+            if response.cmd == EnvironmentCommand.ENV_EXITED:
+                self._restart_failed_workers(response)
+                responses.clear()
+                response_workers.clear()
+                deadline = None
+                self._queue_steps()
+                continue
+            if response.worker_id in response_workers:
+                continue
+            self.env_workers[response.worker_id].waiting = False
+            responses.append(response)
+            response_workers.add(response.worker_id)
+            if (
+                len(responses) == 1
+                and self.microbatch.settings.effective_worker_cap > 1
+            ):
+                deadline = time.perf_counter() + (
+                    self.microbatch.settings.window_micros / 1_000_000
+                )
+            if (
+                len(response_workers) >= self.microbatch.settings.effective_worker_cap
+                or not any(worker.waiting for worker in self.env_workers)
+            ):
+                return self._postprocess_steps(responses)
 
     def _reset_env(self, config: Optional[Dict] = None) -> List[EnvironmentStep]:
         while any(worker.waiting for worker in self.env_workers):

@@ -53,6 +53,19 @@ def trainer_command(runtime: str) -> list[str]:
     return [str(MLAGENTS)]
 
 
+def positive_int(value: str) -> int:
+    parsed = int(value)
+    if parsed < 1:
+        raise argparse.ArgumentTypeError("must be a positive integer")
+    return parsed
+
+
+def owned_runtime_args(runtime: str, microbatch_worker_cap: int) -> list[str]:
+    if runtime != "owned":
+        return []
+    return ["--microbatch-worker-cap", str(microbatch_worker_cap)]
+
+
 def config_has_roster_weights(config: Path) -> bool:
     return re.search(r"^\s*opponent_weight_", config.read_text(), re.MULTILINE) is not None
 
@@ -94,7 +107,9 @@ def main() -> None:
                         help="trainer YAML (default: the smoke config under --smoke, else the full 2M config)")
     parser.add_argument("--run-id", default=None, help="mlagents run id (default: the config's run_id)")
     parser.add_argument("--trainer-runtime", choices=TRAINER_RUNTIMES, default="owned",
-                        help="trainer entry implementation; owned delegates the loop to pinned ML-Agents")
+                        help="trainer entry implementation; owned uses the project scheduler")
+    parser.add_argument("--microbatch-worker-cap", type=positive_int, default=1,
+                        help="owned-runtime workers per inference forward (default: 1)")
     parser.add_argument("--base-port", type=int, default=5006,
                         help="base ML-Agents port; passed to both --base-port and the workers' --harness-base-port")
     parser.add_argument("--smoke", action="store_true",
@@ -180,6 +195,9 @@ def main() -> None:
                    "--num-envs", str(args.num_envs),
                    "--base-port", str(args.base_port),
                    "--no-graphics"]
+    trainer_cmd += owned_runtime_args(
+        args.trainer_runtime, args.microbatch_worker_cap
+    )
     if args.resume:
         trainer_cmd.append("--resume")
     if args.force:
@@ -196,6 +214,8 @@ def main() -> None:
     print(f"launching {args.num_envs} worker(s): {args.env}")
     print(f"  trainer-runtime {args.trainer_runtime}  base-port {args.base_port}  "
           f"jsonl {JSONL_DIR}  run-id {run_id}")
+    if args.trainer_runtime == "owned":
+        print(f"  microbatch-worker-cap {args.microbatch_worker_cap}")
     trainer = None
     try:
         with open(trainer_log, "w") as tl:

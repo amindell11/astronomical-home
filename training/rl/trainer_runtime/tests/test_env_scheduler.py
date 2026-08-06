@@ -13,6 +13,7 @@ from trainer_runtime.env_scheduler import (
     StepResponse,
     SubprocessEnvScheduler,
 )
+from trainer_runtime.microbatch import MicrobatchSettings
 from trainer_runtime.run_loop import create_environment_factory
 
 
@@ -59,6 +60,48 @@ def run_options():
 
 
 class SchedulerTests(unittest.TestCase):
+    def test_batched_ready_poll_waits_only_the_fixed_collection_window(self):
+        def factory(worker_id, queue, _env_factory, _options):
+            return FakeWorker(worker_id, queue, respond=worker_id == 0)
+
+        scheduler = SubprocessEnvScheduler(
+            lambda *_args: None,
+            run_options(),
+            2,
+            factory,
+            MicrobatchSettings.create(2, 2),
+        )
+
+        with patch(
+            "trainer_runtime.env_scheduler.time.perf_counter",
+            side_effect=[1.0, 1.0004, 1.0005],
+        ) as clock:
+            steps = scheduler._step()
+
+        self.assertEqual([0], [step.worker_id for step in steps])
+        self.assertEqual(3, clock.call_count)
+        scheduler.step_queue.close()
+        scheduler.step_queue.join_thread()
+
+    def test_batched_ready_poll_collects_only_the_worker_cap(self):
+        def factory(worker_id, queue, _env_factory, _options):
+            return FakeWorker(worker_id, queue, respond=True)
+
+        scheduler = SubprocessEnvScheduler(
+            lambda *_args: None,
+            run_options(),
+            3,
+            factory,
+            MicrobatchSettings.create(2, 3),
+        )
+
+        steps = scheduler._step()
+
+        self.assertEqual([0, 1], [step.worker_id for step in steps])
+        self.assertTrue(scheduler.env_workers[2].waiting)
+        scheduler.step_queue.close()
+        scheduler.step_queue.join_thread()
+
     def test_ready_poll_queues_every_idle_worker_and_returns_first_response(self):
         def factory(worker_id, queue, _env_factory, _options):
             return FakeWorker(worker_id, queue, respond=worker_id == 1)

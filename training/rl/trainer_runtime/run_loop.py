@@ -29,8 +29,16 @@ from mlagents_envs.exception import (
 )
 from mlagents_envs.timers import add_metadata, get_timer_tree, hierarchical_timer, timed
 
-from trainer_runtime.contract import MANIFEST_NAME, RunManifest, config_sha256, summaries_path, write_manifest
+from trainer_runtime.contract import (
+    MANIFEST_NAME,
+    RunManifest,
+    config_sha256,
+    read_manifest,
+    summaries_path,
+    write_manifest,
+)
 from trainer_runtime.env_scheduler import EnvironmentScheduler, SubprocessEnvScheduler
+from trainer_runtime.microbatch import MicrobatchSettings, MicrobatchStats
 from trainer_runtime.publish import (
     AtomicTorchModelSaver,
     CheckpointCommitter,
@@ -53,7 +61,10 @@ def validate_owned_options(options: RunOptions) -> None:
 
 
 def owned_stats_writers(
-    options: RunOptions, config_path: Path, started_at: datetime
+    options: RunOptions,
+    config_path: Path,
+    started_at: datetime,
+    microbatch_settings: MicrobatchSettings,
 ) -> list[JsonlStatsWriter]:
     behavior, trainer_settings = next(iter(options.behaviors.items()))
     checkpoint = options.checkpoint_settings
@@ -66,6 +77,9 @@ def owned_stats_writers(
         max_steps=trainer_settings.max_steps,
         mode=_mode(trainer_settings.self_play is not None),
         config_hash=config_sha256(config_path),
+        microbatch_worker_cap=microbatch_settings.requested_worker_cap,
+        microbatch_effective_worker_cap=microbatch_settings.effective_worker_cap,
+        microbatch_window_micros=microbatch_settings.window_micros,
     )
     write_manifest(manifest.run_dir / MANIFEST_NAME, manifest)
     return [JsonlStatsWriter(
@@ -73,7 +87,12 @@ def owned_stats_writers(
     )]
 
 
-def run_cli(options: RunOptions, config_path: Path, started_at: datetime) -> None:
+def run_cli(
+    options: RunOptions,
+    config_path: Path,
+    started_at: datetime,
+    microbatch_settings: MicrobatchSettings,
+) -> None:
     validate_owned_options(options)
     print(_version_string())
     log_level = logging_util.DEBUG if options.debug else logging_util.INFO
@@ -93,11 +112,15 @@ def run_cli(options: RunOptions, config_path: Path, started_at: datetime) -> Non
     add_metadata("communication_protocol_version", UnityEnvironment.API_VERSION)
     add_metadata("pytorch_version", torch_utils.torch.__version__)
     add_metadata("numpy_version", np.__version__)
-    run_training(run_seed, options, config_path, started_at)
+    run_training(run_seed, options, config_path, started_at, microbatch_settings)
 
 
 def run_training(
-    run_seed: int, options: RunOptions, config_path: Path, started_at: datetime
+    run_seed: int,
+    options: RunOptions,
+    config_path: Path,
+    started_at: datetime,
+    microbatch_settings: MicrobatchSettings,
 ) -> None:
     with hierarchical_timer("run_training.setup"):
         torch_utils.set_torch_config(options.torch_settings)
@@ -111,6 +134,11 @@ def run_training(
             checkpoint.force,
             checkpoint.maybe_init_path,
         )
+        validate_resume_microbatch(
+            Path(checkpoint.write_path) / MANIFEST_NAME,
+            checkpoint.resume,
+            microbatch_settings,
+        )
         run_logs_dir.mkdir(parents=True, exist_ok=True)
         if checkpoint.resume:
             recover_committed_state(
@@ -121,7 +149,9 @@ def run_training(
             setup_init_path(options.behaviors, checkpoint.maybe_init_path)
 
         writers = register_stats_writer_plugins(options)
-        writers.extend(owned_stats_writers(options, config_path, started_at))
+        writers.extend(
+            owned_stats_writers(options, config_path, started_at, microbatch_settings)
+        )
         for writer in writers:
             StatsReporter.add_writer(writer)
 
@@ -137,7 +167,12 @@ def run_training(
             env_settings.env_args,
             str(run_logs_dir.resolve()),
         )
-        scheduler = SubprocessEnvScheduler(env_factory, options, env_settings.num_envs)
+        scheduler = SubprocessEnvScheduler(
+            env_factory,
+            options,
+            env_settings.num_envs,
+            microbatch_settings=microbatch_settings,
+        )
         parameters = EnvironmentParameterManager(
             options.environment_parameters, run_seed, restore=checkpoint.resume
         )
@@ -167,8 +202,66 @@ def run_training(
     finally:
         scheduler.close()
         write_run_options(Path(checkpoint.write_path), options)
+        add_microbatch_metadata(microbatch_settings, scheduler.microbatch.stats)
         write_timing_tree(run_logs_dir)
         atomic_write_training_status(run_logs_dir / "training_status.json")
+
+
+def validate_resume_microbatch(
+    path: Path, resume: bool, settings: MicrobatchSettings
+) -> None:
+    if not resume:
+        return
+    if not path.exists():
+        if settings.effective_worker_cap == 1:
+            return
+        raise RuntimeError(
+            "legacy run has sequential scheduling provenance; start fresh or resume with "
+            "--microbatch-worker-cap 1"
+        )
+    manifest = read_manifest(path)
+    fields = (
+        manifest.microbatch_worker_cap,
+        manifest.microbatch_effective_worker_cap,
+        manifest.microbatch_window_micros,
+    )
+    if all(value is None for value in fields):
+        if settings.effective_worker_cap == 1:
+            return
+        raise RuntimeError(
+            "legacy run has sequential scheduling provenance; start fresh or resume with "
+            "--microbatch-worker-cap 1"
+        )
+    if any(value is None for value in fields):
+        raise RuntimeError("run manifest has incomplete microbatch scheduling provenance")
+    if (
+        manifest.microbatch_effective_worker_cap != settings.effective_worker_cap
+        or manifest.microbatch_window_micros != settings.window_micros
+    ):
+        raise RuntimeError(
+            "resume microbatch schedule mismatch: existing effective cap/window "
+            f"{manifest.microbatch_effective_worker_cap}/{manifest.microbatch_window_micros}us, "
+            "requested effective cap/window "
+            f"{settings.effective_worker_cap}/{settings.window_micros}us; start fresh or "
+            "resume with the original schedule"
+        )
+
+
+def add_microbatch_metadata(
+    settings: MicrobatchSettings, stats: MicrobatchStats
+) -> None:
+    values = {
+        "microbatch_requested_worker_cap": settings.requested_worker_cap,
+        "microbatch_effective_worker_cap": settings.effective_worker_cap,
+        "microbatch_window_micros": settings.window_micros,
+        "microbatch_policy_forward_count": stats.policy_forward_count,
+        "microbatch_worker_request_count": stats.worker_request_count,
+        "microbatch_agent_row_count": stats.agent_row_count,
+        "microbatch_mean_workers_per_forward": stats.mean_workers_per_forward,
+        "microbatch_max_workers_per_forward": stats.max_workers_per_forward,
+    }
+    for key, value in values.items():
+        add_metadata(key, str(value))
 
 
 def create_environment_factory(

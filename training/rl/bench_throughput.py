@@ -156,6 +156,33 @@ def collect_run_metrics(runtime: str, run_id: str, config: Path) -> tuple:
     return parse_stock_summaries(trainer_log_path(run_id)), config_sha256(config)
 
 
+MICROBATCH_TIMER_FIELDS = (
+    "microbatch_requested_worker_cap",
+    "microbatch_effective_worker_cap",
+    "microbatch_window_micros",
+    "microbatch_policy_forward_count",
+    "microbatch_worker_request_count",
+    "microbatch_agent_row_count",
+    "microbatch_mean_workers_per_forward",
+    "microbatch_max_workers_per_forward",
+)
+
+
+def collect_microbatch_metrics(runtime: str, run_id: str) -> dict:
+    if runtime != "owned":
+        return {key: None for key in MICROBATCH_TIMER_FIELDS}
+    path = RESULTS / run_id / "run_logs" / "timers.json"
+    timers = json.loads(path.read_text(encoding="utf-8"))
+    metadata = timers.get("metadata", {})
+    missing = [key for key in MICROBATCH_TIMER_FIELDS if key not in metadata]
+    if missing:
+        sys.exit(f"FAIL: timers metadata missing microbatch fields: {missing}")
+    return {
+        key: float(metadata[key]) if "mean" in key else int(metadata[key])
+        for key in MICROBATCH_TIMER_FIELDS
+    }
+
+
 def launch_command(args, config: Path) -> list:
     cmd = [sys.executable, str(RL_DIR / "run_parallel.py"),
            "--config", str(config),
@@ -169,6 +196,8 @@ def launch_command(args, config: Path) -> list:
         cmd += ["--initialize-from", args.initialize_from]
     if args.env:
         cmd += ["--env", str(args.env)]
+    if args.trainer_runtime == "owned":
+        cmd += ["--microbatch-worker-cap", str(args.microbatch_worker_cap)]
     return cmd
 
 
@@ -190,9 +219,18 @@ def report() -> None:
     if not RESULTS_JSONL.exists():
         sys.exit(f"no bench rows yet at {RESULTS_JSONL}")
     rows = [json.loads(line) for line in RESULTS_JSONL.read_text().splitlines() if line.strip()]
-    print(f"{'label':<22}{'runtime':<10}{'N':>3}{'M':>3}{'steps/s':>10}{'spread':>8}{'cores':>8}{'RSS MB':>9}  sha")
+    print(
+        f"{'label':<22}{'runtime':<10}{'N':>3}{'M':>3}{'cap':>5}"
+        f"{'workers/fwd':>14}{'steps/s':>10}{'spread':>8}{'cores':>8}{'RSS MB':>9}  sha"
+    )
     for row in rows:
+        cap = row.get("microbatch_effective_worker_cap")
+        cap_text = "-" if cap is None else str(cap)
+        mean_workers = row.get("microbatch_mean_workers_per_forward")
+        max_workers = row.get("microbatch_max_workers_per_forward")
+        fill_text = "-" if mean_workers is None else f"{mean_workers:.2f}/{max_workers}"
         print(f"{row['label']:<22}{row.get('trainer_runtime', '?'):<10}{row['num_envs']:>3}{row['num_arenas']:>3}"
+              f"{cap_text:>5}{fill_text:>14}"
               f"{row['steps_per_second']:>10.1f}{row['spread']:>8.1f}"
               f"{row['cores']:>8.2f}{row['peak_rss_mb']:>9.0f}  {row['git_sha']}")
 
@@ -214,6 +252,8 @@ def main() -> None:
     parser.add_argument("--env", type=Path, default=None, help="player exe (defaults to run_parallel's)")
     parser.add_argument("--trainer-runtime", choices=TRAINER_RUNTIMES, default="owned",
                         help="arm to bench; 'ml-agents' is the stock reference arm of a paired bench")
+    parser.add_argument("--microbatch-worker-cap", type=int, default=1,
+                        help="owned-runtime workers per inference forward")
     parser.add_argument("--report", action="store_true", help="print collected rows and exit")
     args = parser.parse_args()
 
@@ -222,6 +262,8 @@ def main() -> None:
         return
     if not args.label:
         parser.error("--label is required (it names the bench row)")
+    if args.microbatch_worker_cap < 1:
+        parser.error("--microbatch-worker-cap must be a positive integer")
 
     run_id = f"bench-{args.label}"
     source = args.config or RL_DIR / ("ppo_ship_combat_selfplay.yaml" if args.self_play else "ppo_ship_combat.yaml")
@@ -242,6 +284,7 @@ def main() -> None:
         sys.exit(f"FAIL: run_parallel exited {proc.returncode}; see {trainer_log_path(run_id)}")
 
     summaries, config_hash = collect_run_metrics(args.trainer_runtime, run_id, config)
+    microbatch_metrics = collect_microbatch_metrics(args.trainer_runtime, run_id)
     rate, spread, intervals = steady_steps_per_second(summaries)
     if intervals < 2:
         sys.exit(f"FAIL: only {len(summaries)} trainer summaries — raise --steps for a steady-state read")
@@ -265,6 +308,7 @@ def main() -> None:
         "cores_per_worker": round(cores / peak_workers, 2) if peak_workers else 0.0,
         "peak_rss_mb": round(sampler.peak_rss_mb(), 1),
         "wall_seconds": round(wall, 1),
+        **microbatch_metrics,
     }
     BENCH_DIR.mkdir(parents=True, exist_ok=True)
     with open(RESULTS_JSONL, "a") as handle:
@@ -273,6 +317,17 @@ def main() -> None:
     print(f"PASS: {rate:.1f} steps/s (spread {spread:.1f} over {intervals} intervals)")
     print(f"  cores {cores:.2f} total / {row['cores_per_worker']:.2f} per worker"
           f"   peak RSS {row['peak_rss_mb']:.0f} MB   wall {wall:.0f}s")
+    if args.trainer_runtime == "owned":
+        print(
+            "  microbatch "
+            f"cap {row['microbatch_effective_worker_cap']} "
+            f"window {row['microbatch_window_micros']}us  "
+            f"workers/forward {row['microbatch_mean_workers_per_forward']:.2f} mean / "
+            f"{row['microbatch_max_workers_per_forward']} max  "
+            f"forwards {row['microbatch_policy_forward_count']}  "
+            f"requests {row['microbatch_worker_request_count']}  "
+            f"agent rows {row['microbatch_agent_row_count']}"
+        )
     print(f"  row appended to {RESULTS_JSONL}")
 
 

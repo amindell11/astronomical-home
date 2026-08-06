@@ -24,6 +24,9 @@ class RunManifest:
     max_steps: int
     mode: str
     config_hash: str
+    microbatch_worker_cap: Optional[int] = None
+    microbatch_effective_worker_cap: Optional[int] = None
+    microbatch_window_micros: Optional[int] = None
 
     @property
     def run_dir(self) -> Path:
@@ -72,6 +75,12 @@ def write_manifest(path: Path, manifest: RunManifest) -> None:
         "mode": manifest.mode,
         "configHash": manifest.config_hash,
     }
+    if manifest.microbatch_worker_cap is not None:
+        data["microbatchWorkerCap"] = manifest.microbatch_worker_cap
+    if manifest.microbatch_effective_worker_cap is not None:
+        data["microbatchEffectiveWorkerCap"] = manifest.microbatch_effective_worker_cap
+    if manifest.microbatch_window_micros is not None:
+        data["microbatchWindowMicros"] = manifest.microbatch_window_micros
     path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
 
 
@@ -86,6 +95,11 @@ def read_manifest(path: Path) -> RunManifest:
         max_steps=int(data["maxSteps"]),
         mode=str(data["mode"]),
         config_hash=str(data["configHash"]),
+        microbatch_worker_cap=_optional_int(data.get("microbatchWorkerCap")),
+        microbatch_effective_worker_cap=_optional_int(
+            data.get("microbatchEffectiveWorkerCap")
+        ),
+        microbatch_window_micros=_optional_int(data.get("microbatchWindowMicros")),
     )
 
 
@@ -147,3 +161,7 @@ def _parse_summary(data: dict) -> TrainingSummary:
 
 def _optional_float(value) -> Optional[float]:
     return None if value is None else float(value)
+
+
+def _optional_int(value) -> Optional[int]:
+    return None if value is None else int(value)
