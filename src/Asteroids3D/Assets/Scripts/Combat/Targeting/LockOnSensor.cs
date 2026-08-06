@@ -23,6 +23,7 @@ namespace Combat.Targeting
         private Sensors.FanSensor sensor;
         private IShipRegistry registry;
         private ShipId selfShipId;
+        internal Ship selfShip;
         private Coroutine scanRoutine;
         private WaitForSeconds scanWait;
 
@@ -64,7 +65,7 @@ namespace Combat.Targeting
             if (!firePoint)
                 firePoint = transform;
 
-            var selfShip = GetComponentInParent<Ship>();
+            selfShip = GetComponentInParent<Ship>();
             if (selfShip)
                 selfShipId = new ShipId(selfShip.GetInstanceID());
 
