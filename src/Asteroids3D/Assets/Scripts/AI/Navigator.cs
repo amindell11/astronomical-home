@@ -1,7 +1,6 @@
 using System;
 using AI;
 using AI.Context;
-using AI.Scanning;
 using AI.States;
 using Ships.Command;
 using Unity.Mathematics;
@@ -23,7 +22,7 @@ namespace Movement.MPC
     {
         private const uint MpcSamplerStream = 1;
 
-        protected Scout scout;
+        protected internal Scout scout;
         protected bool facingOverride;
         protected float facingRadOverride;
         protected internal float2 velocityReference;
@@ -102,7 +101,6 @@ namespace Movement.MPC
             };
 
 #if UNITY_EDITOR
-            StoreDebugObstacles(scan);
             var sw = System.Diagnostics.Stopwatch.StartNew();
 #endif
             MpcResult result;
@@ -254,10 +252,21 @@ namespace Movement.MPC
             mpc?.Dispose();
         }
 
+        // Solve state the diagnostic painters read; unguarded because painters compile into the player.
+        internal SolverBuffers solver => mpc?.Solver;
+        internal Config config => mpc != null ? mpc.Config : default;
+        internal Control[] bestSequence => mpc?.BestSequence;
+        internal State[] predictedStates => mpc?.PredictedStates;
+        internal State lastInitialState => mpc != null ? mpc.LastInitialState : default;
+        internal Control lastControl => mpc != null ? mpc.LastControl : default;
+
+        [NonSerialized] public int selectedCandidateIndex = -1;
+        // Candidate subsample drawn this frame, sorted by cost ascending; shared scratch between the painter and the scene-view selection handles.
+        internal int[] visibleCandidateIndices;
+        internal int visibleCount;
+
 #if UNITY_EDITOR
         [Header("Debug Visualization")]
-        [Tooltip("Horizontal prediction step for labels")]
-        public int labelStep = 5;
         [Tooltip("Show cost breakdown in Inspector")]
         public bool showCostBreakdown = true;
         [Tooltip("Which cost to display: current ship state or full trajectory")]
@@ -265,51 +274,11 @@ namespace Movement.MPC
         [Tooltip("Log solver performance once per second")]
         public bool logSolverPerformance = false;
 
-        [Header("Scene Gizmo Sub-Toggles")]
-        public bool showObstacleCosts = true;
-        public bool showTrajectoryCosts = true;
-        public bool showControlInputs = true;
-        [Tooltip("Render a random sampling of MPC candidate trajectories with rank-based alpha. " +
-                 "Click a terminal-point handle in the scene view to inspect that candidate's breakdown.")]
-        public bool showCandidateTrajectories = false;
-        [Range(1, 256)]
-        [Tooltip("How many of the (up to) 256 candidates to render. Subsample is reseeded each frame.")]
-        public int candidateSampleCount = 32;
-        [Range(0f, 5f)]
-        [Tooltip("Visibility falloff with cost rank. 0 = all rendered candidates equally bright, " +
-                 "higher = sharper focus on top-ranked. Default 2 ≈ worst-shown at ~13% of best's alpha.")]
-        public float candidateAlphaFalloff = 2f;
-        [Tooltip("World-space offset from ship for the control input panel")]
-        public Vector3 controlPanelOffset = new(0f, 2.5f, 0f);
-
-        [NonSerialized] public int selectedCandidateIndex = -1;
-        // Candidate subsample drawn this frame, sorted by cost ascending; shared scratch between the gizmo pass and the scene-view selection handles.
-        internal int[] visibleCandidateIndices;
-        internal int visibleCount;
-
         private float nextLogTime;
-        internal DetectedObstacle[] dbgObstacles;
-        internal int dbgObstacleCount;
         public CostBreakdown lastCostBreakdown;
         public float lastSolveTimeMs;
 
-        internal SolverBuffers solver => mpc?.Solver;
-        internal Config config => mpc != null ? mpc.Config : default;
-        internal Control[] bestSequence => mpc?.BestSequence;
-        internal State[] predictedStates => mpc?.PredictedStates;
-        internal State lastInitialState => mpc != null ? mpc.LastInitialState : default;
-        internal Control lastControl => mpc != null ? mpc.LastControl : default;
         internal float lastBestCost => mpc != null ? mpc.LastBestCost : 0f;
-
-        private void StoreDebugObstacles(ObstacleScan scan)
-        {
-            if (dbgObstacles == null || dbgObstacles.Length < scan.count)
-                dbgObstacles = new DetectedObstacle[Mathf.Max(scan.count, 32)];
-
-            dbgObstacleCount = scan.count;
-            for (var i = 0; i < scan.count; i++)
-                dbgObstacles[i] = scan.buffer[i];
-        }
 
         private CostBreakdown EvaluateBreakdown(State mpcState)
         {
