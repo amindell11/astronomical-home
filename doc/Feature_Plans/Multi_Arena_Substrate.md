@@ -443,6 +443,39 @@ immediately and in parallel with the velocity-reference RL work (#122). **None o
 this blocks the *first* learned agent** (roadmap PR-1/2/3 are single-arena);
 multi-arena is purely the self-play throughput unlock (PR-4).
 
+## Residual closure — issue #332 (frozen 2026-08-06)
+
+Issue #332 collected three leftovers after the substrate and harness fan-out
+shipped. Re-grounding them against current `main` reduces the umbrella to one
+small implementation PR:
+
+- **#316 · Gunner origin sentinel — build.** `Gunner` already tracks target
+  validity in `hasEnemy`, which is what firing reads. `HasTarget` still derives
+  validity from `Target != Vector3.zero`, so diagnostics incorrectly report no
+  target when a valid aim point is at the world origin. Make `HasTarget` expose
+  `hasEnemy` and pin the origin case. Do not change firing, targeting, or intent
+  semantics.
+- **#320 · Arena-size dependency pass — close as completed by #201.** The later
+  M-arena harness fan-out froze the current dependency set: `RewardSpec.arenaRadius`
+  owns episode bounds, shaping, observation normalization, and opponent steering;
+  `HarnessFieldSettings.fieldRadius` owns the asteroid extent; `TrainingHost`
+  owns the 400-unit layout spacing; `RLMultiArenaPlayModeTests` pins provider
+  isolation, seed decorrelation, confinement, and both-loop liveness. Any future
+  radius, field, loadout-reach, or drift change must revisit that spacing contract;
+  no speculative generalization lands now.
+- **#315 · Arena-wiring constructor injection — close as declined.** `UnitService`
+  is a Unity component, so required constructor injection would need a new plain
+  runtime wrapper or comparable ownership refactor. No missing-wire failure has
+  been observed; `WireShipDependencies` already fails at the first deterministic
+  use when the arena was not composed. Building the structural version now would
+  contort the design to eliminate a hypothetical state. Reopen only when an
+  independently required `UnitService` ownership change creates a natural
+  constructor boundary.
+
+**Out of scope:** per-arena `PhysicsScene`, `SessionRig` cleave, mixed-presentation
+flags, gameplay-sector bounds, weapon/loadout balance, and any new arena-size
+authoring surface. When #316 lands, close #332; the living design reference remains.
+
 ## Related
 
 - `doc/Feature_Plans/Session_Flow_Driver_Seam.md` (the landed seam this builds on)
