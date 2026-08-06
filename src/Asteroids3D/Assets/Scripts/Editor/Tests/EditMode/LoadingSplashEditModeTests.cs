@@ -17,6 +17,7 @@ namespace Tests.EditMode
         [TestCase(GameState.Restart, true)]
         [TestCase(GameState.Hangar, false)]
         [TestCase(GameState.InSector, false)]
+        [TestCase(GameState.DeathRecap, false)]
         [TestCase(GameState.Exit, false)]
         public void Covers_MatchesNonInteractiveStates(GameState state, bool expected) =>
             Assert.AreEqual(expected, LoadingSplash.Covers(state));

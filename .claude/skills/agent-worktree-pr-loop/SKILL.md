@@ -196,7 +196,8 @@ combined quality sub-agent over the diff with this charter:
 (a) simplification/reuse/efficiency fixes — flag only what affects correctness
 or the stated scope, no new abstractions, no bug-hunting, no speculative
 findings; (b) comment hygiene on TOUCHED HUNKS ONLY per CLAUDE.md's comment
-rules. Its edits become part of the tree the user reviews. Summarize its
+rules; (c) conformance of touched Unity code to `AGENTS.md` → `## Unity code
+conventions`. Its edits become part of the tree the user reviews. Summarize its
 changes in the PR body.
 
 ## Step 4 — Submit

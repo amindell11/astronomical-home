@@ -1,55 +1,47 @@
-using AI.Observation;
 using UnityEngine;
 
 namespace Game.RLHarness
 {
+    /// <summary>One decision's decoded command in the enemy-anchored frame: a facing offset around the intercept anchor (with authority weight) and a polar velocity (radial/tangential speeds in m/s, with authority weight), plus the fire/boost branches. All primitives — the MPC-frame assembly happens in <see cref="AgentChooser"/>.</summary>
     public readonly struct AgentAction
     {
-        public readonly Vector2 velocityEgo;
-        public readonly Vector2 facingEgo;
+        public readonly float facingOffsetRad;
+        public readonly float facingWeight;
+        public readonly float radialSpeed;
+        public readonly float tangentialSpeed;
+        public readonly float velocityWeight;
         public readonly bool fire;
         public readonly bool boost;
 
-        public AgentAction(Vector2 velocityEgo, Vector2 facingEgo, bool fire, bool boost)
+        public AgentAction(float facingOffsetRad, float facingWeight, float radialSpeed,
+            float tangentialSpeed, float velocityWeight, bool fire, bool boost)
         {
-            this.velocityEgo = velocityEgo;
-            this.facingEgo = facingEgo;
+            this.facingOffsetRad = facingOffsetRad;
+            this.facingWeight = facingWeight;
+            this.radialSpeed = radialSpeed;
+            this.tangentialSpeed = tangentialSpeed;
+            this.velocityWeight = velocityWeight;
             this.fire = fire;
             this.boost = boost;
         }
     }
 
-    /// <summary>Pure mapping between the 6-continuous action vector [vx, vy, fire, boost, fx, fy] ∈ [−1,1] and game-frame commands (fire/boost are threshold-gated at 0; fx/fy are a facing direction whose angle is consumed via <see cref="ToFacingRad"/> and whose magnitude is the facing authority via <see cref="ToFacingWeight"/>). Ego→world conversion happens ONCE per decision at the boundary; re-rotating per tick would feed live yaw back into the reference.</summary>
+    /// <summary>Decodes the action vector — 5 continuous [ox, oy, vr, vt, vw] plus 2 discrete branches [fire, boost] — into enemy-anchored scalars. Facing rides as a direction: angle = offset around the intercept anchor ((0,+1) = aim at intercept, (0,−1) = face away), magnitude = authority weight (near-zero vectors have unstable angles AND near-zero weight). Velocity rides as normalized polar speeds scaled to maxSpeed with an explicit weight. This decode is MPC-type-free; the chooser packs the scalars into the anchored intent.</summary>
     public static class AgentActions
     {
-        public const int Count = 6;
-        public const float TriggerThreshold = 0f;
+        public const int Count = 5;
+        public const int ChoicesPerBranch = 2;
 
-        public static AgentAction Map(float vx, float vy, float fire, float boost, float fx, float fy) => new(
-            new Vector2(Mathf.Clamp(vx, -1f, 1f), Mathf.Clamp(vy, -1f, 1f)),
-            new Vector2(fx, fy),
-            fire > TriggerThreshold,
-            boost > TriggerThreshold);
-
-        public static Vector2 ToWorldVelocity(Vector2 velocityEgo, Vector2 forwardPlane, float maxSpeed) =>
-            Vector2.ClampMagnitude(
-                new EgoFrame(Vector2.zero, forwardPlane).PlaneDirection(velocityEgo) * maxSpeed, maxSpeed);
-
-        /// <summary>Ego facing direction → commanded world-plane yaw in the MPC convention (fwd = (−sin, cos)). A degenerate direction holds the current nose.</summary>
-        public static float ToFacingRad(Vector2 facingEgo, Vector2 forwardPlane)
-        {
-            var world = new EgoFrame(Vector2.zero, forwardPlane).PlaneDirection(facingEgo);
-            if (world.sqrMagnitude < 1e-6f) world = forwardPlane;
-            return Mathf.Atan2(-world.x, world.y);
-        }
-
-        /// <summary>Facing authority from the ego direction's magnitude: scales the MPC facing weight so the policy can express "don't care" (near-zero vectors have unstable angles AND near-zero weight). Plain clamp, no deadzone — a deadzone would re-add a discontinuity.</summary>
-        public static float ToFacingWeight(Vector2 facingEgo) => Mathf.Clamp01(facingEgo.magnitude);
-
-        /// <summary>Inverse of <see cref="ToWorldVelocity"/> for the heuristic: a world-plane velocity within maxSpeed maps back inside the [−1,1] action box.</summary>
-        public static Vector2 ToEgoAction(Vector2 worldVelocity, Vector2 forwardPlane, float maxSpeed) =>
-            maxSpeed > 0f
-                ? new EgoFrame(Vector2.zero, forwardPlane).Direction(worldVelocity) / maxSpeed
-                : Vector2.zero;
+        // vr/vt stay unclamped: training-time exploration samples beyond [-1,1] while clipped ONNX
+        // inference cannot — the shipped checkpoint trained unclamped, so clamping requires a retrain.
+        public static AgentAction Map(float ox, float oy, float vr, float vt, float vw,
+            int fire, int boost, float maxSpeed) => new(
+            Mathf.Atan2(ox, oy),
+            Mathf.Clamp01(Mathf.Sqrt(ox * ox + oy * oy)),
+            vr * maxSpeed,
+            vt * maxSpeed,
+            Mathf.Clamp01(vw),
+            fire == 1,
+            boost == 1);
     }
 }

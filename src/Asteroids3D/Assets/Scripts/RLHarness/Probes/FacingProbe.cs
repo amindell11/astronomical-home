@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using AI;
 using Movement;
+using Movement.MPC;
 using Ships;
+using Ships.Command;
 using UnityEngine;
 
 namespace Game.RLHarness
@@ -148,7 +150,8 @@ namespace Game.RLHarness
         private int lastTotalDecisions;
         private int yawRateSign;
         private int cmdDeltaSign;
-        private float prevCmdDeg;
+        private float latestOffsetRad;
+        private float prevOffsetDeg;
 
         public FacingSampler(IPolicyReadout readout)
         {
@@ -156,7 +159,7 @@ namespace Game.RLHarness
             lastTotalDecisions = readout.TotalDecisions;
         }
 
-        public void Sample(in Kinematics kin)
+        public void Sample(in Kinematics kin, float anchorYawRad)
         {
             Steps++;
             AbsYawRateSum += Mathf.Abs(kin.yawRate);
@@ -167,18 +170,22 @@ namespace Game.RLHarness
             {
                 lastTotalDecisions = total;
                 var newest = readout.ActionFromNewest(0);
-                var cmdDeg = newest.facingRad * Mathf.Rad2Deg;
+                latestOffsetRad = newest.facingOffsetRad;
+                var offsetDeg = latestOffsetRad * Mathf.Rad2Deg;
                 weights.Add(newest.facingWeight);
                 if (weights.Count > 1)
                 {
-                    var delta = Mathf.DeltaAngle(prevCmdDeg, cmdDeg);
+                    var delta = Mathf.DeltaAngle(prevOffsetDeg, offsetDeg);
                     cmdDeltaDeg.Add(Mathf.Abs(delta));
                     if (FlippedStrictly(delta, ref cmdDeltaSign)) CmdReversals++;
                 }
-                prevCmdDeg = cmdDeg;
+                prevOffsetDeg = offsetDeg;
             }
             if (weights.Count > 0)
-                facingErrorDeg.Add(Mathf.Abs(Mathf.DeltaAngle(prevCmdDeg, kin.yaw)));
+            {
+                var commandedFacingDeg = (anchorYawRad + latestOffsetRad) * Mathf.Rad2Deg;
+                facingErrorDeg.Add(Mathf.Abs(Mathf.DeltaAngle(commandedFacingDeg, kin.yaw)));
+            }
         }
 
         public FacingRow ToRow(in EpisodeResult result, string opponent, float authorityScale) => new()
@@ -250,8 +257,10 @@ namespace Game.RLHarness
         private readonly Dictionary<string, FacingPool> poolsByOpponent = new();
         private FacingSampler sampler;
         private Ship agent;
+        private IStepSnapshotSource snapshots;
         private IPolicyReadout readout;
         private AgentChooser scaledChooser;
+        private float primaryProjectileSpeed;
         private string label;
 
         public FacingProbe(IReadOnlyDictionary<string, float> parameters)
@@ -269,10 +278,12 @@ namespace Game.RLHarness
         public void Begin(in ProbeContext context)
         {
             label = context.opponentLabel;
+            snapshots = context.snapshots;
             // Chooser identity survives respawns; re-resolve only when a new composition's pair arrives.
             if (context.pair.Agent != agent)
             {
                 agent = context.pair.Agent;
+                primaryProjectileSpeed = agent.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary);
                 var chooser = agent.GetComponentInChildren<AICommander>().Brain.Chooser;
                 readout = chooser as IPolicyReadout ?? throw new InvalidOperationException(
                     $"{ProbeName} probe requires an IPolicyReadout chooser; got {chooser?.GetType().Name ?? "null"}.");
@@ -288,7 +299,10 @@ namespace Game.RLHarness
         public void Sample()
         {
             if (!agent) return;
-            sampler.Sample(agent.Kinematics);
+            var snapshot = snapshots.StepSnapshot;
+            var anchorYawRad = Cost.AnchorYaw(snapshot.myPos, snapshot.enemyPos, snapshot.enemyVel,
+                primaryProjectileSpeed);
+            sampler.Sample(agent.Kinematics, anchorYawRad);
         }
 
         public string End(in EpisodeResult result)
