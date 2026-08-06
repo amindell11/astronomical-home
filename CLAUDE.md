@@ -7,7 +7,7 @@ Rules here are the always-loaded universal core; workflow detail lives in `.clau
 
 ## Fix ladder
 
-Chase every failure to its root cause before writing anything. Then classify it:
+Chase every failure to its root cause before writing anything. Diagnosis sits upstream of this ladder: the `diagnosing-bugs` user skill governs the repro/feedback-loop discipline, and this repo's loop recipes live in `doc/Diagnosis_Loop_Cookbook.md`. Then classify it:
 
 **Operating error** — bad input at an untrusted boundary (user, file, network, serialized/inspector data): parse, don't validate. Check once at the boundary, convert to a trusted type, proceed on trust inside. Never a fallback default.
 
