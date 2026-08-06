@@ -387,6 +387,26 @@ interpolated shift (warm start tracks sim time at 50 Hz), damping
 (wYawRate), or selection (elite average never lets the incumbent
 settle).
 
+**Rulings (user, 2026-08-06, on the film read):**
+
+1. **The limit cycle is policy-free and archetype-reproducible** — the
+   archetypes drive the same Navigator/Mpc stack and the same settings
+   asset, and oscillate identically on film. The redesign iterates on
+   scripted archetype sessions (minutes per arm, controller probe as the
+   read, no RL confound); the HELD velrebase open-loop apparatus is the
+   purpose-built instrument for this.
+2. **Slow-loop-plus-damping is OFF the table.** 10 Hz coherent intent is
+   a diagnostic condition, not a design point — a slowed, damped loop
+   buys sluggishness. wYawRate damping and accept-the-cadence variants
+   drop to last resort. The live probe family keeps 50 Hz decisions and
+   makes them converge: fractional/interpolated shift, and the selection
+   question (a 50 Hz re-blurred elite average never lets an incumbent
+   settle — the convergence suspect at any cadence).
+3. **Converged means both at once**: facing error small AND reversal
+   rate ≤ hull rate at full 50 Hz responsiveness — readable on one short
+   archetype session; closeout and the moving-archetype bars stay the
+   outcome gates.
+
 **Paired d3.0 obstacle arms (RAN 2026-08-06): obstacle competence
 SURVIVED the fix.** Evader (the only threat-heavy cell, ~5% threat steps)
 holds 11W/1L/3D vs stock 13W/0L/2D; the avoidance reflex fires (threat
