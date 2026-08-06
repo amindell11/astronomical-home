@@ -25,20 +25,50 @@ namespace Game.Diagnostics
     {
         public const string ShipDiagnostics = "ship-diagnostics";
         public const string Policy = "policy";
+        public const string ScoutScan = "scout-scan";
+        public const string LockOn = "lock-on";
+        public const string Everything = "everything";
 
         private static readonly Dictionary<string, Func<PainterContext, IDiagnosticPainter>> Factories = new()
         {
             [ShipDiagnostics] = ctx => new ShipDiagnosticsPainter(ctx.a, ctx.b, ctx.projectiles),
             [Policy] = ctx => new PolicyPainter(ctx.a, ctx.b),
+            [ScoutScan] = ctx => new ScoutPainter(ctx.a, ctx.b),
+            [LockOn] = ctx => new LockOnPainter(ctx.a, ctx.b),
         };
 
+        // Presets share the atom namespace so one grammar selects both; real presets accrete with later slices.
+        private static readonly Dictionary<string, string[]> Presets =
+            BuildPresets((Everything, new List<string>(Factories.Keys).ToArray()));
+
         public static string RegisteredNames => string.Join(", ", Factories.Keys);
+        public static string PresetNames => string.Join(", ", Presets.Keys);
 
         public static bool IsRegistered(string name) => name != null && Factories.ContainsKey(name);
+
+        public static bool TryExpandPreset(string name, out string[] atoms)
+        {
+            atoms = null;
+            return name != null && Presets.TryGetValue(name, out atoms);
+        }
 
         public static IDiagnosticPainter Create(string name, in PainterContext context) =>
             Factories.TryGetValue(name, out var factory)
                 ? factory(context)
                 : throw new ArgumentException($"No painter named '{name}'; registered painters: {RegisteredNames}.");
+
+        // Internal so the duplicate-name failure stays testable without mutating the live registry.
+        internal static Dictionary<string, string[]> BuildPresets(params (string name, string[] atoms)[] entries)
+        {
+            var presets = new Dictionary<string, string[]>();
+            foreach (var (name, atoms) in entries)
+            {
+                if (Factories.ContainsKey(name) || presets.ContainsKey(name))
+                    throw new InvalidOperationException(
+                        $"Preset name '{name}' duplicates a registered painter or preset.");
+                presets[name] = atoms;
+            }
+            return presets;
+        }
     }
 }

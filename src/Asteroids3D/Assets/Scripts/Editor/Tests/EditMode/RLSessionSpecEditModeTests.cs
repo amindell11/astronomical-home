@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
+using Game.Diagnostics;
 using Game.RLHarness;
 using NUnit.Framework;
 
@@ -403,15 +404,40 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void PainterSelection_DefaultsShipDiagnosticsAndValidatesNames()
+        public void PainterSelection_DefaultsToNothingDrawn()
         {
-            Assert.AreEqual(new[] { Game.Diagnostics.DiagnosticPainters.ShipDiagnostics }, Parse().painters);
-            Assert.AreEqual(
-                new[] { Game.Diagnostics.DiagnosticPainters.ShipDiagnostics, Game.Diagnostics.DiagnosticPainters.Policy },
+            Assert.IsEmpty(Parse().painters, "unset RL_HARNESS_PAINTERS draws nothing");
+        }
+
+        [Test]
+        public void PainterSelection_ResolvesAtomsExpandsPresetsAndDedupes()
+        {
+            Assert.AreEqual(new[] { DiagnosticPainters.ShipDiagnostics, DiagnosticPainters.Policy },
                 Parse("RL_HARNESS_PAINTERS", "ship-diagnostics,policy").painters);
+
+            Assert.IsTrue(DiagnosticPainters.TryExpandPreset(DiagnosticPainters.Everything, out var everything));
+            Assert.AreEqual(everything, Parse("RL_HARNESS_PAINTERS", "everything").painters);
+
+            var mixed = Parse("RL_HARNESS_PAINTERS", "policy,everything,policy").painters;
+            CollectionAssert.AreEquivalent(everything, mixed, "a preset mixed with its own atoms dedupes");
+        }
+
+        [Test]
+        public void PainterSelection_UnknownNameListsTheRegisteredSet()
+        {
             var thrown = Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_PAINTERS", "heatmap"),
                 "an unknown painter must fail at the boundary naming the registered set");
-            StringAssert.Contains(Game.Diagnostics.DiagnosticPainters.ShipDiagnostics, thrown.Message);
+            StringAssert.Contains(DiagnosticPainters.ShipDiagnostics, thrown.Message);
+            StringAssert.Contains(DiagnosticPainters.Everything, thrown.Message);
+        }
+
+        [Test]
+        public void PainterPresets_DuplicateNameThrowsAtRegistration()
+        {
+            Assert.Throws<InvalidOperationException>(
+                () => DiagnosticPainters.BuildPresets(
+                    (DiagnosticPainters.Policy, new[] { DiagnosticPainters.Policy })),
+                "a preset name colliding with a registered atom must fail when registered");
         }
     }
 }

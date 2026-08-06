@@ -9,6 +9,9 @@ namespace Game.Diagnostics
         void Line(Vector2 a, Vector2 b, Color color);
         void Vector(Vector2 origin, Vector2 v, Color color);
         void Ring(Vector2 center, float radius, Color color);
+        void Rect(Vector2 center, Vector2 size, Color color);
+        /// <summary>Arc sweeping CCW from fromDir by sweepRad radians.</summary>
+        void Arc(Vector2 center, float radius, Vector2 fromDir, float sweepRad, Color color);
         void Trail(Vector2 head, Vector2 dir, float length, Color color);
         void Label(Vector2 pos, string text, Color color, float size = 4f);
     }

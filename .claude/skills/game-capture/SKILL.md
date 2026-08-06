@@ -25,7 +25,8 @@ reading a mid-clip PNG yourself and handing the user the clip path.
   (`RL_HARNESS_OPPONENT=aggressor|mirror|<ckpt>.onnx` — `roster` is refused: five
   archetype films are five sessions). `RL_HARNESS_ONNX` names the candidate
   checkpoint (default: the smoke fixture); `RL_HARNESS_PAINTERS` picks the markup
-  (default `ship-diagnostics`; add `policy` for the facing fan). Full `RL_HARNESS_*`
+  (unset draws NOTHING — name painters or a preset explicitly, e.g.
+  `ship-diagnostics,policy` or `everything`). Full `RL_HARNESS_*`
   grammar in `training/rl/README.md`. The session
   needs a graphics device, so it runs **without** `-nographics` — never the merge
   gate. Clips land beside their JSONL under `RL_HARNESS_OUT_DIR` (or
@@ -76,7 +77,8 @@ overlay fresh per frame. Override `Config` to change clip name/size/cadence.
 
 The harness capture lane (above) covers the standard case: `RL_HARNESS_LANE=capture`
 with `RL_HARNESS_ONNX=<ckpt>.onnx` and `RL_HARNESS_OPPONENT=<archetype|mirror|ckpt>`,
-`RL_HARNESS_PAINTERS=ship-diagnostics,policy`. An absolute checkpoint path is imported
+`RL_HARNESS_PAINTERS=ship-diagnostics,policy` (unset draws no markup — always name
+painters or a preset). An absolute checkpoint path is imported
 into the fixture slot automatically. For compositions the lane can't express (bespoke
 overlays, non-archetype opponents), author a scratch scenario mirroring
 `CaptureClient`'s composition: `host.NewComposition` (or `EpisodePair.SpawnWithAgentChooser`

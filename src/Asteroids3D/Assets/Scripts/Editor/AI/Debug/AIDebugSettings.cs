@@ -9,10 +9,7 @@ namespace AI.Debug
         None       = 0,
         Targeting  = 1 << 0,
         Steering   = 1 << 2,
-        Scanning   = 1 << 3,
-        Info       = 1 << 5,
         Observation = 1 << 7,
-        Policy     = 1 << 8,
     }
 
     [CreateAssetMenu(fileName = "AIDebugSettings", menuName = "AI/Debug Settings")]
@@ -22,9 +19,6 @@ namespace AI.Debug
 
         [Tooltip("Draw gizmos for all ships, not just the selected one")]
         public bool alwaysDrawGizmos;
-
-        [Tooltip("Max commanded-facing fan entries drawn by the Policy channel, newest first.")]
-        public int policyFanDepth = 10;
 
         public bool IsActive(AIDebugChannel ch) => (activeChannels & ch) != 0;
         public bool ShouldDraw(bool isSelected) => isSelected || alwaysDrawGizmos;

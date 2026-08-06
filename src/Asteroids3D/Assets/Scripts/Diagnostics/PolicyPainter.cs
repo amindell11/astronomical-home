@@ -5,13 +5,11 @@ using UnityEngine;
 
 namespace Game.Diagnostics
 {
-    /// <summary>The RL policy's commanded facing/velocity fan against the ship's actual nose (the facing-churn diagnostic, #222), on canvas primitives so it appears in filmed runs as well as live editor gizmos. Anchored commands are drawn in the enemy frame: facing offsets around the bearing-to-enemy (a rough stand-in for the MPC's led intercept anchor — the true anchor is not re-resolved here, richer anchored gizmos are deferred), velocity as its radial/tangential reconstruction. Each pair ship whose chooser is an <see cref="IPolicyReadout"/> is painted; commanders are cached at construction.</summary>
+    /// <summary>The RL policy's commanded facing/velocity against the ship's actual nose (the facing-churn diagnostic, #222), on canvas primitives so it appears in filmed runs as well as live editor gizmos. Anchored commands are drawn in the enemy frame: facing offsets around the bearing-to-enemy (a rough stand-in for the MPC's led intercept anchor — the true anchor is not re-resolved here, richer anchored gizmos are deferred), velocity as its radial/tangential reconstruction. Each pair ship whose chooser is an <see cref="IPolicyReadout"/> is painted; commanders are cached at construction.</summary>
     public sealed class PolicyPainter : IDiagnosticPainter
     {
         private const float VelocityScale = 0.4f;
         private const float FacingRayLength = 3f;
-        private const float FanRayLength = 2.2f;
-        private const int CaptureFanDepth = 10;
 
         private readonly List<AICommander> commanders = new();
 
@@ -25,7 +23,7 @@ namespace Game.Diagnostics
 
         public void Paint(IDiagnosticCanvas canvas)
         {
-            foreach (var commander in commanders) Draw(canvas, commander, CaptureFanDepth);
+            foreach (var commander in commanders) Draw(canvas, commander);
         }
 
         private void Cache(Ship ship)
@@ -36,7 +34,7 @@ namespace Game.Diagnostics
                 commanders.Add(commander);
         }
 
-        public static void Draw(IDiagnosticCanvas canvas, AICommander commander, int fanDepth)
+        public static void Draw(IDiagnosticCanvas canvas, AICommander commander)
         {
             if (commander.context == null) return;
             if (!(commander.Brain?.Chooser is IPolicyReadout readout) || readout.Count == 0) return;
@@ -51,7 +49,6 @@ namespace Game.Diagnostics
             var newest = readout.ActionFromNewest(0);
 
             DrawVelocity(canvas, kin.pos, newest, losHat);
-            DrawFan(canvas, kin.pos, readout, anchorYaw, fanDepth);
             DrawCommandedFacing(canvas, kin.pos, anchorYaw, newest);
             DrawNose(canvas, kin.pos, kin.Forward);
             DrawLabel(canvas, commander, kin, anchorYaw, newest, readout);
@@ -63,20 +60,6 @@ namespace Game.Diagnostics
             var tangentHat = new Vector2(losHat.y, -losHat.x);
             var vel = newest.radialSpeed * losHat + newest.tangentialSpeed * tangentHat;
             canvas.Line(pos, pos + vel * VelocityScale, new Color(0f, 1f, 1f, 0.8f));
-        }
-
-        private static void DrawFan(IDiagnosticCanvas canvas, Vector2 pos, IPolicyReadout readout, float anchorYaw, int fanDepth)
-        {
-            var fanCount = Mathf.Min(fanDepth, readout.Count);
-            if (fanCount <= 0) return;
-
-            var denom = Mathf.Max(fanCount - 1, 1);
-            for (var i = 0; i < fanCount; i++)
-            {
-                var action = readout.ActionFromNewest(i);
-                var alpha = Mathf.Lerp(0.7f, 0.03f, i / (float)denom);
-                canvas.Line(pos, pos + FacingDir(anchorYaw + action.facingOffsetRad) * FanRayLength, new Color(1f, 0.55f, 0f, alpha));
-            }
         }
 
         private static void DrawCommandedFacing(IDiagnosticCanvas canvas, Vector2 pos, float anchorYaw, PolicyAction newest)
