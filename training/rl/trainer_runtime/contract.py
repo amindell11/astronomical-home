@@ -1,3 +1,4 @@
+import hashlib
 import json
 from dataclasses import dataclass
 from datetime import datetime
@@ -6,6 +7,11 @@ from typing import Optional
 
 MANIFEST_NAME = "run_manifest.json"
 SUMMARIES_NAME = "summaries.jsonl"
+
+
+def config_sha256(path: Path) -> str:
+    """The run's config identity — one definition so every producer/consumer hashes alike."""
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 @dataclass(frozen=True)
