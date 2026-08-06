@@ -123,11 +123,15 @@ cost values are unchanged and the user-approved feel is preserved exactly.
 Fix-first ordering was forbidden — it would have silently made the merged 0.2
 a hundred times stronger.
 
-Carriers swept (the complete set): the formula; `MpcSettings_AgentPilot.asset`
+Every carrier that reaches a live solve: the formula; `MpcSettings_AgentPilot.asset`
 (`wSmoothnessYaw 0.2 → 0.002`; thrust/strafe were 0); and the `MpcSettings`
-C# field defaults (`0.5/5.0/0.2 → 0.005/0.05/0.002`), which reach live solves
-through `Navigator.Initialize`'s no-asset fallback. Sweep-based retuning of
-the now-live knob is a later, separate decision.
+C# field defaults (`0.5/5.0/0.2 → 0.005/0.05/0.002`), which seed every newly
+authored asset and `Navigator.Initialize`'s no-asset fallback. Both shipped
+pilot prefabs point at the asset, so the defaults govern authoring and tests
+rather than production. The `MpcCostRegroupEditModeTests` fixture keeps
+old-scale literals deliberately — it builds a `Config` directly and pins only
+`smoothness > 0`. Sweep-based retuning of the now-live knob is a later,
+separate decision.
 
 ## The bench read → what it decides
 
