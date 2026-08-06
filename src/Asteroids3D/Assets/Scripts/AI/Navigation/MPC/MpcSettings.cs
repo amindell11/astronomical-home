@@ -40,11 +40,11 @@ namespace Movement.MPC
         [Tooltip("Effort cost weight. Penalizes large control inputs (thrust, strafe, yaw torque).")]
         public float wEffort = 0.05f;
         [Tooltip("Smoothness weight for thrust changes between steps. Reduces forward/back jitter.")]
-        public float wSmoothnessThrust = 0.5f;
+        public float wSmoothnessThrust = 0.005f;
         [Tooltip("Smoothness weight for strafe changes between steps. High value suppresses lateral oscillation.")]
-        public float wSmoothnessStrafe = 5.0f;
+        public float wSmoothnessStrafe = 0.05f;
         [Tooltip("Smoothness weight for yaw torque changes between steps. Reduces rotational jitter.")]
-        public float wSmoothnessYaw = 0.2f;
+        public float wSmoothnessYaw = 0.002f;
         [Tooltip("Momentum cost weight. Penalizes velocity direction changes, rewarding smooth trajectories that maintain course.")]
         public float wMomentum = 0f;
         [Tooltip("Boost effort cost weight. Penalizes boost usage so the solver doesn't boost gratuitously.")]

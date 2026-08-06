@@ -207,11 +207,10 @@ namespace Movement.MPC
         internal static float EffortCost(Control u) =>
             (u.thrust * u.thrust + u.strafe * u.strafe + u.yawTorque * u.yawTorque) / 3f;
 
-        /// <summary>Normalized 0-1 per axis: 0 = no change, 1 = full reversal in one step.</summary>
+        /// <summary>Normalized 0-1 per axis: 0 = no change, 1 = full reversal (Δ = 2) in one step. The delta is per-step, not a rate — hence dt-free.</summary>
         internal static float SmoothnessCost(Control u, Control prev, Config cfg)
         {
-            // Max delta is 2 (-1 to +1), max rate = 2*invDt, max rate² = 4*invDt²
-            var normFactor = 0.25f * cfg.dt * cfg.dt;
+            const float normFactor = 0.25f;
             var duT = u.thrust - prev.thrust;
             var duS = u.strafe - prev.strafe;
             var duY = u.yawTorque - prev.yawTorque;
