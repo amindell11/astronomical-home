@@ -192,7 +192,7 @@ namespace Movement.MPC
         }
     }
 
-#if UNITY_EDITOR
+    // Unguarded: the trajectory painter compiles into the player.
     public struct CostBreakdown
     {
         public float velocityTrack;
@@ -222,5 +222,4 @@ namespace Movement.MPC
             total += other.total;
         }
     }
-#endif
 }

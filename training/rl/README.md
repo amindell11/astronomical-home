@@ -201,7 +201,7 @@ $env:RL_HARNESS_OPENLOOP = "all"   # K1-2 velrebase lane instead of a checkpoint
 $env:RL_HARNESS_RECORD = "all"   # omit/"" = off; "all" or comma indices (0-based, < episodes/seed) select which episodes film. Recording forces a graphics device — the batch child drops -nographics
 $env:RL_HARNESS_RECORD_SIZE = "960x540"   # clip WxH, positive + even (yuv420p); omit for 960x540
 $env:RL_HARNESS_RECORD_EVERY = "5"   # capture cadence in fixed steps; omit for 5
-$env:RL_HARNESS_PAINTERS = "ship-diagnostics,policy"   # comma-separated painter/preset names drawn onto filmed frames; presets expand + dedupe; omit for NONE (nothing drawn). Painters: ship-diagnostics, policy, scout-scan, lock-on, missiles, laser-heat, movement-forces, damage-bars; presets: everything, combat
+$env:RL_HARNESS_PAINTERS = "ship-diagnostics,policy"   # comma-separated painter/preset names drawn onto filmed frames; presets expand + dedupe; omit for NONE (nothing drawn). Painters: ship-diagnostics, policy, scout-scan, lock-on, mpc-trajectories, mpc-obstacles, gunner-targeting, observation, missiles, laser-heat, movement-forces, damage-bars; presets: everything, steering, combat
 $env:RL_HARNESS_OUT_DIR = "..."   # caller-owned artifact dir; omit for results/rl-eval/ (capture writes rl-capture/)
 ```
 

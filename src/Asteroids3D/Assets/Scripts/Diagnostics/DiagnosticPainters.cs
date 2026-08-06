@@ -27,11 +27,16 @@ namespace Game.Diagnostics
         public const string Policy = "policy";
         public const string ScoutScan = "scout-scan";
         public const string LockOn = "lock-on";
+        public const string MpcTrajectories = "mpc-trajectories";
+        public const string MpcObstacles = "mpc-obstacles";
+        public const string GunnerTargeting = "gunner-targeting";
+        public const string Observation = "observation";
         public const string Missiles = "missiles";
         public const string LaserHeat = "laser-heat";
         public const string MovementForces = "movement-forces";
         public const string DamageBars = "damage-bars";
         public const string Everything = "everything";
+        public const string Steering = "steering";
         public const string Combat = "combat";
 
         private static readonly Dictionary<string, Func<PainterContext, IDiagnosticPainter>> Factories = new()
@@ -40,6 +45,10 @@ namespace Game.Diagnostics
             [Policy] = ctx => new PolicyPainter(ctx.a, ctx.b),
             [ScoutScan] = ctx => new ScoutPainter(ctx.a, ctx.b),
             [LockOn] = ctx => new LockOnPainter(ctx.a, ctx.b),
+            [MpcTrajectories] = ctx => new NavigatorTrajectoryPainter(ctx.a, ctx.b),
+            [MpcObstacles] = ctx => new NavigatorObstaclePainter(ctx.a, ctx.b),
+            [GunnerTargeting] = ctx => new GunnerTargetingPainter(ctx.a, ctx.b),
+            [Observation] = ctx => new ObservationPainter(ctx.a, ctx.b),
             [Missiles] = ctx => new MissilesPainter(ctx.a, ctx.b, ctx.projectiles),
             [LaserHeat] = ctx => new LaserHeatPainter(ctx.a, ctx.b),
             [MovementForces] = ctx => new MovementForcesPainter(ctx.a, ctx.b),
@@ -47,10 +56,10 @@ namespace Game.Diagnostics
         };
 
         // Presets share the atom namespace so one grammar selects both.
-        private static readonly Dictionary<string, string[]> Presets =
-            BuildPresets(
-                (Everything, new List<string>(Factories.Keys).ToArray()),
-                (Combat, new[] { Missiles, LaserHeat, LockOn, ShipDiagnostics }));
+        private static readonly Dictionary<string, string[]> Presets = BuildPresets(
+            (Everything, new List<string>(Factories.Keys).ToArray()),
+            (Steering, new[] { MpcTrajectories, MpcObstacles }),
+            (Combat, new[] { Missiles, LaserHeat, LockOn, ShipDiagnostics }));
 
         public static string RegisteredNames => string.Join(", ", Factories.Keys);
         public static string PresetNames => string.Join(", ", Presets.Keys);
