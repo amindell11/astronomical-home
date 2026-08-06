@@ -17,6 +17,8 @@ from mlagents.trainers.training_status import GlobalTrainingStatus, StatusMetaDa
 
 from trainer_runtime.contract import checkpoint_manifest_path, repair_torn_jsonl
 
+POINTER_COMMIT_STATE_KEY = "__trainer_runtime_commit__"
+
 
 @dataclass(frozen=True)
 class PendingCheckpoint:
@@ -28,17 +30,37 @@ class PendingCheckpoint:
     completed_at: datetime
 
 
-def atomic_write_training_status(path: Path) -> None:
+def training_status_snapshot() -> dict:
     GlobalTrainingStatus.saved_state[
         StatusType.STATS_METADATA.value
     ] = StatusMetaData().to_dict()
+    return json.loads(json.dumps(GlobalTrainingStatus.saved_state))
+
+
+def atomic_write_training_status(path: Path, state: Optional[dict] = None) -> None:
+    state = training_status_snapshot() if state is None else state
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(path.name + ".tmp")
     with temporary.open("w", encoding="utf-8") as handle:
-        json.dump(GlobalTrainingStatus.saved_state, handle, indent=4)
+        json.dump(state, handle, indent=4)
         handle.flush()
         os.fsync(handle.fileno())
     os.replace(temporary, path)
+
+
+def recover_committed_state(run_dir: Path, behavior_name: str) -> None:
+    pointer_path = run_dir / behavior_name / DEFAULT_CHECKPOINT_NAME
+    if not pointer_path.exists():
+        return
+    pointer = torch.load(pointer_path)
+    commit_state = pointer.get(POINTER_COMMIT_STATE_KEY)
+    if commit_state is None:
+        return
+    atomic_write_training_status(
+        run_dir / "run_logs" / "training_status.json",
+        commit_state["training_status"],
+    )
+    _truncate_manifest_after(run_dir, int(commit_state["step"]))
 
 
 class CheckpointManifestWriter:
@@ -130,6 +152,18 @@ class AtomicTorchModelSaver(TorchModelSaver):
                 if temporary.exists():
                     temporary.unlink()
 
+    @staticmethod
+    def stage_commit_state(
+        checkpoint: PendingCheckpoint, status: dict
+    ) -> None:
+        pointer = torch.load(checkpoint.pointer_tmp_path)
+        pointer[POINTER_COMMIT_STATE_KEY] = {
+            "step": checkpoint.step,
+            "training_status": status,
+        }
+        torch.save(pointer, checkpoint.pointer_tmp_path)
+        _fsync_file(checkpoint.pointer_tmp_path)
+
 
 class CheckpointCommitter:
     def __init__(
@@ -149,7 +183,9 @@ class CheckpointCommitter:
             self._mirror_elo(trainer)
             self.manifest.append(checkpoint)
             self._stage_hook("manifest")
-            atomic_write_training_status(self.status_path)
+            status = training_status_snapshot()
+            saver.stage_commit_state(checkpoint, status)
+            atomic_write_training_status(self.status_path, status)
             self._stage_hook("status")
             os.replace(checkpoint.pointer_tmp_path, checkpoint.pointer_path)
             self._stage_hook("pointer")
@@ -167,3 +203,22 @@ class CheckpointCommitter:
 def _fsync_file(path: Path) -> None:
     with path.open("r+b") as handle:
         os.fsync(handle.fileno())
+
+
+def _truncate_manifest_after(run_dir: Path, step: int) -> None:
+    path = checkpoint_manifest_path(run_dir)
+    repair_torn_jsonl(path)
+    if not path.exists():
+        return
+    lines = [
+        line
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip() and int(json.loads(line)["step"]) <= step
+    ]
+    temporary = path.with_name(path.name + ".tmp")
+    with temporary.open("w", encoding="utf-8") as handle:
+        if lines:
+            handle.write("\n".join(lines) + "\n")
+        handle.flush()
+        os.fsync(handle.fileno())
+    os.replace(temporary, path)

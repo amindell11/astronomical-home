@@ -5,15 +5,23 @@ from collections import defaultdict
 from pathlib import Path
 from types import SimpleNamespace
 
+import torch
 from mlagents.trainers.training_status import GlobalTrainingStatus, StatusType
 
 from trainer_runtime.contract import checkpoint_manifest_path, read_checkpoint_manifest
-from trainer_runtime.publish import AtomicTorchModelSaver, CheckpointCommitter
+from trainer_runtime.publish import (
+    AtomicTorchModelSaver,
+    CheckpointCommitter,
+    recover_committed_state,
+)
 
 
 class FakeModule:
+    def __init__(self):
+        self.weight = 7
+
     def state_dict(self):
-        return {"weight": 7}
+        return {"weight": self.weight}
 
 
 class PublishAtomicityTests(unittest.TestCase):
@@ -113,6 +121,83 @@ class PublishAtomicityTests(unittest.TestCase):
 
                 pointer = case_dir / "ShipCombat" / "checkpoint.pt"
                 self.assertEqual(kill_stage == "pointer", pointer.exists())
+
+    def test_resume_recovers_status_and_manifest_from_last_pointer(self):
+        saver = self.saver()
+        trainer = SimpleNamespace(brain_name="ShipCombat", current_elo=100.0)
+        kill_enabled = False
+
+        def kill_after_status(stage):
+            if kill_enabled and stage == "status":
+                raise SimulatedKill(stage)
+
+        committer = CheckpointCommitter(
+            self.run_dir,
+            self.run_dir / "run_logs" / "training_status.json",
+            resume=False,
+            stage_hook=kill_after_status,
+        )
+        saver.modules["fake"].weight = 100
+        saver.save_checkpoint("ShipCombat", 100)
+        committer.commit(saver, trainer)
+
+        saver.modules["fake"].weight = 200
+        saver.save_checkpoint("ShipCombat", 200)
+        trainer.current_elo = 200.0
+        kill_enabled = True
+
+        with self.assertRaises(SimulatedKill):
+            committer.commit(saver, trainer)
+
+        pointer = torch.load(self.behavior_dir / "checkpoint.pt")
+        status = json.loads(
+            (self.run_dir / "run_logs" / "training_status.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertNotEqual(
+            pointer["fake"]["weight"],
+            status["ShipCombat"][StatusType.ELO.value],
+        )
+
+        recover_committed_state(self.run_dir, self.behavior_dir.name)
+
+        status = json.loads(
+            (self.run_dir / "run_logs" / "training_status.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(
+            pointer["fake"]["weight"],
+            status["ShipCombat"][StatusType.ELO.value],
+        )
+        self.assertEqual(
+            [100],
+            [
+                entry.step
+                for entry in read_checkpoint_manifest(
+                    checkpoint_manifest_path(self.run_dir)
+                )
+            ],
+        )
+
+    def test_resume_leaves_legacy_pointer_status_untouched(self):
+        self.behavior_dir.mkdir(parents=True)
+        torch.save(
+            {"fake": {"weight": 100}},
+            self.behavior_dir / "checkpoint.pt",
+        )
+        status_path = self.run_dir / "run_logs" / "training_status.json"
+        status_path.parent.mkdir(parents=True)
+        status_path.write_text(
+            json.dumps({"ShipCombat": {StatusType.ELO.value: 200.0}}),
+            encoding="utf-8",
+        )
+
+        recover_committed_state(self.run_dir, self.behavior_dir.name)
+
+        status = json.loads(status_path.read_text(encoding="utf-8"))
+        self.assertEqual(200.0, status["ShipCombat"][StatusType.ELO.value])
 
     def test_resume_open_repairs_torn_manifest_before_append(self):
         path = checkpoint_manifest_path(self.run_dir)

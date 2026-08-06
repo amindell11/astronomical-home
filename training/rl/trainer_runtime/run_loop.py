@@ -31,7 +31,12 @@ from mlagents_envs.timers import add_metadata, get_timer_tree, hierarchical_time
 
 from trainer_runtime.contract import MANIFEST_NAME, RunManifest, config_sha256, summaries_path, write_manifest
 from trainer_runtime.env_scheduler import EnvironmentScheduler, SubprocessEnvScheduler
-from trainer_runtime.publish import AtomicTorchModelSaver, CheckpointCommitter, atomic_write_training_status
+from trainer_runtime.publish import (
+    AtomicTorchModelSaver,
+    CheckpointCommitter,
+    atomic_write_training_status,
+    recover_committed_state,
+)
 from trainer_runtime.stats_writer import JsonlStatsWriter
 
 logger = logging_util.get_logger(__name__)
@@ -108,6 +113,9 @@ def run_training(
         )
         run_logs_dir.mkdir(parents=True, exist_ok=True)
         if checkpoint.resume:
+            recover_committed_state(
+                Path(checkpoint.write_path), next(iter(options.behaviors))
+            )
             GlobalTrainingStatus.load_state(str(run_logs_dir / "training_status.json"))
         elif checkpoint.maybe_init_path is not None:
             setup_init_path(options.behaviors, checkpoint.maybe_init_path)
