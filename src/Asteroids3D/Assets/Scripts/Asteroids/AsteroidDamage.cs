@@ -10,15 +10,12 @@ namespace Asteroids
     {
         [Header("Damage Tuning")]
         [SerializeField]
-        [Tooltip("Multiplier that converts collision energy (J) to gameplay damage.")]
-        private float energyToDamageScale = 0.01f;
+        [Tooltip("Damage per unit of ship velocity change (delta-v) from the collision.")]
+        private float damagePerDeltaV = 1.5f;
 
-        [Header("Damage Soft Cap")]
-        [SerializeField, Tooltip("Damage below this value is unaffected; excess is softened")]
-        private float softCapThreshold = 50f;
-
-        [SerializeField, Range(0.1f, 1f), Tooltip("Exponent applied to damage above the soft-cap threshold (0.5 = sqrt, 1 = no cap)")]
-        private float softCapExponent = 0.5f;
+        [SerializeField]
+        [Tooltip("Delta-v at or below this is a free tap: no damage.")]
+        private float graceDeltaV = 2f;
 
         [Header("Health")]
         [SerializeField]
@@ -81,36 +78,20 @@ namespace Asteroids
             var otherRb = collision.rigidbody;
             if (!otherRb) return;
 
-            var impact = collision.GetContact(0);
-            var damage = CalcDamage(otherRb.mass, otherRb.linearVelocity, impact);
+            // Solver impulse / ship mass = the delta-v the ship actually felt: damage
+            // tracks the knock the player experienced, whatever the contact geometry.
+            var deltaV = collision.impulse.magnitude / otherRb.mass;
+            var damage = CalcDamage(deltaV);
+            if (damage <= 0f) return;
+
             var damageable = collision.gameObject.GetComponent<IDamageable>();
             damageable?.TakeDamage(new DamageInfo(damage, DamageKind.Collision, Ships.ShipId.Invalid,
-                controller.Mass, controller.Rb.linearVelocity, impact.point));
+                controller.Mass, controller.Rb.linearVelocity, collision.GetContact(0).point));
         }
 
-        private float CalcDamage(float shipMass, Vector3 shipVel, ContactPoint impact)
+        internal float CalcDamage(float deltaV)
         {
-            var asteroidNormalVelocity = Vector3.Project(controller.Rb.linearVelocity, impact.normal);
-            var shipNormalVelocity = Vector3.Project(shipVel, impact.normal);
-            return CalcDamage(controller.Mass, asteroidNormalVelocity, shipMass, shipNormalVelocity);
-        }
-
-        internal float CalcDamage(float asteroidMass, Vector3 asteroidNormalVelocity, float shipMass, Vector3 shipNormalVelocity)
-        {
-            var damage = CollisionDamageUtility.ComputeDamage(
-                asteroidMass,
-                asteroidNormalVelocity,
-                shipMass,
-                shipNormalVelocity,
-                energyToDamageScale * lethality);
-            return ApplySoftCap(damage);
-        }
-
-        private float ApplySoftCap(float damage)
-        {
-            if (damage <= softCapThreshold) return damage;
-            var excess = damage - softCapThreshold;
-            return softCapThreshold + Mathf.Pow(excess, softCapExponent);
+            return Mathf.Max(0f, deltaV - graceDeltaV) * damagePerDeltaV * lethality;
         }
     }
 }
