@@ -86,6 +86,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **anchor** | `--initialize-from` checkpoint · field world anchor / null anchor · archive anchors (file locations) · arena root · anchored intent / enemy anchor (the MPC-resolved frame reference) | Always qualified. |
 | **trainer** | ml-agents trainer runtime (`mlagents-learn`) · owned trainer runtime (takeover arc) · custom-trainer plugin seam · trainer config (`ppo_*.yaml`) · `RLTrainerConfigEditModeTests` | Always qualified. Bare "the trainer" is legal only in RL-run operational context (= the run's trainer-runtime process), never in a title. |
 | **tripwire** | eval tripwire (the scorecard subset watched as a collapse detector) · player-build tripwire (`PlayerBuildTripwireEditModeTests`) | Always qualified. |
+| **module** | deep module (design vocabulary, §2 → *design vocabulary*) · ship module (chassis/module/loadout) · `-ScopeType Module` (test scope) | Qualify: "deep module" / "ship module" / "Module scope". |
 
 ---
 
@@ -171,7 +172,8 @@ Format: **term** — definition. *(authority)*
 - **ratchet** — apply a standing rule only to hunks you touch; whole-file sweeps
   live in dedicated hygiene PRs. Instances: comment ratchet, header ratchet,
   vocab ratchet, structure ratchet (folder taxonomy / one-type-per-file,
-  `AGENTS.md` → Unity code conventions).
+  `AGENTS.md` → Unity code conventions), design ratchet and agent-doc ratchet
+  (CLAUDE.md → Design & agent-doc ratchets).
 - **rescue sweep** — salvaging valuable strays (scratch probes, orphaned docs)
   into an infra-hygiene PR rather than losing them to a slot reset.
 - **three tracking surfaces** — GitHub Issues = what / for-when (thin
@@ -205,6 +207,18 @@ Format: **term** — definition. *(authority)*
   Fixed (rung N) / Rebutted / Deferred.
 - **chunk-down** — replacing a class of remembered failures with a deterministic
   tool ("preflight, don't remember"). *(postmortem)*
+
+### Design vocabulary
+
+- **deep module / interface / seam / adapter / depth** — the design-vocabulary
+  set; the authority is the `codebase-design` user skill (`~/.claude/skills`),
+  not this file. Gists: behaviour concentrated behind a small interface / every
+  fact a caller must know, not just the type surface / where an interface
+  lives — the place behaviour can vary without editing there (Feathers sense) /
+  a concrete thing satisfying an interface at a seam / leverage per unit of
+  interface a caller must learn. Canonical for design discussion. Seam
+  discipline in one line: one adapter is a hypothetical seam, two adapters is
+  a real one.
 
 ### RL & training
 
