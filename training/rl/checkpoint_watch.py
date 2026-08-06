@@ -9,13 +9,16 @@ caller rebuilds its history without spending another eval.
 import re
 import sys
 import time
+import logging
 from pathlib import Path
 from typing import NamedTuple
 
 from eval_lane import summaries_in
+from trainer_runtime.contract import checkpoint_manifest_path, read_checkpoint_manifest
 
 CHECKPOINT = re.compile(r"^ShipCombat-(\d+)\.onnx$")
 REP = re.compile(r"^rep-(\d+)$")
+logger = logging.getLogger(__name__)
 
 
 class PendingStep(NamedTuple):
@@ -30,6 +33,17 @@ def rep_dir(step_dir: Path, rep: int) -> Path:
 
 
 def discover_checkpoints(behavior_dir: Path) -> list:
+    run_dir = behavior_dir.parent
+    manifest = checkpoint_manifest_path(run_dir)
+    if manifest.exists():
+        checkpoints = []
+        for entry in read_checkpoint_manifest(manifest):
+            onnx = run_dir / entry.onnx
+            if onnx.exists():
+                checkpoints.append((entry.step, onnx))
+            else:
+                logger.warning("Skipping pruned checkpoint step %s: %s", entry.step, onnx)
+        return checkpoints
     matches = ((CHECKPOINT.match(p.name), p) for p in behavior_dir.glob("ShipCombat-*.onnx"))
     return sorted((int(m.group(1)), p) for m, p in matches if m)
 

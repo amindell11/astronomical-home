@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Optional
 
 MANIFEST_NAME = "run_manifest.json"
+CHECKPOINT_MANIFEST_NAME = "checkpoint_manifest.jsonl"
 SUMMARIES_NAME = "summaries.jsonl"
 
 
@@ -41,12 +42,24 @@ class TrainingSummary:
     is_training: bool
 
 
+@dataclass(frozen=True)
+class CheckpointManifestEntry:
+    step: int
+    onnx: Path
+    pt: Path
+    completed_at: datetime
+
+
 def manifest_path(results_dir: Path, run_id: str) -> Path:
     return results_dir / run_id / MANIFEST_NAME
 
 
 def summaries_path(run_dir: Path) -> Path:
     return run_dir / SUMMARIES_NAME
+
+
+def checkpoint_manifest_path(run_dir: Path) -> Path:
+    return run_dir / CHECKPOINT_MANIFEST_NAME
 
 
 def write_manifest(path: Path, manifest: RunManifest) -> None:
@@ -84,6 +97,39 @@ def read_summaries(path: Path) -> list[TrainingSummary]:
     if text and not text.endswith("\n"):
         lines = lines[:-1]
     return [_parse_summary(json.loads(line)) for line in lines if line.strip()]
+
+
+def read_checkpoint_manifest(path: Path) -> list[CheckpointManifestEntry]:
+    if not path.exists():
+        return []
+    text = path.read_text(encoding="utf-8")
+    lines = text.splitlines()
+    if text and not text.endswith("\n"):
+        lines = lines[:-1]
+    by_step = {}
+    for line in lines:
+        if not line.strip():
+            continue
+        data = json.loads(line)
+        entry = CheckpointManifestEntry(
+            step=int(data["step"]),
+            onnx=Path(data["onnx"]),
+            pt=Path(data["pt"]),
+            completed_at=datetime.fromisoformat(data["completedAt"].replace("Z", "+00:00")),
+        )
+        by_step[entry.step] = entry
+    return [by_step[step] for step in sorted(by_step)]
+
+
+def repair_torn_jsonl(path: Path) -> None:
+    if not path.exists():
+        return
+    with path.open("r+b") as handle:
+        data = handle.read()
+        if not data or data.endswith(b"\n"):
+            return
+        last_newline = data.rfind(b"\n")
+        handle.truncate(last_newline + 1)
 
 
 def _parse_summary(data: dict) -> TrainingSummary:

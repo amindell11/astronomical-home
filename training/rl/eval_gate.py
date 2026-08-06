@@ -56,6 +56,7 @@ from eval_bundle import BUNDLE_V1, load_bundle
 from eval_lane import HARNESS_CHILD, run_eval_lane
 from eval_stats import wilson_interval
 from run_parallel import terminate_pid_tree
+from trainer_runtime.contract import manifest_path, read_manifest
 
 RL_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RL_DIR.parent.parent
@@ -68,6 +69,11 @@ EVADER = "Evader"
 CONTINUE = "CONTINUE"
 ALERT = "ALERT"
 STOP = "STOP"
+
+
+def behavior_name(results_dir: Path, run_id: str) -> str:
+    path = manifest_path(results_dir, run_id)
+    return read_manifest(path).behavior if path.exists() else "ShipCombat"
 
 
 class Score(NamedTuple):
@@ -307,7 +313,7 @@ def main() -> None:
 
     args.lease = args.lease or f"rl-eval-gate-{args.run_id}"
     unity = args.unity or default_unity_exe(args.project)
-    behavior_dir = args.results_dir / args.run_id / "ShipCombat"
+    behavior_dir = args.results_dir / args.run_id / behavior_name(args.results_dir, args.run_id)
     gate_dir = args.out_root / args.run_id
     print(f"[gate] watching {behavior_dir}")
     print(f"[gate] bundle {bundle.bundle_id}  eval project {args.project}  "

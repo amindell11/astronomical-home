@@ -13,6 +13,7 @@ from mlagents_envs.side_channel.stats_side_channel import StatsAggregationMethod
 from run_parallel import MLAGENTS, trainer_command
 from trainer_runtime.contract import manifest_path, read_manifest, read_summaries, summaries_path
 from trainer_runtime.entry import _mode, owned_stats_writers, refuse_conflicting_restore
+from trainer_runtime.run_loop import validate_owned_options
 from trainer_runtime.stats_writer import JsonlStatsWriter
 
 
@@ -33,6 +34,12 @@ class OwnedEntryTests(unittest.TestCase):
     def test_hybrid_mode_is_explicit_instead_of_inferred_from_elo(self):
         with patch.dict(os.environ, {"RL_HYBRID_SCRIPTED_WORKERS": "2"}):
             self.assertEqual("hybrid", _mode(self_play=True))
+
+    def test_threaded_trainer_is_refused_before_launch(self):
+        options = SimpleNamespace(behaviors={"ShipCombat": SimpleNamespace(threaded=True)})
+
+        with self.assertRaisesRegex(RuntimeError, "does not support threaded"):
+            validate_owned_options(options)
 
     def test_plugin_writes_manifest_and_structured_summary(self):
         with tempfile.TemporaryDirectory() as temp:
