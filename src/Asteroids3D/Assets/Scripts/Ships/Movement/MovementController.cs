@@ -14,7 +14,6 @@ namespace Ships.Movement
         public bool enableDebugLogs;
 
         [Header("Movement Gizmos")]
-        public bool showMovementGizmos = true;
         public float movementGizmoScale = 3f;
 
         private Rigidbody  rb;

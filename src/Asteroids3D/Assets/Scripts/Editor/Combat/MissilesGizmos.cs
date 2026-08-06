@@ -1,16 +1,16 @@
+using Game.Diagnostics;
 using UnityEditor;
-using UnityEngine;
 
 namespace Combat.Weapons
 {
+    /// <summary>Live-editor shim over <see cref="MissilesPainter"/>'s launcher view: the DrawGizmo per-subject hook plus DiagnosticGate gating, rendering the shared painter onto a <see cref="GizmoCanvas"/>.</summary>
     internal static class MissilesGizmos
     {
         [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected, typeof(Missiles))]
         private static void DrawAmmoLabel(Missiles missiles, GizmoType gizmoType)
         {
-            if (!missiles.firePoint || !missiles.Rounds) return;
-            var ammoText = $"Ammo: {missiles.Rounds.AmmoCount}/{missiles.Rounds.MaxAmmo}";
-            Handles.Label(missiles.firePoint.position + Vector3.up * 2f, $"Missiles\n{ammoText}");
+            if (!DiagnosticGate.ShouldDraw(DiagnosticPainters.Missiles, gizmoType)) return;
+            MissilesPainter.DrawLauncher(new GizmoCanvas(), missiles);
         }
     }
 }
