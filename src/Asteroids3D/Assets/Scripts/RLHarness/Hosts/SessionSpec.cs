@@ -222,19 +222,30 @@ namespace Game.RLHarness
                     + "\"mirror\", or a checkpoint path (roster stratification is an eval concept).");
         }
 
-        /// <summary>Comma-separated painter names; default the ship-diagnostics overlay. Names resolve through <see cref="DiagnosticPainters"/>.</summary>
+        /// <summary>Comma-separated painter or preset names resolved through <see cref="DiagnosticPainters"/>; presets expand and the result dedupes. Unset draws nothing.</summary>
         private static string[] ParsePainters(string value)
         {
-            if (value == null) return new[] { DiagnosticPainters.ShipDiagnostics };
+            if (value == null) return Array.Empty<string>();
             var names = new List<string>();
             foreach (var raw in value.Split(','))
             {
                 var name = raw.Trim();
                 if (name.Length == 0) continue;
-                if (!DiagnosticPainters.IsRegistered(name))
+                if (DiagnosticPainters.TryExpandPreset(name, out var atoms))
+                {
+                    foreach (var atom in atoms)
+                        if (!names.Contains(atom))
+                            names.Add(atom);
+                }
+                else if (!DiagnosticPainters.IsRegistered(name))
+                {
                     throw new ArgumentException(
-                        $"RL_HARNESS_PAINTERS name '{name}' is not a registered painter: {DiagnosticPainters.RegisteredNames}.");
-                names.Add(name);
+                        $"RL_HARNESS_PAINTERS name '{name}' is not a registered painter ({DiagnosticPainters.RegisteredNames}) or preset ({DiagnosticPainters.PresetNames}).");
+                }
+                else if (!names.Contains(name))
+                {
+                    names.Add(name);
+                }
             }
             return names.ToArray();
         }

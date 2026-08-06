@@ -69,6 +69,29 @@ namespace Game.Capture
             }
         }
 
+        public void Rect(Vector2 center, Vector2 size, Color color)
+        {
+            var half = size * 0.5f;
+            var rect = NextLine(4, color, loop: true);
+            rect.SetPosition(0, Lift(center + new Vector2(-half.x, -half.y)));
+            rect.SetPosition(1, Lift(center + new Vector2(half.x, -half.y)));
+            rect.SetPosition(2, Lift(center + new Vector2(half.x, half.y)));
+            rect.SetPosition(3, Lift(center + new Vector2(-half.x, half.y)));
+        }
+
+        public void Arc(Vector2 center, float radius, Vector2 fromDir, float sweepRad, Color color)
+        {
+            if (fromDir.sqrMagnitude < 1e-8f) return;
+            var segments = Mathf.Max(2, Mathf.CeilToInt(RingSegments * Mathf.Abs(sweepRad) / (2f * Mathf.PI)));
+            var startAngle = Mathf.Atan2(fromDir.y, fromDir.x);
+            var arc = NextLine(segments + 1, color);
+            for (var i = 0; i <= segments; i++)
+            {
+                var angle = startAngle + sweepRad * i / segments;
+                arc.SetPosition(i, Lift(center + radius * new Vector2(Mathf.Cos(angle), Mathf.Sin(angle))));
+            }
+        }
+
         /// <summary>Short streak of the given length trailing behind head, opposite dir (normalized internally).</summary>
         public void Trail(Vector2 head, Vector2 dir, float length, Color color)
         {

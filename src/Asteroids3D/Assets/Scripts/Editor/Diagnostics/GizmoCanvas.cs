@@ -26,6 +26,27 @@ namespace Game.Diagnostics
             Handles.DrawWireDisc(GamePlane.PlanePointToWorld(center), PlaneNormal, radius);
         }
 
+        public void Rect(Vector2 center, Vector2 size, Color color)
+        {
+            var half = size * 0.5f;
+            var bl = center + new Vector2(-half.x, -half.y);
+            var br = center + new Vector2(half.x, -half.y);
+            var tr = center + new Vector2(half.x, half.y);
+            var tl = center + new Vector2(-half.x, half.y);
+            Line(bl, br, color);
+            Line(br, tr, color);
+            Line(tr, tl, color);
+            Line(tl, bl, color);
+        }
+
+        public void Arc(Vector2 center, float radius, Vector2 fromDir, float sweepRad, Color color)
+        {
+            if (fromDir.sqrMagnitude < 1e-8f) return;
+            Handles.color = color;
+            Handles.DrawWireArc(GamePlane.PlanePointToWorld(center), PlaneNormal,
+                GamePlane.PlaneDirToWorld(fromDir), sweepRad * Mathf.Rad2Deg, radius);
+        }
+
         public void Trail(Vector2 head, Vector2 dir, float length, Color color)
         {
             if (dir.sqrMagnitude < 1e-8f) return;
