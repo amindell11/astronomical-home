@@ -25,7 +25,7 @@ MonoBehaviour:
   wEffort: 0.1
   wSmoothnessThrust: 0
   wSmoothnessStrafe: 0
-  wSmoothnessYaw: 0.2
+  wSmoothnessYaw: 0.002
   wMomentum: 0
   wBoostEffort: 1
   boostSampleProbability: 0

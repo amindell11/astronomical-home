@@ -135,6 +135,10 @@ Direct thrash A/B (mirror probe counting yaw-rate sign flips):
 | 1 | 3.14 | 99°/s |
 | 3 | 3.21 | 98°/s |
 
+Weights here are in the pre-Slice-C scale, 100× suppressed by a stray dt² in
+`SmoothnessCost` (MPC Retune Pass §Slice C): read 1 and 3 as 0.01 and 0.03 against
+today's asset. Only the units moved — the rows stand.
+
 **Damping does not reduce thrash** — flat-to-slightly-up across a 3× weight increase. The churn is in
 the commanded target, not the controller's tracking. (An outcome-only eval sweep separately showed
 damping costs no performance: 70/71/73 of 75, all within noise.)

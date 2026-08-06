@@ -1,9 +1,9 @@
 # MPC Retune Pass — instrumentation, bench, and contingent controller refactor
 
-**STATUS: PASS OPENED 2026-08-05; Slices A+B BUILDING (parallel).** Shape and
-slice briefs frozen this date with the user. Nav-field addback DESCOPED (see
-Rulings). Structural controller work is CONTINGENT on the Slice-B bench read —
-not yet authorized.
+**STATUS: live arc — Slices A (#261), B (#260) and C all landed; the bench read
+is the open step.** Shape and slice briefs frozen 2026-08-05 with the user.
+Nav-field addback DESCOPED (see Rulings). Structural controller work is
+CONTINGENT on the Slice-B bench read — not yet authorized.
 
 Entry evidence: memory `handoff_2026-08-04_k1_4_eval_mpc_navfield.md` (K1-4
 run record, facing-authority + MPC-noise ablations, obstacle-competence gate
@@ -21,10 +21,15 @@ PR #250 to merge with the tweaks (merge driven outside this pass).
 
 Two facts frame this pass:
 
-1. **The felt thrash improvement is the noise drop, not the smoothness
-   weight.** `Cost.SmoothnessCost` multiplies by `0.25·dt²` without dividing
-   the control delta by dt, suppressing the claimed 0–1 normalization by 100×
-   at dt 0.1 — `wSmoothnessYaw 0.2` behaves like an effective 0.002.
+1. **The felt thrash improvement was the noise drop, not the smoothness
+   weight.** At playtest time `Cost.SmoothnessCost` multiplied by `0.25·dt²`
+   without dividing the control delta by dt, suppressing the claimed 0–1
+   normalization by 100× at dt 0.1, so the hand-tuned `wSmoothnessYaw 0.2` was
+   an effective 0.002. Slice C fixed the normalization and rescaled the asset
+   to `0.002` in the same commit, so that operating point is preserved exactly
+   and the knob is now live and dt-independent. **Every smoothness weight
+   quoted before Slice C is in the old 100×-suppressed scale** — divide by 100
+   to read it against the current asset.
 2. **The solver already carries an unperturbed incumbent** (candidate 0 is the
    verbatim shifted warm start, `BurstSolver.GenerateCandidatesJob`, since
    #76). The 2026-08-04 handoff's contrary claim is corrected in place. The
@@ -110,14 +115,19 @@ the aggregate read that was hand-written for the 699941 rebaseline.
 - Smoke-testable pre-#250 against current main (699941 + `facing` probe,
    1-seed short run).
 
-## Slice C — SmoothnessCost normalization fix (post-#250 micro-slice)
+## Slice C — SmoothnessCost normalization fix (LANDED)
 
-NOT built in parallel; sequenced strictly after #250 lands. One commit: fix
-the normalization (`deltaControl²/4`, dt-independent) AND rescale the tuned
-asset `wSmoothnessYaw 0.2 → 0.002` so the user-approved feel is preserved
-exactly (cost-value equivalence). Fix-first ordering is forbidden — it would
-silently make the merged 0.2 a hundred times stronger. Sweep-based retuning
-of the now-live knob is a later, separate decision.
+One commit, sequenced after #250: the normalization became `deltaControl²/4`
+(dt-independent) and every carrier was rescaled by dt² in the same breath, so
+cost values are unchanged and the user-approved feel is preserved exactly.
+Fix-first ordering was forbidden — it would have silently made the merged 0.2
+a hundred times stronger.
+
+Carriers swept (the complete set): the formula; `MpcSettings_AgentPilot.asset`
+(`wSmoothnessYaw 0.2 → 0.002`; thrust/strafe were 0); and the `MpcSettings`
+C# field defaults (`0.5/5.0/0.2 → 0.005/0.05/0.002`), which reach live solves
+through `Navigator.Initialize`'s no-asset fallback. Sweep-based retuning of
+the now-live knob is a later, separate decision.
 
 ## The bench read → what it decides
 
