@@ -1,5 +1,5 @@
-"""Parallel-worker training driver: runs mlagents-learn --env <player exe> --num-envs N,
-launching N headless copies of PR-1's RLTraining standalone player under one trainer. Each
+"""Parallel-worker training driver: runs the selected trainer runtime against N headless
+copies of PR-1's RLTraining standalone player. Each
 worker derives an independent run seed from its ML-Agents port offset against the launcher's
 --harness-base-port (see TrainingHost.ResolveWorkerIndex), so the N copies produce
 decorrelated experience instead of near-duplicate rollouts. --num-arenas M > 1 additionally
@@ -35,6 +35,7 @@ REPO_ROOT = RL_DIR.parent.parent
 RESULTS = REPO_ROOT / "results" / "rl-training"
 JSONL_DIR = REPO_ROOT / "results" / "rl-episodes"
 MLAGENTS = RL_DIR / ".venv" / "Scripts" / "mlagents-learn.exe"
+TRAINER_RUNTIMES = ("owned", "ml-agents")
 
 # TrainingHost.ComposeSuffix (C#) owns this format; RLDriverContractEditModeTests pins the pair.
 WORKER_SUFFIX = "-w{k}"
@@ -44,6 +45,12 @@ ARENA_SUFFIX = "-a{j}"
 def trainer_log_path(run_id: str) -> Path:
     """Where this launcher writes the trainer's stdout; consumers import this rather than rebuild it."""
     return RESULTS / f"{run_id}-parallel-trainer.log"
+
+
+def trainer_command(runtime: str) -> list[str]:
+    if runtime == "owned":
+        return [sys.executable, "-m", "trainer_runtime.entry"]
+    return [str(MLAGENTS)]
 
 
 def config_has_roster_weights(config: Path) -> bool:
@@ -86,6 +93,8 @@ def main() -> None:
     parser.add_argument("--config", type=Path, default=None,
                         help="trainer YAML (default: the smoke config under --smoke, else the full 2M config)")
     parser.add_argument("--run-id", default=None, help="mlagents run id (default: the config's run_id)")
+    parser.add_argument("--trainer-runtime", choices=TRAINER_RUNTIMES, default="owned",
+                        help="trainer entry implementation; owned delegates the loop to pinned ML-Agents")
     parser.add_argument("--base-port", type=int, default=5006,
                         help="base ML-Agents port; passed to both --base-port and the workers' --harness-base-port")
     parser.add_argument("--smoke", action="store_true",
@@ -165,7 +174,7 @@ def main() -> None:
     else:
         env.pop("RL_HYBRID_SCRIPTED_WORKERS", None)
 
-    trainer_cmd = [str(MLAGENTS), str(config),
+    trainer_cmd = trainer_command(args.trainer_runtime) + [str(config),
                    "--run-id", run_id,
                    "--env", str(args.env),
                    "--num-envs", str(args.num_envs),
@@ -185,7 +194,8 @@ def main() -> None:
 
     trainer_log = trainer_log_path(run_id)
     print(f"launching {args.num_envs} worker(s): {args.env}")
-    print(f"  base-port {args.base_port}  jsonl {JSONL_DIR}  run-id {run_id}")
+    print(f"  trainer-runtime {args.trainer_runtime}  base-port {args.base_port}  "
+          f"jsonl {JSONL_DIR}  run-id {run_id}")
     trainer = None
     try:
         with open(trainer_log, "w") as tl:
@@ -199,7 +209,7 @@ def main() -> None:
         if trainer:
             terminate_tree(trainer)
     if trainer.returncode != 0:
-        sys.exit(f"FAIL: mlagents-learn exited {trainer.returncode} (see {trainer_log})")
+        sys.exit(f"FAIL: trainer runtime exited {trainer.returncode} (see {trainer_log})")
 
     failures = []
     if not onnx.exists():

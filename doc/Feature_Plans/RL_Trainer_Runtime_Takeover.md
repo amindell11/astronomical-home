@@ -1,7 +1,9 @@
 # RL Trainer Runtime Takeover
 
-> STATUS: live arc — opened 2026-08-05; next = slice 0 precursors + slice 1
-> wire-contract freeze; stages 3+ are entry-gated, not committed.
+> STATUS: live arc — opened 2026-08-05; slices 0–2 COMPLETE (#259 tripwire ·
+> wire-contract freeze · stage-1a wrapper #262); slice-3 brief FROZEN
+> 2026-08-06 (§Slice-3 decision brief) — next = the rider bench PR, then the
+> stage-1b build; stages 3+ are entry-gated, not committed.
 
 *Seeded 2026-08-05 by a four-lane grounding review run in the arc-opening
 session (ml-agents feature-usage inventory, C#↔Python wire-contract map,
@@ -81,10 +83,11 @@ builds.
 
 **Stage 1a — owned entry wrapper (committed; split ruled 2026-08-05).** A
 project-owned entry that parses the CLI/YAML, writes the run manifest,
-registers an ADDITIVE stats-writer plugin (`[mlagents.stats_writer]` — a
-supported ml-agents seam; tfevents keep flowing, `plot_progress.py`
-untouched) emitting `summaries.jsonl`, refuses `--resume` +
-`--initialize-from` loudly, then delegates the entire loop to stock
+registers an ADDITIVE stats-writer (in-process, wrapper-scoped — amended
+2026-08-05 from the `[mlagents.stats_writer]` entry point, which is
+venv-global and would ride along into stock reference runs; tfevents keep
+flowing, `plot_progress.py` stays on them) emitting `summaries.jsonl`,
+refuses `--resume` + `--initialize-from` loudly, then delegates the entire loop to stock
 `learn.main()` (wrapper mechanics proven by the 2026-08-03 torch-thread
 experiment). The launcher grows its runtime selector here; dashboard + bench
 repoint to manifest/summaries in the same slice. Lands the manifest- and
@@ -286,11 +289,263 @@ rule 6 corollary violations). Stage 1 inverts the ones in its layer:
   contract-map lane report's freeze checklist (arc-opening session).
 - **Slice 2 — stage 1a wrapper build** (light pr-prep; consumer repoints
   reviewed with it).
-- **Slice 3 — stage 1b scheduler build** (pr-prep first; adversarial
-  atomicity round mandatory — checkpoint/manifest/resume writes are its
-  whole surface).
+- **Slice 3 — stage 1b scheduler build** (pr-prep DONE 2026-08-06 —
+  §Slice-3 decision brief; adversarial atomicity round run and disposed in
+  the brief. Build order: rider bench PR first, then the 1b PR).
 - **Slice 4 — stage 2 build** (pr-prep first).
 - Later slices open only through their entry gates (§The ladder).
+
+## Slice-3 decision brief — stage 1b, ready-environment scheduler re-own (FROZEN 2026-08-06)
+
+> Prep session 2026-08-05/06; forks resolved with user; adversarial atomicity
+> round (two consultants: fresh Fable subagent + codex CLI 0.144.1, identical
+> Mode-B packet) disposed — see §Atomicity round below. Codex invocation
+> (recorded for convention): `codex exec --sandbox read-only - < packet.md`,
+> cwd = repo root. The implementing agent builds from this brief plus the
+> plan; it re-decides nothing here.
+
+### Scope
+
+Replace the stock run loop — `learn.py`'s `run_training` flow,
+`TrainerController` (297), the `EnvManager` base pump (157), and
+`SubprocessEnvManager` (546) — with project code in
+`training/rl/trainer_runtime/`, behind the existing
+`python -m trainer_runtime.entry` CLI (surface unchanged; `entry.py`'s
+`learn.run_cli(options)` delegation line is what dies). Retained as pinned
+imports: `mlagents_envs` wholesale (`UnityEnvironment`, communicator, side
+channels), `TrainerFactory` + trainer plugin registry (GhostTrainer wrap +
+`GhostController` ride it), `AgentManager`/`AgentProcessor`/`AgentManagerQueue`,
+`EnvironmentParameterManager` + `GlobalTrainingStatus`, `TorchModelSaver`
+(subclassed for owned publish) + `ModelSerializer`, the stock stats writers +
+the owned `JsonlStatsWriter`. Update math is inherited, not ported.
+
+In-slice riders: atomic checkpoint publish + checkpoint manifest (V1/V2
+inversion incl. consumer repoint), per-checkpoint training-status
+persistence, per-worker `--harness-worker-index` emission (V9 producer half),
+eval_gate behavior-name sourcing from the run manifest (V3 kill, with
+fallback).
+
+### Non-goals
+
+- No throughput claim — stage 2 owns that; this slice's contract is
+  equivalence.
+- No update-math or curriculum-semantics changes (advance logic bug-for-bug).
+- No editor-lane runtime selector (`run_training.py`/`run_smoke.py` stay
+  stock).
+- No C# changes — V9's consumer half (TrainingHost reads the flag,
+  cross-checks port arithmetic, throws on mismatch) is a named follow-up
+  micro-PR outside the quiet-lane cadence (wire contract §3 amendment
+  records the split).
+- No thread topology — stage-2 design input.
+- Bench reference arm is NOT in this diff: rider PR (fork F) lands first.
+
+### Locked forks
+
+- **A. Worker topology — subprocess-per-env retained.** Owned scheduler
+  reproduces stock's process-per-worker shape (worker fn, shared step queue,
+  restart quotas ported 1:1). Why: the cheap-tier gates measure behavioral
+  equivalence; identical topology means the canary compares only the
+  re-owned scheduling logic. Threads re-evaluated as a stage-2 design input.
+- **B. Ownership boundary — retain `AgentManager`.** Re-own learn-flow +
+  TrainerController + pump + SubprocessEnvManager as one owned scheduler;
+  retain `AgentManager`/`AgentProcessor` and `TrainerFactory` as imports.
+  Why: trajectory assembly is correctness-dense (the `interrupted` flag
+  drives PPO truncation bootstrapping — wire contract §4 load-bearing) and
+  no cheap gate can prove an equivalent port; factory retention inherits the
+  GhostTrainer wrap (`trainer_factory.py:121`) and MAX(min_lesson_length)
+  buffer sizing (`trainer_factory.py:99`) for free.
+- **C. Checkpoint publish + manifest — atomic publish, manifest + glob
+  fallback, V3 killed.** (Publish ordering and seam split revised by the
+  atomicity round — items 1/2.)
+  - Split of responsibility: the owned saver (a `TorchModelSaver` subclass)
+    stages and atomically renames the **interval artifacts only**
+    (`<name>.tmp` in the same dir → fsync → `os.replace()`; order
+    `ShipCombat-<step>.pt` → `ShipCombat-<step>.onnx`), stages
+    `checkpoint.pt.tmp`, and signals "published step N" to the loop. The
+    **owned loop runs the commit tail** after `trainer.advance()` returns —
+    strictly ordered: ① manifest line append+flush → ② atomic
+    `training_status.json` save (fork D) → ③ `checkpoint.pt` rename (resume
+    pointer commits LAST). Running post-advance puts the tail after
+    `ModelCheckpointManager.add_checkpoint`, so the persisted registry
+    includes step N and reflects pruning. Pointer-last shrinks the
+    inconsistency window from seconds (a multi-MB ONNX export sat inside
+    it) to microseconds (two renames). `.tmp` names are invisible to the
+    legacy glob and anchored regex. `copy_final_model` (run-root
+    `ShipCombat.onnx`) atomicized the same way, after the final commit tail.
+  - Manifest: `results/rl-training/<run-id>/checkpoint_manifest.jsonl`
+    (sibling of `run_manifest.json`), one line per published checkpoint,
+    camelCase `{step, onnx, pt, completedAt}`, paths relative to the run
+    dir, append-only. Duplicate-step semantics: reader dedupes by step,
+    **last line wins** (resume legs legitimately republish the boundary
+    step with different weights; stock overwrites identically, we merely
+    record it). Writer repairs a torn tail on resume-open (truncate any
+    non-newline-terminated fragment before appending). Reader stays
+    tolerant of an unterminated tail only. Name + reader in
+    `trainer_runtime/contract.py`.
+  - Consumers: `checkpoint_watch` prefers the manifest when present, falls
+    back to today's glob+regex when absent (per-poll preference; step-dedup
+    across both). In manifest mode it yields only steps whose `.onnx`
+    exists at yield time (skip + log — pruning outlives lines by design;
+    smoke configs run `keep_checkpoints: 2`, so this is not
+    production-moot). Filename grammar stays frozen as compat. `eval_gate`
+    sources behavior from `run_manifest.json` when present, hardcoded
+    `"ShipCombat"` fallback otherwise. Accepted caveat: a resume-leg
+    republish of step N rewrites bytes a prior `verdict.json` already
+    judged; the gate never re-judges (stock-inherent overwrite, now
+    documented).
+  - Saver injection: swap onto `trainer.model_saver` (and
+    `ghost.trainer.model_saver`) immediately after `factory.generate()` and
+    BEFORE `create_policy` — ghost `create_policy` triggers the inner
+    `add_policy` → `model_saver.register` + `initialize_or_load`. Ordering
+    pinned by unit test.
+- **D. Resume-state persistence — per-checkpoint, hooked in the loop.**
+  (Seam relocated by the atomicity round, item 1: a saver-seam hook would
+  persist a run-start ELO forever and a one-behind registry.) The loop's
+  commit tail (fork C ②) saves `GlobalTrainingStatus` atomically
+  (temp + `os.replace`) after every publish; for ghost-wrapped trainers it
+  first mirrors `ghost.current_elo` into `GlobalTrainingStatus` (stock only
+  does this in end-of-run `save_model` — `ghost/trainer.py:331`). Every
+  status write — per-checkpoint AND at-exit — routes through the one atomic
+  helper; stock's truncating `save_state` is never called (a phase-blind
+  timeout kill during teardown would otherwise destroy the last good
+  snapshot and brick `--resume` on an uncaught `JSONDecodeError`). Schema
+  unchanged (stock-readable). Why: stock persists only in `learn.py`'s
+  `finally`; our watchdog kills are `taskkill /F /T`, so lesson state,
+  registry, and ELO were lost while weights resumed. With the commit tail,
+  resume loads a (weights, lesson, ELO, registry) tuple consistent as-of
+  the last completed tail, worst case one checkpoint interval stale.
+- **E. V9 slicing — emit-only.** Owned env factory appends
+  `--harness-worker-index k` to each worker's `additional_args` (Unity
+  ignores unknown argv; `TrainingHost` port-arithmetic derivation + throw
+  stays the sole authority). C# read + cross-check = follow-up micro-PR
+  (wire contract §3 amendment).
+- **F. Bench reference arm — rider PR, lands before the 1b build.**
+  `bench_throughput.py` gains `--trainer-runtime` (threaded into the command
+  and the row's provenance key) + a stock-arm reader that parses
+  `(step, elapsed)` from the stock stdout summary lines in the existing
+  `{run_id}-parallel-trainer.log` redirect (the pre-1a surface, resurrected
+  for the stock arm only).
+
+### Assumptions (code-cited)
+
+1. **Package shape.** Owned loop extends the #262 package; suggested modules
+   `run_loop.py` (controller port) + `env_scheduler.py` (worker/scheduling
+   port) + `publish.py` (owned saver); `contract.py` gains the checkpoint
+   manifest name + reader. Implementing agent free on file naming, not on
+   seam placement.
+2. **CLI + config parse unchanged** — `learn.parse_command_line` (which also
+   runs `register_trainer_plugins`, populating the factory's type registry)
+   and the `--resume`+`--initialize-from` refusal stay as in #262.
+3. **Worker function parity** with `subprocess_env_manager.worker`
+   (`:116-243`): same side-channel quartet (EngineConfigurationChannel fed
+   the YAML `engine_settings` — the pacing-contract values; env-params;
+   stats; analytics on worker 0 only), same `env_seed = seed + worker_id`
+   (`learn.py:190`), same log-level propagation into workers (keeps
+   `Listening on port` — emitted by retained `environment.py:223`), same
+   STEP/RESET/CLOSE/ENV_EXITED protocol, plus exactly one addition: the
+   per-worker index flag (fork E).
+4. **Scheduling parity**: `_step` ready-poll (queue all non-waiting, poll
+   until ≥1 response), restart quota/rate-limit machinery, restart → full
+   reset, ported verbatim from `subprocess_env_manager.py:299-432`.
+5. **Loop parity**: `start_learning` sequence ported — initial reset with
+   current samplers, `log_current_lesson()`, `advance()` then
+   `reset_env_if_ready` once per processed step-info, `_not_done_training`
+   stop, `finally: _save_models`; np/torch seeded as
+   `trainer_controller.py:67-68`; per-advance lesson-number stat.
+6. **Curriculum quirk guarantee**: the global reward-deque clear ports
+   verbatim from `trainer_controller.py:218-220` (ANY lane advance → clear
+   ALL trainers' buffers); the MAX(min_lesson_length) window is inherited
+   via the retained factory; ghost `should_reset()` → full reset +
+   `end_trainer_episodes`; `elif updated → set_env_parameters` (no reset)
+   branch kept. Pinned by stdlib unit tests driving the ported loop with a
+   synthetic reward stream against the REAL retained
+   `EnvironmentParameterManager` + `GlobalTrainingStatus` (advance step,
+   clear, reset-vs-no-reset all asserted), plus the 300k canary observable.
+7. **Stdout markers flow free**: `Listening on port` (retained worker code +
+   log config), lesson line (retained
+   `environment_parameter_manager.py:119-133`, matching the dashboard's
+   anchor-free `LESSON_RE`), console summary (retained ConsoleWriter). Zero
+   marker repoints in-slice; both structured consumers were repointed @1a;
+   the `Listening on port` waiters are the stock-only editor lanes.
+8. **Editor lanes stay stock**; the owned loop keeps `env_path=None` viable
+   through retained `UnityEnvironment` but no editor-lane wiring lands.
+9. **Run artifacts parity**: `configuration.yaml`, `run_logs/timers.json`,
+   tfevents (stock writers still registered), `summaries.jsonl` (owned
+   writer kept, resume-monotonic offset kept, plus the same torn-tail
+   repair on resume-open as the checkpoint manifest — the latent
+   append-after-torn-fragment defect exists in the @1a writer too and this
+   slice owns that file), `run_logs/training_status.json` (per-checkpoint
+   via the commit tail, fork D).
+10. **Process contract**: exit 0 on success; env-failure exceptions
+    re-raised after model save (port of `trainer_controller.py:180-200`
+    semantics); workers remain children (taskkill /T reapability);
+    `run_parallel.py` untouched (its `RLDriverContractEditModeTests` pin
+    stands).
+11. **`threaded: true` refused loudly at parse** — configs never set it,
+    default false (`settings.py:639`); the owned loop is single-threaded and
+    drops the trainer-thread machinery.
+12. **Single-behavior constraint stays** (#262 `entry.py:58-62`); dynamic
+    ghost behavior registration (`ShipCombat?team=1` appearing in step infos
+    post-reset) is handled by the ported registration path, same brain_name
+    → same trainer.
+13. **Test shape**: stdlib + fakes at the process boundary (no Unity boot):
+    scheduler tests with fake workers, publish-atomicity tests (kill points
+    simulated between write stages), curriculum-invocation tests (#6),
+    manifest round-trip + torn-tail + duplicate-step tests, consumer tests
+    (manifest+fallback watch; eval_gate behavior sourcing).
+14. **Crash model**: process-kill atomicity (`taskkill /F /T`), not
+    power-loss durability — fsync-before-rename bounds the window; no
+    directory fsync on Windows; NTFS same-volume `os.replace` is the
+    atomicity primitive.
+15. **Windows spawn safety**: worker fn top-level importable; cloudpickle
+    for the env factory (stock parity).
+
+### Gates (run at build time — each behind a base-port 5006 ledger claim)
+
+- Paired 24k throughput bench, N=6/M=1, ≥2 quiet replicates per arm, owned vs
+  stock on the same tree+config (rider F must be merged first).
+- ~300k curriculum canary per arm: first lesson advance at a comparable step
+  (K1-4 crossed ~222k), loss/entropy overlay, mechanical invariants (updates
+  per N steps, checkpoint/summary cadence, one JSONL per worker).
+- Ghost-swap smoke: `ppo_ship_combat_selfplay_smoke.yaml` under the owned
+  runtime via `run_parallel --self-play --smoke`.
+- Resume drill (new): (a) hard-kill a smoke mid-run, `--resume`, assert
+  lesson/ELO/step continuity against the last completed commit tail;
+  (b) resume a COMPLETED smoke run — exercises the max-step republish →
+  duplicate manifest line → last-wins reader path; (c) publish-atomicity
+  unit tests simulate kills at every stage boundary of the saver sequence
+  and the commit tail.
+
+### Atomicity round — dispositions (run 2026-08-06 pre-freeze)
+
+10 raw findings from the two consultants, deduped to 7. "Cl" = Claude
+consultant, "Cx" = codex.
+
+| # | Item | Disposition | Where |
+|---|---|---|---|
+| 1 | Saver-seam status hook can't see ELO or the just-published registry entry (Cl-1 ≡ Cx-2, observed) | ACCEPT — commit tail relocated into the owned loop, post-advance; ELO mirrored explicitly | Fork D |
+| 2 | Resume pointer committed seconds before publish record + status (Cx-1 ≡ Cl-4, observed) | ACCEPT — pointer-last commit tail (manifest → status → `checkpoint.pt`); window seconds → µs | Fork C |
+| 3 | Duplicate manifest step-lines on resume republish; watcher would yield twice (Cl-2 ≡ Cx-4, observed) | ACCEPT — reader dedupes by step, last-wins; yield-once; stale-verdict caveat documented | Fork C + tests |
+| 4 | Torn manifest tail + append-only resume ⇒ malformed committed record (Cx-3, hypothetical, mechanism-verified) | ACCEPT — writer repairs torn tail on resume-open; mirrored to `summaries.jsonl` (same latent defect, file owned by this slice) | Fork C + assumption 9 |
+| 5 | At-exit `save_state` left on stock's truncating write bricks `--resume` under teardown-window kills (Cl-3, observed) | ACCEPT — every status write through the one atomic helper | Fork D |
+| 6 | Manifest lines outlive pruned artifacts; smokes run `keep_checkpoints: 2` (Cl-5 + Cx grounding, observed) | ACCEPT — manifest-mode watch yields only existing artifacts (skip + log) | Fork C consumers |
+| 7 | `summaries.jsonl` step sawtooth across resume rollback; `startedAt` describes the current leg (Cx-5, observed) | DOCUMENT — inherent to rollback resume, identical shape in stock tfevents; the wire-contract monotonicity clause is about checkpoint steps, which holds; benches never resume | Note in `contract.py` docstring |
+
+Residual accepted windows (crash model: process kill, not power loss):
+kill inside the saver's artifact stage → partial `.tmp` orphans only, next
+resume republishes the step; kill inside the commit tail → at worst manifest
+has step N while status/pointer are N−1 (µs-scale across two renames), resume
+falls back to the pointer with last-wins republish semantics; kill between
+`add_checkpoint` pruning and the tail's status save → registry one prune
+behind the directory until the next tail (benign — pruning re-walks from the
+registry).
+
+### Follow-ups spawned by this brief
+
+- C# micro-PR: TrainingHost reads `--harness-worker-index`, cross-checks the
+  port-arithmetic derivation, throws on mismatch (+EditMode test); completes
+  V9 per the wire contract §3 amendment.
+- Rider PR (fork F): bench stock-arm enablement — lands BEFORE the 1b build.
 
 ## Cadence contract (locked 2026-08-05)
 

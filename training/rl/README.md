@@ -85,9 +85,11 @@ The eval fixture is that exported checkpoint committed (LFS) at
 
 ## Parallel workers — the real training path
 
-`run_parallel.py` runs `mlagents-learn --env <player exe> --num-envs N`,
-launching N headless copies of the `RLTraining` standalone player under one
-trainer. Each worker derives an independent run seed from its ML-Agents port
+`run_parallel.py` defaults to the project-owned trainer entry, which emits the
+run contract and delegates the training loop to pinned ML-Agents. Pass
+`--trainer-runtime ml-agents` for the direct reference entry. Both launch N
+headless copies of the `RLTraining` standalone player under one trainer runtime.
+Each worker derives an independent run seed from its ML-Agents port
 offset against `--harness-base-port` (`TrainingHost.ResolveWorkerIndex`), so the
 N copies produce decorrelated experience rather than N identical rollouts.
 `--num-arenas M > 1` additionally fans each worker out to M in-process arenas.
@@ -145,9 +147,11 @@ whole run rather than the tail. `--self-play` and the config's `self_play:` bloc
 must agree — a mismatch is refused before boot, because it would train the wrong
 composition while looking healthy.
 
-Checkpoints and TensorBoard summaries land under `results/rl-training/<run-id>/`
-(untracked); `TrainingHost` also appends per-episode JSONL rows (`rl-episode-v5`
-schema, `EpisodeResult.SchemaId`) under `results/rl-episodes/`.
+Checkpoints, `run_manifest.json`, `summaries.jsonl`, and TensorBoard summaries
+land under `results/rl-training/<run-id>/` (untracked). The manifest identifies
+the run/config; the JSONL stream is the dashboard and throughput-bench source.
+`TrainingHost` also appends per-episode JSONL rows (`rl-episode-v6` schema,
+`EpisodeResult.SchemaId`) under `results/rl-episodes/`.
 
 ## Throughput bench
 
