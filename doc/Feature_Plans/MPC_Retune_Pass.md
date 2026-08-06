@@ -369,6 +369,24 @@ not a drop-in swap.** Landing gates as a hot-swap are moot; the paired
 d3.0 obstacle arms (stock vs fix, same policy) still run — the threat-
 metric comparison is policy-light and feeds the redesign.
 
+**Post-film correction (user read, 2026-08-06) — the oscillation moved
+down-spectrum; it did not go away.** Reversal-rate × yaw-rate arithmetic
+agrees: old ≈ ±5–9° swings at 5.2 rev/s (facing error 14.5°), new ≈
+±20–40° at 2.3 rev/s (facing error 39°) — the same yaw limit cycle at
+half the frequency and ~4× amplitude. Mechanically the cadence change
+makes coherent intent update at ~10 Hz (candidate 0 + elite-average pull
+center five consecutive 50 Hz solves on the same plan alignment), so it
+traded a 50 Hz-jittered controller for a ~10 Hz one. Dummy improved
+because slow large sweeps translate toward a stationary target; tracking
+got worse, which is what the roster measured. **Retrain-on-top is
+WITHDRAWN as a recommendation** (remains one option). The redesign target
+is the limit cycle itself: the yaw channel fails to converge on the
+facing target at any cadence tried. Candidate probes: wSmoothnessYaw
+layered on the cadence fix (both live for the first time), a fractional
+interpolated shift (warm start tracks sim time at 50 Hz), damping
+(wYawRate), or selection (elite average never lets the incumbent
+settle).
+
 **Paired d3.0 obstacle arms (RAN 2026-08-06): obstacle competence
 SURVIVED the fix.** Evader (the only threat-heavy cell, ~5% threat steps)
 holds 11W/1L/3D vs stock 13W/0L/2D; the avoidance reflex fires (threat
