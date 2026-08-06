@@ -445,15 +445,21 @@ Format: **term** — definition. *(authority)*
   at the driver-owned `GameState.DeathRecap` hold, between death and the restart
   flow; presentation-gated, so headless drivers fall straight through to Restart.
   *(DeathRecapScreen, GameDriver.HandleDeathRecap)*
-- **painter** — a named diagnostic view (velocity vectors, aim lines, the policy
-  facing fan) written once as a drawing routine over a diagnostic canvas, then
+- **painter** — a named diagnostic view (velocity vectors, aim lines, scan
+  envelopes) written once as a drawing routine over a diagnostic canvas, then
   rendered by whichever backend is active — offscreen capture or live editor
-  gizmos. Bound to its subjects at construction, selected by name via
-  `RL_HARNESS_PAINTERS`. *(IDiagnosticPainter, DiagnosticPainters)*
+  gizmos. Bound to its subjects at construction, selected by name — atoms or
+  observation environments — via `RL_HARNESS_PAINTERS` or the editor
+  `Diagnostics` menu. *(IDiagnosticPainter, DiagnosticPainters)*
 - **diagnostic canvas** — the drawing-surface contract a painter renders onto, in
   GamePlane plane-space; two backends implement it (`CaptureDraw` for clips,
   `GizmoCanvas` for the live scene view). Always qualified — Unity's UI `Canvas`
   collides. *(IDiagnosticCanvas)*
+- **observation environment** — a named, code-defined preset of painters
+  selected as a unit — the lens a run is viewed through. Selecting one replaces
+  the active painter set; nothing is drawn by default. Resolves in both
+  frontends (`RL_HARNESS_PAINTERS`, `Diagnostics` menu).
+  *(doc/Feature_Plans/Gizmo_Painter_Migration.md)*
 
 ### Infra & tooling
 
