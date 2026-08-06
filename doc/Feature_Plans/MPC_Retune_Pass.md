@@ -276,3 +276,40 @@ If either moves torque reversals without killing closeout, the structural
 design shrinks or vanishes. (This re-opens the 2026-08-05 "no more scalar
 sweeps" ruling — user-approved 2026-08-06; that ruling predated the discovery
 that the smoothness knob was dead during the sweeps that motivated it.)
+
+### Confirmed lever-test protocol (2026-08-06, user-approved)
+
+**Arms** — one weight per arm, all else stock (noiseStd 0.75), strongest-first
+adaptive: S-20 (`wSmoothnessYaw` 20) and M-50 (`wMomentum` 50) run first. A
+strongest arm with no torque-reversal movement falsifies its lever and skips
+its weaker arms (S-2, S-0.2 continuity anchor; M-5); a chatter drop that kills
+closeout triggers a bisect instead. Magnitude grounding: `SmoothnessCost` and
+`MomentumCost` are both normalized 0–1, so 20 prices a full one-step torque
+reversal at 5 (50× a max-effort step's total effort cost) and 50 puts
+course-holding at `wVelTrack` parity — deliberately overpowered so "does
+wMomentum touch the yaw channel at all" gets a definitive answer.
+
+**Per arm**: `eval_lane.py` ×2 — `--opponent Dummy` then `--opponent mirror`,
+seeds 2001-2005, `--episodes-per-seed 3`, density 2.0, `--probes
+facing,controller` (the Bench-1 cell protocol, 15 episodes each). Pool slot
+pinned @ `7cd7b95a` so the asset line is the only delta vs baseline. The
+weight is edited in the slot tree's `MpcSettings_AgentPilot.asset` per arm
+(each eval_lane run is a fresh editor boot, so import is guaranteed), restored
+via `git checkout --` and verified clean before slot release; never committed.
+
+**Artifacts**: `results/rl-eval/levers-20260806/<arm>/{dummy,mirror}` (arm
+dirs `smoothyaw-20/-2/-0p2`, `momentum-50/-5`) + top-level `NOTES.md` carrying
+per-arm asset value + asset md5, checkpoint md5, SHA, session dirs.
+
+**Read per lever** — primary: strict + deadbanded torque rev/s vs baseline
+(Dummy 11.52/8.30, mirror 11.75/8.54; hull 4–5/s); *material* = ≥~25% drop,
+outside the 8.99–11.75 cross-archetype spread (per-step metrics aggregate
+~70k steps/session, noise ~±0.5/s). Guards: Dummy wins ≥~5/15 (baseline 6.5,
+15-episode noise ±~2) and facing error not materially above 14.5°. Verdicts:
+chatter drops and closeout holds at some value → the tuning path lives and the
+structural design shrinks (refined sweep next); no movement at the strongest
+arm → lever falsified, recorded here, structural design proceeds. Mirror W/L
+is not leaned on (0W/4L anomaly); mirror chatter metrics are valid.
+
+**Scheduling**: queued on base-port 5006 behind trainer-1b's curriculum
+canary + stock arm; the active-work ledger row is the claim.
