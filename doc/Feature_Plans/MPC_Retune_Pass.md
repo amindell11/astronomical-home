@@ -407,6 +407,20 @@ settle).
    archetype session; closeout and the moving-archetype bars stay the
    outcome gates.
 
+**Probe 1 — fractional interpolated shift (RAN 2026-08-06): clock
+hypothesis DEAD.** ZOH-faithful blend (α=dt/rolloutDt; plan clock true at
+50 Hz), MPC gate 66/66, Dummy+mirror at the standard protocol
+(`results/rl-eval/shift-cadence-20260806/fractional/` + NOTES table):
+6.25–6.31 strict flips/s, facing 35.2–35.3°, yaw ~83 deg/s, Dummy
+13W/0L/2D, mirror 2W/2L/11D — the 10 Hz arm's limit cycle reproduced
+almost exactly at full 50 Hz coherence. Stock's tight tracking was the
+5×-fast bug acting as accidental high-frequency dither, not a working
+controller. The cycle is clock- and cadence-invariant. **Prime suspect by
+elimination: selection — the elite average re-blurs the plan every solve;
+nothing can settle. Probe 2 (incumbent settling) is the successor; the
+open-loop probe-allowlist slice unlocks the policy-free archetype loop
+for it.**
+
 **Paired d3.0 obstacle arms (RAN 2026-08-06): obstacle competence
 SURVIVED the fix.** Evader (the only threat-heavy cell, ~5% threat steps)
 holds 11W/1L/3D vs stock 13W/0L/2D; the avoidance reflex fires (threat
