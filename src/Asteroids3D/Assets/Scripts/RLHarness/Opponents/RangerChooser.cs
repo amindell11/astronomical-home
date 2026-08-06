@@ -1,6 +1,5 @@
 using AI;
 using AI.Context;
-using AI.States;
 using Movement;
 using Ships;
 using UnityEngine;
@@ -19,7 +18,7 @@ namespace Game.RLHarness
         private float projectileSpeed;
 
         private int tickCounter;
-        private NavigationIntent cachedIntent = NavigationIntent.None;
+        private ActIntent cachedIntent = ActIntent.None;
 
         public void Configure(Ship target, float desiredRange, float projectileSpeed)
         {
@@ -32,13 +31,13 @@ namespace Game.RLHarness
         public void Reset()
         {
             tickCounter = 0;
-            cachedIntent = NavigationIntent.None;
+            cachedIntent = ActIntent.None;
         }
 
-        public NavigationIntent Decide(AIContext ctx, float dt)
+        public ActIntent Decide(AIContext ctx, float dt)
         {
             if (!target || !target.gameObject.activeInHierarchy || ctx?.Self == null)
-                return NavigationIntent.None;
+                return ActIntent.None;
 
             if (tickCounter % RecomputeIntervalTicks == 0)
                 cachedIntent = BuildIntent(ctx);
@@ -57,13 +56,13 @@ namespace Game.RLHarness
             return Vector2.ClampMagnitude(closing - damping, maxSpeed);
         }
 
-        private NavigationIntent BuildIntent(AIContext ctx)
+        private ActIntent BuildIntent(AIContext ctx)
         {
             var self = ctx.Self.Kinematics;
             var enemy = target.Kinematics;
             var vRef = HoldRangeVelocity(in self, in enemy, desiredRange, ctx.Self.Dynamics.maxSpeed);
 
-            return new NavigationIntent
+            return new ActIntent
             {
                 isValid = true,
                 velocityReference = vRef,

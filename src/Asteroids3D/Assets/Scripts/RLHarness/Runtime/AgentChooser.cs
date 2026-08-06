@@ -1,6 +1,5 @@
 using AI;
 using AI.Context;
-using AI.States;
 using Movement.MPC;
 using Ships;
 
@@ -61,15 +60,15 @@ namespace Game.RLHarness
             TotalDecisions = 0;
         }
 
-        public NavigationIntent Decide(AIContext ctx, float dt)
+        public ActIntent Decide(AIContext ctx, float dt)
         {
             if (!hasAction || !opponent || !opponent.gameObject.activeInHierarchy)
-                return NavigationIntent.None;
+                return ActIntent.None;
 
             var boost = boostPending;
             boostPending = false;
 
-            return new NavigationIntent
+            return new ActIntent
             {
                 isValid = true,
                 boost = boost,

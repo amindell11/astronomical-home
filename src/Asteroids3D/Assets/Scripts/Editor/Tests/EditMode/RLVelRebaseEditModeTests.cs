@@ -1,6 +1,6 @@
 #if UNITY_EDITOR
+using AI;
 using AI.Context;
-using AI.States;
 using Game.RLHarness;
 using Movement;
 using Movement.MPC;
@@ -132,14 +132,14 @@ namespace Tests.EditMode
         {
             public Vector2 lawVelocity;
             public Vector2 selfPos;
-            public NavigationIntent seed = new() { isValid = true, enableFiring = true };
+            public ActIntent seed = new() { isValid = true, enableFiring = true };
 
             public void BindForTest(Ship target, ArchetypeDrive drive, Vector2 arenaCenter, float borderRadius) =>
                 Bind(target, 1f, arenaCenter, borderRadius, drive);
 
-            public NavigationIntent PackForTest() => BuildIntent(null);
+            public ActIntent PackForTest() => BuildIntent(null);
 
-            protected override NavigationIntent BuildIntent(AIContext ctx) => Pack(seed, selfPos, lawVelocity);
+            protected override ActIntent BuildIntent(AIContext ctx) => Pack(seed, selfPos, lawVelocity);
         }
 
         private GameObject targetGo;

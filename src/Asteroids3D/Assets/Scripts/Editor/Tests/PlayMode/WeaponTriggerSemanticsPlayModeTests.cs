@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using AI;
 using Combat;
 using Combat.Conditions;
 using Combat.Projectile;
@@ -241,7 +242,7 @@ namespace Tests.PlayMode
 
             Kinematics Pose() => new(new Vector2(10f, 0f), Vector2.zero, 0f, 0f, 0f);
             gunner.Initialize(new FakeWeaponContext(), new CommandRecorder(), Pose);
-            gunner.ApplyIntent(new AI.States.NavigationIntent
+            gunner.ApplyIntent(new ActIntent
             {
                 isValid = true,
                 enableFiring = true,
@@ -270,7 +271,7 @@ namespace Tests.PlayMode
 
             var enemyPos = new Vector2(10f, 0f);
             var enemyVel = new Vector2(0f, 5f);
-            gunner.ApplyIntent(new AI.States.NavigationIntent
+            gunner.ApplyIntent(new ActIntent
             {
                 isValid = true,
                 enableFiring = true,

@@ -1,6 +1,5 @@
 #if UNITY_EDITOR
 using AI;
-using AI.States;
 using Movement;
 using Movement.MPC;
 using NUnit.Framework;
@@ -50,7 +49,7 @@ namespace Tests.EditMode
             if (createdSettings) Object.DestroyImmediate(createdSettings);
         }
 
-        private static NavigationIntent VelocityIntent(Vector2 reference) => new()
+        private static ActIntent VelocityIntent(Vector2 reference) => new()
         {
             isValid = true,
             velocityReference = reference,
@@ -91,7 +90,7 @@ namespace Tests.EditMode
         public void ApplyIntent_Invalid_DisarmsToIdle()
         {
             nav.ApplyIntent(VelocityIntent(new Vector2(3f, 0f)));
-            nav.ApplyIntent(NavigationIntent.None);
+            nav.ApplyIntent(ActIntent.None);
             Assert.That(nav.ShouldIdle(), Is.True,
                 "An invalid intent must disarm the velocity reference back to idle.");
         }

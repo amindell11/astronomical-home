@@ -43,7 +43,7 @@ make the environment RL-native. §4 is the dependency-ordered PR sequence.
 - **Learner** — an ML-Agents PPO policy (the installed-but-unused `com.unity.ml-agents`
   3.0.0) that runs once per decision tick (~0.2–0.4 s) and outputs a **desired planar
   velocity reference + a fire gate**. It slots into the existing `Brain`/`IIntentChooser`
-  seam (`AI/Brain.cs`, `AI/IIntentChooser.cs`) — the produced intent *is* the velocity
+  seam (`AI/Brain.cs`, `AI/Strategy/IIntentChooser.cs`) — the produced intent *is* the velocity
   reference, not a mode+weights bundle.
 - **Controller** — the MPC is reshaped into a **feasibility tracker**: track the commanded
   velocity, keep collision-avoidance, keep intercept-facing as pure aiming geometry
@@ -105,7 +105,7 @@ AI (gated) until a learned agent beats it.
   gated `VelocityReference` goal mode: the objective dispatch tracks a commanded **world-plane**
   velocity (`VelocityTrackCost`), keeps collision-avoidance + intercept-facing, tactical block
   off via `tacticalEnabled` (legacy modes byte-identical — **no weight-zeroing**). The reference
-  enters through `NavigationIntent`/`ApplyIntent` (the seam the learner drives) plus a low-level
+  enters through `ActIntent`/`ApplyIntent` (the seam the learner drives) plus a low-level
   `Navigator.SetVelocityReference`. Validate the **tracking fidelity** (solver converges to
   `v_ref`, incl. the off-axis strafe-authority case) in EditMode on `Model.Step`, plus a
   PlayMode smoke. **The closed-loop maneuver oracle (orbit/break/range) + CMA-ES move to PR-2**
@@ -161,7 +161,7 @@ The AI is a clean **three-stage per-ship pipeline**, driven from
 PERCEIVE                    DECIDE                     ACTUATE
 Scout → AIContext →         Brain → IIntentChooser →   Navigator (MPC) → Pilot
 SituationAssessment         (UtilityChooser)           Gunner → weapons
-   (snapshot)          →    NavigationIntent      →    (intent applied)
+   (snapshot)          →    ActIntent      →    (intent applied)
 ```
 
 Per tick (`AICommander.cs:80-94`):
@@ -179,11 +179,11 @@ Execution order is pinned so caches are fresh: `NavFieldService -90`, `Scout -80
   mostly-normalized ~18-scalar snapshot rebuilt each tick. Effectively an
   observation vector already; consumed purely by utility factors
   (`Sampler.cs:87`).
-- **`IIntentChooser.Decide(ctx, dt) → NavigationIntent`** (`AI/IIntentChooser.cs:20`)
+- **`IIntentChooser.Decide(ctx, dt) → ActIntent`** (`AI/Strategy/IIntentChooser.cs:20`)
   — the policy is a plain `[Serializable]` object, **not** a MonoBehaviour, swapped
   via `[SerializeReference]` on `Brain` (`AI/Brain.cs:24`). Built explicitly as the
   RL slot-in point; the commander and actuators are untouched by a policy swap.
-- **`NavigationIntent` + `Navigator.ApplyIntent`** (`AI/Navigation/NavigationIntent.cs`,
+- **`ActIntent` + `Navigator.ApplyIntent`** (`AI/Strategy/ActIntent.cs`,
   `AI/Navigator.cs:219`) — a declarative action struct applied idempotently
   ("result depends only on the intent, never on prior state or call order,"
   `Navigator.cs:213-217`).
@@ -481,9 +481,9 @@ coordination still *emerge* from observation + reward + training, not authoring.
 - **Owner/tick:** `AI/AICommander.cs`
 - **Perceive:** `AI/Scout.cs`; `AI/Context/{AIContext,EnemyTracker,EnemyTarget,SituationAssessment}.cs`;
   `AI/Scanning/{ShipScanner,ContactSummary,ObstacleScanner}.cs`
-- **Decide:** `AI/Brain.cs`, `AI/IIntentChooser.cs`, `AI/Strategy/{UtilityChooser,Sampler,UtilityBuilder,AIState,GoalRunner,StateProfile}.cs`;
+- **Decide:** `AI/Brain.cs`, `AI/Strategy/IIntentChooser.cs`, `AI/Strategy/{UtilityChooser,Sampler,UtilityBuilder,AIState,GoalRunner,StateProfile}.cs`;
   `Assets/Settings/AI/StateProfiles/*.asset`
-- **Actuate (nav):** `AI/Navigator.cs`; `AI/Navigation/{NavigationIntent,Types}.cs`;
+- **Actuate (nav):** `AI/Navigator.cs`; `AI/Strategy/ActIntent.cs`; `AI/Navigation/Types.cs`;
   `AI/Navigation/MPC/{Mpc,BurstSolver,Cost,Model}.cs`; `AI/Navigation/Field/*`
 - **Actuate (guns):** `AI/Gunner.cs`; `Combat/Weapons/{Gunsight,WeaponBase,ChargeLasers,Railguns,Missiles}.cs`;
   `Combat/Targeting/{LockOnSensor,TargetLock,TargetingMath}.cs`

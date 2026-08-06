@@ -1,5 +1,4 @@
 using System;
-using AI.States;
 using Combat;
 using Game;
 using Movement;
@@ -72,8 +71,8 @@ namespace AI
                 AimPoint(pose(), enemyPos, enemyVel, weapons.ProjectileSpeed(slot)));
         }
 
-        /// <summary>Consumes the gunner slice of a <see cref="NavigationIntent"/> (mirrors <c>Navigator.ApplyIntent</c>): stores enemy kinematics for per-slot firing solutions.</summary>
-        public void ApplyIntent(in NavigationIntent intent)
+        /// <summary>Consumes the gunner slice of a <see cref="ActIntent"/> (mirrors <c>Navigator.ApplyIntent</c>): stores enemy kinematics for per-slot firing solutions.</summary>
+        public void ApplyIntent(in ActIntent intent)
         {
             if (!intent.isValid) return;
 

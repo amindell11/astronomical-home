@@ -413,8 +413,10 @@ Format: **term** — definition. *(authority)*
   deliberately sit outside it (regulation semantics). *(Cost.Evaluate)*
 - **brain / chooser / intent** — the swappable-decision seam. The contract worth
   knowing: an intent is **idempotent per decision**, so re-applying one is safe.
-  ⚠ "Intent" is acknowledged stale — it also carries fire and boost, which the
-  name denies; rename carded. *(Brain, IIntentChooser)*
+  An **act intent** is the whole per-tick act — navigation, fire and boost
+  together. It is a goal spec, not a command: the MPC *solves* it into a
+  `PilotCommand`, so intent and command are different altitudes rather than
+  synonyms. *(Brain, IIntentChooser, ActIntent)*
 - **presentation** — the per-session axis deciding whether visuals and audio
   exist. Two things a reader needs: it is applied by the owning spawn seams,
   never by per-component globals; and it is **not** the same axis as the deleted

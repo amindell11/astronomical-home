@@ -2,10 +2,10 @@ using AI.Context;
 using Movement.MPC;
 using UnityEngine;
 
-namespace AI.States
+namespace AI
 {
-    /// <summary>Declarative description of what the navigator should do this frame, produced by an <see cref="IIntentChooser"/> and consumed by Navigator.ApplyIntent.</summary>
-    public struct NavigationIntent
+    /// <summary>Declarative description of what the ship should do this frame, produced by an <see cref="IIntentChooser"/> and fanned out to Navigator.ApplyIntent and Gunner.ApplyIntent.</summary>
+    public struct ActIntent
     {
         public bool isValid;
 
@@ -37,6 +37,6 @@ namespace AI.States
         public bool manualFire;
         public bool primaryHeld;
 
-        public static NavigationIntent None => new NavigationIntent { isValid = false };
+        public static ActIntent None => new ActIntent { isValid = false };
     }
 }

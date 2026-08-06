@@ -1,6 +1,5 @@
 #if UNITY_EDITOR
 using AI;
-using AI.States;
 using Movement;
 using Movement.MPC;
 using NUnit.Framework;
@@ -50,7 +49,7 @@ namespace Tests.EditMode
             if (createdSettings) Object.DestroyImmediate(createdSettings);
         }
 
-        private static NavigationIntent VelocityIntent(bool boost) => new()
+        private static ActIntent VelocityIntent(bool boost) => new()
         {
             isValid = true,
             velocityReference = new Vector2(3f, 0f),
@@ -77,7 +76,7 @@ namespace Tests.EditMode
         public void InvalidIntent_ClearsCommandedBoost()
         {
             nav.ApplyIntent(VelocityIntent(boost: true));
-            nav.ApplyIntent(NavigationIntent.None);
+            nav.ApplyIntent(ActIntent.None);
             nav.ApplyControl(new MpcResult { boost = 0f });
             Assert.AreEqual(0f, nav.CurrentCommand.boost);
         }

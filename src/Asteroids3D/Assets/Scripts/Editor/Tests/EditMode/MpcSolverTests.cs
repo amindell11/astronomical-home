@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System;
+using AI;
 using Movement;
 using Movement.MPC;
 using NUnit.Framework;
@@ -12,7 +13,7 @@ namespace Tests.EditMode
 {
     /// <summary>
     /// Solver-level tests for the extracted <see cref="Mpc"/> planner. These drive
-    /// <c>Mpc.Plan(in MpcInputs)</c> directly — no ship, physics, or NavigationIntent.
+    /// <c>Mpc.Plan(in MpcInputs)</c> directly — no ship, physics, or ActIntent.
     /// Assertions are differential (compare two configurations) so they're robust to the
     /// sampler's stochasticity.
     /// </summary>

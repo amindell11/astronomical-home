@@ -1,7 +1,6 @@
 using System;
 using AI;
 using AI.Context;
-using AI.States;
 using Ships;
 using Ships.Command;
 using Unity.InferenceEngine;
@@ -44,7 +43,7 @@ namespace Game.RLHarness
         public int TotalDecisions => mailbox.TotalDecisions;
         public PolicyAction ActionFromNewest(int index) => mailbox.ActionFromNewest(index);
 
-        public NavigationIntent Decide(AIContext ctx, float dt)
+        public ActIntent Decide(AIContext ctx, float dt)
         {
             if (!agent)
                 Compose(ctx);

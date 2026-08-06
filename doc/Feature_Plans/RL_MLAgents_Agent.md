@@ -21,7 +21,7 @@
 **In:** ML-Agents `Agent` subclass + `AgentChooser` + sensor flattening in
 `Game.RLHarness.Editor`; manual Academy stepping driven by `EpisodeRunner`'s decision
 boundary; training scene + `TrainingHost`; composition hoist (`SpawnPair`/`ResetPair`
-test code → harness); boost command seam (`NavigationIntent` field → Navigator OR into
+test code → harness); boost command seam (`ActIntent` field → Navigator OR into
 drive command); `Brain.InstallChooser` internal seam; truncation change to
 `PayDecision`/telescoping test + JSONL schema bump; Python training home `training/rl/`
 (pinned env spec, PPO YAML, runbook); held-out-seed eval via `InferenceOnly` +
@@ -32,7 +32,7 @@ runs; deletion of the 2025 training residue.
 shipped until a learned agent beats it); self-play/league (PR-4); asteroid-field episodes
 + obstacle observation tokens (one deferred package — see Deferred); learned firing
 discipline beyond the bare gate; standalone training build; attention/BufferSensor
-encoders; `NavigationIntent` rename (deferred, board).
+encoders.
 
 ## Fork resolutions (with why)
 
@@ -215,8 +215,6 @@ is frame-rate-bound (~5–10× real time in-editor, vsync off) instead of timesc
   the next environment step, before/with PR-4 (self-play hours in empty space compound
   the transfer gap; the real game fights in fields). Obs and env change together
   (PR-2b invariant-2 discipline).
-- **`NavigationIntent` rename** (board) — with `enableFiring` + boost aboard it is the
-  full act-intent, not just navigation; rename when the dust settles.
 - Threat-token channel (missiles) — with the weapon-variety PR that makes it non-empty.
 - Per-step time cost / per-shot cost reward terms — only if training misbehaves, with
   check-in.

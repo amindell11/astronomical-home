@@ -1,7 +1,6 @@
 #if UNITY_EDITOR
 using AI;
 using AI.Context;
-using AI.States;
 using Movement;
 using Movement.MPC;
 using NUnit.Framework;
@@ -318,7 +317,7 @@ namespace Tests.EditMode
             if (targetGo) Object.DestroyImmediate(targetGo);
         }
 
-        private NavigationIntent TargetedIntent() => new()
+        private ActIntent TargetedIntent() => new()
         {
             isValid = true,
             hasTarget = true,
@@ -357,7 +356,7 @@ namespace Tests.EditMode
         [Test]
         public void ApplyIntent_TargetlessAnchored_CollapsesAndStaysArmed()
         {
-            var intent = new NavigationIntent
+            var intent = new ActIntent
             {
                 isValid = true,
                 anchored = new AnchoredIntent { hasVelocity = true, radialSpeed = 3f, velocityWeight = 1f },
@@ -388,7 +387,7 @@ namespace Tests.EditMode
             intent.anchored = new AnchoredIntent { hasVelocity = true, radialSpeed = 3f, velocityWeight = 1f };
             nav.ApplyIntent(intent);
 
-            nav.ApplyIntent(NavigationIntent.None);
+            nav.ApplyIntent(ActIntent.None);
 
             Assert.That(nav.anchored.hasVelocity, Is.False, "reset must not leak a stale anchored command into the next intent");
         }

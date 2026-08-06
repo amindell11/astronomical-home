@@ -1,6 +1,5 @@
 using AI;
 using AI.Context;
-using AI.States;
 using Ships;
 using UnityEngine;
 
@@ -18,7 +17,7 @@ namespace Game.RLHarness
         private ArchetypeDrive drive;
 
         private int tickCounter;
-        private NavigationIntent cachedIntent = NavigationIntent.None;
+        private ActIntent cachedIntent = ActIntent.None;
         private int totalDecisions;
         private ScriptedVelocityCommand lastCommand;
 
@@ -40,13 +39,13 @@ namespace Game.RLHarness
         public virtual void Reset()
         {
             tickCounter = 0;
-            cachedIntent = NavigationIntent.None;
+            cachedIntent = ActIntent.None;
         }
 
-        public NavigationIntent Decide(AIContext ctx, float dt)
+        public ActIntent Decide(AIContext ctx, float dt)
         {
             if (!target || !target.gameObject.activeInHierarchy || ctx?.Self == null)
-                return NavigationIntent.None;
+                return ActIntent.None;
 
             if (tickCounter % RecomputeIntervalTicks == 0)
                 cachedIntent = BuildIntent(ctx);
@@ -54,10 +53,10 @@ namespace Game.RLHarness
             return cachedIntent;
         }
 
-        protected abstract NavigationIntent BuildIntent(AIContext ctx);
+        protected abstract ActIntent BuildIntent(AIContext ctx);
 
         /// <summary>Emits the law's velocity through the bound drive and captures the readout (one bump per 5 Hz recompute). Production keeps the border-steered world reference byte-for-byte; the open-loop arms drop the steer, suppress fire (a hit would perturb the paired enemy path), and always target-tag the intent so both arms share one obstacle-exclusion state — the anchored arm packing the same law numbers into the enemy-polar channel.</summary>
-        protected NavigationIntent Pack(NavigationIntent intent, Vector2 planePos, Vector2 lawVelocity)
+        protected ActIntent Pack(ActIntent intent, Vector2 planePos, Vector2 lawVelocity)
         {
             switch (drive)
             {
