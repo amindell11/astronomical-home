@@ -75,7 +75,7 @@ the retained behavior is inspectable:
 | Worker port law | **`port(worker k) = base_port + k`, contiguous from k=0** | producer OWNED @1b (today `SubprocessEnvManager`); must hold exactly |
 | Repo base port | 5006 via `--base-port` (`run_parallel.py:89-90`); **single-occupancy across sessions** | OURS |
 | Worker-index derivation | C# derives `k = --mlagents-port − --harness-base-port`; missing/negative → **throw** (`TrainingHost.cs:162-178`); k seeds `DeriveWorkerSeed` (worker 0 = identity replay) | C#, byte-identical |
-| Explicit index (new) | stage 1b adds `--harness-worker-index k` to per-worker argv; `TrainingHost` keeps the port-arithmetic **as a cross-check throw**, never a silent fallback | OWNED @1b, additive |
+| Explicit index (new) | stage 1b adds `--harness-worker-index k` to per-worker argv; `TrainingHost` keeps the port-arithmetic **as a cross-check throw**, never a silent fallback. AMENDED 2026-08-06 (slice-3 ruling): split — the owned runtime **emits** the flag @1b (Unity ignores unknown argv; port arithmetic stays the sole C# authority); the C# read + cross-check lands as a named follow-up micro-PR outside the arc's quiet-lane cadence. V9 completes when that micro-PR merges. | OWNED @1b (emit); C# half deferred |
 
 ⚠ Asymmetry worth keeping frozen: `Academy.ReadPortFromArgs` matches the
 flag case-sensitively while `TrainingHost.CommandLineArg` matches
@@ -222,7 +222,16 @@ interval-round. @1b additions (per the takeover plan): write-then-rename
 publish + a checkpoint-manifest line after fsync; `keep_checkpoints` must
 still leave post-run `eval_gate.py --once` backfill viable (the default eval
 policy). Archived seed runs (`training/archive/ship_combat_500k/`) stay
-initializable or are migrated explicitly.
+initializable or are migrated explicitly. AMENDED 2026-08-06 (slice-3
+ruling): the publish sequence is saver-staged interval artifacts
+(`<stem>.pt` → `<stem>.onnx`, tmp+fsync+rename each) followed by a
+loop-owned **commit tail** ordered manifest line → atomic
+`training_status.json` save → `checkpoint.pt` rename (resume pointer commits
+LAST); manifest = `<run-dir>/checkpoint_manifest.jsonl`, duplicate-step
+lines read last-wins; consumers repointed = `checkpoint_watch.py` (manifest
+preferred, glob fallback, yields only existing artifacts) + `eval_gate.py`
+(behavior from run manifest, hardcoded fallback). Full rationale:
+takeover plan §Slice-3 decision brief.
 
 ### ONNX export — RETAINED (ModelSerializer) until any stage touches it
 
