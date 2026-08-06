@@ -19,7 +19,7 @@ Assemble these four parts, in order, into one self-contained document:
 2. **The artifact** — the decision brief, plan-doc section, or diff under
    review, verbatim.
 3. **Design-values preamble** — copy, at consult time, from the repo's
-   `CLAUDE.md` (NOT from this file — CLAUDE.md is the single source of truth):
+   `AGENTS.md` (NOT from this file — AGENTS.md is the single source of truth):
    - the **Fix ladder** section, verbatim;
    - the **Dependency & wiring philosophy** section, verbatim;
    - plus this one line of project context: "solo-developer project; machinery
@@ -107,7 +107,7 @@ user.
 
 ## 6. Return path (hard rules)
 
-- Every consultant output routes through the CLAUDE.md fix-ladder triage,
+- Every consultant output routes through the AGENTS.md fix-ladder triage,
   exactly like PR review comments. Produce the same disposition table —
   `| # | Item | Disposition | Where |` — and report it to the user BEFORE any
   code is written.

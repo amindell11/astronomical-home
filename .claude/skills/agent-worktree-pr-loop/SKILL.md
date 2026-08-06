@@ -195,9 +195,9 @@ Once tests are green and BEFORE the PR is presented for review, run ONE
 combined quality sub-agent over the diff with this charter:
 (a) simplification/reuse/efficiency fixes — flag only what affects correctness
 or the stated scope, no new abstractions, no bug-hunting, no speculative
-findings; (b) comment hygiene on TOUCHED HUNKS ONLY per CLAUDE.md's comment
-rules; (c) conformance of touched Unity code to `AGENTS.md` → `## Unity code
-conventions`. Its edits become part of the tree the user reviews. Summarize its
+findings; (b) comment hygiene on TOUCHED HUNKS ONLY per AGENTS.md's comment
+rules; (c) conformance of touched Unity code to
+`doc/agents/unity-conventions.md`. Its edits become part of the tree the user reviews. Summarize its
 changes in the PR body.
 
 ## Step 4 — Submit
@@ -209,7 +209,7 @@ scope-conservation check — read the diff back against the Step-1 scope
 statement; anything a scope-reader wouldn't expect either comes out or is
 flagged in the body for confirmation. An arc-completing PR also settles its
 plan doc — delete the transient brief, or update the living doc's STATUS
-header (convention in `AGENTS.md`). The body also carries one bookkeeping line,
+header (convention in `doc/agents/design-docs.md`). The body also carries one bookkeeping line,
 `Vocab: <new/changed terms | none>`; anything but `none` means `doc/Glossary.md`
 moves in this same PR. Flip the ledger row to in-review with the PR number.
 
@@ -220,7 +220,7 @@ present the PR for the user's review as soon as submit is green. (If the bot
 is re-enabled, restore the old protocol: wait for and triage its round before
 requesting user review, and never request merge approval mid-round.)
 
-Run EVERY review comment (bot or human) through the CLAUDE.md fix ladder —
+Run EVERY review comment (bot or human) through the AGENTS.md fix ladder —
 its entry gate is the triage:
 - **Speculative** → rebut with an on-thread reply, no code.
 - **Real but outside this change's scope** → defer (tracker issue + on-thread reply).

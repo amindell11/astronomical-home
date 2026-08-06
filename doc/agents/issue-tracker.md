@@ -9,8 +9,8 @@ Issues live in this repo's GitHub Issues; use the `gh` CLI. The repo is
 
 Deep rationale, trade-offs, and file-level detail never go in issue bodies or
 comments — they live in agent memory or a plan doc, linked from the issue
-(`Detail:` link). The tracker says *what / for-when*; memory says *why / how*;
-live in-flight claims go in the active-work ledger (see `CLAUDE.md`). Three
+(`Detail:` link); the memory file names the issue number. The tracker says *what / for-when*; memory says *why / how*;
+live in-flight claims go in the active-work ledger (see `AGENTS.md`). Three
 body shapes are legal:
 
 - **Deferral issue** (default): scannable title + `Detail:` link. No essay.

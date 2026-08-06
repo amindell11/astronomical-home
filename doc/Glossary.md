@@ -98,10 +98,10 @@ Format: **term** — definition. *(authority)*
 
 - **fix ladder** — the five-rung classification for programmer-error fixes, one
   rung per fix: unrepresentable → earliest deterministic failure → cost gate →
-  loud failure → guards (prohibited). *(CLAUDE.md § Fix ladder)*
+  loud failure → guards (prohibited). *(AGENTS.md § Fix ladder)*
 - **operating vs programmer error** — the triage above the ladder: untrusted
   boundary input is parsed once at the boundary; our own invariant violations
-  climb the ladder. *(CLAUDE.md)*
+  climb the ladder. *(AGENTS.md)*
 - **cost gate** — fix-ladder rung 3: the structural fix exceeds the current
   scope, so stop and present narrow-vs-structural to the user. Never downgrade
   silently.
@@ -109,7 +109,7 @@ Format: **term** — definition. *(authority)*
   prohibited for programmer errors. Log-and-continue is a guard wearing a costume.
 - **scope conservation** — the confirmed scope bounds the *diff*, not just the
   intent; re-read the diff against it before submit. It never licenses violating
-  a design value to touch fewer files. *(CLAUDE.md)*
+  a design value to touch fewer files. *(AGENTS.md)*
 - **fork** — a consequential design decision with named alternatives, surfaced
   to and resolved by the user before building. Not the git sense. *(pr-prep)*
 - **locked / frozen** — a fork the user resolved / a brief the implementer builds
@@ -172,13 +172,13 @@ Format: **term** — definition. *(authority)*
 - **ratchet** — apply a standing rule only to hunks you touch; whole-file sweeps
   live in dedicated hygiene PRs. Instances: comment ratchet, header ratchet,
   vocab ratchet, structure ratchet (folder taxonomy / one-type-per-file,
-  `AGENTS.md` → Unity code conventions), design ratchet and agent-doc ratchet
-  (CLAUDE.md → Design & agent-doc ratchets).
+  `doc/agents/unity-conventions.md`), design ratchet and agent-doc ratchet
+  (AGENTS.md → Design & agent-doc ratchets).
 - **rescue sweep** — salvaging valuable strays (scratch probes, orphaned docs)
   into an infra-hygiene PR rather than losing them to a slot reset.
 - **three tracking surfaces** — GitHub Issues = what / for-when (thin
   title-plus-link issues; ex-Obsidian-board, migrated 2026-08-06);
-  memory = why / how; ledger = right-now claims. Never conflate. *(AGENTS.md)*
+  memory = why / how; ledger = right-now claims. Never conflate. *(doc/agents/memory.md)*
 - **parking lot** — deferred *discussion* items, not work items; add on park,
   delete on resolution. *(memory)*
 - **handoff** — a memory brief a fresh session reads cold to take over.
@@ -454,10 +454,10 @@ Format: **term** — definition. *(authority)*
 
 - **coordinator** — `unity_access.ps1`, the machine-wide Unity access broker. A
   new caller goes through the coordinator; generalize the primitive, never bypass
-  it. *(CLAUDE.md wiring §6)*
+  it. *(AGENTS.md wiring §6)*
 - **producer-owns-outputs** — when one tool's output is another's input, the
   location and format are the producer's contract; consumers never re-derive
-  paths. *(CLAUDE.md §6 corollary)*
+  paths. *(AGENTS.md §6 corollary)*
 - **player-build tripwire** — merge-gate EditMode lints re-stating what the
   RLTraining player build needs (asmdef reference closure, scene-script
   survival, hydrated LFS meshes) without building one — the merge gate never
