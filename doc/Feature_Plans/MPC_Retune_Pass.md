@@ -1,9 +1,10 @@
 # MPC Retune Pass — instrumentation, bench, and contingent controller refactor
 
-**STATUS: live arc — Slices A (#261), B (#260) and C all landed; the bench read
-is the open step.** Shape and slice briefs frozen 2026-08-05 with the user.
-Nav-field addback DESCOPED (see Rulings). Structural controller work is
-CONTINGENT on the Slice-B bench read — not yet authorized.
+> STATUS: live arc — Slices A (#261), B (#260) and C all landed; the bench read is the open step.
+
+Shape and slice briefs frozen 2026-08-05 with the user. Nav-field addback
+DESCOPED (see Rulings). Structural controller work is CONTINGENT on the
+Slice-B bench read — not yet authorized.
 
 Entry evidence: memory `handoff_2026-08-04_k1_4_eval_mpc_navfield.md` (K1-4
 run record, facing-authority + MPC-noise ablations, obstacle-competence gate
