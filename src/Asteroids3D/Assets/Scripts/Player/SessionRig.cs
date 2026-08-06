@@ -90,7 +90,6 @@ namespace Player
             // already frames the fleet via the registry OnAdd/OnRemove wiring, so spectate works.
             if (!buildPlayer)
             {
-                InitializeDebugOverlay(services);
                 yield return null;
                 yield break;
             }
@@ -135,18 +134,15 @@ namespace Player
                     overlay.ObjectiveMarker.Initialize(minimapCam, overlay.MinimapRect);
             }
 
-            InitializeDebugOverlay(services);
-
             yield return null;
         }
 
         /// <summary>
-        /// Tear down rig-owned editor viz and drop the player reference. The service-owned instances
+        /// Drop the player reference and unwire its death callback. The service-owned instances
         /// (player, cameras, overlay, world) are destroyed by <c>services.ClearAll()</c> on exit.
         /// </summary>
         public void Teardown()
         {
-            TeardownDebugOverlay();
             UnwirePlayerDeath();
             Ledger.Bind(null, null);
             Player = null;
@@ -231,33 +227,6 @@ namespace Player
         {
             if (onPlayerDeath != null && Player && Player.Damage)
                 Player.Damage.OnDeath -= onPlayerDeath;
-        }
-
-#if UNITY_EDITOR
-        [Header("Debug")]
-        [SerializeField] private bool enableDebugOverlay;
-
-        // Seam for an editor-assembly overlay this runtime class can't name; unassigned (overlay parked) until a runtime relay host lands — Unity can't AddComponent editor-assembly MonoBehaviours.
-        internal static System.Func<GameObject, IUnitService, Component> installDebugOverlay;
-
-        private Component debugOverlay;
-#endif
-
-        private void InitializeDebugOverlay(IGameServices services)
-        {
-#if UNITY_EDITOR
-            if (!enableDebugOverlay || installDebugOverlay == null) return;
-            debugOverlay = installDebugOverlay(gameObject, services.UnitService);
-#endif
-        }
-
-        private void TeardownDebugOverlay()
-        {
-#if UNITY_EDITOR
-            if (debugOverlay)
-                Destroy(debugOverlay);
-            debugOverlay = null;
-#endif
         }
     }
 }

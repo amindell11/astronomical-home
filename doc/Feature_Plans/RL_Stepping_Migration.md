@@ -1,8 +1,10 @@
 # RL Stepping Migration — retire runner-owned `EnvironmentStep`
 
-> STATUS: living — the PR-0 ordering finding (auto-step costs exactly one tick; an execution-order
-> pin restores it) is durable evidence Path A and any future stepping work must not re-derive.
-> The migration arc itself is CLOSED.
+> STATUS: living — **§"PR-0 — Finding" is why this doc survives its arc**: auto-step costs
+> exactly one tick and an execution-order pin restores it, with the evidence quoted so the
+> verdict stays auditable. Any future stepping work reads it instead of re-deriving it.
+> The migration arc itself is CLOSED; its frozen PR-0/PR-1 decision briefs were trimmed
+> 2026-08-06 (recover via `git show 3ca19bc7:doc/Feature_Plans/RL_Stepping_Migration.md`).
 
 **Arc outcome (closed 2026-07-22).** All manual stepping is gone; the Academy auto-clock is the
 sole stepper.
@@ -17,8 +19,9 @@ Path A (in-process M-arenas) was the point of the arc; it shipped on top of this
 
 **Date:** 2026-07-21 (drafted); closed 2026-07-22.
 **Parent:** `Multi_Arena_Substrate.md` §"N-arena stepping model" (the already-blessed target:
-Academy is the clock, per-arena driver collapses to reset-only); `RL_Training_Throughput.md`
-§"Path A" (names the manual global step as Path A's whole cost).
+Academy is the clock, per-arena driver collapses to reset-only); the Path A/B
+throughput arc (memory `project_rl_training_throughput.md` §Path A — names the
+manual global step as Path A's whole cost).
 **Driver:** the manual `Academy.EnvironmentStep()` is process-global, so it can have exactly
 one owner — which blocks in-process M-arenas (Path A) and forces the "two steppers collide"
 workarounds. Migration is architectural-correctness work the user wants regardless of
@@ -47,11 +50,11 @@ Two places turn off automatic stepping and drive the Academy by hand:
 on one batched inference round-trip. So whoever calls it owns the whole-process clock, and there
 can be only one owner. Direct consequences:
 
-- **`RL_Env_Step_Package.md` PR-C fork 2** already records that a training agent + an
+- **The env-step arc's PR-C fork 2** already recorded that a training agent + an
   `InferenceChooser` (or two `InferenceChooser`s) both stepping "break the pacing contract."
   Today that is documented-around, not fixed.
 - **In-process M-arenas is impossible** with per-boundary manual stepping: M arenas each want
-  their own decision cadence, but there is one global step. `RL_Training_Throughput.md` names
+  their own decision cadence, but there is one global step. The throughput arc names
   this as Path A's entire cost; `Multi_Arena_Substrate.md:257` calls the manual loop "the
   *interim* stepper… before the Academy exists." The Academy exists now — the interim window
   closed, and the scaffolding quietly became load-bearing in two places.
@@ -177,98 +180,10 @@ the throughput/teams payoff and its own arc; this migration was its precondition
 ## Related
 
 - `doc/Feature_Plans/Multi_Arena_Substrate.md` (the target N-arena stepping model)
-- `doc/Feature_Plans/RL_Training_Throughput.md` (Path A vs Path B; why Path B sidesteps this)
-- `doc/Feature_Plans/RL_Env_Step_Package.md` (PR-C fork 2 two-steppers note; PR-4 self-play stepping)
+- memory `project_rl_training_throughput.md` (Path A vs Path B; why Path B sidesteps this)
+- memory `project_tactical_ai_direction.md` (env-step arc record — PR-C fork 2 two-steppers
+  note, PR-4 self-play stepping; its brief was deleted 2026-08-06)
 - memory `project_multi_arena_rethink`, `project_rl_training_throughput`, `project_tactical_ai_direction`
-
----
-
-# PR-0 — Decision brief (frozen 2026-07-21, pr-prep)
-
-> A **gating spike**, not a product change. Deliverable = a written finding appended here that
-> shapes PR-1; no code merges. Branches from current `main` (carries #185 `HarnessAssets`).
-
-## The question, mechanically reduced
-
-Does automatic Academy stepping preserve the two invariants the manual stepper guarantees —
-**(1) zero decision latency** (the action decided at boundary step *t* governs physics over
-[*t*, *t+K*)) and **(2) terminal-observation-before-reset** — and if not, is the gap recoverable?
-The mechanism reduces to **one lever**: the execution order of ML-Agents'
-`AcademyFixedUpdateStepper` (calls `EnvironmentStep` in its own `FixedUpdate` under auto-stepping)
-relative to `Brain`/`AICommander` (`[DefaultExecutionOrder(-70)]`, reads the agent action and
-applies velocity that same `FixedUpdate`). Stepper before `Brain` → fresh action lands same tick
-(zero-latency preserved); stepper after → `Brain` reads stale action → one-tick latency.
-
-## Scope
-
-**In:** a throwaway PlayMode measurement on a branch. An A/B trajectory diff: the deterministic
-Heuristic agent driven through the episode loop under (arm 1) today's manual stepping and (arm 2)
-automatic stepping, same seed/spec, per-fixed-step 10-channel kinematics recorded and diffed at
-1e-3 — the measured window **spans at least one episode boundary** so both invariants are
-exercised. If the default auto-step arm diverges, a **conditional execution-order probe**: pin the
-stepper before `Brain` (or move `Brain`'s order), re-run the same diff, and report whether the
-shift is recoverable. Finding written here: default behavior + (if divergent) recoverable-with-a-
-one-line-order-pin vs. structural (order control insufficient → PR-1 is the `DecisionRequester`/
-bounded-latency branch).
-
-**Out (non-goals):** any merged product change to `EpisodeLoopDriver`/`InferenceChooser` (measured
-on a throwaway variant/branch only); the in-game `InferenceChooser` path (PR-2 — its 3–5-per-40
-cadence bar tolerates one-tick latency; it is real-time AI, not determinism-pinned); the actual
-migration (PR-1); the remote-gRPC path (reasoned-equivalent, see assumptions — not re-run);
-`DecisionRequester` adoption (a PR-1 option this spike may *recommend*, not build).
-
-## Fork resolutions (with why)
-
-1. **Measurement instrument = A/B trajectory diff (primary), direct action-timing probe
-   (attribution on divergence); lean-on-existing-tests REJECTED.** *Why:* no existing test can
-   catch the target regression — `RLAgentPlayModeTests`' reward-equivalence + decision-count asserts
-   still pass under a one-tick shift (reward still telescopes, decisions still count), and
-   `RLEpisodePlayModeTests.TrajectoryEquivalence_*` never drives the agent/Academy (it tests *reset*
-   determinism with a scripted RangerChooser). So "flip and re-run the suite" goes green through the
-   exact defect — a trap to name in PR-1's context. The A/B diff is the honest behavioral-equivalence
-   proof and directly renders a latency shift as position drift; the timing probe (record the
-   fixed-step where a boundary's action first moves the rigidbody; assert *t→t+1* both modes)
-   disambiguates a real one-tick shift from a spurious Burst-ordering artifact if the diff diverges.
-2. **Spike breadth = measure + de-risk (conditional execution-order probe).** *Why:* the point of a
-   gating spike is to hand PR-1 a *closed* question. "There's a one-tick shift" without "…and it's a
-   one-line order pin vs. structural" returns PR-1 to exploration — defeating the gate. The probe is
-   bounded and throwaway (toggle one order value, re-run the Fork-1 instrument) and *conditional*
-   (never fires if the default is already zero-latency), so it costs nothing in the clean case and
-   buys the decisive finding in the divergent one.
-
-## Assumptions (user-reviewed)
-
-- **Vehicle = Heuristic policy** through the episode loop — deterministic, Python-free
-  (`ShipAgent.Heuristic` is pure `RangerChooser.HoldRangeVelocity`), no gRPC nondeterminism. The
-  ordering question is policy-source-independent, so Heuristic faithfully proxies the trained path.
-- **Reuse the determinism harness:** `PacingContract` locked pacing (`timeScale=1`,
-  `captureDeltaTime=fixedDeltaTime`) + the `Record`/`Sample` 10-channel capture at 1e-3, as
-  `RLEpisodePlayModeTests.TrajectoryEquivalence_*` already does.
-- **Controlled pre-combat window** (separation ~18–24) so float chaos (combat + CEM near-ties)
-  doesn't swamp a one-tick signal — plus a short `timeoutDecisions` so a terminal/truncation lands
-  inside the recorded window (boundary-spanning, per the blindsider).
-- **Auto-step arm runs on a throwaway driver variant**, never a `manualStep` flag threaded through
-  the shipped `EpisodeLoopDriver` — nothing merges from this spike.
-- **Remote-gRPC path is reasoned-equivalent, not re-run:** under a remote policy `EnvironmentStep`
-  blocks on the round-trip within the stepper's `FixedUpdate`, before physics — sim-step ordering is
-  identical; the pacing contract makes the block span wall-clock, not sim time.
-- **PlayMode, headless, `-ScopeType Auto`, worktree loop; branch from current `main`.** Fixture
-  restores `AutomaticSteppingEnabled = true` in TearDown (`RLAgentPlayModeTests:69-70` pattern).
-- **Coordinate Unity via unity-access; do not race the agent-1 editor** (PR-4 #184 in review there).
-- Findings appended to this doc under PR-0; no board card (the spike closes within PR-1's prep).
-
-## Blindsider resolutions
-
-- **Measured window spans a reset boundary** (folded in): one short-timeout window that crosses an
-  episode boundary and keeps recording into the next episode's opening steps, so the single diff
-  exercises *both* mid-episode zero-latency and terminal-obs-before-reset (the manual path's
-  `EndEpisode`-before-`pair.Reset` ordering). Not two separate windows.
-- **Instrument-validity guards (baked in regardless):** (a) the auto arm must **assert it actually
-  auto-stepped** (academy step count / `DecisionsReceived` advances) before its trajectory is
-  trusted — a mid-session `AutomaticSteppingEnabled` flip that silently fails to engage the stepper
-  would otherwise yield a garbage-but-green diff; (b) if the two arms can't share one process cleanly
-  (stepper re-creation on the mid-session flag flip), fall back to two separate `-runTests`
-  invocations rather than back-to-back arms in one method.
 
 ---
 
@@ -347,77 +262,3 @@ the trustworthy AutoDefault CSV was produced that way.
 
 **Do not** adopt `DecisionRequester` / accept bounded latency for PR-1 — that structural branch is
 unwarranted; order control restores the invariant.
-
----
-
-# PR-1 — Decision brief (frozen 2026-07-21, pr-prep) — executed as #188
-
-> **Two gates (hard):** (1) PR-0's finding selects the mechanism (fork P1-2); (2) lands **after
-> #184** (PR-4) — it migrates the *post-#184* N-agent driver. Ground against post-#184 `main`.
-
-## Post-#184 ground truth
-
-`EpisodeLoopDriver` already generalizes to N agents (verified from the #184 head): prime and each
-non-terminal boundary do `agent.RequestDecision(); opponentAgent?.RequestDecision();
-Academy.Instance.EnvironmentStep();`; the ctor sets `AutomaticSteppingEnabled = false`. So the
-migration is mechanically a **~3-line deletion** (ctor flag + the two `EnvironmentStep()` calls),
-identical for the single-agent and self-play paths — both keep their `RequestDecision()` calls and
-simply stop owning the step. PR-1's real content is the mechanism (gated), the permanent guard, and
-the test/self-play re-green — not the deletion.
-
-## Scope
-
-**In:** remove runner-owned manual stepping from `EpisodeLoopDriver` (ctor
-`AutomaticSteppingEnabled = false` + both `EnvironmentStep()` calls); keep the boundary/prime
-`RequestDecision()` calls; apply the PR-0-selected mechanism (fork P1-2); land a **permanent
-timing-invariant property test** (the guard); re-green the harness suites + the self_play trainer
-smoke under auto-step.
-
-**Out (non-goals):** `InferenceChooser` / the in-game pilot (PR-2 — it still forces
-`AutomaticSteppingEnabled=false` after PR-1; interim two-steppers tolerated, see guard); any
-arena-count / Path-A `RLDriver` work; obs/reward/policy changes; re-minting checkpoints (migration is
-behavior-identical in the clean/recoverable branches; the structural branch halts before any re-mint).
-
-## Fork resolutions (with why)
-
-1. **Permanent guard = direct timing-invariant property assert** (boundary action first moves the
-   rigidbody at t+1; terminal observation precedes reset) — **NOT a committed golden trajectory.**
-   *Why:* after migration there is no second mode to A/B against, and this repo deliberately avoids
-   committed float goldens — the existing `RLEpisodePlayModeTests.TrajectoryEquivalence_*` compare two
-   *live* same-process runs precisely because Burst rounds differently across managed/Burst and version
-   bumps. An integer step-index property assert is version-robust and encodes the actual contract; it
-   is correctly scoped because the stepping change touches *when* the step fires, never observation or
-   action *values* (broader trajectory fidelity stays covered by the untouched reset-equivalence tests).
-   A naive agent will reach for a golden — steer away explicitly.
-2. **Migration mechanism = keyed on PR-0's finding (pre-ratified tree):** *clean* → pure deletion;
-   *recoverable* → deletion + a one-line execution-order pin on **our** component (`AICommander`/`Brain`
-   ordered after the ML-Agents stepper; exact value from PR-0's probe — the stepper is ML-Agents-owned,
-   so we move our order, not theirs), still behavior-identical; *structural* → **STOP and report** for
-   joint re-scope (do NOT silently become the `DecisionRequester`/bounded-latency PR — that branch
-   changes trajectories and reopens the determinism pins). *Why:* two small branches ship
-   behavior-identical; only the structural branch balloons, and pre-authorizing a big mechanism swap
-   inside a gated spike's downstream is the one thing worth halting for.
-
-## Assumptions (user-reviewed)
-
-- Migration is identical for single-agent and self-play (post-#184 driver confirms — both drop the
-  shared `EnvironmentStep`, both keep `RequestDecision`).
-- PR-1 grounds against and lands after #184; if #184 is unmerged when PR-1 starts, rebase onto it.
-  Sequencing: #185 ✓ → #184 → PR-1.
-- Re-green targets: `RLAgentPlayModeTests` (reward-equivalence, decision-count), the
-  `CheckpointEvaluator` eval path (InferenceOnly, deterministic), and the self_play PlayMode two-agent
-  loop test. The `TrajectoryEquivalence_*`/telescoping pins and `InferencePilotPlayModeTests` don't
-  drive the harness stepper → unaffected.
-- Clean/recoverable branches need no determinism re-mint (behavior-identical).
-- PlayMode headless, `-ScopeType Auto`, worktree loop, unity-access coordination.
-
-## Blindsider resolutions
-
-- **Self_play trainer smoke is in the merge gate.** #184 proved self_play only under *manual*
-  stepping; PR-1 flips that loop. The single-agent suite can't cover the trainer-side self_play path
-  (ELO, snapshot swap, two team_ids over gRPC), so PR-1 re-runs `run_smoke_selfplay.py` under auto-step
-  as a gate (needs venv + trainer + unity-access — an explicit heavier gate, accepted).
-- **Harness auto-step tests set `AutomaticSteppingEnabled = true` in SetUp** (baked in): after PR-1,
-  `InferenceChooser` still forces it *false* until PR-2, so in a full-suite run an inference-pilot test
-  could leave it false and silently prevent the harness auto-step from engaging (garbage-green). Do not
-  rely on the ML-Agents default or on the driver setting it.

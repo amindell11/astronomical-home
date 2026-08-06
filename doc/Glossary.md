@@ -98,10 +98,10 @@ Format: **term** — definition. *(authority)*
 
 - **fix ladder** — the five-rung classification for programmer-error fixes, one
   rung per fix: unrepresentable → earliest deterministic failure → cost gate →
-  loud failure → guards (prohibited). *(CLAUDE.md § Fix ladder)*
+  loud failure → guards (prohibited). *(AGENTS.md § Fix ladder)*
 - **operating vs programmer error** — the triage above the ladder: untrusted
   boundary input is parsed once at the boundary; our own invariant violations
-  climb the ladder. *(CLAUDE.md)*
+  climb the ladder. *(AGENTS.md)*
 - **cost gate** — fix-ladder rung 3: the structural fix exceeds the current
   scope, so stop and present narrow-vs-structural to the user. Never downgrade
   silently.
@@ -109,7 +109,7 @@ Format: **term** — definition. *(authority)*
   prohibited for programmer errors. Log-and-continue is a guard wearing a costume.
 - **scope conservation** — the confirmed scope bounds the *diff*, not just the
   intent; re-read the diff against it before submit. It never licenses violating
-  a design value to touch fewer files. *(CLAUDE.md)*
+  a design value to touch fewer files. *(AGENTS.md)*
 - **fork** — a consequential design decision with named alternatives, surfaced
   to and resolved by the user before building. Not the git sense. *(pr-prep)*
 - **locked / frozen** — a fork the user resolved / a brief the implementer builds
@@ -172,13 +172,13 @@ Format: **term** — definition. *(authority)*
 - **ratchet** — apply a standing rule only to hunks you touch; whole-file sweeps
   live in dedicated hygiene PRs. Instances: comment ratchet, header ratchet,
   vocab ratchet, structure ratchet (folder taxonomy / one-type-per-file,
-  `AGENTS.md` → Unity code conventions), design ratchet and agent-doc ratchet
-  (CLAUDE.md → Design & agent-doc ratchets).
+  `doc/agents/unity-conventions.md`), design ratchet and agent-doc ratchet
+  (AGENTS.md → Design & agent-doc ratchets).
 - **rescue sweep** — salvaging valuable strays (scratch probes, orphaned docs)
   into an infra-hygiene PR rather than losing them to a slot reset.
 - **three tracking surfaces** — GitHub Issues = what / for-when (thin
   title-plus-link issues; ex-Obsidian-board, migrated 2026-08-06);
-  memory = why / how; ledger = right-now claims. Never conflate. *(AGENTS.md)*
+  memory = why / how; ledger = right-now claims. Never conflate. *(doc/agents/memory.md)*
 - **parking lot** — deferred *discussion* items, not work items; add on park,
   delete on resolution. *(memory)*
 - **handoff** — a memory brief a fresh session reads cold to take over.
@@ -260,13 +260,13 @@ Format: **term** — definition. *(authority)*
   and policy-dependent. A different seed set adds another SD ≈ 2 on top.
   Per-archetype cells are proportionally noisier than totals; never read a
   single cell against a threshold without an interval.
-  *(RL_Infra_Paydown_Pass.md §PR-4 calibration evidence)*
+  *(calibration evidence: memory `project_rl_infra_paydown.md` §PR-4)*
 - **replicate** — one complete re-execution of the identical eval protocol
   (same checkpoint, seed set, episodes/seed, density, tree) in a fresh boot,
   differing only by mechanical sim nondeterminism; the unit of measurement for
   one checkpoint. NOT a new seed draw (that samples different episodes) and NOT
   a cross-tree re-eval (that confounds code drift with draw luck).
-  *(RL_Infra_Paydown_Pass.md §PR-4)*
+  *(memory `project_rl_infra_paydown.md` §PR-4)*
 - **ELO treadmill** — snapshots inherit `current_elo`, so ELO measures
   improvement against recent selves and cannot see absolute capability loss. The
   gate score is the absolute yardstick.
@@ -296,6 +296,11 @@ Format: **term** — definition. *(authority)*
   "yaw-thrash". Not to be confused with **twitch**, reserved for the MPC
   obstacle×tactical defect, or **chatter**, a metric that provably does not
   capture thrash.)
+- **plan fast-forward** — the MPC warm start advancing more plan time per
+  solve than sim time has elapsed: the solver re-plans every fixed step
+  (0.02 s) but consumes one rollout step (0.1 s) per solve, so the plan runs
+  5× ahead of reality. Observed 2026-08-06; evidence in
+  `MPC_Retune_Pass.md` § problem brief. *(Mpc.ShiftSequenceForward)*
 - **facing authority** — the policy's way of saying "facing doesn't matter right
   now", by scaling down the MPC facing cost. It changed the **action semantics**,
   so checkpoints from before it cannot warm-start across the boundary.
@@ -440,24 +445,30 @@ Format: **term** — definition. *(authority)*
   at the driver-owned `GameState.DeathRecap` hold, between death and the restart
   flow; presentation-gated, so headless drivers fall straight through to Restart.
   *(DeathRecapScreen, GameDriver.HandleDeathRecap)*
-- **painter** — a named diagnostic view (velocity vectors, aim lines, the policy
-  facing fan) written once as a drawing routine over a diagnostic canvas, then
+- **painter** — a named diagnostic view (velocity vectors, aim lines, scan
+  envelopes) written once as a drawing routine over a diagnostic canvas, then
   rendered by whichever backend is active — offscreen capture or live editor
-  gizmos. Bound to its subjects at construction, selected by name via
-  `RL_HARNESS_PAINTERS`. *(IDiagnosticPainter, DiagnosticPainters)*
+  gizmos. Bound to its subjects at construction, selected by name — atoms or
+  observation environments — via `RL_HARNESS_PAINTERS` or the editor
+  `Diagnostics` menu. *(IDiagnosticPainter, DiagnosticPainters)*
 - **diagnostic canvas** — the drawing-surface contract a painter renders onto, in
   GamePlane plane-space; two backends implement it (`CaptureDraw` for clips,
   `GizmoCanvas` for the live scene view). Always qualified — Unity's UI `Canvas`
   collides. *(IDiagnosticCanvas)*
+- **observation environment** — a named, code-defined preset of painters
+  selected as a unit — the lens a run is viewed through. Selecting one replaces
+  the active painter set; nothing is drawn by default. Resolves in both
+  frontends (`RL_HARNESS_PAINTERS`, `Diagnostics` menu).
+  *(doc/Feature_Plans/Gizmo_Painter_Migration.md)*
 
 ### Infra & tooling
 
 - **coordinator** — `unity_access.ps1`, the machine-wide Unity access broker. A
   new caller goes through the coordinator; generalize the primitive, never bypass
-  it. *(CLAUDE.md wiring §6)*
+  it. *(AGENTS.md wiring §6)*
 - **producer-owns-outputs** — when one tool's output is another's input, the
   location and format are the producer's contract; consumers never re-derive
-  paths. *(CLAUDE.md §6 corollary)*
+  paths. *(AGENTS.md §6 corollary)*
 - **player-build tripwire** — merge-gate EditMode lints re-stating what the
   RLTraining player build needs (asmdef reference closure, scene-script
   survival, hydrated LFS meshes) without building one — the merge gate never

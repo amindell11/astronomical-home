@@ -1,6 +1,7 @@
 # Objectives / Encounters / Sector Rethink
 
-> STATUS: live arc — next objectives PR opens with token-authoring design; converge superseded sections then
+> STATUS: living — objectives/encounters design reference; the #134–#153 arc is COMPLETE.
+> The next objectives PR opens with token-authoring design (issue #334); converge superseded sections then.
 
 *Draft • 2026-07-12 • status: PR-1..PR-4b (#134/#135/#141/#147/#153) all merged; PR-5 signal-port refactor was built then SHELVED as #156 — its decision brief is retained below as the retry's seed (see "PR-5 — decision brief")*
 
@@ -426,7 +427,7 @@ Forks (locked, with why):
 
 - **Bespoke `AmbushEncounter : ActivationRule`** — no base-class extraction,
   no generic data-driven `CombatEncounter`; generalize only when a 2nd
-  encounter type exists (evidence gate; board card). *Why:* design against
+  encounter type exists (evidence gate; issue #306). *Why:* design against
   the first real consumer; most of "an encounter" is already generic
   substrate (rule terms, bus, spawner params, `OpenLocal`).
 - **Demo = one encounter, single wave: enter area → short timer → spawn.**
@@ -449,7 +450,7 @@ Forks (locked, with why):
   *Why:* the bus is the coupling seam; spawner already receives it via ctx;
   teardown/despawn and restart ride the existing sector-owned paths
   unchanged — the deferred "lazy-spawn ownership" question dissolves.
-- **Locals HUD deferred** (board card). Locals visualized by an editor-only
+- **Locals HUD deferred** (issue #307). Locals visualized by an editor-only
   `[DrawGizmo]` static over `ObjectiveService` drawing live local targets
   (editor-split recipe; no component attachment, so the parked
   editor-viz-unattachable issue is moot).
@@ -511,7 +512,7 @@ the implementing agent builds, it does not re-decide. Seed:
 `feedback_token_authoring_fragility` — free-text bus tokens are the fragile
 seam; the user's bar was **foolproof, not validated**. Scope: free-string
 tokens die end-to-end; wiring becomes component-reference identity. Non-goals:
-no GraphView window (board card), no scene overlay, no locals HUD, no
+no GraphView window (issue #305), no scene overlay, no locals HUD, no
 `MissionDefinition`/objective changes, no bus-lifecycle changes.
 
 Forks (locked, with why):
@@ -535,7 +536,7 @@ Forks (locked, with why):
   impossible or collapse to a missing ref — the existing loud-inert idiom;
   validation demotes to defense-in-depth.
 - **Graph model + validator + inspector causal-tree view ship in this PR;
-  node-graph EditorWindow deferred** (board card, evidence-gated on sectors
+  node-graph EditorWindow deferred** (issue #305, evidence-gated on sectors
   growing). Pure UnityEditor-free graph/validator beside `SectorManifestSync`
   reading the **baked manifest** (what `Setup` actually runs — hierarchy gaps
   stay the drift badge's job); `SectorEditor` renders the derived causal tree
@@ -600,7 +601,7 @@ decision brief. Dispositions of the former PR-4 questions:
 - **Lazy-spawn ownership/teardown** — RESOLVED by token-gated spawner
   production (PR-4 brief): the sector already owns product lifetime through
   the existing spawner Build/Teardown paths; no new handle needed.
-- **Locals HUD contract** — DEFERRED to a board card; PR-4b ships an
+- **Locals HUD contract** — DEFERRED to issue #307; PR-4b ships an
   editor-only locals gizmo instead. `MinimapObjectiveMarker` stays spine-only.
 
 Deferred test debt (from PR-1 review): a serialized `ActivationTerm[]`

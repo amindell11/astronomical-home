@@ -1,13 +1,16 @@
 # RL training throughput optimization
 
-> STATUS: living — arc opened 2026-07-22 after the PR-4 launch prep measured the real
-> per-step cost. Driver: many training runs are planned, so per-step cost compounds.
-> Pass 1 closed 2026-07-23 at the core-saturation ceiling; **Pass 2 opened 2026-07-31**
-> (§Pass 2) — the K1-3 schema break lifts the no-obs/action-change constraint the
-> closure was taken under.
+> STATUS: living — **the throughput measurement record**: measured baselines, step
+> decompositions, and per-lever A/B verdicts that future passes must not re-derive.
+> That evidence, not the arc plan, is what outlives the arc.
+> Pass 1 closed 2026-07-23 at the core-saturation ceiling. **Pass 2 (§Pass 2, opened
+> 2026-07-31): stages 0–2 COMPLETE** (Stage 0 baseline 2026-08-03, Stage 1 decompose,
+> Stage 2 levers); its "custom trainer runtime" deferral became the trainer-runtime
+> arc (`RL_Trainer_Runtime_Takeover.md`, issue #284), which now owns the open work.
 
-**Parent:** `RL_Training_Throughput.md` (Path A/B delivery mechanisms — this arc is about
-the cost of a step, not how many step in parallel).
+**Parent arc:** Path A/B delivery mechanisms — shipped, brief deleted 2026-08-06;
+record in memory `project_rl_training_throughput.md`. This arc is about the cost
+of a step, not how many step in parallel.
 **Driving memory:** `project_rl_training_throughput`, `project_tactical_ai_direction`.
 
 ## Why this arc exists
@@ -251,7 +254,7 @@ under a hard constraint: no obs/action changes, because surviving checkpoints
 warm-start into the env. That constraint walled off the three largest terms in the
 decomposition — the ML-Agents decision path (~29%), AI perception/Scout (~10%), and the
 decision interval itself. The K1-3 schema break (obs 28, 5-cont + 2-disc actions;
-`Anchored_Intent_Architecture.md`) invalidates every existing checkpoint anyway, so the
+memory `project_anchored_k1_arc.md`) invalidates every existing checkpoint anyway, so the
 next run is from-scratch and the walled-off levers ride along at zero marginal retrain
 cost. That — not re-running the exhausted safe levers — is what Pass 2 is for.
 

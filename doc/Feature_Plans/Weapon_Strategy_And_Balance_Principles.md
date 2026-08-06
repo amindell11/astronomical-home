@@ -1,6 +1,8 @@
 # Weapon strategy integration & balance phase — council principles
 
-**Status: PLANNING ARTIFACT (2026-07-22).** Output of a four-seat adversarial design
+> STATUS: living — standing weapon/balance design reference; issue #335 builds against it.
+
+**Origin: PLANNING ARTIFACT (2026-07-22).** Output of a four-seat adversarial design
 council (2× codex gpt-5.6, 2× fable, two rounds: position + cross-rebuttal) with
 value charters: RL learnability/training economics (codex-A), engineering minimalism
 (codex-B), game-design depth/player feel (fable-A), balance rigor/exploit-hunting

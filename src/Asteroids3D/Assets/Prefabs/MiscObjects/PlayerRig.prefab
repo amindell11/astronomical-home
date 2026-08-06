@@ -44,7 +44,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c9e1f5a2b3d4e6f8a0c1d2e3f405162, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enableDebugOverlay: 1
   worldPrefab: {fileID: 4478678954348364341, guid: 85b078d06b0ea6c40acdfd2fe59a9556,
     type: 3}
   playerTemplate: {fileID: 3274392229469629848, guid: cffc6e37abd758f4191aef193abb1274,

@@ -281,6 +281,36 @@ try {
     $staleStatus = Invoke-Coordinator -Action Status -TicketTtlSeconds 1
     Assert-Equal @($staleStatus.value.queue).Count 0 "stale ticket cleanup"
 
+    $tokens = $null
+    $parseErrors = $null
+    $coordinatorAst = [System.Management.Automation.Language.Parser]::ParseFile(
+        $Coordinator, [ref]$tokens, [ref]$parseErrors)
+    Assert-Equal $parseErrors.Count 0 "coordinator parses"
+    $removeTicketAst = $coordinatorAst.Find({
+        param($node)
+        $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and `
+            $node.Name -eq "Remove-TicketFile"
+    }, $true)
+    Assert-True ($null -ne $removeTicketAst) "ticket deletion primitive exists"
+    . ([scriptblock]::Create($removeTicketAst.Extent.Text))
+    $deleteContractPath = Join-Path $Root "ticket-delete-contract.json"
+    [System.IO.File]::WriteAllText($deleteContractPath, "{}", $Utf8NoBom)
+    Remove-TicketFile $deleteContractPath
+    Remove-TicketFile $deleteContractPath
+    Assert-True (-not (Test-Path -LiteralPath $deleteContractPath)) "ticket deletion is idempotent"
+    $blankPathFailed = $false
+    try { Remove-TicketFile " " } catch { $blankPathFailed = $_.Exception.Message -match "path is required" }
+    Assert-True $blankPathFailed "ticket deletion rejects a blank path"
+
+    [void](Invoke-Coordinator -Action Acquire -Lease cleanup-owner -ProjectPath $projA)
+    [void](Invoke-Coordinator -Action Request -Lease cleanup-cancel -ProjectPath $projA)
+    [void](Invoke-Coordinator -Action Request -Lease cleanup-next -ProjectPath $projA)
+    [void](Invoke-Coordinator -Action Cancel -Lease cleanup-cancel)
+    [void](Invoke-Coordinator -Action Release -Lease cleanup-owner)
+    $cleanupNext = Invoke-Coordinator -Action Acquire -Lease cleanup-next -ProjectPath $projA
+    Assert-Equal $cleanupNext.value.status "acquired" "ticket cleanup preserves FIFO progression"
+    [void](Invoke-Coordinator -Action Release -Lease cleanup-next)
+
     $attachAcquire = Invoke-Coordinator -Action Acquire -Lease attach -ProjectPath $agentProject
     Assert-Equal $attachAcquire.value.status "acquired" "attach owner acquire"
     Write-Snapshot @([ordered]@{ processId = 41003; commandLine = "Unity.exe -batchMode -projectPath `"$agentProject`"" })

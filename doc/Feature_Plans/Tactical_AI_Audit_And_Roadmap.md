@@ -134,11 +134,21 @@ rethink (`project_multi_arena_rethink`) remain valid substrate but **do not bloc
 
 **ML-Agents 3.0 gotchas to honor (Codex consult).** Pin the matching Python trainer
 toolchain (Sentis 2.1); continuous actions arrive normalized `[-1,1]` (clamp/transform
-explicitly); **the 3.0 trainer has no mixed continuous+discrete action support** → keep
-firing scripted or make the fire-gate a continuous threshold; `MaxStep` counts *decisions*
+explicitly); ~~the 3.0 trainer has no mixed continuous+discrete action support~~
+(**overturned — see below**); `MaxStep` counts *decisions*
 not physics ticks; PPO (not SAC) for self-play; reset both competitors atomically and award
 terminal reward before `EndEpisode`; accumulate per-physics-step damage into the
 decision-boundary reward; terminal potential = 0 so Φ telescopes.
+
+> **OVERTURNED 2026-07-31 — do not honor the mixed-action gotcha.** It read as
+> "keep firing scripted or make the fire-gate a continuous threshold"; both are wrong
+> now. The communicator check (`GrpcExtensions.cs:175`) only restricts when the trainer
+> *lacks* hybrid support, and the K1-0 smoke confirmed the full hybrid
+> train→export→Sentis path end-to-end (`results/rl-eval/k1-0-hybrid-smoke-2026-07-31/`).
+> Production ships the anchored **5 continuous + 2 discrete** schema — fire and boost are
+> discrete branches, not thresholds. Detail: `RL_MLAgents_Agent.md` §hybrid, memory
+> `project_anchored_k1_arc.md`. Left struck rather than deleted so the reversal is
+> visible to anyone who read the original.
 
 ---
 

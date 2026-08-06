@@ -27,7 +27,7 @@ orientation, not a plan summary.
   `C:\Users\amind\.claude\projects\D--amind-git-astronomical-home\memory\active_work_ledger.md`
   during Phase 3's "interaction with in-flight work" lens, so the PR you're
   prepping doesn't collide with a concurrent slot.
-- **Design philosophy** — root `CLAUDE.md`. Two sections are load-bearing during
+- **Design philosophy** — root `AGENTS.md`. Two sections are load-bearing during
   triage:
   - *Dependency & wiring philosophy* — drives the **seams & wiring** lens. New
     per-ship deps enter through `Initialize(...)`, never ad-hoc setters; config
@@ -50,7 +50,7 @@ schema *before* the design discussion leans on a term.
   use. Pull the wording from `doc/Glossary.md`; if a term the design needs isn't
   there, that absence is itself worth saying.
 - **New terms** — every term this design coins, defined at first use per root
-  `CLAUDE.md` (simplest concise form, existing terms only, define downward).
+  `AGENTS.md` (simplest concise form, existing terms only, define downward).
   Registered into `doc/Glossary.md` when the brief freezes at Phase 6.
 - **Naming lens (Phase 3)** — a name that collides with `doc/Glossary.md`'s
   collision table is a fork, not bikeshed: pick the qualifier deliberately or
@@ -60,10 +60,10 @@ schema *before* the design discussion leans on a term.
 
 Append the decision brief to the PR's section in its `doc/Feature_Plans/*.md`
 plan doc (or the driving topic memory if the plan doc is historical). Capture any
-structural insight there too, per root `CLAUDE.md`. Keep it to the locked
+structural insight there too, per root `AGENTS.md`. Keep it to the locked
 decisions + one-line rationale for each fork — detail, not narration.
 
-**Land it before the build starts** (`AGENTS.md` → Doc lifecycle → Landing).
+**Land it before the build starts** (`doc/agents/design-docs.md` → Doc lifecycle → Landing).
 Since the brief was user-approved in the prep session, it qualifies for the
 worktree-loop skill's docs-only direct-to-main landing — no PR needed. A brief
 scoped to the one PR being prepped may instead ride that PR's first commit; a

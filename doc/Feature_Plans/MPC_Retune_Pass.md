@@ -1,15 +1,18 @@
 # MPC Retune Pass — instrumentation, bench, and contingent controller refactor
 
-> STATUS: live arc — Slices A (#261), B (#260) and C all landed; the bench read is the open step.
+> STATUS: live arc — Slices A (#261), B (#260), C (#327) landed; Bench-1 read 2026-08-06 → GO on structural work, mechanism spec RESCINDED same day; open step = the two lever tests, then redesign from §"Structural slice — problem brief".
 
 Shape and slice briefs frozen 2026-08-05 with the user. Nav-field addback
-DESCOPED (see Rulings). Structural controller work is CONTINGENT on the
-Slice-B bench read — not yet authorized.
+DESCOPED (see Rulings). Bench-1 (2026-08-06) pulled the structural work — GO —
+and the inherited mechanism spec was rescinded the same day; the structural
+slice starts from §"Structural slice — problem brief" below, not the
+2026-08-04 handoff spec.
 
 Entry evidence: memory `handoff_2026-08-04_k1_4_eval_mpc_navfield.md` (K1-4
 run record, facing-authority + MPC-noise ablations, obstacle-competence gate
 spec) and `project_anchored_k1_arc.md` (arc close-out, #250 disposition).
-Predecessor plan: `Anchored_Intent_Architecture.md` (K=1 arc — CLOSED).
+Predecessor arc: K=1 anchored intent — CLOSED 2026-08-05; its brief was
+deleted with the arc, narrative in memory `project_anchored_k1_arc.md`.
 
 ## Context
 
@@ -58,6 +61,24 @@ controller decision.
 - **Self-play remains unauthorized.**
 - Slices A and B build in parallel (agent-4 / agent-5); bench *execution*
   gates on #250 landing.
+
+## Rulings (2026-08-06, user)
+
+- **GO on structural controller work** off the Bench-1 read (outcome (b)
+  below); roster/thrash numbers in memory `project_mpc_retune_pass.md`
+  §Bench-1.
+- **Mechanism spec RESCINDED** the same day, during structural-slice pr-prep:
+  the 2026-08-04 handoff's 8-step direction (incumbent-preferring selection,
+  deterministic PD candidate, slew projection, lexicographic priority) had
+  accreted into an over-convoluted shape — hysteresis plus collision-bypass
+  plus obstacle-proximity-conditioned exploration. The redesign starts from
+  the problem brief below: evidence only, no solution priors.
+- **"No more scalar sweeps" re-opened narrowly** for the two never-run lever
+  tests (§problem brief → Next step). The 2026-08-05 ruling predated the
+  discovery that `wSmoothnessYaw` was 100×-suppressed during every sweep that
+  motivated it.
+- **Velrebase apparatus: HELD** — disposition rides the redesign (#289 does
+  not fire yet).
 
 ## Slice A — `controller` probe (lease `retune-probe`, agent-4)
 
@@ -136,6 +157,11 @@ separate decision.
 
 ## The bench read → what it decides
 
+> RESOLVED 2026-08-06: Bench-1 ran at noiseStd 0.75 (the #250-merged config);
+> read in memory `project_mpc_retune_pass.md` §Bench-1. Outcome (b) selected —
+> then the mechanism spec it pointed at was rescinded; see Rulings
+> (2026-08-06) and the problem brief below.
+
 Run after #250 lands (Slices A+B merged): instrumented baseline at the merged
 config (noise 0.31). Questions it answers:
 
@@ -156,4 +182,181 @@ scoped as its own slice set. That call is the user's, made on the bench read.
 
 Velrebase apparatus disposition rides the same call: it is the natural
 controller-A/B instrument if the structural experiment proceeds; if the pass
-closes cheap, retire it per its board card.
+closes cheap, retire it per issue #289.
+
+## Structural slice — problem brief (2026-08-06)
+
+Design re-opened from this brief. The 2026-08-04 handoff's mechanism spec is
+RESCINDED — do not treat it as direction; the next design starts from the
+evidence below and nothing else.
+
+### The problem
+
+The MPC's yaw-torque command chatters far faster than the hull can answer, and
+the cost lands on closeout (all numbers Bench-1, `controller` probe, noiseStd
+0.75, @ `7cd7b95a`):
+
+- Torque-command sign flips ~11/s strict, 7.7–8.5/s after the 0.1 deadband, vs
+  hull nose reversals 4–5/s — the command reverses ≈2.4× faster than the ship
+  responds.
+- The churn is self-generated: anchor demand explains only 17–31% of delivered
+  yaw outside Orbiter (60%).
+- It has no obstacle excuse: threat steps ≤0.06% on four of five archetypes.
+  Evader's 4.9% threat share is *legitimate* avoidance (threat-bucket yaw
+  98.6 deg/s vs 67.2 clear) — preserve it; it is signal.
+- Cost: Dummy closeout 6.50/15, every non-win a 120 s timeout. **Success
+  criterion = Dummy closeout**; no-regress bar = the moving-archetype wins
+  (Aggressor 15.0, Evader 14.5, Orbiter 13.5, Kiter 13.5).
+- Mirror went 0W/4L/11D (was 15/15 draws) — a 0/4 asymmetry in a self-mirror
+  is unexplained; don't lean on mirror numbers until it is.
+
+### Mechanism evidence (no fixes chosen)
+
+1. **Selection blends.** The solver output is a one-pass elite *average* (~14
+   of 128 candidates at eliteFraction 0.113) — no argmin, no incumbent
+   preference (`SolverBuffers.EliteAverage`). Candidate 0 IS the verbatim
+   shifted warm start (`GenerateCandidatesJob`, since #76).
+2. **Plan fast-forward** (found 2026-08-06, magnitude unmeasured). The solver
+   re-plans every 0.02 s fixed step (`AICommander.FixedUpdate` →
+   `Navigator.ComputeCommand`) but `Mpc.ShiftSequenceForward` consumes one
+   0.1 s rollout step per solve — the warm start advances plan time 5× faster
+   than sim time; a 1.7 s plan is consumed in 0.34 s, and every solve's "hold
+   u[0] for 0.1 s" prediction is executed for 0.02 s. Knot arithmetic is
+   consistent with the measured chatter: 5 noise knots over 17 steps = a noise
+   feature every 4 rollout steps, replayed at 50 Hz ≈ 12.5 sign-change
+   opportunities/s vs 8.99–11.75/s measured strict torque reversals.
+   Observation only; no fix chosen.
+3. **Noise is causal but protective** (the one falsified lever). Frozen-policy
+   Dummy ablation: noiseStd 0.75 → 2W/1D; 0.50 and 0.25 → 0W/3D. Low noise
+   halves yaw motion AND kills closeout; 0.31 also broke Dummy station-keeping
+   at the #250 merge gate. This is the real constraint behind "don't just turn
+   the noise down".
+4. **The smoothness lever was never actually tested.** `wSmoothnessYaw` was
+   100×-suppressed during every ablation ever run (fixed by #327); the
+   strongest effective value ever tried ≈ 0.2 (old "smooth 20"), which did
+   nothing. Untested at meaningful strength on the now-live knob.
+5. **`wMomentum` has never been ablated.** It exists (velocity-direction
+   change penalty — velocity channel, not yaw), ships at 0.
+6. Constraint honesty: the inherited "keep horizon 1.7 s / 128 samples /
+   noiseStd 0.75, never cut solver budget" rule was a prior, not evidence.
+   The evidence is #3, plus: obstacle competence is unmeasurable at density
+   2.0 (threat steps ≤0.06%) — any change that could plausibly trade it needs
+   a higher-density arm to be measurable at all.
+
+### Measurement kit (exists — reuse, don't rebuild)
+
+- `controller` probe (#261): per-step torque/nose reversal rates (strict +
+  deadband), anchor rate, obstacle-threat split — answers "did the chatter
+  drop" on a short run, no roster needed.
+- `bench_replicates.py` (#260): full roster ×R + mirror protocol.
+- Baseline for any before/after:
+  `results/rl-eval/bench-ShipCombat-3500018-20260806-001449/` (@ `7cd7b95a`,
+  probes `facing,controller`). ⚠ #263 (field pass) merged after the K1-4
+  yardstick — Bench-1 is the comparable baseline, not K1-4's 66/75.
+- Base-port 5006 is single-occupancy machine-wide; claim it in the active-work
+  ledger before any run.
+
+### Open question
+
+What is the cheapest change — tuning or structural — that drops the
+self-generated torque churn and fixes Dummy closeout, without regressing the
+moving-archetype wins or (unmeasurable at d2.0) obstacle competence?
+
+### Next step — the two never-run lever tests
+
+Before any structural design: asset-only falsification runs, short Dummy +
+mirror sessions, read on the controller-probe metrics.
+
+1. `wSmoothnessYaw` at meaningful strength — sweep upward from 0.002; the knob
+   is live and dt-independent since #327.
+2. `wMomentum` on — velocity-channel; it may not touch yaw at all, which is
+   exactly what the test establishes.
+
+If either moves torque reversals without killing closeout, the structural
+design shrinks or vanishes. (This re-opens the 2026-08-05 "no more scalar
+sweeps" ruling — user-approved 2026-08-06; that ruling predated the discovery
+that the smoothness knob was dead during the sweeps that motivated it.)
+
+### Confirmed lever-test protocol (2026-08-06, user-approved)
+
+**Arms** — one weight per arm, all else stock (noiseStd 0.75), strongest-first
+adaptive: S-20 (`wSmoothnessYaw` 20) and M-50 (`wMomentum` 50) run first. A
+strongest arm with no torque-reversal movement falsifies its lever and skips
+its weaker arms (S-2, S-0.2 continuity anchor; M-5); a chatter drop that kills
+closeout triggers a bisect instead. Magnitude grounding: `SmoothnessCost` and
+`MomentumCost` are both normalized 0–1, so 20 prices a full one-step torque
+reversal at 5 (50× a max-effort step's total effort cost) and 50 puts
+course-holding at `wVelTrack` parity — deliberately overpowered so "does
+wMomentum touch the yaw channel at all" gets a definitive answer.
+
+**Per arm**: `eval_lane.py` ×2 — `--opponent Dummy` then `--opponent mirror`,
+seeds 2001-2005, `--episodes-per-seed 3`, density 2.0, `--probes
+facing,controller` (the Bench-1 cell protocol, 15 episodes each). Pool slot
+pinned @ `7cd7b95a` so the asset line is the only delta vs baseline. The
+weight is edited in the slot tree's `MpcSettings_AgentPilot.asset` per arm
+(each eval_lane run is a fresh editor boot, so import is guaranteed), restored
+via `git checkout --` and verified clean before slot release; never committed.
+
+**Artifacts**: `results/rl-eval/levers-20260806/<arm>/{dummy,mirror}` (arm
+dirs `smoothyaw-20/-2/-0p2`, `momentum-50/-5`) + top-level `NOTES.md` carrying
+per-arm asset value + asset md5, checkpoint md5, SHA, session dirs.
+
+**Read per lever** — primary: strict + deadbanded torque rev/s vs baseline
+(Dummy 11.52/8.30, mirror 11.75/8.54; hull 4–5/s); *material* = ≥~25% drop,
+outside the 8.99–11.75 cross-archetype spread (per-step metrics aggregate
+~70k steps/session, noise ~±0.5/s). Guards: Dummy wins ≥~5/15 (baseline 6.5,
+15-episode noise ±~2) and facing error not materially above 14.5°. Verdicts:
+chatter drops and closeout holds at some value → the tuning path lives and the
+structural design shrinks (refined sweep next); no movement at the strongest
+arm → lever falsified, recorded here, structural design proceeds. Mirror W/L
+is not leaned on (0W/4L anomaly); mirror chatter metrics are valid.
+
+**Scheduling**: queued on base-port 5006 behind trainer-1b's curriculum
+canary + stock arm; the active-work ledger row is the claim.
+
+### Lever-test results (RAN 2026-08-06) — both levers insufficient
+
+Arms run: S-20, M-50, M-5 bisect (S-2/S-0.2 skipped — no bisect trigger).
+Full reads: `results/rl-eval/levers-20260806/NOTES.md`; summary in the pass
+memory. **The tuning-only path is now closed by evidence, not by prior:**
+
+- **wSmoothnessYaw 20** (full one-step reversal priced 50× a max-effort
+  step): strict torque reversals −14%/−7% (Dummy/mirror), deadbanded
+  −22%/−19% — sub-material, nowhere near the hull's 4–5/s. Closeout held
+  (Dummy 8W/0L/7D). The churn is not price-sensitive → consistent with plan
+  fast-forward, not smoothing pressure, as the generator.
+- **wMomentum couples into yaw but is lethal at any effective strength.**
+  At 50: strict −23%/−25% but Dummy 3W/5L/7D with *new* field deaths (33 s
+  episodes, threat steps 18× baseline). At 5: lethality persists (8L/15
+  Dummy) while the chatter benefit vanishes. Velocity-direction freedom is
+  load-bearing for obstacle survival (constraint #6, now measured).
+- Side observation: S-20's mirror returned to full disengagement
+  (0W/0L/15D) — the baseline's 0W/4L mirror asymmetry is
+  smoothness-sensitive and remains unexplained.
+
+Structural redesign proceeds from §"Mechanism evidence"; these two
+falsifications are additional design inputs.
+
+### Shift-cadence falsification (RAN 2026-08-06) — mechanism CONFIRMED
+
+User-approved same day as the opening move of the structural slice: a
+12-line change (agent-1 `ecc62c2d` @ `7cd7b95a`) makes the warm-start shift
+consume one rolloutDt slot per rolloutDt of *sim time* instead of one per
+50 Hz solve. MPC EditMode tests 66/66; lever-test protocol, stock asset;
+full read `results/rl-eval/shift-cadence-20260806/NOTES.md`.
+
+**Plan fast-forward was the churn generator.** Strict torque reversals
+11.5 → 5.7-5.8/s (−49/−52%, at the hull's own 4-5/s scale), deadbanded
+−59/−61%. **Dummy closeout 6.5 → 14W/0L/1D**; episodes close 2× faster.
+The mirror engages and is *symmetric* again (4W/4L/7D vs the unexplained
+0W/4L/11D) — the baseline asymmetry was a churn artifact. Motion style
+changed: committed sweeping turns (mean |yaw rate| 2.4×, facing error
+14.5° → ~39° mean / ~70° p90) instead of micro-thrash on target. The lever
+tests' price-insensitivity is explained — no cost weight can fix a wrong
+time base.
+
+**Not yet run (gates before landing):** full roster no-regress bench (the
+policy trained against the old controller; movers were the anchored wins),
+the mandatory higher-density obstacle arm (design input #3), and a
+facing-vs-movers read for the aiming implication of the larger transient
+facing error.
