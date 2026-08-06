@@ -23,6 +23,7 @@ namespace Movement.MPC
         public WeightOverride[] weightOverrides;
         public ObstacleScan obstacleScan;
         public bool enableObstacleAvoidance;
+        public float dt;                   // sim time since the previous Plan; drives warm-start shift cadence
     }
 
     /// <summary>The control output of a single MPC solve.</summary>
@@ -48,6 +49,7 @@ namespace Movement.MPC
         private Control lastControl;
         private float lastBestCost;
         private State lastInitialState;
+        private float shiftAccumulator;
 
         public Mpc(MpcSettings settings, Dynamics dynamics, uint seed)
         {
@@ -67,7 +69,15 @@ namespace Movement.MPC
             var mpcState = ToMpcState(inputs.kinematics);
             RefreshConfig(in inputs);
             lastInitialState = mpcState;
-            ShiftSequenceForward();
+
+            // The warm start advances one rolloutDt slot per rolloutDt of sim time — NOT per
+            // solve; solves run every fixed step, 5× faster than the plan's time base.
+            shiftAccumulator += inputs.dt;
+            while (shiftAccumulator >= settings.rolloutDt)
+            {
+                ShiftSequenceForward();
+                shiftAccumulator -= settings.rolloutDt;
+            }
 
             var boostCooldown = inputs.boostCooldown;
             // If cooldown exceeds the entire horizon, skip boost sampling to save candidate quality.

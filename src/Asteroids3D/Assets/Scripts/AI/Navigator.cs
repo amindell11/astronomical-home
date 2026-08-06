@@ -99,6 +99,7 @@ namespace Movement.MPC
                 weightOverrides = weightOverrides,
                 obstacleScan = scan,
                 enableObstacleAvoidance = enableObstacleAvoidance,
+                dt = Time.fixedDeltaTime,
             };
 
 #if UNITY_EDITOR
