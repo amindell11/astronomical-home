@@ -13,7 +13,7 @@ namespace Game.Diagnostics
         private const float TargetRingRadius = 1f;
         private const float ProgressArcRadius = 2f;
 
-        private readonly List<(LockOnSensor sensor, Cooldown cooldown)> sensors = new();
+        private readonly List<(Ship ship, LockOnSensor sensor, Cooldown cooldown)> sensors = new();
 
         public LockOnPainter(Ship a, Ship b)
         {
@@ -25,7 +25,9 @@ namespace Game.Diagnostics
 
         public void Paint(IDiagnosticCanvas canvas)
         {
-            foreach (var (sensor, cooldown) in sensors) Draw(canvas, sensor, cooldown);
+            foreach (var (ship, sensor, cooldown) in sensors)
+                if (ship && sensor)
+                    Draw(canvas, sensor, cooldown, ship.Kinematics.pos);
         }
 
         private void Cache(Ship ship)
@@ -33,10 +35,10 @@ namespace Game.Diagnostics
             if (!ship) return;
             var sensor = ship.GetComponentInChildren<LockOnSensor>();
             if (!sensor) return;
-            sensors.Add((sensor, sensor.weapon ? sensor.weapon.GetComponent<Cooldown>() : null));
+            sensors.Add((ship, sensor, sensor.weapon ? sensor.weapon.GetComponent<Cooldown>() : null));
         }
 
-        public static void Draw(IDiagnosticCanvas canvas, LockOnSensor sensor, Cooldown cooldown)
+        public static void Draw(IDiagnosticCanvas canvas, LockOnSensor sensor, Cooldown cooldown, Vector2 subject)
         {
             if (!sensor.firePoint) return;
             var origin = GamePlane.WorldPointToPlane(sensor.firePoint.position);
@@ -50,7 +52,7 @@ namespace Game.Diagnostics
             if (sensor.State == LockState.Locking)
                 canvas.Arc(origin, ProgressArcRadius, Vector2.right, sensor.LockProgress * 2f * Mathf.PI,
                     Color.Lerp(Color.red, Color.green, sensor.LockProgress));
-            DrawLabel(canvas, sensor, cooldown, origin, stateColor);
+            DrawLabel(canvas, sensor, cooldown, subject, stateColor);
         }
 
         private static void DrawCone(IDiagnosticCanvas canvas, LockOnSensor sensor, Vector2 origin, Vector2 forward,
@@ -81,11 +83,11 @@ namespace Game.Diagnostics
             canvas.Ring(targetPos, TargetRingRadius, sensor.State == LockState.Locked ? Color.green : Color.red);
         }
 
-        private static void DrawLabel(IDiagnosticCanvas canvas, LockOnSensor sensor, Cooldown cooldown, Vector2 origin,
+        private static void DrawLabel(IDiagnosticCanvas canvas, LockOnSensor sensor, Cooldown cooldown, Vector2 subject,
             Color stateColor)
         {
             var cooldownRemaining = cooldown ? cooldown.CooldownRemaining : 0f;
-            canvas.Label(origin + new Vector2(0f, 3f),
+            canvas.Readout(subject,
                 $"Targeting: {sensor.State}\nLock: {sensor.LockProgress:P0}\nCooldown: {cooldownRemaining:F1}s",
                 stateColor, 3f);
         }

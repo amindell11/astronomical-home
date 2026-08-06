@@ -53,7 +53,7 @@ namespace Game.Diagnostics
 
             var k = ship.Kinematics;
             ctx.Vector(k.pos, k.vel * VelocitySecondsShown, color);
-            ctx.Label(k.pos + new Vector2(0f, 5f), $"{k.vel.magnitude:0.0}", color, 3f);
+            ctx.Readout(k.pos, $"{k.vel.magnitude:0.0}", color, 3f);
 
             var context = ship.Weapons ? ship.Weapons.Context : null;
             var sight = context?.Sight(WeaponSlot.Primary);

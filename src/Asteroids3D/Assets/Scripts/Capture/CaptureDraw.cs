@@ -20,8 +20,12 @@ namespace Game.Capture
         private readonly List<LineRenderer> lines = new();
         private readonly List<TextMesh> labels = new();
         private readonly List<MeshRenderer> labelRenderers = new();
+        private readonly Dictionary<Vector2, float> readoutHeights = new();
         private int lineCursor;
         private int labelCursor;
+
+        private const float ReadoutBaseOffset = 3f;
+        private const float ReadoutLinePitch = 1.1f;
 
         public float LineWidth { get; set; } = 0.28f;
 
@@ -99,6 +103,14 @@ namespace Game.Capture
             Line(head - dir.normalized * length, head, color);
         }
 
+        public void Readout(Vector2 subject, string text, Color color, float size = 4f)
+        {
+            readoutHeights.TryGetValue(subject, out var used);
+            var height = LineCount(text) * size * ReadoutLinePitch;
+            Label(subject + new Vector2(0f, ReadoutBaseOffset + used + height * 0.5f), text, color, size);
+            readoutHeights[subject] = used + height;
+        }
+
         public void Label(Vector2 pos, string text, Color color, float size = 4f)
         {
             if (labelCursor == labels.Count) CreateLabel();
@@ -116,6 +128,16 @@ namespace Game.Capture
         {
             lineCursor = 0;
             labelCursor = 0;
+            readoutHeights.Clear();
+        }
+
+        private static int LineCount(string text)
+        {
+            var lines = 1;
+            for (var i = 0; i < text.Length; i++)
+                if (text[i] == '\n')
+                    lines++;
+            return lines;
         }
 
         internal void DisableAll()
