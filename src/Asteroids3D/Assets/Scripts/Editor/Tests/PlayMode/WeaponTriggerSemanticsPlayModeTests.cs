@@ -233,6 +233,30 @@ namespace Tests.PlayMode
         }
 
         [Test]
+        public void Gunner_ValidTargetAtWorldOrigin_HasTarget()
+        {
+            var go = new GameObject("GunnerOriginTest");
+            spawned.Add(go);
+            var gunner = go.AddComponent<AI.Gunner>();
+
+            Kinematics Pose() => new(new Vector2(10f, 0f), Vector2.zero, 0f, 0f, 0f);
+            gunner.Initialize(new FakeWeaponContext(), new CommandRecorder(), Pose);
+            gunner.ApplyIntent(new AI.States.NavigationIntent
+            {
+                isValid = true,
+                enableFiring = true,
+                hasTarget = true,
+                target = new AI.Context.EnemyTarget
+                {
+                    kinematics = new Kinematics(Vector2.zero, Vector2.zero, 0f, 0f, 0f),
+                },
+            });
+
+            Assert.AreEqual(Vector3.zero, gunner.Target);
+            Assert.IsTrue(gunner.HasTarget, "World origin is a valid aim point, not a no-target sentinel.");
+        }
+
+        [Test]
         public void Gunner_AimsEachSlotWithItsOwnBallistics_HitscanGetsNoLead()
         {
             var go = new GameObject("GunnerTest");
