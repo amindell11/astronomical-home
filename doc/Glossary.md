@@ -296,6 +296,11 @@ Format: **term** — definition. *(authority)*
   "yaw-thrash". Not to be confused with **twitch**, reserved for the MPC
   obstacle×tactical defect, or **chatter**, a metric that provably does not
   capture thrash.)
+- **plan fast-forward** — the MPC warm start advancing more plan time per
+  solve than sim time has elapsed: the solver re-plans every fixed step
+  (0.02 s) but consumes one rollout step (0.1 s) per solve, so the plan runs
+  5× ahead of reality. Observed 2026-08-06; evidence in
+  `MPC_Retune_Pass.md` § problem brief. *(Mpc.ShiftSequenceForward)*
 - **facing authority** — the policy's way of saying "facing doesn't matter right
   now", by scaling down the MPC facing cost. It changed the **action semantics**,
   so checkpoints from before it cannot warm-start across the boundary.
