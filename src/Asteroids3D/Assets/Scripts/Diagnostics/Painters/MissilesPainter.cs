@@ -12,12 +12,11 @@ namespace Game.Diagnostics
         private const float BodyRingRadius = 0.5f;
         private const float VelocityRayLength = 2f;
         private const float LabelOffset = 1f;
-        private const float LauncherLabelOffset = 2f;
 
         private static readonly Color ExplosionRing = new(1f, 0f, 0f, 0.3f);
 
         private readonly IProjectileService projectiles;
-        private readonly List<Missiles> launchers = new();
+        private readonly List<(Ship ship, Missiles launcher)> launchers = new();
 
         public MissilesPainter(Ship a, Ship b, IProjectileService projectiles)
         {
@@ -34,14 +33,16 @@ namespace Game.Diagnostics
             {
                 if (live is Missile missile) Draw(canvas, missile);
             });
-            foreach (var launcher in launchers) DrawLauncher(canvas, launcher);
+            foreach (var (ship, launcher) in launchers)
+                if (ship && launcher)
+                    DrawLauncher(canvas, launcher, ship.Kinematics.pos);
         }
 
         private void Cache(Ship ship)
         {
             if (!ship) return;
             var launcher = ship.GetComponentInChildren<Missiles>();
-            if (launcher) launchers.Add(launcher);
+            if (launcher) launchers.Add((ship, launcher));
         }
 
         public static void Draw(IDiagnosticCanvas canvas, Missile missile)
@@ -61,11 +62,11 @@ namespace Game.Diagnostics
                 $"Dist: {missile.DistanceTraveled:F1}/{missile.MaxDistance:F1}", Color.white, 3f);
         }
 
-        public static void DrawLauncher(IDiagnosticCanvas canvas, Missiles launcher)
+        public static void DrawLauncher(IDiagnosticCanvas canvas, Missiles launcher, Vector2 subject)
         {
-            if (!launcher.firePoint || !launcher.Rounds) return;
-            canvas.Label(GamePlane.WorldPointToPlane(launcher.firePoint.position) + new Vector2(0f, LauncherLabelOffset),
-                $"Missiles\nAmmo: {launcher.Rounds.AmmoCount}/{launcher.Rounds.MaxAmmo}", Color.white, 3f);
+            if (!launcher.Rounds) return;
+            canvas.Readout(subject, $"Missiles\nAmmo: {launcher.Rounds.AmmoCount}/{launcher.Rounds.MaxAmmo}",
+                Color.white, 3f);
         }
     }
 }
