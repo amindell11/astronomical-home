@@ -13,13 +13,17 @@ import json
 import os
 import re
 import subprocess
+import sys
 import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-SUMMARY_RE = re.compile(r"Step:\s*(\d+)\.\s*Time Elapsed:\s*([\d.]+)\s*s.*?Mean Reward:\s*(-?\d+(?:\.\d+)?)"
-                        r"(?:.*?ELO:\s*(-?\d+(?:\.\d+)?))?")
+sys.path.insert(0, str(REPO / "training" / "rl"))
+
+from trainer_runtime.contract import manifest_path, read_manifest, read_summaries, summaries_path
+
+TRAINING_RESULTS = REPO / "results" / "rl-training"
 LESSON_RE = re.compile(r"Parameter '(\w+)' is in lesson '([\w.]+)' and has value '([^']+)'")
 FAIL_RE = re.compile(r"Traceback|UnityWorker|Learning was interrupted|timed out|Killed|OOM|CUDA error")
 TAIL_BYTES = 4_000_000
@@ -39,19 +43,25 @@ def tail_lines(path, nbytes=TAIL_BYTES):
 
 
 def trainer_state(run_id):
-    log = REPO / "results" / "rl-training" / f"{run_id}-parallel-trainer.log"
+    manifest_file = manifest_path(TRAINING_RESULTS, run_id)
+    manifest = read_manifest(manifest_file) if manifest_file.exists() else None
+    results_dir = manifest.results_dir if manifest else TRAINING_RESULTS
+    log = results_dir / f"{run_id}-parallel-trainer.log"
     out = {"log": log, "exists": log.exists(), "summaries": [], "lessons": {}, "failures": [],
-           "log_age": None, "max_steps": None}
-    if not log.exists():
-        return out
-    out["log_age"] = time.time() - log.stat().st_mtime
+           "log_age": None, "max_steps": manifest.max_steps if manifest else None,
+           "mode": manifest.mode if manifest else None}
+    if manifest:
+        summary_file = summaries_path(manifest.run_dir)
+        summaries = read_summaries(summary_file)
+        out["summaries"] = [(s.step, s.elapsed_seconds, s.mean_reward or 0.0, s.elo)
+                            for s in summaries]
+        age_source = max((p for p in (summary_file, manifest_file) if p.exists()),
+                         key=lambda p: p.stat().st_mtime)
+        out["log_age"] = time.time() - age_source.stat().st_mtime
+    elif log.exists():
+        out["log_age"] = time.time() - log.stat().st_mtime
     lines = tail_lines(log)
     for ln in lines:
-        m = SUMMARY_RE.search(ln)
-        if m:
-            out["summaries"].append((int(m.group(1)), float(m.group(2)), float(m.group(3)),
-                                     float(m.group(4)) if m.group(4) else None))
-            continue
         m = LESSON_RE.search(ln)
         if m:
             out["lessons"][m.group(1)] = (m.group(2), m.group(3))
@@ -59,11 +69,6 @@ def trainer_state(run_id):
         if FAIL_RE.search(ln):
             out["failures"].append(ln.strip()[:220])
             continue
-        if "max_steps:" in ln:
-            try:
-                out["max_steps"] = int(ln.split("max_steps:")[1].strip())
-            except (ValueError, IndexError):
-                pass
     return out
 
 
@@ -71,16 +76,18 @@ def episode_rows(run_id):
     """Episodes from the newest JSONL group that belongs to THIS run.
 
     The launcher names groups by wall-clock, not run id, so 'newest group' alone attributes a
-    live run's episodes to whatever run the page is showing. Bound the group to the window the
-    run was actually writing in: after its dir appeared, before its trainer log went quiet.
+    live run's episodes to whatever run the page is showing. Bound the group to the producer's
+    recorded start and the trainer log's final write.
     """
     files = glob.glob(str(REPO / "results" / "rl-episodes" / "*-training-w*.jsonl"))
     if not files:
         return [], None
-    run_dir = REPO / "results" / "rl-training" / run_id
-    log = REPO / "results" / "rl-training" / f"{run_id}-parallel-trainer.log"
+    manifest_file = manifest_path(TRAINING_RESULTS, run_id)
+    manifest = read_manifest(manifest_file) if manifest_file.exists() else None
+    run_dir = manifest.run_dir if manifest else TRAINING_RESULTS / run_id
+    log = (manifest.results_dir if manifest else TRAINING_RESULTS) / f"{run_id}-parallel-trainer.log"
     try:
-        start = run_dir.stat().st_ctime
+        start = manifest.started_at.timestamp() if manifest else run_dir.stat().st_ctime
         end = log.stat().st_mtime + 300  # margin: the final flush trails the last log write
     except OSError:
         start, end = 0, float("inf")
@@ -222,10 +229,9 @@ def render(run_id):
     elapsed = summaries[-1][1] if summaries else 0
     reward = summaries[-1][2] if summaries else 0.0
     elos = [s[3] for s in summaries if s[3] is not None]
-    # The league writes ELO on every summary; the scripted roster never does.
-    selfplay = bool(elos)
+    selfplay = t["mode"] in ("self-play", "hybrid")
     elo = elos[-1] if elos else None
-    max_steps = t["max_steps"] or 3_500_000
+    max_steps = t["max_steps"] or 0
     pct = min(100.0, step / max_steps * 100) if max_steps else 0
 
     window = summaries[-10:]
@@ -239,11 +245,11 @@ def render(run_id):
     overall_s = f"{overall:.0f}/s" if overall else "-"
     ram_s = f"{ram:.1f} GB" if ram is not None else "n/a"
     stalled = t["log_age"] is not None and t["log_age"] > 300
-    if workers == 0 and step < max_steps * 0.99:
+    if workers == 0 and (not max_steps or step < max_steps * 0.99):
         state, cls = "STOPPED", "bad"
     elif stalled:
         state, cls = "STALLED?", "warn"
-    elif step >= max_steps * 0.99:
+    elif max_steps and step >= max_steps * 0.99:
         state, cls = "COMPLETE", "good"
     else:
         state, cls = "RUNNING", "good"

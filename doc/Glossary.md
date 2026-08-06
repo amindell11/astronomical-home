@@ -60,7 +60,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 |---|---|---|
 | **gate** | merge gate · eval gate (`eval_gate.py`) · gate score · cost gate (fix-ladder rung 3) · go/no-go gate · curriculum lesson gate · anti-churn gate · scoping gate · "gated off" code conditionals | Always qualified. Bare "the gate" is legal only in pool-merge context (= merge gate) and RL-run context (= eval gate), and never in a title. |
 | **lane** | boot lane · harness lane · curriculum lane · watch/capture lane · audit lane · teacher-tuning lane · access-queue lane · firing lane (lane clearing) | Always qualified. |
-| **pool** | worktree pool · ship resource pool (`PoolDifferential`) · self-play snapshot pool · object pool (`SimplePool`) · Dev Pool board columns | Always qualified. |
+| **pool** | worktree pool · ship resource pool (`PoolDifferential`) · self-play snapshot pool · object pool (`SimplePool`) · Dev Pool issue labels (`mid-dev-pool`/`high-dev-pool`, ex-board columns) | Always qualified. |
 | **token** | bus/signal token · obs obstacle token (`ObstacleTokenCap`) · threat token · LLM context token | Always qualified. |
 | **slot** | worktree slot (`agent-N`) · weapon/mount slot · ONNX import slot · obs slot-block grammar · MPC terminal-cost slot | Qualify outside pool-loop context; bare "slot" = worktree slot in workflow text only. |
 | **pin** | pin test (freeze a value) · pinned seeds/hypers · instance pinning (MCP) · ram-pin exploit | Qualify. "ram-pin" always hyphenated for the physics exploit. |
@@ -176,7 +176,8 @@ Format: **term** — definition. *(authority)*
   (CLAUDE.md → Design & agent-doc ratchets).
 - **rescue sweep** — salvaging valuable strays (scratch probes, orphaned docs)
   into an infra-hygiene PR rather than losing them to a slot reset.
-- **three tracking surfaces** — board = what / for-when (title-only cards);
+- **three tracking surfaces** — GitHub Issues = what / for-when (thin
+  title-plus-link issues; ex-Obsidian-board, migrated 2026-08-06);
   memory = why / how; ledger = right-now claims. Never conflate. *(AGENTS.md)*
 - **parking lot** — deferred *discussion* items, not work items; add on park,
   delete on resolution. *(memory)*
@@ -377,6 +378,14 @@ Format: **term** — definition. *(authority)*
   per-step tracking error against the arm's intended reference, binned by range
   around the yaw wall (< 3 u) and the trackable annulus (3–8 u).
   *(VelRebaseProbe, VelRebaseLane)*
+- **controller** (probe) — the MPC-retune instrument separating target-motion
+  yaw demand from self-generated churn; the metrics live in the row schema.
+  *(ControllerProbe, ControllerSampler)*
+- **obstacle threat** — per-step classification: the MPC's obstacle handling
+  fires — hull overlap (`Cost.Collides`) or collision-course turn-away
+  (`Cost.TurnAwayCost > 0`). Always the qualified form in prose; the probe
+  sidecar's `threat`/`clear` field names are context-bound and stay.
+  *(Cost.ObstacleCosts, ControllerProbe.ObstacleThreat)*
 - **anchored intent** — an intent channel expressed as frame + relation +
   authority instead of a world-frame value: a facing offset around the enemy
   intercept anchor, and a polar velocity in the enemy frame, each with a [0,1]
