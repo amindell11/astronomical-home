@@ -313,3 +313,26 @@ is not leaned on (0W/4L anomaly); mirror chatter metrics are valid.
 
 **Scheduling**: queued on base-port 5006 behind trainer-1b's curriculum
 canary + stock arm; the active-work ledger row is the claim.
+
+### Lever-test results (RAN 2026-08-06) — both levers insufficient
+
+Arms run: S-20, M-50, M-5 bisect (S-2/S-0.2 skipped — no bisect trigger).
+Full reads: `results/rl-eval/levers-20260806/NOTES.md`; summary in the pass
+memory. **The tuning-only path is now closed by evidence, not by prior:**
+
+- **wSmoothnessYaw 20** (full one-step reversal priced 50× a max-effort
+  step): strict torque reversals −14%/−7% (Dummy/mirror), deadbanded
+  −22%/−19% — sub-material, nowhere near the hull's 4–5/s. Closeout held
+  (Dummy 8W/0L/7D). The churn is not price-sensitive → consistent with plan
+  fast-forward, not smoothing pressure, as the generator.
+- **wMomentum couples into yaw but is lethal at any effective strength.**
+  At 50: strict −23%/−25% but Dummy 3W/5L/7D with *new* field deaths (33 s
+  episodes, threat steps 18× baseline). At 5: lethality persists (8L/15
+  Dummy) while the chatter benefit vanishes. Velocity-direction freedom is
+  load-bearing for obstacle survival (constraint #6, now measured).
+- Side observation: S-20's mirror returned to full disengagement
+  (0W/0L/15D) — the baseline's 0W/4L mirror asymmetry is
+  smoothness-sensitive and remains unexplained.
+
+Structural redesign proceeds from §"Mechanism evidence"; these two
+falsifications are additional design inputs.
