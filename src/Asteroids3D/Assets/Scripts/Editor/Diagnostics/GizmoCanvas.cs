@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using Game;
 using Game.Diagnostics;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Game.Diagnostics
 {
@@ -9,6 +11,17 @@ namespace Game.Diagnostics
     public sealed class GizmoCanvas : IDiagnosticCanvas
     {
         private static readonly Vector3 PlaneNormal = GamePlane.Rotation * Vector3.forward;
+
+        // Readout stacks must span every shim drawn into one camera render, and a fresh canvas is constructed per shim call — hence static state cleared at each camera begin.
+        private static readonly Dictionary<Vector2, float> ReadoutHeights = new();
+
+        private const float ReadoutBaseOffset = 3f;
+        private const float ReadoutLinePitch = 1.1f;
+
+        static GizmoCanvas()
+        {
+            RenderPipelineManager.beginCameraRendering += (_, _) => ReadoutHeights.Clear();
+        }
 
         public float LineWidth { get; set; }
 
@@ -56,5 +69,22 @@ namespace Game.Diagnostics
         public void Label(Vector2 pos, string text, Color color, float size = 4f) =>
             Handles.Label(GamePlane.PlanePointToWorld(pos), text,
                 new GUIStyle { normal = { textColor = color }, fontSize = Mathf.RoundToInt(size * 3f) });
+
+        public void Readout(Vector2 subject, string text, Color color, float size = 4f)
+        {
+            ReadoutHeights.TryGetValue(subject, out var used);
+            var height = LineCount(text) * size * ReadoutLinePitch;
+            Label(subject + new Vector2(0f, ReadoutBaseOffset + used + height * 0.5f), text, color, size);
+            ReadoutHeights[subject] = used + height;
+        }
+
+        private static int LineCount(string text)
+        {
+            var lines = 1;
+            for (var i = 0; i < text.Length; i++)
+                if (text[i] == '\n')
+                    lines++;
+            return lines;
+        }
     }
 }

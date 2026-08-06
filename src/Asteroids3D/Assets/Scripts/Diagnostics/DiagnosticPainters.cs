@@ -31,8 +31,13 @@ namespace Game.Diagnostics
         public const string MpcObstacles = "mpc-obstacles";
         public const string GunnerTargeting = "gunner-targeting";
         public const string Observation = "observation";
+        public const string Missiles = "missiles";
+        public const string LaserHeat = "laser-heat";
+        public const string MovementForces = "movement-forces";
+        public const string DamageBars = "damage-bars";
         public const string Everything = "everything";
         public const string Steering = "steering";
+        public const string Combat = "combat";
 
         private static readonly Dictionary<string, Func<PainterContext, IDiagnosticPainter>> Factories = new()
         {
@@ -44,12 +49,17 @@ namespace Game.Diagnostics
             [MpcObstacles] = ctx => new NavigatorObstaclePainter(ctx.a, ctx.b),
             [GunnerTargeting] = ctx => new GunnerTargetingPainter(ctx.a, ctx.b),
             [Observation] = ctx => new ObservationPainter(ctx.a, ctx.b),
+            [Missiles] = ctx => new MissilesPainter(ctx.a, ctx.b, ctx.projectiles),
+            [LaserHeat] = ctx => new LaserHeatPainter(ctx.a, ctx.b),
+            [MovementForces] = ctx => new MovementForcesPainter(ctx.a, ctx.b),
+            [DamageBars] = ctx => new DamageBarsPainter(ctx.a, ctx.b),
         };
 
-        // Presets share the atom namespace so one grammar selects both; real presets accrete with later slices.
+        // Presets share the atom namespace so one grammar selects both.
         private static readonly Dictionary<string, string[]> Presets = BuildPresets(
             (Everything, new List<string>(Factories.Keys).ToArray()),
-            (Steering, new[] { MpcTrajectories, MpcObstacles }));
+            (Steering, new[] { MpcTrajectories, MpcObstacles }),
+            (Combat, new[] { Missiles, LaserHeat, LockOn, ShipDiagnostics }));
 
         public static string RegisteredNames => string.Join(", ", Factories.Keys);
         public static string PresetNames => string.Join(", ", Presets.Keys);

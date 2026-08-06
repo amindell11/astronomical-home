@@ -134,7 +134,5 @@ namespace Cameras
 
         public Vector2 CurrentCenter2D => manualCenter
             ?? (subject ? GamePlane.WorldPointToPlane(subject.position) : Vector2.zero);
-
-        public IReadOnlyCollection<Transform> SecondarySubjects => secondarySubjects;
     }
 }

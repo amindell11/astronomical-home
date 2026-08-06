@@ -14,6 +14,8 @@ namespace Game.Diagnostics
         void Arc(Vector2 center, float radius, Vector2 fromDir, float sweepRad, Color color);
         void Trail(Vector2 head, Vector2 dir, float length, Color color);
         void Label(Vector2 pos, string text, Color color, float size = 4f);
+        /// <summary>Subject-attached status text. The canvas owns placement — readouts against the same subject stack in paint order, so painters never coordinate offsets. Pass the subject's kinematic position, not a sub-feature's.</summary>
+        void Readout(Vector2 subject, string text, Color color, float size = 4f);
     }
 
     /// <summary>A named diagnostic view bound to its subjects at construction; a backend paints the active set each captured frame.</summary>
