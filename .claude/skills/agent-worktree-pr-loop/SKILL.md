@@ -223,14 +223,14 @@ requesting user review, and never request merge approval mid-round.)
 Run EVERY review comment (bot or human) through the CLAUDE.md fix ladder —
 its entry gate is the triage:
 - **Speculative** → rebut with an on-thread reply, no code.
-- **Real but outside this change's scope** → defer (board card + on-thread reply).
+- **Real but outside this change's scope** → defer (tracker issue + on-thread reply).
 - **Real and in scope** → fix at the rung the ladder selects, escalating to
   the user at the cost gate.
 
 After each round, post ONE PR comment containing a disposition table —
 `| # | Comment | Disposition | Where |` — with a row for every comment in the
 round (dispositions: Fixed (rung N) / Rebutted / Deferred; Where = commit
-hash, thread reply, or board card). No comment may lack a row. Use `revise`
+hash, thread reply, or issue number). No comment may lack a row. Use `revise`
 to re-push fixes.
 
 ## Step 6 — Merge

@@ -310,7 +310,7 @@ claim above holds.
    (physics callbacks hand a raw `Collider`) — collider→entity resolution uses the
    engine's own map, `hit.attachedRigidbody == Shooter.Body`
    (hierarchy-above-agnostic, null for static colliders → correct no-skip). A
-   collider-keyed ship registry is the fully-injected endgame (old board card) but
+   collider-keyed ship registry is the fully-injected endgame (#319, SHIPPED) but
    is wrong wiring for pooled projectiles — pools are process-global and
    arena-blind, so they must not hold arena-scoped references. `LineOfSight` gets
    the target ship's own transform (via `ITargetable`), not `.root`.

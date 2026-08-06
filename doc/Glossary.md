@@ -260,13 +260,13 @@ Format: **term** — definition. *(authority)*
   and policy-dependent. A different seed set adds another SD ≈ 2 on top.
   Per-archetype cells are proportionally noisier than totals; never read a
   single cell against a threshold without an interval.
-  *(RL_Infra_Paydown_Pass.md §PR-4 calibration evidence)*
+  *(calibration evidence: memory `project_rl_infra_paydown.md` §PR-4)*
 - **replicate** — one complete re-execution of the identical eval protocol
   (same checkpoint, seed set, episodes/seed, density, tree) in a fresh boot,
   differing only by mechanical sim nondeterminism; the unit of measurement for
   one checkpoint. NOT a new seed draw (that samples different episodes) and NOT
   a cross-tree re-eval (that confounds code drift with draw luck).
-  *(RL_Infra_Paydown_Pass.md §PR-4)*
+  *(memory `project_rl_infra_paydown.md` §PR-4)*
 - **ELO treadmill** — snapshots inherit `current_elo`, so ELO measures
   improvement against recent selves and cannot see absolute capability loss. The
   gate score is the absolute yardstick.

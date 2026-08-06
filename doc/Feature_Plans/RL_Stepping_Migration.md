@@ -17,8 +17,9 @@ Path A (in-process M-arenas) was the point of the arc; it shipped on top of this
 
 **Date:** 2026-07-21 (drafted); closed 2026-07-22.
 **Parent:** `Multi_Arena_Substrate.md` §"N-arena stepping model" (the already-blessed target:
-Academy is the clock, per-arena driver collapses to reset-only); `RL_Training_Throughput.md`
-§"Path A" (names the manual global step as Path A's whole cost).
+Academy is the clock, per-arena driver collapses to reset-only); the Path A/B
+throughput arc (memory `project_rl_training_throughput.md` §Path A — names the
+manual global step as Path A's whole cost).
 **Driver:** the manual `Academy.EnvironmentStep()` is process-global, so it can have exactly
 one owner — which blocks in-process M-arenas (Path A) and forces the "two steppers collide"
 workarounds. Migration is architectural-correctness work the user wants regardless of
@@ -51,7 +52,7 @@ can be only one owner. Direct consequences:
   `InferenceChooser` (or two `InferenceChooser`s) both stepping "break the pacing contract."
   Today that is documented-around, not fixed.
 - **In-process M-arenas is impossible** with per-boundary manual stepping: M arenas each want
-  their own decision cadence, but there is one global step. `RL_Training_Throughput.md` names
+  their own decision cadence, but there is one global step. The throughput arc names
   this as Path A's entire cost; `Multi_Arena_Substrate.md:257` calls the manual loop "the
   *interim* stepper… before the Academy exists." The Academy exists now — the interim window
   closed, and the scaffolding quietly became load-bearing in two places.
@@ -177,7 +178,7 @@ the throughput/teams payoff and its own arc; this migration was its precondition
 ## Related
 
 - `doc/Feature_Plans/Multi_Arena_Substrate.md` (the target N-arena stepping model)
-- `doc/Feature_Plans/RL_Training_Throughput.md` (Path A vs Path B; why Path B sidesteps this)
+- memory `project_rl_training_throughput.md` (Path A vs Path B; why Path B sidesteps this)
 - `doc/Feature_Plans/RL_Env_Step_Package.md` (PR-C fork 2 two-steppers note; PR-4 self-play stepping)
 - memory `project_multi_arena_rethink`, `project_rl_training_throughput`, `project_tactical_ai_direction`
 

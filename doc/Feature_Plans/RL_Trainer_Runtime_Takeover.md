@@ -276,8 +276,8 @@ rule 6 corollary violations). Stage 1 inverts the ones in its layer:
   on main (rides this arc's docs landing). (b) #251 player-build tripwire:
   the merge gate never builds a player, the last break sat invisible 8 days,
   and this arc lives on the player path; a cheap scheduled/gate-adjacent
-  player build lands before stage 1 builds (its own small PR; board card
-  exists after this landing). (c) Board/ledger/memory bookkeeping.
+  player build lands before stage 1 builds (its own small PR; shipped as
+  #259). (c) Tracker/ledger/memory bookkeeping.
 - **Slice 1 — wire-contract freeze** (`RL_Trainer_Wire_Contract.md`,
   docs-only, brief-grade). Freezes every boundary surface with owner +
   stage-1 disposition (retained / owned / inverted-at-stage-N): comm version
@@ -592,15 +592,16 @@ Worktree slots are held only for the duration of a build; arc code lives in
 - K1-3 (#250) is parked pending user playtest; the schema/composition surface
   (`ShipAgentFactory`, obs/action consts) is shared — second merger adapts.
 - Throughput Pass 2 stages 0–2 are complete; this arc is the successor to its
-  "custom trainer runtime" deferral. The board card repoints to this doc's
+  "custom trainer runtime" deferral. Issue #284 repoints to this doc's
   memory topic file; the Pass-2 plan stays the throughput evidence record.
 
 ## References
 
 Memory: `project_rl_training_throughput.md` (Stage 0/1/2 + deferral),
 `project_rl_infra_paydown.md` (§PASS CLOSED seeds), `rl_training_run_mechanics.md`
-(runbook), `active_work_ledger.md`. Docs: `RL_Training_Throughput_Optimization.md`
-(living evidence), `RL_Infra_Paydown_Pass.md` §Pass close-out,
-`Anchored_Intent_Architecture.md` §Infrastructure (plugin-seam ruling — still
-correct for its question). PRs: #252 (player eval), #251 (player build fix),
+(runbook), `active_work_ledger.md`, `project_rl_infra_paydown.md` §Pass
+close-out, `project_rl_trainer_runtime.md` §Plugin-seam ruling (still correct
+for its question — salvaged when its brief was deleted 2026-08-06). Docs:
+`RL_Training_Throughput_Optimization.md`
+(living evidence). PRs: #252 (player eval), #251 (player build fix),
 #244 (statistical eval), #219 (hybrid league).
