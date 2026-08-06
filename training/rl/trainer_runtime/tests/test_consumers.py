@@ -1,5 +1,6 @@
 import importlib.util
 import json
+import sys
 import tempfile
 import unittest
 from datetime import datetime, timezone
@@ -9,6 +10,10 @@ from trainer_runtime.contract import RunManifest, manifest_path, summaries_path,
 
 RL_DIR = Path(__file__).resolve().parents[2]
 SERVER_PATH = RL_DIR.parent.parent / "dev" / "rl-status" / "server.py"
+sys.path.insert(0, str(RL_DIR))
+
+from checkpoint_watch import discover_checkpoints
+from eval_gate import behavior_name
 
 
 def load_status_server():
@@ -60,6 +65,51 @@ class StructuredConsumerTests(unittest.TestCase):
             self.assertEqual(4000, state["max_steps"])
             self.assertEqual("hybrid", state["mode"])
             self.assertEqual(("2", "1.5"), state["lessons"]["field_density_scale"])
+
+    def test_checkpoint_watch_prefers_manifest_and_skips_pruned_artifacts(self):
+        with tempfile.TemporaryDirectory() as temp:
+            run_dir = Path(temp)
+            behavior_dir = run_dir / "ArenaBrain"
+            behavior_dir.mkdir()
+            kept = behavior_dir / "ArenaBrain-200.onnx"
+            kept.write_bytes(b"onnx")
+            (behavior_dir / "ShipCombat-999.onnx").write_bytes(b"legacy")
+            (run_dir / "checkpoint_manifest.jsonl").write_text(
+                '{"step":100,"onnx":"ArenaBrain/ArenaBrain-100.onnx",'
+                '"pt":"ArenaBrain/ArenaBrain-100.pt","completedAt":"2026-08-06T01:00:00Z"}\n'
+                '{"step":200,"onnx":"ArenaBrain/ArenaBrain-200.onnx",'
+                '"pt":"ArenaBrain/ArenaBrain-200.pt","completedAt":"2026-08-06T02:00:00Z"}\n',
+                encoding="utf-8",
+            )
+
+            self.assertEqual([(200, kept)], discover_checkpoints(behavior_dir))
+
+    def test_checkpoint_watch_falls_back_to_legacy_glob(self):
+        with tempfile.TemporaryDirectory() as temp:
+            behavior_dir = Path(temp) / "ShipCombat"
+            behavior_dir.mkdir()
+            checkpoint = behavior_dir / "ShipCombat-300.onnx"
+            checkpoint.write_bytes(b"onnx")
+
+            self.assertEqual([(300, checkpoint)], discover_checkpoints(behavior_dir))
+
+    def test_eval_gate_reads_behavior_from_run_manifest_with_legacy_fallback(self):
+        with tempfile.TemporaryDirectory() as temp:
+            results = Path(temp).resolve()
+            run_dir = results / "owned"
+            run_dir.mkdir()
+            write_manifest(manifest_path(results, "owned"), RunManifest(
+                run_id="owned",
+                behavior="ArenaBrain",
+                results_dir=results,
+                started_at=datetime.now(timezone.utc),
+                max_steps=10,
+                mode="scripted",
+                config_hash="c" * 64,
+            ))
+
+            self.assertEqual("ArenaBrain", behavior_name(results, "owned"))
+            self.assertEqual("ShipCombat", behavior_name(results, "legacy"))
 
 
 if __name__ == "__main__":
