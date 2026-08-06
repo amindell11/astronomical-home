@@ -368,3 +368,14 @@ a training-environment candidate (retrain on top, #263-style env shift),
 not a drop-in swap.** Landing gates as a hot-swap are moot; the paired
 d3.0 obstacle arms (stock vs fix, same policy) still run — the threat-
 metric comparison is policy-light and feeds the redesign.
+
+**Paired d3.0 obstacle arms (RAN 2026-08-06): obstacle competence
+SURVIVED the fix.** Evader (the only threat-heavy cell, ~5% threat steps)
+holds 11W/1L/3D vs stock 13W/0L/2D; the avoidance reflex fires (threat
+yaw 128–177 deg/s vs ~95–118 clear, same shape as stock); the calm holds
+under density (torque rev/s ~5.6–5.9 vs stock ~11). The mover collapse is
+density-invariant (43/75 at d3.0 ≈ 43.5 at d2.0) → combat deaths from the
+broken policy couple, not rocks. Aside for the redesign: stock scored
+67/75 at d3.0, above its own 63.0 at d2.0 (single rep). Artifacts:
+`results/rl-eval/shift-cadence-20260806/d3-{fix,stock}/`; films
+`results/rl-capture/shift-cadence-20260806/`.
