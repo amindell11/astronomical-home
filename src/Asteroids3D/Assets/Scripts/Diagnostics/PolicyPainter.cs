@@ -92,7 +92,7 @@ namespace Game.Diagnostics
             }
 
             var text = $"{rangeText}\n{churnText}\nWeight: {newest.facingWeight:F2}\nNose err: {noseErrorDeg:F1}°";
-            canvas.Label(kin.pos + new Vector2(0f, 0.5f), text, Color.white, 3f);
+            canvas.Readout(kin.pos, text, Color.white, 3f);
         }
 
         private static Vector2 SafeDir(Vector2 v, Vector2 fallback) =>
