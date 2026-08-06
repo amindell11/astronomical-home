@@ -9,11 +9,10 @@ namespace Game.Diagnostics
     {
         private const float BaseOffset = 2f;
         private const float BarSpacing = 0.25f;
-        private const float TextSpacing = 0.75f;
         private const float BarWidth = 3.5f;
         private const float BarHeight = 0.25f;
 
-        private readonly List<DamageController> hulls = new();
+        private readonly List<(Ship ship, DamageController hull)> hulls = new();
 
         public DamageBarsPainter(Ship a, Ship b)
         {
@@ -25,17 +24,19 @@ namespace Game.Diagnostics
 
         public void Paint(IDiagnosticCanvas canvas)
         {
-            foreach (var hull in hulls) Draw(canvas, hull);
+            foreach (var (ship, hull) in hulls)
+                if (ship && hull)
+                    Draw(canvas, hull, ship.Kinematics.pos);
         }
 
         private void Cache(Ship ship)
         {
             if (!ship) return;
             var hull = ship.GetComponentInChildren<DamageController>();
-            if (hull) hulls.Add(hull);
+            if (hull) hulls.Add((ship, hull));
         }
 
-        public static void Draw(IDiagnosticCanvas canvas, DamageController damage)
+        public static void Draw(IDiagnosticCanvas canvas, DamageController damage, Vector2 subject)
         {
             var shieldBar = GamePlane.WorldPointToPlane(damage.transform.position) + new Vector2(0f, BaseOffset);
             var healthBar = shieldBar + new Vector2(0f, BarSpacing);
@@ -43,10 +44,8 @@ namespace Game.Diagnostics
             DrawBar(canvas, shieldBar, damage.maxShield > 0f ? damage.Shield.Pct : 0f, Color.gray, Color.cyan);
             DrawBar(canvas, healthBar, damage.maxHealth > 0f ? damage.Health.Pct : 0f, Color.red, Color.green);
 
-            var shieldText = healthBar + new Vector2(0f, BarSpacing * 2f + TextSpacing * 2f);
-            canvas.Label(shieldText, $"Shield: {damage.Shield.CurrentValue:F1}/{damage.maxShield:F1}", Color.white, 3f);
-            canvas.Label(shieldText + new Vector2(0f, TextSpacing),
-                $"Health: {damage.Health.CurrentValue:F1}/{damage.maxHealth:F1}", Color.white, 3f);
+            canvas.Readout(subject, $"Shield: {damage.Shield.CurrentValue:F1}/{damage.maxShield:F1}", Color.white, 3f);
+            canvas.Readout(subject, $"Health: {damage.Health.CurrentValue:F1}/{damage.maxHealth:F1}", Color.white, 3f);
         }
 
         private static void DrawBar(IDiagnosticCanvas canvas, Vector2 center, float pct, Color track, Color fill)

@@ -9,11 +9,10 @@ namespace Game.Diagnostics
     {
         private const float BarOffsetX = 1.5f;
         private const float BarHeight = 1f;
-        private const float LabelGap = 0.2f;
 
         private static readonly Color Track = new(0.5f, 0.5f, 0.5f, 0.5f);
 
-        private readonly List<Lasers> banks = new();
+        private readonly List<(Ship ship, Lasers bank)> banks = new();
 
         public LaserHeatPainter(Ship a, Ship b)
         {
@@ -25,24 +24,25 @@ namespace Game.Diagnostics
 
         public void Paint(IDiagnosticCanvas canvas)
         {
-            foreach (var bank in banks) Draw(canvas, bank);
+            foreach (var (ship, bank) in banks)
+                if (ship && bank)
+                    Draw(canvas, bank, ship.Kinematics.pos);
         }
 
         private void Cache(Ship ship)
         {
             if (!ship) return;
             var bank = ship.GetComponentInChildren<Lasers>();
-            if (bank) banks.Add(bank);
+            if (bank) banks.Add((ship, bank));
         }
 
-        public static void Draw(IDiagnosticCanvas canvas, Lasers lasers)
+        public static void Draw(IDiagnosticCanvas canvas, Lasers lasers, Vector2 subject)
         {
             if (!lasers.Heat) return;
             var origin = GamePlane.WorldPointToPlane(lasers.transform.position) + new Vector2(BarOffsetX, 0f);
             var top = origin + new Vector2(0f, BarHeight);
 
-            canvas.Label(top + new Vector2(0f, LabelGap),
-                $"Heat: {lasers.Heat.CurrentHeat:F0}/{lasers.Heat.MaxHeat:F0}", Color.white, 3f);
+            canvas.Readout(subject, $"Heat: {lasers.Heat.CurrentHeat:F0}/{lasers.Heat.MaxHeat:F0}", Color.white, 3f);
             canvas.Line(origin, top, Track);
 
             var pct = lasers.Heat.HeatPct;
