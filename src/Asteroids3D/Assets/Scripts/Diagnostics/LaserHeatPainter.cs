@@ -5,7 +5,6 @@ using UnityEngine;
 
 namespace Game.Diagnostics
 {
-    /// <summary>Laser heat in plane-space: a vertical two-segment bar (grey track, cyan-to-red fill) beside the weapon plus a current/max label. Laser banks are cached at construction.</summary>
     public sealed class LaserHeatPainter : IDiagnosticPainter
     {
         private const float BarOffsetX = 1.5f;

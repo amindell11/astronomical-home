@@ -97,9 +97,7 @@ namespace Ships.Movement
             var bankRate = Vector3.Dot(rb.angularVelocity, transform.up);
             rb.AddTorque(transform.up * (bankError * settings.bankTorque - bankRate * settings.bankDamping), ForceMode.Force);
 
-#if UNITY_EDITOR
             DebugForces(thrust, strafe, boost, yawTorque);
-#endif
         }
         private void ConstrainRotation()
         {
@@ -125,7 +123,7 @@ namespace Ships.Movement
             }
         }
 
-#if UNITY_EDITOR
+        // Player-compiled: the movement-forces painter reads these in standalone captures.
         internal Vector2 dbgThrust, dbgStrafe, dbgBoost;
         internal float dbgYaw;
 
@@ -136,6 +134,5 @@ namespace Ships.Movement
             dbgBoost = boost;
             dbgYaw = yaw;
         }
-#endif
     }
 }

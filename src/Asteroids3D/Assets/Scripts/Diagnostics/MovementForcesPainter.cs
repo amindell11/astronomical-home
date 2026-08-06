@@ -5,7 +5,6 @@ using UnityEngine;
 
 namespace Game.Diagnostics
 {
-    /// <summary>Movement actuator output in plane-space: thrust, strafe and boost vectors normalized against their configured maxima, plus a yaw-torque arc swept from the nose (green = left, red = right). Movement controllers are cached at construction.</summary>
     public sealed class MovementForcesPainter : IDiagnosticPainter
     {
         private const float MinForce = 0.01f;

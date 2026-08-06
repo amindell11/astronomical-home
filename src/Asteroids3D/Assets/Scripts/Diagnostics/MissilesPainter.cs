@@ -7,7 +7,6 @@ using UnityEngine;
 
 namespace Game.Diagnostics
 {
-    /// <summary>Missile flight and launcher state in plane-space: per live missile a body ring (red once homing), velocity ray, target line, explosion-radius ring and a travelled/max label; per launcher an ammo label at its fire point. Live missiles come from the projectile service each frame; launchers are cached at construction.</summary>
     public sealed class MissilesPainter : IDiagnosticPainter
     {
         private const float BodyRingRadius = 0.5f;

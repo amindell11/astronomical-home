@@ -5,7 +5,6 @@ using UnityEngine;
 
 namespace Game.Diagnostics
 {
-    /// <summary>Ship survivability in plane-space: stacked shield and health bars (track rect plus a left-anchored fill rect) above the hull, with numeric current/max labels. Damage controllers are cached at construction.</summary>
     public sealed class DamageBarsPainter : IDiagnosticPainter
     {
         private const float BaseOffset = 2f;
