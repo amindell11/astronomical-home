@@ -6,7 +6,6 @@ using UnityEngine;
 
 namespace Game.Diagnostics
 {
-    /// <summary>The MPC plan in plane-space: a cost-ranked subsample of the candidate fan, the chosen trajectory colored by per-step obstacle cost with planned-yaw ticks and cost labels, and the enemy rollout. Navigators are cached at construction.</summary>
     public sealed class NavigatorTrajectoryPainter : IDiagnosticPainter
     {
         private const int LabelStep = 5;

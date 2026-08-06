@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Game.Diagnostics
 {
-    /// <summary>The collision boundaries the MPC actually tests, per scanned obstacle: hull unbanked, hull at the current bank, and the turn-away bite range — plus the ship-radius ring. Navigators are cached at construction.</summary>
+    /// <summary>Draws the collision boundaries the MPC actually tests, not cosmetic radii.</summary>
     public sealed class NavigatorObstaclePainter : IDiagnosticPainter
     {
         private static readonly Color ShipRadius = new(0f, 1f, 1f, 0.25f);

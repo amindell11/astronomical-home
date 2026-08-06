@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Game.Diagnostics
 {
-    /// <summary>The tactical observation reconstructed back out of its egocentric tokens: self forward and velocity, the target link/ring/facing, threat rings with relative velocity, and obstacle-lobe rings. Markers landing on the real entities is the proof that extraction round-trips. Commanders are cached at construction; their threat scanners and the snapshot are reused so drawing allocates nothing per frame.</summary>
+    /// <summary>Markers landing on the real entities proves the egocentric extraction round-trips.</summary>
     public sealed class ObservationPainter : IDiagnosticPainter
     {
         private const float ThreatScanRadius = 40f;

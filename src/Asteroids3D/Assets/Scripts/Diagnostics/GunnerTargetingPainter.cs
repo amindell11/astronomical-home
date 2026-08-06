@@ -7,7 +7,6 @@ using UnityEngine;
 
 namespace Game.Diagnostics
 {
-    /// <summary>Gunner firing solution in plane-space: the line and marker at the primary weapon's intercept point, the aim ray, and the fire-point line-of-sight test (green clear, red blocked). Gunners are cached at construction.</summary>
     public sealed class GunnerTargetingPainter : IDiagnosticPainter
     {
         private const float AimRayLength = 5f;
