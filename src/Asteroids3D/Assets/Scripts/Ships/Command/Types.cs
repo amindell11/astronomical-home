@@ -100,6 +100,8 @@ namespace Ships.Command
         float ShieldPct { get; }
         bool BoostAvailable { get; }
         float BoostCooldownRemaining { get; }
+        /// <summary>Fraction of the boost cooldown still to run (0 = ready).</summary>
+        float BoostCooldownPct { get; }
         float MaxSpeed { get; }
         float MaxYawRate { get; }
     }

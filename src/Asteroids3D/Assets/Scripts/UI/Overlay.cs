@@ -15,6 +15,8 @@ namespace UI
         private UILockOnAudio lockOnAudio;
         private UIHealthAudio healthAudio;
         private UILaserAudio laserAudio;
+        private UIBoostAudio boostAudio;
+        private BoostGaugeUI boostGauge;
         private WeaponReadoutBuilder readoutBuilder;
 
         public MinimapObjectiveMarker ObjectiveMarker { get; private set; }
@@ -26,6 +28,8 @@ namespace UI
             lockOnAudio = GetComponentInChildren<UILockOnAudio>();
             healthAudio = GetComponentInChildren<UIHealthAudio>();
             laserAudio = GetComponentInChildren<UILaserAudio>();
+            boostAudio = GetComponentInChildren<UIBoostAudio>();
+            boostGauge = GetComponentInChildren<BoostGaugeUI>(true);
             readoutBuilder = GetComponentInChildren<WeaponReadoutBuilder>(true);
             ObjectiveMarker = GetComponentInChildren<MinimapObjectiveMarker>(true);
         }
@@ -51,6 +55,12 @@ namespace UI
         {
             if (healthAudio)
                 healthAudio.Initialize(binding.Damage);
+
+            if (boostGauge)
+                boostGauge.Initialize(binding.Status);
+
+            if (boostAudio)
+                boostAudio.Initialize(binding.Status);
 
             if (readoutBuilder)
                 readoutBuilder.Build(binding.Weapons);

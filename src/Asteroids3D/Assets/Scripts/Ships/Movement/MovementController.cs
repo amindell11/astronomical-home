@@ -27,6 +27,8 @@ namespace Ships.Movement
         public PilotCommand CurrentCommand => currentCommand;
         public bool BoostAvailable => booster.BoostAvailable;
         public float BoostCooldownRemaining => booster.CooldownRemaining;
+        public float BoostCooldownPct => settings != null && settings.boostCooldown > 0f
+            ? booster.CooldownRemaining / settings.boostCooldown : 0f;
 
         /// <summary>IPilot: the commander pushes the next step's piloting command here.</summary>
         public void Drive(in PilotCommand cmd) => currentCommand = cmd;
