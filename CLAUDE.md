@@ -46,6 +46,11 @@ One home per term: the glossary carries only what the code cannot say — a cons
 **Definition at first use.** Before deploying a new term anywhere — brief, design discussion, one-off fix — define it inline in the simplest concise form, using existing terms and general concepts. Define downward: never define a new term by way of another new term.
 **Re-orientation.** Recast cosmetic drift silently. State the reading you took for any collision-table word, even when the parse feels certain. Ask when genuinely ambiguous, or when the divergence would change what you do next. Always frame it as your interpretation, never as the other person's error; max one explicit flag per message. Repair symmetric misreads before proceeding. After roughly three recasts of the same form, propose making that form canonical — once.
 
+## Design & agent-doc ratchets
+
+The `codebase-design` user skill's vocabulary — module, interface, seam, adapter, depth — is canonical for design discussion; `doc/Glossary.md` rows point at it. In hunks you touch, name seams and interfaces with this vocabulary. A shallow pass-through or single-adapter seam met in touched code gets a board card per deferral conventions — never an in-place restructure inside a feature PR; deepening happens in dedicated PRs.
+When editing agent-consumed docs (CLAUDE.md, AGENTS.md, skills, memory index), apply the `writing-for-agents` user skill to the sections touched: hunt no-ops, prune sediment, sharpen pointers. Whole-doc sweeps only in dedicated hygiene PRs.
+
 ## Default workflow
 
 `.claude/skills/agent-worktree-pr-loop/SKILL.md` is the single authority for the coding-task loop. Invariants:
