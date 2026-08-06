@@ -175,12 +175,18 @@ function Get-DateValue {
     return $parsed.ToUniversalTime()
 }
 
+function Remove-TicketFile {
+    param([string]$Path)
+    if ([string]::IsNullOrWhiteSpace($Path)) { throw "Ticket file path is required." }
+    [System.IO.File]::Delete($Path)
+}
+
 function Remove-StaleTickets {
     $now = [datetime]::UtcNow
     foreach ($file in @(Get-ChildItem -LiteralPath $QueueRoot -Filter "*.json" -File -ErrorAction SilentlyContinue)) {
         $ticket = Read-JsonFile $file.FullName
         $updated = if ($null -ne $ticket) { Get-DateValue $ticket.updatedAt } else { [datetime]::MinValue }
-        if (($now - $updated).TotalSeconds -gt $TicketTtlSeconds) { Remove-Item -LiteralPath $file.FullName -Force }
+        if (($now - $updated).TotalSeconds -gt $TicketTtlSeconds) { Remove-TicketFile $file.FullName }
     }
 }
 
@@ -423,7 +429,7 @@ function Try-AcquireAccess {
     }
     Write-JsonFile (Join-Path $ownerDir "owner.json") $owner
     $ownTicket = Find-Ticket $Lease
-    if ($null -ne $ownTicket) { Remove-Item -LiteralPath $ownTicket.file -Force }
+    if ($null -ne $ownTicket) { Remove-TicketFile $ownTicket.file }
     return [ordered]@{ status = "acquired"; owner = [pscustomobject]$owner; renewed = $false }
 }
 
@@ -609,7 +615,7 @@ function Adopt-Process {
 
 function Cancel-Request {
     $ticket = Find-Ticket $Lease
-    if ($null -ne $ticket) { Remove-Item -LiteralPath $ticket.file -Force }
+    if ($null -ne $ticket) { Remove-TicketFile $ticket.file }
     return [ordered]@{ status = "cancelled"; lease = $Lease }
 }
 
