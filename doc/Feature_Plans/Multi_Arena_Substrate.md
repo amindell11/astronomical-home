@@ -449,12 +449,12 @@ Issue #332 collected three leftovers after the substrate and harness fan-out
 shipped. Re-grounding them against current `main` reduces the umbrella to one
 small implementation PR:
 
-- **#316 · Gunner origin sentinel — build.** `Gunner` already tracks target
+- **#316 · Gunner origin sentinel — landed #340.** `Gunner` already tracks target
   validity in `hasEnemy`, which is what firing reads. `HasTarget` still derives
   validity from `Target != Vector3.zero`, so diagnostics incorrectly report no
-  target when a valid aim point is at the world origin. Make `HasTarget` expose
-  `hasEnemy` and pin the origin case. Do not change firing, targeting, or intent
-  semantics.
+  target when a valid aim point is at the world origin. PR #340 made `HasTarget`
+  expose `hasEnemy` and pinned the origin case without changing firing, targeting,
+  or intent semantics; the landing gate passed 702/0/2.
 - **#320 · Arena-size dependency pass — close as completed by #201.** The later
   M-arena harness fan-out froze the current dependency set: `RewardSpec.arenaRadius`
   owns episode bounds, shaping, observation normalization, and opponent steering;
@@ -474,7 +474,8 @@ small implementation PR:
 
 **Out of scope:** per-arena `PhysicsScene`, `SessionRig` cleave, mixed-presentation
 flags, gameplay-sector bounds, weapon/loadout balance, and any new arena-size
-authoring surface. When #316 lands, close #332; the living design reference remains.
+authoring surface. With #340 merged, #332 is closed; the living design reference
+remains.
 
 ## Related
 
