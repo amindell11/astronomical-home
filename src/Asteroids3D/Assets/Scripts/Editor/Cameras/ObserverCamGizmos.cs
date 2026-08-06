@@ -1,27 +1,21 @@
-using Game;
+using Game.Diagnostics;
 using UnityEditor;
 using UnityEngine;
 
 namespace Cameras
 {
+    /// <summary>Subject-bounds rectangle drawn onto a <see cref="GizmoCanvas"/>, gated by <see cref="DiagnosticGate"/>. Editor-only, so the atom name lives here rather than in the painter registry: an ObserverCam is world-scoped, and <c>PainterContext</c> carries only per-ship subjects — capturing this would need a seam that does not exist yet.</summary>
     internal static class ObserverCamGizmos
     {
-        [DrawGizmo(GizmoType.Selected, typeof(ObserverCam))]
+        internal const string CamBounds = "cam-bounds";
+
+        [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected, typeof(ObserverCam))]
         private static void DrawSubjectBounds(ObserverCam cam, GizmoType gizmoType)
         {
-            if (!Application.isPlaying || cam.SecondarySubjects == null || cam.SecondarySubjects.Count == 0) return;
-            if (!cam.TryGetBoundaryAroundAllSubjects(out var min2D, out var max2D)) return;
-
-            var p00 = GamePlane.PlanePointToWorld(new Vector2(min2D.x, min2D.y));
-            var p01 = GamePlane.PlanePointToWorld(new Vector2(min2D.x, max2D.y));
-            var p11 = GamePlane.PlanePointToWorld(new Vector2(max2D.x, max2D.y));
-            var p10 = GamePlane.PlanePointToWorld(new Vector2(max2D.x, min2D.y));
-
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawLine(p00, p01);
-            Gizmos.DrawLine(p01, p11);
-            Gizmos.DrawLine(p11, p10);
-            Gizmos.DrawLine(p10, p00);
+            if (!Application.isPlaying) return;
+            if (!DiagnosticGate.ShouldDraw(CamBounds, gizmoType)) return;
+            if (!cam.TryGetBoundaryAroundAllSubjects(out var min, out var max)) return;
+            new GizmoCanvas().Rect((min + max) * 0.5f, max - min, Color.yellow);
         }
     }
 }
