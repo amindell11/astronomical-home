@@ -150,7 +150,7 @@ Framing (RETAINED, `SideChannelManager`): repeated
 
 ## 6. Lifecycle grammar (drivers ⟷ runtime ⟷ Unity)
 
-### CLI surface the owned entry must accept — OWNED @1a
+### CLI surface the owned entry must accept — OWNED @1a/@2
 
 `<config.yaml>` positional first, then `--run-id --env --num-envs
 --base-port --no-graphics [--resume | --force] [--initialize-from <RUN_ID>]
@@ -162,6 +162,14 @@ loud** @1a (stock mlagents silently drops `--resume`; the launcher guard
 stops being load-bearing). `--initialize-from` resolves
 `<results_dir>/<RUN_ID>/<behavior>/checkpoint.pt` and fails before any
 worker boots.
+
+AMENDED 2026-08-06 (Slice-4a ruling): before trailing `--env-args`, the owned
+runtime additionally accepts positive `--microbatch-worker-cap N`. The
+capability landing defaults to 1; Slice-4b may flip the default to `num_envs`
+only after the full paired cutover gate. Effective cap is bounded by
+`num_envs`; cap 1 preserves the stage-1b sequential `Policy.get_action()`
+path and skips the 500 µs collection window. The stock runtime never receives
+this owned-only option.
 
 ### Environment pass-through — OWNED @1a (inherited spawn), @1b (owned spawn)
 
@@ -259,7 +267,14 @@ arms the export-identity test (takeover plan §Equivalence gates).
 | `max_steps:` echo | any line, `split("max_steps:")[1]` parses as int | dashboard progress/ETA | folded into the summary stream @1a |
 | Lesson line | `Parameter 'X' is in lesson 'Y' and has value 'Z'.` | dashboard curriculum chips | RETAINED through 1a; @1b emit-or-repoint |
 | tfevents | behavior dir; tags: the six `plot_progress.py` panels + `Environment/Lesson Number/*` (+ `Self-play/ELO`) | `plot_progress.py` only | RETAINED (stats writers untouched; the 1a plugin is additive) |
-| Run manifest (new) | `{runId, behavior, resultsDir, startedAt, maxSteps, mode, configHash}` at launch | gate/dashboard/bench progressively repoint | OWNED @1a — the producer-emitted replacement for V3/V4/V6/V7 |
+| Run manifest (new) | `{runId, behavior, resultsDir, startedAt, maxSteps, mode, configHash, microbatchWorkerCap, microbatchEffectiveWorkerCap, microbatchWindowMicros}` at launch; the three microbatch fields are optional on legacy manifests | gate/dashboard/bench progressively repoint | OWNED @1a; AMENDED @2 — producer-emitted replacement for V3/V4/V6/V7 plus scheduling provenance |
+
+@2 resume invariant: cap/window are immutable across a run's legs. A legacy
+manifest without the microbatch fields represents sequential scheduling and
+may resume only at cap 1; a mismatch fails before workers boot. Batch-fill
+counters (policy forwards, worker requests, agent rows, mean/max workers per
+forward) ride the existing `run_logs/timers.json` metadata and the throughput
+report, never a parallel telemetry stream.
 
 ## 9. Project-owned contracts riding the boundary (trainer swap must not touch)
 
