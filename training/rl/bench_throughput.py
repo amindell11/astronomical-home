@@ -13,6 +13,10 @@ Comparisons are only meaningful between rows that share a config, --steps, and
 --initialize-from: a warm-started policy ends episodes differently than a random one, which
 changes the per-episode work mix. Hold those constant across an A/B.
 
+--trainer-runtime picks the arm: 'owned' reads run_manifest.json + summaries.jsonl; the
+'ml-agents' stock reference arm reads (step, elapsed) from the stock console summaries in
+the launcher's trainer log, because stock deliberately emits no owned telemetry files.
+
 Resolution: repeat runs of one config land within ~4% on a loaded desktop, so this resolves
 effects above roughly 10% and cannot adjudicate small ones — repeat both arms if a result
 lands inside the noise. The trailing interval also reads systematically low (it abuts the
@@ -24,6 +28,7 @@ final update and model export); it is kept because both arms of a comparison pay
 """
 import argparse
 import json
+import re
 import statistics
 import subprocess
 import sys
@@ -34,8 +39,9 @@ from pathlib import Path
 
 import yaml
 
-from run_parallel import REPO_ROOT, RESULTS, RL_DIR, trainer_log_path
-from trainer_runtime.contract import manifest_path, read_manifest, read_summaries, summaries_path
+from run_parallel import REPO_ROOT, RESULTS, RL_DIR, TRAINER_RUNTIMES, trainer_log_path
+from trainer_runtime.contract import (config_sha256, manifest_path, read_manifest,
+                                      read_summaries, summaries_path)
 
 BENCH_DIR = REPO_ROOT / "results" / "rl-bench"
 RESULTS_JSONL = BENCH_DIR / "bench.jsonl"
@@ -125,6 +131,47 @@ def parse_summaries(path: Path) -> list:
     return [(summary.step, summary.elapsed_seconds) for summary in read_summaries(path)]
 
 
+# Stock console summary: "ShipCombat. Step: N. Time Elapsed: T s. ..." — both the reward and
+# the "No episode was completed" variants carry the Step/Time Elapsed pair.
+STOCK_SUMMARY = re.compile(r"Step: (\d+)\. Time Elapsed: ([\d.]+) s")
+
+
+def parse_stock_summaries(log_path: Path) -> list:
+    """(step, elapsed) pairs from stock stdout summaries in the launcher's trainer log.
+
+    The stock reference arm has no summaries.jsonl by design — the owned stats writer must
+    never ride `--trainer-runtime ml-agents` runs (wire contract §8 ruling).
+    """
+    if not log_path.exists():
+        return []
+    text = log_path.read_text(encoding="utf-8", errors="replace")
+    return [(int(m.group(1)), float(m.group(2))) for m in STOCK_SUMMARY.finditer(text)]
+
+
+def collect_run_metrics(runtime: str, run_id: str, config: Path) -> tuple:
+    """((step, elapsed) list, config hash) from the arm's native telemetry surface."""
+    if runtime == "owned":
+        manifest = read_manifest(manifest_path(RESULTS, run_id))
+        return parse_summaries(summaries_path(manifest.run_dir)), manifest.config_hash
+    return parse_stock_summaries(trainer_log_path(run_id)), config_sha256(config)
+
+
+def launch_command(args, config: Path) -> list:
+    cmd = [sys.executable, str(RL_DIR / "run_parallel.py"),
+           "--config", str(config),
+           "--num-envs", str(args.num_envs),
+           "--num-arenas", str(args.num_arenas),
+           "--trainer-runtime", args.trainer_runtime,
+           "--force"]
+    if args.self_play:
+        cmd.append("--self-play")
+    if args.initialize_from:
+        cmd += ["--initialize-from", args.initialize_from]
+    if args.env:
+        cmd += ["--env", str(args.env)]
+    return cmd
+
+
 def steady_steps_per_second(summaries: list) -> tuple:
     """(mean steps/s, spread as max-min over intervals, interval count), first interval dropped."""
     if len(summaries) < 3:
@@ -143,9 +190,9 @@ def report() -> None:
     if not RESULTS_JSONL.exists():
         sys.exit(f"no bench rows yet at {RESULTS_JSONL}")
     rows = [json.loads(line) for line in RESULTS_JSONL.read_text().splitlines() if line.strip()]
-    print(f"{'label':<22}{'N':>3}{'M':>3}{'steps/s':>10}{'spread':>8}{'cores':>8}{'RSS MB':>9}  sha")
+    print(f"{'label':<22}{'runtime':<10}{'N':>3}{'M':>3}{'steps/s':>10}{'spread':>8}{'cores':>8}{'RSS MB':>9}  sha")
     for row in rows:
-        print(f"{row['label']:<22}{row['num_envs']:>3}{row['num_arenas']:>3}"
+        print(f"{row['label']:<22}{row.get('trainer_runtime', '?'):<10}{row['num_envs']:>3}{row['num_arenas']:>3}"
               f"{row['steps_per_second']:>10.1f}{row['spread']:>8.1f}"
               f"{row['cores']:>8.2f}{row['peak_rss_mb']:>9.0f}  {row['git_sha']}")
 
@@ -165,6 +212,8 @@ def main() -> None:
     parser.add_argument("--initialize-from", metavar="RUN_ID", default=None,
                         help="warm-start run id; hold constant across an A/B")
     parser.add_argument("--env", type=Path, default=None, help="player exe (defaults to run_parallel's)")
+    parser.add_argument("--trainer-runtime", choices=TRAINER_RUNTIMES, default="owned",
+                        help="arm to bench; 'ml-agents' is the stock reference arm of a paired bench")
     parser.add_argument("--report", action="store_true", help="print collected rows and exit")
     args = parser.parse_args()
 
@@ -177,20 +226,10 @@ def main() -> None:
     run_id = f"bench-{args.label}"
     source = args.config or RL_DIR / ("ppo_ship_combat_selfplay.yaml" if args.self_play else "ppo_ship_combat.yaml")
     config = bench_config(source, args.steps, run_id)
-    cmd = [sys.executable, str(RL_DIR / "run_parallel.py"),
-           "--config", str(config),
-           "--num-envs", str(args.num_envs),
-           "--num-arenas", str(args.num_arenas),
-           "--trainer-runtime", "owned",
-           "--force"]
-    if args.self_play:
-        cmd.append("--self-play")
-    if args.initialize_from:
-        cmd += ["--initialize-from", args.initialize_from]
-    if args.env:
-        cmd += ["--env", str(args.env)]
+    cmd = launch_command(args, config)
 
-    print(f"bench '{args.label}': N={args.num_envs} M={args.num_arenas} steps={args.steps}")
+    print(f"bench '{args.label}': N={args.num_envs} M={args.num_arenas} steps={args.steps} "
+          f"runtime={args.trainer_runtime}")
     sampler = CpuSampler()
     sampler.start()
     started = time.monotonic()
@@ -202,9 +241,7 @@ def main() -> None:
     if proc.returncode != 0:
         sys.exit(f"FAIL: run_parallel exited {proc.returncode}; see {trainer_log_path(run_id)}")
 
-    manifest = read_manifest(manifest_path(RESULTS, run_id))
-    summaries_file = summaries_path(manifest.run_dir)
-    summaries = parse_summaries(summaries_file)
+    summaries, config_hash = collect_run_metrics(args.trainer_runtime, run_id, config)
     rate, spread, intervals = steady_steps_per_second(summaries)
     if intervals < 2:
         sys.exit(f"FAIL: only {len(summaries)} trainer summaries — raise --steps for a steady-state read")
@@ -218,8 +255,8 @@ def main() -> None:
         "num_arenas": args.num_arenas,
         "steps": args.steps,
         "config": source.name,
-        "config_hash": manifest.config_hash,
-        "trainer_runtime": "owned",
+        "config_hash": config_hash,
+        "trainer_runtime": args.trainer_runtime,
         "initialize_from": args.initialize_from,
         "steps_per_second": round(rate, 2),
         "spread": round(spread, 2),
