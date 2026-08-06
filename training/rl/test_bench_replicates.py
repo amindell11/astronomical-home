@@ -230,6 +230,17 @@ class RenderMarkdown(unittest.TestCase):
         self.assertIn("| meanFacingErrorDeg | 45 |", md)
 
 
+class BenchLease(unittest.TestCase):
+    """Two benches sharing one lease name would renew each other's coordinator ownership."""
+
+    def test_default_lease_is_the_unique_run_name(self):
+        self.assertEqual("bench-ShipCombat-42-20260805-120000",
+                         bench_replicates.bench_lease("bench-ShipCombat-42-20260805-120000"))
+
+    def test_explicit_lease_flag_still_overrides(self):
+        self.assertEqual("my-lease", bench_replicates.bench_lease("bench-x-20260805", "my-lease"))
+
+
 class RunBenchOrchestration(unittest.TestCase):
     """The protocol drives the lane's own API — sequential replicates, then the mirror."""
 

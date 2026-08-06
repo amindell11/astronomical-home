@@ -245,6 +245,12 @@ def render_markdown(agg: dict) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
+def bench_lease(run_name: str, override=None) -> str:
+    """Per-invocation default: unity_access RENEWS an existing owner on lease match, so two
+    benches sharing one lease name would steal each other's ownership instead of queueing."""
+    return override or run_name
+
+
 def load_read(dir_name: str, summary_path: Path) -> dict:
     """One session's aggregate input, following the paths the summary itself emitted."""
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
@@ -301,7 +307,8 @@ def main() -> None:
                         help="Unity project the sessions boot in (point at a free pool slot)")
     parser.add_argument("--unity", type=Path, default=None,
                         help="Unity.exe path (default: derived from ProjectVersion.txt)")
-    parser.add_argument("--lease", default="rl-bench", help="unity-access lease name")
+    parser.add_argument("--lease", default=None,
+                        help="unity-access lease name (default: the run name, unique per invocation)")
     parser.add_argument("--lease-wait", type=int, default=1800,
                         help="seconds the coordinator may wait for the project/boot lane")
     args = parser.parse_args()
@@ -324,7 +331,7 @@ def main() -> None:
         onnx=args.onnx, replicates=args.replicates, seeds=args.seeds,
         episodes_per_seed=args.episodes_per_seed, density=args.density, probes=args.probes,
         mirror=not args.no_mirror, run_root=run_root, project=args.project, unity=unity,
-        lease=args.lease, lease_wait=args.lease_wait)
+        lease=bench_lease(run_name, args.lease), lease_wait=args.lease_wait)
 
     checkpoint = {
         "path": str(args.onnx),
