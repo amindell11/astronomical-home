@@ -12,13 +12,16 @@
   `run-tests <slot> -Mode {EditMode|PlayMode|Both} -ScopeType Auto` — full
   args cheat-sheet in the pool-loop skill. Clear
   `src/Asteroids3D/Library/BurstCache/` before every run.
-- Narrow with `-TestFilter`, `-TestCategory`, `-AssemblyNames`; scoped runs are
-  the iteration loop, never merge proof.
+- Narrow with `-TestFilter`, `-TestCategory`, or `-AssemblyNames` — dropping
+  `-ScopeType Auto` first (Auto owns test selection and throws on manual
+  selectors; to narrow while keeping Auto, use `-ExcludeCategory`). Scoped runs
+  are the iteration loop, never merge proof.
 - Negative proofs: `AsyncAssert.AssertRemainsFalseFor` with its cadence
   minimums; time acceleration is `PlayModeWorldFixture.AccelerateTime` opt-in
   (frame-bound phases clamp to 1×).
-- A non-empty `note` field in the run summary means the editor hung — the run's
-  verdict is untrustworthy, not green.
+- A non-empty `note` field in the run summary means the editor hung at
+  shutdown; the watchdog preserves the parsed pass/fail verdicts, but the hang
+  is its own defect signal — don't read that run as fully healthy.
 
 ## Flaky / full-run-only failures
 
@@ -26,8 +29,10 @@
   card): a green scoped loop does not falsify a red full loop. Raising the
   reproduction rate means looping the full suite, not the lone test.
 - Check `flaky_*` memory cards before building a loop that already exists.
-- `RequiresGraphics` tests are quarantined from batch — they need an
-  interactive editor via unity-access (`-Action StartEditor`, release after).
+- `RequiresGraphics` tests are quarantined from nographics batch. Two ways to
+  run them: a filtered graphics batch run (`-WithGraphics -Mode PlayMode
+  -TestFilter <tests>` — the game-capture path), or an interactive editor via
+  unity-access (`-Action StartEditor`, release after).
 
 ## Live-editor probe loop
 
