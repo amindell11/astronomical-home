@@ -336,3 +336,27 @@ memory. **The tuning-only path is now closed by evidence, not by prior:**
 
 Structural redesign proceeds from §"Mechanism evidence"; these two
 falsifications are additional design inputs.
+
+### Shift-cadence falsification (RAN 2026-08-06) — mechanism CONFIRMED
+
+User-approved same day as the opening move of the structural slice: a
+12-line change (agent-1 `ecc62c2d` @ `7cd7b95a`) makes the warm-start shift
+consume one rolloutDt slot per rolloutDt of *sim time* instead of one per
+50 Hz solve. MPC EditMode tests 66/66; lever-test protocol, stock asset;
+full read `results/rl-eval/shift-cadence-20260806/NOTES.md`.
+
+**Plan fast-forward was the churn generator.** Strict torque reversals
+11.5 → 5.7-5.8/s (−49/−52%, at the hull's own 4-5/s scale), deadbanded
+−59/−61%. **Dummy closeout 6.5 → 14W/0L/1D**; episodes close 2× faster.
+The mirror engages and is *symmetric* again (4W/4L/7D vs the unexplained
+0W/4L/11D) — the baseline asymmetry was a churn artifact. Motion style
+changed: committed sweeping turns (mean |yaw rate| 2.4×, facing error
+14.5° → ~39° mean / ~70° p90) instead of micro-thrash on target. The lever
+tests' price-insensitivity is explained — no cost weight can fix a wrong
+time base.
+
+**Not yet run (gates before landing):** full roster no-regress bench (the
+policy trained against the old controller; movers were the anchored wins),
+the mandatory higher-density obstacle arm (design input #3), and a
+facing-vs-movers read for the aiming implication of the larger transient
+facing error.
