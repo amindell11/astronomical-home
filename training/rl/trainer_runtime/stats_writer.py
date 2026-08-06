@@ -5,7 +5,7 @@ from typing import Dict
 
 from mlagents.trainers.stats import StatsSummary, StatsWriter
 
-from trainer_runtime.contract import TrainingSummary
+from trainer_runtime.contract import TrainingSummary, read_summaries
 
 
 class JsonlStatsWriter(StatsWriter):
@@ -14,7 +14,12 @@ class JsonlStatsWriter(StatsWriter):
         self.behavior = behavior
         self.max_steps = max_steps
         self.started = time.monotonic()
-        if not resume:
+        if resume:
+            # Keep elapsedSeconds monotonic across resume legs: consumers divide steps by it.
+            previous = read_summaries(path)
+            if previous:
+                self.started -= previous[-1].elapsed_seconds
+        else:
             path.write_text("", encoding="utf-8")
 
     def write_stats(self, category: str, values: Dict[str, StatsSummary], step: int) -> None:

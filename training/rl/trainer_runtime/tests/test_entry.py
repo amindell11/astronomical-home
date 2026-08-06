@@ -13,6 +13,7 @@ from mlagents_envs.side_channel.stats_side_channel import StatsAggregationMethod
 from run_parallel import MLAGENTS, trainer_command
 from trainer_runtime.contract import manifest_path, read_manifest, read_summaries, summaries_path
 from trainer_runtime.entry import _mode, owned_stats_writers, refuse_conflicting_restore
+from trainer_runtime.stats_writer import JsonlStatsWriter
 
 
 class OwnedEntryTests(unittest.TestCase):
@@ -69,6 +70,20 @@ class OwnedEntryTests(unittest.TestCase):
             self.assertEqual(1.0, summaries[0].reward_std_dev)
             self.assertEqual(1210.0, summaries[0].elo)
             self.assertTrue(summaries[0].is_training)
+
+    def test_resume_keeps_elapsed_monotonic_across_legs(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "summaries.jsonl"
+            first_leg = JsonlStatsWriter(path, "ShipCombat", 4000, resume=False)
+            first_leg.started -= 500.0
+            first_leg.write_stats("ShipCombat", {}, 1000)
+
+            resumed = JsonlStatsWriter(path, "ShipCombat", 4000, resume=True)
+            resumed.write_stats("ShipCombat", {}, 2000)
+
+            rows = read_summaries(path)
+            self.assertEqual([1000, 2000], [row.step for row in rows])
+            self.assertGreaterEqual(rows[1].elapsed_seconds, rows[0].elapsed_seconds)
 
 
 if __name__ == "__main__":
