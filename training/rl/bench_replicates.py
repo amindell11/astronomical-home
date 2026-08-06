@@ -35,32 +35,50 @@ ROSTER_SEEDS = "2001,2002,2003,2004,2005"
 AGGREGATE_SCHEMA = "rl-bench-aggregate-v1"
 
 
+OUTCOME_CELL_FIELD = {"Win": "wins", "Loss": "losses", "Draw": "draws"}
+
+
 def session_cells(summary: dict, episodes: list) -> dict:
     """Per-opponent outcome cell for one session: summary counts plus timeout counts, which
-    only the episode JSONL carries. The two files are one producer's outputs, so a win-count
+    only the episode JSONL carries. The two files are one producer's outputs, so any count
     disagreement between them is a broken contract, not data to absorb."""
     cells = {row["opponent"]: {"episodes": row["episodes"], "wins": row["wins"],
                                "losses": row["losses"], "draws": row["draws"], "timeouts": 0}
              for row in summary["opponents"]}
-    jsonl_wins = {opp: 0 for opp in cells}
+    tallies = {opp: {"episodes": 0, "wins": 0, "losses": 0, "draws": 0} for opp in cells}
     for ep in episodes:
         opp = ep["opponent"]["archetype"]
         if opp not in cells:
             raise ValueError(f"episode row names opponent {opp!r} absent from the summary")
+        if ep["outcome"] not in OUTCOME_CELL_FIELD:
+            raise ValueError(f"episode row vs {opp} carries unknown outcome {ep['outcome']!r}")
+        tallies[opp]["episodes"] += 1
+        tallies[opp][OUTCOME_CELL_FIELD[ep["outcome"]]] += 1
         if ep["timedOut"]:
             cells[opp]["timeouts"] += 1
-        if ep["outcome"] == "Win":
-            jsonl_wins[opp] += 1
     for opp, cell in cells.items():
-        if cell["wins"] != jsonl_wins[opp]:
-            raise ValueError(f"summary says {cell['wins']} wins vs {opp} but the episode "
-                             f"JSONL has {jsonl_wins[opp]}")
+        for field, tallied in tallies[opp].items():
+            if cell[field] != tallied:
+                raise ValueError(f"summary says {cell[field]} {field} vs {opp} but the episode "
+                                 f"JSONL has {tallied}")
     return cells
 
 
+def _flat_numeric(row: dict, prefix: str = "") -> dict:
+    """Numeric leaves of a sidecar row, nested objects flattened to dotted keys
+    (e.g. the controller probe's threat/clear buckets -> "threat.meanAbsYawTorque")."""
+    flat = {}
+    for field, value in row.items():
+        if isinstance(value, dict):
+            flat.update(_flat_numeric(value, f"{prefix}{field}."))
+        elif isinstance(value, (int, float)) and not isinstance(value, bool):
+            flat[prefix + field] = value
+    return flat
+
+
 def tabulate_probes(sidecars_per_session: list) -> dict:
-    """Mean of every numeric sidecar field, per probe per opponent, across sessions.
-    Sidecars are {probe: {"opponents": [row, ...]}}; probe identity stays opaque."""
+    """Mean of every numeric sidecar leaf, per probe per opponent, across sessions;
+    probe identity stays opaque."""
     names = {frozenset(s) for s in sidecars_per_session}
     if len(names) > 1:
         raise ValueError(f"sessions disagree on which probes ran: {sorted(map(sorted, names))}")
@@ -69,22 +87,30 @@ def tabulate_probes(sidecars_per_session: list) -> dict:
         by_opp = {}
         for sidecar in sidecars_per_session:
             for row in sidecar[probe]["opponents"]:
-                # Sidecar grammars differ per probe: facing labels rows "opponent", gate/combat "archetype".
+                # Row-label grammar differs per probe: the gate probe writes "archetype"; facing/combat write "opponent".
                 label = row.get("opponent") or row.get("archetype")
                 if label is None:
                     raise ValueError(f"probe {probe!r} row carries neither 'opponent' nor 'archetype'")
-                for field, value in row.items():
-                    if isinstance(value, (int, float)) and not isinstance(value, bool):
-                        by_opp.setdefault(label, {}).setdefault(field, []).append(value)
+                for field, value in _flat_numeric(row).items():
+                    by_opp.setdefault(label, {}).setdefault(field, []).append(value)
         tabulated[probe] = {opp: {field: mean(vals) for field, vals in fields.items()}
                             for opp, fields in by_opp.items()}
     return tabulated
 
 
-def build_aggregate(*, run_name: str, checkpoint: dict, protocol: dict, rep_reads: list,
+def build_aggregate(*, run_name: str, checkpoint: dict, rep_reads: list,
                     mirror_read=None) -> dict:
     """The one aggregate structure both outputs render from. Each read is
-    {"dir", "summary", "cells", "probes"}; mirror_read is None when --no-mirror."""
+    {"dir", "summary", "cells", "probes", "protocol"}; mirror_read is None when --no-mirror.
+    Protocol metadata comes from the producer session summaries, never from CLI args —
+    every session must have run the same protocol or the aggregate is meaningless."""
+    all_reads = rep_reads + ([mirror_read] if mirror_read is not None else [])
+    for read in all_reads[1:]:
+        if read["protocol"] != all_reads[0]["protocol"]:
+            raise ValueError(f"{read['dir']} ran protocol {read['protocol']}, "
+                             f"but {all_reads[0]['dir']} ran {all_reads[0]['protocol']}")
+    protocol = {**all_reads[0]["protocol"], "replicates": len(rep_reads),
+                "mirror": mirror_read is not None}
     opponents = sorted(rep_reads[0]["cells"])
     for read in rep_reads:
         if sorted(read["cells"]) != opponents:
@@ -165,10 +191,11 @@ def render_markdown(agg: dict) -> str:
         "",
         f"**Checkpoint:** `{agg['checkpoint']['path']}`, md5 `{agg['checkpoint']['md5']}`",
         f"**Project:** `{agg['checkpoint']['project']}` @ `{agg['checkpoint']['projectHead']}`",
-        f"**Protocol:** seeds {proto['seeds']}, {proto['episodesPerSeed']} episodes/seed, "
-        f"density {proto['density']}, roster × {n} replicate(s)"
+        f"**Protocol:** seeds {','.join(map(str, proto['seeds']))}, "
+        f"{proto['episodesPerSeed']} episodes/seed, density {proto['fieldDensityScale']}, "
+        f"roster × {n} replicate(s)"
         + (", + mirror" if agg["mirror"] else ", no mirror")
-        + f", probes: {proto['probes']}.",
+        + f", probes: {','.join(proto['probes'])}.",
         f"Lane: `eval_lane.py` driven by `bench_replicates.py` ({agg['generatedAt']}).",
         "",
         "## Roster result",
@@ -224,9 +251,14 @@ def load_read(dir_name: str, summary_path: Path) -> dict:
     with open(summary["episodesJsonl"], encoding="utf-8") as f:
         episodes = [json.loads(line) for line in f if line.strip()]
     probes = {p["name"]: json.loads(Path(p["summary"]).read_text(encoding="utf-8"))
-              for p in summary.get("probes", [])}
+              for p in summary["probes"]}
     return {"dir": dir_name, "summary": str(summary_path),
-            "cells": session_cells(summary, episodes), "probes": probes}
+            "cells": session_cells(summary, episodes), "probes": probes,
+            "protocol": {"seeds": summary["seeds"],
+                         "episodesPerSeed": summary["episodesPerSeed"],
+                         "useAsteroidField": summary["useAsteroidField"],
+                         "fieldDensityScale": summary["fieldDensityScale"],
+                         "probes": [p["name"] for p in summary["probes"]]}}
 
 
 def run_bench(*, onnx: Path, replicates: int, seeds: str, episodes_per_seed, density,
@@ -302,11 +334,8 @@ def main() -> None:
             ["git", "-C", str(args.project), "rev-parse", "--short", "HEAD"],
             capture_output=True, text=True, check=True).stdout.strip(),
     }
-    protocol = {"seeds": args.seeds, "episodesPerSeed": args.episodes_per_seed,
-                "density": args.density, "replicates": args.replicates,
-                "probes": args.probes, "mirror": not args.no_mirror}
     agg = build_aggregate(
-        run_name=run_name, checkpoint=checkpoint, protocol=protocol,
+        run_name=run_name, checkpoint=checkpoint,
         rep_reads=[load_read(p.parent.name, p) for p in rep_summaries],
         mirror_read=None if mirror_summary is None else load_read("mirror", mirror_summary))
     (run_root / "AGGREGATE.json").write_text(json.dumps(agg, indent=1), encoding="utf-8")
