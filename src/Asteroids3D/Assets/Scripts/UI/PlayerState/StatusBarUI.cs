@@ -1,6 +1,7 @@
 using Game;
 using Ships.Damage;
 using Ships.Presentation;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -22,6 +23,9 @@ namespace UI
         [Tooltip("Fill image (child of this background).")]
         [SerializeField] Image fill;
 
+        [Tooltip("Numeric readout beside the bar (current value, rounded up).")]
+        [SerializeField] TMP_Text label;
+
         [Tooltip("Offset from the ship center in game-plane units.")]
         [SerializeField] Vector2 planeOffset = new Vector2(0f, 2f);
 
@@ -36,14 +40,14 @@ namespace UI
             source = view.Damage == null ? null
                 : tracked == TrackedResource.Shield ? view.Damage.Shield : view.Damage.Health;
             if (isActiveAndEnabled) Subscribe();
-            SeedFill();
+            Refresh();
         }
 
         private void OnEnable()
         {
             if (source == null) return;
             Subscribe();
-            SeedFill();
+            Refresh();
         }
 
         void OnDisable()
@@ -65,10 +69,11 @@ namespace UI
             subscribed = false;
         }
 
-        private void SeedFill()
+        private void Refresh()
         {
-            if (fill && source != null)
-                fill.fillAmount = source.Pct;
+            if (source == null) return;
+            if (fill) fill.fillAmount = source.Pct;
+            if (label) label.text = Mathf.CeilToInt(source.CurrentValue).ToString();
         }
 
         // The rig canvas rotates with the ship; re-pin the bar plane-aligned above it every frame.
@@ -80,8 +85,7 @@ namespace UI
 
         void OnResourceChanged(float current, float previous, float max)
         {
-            if (!fill || max <= 0f) return;
-            fill.fillAmount = current / max;
+            Refresh();
         }
     }
 }
