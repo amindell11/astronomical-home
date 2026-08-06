@@ -1,4 +1,3 @@
-import hashlib
 import os
 import sys
 from datetime import datetime, timezone
@@ -8,7 +7,7 @@ from typing import Sequence
 from mlagents.trainers import learn
 from mlagents.trainers.cli_utils import StoreConfigFile
 
-from trainer_runtime.contract import MANIFEST_NAME, RunManifest, summaries_path, write_manifest
+from trainer_runtime.contract import MANIFEST_NAME, RunManifest, config_sha256, summaries_path, write_manifest
 from trainer_runtime.stats_writer import JsonlStatsWriter
 
 
@@ -47,7 +46,7 @@ def owned_stats_writers(options, config_path: Path, started_at: datetime) -> lis
         started_at=started_at,
         max_steps=trainer_settings.max_steps,
         mode=_mode(trainer_settings.self_play is not None),
-        config_hash=hashlib.sha256(config_path.read_bytes()).hexdigest(),
+        config_hash=config_sha256(config_path),
     )
     write_manifest(manifest.run_dir / MANIFEST_NAME, manifest)
     return [JsonlStatsWriter(

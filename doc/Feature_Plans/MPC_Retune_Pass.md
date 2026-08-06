@@ -9,7 +9,8 @@ Slice-B bench read — not yet authorized.
 Entry evidence: memory `handoff_2026-08-04_k1_4_eval_mpc_navfield.md` (K1-4
 run record, facing-authority + MPC-noise ablations, obstacle-competence gate
 spec) and `project_anchored_k1_arc.md` (arc close-out, #250 disposition).
-Predecessor plan: `Anchored_Intent_Architecture.md` (K=1 arc — CLOSED).
+Predecessor arc: K=1 anchored intent — CLOSED 2026-08-05; its brief was
+deleted with the arc, narrative in memory `project_anchored_k1_arc.md`.
 
 ## Context
 
@@ -156,4 +157,4 @@ scoped as its own slice set. That call is the user's, made on the bench read.
 
 Velrebase apparatus disposition rides the same call: it is the natural
 controller-A/B instrument if the structural experiment proceeds; if the pass
-closes cheap, retire it per its board card.
+closes cheap, retire it per issue #289.
