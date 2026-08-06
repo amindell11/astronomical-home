@@ -49,7 +49,6 @@ namespace Movement.MPC
         private Control lastControl;
         private float lastBestCost;
         private State lastInitialState;
-        private float shiftAccumulator;
 
         public Mpc(MpcSettings settings, Dynamics dynamics, uint seed)
         {
@@ -70,14 +69,15 @@ namespace Movement.MPC
             RefreshConfig(in inputs);
             lastInitialState = mpcState;
 
-            // The warm start advances one rolloutDt slot per rolloutDt of sim time — NOT per
-            // solve; solves run every fixed step, 5× faster than the plan's time base.
-            shiftAccumulator += inputs.dt;
-            while (shiftAccumulator >= settings.rolloutDt)
+            // Slide the warm start's time origin forward by dt so its plan clock tracks sim
+            // time at solve rate: whole slots first, then the ZOH-faithful fractional resample.
+            var remaining = inputs.dt;
+            while (remaining >= settings.rolloutDt)
             {
                 ShiftSequenceForward();
-                shiftAccumulator -= settings.rolloutDt;
+                remaining -= settings.rolloutDt;
             }
+            FractionalShift(remaining / settings.rolloutDt);
 
             var boostCooldown = inputs.boostCooldown;
             // If cooldown exceeds the entire horizon, skip boost sampling to save candidate quality.
@@ -122,6 +122,25 @@ namespace Movement.MPC
         {
             if (bestSequence.Length > 1)
                 Array.Copy(bestSequence, 1, bestSequence, 0, bestSequence.Length - 1);
+        }
+
+        // A dt-shifted slot spans (1−α) of old slot i plus α of slot i+1; the time-weighted
+        // average IS the exact resample of a zero-order-hold plan. Tail slot holds.
+        private void FractionalShift(float alpha)
+        {
+            if (alpha <= 0f) return;
+            for (var i = 0; i < bestSequence.Length - 1; i++)
+            {
+                var a = bestSequence[i];
+                var b = bestSequence[i + 1];
+                bestSequence[i] = new Control
+                {
+                    thrust = math.lerp(a.thrust, b.thrust, alpha),
+                    strafe = math.lerp(a.strafe, b.strafe, alpha),
+                    yawTorque = math.lerp(a.yawTorque, b.yawTorque, alpha),
+                    boost = math.lerp(a.boost, b.boost, alpha),
+                };
+            }
         }
 
         private void UpdatePredictedStates(State initial)
