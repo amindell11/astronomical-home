@@ -82,6 +82,8 @@ namespace Game.RLHarness
                 using var recorder = spec.record.Records(episode)
                     ? new CaptureRecorder(ClipConfig(episodeSpec.runSeed, opponent.Label, episode, jsonlPath))
                     : null;
+                // URP's render graph NREs if the recorder's camera renders on its spawn frame.
+                if (recorder != null) yield return null;
                 var pair = composition.Pair;
                 Action onFixedStep = recorder == null
                     ? SampleProbes
