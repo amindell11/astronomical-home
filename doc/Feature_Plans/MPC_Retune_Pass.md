@@ -355,8 +355,16 @@ changed: committed sweeping turns (mean |yaw rate| 2.4×, facing error
 tests' price-insensitivity is explained — no cost weight can fix a wrong
 time base.
 
-**Not yet run (gates before landing):** full roster no-regress bench (the
-policy trained against the old controller; movers were the anchored wins),
-the mandatory higher-density obstacle arm (design input #3), and a
-facing-vs-movers read for the aiming implication of the larger transient
-facing error.
+**Roster no-regress bench (RAN 2026-08-06): ❌ FAILS as a hot-swap.**
+`results/rl-eval/bench-shift-cadence-20260806/` (Bench-1 protocol, R2 +
+mirror): **43.50/75** vs baseline 63.00. Dummy replicates (14.00/15,
++7.5); movers collapse — Aggressor 5.00 (−10) and Orbiter 4.50 (−9) with
+zero draws and 15–23 s episodes (fast deaths, not timeouts), Kiter −4,
+Evader −4. Mirror 3W/3L/9D symmetric. Reading: the checkpoint was trained
+on the churny controller — calming the controller breaks the
+policy+controller couple against movers (and/or committed turns trade
+lateral tracking; facing error tripled). **Disposition: the cadence fix is
+a training-environment candidate (retrain on top, #263-style env shift),
+not a drop-in swap.** Landing gates as a hot-swap are moot; the paired
+d3.0 obstacle arms (stock vs fix, same policy) still run — the threat-
+metric comparison is policy-light and feeds the redesign.
