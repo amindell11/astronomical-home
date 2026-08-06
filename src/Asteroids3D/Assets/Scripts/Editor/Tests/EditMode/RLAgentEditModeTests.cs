@@ -3,7 +3,6 @@ using AI.Observation;
 using AI.Scanning;
 using Game.RLHarness;
 using Movement;
-using Movement.MPC;
 using NUnit.Framework;
 using Ships;
 using Ships.Command;
@@ -11,7 +10,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the pure agent maps: action thresholds/clamps, the one-time ego→world conversions (velocity and facing), the 26-float combat observation layout, the nearest-N asteroid attention tokens (selection + normalization + cap truncation, no zero-pad), and the chooser's intent shapes (manual aim/fire vs the legacy aimbot mode) and one-shot boost semantics.</summary>
+    /// <summary>Pins the pure agent maps: the 5-continuous + 2-discrete action decode (anchored facing offset/weight, polar speeds, discrete branches), the 28-float combat observation layout (self + enemy weapon channels), the nearest-N asteroid attention tokens (selection + normalization + cap truncation, no zero-pad), and the chooser's anchored-intent shape (anchored facing/velocity + manual fire, never the legacy world facing or aimbot) and one-shot boost semantics.</summary>
     [Category("AI")]
     public class RLAgentEditModeTests
     {
@@ -34,83 +33,32 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void Map_ClampsVelocityAndThresholdsTriggers()
+        public void Map_DecodesAnchoredScalarsAndDiscreteBranches()
         {
-            var a = AgentActions.Map(2f, -3f, 0.01f, -0.01f, 0.4f, -0.9f);
-            Assert.AreEqual(new Vector2(1f, -1f), a.velocityEgo);
-            Assert.AreEqual(new Vector2(0.4f, -0.9f), a.facingEgo);
-            Assert.IsTrue(a.fire);
-            Assert.IsFalse(a.boost);
-
-            var atThreshold = AgentActions.Map(0f, 0f, 0f, 0f, 0f, 0f);
-            Assert.IsFalse(atThreshold.fire, "fire gates on strictly positive");
-            Assert.IsFalse(atThreshold.boost, "boost gates on strictly positive");
+            // (0,-1) = face away: offset π, full authority; speeds scale by maxSpeed; discrete[0]=fire.
+            var a = AgentActions.Map(0f, -1f, 2f, -3f, 5f, fire: 1, boost: 0, MaxSpeed);
+            Assert.AreEqual(Mathf.PI, a.facingOffsetRad, 1e-4f, "(0,-1) faces away from the intercept anchor");
+            Assert.AreEqual(1f, a.facingWeight, 1e-6f, "|(0,-1)| = 1 authority");
+            Assert.AreEqual(2f * MaxSpeed, a.radialSpeed, 1e-4f);
+            Assert.AreEqual(-3f * MaxSpeed, a.tangentialSpeed, 1e-4f);
+            Assert.AreEqual(1f, a.velocityWeight, 1e-6f, "vw clamps into [0,1]");
+            Assert.IsTrue(a.fire, "discrete[0]==1 fires");
+            Assert.IsFalse(a.boost, "discrete[1]==0 no boost");
         }
 
         [Test]
-        public void ToWorldVelocity_RotatesEgoIntoThePlaneFrame()
+        public void Map_AimAtIntercept_IsOffsetZero_AndClampsWeights()
         {
-            // Ship facing +X: ego-forward (0,1) → world +X, ego-right (1,0) → world −Y.
-            var forward = new Vector2(1f, 0f);
-            AssertVector(new Vector2(MaxSpeed, 0f),
-                AgentActions.ToWorldVelocity(new Vector2(0f, 1f), forward, MaxSpeed));
-            AssertVector(new Vector2(0f, -MaxSpeed),
-                AgentActions.ToWorldVelocity(new Vector2(1f, 0f), forward, MaxSpeed));
-        }
+            var aim = AgentActions.Map(0f, 1f, 0f, 0f, -0.5f, fire: 0, boost: 1, MaxSpeed);
+            Assert.AreEqual(0f, aim.facingOffsetRad, 1e-6f, "(0,+1) aims at intercept — offset 0");
+            Assert.AreEqual(1f, aim.facingWeight, 1e-6f);
+            Assert.AreEqual(0f, aim.velocityWeight, 1e-6f, "negative vw clamps to 0 (residual-policy start delegates to the prior)");
+            Assert.IsFalse(aim.fire);
+            Assert.IsTrue(aim.boost, "discrete[1]==1 boosts");
 
-        [Test]
-        public void ToWorldVelocity_ClampsToMaxSpeed()
-        {
-            var world = AgentActions.ToWorldVelocity(new Vector2(1f, 1f), Vector2.up, MaxSpeed);
-            Assert.AreEqual(MaxSpeed, world.magnitude, 1e-4f);
-        }
-
-        [Test]
-        public void EgoWorldConversion_RoundTrips()
-        {
-            var forward = new Vector2(Mathf.Cos(0.7f), Mathf.Sin(0.7f));
-            var ego = new Vector2(0.3f, -0.4f);
-            var roundTripped = AgentActions.ToEgoAction(
-                AgentActions.ToWorldVelocity(ego, forward, MaxSpeed), forward, MaxSpeed);
-            AssertVector(ego, roundTripped);
-        }
-
-        [Test]
-        public void ToFacingRad_MapsEgoDirectionToMpcYaw()
-        {
-            // MPC yaw convention: fwd = (−sin, cos), so world +Y ⇒ 0 and world +X ⇒ −π/2.
-            Assert.AreEqual(0f, AgentActions.ToFacingRad(new Vector2(0f, 1f), Vector2.up), 1e-4f,
-                "ego-forward with the nose on +Y stays yaw 0");
-            Assert.AreEqual(-0.5f * Mathf.PI,
-                AgentActions.ToFacingRad(new Vector2(0f, 1f), Vector2.right), 1e-4f,
-                "ego-forward with the nose on +X is yaw −π/2");
-            Assert.AreEqual(-0.5f * Mathf.PI,
-                AgentActions.ToFacingRad(new Vector2(1f, 0f), Vector2.up), 1e-4f,
-                "ego-right from a +Y nose points at world +X");
-            Assert.AreEqual(AgentActions.ToFacingRad(new Vector2(0f, 0.1f), Vector2.right),
-                AgentActions.ToFacingRad(new Vector2(0f, 1f), Vector2.right), 1e-4f,
-                "facing is a direction — magnitude must not change the commanded yaw");
-        }
-
-        [Test]
-        public void ToFacingRad_DegenerateDirection_HoldsTheCurrentNose()
-        {
-            Assert.AreEqual(-0.5f * Mathf.PI,
-                AgentActions.ToFacingRad(Vector2.zero, Vector2.right), 1e-4f,
-                "a zero direction must resolve to the current forward, never to yaw 0");
-        }
-
-        [Test]
-        public void ToFacingWeight_IsTheClampedMagnitude()
-        {
-            Assert.AreEqual(0f, AgentActions.ToFacingWeight(Vector2.zero), 1e-6f,
-                "a zero vector expresses don't-care — zero facing authority");
-            Assert.AreEqual(1f, AgentActions.ToFacingWeight(Vector2.up), 1e-6f,
-                "a unit direction (the heuristic's normalized bearing) is full authority");
-            Assert.AreEqual(1f, AgentActions.ToFacingWeight(new Vector2(1f, 1f)), 1e-6f,
-                "the action-box corner clamps to 1 — authority never exceeds the settings ceiling");
-            Assert.AreEqual(0.3f, AgentActions.ToFacingWeight(new Vector2(0.3f, 0f)), 1e-6f,
-                "a small vector keeps its magnitude — no deadzone");
+            var corner = AgentActions.Map(1f, 1f, 0f, 0f, 2f, fire: 0, boost: 0, MaxSpeed);
+            Assert.AreEqual(1f, corner.facingWeight, 1e-6f, "the action-box corner clamps facing authority to 1");
+            Assert.AreEqual(1f, corner.velocityWeight, 1e-6f, "vw > 1 clamps to 1");
         }
 
         [Test]
@@ -128,7 +76,8 @@ namespace Tests.EditMode
             AgentObservations.Fill(buffer, self, in target,
                 inMyEnvelope: true, inEnemyEnvelope: false, primaryWeaponReady: true, primaryHeatPct: 0.6f,
                 primaryProjectileSpeed: 0f, // hitscan lead: aim point = target position
-                arenaCenterPlane: new Vector2(5f, 65f), arenaRadius: ArenaRadius);
+                arenaCenterPlane: new Vector2(5f, 65f), arenaRadius: ArenaRadius,
+                enemyWeaponReady: true, enemyHeatPct: 0.3f);
 
             var expected = new[]
             {
@@ -145,9 +94,11 @@ namespace Tests.EditMode
                 0.7f, 0.2f,          // target health, shield
                 1f, 0f,              // inMyEnvelope, inEnemyEnvelope
                 0f, 60f / ArenaRadius,   // arena center ego / R
-                1f,                  // primary weapon ready
+                1f,                  // self primary weapon ready
                 0.6f,                // self primary heat pct
                 0f, 1f,              // intercept-lead direction ego (hitscan → dead-ahead bearing)
+                1f,                  // enemy primary weapon ready
+                0.3f,                // enemy primary heat pct
             };
             Assert.AreEqual(AgentObservations.CombatChannels, expected.Length, "the flat vector is combat-only");
             Assert.AreEqual(AgentObservations.CombatChannels, buffer.Length);
@@ -169,7 +120,8 @@ namespace Tests.EditMode
 
             AgentObservations.Fill(buffer, self, in target,
                 inMyEnvelope: false, inEnemyEnvelope: false, primaryWeaponReady: true, primaryHeatPct: 0f,
-                primaryProjectileSpeed: 10f, arenaCenterPlane: Vector2.zero, arenaRadius: ArenaRadius);
+                primaryProjectileSpeed: 10f, arenaCenterPlane: Vector2.zero, arenaRadius: ArenaRadius,
+                enemyWeaponReady: false, enemyHeatPct: 0f);
 
             var lead = new Vector2(buffer[24], buffer[25]);
             Assert.AreEqual(1f, lead.magnitude, 1e-4f, "the lead channels carry a unit direction");
@@ -178,18 +130,21 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void Fill_NoTarget_ZeroesTheTargetBlockAndLead()
+        public void Fill_NoTarget_ZeroesTheTargetBlockLeadAndEnemyWeapon()
         {
             var self = new StubStatus { kinematics = new Kinematics(Vector2.zero, Vector2.zero, 0f, 0f, 0f) };
             var buffer = new float[AgentObservations.CombatChannels];
             AgentObservations.Fill(buffer, self, TargetView.None,
                 inMyEnvelope: false, inEnemyEnvelope: false, primaryWeaponReady: false, primaryHeatPct: 0f,
-                primaryProjectileSpeed: 40f, arenaCenterPlane: Vector2.zero, arenaRadius: ArenaRadius);
+                primaryProjectileSpeed: 40f, arenaCenterPlane: Vector2.zero, arenaRadius: ArenaRadius,
+                enemyWeaponReady: true, enemyHeatPct: 0.9f);
 
             for (var i = 8; i < 18; i++)
                 Assert.AreEqual(0f, buffer[i], $"hasTarget flag and target block must zero (channel {i})");
             Assert.AreEqual(0f, buffer[24], "lead x must zero with no target");
             Assert.AreEqual(0f, buffer[25], "lead y must zero with no target");
+            Assert.AreEqual(0f, buffer[26], "enemy weapon ready must zero with no target");
+            Assert.AreEqual(0f, buffer[27], "enemy heat must zero with no target");
         }
 
         [Test]
@@ -260,54 +215,41 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void AgentChooser_ManualAction_CarriesFacingAndManualFire_NeverTheAimbot()
+        public void AgentChooser_ManualAction_CarriesAnchoredFacingAndVelocity_NeverTheAimbot()
         {
             var opponentGo = new GameObject("Opponent");
             try
             {
                 var opponent = opponentGo.AddComponent<Ship>();
                 var chooser = new AgentChooser();
-                chooser.Configure(opponent);
+                chooser.Configure(opponent, primaryProjectileSpeed: 40f);
 
-                chooser.SetAction(new Vector2(4f, 0f), facingRad: 1.2f, facingWeight: 0.4f, fire: true, boost: false, boostAvailable: true);
+                var action = new AgentAction(facingOffsetRad: 1.2f, facingWeight: 0.4f,
+                    radialSpeed: 4f, tangentialSpeed: -2f, velocityWeight: 0.6f, fire: true, boost: false);
+                chooser.SetAction(in action, boostAvailable: true);
 
                 var intent = chooser.Decide(null, 0.02f);
                 Assert.IsTrue(intent.isValid);
-                Assert.IsTrue(intent.hasTarget, "the target snapshot stays (obstacle exclusion keys on it)");
-                Assert.IsTrue(intent.hasFacing);
-                Assert.AreEqual(1.2f, intent.facingRad, 1e-6f);
-                Assert.AreEqual(1, intent.weightOverrides.Length, "manual aim carries exactly the Facing authority override");
-                Assert.AreEqual(MpcWeight.Facing, intent.weightOverrides[0].weight);
-                Assert.AreEqual(0.4f, intent.weightOverrides[0].multiplier, 1e-6f,
-                    "the override multiplier is the |fx,fy| facing authority from the boundary");
+                Assert.IsTrue(intent.hasTarget, "the target snapshot stays (obstacle exclusion + anchoring key on it)");
+
+                // B1 boundary pin: exactly one facing source — the anchored one, never the legacy world facing.
+                Assert.IsFalse(intent.hasFacing, "the legacy world-frame facing stays off");
+                Assert.IsTrue(intent.anchored.hasFacing, "the anchored facing carries the command");
+                Assert.AreEqual(1.2f, intent.anchored.facingOffsetRad, 1e-6f);
+                Assert.AreEqual(0.4f, intent.anchored.facingWeight, 1e-6f, "authority weight rides the anchored channel");
+
+                Assert.IsTrue(intent.anchored.hasVelocity);
+                Assert.AreEqual(4f, intent.anchored.radialSpeed, 1e-6f);
+                Assert.AreEqual(-2f, intent.anchored.tangentialSpeed, 1e-6f);
+                Assert.AreEqual(0.6f, intent.anchored.velocityWeight, 1e-6f);
+
+                Assert.AreEqual(40f, intent.projectileSpeed, 1e-6f, "self projectile speed feeds the anchored intercept lead");
+                Assert.IsFalse(intent.aimAtTarget, "manual aim must leave the MPC intercept override dormant");
                 Assert.IsTrue(intent.manualFire);
                 Assert.IsTrue(intent.primaryHeld);
-                Assert.IsFalse(intent.aimAtTarget, "manual aim must leave the MPC intercept override dormant");
-                Assert.AreEqual(0f, intent.projectileSpeed, "no aim-purpose projectile speed on the manual path");
                 Assert.IsFalse(intent.enableFiring, "the Gunner path must stay cold on the manual path");
-            }
-            finally
-            {
-                Object.DestroyImmediate(opponentGo);
-            }
-        }
-
-        [Test]
-        public void AgentChooser_FullFacingMagnitude_EmitsUnityMultiplier()
-        {
-            var opponentGo = new GameObject("Opponent");
-            try
-            {
-                var opponent = opponentGo.AddComponent<Ship>();
-                var chooser = new AgentChooser();
-                chooser.Configure(opponent);
-
-                chooser.SetAction(new Vector2(4f, 0f), facingRad: 0f, facingWeight: 1f, fire: false, boost: false, boostAvailable: true);
-
-                var intent = chooser.Decide(null, 0.02f);
-                Assert.IsTrue(intent.isValid);
-                Assert.AreEqual(1f, intent.weightOverrides[0].multiplier, 1e-6f,
-                    "full magnitude is ×1 — the settings asset's wFacing stays the authority ceiling");
+                Assert.IsTrue(intent.weightOverrides == null || intent.weightOverrides.Length == 0,
+                    "anchored mode leaves weightOverrides empty — ceiling × weight never double-scales");
             }
             finally
             {
@@ -323,21 +265,23 @@ namespace Tests.EditMode
             {
                 var opponent = opponentGo.AddComponent<Ship>();
                 var chooser = new AgentChooser();
-                chooser.Configure(opponent);
+                chooser.Configure(opponent, primaryProjectileSpeed: 40f);
 
-                chooser.SetAction(new Vector2(4f, 0f), facingRad: 0f, facingWeight: 1f, fire: true, boost: true, boostAvailable: true);
+                var action = new AgentAction(facingOffsetRad: 0f, facingWeight: 1f,
+                    radialSpeed: 4f, tangentialSpeed: 0f, velocityWeight: 1f, fire: true, boost: true);
+                chooser.SetAction(in action, boostAvailable: true);
 
                 var first = chooser.Decide(null, 0.02f);
                 Assert.IsTrue(first.isValid);
                 Assert.IsTrue(first.boost, "boundary tick spends the boost");
                 Assert.IsTrue(first.primaryHeld);
-                Assert.AreEqual(new Vector2(4f, 0f), first.velocityReference);
+                Assert.AreEqual(4f, first.anchored.radialSpeed, 1e-6f);
 
                 var second = chooser.Decide(null, 0.02f);
                 Assert.IsTrue(second.isValid);
                 Assert.IsFalse(second.boost, "boost is one-shot per decision");
-                Assert.AreEqual(first.velocityReference, second.velocityReference,
-                    "the cached world-plane reference holds for the interval");
+                Assert.AreEqual(first.anchored.radialSpeed, second.anchored.radialSpeed,
+                    "the cached anchored command holds for the interval");
             }
             finally
             {
@@ -353,9 +297,11 @@ namespace Tests.EditMode
             {
                 var opponent = opponentGo.AddComponent<Ship>();
                 var chooser = new AgentChooser();
-                chooser.Configure(opponent);
+                chooser.Configure(opponent, primaryProjectileSpeed: 40f);
 
-                chooser.SetAction(new Vector2(4f, 0f), facingRad: 0f, facingWeight: 1f, fire: false, boost: true, boostAvailable: false);
+                var action = new AgentAction(facingOffsetRad: 0f, facingWeight: 1f,
+                    radialSpeed: 4f, tangentialSpeed: 0f, velocityWeight: 1f, fire: false, boost: true);
+                chooser.SetAction(in action, boostAvailable: false);
 
                 var first = chooser.Decide(null, 0.02f);
                 Assert.IsTrue(first.isValid);
@@ -377,11 +323,13 @@ namespace Tests.EditMode
             {
                 var opponent = opponentGo.AddComponent<Ship>();
                 var chooser = new AgentChooser();
-                chooser.Configure(opponent);
+                chooser.Configure(opponent, primaryProjectileSpeed: 40f);
 
                 Assert.IsFalse(chooser.Decide(null, 0.02f).isValid, "no action yet → idle");
 
-                chooser.SetAction(Vector2.right, facingRad: 0f, facingWeight: 1f, fire: false, boost: false, boostAvailable: true);
+                var action = new AgentAction(facingOffsetRad: 0f, facingWeight: 1f,
+                    radialSpeed: 1f, tangentialSpeed: 0f, velocityWeight: 1f, fire: false, boost: false);
+                chooser.SetAction(in action, boostAvailable: true);
                 Assert.IsTrue(chooser.Decide(null, 0.02f).isValid);
 
                 chooser.Reset();
@@ -391,12 +339,6 @@ namespace Tests.EditMode
             {
                 Object.DestroyImmediate(opponentGo);
             }
-        }
-
-        private static void AssertVector(Vector2 expected, Vector2 actual)
-        {
-            Assert.AreEqual(expected.x, actual.x, 1e-4f);
-            Assert.AreEqual(expected.y, actual.y, 1e-4f);
         }
     }
 }

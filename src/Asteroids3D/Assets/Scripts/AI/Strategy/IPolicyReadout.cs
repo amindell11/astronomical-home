@@ -1,19 +1,22 @@
-using UnityEngine;
-
 namespace AI
 {
-    /// <summary>One decision's commanded output, as handed to <see cref="IIntentChooser.Decide"/>'s intent.</summary>
+    /// <summary>One decision's commanded output in the enemy-anchored frame, as handed to <see cref="IIntentChooser.Decide"/>'s intent: a facing offset around the intercept anchor (with authority weight) and a polar velocity (radial/tangential speeds, with authority weight).</summary>
     public readonly struct PolicyAction
     {
-        public readonly Vector2 worldVelocity;
-        public readonly float facingRad;
+        public readonly float facingOffsetRad;
         public readonly float facingWeight;
+        public readonly float radialSpeed;
+        public readonly float tangentialSpeed;
+        public readonly float velocityWeight;
 
-        public PolicyAction(Vector2 worldVelocity, float facingRad, float facingWeight)
+        public PolicyAction(float facingOffsetRad, float facingWeight, float radialSpeed,
+            float tangentialSpeed, float velocityWeight)
         {
-            this.worldVelocity = worldVelocity;
-            this.facingRad = facingRad;
+            this.facingOffsetRad = facingOffsetRad;
             this.facingWeight = facingWeight;
+            this.radialSpeed = radialSpeed;
+            this.tangentialSpeed = tangentialSpeed;
+            this.velocityWeight = velocityWeight;
         }
     }
 

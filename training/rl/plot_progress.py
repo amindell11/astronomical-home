@@ -19,9 +19,6 @@ PANELS = [
     ("Policy/Entropy", "Entropy"),
 ]
 
-# The curriculum's lesson-advance thresholds, as a progress reference on the reward panel.
-REWARD_THRESHOLDS = (0.3, 0.45, 0.6, 0.75, 0.9, 1.05)
-
 
 def parse_args():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -80,10 +77,6 @@ def main():
     lesson_ax.grid(alpha=0.3)
     if lesson_tags:
         lesson_ax.legend(fontsize=7)
-
-    if "Environment/Cumulative Reward" in tags:
-        for threshold in REWARD_THRESHOLDS:
-            axes[0].axhline(threshold, color="gray", linewidth=0.5, linestyle="--", alpha=0.6)
 
     for spare in axes[len(PANELS) + 1:]:
         spare.axis("off")

@@ -47,11 +47,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4b8ea6c63245a6e4197204a7a6f71112, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   difficulty: 1
   combatExitDelay: 3
-  debugSettings: {fileID: 0}
 --- !u!114 &-1070365238870678526
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -62,8 +61,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5d4ac4b3b484be947a21a1f6bdfd3dae, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   lockedLocalPosition: {x: 0, y: 0, z: 0}
   lockRotation: 1
   lockScale: 1
@@ -77,13 +76,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f0f9ac3a41558b64f9a98d4dd5dbddb2, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mpcSettings: {fileID: 11400000, guid: a3f18c2d94b6e7054a2c8f1d6b3e0972, type: 2}
+  enableObstacleAvoidance: 1
   labelStep: 5
   showCostBreakdown: 1
   costBreakdownMode: 0
   logSolverPerformance: 0
-  lastSolveTimeMs: 0
   showObstacleCosts: 1
   showTrajectoryCosts: 1
   showControlInputs: 1
@@ -91,8 +91,7 @@ MonoBehaviour:
   candidateSampleCount: 32
   candidateAlphaFalloff: 2
   controlPanelOffset: {x: 0, y: 2.5, z: 0}
-  mpcSettings: {fileID: 11400000, guid: a3f18c2d94b6e7054a2c8f1d6b3e0972, type: 2}
-  enableObstacleAvoidance: 1
+  lastSolveTimeMs: 0
 --- !u!114 &2056539076943524747
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -103,8 +102,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 672451d8ba1d1c24b95ea05b1fea1e71, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &606810096680689649
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -115,8 +114,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3358d33db4de47449a05f34455161639, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   nearbyShipRadius: 300
   asteroidCoverRadius: 15
   asteroidMask:
@@ -133,8 +132,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e74b596751aefc842ad51157fcb57ee7, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   chooser:
     rid: 1937986634179674200
   references:
@@ -143,5 +142,6 @@ MonoBehaviour:
     - rid: 1937986634179674200
       type: {class: InferenceChooser, ns: Game.RLHarness, asm: Game.RLHarness.Runtime}
       data:
-        model: {fileID: 5022602860645237092, guid: 7c1e9d2a4b3f48e1a6d05f8c3b27e419, type: 3}
+        model: {fileID: 5022602860645237092, guid: e28d8b0c8a505504e8c3a28d75d05380,
+          type: 3}
         leashRadius: 120

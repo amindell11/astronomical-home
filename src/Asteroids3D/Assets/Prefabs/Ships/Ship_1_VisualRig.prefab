@@ -303,6 +303,7 @@ MonoBehaviour:
   shieldDepletedClip: {fileID: 8300000, guid: 55612cbf39d2f044eb1d170e2f02b6fe, type: 3}
   hullHitClip: {fileID: 0}
   deathClip: {fileID: 8300000, guid: df2d261e3ab4dcb4ea63f13022237a7d, type: 3}
+  collisionDeathClip: {fileID: 8300000, guid: cf21eb8d6eae0dd40a75d51edc82f5dc, type: 3}
   shieldVolume: 0.8
   shieldDepletedVolume: 0.898
   hullVolume: 1

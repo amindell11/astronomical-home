@@ -20,6 +20,10 @@ namespace Ships.Visuals
         [SerializeField]
         private GameObject explosionPrefab;
 
+        [Tooltip("Death VFX when the killing blow was an asteroid collision. Null → explosionPrefab.")]
+        [SerializeField]
+        private GameObject collisionExplosionPrefab;
+
         private IDamageEvents source;
         private bool subscribed;
 
@@ -82,14 +86,17 @@ namespace Ships.Visuals
             subscribed = false;
         }
 
-        private void OnDeath(ShipId _victimId, DamageInfo _killingBlow)
+        private void OnDeath(ShipId _victimId, DamageInfo killingBlow)
         {
-            if (!explosionPrefab) return;
-            var pooled = explosionPrefab.GetComponent<PooledVFX>();
+            var prefab = killingBlow.Kind == DamageKind.Collision && collisionExplosionPrefab
+                ? collisionExplosionPrefab
+                : explosionPrefab;
+            if (!prefab) return;
+            var pooled = prefab.GetComponent<PooledVFX>();
             if (pooled)
                 SimplePool<PooledVFX>.Get(pooled, transform.position, Quaternion.identity);
             else
-                Instantiate(explosionPrefab, transform.position, Quaternion.identity);
+                Instantiate(prefab, transform.position, Quaternion.identity);
         }
 
         private void OnHealthChanged(float current, float previous, float max)

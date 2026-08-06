@@ -60,7 +60,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 |---|---|---|
 | **gate** | merge gate · eval gate (`eval_gate.py`) · gate score · cost gate (fix-ladder rung 3) · go/no-go gate · curriculum lesson gate · anti-churn gate · scoping gate · "gated off" code conditionals | Always qualified. Bare "the gate" is legal only in pool-merge context (= merge gate) and RL-run context (= eval gate), and never in a title. |
 | **lane** | boot lane · harness lane · curriculum lane · watch/capture lane · audit lane · teacher-tuning lane · access-queue lane · firing lane (lane clearing) | Always qualified. |
-| **pool** | worktree pool · ship resource pool (`PoolDifferential`) · self-play snapshot pool · object pool (`SimplePool`) · Dev Pool board columns | Always qualified. |
+| **pool** | worktree pool · ship resource pool (`PoolDifferential`) · self-play snapshot pool · object pool (`SimplePool`) · Dev Pool issue labels (`mid-dev-pool`/`high-dev-pool`, ex-board columns) | Always qualified. |
 | **token** | bus/signal token · obs obstacle token (`ObstacleTokenCap`) · threat token · LLM context token | Always qualified. |
 | **slot** | worktree slot (`agent-N`) · weapon/mount slot · ONNX import slot · obs slot-block grammar · MPC terminal-cost slot | Qualify outside pool-loop context; bare "slot" = worktree slot in workflow text only. |
 | **pin** | pin test (freeze a value) · pinned seeds/hypers · instance pinning (MCP) · ram-pin exploit | Qualify. "ram-pin" always hyphenated for the physics exploit. |
@@ -85,6 +85,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | **guard** | the prohibited runtime check (fix-ladder rung 5, pejorative) · a benign regression/test guard · infra guard | The pejorative sense wins in fix-ladder context. Tests say "regression test", not "guard". |
 | **anchor** | `--initialize-from` checkpoint · field world anchor / null anchor · archive anchors (file locations) · arena root · anchored intent / enemy anchor (the MPC-resolved frame reference) | Always qualified. |
 | **trainer** | ml-agents trainer runtime (`mlagents-learn`) · owned trainer runtime (takeover arc) · custom-trainer plugin seam · trainer config (`ppo_*.yaml`) · `RLTrainerConfigEditModeTests` | Always qualified. Bare "the trainer" is legal only in RL-run operational context (= the run's trainer-runtime process), never in a title. |
+| **tripwire** | eval tripwire (the scorecard subset watched as a collapse detector) · player-build tripwire (`PlayerBuildTripwireEditModeTests`) | Always qualified. |
 
 ---
 
@@ -173,7 +174,8 @@ Format: **term** — definition. *(authority)*
   `AGENTS.md` → Unity code conventions).
 - **rescue sweep** — salvaging valuable strays (scratch probes, orphaned docs)
   into an infra-hygiene PR rather than losing them to a slot reset.
-- **three tracking surfaces** — board = what / for-when (title-only cards);
+- **three tracking surfaces** — GitHub Issues = what / for-when (thin
+  title-plus-link issues; ex-Obsidian-board, migrated 2026-08-06);
   memory = why / how; ledger = right-now claims. Never conflate. *(AGENTS.md)*
 - **parking lot** — deferred *discussion* items, not work items; add on park,
   delete on resolution. *(memory)*
@@ -256,7 +258,7 @@ Format: **term** — definition. *(authority)*
   only. All three stage-(ii) defects were invisible in the mean.
 - **pause-eval** — stop the trainer at a checkpoint export, run the deterministic
   eval, `--resume` losslessly. *(runbook)*
-- **scorecard / tripwire** — per-archetype W/L/D plus behavior metrics / the
+- **scorecard / eval tripwire** — per-archetype W/L/D plus behavior metrics / the
   subset watched purely as a collapse detector.
 - **combat telemetry** — the offline balance instrument: the `combat` registry
   probe's per-episode measurement surface (range-band occupancy, TTK inputs,
@@ -362,6 +364,14 @@ Format: **term** — definition. *(authority)*
   per-step tracking error against the arm's intended reference, binned by range
   around the yaw wall (< 3 u) and the trackable annulus (3–8 u).
   *(VelRebaseProbe, VelRebaseLane)*
+- **controller** (probe) — the MPC-retune instrument separating target-motion
+  yaw demand from self-generated churn; the metrics live in the row schema.
+  *(ControllerProbe, ControllerSampler)*
+- **obstacle threat** — per-step classification: the MPC's obstacle handling
+  fires — hull overlap (`Cost.Collides`) or collision-course turn-away
+  (`Cost.TurnAwayCost > 0`). Always the qualified form in prose; the probe
+  sidecar's `threat`/`clear` field names are context-bound and stay.
+  *(Cost.ObstacleCosts, ControllerProbe.ObstacleThreat)*
 - **anchored intent** — an intent channel expressed as frame + relation +
   authority instead of a world-frame value: a facing offset around the enemy
   intercept anchor, and a polar velocity in the enemy frame, each with a [0,1]
@@ -403,6 +413,14 @@ Format: **term** — definition. *(authority)*
   `ShipId.Invalid` when no ship caused the hit (asteroid collision); `OnDeath`
   carries the killing blow and is latched to fire once per life.
   *(DamageInfo, DamageController)*
+- **damage ledger** — per-life accumulation of the player's received DamageInfo
+  rows, aggregated per source — consumer-side recorder owned by the session rig,
+  never sim state. Source names are captured at event time because the attacker
+  may despawn before the recap reads the row. *(DamageLedger)*
+- **death recap** — the post-death summary panel rendered from the damage ledger
+  at the driver-owned `GameState.DeathRecap` hold, between death and the restart
+  flow; presentation-gated, so headless drivers fall straight through to Restart.
+  *(DeathRecapScreen, GameDriver.HandleDeathRecap)*
 - **painter** — a named diagnostic view (velocity vectors, aim lines, the policy
   facing fan) written once as a drawing routine over a diagnostic canvas, then
   rendered by whichever backend is active — offscreen capture or live editor
@@ -421,6 +439,11 @@ Format: **term** — definition. *(authority)*
 - **producer-owns-outputs** — when one tool's output is another's input, the
   location and format are the producer's contract; consumers never re-derive
   paths. *(CLAUDE.md §6 corollary)*
+- **player-build tripwire** — merge-gate EditMode lints re-stating what the
+  RLTraining player build needs (asmdef reference closure, scene-script
+  survival, hydrated LFS meshes) without building one — the merge gate never
+  builds a player, so player-only breaks are otherwise invisible (#185, #251).
+  *(PlayerBuildTripwireEditModeTests)*
 - **lane launcher** — the Python library that composes a lane's env, runs the
   batch child through the coordinator, and reads artifacts back from the dir it
   named. *(eval_lane.py)*

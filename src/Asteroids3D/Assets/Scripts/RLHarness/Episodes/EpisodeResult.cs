@@ -76,7 +76,7 @@ namespace Game.RLHarness
         public OpponentDraw opponent;
         public List<DecisionRow> trace;
 
-        public const string SchemaId = "rl-episode-v5";
+        public const string SchemaId = "rl-episode-v6";
 
         public string ToJsonLine() => JsonUtility.ToJson(this);
     }

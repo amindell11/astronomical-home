@@ -7,6 +7,7 @@ namespace Game.Bootstrap
         Hangar,
         LoadSector,
         InSector,
+        DeathRecap,
         Restart,
         Exit
     }

@@ -22,6 +22,7 @@ namespace Game.RLHarness
         private RewardSpec spec;
         private Vector2 arenaCenter;
         private IHeatReadout primaryHeat;
+        private IHeatReadout enemyHeat;
         private float primaryProjectileSpeed;
         private Scout scout;
         private EpisodeRunner runner;
@@ -42,6 +43,8 @@ namespace Game.RLHarness
             this.scout = scout;
             this.obstacleBuffer = obstacleBuffer;
             primaryHeat = ResolvePrimaryHeat(self);
+            // Resolved at the opponent-injection point (fixed for the episode), mirroring self's heat.
+            enemyHeat = ResolvePrimaryHeat(opponent);
             primaryProjectileSpeed = self.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary);
         }
 
@@ -71,7 +74,8 @@ namespace Game.RLHarness
                 snapshot.inMyEnvelope, snapshot.inEnemyEnvelope,
                 self.Weapons.Context.IsReady(WeaponSlot.Primary),
                 primaryHeat?.HeatPct ?? 0f, primaryProjectileSpeed,
-                arenaCenter, spec.arenaRadius);
+                arenaCenter, spec.arenaRadius,
+                opponent.Weapons.Context.IsReady(WeaponSlot.Primary), enemyHeat?.HeatPct ?? 0f);
 
             for (var i = 0; i < observationBuffer.Length; i++)
                 sensor.AddObservation(observationBuffer[i]);
@@ -88,33 +92,33 @@ namespace Game.RLHarness
         public override void OnActionReceived(ActionBuffers actions)
         {
             var continuous = actions.ContinuousActions;
+            var discrete = actions.DiscreteActions;
             var action = AgentActions.Map(continuous[0], continuous[1], continuous[2],
-                continuous[3], continuous[4], continuous[5]);
-            var selfKin = self.Kinematics;
-            var worldVelocity = AgentActions.ToWorldVelocity(
-                action.velocityEgo, selfKin.Forward, self.MaxSpeed);
-            var facingRad = AgentActions.ToFacingRad(action.facingEgo, selfKin.Forward);
-            var facingWeight = AgentActions.ToFacingWeight(action.facingEgo);
-            chooser.SetAction(worldVelocity, facingRad, facingWeight, action.fire, action.boost, self.BoostAvailable);
+                continuous[3], continuous[4], discrete[0], discrete[1], self.MaxSpeed);
+            chooser.SetAction(in action, self.BoostAvailable);
             DecisionsReceived++;
         }
 
         public override void Heuristic(in ActionBuffers actionsOut)
         {
             var continuous = actionsOut.ContinuousActions;
+            var discrete = actionsOut.DiscreteActions;
             var selfKin = self.Kinematics;
+            var enemyKin = opponent.Kinematics;
             var world = RangerChooser.HoldRangeVelocity(
-                in selfKin, opponent.Kinematics, HeuristicHoldRange, self.MaxSpeed);
-            var ego = AgentActions.ToEgoAction(world, selfKin.Forward, self.MaxSpeed);
-            var bearingEgo = new EgoFrame(Vector2.zero, selfKin.Forward)
-                .Direction(opponent.Kinematics.pos - selfKin.pos);
-            bearingEgo = bearingEgo.sqrMagnitude > 1e-8f ? bearingEgo.normalized : Vector2.up;
-            continuous[0] = ego.x;
-            continuous[1] = ego.y;
-            continuous[2] = 1f;
-            continuous[3] = -1f;
-            continuous[4] = bearingEgo.x;
-            continuous[5] = bearingEgo.y;
+                in selfKin, enemyKin, HeuristicHoldRange, self.MaxSpeed);
+            var los = enemyKin.pos - selfKin.pos;
+            var losHat = los.sqrMagnitude > 1e-8f ? los.normalized : Vector2.up;
+            var maxSpeed = Mathf.Max(self.MaxSpeed, 1e-3f);
+
+            // Aim at intercept (offset 0, full weight), close along the LOS toward the hold band, no orbit, full velocity authority.
+            continuous[0] = 0f;
+            continuous[1] = 1f;
+            continuous[2] = Mathf.Clamp(Vector2.Dot(world, losHat) / maxSpeed, -1f, 1f);
+            continuous[3] = 0f;
+            continuous[4] = 1f;
+            discrete[0] = 1;
+            discrete[1] = 0;
         }
 
         // The hosting loop is the single reset owner; a policy-triggered begin here would race the pair-reset.

@@ -56,6 +56,13 @@ namespace Game.Bootstrap
         [Tooltip("Used when deathBehavior = RespawnInPlace.")]
         [SerializeField] private RespawnPolicy playerRespawn;
 
+        [Header("Death Recap")]
+        [Tooltip("Seconds the death recap holds before auto-continuing; the Continue button skips " +
+                 "the wait. Shown only under RestartSector with presentation on.")]
+        [SerializeField, Min(0f)] private float recapHoldSeconds = 8f;
+
+        private DamageInfo lastKillingBlow;
+
         private SessionHost host;
 
         private GameSession session;
@@ -108,6 +115,9 @@ namespace Game.Bootstrap
                     break;
                 case GameState.InSector:
                     yield break;
+                case GameState.DeathRecap:
+                    yield return HandleDeathRecap();
+                    break;
                 case GameState.Restart:
                     yield return HandleRestart();
                     break;
@@ -144,7 +154,11 @@ namespace Game.Bootstrap
             switch (deathBehavior)
             {
                 case PlayerDeathBehavior.RestartSector:
-                    return (_, _) => HandleRestartRequested();
+                    return (_, killingBlow) =>
+                    {
+                        lastKillingBlow = killingBlow;
+                        TransitionTo(GameState.DeathRecap);
+                    };
                 case PlayerDeathBehavior.RespawnInPlace:
                     var policy = playerRespawn;
                     if (!policy.Enabled) return null;
@@ -214,7 +228,32 @@ namespace Game.Bootstrap
 
         private void HandleSectorComplete(SectorResult result) => TransitionTo(GameState.Restart);
 
-        private void HandleRestartRequested() => TransitionTo(GameState.Restart);
+        /// <summary>Recap hold between death and restart; headless (no presentation/rig) falls straight through.</summary>
+        private IEnumerator HandleDeathRecap()
+        {
+            var rig = session.Rig;
+            if (!GameSettings.PresentationEnabled || !rig)
+            {
+                TransitionTo(GameState.Restart);
+                yield break;
+            }
+
+            var overlay = session.Services.UIService.ActiveOverlay;
+            if (overlay) overlay.SetVisible(false);
+            SetPlayerInputEnabled(rig, false);
+
+            var screen = DeathRecapScreen.Create();
+            var dismissed = false;
+            screen.Show(lastKillingBlow, rig.Ledger.Rows, () => dismissed = true);
+
+            var deadline = Time.unscaledTime + recapHoldSeconds;
+            yield return new WaitUntil(() => dismissed || Time.unscaledTime >= deadline);
+
+            Destroy(screen.gameObject);
+            SetPlayerInputEnabled(rig, true);
+            if (overlay) overlay.SetVisible(true);
+            TransitionTo(GameState.Restart);
+        }
 
         private IEnumerator HandleRestart()
         {

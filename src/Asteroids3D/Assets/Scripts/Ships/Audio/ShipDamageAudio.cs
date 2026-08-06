@@ -19,6 +19,8 @@ namespace Ships.Audio
         [SerializeField] private AudioClip shieldDepletedClip;
         [SerializeField] private AudioClip hullHitClip;
         [SerializeField] private AudioClip deathClip;
+        [Tooltip("Death sound when the killing blow was an asteroid collision. Null → deathClip.")]
+        [SerializeField] private AudioClip collisionDeathClip;
 
         [Header("Volumes")] [SerializeField, Range(0f, 1f)]
         private float shieldVolume = 0.8f;
@@ -81,10 +83,13 @@ namespace Ships.Audio
             if (current < previous) PlayHullHit();
         }
 
-        private void HandleDeath(ShipId _victimId, DamageInfo _killingBlow)
+        private void HandleDeath(ShipId _victimId, DamageInfo killingBlow)
         {
-            if (deathClip)
-                global::Audio.PooledAudioSource.PlayClipAtPoint(deathClip, transform.position, deathVolume);
+            var clip = killingBlow.Kind == DamageKind.Collision && collisionDeathClip
+                ? collisionDeathClip
+                : deathClip;
+            if (clip)
+                global::Audio.PooledAudioSource.PlayClipAtPoint(clip, transform.position, deathVolume);
         }
 
         private void PlayShieldDepleted()

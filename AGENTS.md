@@ -16,38 +16,39 @@ build next:
   wikilinks (`[[Sectors]]`, `[[Combat]]`, `[[World]]`, …), before proposing or
   implementing design-facing changes. If it conflicts with an assumption,
   follow the doc and call out the conflict.
-- **Project board:** `D:/amind/Documents/Obsidian Vault/Astronomical/Engineering/Project Board.md`
-  — an Obsidian Kanban board and the source of truth for work status. Columns:
-  `To Do`, `BUGS`, `Doing`, `Mid Dev Pool`, `High Dev Pool`, `Feature Goals`,
-  `Done`, `Meh`, `Archive`. Items carry `#Tags` (e.g. `#AI`, `#Ship`,
-  `#Testing`, `#Architecture`) and can nest sub-items.
+- **Issue tracker:** GitHub Issues on this repo — the source of truth for
+  backlog, bugs, and deferrals (migrated from the Obsidian board 2026-08-06;
+  the board's live columns now hold only pointer cards, its `Done`/`Archive`
+  columns remain as history). Column-role labels (`todo`, `bug`, `doing`,
+  `mid-dev-pool`, `high-dev-pool`) and domain labels (`RL`, `Ship`,
+  `Testing`, …) carry the old columns/`#Tags`; this vocabulary is
+  provisional — rename freely, don't proliferate.
 
 How to use them to track work:
-- When starting a task, check whether it maps to a board item. Pull bug work
-  from `## BUGS`, active features from `## Doing`, queued work from `## To Do`.
-  Ground the task in the board's wording and tags rather than inventing scope.
+- When starting a task, check whether it maps to an issue
+  (`gh issue list --label bug`, `--label todo`, …). Ground the task in the
+  issue's wording and labels rather than inventing scope.
 - For design/doc requests, research the vault directly (don't speculate) and
   cite note/file paths for non-obvious claims. Respect Obsidian conventions
   (wikilinks, embeds, aliases, anchors, frontmatter).
-- **The board is a first-class, agent-writable tracking artifact — actively
-  maintain it, don't merely suggest.** Add items, move them between columns,
-  tick sub-items, and tag them as work progresses. Match the Kanban markdown
-  exactly: `- [ ]` items under a `## Column` header, tab-indented sub-items,
-  `#Tags`. Leave unrelated items and the trailing `%% kanban:settings %%`
-  block untouched — write your item, don't reorganize the file.
-- **Deferrals live on the board.** When the user says to defer / punt / park
-  something, capture it as a board item in the appropriate column (a Dev Pool,
-  `To Do`, or nested under the parent item it relates to) with the right
-  `#Tags`. The board is that deferred work's canonical home.
-- **Board cards are title-only — a few scannable words, no description.**
-  `- [ ] PlayerRig decomposition`, not a sentence. Never write a rationale,
-  clause, or file-level detail onto the card; if you're tempted to append
-  "— because…", that text belongs in the linked memory/plan doc. Put **all**
-  deep rationale, trade-offs, and file-level detail in agent memory
-  (`.claude/.../memory/`) and link the two: the card carries a link to the
-  memory/plan-doc, and the memory file names the board item. The board says
-  *what / for-when*; memory says *why / how*. (Live in-flight claims are a third
-  thing — those go in the active-work ledger, see `CLAUDE.md`.)
+- **The tracker is a first-class, agent-writable artifact — actively
+  maintain it, don't merely suggest.** Create, label, close, and comment via
+  `gh` as work progresses. Native sub-issues and blocked-by dependencies are
+  available (gh ≥2.94: `gh issue edit --parent / --add-blocked-by`); prefer
+  them over body-text conventions. The repo is public — issues are
+  world-readable, so deep rationale stays in memory, not issue bodies.
+- **Deferrals live on the tracker.** When the user says to defer / punt /
+  park something, capture it as an issue with the right labels (a pool label
+  for backlog depth, `bug` for defects). An issue is that deferred work's
+  canonical home.
+- **Issues are title-plus-link thin — a scannable title, a `Detail:` link,
+  no essay.** Never write deep rationale into the body; put **all** deep
+  rationale, trade-offs, and file-level detail in agent memory
+  (`.claude/.../memory/`) and link the two: the issue body carries a link to
+  the memory/plan-doc, and the memory file names the issue number. The
+  tracker says *what / for-when*; memory says *why / how*. (Live in-flight
+  claims are a third thing — those go in the active-work ledger, see
+  `CLAUDE.md`.)
 
 ### Doc lifecycle
 
@@ -74,7 +75,7 @@ reaches a slot is an untracked twin with no merge base.
 ## Agent memory
 
 This repo is backed by a persistent, file-based agent memory — durable facts,
-decisions, and the *why/how* behind board items. It lives **outside** the repo,
+decisions, and the *why/how* behind tracker issues. It lives **outside** the repo,
 in the primary session's memory directory:
 
 `C:\Users\amind\.claude\projects\D--amind-git-astronomical-home\memory\`
@@ -92,9 +93,9 @@ in the primary session's memory directory:
   (`…/memory/active_work_ledger.md`) is always referenced by absolute path — see
   `CLAUDE.md` → "Cross-agent work ledger".
 - **Three tracking surfaces, don't conflate them:** agent memory holds the
-  durable *why/how*; the Obsidian **project board** holds title-only backlog /
-  status cards; the **active-work ledger** holds live, right-now claims/locks.
-  Board cards and ledger rows link out to the memory file that carries their
+  durable *why/how*; **GitHub Issues** hold title-plus-link backlog /
+  status items; the **active-work ledger** holds live, right-now claims/locks.
+  Issues and ledger rows link out to the memory file that carries their
   detail.
 
 ## Working style
