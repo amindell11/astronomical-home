@@ -11,24 +11,24 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 05c351aee451e594c9ffd819289ea8d6, type: 3}
   m_Name: BigFieldSettings
-  m_EditorClassIdentifier:
-  chunkSize: 9.64
-  noiseFrequency: -0.22
-  averageAsteroidsPerCell: 3.99
-  densityMultiplierRange: {x: 0.13, y: 0.25}
+  m_EditorClassIdentifier: 
+  chunkSize: 4.7
+  noiseFrequency: 0.1
+  averageAsteroidsPerCell: 0.8
+  densityMultiplierRange: {x: 0.05, y: 0.76}
   fieldRadius: 10000
   ambientDrift: 1
   packingMargin: 0
   minSpacing: 0
   startClearRadius: 12
   noiseOctaves: 4
-  noiseLacunarity: 1.25
-  noisePersistence: 0.21
+  noiseLacunarity: 2.97
+  noisePersistence: 0.222
   ridgedNoise: 1
-  noiseContrast: 5.41
-  densityFloor: 0.195
+  noiseContrast: 5.18
+  densityFloor: 0.238
   warpStrength: 2.15
-  warpFrequency: 0.63
+  warpFrequency: 1.12
   loadRadius: 87.5
   unloadRadiusMultiplier: 1.5
   maxSpawnsPerFrame: 10

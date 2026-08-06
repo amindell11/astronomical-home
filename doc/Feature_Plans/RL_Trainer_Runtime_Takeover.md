@@ -82,10 +82,11 @@ builds.
 
 **Stage 1a — owned entry wrapper (committed; split ruled 2026-08-05).** A
 project-owned entry that parses the CLI/YAML, writes the run manifest,
-registers an ADDITIVE stats-writer plugin (`[mlagents.stats_writer]` — a
-supported ml-agents seam; tfevents keep flowing, `plot_progress.py`
-untouched) emitting `summaries.jsonl`, refuses `--resume` +
-`--initialize-from` loudly, then delegates the entire loop to stock
+registers an ADDITIVE stats-writer (in-process, wrapper-scoped — amended
+2026-08-05 from the `[mlagents.stats_writer]` entry point, which is
+venv-global and would ride along into stock reference runs; tfevents keep
+flowing, `plot_progress.py` stays on them) emitting `summaries.jsonl`,
+refuses `--resume` + `--initialize-from` loudly, then delegates the entire loop to stock
 `learn.main()` (wrapper mechanics proven by the 2026-08-03 torch-thread
 experiment). The launcher grows its runtime selector here; dashboard + bench
 repoint to manifest/summaries in the same slice. Lands the manifest- and
