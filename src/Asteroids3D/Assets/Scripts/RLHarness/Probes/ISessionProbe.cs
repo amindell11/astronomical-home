@@ -57,6 +57,8 @@ namespace Game.RLHarness
             [ArchetypeGateProbe.ProbeName] = (_ => new ArchetypeGateProbe(), Array.Empty<string>()),
             [CombatTelemetryProbe.ProbeName] = (_ => new CombatTelemetryProbe(), Array.Empty<string>()),
             [ContactProbe.ProbeName] = (_ => new ContactProbe(), Array.Empty<string>()),
+            [ControllerProbe.ProbeName] = (parameters => new ControllerProbe(parameters),
+                new[] { ControllerProbe.YawRateDeadbandKey, ControllerProbe.TorqueDeadbandKey }),
             [FacingProbe.ProbeName] = (parameters => new FacingProbe(parameters),
                 new[] { FacingProbe.AuthorityScaleKey }),
             [VelRebaseProbe.ProbeName] = (_ => new VelRebaseProbe(), Array.Empty<string>()),
