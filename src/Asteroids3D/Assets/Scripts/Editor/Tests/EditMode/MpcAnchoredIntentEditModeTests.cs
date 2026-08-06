@@ -290,6 +290,7 @@ namespace Tests.EditMode
             public float ShieldPct => 1f;
             public bool BoostAvailable => true;
             public float BoostCooldownRemaining => 0f;
+            public float BoostCooldownPct => 0f;
             public float MaxSpeed => 10f;
             public float MaxYawRate => 90f;
         }

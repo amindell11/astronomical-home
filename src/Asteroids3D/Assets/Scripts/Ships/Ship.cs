@@ -76,6 +76,7 @@ namespace Ships
         public float ShieldPct => Damage ? Damage.Shield.Pct : 1f;
         public bool BoostAvailable => Movement && Movement.BoostAvailable;
         public float BoostCooldownRemaining => Movement ? Movement.BoostCooldownRemaining : 0f;
+        public float BoostCooldownPct => Movement ? Movement.BoostCooldownPct : 0f;
         public float MaxSpeed => Stats != null ? Stats.maxSpeed : 0f;
         public float MaxYawRate => Stats != null ? Stats.maxYawRate : 0f;
 

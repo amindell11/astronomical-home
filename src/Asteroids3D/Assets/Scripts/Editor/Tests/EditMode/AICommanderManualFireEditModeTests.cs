@@ -39,6 +39,7 @@ namespace Tests.EditMode
             public float ShieldPct => 1f;
             public bool BoostAvailable => true;
             public float BoostCooldownRemaining => 0f;
+            public float BoostCooldownPct => 0f;
             public float MaxSpeed => dynamics.maxSpeed;
             public float MaxYawRate => dynamics.maxYawRate;
         }

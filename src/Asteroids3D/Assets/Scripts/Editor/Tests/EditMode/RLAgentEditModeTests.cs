@@ -28,6 +28,7 @@ namespace Tests.EditMode
             public float ShieldPct => 0.25f;
             public bool BoostAvailable => true;
             public float BoostCooldownRemaining => 0f;
+            public float BoostCooldownPct => 0f;
             public float MaxSpeed => RLAgentEditModeTests.MaxSpeed;
             public float MaxYawRate => 90f;
         }
