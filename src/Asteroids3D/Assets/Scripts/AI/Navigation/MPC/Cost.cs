@@ -285,7 +285,7 @@ namespace Movement.MPC
             return angle;
         }
 
-#if UNITY_EDITOR
+        // Unguarded: the trajectory painter compiles into the player.
         public static CostBreakdown EvaluateBreakdown(State s, Control u, Control prevU,
             CostInput input, Config cfg, int step = 0)
         {
@@ -327,6 +327,7 @@ namespace Movement.MPC
             return breakdown;
         }
 
+#if UNITY_EDITOR
         public static CostBreakdown EvaluateTrajectoryBreakdown(State state, Control[] sequence,
             CostInput input, Config cfg, Dynamics shp, Control lastControl)
         {

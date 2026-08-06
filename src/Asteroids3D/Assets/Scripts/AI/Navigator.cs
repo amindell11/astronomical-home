@@ -261,7 +261,7 @@ namespace Movement.MPC
         internal Control lastControl => mpc != null ? mpc.LastControl : default;
 
         [NonSerialized] public int selectedCandidateIndex = -1;
-        // Candidate subsample drawn this frame, sorted by cost ascending; shared scratch between the painter and the scene-view selection handles.
+        // Shared scratch between the painter and the scene-view selection handles; sorted by cost ascending.
         internal int[] visibleCandidateIndices;
         internal int visibleCount;
 
