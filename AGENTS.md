@@ -17,38 +17,34 @@ build next:
   implementing design-facing changes. If it conflicts with an assumption,
   follow the doc and call out the conflict.
 - **Issue tracker:** GitHub Issues on this repo — the source of truth for
-  backlog, bugs, and deferrals (migrated from the Obsidian board 2026-08-06;
-  the board's live columns now hold only pointer cards, its `Done`/`Archive`
-  columns remain as history). Column-role labels (`todo`, `bug`, `doing`,
-  `mid-dev-pool`, `high-dev-pool`) and domain labels (`RL`, `Ship`,
-  `Testing`, …) carry the old columns/`#Tags`; this vocabulary is
-  provisional — rename freely, don't proliferate.
+  backlog, bugs, and deferrals. `doc/agents/issue-tracker.md` is the binding
+  the tracker-shaped skills (wayfinder, to-tickets) consult: label
+  vocabulary (`pri:now/next/later`, triage states, `wayfinder:*`), body law,
+  dependency/frontier mechanics, Projects-board sync.
 
 How to use them to track work:
 - When starting a task, check whether it maps to an issue
-  (`gh issue list --label bug`, `--label todo`, …). Ground the task in the
+  (`gh issue list --label bug`, `--label pri:now`, …). Ground the task in the
   issue's wording and labels rather than inventing scope.
 - For design/doc requests, research the vault directly (don't speculate) and
   cite note/file paths for non-obvious claims. Respect Obsidian conventions
   (wikilinks, embeds, aliases, anchors, frontmatter).
 - **The tracker is a first-class, agent-writable artifact — actively
   maintain it, don't merely suggest.** Create, label, close, and comment via
-  `gh` as work progresses. Native sub-issues and blocked-by dependencies are
-  available (gh ≥2.94: `gh issue edit --parent / --add-blocked-by`); prefer
-  them over body-text conventions. The repo is public — issues are
-  world-readable, so deep rationale stays in memory, not issue bodies.
+  `gh` as work progresses; prefer native sub-issues and blocked-by
+  dependencies over body-text conventions (mechanics in the tracker doc).
 - **Deferrals live on the tracker.** When the user says to defer / punt /
-  park something, capture it as an issue with the right labels (a pool label
-  for backlog depth, `bug` for defects). An issue is that deferred work's
-  canonical home.
-- **Issues are title-plus-link thin — a scannable title, a `Detail:` link,
-  no essay.** Never write deep rationale into the body; put **all** deep
-  rationale, trade-offs, and file-level detail in agent memory
-  (`.claude/.../memory/`) and link the two: the issue body carries a link to
-  the memory/plan-doc, and the memory file names the issue number. The
-  tracker says *what / for-when*; memory says *why / how*. (Live in-flight
-  claims are a third thing — those go in the active-work ledger, see
-  `CLAUDE.md`.)
+  park something, capture it as an issue: `needs-triage` + best-guess
+  priority label. An issue is that deferred work's canonical home.
+- **Issue bodies carry no deep rationale — the repo is public.** Rationale,
+  trade-offs, and file-level detail go in agent memory
+  (`.claude/.../memory/`) or the plan doc, linked from the body; the memory
+  file names the issue number. The tracker says *what / for-when*; memory
+  says *why / how*; live in-flight claims go in the active-work ledger (see
+  `CLAUDE.md`). The tracker doc's **body law** defines the legal body
+  shapes — thin deferral, to-tickets slice (behavioural spec + acceptance
+  criteria; the tracker owns an arc's slice breakdown, plan docs point at
+  it), wayfinder map/ticket.
 
 ### Doc lifecycle
 
