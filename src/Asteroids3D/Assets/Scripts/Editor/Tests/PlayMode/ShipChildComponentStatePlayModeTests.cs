@@ -12,7 +12,7 @@ using UnityEngine.UI;
 
 namespace Tests.PlayMode
 {
-    /// <summary>Child components (LockOnIndicator, StatusRingUI, WeaponsController) deactivate with the ship on death and come back functional — still firing, still event-subscribed — after reset, across repeated cycles.</summary>
+    /// <summary>Child components (LockOnIndicator, StatusBarUI, WeaponsController) deactivate with the ship on death and come back functional — still firing, still event-subscribed — after reset, across repeated cycles.</summary>
     [Category("Ships")]
     public class ShipChildComponentStatePlayModeTests : PlayModeWorldFixture
     {
@@ -22,12 +22,12 @@ namespace Tests.PlayMode
         
         private const bool ENABLE_DIAGNOSTICS = false;
 
-        // The rig carries one ring per tracked resource; fill assertions must pin the right one.
-        private StatusRingUI FindRing(StatusRingUI.TrackedResource tracked)
+        // The rig carries one bar per tracked resource; fill assertions must pin the right one.
+        private StatusBarUI FindBar(StatusBarUI.TrackedResource tracked)
         {
-            foreach (var ring in testShip.GetComponentsInChildren<StatusRingUI>(true))
-                if (ring.Tracked == tracked)
-                    return ring;
+            foreach (var bar in testShip.GetComponentsInChildren<StatusBarUI>(true))
+                if (bar.Tracked == tracked)
+                    return bar;
             return null;
         }
 
@@ -78,7 +78,7 @@ namespace Tests.PlayMode
             yield return null;
 
             var weaponsController = combatShip.Weapons;
-            var shieldUI = testShip.GetComponentInChildren<StatusRingUI>(includeInactive: true);
+            var shieldUI = testShip.GetComponentInChildren<StatusBarUI>(includeInactive: true);
             var lockOnIndicator = testShip.GetComponentInChildren<LockOnIndicator>(includeInactive: true);
 
             LogDiagnostic($"Before death - Ship active: {testShip.gameObject.activeSelf}, " +
@@ -99,7 +99,7 @@ namespace Tests.PlayMode
             if (shieldUI != null)
             {
                 Assert.IsFalse(shieldUI.gameObject.activeInHierarchy,
-                    "StatusRingUI should be inactive when parent ship is inactive");
+                    "StatusBarUI should be inactive when parent ship is inactive");
             }
 
             if (lockOnIndicator != null)
@@ -115,7 +115,7 @@ namespace Tests.PlayMode
             yield return null;
 
             var weaponsController = combatShip.Weapons;
-            var shieldUI = testShip.GetComponentInChildren<StatusRingUI>(includeInactive: true);
+            var shieldUI = testShip.GetComponentInChildren<StatusBarUI>(includeInactive: true);
             var lockOnIndicator = testShip.GetComponentInChildren<LockOnIndicator>(includeInactive: true);
 
             TestDamage.Kill(testShip, enemyShip);
@@ -145,9 +145,9 @@ namespace Tests.PlayMode
             if (shieldUI != null)
             {
                 Assert.IsNotNull(shieldUI,
-                    "StatusRingUI reference should not be null after reset");
+                    "StatusBarUI reference should not be null after reset");
                 Assert.IsTrue(shieldUI.gameObject.activeInHierarchy,
-                    "StatusRingUI GameObject should be active after ship reset");
+                    "StatusBarUI GameObject should be active after ship reset");
             }
 
             if (lockOnIndicator != null)
@@ -195,14 +195,14 @@ namespace Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator AfterShipReset_StatusRingUIRespondsToShieldDamage()
+        public IEnumerator AfterShipReset_StatusBarUIRespondsToShieldDamage()
         {
             yield return null;
 
-            var shieldUI = FindRing(StatusRingUI.TrackedResource.Shield);
+            var shieldUI = FindBar(StatusBarUI.TrackedResource.Shield);
             if (shieldUI == null)
             {
-                Assert.Ignore("StatusRingUI not present on Ship_1 prefab variant");
+                Assert.Ignore("StatusBarUI not present on Ship_1 prefab variant");
                 yield break;
             }
 
@@ -212,15 +212,15 @@ namespace Tests.PlayMode
             testShip.ResetShip();
             yield return null;
 
-            shieldUI = FindRing(StatusRingUI.TrackedResource.Shield);
-            Assert.IsNotNull(shieldUI, "StatusRingUI should exist after reset");
-            Assert.IsTrue(shieldUI.enabled, "StatusRingUI component should be enabled after reset");
+            shieldUI = FindBar(StatusBarUI.TrackedResource.Shield);
+            Assert.IsNotNull(shieldUI, "StatusBarUI should exist after reset");
+            Assert.IsTrue(shieldUI.enabled, "StatusBarUI component should be enabled after reset");
 
-            LogDiagnostic($"StatusRingUI after reset - enabled: {shieldUI.enabled}, active: {shieldUI.gameObject.activeInHierarchy}");
+            LogDiagnostic($"StatusBarUI after reset - enabled: {shieldUI.enabled}, active: {shieldUI.gameObject.activeInHierarchy}");
 
-            // Fill tracking the post-damage shield fraction proves StatusRingUI re-subscribed across death→reset, not merely that dispatch didn't throw.
-            var ring = shieldUI.GetComponent<Image>();
-            Assert.IsNotNull(ring, "StatusRingUI requires an Image to render its fill");
+            // Fill tracking the post-damage shield fraction proves StatusBarUI re-subscribed across death→reset, not merely that dispatch didn't throw.
+            var fill = shieldUI.Fill;
+            Assert.IsNotNull(fill, "StatusBarUI requires a fill Image to render");
             var maxShield = testShip.Damage.Shield.MaxValue;
 
             var shieldBefore = testShip.Damage.Shield.CurrentValue;
@@ -231,8 +231,8 @@ namespace Tests.PlayMode
             var shieldAfter = testShip.Damage.Shield.CurrentValue;
             Assert.Less(shieldAfter, shieldBefore,
                 "Shield should decrease after taking damage post-reset");
-            Assert.AreEqual(shieldAfter / maxShield, ring.fillAmount, 0.01f,
-                "StatusRingUI fill should track the current shield fraction after reset (event re-subscribed)");
+            Assert.AreEqual(shieldAfter / maxShield, fill.fillAmount, 0.01f,
+                "StatusBarUI fill should track the current shield fraction after reset (event re-subscribed)");
         }
 
         [UnityTest]
@@ -289,7 +289,7 @@ namespace Tests.PlayMode
                 LogDiagnostic($"=== Cycle {cycle + 1}/{numCycles} ===");
 
                 var weaponsController = combatShip.Weapons;
-                var shieldUI = testShip.GetComponentInChildren<StatusRingUI>(includeInactive: true);
+                var shieldUI = testShip.GetComponentInChildren<StatusBarUI>(includeInactive: true);
                 var lockOnIndicator = testShip.GetComponentInChildren<LockOnIndicator>(includeInactive: true);
 
                 TestDamage.Kill(testShip, enemyShip);
@@ -314,7 +314,7 @@ namespace Tests.PlayMode
                 if (shieldUI != null)
                 {
                     Assert.IsTrue(shieldUI.gameObject.activeInHierarchy,
-                        $"Cycle {cycle}: StatusRingUI should be active");
+                        $"Cycle {cycle}: StatusBarUI should be active");
                 }
 
                 if (lockOnIndicator != null)

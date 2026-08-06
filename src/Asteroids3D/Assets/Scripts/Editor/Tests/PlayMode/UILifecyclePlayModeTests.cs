@@ -86,55 +86,61 @@ namespace Tests.PlayMode
             Object.Destroy(parent);
         }
 
-        /// <summary>
-        /// An unbound StatusRingUI (never injected) is inert — it neither throws nor logs, it simply does
-        /// nothing until a ShipView is bound.
-        /// </summary>
-        [UnityTest]
-        public IEnumerator StatusRingUI_Unbound_IsInertAndDoesNotThrow()
+        // Bars live under a parent in the rig; LateUpdate reads transform.parent.
+        private static StatusBarUI CreateBar(Transform parent, StatusBarUI.TrackedResource tracked, out Image fill)
         {
-            var go = new GameObject("StatusRingUI");
-            go.AddComponent<Image>();
-            go.AddComponent<StatusRingUI>();
-
-            yield return null;
-
-            Assert.IsTrue(go.activeInHierarchy);
-            Object.Destroy(go);
+            var root = new GameObject(tracked + "Bar");
+            root.transform.SetParent(parent, false);
+            var fillGo = new GameObject("Fill");
+            fillGo.transform.SetParent(root.transform, false);
+            fill = fillGo.AddComponent<Image>();
+            fill.fillAmount = 1f;
+            var bar = root.AddComponent<StatusBarUI>();
+            bar.Tracked = tracked;
+            bar.Fill = fill;
+            return bar;
         }
 
         /// <summary>
-        /// Bind seeds the ring's fill from the bound resource's current fraction — the ring reads
+        /// An unbound StatusBarUI (never injected) is inert — it neither throws nor logs, it simply does
+        /// nothing until a ShipView is bound.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator StatusBarUI_Unbound_IsInertAndDoesNotThrow()
+        {
+            var parent = new GameObject("RigRoot");
+            var bar = CreateBar(parent.transform, StatusBarUI.TrackedResource.Shield, out _);
+
+            yield return null;
+
+            Assert.IsTrue(bar.gameObject.activeInHierarchy);
+            Object.Destroy(parent);
+        }
+
+        /// <summary>
+        /// Bind seeds the bar's fill from the bound resource's current fraction — the bar reads
         /// correctly from frame 0 instead of showing the prefab's fill until the first damage event.
         /// </summary>
         [UnityTest]
-        public IEnumerator StatusRingUI_Bind_SeedsFillFromBoundResource()
+        public IEnumerator StatusBarUI_Bind_SeedsFillFromBoundResource()
         {
             var damage = new FakeDamageEvents();
             damage.Health.ApplyDamage(40f); // 60 %
             damage.Shield.ApplyDamage(25f); // 50 %
 
-            var shieldGo = new GameObject("ShieldRing");
-            var shieldImage = shieldGo.AddComponent<Image>();
-            shieldImage.fillAmount = 1f;
-            var shieldRing = shieldGo.AddComponent<StatusRingUI>();
-
-            var healthGo = new GameObject("HealthRing");
-            var healthImage = healthGo.AddComponent<Image>();
-            healthImage.fillAmount = 1f;
-            var healthRing = healthGo.AddComponent<StatusRingUI>();
-            healthRing.Tracked = StatusRingUI.TrackedResource.Health;
+            var parent = new GameObject("RigRoot");
+            var shieldBar = CreateBar(parent.transform, StatusBarUI.TrackedResource.Shield, out var shieldFill);
+            var healthBar = CreateBar(parent.transform, StatusBarUI.TrackedResource.Health, out var healthFill);
 
             yield return null;
 
-            shieldRing.Bind(new ShipView(shieldGo.transform, damage, null, null, isPlayer: false));
-            healthRing.Bind(new ShipView(healthGo.transform, damage, null, null, isPlayer: false));
+            shieldBar.Bind(new ShipView(parent.transform, damage, null, null, isPlayer: false));
+            healthBar.Bind(new ShipView(parent.transform, damage, null, null, isPlayer: false));
 
-            Assert.AreEqual(0.5f, shieldImage.fillAmount, 0.001f, "Shield ring should seed from the bound shield fraction");
-            Assert.AreEqual(0.6f, healthImage.fillAmount, 0.001f, "Health ring should seed from the bound health fraction");
+            Assert.AreEqual(0.5f, shieldFill.fillAmount, 0.001f, "Shield bar should seed from the bound shield fraction");
+            Assert.AreEqual(0.6f, healthFill.fillAmount, 0.001f, "Health bar should seed from the bound health fraction");
 
-            Object.Destroy(shieldGo);
-            Object.Destroy(healthGo);
+            Object.Destroy(parent);
         }
 
         /// <summary>

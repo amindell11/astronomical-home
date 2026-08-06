@@ -13,7 +13,7 @@ User reported that LockOnIndicator, Shield UI, and primary weapon GameObjects ca
 **Purpose:** Track GameObject enable/disable state changes with optional stack traces.
 
 **Usage:**
-1. Select a GameObject in the Scene hierarchy (e.g., LockOnIndicator, StatusRingUI, or weapon mount)
+1. Select a GameObject in the Scene hierarchy (e.g., LockOnIndicator, StatusBarUI, or weapon mount)
 2. Click "Add Component" → Search for "Component State Diagnostics"
 3. In the Inspector:
    - ✅ Log Enable - logs OnEnable calls
@@ -50,10 +50,10 @@ User reported that LockOnIndicator, Shield UI, and primary weapon GameObjects ca
 
 ### 3. UIDiagnostics
 
-**Purpose:** Monitor UI components (LockOnIndicator, StatusRingUI) for event subscription issues and state changes.
+**Purpose:** Monitor UI components (LockOnIndicator, StatusBarUI) for event subscription issues and state changes.
 
 **Usage:**
-1. Select a GameObject with LockOnIndicator or StatusRingUI component
+1. Select a GameObject with LockOnIndicator or StatusBarUI component
 2. Click "Add Component" → Search for "UI Diagnostics"
 3. In the Inspector:
    - ✅ Monitor UI Components - enables all UI monitoring
@@ -87,10 +87,10 @@ User reported that LockOnIndicator, Shield UI, and primary weapon GameObjects ca
    - Find the primary weapon GameObject (child of Ship)
    - Add Component → Component State Diagnostics
    - Enable "Log Disable" and "Log Stack Trace"
-   - Repeat for StatusRingUI and LockOnIndicator if present
+   - Repeat for StatusBarUI and LockOnIndicator if present
 
 5. **Add UIDiagnostics to UI elements:**
-   - Find StatusRingUI GameObject (if present)
+   - Find StatusBarUI GameObject (if present)
    - Add Component → UI Diagnostics
    - Enable all logging options
    - Repeat for LockOnIndicator if present
@@ -135,6 +135,6 @@ When you're done debugging, you can:
 - Tests: `Assets/Scripts/Editor/Tests/PlayMode/ShipChildComponentStatePlayModeTests.cs`
 - Components under test:
   - `Assets/Scripts/UI/LockOnIndicator.cs`
-  - `Assets/Scripts/UI/PlayerState/StatusRingUI.cs`
+  - `Assets/Scripts/UI/PlayerState/StatusBarUI.cs`
   - `Assets/Scripts/Ships/Weapons/WeaponsController.cs`
   - `Assets/Scripts/Ships/Ship.cs`

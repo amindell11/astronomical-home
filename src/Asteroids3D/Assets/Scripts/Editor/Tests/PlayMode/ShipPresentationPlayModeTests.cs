@@ -55,7 +55,7 @@ namespace Tests.PlayMode
             yield return null; // let the embedded rig self-bind in Start
 
             Assert.IsNotNull(ship.GetComponentInChildren<HullVisuals>(true), "Rig should contribute HullVisuals");
-            Assert.IsNotNull(ship.GetComponentInChildren<StatusRingUI>(true), "Rig should contribute StatusRingUI");
+            Assert.IsNotNull(ship.GetComponentInChildren<StatusBarUI>(true), "Rig should contribute StatusBarUI");
             Assert.IsNotNull(ship.GetComponentInChildren<LockOnIndicator>(true), "Rig should contribute LockOnIndicator");
         }
 
