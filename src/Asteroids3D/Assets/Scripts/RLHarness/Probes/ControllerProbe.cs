@@ -6,12 +6,13 @@ using Movement;
 using Movement.MPC;
 using Ships;
 using Ships.Command;
+using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>Nose/torque metrics for one threat class (threat = the solver's turn-away gate fired that step); per-sec rates are over this class's sampled seconds.</summary>
+    /// <summary>Nose/torque metrics for one obstacle-threat class; per-sec rates are over this class's sampled seconds.</summary>
     [Serializable]
     public struct ControllerBucketStats
     {
@@ -53,7 +54,7 @@ namespace Game.RLHarness
         public string ToJsonLine() => JsonUtility.ToJson(this);
     }
 
-    /// <summary>Raw per-threat-class accumulator; reversal counts land in the bucket of the step that completed the flip.</summary>
+    /// <summary>Raw per-obstacle-threat-class accumulator; reversal counts land in the bucket of the step that completed the flip.</summary>
     internal sealed class ControllerBucket
     {
         public int steps;
@@ -152,7 +153,7 @@ namespace Game.RLHarness
         }
     }
 
-    /// <summary>Per-fixed-step sampler for one controller-probe episode, fed already-observed values (applied yaw torque, nose yaw rate, the recomputed anchor yaw, the threat class) so the reversal/wrap/split math stays test-drivable without a live solver.</summary>
+    /// <summary>Per-fixed-step sampler for one controller-probe episode, fed already-observed values (applied yaw torque, nose yaw rate, the recomputed anchor yaw, the obstacle-threat class) so the reversal/wrap/split math stays test-drivable without a live solver.</summary>
     public sealed class ControllerSampler
     {
         private readonly float torqueDeadband;
@@ -252,7 +253,7 @@ namespace Game.RLHarness
         }
     }
 
-    /// <summary>The MPC-retune controller instrument: per fixed step it reads the measured agent's applied control off the live solver (<see cref="Mpc.LastControl"/>), recomputes the anchor yaw from both ships' kinematics, classifies the step with the solver's own turn-away gate against its live obstacle buffer, and feeds one <see cref="ControllerSampler"/> per episode; per-opponent pooled aggregates land in the summary sidecar.</summary>
+    /// <summary>The MPC-retune controller instrument: per fixed step it reads the measured agent's applied control off the live solver (<see cref="Mpc.LastControl"/>), recomputes the anchor yaw from both ships' kinematics, classifies the step as obstacle threat or clear against the solver's live obstacle buffer, and feeds one <see cref="ControllerSampler"/> per episode; per-opponent pooled aggregates land in the summary sidecar.</summary>
     public sealed class ControllerProbe : ISessionProbe
     {
         public const string ProbeName = "controller";
@@ -302,7 +303,7 @@ namespace Game.RLHarness
             {
                 agent = context.pair.Agent;
                 enemy = context.pair.Baseline;
-                navigator = agent.GetComponentInChildren<AICommander>().Navigator;
+                navigator = ((AICommander)agent.Commander).Navigator;
                 projectileSpeed = agent.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary);
             }
             sampler = new ControllerSampler(torqueDeadband, yawRateDeadbandDegPerSec);
@@ -320,9 +321,8 @@ namespace Game.RLHarness
 
             // The obstacle buffer is only valid until the next Solve — classify in the tick it was written.
             var hullRadius = cfg.shipRadius * Cost.BankProfileScale(control.strafe, cfg) + cfg.collisionSafetyMargin;
-            var underThreat = solver.ObstacleCount > 0 && Cost.TurnAwayCost(pos,
-                new float2(kin.vel.x, kin.vel.y), solver.Obstacles, solver.ObstacleCount,
-                hullRadius, cfg.maxLatAccel) > 0f;
+            var underThreat = ObstacleThreat(pos, new float2(kin.vel.x, kin.vel.y),
+                solver.Obstacles, solver.ObstacleCount, hullRadius, cfg.maxLatAccel);
 
             var hasAnchor = (bool)enemy;
             var anchorYawRad = 0f;
@@ -336,6 +336,12 @@ namespace Game.RLHarness
             sampler.Sample(control.yawTorque, kin.yawRate, hasAnchor, anchorYawRad, underThreat,
                 Time.fixedDeltaTime);
         }
+
+        /// <summary>Obstacle threat: the MPC's obstacle handling fires this step — hull overlap or collision-course turn-away, mirroring <see cref="Cost.ObstacleCosts"/>' two mutually exclusive branches.</summary>
+        internal static bool ObstacleThreat(float2 pos, float2 vel, NativeArray<ObstacleData> obstacles,
+            int count, float hullRadius, float maxLatAccel)
+            => count > 0 && (Cost.Collides(pos, obstacles, count, hullRadius)
+                || Cost.TurnAwayCost(pos, vel, obstacles, count, hullRadius, maxLatAccel) > 0f);
 
         public string End(in EpisodeResult result)
         {

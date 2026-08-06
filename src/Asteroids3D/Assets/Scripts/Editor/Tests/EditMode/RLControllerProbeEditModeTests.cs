@@ -1,11 +1,14 @@
 #if UNITY_EDITOR
 using Game.RLHarness;
+using Movement.MPC;
 using NUnit.Framework;
+using Unity.Collections;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the controller-probe sampler's math on synthetic samples: deadband-hysteresis reversal counting beside the strict rule, anchor-rate wrapping across ±π with gap breaks, and threat/clear split accounting.</summary>
+    /// <summary>Pins the controller-probe sampler's math on synthetic samples: deadband-hysteresis reversal counting beside the strict rule, anchor-rate wrapping across ±π with gap breaks, obstacle-threat/clear split accounting, and the classification's agreement with Cost.ObstacleCosts semantics.</summary>
     [Category("AI")]
     public class RLControllerProbeEditModeTests
     {
@@ -26,10 +29,10 @@ namespace Tests.EditMode
         {
             var sampler = Sampler();
 
-            Step(sampler, torque: 0.5f);    // arms +
-            Step(sampler, torque: -0.05f);  // strict flip 1; inside the 0.1 deadband → no deadband flip
-            Step(sampler, torque: 0.05f);   // strict flip 2; still inside
-            Step(sampler, torque: -0.5f);   // strict flip 3; clears the deadband on − → deadband flip 1
+            Step(sampler, torque: 0.5f);
+            Step(sampler, torque: -0.05f);
+            Step(sampler, torque: 0.05f);
+            Step(sampler, torque: -0.5f);
 
             var row = sampler.ToRow(new EpisodeResult { simSeconds = 1f }, "Aggressor");
             Assert.AreEqual(3f, row.torqueReversalsPerSec, 1e-5f, "strict rule counts every sign alternation");
@@ -43,12 +46,13 @@ namespace Tests.EditMode
             var sampler = Sampler();
 
             Step(sampler, torque: 0.5f, yawRate: 30f);
-            Step(sampler, torque: 0f, yawRate: 0f);        // zero keeps both armed signs
-            Step(sampler, torque: -0.1f, yawRate: -10f);   // exactly at the deadband → still inside
-            Step(sampler, torque: -0.5f, yawRate: -30f);   // clears it → one flip each
+            Step(sampler, torque: 0f, yawRate: 0f);
+            Step(sampler, torque: -0.1f, yawRate: -10f);
+            Step(sampler, torque: -0.5f, yawRate: -30f);
 
             var row = sampler.ToRow(new EpisodeResult { simSeconds = 1f }, "Aggressor");
-            Assert.AreEqual(1f, row.torqueDeadbandReversalsPerSec, 1e-5f);
+            Assert.AreEqual(1f, row.torqueDeadbandReversalsPerSec, 1e-5f,
+                "zero keeps the armed sign and an exact-threshold value stays inside the deadband");
             Assert.AreEqual(1f, row.noseDeadbandReversalsPerSec, 1e-5f);
             Assert.AreEqual(1f, row.torqueReversalsPerSec, 1e-5f, "strict: zero is skipped, − counted once");
             Assert.AreEqual(1f, row.noseReversalsPerSec, 1e-5f);
@@ -60,7 +64,7 @@ namespace Tests.EditMode
             var sampler = Sampler();
 
             Anchor(sampler, 3.1f, dt: 0.1f);
-            Anchor(sampler, -3.1f, dt: 0.1f);   // through ±π: wrapped delta ≈ 0.0832 rad, not −6.2
+            Anchor(sampler, -3.1f, dt: 0.1f);
 
             var row = sampler.ToRow(new EpisodeResult { simSeconds = 0.2f }, "Orbiter");
             Assert.AreEqual(1, row.anchorSamples);
@@ -76,12 +80,13 @@ namespace Tests.EditMode
             var sampler = Sampler();
 
             Anchor(sampler, 1.0f);
-            Step(sampler);            // enemy gone this tick
-            Anchor(sampler, 2.0f);    // re-arms; the 1.0→2.0 delta spans the gap and must not emit
+            Step(sampler);
+            Anchor(sampler, 2.0f);
             Anchor(sampler, 2.1f);
 
             var row = sampler.ToRow(new EpisodeResult { simSeconds = 1f }, "Dummy");
-            Assert.AreEqual(1, row.anchorSamples, "only the contiguous 2.0→2.1 pair samples");
+            Assert.AreEqual(1, row.anchorSamples,
+                "the 1.0→2.0 delta spans the anchorless tick and must not emit; only 2.0→2.1 samples");
             Assert.AreEqual(0.1f / Dt * Mathf.Rad2Deg, row.meanAnchorRateDegPerSec, 1e-2f);
         }
 
@@ -91,9 +96,9 @@ namespace Tests.EditMode
             var sampler = Sampler();
 
             Step(sampler, torque: 0.5f, yawRate: 20f, threat: true, dt: 0.25f);
-            Step(sampler, torque: -0.5f, yawRate: 20f, threat: true, dt: 0.25f);   // torque flip → threat
-            Step(sampler, torque: 0.5f, yawRate: -20f, threat: false, dt: 0.25f);  // torque + nose flip → clear
-            Step(sampler, torque: 0.5f, yawRate: 20f, threat: false, dt: 0.25f);   // nose flip → clear
+            Step(sampler, torque: -0.5f, yawRate: 20f, threat: true, dt: 0.25f);
+            Step(sampler, torque: 0.5f, yawRate: -20f, threat: false, dt: 0.25f);
+            Step(sampler, torque: 0.5f, yawRate: 20f, threat: false, dt: 0.25f);
 
             var row = sampler.ToRow(new EpisodeResult { simSeconds = 1f }, "Aggressor");
             Assert.AreEqual(0.5f, row.threatStepFraction, 1e-5f);
@@ -109,6 +114,46 @@ namespace Tests.EditMode
             Assert.AreEqual(20f, row.meanAbsYawRateDegPerSec, 1e-5f);
             Assert.AreEqual(2f, row.torqueReversalsPerSec, 1e-5f, "overall = threat + clear over simSeconds");
             Assert.AreEqual(2f, row.noseReversalsPerSec, 1e-5f);
+        }
+
+        [Test]
+        public void ObstacleThreat_AgreesWithObstacleCostsSemanticsAcrossAllThreeRegimes()
+        {
+            var cfg = new Config
+            {
+                shipRadius = 0.5f,
+                collisionSafetyMargin = 0.1f,
+                maxLatAccel = 1f,
+                wObstacle = 1f,
+                collisionPenalty = 100f,
+            };
+            const float profileScale = 1f;
+            var hullRadius = cfg.shipRadius * profileScale + cfg.collisionSafetyMargin;
+            var state = new State { pos = float2.zero, vel = new float2(0f, 10f) };
+
+            var regimes = new (float2 obstaclePos, bool expected, string label)[]
+            {
+                (new float2(0f, 0.5f), true, "hull overlap ahead"),
+                (new float2(0f, 5f), true, "collision course without overlap"),
+                (new float2(0f, -5f), false, "clear (behind the velocity)"),
+            };
+
+            foreach (var (obstaclePos, expected, label) in regimes)
+            {
+                var obstacles = new NativeArray<ObstacleData>(1, Allocator.Temp);
+                obstacles[0] = new ObstacleData { position = obstaclePos, radius = 1f };
+                var input = new CostInput { obstacles = obstacles, obstacleCount = 1 };
+
+                Cost.ObstacleCosts(state, input, cfg, profileScale, out var collision, out var turnAway);
+                var costsFired = collision > 0f || turnAway > 0f;
+                var classified = ControllerProbe.ObstacleThreat(state.pos, state.vel, obstacles, 1,
+                    hullRadius, cfg.maxLatAccel);
+
+                Assert.AreEqual(expected, costsFired, $"{label}: ObstacleCosts semantics moved under the probe");
+                Assert.AreEqual(costsFired, classified,
+                    $"{label}: the probe's classification must agree with ObstacleCosts");
+                obstacles.Dispose();
+            }
         }
 
         [Test]
@@ -132,13 +177,13 @@ namespace Tests.EditMode
 
             var first = Sampler();
             Anchor(first, 0f, dt: 1f);
-            Anchor(first, 100f * Mathf.Deg2Rad, dt: 1f);    // one 100 deg/s sample
+            Anchor(first, 100f * Mathf.Deg2Rad, dt: 1f);
             first.DrainInto(pool, new EpisodeResult { simSeconds = 2f });
 
             var second = Sampler();
             Anchor(second, 0f, dt: 1f);
             for (var i = 1; i <= 3; i++)
-                Anchor(second, i * 10f * Mathf.Deg2Rad, dt: 1f);   // three 10 deg/s samples
+                Anchor(second, i * 10f * Mathf.Deg2Rad, dt: 1f);
             second.DrainInto(pool, new EpisodeResult { simSeconds = 4f });
 
             var summary = ControllerSummary.Summarize("Evader", pool);

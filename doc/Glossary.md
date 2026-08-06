@@ -363,10 +363,13 @@ Format: **term** — definition. *(authority)*
   around the yaw wall (< 3 u) and the trackable annulus (3–8 u).
   *(VelRebaseProbe, VelRebaseLane)*
 - **controller** (probe) — the MPC-retune instrument separating target-motion
-  yaw demand from self-generated churn: applied yaw torque off the live solver,
-  the anchor's own angular velocity, deadband-hysteresis reversals beside the
-  strict rule, and every nose/torque metric split by the solver's own
-  turn-away threat gate. *(ControllerProbe, ControllerSampler)*
+  yaw demand from self-generated churn; the metrics live in the row schema.
+  *(ControllerProbe, ControllerSampler)*
+- **obstacle threat** — per-step classification: the MPC's obstacle handling
+  fires — hull overlap (`Cost.Collides`) or collision-course turn-away
+  (`Cost.TurnAwayCost > 0`). Always the qualified form in prose; the probe
+  sidecar's `threat`/`clear` field names are context-bound and stay.
+  *(Cost.ObstacleCosts, ControllerProbe.ObstacleThreat)*
 - **anchored intent** — an intent channel expressed as frame + relation +
   authority instead of a world-frame value: a facing offset around the enemy
   intercept anchor, and a polar velocity in the enemy frame, each with a [0,1]
