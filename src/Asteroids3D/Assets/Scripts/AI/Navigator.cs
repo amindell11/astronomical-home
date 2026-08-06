@@ -15,7 +15,7 @@ namespace Movement.MPC
     }
 #endif
 
-    /// <summary>Turns a <see cref="ActIntent"/> into per-frame movement commands: owns the control surface (velocity reference, enemy state, weight overrides) and drives an <see cref="Mpc"/> solver, holding no solver state or MPC math itself.</summary>
+    /// <summary>Turns an <see cref="ActIntent"/> into per-frame movement commands: owns the control surface (velocity reference, enemy state, weight overrides) and drives an <see cref="Mpc"/> solver, holding no solver state or MPC math itself.</summary>
     [DefaultExecutionOrder(-60)]
     public class Navigator : MonoBehaviour
     {

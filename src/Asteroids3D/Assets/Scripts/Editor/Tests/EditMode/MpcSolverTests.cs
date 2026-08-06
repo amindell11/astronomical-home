@@ -1,6 +1,5 @@
 #if UNITY_EDITOR
 using System;
-using AI;
 using Movement;
 using Movement.MPC;
 using NUnit.Framework;

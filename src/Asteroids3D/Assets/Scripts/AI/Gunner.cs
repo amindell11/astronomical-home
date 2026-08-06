@@ -71,7 +71,7 @@ namespace AI
                 AimPoint(pose(), enemyPos, enemyVel, weapons.ProjectileSpeed(slot)));
         }
 
-        /// <summary>Consumes the gunner slice of a <see cref="ActIntent"/> (mirrors <c>Navigator.ApplyIntent</c>): stores enemy kinematics for per-slot firing solutions.</summary>
+        /// <summary>Consumes the gunner slice of an <see cref="ActIntent"/> (mirrors <c>Navigator.ApplyIntent</c>): stores enemy kinematics for per-slot firing solutions.</summary>
         public void ApplyIntent(in ActIntent intent)
         {
             if (!intent.isValid) return;
