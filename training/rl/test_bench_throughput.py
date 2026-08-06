@@ -2,9 +2,11 @@
 
     .venv\\Scripts\\python -m unittest test_bench_throughput -v
 """
+import io
 import json
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -98,6 +100,43 @@ class ArmSelectionTests(unittest.TestCase):
                 bench_throughput.RESULTS = original
         self.assertEqual(1.5, metrics["microbatch_mean_workers_per_forward"])
         self.assertEqual(6, metrics["microbatch_policy_forward_count"])
+
+    def test_report_prints_all_microbatch_provenance(self):
+        row = {
+            "label": "owned-batched",
+            "trainer_runtime": "owned",
+            "num_envs": 6,
+            "num_arenas": 1,
+            "microbatch_requested_worker_cap": 8,
+            "microbatch_effective_worker_cap": 6,
+            "microbatch_window_micros": 500,
+            "microbatch_policy_forward_count": 120,
+            "microbatch_worker_request_count": 600,
+            "microbatch_agent_row_count": 2400,
+            "microbatch_mean_workers_per_forward": 5.0,
+            "microbatch_max_workers_per_forward": 6,
+            "steps_per_second": 100.0,
+            "spread": 2.0,
+            "cores": 4.0,
+            "peak_rss_mb": 1024.0,
+            "git_sha": "abc123",
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            original = bench_throughput.RESULTS_JSONL
+            bench_throughput.RESULTS_JSONL = Path(tmp) / "bench.jsonl"
+            bench_throughput.RESULTS_JSONL.write_text(
+                json.dumps(row) + "\n", encoding="utf-8"
+            )
+            try:
+                output = io.StringIO()
+                with redirect_stdout(output):
+                    bench_throughput.report()
+            finally:
+                bench_throughput.RESULTS_JSONL = original
+
+        rendered = output.getvalue()
+        for value in ("8/6", "500", "120", "600", "2400", "5.00/6"):
+            self.assertIn(value, rendered)
 
 
 if __name__ == "__main__":

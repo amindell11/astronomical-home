@@ -95,10 +95,37 @@ class SchedulerTests(unittest.TestCase):
             MicrobatchSettings.create(2, 3),
         )
 
-        steps = scheduler._step()
+        with patch(
+            "trainer_runtime.env_scheduler.time.perf_counter",
+            side_effect=[1.0, 1.0001],
+        ):
+            steps = scheduler._step()
 
         self.assertEqual([0, 1], [step.worker_id for step in steps])
         self.assertTrue(scheduler.env_workers[2].waiting)
+        scheduler.step_queue.close()
+        scheduler.step_queue.join_thread()
+
+    def test_batched_ready_poll_does_not_accept_queued_work_after_deadline(self):
+        def factory(worker_id, queue, _env_factory, _options):
+            return FakeWorker(worker_id, queue, respond=True)
+
+        scheduler = SubprocessEnvScheduler(
+            lambda *_args: None,
+            run_options(),
+            2,
+            factory,
+            MicrobatchSettings.create(2, 2),
+        )
+
+        with patch(
+            "trainer_runtime.env_scheduler.time.perf_counter",
+            side_effect=[1.0, 1.0005],
+        ):
+            steps = scheduler._step()
+
+        self.assertEqual([0], [step.worker_id for step in steps])
+        self.assertTrue(scheduler.env_workers[1].waiting)
         scheduler.step_queue.close()
         scheduler.step_queue.join_thread()
 

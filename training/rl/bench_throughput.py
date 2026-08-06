@@ -220,17 +220,32 @@ def report() -> None:
         sys.exit(f"no bench rows yet at {RESULTS_JSONL}")
     rows = [json.loads(line) for line in RESULTS_JSONL.read_text().splitlines() if line.strip()]
     print(
-        f"{'label':<22}{'runtime':<10}{'N':>3}{'M':>3}{'cap':>5}"
-        f"{'workers/fwd':>14}{'steps/s':>10}{'spread':>8}{'cores':>8}{'RSS MB':>9}  sha"
+        f"{'label':<22}{'runtime':<10}{'N':>3}{'M':>3}{'cap req/eff':>12}"
+        f"{'win us':>8}{'workers/fwd':>14}{'forwards':>10}{'requests':>10}"
+        f"{'rows':>10}{'steps/s':>10}{'spread':>8}{'cores':>8}{'RSS MB':>9}  sha"
     )
     for row in rows:
-        cap = row.get("microbatch_effective_worker_cap")
-        cap_text = "-" if cap is None else str(cap)
+        requested_cap = row.get("microbatch_requested_worker_cap")
+        effective_cap = row.get("microbatch_effective_worker_cap")
+        cap_text = (
+            "-"
+            if requested_cap is None or effective_cap is None
+            else f"{requested_cap}/{effective_cap}"
+        )
+        window = row.get("microbatch_window_micros")
+        window_text = "-" if window is None else str(window)
         mean_workers = row.get("microbatch_mean_workers_per_forward")
         max_workers = row.get("microbatch_max_workers_per_forward")
         fill_text = "-" if mean_workers is None else f"{mean_workers:.2f}/{max_workers}"
+        forwards = row.get("microbatch_policy_forward_count")
+        requests = row.get("microbatch_worker_request_count")
+        agent_rows = row.get("microbatch_agent_row_count")
+        forwards_text = "-" if forwards is None else str(forwards)
+        requests_text = "-" if requests is None else str(requests)
+        rows_text = "-" if agent_rows is None else str(agent_rows)
         print(f"{row['label']:<22}{row.get('trainer_runtime', '?'):<10}{row['num_envs']:>3}{row['num_arenas']:>3}"
-              f"{cap_text:>5}{fill_text:>14}"
+              f"{cap_text:>12}{window_text:>8}{fill_text:>14}{forwards_text:>10}"
+              f"{requests_text:>10}{rows_text:>10}"
               f"{row['steps_per_second']:>10.1f}{row['spread']:>8.1f}"
               f"{row['cores']:>8.2f}{row['peak_rss_mb']:>9.0f}  {row['git_sha']}")
 
@@ -320,7 +335,8 @@ def main() -> None:
     if args.trainer_runtime == "owned":
         print(
             "  microbatch "
-            f"cap {row['microbatch_effective_worker_cap']} "
+            f"cap {row['microbatch_requested_worker_cap']} requested / "
+            f"{row['microbatch_effective_worker_cap']} effective "
             f"window {row['microbatch_window_micros']}us  "
             f"workers/forward {row['microbatch_mean_workers_per_forward']:.2f} mean / "
             f"{row['microbatch_max_workers_per_forward']} max  "

@@ -413,15 +413,15 @@ class SubprocessEnvScheduler(EnvironmentScheduler):
         response_workers: Set[int] = set()
         deadline = None
         while True:
+            if responses and (
+                self.microbatch.settings.effective_worker_cap == 1
+                or not any(worker.waiting for worker in self.env_workers)
+                or time.perf_counter() >= deadline
+            ):
+                return self._postprocess_steps(responses)
             try:
                 response = self.step_queue.get_nowait()
             except EmptyQueueException:
-                if responses and (
-                    self.microbatch.settings.effective_worker_cap == 1
-                    or not any(worker.waiting for worker in self.env_workers)
-                    or time.perf_counter() >= deadline
-                ):
-                    return self._postprocess_steps(responses)
                 continue
             if response.cmd == EnvironmentCommand.ENV_EXITED:
                 self._restart_failed_workers(response)
