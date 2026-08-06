@@ -194,9 +194,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7e58c68fc82d477b854680a18f917fa9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  energyToDamageScale: 0.02
-  softCapThreshold: 30
-  softCapExponent: 0.5
+  damagePerDeltaV: 3
+  graceDeltaV: 2
   healthPerUnitVolume: 0.5
 --- !u!33 &503848992582056525
 MeshFilter:

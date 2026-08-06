@@ -5,15 +5,11 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the collision-lethality fold in AsteroidDamage: below the soft cap damage scales linearly with the injected lethality, and the default is an exact no-op (production paths stay byte-identical).</summary>
+    /// <summary>Pins the delta-v damage law in AsteroidDamage: linear in the injected lethality, default lethality is an exact no-op, and knocks at or under the grace delta-v are free.</summary>
     [Category("Damage")]
     public class AsteroidDamageLethalityEditModeTests
     {
-        // Below the soft-cap threshold, so lethality scaling stays linear.
-        private const float AsteroidMass = 1000f;
-        private const float ShipMass = 500f;
-        private static readonly Vector3 AsteroidVel = new(-1f, 0f, 0f);
-        private static readonly Vector3 ShipVel = new(1f, 0f, 0f);
+        private const float SolidKnockDeltaV = 10f;
 
         private GameObject host;
         private AsteroidDamage damage;
@@ -28,10 +24,10 @@ namespace Tests.EditMode
         [TearDown]
         public void TearDown() => Object.DestroyImmediate(host);
 
-        private float Damage() => damage.CalcDamage(AsteroidMass, AsteroidVel, ShipMass, ShipVel);
+        private float Damage() => damage.CalcDamage(SolidKnockDeltaV);
 
         [Test]
-        public void CalcDamage_ScalesLinearlyWithLethalityBelowTheSoftCap()
+        public void CalcDamage_ScalesLinearlyWithLethality()
         {
             damage.Initialize(volume: 8f, lethality: 1f);
             var baseline = Damage();
@@ -52,6 +48,14 @@ namespace Tests.EditMode
 
             damage.Initialize(volume: 8f);
             Assert.AreEqual(explicitOne, Damage());
+        }
+
+        [Test]
+        public void CalcDamage_AtOrBelowGraceDeltaV_IsFree()
+        {
+            damage.Initialize(volume: 8f, lethality: 1f);
+            Assert.AreEqual(0f, damage.CalcDamage(0f));
+            Assert.AreEqual(0f, damage.CalcDamage(1.9f));
         }
     }
 }
