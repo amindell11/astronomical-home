@@ -1,7 +1,6 @@
 using Game;
 using Ships.Damage;
 using Ships.Presentation;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -24,7 +23,7 @@ namespace UI
         [SerializeField] Image fill;
 
         [Tooltip("Numeric readout beside the bar (current value, rounded up).")]
-        [SerializeField] TMP_Text label;
+        [SerializeField] Text label;
 
         [Tooltip("Offset from the ship center in game-plane units.")]
         [SerializeField] Vector2 planeOffset = new Vector2(0f, 2f);
