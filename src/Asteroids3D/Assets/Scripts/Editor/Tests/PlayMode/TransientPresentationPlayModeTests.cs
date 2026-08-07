@@ -133,7 +133,7 @@ namespace Tests.PlayMode
             finally
             {
                 SimplePool<ConcussionWave>.Clear();
-                SimplePool<PooledVFX>.Clear();
+                DestroyPooledVfx();
             }
         }
 
@@ -157,12 +157,24 @@ namespace Tests.PlayMode
             finally
             {
                 SimplePool<ConcussionWave>.Clear();
-                SimplePool<PooledVFX>.Clear();
+                DestroyPooledVfx();
             }
         }
 
         private static int ActiveVfxCount() =>
             Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None).Length;
+
+        /// <summary>
+        /// A burst stays checked out until its delayed ReturnToPool, and the pool's Clear only destroys
+        /// stacked instances — so an active one would outlive this fixture under the DontDestroyOnLoad
+        /// pool root and reach tests that assert no VFX exists. Destroy the live ones first.
+        /// </summary>
+        private static void DestroyPooledVfx()
+        {
+            foreach (var vfx in Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None))
+                Object.DestroyImmediate(vfx.gameObject);
+            SimplePool<PooledVFX>.Clear();
+        }
 
         [UnityTest]
         public IEnumerator RailBeamVisual_SelfGates_WhenSessionPresentationIsOff()
