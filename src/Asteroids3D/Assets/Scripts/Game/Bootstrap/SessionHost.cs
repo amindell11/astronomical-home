@@ -50,7 +50,7 @@ namespace Game.Bootstrap
             target.Services = new GameServices(
                 unitService: unitService,
                 projectiles: projectiles,
-                environmentService: new EnvironmentService(transform),
+                environmentService: new EnvironmentService(transform, target.Profile.presentation),
                 objectiveService: objectiveService,
                 cameraService: new CameraService(),
                 uiService: new UIService(),

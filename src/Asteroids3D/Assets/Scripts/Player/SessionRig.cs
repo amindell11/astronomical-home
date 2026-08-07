@@ -9,7 +9,6 @@ using Ships;
 using Ships.Command;
 using UI;
 using UnityEngine;
-using Utils;
 using UnityEngine.Rendering.Universal;
 using World;
 
@@ -110,7 +109,7 @@ namespace Player
             var observer = services.CameraService.GetCamera<ObserverCam>(CameraTag.Observer);
 
             // HUD/UI-cam/minimap are presentation: a headless/RL run builds no Canvas.
-            if (GameSettings.PresentationEnabled && Player && overlayPrefab && uiCamPrefab)
+            if (services.PresentationEnabled && Player && overlayPrefab && uiCamPrefab)
             {
                 var uiCam = Instantiate(uiCamPrefab, observer.transform);
                 uiCam.GetUniversalAdditionalCameraData().renderType = CameraRenderType.Overlay;
@@ -126,7 +125,7 @@ namespace Player
                     overlay.ObjectiveMarker.BindObjectiveService(services.ObjectiveService);
             }
 
-            if (GameSettings.PresentationEnabled && minimapCamPrefab)
+            if (services.PresentationEnabled && minimapCamPrefab)
             {
                 var minimapCam = Instantiate(minimapCamPrefab, observer.transform);
                 var overlay = services.UIService.ActiveOverlay;
