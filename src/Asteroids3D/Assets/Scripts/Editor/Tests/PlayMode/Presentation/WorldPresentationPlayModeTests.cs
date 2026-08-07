@@ -13,10 +13,8 @@ using Utils;
 namespace Tests.PlayMode
 {
     /// <summary>
-    /// Session presentation policy on the world tier, driven through the real rig: the spawned world is
-    /// darkened like every other spawn seam, and the observer camera stops clearing to the boot scene's
-    /// skybox. This is the interactive presentation-off path only — an RL/headless host composes no rig,
-    /// so it never spawns a world or an observer camera to begin with.
+    /// Covers the interactive presentation-off path only: an RL/headless host composes no rig, so it
+    /// never spawns a world or an observer camera for the policy to apply to.
     /// </summary>
     [TestFixture]
     [Category("Presentation")]
