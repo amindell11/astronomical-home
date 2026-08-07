@@ -21,6 +21,8 @@ namespace Tests.PlayMode
     [Category("Presentation")]
     public class TransientPresentationPlayModeTests : PlayModeWorldFixture
     {
+        private const string ConcussionWavePrefabPath = "Assets/Prefabs/Weapons/ConcussionWave.prefab";
+
         private ProjectileService headless;
 
         public override void SetUp()
@@ -104,6 +106,62 @@ namespace Tests.PlayMode
                 SimplePool<Missile>.Clear();
             }
         }
+
+        /// <summary>
+        /// The seam's gate is the whole gate: a darkened part unsubscribes in OnDisable, so a live
+        /// detonation reaches no handler and no burst VFX is pooled. Paired with the presenting case
+        /// below — without that positive control this would also hold for a wave that never fires.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator ConcussionWaveCheckout_HeadlessSpawnsNoBurstVfx()
+        {
+            var prefab = LoadProjectilePrefab<ConcussionWave>(ConcussionWavePrefabPath);
+            var wave = SimplePool<ConcussionWave>.Get(prefab, Vector3.zero, Quaternion.identity);
+            try
+            {
+                headless.Register(wave, wave.ReturnToPoolImmediate);
+                Assert.IsFalse(wave.GetComponent<ConcussionWaveVisual>().enabled);
+
+                var before = ActiveVfxCount();
+                wave.Begin(new Ships.ShipId(1));
+                yield return null;
+
+                Assert.AreEqual(before, ActiveVfxCount(),
+                    "a headless session must pool no burst VFX on detonation");
+            }
+            finally
+            {
+                SimplePool<ConcussionWave>.Clear();
+                SimplePool<PooledVFX>.Clear();
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator ConcussionWaveCheckout_PresentingSessionSpawnsBurstVfx()
+        {
+            var prefab = LoadProjectilePrefab<ConcussionWave>(ConcussionWavePrefabPath);
+            var wave = SimplePool<ConcussionWave>.Get(prefab, Vector3.zero, Quaternion.identity);
+            try
+            {
+                Projectiles.Register(wave, wave.ReturnToPoolImmediate);
+                Assert.IsTrue(wave.GetComponent<ConcussionWaveVisual>().enabled);
+
+                var before = ActiveVfxCount();
+                wave.Begin(new Ships.ShipId(1));
+                yield return null;
+
+                Assert.Greater(ActiveVfxCount(), before,
+                    "test premise: a presenting session pools a burst VFX on detonation");
+            }
+            finally
+            {
+                SimplePool<ConcussionWave>.Clear();
+                SimplePool<PooledVFX>.Clear();
+            }
+        }
+
+        private static int ActiveVfxCount() =>
+            Object.FindObjectsByType<PooledVFX>(FindObjectsSortMode.None).Length;
 
         [UnityTest]
         public IEnumerator RailBeamVisual_SelfGates_WhenSessionPresentationIsOff()
