@@ -23,7 +23,7 @@ be painted into a corner.
 
 1. **The trigger is a decision, not a permission.** The acting policy decides the
    firing instant; no subsystem may veto or substitute for it. The legacy path
-   (`NavigationIntent.enableFiring` → Gunner envelope auto-fire via
+   (`ActIntent.enableFiring` → Gunner envelope auto-fire via
    `Gunsight.Evaluate`/`ShouldFire`) dies as a firing *authority*. Everything that
    makes weapon families distinct — burst discipline, charge release, shot economy,
    hold-through-lock — is a timing decision on a trigger.
@@ -262,7 +262,7 @@ legacy keep it; deletion completes later in the arc per A2), NO teacher migratio
 **Locked decisions (forks):**
 1. **Facing action = 2 ego-frame direction channels** appended to the existing 4
    (`[vx,vy,fire,boost,fx,fy]`), chooser converts ego→world once per decision
-   (velocity-reference precedent) → `NavigationIntent.facingRad` →
+   (velocity-reference precedent) → `ActIntent.facingRad` →
    `Navigator.SetFacingOverride`; agent chooser stops feeding aim-purpose
    `projectileSpeed`/enemy-yaw so the intercept override goes dormant (not fought).
 2. **Aim obs = +2 ego-frame intercept-lead direction channels** (computed via the
@@ -285,7 +285,7 @@ legacy keep it; deletion completes later in the arc per A2), NO teacher migratio
    with the old 72-obs/4-action checkpoint. One clearly-marked deletable unit;
    dies when the new checkpoint ships.
 
-**Blindsider resolutions / assumptions:** `NavigationIntent` gains
+**Blindsider resolutions / assumptions:** `ActIntent` gains
 `manualFire`+`primaryHeld`+`facingRad`; AICommander pushes
 `WeaponCommand{held, pressed=rising-edge}` to the existing `WeaponActuator` for
 manual-fire intents, else legacy Gunner path; per-slot `prevHeld` lives on the

@@ -1,6 +1,5 @@
 using System;
 using AI.Context;
-using AI.States;
 using UnityEngine;
 
 namespace AI
@@ -20,7 +19,7 @@ namespace AI
             chooser = next;
         }
 
-        public NavigationIntent Decide(AIContext ctx, float dt)
+        public ActIntent Decide(AIContext ctx, float dt)
         {
             if (chooser == null)
                 throw new InvalidOperationException($"Brain on '{name}' has no chooser authored or installed.");

@@ -1,5 +1,5 @@
+using AI;
 using AI.Context;
-using AI.States;
 using Ships;
 using UnityEngine;
 
@@ -19,14 +19,14 @@ namespace Game.RLHarness
             Bind(target, speedFraction, arenaCenter, borderRadius, drive);
         }
 
-        protected override NavigationIntent BuildIntent(AIContext ctx)
+        protected override ActIntent BuildIntent(AIContext ctx)
         {
             var self = ctx.Self.Kinematics;
             var enemy = target.Kinematics;
             var vRef = RangerChooser.HoldRangeVelocity(in self, in enemy, desiredRange,
                 speedFraction * ctx.Self.Dynamics.maxSpeed);
 
-            return Pack(new NavigationIntent
+            return Pack(new ActIntent
             {
                 isValid = true,
                 hasTarget = true,

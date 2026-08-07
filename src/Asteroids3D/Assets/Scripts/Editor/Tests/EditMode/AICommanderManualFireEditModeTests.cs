@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using AI;
 using AI.Context;
-using AI.States;
 using Combat;
 using Movement;
 using Movement.MPC;
@@ -66,8 +65,8 @@ namespace Tests.EditMode
 
         private sealed class ScriptedIntentChooser : IIntentChooser
         {
-            public NavigationIntent intent;
-            public NavigationIntent Decide(AIContext ctx, float dt) => intent;
+            public ActIntent intent;
+            public ActIntent Decide(AIContext ctx, float dt) => intent;
         }
 
         private GameObject host;
@@ -104,7 +103,7 @@ namespace Tests.EditMode
             if (createdSettings) Object.DestroyImmediate(createdSettings);
         }
 
-        private static NavigationIntent ManualIntent(bool held) => new()
+        private static ActIntent ManualIntent(bool held) => new()
         {
             isValid = true,
             velocityReference = Vector2.zero,
@@ -156,7 +155,7 @@ namespace Tests.EditMode
         [Test]
         public void LegacyIntent_WithoutAGunner_PushesNoWeaponCommands()
         {
-            chooser.intent = new NavigationIntent
+            chooser.intent = new ActIntent
             {
                 isValid = true,
                 velocityReference = Vector2.zero,

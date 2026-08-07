@@ -1,7 +1,6 @@
 using System;
 using AI;
 using AI.Context;
-using AI.States;
 using Ships.Command;
 using Unity.Mathematics;
 using UnityEngine;
@@ -16,7 +15,7 @@ namespace Movement.MPC
     }
 #endif
 
-    /// <summary>Turns a <see cref="NavigationIntent"/> into per-frame movement commands: owns the control surface (velocity reference, enemy state, weight overrides) and drives an <see cref="Mpc"/> solver, holding no solver state or MPC math itself.</summary>
+    /// <summary>Turns an <see cref="ActIntent"/> into per-frame movement commands: owns the control surface (velocity reference, enemy state, weight overrides) and drives an <see cref="Mpc"/> solver, holding no solver state or MPC math itself.</summary>
     [DefaultExecutionOrder(-60)]
     public class Navigator : MonoBehaviour
     {
@@ -129,7 +128,7 @@ namespace Movement.MPC
         }
 
         /// <summary>The single production entry point for driving the navigator, resetting every field each call so the result depends only on the intent, never on prior state or call order. An invalid intent resets to idle. Composes the granular Set*/Clear* seam below (which tests also drive directly).</summary>
-        public void ApplyIntent(in NavigationIntent intent)
+        public void ApplyIntent(in ActIntent intent)
         {
             if (!intent.isValid)
             {
@@ -141,7 +140,7 @@ namespace Movement.MPC
             var facingSources = (intent.hasFacing ? 1 : 0) + (intent.anchored.hasFacing ? 1 : 0) + (intent.aimAtTarget ? 1 : 0);
             if (facingSources > 1)
                 throw new InvalidOperationException(
-                    "NavigationIntent carries more than one facing source (facingRad / anchored facing / aimAtTarget) — a chooser must pick exactly one.");
+                    "ActIntent carries more than one facing source (facingRad / anchored facing / aimAtTarget) — a chooser must pick exactly one.");
 
             boostCommanded = intent.boost;
             SetVelocityReference(intent.velocityReference);

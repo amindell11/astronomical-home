@@ -1,6 +1,5 @@
 using AI;
 using AI.Context;
-using AI.States;
 using Ships;
 using UnityEngine;
 
@@ -23,9 +22,9 @@ namespace Game.RLHarness
             center = arenaCenter;
         }
 
-        public NavigationIntent Decide(AIContext ctx, float dt)
+        public ActIntent Decide(AIContext ctx, float dt)
         {
-            if (ctx?.Self == null) return NavigationIntent.None;
+            if (ctx?.Self == null) return ActIntent.None;
 
             var self = ctx.Self.Kinematics;
             var maxSpeed = ctx.Self.Dynamics.maxSpeed;
@@ -35,7 +34,7 @@ namespace Game.RLHarness
             var tangent = new Vector2(-outHat.y, outHat.x);
             var vRef = SpeedFraction * maxSpeed * tangent + RadialGain * (CircuitRadius - r) * outHat;
 
-            return new NavigationIntent
+            return new ActIntent
             {
                 isValid = true,
                 velocityReference = Vector2.ClampMagnitude(vRef, maxSpeed),

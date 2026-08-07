@@ -1,5 +1,5 @@
+using AI;
 using AI.Context;
-using AI.States;
 using Movement;
 using Ships;
 using UnityEngine;
@@ -43,14 +43,14 @@ namespace Game.RLHarness
             return Vector2.ClampMagnitude(vTan * tangent + radial, maxSpeed);
         }
 
-        protected override NavigationIntent BuildIntent(AIContext ctx)
+        protected override ActIntent BuildIntent(AIContext ctx)
         {
             var self = ctx.Self.Kinematics;
             var enemy = target.Kinematics;
             var vRef = OrbitVelocity(in self, in enemy, orbitRadius, orbitDirection, speedFraction,
                 ctx.Self.Dynamics.maxSpeed);
 
-            return Pack(new NavigationIntent
+            return Pack(new ActIntent
             {
                 isValid = true,
                 hasTarget = true,
