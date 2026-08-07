@@ -1,0 +1,152 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1066014630051916606
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1848735604803868230}
+  - component: {fileID: 1772957474756936600}
+  - component: {fileID: -1070365238870678526}
+  - component: {fileID: 1536262577255795878}
+  - component: {fileID: 2056539076943524747}
+  - component: {fileID: 606810096680689649}
+  - component: {fileID: 4478262572537416997}
+  m_Layer: 7
+  m_Name: ArchetypePilot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1848735604803868230
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1066014630051916606}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1772957474756936600
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1066014630051916606}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b8ea6c63245a6e4197204a7a6f71112, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  difficulty: 1
+  combatExitDelay: 3
+--- !u!114 &-1070365238870678526
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1066014630051916606}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d4ac4b3b484be947a21a1f6bdfd3dae, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  lockedLocalPosition: {x: 0, y: 0, z: 0}
+  lockRotation: 1
+  lockScale: 1
+--- !u!114 &1536262577255795878
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1066014630051916606}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0f9ac3a41558b64f9a98d4dd5dbddb2, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  mpcSettings: {fileID: 11400000, guid: a3f18c2d94b6e7054a2c8f1d6b3e0972, type: 2}
+  enableObstacleAvoidance: 1
+  labelStep: 5
+  showCostBreakdown: 1
+  costBreakdownMode: 0
+  logSolverPerformance: 0
+  showObstacleCosts: 1
+  showTrajectoryCosts: 1
+  showControlInputs: 1
+  showCandidateTrajectories: 0
+  candidateSampleCount: 32
+  candidateAlphaFalloff: 2
+  controlPanelOffset: {x: 0, y: 2.5, z: 0}
+  lastSolveTimeMs: 0
+--- !u!114 &2056539076943524747
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1066014630051916606}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 672451d8ba1d1c24b95ea05b1fea1e71, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+--- !u!114 &606810096680689649
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1066014630051916606}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3358d33db4de47449a05f34455161639, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  nearbyShipRadius: 300
+  asteroidCoverRadius: 15
+  asteroidMask:
+    serializedVersion: 2
+    m_Bits: 256
+  obstacleLookaheadTime: 2
+--- !u!114 &4478262572537416997
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1066014630051916606}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e74b596751aefc842ad51157fcb57ee7, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  chooser:
+    rid: 6421975033118420001
+  references:
+    version: 2
+    RefIds:
+    - rid: 6421975033118420001
+      type: {class: LiveArchetypeChooser, ns: Game.RLHarness, asm: Game.RLHarness.Editor}
+      data:
+        archetype: 0
+        desiredRange: 10
+        speedFraction: 0.85
+        jukePeriodSeconds: 1.2
+        jukeSeed: 1
+        orbitRadius: 16
+        orbitDirection: 1
+        borderRadius: 500
