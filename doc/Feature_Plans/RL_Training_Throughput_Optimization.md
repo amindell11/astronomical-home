@@ -75,14 +75,17 @@ None of these change the transition function, so any checkpoint stays valid.
 - **1b — strip headless presentation.** The ship prefab carries 6 ParticleSystem, 5
   ParticleSystemRenderer, 3 AudioSource, a Light, Canvas + CanvasRenderer, 2 SortingGroup,
   driven every frame by `ThrusterVisuals.cs:15`, `EngineAudio.cs:53`, `HullVisuals.cs:134`,
-  `ShieldUI.cs:68`. Particles simulate under `-nographics`. **No `EnableVisuals` toggle exists.**
+  `ShieldUI.cs:68` *(as measured 2026-07-22; `ShieldUI` was replaced by
+  `UI/PlayerState/StatusBarUI.cs` in #329)*. Particles simulate under `-nographics`.
+  **No `EnableVisuals` toggle exists.**
   Because the pacing contract puts one full player frame on every fixed step, all of this sits
   on the critical path. Design fork (resolve before building): harness-side strip at compose
   vs. a prefab variant vs. a first-class visuals toggle.
 - **1c — envelope math off non-boundary steps.** `EpisodeRunner.cs:74` builds a full
   `CombatSnapshot` every fixed step including `AnySlotInEnvelope` x2
   (`CombatSnapshot.cs:62-79`), but only `myAlive`/`enemyAlive`/`distFromCenter` are read
-  off-boundary (`EpisodeTypes.cs:37-50`). Doubled in self-play. Hoisting is observationally
+  off-boundary (`EpisodeTypes.cs:37-50` *as measured 2026-07-22; that file was split into
+  `RLHarness/Episodes/Compositions/*` by #236*). Doubled in self-play. Hoisting is observationally
   identical.
 
 ## Phase 2 — diagnosis — RUN 2026-07-22, GATE PASSED

@@ -154,6 +154,18 @@ decision-boundary reward; terminal potential = 0 so Φ telescopes.
 
 ## 1. The system as it stands
 
+> **⚠ §1–2 were written 2026-07-09 and describe the PRE-#204 system.** The utility
+> brain layer they audit — `UtilityChooser`, `Sampler`, `UtilityBuilder`, `AIState`,
+> `GoalRunner`, `StateProfile` — was **deleted by #204** (`10b3849a`, rip-out arc PR-2).
+> `AI/Strategy/` now holds only `IIntentChooser`, `ActIntent`, `IPolicyReadout`, and every
+> `IIntentChooser` implementation is an RLHarness chooser (policy or scripted archetype).
+>
+> **What still holds:** the three-stage pipeline, the `IIntentChooser` / `ActIntent` seam,
+> and §1's nav-layer description. **What is historical:** everything about utility scoring,
+> state profiles, and §2's decision-shape ceilings — those ceilings were demolished, not
+> merely identified. Citations into the deleted layer are left in place as history.
+> §3′/§4′ (above) are the live direction and are unaffected.
+
 The AI is a clean **three-stage per-ship pipeline**, driven from
 `AICommander.FixedUpdate` (`AI/AICommander.cs:80-94`):
 
@@ -179,7 +191,7 @@ Execution order is pinned so caches are fresh: `NavFieldService -90`, `Scout -80
   mostly-normalized ~18-scalar snapshot rebuilt each tick. Effectively an
   observation vector already; consumed purely by utility factors
   (`Sampler.cs:87`).
-- **`IIntentChooser.Decide(ctx, dt) → ActIntent`** (`AI/Strategy/IIntentChooser.cs:20`)
+- **`IIntentChooser.Decide(ctx, dt) → ActIntent`** (`AI/Strategy/IIntentChooser.cs`)
   — the policy is a plain `[Serializable]` object, **not** a MonoBehaviour, swapped
   via `[SerializeReference]` on `Brain` (`AI/Brain.cs:24`). Built explicitly as the
   RL slot-in point; the commander and actuators are untouched by a policy swap.
@@ -481,15 +493,20 @@ coordination still *emerge* from observation + reward + training, not authoring.
 - **Owner/tick:** `AI/AICommander.cs`
 - **Perceive:** `AI/Scout.cs`; `AI/Context/{AIContext,EnemyTracker,EnemyTarget,SituationAssessment}.cs`;
   `AI/Scanning/{ShipScanner,ContactSummary,ObstacleScanner}.cs`
-- **Decide:** `AI/Brain.cs`, `AI/Strategy/IIntentChooser.cs`, `AI/Strategy/{UtilityChooser,Sampler,UtilityBuilder,AIState,GoalRunner,StateProfile}.cs`;
-  `Assets/Settings/AI/StateProfiles/*.asset`
+- **Decide:** `AI/Brain.cs`, `AI/Strategy/{IIntentChooser,ActIntent,IPolicyReadout}.cs`;
+  implementations in `RLHarness/Runtime/{AgentChooser,InferenceChooser}.cs` and
+  `RLHarness/Opponents/*`.
+  *(Pre-#204 this line read `AI/Strategy/{UtilityChooser,Sampler,UtilityBuilder,AIState,GoalRunner,StateProfile}.cs`
+  + `Assets/Settings/AI/StateProfiles/*.asset` — that whole layer was deleted.)*
 - **Actuate (nav):** `AI/Navigator.cs`; `AI/Strategy/ActIntent.cs`; `AI/Navigation/Types.cs`;
   `AI/Navigation/MPC/{Mpc,BurstSolver,Cost,Model}.cs`; `AI/Navigation/Field/*`
 - **Actuate (guns):** `AI/Gunner.cs`; `Combat/Weapons/{Gunsight,WeaponBase,ChargeLasers,Railguns,Missiles}.cs`;
   `Combat/Targeting/{LockOnSensor,TargetLock,TargetingMath}.cs`
 - **Wiring/world state:** `Ships/Ship.cs`, `Ships/Command/Types.cs` (`IShipStatus`/`IWeaponContext`),
   `Game/Services/Units/UnitService.cs`, `Ships/Registry/{IShipRegistry,ShipRegistry}.cs`,
-  `AI/Navigation/IObstacleField.cs` (`ObstacleFields.Active`), `AI/Navigation/Field/NavFieldService.cs`,
+  `AI/Scanning/IObstacleField.cs` (reached via `ArenaContext.ObstacleField`; the old
+  `ObstacleFields.Active` static was hard-cut in the multi-arena arc),
+  `AI/Navigation/Field/NavFieldService.cs`,
   `GamePlane`, `Game/MainGameManager.cs`
 
 Related prior docs: `Chase_Navigation_Trade_Study.md`, `Chase_Nav_Synthesis_Summary.md`,
