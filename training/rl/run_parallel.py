@@ -34,6 +34,7 @@ RL_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RL_DIR.parent.parent
 RESULTS = REPO_ROOT / "results" / "rl-training"
 JSONL_DIR = REPO_ROOT / "results" / "rl-episodes"
+TRANSITION_ROOT = REPO_ROOT / "results" / "rl-transitions"
 MLAGENTS = RL_DIR / ".venv" / "Scripts" / "mlagents-learn.exe"
 TRAINER_RUNTIMES = ("owned", "ml-agents")
 
@@ -101,6 +102,8 @@ def main() -> None:
                         help="RL_SMOKE=1 tight-arena/short-clock gate spec; also defaults --config to the smoke YAML")
     parser.add_argument("--self-play", action="store_true",
                         help="RL_SELFPLAY=1 ghost-league composition; also defaults --config to the selfplay YAML")
+    parser.add_argument("--record-transitions", action="store_true",
+                        help="emit executed decision-boundary JSONL under results/rl-transitions/RUN_ID")
     parser.add_argument("--hybrid-scripted-workers", type=int, default=None, metavar="K",
                         help="first K workers boot the scripted roster instead of the mirror league "
                              "(RL_HYBRID_SCRIPTED_WORKERS; requires --self-play)")
@@ -154,8 +157,11 @@ def main() -> None:
                      "the scripted workers would silently fall back to RewardSpec's default roster mix")
     run_id = args.run_id or config_run_id(config)
     onnx = RESULTS / run_id / "ShipCombat.onnx"
+    transition_dir = TRANSITION_ROOT / run_id
     RESULTS.mkdir(parents=True, exist_ok=True)
     JSONL_DIR.mkdir(parents=True, exist_ok=True)
+    if args.record_transitions:
+        transition_dir.mkdir(parents=True, exist_ok=True)
     suffixes = log_suffixes(args.num_envs, args.num_arenas)
     before = {s: episode_logs(s) for s in suffixes}
 
@@ -191,11 +197,16 @@ def main() -> None:
                     "--harness-base-port", str(args.base_port),
                     "--harness-jsonl-dir", str(JSONL_DIR),
                     "--harness-num-arenas", str(args.num_arenas)]
+    if args.record_transitions:
+        trainer_cmd += ["--harness-transition-dir", str(transition_dir),
+                        "--harness-run-id", run_id]
 
     trainer_log = trainer_log_path(run_id)
     print(f"launching {args.num_envs} worker(s): {args.env}")
     print(f"  trainer-runtime {args.trainer_runtime}  base-port {args.base_port}  "
           f"jsonl {JSONL_DIR}  run-id {run_id}")
+    if args.record_transitions:
+        print(f"  transitions {transition_dir}")
     trainer = None
     try:
         with open(trainer_log, "w") as tl:
@@ -226,6 +237,8 @@ def main() -> None:
     print(f"PASS: {args.num_envs}-env run '{run_id}' complete")
     print(f"  checkpoint: {onnx}")
     print(f"  episodes:   {JSONL_DIR}")
+    if args.record_transitions:
+        print(f"  transitions: {transition_dir}")
 
 
 if __name__ == "__main__":

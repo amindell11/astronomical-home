@@ -27,6 +27,7 @@ namespace Game.RLHarness
         public const float ArenaSpacing = 400f;
 
         private readonly List<IEpisodeComposition> compositions = new();
+        private readonly List<DecisionTransitionJsonl> transitionOutputs = new();
         private int terminals;
         private int truncations;
 
@@ -43,6 +44,11 @@ namespace Game.RLHarness
 
             var workerIndex = ResolveWorkerIndex();
             var arenaCount = ResolveNumArenas();
+            var transitionDir = CommandLineArg("--harness-transition-dir");
+            var transitionRunId = CommandLineArg("--harness-run-id");
+            if (transitionDir != null && string.IsNullOrWhiteSpace(transitionRunId))
+                throw new InvalidOperationException(
+                    "--harness-transition-dir requires --harness-run-id so every transition carries run provenance.");
             var spec = RewardSpec.Default;
             spec.runSeed = DeriveWorkerSeed(runSeed, workerIndex ?? 0);
             if (Environment.GetEnvironmentVariable("RL_SMOKE") == "1")
@@ -68,21 +74,32 @@ namespace Game.RLHarness
                     ? new ScriptedRosterComposition(arenaHost, in arenaSpec, behaviorType, assets, ArenaOffset(j))
                     : (IEpisodeComposition)new SelfPlayComposition(arenaHost, in arenaSpec, behaviorType, assets, ArenaOffset(j));
                 compositions.Add(composition);
+                var suffix = ComposeSuffix(workerIndex, j, arenaCount);
                 var jsonlPath = EpisodeJsonl.NewRunPath("training",
                     dirOverride: CommandLineArg("--harness-jsonl-dir"),
-                    workerSuffix: ComposeSuffix(workerIndex, j, arenaCount));
-                StartCoroutine(ArenaLoop(composition.Driver, arenaSpec, envParams, jsonlPath, j));
+                    workerSuffix: suffix);
+                DecisionTransitionJsonl transitionOutput = null;
+                if (transitionDir != null)
+                {
+                    transitionOutput = DecisionTransitionJsonl.Create(transitionRunId,
+                        workerIndex ?? 0, j, transitionDir, suffix);
+                    transitionOutputs.Add(transitionOutput);
+                }
+                StartCoroutine(ArenaLoop(composition.Driver, arenaSpec, envParams,
+                    jsonlPath, j, transitionOutput));
             }
         }
 
         private IEnumerator ArenaLoop(EpisodeLoopDriver driver, RewardSpec spec,
-            Func<string, float, float> envParams, string jsonlPath, int arenaIndex)
+            Func<string, float, float> envParams, string jsonlPath, int arenaIndex,
+            DecisionTransitionJsonl transitionOutput)
         {
             for (var i = 0; episodes <= 0 || i < episodes; i++)
             {
                 // Re-read per episode: curriculum lessons move density/lethality/weights mid-run.
                 var episodeSpec = EnvParamOverlay.Apply(spec, envParams);
-                yield return driver.RunEpisode(episodeSpec, i);
+                yield return driver.RunEpisode(episodeSpec, i,
+                    transitionOutput: transitionOutput);
                 var result = driver.Runner.Result;
                 EpisodeJsonl.Append(jsonlPath, in result);
                 if (result.endKind == EndKind.Terminal.ToString()) terminals++;
@@ -190,6 +207,8 @@ namespace Game.RLHarness
         {
             foreach (var composition in compositions)
                 composition.Dispose();
+            foreach (var transitionOutput in transitionOutputs)
+                transitionOutput.Dispose();
         }
 
         private IEnumerator PacingWatchdog()

@@ -7,6 +7,7 @@ using Game.Services;
 using NUnit.Framework;
 using Ships;
 using Tests.Common;
+using Tests.PlayMode.Common;
 using Unity.MLAgents;
 using Unity.MLAgents.Policies;
 using UnityEngine;
@@ -31,6 +32,8 @@ namespace Tests.PlayMode
         private EpisodePair pair;
         private AgentChooser chooser;
         private ShipAgent agent;
+        private DecisionTransitionJsonl transitionOutput;
+        private string transitionDir;
 
         private static Unity.InferenceEngine.ModelAsset LoadModel(string assetPath) =>
             UnityEditor.AssetDatabase.LoadAssetAtPath<Unity.InferenceEngine.ModelAsset>(assetPath);
@@ -73,6 +76,11 @@ namespace Tests.PlayMode
             pair?.Dispose();
             pair = null;
             chooser = null;
+            transitionOutput?.Dispose();
+            transitionOutput = null;
+            if (transitionDir != null && System.IO.Directory.Exists(transitionDir))
+                System.IO.Directory.Delete(transitionDir, recursive: true);
+            transitionDir = null;
             if (arenaHost) UnityEngine.Object.DestroyImmediate(arenaHost);
             arena = null;
             projectiles = null;
@@ -124,6 +132,78 @@ namespace Tests.PlayMode
                 Assert.AreEqual(result.totalReward, driver.LastEpisodeCumulativeReward, 1e-3f,
                     "the agent must accumulate exactly the runner's reward");
             }
+        }
+
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator TransitionArtifact_OrdinaryThenTerminal_AlignsExecutedActionAndNextState()
+        {
+            var spec = RewardSpec.Default;
+            spec.timeoutDecisions = 8;
+            spec.minSeparation = 50f;
+            spec.maxSeparation = 60f;
+
+            Compose(in spec);
+            var driver = new EpisodeLoopDriver(pair, agent, arena.Offset);
+            var output = OpenTransitionOutput();
+            var killed = false;
+
+            yield return driver.RunEpisode(spec, episodeIndex: 7,
+                onFixedStep: () =>
+                {
+                    if (killed || driver.Runner.Result.decisions == 0) return;
+                    TestDamage.Kill(pair.Baseline, pair.Agent);
+                    killed = true;
+                },
+                transitionOutput: output);
+
+            Assert.IsTrue(killed, "the fixture must force its terminal boundary after one ordinary transition");
+            var rows = CloseAndReadTransitions();
+            Assert.AreEqual(2, rows.Length, "one ordinary boundary followed by the forced terminal boundary");
+
+            Assert.IsFalse(rows[0].terminal);
+            Assert.IsFalse(rows[0].truncated);
+            Assert.IsTrue(rows[1].terminal);
+            Assert.IsFalse(rows[1].truncated);
+            Assert.AreEqual(1f, rows[1].reward.outcome);
+            Assert.AreEqual(7, rows[0].episodeIndex);
+            Assert.AreEqual(3, rows[0].workerIndex);
+            Assert.AreEqual(2, rows[0].arenaIndex);
+            Assert.AreEqual(spec.runSeed, rows[0].runSeed);
+            Assert.AreEqual(0, rows[0].teamId);
+            CollectionAssert.AreEqual(rows[0].nextState.combat, rows[1].state.combat,
+                "the next decision must consume the exact state that closed the preceding transition");
+            CollectionAssert.AreEqual(rows[0].nextState.obstacleTokens, rows[1].state.obstacleTokens,
+                "variable obstacle tokens must stay aligned across the same decision boundary");
+            CollectionAssert.AreEqual(new[] { 1, 0 }, rows[0].action.discrete,
+                "the row must contain the heuristic action installed for the interval");
+            Assert.IsFalse(rows[0].action.boostExecuted);
+        }
+
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator TransitionArtifact_Timeout_EndsWithTruncationNotTerminal()
+        {
+            var spec = RewardSpec.Default;
+            spec.timeoutDecisions = 2;
+            spec.minSeparation = 50f;
+            spec.maxSeparation = 60f;
+
+            Compose(in spec);
+            var driver = new EpisodeLoopDriver(pair, agent, arena.Offset);
+            var output = OpenTransitionOutput();
+
+            yield return driver.RunEpisode(spec, episodeIndex: 11, transitionOutput: output);
+
+            Assert.AreEqual(EndKind.Truncation.ToString(), driver.Runner.Result.endKind);
+            var rows = CloseAndReadTransitions();
+            Assert.AreEqual(2, rows.Length);
+            Assert.IsFalse(rows[0].terminal);
+            Assert.IsFalse(rows[0].truncated);
+            Assert.IsFalse(rows[1].terminal);
+            Assert.IsTrue(rows[1].truncated);
+            Assert.AreEqual(0f, rows[1].reward.outcome);
+            CollectionAssert.AreEqual(DecisionTransition.RewardFieldNames, rows[1].rewardFields);
         }
 
         [UnityTest]
@@ -337,6 +417,31 @@ namespace Tests.PlayMode
         private static IEnumerable<T> Rows<T>(string[] lines)
         {
             foreach (var line in lines) yield return JsonUtility.FromJson<T>(line);
+        }
+
+        private DecisionTransitionJsonl OpenTransitionOutput()
+        {
+            transitionDir = System.IO.Path.Combine(Application.temporaryCachePath,
+                $"rl-transition-test-{System.Guid.NewGuid():N}");
+            transitionOutput = DecisionTransitionJsonl.Create(
+                "transition-test", workerIndex: 3, arenaIndex: 2, transitionDir, "-w3-a2");
+            return transitionOutput;
+        }
+
+        private DecisionTransition[] CloseAndReadTransitions()
+        {
+            var path = transitionOutput.Path;
+            transitionOutput.Dispose();
+            transitionOutput = null;
+
+            var lines = System.IO.File.ReadAllLines(path);
+            var rows = new DecisionTransition[lines.Length];
+            for (var i = 0; i < lines.Length; i++)
+            {
+                rows[i] = JsonUtility.FromJson<DecisionTransition>(lines[i]);
+                rows[i].Validate();
+            }
+            return rows;
         }
 
         /// <summary>Host on an inactive GameObject so its Start never fires — the test composes the arena and drives the client coroutine itself.</summary>
