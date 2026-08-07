@@ -15,8 +15,9 @@ namespace Tests.PlayMode
 {
     /// <summary>
     /// Session presentation policy on pooled transients: a headless session's ProjectileService darkens
-    /// what it checks out, and the same pooled instance lights back up when a presenting session
-    /// checks it out next (the pool is process-wide and crosses sessions).
+    /// what it checks out, the same pooled instance lights back up when a presenting session checks it
+    /// out next (the pool is process-wide and crosses sessions), and that darkening is the whole gate —
+    /// a darkened part spawns no effects, with no second check inside the part.
     /// </summary>
     [Category("Presentation")]
     public class TransientPresentationPlayModeTests : PlayModeWorldFixture
