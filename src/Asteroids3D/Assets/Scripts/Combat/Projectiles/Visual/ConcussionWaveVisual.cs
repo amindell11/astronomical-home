@@ -49,7 +49,7 @@ namespace Combat.Projectile.Visual
         /// <summary>On Begin, not OnEnable — pool warmup activates the instance once without a detonation.</summary>
         private void SpawnBurst()
         {
-            if (GameSettings.PresentationEnabled && burstPrefab)
+            if (burstPrefab)
                 SimplePool<PooledVFX>.Get(burstPrefab, transform.position, Quaternion.identity);
         }
 
