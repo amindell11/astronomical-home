@@ -414,9 +414,12 @@ Format: **term** — definition. *(authority)*
 - **brain / chooser / intent** — the swappable-decision seam. The contract worth
   knowing: an intent is **idempotent per decision**, so re-applying one is safe.
   An **act intent** is the whole per-tick act — navigation, fire and boost
-  together. It is a goal spec, not a command: the MPC *solves* it into a
-  `PilotCommand`, so intent and command are different altitudes rather than
-  synonyms. *(Brain, IIntentChooser, ActIntent)*
+  together — but its channels reach different actuators: the MPC *solves* the
+  navigation slice into a `PilotCommand`, while firing is consumed separately
+  (through the Gunner, or pushed straight to the weapon actuator when the chooser
+  takes trigger authority). On the navigation channel, intent and command are
+  different altitudes rather than synonyms.
+  *(Brain, IIntentChooser, ActIntent)*
 - **presentation** — the per-session axis deciding whether visuals and audio
   exist. Two things a reader needs: it is applied by the owning spawn seams,
   never by per-component globals; and it is **not** the same axis as the deleted
