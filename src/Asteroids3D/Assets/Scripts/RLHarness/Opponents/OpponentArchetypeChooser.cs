@@ -8,13 +8,15 @@ namespace Game.RLHarness
     /// <summary>Shared skeleton for the scripted opponent archetypes: live-target validity, the 5 Hz recompute cache, the border tangent-steer post-step, and the per-drive velocity pack (production world reference vs the K1-2 open-loop arms). Arena bounds enter once through Configure as plain floats.</summary>
     public abstract class OpponentArchetypeChooser : IIntentChooser, IScriptedVelocityReadout
     {
-        protected const int RecomputeIntervalTicks = 10;
+        /// <summary>The roster's 5 Hz decision cadence at the 0.02 s timestep — what every trained checkpoint and eval yardstick was measured against. Only the live pilot departs from it.</summary>
+        public const int RosterRecomputeIntervalTicks = 10;
 
         protected Ship target;
         protected float speedFraction;
         private Vector2 arenaCenter;
         private float borderRadius;
         private ArchetypeDrive drive;
+        private int recomputeIntervalTicks = RosterRecomputeIntervalTicks;
 
         private int tickCounter;
         private ActIntent cachedIntent = ActIntent.None;
@@ -24,15 +26,17 @@ namespace Game.RLHarness
         public ArchetypeDrive Drive => drive;
         public int TotalDecisions => totalDecisions;
         public ScriptedVelocityCommand LastCommand => lastCommand;
+        public int RecomputeIntervalTicks => recomputeIntervalTicks;
 
         protected void Bind(Ship target, float speedFraction, Vector2 arenaCenter, float borderRadius,
-            ArchetypeDrive drive)
+            ArchetypeDrive drive, int recomputeIntervalTicks = RosterRecomputeIntervalTicks)
         {
             this.target = target;
             this.speedFraction = speedFraction;
             this.arenaCenter = arenaCenter;
             this.borderRadius = borderRadius;
             this.drive = drive;
+            this.recomputeIntervalTicks = recomputeIntervalTicks;
             Reset();
         }
 
@@ -47,7 +51,7 @@ namespace Game.RLHarness
             if (!target || !target.gameObject.activeInHierarchy || ctx?.Self == null)
                 return ActIntent.None;
 
-            if (tickCounter % RecomputeIntervalTicks == 0)
+            if (tickCounter % recomputeIntervalTicks == 0)
                 cachedIntent = BuildIntent(ctx);
             tickCounter++;
             return cachedIntent;

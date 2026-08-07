@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>Editor-authorable scripted opponent: composes the authored archetype against the context's tracked enemy on first Decide and re-composes whenever that enemy changes, so an archetype the training roster draws per episode can be flown against a player in a live sector. Shape params are authored rather than jittered, and the border circle anchors on the compose-time position — a live sector has no arena to steer off.</summary>
+    /// <summary>Editor-authorable scripted opponent: composes the authored archetype against the context's tracked enemy on first Decide and re-composes whenever that enemy changes, so an archetype the training roster draws per episode can be flown against a player in a live sector. Shape params are authored rather than jittered, the border circle anchors on the compose-time position (a live sector has no arena to steer off), and decisions default to every sim tick rather than the roster's 5 Hz training cadence.</summary>
     [Serializable]
     public sealed class LiveArchetypeChooser : IIntentChooser
     {
@@ -34,6 +34,9 @@ namespace Game.RLHarness
 
         [Tooltip("Radius of the border circle the archetype tangent-steers off, centered on the compose-time position. Author a huge value for no border.")]
         [SerializeField] private float borderRadius = 500f;
+
+        [Tooltip("Sim ticks between decisions: 1 is every tick (50 Hz at the 0.02 s timestep), 10 is the roster's training cadence (5 Hz). Lower reacts faster to the player.")]
+        [SerializeField] private int recomputeIntervalTicks = 1;
 
         private Ship self;
         private Ship enemy;
@@ -75,7 +78,7 @@ namespace Game.RLHarness
                 ? null
                 : ArchetypeChoosers.Create(archetype, Shape(), enemy,
                     self.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary), jukeSeed,
-                    borderCenter, borderRadius);
+                    borderCenter, borderRadius, ArchetypeDrive.Production, recomputeIntervalTicks);
         }
 
         private OpponentDraw Shape() => new()
@@ -92,6 +95,9 @@ namespace Game.RLHarness
             self = ctx.Self as Ship;
             if (!self)
                 throw new InvalidOperationException("LiveArchetypeChooser requires a Ship context.");
+            if (recomputeIntervalTicks < 1)
+                throw new InvalidOperationException(
+                    $"LiveArchetypeChooser on '{self.name}' authors a recompute interval of {recomputeIntervalTicks}; it must be at least 1 tick.");
 
             borderCenter = self.Kinematics.pos;
         }

@@ -36,6 +36,41 @@ namespace Tests.EditMode
                 ArchetypeChoosers.Create(archetype, in shape, null, 30f, 1, Vector2.zero, 500f));
         }
 
+        [TestCase(OpponentArchetype.Aggressor)]
+        [TestCase(OpponentArchetype.Kiter)]
+        [TestCase(OpponentArchetype.Evader)]
+        [TestCase(OpponentArchetype.Orbiter)]
+        public void Create_DefaultsToTheRosterCadence(OpponentArchetype archetype)
+        {
+            var shape = Shape();
+            var chooser = (OpponentArchetypeChooser)ArchetypeChoosers.Create(
+                archetype, in shape, null, 30f, 1, Vector2.zero, 500f);
+            Assert.AreEqual(10, chooser.RecomputeIntervalTicks,
+                "the roster's 5 Hz cadence is what every trained checkpoint and eval yardstick was measured against");
+        }
+
+        [Test]
+        public void Create_HonorsAnExplicitCadence()
+        {
+            var shape = Shape();
+            var chooser = (OpponentArchetypeChooser)ArchetypeChoosers.Create(
+                OpponentArchetype.Aggressor, in shape, null, 30f, 1, Vector2.zero, 500f,
+                ArchetypeDrive.Production, 1);
+            Assert.AreEqual(1, chooser.RecomputeIntervalTicks);
+        }
+
+        [Test]
+        public void ArchetypePilot_AuthorsEveryTickCadence()
+        {
+            var pilot = AssetDatabase.LoadAssetAtPath<GameObject>(ArchetypePilotPath);
+            Assert.IsNotNull(pilot, $"Missing prefab: {ArchetypePilotPath}");
+
+            var interval = new SerializedObject(pilot.GetComponent<Brain>())
+                .FindProperty("chooser").FindPropertyRelative("recomputeIntervalTicks");
+            Assert.IsNotNull(interval, "LiveArchetypeChooser must author a recompute interval");
+            Assert.AreEqual(1, interval.intValue, "the live pilot decides every sim tick (50 Hz)");
+        }
+
         [Test]
         public void Create_UnknownArchetype_Throws()
         {

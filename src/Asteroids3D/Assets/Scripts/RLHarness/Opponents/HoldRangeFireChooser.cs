@@ -12,11 +12,12 @@ namespace Game.RLHarness
         private float projectileSpeed;
 
         public void Configure(Ship target, float desiredRange, float speedFraction, float projectileSpeed,
-            Vector2 arenaCenter, float borderRadius, ArchetypeDrive drive = ArchetypeDrive.Production)
+            Vector2 arenaCenter, float borderRadius, ArchetypeDrive drive = ArchetypeDrive.Production,
+            int recomputeIntervalTicks = RosterRecomputeIntervalTicks)
         {
             this.desiredRange = desiredRange;
             this.projectileSpeed = projectileSpeed;
-            Bind(target, speedFraction, arenaCenter, borderRadius, drive);
+            Bind(target, speedFraction, arenaCenter, borderRadius, drive, recomputeIntervalTicks);
         }
 
         protected override ActIntent BuildIntent(AIContext ctx)

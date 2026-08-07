@@ -10,7 +10,8 @@ namespace Game.RLHarness
     {
         public static IIntentChooser Create(OpponentArchetype archetype, in OpponentDraw shape, Ship target,
             float projectileSpeed, int jukeSeed, Vector2 borderCenter, float borderRadius,
-            ArchetypeDrive drive = ArchetypeDrive.Production)
+            ArchetypeDrive drive = ArchetypeDrive.Production,
+            int recomputeIntervalTicks = OpponentArchetypeChooser.RosterRecomputeIntervalTicks)
         {
             switch (archetype)
             {
@@ -18,17 +19,17 @@ namespace Game.RLHarness
                 case OpponentArchetype.Kiter:
                     var holdRange = new HoldRangeFireChooser();
                     holdRange.Configure(target, shape.desiredRange, shape.speedFraction, projectileSpeed,
-                        borderCenter, borderRadius, drive);
+                        borderCenter, borderRadius, drive, recomputeIntervalTicks);
                     return holdRange;
                 case OpponentArchetype.Evader:
                     var evader = new EvaderChooser();
                     evader.Configure(target, shape.speedFraction, shape.jukePeriod, jukeSeed,
-                        borderCenter, borderRadius, drive);
+                        borderCenter, borderRadius, drive, recomputeIntervalTicks);
                     return evader;
                 case OpponentArchetype.Orbiter:
                     var orbiter = new OrbiterChooser();
                     orbiter.Configure(target, shape.orbitRadius, shape.orbitDirection, shape.speedFraction,
-                        projectileSpeed, borderCenter, borderRadius, drive);
+                        projectileSpeed, borderCenter, borderRadius, drive, recomputeIntervalTicks);
                     return orbiter;
                 case OpponentArchetype.Dummy:
                     return new DummyChooser();

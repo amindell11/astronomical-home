@@ -19,11 +19,12 @@ namespace Game.RLHarness
         private int jukeEveryRecomputes = 1;
 
         public void Configure(Ship threat, float speedFraction, float jukePeriodSeconds, int jukeSeed,
-            Vector2 arenaCenter, float borderRadius, ArchetypeDrive drive = ArchetypeDrive.Production)
+            Vector2 arenaCenter, float borderRadius, ArchetypeDrive drive = ArchetypeDrive.Production,
+            int recomputeIntervalTicks = RosterRecomputeIntervalTicks)
         {
             this.jukePeriodSeconds = jukePeriodSeconds;
             this.jukeSeed = jukeSeed;
-            Bind(threat, speedFraction, arenaCenter, borderRadius, drive);
+            Bind(threat, speedFraction, arenaCenter, borderRadius, drive, recomputeIntervalTicks);
         }
 
         public override void Reset()

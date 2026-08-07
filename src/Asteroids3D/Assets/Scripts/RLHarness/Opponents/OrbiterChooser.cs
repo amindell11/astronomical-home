@@ -21,12 +21,13 @@ namespace Game.RLHarness
 
         public void Configure(Ship target, float orbitRadius, int orbitDirection, float speedFraction,
             float projectileSpeed, Vector2 arenaCenter, float borderRadius,
-            ArchetypeDrive drive = ArchetypeDrive.Production)
+            ArchetypeDrive drive = ArchetypeDrive.Production,
+            int recomputeIntervalTicks = RosterRecomputeIntervalTicks)
         {
             this.orbitRadius = orbitRadius;
             this.orbitDirection = orbitDirection >= 0 ? 1 : -1;
             this.projectileSpeed = projectileSpeed;
-            Bind(target, speedFraction, arenaCenter, borderRadius, drive);
+            Bind(target, speedFraction, arenaCenter, borderRadius, drive, recomputeIntervalTicks);
         }
 
         /// <summary>The pure orbit law: tangential command at the jittered speed plus a radial P-term with the centripetal feed-forward.</summary>
