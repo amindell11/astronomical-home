@@ -88,6 +88,7 @@ namespace Movement.MPC
     {
         [ReadOnly] public NativeArray<Control> candidates;
         public NativeArray<float> costs;
+        public NativeArray<State> terminalStates;
 
         [ReadOnly] public CostInput costInput;
         public State initialState;
@@ -113,6 +114,7 @@ namespace Movement.MPC
             }
 
             costs[candidateIndex] = totalCost;
+            terminalStates[candidateIndex] = current;
         }
     }
 
@@ -123,13 +125,20 @@ namespace Movement.MPC
         public static uint? SamplerSeedOverride;
 
         private readonly uint samplerSeed;
+        private readonly ITerminalValueScorer terminalValueScorer;
         private uint solveCount;
 
-        public SolverBuffers(uint seed) => samplerSeed = seed;
+        public SolverBuffers(uint seed, ITerminalValueScorer terminalValueScorer = null)
+        {
+            samplerSeed = seed;
+            this.terminalValueScorer = terminalValueScorer;
+        }
 
         private NativeArray<Control> warmStart;
         private NativeArray<Control> candidates;
         private NativeArray<float> costs;
+        private NativeArray<State> terminalStates;
+        private NativeArray<float> terminalValues;
         private NativeArray<Control> result;
         private NativeArray<ObstacleData> obstacles;
         private NativeArray<State> enemyStates;
@@ -141,9 +150,10 @@ namespace Movement.MPC
         public NativeArray<State> EnemyStates => enemyStates;
         public int LastEnemyStateCount { get; private set; }
 
-        // Editor visualization: read-only candidate sequences and costs from the most recent Solve(), valid until the next Solve() rewrites the buffers.
+        // Latest solve buffers remain valid until the next solve.
         public NativeArray<Control> Candidates => candidates;
         public NativeArray<float> Costs => costs;
+        public NativeArray<State> TerminalStates => terminalStates;
         public int LastSampleCount { get; private set; }
         public int LastHorizon { get; private set; }
 
@@ -230,6 +240,7 @@ namespace Movement.MPC
             }.Schedule(samples, 1).Complete();
 
             Evaluate(initialState, costInput, cfg, dynamics, lastControl, samples);
+            AddTerminalValues(samples);
 
             return EliteAverage(sequence, cfg.horizon, samples, eliteFraction);
         }
@@ -241,12 +252,24 @@ namespace Movement.MPC
             {
                 candidates = candidates,
                 costs = costs,
+                terminalStates = terminalStates,
                 costInput = costInput,
                 initialState = initialState,
                 cfg = cfg,
                 dynamics = dynamics,
                 lastControl = lastControl,
             }.Schedule(samples, 1).Complete();
+        }
+
+        private void AddTerminalValues(int samples)
+        {
+            if (terminalValueScorer == null) return;
+
+            using (EditorProfilingScope.Begin("MPC.TerminalValue.Score"))
+                terminalValueScorer.Score(terminalStates, terminalValues, samples);
+
+            for (var i = 0; i < samples; i++)
+                costs[i] += terminalValues[i];
         }
 
         private float EliteAverage(Control[] sequence, int horizon, int samples, float eliteFraction)
@@ -410,7 +433,9 @@ namespace Movement.MPC
             warmStart = new NativeArray<Control>(horizon, Allocator.Persistent);
             candidates = new NativeArray<Control>(samples * horizon, Allocator.Persistent);
             costs = new NativeArray<float>(samples, Allocator.Persistent);
-            // 96 (not 64): multi-sphere expansion turns each elongated rock into up to 3 rows, so a full nearest-N scan needs headroom above the raw obstacle count.
+            terminalStates = new NativeArray<State>(samples, Allocator.Persistent);
+            terminalValues = new NativeArray<float>(samples, Allocator.Persistent);
+            // Multi-sphere expansion needs headroom above 64 raw obstacles.
             obstacles = new NativeArray<ObstacleData>(96, Allocator.Persistent);
             enemyStates = new NativeArray<State>(horizon, Allocator.Persistent);
             result = new NativeArray<Control>(horizon, Allocator.Persistent);
@@ -423,6 +448,8 @@ namespace Movement.MPC
             warmStart.Dispose();
             candidates.Dispose();
             costs.Dispose();
+            terminalStates.Dispose();
+            terminalValues.Dispose();
             obstacles.Dispose();
             enemyStates.Dispose();
             result.Dispose();
