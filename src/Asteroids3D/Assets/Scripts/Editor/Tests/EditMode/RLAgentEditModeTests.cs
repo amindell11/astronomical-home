@@ -223,34 +223,31 @@ namespace Tests.EditMode
             {
                 var opponent = opponentGo.AddComponent<Ship>();
                 var chooser = new AgentChooser();
-                chooser.Configure(opponent, primaryProjectileSpeed: 40f);
+                chooser.Configure(opponent);
 
                 var action = new AgentAction(facingOffsetRad: 1.2f, facingWeight: 0.4f,
                     radialSpeed: 4f, tangentialSpeed: -2f, velocityWeight: 0.6f, fire: true, boost: false);
                 chooser.SetAction(in action, boostAvailable: true);
 
-                var intent = chooser.Decide(null, 0.02f);
-                Assert.IsTrue(intent.isValid);
-                Assert.IsTrue(intent.hasTarget, "the target snapshot stays (obstacle exclusion + anchoring key on it)");
+                var decision = chooser.Decide(null, 0.02f).Value;
+                Assert.IsTrue(decision.nav.TryGetAnchor(out _), "the anchor snapshot carries the enemy frame");
 
-                // B1 boundary pin: exactly one facing source — the anchored one, never the legacy world facing.
-                Assert.IsFalse(intent.hasFacing, "the legacy world-frame facing stays off");
-                Assert.IsTrue(intent.anchored.hasFacing, "the anchored facing carries the command");
-                Assert.AreEqual(1.2f, intent.anchored.facingOffsetRad, 1e-6f);
-                Assert.AreEqual(0.4f, intent.anchored.facingWeight, 1e-6f, "authority weight rides the anchored channel");
+                // B1 boundary pin: the facing command rides the anchored channel, and the world reference stays unarmed.
+                Assert.IsFalse(decision.nav.hasPlanarVelocity, "the polar move channel replaces the world reference");
+                Assert.IsTrue(decision.nav.anchored.hasFacing, "the anchored facing carries the command");
+                Assert.AreEqual(1.2f, decision.nav.anchored.facingOffsetRad, 1e-6f);
+                Assert.AreEqual(0.4f, decision.nav.anchored.facingWeight, 1e-6f, "authority weight rides the anchored channel");
 
-                Assert.IsTrue(intent.anchored.hasVelocity);
-                Assert.AreEqual(4f, intent.anchored.radialSpeed, 1e-6f);
-                Assert.AreEqual(-2f, intent.anchored.tangentialSpeed, 1e-6f);
-                Assert.AreEqual(0.6f, intent.anchored.velocityWeight, 1e-6f);
+                Assert.IsTrue(decision.nav.anchored.hasVelocity);
+                Assert.AreEqual(4f, decision.nav.anchored.radialSpeed, 1e-6f);
+                Assert.AreEqual(-2f, decision.nav.anchored.tangentialSpeed, 1e-6f);
+                Assert.AreEqual(0.6f, decision.nav.anchored.velocityWeight, 1e-6f);
 
-                Assert.AreEqual(40f, intent.projectileSpeed, 1e-6f, "self projectile speed feeds the anchored intercept lead");
-                Assert.IsFalse(intent.aimAtTarget, "manual aim must leave the MPC intercept override dormant");
-                Assert.IsTrue(intent.manualFire);
-                Assert.IsTrue(intent.primaryHeld);
-                Assert.IsFalse(intent.enableFiring, "the Gunner path must stay cold on the manual path");
-                Assert.IsTrue(intent.weightOverrides == null || intent.weightOverrides.Length == 0,
-                    "anchored mode leaves weightOverrides empty — ceiling × weight never double-scales");
+                Assert.IsTrue(decision.primary.IsCommanded, "the policy owns the primary trigger");
+                Assert.IsTrue(decision.primary.Held);
+                Assert.IsFalse(decision.primary.IsAuto, "the Gunner path must stay cold on the commanded path");
+                Assert.IsFalse(decision.secondary.IsAuto,
+                    "the secondary stays silent — today's manualFire path pushed it no command at all");
             }
             finally
             {
@@ -266,22 +263,20 @@ namespace Tests.EditMode
             {
                 var opponent = opponentGo.AddComponent<Ship>();
                 var chooser = new AgentChooser();
-                chooser.Configure(opponent, primaryProjectileSpeed: 40f);
+                chooser.Configure(opponent);
 
                 var action = new AgentAction(facingOffsetRad: 0f, facingWeight: 1f,
                     radialSpeed: 4f, tangentialSpeed: 0f, velocityWeight: 1f, fire: true, boost: true);
                 chooser.SetAction(in action, boostAvailable: true);
 
-                var first = chooser.Decide(null, 0.02f);
-                Assert.IsTrue(first.isValid);
+                var first = chooser.Decide(null, 0.02f).Value;
                 Assert.IsTrue(first.boost, "boundary tick spends the boost");
-                Assert.IsTrue(first.primaryHeld);
-                Assert.AreEqual(4f, first.anchored.radialSpeed, 1e-6f);
+                Assert.IsTrue(first.primary.Held);
+                Assert.AreEqual(4f, first.nav.anchored.radialSpeed, 1e-6f);
 
-                var second = chooser.Decide(null, 0.02f);
-                Assert.IsTrue(second.isValid);
+                var second = chooser.Decide(null, 0.02f).Value;
                 Assert.IsFalse(second.boost, "boost is one-shot per decision");
-                Assert.AreEqual(first.anchored.radialSpeed, second.anchored.radialSpeed,
+                Assert.AreEqual(first.nav.anchored.radialSpeed, second.nav.anchored.radialSpeed,
                     "the cached anchored command holds for the interval");
             }
             finally
@@ -298,17 +293,15 @@ namespace Tests.EditMode
             {
                 var opponent = opponentGo.AddComponent<Ship>();
                 var chooser = new AgentChooser();
-                chooser.Configure(opponent, primaryProjectileSpeed: 40f);
+                chooser.Configure(opponent);
 
                 var action = new AgentAction(facingOffsetRad: 0f, facingWeight: 1f,
                     radialSpeed: 4f, tangentialSpeed: 0f, velocityWeight: 1f, fire: false, boost: true);
                 chooser.SetAction(in action, boostAvailable: false);
 
-                var first = chooser.Decide(null, 0.02f);
-                Assert.IsTrue(first.isValid);
-                Assert.IsFalse(first.boost,
+                Assert.IsFalse(chooser.Decide(null, 0.02f).Value.boost,
                     "boost observed unavailable at the boundary must stay a no-op even if the cooldown expires before the next tick");
-                Assert.IsFalse(chooser.Decide(null, 0.02f).boost);
+                Assert.IsFalse(chooser.Decide(null, 0.02f).Value.boost);
             }
             finally
             {
@@ -324,17 +317,17 @@ namespace Tests.EditMode
             {
                 var opponent = opponentGo.AddComponent<Ship>();
                 var chooser = new AgentChooser();
-                chooser.Configure(opponent, primaryProjectileSpeed: 40f);
+                chooser.Configure(opponent);
 
-                Assert.IsFalse(chooser.Decide(null, 0.02f).isValid, "no action yet → idle");
+                Assert.IsFalse(chooser.Decide(null, 0.02f).HasValue, "no action yet → no decision");
 
                 var action = new AgentAction(facingOffsetRad: 0f, facingWeight: 1f,
                     radialSpeed: 1f, tangentialSpeed: 0f, velocityWeight: 1f, fire: false, boost: false);
                 chooser.SetAction(in action, boostAvailable: true);
-                Assert.IsTrue(chooser.Decide(null, 0.02f).isValid);
+                Assert.IsTrue(chooser.Decide(null, 0.02f).HasValue);
 
                 chooser.Reset();
-                Assert.IsFalse(chooser.Decide(null, 0.02f).isValid, "reset discards the cached action");
+                Assert.IsFalse(chooser.Decide(null, 0.02f).HasValue, "reset discards the cached action");
             }
             finally
             {

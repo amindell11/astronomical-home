@@ -48,7 +48,6 @@ namespace Game.RLHarness
 
         private readonly Brain brain;
         private readonly Ship enemy;
-        private readonly float projectileSpeed;
         private readonly Navigator navigator;
         private readonly MpcSettings originalSettings;
         private readonly MpcSettings settingsClone;
@@ -57,7 +56,6 @@ namespace Game.RLHarness
         {
             this.enemy = enemy;
             brain = opponent.GetComponentInChildren<Brain>();
-            projectileSpeed = opponent.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary);
 
             // Traversal-probe precedent: the next respawn re-creates the solver from the clone.
             navigator = opponent.GetComponentInChildren<AICommander>().Navigator;
@@ -110,7 +108,7 @@ namespace Game.RLHarness
                     break;
             }
 
-            brain.InstallChooser(ArchetypeChoosers.Create(archetype, in draw, enemy, projectileSpeed,
+            brain.InstallChooser(ArchetypeChoosers.Create(archetype, in draw, enemy,
                 scope.Derive(JukeSeedStream).ToSeed(), arenaCenter, spec.arenaRadius, drive));
             return draw;
         }

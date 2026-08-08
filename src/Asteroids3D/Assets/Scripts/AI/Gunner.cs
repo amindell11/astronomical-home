@@ -1,4 +1,5 @@
 using System;
+using AI.Context;
 using Combat;
 using Game;
 using Movement;
@@ -42,8 +43,8 @@ namespace AI
             ClearTarget();
         }
 
-        /// <summary>Evaluates each equipped slot with its own ballistics and pushes press+hold each step it wants fire; the weapons' own trigger semantics pace the shots.</summary>
-        public void Fire()
+        /// <summary>Evaluates each slot it holds authority over with that slot's own ballistics and pushes press+hold each step it wants fire; the weapons' own trigger semantics pace the shots. Slots it does not own are skipped entirely rather than pushed a released trigger, which a charge weapon would fire on.</summary>
+        public void Fire(FireControl primary, FireControl secondary)
         {
             if (weapons == null || actuator == null) return;
 
@@ -51,10 +52,14 @@ namespace AI
             for (var i = 0; i < slots.Count; i++)
             {
                 var slot = slots[i];
+                if (!Authority(slot, primary, secondary).IsAuto) continue;
                 var fire = hasEnemy && (weapons.Sight(slot)?.Evaluate(AimPointFor(slot)) ?? false);
                 actuator.Fire(slot, new WeaponCommand { held = fire, pressed = fire });
             }
         }
+
+        private static FireControl Authority(WeaponSlot slot, FireControl primary, FireControl secondary) =>
+            slot == WeaponSlot.Primary ? primary : secondary;
 
         /// <summary>The gunner's aim policy for one weapon: intercept lead from its muzzle speed; non-positive speed = hitscan, aim at the present position.</summary>
         public static Vector2 AimPoint(in Kinematics shooterPose, Vector2 targetPos, Vector2 targetVel, float projectileSpeed) =>
@@ -71,25 +76,22 @@ namespace AI
                 AimPoint(pose(), enemyPos, enemyVel, weapons.ProjectileSpeed(slot)));
         }
 
-        /// <summary>Consumes the gunner slice of an <see cref="ActIntent"/> (mirrors <c>Navigator.ApplyIntent</c>): stores enemy kinematics for per-slot firing solutions.</summary>
-        public void ApplyIntent(in ActIntent intent)
+        /// <summary>Consumes the fire lane's anchor (mirrors <c>Navigator.ApplyObjective</c>): stores enemy kinematics for per-slot firing solutions.</summary>
+        public void Aim(in EnemyTarget anchor)
         {
-            if (!intent.isValid) return;
+            if (pose == null) return;
 
-            if (!intent.enableFiring)
-            {
-                hasEnemy = false;
-                ClearTarget();
-                return;
-            }
+            enemyPos = anchor.kinematics.pos;
+            enemyVel = anchor.kinematics.vel;
+            hasEnemy = true;
+            Target = AimPointFor(WeaponSlot.Primary);
+        }
 
-            if (intent.hasTarget && pose != null)
-            {
-                enemyPos = intent.target.kinematics.pos;
-                enemyVel = intent.target.kinematics.vel;
-                hasEnemy = true;
-                Target = AimPointFor(WeaponSlot.Primary);
-            }
+        /// <summary>Drops the aim without dropping the weapons: the slots stay the gunner's, it just has nothing to shoot at.</summary>
+        public void HoldFire()
+        {
+            hasEnemy = false;
+            ClearTarget();
         }
     }
 }

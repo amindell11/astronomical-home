@@ -38,27 +38,6 @@ namespace AI.Context
 
         public bool IncomingMissile => false; // TODO
 
-        /// <summary>
-        /// Snapshots the current enemy as a ship-agnostic <see cref="EnemyTarget"/> for the
-        /// navigator/gunner. The single Ship→target adapter. False when there is no enemy.
-        /// </summary>
-        public bool TryGetTarget(out EnemyTarget target)
-        {
-            if (!HasEnemy)
-            {
-                target = default;
-                return false;
-            }
-
-            target = new EnemyTarget
-            {
-                kinematics = cachedEnemy.Kinematics,
-                dynamics = cachedEnemy.Dynamics,
-                source = cachedEnemy.transform,
-            };
-            return true;
-        }
-
         public void Update(float deltaTime)
         {
             simTime += deltaTime;

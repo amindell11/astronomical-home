@@ -1,5 +1,4 @@
 #if UNITY_EDITOR
-using System;
 using Movement;
 using Movement.MPC;
 using NUnit.Framework;
@@ -65,7 +64,6 @@ namespace Tests.EditMode
             velocityReference = vRef,
             facingRad = facingRad,
             enemyYaw = float.NaN,
-            weightOverrides = Array.Empty<WeightOverride>(),
             obstacleScan = default,
             enableObstacleAvoidance = false,
         };

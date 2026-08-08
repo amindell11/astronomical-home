@@ -30,9 +30,9 @@ namespace AI
         protected ArenaContext arena;
         protected bool systemsInitialized;
 
-        // Manual trigger authority, latched from the last valid intent; the press edge derives from prevPrimaryHeld (PlayerCommander precedent).
-        private bool manualFire;
-        private bool primaryHeld;
+        // Per-slot trigger authority, latched from the last decision; the press edge derives from prevPrimaryHeld (PlayerCommander precedent).
+        private FireControl primary;
+        private FireControl secondary;
         private bool prevPrimaryHeld;
 
         internal AIContext context;
@@ -71,7 +71,8 @@ namespace AI
             var seed = control.DecisionSeed;
 
             Scout.Initialize(self.Transform, self.Id, self.Dynamics, self, arena);
-            Navigator.Initialize(self, self.Dynamics, Scout, seed.Derive(NavStream));
+            Navigator.Initialize(self, self.Dynamics, Scout, seed.Derive(NavStream),
+                control.Weapons?.ProjectileSpeed(WeaponSlot.Primary) ?? 0f);
             if (Gunner && control.IsArmed)
                 Gunner.Initialize(control.Weapons, control.WeaponActuator, pose);
 
@@ -87,8 +88,8 @@ namespace AI
             Scout.ResetState();
             Navigator.ResetState();
             if (Gunner) Gunner.ResetState();
-            manualFire = false;
-            primaryHeld = false;
+            primary = default;
+            secondary = default;
             prevPrimaryHeld = false;
             context = new AIContext(control.Ship, Scout, combatExitDelay);
             Brain.ResetState();
@@ -102,24 +103,50 @@ namespace AI
             {
                 var dt = Time.fixedDeltaTime;
                 context.Update(dt);
-                var intent = Brain.Decide(context, dt);
-                Navigator.ApplyIntent(intent);
-                manualFire = intent.isValid && intent.manualFire;
-                primaryHeld = manualFire && intent.primaryHeld;
-                if (Gunner && !manualFire) Gunner.ApplyIntent(intent);
+                Route(Brain.Decide(context, dt));
             }
 
             control.Pilot.Drive(Navigator.ComputeCommand());
-            if (manualFire) FireManualPrimary();
-            else if (Gunner) Gunner.Fire();
+            if (primary.IsCommanded) FireCommandedPrimary();
+            if (Gunner) Gunner.Fire(primary, secondary);
+        }
+
+        /// <summary>Opens one decision and hands each lane to its own consumer; nothing consumes the decision whole.</summary>
+        private void Route(BrainDecision? decision)
+        {
+            if (!decision.HasValue)
+            {
+                Navigator.ResetNavigation();
+                // No decision hands the triggers back to the gunner, which keeps its last aim.
+                primary = FireControl.Auto;
+                secondary = FireControl.Auto;
+                return;
+            }
+
+            var decided = decision.Value;
+            Navigator.ApplyObjective(decided.nav);
+            Navigator.CommandBoost(decided.boost);
+            primary = decided.primary;
+            secondary = decided.secondary;
+
+            if (!Gunner) return;
+            // A commanded trigger leaves the gunner's aim dormant rather than clearing it — nothing reads it while we own the slot.
+            if (primary.IsCommanded || secondary.IsCommanded) return;
+            if (primary.IsAuto || secondary.IsAuto)
+            {
+                if (decided.nav.TryGetAnchor(out var anchor)) Gunner.Aim(anchor);
+                return;
+            }
+            Gunner.HoldFire();
         }
 
         // Raw trigger facts, PlayerCommander.FireSlot precedent: the weapon interprets its own firing semantics.
-        private void FireManualPrimary()
+        private void FireCommandedPrimary()
         {
+            var held = primary.Held;
             control.WeaponActuator.Fire(WeaponSlot.Primary,
-                new WeaponCommand { held = primaryHeld, pressed = primaryHeld && !prevPrimaryHeld });
-            prevPrimaryHeld = primaryHeld;
+                new WeaponCommand { held = held, pressed = held && !prevPrimaryHeld });
+            prevPrimaryHeld = held;
         }
     }
 }

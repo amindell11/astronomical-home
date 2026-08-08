@@ -132,14 +132,14 @@ namespace Tests.EditMode
         {
             public Vector2 lawVelocity;
             public Vector2 selfPos;
-            public ActIntent seed = new() { isValid = true, enableFiring = true };
 
             public void BindForTest(Ship target, ArchetypeDrive drive, Vector2 arenaCenter, float borderRadius) =>
                 Bind(target, 1f, arenaCenter, borderRadius, drive);
 
-            public ActIntent PackForTest() => BuildIntent(null);
+            public BrainDecision PackForTest() => BuildDecision(null);
 
-            protected override ActIntent BuildIntent(AIContext ctx) => Pack(seed, selfPos, lawVelocity);
+            protected override BrainDecision BuildDecision(AIContext ctx) =>
+                Pack(selfPos, lawVelocity, engages: true);
         }
 
         private GameObject targetGo;
@@ -172,13 +172,13 @@ namespace Tests.EditMode
             var chooser = NewChooser(ArchetypeDrive.OpenLoopLegacy);
             chooser.lawVelocity = new Vector2(3f, -4f);
 
-            var intent = chooser.PackForTest();
+            var decision = chooser.PackForTest();
 
-            Assert.AreEqual(3f, intent.velocityReference.x, "exact-float: no border steer on the open-loop arms");
-            Assert.AreEqual(-4f, intent.velocityReference.y);
-            Assert.IsFalse(intent.anchored.hasVelocity);
-            Assert.IsFalse(intent.enableFiring, "a hit would perturb the paired enemy path");
-            Assert.IsTrue(intent.hasTarget, "both arms must share one obstacle-exclusion state");
+            Assert.AreEqual(3f, decision.nav.planarVelocity.x, "exact-float: no border steer on the open-loop arms");
+            Assert.AreEqual(-4f, decision.nav.planarVelocity.y);
+            Assert.IsFalse(decision.nav.anchored.hasVelocity);
+            Assert.IsFalse(decision.primary.IsAuto, "a hit would perturb the paired enemy path");
+            Assert.IsTrue(decision.nav.TryGetAnchor(out _), "both arms keep the anchor for the facing channel");
         }
 
         [Test]
@@ -189,14 +189,14 @@ namespace Tests.EditMode
             chooser.selfPos = new Vector2(0f, -10f);
             chooser.lawVelocity = new Vector2(0f, 5f);
 
-            var intent = chooser.PackForTest();
+            var decision = chooser.PackForTest();
 
-            Assert.IsTrue(intent.anchored.hasVelocity);
-            Assert.That(intent.anchored.radialSpeed, Is.EqualTo(5f).Within(1e-5f));
-            Assert.That(intent.anchored.tangentialSpeed, Is.EqualTo(0f).Within(1e-5f));
-            Assert.AreEqual(1f, intent.anchored.velocityWeight);
-            Assert.AreEqual(Vector2.zero, intent.velocityReference, "the legacy reference stays unarmed data");
-            Assert.IsFalse(intent.enableFiring);
+            Assert.IsTrue(decision.nav.anchored.hasVelocity);
+            Assert.That(decision.nav.anchored.radialSpeed, Is.EqualTo(5f).Within(1e-5f));
+            Assert.That(decision.nav.anchored.tangentialSpeed, Is.EqualTo(0f).Within(1e-5f));
+            Assert.AreEqual(1f, decision.nav.anchored.velocityWeight);
+            Assert.IsFalse(decision.nav.hasPlanarVelocity, "the polar channel replaces the world reference");
+            Assert.IsFalse(decision.primary.IsAuto);
         }
 
         [Test]
@@ -207,13 +207,13 @@ namespace Tests.EditMode
             chooser.selfPos = new Vector2(100f, 0f);
             chooser.lawVelocity = new Vector2(20f, 1f);
 
-            var intent = chooser.PackForTest();
+            var decision = chooser.PackForTest();
 
             var expected = ArchetypeSteering.BorderTangentSteer(chooser.selfPos, chooser.lawVelocity,
                 Vector2.zero, 120f, ArchetypeSteering.BorderMargin);
-            Assert.AreEqual(expected.x, intent.velocityReference.x, "exact-float: the production pack IS Steered");
-            Assert.AreEqual(expected.y, intent.velocityReference.y);
-            Assert.IsTrue(intent.enableFiring, "production fire authority is untouched");
+            Assert.AreEqual(expected.x, decision.nav.planarVelocity.x, "exact-float: the production pack IS Steered");
+            Assert.AreEqual(expected.y, decision.nav.planarVelocity.y);
+            Assert.IsTrue(decision.primary.IsAuto, "production fire authority is untouched");
         }
 
         [Test]

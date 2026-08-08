@@ -74,52 +74,6 @@ namespace Movement.MPC
         }
     }
 
-    /// <summary>Identifies a single MPC weight (or width) a per-ship override can scale; callers list only the weights they change (absent = base ×1), avoiding an all-zero serialization footgun.</summary>
-    public enum MpcWeight
-    {
-        YawRate,
-        Effort, SmoothnessThrust, SmoothnessStrafe, SmoothnessYaw, Momentum,
-        Facing, FacingWidth,
-        Obstacle, BoostEffort,
-        // Appended: WeightOverride serializes this enum by value in .asset files.
-        VelTrack,
-    }
-
-    /// <summary>A single multiplier applied to one base MPC weight.</summary>
-    [System.Serializable]
-    public struct WeightOverride
-    {
-        public MpcWeight weight;
-        public float multiplier;
-    }
-
-    public static class WeightOverrideExtensions
-    {
-        /// <summary>Multiplies each listed weight into the config (absent weights stay at base ×1). Runs managed-side before the Burst job, so the switch is free.</summary>
-        public static void Apply(this WeightOverride[] overrides, ref Config cfg)
-        {
-            if (overrides == null) return;
-            for (var i = 0; i < overrides.Length; i++)
-            {
-                var m = overrides[i].multiplier;
-                switch (overrides[i].weight)
-                {
-                    case MpcWeight.YawRate:           cfg.wYawRate *= m; break;
-                    case MpcWeight.Effort:            cfg.wEffort *= m; break;
-                    case MpcWeight.SmoothnessThrust:  cfg.wSmoothnessThrust *= m; break;
-                    case MpcWeight.SmoothnessStrafe:  cfg.wSmoothnessStrafe *= m; break;
-                    case MpcWeight.SmoothnessYaw:     cfg.wSmoothnessYaw *= m; break;
-                    case MpcWeight.Momentum:          cfg.wMomentum *= m; break;
-                    case MpcWeight.Facing:            cfg.wFacing *= m; break;
-                    case MpcWeight.FacingWidth:       cfg.facingWidth *= m; break;
-                    case MpcWeight.Obstacle:          cfg.wObstacle *= m; break;
-                    case MpcWeight.BoostEffort:       cfg.wBoostEffort *= m; break;
-                    case MpcWeight.VelTrack:          cfg.wVelTrack *= m; break;
-                }
-            }
-        }
-    }
-
     [StructLayout(LayoutKind.Sequential)]
     public struct ObstacleData
     {

@@ -63,16 +63,16 @@ namespace Tests.EditMode
             public Gunsight Sight(WeaponSlot slot) => null;
         }
 
-        private sealed class ScriptedIntentChooser : IIntentChooser
+        private sealed class ScriptedChooser : IIntentChooser
         {
-            public ActIntent intent;
-            public ActIntent Decide(AIContext ctx, float dt) => intent;
+            public BrainDecision? decision;
+            public BrainDecision? Decide(AIContext ctx, float dt) => decision;
         }
 
         private GameObject host;
         private TestableCommander commander;
         private SpyWeapons weapons;
-        private ScriptedIntentChooser chooser;
+        private ScriptedChooser chooser;
         private MpcSettings createdSettings;
 
         [SetUp]
@@ -85,7 +85,7 @@ namespace Tests.EditMode
             commander = host.AddComponent<TestableCommander>();
             commander.CallAwake(); // EditMode: Unity does not run Awake, so cache the composed parts explicitly.
 
-            chooser = new ScriptedIntentChooser { intent = ManualIntent(held: true) };
+            chooser = new ScriptedChooser { decision = CommandedDecision(held: true) };
             host.GetComponent<Brain>().InstallChooser(chooser);
 
             weapons = new SpyWeapons();
@@ -103,22 +103,15 @@ namespace Tests.EditMode
             if (createdSettings) Object.DestroyImmediate(createdSettings);
         }
 
-        private static ActIntent ManualIntent(bool held) => new()
-        {
-            isValid = true,
-            velocityReference = Vector2.zero,
-            hasFacing = true,
-            facingRad = 0f,
-            manualFire = true,
-            primaryHeld = held,
-        };
+        private static BrainDecision CommandedDecision(bool held) => new(
+            NavObjective.Planar(Vector2.zero), FireControl.Commanded(held), FireControl.Hold);
 
         private WeaponCommand StepOnce(bool held)
         {
-            chooser.intent = ManualIntent(held);
+            chooser.decision = CommandedDecision(held);
             var before = weapons.Commands.Count;
             commander.Step();
-            Assert.AreEqual(before + 1, weapons.Commands.Count, "each manual-fire step pushes exactly one primary command");
+            Assert.AreEqual(before + 1, weapons.Commands.Count, "each commanded step pushes exactly one primary command");
             var (slot, cmd) = weapons.Commands[^1];
             Assert.AreEqual(WeaponSlot.Primary, slot);
             return cmd;
@@ -153,17 +146,26 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void LegacyIntent_WithoutAGunner_PushesNoWeaponCommands()
+        public void AutoFireLane_WithoutAGunner_PushesNoWeaponCommands()
         {
-            chooser.intent = new ActIntent
-            {
-                isValid = true,
-                velocityReference = Vector2.zero,
-                enableFiring = true,
-            };
+            chooser.decision = new BrainDecision(
+                NavObjective.Planar(Vector2.zero), FireControl.Auto, FireControl.Auto);
             commander.Step();
             Assert.IsEmpty(weapons.Commands,
-                "legacy intents fire through the Gunner path only — the commander must not touch the actuator");
+                "an Auto lane fires through the Gunner only — the commander must not touch the actuator");
+        }
+
+        [Test]
+        public void HoldLane_PushesNothingRatherThanAReleasedTrigger()
+        {
+            StepOnce(held: true);
+            var afterHold = weapons.Commands.Count;
+
+            chooser.decision = new BrainDecision(NavObjective.Planar(Vector2.zero));
+            commander.Step();
+
+            Assert.AreEqual(afterHold, weapons.Commands.Count,
+                "Hold is silence, not held=false — a charge weapon would fire on the release");
         }
     }
 }

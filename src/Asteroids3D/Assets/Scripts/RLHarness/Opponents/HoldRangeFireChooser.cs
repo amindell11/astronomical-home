@@ -9,37 +9,21 @@ namespace Game.RLHarness
     public class HoldRangeFireChooser : OpponentArchetypeChooser
     {
         private float desiredRange;
-        private float projectileSpeed;
 
-        public void Configure(Ship target, float desiredRange, float speedFraction, float projectileSpeed,
+        public void Configure(Ship target, float desiredRange, float speedFraction,
             Vector2 arenaCenter, float borderRadius, ArchetypeDrive drive = ArchetypeDrive.Production)
         {
             this.desiredRange = desiredRange;
-            this.projectileSpeed = projectileSpeed;
             Bind(target, speedFraction, arenaCenter, borderRadius, drive);
         }
 
-        protected override ActIntent BuildIntent(AIContext ctx)
+        protected override BrainDecision BuildDecision(AIContext ctx)
         {
             var self = ctx.Self.Kinematics;
-            var enemy = target.Kinematics;
-            var vRef = RangerChooser.HoldRangeVelocity(in self, in enemy, desiredRange,
+            var vRef = RangerChooser.HoldRangeVelocity(in self, target.Kinematics, desiredRange,
                 speedFraction * ctx.Self.Dynamics.maxSpeed);
 
-            return Pack(new ActIntent
-            {
-                isValid = true,
-                hasTarget = true,
-                target = new EnemyTarget
-                {
-                    kinematics = enemy,
-                    dynamics = target.Dynamics,
-                    source = target.transform,
-                },
-                aimAtTarget = true,
-                projectileSpeed = projectileSpeed,
-                enableFiring = true,
-            }, self.pos, vRef);
+            return Pack(self.pos, vRef, engages: true);
         }
     }
 }

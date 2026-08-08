@@ -2,11 +2,11 @@ using AI.Context;
 
 namespace AI
 {
-    /// <summary>The swappable decision policy: maps the per-tick world model to an <see cref="ActIntent"/>. It decides, never actuates — the hosting <see cref="Brain"/> applies the intent to the Navigator and Gunner.</summary>
+    /// <summary>The swappable decision policy: maps the per-tick world model to a <see cref="BrainDecision"/>. It decides, never actuates — the hosting <see cref="AICommander"/> routes each lane to its own consumer.</summary>
     public interface IIntentChooser
     {
-        /// <summary>Decide this tick's action; return <see cref="ActIntent.None"/> to idle/reset (no decision available, or mid-transition).</summary>
-        ActIntent Decide(AIContext ctx, float dt);
+        /// <summary>Decide this tick's action; null when no decision is available (mid-transition, or no live target).</summary>
+        BrainDecision? Decide(AIContext ctx, float dt);
 
         /// <summary>Discard accumulated decision state so the next Decide behaves as freshly initialized.</summary>
         void Reset() { }

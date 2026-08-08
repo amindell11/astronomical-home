@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>Scripted stand-in policy over the velocity interface: closes to weapon range on a live target, holds, and gates fire on; the per-weapon Gunsight/ShouldFire deliberately still applies on top of the fire gate.</summary>
+    /// <summary>Scripted stand-in policy over the velocity interface: closes to weapon range on a live target, holds, and hands both triggers to the gunner; the per-weapon Gunsight/ShouldFire deliberately still applies on top.</summary>
     public class RangerChooser : IIntentChooser
     {
         private const int RecomputeIntervalTicks = 10;
@@ -15,34 +15,32 @@ namespace Game.RLHarness
 
         private Ship target;
         private float desiredRange;
-        private float projectileSpeed;
 
         private int tickCounter;
-        private ActIntent cachedIntent = ActIntent.None;
+        private BrainDecision? cachedDecision;
 
-        public void Configure(Ship target, float desiredRange, float projectileSpeed)
+        public void Configure(Ship target, float desiredRange)
         {
             this.target = target;
             this.desiredRange = desiredRange;
-            this.projectileSpeed = projectileSpeed;
             Reset();
         }
 
         public void Reset()
         {
             tickCounter = 0;
-            cachedIntent = ActIntent.None;
+            cachedDecision = null;
         }
 
-        public ActIntent Decide(AIContext ctx, float dt)
+        public BrainDecision? Decide(AIContext ctx, float dt)
         {
             if (!target || !target.gameObject.activeInHierarchy || ctx?.Self == null)
-                return ActIntent.None;
+                return null;
 
             if (tickCounter % RecomputeIntervalTicks == 0)
-                cachedIntent = BuildIntent(ctx);
+                cachedDecision = BuildDecision(ctx);
             tickCounter++;
-            return cachedIntent;
+            return cachedDecision;
         }
 
         /// <summary>The pure hold-range velocity law (close, hold, damp along the LOS) — also the agent Heuristic's inverse-mapped source policy.</summary>
@@ -56,27 +54,18 @@ namespace Game.RLHarness
             return Vector2.ClampMagnitude(closing - damping, maxSpeed);
         }
 
-        private ActIntent BuildIntent(AIContext ctx)
+        private BrainDecision BuildDecision(AIContext ctx)
         {
             var self = ctx.Self.Kinematics;
             var enemy = target.Kinematics;
             var vRef = HoldRangeVelocity(in self, in enemy, desiredRange, ctx.Self.Dynamics.maxSpeed);
 
-            return new ActIntent
-            {
-                isValid = true,
-                velocityReference = vRef,
-                hasTarget = true,
-                target = new EnemyTarget
-                {
-                    kinematics = enemy,
-                    dynamics = target.Dynamics,
-                    source = target.transform,
-                },
-                aimAtTarget = true,
-                projectileSpeed = projectileSpeed,
-                enableFiring = true,
-            };
+            var nav = NavObjective
+                .Anchored(new EnemyTarget { kinematics = enemy, dynamics = target.Dynamics })
+                .Planar(vRef)
+                .Facing(0f, 1f);
+
+            return new BrainDecision(nav, FireControl.Auto, FireControl.Auto);
         }
     }
 }

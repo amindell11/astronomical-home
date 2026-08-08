@@ -108,9 +108,5 @@ namespace AI
         /// <summary>Cached per-tick contact summary (nearest enemy + force balance).</summary>
         public ContactSummary Contacts { get; private set; } = ContactSummary.Empty;
         public bool HasNearbyCover { get; private set; }
-
-        // No-op: obstacles come from the deterministic field query, which never includes ships.
-        public void SetObstacleExclusion(Transform root) { }
-        public void ClearObstacleExclusion() { }
     }
 }

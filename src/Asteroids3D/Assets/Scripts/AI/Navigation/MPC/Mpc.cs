@@ -20,7 +20,6 @@ namespace Movement.MPC
         public Dynamics enemyDynamics;
         public float projectileSpeed;
         public AnchoredIntent anchored;
-        public WeightOverride[] weightOverrides;
         public ObstacleScan obstacleScan;
         public bool enableObstacleAvoidance;
     }
@@ -128,7 +127,6 @@ namespace Movement.MPC
         {
             config = settings.ToConfig(inputs.facingRad);
             config.ApplyDynamics(in dynamics);
-            inputs.weightOverrides.Apply(ref config);
 
             if (bestSequence.Length == config.horizon) return;
             bestSequence = new Control[config.horizon];

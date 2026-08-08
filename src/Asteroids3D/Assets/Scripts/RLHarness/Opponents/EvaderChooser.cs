@@ -45,7 +45,7 @@ namespace Game.RLHarness
             return speed * dir;
         }
 
-        protected override ActIntent BuildIntent(AIContext ctx)
+        protected override BrainDecision BuildDecision(AIContext ctx)
         {
             if (recomputes++ % jukeEveryRecomputes == 0)
                 jukeSign = rng.Next(2) == 0 ? -1 : 1;
@@ -54,7 +54,7 @@ namespace Game.RLHarness
             var vRef = FleeVelocity(self.pos, target.Kinematics.pos, jukeSign,
                 speedFraction * ctx.Self.Dynamics.maxSpeed);
 
-            return Pack(new ActIntent { isValid = true }, self.pos, vRef);
+            return Pack(self.pos, vRef, engages: false);
         }
     }
 }

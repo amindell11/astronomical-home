@@ -15,7 +15,7 @@ namespace Movement.MPC
     }
 #endif
 
-    /// <summary>Turns an <see cref="ActIntent"/> into per-frame movement commands: owns the control surface (velocity reference, enemy state, weight overrides) and drives an <see cref="Mpc"/> solver, holding no solver state or MPC math itself.</summary>
+    /// <summary>Turns a <see cref="NavObjective"/> into per-frame movement commands: owns the control surface (velocity reference, enemy state) and drives an <see cref="Mpc"/> solver, holding no solver state or MPC math itself.</summary>
     [DefaultExecutionOrder(-60)]
     public class Navigator : MonoBehaviour
     {
@@ -34,7 +34,6 @@ namespace Movement.MPC
         protected internal float projectileSpeed;
         protected Dynamics enemyDynamics;
         protected internal AnchoredIntent anchored;
-        protected WeightOverride[] weightOverrides = Array.Empty<WeightOverride>();
 
         protected PilotCommand currentCommand;
         public PilotCommand CurrentCommand => currentCommand;
@@ -52,12 +51,15 @@ namespace Movement.MPC
         internal Dynamics dynamics;
         private SeedScope navScope;
 
-        public void Initialize(IShipStatus shipContext, Dynamics dynamics, Scout scout, SeedScope navScope)
+        /// <summary>Ballistics never cross the decision seam: the host injects our own primary muzzle speed once, and intercept-lead geometry stays the solver's.</summary>
+        public void Initialize(IShipStatus shipContext, Dynamics dynamics, Scout scout, SeedScope navScope,
+            float primaryProjectileSpeed)
         {
             context = shipContext;
             this.scout = scout;
             this.dynamics = dynamics;
             this.navScope = navScope;
+            projectileSpeed = primaryProjectileSpeed;
             if (!mpcSettings)
                 mpcSettings = ScriptableObject.CreateInstance<MpcSettings>();
             mpc = new Mpc(mpcSettings, dynamics, navScope.Derive(MpcSamplerStream).ToUint());
@@ -94,7 +96,6 @@ namespace Movement.MPC
                 projectileSpeed = projectileSpeed,
                 enemyDynamics = enemyDynamics,
                 anchored = anchored,
-                weightOverrides = weightOverrides,
                 obstacleScan = scan,
                 enableObstacleAvoidance = enableObstacleAvoidance,
             };
@@ -127,49 +128,30 @@ namespace Movement.MPC
             currentCommand.boost = boostCommanded ? Mathf.Max(r.boost, 1f) : r.boost;
         }
 
-        /// <summary>The single production entry point for driving the navigator, resetting every field each call so the result depends only on the intent, never on prior state or call order. An invalid intent resets to idle. Composes the granular Set*/Clear* seam below (which tests also drive directly).</summary>
-        public void ApplyIntent(in ActIntent intent)
+        /// <summary>The single production entry point for driving the navigator, resetting every field each call so the result depends only on the objective, never on prior state or call order. Composes the granular Set*/Clear* seam below (which tests also drive directly).</summary>
+        public void ApplyObjective(in NavObjective objective)
         {
-            if (!intent.isValid)
+            if (objective.IsIdle)
             {
                 ResetNavigation();
                 return;
             }
 
-            // Two facing sources in one intent is a contradiction, not a precedence question.
-            var facingSources = (intent.hasFacing ? 1 : 0) + (intent.anchored.hasFacing ? 1 : 0) + (intent.aimAtTarget ? 1 : 0);
-            if (facingSources > 1)
-                throw new InvalidOperationException(
-                    "ActIntent carries more than one facing source (facingRad / anchored facing / aimAtTarget) — a chooser must pick exactly one.");
+            SetVelocityReference(objective.planarVelocity);
+            ClearFacingOverride();
+            anchored = objective.anchored;
 
-            boostCommanded = intent.boost;
-            SetVelocityReference(intent.velocityReference);
-
-            if (intent.hasFacing)
-                SetFacingOverride(intent.facingRad);
+            // The builder can only arm these channels through an anchor, so the anchor is live whenever they are.
+            if (anchored.hasFacing || anchored.hasVelocity)
+                SetEnemyState(objective.anchor);
             else
-                ClearFacingOverride();
+                ClearEnemyState();
+        }
 
-            anchored = intent.anchored;
-            // Legacy intercept aim IS the enemy anchor at offset 0, full authority — the one facing-target rule lives in the cost model.
-            if (intent.aimAtTarget && intent.hasTarget)
-            {
-                anchored.hasFacing = true;
-                anchored.facingOffsetRad = 0f;
-                anchored.facingWeight = 1f;
-            }
-
-            if ((anchored.hasFacing || anchored.hasVelocity) && intent.hasTarget)
-                SetEnemyState(intent.target, intent.projectileSpeed);
-            else
-                ClearEnemyState();   // targetless anchored channels collapse to the delegation priors
-
-            SetWeightOverrides(intent.weightOverrides);
-
-            if (intent.hasTarget)
-                SetObstacleExclusion(intent.target.source);
-            else
-                ClearObstacleExclusion();
+        /// <summary>The ability lane's passthrough: a commanded boost floors the solver's own boost channel for this tick.</summary>
+        public void CommandBoost(bool commanded)
+        {
+            boostCommanded = commanded;
         }
 
         /// <summary>Resets all navigation overrides to idle. Mirrors a fresh, unarmed navigator.</summary>
@@ -181,8 +163,6 @@ namespace Movement.MPC
             anchored = default;
             ClearFacingOverride();
             ClearEnemyState();
-            ClearObstacleExclusion();
-            ClearWeightOverrides();
         }
 
         /// <summary>Arms the tracker with a commanded world-plane velocity — the reference IS the command, so <see cref="ShouldIdle"/> keys off the arm flag and a zero reference is a valid "stop".</summary>
@@ -204,46 +184,25 @@ namespace Movement.MPC
         }
 
         // Converts the enemy snapshot to MPC inputs; the MPC yaw convention (fwd = (-sin, cos)) lives here at the boundary, not in the policy layer.
-        private void SetEnemyState(in EnemyTarget target, float projectileSpeed)
+        private void SetEnemyState(in EnemyTarget anchor)
         {
-            var k = target.kinematics;
+            var k = anchor.kinematics;
             enemyPos = new float2(k.pos.x, k.pos.y);
             enemyVel = new float2(k.vel.x, k.vel.y);
             var fwd = k.Forward;
             enemyYaw = Mathf.Atan2(-fwd.x, fwd.y);
             enemyYawRate = k.yawRate * Mathf.Deg2Rad;
-            this.projectileSpeed = projectileSpeed;
-            this.enemyDynamics = target.dynamics;
+            enemyDynamics = anchor.dynamics;
         }
 
+        // Leaves projectileSpeed alone: it is our own ballistics, injected once, not part of the enemy snapshot.
         private void ClearEnemyState()
         {
             enemyPos = default;
             enemyVel = default;
             enemyYaw = float.NaN;
             enemyYawRate = 0f;
-            projectileSpeed = 0f;
             enemyDynamics = default;
-        }
-
-        private void SetWeightOverrides(WeightOverride[] overrides)
-        {
-            weightOverrides = overrides ?? Array.Empty<WeightOverride>();
-        }
-
-        private void ClearWeightOverrides()
-        {
-            weightOverrides = Array.Empty<WeightOverride>();
-        }
-
-        private void SetObstacleExclusion(Transform root)
-        {
-            scout.SetObstacleExclusion(root);
-        }
-
-        private void ClearObstacleExclusion()
-        {
-            scout.ClearObstacleExclusion();
         }
 
         private void OnDestroy()

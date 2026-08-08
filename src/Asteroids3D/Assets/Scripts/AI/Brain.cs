@@ -19,7 +19,7 @@ namespace AI
             chooser = next;
         }
 
-        public ActIntent Decide(AIContext ctx, float dt)
+        public BrainDecision? Decide(AIContext ctx, float dt)
         {
             if (chooser == null)
                 throw new InvalidOperationException($"Brain on '{name}' has no chooser authored or installed.");

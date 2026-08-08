@@ -49,7 +49,7 @@ namespace Game.RLHarness
             // Fixed mid-band Aggressor draw: the deterministic default opponent; roster episodes re-install per draw.
             var baselineChooser = new HoldRangeFireChooser();
             baselineChooser.Configure(agent, desiredRange: 10f, speedFraction: 0.85f,
-                baseline.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary), arena.Offset, spec.arenaRadius);
+                arena.Offset, spec.arenaRadius);
             baseline.GetComponentInChildren<Brain>().InstallChooser(baselineChooser);
 
             units.WireShipDependencies(agent);
@@ -66,7 +66,7 @@ namespace Game.RLHarness
             var pair = Spawn(units, arena, projectiles, in spec, (agentShip, baselineShip) =>
             {
                 created = new AgentChooser();
-                created.Configure(baselineShip, agentShip.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary));
+                created.Configure(baselineShip);
                 return created;
             }, assets);
             chooser = created;
@@ -97,7 +97,7 @@ namespace Game.RLHarness
         private static AgentChooser InstallAgentChooser(Ship ship, Ship opponent)
         {
             var chooser = new AgentChooser();
-            chooser.Configure(opponent, ship.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary));
+            chooser.Configure(opponent);
             var commander = ship.GetComponentInChildren<AICommander>();
             commander.GetComponentInChildren<Brain>().InstallChooser(chooser);
             return chooser;
