@@ -9,6 +9,7 @@ from value_baseline import (
     ArtifactMetadata,
     TrainingConfig,
     ValueBaselineError,
+    audit_episodes,
     build_value_artifact,
     calibration,
     discounted_returns,
@@ -55,6 +56,27 @@ class ValueBaselineTests(unittest.TestCase):
         self.write_rows(path, rows)
 
         with self.assertRaisesRegex(ValueBaselineError, r"s7/e0/t0.*decision 2 state"):
+            load_episodes([path])
+
+    def test_collection_end_censors_only_the_last_episode_in_a_stream(self):
+        path = self.write_dataset(terminal_seeds=(7,))
+        rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+        tail = self.episode_rows(7, 1, terminal=True)
+        tail[-1]["terminal"] = False
+        tail[-1]["reward"]["outcome"] = 0.0
+        tail[-1]["reward"]["total"] = sum(tail[-1]["reward"][name] for name in (
+            "dense", "shapingEnvelope", "shapingBorder", "timeCost", "outcome"
+        ))
+        self.write_rows(path, rows + tail)
+
+        episodes = load_episodes([path])
+        self.assertEqual("collection_end", episodes[-1].end_kind)
+        audit = audit_episodes(episodes, {7: "train"})
+        self.assertEqual("censored_collection_end", audit[-1]["labelStatus"])
+
+        later = self.episode_rows(7, 2, terminal=True)
+        self.write_rows(path, rows + tail + later)
+        with self.assertRaisesRegex(ValueBaselineError, r"only the final episode in a stream"):
             load_episodes([path])
 
     def test_split_keeps_every_seed_in_one_partition(self):

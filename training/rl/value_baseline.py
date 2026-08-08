@@ -195,10 +195,18 @@ def load_episodes(files: Sequence[Path]) -> list[Episode]:
                     )
                 decisions[source.decision] = source
 
+    last_episode_by_stream: dict[tuple[str, int, int, int, int], int] = {}
+    for key in grouped:
+        stream = (key.run_id, key.worker_index, key.arena_index, key.run_seed, key.team_id)
+        last_episode_by_stream[stream] = max(last_episode_by_stream.get(stream, -1), key.episode_index)
+
     episodes = []
     for key, by_decision in sorted(grouped.items()):
         rows = [by_decision[index] for index in sorted(by_decision)]
-        episodes.append(validate_episode(key, rows))
+        stream = (key.run_id, key.worker_index, key.arena_index, key.run_seed, key.team_id)
+        episodes.append(validate_episode(
+            key, rows, allow_collection_end=key.episode_index == last_episode_by_stream[stream]
+        ))
     if not episodes:
         raise ValueBaselineError("transition inputs contained no rows")
     return episodes
@@ -236,7 +244,7 @@ def validate_transition(source: SourceRow) -> EpisodeKey:
     return EpisodeKey(run_id, worker, arena, run_seed, episode, team)
 
 
-def validate_episode(key: EpisodeKey, rows: list[SourceRow]) -> Episode:
+def validate_episode(key: EpisodeKey, rows: list[SourceRow], allow_collection_end: bool) -> Episode:
     for expected, row in enumerate(rows, 1):
         if row.decision != expected:
             raise ValueBaselineError(
@@ -255,9 +263,18 @@ def validate_episode(key: EpisodeKey, rows: list[SourceRow]) -> Episode:
             )
 
     final = rows[-1]
-    require(final.data["terminal"] or final.data["truncated"], final,
-            f"{key.stable_id} final decision must declare terminal or truncation")
-    return Episode(key, rows, "terminal" if final.data["terminal"] else "truncated")
+    if final.data["terminal"]:
+        end_kind = "terminal"
+    elif final.data["truncated"]:
+        end_kind = "truncated"
+    elif allow_collection_end:
+        end_kind = "collection_end"
+    else:
+        raise ValueBaselineError(
+            f"{final.where}: {key.stable_id} final decision must declare terminal or truncation; "
+            "only the final episode in a stream may be censored by collection end"
+        )
+    return Episode(key, rows, end_kind)
 
 
 def validate_observation(value: Any, source: SourceRow, name: str) -> None:
@@ -380,9 +397,16 @@ def prepare_data(episodes: Sequence[Episode], config: TrainingConfig) -> Prepare
             "sourceLines": [episode.rows[0].line, episode.rows[-1].line],
             "seedTerminalEpisodes": end_counts[episode.key.run_seed]["terminal"],
             "seedTruncatedEpisodes": end_counts[episode.key.run_seed]["truncated"],
+            "seedCollectionEndEpisodes": end_counts[episode.key.run_seed]["collection_end"],
         }
-        if episode.end_kind == "truncated":
-            audit_row |= {"labelStatus": "censored_truncation", "exclusionReason": "unknown continuation"}
+        if episode.end_kind != "terminal":
+            if episode.end_kind == "truncated":
+                label_status = "censored_truncation"
+                exclusion_reason = "unknown continuation"
+            else:
+                label_status = "censored_collection_end"
+                exclusion_reason = "collection ended before an explicit episode marker"
+            audit_row |= {"labelStatus": label_status, "exclusionReason": exclusion_reason}
             audit.append(audit_row)
             continue
 
@@ -513,8 +537,17 @@ def audit_episodes(episodes: Sequence[Episode], split_by_seed: dict[int, str]) -
             "sourceLines": [episode.rows[0].line, episode.rows[-1].line],
             "seedTerminalEpisodes": end_counts[episode.key.run_seed]["terminal"],
             "seedTruncatedEpisodes": end_counts[episode.key.run_seed]["truncated"],
-            "labelStatus": "pending_terminal_return" if episode.end_kind == "terminal" else "censored_truncation",
-            "exclusionReason": None if episode.end_kind == "terminal" else "unknown continuation",
+            "seedCollectionEndEpisodes": end_counts[episode.key.run_seed]["collection_end"],
+            "labelStatus": {
+                "terminal": "pending_terminal_return",
+                "truncated": "censored_truncation",
+                "collection_end": "censored_collection_end",
+            }[episode.end_kind],
+            "exclusionReason": {
+                "terminal": None,
+                "truncated": "unknown continuation",
+                "collection_end": "collection ended before an explicit episode marker",
+            }[episode.end_kind],
         })
     return rows
 
@@ -522,7 +555,9 @@ def audit_episodes(episodes: Sequence[Episode], split_by_seed: dict[int, str]) -
 def end_counts_by_seed(episodes: Sequence[Episode]) -> dict[int, dict[str, int]]:
     result: dict[int, dict[str, int]] = {}
     for episode in episodes:
-        block = result.setdefault(episode.key.run_seed, {"terminal": 0, "truncated": 0})
+        block = result.setdefault(
+            episode.key.run_seed, {"terminal": 0, "truncated": 0, "collection_end": 0}
+        )
         block[episode.end_kind] += 1
     return result
 
@@ -935,6 +970,7 @@ def build_manifest(source_files: Sequence[Path], output_dir: Path, metadata: Art
             "higherIsBetter": True,
             "terminalBootstrap": 0.0,
             "truncation": "censored_excluded",
+            "collectionEnd": "censored_excluded",
             "analysisReturns": ["shapingEnvelope", "shapingBorder"],
         },
         "input": {
@@ -1025,7 +1061,7 @@ def episode_counts_by_seed(audit: Sequence[dict[str, Any]]) -> list[dict[str, An
     counts: dict[tuple[int, str], dict[str, int]] = {}
     for row in audit:
         key = (int(row["runSeed"]), str(row["split"]))
-        block = counts.setdefault(key, {"terminal": 0, "truncated": 0})
+        block = counts.setdefault(key, {"terminal": 0, "truncated": 0, "collection_end": 0})
         block[str(row["endKind"])] += 1
     return [
         {"runSeed": seed, "split": split, **values}
