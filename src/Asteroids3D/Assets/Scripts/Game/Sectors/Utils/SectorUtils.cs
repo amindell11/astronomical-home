@@ -32,6 +32,14 @@ namespace Game.Sectors.Utils
         public static ObserverCam BuildAndWireObserverCam(IGameServices services,  ObserverCam observerCamPrefab)
         {
             var observer = Object.Instantiate(observerCamPrefab);
+
+            // The authored prefab clears to the skybox; a non-presenting session must not render one.
+            if (!services.PresentationEnabled)
+            {
+                observer.Cam.clearFlags = CameraClearFlags.SolidColor;
+                observer.Cam.backgroundColor = Color.black;
+            }
+
             services.CameraService.Initialize();
             services.CameraService.AddCamera(CameraTag.Observer,observer);
             

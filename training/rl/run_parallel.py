@@ -34,6 +34,7 @@ RL_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RL_DIR.parent.parent
 RESULTS = REPO_ROOT / "results" / "rl-training"
 JSONL_DIR = REPO_ROOT / "results" / "rl-episodes"
+TRANSITION_ROOT = REPO_ROOT / "results" / "rl-transitions"
 MLAGENTS = RL_DIR / ".venv" / "Scripts" / "mlagents-learn.exe"
 TRAINER_RUNTIMES = ("owned", "ml-agents")
 
@@ -59,6 +60,17 @@ def config_has_roster_weights(config: Path) -> bool:
 
 def episode_logs(suffix: str) -> set:
     return set(JSONL_DIR.glob(f"*-training{suffix}.jsonl"))
+
+
+def transition_logs(directory: Path, suffix: str) -> set:
+    return set(directory.glob(f"*{suffix}-transitions.jsonl"))
+
+
+def prepare_transition_dir(directory: Path, force: bool) -> None:
+    directory.mkdir(parents=True, exist_ok=True)
+    if force:
+        for path in directory.glob("*-transitions.jsonl"):
+            path.unlink()
 
 
 def log_suffixes(num_envs: int, num_arenas: int) -> list:
@@ -101,6 +113,8 @@ def main() -> None:
                         help="RL_SMOKE=1 tight-arena/short-clock gate spec; also defaults --config to the smoke YAML")
     parser.add_argument("--self-play", action="store_true",
                         help="RL_SELFPLAY=1 ghost-league composition; also defaults --config to the selfplay YAML")
+    parser.add_argument("--record-transitions", action="store_true",
+                        help="emit executed decision-boundary JSONL under results/rl-transitions/RUN_ID")
     parser.add_argument("--hybrid-scripted-workers", type=int, default=None, metavar="K",
                         help="first K workers boot the scripted roster instead of the mirror league "
                              "(RL_HYBRID_SCRIPTED_WORKERS; requires --self-play)")
@@ -154,10 +168,15 @@ def main() -> None:
                      "the scripted workers would silently fall back to RewardSpec's default roster mix")
     run_id = args.run_id or config_run_id(config)
     onnx = RESULTS / run_id / "ShipCombat.onnx"
+    transition_dir = TRANSITION_ROOT / run_id
     RESULTS.mkdir(parents=True, exist_ok=True)
     JSONL_DIR.mkdir(parents=True, exist_ok=True)
+    if args.record_transitions:
+        prepare_transition_dir(transition_dir, args.force)
     suffixes = log_suffixes(args.num_envs, args.num_arenas)
     before = {s: episode_logs(s) for s in suffixes}
+    transitions_before = ({s: transition_logs(transition_dir, s) for s in suffixes}
+                          if args.record_transitions else {})
 
     # mlagents-learn workers inherit this env; the pops stop an inherited RL_SELFPLAY bypassing the cross-check.
     env = dict(os.environ)
@@ -191,11 +210,16 @@ def main() -> None:
                     "--harness-base-port", str(args.base_port),
                     "--harness-jsonl-dir", str(JSONL_DIR),
                     "--harness-num-arenas", str(args.num_arenas)]
+    if args.record_transitions:
+        trainer_cmd += ["--harness-transition-dir", str(transition_dir),
+                        "--harness-run-id", run_id]
 
     trainer_log = trainer_log_path(run_id)
     print(f"launching {args.num_envs} worker(s): {args.env}")
     print(f"  trainer-runtime {args.trainer_runtime}  base-port {args.base_port}  "
           f"jsonl {JSONL_DIR}  run-id {run_id}")
+    if args.record_transitions:
+        print(f"  transitions {transition_dir}")
     trainer = None
     try:
         with open(trainer_log, "w") as tl:
@@ -220,12 +244,25 @@ def main() -> None:
             failures.append(f"{s}: no non-empty {s} episode JSONL under {JSONL_DIR}")
         else:
             print(f"{s}: {fresh[0].name} ({fresh[0].stat().st_size} bytes)")
+        if args.record_transitions:
+            fresh_transitions = [
+                p for p in (transition_logs(transition_dir, s) - transitions_before[s])
+                if p.stat().st_size > 0
+            ]
+            if not fresh_transitions:
+                failures.append(
+                    f"{s}: no fresh non-empty transition JSONL under {transition_dir}")
+            else:
+                transition = fresh_transitions[0]
+                print(f"{s}: {transition.name} ({transition.stat().st_size} transition bytes)")
 
     if failures:
         sys.exit("FAIL:\n  " + "\n  ".join(failures))
     print(f"PASS: {args.num_envs}-env run '{run_id}' complete")
     print(f"  checkpoint: {onnx}")
     print(f"  episodes:   {JSONL_DIR}")
+    if args.record_transitions:
+        print(f"  transitions: {transition_dir}")
 
 
 if __name__ == "__main__":

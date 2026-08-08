@@ -355,8 +355,79 @@ changed: committed sweeping turns (mean |yaw rate| 2.4×, facing error
 tests' price-insensitivity is explained — no cost weight can fix a wrong
 time base.
 
-**Not yet run (gates before landing):** full roster no-regress bench (the
-policy trained against the old controller; movers were the anchored wins),
-the mandatory higher-density obstacle arm (design input #3), and a
-facing-vs-movers read for the aiming implication of the larger transient
-facing error.
+**Roster no-regress bench (RAN 2026-08-06): ❌ FAILS as a hot-swap.**
+`results/rl-eval/bench-shift-cadence-20260806/` (Bench-1 protocol, R2 +
+mirror): **43.50/75** vs baseline 63.00. Dummy replicates (14.00/15,
++7.5); movers collapse — Aggressor 5.00 (−10) and Orbiter 4.50 (−9) with
+zero draws and 15–23 s episodes (fast deaths, not timeouts), Kiter −4,
+Evader −4. Mirror 3W/3L/9D symmetric. Reading: the checkpoint was trained
+on the churny controller — calming the controller breaks the
+policy+controller couple against movers (and/or committed turns trade
+lateral tracking; facing error tripled). **Disposition: the cadence fix is
+a training-environment candidate (retrain on top, #263-style env shift),
+not a drop-in swap.** Landing gates as a hot-swap are moot; the paired
+d3.0 obstacle arms (stock vs fix, same policy) still run — the threat-
+metric comparison is policy-light and feeds the redesign.
+
+**Post-film correction (user read, 2026-08-06) — the oscillation moved
+down-spectrum; it did not go away.** Reversal-rate × yaw-rate arithmetic
+agrees: old ≈ ±5–9° swings at 5.2 rev/s (facing error 14.5°), new ≈
+±20–40° at 2.3 rev/s (facing error 39°) — the same yaw limit cycle at
+half the frequency and ~4× amplitude. Mechanically the cadence change
+makes coherent intent update at ~10 Hz (candidate 0 + elite-average pull
+center five consecutive 50 Hz solves on the same plan alignment), so it
+traded a 50 Hz-jittered controller for a ~10 Hz one. Dummy improved
+because slow large sweeps translate toward a stationary target; tracking
+got worse, which is what the roster measured. **Retrain-on-top is
+WITHDRAWN as a recommendation** (remains one option). The redesign target
+is the limit cycle itself: the yaw channel fails to converge on the
+facing target at any cadence tried. Candidate probes: wSmoothnessYaw
+layered on the cadence fix (both live for the first time), a fractional
+interpolated shift (warm start tracks sim time at 50 Hz), damping
+(wYawRate), or selection (elite average never lets the incumbent
+settle).
+
+**Rulings (user, 2026-08-06, on the film read):**
+
+1. **The limit cycle is policy-free and archetype-reproducible** — the
+   archetypes drive the same Navigator/Mpc stack and the same settings
+   asset, and oscillate identically on film. The redesign iterates on
+   scripted archetype sessions (minutes per arm, controller probe as the
+   read, no RL confound); the HELD velrebase open-loop apparatus is the
+   purpose-built instrument for this.
+2. **Slow-loop-plus-damping is OFF the table.** 10 Hz coherent intent is
+   a diagnostic condition, not a design point — a slowed, damped loop
+   buys sluggishness. wYawRate damping and accept-the-cadence variants
+   drop to last resort. The live probe family keeps 50 Hz decisions and
+   makes them converge: fractional/interpolated shift, and the selection
+   question (a 50 Hz re-blurred elite average never lets an incumbent
+   settle — the convergence suspect at any cadence).
+3. **Converged means both at once**: facing error small AND reversal
+   rate ≤ hull rate at full 50 Hz responsiveness — readable on one short
+   archetype session; closeout and the moving-archetype bars stay the
+   outcome gates.
+
+**Probe 1 — fractional interpolated shift (RAN 2026-08-06): clock
+hypothesis DEAD.** ZOH-faithful blend (α=dt/rolloutDt; plan clock true at
+50 Hz), MPC gate 66/66, Dummy+mirror at the standard protocol
+(`results/rl-eval/shift-cadence-20260806/fractional/` + NOTES table):
+6.25–6.31 strict flips/s, facing 35.2–35.3°, yaw ~83 deg/s, Dummy
+13W/0L/2D, mirror 2W/2L/11D — the 10 Hz arm's limit cycle reproduced
+almost exactly at full 50 Hz coherence. Stock's tight tracking was the
+5×-fast bug acting as accidental high-frequency dither, not a working
+controller. The cycle is clock- and cadence-invariant. **Prime suspect by
+elimination: selection — the elite average re-blurs the plan every solve;
+nothing can settle. Probe 2 (incumbent settling) is the successor; the
+open-loop probe-allowlist slice unlocks the policy-free archetype loop
+for it.**
+
+**Paired d3.0 obstacle arms (RAN 2026-08-06): obstacle competence
+SURVIVED the fix.** Evader (the only threat-heavy cell, ~5% threat steps)
+holds 11W/1L/3D vs stock 13W/0L/2D; the avoidance reflex fires (threat
+yaw 128–177 deg/s vs ~95–118 clear, same shape as stock); the calm holds
+under density (torque rev/s ~5.6–5.9 vs stock ~11). The mover collapse is
+density-invariant (43/75 at d3.0 ≈ 43.5 at d2.0) → combat deaths from the
+broken policy couple, not rocks. Aside for the redesign: stock scored
+67/75 at d3.0, above its own 63.0 at d2.0 (single rep). Artifacts:
+`results/rl-eval/shift-cadence-20260806/d3-{fix,stock}/`; films
+`results/rl-capture/shift-cadence-20260806/`.

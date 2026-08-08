@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using Game.Presentation;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using World;
@@ -10,12 +11,14 @@ namespace Game.Services
     {
         private readonly Scene bootScene;
         private readonly Transform arenaRoot;
+        private readonly bool presentationEnabled;
         private string loadedLocaleName;
 
-        public EnvironmentService(Transform arenaRoot = null)
+        public EnvironmentService(Transform arenaRoot = null, bool presentationEnabled = true)
         {
             bootScene = SceneManager.GetActiveScene();
             this.arenaRoot = arenaRoot;
+            this.presentationEnabled = presentationEnabled;
         }
 
         public WorldRoot World { get; private set; }
@@ -68,6 +71,7 @@ namespace Game.Services
         {
             if (!prefab) return;
             World = UnityEngine.Object.Instantiate(prefab, arenaRoot);
+            PresentationApplier.Apply(World.gameObject, presentationEnabled);
         }
 
         public void AdoptWorld(WorldRoot existing)
@@ -75,6 +79,7 @@ namespace Game.Services
             if (!existing) return;
             World = existing;
             existing.transform.SetParent(arenaRoot, true);
+            PresentationApplier.Apply(World.gameObject, presentationEnabled);
         }
 
         public void Clear()

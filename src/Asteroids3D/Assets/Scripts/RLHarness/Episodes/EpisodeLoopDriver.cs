@@ -43,7 +43,8 @@ namespace Game.RLHarness
 
         /// <summary><paramref name="onBegin"/> fires once after Begin (spawn pose settled) and <paramref name="onFixedStep"/> once per fixed step after Tick — the hooks a per-step behavioral sampler (eval scorecard) rides, matching the archetype gate's construct-then-sample ordering.</summary>
         public IEnumerator RunEpisode(RewardSpec spec, int episodeIndex, bool tracePerDecision = false,
-            System.Action onBegin = null, System.Action onFixedStep = null)
+            System.Action onBegin = null, System.Action onFixedStep = null,
+            DecisionTransitionJsonl transitionOutput = null)
         {
             if (spec.useAsteroidField && field == null)
                 throw new System.InvalidOperationException(
@@ -57,14 +58,16 @@ namespace Game.RLHarness
             if (draw.HasValue) Runner.RecordOpponent(draw.Value);
             Runner.Begin();
             onBegin?.Invoke();
-            agent?.BindEpisode(Runner);
+            agent?.BindEpisode(Runner,
+                transitionOutput?.BeginEpisode(in spec, episodeIndex, teamId: 0));
 
             EpisodeRunner opponentRunner = null;
             if (opponentAgent != null)
             {
                 opponentRunner = new EpisodeRunner(pair.Baseline, pair.Agent, spec, episodeIndex, arenaCenter, tracePerDecision);
                 opponentRunner.Begin();
-                opponentAgent.BindEpisode(opponentRunner);
+                opponentAgent.BindEpisode(opponentRunner,
+                    transitionOutput?.BeginEpisode(in spec, episodeIndex, teamId: 1));
             }
             OpponentRunner = opponentRunner;
 
@@ -81,6 +84,12 @@ namespace Game.RLHarness
                 if (!boundaryReached) continue;
 
                 var boundary = Runner.LastBoundary;
+                agent?.CompleteTransition(in boundary);
+                if (opponentRunner != null)
+                {
+                    var opponentBoundary = opponentRunner.LastBoundary;
+                    opponentAgent.CompleteTransition(in opponentBoundary);
+                }
                 agent?.AddReward(boundary.Total);
                 if (opponentRunner != null) opponentAgent.AddReward(opponentRunner.LastBoundary.Total);
                 switch (boundary.endKind)
@@ -115,6 +124,8 @@ namespace Game.RLHarness
                         break;
                 }
             }
+
+            transitionOutput?.Flush();
         }
     }
 }

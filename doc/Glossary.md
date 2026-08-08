@@ -243,6 +243,10 @@ Format: **term** — definition. *(authority)*
   updates, checkpointing, and stats for a training run: stock `mlagents-learn`
   (the *ml-agents runtime*) today, replaced stage-by-stage by the project-owned
   *owned runtime*. *(RL_Trainer_Runtime_Takeover.md)*
+- **inference microbatch** — one policy forward over decision requests from
+  several ready trainer-runtime workers; its worker cap bounds group size and
+  its collection window bounds the wait after the first ready response.
+  *(RL_Trainer_Runtime_Takeover.md §Slice-4a decision brief)*
 - **checkpoint manifest** — append-only JSONL beside the run manifest, one line
   per published checkpoint; the producer-emitted completeness signal replacing
   glob-visibility inference. Reader dedupes by step, last line wins (resume

@@ -131,6 +131,48 @@ namespace Tests.PlayMode
                     "the team-1 agent must accumulate its own mirror-runner reward");
             }
         }
+
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator SelfPlay_TransitionArtifact_RecordsBothTeamPerspectives()
+        {
+            var spec = RewardSpec.Default;
+            spec.timeoutDecisions = 2;
+            spec.minSeparation = 50f;
+            spec.maxSeparation = 60f;
+
+            var driver = Compose(in spec);
+            var dir = System.IO.Path.Combine(Application.temporaryCachePath,
+                $"rl-selfplay-transition-test-{System.Guid.NewGuid():N}");
+            DecisionTransitionJsonl output = null;
+            try
+            {
+                output = DecisionTransitionJsonl.Create(
+                    "selfplay-transition-test", workerIndex: 1, arenaIndex: 0, dir, "-w1");
+                var path = output.Path;
+                yield return driver.RunEpisode(spec, episodeIndex: 4, transitionOutput: output);
+                output.Dispose();
+                output = null;
+
+                var lines = System.IO.File.ReadAllLines(path);
+                Assert.AreEqual(driver.Runner.Result.decisions * 2, lines.Length,
+                    "each shared boundary must emit one row from each team perspective");
+                for (var i = 0; i < lines.Length; i++)
+                {
+                    var row = JsonUtility.FromJson<DecisionTransition>(lines[i]);
+                    row.Validate();
+                    Assert.AreEqual(i % 2, row.teamId,
+                        "the shared output must carry team 0 then team 1 at each boundary");
+                    Assert.AreEqual(i / 2 + 1, row.decision);
+                }
+            }
+            finally
+            {
+                output?.Dispose();
+                if (System.IO.Directory.Exists(dir))
+                    System.IO.Directory.Delete(dir, recursive: true);
+            }
+        }
     }
 }
 #endif

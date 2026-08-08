@@ -34,7 +34,7 @@ namespace Game.RLHarness
             Reset();
         }
 
-        public void SetAction(in AgentAction action, bool boostAvailable)
+        public bool SetAction(in AgentAction action, bool boostAvailable)
         {
             this.action = action;
             boostPending = action.boost && boostAvailable;
@@ -45,6 +45,7 @@ namespace Game.RLHarness
             ringHead = (ringHead + 1) % RingCapacity;
             if (Count < RingCapacity) Count++;
             TotalDecisions++;
+            return boostPending;
         }
 
         public PolicyAction ActionFromNewest(int index) => ring[(ringHead - 1 - index + RingCapacity) % RingCapacity];

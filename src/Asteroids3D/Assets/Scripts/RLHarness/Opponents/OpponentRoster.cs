@@ -9,7 +9,7 @@ namespace Game.RLHarness
 {
     public enum OpponentArchetype { Aggressor, Evader, Orbiter, Kiter, Dummy }
 
-    /// <summary>The per-episode archetype selection + jitter draw, embedded in the episode's JSONL row; fields the archetype does not draw stay zero.</summary>
+    /// <summary>An archetype's shape parameters — drawn per episode by the roster (and embedded in the episode's JSONL row) or authored on a live pilot, then handed to <see cref="ArchetypeChoosers.Create"/>; fields the archetype does not use stay zero.</summary>
     [Serializable]
     public struct OpponentDraw
     {
@@ -94,42 +94,24 @@ namespace Game.RLHarness
                 case OpponentArchetype.Aggressor:
                     draw.speedFraction = Draw(rng, MinSpeedFraction, MaxSpeedFraction);
                     draw.desiredRange = Draw(rng, MinAggroRange, MaxAggroRange);
-                    var aggressor = new HoldRangeFireChooser();
-                    aggressor.Configure(enemy, draw.desiredRange, draw.speedFraction, projectileSpeed,
-                        arenaCenter, spec.arenaRadius, drive);
-                    brain.InstallChooser(aggressor);
                     break;
                 case OpponentArchetype.Evader:
                     draw.speedFraction = Draw(rng, MinSpeedFraction, MaxSpeedFraction);
                     draw.jukePeriod = Draw(rng, MinJukePeriod, MaxJukePeriod);
-                    var evader = new EvaderChooser();
-                    evader.Configure(enemy, draw.speedFraction, draw.jukePeriod,
-                        scope.Derive(JukeSeedStream).ToSeed(), arenaCenter, spec.arenaRadius, drive);
-                    brain.InstallChooser(evader);
                     break;
                 case OpponentArchetype.Orbiter:
                     draw.speedFraction = Draw(rng, MinOrbitSpeedFraction, MaxOrbitSpeedFraction);
                     draw.orbitRadius = Draw(rng, MinOrbitRadius, MaxOrbitRadius);
                     draw.orbitDirection = rng.Next(2) == 0 ? -1 : 1;
-                    var orbiter = new OrbiterChooser();
-                    orbiter.Configure(enemy, draw.orbitRadius, draw.orbitDirection, draw.speedFraction,
-                        projectileSpeed, arenaCenter, spec.arenaRadius, drive);
-                    brain.InstallChooser(orbiter);
                     break;
                 case OpponentArchetype.Kiter:
                     draw.speedFraction = Draw(rng, MinSpeedFraction, MaxSpeedFraction);
                     draw.desiredRange = Draw(rng, MinKiteRange, MaxKiteRange);
-                    var kiter = new HoldRangeFireChooser();
-                    kiter.Configure(enemy, draw.desiredRange, draw.speedFraction, projectileSpeed,
-                        arenaCenter, spec.arenaRadius, drive);
-                    brain.InstallChooser(kiter);
                     break;
-                case OpponentArchetype.Dummy:
-                    brain.InstallChooser(new DummyChooser());
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(archetype), archetype, null);
             }
+
+            brain.InstallChooser(ArchetypeChoosers.Create(archetype, in draw, enemy, projectileSpeed,
+                scope.Derive(JukeSeedStream).ToSeed(), arenaCenter, spec.arenaRadius, drive));
             return draw;
         }
 

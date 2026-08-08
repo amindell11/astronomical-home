@@ -1,9 +1,10 @@
 # RL Trainer Runtime Takeover
 
-> STATUS: live arc — opened 2026-08-05; slices 0–2 COMPLETE (#259 tripwire ·
-> wire-contract freeze · stage-1a wrapper #262); slice-3 brief FROZEN
-> 2026-08-06 (§Slice-3 decision brief) — next = the rider bench PR, then the
-> stage-1b build; stages 3+ are entry-gated, not committed.
+> STATUS: live arc — slices 0–3 COMPLETE (#259 tripwire · wire-contract
+> freeze · stage-1a wrapper #262 · stage-1b scheduler #346); Slice-4a brief
+> FROZEN 2026-08-06 (§Slice-4a decision brief) — next = the microbatch
+> capability build; Slice-4b owns cutover activation; takeover stages 3+ are
+> entry-gated, not committed.
 
 *Seeded 2026-08-05 by a four-lane grounding review run in the arc-opening
 session (ml-agents feature-usage inventory, C#↔Python wire-contract map,
@@ -109,8 +110,9 @@ becomes the production path.
 **Stage 2 — cross-worker microbatch inference (committed).** Collect ready
 workers inside a sub-millisecond window and run one vectorized policy forward
 instead of sequential per-worker forwards. Estimated 190–240 steps/s. Gates:
-cheap tier + the batched ≡ sequential identity proof; the committed scope's
-single full paired run fires at this stage's cutover.
+cheap tier + exact partition/bookkeeping and distribution equivalence; the
+committed scope's single full paired run fires at this stage's cutover. The
+capability/cutover split and proof contract are frozen in §Slice-4a.
 
 **Stage 3 — GPU PPO updates (entry-gated).** Entry gate: stages 1–2 shipped
 and the update phase still ≥~25% of wall time. Requires a CUDA torch build
@@ -156,7 +158,7 @@ stage-1+2 delta at once. Preferred vehicle: piggyback the next needed
 production retrain — run it on the owned runtime, so the stock reference arm
 on the same tree is the only marginal run; flag at ledger-claim time that a
 gate failure sends that retrain back to stock (the piggybacked thread
-carries the schedule risk). Bisection if it fails: microbatch window = 1
+carries the schedule risk). Bisection if it fails: microbatch worker cap = 1
 reproduces sequential scheduling — an internal A/B knob separating stage 2's
 contribution from stage 1's.
 
@@ -189,7 +191,7 @@ strength".
 | Stage | Cheap tier | Sim-free proof | Full paired run |
 |---|---|---|---|
 | 1 entry + scheduler | bench + canaries | — | covered at cutover |
-| 2 microbatch | bench + canaries | batched ≡ sequential | **cutover gate** (combined 1+2) |
+| 2 microbatch | bench + canaries | exact partition + distribution equivalence | **cutover gate** (combined 1+2) |
 | 3 GPU updates | bench + canaries | frozen-buffer CPU-vs-GPU tolerance | re-armed at its cutover |
 | 4 local actors | bench + canaries + sample-efficiency guard | export identity | re-armed at its cutover |
 | 5 PPO re-ownership | bench + canaries | full math suite | re-armed before cutover |
@@ -292,7 +294,11 @@ rule 6 corollary violations). Stage 1 inverts the ones in its layer:
 - **Slice 3 — stage 1b scheduler build** (pr-prep DONE 2026-08-06 —
   §Slice-3 decision brief; adversarial atomicity round run and disposed in
   the brief. Build order: rider bench PR first, then the 1b PR).
-- **Slice 4 — stage 2 build** (pr-prep first).
+- **Slice 4a — takeover stage 2 microbatch capability build** (pr-prep DONE
+  2026-08-06 — §Slice-4a decision brief). Lands default-sequential and proves
+  the batched path through the cheap tier.
+- **Slice 4b — takeover stage 2 cutover activation.** Runs the full paired cutover
+  gate from main; on pass, flips the default from sequential to batched.
 - Later slices open only through their entry gates (§The ladder).
 
 ## Slice-3 decision brief — stage 1b, ready-environment scheduler re-own (FROZEN 2026-08-06)
@@ -546,6 +552,152 @@ registry).
   port-arithmetic derivation, throws on mismatch (+EditMode test); completes
   V9 per the wire contract §3 amendment.
 - Rider PR (fork F): bench stock-arm enablement — lands BEFORE the 1b build.
+
+## Slice-4a decision brief — takeover stage 2 microbatch capability (FROZEN 2026-08-06)
+
+> Prep session 2026-08-06; forks and blindsiders resolved with the user. An
+> **inference microbatch** combines ready-worker decision requests into one
+> vectorized policy forward. The implementing agent builds from this brief
+> plus the wire contract; it re-decides nothing here.
+
+### Scope
+
+Add an owned batching module behind `SubprocessEnvScheduler`: collect ready
+workers for at most 500 µs after the first response, combine compatible
+`DecisionSteps`, evaluate each retained `TorchPolicy` once, and split every
+`ActionInfo` row back to its originating worker. Add the owned-runtime
+`--microbatch-worker-cap` option, thread it through `run_parallel.py` and
+`bench_throughput.py`, record effective scheduling provenance in
+`run_manifest.json` and `timers.json`, and cover the module with sim-free
+tests against the pinned real policy. This capability PR defaults the cap to
+1, so its landing preserves stage-1b sequential behavior.
+
+### Non-goals
+
+- No worker-thread topology, GPU work, PPO-update math, C#, checkpoint, or
+  persistence redesign.
+- No production activation: Slice-4b owns the full paired cutover run and
+  default flip.
+- No new policy abstraction or generic fallback for policy implementations
+  that lack the retained `TorchPolicy` batching surface.
+- No authorized full-run vehicle is named here; choose one at Slice-4b
+  readiness. The MPC cadence retrain proposal was withdrawn after film and
+  fractional-shift evidence.
+
+### Locked forks
+
+- **A. Equivalence contract — distribution equivalence, not sampled-action
+  identity.** A production-shape probe showed that seeded batched and
+  sequential sampling consume PyTorch RNG differently (continuous samples
+  diverged by up to 4.41 and discrete choices differed), while distribution
+  parameters matched within `5.96e-8`. The sim-free proof therefore pins
+  merge/split identity plus policy distribution, fixed-action log-prob, and
+  entropy equivalence at `rtol=1e-6`, `atol=1e-6`. Why: re-owning a
+  partition-invariant sampler would cross the committed inherited-math seam,
+  import more private ML-Agents machinery, and still not promise byte identity
+  because vectorized forward arithmetic itself differs at float epsilon.
+- **B. Worker topology — subprocess-per-env retained.** The existing response
+  queue becomes the readiness source. Why: threads would combine a second
+  performance mechanism with batching, share ML-Agents' process-global
+  logging/timer state, and replace the proven restart/isolation/process-tree
+  contract. Re-open only from measured post-microbatch evidence.
+- **C. Control surface — one caller-visible worker cap.** The owned entry
+  accepts positive `--microbatch-worker-cap N` before trailing `--env-args`;
+  the scheduler owns the fixed 500 µs collection window. Cap 1 bypasses the
+  wait and follows today's `policy.get_action()` path exactly. Effective cap
+  is bounded by `num_envs`; both requested/effective cap and window are
+  artifact provenance. Why: the cap is the semantic bisection knob; exposing
+  timing would make launchers own scheduler tuning.
+- **D. Landing — capability before cutover.** Slice-4a lands with cap 1 after
+  the cheap tier. Slice-4b runs the full paired gate from main with explicit
+  cap=`num_envs`; only a pass flips the default. Why: this releases the pooled
+  worktree after a quiet-lane build, lets the long gate piggyback the then-live
+  production tree, and prevents unvalidated batching from leaking into an
+  ordinary run.
+
+### Assumptions (code-cited)
+
+1. **Batching seam.** A focused owned module hides `DecisionSteps` merge,
+   retained-policy evaluation, output partitioning, and bookkeeping behind one
+   scheduler-facing interface. `SubprocessEnvScheduler._queue_steps`
+   (`env_scheduler.py:320-327`) remains the caller; trainer, optimizer,
+   `AgentManager`, and policy identities remain the retained objects wired by
+   `OwnedRunLoop._create_trainer_and_manager` (`run_loop.py:257-287`).
+2. **Collection ordering.** Preserve the current worker traversal (ascending
+   `env_workers` order), then behavior insertion order and agent-row order.
+   Group only requests sharing the exact policy object; preserve first-group
+   appearance. Actions for collected responses are still computed on the next
+   `get_steps()`, so `trainer.advance()` remains between observation receipt
+   and the next action as in `OwnedRunLoop.advance` (`run_loop.py:340-353`).
+3. **Merge/split surface.** Concatenate every observation tensor, reward,
+   local agent id, group id/reward, and action-mask branch by agent rows;
+   construct global agent ids from `(worker_id, agent_id)`. Normalize an absent
+   action mask to all-actions-available before merging with present masks.
+   Split `action`, `env_action`, `log_probs`, `entropy`, and optional
+   `memory_out` by the original row counts; save memories and run the retained
+   NaN check once on the combined output. Empty decisions stay empty.
+4. **Known output contract.** Split the pinned `TorchPolicy.evaluate` output
+   keys explicitly. An unknown batched output key/type fails loudly rather than
+   entering a generic recursive slicer that could mispartition metadata.
+5. **Policy compatibility.** Cap 1 accepts any policy through its existing
+   `get_action()` interface. Cap >1 accepts `TorchPolicy` and subclasses
+   (including the planned custom-actor plugin); any other registered policy
+   fails at registration with its concrete type and requested cap. Never fall
+   back silently to a partially batched run.
+6. **Queue semantics.** After the first STEP response, busy-drain the existing
+   multiprocessing queue until the distinct-worker cap, all waiting workers,
+   or `perf_counter()` deadline. Preserve stage-1b duplicate-response,
+   ENV_EXITED/restart/full-reset, and waiting-flag semantics. Responses beyond
+   the cap remain queued for the next pump.
+7. **Owned-option parse.** Parse the cap into trusted positive-integer owned
+   options before delegating the remaining argv to
+   `learn.parse_command_line`; anything after `--env-args` remains worker argv.
+   `run_parallel.py` passes the option only to the owned runtime, never the
+   stock reference arm.
+8. **Immutable resume scheduling.** A resume must match the existing run
+   manifest's effective cap and collection window. A legacy manifest without
+   these fields is sequential: it may resume at cap 1; batching it fails with
+   start-fresh/resume-sequential guidance. This keeps a run from silently
+   mixing sampling schedules while its per-leg manifest is rewritten.
+9. **Batch-fill evidence.** Reuse `run_logs/timers.json`: metadata records cap,
+   window, policy-forward count, worker-request count, agent-row count, and
+   mean/max workers per forward. The throughput report prints these values;
+   no new telemetry file, tfevent tag, or summary-stream field.
+10. **Test shape.** Stdlib tests use the pinned production-shape
+    `TorchPolicy` (BufferSensor `[64,7]`, vector `[28]`, hybrid 5-continuous +
+    2×2-discrete) for the `1e-6` distribution proof, and fakes at the worker
+    seam for deadline/cap/restart/accounting. Pin mixed absent/present masks,
+    unequal agent counts, recurrent memory partitioning, empty decisions,
+    cap-1 exact-path dispatch, unknown outputs, unsupported policies, and
+    legacy/current resume manifests. No Unity boot in the unit lane.
+
+### Gates
+
+Every runtime launch below first claims base-port 5006 in the live ledger.
+
+- **Sim-free proof:** the full owned-runtime Python suite plus the real-policy
+  distribution-equivalence and exact partition/bookkeeping tests above.
+- **Triangular 24k throughput bench:** stock runtime, owned cap 1, and owned
+  cap=`num_envs`; N=6/M=1, same tree/config/hash, at least two quiet replicates
+  per arm. A >5% replicate gap triggers the existing third-run rule. Report
+  batch-fill metadata beside steps/s. Stock anchors the production reference;
+  cap 1 vs cap N isolates the inference-microbatch increment.
+- **Two-arm ~300k curriculum canary:** owned cap 1 vs owned cap=`num_envs`,
+  same full production trainer config. Assert comparable first lesson advance,
+  loss/entropy shape, update/checkpoint/summary cadence, episode JSONLs, and
+  batch-fill evidence. Takeover stage 1b already established stock equivalence.
+- **Batched ghost-swap smoke:** `ppo_ship_combat_selfplay_smoke.yaml`, explicit
+  cap=`num_envs`, through `run_parallel --self-play --smoke`.
+
+### Slice-4b cutover contract
+
+Run one full from-scratch stock-vs-owned-cap=`num_envs` pair on the same
+tree/config/composition, preferably piggybacking the next authorized
+production retrain. Judge checkpoints with the frozen #244 K=5 paired gate.
+Pass: flip the owned-runtime default from cap 1 to `num_envs`, refresh this
+plan/memory/tracker, and declare the owned runtime the production path. Fail:
+keep cap 1, run the from-scratch cap-1 bisection, and route the result back
+through pr-prep; the capability may remain landed without activating it.
 
 ## Cadence contract (locked 2026-08-05)
 
