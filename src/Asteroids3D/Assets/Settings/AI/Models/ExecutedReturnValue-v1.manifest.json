@@ -1,0 +1,510 @@
+{
+  "artifactId": "executed-return-value-v1",
+  "files": [
+    {
+      "bytes": 26025,
+      "name": "value.onnx",
+      "sha256": "9d804493658f05d4d5ca9a2a47054b9b728a348004cae88830645718cf5cbe93"
+    },
+    {
+      "bytes": 12345,
+      "name": "metrics.json",
+      "sha256": "7c557d85ec80dc938b265ec466094130bfa0e75f0f4a08c3fc7f82bd2f281ea7"
+    },
+    {
+      "bytes": 3068,
+      "name": "baselines.json",
+      "sha256": "46e8171c988ff0689ff7d7af8de98a1d9ef37a0cf9c7c1609dd57bb82d67bfc0"
+    },
+    {
+      "bytes": 4930,
+      "name": "training_history.jsonl",
+      "sha256": "2ad4a63c415f247595d3a248b983a8fe3c7f49cf9b640bab68c7cfabb3c8e641"
+    },
+    {
+      "bytes": 1207798,
+      "name": "episode_audit.jsonl",
+      "sha256": "b0a44b55723d6d2ce3a61816e84d8904ff080220a352a27b4fed6fe5d616a641"
+    },
+    {
+      "bytes": 36983758,
+      "name": "heldout_predictions.jsonl",
+      "sha256": "32ae9bf465c0252c30e21b772445b75f1ef19b93903e04041633fffd1be2a866"
+    },
+    {
+      "bytes": 267,
+      "name": "verification.json",
+      "sha256": "30d0b56de2ad880b4368cf4629d2cd5f3f400b5c6aad13faa45c2b36cb72cda1"
+    },
+    {
+      "bytes": 3819,
+      "name": "collection_config.yaml",
+      "sha256": "7b6fc4d3570c665c91413d4f262736e10cd7780e2aa7199498281a2e9c32bbc0"
+    }
+  ],
+  "input": {
+    "actions": "validated_excluded",
+    "features": [
+      {
+        "index": 0,
+        "name": "selfVelocityX"
+      },
+      {
+        "index": 1,
+        "name": "selfVelocityY"
+      },
+      {
+        "index": 2,
+        "name": "selfSpeedPct"
+      },
+      {
+        "index": 3,
+        "name": "selfYawRatePct"
+      },
+      {
+        "index": 4,
+        "name": "selfHealthPct"
+      },
+      {
+        "index": 5,
+        "name": "selfShieldPct"
+      },
+      {
+        "index": 6,
+        "name": "selfBoostAvailable"
+      },
+      {
+        "index": 7,
+        "name": "selfBoostCooldownPct"
+      },
+      {
+        "index": 8,
+        "name": "hasTarget"
+      },
+      {
+        "index": 9,
+        "name": "targetRelPositionX"
+      },
+      {
+        "index": 10,
+        "name": "targetRelPositionY"
+      },
+      {
+        "index": 11,
+        "name": "targetDistance"
+      },
+      {
+        "index": 12,
+        "name": "targetRelVelocityX"
+      },
+      {
+        "index": 13,
+        "name": "targetRelVelocityY"
+      },
+      {
+        "index": 14,
+        "name": "targetFacingX"
+      },
+      {
+        "index": 15,
+        "name": "targetFacingY"
+      },
+      {
+        "index": 16,
+        "name": "targetHealthPct"
+      },
+      {
+        "index": 17,
+        "name": "targetShieldPct"
+      },
+      {
+        "index": 18,
+        "name": "inMyEnvelope"
+      },
+      {
+        "index": 19,
+        "name": "inEnemyEnvelope"
+      },
+      {
+        "index": 20,
+        "name": "arenaCenterX"
+      },
+      {
+        "index": 21,
+        "name": "arenaCenterY"
+      },
+      {
+        "index": 22,
+        "name": "primaryWeaponReady"
+      },
+      {
+        "index": 23,
+        "name": "primaryHeatPct"
+      },
+      {
+        "index": 24,
+        "name": "interceptLeadX"
+      },
+      {
+        "index": 25,
+        "name": "interceptLeadY"
+      },
+      {
+        "index": 26,
+        "name": "enemyWeaponReady"
+      },
+      {
+        "index": 27,
+        "name": "enemyHeatPct"
+      }
+    ],
+    "name": "combat_state",
+    "obstacleTokens": "validated_excluded_v1",
+    "shape": [
+      "batch",
+      28
+    ]
+  },
+  "normalization": {
+    "bakedIntoOnnx": true,
+    "constantFeatures": [
+      "hasTarget"
+    ],
+    "fitSplit": "train",
+    "inputMean": [
+      -0.06493597477674484,
+      0.026595380157232285,
+      0.2044209986925125,
+      -0.01702406071126461,
+      0.8857117891311646,
+      0.8082689046859741,
+      0.07986428588628769,
+      0.4549097418785095,
+      1.0,
+      -0.01264304481446743,
+      0.09013687819242477,
+      0.1466713696718216,
+      0.07259819656610489,
+      -0.033240582793951035,
+      -0.033197883516550064,
+      -0.22543774545192719,
+      0.7671838998794556,
+      0.547595739364624,
+      0.10225760191679001,
+      0.06002870947122574,
+      -0.0059476327151060104,
+      0.07744790613651276,
+      0.2562964856624603,
+      0.5647293925285339,
+      -0.06893911957740784,
+      0.7318079471588135,
+      0.9594675898551941,
+      0.11981117725372314
+    ],
+    "inputStd": [
+      0.1538514494895935,
+      0.16573217511177063,
+      0.11947165429592133,
+      0.6171495914459229,
+      0.2530517280101776,
+      0.3618618845939636,
+      0.27108296751976013,
+      0.30711236596107483,
+      1.0,
+      0.12840090692043304,
+      0.14517514407634735,
+      0.15599560737609863,
+      0.16304923593997955,
+      0.17548146843910217,
+      0.6643906235694885,
+      0.7118011116981506,
+      0.31336843967437744,
+      0.4043799340724945,
+      0.3029867708683014,
+      0.23754002153873444,
+      0.17525754868984222,
+      0.1795755922794342,
+      0.43658745288848877,
+      0.3381994068622589,
+      0.4962072968482971,
+      0.46204203367233276,
+      0.1972043365240097,
+      0.2606021463871002
+    ],
+    "targetMean": 0.05567243998782146,
+    "targetStd": 0.7132294813851265,
+    "targetWasConstant": false
+  },
+  "output": {
+    "higherIsBetter": true,
+    "name": "value_return",
+    "shape": [
+      "batch",
+      1
+    ],
+    "units": "discounted task return"
+  },
+  "runtime": {
+    "numpy": "1.23.5",
+    "onnx": "1.15.0",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "python": "3.10.12",
+    "torch": "2.2.2+cpu"
+  },
+  "schema": "rl-value-artifact-v1",
+  "source": {
+    "collectionCommand": ".venv\\Scripts\\python.exe run_parallel.py --config D:\\amind\\git\\astronomical-home\\results\\rl-value\\executed-return-value-v1\\executed-return-value-v1.yaml --run-id executed-return-value-v1 --num-envs 6 --num-arenas 2 --record-transitions --base-port 5006 --force --run-timeout 7200",
+    "collectionConfig": "D:\\amind\\git\\astronomical-home\\results\\rl-value\\executed-return-value-v1\\executed-return-value-v1.yaml",
+    "collectionConfigArtifact": "collection_config.yaml",
+    "collectionConfigSha256": "7b6fc4d3570c665c91413d4f262736e10cd7780e2aa7199498281a2e9c32bbc0",
+    "collectionMode": "learning_trajectory",
+    "files": [
+      {
+        "bytes": 237906496,
+        "path": "D:\\amind\\git\\astronomical-home\\results\\rl-value\\executed-return-value-v1\\raw-transitions\\20260808-034407-117-executed-return-value-v1-w1-a0-transitions.jsonl",
+        "rows": 48630,
+        "sha256": "a2b18be88ef8677940a8021ca44f646a15f7d99292572a8e7d6811c6f923a122"
+      },
+      {
+        "bytes": 177358075,
+        "path": "D:\\amind\\git\\astronomical-home\\results\\rl-value\\executed-return-value-v1\\raw-transitions\\20260808-034407-122-executed-return-value-v1-w4-a0-transitions.jsonl",
+        "rows": 34729,
+        "sha256": "0cd369a7bbe7dec3d6983606436c929c4c7a84113f6615c4419b01b160a95753"
+      },
+      {
+        "bytes": 194044569,
+        "path": "D:\\amind\\git\\astronomical-home\\results\\rl-value\\executed-return-value-v1\\raw-transitions\\20260808-034407-124-executed-return-value-v1-w3-a0-transitions.jsonl",
+        "rows": 38437,
+        "sha256": "2ad94354b2fab8d87b4c827a1d3f84517b774fa8614646678f3f5979682ccab3"
+      },
+      {
+        "bytes": 286988873,
+        "path": "D:\\amind\\git\\astronomical-home\\results\\rl-value\\executed-return-value-v1\\raw-transitions\\20260808-034407-132-executed-return-value-v1-w0-a0-transitions.jsonl",
+        "rows": 57125,
+        "sha256": "0541289fca2b1556595eb7590980ec2868be098f72808b3803786a1dfd69dbc4"
+      },
+      {
+        "bytes": 239980158,
+        "path": "D:\\amind\\git\\astronomical-home\\results\\rl-value\\executed-return-value-v1\\raw-transitions\\20260808-034407-136-executed-return-value-v1-w1-a1-transitions.jsonl",
+        "rows": 48639,
+        "sha256": "e4216c5c649e9b288ee644f9f6c317674bdb76f538de4b5773e46615741dcb8f"
+      },
+      {
+        "bytes": 180817330,
+        "path": "D:\\amind\\git\\astronomical-home\\results\\rl-value\\executed-return-value-v1\\raw-transitions\\20260808-034407-137-executed-return-value-v1-w2-a0-transitions.jsonl",
+        "rows": 36249,
+        "sha256": "cafb52504c7015159dd0920cbf9dd1aadc8a65bd61c34e5249002358cad4bfb2"
+      },
+      {
+        "bytes": 175486895,
+        "path": "D:\\amind\\git\\astronomical-home\\results\\rl-value\\executed-return-value-v1\\raw-transitions\\20260808-034407-137-executed-return-value-v1-w4-a1-transitions.jsonl",
+        "rows": 34720,
+        "sha256": "b9c24849c175145dc2a126589695debbc5397454555f7dee428485b4832a26cb"
+      },
+      {
+        "bytes": 180718630,
+        "path": "D:\\amind\\git\\astronomical-home\\results\\rl-value\\executed-return-value-v1\\raw-transitions\\20260808-034407-140-executed-return-value-v1-w5-a0-transitions.jsonl",
+        "rows": 34991,
+        "sha256": "01c20efa103f0269efd7b18a2df7fe86c35d76f7c2116422cb59630487b120c8"
+      },
+      {
+        "bytes": 194350648,
+        "path": "D:\\amind\\git\\astronomical-home\\results\\rl-value\\executed-return-value-v1\\raw-transitions\\20260808-034407-143-executed-return-value-v1-w3-a1-transitions.jsonl",
+        "rows": 38429,
+        "sha256": "58e961858c92c4cfa456253ee8d6dcf8a5c43c9df84edd4f29b6e5042cd37905"
+      },
+      {
+        "bytes": 184235334,
+        "path": "D:\\amind\\git\\astronomical-home\\results\\rl-value\\executed-return-value-v1\\raw-transitions\\20260808-034407-153-executed-return-value-v1-w2-a1-transitions.jsonl",
+        "rows": 36244,
+        "sha256": "51bcb09211a7f8277fb987bb83b58f241323e5bf77a33ce649763f0573319fc6"
+      },
+      {
+        "bytes": 275466213,
+        "path": "D:\\amind\\git\\astronomical-home\\results\\rl-value\\executed-return-value-v1\\raw-transitions\\20260808-034407-154-executed-return-value-v1-w0-a1-transitions.jsonl",
+        "rows": 57118,
+        "sha256": "673f460c34a48201755c32a8751f94683e19d51f584b2efa7fa20c91ca780a49"
+      },
+      {
+        "bytes": 169262870,
+        "path": "D:\\amind\\git\\astronomical-home\\results\\rl-value\\executed-return-value-v1\\raw-transitions\\20260808-034407-156-executed-return-value-v1-w5-a1-transitions.jsonl",
+        "rows": 34994,
+        "sha256": "3f612f1b91d24b681dc44bd1ad76c4fed96f8dd9b68b9341f864be94de68176a"
+      }
+    ],
+    "knownLimitations": [
+      "transition v1 does not carry curriculum stage or opponent identity",
+      "transition v1 does not carry gamma; this artifact pins the repository contract at 0.99"
+    ],
+    "sourceCommit": "2dce8f4350cb32e19ae264fab729e63a4257bb8b"
+  },
+  "sourceTransitionSchema": "rl-transition-v1",
+  "split": {
+    "counts": {
+      "heldout": 2,
+      "train": 8,
+      "validation": 2
+    },
+    "episodesBySeed": [
+      {
+        "collection_end": 1,
+        "runSeed": 1,
+        "split": "train",
+        "terminal": 134,
+        "truncated": 48
+      },
+      {
+        "collection_end": 1,
+        "runSeed": 144975261,
+        "split": "train",
+        "terminal": 115,
+        "truncated": 43
+      },
+      {
+        "collection_end": 1,
+        "runSeed": 201583699,
+        "split": "heldout",
+        "terminal": 78,
+        "truncated": 38
+      },
+      {
+        "collection_end": 1,
+        "runSeed": 305638645,
+        "split": "validation",
+        "terminal": 62,
+        "truncated": 35
+      },
+      {
+        "collection_end": 1,
+        "runSeed": 360726507,
+        "split": "train",
+        "terminal": 95,
+        "truncated": 48
+      },
+      {
+        "collection_end": 1,
+        "runSeed": 529386277,
+        "split": "train",
+        "terminal": 79,
+        "truncated": 30
+      },
+      {
+        "collection_end": 1,
+        "runSeed": 1576651611,
+        "split": "train",
+        "terminal": 74,
+        "truncated": 35
+      },
+      {
+        "collection_end": 1,
+        "runSeed": 1654641667,
+        "split": "train",
+        "terminal": 52,
+        "truncated": 39
+      },
+      {
+        "collection_end": 1,
+        "runSeed": 1657444055,
+        "split": "train",
+        "terminal": 114,
+        "truncated": 53
+      },
+      {
+        "collection_end": 1,
+        "runSeed": 1775038877,
+        "split": "validation",
+        "terminal": 88,
+        "truncated": 28
+      },
+      {
+        "collection_end": 1,
+        "runSeed": 2042642465,
+        "split": "heldout",
+        "terminal": 77,
+        "truncated": 38
+      },
+      {
+        "collection_end": 1,
+        "runSeed": 2060423307,
+        "split": "train",
+        "terminal": 79,
+        "truncated": 32
+      }
+    ],
+    "minimumTerminalEpisodesPerSeed": 10,
+    "salt": "rl-value-split-v1",
+    "samples": {
+      "heldout": 31001,
+      "train": 153260,
+      "validation": 32680
+    },
+    "seeds": {
+      "heldout": [
+        201583699,
+        2042642465
+      ],
+      "train": [
+        1,
+        144975261,
+        360726507,
+        529386277,
+        1576651611,
+        1654641667,
+        1657444055,
+        2060423307
+      ],
+      "validation": [
+        305638645,
+        1775038877
+      ]
+    }
+  },
+  "stateSchema": "rl-value-combat-v1",
+  "target": {
+    "analysisReturns": [
+      "shapingEnvelope",
+      "shapingBorder"
+    ],
+    "collectionEnd": "censored_excluded",
+    "formula": "discounted(dense + timeCost + outcome)",
+    "gamma": 0.99,
+    "higherIsBetter": true,
+    "terminalBootstrap": 0.0,
+    "truncation": "censored_excluded"
+  },
+  "training": {
+    "activation": "ReLU",
+    "architecture": [
+      28,
+      64,
+      64,
+      1
+    ],
+    "batchSize": 1024,
+    "bestEpoch": 32,
+    "bestValidationRmse": 0.37089154938454066,
+    "device": "cpu",
+    "learningRate": 0.001,
+    "loss": "MSE on standardized target",
+    "maxEpochs": 200,
+    "optimizer": "Adam",
+    "patience": 20,
+    "randomSeed": 365,
+    "selection": "lowest validation RMSE; heldout report only"
+  },
+  "verification": {
+    "checker": "passed",
+    "opset": 13,
+    "referenceInference": [
+      {
+        "batchSize": 1,
+        "maxAbsError": 4.470348358154297e-08
+      },
+      {
+        "batchSize": 128,
+        "maxAbsError": 2.8312206268310547e-07
+      }
+    ],
+    "tolerance": 1e-05
+  }
+}

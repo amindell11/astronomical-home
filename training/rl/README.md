@@ -132,7 +132,9 @@ must be staged under `results/rl-training/` first.
 dataset consumed by `train_value_baseline.py`. The value producer validates the
 entire transition contract before training: episode decisions must be contiguous,
 adjacent `nextState`/`state` pairs must agree exactly, and only the final row may
-declare terminal or truncation.
+declare terminal or truncation. A bounded collection can stop the final episode
+in each stream before either marker; that tail is audited separately as
+`collection_end` and censored, while an unmarked earlier episode is rejected.
 
 The v1 model consumes the fixed 28-float combat state. Its target is the
 discounted `dense + timeCost + outcome` return at gamma 0.99. Truncated episodes
