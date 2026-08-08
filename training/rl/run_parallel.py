@@ -62,6 +62,17 @@ def episode_logs(suffix: str) -> set:
     return set(JSONL_DIR.glob(f"*-training{suffix}.jsonl"))
 
 
+def transition_logs(directory: Path, suffix: str) -> set:
+    return set(directory.glob(f"*{suffix}-transitions.jsonl"))
+
+
+def prepare_transition_dir(directory: Path, force: bool) -> None:
+    directory.mkdir(parents=True, exist_ok=True)
+    if force:
+        for path in directory.glob("*-transitions.jsonl"):
+            path.unlink()
+
+
 def log_suffixes(num_envs: int, num_arenas: int) -> list:
     # The arena part appears only when fanning out, so M=1 filenames stay byte-identical.
     if num_arenas > 1:
@@ -161,9 +172,11 @@ def main() -> None:
     RESULTS.mkdir(parents=True, exist_ok=True)
     JSONL_DIR.mkdir(parents=True, exist_ok=True)
     if args.record_transitions:
-        transition_dir.mkdir(parents=True, exist_ok=True)
+        prepare_transition_dir(transition_dir, args.force)
     suffixes = log_suffixes(args.num_envs, args.num_arenas)
     before = {s: episode_logs(s) for s in suffixes}
+    transitions_before = ({s: transition_logs(transition_dir, s) for s in suffixes}
+                          if args.record_transitions else {})
 
     # mlagents-learn workers inherit this env; the pops stop an inherited RL_SELFPLAY bypassing the cross-check.
     env = dict(os.environ)
@@ -231,6 +244,17 @@ def main() -> None:
             failures.append(f"{s}: no non-empty {s} episode JSONL under {JSONL_DIR}")
         else:
             print(f"{s}: {fresh[0].name} ({fresh[0].stat().st_size} bytes)")
+        if args.record_transitions:
+            fresh_transitions = [
+                p for p in (transition_logs(transition_dir, s) - transitions_before[s])
+                if p.stat().st_size > 0
+            ]
+            if not fresh_transitions:
+                failures.append(
+                    f"{s}: no fresh non-empty transition JSONL under {transition_dir}")
+            else:
+                transition = fresh_transitions[0]
+                print(f"{s}: {transition.name} ({transition.stat().st_size} transition bytes)")
 
     if failures:
         sys.exit("FAIL:\n  " + "\n  ".join(failures))
