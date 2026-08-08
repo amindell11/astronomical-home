@@ -49,7 +49,7 @@ namespace Tests.EditMode
             Assert.That(lobes.Length, Is.EqualTo(1));
             Assert.That(lobes[0].center, Is.EqualTo(Vector3.zero));
             Assert.That(lobes[0].radius,
-                Is.EqualTo(AsteroidController.MeanVertexRadius(mesh)).Within(1e-5f));
+                Is.EqualTo(AsteroidLobeBaker.MeanVertexRadius(mesh)).Within(1e-5f));
         }
 
         [Test]
@@ -58,7 +58,7 @@ namespace Tests.EditMode
             // Unity's capsule is elongated along Y (height 2, radius 0.5 → extents ~2,1,1),
             // finely tessellated so the area-weighted PCA is clean.
             var mesh = PrimitiveMesh(PrimitiveType.Capsule);
-            float singleCircle = AsteroidController.MeanVertexRadius(mesh);
+            float singleCircle = AsteroidLobeBaker.MeanVertexRadius(mesh);
             var lobes = AsteroidLobeBaker.Bake(mesh, out float aspect);
 
             Assert.That(aspect, Is.GreaterThanOrEqualTo(1.3f).And.LessThan(2.5f),

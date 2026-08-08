@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Asteroids.Fragnetics;
 using Asteroids.Spawning;
 using Game;
@@ -9,6 +8,7 @@ using Utils;
 namespace Asteroids
 {
     [RequireComponent(typeof(AsteroidDamage))]
+    [RequireComponent(typeof(SphereCollider))]
     public class AsteroidController : MonoBehaviour
     {
         private MeshFilter meshFilter;
@@ -89,27 +89,12 @@ namespace Asteroids
 
             UpdateMeshCollider(meshInfo);
 
-            if (cheapCollider)
-            {
-                // Local-space radius: SphereCollider.radius is scaled by the transform, and
-                // the transform already carries `scale` — baking it in here too made the
-                // world sphere (and the reported Radius) grow/shrink by scale² instead of
-                // scale: the cheap sphere and the AI-facing Radius were both wrong by a
-                // factor of scale.
-                //
-                // The radius statistic is the MEAN vertex distance, not the circumscribed
-                // max: rocks are irregular, and a sphere that circumscribes the longest
-                // protrusion gives everything (AI avoidance rings included) far too much
-                // berth. Occasional clipping of a protrusion beats phantom volume.
-                //
-                // The cheap sphere (culling-boundary + far-field self-collision trigger; ship
-                // impacts use the detailed MeshCollider) and the AI-facing Radius are fed the
-                // same value here by choice, not necessity — they may legitimately diverge
-                // later (e.g. a looser cull sphere vs a tighter avoidance radius).
-                var localRadius = MeanVertexRadius(meshInfo.mesh);
-                cheapCollider.radius = localRadius;
-                Radius = localRadius * transform.lossyScale.x;
-            }
+            // Stays local-space: the transform already carries `scale`, and SphereCollider
+            // .radius is scaled by it again — folding scale in here makes the world sphere
+            // and Radius come out scale² too big.
+            var localRadius = AsteroidGeometry.RadiusFromVolume(meshInfo.cachedVolume);
+            cheapCollider.radius = localRadius;
+            Radius = localRadius * transform.lossyScale.x;
 
             initialVelocity = velocity;
             initialAngularVelocity = angularVelocity;
@@ -131,28 +116,6 @@ namespace Asteroids
         {
             Rb.linearVelocity = vel;
             Rb.angularVelocity = spin;
-        }
-
-        // Baked once per shared mesh (meshes are shared assets — a handful per settings).
-        private static readonly Dictionary<Mesh, float> MeanRadiusCache = new();
-
-        /// <summary>
-        /// Mean distance of the mesh's vertices from its local origin — the "typical"
-        /// silhouette radius of an irregular rock, rotation-agnostic (asteroids tumble in
-        /// 3D, so a per-axis or in-plane measure would drift as they rotate). Deliberately
-        /// tighter than the circumscribed radius; protrusions may clip.
-        /// </summary>
-        internal static float MeanVertexRadius(Mesh mesh)
-        {
-            if (MeanRadiusCache.TryGetValue(mesh, out var cached)) return cached;
-
-            var vertices = mesh.vertices;
-            var sum = 0f;
-            for (var i = 0; i < vertices.Length; i++)
-                sum += vertices[i].magnitude;
-            var mean = vertices.Length > 0 ? sum / vertices.Length : mesh.bounds.extents.magnitude;
-            MeanRadiusCache[mesh] = mean;
-            return mean;
         }
 
         private void UpdateMeshCollider(AsteroidSpawnSettings.MeshInfo meshInfo)

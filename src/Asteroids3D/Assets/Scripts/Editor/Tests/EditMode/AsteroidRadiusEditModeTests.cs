@@ -1,14 +1,16 @@
 #if UNITY_EDITOR
 using Asteroids;
+using Asteroids.Spawning;
+using AsteroidTools;
 using NUnit.Framework;
 using UnityEngine;
 
 namespace Tests.EditMode
 {
     /// <summary>
-    /// The cheap-collider radius statistic: mean vertex distance from the mesh origin —
-    /// deliberately tighter than the circumscribed radius (protrusions may clip; phantom
-    /// berth is the worse failure for both physics feel and AI avoidance).
+    /// The two baked geometry statistics and the scalar the runtime derives from one of
+    /// them. Mean-vertex radius now serves only the K=1 lobe bake; the runtime's
+    /// broadphase scalar is the volume-equivalent radius, so the two are tested apart.
     /// </summary>
     [Category("Asteroids")]
     public class AsteroidRadiusEditModeTests
@@ -26,7 +28,7 @@ namespace Tests.EditMode
         {
             // Every vertex of the unit sphere primitive sits at distance 0.5 from origin.
             var mesh = PrimitiveMesh(PrimitiveType.Sphere);
-            Assert.That(AsteroidController.MeanVertexRadius(mesh), Is.EqualTo(0.5f).Within(0.01f));
+            Assert.That(AsteroidLobeBaker.MeanVertexRadius(mesh), Is.EqualTo(0.5f).Within(0.01f));
         }
 
         [Test]
@@ -37,17 +39,66 @@ namespace Tests.EditMode
             // distance is LARGER, which is exactly why this is a statistic of the real
             // vertices, not the bounding box: it tracks actual geometry in both directions.
             var mesh = PrimitiveMesh(PrimitiveType.Cube);
-            Assert.That(AsteroidController.MeanVertexRadius(mesh),
+            Assert.That(AsteroidLobeBaker.MeanVertexRadius(mesh),
                 Is.EqualTo(Mathf.Sqrt(0.75f)).Within(0.01f));
         }
 
         [Test]
-        public void MeanVertexRadius_IsCached_SameMeshSameValue()
+        public void RadiusFromVolume_UnitSphereVolume_IsUnitRadius()
         {
+            Assert.That(AsteroidGeometry.RadiusFromVolume(4f / 3f * Mathf.PI),
+                Is.EqualTo(1f).Within(1e-4f));
+        }
+
+        [Test]
+        public void RadiusFromVolume_NonPositive_IsZero()
+        {
+            // Only a failed bake produces this, and the build gate refuses to ship one —
+            // so the contract is a recognisable zero, not a guessed fallback.
+            Assert.That(AsteroidGeometry.RadiusFromVolume(0f), Is.EqualTo(0f));
+            Assert.That(AsteroidGeometry.RadiusFromVolume(-1f), Is.EqualTo(0f));
+        }
+
+        [Test]
+        public void MeshVolume_UnitSphere_MatchesAnalyticVolume()
+        {
+            // Unity's sphere primitive is a faceted approximation, so it under-reports the
+            // true 4/3·π·0.5³ — a few percent of slack, not a tight equality.
             var mesh = PrimitiveMesh(PrimitiveType.Sphere);
-            var a = AsteroidController.MeanVertexRadius(mesh);
-            var b = AsteroidController.MeanVertexRadius(mesh);
-            Assert.That(b, Is.EqualTo(a));
+            Assert.That(AsteroidMeshVolume.TryCompute(mesh, out var volume, out _), Is.True);
+            Assert.That(volume, Is.EqualTo(4f / 3f * Mathf.PI * 0.125f).Within(0.02f));
+        }
+
+        [Test]
+        public void MeshVolume_UnitCube_IsOne()
+        {
+            var mesh = PrimitiveMesh(PrimitiveType.Cube);
+            Assert.That(AsteroidMeshVolume.TryCompute(mesh, out var volume, out _), Is.True);
+            Assert.That(volume, Is.EqualTo(1f).Within(1e-4f));
+        }
+
+        [Test]
+        public void MeshVolume_CentroidOfCenteredPrimitive_IsOrigin()
+        {
+            var mesh = PrimitiveMesh(PrimitiveType.Cube);
+            Assert.That(AsteroidMeshVolume.TryCompute(mesh, out _, out var centroid), Is.True);
+            Assert.That(centroid.magnitude, Is.LessThan(1e-4f));
+        }
+
+        [Test]
+        public void MeshVolume_EmptyMesh_IsDegenerate()
+        {
+            var mesh = new Mesh();
+            Assert.That(AsteroidMeshVolume.TryCompute(mesh, out _, out _), Is.False);
+            Object.DestroyImmediate(mesh);
+        }
+
+        [Test]
+        public void ShippedSettings_PassTheBuildGate()
+        {
+            // The gate's real job, run as a test so a stale bake fails the merge gate rather
+            // than waiting for someone to make a player build.
+            Assert.DoesNotThrow(AsteroidGeometryBuildGate.Validate);
         }
     }
 }

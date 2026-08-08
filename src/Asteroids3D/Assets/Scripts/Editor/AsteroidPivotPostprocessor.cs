@@ -26,11 +26,6 @@ namespace AsteroidTools
         private const string ModelsFolder =
             "Assets/Visuals/Environment/Asteroids/HD_Asteroids/Models/";
 
-        // Below this absolute signed volume the mesh is treated as non-closed /
-        // degenerate and left untouched (translating by a garbage centroid would
-        // be worse than leaving the original pivot).
-        private const float MinVolume = 1e-9f;
-
         private void OnPostprocessModel(GameObject root)
         {
             if (root == null) return;
@@ -59,11 +54,11 @@ namespace AsteroidTools
                 if (meshes[i].vertexCount > primary.vertexCount)
                     primary = meshes[i];
 
-            if (!TryComputeVolumeCentroid(primary, out Vector3 centroid))
+            if (!AsteroidMeshVolume.TryCompute(primary, out _, out Vector3 centroid))
             {
                 Debug.LogWarning(
                     $"[AsteroidPivot] {root.name}: primary mesh '{primary.name}' has degenerate " +
-                    $"volume (|sumVol| < {MinVolume}); left un-recentred.");
+                    $"volume (|sumVol| < {AsteroidMeshVolume.MinVolume}); left un-recentred.");
                 return;
             }
 
@@ -89,40 +84,5 @@ namespace AsteroidTools
             if (mesh != null && seen.Add(mesh)) meshes.Add(mesh);
         }
 
-        /// <summary>
-        /// Signed-tetrahedron volume centroid. Each triangle (a,b,c) forms a
-        /// tetrahedron with the origin; its signed volume is dot(a, cross(b,c))/6
-        /// and its centroid is (a+b+c+origin)/4 = (a+b+c)*0.25. The volume-weighted
-        /// mean of the tet centroids is the solid's centre of mass, independent of
-        /// how densely each face is tessellated.
-        /// </summary>
-        private static bool TryComputeVolumeCentroid(Mesh mesh, out Vector3 centroid)
-        {
-            centroid = Vector3.zero;
-            var verts = mesh.vertices;
-            var tris = mesh.triangles;
-            if (verts.Length == 0 || tris.Length < 3) return false;
-
-            double sumVol = 0.0;
-            double wx = 0.0, wy = 0.0, wz = 0.0;
-            for (int t = 0; t + 2 < tris.Length; t += 3)
-            {
-                Vector3 a = verts[tris[t]], b = verts[tris[t + 1]], c = verts[tris[t + 2]];
-                double signedVol = Vector3.Dot(a, Vector3.Cross(b, c)) / 6.0;
-                double tcx = (a.x + b.x + c.x) * 0.25;
-                double tcy = (a.y + b.y + c.y) * 0.25;
-                double tcz = (a.z + b.z + c.z) * 0.25;
-                sumVol += signedVol;
-                wx += signedVol * tcx;
-                wy += signedVol * tcy;
-                wz += signedVol * tcz;
-            }
-
-            if (System.Math.Abs(sumVol) < MinVolume) return false;
-
-            centroid = new Vector3(
-                (float)(wx / sumVol), (float)(wy / sumVol), (float)(wz / sumVol));
-            return true;
-        }
     }
 }

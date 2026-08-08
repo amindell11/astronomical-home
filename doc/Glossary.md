@@ -445,6 +445,15 @@ Format: **term** — definition. *(authority)*
 - **lane clearing** — shooting asteroids to open a firing lane. Currently
   inexpressible: the firing-envelope check vetoes it, so the policy learned that
   asteroids are walls.
+- **broadphase scalar** — an asteroid's single-number size: the radius of a
+  sphere with its baked volume. It answers a *bulk/extent* question only —
+  cheap-collider sizing, field packing, the obstacle-scan reach cull — and is
+  never the rock's shape. Shape is the baked **lobes** (`MeshInfo.cachedLobes`,
+  1–3 covering spheres), which the MPC consumes directly. Deriving the scalar
+  from volume rather than measuring the render mesh is what lets the runtime
+  read no mesh vertices at all. Caveat: the RL obstacle token still carries this
+  scalar and not the lobes, so the policy sees elongated rocks as circles (#377).
+  *(AsteroidGeometry.RadiusFromVolume, AsteroidGeometryBuildGate)*
 - **bleed-through** — letting a damage remainder cross a shield break into hull.
   The live rule since the §C3 overkill PR; the old discard rule was a hidden
   alpha-weapon tax.
