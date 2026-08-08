@@ -296,7 +296,6 @@ namespace Tests.EditMode
 
         private Navigator nav;
         private MpcSettings createdSettings;
-        private GameObject targetGo;
 
         [SetUp]
         public void SetUp()
@@ -306,7 +305,6 @@ namespace Tests.EditMode
             nav = host.AddComponent<Navigator>();
             nav.Initialize(new StubStatus(), default, scout, new SeedScope(1), primaryProjectileSpeed: 40f);
             createdSettings = nav.mpcSettings;
-            targetGo = new GameObject("AnchoredIntentTarget");
         }
 
         [TearDown]
@@ -314,7 +312,6 @@ namespace Tests.EditMode
         {
             if (nav) Object.DestroyImmediate(nav.gameObject);
             if (createdSettings) Object.DestroyImmediate(createdSettings);
-            if (targetGo) Object.DestroyImmediate(targetGo);
         }
 
         private static EnemyTarget Anchor() => new()

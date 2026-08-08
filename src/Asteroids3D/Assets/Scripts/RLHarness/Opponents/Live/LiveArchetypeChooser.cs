@@ -2,7 +2,6 @@ using System;
 using AI;
 using AI.Context;
 using Ships;
-using Ships.Command;
 using UnityEngine;
 
 namespace Game.RLHarness

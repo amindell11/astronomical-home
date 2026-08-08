@@ -2,7 +2,6 @@ using System;
 using AI;
 using AI.Context;
 using Ships;
-using Ships.Command;
 using Unity.InferenceEngine;
 using Unity.MLAgents.Policies;
 using Unity.MLAgents.Sensors;
