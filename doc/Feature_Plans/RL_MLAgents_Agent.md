@@ -266,12 +266,23 @@ pilot forecasts >24 h for 2M); PR-4 self-play; shipping inference.
    `!Overheated`) is nearly constant-1 and the 0–100 gauge is hidden —
    under-delivering decision 3's stated intent for that channel. Fix: append
    continuous self `heatPct`. Asset math (damage 20/shot, 4-shot cold burst,
-   sustained ~0.75 shots/s ≈ 15 DPS-if-hitting vs shield regen 20/s **with a
-   5 s damage-interrupt delay**) says hit *rate*, not heat, is the binding
-   constraint — one landed hit per 5 s freezes regen; ~13 s of pressure kills
-   inside the 120 s clock. Heat-free ablation (cooldown-limited 5 shots/s =
+   sustained ~0.75 shots/s ≈ 15 DPS-if-hitting vs shield regen ~~20/s~~ **10/s**
+   **with a ~~5 s~~ 4 s damage-interrupt delay**) says hit *rate*, not heat, is
+   the binding constraint — one landed hit per ~~5~~ 4 s freezes regen; ~13 s of
+   pressure kills inside the 120 s clock. Heat-free ablation (cooldown-limited 5 shots/s =
    100 DPS) rejected by the user for this PR: symmetric env change, weakens the
    arc-gate claim, resets the protocol.
+
+   > **⚠ Numbers corrected 2026-08-07 against the assets** (`Ship_1.prefab` →
+   > `Default_Shield`: `shieldRegenRate 10`, `shieldRegenDelay 4`; damage 20/shot
+   > confirmed from `Laser.prefab`). **This inverts the inequality the argument
+   > rested on:** at 10/s regen, sustained ~15 DPS-if-hitting *exceeds* regen
+   > rather than losing to it, so "you cannot out-DPS the shield, you must freeze
+   > it" no longer follows from the arithmetic. The conclusion (hit *rate* is the
+   > binding constraint, not heat) may still hold via the freeze mechanism, but it
+   > is no longer supported by these numbers — **re-derive before relying on it.**
+   > Left struck rather than rewritten because the conclusion is a judgment call,
+   > not an arithmetic one.
 3. **Knob policy — existing knobs only, reported.** RewardSpec fields (λ,
    timeoutDecisions, separation) + PPO YAML hypers are in-scope, each turn
    reported with before/after evidence; any RewardSpec change re-measures the
