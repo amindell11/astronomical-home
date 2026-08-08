@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Game.RLHarness
 {
     /// <summary>Editor-authorable scripted opponent: composes the authored archetype against the context's tracked enemy on first Decide and re-composes whenever that enemy changes, so an archetype the training roster draws per episode can be flown against a player in a live sector. Shape params are authored rather than jittered, and the border circle anchors on the compose-time position — a live sector has no arena to steer off.
-    /// <para>It selects rather than decides — the archetype it delegates to is the real brain. It parks that archetype on a child object so the commander, which reads its own object only, cannot mistake it for the installed brain. Collapsing this selector needs retarget pushed into the archetypes themselves, which is PR-2b.</para></summary>
+    /// <para>It selects rather than decides — the archetype it delegates to is the real brain — so it parks that archetype on a child object, out of reach of the commander's own-object lookup. The selector only exists because retarget lives here rather than in the archetypes.</para></summary>
     public sealed class LiveArchetypeBrain : Brain
     {
         private const string ArchetypeHostName = "[ArchetypeBrain]";

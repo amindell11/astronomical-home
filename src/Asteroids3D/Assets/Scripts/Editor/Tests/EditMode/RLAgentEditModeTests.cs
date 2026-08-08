@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the pure agent maps: the 5-continuous + 2-discrete action decode (anchored facing offset/weight, polar speeds, discrete branches), the 28-float combat observation layout (self + enemy weapon channels), the nearest-N asteroid attention tokens (selection + normalization + cap truncation, no zero-pad), and the brain's anchored-intent shape (anchored facing/velocity + manual fire, never the legacy world facing or aimbot) and one-shot boost semantics.</summary>
+    /// <summary>Pins the pure agent maps: the 5-continuous + 2-discrete action decode (anchored facing offset/weight, polar speeds, discrete branches), the 28-float combat observation layout (self + enemy weapon channels), the nearest-N asteroid attention tokens (selection + normalization + cap truncation, no zero-pad), and the brain's anchored objective shape (anchored facing/velocity + manual fire, never the legacy world facing or aimbot) and one-shot boost semantics.</summary>
     [Category("AI")]
     public class RLAgentEditModeTests
     {
