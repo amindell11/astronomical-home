@@ -59,7 +59,7 @@ whole-file sweeps belong in dedicated hygiene PRs.
 | Word | Live senses | Rule |
 |---|---|---|
 | **gate** | merge gate · eval gate (`eval_gate.py`) · gate score · cost gate (fix-ladder rung 3) · go/no-go gate · curriculum lesson gate · anti-churn gate · scoping gate · "gated off" code conditionals | Always qualified. Bare "the gate" is legal only in pool-merge context (= merge gate) and RL-run context (= eval gate), and never in a title. |
-| **lane** | boot lane · harness lane · curriculum lane · watch/capture lane · audit lane · teacher-tuning lane · access-queue lane · firing lane (lane clearing) | Always qualified. |
+| **lane** | boot lane · harness lane · curriculum lane · watch/capture lane · audit lane · teacher-tuning lane · access-queue lane · firing lane (lane clearing) · decision lane (nav / fire / ability — the three seams a `BrainDecision` carries) | Always qualified. |
 | **pool** | worktree pool · ship resource pool (`PoolDifferential`) · self-play snapshot pool · object pool (`SimplePool`) · Dev Pool issue labels (`mid-dev-pool`/`high-dev-pool`, ex-board columns) | Always qualified. |
 | **token** | bus/signal token · obs obstacle token (`ObstacleTokenCap`) · threat token · LLM context token | Always qualified. |
 | **slot** | worktree slot (`agent-N`) · weapon/mount slot · ONNX import slot · obs slot-block grammar · MPC terminal-cost slot | Qualify outside pool-loop context; bare "slot" = worktree slot in workflow text only. |
@@ -407,7 +407,9 @@ Format: **term** — definition. *(authority)*
   step, so the command never goes stale. **Sign pins:** radial > 0 closes along
   +losHat; tangential > 0 and positive facing offsets are CCW; the polar
   velocity is *relative to the enemy's motion*; the action-side mapping is
-  [−1,1] × maxSpeed. *(AnchoredIntent, Cost.EvalContext)*
+  [−1,1] × maxSpeed. Authored through `NavObjective.Anchored(...)`; the
+  `AnchoredIntent` struct is the solver-side carrier.
+  *(AnchoredBuilder, AnchoredIntent, Cost.EvalContext)*
 - **delegation prior** — the low-weight, config-gated fallback that steers a
   channel when its anchored authority is 0: facing eases to the velocity-aligned
   pose (`wFacingPrior`), velocity keeps course (`wMomentum`). Weight-0 reads as
@@ -415,15 +417,23 @@ Format: **term** — definition. *(authority)*
 - **terminal ramp** — the MPC multiplier that scales *state* costs up toward the
   horizon end (reaching semantics); control terms and the velocity tracker
   deliberately sit outside it (regulation semantics). *(Cost.Evaluate)*
-- **brain / chooser / intent** — the swappable-decision seam. The contract worth
-  knowing: an intent is **idempotent per decision**, so re-applying one is safe.
-  An **act intent** is the whole per-tick act — navigation, fire and boost
-  together — but its channels reach different actuators: the MPC *solves* the
-  navigation slice into a `PilotCommand`, while firing is consumed separately
-  (through the Gunner, or pushed straight to the weapon actuator when the chooser
-  takes trigger authority). On the navigation channel, intent and command are
-  different altitudes rather than synonyms.
-  *(Brain, IIntentChooser, ActIntent)*
+- **nav objective** — the decision-varying slice of the MPC cost function, and
+  the only thing that crosses the seam's navigation lane: one move channel
+  (world-plane velocity, or an enemy-polar command) and one facing channel. Two
+  constraints are structural, not conventions: enemy-frame channels are reachable
+  only through `Anchored(...)`, so an anchorless one cannot be authored, and the
+  move channels overwrite each other, so only one survives. Idempotent per
+  decision — re-applying one is safe, which is what lets a 5 Hz decision be
+  re-pushed every tick. *(NavObjective, AnchoredBuilder)*
+- **brain / chooser / decision lane** — the swappable-decision seam. A
+  `BrainDecision` is a transport, not a union: the commander opens it and routes
+  each lane to a different consumer, keeping nothing. The nav lane is *solved*
+  into a `PilotCommand` by the MPC; the fire lane is per-slot authority
+  (`Hold | Auto | Commanded(held)`) where the commander — never the brain —
+  derives the press edge; the ability lane is a one-shot activation. On the nav
+  lane, objective and command are different altitudes rather than synonyms.
+  ⚠ Not to be confused with `PilotCommand`/`IPilot`, which are the actuator end.
+  *(Brain, IIntentChooser, BrainDecision, FireControl)*
 - **presentation** — the per-session axis deciding whether visuals and audio
   exist. Two things a reader needs: it is applied by the owning spawn seams,
   never by per-component globals; and it is **not** the same axis as the deleted

@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>Guards <see cref="Navigator.ShouldIdle"/>: the navigator idles iff no velocity reference is armed. A zero reference is a valid "stop" (the arm flag gates, not the value), and an invalid intent disarms back to idle.</summary>
+    /// <summary>Guards <see cref="Navigator.ShouldIdle"/>: the navigator idles iff no velocity reference is armed. A zero reference is a valid "stop" (the arm flag gates, not the value), and a drift objective disarms back to idle.</summary>
     [Category("MPC")]
     public class NavigatorIdleGateEditModeTests
     {
@@ -38,7 +38,7 @@ namespace Tests.EditMode
             var host = new GameObject("NavigatorIdleGate");
             var scout = host.AddComponent<Scout>();
             nav = host.AddComponent<Navigator>();
-            nav.Initialize(new StubStatus(), default, scout, new SeedScope(1));
+            nav.Initialize(new StubStatus(), default, scout, new SeedScope(1), primaryProjectileSpeed: 0f);
             createdSettings = nav.mpcSettings;
         }
 
@@ -48,12 +48,6 @@ namespace Tests.EditMode
             if (nav) Object.DestroyImmediate(nav.gameObject);
             if (createdSettings) Object.DestroyImmediate(createdSettings);
         }
-
-        private static ActIntent VelocityIntent(Vector2 reference) => new()
-        {
-            isValid = true,
-            velocityReference = reference,
-        };
 
         [Test]
         public void FreshNavigator_Idles()
@@ -79,20 +73,28 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void ApplyIntent_Valid_ArmsTheTracker()
+        public void ApplyObjective_Planar_ArmsTheTracker()
         {
-            nav.ApplyIntent(VelocityIntent(new Vector2(3f, 0f)));
+            nav.ApplyObjective(NavObjective.Planar(new Vector2(3f, 0f)));
             Assert.That(nav.ShouldIdle(), Is.False,
-                "A valid intent is a velocity-reference command and must arm the navigator.");
+                "A planar objective is a velocity-reference command and must arm the navigator.");
         }
 
         [Test]
-        public void ApplyIntent_Invalid_DisarmsToIdle()
+        public void ApplyObjective_Drift_DisarmsToIdle()
         {
-            nav.ApplyIntent(VelocityIntent(new Vector2(3f, 0f)));
-            nav.ApplyIntent(ActIntent.None);
+            nav.ApplyObjective(NavObjective.Planar(new Vector2(3f, 0f)));
+            nav.ApplyObjective(NavObjective.Drift);
             Assert.That(nav.ShouldIdle(), Is.True,
-                "An invalid intent must disarm the velocity reference back to idle.");
+                "A drift objective must disarm the velocity reference back to idle.");
+        }
+
+        [Test]
+        public void ApplyObjective_AnchoredPolarWithoutPlanar_ArmsTheTracker()
+        {
+            nav.ApplyObjective(NavObjective.Anchored(default).Velocity(1f, 0f, 1f));
+            Assert.That(nav.ShouldIdle(), Is.False,
+                "An enemy-polar move channel arms the navigator even with no world reference.");
         }
     }
 }

@@ -187,8 +187,7 @@ namespace Tests.PlayMode
             pair = EpisodePair.Spawn(unitService, arena, projectiles, in spec, (agentShip, baselineShip) =>
             {
                 var ranger = new RangerChooser();
-                ranger.Configure(baselineShip, RangerHoldRange,
-                    agentShip.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary));
+                ranger.Configure(baselineShip, RangerHoldRange);
                 return ranger;
             }, assets);
             roster = new OpponentRoster(pair.Baseline, pair.Agent);

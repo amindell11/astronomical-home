@@ -17,15 +17,12 @@ namespace Game.RLHarness
 
         private float orbitRadius;
         private int orbitDirection = 1;
-        private float projectileSpeed;
 
         public void Configure(Ship target, float orbitRadius, int orbitDirection, float speedFraction,
-            float projectileSpeed, Vector2 arenaCenter, float borderRadius,
-            ArchetypeDrive drive = ArchetypeDrive.Production)
+            Vector2 arenaCenter, float borderRadius, ArchetypeDrive drive = ArchetypeDrive.Production)
         {
             this.orbitRadius = orbitRadius;
             this.orbitDirection = orbitDirection >= 0 ? 1 : -1;
-            this.projectileSpeed = projectileSpeed;
             Bind(target, speedFraction, arenaCenter, borderRadius, drive);
         }
 
@@ -43,27 +40,13 @@ namespace Game.RLHarness
             return Vector2.ClampMagnitude(vTan * tangent + radial, maxSpeed);
         }
 
-        protected override ActIntent BuildIntent(AIContext ctx)
+        protected override BrainDecision BuildDecision(AIContext ctx)
         {
             var self = ctx.Self.Kinematics;
-            var enemy = target.Kinematics;
-            var vRef = OrbitVelocity(in self, in enemy, orbitRadius, orbitDirection, speedFraction,
+            var vRef = OrbitVelocity(in self, target.Kinematics, orbitRadius, orbitDirection, speedFraction,
                 ctx.Self.Dynamics.maxSpeed);
 
-            return Pack(new ActIntent
-            {
-                isValid = true,
-                hasTarget = true,
-                target = new EnemyTarget
-                {
-                    kinematics = enemy,
-                    dynamics = target.Dynamics,
-                    source = target.transform,
-                },
-                aimAtTarget = true,
-                projectileSpeed = projectileSpeed,
-                enableFiring = true,
-            }, self.pos, vRef);
+            return Pack(self.pos, vRef, engages: true);
         }
     }
 }

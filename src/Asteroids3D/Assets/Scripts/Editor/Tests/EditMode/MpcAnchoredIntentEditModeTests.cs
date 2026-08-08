@@ -296,7 +296,6 @@ namespace Tests.EditMode
 
         private Navigator nav;
         private MpcSettings createdSettings;
-        private GameObject targetGo;
 
         [SetUp]
         public void SetUp()
@@ -304,9 +303,8 @@ namespace Tests.EditMode
             var host = new GameObject("AnchoredIntentNav");
             var scout = host.AddComponent<Scout>();
             nav = host.AddComponent<Navigator>();
-            nav.Initialize(new StubStatus(), default, scout, new SeedScope(1));
+            nav.Initialize(new StubStatus(), default, scout, new SeedScope(1), primaryProjectileSpeed: 40f);
             createdSettings = nav.mpcSettings;
-            targetGo = new GameObject("AnchoredIntentTarget");
         }
 
         [TearDown]
@@ -314,24 +312,17 @@ namespace Tests.EditMode
         {
             if (nav) Object.DestroyImmediate(nav.gameObject);
             if (createdSettings) Object.DestroyImmediate(createdSettings);
-            if (targetGo) Object.DestroyImmediate(targetGo);
         }
 
-        private ActIntent TargetedIntent() => new()
+        private static EnemyTarget Anchor() => new()
         {
-            isValid = true,
-            hasTarget = true,
-            target = new EnemyTarget { source = targetGo.transform },
+            kinematics = new Kinematics(new Vector2(0f, 10f), Vector2.zero, 0f, 0f, 0f),
         };
 
         [Test]
-        public void ApplyIntent_AimAtTarget_MapsToAnchoredOffsetZeroFullAuthority()
+        public void ApplyObjective_FacingAtZeroFullAuthority_IsTheOldAimAtTarget()
         {
-            var intent = TargetedIntent();
-            intent.aimAtTarget = true;
-            intent.projectileSpeed = 40f;
-
-            nav.ApplyIntent(intent);
+            nav.ApplyObjective(NavObjective.Anchored(Anchor()).Planar(Vector2.zero).Facing(0f, 1f));
 
             Assert.That(nav.anchored.hasFacing, Is.True);
             Assert.That(nav.anchored.facingOffsetRad, Is.EqualTo(0f));
@@ -339,57 +330,51 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void ApplyIntent_TwoFacingSources_Throws()
+        public void AnchoredBuilder_MoveChannelsAreExclusive()
         {
-            var world = TargetedIntent();
-            world.hasFacing = true;
-            world.aimAtTarget = true;
-            Assert.Throws<System.InvalidOperationException>(() => nav.ApplyIntent(world),
-                "facingRad + aimAtTarget is a contradiction, not a precedence question");
+            var planarWins = (NavObjective)NavObjective.Anchored(Anchor())
+                .Velocity(3f, 0f, 1f)
+                .Planar(new Vector2(1f, 2f));
+            Assert.That(planarWins.anchored.hasVelocity, Is.False,
+                "a world reference replaces the polar channel rather than stacking with it");
 
-            var anchoredToo = TargetedIntent();
-            anchoredToo.hasFacing = true;
-            anchoredToo.anchored = new AnchoredIntent { hasFacing = true, facingWeight = 1f };
-            Assert.Throws<System.InvalidOperationException>(() => nav.ApplyIntent(anchoredToo));
+            var polarWins = (NavObjective)NavObjective.Anchored(Anchor())
+                .Planar(new Vector2(1f, 2f))
+                .Velocity(3f, 0f, 1f);
+            Assert.That(polarWins.hasPlanarVelocity, Is.False);
+            Assert.That(polarWins.anchored.radialSpeed, Is.EqualTo(3f));
         }
 
         [Test]
-        public void ApplyIntent_TargetlessAnchored_CollapsesAndStaysArmed()
+        public void ApplyObjective_AnchoredVelocity_FeedsEnemyStateWithoutAFacingChannel()
         {
-            var intent = new ActIntent
-            {
-                isValid = true,
-                anchored = new AnchoredIntent { hasVelocity = true, radialSpeed = 3f, velocityWeight = 1f },
-            };
+            nav.ApplyObjective(NavObjective.Anchored(Anchor()).Velocity(3f, 0f, 1f));
 
-            nav.ApplyIntent(intent);
-
-            Assert.That(nav.ShouldIdle(), Is.False, "a targetless anchored intent still arms the navigator — delegation is coasting, not idling");
-            Assert.That(float.IsNaN(nav.enemyYaw), Is.True, "no target → no enemy state → the cost model collapses to the priors");
-        }
-
-        [Test]
-        public void ApplyIntent_AnchoredVelocity_FeedsEnemyStateWithoutAimAtTarget()
-        {
-            var intent = TargetedIntent();
-            intent.anchored = new AnchoredIntent { hasVelocity = true, radialSpeed = 3f, velocityWeight = 1f };
-
-            nav.ApplyIntent(intent);
-
+            Assert.That(nav.ShouldIdle(), Is.False,
+                "an enemy-polar move channel arms the navigator on its own");
             Assert.That(float.IsNaN(nav.enemyYaw), Is.False,
-                "anchored channels need the enemy in the solver even though the legacy aim flag is off");
+                "anchored channels need the enemy in the solver even with no facing command");
         }
 
         [Test]
-        public void ApplyIntent_Invalid_ClearsTheAnchoredBlock()
+        public void ApplyObjective_Planar_ClearsEnemyStateSoTheCostModelCollapsesToPriors()
         {
-            var intent = TargetedIntent();
-            intent.anchored = new AnchoredIntent { hasVelocity = true, radialSpeed = 3f, velocityWeight = 1f };
-            nav.ApplyIntent(intent);
+            nav.ApplyObjective(NavObjective.Anchored(Anchor()).Velocity(3f, 0f, 1f));
+            nav.ApplyObjective(NavObjective.Planar(new Vector2(3f, 0f)));
 
-            nav.ApplyIntent(ActIntent.None);
+            Assert.That(nav.anchored.hasVelocity, Is.False,
+                "an unanchored objective must not leak the prior anchored command");
+            Assert.That(float.IsNaN(nav.enemyYaw), Is.True,
+                "no anchored channel → no enemy state → the cost model collapses to the priors");
+        }
 
-            Assert.That(nav.anchored.hasVelocity, Is.False, "reset must not leak a stale anchored command into the next intent");
+        [Test]
+        public void ApplyObjective_Drift_ClearsTheAnchoredBlock()
+        {
+            nav.ApplyObjective(NavObjective.Anchored(Anchor()).Velocity(3f, 0f, 1f));
+            nav.ApplyObjective(NavObjective.Drift);
+
+            Assert.That(nav.anchored.hasVelocity, Is.False, "reset must not leak a stale anchored command");
         }
     }
 }

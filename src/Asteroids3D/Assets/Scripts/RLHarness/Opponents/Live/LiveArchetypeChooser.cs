@@ -2,7 +2,6 @@ using System;
 using AI;
 using AI.Context;
 using Ships;
-using Ships.Command;
 using UnityEngine;
 
 namespace Game.RLHarness
@@ -41,7 +40,7 @@ namespace Game.RLHarness
         private Vector2 borderCenter;
         private bool reanchorBorder;
 
-        public ActIntent Decide(AIContext ctx, float dt)
+        public BrainDecision? Decide(AIContext ctx, float dt)
         {
             if (!self)
                 Compose(ctx);
@@ -56,7 +55,7 @@ namespace Game.RLHarness
             }
 
             Retarget(ctx.Combat.Enemy);
-            return inner?.Decide(ctx, dt) ?? ActIntent.None;
+            return inner?.Decide(ctx, dt);
         }
 
         public void Reset()
@@ -73,8 +72,7 @@ namespace Game.RLHarness
             // Every archetype but the Dummy binds its target at Configure and has nothing to fly without one.
             inner = !enemy && archetype != OpponentArchetype.Dummy
                 ? null
-                : ArchetypeChoosers.Create(archetype, Shape(), enemy,
-                    self.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary), jukeSeed,
+                : ArchetypeChoosers.Create(archetype, Shape(), enemy, jukeSeed,
                     borderCenter, borderRadius);
         }
 

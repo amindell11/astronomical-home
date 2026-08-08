@@ -33,7 +33,7 @@ namespace Tests.EditMode
         {
             var shape = Shape();
             Assert.IsInstanceOf(expected,
-                ArchetypeChoosers.Create(archetype, in shape, null, 30f, 1, Vector2.zero, 500f));
+                ArchetypeChoosers.Create(archetype, in shape, null, 1, Vector2.zero, 500f));
         }
 
         [Test]
@@ -42,7 +42,7 @@ namespace Tests.EditMode
             Assert.Throws<ArgumentOutOfRangeException>(() =>
             {
                 var shape = Shape();
-                ArchetypeChoosers.Create((OpponentArchetype)99, in shape, null, 30f, 1, Vector2.zero, 500f);
+                ArchetypeChoosers.Create((OpponentArchetype)99, in shape, null, 1, Vector2.zero, 500f);
             });
         }
 

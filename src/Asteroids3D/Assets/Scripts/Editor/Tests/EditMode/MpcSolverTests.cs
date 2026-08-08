@@ -1,5 +1,4 @@
 #if UNITY_EDITOR
-using System;
 using Movement;
 using Movement.MPC;
 using NUnit.Framework;
@@ -12,7 +11,7 @@ namespace Tests.EditMode
 {
     /// <summary>
     /// Solver-level tests for the extracted <see cref="Mpc"/> planner. These drive
-    /// <c>Mpc.Plan(in MpcInputs)</c> directly — no ship, physics, or ActIntent.
+    /// <c>Mpc.Plan(in MpcInputs)</c> directly — no ship, physics, or decision seam.
     /// Assertions are differential (compare two configurations) so they're robust to the
     /// sampler's stochasticity.
     /// </summary>
@@ -41,7 +40,6 @@ namespace Tests.EditMode
             velocityReference = velocityReference,
             facingRad = float.NaN,
             enemyYaw = float.NaN,                 // no enemy
-            weightOverrides = Array.Empty<WeightOverride>(),
             obstacleScan = default,
             enableObstacleAvoidance = false,
         };
@@ -156,8 +154,8 @@ namespace Tests.EditMode
 
         // NOTE: A projectile-lead facing test (enemy moving, projectileSpeed > 0 shifts the
         // planned facing toward the intercept) belongs here, but at base facing weights the
-        // shift is sub-degree, so it isn't meaningfully assertable. Revive with amplified
-        // facing weightOverrides.
+        // shift is sub-degree, so it isn't meaningfully assertable. Revive with an
+        // amplified-wFacing settings asset.
     }
 }
 #endif

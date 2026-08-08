@@ -17,7 +17,7 @@ namespace Game.RLHarness
             Pair = EpisodePair.Spawn(units, arena, projectiles, in spec, (agentShip, baselineShip) =>
             {
                 var mover = new FixedCircuitChooser();
-                mover.Configure(baselineShip, arena.Offset);
+                mover.Configure(arena.Offset);
                 return mover;
             }, assets);
             roster = new OpponentRoster(Pair.Baseline, Pair.Agent);

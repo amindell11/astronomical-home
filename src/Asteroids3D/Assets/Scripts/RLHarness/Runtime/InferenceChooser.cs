@@ -2,7 +2,6 @@ using System;
 using AI;
 using AI.Context;
 using Ships;
-using Ships.Command;
 using Unity.InferenceEngine;
 using Unity.MLAgents.Policies;
 using Unity.MLAgents.Sensors;
@@ -43,7 +42,7 @@ namespace Game.RLHarness
         public int TotalDecisions => mailbox.TotalDecisions;
         public PolicyAction ActionFromNewest(int index) => mailbox.ActionFromNewest(index);
 
-        public ActIntent Decide(AIContext ctx, float dt)
+        public BrainDecision? Decide(AIContext ctx, float dt)
         {
             if (!agent)
                 Compose(ctx);
@@ -80,7 +79,7 @@ namespace Game.RLHarness
             enemy = next;
             ticksUntilDecision = 0;
             if (enemy)
-                mailbox.Configure(enemy, self.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary));
+                mailbox.Configure(enemy);
             else
                 mailbox.Reset();
         }

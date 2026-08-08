@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the boost command seam: an intent's boost ORs into the drive command over the solver's own boost, and resets never leak it. ApplyIntent/ApplyControl read only the control surface, so no solve runs.</summary>
+    /// <summary>Pins the boost command seam: a commanded boost ORs into the drive command over the solver's own boost, and resets never leak it. CommandBoost/ApplyControl read only the control surface, so no solve runs.</summary>
     [Category("MPC")]
     public class NavigatorBoostPassThroughEditModeTests
     {
@@ -38,7 +38,7 @@ namespace Tests.EditMode
             var host = new GameObject("NavigatorBoost");
             var scout = host.AddComponent<Scout>();
             nav = host.AddComponent<Navigator>();
-            nav.Initialize(new StubStatus(), default, scout, new SeedScope(1));
+            nav.Initialize(new StubStatus(), default, scout, new SeedScope(1), primaryProjectileSpeed: 0f);
             createdSettings = nav.mpcSettings;
         }
 
@@ -49,17 +49,16 @@ namespace Tests.EditMode
             if (createdSettings) Object.DestroyImmediate(createdSettings);
         }
 
-        private static ActIntent VelocityIntent(bool boost) => new()
+        private void Drive(bool boost)
         {
-            isValid = true,
-            velocityReference = new Vector2(3f, 0f),
-            boost = boost,
-        };
+            nav.ApplyObjective(NavObjective.Planar(new Vector2(3f, 0f)));
+            nav.CommandBoost(boost);
+        }
 
         [Test]
         public void VelocityReference_BoostCommanded_OrsIntoCommand()
         {
-            nav.ApplyIntent(VelocityIntent(boost: true));
+            Drive(boost: true);
             nav.ApplyControl(new MpcResult { boost = 0f });
             Assert.AreEqual(1f, nav.CurrentCommand.boost);
         }
@@ -67,27 +66,37 @@ namespace Tests.EditMode
         [Test]
         public void VelocityReference_NoBoost_SolverBoostPassesThrough()
         {
-            nav.ApplyIntent(VelocityIntent(boost: false));
+            Drive(boost: false);
             nav.ApplyControl(new MpcResult { boost = 1f });
             Assert.AreEqual(1f, nav.CurrentCommand.boost);
         }
 
         [Test]
-        public void InvalidIntent_ClearsCommandedBoost()
+        public void ResetNavigation_ClearsCommandedBoost()
         {
-            nav.ApplyIntent(VelocityIntent(boost: true));
-            nav.ApplyIntent(ActIntent.None);
+            Drive(boost: true);
+            nav.ResetNavigation();
             nav.ApplyControl(new MpcResult { boost = 0f });
             Assert.AreEqual(0f, nav.CurrentCommand.boost);
         }
 
         [Test]
-        public void NextIntentWithoutBoost_DropsThePriorCommand()
+        public void NextDecisionWithoutBoost_DropsThePriorCommand()
         {
-            nav.ApplyIntent(VelocityIntent(boost: true));
-            nav.ApplyIntent(VelocityIntent(boost: false));
+            Drive(boost: true);
+            Drive(boost: false);
             nav.ApplyControl(new MpcResult { boost = 0f });
             Assert.AreEqual(0f, nav.CurrentCommand.boost);
+        }
+
+        [Test]
+        public void DriftObjective_ResetsToIdleAndClearsBoost()
+        {
+            Drive(boost: true);
+            nav.ApplyObjective(NavObjective.Drift);
+            nav.ApplyControl(new MpcResult { boost = 0f });
+            Assert.AreEqual(0f, nav.CurrentCommand.boost);
+            Assert.That(nav.ShouldIdle(), Is.True);
         }
     }
 }

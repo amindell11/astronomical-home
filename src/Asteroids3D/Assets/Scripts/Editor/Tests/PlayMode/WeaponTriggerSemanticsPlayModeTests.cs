@@ -242,15 +242,9 @@ namespace Tests.PlayMode
 
             Kinematics Pose() => new(new Vector2(10f, 0f), Vector2.zero, 0f, 0f, 0f);
             gunner.Initialize(new FakeWeaponContext(), new CommandRecorder(), Pose);
-            gunner.ApplyIntent(new ActIntent
+            gunner.Aim(new AI.Context.EnemyTarget
             {
-                isValid = true,
-                enableFiring = true,
-                hasTarget = true,
-                target = new AI.Context.EnemyTarget
-                {
-                    kinematics = new Kinematics(Vector2.zero, Vector2.zero, 0f, 0f, 0f),
-                },
+                kinematics = new Kinematics(Vector2.zero, Vector2.zero, 0f, 0f, 0f),
             });
 
             Assert.AreEqual(Vector3.zero, gunner.Target);
@@ -271,15 +265,9 @@ namespace Tests.PlayMode
 
             var enemyPos = new Vector2(10f, 0f);
             var enemyVel = new Vector2(0f, 5f);
-            gunner.ApplyIntent(new ActIntent
+            gunner.Aim(new AI.Context.EnemyTarget
             {
-                isValid = true,
-                enableFiring = true,
-                hasTarget = true,
-                target = new AI.Context.EnemyTarget
-                {
-                    kinematics = new Kinematics(enemyPos, enemyVel, 0f, 0f, 0f),
-                },
+                kinematics = new Kinematics(enemyPos, enemyVel, 0f, 0f, 0f),
             });
 
             // Hitscan slot (speed 0) aims at the target's present position.
@@ -293,7 +281,7 @@ namespace Tests.PlayMode
             Assert.AreNotEqual(hitscanAim, ballisticAim, "A moving target separates lead from no-lead aim.");
 
             // The AI mashes: pressed and held both reflect its per-step decision.
-            gunner.Fire();
+            gunner.Fire(AI.FireControl.Auto, AI.FireControl.Auto);
             Assert.AreEqual(2, recorder.Commands.Count);
             foreach (var (_, cmd) in recorder.Commands)
                 Assert.AreEqual(cmd.held, cmd.pressed, "AI reports press and hold together.");
