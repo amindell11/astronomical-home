@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Game.RLHarness
 {
     /// <summary>Circles the live target at a jittered radius, firing from inside the envelope.</summary>
-    public class OrbiterChooser : OpponentArchetypeChooser
+    public class OrbiterBrain : OpponentArchetypeBrain
     {
         private const float RadialGain = 0.9f;
         // A tangential-only rotating command needs a standing radius error ∝ v²/r to supply

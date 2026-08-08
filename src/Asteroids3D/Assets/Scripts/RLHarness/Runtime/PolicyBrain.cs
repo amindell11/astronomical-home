@@ -5,7 +5,7 @@ using Ships;
 namespace Game.RLHarness
 {
     /// <summary>The policy end of the decision seam: holds the decision-boundary action (enemy-anchored facing offset + polar velocity + trigger + one-shot boost) and rebuilds the decision every Decide with a fresh anchor snapshot from the INJECTED opponent (Ranger precedent — Scout's 30 m radius is blind past the 25–60 m spawn band). The policy owns aim and trigger: it commands the primary directly and holds the secondary, so the MPC re-resolves both anchored channels per rollout step. Boost emits on exactly one tick and only if it was available as observed at the boundary (spend-now-if-ready — a cooldown expiring mid-interval must not fire a boost the policy saw as unavailable).</summary>
-    public sealed class AgentChooser : IIntentChooser, IPolicyReadout
+    public class PolicyBrain : Brain, IPolicyReadout
     {
         private const int RingCapacity = 16;
 
@@ -28,7 +28,7 @@ namespace Game.RLHarness
         public void Configure(Ship opponent)
         {
             this.opponent = opponent;
-            Reset();
+            ResetMailbox();
         }
 
         public void SetAction(in AgentAction action, bool boostAvailable)
@@ -46,7 +46,10 @@ namespace Game.RLHarness
 
         public PolicyAction ActionFromNewest(int index) => ring[(ringHead - 1 - index + RingCapacity) % RingCapacity];
 
-        public void Reset()
+        public override void ResetState() => ResetMailbox();
+
+        /// <summary>Clears the held action and the readout ring without disturbing anything a subclass layers on top — retargeting resets the mailbox alone.</summary>
+        protected void ResetMailbox()
         {
             hasAction = false;
             action = default;
@@ -57,7 +60,7 @@ namespace Game.RLHarness
             TotalDecisions = 0;
         }
 
-        public BrainDecision? Decide(AIContext ctx, float dt)
+        public override BrainDecision? Decide(AIContext ctx)
         {
             if (!hasAction || !opponent || !opponent.gameObject.activeInHierarchy)
                 return null;

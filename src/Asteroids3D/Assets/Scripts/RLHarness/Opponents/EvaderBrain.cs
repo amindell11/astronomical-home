@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Game.RLHarness
 {
     /// <summary>The pursuit teacher: flees along the threat LOS with a seeded tangential juke that flips at a jittered cadence; never fires.</summary>
-    public class EvaderChooser : OpponentArchetypeChooser
+    public class EvaderBrain : OpponentArchetypeBrain
     {
         private const float JukeBlend = 0.6f;
 
@@ -26,9 +26,9 @@ namespace Game.RLHarness
             Bind(threat, speedFraction, arenaCenter, borderRadius, drive);
         }
 
-        public override void Reset()
+        public override void ResetState()
         {
-            base.Reset();
+            base.ResetState();
             rng = new System.Random(jukeSeed);
             jukeSign = 1;
             recomputes = 0;

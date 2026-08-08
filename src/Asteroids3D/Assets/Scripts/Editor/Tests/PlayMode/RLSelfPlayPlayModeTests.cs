@@ -52,7 +52,7 @@ namespace Tests.PlayMode
             Time.maximumDeltaTime = 1f;
             PacingContract.Apply();
 
-            // An InferenceChooser test earlier in the suite leaves auto-stepping off.
+            // An InferenceBrain test earlier in the suite leaves auto-stepping off.
             if (Academy.IsInitialized)
                 Academy.Instance.AutomaticSteppingEnabled = true;
         }
@@ -82,9 +82,9 @@ namespace Tests.PlayMode
 
         private EpisodeLoopDriver Compose(in RewardSpec spec)
         {
-            pair = EpisodePair.SpawnSelfPlayPair(unitService, arena, projectiles, in spec, assets, out var chooserA, out var chooserB);
+            pair = EpisodePair.SpawnSelfPlayPair(unitService, arena, projectiles, in spec, assets, out var brainA, out var brainB);
             (agentA, agentB) = ShipAgentFactory.ComposeSelfPlayPair(
-                pair, chooserA, chooserB, in spec, arena.Offset, BehaviorType.HeuristicOnly);
+                pair, brainA, brainB, in spec, arena.Offset, BehaviorType.HeuristicOnly);
             return new EpisodeLoopDriver(pair, agentA, arena.Offset, opponentAgent: agentB);
         }
 

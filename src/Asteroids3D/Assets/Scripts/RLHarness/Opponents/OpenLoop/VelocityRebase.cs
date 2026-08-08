@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>How an archetype chooser emits its velocity law: the production roster's border-steered world reference, or one of the K1-2 open-loop probe arms (border steer dropped, fire suppressed) — the same law packed legacy or mechanically rebased into the anchored channel.</summary>
+    /// <summary>How an archetype brain emits its velocity law: the production roster's border-steered world reference, or one of the K1-2 open-loop probe arms (border steer dropped, fire suppressed) — the same law packed legacy or mechanically rebased into the anchored channel.</summary>
     public enum ArchetypeDrive { Production, OpenLoopLegacy, OpenLoopAnchored }
 
     /// <summary>One 5 Hz decision's emitted velocity command, as the velrebase probe reads it: the world reference on the production/legacy arms, the polar pair on the anchored arm.</summary>
@@ -21,7 +21,7 @@ namespace Game.RLHarness
         }
     }
 
-    /// <summary>The scripted-chooser readout the velrebase probe samples — <see cref="AI.IPolicyReadout"/>'s shape at the smallest honest size (the archetypes have no action ring to expose). The counter bumps once per 5 Hz recompute, never per Decide.</summary>
+    /// <summary>The scripted-brain readout the velrebase probe samples — <see cref="AI.IPolicyReadout"/>'s shape at the smallest honest size (the archetypes have no action ring to expose). The counter bumps once per 5 Hz recompute, never per Decide.</summary>
     public interface IScriptedVelocityReadout
     {
         ArchetypeDrive Drive { get; }

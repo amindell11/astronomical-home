@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the pure agent maps: the 5-continuous + 2-discrete action decode (anchored facing offset/weight, polar speeds, discrete branches), the 28-float combat observation layout (self + enemy weapon channels), the nearest-N asteroid attention tokens (selection + normalization + cap truncation, no zero-pad), and the chooser's anchored-intent shape (anchored facing/velocity + manual fire, never the legacy world facing or aimbot) and one-shot boost semantics.</summary>
+    /// <summary>Pins the pure agent maps: the 5-continuous + 2-discrete action decode (anchored facing offset/weight, polar speeds, discrete branches), the 28-float combat observation layout (self + enemy weapon channels), the nearest-N asteroid attention tokens (selection + normalization + cap truncation, no zero-pad), and the brain's anchored-intent shape (anchored facing/velocity + manual fire, never the legacy world facing or aimbot) and one-shot boost semantics.</summary>
     [Category("AI")]
     public class RLAgentEditModeTests
     {
@@ -216,20 +216,20 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void AgentChooser_ManualAction_CarriesAnchoredFacingAndVelocity_NeverTheAimbot()
+        public void PolicyBrain_ManualAction_CarriesAnchoredFacingAndVelocity_NeverTheAimbot()
         {
             var opponentGo = new GameObject("Opponent");
             try
             {
                 var opponent = opponentGo.AddComponent<Ship>();
-                var chooser = new AgentChooser();
-                chooser.Configure(opponent);
+                var brain = opponentGo.AddComponent<PolicyBrain>();
+                brain.Configure(opponent);
 
                 var action = new AgentAction(facingOffsetRad: 1.2f, facingWeight: 0.4f,
                     radialSpeed: 4f, tangentialSpeed: -2f, velocityWeight: 0.6f, fire: true, boost: false);
-                chooser.SetAction(in action, boostAvailable: true);
+                brain.SetAction(in action, boostAvailable: true);
 
-                var decision = chooser.Decide(null, 0.02f).Value;
+                var decision = brain.Decide(null).Value;
                 Assert.IsTrue(decision.nav.TryGetAnchor(out _), "the anchor snapshot carries the enemy frame");
 
                 // B1 boundary pin: the facing command rides the anchored channel, and the world reference stays unarmed.
@@ -256,25 +256,25 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void AgentChooser_BoostEmitsOnExactlyOneDecide()
+        public void PolicyBrain_BoostEmitsOnExactlyOneDecide()
         {
             var opponentGo = new GameObject("Opponent");
             try
             {
                 var opponent = opponentGo.AddComponent<Ship>();
-                var chooser = new AgentChooser();
-                chooser.Configure(opponent);
+                var brain = opponentGo.AddComponent<PolicyBrain>();
+                brain.Configure(opponent);
 
                 var action = new AgentAction(facingOffsetRad: 0f, facingWeight: 1f,
                     radialSpeed: 4f, tangentialSpeed: 0f, velocityWeight: 1f, fire: true, boost: true);
-                chooser.SetAction(in action, boostAvailable: true);
+                brain.SetAction(in action, boostAvailable: true);
 
-                var first = chooser.Decide(null, 0.02f).Value;
+                var first = brain.Decide(null).Value;
                 Assert.IsTrue(first.boost, "boundary tick spends the boost");
                 Assert.IsTrue(first.primary.Held);
                 Assert.AreEqual(4f, first.nav.anchored.radialSpeed, 1e-6f);
 
-                var second = chooser.Decide(null, 0.02f).Value;
+                var second = brain.Decide(null).Value;
                 Assert.IsFalse(second.boost, "boost is one-shot per decision");
                 Assert.AreEqual(first.nav.anchored.radialSpeed, second.nav.anchored.radialSpeed,
                     "the cached anchored command holds for the interval");
@@ -286,22 +286,22 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void AgentChooser_BoostCommandedWhileUnavailable_StaysANoOp()
+        public void PolicyBrain_BoostCommandedWhileUnavailable_StaysANoOp()
         {
             var opponentGo = new GameObject("Opponent");
             try
             {
                 var opponent = opponentGo.AddComponent<Ship>();
-                var chooser = new AgentChooser();
-                chooser.Configure(opponent);
+                var brain = opponentGo.AddComponent<PolicyBrain>();
+                brain.Configure(opponent);
 
                 var action = new AgentAction(facingOffsetRad: 0f, facingWeight: 1f,
                     radialSpeed: 4f, tangentialSpeed: 0f, velocityWeight: 1f, fire: false, boost: true);
-                chooser.SetAction(in action, boostAvailable: false);
+                brain.SetAction(in action, boostAvailable: false);
 
-                Assert.IsFalse(chooser.Decide(null, 0.02f).Value.boost,
+                Assert.IsFalse(brain.Decide(null).Value.boost,
                     "boost observed unavailable at the boundary must stay a no-op even if the cooldown expires before the next tick");
-                Assert.IsFalse(chooser.Decide(null, 0.02f).Value.boost);
+                Assert.IsFalse(brain.Decide(null).Value.boost);
             }
             finally
             {
@@ -310,24 +310,24 @@ namespace Tests.EditMode
         }
 
         [Test]
-        public void AgentChooser_NoActionOrReset_ReturnsNone()
+        public void PolicyBrain_NoActionOrReset_ReturnsNone()
         {
             var opponentGo = new GameObject("Opponent");
             try
             {
                 var opponent = opponentGo.AddComponent<Ship>();
-                var chooser = new AgentChooser();
-                chooser.Configure(opponent);
+                var brain = opponentGo.AddComponent<PolicyBrain>();
+                brain.Configure(opponent);
 
-                Assert.IsFalse(chooser.Decide(null, 0.02f).HasValue, "no action yet → no decision");
+                Assert.IsFalse(brain.Decide(null).HasValue, "no action yet → no decision");
 
                 var action = new AgentAction(facingOffsetRad: 0f, facingWeight: 1f,
                     radialSpeed: 1f, tangentialSpeed: 0f, velocityWeight: 1f, fire: false, boost: false);
-                chooser.SetAction(in action, boostAvailable: true);
-                Assert.IsTrue(chooser.Decide(null, 0.02f).HasValue);
+                brain.SetAction(in action, boostAvailable: true);
+                Assert.IsTrue(brain.Decide(null).HasValue);
 
-                chooser.Reset();
-                Assert.IsFalse(chooser.Decide(null, 0.02f).HasValue, "reset discards the cached action");
+                brain.ResetState();
+                Assert.IsFalse(brain.Decide(null).HasValue, "reset discards the cached action");
             }
             finally
             {

@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the live-archetype seam: the shared factory's archetype → chooser mapping (both the episode roster and the authored pilot route through it), and the ArchetypePilot authoring that makes an archetype flyable in a live sector.</summary>
+    /// <summary>Pins the live-archetype seam: the shared factory's archetype → brain mapping (both the episode roster and the authored pilot route through it), and the ArchetypePilot authoring that makes an archetype flyable in a live sector.</summary>
     [Category("AI")]
     public class LiveArchetypeEditModeTests
     {
@@ -24,34 +24,45 @@ namespace Tests.EditMode
             desiredRange = 12f,
         };
 
-        [TestCase(OpponentArchetype.Aggressor, typeof(HoldRangeFireChooser))]
-        [TestCase(OpponentArchetype.Kiter, typeof(HoldRangeFireChooser))]
-        [TestCase(OpponentArchetype.Evader, typeof(EvaderChooser))]
-        [TestCase(OpponentArchetype.Orbiter, typeof(OrbiterChooser))]
-        [TestCase(OpponentArchetype.Dummy, typeof(DummyChooser))]
-        public void Create_MapsArchetypeToItsChooser(OpponentArchetype archetype, Type expected)
+        private GameObject archetypeHost;
+
+        [SetUp]
+        public void SetUp() => archetypeHost = new GameObject("ArchetypeHost");
+
+        [TearDown]
+        public void TearDown()
+        {
+            if (archetypeHost) UnityEngine.Object.DestroyImmediate(archetypeHost);
+        }
+
+        [TestCase(OpponentArchetype.Aggressor, typeof(HoldRangeFireBrain))]
+        [TestCase(OpponentArchetype.Kiter, typeof(HoldRangeFireBrain))]
+        [TestCase(OpponentArchetype.Evader, typeof(EvaderBrain))]
+        [TestCase(OpponentArchetype.Orbiter, typeof(OrbiterBrain))]
+        [TestCase(OpponentArchetype.Dummy, typeof(DummyBrain))]
+        public void Attach_MapsArchetypeToItsBrain(OpponentArchetype archetype, Type expected)
         {
             var shape = Shape();
             Assert.IsInstanceOf(expected,
-                ArchetypeChoosers.Create(archetype, in shape, null, 1, Vector2.zero, 500f));
+                ArchetypeBrains.Attach(archetypeHost, archetype, in shape, null, 1, Vector2.zero, 500f));
         }
 
         [Test]
-        public void Create_UnknownArchetype_Throws()
+        public void Attach_UnknownArchetype_Throws()
         {
             Assert.Throws<ArgumentOutOfRangeException>(() =>
             {
                 var shape = Shape();
-                ArchetypeChoosers.Create((OpponentArchetype)99, in shape, null, 1, Vector2.zero, 500f);
+                ArchetypeBrains.Attach(archetypeHost, (OpponentArchetype)99, in shape, null, 1, Vector2.zero, 500f);
             });
         }
 
         [Test]
-        public void ArchetypePilot_AuthorsLiveArchetypeChooser()
+        public void ArchetypePilot_AuthorsLiveArchetypeBrain()
         {
             var pilot = AssetDatabase.LoadAssetAtPath<GameObject>(ArchetypePilotPath);
             Assert.IsNotNull(pilot, $"Missing prefab: {ArchetypePilotPath}");
-            Assert.IsInstanceOf<LiveArchetypeChooser>(pilot.GetComponent<Brain>().Chooser);
+            Assert.IsInstanceOf<LiveArchetypeBrain>(pilot.GetComponent<Brain>());
         }
 
         [Test]

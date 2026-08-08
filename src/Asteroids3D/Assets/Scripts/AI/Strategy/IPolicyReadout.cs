@@ -1,6 +1,6 @@
 namespace AI
 {
-    /// <summary>One decision's commanded output in the enemy-anchored frame, as handed to <see cref="IIntentChooser.Decide"/>'s intent: a facing offset around the intercept anchor (with authority weight) and a polar velocity (radial/tangential speeds, with authority weight).</summary>
+    /// <summary>One decision's commanded output in the enemy-anchored frame, as carried by the nav objective <see cref="Brain.Decide"/> returns: a facing offset around the intercept anchor (with authority weight) and a polar velocity (radial/tangential speeds, with authority weight).</summary>
     public readonly struct PolicyAction
     {
         public readonly float facingOffsetRad;
@@ -20,7 +20,7 @@ namespace AI
         }
     }
 
-    /// <summary>Read-only access to a chooser's recent commanded actions, for debug gizmos to draw
+    /// <summary>Read-only access to a brain's recent commanded actions, for debug gizmos to draw
     /// without coupling the render side to the decision policy's own state.</summary>
     public interface IPolicyReadout
     {

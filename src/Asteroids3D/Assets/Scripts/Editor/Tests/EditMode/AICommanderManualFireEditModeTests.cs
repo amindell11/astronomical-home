@@ -63,16 +63,16 @@ namespace Tests.EditMode
             public Gunsight Sight(WeaponSlot slot) => null;
         }
 
-        private sealed class ScriptedChooser : IIntentChooser
+        private sealed class ScriptedBrain : Brain
         {
             public BrainDecision? decision;
-            public BrainDecision? Decide(AIContext ctx, float dt) => decision;
+            public override BrainDecision? Decide(AIContext ctx) => decision;
         }
 
         private GameObject host;
         private TestableCommander commander;
         private SpyWeapons weapons;
-        private ScriptedChooser chooser;
+        private ScriptedBrain brain;
         private MpcSettings createdSettings;
 
         [SetUp]
@@ -85,8 +85,8 @@ namespace Tests.EditMode
             commander = host.AddComponent<TestableCommander>();
             commander.CallAwake(); // EditMode: Unity does not run Awake, so cache the composed parts explicitly.
 
-            chooser = new ScriptedChooser { decision = CommandedDecision(held: true) };
-            host.GetComponent<Brain>().InstallChooser(chooser);
+            brain = commander.InstallBrain<ScriptedBrain>();
+            brain.decision = CommandedDecision(held: true);
 
             weapons = new SpyWeapons();
             var status = new StubStatus { transform = host.transform, dynamics = ship.ResolveStats().Dynamics };
@@ -108,7 +108,7 @@ namespace Tests.EditMode
 
         private WeaponCommand StepOnce(bool held)
         {
-            chooser.decision = CommandedDecision(held);
+            brain.decision = CommandedDecision(held);
             var before = weapons.Commands.Count;
             commander.Step();
             Assert.AreEqual(before + 1, weapons.Commands.Count, "each commanded step pushes exactly one primary command");
@@ -148,7 +148,7 @@ namespace Tests.EditMode
         [Test]
         public void AutoFireLane_WithoutAGunner_PushesNoWeaponCommands()
         {
-            chooser.decision = new BrainDecision(
+            brain.decision = new BrainDecision(
                 NavObjective.Planar(Vector2.zero), FireControl.Auto, FireControl.Auto);
             commander.Step();
             Assert.IsEmpty(weapons.Commands,
@@ -161,7 +161,7 @@ namespace Tests.EditMode
             StepOnce(held: true);
             var afterHold = weapons.Commands.Count;
 
-            chooser.decision = new BrainDecision(NavObjective.Planar(Vector2.zero));
+            brain.decision = new BrainDecision(NavObjective.Planar(Vector2.zero));
             commander.Step();
 
             Assert.AreEqual(afterHold, weapons.Commands.Count,

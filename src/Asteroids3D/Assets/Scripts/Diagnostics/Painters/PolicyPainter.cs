@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Game.Diagnostics
 {
-    /// <summary>The RL policy's commanded facing/velocity against the ship's actual nose (the facing-churn diagnostic, #222), on canvas primitives so it appears in filmed runs as well as live editor gizmos. Anchored commands are drawn in the enemy frame: facing offsets around the bearing-to-enemy (a rough stand-in for the MPC's led intercept anchor — the true anchor is not re-resolved here, richer anchored gizmos are deferred), velocity as its radial/tangential reconstruction. Each pair ship whose chooser is an <see cref="IPolicyReadout"/> is painted; commanders are cached at construction.</summary>
+    /// <summary>The RL policy's commanded facing/velocity against the ship's actual nose (the facing-churn diagnostic, #222), on canvas primitives so it appears in filmed runs as well as live editor gizmos. Anchored commands are drawn in the enemy frame: facing offsets around the bearing-to-enemy (a rough stand-in for the MPC's led intercept anchor — the true anchor is not re-resolved here, richer anchored gizmos are deferred), velocity as its radial/tangential reconstruction. Each pair ship whose brain is an <see cref="IPolicyReadout"/> is painted; commanders are cached at construction.</summary>
     public sealed class PolicyPainter : IDiagnosticPainter
     {
         private const float VelocityScale = 0.4f;
@@ -30,14 +30,14 @@ namespace Game.Diagnostics
         {
             if (!ship) return;
             var commander = ship.GetComponentInChildren<AICommander>();
-            if (commander && commander.Brain?.Chooser is IPolicyReadout)
+            if (commander && commander.Brain is IPolicyReadout)
                 commanders.Add(commander);
         }
 
         public static void Draw(IDiagnosticCanvas canvas, AICommander commander)
         {
             if (commander.context == null) return;
-            if (!(commander.Brain?.Chooser is IPolicyReadout readout) || readout.Count == 0) return;
+            if (commander.Brain is not IPolicyReadout readout || readout.Count == 0) return;
 
             var kin = commander.context.Self.Kinematics;
             var combat = commander.context.Combat;

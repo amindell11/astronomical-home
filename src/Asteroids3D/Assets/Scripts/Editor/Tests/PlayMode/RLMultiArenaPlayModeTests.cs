@@ -54,7 +54,7 @@ namespace Tests.PlayMode
             Time.maximumDeltaTime = 1f;
             PacingContract.Apply();
 
-            // An InferenceChooser test earlier in the suite leaves auto-stepping off.
+            // An InferenceBrain test earlier in the suite leaves auto-stepping off.
             if (Academy.IsInitialized)
                 Academy.Instance.AutomaticSteppingEnabled = true;
         }
@@ -157,8 +157,8 @@ namespace Tests.PlayMode
             var host = new GameObject(name);
             var (units, arena, projectiles) = HarnessArena.Compose(host, offset);
             var field = HarnessField.Spawn(arena, assets, spec.fieldDensityScale, host.transform);
-            var pair = EpisodePair.SpawnWithAgentChooser(units, arena, projectiles, in spec, assets, out var chooser);
-            var agent = ShipAgentFactory.ComposeHeuristicOnly(pair, chooser, in spec, arena.Offset, host.transform);
+            var pair = EpisodePair.SpawnWithAgentBrain(units, arena, projectiles, in spec, assets, out var brain);
+            var agent = ShipAgentFactory.ComposeHeuristicOnly(pair, brain, in spec, arena.Offset, host.transform);
             var driver = new EpisodeLoopDriver(pair, agent, arena.Offset, field);
             return (host, arena, field, pair, agent, driver, projectiles);
         }

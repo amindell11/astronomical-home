@@ -14,7 +14,6 @@ GameObject:
   - component: {fileID: 1536262577255795878}
   - component: {fileID: 2056539076943524747}
   - component: {fileID: 606810096680689649}
-  - component: {fileID: 4478262572537416997}
   m_Layer: 7
   m_Name: TestPilotMPC
   m_TagString: Untagged
@@ -123,20 +122,3 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   obstacleLookaheadTime: 2
---- !u!114 &4478262572537416997
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1066014630051916606}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e74b596751aefc842ad51157fcb57ee7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  chooser:
-    rid: -2
-  references:
-    version: 2
-    RefIds: []

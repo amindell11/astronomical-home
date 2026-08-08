@@ -18,8 +18,8 @@ namespace Game.RLHarness
             HarnessField field)
         {
             Pair = EpisodePair.SpawnSelfPlayPair(units, arena, projectiles, in spec, assets,
-                out var chooserA, out var chooserB);
-            (agentA, agentB) = ShipAgentFactory.ComposeSelfPlayPair(Pair, chooserA, chooserB, in spec, arena.Offset,
+                out var brainA, out var brainB);
+            (agentA, agentB) = ShipAgentFactory.ComposeSelfPlayPair(Pair, brainA, brainB, in spec, arena.Offset,
                 BehaviorType.InferenceOnly, parent: null, candidateModel, opponentModel);
             Driver = new EpisodeLoopDriver(Pair, agentA, arena.Offset, field, roster: null, opponentAgent: agentB);
         }

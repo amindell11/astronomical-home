@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>One decision's decoded command in the enemy-anchored frame: a facing offset around the intercept anchor (with authority weight) and a polar velocity (radial/tangential speeds in m/s, with authority weight), plus the fire/boost branches. All primitives — the MPC-frame assembly happens in <see cref="AgentChooser"/>.</summary>
+    /// <summary>One decision's decoded command in the enemy-anchored frame: a facing offset around the intercept anchor (with authority weight) and a polar velocity (radial/tangential speeds in m/s, with authority weight), plus the fire/boost branches. All primitives — the MPC-frame assembly happens in <see cref="PolicyBrain"/>.</summary>
     public readonly struct AgentAction
     {
         public readonly float facingOffsetRad;
@@ -26,7 +26,7 @@ namespace Game.RLHarness
         }
     }
 
-    /// <summary>Decodes the action vector — 5 continuous [ox, oy, vr, vt, vw] plus 2 discrete branches [fire, boost] — into enemy-anchored scalars. Facing rides as a direction: angle = offset around the intercept anchor ((0,+1) = aim at intercept, (0,−1) = face away), magnitude = authority weight (near-zero vectors have unstable angles AND near-zero weight). Velocity rides as normalized polar speeds scaled to maxSpeed with an explicit weight. This decode is MPC-type-free; the chooser packs the scalars into the anchored intent.</summary>
+    /// <summary>Decodes the action vector — 5 continuous [ox, oy, vr, vt, vw] plus 2 discrete branches [fire, boost] — into enemy-anchored scalars. Facing rides as a direction: angle = offset around the intercept anchor ((0,+1) = aim at intercept, (0,−1) = face away), magnitude = authority weight (near-zero vectors have unstable angles AND near-zero weight). Velocity rides as normalized polar speeds scaled to maxSpeed with an explicit weight. This decode is MPC-type-free; the brain packs the scalars into the anchored intent.</summary>
     public static class AgentActions
     {
         public const int Count = 5;

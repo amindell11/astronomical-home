@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Game.RLHarness
 {
     /// <summary>Shared skeleton for the scripted opponent archetypes: live-target validity, the 5 Hz recompute cache, the border tangent-steer post-step, and the per-drive velocity pack (production world reference vs the K1-2 open-loop arms). Arena bounds enter once through Configure as plain floats.</summary>
-    public abstract class OpponentArchetypeChooser : IIntentChooser, IScriptedVelocityReadout
+    public abstract class OpponentArchetypeBrain : Brain, IScriptedVelocityReadout
     {
         protected const int RecomputeIntervalTicks = 10;
 
@@ -33,16 +33,16 @@ namespace Game.RLHarness
             this.arenaCenter = arenaCenter;
             this.borderRadius = borderRadius;
             this.drive = drive;
-            Reset();
+            ResetState();
         }
 
-        public virtual void Reset()
+        public override void ResetState()
         {
             tickCounter = 0;
             cachedDecision = null;
         }
 
-        public BrainDecision? Decide(AIContext ctx, float dt)
+        public override BrainDecision? Decide(AIContext ctx)
         {
             if (!target || !target.gameObject.activeInHierarchy || ctx?.Self == null)
                 return null;

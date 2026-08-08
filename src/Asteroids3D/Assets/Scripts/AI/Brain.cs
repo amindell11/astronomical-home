@@ -1,32 +1,15 @@
-using System;
 using AI.Context;
 using UnityEngine;
 
 namespace AI
 {
-    /// <summary>Policy-agnostic decision host for a swappable <see cref="IIntentChooser"/>.</summary>
-    [DefaultExecutionOrder(-70)]
-    public class Brain : MonoBehaviour
+    /// <summary>The swappable decision unit: maps the per-tick world model to a <see cref="BrainDecision"/>. It decides, never actuates — the hosting <see cref="AICommander"/> routes each lane to its own consumer. Installed through <see cref="AICommander.InstallBrain{T}"/> or authored on the pilot prefab.</summary>
+    public abstract class Brain : MonoBehaviour
     {
-        [Tooltip("The decision policy (e.g. an InferenceChooser running a trained checkpoint). Authored on the prefab or installed at runtime.")]
-        [SerializeReference] private IIntentChooser chooser;
+        /// <summary>Decide this tick's action; null when no decision is available (mid-transition, or no live target).</summary>
+        public abstract BrainDecision? Decide(AIContext ctx);
 
-        public IIntentChooser Chooser => chooser;
-
-        /// <summary>Harness/test seam for swapping the decision policy.</summary>
-        internal void InstallChooser(IIntentChooser next)
-        {
-            chooser = next;
-        }
-
-        public BrainDecision? Decide(AIContext ctx, float dt)
-        {
-            if (chooser == null)
-                throw new InvalidOperationException($"Brain on '{name}' has no chooser authored or installed.");
-            return chooser.Decide(ctx, dt);
-        }
-
-        /// <summary>Resets the policy's accumulated decision state (respawn reset).</summary>
-        public void ResetState() => chooser?.Reset();
+        /// <summary>Discard accumulated decision state so the next Decide behaves as freshly initialized.</summary>
+        public virtual void ResetState() { }
     }
 }
