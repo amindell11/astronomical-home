@@ -11,6 +11,7 @@
         "Tests.Common",
         "Game.RLHarness.Editor",
         "Game.RLHarness.Runtime",
+        "Game.Capture.Editor",
         "Unity.InferenceEngine"
     ],
     "includePlatforms": [

@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
-using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -26,11 +24,8 @@ namespace Game.Capture
     /// <summary>Overhead orthographic frame capture for agent-facing game inspection: auto-frames the given subjects each captured step, composites the <see cref="CaptureDraw"/> overlay, and writes PNG frames plus a manifest for offline mp4/gif assembly (scripts/capture/assemble.py). Needs a graphics device — run via -WithGraphics, never -nographics.</summary>
     public sealed class CaptureRecorder : IDisposable
     {
-        private const float CameraHeight = 60f;
-        private static readonly Regex SafeName = new("^[A-Za-z0-9_-]+$");
-
         /// <summary>The recorder's naming contract, for callers that must reject a hostile name at their own boundary.</summary>
-        public static bool IsSafeName(string name) => SafeName.IsMatch(name);
+        public static bool IsSafeName(string name) => CaptureArtifacts.IsSafeName(name);
 
         private readonly CaptureConfig config;
         private readonly string frameDir;
@@ -48,20 +43,7 @@ namespace Game.Capture
         public CaptureRecorder(CaptureConfig config)
         {
             this.config = config ?? throw new ArgumentNullException(nameof(config));
-            Validate(config);
-
-            var stamp = string.IsNullOrEmpty(config.runStamp)
-                ? DateTime.Now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture)
-                : config.runStamp;
-            var outputRoot = Path.IsPathRooted(config.outputRoot)
-                ? config.outputRoot
-                : Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "..", config.outputRoot));
-            frameDir = Path.Combine(outputRoot, "frames", $"{stamp}-{config.clipName}");
-            if (Directory.Exists(frameDir) && Directory.GetFiles(frameDir, "f_*.png").Length > 0)
-                throw new InvalidOperationException(
-                    $"[Capture] frame dir already contains frames (pick a distinct clipName/runStamp): {frameDir}");
-            Directory.CreateDirectory(frameDir);
-            WriteManifest();
+            frameDir = new CaptureArtifacts(config).FrameDir;
 
             rig = new GameObject("[Capture] Rig");
             captureCamera = rig.AddComponent<Camera>();
@@ -87,8 +69,7 @@ namespace Game.Capture
         {
             if (stepIndex++ % config.everyFixedSteps != 0) return;
 
-            ValidateSubjects(subjects);
-            FrameSubjects(subjects);
+            CaptureFraming.Apply(captureCamera, config, subjects);
 
             overlay.BeginFrame();
             if (draw != null)
@@ -124,59 +105,6 @@ namespace Game.Capture
                          FindObjectsInactive.Include, FindObjectsSortMode.None))
                 if (!go.transform.parent && go.name.StartsWith("[Capture]", StringComparison.Ordinal))
                     UnityEngine.Object.DestroyImmediate(go);
-        }
-
-        private static void Validate(CaptureConfig config)
-        {
-            if (config.width <= 0 || config.height <= 0 || config.width % 2 != 0 || config.height % 2 != 0)
-                throw new ArgumentException($"[Capture] dimensions must be positive and even (yuv420p), got {config.width}x{config.height}");
-            if (config.everyFixedSteps <= 0)
-                throw new ArgumentException($"[Capture] everyFixedSteps must be > 0, got {config.everyFixedSteps}");
-            if (config.minHalfHeight < 0f || config.padding < 0f)
-                throw new ArgumentException($"[Capture] framing values must be nonnegative, got minHalfHeight={config.minHalfHeight} padding={config.padding}");
-            if (string.IsNullOrEmpty(config.outputRoot))
-                throw new ArgumentException("[Capture] outputRoot must be set");
-            if (string.IsNullOrEmpty(config.clipName) || !SafeName.IsMatch(config.clipName))
-                throw new ArgumentException($"[Capture] clipName must be filesystem-safe [A-Za-z0-9_-], got '{config.clipName}'");
-            if (!string.IsNullOrEmpty(config.runStamp) && !SafeName.IsMatch(config.runStamp))
-                throw new ArgumentException($"[Capture] runStamp must be filesystem-safe [A-Za-z0-9_-], got '{config.runStamp}'");
-        }
-
-        // Loud rejection of degenerate subjects: a silent black/misframed clip costs a full re-run to diagnose.
-        private static void ValidateSubjects(IReadOnlyList<Vector2> subjects)
-        {
-            if (subjects == null || subjects.Count == 0)
-                throw new ArgumentException("[Capture] Step needs at least one subject to frame");
-            for (var i = 0; i < subjects.Count; i++)
-            {
-                var s = subjects[i];
-                if (!float.IsFinite(s.x) || !float.IsFinite(s.y))
-                    throw new ArgumentException($"[Capture] subject {i} is not finite ({s}) — was its source destroyed?");
-            }
-        }
-
-        private void FrameSubjects(IReadOnlyList<Vector2> subjects)
-        {
-            var min = subjects[0];
-            var max = subjects[0];
-            for (var i = 1; i < subjects.Count; i++)
-            {
-                min = Vector2.Min(min, subjects[i]);
-                max = Vector2.Max(max, subjects[i]);
-            }
-
-            var center = 0.5f * (min + max);
-            var xExtent = 0.5f * (max.x - min.x);
-            var yExtent = 0.5f * (max.y - min.y);
-            var halfHeight = Mathf.Max(
-                yExtent + config.padding,
-                (xExtent + config.padding) * config.height / config.width,
-                config.minHalfHeight);
-
-            var normal = GamePlane.Rotation * Vector3.forward;
-            captureCamera.transform.position = GamePlane.PlanePointToWorld(center) + normal * CameraHeight;
-            captureCamera.transform.rotation = Quaternion.LookRotation(-normal, GamePlane.Rotation * Vector3.up);
-            captureCamera.orthographicSize = halfHeight;
         }
 
         private void Render()
@@ -215,27 +143,5 @@ namespace Game.Capture
             File.WriteAllBytes(Path.Combine(frameDir, $"f_{frameCount:D5}.png"), readback.EncodeToPNG());
         }
 
-        private void WriteManifest()
-        {
-            var manifest = new Manifest
-            {
-                width = config.width,
-                height = config.height,
-                everyFixedSteps = config.everyFixedSteps,
-                fixedDeltaTime = Time.fixedDeltaTime,
-                suggestedFps = 1f / (Time.fixedDeltaTime * config.everyFixedSteps),
-            };
-            File.WriteAllText(Path.Combine(frameDir, "manifest.json"), JsonUtility.ToJson(manifest, true));
-        }
-
-        [Serializable]
-        private sealed class Manifest
-        {
-            public int width;
-            public int height;
-            public int everyFixedSteps;
-            public float fixedDeltaTime;
-            public float suggestedFps;
-        }
     }
 }

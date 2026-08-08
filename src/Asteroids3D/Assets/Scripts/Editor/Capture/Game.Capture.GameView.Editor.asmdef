@@ -1,0 +1,21 @@
+{
+    "name": "Game.Capture.GameView.Editor",
+    "rootNamespace": "",
+    "references": [
+        "Game.Core",
+        "Game.Capture.Editor",
+        "Unity.Recorder.Editor",
+        "Unity.RenderPipelines.Universal.Runtime"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

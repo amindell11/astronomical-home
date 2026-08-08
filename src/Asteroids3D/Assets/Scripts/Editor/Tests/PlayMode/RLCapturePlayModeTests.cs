@@ -20,6 +20,8 @@ namespace Tests.PlayMode
     [Category("RequiresGraphics")]
     public class RLCapturePlayModeTests
     {
+        private const string GameViewCaptureType =
+            "Game.Capture.GameView.GameViewEpisodeCapture, Game.Capture.GameView.Editor";
         private GameObject arenaHost;
         private UnitService unitService;
         private ArenaContext arena;
@@ -99,14 +101,76 @@ namespace Tests.PlayMode
             }
         }
 
+        [UnityTest]
+        [Timeout(600000)]
+        public IEnumerator NativeCaptureLane_RecordsGameViewAndRestoresEditorState()
+        {
+            if (UnityEditor.AssetDatabase.LoadMainAssetAtPath(ShipAgentFactory.SmokeFixturePath) == null)
+                Assert.Fail($"ONNX fixture missing at {ShipAgentFactory.SmokeFixturePath}");
+
+            var priorSelection = UnityEditor.Selection.objects;
+            var priorActive = UnityEditor.Selection.activeObject;
+            var priorFocusedWindow = UnityEditor.EditorWindow.focusedWindow;
+            var priorRunInBackground = Application.runInBackground;
+            var registered = UnityEditor.GizmoUtility.GetGizmoInfo();
+            Assert.IsTrue(UnityEditor.GizmoUtility.TryGetGizmoInfo(typeof(Movement.MPC.Navigator), out var priorNavigator),
+                $"Navigator annotation missing; registered: {string.Join(", ", registered.Select(info => info.name))}");
+
+            var spec = new SessionSpec
+            {
+                lane = SessionLane.Capture,
+                model = UnityEditor.AssetDatabase.LoadAssetAtPath<Unity.InferenceEngine.ModelAsset>(
+                    ShipAgentFactory.SmokeFixturePath),
+                seeds = new[] { EvalProtocol.HeldOutSeeds[0] },
+                tag = "native-capture-test",
+                episodesPerSeed = 1,
+                fieldDensityScale = EvalProtocol.CanonicalFieldDensityScale,
+                opponentKind = OpponentKind.Mirror,
+                probes = Array.Empty<ProbeSpec>(),
+                painters = Array.Empty<string>(),
+                gizmoProfile = GizmoCaptureProfile.Steering,
+                outDir = outDir,
+                record = new RecordPlan
+                {
+                    enabled = true, all = true, width = 320, height = 240, everyFixedSteps = 5,
+                },
+            };
+
+            var host = NewHost(spec, nativeCapture: true);
+            yield return new CaptureClient().Run(host, spec);
+
+            var jsonl = Directory.GetFiles(outDir, "*.jsonl");
+            Assert.AreEqual(1, jsonl.Length);
+            Assert.AreEqual(1, File.ReadAllLines(jsonl[0]).Length);
+            var frameDirs = Directory.GetDirectories(Path.Combine(outDir, "frames"));
+            Assert.AreEqual(1, frameDirs.Length);
+            Assert.IsTrue(File.Exists(Path.Combine(frameDirs[0], "manifest.json")));
+            Assert.Greater(Directory.GetFiles(frameDirs[0], "f_*.png").Length, 0);
+
+            CollectionAssert.AreEqual(priorSelection, UnityEditor.Selection.objects);
+            Assert.AreEqual(priorActive, UnityEditor.Selection.activeObject);
+            Assert.AreEqual(priorFocusedWindow, UnityEditor.EditorWindow.focusedWindow);
+            Assert.AreEqual(priorRunInBackground, Application.runInBackground);
+            Assert.IsTrue(UnityEditor.GizmoUtility.TryGetGizmoInfo(typeof(Movement.MPC.Navigator), out var restored));
+            Assert.AreEqual(priorNavigator.gizmoEnabled, restored.gizmoEnabled);
+            Assert.AreEqual(priorNavigator.iconEnabled, restored.iconEnabled);
+        }
+
         // Host on an inactive GameObject so its Start never fires — the test drives the client directly.
-        private HarnessSessionHost NewHost(SessionSpec spec)
+        private HarnessSessionHost NewHost(SessionSpec spec, bool nativeCapture = false)
         {
             var hostObject = new GameObject("[HarnessSessionHost]");
             hostObject.transform.SetParent(arenaHost.transform, false);
             hostObject.SetActive(false);
             var host = hostObject.AddComponent<HarnessSessionHost>();
-            host.Initialize(spec, assets, unitService, arena, projectiles);
+            IEpisodeCapture capture = null;
+            if (nativeCapture)
+            {
+                var captureType = Type.GetType(GameViewCaptureType, throwOnError: true);
+                capture = (IEpisodeCapture)ScriptableObject.CreateInstance(captureType);
+            }
+            host.Initialize(spec, assets, unitService, arena, projectiles, capture);
+            if (nativeCapture) Assert.IsTrue(host.HasEpisodeCapture, "host retained the injected native capture module");
             return host;
         }
     }

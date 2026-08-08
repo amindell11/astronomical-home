@@ -13,6 +13,8 @@ namespace Game.RLHarness
     {
         [SerializeField] internal SessionSpec spec;
         [SerializeField] internal HarnessAssets assets;
+        [SerializeField] internal ScriptableObject captureModule;
+        [SerializeField] internal bool exitEditorWhenComplete;
 
         internal ArenaContext Arena { get; private set; }
         internal HarnessAssets Assets => assets;
@@ -20,6 +22,10 @@ namespace Game.RLHarness
 
         private UnitService units;
         private ISessionProbe[] probes;
+        private IEpisodeCapture episodeCapture;
+        internal bool HasEpisodeCapture => episodeCapture != null;
+
+        private void Awake() => episodeCapture = captureModule as IEpisodeCapture;
 
         private IEnumerator Start()
         {
@@ -34,20 +40,25 @@ namespace Game.RLHarness
             Initialize(spec, assets, composedUnits, arena, projectiles);
             yield return RunLane();
 #if UNITY_EDITOR
-            if (Application.isBatchMode) UnityEditor.EditorApplication.Exit(0);
+            if (exitEditorWhenComplete) UnityEditor.EditorApplication.Exit(0);
 #else
             Application.Quit(0);
 #endif
         }
 
         internal void Initialize(SessionSpec sessionSpec, HarnessAssets harnessAssets, UnitService unitService,
-            ArenaContext arena, IProjectileService projectiles)
+            ArenaContext arena, IProjectileService projectiles, IEpisodeCapture capture = null)
         {
             spec = sessionSpec;
             assets = harnessAssets;
             units = unitService;
             Arena = arena;
             Projectiles = projectiles;
+            if (capture != null)
+            {
+                episodeCapture = capture;
+                captureModule = capture as ScriptableObject;
+            }
             probes = new ISessionProbe[sessionSpec.probes.Length];
             for (var i = 0; i < probes.Length; i++)
                 probes[i] = SessionProbes.Create(sessionSpec.probes[i].name, sessionSpec.probes[i].ToParameters());
@@ -71,7 +82,11 @@ namespace Game.RLHarness
         internal IEnumerator RunBlock(ISessionComposition composition, OpponentSpec opponent, int episodes,
             RewardSpec episodeSpec, string jsonlPath, Action<EpisodeResult> onEpisode)
         {
-            var drawPainters = BuildPainterDraw(composition);
+            var nativeCapture = spec.gizmoProfile != GizmoCaptureProfile.None;
+            if (nativeCapture && episodeCapture == null)
+                throw new InvalidOperationException(
+                    "RL_HARNESS_GIZMOS selected native capture, but the Editor bootstrap attached no episode-capture module.");
+            var drawPainters = nativeCapture ? null : BuildPainterDraw(composition);
             var subjects = new Vector2[2];
             for (var episode = 0; episode < episodes; episode++)
             {
@@ -79,21 +94,44 @@ namespace Game.RLHarness
                 var draw = composition.InstallOpponent(in opponent, in episodeSpec, episode, Arena.Offset);
                 var context = new ProbeContext(composition.Pair, Arena.Offset, in episodeSpec, episode, in draw,
                     opponent.Label, composition.Driver);
-                using var recorder = spec.record.Records(episode)
+                var records = spec.record.Records(episode);
+                using var recorder = records && !nativeCapture
                     ? new CaptureRecorder(ClipConfig(episodeSpec.runSeed, opponent.Label, episode, jsonlPath))
                     : null;
                 var pair = composition.Pair;
-                Action onFixedStep = recorder == null
-                    ? SampleProbes
-                    : () =>
+                var captureConfig = records && nativeCapture
+                    ? ClipConfig(episodeSpec.runSeed, opponent.Label, episode, jsonlPath)
+                    : null;
+                Action onFixedStep = () =>
+                {
+                    SampleProbes();
+                    if (records && nativeCapture)
                     {
-                        SampleProbes();
+                        episodeCapture.Step();
+                    }
+                    else if (recorder != null)
+                    {
                         subjects[0] = pair.Agent.Kinematics.pos;
                         subjects[1] = pair.Baseline.Kinematics.pos;
                         recorder.Step(subjects, drawPainters);
-                    };
-                yield return composition.Driver.RunEpisode(episodeSpec, episode,
-                    onBegin: () => BeginProbes(context), onFixedStep: onFixedStep);
+                    }
+                };
+                try
+                {
+                    yield return composition.Driver.RunEpisode(episodeSpec, episode,
+                        onBegin: () =>
+                        {
+                            BeginProbes(context);
+                            if (captureConfig != null)
+                                episodeCapture.Begin(captureConfig, spec.gizmoProfile, pair.Agent, pair.Baseline,
+                                    Projectiles);
+                        },
+                        onFixedStep: onFixedStep);
+                }
+                finally
+                {
+                    if (captureConfig != null) episodeCapture.End();
+                }
                 // The trailing record is what puts the draw in the episode's JSONL row.
                 composition.Driver.Runner.RecordOpponent(in draw);
                 var result = composition.Driver.Runner.Result;
@@ -174,9 +212,9 @@ namespace Game.RLHarness
         private static string ProbePath(string jsonlPath, string probeName, string suffix) =>
             jsonlPath.Replace(".jsonl", $"-{probeName}{suffix}");
 
-        private static void ExitOnException(string condition, string stackTrace, LogType type)
+        private void ExitOnException(string condition, string stackTrace, LogType type)
         {
-            if (type != LogType.Exception || !Application.isBatchMode) return;
+            if (type != LogType.Exception || !exitEditorWhenComplete) return;
             Debug.LogError($"[HarnessSessionHost] fatal: {condition}\n{stackTrace}");
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.Exit(1);
@@ -188,8 +226,9 @@ namespace Game.RLHarness
         private void OnDestroy()
         {
             Application.logMessageReceived -= ExitOnException;
-            if (probes == null) return;
-            foreach (var probe in probes) probe.Dispose();
+            if (probes != null)
+                foreach (var probe in probes) probe.Dispose();
+            if (captureModule) Destroy(captureModule);
         }
     }
 }

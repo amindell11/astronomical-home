@@ -1,6 +1,8 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Game.Capture;
 using Game.Diagnostics;
 using Game.RLHarness;
 using NUnit.Framework;
@@ -81,6 +83,7 @@ namespace Tests.EditMode
             Assert.AreEqual(OpponentKind.Roster, spec.opponentKind);
             Assert.IsNull(spec.opponentOnnxSourcePath);
             Assert.AreEqual(new[] { ArchetypeGateProbe.ProbeName, CombatTelemetryProbe.ProbeName }, Names(spec.probes));
+            Assert.AreEqual(GizmoCaptureProfile.None, spec.gizmoProfile);
             Assert.IsNull(spec.outDir);
         }
 
@@ -438,6 +441,52 @@ namespace Tests.EditMode
                 () => DiagnosticPainters.BuildPresets(
                     (DiagnosticPainters.Policy, new[] { DiagnosticPainters.Policy })),
                 "a preset name colliding with a registered atom must fail when registered");
+        }
+
+        [Test]
+        public void GizmoProfile_SelectsOneCodeDefinedCaptureProfile()
+        {
+            var prefix = new[]
+            {
+                "RL_HARNESS_LANE", "capture",
+                "RL_HARNESS_SEEDS", "2001",
+                "RL_HARNESS_OPPONENT", "mirror",
+                "RL_HARNESS_RECORD", "all",
+            };
+
+            Assert.AreEqual(GizmoCaptureProfile.Steering,
+                Parse(prefix.Concat(new[] { "RL_HARNESS_GIZMOS", "steering" }).ToArray()).gizmoProfile);
+            Assert.AreEqual(GizmoCaptureProfile.Combat,
+                Parse(prefix.Concat(new[] { "RL_HARNESS_GIZMOS", "COMBAT" }).ToArray()).gizmoProfile);
+            Assert.AreEqual(GizmoCaptureProfile.Everything,
+                Parse(prefix.Concat(new[] { "RL_HARNESS_GIZMOS", "everything" }).ToArray()).gizmoProfile);
+            Assert.IsFalse(
+                Parse(prefix.Concat(new[] { "RL_HARNESS_GIZMOS", "steering" }).ToArray()).Presentation,
+                "native gizmo capture uses collider silhouettes without presentation meshes");
+            Assert.IsTrue(
+                Parse(prefix.Concat(new[] { "RL_HARNESS_PAINTERS", "everything" }).ToArray()).Presentation,
+                "the migration painter backend retains its presentation path");
+        }
+
+        [Test]
+        public void GizmoProfile_RejectsUnknownMixedOrUnrecordedUseAtTheBoundary()
+        {
+            Assert.Throws<ArgumentException>(() => Parse("RL_HARNESS_GIZMOS", "heatmap"));
+            Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_LANE", "capture",
+                "RL_HARNESS_SEEDS", "2001",
+                "RL_HARNESS_OPPONENT", "mirror",
+                "RL_HARNESS_GIZMOS", "steering"), "profile without recorded episodes");
+            Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_RECORD", "all",
+                "RL_HARNESS_GIZMOS", "steering"), "profile outside the capture lane");
+            Assert.Throws<ArgumentException>(() => Parse(
+                "RL_HARNESS_LANE", "capture",
+                "RL_HARNESS_SEEDS", "2001",
+                "RL_HARNESS_OPPONENT", "mirror",
+                "RL_HARNESS_RECORD", "all",
+                "RL_HARNESS_GIZMOS", "steering",
+                "RL_HARNESS_PAINTERS", "everything"), "two capture backends cannot own one artifact path");
         }
     }
 }
