@@ -94,6 +94,16 @@ namespace Tests.EditMode
         }
 
         [Test]
+        public void VolumePostprocessor_IsDiscoverableByUnity()
+        {
+            // Unity only finds OnPostprocessAllAssets on AssetPostprocessor subclasses. Get
+            // this wrong and the auto-bake silently never runs — no error, no import, just
+            // staleness waiting for the build gate. Cheap pin on an expensive silent failure.
+            Assert.That(typeof(AsteroidVolumePostprocessor).IsSubclassOf(typeof(UnityEditor.AssetPostprocessor)),
+                Is.True);
+        }
+
+        [Test]
         public void ShippedSettings_PassTheBuildGate()
         {
             // The gate's real job, run as a test so a stale bake fails the merge gate rather

@@ -20,7 +20,7 @@ namespace AsteroidTools
     /// Lobes stay manual (<c>Rebake Asteroid Lobes</c>): regenerating AI geometry behind a
     /// build is worse than refusing it, so the build gate only stale-checks them.
     /// </summary>
-    public static class AsteroidVolumePostprocessor
+    public class AsteroidVolumePostprocessor : AssetPostprocessor
     {
         private static void OnPostprocessAllAssets(
             string[] importedAssets, string[] deletedAssets,
