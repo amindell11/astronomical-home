@@ -331,7 +331,7 @@ namespace Asteroids.Fields.Core
             return new AsteroidCandidate
             {
                 Position = position,
-                Radius = Mathf.Pow(3f * baseVolume / (4f * Mathf.PI), 1f / 3f) * scale,
+                Radius = AsteroidGeometry.RadiusFromVolume(baseVolume) * scale,
                 MeshIndex = meshIndex,
                 MassFactor = massFactor
             };

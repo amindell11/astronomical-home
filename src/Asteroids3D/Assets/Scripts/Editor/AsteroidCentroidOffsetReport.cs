@@ -93,7 +93,7 @@ namespace AsteroidTools
             // Physically-meaningful centroid: the signed-tetrahedron VOLUME centroid
             // (rigidbody COM / rotation center). This is what the import-time re-pivot
             // drives to the origin, so it should read ~0 for re-pivoted meshes.
-            if (TryComputeVolumeCentroid(mesh, out Vector3 volCentroid))
+            if (AsteroidMeshVolume.TryCompute(mesh, out _, out Vector3 volCentroid))
             {
                 sb.AppendLine(
                     $"      volOffset={volCentroid.magnitude:F4} " +
@@ -106,43 +106,6 @@ namespace AsteroidTools
             }
 
             AppendPcaShape(sb, mesh, verts);
-        }
-
-        /// <summary>
-        /// Signed-tetrahedron VOLUME centroid — the same routine the import-time
-        /// re-pivot (AsteroidPivotPostprocessor) uses. Each triangle (a,b,c) forms a
-        /// tetrahedron with the origin; its signed volume is dot(a, cross(b,c))/6 and
-        /// its centroid is (a+b+c)*0.25. The volume-weighted mean of the tet centroids
-        /// is the solid's centre of mass, independent of tessellation density. Returns
-        /// false (leaving centroid at zero) for a degenerate / non-closed volume.
-        /// </summary>
-        private static bool TryComputeVolumeCentroid(Mesh mesh, out Vector3 centroid)
-        {
-            centroid = Vector3.zero;
-            var verts = mesh.vertices;
-            var tris = mesh.triangles;
-            if (verts.Length == 0 || tris.Length < 3) return false;
-
-            double sumVol = 0.0;
-            double wx = 0.0, wy = 0.0, wz = 0.0;
-            for (int t = 0; t + 2 < tris.Length; t += 3)
-            {
-                Vector3 a = verts[tris[t]], b = verts[tris[t + 1]], c = verts[tris[t + 2]];
-                double signedVol = Vector3.Dot(a, Vector3.Cross(b, c)) / 6.0;
-                double tcx = (a.x + b.x + c.x) * 0.25;
-                double tcy = (a.y + b.y + c.y) * 0.25;
-                double tcz = (a.z + b.z + c.z) * 0.25;
-                sumVol += signedVol;
-                wx += signedVol * tcx;
-                wy += signedVol * tcy;
-                wz += signedVol * tcz;
-            }
-
-            if (System.Math.Abs(sumVol) < 1e-9) return false;
-
-            centroid = new Vector3(
-                (float)(wx / sumVol), (float)(wy / sumVol), (float)(wz / sumVol));
-            return true;
         }
 
         /// <summary>

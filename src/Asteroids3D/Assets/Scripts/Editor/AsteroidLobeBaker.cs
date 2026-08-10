@@ -8,14 +8,12 @@ namespace Asteroids.Spawning
 {
     /// <summary>
     /// Bakes a small set of covering spheres ("lobes") along a mesh's principal
-    /// axis. Pure UnityEngine (no UnityEditor dependency) so it can be called from
-    /// <see cref="AsteroidSpawnSettings"/>'s OnValidate, an editor menu, or headless.
+    /// axis — the asteroid shape channel the MPC consumes via
+    /// <c>BurstSolver.ConvertObstacles</c>. Pure UnityEngine (no UnityEditor
+    /// dependency) so it can be driven from an editor menu or headless.
     ///
     /// Deterministic by construction (RL reproducibility): identical mesh in →
     /// identical lobes out. No Random, no time, no unordered-set iteration.
-    ///
-    /// Nothing reads the lobes for gameplay yet — this is the eyeball-the-decomposition
-    /// stage before the solver work.
     /// </summary>
     public static class AsteroidLobeBaker
     {
@@ -42,19 +40,36 @@ namespace Asteroids.Spawning
             int k = ClassifyK(aspect);
             if (k <= 1)
             {
-                // K=1 MUST reproduce today's single circle exactly: mesh is centroid-
-                // pivoted, so center is the origin and radius is the mean-vertex radius.
+                // Mesh is centroid-pivoted at import, so a near-spherical rock's covering
+                // sphere sits at the origin with the mean-vertex radius.
                 return new[]
                 {
                     new AsteroidSpawnSettings.MeshInfo.LobeSphere
                     {
                         center = Vector3.zero,
-                        radius = AsteroidController.MeanVertexRadius(mesh),
+                        radius = MeanVertexRadius(mesh),
                     },
                 };
             }
 
             return KMeansLobes(verts, principalAxis, k);
+        }
+
+        /// <summary>
+        /// Mean distance of the mesh's vertices from its local origin — the "typical"
+        /// silhouette radius of an irregular rock, rotation-agnostic (asteroids tumble in
+        /// 3D, so a per-axis or in-plane measure would drift as they rotate). Deliberately
+        /// tighter than the circumscribed radius; protrusions may clip.
+        /// </summary>
+        public static float MeanVertexRadius(Mesh mesh)
+        {
+            var vertices = mesh.vertices;
+            if (vertices.Length == 0) return mesh.bounds.extents.magnitude;
+
+            var sum = 0f;
+            for (var i = 0; i < vertices.Length; i++)
+                sum += vertices[i].magnitude;
+            return sum / vertices.Length;
         }
 
         /// <summary>Map a principal aspect (e1/e2) to a lobe count.</summary>
