@@ -9,9 +9,8 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>Editor-authorable trained policy: self-hosts a <see cref="LivePilotAgent"/> in InferenceOnly mode on first Decide, targets the context's tracked enemy, and paces boundary RequestDecision calls on the Academy auto-clock.</summary>
-    [Serializable]
-    public sealed class InferenceChooser : IIntentChooser, IPolicyReadout
+    /// <summary>Editor-authorable trained policy: a <see cref="PolicyBrain"/> that fills its own mailbox — it self-hosts a <see cref="LivePilotAgent"/> in InferenceOnly mode on first Decide, targets the context's tracked enemy, and paces boundary RequestDecision calls on the Academy auto-clock.</summary>
+    public sealed class InferenceBrain : PolicyBrain
     {
         [Tooltip("Trained ShipCombat checkpoint (ONNX).")]
         [SerializeField] private ModelAsset model;
@@ -19,7 +18,6 @@ namespace Game.RLHarness
         [Tooltip("Radius of the border observation's leash, centered on the compose-time position; the trained policy avoids the edge. Author a huge value for no leash. 120 matches training.")]
         [SerializeField] private float leashRadius = 120f;
 
-        private readonly AgentChooser mailbox = new();
         private LivePilotAgent agent;
         private Ship self;
         private Ship enemy;
@@ -27,27 +25,22 @@ namespace Game.RLHarness
         private bool reanchorLeash;
         private int ticksUntilDecision;
 
-        public InferenceChooser() { }
+        internal ModelAsset Model => model;
+        internal LivePilotAgent Agent => agent;
 
-        internal InferenceChooser(ModelAsset model, float leashRadius)
+        /// <summary>Authoring seam for runtime installs; the prefab path serializes these two directly.</summary>
+        internal void ConfigureModel(ModelAsset model, float leashRadius)
         {
             this.model = model;
             this.leashRadius = leashRadius;
         }
 
-        internal ModelAsset Model => model;
-        internal LivePilotAgent Agent => agent;
-
-        public int Count => mailbox.Count;
-        public int TotalDecisions => mailbox.TotalDecisions;
-        public PolicyAction ActionFromNewest(int index) => mailbox.ActionFromNewest(index);
-
-        public BrainDecision? Decide(AIContext ctx, float dt)
+        public override BrainDecision? Decide(AIContext ctx)
         {
             if (!agent)
                 Compose(ctx);
 
-            // Deferred to the first post-reset tick: Reset fires before a respawn teleport lands.
+            // Deferred to the first post-reset tick: ResetState fires before a respawn teleport lands.
             if (reanchorLeash)
             {
                 leashCenter = self.Kinematics.pos;
@@ -63,12 +56,12 @@ namespace Game.RLHarness
                 ticksUntilDecision = ShipCombatPolicy.DecisionIntervalSteps;
             }
 
-            return mailbox.Decide(ctx, dt);
+            return base.Decide(ctx);
         }
 
-        public void Reset()
+        public override void ResetState()
         {
-            mailbox.Reset();
+            base.ResetState();
             ticksUntilDecision = 0;
             reanchorLeash = true;
         }
@@ -78,19 +71,20 @@ namespace Game.RLHarness
             if (next == enemy) return;
             enemy = next;
             ticksUntilDecision = 0;
+            // Mailbox-only: a retarget must not re-anchor the leash, which ResetState would.
             if (enemy)
-                mailbox.Configure(enemy);
+                Configure(enemy);
             else
-                mailbox.Reset();
+                ResetMailbox();
         }
 
         private void Compose(AIContext ctx)
         {
             self = ctx.Self as Ship;
             if (!self)
-                throw new InvalidOperationException("InferenceChooser requires a Ship context.");
+                throw new InvalidOperationException("InferenceBrain requires a Ship context.");
             if (!model)
-                throw new InvalidOperationException($"InferenceChooser on '{self.name}' has no ModelAsset assigned.");
+                throw new InvalidOperationException($"InferenceBrain on '{self.name}' has no ModelAsset assigned.");
 
             var host = new GameObject("[InferencePilot]");
             host.transform.SetParent(self.transform, false);
@@ -108,7 +102,7 @@ namespace Game.RLHarness
             AgentObservations.ApplySchema(behavior, obstacleBuffer);
 
             agent = host.AddComponent<LivePilotAgent>();
-            agent.Bind(mailbox, ctx.Scout, obstacleBuffer);
+            agent.Bind(this, ctx.Scout, obstacleBuffer);
             host.SetActive(true);
 
             leashCenter = self.Kinematics.pos;

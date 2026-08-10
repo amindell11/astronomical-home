@@ -11,14 +11,14 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>The ML-Agents face of one episode ship: observes at the runner's decision boundary (the envelope bits come from the SAME boundary snapshot — never re-evaluate Gunsight from observation code) and pushes each received action into the <see cref="AgentChooser"/>. Lifecycle (reset, decision pacing, reward) is owned by the hosting loop; MaxStep stays 0 and OnEpisodeBegin stays a no-op.</summary>
+    /// <summary>The ML-Agents face of one episode ship: observes at the runner's decision boundary (the envelope bits come from the SAME boundary snapshot — never re-evaluate Gunsight from observation code) and pushes each received action into the <see cref="PolicyBrain"/>. Lifecycle (reset, decision pacing, reward) is owned by the hosting loop; MaxStep stays 0 and OnEpisodeBegin stays a no-op.</summary>
     public sealed class ShipAgent : Agent
     {
         public const float HeuristicHoldRange = 15f;
 
         private Ship self;
         private Ship opponent;
-        private AgentChooser chooser;
+        private PolicyBrain brain;
         private RewardSpec spec;
         private Vector2 arenaCenter;
         private IHeatReadout primaryHeat;
@@ -33,11 +33,11 @@ namespace Game.RLHarness
 
         public int DecisionsReceived { get; private set; }
 
-        public void Configure(Ship self, Ship opponent, AgentChooser chooser, in RewardSpec spec, Vector2 arenaCenter, Scout scout, BufferSensorComponent obstacleBuffer)
+        public void Configure(Ship self, Ship opponent, PolicyBrain brain, in RewardSpec spec, Vector2 arenaCenter, Scout scout, BufferSensorComponent obstacleBuffer)
         {
             this.self = self;
             this.opponent = opponent;
-            this.chooser = chooser;
+            this.brain = brain;
             this.spec = spec;
             this.arenaCenter = arenaCenter;
             this.scout = scout;
@@ -95,7 +95,7 @@ namespace Game.RLHarness
             var discrete = actions.DiscreteActions;
             var action = AgentActions.Map(continuous[0], continuous[1], continuous[2],
                 continuous[3], continuous[4], discrete[0], discrete[1], self.MaxSpeed);
-            chooser.SetAction(in action, self.BoostAvailable);
+            brain.SetAction(in action, self.BoostAvailable);
             DecisionsReceived++;
         }
 
@@ -105,7 +105,7 @@ namespace Game.RLHarness
             var discrete = actionsOut.DiscreteActions;
             var selfKin = self.Kinematics;
             var enemyKin = opponent.Kinematics;
-            var world = RangerChooser.HoldRangeVelocity(
+            var world = RangerBrain.HoldRangeVelocity(
                 in selfKin, enemyKin, HeuristicHoldRange, self.MaxSpeed);
             var los = enemyKin.pos - selfKin.pos;
             var losHat = los.sqrMagnitude > 1e-8f ? los.normalized : Vector2.up;

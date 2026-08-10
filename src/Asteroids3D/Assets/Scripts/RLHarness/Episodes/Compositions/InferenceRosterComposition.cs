@@ -16,9 +16,9 @@ namespace Game.RLHarness
         public InferenceRosterComposition(UnitService units, ArenaContext arena, IProjectileService projectiles,
             HarnessAssets assets, in RewardSpec spec, ModelAsset model, HarnessField field)
         {
-            Pair = EpisodePair.SpawnWithAgentChooser(units, arena, projectiles, in spec, assets, out var chooser);
+            Pair = EpisodePair.SpawnWithAgentBrain(units, arena, projectiles, in spec, assets, out var brain);
             roster = new OpponentRoster(Pair.Baseline, Pair.Agent);
-            agent = ShipAgentFactory.ComposeInferenceOnly(Pair, chooser, in spec, arena.Offset, model);
+            agent = ShipAgentFactory.ComposeInferenceOnly(Pair, brain, in spec, arena.Offset, model);
             Driver = new EpisodeLoopDriver(Pair, agent, arena.Offset, field);
         }
 

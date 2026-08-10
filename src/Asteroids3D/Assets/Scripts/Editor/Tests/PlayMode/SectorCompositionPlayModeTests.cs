@@ -75,7 +75,7 @@ namespace Tests.PlayMode
 
             _config = ScriptableObject.CreateInstance<SectorSettings>();
 
-            // Composition tests observe spawn lifecycle only; the stripped test pilot authors no chooser, and a ticking Brain throws.
+            // Composition tests observe spawn lifecycle only — whatever brain a sector pilot authors stays parked.
             _unitService.OnShipSpawned += s =>
             {
                 var brain = (s.Commander as AICommander)?.Brain;

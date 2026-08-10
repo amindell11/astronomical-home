@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>Deterministic border handling for the scripted opponent archetypes, as one pure velocity-law post-step (the <see cref="RangerChooser.HoldRangeVelocity"/> style).</summary>
+    /// <summary>Deterministic border handling for the scripted opponent archetypes, as one pure velocity-law post-step (the <see cref="RangerBrain.HoldRangeVelocity"/> style).</summary>
     public static class ArchetypeSteering
     {
         // At maxSpeed 25 with ~18 u/s² braking the tangent-point overshoot is ~17 u — stay well inside.

@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the AgentPilot authoring: the prefab's chooser must resolve to a model-bearing InferenceChooser, and both agent-hosting pilots must author the policy-matched tracker settings the checkpoint was trained against.</summary>
+    /// <summary>Pins the AgentPilot authoring: the prefab's brain must be a model-bearing InferenceBrain, and both agent-hosting pilots must author the policy-matched tracker settings the checkpoint was trained against.</summary>
     [Category("AI")]
     public class AgentPilotAuthoringEditModeTests
     {
@@ -16,15 +16,15 @@ namespace Tests.EditMode
         private const string TestPilotPath = "Assets/Prefabs/Pilots/TestPilotMPC.prefab";
 
         [Test]
-        public void AgentPilot_AuthorsInferenceChooserWithModel()
+        public void AgentPilot_AuthorsInferenceBrainWithModel()
         {
             var pilot = AssetDatabase.LoadAssetAtPath<GameObject>(AgentPilotPath);
             Assert.IsNotNull(pilot, $"Missing prefab: {AgentPilotPath}");
 
-            var chooser = pilot.GetComponent<Brain>().Chooser as InferenceChooser;
-            Assert.IsNotNull(chooser, "AgentPilot's Brain must author an InferenceChooser");
+            var brain = pilot.GetComponent<InferenceBrain>();
+            Assert.IsNotNull(brain, "AgentPilot must author an InferenceBrain");
             // Unity-null comparison: a broken asset ref deserializes as a fake-null wrapper Assert.IsNotNull cannot see.
-            Assert.IsTrue(chooser.Model != null, "InferenceChooser must reference a resolvable trained checkpoint");
+            Assert.IsTrue(brain.Model != null, "InferenceBrain must reference a resolvable trained checkpoint");
         }
 
         [TestCase(AgentPilotPath)]

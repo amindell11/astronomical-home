@@ -425,7 +425,10 @@ Format: **term** — definition. *(authority)*
   move channels overwrite each other, so only one survives. Idempotent per
   decision — re-applying one is safe, which is what lets a 5 Hz decision be
   re-pushed every tick. *(NavObjective, AnchoredBuilder)*
-- **brain / chooser / decision lane** — the swappable-decision seam. A
+- **brain / decision lane** — the swappable-decision seam. A **brain** is the
+  component that decides: one `Brain` subclass per policy, installed through
+  `AICommander.InstallBrain` or authored on the pilot prefab. ("Chooser" was the
+  interface-era name for the same thing — retired with `IIntentChooser`.) A
   `BrainDecision` is a transport, not a union: the commander opens it and routes
   each lane to a different consumer, keeping nothing. The nav lane is *solved*
   into a `PilotCommand` by the MPC; the fire lane is per-slot authority
@@ -433,7 +436,7 @@ Format: **term** — definition. *(authority)*
   derives the press edge; the ability lane is a one-shot activation. On the nav
   lane, objective and command are different altitudes rather than synonyms.
   ⚠ Not to be confused with `PilotCommand`/`IPilot`, which are the actuator end.
-  *(Brain, IIntentChooser, BrainDecision, FireControl)*
+  *(Brain, BrainDecision, FireControl)*
 - **presentation** — the per-session axis deciding whether visuals and audio
   exist. Two things a reader needs: it is applied by the owning spawn seams,
   never by per-component globals; and it is **not** the same axis as the deleted

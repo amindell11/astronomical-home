@@ -14,7 +14,7 @@ using UnityEngine.TestTools;
 
 namespace Tests.PlayMode
 {
-    /// <summary>The per-archetype degeneracy gate (env PR-C): each scripted opponent archetype exercised against the deterministic <see cref="RangerChooser"/> stand-in on the agent side, with per-episode JSONL rows + per-archetype summaries for the human go/no-go before any training hours. The sweep is opt-in (RL_ARCHETYPES env / results/rl-archetypes/watch.flag); the smoke always runs.</summary>
+    /// <summary>The per-archetype degeneracy gate (env PR-C): each scripted opponent archetype exercised against the deterministic <see cref="RangerBrain"/> stand-in on the agent side, with per-episode JSONL rows + per-archetype summaries for the human go/no-go before any training hours. The sweep is opt-in (RL_ARCHETYPES env / results/rl-archetypes/watch.flag); the smoke always runs.</summary>
     [TestFixture]
     [Category("AI")]
     public class OpponentArchetypePlayModeTests
@@ -121,7 +121,7 @@ namespace Tests.PlayMode
                         break;
                     default:
                         Assert.Greater(row.maxDisplacement, 2f,
-                            $"{archetype} produced no motion — chooser install/wiring broken?");
+                            $"{archetype} produced no motion — brain install/wiring broken?");
                         break;
                 }
 
@@ -181,12 +181,12 @@ namespace Tests.PlayMode
             Debug.Log($"[ArchetypeGate] wrote {episodes} episodes (+{Archetypes.Length} summaries) to {path}");
         }
 
-        /// <summary>The gate composition: the canonical pair with the deterministic ranger stand-in on the agent side, and the roster bound to the opponent while its prefab-default utility chooser is still installed.</summary>
+        /// <summary>The gate composition: the canonical pair with the deterministic ranger stand-in on the agent side, and the roster bound to the opponent while its prefab-default utility brain is still installed.</summary>
         private void SpawnPairWithRoster(in RewardSpec spec)
         {
-            pair = EpisodePair.Spawn(unitService, arena, projectiles, in spec, (agentShip, baselineShip) =>
+            pair = EpisodePair.Spawn(unitService, arena, projectiles, in spec, (commander, baselineShip) =>
             {
-                var ranger = new RangerChooser();
+                var ranger = commander.InstallBrain<RangerBrain>();
                 ranger.Configure(baselineShip, RangerHoldRange);
                 return ranger;
             }, assets);

@@ -16,13 +16,13 @@ namespace Game.RLHarness
             var field = spec.useAsteroidField
                 ? HarnessField.Spawn(arena, assets, spec.fieldDensityScale, host.transform, presentationEnabled: false)
                 : null;
-            var pair = EpisodePair.SpawnWithAgentChooser(units, arena, projectiles, in spec, assets, out var chooser);
+            var pair = EpisodePair.SpawnWithAgentBrain(units, arena, projectiles, in spec, assets, out var brain);
             roster = new OpponentRoster(pair.Baseline, pair.Agent);
 
             var agent = behaviorType switch
             {
-                BehaviorType.Default => ShipAgentFactory.ComposeForTraining(pair, chooser, in spec, arena.Offset, host.transform),
-                BehaviorType.HeuristicOnly => ShipAgentFactory.ComposeHeuristicOnly(pair, chooser, in spec, arena.Offset, host.transform),
+                BehaviorType.Default => ShipAgentFactory.ComposeForTraining(pair, brain, in spec, arena.Offset, host.transform),
+                BehaviorType.HeuristicOnly => ShipAgentFactory.ComposeHeuristicOnly(pair, brain, in spec, arena.Offset, host.transform),
                 _ => throw new NotSupportedException(
                     $"Training supports Default (trainer) and HeuristicOnly; {behaviorType} checkpoint eval runs through CheckpointEvaluator."),
             };

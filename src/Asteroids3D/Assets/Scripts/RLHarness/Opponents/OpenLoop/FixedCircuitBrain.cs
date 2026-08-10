@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Game.RLHarness
 {
     /// <summary>The open-loop composition's non-reactive enemy — THE fixed path shape (K1-2): a CCW circle around the arena center, held by a tangential command plus a radial P-term off the mover's own kinematics only, so the measured ship can never steer it. Never aims, never fires, and carries no anchor at all.</summary>
-    public sealed class FixedCircuitChooser : IIntentChooser
+    public sealed class FixedCircuitBrain : Brain
     {
         private const float CircuitRadius = 14f;
         // v²/R stays well inside thrust authority (~16 u/s² at these radii) so the circle actually holds.
@@ -19,7 +19,7 @@ namespace Game.RLHarness
             center = arenaCenter;
         }
 
-        public BrainDecision? Decide(AIContext ctx, float dt)
+        public override BrainDecision? Decide(AIContext ctx)
         {
             if (ctx?.Self == null) return null;
 

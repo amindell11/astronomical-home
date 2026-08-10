@@ -29,7 +29,7 @@ namespace Tests.PlayMode
         private float savedCaptureDelta;
 
         private EpisodePair pair;
-        private AgentChooser chooser;
+        private PolicyBrain brain;
         private ShipAgent agent;
 
         private static Unity.InferenceEngine.ModelAsset LoadModel(string assetPath) =>
@@ -55,7 +55,7 @@ namespace Tests.PlayMode
             Time.maximumDeltaTime = 1f;
             PacingContract.Apply();
 
-            // An InferenceChooser test earlier in the suite leaves auto-stepping off.
+            // An InferenceBrain test earlier in the suite leaves auto-stepping off.
             if (Academy.IsInitialized)
                 Academy.Instance.AutomaticSteppingEnabled = true;
         }
@@ -72,7 +72,7 @@ namespace Tests.PlayMode
             agent = null;
             pair?.Dispose();
             pair = null;
-            chooser = null;
+            brain = null;
             if (arenaHost) UnityEngine.Object.DestroyImmediate(arenaHost);
             arena = null;
             projectiles = null;
@@ -93,8 +93,8 @@ namespace Tests.PlayMode
 
         private void Compose(in RewardSpec spec)
         {
-            pair = EpisodePair.SpawnWithAgentChooser(unitService, arena, projectiles, in spec, assets, out chooser);
-            agent = ShipAgentFactory.ComposeHeuristicOnly(pair, chooser, in spec, arena.Offset);
+            pair = EpisodePair.SpawnWithAgentBrain(unitService, arena, projectiles, in spec, assets, out brain);
+            agent = ShipAgentFactory.ComposeHeuristicOnly(pair, brain, in spec, arena.Offset);
             Assert.IsNotNull(agent, "ShipAgent must be attachable (harness assembly is not editor-only)");
         }
 
@@ -170,8 +170,8 @@ namespace Tests.PlayMode
             spec.minSeparation = 18f;
             spec.maxSeparation = 24f;
 
-            pair = EpisodePair.SpawnWithAgentChooser(unitService, arena, projectiles, in spec, assets, out chooser);
-            agent = ShipAgentFactory.ComposeInferenceOnly(pair, chooser, in spec, arena.Offset,
+            pair = EpisodePair.SpawnWithAgentBrain(unitService, arena, projectiles, in spec, assets, out brain);
+            agent = ShipAgentFactory.ComposeInferenceOnly(pair, brain, in spec, arena.Offset,
                 LoadModel(ShipAgentFactory.SmokeFixturePath));
 
             var behavior = agent.GetComponent<BehaviorParameters>();

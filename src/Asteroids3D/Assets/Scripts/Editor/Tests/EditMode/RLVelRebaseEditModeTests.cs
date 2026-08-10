@@ -32,7 +32,7 @@ namespace Tests.EditMode
             const float speedFraction = 0.55f;
             const float maxSpeed = 25f;
 
-            // Verbatim copy of the pre-K1-2 OrbiterChooser.BuildIntent velocity math.
+            // Verbatim copy of the pre-K1-2 OrbiterBrain.BuildDecision velocity math.
             var los = enemy.pos - self.pos;
             var r = los.magnitude;
             var losHat = r > 1e-4f ? los / r : Vector2.up;
@@ -42,7 +42,7 @@ namespace Tests.EditMode
             var radial = (0.9f * (orbitRadius - r) - centripetal) * -losHat;
             var expected = Vector2.ClampMagnitude(vTan * tangent + radial, maxSpeed);
 
-            var actual = OrbiterChooser.OrbitVelocity(in self, in enemy, orbitRadius, orbitDirection,
+            var actual = OrbiterBrain.OrbitVelocity(in self, in enemy, orbitRadius, orbitDirection,
                 speedFraction, maxSpeed);
             Assert.AreEqual(expected.x, actual.x, "exact-float: the extraction must not reorder the law");
             Assert.AreEqual(expected.y, actual.y);
@@ -57,13 +57,13 @@ namespace Tests.EditMode
             const float maxSpeed = 25f;
             const int jukeSign = -1;
 
-            // Verbatim copy of the pre-K1-2 EvaderChooser.BuildIntent velocity math.
+            // Verbatim copy of the pre-K1-2 EvaderBrain.BuildDecision velocity math.
             var away = selfPos - threatPos;
             var fleeHat = away.sqrMagnitude > 1e-8f ? away.normalized : Vector2.up;
             var dir = (fleeHat + 0.6f * jukeSign * new Vector2(-fleeHat.y, fleeHat.x)).normalized;
             var expected = speedFraction * maxSpeed * dir;
 
-            var actual = EvaderChooser.FleeVelocity(selfPos, threatPos, jukeSign, speedFraction * maxSpeed);
+            var actual = EvaderBrain.FleeVelocity(selfPos, threatPos, jukeSign, speedFraction * maxSpeed);
             Assert.AreEqual(expected.x, actual.x, "exact-float: the extraction must not reorder the law");
             Assert.AreEqual(expected.y, actual.y);
         }
@@ -111,7 +111,7 @@ namespace Tests.EditMode
             Assert.That(moving.y, Is.EqualTo(law.y - 1f).Within(1e-4f));
         }
 
-        // ---- Chooser pack + readout cadence (test-shaped concrete archetype) ----
+        // ---- Brain pack + readout cadence (test-shaped concrete archetype) ----
 
         private sealed class StubStatus : IShipStatus
         {
@@ -128,7 +128,7 @@ namespace Tests.EditMode
             public float MaxYawRate => 90f;
         }
 
-        private sealed class TestChooser : OpponentArchetypeChooser
+        private sealed class TestBrain : OpponentArchetypeBrain
         {
             public Vector2 lawVelocity;
             public Vector2 selfPos;
@@ -159,20 +159,20 @@ namespace Tests.EditMode
             if (scoutGo) Object.DestroyImmediate(scoutGo);
         }
 
-        private TestChooser NewChooser(ArchetypeDrive drive)
+        private TestBrain NewBrain(ArchetypeDrive drive)
         {
-            var chooser = new TestChooser();
-            chooser.BindForTest(targetGo.AddComponent<Ship>(), drive, Vector2.zero, 120f);
-            return chooser;
+            var brain = scoutGo.AddComponent<TestBrain>();
+            brain.BindForTest(targetGo.AddComponent<Ship>(), drive, Vector2.zero, 120f);
+            return brain;
         }
 
         [Test]
         public void Pack_OpenLoopLegacy_EmitsTheLawUnchangedAndDisarmsFire()
         {
-            var chooser = NewChooser(ArchetypeDrive.OpenLoopLegacy);
-            chooser.lawVelocity = new Vector2(3f, -4f);
+            var brain = NewBrain(ArchetypeDrive.OpenLoopLegacy);
+            brain.lawVelocity = new Vector2(3f, -4f);
 
-            var decision = chooser.PackForTest();
+            var decision = brain.PackForTest();
 
             Assert.AreEqual(3f, decision.nav.planarVelocity.x, "exact-float: no border steer on the open-loop arms");
             Assert.AreEqual(-4f, decision.nav.planarVelocity.y);
@@ -184,12 +184,12 @@ namespace Tests.EditMode
         [Test]
         public void Pack_OpenLoopAnchored_CarriesTheSameNumbersInThePolarChannel()
         {
-            var chooser = NewChooser(ArchetypeDrive.OpenLoopAnchored);
+            var brain = NewBrain(ArchetypeDrive.OpenLoopAnchored);
             // Target ship sits at the origin (default kinematics); law command from (0,-10) straight at it.
-            chooser.selfPos = new Vector2(0f, -10f);
-            chooser.lawVelocity = new Vector2(0f, 5f);
+            brain.selfPos = new Vector2(0f, -10f);
+            brain.lawVelocity = new Vector2(0f, 5f);
 
-            var decision = chooser.PackForTest();
+            var decision = brain.PackForTest();
 
             Assert.IsTrue(decision.nav.anchored.hasVelocity);
             Assert.That(decision.nav.anchored.radialSpeed, Is.EqualTo(5f).Within(1e-5f));
@@ -202,14 +202,14 @@ namespace Tests.EditMode
         [Test]
         public void Pack_Production_KeepsTheBorderSteeredReferenceByteForByte()
         {
-            var chooser = NewChooser(ArchetypeDrive.Production);
+            var brain = NewBrain(ArchetypeDrive.Production);
             // Outward-bound command deep in the border margin so the steer visibly acts.
-            chooser.selfPos = new Vector2(100f, 0f);
-            chooser.lawVelocity = new Vector2(20f, 1f);
+            brain.selfPos = new Vector2(100f, 0f);
+            brain.lawVelocity = new Vector2(20f, 1f);
 
-            var decision = chooser.PackForTest();
+            var decision = brain.PackForTest();
 
-            var expected = ArchetypeSteering.BorderTangentSteer(chooser.selfPos, chooser.lawVelocity,
+            var expected = ArchetypeSteering.BorderTangentSteer(brain.selfPos, brain.lawVelocity,
                 Vector2.zero, 120f, ArchetypeSteering.BorderMargin);
             Assert.AreEqual(expected.x, decision.nav.planarVelocity.x, "exact-float: the production pack IS Steered");
             Assert.AreEqual(expected.y, decision.nav.planarVelocity.y);
@@ -219,16 +219,16 @@ namespace Tests.EditMode
         [Test]
         public void ReadoutCounter_BumpsPerRecomputeNotPerDecide()
         {
-            var chooser = NewChooser(ArchetypeDrive.OpenLoopLegacy);
-            chooser.lawVelocity = new Vector2(1f, 0f);
+            var brain = NewBrain(ArchetypeDrive.OpenLoopLegacy);
+            brain.lawVelocity = new Vector2(1f, 0f);
             var ctx = new AIContext(new StubStatus(), scoutGo.AddComponent<AI.Scout>());
 
-            Assert.AreEqual(0, chooser.TotalDecisions);
+            Assert.AreEqual(0, brain.TotalDecisions);
             for (var tick = 0; tick < 25; tick++)
-                chooser.Decide(ctx, Dt);
+                brain.Decide(ctx);
 
-            Assert.AreEqual(3, chooser.TotalDecisions, "5 Hz cadence: recomputes at ticks 0, 10, 20 only");
-            Assert.AreEqual(1f, chooser.LastCommand.worldVelocity.x);
+            Assert.AreEqual(3, brain.TotalDecisions, "5 Hz cadence: recomputes at ticks 0, 10, 20 only");
+            Assert.AreEqual(1f, brain.LastCommand.worldVelocity.x);
         }
 
         // ---- Sampler math on synthetic samples ----
