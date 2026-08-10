@@ -14,9 +14,9 @@ namespace Game.RLHarness
             var field = spec.useAsteroidField
                 ? HarnessField.Spawn(arena, assets, spec.fieldDensityScale, host.transform, presentationEnabled: false)
                 : null;
-            var pair = EpisodePair.SpawnSelfPlayPair(units, arena, projectiles, in spec, assets, out var chooserA, out var chooserB);
+            var pair = EpisodePair.SpawnSelfPlayPair(units, arena, projectiles, in spec, assets, out var brainA, out var brainB);
             var (agentA, agentB) = ShipAgentFactory.ComposeSelfPlayPair(
-                pair, chooserA, chooserB, in spec, arena.Offset, behaviorType, host.transform);
+                pair, brainA, brainB, in spec, arena.Offset, behaviorType, host.transform);
             Driver = new EpisodeLoopDriver(pair, agentA, arena.Offset, field, roster: null, opponentAgent: agentB);
         }
 

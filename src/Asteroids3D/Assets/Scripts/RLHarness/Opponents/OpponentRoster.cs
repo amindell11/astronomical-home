@@ -9,7 +9,7 @@ namespace Game.RLHarness
 {
     public enum OpponentArchetype { Aggressor, Evader, Orbiter, Kiter, Dummy }
 
-    /// <summary>An archetype's shape parameters — drawn per episode by the roster (and embedded in the episode's JSONL row) or authored on a live pilot, then handed to <see cref="ArchetypeChoosers.Create"/>; fields the archetype does not use stay zero.</summary>
+    /// <summary>An archetype's shape parameters — drawn per episode by the roster (and embedded in the episode's JSONL row) or authored on a live pilot, then handed to <see cref="ArchetypeBrains.Attach"/>; fields the archetype does not use stay zero.</summary>
     [Serializable]
     public struct OpponentDraw
     {
@@ -21,7 +21,7 @@ namespace Game.RLHarness
         public float desiredRange;
     }
 
-    /// <summary>Per-episode opponent policy source for the episode loop: consulted BEFORE each pair-reset (respawn re-inits the installed chooser — the traversal-probe ordering), it draws an archetype + jitter params on their own seed stream and installs through <see cref="Brain.InstallChooser"/>. Every archetype drives the velocity interface. Mixture weights ride the spec (curriculum-driven via <see cref="EnvParamOverlay"/>).</summary>
+    /// <summary>Per-episode opponent policy source for the episode loop: consulted BEFORE each pair-reset (respawn re-inits the installed brain — the traversal-probe ordering), it draws an archetype + jitter params on their own seed stream and installs through <see cref="AICommander.InstallBrain"/>. Every archetype drives the velocity interface. Mixture weights ride the spec (curriculum-driven via <see cref="EnvParamOverlay"/>).</summary>
     public sealed class OpponentRoster : IDisposable
     {
         private const uint ArchetypeStream = 505;
@@ -46,7 +46,7 @@ namespace Game.RLHarness
         private const float MinAggroRange = 8f;
         private const float MaxAggroRange = 12f;
 
-        private readonly Brain brain;
+        private readonly AICommander commander;
         private readonly Ship enemy;
         private readonly Navigator navigator;
         private readonly MpcSettings originalSettings;
@@ -55,10 +55,10 @@ namespace Game.RLHarness
         public OpponentRoster(Ship opponent, Ship enemy)
         {
             this.enemy = enemy;
-            brain = opponent.GetComponentInChildren<Brain>();
+            commander = opponent.GetComponentInChildren<AICommander>();
 
             // Traversal-probe precedent: the next respawn re-creates the solver from the clone.
-            navigator = opponent.GetComponentInChildren<AICommander>().Navigator;
+            navigator = commander.Navigator;
             originalSettings = navigator.mpcSettings;
             settingsClone = UnityEngine.Object.Instantiate(originalSettings);
             settingsClone.wVelTrack = ScriptedWVelTrack;
@@ -108,8 +108,11 @@ namespace Game.RLHarness
                     break;
             }
 
-            brain.InstallChooser(ArchetypeChoosers.Create(archetype, in draw, enemy,
-                scope.Derive(JukeSeedStream).ToSeed(), arenaCenter, spec.arenaRadius, drive));
+            var jukeSeed = scope.Derive(JukeSeedStream).ToSeed();
+            // arenaRadius is copied out because a lambda cannot capture the `in` spec.
+            var arenaRadius = spec.arenaRadius;
+            commander.InstallBrain(host => ArchetypeBrains.Attach(host, archetype, in draw, enemy,
+                jukeSeed, arenaCenter, arenaRadius, drive));
             return draw;
         }
 

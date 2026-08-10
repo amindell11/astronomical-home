@@ -38,7 +38,6 @@ public class MpcNavigatorPlayModeTests : PlayModeWorldFixture
 
         // AICommander.TryInitializeSystems is gated on an arena — supply the fixture arena so all AI systems initialize.
         cmdr.SetArena(Arena);
-        cmdr.Brain.enabled = false;
 #else
         Assert.Ignore("MpcNavigatorPlayModeTests requires the Unity Editor (uses AssetDatabase).");
 #endif

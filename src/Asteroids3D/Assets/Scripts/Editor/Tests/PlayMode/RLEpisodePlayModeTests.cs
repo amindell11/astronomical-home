@@ -425,9 +425,9 @@ namespace Tests.PlayMode
 
         private void SpawnPair(in RewardSpec spec)
         {
-            pair = EpisodePair.Spawn(unitService, arena, projectiles, in spec, (agentShip, baselineShip) =>
+            pair = EpisodePair.Spawn(unitService, arena, projectiles, in spec, (commander, baselineShip) =>
             {
-                var ranger = new RangerChooser();
+                var ranger = commander.InstallBrain<RangerBrain>();
                 ranger.Configure(baselineShip, RangerHoldRange);
                 return ranger;
             }, assets);

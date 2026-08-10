@@ -10,7 +10,6 @@ namespace AI
 {
     [RequireComponent(typeof(Navigator))]
     [RequireComponent(typeof(Scout))]
-    [RequireComponent(typeof(Brain))]
 
     // After the ML-Agents Academy stepper (0) — reads the RL boundary action same-tick; before MovementController (50).
     [DefaultExecutionOrder(10)]
@@ -41,6 +40,7 @@ namespace AI
         public Navigator Navigator { get; private set; }
         // Gunner is optional: an unarmed (peaceful) ship has no Gunner component.
         public Gunner Gunner { get; private set; }
+        // Brain is optional too: the harness pilots author none and install one per episode.
         public Brain Brain { get; private set; }
 
         protected virtual void Awake()
@@ -49,6 +49,17 @@ namespace AI
             Scout = GetComponent<Scout>();
             Gunner = GetComponent<Gunner>();
             Brain = GetComponent<Brain>();
+        }
+
+        /// <summary>Swaps the decision component, retiring whatever was installed before. The sole install path: an AddComponent that went around it would leave a ship whose decisions nothing reads.</summary>
+        internal T InstallBrain<T>() where T : Brain => (T)InstallBrain(host => host.AddComponent<T>());
+
+        /// <summary>Install overload for callers whose brain type is only known at runtime — the archetype switch hands its own attach step in rather than reproducing the swap.</summary>
+        internal Brain InstallBrain(Func<GameObject, Brain> attach)
+        {
+            if (Brain) DestroyImmediate(Brain);
+            Brain = attach(gameObject);
+            return Brain;
         }
 
         public void SetArena(ArenaContext arenaContext)
@@ -92,7 +103,7 @@ namespace AI
             secondary = default;
             prevPrimaryHeld = false;
             context = new AIContext(control.Ship, Scout, combatExitDelay);
-            Brain.ResetState();
+            if (Brain) Brain.ResetState();
         }
 
         protected virtual void FixedUpdate()
@@ -101,9 +112,8 @@ namespace AI
 
             if (Brain && Brain.isActiveAndEnabled)
             {
-                var dt = Time.fixedDeltaTime;
-                context.Update(dt);
-                Route(Brain.Decide(context, dt));
+                context.Update(Time.fixedDeltaTime);
+                Route(Brain.Decide(context));
             }
 
             control.Pilot.Drive(Navigator.ComputeCommand());

@@ -404,12 +404,12 @@ namespace Game.RLHarness
                 start = i + 1;
             }
             if (depth != 0) throw ProbeError(value, "unbalanced '('");
-            // The open-loop arms carry no policy chooser; a policy-side probe would die at Begin, so fail at the boundary.
+            // The open-loop arms carry no policy brain; a policy-side probe would die at Begin, so fail at the boundary.
             if (openLoop)
                 foreach (var entry in entries)
                     if (entry.name != VelRebaseProbe.ProbeName)
                         throw ProbeError(entry.name,
-                            $"only '{VelRebaseProbe.ProbeName}' runs in the open-loop lane (no policy chooser to read)");
+                            $"only '{VelRebaseProbe.ProbeName}' runs in the open-loop lane (no policy brain to read)");
             return entries.ToArray();
         }
 

@@ -131,17 +131,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 1066014630051916606}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e74b596751aefc842ad51157fcb57ee7, type: 3}
+  m_Script: {fileID: 11500000, guid: 7f2c9b48e1a6d5034f8b3e7a1d92c650, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  chooser:
-    rid: 1937986634179674200
-  references:
-    version: 2
-    RefIds:
-    - rid: 1937986634179674200
-      type: {class: InferenceChooser, ns: Game.RLHarness, asm: Game.RLHarness.Runtime}
-      data:
-        model: {fileID: 5022602860645237092, guid: e28d8b0c8a505504e8c3a28d75d05380,
-          type: 3}
-        leashRadius: 120
+  model: {fileID: 5022602860645237092, guid: e28d8b0c8a505504e8c3a28d75d05380, type: 3}
+  leashRadius: 120

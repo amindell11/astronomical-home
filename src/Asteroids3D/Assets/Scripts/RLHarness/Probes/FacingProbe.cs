@@ -134,7 +134,7 @@ namespace Game.RLHarness
         }
     }
 
-    /// <summary>Per-fixed-step facing sampler for one episode: nose motion (|yawRate|, strict sign-flip reversals), commanded-vs-actual facing error once a decision exists, and per-decision command deltas/weights read off the chooser's <see cref="IPolicyReadout"/> — new decisions detected by the monotonic TotalDecisions.</summary>
+    /// <summary>Per-fixed-step facing sampler for one episode: nose motion (|yawRate|, strict sign-flip reversals), commanded-vs-actual facing error once a decision exists, and per-decision command deltas/weights read off the brain's <see cref="IPolicyReadout"/> — new decisions detected by the monotonic TotalDecisions.</summary>
     public sealed class FacingSampler
     {
         private readonly IPolicyReadout readout;
@@ -238,7 +238,7 @@ namespace Game.RLHarness
         }
     }
 
-    /// <summary>The manual-aim facing instrument: one <see cref="FacingSampler"/> per episode on the measured agent's <see cref="IPolicyReadout"/> chooser, an optional facing-authority sweep (wFacing scales the <see cref="AgentChooser"/> override, measured agent only), and per-opponent pooled aggregates as the summary sidecar.</summary>
+    /// <summary>The manual-aim facing instrument: one <see cref="FacingSampler"/> per episode on the measured agent's <see cref="IPolicyReadout"/> brain, an optional facing-authority sweep (wFacing scales the <see cref="PolicyBrain"/> override, measured agent only), and per-opponent pooled aggregates as the summary sidecar.</summary>
     public sealed class FacingProbe : ISessionProbe
     {
         public const string ProbeName = "facing";
@@ -259,7 +259,7 @@ namespace Game.RLHarness
         private Ship agent;
         private IStepSnapshotSource snapshots;
         private IPolicyReadout readout;
-        private AgentChooser scaledChooser;
+        private PolicyBrain scaledBrain;
         private float primaryProjectileSpeed;
         private string label;
 
@@ -279,20 +279,20 @@ namespace Game.RLHarness
         {
             label = context.opponentLabel;
             snapshots = context.snapshots;
-            // Chooser identity survives respawns; re-resolve only when a new composition's pair arrives.
+            // Brain identity survives respawns; re-resolve only when a new composition's pair arrives.
             if (context.pair.Agent != agent)
             {
                 agent = context.pair.Agent;
                 primaryProjectileSpeed = agent.Weapons.Context.ProjectileSpeed(WeaponSlot.Primary);
-                var chooser = agent.GetComponentInChildren<AICommander>().Brain.Chooser;
-                readout = chooser as IPolicyReadout ?? throw new InvalidOperationException(
-                    $"{ProbeName} probe requires an IPolicyReadout chooser; got {chooser?.GetType().Name ?? "null"}.");
-                scaledChooser = authorityScale != 1f
-                    ? chooser as AgentChooser ?? throw new InvalidOperationException(
-                        $"{ProbeName} probe: {AuthorityScaleKey} needs an AgentChooser; got {chooser.GetType().Name}.")
+                var brain = agent.GetComponentInChildren<AICommander>().Brain;
+                readout = brain as IPolicyReadout ?? throw new InvalidOperationException(
+                    $"{ProbeName} probe requires an IPolicyReadout brain; got {(brain ? brain.GetType().Name : "null")}.");
+                scaledBrain = authorityScale != 1f
+                    ? brain as PolicyBrain ?? throw new InvalidOperationException(
+                        $"{ProbeName} probe: {AuthorityScaleKey} needs a PolicyBrain; got {brain.GetType().Name}.")
                     : null;
             }
-            if (scaledChooser != null) scaledChooser.FacingAuthorityScale = authorityScale;
+            if (scaledBrain) scaledBrain.FacingAuthorityScale = authorityScale;
             sampler = new FacingSampler(readout);
         }
 
@@ -329,7 +329,7 @@ namespace Game.RLHarness
 
         public void Dispose()
         {
-            if (scaledChooser != null) scaledChooser.FacingAuthorityScale = 1f;
+            if (scaledBrain) scaledBrain.FacingAuthorityScale = 1f;
         }
     }
 }

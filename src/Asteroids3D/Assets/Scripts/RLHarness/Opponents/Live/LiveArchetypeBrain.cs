@@ -6,10 +6,12 @@ using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>Editor-authorable scripted opponent: composes the authored archetype against the context's tracked enemy on first Decide and re-composes whenever that enemy changes, so an archetype the training roster draws per episode can be flown against a player in a live sector. Shape params are authored rather than jittered, and the border circle anchors on the compose-time position — a live sector has no arena to steer off.</summary>
-    [Serializable]
-    public sealed class LiveArchetypeChooser : IIntentChooser
+    /// <summary>Editor-authorable scripted opponent: composes the authored archetype against the context's tracked enemy on first Decide and re-composes whenever that enemy changes, so an archetype the training roster draws per episode can be flown against a player in a live sector. Shape params are authored rather than jittered, and the border circle anchors on the compose-time position — a live sector has no arena to steer off.
+    /// <para>It selects rather than decides — the archetype it delegates to is the real brain — so it parks that archetype on a child object, out of reach of the commander's own-object lookup. The selector only exists because retarget lives here rather than in the archetypes.</para></summary>
+    public sealed class LiveArchetypeBrain : Brain
     {
+        private const string ArchetypeHostName = "[ArchetypeBrain]";
+
         [Tooltip("Which archetype to fly. Aggressor and Kiter hold a range and fire, Orbiter circles and fires, Evader flees and never fires, Dummy sits still.")]
         [SerializeField] private OpponentArchetype archetype = OpponentArchetype.Aggressor;
 
@@ -36,44 +38,52 @@ namespace Game.RLHarness
 
         private Ship self;
         private Ship enemy;
-        private IIntentChooser inner;
+        private GameObject archetypeHost;
+        private Brain inner;
         private Vector2 borderCenter;
         private bool reanchorBorder;
 
-        public BrainDecision? Decide(AIContext ctx, float dt)
+        public override BrainDecision? Decide(AIContext ctx)
         {
             if (!self)
                 Compose(ctx);
 
-            // Deferred to the first post-reset tick: Reset fires before a respawn teleport lands.
+            // Deferred to the first post-reset tick: ResetState fires before a respawn teleport lands.
             if (reanchorBorder)
             {
                 borderCenter = self.Kinematics.pos;
                 reanchorBorder = false;
-                // The archetypes bind the border at Configure, so a moved anchor needs a fresh chooser.
-                inner = null;
+                // The archetypes bind the border at Configure, so a moved anchor needs a fresh brain.
+                RetireInner();
             }
 
             Retarget(ctx.Combat.Enemy);
-            return inner?.Decide(ctx, dt);
+            return inner ? inner.Decide(ctx) : null;
         }
 
-        public void Reset()
+        public override void ResetState()
         {
-            inner?.Reset();
+            if (inner) inner.ResetState();
             reanchorBorder = true;
         }
 
         private void Retarget(Ship next)
         {
-            if (inner != null && next == enemy) return;
+            if (inner && next == enemy) return;
 
             enemy = next;
+            RetireInner();
             // Every archetype but the Dummy binds its target at Configure and has nothing to fly without one.
-            inner = !enemy && archetype != OpponentArchetype.Dummy
-                ? null
-                : ArchetypeChoosers.Create(archetype, Shape(), enemy, jukeSeed,
-                    borderCenter, borderRadius);
+            if (!enemy && archetype != OpponentArchetype.Dummy) return;
+
+            inner = ArchetypeBrains.Attach(archetypeHost, archetype, Shape(), enemy, jukeSeed,
+                borderCenter, borderRadius);
+        }
+
+        private void RetireInner()
+        {
+            if (inner) DestroyImmediate(inner);
+            inner = null;
         }
 
         private OpponentDraw Shape() => new()
@@ -89,9 +99,11 @@ namespace Game.RLHarness
         {
             self = ctx.Self as Ship;
             if (!self)
-                throw new InvalidOperationException("LiveArchetypeChooser requires a Ship context.");
+                throw new InvalidOperationException("LiveArchetypeBrain requires a Ship context.");
 
             borderCenter = self.Kinematics.pos;
+            archetypeHost = new GameObject(ArchetypeHostName);
+            archetypeHost.transform.SetParent(transform, false);
         }
     }
 }

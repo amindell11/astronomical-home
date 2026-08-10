@@ -75,7 +75,7 @@ namespace Game.RLHarness
             var subjects = new Vector2[2];
             for (var episode = 0; episode < episodes; episode++)
             {
-                // Pinned install before RunEpisode's pair-reset (the respawn re-inits the chooser).
+                // Pinned install before RunEpisode's pair-reset (the respawn re-inits the brain).
                 var draw = composition.InstallOpponent(in opponent, in episodeSpec, episode, Arena.Offset);
                 var context = new ProbeContext(composition.Pair, Arena.Offset, in episodeSpec, episode, in draw,
                     opponent.Label, composition.Driver);

@@ -161,6 +161,13 @@ nondeterministic, so it cannot witness byte-preservation.)
    semantics; the anchor stays a snapshot (see the staging correction above).
 2. **PR-2 — brain types.** `IIntentChooser` → `Brain` subclasses; nine producers + roster
    install path + drawer deletion. Widest mechanical fan-out; no behavior change intended.
+   Decision brief below.
+2b. **PR-2b — archetype retarget push-down.** Split out of PR-2 (user ruling 2026-08-08)
+   because it edits `OpponentArchetypeChooser`, the trained-interface base class the roster
+   installs every episode. Pinned targeting (roster, injected `Ship`) vs live targeting
+   (`ctx.Combat.Enemy`) becomes explicit on the base, letting `LiveArchetypeBrain` install its
+   archetype and destroy itself instead of holding it on a child object. Needs its own call on
+   whether a bench run gates it.
 3. **PR-3 — boost out of the solver + anchor freshening.** The env-shifting slice; Bench-1
    gated, results recorded against the 63.00/±2.22 yardsticks.
 4. Cadence hoist (host-owned decision scheduling) is **designed-compatible but deferred** —
@@ -170,3 +177,63 @@ Glossary: implementing PRs retire/repoint the `act intent` and `brain / chooser 
 rows and add `nav objective` + `lane`; per the vocab ratchet, in the same PRs that move the
 symbols. PR-1 did this — `brain / chooser / decision lane` replaces the old row, `nav
 objective` is new, and the `lane` collision row gained the decision-lane sense.
+
+## PR-2 decision brief — frozen 2026-08-08
+
+Scope: `IIntentChooser`, the `Brain` pass-through wrapper, and the `[SerializeReference]`
+chooser authoring path are deleted; the nine producers become `Brain` components. ~40 files.
+**No behavior change** — proof is seam-equivalence EditMode tests + the merge gate, never a
+golden replay. Non-goals: boost out of the solver and anchor freshening (PR-3), the cadence
+hoist (controller redesign), archetype retarget (PR-2b).
+
+**Forks (settled with the user, in order):**
+
+1. **Brain depth — inheritance where it fits, child object where it doesn't.** Two producers
+   contain another producer, and two `Brain` components cannot share a GameObject.
+   `InferenceBrain : PolicyBrain` by inheritance — the inference producer genuinely *is* a
+   paced policy mailbox, so the containment deletes a field and three delegating members.
+   `LiveArchetypeBrain` keeps today's selector shape, holding its archetype brain on a child
+   object named `[ArchetypeBrain]` (the `[InferencePilot]` precedent). Rejected: a plain law
+   layer under a thin per-family brain (reinstates the wrapper this arc deletes); flattening
+   each archetype into its own authored component (loses the archetype dropdown, moves
+   retarget anyway).
+2. **The selector smell is real and carries forward.** `LiveArchetypeBrain` is a brain that
+   does not decide — it picks who decides, exactly as `LiveArchetypeChooser` was a chooser
+   that did not choose. Fixing it means pushing retarget into the archetype base, which is
+   the trained interface → split to PR-2b rather than folded in or left uncarded.
+3. **Brain binding — `AICommander.InstallBrain<T>()`.** The component is now added at runtime,
+   after `Awake` has cached nothing. One call does AddComponent + destroy-old + cache + return
+   the instance, so the half-installed ship that silently never decides is unrepresentable
+   (rung 1), and callers go *through* the coordinator (dependency philosophy #6). `Awake`
+   still seeds `GetComponent<Brain>()` so prefab-authored brains work unchanged. Rejected:
+   two-step add-then-install (forgettable second call); `OnEnable` self-registration (inverts
+   ownership).
+4. **A brainless AI pilot is legitimate, not an error.** `TestPilotMPC` ships with no decider
+   by design and `[RequireComponent]` cannot hold an abstract type, so `Brain` becomes
+   optional exactly like `Gunner`. Today's rung-4 throw disappears because the state it
+   guarded stops being representable; the four PlayMode tests that set `Brain.enabled = false`
+   drop the workaround.
+
+**Assumptions (code-grounded, none vetoed):** `dt` leaves `Decide` — threaded through all nine
+implementations, read by none. `Reset()` → `ResetState()` everywhere, which also dodges the
+`MonoBehaviour.Reset` editor-callback collision a straight conversion would create.
+`Brain.Chooser` dies; `FacingProbe`, `VelRebaseProbe` and `PolicyPainter` cast `commander.Brain`
+directly. `AgentChooser` unseals for the inference subclass and its `internal` constructor
+becomes `Configure(model, leashRadius)` — MonoBehaviours cannot be constructed.
+`EpisodePair.Spawn`'s chooser factory becomes `Func<AICommander, Ship, Brain>`, since a factory
+can no longer `new` a decider. `ArchetypeChoosers.Create` → `ArchetypeBrains.Install(commander, …)`,
+keeping one coordinator. Outgoing brains go by `DestroyImmediate` (`EpisodePair.Remove`
+precedent; plain `Destroy` is inert in EditMode). `RLVelRebaseEditModeTests` gets a throwaway
+GameObject in setup/teardown rather than restructuring `Pack`. The static laws
+(`HoldRangeVelocity`, `OrbitVelocity`, `FleeVelocity`) are untouched.
+
+**Blindsider pass found nothing architectural.** Three candidates checked and cleared: the
+child-object brain cannot collide with lookups, because `InstallBrain<T>()` removes every
+`GetComponentInChildren<Brain>()` call and `AICommander` reads same-object only; per-episode
+swap ordering is unchanged (`OpponentRoster.Install` still runs before `pair.Reset()`); both
+probes preserve today's re-resolution staleness. Assembly layout also clears —
+`Game.RLHarness.Editor` includes `WindowsStandalone64`, so MonoBehaviour conversion does not
+break player builds.
+
+Vocab: no new terms. The `brain / chooser / decision lane` row loses "chooser" when the symbols
+move.

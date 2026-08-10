@@ -50,7 +50,7 @@ namespace Game.RLHarness
                     "spec.useAsteroidField requires a HarnessField — the JSONL would claim asteroid episodes that ran in an empty arena.");
             // Field first: the episode's poses become generation-time clearings, so ships respawn onto carved ground.
             field?.Reset(in spec, episodeIndex, EpisodePoses.Derive(in spec, episodeIndex, arenaCenter));
-            // Install before the pair-reset: the respawn re-inits the installed chooser (traversal-probe ordering).
+            // Install before the pair-reset: the respawn re-inits the installed brain (traversal-probe ordering).
             var draw = roster?.Install(in spec, episodeIndex, arenaCenter);
             pair.Reset(in spec, episodeIndex);
             Runner = new EpisodeRunner(pair.Agent, pair.Baseline, spec, episodeIndex, arenaCenter, tracePerDecision);

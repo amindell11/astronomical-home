@@ -9,10 +9,10 @@ using Unity.MLAgents.Sensors;
 
 namespace Game.RLHarness
 {
-    /// <summary>Gameplay inference host for one ship: observes the boundary state its <see cref="InferenceChooser"/> captured and pushes each decision into the chooser's mailbox. The chooser owns pacing on the Academy auto-clock; MaxStep stays 0 and OnEpisodeBegin stays a no-op. Reads the same <see cref="AgentObservations"/> / <see cref="AgentActions"/> statics the training host does, so gameplay and training cannot drift into two readings of one checkpoint.</summary>
+    /// <summary>Gameplay inference host for one ship: observes the boundary state its <see cref="InferenceBrain"/> captured and pushes each decision into the brain's mailbox. The brain owns pacing on the Academy auto-clock; MaxStep stays 0 and OnEpisodeBegin stays a no-op. Reads the same <see cref="AgentObservations"/> / <see cref="AgentActions"/> statics the training host does, so gameplay and training cannot drift into two readings of one checkpoint.</summary>
     public sealed class LivePilotAgent : Agent
     {
-        private AgentChooser mailbox;
+        private PolicyBrain mailbox;
         private AI.Scout scout;
         private BufferSensorComponent obstacleBuffer;
         private Ship self;
@@ -31,7 +31,7 @@ namespace Game.RLHarness
 
         public int DecisionsReceived { get; private set; }
 
-        public void Bind(AgentChooser mailbox, AI.Scout scout, BufferSensorComponent obstacleBuffer)
+        public void Bind(PolicyBrain mailbox, AI.Scout scout, BufferSensorComponent obstacleBuffer)
         {
             this.mailbox = mailbox;
             this.scout = scout;

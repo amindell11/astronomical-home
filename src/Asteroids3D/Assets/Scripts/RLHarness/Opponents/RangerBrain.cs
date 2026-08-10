@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Game.RLHarness
 {
     /// <summary>Scripted stand-in policy over the velocity interface: closes to weapon range on a live target, holds, and hands both triggers to the gunner; the per-weapon Gunsight/ShouldFire deliberately still applies on top.</summary>
-    public class RangerChooser : IIntentChooser
+    public class RangerBrain : Brain
     {
         private const int RecomputeIntervalTicks = 10;
         private const float RangeGain = 0.6f;
@@ -23,16 +23,16 @@ namespace Game.RLHarness
         {
             this.target = target;
             this.desiredRange = desiredRange;
-            Reset();
+            ResetState();
         }
 
-        public void Reset()
+        public override void ResetState()
         {
             tickCounter = 0;
             cachedDecision = null;
         }
 
-        public BrainDecision? Decide(AIContext ctx, float dt)
+        public override BrainDecision? Decide(AIContext ctx)
         {
             if (!target || !target.gameObject.activeInHierarchy || ctx?.Self == null)
                 return null;

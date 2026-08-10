@@ -283,7 +283,7 @@ namespace Game.RLHarness
         }
     }
 
-    /// <summary>The K1-2 mechanical-rebase instrument: one <see cref="VelRebaseSampler"/> per episode on the measured (baseline-slot) ship's scripted-chooser readout, against the agent-slot enemy's kinematics, with per-block-label pooled aggregates as the summary sidecar.</summary>
+    /// <summary>The K1-2 mechanical-rebase instrument: one <see cref="VelRebaseSampler"/> per episode on the measured (baseline-slot) ship's scripted-brain readout, against the agent-slot enemy's kinematics, with per-block-label pooled aggregates as the summary sidecar.</summary>
     public sealed class VelRebaseProbe : ISessionProbe
     {
         public const string ProbeName = "velrebase";
@@ -309,17 +309,17 @@ namespace Game.RLHarness
         public void Begin(in ProbeContext context)
         {
             label = context.opponentLabel;
-            // Commander identity survives respawns; the chooser does not — re-read it every episode.
+            // Commander identity survives respawns; the brain does not — re-read it every episode.
             if (context.pair.Baseline != measured)
             {
                 measured = context.pair.Baseline;
                 enemy = context.pair.Agent;
                 measuredCommander = measured.GetComponentInChildren<AICommander>();
             }
-            var chooser = measuredCommander.Brain.Chooser;
-            var readout = chooser as IScriptedVelocityReadout ?? throw new InvalidOperationException(
-                $"{ProbeName} probe requires an IScriptedVelocityReadout chooser on the measured (baseline) ship; "
-                + $"got {chooser?.GetType().Name ?? "null"}.");
+            var brain = measuredCommander.Brain;
+            var readout = brain as IScriptedVelocityReadout ?? throw new InvalidOperationException(
+                $"{ProbeName} probe requires an IScriptedVelocityReadout brain on the measured (baseline) ship; "
+                + $"got {(brain ? brain.GetType().Name : "null")}.");
             arm = readout.Drive switch
             {
                 ArchetypeDrive.OpenLoopAnchored => "anchored",
