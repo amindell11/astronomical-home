@@ -1,0 +1,375 @@
+{
+  "comparison": {
+    "constant": {
+      "maeDelta": -0.33554515067900287,
+      "neuralBeatsMae": true,
+      "neuralBeatsRmse": true,
+      "rmseDelta": -0.3401043153237095
+    },
+    "linear": {
+      "maeDelta": -0.09527677701758991,
+      "neuralBeatsMae": true,
+      "neuralBeatsRmse": true,
+      "rmseDelta": -0.11118162852405594
+    }
+  },
+  "heldoutEpisodes": 155,
+  "heldoutSeeds": [
+    201583699,
+    2042642465
+  ],
+  "heldoutTransitions": 31001,
+  "predictors": {
+    "constant": {
+      "calibration": {
+        "bins": [
+          {
+            "count": 31001,
+            "mae": 0.6301489976536829,
+            "meanObserved": 0.054046347760513896,
+            "meanPrediction": 0.05567244067788124,
+            "meanResidual": 0.0016260929173673477,
+            "predictionMax": 0.05567244067788124,
+            "predictionMin": 0.05567244067788124,
+            "rmse": 0.7277728251841704
+          }
+        ],
+        "intercept": null,
+        "slope": null,
+        "status": "undefined_constant_prediction"
+      },
+      "episodeMacro": {
+        "groups": 155,
+        "mae": 0.7679665078345047,
+        "rmse": 0.8102448709768528
+      },
+      "seedMacro": {
+        "groups": 2,
+        "mae": 0.6301561331749628,
+        "rmse": 0.7277786174589747
+      },
+      "transitionWeighted": {
+        "mae": 0.6301489976536829,
+        "rmse": 0.7277728251841704
+      }
+    },
+    "linear": {
+      "calibration": {
+        "bins": [
+          {
+            "count": 3101,
+            "mae": 0.29707837088789785,
+            "meanObserved": -0.8382747874173863,
+            "meanPrediction": -1.012013991584089,
+            "meanResidual": -0.17373920416670272,
+            "predictionMax": -0.7663180828094482,
+            "predictionMin": -1.7624505758285522,
+            "rmse": 0.3869097309069287
+          },
+          {
+            "count": 3100,
+            "mae": 0.361069876439569,
+            "meanObserved": -0.7043061879148046,
+            "meanPrediction": -0.5917472951258382,
+            "meanResidual": 0.11255889278896633,
+            "predictionMax": -0.4301341772079468,
+            "predictionMin": -0.7659070491790771,
+            "rmse": 0.44480151395941625
+          },
+          {
+            "count": 3100,
+            "mae": 0.47919614469972366,
+            "meanObserved": -0.5629927965069392,
+            "meanPrediction": -0.2920876098400162,
+            "meanResidual": 0.27090518666692304,
+            "predictionMax": -0.16922371089458466,
+            "predictionMin": -0.4300090968608856,
+            "rmse": 0.5814405592800985
+          },
+          {
+            "count": 3100,
+            "mae": 0.5426967141910357,
+            "meanObserved": -0.17490836236836207,
+            "meanPrediction": -0.06265121236760376,
+            "meanResidual": 0.11225715000075832,
+            "predictionMax": 0.0345892459154129,
+            "predictionMin": -0.16908952593803406,
+            "rmse": 0.6457551421208717
+          },
+          {
+            "count": 3100,
+            "mae": 0.4866003613593057,
+            "meanObserved": 0.15507202037655177,
+            "meanPrediction": 0.10188225700129425,
+            "meanResidual": -0.053189763375257534,
+            "predictionMax": 0.16410693526268005,
+            "predictionMin": 0.034591492265462875,
+            "rmse": 0.6032350472630617
+          },
+          {
+            "count": 3100,
+            "mae": 0.42585031963291486,
+            "meanObserved": 0.3579520933317291,
+            "meanPrediction": 0.21959718248055826,
+            "meanResidual": -0.13835491085117083,
+            "predictionMax": 0.27716970443725586,
+            "predictionMin": 0.16412471234798431,
+            "rmse": 0.5425211499765414
+          },
+          {
+            "count": 3100,
+            "mae": 0.36363412881442797,
+            "meanObserved": 0.4764585373827797,
+            "meanPrediction": 0.339015275114967,
+            "meanResidual": -0.13744326226781273,
+            "predictionMax": 0.4002455174922943,
+            "predictionMin": 0.2771739661693573,
+            "rmse": 0.4584753405005253
+          },
+          {
+            "count": 3100,
+            "mae": 0.31682839930361706,
+            "meanObserved": 0.5255163041015171,
+            "meanPrediction": 0.45597208649881427,
+            "meanResidual": -0.06954421760270282,
+            "predictionMax": 0.5146651268005371,
+            "predictionMin": 0.4002479910850525,
+            "rmse": 0.408862581925133
+          },
+          {
+            "count": 3100,
+            "mae": 0.29209515454964863,
+            "meanObserved": 0.6505723592861661,
+            "meanPrediction": 0.5878331163813991,
+            "meanResidual": -0.06273924290476697,
+            "predictionMax": 0.6671944260597229,
+            "predictionMin": 0.5146693587303162,
+            "rmse": 0.3642842227685045
+          },
+          {
+            "count": 3100,
+            "mae": 0.33378670625523815,
+            "meanObserved": 0.6556621428613642,
+            "meanPrediction": 0.7945503427136329,
+            "meanResidual": 0.13888819985226877,
+            "predictionMax": 1.1229639053344727,
+            "predictionMin": 0.6673465371131897,
+            "rmse": 0.4665118132669146
+          }
+        ],
+        "intercept": 0.0005548112084840698,
+        "slope": 0.9905724983220471,
+        "status": "ok"
+      },
+      "episodeMacro": {
+        "groups": 155,
+        "mae": 0.4583693967130185,
+        "rmse": 0.5347596389582469
+      },
+      "seedMacro": {
+        "groups": 2,
+        "mae": 0.3897221382687698,
+        "rmse": 0.49795897454787474
+      },
+      "transitionWeighted": {
+        "mae": 0.38988062399226997,
+        "rmse": 0.49885013838451686
+      }
+    },
+    "neural": {
+      "calibration": {
+        "bins": [
+          {
+            "count": 3101,
+            "mae": 0.2598051085547982,
+            "meanObserved": -0.9077029540895771,
+            "meanPrediction": -0.9854825641677596,
+            "meanResidual": -0.07777961007818239,
+            "predictionMax": -0.8545884490013123,
+            "predictionMin": -1.5599414110183716,
+            "rmse": 0.3673532988006715
+          },
+          {
+            "count": 3100,
+            "mae": 0.2952687998882104,
+            "meanObserved": -0.7734884521704648,
+            "meanPrediction": -0.7834818564115033,
+            "meanResidual": -0.009993404241038426,
+            "predictionMax": -0.7180310487747192,
+            "predictionMin": -0.8545005321502686,
+            "rmse": 0.3872503690347945
+          },
+          {
+            "count": 3100,
+            "mae": 0.3315450967557826,
+            "meanObserved": -0.624678401615557,
+            "meanPrediction": -0.6484307449286983,
+            "meanResidual": -0.023752343313141366,
+            "predictionMax": -0.5699266791343689,
+            "predictionMin": -0.7180288434028625,
+            "rmse": 0.4531355256379384
+          },
+          {
+            "count": 3100,
+            "mae": 0.378790856719678,
+            "meanObserved": -0.35050750632950617,
+            "meanPrediction": -0.38038035259131464,
+            "meanResidual": -0.02987284626180847,
+            "predictionMax": -0.07582065463066101,
+            "predictionMin": -0.5698818564414978,
+            "rmse": 0.5190338932648325
+          },
+          {
+            "count": 3100,
+            "mae": 0.3292117278060065,
+            "meanObserved": 0.24406031535713063,
+            "meanPrediction": 0.16308571572926256,
+            "meanResidual": -0.08097459962786806,
+            "predictionMax": 0.2968628704547882,
+            "predictionMin": -0.07545650005340576,
+            "rmse": 0.43081292687119677
+          },
+          {
+            "count": 3100,
+            "mae": 0.2793147532225797,
+            "meanObserved": 0.43163594299581864,
+            "meanPrediction": 0.35523625756463695,
+            "meanResidual": -0.07639968543118167,
+            "predictionMax": 0.40424391627311707,
+            "predictionMin": 0.29697760939598083,
+            "rmse": 0.3554028568269585
+          },
+          {
+            "count": 3100,
+            "mae": 0.2692670330194561,
+            "meanObserved": 0.5111691084907075,
+            "meanPrediction": 0.44643280108128824,
+            "meanResidual": -0.06473630740941923,
+            "predictionMax": 0.48729807138442993,
+            "predictionMin": 0.4042677581310272,
+            "rmse": 0.3301651537989688
+          },
+          {
+            "count": 3100,
+            "mae": 0.27388645102085935,
+            "meanObserved": 0.574677415152208,
+            "meanPrediction": 0.5276244448077294,
+            "meanResidual": -0.047052970344478626,
+            "predictionMax": 0.5680878758430481,
+            "predictionMin": 0.48730191588401794,
+            "rmse": 0.3338589374080721
+          },
+          {
+            "count": 3100,
+            "mae": 0.27283277329320327,
+            "meanObserved": 0.6461340105687569,
+            "meanPrediction": 0.6176205544702469,
+            "meanResidual": -0.028513456098510012,
+            "predictionMax": 0.6741004586219788,
+            "predictionMin": 0.5680977702140808,
+            "rmse": 0.3314620549653597
+          },
+          {
+            "count": 3100,
+            "mae": 0.2561270948657165,
+            "meanObserved": 0.7894742409558967,
+            "meanPrediction": 0.7735621490593879,
+            "meanResidual": -0.01591209189650873,
+            "predictionMax": 1.2425799369812012,
+            "predictionMin": 0.6741174459457397,
+            "rmse": 0.317782190331168
+          }
+        ],
+        "intercept": 0.04550266005103101,
+        "slope": 0.9996621692618863,
+        "status": "ok"
+      },
+      "episodeMacro": {
+        "groups": 155,
+        "mae": 0.32148466657125563,
+        "rmse": 0.3753173789525995
+      },
+      "seedMacro": {
+        "groups": 2,
+        "mae": 0.2944562863399077,
+        "rmse": 0.385751387194113
+      },
+      "transitionWeighted": {
+        "mae": 0.29460384697468006,
+        "rmse": 0.3876685098604609
+      }
+    }
+  },
+  "returnSummaries": {
+    "heldout": {
+      "shapingBorder": {
+        "count": 31001,
+        "max": 0.499213844537735,
+        "mean": 0.00027592264634232217,
+        "min": -0.15099258720874786,
+        "std": 0.022482246242973715
+      },
+      "shapingEnvelope": {
+        "count": 31001,
+        "max": 0.1879684180021286,
+        "mean": -0.18143055814991765,
+        "min": -0.5,
+        "std": 0.14925674173997053
+      },
+      "task": {
+        "count": 31001,
+        "max": 1.5319024324417114,
+        "mean": 0.054046347760513896,
+        "min": -1.7076159715652466,
+        "std": 0.7277710085585802
+      }
+    },
+    "train": {
+      "shapingBorder": {
+        "count": 153260,
+        "max": 0.49994978308677673,
+        "mean": 0.0002166981616338906,
+        "min": -0.141091987490654,
+        "std": 0.01971761563403548
+      },
+      "shapingEnvelope": {
+        "count": 153260,
+        "max": 0.22220315039157867,
+        "mean": -0.17860023841382577,
+        "min": -0.5,
+        "std": 0.14840524975102795
+      },
+      "task": {
+        "count": 153260,
+        "max": 1.5102803707122803,
+        "mean": 0.05567243998782146,
+        "min": -1.7929050922393799,
+        "std": 0.7132294813851265
+      }
+    },
+    "validation": {
+      "shapingBorder": {
+        "count": 32680,
+        "max": 0.4919726550579071,
+        "mean": 0.00023706492217055868,
+        "min": -0.055389679968357086,
+        "std": 0.012998476347167437
+      },
+      "shapingEnvelope": {
+        "count": 32680,
+        "max": 0.19472889602184296,
+        "mean": -0.1725513439961896,
+        "min": -0.5,
+        "std": 0.14821983077186562
+      },
+      "task": {
+        "count": 32680,
+        "max": 1.5483335256576538,
+        "mean": 0.1546559769433128,
+        "min": -1.640561819076538,
+        "std": 0.6829276234297446
+      }
+    }
+  },
+  "schema": "rl-value-artifact-v1"
+}

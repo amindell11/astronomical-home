@@ -126,6 +126,46 @@ checkpoint (self-play graduation seeds from the curriculum winner). mlagents
 resolves it as `<results_dir>/RUN_ID/<behavior>/checkpoint.pt`, so an archived run
 must be staged under `results/rl-training/` first.
 
+## Executed-return value baseline
+
+`run_parallel.py --record-transitions` writes the executed decision-boundary
+dataset consumed by `train_value_baseline.py`. The value producer validates the
+entire transition contract before training: episode decisions must be contiguous,
+adjacent `nextState`/`state` pairs must agree exactly, and only the final row may
+declare terminal or truncation. A bounded collection can stop the final episode
+in each stream before either marker; that tail is audited separately as
+`collection_end` and censored, while an unmarked earlier episode is rejected.
+
+The v1 model consumes the fixed 28-float combat state. Its target is the
+discounted `dense + timeCost + outcome` return at gamma 0.99. Truncated episodes
+are censored rather than treated as zero-value endings; both shaping returns stay
+separate in the audit output and never enter the target.
+
+```powershell
+# Collect with a caller-prepared bounded config.
+.venv\Scripts\python run_parallel.py `
+  --config ../../results/rl-value/<artifact-id>/collection.yaml `
+  --run-id <artifact-id> --num-envs 6 --num-arenas 2 `
+  --record-transitions --force
+
+# Train, evaluate, and export into a new result directory.
+.venv\Scripts\python train_value_baseline.py `
+  ../../results/rl-transitions/<artifact-id> `
+  --output-dir ../../results/rl-value/<artifact-id>/artifact `
+  --artifact-id <artifact-id> `
+  --collection-command "<exact run_parallel command above>" `
+  --collection-config ../../results/rl-value/<artifact-id>/collection.yaml `
+  --source-commit <collection-build-commit>
+```
+
+The producer owns an inspectable bundle: ONNX and manifest, aggregate metrics,
+named constant/linear baselines, per-epoch history, per-episode disposition,
+held-out row-level predictions, and checker/reference-inference evidence. The
+manifest lists the ordered feature contract, normalization, actual 8/2/2 seed
+membership, source/config hashes, model settings, runtime versions, and every
+output hash. Model quality is report-only; losing to a baseline is retained as a
+result rather than hidden behind retries or tuning.
+
 ## Single-env run (pilot or full)
 
 `run_training.py` is `run_smoke.py`'s long-run sibling: same armed-batch-editor +

@@ -1,0 +1,124 @@
+{
+  "constant": {
+    "value": 0.05567243998782146
+  },
+  "linear": {
+    "coefficients": [
+      {
+        "coefficient": -0.3761693204031738,
+        "feature": "selfVelocityX"
+      },
+      {
+        "coefficient": 0.9629323251457796,
+        "feature": "selfVelocityY"
+      },
+      {
+        "coefficient": 0.30623150890744305,
+        "feature": "selfSpeedPct"
+      },
+      {
+        "coefficient": 0.008820752201733124,
+        "feature": "selfYawRatePct"
+      },
+      {
+        "coefficient": 0.6491561609539713,
+        "feature": "selfHealthPct"
+      },
+      {
+        "coefficient": 0.6082532512256296,
+        "feature": "selfShieldPct"
+      },
+      {
+        "coefficient": -0.04789061251317105,
+        "feature": "selfBoostAvailable"
+      },
+      {
+        "coefficient": -0.1406324895291756,
+        "feature": "selfBoostCooldownPct"
+      },
+      {
+        "coefficient": -4.85722573273506e-16,
+        "feature": "hasTarget"
+      },
+      {
+        "coefficient": -0.0013203409944263218,
+        "feature": "targetRelPositionX"
+      },
+      {
+        "coefficient": 0.07619552523604661,
+        "feature": "targetRelPositionY"
+      },
+      {
+        "coefficient": -0.7256552598554445,
+        "feature": "targetDistance"
+      },
+      {
+        "coefficient": -0.3607027266804572,
+        "feature": "targetRelVelocityX"
+      },
+      {
+        "coefficient": 1.0150676247819825,
+        "feature": "targetRelVelocityY"
+      },
+      {
+        "coefficient": -0.009909554984589088,
+        "feature": "targetFacingX"
+      },
+      {
+        "coefficient": 0.16511741715514566,
+        "feature": "targetFacingY"
+      },
+      {
+        "coefficient": -0.5150093680111442,
+        "feature": "targetHealthPct"
+      },
+      {
+        "coefficient": -0.030688756017869707,
+        "feature": "targetShieldPct"
+      },
+      {
+        "coefficient": 0.032237011958095266,
+        "feature": "inMyEnvelope"
+      },
+      {
+        "coefficient": 0.030975222095617268,
+        "feature": "inEnemyEnvelope"
+      },
+      {
+        "coefficient": -0.0031817254961908807,
+        "feature": "arenaCenterX"
+      },
+      {
+        "coefficient": 0.0038474879488622445,
+        "feature": "arenaCenterY"
+      },
+      {
+        "coefficient": 0.016342333762209515,
+        "feature": "primaryWeaponReady"
+      },
+      {
+        "coefficient": -0.1466471547808103,
+        "feature": "primaryHeatPct"
+      },
+      {
+        "coefficient": -0.023893939799871842,
+        "feature": "interceptLeadX"
+      },
+      {
+        "coefficient": 0.13441773659860692,
+        "feature": "interceptLeadY"
+      },
+      {
+        "coefficient": 0.2861915843714427,
+        "feature": "enemyWeaponReady"
+      },
+      {
+        "coefficient": -0.16027337005645595,
+        "feature": "enemyHeatPct"
+      }
+    ],
+    "condition": 1.3129653667954128e+16,
+    "intercept": -0.729578518945583,
+    "rank": 28
+  }
+}
