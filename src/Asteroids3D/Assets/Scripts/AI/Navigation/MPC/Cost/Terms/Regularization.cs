@@ -14,9 +14,9 @@ namespace Movement.MPC
             return obstacleCost + yawRate + momentum;
         }
 
-        /// <summary>Control cost (effort, boost, smoothness) — a function of the input u, not the state, so it is per-step and never ramped.</summary>
+        /// <summary>Control cost (effort, smoothness) — a function of the input u, not the state, so it is per-step and never ramped.</summary>
         internal static float ControlCost(Control u, Control prevU, in Config cfg)
-            => EffortCost(u) * cfg.wEffort + u.boost * u.boost * cfg.wBoostEffort + SmoothnessCost(u, prevU, cfg);
+            => EffortCost(u) * cfg.wEffort + SmoothnessCost(u, prevU, cfg);
 
         /// <summary>Normalized 0-1: 0 = no spin, 1 = at maxYawRate.</summary>
         internal static float YawRateCost(float yawRate, float maxYawRateSq) =>

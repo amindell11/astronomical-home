@@ -314,6 +314,9 @@ namespace Tests.EditMode
             if (createdSettings) Object.DestroyImmediate(createdSettings);
         }
 
+        // The Navigator no longer resolves the anchor; the host does, so any valid id serves here.
+        private static readonly ShipId AnchorId = new(1);
+
         private static EnemyTarget Anchor() => new()
         {
             kinematics = new Kinematics(new Vector2(0f, 10f), Vector2.zero, 0f, 0f, 0f),
@@ -322,7 +325,7 @@ namespace Tests.EditMode
         [Test]
         public void ApplyObjective_FacingAtZeroFullAuthority_IsTheOldAimAtTarget()
         {
-            nav.ApplyObjective(NavObjective.Anchored(Anchor()).Planar(Vector2.zero).Facing(0f, 1f));
+            nav.ApplyObjective(NavObjective.Anchored(AnchorId).Planar(Vector2.zero).Facing(0f, 1f), Anchor());
 
             Assert.That(nav.anchored.hasFacing, Is.True);
             Assert.That(nav.anchored.facingOffsetRad, Is.EqualTo(0f));
@@ -332,13 +335,13 @@ namespace Tests.EditMode
         [Test]
         public void AnchoredBuilder_MoveChannelsAreExclusive()
         {
-            var planarWins = (NavObjective)NavObjective.Anchored(Anchor())
+            var planarWins = (NavObjective)NavObjective.Anchored(AnchorId)
                 .Velocity(3f, 0f, 1f)
                 .Planar(new Vector2(1f, 2f));
             Assert.That(planarWins.anchored.hasVelocity, Is.False,
                 "a world reference replaces the polar channel rather than stacking with it");
 
-            var polarWins = (NavObjective)NavObjective.Anchored(Anchor())
+            var polarWins = (NavObjective)NavObjective.Anchored(AnchorId)
                 .Planar(new Vector2(1f, 2f))
                 .Velocity(3f, 0f, 1f);
             Assert.That(polarWins.hasPlanarVelocity, Is.False);
@@ -348,7 +351,7 @@ namespace Tests.EditMode
         [Test]
         public void ApplyObjective_AnchoredVelocity_FeedsEnemyStateWithoutAFacingChannel()
         {
-            nav.ApplyObjective(NavObjective.Anchored(Anchor()).Velocity(3f, 0f, 1f));
+            nav.ApplyObjective(NavObjective.Anchored(AnchorId).Velocity(3f, 0f, 1f), Anchor());
 
             Assert.That(nav.ShouldIdle(), Is.False,
                 "an enemy-polar move channel arms the navigator on its own");
@@ -359,8 +362,8 @@ namespace Tests.EditMode
         [Test]
         public void ApplyObjective_Planar_ClearsEnemyStateSoTheCostModelCollapsesToPriors()
         {
-            nav.ApplyObjective(NavObjective.Anchored(Anchor()).Velocity(3f, 0f, 1f));
-            nav.ApplyObjective(NavObjective.Planar(new Vector2(3f, 0f)));
+            nav.ApplyObjective(NavObjective.Anchored(AnchorId).Velocity(3f, 0f, 1f), Anchor());
+            nav.ApplyObjective(NavObjective.Planar(new Vector2(3f, 0f)), Anchor());
 
             Assert.That(nav.anchored.hasVelocity, Is.False,
                 "an unanchored objective must not leak the prior anchored command");
@@ -371,10 +374,30 @@ namespace Tests.EditMode
         [Test]
         public void ApplyObjective_Drift_ClearsTheAnchoredBlock()
         {
-            nav.ApplyObjective(NavObjective.Anchored(Anchor()).Velocity(3f, 0f, 1f));
-            nav.ApplyObjective(NavObjective.Drift);
+            nav.ApplyObjective(NavObjective.Anchored(AnchorId).Velocity(3f, 0f, 1f), Anchor());
+            nav.ApplyObjective(NavObjective.Drift, Anchor());
 
             Assert.That(nav.anchored.hasVelocity, Is.False, "reset must not leak a stale anchored command");
+        }
+
+        [Test]
+        public void ApplyObjective_SameObjectiveMovedAnchor_TracksTheLiveEnemy()
+        {
+            // The objective names a ship; the pose comes from the host's per-tick resolution. Re-applying
+            // an unchanged decision against a moved anchor is precisely what a held 5 Hz decision does.
+            var objective = (NavObjective)NavObjective.Anchored(AnchorId).Velocity(3f, 0f, 1f);
+
+            nav.ApplyObjective(objective, Anchor());
+            var atDecisionTime = nav.enemyPos;
+
+            var moved = Anchor();
+            moved.kinematics = new Kinematics(new Vector2(25f, -8f), Vector2.zero, 0f, 0f, 0f);
+            nav.ApplyObjective(objective, moved);
+
+            Assert.That(nav.enemyPos.x, Is.EqualTo(25f).Within(1e-4f));
+            Assert.That(nav.enemyPos.y, Is.EqualTo(-8f).Within(1e-4f));
+            Assert.That(nav.enemyPos, Is.Not.EqualTo(atDecisionTime),
+                "a snapshot anchor would pin the enemy frame to the decision-time pose");
         }
     }
 }

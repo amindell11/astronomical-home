@@ -38,7 +38,6 @@ namespace Tests.EditMode
                     horizon = Horizon,
                     noiseStd = NoiseStd,
                     noiseKnots = NoiseKnots,
-                    boostSampleProbability = 0f,
                     rngSeed = Seed,
                 }.Schedule(Samples, 1).Complete();
 

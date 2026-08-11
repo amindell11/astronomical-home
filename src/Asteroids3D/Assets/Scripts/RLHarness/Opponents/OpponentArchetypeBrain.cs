@@ -58,11 +58,7 @@ namespace Game.RLHarness
         /// <summary>Emits the law's velocity through the bound drive and captures the readout (one bump per 5 Hz recompute). Production keeps the border-steered world reference byte-for-byte; the open-loop arms drop the steer and suppress fire (a hit would perturb the paired enemy path) while keeping the aim, the anchored arm packing the same law numbers into the enemy-polar channel.</summary>
         protected BrainDecision Pack(Vector2 planePos, Vector2 lawVelocity, bool engages)
         {
-            var builder = NavObjective.Anchored(new EnemyTarget
-            {
-                kinematics = target.Kinematics,
-                dynamics = target.Dynamics,
-            });
+            var builder = NavObjective.Anchored(target.Id);
 
             var worldVelocity = Vector2.zero;
             float radialSpeed = 0f, tangentialSpeed = 0f;

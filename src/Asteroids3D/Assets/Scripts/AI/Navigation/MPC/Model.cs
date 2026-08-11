@@ -12,18 +12,7 @@ namespace Movement.MPC
             IntegrateLinear(s.pos, s.vel, acc, cfg.dt, shp, out var nextPos, out var nextVel);
             IntegrateAngular(s.yaw, s.yawRate, u.yawTorque, u.strafe, cfg, shp, out var nextYaw, out var nextYawRate);
 
-            var nextBoostCooldown = math.max(0f, s.boostCooldownRemaining - cfg.dt);
-            if (s.boostCooldownRemaining <= 0f && u.boost > 0.5f && shp.boostImpulse > 0f)
-            {
-                nextVel += fwd * (shp.boostImpulse / shp.mass);
-                var maxSpeedSq = shp.maxSpeed * shp.maxSpeed;
-                if (math.lengthsq(nextVel) > maxSpeedSq)
-                    nextVel = math.normalize(nextVel) * shp.maxSpeed;
-                nextBoostCooldown = shp.boostCooldown;
-            }
-
-            return new State { pos = nextPos, vel = nextVel, yaw = nextYaw, yawRate = nextYawRate,
-                boostCooldownRemaining = nextBoostCooldown };
+            return new State { pos = nextPos, vel = nextVel, yaw = nextYaw, yawRate = nextYawRate };
         }
 
         private static void BodyAxes(float yaw, out float2 fwd, out float2 right)

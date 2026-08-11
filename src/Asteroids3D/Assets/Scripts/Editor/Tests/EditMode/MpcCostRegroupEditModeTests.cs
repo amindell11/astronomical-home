@@ -18,7 +18,7 @@ namespace Tests.EditMode
             wYawRate = 0.1f,
             terminalMultiplier = 10f, terminalCurve = 1f,
             wEffort = 0.05f, wSmoothnessThrust = 0.5f, wSmoothnessStrafe = 5f, wSmoothnessYaw = 0.2f,
-            wMomentum = 0.3f, wBoostEffort = 0.5f,
+            wMomentum = 0.3f,
             wFacing = 1f, facingWidth = 0.5f, facingTarget = float.NaN,
             wObstacle = 5f, collisionPenalty = 10000f, collisionSafetyMargin = 0.3f,
             maxBankAngleRad = 35f * Mathf.Deg2Rad, maxSpeedSq = 900f, maxYawRateSq = 100f,
@@ -30,8 +30,8 @@ namespace Tests.EditMode
         {
             pos = new float2(5f, -3f), vel = new float2(4f, 8f), yaw = 0.3f, yawRate = 0.5f,
         };
-        private static readonly Control U = new() { thrust = 0.6f, strafe = 0.4f, yawTorque = -0.3f, boost = 1f };
-        private static readonly Control PrevU = new() { thrust = 0.2f, strafe = -0.1f, yawTorque = 0.1f, boost = 0f };
+        private static readonly Control U = new() { thrust = 0.6f, strafe = 0.4f, yawTorque = -0.3f };
+        private static readonly Control PrevU = new() { thrust = 0.2f, strafe = -0.1f, yawTorque = 0.1f };
         private const int Step = 8;   // mid-horizon → terminal ramp active (t = 0.5)
 
         // Enemy well clear of the ship; the anchored facing channel (offset 0, full authority) arms intercept-facing; initialVel off the velocity axis keeps momentum live.
@@ -81,7 +81,6 @@ namespace Tests.EditMode
                 Assert.That(breakdown.obstacle, Is.GreaterThan(0f), "Fixture must exercise turn-away.");
                 Assert.That(breakdown.momentum, Is.GreaterThan(0f), "Fixture must exercise momentum.");
                 Assert.That(breakdown.effort, Is.GreaterThan(0f), "Fixture must exercise effort.");
-                Assert.That(breakdown.boostEffort, Is.GreaterThan(0f), "Fixture must exercise boost effort.");
                 Assert.That(breakdown.smoothness, Is.GreaterThan(0f), "Fixture must exercise smoothness.");
                 Assert.That(breakdown.collision, Is.EqualTo(0f), "A clear hull must not pay the collision penalty.");
 

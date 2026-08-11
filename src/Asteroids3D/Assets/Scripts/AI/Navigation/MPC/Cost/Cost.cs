@@ -141,14 +141,12 @@ namespace Movement.MPC
                     ? MomentumCost(s.vel, input.initialVel) * cfg.wMomentum
                     : 0f,
                 effort = EffortCost(u) * cfg.wEffort,
-                boostEffort = u.boost * u.boost * cfg.wBoostEffort,
                 smoothness = SmoothnessCost(u, prevU, cfg)
             };
 
             // Mirrors Cost.Evaluate: the ramp applies to state cost (facing + prior + regularizers); the tracker and control terms stay per-step.
             var stateCost = breakdown.facing + breakdown.facingPrior + breakdown.yawRate + breakdown.obstacle + breakdown.momentum;
-            var total = stateCost + breakdown.effort + breakdown.boostEffort +
-                        breakdown.smoothness + breakdown.velocityTrack;
+            var total = stateCost + breakdown.effort + breakdown.smoothness + breakdown.velocityTrack;
 
             if (cfg.terminalMultiplier > 0f && cfg.horizon > 1)
             {
