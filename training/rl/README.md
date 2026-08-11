@@ -144,7 +144,7 @@ separate in the audit output and never enter the target.
 ```powershell
 # Collect with a caller-prepared bounded config.
 .venv\Scripts\python run_parallel.py `
-  --config results/rl-value/<artifact-id>/collection.yaml `
+  --config ../../results/rl-value/<artifact-id>/collection.yaml `
   --run-id <artifact-id> --num-envs 6 --num-arenas 2 `
   --record-transitions --force
 
