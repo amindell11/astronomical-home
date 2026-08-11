@@ -237,3 +237,80 @@ break player builds.
 
 Vocab: no new terms. The `brain / chooser / decision lane` row loses "chooser" when the symbols
 move.
+
+## PR-3 decision brief — frozen 2026-08-10
+
+Scope: boost leaves the MPC entirely (`Control.boost`, `State.boostCooldownRemaining`,
+`wBoostEffort`, `boostSampleProbability`, the horizon-skip, `CostBreakdown.boostEffort`) and the
+ability lane becomes commander-owned; `NavObjective`'s anchor becomes a `ShipId` resolved live each
+tick. Bench-1 gated on paired arms. Non-goals: the cadence hoist, PR-2b, any observation/action
+schema change, and `Pack`'s mixed freshness in the `OpenLoopAnchored` probe arm.
+
+⚠ **The plan's premise for boost removal is false against the assets.** §Trained-interface
+constraints #1 claims the solver "boosts on its own 15 % sampling economics". It does not:
+`MpcSettings_AgentPilot.asset` carries `boostSampleProbability: 0`, it is the *only* MpcSettings
+asset in the project, all three Navigator-bearing prefabs (`AgentPilot`, `ArchetypePilot`,
+`TestPilotMPC`) reference it, and `OpponentRoster`'s per-episode clone changes only `wVelTrack`. The
+`0.15f` survives as a C# initializer reachable solely through `Navigator.cs`'s null-settings
+fallback, which no shipped prefab hits. **The solver has never boosted.** Boost is semantically dead
+but *entropically live*: `BurstSolver`'s `rng.NextFloat()` runs unconditionally per step per
+candidate on the same stream that feeds the correlated-noise knots.
+
+**Forks (settled with the user, in order):**
+
+1. **Delete the RNG draw; accept the re-phase.** Removing the draw shifts every subsequent noise
+   sample — same distribution, different realization. Rejected: a consume-and-discard draw to hold
+   the stream bit-identical, which would buy reproducibility the eval path already lacks
+   ([[project-eval-sim-nondeterminism]]) at the price of permanently dead code in a Burst hot job.
+   The re-phase is zero-mean and directionless — equivalent to a different solve seed — so the
+   prediction is that the roster moves within noise.
+2. **One bundled bench arm; attribute only on failure.** A boost-only isolation arm is bought only
+   if the treatment lands outside noise. Cancellation between the two shifts is acceptable: the gate
+   judges the net environment.
+3. **The commander resolves `ShipId` once per tick and feeds both lanes.** `AICommander.Route`
+   resolves through `Scout.Registry` and hands one `EnemyTarget` to
+   `Navigator.ApplyObjective(objective, anchor)` and `Gunner.Aim(anchor)`. Keeps the three lanes
+   independent (this plan's core ruling) and makes nav and fire provably agree within a tick.
+   Deviation from this doc's literal "resolved by the Navigator each tick": behaviorally identical,
+   since `Route` runs immediately before `ComputeCommand` every `FixedUpdate`. Cost is a second
+   parameter on `ApplyObjective`. Rejected: Navigator-resolves-plus-commander-re-resolves (duplicate
+   lookup that can disagree), and Navigator-exposes-resolved-anchor (makes the fire lane read
+   through the nav component).
+4. **Baseline and treatment run as paired arms in one port claim; gate on B − A.** The 63.00/±2.22
+   yardstick was measured at `7cd7b95a`; main is 43 commits ahead including #340 (Gunner targeting)
+   and #285 (asteroid broadphase), and PR-1/PR-2 were proven behavior-preserving by test-count
+   equivalence, never by bench. Arm A re-establishes the yardstick and re-validates whether 63.00
+   still holds at main.
+
+**Blindsiders (hunted against the locked design):**
+
+5. **The commander sets `PilotCommand.boost`; `Navigator.CommandBoost` and `boostCommanded` are
+   deleted.** `Booster` is a plain class privately held by `MovementController` behind an `internal
+   ProcessBoost`, so "routed straight to the Booster" is figurative — `PilotCommand.boost` is the
+   actual actuator path, per the `PlayerCommander` precedent. The commander latches `decided.boost`
+   beside `primary`/`secondary` and stamps the struct `ComputeCommand()` returns. Leaving the
+   passthrough in the Navigator would keep the ability lane routed through the nav component — the
+   crossing fork 3 rejected.
+6. **An unresolvable anchor takes the existing no-decision path** (`ResetNavigation()` + `Auto`
+   triggers), not a throw. `Ship.HandleShipDeath` calls only `SetActive(false)` and never
+   `ActiveShips.Remove`, so on death the registry stays a superset of live ships and resolution
+   still succeeds — the desync runs the safe direction. The sole failure window is a same-frame
+   `DespawnShip`/`EpisodePair.Remove` teardown where `Destroy` is deferred; throwing there would
+   crash on a legitimate race. This is not a guard absorbing a programmer error — it is the same
+   "target gone" state the brains reach one tick later, observed earlier.
+
+**Assumptions (code-grounded, none vetoed):** the registry reaches the commander free — `Scout`
+already holds `arena.Registry` and `AICommander` already holds `Scout`, so no `Initialize` signature
+changes and dependency philosophy #3 stays untouched. All three `Anchored(...)` producers
+(`OpponentArchetypeBrain.Pack`, `RangerBrain`, `PolicyBrain`) already hold the `Ship`, so
+`.Anchored(target.Id)` is a field read. Dead targets are already guarded every tick *before* the
+10-tick cache, so freshening needs no new death handling. `PolicyBrain.Decide` keeps rebuilding per
+tick — it carries the one-shot boost latch and the fire command, so freshening retires the snapshot
+*motive*, not the rebuild. `MpcBoostEditModeTests.cs` is deleted wholesale;
+`NavigatorBoostPassThroughEditModeTests.cs` is reworked as the ability-lane test. `Pack`'s mixed
+freshness (5 Hz law velocity resolved against a live anchor) is accepted, not fixed. The observation
+schema is untouched — `boostAvailable`/`boostCooldownPct` read `IShipStatus`, backed by
+`MovementController`'s `Booster`, never the MPC's deleted `State.boostCooldownRemaining`.
+
+Vocab: no new terms. *enemy anchor*, *decision lane*, and *noise floor* keep their glossary senses;
+the `anchored intent` row stays accurate — only the carrier changes from snapshot to identity.
