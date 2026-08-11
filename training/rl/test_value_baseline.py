@@ -108,6 +108,23 @@ class ValueBaselineTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueBaselineError, r"state.combat\[4\] must be finite"):
             load_episodes([non_finite])
 
+    def test_collection_run_cannot_drift_or_span_episode_identity_across_files(self):
+        first = self.write_dataset(terminal_seeds=(7,))
+        rows = [json.loads(line) for line in first.read_text(encoding="utf-8").splitlines()]
+
+        drifted = self.root / "drifted-transitions.jsonl"
+        drifted_rows = json.loads(json.dumps(rows))
+        for row in drifted_rows:
+            row["runId"] = "different-run"
+        self.write_rows(drifted, drifted_rows)
+        with self.assertRaisesRegex(ValueBaselineError, r"runId .* collection runId"):
+            load_episodes([first, drifted])
+
+        second = self.root / "second-transitions.jsonl"
+        self.write_rows(second, [rows[-1]])
+        with self.assertRaisesRegex(ValueBaselineError, r"duplicate episode identity .* first seen"):
+            load_episodes([first, second])
+
     def test_normalization_marks_constant_features(self):
         features = np.asarray([[1.0] * 28, [3.0] + [1.0] * 27], dtype=np.float32)
         targets = np.asarray([2.0, 4.0], dtype=np.float32)
@@ -189,6 +206,8 @@ class ValueBaselineTests(unittest.TestCase):
         manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
         verification = json.loads((output / "verification.json").read_text(encoding="utf-8"))
         self.assertEqual("rl-value-combat-v1", manifest["stateSchema"])
+        self.assertEqual("training/rl/train_value_baseline.py", manifest["producer"]["entryPoint"])
+        self.assertTrue(manifest["producer"]["sourceCommit"])
         self.assertEqual(["batch", 28], manifest["input"]["shape"])
         self.assertEqual("passed", verification["checker"])
         self.assertEqual([1, 128], [row["batchSize"] for row in verification["referenceInference"]])

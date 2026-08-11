@@ -244,6 +244,10 @@
     ],
     "units": "discounted task return"
   },
+  "producer": {
+    "entryPoint": "training/rl/train_value_baseline.py",
+    "sourceCommit": "de7ea701e3e4bf89acb7b320e7e3c1245934bcde"
+  },
   "runtime": {
     "numpy": "1.23.5",
     "onnx": "1.15.0",

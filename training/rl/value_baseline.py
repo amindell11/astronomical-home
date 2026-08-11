@@ -173,6 +173,8 @@ def discover_transition_files(inputs: Sequence[Path]) -> list[Path]:
 
 def load_episodes(files: Sequence[Path]) -> list[Episode]:
     grouped: dict[EpisodeKey, dict[int, SourceRow]] = {}
+    episode_sources: dict[EpisodeKey, Path] = {}
+    collection_run_id: str | None = None
     for path in files:
         with path.open("r", encoding="utf-8") as stream:
             for line_number, text in enumerate(stream, 1):
@@ -186,6 +188,19 @@ def load_episodes(files: Sequence[Path]) -> list[Episode]:
                     raise ValueBaselineError(f"{path}:{line_number}: transition row must be an object")
                 source = SourceRow(row, path, line_number)
                 key = validate_transition(source)
+                if collection_run_id is None:
+                    collection_run_id = key.run_id
+                elif key.run_id != collection_run_id:
+                    raise ValueBaselineError(
+                        f"{source.where}: runId {key.run_id!r} does not match "
+                        f"collection runId {collection_run_id!r}"
+                    )
+                prior_path = episode_sources.setdefault(key, path)
+                if prior_path != path:
+                    raise ValueBaselineError(
+                        f"{source.where}: duplicate episode identity {key.stable_id}; "
+                        f"first seen in {prior_path}"
+                    )
                 decisions = grouped.setdefault(key, {})
                 if source.decision in decisions:
                     prior = decisions[source.decision]
@@ -1030,6 +1045,10 @@ def build_manifest(source_files: Sequence[Path], output_dir: Path, metadata: Art
             "selection": "lowest validation RMSE; heldout report only",
         },
         "verification": verification,
+        "producer": {
+            "entryPoint": "training/rl/train_value_baseline.py",
+            "sourceCommit": git_head(),
+        },
         "runtime": {
             "python": sys.version.split()[0],
             "platform": platform.platform(),
