@@ -280,7 +280,9 @@ candidate on the same stream that feeds the correlated-noise knots.
    yardstick was measured at `7cd7b95a`; main is 43 commits ahead including #340 (Gunner targeting)
    and #285 (asteroid broadphase), and PR-1/PR-2 were proven behavior-preserving by test-count
    equivalence, never by bench. Arm A re-establishes the yardstick and re-validates whether 63.00
-   still holds at main.
+   still holds at main. **Baseline pinned to `3bd5f772`** — the code state of main when PR-3
+   branched (`10e61f14` is this brief, docs-only). #285 landed mid-prep, after PR-2, which is
+   exactly why the baseline carries a sha rather than "current main".
 
 **Blindsiders (hunted against the locked design):**
 
