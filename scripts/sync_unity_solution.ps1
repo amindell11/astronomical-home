@@ -7,7 +7,7 @@ $ErrorActionPreference = "Stop"
 
 function Get-TrackedChanges {
     param([string]$RepoRoot)
-    $changes = @(& git -C $RepoRoot status --porcelain --untracked-files=no)
+    $changes = @(& git -c core.excludesFile= -C $RepoRoot status --porcelain --untracked-files=no)
     if ($LASTEXITCODE -ne 0) { throw "Could not inspect tracked files in $RepoRoot" }
     return $changes
 }
@@ -22,8 +22,7 @@ function Restore-UnityTrackedChanges {
     param([string]$RepoRoot)
     $changes = @(Get-TrackedChanges $RepoRoot)
     if ($changes.Count -eq 0) { return }
-    Write-Host "Restoring tracked files changed by Unity solution sync: $($changes -join ', ')"
-    & git -C $RepoRoot restore --worktree --source=HEAD -- .
+    & git -c core.excludesFile= -C $RepoRoot restore --worktree --source=HEAD -- . | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "Could not restore tracked files changed by Unity solution sync." }
     $remaining = @(Get-TrackedChanges $RepoRoot)
     if ($remaining.Count -gt 0) { throw "Unity solution sync left tracked changes: $($remaining -join ', ')" }
