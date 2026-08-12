@@ -119,8 +119,6 @@ namespace Tests.EditMode
         [Test]
         public void SyntheticObstacles_EnterThroughConvertObstacles()
         {
-            // A circle overlapping the spawn must surface as the production path's collision
-            // penalty and threat-classify the step — proving scan → ConvertObstacles → cost end to end.
             var scenario = RigScenario.VersusDummy(40f);
             scenario.obstacles = new[] { new RigCircle(new float2(0f, 0f), 5f) };
             scenario.warmupSeconds = 0f;
