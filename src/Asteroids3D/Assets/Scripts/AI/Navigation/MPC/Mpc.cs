@@ -10,7 +10,6 @@ namespace Movement.MPC
     public struct MpcInputs
     {
         public Kinematics kinematics;
-        public float boostCooldown;
         public float2 velocityReference;   // commanded planar velocity
         public float facingRad;            // NaN = no facing override
         public float2 enemyPos;
@@ -30,7 +29,6 @@ namespace Movement.MPC
         public float thrust;
         public float strafe;
         public float yawTorque;
-        public float boost;
         public float cost;
     }
 
@@ -68,10 +66,6 @@ namespace Movement.MPC
             lastInitialState = mpcState;
             ShiftSequenceForward();
 
-            var boostCooldown = inputs.boostCooldown;
-            // If cooldown exceeds the entire horizon, skip boost sampling to save candidate quality.
-            var boostProb = boostCooldown > settings.horizonSeconds ? 0f : settings.boostSampleProbability;
-
             using (EditorProfilingScope.Begin("MPC.Mpc.Solve"))
             {
                 lastBestCost = solver.Solve(mpcState, bestSequence,
@@ -81,7 +75,6 @@ namespace Movement.MPC
                     inputs.enemyPos, inputs.enemyVel, inputs.enemyYaw, inputs.enemyYawRate,
                     inputs.enemyDynamics, inputs.projectileSpeed, inputs.anchored,
                     settings.samples, settings.noiseStd, settings.noiseKnots, lastControl,
-                    boostCooldown, boostProb,
                     settings.eliteFraction);
             }
 
@@ -94,7 +87,6 @@ namespace Movement.MPC
                 thrust = raw.thrust,
                 strafe = raw.strafe,
                 yawTorque = raw.yawTorque,
-                boost = raw.boost,
                 cost = lastBestCost,
             };
         }

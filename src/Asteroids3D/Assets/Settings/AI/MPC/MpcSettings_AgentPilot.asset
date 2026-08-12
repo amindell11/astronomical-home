@@ -27,8 +27,6 @@ MonoBehaviour:
   wSmoothnessStrafe: 0
   wSmoothnessYaw: 0.002
   wMomentum: 0
-  wBoostEffort: 1
-  boostSampleProbability: 0
   wFacing: 1
   facingWidth: 1.5
   wFacingPrior: 0

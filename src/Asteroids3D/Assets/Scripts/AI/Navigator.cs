@@ -26,7 +26,6 @@ namespace Movement.MPC
         protected float facingRadOverride;
         protected internal float2 velocityReference;
         protected bool hasVelocityReference;
-        private bool boostCommanded;
         protected internal float2 enemyPos;
         protected internal float2 enemyVel;
         protected internal float enemyYaw = float.NaN;
@@ -86,7 +85,6 @@ namespace Movement.MPC
             var inputs = new MpcInputs
             {
                 kinematics = kin,
-                boostCooldown = context.BoostCooldownRemaining,
                 velocityReference = velocityReference,
                 facingRad = facingOverride ? facingRadOverride : float.NaN,
                 enemyPos = enemyPos,
@@ -125,11 +123,10 @@ namespace Movement.MPC
             currentCommand.thrust = r.thrust;
             currentCommand.strafe = r.strafe;
             currentCommand.yawTorque = r.yawTorque;
-            currentCommand.boost = boostCommanded ? Mathf.Max(r.boost, 1f) : r.boost;
         }
 
-        /// <summary>The single production entry point for driving the navigator, resetting every field each call so the result depends only on the objective, never on prior state or call order. Composes the granular Set*/Clear* seam below (which tests also drive directly).</summary>
-        public void ApplyObjective(in NavObjective objective)
+        /// <summary>The single production entry point for driving the navigator, resetting every field each call so the result depends only on the objective, never on prior state or call order. Composes the granular Set*/Clear* seam below (which tests also drive directly). The objective names its anchor by identity; <paramref name="resolvedAnchor"/> is that ship's kinematics as the host resolved them this tick, so re-applying a held decision tracks the live enemy.</summary>
+        public void ApplyObjective(in NavObjective objective, in EnemyTarget resolvedAnchor)
         {
             if (objective.IsIdle)
             {
@@ -143,21 +140,14 @@ namespace Movement.MPC
 
             // The builder can only arm these channels through an anchor, so the anchor is live whenever they are.
             if (anchored.hasFacing || anchored.hasVelocity)
-                SetEnemyState(objective.anchor);
+                SetEnemyState(resolvedAnchor);
             else
                 ClearEnemyState();
-        }
-
-        /// <summary>The ability lane's passthrough: a commanded boost floors the solver's own boost channel for this tick.</summary>
-        public void CommandBoost(bool commanded)
-        {
-            boostCommanded = commanded;
         }
 
         /// <summary>Resets all navigation overrides to idle. Mirrors a fresh, unarmed navigator.</summary>
         public void ResetNavigation()
         {
-            boostCommanded = false;
             hasVelocityReference = false;
             velocityReference = default;
             anchored = default;

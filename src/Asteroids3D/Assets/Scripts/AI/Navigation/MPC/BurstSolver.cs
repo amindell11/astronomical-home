@@ -15,7 +15,6 @@ namespace Movement.MPC
         public int horizon;
         public float noiseStd;
         public int noiseKnots;
-        public float boostSampleProbability;
         public uint rngSeed;
 
         public void Execute(int candidateIndex)
@@ -56,7 +55,6 @@ namespace Movement.MPC
                     thrust = math.clamp(warm.thrust + noise.x, -1f, 1f),
                     strafe = math.clamp(warm.strafe + noise.y, -1f, 1f),
                     yawTorque = math.clamp(warm.yawTorque + noise.z, -1f, 1f),
-                    boost = rng.NextFloat() < boostSampleProbability ? 1f : 0f
                 };
             }
         }
@@ -154,7 +152,6 @@ namespace Movement.MPC
             float2 enemyPos, float2 enemyVel, float enemyYaw, float enemyYawRate,
             Dynamics enemyDynamics, float projectileSpeed, in AnchoredIntent anchored,
             int samples, float noiseStd, int noiseKnots, Control lastControl,
-            float boostCooldownRemaining = 0f, float boostSampleProbability = 0.15f,
             float eliteFraction = 0.1f)
         {
             var horizon = cfg.horizon;
@@ -210,8 +207,6 @@ namespace Movement.MPC
                 anchored = anchored,
             };
 
-            initialState.boostCooldownRemaining = boostCooldownRemaining;
-
             // Per-ship stream, solve counter, and quantized position hash decorrelate ships/solves/poses while keeping the noise replayable across physically-identical states (raw float bits would make one ulp of pose noise pick a different stream).
             solveCount++;
             var baseSeed = SamplerSeedOverride ?? samplerSeed;
@@ -225,7 +220,6 @@ namespace Movement.MPC
                 horizon = horizon,
                 noiseStd = noiseStd,
                 noiseKnots = noiseKnots,
-                boostSampleProbability = boostSampleProbability,
                 rngSeed = rngSeed
             }.Schedule(samples, 1).Complete();
 
@@ -274,7 +268,6 @@ namespace Movement.MPC
                         thrust = c.thrust + s.thrust,
                         strafe = c.strafe + s.strafe,
                         yawTorque = c.yawTorque + s.yawTorque,
-                        boost = c.boost + s.boost,
                     };
                 }
                 counted++;
@@ -289,7 +282,6 @@ namespace Movement.MPC
                     thrust = math.clamp(c.thrust * invCount, -1f, 1f),
                     strafe = math.clamp(c.strafe * invCount, -1f, 1f),
                     yawTorque = math.clamp(c.yawTorque * invCount, -1f, 1f),
-                    boost = c.boost * invCount > 0.5f ? 1f : 0f,
                 };
             }
 

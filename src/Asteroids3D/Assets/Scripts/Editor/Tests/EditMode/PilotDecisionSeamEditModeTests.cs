@@ -52,6 +52,9 @@ namespace Tests.EditMode
             if (createdSettings) Object.DestroyImmediate(createdSettings);
         }
 
+        // The host resolves the anchor, so any valid id serves here.
+        private static readonly ShipId AnchorId = new(1);
+
         // Enemy heading 90° so the MPC-convention conversion (fwd = (−sin, cos)) is observable.
         private static EnemyTarget Anchor() => new()
         {
@@ -61,7 +64,7 @@ namespace Tests.EditMode
         [Test]
         public void DummyShape_PlanarZero_ArmsAStopWithNoAnchoredChannels()
         {
-            nav.ApplyObjective(NavObjective.Planar(Vector2.zero));
+            nav.ApplyObjective(NavObjective.Planar(Vector2.zero), Anchor());
 
             Assert.That(nav.ShouldIdle(), Is.False, "a zero reference is a commanded stop, not idle");
             Assert.That((Vector2)nav.velocityReference, Is.EqualTo(Vector2.zero));
@@ -74,7 +77,7 @@ namespace Tests.EditMode
         public void ArchetypeShape_PlanarPlusAimedFacing_KeepsTheWorldReferenceAndAnchorsTheNose()
         {
             var vRef = new Vector2(3f, -4f);
-            nav.ApplyObjective(NavObjective.Anchored(Anchor()).Planar(vRef).Facing(0f, 1f));
+            nav.ApplyObjective(NavObjective.Anchored(AnchorId).Planar(vRef).Facing(0f, 1f), Anchor());
 
             Assert.That(nav.velocityReference.x, Is.EqualTo(3f), "exact-float: the world reference passes through");
             Assert.That(nav.velocityReference.y, Is.EqualTo(-4f));
@@ -87,9 +90,9 @@ namespace Tests.EditMode
         [Test]
         public void PolicyShape_AnchoredVelocityAndFacing_LeavesTheWorldReferenceAtZero()
         {
-            nav.ApplyObjective(NavObjective.Anchored(Anchor())
+            nav.ApplyObjective(NavObjective.Anchored(AnchorId)
                 .Velocity(4f, -2f, 0.6f)
-                .Facing(1.2f, 0.4f));
+                .Facing(1.2f, 0.4f), Anchor());
 
             Assert.That((Vector2)nav.velocityReference, Is.EqualTo(Vector2.zero),
                 "the polar channel carries the command; the world reference stays armed-but-unused");
@@ -104,7 +107,7 @@ namespace Tests.EditMode
         [Test]
         public void AnchoredChannels_ConvertTheEnemySnapshotToMpcConventionAtTheBoundary()
         {
-            nav.ApplyObjective(NavObjective.Anchored(Anchor()).Velocity(1f, 0f, 1f));
+            nav.ApplyObjective(NavObjective.Anchored(AnchorId).Velocity(1f, 0f, 1f), Anchor());
 
             Assert.That(nav.enemyPos.x, Is.EqualTo(0f));
             Assert.That(nav.enemyPos.y, Is.EqualTo(10f));
@@ -118,7 +121,7 @@ namespace Tests.EditMode
         [Test]
         public void ProjectileSpeed_IsHostInjected_AndSurvivesAnAnchorlessObjective()
         {
-            nav.ApplyObjective(NavObjective.Planar(new Vector2(1f, 0f)));
+            nav.ApplyObjective(NavObjective.Planar(new Vector2(1f, 0f)), Anchor());
 
             Assert.That(nav.projectileSpeed, Is.EqualTo(ProjectileSpeed),
                 "our own ballistics are injected once at Initialize, not carried per decision");

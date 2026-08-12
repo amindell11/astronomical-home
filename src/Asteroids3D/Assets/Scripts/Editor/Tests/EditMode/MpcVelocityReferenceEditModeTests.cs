@@ -84,7 +84,7 @@ namespace Tests.EditMode
                     state.yaw * Mathf.Rad2Deg, state.yawRate * Mathf.Rad2Deg, 0f);
 
                 var r = mpc.Plan(in inputs);
-                var u = new Control { thrust = r.thrust, strafe = r.strafe, yawTorque = r.yawTorque, boost = r.boost };
+                var u = new Control { thrust = r.thrust, strafe = r.strafe, yawTorque = r.yawTorque };
                 state = Model.Step(state, u, cfg, dynamics);
             }
             return state.vel;

@@ -49,6 +49,9 @@ namespace Tests.EditMode
             if (createdSettings) Object.DestroyImmediate(createdSettings);
         }
 
+        // The host resolves the anchor, so any valid id serves here.
+        private static readonly ShipId AnchorId = new(1);
+
         [Test]
         public void FreshNavigator_Idles()
         {
@@ -75,7 +78,7 @@ namespace Tests.EditMode
         [Test]
         public void ApplyObjective_Planar_ArmsTheTracker()
         {
-            nav.ApplyObjective(NavObjective.Planar(new Vector2(3f, 0f)));
+            nav.ApplyObjective(NavObjective.Planar(new Vector2(3f, 0f)), default);
             Assert.That(nav.ShouldIdle(), Is.False,
                 "A planar objective is a velocity-reference command and must arm the navigator.");
         }
@@ -83,8 +86,8 @@ namespace Tests.EditMode
         [Test]
         public void ApplyObjective_Drift_DisarmsToIdle()
         {
-            nav.ApplyObjective(NavObjective.Planar(new Vector2(3f, 0f)));
-            nav.ApplyObjective(NavObjective.Drift);
+            nav.ApplyObjective(NavObjective.Planar(new Vector2(3f, 0f)), default);
+            nav.ApplyObjective(NavObjective.Drift, default);
             Assert.That(nav.ShouldIdle(), Is.True,
                 "A drift objective must disarm the velocity reference back to idle.");
         }
@@ -92,7 +95,7 @@ namespace Tests.EditMode
         [Test]
         public void ApplyObjective_AnchoredPolarWithoutPlanar_ArmsTheTracker()
         {
-            nav.ApplyObjective(NavObjective.Anchored(default).Velocity(1f, 0f, 1f));
+            nav.ApplyObjective(NavObjective.Anchored(AnchorId).Velocity(1f, 0f, 1f), default);
             Assert.That(nav.ShouldIdle(), Is.False,
                 "An enemy-polar move channel arms the navigator even with no world reference.");
         }

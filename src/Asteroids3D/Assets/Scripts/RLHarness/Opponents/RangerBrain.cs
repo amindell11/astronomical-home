@@ -61,7 +61,7 @@ namespace Game.RLHarness
             var vRef = HoldRangeVelocity(in self, in enemy, desiredRange, ctx.Self.Dynamics.maxSpeed);
 
             var nav = NavObjective
-                .Anchored(new EnemyTarget { kinematics = enemy, dynamics = target.Dynamics })
+                .Anchored(target.Id)
                 .Planar(vRef)
                 .Facing(0f, 1f);
 

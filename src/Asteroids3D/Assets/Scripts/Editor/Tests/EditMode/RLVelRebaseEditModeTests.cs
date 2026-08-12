@@ -178,7 +178,7 @@ namespace Tests.EditMode
             Assert.AreEqual(-4f, decision.nav.planarVelocity.y);
             Assert.IsFalse(decision.nav.anchored.hasVelocity);
             Assert.IsFalse(decision.primary.IsAuto, "a hit would perturb the paired enemy path");
-            Assert.IsTrue(decision.nav.TryGetAnchor(out _), "both arms keep the anchor for the facing channel");
+            Assert.IsTrue(decision.nav.TryGetAnchorId(out _), "both arms keep the anchor for the facing channel");
         }
 
         [Test]

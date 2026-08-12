@@ -47,11 +47,6 @@ namespace Movement.MPC
         public float wSmoothnessYaw = 0.002f;
         [Tooltip("Momentum cost weight. Penalizes velocity direction changes, rewarding smooth trajectories that maintain course.")]
         public float wMomentum = 0f;
-        [Tooltip("Boost effort cost weight. Penalizes boost usage so the solver doesn't boost gratuitously.")]
-        public float wBoostEffort = 0.5f;
-        [Tooltip("Probability of sampling boost=1 at each step during candidate generation.")]
-        [Range(0f, 1f)]
-        public float boostSampleProbability = 0.15f;
 
         [Header("Aim")]
         [Tooltip("Facing weight. Steers the nose toward the intercept-lead angle (or an explicit facing override).")]
@@ -100,7 +95,6 @@ namespace Movement.MPC
                 wSmoothnessStrafe = wSmoothnessStrafe,
                 wSmoothnessYaw = wSmoothnessYaw,
                 wMomentum = wMomentum,
-                wBoostEffort = wBoostEffort,
                 wFacing = wFacing,
                 facingWidth = facingWidth,
                 facingTarget = facingTargetRad,

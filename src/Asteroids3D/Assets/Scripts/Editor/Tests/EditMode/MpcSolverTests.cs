@@ -91,7 +91,7 @@ namespace Tests.EditMode
             if (a.Length != b.Length) return false;
             for (var i = 0; i < a.Length; i++)
                 if (a[i].thrust != b[i].thrust || a[i].strafe != b[i].strafe ||
-                    a[i].yawTorque != b[i].yawTorque || a[i].boost != b[i].boost)
+                    a[i].yawTorque != b[i].yawTorque)
                     return false;
             return true;
         }

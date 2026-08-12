@@ -127,7 +127,6 @@ namespace Movement.MPC
             DrawCostBar("Collision", breakdown.collision, s.collisionPenalty, total, new Color(1f, 0f, 0.5f));
             DrawCostBar("Momentum", breakdown.momentum, s.wMomentum, total, new Color(0.6f, 1f, 0.6f));
             DrawCostBar("Effort", breakdown.effort, s.wEffort, total, Color.gray);
-            DrawCostBar("Boost Effort", breakdown.boostEffort, s.wBoostEffort, total, new Color(1f, 0.6f, 0f));
             DrawCostBar("Smoothness", breakdown.smoothness, 0f, total, Color.white);
         }
 

@@ -230,7 +230,7 @@ namespace Tests.EditMode
                 brain.SetAction(in action, boostAvailable: true);
 
                 var decision = brain.Decide(null).Value;
-                Assert.IsTrue(decision.nav.TryGetAnchor(out _), "the anchor snapshot carries the enemy frame");
+                Assert.IsTrue(decision.nav.TryGetAnchorId(out _), "the objective names the enemy it is anchored to");
 
                 // B1 boundary pin: the facing command rides the anchored channel, and the world reference stays unarmed.
                 Assert.IsFalse(decision.nav.hasPlanarVelocity, "the polar move channel replaces the world reference");

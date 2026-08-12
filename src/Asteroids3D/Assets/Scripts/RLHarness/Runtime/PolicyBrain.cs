@@ -4,7 +4,7 @@ using Ships;
 
 namespace Game.RLHarness
 {
-    /// <summary>The policy end of the decision seam: holds the decision-boundary action (enemy-anchored facing offset + polar velocity + trigger + one-shot boost) and rebuilds the decision every Decide with a fresh anchor snapshot from the INJECTED opponent (Ranger precedent — Scout's 30 m radius is blind past the 25–60 m spawn band). The policy owns aim and trigger: it commands the primary directly and holds the secondary, so the MPC re-resolves both anchored channels per rollout step. Boost emits on exactly one tick and only if it was available as observed at the boundary (spend-now-if-ready — a cooldown expiring mid-interval must not fire a boost the policy saw as unavailable).</summary>
+    /// <summary>The policy end of the decision seam: holds the decision-boundary action (enemy-anchored facing offset + polar velocity + trigger + one-shot boost) and rebuilds the decision every Decide, naming the INJECTED opponent as its anchor (Ranger precedent — Scout's 30 m radius is blind past the 25–60 m spawn band). The policy owns aim and trigger: it commands the primary directly and holds the secondary, so the MPC re-resolves both anchored channels per rollout step. Boost emits on exactly one tick and only if it was available as observed at the boundary (spend-now-if-ready — a cooldown expiring mid-interval must not fire a boost the policy saw as unavailable).</summary>
     public class PolicyBrain : Brain, IPolicyReadout
     {
         private const int RingCapacity = 16;
@@ -69,7 +69,7 @@ namespace Game.RLHarness
             boostPending = false;
 
             var nav = NavObjective
-                .Anchored(new EnemyTarget { kinematics = opponent.Kinematics, dynamics = opponent.Dynamics })
+                .Anchored(opponent.Id)
                 .Velocity(action.radialSpeed, action.tangentialSpeed, action.velocityWeight)
                 // At scale 1 the settings asset's wFacing stays the authority ceiling.
                 .Facing(action.facingOffsetRad, action.facingWeight * FacingAuthorityScale);

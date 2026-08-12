@@ -37,7 +37,6 @@ namespace Tests.EditMode
             var settings = pilot.GetComponent<Navigator>().mpcSettings;
             Assert.IsNotNull(settings, "Agent-hosting pilots must author MpcSettings_AgentPilot");
             Assert.AreEqual(50f, settings.wVelTrack, "wVelTrack is part of the trained interface");
-            Assert.AreEqual(0f, settings.boostSampleProbability, "boost is policy-owned; the solver must not sample it");
         }
     }
 }

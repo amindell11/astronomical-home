@@ -10,7 +10,6 @@ namespace Movement.MPC
         public float2 vel;
         public float yaw;     // Radians
         public float yawRate; // Radians per second
-        public float boostCooldownRemaining;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -19,7 +18,6 @@ namespace Movement.MPC
         public float thrust;
         public float strafe;
         public float yawTorque;
-        public float boost;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -47,8 +45,6 @@ namespace Movement.MPC
         public float wObstacle;
         public float collisionPenalty;
         public float collisionSafetyMargin;
-
-        public float wBoostEffort;
 
         public float maxBankAngleRad;
         public float maxSpeedSq;
@@ -157,7 +153,6 @@ namespace Movement.MPC
         public float collision;
         public float momentum;
         public float effort;
-        public float boostEffort;
         public float smoothness;
         public float total;
 
@@ -171,7 +166,6 @@ namespace Movement.MPC
             collision += other.collision;
             momentum += other.momentum;
             effort += other.effort;
-            boostEffort += other.boostEffort;
             smoothness += other.smoothness;
             total += other.total;
         }

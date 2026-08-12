@@ -1,19 +1,19 @@
-using AI.Context;
 using Movement.MPC;
+using Ships;
 using UnityEngine;
 
 namespace AI
 {
-    /// <summary>The decision-varying slice of the MPC cost function: one move channel and one facing channel. Enemy-frame channels reach the solver only through <see cref="Anchored"/>, so an anchorless one cannot be authored.</summary>
+    /// <summary>The decision-varying slice of the MPC cost function: one move channel and one facing channel. Enemy-frame channels reach the solver only through <see cref="Anchored"/>, so an anchorless one cannot be authored. The anchor is identity, not kinematics — the host resolves it against the live ship each tick, so a decision held across its 5 Hz interval never steers at a stale enemy.</summary>
     public readonly struct NavObjective
     {
         internal readonly bool hasAnchor;
-        internal readonly EnemyTarget anchor;
+        internal readonly ShipId anchor;
         internal readonly bool hasPlanarVelocity;
         internal readonly Vector2 planarVelocity;
         internal readonly AnchoredIntent anchored;
 
-        internal NavObjective(bool hasAnchor, in EnemyTarget anchor, bool hasPlanarVelocity,
+        internal NavObjective(bool hasAnchor, ShipId anchor, bool hasPlanarVelocity,
             Vector2 planarVelocity, in AnchoredIntent anchored)
         {
             this.hasAnchor = hasAnchor;
@@ -29,9 +29,9 @@ namespace AI
         /// <summary>A world-plane velocity reference; facing is left to the delegation priors.</summary>
         public static NavObjective Planar(Vector2 velocity) => new(false, default, true, velocity, default);
 
-        public static AnchoredBuilder Anchored(in EnemyTarget anchor) => new(anchor);
+        public static AnchoredBuilder Anchored(ShipId anchor) => new(anchor);
 
-        public bool TryGetAnchor(out EnemyTarget anchor)
+        public bool TryGetAnchorId(out ShipId anchor)
         {
             anchor = this.anchor;
             return hasAnchor;
@@ -44,15 +44,15 @@ namespace AI
     /// <summary>Fluent assembly of an anchored objective. Allocation-free, and the two move channels overwrite each other so only one can survive.</summary>
     public readonly struct AnchoredBuilder
     {
-        private readonly EnemyTarget anchor;
+        private readonly ShipId anchor;
         private readonly bool hasPlanarVelocity;
         private readonly Vector2 planarVelocity;
         private readonly AnchoredIntent anchored;
 
-        internal AnchoredBuilder(in EnemyTarget anchor)
+        internal AnchoredBuilder(ShipId anchor)
             : this(anchor, false, default, default) { }
 
-        private AnchoredBuilder(in EnemyTarget anchor, bool hasPlanarVelocity, Vector2 planarVelocity,
+        private AnchoredBuilder(ShipId anchor, bool hasPlanarVelocity, Vector2 planarVelocity,
             in AnchoredIntent anchored)
         {
             this.anchor = anchor;
