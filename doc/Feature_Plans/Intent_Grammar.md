@@ -179,6 +179,15 @@ umbrella #391 · A1 #392 (sentence carrier + terms) · A2 #393 (rig generalizati
 A1 → (A2 ∥ A3) → #395 → closing docs commit landing the verdict table here. Entry gate:
 Probe 2's convergence gates passed (#389, settled-loop pins); the owed roster bench is not a
 Stage A dependency (policy-free), and #395's Dummy-closeout session row partially pays it.
+
+**Integration branch (user-directed 2026-08-12): Stage A lands on `mpc-trunk`, not main.**
+The trunk is cut from main `85b7b5e8`; A1 (#399) merged into it. Every remaining Stage A
+slice does the same: prepare the slot from `origin/mpc-trunk`, base the PR on `mpc-trunk`,
+and merge via the pool gate with the explicit base (`merge <slot> origin/mpc-trunk`).
+Readiness gates that read "A1 merged" verify content on `mpc-trunk`, not main. The trunk
+lands on main as one gate-tested merge at Stage A close, alongside the verdict-table docs
+commit. A1's bit-exactness evidence is unaffected (trunk tip = the main tip A1 was proven
+against).
 Vocabulary in this brief: "term" = intent/cost term (never the objectives system's activation
 term); "sentence slot" = a typed sentence position (never a worktree slot).
 
