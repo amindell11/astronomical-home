@@ -9,15 +9,20 @@ namespace Game.RLHarness
 {
     public enum OpponentArchetype { Aggressor, Evader, Orbiter, Kiter, Dummy }
 
-    /// <summary>An archetype's shape parameters — drawn per episode by the roster (and embedded in the episode's JSONL row) or authored on a live pilot, then handed to <see cref="ArchetypeBrains.Attach"/>; fields the archetype does not use stay zero.</summary>
+    /// <summary>An archetype's shape parameters — drawn per episode by the roster (and embedded in the episode's JSONL row) or authored on a live pilot, then handed to <see cref="ArchetypeBrain.Configure"/>; fields the archetype does not use stay zero.</summary>
     [Serializable]
     public struct OpponentDraw
     {
-        public string archetype;
+        [HideInInspector] public string archetype;
+        [Tooltip("Caps the velocity law at this fraction of the airframe's max speed. The roster draws 0.7-1.0, or 0.4-0.6 for the Orbiter — above ~0.6 the orbit slides outside the laser envelope.")]
         public float speedFraction;
+        [Tooltip("Evader: seconds between juke flips. The roster draws 0.6-1.8.")]
         public float jukePeriod;
+        [Tooltip("Orbiter: the circling radius. The roster draws 14-18.")]
         public float orbitRadius;
+        [Tooltip("Orbiter: circling direction — positive circles counter-clockwise.")]
         public int orbitDirection;
+        [Tooltip("Aggressor/Kiter: the range held on the line of sight. The roster draws 8-12 for the Aggressor and 14-18 for the Kiter; the laser envelope is 20 u.")]
         public float desiredRange;
     }
 
@@ -111,8 +116,13 @@ namespace Game.RLHarness
             var jukeSeed = scope.Derive(JukeSeedStream).ToSeed();
             // arenaRadius is copied out because a lambda cannot capture the `in` spec.
             var arenaRadius = spec.arenaRadius;
-            commander.InstallBrain(host => ArchetypeBrains.Attach(host, archetype, in draw, enemy,
-                jukeSeed, arenaCenter, arenaRadius, drive));
+            // The Func overload keeps Configure ahead of the Brain assignment (PR-2b brief).
+            commander.InstallBrain(host =>
+            {
+                var brain = host.AddComponent<ArchetypeBrain>();
+                brain.Configure(enemy, archetype, in draw, jukeSeed, arenaCenter, arenaRadius, drive);
+                return brain;
+            });
             return draw;
         }
 
