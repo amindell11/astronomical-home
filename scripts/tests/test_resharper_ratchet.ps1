@@ -67,6 +67,12 @@ try {
     Restore-UnityTrackedChanges $temp
     Assert-True (@(Get-TrackedChanges $temp).Count -eq 0) "solution sync restores tracked Unity mutations"
 
+    [System.IO.File]::WriteAllText($settingsPath, "    Standalone: UNITY_POST_PROCESSING_STACK_V2;SENTIS_ANALYTICS_ENABLED`n    productName: changed by Unity`n", (New-Object System.Text.UTF8Encoding($false)))
+    $extraMutationRejected = $false
+    try { Restore-UnityTrackedChanges $temp } catch { $extraMutationRejected = $true }
+    Assert-True $extraMutationRejected "analytics churn allowlist rejects another change in ProjectSettings"
+    Assert-True (@(Get-TrackedChanges $temp).Count -eq 0) "unexpected tracked mutations are restored before failure"
+
     Write-Host "PASS: ReSharper changed-line ratchet"
 }
 finally {

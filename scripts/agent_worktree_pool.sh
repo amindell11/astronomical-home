@@ -644,12 +644,14 @@ cmd_run_tests() {
 }
 
 restore_tracked_unity_changes() {
-  local path="$1" action="$2" changes names content known=0
+  local path="$1" action="$2" changes names numstat content known=0
   changes="$(git -C "$path" status --porcelain --untracked-files=no 2>/dev/null)"
   [[ -n "$changes" ]] || return 0
   names="$(git -C "$path" diff --name-only)"
+  numstat="$(git -C "$path" diff --numstat -- src/Asteroids3D/ProjectSettings/ProjectSettings.asset)"
   content="$(git -C "$path" diff --unified=0 -- src/Asteroids3D/ProjectSettings/ProjectSettings.asset | grep -E '^[+-][[:space:]]+Standalone:' || true)"
   if [[ "$names" == "src/Asteroids3D/ProjectSettings/ProjectSettings.asset" ]] &&
+     [[ "$numstat" == $'1\t1\tsrc/Asteroids3D/ProjectSettings/ProjectSettings.asset' ]] &&
      [[ "$(printf '%s\n' "$content" | grep -Ec '^[+-][[:space:]]+Standalone: UNITY_POST_PROCESSING_STACK_V2(;SENTIS_ANALYTICS_ENABLED)?$')" -eq 2 ]]; then
     known=1
   fi
