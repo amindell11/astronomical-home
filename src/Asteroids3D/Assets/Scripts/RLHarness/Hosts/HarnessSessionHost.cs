@@ -95,17 +95,18 @@ namespace Game.RLHarness
                 var context = new ProbeContext(composition.Pair, Arena.Offset, in episodeSpec, episode, in draw,
                     opponent.Label, composition.Driver);
                 var records = spec.record.Records(episode);
+                var filmsNative = records && nativeCapture;
                 using var recorder = records && !nativeCapture
                     ? new CaptureRecorder(ClipConfig(episodeSpec.runSeed, opponent.Label, episode, jsonlPath))
                     : null;
                 var pair = composition.Pair;
-                var captureConfig = records && nativeCapture
+                var captureConfig = filmsNative
                     ? ClipConfig(episodeSpec.runSeed, opponent.Label, episode, jsonlPath)
                     : null;
                 Action onFixedStep = () =>
                 {
                     SampleProbes();
-                    if (records && nativeCapture)
+                    if (filmsNative)
                     {
                         episodeCapture.Step();
                     }

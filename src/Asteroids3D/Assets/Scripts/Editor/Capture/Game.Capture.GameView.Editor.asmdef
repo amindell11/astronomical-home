@@ -3,6 +3,7 @@
     "rootNamespace": "",
     "references": [
         "Game.Core",
+        "Game.Core.Editor",
         "Game.Capture.Editor",
         "Unity.Recorder.Editor",
         "Unity.RenderPipelines.Universal.Runtime"

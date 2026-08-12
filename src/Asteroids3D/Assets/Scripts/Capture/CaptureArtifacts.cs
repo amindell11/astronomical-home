@@ -10,6 +10,8 @@ namespace Game.Capture
     {
         private static readonly Regex SafeName = new("^[A-Za-z0-9_-]+$");
 
+        private readonly Manifest manifest;
+
         public string FrameDir { get; }
 
         public static bool IsSafeName(string name) => !string.IsNullOrEmpty(name) && SafeName.IsMatch(name);
@@ -30,7 +32,24 @@ namespace Game.Capture
                 throw new InvalidOperationException(
                     $"[Capture] frame dir already contains frames (pick a distinct clipName/runStamp): {FrameDir}");
             Directory.CreateDirectory(FrameDir);
-            WriteManifest(config);
+            manifest = new Manifest
+            {
+                width = config.width,
+                height = config.height,
+                everyFixedSteps = config.everyFixedSteps,
+                fixedDeltaTime = Time.fixedDeltaTime,
+                suggestedFps = 1f / (Time.fixedDeltaTime * config.everyFixedSteps),
+            };
+            WriteManifest();
+        }
+
+        public void Complete(CaptureCost cost)
+        {
+            if (cost == null) throw new ArgumentNullException(nameof(cost));
+            manifest.steps = cost.Steps;
+            manifest.meanStepMs = cost.MeanMs();
+            manifest.medianStepMs = cost.MedianMs();
+            WriteManifest();
         }
 
         private static void Validate(CaptureConfig config)
@@ -53,18 +72,8 @@ namespace Game.Capture
                     $"[Capture] runStamp must be filesystem-safe [A-Za-z0-9_-], got '{config.runStamp}'");
         }
 
-        private void WriteManifest(CaptureConfig config)
-        {
-            var manifest = new Manifest
-            {
-                width = config.width,
-                height = config.height,
-                everyFixedSteps = config.everyFixedSteps,
-                fixedDeltaTime = Time.fixedDeltaTime,
-                suggestedFps = 1f / (Time.fixedDeltaTime * config.everyFixedSteps),
-            };
+        private void WriteManifest() =>
             File.WriteAllText(Path.Combine(FrameDir, "manifest.json"), JsonUtility.ToJson(manifest, true));
-        }
 
         [Serializable]
         private sealed class Manifest
@@ -74,6 +83,9 @@ namespace Game.Capture
             public int everyFixedSteps;
             public float fixedDeltaTime;
             public float suggestedFps;
+            public int steps;
+            public float meanStepMs;
+            public float medianStepMs;
         }
     }
 }

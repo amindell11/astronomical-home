@@ -25,6 +25,8 @@ namespace Game.Capture.GameView
         private IProjectileService projectiles;
         private GameObject rig;
         private Camera captureCamera;
+        private CaptureArtifacts artifacts;
+        private CaptureCost cost;
         private GameViewCaptureTransaction transaction;
         private RecorderController controller;
         private RecorderControllerSettings controllerSettings;
@@ -55,7 +57,8 @@ namespace Game.Capture.GameView
             active = this;
             try
             {
-                var artifacts = new CaptureArtifacts(config);
+                artifacts = new CaptureArtifacts(config);
+                cost = new CaptureCost();
                 frameDir = artifacts.FrameDir;
                 BuildSelection();
                 transaction = new GameViewCaptureTransaction(GizmoCaptureProfiles.Resolve(profile), appliedSelection,
@@ -76,6 +79,7 @@ namespace Game.Capture.GameView
             if (transaction == null) throw new InvalidOperationException("Native Game View capture has not begun.");
             if (!a || !b) throw new InvalidOperationException("Native Game View capture lost an episode ship.");
 
+            cost.Sample();
             FrameCamera();
             BuildSelection();
             transaction.SetSelection(appliedSelection, a.gameObject);
@@ -85,7 +89,7 @@ namespace Game.Capture.GameView
                 gameViewPrimed = true;
             }
             if (recordingStarted) return;
-            CreateRecorder(frameDir);
+            CreateRecorder();
             recordingStarted = controller.StartRecording();
             if (!recordingStarted) throw new InvalidOperationException("Unity Recorder refused to start Game View capture.");
         }
@@ -96,10 +100,13 @@ namespace Game.Capture.GameView
 
             var failures = new List<Exception>();
             CaptureRecoveryJournal.Attempt(() => controller?.StopRecording(), failures);
+            CaptureRecoveryJournal.Attempt(() => artifacts?.Complete(cost), failures);
             CaptureRecoveryJournal.Attempt(() => transaction?.Restore(), failures);
             CaptureRecoveryJournal.Attempt(DestroyOwnedObjects, failures);
             controller = null;
             transaction = null;
+            artifacts = null;
+            cost = null;
             gameViewPrimed = false;
             recordingStarted = false;
             a = null;
@@ -167,7 +174,7 @@ namespace Game.Capture.GameView
             return true;
         }
 
-        private void CreateRecorder(string frameDir)
+        private void CreateRecorder()
         {
             controllerSettings = ScriptableObject.CreateInstance<RecorderControllerSettings>();
             controllerSettings.SetRecordModeToManual();

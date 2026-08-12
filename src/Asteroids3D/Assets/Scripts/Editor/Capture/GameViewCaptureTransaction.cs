@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Game.Diagnostics;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -29,12 +30,14 @@ namespace Game.Capture.GameView
             activeSelection = Selection.activeObject;
             focusedWindow = EditorWindow.focusedWindow;
             recovery = CaptureRecoveryJournal.Create(gizmos, gameView.Snapshot(),
-                UrpGizmoCaptureAdapter.CompatibilityMode, UrpGizmoCaptureAdapter.GlobalSettingsDirty);
+                UrpGizmoCaptureAdapter.CompatibilityMode, UrpGizmoCaptureAdapter.GlobalSettingsDirty,
+                DiagnosticGate.ActiveNames);
             CaptureRecoveryJournal.Write(recovery);
 
             try
             {
                 UrpGizmoCaptureAdapter.Prepare();
+                UngateNativeDrawers();
                 DisableAllAnnotations();
                 foreach (var type in profileTypes) GizmoUtility.SetGizmoEnabled(type, true, false);
                 SetSelection(subjects, activeSubject);
@@ -47,10 +50,11 @@ namespace Game.Capture.GameView
             }
         }
 
+        // activeObject narrows the selection to itself, so the full subject set must land last or child drawers go dark.
         public void SetSelection(Object[] subjects, Object activeSubject)
         {
-            Selection.objects = subjects ?? Array.Empty<Object>();
             Selection.activeObject = activeSubject;
+            Selection.objects = subjects ?? Array.Empty<Object>();
         }
 
         public void Restore()
@@ -60,6 +64,7 @@ namespace Game.Capture.GameView
 
             var failures = new List<Exception>();
             CaptureRecoveryJournal.Attempt(() => Application.runInBackground = recovery.runInBackground, failures);
+            CaptureRecoveryJournal.Attempt(() => DiagnosticGate.Replace(recovery.gateActive), failures);
             CaptureRecoveryJournal.Attempt(RestoreAnnotations, failures);
             CaptureRecoveryJournal.Attempt(RestoreSelection, failures);
             CaptureRecoveryJournal.Attempt(() => gameView.Restore(recovery.gameView), failures);
@@ -81,6 +86,15 @@ namespace Game.Capture.GameView
                 if (!GizmoUtility.TryGetGizmoInfo(type, out _))
                     throw new InvalidOperationException(
                         $"Native gizmo capture profile declares {type.FullName}, but Unity has no registered gizmo for it.");
+        }
+
+        /// <summary>Every native drawer still asks the painter-era <see cref="DiagnosticGate"/>, which defaults to nothing-on — unopened, a fresh CLI Editor films empty frames. Unity's per-type switch and the subject selection are the authority instead.</summary>
+        private static void UngateNativeDrawers()
+        {
+            if (!DiagnosticPainters.TryExpandPreset(DiagnosticPainters.Everything, out var atoms))
+                throw new InvalidOperationException(
+                    $"Native capture cannot un-gate its drawers: no '{DiagnosticPainters.Everything}' diagnostic preset.");
+            DiagnosticGate.Replace(atoms);
         }
 
         private void DisableAllAnnotations()
@@ -105,8 +119,8 @@ namespace Game.Capture.GameView
             foreach (var item in selection)
                 if (item)
                     live.Add(item);
-            Selection.objects = live.ToArray();
             Selection.activeObject = activeSelection ? activeSelection : null;
+            Selection.objects = live.ToArray();
         }
     }
 }

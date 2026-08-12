@@ -28,6 +28,8 @@ namespace Game.Capture
         public static bool IsSafeName(string name) => CaptureArtifacts.IsSafeName(name);
 
         private readonly CaptureConfig config;
+        private readonly CaptureArtifacts artifacts;
+        private readonly CaptureCost cost = new();
         private readonly string frameDir;
         private readonly GameObject rig;
         private readonly Camera captureCamera;
@@ -43,7 +45,8 @@ namespace Game.Capture
         public CaptureRecorder(CaptureConfig config)
         {
             this.config = config ?? throw new ArgumentNullException(nameof(config));
-            frameDir = new CaptureArtifacts(config).FrameDir;
+            artifacts = new CaptureArtifacts(config);
+            frameDir = artifacts.FrameDir;
 
             rig = new GameObject("[Capture] Rig");
             captureCamera = rig.AddComponent<Camera>();
@@ -67,6 +70,7 @@ namespace Game.Capture
         /// <summary>Call once per fixed step. Captures every <see cref="CaptureConfig.everyFixedSteps"/> steps; the draw callback runs only on captured steps, so skipped steps do no scene queries.</summary>
         public void Step(IReadOnlyList<Vector2> subjects, Action<CaptureDraw> draw = null)
         {
+            cost.Sample();
             if (stepIndex++ % config.everyFixedSteps != 0) return;
 
             CaptureFraming.Apply(captureCamera, config, subjects);
@@ -92,6 +96,7 @@ namespace Game.Capture
 
         public void Dispose()
         {
+            artifacts.Complete(cost);
             overlay?.Dispose();
             if (target) UnityEngine.Object.DestroyImmediate(target);
             if (readback) UnityEngine.Object.DestroyImmediate(readback);
@@ -142,6 +147,5 @@ namespace Game.Capture
 
             File.WriteAllBytes(Path.Combine(frameDir, $"f_{frameCount:D5}.png"), readback.EncodeToPNG());
         }
-
     }
 }

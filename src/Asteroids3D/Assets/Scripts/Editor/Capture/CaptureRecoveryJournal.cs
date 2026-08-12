@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Game.Diagnostics;
 using UnityEditor;
 using UnityEngine;
 
@@ -13,6 +14,7 @@ namespace Game.Capture.GameView
         public bool runInBackground;
         public bool renderGraphCompatibilityMode;
         public bool renderPipelineSettingsDirty;
+        public string[] gateActive;
         public GameViewState gameView;
         public GizmoState[] gizmos;
 
@@ -50,7 +52,7 @@ namespace Game.Capture.GameView
 
         public static CaptureRecoveryState Create(GizmoInfo[] gizmos,
             CaptureRecoveryState.GameViewState gameView, bool renderGraphCompatibilityMode,
-            bool renderPipelineSettingsDirty)
+            bool renderPipelineSettingsDirty, string[] gateActive)
         {
             var stored = new CaptureRecoveryState.GizmoState[gizmos.Length];
             for (var i = 0; i < gizmos.Length; i++)
@@ -72,6 +74,7 @@ namespace Game.Capture.GameView
                 runInBackground = Application.runInBackground,
                 renderGraphCompatibilityMode = renderGraphCompatibilityMode,
                 renderPipelineSettingsDirty = renderPipelineSettingsDirty,
+                gateActive = gateActive,
                 gameView = gameView,
                 gizmos = stored,
             };
@@ -101,6 +104,7 @@ namespace Game.Capture.GameView
 
             var failures = new List<Exception>();
             Attempt(() => Application.runInBackground = state.runInBackground, failures);
+            Attempt(() => DiagnosticGate.Replace(state.gateActive), failures);
             Attempt(() => RestoreGizmos(state.gizmos), failures);
             Attempt(() => new UnityGameViewAdapter().Restore(state.gameView), failures);
             Attempt(() => UrpGizmoCaptureAdapter.Restore(state.renderGraphCompatibilityMode), failures);
