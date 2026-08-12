@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the anchored-intent semantics — since the sentence carrier landed, the enemy-bound AIM+VEL degenerate sentence (doc/Glossary.md → anchored intent): the enemy-polar frame is relative to the enemy's motion, vr &gt; 0 closes along +losHat, vt &gt; 0 and positive facing offsets are CCW, references re-resolve per rollout step from the rolled ship pos, weight-0 falls back to the delegation priors, and the default (nothing-armed) sentence leaves the legacy world-frame path unchanged.</summary>
+    /// <summary>Pins the anchored-intent semantics — the enemy-bound AIM+VEL degenerate sentence (doc/Glossary.md → anchored intent): the enemy-polar frame is relative to the enemy's motion, vr &gt; 0 closes along +losHat, vt &gt; 0 and positive facing offsets are CCW, references re-resolve per rollout step from the rolled ship pos, weight-0 falls back to the delegation priors, and the default (nothing-armed) sentence leaves the legacy world-frame path unchanged.</summary>
     [Category("MPC")]
     public class MpcAnchoredIntentEditModeTests
     {
