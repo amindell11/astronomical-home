@@ -12,6 +12,7 @@ namespace Game.Capture.GameView
         public string unityVersion;
         public bool runInBackground;
         public bool renderGraphCompatibilityMode;
+        public bool renderPipelineSettingsDirty;
         public GameViewState gameView;
         public GizmoState[] gizmos;
 
@@ -48,7 +49,8 @@ namespace Game.Capture.GameView
         public static bool Exists => File.Exists(JournalPath);
 
         public static CaptureRecoveryState Create(GizmoInfo[] gizmos,
-            CaptureRecoveryState.GameViewState gameView, bool renderGraphCompatibilityMode)
+            CaptureRecoveryState.GameViewState gameView, bool renderGraphCompatibilityMode,
+            bool renderPipelineSettingsDirty)
         {
             var stored = new CaptureRecoveryState.GizmoState[gizmos.Length];
             for (var i = 0; i < gizmos.Length; i++)
@@ -69,6 +71,7 @@ namespace Game.Capture.GameView
                 unityVersion = Application.unityVersion,
                 runInBackground = Application.runInBackground,
                 renderGraphCompatibilityMode = renderGraphCompatibilityMode,
+                renderPipelineSettingsDirty = renderPipelineSettingsDirty,
                 gameView = gameView,
                 gizmos = stored,
             };
@@ -101,6 +104,8 @@ namespace Game.Capture.GameView
             Attempt(() => RestoreGizmos(state.gizmos), failures);
             Attempt(() => new UnityGameViewAdapter().Restore(state.gameView), failures);
             Attempt(() => UrpGizmoCaptureAdapter.Restore(state.renderGraphCompatibilityMode), failures);
+            Attempt(() => UrpGizmoCaptureAdapter.RestoreGlobalSettingsDirtyState(
+                state.renderPipelineSettingsDirty), failures);
             if (failures.Count > 0)
                 throw new AggregateException("Native gizmo capture recovery was incomplete; journal retained.", failures);
             Delete();

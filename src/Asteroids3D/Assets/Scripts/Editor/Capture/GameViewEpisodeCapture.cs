@@ -182,7 +182,6 @@ namespace Game.Capture.GameView
             recorderSettings.Enabled = true;
             recorderSettings.OutputFormat = ImageRecorderSettings.ImageRecorderOutputFormat.PNG;
             recorderSettings.CaptureAlpha = false;
-            recorderSettings.OutputFile = Path.Combine(frameDir, "f_0") + DefaultWildcard.Frame;
             recorderSettings.imageInputSettings = new GameViewInputSettings
             {
                 OutputWidth = config.width,
@@ -193,6 +192,7 @@ namespace Game.Capture.GameView
                           throw new MissingFieldException("Unity Recorder 5.1.2 captureEveryNthFrame");
             cadence.intValue = config.everyFixedSteps;
             serialized.ApplyModifiedPropertiesWithoutUndo();
+            recorderSettings.OutputFile = Path.Combine(frameDir, "f_0") + DefaultWildcard.Frame;
 
             controllerSettings.AddRecorderSettings(recorderSettings);
             controller = new RecorderController(controllerSettings);

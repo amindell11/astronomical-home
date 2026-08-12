@@ -112,6 +112,9 @@ namespace Tests.PlayMode
             var priorActive = UnityEditor.Selection.activeObject;
             var priorFocusedWindow = UnityEditor.EditorWindow.focusedWindow;
             var priorRunInBackground = Application.runInBackground;
+            Assert.IsTrue(UnityEngine.Rendering.GraphicsSettings.TryGetCurrentRenderPipelineGlobalSettings(
+                out var globalSettings), "URP global settings must be registered for native Game View capture.");
+            var priorGlobalSettingsDirty = UnityEditor.EditorUtility.IsDirty(globalSettings);
             var registered = UnityEditor.GizmoUtility.GetGizmoInfo();
             Assert.IsTrue(UnityEditor.GizmoUtility.TryGetGizmoInfo(typeof(Movement.MPC.Navigator), out var priorNavigator),
                 $"Navigator annotation missing; registered: {string.Join(", ", registered.Select(info => info.name))}");
@@ -151,6 +154,7 @@ namespace Tests.PlayMode
             Assert.AreEqual(priorActive, UnityEditor.Selection.activeObject);
             Assert.AreEqual(priorFocusedWindow, UnityEditor.EditorWindow.focusedWindow);
             Assert.AreEqual(priorRunInBackground, Application.runInBackground);
+            Assert.AreEqual(priorGlobalSettingsDirty, UnityEditor.EditorUtility.IsDirty(globalSettings));
             Assert.IsTrue(UnityEditor.GizmoUtility.TryGetGizmoInfo(typeof(Movement.MPC.Navigator), out var restored));
             Assert.AreEqual(priorNavigator.gizmoEnabled, restored.gizmoEnabled);
             Assert.AreEqual(priorNavigator.iconEnabled, restored.iconEnabled);

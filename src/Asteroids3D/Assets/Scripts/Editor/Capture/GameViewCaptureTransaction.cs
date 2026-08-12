@@ -29,7 +29,7 @@ namespace Game.Capture.GameView
             activeSelection = Selection.activeObject;
             focusedWindow = EditorWindow.focusedWindow;
             recovery = CaptureRecoveryJournal.Create(gizmos, gameView.Snapshot(),
-                UrpGizmoCaptureAdapter.CompatibilityMode);
+                UrpGizmoCaptureAdapter.CompatibilityMode, UrpGizmoCaptureAdapter.GlobalSettingsDirty);
             CaptureRecoveryJournal.Write(recovery);
 
             try
@@ -66,6 +66,9 @@ namespace Game.Capture.GameView
             CaptureRecoveryJournal.Attempt(() => focusedWindow?.Focus(), failures);
             CaptureRecoveryJournal.Attempt(
                 () => UrpGizmoCaptureAdapter.Restore(recovery.renderGraphCompatibilityMode), failures);
+            CaptureRecoveryJournal.Attempt(
+                () => UrpGizmoCaptureAdapter.RestoreGlobalSettingsDirtyState(
+                    recovery.renderPipelineSettingsDirty), failures);
             if (failures.Count == 0) CaptureRecoveryJournal.Delete();
             else throw new AggregateException("Native gizmo capture state restoration was incomplete; journal retained.", failures);
         }
