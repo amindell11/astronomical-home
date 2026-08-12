@@ -96,11 +96,18 @@ namespace Game.Capture
 
         public void Dispose()
         {
-            artifacts.Complete(cost);
-            overlay?.Dispose();
-            if (target) UnityEngine.Object.DestroyImmediate(target);
-            if (readback) UnityEngine.Object.DestroyImmediate(readback);
-            if (rig) UnityEngine.Object.DestroyImmediate(rig);
+            // A failed manifest write must not strand the rig for the next capture in this Editor.
+            try
+            {
+                artifacts.Complete(cost);
+            }
+            finally
+            {
+                overlay?.Dispose();
+                if (target) UnityEngine.Object.DestroyImmediate(target);
+                if (readback) UnityEngine.Object.DestroyImmediate(readback);
+                if (rig) UnityEngine.Object.DestroyImmediate(rig);
+            }
         }
 
         /// <summary>Teardown safety net: destroys every root "[Capture]" object a crashed or timed-out run left behind. Never call while a recorder is live.</summary>

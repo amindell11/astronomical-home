@@ -37,6 +37,9 @@ namespace Tests.PlayMode
         private Ship subjectB;
 
         private const int ToggleWindowSteps = 14;
+        private const string EnabledWindowA = "gizmos-on-first";
+        private const string DisabledWindow = "gizmos-off";
+        private const string EnabledWindowB = "gizmos-on-again";
         private const string GizmoSelector = "RL_HARNESS_GIZMOS";
         private const string PainterSelector = "RL_HARNESS_PAINTERS";
 
@@ -144,43 +147,58 @@ namespace Tests.PlayMode
                 GamePlane.Rotation, projectiles, team: 1);
             Assert.IsTrue(subjectA && subjectB, "both capture subjects spawned");
 
-            var config = new CaptureConfig
-            {
-                outputRoot = outDir,
-                runStamp = "toggle",
-                clipName = "type-toggle",
-                width = 320,
-                height = 240,
-                everyFixedSteps = 2,
-            };
+            // One clip per window, so each window's frames are attributable and a one-way toggle cannot hide in an aggregate.
+            yield return FilmToggleWindow(EnabledWindowA, profileEnabled: true);
+            yield return FilmToggleWindow(DisabledWindow, profileEnabled: false);
+            yield return FilmToggleWindow(EnabledWindowB, profileEnabled: true);
+
+            Assert.Greater(DrawnFramesIn(EnabledWindowA), 0,
+                "with the profile's types enabled the Game View renders native gizmo geometry");
+            Assert.AreEqual(0, DrawnFramesIn(DisabledWindow),
+                "disabling those same types empties every frame: GizmoUtility governs Game View, not only the Scene View");
+            Assert.Greater(DrawnFramesIn(EnabledWindowB), 0,
+                "re-enabling them refills the frames, so the Game View follows the toggle in both directions");
+        }
+
+        private IEnumerator FilmToggleWindow(string clipName, bool profileEnabled)
+        {
             var capture = NewNativeCapture();
-            capture.Begin(config, GizmoCaptureProfile.Steering, subjectA, subjectB, projectiles);
             try
             {
+                // Combat, not Steering: its damage-bar drawer needs only a live ship, while steering
+                // diagnostics stay empty for subjects no UnitService registered an opponent for.
+                capture.Begin(ToggleConfig(clipName), GizmoCaptureProfile.Combat, subjectA, subjectB, projectiles);
                 var profileAnnotations = EnabledAnnotations();
                 Assert.IsNotEmpty(profileAnnotations, "Begin leaves exactly the profile's component types enabled");
-
-                yield return StepFrames(capture, ToggleWindowSteps);
-                SetAnnotations(profileAnnotations, false);
-                yield return StepFrames(capture, ToggleWindowSteps);
-                SetAnnotations(profileAnnotations, true);
+                if (!profileEnabled) SetAnnotations(profileAnnotations, false);
                 yield return StepFrames(capture, ToggleWindowSteps);
             }
             finally
             {
                 capture.End();
+                UnityEngine.Object.DestroyImmediate((UnityEngine.Object)capture);
             }
+        }
 
-            var frames = Directory.GetFiles(Path.Combine(outDir, "frames", "toggle-type-toggle"), "f_*.png");
-            Assert.Greater(frames.Length, 3, "the three toggle windows each filmed frames");
-            var empty = 0;
+        private CaptureConfig ToggleConfig(string clipName) => new()
+        {
+            outputRoot = outDir,
+            runStamp = "toggle",
+            clipName = clipName,
+            width = 320,
+            height = 240,
+            everyFixedSteps = 2,
+        };
+
+        private int DrawnFramesIn(string clipName)
+        {
+            var frames = Directory.GetFiles(Path.Combine(outDir, "frames", $"toggle-{clipName}"), "f_*.png");
+            Assert.IsNotEmpty(frames, $"{clipName}: the window filmed frames");
             var drawn = 0;
             foreach (var frame in frames)
-                if (IsUniform(frame)) empty++;
-                else drawn++;
-            Assert.Greater(drawn, 0, "with the profile's types enabled the Game View renders native gizmo geometry");
-            Assert.Greater(empty, 0,
-                "disabling those same types mid-clip empties the Game View: GizmoUtility governs Game View, not only the Scene View");
+                if (!IsUniform(frame))
+                    drawn++;
+            return drawn;
         }
 
         private static IEnumerator StepFrames(IEpisodeCapture capture, int steps)
