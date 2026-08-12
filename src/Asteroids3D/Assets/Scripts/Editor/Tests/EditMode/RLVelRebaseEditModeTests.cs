@@ -164,7 +164,7 @@ namespace Tests.EditMode
             Assert.AreEqual(3f, decision.nav.planarVelocity.x, "exact-float: no border steer on the open-loop arms");
             Assert.AreEqual(-4f, decision.nav.planarVelocity.y);
             Assert.IsFalse(decision.nav.anchored.hasVelocity);
-            Assert.IsFalse(decision.primary.IsAuto, "a hit would perturb the paired enemy path");
+            Assert.IsFalse(decision.engagePrimary, "a hit would perturb the paired enemy path");
             Assert.IsTrue(decision.nav.TryGetAnchorId(out _), "both arms keep the anchor for the facing channel");
         }
 
@@ -181,7 +181,7 @@ namespace Tests.EditMode
             Assert.That(decision.nav.anchored.tangentialSpeed, Is.EqualTo(0f).Within(1e-5f));
             Assert.AreEqual(1f, decision.nav.anchored.velocityWeight);
             Assert.IsFalse(decision.nav.hasPlanarVelocity, "the polar channel replaces the world reference");
-            Assert.IsFalse(decision.primary.IsAuto);
+            Assert.IsFalse(decision.engagePrimary);
         }
 
         [Test]
@@ -198,7 +198,7 @@ namespace Tests.EditMode
                 Vector2.zero, 120f, ArchetypeSteering.BorderMargin);
             Assert.AreEqual(expected.x, decision.nav.planarVelocity.x, "exact-float: the production pack IS Steered");
             Assert.AreEqual(expected.y, decision.nav.planarVelocity.y);
-            Assert.IsTrue(decision.primary.IsAuto, "production fire authority is untouched");
+            Assert.IsTrue(decision.engagePrimary, "the production arm engages");
         }
 
         [Test]

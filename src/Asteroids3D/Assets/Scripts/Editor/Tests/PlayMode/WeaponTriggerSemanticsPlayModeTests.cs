@@ -281,10 +281,17 @@ namespace Tests.PlayMode
             Assert.AreNotEqual(hitscanAim, ballisticAim, "A moving target separates lead from no-lead aim.");
 
             // The AI mashes: pressed and held both reflect its per-step decision.
-            gunner.Fire(AI.FireControl.Auto, AI.FireControl.Auto);
+            gunner.Fire(engagePrimary: true, engageSecondary: true);
             Assert.AreEqual(2, recorder.Commands.Count);
             foreach (var (_, cmd) in recorder.Commands)
                 Assert.AreEqual(cmd.held, cmd.pressed, "AI reports press and hold together.");
+
+            // Disengaging releases the trigger rather than going silent — the Hold silence rule died with AI charge support.
+            recorder.Commands.Clear();
+            gunner.Fire(engagePrimary: false, engageSecondary: false);
+            Assert.AreEqual(2, recorder.Commands.Count);
+            foreach (var (_, cmd) in recorder.Commands)
+                Assert.IsFalse(cmd.held || cmd.pressed, "a disengaged slot pushes a released trigger");
         }
     }
 }

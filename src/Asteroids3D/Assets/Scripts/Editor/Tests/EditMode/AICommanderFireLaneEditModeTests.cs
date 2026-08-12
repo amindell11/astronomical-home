@@ -14,9 +14,9 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the commander's manual trigger authority: a manual-fire intent pushes raw held + rising-edge press straight to the weapon actuator (Gunner skipped), a legacy intent pushes nothing without a Gunner, and ResetState clears the press-edge state.</summary>
+    /// <summary>Pins the commander's fire-lane routing: the Gunner is the sole path from an AI ship to the weapon actuator — engaged or disengaged, every step pushes each slot's command through it with press and hold together.</summary>
     [Category("AI")]
-    public class AICommanderManualFireEditModeTests
+    public class AICommanderFireLaneEditModeTests
     {
         private const string ShipPrefabPath = "Assets/Prefabs/Ships/Ship_1.prefab";
 
@@ -71,6 +71,7 @@ namespace Tests.EditMode
 
         private GameObject host;
         private TestableCommander commander;
+        private Gunner gunner;
         private SpyWeapons weapons;
         private ScriptedBrain brain;
         private MpcSettings createdSettings;
@@ -81,12 +82,12 @@ namespace Tests.EditMode
             var ship = AssetDatabase.LoadAssetAtPath<Ship>(ShipPrefabPath);
             Assert.That(ship, Is.Not.Null, $"Missing ship prefab at {ShipPrefabPath}");
 
-            host = new GameObject("ManualFireCommander");
+            host = new GameObject("FireLaneCommander");
+            gunner = host.AddComponent<Gunner>();
             commander = host.AddComponent<TestableCommander>();
             commander.CallAwake(); // EditMode: Unity does not run Awake, so cache the composed parts explicitly.
 
             brain = commander.InstallBrain<ScriptedBrain>();
-            brain.decision = CommandedDecision(held: true);
 
             weapons = new SpyWeapons();
             var status = new StubStatus { transform = host.transform, dynamics = ship.ResolveStats().Dynamics };
@@ -103,69 +104,37 @@ namespace Tests.EditMode
             if (createdSettings) Object.DestroyImmediate(createdSettings);
         }
 
-        private static BrainDecision CommandedDecision(bool held) => new(
-            NavObjective.Planar(Vector2.zero), FireControl.Commanded(held), FireControl.Hold);
+        private static BrainDecision Decision(bool engagePrimary) => new(
+            NavObjective.Planar(Vector2.zero), engagePrimary: engagePrimary);
 
-        private WeaponCommand StepOnce(bool held)
+        [Test]
+        public void EveryStep_PushesEachSlotThroughTheGunner_EngagedOrNot()
         {
-            brain.decision = CommandedDecision(held);
-            var before = weapons.Commands.Count;
+            brain.decision = Decision(engagePrimary: true);
             commander.Step();
-            Assert.AreEqual(before + 1, weapons.Commands.Count, "each commanded step pushes exactly one primary command");
-            var (slot, cmd) = weapons.Commands[^1];
-            Assert.AreEqual(WeaponSlot.Primary, slot);
-            return cmd;
+            Assert.AreEqual(1, weapons.Commands.Count, "an engaged step pushes exactly one primary command");
+
+            brain.decision = Decision(engagePrimary: false);
+            commander.Step();
+            Assert.AreEqual(2, weapons.Commands.Count,
+                "a disengaged slot still receives a released trigger — the Hold silence rule died with AI charge support");
+            Assert.IsFalse(weapons.Commands[^1].cmd.held);
+
+            foreach (var (slot, cmd) in weapons.Commands)
+            {
+                Assert.AreEqual(WeaponSlot.Primary, slot);
+                Assert.AreEqual(cmd.held, cmd.pressed, "the gunner pushes press and hold together");
+            }
         }
 
         [Test]
-        public void ManualFire_PushesHeldWithRisingEdgePress()
+        public void WithoutAGunner_TheCommanderNeverTouchesTheActuator()
         {
-            var first = StepOnce(held: true);
-            Assert.IsTrue(first.held);
-            Assert.IsTrue(first.pressed, "the first held step is the press edge");
-
-            var second = StepOnce(held: true);
-            Assert.IsTrue(second.held);
-            Assert.IsFalse(second.pressed, "a sustained hold must not re-press");
-
-            var released = StepOnce(held: false);
-            Assert.IsFalse(released.held);
-            Assert.IsFalse(released.pressed);
-
-            var rePressed = StepOnce(held: true);
-            Assert.IsTrue(rePressed.pressed, "a release re-arms the press edge");
-        }
-
-        [Test]
-        public void ResetState_ClearsThePressEdge()
-        {
-            StepOnce(held: true);
-            commander.ResetState();
-            Assert.IsTrue(StepOnce(held: true).pressed,
-                "after a reset the first held step must press again — stale prevHeld would swallow it");
-        }
-
-        [Test]
-        public void AutoFireLane_WithoutAGunner_PushesNoWeaponCommands()
-        {
-            brain.decision = new BrainDecision(
-                NavObjective.Planar(Vector2.zero), FireControl.Auto, FireControl.Auto);
+            Object.DestroyImmediate(gunner);
+            brain.decision = Decision(engagePrimary: true);
             commander.Step();
             Assert.IsEmpty(weapons.Commands,
-                "an Auto lane fires through the Gunner only — the commander must not touch the actuator");
-        }
-
-        [Test]
-        public void HoldLane_PushesNothingRatherThanAReleasedTrigger()
-        {
-            StepOnce(held: true);
-            var afterHold = weapons.Commands.Count;
-
-            brain.decision = new BrainDecision(NavObjective.Planar(Vector2.zero));
-            commander.Step();
-
-            Assert.AreEqual(afterHold, weapons.Commands.Count,
-                "Hold is silence, not held=false — a charge weapon would fire on the release");
+                "the Gunner is the sole path from an AI ship to the weapon actuator");
         }
     }
 }

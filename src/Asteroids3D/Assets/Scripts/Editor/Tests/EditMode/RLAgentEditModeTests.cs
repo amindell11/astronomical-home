@@ -243,11 +243,9 @@ namespace Tests.EditMode
                 Assert.AreEqual(-2f, decision.nav.anchored.tangentialSpeed, 1e-6f);
                 Assert.AreEqual(0.6f, decision.nav.anchored.velocityWeight, 1e-6f);
 
-                Assert.IsTrue(decision.primary.IsCommanded, "the policy owns the primary trigger");
-                Assert.IsTrue(decision.primary.Held);
-                Assert.IsFalse(decision.primary.IsAuto, "the Gunner path must stay cold on the commanded path");
-                Assert.IsFalse(decision.secondary.IsAuto,
-                    "the secondary stays silent — today's manualFire path pushed it no command at all");
+                Assert.IsTrue(decision.engagePrimary, "the policy's fire action gates the primary engage");
+                Assert.IsFalse(decision.engageSecondary,
+                    "the secondary stays disengaged — arming it is Intent_Grammar Stage C work");
             }
             finally
             {
