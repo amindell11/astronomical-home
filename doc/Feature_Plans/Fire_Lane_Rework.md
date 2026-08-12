@@ -76,9 +76,10 @@ actuator seam.
   (roster ×2 + mirror, probes; paired arms, baseline pinned to the branch-point sha, judged
   against the 63.00/±2.22 yardsticks).
 - **The policy's secondary lane stays disengaged** (`engage = false`), preserving today's
-  permanent `Hold` — the RL ship has never fired a missile. Arming the agent's missiles through
-  the automated gunner is a capability change with training implications; it belongs to the
-  marksmanship arc (or a schema-break window), decided on its own evidence.
+  permanent `Hold` — the RL ship has never fired a missile. The *when* is already ruled:
+  `Intent_Grammar.md`'s FIRE slot carries both engage bits, so the secondary arms at its
+  Stage C schema window. The launch discipline that bit presupposes (lock gating, deliberate
+  presses) is marksmanship-arc work and should precede it.
 - The open-loop (K1-2) archetype arms keep fire suppressed via `drive != Production`, unchanged.
 
 ## Deletions (the simplification is the feature)
@@ -105,8 +106,9 @@ signature.
    missiles every step — "one launch per press" is violated for AI, but a strict edge fix
    without a launch policy would nerf AI to one missile per engagement window, so the fix
    *requires* the design work); missile lock gating; laser heat pacing; envelope tuning; charge
-   release-timing if a charge weapon ever enters an AI loadout; whether the policy's secondary
-   arms.
+   release-timing if a charge weapon ever enters an AI loadout; the launch discipline behind
+   Stage C's secondary engage bit (the *whether* is ruled in `Intent_Grammar.md`, the *how* is
+   this arc's).
 
 Glossary: implementing PR retires/repoints the fire-lane rows that name `FireControl` and its
 `Hold`/`Auto`/`Commanded` senses; *engage* enters as the fire-lane gate sense. Per the vocab
