@@ -116,6 +116,7 @@ namespace Game.RLHarness
             var jukeSeed = scope.Derive(JukeSeedStream).ToSeed();
             // arenaRadius is copied out because a lambda cannot capture the `in` spec.
             var arenaRadius = spec.arenaRadius;
+            // The Func overload keeps Configure ahead of the Brain assignment (PR-2b brief).
             commander.InstallBrain(host =>
             {
                 var brain = host.AddComponent<ArchetypeBrain>();
