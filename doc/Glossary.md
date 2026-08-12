@@ -400,16 +400,24 @@ Format: **term** — definition. *(authority)*
   (`Cost.TurnAwayCost > 0`). Always the qualified form in prose; the probe
   sidecar's `threat`/`clear` field names are context-bound and stay.
   *(Cost.ObstacleCosts, ControllerProbe.ObstacleThreat)*
-- **anchored intent** — an intent channel expressed as frame + relation +
-  authority instead of a world-frame value: a facing offset around the enemy
-  intercept anchor, and a polar velocity in the enemy frame, each with a [0,1]
-  weight. The MPC re-resolves both against the predicted enemy every rollout
-  step, so the command never goes stale. **Sign pins:** radial > 0 closes along
-  +losHat; tangential > 0 and positive facing offsets are CCW; the polar
-  velocity is *relative to the enemy's motion*; the action-side mapping is
-  [−1,1] × maxSpeed. Authored through `NavObjective.Anchored(...)`; the
-  `AnchoredIntent` struct is the solver-side carrier.
-  *(AnchoredBuilder, AnchoredIntent, Cost.EvalContext)*
+- **intent sentence** — the decision-varying slice of the MPC cost as a fixed
+  set of typed sentence slots (AIM/POS/VEL binding one referent each, FIELD a
+  class slot binding none), each with a signed authority weight against its
+  settings ceiling; the solver re-resolves every armed slot against live
+  referent state each rollout step. An armed weight-0 slot is a live command
+  ("nothing matters"); an absent sentence is idleness — the distinction is
+  structural (`IsIdle` = no armed slot). Design + staging:
+  `doc/Feature_Plans/Intent_Grammar.md`. *(IntentSentence, Cost.EvalContext)*
+- **anchored intent** — the enemy-bound AIM+VEL degenerate intent sentence,
+  today's production shape: a facing offset around the enemy intercept anchor,
+  and a polar velocity in the enemy frame, each with a [0,1] weight. The MPC
+  re-resolves both against the predicted enemy every rollout step, so the
+  command never goes stale. **Sign pins:** radial > 0 closes along +losHat;
+  tangential > 0 and positive facing offsets are CCW; the polar velocity is
+  *relative to the enemy's motion*; the action-side mapping is [−1,1] ×
+  maxSpeed. Authored through `NavObjective.Anchored(...)`; the `IntentSentence`
+  struct is the solver-side carrier.
+  *(AnchoredBuilder, IntentSentence, Cost.EvalContext)*
 - **delegation prior** — the low-weight, config-gated fallback that steers a
   channel when its anchored authority is 0: facing eases to the velocity-aligned
   pose (`wFacingPrior`), velocity keeps course (`wMomentum`). Weight-0 reads as
@@ -418,11 +426,11 @@ Format: **term** — definition. *(authority)*
   horizon end (reaching semantics); control terms and the velocity tracker
   deliberately sit outside it (regulation semantics). *(Cost.Evaluate)*
 - **nav objective** — the decision-varying slice of the MPC cost function, and
-  the only thing that crosses the seam's navigation lane: one move channel
-  (world-plane velocity, or an enemy-polar command) and one facing channel. Two
-  constraints are structural, not conventions: enemy-frame channels are reachable
-  only through `Anchored(...)`, so an anchorless one cannot be authored, and the
-  move channels overwrite each other, so only one survives. Idempotent per
+  the only thing that crosses the seam's navigation lane: an intent sentence
+  plus the legacy world-plane move channel. Two constraints are structural, not
+  conventions: referent-frame slots are reachable only through `Anchored(...)`,
+  so an anchorless one cannot be authored, and the move channels (world-plane
+  vs VEL slot) overwrite each other, so only one survives. Idempotent per
   decision — re-applying one is safe, which is what lets a 5 Hz decision be
   re-pushed every tick. *(NavObjective, AnchoredBuilder)*
 - **brain / decision lane** — the swappable-decision seam. A **brain** is the

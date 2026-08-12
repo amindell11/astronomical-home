@@ -58,7 +58,7 @@ namespace Game.RLHarness
                 {
                     kinematics = ToKinematics(state),
                     dt = scenario.simDt,
-                    // Anchored channels carry the command, mirroring Navigator.ApplyObjective for anchored objectives.
+                    // Sentence slots carry the command, mirroring Navigator.ApplyObjective for anchored objectives.
                     velocityReference = default,
                     facingRad = float.NaN,
                     enemyPos = scenario.enemyPos,
@@ -67,7 +67,7 @@ namespace Game.RLHarness
                     enemyYawRate = 0f,
                     enemyDynamics = dynamics,
                     projectileSpeed = scenario.projectileSpeed,
-                    anchored = scenario.intent,
+                    sentence = scenario.intent,
                     obstacleScan = default,
                     enableObstacleAvoidance = false,
                 };
@@ -83,7 +83,7 @@ namespace Game.RLHarness
 
                 var anchorYawRad = Cost.AnchorYaw(state.pos, scenario.enemyPos, default, scenario.projectileSpeed);
                 var errorDeg = Mathf.Abs(Mathf.DeltaAngle(
-                    (anchorYawRad + scenario.intent.facingOffsetRad) * Mathf.Rad2Deg,
+                    (anchorYawRad + scenario.intent.aim.offsetRad) * Mathf.Rad2Deg,
                     state.yaw * Mathf.Rad2Deg));
 
                 if (i >= warmupSteps)
