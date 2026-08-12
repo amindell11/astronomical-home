@@ -108,13 +108,14 @@ namespace Game.RLHarness
         public string opponentLabel;
         public ProbeSpec[] probes;
         public string[] painters;
+        public GizmoCaptureProfile gizmoProfile;
         public RecordPlan record;
         public string outDir;
         /// <summary>OpenLoop lane only: the measured archetypes, each run as a paired legacy+anchored block pair.</summary>
         public OpponentArchetype[] openLoopArchetypes;
 
         /// <summary>Visuals and audio exist for this session iff it records — no separate env var until a watch/playtest lane needs one.</summary>
-        public bool Presentation => record.enabled;
+        public bool Presentation => record.enabled && gizmoProfile == GizmoCaptureProfile.None;
 
         // Preserve the source stem because imported asset paths erase it.
         public string CandidateStem => Path.GetFileNameWithoutExtension(
@@ -178,6 +179,7 @@ namespace Game.RLHarness
                 fieldDensityScale = ParseDensity(getEnv("RL_HARNESS_DENSITY")),
                 probes = ParseProbes(getEnv("RL_HARNESS_PROBES"), openLoop != null),
                 painters = ParsePainters(getEnv("RL_HARNESS_PAINTERS")),
+                gizmoProfile = ParseGizmoProfile(getEnv("RL_HARNESS_GIZMOS")),
                 outDir = getEnv("RL_HARNESS_OUT_DIR"),
             };
             spec.seeds = ParseSeeds(getEnv("RL_HARNESS_SEEDS"), out var tag);
@@ -199,6 +201,7 @@ namespace Game.RLHarness
             }
             spec.record = ParseRecord(getEnv, spec.episodesPerSeed, hasGraphicsDevice);
             spec.ValidateLane();
+            spec.ValidateCaptureSelector();
             return spec;
         }
 
@@ -248,6 +251,28 @@ namespace Game.RLHarness
                 }
             }
             return names.ToArray();
+        }
+
+        private static GizmoCaptureProfile ParseGizmoProfile(string value)
+        {
+            if (string.IsNullOrEmpty(value)) return GizmoCaptureProfile.None;
+            if (Matches(value, "steering")) return GizmoCaptureProfile.Steering;
+            if (Matches(value, "combat")) return GizmoCaptureProfile.Combat;
+            if (Matches(value, "everything")) return GizmoCaptureProfile.Everything;
+            throw new ArgumentException(
+                $"RL_HARNESS_GIZMOS='{value}' is not a capture profile (steering, combat, everything).");
+        }
+
+        private void ValidateCaptureSelector()
+        {
+            if (gizmoProfile == GizmoCaptureProfile.None) return;
+            if (painters.Length > 0)
+                throw new ArgumentException(
+                    "RL_HARNESS_GIZMOS and RL_HARNESS_PAINTERS select different capture backends; set only one.");
+            if (lane != SessionLane.Capture)
+                throw new ArgumentException("RL_HARNESS_GIZMOS is available only on RL_HARNESS_LANE=capture.");
+            if (!record.enabled)
+                throw new ArgumentException("RL_HARNESS_GIZMOS needs RL_HARNESS_RECORD to select filmed episodes.");
         }
 
         private static RecordPlan ParseRecord(Func<string, string> getEnv, int episodesPerSeed,

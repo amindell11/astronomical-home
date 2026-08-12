@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System;
 using System.IO;
+using Game.Capture;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -10,6 +11,8 @@ namespace Game.RLHarness
     /// <summary>-executeMethod entry points for attaching mlagents-learn to a batch-mode editor (launch without -quit; the run ends the process externally). The signaled variant exists because an editor boot outlasts the trainer's 60 s handshake window: boot and arm first, start the trainer, then create the flag file to enter play.</summary>
     public static class TrainingBootstrap
     {
+        private const string GameViewCaptureType =
+            "Game.Capture.GameView.GameViewEpisodeCapture, Game.Capture.GameView.Editor";
         private const string EvalCandidateAssetPath = "Assets/Tests/Fixtures/EvalCandidate.onnx";
         private const string EvalOpponentAssetPath = "Assets/Tests/Fixtures/EvalOpponent.onnx";
         public static readonly string StartFlagPath = Path.GetFullPath(Path.Combine(
@@ -45,7 +48,19 @@ namespace Game.RLHarness
             var host = new GameObject("[HarnessSessionHost]").AddComponent<HarnessSessionHost>();
             host.assets = AssetDatabase.LoadAssetAtPath<HarnessAssets>(HarnessAssets.AssetPath);
             host.spec = spec;
+            host.exitEditorWhenComplete = true;
+            if (spec.gizmoProfile != GizmoCaptureProfile.None) AttachGameViewCapture(host);
             EditorApplication.EnterPlaymode();
+        }
+
+        private static void AttachGameViewCapture(HarnessSessionHost host)
+        {
+            var type = Type.GetType(GameViewCaptureType, throwOnError: true);
+            if (!typeof(ScriptableObject).IsAssignableFrom(type) || !typeof(IEpisodeCapture).IsAssignableFrom(type))
+                throw new InvalidOperationException($"{GameViewCaptureType} does not implement IEpisodeCapture.");
+            var module = ScriptableObject.CreateInstance(type);
+            module.hideFlags = HideFlags.HideAndDontSave;
+            host.captureModule = module;
         }
 
         public static string ImportEvalCandidate(string sourceFile) => Import(sourceFile, EvalCandidateAssetPath);

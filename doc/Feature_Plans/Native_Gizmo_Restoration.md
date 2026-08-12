@@ -141,6 +141,26 @@ Recorder output path assigned after serialized cadence, URP compatibility
 mode with global-settings dirty-state restore, Prepare/Start in one fixed
 step, and explicit Game View focus inside the transaction.
 
+**Correction (2026-08-12).** That "proven" reading was wrong. The integration
+test asserted only that frames existed, so a lane writing 1195 uniformly empty
+PNGs passed it. Two defects, both in this repository rather than in Unity,
+Recorder, or URP, kept every native drawer out of the footage:
+
+- each native drawer still consults the painter-era `DiagnosticGate`, whose
+  EditorPrefs-backed set defaults to nothing-on, so a cold CLI Editor drew
+  nothing; and
+- the capture transaction assigned `Selection.activeObject` after
+  `Selection.objects`, which narrows the selection to that one object, leaving
+  only the active ship's own components selected and every commander-child
+  drawer dark.
+
+With both fixed the lane films real diagnostics, and pixel-level assertions now
+guard each defect. Two consequences stand. The prototype ruling's Game View
+probe must have run against an already-populated gate, so it never evidenced a
+cold-start capture. And steady-state cost measures about 47% above the painter
+backend — 20.1 ms against 13.7 ms mean per fixed step over one matched episode —
+which fails the 10% acceptance bar below and is open for a ruling.
+
 ## Acceptance
 
 - A real harness clip shows selected native diagnostics over production play.
