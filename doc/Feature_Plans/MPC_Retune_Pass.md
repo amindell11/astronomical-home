@@ -456,3 +456,83 @@ separately measurable quantity, not a rig concern. Characterization pin:
 the rig reproduces the on-target yaw churn signature versus a Dummy at
 stock settings (`MpcSolverRigTests.Run_VersusDummy_ReproducesYawChurnSignature`);
 a redesign that legitimately calms the loop updates the pin.
+
+### Probe 2 — incumbent settling in selection (RAN 2026-08-11, on the rig)
+
+Minimal apparatus (#388, lease `mpc-probe2`): `MpcSelectionMode` enum on
+`MpcSettings` (default `EliteAverage`, zero behavior change, pin untouched)
+switching the `SolverBuffers` emit site — `Argmin` emits the single cheapest
+candidate; `IncumbentElite` averages only elite candidates strictly beating
+candidate 0 and emits the incumbent verbatim when none do — plus rig-side
+selection instrumentation (incumbent cost rank, argmin-win fraction,
+emit-vs-incumbent yaw delta) read from the already-exposed solver buffers.
+Artifacts: `results/mpc-rig/probe2/` (3 modes × start facing error {0°, 90°}
+× 3 seeds, 20 s each).
+
+**Phase 0 (stock EliteAverage characterized):** the incumbent wins argmin on
+**94–96% of solves** (mean rank 0.1) yet the emitted yaw is dragged a mean
+|0.113–0.119| torque off it every solve — the settle-blocker at the operating
+point is the *blend*, not incumbent quality.
+
+**Settling is achievable — but only at the exact fixed point.** The on-target
+start (facing anchor, zero velocity: the intent's optimum, where the
+zero-control plan is also shift-invariant) is held *inertly* by both Argmin
+and IncumbentElite: 0.00 flips/s, 0.0° facing error, 100% incumbent wins,
+for 22 s. Stock churns even there (self-perturbing, ~16/s).
+
+**But selection alone does NOT converge the loop — the verdict.** From a 90°
+start, every mode converges facing fast (≤10° at 1.0/1.8/1.4 s for
+stock/Argmin/IncumbentElite) and then churns indefinitely at the same rate:
+strict torque reversals 14.3–16.6/s across ALL modes (late-window 15–17/s;
+ruling-3 bar is the hull's 4–5/s). Argmin is *worse* in state space (|yaw
+rate| 17 vs 10 deg/s, facing p90 to 13.7°) — full-amplitude noise adoption
+without the average's variance reduction. Incumbent win rates collapse once
+moving: 51–54% (Argmin), 66–68% (IncumbentElite).
+
+**Mechanism synthesis (rig evidence, no fix chosen):** away from the fixed
+point the shifted warm start is never a valid continuation — the production
+shift consumes plan time 5× sim time (mechanism #2), so only *constant*
+plans survive shifting uncorrupted, and the settled zero-control plan is the
+only relevant one. A corrupted incumbent loses to noisy challengers about
+half the time, and every adoption injects fresh tail noise: the emitted
+command churns at the noise rate regardless of selection rule. Probe 1
+tested a true plan clock × blur selection (cycle persisted); Probe 2 tested
+settle selection × the 5× clock (churn persists) — leaving the interaction
+cell as the hypothesis.
+
+**Interaction arm (user-approved same day): the composite MEETS the
+ruling-3 reversal bar.** Fractional shift (ported from the parked probe-1
+branch as `MpcPlanShiftMode` on `MpcSettings`, default `FastForward` =
+stock; ZOH-faithful resample so the plan clock tracks sim time at 50 Hz) ×
+each selection, same grid. From the 90° start, strict torque reversals/s:
+
+| selection | FastForward | Fractional |
+|---|---:|---:|
+| EliteAverage | 14.3–16.0 | 10.0–12.1 |
+| Argmin | 15.4–16.6 | **3.1–4.8** |
+| IncumbentElite | 15.5–16.1 | **3.4–3.9** |
+
+Both composite cells sit at/under the hull's 4–5/s at full 50 Hz decisions
+(deadband 1.9–2.3/s), still hold the on-target fixed point inertly, and the
+incumbent wins 89–92% of solves with the emitted yaw only ~0.02 off it.
+Neither axis alone suffices — the churn generator is the *conjunction* of a
+corrupted incumbent and a selection that can't let a valid one persist.
+IncumbentElite edges Argmin (tighter spread, retains averaging when
+challengers genuinely win). Caveat, recorded not fixed: composite mean
+facing error ~7.6–9.6° vs stock's ~2.9–4.4° — a slow wander consistent with
+`facingWidth` 1.5 rad making small facing gains cost-invisible to
+challengers; a tuning observation for later, not a structural finding.
+
+**Ruling (user, 2026-08-11, after an in-game playtest of the composite): the
+composite is the only path.** EliteAverage, Argmin, FastForward, and both
+mode enums removed in the same PR (#389) — `IncumbentElite` selection and
+the fractional shift are now the unconditional solver behavior, a net
+simplification over stock. The churn characterization pin is retired and
+replaced by settled-loop pins (`Run_VersusDummy_OnTarget_HoldsTheFixedPointInertly`,
+`Run_VersusDummy_OffTarget_ConvergesWithinHullRate`).
+
+Outcome gates still owed (ruling 1 tiers): the checkpoint was trained on the
+churny controller, and the 10 Hz cadence arm's mover collapse (63→43.5) is
+the measured precedent — a Dummy-closeout + roster bench pass on the merged
+behavior is the outstanding proof; sequencing (before vs after merge) is the
+user's call.

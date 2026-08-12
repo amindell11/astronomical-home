@@ -225,7 +225,7 @@ namespace Movement.MPC
 
             Evaluate(initialState, costInput, cfg, dynamics, lastControl, samples);
 
-            return EliteAverage(sequence, cfg.horizon, samples, eliteFraction);
+            return IncumbentElite(sequence, horizon, samples, eliteFraction);
         }
 
         private void Evaluate(State initialState, CostInput costInput,
@@ -243,19 +243,22 @@ namespace Movement.MPC
             }.Schedule(samples, 1).Complete();
         }
 
-        private float EliteAverage(Control[] sequence, int horizon, int samples, float eliteFraction)
+        // Elite average restricted to candidates that strictly beat the incumbent (candidate 0, the shifted
+        // warm start already in sequence); none beating it leaves the incumbent emitted unchanged.
+        private float IncumbentElite(Control[] sequence, int horizon, int samples, float eliteFraction)
         {
+            var incumbentCost = costs[0];
             var eliteCount = math.max(1, (int)(samples * math.clamp(eliteFraction, 0.01f, 0.5f)));
             var costThreshold = FindKthSmallest(costs, samples, eliteCount);
 
             for (var j = 0; j < horizon; j++)
                 result[j] = default;
 
-            var bestCost = float.MaxValue;
+            var bestCost = incumbentCost;
             var counted = 0;
-            for (var i = 0; i < samples && counted < eliteCount; i++)
+            for (var i = 1; i < samples && counted < eliteCount; i++)
             {
-                if (costs[i] > costThreshold) continue;
+                if (costs[i] > costThreshold || costs[i] >= incumbentCost) continue;
                 if (costs[i] < bestCost) bestCost = costs[i];
 
                 var offset = i * horizon;
@@ -272,6 +275,8 @@ namespace Movement.MPC
                 }
                 counted++;
             }
+
+            if (counted == 0) return incumbentCost;
 
             var invCount = 1f / counted;
             for (var j = 0; j < horizon; j++)

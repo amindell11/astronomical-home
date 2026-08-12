@@ -10,6 +10,7 @@ namespace Movement.MPC
     public struct MpcInputs
     {
         public Kinematics kinematics;
+        public float dt;               // sim seconds since the previous solve; drives the Fractional plan shift
         public float2 velocityReference;   // commanded planar velocity
         public float facingRad;            // NaN = no facing override
         public float2 enemyPos;
@@ -64,7 +65,16 @@ namespace Movement.MPC
             var mpcState = ToMpcState(inputs.kinematics);
             RefreshConfig(in inputs);
             lastInitialState = mpcState;
-            ShiftSequenceForward();
+
+            // Slide the warm start's time origin forward by dt so its plan clock tracks sim
+            // time at solve rate: whole slots first, then the ZOH-faithful fractional resample.
+            var remaining = inputs.dt;
+            while (remaining >= settings.rolloutDt)
+            {
+                ShiftSequenceForward();
+                remaining -= settings.rolloutDt;
+            }
+            FractionalShift(remaining / settings.rolloutDt);
 
             using (EditorProfilingScope.Begin("MPC.Mpc.Solve"))
             {
@@ -103,6 +113,26 @@ namespace Movement.MPC
         {
             if (bestSequence.Length > 1)
                 Array.Copy(bestSequence, 1, bestSequence, 0, bestSequence.Length - 1);
+        }
+
+        // A dt-shifted slot spans (1−α) of old slot i plus α of slot i+1; the time-weighted
+        // average IS the exact resample of a zero-order-hold plan. Tail slot holds. Repeated
+        // application diffuses plan features (binomial blend, mean phase exact); measured
+        // immaterial vs a diffusion-free shift on the rig (2026-08-11, PR #389 P1 experiment).
+        private void FractionalShift(float alpha)
+        {
+            if (alpha <= 0f) return;
+            for (var i = 0; i < bestSequence.Length - 1; i++)
+            {
+                var a = bestSequence[i];
+                var b = bestSequence[i + 1];
+                bestSequence[i] = new Control
+                {
+                    thrust = math.lerp(a.thrust, b.thrust, alpha),
+                    strafe = math.lerp(a.strafe, b.strafe, alpha),
+                    yawTorque = math.lerp(a.yawTorque, b.yawTorque, alpha),
+                };
+            }
         }
 
         private void UpdatePredictedStates(State initial)

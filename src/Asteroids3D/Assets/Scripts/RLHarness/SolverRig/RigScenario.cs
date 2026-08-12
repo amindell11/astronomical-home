@@ -16,11 +16,11 @@ namespace Game.RLHarness
         public float warmupSeconds;
         public float durationSeconds;
 
-        /// <summary>Hold position at <paramref name="range"/> and face the anchor — the on-target station-keeping case where the yaw limit cycle lives.</summary>
-        public static RigScenario VersusDummy(float range) => new()
+        /// <summary>Hold position at <paramref name="range"/> and face the anchor — the on-target station-keeping case where the yaw limit cycle lives. The on-target start is a fixed point (settle-capable selections hold it inertly); pass <paramref name="startFacingErrorDeg"/> to measure convergence instead.</summary>
+        public static RigScenario VersusDummy(float range, float startFacingErrorDeg = 0f) => new()
         {
             startPos = default,
-            startYawRad = 0f,
+            startYawRad = math.radians(startFacingErrorDeg),
             enemyPos = new float2(0f, range),
             enemyYawRad = math.PI,
             intent = new AnchoredIntent

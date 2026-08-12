@@ -58,22 +58,35 @@ namespace Tests.EditMode
             }
         }
 
-        // Characterization pin, not a quality gate: the on-target yaw churn the retune pass is
-        // hunting (Bench-1 strict torque reversals ~11/s) must reproduce on the rig's own plant.
-        // A controller redesign that calms the loop SHOULD fail this test — update the pin then.
+        // Characterization pins for the settled controller (Probe 2 ruling: incumbent-elite
+        // selection + fractional shift are the only paths). Successor of the retired churn pin
+        // Run_VersusDummy_ReproducesYawChurnSignature; a redesign that changes the loop updates these.
         [Test]
-        public void Run_VersusDummy_ReproducesYawChurnSignature()
+        public void Run_VersusDummy_OnTarget_HoldsTheFixedPointInertly()
         {
             var scenario = RigScenario.VersusDummy(40f);
             var result = MpcSolverRig.Run(settings, dynamics, in scenario, 1234u);
 
             Assert.That(result.steps, Is.EqualTo(1000));
-            Assert.That(result.torqueReversalsPerSec, Is.GreaterThan(2f),
-                "Expected the self-generated yaw churn signature versus a stationary Dummy " +
-                $"(bench strict ~11/s); measured {result.torqueReversalsPerSec:F2}/s. " +
-                "If a controller redesign legitimately calmed the loop, update this pin.");
-            Assert.That(result.meanFacingErrorDeg, Is.LessThan(90f),
-                "The controller should at least broadly track the anchor while churning; " +
+            Assert.That(result.torqueReversalsPerSec, Is.LessThan(0.5f),
+                "The on-target start is the settled fixed point; the incumbent must persist " +
+                $"unperturbed. Measured {result.torqueReversalsPerSec:F2} reversals/s.");
+            Assert.That(result.meanFacingErrorDeg, Is.LessThan(1f),
+                $"Settled on-target hold should not wander; measured {result.meanFacingErrorDeg:F1} deg.");
+        }
+
+        [Test]
+        public void Run_VersusDummy_OffTarget_ConvergesWithinHullRate()
+        {
+            var scenario = RigScenario.VersusDummy(40f, startFacingErrorDeg: 90f);
+            var result = MpcSolverRig.Run(settings, dynamics, in scenario, 1234u);
+
+            Assert.That(result.steps, Is.EqualTo(1000));
+            Assert.That(result.torqueReversalsPerSec, Is.LessThan(6f),
+                "Converged means reversals at or under the hull's own 4-5/s (ruling 3); " +
+                $"measured {result.torqueReversalsPerSec:F2}/s (rig baseline 3.4-3.9).");
+            Assert.That(result.meanFacingErrorDeg, Is.LessThan(15f),
+                "The nose should track the anchor after the transient; " +
                 $"measured mean facing error {result.meanFacingErrorDeg:F1} deg.");
             Assert.That(result.finalRange, Is.InRange(5f, 120f),
                 $"Hold-at-range intent should keep the ship near the anchor; final range {result.finalRange:F1}.");
@@ -100,7 +113,7 @@ namespace Tests.EditMode
             }
         }
 
-        // Investigation entry point: emits a full trace for offline plotting; the investigation
+        // Investigation entry point: emits full traces for offline plotting; the investigation
         // owns deleting its artifacts. Env-gated because the batch runner never executes [Explicit].
         [Test]
         public void Run_EmitTraceArtifact()
@@ -108,18 +121,24 @@ namespace Tests.EditMode
             if (System.Environment.GetEnvironmentVariable("MPC_RIG_EMIT") != "1")
                 Assert.Ignore("Set MPC_RIG_EMIT=1 to emit the investigation trace artifact.");
 
-            var scenario = RigScenario.VersusDummy(40f);
-            var trace = new List<RigTraceRow>();
-            var result = MpcSolverRig.Run(settings, dynamics, in scenario, 1234u, trace);
-
             var outDir = Path.GetFullPath(Path.Combine(Application.dataPath, "../../../results/mpc-rig"));
             Directory.CreateDirectory(outDir);
-            var path = Path.Combine(outDir, "trace-dummy-seed1234.csv");
-            RigTraceCsv.Write(path, trace);
-            Debug.Log($"[MpcSolverRig] {path} | strict {result.torqueReversalsPerSec:F2}/s | " +
-                      $"deadband {result.torqueDeadbandReversalsPerSec:F2}/s | " +
-                      $"|yawRate| {result.meanAbsYawRateDegPerSec:F1} deg/s | " +
-                      $"facing err {result.meanFacingErrorDeg:F1} deg | range {result.finalRange:F1}");
+
+            foreach (var startErrorDeg in new[] { 0f, 90f })
+            foreach (var seed in new uint[] { 1234u, 99u, 7u })
+            {
+                var scenario = RigScenario.VersusDummy(40f, startErrorDeg);
+                var trace = new List<RigTraceRow>();
+                var result = MpcSolverRig.Run(settings, dynamics, in scenario, seed, trace);
+                var path = Path.Combine(outDir, $"trace-dummy-err{startErrorDeg:F0}-seed{seed}.csv");
+                RigTraceCsv.Write(path, trace);
+                Debug.Log($"[MpcSolverRig] err{startErrorDeg:F0} seed {seed} | strict {result.torqueReversalsPerSec:F2}/s | " +
+                          $"deadband {result.torqueDeadbandReversalsPerSec:F2}/s | " +
+                          $"|yawRate| {result.meanAbsYawRateDegPerSec:F1} deg/s | " +
+                          $"facing err {result.meanFacingErrorDeg:F1} deg (p90 {result.p90FacingErrorDeg:F1}) | " +
+                          $"range {result.finalRange:F1} | incumbent wins {result.incumbentWinFraction:P1} | " +
+                          $"|emit-incumbent yaw| {result.meanAbsEmitYawDeltaFromIncumbent:F3}");
+            }
         }
     }
 }
