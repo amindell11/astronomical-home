@@ -33,7 +33,7 @@ namespace AI
         private FireControl primary;
         private FireControl secondary;
         private bool prevPrimaryHeld;
-        // The ability lane, latched beside the triggers: boost is a tactical decision, never a solver output.
+        // The ability lane, latched beside the triggers.
         private bool boost;
 
         internal AIContext context;

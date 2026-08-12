@@ -52,7 +52,7 @@ namespace Tests.EditMode
             if (createdSettings) Object.DestroyImmediate(createdSettings);
         }
 
-        // The Navigator no longer resolves the anchor; the host does, so any valid id serves here.
+        // The host resolves the anchor, so any valid id serves here.
         private static readonly ShipId AnchorId = new(1);
 
         // Enemy heading 90° so the MPC-convention conversion (fwd = (−sin, cos)) is observable.
