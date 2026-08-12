@@ -134,10 +134,13 @@ namespace Tests.PlayMode
             // move the agent on the FIRST fixed step (t+1) — the AICommander-after-the-stepper ordering. A one-tick
             // regression (AICommander back before the stepper) delays first motion to step 2. Integer step index, not
             // a float golden: the stepping move changes WHEN the step fires, never the action values.
+            // Spawn far outside the heuristic's hold band (15): the settled controller (#389) legitimately
+            // emits zero when the spawn already satisfies the intent, so the latency probe needs an
+            // unambiguous motion demand.
             var spec = RewardSpec.Default;
             spec.timeoutDecisions = 10;
-            spec.minSeparation = 18f;
-            spec.maxSeparation = 24f;
+            spec.minSeparation = 40f;
+            spec.maxSeparation = 48f;
 
             Compose(in spec);
             var driver = new EpisodeLoopDriver(pair, agent, arena.Offset);
