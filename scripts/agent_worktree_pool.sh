@@ -35,6 +35,10 @@ Commands:
       Run Unity tests in that slot with standardized outDir:
       results/unity-tests-agent
 
+  run-resharper <slot> [base_ref]
+      Run the Unity-aware ReSharper changed-line ratchet against base_ref
+      (default: origin/main).
+
   create-pr <slot> [base] --title "<text>" (--body "<text>" | --body-file <path>)
       Push the slot's work to its task branch (task/<lease>, recorded
       for merge/revise like submit) and create a PR with gh (default
@@ -49,9 +53,9 @@ Commands:
       until invoked via create-pr with explicit flags.)
 
   submit <slot> [base_ref] --title "<text>" (--body "<text>" | --body-file <path>) [-- unity_test_agent.ps1 args...]
-      Run tests, push to a task-specific remote branch (task/<lease>),
-      and create PR — but keep the lock so the agent can respond to
-      review feedback. An explicit --title and exactly one of
+      Run tests and the ReSharper ratchet, push to a task-specific remote
+      branch (task/<lease>), and create PR — but keep the lock so the agent
+      can respond to review feedback. An explicit --title and exactly one of
       --body/--body-file are REQUIRED. Test args after -- are passed to
       unity_test_agent.ps1. Only a passing FULL run (-Mode Both,
       -ScopeType Workspace, unfiltered) records merge-grade proof;
@@ -67,7 +71,8 @@ Commands:
       deltas take an EditMode Smoke compile refresh instead of the
       full suite. Runs test the working tree, so submit/revise/merge
       refuse to start a proof-bearing run on a dirty worktree. The ONLY
-      sanctioned merge path; do not call 'gh pr merge' directly.
+      sanctioned merge path; it also requires the exact landing tree to pass
+      the ReSharper ratchet. Do not call 'gh pr merge' directly.
 
   finalize <slot> [base_ref]
       After PR is merged: reset slot branch to base ref (default:
@@ -77,10 +82,10 @@ Commands:
       Show open PR URL and unresolved review threads/comments for slot.
 
   revise <slot> [--no-test] [-- unity_test_agent.ps1 args...]
-      Update existing slot branch for PR feedback: pull --rebase, run tests,
-      then push branch updates (no reset to main). With --no-test, skip the
-      test run and record no proof — for pre-merge hygiene edits; the merge
-      gate then runs the single full suite on the exact landing tree.
+      Update existing slot branch for PR feedback: pull --rebase, run tests
+      unless --no-test, run the ReSharper ratchet, then push branch updates
+      (no reset to main). With --no-test, record no test proof; the merge gate
+      then runs the single full suite on the exact landing tree.
 
 Examples:
   scripts/agent_worktree_pool.sh status
@@ -88,6 +93,7 @@ Examples:
   scripts/agent_worktree_pool.sh acquire task-123 agent-4
   scripts/agent_worktree_pool.sh prepare agent-1 origin/main
   scripts/agent_worktree_pool.sh run-tests agent-1 -Mode EditMode -ScopeType Smoke
+  scripts/agent_worktree_pool.sh run-resharper agent-1 origin/main
   scripts/agent_worktree_pool.sh create-pr agent-1 --title "feat(x): add y" --body "## Summary\n..."
   scripts/agent_worktree_pool.sh create-pool-prs
   scripts/agent_worktree_pool.sh review-comments agent-1
@@ -637,6 +643,68 @@ cmd_run_tests() {
   )
 }
 
+resharper_fingerprint() {
+  local path="$1" file hashes=""
+  for file in \
+    .config/dotnet-tools.json \
+    scripts/agent_worktree_pool.sh \
+    scripts/resharper-unity.DotSettings \
+    scripts/resharper_ratchet.ps1 \
+    scripts/sync_unity_solution.ps1; do
+    [[ -f "$path/$file" ]] || { echo "missing:$file"; return 0; }
+    hashes+="$(git -C "$path" hash-object "$path/$file"):$file"$'\n'
+  done
+  printf '%s' "$hashes" | git hash-object --stdin
+}
+
+record_resharper_proof() {
+  local slot="$1" path="$2" base_ref="$3"
+  local ldir tree base_tree fingerprint
+  ldir="$(lock_dir_for "$slot")"
+  tree="$(git -C "$path" rev-parse 'HEAD^{tree}')"
+  base_tree="$(git -C "$path" rev-parse "$base_ref^{tree}")"
+  fingerprint="$(resharper_fingerprint "$path")"
+  mkdir -p "$ldir"
+  {
+    printf 'tree=%s\n' "$tree"
+    printf 'baseTree=%s\n' "$base_tree"
+    printf 'fingerprint=%s\n' "$fingerprint"
+    printf 'recordedAt=%s\n' "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+  } > "$ldir/resharper_proof"
+}
+
+resharper_proof_matches() {
+  local slot="$1" path="$2" base_ref="$3"
+  local proof tree base_tree fingerprint
+  proof="$(lock_dir_for "$slot")/resharper_proof"
+  [[ -f "$proof" ]] || return 1
+  tree="$(git -C "$path" rev-parse 'HEAD^{tree}')"
+  base_tree="$(git -C "$path" rev-parse "$base_ref^{tree}")"
+  fingerprint="$(resharper_fingerprint "$path")"
+  [[ "$(sed -n 's/^tree=//p' "$proof" | head -n 1)" == "$tree" ]] || return 1
+  [[ "$(sed -n 's/^baseTree=//p' "$proof" | head -n 1)" == "$base_tree" ]] || return 1
+  [[ "$(sed -n 's/^fingerprint=//p' "$proof" | head -n 1)" == "$fingerprint" ]]
+}
+
+cmd_run_resharper() {
+  local slot="$1" base_ref="${2:-origin/main}"
+  local path
+  path="$(slot_path "$slot")"
+  require_clean_slot "$slot" "$path" "run-resharper" || return 1
+  if resharper_proof_matches "$slot" "$path" "$base_ref"; then
+    echo "Tree already passed the ReSharper ratchet against $base_ref — skipping re-run."
+    return 0
+  fi
+  (
+    cd "$path"
+    powershell.exe -NoProfile -ExecutionPolicy Bypass \
+      -File "./scripts/resharper_ratchet.ps1" \
+      -BaseRef "$base_ref" \
+      -OutDir "results/resharper-ratchet"
+  )
+  record_resharper_proof "$slot" "$path" "$base_ref"
+}
+
 require_pr_title_body() {
   local cmd="$1" title="$2" body="$3" body_file="$4"
   if [[ -z "$title" ]]; then
@@ -782,6 +850,7 @@ cmd_submit() {
   clear_run_summary "$path"
   cmd_run_tests "$slot" "${test_args[@]}"
   record_tested_tree "$slot" "$path"
+  cmd_run_resharper "$slot" "$base_ref"
 
   local task_branch
   task_branch="$(ensure_task_branch "$slot")"
@@ -895,6 +964,7 @@ cmd_merge() {
     echo "merge: no full-coverage proof for landing tree $current_tree (scoped gate args?); not merging." >&2
     return 1
   fi
+  cmd_run_resharper "$slot" "$base_ref"
   # Unconditional: gh merges the REMOTE branch, so any local-only commits must be on it before the squash.
   git -C "$path" push origin "$slot:refs/heads/$task_branch"
 
@@ -1022,14 +1092,16 @@ cmd_revise() {
     git -C "$path" pull --rebase origin "$task_branch"
   fi
 
+  require_clean_slot "$slot" "$path" "revise" || return 1
+
   if [[ "$no_test" -eq 1 ]]; then
     echo "Skipping tests (--no-test): no proof recorded; the merge gate will test the landing tree."
   else
-    require_clean_slot "$slot" "$path" "revise" || return 1
     clear_run_summary "$path"
     cmd_run_tests "$slot" "${test_args[@]}"
     record_tested_tree "$slot" "$path"
   fi
+  cmd_run_resharper "$slot" origin/main
 
   git -C "$path" push origin "$slot:refs/heads/$task_branch"
   echo "Revised and pushed $slot -> $task_branch"
@@ -1058,6 +1130,10 @@ main() {
     run-tests)
       [[ $# -ge 1 ]] || { echo "run-tests requires <slot> [args...]" >&2; exit 1; }
       cmd_run_tests "$@"
+      ;;
+    run-resharper)
+      [[ $# -ge 1 ]] || { echo "run-resharper requires <slot> [base_ref]" >&2; exit 1; }
+      cmd_run_resharper "$@"
       ;;
     create-pr)
       [[ $# -ge 1 ]] || { echo "create-pr requires <slot> [base] --title \"<text>\" (--body \"<text>\" | --body-file <path>)" >&2; exit 1; }

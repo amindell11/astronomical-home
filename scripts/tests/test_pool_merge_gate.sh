@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Regression for the merge gate's proof chain: only passing FULL runs on a clean worktree record merge-grade proof, a failed run after base integration forces a re-test on retry, and inert deltas (*.md / .cs comment-only) extend proof without burning a full suite.
+# Regression for the merge gate's proof chain: test and ReSharper proof bind to the landing tree, failed runs stop the PR path, and inert deltas avoid unnecessary full-suite runs.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 POOL="$SCRIPT_DIR/../agent_worktree_pool.sh"
@@ -13,10 +13,14 @@ trap 'rm -rf "$TMP"' EXIT
 
 export RUNNER_LOG="$TMP/runner.log"
 export RUNNER_EXIT_FILE="$TMP/runner.exit"
+export RESHARPER_LOG="$TMP/resharper.log"
+export RESHARPER_EXIT_FILE="$TMP/resharper.exit"
 export GH_MERGE_LOG="$TMP/gh-merge.log"
 : > "$RUNNER_LOG"
+: > "$RESHARPER_LOG"
 : > "$GH_MERGE_LOG"
 echo 0 > "$RUNNER_EXIT_FILE"
+echo 0 > "$RESHARPER_EXIT_FILE"
 
 export STUB_BIN="$TMP/bin"
 mkdir -p "$STUB_BIN"
@@ -24,6 +28,10 @@ mkdir -p "$STUB_BIN"
 # Stub only the test runner; other powershell invocations (inert_diff.ps1) fall through to the real binary. The stub derives the summary JSON from its args so the coverage predicate sees full vs scoped runs.
 cat > "$STUB_BIN/powershell.exe" <<'EOF'
 #!/usr/bin/env bash
+if [[ "$*" == *resharper_ratchet.ps1* ]]; then
+  echo "run $*" >> "$RESHARPER_LOG"
+  exit "$(cat "$RESHARPER_EXIT_FILE")"
+fi
 if [[ "$*" != *unity_test_agent.ps1* ]]; then
   real="$(type -pa powershell.exe | grep -vF "$STUB_BIN" | head -n 1)"
   [[ -n "$real" ]] || { echo "stub: no real powershell.exe for: $*" >&2; exit 1; }
@@ -92,6 +100,7 @@ export WORKTREE_POOL_LOCK_ROOT="$TMP/locks"
 
 fail() { echo "FAIL: $1" >&2; exit 1; }
 runner_runs() { grep -c '^run' "$RUNNER_LOG" || true; }
+resharper_runs() { grep -c '^run' "$RESHARPER_LOG" || true; }
 gh_merges() { grep -c 'squash' "$GH_MERGE_LOG" || true; }
 slot_tree() { git -C "$TMP/agent-1" rev-parse 'agent-1^{tree}'; }
 recorded_tree() { cat "$WORKTREE_POOL_LOCK_ROOT/agent-1.lock/tested_tree" 2>/dev/null || true; }
@@ -102,7 +111,12 @@ git -C "$TMP/primary" config user.email pool-test@example.test
 git -C "$TMP/primary" config user.name "Pool Test"
 echo base > "$TMP/primary/file.txt"
 printf 'results/\n' > "$TMP/primary/.gitignore"
-git -C "$TMP/primary" add file.txt .gitignore
+mkdir -p "$TMP/primary/.config" "$TMP/primary/scripts"
+printf '{}\n' > "$TMP/primary/.config/dotnet-tools.json"
+for file in agent_worktree_pool.sh resharper-unity.DotSettings resharper_ratchet.ps1 sync_unity_solution.ps1; do
+  printf 'stub\n' > "$TMP/primary/scripts/$file"
+done
+git -C "$TMP/primary" add file.txt .gitignore .config scripts
 git -C "$TMP/primary" commit -qm init
 git -C "$TMP/primary" push -q origin main
 git -C "$TMP/primary" worktree add -q -b agent-1 "$TMP/agent-1" main
@@ -119,6 +133,7 @@ if pool submit agent-1 origin/main --title "test PR" --body "test body" --bogus 
 
 pool submit agent-1 origin/main --title "test PR" --body "test body" >/dev/null
 [[ "$(runner_runs)" == 1 ]] || fail "submit should run tests once (got $(runner_runs))"
+[[ "$(resharper_runs)" == 1 ]] || fail "submit should run the ReSharper ratchet once (got $(resharper_runs))"
 [[ "$(recorded_tree)" == "$(slot_tree)" ]] || fail "submit should record the tested tree"
 
 echo moved > "$TMP/primary/main.txt"
@@ -135,11 +150,13 @@ pool merge agent-1 >/dev/null 2>&1 && fail "merge must fail when the post-integr
 echo 0 > "$RUNNER_EXIT_FILE"
 pool merge agent-1 >/dev/null
 [[ "$(runner_runs)" == 3 ]] || fail "retry after failed run must re-run tests, not trust the base-merge commit (got $(runner_runs))"
+[[ "$(resharper_runs)" == 2 ]] || fail "passing landing tree should run the ReSharper ratchet (got $(resharper_runs))"
 [[ "$(gh_merges)" == 1 ]] || fail "retry with passing tests should merge (got $(gh_merges))"
 [[ "$(recorded_tree)" == "$(slot_tree)" ]] || fail "passing run should record the merged tree"
 
 pool merge agent-1 >/dev/null
 [[ "$(runner_runs)" == 3 ]] || fail "proven tree should skip the re-run (got $(runner_runs))"
+[[ "$(resharper_runs)" == 2 ]] || fail "proven ReSharper tree/base pair should skip the re-run (got $(resharper_runs))"
 [[ "$(gh_merges)" == 2 ]] || fail "fast path should still merge (got $(gh_merges))"
 
 last_run_line() { grep '^run' "$RUNNER_LOG" | tail -n 1; }
@@ -299,4 +316,17 @@ pool merge agent-1 >/dev/null
 [[ "$(gh_merges)" == 11 ]] || fail "doc-script merge should complete (got $(gh_merges))"
 [[ "$(scope_field kind)" == "full-run" ]] || fail "doc-script gate run should record full-run provenance"
 
-echo "PASS: merge gate tested-tree proof + scope-aware proof + inert fast path"
+# A ReSharper failure blocks submit before the task branch is pushed.
+mkdir -p "$TMP/agent-1/src/Asteroids3D/Assets/Scripts"
+echo "class RatchetFailure { }" > "$TMP/agent-1/src/Asteroids3D/Assets/Scripts/RatchetFailure.cs"
+git -C "$TMP/agent-1" add src/Asteroids3D/Assets/Scripts/RatchetFailure.cs
+git -C "$TMP/agent-1" commit -qm "ratchet failure"
+remote_before="$(git -C "$TMP/origin.git" rev-parse refs/heads/task/merge-gate-test)"
+echo 1 > "$RESHARPER_EXIT_FILE"
+if pool submit agent-1 origin/main --title "test PR" --body "test body" >/dev/null 2>&1; then fail "submit must fail when the ReSharper ratchet fails"; fi
+[[ "$(runner_runs)" == 14 ]] || fail "ReSharper-failing submit should still run tests first (got $(runner_runs))"
+[[ "$(git -C "$TMP/origin.git" rev-parse refs/heads/task/merge-gate-test)" == "$remote_before" ]] \
+  || fail "ReSharper-failing submit must not push the task branch"
+[[ "$(gh_merges)" == 11 ]] || fail "ReSharper-failing submit must not reach gh pr merge"
+
+echo "PASS: merge gate tested-tree proof + ReSharper proof + scope-aware proof + inert fast path"
