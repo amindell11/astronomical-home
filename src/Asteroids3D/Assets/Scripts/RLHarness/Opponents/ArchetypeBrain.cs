@@ -80,6 +80,13 @@ namespace Game.RLHarness
         {
             if (ctx?.Self == null) return null;
 
+            if (!borderAnchored)
+            {
+                // No Configure call on authored pilots: the border centers at first Decide, target or not.
+                arenaCenter = ctx.Self.Kinematics.pos;
+                borderAnchored = true;
+            }
+
             if (liveTargeting && ctx.Combat.Enemy != target)
             {
                 target = ctx.Combat.Enemy;
@@ -100,13 +107,6 @@ namespace Game.RLHarness
         {
             if (archetype == OpponentArchetype.Dummy)
                 return new BrainDecision(NavObjective.Planar(Vector2.zero));
-
-            if (!borderAnchored)
-            {
-                // An authored pilot has no Configure call; its border circle centers where it first decides.
-                arenaCenter = ctx.Self.Kinematics.pos;
-                borderAnchored = true;
-            }
 
             var self = ctx.Self.Kinematics;
             var maxSpeed = ctx.Self.Dynamics.maxSpeed;
