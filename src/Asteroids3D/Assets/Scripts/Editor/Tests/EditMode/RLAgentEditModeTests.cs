@@ -269,7 +269,7 @@ namespace Tests.EditMode
 
                 var first = brain.Decide(null).Value;
                 Assert.IsTrue(first.boost, "boundary tick spends the boost");
-                Assert.IsTrue(first.primary.Held);
+                Assert.IsTrue(first.engagePrimary);
                 Assert.AreEqual(4f, first.nav.anchored.radialSpeed, 1e-6f);
 
                 var second = brain.Decide(null).Value;
