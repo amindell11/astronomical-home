@@ -44,7 +44,12 @@ and framing, Recorder lifetime, frame cadence, artifact output, and cleanup.
 During the expansion slice the old offscreen recorder may coexist behind the
 same harness call site. It is deleted, not retained as a second adapter, in
 the contraction slice. Player-build and `-nographics` capture remain rejected
-at the parse boundary.
+at the parse boundary. Batch-mode capture is structurally impossible — Unity
+never resumes Recorder's `WaitForEndOfFrame` under `-batchmode` — so the
+capture lane runs a windowed Editor launched by the test runner
+(`unity_test_agent.ps1 -WithGraphics -Windowed`), with no MCP bridge and no
+human interaction. Native capture profiles run with presentation disabled:
+collider silhouettes and gizmo geometry are the footage.
 
 `RL_HARNESS_GIZMOS` selects one code-defined capture profile such as
 `steering`, `combat`, or `everything`. Profiles resolve to Unity component
@@ -125,6 +130,16 @@ The selected-only profile transaction is production acceptance for #374,
 not another throwaway prototype. Its integration test must pin the observed
 Game View effect of `GizmoUtility`, because Unity's scripting documentation
 describes that interface primarily in Scene View terms.
+
+Build evidence (2026-08-11) sharpened the ruling: the accepted Editor window
+is mandatory, not incidental, because Recorder starves without a rendering
+Game View in `-batchmode`. The windowed lane is proven — a test-runner-launched
+windowed Editor ran the full native-capture integration test green (frames,
+manifest, and complete state restoration) with zero human interaction. The
+build-slice fixes that unlocked it live on `task/native-gizmo-capture`:
+Recorder output path assigned after serialized cadence, URP compatibility
+mode with global-settings dirty-state restore, Prepare/Start in one fixed
+step, and explicit Game View focus inside the transaction.
 
 ## Acceptance
 
