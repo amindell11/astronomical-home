@@ -34,6 +34,8 @@ try {
     $finding.endLine = 3
     Assert-True (-not (Test-FindingTouchesChangedLine $finding $changed)) "finding on an unchanged line is report-only"
     Assert-True (Test-ReportOnlyRule "Unity.PerformanceCriticalCodeInvocation") "performance indicator stays report-only"
+    Assert-True (Test-ReportOnlyRule "Unity.InefficientMultiplicationOrder") "performance warning stays report-only"
+    Assert-True (Test-ReportOnlyRule "Unity.PreferAddressByIdToGraphicsParams") "graphics lookup warning stays report-only"
     Assert-True (-not (Test-ReportOnlyRule "Unity.IncorrectMonoBehaviourInstantiation")) "Unity correctness finding can block"
 
     $sarifPath = Join-Path $temp "sample.sarif.json"

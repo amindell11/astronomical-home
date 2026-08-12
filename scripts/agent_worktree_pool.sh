@@ -702,6 +702,7 @@ cmd_run_resharper() {
       -BaseRef "$base_ref" \
       -OutDir "results/resharper-ratchet"
   )
+  require_clean_slot "$slot" "$path" "run-resharper" || return 1
   record_resharper_proof "$slot" "$path" "$base_ref"
 }
 

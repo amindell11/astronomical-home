@@ -79,7 +79,9 @@ function Test-ReportOnlyRule {
         "Unity.PerformanceCriticalCodeCameraMain",
         "Unity.PerformanceCriticalCodeInvocation",
         "Unity.PerformanceCriticalCodeNullComparison",
-        "Unity.InefficientPropertyAccess"
+        "Unity.InefficientPropertyAccess",
+        "Unity.InefficientMultiplicationOrder",
+        "Unity.PreferAddressByIdToGraphicsParams"
     )
 }
 
