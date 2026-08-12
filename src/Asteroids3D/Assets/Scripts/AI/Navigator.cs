@@ -85,6 +85,7 @@ namespace Movement.MPC
             var inputs = new MpcInputs
             {
                 kinematics = kin,
+                dt = Time.fixedDeltaTime,
                 velocityReference = velocityReference,
                 facingRad = facingOverride ? facingRadOverride : float.NaN,
                 enemyPos = enemyPos,

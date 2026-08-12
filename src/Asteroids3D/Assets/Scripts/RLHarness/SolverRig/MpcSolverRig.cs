@@ -57,6 +57,7 @@ namespace Game.RLHarness
                 var inputs = new MpcInputs
                 {
                     kinematics = ToKinematics(state),
+                    dt = scenario.simDt,
                     // Anchored channels carry the command, mirroring Navigator.ApplyObjective for anchored objectives.
                     velocityReference = default,
                     facingRad = float.NaN,

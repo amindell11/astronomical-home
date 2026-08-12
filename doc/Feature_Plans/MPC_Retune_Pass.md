@@ -497,9 +497,34 @@ only relevant one. A corrupted incumbent loses to noisy challengers about
 half the time, and every adoption injects fresh tail noise: the emitted
 command churns at the noise rate regardless of selection rule. Probe 1
 tested a true plan clock × blur selection (cycle persisted); Probe 2 tested
-settle selection × the 5× clock (churn persists). **The untested cell is the
-interaction: settle-capable selection × sim-true (fractional) shift** — the
-first configuration in which the incumbent both stays valid and is allowed
-to win. Fractional-shift code exists on the parked `task/mpc-shift-cadence`
-branch (agent-1); running the 2×2 on the rig needs a scope ruling (Probe-2
-scope was pinned to the stock shift).
+settle selection × the 5× clock (churn persists) — leaving the interaction
+cell as the hypothesis.
+
+**Interaction arm (user-approved same day): the composite MEETS the
+ruling-3 reversal bar.** Fractional shift (ported from the parked probe-1
+branch as `MpcPlanShiftMode` on `MpcSettings`, default `FastForward` =
+stock; ZOH-faithful resample so the plan clock tracks sim time at 50 Hz) ×
+each selection, same grid. From the 90° start, strict torque reversals/s:
+
+| selection | FastForward | Fractional |
+|---|---:|---:|
+| EliteAverage | 14.3–16.0 | 10.0–12.1 |
+| Argmin | 15.4–16.6 | **3.1–4.8** |
+| IncumbentElite | 15.5–16.1 | **3.4–3.9** |
+
+Both composite cells sit at/under the hull's 4–5/s at full 50 Hz decisions
+(deadband 1.9–2.3/s), still hold the on-target fixed point inertly, and the
+incumbent wins 89–92% of solves with the emitted yaw only ~0.02 off it.
+Neither axis alone suffices — the churn generator is the *conjunction* of a
+corrupted incumbent and a selection that can't let a valid one persist.
+IncumbentElite edges Argmin (tighter spread, retains averaging when
+challengers genuinely win). Caveat, recorded not fixed: composite mean
+facing error ~7.6–9.6° vs stock's ~2.9–4.4° — a slow wander consistent with
+`facingWidth` 1.5 rad making small facing gains cost-invisible to
+challengers; a tuning observation for later, not a structural finding.
+
+Confirmation tiers unchanged (ruling 1): next is the scripted-archetype
+session loop with `Fractional × IncumbentElite` asset-flipped, then the
+Dummy-closeout/roster gates; the checkpoint was trained on the churny
+controller, so the shift-cadence mover-collapse risk applies until the
+archetype loop and gates say otherwise.

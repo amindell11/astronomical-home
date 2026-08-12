@@ -9,6 +9,12 @@ namespace Movement.MPC
         IncumbentElite,
     }
 
+    public enum MpcPlanShiftMode
+    {
+        FastForward,
+        Fractional,
+    }
+
     [CreateAssetMenu(menuName = "AI/MPC Settings", fileName = "MpcSettings")]
     public class MpcSettings : ScriptableObject
     {
@@ -35,6 +41,10 @@ namespace Movement.MPC
                  "of only the elite candidates that beat the incumbent (candidate 0, the shifted warm start); " +
                  "emits the incumbent unchanged when none do, so a settled plan stays settled.")]
         public MpcSelectionMode selectionMode = MpcSelectionMode.EliteAverage;
+        [Tooltip("How the warm start advances between solves. FastForward (production): one rolloutDt slot per " +
+                 "solve — plan time runs 5x sim time at 50 Hz. Fractional: the plan clock tracks sim time via a " +
+                 "ZOH-faithful fractional resample, so the shifted warm start stays a valid continuation.")]
+        public MpcPlanShiftMode planShiftMode = MpcPlanShiftMode.FastForward;
 
         [Header("Tracking")]
         [Tooltip("Weight on the velocity-tracking objective: cost = wVelTrack * ‖vel - velocityReference‖² / maxSpeed². " +
