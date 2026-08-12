@@ -19,8 +19,9 @@ namespace AI
         [DrawGizmo(GizmoType.Selected, typeof(AICommander))]
         private static void Draw(AICommander commander, GizmoType gizmoType)
         {
-            if (!Application.isPlaying || commander.context == null) return;
-            if (commander.Brain is not IPolicyReadout readout || readout.Count == 0) return;
+            if (!Application.isPlaying || commander.context == null || !commander.Brain) return;
+            var readout = commander.Brain as IPolicyReadout;
+            if (readout == null || readout.Count == 0) return;
 
             var kin = commander.context.Self.Kinematics;
             var combat = commander.context.Combat;
