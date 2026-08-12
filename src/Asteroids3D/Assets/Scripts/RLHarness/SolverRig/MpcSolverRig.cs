@@ -195,6 +195,13 @@ namespace Game.RLHarness
                 state = Model.Step(state, applied, plantConfig, dynamics);
             }
 
+            // One more law sample lands the referents on the episode endpoint the final Model.Step reached.
+            var finalEnemy = enemyRunner.Step(scenario.simDt, state.pos);
+            var finalReferent1 = referent1Runner.Step(scenario.simDt, state.pos);
+            lastRange = finalEnemy.valid ? math.distance(state.pos, finalEnemy.pos)
+                : finalReferent1.valid ? math.distance(state.pos, finalReferent1.pos)
+                : float.NaN;
+
             var overall = new ControllerBucket();
             overall.Add(sampler.threat);
             overall.Add(sampler.clear);

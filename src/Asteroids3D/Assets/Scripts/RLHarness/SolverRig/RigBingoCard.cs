@@ -70,7 +70,7 @@ namespace Game.RLHarness
                 {
                     armed = true, referent = 1, frame = ReferentFrame.Position,
                     offsetR = 14f, offsetThetaRad = ThetaFromDirection(math.normalize(rock - enemyPos)),
-                    weight = 1.5f,
+                    weight = 1f,
                 },
                 field = new FieldSlot { armed = true, weight = 1f },
             };
@@ -155,7 +155,7 @@ namespace Game.RLHarness
             s.intent = new IntentSentence
             {
                 aim = new AimSlot { armed = true, weight = 0.6f },
-                pos = new PosSlot { armed = true, referent = 1, weight = -1.2f },
+                pos = new PosSlot { armed = true, referent = 1, weight = -1f },
             };
             return new BingoRow { name = "mine-retreat", scenario = s };
         }
@@ -281,7 +281,7 @@ namespace Game.RLHarness
             durationSeconds = 20f,
         };
 
-        /// <summary>Yaw whose forward (-sin, cos) points along <paramref name="direction"/>.</summary>
+        // Inverse of the MPC forward convention fwd = (-sin, cos).
         private static float ThetaFromDirection(float2 direction) => math.atan2(-direction.x, direction.y);
 
         private static float FacingYaw(float2 from, float2 to) => ThetaFromDirection(math.normalize(to - from));
