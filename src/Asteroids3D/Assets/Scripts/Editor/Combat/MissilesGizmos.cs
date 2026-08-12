@@ -6,19 +6,20 @@ using UnityEngine;
 
 namespace Combat.Weapons
 {
-    /// <summary>Live-editor shim over <see cref="MissilesPainter"/>'s launcher view: the DrawGizmo per-subject hook plus DiagnosticGate gating, rendering the shared painter onto a <see cref="GizmoCanvas"/>.</summary>
+    /// <summary>Missile-launcher ammo, stacked with the rest of the ship's status rows.</summary>
     internal static class MissilesGizmos
     {
         private static readonly ConditionalWeakTable<Missiles, Ship> ParentShips = new();
 
-        [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected, typeof(Missiles))]
-        private static void DrawAmmoLabel(Missiles missiles, GizmoType gizmoType)
+        [DrawGizmo(GizmoType.Selected, typeof(Missiles))]
+        private static void DrawAmmoReadout(Missiles missiles, GizmoType gizmoType)
         {
-            if (!Application.isPlaying) return;
-            if (!DiagnosticGate.ShouldDraw(DiagnosticPainters.Missiles, gizmoType)) return;
+            if (!Application.isPlaying || !missiles.Rounds) return;
             var ship = ParentShips.GetValue(missiles, m => m.GetComponentInParent<Ship>());
             if (!ship) return;
-            MissilesPainter.DrawLauncher(new GizmoCanvas(), missiles, ship.Kinematics.pos);
+
+            ShipReadout.Draw(ship.Kinematics.pos, ShipReadoutRow.Missiles,
+                $"Missiles\nAmmo: {missiles.Rounds.AmmoCount}/{missiles.Rounds.MaxAmmo}", Color.white);
         }
     }
 }
