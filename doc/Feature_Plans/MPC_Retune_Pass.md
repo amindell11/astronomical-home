@@ -431,3 +431,28 @@ broken policy couple, not rocks. Aside for the redesign: stock scored
 67/75 at d3.0, above its own 63.0 at d2.0 (single rep). Artifacts:
 `results/rl-eval/shift-cadence-20260806/d3-{fix,stock}/`; films
 `results/rl-capture/shift-cadence-20260806/`.
+
+### Solver rig (Tier 0) — lease `mpc-rig` (user-approved 2026-08-11)
+
+Probe 2 (incumbent settling in selection) and its successors get a
+deterministic, seconds-scale instrument upstream of any Unity session:
+`MpcSolverRig` closes the loop between `Mpc.Plan` and the solver's own
+`Model` plant at the production 50 Hz solve cadence — no ship, scene,
+physics, obstacles, or policy — versus a stationary Dummy anchor
+(user-scoped: Dummy-only first pass). Metrics come from the bench's own
+`ControllerSampler` (strict + deadband torque/nose reversals, |yaw rate|)
+plus anchor facing error, so rig numbers read on the same scale as the
+Bench-1 / shift-cadence artifacts; per-tick CSV traces land under
+`results/mpc-rig/` for offline spectra (the investigation owns deleting
+its artifacts, #303 convention).
+
+Explicitly NOT a parity sim: no collisions, projectiles, or
+match-Unity ambition — rig findings are hypotheses, and the confirmation
+tiers stay what ruling 1 set: the scripted-archetype session loop, then
+the closeout/roster outcome gates. The plant *is* the solver's prediction
+model, so a rig result isolates controller-internal dynamics (selection,
+noise, warm-start) by construction; plant-vs-Rigidbody mismatch stays a
+separately measurable quantity, not a rig concern. Characterization pin:
+the rig reproduces the on-target yaw churn signature versus a Dummy at
+stock settings (`MpcSolverRigTests.Run_VersusDummy_ReproducesYawChurnSignature`);
+a redesign that legitimately calms the loop updates the pin.
