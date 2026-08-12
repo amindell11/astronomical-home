@@ -456,3 +456,50 @@ separately measurable quantity, not a rig concern. Characterization pin:
 the rig reproduces the on-target yaw churn signature versus a Dummy at
 stock settings (`MpcSolverRigTests.Run_VersusDummy_ReproducesYawChurnSignature`);
 a redesign that legitimately calms the loop updates the pin.
+
+### Probe 2 — incumbent settling in selection (RAN 2026-08-11, on the rig)
+
+Minimal apparatus (#388, lease `mpc-probe2`): `MpcSelectionMode` enum on
+`MpcSettings` (default `EliteAverage`, zero behavior change, pin untouched)
+switching the `SolverBuffers` emit site — `Argmin` emits the single cheapest
+candidate; `IncumbentElite` averages only elite candidates strictly beating
+candidate 0 and emits the incumbent verbatim when none do — plus rig-side
+selection instrumentation (incumbent cost rank, argmin-win fraction,
+emit-vs-incumbent yaw delta) read from the already-exposed solver buffers.
+Artifacts: `results/mpc-rig/probe2/` (3 modes × start facing error {0°, 90°}
+× 3 seeds, 20 s each).
+
+**Phase 0 (stock EliteAverage characterized):** the incumbent wins argmin on
+**94–96% of solves** (mean rank 0.1) yet the emitted yaw is dragged a mean
+|0.113–0.119| torque off it every solve — the settle-blocker at the operating
+point is the *blend*, not incumbent quality.
+
+**Settling is achievable — but only at the exact fixed point.** The on-target
+start (facing anchor, zero velocity: the intent's optimum, where the
+zero-control plan is also shift-invariant) is held *inertly* by both Argmin
+and IncumbentElite: 0.00 flips/s, 0.0° facing error, 100% incumbent wins,
+for 22 s. Stock churns even there (self-perturbing, ~16/s).
+
+**But selection alone does NOT converge the loop — the verdict.** From a 90°
+start, every mode converges facing fast (≤10° at 1.0/1.8/1.4 s for
+stock/Argmin/IncumbentElite) and then churns indefinitely at the same rate:
+strict torque reversals 14.3–16.6/s across ALL modes (late-window 15–17/s;
+ruling-3 bar is the hull's 4–5/s). Argmin is *worse* in state space (|yaw
+rate| 17 vs 10 deg/s, facing p90 to 13.7°) — full-amplitude noise adoption
+without the average's variance reduction. Incumbent win rates collapse once
+moving: 51–54% (Argmin), 66–68% (IncumbentElite).
+
+**Mechanism synthesis (rig evidence, no fix chosen):** away from the fixed
+point the shifted warm start is never a valid continuation — the production
+shift consumes plan time 5× sim time (mechanism #2), so only *constant*
+plans survive shifting uncorrupted, and the settled zero-control plan is the
+only relevant one. A corrupted incumbent loses to noisy challengers about
+half the time, and every adoption injects fresh tail noise: the emitted
+command churns at the noise rate regardless of selection rule. Probe 1
+tested a true plan clock × blur selection (cycle persisted); Probe 2 tested
+settle selection × the 5× clock (churn persists). **The untested cell is the
+interaction: settle-capable selection × sim-true (fractional) shift** — the
+first configuration in which the incumbent both stays valid and is allowed
+to win. Fractional-shift code exists on the parked `task/mpc-shift-cadence`
+branch (agent-1); running the 2×2 on the rig needs a scope ruling (Probe-2
+scope was pinned to the stock shift).

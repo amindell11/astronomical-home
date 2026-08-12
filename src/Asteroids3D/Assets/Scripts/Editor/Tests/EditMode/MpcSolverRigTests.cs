@@ -144,13 +144,14 @@ namespace Tests.EditMode
                 try
                 {
                     variant.selectionMode = mode;
+                    foreach (var startErrorDeg in new[] { 0f, 90f })
                     foreach (var seed in new uint[] { 1234u, 99u, 7u })
                     {
-                        var scenario = RigScenario.VersusDummy(40f);
+                        var scenario = RigScenario.VersusDummy(40f, startErrorDeg);
                         var trace = new List<RigTraceRow>();
                         var result = MpcSolverRig.Run(variant, dynamics, in scenario, seed, trace);
-                        RigTraceCsv.Write(Path.Combine(outDir, $"trace-dummy-{mode}-seed{seed}.csv"), trace);
-                        Debug.Log($"[Probe2] {mode} seed {seed} | strict {result.torqueReversalsPerSec:F2}/s | " +
+                        RigTraceCsv.Write(Path.Combine(outDir, $"trace-dummy-{mode}-err{startErrorDeg:F0}-seed{seed}.csv"), trace);
+                        Debug.Log($"[Probe2] {mode} err{startErrorDeg:F0} seed {seed} | strict {result.torqueReversalsPerSec:F2}/s | " +
                                   $"deadband {result.torqueDeadbandReversalsPerSec:F2}/s | " +
                                   $"|yawRate| {result.meanAbsYawRateDegPerSec:F1} deg/s | " +
                                   $"facing err {result.meanFacingErrorDeg:F1} deg (p90 {result.p90FacingErrorDeg:F1}) | " +
