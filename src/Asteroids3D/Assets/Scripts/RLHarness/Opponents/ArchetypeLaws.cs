@@ -1,29 +1,25 @@
-using AI;
-using AI.Context;
 using Movement;
-using Ships;
 using UnityEngine;
 
 namespace Game.RLHarness
 {
-    /// <summary>Circles the live target at a jittered radius, firing from inside the envelope.</summary>
-    public class OrbiterBrain : OpponentArchetypeBrain
+    /// <summary>The pure archetype velocity laws (the <see cref="RangerBrain.HoldRangeVelocity"/> style — the hold-range law itself lives there, doubling as the agent Heuristic's source policy).</summary>
+    internal static class ArchetypeLaws
     {
+        private const float JukeBlend = 0.6f;
         private const float RadialGain = 0.9f;
         // A tangential-only rotating command needs a standing radius error ∝ v²/r to supply
         // the centripetal demand through the P-term — feed it forward instead (Kff in seconds).
         private const float CentripetalKff = 2.5f;
         private const float MinCentripetalRange = 1f;
 
-        private float orbitRadius;
-        private int orbitDirection = 1;
-
-        public void Configure(Ship target, float orbitRadius, int orbitDirection, float speedFraction,
-            Vector2 arenaCenter, float borderRadius, ArchetypeDrive drive = ArchetypeDrive.Production)
+        /// <summary>The pure flee law: away from the threat, blended with the seeded tangential juke.</summary>
+        internal static Vector2 FleeVelocity(Vector2 selfPos, Vector2 threatPos, int jukeSign, float speed)
         {
-            this.orbitRadius = orbitRadius;
-            this.orbitDirection = orbitDirection >= 0 ? 1 : -1;
-            Bind(target, speedFraction, arenaCenter, borderRadius, drive);
+            var away = selfPos - threatPos;
+            var fleeHat = away.sqrMagnitude > 1e-8f ? away.normalized : Vector2.up;
+            var dir = (fleeHat + JukeBlend * jukeSign * new Vector2(-fleeHat.y, fleeHat.x)).normalized;
+            return speed * dir;
         }
 
         /// <summary>The pure orbit law: tangential command at the jittered speed plus a radial P-term with the centripetal feed-forward.</summary>
@@ -38,15 +34,6 @@ namespace Game.RLHarness
             var centripetal = CentripetalKff * vTan * vTan / Mathf.Max(r, MinCentripetalRange);
             var radial = (RadialGain * (orbitRadius - r) - centripetal) * -losHat;
             return Vector2.ClampMagnitude(vTan * tangent + radial, maxSpeed);
-        }
-
-        protected override BrainDecision BuildDecision(AIContext ctx)
-        {
-            var self = ctx.Self.Kinematics;
-            var vRef = OrbitVelocity(in self, target.Kinematics, orbitRadius, orbitDirection, speedFraction,
-                ctx.Self.Dynamics.maxSpeed);
-
-            return Pack(self.pos, vRef, engages: true);
         }
     }
 }

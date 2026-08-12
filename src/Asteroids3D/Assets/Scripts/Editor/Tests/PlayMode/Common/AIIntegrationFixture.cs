@@ -53,7 +53,8 @@ public abstract class AIIntegrationFixture : PlayModeWorldFixture
         Assert.IsNotNull(cmdr, "Ship missing AICommander component");
 
         // The stripped test pilot authors no brain; ticking commanders need one installed.
-        cmdr.InstallBrain<DummyBrain>();
+        cmdr.InstallBrain<ArchetypeBrain>()
+            .Configure(null, OpponentArchetype.Dummy, default, jukeSeed: 0, Vector2.zero, borderRadius: 0f);
 
         // SetArena triggers TryInitializeSystems.
         cmdr.SetArena(arena);

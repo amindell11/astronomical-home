@@ -131,14 +131,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 1066014630051916606}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7c2ad4e0b95f38249b6710cae3f4d581, type: 3}
+  m_Script: {fileID: 11500000, guid: 3dcd2384f40a41e098f68c8c4f6d5213, type: 3}
   m_Name:
   m_EditorClassIdentifier:
   archetype: 0
-  desiredRange: 10
-  speedFraction: 0.85
-  jukePeriodSeconds: 1.2
+  shape:
+    archetype:
+    speedFraction: 0.85
+    jukePeriod: 1.2
+    orbitRadius: 16
+    orbitDirection: 1
+    desiredRange: 10
   jukeSeed: 1
-  orbitRadius: 16
-  orbitDirection: 1
   borderRadius: 500
+  liveTargeting: 1
