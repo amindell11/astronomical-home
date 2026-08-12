@@ -6,10 +6,11 @@
   `Camera.main` never run in `Start`/`OnEnable`/`Initialize`/update loops or any
   runtime path. Cache in `Awake`; `Initialize(...)` only assigns injected
   references (see `AGENTS.md` → dependency wiring).
-- **Unity null checks use the engine's lifetime-aware operators** — `if (obj)`,
-  `obj != null`, `?.`/`??` on `UnityEngine.Object` types; never `is null` /
-  `is not null` on them (bypasses the destroyed-object check). Plain C# types
-  may use `is null` freely.
+- **Unity null checks use the engine's lifetime-aware operators** — use
+  `if (obj)` or `obj != null` for `UnityEngine.Object` types. `is null`,
+  `is not null`, `?.`, and `??` bypass the destroyed-object check; use
+  `object.ReferenceEquals` only when CLR-reference identity is intentional.
+  Plain C# types may use normal null syntax freely.
 - **Prefer early returns** (inverted ifs) over nested blocks.
 - `[SerializeField]` tooltips are documentation for the inspector, not code
   comments — the comments policy in `AGENTS.md` does not apply to them.
