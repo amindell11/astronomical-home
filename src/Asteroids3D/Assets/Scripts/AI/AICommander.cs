@@ -156,7 +156,7 @@ namespace AI
             Gunner.HoldFire();
         }
 
-        /// <summary>Turns the objective's anchor identity into this tick's kinematics. An anchorless objective resolves trivially. A named ship the registry can no longer produce means the enemy left between the decision and now — the same "target gone" state the brain reports one tick later, so the caller takes the no-decision path rather than steering at a corpse.</summary>
+        /// <summary>A registry miss is "target gone" observed a tick early — callers take the no-decision path.</summary>
         private bool TryResolveAnchor(in NavObjective nav, out EnemyTarget anchor)
         {
             anchor = default;
