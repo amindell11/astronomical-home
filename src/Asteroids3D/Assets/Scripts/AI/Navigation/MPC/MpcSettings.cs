@@ -2,6 +2,13 @@ using UnityEngine;
 
 namespace Movement.MPC
 {
+    public enum MpcSelectionMode
+    {
+        EliteAverage,
+        Argmin,
+        IncumbentElite,
+    }
+
     [CreateAssetMenu(menuName = "AI/MPC Settings", fileName = "MpcSettings")]
     public class MpcSettings : ScriptableObject
     {
@@ -23,6 +30,11 @@ namespace Movement.MPC
         [Tooltip("Fraction of top candidates to average (elite averaging). Higher = more stable but less reactive.")]
         [Range(0.01f, 0.5f)]
         public float eliteFraction = 0.1f;
+        [Tooltip("How the emitted control is selected from the evaluated candidates. EliteAverage (production): " +
+                 "mean of the cheapest eliteFraction. Argmin: the single cheapest candidate. IncumbentElite: mean " +
+                 "of only the elite candidates that beat the incumbent (candidate 0, the shifted warm start); " +
+                 "emits the incumbent unchanged when none do, so a settled plan stays settled.")]
+        public MpcSelectionMode selectionMode = MpcSelectionMode.EliteAverage;
 
         [Header("Tracking")]
         [Tooltip("Weight on the velocity-tracking objective: cost = wVelTrack * ‖vel - velocityReference‖² / maxSpeed². " +

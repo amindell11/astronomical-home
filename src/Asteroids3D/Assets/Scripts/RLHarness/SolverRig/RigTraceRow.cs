@@ -21,12 +21,16 @@ namespace Game.RLHarness
         public float anchorYawDeg;
         public float facingErrorDeg;
         public float solveCost;
+        public int incumbentRank;
+        public float incumbentCost;
+        public float emitYawDeltaFromIncumbent;
     }
 
     public static class RigTraceCsv
     {
         private const string Header =
-            "t,posX,posY,velX,velY,yawDeg,yawRateDegPerSec,thrust,strafe,yawTorque,anchorYawDeg,facingErrorDeg,solveCost";
+            "t,posX,posY,velX,velY,yawDeg,yawRateDegPerSec,thrust,strafe,yawTorque,anchorYawDeg,facingErrorDeg,solveCost," +
+            "incumbentRank,incumbentCost,emitYawDeltaFromIncumbent";
 
         public static void Write(string path, IReadOnlyList<RigTraceRow> rows)
         {
@@ -37,7 +41,9 @@ namespace Game.RLHarness
                     F(r.t), F(r.posX), F(r.posY), F(r.velX), F(r.velY),
                     F(r.yawDeg), F(r.yawRateDegPerSec),
                     F(r.thrust), F(r.strafe), F(r.yawTorque),
-                    F(r.anchorYawDeg), F(r.facingErrorDeg), F(r.solveCost)));
+                    F(r.anchorYawDeg), F(r.facingErrorDeg), F(r.solveCost),
+                    r.incumbentRank.ToString(CultureInfo.InvariantCulture), F(r.incumbentCost),
+                    F(r.emitYawDeltaFromIncumbent)));
             File.WriteAllText(path, sb.ToString());
         }
 

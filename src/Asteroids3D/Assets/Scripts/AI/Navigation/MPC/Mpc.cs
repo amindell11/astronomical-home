@@ -75,7 +75,7 @@ namespace Movement.MPC
                     inputs.enemyPos, inputs.enemyVel, inputs.enemyYaw, inputs.enemyYawRate,
                     inputs.enemyDynamics, inputs.projectileSpeed, inputs.anchored,
                     settings.samples, settings.noiseStd, settings.noiseKnots, lastControl,
-                    settings.eliteFraction);
+                    settings.eliteFraction, settings.selectionMode);
             }
 
             UpdatePredictedStates(mpcState);

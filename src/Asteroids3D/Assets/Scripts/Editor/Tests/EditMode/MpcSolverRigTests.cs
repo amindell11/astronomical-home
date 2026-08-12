@@ -100,6 +100,72 @@ namespace Tests.EditMode
             }
         }
 
+        [Test]
+        public void Run_SelectionVariants_RunAndReplayDeterministically(
+            [Values(MpcSelectionMode.Argmin, MpcSelectionMode.IncumbentElite)] MpcSelectionMode mode)
+        {
+            var variant = Object.Instantiate(settings);
+            try
+            {
+                variant.selectionMode = mode;
+                var scenario = ShortScenario();
+                var first = new List<RigTraceRow>();
+                var second = new List<RigTraceRow>();
+                var result = MpcSolverRig.Run(variant, dynamics, in scenario, 1234u, first);
+                MpcSolverRig.Run(variant, dynamics, in scenario, 1234u, second);
+
+                Assert.That(result.steps, Is.GreaterThan(0));
+                Assert.That(float.IsFinite(result.meanFacingErrorDeg), $"{mode} produced a non-finite facing error.");
+                Assert.That(second.Count, Is.EqualTo(first.Count));
+                for (var i = 0; i < first.Count; i++)
+                    Assert.That(second[i].yawTorque, Is.EqualTo(first[i].yawTorque),
+                        $"{mode} command diverged at step {i}: a fixed seed must replay the closed loop bit-for-bit.");
+            }
+            finally
+            {
+                Object.DestroyImmediate(variant);
+            }
+        }
+
+        // Probe 2 entry point: one summary line per selection mode x seed, plus full traces for offline
+        // spectra. Env-gated like Run_EmitTraceArtifact.
+        [Test]
+        public void Run_EmitSelectionProbeArtifacts()
+        {
+            if (System.Environment.GetEnvironmentVariable("MPC_RIG_EMIT") != "1")
+                Assert.Ignore("Set MPC_RIG_EMIT=1 to emit the Probe-2 selection artifacts.");
+
+            var outDir = Path.GetFullPath(Path.Combine(Application.dataPath, "../../../results/mpc-rig/probe2"));
+            Directory.CreateDirectory(outDir);
+
+            foreach (var mode in new[] { MpcSelectionMode.EliteAverage, MpcSelectionMode.Argmin, MpcSelectionMode.IncumbentElite })
+            {
+                var variant = Object.Instantiate(settings);
+                try
+                {
+                    variant.selectionMode = mode;
+                    foreach (var seed in new uint[] { 1234u, 99u, 7u })
+                    {
+                        var scenario = RigScenario.VersusDummy(40f);
+                        var trace = new List<RigTraceRow>();
+                        var result = MpcSolverRig.Run(variant, dynamics, in scenario, seed, trace);
+                        RigTraceCsv.Write(Path.Combine(outDir, $"trace-dummy-{mode}-seed{seed}.csv"), trace);
+                        Debug.Log($"[Probe2] {mode} seed {seed} | strict {result.torqueReversalsPerSec:F2}/s | " +
+                                  $"deadband {result.torqueDeadbandReversalsPerSec:F2}/s | " +
+                                  $"|yawRate| {result.meanAbsYawRateDegPerSec:F1} deg/s | " +
+                                  $"facing err {result.meanFacingErrorDeg:F1} deg (p90 {result.p90FacingErrorDeg:F1}) | " +
+                                  $"range {result.finalRange:F1} | incumbent wins {result.incumbentWinFraction:P1} | " +
+                                  $"mean rank {result.meanIncumbentRank:F1} | " +
+                                  $"|emit-incumbent yaw| {result.meanAbsEmitYawDeltaFromIncumbent:F3}");
+                    }
+                }
+                finally
+                {
+                    Object.DestroyImmediate(variant);
+                }
+            }
+        }
+
         // Investigation entry point: emits a full trace for offline plotting; the investigation
         // owns deleting its artifacts. Env-gated because the batch runner never executes [Explicit].
         [Test]
