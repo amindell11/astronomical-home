@@ -21,6 +21,9 @@ namespace Game.Diagnostics
 
         public static int ActiveCount => active.Count;
 
+        /// <summary>These prefs outlive the process that mutates them, so a mutating caller must put this snapshot back.</summary>
+        public static string[] ActiveNames => new List<string>(active).ToArray();
+
         public static bool IsActive(string name) => active.Contains(name);
 
         public static bool ShouldDraw(string name, GizmoType gizmoType) =>
