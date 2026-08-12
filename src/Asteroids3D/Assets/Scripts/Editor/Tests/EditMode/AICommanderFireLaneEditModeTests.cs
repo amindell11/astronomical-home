@@ -117,7 +117,7 @@ namespace Tests.EditMode
             brain.decision = Decision(engagePrimary: false);
             commander.Step();
             Assert.AreEqual(2, weapons.Commands.Count,
-                "a disengaged slot still receives a released trigger — the Hold silence rule died with AI charge support");
+                "a disengaged slot still receives a released trigger, not silence");
             Assert.IsFalse(weapons.Commands[^1].cmd.held);
 
             foreach (var (slot, cmd) in weapons.Commands)

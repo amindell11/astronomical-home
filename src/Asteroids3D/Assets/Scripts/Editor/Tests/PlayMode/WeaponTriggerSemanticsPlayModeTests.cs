@@ -286,7 +286,7 @@ namespace Tests.PlayMode
             foreach (var (_, cmd) in recorder.Commands)
                 Assert.AreEqual(cmd.held, cmd.pressed, "AI reports press and hold together.");
 
-            // Disengaging releases the trigger rather than going silent — the Hold silence rule died with AI charge support.
+            // Disengaging releases the trigger rather than going silent.
             recorder.Commands.Clear();
             gunner.Fire(engagePrimary: false, engageSecondary: false);
             Assert.AreEqual(2, recorder.Commands.Count);
