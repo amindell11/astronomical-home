@@ -141,7 +141,7 @@ function Sync-UnitySolution {
     $lease = "resharper-sync-$slot-$([guid]::NewGuid().ToString('N'))"
     $logPath = Join-Path $OutputRoot "unity-sync.log"
     $configPath = Join-Path $OutputRoot "unity-sync.json"
-    $config = [ordered]@{ unityPath = $UnityExe; projectPath = $SolutionRoot; logPath = $logPath; timeoutSec = $TimeoutSeconds }
+    $config = [ordered]@{ unityPath = $UnityExe; projectPath = $SolutionRoot; repoRoot = $RepoRoot; logPath = $logPath; timeoutSec = $TimeoutSeconds }
     [System.IO.File]::WriteAllText($configPath, ($config | ConvertTo-Json), $Utf8NoBom)
 
     $coordinator = Join-Path $RepoRoot "scripts/unity_access.ps1"

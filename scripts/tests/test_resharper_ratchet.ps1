@@ -2,6 +2,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 . (Join-Path $PSScriptRoot "..\resharper_ratchet.ps1")
+. (Join-Path $PSScriptRoot "..\sync_unity_solution.ps1")
 
 function Assert-True {
     param([bool]$Condition, [string]$Message)
@@ -52,6 +53,13 @@ try {
     Assert-True ($parsed.Count -eq 1) "only Unity inspection results are retained"
     Assert-True ($parsed[0].path -eq "src/Asteroids3D/Assets/Scripts/Ship.cs") "SARIF path maps to the repository"
     Assert-True (Test-FindingTouchesChangedLine $parsed[0] $changed) "parsed finding overlaps the changed line"
+
+    [System.IO.File]::WriteAllText($source, "unity changed this`n", (New-Object System.Text.UTF8Encoding($false)))
+    $cleanRejected = $false
+    try { Assert-CleanTrackedWorktree $temp } catch { $cleanRejected = $true }
+    Assert-True $cleanRejected "solution sync rejects a dirty tracked tree"
+    Restore-UnityTrackedChanges $temp
+    Assert-True (@(Get-TrackedChanges $temp).Count -eq 0) "solution sync restores tracked Unity mutations"
 
     Write-Host "PASS: ReSharper changed-line ratchet"
 }
