@@ -54,7 +54,13 @@ try {
     Assert-True ($parsed[0].path -eq "src/Asteroids3D/Assets/Scripts/Ship.cs") "SARIF path maps to the repository"
     Assert-True (Test-FindingTouchesChangedLine $parsed[0] $changed) "parsed finding overlaps the changed line"
 
-    [System.IO.File]::WriteAllText($source, "unity changed this`n", (New-Object System.Text.UTF8Encoding($false)))
+    & git -C $temp restore $source
+    $settingsPath = Join-Path $temp "src/Asteroids3D/ProjectSettings/ProjectSettings.asset"
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $settingsPath) | Out-Null
+    [System.IO.File]::WriteAllText($settingsPath, "    Standalone: UNITY_POST_PROCESSING_STACK_V2`n", (New-Object System.Text.UTF8Encoding($false)))
+    & git -C $temp add $settingsPath
+    & git -C $temp commit -qm settings
+    [System.IO.File]::WriteAllText($settingsPath, "    Standalone: UNITY_POST_PROCESSING_STACK_V2;SENTIS_ANALYTICS_ENABLED`n", (New-Object System.Text.UTF8Encoding($false)))
     $cleanRejected = $false
     try { Assert-CleanTrackedWorktree $temp } catch { $cleanRejected = $true }
     Assert-True $cleanRejected "solution sync rejects a dirty tracked tree"

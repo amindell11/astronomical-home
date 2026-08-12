@@ -38,6 +38,9 @@ if [[ "$*" != *unity_test_agent.ps1* ]]; then
   exec "$real" "$@"
 fi
 echo "run $*" >> "$RUNNER_LOG"
+if [[ "${RUNNER_MUTATE_TRACKED:-0}" == 1 ]]; then
+  sed -i 's/UNITY_POST_PROCESSING_STACK_V2$/UNITY_POST_PROCESSING_STACK_V2;SENTIS_ANALYTICS_ENABLED/' src/Asteroids3D/ProjectSettings/ProjectSettings.asset
+fi
 mode=Both scope=Workspace filter="" category="" assemblies=""
 args=("$@")
 for ((i = 0; i < ${#args[@]} - 1; i++)); do
@@ -112,11 +115,13 @@ git -C "$TMP/primary" config user.name "Pool Test"
 echo base > "$TMP/primary/file.txt"
 printf 'results/\n' > "$TMP/primary/.gitignore"
 mkdir -p "$TMP/primary/.config" "$TMP/primary/scripts"
+mkdir -p "$TMP/primary/src/Asteroids3D/ProjectSettings"
 printf '{}\n' > "$TMP/primary/.config/dotnet-tools.json"
+printf '    Standalone: UNITY_POST_PROCESSING_STACK_V2\n' > "$TMP/primary/src/Asteroids3D/ProjectSettings/ProjectSettings.asset"
 for file in agent_worktree_pool.sh resharper-unity.DotSettings resharper_ratchet.ps1 sync_unity_solution.ps1; do
   printf 'stub\n' > "$TMP/primary/scripts/$file"
 done
-git -C "$TMP/primary" add file.txt .gitignore .config scripts
+git -C "$TMP/primary" add file.txt .gitignore .config scripts src/Asteroids3D/ProjectSettings/ProjectSettings.asset
 git -C "$TMP/primary" commit -qm init
 git -C "$TMP/primary" push -q origin main
 git -C "$TMP/primary" worktree add -q -b agent-1 "$TMP/agent-1" main
@@ -131,10 +136,15 @@ git -C "$TMP/agent-1" commit -qm feature
 if pool submit agent-1 origin/main --title "test PR" --body "test body" --bogus >/dev/null 2>&1; then fail "submit must reject unknown --flags before the -- separator"; fi
 [[ "$(runner_runs)" == 0 ]] || fail "rejected submit must not start a test run (got $(runner_runs))"
 
+export RUNNER_MUTATE_TRACKED=1
 pool submit agent-1 origin/main --title "test PR" --body "test body" >/dev/null
+unset RUNNER_MUTATE_TRACKED
 [[ "$(runner_runs)" == 1 ]] || fail "submit should run tests once (got $(runner_runs))"
 [[ "$(resharper_runs)" == 1 ]] || fail "submit should run the ReSharper ratchet once (got $(resharper_runs))"
 [[ "$(recorded_tree)" == "$(slot_tree)" ]] || fail "submit should record the tested tree"
+[[ -z "$(git -C "$TMP/agent-1" status --porcelain)" ]] || fail "submit should restore tracked Unity test mutations"
+[[ "$(cat "$TMP/agent-1/src/Asteroids3D/ProjectSettings/ProjectSettings.asset")" == "    Standalone: UNITY_POST_PROCESSING_STACK_V2" ]] \
+  || fail "submit should restore the known analytics define churn"
 
 echo moved > "$TMP/primary/main.txt"
 git -C "$TMP/primary" add main.txt

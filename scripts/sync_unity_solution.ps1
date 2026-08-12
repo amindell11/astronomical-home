@@ -22,10 +22,18 @@ function Restore-UnityTrackedChanges {
     param([string]$RepoRoot)
     $changes = @(Get-TrackedChanges $RepoRoot)
     if ($changes.Count -eq 0) { return }
+    $names = @(& git -c core.excludesFile= -C $RepoRoot diff --name-only)
+    $diff = @(& git -c core.excludesFile= -C $RepoRoot diff --unified=0 -- src/Asteroids3D/ProjectSettings/ProjectSettings.asset)
+    $content = @($diff | Where-Object { $_ -match '^[+-]\s+Standalone:' -and $_ -notmatch '^[+-]{3}' })
+    $knownAnalyticsChurn = $names.Count -eq 1 -and
+        $names[0] -eq "src/Asteroids3D/ProjectSettings/ProjectSettings.asset" -and
+        $content.Count -eq 2 -and
+        @($content | Where-Object { $_ -notmatch '^[-+]\s+Standalone: UNITY_POST_PROCESSING_STACK_V2(?:;SENTIS_ANALYTICS_ENABLED)?$' }).Count -eq 0
     & git -c core.excludesFile= -C $RepoRoot restore --worktree --source=HEAD -- . | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "Could not restore tracked files changed by Unity solution sync." }
     $remaining = @(Get-TrackedChanges $RepoRoot)
     if ($remaining.Count -gt 0) { throw "Unity solution sync left tracked changes: $($remaining -join ', ')" }
+    if (-not $knownAnalyticsChurn) { throw "Unity solution sync changed unexpected tracked files: $($changes -join ', ')" }
 }
 
 if ($MyInvocation.InvocationName -eq '.') { return }

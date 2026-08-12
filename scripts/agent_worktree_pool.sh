@@ -643,6 +643,34 @@ cmd_run_tests() {
   )
 }
 
+restore_tracked_unity_changes() {
+  local path="$1" action="$2" changes names content known=0
+  changes="$(git -C "$path" status --porcelain --untracked-files=no 2>/dev/null)"
+  [[ -n "$changes" ]] || return 0
+  names="$(git -C "$path" diff --name-only)"
+  content="$(git -C "$path" diff --unified=0 -- src/Asteroids3D/ProjectSettings/ProjectSettings.asset | grep -E '^[+-][[:space:]]+Standalone:' || true)"
+  if [[ "$names" == "src/Asteroids3D/ProjectSettings/ProjectSettings.asset" ]] &&
+     [[ "$(printf '%s\n' "$content" | grep -Ec '^[+-][[:space:]]+Standalone: UNITY_POST_PROCESSING_STACK_V2(;SENTIS_ANALYTICS_ENABLED)?$')" -eq 2 ]]; then
+    known=1
+  fi
+  git -C "$path" restore --worktree --source=HEAD -- .
+  if [[ "$known" -ne 1 ]]; then
+    echo "$action changed unexpected tracked files:" >&2
+    printf '%s\n' "$changes" | head -n 20 >&2
+    return 1
+  fi
+}
+
+cmd_run_tests_clean() {
+  local slot="$1" path exit_code=0
+  shift || true
+  path="$(slot_path "$slot")"
+  cmd_run_tests "$slot" "$@" || exit_code=$?
+  restore_tracked_unity_changes "$path" "Unity test run"
+  require_clean_slot "$slot" "$path" "Unity test run" || return 1
+  [[ "$exit_code" -eq 0 ]] || return "$exit_code"
+}
+
 resharper_fingerprint() {
   local path="$1" file hashes=""
   for file in \
@@ -849,7 +877,7 @@ cmd_submit() {
   require_clean_slot "$slot" "$path" "submit" || return 1
 
   clear_run_summary "$path"
-  cmd_run_tests "$slot" "${test_args[@]}"
+  cmd_run_tests_clean "$slot" "${test_args[@]}"
   record_tested_tree "$slot" "$path"
   cmd_run_resharper "$slot" "$base_ref"
 
@@ -945,20 +973,20 @@ cmd_merge() {
       comment)
         echo "C# comment/whitespace-only delta since fully-tested tree $proof_tree — compile-level smoke refresh."
         clear_run_summary "$path"
-        cmd_run_tests "$slot" -Mode EditMode -ScopeType Smoke
+        cmd_run_tests_clean "$slot" -Mode EditMode -ScopeType Smoke
         extend_proof "$slot" "$current_tree" "inherit-smoke" "$proof_tree"
         ;;
       *)
         echo "Code delta since fully-tested tree $proof_tree — running the full suite before merge."
         clear_run_summary "$path"
-        cmd_run_tests "$slot" "${test_args[@]}"
+        cmd_run_tests_clean "$slot" "${test_args[@]}"
         record_tested_tree "$slot" "$path"
         ;;
     esac
   else
     echo "No full-suite proof for tree $current_tree — running the full suite before merge."
     clear_run_summary "$path"
-    cmd_run_tests "$slot" "${test_args[@]}"
+    cmd_run_tests_clean "$slot" "${test_args[@]}"
     record_tested_tree "$slot" "$path"
   fi
   if [[ "$(verified_proof_tree "$slot")" != "$current_tree" ]]; then
@@ -1099,7 +1127,7 @@ cmd_revise() {
     echo "Skipping tests (--no-test): no proof recorded; the merge gate will test the landing tree."
   else
     clear_run_summary "$path"
-    cmd_run_tests "$slot" "${test_args[@]}"
+    cmd_run_tests_clean "$slot" "${test_args[@]}"
     record_tested_tree "$slot" "$path"
   fi
   cmd_run_resharper "$slot" origin/main
