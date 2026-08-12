@@ -9,8 +9,6 @@ namespace Game.Diagnostics
     {
         private const string EverythingItem = "Diagnostics/Presets/Everything";
         private const string CombatItem = "Diagnostics/Presets/Combat";
-        private const string MovementForcesItem = "Diagnostics/Painters/movement-forces";
-        private const string CamBoundsItem = "Diagnostics/Painters/cam-bounds";
         private const string DrawUnselectedItem = "Diagnostics/Draw Unselected Ships";
 
         [MenuItem(EverythingItem)]
@@ -20,12 +18,6 @@ namespace Game.Diagnostics
         private static void SelectCombat() => SelectPreset(DiagnosticPainters.Combat);
 
         // Editor-only atom: the control-bar panel is billboard UI with no painter behind it.
-        [MenuItem(MovementForcesItem)]
-        private static void ToggleMovementForces() => Toggle(DiagnosticPainters.MovementForces);
-
-        [MenuItem(CamBoundsItem)]
-        private static void ToggleCamBounds() => Toggle(ObserverCamGizmos.CamBounds);
-
         [MenuItem(DrawUnselectedItem)]
         private static void ToggleDrawUnselected()
         {
@@ -61,8 +53,6 @@ namespace Game.Diagnostics
         {
             Menu.SetChecked(EverythingItem, IsPresetActive(DiagnosticPainters.Everything));
             Menu.SetChecked(CombatItem, IsPresetActive(DiagnosticPainters.Combat));
-            Menu.SetChecked(MovementForcesItem, DiagnosticGate.IsActive(DiagnosticPainters.MovementForces));
-            Menu.SetChecked(CamBoundsItem, DiagnosticGate.IsActive(ObserverCamGizmos.CamBounds));
             Menu.SetChecked(DrawUnselectedItem, DiagnosticGate.DrawUnselected);
         }
 

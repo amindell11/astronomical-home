@@ -280,7 +280,7 @@ namespace Tests.PlayMode
             fieldDensityScale = EvalProtocol.CanonicalFieldDensityScale,
             opponentKind = OpponentKind.Mirror,
             probes = Array.Empty<ProbeSpec>(),
-            painters = new[] { DiagnosticPainters.ShipDiagnostics, DiagnosticPainters.MovementForces },
+            painters = new[] { DiagnosticPainters.ShipDiagnostics },
             outDir = outDir,
             record = new RecordPlan { enabled = true, all = true, width = 320, height = 240, everyFixedSteps = 5 },
         };

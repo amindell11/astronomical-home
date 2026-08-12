@@ -24,14 +24,12 @@ namespace Game.Diagnostics
     public static class DiagnosticPainters
     {
         public const string ShipDiagnostics = "ship-diagnostics";
-        public const string MovementForces = "movement-forces";
         public const string Everything = "everything";
         public const string Combat = "combat";
 
         private static readonly Dictionary<string, Func<PainterContext, IDiagnosticPainter>> Factories = new()
         {
             [ShipDiagnostics] = ctx => new ShipDiagnosticsPainter(ctx.a, ctx.b, ctx.projectiles),
-            [MovementForces] = ctx => new MovementForcesPainter(ctx.a, ctx.b),
         };
 
         // Presets share the atom namespace so one grammar selects both.
