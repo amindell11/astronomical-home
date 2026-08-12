@@ -162,12 +162,14 @@ nondeterministic, so it cannot witness byte-preservation.)
 2. **PR-2 — brain types.** `IIntentChooser` → `Brain` subclasses; nine producers + roster
    install path + drawer deletion. Widest mechanical fan-out; no behavior change intended.
    Decision brief below.
-2b. **PR-2b — archetype retarget push-down.** Split out of PR-2 (user ruling 2026-08-08)
-   because it edits `OpponentArchetypeChooser`, the trained-interface base class the roster
-   installs every episode. Pinned targeting (roster, injected `Ship`) vs live targeting
-   (`ctx.Combat.Enemy`) becomes explicit on the base, letting `LiveArchetypeBrain` install its
-   archetype and destroy itself instead of holding it on a child object. Needs its own call on
-   whether a bench run gates it.
+2b. **PR-2b — archetype collapse; retarget falls out.** Split out of PR-2 (user ruling
+   2026-08-08) because it edits the trained-interface base class the roster installs every
+   episode; **re-scoped 2026-08-10** from "retarget push-down" to the full collapse — the four
+   archetype brain classes and their factory become one enum-switched `ArchetypeBrain`, which
+   deletes the `LiveArchetypeBrain` selector outright rather than fixing it. Pinned targeting
+   (roster, injected `Ship`) vs live targeting (`ctx.Combat.Enemy`) is one serialized bool on
+   that class. NO Bench-1 — proof is seam-equivalence EditMode tests + the merge gate.
+   Decision brief below.
 3. **PR-3 — boost out of the solver + anchor freshening.** The env-shifting slice; Bench-1
    gated, results recorded against the 63.00/±2.22 yardsticks.
 4. Cadence hoist (host-owned decision scheduling) is **designed-compatible but deferred** —
@@ -316,3 +318,83 @@ schema is untouched — `boostAvailable`/`boostCooldownPct` read `IShipStatus`, 
 
 Vocab: no new terms. *enemy anchor*, *decision lane*, and *noise floor* keep their glossary senses;
 the `anchored intent` row stays accurate — only the carrier changes from snapshot to identity.
+
+## PR-2b decision brief — frozen 2026-08-10
+
+Scope: the four archetype brain classes collapse into **one `ArchetypeBrain` component**, switched
+by the existing `OpponentArchetype` enum. Out: `OpponentArchetypeBrain`'s abstract/concrete split,
+`HoldRangeFireBrain`, `EvaderBrain`, `OrbiterBrain`, `DummyBrain`, the `ArchetypeBrains` factory,
+`LiveArchetypeBrain` with its `[ArchetypeBrain]` child object, the `Live/` folder. In:
+`ArchetypeBrain.cs`, `ArchetypeLaws.cs`. Targeting becomes one serialized bool on the single class.
+Net negative line count; ~300–400 touched. **No behavior change on the roster path** — same static
+laws, same params, same pinned target, same 5 Hz moment. Proof is seam-equivalence EditMode tests +
+the merge gate, never a bench run or a golden replay. Non-goals: the cadence hoist (controller
+redesign); the `ShipId` anchor swap + freshening (PR-3); `nearbyShipRadius` (an environment shift);
+`RangerBrain`'s duplicated 5 Hz skeleton.
+
+**Forks (settled with the user, in order):**
+
+1. **Bench gate: NO Bench-1**, re-affirmed against the collapse. The 2026-08-10 ruling was
+   *conditional* on the roster's install path executing today's code unchanged; the collapse
+   rewrites that code, so the call was re-put and re-taken — the decisions are byte-identical by
+   construction (same laws, same params, same pinned bind, same cadence), and one dispatch table
+   is easier to pin with EditMode tests than four classes were. Rejected: keeping
+   `ArchetypeBrains.Attach` as a shim purely to leave the roster's call site textually untouched;
+   running the roster ×2 + mirror protocol.
+2. **Targeting is a serialized bool, not a type.** An `ArchetypeTarget` union
+   (`Pinned(Ship)` / `Live`) was proposed and **rescinded**: `Resolve(ctx)` cannot own the side
+   effect that matters — a *changed* target must also reset brain state — so the class needs
+   change-detection regardless, leaving the type as signature churn through six call sites to
+   encode one bit that exactly one caller ever sets. Runtime-added components default the bool to
+   `false`, so the roster is pinned with no parameter at all; the failure direction is safe
+   (forgetting leaves you pinned — the trained behavior), while an authored pilot that forgets
+   sits idle where the designer sees it immediately.
+3. **The selector is dissolved, not fixed.** The PR opened on "what does `LiveArchetypeBrain`
+   become" — a `Brain` that installs and self-destructs, a plain `Start`-time installer, or
+   deleting the live path. The collapse retires the question: with one `ArchetypeBrain` there is
+   nothing to select, so the authored pilot simply *is* the archetype component. This is available
+   because the three laws are already static pure functions (a PR-2 invariant) and `OpponentDraw`
+   is already the union of every archetype's shape params — `ArchetypeBrains.Attach` existed only
+   to demux that struct into four classes, which each re-multiplexed it back through `Bind`.
+   Rejected: authoring the concrete archetype components directly (dual authoring paths in the
+   trained classes, one prefab per archetype); keeping the shell in any form.
+4. **Border re-anchoring on respawn is dropped, not pushed down.** Its only trigger is the harness
+   respawn path (`UnitService.RespawnShip` → `AICommander.ResetState`), which `ArchetypePilot.prefab`
+   never reaches — the prefab is referenced by nothing in the project. Preserving it would
+   transplant respawn-tracking state into the trained-path class to correct a border whose own
+   tooltip says to author a huge value to disable it.
+5. **One PR, re-scoped.** The collapse and the retarget touch the same files; splitting them means
+   editing each twice.
+
+**Assumptions (code-grounded, none vetoed):** one concrete `ArchetypeBrain`, no abstract base with
+a single production subclass (the shallow single-adapter seam the design ratchet names) — `Pack`
+becomes `internal` so `RLVelRebaseEditModeTests` drives it directly instead of subclassing. Shape
+params stay `OpponentDraw`, serialized on the component, with `Configure` writing the same fields —
+one state location whether authored or injected, so there is no dual authoring path. Retarget is
+`target = ctx.Combat.Enemy; ResetState();` on change, which reproduces today's destroy-and-re-`Attach`
+exactly, since `Bind`'s only per-target effect is the assignment plus `ResetState()`. Dummy returns
+before the target-validity check (no target, never calls `Pack`) and inherits the 5 Hz cache, which
+is value-identical because its decision is constant. The roster keeps the
+`AICommander.InstallBrain(Func<GameObject, Brain>)` overload so `Configure` still runs before `Brain`
+is assigned — a two-step `InstallBrain<ArchetypeBrain>()` + `Configure` would re-open the
+forgettable-second-call pattern PR-2 rejected. `FleeVelocity` and `OrbitVelocity` move to
+`ArchetypeLaws.cs` beside `ArchetypeSteering.cs`; `HoldRangeVelocity` stays on `RangerBrain`, which
+is also the agent Heuristic's source policy. `ArchetypePilot.prefab` re-authors `ArchetypeBrain`
+(enum + shape + live bit) and its two authoring tests follow.
+
+**Blindsider pass — one finding, deferred.** `VelRebaseProbe` throws when the measured ship's brain
+is not an `IScriptedVelocityReadout`; today `DummyBrain` is not one, so a Dummy-drawn probe episode
+fails loudly. After the collapse `ArchetypeBrain` always implements it, so that case degrades to a
+silent `TotalDecisions = 0` — rung 4 quietly becoming a guard. Accepted and carded rather than
+folded in: the honest fix asserts decisions advanced instead of type-testing, which edits the probe,
+outside this change's scope. The K1-2 arms pin moving archetypes, so probe-against-Dummy is not a
+configuration anyone runs. Also cleared: the `ArchetypeDrive` × archetype matrix does not
+cross-multiply (drive affects only `Pack`, archetype only the law); the `Time.fixedDeltaTime`-derived
+juke maths are untouched by the collapse.
+
+**Interaction with PR-3 (in flight).** PR-3 rewrites `OpponentArchetypeBrain.Pack` to
+`.Anchored(target.Id)`. That is the same method this PR moves into `ArchetypeBrain`, so whichever
+lands second rebases over the other; the conflict is one call inside `Pack`, not a design collision.
+
+Vocab: none. No glossary row names `ArchetypeBrains`; *pinned* and *live* stay descriptive prose,
+not coined terms.
