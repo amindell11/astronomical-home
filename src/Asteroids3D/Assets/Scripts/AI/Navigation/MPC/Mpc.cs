@@ -66,22 +66,15 @@ namespace Movement.MPC
             RefreshConfig(in inputs);
             lastInitialState = mpcState;
 
-            if (settings.planShiftMode == MpcPlanShiftMode.Fractional)
-            {
-                // Slide the warm start's time origin forward by dt so its plan clock tracks sim
-                // time at solve rate: whole slots first, then the ZOH-faithful fractional resample.
-                var remaining = inputs.dt;
-                while (remaining >= settings.rolloutDt)
-                {
-                    ShiftSequenceForward();
-                    remaining -= settings.rolloutDt;
-                }
-                FractionalShift(remaining / settings.rolloutDt);
-            }
-            else
+            // Slide the warm start's time origin forward by dt so its plan clock tracks sim
+            // time at solve rate: whole slots first, then the ZOH-faithful fractional resample.
+            var remaining = inputs.dt;
+            while (remaining >= settings.rolloutDt)
             {
                 ShiftSequenceForward();
+                remaining -= settings.rolloutDt;
             }
+            FractionalShift(remaining / settings.rolloutDt);
 
             using (EditorProfilingScope.Begin("MPC.Mpc.Solve"))
             {
@@ -92,7 +85,7 @@ namespace Movement.MPC
                     inputs.enemyPos, inputs.enemyVel, inputs.enemyYaw, inputs.enemyYawRate,
                     inputs.enemyDynamics, inputs.projectileSpeed, inputs.anchored,
                     settings.samples, settings.noiseStd, settings.noiseKnots, lastControl,
-                    settings.eliteFraction, settings.selectionMode);
+                    settings.eliteFraction);
             }
 
             UpdatePredictedStates(mpcState);

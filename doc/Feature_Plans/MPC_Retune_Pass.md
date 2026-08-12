@@ -523,8 +523,16 @@ facing error ~7.6–9.6° vs stock's ~2.9–4.4° — a slow wander consistent w
 `facingWidth` 1.5 rad making small facing gains cost-invisible to
 challengers; a tuning observation for later, not a structural finding.
 
-Confirmation tiers unchanged (ruling 1): next is the scripted-archetype
-session loop with `Fractional × IncumbentElite` asset-flipped, then the
-Dummy-closeout/roster gates; the checkpoint was trained on the churny
-controller, so the shift-cadence mover-collapse risk applies until the
-archetype loop and gates say otherwise.
+**Ruling (user, 2026-08-11, after an in-game playtest of the composite): the
+composite is the only path.** EliteAverage, Argmin, FastForward, and both
+mode enums removed in the same PR (#389) — `IncumbentElite` selection and
+the fractional shift are now the unconditional solver behavior, a net
+simplification over stock. The churn characterization pin is retired and
+replaced by settled-loop pins (`Run_VersusDummy_OnTarget_HoldsTheFixedPointInertly`,
+`Run_VersusDummy_OffTarget_ConvergesWithinHullRate`).
+
+Outcome gates still owed (ruling 1 tiers): the checkpoint was trained on the
+churny controller, and the 10 Hz cadence arm's mover collapse (63→43.5) is
+the measured precedent — a Dummy-closeout + roster bench pass on the merged
+behavior is the outstanding proof; sequencing (before vs after merge) is the
+user's call.

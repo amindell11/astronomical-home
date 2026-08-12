@@ -18,6 +18,8 @@ MonoBehaviour:
   noiseStd: 0.75
   noiseKnots: 5
   eliteFraction: 0.113
+  selectionMode: 2
+  planShiftMode: 1
   wVelTrack: 50
   wYawRate: 1
   terminalMultiplier: 10

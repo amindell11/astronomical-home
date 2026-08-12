@@ -152,8 +152,7 @@ namespace Movement.MPC
             float2 enemyPos, float2 enemyVel, float enemyYaw, float enemyYawRate,
             Dynamics enemyDynamics, float projectileSpeed, in AnchoredIntent anchored,
             int samples, float noiseStd, int noiseKnots, Control lastControl,
-            float eliteFraction = 0.1f,
-            MpcSelectionMode selectionMode = MpcSelectionMode.EliteAverage)
+            float eliteFraction = 0.1f)
         {
             var horizon = cfg.horizon;
             EnsureBuffers(horizon, samples);
@@ -226,12 +225,7 @@ namespace Movement.MPC
 
             Evaluate(initialState, costInput, cfg, dynamics, lastControl, samples);
 
-            return selectionMode switch
-            {
-                MpcSelectionMode.Argmin => Argmin(sequence, horizon, samples),
-                MpcSelectionMode.IncumbentElite => IncumbentElite(sequence, horizon, samples, eliteFraction),
-                _ => EliteAverage(sequence, horizon, samples, eliteFraction),
-            };
+            return IncumbentElite(sequence, horizon, samples, eliteFraction);
         }
 
         private void Evaluate(State initialState, CostInput costInput,
@@ -247,63 +241,6 @@ namespace Movement.MPC
                 dynamics = dynamics,
                 lastControl = lastControl,
             }.Schedule(samples, 1).Complete();
-        }
-
-        private float EliteAverage(Control[] sequence, int horizon, int samples, float eliteFraction)
-        {
-            var eliteCount = math.max(1, (int)(samples * math.clamp(eliteFraction, 0.01f, 0.5f)));
-            var costThreshold = FindKthSmallest(costs, samples, eliteCount);
-
-            for (var j = 0; j < horizon; j++)
-                result[j] = default;
-
-            var bestCost = float.MaxValue;
-            var counted = 0;
-            for (var i = 0; i < samples && counted < eliteCount; i++)
-            {
-                if (costs[i] > costThreshold) continue;
-                if (costs[i] < bestCost) bestCost = costs[i];
-
-                var offset = i * horizon;
-                for (var j = 0; j < horizon; j++)
-                {
-                    var c = result[j];
-                    var s = candidates[offset + j];
-                    result[j] = new Control
-                    {
-                        thrust = c.thrust + s.thrust,
-                        strafe = c.strafe + s.strafe,
-                        yawTorque = c.yawTorque + s.yawTorque,
-                    };
-                }
-                counted++;
-            }
-
-            var invCount = 1f / counted;
-            for (var j = 0; j < horizon; j++)
-            {
-                var c = result[j];
-                sequence[j] = new Control
-                {
-                    thrust = math.clamp(c.thrust * invCount, -1f, 1f),
-                    strafe = math.clamp(c.strafe * invCount, -1f, 1f),
-                    yawTorque = math.clamp(c.yawTorque * invCount, -1f, 1f),
-                };
-            }
-
-            return bestCost;
-        }
-
-        private float Argmin(Control[] sequence, int horizon, int samples)
-        {
-            var best = 0;
-            for (var i = 1; i < samples; i++)
-                if (costs[i] < costs[best]) best = i;
-
-            var offset = best * horizon;
-            for (var j = 0; j < horizon; j++)
-                sequence[j] = candidates[offset + j];
-            return costs[best];
         }
 
         // Elite average restricted to candidates that strictly beat the incumbent (candidate 0, the shifted
