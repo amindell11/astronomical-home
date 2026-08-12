@@ -11,11 +11,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>
-    /// Closed-loop tests for <see cref="MpcSolverRig"/>: the solver planning against its own
-    /// <see cref="Model"/> plant versus a stationary Dummy anchor. Production settings asset and
-    /// ship dynamics, no scene or physics.
-    /// </summary>
+    /// <summary>Runs the production MpcSettings asset and Ship_1 dynamics so churn pins characterize the shipped controller.</summary>
     [Category("MPC")]
     public class MpcSolverRigTests
     {
