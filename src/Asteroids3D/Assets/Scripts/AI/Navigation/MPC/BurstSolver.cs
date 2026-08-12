@@ -150,7 +150,8 @@ namespace Movement.MPC
             AI.Scanning.ObstacleScan scan, bool useObstacles, bool multiSphereObstacles,
             float2 velocityReference,
             float2 enemyPos, float2 enemyVel, float enemyYaw, float enemyYawRate,
-            Dynamics enemyDynamics, float projectileSpeed, in AnchoredIntent anchored,
+            Dynamics enemyDynamics, float projectileSpeed, in IntentSentence sentence,
+            in ReferentSnapshot referent1, in ReferentSnapshot referent2,
             int samples, float noiseStd, int noiseKnots, Control lastControl,
             float eliteFraction = 0.1f)
         {
@@ -204,7 +205,9 @@ namespace Movement.MPC
                 enemyStates = enemyStates,
                 enemyStateCount = enemyStateCount,
                 initialVel = initialState.vel,
-                anchored = anchored,
+                sentence = sentence,
+                referent1 = referent1,
+                referent2 = referent2,
             };
 
             // Per-ship stream, solve counter, and quantized position hash decorrelate ships/solves/poses while keeping the noise replayable across physically-identical states (raw float bits would make one ulp of pose noise pick a different stream).
@@ -337,7 +340,7 @@ namespace Movement.MPC
         public CostInput BuildCostInput(float2 velocityReference,
             float2 enemyPos = default, float2 enemyVel = default,
             float enemyYaw = float.NaN, float enemyYawRate = 0f, float projectileSpeed = 0f,
-            float2 initialVel = default, AnchoredIntent anchored = default)
+            float2 initialVel = default, IntentSentence sentence = default)
         {
             return new CostInput
             {
@@ -352,7 +355,7 @@ namespace Movement.MPC
                 enemyStates = enemyStates.IsCreated ? enemyStates : default,
                 enemyStateCount = enemyStates.IsCreated ? enemyStates.Length : 0,
                 initialVel = initialVel,
-                anchored = anchored,
+                sentence = sentence,
             };
         }
 

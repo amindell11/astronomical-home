@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace Tests.EditMode
 {
-    /// <summary>Pins the anchored-intent semantics (doc/Glossary.md → anchored intent): the enemy-polar frame is relative to the enemy's motion, vr &gt; 0 closes along +losHat, vt &gt; 0 and positive facing offsets are CCW, references re-resolve per rollout step from the rolled ship pos, weight-0 falls back to the delegation priors, and the default (non-anchored) input leaves the legacy world-frame path unchanged.</summary>
+    /// <summary>Pins the anchored-intent semantics — since the sentence carrier landed, the enemy-bound AIM+VEL degenerate sentence (doc/Glossary.md → anchored intent): the enemy-polar frame is relative to the enemy's motion, vr &gt; 0 closes along +losHat, vt &gt; 0 and positive facing offsets are CCW, references re-resolve per rollout step from the rolled ship pos, weight-0 falls back to the delegation priors, and the default (nothing-armed) sentence leaves the legacy world-frame path unchanged.</summary>
     [Category("MPC")]
     public class MpcAnchoredIntentEditModeTests
     {
@@ -24,8 +24,8 @@ namespace Tests.EditMode
             wVelTrack = 5f,
         };
 
-        private static AnchoredIntent Velocity(float vr, float vt, float weight = 1f) =>
-            new() { hasVelocity = true, radialSpeed = vr, tangentialSpeed = vt, velocityWeight = weight };
+        private static IntentSentence Velocity(float vr, float vt, float weight = 1f) =>
+            new() { vel = new VelSlot { armed = true, radialSpeed = vr, tangentialSpeed = vt, weight = weight } };
 
         // ---- Anchored velocity reference (closed-form) ----
 
@@ -33,7 +33,7 @@ namespace Tests.EditMode
         public void VelocityRef_PositiveRadial_ClosesAlongLos()
         {
             // Enemy dead ahead on +Y, stationary: losHat = (0,1), so vr > 0 must point AT the enemy.
-            var vRef = Cost.AnchoredVelocityRef(float2.zero, new float2(0f, 10f), float2.zero, Velocity(vr: 3f, vt: 0f));
+            var vRef = Cost.AnchoredVelocityRef(float2.zero, new float2(0f, 10f), float2.zero, radialSpeed: 3f, tangentialSpeed: 0f);
             Assert.That(vRef.x, Is.EqualTo(0f).Within(1e-5f));
             Assert.That(vRef.y, Is.EqualTo(3f).Within(1e-5f), "vr > 0 closes along +losHat");
         }
@@ -42,7 +42,7 @@ namespace Tests.EditMode
         public void VelocityRef_PositiveTangential_OrbitsCcw()
         {
             // Ship due south of the enemy: a CCW orbit (viewed on the XY plane) moves +X there.
-            var vRef = Cost.AnchoredVelocityRef(float2.zero, new float2(0f, 10f), float2.zero, Velocity(vr: 0f, vt: 4f));
+            var vRef = Cost.AnchoredVelocityRef(float2.zero, new float2(0f, 10f), float2.zero, radialSpeed: 0f, tangentialSpeed: 4f);
             Assert.That(vRef.x, Is.EqualTo(4f).Within(1e-5f), "vt > 0 is CCW around the enemy");
             Assert.That(vRef.y, Is.EqualTo(0f).Within(1e-5f));
         }
@@ -51,7 +51,7 @@ namespace Tests.EditMode
         public void VelocityRef_IsRelativeToEnemyMotion()
         {
             // Zero polar command against a moving enemy = match its velocity (an orbit is an orbit because the frame moves).
-            var vRef = Cost.AnchoredVelocityRef(float2.zero, new float2(0f, 10f), new float2(3f, -1f), Velocity(vr: 0f, vt: 0f));
+            var vRef = Cost.AnchoredVelocityRef(float2.zero, new float2(0f, 10f), new float2(3f, -1f), radialSpeed: 0f, tangentialSpeed: 0f);
             Assert.That(vRef.x, Is.EqualTo(3f).Within(1e-5f));
             Assert.That(vRef.y, Is.EqualTo(-1f).Within(1e-5f));
         }
@@ -60,7 +60,7 @@ namespace Tests.EditMode
         public void VelocityRef_IsDeliberatelyUnclamped()
         {
             // Closing on a fleeing enemy can command more than maxSpeed — best-effort tracking is the honest semantics.
-            var vRef = Cost.AnchoredVelocityRef(float2.zero, new float2(0f, 10f), new float2(0f, 10f), Velocity(vr: 10f, vt: 0f));
+            var vRef = Cost.AnchoredVelocityRef(float2.zero, new float2(0f, 10f), new float2(0f, 10f), radialSpeed: 10f, tangentialSpeed: 0f);
             Assert.That(math.length(vRef), Is.EqualTo(20f).Within(1e-4f));
         }
 
@@ -68,7 +68,7 @@ namespace Tests.EditMode
         public void VelocityRef_ZeroRange_CollapsesToVelocityMatch()
         {
             // Polar directions are undefined at zero range: both components drop, reference = enemy velocity.
-            var vRef = Cost.AnchoredVelocityRef(new float2(5f, 5f), new float2(5f, 5f), new float2(2f, 1f), Velocity(vr: 9f, vt: 9f));
+            var vRef = Cost.AnchoredVelocityRef(new float2(5f, 5f), new float2(5f, 5f), new float2(2f, 1f), radialSpeed: 9f, tangentialSpeed: 9f);
             Assert.That(vRef.x, Is.EqualTo(2f).Within(1e-5f));
             Assert.That(vRef.y, Is.EqualTo(1f).Within(1e-5f));
         }
@@ -102,7 +102,7 @@ namespace Tests.EditMode
             {
                 enemyPos = new float2(0f, 10f),
                 enemyYaw = 0f,
-                anchored = new AnchoredIntent { hasFacing = true, facingOffsetRad = 0.5f * math.PI, facingWeight = 1f },
+                sentence = new IntentSentence { aim = new AimSlot { armed = true, offsetRad = 0.5f * math.PI, weight = 1f } },
             };
             var ctx = Cost.EvalContext.Create(default, input, BareConfig(), step: 0);
             Assert.That(ctx.facingTarget, Is.EqualTo(0.5f * math.PI).Within(1e-4f));
@@ -117,7 +117,7 @@ namespace Tests.EditMode
             {
                 enemyPos = new float2(0f, 10f),
                 enemyYaw = 0f,
-                anchored = new AnchoredIntent { hasFacing = true, facingOffsetRad = math.PI, facingWeight = 1f },
+                sentence = new IntentSentence { aim = new AimSlot { armed = true, offsetRad = math.PI, weight = 1f } },
             };
             var ctx = Cost.EvalContext.Create(default, input, BareConfig(), step: 0);
             Assert.That(math.abs(ctx.facingTarget), Is.EqualTo(math.PI).Within(1e-4f));
@@ -141,10 +141,10 @@ namespace Tests.EditMode
                     enemyYaw = 0f,
                     enemyStates = enemyStates,
                     enemyStateCount = 2,
-                    anchored = new AnchoredIntent
+                    sentence = new IntentSentence
                     {
-                        hasFacing = true, facingWeight = 1f,
-                        hasVelocity = true, radialSpeed = 3f, velocityWeight = 1f,
+                        aim = new AimSlot { armed = true, weight = 1f },
+                        vel = new VelSlot { armed = true, radialSpeed = 3f, weight = 1f },
                     },
                 };
 
@@ -169,7 +169,7 @@ namespace Tests.EditMode
             {
                 enemyPos = new float2(0f, 10f),
                 enemyYaw = 0f,
-                anchored = new AnchoredIntent { hasVelocity = true, radialSpeed = 3f, velocityWeight = 1f },
+                sentence = Velocity(vr: 3f, vt: 0f),
             };
             var cfg = BareConfig();
             var fromOrigin = Cost.EvalContext.Create(new State { pos = float2.zero }, input, cfg, 0);
@@ -188,10 +188,10 @@ namespace Tests.EditMode
             {
                 enemyPos = new float2(0f, 10f),
                 enemyYaw = 0f,
-                anchored = new AnchoredIntent
+                sentence = new IntentSentence
                 {
-                    hasFacing = true, facingOffsetRad = 1f, facingWeight = 0.25f,
-                    hasVelocity = true, radialSpeed = 3f, velocityWeight = 0.5f,
+                    aim = new AimSlot { armed = true, offsetRad = 1f, weight = 0.25f },
+                    vel = new VelSlot { armed = true, radialSpeed = 3f, weight = 0.5f },
                 },
             };
             var ctx = Cost.EvalContext.Create(default, input, BareConfig(), 0);
@@ -225,37 +225,37 @@ namespace Tests.EditMode
             {
                 enemyPos = new float2(10f, 0f),
                 enemyYaw = 0f,
-                anchored = new AnchoredIntent { hasFacing = true, facingWeight = 0f },
+                sentence = new IntentSentence { aim = new AimSlot { armed = true, weight = 0f } },
             };
             var s = new State { vel = new float2(0f, 5f), yaw = 0.5f * math.PI };
             var ctx = Cost.EvalContext.Create(s, input, cfg, 0);
 
-            Assert.That(Cost.Aim(s, ctx, cfg), Is.EqualTo(0f), "zero authority silences the anchored term");
+            Assert.That(Cost.Aim(s, ctx, cfg), Is.EqualTo(0f), "zero authority silences the AIM slot");
             Assert.That(Cost.FacingPriorCost(s.yaw, s.vel, cfg), Is.GreaterThan(0f), "the prior still steers the nose");
         }
 
         [Test]
         public void TargetlessAnchored_CollapsesToThePriors()
         {
-            // No enemy (yaw NaN) with anchored channels set — anchored terms drop instead of throwing or tracking garbage.
+            // No enemy (yaw NaN) with sentence slots armed — the slots drop instead of throwing or tracking garbage.
             var input = new CostInput
             {
                 enemyYaw = float.NaN,
-                anchored = new AnchoredIntent
+                sentence = new IntentSentence
                 {
-                    hasFacing = true, facingWeight = 1f,
-                    hasVelocity = true, radialSpeed = 5f, velocityWeight = 1f,
+                    aim = new AimSlot { armed = true, weight = 1f },
+                    vel = new VelSlot { armed = true, radialSpeed = 5f, weight = 1f },
                 },
             };
             var ctx = Cost.EvalContext.Create(default, input, BareConfig(), 0);
-            Assert.That(float.IsNaN(ctx.facingTarget), Is.True, "no anchor → no facing target (FacingCost reads NaN as 0)");
-            Assert.That(ctx.velTrackScale, Is.EqualTo(0f), "no anchor → the velocity term drops; the momentum prior carries delegation");
+            Assert.That(float.IsNaN(ctx.facingTarget), Is.True, "no referent → no facing target (FacingCost reads NaN as 0)");
+            Assert.That(ctx.velTrackScale, Is.EqualTo(0f), "no referent → the velocity term drops; the momentum prior carries delegation");
         }
 
         // ---- Dormancy: the legacy path is bit-unchanged ----
 
         [Test]
-        public void DefaultAnchoredBlock_LeavesTheLegacyPathUntouched()
+        public void DefaultSentence_LeavesTheLegacyPathUntouched()
         {
             var cfg = BareConfig();
             cfg.facingTarget = 0.7f;
@@ -270,11 +270,13 @@ namespace Tests.EditMode
             var ctx = Cost.EvalContext.Create(default, input, cfg, 0);
 
             Assert.That(ctx.facingTarget, Is.EqualTo(0.7f),
-                "projectileSpeed alone no longer arms intercept-facing — the old silent precedence is gone; intercept aim now arrives as an anchored offset-0 intent");
+                "projectileSpeed alone no longer arms intercept-facing — the old silent precedence is gone; intercept aim now arrives as an AIM slot at offset 0");
             Assert.That(ctx.facingWeightScale, Is.EqualTo(1f));
             Assert.That(ctx.velocityRef.x, Is.EqualTo(2f));
             Assert.That(ctx.velocityRef.y, Is.EqualTo(-6f));
             Assert.That(ctx.velTrackScale, Is.EqualTo(1f));
+            Assert.That(ctx.posWeightScale, Is.EqualTo(0f), "POS unarmed → no position term");
+            Assert.That(ctx.fieldScale, Is.EqualTo(1f), "FIELD unarmed → the turn-away branch runs at the character ceiling");
         }
 
         // ---- Navigator seam: mapping, contradiction, collapse, arming ----
@@ -327,9 +329,9 @@ namespace Tests.EditMode
         {
             nav.ApplyObjective(NavObjective.Anchored(AnchorId).Planar(Vector2.zero).Facing(0f, 1f), Anchor());
 
-            Assert.That(nav.anchored.hasFacing, Is.True);
-            Assert.That(nav.anchored.facingOffsetRad, Is.EqualTo(0f));
-            Assert.That(nav.anchored.facingWeight, Is.EqualTo(1f));
+            Assert.That(nav.sentence.aim.armed, Is.True);
+            Assert.That(nav.sentence.aim.offsetRad, Is.EqualTo(0f));
+            Assert.That(nav.sentence.aim.weight, Is.EqualTo(1f));
         }
 
         [Test]
@@ -338,14 +340,14 @@ namespace Tests.EditMode
             var planarWins = (NavObjective)NavObjective.Anchored(AnchorId)
                 .Velocity(3f, 0f, 1f)
                 .Planar(new Vector2(1f, 2f));
-            Assert.That(planarWins.anchored.hasVelocity, Is.False,
+            Assert.That(planarWins.sentence.vel.armed, Is.False,
                 "a world reference replaces the polar channel rather than stacking with it");
 
             var polarWins = (NavObjective)NavObjective.Anchored(AnchorId)
                 .Planar(new Vector2(1f, 2f))
                 .Velocity(3f, 0f, 1f);
             Assert.That(polarWins.hasPlanarVelocity, Is.False);
-            Assert.That(polarWins.anchored.radialSpeed, Is.EqualTo(3f));
+            Assert.That(polarWins.sentence.vel.radialSpeed, Is.EqualTo(3f));
         }
 
         [Test]
@@ -356,7 +358,7 @@ namespace Tests.EditMode
             Assert.That(nav.ShouldIdle(), Is.False,
                 "an enemy-polar move channel arms the navigator on its own");
             Assert.That(float.IsNaN(nav.enemyYaw), Is.False,
-                "anchored channels need the enemy in the solver even with no facing command");
+                "anchored slots need the enemy in the solver even with no facing command");
         }
 
         [Test]
@@ -365,19 +367,19 @@ namespace Tests.EditMode
             nav.ApplyObjective(NavObjective.Anchored(AnchorId).Velocity(3f, 0f, 1f), Anchor());
             nav.ApplyObjective(NavObjective.Planar(new Vector2(3f, 0f)), Anchor());
 
-            Assert.That(nav.anchored.hasVelocity, Is.False,
+            Assert.That(nav.sentence.vel.armed, Is.False,
                 "an unanchored objective must not leak the prior anchored command");
             Assert.That(float.IsNaN(nav.enemyYaw), Is.True,
-                "no anchored channel → no enemy state → the cost model collapses to the priors");
+                "no instance slot → no enemy state → the cost model collapses to the priors");
         }
 
         [Test]
-        public void ApplyObjective_Drift_ClearsTheAnchoredBlock()
+        public void ApplyObjective_Drift_ClearsTheSentence()
         {
             nav.ApplyObjective(NavObjective.Anchored(AnchorId).Velocity(3f, 0f, 1f), Anchor());
             nav.ApplyObjective(NavObjective.Drift, Anchor());
 
-            Assert.That(nav.anchored.hasVelocity, Is.False, "reset must not leak a stale anchored command");
+            Assert.That(nav.sentence.vel.armed, Is.False, "reset must not leak a stale anchored command");
         }
 
         [Test]

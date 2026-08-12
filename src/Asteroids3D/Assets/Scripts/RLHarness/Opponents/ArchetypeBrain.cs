@@ -141,9 +141,9 @@ namespace Game.RLHarness
             if (drive == ArchetypeDrive.OpenLoopAnchored)
             {
                 var polar = VelocityRebase.ToAnchored(lawVelocity, planePos, target.Kinematics.pos);
-                radialSpeed = polar.radialSpeed;
-                tangentialSpeed = polar.tangentialSpeed;
-                builder = builder.Velocity(radialSpeed, tangentialSpeed, polar.velocityWeight);
+                radialSpeed = polar.vel.radialSpeed;
+                tangentialSpeed = polar.vel.tangentialSpeed;
+                builder = builder.Velocity(radialSpeed, tangentialSpeed, polar.vel.weight);
             }
             else
             {

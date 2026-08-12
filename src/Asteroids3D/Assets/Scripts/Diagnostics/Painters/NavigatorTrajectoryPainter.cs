@@ -120,8 +120,8 @@ namespace Game.Diagnostics
             if (states == null || states.Length == 0 || sequence == null || sequence.Length == 0) return;
 
             var config = nav.config;
-            var input = nav.solver.BuildCostInput(nav.velocityReference, nav.enemyPos, nav.enemyVel,
-                nav.enemyYaw, nav.enemyYawRate, nav.projectileSpeed, states[0].vel, nav.anchored);
+            var input = nav.solver.BuildCostInput(nav.CostVelocityReference, nav.enemyPos, nav.enemyVel,
+                nav.enemyYaw, nav.enemyYawRate, nav.projectileSpeed, states[0].vel, nav.sentence);
             var prevPos = Plane(states[0].pos);
             var prevU = sequence[0];
 

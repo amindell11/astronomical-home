@@ -2,23 +2,23 @@ using Unity.Mathematics;
 
 namespace Movement.MPC
 {
-    /// <summary>Composes the fixed cost-term menu. Two axes meet here and nowhere else: the objective terms (<c>Terms/VelocityTrack</c>, <c>Terms/Facing</c>) are parameterized per decision and cross the pilot-decision seam, while the solver-owned terms (<c>Terms/Obstacles</c>, <c>Terms/Regularization</c>) are ship character read from <see cref="MpcSettings"/> and never do. Burst rules out a runtime-pluggable term list, so the menu is fixed and the objective selects within it.</summary>
+    /// <summary>Composes the fixed cost-term menu. Two axes meet here and nowhere else: the objective terms (<c>Terms/VelocityTrack</c>, <c>Terms/Facing</c>, <c>Terms/Position</c>) are parameterized per decision by the intent sentence and cross the pilot-decision seam, while the solver-owned terms (<c>Terms/Obstacles</c>, <c>Terms/Regularization</c>) are ship character read from <see cref="MpcSettings"/> and never do (FIELD only scales the turn-away branch). Burst rules out a runtime-pluggable term list, so the menu is fixed and the sentence selects within it.</summary>
     public static partial class Cost
     {
         private const float TwoPi = 2f * math.PI;
 
-        /// <summary>Preprocessed per-step context shared by Evaluate and EvaluateBreakdown: the predicted enemy this step, the resolved facing target, and the resolved velocity reference with their authority scales (×1 on the legacy world-frame path).</summary>
+        /// <summary>Per-step resolution of the intent sentence shared by Evaluate and EvaluateBreakdown: each armed slot's referent resolved for this step, folded into a target/reference plus an authority scale. Unarmed slots take the legacy path (×1 world-frame facing/velocity, ×1 field), so a default sentence is bit-identical to the pre-sentence cost.</summary>
         [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
         internal struct EvalContext
         {
-            public float2 enemyPos;
-            public float2 enemyVel;
-            public float enemyYaw;
-            public bool hasEnemy;
             public float facingTarget;
             public float facingWeightScale;
             public float2 velocityRef;
             public float velTrackScale;
+            public float2 posPoint;
+            public float posSetpoint;
+            public float posWeightScale;
+            public float fieldScale;
 
             internal static EvalContext Create(State s, CostInput input, Config cfg, int step)
             {
@@ -42,16 +42,17 @@ namespace Movement.MPC
                     enemyYaw = hasEnemy ? input.enemyYaw + input.enemyYawRate * stepTime : input.enemyYaw;
                 }
 
-                var anchored = input.anchored;
+                var sentence = input.sentence;
 
                 float facingTarget, facingWeightScale;
-                if (anchored.hasFacing)
+                if (sentence.aim.armed)
                 {
-                    // Anchored with no enemy collapses to NaN (FacingCost 0) — the priors carry delegation.
-                    facingTarget = hasEnemy
-                        ? WrapRadians(AnchorYaw(s.pos, enemyPos, enemyVel, input.projectileSpeed) + anchored.facingOffsetRad)
+                    // An AIM with no live referent collapses to NaN (FacingCost 0) — the priors carry delegation.
+                    facingTarget = ResolveReferent(sentence.aim.referent, input, hasEnemy,
+                        enemyPos, enemyVel, enemyYaw, stepTime, out var aimPos, out var aimVel, out _)
+                        ? WrapRadians(AnchorYaw(s.pos, aimPos, aimVel, input.projectileSpeed) + sentence.aim.offsetRad)
                         : float.NaN;
-                    facingWeightScale = anchored.facingWeight;
+                    facingWeightScale = sentence.aim.weight;
                 }
                 else
                 {
@@ -61,29 +62,90 @@ namespace Movement.MPC
 
                 float2 velocityRef;
                 float velTrackScale;
-                if (anchored.hasVelocity)
+                if (sentence.vel.armed)
                 {
-                    velocityRef = hasEnemy ? AnchoredVelocityRef(s.pos, enemyPos, enemyVel, anchored) : default;
-                    velTrackScale = hasEnemy ? anchored.velocityWeight : 0f;
+                    var hasVelReferent = ResolveReferent(sentence.vel.referent, input, hasEnemy,
+                        enemyPos, enemyVel, enemyYaw, stepTime, out var velPos, out var velVel, out _);
+                    velocityRef = hasVelReferent
+                        ? AnchoredVelocityRef(s.pos, velPos, velVel, sentence.vel.radialSpeed, sentence.vel.tangentialSpeed)
+                        : default;
+                    velTrackScale = hasVelReferent ? sentence.vel.weight : 0f;
                 }
-                else
+                else if (!math.isnan(input.velocityReference.x))
                 {
                     velocityRef = input.velocityReference;
                     velTrackScale = 1f;
                 }
+                else
+                {
+                    velocityRef = default;
+                    velTrackScale = 0f;
+                }
+
+                float2 posPoint = default;
+                var posSetpoint = 0f;
+                var posWeightScale = 0f;
+                if (sentence.pos.armed && ResolveReferent(sentence.pos.referent, input, hasEnemy,
+                        enemyPos, enemyVel, enemyYaw, stepTime, out var posRefPos, out var posRefVel, out var posRefYaw))
+                {
+                    posPoint = posRefPos + sentence.pos.offsetR
+                        * Direction(FrameAngle(sentence.pos.frame, posRefYaw, posRefVel) + sentence.pos.offsetThetaRad);
+                    posSetpoint = sentence.pos.setpoint;
+                    posWeightScale = sentence.pos.weight;
+                }
 
                 return new EvalContext
                 {
-                    enemyPos = enemyPos,
-                    enemyVel = enemyVel,
-                    enemyYaw = enemyYaw,
-                    hasEnemy = hasEnemy,
                     facingTarget = facingTarget,
                     facingWeightScale = facingWeightScale,
                     velocityRef = velocityRef,
                     velTrackScale = velTrackScale,
+                    posPoint = posPoint,
+                    posSetpoint = posSetpoint,
+                    posWeightScale = posWeightScale,
+                    fieldScale = sentence.field.armed ? sentence.field.weight : 1f,
                 };
             }
+
+            /// <summary>Step-resolved kinematics of a slot's referent: 0 = the bound enemy (rolled stream or linear fallback, already resolved by the caller), 1–2 = synthetic snapshots extrapolated linearly. False = despawned/absent — the slot drops to weight 0.</summary>
+            private static bool ResolveReferent(int referent, in CostInput input, bool hasEnemy,
+                float2 enemyPos, float2 enemyVel, float enemyYaw, float stepTime,
+                out float2 pos, out float2 vel, out float yaw)
+            {
+                switch (referent)
+                {
+                    case 1: return Extrapolate(input.referent1, stepTime, out pos, out vel, out yaw);
+                    case 2: return Extrapolate(input.referent2, stepTime, out pos, out vel, out yaw);
+                    default:
+                        pos = enemyPos;
+                        vel = enemyVel;
+                        yaw = enemyYaw;
+                        return hasEnemy;
+                }
+            }
+
+            private static bool Extrapolate(in ReferentSnapshot snapshot, float stepTime,
+                out float2 pos, out float2 vel, out float yaw)
+            {
+                pos = snapshot.pos + snapshot.vel * stepTime;
+                vel = snapshot.vel;
+                yaw = snapshot.yaw;
+                return snapshot.valid;
+            }
+
+            /// <summary>The frame's forward angle: world +Y for the position frame, the referent's nose, or its velocity direction (world fallback near rest, mirroring the polar-collapse convention).</summary>
+            private static float FrameAngle(ReferentFrame frame, float refYaw, float2 refVel)
+            {
+                switch (frame)
+                {
+                    case ReferentFrame.Facing: return refYaw;
+                    case ReferentFrame.Velocity:
+                        return math.lengthsq(refVel) > 1e-4f ? math.atan2(-refVel.x, refVel.y) : 0f;
+                    default: return 0f;
+                }
+            }
+
+            private static float2 Direction(float yaw) => new(-math.sin(yaw), math.cos(yaw));
         }
 
         public static float Evaluate(State s, Control u, Control prevU,
@@ -92,12 +154,13 @@ namespace Movement.MPC
             var ctx = EvalContext.Create(s, input, cfg, step);
             var profileScale = BankProfileScale(u.strafe, cfg);
 
-            ObstacleCosts(s, input, cfg, profileScale, out var collisionCost, out var obstacleCost);
+            ObstacleCosts(s, input, cfg, profileScale, ctx.fieldScale, out var collisionCost, out var obstacleCost);
 
             // Control effort (a function of u) and the velocity tracker (regulation, not reaching) stay outside the terminal ramp.
             var stateCost = Aim(s, ctx, cfg)
                 + FacingPriorCost(s.yaw, s.vel, cfg)
-                + StateRegularizers(s, input, cfg, obstacleCost);
+                + StateRegularizers(s, input, cfg, obstacleCost)
+                + Pos(s, ctx, cfg);
 
             var perStepCost = ControlCost(u, prevU, cfg)
                 + VelocityTrackCost(s.vel, ctx.velocityRef, cfg.maxSpeedSq) * cfg.wVelTrack * ctx.velTrackScale;
@@ -127,13 +190,14 @@ namespace Movement.MPC
             var profileScale = BankProfileScale(u.strafe, cfg);
 
             // Shares Evaluate's obstacle resolution so the two can't drift.
-            ObstacleCosts(s, input, cfg, profileScale, out var collision, out var obstacle);
+            ObstacleCosts(s, input, cfg, profileScale, ctx.fieldScale, out var collision, out var obstacle);
 
             var breakdown = new CostBreakdown
             {
                 velocityTrack = VelocityTrackCost(s.vel, ctx.velocityRef, cfg.maxSpeedSq) * cfg.wVelTrack * ctx.velTrackScale,
                 facing = Aim(s, ctx, cfg),
                 facingPrior = FacingPriorCost(s.yaw, s.vel, cfg),
+                pos = Pos(s, ctx, cfg),
                 yawRate = YawRateCost(s.yawRate, cfg.maxYawRateSq) * cfg.wYawRate,
                 obstacle = obstacle,
                 collision = collision,
@@ -144,8 +208,8 @@ namespace Movement.MPC
                 smoothness = SmoothnessCost(u, prevU, cfg)
             };
 
-            // Mirrors Cost.Evaluate: the ramp applies to state cost (facing + prior + regularizers); the tracker and control terms stay per-step.
-            var stateCost = breakdown.facing + breakdown.facingPrior + breakdown.yawRate + breakdown.obstacle + breakdown.momentum;
+            // Mirrors Cost.Evaluate: the ramp applies to state cost (facing + prior + pos + regularizers); the tracker and control terms stay per-step.
+            var stateCost = breakdown.facing + breakdown.facingPrior + breakdown.yawRate + breakdown.obstacle + breakdown.momentum + breakdown.pos;
             var total = stateCost + breakdown.effort + breakdown.smoothness + breakdown.velocityTrack;
 
             if (cfg.terminalMultiplier > 0f && cfg.horizon > 1)
