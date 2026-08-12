@@ -2,12 +2,12 @@ using Unity.Mathematics;
 
 namespace Movement.MPC
 {
-    /// <summary>Composes the fixed cost-term menu. Two axes meet here and nowhere else: the objective terms (<c>Terms/VelocityTrack</c>, <c>Terms/Facing</c>, <c>Terms/Position</c>) are parameterized per decision by the intent sentence and cross the pilot-decision seam, while the solver-owned terms (<c>Terms/Obstacles</c>, <c>Terms/Regularization</c>) are ship character read from <see cref="MpcSettings"/> and never do (FIELD only scales the turn-away branch). Burst rules out a runtime-pluggable term list, so the menu is fixed and the sentence selects within it.</summary>
+    /// <summary>Composes the fixed cost-term menu. Two axes meet here and nowhere else: the objective terms (<c>Terms/VelocityTrack</c>, <c>Terms/Facing</c>, <c>Terms/Position</c>) are parameterized per decision by the intent sentence and cross the pilot-decision seam, while the solver-owned terms (<c>Terms/Obstacles</c>, <c>Terms/Regularization</c>) are ship character read from <see cref="MpcSettings"/> and never do. Burst rules out a runtime-pluggable term list, so the menu is fixed and the sentence selects within it.</summary>
     public static partial class Cost
     {
         private const float TwoPi = 2f * math.PI;
 
-        /// <summary>Per-step resolution of the intent sentence shared by Evaluate and EvaluateBreakdown: each armed slot's referent resolved for this step, folded into a target/reference plus an authority scale. Unarmed slots take the legacy path (×1 world-frame facing/velocity, ×1 field), so a default sentence is bit-identical to the pre-sentence cost.</summary>
+        /// <summary>Per-step sentence resolution shared by Evaluate and EvaluateBreakdown; unarmed slots take the ×1 legacy path, keeping the default sentence bit-identical.</summary>
         [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
         internal struct EvalContext
         {
@@ -107,7 +107,7 @@ namespace Movement.MPC
                 };
             }
 
-            /// <summary>Step-resolved kinematics of a slot's referent: 0 = the bound enemy (rolled stream or linear fallback, already resolved by the caller), 1–2 = synthetic snapshots extrapolated linearly. False = despawned/absent — the slot drops to weight 0.</summary>
+            /// <summary>Step-resolved referent kinematics: 0 = the caller-resolved enemy, 1–2 = extrapolated snapshots; false = absent, the slot drops to weight 0.</summary>
             private static bool ResolveReferent(int referent, in CostInput input, bool hasEnemy,
                 float2 enemyPos, float2 enemyVel, float enemyYaw, float stepTime,
                 out float2 pos, out float2 vel, out float yaw)
@@ -133,7 +133,7 @@ namespace Movement.MPC
                 return snapshot.valid;
             }
 
-            /// <summary>The frame's forward angle: world +Y for the position frame, the referent's nose, or its velocity direction (world fallback near rest, mirroring the polar-collapse convention).</summary>
+            /// <summary>The frame's forward angle; the velocity frame falls back to world axes near rest.</summary>
             private static float FrameAngle(ReferentFrame frame, float refYaw, float2 refVel)
             {
                 switch (frame)

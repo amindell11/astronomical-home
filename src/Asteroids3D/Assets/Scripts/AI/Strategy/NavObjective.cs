@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace AI
 {
-    /// <summary>The decision-varying slice of the MPC cost function: an intent sentence plus the legacy world-plane move channel. Referent-frame slots reach the solver only through <see cref="Anchored"/>, so an anchorless one cannot be authored, and session objectives are single-referent — every instance slot binds the one anchor. The anchor is identity, not kinematics — the host resolves it against the live ship each tick, so a decision held across its 5 Hz interval never steers at a stale enemy.</summary>
+    /// <summary>The decision-varying slice of the MPC cost: an intent sentence plus the legacy world-plane move channel. Referent-frame slots exist only through <see cref="Anchored"/> and all bind the one anchor — which is identity, not kinematics: the host resolves it each tick, so a held decision never steers at a stale enemy.</summary>
     public readonly struct NavObjective
     {
         internal readonly bool hasAnchor;
@@ -96,7 +96,7 @@ namespace AI
             return new AnchoredBuilder(anchor, hasPlanarVelocity, planarVelocity, next);
         }
 
-        /// <summary>A point at polar offset (r, θ) in the anchor's chosen frame; the setpoint turns it into a hold-ring (0 = be at the point). Authority scales the settings asset's wPos ceiling.</summary>
+        /// <summary>A point at polar offset (r, θ) in the anchor's chosen frame; the setpoint makes it a hold-ring (0 = at the point).</summary>
         public AnchoredBuilder Position(float offsetR, float offsetThetaRad, float setpoint, float authority,
             ReferentFrame frame = ReferentFrame.Position)
         {
@@ -113,7 +113,7 @@ namespace AI
             return new AnchoredBuilder(anchor, hasPlanarVelocity, planarVelocity, next);
         }
 
-        /// <summary>Hazard-repulsion authority scaling the solver's turn-away branch (0 = no hazard shaping; the collision penalty stays). Unauthored, the branch runs at ×1.</summary>
+        /// <summary>Hazard-repulsion authority over the turn-away branch (0 = no hazard shaping; the collision penalty stays).</summary>
         public AnchoredBuilder Field(float authority)
         {
             var next = sentence;
